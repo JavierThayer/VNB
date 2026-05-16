@@ -1,0 +1,82 @@
+\chapter{Source file overview}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+
+\item \begin{sloppypar}\texttt{expressions.scm}
+  Expression representation, free variables, substitution
+  (capture-avoiding), alpha-equivalence.\end{sloppypar}
+
+\item \texttt{sequents.scm}
+  Sequents (list of assumptions + assertion), context operations.
+
+\item \texttt{deduction-graphs.scm}
+  Sequent nodes, inference nodes, the deduction graph record type,
+  grounding propagation.
+
+\item \texttt{primitive-inferences.scm}
+  The kernel: all proof rules as Scheme procedures.  The only code
+  allowed to extend the deduction graph.
+
+\item \texttt{macetes.scm}
+  Pattern matching, elementary macete construction from theorems,
+  compound macete combinators.
+
+\item \texttt{theory.scm}
+  Theory record, axiom/theorem registration, the VNB base theory.
+
+\item \begin{sloppypar}\texttt{structures.scm}
+  \texttt{declare-structure} (user-facing macro) and \texttt{def-structure}
+  (lower-level Scheme procedure): register structure definitions, install
+  NTH-based accessor macetes, auto-generate \texttt{IS-\textit{NAME}}
+  axioms.\end{sloppypar}
+
+\item \texttt{number-systems.scm}
+  Declares \texttt{NN}, \texttt{ZZ}, \texttt{QQ}, \texttt{RR},
+  \texttt{CC} as constants and installs their arithmetic axioms
+  (sethood, inclusion chain, ring/field laws, absolute value,
+  conjugation).
+
+\item \begin{sloppypar}\texttt{wff.scm}
+  \texttt{<wff>} record type (\texttt{formula}, \texttt{theory},
+  \texttt{contexts} fields); \texttt{wff?}, \texttt{wff-formula},
+  \texttt{wff-theory}; \texttt{wff-child} (inherit theory from parent),
+  \texttt{wff-in-theory} (bare constructor), \texttt{wff-equiv?}.\end{sloppypar}
+
+\item \begin{sloppypar}\texttt{contexts.scm}
+  \texttt{make-wff} (snapshot current theory and context stack),
+  \texttt{wff-free-vars}, \texttt{declare-local-context},
+  \texttt{undeclare-local-context}, \texttt{get-context},
+  \texttt{unravel}, \texttt{print-wff}, \texttt{display-contents}
+  (browse a wff's formula, theory, and kind).\end{sloppypar}
+
+\item \texttt{arith-eval.scm}
+  Ground arithmetic decision procedure.  Evaluates closed formulas over
+  $\mathit{NN}/\mathit{ZZ}/\mathit{QQ}/\mathit{RR}/\mathit{CC}$ using
+  Scheme's exact arithmetic.  Handles \texttt{+}, \texttt{*},
+  \texttt{-}, \texttt{recip}, \texttt{abs}, \texttt{conjugate},
+  \texttt{succ}, \texttt{<=}, \texttt{=}, \texttt{IN}, and
+  \texttt{power}.  Provides \texttt{vnb-do-arith} (standalone
+  predicate), \texttt{vnb-create-num-theorem} (verify and install a
+  numeric theorem), and \texttt{pi-arith!} / \texttt{cmd-arith} (closes
+  proof goals).
+
+\item \texttt{proof-commands.scm}
+  High-level command wrappers with automatic focus management.  Also
+  \texttt{cmd-qed} (install a completed proof as a theorem) and
+  \texttt{subst-wff} (meta-level substitution into a wff).
+
+\item \texttt{interactive.scm}
+  Interactive short-form commands (\texttt{sp}, \texttt{di},
+  \texttt{ai}, \ldots), \texttt{fa}/\texttt{fs} quantification helpers,
+  and the \texttt{show} display function.  Loaded at session startup.
+
+\item \texttt{vnb.el}
+  GNU Emacs / XEmacs interface.  REPL buffer (\texttt{*VNB*}),
+  proof-state display buffer (\texttt{*VNB State*}), command scratch
+  buffer (\texttt{*VNB Commands*}), command alist and completion,
+  \texttt{vnb-eval-string} for programmatic evaluation.
+
+\end{itemize}
+
+%% =========================================================
+

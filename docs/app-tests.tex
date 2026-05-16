@@ -1,0 +1,439 @@
+\chapter{Regression and demonstration test suite}
+\label{app:tests}
+
+The file \texttt{test-suite.scm} is the canonical regression suite for
+the VNB proof checker.  It exercises every major subsystem in order:
+ground arithmetic, axiom installation, the parser, wff validation,
+macetes with local context, proof commands, the number-system chain,
+and arithmetic over~$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{R}$,
+$\mathbb{C}$.  Running it requires only \texttt{load.scm}; each test
+prints \texttt{PASS} or \texttt{FAIL} and the final line gives the
+aggregate count.
+
+\begin{VNBcode}
+;;; Load the system, then load this file:
+;;;   mit-scheme --quiet --load load.scm < test-suite.scm
+(load "load.scm")
+\end{VNBcode}
+
+\section{Test harness}
+
+\begin{sloppypar}The harness uses three predicates (\texttt{check}, \texttt{check-true},
+\texttt{check-false}), one error-expectation helper
+(\texttt{check-error}), and one proof-completion helper
+(\texttt{check-proof}).  Two convenience wrappers, \texttt{wff-str} and
+\texttt{macete-str}, keep individual test lines short.\end{sloppypar}
+
+\begin{VNBcode}
+(define *pass-count* 0)
+(define *fail-count* 0)
+
+(define (check label thunk expected)
+  (let ((got (thunk)))
+    (if (equal? got expected)
+        (begin (set! *pass-count* (+ *pass-count* 1))
+               (display "  PASS  ") (display label) (newline))
+        (begin (set! *fail-count* (+ *fail-count* 1))
+               (display "  FAIL  ") (display label)
+               (display " -- expected ") (write expected)
+               (display " got ") (write got) (newline)))))
+
+(define (check-true  label thunk) (check label thunk #t))
+(define (check-false label thunk) (check label thunk #f))
+
+(define (check-error label thunk)
+  ;; Pass when thunk returns a <vnb-error> (i.e. input was rejected).
+  (let ((result (thunk)))
+    (if (vnb-error? result)
+        (begin (set! *pass-count* (+ *pass-count* 1))
+               (display "  PASS  ") (display label) (newline))
+        (begin (set! *fail-count* (+ *fail-count* 1))
+               (display "  FAIL  ") (display label)
+               (display " -- expected error, got ") (write result) (newline)))))
+
+(define (check-proof label thunk)
+  ;; Pass when thunk completes without raising.
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler
+        (lambda (e)
+          (set! *fail-count* (+ *fail-count* 1))
+          (display "  FAIL  ") (display label)
+          (display " -- exception: ")
+          (display (condition/report-string e)) (newline)
+          (k #f))
+        thunk)
+      (set! *pass-count* (+ *pass-count* 1))
+      (display "  PASS  ") (display label) (newline))))
+
+;;; wff-str: extract display string from a wff (strips surrounding quotes).
+(define (wff-str w)
+  (let ((s (wff->string w)))
+    (substring s 1 (- (string-length s) 1))))
+
+;;; macete-str: apply a named macete to a formula given as a string.
+;;; Returns the result display string, or #f if the macete doesn't fire.
+(define (macete-str name str)
+  (let ((r (apply-macete name (make-wff-from-string str))))
+    (and r (wff-str r))))
+
+;;; roundtrip: parse a formula string and print it back.
+(define (roundtrip str)
+  (let ((w (make-wff-from-string str)))
+    (if (vnb-error? w) #f (wff-str w))))
+\end{VNBcode}
+
+\section{Ground arithmetic evaluation}
+
+The built-in evaluator decides membership and equalities over exact
+numbers without invoking the proof kernel.
+
+\begin{VNBcode}
+(check-true  "0 in NN"        (lambda () (arith-membership-check 0   'NN)))
+(check-true  "100 in NN"      (lambda () (arith-membership-check 100 'NN)))
+(check-false "-1 not in NN"   (lambda () (arith-membership-check -1  'NN)))
+(check-false "1/2 not in NN"  (lambda () (arith-membership-check 1/2 'NN)))
+
+(check-true  "0 in ZZ"        (lambda () (arith-membership-check 0   'ZZ)))
+(check-true  "-3 in ZZ"       (lambda () (arith-membership-check -3  'ZZ)))
+(check-false "1/2 not in ZZ"  (lambda () (arith-membership-check 1/2 'ZZ)))
+
+(check-true  "1/3 in QQ"      (lambda () (arith-membership-check 1/3 'QQ)))
+(check-false "1/3 not in ZZ"  (lambda () (arith-membership-check 1/3 'ZZ)))
+
+(check "2 + 3 = 5"       (lambda () (arith-eval-term '(+ 2 3)))     5)
+(check "3 * 4 = 12"      (lambda () (arith-eval-term '(* 3 4)))     12)
+(check "10 + (-3) = 7"   (lambda () (arith-eval-term '(+ 10 (- 3)))) 7)
+(check "succ(0) = 1"     (lambda () (arith-eval-term '(succ 0)))    1)
+(check "power(2,3) = 8"  (lambda () (arith-eval-term '(power 2 3))) 8)
+
+(check-true  "= 2+3 5"   (lambda () (arith-eval-formula '(= (+ 2 3) 5))))
+(check-false "= 2+3 6"   (lambda () (arith-eval-formula '(= (+ 2 3) 6))))
+(check-true  "<= 0 5"    (lambda () (arith-eval-formula '(<= 0 5))))
+(check-false "<= 5 0"    (lambda () (arith-eval-formula '(<= 5 0))))
+\end{VNBcode}
+
+\section{Axioms installed}
+
+Every axiom loaded by \texttt{load.scm} is simultaneously a theorem
+(available for \texttt{ta} and backchaining) and a macete entry.
+The \texttt{axiom-present?} helper checks the theorem table.
+
+\begin{VNBcode}
+(define (axiom-present? name)
+  (if (hash-table-ref/default *theorem-table* name #f) #t #f))
+
+(for-each (lambda (name)
+            (check-true (symbol->string name)
+                        (lambda () (axiom-present? name))))
+  '(membership-implies-sethood extensionality
+    empty-set-is-set empty-set-has-no-members
+    pairing pairing-membership
+    power-set power-set-membership
+    union-set-closure intersection-set-closure
+    fun-set-iff fun-elements-are-sets
+    fun-domain-apply-def fun-codomain-iff
+    cartesian-set-iff tuples-sethood
+    make-set-membership make-set-sethood make-set-empty
+    length-of-empty length-in-nn nth-in-range
+    nn-is-set nn-zero-in nn-succ-closed
+    nn-add-closed nn-mul-closed nn-add-comm nn-mul-comm
+    nn-add-assoc nn-mul-assoc nn-distributive nn-one-mul nn-add-zero
+    power-typing-nonneg power-zero power-succ power-neg
+    zz-is-set zz-zero-in zz-one-in
+    qq-is-set rr-is-set cc-is-set
+    nn-subset-zz zz-subset-qq qq-subset-rr rr-subset-cc
+    burali-forti nn-subset-ord ord-succ-in transfinite-induction))
+
+;;; ZZplus must be completely absent (superseded by ZZ axioms)
+(check-false "zzplus-is-set absent"
+             (lambda () (axiom-present? 'zzplus-is-set)))
+\end{VNBcode}
+
+\section{Parser round-trips}
+
+The parser produces an internal S-expression; \texttt{wff->string} prints
+it back.  Round-tripping through \texttt{make-wff-from-string} and
+\texttt{wff-str} is the primary correctness check for the surface syntax.
+
+\begin{VNBcode}
+(check "n in nn"         (lambda () (roundtrip "n in nn"))         "n in nn")
+(check "n = m"           (lambda () (roundtrip "n = m"))           "n = m")
+(check "truth"           (lambda () (roundtrip "truth"))           "truth")
+(check "falsity"         (lambda () (roundtrip "falsity"))         "falsity")
+(check "n + m = m + n"   (lambda () (roundtrip "n + m = m + n"))   "n + m = m + n")
+
+(check "A and B"         (lambda () (roundtrip "n in nn and m in nn"))
+                         "n in nn and m in nn")
+(check "A implies B"     (lambda () (roundtrip "n in nn implies n in zz"))
+                         "n in nn implies n in zz")
+(check "not A"           (lambda () (roundtrip "not(n in nn)"))    "not(n in nn)")
+
+(check-true "forall bare"
+  (lambda () (wff? (make-wff-from-string "forall([x], x in nn implies x in zz)"))))
+(check-true "forall restricted"
+  (lambda () (wff? (make-wff-from-string "forall([x in nn], x in zz)"))))
+(check-true "forsome"
+  (lambda () (wff? (make-wff-from-string "forsome([x in nn], x = 0)"))))
+(check-true "sep {x in A | p}"
+  (lambda () (wff? (make-wff-from-string "z in {x in a | x in nn}"))))
+\end{VNBcode}
+
+\section{Wff validation}
+
+\begin{sloppypar}\texttt{make-wff} and \texttt{make-wff-from-string} validate the formula
+and return a \texttt{<vnb-error>} (rather than raising) on
+ill-formed input.\end{sloppypar}
+
+\begin{VNBcode}
+(check-true  "IN accepted"      (lambda () (wff? (make-wff-from-string
+                                                   "n in nn"))))
+(check-true  "IMPLIES accepted" (lambda () (wff? (make-wff-from-string
+                                                   "n in nn implies n in zz"))))
+(check-true  "NOT accepted"     (lambda () (wff? (make-wff-from-string
+                                                   "not(n in nn)"))))
+(check-true  "FORALL accepted"  (lambda () (wff? (make-wff-from-string
+                                                   "forall([x in nn], x in zz)"))))
+
+;;; Invalid: bare number in wff position
+(check-error "bare number rejected"
+             (lambda () (make-wff-from-string "1")))
+
+;;; Invalid: term-forming head (UNION) in wff position
+(check-error "union in wff position rejected"
+             (lambda () (make-wff '(UNION x y))))
+\end{VNBcode}
+
+\section[\texttt{apply-macete} and local context (Monk 1988)]{\texttt{apply-macete} and local context (Monk~\cite{Monk1988})}
+
+Conditions of a conditional macete are checked against the local
+context accumulated as the rewriter descends.  Entering the
+consequent of \texttt{implies} adds the antecedent; entering the
+right conjunct of \texttt{and} adds the left conjunct; entering the
+right disjunct of \texttt{or} adds the negation of the left disjunct.
+
+\subsection*{Unconditional macetes}
+
+\begin{VNBcode}
+(install-theorem! 'eq-symm
+  (make-wff-from-string "forall([x, y], x = y iff y = x)"))
+
+(check "eq-symm: 3+5=8 -> 8=3+5"
+       (lambda () (macete-str 'eq-symm "3 + 5 = 8"))
+       "8 = 3 + 5")
+(check "eq-symm: rewrites inside implies"
+       (lambda () (macete-str 'eq-symm "n = m implies truth"))
+       "m = n implies truth")
+(check "eq-symm: no match on n in nn"
+       (lambda () (macete-str 'eq-symm "n in nn"))
+       #f)
+(check "eq-symm: both sides rewritten"
+       (lambda () (macete-str 'eq-symm "n = m and m = k"))
+       "m = n and k = m")
+
+(install-theorem! 'and-comm-iff
+  (make-wff-from-string "forall([P, Q], P and Q iff Q and P)"))
+
+(check "and-comm: (A and B) -> (B and A)"
+       (lambda () (macete-str 'and-comm-iff "n in nn and m in nn"))
+       "m in nn and n in nn")
+(check "and-comm: fires inside implies antecedent"
+       (lambda () (macete-str 'and-comm-iff "n in nn and m in nn implies truth"))
+       "m in nn and n in nn implies truth")
+\end{VNBcode}
+
+\subsection*{Conditional macetes}
+
+\begin{VNBcode}
+;;; nn-add-comm: forall([a,b in NN], a+b = b+a)
+;;; Without context the rewrite is suppressed.
+(check "nn-add-comm: no fire on bare sum"
+       (lambda () (macete-str 'nn-add-comm "n + m = 0"))   #f)
+
+;;; Antecedent (AND (IN n NN) (IN m NN)) is flattened into local
+;;; context when entering the consequent.
+(check "nn-add-comm: fires inside implies consequent"
+       (lambda () (macete-str 'nn-add-comm
+                              "n in nn and m in nn implies n + m = m + n"))
+       "n in nn and m in nn implies m + n = n + m")
+
+;;; nn-add-zero: forall([n in NN], n + 0 = n)
+(check "nn-add-zero: no fire without context"
+       (lambda () (macete-str 'nn-add-zero "n + 0 = 5"))   #f)
+(check "nn-add-zero: fires inside implies consequent"
+       (lambda () (macete-str 'nn-add-zero "n in nn implies n + 0 = 5"))
+       "n in nn implies n = 5")
+;;; Entering right conjunct of AND adds left conjunct to context.
+(check "nn-add-zero: fires in right conjunct of AND"
+       (lambda () (macete-str 'nn-add-zero "k in nn and k + 0 = 5"))
+       "k in nn and k = 5")
+;;; Wrong order: condition is right conjunct — no context available yet.
+(check "nn-add-zero: no fire when condition is right conjunct"
+       (lambda () (macete-str 'nn-add-zero "k + 0 = 5 and k in nn"))  #f)
+
+;;; nn-add-closed: rewrites n+m in NN to truth when conditions hold.
+(check "nn-add-closed: fires inside implies, rewrites to truth"
+       (lambda () (macete-str 'nn-add-closed
+                              "n in nn and m in nn implies n + m in nn"))
+       "n in nn and m in nn implies truth")
+(check "nn-add-closed: no fire without context"
+       (lambda () (macete-str 'nn-add-closed "n + m in nn"))  #f)
+
+;;; power-succ: forall([x in CC, n in NN], power(x,succ(n)) = x*power(x,n))
+(check "power-succ: fires with two conditions in context"
+       (lambda () (macete-str 'power-succ
+                              "z in cc and k in nn implies power(z, succ(k)) = w"))
+       "z in cc and k in nn implies z * power(z, k) = w")
+\end{VNBcode}
+
+\section{Proof commands}
+
+Each sub-test proves a simple theorem using one or two rules.
+\texttt{check-proof} verifies that the proof completes without exception.
+
+\begin{VNBcode}
+;;; Arithmetic (arith) — ground facts
+(check-proof "arith: 0 in NN"
+  (lambda () (sp (make-wff-from-string "0 in nn")) (arith)))
+(check-proof "arith: 2 + 3 = 5"
+  (lambda () (sp (make-wff-from-string "2 + 3 = 5")) (arith)))
+(check-proof "arith: -5 in ZZ"
+  (lambda () (sp (make-wff-from-string "-5 in zz")) (arith)))
+(check-proof "arith: 1/3 in QQ"
+  (lambda () (sp (make-wff-from-string "1/3 in qq")) (arith)))
+
+;;; Reflexivity (rfl) and quasi-reflexivity (qrfl)
+(check-proof "rfl: n = n"
+  (lambda () (sp (make-wff-from-string "n = n")) (rfl)))
+(check-proof "qrfl: n == n"
+  (lambda () (sp (make-wff-from-string "n == n")) (qrfl)))
+
+;;; Direct inference (di) — introduce implication, split conjunction/AND
+(check-proof "di + ass: A implies A"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n in nn"))
+    (di) (ass)))
+
+;;; Antecedent inference (ai) — decompose an assumption
+(check-proof "di + ai: prove A and B from A, B"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies m in nn and n in nn"))
+    (di)
+    (ai (make-wff-from-string "n in nn and m in nn"))
+    (di) (ass) (ass)))
+
+;;; OR introduction (oi-l, oi-r)
+(check-proof "oi-l: A implies (A or B)"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n in nn or m in nn"))
+    (di) (oi-l) (ass)))
+(check-proof "oi-r: A implies (B or A)"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies m in nn or n in nn"))
+    (di) (oi-r) (ass)))
+
+;;; Theorem assumption (ta) + universal instantiation (ui)
+(check-proof "ta + ui: n+0 = n"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n + 0 = n"))
+    (di) (ta 'nn-add-zero) (ui "n") (ass)))
+(check-proof "ta + ui: n+m = m+n"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m = m + n"))
+    (di) (ta 'nn-add-comm) (ui "n") (ui "m") (ass)))
+(check-proof "ta + ui: n in NN => n in ZZ"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n in zz"))
+    (di) (ta 'nn-subset-zz) (ui "n") (ass)))
+(check-proof "ta + ui: power(x,succ n)"
+  (lambda ()
+    (sp (make-wff-from-string
+          "x in cc and n in nn implies power(x, succ(n)) = x * power(x, n)"))
+    (di) (ta 'power-succ) (ui "x") (ui "n") (ass)))
+
+;;; Backchain (bc) — use an implication theorem as an introduction rule
+(check-proof "bc: n+m in NN"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
+    (di) (bc 'nn-add-closed) (ass) (ass)))
+
+;;; Proof by contradiction (pbc)
+(check-proof "pbc: double negation"
+  (lambda ()
+    (sp (make-wff-from-string "not(not(n in nn)) implies n in nn"))
+    (di) (pbc) (ass)))
+
+;;; Macete inside a proof (mac)
+(check-proof "mac: eq-symm rewrites goal"
+  (lambda ()
+    (sp (make-wff-from-string "n = m implies m = n"))
+    (di) (mac 'eq-symm) (ass)))
+
+;;; Exists-witness (ew)
+(check-proof "ew: exists x in NN. x = 0"
+  (lambda ()
+    (sp (make-wff-from-string "forsome([x in nn], x = 0)"))
+    (ew "0") (arith) (arith)))
+
+;;; Cut — introduce an intermediate lemma
+(check-proof "cut: introduce intermediate fact"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n + 0 = n"))
+    (di)
+    (cut (make-wff-from-string "n in nn implies n + 0 = n"))
+    (di) (ta 'nn-add-zero) (ui "n") (ass)
+    (di) (ass)))
+
+;;; Functoid (lambda) beta reduction (beta)
+(check-proof "beta: lambda([x in nn], x+1)(3) = 3+1"
+  (lambda ()
+    (sp (make-wff-from-string "lambda([x in nn], x + 1)(3) = 3 + 1"))
+    (beta) (rfl)))
+\end{VNBcode}
+
+\section{Number-system inclusion chain}
+
+\begin{VNBcode}
+(for-each
+  (lambda (triple)
+    (let ((val (car triple)) (sys (cadr triple)) (expected (caddr triple)))
+      (check (string-append (number->string val) " in " (symbol->string sys))
+             (lambda () (arith-membership-check val sys))
+             expected)))
+  '((0    NN #t)  (1    NN #t)  (-1   NN #f)  (1/2  NN #f)
+    (0    ZZ #t)  (-5   ZZ #t)  (1/2  ZZ #f)
+    (1/3  QQ #t)  (-7   QQ #t)  (1/3  ZZ #f)
+    (0    RR #t)  (-7   RR #t)
+    (0    CC #t)  (-5   CC #t)))
+\end{VNBcode}
+
+\section{Arithmetic in \texorpdfstring{$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{R}$, $\mathbb{C}$}{Z, Q, R, C}}
+
+\begin{VNBcode}
+(check-proof "arith: 0 in ZZ"
+  (lambda () (sp (make-wff-from-string "0 in zz")) (arith)))
+(check-proof "arith: -3 in ZZ"
+  (lambda () (sp (make-wff-from-string "-3 in zz")) (arith)))
+(check-proof "arith: 1/3 in QQ"
+  (lambda () (sp (make-wff-from-string "1/3 in qq")) (arith)))
+(check-proof "arith: 1/3 not in ZZ"
+  (lambda () (sp (make-wff-from-string "not(1/3 in zz)")) (arith)))
+
+(check "1/3 in qq" (lambda () (arith-eval-formula '(IN 1/3 QQ)))  #t)
+(check "1/3 in zz" (lambda () (arith-eval-formula '(IN 1/3 ZZ)))  #f)
+(check "-3 in zz"  (lambda () (arith-eval-formula '(IN -3 ZZ)))   #t)
+(check "-3 in qq"  (lambda () (arith-eval-formula '(IN -3 QQ)))   #t)
+\end{VNBcode}
+
+\section{Summary line}
+
+\begin{VNBcode}
+(newline)
+(display "=== SUMMARY: ")
+(display *pass-count*) (display " passed, ")
+(display *fail-count*) (display " failed ===\n")
+\end{VNBcode}
+
+\noindent A clean run prints \verb|165 passed, 0 failed|.
+
+%% =========================================================

@@ -1,0 +1,680 @@
+;;; macetes.scm -- macete mechanism
+;;;
+;;; A MACETE is a named, composable rewrite strategy.
+;;; When a theorem T is installed, an elementary macete is automatically
+;;; built from it by extracting a source pattern and replacement pattern
+;;; from its logical form (see the table in the IMPS manual, ch. 12).
+;;;
+;;; Elementary macetes carry LOCAL CONTEXT as they descend into
+;;; subexpressions (following Monk 1988).  When entering the consequent
+;;; of (IMPLIES A B) the antecedent A is added to the local context; when
+;;; entering the right disjunct of (OR A B) the assumption (NOT A) is
+;;; added; and so on.  A macete condition that matches a formula already
+;;; present in the local context is considered discharged automatically.
+;;;
+;;; COMPOUND MACETES (constructors):
+;;;   - (series m1 m2 ... mn) : apply in sequence
+;;;   - (repeat m)            : apply m until no change
+;;;   - (try m)               : apply m, but succeed even if m fails
+;;;   - (choice m1 m2 ...)    : try each in order, use first that succeeds
+
+;;; -----------------------------------------------------------------------
+;;; Macete registry
+
+(define *macete-table* (make-equal-hash-table))
+
+(define (install-macete! name macete)
+  (hash-table-set! *macete-table* name macete)
+  name)
+
+(define (lookup-macete name)
+  (or (hash-table-ref/default *macete-table* name #f)
+      (error "lookup-macete: unknown macete" name)))
+
+;;; -----------------------------------------------------------------------
+;;; Macete representation
+;;;
+;;; A macete is a procedure: (macete sqn) -> #t (success) | #f (failure)
+
+(define (macete? x) (procedure? x))
+
+;;; -----------------------------------------------------------------------
+;;; Variadic patterns: RESTVAR and the restbound record
+;;;
+;;; A source pattern may end with (RESTVAR <sym>) in the argument list of a
+;;; variadic head (UNION, INTERSECTION, CARTESIAN, LIST, FUN, POWER, or any
+;;; general compound).  When the matcher reaches that final position it binds
+;;; <sym> to the tail of the expression's argument list -- AS A LIST OF
+;;; EXPRESSIONS -- wrapped in a <restbound> record.
+;;;
+;;; Replacement templates may then use
+;;;   (SPLICE <binop> <elt-var> <rest-var> <template>)
+;;; to right-fold <binop> over template[elt-var := a_i] for a_i in the list.
+;;; See apply-subst / expand-splices below.
+
+(define-record-type <restbound>
+  (make-restbound exprs)
+  restbound?
+  (exprs restbound-exprs))
+
+(define (restvar-pattern? p schema-vars)
+  (and (pair? p) (eq? (car p) 'RESTVAR)
+       (pair? (cdr p)) (null? (cddr p))
+       (symbol? (cadr p))
+       (member (cadr p) schema-vars)))
+
+(define (restvar-name p) (cadr p))
+
+;;; Match a parallel pattern/expr argument list.  If the final pattern is
+;;; (RESTVAR <sym>) with <sym> a schema-var, bind <sym> to the rest of es as
+;;; a <restbound>.  Otherwise lengths must match exactly.
+(define (match-list-with-rest ps es schema-vars)
+  (let loop ((ps ps) (es es) (acc '()))
+    (cond
+      ((and (pair? ps)
+            (null? (cdr ps))
+            (restvar-pattern? (car ps) schema-vars))
+       (merge-subst acc
+         (list (cons (restvar-name (car ps)) (make-restbound es)))))
+      ((and (null? ps) (null? es)) acc)
+      ((or  (null? ps) (null? es)) #f)
+      (else
+       (let ((m (match-expr (car ps) (car es) schema-vars)))
+         (and m
+              (let ((merged (merge-subst acc m)))
+                (and merged (loop (cdr ps) (cdr es) merged)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Pattern matching for elementary macetes
+
+(define (match-expr pattern expr schema-vars)
+  (cond
+    ((and (symbol? pattern) (member pattern schema-vars))
+     (list (cons pattern expr)))
+    ((symbol? pattern)
+     (and (equal? pattern expr) '()))
+    ((or (eq? pattern 'TRUTH) (eq? pattern 'FALSITY))
+     (and (equal? pattern expr) '()))
+    ((number? pattern)
+     (and (equal? pattern expr) '()))
+    ;; Functoid records: match structurally (same kind, same arity, domains match, body matches)
+    ((and (functoid? pattern) (functoid? expr))
+     (let ((bp (functoid-bindings pattern)) (be (functoid-bindings expr)))
+       (and (eq? (functoid-kind pattern) (functoid-kind expr))
+            (= (length bp) (length be))
+            (let loop ((bps bp) (bes be) (acc '()))
+              (if (null? bps)
+                  (let ((bm (match-expr (functoid-body pattern)
+                                        (functoid-body expr) schema-vars)))
+                    (and bm (merge-subst acc bm)))
+                  (let ((dm (match-expr (cdar bps) (cdar bes) schema-vars)))
+                    (and dm (eq? (caar bps) (caar bes))
+                         (let ((merged (merge-subst acc dm)))
+                           (and merged (loop (cdr bps) (cdr bes) merged))))))))))
+    ((or (functoid? pattern) (functoid? expr)) #f)
+    ((and (pair? pattern) (pair? expr) (eq? (car pattern) (car expr)))
+     (case (car pattern)
+       ((NOT CHOICE MAKE-SET LENGTH)
+        (match-expr (cadr pattern) (cadr expr) schema-vars))
+       ((POWER)
+        (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))
+       ((AND OR IMPLIES IFF = == IN COMPLEMENT-IN)
+        (let ((left  (match-expr (cadr pattern)  (cadr expr)  schema-vars))
+              (right (match-expr (caddr pattern) (caddr expr) schema-vars)))
+          (and left right (merge-subst left right))))
+       ((FUN)
+        ;; arity 2: (FUN A); arity 3: (FUN A B); also supports RESTVAR
+        (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))
+       ((CARTESIAN LIST UNION INTERSECTION)
+        (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))
+       ((NTH)
+        (and (equal? (cadr pattern) (cadr expr))
+             (match-expr (caddr pattern) (caddr expr) schema-vars)))
+       ((SEP)
+        (and (equal? (cadr pattern) (cadr expr))
+             (let ((ma (match-expr (caddr pattern)  (caddr expr)  schema-vars))
+                   (mp (match-expr (cadddr pattern) (cadddr expr) schema-vars)))
+               (and ma mp (merge-subst ma mp)))))
+       ((FORALL FORSOME IOTA)
+        (and (eq? (cadr pattern) (cadr expr))
+             (match-expr (caddr pattern) (caddr expr) schema-vars)))
+       (else
+        (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))))
+    (else #f)))
+
+(define (binding-values-equal? v1 v2)
+  (cond
+    ((and (restbound? v1) (restbound? v2))
+     (let ((xs (restbound-exprs v1)) (ys (restbound-exprs v2)))
+       (and (= (length xs) (length ys))
+            (every (lambda (p) p)
+                   (map alpha-equiv? xs ys)))))
+    ((or (restbound? v1) (restbound? v2)) #f)
+    (else (alpha-equiv? v1 v2))))
+
+(define (merge-subst s1 s2)
+  (let loop ((s2 s2) (acc s1))
+    (if (null? s2)
+        acc
+        (let* ((binding (car s2))
+               (var (car binding))
+               (val (cdr binding))
+               (existing (assoc var acc)))
+          (cond
+            ((not existing) (loop (cdr s2) (cons binding acc)))
+            ((binding-values-equal? (cdr existing) val) (loop (cdr s2) acc))
+            (else #f))))))
+
+;;; apply-subst now handles two kinds of bindings:
+;;;   ordinary  (var . expr)         -- ordinary subst-free
+;;;   rest     (var . <restbound>)   -- used by SPLICE expansion below
+;;; Ordinary substitutions run first.  Then any SPLICE forms in the result
+;;; are expanded using the rest bindings.
+(define (apply-subst subst expr)
+  (let loop ((bs subst) (ord '()) (rest '()))
+    (cond
+      ((null? bs)
+       (let ((after-ord (fold-left (lambda (e b)
+                                     (subst-free (car b) (cdr b) e))
+                                   expr
+                                   (reverse ord))))
+         (if (null? rest)
+             after-ord
+             (expand-splices after-ord rest))))
+      ((restbound? (cdar bs))
+       (loop (cdr bs) ord (cons (car bs) rest)))
+      (else
+       (loop (cdr bs) (cons (car bs) ord) rest)))))
+
+;;; Walk expr, replacing each
+;;;   (SPLICE <binop> <elt-var> <rest-var> <template>)
+;;; with the right-fold of <binop> over template[elt-var := a_i] for the
+;;; expressions a_1 ... a_n bound to <rest-var>.  Requires n >= 1.
+;;; Recurses into pairs and into functoid records.
+(define (expand-splices expr rest-bindings)
+  (cond
+    ((functoid? expr)
+     (let ((bindings (functoid-bindings expr))
+           (body     (functoid-body expr)))
+       (make-functoid
+         (functoid-kind expr)
+         (map (lambda (b)
+                (cons (car b) (expand-splices (cdr b) rest-bindings)))
+              bindings)
+         (expand-splices body rest-bindings))))
+    ((not (pair? expr)) expr)
+    ((eq? (car expr) 'SPLICE)
+     (let ((binop    (cadr expr))
+           (elt-var  (caddr expr))
+           (rest-var (cadddr expr))
+           (template (car (cddddr expr))))
+       (let ((b (assq rest-var rest-bindings)))
+         (cond
+           ((not b)
+            (error "expand-splices: rest-var not bound" rest-var))
+           (else
+            (let ((items (restbound-exprs (cdr b))))
+              (cond
+                ((null? items)
+                 (error "expand-splices: empty rest binding for" rest-var))
+                (else
+                 (let inner ((xs items))
+                   (let ((head (expand-splices
+                                 (subst-free elt-var (car xs) template)
+                                 rest-bindings)))
+                     (if (null? (cdr xs))
+                         head
+                         (list binop head (inner (cdr xs))))))))))))))
+    (else
+     (map (lambda (e) (expand-splices e rest-bindings)) expr))))
+
+;;; -----------------------------------------------------------------------
+;;; Local-context incrementers (Monk 1988)
+;;;
+;;; (lc-extend parent-expr child-idx local-ctx) returns a new local-ctx
+;;; enriched with assumptions appropriate for descending into the
+;;; child-idx-th argument (0-based) of parent-expr.
+;;;
+;;;   IMPLIES: entering consequent (idx 1) adds the antecedent (flattened)
+;;;   AND:     entering right conjunct (idx 1) adds the left conjunct (flattened)
+;;;   OR:      entering right disjunct (idx 1) adds (NOT left-disjunct)
+;;;   all others: unchanged
+;;;
+;;; AND formulas in the antecedent are flattened into individual conjuncts
+;;; so that each condition can be found by alpha-equivalence matching.
+
+(define (flatten-conjuncts f)
+  (if (and (pair? f) (eq? (car f) 'AND))
+      (append (flatten-conjuncts (cadr f))
+              (flatten-conjuncts (caddr f)))
+      (list f)))
+
+(define (lc-extend parent-expr child-idx local-ctx)
+  (if (not (pair? parent-expr))
+      local-ctx
+      (case (car parent-expr)
+        ((IMPLIES AND)
+         (if (= child-idx 1)
+             (append (flatten-conjuncts (cadr parent-expr)) local-ctx)
+             local-ctx))
+        ((OR)
+         ;; (REVIEW.md G-1) Symmetric OR: descending into the LEFT disjunct
+         ;; can assume (NOT right), descending into the RIGHT disjunct can
+         ;; assume (NOT left).  Previously only the right side received its
+         ;; assumption (a completeness gap, not a soundness one).
+         (cond
+           ((= child-idx 0)
+            (cons `(NOT ,(caddr parent-expr)) local-ctx))
+           ((= child-idx 1)
+            (cons `(NOT ,(cadr parent-expr)) local-ctx))
+           (else local-ctx)))
+        (else local-ctx))))
+
+;;; When the rewriter descends under a binder that introduces fresh names,
+;;; any assumption in local-ctx that mentions one of those names FREE refers
+;;; to the OUTER scope's variable; under the binder it would be reinterpreted
+;;; as the new bound one, which is unsound.  Drop such assumptions before
+;;; descending.  (Alternative: alpha-rename the binder; dropping is simpler
+;;; and conservative — at worst a sound rewrite is missed.)
+(define (lc-drop-shadowed bvars local-ctx)
+  (filter (lambda (a)
+            (let ((fvs (free-vars a)))
+              (let loop ((bs bvars))
+                (cond ((null? bs) #t)
+                      ((member (car bs) fvs) #f)
+                      (else (loop (cdr bs)))))))
+          local-ctx))
+
+;;; -----------------------------------------------------------------------
+;;; Condition satisfaction check
+;;;
+;;; A condition is "held" in a local context if it is TRUTH or is
+;;; alpha-equivalent to some formula already in the context.
+
+(define (condition-holds? formula local-ctx)
+  (or (equal? formula 'TRUTH)
+      (let loop ((ctx local-ctx))
+        (cond ((null? ctx) #f)
+              ((alpha-equiv? formula (car ctx)) #t)
+              (else (loop (cdr ctx)))))))
+
+(define (all-conditions-hold? cond-instances local-ctx)
+  (let loop ((cs cond-instances))
+    (or (null? cs)
+        (and (condition-holds? (car cs) local-ctx)
+             (loop (cdr cs))))))
+
+;;; -----------------------------------------------------------------------
+;;; Rewriting with local context
+;;;
+;;; (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
+;;;   -> (new-expr . minor-premises)
+;;;
+;;; Tries to rewrite expr at the top level: succeeds only if the pattern
+;;; matches AND all condition instances are held by local-ctx.  On failure
+;;; at the top level, recurses into subexpressions, threading an enriched
+;;; local context into each child according to lc-increment.
+;;;
+;;; minor-premises is currently always '() — conditions not locally
+;;; dischargeable cause the rewrite to be skipped at that position.
+
+(define (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
+  (let ((top-match (match-expr pattern expr schema-vars)))
+    (if (and top-match
+             (all-conditions-hold?
+              (map (lambda (c) (apply-subst top-match c)) conditions)
+              local-ctx))
+        ;; Top-level match with all conditions satisfied: fire
+        (cons (apply-subst top-match replacement) '())
+        ;; No match or conditions not met: recurse into children
+        (rewrite-subexpressions pattern replacement schema-vars conditions
+                                expr local-ctx))))
+
+(define (rewrite-subexpressions pattern replacement schema-vars conditions
+                                expr local-ctx)
+  (cond
+    ;; Atoms and non-pair non-functoid: no children to rewrite
+    ((and (not (pair? expr)) (not (functoid? expr)))
+     (cons expr '()))
+    ;; Functoid record: rewrite domain expressions and body (avoid schema-var capture)
+    ((functoid? expr)
+     (let* ((bindings (functoid-bindings expr))
+            (bvars    (map car bindings))
+            ;; Rewrite each domain (outer scope, no new lc)
+            (rdoms    (map (lambda (b)
+                             (rewrite-expr pattern replacement schema-vars conditions
+                                           (cdr b) local-ctx))
+                           bindings))
+            ;; Rewrite body; skip if any bvar is a schema-var (avoid unsound capture).
+            ;; Drop ctx assumptions shadowed by the lambda's bvars before descending.
+            (rbody    (if (let lp ((bvs bvars))
+                            (and (not (null? bvs))
+                                 (or (member (car bvs) schema-vars)
+                                     (lp (cdr bvs)))))
+                          (cons (functoid-body expr) '())
+                          (rewrite-expr pattern replacement schema-vars conditions
+                                        (functoid-body expr)
+                                        (lc-drop-shadowed bvars local-ctx))))
+            (new-bindings (map cons bvars (map car rdoms)))
+            (minors   (append (apply append (map cdr rdoms)) (cdr rbody))))
+       (cons (make-functoid (functoid-kind expr) new-bindings (car rbody))
+             minors)))
+    ;; Pair expressions
+    (else
+     (let ((head (car expr)))
+       ;; Helper: rewrite child at index i with the appropriate local context.
+       (define (rw-child i child)
+         (rewrite-expr pattern replacement schema-vars conditions
+                       child
+                       (lc-extend expr i local-ctx)))
+       (case head
+         ((NOT CHOICE MAKE-SET LENGTH)
+          (let ((r (rw-child 0 (cadr expr))))
+            (cons (list head (car r)) (cdr r))))
+
+         ;; Binary connectives with lc-increment on right child
+         ((IMPLIES AND OR)
+          (let ((rl (rw-child 0 (cadr expr)))
+                (rr (rw-child 1 (caddr expr))))
+            (cons (list head (car rl) (car rr))
+                  (append (cdr rl) (cdr rr)))))
+
+         ;; Binary predicates/connectives with no lc-increment
+         ((IFF = == IN COMPLEMENT-IN)
+          (let ((rl (rw-child 0 (cadr expr)))
+                (rr (rw-child 1 (caddr expr))))
+            (cons (list head (car rl) (car rr))
+                  (append (cdr rl) (cdr rr)))))
+
+         ;; FUN: arity 2 (domain only) or arity 3 (domain + codomain)
+         ((FUN)
+          (let loop ((args (cdr expr)) (new '()) (minors '()))
+            (if (null? args)
+                (cons (cons head (reverse new)) minors)
+                (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                       (car args) local-ctx)))
+                  (loop (cdr args)
+                        (cons (car r) new)
+                        (append minors (cdr r)))))))
+
+         ((POWER)
+          (let loop ((args (cdr expr)) (new '()) (minors '()))
+            (if (null? args)
+                (cons (cons head (reverse new)) minors)
+                (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                       (car args) local-ctx)))
+                  (loop (cdr args)
+                        (cons (car r) new)
+                        (append minors (cdr r)))))))
+
+         ((LIST CARTESIAN UNION INTERSECTION)
+          (let loop ((args (cdr expr)) (new '()) (minors '()))
+            (if (null? args)
+                (cons (cons head (reverse new)) minors)
+                (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                       (car args) local-ctx)))
+                  (loop (cdr args)
+                        (cons (car r) new)
+                        (append minors (cdr r)))))))
+
+         ((NTH)
+          (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                 (caddr expr) local-ctx)))
+            (cons `(NTH ,(cadr expr) ,(car r)) (cdr r))))
+
+         ((SEP)
+          ;; (SEP x A p) — A is outer scope; p has x bound.  Drop ctx
+          ;; assumptions shadowed by x for the body recursion.
+          (let* ((bv (cadr expr))
+                 (ra (rewrite-expr pattern replacement schema-vars conditions
+                                   (caddr expr) local-ctx))
+                 (rp (if (member bv schema-vars)
+                         (cons (cadddr expr) '())
+                         (rewrite-expr pattern replacement schema-vars conditions
+                                       (cadddr expr)
+                                       (lc-drop-shadowed (list bv) local-ctx)))))
+            (cons `(SEP ,bv ,(car ra) ,(car rp))
+                  (append (cdr ra) (cdr rp)))))
+
+         ((FORALL FORSOME IOTA)
+          ;; Drop ctx assumptions shadowed by bv before descending into body.
+          (let ((bv   (cadr expr))
+                (body (caddr expr)))
+            (if (member bv schema-vars)
+                (cons expr '())
+                (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                       body
+                                       (lc-drop-shadowed (list bv) local-ctx))))
+                  (cons (list head bv (car r)) (cdr r))))))
+
+         ((VNB-LAMBDA)
+          ;; Symbolic lambda binder: refuse to rewrite under it if any bound
+          ;; var coincides with a schema-var (would capture); otherwise recurse
+          ;; into the body, dropping ctx assumptions shadowed by the bvars.
+          (let* ((bind-spec (cadr expr))
+                 (body      (caddr expr))
+                 (bvars     (vnb-lambda-bvars bind-spec)))
+            (if (let loop ((bs bvars))
+                  (cond ((null? bs) #f)
+                        ((member (car bs) schema-vars) #t)
+                        (else (loop (cdr bs)))))
+                (cons expr '())
+                (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                       body
+                                       (lc-drop-shadowed bvars local-ctx))))
+                  (cons (list 'VNB-LAMBDA bind-spec (car r)) (cdr r))))))
+
+         (else
+          ;; General compound.  Head may itself be a pair (e.g. ((MUL m) a b))
+          ;; — rewrite into it too; symbol heads pass through unchanged.
+          (let* ((rh        (if (pair? head)
+                                (rewrite-expr pattern replacement schema-vars
+                                              conditions head local-ctx)
+                                (cons head '())))
+                 (new-head  (car rh))
+                 (head-mins (cdr rh)))
+            (let loop ((args (cdr expr)) (new '()) (minors head-mins))
+              (if (null? args)
+                  (cons (cons new-head (reverse new)) minors)
+                  (let ((r (rewrite-expr pattern replacement schema-vars conditions
+                                         (car args) local-ctx)))
+                    (loop (cdr args)
+                          (cons (car r) new)
+                          (append minors (cdr r)))))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Elementary macete: built from a theorem
+
+;;; SOUNDNESS check (REVIEW.md S-10): a schema-var that appears in conditions
+;;; or replacement but NOT in the source pattern would be left unbound by the
+;;; matcher; condition-holds? would then match against any local-ctx
+;;; assumption that coincidentally used the same symbol name.  Returns the
+;;; list of rogue vars (empty list = clean).
+(define (theorem-rogue-schema-vars schema-vars conditions source replacement)
+  (let ((src-fvs   (free-vars source))
+        (extra-fvs (apply append
+                          (cons (free-vars replacement)
+                                (map free-vars conditions)))))
+    (filter (lambda (v)
+              (and (member v schema-vars)
+                   (not (member v src-fvs))))
+            extra-fvs)))
+
+;;; Inert macete: never fires.  Returned for theorems whose macete form is
+;;; unsound (see S-10) so the THEOREM stays registered in *theorem-table*
+;;; and is usable via theorem-assumption + manual instantiation, while the
+;;; broken rewrite is silently skipped.
+(define (inert-macete) (lambda (sqn) #f))
+
+;;; Log of theorems whose macete form was unsound (S-10) and was therefore
+;;; replaced with `inert-macete`.  The theorem itself is still registered in
+;;; *theorem-table* and usable via (ta 'name) / backchain / instantiation;
+;;; only the rewrite-rule installation is skipped.  Call (display-inert-macetes)
+;;; to enumerate.
+(define *inert-macetes* '())
+
+(define (theorem->elementary-macete theorem-formula #!optional name)
+  (let-values (((schema-vars core) (strip-foralls theorem-formula)))
+    (let-values (((conditions source replacement)
+                  (extract-rewrite-patterns core)))
+      (let ((rogue (theorem-rogue-schema-vars schema-vars conditions
+                                              source replacement)))
+        (cond
+          ((null? rogue)
+           (make-elementary-macete schema-vars conditions source replacement))
+          (else
+           (set! *inert-macetes*
+             (cons (cons (if (default-object? name) '<anonymous> name) rogue)
+                   *inert-macetes*))
+           (inert-macete)))))))
+
+(define (display-inert-macetes)
+  (cond
+    ((null? *inert-macetes*)
+     (display "No inert macetes.\n"))
+    (else
+     (display ";; ")
+     (display (length *inert-macetes*))
+     (display " theorem(s) registered as named-only (macete form unsound, S-10):\n")
+     (for-each
+       (lambda (entry)
+         (display ";;   ")
+         (display (car entry))
+         (display " -- rogue schema vars: ")
+         (write (cdr entry))
+         (newline))
+       (reverse *inert-macetes*)))))
+
+(define (strip-foralls formula)
+  (let loop ((f formula) (vars '()))
+    (if (and (pair? f) (eq? (car f) 'FORALL))
+        (loop (caddr f) (cons (cadr f) vars))
+        (values (reverse vars) f))))
+
+(define (extract-rewrite-patterns core)
+  (cond
+    ((and (pair? core) (eq? (car core) 'IMPLIES))
+     (let ((hyp (binary-left core))
+           (con (binary-right core)))
+       (let ((conditions (flatten-and hyp)))
+         (let-values (((s r) (extract-equation con)))
+           (values conditions s r)))))
+    (else
+     (let-values (((s r) (extract-equation core)))
+       (values '() s r)))))
+
+(define (flatten-and f)
+  (if (and (pair? f) (eq? (car f) 'AND))
+      (append (flatten-and (binary-left f))
+              (flatten-and (binary-right f)))
+      (list f)))
+
+(define (extract-equation f)
+  (cond
+    ((and (pair? f) (eq? (car f) '=))
+     (values (binary-left f) (binary-right f)))
+    ((and (pair? f) (eq? (car f) 'IFF))
+     (values (binary-left f) (binary-right f)))
+    (else
+     (values f 'TRUTH))))
+
+(define (make-elementary-macete schema-vars conditions source replacement)
+  (lambda (sqn)
+    (let* ((asms      (sequent-node-assumptions sqn))
+           (goal      (sequent-node-assertion   sqn))
+           (g         (wff-formula goal))
+           (dg        (sqn-dg sqn))
+           ;; Seed the local context with the sequent's current assumptions.
+           (local-ctx (map wff-formula asms))
+           (result    (rewrite-expr source replacement schema-vars
+                                    conditions g local-ctx)))
+      (let ((new-g       (car result))
+            (minor-prems (cdr result)))
+        (if (alpha-equiv? new-g g)
+            #f
+            (let ((new-subgoals
+                   (cons (make-sequent asms (wff-child goal new-g))
+                         (map (lambda (mp)
+                                (make-sequent asms (wff-child goal mp)))
+                              minor-prems))))
+              (dg-apply-rule! dg `(macete ,source ,replacement)
+                              new-subgoals sqn)))))))
+
+;;; -----------------------------------------------------------------------
+;;; Compound macete constructors
+
+(define (macete-series . macetes)
+  (lambda (sqn)
+    (let loop ((ms macetes))
+      (cond
+        ((null? ms) #t)
+        (else
+         (let ((result ((car ms) sqn)))
+           (if result
+               (loop (cdr ms))
+               #f)))))))
+
+(define (macete-repeat macete)
+  (lambda (sqn)
+    (let loop ((changed #f))
+      (let ((result (macete sqn)))
+        (if result
+            (loop #t)
+            changed)))))
+
+(define (macete-try macete)
+  (lambda (sqn)
+    (macete sqn)
+    #t))
+
+(define (macete-choice . macetes)
+  (lambda (sqn)
+    (let loop ((ms macetes))
+      (if (null? ms)
+          #f
+          (let ((r ((car ms) sqn)))
+            (if r r (loop (cdr ms))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Install-theorem: registers a theorem and its macete
+
+(define *theorem-table* (make-equal-hash-table))
+
+(define (install-theorem! name formula-or-wff)
+  (vnb-guard
+    (lambda ()
+      (let ((formula (if (wff? formula-or-wff)
+                         (wff-formula formula-or-wff)
+                         formula-or-wff)))
+        (hash-table-set! *theorem-table* name formula)
+        (install-macete! name (theorem->elementary-macete formula name))
+        name))))
+
+(define (lookup-theorem name)
+  (or (hash-table-ref/default *theorem-table* name #f)
+      (error "lookup-theorem: unknown theorem" name)))
+
+;;; -----------------------------------------------------------------------
+;;; Apply a named macete to a sequent node
+
+(define (apply-macete! name sqn)
+  ((lookup-macete name) sqn))
+
+;;; -----------------------------------------------------------------------
+;;; Apply a named macete to a wff, outside any proof.
+;;; Returns a new wff if any rewrite fires, or #f if nothing matches.
+;;; Uses an empty local context as the seed; lc-extend builds it up
+;;; as the rewriter descends into implications, conjunctions, etc.
+
+(define (apply-macete name w)
+  (vnb-guard
+    (lambda ()
+      (let-values (((schema-vars core)
+                    (strip-foralls (lookup-theorem name))))
+        (let-values (((conditions source replacement)
+                      (extract-rewrite-patterns core)))
+          (let* ((g      (wff-formula w))
+                 (result (rewrite-expr source replacement schema-vars
+                                       conditions g '()))
+                 (new-g  (car result)))
+            (if (alpha-equiv? new-g g) #f (wff-child w new-g))))))))

@@ -1,0 +1,1051 @@
+\chapter{Proofs}
+\label{ch:proofs}
+
+\section{Sequents and deduction graphs}\label{section:sequents}
+
+A \emph{sequent} is a pair $(L, B)$, where $L$ is a list of formulas
+called \emph{assumptions} and $B$ is a single formula called the
+\emph{assertion}.  A sequent is represented as
+\[
+  A_1,\, A_2,\, \ldots,\, A_n \;\Longrightarrow\; B
+\]
+where $A_1, \ldots, A_n$ are the assumptions (or hypotheses or the context) and $B$
+is the assertion. In the course of a proof, many sequents may be created.
+
+A \emph{deduction graph} is a directed acyclic graph of
+\emph{sequent nodes} connected by \emph{inference nodes}.  An inference
+node records which rule was applied, which sequent nodes are its
+hypotheses, and which sequent node is its conclusion.
+
+A sequent node is \emph{grounded} when it has an inference node all of
+whose hypothesis nodes are themselves grounded.  Leaf inferences (with no
+hypothesis nodes) are immediately grounded.  Grounding propagates upward.
+A proof is \emph{complete} when the root sequent node is grounded.
+
+\begin{remark}
+A \emph{proof state} (\texttt{<proof-state>}) is not the same thing as a
+deduction graph.  It is a thin wrapper that bundles three items together: the
+deduction graph itself, the \emph{root} sequent node (the original goal,
+fixed at \texttt{start-proof} time and checked by \texttt{qed}), and the
+\emph{focus} sequent node (the subgoal currently being worked on).  The
+deduction graph is the mathematical object that grows as rules are applied;
+the proof state is the navigational view into it that the interactive session
+and the \texttt{cmd-*} commands operate on.  In the interactive session,
+\texttt{*ps*} always holds the current proof state.
+\end{remark}
+
+%% =========================================================
+\section{Starting and inspecting a proof}
+
+\begin{VNBcode}
+; Start a new proof of a formula
+(define ps (start-proof (make-wff-from-string
+  "n in NN and m in NN implies n in NN")))
+
+; Display the current state
+(print-proof-state ps)
+
+; Check if done
+(proof-done? ps)   ; => #f or #t
+
+; List open goals
+(proof-open-goals ps)
+\end{VNBcode}
+
+The variable \texttt{ps} holds the \emph{proof state}: a deduction graph
+plus the current \emph{focus} sequent node (the subgoal currently being
+worked on).  Every proof command returns a new proof state with an
+updated focus.
+
+\texttt{start-proof} takes a \texttt{wff} (produced by \texttt{make-wff} or \texttt{make-wff-from-string}).
+Any local contexts attached to the \texttt{wff} are unrolled into initial
+sequent assumptions, so that subsequent inference rules see them as
+ordinary hypotheses.  All sequent assumptions and assertions are
+\texttt{wff} objects throughout the proof; the theory name propagates
+automatically to every subformula produced by inference rules.
+
+%% =========================================================
+\section{Proof commands}
+\label{sec:commands}
+
+Commands are Scheme procedures of the form
+\[
+  \texttt{(cmd-}\mathit{name}\;\; \mathit{ps}\;\; \mathit{arg}_1 \ldots\texttt{)}
+\]
+Each command applies one primitive inference to the focus node, then
+advances the focus to the first new ungrounded subgoal.
+
+\section{Logical connectives}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+
+\item \texttt{(cmd-direct-inference ps)}
+  Decompose the goal by its top-level connective:
+  \begin{itemize}[label=$-$, leftmargin=1cm]
+  \item \texttt{p and q} $\to$ two subgoals $p$, $q$.
+  \item \texttt{p implies q} $\to$ assume $p$, prove $q$.
+  \item \texttt{p iff q} $\to$ two subgoals (each direction).
+  \item \texttt{not(p)} $\to$ assume $p$, prove \texttt{falsity}.
+  \item \texttt{forall([\ldots], p)} $\to$ peel the entire leading
+    \texttt{forall} chain in one step, introducing a fresh variable for
+    each bound variable.  If the substituted body is
+    \texttt{$y$ in $A$ implies \ldots}, absorb \texttt{$y$ in $A$} into
+    the assumptions and continue peeling.  Stop at the first
+    non-\texttt{forall} head.
+    Example: goal \texttt{forall([x in A, y], body)} yields one subgoal
+    $x_0 \in A \;\Longrightarrow\; \texttt{body}[x/x_0,\,y/y_0]$.
+  \end{itemize}
+
+\item \texttt{(cmd-antecedent-inference ps $f$)}
+  Decompose assumption $f$ by its top-level connective:
+  \begin{itemize}[label=$-$, leftmargin=1cm]
+  \item \texttt{p and q} $\to$ replace with $p$ and $q$ separately.
+  \item \texttt{p or q} $\to$ case split: branch on $p$, branch on $q$.
+  \item \texttt{not(p)} $\to$ derive \texttt{falsity} if $p$ also in context.
+  \item \texttt{forsome([\ldots], p)} $\to$ introduce a fresh witness for $x$.
+  \end{itemize}
+
+\item \texttt{(cmd-assumption ps)}
+  Close goal immediately if it matches an assumption or is \texttt{truth}.
+
+\item \texttt{(cmd-arith ps)}
+  Close the current goal by ground arithmetic evaluation.  The goal must
+  be a closed formula (no free variables) built from numeric literals,
+  $+$, $*$, $-$, \texttt{recip}, \texttt{abs}, \texttt{succ},
+  \texttt{conjugate}, $\leq$, $=$,
+  $\in \mathit{NN}/\mathit{ZZ}/\mathit{QQ}/\mathit{RR}/\mathit{CC}$,
+  and the propositional connectives.  Exact (rational) arithmetic only;
+  no axiom chain is constructed.
+  Related: \texttt{(vnb-do-arith \textit{f})} returns \texttt{\#t}/\texttt{\#f}
+  for use outside a proof.
+
+\item \texttt{(cmd-ring-simplify ps)}
+  Close a goal by reducing both sides to their canonical form in the free
+  associative $\mathbb{Z}$-algebra.  Addition is commutative (both sides
+  are brought to the same sorted canonical order); multiplication is
+  non-commutative.  Generator symbols are detected automatically: any
+  symbol not reducible to an integer by \texttt{arith-eval} is treated as
+  a ring generator.  No generator list need be supplied.
+
+  The goal may be in either of two forms:
+  \begin{itemize}[label=$-$, leftmargin=1cm]
+  \item \textbf{Bare equality} \texttt{$e_1$ = $e_2$}: generators are
+    certified by \texttt{(IN $v$ $D$)} assumptions already in the sequent
+    context.  Typically reached after \texttt{(di)} peels the leading
+    \texttt{forall} chain.
+  \item \textbf{Universally quantified identity}
+    \texttt{forall([$x_1$ in $D_1$, \ldots], $e_1$ = $e_2$)}: the
+    quantifier typings themselves certify the generators.  \texttt{(di)}
+    is not needed; \texttt{(rs)} closes the goal in one step.
+  \end{itemize}
+
+  In both cases every generator must be certified as an element of one of
+  the five ring domains $\mathit{NN}$, $\mathit{ZZ}$, $\mathit{QQ}$,
+  $\mathit{RR}$, $\mathit{CC}$.  Any subterm that is neither a symbol nor
+  reducible to an integer causes the command to fail gracefully with a
+  warning; no unsound inference is ever made.
+
+  \begin{VNBcode}
+;;; Directly on a universally quantified goal -- no (di) needed:
+(sp (make-wff-from-string
+  "forall([a in ZZ, b in ZZ, c in ZZ], a + b + c = c + b + a)"))
+(rs)    ; closes in one step
+
+;;; After (di), bare equality in context:
+(sp (make-wff-from-string
+  "forall([x in CC, y in CC], (x-y)*(x+y) = x*x - y*y)"))
+(di) (rs)
+
+;;; Coefficient arithmetic:
+(sp (make-wff-from-string "forall([x in ZZ], 2*x + 3*x = 5*x)"))
+(rs)
+  \end{VNBcode}
+
+  The underlying decision procedure is \texttt{ring-poly-equal?}; the
+  primitive inference is \texttt{pi-ring-simplify!}, both in
+  \texttt{algebraic.scm}.  The interactive short form is \texttt{(rs)}.
+
+\item \texttt{(cmd-reflexivity ps)}
+  Close goal \texttt{a = a} when \texttt{a} is demonstrably defined.
+  Fails if \texttt{a} may be undefined.
+
+\item \texttt{(cmd-quasi-reflexivity ps)}
+  Close goal \texttt{a == a} unconditionally, for any term \texttt{a}.
+
+\item \texttt{(cmd-cut ps $L$)}
+  Introduce lemma $L$: subgoal~1 proves $L$; subgoal~2 has $L$ as assumption.
+
+\item \texttt{(cmd-or-intro-left ps)}
+  To prove \texttt{p or q}, prove $p$ instead.
+
+\item \texttt{(cmd-or-intro-right ps)}
+  To prove \texttt{p or q}, prove $q$ instead.
+
+\item \texttt{(cmd-proof-by-contradiction ps)}
+  To prove $p$, assume \texttt{not(p)} and derive \texttt{falsity}.
+
+\item \texttt{(cmd-instantiate ps $F$\ $t$)}
+  From \texttt{forall([$x$], $p$)} $= F$ in context, add $p[x/t]$.
+
+\item \texttt{(cmd-exists-witness ps $t$)}
+  To prove \texttt{forsome([$x$], $p$)}, prove $p[x/t]$.
+
+\item \texttt{(cmd-weaken ps $f$)}
+  Remove formula $f$ from the assumptions.
+
+\item \texttt{(cmd-backchain ps $F$)}
+  From \texttt{p implies goal} $= F$ in context, generate subgoal~$p$.
+
+\item \texttt{(cmd-theorem-assumption ps $\mathit{name}$)}
+  Add the named theorem (or axiom) to the assumptions.
+
+\item \texttt{(cmd-apply-macete ps $\mathit{name}$)}
+  Apply named macete: rewrite the goal using the associated theorem.
+
+\item \texttt{(cmd-qed ps $\mathit{name}$)}
+  After a proof completes, install its root assertion as a named theorem
+  in the current theory.  Errors if the proof is not complete.
+
+\end{itemize}
+
+\subsection{N-ary constructors}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+
+\item \begin{sloppypar}\texttt{(cmd-cartesian-intro ps)}
+  To prove \texttt{[$a_1$,\ldots,$a_n$] in cartesian($A_1$,\ldots,$A_n$)},
+  generate $n$ subgoals \texttt{$a_i$ in $A_i$}.\end{sloppypar}
+
+\item \begin{sloppypar}\texttt{(cmd-cartesian-elim ps $F$\ $k$)}
+  From \texttt{[$a_1$,\ldots,$a_n$] in cartesian($A_1$,\ldots,$A_n$)} $= F$
+  in context, add \texttt{$a_k$ in $A_k$}.\end{sloppypar}
+
+\item \texttt{(cmd-tuples-intro ps)}
+  To prove \texttt{[$a_1$,\ldots,$a_n$] in tuples($A$)},
+  generate $n$ subgoals \texttt{$a_i$ in $A$}.
+  For the empty sequence \texttt{[]} the goal closes immediately (0 subgoals).
+
+\item \begin{sloppypar}\texttt{(cmd-tuples-elim ps $F$\ $k$)}
+  From \texttt{[$a_1$,\ldots,$a_n$] in tuples($A$)} $= F$
+  in context, add \texttt{$a_k$ in $A$}.\end{sloppypar}
+
+\item \texttt{(cmd-nth-reduce ps)}
+  Rewrite every occurrence of \texttt{nth($k$, [$\ldots$])} in the goal to
+  the $k$-th element (1-indexed).
+
+\item \begin{sloppypar}\texttt{(cmd-functoid-beta ps)}
+  Rewrite every occurrence of
+  \texttt{lambda([$x_1$ in $A_1$,\ldots], $\mathit{body}$)($v_1$,\ldots)}
+  (or \texttt{lambdoid}) in the goal to
+  $\mathit{body}[x_1 := v_1]\cdots$ (capture-avoiding).\end{sloppypar}
+
+\item \texttt{(cmd-union-intro ps $k$)}
+  To prove \texttt{$x$ in union($A_1$,\ldots,$A_n$)},
+  prove \texttt{$x$ in $A_k$} instead.
+
+\item \texttt{(cmd-union-elim ps $F$)}
+  From \texttt{$x$ in union($A_1$,\ldots,$A_n$)} $= F$ in context,
+  case-split: one branch per $A_i$ with \texttt{$x$ in $A_i$} assumed.
+
+\item \begin{sloppypar}\texttt{(cmd-intersection-intro ps)}
+  To prove \texttt{$x$ in intersection($A_1$,\ldots,$A_n$)},
+  generate $n$ subgoals \texttt{$x$ in $A_i$}.\end{sloppypar}
+
+\item \begin{sloppypar}\texttt{(cmd-intersection-elim ps $F$\ $k$)}
+  From \texttt{$x$ in intersection($A_1$,\ldots,$A_n$)} $= F$ in context,
+  add \texttt{$x$ in $A_k$}.\end{sloppypar}
+
+\end{itemize}
+
+%% =========================================================
+\section{Interactive short-form commands}
+\label{sec:interactive}
+
+The file \texttt{interactive.scm} provides single- or two-letter wrappers
+around every \texttt{cmd-*} proof command, together with the global proof
+state variable \texttt{*ps*} and the \texttt{show} display function.
+These are the primary commands used in a live proof session (including
+through the Emacs interface).
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+
+\item \texttt{(sp \textit{wff})}
+  \texttt{start-proof} --- Start a new proof from a \texttt{wff};
+  context unrolled to assumptions.
+
+\item \texttt{(di)}
+  \texttt{cmd-direct-inference} --- Decompose goal; peels leading
+  \texttt{forall} chain.
+
+\item \texttt{(pbc)} \texttt{cmd-proof-by-contradiction}
+
+\item \texttt{(ass)} \texttt{cmd-assumption}
+
+\item \texttt{(arith)}
+  \texttt{cmd-arith} --- Close goal by exact arithmetic evaluation.
+
+\item \texttt{(rs)}
+  \texttt{cmd-ring-simplify} --- Close a ring identity goal by polynomial
+  normalization.  Works directly on universally quantified goals or on
+  bare equalities after \texttt{(di)}.  See Section~\ref{sec:commands}.
+
+\item \texttt{(rfl)} \texttt{cmd-reflexivity}
+
+\item \texttt{(qrfl)} \texttt{cmd-quasi-reflexivity}
+
+\item \texttt{(oi-l)} \texttt{cmd-or-intro-left}
+
+\item \texttt{(oi-r)} \texttt{cmd-or-intro-right}
+
+\item \texttt{(ci)} \texttt{cmd-cartesian-intro}
+
+\item \texttt{(ti)} \texttt{cmd-tuples-intro}
+
+\item \texttt{(nth-r)} \texttt{cmd-nth-reduce}
+
+\item \texttt{(beta)}
+  \texttt{cmd-functoid-beta} --- $\beta$-reduce
+  \texttt{lambda}/\texttt{lambdoid} application in goal.
+
+\item \texttt{(ii)} \texttt{cmd-intersection-intro}
+
+\item \texttt{(ai \textit{f})}
+  \texttt{cmd-antecedent-inference} --- Decompose assumption \textit{f}.
+
+\item \texttt{(cut \textit{f})}
+  \texttt{cmd-cut} --- Introduce lemma \textit{f}.
+
+\item \texttt{(ew \textit{t})}
+  \texttt{cmd-exists-witness} --- Provide witness \textit{t} for
+  \texttt{forsome} goal.
+
+\item \texttt{(bc \textit{f})}
+  \texttt{cmd-backchain} --- Backchain on implication \textit{f}.
+
+\item \texttt{(wk \textit{f})}
+  \texttt{cmd-weaken} --- Remove \textit{f} from assumptions.
+
+\item \texttt{(ui \textit{k})}
+  \texttt{cmd-union-intro} --- Prove \texttt{x in union(\ldots)} via the
+  $k$-th branch.
+
+\item \texttt{(ue \textit{f})}
+  \texttt{cmd-union-elim} --- Case-split on \texttt{x in union(\ldots)}
+  assumption \textit{f}.
+
+\item \texttt{(ce \textit{f k})}
+  \texttt{cmd-cartesian-elim} --- Extract $k$-th component from Cartesian
+  assumption \textit{f}.
+
+\item \texttt{(te \textit{f k})}
+  \texttt{cmd-tuples-elim} --- Extract $k$-th component from
+  \texttt{tuples} assumption \textit{f}.
+
+\item \texttt{(ie \textit{f k})}
+  \texttt{cmd-intersection-elim} --- Extract $k$-th component from
+  intersection assumption \textit{f}.
+
+\item \texttt{(ni)}
+  \texttt{cmd-nn-induction} --- Apply $\mathit{NN}$-induction to a goal of
+  the form \texttt{forall([n in NN], P(n))}.
+  Produces two subgoals: the base case \texttt{P(0)} (focused first) and
+  the step case \texttt{forall([n in NN], P(n) implies P(succ(n)))}.
+  The kernel rule \texttt{pi-nn-induction!} is self-contained;
+  the named axiom \texttt{nn-induction} (in \texttt{number-systems.scm},
+  the class form of NN induction) coexists with it as a redundant
+  convenience for direct use via \texttt{(ta 'nn-induction)}.  Both
+  encode the same induction principle.
+
+\item \texttt{(tfi)} \texttt{cmd-tfi}
+
+\item \texttt{(tfi3)} \texttt{cmd-tfi3}
+
+\item \texttt{(qed \textit{name})}
+  \texttt{cmd-qed} --- Install the completed proof as a named theorem and
+  save the proof script under the same name.
+
+\item \texttt{(save-proof \textit{name})}
+  Save the current proof script under \textit{name}.
+
+\item \texttt{(replay-proof \textit{name} [\textit{subst}])}
+  Re-run a saved proof script, optionally with a schematic substitution.
+
+\item \texttt{(ta \textit{n})}
+  \texttt{cmd-theorem-assumption} --- Add named theorem \textit{n} to
+  assumptions.
+
+\item \texttt{(mac \textit{n})}
+  \texttt{cmd-apply-macete} --- Apply named macete \textit{n} to goal.
+
+\item \texttt{(inst \textit{f t})}
+  \texttt{cmd-instantiate} --- Instantiate \texttt{forall} assumption
+  \textit{f} with term \textit{t}.
+
+\item \texttt{(focus \textit{n})}
+  \texttt{focus-on} --- Switch focus to the $n$-th open goal (1-based).
+
+\item \texttt{(show)}
+  \texttt{print-proof-state} --- Display current proof state; updates
+  Emacs state buffer.
+
+\item \texttt{(pp \textit{w})}
+  \texttt{wff->string} --- Display a \texttt{wff} in string syntax.
+
+\item \texttt{(fa \textit{bs b})}
+  Expand bindings \textit{bs} into nested \texttt{forall} formula
+  (Section~\ref{sec:multiquant}).
+
+\item \texttt{(fs \textit{bs b})}
+  Expand bindings \textit{bs} into nested \texttt{forsome} formula
+  (Section~\ref{sec:multiquant}).
+
+\item \texttt{(vnb-unwind \textit{expr})}
+  Expand a multi-binding surface expression to nested single-binding form
+  (Section~\ref{sec:multiquant}).
+
+\item \texttt{(vnb-wind \textit{expr})}
+  Collapse a nested single-binding chain into multi-binding form
+  (Section~\ref{sec:multiquant}).
+
+\item \texttt{(parse-string \textit{str})}
+  Parse a string to a raw S-expression.  Note: \texttt{ai}, \texttt{bc},
+  \texttt{inst}, \texttt{cut}, \texttt{wk}, \texttt{ue}, \texttt{ce},
+  \texttt{ie} accept formula strings directly; \texttt{parse-string} is
+  needed only for the low-level \texttt{cmd-*} API.
+
+\item \texttt{(make-wff-from-string \textit{str})}
+  Parse a string and validate as a \texttt{wff}; use for \texttt{sp}.
+
+\item \texttt{(spec \textit{instance struct is-thm})}
+  \texttt{specialize-structure} --- Transport all theorems of the form
+  $\forall s.\;\mathit{IS\text{-}STRUCT}(s)\Rightarrow P[s]$ to the
+  specific certified instance \textit{instance}, installing $P[\textit{instance}]$
+  under the name $\langle\textit{thm\text{-}name}\rangle$\texttt{-}\textit{instance}.
+  Not a proof command; does not touch \texttt{*ps*}.
+  See Section~\ref{sec:specialize-structure} for full details.
+
+\end{itemize}
+
+Each command mutates the global \texttt{*ps*} and calls \texttt{(show)}
+automatically.  The exceptions --- which return values rather than
+mutating state --- are:
+\begin{quote}
+\texttt{sp}, \texttt{show}, \texttt{pp}, \texttt{fa}, \texttt{fs},
+\texttt{vnb-unwind}, \texttt{vnb-wind}, \texttt{parse-string},
+\texttt{make-wff-from-string}.
+\end{quote}
+
+%% =========================================================
+\section{Focus management}
+
+After each command the focus advances automatically to the first
+ungrounded subgoal just introduced.  If there are no new subgoals, it
+moves to any remaining open goal.
+
+\begin{remark}
+Every proof command operates exclusively on the focus node; the other
+open goals are untouched.  There can be several open goals simultaneously
+(for example, after \texttt{(ci)} on a conjunction goal, or after
+\texttt{(cut f)} which always creates two subgoals).  \texttt{(show)}
+displays them all, numbering the non-focus goals so you can use those
+numbers with \texttt{(focus $n$)}.  Until you call \texttt{(focus $n$)},
+the system always works on whichever goal it chose automatically.
+\end{remark}
+
+In the interactive session use:
+\begin{VNBcode}
+(show)       ; list all open goals (numbered) and the current focus
+(focus n)    ; switch focus to the n-th open goal (1-based)
+\end{VNBcode}
+
+The underlying API (for use outside the interactive session) is:
+\begin{VNBcode}
+(focus-on ps sqn)            ; focus on a specific sequent node
+(focus-on-first-open ps)     ; focus on the first open goal
+(proof-open-goals ps)        ; list all open goals
+\end{VNBcode}
+
+%% =========================================================
+\section{Macetes}
+\label{sec:macetes}
+
+A \emph{macete} is a named, composable rewrite strategy.  When a
+theorem is installed, its macete is automatically derived by extracting a
+source pattern and replacement pattern from the theorem's logical form:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Theorem form & Rewrite \\
+\midrule
+$\forall\bar{x}.\;(s = r)$ & $s \mapsto r$ \\
+$\forall\bar{x}.\;(s \Leftrightarrow r)$ & $s \mapsto r$ \\
+$\forall\bar{x}.\;(\text{conds} \Rightarrow (s = r))$ & $s \mapsto r$ when conds hold \\
+$\forall\bar{x}.\;p$ & $p \mapsto \top$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Macetes can be composed:
+\begin{VNBcode}
+(macete-series m1 m2 m3)   ; apply in sequence
+(macete-repeat m)           ; apply until no change
+(macete-try m)              ; apply m, succeed even if m fails
+(macete-choice m1 m2 m3)   ; first one that applies
+\end{VNBcode}
+
+To install a custom macete:
+\begin{VNBcode}
+(install-theorem! 'eq-symm
+  (make-wff-from-string "forall([x, y], x = y iff y = x)"))
+
+; Use it:
+(cmd-apply-macete ps 'eq-symm)
+\end{VNBcode}
+
+\subsection{Applying macetes to wffs outside a proof}
+
+\begin{sloppypar}The function \texttt{apply-macete} applies a named macete directly to a
+\texttt{wff} without creating a proof state:\end{sloppypar}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\item \texttt{(apply-macete \textit{name} \textit{w})} --- rewrites \textit{w};
+  returns a new \texttt{wff} if any rewrite fires, or \texttt{\#f} if the
+  pattern matches nowhere in \textit{w}.
+\end{itemize}
+
+This is purely syntactic: no deduction graph is involved and no
+theorem is proved.  It is useful for inspecting rewrite behavior,
+preprocessing formulas, or building higher-level tools outside of proofs.
+
+\paragraph{Unconditional equation macete.}
+\begin{VNBcode}
+(install-theorem! 'nn-zero-succ
+  (make-wff-from-string "forall([n in NN], succ(n) = n + 1)"))
+
+(apply-macete 'nn-zero-succ (make-wff-from-string "succ(3) = x"))
+; => wff for "3 + 1 = x"
+
+(apply-macete 'nn-zero-succ (make-wff-from-string "3 in nn"))
+; => #f               -- macete doesn't fire
+\end{VNBcode}
+
+\paragraph{Biconditional (\texttt{iff}) macete.}
+\begin{VNBcode}
+(install-theorem! 'eq-symm
+  (make-wff-from-string "forall([x, y], x = y iff y = x)"))
+
+(apply-macete 'eq-symm (make-wff-from-string "n + m = 0"))
+; => wff for "0 = n + m"
+
+(apply-macete 'eq-symm (make-wff-from-string "n = m implies truth"))
+; => wff for "m = n implies truth"
+
+(apply-macete 'eq-symm (make-wff-from-string "n in nn"))
+; => #f
+\end{VNBcode}
+
+\paragraph{Closure axiom macete (conditional).}
+\begin{VNBcode}
+;; nn-add-closed: forall([n in NN, m in NN], n + m in NN)
+;; Condition (n in NN and m in NN) must be present in local context.
+
+(apply-macete 'nn-add-closed
+  (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
+; => wff for "n in nn and m in nn implies truth"
+
+(apply-macete 'nn-add-closed (make-wff-from-string "n + m in nn"))
+; => #f  -- conditions not in context; rewrite correctly suppressed
+\end{VNBcode}
+
+\begin{remark}
+\texttt{apply-macete} applies the rewrite depth-first throughout the
+formula (outermost first within each subexpression).  Conditions of a
+conditional macete are checked against the \emph{local context}
+accumulated as the rewriter descends: when descending into the
+consequent of \texttt{implies}, the antecedent is added to the local
+context; when descending into the right conjunct of \texttt{and}, the
+left conjunct is added; and so on (Monk~\cite{Monk1988}).  A condition that
+matches a formula already present in the local context is considered
+discharged; if any condition is unmet at a candidate site, the rewrite
+is suppressed at that site.
+\end{remark}
+
+%% =========================================================
+\section{Example proofs}
+
+\subsection{Identity}
+
+\begin{VNBcode}
+(sp (make-wff-from-string "x in NN implies x in NN"))
+(di)    ; assume (x in nn), prove (x in nn)
+(ass)   ; it is in context
+; => Proof complete.
+\end{VNBcode}
+
+\subsection{AND elimination}
+
+\begin{VNBcode}
+(sp (make-wff-from-string "n in NN and m in NN implies n in NN"))
+(di)                          ; assume (n in nn) and (m in nn)
+(ai "n in NN and m in NN")   ; split into (n in nn) and (m in nn)
+(ass)                         ; prove (n in nn)
+\end{VNBcode}
+
+\subsection{VNB axiom instance}
+
+Proving \texttt{"a in b implies a in SET"} from the base axiom:
+
+\begin{VNBcode}
+(sp (make-wff-from-string "a in b implies a in SET"))
+(di)
+(ta 'membership-implies-sethood)
+(inst "forall([a, b], a in b implies a in set)" 'a)
+(inst "forall([b], a in b implies a in set)" 'b)
+(bc "a in b implies a in set")
+(ass)
+\end{VNBcode}
+
+\subsection{Double negation (classical)}
+
+\begin{VNBcode}
+(sp (make-wff-from-string "not(not(x in NN)) implies x in NN"))
+(di)                              ; assume not(not((x in nn))), prove (x in nn)
+(pbc)                             ; assume not((x in nn)), prove falsity
+(ai "not(not(x in NN))")         ; not(not(P)) and not(P) yield falsity
+\end{VNBcode}
+
+\subsection{Ordered tuples and Cartesian products}
+
+\begin{VNBcode}
+; From x in A, y in B, z in C prove [x,y,z] in cartesian(A,B,C)
+(sp (make-wff-from-string
+      "x in A and y in B and z in C implies [x, y, z] in cartesian(A, B, C)"))
+(di)
+(ai "x in A and y in B and z in C")
+(ai "y in B and z in C")
+(ci)              ; cartesian-intro generates 3 subgoals
+(ass) (ass) (ass)
+
+; NTH projection: nth(2, [x, y, z]) = y
+(sp (make-wff-from-string "nth(2, [x, y, z]) = y"))
+(nth-r)           ; reduces goal to (y = y)
+(rfl)             ; closes by reflexivity
+\end{VNBcode}
+
+\subsection{Mathematical structures}
+
+Algebraic structures are declared with \texttt{declare-structure}.
+No quoting is needed: carrier names and operation signatures are written
+directly.
+
+\begin{VNBcode}
+(declare-structure GROUP
+  (carriers A)
+  (op MUL (A A) A)    ; binary product: A x A -> A
+  (constant E A)       ; identity element: E in A
+  (op INV (A) A))      ; inverse: A -> A
+; Accessor indices: A -> 1, MUL -> 2, E -> 3, INV -> 4
+\end{VNBcode}
+
+\begin{sloppypar}The \texttt{(op name (D1 D2 ...) R)} clause builds the domain as
+$\texttt{CARTESIAN}(D_1, D_2, \ldots)$ when more than one type is
+listed, or just $D_1$ for a unary operation.
+A \texttt{(constant name S)} clause declares an element of set $S$.
+Accessor indices are assigned sequentially: carriers first (starting
+at~1), then operations in declaration order.\end{sloppypar}
+
+A \texttt{declare-structure} call installs two things automatically:
+\begin{itemize}[label=$\circ$, leftmargin=1cm]
+\item \emph{Accessor macetes}: \texttt{A}$(s)$ rewrites to
+  \texttt{nth(1,$s$)}, \texttt{MUL}$(s)$ to \texttt{nth(2,$s$)}, etc.
+\item \emph{Definitional biconditional} \texttt{IS-NAME}: the axiom
+  $\forall s.\;\texttt{IS-GROUP}(s) \Leftrightarrow
+   (\texttt{A}(s)\in\mathrm{SET} \wedge \texttt{MUL}(s)\in\cdots)$.
+\end{itemize}
+
+Given \texttt{IS-GROUP(g)} in context, the \texttt{IS-GROUP} macete
+unfolds to:
+\begin{VNBsnip}
+A(g) in SET
+and MUL(g) in fun(cartesian(A(g), A(g)), A(g))
+and E(g) in A(g)
+and INV(g) in fun(A(g), A(g))
+\end{VNBsnip}
+
+\paragraph{Pre-loaded structures.}
+The following structures are defined in \texttt{algebraic.scm} and
+loaded automatically.
+
+\begin{center}\scriptsize
+\begin{tabular}{@{}p{2.3cm}p{4.3cm}p{5.3cm}@{}}
+\toprule
+\textbf{Structure} & \textbf{Accessor slots (index)} & \textbf{Characteristic axioms} \\
+\midrule
+\texttt{SEMIGROUP} &
+  \texttt{A}\,(1), \texttt{MUL}\,(2) &
+  \texttt{semigroup-assoc} \\[4pt]
+\texttt{MONOID} &
+  \texttt{A}\,(1), \texttt{MUL}\,(2), \texttt{E}\,(3) &
+  \texttt{monoid-assoc},
+  \texttt{monoid-left-id},
+  \texttt{monoid-right-id} \\[4pt]
+\texttt{GROUP} &
+  \texttt{A}\,(1), \texttt{MUL}\,(2), \texttt{E}\,(3), \texttt{INV}\,(4) &
+  \texttt{group-assoc},
+  \texttt{group-left-id},
+  \texttt{group-left-inv} \\[4pt]
+\texttt{RING} &
+  \texttt{A}\,(1), \texttt{ADD}\,(2), \texttt{MUL}\,(3),
+  \texttt{NEG}\,(4), \texttt{ZERO}\,(5), \texttt{ONE}\,(6) &
+  \texttt{ring-add-assoc}, \texttt{ring-add-comm},
+  \texttt{ring-add-left-id}, \texttt{ring-add-left-inv},
+  \texttt{ring-mul-assoc}, \texttt{ring-mul-left-id},
+  \texttt{ring-mul-right-id},
+  \texttt{ring-left-dist}, \texttt{ring-right-dist} \\[4pt]
+\texttt{METRIC-SPACE} &
+  \texttt{X}\,(1), \texttt{D}\,(2) &
+  \texttt{metric-pos},
+  \texttt{metric-self-zero},
+  \texttt{metric-zero-eq},
+  \texttt{metric-sym},
+  \texttt{metric-triangle} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{remark}
+Characteristic axioms are ordinary theorems; use \texttt{(ta 'name)} to
+transport one into the current proof.  For example, to apply
+\texttt{group-left-inv} (which asserts
+$\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{A}(s)
+ \Rightarrow \texttt{MUL}(s)(\texttt{INV}(s)(a),a)=\texttt{E}(s)$),
+supply the group and the element as instantiation witnesses.
+\end{remark}
+
+If you prefer to work with raw tuples directly, the n-ary constructors
+are still available:
+\begin{VNBcode}
+; Prove a tuple is in a Cartesian product
+(sp (make-wff-from-string
+  "G in power(U) and op in fun(cartesian(G,G),G) and e in G and inv in fun(G,G)
+   implies [G, op, e, inv]
+   in cartesian(power(U), fun(cartesian(G,G),G), G, fun(G,G))"))
+(di)
+(ai "G in power(U) and op in fun(cartesian(G,G),G) and e in G and inv in fun(G,G)")
+(ai "op in fun(cartesian(G,G),G) and e in G and inv in fun(G,G)")
+(ai "e in G and inv in fun(G,G)")
+(ci)                              ; cartesian-intro: 4 subgoals
+(ass) (ass) (ass) (ass)
+\end{VNBcode}
+
+\subsection{Applying a macete inside a proof}
+
+The short-form command \texttt{(mac 'name)} applies the named macete to
+the \emph{current goal}.  It unifies the macete's source pattern against
+the goal formula (outermost-first, depth-first) and replaces the first
+matched subterm with the replacement pattern.
+
+\paragraph{Biconditional macete.}
+\texttt{pairing-membership} states
+$\forall a\,b\,x.\;x \in \mathrm{pair}(a,b) \Leftrightarrow (x=a \vee x=b)$.
+Its source pattern is \verb|x in pair(a, b)| and its replacement is
+\verb|x = a or x = b|.
+
+\begin{VNBcode}
+(sp (make-wff-from-string "2 in pair(2, 3)"))
+; proof state:  []  |-  2 in pair(2, 3)
+(mac 'pairing-membership)
+; source: x in pair(a, b)   replacement: x = a or x = b
+; unifies: x=2, a=2, b=3
+; goal rewritten:  2 in pair(2, 3)  ->  2 = 2 or 2 = 3
+; proof state:  []  |-  2 = 2 or 2 = 3
+(oi-l)      ; or-intro-left: new goal  2 = 2
+(rfl)       ; reflexivity
+; => Proof complete.
+\end{VNBcode}
+
+\paragraph{Rewrite fires inside a larger formula.}
+The rewrite finds its source pattern at the first matching position,
+which may be nested inside a connective.
+
+\begin{VNBcode}
+(sp (make-wff-from-string "x in pair(a, b) implies x = a or x = b"))
+; proof state:  []  |-  (x in pair(a,b)) implies (x = a or x = b)
+(mac 'pairing-membership)
+; pattern "x in pair(a, b)" matched at the left of implies
+; goal rewritten:  (x = a or x = b) implies (x = a or x = b)
+(di)        ; discharge implies: push antecedent to context
+; context: ["x = a or x = b"]   goal: "x = a or x = b"
+(ass)
+; => Proof complete.
+\end{VNBcode}
+
+\begin{remark}
+Macetes rewrite the goal; they do not rewrite the context.  If the
+matching pattern appears only in an assumption, \texttt{(mac 'name)}
+will not fire.  To use an assumption as a rewrite source, retrieve it
+with \texttt{(ai ...)} so that it appears in the goal.
+\end{remark}
+
+\paragraph{Conditional macete.}
+For a conditional theorem
+$\forall\bar{x}.\;(\mathit{cond} \Rightarrow s = r)$, the macete still
+fires unconditionally: it rewrites $s \mapsto r$ without generating
+side-goals for $\mathit{cond}$.  The goal $s$ is replaced by~$r$
+(or by $\top$ when the conclusion is not an equation or biconditional),
+and the resulting $\top$ goal is closed with \texttt{(ass)}.
+
+\begin{VNBcode}
+; nn-add-closed:
+;   forall([a in NN, b in NN], a + b in NN)
+; As a macete: source = "a + b in nn"
+;              replacement = truth
+(sp (make-wff-from-string "2 + 3 in NN"))
+; proof state:  []  |-  2 + 3 in NN
+(mac 'nn-add-closed)
+; unifies a=2, b=3
+; conditions (a in NN, b in NN) not discharged
+; goal rewritten:  2 + 3 in NN  ->  truth
+(ass)       ; truth is trivially grounded
+; => Proof complete.
+\end{VNBcode}
+
+\begin{remark}
+The conditions of a conditional macete are silently dropped.  This
+makes \texttt{(mac 'name)} fast for goals whose conditions are obviously
+satisfied, but it is the user's responsibility to verify them; the
+proof sketch above is technically unsound without separate proofs that
+$2 \in \mathit{NN}$ and $3 \in \mathit{NN}$.  For fully verified
+condition discharge, use \texttt{(ta 'name)} followed by explicit
+instantiation and back-chaining.
+\end{remark}
+
+\subsection{Ground arithmetic with \texttt{(arith)}}
+
+The \texttt{(arith)} command (primitive \texttt{cmd-arith}) closes any
+goal whose formula reduces to true under exact arithmetic evaluation:
+
+\begin{VNBcode}
+(sp (make-wff-from-string "1/3 + 1/6 = 1/2"))
+(arith)                              ; closes by exact rational arithmetic
+
+(sp (make-wff-from-string "2 ^ 10 = 1024"))
+(arith)                              ; 2^10 evaluates to 1024
+
+(sp (make-wff-from-string "3 + 4 <= 2 * 5"))
+(arith)                              ; 7 <= 10
+\end{VNBcode}
+
+\subsection{The calculator pattern}
+
+\texttt{(arith)} also recognises a goal of the form
+\begin{VNBsnip}
+forsome([n in CLASS], EXPR = n)
+\end{VNBsnip}
+where \texttt{EXPR} is a ground arithmetic expression and \texttt{CLASS}
+is one of \texttt{NN}, \texttt{ZZ}, \texttt{QQ}, \texttt{RR},
+\texttt{CC}.  It evaluates \texttt{EXPR}, checks that the result belongs
+to \texttt{CLASS}, and closes the goal with that value as the witness.
+This lets the prover double as a calculator:
+
+\begin{VNBcode}
+(sp (make-wff-from-string "forsome([n in NN], 2^10 = n)"))
+(arith)   ; closes with witness 1024
+
+(sp (make-wff-from-string "forsome([q in QQ], 1/3 + 1/4 = q)"))
+(arith)   ; closes with witness 7/12
+\end{VNBcode}
+
+\begin{remark}
+The symmetric form \texttt{n = EXPR} is also accepted.
+The pattern is intentionally narrow: \texttt{EXPR} must be fully ground
+(no free variables), and the existential variable must appear alone on
+one side of the equality.
+\end{remark}
+
+\subsection{\texorpdfstring{$\beta$}{beta}-reduction with \texttt{(beta)}}
+
+Applied \texttt{lambda} (or \texttt{lambdoid}) terms are reduced
+in-place, then the underlying numeric or logical content is closed
+by another rule:
+
+\begin{VNBcode}
+(sp (make-wff-from-string "lambda([x in nn], 2 * x)(5) = 10"))
+(beta)   ; goal becomes (2 * 5 = 10)
+(arith)  ; closes
+\end{VNBcode}
+
+\subsection{Auto-installing arithmetic theorems}
+
+\texttt{vnb-create-num-theorem} verifies a closed arithmetic wff by
+ground evaluation and installs it as a named theorem.  The theorem is
+then available via \texttt{(ta \textit{name})}:
+
+\begin{VNBcode}
+(vnb-create-num-theorem 'pythag-3-4-5 "3 ^ 2 + 4 ^ 2 = 5 ^ 2")
+; => pythag-3-4-5
+
+(sp (make-wff-from-string "truth implies 3 ^ 2 + 4 ^ 2 = 5 ^ 2"))
+(di) (ta 'pythag-3-4-5) (ass)
+; => Proof complete.
+\end{VNBcode}
+
+False or undecidable formulas are rejected:
+
+\begin{VNBcode}
+(vnb-create-num-theorem 'bogus "1 + 1 = 3")
+; ERROR: formula evaluates to FALSE
+
+(vnb-create-num-theorem 'bogus2 "x = 5")
+; ERROR: not a decidable closed arithmetic sentence
+\end{VNBcode}
+
+\subsection{Installing a proven theorem}
+\label{sec:qed-and-subst}
+
+A completed proof does not by itself add anything to the theory.  Use
+\texttt{(qed \textit{name})} to install the root assertion as a named
+theorem:
+
+\begin{VNBcode}
+(sp (make-wff-from-string "n in NN and m in NN implies m in NN and n in NN"))
+(di) (ai "n in NN and m in NN") (di) (ass) (ass)
+(qed 'and-comm)
+; => and-comm
+; (lookup-theorem 'and-comm) returns the formula S-expression.
+\end{VNBcode}
+
+\paragraph{What \texttt{subst-wff} is and is not.}
+\texttt{subst-wff} applies capture-avoiding substitution to a wff's
+underlying S-expression and returns a new \texttt{wff} (re-validated
+through \texttt{make-wff}).  It is \emph{not} a logical inference;
+after calling it you must reprove the result.  It is useful for
+generating related goals from a known formula:
+
+\begin{VNBcode}
+(define w
+  (subst-wff '((n . (in x nn)) (m . (in y rr)))
+             (lookup-theorem 'and-comm)))
+; w is the wff for (x in nn) and (y in rr) implies (y in rr) and (x in nn)
+\end{VNBcode}
+
+\subsection{Saving and replaying proof scripts}
+\label{sec:replay}
+
+Every interactive command you issue between \texttt{(sp\ \ldots)} and
+\texttt{(qed\ \ldots)} is appended to a global accumulator
+\texttt{*proof-script*}.  \texttt{(qed \textit{name})} installs the
+proven theorem and saves the script under the same name; you can also
+call \texttt{(save-proof \textit{name})} on demand.
+
+\begin{VNBcode}
+(sp (make-wff-from-string "n in NN and m in NN implies m in NN and n in NN"))
+(di) (ai "n in NN and m in NN") (di) (ass) (ass)
+(qed 'and-comm)
+; theorem AND script installed under the same name
+
+(lookup-proof 'and-comm)
+; => ((di) (ai (and (in n nn) (in m nn))) (di) (ass) (ass))
+\end{VNBcode}
+
+\paragraph{Replay verbatim.}
+\texttt{(replay-proof \textit{name})} re-runs the saved commands
+sequentially against the current proof state.  Useful for redoing a
+proof in a fresh session, or applying an identical script to a sequent
+of the same shape.
+
+%% =========================================================
+\subsection{NN induction for type properties}
+\label{sec:ex-ni-type}
+
+The \texttt{(ni)} command reduces a goal
+$\forall n \in \mathit{NN}.\; P(n)$ to two subgoals:
+a base case $P(0)$ (focused first) and a step case
+$\forall n \in \mathit{NN}.\; P(n) \Rightarrow P(\mathrm{succ}(n))$.
+The following proof shows that $\mathit{PROD\text{-}ORD}(m, f, n)$
+stays in the carrier $\mathit{A}(m)$ for every $n \in \mathit{NN}$,
+deriving \texttt{prod-ord-type} from first principles.
+
+\begin{VNBcode}
+(sp (make-wff '(IMPLIES (IS-MONOID m)
+               (IMPLIES (IN f (FUN NN (A m)))
+                 (FORALL n (IMPLIES (IN n NN)
+                   (IN (PROD-ORD m f n) (A m))))))))
+(di) (di)   ; IS-MONOID(m) and f in FUN(NN,A(m)) enter context
+(ni)        ; NN-induction; BASE gets focus first
+
+;; --- BASE: PROD-ORD(m,f,0) in A(m) ---
+;; Strategy: PROD-ORD(m,f,0) = E(m) (prod-ord-zero),
+;;           E(m) in A(m)            (monoid-identity-in),
+;;           so by eq-subst-membership the goal closes.
+(ta 'eq-subst-membership)
+(inst ... '(PROD-ORD m f 0)) (inst ... '(E m)) (inst ... '(A m))
+(bc '(IMPLIES (AND (= (PROD-ORD m f 0) (E m)) (IN (E m) (A m)))
+              (IN (PROD-ORD m f 0) (A m))))
+(di)    ; AND-split: focus = equality goal
+(ta 'prod-ord-zero) (inst ... 'm) (inst ... 'f) (ass)
+        ; focus jumps: manually refocus on membership goal
+(ta 'monoid-identity-in) (inst ... 'm)
+(bc '(IMPLIES (IS-MONOID m) (IN (E m) (A m)))) (ass)
+        ; BASE complete; focus moves to STEP
+
+;; --- STEP: forall([n in NN], IH => PROD-ORD(m,f,succ n) in A(m)) ---
+(di)    ; peel FORALL n -> n_k; (IN n_k NN) enters context
+;; n_k is the bound name introduced by (di); fetch it via:
+;;   (cadr (wff-formula
+;;           (car (sequent-node-assumptions
+;;                  (proof-state-focus *ps*)))))
+(di)    ; peel IH: PROD-ORD(m,f,n_k) in A(m) enters context
+;; Strategy:
+;;   PROD-ORD(m,f,succ n_k)
+;;     = MUL(m)(PROD-ORD(m,f,n_k), f(n_k))   (prod-ord-succ)
+;;   then close via monoid-carrier-closed-mul.
+(ta 'eq-subst-membership) (inst ...) (inst ...) (inst ...)
+(bc ...)
+(di)    ; AND-split: focus = equality goal
+(ta 'prod-ord-succ)
+(inst ...) (inst ...) (inst ...)
+(bc ...) (ass)   ; n_k in NN closes it
+;; focus moves to membership goal: MUL(m)(...) in A(m)
+(ta 'monoid-carrier-closed-mul)
+(inst ...) (inst ...) (inst ...)
+(bc ...)
+(di) (ass)   ; IS-MONOID(m)
+(di) (ass)   ; PROD-ORD(m,f,n_k) in A(m) [IH]
+;; f(n_k) in A(m) via fun-apply-type:
+(ta 'fun-apply-type)
+(inst ...) (inst ...) (inst ...) (inst ...)
+(bc ...) (di) (ass) (ass)
+;; closes f in FUN(NN,A(m)) and n_k in NN
+\end{VNBcode}
+
+\begin{remark}
+The \texttt{inst} chains are elided above; each peels one leading
+\texttt{forall} from a theorem schema.  Two subtleties arise in practice.
+First, \texttt{(di)} on an AND-goal always focuses on the left (equality)
+conjunct first.  After \texttt{(ass)} closes that conjunct, automatic
+focus advancement jumps to the earliest ungrounded goal in the deduction
+graph --- which may be the STEP node, not the right (membership) conjunct.
+The fix is to capture the membership node
+immediately after the AND-split:
+\begin{VNBcode}
+(di)   ; AND-split
+(let* ((dg       (proof-state-dg *ps*))
+       (mem-node (car (reverse (dg-sequent-nodes dg)))))
+  ... prove equality ... (ass)   ; focus jumps
+  (set-proof-state-focus! *ps* mem-node)
+  ... prove membership ...)
+\end{VNBcode}
+
+Second, \texttt{alpha-equiv?} --- used by \texttt{(inst)} and
+\texttt{(bc)} when searching assumptions --- relies on structural
+equality of formula heads.  Compound heads such as
+\texttt{((MUL m) a b)} (a curried two-argument application) are compared
+correctly only when the head pair is the same \emph{object}.  If
+\texttt{alpha-equiv?} fails to locate a formula you know is in context,
+the likely cause is a compound-head mismatch; the fix is in
+\texttt{expressions.scm}'s \texttt{alpha-equiv-under?}.
+\end{remark}
+
+%% =========================================================

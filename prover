@@ -1,0 +1,28 @@
+#!/bin/bash
+# prover -- run the VNB proof checker
+#
+# Usage:
+#   prover              -- interactive REPL
+#   prover file.scm     -- load and run a proof script, then exit
+#   prover -i file.scm  -- load a proof script, then drop into REPL
+
+PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOAD="$PROVER_DIR/load.scm"
+
+case "$1" in
+  "")
+    # Interactive mode.  Unset INSIDE_EMACS so MIT Scheme runs its normal
+    # interactive REPL regardless of whether GNU Emacs or XEmacs launched us
+    # (GNU Emacs sets INSIDE_EMACS which causes MIT Scheme to disable its line
+    # editor in ways that break comint startup).
+    exec env -u INSIDE_EMACS mit-scheme --load "$LOAD"
+    ;;
+  -i)
+    # Load script then interactive
+    exec env -u INSIDE_EMACS mit-scheme --load "$LOAD" --load "$2"
+    ;;
+  *)
+    # Batch: load script, print results, exit
+    exec mit-scheme --quiet --load "$LOAD" --load "$1" --eval "(exit)"
+    ;;
+esac

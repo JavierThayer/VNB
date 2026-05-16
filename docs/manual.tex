@@ -1,0 +1,80 @@
+\documentclass{amsbook}[openany]
+\renewcommand\thesection{\thechapter.\arabic{section}}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{textcomp}
+\usepackage{fancyvrb}
+\usepackage{upquote}
+\usepackage{hyperref}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{claim}{Claim}
+
+\theoremstyle{definition}
+\newtheorem{dfn}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[chapter]
+\theoremstyle{remark}
+\pdfglyphtounicode{visiblespace}{0020}
+\pdfgentounicode=1
+
+\DefineVerbatimEnvironment{VNBcode}{Verbatim}{frame=single,framesep=4pt,xleftmargin=8pt,fontsize=\footnotesize}
+\DefineVerbatimEnvironment{VNBsnip}{Verbatim}{fontsize=\footnotesize}
+
+\title{\textbf{VNB Proof Checker}\\[4pt]
+       \large User Manual}
+\author{F. J. Thayer}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%% =========================================================
+\input{ch-intro}
+
+%% =========================================================
+\input{ch-expressions}
+
+%% =========================================================
+\input{ch-math}
+
+%% =========================================================
+\input{ch-defs}
+
+%% =========================================================
+\input{ch-proofs}
+
+%% =========================================================
+\input{ch-syntax}
+
+%% =========================================================
+\input{ch-source}
+
+%% =========================================================
+\appendix
+\input{app-tests}
+
+%% =========================================================
+
+\begin{thebibliography}{9}
+\bibitem{IMPS}
+W.~M.~Farmer, J.~D.~Guttman, F.~J.~Thayer,
+\textit{IMPS: An Interactive Mathematical Proof System},
+Journal of Automated Reasoning 11(2), 1993.
+
+\bibitem{Monk1988}
+L.~G.~Monk,
+Inference rules using local contexts,
+\textit{Journal of Automated Reasoning}, 4:445--462, 1988.
+\end{thebibliography}
+
+\end{document}

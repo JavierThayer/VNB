@@ -1,0 +1,476 @@
+\chapter{Introduction}
+
+\begin{sloppypar}The VNB Proof Checker is an interactive proof assistant implemented in
+MIT~Scheme.  Its logical foundation is a first-order set theory in the
+style of von~Neumann--Bernays (VNB): a single-sorted universe of
+\emph{classes}, with \textsc{set} as a distinguished predicate and
+membership ($\in$) as the only non-logical primitive.\end{sloppypar}
+[[NOTE: References needed. NO HALLUCINATIONS please]]
+
+The proof architecture follows the sequent-calculus approach of the
+IMPS~2.0 system~\cite{IMPS}: proofs are \emph{deduction graphs} whose
+nodes are sequents and whose edges are inference steps.  Every
+inference step is validated by a small, auditable \emph{primitive
+inference kernel}; higher-level tactics and a form of conditional
+rewrite rules, called macetes in the IMPS system, are built on top of
+the inference kernel and cannot introduce unsoundness.
+The deduction-graph proof structure and the use of local contexts in
+macete application are due to L.~G.~Monk~\cite{Monk1988}, whose work
+was a direct influence on IMPS.
+[[Reference to IMPS and an online Portuguese language dictionary
+(e.g.\ \url{https://dicionario.acad-ciencias.pt/pesquisa/macete/} has
+an entry)]]
+
+This project is, among other things, a proof of concept: a rigorous
+mathematical proof system built entirely by AI
+[[Note: we can reference documentation for Claude]],
+with architectural direction from F.~J.~Thayer.  It is inspired by
+ideas from IMPS~\cite{IMPS}.
+
+%% =========================================================
+\section{VNB: primitives and reductions}
+\label{sec:primitives}
+
+\emph{[References to VNB in the published literature will be added here
+after a literature search.  No content will be added without accurate
+citations.]}
+
+Pure VNB set theory is a spare formalism.  The natural numbers, the
+reals, functions, and ordinals can all be \emph{constructed} from the
+axioms of set theory---but those constructions are long, intricate, and
+bear little resemblance to how mathematics is actually written or thought
+about.  A proof that $\sin(\pi/2) = 1$ should not need to unfold the
+Dedekind-cut definition of the reals.
+
+This system therefore starts from a broad primitive base.  VNB set
+theory supplies the logical foundation, but many mathematical objects
+are taken as \emph{primitive constants} and \emph{primitive
+constructors}, governed by axioms rather than by explicit
+set-theoretic construction:
+
+\begin{itemize}[label = $\circ$, leftmargin= 0.9cm]
+\item \textbf{Number systems} \texttt{NN}, \texttt{ZZ}, \texttt{QQ},
+  \texttt{RR}, \texttt{CC} are primitive constants denoting sets.  Their
+  elements and operations are characterised by ring, field, and order
+  axioms, not by Dedekind cuts, Cauchy sequences, or ordinal arithmetic.
+\item \textbf{Ordinals} \texttt{ORD} form a primitive proper class with
+  its own ordering predicate \texttt{<=\_ORD}, independent of the
+  set-membership relation.
+\item \textbf{Function spaces} \texttt{fun($A$, $B$)} are primitive
+  set constructors.  Functions are not encoded as sets of ordered
+  pairs; application \texttt{$f$($x$)} is a primitive operation.
+\item \textbf{Mathematical structures} such as groups, vector spaces,
+  and Banach spaces are declared with \texttt{def-structure}, which
+  installs accessor operations and a typing predicate.
+\end{itemize}
+
+In principle every one of these primitives could be reduced to the bare
+VNB axioms---ordinals by the von~Neumann construction, reals by Dedekind
+cuts, functions by sets of ordered pairs, and so on.  This approach
+simply takes these reductions as \emph{existence theorems} that
+have been proved (or could be proved) elsewhere, and works with the
+objects directly at their natural level of abstraction.  The resulting
+proofs are shorter, more readable, and correspond more closely to
+informal mathematical practice.
+
+A further departure from standard set theory is the treatment of
+\emph{partial application}.  Any syntactic expression \texttt{f(x)}
+is a well-formed term, but it may be \emph{undefined} if \texttt{f} is
+not a function applicable to \texttt{x}.  The system provides both
+strict equality \texttt{a = b} (false if either side is undefined) and
+quasi-equality \texttt{a == b} (true when both sides are undefined in
+the same way), following the approach of IMPS~\cite{IMPS}.
+
+A consequence of this broad primitive base is that membership in a
+primitive constant has \emph{indeterminate truth value} in general.
+The formula \texttt{x in 7} is syntactically well-formed --- VNB is
+single-sorted and \texttt{in} accepts any two class expressions ---
+but the system makes no claim about whether it holds. Please note that
+this does not mean that the formula is undefined: whether it is true
+or not depends on how $7$ is interpreted in VNB. This system
+takes $7$ as a primitive number constant and makes no identification
+of it with any set-theoretic object.  Membership statements of this
+kind are grammatically meaningful but proof-theoretically inert.
+
+%% =========================================================
+\section{Architecture}
+\label{sec:architecture}
+
+\subsection{Proof architecture}
+
+\begin{sloppypar}
+The proof architecture follows the sequent-calculus approach of the
+IMPS~2.0 system~\cite{IMPS}: proofs are \emph{deduction graphs} whose
+nodes are sequents and whose edges are inference steps.  Every inference
+step is validated by a small, auditable \emph{primitive inference kernel};
+higher-level tactics and macetes are built on top of it and cannot
+introduce unsoundness.
+\end{sloppypar}
+
+\subsection{Theory architecture}
+
+In contrast to the \emph{little theories} methodology of
+IMPS~\cite{IMPS}---where each mathematical domain inhabits its own
+separate mini-theory---VNB works with a \emph{single, growing current
+theory}.  Mathematical structures are declared directly in that one theory
+using \texttt{def-structure}, and their axioms accumulate there alongside
+the base VNB axioms and the primitive number-system axioms.  This reflects
+the view of mathematics as one unified body of knowledge rather than a
+federation of isolated theories.
+
+The system does permit \emph{minimal} or even \emph{odd-ball theories}
+for the cases where a genuinely separate context becomes necessary.
+These theories can be created with \texttt{make-theory} and carry
+the primitive class constants but \emph{no structural axioms}.  Such
+theories are expected to be exceptional; all routine mathematical work
+takes place in the single current theory.
+
+\begin{remark}\label{remark:27137-61828-986360}
+%
+For the potential user interested in \emph{constructivist} mathematics,
+this system is not appropriate. These potential users should consider
+alternatives such as Coq, which has a very well established library of
+mathematics.
+%
+\end{remark}
+
+\subsection{Design goals}
+
+\begin{itemize}[ label = $\circ$, leftmargin = 1cm]
+\item \textbf{Enriched set-theoretic foundation.}  VNB set theory with
+  primitive constants for standard mathematical objects; no type
+  hierarchy; partial function application with undefinedness.
+\item \textbf{Transparent kernel.}  All proof steps reduce to a small
+number of
+  primitive inferences; the kernel is under 300 lines of Scheme.
+\item \textbf{Composable rewriting.}  A macete mechanism (borrowed from
+  IMPS) allows theorems to be automatically converted into named rewrite
+  strategies that can be sequenced and combined.
+\item \textbf{N-ary constructors.}  Ordered tuples \texttt{[$e_1$,
+  \ldots, $e_n$]} and Cartesian products \texttt{cartesian($A_1$, \ldots,
+  $A_n$)} are first-class, supporting the definition of mathematical
+  structures with multiple carriers and operations.
+\end{itemize}
+
+\subsection{Why MIT Scheme?}
+
+MIT~Scheme was chosen for several practical reasons: it is small (the
+proof kernel is under 300 lines of idiomatic Scheme), easy to learn
+and write code, free and readily available on all major platforms, and has
+a long track record of correctness and stability.  Since all code is
+open source, porting to another language with AI assistance should be
+straightforward.
+
+%% =========================================================
+
+%% =========================================================
+\section{Quick start}
+\label{sec:quickstart-chap}
+
+\subsection{Installation and startup}
+
+\subsubsection{Requirements}
+
+MIT~Scheme~11.2 or later, and for best interactive use one of
+GNU/Emacs or XEmacs.  With minor modifications, the native Scheme text
+editor Edwin also works.  No other dependencies.
+
+\subsubsection{Directory layout}
+
+\begin{VNBsnip}
+~/prover/
+  prover                 executable script
+  load.scm               loader (sources all files in order)
+  expressions.scm        expression language
+  wff.scm                <wff> record type, wff-child, wff-in-theory, wff-equiv?
+  sequents.scm           sequents over <wff>; context operations
+  deduction-graphs.scm   proof graph data structures
+  primitive-inferences.scm  inference kernel
+  macetes.scm            macete mechanism
+  theory.scm             theory management + VNB base axioms
+  structures.scm         mathematical structure definitions
+  number-systems.scm     NN, ZZ, QQ, RR, CC constants and axioms
+  contexts.scm           local context management, make-wff, unravel
+  arith-eval.scm         ground arithmetic decision procedure
+  proof-commands.scm     high-level proof commands
+  interactive.scm        interactive short-form commands (sp, di, ai, ...)
+  vnb.el                 GNU Emacs / XEmacs interface
+\end{VNBsnip}
+
+\subsection{Starting the checker}
+
+\begin{VNBsnip}
+~/prover/prover              # interactive REPL
+~/prover/prover proof.scm    # run a proof script and exit
+~/prover/prover -i proof.scm # run a script, then stay interactive
+\end{VNBsnip}
+
+The interactive session is a standard MIT~Scheme REPL with the proof
+checker pre-loaded.
+\subsection{The Emacs interface}
+\label{sec:emacs}
+
+The file \texttt{vnb.el} provides a GNU~Emacs and XEmacs interface for
+the proof checker.  It requires no external packages beyond
+\texttt{comint}, which ships with every Emacs distribution.
+
+\subsubsection{Installation}
+
+Add the following to your Emacs init file (\texttt{\textasciitilde/.emacs}
+or \texttt{\textasciitilde/.xemacs/init.el}):
+
+\begin{verbatim}
+(add-to-list 'load-path "~/prover")
+(require 'vnb)
+\end{verbatim}
+
+\noindent
+\textbf{Do not byte-compile \texttt{vnb.el}.}  GNU~Emacs and XEmacs use
+incompatible byte-code formats; loading the source file interpreted is
+the correct approach for both.
+
+\subsubsection{Starting the interface}
+
+\begin{VNBsnip}
+M-x vnb
+\end{VNBsnip}
+
+This starts the prover subprocess (if not already running), and opens a
+two-buffer layout:
+\begin{itemize}[label=\textendash, leftmargin=1cm]
+\item \textbf{Left window --- \texttt{*VNB*} REPL.}  A \texttt{comint}
+  buffer running MIT~Scheme with the proof checker pre-loaded.  Type any
+  Scheme expression and press \texttt{RET} to evaluate it.
+\item \textbf{Right window --- \texttt{*VNB State*}.}  A read-only
+  display buffer that is updated automatically after every command that
+  calls \texttt{(show)}.  It always shows the current proof state: open
+  goals, assumptions, and focus.
+\end{itemize}
+
+The two buffers are kept synchronised by a comint output filter that
+watches for the sentinel lines \texttt{;;VNB-STATE-BEGIN} /
+\texttt{;;VNB-STATE-END} emitted by \texttt{(show)} and routes the
+enclosed text to the state buffer.
+
+\subsubsection{Key bindings in the \texttt{*VNB*} REPL buffer}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\item \texttt{RET} Submit expression to the prover (standard comint).
+\item \texttt{C-c C-s} Send \texttt{(show)} to refresh the state display.
+\item \texttt{C-c C-p} Switch to the \texttt{*VNB State*} buffer.
+\end{itemize}
+
+\subsubsection{Key bindings in the \texttt{*VNB State*} buffer}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\item \texttt{q} Return to the \texttt{*VNB*} REPL buffer.
+\item \texttt{C-c C-s} Send \texttt{(show)} to refresh the state display.
+\end{itemize}
+
+\subsubsection{The \texttt{*VNB Commands*} scratch buffer}
+
+\begin{VNBsnip}
+M-x vnb-command-buffer
+\end{VNBsnip}
+
+Opens a \texttt{*VNB Commands*} buffer in \texttt{vnb-command-mode}.
+This buffer works exactly like the Emacs \texttt{*scratch*} buffer (which
+uses \texttt{lisp-interaction-mode}), except that \texttt{C-j} sends
+expressions to the \emph{VNB prover} instead of evaluating them as Emacs
+Lisp.
+
+Write proof commands as S-expressions in the buffer.  Position point
+immediately after any complete expression and press \texttt{C-j}:
+the expression is sent to the running VNB process, and the return value
+is inserted on a new line below point.  The buffer accumulates a
+readable session transcript.
+
+\begin{VNBcode}
+(sp (make-wff-from-string "n in NN and m in NN implies m in NN and n in NN"))
+;;VNB-STATE-BEGIN
+1 open goal(s).
+Focus:
+  [0] ()  =>  (((n in nn) and (m in nn)) implies ((m in nn) and (n in nn)))
+;;VNB-STATE-END
+
+(di)       C-j
+;;VNB-STATE-BEGIN
+2 open goal(s).
+Focus:
+  [1] ((n in nn) and (m in nn))  =>  ((m in nn) and (n in nn))
+Other open goals:
+  [0] ()  =>  (((n in nn) and (m in nn)) implies ((m in nn) and (n in nn)))
+;;VNB-STATE-END
+\end{VNBcode}
+
+\paragraph{Key bindings in \texttt{vnb-command-mode}.}
+
+\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\item \texttt{C-j} Send S-expression before point to VNB; insert result below.
+\item \texttt{C-c C-c} Send entire buffer to VNB; append result.
+\item \texttt{TAB} Complete VNB command name at point.
+\item \texttt{C-c C-d} Describe VNB command: show signature and documentation.
+\item \texttt{C-c C-s} Refresh \texttt{*VNB State*} proof-state buffer.
+\end{itemize}
+
+\subsubsection{Command reference and completion}
+
+\begin{sloppypar}\texttt{vnb.el} maintains the list \texttt{vnb-commands} of all proof
+commands, each with a usage signature and a one-line description.  The
+derived alist \texttt{vnb-commands-alist} maps short names to signatures
+and is used by \texttt{TAB} completion in \texttt{vnb-command-mode}.\end{sloppypar}
+
+\begin{VNBsnip}
+M-x vnb-describe-command   RET   di   RET
+; Echo area: (di)
+;   Direct inference: decompose current goal by its top connective. ...
+\end{VNBsnip}
+
+\subsubsection{Programmatic evaluation: \texttt{vnb-eval-string}}
+
+For scripting or integration with other Emacs packages:
+
+\begin{VNBsnip}
+; str is a Scheme expression as a string
+(vnb-eval-string str)           ; => Scheme return value as string
+(vnb-eval-string str timeout)   ; => same, with explicit timeout (seconds)
+\end{VNBsnip}
+
+\texttt{(vnb-eval-string STR \&optional TIMEOUT)} sends the string
+\texttt{STR} to the running prover, waits up to \texttt{TIMEOUT} seconds
+(default 30) for the next REPL prompt, and returns the Scheme return
+value as an Emacs string.  It signals an error if the prover is not
+running.
+
+%% =========================================================
+\subsection{A complete proof}
+\label{sec:quickstart}
+
+\begin{sloppypar}
+After installing the Emacs interface (Section~\ref{sec:emacs}), launch
+the prover with \texttt{M-x vnb}.  Two buffers appear: \texttt{*VNB*}
+(the REPL) and \texttt{*VNB State*} (the live proof state).  Type the
+following five commands at the \texttt{*VNB*} prompt, pressing
+\texttt{C-j} (or RET) after each:
+\end{sloppypar}
+
+\begin{VNBsnip}
+(sp (make-wff-from-string "n in NN and m in NN implies m in NN and n in NN"))
+(di)                                   ; assume both, prove (m in nn) and (n in nn)
+(ai "n in NN and m in NN")            ; split into (n in nn) and (m in nn)
+(di)                                   ; split goal: prove (m in nn), then (n in nn)
+(ass) (ass)                            ; both are in the assumption list
+\end{VNBsnip}
+
+The \texttt{*VNB State*} buffer updates after each command.  The final
+state shows \texttt{Proof complete.}
+
+\paragraph{What just happened.}
+\texttt{(make-wff-from-string \ldots)} parses a string in the VNB string
+syntax and wraps the result as a typed \texttt{wff} in the current
+theory.  \texttt{(sp \ldots)} starts a new proof.  \texttt{(di)} is
+direct-inference: it decomposes the goal by its outermost connective.
+\texttt{(ai \ldots)} is antecedent-inference: it decomposes a named
+assumption; the argument is a formula string (or a raw S-expression for
+low-level use) that identifies the assumption by alpha-equivalence.
+\texttt{(ass)} discharges a goal that already appears in the assumption
+list.
+
+The same proof at the Scheme level (no short forms) reads:
+\begin{VNBsnip}
+(let* ((wic (make-wff-from-string
+              "n in NN and m in NN implies m in NN and n in NN"))
+       (ps  (start-proof wic))
+       (ps  (cmd-direct-inference ps))
+       (ps  (cmd-antecedent-inference ps (parse-string "n in NN and m in NN")))
+       (ps  (cmd-direct-inference ps))
+       (ps  (cmd-assumption ps))
+       (ps  (cmd-assumption ps)))
+  (print-proof-state ps))
+\end{VNBsnip}
+The interactive short forms in \texttt{interactive.scm} are simple
+wrappers: each mutates a global \texttt{*ps*} and calls \texttt{(show)}
+to reprint the state.  All examples in this manual use the short forms;
+the long form is available when scripting non-interactively.
+
+\paragraph{What \texttt{make-wff} checks.}
+\texttt{make-wff} (and \texttt{make-wff-from-string}, which calls it)
+performs a position-typed walk of its argument and signals an error
+rather than wrap a malformed expression.  The checks are:
+\begin{sloppypar}
+\begin{itemize}[label=$\ast$, leftmargin=1cm]
+\item \textbf{Numbers in wff positions} are rejected:
+  \texttt{(make-wff-from-string "1 and 35")} $\Rightarrow$ ``number in wff
+  position 1''.
+\item \textbf{Term-forming heads in wff positions} are rejected:
+  \texttt{(make-wff-from-string "choice(A)")} as a top-level wff fails because
+  \texttt{choice} produces a term, not a wff.
+\item \textbf{Wff-forming heads in term positions} are rejected:
+  \texttt{(make-wff-from-string "(A and B) in C")} fails because \texttt{A and B}
+  is a wff and the first argument of \texttt{in} must be a term.
+\item \textbf{Bare symbols in wff positions} are rejected.  Only
+  \texttt{truth} and \texttt{falsity} are valid bare-symbol wffs;
+  anything else (e.g.\ \texttt{A implies B}) is an error.
+\item \textbf{Free-symbol role conflicts}: a symbol that appears free
+  in both wff and term positions in the same formula is rejected.
+\item \textbf{Wff-position binders}: a binder whose body uses the
+  bound variable in wff position is rejected within its scope.  This
+  catches \texttt{forall([p], p implies p)}: \texttt{p} is bound as a
+  class variable but the body uses it as a proposition.
+\item \textbf{Bound vs.\ free same-name use} is \emph{accepted with a
+  warning}.  In \texttt{forall([a], a in nn) implies a in zz} the
+  inner \texttt{a} is bound and the outer \texttt{a} is free.  The
+  validator emits a \texttt{;; warning} but does not reject.
+\item \textbf{Arities and bound-variable shapes} are checked: every
+  connective and quantifier gets the right number of arguments;
+  \texttt{forall}, \texttt{forsome}, \texttt{iota},
+  \texttt{lambda}, \texttt{lambdoid}, and \texttt{sep} bound variables must be
+  symbols.
+\end{itemize}
+\end{sloppypar}
+%
+\begin{remark}\label{remark:27135-34761-138906}
+%
+The set-theoretic \texttt{power(A)} (power set) and arithmetic
+\texttt{x \^{} n} (exponentiation) share the same underlying symbol because
+MIT~Scheme reads identifiers case-insensitively; \texttt{make-wff}
+distinguishes them by arity (1 vs.\ 2 arguments).  All downstream
+operations (\texttt{free-vars}, \texttt{subst-free},
+\texttt{alpha-equiv?}, macete pattern matching) honour the same
+arity-based dispatch.
+
+%
+\end{remark}
+
+%% =========================================================
+\subsection{A macete example}
+\label{sec:quickstart-macete}
+
+Macetes are named rewrite rules derived from installed theorems.
+To apply a macete outside a proof, install a theorem and call
+\texttt{apply-macete}:
+
+\begin{VNBcode}
+(install-theorem! 'eq-symm
+  (make-wff-from-string "forall([x, y], x = y iff y = x)"))
+
+(apply-macete 'eq-symm (make-wff-from-string "3 + 5 = 8"))
+; => wff for "8 = 3 + 5"
+
+(apply-macete 'eq-symm (make-wff-from-string "n = m implies truth"))
+; => wff for "m = n implies truth"
+
+(apply-macete 'eq-symm (make-wff-from-string "3 in nn"))
+; => #f          -- pattern x = y does not match; no rewrite fires
+\end{VNBcode}
+
+\texttt{apply-macete} accepts and returns a \texttt{wff} object; it
+returns \texttt{\#f} when the pattern matches nowhere.
+To apply a macete as a proof step, use
+\texttt{(mac \textit{name})} inside a proof (see
+Section~\ref{sec:macetes}).
+
+%% =========================================================
+
+
+%% =========================================================

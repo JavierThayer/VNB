@@ -1,0 +1,29 @@
+# Compiled MIT Scheme artifacts
+*.com
+*.bin
+*.bci
+*.ext
+
+# Backup / editor swap files
+*~
+*.swp
+*.swo
+.#*
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.dvi
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.idx
+*.pdf
+
+# Claude local (machine-specific) settings
+.claude/settings.local.json
+
+# OS noise
+.DS_Store
