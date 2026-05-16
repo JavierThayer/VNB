@@ -300,22 +300,40 @@ $\mathit{ADD}(r) \in \mathit{FUN}(\mathit{CARTESIAN}(A(r), A(r)), A(r))$,
 which have a single argument slot of fixed Cartesian type.
 \end{remark}
 
+\medskip\noindent The remaining constructors of this section are listed
+below.  Each entry states the defining membership property and points to
+the corresponding proof commands in
+Section~\ref{sec:nary-proof-commands}.
+
 \begin{itemize}[label = $\circ$, leftmargin=1cm]
 
 \item \texttt{union($A_1$,\ldots,$A_n$)}
-  $x \in C$ iff $x \in A_i$ for some $i$.  The membership iff is given
-  axiomatically for $n=2$ (\texttt{union-membership}); the n-ary form
-  is decomposed by the kernel rules \texttt{pi-union-intro!} (with an
-  index $k$) and \texttt{pi-union-elim!} (case-split over all factors).
+  $x \in C$ iff $x \in A_i$ for some $i$.
+  Axiom \texttt{union-membership} states this IFF for $n=2$.
+  At any arity, the kernel rule \texttt{pi-union-intro!} reduces a goal
+  $x \in \text{union}(A_1,\ldots,A_n)$ to the single subgoal $x \in A_k$
+  for a chosen index $k$; \texttt{pi-union-elim!} consumes a hypothesis
+  $x \in \text{union}(A_1,\ldots,A_n)$ and case-splits it into $n$
+  branches, each with $x \in A_i$ assumed.  See
+  Section~\ref{sec:nary-proof-commands}.
+  The macete \texttt{union-decompose} rewrites
+  $x \in \text{union}(A_1,\ldots,A_n)$ to the disjunction
+  $(x \in A_1) \lor \cdots \lor (x \in A_n)$ in one step.
   Result is a set when all $A_i \in \mathit{SET}$
   (\texttt{union-set-closure}; n-ary by induction).
 
 \item \texttt{intersection($A_1$,\ldots,$A_n$)}
-  $x \in C$ iff $x \in A_i$ for all $i$.  The membership iff is given
-  axiomatically for $n=2$ (\texttt{intersection-membership}); the
-  n-ary form is decomposed by the kernel rules
-  \texttt{pi-intersection-intro!} and \texttt{pi-intersection-elim!}
-  (with an index $k$).  Result is a set when any $A_i \in \mathit{SET}$
+  $x \in C$ iff $x \in A_i$ for all $i$.
+  Axiom \texttt{intersection-membership} states this IFF for $n=2$.
+  At any arity, the kernel rule \texttt{pi-intersection-intro!} reduces
+  a goal $x \in \text{intersection}(A_1,\ldots,A_n)$ to $n$ subgoals
+  $x \in A_i$; \texttt{pi-intersection-elim!} extracts $x \in A_k$ from
+  a hypothesis $x \in \text{intersection}(A_1,\ldots,A_n)$ for a chosen
+  index $k$.  See Section~\ref{sec:nary-proof-commands}.
+  The macete \texttt{intersection-decompose} rewrites
+  $x \in \text{intersection}(A_1,\ldots,A_n)$ to the conjunction
+  $(x \in A_1) \land \cdots \land (x \in A_n)$ in one step.
+  Result is a set when any $A_i \in \mathit{SET}$
   (\texttt{intersection-set-closure}).
 
 \item \texttt{complement-in($A$, $B$)}
