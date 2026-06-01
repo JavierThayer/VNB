@@ -8,7 +8,7 @@ theory.  All declarations take effect at load time.
 
 \subsection{The standard number domains}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \texttt{NN} ($\mathbb{N}$) Non-negative integers $\{0, 1, 2, \ldots\}$
 \item \texttt{ZZ} ($\mathbb{Z}$) Integers
 \item \texttt{QQ} ($\mathbb{Q}$) Rationals
@@ -118,14 +118,28 @@ Each number system comes with: a sethood axiom, inclusion from the
 previous system, closure of each operation, and algebraic identities
 appropriate to its structure.
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
-\item \texttt{NN} Commutative semiring with \texttt{0} and \texttt{1}
-\item \texttt{ZZ} Commutative ring; additive group with \texttt{0} and unary \texttt{-}
-\item \texttt{QQ} Ordered field; \texttt{recip} defined for nonzero elements
-\item \texttt{RR} Ordered field with \texttt{abs}; triangle inequality; \texttt{abs} zero iff argument is zero
-\item \texttt{CC} Field; \texttt{conjugate} is an involution compatible with $+$ and $\cdot$;
-  $a \cdot \overline{a} \in \mathbb{R}$ and $a \cdot \overline{a} \geq 0$
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\item \texttt{NN}: closed under \texttt{+} and \texttt{*}; constants
+  \texttt{0} (additive unit) and \texttt{1} (multiplicative unit);
+  commutativity, associativity, and distributivity for \texttt{+} and
+  \texttt{*}.  Unary \texttt{-} and \texttt{recip} are not total here.
+\item \texttt{ZZ}: $\mathtt{NN}$ axioms plus closure under unary
+  \texttt{-} (additive inverse); $x + (-x) = 0$.
+\item \texttt{QQ}: $\mathtt{ZZ}$ axioms plus \texttt{recip} on nonzero
+  elements; ordering \texttt{<=} compatible with \texttt{+} and \texttt{*}.
+\item \texttt{RR}: $\mathtt{QQ}$ axioms plus \texttt{abs} satisfying the
+  triangle inequality, with \texttt{abs($x$) = 0} iff \texttt{$x$ = 0}.
+\item \texttt{CC}: $\mathtt{RR}$ axioms plus \texttt{conjugate}, an
+  involution compatible with $+$ and $\cdot$, with
+  $a \cdot \overline{a} \in \mathbb{R}$ and $a \cdot \overline{a} \geq 0$.
+  No ordering on $\mathtt{CC}$.
 \end{itemize}
+
+\noindent The abstract structural names---commutative monoid,
+commutative ring, ordered field---and the corresponding officialised
+ring instances are deferred to Section~\ref{sec:basic-rings}.  At this
+point we are simply listing the operations and identities each
+domain carries.
 
 Because there is a single \texttt{+}, \texttt{*}, etc.\ shared across all
 systems, no compatibility axioms between adjacent systems are needed:
@@ -173,7 +187,7 @@ corresponding membership fact.
 \texttt{NN}, \texttt{RR}, and \texttt{CC}: no explicit construction of
 ordinals is needed.  The class is characterised entirely by its axioms.
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \texttt{ORD} the class of all ordinals (a proper class)
 \item \texttt{$\alpha$ in ORD} $\alpha$ is an ordinal
 \end{itemize}
@@ -184,7 +198,7 @@ Ordinals are equipped with a primitive ordering predicate \texttt{<=\_ORD}
 (and its strict companion \texttt{<\_ORD}) that is independent of set
 membership.  The ordering has no required connection to $\in$.
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \texttt{<=\_ORD($\alpha$, $\beta$)} \quad $\alpha \leq \beta$ in the ordinal ordering
 \item \texttt{<\_ORD($\alpha$, $\beta$)} \quad $\alpha < \beta$ (strict)
 \item \texttt{succ\_ORD($\alpha$)} \quad successor ordinal of $\alpha$
@@ -194,7 +208,7 @@ membership.  The ordering has no required connection to $\in$.
 
 The following axioms are installed in \texttt{ordinals.scm}.
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \texttt{burali-forti}
   $\mathit{ORD} \notin \mathit{SET}$: \texttt{ORD} is a proper class.
   Every \emph{set} of ordinals has a supremum in \texttt{ORD}
@@ -362,7 +376,7 @@ The base theory \texttt{vnb-set-theory} is loaded automatically and
 provides the following named axioms (all usable via
 \texttt{cmd-theorem-assumption}):
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \texttt{membership-implies-sethood}
   $\forall a\,\forall b.\;(a \in b) \Rightarrow a \in \mathit{SET}$
 \item \texttt{extensionality}
@@ -407,7 +421,7 @@ The following were previously pending but are now installed.
 They are straightforward first-order statements requiring no new
 expression primitives.
 
-\begin{itemize}[label = $\checkmark$, leftmargin=1cm]
+\begin{itemize}[label = $\checkmark$, leftmargin=0.85cm]
 
 \item \texttt{equality-symmetry}
   $a = b \Rightarrow b = a$.
@@ -456,7 +470,7 @@ The remaining items require either new expression primitives
 or schema-level infrastructure (a primitive inference rather than a
 first-order axiom).
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
 \item \texttt{equality-substitution}
   $a = b \land P(a) \Rightarrow P(b)$ (for any formula $P$).

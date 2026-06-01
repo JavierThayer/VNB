@@ -1,0 +1,157 @@
+;;; ring.scm -- RING, RING-PROD, ZERO-RING
+;;;
+;;; RING: carrier A, addition ADD, multiplication MUL, additive inverse NEG,
+;;;       zero ZERO, multiplicative identity ONE.
+;;; Accessor indices: A -> 1, ADD -> 2, MUL -> 3, NEG -> 4, ZERO -> 5, ONE -> 6.
+;;;
+;;; (A, ADD, ZERO, NEG) is an abelian group; (A, MUL, ONE) is a monoid;
+;;; MUL distributes over ADD.
+
+(def-structure-from-clauses 'RING
+  '((carriers A)
+    (op ADD (CARTESIAN A A) A)
+    (op MUL (CARTESIAN A A) A)
+    (op NEG A A)
+    (constant ZERO A)
+    (constant ONE A)
+    (property is-associative ADD A)
+    (property is-commutative ADD A)
+    (property is-identity ADD ZERO A)
+    (property has-inverses ADD ZERO NEG A)
+    (property is-associative MUL A)
+    (property is-identity MUL ONE A)
+    (property is-distributive ADD MUL A)))
+
+(theory-add-axiom! *current-theory* 'ring-add-assoc
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (FORALL b (IMPLIES (IN b (A s))
+           (FORALL c (IMPLIES (IN c (A s))
+             (= ((ADD s) ((ADD s) a b) c)
+                ((ADD s) a ((ADD s) b c))))))))))))
+
+(theory-add-axiom! *current-theory* 'ring-add-comm
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (FORALL b (IMPLIES (IN b (A s))
+           (= ((ADD s) a b) ((ADD s) b a)))))))))
+
+(theory-add-axiom! *current-theory* 'ring-add-left-id
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (= ((ADD s) (ZERO s) a) a))))))
+
+(theory-add-axiom! *current-theory* 'ring-add-left-inv
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (= ((ADD s) ((NEG s) a) a) (ZERO s)))))))
+
+(theory-add-axiom! *current-theory* 'ring-mul-assoc
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (FORALL b (IMPLIES (IN b (A s))
+           (FORALL c (IMPLIES (IN c (A s))
+             (= ((MUL s) ((MUL s) a b) c)
+                ((MUL s) a ((MUL s) b c))))))))))))
+
+(theory-add-axiom! *current-theory* 'ring-mul-left-id
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (= ((MUL s) (ONE s) a) a))))))
+
+(theory-add-axiom! *current-theory* 'ring-mul-right-id
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (= ((MUL s) a (ONE s)) a))))))
+
+(theory-add-axiom! *current-theory* 'ring-left-dist
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (FORALL b (IMPLIES (IN b (A s))
+           (FORALL c (IMPLIES (IN c (A s))
+             (= ((MUL s) a ((ADD s) b c))
+                ((ADD s) ((MUL s) a b) ((MUL s) a c))))))))))))
+
+(theory-add-axiom! *current-theory* 'ring-right-dist
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (FORALL b (IMPLIES (IN b (A s))
+           (FORALL c (IMPLIES (IN c (A s))
+             (= ((MUL s) ((ADD s) a b) c)
+                ((ADD s) ((MUL s) a c) ((MUL s) b c))))))))))))
+
+;;; Zero is a two-sided annihilator under MUL.
+;;; DERIVED: a·0 = a·(0+0) = a·0 + a·0; cancel a·0 against itself in the
+;;; additive group.  Symmetric on the other side.  Standard ring lemmas,
+;;; installed as axioms for direct use in scalar pull-outs over finite sums.
+(theory-add-axiom! *current-theory* 'ring-mul-zero-left
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (= ((MUL s) (ZERO s) a) (ZERO s)))))))
+
+(theory-add-axiom! *current-theory* 'ring-mul-zero-right
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (= ((MUL s) a (ZERO s)) (ZERO s)))))))
+
+;;; ZERO(r) ∈ A(r) when IS-RING(r).
+;;; DERIVED (REVIEW.md R-2): follows from the auto-generated IS-RING IFF.
+(theory-add-axiom! *current-theory* 'ring-zero-in
+  '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (A r)))))
+
+;;; DERIVED (REVIEW.md R-3): IS-RING IFF + fun-apply-type.
+(theory-add-axiom! *current-theory* 'ring-carrier-closed-add
+  '(FORALL r (FORALL a (FORALL b
+      (IMPLIES (AND (IS-RING r) (AND (IN a (A r)) (IN b (A r))))
+               (IN ((ADD r) a b) (A r)))))))
+
+;;; -----------------------------------------------------------------------
+;;; RING-PROD: product of two rings.  Total: defined for any X, Y;
+;;; IS-RING(RING-PROD(X,Y)) holds when both IS-RING(X) and IS-RING(Y).
+
+(def-functoid 'RING-PROD '(X Y)
+  '(LIST
+     (CARTESIAN (A X) (A Y))
+     (VNB-LAMBDA (LIST p q)
+       (LIST ((ADD X) (NTH 1 p) (NTH 1 q))
+             ((ADD Y) (NTH 2 p) (NTH 2 q))))
+     (VNB-LAMBDA (LIST p q)
+       (LIST ((MUL X) (NTH 1 p) (NTH 1 q))
+             ((MUL Y) (NTH 2 p) (NTH 2 q))))
+     (VNB-LAMBDA (LIST p)
+       (LIST ((NEG X) (NTH 1 p))
+             ((NEG Y) (NTH 2 p))))
+     (LIST (ZERO X) (ZERO Y))
+     (LIST (ONE X) (ONE Y))))
+
+(theory-add-axiom! *current-theory* 'ring-prod-is-ring
+  '(FORALL X (IMPLIES (IS-RING X)
+      (FORALL Y (IMPLIES (IS-RING Y)
+        (IS-RING (RING-PROD X Y)))))))
+
+;;; -----------------------------------------------------------------------
+;;; ZERO-RING: terminal ring (carrier = {0}; identity for RING-PROD).
+
+(def-constant 'ZERO-RING
+  (list 'zero-ring-def
+        '(= ZERO-RING
+            (LIST (MAKE-SET (LIST 0))
+                  (VNB-LAMBDA (LIST p q) 0)
+                  (VNB-LAMBDA (LIST p q) 0)
+                  (VNB-LAMBDA (LIST p) 0)
+                  0
+                  0))))
+
+(theory-add-axiom! *current-theory* 'zero-ring-is-ring
+  '(IS-RING ZERO-RING))

@@ -101,6 +101,31 @@ forall([X, f],
               D(X)(f(m), f(n)) < eps)))
 \end{VNBsnip}
 
+\paragraph{Order predicates: \texttt{<} and \texttt{POS-RR}.}  Two
+pre-installed convenience predicates relieve the two most pervasive
+analytic idioms.  The kernel has \texttt{<=} as a primitive predicate
+but no strict \texttt{<}; ``$r > 0$ for $r \in RR$'' similarly
+expands to a three-conjunct mouthful.
+
+\begin{VNBcode}
+(def-predicate '< '(x y)
+  '(AND (<= x y) (NOT (= x y))))
+
+(def-predicate 'POS-RR '(r)
+  '(AND (IN r RR) (<= 0 r) (NOT (= 0 r))))
+\end{VNBcode}
+
+Installed in \texttt{structure-library/order-predicates.scm} (loads
+right after \texttt{number-systems}).  Each is just a defined-by-iff
+predicate; ground reasoning still unfolds through the iff (arith-eval
+has not been extended to dispatch on \texttt{<} directly).
+
+\begin{remark}
+Opt-in.  Existing axioms (\texttt{cc-complete}, the metric-topology
+vocabulary) retain the verbose forms for backward consistency; new
+axioms going forward should prefer \texttt{<} and \texttt{POS-RR}.
+\end{remark}
+
 %% =========================================================
 \section{Recursive definitions}
 \label{sec:recursive-defs}
@@ -196,7 +221,7 @@ $\mathrm{SUM}(f, n) = \sum_{k=0}^{n} f(k)$:\end{sloppypar}
 
 For functions on all ordinals, use the three-clause schema
 (Proposition~\ref{prop:tfrec-class}, Section~\ref{sec:ord-recursion}):
-\begin{itemize}[label=$\circ$, leftmargin=0.9cm]
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
 \item \textbf{Base} ($\xi = 0$):\quad $F(0) = b$
 \item \textbf{Successor} ($\xi = \mathrm{succ\_ORD}(\alpha)$):\quad
       $F(\mathrm{succ\_ORD}(\alpha)) = s(\alpha,\, F(\alpha))$
@@ -257,22 +282,32 @@ in the current theory.  No quoting is needed.
 \begin{VNBcode}
 (declare-structure NAME
   (carriers C1 C2 ...)
-  (op OPNAME (D1 D2 ...) RANGE)
+  (op OPNAME DOMAIN RANGE)
   (constant CNAME SET))
 \end{VNBcode}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
 \item \texttt{(carriers C1 C2 ...)}
   Names the carrier sets.  A structure with $m$ carriers has its $i$-th
   carrier at \texttt{nth($i$, s)} in any instance~\texttt{s}.
 
-\item \texttt{(op NAME (D1 D2 ...) RANGE)}
-  Declares a function-valued slot.  If more than one domain component is
-  listed, the domain is \texttt{CARTESIAN(D1, D2, ...)};
-  a single-element list gives a unary domain.  All carrier and op names
-  in domain and range positions are automatically expanded to accessor
-  applications.
+\item \texttt{(op NAME DOMAIN RANGE)}
+  Declares a function-valued slot: $\mathit{NAME}(s) \in
+  \mathit{FUN}(\mathit{DOMAIN}, \mathit{RANGE})$.  Every VNB function is
+  unary on its domain, so binary and higher-arity operations use an explicit
+  Cartesian product: write \texttt{(op MUL (CARTESIAN A A) A)}, not
+  \texttt{(op MUL (A A) A)}.  All carrier and op names in domain and range
+  positions are automatically expanded to accessor applications.
+
+  The unary typing is reconciled with the curried application form
+  $((\mathit{MUL}\,s)\,a\,b)$ used throughout the library by the
+  \texttt{apply-tupling-$n$} axioms
+  (Section~\ref{sec:curried-tupled-apply}): the $n$-arg apply equals the
+  unary apply to the $n$-tuple $(\texttt{LIST}\,a_1\,\ldots\,a_n)$.
+  Together with \texttt{fun-apply-type} this closes
+  $((\mathit{MUL}\,s)\,a\,b) \in A(s)$ from the typing of $\mathit{MUL}(s)$
+  and $a,b \in A(s)$.
 
 \item \texttt{(constant NAME SET)}
   Declares a constant-valued slot: $\mathit{NAME}(s) \in \mathit{SET}(s)$.
@@ -388,7 +423,7 @@ following structures, each paired with its characteristic axioms.
 \begin{VNBcode}
 (declare-structure SEMIGROUP
   (carriers A)
-  (op MUL (A A) A))
+  (op MUL (CARTESIAN A A) A))
 ; A -> (NTH 1 s),  MUL -> (NTH 2 s)
 \end{VNBcode}
 
@@ -405,7 +440,7 @@ semigroup-assoc:
 \begin{VNBcode}
 (declare-structure MONOID
   (carriers A)
-  (op MUL (A A) A)
+  (op MUL (CARTESIAN A A) A)
   (constant E A))
 ; A -> (NTH 1 s),  MUL -> (NTH 2 s),  E -> (NTH 3 s)
 \end{VNBcode}
@@ -430,14 +465,50 @@ Two convenience lemmas are installed in \texttt{axioms.scm}:
   \Rightarrow \mathit{MUL}(m)(a,b) \in \mathit{A}(m)$.
 \end{description}
 
+\subsubsection{Commutative monoid}
+
+\begin{VNBcode}
+(declare-structure COMM-MONOID
+  (carriers A)
+  (op MUL (CARTESIAN A A) A)
+  (constant E A))
+; same shape as MONOID: A->1, MUL->2, E->3
+\end{VNBcode}
+
+Commutative monoid: a monoid whose \texttt{MUL} is commutative.  Same
+structural shape as \texttt{MONOID}, so the accessors \texttt{A},
+\texttt{MUL}, \texttt{E} carry over polymorphically.  The relationship
+to \texttt{MONOID} is captured by a subtype axiom; the only additional
+content is commutativity.
+\begin{VNBsnip}
+comm-monoid-is-monoid:
+  forall([s], IS-COMM-MONOID(s) implies IS-MONOID(s))
+
+comm-monoid-mul-comm:
+  forall([s], IS-COMM-MONOID(s) implies
+    forall([a in A(s), b in A(s)],
+      MUL(s)(a, b) = MUL(s)(b, a)))
+\end{VNBsnip}
+
+\begin{remark}
+The subtype axiom \texttt{comm-monoid-is-monoid} means associativity,
+left identity, and right identity inherit automatically: any proof
+needing \texttt{monoid-assoc} on a commutative monoid first applies
+the subtype axiom to obtain \texttt{IS-MONOID}, then the monoid
+axiom.  Many ambient monoidal structures in the basic theory
+(e.g.\ the additive monoid of a ring, by \texttt{ring-add-comm}) are
+commutative; \texttt{COMM-MONOID} gives them a typed name and is the
+typing prerequisite for \texttt{PROD-SET} below.
+\end{remark}
+
 \subsubsection{Group}
 
 \begin{VNBcode}
 (declare-structure GROUP
   (carriers A)
-  (op MUL (A A) A)
+  (op MUL (CARTESIAN A A) A)
   (constant E A)
-  (op INV (A) A))
+  (op INV A A))
 ; A -> (NTH 1 s),  MUL -> (NTH 2 s),  E -> (NTH 3 s),  INV -> (NTH 4 s)
 \end{VNBcode}
 
@@ -454,9 +525,9 @@ group-left-inv:
 \begin{VNBcode}
 (declare-structure RING
   (carriers A)
-  (op ADD  (A A) A)
-  (op MUL  (A A) A)
-  (op NEG  (A)   A)
+  (op ADD  (CARTESIAN A A) A)
+  (op MUL  (CARTESIAN A A) A)
+  (op NEG  A A)
   (constant ZERO A)
   (constant ONE  A))
 ; A->1, ADD->2, MUL->3, NEG->4, ZERO->5, ONE->6
@@ -487,7 +558,7 @@ Two convenience lemmas are installed in \texttt{axioms.scm}:
 \begin{VNBcode}
 (declare-structure METRIC-SPACE
   (carriers X)
-  (op D (X X) RR))
+  (op D (CARTESIAN X X) RR))
 ; X -> (NTH 1 s),  D -> (NTH 2 s)
 \end{VNBcode}
 
@@ -500,6 +571,98 @@ metric-triangle:
       D(s)(u, w) <= D(s)(u, v) + D(s)(v, w)))
 \end{VNBsnip}
 
+\subsubsection{Open balls, r-nets, total-boundedness}
+\label{sec:metric-topology}
+
+The \texttt{metric-topology.scm} extension layers the standard
+point-set vocabulary onto \texttt{METRIC-SPACE}: open balls, $r$-nets,
+and total-boundedness.  Loads immediately after \texttt{metric-space}
+so the predicates are available everywhere \texttt{IS-METRIC-SPACE}
+is.
+
+\paragraph{Open ball.}  \texttt{BALL(s, x, r)} is the open
+$r$-ball around $x$ in metric space $s$:
+\begin{VNBcode}
+(def-functoid 'BALL '(s x r)
+  '(SEP y (X s)
+        (AND (<= ((D s) x y) r)
+             (NOT (= ((D s) x y) r)))))
+\end{VNBcode}
+
+\begin{remark}
+VNB has \texttt{<=} as a primitive predicate but no strict \texttt{<}.
+``$d < r$'' is therefore spelled \texttt{(AND (<= d r) (NOT (= d r)))}
+throughout the analytic vocabulary, matching the established idiom in
+\texttt{cc-complete}.  A future cleanup pass may introduce \texttt{<}
+as a derived predicate.
+\end{remark}
+
+Four axioms accompany the functoid:
+\begin{description}
+\item[\texttt{ball-membership}]
+  $y \in \mathit{BALL}(s,x,r) \iff y \in X(s)$ and $D(s)(x,y) < r$.
+\item[\texttt{ball-subset-carrier}]
+  $\mathit{BALL}(s,x,r) \subseteq X(s)$.
+\item[\texttt{ball-is-set}]
+  $\mathit{IS\text{-}METRIC\text{-}SPACE}(s) \Rightarrow
+   \mathit{BALL}(s,x,r) \in \mathit{SET}$.
+\item[\texttt{ball-center-in}]
+  $\mathit{IS\text{-}METRIC\text{-}SPACE}(s) \land x \in X(s)
+   \land r > 0 \Rightarrow x \in \mathit{BALL}(s,x,r)$.
+\end{description}
+
+Plus the workhorse lemma for cover-and-pigeonhole arguments: two
+points sharing an $r$-ball are within $2r$ of each other.
+\begin{VNBsnip}
+ball-2r-triangle:
+  forall([s], IS-METRIC-SPACE(s) implies
+    forall([x in X(s)], forall([r], r > 0 implies
+      forall([y in BALL(s, x, r), z in BALL(s, x, r)],
+        D(s)(y, z) < r + r))))
+\end{VNBsnip}
+
+\paragraph{r-net.}  \texttt{IS-R-NET(s, F, A, r)} says $F$
+approximates $A$ to within $r$ in $s$: every point of $A$ has some
+point of $F$ within distance strictly less than $r$.
+\begin{VNBsnip}
+IS-R-NET(s, F, A, r) iff
+  forall([p in A], forsome c, c in F and D(s)(c, p) < r)
+\end{VNBsnip}
+
+\begin{remark}
+Centers-only formulation.  $F$ is a set of \emph{points} in the metric
+space, not a set of balls; the set-of-balls view is one functoid away
+($\{ \mathit{BALL}(s,c,r) : c \in F \}$) but every standard metric-space
+argument pigeonholes on the centers anyway.  $F$ is not required to be
+a subset of $A$: classical $r$-nets for a subset $A$ may have centers
+outside $A$.  For the totally-bounded case ($A = X(s)$) the distinction
+vanishes since the typing of $D(s)$ forces $F \subseteq X(s)$.
+\end{remark}
+
+\paragraph{Total-boundedness.}  \texttt{TOTALLY-BOUNDED(s)} says
+every positive $r$ admits a finite $r$-net for $X(s)$.  The predicate
+folds in \texttt{IS-METRIC-SPACE(s)} because the notion is only
+meaningful on a metric space.
+\begin{VNBsnip}
+TOTALLY-BOUNDED(s) iff
+  IS-METRIC-SPACE(s) and
+  forall([r], r > 0 implies
+    forsome F, CARD(F) in NN and IS-R-NET(s, F, X(s), r))
+\end{VNBsnip}
+
+\begin{remark}
+``$F$ finite'' is encoded as \texttt{(IN (CARD F) NN)}: the cardinality
+of $F$, computed by the \texttt{CARD} functoid, lands in $\mathit{NN}$
+iff $F$ is finite.  Same convention as elsewhere in the cardinality
+machinery.
+\end{remark}
+
+The downstream client of these definitions will be the theorem
+``every sequence in a totally bounded metric space has a Cauchy
+subsequence'' --- a nested-pigeonhole / diagonalization argument
+that pigeonholes successive terms through ever-finer
+\texttt{IS-R-NET}$(s, F, X(s), 1/2^k)$ approximations.
+
 \subsection{Further structure definitions}
 
 The same mechanism handles any arity of carriers and operations.  For
@@ -508,10 +671,10 @@ instance, a Banach space over $\mathbb{C}$:
 \begin{VNBcode}
 (declare-structure NORMEDSPACE
   (carriers VECTORS)
-  (op SCALAR-TIMES (CC VECTORS) VECTORS)
-  (op PLUS         (VECTORS VECTORS) VECTORS)
-  (op MINUS        (VECTORS VECTORS) VECTORS)
-  (op NORM         (VECTORS) RR))
+  (op SCALAR-TIMES (CARTESIAN CC VECTORS) VECTORS)
+  (op PLUS         (CARTESIAN VECTORS VECTORS) VECTORS)
+  (op MINUS        (CARTESIAN VECTORS VECTORS) VECTORS)
+  (op NORM         VECTORS RR))
 ; VECTORS->1, SCALAR-TIMES->2, PLUS->3, MINUS->4, NORM->5
 \end{VNBcode}
 
@@ -547,10 +710,10 @@ A vector space over an arbitrary field:
 \begin{VNBcode}
 (declare-structure VECTORSPACE
   (carriers FIELD VECTORS)
-  (op SCALAR-TIMES (FIELD VECTORS) VECTORS)
-  (op PLUS         (VECTORS VECTORS) VECTORS)
+  (op SCALAR-TIMES (CARTESIAN FIELD VECTORS) VECTORS)
+  (op PLUS         (CARTESIAN VECTORS VECTORS) VECTORS)
   (constant ZERO VECTORS)
-  (op NEG          (VECTORS) VECTORS))
+  (op NEG          VECTORS VECTORS))
 ; FIELD->1, VECTORS->2, SCALAR-TIMES->3, PLUS->4, ZERO->5, NEG->6
 \end{VNBcode}
 
@@ -578,7 +741,7 @@ followed by modus ponens, yielding the concrete statement $P[h]$.
 The interactive short form is \texttt{(spec instance struct is-thm)}.
 
 \paragraph{Arguments.}
-\begin{itemize}[label=$\circ$, leftmargin=1cm]
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
 \item \textit{instance-name} --- symbol naming the specific structure, e.g.\
   \texttt{HARP}.
 \item \textit{struct-name} --- the structure class, e.g.\ \texttt{RING}.
@@ -619,22 +782,25 @@ would need to certify $\mathit{IS\text{-}GROUP}(\mathit{HARP})$ separately
 and call \texttt{spec} again for the \texttt{GROUP} class.
 \end{remark}
 
-\paragraph{Example: the complex numbers as a ring.}
-The constant \texttt{CC-RING} is defined in \texttt{complex.scm} as the
-6-tuple $[\mathit{CC},\,+,\,\times,\,-,\,0,\,1]$.  The axiom
-\texttt{cc-is-ring} asserts $\mathit{IS\text{-}RING}(\mathit{CC\text{-}RING})$.
+\paragraph{Example: the integers as a ring.}
+The constant \texttt{ZZ-RING} is defined in \texttt{numeric-instances.scm} as
+the 6-tuple $[\mathit{ZZ},\,+,\,\times,\,-,\,0,\,1]$.  The axiom
+\texttt{zz-is-ring} asserts $\mathit{IS\text{-}RING}(\mathit{ZZ\text{-}RING})$.
+(We use $\mathbb{Z}$, not $\mathbb{C}$: \texttt{CC-RING} is a 7-tuple normed
+field, so it cannot witness the length-6 \texttt{IS-RING} on the same tuple;
+it reaches the ring world through the \texttt{NORMED-FIELD-AS-*} views.)
 
 \begin{VNBcode}
-(spec 'CC-RING 'RING 'cc-is-ring)
-; => n theorems specialized for CC-RING.
-; Installs: ring-add-assoc-cc-ring, ring-add-comm-cc-ring,
-;           ring-mul-assoc-cc-ring, ring-left-dist-cc-ring, ...
+(spec 'ZZ-RING 'RING 'zz-is-ring)
+; => n theorems specialized for ZZ-RING.
+; Installs: ring-add-assoc-zz-ring, ring-add-comm-zz-ring,
+;           ring-mul-assoc-zz-ring, ring-left-dist-zz-ring, ...
 \end{VNBcode}
 
-A proof about $\mathbb{C}$ can then retrieve any of these directly:
+A proof about $\mathbb{Z}$ can then retrieve any of these directly:
 \begin{VNBcode}
-(ta 'ring-add-comm-cc-ring)
-; adds  ADD(CC-RING)(x, y) = ADD(CC-RING)(y, x)  to the context
+(ta 'ring-add-comm-zz-ring)
+; adds  ADD(ZZ-RING)(x, y) = ADD(ZZ-RING)(y, x)  to the context
 \end{VNBcode}
 
 %% =========================================================
@@ -915,6 +1081,101 @@ numeric identities with \texttt{(rs)} or \texttt{(arith)}.
 \end{VNBcode}
 
 %% =========================================================
+\section{Set-indexed sums and products}
+\label{sec:sum-set-prod-set}
+
+\texttt{SUM} and \texttt{PROD-ORD} index by an initial segment
+$\{0, \ldots, n-1\}$ of $\mathit{NN}$, so the order in which the
+operation is applied is built into the definition.  Once the operation
+is commutative, the value depends only on the \emph{set} of indices.
+\texttt{SUM-SET} and \texttt{PROD-SET} package this directly.
+
+\subsection{\texttt{SUM-SET}: ring sum over a finite set}
+
+\[
+   \mathit{SUM\text{-}SET}(r,\, S,\, f) \;=\; \sum_{x \in S} f(x)
+\]
+The additive monoid of a ring is commutative
+(\texttt{ring-add-comm}), so the value depends only on $S$, not on any
+enumeration.  Four axioms:
+\begin{description}
+\item[\texttt{sum-set-empty}]
+  $\mathit{SUM\text{-}SET}(r,\, \emptyset,\, f) = \mathit{ZERO}(r)$.
+\item[\texttt{sum-set-singleton}]
+  $\mathit{IS\text{-}RING}(r) \Rightarrow
+   \mathit{SUM\text{-}SET}(r,\, \{x\},\, f) = f(x)$.
+\item[\texttt{sum-set-disjoint-union}]
+  $\mathit{IS\text{-}RING}(r) \land S_1, S_2 \in \mathit{SET}
+   \land S_1 \cap S_2 = \emptyset \land f \in \mathit{FUN}(S_1 \cup S_2,\, \mathit{A}(r))
+   \Rightarrow$
+  \[
+    \mathit{SUM\text{-}SET}(r,\, S_1 \cup S_2,\, f)
+    \;=\; \mathit{ADD}(r)(\mathit{SUM\text{-}SET}(r, S_1, f),\,
+                          \mathit{SUM\text{-}SET}(r, S_2, f))
+  \]
+\item[\texttt{sum-set-type}]
+  $\mathit{IS\text{-}RING}(r) \land X \in \mathit{SET}
+   \land S \subseteq X \land f \in \mathit{FUN}(X,\, \mathit{A}(r))
+   \Rightarrow \mathit{SUM\text{-}SET}(r, S, f) \in \mathit{A}(r)$.
+  \\
+  The explicit superset $X$ keeps the typing applicable in the
+  disjoint-union axiom: $f$ is typed on $S_1 \cup S_2$, and the RHS
+  uses sums over $S_1, S_2$ separately --- each $S_i \subseteq X$
+  with $X = S_1 \cup S_2$.
+\end{description}
+
+\subsection{\texttt{PROD-SET}: commutative-monoid product over a finite set}
+
+\[
+   \mathit{PROD\text{-}SET}(\mathit{cm},\, S,\, f) \;=\; \prod_{x \in S} f(x)
+\]
+Mirrors \texttt{SUM-SET} but in a commutative monoid; well-definedness
+rests on \texttt{comm-monoid-mul-comm}.
+\begin{description}
+\item[\texttt{prod-set-empty}]
+  $\mathit{PROD\text{-}SET}(\mathit{cm},\, \emptyset,\, f) = \mathit{E}(\mathit{cm})$.
+\item[\texttt{prod-set-singleton}]
+  $\mathit{IS\text{-}COMM\text{-}MONOID}(\mathit{cm}) \Rightarrow
+   \mathit{PROD\text{-}SET}(\mathit{cm},\, \{x\},\, f) = f(x)$.
+\item[\texttt{prod-set-disjoint-union}]
+  $\mathit{IS\text{-}COMM\text{-}MONOID}(\mathit{cm}) \land
+   S_1, S_2 \in \mathit{SET} \land S_1 \cap S_2 = \emptyset \land
+   f \in \mathit{FUN}(S_1 \cup S_2,\, \mathit{A}(\mathit{cm})) \Rightarrow$
+  \[
+    \mathit{PROD\text{-}SET}(\mathit{cm},\, S_1 \cup S_2,\, f)
+    \;=\; \mathit{MUL}(\mathit{cm})(\mathit{PROD\text{-}SET}(\mathit{cm}, S_1, f),\,
+                                    \mathit{PROD\text{-}SET}(\mathit{cm}, S_2, f))
+  \]
+\item[\texttt{prod-set-type}]
+  $\mathit{IS\text{-}COMM\text{-}MONOID}(\mathit{cm}) \land X \in \mathit{SET}
+   \land S \subseteq X \land f \in \mathit{FUN}(X,\, \mathit{A}(\mathit{cm}))
+   \Rightarrow \mathit{PROD\text{-}SET}(\mathit{cm}, S, f) \in \mathit{A}(\mathit{cm}).$
+\end{description}
+
+\begin{remark}
+The connection $\mathit{SUM}(r, f, n) =
+\mathit{SUM\text{-}SET}(r,\, \mathit{ORD\text{-}SEGMENT}(n),\, f)$
+relates the two presentations: \texttt{SUM} indexes by the canonical
+initial segment, \texttt{SUM-SET} by an arbitrary finite set.
+The equation is a theorem (by $\mathit{NN}$-induction), not an axiom.
+A general unordered $\mathit{SUM\text{-}SET}(r, S, f)$ can be
+\emph{computed} via any enumeration $\mathit{bij}:\{0,\ldots,|S|-1\}\to S$
+(existence by \texttt{card-finite-bij}) as
+$\mathit{SUM}(r,\, \lambda i.\, f(\mathit{bij}(i)),\, |S|)$;
+independence of the enumeration is the permutation lemma, a future
+derived theorem.
+\end{remark}
+
+\begin{remark}
+Either of the three recursive axioms (\texttt{*-empty},
+\texttt{*-singleton}, \texttt{*-disjoint-union}) could be derived from
+the others plus the type axiom; we install all three so direct
+unfolding is available in proofs.  The disjointness condition
+$S_1 \cap S_2 = \emptyset$ is essential: without it the right-hand side
+double-counts $S_1 \cap S_2$.
+\end{remark}
+
+%% =========================================================
 \section{Ring products}
 \label{sec:ring-prod}
 
@@ -1045,9 +1306,253 @@ Installed by \texttt{def-by-nn-recursion}:
 
 \begin{remark}
 The indexed-family product $\prod_{i \in I} f(i)$ for an arbitrary
-index set $I$ (not necessarily $\mathit{NN}$) requires the big-union
-constructor $\bigcup_{i \in I} \mathit{A}(f(i))$ to serve as the
-function codomain.  This depends on \texttt{UNION-SET}, which is
-currently pending.  The family case will be added once
-\texttt{UNION-SET} is in place.
+index set $I$ (not necessarily $\mathit{NN}$) will use
+\texttt{big-union($i$, $I$, $A(f(i))$)} as the function codomain.
+The big-union binder is now in place
+(Section~\ref{sec:class-set-discipline}); the family product is the next
+step.
+\end{remark}
+
+%% =========================================================
+\section{Basic rings: officialising $\mathit{NN}, \mathit{ZZ}, \mathit{QQ}, \mathit{RR}, \mathit{CC}$}
+\label{sec:basic-rings}
+
+The basic numeric domains $\mathit{NN}, \mathit{ZZ}, \mathit{QQ},
+\mathit{RR}, \mathit{CC}$ ship with $n$-ary arithmetic operators
+$(+\; x\; y\; z)$, $(*\; a\; b\; c\; d)$, decided by the
+\texttt{arith-eval} oracle.  This is the form arithmetic is taught and
+computed in: a flat sum or product of many arguments.
+
+The algebraic structures \texttt{RING} and \texttt{COMM-MONOID}, by
+contrast, require their operations to be \emph{binary} ---
+elements of $\mathit{FUN}(\mathit{CARTESIAN}(A, A),\, A)$.  The file
+\texttt{basic-rings.scm} (loaded after \texttt{complex.scm}) bridges
+the two presentations.
+
+\begin{remark}
+The duality is intentional.  We learned arithmetic as $n$-ary
+operations; we learned abstract algebra with binary ones.  Both views
+have their place: keep $(+\; x\; y\; z)$ for everyday calculation, but
+when the goal is a generic ring/monoid theorem, route it through the
+binary form.
+\end{remark}
+
+\subsection{Polymorphic binary operators}
+
+Three named constants wrap the $n$-ary operators at arity 2 (and 1 for
+negation).  They are polymorphic in the sense that the \emph{same}
+\texttt{binplus} is typed for every numeric domain.
+
+\begin{description}
+\item[\texttt{binplus-apply}]
+  $\forall x,\, y.\;\mathtt{binplus}(x, y) = x + y$.
+\item[\texttt{bintimes-apply}]
+  $\forall x,\, y.\;\mathtt{bintimes}(x, y) = x \cdot y$.
+\item[\texttt{binneg-apply}]
+  $\forall x.\;\mathtt{binneg}(x) = -x$.
+\end{description}
+
+Typing axioms attach to each domain:
+\begin{center}
+\begin{tabular}{l|ccccc}
+                 & $\mathit{NN}$ & $\mathit{ZZ}$ & $\mathit{QQ}$ & $\mathit{RR}$ & $\mathit{CC}$ \\
+\hline
+\texttt{binplus} & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\texttt{bintimes}& \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\texttt{binneg}  & ---        & \checkmark & \checkmark & \checkmark & \checkmark \\
+\end{tabular}
+\end{center}
+Names follow the pattern \texttt{binplus-in-fun-zz}, etc.
+\texttt{binneg} is absent on $\mathit{NN}$ because $\mathit{NN}$ is
+not closed under negation.
+
+\subsection{Ring instances: $\mathit{ZZ}, \mathit{QQ}, \mathit{RR}, \mathit{CC}$ as rings}
+
+Each domain pairs with the binary operators above to form a
+\texttt{RING} instance --- a 6-element VNB list:
+\[
+   \mathit{ZZ\text{-}RING} \;=\;
+   [\,\mathit{ZZ},\; \mathtt{binplus},\; \mathtt{bintimes},\;
+     \mathtt{binneg},\; 0,\; 1\,]
+\]
+with definitional axiom \texttt{zz-ring-def}, and analogously
+\texttt{qq-ring-def} (also a 6-tuple).  \texttt{RR-RING} and \texttt{CC-RING}
+are 7-tuples in the \texttt{NORMED-FIELD} shape (norm at slot~7).
+
+A structure predicate pins \texttt{length(s) = n}, so a tuple witnesses only
+the predicates of its own shape.  The \texttt{IS-RING} witnesses are thus
+installed only for the genuine 6-tuples: \texttt{zz-is-ring} and
+\texttt{qq-is-ring}.  The 7-tuples carry \texttt{rr-is-normed-field} /
+\texttt{cc-is-normed-field} and reach the ring world through the
+\texttt{NORMED-FIELD-AS-*} views, not an \texttt{IS-RING} assertion (that
+would assert \texttt{length}~$=6$ of a length-7 list).  \texttt{QQ} as a field
+is the 8-tuple \texttt{QQ-FIELD} (\texttt{qq-field-is-field}), since
+\texttt{FIELD} is an 8-slot shape.
+
+\paragraph{Use via \texttt{specialize-structure}.}
+Once the IS-RING witness is in place, every generic ring theorem can
+be transported to the instance:
+\begin{VNBcode}
+(specialize-structure 'ZZ-RING 'RING 'zz-is-ring)
+;; Installs ring-add-comm-zz-ring, ring-mul-assoc-zz-ring, ...
+\end{VNBcode}
+This is what turns abstract ring theorems into usable facts about
+$\mathit{ZZ}$.  The same call works for $\mathit{QQ}$-RING (the other genuine
+6-tuple ring); for $\mathit{RR}$/$\mathit{CC}$ the analogue runs through the
+\texttt{NORMED-FIELD-AS-*} views instead.
+
+\subsection{$\mathit{NN}$ as a commutative monoid under addition}
+
+$\mathit{NN}$ is not a ring (no negation), but it is a commutative
+monoid under $+$ with identity $0$:
+\[
+   \mathit{NN\text{-}ADD\text{-}MONOID} \;=\; [\,\mathit{NN},\;
+     \mathtt{binplus},\; 0\,]
+\]
+with \texttt{nn-add-monoid-def} and witness
+\texttt{nn-add-monoid-is-comm-monoid}.  A multiplicative
+comm-monoid for $\mathit{NN}$ under $\cdot$ is left for later.
+
+\begin{remark}
+The $n$-ary arithmetic operators do not disappear.  Any proof can
+freely mix the two presentations: use $(+\; a\; b\; c)$ for ground
+calculations (closed by \texttt{(arith)}), and route through the
+binary form whenever the goal is a generic algebraic claim about a
+ring or monoid.  The apply axioms (\texttt{binplus-apply}, etc.)
+mediate translation in either direction.
+\end{remark}
+
+%% =========================================================
+\section{$\mathit{CC}$ as a metric space: \texttt{CC-MS}}
+\label{sec:cc-ms}
+
+The \texttt{METRIC-SPACE} structure (Section~\ref{sec:declare-structure})
+is one of the basic algebraic structures.  Its sole instance shipped
+with the prover is \texttt{CC-MS}, the complex plane with the standard
+metric:
+\[
+   \mathit{CC\text{-}MS} \;=\; \bigl[\,\mathit{CC},\;
+     \lambda([x, y],\; \mathtt{magnitude}(x - y))\,\bigr]
+\]
+i.e.\ the 2-element VNB list whose carrier is $\mathit{CC}$ and whose
+distance function is $d(x, y) = |x - y|$ (the user's
+``$\mathtt{abs}(y - x)$'' --- the standard Euclidean metric on the
+complex plane, expressed via the \texttt{magnitude} primitive).
+
+\paragraph{Defining axiom.}
+\begin{description}
+\item[\texttt{cc-ms-def}]
+  $\mathit{CC\text{-}MS} = [\mathit{CC},\; \lambda([x, y],\;
+   \mathtt{magnitude}(x - y))]$
+\item[\texttt{cc-is-metric-space}]
+  $\mathit{IS\text{-}METRIC\text{-}SPACE}(\mathit{CC\text{-}MS})$.
+  Taken as an axiom; the proof unfolds via the def-structure IFF and
+  discharges each metric-space axiom (positivity, self-zero,
+  separation, symmetry, triangle inequality) from the corresponding
+  property of \texttt{magnitude}.
+\end{description}
+
+\paragraph{Use via \texttt{specialize-structure}.}
+Once \texttt{cc-is-metric-space} is in place, every generic
+metric-space theorem can be transported to \texttt{CC-MS}:
+\begin{VNBcode}
+(specialize-structure 'CC-MS 'METRIC-SPACE 'cc-is-metric-space)
+;; Installs metric-pos-cc-ms, metric-triangle-cc-ms, ...
+\end{VNBcode}
+
+\paragraph{Completeness.}
+The axiom \texttt{cc-complete} asserts that every Cauchy sequence in
+$\mathit{CC}$ converges, but is currently stated directly in terms of
+\texttt{magnitude} rather than through the metric-space structure:
+\begin{VNBsnip}
+forall([f in fun(NN, CC)],
+  (forall([eps in RR], 0 < eps implies
+     forsome([N in NN], forall([m, n in NN], N <= m and N <= n implies
+       magnitude(f(m) - f(n)) <= eps))))
+  implies
+  forsome([L in CC],
+    forall([eps in RR], 0 < eps implies
+      forsome([N in NN], forall([n in NN], N <= n implies
+        magnitude(f(n) - L) <= eps)))))
+\end{VNBsnip}
+A future refactor will introduce generic \texttt{IS-CAUCHY-SEQ},
+\texttt{CONVERGES-TO}, and \texttt{IS-COMPLETE} predicates at the
+\texttt{METRIC-SPACE} level (the
+\texttt{def-predicate} example in Section~\ref{sec:def-predicate}
+sketches one of these), at which point \texttt{cc-complete} can be
+restated as $\mathit{IS\text{-}COMPLETE}(\mathit{CC\text{-}MS})$ and the
+explicit-magnitude form becomes a derived equivalent.
+
+%% =========================================================
+\section{Extended reals: $\mathit{RR}^{*}$}
+\label{sec:extended-reals}
+
+The extended real line
+\[
+   \mathit{RR}^{*} \;=\; \mathit{RR} \;\cup\; \{-\infty,\, +\infty\}
+\]
+adds two new constants $\mathtt{POS\text{-}INF}$ and
+$\mathtt{NEG\text{-}INF}$ at the top and bottom of the real line.  The
+file \texttt{extended-reals.scm} (loaded after \texttt{basic-rings.scm})
+installs the carrier class and the ordering.
+
+\begin{remark}
+The symbol \texttt{RR*} contains an asterisk; MIT Scheme accepts it as
+a single symbol, but the infix string parser will not parse it from a
+string.  Build wffs over $\mathit{RR}^{*}$ via the raw S-expression
+form, e.g.\ \texttt{(make-wff '(IN POS-INF RR*))}.
+\end{remark}
+
+\subsection{Membership}
+
+\begin{description}
+\item[\texttt{rr-star-membership}]
+  $\forall x.\; x \in \mathit{RR}^{*} \;\Leftrightarrow\;
+   x \in \mathit{RR} \lor x = \mathtt{POS\text{-}INF}
+                     \lor x = \mathtt{NEG\text{-}INF}.$
+\item[\texttt{rr-subset-rr-star}]
+  $\mathit{RR} \subseteq \mathit{RR}^{*}$ (immediate from the iff).
+\item[\texttt{pos-inf-in-rr-star}]
+  $\mathtt{POS\text{-}INF} \in \mathit{RR}^{*}$.
+\item[\texttt{neg-inf-in-rr-star}]
+  $\mathtt{NEG\text{-}INF} \in \mathit{RR}^{*}$.
+\end{description}
+
+\subsection{Distinctness}
+
+The two infinities are distinct from each other and from every real
+number.  Without these, the membership iff could be satisfied
+vacuously --- e.g.\ \texttt{POS-INF} could coincide with $0$.
+\begin{description}
+\item[\texttt{pos-inf-neq-neg-inf}]
+  $\mathtt{POS\text{-}INF} \neq \mathtt{NEG\text{-}INF}$.
+\item[\texttt{pos-inf-not-in-rr}]
+  $\mathtt{POS\text{-}INF} \notin \mathit{RR}$.
+\item[\texttt{neg-inf-not-in-rr}]
+  $\mathtt{NEG\text{-}INF} \notin \mathit{RR}$.
+\end{description}
+
+\subsection{Ordering}
+
+The existing $\le$ on $\mathit{RR}$ is extended to $\mathit{RR}^{*}$ by
+two bound axioms.  Reflexivity at the infinities ($\mathtt{POS\text{-}INF}
+\le \mathtt{POS\text{-}INF}$, etc.) follows by substituting
+$x := \mathtt{POS\text{-}INF}$ (or $\mathtt{NEG\text{-}INF}$) in their
+respective bounds.
+\begin{description}
+\item[\texttt{pos-inf-upper-bound}]
+  $\forall x \in \mathit{RR}^{*}.\; x \le \mathtt{POS\text{-}INF}.$
+\item[\texttt{neg-inf-lower-bound}]
+  $\forall x \in \mathit{RR}^{*}.\; \mathtt{NEG\text{-}INF} \le x.$
+\end{description}
+
+\begin{remark}
+Arithmetic on the extended reals is intentionally \emph{not} provided.
+The standard pitfalls --- $\mathtt{POS\text{-}INF} + \mathtt{NEG\text{-}INF}$,
+$\mathtt{POS\text{-}INF} - \mathtt{POS\text{-}INF}$,
+$0 \cdot \mathtt{POS\text{-}INF}$, \ldots --- have no canonical
+resolution, and the convergence machinery that motivates
+$\mathit{RR}^{*}$ does not need them.  $\mathit{RR}^{*}$ here is purely
+an \emph{ordered carrier}: a place to put limits and bounds that may
+fail to be finite.
 \end{remark}

@@ -48,7 +48,7 @@ are taken as \emph{primitive constants} and \emph{primitive
 constructors}, governed by axioms rather than by explicit
 set-theoretic construction:
 
-\begin{itemize}[label = $\circ$, leftmargin= 0.9cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \textbf{Number systems} \texttt{NN}, \texttt{ZZ}, \texttt{QQ},
   \texttt{RR}, \texttt{CC} are primitive constants denoting sets.  Their
   elements and operations are characterised by ring, field, and order
@@ -136,7 +136,7 @@ mathematics.
 
 \subsection{Design goals}
 
-\begin{itemize}[ label = $\circ$, leftmargin = 1cm]
+\begin{itemize}[ label = $\circ$, leftmargin=0.85cm]
 \item \textbf{Enriched set-theoretic foundation.}  VNB set theory with
   primitive constants for standard mathematical objects; no type
   hierarchy; partial function application with undefinedness.
@@ -171,31 +171,15 @@ straightforward.
 
 \subsubsection{Requirements}
 
-MIT~Scheme~11.2 or later, and for best interactive use one of
-GNU/Emacs or XEmacs.  With minor modifications, the native Scheme text
-editor Edwin also works.  No other dependencies.
+MIT~Scheme~11.2 or later, and Emacs (for the interactive workspace).
+No other dependencies.
 
 \subsubsection{Directory layout}
 
-\begin{VNBsnip}
-~/prover/
-  prover                 executable script
-  load.scm               loader (sources all files in order)
-  expressions.scm        expression language
-  wff.scm                <wff> record type, wff-child, wff-in-theory, wff-equiv?
-  sequents.scm           sequents over <wff>; context operations
-  deduction-graphs.scm   proof graph data structures
-  primitive-inferences.scm  inference kernel
-  macetes.scm            macete mechanism
-  theory.scm             theory management + VNB base axioms
-  structures.scm         mathematical structure definitions
-  number-systems.scm     NN, ZZ, QQ, RR, CC constants and axioms
-  contexts.scm           local context management, make-wff, unravel
-  arith-eval.scm         ground arithmetic decision procedure
-  proof-commands.scm     high-level proof commands
-  interactive.scm        interactive short-form commands (sp, di, ai, ...)
-  vnb.el                 GNU Emacs / XEmacs interface
-\end{VNBsnip}
+The prover lives in \texttt{\textasciitilde/prover/}: the executable
+script \texttt{prover} and the loader \texttt{load.scm} are the only
+two files you need to know about to get started.  See
+Appendix~\ref{app:source} for a per-file overview.
 
 \subsection{Starting the checker}
 
@@ -207,198 +191,263 @@ editor Edwin also works.  No other dependencies.
 
 The interactive session is a standard MIT~Scheme REPL with the proof
 checker pre-loaded.
-\subsection{The Emacs interface}
+\subsection{The VNB workspace}
 \label{sec:emacs}
 
-The file \texttt{vnb.el} provides a GNU~Emacs and XEmacs interface for
-the proof checker.  It requires no external packages beyond
-\texttt{comint}, which ships with every Emacs distribution.
+The VNB workspace is a styled Emacs session built for one task:
+writing proofs.  Start it from the shell:
 
-\subsubsection{Installation}
-
-Add the following to your Emacs init file (\texttt{\textasciitilde/.emacs}
-or \texttt{\textasciitilde/.xemacs/init.el}):
-
-\begin{verbatim}
-(add-to-list 'load-path "~/prover")
-(require 'vnb)
-\end{verbatim}
+\begin{VNBsnip}
+~/prover/VNB
+\end{VNBsnip}
 
 \noindent
-\textbf{Do not byte-compile \texttt{vnb.el}.}  GNU~Emacs and XEmacs use
-incompatible byte-code formats; loading the source file interpreted is
-the correct approach for both.
+A graphical Emacs frame opens with the VNB menu and toolbar already
+in place, the prover ready to launch on first use, and a Home
+Workspace inviting you to begin.
 
-\subsubsection{Starting the interface}
+\begin{remark}
+The launcher uses \texttt{emacs -Q}, so it ignores your personal
+Emacs init file.  The session is dedicated to the prover; nothing
+you do inside it affects your usual Emacs setup.
+\end{remark}
 
-\begin{VNBsnip}
-M-x vnb
-\end{VNBsnip}
+\subsubsection{The Home Workspace}
 
-This starts the prover subprocess (if not already running), and opens a
-two-buffer layout:
-\begin{itemize}[label=\textendash, leftmargin=1cm]
-\item \textbf{Left window --- \texttt{*VNB*} REPL.}  A \texttt{comint}
-  buffer running MIT~Scheme with the proof checker pre-loaded.  Type any
-  Scheme expression and press \texttt{RET} to evaluate it.
-\item \textbf{Right window --- \texttt{*VNB State*}.}  A read-only
-  display buffer that is updated automatically after every command that
-  calls \texttt{(show)}.  It always shows the current proof state: open
-  goals, assumptions, and focus.
+The first workspace you see.  It offers four buttons:
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{Start Proof} --- enter a formula in string syntax; the
+  workspace switches to the Focus Workspace and the prover begins.
+\item \textbf{Build Formula} --- parse and validate a formula
+  without starting a proof.  Useful for catching typos.
+\item \textbf{Show Theorems} --- list the theorems and definitions
+  installed in the current theory.
+\item \textbf{Quit} --- shut down the prover and exit.
 \end{itemize}
 
-The two buffers are kept synchronised by a comint output filter that
-watches for the sentinel lines \texttt{;;VNB-STATE-BEGIN} /
-\texttt{;;VNB-STATE-END} emitted by \texttt{(show)} and routes the
-enclosed text to the state buffer.
+\noindent
+Single-letter keys (\texttt{s}, \texttt{f}, \texttt{t}, \texttt{q})
+duplicate the buttons.  Press \texttt{g} to refresh.
 
-\subsubsection{Key bindings in the \texttt{*VNB*} REPL buffer}
+\subsubsection{The Focus Workspace}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
-\item \texttt{RET} Submit expression to the prover (standard comint).
-\item \texttt{C-c C-s} Send \texttt{(show)} to refresh the state display.
-\item \texttt{C-c C-p} Switch to the \texttt{*VNB State*} buffer.
+The working surface.  After \textbf{Start Proof} the workspace shows
+the goal you are currently focused on, with its assumptions and the
+goal itself, and a row of tactic buttons:
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{Direct Inference} --- decompose the goal by its top
+  connective.
+\item \textbf{Assume} --- close the goal if it matches one of the
+  assumptions already in hand.
+\item \textbf{Theorem} --- prompts for the name of a theorem to add
+  to the context.
+\item \textbf{Instantiate} --- prompts for a universally quantified
+  assumption and a term to instantiate it at.
+\item \textbf{Backchain} --- prompts for an implication
+  \texttt{P} \texttt{implies} \textit{goal}; the new subgoal is
+  \texttt{P}.
+\item \textbf{Focus} --- prompts for the number of another open
+  goal to switch to.
+\item \textbf{QED} --- prompts for a name and installs the
+  completed proof as a theorem.
+\item \textbf{Overview} --- switch to the Proof Overview Workspace.
+\item \textbf{Home} --- back to the Home Workspace.
 \end{itemize}
 
-\subsubsection{Key bindings in the \texttt{*VNB State*} buffer}
+\noindent
+The same single-letter keys as the button labels' first letters
+work too (\texttt{d}, \texttt{a}, \texttt{t}, \texttt{i},
+\texttt{b}, \texttt{f}, \texttt{q}).
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
-\item \texttt{q} Return to the \texttt{*VNB*} REPL buffer.
-\item \texttt{C-c C-s} Send \texttt{(show)} to refresh the state display.
+\begin{remark}
+Many more tactics are available in the prover than there are
+buttons.  The buttons cover the most common everyday moves; the
+full set is documented in Chapter~\ref{ch:proofs}, and any
+tactic can be typed directly in the REPL described below.
+\end{remark}
+
+\subsubsection{The Proof Overview Workspace}
+
+A bird's-eye view of every open goal in the current proof.  Each
+goal is rendered as assumptions above a sequent arrow above the
+goal formula, with a \textbf{Focus on this} button beside it.
+The current focus is marked with a small triangle.  Use this
+workspace to navigate large proofs or to remember which goals are
+still open.
+
+Press \texttt{f} to return to the Focus Workspace, \texttt{h} for
+Home, \texttt{n}/\texttt{p} to jump between goals, and
+\texttt{RET} to focus on the goal at point.
+
+\subsubsection{Error reporting}
+
+When the prover rejects something --- a malformed formula, a tactic
+that does not apply --- the error appears in two places at once:
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item the echo area at the bottom of the frame flashes the message
+  immediately;
+\item a red \texttt{! Error:} panel appears at the top of the
+  current workspace and stays there until the next successful
+  action clears it.
 \end{itemize}
 
-\subsubsection{The \texttt{*VNB Commands*} scratch buffer}
+\noindent
+No detail is hidden in a side window: whatever the prover said,
+you see.
+
+\subsubsection{Display preferences}
+
+The \textbf{Display} submenu of the VNB menu offers the usual
+adjustments: frame size, position, font family and size,
+foreground/background/cursor colours.  Any change is saved
+automatically to \texttt{\textasciitilde/.vnb-display.el}, so the
+next \texttt{VNB} launch reopens the frame exactly the way you
+left it.  \textbf{Reset to Defaults} restores the built-in
+appearance and removes the saved file.
+
+\subsubsection{Advanced: the bare REPL}
+
+Sitting behind the styled workspaces is an ordinary MIT~Scheme
+REPL.  Open it with \textbf{Show REPL (advanced)} from the VNB
+menu, or skip the workspaces entirely:
 
 \begin{VNBsnip}
-M-x vnb-command-buffer
+~/prover/VNB --no-workspace       # plain comint layout
+~/prover/prover                   # no Emacs at all
 \end{VNBsnip}
 
-Opens a \texttt{*VNB Commands*} buffer in \texttt{vnb-command-mode}.
-This buffer works exactly like the Emacs \texttt{*scratch*} buffer (which
-uses \texttt{lisp-interaction-mode}), except that \texttt{C-j} sends
-expressions to the \emph{VNB prover} instead of evaluating them as Emacs
-Lisp.
+\noindent
+The plain Emacs layout is a two-window arrangement: the
+\texttt{*VNB*} REPL on the left, the live proof-state display
+\texttt{*VNB State*} on the right.  Any Scheme expression you type
+at the REPL prompt is evaluated; \texttt{(show)} refreshes the
+state display, and short forms like \texttt{(di)} or \texttt{(ass)}
+work exactly as they do from the workspace buttons.
 
-Write proof commands as S-expressions in the buffer.  Position point
-immediately after any complete expression and press \texttt{C-j}:
-the expression is sent to the running VNB process, and the return value
-is inserted on a new line below point.  The buffer accumulates a
-readable session transcript.
+\paragraph{Scratch sheet of proof commands.}
+\texttt{M-x vnb-command-buffer} opens a \texttt{*VNB Commands*}
+window similar to Emacs's own \texttt{*scratch*}: type an
+S-expression, press \texttt{C-j}, and the result is sent to the
+running prover and inserted below.  \texttt{TAB} completes proof
+command names; \texttt{C-c C-d} describes the command at point.
 
-\begin{VNBcode}
-(sp (make-wff-from-string "n in NN and m in NN implies m in NN and n in NN"))
-;;VNB-STATE-BEGIN
-1 open goal(s).
-Focus:
-  [0] ()  =>  (((n in nn) and (m in nn)) implies ((m in nn) and (n in nn)))
-;;VNB-STATE-END
-
-(di)       C-j
-;;VNB-STATE-BEGIN
-2 open goal(s).
-Focus:
-  [1] ((n in nn) and (m in nn))  =>  ((m in nn) and (n in nn))
-Other open goals:
-  [0] ()  =>  (((n in nn) and (m in nn)) implies ((m in nn) and (n in nn)))
-;;VNB-STATE-END
-\end{VNBcode}
-
-\paragraph{Key bindings in \texttt{vnb-command-mode}.}
-
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
-\item \texttt{C-j} Send S-expression before point to VNB; insert result below.
-\item \texttt{C-c C-c} Send entire buffer to VNB; append result.
-\item \texttt{TAB} Complete VNB command name at point.
-\item \texttt{C-c C-d} Describe VNB command: show signature and documentation.
-\item \texttt{C-c C-s} Refresh \texttt{*VNB State*} proof-state buffer.
-\end{itemize}
-
-\subsubsection{Command reference and completion}
-
-\begin{sloppypar}\texttt{vnb.el} maintains the list \texttt{vnb-commands} of all proof
-commands, each with a usage signature and a one-line description.  The
-derived alist \texttt{vnb-commands-alist} maps short names to signatures
-and is used by \texttt{TAB} completion in \texttt{vnb-command-mode}.\end{sloppypar}
-
-\begin{VNBsnip}
-M-x vnb-describe-command   RET   di   RET
-; Echo area: (di)
-;   Direct inference: decompose current goal by its top connective. ...
-\end{VNBsnip}
-
-\subsubsection{Programmatic evaluation: \texttt{vnb-eval-string}}
-
-For scripting or integration with other Emacs packages:
-
-\begin{VNBsnip}
-; str is a Scheme expression as a string
-(vnb-eval-string str)           ; => Scheme return value as string
-(vnb-eval-string str timeout)   ; => same, with explicit timeout (seconds)
-\end{VNBsnip}
-
-\texttt{(vnb-eval-string STR \&optional TIMEOUT)} sends the string
-\texttt{STR} to the running prover, waits up to \texttt{TIMEOUT} seconds
-(default 30) for the next REPL prompt, and returns the Scheme return
-value as an Emacs string.  It signals an error if the prover is not
-running.
+\paragraph{Programmatic evaluation.}
+\texttt{(vnb-eval-string STR \&optional TIMEOUT)} sends \texttt{STR}
+to the running prover, waits up to \texttt{TIMEOUT} seconds
+(default~30) for the next REPL prompt, and returns the Scheme
+return value as an Emacs string.  Use it from your own Elisp when
+integrating the prover into a larger setup.
 
 %% =========================================================
 \subsection{A complete proof}
 \label{sec:quickstart}
 
 \begin{sloppypar}
-After installing the Emacs interface (Section~\ref{sec:emacs}), launch
-the prover with \texttt{M-x vnb}.  Two buffers appear: \texttt{*VNB*}
-(the REPL) and \texttt{*VNB State*} (the live proof state).  Type the
-following five commands at the \texttt{*VNB*} prompt, pressing
-\texttt{C-j} (or RET) after each:
+Launch the workspace as in Section~\ref{sec:emacs} (\texttt{\textasciitilde/prover/VNB}).
+The Home Workspace appears; the proof state below is what you would
+see after stepping through the example in the Focus Workspace.  The
+same commands typed at the bare REPL produce identical output.
 \end{sloppypar}
 
+We prove the classical syllogism: all men are mortal; Socrates is a
+man; therefore Socrates is mortal.
+
+\paragraph{Extend the theory.}
+Register the three new constants and the two premises:
+
 \begin{VNBsnip}
-(sp (make-wff-from-string "n in NN and m in NN implies m in NN and n in NN"))
-(di)                                   ; assume both, prove (m in nn) and (n in nn)
-(ai "n in NN and m in NN")            ; split into (n in nn) and (m in nn)
-(di)                                   ; split goal: prove (m in nn), then (n in nn)
-(ass) (ass)                            ; both are in the assumption list
+(theory-add-constant! *current-theory* 'MAN      'MAN)
+(theory-add-constant! *current-theory* 'MORTAL   'MORTAL)
+(theory-add-constant! *current-theory* 'SOCRATES 'SOCRATES)
+
+(theory-add-axiom! *current-theory* 'all-men-mortal
+  '(FORALL x (IMPLIES (IN x MAN) (IN x MORTAL))))
+
+(theory-add-axiom! *current-theory* 'socrates-is-a-man
+  '(IN SOCRATES MAN))
 \end{VNBsnip}
 
-The \texttt{*VNB State*} buffer updates after each command.  The final
-state shows \texttt{Proof complete.}
+\paragraph{Prove and install.}
 
-\paragraph{What just happened.}
-\texttt{(make-wff-from-string \ldots)} parses a string in the VNB string
-syntax and wraps the result as a typed \texttt{wff} in the current
-theory.  \texttt{(sp \ldots)} starts a new proof.  \texttt{(di)} is
-direct-inference: it decomposes the goal by its outermost connective.
-\texttt{(ai \ldots)} is antecedent-inference: it decomposes a named
-assumption; the argument is a formula string (or a raw S-expression for
-low-level use) that identifies the assumption by alpha-equivalence.
-\texttt{(ass)} discharges a goal that already appears in the assumption
-list.
-
-The same proof at the Scheme level (no short forms) reads:
 \begin{VNBsnip}
-(let* ((wic (make-wff-from-string
-              "n in NN and m in NN implies m in NN and n in NN"))
+(sp   (make-wff-from-string "SOCRATES in MORTAL"))
+(ta   'all-men-mortal)
+(inst "forall([x in MAN], x in MORTAL)" 'SOCRATES)
+(bc   "SOCRATES in MAN implies SOCRATES in MORTAL")
+(ta   'socrates-is-a-man)
+(ass)
+(qed  'socrates-is-mortal)
+\end{VNBsnip}
+
+Final \texttt{*VNB State*}: \texttt{Proof complete.}
+
+\begin{remark}
+The same proof in the styled workspace: the constants and axioms in
+the previous step are typed in the \texttt{*VNB Commands*} scratch
+sheet (one-off setup, no button for theory extension).  Then, from
+the Home Workspace: \textbf{Start Proof}~``\texttt{SOCRATES in MORTAL}'';
+the Focus Workspace appears; \textbf{Theorem}~``\texttt{all-men-mortal}'';
+\textbf{Instantiate}~``\texttt{forall([x in MAN], x in MORTAL)}'',~``\texttt{SOCRATES}'';
+\textbf{Backchain}~``\texttt{SOCRATES in MAN implies SOCRATES in MORTAL}'';
+\textbf{Theorem}~``\texttt{socrates-is-a-man}'';
+\textbf{Assume};
+\textbf{QED}~``\texttt{socrates-is-mortal}''.  The error panel
+(Section~\ref{sec:emacs}) catches typos as you go.
+\end{remark}
+
+\paragraph{What each command does.}
+\begin{sloppypar}
+\begin{itemize}[label=$\ast$, leftmargin=0.85cm]
+\item \texttt{(sp w)} starts a new proof with goal \texttt{w}.
+\item \texttt{(ta 'name)} pulls a named axiom or theorem into the
+  current sequent's context.
+\item \texttt{(inst f t)} instantiates the universally quantified
+  assumption \texttt{f} at term \texttt{t}.
+\item \texttt{(bc f)} backchains: assumption \texttt{f} is $P
+  \Rightarrow Q$, current goal is $Q$, new goal is $P$.
+\item \texttt{(ass)} closes a goal that appears in the assumption
+  list.
+\item \texttt{(qed 'name)} installs the completed proof as a named
+  theorem.
+\end{itemize}
+\end{sloppypar}
+
+\begin{remark}
+The ``open goals'' count in \texttt{*VNB State*} climbs as the proof
+progresses: each inference adds a node to the deduction graph, and
+the parent stays open until its child grounds.  Completion is the
+root grounding, not the count returning to zero in entry order.
+Keep going until \texttt{Proof complete.} appears.
+\end{remark}
+
+\paragraph{The same proof, scripted.}
+For batch use:
+\begin{VNBsnip}
+(let* ((wic (make-wff-from-string "SOCRATES in MORTAL"))
        (ps  (start-proof wic))
-       (ps  (cmd-direct-inference ps))
-       (ps  (cmd-antecedent-inference ps (parse-string "n in NN and m in NN")))
-       (ps  (cmd-direct-inference ps))
-       (ps  (cmd-assumption ps))
+       (ps  (cmd-theorem-assumption ps 'all-men-mortal))
+       (ps  (cmd-instantiate ps
+              (parse-string "forall([x in MAN], x in MORTAL)")
+              'SOCRATES))
+       (ps  (cmd-backchain ps
+              (parse-string
+                "SOCRATES in MAN implies SOCRATES in MORTAL")))
+       (ps  (cmd-theorem-assumption ps 'socrates-is-a-man))
        (ps  (cmd-assumption ps)))
-  (print-proof-state ps))
+  (cmd-qed ps 'socrates-is-mortal))
 \end{VNBsnip}
-The interactive short forms in \texttt{interactive.scm} are simple
-wrappers: each mutates a global \texttt{*ps*} and calls \texttt{(show)}
-to reprint the state.  All examples in this manual use the short forms;
-the long form is available when scripting non-interactively.
+All examples in this manual use the interactive short forms; the long
+form is available for scripting.
 
 \paragraph{What \texttt{make-wff} checks.}
 \texttt{make-wff} (and \texttt{make-wff-from-string}, which calls it)
 performs a position-typed walk of its argument and signals an error
 rather than wrap a malformed expression.  The checks are:
 \begin{sloppypar}
-\begin{itemize}[label=$\ast$, leftmargin=1cm]
+\begin{itemize}[label=$\ast$, leftmargin=0.85cm]
 \item \textbf{Numbers in wff positions} are rejected:
   \texttt{(make-wff-from-string "1 and 35")} $\Rightarrow$ ``number in wff
   position 1''.
@@ -469,6 +518,15 @@ returns \texttt{\#f} when the pattern matches nowhere.
 To apply a macete as a proof step, use
 \texttt{(mac \textit{name})} inside a proof (see
 Section~\ref{sec:macetes}).
+
+\begin{remark}
+To try the four lines above in the styled workspace, open the
+\texttt{*VNB Commands*} scratch sheet (\texttt{M-x vnb-command-buffer})
+and press \texttt{C-j} after each S-expression; the prover's reply
+appears on the line below.  The Home, Focus, and Proof Overview
+workspaces are for \emph{proofs}; ad-hoc expression evaluation lives
+on the scratch sheet or in the bare REPL.
+\end{remark}
 
 %% =========================================================
 

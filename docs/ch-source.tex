@@ -1,6 +1,28 @@
 \chapter{Source file overview}
+\label{app:source}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+The prover sources live in \texttt{\textasciitilde/prover/} and are
+organised into three groups:
+
+\begin{itemize}[label=\textendash, leftmargin=0.85cm]
+\item \textbf{Kernel} (root of \texttt{\textasciitilde/prover/}) ---
+  the proof checker engine, parser, theory record, and interactive
+  command layer.
+\item \textbf{\texttt{structure-library/}} --- algebraic structures
+  (semigroup, monoid, group, ring, metric-space), the numeric-system
+  instances (NN/ZZ/QQ/RR/CC as rings), ordinals, cardinality,
+  sequences, the complex-number library, and the polynomial
+  ring-identity decision procedure.
+\item \textbf{\texttt{theorem-library/}} --- axioms not yet derivable
+  from the primitive inference kernel.  Today this is just
+  \texttt{axioms.scm}; future lemma collections will accumulate here.
+\end{itemize}
+
+\medskip
+\noindent
+File-by-file:
+
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
 \item \begin{sloppypar}\texttt{expressions.scm}
   Expression representation, free variables, substitution
@@ -71,10 +93,33 @@
   and the \texttt{show} display function.  Loaded at session startup.
 
 \item \texttt{vnb.el}
-  GNU Emacs / XEmacs interface.  REPL buffer (\texttt{*VNB*}),
-  proof-state display buffer (\texttt{*VNB State*}), command scratch
-  buffer (\texttt{*VNB Commands*}), command alist and completion,
+  Emacs interface.  REPL window (\texttt{*VNB*}),
+  proof-state display window (\texttt{*VNB State*}), command scratch
+  window (\texttt{*VNB Commands*}), command alist and completion,
   \texttt{vnb-eval-string} for programmatic evaluation.
+
+\item \texttt{vnb-launch.el}
+  Workspace launcher.  Loaded by the \texttt{VNB} shell script; sets
+  up the styled Home, Focus, and Proof Overview workspaces, the VNB
+  menu bar and toolbar, the Display preferences panel, and the error
+  panel that catches \texttt{;; VNB error:} lines streaming back from
+  the prover.
+
+\item \texttt{structure-library/} --- one file per declared structure
+  (\texttt{semigroup.scm}, \texttt{monoid.scm} (includes \texttt{COMM-MONOID}),
+  \texttt{group.scm}, \texttt{ring.scm} (includes \texttt{RING-PROD}
+  and \texttt{ZERO-RING}), \texttt{metric-space.scm}), plus
+  \texttt{ring-simplify.scm} (polynomial-normal-form decision procedure),
+  \texttt{numeric-instances.scm} (NN/ZZ/QQ/RR/CC as algebraic
+  structures), \texttt{complex.scm}, \texttt{extended-reals.scm},
+  \texttt{ordinals.scm}, \texttt{cardinality.scm}, and
+  \texttt{sequences.scm}.  New structures land here automatically when
+  saved via the \textbf{Build Structure} button on the Home Workspace.
+
+\item \texttt{theorem-library/axioms.scm} --- axioms still taken as
+  primitive: equality substitution and other facts not yet derivable
+  from the kernel.  The accompanying source header lists what is
+  installed and what is still pending.
 
 \end{itemize}
 

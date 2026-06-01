@@ -87,6 +87,9 @@
 (ni      ()
          "NN induction. Fires on a goal of the form FORALL(n IN NN, P(n)). Produces two subgoals: base case P(0) and step case FORALL(n IN NN, P(n) IMPLIES P(succ(n))).")
 
+(bu-set  ()
+         "Big-union sethood. Fires on a goal of the form (IN (BIG-UNION z A body) SET). Produces two subgoals: A IN SET, and FORALL(z IN A, body IN SET).")
+
 ;;; ------------------------------------------------------------------
 ;;; One-argument proof commands
 
@@ -110,6 +113,12 @@
 
 (ue      (formula)
          "Union elim. Eliminates a union membership assumption formula (of the form x IN UNION(A1,...,An)) from the context by case-splitting. formula is a string or S-expression.")
+
+(bu-mi   (term)
+         "Big-union mem-intro. Provides a witness for a goal of the form x IN BIG-UNION(z, A, body), reducing it to two subgoals: term IN A, and x IN body[z:=term]. term is a string or S-expression.")
+
+(bu-me   (formula)
+         "Big-union mem-elim. Eliminates a big-union membership assumption formula (of the form x IN BIG-UNION(z, A, body)) from the context by introducing a fresh eigenvariable e and adding e IN A and x IN body[z:=e] to context. formula is a string or S-expression.")
 
 (ta      (name)
          "Theorem assumption. Adds the formula of theorem NAME to the context. NAME is a quoted symbol, e.g. 'ring-add-comm.")

@@ -1,0 +1,32 @@
+#!/bin/bash
+# VNB-with-compile -- recompile all VNB .scm sources, then launch VNB.
+#
+# Use this after editing any prover source files.  It runs MIT Scheme
+# in batch, loads load.scm (force-loading from .scm via recompile-vnb!),
+# recompiles every file except the macro-using ones listed in
+# *vnb-no-compile-files*, then execs the regular VNB launcher so the
+# next Emacs session picks up fresh .com binaries.
+#
+# Usage:
+#   VNB-with-compile             compile, then launch (same flags as VNB)
+#   VNB-with-compile -nw         terminal Emacs after compile
+#   VNB-with-compile --no-workspace plain vnb.el after compile
+
+PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOAD="$PROVER_DIR/load.scm"
+# Match prover's HEAP; library proofs OOM at the old default.
+HEAP=120000
+
+if [ ! -f "$LOAD" ]; then
+    echo "VNB-with-compile: cannot find $LOAD" >&2
+    exit 1
+fi
+
+echo "VNB-with-compile: recompiling sources (this can take a minute)..."
+env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --quiet \
+    --load "$LOAD" \
+    --eval '(begin (recompile-vnb!) (exit))' \
+  || { echo "VNB-with-compile: compile step failed; aborting launch." >&2; exit 1; }
+
+echo "VNB-with-compile: launching Emacs workspace..."
+exec "$PROVER_DIR/VNB" "$@"

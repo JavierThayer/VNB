@@ -325,6 +325,136 @@
                   sqn))))))
 
 ;;; -----------------------------------------------------------------------
+;;; EQUALITY SUBSTITUTION  (Leibniz / indiscernibility of identicals)
+;;;
+;;; The substitution schema  s = t  /\  P[t]  =>  P[s]  for an arbitrary
+;;; formula context P.  Realised as a primitive inference because P ranges
+;;; over all contexts (it cannot be a first-order axiom).  To prove a goal
+;;; P[s] when  s = t  is among the assumptions, the rule rewrites every
+;;; occurrence of s to t, leaving the single subgoal P[t].
+;;;
+;;; Sound for VNB's partial equality: s = t already entails s = s and
+;;; t = t (both defined), so substituting t for s never replaces a defined
+;;; term by a possibly-undefined one.
+
+;;; replace-term: structurally replace every occurrence of the term `old`
+;;; in `expr` with `new`.  When `old` is a symbol this is the
+;;; capture-avoiding free-variable substitution subst-free.  For a compound
+;;; `old`, a capture guard skips any binder whose bound variable is free in
+;;; `old` or `new` (such a subtree cannot be rewritten without renaming).
+
+(define (replace-term old new expr)
+  (if (symbol? old)
+      (subst-free old new expr)
+      (let* ((danger  (append (free-vars old) (free-vars new)))
+             (captures? (lambda (bvars)
+                          (not (null? (filter (lambda (bv) (memq bv danger))
+                                              bvars))))))
+        (let walk ((e expr))
+          (cond
+            ((alpha-equiv? e old) new)
+            ((functoid? e)
+             (if (captures? (map car (functoid-bindings e)))
+                 e
+                 (make-functoid
+                  (functoid-kind e)
+                  (map (lambda (b) (cons (car b) (walk (cdr b))))
+                       (functoid-bindings e))
+                  (walk (functoid-body e)))))
+            ((not (pair? e)) e)
+            (else
+             (case (car e)
+               ((FORALL FORSOME IOTA)
+                (if (memq (cadr e) danger)
+                    e
+                    (list (car e) (cadr e) (walk (caddr e)))))
+               ((SEP BIG-UNION)
+                (if (memq (cadr e) danger)
+                    e
+                    (list (car e) (cadr e) (walk (caddr e)) (walk (cadddr e)))))
+               ((VNB-LAMBDA)
+                (if (captures? (vnb-lambda-bvars (cadr e)))
+                    e
+                    (list 'VNB-LAMBDA (cadr e) (walk (caddr e)))))
+               ((NTH)
+                (list 'NTH (cadr e) (walk (caddr e))))
+               (else
+                (cons (car e) (map walk (cdr e)))))))))))
+
+;;; pi-eq-subst!: eq-formula is a raw (= s t).  The equality must appear in
+;;; the assumptions in either orientation; the goal is rewritten s -> t.
+(define (pi-eq-subst! sqn eq-formula)
+  (and (pair? eq-formula) (eq? (car eq-formula) '=)
+       (let* ((asms (sequent-node-assumptions sqn))
+              (goal (sequent-node-assertion   sqn))
+              (dg   (sqn-dg sqn))
+              (s    (binary-left  eq-formula))
+              (t    (binary-right eq-formula)))
+         (and (or (asms-find asms `(= ,s ,t))
+                  (asms-find asms `(= ,t ,s)))
+              (let* ((g     (wff-formula goal))
+                     (new-g (replace-term s t g)))
+                (and (not (alpha-equiv? new-g g))
+                     (begin
+                       (validate-wff! new-g)
+                       (dg-apply-rule! dg 'eq-subst
+                         (list (make-sequent asms (wff-child goal new-g)))
+                         sqn))))))))
+
+;;; -----------------------------------------------------------------------
+;;; CONDITIONAL TERM REDUCTION  --  (IF p a b)
+;;;
+;;; (IF p a b) is the term equal to a when the wff p holds, b otherwise.
+;;; Its defining equations are schematic in p (a wff), and VNB has no
+;;; quantification over wffs, so they cannot be plain axioms.  They are
+;;; kernel rules instead, each cut-shaped:
+;;;
+;;;   pi-if-true!  spawns p       as a subgoal; the other branch gains the
+;;;                assumption (= (IF p a b) a).
+;;;   pi-if-false! spawns (NOT p) as a subgoal; the other branch gains the
+;;;                assumption (= (IF p a b) b).
+;;;
+;;; Soundness: in every model, p => IF(p,a,b) = a and (NOT p) => IF(p,a,b)
+;;; = b, so once the condition is proved the equation is a valid assumption.
+
+(define (pi-if-true! sqn if-term)
+  ;; if-term: a raw (IF p a b).
+  (or (and (pair? if-term) (eq? (car if-term) 'IF) (= (length if-term) 4))
+      (error "pi-if-true!: not an IF term" if-term))
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (dg   (sqn-dg sqn))
+         (p    (cadr  if-term))
+         (a    (caddr if-term))
+         (eqn  (make-= if-term a)))
+    (validate-wff! p)
+    (validate-wff! eqn)
+    (dg-apply-rule! dg 'if-true
+      (list (make-sequent asms (wff-child goal p))
+            (make-sequent (context-add-assumption asms (wff-child goal eqn))
+                          goal))
+      sqn)))
+
+(define (pi-if-false! sqn if-term)
+  ;; if-term: a raw (IF p a b).
+  (or (and (pair? if-term) (eq? (car if-term) 'IF) (= (length if-term) 4))
+      (error "pi-if-false!: not an IF term" if-term))
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (dg   (sqn-dg sqn))
+         (p    (cadr   if-term))
+         (b    (cadddr if-term))
+         (notp (make-not p))
+         (eqn  (make-= if-term b)))
+    (validate-wff! notp)
+    (validate-wff! eqn)
+    (dg-apply-rule! dg 'if-false
+      (list (make-sequent asms (wff-child goal notp))
+            (make-sequent (context-add-assumption asms (wff-child goal eqn))
+                          goal))
+      sqn)))
+
+;;; -----------------------------------------------------------------------
 ;;; REFLEXIVITY
 
 (define (pi-reflexivity! sqn)
@@ -843,6 +973,92 @@
                               (asms** (context-add-assumption asms* (wff-child f `(IN ,y SET))))
                               (asms***(context-add-assumption asms** (wff-child f (subst-free x y p)))))
                          (dg-apply-rule! dg 'comp-mem-elim
+                           (list (make-sequent asms*** goal))
+                           sqn)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; BIG-UNION: union over a family of sets.
+;;;
+;;; (BIG-UNION z A body) = union_{z in A} body  =  { x : exists z in A. x in body }
+;;;
+;;; The body is a class schema (z free in body), so as with SEP/COMP this
+;;; cannot be a clean first-order axiom and lives at the kernel level.
+;;;
+;;; pi-big-union-sethood!:  goal (IN (BIG-UNION z A body) SET)
+;;;                         =>  subgoals (IN A SET)
+;;;                                  and (FORALL z (IMPLIES (IN z A) (IN body SET)))
+;;; pi-big-union-mem-intro! sqn w:  goal (IN x (BIG-UNION z A body))
+;;;                         =>  subgoals (IN w A) and (IN x body[z := w])
+;;; pi-big-union-mem-elim! sqn f:  assumption (IN x (BIG-UNION z A body))
+;;;                         =>  eigenvariable e; gains (IN e A) and
+;;;                             (IN x body[z := e]); assumption removed.
+
+(define (pi-big-union-sethood! sqn)
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (g    (wff-formula goal))
+         (dg   (sqn-dg sqn)))
+    (and (pair? g) (eq? (car g) 'IN) (eq? (caddr g) 'SET)
+         (let ((subj (cadr g)))
+           (and (pair? subj) (eq? (car subj) 'BIG-UNION) (= (length subj) 4)
+                (let* ((z    (cadr subj))
+                       (A    (caddr subj))
+                       (body (cadddr subj))
+                       ;; Rename z to a fresh name to avoid clashing with anything
+                       ;; in A, the assumptions, or the goal.
+                       (avoids (cons body (cons A (cons (wff-formula goal)
+                                                        (map wff-formula asms)))))
+                       (z*    (apply fresh-var z avoids))
+                       (body* (subst-free z z* body))
+                       (sethood `(FORALL ,z* (IMPLIES (IN ,z* ,A) (IN ,body* SET)))))
+                  (dg-apply-rule! dg 'big-union-sethood
+                    (list (make-sequent asms (wff-child goal `(IN ,A SET)))
+                          (make-sequent asms (wff-child goal sethood)))
+                    sqn)))))))
+
+(define (pi-big-union-mem-intro! sqn witness)
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (g    (wff-formula goal))
+         (dg   (sqn-dg sqn)))
+    (and (pair? g) (eq? (car g) 'IN)
+         (let ((x (cadr g)) (subj (caddr g)))
+           (and (pair? subj) (eq? (car subj) 'BIG-UNION) (= (length subj) 4)
+                (let* ((z    (cadr subj))
+                       (A    (caddr subj))
+                       (body (cadddr subj))
+                       (body-w (subst-free z witness body))
+                       (mem-x  `(IN ,x ,body-w)))
+                  (validate-wff! mem-x)   ; reject malformed witness early
+                  (dg-apply-rule! dg 'big-union-mem-intro
+                    (list (make-sequent asms (wff-child goal `(IN ,witness ,A)))
+                          (make-sequent asms (wff-child goal mem-x)))
+                    sqn)))))))
+
+(define (pi-big-union-mem-elim! sqn membership-formula)
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (dg   (sqn-dg sqn))
+         (f    (asms-find asms membership-formula)))
+    (and f
+         (let ((raw-f (wff-formula f)))
+           (and (pair? raw-f) (eq? (car raw-f) 'IN)
+                (let ((x (cadr raw-f)) (subj (caddr raw-f)))
+                  (and (pair? subj) (eq? (car subj) 'BIG-UNION) (= (length subj) 4)
+                       (let* ((z    (cadr subj))
+                              (A    (caddr subj))
+                              (body (cadddr subj))
+                              (asms* (context-remove-assumption asms f))
+                              ;; Eigenvariable must avoid other assumptions, goal,
+                              ;; A, body, x.
+                              (avoids (cons (wff-formula goal)
+                                            (cons A (cons body (cons x
+                                              (map wff-formula asms*))))))
+                              (e     (apply fresh-var z avoids))
+                              (body-e (subst-free z e body))
+                              (asms**  (context-add-assumption asms* (wff-child f `(IN ,e ,A))))
+                              (asms*** (context-add-assumption asms** (wff-child f `(IN ,x ,body-e)))))
+                         (dg-apply-rule! dg 'big-union-mem-elim
                            (list (make-sequent asms*** goal))
                            sqn)))))))))
 

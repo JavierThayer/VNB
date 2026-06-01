@@ -193,9 +193,9 @@ The new `declare-structure` macro eliminates all quoting:
 ```scheme
 (declare-structure GROUP
   (carriers A)
-  (op MUL (A A) A)
+  (op MUL (CARTESIAN A A) A)
   (constant E A)
-  (op INV (A) A))
+  (op INV A A))
 ```
 This is both easier to read and less error-prone (no mismatched quotes).
 

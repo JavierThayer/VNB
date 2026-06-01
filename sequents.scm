@@ -19,6 +19,14 @@
   (assumptions sequent-assumptions)
   (assertion   sequent-assertion))
 
+;;; Render assumptions and goal WITHOUT the surrounding quotes that
+;;; wff->string adds.  The quotes used to signal "this is the string to
+;;; paste into (bc \"...\")", but they clutter the Focus-Workspace display
+;;; and confused the prompt; tactic commands now accept bare formulas (and
+;;; assumption numbers), so the quotes are no longer needed here.
+(define (sequent-wff->string w)
+  (expression->string (wff-formula w)))
+
 (define (sequent->string s)
   (let ((asms (sequent-assumptions s))
         (goal (sequent-assertion s)))
@@ -29,9 +37,9 @@
            (if (null? fs)
                (substring acc 0 (- (string-length acc) 2))
                (loop (cdr fs)
-                     (string-append acc (wff->string (car fs)) ", ")))))
+                     (string-append acc (sequent-wff->string (car fs)) ", ")))))
      "  =>  "
-     (wff->string goal))))
+     (sequent-wff->string goal))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Context operations on lists of <wff>

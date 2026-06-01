@@ -106,6 +106,16 @@
          (r   (pi-cut! sqn lemma)))
     (focus-after-rule ps r)))
 
+(define (cmd-if-true ps if-term)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-if-true! sqn if-term)))
+    (focus-after-rule ps r)))
+
+(define (cmd-if-false ps if-term)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-if-false! sqn if-term)))
+    (focus-after-rule ps r)))
+
 (define (cmd-instantiate ps forall-formula term)
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-instantiate! sqn forall-formula term)))
@@ -170,6 +180,13 @@
     (if r (focus-after-rule ps r)
         (vnb--warn "quasi-reflexivity: goal is not (== a a)" (vnb--goal-str sqn)))))
 
+(define (cmd-eq-subst ps eq-formula)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-eq-subst! sqn eq-formula)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "eq-subst: equality not in context, or nothing to rewrite"
+                   (expression->string eq-formula)))))
+
 (define (cmd-proof-by-contradiction ps)
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-proof-by-contradiction! sqn)))
@@ -208,6 +225,7 @@
                                    ,(loop (cdr rest))))))
          (formula   (expand-destructuring-quantifiers wrapped)))
     (theory-add-theorem! *current-theory* name formula)
+    (register-proven-theorem! name)
     (when (not (null? asms))
       (display "qed: discharged ")
       (display (length asms))
@@ -439,6 +457,27 @@
     (if r (focus-after-rule ps r)
         (vnb--warn "iota-def: argument is not an (IOTA x p) term"
                    (expression->string iota-term)))))
+
+(define (cmd-big-union-sethood ps)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-big-union-sethood! sqn)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "big-union-sethood: goal is not (IN (BIG-UNION z A body) SET)"
+                   (vnb--goal-str sqn)))))
+
+(define (cmd-big-union-mem-intro ps witness)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-big-union-mem-intro! sqn witness)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "big-union-mem-intro: goal is not (IN x (BIG-UNION z A body))"
+                   (vnb--goal-str sqn)))))
+
+(define (cmd-big-union-mem-elim ps membership-formula)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-big-union-mem-elim! sqn membership-formula)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "big-union-mem-elim: assumption not found or not (IN x (BIG-UNION z A body))"
+                   (expression->string membership-formula)))))
 
 (define (cmd-lambda-type ps)
   (let* ((sqn (proof-state-focus ps))

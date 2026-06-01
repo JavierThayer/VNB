@@ -219,17 +219,45 @@
 ;;; Term-forming heads: anything that, in wff position with these as the
 ;;; head, must be rejected ("term-forming operator in wff position" error).
 (define *wff-term-form-heads*
-  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN FUN SEP COMP POWER
-    LIST NTH MAKE-SET LENGTH CHOICE IOTA TUPLES
+  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN FUN INJECTION IMAGE SEP COMP BIG-UNION POWER
+    LIST NTH MAKE-SET LENGTH CHOICE IOTA IF TUPLES
     DOM RES PARTIAL-FUN
     apply-functoid VNB-LAMBDA
-    succ_ORD LIMIT-ORD ORD-SEGMENT SUP-ORD
-    CARD PROD-ORD SUM RING-PROD RING-PROD-N ZERO-RING
+    succ_ORD LIMIT-ORD ORD-SEGMENT SUP-ORD ESUP ESUM
+    CARD PROD-ORD SUM SUM-SET PROD-SET RING-PROD RING-PROD-N ZERO-RING
+    MATRIX SIZE
     + - * recip abs conjugate succ exp sin cos
     real-part imag-part magnitude))
 
 (define *wff-only-heads*
   '(NOT AND OR IMPLIES IFF FORALL FORSOME = == IN <= SUBSET subset))
+
+;;; Seed the constant-head registry (expressions.scm) with every kernel
+;;; term-forming head, so subst-free / free-vars never mistake one for an
+;;; applied function variable.  Structure accessors and defined functions
+;;; are registered later, by def-structure and theory-add-definition!.
+(for-each (lambda (h) (register-constant! h 'operator))
+          *wff-term-form-heads*)
+
+;;; Warn when a binder's variable has the name of a registered operator,
+;;; defined function, or functoid: an application (v ...) in the body then
+;;; refers to that constant, not the bound variable -- almost always a
+;;; mistake.  Accessor names (e.g. carrier `A` vs an element variable `a`)
+;;; are deliberately NOT warned: binding `a` as an operand variable while
+;;; `A` is a carrier accessor is a routine, correct pattern (the registry
+;;; keeps `(A m)` meaning the accessor), and the two cannot be told apart
+;;; from the S-expression anyway.
+(define (warn-binder-shadowing v)
+  (let ((kind (constant-head? v)))
+    (if (memq kind '(operator defined-fn functoid))
+        (begin
+          (display ";VNB warning: binder variable ")
+          (display v)
+          (display " has the name of a registered ") (display kind)
+          (display " -- an application (") (display v)
+          (display " ...) in its scope refers to that ") (display kind)
+          (display ", not the bound variable.")
+          (newline)))))
 
 (define (validate-wff! expr)
   ;; term-syms: FREE symbols seen in term position.
@@ -273,6 +301,7 @@
             (or (= (length e) 3) (error "make-wff: quantifier arity" e))
             (or (symbol? (cadr e)) (error "make-wff: bound variable not a symbol" e))
             (note-bound! (cadr e))
+            (warn-binder-shadowing (cadr e))
             (walk-wff (caddr e) (cons (cons (cadr e) 'term) bound-env)))
            (else
             (cond
@@ -350,6 +379,14 @@
             (let ((env* (cons (cons (cadr e) 'term) bound-env)))
               (walk-term (caddr e) env*)
               (walk-wff  (cadddr e) env*)))
+           ((BIG-UNION)
+            ;; (BIG-UNION z A body) — body is a term (the set f(z)), unlike SEP.
+            (or (= (length e) 4) (error "make-wff: BIG-UNION arity" e))
+            (or (symbol? (cadr e)) (error "make-wff: BIG-UNION bound var not symbol" e))
+            (note-bound! (cadr e))
+            (let ((env* (cons (cons (cadr e) 'term) bound-env)))
+              (walk-term (caddr e)  bound-env)   ; A in outer scope
+              (walk-term (cadddr e) env*)))      ; body sees bound var
            ((COMP)
             (or (= (length e) 3) (error "make-wff: COMP arity" e))
             (or (symbol? (cadr e)) (error "make-wff: COMP bound var not symbol" e))
@@ -360,6 +397,13 @@
             (or (symbol? (cadr e)) (error "make-wff: IOTA bound var not symbol" e))
             (note-bound! (cadr e))
             (walk-wff (caddr e) (cons (cons (cadr e) 'term) bound-env)))
+           ((IF)
+            ;; (IF p a b) — p is a wff (the condition), a/b are terms.
+            ;; Non-binding: the branches see the same environment.
+            (or (= (length e) 4) (error "make-wff: IF arity" e))
+            (walk-wff  (cadr e)   bound-env)
+            (walk-term (caddr e)  bound-env)
+            (walk-term (cadddr e) bound-env))
            ((VNB-LAMBDA)
             (or (= (length e) 3) (error "make-wff: VNB-LAMBDA arity" e))
             (let ((bvars (vnb-lambda-bvars (cadr e))))

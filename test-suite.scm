@@ -98,9 +98,20 @@
 (check "10 + (-3) = 7"        (lambda () (arith-eval-term '(+ 10 (- 3))))  7)
 (check "succ(0) = 1"          (lambda () (arith-eval-term '(succ 0)))     1)
 (check "succ(4) = 5"          (lambda () (arith-eval-term '(succ 4)))     5)
+(check "succ_ORD(0) = 1"      (lambda () (arith-eval-term '(succ_ORD 0))) 1)
+(check "succ_ORD(succ(2))=4"  (lambda () (arith-eval-term '(succ_ORD (succ 2)))) 4)
 (check "power(2,0) = 1"       (lambda () (arith-eval-term '(power 2 0)))  1)
 (check "power(2,3) = 8"       (lambda () (arith-eval-term '(power 2 3)))  8)
 (check "power(3,4) = 81"      (lambda () (arith-eval-term '(power 3 4)))  81)
+
+;; n-ary kiddie arithmetic: the parser emits flat (+ a b c ...) etc.
+(check "2+3+5 = 10 (n-ary +)"  (lambda () (arith-eval-term '(+ 2 3 5)))     10)
+(check "1+2+3+4+5 = 15"        (lambda () (arith-eval-term '(+ 1 2 3 4 5))) 15)
+(check "2*3*5 = 30 (n-ary *)"  (lambda () (arith-eval-term '(* 2 3 5)))     30)
+(check "10-4 = 6 (binary -)"   (lambda () (arith-eval-term '(- 10 4)))       6)
+(check "10-4-3 = 3 (chained -)" (lambda () (arith-eval-term '(- 10 4 3)))     3)
+(check "-(7) = -7 (unary - kept)" (lambda () (arith-eval-term '(- 7)))       -7)
+(check "2+3*5 = 17 (precedence)" (lambda () (arith-eval-term '(+ 2 (* 3 5)))) 17)
 
 (check-true  "= 2+3 5"        (lambda () (arith-eval-formula '(= (+ 2 3) 5))))
 (check-false "= 2+3 6"        (lambda () (arith-eval-formula '(= (+ 2 3) 6))))
@@ -566,6 +577,31 @@
     (di) (ta 'nn-add-zero) (ui "n") (ass)
     (di) (ass)))
 
+;;; 6k-eq. Equality substitution (subst) -- Leibniz schema.
+;;; From a context equality k = 0, rewrite succ(k) to succ(0) in the goal.
+;;; The eigenvariable name is snapshotted from *fresh-counter* before (di).
+(check-proof "subst: context equality k=0 rewrites the goal"
+  (lambda ()
+    (sp (make-wff-from-string
+         "forall([k in nn], k = 0 implies succ(k) = succ(0))"))
+    (let ((kk (string->symbol
+               (string-append "k_" (number->string *fresh-counter*)))))
+      (di) (di)
+      (subst (list '= kk 0))   ; succ(k) = succ(0)  -->  succ(0) = succ(0)
+      (rfl))))
+
+;;; subst is usable in either orientation: 0 = k in context still lets
+;;; (subst (= k 0)) fire (the rule looks for the equality symmetrically).
+(check-proof "subst: equality usable in reverse orientation"
+  (lambda ()
+    (sp (make-wff-from-string
+         "forall([k in nn], 0 = k implies succ(k) = succ(0))"))
+    (let ((kk (string->symbol
+               (string-append "k_" (number->string *fresh-counter*)))))
+      (di) (di)
+      (subst (list '= kk 0))
+      (rfl))))
+
 ;;; 6l. Functoid beta reduction (beta)
 (check-proof "beta: lambda([x in nn], x+1)(3) = 3+1"
   (lambda ()
@@ -627,10 +663,11 @@
 ;;; Live axioms in algebraic.scm, complex.scm, sequences.scm use the raw
 ;;; (VNB-LAMBDA <bind> body) form.  Without binder treatment, free-vars
 ;;; reports the bound variables as free and subst-free corrupts the binder.
-(check "free-vars: (VNB-LAMBDA i (g i)) hides i (g is symbol head; not free)"
-  ;; Both `i` (bound) and `g` (symbol head) report nothing here.
+(check "free-vars: (VNB-LAMBDA i (g i)) hides i, exposes function variable g"
+  ;; `i` is bound; `g` is an unregistered symbol head -- an applied function
+  ;; variable -- so it is free (constant-head registry: g is not a constant).
   (lambda () (free-vars '(VNB-LAMBDA i (g i))))
-  '())
+  '(g))
 
 (check "free-vars: (VNB-LAMBDA (LIST p q) ((ADD X) p q)) hides p,q; exposes X via compound head"
   ;; ADD is a symbol head -> treated as constant.  X is INSIDE the
@@ -1447,6 +1484,78 @@
     (unless (proof-done? *ps*) (error "sum-type proof incomplete"))))
 
 ;;; -----------------------------------------------------------------------
+;;; Restrictive ring/field structures (commutative-ring … normed-field)
+
+(check-true "is-commutative-ring-def installed"
+  (lambda () (and (lookup-theorem 'is-commutative-ring-def) #t)))
+(check-true "is-integral-domain-def installed"
+  (lambda () (and (lookup-theorem 'is-integral-domain-def) #t)))
+;; FIELD is a shape structure (def-structure-from-clauses), so its IFF
+;; axiom is installed under the predicate name IS-FIELD, not is-field-def.
+(check-true "IS-FIELD axiom installed"
+  (lambda () (and (lookup-theorem 'IS-FIELD) #t)))
+(check-true "is-euclidean-ring-def installed"
+  (lambda () (and (lookup-theorem 'is-euclidean-ring-def) #t)))
+;; NORMED-FIELD is now a shape structure too, so its IFF is installed under
+;; the predicate name IS-NORMED-FIELD (matching FIELD's pattern above).
+(check-true "IS-NORMED-FIELD axiom installed"
+  (lambda () (and (lookup-theorem 'IS-NORMED-FIELD) #t)))
+;; The FIELD→INTEGRAL-DOMAIN forgetful relation is installed by the view.
+(check-true "FIELD-AS-INTEGRAL-DOMAIN view's typing axiom installed"
+  (lambda () (and (lookup-theorem 'FIELD-AS-INTEGRAL-DOMAIN-is-INTEGRAL-DOMAIN) #t)))
+(check-true "euclidean-ring-is-integral-domain installed"
+  (lambda () (and (lookup-theorem 'euclidean-ring-is-integral-domain) #t)))
+(check-true "zz-is-euclidean-ring installed"
+  (lambda () (and (lookup-theorem 'zz-is-euclidean-ring) #t)))
+(check-true "cc-is-normed-field installed"
+  (lambda () (and (lookup-theorem 'cc-is-normed-field) #t)))
+;; IS-FIELD's macete unfolds the definition (auto-installed by
+;; def-structure-from-clauses under the predicate's own name).
+(check-true "IS-FIELD macete unfolds the predicate"
+  (lambda ()
+    (let ((r (apply-macete 'IS-FIELD (make-wff '(IS-FIELD s)))))
+      (and r
+           (pair? (wff-formula r))
+           (eq? (car (wff-formula r)) 'AND)))))
+
+;;; operation-properties catalog + MATRIX
+
+(check-true "is-associative property installed"
+  (lambda () (and (lookup-theorem 'is-associative) #t)))
+(check-true "is-commutative property installed"
+  (lambda () (and (lookup-theorem 'is-commutative) #t)))
+(check-true "is-metric property installed"
+  (lambda () (and (lookup-theorem 'is-metric) #t)))
+;; IS-GROUP now carries its laws: its definition mentions is-associative.
+(check-true "IS-GROUP definition includes the group laws"
+  (lambda ()
+    (let ((g (lookup-theorem 'IS-GROUP)))
+      (and g
+           (string-search-forward "is-associative"
+                                  (expression->string g) 0)
+           #t))))
+;; ...and IS-ABELIAN-GROUP additionally includes is-commutative.
+(check-true "IS-ABELIAN-GROUP definition includes is-commutative"
+  (lambda ()
+    (let ((g (lookup-theorem 'IS-ABELIAN-GROUP)))
+      (and g
+           (string-search-forward "is-commutative"
+                                  (expression->string g) 0)
+           #t))))
+
+(check-true "matrix-membership installed"
+  (lambda () (and (lookup-theorem 'matrix-membership) #t)))
+(check-true "matrix-sethood installed"
+  (lambda () (and (lookup-theorem 'matrix-sethood) #t)))
+(check-true "(IN M (MATRIX S)) accepted as a wff"
+  (lambda () (and (make-wff '(IN M (MATRIX S))) #t)))
+(check-true "SIZE macete reduces (SIZE M) to [rows, cols]"
+  (lambda ()
+    (sp (make-wff '(= (SIZE mm) zz)))
+    (mac 'SIZE)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(= (LIST (LENGTH mm) (LENGTH (NTH 1 mm))) zz))))
+
 ;;; RING-PROD and RING-PROD-N
 
 (check-true "ring-prod-is-ring installed"
@@ -1565,6 +1674,567 @@
 (check-true "forall([s in RING], TRUTH) parses bounded quant over RING"
   (lambda ()
     (and (make-wff-from-string "forall([s in RING], TRUTH)") #t)))
+
+;;; -----------------------------------------------------------------------
+;;; BIG-UNION (notes-16 step 1): union over a family of sets
+;;;   (BIG-UNION z A body) = union_{z in A} body
+;;;   A binder constructor with a bound class variable in body.
+
+(display "\n=== BIG-UNION (notes-16 step 1) ===\n")
+
+;; --- Validation ---
+(check-true "(BIG-UNION z A body) accepted as term in IN goal"
+  (lambda () (and (make-wff '(IN x (BIG-UNION z NN z))) #t)))
+
+(check-error "BIG-UNION rejected in wff position"
+  (lambda () (make-wff '(BIG-UNION z NN z))))
+
+(check-error "BIG-UNION arity rejected"
+  (lambda () (make-wff '(IN x (BIG-UNION z NN)))))
+
+(check-error "BIG-UNION non-symbol bound var rejected"
+  (lambda () (make-wff '(IN x (BIG-UNION 0 NN NN)))))
+
+;; --- Free variables (z bound in body, free in A) ---
+(check "free-vars: z in body is bound; A is free"
+  (lambda () (sort (free-vars '(BIG-UNION z A z))
+                   (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+  '(A))
+
+(check "free-vars: vars only in A are free"
+  (lambda () (sort (free-vars '(BIG-UNION z (UNION A B) z))
+                   (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+  '(A B))
+
+;; --- Substitution (capture-avoiding) ---
+(check "subst-free: leaves body alone when bound var = subst var"
+  (lambda () (subst-free 'z 'w '(BIG-UNION z A z)))
+  '(BIG-UNION z A z))
+
+(check "subst-free: substitutes into A"
+  (lambda () (subst-free 'A 'NN '(BIG-UNION z A z)))
+  '(BIG-UNION z NN z))
+
+;; Capture-avoiding: substituting w for q in (BIG-UNION z A (PAIR z q)) where
+;; w = z would otherwise capture; expect alpha-renamed binder.
+(check-true "subst-free: renames bound var to avoid capture"
+  (lambda ()
+    (let ((result (subst-free 'q 'z '(BIG-UNION z A (PAIR z q)))))
+      ;; result must NOT have raw `z` paired with itself; the binder is renamed
+      (and (pair? result) (eq? (car result) 'BIG-UNION)
+           ;; bound var should NOT be z (it would capture)
+           (not (eq? (cadr result) 'z))))))
+
+;; --- Alpha-equivalence ---
+(check-true "alpha-equiv: (BIG-UNION x A x) ~ (BIG-UNION y A y)"
+  (lambda () (alpha-equiv? '(BIG-UNION x A x) '(BIG-UNION y A y))))
+
+(check-false "alpha-equiv: differs in A"
+  (lambda () (alpha-equiv? '(BIG-UNION x A x) '(BIG-UNION y B y))))
+
+;; --- Primitive inferences ---
+(check-proof "pi-big-union-sethood: posts (IN A SET) + family-of-sets subgoal"
+  (lambda ()
+    (sp (make-wff '(IN (BIG-UNION z NN NN) SET)))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-big-union-sethood! sqn)))
+        (or r (error "pi-big-union-sethood! failed"))))))
+
+(check-proof "pi-big-union-mem-intro: witness reduces to two subgoals"
+  (lambda ()
+    (sp (make-wff '(IN 0 (BIG-UNION z NN NN))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-big-union-mem-intro! sqn '0)))
+        (or r (error "pi-big-union-mem-intro! failed"))))))
+
+(check-proof "pi-big-union-mem-elim: eigenvariable gains two new assumptions"
+  (lambda ()
+    (declare-local-context '(IN 0 (BIG-UNION z NN NN)) 'big-union-mem-elim-ctx)
+    (sp (make-wff 'TRUTH))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-big-union-mem-elim! sqn '(IN 0 (BIG-UNION z NN NN)))))
+        (undeclare-local-context 'big-union-mem-elim-ctx)
+        (or r (error "pi-big-union-mem-elim! failed"))))))
+
+(check "pi-big-union-sethood: refuses non-BIG-UNION goal"
+  (lambda ()
+    (sp (make-wff '(IN 0 NN)))
+    (pi-big-union-sethood! (proof-state-focus *ps*)))
+  #f)
+
+;;; -----------------------------------------------------------------------
+;;; COMM-MONOID + SUM-SET + PROD-SET (notes-16 step 2)
+
+(display "\n=== COMM-MONOID structure (notes-16 step 2) ===\n")
+
+(check-true "IS-COMM-MONOID axiom installed"
+  (lambda () (and (lookup-theorem 'IS-COMM-MONOID) #t)))
+
+(check-true "COMM-MONOID-class axiom installed"
+  (lambda () (and (lookup-theorem 'COMM-MONOID-class) #t)))
+
+(check-true "comm-monoid-is-monoid (subtype) axiom installed"
+  (lambda () (and (lookup-theorem 'comm-monoid-is-monoid) #t)))
+
+(check-true "comm-monoid-mul-comm axiom installed"
+  (lambda () (and (lookup-theorem 'comm-monoid-mul-comm) #t)))
+
+(check-true "(IN cm COMM-MONOID) accepted as wff"
+  (lambda () (and (make-wff '(IN cm COMM-MONOID)) #t)))
+
+(display "\n=== ABELIAN-GROUP structure (analysis-trajectory step 1) ===\n")
+
+(check-true "IS-ABELIAN-GROUP axiom installed"
+  (lambda () (and (lookup-theorem 'IS-ABELIAN-GROUP) #t)))
+
+(check-true "ABELIAN-GROUP-class axiom installed"
+  (lambda () (and (lookup-theorem 'ABELIAN-GROUP-class) #t)))
+
+(check-true "abelian-group-is-group (subtype) axiom installed"
+  (lambda () (and (lookup-theorem 'abelian-group-is-group) #t)))
+
+(check-true "abelian-group-mul-comm axiom installed"
+  (lambda () (and (lookup-theorem 'abelian-group-mul-comm) #t)))
+
+(check-true "(IN ag ABELIAN-GROUP) accepted as wff"
+  (lambda () (and (make-wff '(IN ag ABELIAN-GROUP)) #t)))
+
+(display "\n=== SUM-SET (notes-16 step 2) ===\n")
+
+(check-true "sum-set-empty axiom installed"
+  (lambda () (and (lookup-theorem 'sum-set-empty) #t)))
+
+(check-true "sum-set-singleton axiom installed"
+  (lambda () (and (lookup-theorem 'sum-set-singleton) #t)))
+
+(check-true "sum-set-disjoint-union axiom installed"
+  (lambda () (and (lookup-theorem 'sum-set-disjoint-union) #t)))
+
+(check-true "sum-set-type axiom installed"
+  (lambda () (and (lookup-theorem 'sum-set-type) #t)))
+
+(check-true "(SUM-SET r S f) accepted in term position"
+  (lambda () (and (make-wff '(IN (SUM-SET r S f) (A r))) #t)))
+
+(check-error "SUM-SET rejected in wff position"
+  (lambda () (make-wff '(SUM-SET r S f))))
+
+(display "\n=== PROD-SET (notes-16 step 2) ===\n")
+
+(check-true "prod-set-empty axiom installed"
+  (lambda () (and (lookup-theorem 'prod-set-empty) #t)))
+
+(check-true "prod-set-singleton axiom installed"
+  (lambda () (and (lookup-theorem 'prod-set-singleton) #t)))
+
+(check-true "prod-set-disjoint-union axiom installed"
+  (lambda () (and (lookup-theorem 'prod-set-disjoint-union) #t)))
+
+(check-true "prod-set-type axiom installed"
+  (lambda () (and (lookup-theorem 'prod-set-type) #t)))
+
+(check-true "(PROD-SET cm S f) accepted in term position"
+  (lambda () (and (make-wff '(IN (PROD-SET cm S f) (A cm))) #t)))
+
+(check-error "PROD-SET rejected in wff position"
+  (lambda () (make-wff '(PROD-SET cm S f))))
+
+(display "\n=== SUM-AG (analysis-trajectory step 2) ===\n")
+
+(check-true "sum-ag-zero axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-zero) #t)))
+
+(check-true "sum-ag-succ axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-succ) #t)))
+
+(check-true "sum-ag-type axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-type) #t)))
+
+(check-true "sum-ag-singleton axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-singleton) #t)))
+
+;;; Library theorems proved at load time (proven-theorems.scm).
+(check-true "delete-at-in-fun axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-in-fun) #t)))
+
+;; ord-segment-succ-monotone, ag-mul-rearrange, and sum-ag-splice-out were
+;; intermediate lemmas ARCHIVED (deliberately not PSS-promoted) in the
+;; 2026-05-27 triage -- "pure technical machinery with no anticipated
+;; standalone use" (see archive/proven-theorems-archive.scm).  Their old
+;; "proved + installed" checks were removed here: lookup-theorem throws on
+;; an unknown name, so a stale check aborted the entire suite.  The headline
+;; result they fed, sum-ag-permutation-invariance, is PSS-promoted and tested
+;; below.
+
+(check-true "sum-ag-permutation-invariance proved + installed"
+  (lambda () (and (lookup-theorem 'sum-ag-permutation-invariance) #t)))
+
+(check-true "(SUM-AG ag f n) accepted in term position"
+  (lambda () (and (make-wff '(IN (SUM-AG ag f n) (A ag))) #t)))
+
+(check-true "group-identity-in installed"
+  (lambda () (and (lookup-theorem 'group-identity-in) #t)))
+
+(check-true "enum-fam-in-fun proved + installed"
+  (lambda () (and (lookup-theorem 'enum-fam-in-fun) #t)))
+
+(check-true "fin-enum-is-bijection proved + installed"
+  (lambda () (and (lookup-theorem 'fin-enum-is-bijection) #t)))
+
+(check-true "(FINSUM ag f S) accepted in term position"
+  (lambda () (and (make-wff '(IN (FINSUM ag f S) (A ag))) #t)))
+
+(check-true "finsum-well-defined proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-well-defined) #t)))
+
+(check-true "union-empty-left proved + installed"
+  (lambda () (and (lookup-theorem 'union-empty-left) #t)))
+
+;; Prenex fix (macetes.scm prenex-positive): pairing-membership buries its
+;; FORALL x under the IMPLIES; theorem->elementary-macete must prenex-normalize
+;; before strip-foralls so the membership IFF still yields a real rewrite.
+(check-true "pairing-membership yields a working macete (prenex fix)"
+  (lambda ()
+    (let ((r (apply-macete 'pairing-membership
+              (make-wff '(IMPLIES (AND (IN a SET) (IN b SET))
+                                  (IN c (PAIR a b)))))))
+      (and r
+           (equal? (wff-formula r)
+                   '(IMPLIES (AND (IN a SET) (IN b SET))
+                             (OR (= c a) (= c b))))))))
+
+(check-true "card-singleton proved + installed"
+  (lambda () (and (lookup-theorem 'card-singleton) #t)))
+
+(check-true "finsum-empty proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-empty) #t)))
+
+(check-true "finsum-singleton proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-singleton) #t)))
+
+(check-true "finsum-type proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-type) #t)))
+
+;; finsum-congruence was dropped 2026-05-27 as a redundant special case of
+;; fun-domain-extensionality.  No replacement check: callers should cite
+;; fun-domain-extensionality directly.
+
+(display "\n=== BIJECTION + INVERSE-BIJ (analysis-trajectory step 3a/b) ===\n")
+
+(check-true "bijection-membership-iff axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-membership-iff) #t)))
+
+(check-true "bijection-set-iff axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-set-iff) #t)))
+
+(check-true "bijection-in-fun axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-in-fun) #t)))
+
+(check-true "bijection-injective axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-injective) #t)))
+
+(check-true "bijection-surjective axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-surjective) #t)))
+
+(check-true "inverse-bij-in-fun axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-in-fun) #t)))
+
+(check-true "inverse-bij-left axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-left) #t)))
+
+(check-true "inverse-bij-right axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-right) #t)))
+
+(check-true "inverse-bij-is-bijection axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-is-bijection) #t)))
+
+(check-true "bijection-compose axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-compose) #t)))
+
+(check-true "bijection-identity axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-identity) #t)))
+
+(check-true "(IN phi (BIJECTION X Y)) accepted as wff"
+  (lambda () (and (make-wff '(IN phi (BIJECTION X Y))) #t)))
+
+(check-true "(IN (INVERSE-BIJ phi X Y) (FUN Y X)) accepted as wff"
+  (lambda () (and (make-wff '(IN (INVERSE-BIJ phi X Y) (FUN Y X))) #t)))
+
+(check-true "delete-at-below-k axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-below-k) #t)))
+
+(check-true "delete-at-above-k axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-above-k) #t)))
+
+(check-true "delete-at-is-bijection axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-is-bijection) #t)))
+
+(check-true "((DELETE-AT h k) i) accepted in term position"
+  (lambda () (and (make-wff '(= ((DELETE-AT h k) i) (h i))) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Basic rings (notes-16 steps 3+4): officialize ZZ/QQ/RR/CC as rings
+
+(display "\n=== Basic rings (notes-16 steps 3+4) ===\n")
+
+;; --- Binary operator apply axioms ---
+(check-true "binplus-apply installed"
+  (lambda () (and (lookup-theorem 'binplus-apply) #t)))
+(check-true "bintimes-apply installed"
+  (lambda () (and (lookup-theorem 'bintimes-apply) #t)))
+(check-true "binneg-apply installed"
+  (lambda () (and (lookup-theorem 'binneg-apply) #t)))
+
+;; --- Typing axioms: binplus, bintimes in all 5 domains; binneg in 4 ---
+(check-true "binplus-in-fun-nn installed"
+  (lambda () (and (lookup-theorem 'binplus-in-fun-nn) #t)))
+(check-true "binplus-in-fun-cc installed"
+  (lambda () (and (lookup-theorem 'binplus-in-fun-cc) #t)))
+(check-true "bintimes-in-fun-rr installed"
+  (lambda () (and (lookup-theorem 'bintimes-in-fun-rr) #t)))
+(check-true "binneg-in-fun-zz installed"
+  (lambda () (and (lookup-theorem 'binneg-in-fun-zz) #t)))
+
+;; --- Ring instance definitions ---
+(check-true "zz-ring-def installed"
+  (lambda () (and (lookup-theorem 'zz-ring-def) #t)))
+(check-true "qq-ring-def installed"
+  (lambda () (and (lookup-theorem 'qq-ring-def) #t)))
+(check-true "rr-ring-def installed"
+  (lambda () (and (lookup-theorem 'rr-ring-def) #t)))
+(check-true "cc-ring-def installed"
+  (lambda () (and (lookup-theorem 'cc-ring-def) #t)))
+
+;; --- IS-RING(*-RING): only the genuine 6-tuples ZZ/QQ ---
+(check-true "zz-is-ring installed"
+  (lambda () (and (lookup-theorem 'zz-is-ring) #t)))
+(check-true "qq-is-ring installed"
+  (lambda () (and (lookup-theorem 'qq-is-ring) #t)))
+;; RR-RING/CC-RING are 7-tuple NORMED-FIELDs: asserting the length-6 IS-RING
+;; on them was a flat contradiction (6 = 7).  These must stay REMOVED.
+;; lookup-theorem raises on an absent name, so probe the axiom store directly.
+(check-true "rr-is-ring removed (was length 6=7 unsound)"
+  (lambda () (not (assq 'rr-is-ring (theory-axioms *current-theory*)))))
+(check-true "cc-is-ring removed (was length 6=7 unsound)"
+  (lambda () (not (assq 'cc-is-ring (theory-axioms *current-theory*)))))
+(check-true "qq-is-field removed (QQ-RING is 6-tuple, FIELD is 8-slot)"
+  (lambda () (not (assq 'qq-is-field (theory-axioms *current-theory*)))))
+(check-true "normed-field-is-commutative-ring removed (7=>6 unsound)"
+  (lambda () (not (assq 'normed-field-is-commutative-ring (theory-axioms *current-theory*)))))
+;; Sound replacements: RR/CC as normed fields; QQ as the 8-tuple QQ-FIELD;
+;; ring-world access for RR/CC via the NORMED-FIELD-AS-* view projections.
+(check-true "rr-is-normed-field installed"
+  (lambda () (and (lookup-theorem 'rr-is-normed-field) #t)))
+(check-true "cc-is-normed-field installed"
+  (lambda () (and (lookup-theorem 'cc-is-normed-field) #t)))
+(check-true "qq-field-is-field installed (8-tuple QQ-FIELD)"
+  (lambda () (and (lookup-theorem 'qq-field-is-field) #t)))
+(check-true "(IN QQ-FIELD FIELD) accepted as wff"
+  (lambda () (and (make-wff '(IN QQ-FIELD FIELD)) #t)))
+
+;; --- Enfranchised refinement classes: NAME-class axioms + bounded membership ---
+(check-true "commutative-ring-class installed"
+  (lambda () (and (lookup-theorem 'commutative-ring-class) #t)))
+(check-true "integral-domain-class installed"
+  (lambda () (and (lookup-theorem 'integral-domain-class) #t)))
+(check-true "euclidean-ring-class installed"
+  (lambda () (and (lookup-theorem 'euclidean-ring-class) #t)))
+(check-true "(IN ZZ-RING COMMUTATIVE-RING) accepted as wff"
+  (lambda () (and (make-wff '(IN ZZ-RING COMMUTATIVE-RING)) #t)))
+
+;; --- NN as comm-monoid under addition ---
+(check-true "nn-add-monoid-def installed"
+  (lambda () (and (lookup-theorem 'nn-add-monoid-def) #t)))
+(check-true "nn-add-monoid-is-comm-monoid installed"
+  (lambda () (and (lookup-theorem 'nn-add-monoid-is-comm-monoid) #t)))
+
+;; --- Wff validation of the new symbols ---
+(check-true "(binplus x y) accepted as term"
+  (lambda () (and (make-wff '(IN (binplus x y) NN)) #t)))
+(check-true "(IN ZZ-RING RING) accepted as wff"
+  (lambda () (and (make-wff '(IN ZZ-RING RING)) #t)))
+
+;; --- specialize-structure transports generic ring theorems to ZZ-RING ---
+(check-true "specialize-structure ZZ-RING brings ring-add-comm-zz-ring"
+  (lambda ()
+    (specialize-structure 'ZZ-RING 'RING 'zz-is-ring)
+    (and (lookup-theorem 'ring-add-comm-zz-ring) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Extended reals RR* (notes-16 step 6)
+
+(display "\n=== Extended reals RR* (notes-16 step 6) ===\n")
+
+(check-true "rr-star-membership installed"
+  (lambda () (and (lookup-theorem 'rr-star-membership) #t)))
+(check-true "rr-subset-rr-star installed"
+  (lambda () (and (lookup-theorem 'rr-subset-rr-star) #t)))
+(check-true "pos-inf-in-rr-star installed"
+  (lambda () (and (lookup-theorem 'pos-inf-in-rr-star) #t)))
+(check-true "neg-inf-in-rr-star installed"
+  (lambda () (and (lookup-theorem 'neg-inf-in-rr-star) #t)))
+(check-true "pos-inf-neq-neg-inf installed"
+  (lambda () (and (lookup-theorem 'pos-inf-neq-neg-inf) #t)))
+(check-true "pos-inf-not-in-rr installed"
+  (lambda () (and (lookup-theorem 'pos-inf-not-in-rr) #t)))
+(check-true "neg-inf-not-in-rr installed"
+  (lambda () (and (lookup-theorem 'neg-inf-not-in-rr) #t)))
+(check-true "pos-inf-upper-bound installed"
+  (lambda () (and (lookup-theorem 'pos-inf-upper-bound) #t)))
+(check-true "neg-inf-lower-bound installed"
+  (lambda () (and (lookup-theorem 'neg-inf-lower-bound) #t)))
+
+;; --- Wff validation: RR*, POS-INF, NEG-INF accepted as terms/constants ---
+(check-true "(IN POS-INF RR*) accepted as wff"
+  (lambda () (and (make-wff '(IN POS-INF RR*)) #t)))
+(check-true "(IN NEG-INF RR*) accepted as wff"
+  (lambda () (and (make-wff '(IN NEG-INF RR*)) #t)))
+(check-true "(<= NEG-INF POS-INF) accepted as wff"
+  (lambda () (and (make-wff '(<= NEG-INF POS-INF)) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Metric completeness (IS-CAUCHY-SEQ / CONVERGES / IS-COMPLETE) and the
+;;; normed-field -> metric-space bridge.
+
+(display "\n=== Metric completeness + normed-field metric bridge ===\n")
+
+;; Vocabulary registered.
+(check-true "is-cauchy-seq defined"
+  (lambda () (and (assq 'is-cauchy-seq (theory-definitions *current-theory*)) #t)))
+(check-true "converges-to defined"
+  (lambda () (and (assq 'converges-to (theory-definitions *current-theory*)) #t)))
+(check-true "is-complete defined"
+  (lambda () (and (assq 'is-complete (theory-definitions *current-theory*)) #t)))
+(check-true "complete-cauchy-converges installed"
+  (lambda () (and (lookup-theorem 'complete-cauchy-converges) #t)))
+(check-true "rr-complete = IS-COMPLETE(RR-MS) installed"
+  (lambda () (and (lookup-theorem 'rr-complete) #t)))
+(check-true "cc-complete = IS-COMPLETE(CC-MS) installed"
+  (lambda () (and (lookup-theorem 'cc-complete) #t)))
+(check-true "nf-metric-space-is-metric-space installed"
+  (lambda () (and (lookup-theorem 'nf-metric-space-is-metric-space) #t)))
+
+;; The IS-COMPLETE definition fires on a goal: completeness criterion.
+(check-proof "is-complete criterion: metric space where every Cauchy seq converges is complete"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (AND (IS-METRIC-SPACE s)
+                                           (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
+                                                              (CONVERGES s f))))
+                                      (IS-COMPLETE s)))))
+    (di) (di)
+    (mac 'is-complete)
+    (ass)
+    (unless (proof-done? *ps*) (error "is-complete criterion: proof did not close"))))
+
+;; IS-COMPLETE used in a real backchain: every Cauchy sequence in RR-MS
+;; converges, via rr-complete + complete-cauchy-converges.
+(check-proof "RR-MS complete: Cauchy seq converges (uses IS-COMPLETE)"
+  (lambda ()
+    (sp (make-wff '(FORALL f (IMPLIES (IS-CAUCHY-SEQ RR-MS f) (CONVERGES RR-MS f)))))
+    (di) (di)
+    (bc* 'complete-cauchy-converges)
+    (ta 'rr-complete) (ass)
+    (ass)
+    (unless (proof-done? *ps*) (error "RR-MS complete: proof did not close"))))
+
+;;; -----------------------------------------------------------------------
+;;; describe-structure cards: instances vs refinement classes
+
+(display "\n=== describe-structure cards (instance vs refinement) ===\n")
+
+(define (card-str name)
+  (with-output-to-string (lambda () (structure-card-md name))))
+
+;; Instance cards: labelled "Instance", show membership witness + tuple, and
+;; must NOT fall back to the empty "no stored characteristic law" line.
+(check-true "qq-field card rendered as Instance"
+  (lambda () (and (string-search-forward "Instance" (card-str 'qq-field) 0) #t)))
+(check-true "qq-field card shows membership witness qq-field-is-field"
+  (lambda () (and (string-search-forward "qq-field-is-field" (card-str 'qq-field) 0) #t)))
+(check-false "qq-field card has no empty-law fallback"
+  (lambda () (and (string-search-forward "no stored characteristic law"
+                                         (card-str 'qq-field) 0) #t)))
+;; RR-RING's card shows normed-field membership and NOT a (removed) ring one.
+(check-true "rr-ring card: member of normed-field"
+  (lambda () (and (string-search-forward "is-normed-field" (card-str 'rr-ring) 0) #t)))
+(check-false "rr-ring card: not a ring member (soundness fix, visible)"
+  (lambda () (and (string-search-forward "is-ring" (card-str 'rr-ring) 0) #t)))
+;; Refinement classes still render as refinements (unchanged branch).
+(check-true "commutative-ring card still a refinement"
+  (lambda () (and (string-search-forward "refinement" (card-str 'commutative-ring) 0) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; IF -- conditional term former and its two kernel reduction rules
+
+(display "\n=== IF: conditional term ===\n")
+
+(check-true "(IF p a b) accepted as a term"
+  (lambda () (and (make-wff '(= (IF (IN x NN) x 0) y)) #t)))
+
+(check-error "(IF p a b) rejected in wff position"
+  (lambda () (make-wff '(IF (IN x NN) x 0))))
+
+(check-true "if-true: condition holds, reduces to then-branch"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN x NN) (= (IF (IN x NN) x 0) x))))
+    (di)
+    (if-true '(IF (IN x NN) x 0))
+    (let ((use (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
+      (ass)
+      (set-proof-state-focus! *ps* use)
+      (ass))
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+(check-true "if-false: condition fails, reduces to else-branch"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (NOT (IN x NN)) (= (IF (IN x NN) x 0) 0))))
+    (di)
+    (if-false '(IF (IN x NN) x 0))
+    (let ((use (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
+      (ass)
+      (set-proof-state-focus! *ps* use)
+      (ass))
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;;; -----------------------------------------------------------------------
+;;; bc* -- matching backchain (interactive.scm)
+
+(check-true "bc*: applies a single-implication theorem (handler form)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IS-ABELIAN-GROUP gg) (IS-GROUP gg))))
+    (di)
+    (bc* 'abelian-group-is-group () (ass))
+    (proof-done? *ps*)))
+
+(check-true "bc*: nested-implication theorem, subgoals dispatched in tree order"
+  (lambda ()
+    (sp (make-wff
+         '(IMPLIES (IN nn0 NN)
+          (IMPLIES (IS-GROUP gg0)
+          (IMPLIES (IN ph0 (FUN (ORD-SEGMENT nn0) ss0))
+          (IMPLIES (IN ff0 (FUN ss0 (A gg0)))
+            (IN (ENUM-FAM gg0 ff0 ph0 nn0) (FUN NN (A gg0)))))))))
+    (di) (di) (di) (di)
+    ;; S occurs only in the antecedents, so it must be supplied explicitly.
+    (bc* 'enum-fam-in-fun ((S 'ss0)) (ass) (ass) (ass) (ass))
+    (proof-done? *ps*)))
+
+(check-true "bc*: conclusion mismatch warns and leaves the proof open"
+  (lambda ()
+    (sp (make-wff '(IN (succ 0) NN)))
+    (bc* 'abelian-group-is-group)
+    (not (proof-done? *ps*))))
+
+;; Variable-headed conclusion: fun-apply-type's (IN (f x) B) has f a schema
+;; var.  bc* matches it via *match-var-head* (macetes.scm).
+(check-true "bc*: applies a variable-headed-conclusion theorem (fun-apply-type)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (IN ff (FUN aa bb)) (IN xx aa))
+                            (IN (ff xx) bb))))
+    (di)
+    (ai '(AND (IN ff (FUN aa bb)) (IN xx aa)))
+    (bc* 'fun-apply-type ((A 'aa)) (begin (di) (ass-all)))
+    (proof-done? *ps*)))
 
 ;;; -----------------------------------------------------------------------
 ;;; Summary

@@ -24,6 +24,9 @@
 ;;;     (CARTESIAN A1 A2 ... An)           -- n-ary Cartesian product (n >= 0)
 ;;;     (FUN a b)                          -- function space a -> b
 ;;;     (SEP x a p)                        -- { x in a | p }
+;;;     (BIG-UNION z A body)               -- big-union over a family of sets;
+;;;                                           z bound in body, A is index class
+;;;                                           = union_{z in A} body
 ;;;     (POWER a)                          -- power set
 ;;;     (LIST e1 e2 ... en)                -- ordered n-tuple (n >= 0)
 ;;;     (NTH k e)                          -- k-th component (1-indexed)
@@ -82,8 +85,8 @@
       (functoid? e)
       (and (pair? e)
            (memq (car e) '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN
-                           FUN SEP POWER
-                           LIST NTH MAKE-SET LENGTH CHOICE IOTA TUPLES
+                           FUN SEP BIG-UNION POWER
+                           LIST NTH MAKE-SET LENGTH CHOICE IOTA IF TUPLES
                            apply-functoid)))))
 
 ;;; -----------------------------------------------------------------------
@@ -105,6 +108,7 @@
 (define (make-complement-in a b) `(COMPLEMENT-IN ,a ,b))
 (define (make-fun a b)        `(FUN ,a ,b))
 (define (make-sep x a p)      `(SEP ,x ,a ,p))
+(define (make-big-union z a body) `(BIG-UNION ,z ,a ,body))
 (define (make-power a)        `(POWER ,a))
 
 ;;; N-ary constructors
@@ -112,9 +116,11 @@
 (define (make-list . elems)      (cons 'LIST elems))
 (define (make-nth k e)           `(NTH ,k ,e))
 
-;;; CHOICE / IOTA constructors
+;;; CHOICE / IOTA / IF constructors
 (define (make-choice a)  `(CHOICE ,a))
 (define (make-iota x p)  `(IOTA ,x ,p))
+;;; (IF p a b) — term: a when wff p holds, b otherwise.  Non-binding.
+(define (make-if p a b)  `(IF ,p ,a ,b))
 
 ;;; Functoid application constructor
 (define (make-apply-functoid f . args)
@@ -188,6 +194,9 @@
        ((POWER)
         ;; arity 2: power set; arity 3: exponentiation
         (fold-vars (map free-vars (cdr expr))))
+       ((IF)
+        ;; (IF p a b) — p a wff, a/b terms; non-binding, recurse into all three
+        (fold-vars (map free-vars (cdr expr))))
        ((AND OR IMPLIES IFF = == IN COMPLEMENT-IN)
         (union-vars (free-vars (cadr expr)) (free-vars (caddr expr))))
        ((FUN)
@@ -197,6 +206,10 @@
        ((FORALL FORSOME IOTA)
         (remove (cadr expr) (free-vars (caddr expr))))
        ((SEP)
+        (union-vars (free-vars (caddr expr))
+                    (remove (cadr expr) (free-vars (cadddr expr)))))
+       ((BIG-UNION)
+        ;; (BIG-UNION z A body) — z bound in body, free in A
         (union-vars (free-vars (caddr expr))
                     (remove (cadr expr) (free-vars (cadddr expr)))))
        ((VNB-LAMBDA)
@@ -212,18 +225,17 @@
        ((NTH)
         (free-vars (caddr expr)))
        (else
-        ;; General compound.  Head may itself be a pair (e.g. ((MUL m) a b));
-        ;; in that case its free vars must be collected too — otherwise a
-        ;; FORALL over `m` in head position cannot be instantiated.
-        ;; Symbol heads are treated as constant operator names (not free).
-        ;; This asymmetry is deliberate: MIT Scheme case-folds symbols, so
-        ;; the carrier accessor `A` and a bound variable `a` are the SAME
-        ;; symbol — substituting symbol heads would break instantiation
-        ;; whenever a bound name happens to collide with a structure
-        ;; accessor.  Compound heads do not have this issue because the
-        ;; carrier accessor stands alone, not wrapping a variable.
+        ;; General compound (h arg ...).  A compound head is collected.
+        ;; A symbol head is free iff it is NOT a registered constant: an
+        ;; applied function variable (f x) has f free; an operator/accessor
+        ;; application (MUL m), (succ n) does not.  The constant-head
+        ;; registry breaks the case-fold tie between accessor `A` and a
+        ;; bound variable `a`.
         (let ((h (car expr)))
-          (fold-vars (cons (if (pair? h) (free-vars h) '())
+          (fold-vars (cons (cond ((pair? h) (free-vars h))
+                                 ((and (symbol? h) (not (constant-head? h)))
+                                  (list h))
+                                 (else '()))
                            (map free-vars (cdr expr))))))))
     (else '())))
 
@@ -239,6 +251,39 @@
 
 (define (remove x lst)
   (filter (lambda (y) (not (eq? y x))) lst))
+
+;;; -----------------------------------------------------------------------
+;;; Constant-head registry
+;;;
+;;; A symbol at the head of a compound term (h arg ...) is either a
+;;; CONSTANT -- a kernel operator, a structure accessor, a defined
+;;; function/constant, a functoid, or a predicate -- or a VARIABLE: a
+;;; function-valued bound variable applied to arguments.  subst-free and
+;;; free-vars must tell them apart: a constant head is never a free
+;;; variable and is never substituted; a variable head is both.
+;;;
+;;; Every constant head is registered here with a kind tag; any unregistered
+;;; symbol is treated as a variable.  Populated at load time by: wff.scm
+;;; (kernel operators), def-structure (accessors), theory-add-definition!
+;;; (defined functions), def-functoid (functoids), def-predicate.
+;;;
+;;; Because the reader case-folds symbols, a bound variable whose name
+;;; coincides with a registered constant cannot be applied as a function
+;;; (the head reads as the constant).  warn-binder-shadowing warns on that.
+;;;
+;;; kind in {operator accessor defined-fn functoid predicate}
+
+(define *constant-registry* (make-equal-hash-table))
+
+(define (register-constant! sym kind)
+  (if (symbol? sym)
+      (hash-table-set! *constant-registry* sym kind))
+  sym)
+
+;;; Returns the kind of sym if it is a registered constant head, else #f.
+(define (constant-head? sym)
+  (and (symbol? sym)
+       (hash-table-ref/default *constant-registry* sym #f)))
 
 ;;; -----------------------------------------------------------------------
 ;;; Substitution
@@ -289,6 +334,9 @@
         ;; arity 2 = power set, arity 3 = exponentiation; recurse into all args
         (cons (car expr)
               (map (lambda (a) (subst-free x replacement a)) (cdr expr))))
+       ((IF)
+        ;; (IF p a b) — non-binding; recurse into condition and both branches
+        (cons 'IF (map (lambda (a) (subst-free x replacement a)) (cdr expr))))
        ((AND OR IMPLIES IFF = == IN COMPLEMENT-IN)
         (list (car expr)
               (subst-free x replacement (cadr expr))
@@ -322,6 +370,21 @@
              `(SEP ,bv
                    ,(subst-free x replacement a)
                    ,(subst-free x replacement p))))))
+       ((BIG-UNION)
+        ;; (BIG-UNION z A body) — z bound in body, free in A.  Mirrors SEP.
+        (let ((bv (cadr expr)) (a (caddr expr)) (body (cadddr expr)))
+          (cond
+            ((eq? bv x)
+             `(BIG-UNION ,bv ,(subst-free x replacement a) ,body))
+            ((member bv (free-vars replacement))
+             (let ((fresh (fresh-var bv body replacement)))
+               `(BIG-UNION ,fresh
+                           ,(subst-free x replacement a)
+                           ,(subst-free x replacement (subst-free bv fresh body)))))
+            (else
+             `(BIG-UNION ,bv
+                         ,(subst-free x replacement a)
+                         ,(subst-free x replacement body))))))
        ((VNB-LAMBDA)
         ;; (VNB-LAMBDA bind-spec body); rename clashing bvars to avoid capture.
         (let* ((bind-spec (cadr expr))
@@ -354,12 +417,18 @@
        ((NTH)
         `(NTH ,(cadr expr) ,(subst-free x replacement (caddr expr))))
        (else
-        ;; General compound.  Substitute into a compound (pair) head so
-        ;; that ((MUL m) a b) instantiates `m` correctly.  Symbol heads
-        ;; are treated as constant operator names and passed through
-        ;; unchanged — see free-vars else for the case-folding rationale.
+        ;; General compound (h arg ...).  A compound head is substituted
+        ;; into so ((MUL m) a b) instantiates `m`.  A symbol head is
+        ;; substituted iff it is the variable x AND not a registered
+        ;; constant: an applied function variable (x arg) becomes
+        ;; (replacement arg); an operator/accessor head (MUL m), (A m) is
+        ;; passed through.  The registry breaks the accessor/variable
+        ;; case-fold tie.
         (let ((h (car expr)))
-          (cons (if (pair? h) (subst-free x replacement h) h)
+          (cons (cond ((pair? h) (subst-free x replacement h))
+                      ((and (symbol? h) (eq? h x) (not (constant-head? h)))
+                       replacement)
+                      (else h))
                 (map (lambda (arg) (subst-free x replacement arg))
                      (cdr expr)))))))
     (else expr)))
@@ -438,6 +507,11 @@
                (or (null? a1)
                    (and (alpha-equiv-under? (car a1) (car a2) env)
                         (loop (cdr a1) (cdr a2)))))))
+       ((IF)
+        ;; (IF p a b) — non-binding; componentwise
+        (and (alpha-equiv-under? (cadr e1)   (cadr e2)   env)
+             (alpha-equiv-under? (caddr e1)  (caddr e2)  env)
+             (alpha-equiv-under? (cadddr e1) (cadddr e2) env)))
        ((AND OR IMPLIES IFF = == IN COMPLEMENT-IN)
         (and (alpha-equiv-under? (cadr e1)  (cadr e2)  env)
              (alpha-equiv-under? (caddr e1) (caddr e2) env)))
@@ -452,6 +526,10 @@
         (alpha-equiv-under? (caddr e1) (caddr e2)
                             (cons (cons (cadr e1) (cadr e2)) env)))
        ((SEP)
+        (and (alpha-equiv-under? (caddr e1) (caddr e2) env)
+             (alpha-equiv-under? (cadddr e1) (cadddr e2)
+                                 (cons (cons (cadr e1) (cadr e2)) env))))
+       ((BIG-UNION)
         (and (alpha-equiv-under? (caddr e1) (caddr e2) env)
              (alpha-equiv-under? (cadddr e1) (cadddr e2)
                                  (cons (cons (cadr e1) (cadr e2)) env))))

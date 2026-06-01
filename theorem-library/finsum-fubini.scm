@@ -1,0 +1,24 @@
+;;; theorem-library/finsum-fubini.scm
+;;;
+;;; finsum-fubini:  interchange of the two summations in a double FINSUM
+;;; over a product of finite sets, in an abelian group.
+;;;
+;;;   sum_{i in X} sum_{j in Y} f(i,j)  =  sum_{j in Y} sum_{i in X} f(i,j)
+;;;
+;;; The values lie in an abelian group; no ring or scalar action is needed.
+;;; Well-definedness rests on the same ag-commutativity that gives FINSUM
+;;; its index-independence (sum-ag-permutation-invariance via
+;;; finsum-well-defined).
+;;;
+;;; f is typed on the Cartesian product X x Y so applications use the
+;;; tupled form (f (LIST i j)); the curried form (f i j) is quasi-equal by
+;;; apply-tupling-2.  Inner lambdas bind i, j (lowercase) -- distinct from
+;;; outer X, Y under VNB's case-folding.  See [[no-case-variant-binders]].
+
+(support 'finsum-fubini
+  '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
+     (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
+     (FORALL Y (IMPLIES (AND (IN Y SET) (IN (CARD Y) NN))
+     (FORALL f (IMPLIES (IN f (FUN (CARTESIAN X Y) (A ag)))
+       (= (FINSUM ag (VNB-LAMBDA i (FINSUM ag (VNB-LAMBDA j (f (LIST i j))) Y)) X)
+          (FINSUM ag (VNB-LAMBDA j (FINSUM ag (VNB-LAMBDA i (f (LIST i j))) X)) Y)))))))))))

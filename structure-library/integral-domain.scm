@@ -1,0 +1,31 @@
+;;; integral-domain.scm -- INTEGRAL-DOMAIN: a commutative ring with ONE /= ZERO
+;;; and no zero divisors.  Reuses the RING shape and accessors.
+;;;
+;;; See commutative-ring.scm for why IS-INTEGRAL-DOMAIN is a genuine IFF
+;;; predicate rather than a def-structure shape check.  Dependencies:
+;;; ring.scm, commutative-ring.scm.
+
+;;; IS-INTEGRAL-DOMAIN: a commutative ring, nontrivial (ONE /= ZERO),
+;;; with no zero divisors (a*b = 0  =>  a = 0 or b = 0).
+(theory-add-axiom! *current-theory* 'is-integral-domain-def
+  '(FORALL s
+     (IFF (IS-INTEGRAL-DOMAIN s)
+          (AND (IS-COMMUTATIVE-RING s)
+            (AND (NOT (= (ONE s) (ZERO s)))
+                 (FORALL a (IMPLIES (IN a (A s))
+                   (FORALL b (IMPLIES (IN b (A s))
+                     (IMPLIES (= ((MUL s) a b) (ZERO s))
+                              (OR (= a (ZERO s)) (= b (ZERO s)))))))))))))
+
+;;; Relation: every integral domain is a commutative ring.
+(theory-add-axiom! *current-theory* 'integral-domain-is-commutative-ring
+  '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s) (IS-COMMUTATIVE-RING s))))
+
+;;; Associated proper class INTEGRAL-DOMAIN = { s | IS-INTEGRAL-DOMAIN(s) }.
+;;; See commutative-ring.scm for the NAME-class rationale.  Parent-class
+;;; reading: s in INTEGRAL-DOMAIN <=> s in COMMUTATIVE-RING and ONE/=ZERO and
+;;; no zero divisors.
+(theory-add-axiom! *current-theory* 'integral-domain-class
+  '(FORALL s (IFF (IN s INTEGRAL-DOMAIN) (IS-INTEGRAL-DOMAIN s))))
+
+(register-definitional-structure! 'INTEGRAL-DOMAIN 'COMMUTATIVE-RING)

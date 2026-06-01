@@ -67,17 +67,65 @@
 (define (->raw-formula f)
   (if (string? f) (parse-string f) f))
 
+;;; Resolve a tactic's formula argument, with assumption-by-number support.
+;;; A positive exact integer k selects the k-th assumption of the focus
+;;; sequent (1-based, matching the numbered Focus-Workspace display), so
+;;; `(bc 2)' can stand in for retyping the second assumption's formula.
+;;; Anything else is handed to ->raw-formula.  Returns a vnb-warning on an
+;;; out-of-range index so vnb--run! reports it cleanly instead of erroring.
+;;; Call only inside a vnb--run! thunk (assumes *ps* is set).
+(define (->raw-formula/idx f)
+  (if (and (integer? f) (exact? f))
+      (let* ((asms (sequent-node-assumptions (proof-state-focus *ps*)))
+             (n    (length asms)))
+        (if (and (>= f 1) (<= f n))
+            (wff-formula (list-ref asms (- f 1)))
+            (vnb--warn "assumption index out of range"
+                       (string-append (number->string f)
+                                      " (have 1.." (number->string n) ")"))))
+      (->raw-formula f)))
+
+;;; -----------------------------------------------------------------------
+;;; Skip-proofs mode.
+;;;
+;;; When *skip-proofs?* is #t, sp short-circuits: instead of building a
+;;; proof state, it stashes the goal formula and (if *skip-proofs-cont* is
+;;; bound) invokes the continuation to escape out of the surrounding proof
+;;; thunk.  prove-and-install! (proven-theorems.scm) sets up the cont,
+;;; runs the thunk, and installs the captured formula as a theorem
+;;; without running tactics.  Cuts proven-theorems.scm load time from
+;;; minutes to seconds while iterating on unrelated work.
+;;;
+;;; Enable by setting *skip-proofs?* before loading load.scm, or via the
+;;; VNB_SKIP_PROOFS env var (checked once at proven-theorems.scm load).
+
+(define *skip-proofs?* #f)
+(define *skip-proofs-captured* #f)
+(define *skip-proofs-cont* #f)
+
+(define (skip-proofs!)   (set! *skip-proofs?* #t))
+(define (verify-proofs!) (set! *skip-proofs?* #f))
+
 ;;; -----------------------------------------------------------------------
 ;;; Start a proof.  Resets the proof-script accumulator.
+;;;
+;;; When *skip-proofs?* is set, capture the formula and bail out via
+;;; *skip-proofs-cont* (the caller in prove-and-install! installed it).
 
 (define (sp wic)
   (vnb-guard
     (lambda ()
       (unless (wff? wic)
         (error "sp: expected a wff -- use (make-wff-from-string \"...\") first" wic))
-      (set! *proof-script* '())
-      (set! *ps* (start-proof wic))
-      (show))))
+      (cond
+        (*skip-proofs?*
+         (set! *skip-proofs-captured* (wff-formula wic))
+         (when *skip-proofs-cont*
+           (*skip-proofs-cont* 'skipped)))
+        (else
+         (set! *proof-script* '())
+         (set! *ps* (start-proof wic))
+         (show))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Short-form proof commands.
@@ -116,22 +164,1208 @@
 (define (tfi3)  (vnb--run! 'tfi3  '()    (lambda () (cmd-tfi3 *ps*))))
 (define (ni)    (vnb--run! 'ni    '()    (lambda () (cmd-nn-induction *ps*))))
 
-(define (ai f)  (let ((raw (->raw-formula f)))
-                  (vnb--run! 'ai (list raw) (lambda () (cmd-antecedent-inference *ps* raw)))))
+(define (ai f)
+  (vnb--run! 'ai (list f)
+             (lambda ()
+               (let ((raw (->raw-formula/idx f)))
+                 (if (vnb-warning? raw) raw (cmd-antecedent-inference *ps* raw))))))
+;; Equality substitution: eq is (= s t); s = t must be in context.
+;; Rewrites s -> t throughout the goal (Leibniz schema).
+(define (subst eq) (let ((raw (->raw-formula eq)))
+                     (vnb--run! 'subst (list raw) (lambda () (cmd-eq-subst *ps* raw)))))
 (define (cut f) (let ((raw (->raw-formula f)))
                   (vnb--run! 'cut (list raw) (lambda () (cmd-cut *ps* raw)))))
+;; Conditional-term reduction: t is an (IF p a b) term.  if-true spawns p
+;; as a subgoal; if-false spawns (NOT p).  The other branch gains the
+;; equation (= (IF p a b) a) resp. (= (IF p a b) b) as an assumption.
+(define (if-true t)  (let ((raw (->raw-formula t)))
+                       (vnb--run! 'if-true (list raw)
+                                  (lambda () (cmd-if-true *ps* raw)))))
+(define (if-false t) (let ((raw (->raw-formula t)))
+                       (vnb--run! 'if-false (list raw)
+                                  (lambda () (cmd-if-false *ps* raw)))))
 (define (ew t)  (let ((raw (->raw-formula t)))
                   (vnb--run! 'ew (list raw) (lambda () (cmd-exists-witness *ps* raw)))))
-(define (bc f)  (let ((raw (->raw-formula f)))
-                  (vnb--run! 'bc (list raw) (lambda () (cmd-backchain *ps* raw)))))
-(define (wk f)  (let ((raw (->raw-formula f)))
-                  (vnb--run! 'wk (list raw) (lambda () (cmd-weaken *ps* raw)))))
+(define (bc f)
+  (vnb--run! 'bc (list f)
+             (lambda ()
+               (let ((raw (->raw-formula/idx f)))
+                 (if (vnb-warning? raw) raw (cmd-backchain *ps* raw))))))
+(define (wk f)
+  (vnb--run! 'wk (list f)
+             (lambda ()
+               (let ((raw (->raw-formula/idx f)))
+                 (if (vnb-warning? raw) raw (cmd-weaken *ps* raw))))))
 (define (ui k)  (vnb--run! 'ui (list k) (lambda () (cmd-union-intro *ps* k))))
 (define (ue f)  (let ((raw (->raw-formula f)))
                   (vnb--run! 'ue (list raw) (lambda () (cmd-union-elim *ps* raw)))))
 
 (define (ta n)  (vnb--run! 'ta (list n) (lambda () (cmd-theorem-assumption *ps* n))))
 (define (mac n) (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))
+
+;;; -----------------------------------------------------------------------
+;;; bc* -- matching backchain.
+;;;
+;;;   (bc* 'thm)                  -- conclusion fully determines instantiation
+;;;   (bc* 'thm ((v val) ...))    -- supply schema vars the conclusion omits
+;;;   (bc* 'thm ((v val) ...) h1 h2 ...)
+;;;                               -- run handler hk on the k-th subgoal
+;;;
+;;; Applies a registered theorem to the current goal by UNIFYING the
+;;; theorem's conclusion against the goal, then replaying the
+;;; ta / inst / cut / bc idiom automatically.  The theorem's antecedents,
+;;; instantiated by the discovered substitution, are left as open subgoals
+;;; (the actual mathematical content); the main line closes by assumption.
+;;;
+;;; The theorem may carry any nesting of leading FORALLs and right-nested
+;;; IMPLIES --- FORALL* (IMPLIES A1 (FORALL* (IMPLIES A2 ... C))).  bc* peels
+;;; FORALLs and IMPLIES down to the conclusion C and matches C against the
+;;; goal.  A schema variable that does not occur in C cannot be discovered
+;;; by matching; pass it as ((v val) ...).  The goal itself must not be a
+;;; FORALL/IMPLIES bc* would peel past --- it is meant for atomic goals
+;;; (memberships, equalities).
+;;;
+;;; With handlers: bc* refocuses to each subgoal IN TREE ORDER before
+;;; running its handler, so subgoal navigation needs no manual refocus!.
+;;; The number of handlers must equal the number of antecedents; a handler
+;;; that needs several tactics uses (begin ...).  Without handlers, bc*
+;;; leaves focus on the first subgoal and returns the subgoal-node list.
+;;;
+;;; bc* drives the cmd-* layer; it adds no kernel rule, so every proof it
+;;; produces is checked by the existing primitive inferences.
+
+;; Peel leading FORALL/IMPLIES; return (values forall-vars conclusion).
+(define (bc*--peel f)
+  (let loop ((f f) (vars '()))
+    (cond
+      ((and (pair? f) (eq? (car f) 'FORALL))
+       (loop (caddr f) (cons (cadr f) vars)))
+      ((and (pair? f) (eq? (car f) 'IMPLIES))
+       (loop (caddr f) vars))
+      (else (values (reverse vars) f)))))
+
+(define (bc*--last-node)
+  (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
+
+;; Merge explicit bindings into the matcher's substitution (matcher wins).
+(define (bc*--merge m extra)
+  (let loop ((es extra) (acc m))
+    (if (null? es)
+        acc
+        (loop (cdr es)
+              (if (assoc (caar es) acc) acc (cons (car es) acc))))))
+
+(define (bc*--commit! result what)
+  (cond
+    ((vnb-warning? result)
+     (error (string-append "bc*: " what " -- " (vnb-warning-message result))))
+    ((not (proof-state? result))
+     (error (string-append "bc*: " what " produced no proof state")))
+    (else (set! *ps* result))))
+
+;; Replay ta + inst/cut/bc down the theorem structure.
+;; Returns the list of antecedent subgoal nodes, in tree order.
+(define (bc*--drive! name thm subst)
+  (bc*--commit! (cmd-theorem-assumption *ps* name) "ta")
+  (let loop ((f thm) (goals '()))
+    (cond
+      ((and (pair? f) (eq? (car f) 'FORALL))
+       (let* ((v (cadr f))
+              (t (cdr (assoc v subst)))
+              (nf (subst-free v t (caddr f))))
+         (bc*--commit! (cmd-instantiate *ps* f t) "inst")
+         (loop nf goals)))
+      ((and (pair? f) (eq? (car f) 'IMPLIES))
+       (let ((rest (caddr f)))
+         (bc*--commit! (cmd-cut *ps* rest) "cut")
+         (let ((b2 (bc*--last-node)))
+           (bc*--commit! (cmd-backchain *ps* f) "bc")
+           (let ((ant (proof-state-focus *ps*)))   ; the antecedent subgoal
+             (set-proof-state-focus! *ps* b2)
+             (loop rest (cons ant goals))))))
+      (else
+       (bc*--commit! (cmd-assumption *ps*) "assumption")
+       (reverse goals)))))
+
+;; Match the theorem conclusion against the goal, drive the proof.
+;; Returns the subgoal-node list, or #f after displaying a warning.
+(define (bc*--attempt name bindings)
+  (vnb--require-proof!)
+  (let* ((thm  (lookup-theorem name))
+         (goal (wff-formula
+                (sequent-node-assertion (proof-state-focus *ps*)))))
+    (let-values (((svars concl) (bc*--peel thm)))
+      ;; *match-var-head* lets the conclusion's variable-headed applications
+      ;; (e.g. fun-apply-type's (f x)) match the goal.
+      (let ((m (fluid-let ((*match-var-head* #t))
+                 (match-expr concl goal svars))))
+        (cond
+          ((not m)
+           (display ";VNB warning: bc*: conclusion of ")
+           (display name)
+           (display " does not match the goal\n")
+           #f)
+          (else
+           (let* ((subst   (bc*--merge m bindings))
+                  (unbound (filter (lambda (v) (not (assoc v subst)))
+                                   svars)))
+             (cond
+               ((not (null? unbound))
+                (display ";VNB warning: bc*: undetermined schema var(s) ")
+                (write unbound)
+                (display " -- supply as ((v val) ...)\n")
+                #f)
+               (else
+                (let ((gs (bc*--drive! name thm subst)))
+                  (record-cmd! 'bc* (list name))
+                  gs))))))))))
+
+;; Run bc* for `name` with `bindings` (alist).  On success returns the list
+;; of subgoal nodes (possibly '()); on a soft failure displays a warning and
+;; returns #f.
+(define (bc*-run! name bindings)
+  (if (not (hash-table-ref/default *theorem-table* name #f))
+      (begin
+        (display ";VNB warning: bc*: unknown theorem ")
+        (display name) (newline)
+        #f)
+      (let ((r (vnb-guard (lambda () (bc*--attempt name bindings)))))
+        (if (list? r) r #f))))
+
+;; (bc* 'name) / (bc* 'name ((v val) ...)) : spawn subgoals, focus the first.
+(define (bc*-apply name bindings)
+  (let ((gs (bc*-run! name bindings)))
+    (when (list? gs)
+      (when (pair? gs) (set-proof-state-focus! *ps* (car gs)))
+      (show))
+    gs))
+
+;; (bc* 'name ((v val) ...) h1 h2 ...) : run hk focused on the k-th subgoal.
+(define (bc*-dispatch name bindings . thunks)
+  (let ((gs (bc*-run! name bindings)))
+    (cond
+      ((not (list? gs)) #f)              ; soft failure, already reported
+      ((not (= (length gs) (length thunks)))
+       (display ";VNB warning: bc*: ")
+       (write (length thunks))
+       (display " handler(s) but ")
+       (write (length gs))
+       (display " subgoal(s) from ")
+       (display name) (newline))
+      (else
+       (for-each (lambda (g th)
+                   (set-proof-state-focus! *ps* g)
+                   (th))
+                 gs thunks)
+       (show)))))
+
+;; Turn ((v val) ...) binding clauses into a runtime alist ((v . val) ...).
+(define-syntax bc*-binds
+  (syntax-rules ()
+    ((_) '())
+    ((_ (v val) more ...) (cons (cons 'v val) (bc*-binds more ...)))))
+
+(define-syntax bc*
+  (syntax-rules ()
+    ((_ name)
+     (bc*-apply name '()))
+    ((_ name (bind ...))
+     (bc*-apply name (bc*-binds bind ...)))
+    ((_ name (bind ...) handler ...)
+     (bc*-dispatch name (bc*-binds bind ...)
+                   (lambda () handler) ...))))
+
+;;; -----------------------------------------------------------------------
+;;; (ass-all) -- close every open goal dischargeable directly by assumption.
+;;;
+;;; Order-independent: it sweeps all open goals, closing each one whose goal
+;;; is already in its context, and repeats until a sweep closes nothing.
+;;; Goals that are not assumption-closable are left untouched.  This sidesteps
+;;; the focus-order hazard when a case-split (di on AND, if-true, cut) leaves
+;;; several trivial subgoals interleaved with real ones.
+
+(define (ass-all)
+  (vnb-guard
+   (lambda ()
+     (vnb--require-proof!)
+     (let sweep ()
+       (let ((progressed #f))
+         (for-each
+          (lambda (g)
+            (when (not (sequent-node-grounded? g))
+              (set-proof-state-focus! *ps* g)
+              (let ((r (cmd-assumption *ps*)))
+                (when (proof-state? r)
+                  (set! *ps* r)
+                  (set! progressed #t)))))
+          (dg-ungrounded-nodes (proof-state-dg *ps*)))
+         (when progressed (sweep))))
+     (show))))
+
+;;; -----------------------------------------------------------------------
+;;; (catalog) -- write THEOREMS.md: every installed result, split into
+;;; proven theorems / proof support set / axioms, alphabetical, with its
+;;; statement.  The library is otherwise a flat hash spread over ~17 source
+;;; files with no index.
+
+(define (catalog--line name)
+  (display "- `") (display name) (display "` — ")
+  (display (expression->string (lookup-theorem name)))
+  (let ((w (warrant-of name)))
+    (when w (display "  _[warrant: ") (display (car w)) (display "]_")))
+  (newline))
+
+;;; (write-pss-md) -- write PSS.md with every (support ...) entry in
+;;; alphabetical order, formula pretty-printed in VNB string syntax.
+;;; Section headers (### name) make the file navigable with the same
+;;; vnb-library-mode machinery that drives STRUCTURE-INDEX.md.
+;;; Returns the path written.
+(define (write-pss-md)
+  (let* ((path (string-append *prover-dir* "PSS.md"))
+         (names (filter (lambda (n) (memq n *support-theorem-names*))
+                        (sort (hash-table-keys *theorem-table*)
+                              (lambda (a b)
+                                (string<? (symbol->string a)
+                                          (symbol->string b)))))))
+    (with-output-to-file path
+      (lambda ()
+        (display "# Proof Support Set\n\n")
+        (display "Auto-generated by `(write-pss-md)`.  ")
+        (display (length names))
+        (display " entries — accepted without machine proof.\n\n")
+        (for-each
+          (lambda (name)
+            (display "### ") (display name) (newline) (newline)
+            (display "    ")
+            (display (expression->string (lookup-theorem name)))
+            (newline) (newline)
+            (let ((w (warrant-of name)))
+              (when w
+                (display "*Warrant (") (display (car w)) (display "):* ")
+                (display (cdr w)) (newline) (newline))))
+          names)))
+    path))
+
+;;; (write-definitions-md) -- write DEFINITIONS.md: every constant/predicate
+;;; introduced by `def-constant' / `theory-add-definition!' (the authoritative
+;;; `theory-definitions' registry that `display-definitions' reads), with its
+;;; defining axiom(s) pretty-printed in VNB string syntax.  This is the
+;;; concept-level index for term and predicate definitions -- e.g. CAUCHY
+;;; sequence, CONVERGES, IS-COMPLETE -- the analogue of STRUCTURE-INDEX.md for
+;;; structures.  Section headers (### name) make it navigable and PDF-viewable
+;;; with the same vnb-library-mode machinery.  Returns the path written.
+(define (write-definitions-md)
+  (let* ((path (string-append *prover-dir* "DEFINITIONS.md"))
+         (defs (sort (theory-definitions *current-theory*)
+                     (lambda (a b) (string<? (symbol->string (car a))
+                                             (symbol->string (car b)))))))
+    (with-output-to-file path
+      (lambda ()
+        (display "# VNB definitions\n\n")
+        (display "Auto-generated by `(write-definitions-md)`.  ")
+        (display (length defs))
+        (display " term & predicate definitions (constants introduced by\n")
+        (display "`def-constant`).  Structure predicates (`is-ring`, `is-field`, …)\n")
+        (display "live in `STRUCTURE-INDEX.md`; this lists the rest — e.g. Cauchy\n")
+        (display "sequence, convergence, completeness.\n\n")
+        (for-each
+          (lambda (entry)
+            (display "### ") (display (car entry)) (newline) (newline)
+            (for-each
+              (lambda (ax)
+                (display "    ")
+                (display (expression->string (cdr ax)))
+                (newline) (newline))
+              (cdr entry)))
+          defs)))
+    path))
+
+(define (catalog)
+  (let* ((all     (sort (hash-table-keys *theorem-table*)
+                        (lambda (a b) (string<? (symbol->string a)
+                                                (symbol->string b)))))
+         (proven  (filter (lambda (n) (memq n *proven-theorem-names*)) all))
+         (support (filter (lambda (n) (memq n *support-theorem-names*)) all))
+         (axioms  (filter (lambda (n)
+                            (and (not (memq n *proven-theorem-names*))
+                                 (not (memq n *support-theorem-names*))))
+                          all))
+         ;; Partition the axiom bucket by provenance so the headline number
+         ;; stops conflating the trusted base with definitional sugar and
+         ;; asserted math.  asrt is the catch-all remainder (the warrant
+         ;; candidates).
+         (prim    (filter (lambda (n) (eq? (provenance-of n) 'primitive)) axioms))
+         (defn    (filter (lambda (n) (eq? (provenance-of n) 'definitional)) axioms))
+         (asrt    (filter (lambda (n) (and (not (memq n prim))
+                                           (not (memq n defn)))) axioms))
+         (path    (string-append *prover-dir* "THEOREMS.md")))
+    (with-output-to-file path
+      (lambda ()
+        (display "# VNB theorem & axiom catalog\n\n")
+        (display "Auto-generated by `(catalog)`.  ")
+        (display (length all))    (display " results — ")
+        (display (length proven))  (display " proven, ")
+        (display (length support)) (display " support, ")
+        (display (length axioms))  (display " axioms (")
+        (display (length prim))    (display " primitive, ")
+        (display (length defn))    (display " definitional, ")
+        (display (length asrt))    (display " asserted).\n\n")
+        (display "## Proven theorems\n\n")
+        (for-each catalog--line proven)
+        (display "\n## Proof Support Set\n\n")
+        (display "Results we accept without a machine proof in VNB.  ")
+        (display "Logically treated as theorems.\n\n")
+        (for-each catalog--line support)
+        (display "\n## Axioms\n\n")
+        (display "Split by *provenance* — origin, not logical role; all are ")
+        (display "usable in proofs identically.\n\n")
+        (display "### Primitive — the trusted VNB base\n\n")
+        (display "The foundational axioms (make-vnb-base-theory core + ")
+        (display "theorem-library/axioms).  Everything else rests on these.\n\n")
+        (for-each catalog--line prim)
+        (display "\n### Definitional — conservative extensions\n\n")
+        (display "Emitted by def-/declare- forms (IS-X folding, accessor ")
+        (display "laws, view typing).  Name new vocabulary; add no strength.\n\n")
+        (for-each catalog--line defn)
+        (display "\n### Asserted — accepted without proof\n\n")
+        (display "Genuine mathematical content with no machine proof — the ")
+        (display "warrant candidates.\n\n")
+        (for-each catalog--line asrt)))
+    (display ";; catalog: ") (display (length all))
+    (display " results (") (display (length proven))
+    (display " proven, ") (display (length support))
+    (display " support, ") (display (length axioms))
+    (display " axioms = ") (display (length prim))
+    (display " primitive + ") (display (length defn))
+    (display " definitional + ") (display (length asrt))
+    (display " asserted) -> ") (display path) (newline)
+    (let ((dpath (write-definitions-md)))
+      (display ";; definitions: ")
+      (display (length (theory-definitions *current-theory*)))
+      (display " -> ") (display dpath) (newline))
+    (structure-index)))
+
+;;; (display-provenance) -- REPL triage of every installed result by its
+;;; provenance kind (primitive / definitional / asserted / proven), counts
+;;; first, then names.  Provenance is the epistemic origin (see
+;;; *current-provenance* in macetes.scm), orthogonal to the support/proven
+;;; display tags used by (catalog).
+(define (display-provenance)
+  (let ((all (sort (hash-table-keys *theorem-table*)
+                   (lambda (a b) (string<? (symbol->string a)
+                                           (symbol->string b))))))
+    (for-each
+      (lambda (kind)
+        (let ((names (filter (lambda (n) (eq? (provenance-of n) kind)) all)))
+          (display ";; ") (display kind) (display ": ")
+          (display (length names)) (newline)
+          (for-each (lambda (n)
+                      (display ";;   ") (display n) (newline))
+                    names)))
+      *provenance-kinds*)))
+
+;;; -----------------------------------------------------------------------
+;;; (structure-index) -- write STRUCTURE-INDEX.md: a navigable, structure-
+;;; grouped view of the library.  For each structure registered in
+;;; *structure-table* and each view in *view-as-table*, emit a section with
+;;; its IS-X axiom statement, its named theorems, and the views into/out of
+;;; it.  Called automatically by (catalog).
+
+;;; Section anchor for a structure name: lower-case-kebab.
+(define (struct-index--anchor name)
+  (string-downcase (symbol->string name)))
+
+;;; Does theorem-formula match (FORALL s (IMPLIES (IS-X s) P)) for given
+;;; IS-X predicate?  Reuses the existing helper from structures.scm.
+(define (struct-index--theorem-for? formula is-pred)
+  (and (generic-for-struct? formula is-pred) #t))
+
+;;; Names of theorems whose top-level shape is forall s. IS-X(s) ⟹ P[s].
+(define (struct-index--theorems-for-struct struct-name all-theorem-names)
+  (let ((is-pred (symbol-append 'IS- struct-name)))
+    (filter (lambda (n)
+              (and (not (eq? n is-pred))           ; skip the IS-X axiom itself
+                   (not (eq? n (symbol-append struct-name '-class)))
+                   (struct-index--theorem-for?
+                     (hash-table-ref/default *theorem-table* n #f) is-pred)))
+            all-theorem-names)))
+
+;;; Views with target = struct-name.
+(define (struct-index--views-into struct-name)
+  (filter (lambda (v) (eq? (view-as-target-struct (lookup-view-as v))
+                           struct-name))
+          (hash-table-keys *view-as-table*)))
+
+;;; Views with source = struct-name.
+(define (struct-index--views-from struct-name)
+  (filter (lambda (v) (eq? (view-as-source-struct (lookup-view-as v))
+                           struct-name))
+          (hash-table-keys *view-as-table*)))
+
+;;; Deduped list of source structures with at least one view into struct-name.
+(define (struct-index--unique-sources-into struct-name)
+  (let loop ((vs (struct-index--views-into struct-name))
+             (acc '()))
+    (cond ((null? vs) (reverse acc))
+          (else
+           (let ((src (view-as-source-struct (lookup-view-as (car vs)))))
+             (if (memq src acc)
+                 (loop (cdr vs) acc)
+                 (loop (cdr vs) (cons src acc))))))))
+
+;;; Emit a compact-comma list using display-item for each element.
+(define (struct-index--emit-comma items display-item)
+  (let loop ((items items) (first? #t))
+    (cond ((null? items) #t)
+          (else
+           (unless first? (display ", "))
+           (display-item (car items))
+           (loop (cdr items) #f)))))
+
+;;; Emit the "Graph topology" adjacency-list section.  For each target
+;;; structure with at least one incoming view, prints a single line
+;;;     - [`target`](#anchor) ← `src1`, `src2`, ...
+;;; The trailing paragraph lists structures with no incoming views
+;;; ("graph sources"), so the reader can spot leaves at a glance.
+(define (struct-index--emit-topology all-struct)
+  (let* ((with-in   (filter (lambda (s) (not (null? (struct-index--views-into s))))
+                            all-struct))
+         (no-in     (filter (lambda (s) (null? (struct-index--views-into s)))
+                            all-struct))
+         (sym-tick  (lambda (s)
+                      (display "`") (display s) (display "`"))))
+    (display "## Graph topology\n\n")
+    (display "Adjacency-list view of the view-as directed graph: each ")
+    (display "target structure with the source structures pointing into ")
+    (display "it.  Anchors link to per-structure detail sections.\n\n")
+    (cond
+      ((null? with-in)
+       (display "*(no view-as edges declared yet)*\n\n"))
+      (else
+       (for-each
+         (lambda (target)
+           (display "- [`") (display target) (display "`](#")
+           (display (struct-index--anchor target)) (display ") ← ")
+           (struct-index--emit-comma
+             (struct-index--unique-sources-into target)
+             sym-tick)
+           (newline))
+         with-in)
+       (newline)))
+    (when (not (null? no-in))
+      (display "*Structures with no incoming views (graph sources):* ")
+      (struct-index--emit-comma no-in sym-tick)
+      (display ".\n\n"))))
+
+(define (struct-index--emit-axiom-line name)
+  (let ((f (hash-table-ref/default *theorem-table* name #f)))
+    (when f
+      (display "- `") (display name) (display "` — ")
+      (display (expression->string f)) (newline))))
+
+;;; Substitute `(acc s)` with `acc` and bare `s` with `(LIST acc1 acc2 …)`
+;;; throughout EXPR, where ACCESSORS is the structure's slot-name list.
+;;; Used by `struct-index--emit-isx-axiom-destructured' to render the IS-X
+;;; definitional predicate in destructured form (see the section comment
+;;; near "Destructured pretty-print of IS-X axioms" below).
+(define (destructure-isx-expr expr svar accessors)
+  (cond
+    ;; (acc s) where acc is one of the accessors → acc
+    ((and (pair? expr)
+          (= (length expr) 2)
+          (memq (car expr) accessors)
+          (eq? (cadr expr) svar))
+     (car expr))
+    ;; bare s → (LIST acc1 acc2 ...)
+    ((eq? expr svar) `(LIST ,@accessors))
+    ;; recurse into pairs (don't descend into the LIST tail we just made;
+    ;; that's harmless because LIST's args are atoms here)
+    ((pair? expr)
+     (cons (destructure-isx-expr (car expr) svar accessors)
+           (destructure-isx-expr (cdr expr) svar accessors)))
+    (else expr)))
+
+;;; -----------------------------------------------------------------------
+;;; Destructured pretty-print of IS-X axioms
+;;;
+;;; The raw IS-X axiom for, say, FIELD prints as
+;;;   forall([s], is-field(s) iff is-integral-domain(s) and ...)
+;;; — which leaves the reader squinting at what `s` is and what `a(s)`,
+;;; `add(s)`, … mean.  The destructured form makes the components explicit:
+;;;   forall([a, add, mul, neg, zero, one]. is-field([a, add, mul, neg, zero, one]) iff
+;;;     is-integral-domain([a, add, mul, neg, zero, one]) and ...
+;;; Bound s is replaced by the n-tuple of slot accessors; every (acc s) in
+;;; the body collapses to the bare accessor name.  No semantic change.
+;;;
+;;; Bound element variables inside the body (e.g. the `a` in
+;;; `forall([a in a(s)], ...)`) keep their names and so collide visually
+;;; with the carrier accessor `a` after substitution.  This is the same
+;;; case-fold collision the rest of the prover handles by context; we
+;;; accept it for the display.
+
+;;; Capture-avoiding rename, applied BEFORE destructuring.  A law like
+;;;   (FORALL a (IMPLIES (IN a (A s)) ... a ...))
+;;; binds an ELEMENT variable `a` while the carrier accessor is also `a`.
+;;; Destructuring (A s) -> a then turns the carrier into a bare `a`, so the
+;;; law reads `forall a in a` -- a real variable capture, not just a clash.
+;;; We rename any FORALL/FORSOME-bound var whose name is a slot accessor to a
+;;; fresh name first.  Positional rule disambiguates the two roles: an
+;;; accessor symbol in OPERATOR position (as in (a s)) is the free accessor
+;;; and is kept; the same symbol as a bare operand/binder is the captured
+;;; element var and gets renamed.
+(define (rename-bound-vars-off-accessors expr accessors)
+  (let ((used '()))
+    (let collect ((e expr))
+      (cond ((symbol? e) (unless (memq e used) (set! used (cons e used))))
+            ((pair? e) (collect (car e)) (collect (cdr e)))))
+    (define (fresh)
+      (let loop ((cands '(x y z u v w i j k m n)))
+        (cond ((null? cands)
+               (let suffix ((n 1))
+                 (let ((s (symbol-append 'v (string->symbol (number->string n)))))
+                   (if (or (memq s used) (memq s accessors)) (suffix (+ n 1))
+                       (begin (set! used (cons s used)) s)))))
+              ((and (not (memq (car cands) used))
+                    (not (memq (car cands) accessors)))
+               (set! used (cons (car cands) used)) (car cands))
+              (else (loop (cdr cands))))))
+    (define (walk e env)
+      (cond
+        ((symbol? e) (let ((p (assq e env))) (if p (cdr p) e)))
+        ((not (pair? e)) e)
+        ((memq (car e) '(FORALL FORSOME))
+         (let ((q (car e)) (var (cadr e)) (body (caddr e)))
+           (if (and (symbol? var) (memq var accessors))
+               (let ((nu (fresh)))
+                 (list q nu (walk body (cons (cons var nu) env))))
+               (list q var (walk body
+                                  (if (symbol? var)
+                                      (del-assq var env)
+                                      env))))))
+        (else
+         ;; application: keep an accessor symbol in operator position as-is
+         ;; (free accessor), otherwise walk it; always walk the operands.
+         (let ((op (car e)))
+           (cons (if (and (symbol? op) (memq op accessors)) op (walk op env))
+                 (map (lambda (x) (walk x env)) (cdr e)))))))
+    (walk expr '())))
+
+;;; The destructured + bound-var-renamed IS-X law for NAME as an s-expr, or
+;;; #f if NAME isn't a stored FORALL axiom.  Shared by the REPL string form
+;;; (struct-index--emit-isx-axiom-destructured) and the TeX card form.
+(define (isx-destructured-expr name accessors)
+  (let ((f (hash-table-ref/default *theorem-table* name #f)))
+    (and f (pair? f) (eq? (car f) 'FORALL)
+         (destructure-isx-expr
+           (rename-bound-vars-off-accessors f accessors)
+           (cadr f) accessors))))
+
+(define (struct-index--emit-isx-axiom-destructured name accessors)
+  (let ((destr (isx-destructured-expr name accessors)))
+    (when destr
+      (display "- `") (display name) (display "` — ")
+      (display (expression->string destr)) (newline))))
+
+;;; Render a source-file path as a markdown link, relative to *prover-dir*.
+;;; Returns the empty string if path is #f.
+;;;
+;;; The path comes from `current-load-pathname' at declaration time.  When
+;;; the prover is loaded from compiled .com files, that pathname has a #f
+;;; type (no extension) -- so we force "scm" here: the declaration always
+;;; lives in the .scm source regardless of what was loaded.  Without this,
+;;; the link reads `structure-library/ring' and Emacs reports "File not
+;;; found" (the .com-load file-not-found bug).
+(define (struct-index--source-link path)
+  (cond
+    ((not path) "")
+    (else
+     (let* ((s   (->namestring (pathname-new-type (->pathname path) "scm")))
+            (rel (if (and (>= (string-length s) (string-length *prover-dir*))
+                          (string=? (substring s 0 (string-length *prover-dir*))
+                                    *prover-dir*))
+                     (substring s (string-length *prover-dir*) (string-length s))
+                     s)))
+       (string-append "*Declared in* [`" rel "`](" rel ").\n\n")))))
+
+(define (struct-index--emit-structure name all-theorem-names)
+  (let* ((sd        (lookup-structure name))
+         (is-pred   (symbol-append 'IS- name))
+         (accessors (structure-slot-names sd))
+         (n-slots   (length accessors))
+         (thms      (struct-index--theorems-for-struct name all-theorem-names))
+         (vs-in     (struct-index--views-into name))
+         (vs-out    (struct-index--views-from name)))
+    (display "### ") (display name)
+    (display "\n<a id=\"") (display (struct-index--anchor name)) (display "\"></a>\n\n")
+    (display (struct-index--source-link (structure-def-source-file sd)))
+    (display "*Kind.* Shape predicate (def-structure-from-clauses).\n\n")
+    (display "*Slots* (") (display n-slots) (display "): ")
+    (display "carriers ") (display (structure-def-carriers sd))
+    (display ", ops/constants ") (display (map car (structure-def-op-specs sd)))
+    (newline) (newline)
+    (display "*Defining predicate* (destructured form):\n\n")
+    (struct-index--emit-isx-axiom-destructured is-pred accessors)
+    (newline)
+    (when (not (null? thms))
+      (display "*Theorems quantifying over `") (display is-pred) (display "`.*\n\n")
+      (for-each struct-index--emit-axiom-line thms)
+      (newline))
+    (when (not (null? vs-in))
+      (display "*Views into `") (display name) (display "`.*\n\n")
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "- `") (display v) (display "` — from `")
+            (display (view-as-source-struct vd)) (display "`: ")
+            (display (view-as-source-comps vd)) (display " ↦ ")
+            (display (view-as-target-comps vd)) (newline)))
+        vs-in)
+      (newline))
+    (when (not (null? vs-out))
+      (display "*Views from `") (display name) (display "`.*\n\n")
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "- `") (display v) (display "` — into `")
+            (display (view-as-target-struct vd)) (display "`: ")
+            (display (view-as-source-comps vd)) (display " ↦ ")
+            (display (view-as-target-comps vd)) (newline)))
+        vs-out)
+      (newline))))
+
+;;; Render a definitional structure section (parallels --emit-structure).
+;;; Definitional structures have no slot list; their IFF is "is-X-def" not "IS-X".
+(define (struct-index--emit-definitional-structure name all-theorem-names)
+  (let* ((dsd       (lookup-definitional-structure name))
+         (is-pred   (symbol-append 'IS- name))
+         (def-name  (string->symbol
+                     (string-append "is-" (string-downcase (symbol->string name)) "-def")))
+         (parent    (definitional-structure-parent dsd))
+         (parent-sd (find-shape-structure parent))
+         (accessors (and parent-sd (structure-slot-names parent-sd)))
+         (thms      (struct-index--theorems-for-struct name all-theorem-names))
+         (vs-in     (struct-index--views-into name))
+         (vs-out    (struct-index--views-from name)))
+    (display "### ") (display name)
+    (display "\n<a id=\"") (display (struct-index--anchor name)) (display "\"></a>\n\n")
+    (display (struct-index--source-link (definitional-structure-source-file dsd)))
+    ;; Two kinds wear the same `register-definitional-structure!' hat: genuine
+    ;; refinement PREDICATES (an `is-<name>-def' IFF axiom) and constant-tuple
+    ;; INSTANCES (a `<name>-def' tuple axiom + `IS-X <name>' memberships, with
+    ;; no `is-<name>-def').  The predicate path below would emit an empty
+    ;; "Defining predicate" for every instance (the numeric rings/fields).
+    ;; Discriminate exactly as `structure-card-md' does.
+    (let ((inst-tuple (definitional-instance-tuple name)))
+      (cond
+        (inst-tuple
+         (let ((mems (definitional-instance-memberships name)))
+           (display "*Kind.* Instance — a constant tuple (an *element* of the ")
+           (display "class, not a predicate).  Subtype of [`") (display parent)
+           (display "`](#") (display (struct-index--anchor parent)) (display ").\n\n")
+           (display "*Member of:*\n\n")
+           (if (null? mems)
+               (display "_(no membership witness installed)_\n")
+               (for-each
+                 (lambda (m)
+                   (display "- `") (display (car m)) (display "` (via `")
+                   (display (cdr m)) (display "`)\n"))
+                 mems))
+           (newline)
+           (display "*Components* (mapped to inherited `") (display parent)
+           (display "` slots):\n\n")
+           (if (and accessors (= (length accessors) (length inst-tuple)))
+               (for-each
+                 (lambda (sn comp)
+                   (display "- `") (display sn) (display "` = `")
+                   (display (expression->string comp)) (display "`\n"))
+                 accessors inst-tuple)
+               (for-each
+                 (lambda (comp)
+                   (display "- `") (display (expression->string comp)) (display "`\n"))
+                 inst-tuple))
+           (newline)))
+        (else
+         (display "*Kind.* Definitional predicate (genuine IFF axiom).  ")
+         (display "Subtype of [`") (display parent) (display "`](#")
+         (display (struct-index--anchor parent)) (display ").  ")
+         (display "Shape inherited from `") (display parent)
+         (display "` — slots ") (display accessors) (display ".\n\n")
+         (display "*Defining predicate* (destructured form):\n\n")
+         (cond
+           (accessors
+            (struct-index--emit-isx-axiom-destructured def-name accessors))
+           (else
+            (struct-index--emit-axiom-line def-name)))
+         (newline))))
+    (when (not (null? thms))
+      (display "*Theorems quantifying over `") (display is-pred) (display "`.*\n\n")
+      (for-each struct-index--emit-axiom-line thms)
+      (newline))
+    (when (not (null? vs-in))
+      (display "*Views into `") (display name) (display "`.*\n\n")
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "- `") (display v) (display "` — from `")
+            (display (view-as-source-struct vd)) (display "`\n")))
+        vs-in)
+      (newline))
+    (when (not (null? vs-out))
+      (display "*Views from `") (display name) (display "`.*\n\n")
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "- `") (display v) (display "` — into `")
+            (display (view-as-target-struct vd)) (display "`\n")))
+        vs-out)
+      (newline))))
+
+;;; -----------------------------------------------------------------------
+;;; describe-structure: a single-structure "card" for authoring recall.
+;;;
+;;; Prints, for one structure: its kind + inheritance chain, its operations
+;;; with names and signatures (so you needn't remember whether the ring op
+;;; is ADD or PLUS), the IS-X characteristic law, and the view-as relations
+;;; in plain English.  Reuses the struct-index helpers.  Reads as plain text
+;;; in the REPL; the elisp `describe-structure' command renders it in a card
+;;; buffer and splices the user's editable notes underneath.
+
+(define (describe-structure--slot-line slot)
+  ;; slot = (name kind . extra); kind in {carrier, op, constant}
+  (let ((nm (car slot)) (kind (cadr slot)) (extra (cddr slot)))
+    (display "    ") (display nm)
+    (case kind
+      ((carrier)  (display "   carrier — the underlying set"))
+      ((op)       (display " : ")
+                  (display (expression->string (car extra)))
+                  (display " → ")
+                  (display (expression->string (cadr extra))))
+      ((constant) (display " : ")
+                  (display (expression->string (car extra)))
+                  (display "   (distinguished element)"))
+      (else       (display "   ?")))
+    (newline)))
+
+(define (describe-structure--join lst sep)
+  (cond ((null? lst) "")
+        ((null? (cdr lst)) (symbol->string (car lst)))
+        (else (string-append (symbol->string (car lst)) sep
+                             (describe-structure--join (cdr lst) sep)))))
+
+(define (describe-structure--chain name)
+  ;; Names from the shape root down to `name', following definitional parents.
+  (let loop ((cur name) (acc '()))
+    (let ((dsd (lookup-definitional-structure cur)))
+      (if dsd
+          (loop (definitional-structure-parent dsd) (cons cur acc))
+          (cons cur acc)))))
+
+(define (describe-structure--comp-map src tgt)
+  (let loop ((s src) (t tgt) (first #t))
+    (cond
+      ((or (null? s) (null? t)) #t)
+      (else
+       (unless first (display ", "))
+       (display (car s)) (display "↦") (display (car t))
+       (loop (cdr s) (cdr t) #f)))))
+
+(define (describe-structure--views name)
+  (let ((vs-out (struct-index--views-from name))
+        (vs-in  (struct-index--views-into name)))
+    (when (not (null? vs-out))
+      (newline)
+      (display "Can be viewed as:") (newline)
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "    ") (display (view-as-target-struct vd)) (display "  (")
+            (describe-structure--comp-map (view-as-source-comps vd)
+                                          (view-as-target-comps vd))
+            (display ")") (newline)))
+        vs-out))
+    (when (not (null? vs-in))
+      (newline)
+      (display "Viewable as ") (display name) (display " from:") (newline)
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "    ") (display (view-as-source-struct vd)) (newline)))
+        vs-in))))
+
+(define (describe-structure name)
+  (let ((sd  (lookup-structure name))
+        (dsd (lookup-definitional-structure name)))
+    (cond
+      (sd
+       (display "═══ ") (display name) (display " ═══") (newline)
+       (display "Kind: shape predicate (primitive structure).") (newline) (newline)
+       (display "Operations (write  (OP s)  for component OP of structure s):") (newline)
+       (for-each describe-structure--slot-line (structure-def-slots sd))
+       (newline)
+       (display "Characteristic law  ") (display (symbol-append 'IS- name)) (display "(s):") (newline)
+       (struct-index--emit-isx-axiom-destructured (symbol-append 'IS- name)
+                                                  (structure-slot-names sd))
+       (describe-structure--views name))
+      (dsd
+       (let* ((chain  (describe-structure--chain name))
+              (parent (definitional-structure-parent dsd))
+              (shape  (find-shape-structure parent))
+              (def-name (string->symbol
+                         (string-append "is-" (string-downcase (symbol->string name)) "-def"))))
+         (display "═══ ") (display name) (display " ═══") (newline)
+         (display "Kind: definitional predicate (a refinement).") (newline)
+         (display "Refines:  ") (display (describe-structure--join chain " ⊃ ")) (newline) (newline)
+         (when shape
+           (display "Operations (inherited shape; write  (OP s) ):") (newline)
+           (for-each describe-structure--slot-line (structure-def-slots shape))
+           (newline))
+         (display "Characteristic law  ") (display (symbol-append 'IS- name)) (display "(s):") (newline)
+         (if shape
+             (struct-index--emit-isx-axiom-destructured def-name (structure-slot-names shape))
+             (struct-index--emit-axiom-line def-name))
+         (describe-structure--views name)))
+      (else
+       (display "describe-structure: unknown structure '") (display name) (display "'.") (newline)
+       (display "Try (catalog) or Browse Library for the list.") (newline)))))
+
+;;; Sorted list of every known structure name (shape + definitional).  Used
+;;; by the elisp describe-structure command for name completion.
+(define (known-structures)
+  (sort (append (hash-table-keys *structure-table*)
+                (hash-table-keys *definitional-structure-table*))
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
+;;; Write the describe-structure card for NAME to PATH (consumed by the
+;;; elisp card buffer, which then splices the editable notes underneath).
+(define (write-structure-card name path)
+  (with-output-to-file path
+    (lambda () (describe-structure name)))
+  path)
+
+;;; -----------------------------------------------------------------------
+;;; Markdown + TeX card (the "beautiful" Emacs / manual form)
+;;;
+;;; Same content as `describe-structure', but emitted as markdown with every
+;;; formula wrapped in $...$ so the elisp renderer can replace it with an
+;;; inline PNG (latex -> dvipng).  This is the AUTO-GENERATED half of the
+;;; manual; the user's editable prose/notes are spliced in by the elisp side.
+
+;;; Flatten a (possibly nested) top-level AND into its conjuncts.
+(define (and-conjuncts e)
+  (if (and (pair? e) (eq? (car e) 'and))
+      (apply append (map and-conjuncts (cdr e)))
+      (list e)))
+
+;;; One markdown bullet for a slot; signatures rendered as inline math.
+(define (structure-card--sig-md slot)
+  (let ((nm (symbol->string (car slot))) (kind (cadr slot)) (extra (cddr slot)))
+    (case kind
+      ((carrier)  (string-append "- **" nm "** — carrier (the underlying set)"))
+      ((op)       (string-append "- **" nm "** : $" (expr->tex (car extra))
+                                 " \\to " (expr->tex (cadr extra)) "$"))
+      ((constant) (string-append "- **" nm "** : $" (expr->tex (car extra))
+                                 "$ — distinguished element"))
+      (else       (string-append "- **" nm "**")))))
+
+;;; The IS-X law, peeled to its defining conditions and emitted as one
+;;; markdown bullet per top-level conjunct (each its own inline formula, so
+;;; no single ruinously-wide image).
+(define (structure-card--law-md is-name accessors)
+  (let ((destr (isx-destructured-expr is-name accessors)))
+    (cond
+      ((not destr)
+       (display "_(no stored characteristic law)_") (newline))
+      (else
+       (let* ((body (if (and (pair? destr) (eq? (car destr) 'forall)
+                             (pair? (caddr destr))
+                             (eq? (car (caddr destr)) 'iff))
+                        (caddr (caddr destr))
+                        destr))
+              (cjs  (and-conjuncts body)))
+         (display "`") (display is-name)
+         (display "(s)` holds exactly when **all** of the following:")
+         (newline) (newline)
+         (for-each
+           (lambda (c) (display "- $") (display (expr->tex-display c)) (display "$") (newline))
+           cjs)
+         (newline))))))
+
+(define (structure-card--comp-map-md src tgt)
+  (let loop ((s src) (t tgt) (first #t))
+    (cond ((or (null? s) (null? t)) #t)
+          (else (if (not first) (display ", "))
+                (display (car s)) (display " ↦ ") (display (car t))
+                (loop (cdr s) (cdr t) #f)))))
+
+(define (structure-card--views-md name)
+  (let ((vs-out (struct-index--views-from name))
+        (vs-in  (struct-index--views-into name)))
+    (when (not (null? vs-out))
+      (newline) (display "## Can be viewed as") (newline) (newline)
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "- **") (display (view-as-target-struct vd)) (display "** — ")
+            (structure-card--comp-map-md (view-as-source-comps vd)
+                                         (view-as-target-comps vd))
+            (newline)))
+        vs-out))
+    (when (not (null? vs-in))
+      (newline) (display "## Specialised by") (newline) (newline)
+      (for-each
+        (lambda (v)
+          (let ((vd (lookup-view-as v)))
+            (display "- **") (display (view-as-source-struct vd)) (display "**") (newline)))
+        vs-in))))
+
+;;; An instance constant NAME has a `<name>-def' axiom of the form
+;;; (= NAME (LIST ...)) -- the tuple.  (A refinement-predicate class has
+;;; `is-<name>-def' instead.)  Return the component list, or #f if NAME is
+;;; not such an instance.  This is the instance/refinement discriminator the
+;;; card generator uses.
+(define (definitional-instance-tuple name)
+  (let* ((def-name (string->symbol
+                     (string-append (string-downcase (symbol->string name)) "-def")))
+         (ax (assq def-name (theory-axioms *current-theory*))))
+    (and ax
+         (let ((f (cdr ax)))
+           (and (pair? f) (eq? (car f) '=) (eq? (cadr f) name)
+                (pair? (caddr f)) (eq? (car (caddr f)) 'list)
+                (cdr (caddr f)))))))
+
+;;; All installed membership witnesses for the instance NAME: axioms of the
+;;; form (IS-X NAME).  Returns a list of (is-pred . axiom-name).
+(define (definitional-instance-memberships name)
+  (let loop ((axs (theory-axioms *current-theory*)) (acc '()))
+    (if (null? axs)
+        (reverse acc)
+        (let* ((entry (car axs)) (axname (car entry)) (f (cdr entry)))
+          (if (and (pair? f) (= (length f) 2) (symbol? (car f)) (eq? (cadr f) name)
+                   (let ((s (symbol->string (car f))))
+                     (and (>= (string-length s) 3) (string=? (substring s 0 3) "is-"))))
+              (loop (cdr axs) (cons (cons (car f) axname) acc))
+              (loop (cdr axs) acc))))))
+
+(define (structure-card-md name)
+  (let ((sd  (lookup-structure name))
+        (dsd (lookup-definitional-structure name)))
+    (cond
+      (sd
+       (display "# ") (display name) (newline) (newline)
+       (display "**Kind.** Shape predicate (primitive structure).") (newline) (newline)
+       (display "## Operations") (newline) (newline)
+       (display "Write `(op s)` for component `op` of a structure `s`.") (newline) (newline)
+       (for-each (lambda (slot) (display (structure-card--sig-md slot)) (newline))
+                 (structure-def-slots sd))
+       (newline)
+       (display "## Defining conditions") (newline) (newline)
+       (structure-card--law-md (symbol-append 'IS- name) (structure-slot-names sd))
+       (structure-card--views-md name))
+      (dsd
+       (let* ((inst-tuple (definitional-instance-tuple name))
+              (parent     (definitional-structure-parent dsd))
+              (shape      (find-shape-structure parent)))
+         (cond
+           (inst-tuple
+            ;; --- Instance card: a constant tuple, an *element* of a class. ---
+            (let ((slots (and shape (structure-slot-names shape)))
+                  (mems  (definitional-instance-memberships name)))
+              (display "# ") (display name) (newline) (newline)
+              (display "**Kind.** Instance — a constant tuple (an *element* of a class, ")
+              (display "not a predicate).") (newline) (newline)
+              (display "**Member of:**") (newline) (newline)
+              (if (null? mems)
+                  (begin (display "_(no membership witness installed)_") (newline))
+                  (for-each
+                    (lambda (m)
+                      (display "- **") (display (car m)) (display "** (via `")
+                      (display (cdr m)) (display "`)") (newline))
+                    mems))
+              (newline)
+              (display "## Components") (newline) (newline)
+              (if (and slots (= (length slots) (length inst-tuple)))
+                  (begin
+                    (display "Mapped to the inherited `") (display parent)
+                    (display "` slot names:") (newline) (newline)
+                    (for-each
+                      (lambda (sn comp)
+                        (display "- **") (display sn) (display "** $= ")
+                        (display (expr->tex comp)) (display "$") (newline))
+                      slots inst-tuple))
+                  (for-each
+                    (lambda (comp)
+                      (display "- $") (display (expr->tex comp)) (display "$") (newline))
+                    inst-tuple))
+              (newline)
+              (structure-card--views-md name)))
+           (else
+            ;; --- Refinement-class card: a genuine is-<name>-def predicate. ---
+            (let ((chain    (describe-structure--chain name))
+                  (def-name (string->symbol
+                              (string-append "is-" (string-downcase (symbol->string name))
+                                             "-def"))))
+              (display "# ") (display name) (newline) (newline)
+              (display "**Kind.** Definitional predicate (a refinement).") (newline) (newline)
+              (display "**Refines:** ") (display (describe-structure--join chain " ⊃ "))
+              (newline) (newline)
+              (when shape
+                (display "## Operations") (newline) (newline)
+                (display "Inherited shape; write `(op s)` for component `op`.") (newline) (newline)
+                (for-each (lambda (slot) (display (structure-card--sig-md slot)) (newline))
+                          (structure-def-slots shape))
+                (newline))
+              (display "## Defining conditions") (newline) (newline)
+              (if shape
+                  (structure-card--law-md def-name (structure-slot-names shape))
+                  (struct-index--emit-axiom-line def-name))
+              (structure-card--views-md name))))))
+      (else
+       (display "# ") (display name) (newline) (newline)
+       (display "Unknown structure. Try `(known-structures)`.") (newline)))))
+
+;;; Write the markdown+TeX card for NAME to PATH (consumed by the elisp card
+;;; buffer, which renders the $...$ spans and splices the editable notes).
+(define (write-structure-card-md name path)
+  (with-output-to-file path (lambda () (structure-card-md name)))
+  path)
+
+;;; Write EVERY structure's card into one markdown file: the render-all
+;;; "manual" reference.  Cards are separated by a horizontal rule.
+(define (write-structure-manual-md path)
+  (with-output-to-file path
+    (lambda ()
+      (display "# VNB Structure Library") (newline) (newline)
+      (display "Auto-generated from the live theory — do not edit by hand.")
+      (newline) (newline)
+      (for-each
+        (lambda (nm)
+          (structure-card-md nm) (newline)
+          (display "---") (newline) (newline))
+        (known-structures))))
+  path)
+
+;;; -----------------------------------------------------------------------
+;;; Graphviz DOT of the structure library.
+;;;
+;;; Nodes = structures.  Two edge kinds:
+;;;   solid  -- "refines" (a definitional structure -> its parent), e.g.
+;;;             field -> integral-domain;
+;;;   dashed -- "view-as" (source -> target component map), e.g.
+;;;             ring -> abelian-group, labelled with the view (source-name
+;;;             prefix stripped: "additive-ag", "multiplicative-monoid", ...).
+;;;
+;;; Emitted to PATH; the elisp side renders it with `dot -Tpng' and shows it
+;;; inline.  A self-contained light-canvas figure (readable on any buffer
+;;; background), unlike the transparent inline formula PNGs.
+
+(define (structure-graph--id name)
+  (string-downcase (symbol->string name)))
+
+;;; View label = the view name with a leading "<source>-" stripped, so e.g.
+;;; ring-additive-ag -> additive-ag, field-as-euclidean-ring -> as-euclidean-ring.
+(define (structure-graph--edge-label vname source)
+  (let ((vs (string-downcase (symbol->string vname)))
+        (ss (string-append (structure-graph--id source) "-")))
+    (if (and (>= (string-length vs) (string-length ss))
+             (string=? (substring vs 0 (string-length ss)) ss))
+        (substring vs (string-length ss) (string-length vs))
+        vs)))
+
+(define (write-structure-graph-dot path)
+  (with-output-to-file path
+    (lambda ()
+      (display "digraph VNB {\n")
+      (display "  rankdir=BT;\n")
+      (display "  bgcolor=\"white\";\n")
+      (display "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#eaf2fb\", color=\"#2a4a6a\", fontname=\"Helvetica\", fontsize=13];\n")
+      (display "  edge [fontname=\"Helvetica\", fontsize=11];\n\n")
+      (for-each
+        (lambda (n) (display "  \"") (display (structure-graph--id n)) (display "\";\n"))
+        (known-structures))
+      (display "\n  // refines (specialisation): child -> parent\n")
+      (for-each
+        (lambda (name)
+          (let* ((ds (lookup-definitional-structure name))
+                 (parent (and ds (definitional-structure-parent ds))))
+            (when parent
+              (display "  \"") (display (structure-graph--id name))
+              (display "\" -> \"") (display (structure-graph--id parent))
+              (display "\" [color=\"#2a4a6a\", penwidth=1.4];\n"))))
+        (hash-table-keys *definitional-structure-table*))
+      (display "\n  // view-as (forgetful / component maps): source -> target\n")
+      (for-each
+        (lambda (vname)
+          (let ((v (lookup-view-as vname)))
+            (when v
+              (display "  \"") (display (structure-graph--id (view-as-source-struct v)))
+              (display "\" -> \"") (display (structure-graph--id (view-as-target-struct v)))
+              (display "\" [style=dashed, color=\"#b06a00\", fontcolor=\"#b06a00\", label=\"")
+              (display (structure-graph--edge-label vname (view-as-source-struct v)))
+              (display "\"];\n"))))
+        (hash-table-keys *view-as-table*))
+      (display "}\n")))
+  path)
+
+(define (structure-index)
+  (let* ((sym<        (lambda (a b) (string<? (symbol->string a) (symbol->string b))))
+         (structures  (sort (hash-table-keys *structure-table*) sym<))
+         (defstructs  (sort (hash-table-keys *definitional-structure-table*) sym<))
+         (all-struct  (sort (append structures defstructs) sym<))
+         (views       (sort (hash-table-keys *view-as-table*) sym<))
+         (all-names   (sort (hash-table-keys *theorem-table*) sym<))
+         (path        (string-append *prover-dir* "STRUCTURE-INDEX.md")))
+    (with-output-to-file path
+      (lambda ()
+        (display "# VNB structure-grouped index\n\n")
+        (display "Auto-generated by `(catalog)`.  ")
+        (display (length all-struct)) (display " structures (")
+        (display (length structures)) (display " shape + ")
+        (display (length defstructs)) (display " definitional), ")
+        (display (length views))      (display " views.\n\n")
+        (display "Each section lists a structure's defining predicate, the\n")
+        (display "theorems quantifying over it, and the view-as declarations\n")
+        (display "into/out of it.  *Shape* structures (def-structure-from-clauses)\n")
+        (display "have a slot listing; *definitional* structures (genuine IFF\n")
+        (display "predicates such as `IS-FIELD`) note their parent structure\n")
+        (display "instead.  Anchors are lower-case-kebab: `#monoid`,\n")
+        (display "`#ring-additive-ag`, etc.  Flat theorem listing in\n")
+        (display "`THEOREMS.md`.\n\n")
+        (display "## Table of contents\n\n")
+        (for-each
+          (lambda (s)
+            (display "- [`") (display s) (display "`](#")
+            (display (struct-index--anchor s)) (display ")")
+            (when (lookup-definitional-structure s)
+              (display " *(definitional, ⊂ ")
+              (display (definitional-structure-parent (lookup-definitional-structure s)))
+              (display ")*"))
+            (newline))
+          all-struct)
+        (newline)
+        (struct-index--emit-topology all-struct)
+        (display "## Structures\n\n")
+        (for-each
+          (lambda (s)
+            (cond
+              ((lookup-structure s)
+               (struct-index--emit-structure s all-names))
+              ((lookup-definitional-structure s)
+               (struct-index--emit-definitional-structure s all-names))))
+          all-struct)
+        (display "## View-as declarations (alphabetical)\n\n")
+        (for-each
+          (lambda (v)
+            (let ((vd (lookup-view-as v)))
+              (display "- `") (display v) (display "` — `")
+              (display (view-as-source-struct vd)) (display "` → `")
+              (display (view-as-target-struct vd)) (display "`: ")
+              (display (view-as-source-comps vd)) (display " ↦ ")
+              (display (view-as-target-comps vd)) (newline)))
+          views)))
+    (display ";; structure-index: ") (display (length all-struct))
+    (display " structures (") (display (length structures)) (display "+")
+    (display (length defstructs)) (display "), ")
+    (display (length views)) (display " views -> ") (display path) (newline)))
 
 ;;; D-7 short forms (REVIEW.md D-7) — SEP / COMP / IOTA / VNB-LAMBDA
 (define (sep-set)  (vnb--run! 'sep-set  '() (lambda () (cmd-sep-sethood       *ps*))))
@@ -146,8 +1380,16 @@
 (define (lam-t)    (vnb--run! 'lam-t    '() (lambda () (cmd-lambda-type      *ps*))))
 (define (lam-b)    (vnb--run! 'lam-b    '() (lambda () (cmd-lambda-beta      *ps*))))
 
-(define (inst f t) (let ((raw (->raw-formula f)))
-                     (vnb--run! 'inst (list raw t) (lambda () (cmd-instantiate *ps* raw t)))))
+;;; BIG-UNION short forms (notes-16 step 1)
+(define (bu-set)   (vnb--run! 'bu-set   '() (lambda () (cmd-big-union-sethood *ps*))))
+(define (bu-mi w)  (let ((raw (->raw-formula w)))
+                     (vnb--run! 'bu-mi (list raw) (lambda () (cmd-big-union-mem-intro *ps* raw)))))
+(define (bu-me f)  (let ((raw (->raw-formula f)))
+                     (vnb--run! 'bu-me (list raw) (lambda () (cmd-big-union-mem-elim *ps* raw)))))
+
+(define (inst f t) (let ((rawf (->raw-formula f))
+                         (rawt (->raw-formula t)))
+                     (vnb--run! 'inst (list rawf rawt) (lambda () (cmd-instantiate *ps* rawf rawt)))))
 (define (ce f k)   (let ((raw (->raw-formula f)))
                      (vnb--run! 'ce (list raw k) (lambda () (cmd-cartesian-elim *ps* raw k)))))
 (define (te f k)   (let ((raw (->raw-formula f)))
@@ -226,6 +1468,7 @@
       ((arith)  (cmd-arith *ps*))
       ((rfl)    (cmd-reflexivity *ps*))
       ((qrfl)   (cmd-quasi-reflexivity *ps*))
+      ((subst)  (cmd-eq-subst *ps* (car args)))
       ((oi-l)   (cmd-or-intro-left *ps*))
       ((oi-r)   (cmd-or-intro-right *ps*))
       ((ci)     (cmd-cartesian-intro *ps*))
@@ -237,6 +1480,8 @@
       ((tfi3)   (cmd-tfi3 *ps*))
       ((ai)     (cmd-antecedent-inference *ps* (car args)))
       ((cut)    (cmd-cut *ps* (car args)))
+      ((if-true)  (cmd-if-true  *ps* (car args)))
+      ((if-false) (cmd-if-false *ps* (car args)))
       ((ew)     (cmd-exists-witness *ps* (car args)))
       ((bc)     (cmd-backchain *ps* (car args)))
       ((wk)     (cmd-weaken *ps* (car args)))
@@ -259,6 +1504,9 @@
       ((iota-d)  (cmd-iota-def          *ps* (car args)))
       ((lam-t)   (cmd-lambda-type       *ps*))
       ((lam-b)   (cmd-lambda-beta       *ps*))
+      ((bu-set)  (cmd-big-union-sethood  *ps*))
+      ((bu-mi)   (cmd-big-union-mem-intro *ps* (car args)))
+      ((bu-me)   (cmd-big-union-mem-elim  *ps* (car args)))
       ((focus)  (focus-on *ps*
                           (list-ref (proof-open-goals *ps*)
                                     (- (car args) 1))))

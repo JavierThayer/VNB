@@ -9,20 +9,27 @@
 PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOAD="$PROVER_DIR/load.scm"
 
+# Heap size (in 1024-word blocks).  The library proofs run at load time;
+# the larger ones (sum-ag-splice-out, sum-ag-permutation-invariance) build
+# big derivation graphs and do not fit in MIT Scheme's default heap.
+# 50000 OOMs once enough proven-theorems are in flight; 120000 (~1 GB)
+# leaves headroom for the current library.  Bump again if the load aborts.
+HEAP=120000
+
 case "$1" in
   "")
     # Interactive mode.  Unset INSIDE_EMACS so MIT Scheme runs its normal
     # interactive REPL regardless of whether GNU Emacs or XEmacs launched us
     # (GNU Emacs sets INSIDE_EMACS which causes MIT Scheme to disable its line
     # editor in ways that break comint startup).
-    exec env -u INSIDE_EMACS mit-scheme --load "$LOAD"
+    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD"
     ;;
   -i)
     # Load script then interactive
-    exec env -u INSIDE_EMACS mit-scheme --load "$LOAD" --load "$2"
+    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" --load "$2"
     ;;
   *)
     # Batch: load script, print results, exit
-    exec mit-scheme --quiet --load "$LOAD" --load "$1" --eval "(exit)"
+    exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" --load "$1" --eval "(exit)"
     ;;
 esac

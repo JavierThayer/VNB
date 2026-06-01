@@ -1,0 +1,67 @@
+;;; normed-field-metric.scm -- the metric space underlying a normed field.
+;;;
+;;; This is the structural bridge between the *field* register of RR/CC
+;;; (RR-RING, CC-RING : NORMED-FIELD) and their *metric* register
+;;; (RR-MS, CC-MS : METRIC-SPACE).  It cannot be a def-view-as: a view-as
+;;; maps slots to slots, but METRIC-SPACE's distance D is not a slot of a
+;;; normed field -- it is the *constructed* function d(x,y) = NRM(x - y).
+;;; (Same reason views.scm cannot register NORMED-FIELD's multiplicative-
+;;; group view.)  So the bridge is a constructor functoid plus its laws.
+;;;
+;;;   NF-METRIC-SPACE(nf) = [ A(nf),  lambda([x,y], NRM(nf)(x - y)) ]
+;;;
+;;; where x - y is ADD(nf)(x, NEG(nf)(y)).  Then NF-METRIC-SPACE(nf) is a
+;;; metric space whenever nf is a normed field: nonnegativity, point-
+;;; separation and symmetry come from is-norm + the additive-group laws,
+;;; and the triangle inequality from subadditivity of the norm.
+;;;
+;;; Concrete realizations (same carrier, same distance on the carrier):
+;;;   NF-METRIC-SPACE(RR-RING)  ~  RR-MS   (NRM = abs)
+;;;   NF-METRIC-SPACE(CC-RING)  ~  CC-MS   (NRM = magnitude)
+;;; These are stated pointwise (nf-metric-distance), not as raw term
+;;; equalities of the structures: the VNB-LAMBDA distance functions agree
+;;; on A(nf) x A(nf) but their off-carrier behaviour is unconstrained, so a
+;;; naked (= RR-MS (NF-METRIC-SPACE RR-RING)) would lean on accidents of the
+;;; lambda outside RR -- see [[project-representation-independence]].
+;;;
+;;; Library-build phase: laws installed as `support' (accepted without
+;;; proof), per [[feedback-library-axioms-fine]].  Each is derivable:
+;;; nf-metric-distance by functoid-beta + nth-reduce + lambda-beta;
+;;; nf-metric-space-is-metric-space by discharging the is-metric clauses
+;;; from is-norm + the additive abelian-group laws.
+;;;
+;;; Dependencies: normed-field.scm (IS-NORMED-FIELD, NRM/ADD/NEG/A),
+;;; metric-space.scm (IS-METRIC-SPACE, X/D).
+
+;;; -----------------------------------------------------------------------
+;;; The constructor.
+
+(def-functoid 'NF-METRIC-SPACE '(nf)
+  '(LIST (A nf)
+         (VNB-LAMBDA (LIST x y) ((NRM nf) ((ADD nf) x ((NEG nf) y))))))
+
+;;; -----------------------------------------------------------------------
+;;; Distance = norm of the difference, on the carrier.
+
+(support 'nf-metric-distance
+  '(FORALL nf
+     (IMPLIES (IS-NORMED-FIELD nf)
+       (FORALL x (IMPLIES (IN x (A nf))
+         (FORALL y (IMPLIES (IN y (A nf))
+           (= ((D (NF-METRIC-SPACE nf)) x y)
+              ((NRM nf) ((ADD nf) x ((NEG nf) y)))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Every normed field is (carries) a metric space.
+
+(support 'nf-metric-space-is-metric-space
+  '(FORALL nf
+     (IMPLIES (IS-NORMED-FIELD nf)
+       (IS-METRIC-SPACE (NF-METRIC-SPACE nf)))))
+
+;;; -----------------------------------------------------------------------
+;;; Carrier of the underlying metric space is the field's carrier.
+
+(support 'nf-metric-carrier
+  '(FORALL nf
+     (= (X (NF-METRIC-SPACE nf)) (A nf))))

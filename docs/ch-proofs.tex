@@ -77,11 +77,11 @@ advances the focus to the first new ungrounded subgoal.
 
 \section{Logical connectives}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
 \item \texttt{(cmd-direct-inference ps)}
   Decompose the goal by its top-level connective:
-  \begin{itemize}[label=$-$, leftmargin=1cm]
+  \begin{itemize}[label=$-$, leftmargin=0.85cm]
   \item \texttt{p and q} $\to$ two subgoals $p$, $q$.
   \item \texttt{p implies q} $\to$ assume $p$, prove $q$.
   \item \texttt{p iff q} $\to$ two subgoals (each direction).
@@ -98,7 +98,7 @@ advances the focus to the first new ungrounded subgoal.
 
 \item \texttt{(cmd-antecedent-inference ps $f$)}
   Decompose assumption $f$ by its top-level connective:
-  \begin{itemize}[label=$-$, leftmargin=1cm]
+  \begin{itemize}[label=$-$, leftmargin=0.85cm]
   \item \texttt{p and q} $\to$ replace with $p$ and $q$ separately.
   \item \texttt{p or q} $\to$ case split: branch on $p$, branch on $q$.
   \item \texttt{not(p)} $\to$ derive \texttt{falsity} if $p$ also in context.
@@ -128,7 +128,7 @@ advances the focus to the first new ungrounded subgoal.
   a ring generator.  No generator list need be supplied.
 
   The goal may be in either of two forms:
-  \begin{itemize}[label=$-$, leftmargin=1cm]
+  \begin{itemize}[label=$-$, leftmargin=0.85cm]
   \item \textbf{Bare equality} \texttt{$e_1$ = $e_2$}: generators are
     certified by \texttt{(IN $v$ $D$)} assumptions already in the sequent
     context.  Typically reached after \texttt{(di)} peels the leading
@@ -202,6 +202,15 @@ advances the focus to the first new ungrounded subgoal.
 \item \texttt{(cmd-apply-macete ps $\mathit{name}$)}
   Apply named macete: rewrite the goal using the associated theorem.
 
+\item \begin{sloppypar}\texttt{(cmd-eq-subst ps $F$)}
+  Equality substitution (Leibniz).  From an equality \texttt{$s$ = $t$} $= F$
+  in the assumptions (either orientation), rewrite every occurrence of $s$
+  in the goal to $t$.  Short form \texttt{(subst $F$)}.  This realises the
+  schema \texttt{$s$ = $t$} $\wedge$ \texttt{$P[t]$} $\Rightarrow$
+  \texttt{$P[s]$} for an arbitrary context $P$; sound for partial equality
+  because \texttt{$s$ = $t$} already certifies both sides
+  defined.\end{sloppypar}
+
 \item \texttt{(cmd-qed ps $\mathit{name}$)}
   After a proof completes, install its root assertion as a named theorem
   in the current theory.  Errors if the proof is not complete.
@@ -211,7 +220,7 @@ advances the focus to the first new ungrounded subgoal.
 \subsection{N-ary constructors}
 \label{sec:nary-proof-commands}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
 \item \begin{sloppypar}\texttt{(cmd-cartesian-intro ps)}
   To prove \texttt{[$a_1$,\ldots,$a_n$] in cartesian($A_1$,\ldots,$A_n$)},
@@ -268,7 +277,7 @@ state variable \texttt{*ps*} and the \texttt{show} display function.
 These are the primary commands used in a live proof session (including
 through the Emacs interface).
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
 \item \texttt{(sp \textit{wff})}
   \texttt{start-proof} --- Start a new proof from a \texttt{wff};
@@ -382,6 +391,35 @@ through the Emacs interface).
   \texttt{cmd-instantiate} --- Instantiate \texttt{forall} assumption
   \textit{f} with term \textit{t}.
 
+\item \texttt{(bc* \textit{name})}, \quad
+  \texttt{(bc* \textit{name} ((\textit{v}\ \textit{val})\ \ldots))}, \quad
+  \texttt{(bc* \textit{name} ((\textit{v}\ \textit{val})\ \ldots)\ $h_1\ h_2\ \ldots$)}\\
+  \emph{Matching backchain.}  Applies the registered theorem \textit{name}
+  to the current goal by unifying the theorem's conclusion against the
+  goal, then replaying the \texttt{ta}/\texttt{inst}/\texttt{cut}/\texttt{bc}
+  idiom automatically.  The theorem may carry any nesting of leading
+  \texttt{forall}s and right-nested \texttt{implies}; its instantiated
+  antecedents are left as subgoals.  A schema variable not determined by
+  matching the conclusion is supplied explicitly as
+  \texttt{((\textit{v}\ \textit{val})\ \ldots)} (each \textit{val} a Scheme
+  expression).  Given handlers $h_k$, \texttt{bc*} refocuses to the $k$-th
+  subgoal in tree order before running $h_k$ --- the handler count must
+  match the number of antecedents.  \texttt{bc*} drives the \texttt{cmd-*}
+  layer and adds no kernel rule, so the proof it builds is checked by the
+  existing primitive inferences.
+
+\item \texttt{(ass-all)}
+  Close every open goal that is dischargeable directly by assumption,
+  sweeping all goals and repeating to a fixpoint.  Order-independent ---
+  it sidesteps the focus hazard left by a case-split (\texttt{di} on an
+  \texttt{and}, \texttt{if-true}, \texttt{cut}) that scatters several
+  trivial subgoals.  Goals not assumption-closable are left untouched.
+
+\item \texttt{(catalog)}
+  Write \texttt{THEOREMS.md} --- every installed result (theorem or axiom),
+  split into proven theorems and axioms, alphabetical, with its statement.
+  Regenerated at load.  Use it to see what the library contains.
+
 \item \texttt{(focus \textit{n})}
   \texttt{focus-on} --- Switch focus to the $n$-th open goal (1-based).
 
@@ -487,6 +525,13 @@ $\forall\bar{x}.\;p$ & $p \mapsto \top$ \\
 \end{tabular}
 \end{center}
 
+The quantifiers need not all be leading.  A \texttt{forall} occurring in
+positive position --- under an \texttt{implies} consequent or inside an
+\texttt{and} --- is pulled to the front before the source and replacement
+patterns are extracted, so a theorem such as
+\texttt{forall([a,b], $H$ implies forall(x, $s$ iff $r$))} still yields the
+rewrite $s \mapsto r$ (conditional on $H$).
+
 Macetes can be composed:
 \begin{VNBcode}
 (macete-series m1 m2 m3)   ; apply in sequence
@@ -509,7 +554,7 @@ To install a custom macete:
 \begin{sloppypar}The function \texttt{apply-macete} applies a named macete directly to a
 \texttt{wff} without creating a proof state:\end{sloppypar}
 
-\begin{itemize}[label = $\circ$, leftmargin=1cm]
+\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 \item \texttt{(apply-macete \textit{name} \textit{w})} --- rewrites \textit{w};
   returns a new \texttt{wff} if any rewrite fires, or \texttt{\#f} if the
   pattern matches nowhere in \textit{w}.
@@ -643,21 +688,22 @@ directly.
 \begin{VNBcode}
 (declare-structure GROUP
   (carriers A)
-  (op MUL (A A) A)    ; binary product: A x A -> A
-  (constant E A)       ; identity element: E in A
-  (op INV (A) A))      ; inverse: A -> A
+  (op MUL (CARTESIAN A A) A)  ; binary product: A x A -> A
+  (constant E A)               ; identity element: E in A
+  (op INV A A))                ; inverse: A -> A
 ; Accessor indices: A -> 1, MUL -> 2, E -> 3, INV -> 4
 \end{VNBcode}
 
-\begin{sloppypar}The \texttt{(op name (D1 D2 ...) R)} clause builds the domain as
-$\texttt{CARTESIAN}(D_1, D_2, \ldots)$ when more than one type is
-listed, or just $D_1$ for a unary operation.
+\begin{sloppypar}The \texttt{(op name domain range)} clause declares
+$\texttt{name}(s) \in \texttt{FUN}(\texttt{domain}, \texttt{range})$.
+Higher-arity operations write the Cartesian product explicitly:
+\texttt{(op MUL (CARTESIAN A A) A)}, not \texttt{(op MUL (A A) A)}.
 A \texttt{(constant name S)} clause declares an element of set $S$.
 Accessor indices are assigned sequentially: carriers first (starting
 at~1), then operations in declaration order.\end{sloppypar}
 
 A \texttt{declare-structure} call installs two things automatically:
-\begin{itemize}[label=$\circ$, leftmargin=1cm]
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
 \item \emph{Accessor macetes}: \texttt{A}$(s)$ rewrites to
   \texttt{nth(1,$s$)}, \texttt{MUL}$(s)$ to \texttt{nth(2,$s$)}, etc.
 \item \emph{Definitional biconditional} \texttt{IS-NAME}: the axiom
@@ -1042,11 +1088,34 @@ immediately after the AND-split:
 Second, \texttt{alpha-equiv?} --- used by \texttt{(inst)} and
 \texttt{(bc)} when searching assumptions --- relies on structural
 equality of formula heads.  Compound heads such as
-\texttt{((MUL m) a b)} (a curried two-argument application) are compared
-correctly only when the head pair is the same \emph{object}.  If
-\texttt{alpha-equiv?} fails to locate a formula you know is in context,
-the likely cause is a compound-head mismatch; the fix is in
+\texttt{((MUL m) a b)} (a curried two-argument application; see
+Section~\ref{sec:apply-tupling}) are compared correctly only when
+the head pair is the same \emph{object}.  If \texttt{alpha-equiv?}
+fails to locate a formula you know is in context, the likely cause
+is a compound-head mismatch; the fix is in
 \texttt{expressions.scm}'s \texttt{alpha-equiv-under?}.
+\end{remark}
+
+\begin{remark}[The curried/tupled apply convention]
+\label{sec:apply-tupling}
+VNB's S-expression form \texttt{(f a$_1$ \ldots a$_n$)} is what the
+string-syntax parser emits from \texttt{f(a$_1$,\,\ldots,\,a$_n$)} ---
+verbatim, no implicit tupling.  An operation typed
+\texttt{f $\in$ fun(cartesian(A$_1$,\,\ldots,\,A$_n$),~B)}, however,
+takes one argument from the Cartesian product.  The two views are
+reconciled by the library axioms
+\begin{equation*}
+\texttt{apply-tupling-$n$:} \qquad
+(f\ a_1\ \ldots\ a_n)\ \mathrel{==}\ (f\ (\texttt{LIST}\ a_1\ \ldots\ a_n))
+\quad\text{for each arity }n
+\end{equation*}
+(installed for $n=1,2,3$ in \texttt{theorem-library/axioms.scm};
+add more arities by declaration as needed).  Quasi-equality
+$\mathrel{==}$, not partial $=$: the convention holds vacuously when
+either side is undefined.  Combined with \texttt{fun-apply-type} and
+\texttt{quasi-eq-def}, these give the $n$-ary apply closure
+\((f\ a_1\ \ldots\ a_n)\in B\) from the operation's signature and
+the membership of each $a_i$ in its declared component.
 \end{remark}
 
 %% =========================================================

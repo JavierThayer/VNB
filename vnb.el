@@ -1,10 +1,7 @@
 ;;; vnb.el --- Emacs interface for the VNB proof checker
 ;;
 ;; Plain Elisp; no external package dependencies.
-;; Compatible with GNU Emacs and XEmacs.
-;;
-;; DO NOT BYTE-COMPILE: GNU Emacs and XEmacs byte-code formats are
-;; incompatible.  Load this file interpreted (via load or require) only.
+;; Load the source file directly (no need to byte-compile).
 ;;
 ;; USAGE
 ;;   M-x vnb        start the prover; sets up REPL + proof-state windows
@@ -58,6 +55,24 @@
 (defvar vnb-state-buffer-name "*VNB State*"
   "Name of the read-only proof-state display buffer.")
 
+(defvar vnb-state-update-hook nil
+  "Hook run after each new proof-state arrives from the prover.
+Each hook function is called with one string argument: the full state
+text (sentinel lines stripped).  Used by the Phase-2 launcher to
+re-render its Proof Workspace on every state change.")
+
+(defvar vnb-error-hook nil
+  "Hook run when a `;; VNB error: MSG' line is detected in prover output.
+Each hook function is called with one string argument: MSG (the text
+after the prefix).  The Phase-2 launcher uses this to repaint its
+workspaces with an error panel.")
+
+(defvar vnb--last-error nil
+  "Most recent VNB error message text (without the `;; VNB error: '
+prefix), or nil if none current.  Set by the preoutput filter when
+an error line streams in from the prover; cleared by the state-update
+handler on the next successful proof-state update.")
+
 ;;; -----------------------------------------------------------------------
 ;;; Compatibility shims
 
@@ -70,9 +85,8 @@
 ;;; Proof-state output filter
 ;;;
 ;;; We wrap the process filter directly rather than using
-;;; comint-preoutput-filter-functions, which behaves differently between
-;;; GNU Emacs and XEmacs.  vnb--preoutput-acc accumulates output across
-;;; calls while waiting for a complete sentinel block.
+;;; comint-preoutput-filter-functions.  vnb--preoutput-acc accumulates
+;;; output across calls while waiting for a complete sentinel block.
 
 (defvar vnb--preoutput-acc ""
   "Buffer-local accumulator for partial VNB state sentinel blocks.")
@@ -80,8 +94,33 @@
 (defvar vnb--orig-filter nil
   "Buffer-local storage for the comint process filter we wrapped.")
 
+(defvar vnb--error-line-buf ""
+  "Buffer-local accumulator for partial `;; VNB error:' lines.
+Holds the tail of process output that has not yet ended with a
+newline, so error lines split across two filter chunks are still
+recognised when the newline arrives.")
+
 (make-variable-buffer-local 'vnb--preoutput-acc)
 (make-variable-buffer-local 'vnb--orig-filter)
+(make-variable-buffer-local 'vnb--error-line-buf)
+
+(defun vnb--scan-for-errors (string)
+  "Scan STRING for `;; VNB error: MSG' lines; fire `vnb-error-hook' for each.
+Maintains `vnb--error-line-buf' so a line split across two filter
+chunks is still recognised once the trailing newline arrives."
+  (setq vnb--error-line-buf (concat vnb--error-line-buf string))
+  (let* ((parts    (split-string vnb--error-line-buf "\n"))
+         ;; Last element is text after the final newline (possibly empty
+         ;; or a partial line); keep it for the next filter call.
+         (complete (butlast parts))
+         (tail     (car (last parts))))
+    (setq vnb--error-line-buf tail)
+    (dolist (line complete)
+      (when (string-match "\\`;; VNB error: \\(.*\\)\\'" line)
+        (let ((msg (match-string 1 line)))
+          (setq vnb--last-error msg)
+          (message "VNB error: %s" msg)
+          (run-hook-with-args 'vnb-error-hook msg))))))
 
 (defun vnb--preoutput-filter (string)
   "Strip VNB sentinel lines; extract state content for the display buffer.
@@ -121,9 +160,9 @@ Handles sentinel blocks that arrive in multiple output chunks."
                   ;; sentinel lines themselves are suppressed.
                   (setq result (concat result pre state))
                   (setq vnb--preoutput-acc after)))))))))
+    (vnb--scan-for-errors result)
     result))
 
-;;; Named process filter -- works identically in GNU Emacs and XEmacs.
 ;;; Runs vnb--preoutput-filter on the incoming string, then passes the
 ;;; result to whatever filter comint had installed before us.
 
@@ -161,7 +200,8 @@ vnb--process-filter.  Safe to call multiple times."
       (let ((inhibit-read-only t))
         (erase-buffer)
         (insert text)
-        (goto-char (point-min))))))
+        (goto-char (point-min)))))
+  (run-hook-with-args 'vnb-state-update-hook text))
 
 ;;; -----------------------------------------------------------------------
 ;;; Mode definitions
@@ -172,7 +212,8 @@ Runs the prover as a subprocess via comint."
   (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp "^[0-9]+ \\]=> \\|^\\.\\.\\.> ")
   (setq vnb--preoutput-acc "")
-  (setq vnb--orig-filter nil))
+  (setq vnb--orig-filter nil)
+  (setq vnb--error-line-buf ""))
 
 (define-derived-mode vnb-state-mode fundamental-mode "VNB-State"
   "Read-only display mode for VNB proof state."
@@ -217,10 +258,12 @@ Runs the prover as a subprocess via comint."
 ;;; -----------------------------------------------------------------------
 ;;; Entry point
 
-(defun vnb ()
-  "Start the VNB proof checker in a side-by-side two-buffer layout.
-Left window: *VNB* REPL.  Right window: *VNB State* proof state."
-  (interactive)
+(defun vnb--ensure-process ()
+  "Start the prover subprocess and its buffers WITHOUT touching the window
+layout.  Returns the *VNB* REPL buffer.  Callers that want the REPL visible
+arrange their own windows (see `vnb' for the two-pane layout); launcher
+actions that only need the process running call this so merely starting the
+prover never rearranges the user's frame."
   (let ((repl-buf  (get-buffer-create vnb-buffer-name))
         (state-buf (get-buffer-create vnb-state-buffer-name)))
     ;; Initialise the state buffer.
@@ -233,6 +276,14 @@ Left window: *VNB* REPL.  Right window: *VNB State* proof state."
         (vnb-mode)
         (comint-exec repl-buf "VNB" vnb-program nil nil)
         (vnb--install-process-filter)))
+    repl-buf))
+
+(defun vnb ()
+  "Start the VNB proof checker in a side-by-side two-buffer layout.
+Left window: *VNB* REPL.  Right window: *VNB State* proof state."
+  (interactive)
+  (let ((repl-buf  (vnb--ensure-process))
+        (state-buf (get-buffer vnb-state-buffer-name)))
     ;; Side-by-side layout: REPL on the left, state on the right.
     (delete-other-windows)
     (switch-to-buffer repl-buf)
@@ -376,6 +427,12 @@ buffer, which comint updates regardless of how accept-process-output works."
      "Or intro right: to prove (OR p q), prove q instead.")
     ("ii"      "(ii)"
      "Intersection intro: split (IN x (INTERSECTION A1...An)) into n subgoals.")
+    ("bu-set"  "(bu-set)"
+     "Big-union sethood: prove (IN (BIG-UNION z A body) SET) via subgoals (IN A SET) and (FORALL z (IMPLIES (IN z A) (IN body SET))).")
+    ("bu-mi"   "(bu-mi TERM)"
+     "Big-union mem-intro: prove (IN x (BIG-UNION z A body)) via witness TERM, with subgoals (IN TERM A) and (IN x body[z:=TERM]).")
+    ("bu-me"   "(bu-me FORMULA)"
+     "Big-union mem-elim: from (IN x (BIG-UNION z A body)) = FORMULA in assumptions, introduce fresh eigenvariable e with (IN e A) and (IN x body[z:=e]).")
     ;; ---- Focus and display ----
     ("focus"   "(focus N)"
      "Switch focus to the N-th open goal (1-based).")

@@ -50,24 +50,14 @@
 
 ;;; A finite set (CARD(A) ∈ NN) bijects with ORD-SEGMENT(CARD(A)).
 ;;; Existence of the bijection follows from AC + Hartogs; axiomatised here.
+;;; Stated with the BIJECTION class (bijection.scm) -- equivalent, by
+;;; bijection-membership-iff, to spelling out FUN + injective + surjective,
+;;; and directly usable: FIN-ENUM(S) (finsum.scm) chooses such a bijection.
 (theory-add-axiom! *current-theory* 'card-finite-bij
   '(FORALL A
       (IMPLIES (AND (IN A SET) (IN (CARD A) NN))
                (FORSOME phi
-                 (AND (IN phi (FUN (ORD-SEGMENT (CARD A)) A))
-                      ;; injective
-                      (FORALL j
-                        (IMPLIES (IN j (ORD-SEGMENT (CARD A)))
-                          (FORALL k
-                            (IMPLIES (AND (IN k (ORD-SEGMENT (CARD A)))
-                                         (= (phi j) (phi k)))
-                                     (= j k)))))
-                      ;; surjective
-                      (FORALL a
-                        (IMPLIES (IN a A)
-                                 (FORSOME k
-                                   (AND (IN k (ORD-SEGMENT (CARD A)))
-                                        (= (phi k) a))))))))))
+                 (IN phi (BIJECTION (ORD-SEGMENT (CARD A)) A))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Finite additivity
@@ -82,3 +72,28 @@
                                (= (INTERSECTION A B) EMPTY-SET))
                           (= (CARD (UNION A B))
                              (+ (CARD A) (CARD B))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Finite-set induction (class form).
+;;;
+;;; If C contains EMPTY-SET and is closed under adding a fresh element to
+;;; any finite member, then C contains every finite set.  This is the
+;;; set-theoretic analogue of nn-induction; it packages the standard
+;;; reduction through CARD into a single tactic-shaped principle so that
+;;; finite-set proofs do not have to thread CARD-FINITE-BIJ + CARD-INSERT
+;;; by hand.
+;;;
+;;; The singleton in the step is written PAIR(x, x) to match card-insert.
+;;; Derivable from nn-induction via card-finite-bij + card-insert;
+;;; installed as an axiom for direct use.
+(theory-add-axiom! *current-theory* 'finite-set-induction
+  '(FORALL C
+      (IMPLIES (AND (IN EMPTY-SET C)
+                    (FORALL S
+                      (IMPLIES (AND (IN S SET) (IN (CARD S) NN) (IN S C))
+                               (FORALL x
+                                 (IMPLIES (AND (IN x SET) (NOT (IN x S)))
+                                          (IN (UNION S (PAIR x x)) C))))))
+               (FORALL S
+                 (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
+                          (IN S C))))))

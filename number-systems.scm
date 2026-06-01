@@ -280,6 +280,41 @@
       (IMPLIES (AND (IN a RR) (NOT (= a 0)))
                (= (* a (recip a)) 1))))
 
+;;; Order: <= is the numeric order on the real chain (NN/ZZ/QQ/RR/RR*).
+;;; A total order compatible with the field operations.  Stated guarded by
+;;; (IN _ RR); because the inclusions NN<=ZZ<=QQ<=RR are genuine set
+;;; inclusions, these axioms also govern <= on the integers and rationals.
+;;; The ordinal order is a separate relation <=_ORD (ordinals.scm), bridged
+;;; to <= on NN, so nothing here leaks onto it; CC carries no <=.
+
+(theory-add-axiom! *current-theory* 'rr-leq-reflexive
+  '(FORALL a (IMPLIES (IN a RR) (<= a a))))
+
+(theory-add-axiom! *current-theory* 'rr-leq-antisymmetric
+  '(FORALL a (FORALL b
+      (IMPLIES (AND (IN a RR) (IN b RR))
+               (IMPLIES (AND (<= a b) (<= b a)) (= a b))))))
+
+(theory-add-axiom! *current-theory* 'rr-leq-transitive
+  '(FORALL a (FORALL b (FORALL c
+      (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
+               (IMPLIES (AND (<= a b) (<= b c)) (<= a c)))))))
+
+(theory-add-axiom! *current-theory* 'rr-leq-total
+  '(FORALL a (FORALL b
+      (IMPLIES (AND (IN a RR) (IN b RR))
+               (OR (<= a b) (<= b a))))))
+
+(theory-add-axiom! *current-theory* 'rr-leq-add-compat
+  '(FORALL a (FORALL b (FORALL c
+      (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
+               (IMPLIES (<= a b) (<= (+ a c) (+ b c))))))))
+
+(theory-add-axiom! *current-theory* 'rr-leq-mul-nonneg
+  '(FORALL a (FORALL b
+      (IMPLIES (AND (IN a RR) (IN b RR))
+               (IMPLIES (AND (<= 0 a) (<= 0 b)) (<= 0 (* a b)))))))
+
 (theory-add-axiom! *current-theory* 'rr-abs-closed
   '(FORALL a (IMPLIES (IN a RR) (IN (abs a) RR))))
 
@@ -294,6 +329,13 @@
       (IMPLIES (AND (IN a RR) (IN b RR))
                (<= (abs (+ a b))
                    (+ (abs a) (abs b)))))))
+
+;;; Multiplicativity of abs -- the conjunct that `is-norm' (hence
+;;; `rr-is-normed-field') needs for NRM = abs on RR-RING.
+(theory-add-axiom! *current-theory* 'rr-abs-mult
+  '(FORALL a (FORALL b
+      (IMPLIES (AND (IN a RR) (IN b RR))
+               (= (abs (* a b)) (* (abs a) (abs b)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CC — complex numbers (field)

@@ -1,35 +1,118 @@
 ;;; structures.scm -- mathematical structure definitions
 ;;;
-;;; (def-structure name carriers op-specs axiom-names)
+;;; (def-structure name slots axiom-names)
 ;;;
 ;;;   name        — symbol, e.g. 'NORMEDSPACE
-;;;   carriers    — list of accessor names, e.g. '(VECTORS)
-;;;   op-specs    — list of (op-name domain range), e.g.
-;;;                   '((SCALAR-TIMES (CARTESIAN CC VECTORS) VECTORS)
-;;;                     (PLUS         (CARTESIAN VECTORS VECTORS) VECTORS)
-;;;                     (NORM         VECTORS RR))
+;;;   slots       — list of (NAME KIND . EXTRA) entries in DECLARATION ORDER:
+;;;                   (NAME carrier)
+;;;                   (NAME op DOMAIN RANGE)
+;;;                   (NAME constant SET)
 ;;;                 Carrier and op accessor names appear bare in domain/range;
 ;;;                 def-structure expands them to (ACCESSOR s) automatically.
-;;;   axiom-names — list of theorem names that characterize the structure
+;;;   axiom-names — list of (PROPERTY accessor ...) clauses: each names a
+;;;                 characteristic law (operation-properties.scm) and the
+;;;                 accessors it constrains, e.g. (is-associative MUL A).
+;;;                 build-is-axiom folds them into the IS-NAME definition.
+;;;
+;;; Most callers use the surface form `def-structure-from-clauses` (or
+;;; the syntax `declare-structure`), which parses `(carriers ...)`, `(op ...)`,
+;;; `(constant ...)`, and `(property ...)` clauses into the slot list.
 ;;;
 ;;; Auto-generates:
-;;;   Accessor macetes:
-;;;     (CARRIER s)  ->  (NTH k s)   for k = 1, 2, ... (carriers first)
-;;;     (OP s)       ->  (NTH k s)   for k = n+1, n+2, ... (ops after carriers)
-;;;   IS-NAME definitional axiom in *current-theory*:
+;;;   Accessor macetes (one per slot, indexed by position in declaration order):
+;;;     (ACCESSOR s)  ->  (NTH k s)   for k = 1, 2, ..., n
+;;;   Declaration order matters: two structures may share an accessor name
+;;;   only if it sits at the same slot index in both (the install is global).
+;;;   E.g. FIELD declares (carriers A), then ops ADD MUL NEG, then constants
+;;;   ZERO ONE, then (carriers NON-ZERO) and (op INV ...) -- so ADD/MUL/NEG/
+;;;   ZERO/ONE keep the same indices they have under RING.
+;;;   IS-NAME definitional axiom in *current-theory* -- SHAPE plus the named
+;;;   characteristic laws, so IS-NAME genuinely means "is an X", not merely
+;;;   "has the X-shape":
 ;;;     (FORALL s (IFF (IS-NAME s)
-;;;                    (AND (SET (carrier1 s))
+;;;                    (AND (= (LENGTH s) n)
+;;;                         (IN (carrier1 s) SET)
 ;;;                         ...
 ;;;                         (IN (op1 s) (FUN domain1 range1))
+;;;                         ...
+;;;                         (property1 (accA s) ...)        ; from axiom-names
 ;;;                         ...)))
+;;;   NAME-class axiom in *current-theory*:
+;;;     (FORALL s (IFF (IN s NAME) (IS-NAME s)))
+;;;   so the bare symbol NAME is usable as a class in bounded quantification.
+;;;
+;;; -----------------------------------------------------------------------
+;;; What a structure name denotes, and why operations over it are functoids
+;;;
+;;; A structure *species* -- the symbol NAME (ABELIAN-GROUP, RING, ...) -- is
+;;; not itself a structure.  By the NAME-class axiom above it denotes the
+;;; **proper class** { s | IS-NAME(s) }.  It is proper, not a set: there are,
+;;; e.g., abelian groups of unboundedly large carrier, so the collection of
+;;; all of them is too big to be a set.
+;;;
+;;; An individual structure -- an `ag` with IS-ABELIAN-GROUP(ag) -- is just a
+;;; VNB list (a tuple) of LENGTH n.  The accessors are literally projections:
+;;; (A ag) = (NTH 1 ag), (MUL ag) = (NTH 2 ag), and so on.  The IS-NAME axiom
+;;; is exactly the shape constraint: right length, carriers are sets, ops land
+;;; in the declared FUN classes.
+;;;
+;;; Consequence for any operation defined over a structure argument -- e.g.
+;;; SUM-AG(ag, f, n) in sequences.scm.  Such an operation is a **functoid** (a
+;;; syntactic term-former with defining rewrite rules), never a VNB function
+;;; (a set of ordered pairs).  Two independent reasons:
+;;;
+;;;   1. Proper-class argument.  Its structure argument ranges over NAME, a
+;;;      proper class.  A VNB function is a set; its domain must be a set.
+;;;
+;;;   2. Dependent codomain.  SUM-AG(ag,f,n) lands in (A ag) -- the result
+;;;      class depends on the argument.  FUN(X,Y) needs fixed X,Y; it cannot
+;;;      express a codomain that varies with the input.
+;;;
+;;; So a "signature" like  ABELIAN-GROUP x FUN(NN,A(ag)) x NN -> A(ag)  is
+;;; informal shorthand, not a VNB object: a functoid has no membership type.
+;;; What is real is a conditional **typing theorem** -- e.g. sum-ag-type:
+;;;   IS-ABELIAN-GROUP(ag) AND f in FUN(NN,A(ag)) AND n in NN
+;;;     ==> SUM-AG(ag,f,n) in A(ag).
+;;; The term (SUM-AG ag f n) is well-formed for any arguments; it denotes
+;;; something well-behaved only when those hypotheses hold (VNB partiality).
 
+;;; A structure-def stores its slots in a single list, in declaration order.
+;;; Each slot entry is (NAME KIND . EXTRA) where KIND ∈ {carrier, op, constant}:
+;;;     carrier:   (NAME carrier)
+;;;     op:        (NAME op DOMAIN RANGE)
+;;;     constant:  (NAME constant SET)
+;;; The accessor index of NAME is its position in this list (1-based), so
+;;; declaration order controls which (NTH k s) reduction (NAME s) gets.  This
+;;; lets a structure with extra slots (e.g. FIELD = RING + NON-ZERO + INV)
+;;; keep the shared accessor indices stable, avoiding collision with the
+;;; parent structure's global accessor macetes.
 (define-record-type <structure-def>
-  (%make-structure-def name carriers op-specs axiom-names)
+  (%make-structure-def name slots axiom-names source-file)
   structure-def?
   (name         structure-def-name)
-  (carriers     structure-def-carriers)   ; list of symbols
-  (op-specs     structure-def-op-specs)   ; list of (op-name domain range)
-  (axiom-names  structure-def-axiom-names))
+  (slots        structure-def-slots)        ; list of (name kind . extra) in declaration order
+  (axiom-names  structure-def-axiom-names)
+  (source-file  structure-def-source-file))   ; pathname (or #f) captured at declaration
+
+;;; Backward-compat derived accessors.  Both list slots in declaration order
+;;; (filtered by kind).
+(define (structure-def-carriers sd)
+  (let loop ((rest (structure-def-slots sd)) (acc '()))
+    (cond
+      ((null? rest) (reverse acc))
+      ((eq? (cadar rest) 'carrier)
+       (loop (cdr rest) (cons (caar rest) acc)))
+      (else (loop (cdr rest) acc)))))
+
+(define (structure-def-op-specs sd)
+  ;; Re-emit each op/constant slot in the old shape:
+  ;;   (NAME DOMAIN RANGE) for ops, (NAME SET) for constants.
+  (let loop ((rest (structure-def-slots sd)) (acc '()))
+    (cond
+      ((null? rest) (reverse acc))
+      ((memq (cadar rest) '(op constant))
+       (loop (cdr rest) (cons (cons (caar rest) (cddar rest)) acc)))
+      (else (loop (cdr rest) acc)))))
 
 (define *structure-table* (make-equal-hash-table))
 
@@ -58,32 +141,43 @@
 
 ;;; Build the IS-NAME definitional axiom formula.
 ;;; Instance variable is always 's.
-(define (build-is-axiom struct-name carriers op-specs)
+;;; `properties' is the axiom-names list: each entry is (NAME accessor ...),
+;;; a named operation-property (operation-properties.scm) applied to the
+;;; structure's accessors.  It becomes the conjunct (NAME (acc1 s) ...) of
+;;; the IS-X definition, so IS-X carries the structure's characteristic
+;;; laws, not just its shape.
+(define (build-is-axiom struct-name slots properties)
   (let* ((ivar          's)
-         (all-accessors (append carriers (map car op-specs)))
+         (all-accessors (map car slots))
          (is-name       (symbol-append 'IS- struct-name))
-         (n             (+ (length carriers) (length op-specs)))
+         (n             (length slots))
+         (property-conjuncts
+          (map (lambda (prop)
+                 (cons (car prop)
+                       (map (lambda (a) (expand-accessors a all-accessors ivar))
+                            (cdr prop))))
+               properties))
+         (slot-conjuncts
+          ;; Emit one membership conjunct per slot, in declaration order.
+          ;; Carriers use the (IN _ SET) form (no separate SET(_) predicate).
+          (map (lambda (slot)
+                 (let ((name (car slot)) (kind (cadr slot)))
+                   (case kind
+                     ((carrier)
+                      `(IN (,name ,ivar) SET))
+                     ((op)
+                      (let ((dom (expand-accessors (caddr  slot) all-accessors ivar))
+                            (rng (expand-accessors (cadddr slot) all-accessors ivar)))
+                        `(IN (,name ,ivar) (FUN ,dom ,rng))))
+                     ((constant)
+                      (let ((set (expand-accessors (caddr slot) all-accessors ivar)))
+                        `(IN (,name ,ivar) ,set)))
+                     (else
+                      (error "build-is-axiom: unknown slot kind" kind slot)))))
+               slots))
          (conjuncts
-          (cons
-           `(= (LENGTH ,ivar) ,n)         ; s is a VNB list of exactly n components
-           (append
-            ;; Carriers must be sets.  We use the membership form (IN _ SET),
-            ;; not the predicate form (SET _), because the manual states
-            ;; categorically that there is no separate predicate `SET(_)`.
-            (map (lambda (acc)
-                   `(IN (,acc ,ivar) SET))
-                 carriers)
-            (map (lambda (spec)
-                   (let ((op (car spec)))
-                     (if (= (length spec) 2)
-                         ;; constant spec (op set): op(s) ∈ set
-                         (let ((set (expand-accessors (cadr spec) all-accessors ivar)))
-                           `(IN (,op ,ivar) ,set))
-                         ;; function spec (op domain range): op(s) ∈ FUN(domain, range)
-                         (let ((dom (expand-accessors (cadr spec)  all-accessors ivar))
-                               (rng (expand-accessors (caddr spec) all-accessors ivar)))
-                           `(IN (,op ,ivar) (FUN ,dom ,rng))))))
-                 op-specs))))
+          (cons `(= (LENGTH ,ivar) ,n)
+                (append slot-conjuncts property-conjuncts)))
          (body (conjuncts->and conjuncts)))
     `(FORALL ,ivar (IFF (,is-name ,ivar) ,body))))
 
@@ -96,23 +190,22 @@
 (define (symbol-append . syms)
   (string->symbol (apply string-append (map symbol->string syms))))
 
-(define (def-structure name carriers op-specs axiom-names)
-  (let* ((sd (%make-structure-def name carriers op-specs axiom-names))
-         (num-carriers (length carriers)))
+(define (def-structure name slots axiom-names)
+  (fluid-let ((*current-provenance* 'definitional))
+   (let* ((source (current-load-pathname))   ; #f when not in a load context
+         (sd (%make-structure-def name slots axiom-names source)))
     (hash-table-set! *structure-table* name sd)
-    ;; Carrier accessor macetes
-    (let loop ((accs carriers) (k 1))
-      (unless (null? accs)
-        (install-accessor-macete! (car accs) k)
-        (loop (cdr accs) (+ k 1))))
-    ;; Op accessor macetes (indexed after carriers)
-    (let loop ((ops op-specs) (k (+ num-carriers 1)))
-      (unless (null? ops)
-        (install-accessor-macete! (caar ops) k)
-        (loop (cdr ops) (+ k 1))))
-    ;; IS-NAME definitional axiom
+    ;; Walk slots in declaration order: each slot's position is its accessor
+    ;; index, regardless of whether it's a carrier, op, or constant.
+    (let loop ((rest slots) (k 1))
+      (unless (null? rest)
+        (let ((slot-name (caar rest)))
+          (register-constant! slot-name 'accessor)
+          (install-accessor-macete! slot-name k)
+          (loop (cdr rest) (+ k 1)))))
+    ;; IS-NAME definitional axiom (shape + the named characteristic laws)
     (let ((is-name (symbol-append 'IS- name))
-          (axiom   (build-is-axiom name carriers op-specs)))
+          (axiom   (build-is-axiom name slots axiom-names)))
       (theory-add-axiom! *current-theory* is-name axiom))
     ;; Associated class: NAME itself is the proper class
     ;;   { s | IS-NAME(s) }.  Letting NAME (and not just IS-NAME) name
@@ -124,46 +217,83 @@
           (class-axiom-name  (symbol-append name '-class)))
       (theory-add-axiom! *current-theory* class-axiom-name
         `(FORALL s (IFF (IN s ,name) (,is-name s)))))
-    name))
+    name)))
 
 ;;; -----------------------------------------------------------------------
 ;;; declare-structure — user-facing syntax (no quoting required)
 ;;;
 ;;; (declare-structure NAME
 ;;;   (carriers C1 C2 ...)
-;;;   (op OPNAME (D1 D2 ...) RANGE)  ; domain = CARTESIAN(D1,D2,...) if multiple
-;;;   (op OPNAME (D) RANGE)          ; domain = D when only one
-;;;   (constant CNAME SET))          ; element of SET (uses 2-arg spec internally)
+;;;   (op OPNAME DOMAIN RANGE)       ; OPNAME(s) ∈ FUN(DOMAIN, RANGE)
+;;;   (constant CNAME SET)           ; element of SET (uses 2-arg spec internally)
+;;;   (property PRED ACC ...))       ; characteristic law PRED applied to ACCs
 ;;;
-;;; Characteristic axioms are installed by separate theory-add-axiom! calls
-;;; in the file that defines the structure.  The axioms clause is deliberately
-;;; absent: MIT Scheme evaluates macro arguments before quoting kicks in for
-;;; symbol literals, so axiom names cannot safely appear unquoted here.
+;;; DOMAIN is a class expression: a carrier/op accessor name, or a compound
+;;; like (CARTESIAN A A) for a binary operation.  No auto-tupling: every VNB
+;;; function is unary on its domain; write the Cartesian product explicitly.
+;;;
+;;; --- Curried/tupled apply convention ---
+;;; An op declared as `(op MUL (CARTESIAN A A) A)` is typed as the unary
+;;; function `(MUL s) ∈ FUN(CARTESIAN(A(s), A(s)), A(s))` — its single
+;;; argument is an element of CARTESIAN(A,A).  But the string-syntax form
+;;;     mul(s)(a, b)
+;;; parses into the curried S-expression
+;;;     ((MUL s) a b)
+;;; — a 3-element apply, not the unary apply ((MUL s) (LIST a b)).
+;;; The two forms are reconciled by the `apply-tupling-N` axioms
+;;; (theorem-library/axioms.scm):
+;;;     (f a_1 ... a_n)  =  (f (LIST a_1 ... a_n))
+;;; See those axioms' comment for the full story; see the manual
+;;; (ch-defs.tex §def-structure, ch-expressions.tex §Function application,
+;;; ch-proofs.tex §curried two-argument application) for the user-facing
+;;; account.
+;;;
+;;; A (property PRED ACC ...) clause names a characteristic law from
+;;; operation-properties.scm (is-associative, is-commutative, is-identity,
+;;; has-inverses, is-distributive, is-metric) and the accessors it
+;;; constrains; build-is-axiom folds (PRED (ACC s) ...) into the IS-NAME
+;;; definition.  So IS-NAME means "is an X", not just "is X-shaped" --- and
+;;; a richer structure (e.g. ABELIAN-GROUP = GROUP + is-commutative) is a
+;;; genuine sub-predicate of its parent.  Equational law axioms may still be
+;;; added by separate theory-add-axiom! calls; with the laws now in IS-NAME
+;;; those are redundant restatements, kept only for direct use by name.
 
 (define-syntax declare-structure
   (syntax-rules ()
     ((_ name clause ...)
      (def-structure-from-clauses 'name (list 'clause ...)))))
 
+;;; A (property NAME accessor ...) clause names a characteristic law from
+;;; operation-properties.scm and the accessors it constrains; collected into
+;;; the axiom-names list and folded into IS-NAME by build-is-axiom.
 (define (def-structure-from-clauses name clauses)
-  (let loop ((rest clauses) (carriers '()) (op-specs '()))
+  ;; Build the slot list in declaration order.  A (carriers C1 C2 ...) clause
+  ;; contributes one carrier slot per name, in left-to-right order.  Op and
+  ;; constant clauses each contribute one slot.  Property clauses contribute
+  ;; to the props list, not slots.
+  (let loop ((rest clauses) (slots '()) (props '()))
     (if (null? rest)
-        (def-structure name carriers op-specs '())
+        (def-structure name (reverse slots) (reverse props))
         (let* ((clause (car rest))
                (kind   (car clause)))
           (cond
             ((eq? kind 'carriers)
-             (loop (cdr rest) (append carriers (cdr clause)) op-specs))
+             (loop (cdr rest)
+                   (append (map (lambda (c) (list c 'carrier))
+                                (reverse (cdr clause)))
+                           slots)
+                   props))
             ((eq? kind 'op)
-             (let* ((op-name (cadr clause))
-                    (doms    (caddr clause))
-                    (range   (cadddr clause))
-                    (domain  (if (null? (cdr doms)) (car doms) (cons 'CARTESIAN doms))))
-               (loop (cdr rest) carriers
-                     (append op-specs (list (list op-name domain range))))))
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'op (caddr clause) (cadddr clause))
+                         slots)
+                   props))
             ((eq? kind 'constant)
-             (loop (cdr rest) carriers
-                   (append op-specs (list (list (cadr clause) (caddr clause))))))
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'constant (caddr clause)) slots)
+                   props))
+            ((eq? kind 'property)
+             (loop (cdr rest) slots (cons (cdr clause) props)))
             (else
              (error "declare-structure: unknown clause kind" kind)))))))
 
@@ -185,6 +315,7 @@
   (let* ((pvars (if (pair? params) params (list params))))
     (install-macete! name
       (make-elementary-macete pvars '() (cons name pvars) body))
+    (register-constant! name 'functoid)
     name))
 
 ;;; -----------------------------------------------------------------------
@@ -203,11 +334,12 @@
 ;;;   (def-predicate 'IS-CAUCHY-SEQ '(X f) '(AND ... ))
 
 (define (def-predicate pred-name params body)
-  (let* ((app     `(,pred-name ,@params))
+  (fluid-let ((*current-provenance* 'definitional))
+   (let* ((app     `(,pred-name ,@params))
          (iff     `(IFF ,app ,body))
          (formula (fold-right (lambda (p f) `(FORALL ,p ,f)) iff params)))
     (theory-add-definition! *current-theory* pred-name
-      (list (cons pred-name formula)))))
+      (list (cons pred-name formula))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; specialize-structure
@@ -239,6 +371,213 @@
                      (eq? (car ante) is-pred)
                      (eq? (cadr ante) s)
                      (cons s (binary-right body))))))))
+
+;;; -----------------------------------------------------------------------
+;;; def-view-as -- declare one structure as a view of another
+;;;
+;;; (def-view-as NAME
+;;;   SOURCE-STRUCT  (src-comp-1 src-comp-2 ... src-comp-n)
+;;;   TARGET-STRUCT  (tgt-slot-1 tgt-slot-2 ... tgt-slot-n))
+;;;
+;;; Example:
+;;;   (def-view-as RING-ADDITIVE-AG
+;;;     RING          (A ADD NEG ZERO)
+;;;     ABELIAN-GROUP (A MUL INV E))
+;;;
+;;; Reads as: given a RING r, build the ABELIAN-GROUP-shaped object whose A
+;;; slot is r's A, MUL slot is r's ADD, INV slot is r's NEG, E slot is r's
+;;; ZERO.  The TARGET component list must equal the target structure's slot
+;;; order (the same order in which the target was declared); the form
+;;; checks this.
+;;;
+;;; Installs three things:
+;;;   1. A functoid (NAME r) whose defining equation is
+;;;        (NAME r) = (LIST (src-comp-1 r) ... (src-comp-n r))
+;;;   2. The typing axiom
+;;;        forall r. IS-SOURCE(r) => IS-TARGET((NAME r))
+;;;      named  <name>-is-<target>  (e.g. ring-additive-ag-is-abelian-group)
+;;;      *Installed as an axiom*, not proved.  Per library-build policy: leave
+;;;      results as axioms; promotion to proven theorem is a separate task.
+;;;   3. Auto-specializations: for every theorem of the form
+;;;        forall s. IS-TARGET(s) => P[s]
+;;;      currently in *theorem-table*, install
+;;;        forall r. IS-SOURCE(r) => P[s := (NAME r)]
+;;;      with target-slot accessors reduced to source components (so
+;;;      `(MUL (NAME r))` becomes `(ADD r)`, etc.).  Named
+;;;        <original-thm>-<lowered-view-name>
+;;;
+;;; The view declaration is recorded in *view-as-table* so the catalog /
+;;; Emacs browser can index it.
+
+(define-record-type <view-as>
+  (%make-view-as name source-struct source-comps target-struct target-comps source-file)
+  view-as?
+  (name           view-as-name)
+  (source-struct  view-as-source-struct)
+  (source-comps   view-as-source-comps)
+  (target-struct  view-as-target-struct)
+  (target-comps   view-as-target-comps)
+  (source-file    view-as-source-file))   ; pathname (or #f) of the def-view-as call site
+
+(define *view-as-table* (make-equal-hash-table))
+
+(define (lookup-view-as name)
+  (hash-table-ref/default *view-as-table* name #f))
+
+(define (structure-slot-names sd)
+  (map car (structure-def-slots sd)))
+
+;;; Replace `(tgt-slot (view-name r-sym))` with `(src-comp r-sym)` throughout
+;;; expr, using slot->comp alist.  Walks the full cons tree; safe on atoms.
+(define (view-as-reduce-accessors expr view-name slot->comp r-sym)
+  (cond
+    ((and (pair? expr)
+          (= (length expr) 2)
+          (pair? (cadr expr))
+          (= (length (cadr expr)) 2)
+          (eq? (car  (cadr expr)) view-name)
+          (eq? (cadr (cadr expr)) r-sym)
+          (assq (car expr) slot->comp))
+     `(,(cdr (assq (car expr) slot->comp)) ,r-sym))
+    ((pair? expr)
+     (cons (view-as-reduce-accessors (car expr) view-name slot->comp r-sym)
+           (view-as-reduce-accessors (cdr expr) view-name slot->comp r-sym)))
+    (else expr)))
+
+;;; Specialize every theorem  (FORALL s (IMPLIES (IS-TARGET s) P[s]))
+;;; via the view, installing  (FORALL r (IMPLIES (IS-SOURCE r) P[(NAME r)]))
+;;; with accessor reduction.  Called once at def-view-as time; can be re-run
+;;; manually after adding new TARGET theorems via (view-as-auto-specialize! 'NAME).
+(define (view-as-auto-specialize! view-name)
+  (fluid-let ((*current-provenance* 'definitional))
+   (let* ((v          (or (lookup-view-as view-name)
+                         (error "view-as-auto-specialize!: unknown view"
+                                view-name)))
+         (is-src     (symbol-append 'IS- (view-as-source-struct v)))
+         (is-tgt     (symbol-append 'IS- (view-as-target-struct v)))
+         (slot->comp (map cons
+                          (view-as-target-comps v)
+                          (view-as-source-comps v)))
+         (suffix     (string->symbol
+                      (string-append "-"
+                       (string-downcase (symbol->string view-name)))))
+         (r-sym      'r)
+         (count      0)
+         (all        (hash-table->alist *theorem-table*)))
+    (for-each
+      (lambda (entry)
+        (let* ((thm-name (car entry))
+               (formula  (cdr entry))
+               (match    (generic-for-struct? formula is-tgt)))
+          (when match
+            (let* ((s         (car match))
+                   (p-body    (cdr match))
+                   (p-sub     (subst-free s `(,view-name ,r-sym) p-body))
+                   (p-reduced (view-as-reduce-accessors
+                                p-sub view-name slot->comp r-sym))
+                   (new-formula
+                    `(FORALL ,r-sym
+                       (IMPLIES (,is-src ,r-sym) ,p-reduced)))
+                   (new-name (symbol-append thm-name suffix)))
+              (unless (hash-table-ref/default *theorem-table* new-name #f)
+                (theory-add-axiom! *current-theory* new-name new-formula)
+                (set! count (+ count 1)))))))
+      all)
+    (display ";; def-view-as ") (display view-name) (display ": ")
+    (display count) (display " ")
+    (display (view-as-target-struct v))
+    (display " theorems specialized.") (newline)
+    count)))
+
+;;; Walk up the definitional-structure parent chain to find the underlying
+;;; shape (i.e. def-structure-from-clauses) structure-def.  Definitional
+;;; structures (COMMUTATIVE-RING, FIELD, …) share the shape of their parent,
+;;; so a view-as FROM a definitional structure uses its ancestor's slots.
+(define (find-shape-structure name)
+  (or (lookup-structure name)
+      (let ((dsd (lookup-definitional-structure name)))
+        (and dsd (find-shape-structure
+                  (definitional-structure-parent dsd))))))
+
+(define (def-view-as name source-struct source-comps target-struct target-comps)
+  (fluid-let ((*current-provenance* 'definitional))
+  ;; Validation — source/target may be shape OR definitional structures;
+  ;; in the latter case we walk up to the ancestor shape for the slot list.
+  (let ((src-def (find-shape-structure source-struct))
+        (tgt-def (find-shape-structure target-struct)))
+    (unless src-def
+      (error "def-view-as: unknown source structure" source-struct))
+    (unless tgt-def
+      (error "def-view-as: unknown target structure" target-struct))
+    (unless (= (length source-comps) (length target-comps))
+      (error "def-view-as: source/target component lists differ in length"
+             source-comps target-comps))
+    ;; Target components must equal the target's slot order exactly --
+    ;; the form is self-documenting *and* self-checking.
+    (let ((tgt-slots (structure-slot-names tgt-def)))
+      (unless (equal? target-comps tgt-slots)
+        (error "def-view-as: target components must equal target slot order"
+               'got: target-comps 'expected: tgt-slots)))
+    ;; Source components must all be valid accessors of source-struct.
+    (let ((src-slots (structure-slot-names src-def)))
+      (for-each (lambda (c)
+                  (unless (member c src-slots)
+                    (error "def-view-as: not a source accessor" c
+                           'source-struct: source-struct
+                           'source-slots: src-slots)))
+                source-comps)))
+  ;; Record the view.
+  (hash-table-set! *view-as-table* name
+    (%make-view-as name source-struct source-comps target-struct target-comps
+                   (current-load-pathname)))
+  ;; Functoid: (NAME r) = (LIST (c1 r) ... (cn r)).
+  (def-functoid name '(r)
+    `(LIST ,@(map (lambda (c) `(,c r)) source-comps)))
+  ;; Typing axiom: forall r. IS-SOURCE(r) => IS-TARGET((NAME r)).
+  (let ((is-src  (symbol-append 'IS- source-struct))
+        (is-tgt  (symbol-append 'IS- target-struct))
+        (ax-name (symbol-append name '-is- target-struct)))
+    (theory-add-axiom! *current-theory* ax-name
+      `(FORALL r (IMPLIES (,is-src r) (,is-tgt (,name r))))))
+  ;; Auto-specialize target theorems.
+  (view-as-auto-specialize! name)
+  name))
+
+;;; -----------------------------------------------------------------------
+;;; Definitional structures
+;;;
+;;; A *definitional structure* is one whose IS-X is not a shape predicate
+;;; (def-structure-from-clauses) but a genuine IFF axiom
+;;;
+;;;   (FORALL s (IFF (IS-X s) (AND (IS-PARENT s) <extra constraints>)))
+;;;
+;;; declared in the source file as `(theory-add-axiom! ... 'is-X-def ...)`
+;;; alongside a sibling relation axiom `X-is-parent`.  COMMUTATIVE-RING,
+;;; INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD are declared this
+;;; way (reusing RING's 6-slot shape with extra properties; see the comment
+;;; at the top of commutative-ring.scm).
+;;;
+;;; `register-definitional-structure!` exposes these to the navigation
+;;; index (structure-index in interactive.scm) without changing how the
+;;; predicates themselves are declared.  Call it from the same file as the
+;;; `is-X-def` axiom; `(current-load-pathname)` captures the source.
+
+(define-record-type <definitional-structure>
+  (%make-definitional-structure name parent source-file)
+  definitional-structure?
+  (name         definitional-structure-name)
+  (parent       definitional-structure-parent)     ; e.g. 'RING for COMMUTATIVE-RING
+  (source-file  definitional-structure-source-file))
+
+(define *definitional-structure-table* (make-equal-hash-table))
+
+(define (lookup-definitional-structure name)
+  (hash-table-ref/default *definitional-structure-table* name #f))
+
+(define (register-definitional-structure! name parent)
+  (hash-table-set! *definitional-structure-table* name
+    (%make-definitional-structure name parent (current-load-pathname)))
+  name)
 
 (define (specialize-structure instance-name struct-name is-thm-name)
   (let* ((is-pred    (symbol-append 'IS- struct-name))

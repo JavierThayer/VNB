@@ -20,19 +20,20 @@
     ((pair? e)
      (case (car e)
        ((+)
-        (and (= (length e) 3)
-             (let ((a (arith-eval-term (cadr e)))
-                   (b (arith-eval-term (caddr e))))
-               (and a b (+ a b)))))
+        ;; n-ary sum.  The kiddie surface emits flat (+ a b c ...); the
+        ;; binary case (+ a b) is just the two-operand instance.
+        (let ((vs (map arith-eval-term (cdr e))))
+          (and (pair? vs) (every number? vs) (apply + vs))))
        ((*)
-        (and (= (length e) 3)
-             (let ((a (arith-eval-term (cadr e)))
-                   (b (arith-eval-term (caddr e))))
-               (and a b (* a b)))))
-       ((-) ; unary negation only in VNB
-        (and (= (length e) 2)
-             (let ((a (arith-eval-term (cadr e))))
-               (and a (- a)))))
+        ;; n-ary product: flat (* a b c ...).
+        (let ((vs (map arith-eval-term (cdr e))))
+          (and (pair? vs) (every number? vs) (apply * vs))))
+       ((-)
+        ;; (- a) is unary negation; (- a b c ...) is left-folded
+        ;; subtraction a - b - c - ... (chained minus left-associates,
+        ;; which is exactly Scheme's n-ary -).
+        (let ((vs (map arith-eval-term (cdr e))))
+          (and (pair? vs) (every number? vs) (apply - vs))))
        ((recip)
         (and (= (length e) 2)
              (let ((a (arith-eval-term (cadr e))))
@@ -41,7 +42,11 @@
         (and (= (length e) 2)
              (let ((a (arith-eval-term (cadr e))))
                (and a (abs a)))))
-       ((succ)
+       ((succ succ_ORD)
+        ;; succ is the NN successor, succ_ORD the ordinal successor; on a
+        ;; ground natural number both are n+1.  card-insert emits succ_ORD,
+        ;; so handling it here lets (arith) close e.g. (= (succ_ORD 0) 1)
+        ;; without a manual succ_ORD->succ bridge.
         (and (= (length e) 2)
              (let ((a (arith-eval-term (cadr e))))
                (and a (+ a 1)))))

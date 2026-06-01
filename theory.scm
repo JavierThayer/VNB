@@ -32,8 +32,33 @@
 
 (define (theory-add-theorem! th name formula)
   (hash-table-set! (theory-theorems th) name formula)
-  (install-theorem! name formula)
+  (fluid-let ((*current-provenance* 'proven))
+    (install-theorem! name formula))
   name)
+
+;;; Add a result to the Proof Support Set.  Logically treated the same as
+;;; an axiom or theorem (installs a macete, usable as an assumption), but
+;;; tagged in *support-theorem-names* so (catalog) lists it under its own
+;;; section.  Use for results we believe are provable but choose not to
+;;; mechanize -- classical theorems, large constructions, etc.
+(define (theory-add-support! th name formula)
+  (hash-table-set! (theory-theorems th) name formula)
+  (install-theorem! name formula)
+  (register-support-theorem! name)
+  name)
+
+;;; User-facing: (support 'NAME 'formula) records a result in the current
+;;; theory's Proof Support Set.
+(define (support name formula)
+  (theory-add-support! *current-theory* name formula))
+
+;;; User-facing: (warrant! 'NAME 'kind "informal justification text")
+;;; records the grounds on which NAME is accepted (see *warrant-kinds* in
+;;; macetes.scm).  Independent of how NAME was installed -- attaches to
+;;; axioms, PSS entries, or proven theorems alike.  Place the call right
+;;; after the statement it warrants.
+(define (warrant! name kind text)
+  (register-warrant! name kind text))
 
 (define (theory-get-theorem th name)
   (hash-table-ref/default (theory-theorems th) name #f))
@@ -53,14 +78,17 @@
   (set-theory-definitions! th
     (cons (cons const-name char-axioms)
           (theory-definitions th)))
+  ;; A defined constant is a constant head, not a function variable.
+  (register-constant! const-name 'defined-fn)
   const-name)
 
 ;;; User-facing: (def-constant 'NAME '(ax1 formula1) '(ax2 formula2) ...)
 ;;; Existence and uniqueness are the user's responsibility.
 (define (def-constant const-name . char-axiom-specs)
-  (theory-add-definition! *current-theory* const-name
-    (map (lambda (spec) (cons (car spec) (cadr spec)))
-         char-axiom-specs)))
+  (fluid-let ((*current-provenance* 'definitional))
+    (theory-add-definition! *current-theory* const-name
+      (map (lambda (spec) (cons (car spec) (cadr spec)))
+           char-axiom-specs))))
 
 ;;; Display all definitions in the current theory.
 (define (display-definitions)
@@ -82,11 +110,59 @@
               (cdr entry)))
           (reverse defs)))))
 
+;;; Display the Proof Support Set: every name registered via (support ...)
+;;; with its formula.  PSS entries are logically theorems we accept
+;;; without a machine-checked proof; this lists them for review.
+(define (display-pss)
+  (let ((names (reverse *support-theorem-names*)))
+    (cond
+      ((null? names)
+       (display "No PSS entries.\n"))
+      (else
+       (display "Proof Support Set (")
+       (display (length names))
+       (display " entries):\n\n")
+       (for-each
+         (lambda (name)
+           (display name) (newline)
+           (display "    ")
+           (write (lookup-theorem name))
+           (newline) (newline))
+         names)))))
+
+;;; Display every warranted statement, grouped by warrant kind (weakest
+;;; first).  Triage view: the `hand-wave' and `well-known' groups are the
+;;; ones most worth discharging into informal or formal proofs later.
+(define (display-warrants)
+  (let ((any #f))
+    (for-each
+      (lambda (kind)
+        (let ((names (filter (lambda (n)
+                               (let ((w (warrant-of n)))
+                                 (and w (eq? (car w) kind))))
+                             (sort (hash-table-keys *warrants*)
+                                   (lambda (a b)
+                                     (string<? (symbol->string a)
+                                               (symbol->string b)))))))
+          (unless (null? names)
+            (set! any #t)
+            (display kind) (display " (") (display (length names))
+            (display "):\n")
+            (for-each
+              (lambda (n)
+                (display "    ") (display n) (display " -- ")
+                (display (cdr (warrant-of n))) (newline))
+              names)
+            (newline))))
+      *warrant-kinds*)
+    (unless any (display "No warrants recorded.\n"))))
+
 ;;; Install a named predicate defined by class membership.
 ;;; (def-predicate 'P 'S) adds axiom: (FORALL x (IFF (P x) (IN x S)))
 (define (def-predicate name class-expr)
-  (theory-add-axiom! *current-theory* name
-    `(FORALL x (IFF (,name x) (IN x ,class-expr)))))
+  (fluid-let ((*current-provenance* 'definitional))
+    (theory-add-axiom! *current-theory* name
+      `(FORALL x (IFF (,name x) (IN x ,class-expr))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The base VNB set theory
@@ -109,10 +185,12 @@
 ;;;                                     (IN (PAIR a b) SET))))
 ;;;        (FORALL a (FORALL b (IMPLIES (AND (IN a SET) (IN b SET))
 ;;;          (FORALL x (IFF (IN x (PAIR a b)) (OR (= x a) (= x b)))))))
-;;;   5. Union:
-;;;        (FORALL a (IMPLIES (IN a SET) (IN (UNION-SET a) SET)))
-;;;        (FORALL a (FORALL x (IFF (IN x (UNION-SET a))
-;;;                                  (FORSOME y (AND (IN y a) (IN x y))))))
+;;;   5. Big union (binder form, see expressions.scm BIG-UNION):
+;;;        (BIG-UNION z A body) = union_{z in A} body
+;;;      The sketched ZF-style (UNION-SET a) is NOT taken as primitive;
+;;;      VNB uses the indexed binder, with kernel rules
+;;;      pi-big-union-{sethood, mem-intro, mem-elim}!.  The ZF form is
+;;;      the special case (BIG-UNION s S s).
 ;;;   6. Power set:
 ;;;        (FORALL a (IMPLIES (IN a SET) (IN (POWER a) SET)))
 ;;;        (FORALL a (FORALL x (IFF (IN x (POWER a))
@@ -142,6 +220,15 @@
           (IMPLIES (AND (IN a SET) (IN b SET))
                    (IFF (= a b)
                         (FORALL x (IFF (IN x a) (IN x b))))))))
+
+    ;; Class-extensionality.  Two classes with the same elements are equal,
+    ;; with no set-of-both precondition.  Foundational NBG axiom; comment at
+    ;; ~line 259 of this file previously flagged its absence.  Needed to
+    ;; conclude ORD is a set from "a set K has the same elements as ORD".
+    (theory-add-axiom! th 'class-extensionality
+      '(FORALL A (FORALL B
+          (IMPLIES (FORALL x (IFF (IN x A) (IN x B)))
+                   (= A B)))))
 
     (theory-add-axiom! th 'empty-set-is-set
       '(IN EMPTY-SET SET))
@@ -327,9 +414,9 @@
     ;;   (PARTIAL-FUN A C)  -- codomain fixed; a set when A, C are sets.
     ;;
     ;; Sethood of the binary form is stated as an axiom for now; it is
-    ;; derivable once a "big union over a set of sets" principle is in
-    ;; place (the family {FUN(B, C) : B in POWER(A)} is set-indexed and
-    ;; each member is a set).
+    ;; derivable using the BIG-UNION binder (the family
+    ;; {FUN(B, C) : B in POWER(A)} is set-indexed and each member is a
+    ;; set), but the derivation has not been carried out as a proof.
 
     (theory-add-axiom! th 'partial-fun-membership
       '(FORALL A
@@ -480,7 +567,9 @@
 ;;; -----------------------------------------------------------------------
 ;;; Global current theory (can be rebound)
 
-(define *current-theory* (make-vnb-base-theory))
+(define *current-theory*
+  (fluid-let ((*current-provenance* 'primitive))
+    (make-vnb-base-theory)))
 
 ;;; Install IS-SET predicate: (IS-SET x) <-> (IN x SET)
 (def-predicate 'IS-SET 'SET)

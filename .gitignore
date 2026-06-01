@@ -9,6 +9,7 @@
 *.swp
 *.swo
 .#*
+*.bak*
 
 # LaTeX build artifacts
 *.aux

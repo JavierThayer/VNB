@@ -87,6 +87,14 @@
 ;;; -----------------------------------------------------------------------
 ;;; Pattern matching for elementary macetes
 
+;;; When *match-var-head* is true, a pattern whose head is itself a schema
+;;; variable --- (f a ...) --- matches any same-arity application: f is bound
+;;; to the expression's head.  bc* sets this (via fluid-let) so it can apply
+;;; theorems whose conclusion applies a quantified function, e.g.
+;;; fun-apply-type's conclusion (IN (f x) B).  The macete engine never sets
+;;; it, so elementary-macete matching is byte-for-byte unchanged.
+(define *match-var-head* #f)
+
 (define (match-expr pattern expr schema-vars)
   (cond
     ((and (symbol? pattern) (member pattern schema-vars))
@@ -112,6 +120,16 @@
                          (let ((merged (merge-subst acc dm)))
                            (and merged (loop (cdr bps) (cdr bes) merged))))))))))
     ((or (functoid? pattern) (functoid? expr)) #f)
+    ;; Variable-headed application (bc* only; see *match-var-head*):
+    ;; pattern (f a ...) with f a schema var matches any same-arity
+    ;; application, binding f to the expression's head.
+    ((and *match-var-head*
+          (pair? pattern) (pair? expr)
+          (symbol? (car pattern))
+          (member (car pattern) schema-vars)
+          (= (length pattern) (length expr)))
+     (let ((am (match-list-with-rest (cdr pattern) (cdr expr) schema-vars)))
+       (and am (merge-subst (list (cons (car pattern) (car expr))) am))))
     ((and (pair? pattern) (pair? expr) (eq? (car pattern) (car expr)))
      (case (car pattern)
        ((NOT CHOICE MAKE-SET LENGTH)
@@ -513,20 +531,95 @@
 ;;; to enumerate.
 (define *inert-macetes* '())
 
+;;; Prenex normalization for macete generation.
+;;;
+;;; strip-foralls peels only LEADING quantifiers.  A theorem whose
+;;; rewrite-bearing IFF/= is buried under an IMPLIES or AND --- e.g.
+;;;   (FORALL a b (IMPLIES (AND ...) (FORALL x (IFF ...))))
+;;; --- hides its FORALL x, so extract-rewrite-patterns never sees the IFF
+;;; and falls through to the degenerate (replacement = TRUTH) macete.
+;;;
+;;; prenex-positive pulls FORALLs occurring in POSITIVE position to the
+;;; front.  The transforms are logical equivalences:
+;;;   (IMPLIES H (FORALL x P))  ==  (FORALL x (IMPLIES H P))   [x not free in H]
+;;;   (AND A (FORALL x P))      ==  (FORALL x (AND A P))       [x not free in A]
+;;; A clashing x is alpha-renamed first.  We descend ONLY through positive
+;;; positions: the consequent of IMPLIES and both sides of AND.  We do NOT
+;;; pull through an IMPLIES antecedent, OR, NOT, or IFF --- a FORALL there is
+;;; not in positive position and the pull would be unsound.  Macete-yielding
+;;; theorems are universally-quantified implications/iffs, so every buried
+;;; FORALL we care about is positive.
+(define (prenex-positive f)
+  (cond
+    ((not (pair? f)) f)
+    ((eq? (car f) 'FORALL)
+     `(FORALL ,(cadr f) ,(prenex-positive (caddr f))))
+    ((eq? (car f) 'IMPLIES)
+     (let ((h (cadr f))
+           (c (prenex-positive (caddr f))))
+       (if (and (pair? c) (eq? (car c) 'FORALL))
+           (let* ((x      (cadr c))
+                  (body   (caddr c))
+                  (clash  (member x (free-vars h)))
+                  (x*     (if clash (generate-uninterned-symbol x) x))
+                  (body*  (if clash (subst-free x x* body) body)))
+             `(FORALL ,x* ,(prenex-positive `(IMPLIES ,h ,body*))))
+           `(IMPLIES ,h ,c))))
+    ((eq? (car f) 'AND)
+     (let ((a (prenex-positive (cadr f)))
+           (b (prenex-positive (caddr f))))
+       (cond
+         ((and (pair? a) (eq? (car a) 'FORALL))
+          (let* ((x     (cadr a))
+                 (body  (caddr a))
+                 (clash (member x (free-vars b)))
+                 (x*    (if clash (generate-uninterned-symbol x) x))
+                 (body* (if clash (subst-free x x* body) body)))
+            `(FORALL ,x* ,(prenex-positive `(AND ,body* ,b)))))
+         ((and (pair? b) (eq? (car b) 'FORALL))
+          (let* ((x     (cadr b))
+                 (body  (caddr b))
+                 (clash (member x (free-vars a)))
+                 (x*    (if clash (generate-uninterned-symbol x) x))
+                 (body* (if clash (subst-free x x* body) body)))
+            `(FORALL ,x* ,(prenex-positive `(AND ,a ,body*)))))
+         (else `(AND ,a ,b)))))
+    (else f)))
+
 (define (theorem->elementary-macete theorem-formula #!optional name)
-  (let-values (((schema-vars core) (strip-foralls theorem-formula)))
+  (let-values (((schema-vars core)
+                (strip-foralls (prenex-positive theorem-formula))))
     (let-values (((conditions source replacement)
                   (extract-rewrite-patterns core)))
       (let ((rogue (theorem-rogue-schema-vars schema-vars conditions
                                               source replacement)))
         (cond
-          ((null? rogue)
-           (make-elementary-macete schema-vars conditions source replacement))
-          (else
+          ((not (null? rogue))
+           ;; rogue-var check runs on the original names for a readable report
            (set! *inert-macetes*
              (cons (cons (if (default-object? name) '<anonymous> name) rogue)
                    *inert-macetes*))
-           (inert-macete)))))))
+           (inert-macete))
+          (else
+           ;; Gensym the schema variables so they cannot collide with object
+           ;; variables in a goal.  The rewriter's binder guards
+           ;; (member bv schema-vars) at FORALL/FORSOME/IOTA/SEP/lambda then
+           ;; never spuriously refuse to descend just because a goal's bound
+           ;; variable happens to share a name with a schema variable.
+           (let* ((renaming (map (lambda (v)
+                                   (cons v (generate-uninterned-symbol v)))
+                                 schema-vars))
+                  (rename   (lambda (e)
+                              (let loop ((rs renaming) (e e))
+                                (if (null? rs)
+                                    e
+                                    (loop (cdr rs)
+                                          (subst-free (caar rs) (cdar rs) e)))))))
+             (make-elementary-macete
+              (map cdr renaming)
+              (map rename conditions)
+              (rename source)
+              (rename replacement)))))))))
 
 (define (display-inert-macetes)
   (cond
@@ -640,6 +733,122 @@
 
 (define *theorem-table* (make-equal-hash-table))
 
+;;; Names of results established by proof (prove-and-install! / cmd-qed),
+;;; as opposed to axioms.  Used by (catalog) to split the registry.
+(define *proven-theorem-names* '())
+
+(define (register-proven-theorem! name)
+  (unless (memq name *proven-theorem-names*)
+    (set! *proven-theorem-names* (cons name *proven-theorem-names*))))
+
+;;; Names of results in the PROOF SUPPORT SET: claimed-provable results
+;;; we accept without a mechanical proof in VNB.  They are logically
+;;; treated the same as axioms or theorems (usable as assumptions, install
+;;; macetes), but tracked separately by (catalog) so the distinction is
+;;; visible.  Examples include classical results (e.g. Well-Ordering)
+;;; that are too expensive to mechanize and not in active doubt.
+(define *support-theorem-names* '())
+
+(define (register-support-theorem! name)
+  (unless (memq name *support-theorem-names*)
+    (set! *support-theorem-names* (cons name *support-theorem-names*))))
+
+;;; -----------------------------------------------------------------------
+;;; WARRANTS -- the grounds on which we accept a statement.
+;;;
+;;; Any axiom / PSS entry / theorem may carry a WARRANT: a record
+;;; (kind . text) saying WHY we are entitled to assert it.  This makes the
+;;; library's epistemic status explicit and honest -- "asserted as an axiom"
+;;; otherwise hides whether the thing is a deep classical theorem, a
+;;; one-line triviality not yet ground out, or a genuine primitive.  Warrant
+;;; kinds, weakest to strongest:
+;;;
+;;;   hand-wave  -- heuristic / plausibility argument; convincing, not rigorous.
+;;;   well-known -- a standard textbook fact, asserted without argument.
+;;;   reference  -- cites a specific source (named in the text).
+;;;   informal   -- a rigorous paper-proof exists (often sketched in the text
+;;;                 or the file comment), just not mechanized in VNB.
+;;;   proof      -- a machine-checked VNB proof exists.
+;;;
+;;; A warrant is a promissory note, not a permanent verdict: any weaker kind
+;;; may later be discharged into `proof'.  Nothing logical hangs on it -- it
+;;; is metadata for review and triage.
+(define *warrant-kinds* '(hand-wave well-known reference informal proof))
+
+(define *warrants* (make-equal-hash-table))   ; name -> (kind . text)
+
+(define (register-warrant! name kind text)
+  (unless (memq kind *warrant-kinds*)
+    (display ";; WARNING: unknown warrant kind ")
+    (write kind) (display " for ") (write name)
+    (display " -- expected one of ")
+    (write *warrant-kinds*) (newline))
+  (hash-table-set! *warrants* name (cons kind text))
+  name)
+
+(define (warrant-of name)
+  (hash-table-ref/default *warrants* name #f))
+
+;;; -----------------------------------------------------------------------
+;;; Provenance: the epistemic origin of an installed statement, orthogonal
+;;; to the support/proven display tags.  Every theorem-table entry gets one,
+;;; stamped at install time from the dynamic variable *current-provenance*:
+;;;
+;;;   primitive    -- a genuine VNB foundational axiom (the trusted base):
+;;;                   the make-vnb-base-theory core + theorem-library/axioms.
+;;;   definitional -- a conservative definitional extension emitted by a
+;;;                   def-/declare- form (IS-X folding, accessor laws, view
+;;;                   typing + auto-specializations).  Adds no logical
+;;;                   strength: it only names new vocabulary.
+;;;   asserted     -- genuine mathematical content accepted WITHOUT a machine
+;;;                   proof.  The bare default; the natural home for a warrant.
+;;;   proven       -- machine-checked (installed via theory-add-theorem!).
+;;;
+;;; The def-/declare- forms fluid-let this to 'definitional around their
+;;; bodies; the base-theory build and the axioms file fluid-let it to
+;;; 'primitive; theory-add-theorem! binds 'proven.  Everything else --
+;;; including every hand-written (theory-add-axiom! ...) and (support ...)
+;;; in the library files -- falls through to 'asserted.
+(define *provenance-kinds* '(primitive definitional asserted proven))
+
+(define *current-provenance* 'asserted)          ; default for bare installs
+
+(define *provenance* (make-equal-hash-table))    ; name -> kind
+
+(define (register-provenance! name kind)
+  (hash-table-set! *provenance* name kind)
+  name)
+
+(define (provenance-of name)
+  (hash-table-ref/default *provenance* name 'asserted))
+
+;;; Binary connectives whose theorems should auto-install a reverse-direction
+;;; companion macete:
+;;;   IFF -- (P iff Q) is symmetric.
+;;;   =   -- (a = b) is symmetric.  Strict equality; both sides defined.
+;;;   ==  -- (a == b) is symmetric quasi-equality (both undef OR both equal).
+;;; All three are reflexively symmetric, so the flipped formula is a
+;;; logical consequence of the original.
+(define *symmetric-core-heads* '(IFF = ==))
+
+;;; If the formula's core (under any FORALL prefix and at-most-one IMPLIES)
+;;; is one of the symmetric binary forms listed in *symmetric-core-heads*,
+;;; return the formula with that form's arguments swapped.  Returns #f if
+;;; no such core is found.  Used by install-theorem! to auto-install a
+;;; reverse-direction macete name-rev.
+(define (flip-symmetric-core-in-formula f)
+  (cond
+    ((not (pair? f)) #f)
+    ((eq? (car f) 'FORALL)
+     (let ((flipped (flip-symmetric-core-in-formula (caddr f))))
+       (and flipped `(FORALL ,(cadr f) ,flipped))))
+    ((eq? (car f) 'IMPLIES)
+     (let ((flipped (flip-symmetric-core-in-formula (caddr f))))
+       (and flipped `(IMPLIES ,(cadr f) ,flipped))))
+    ((memq (car f) *symmetric-core-heads*)
+     `(,(car f) ,(caddr f) ,(cadr f)))
+    (else #f)))
+
 (define (install-theorem! name formula-or-wff)
   (vnb-guard
     (lambda ()
@@ -647,7 +856,17 @@
                          (wff-formula formula-or-wff)
                          formula-or-wff)))
         (hash-table-set! *theorem-table* name formula)
+        (register-provenance! name *current-provenance*)
         (install-macete! name (theorem->elementary-macete formula name))
+        ;; Symmetric-core theorems also install a reverse-direction macete.
+        (let ((flipped (flip-symmetric-core-in-formula formula)))
+          (when flipped
+            (let ((rev-name (string->symbol
+                             (string-append (symbol->string name) "-rev"))))
+              (hash-table-set! *theorem-table* rev-name flipped)
+              (register-provenance! rev-name *current-provenance*)
+              (install-macete! rev-name
+                (theorem->elementary-macete flipped rev-name)))))
         name))))
 
 (define (lookup-theorem name)
@@ -670,7 +889,7 @@
   (vnb-guard
     (lambda ()
       (let-values (((schema-vars core)
-                    (strip-foralls (lookup-theorem name))))
+                    (strip-foralls (prenex-positive (lookup-theorem name)))))
         (let-values (((conditions source replacement)
                       (extract-rewrite-patterns core)))
           (let* ((g      (wff-formula w))

@@ -1,0 +1,50 @@
+#!/bin/bash
+# VNB -- launch the VNB proof checker in a styled Emacs workspace.
+#
+# Usage:
+#   VNB                start GUI Emacs with the VNB workspace
+#   VNB -nw            terminal-only mode (uses -nw)
+#   VNB --no-workspace fall back to the plain M-x vnb interface
+#
+# The launcher uses `emacs -Q` so it ignores the user's init file,
+# guaranteeing a predictable environment.  All VNB-specific setup
+# happens in vnb-launch.el.
+#
+# Fast launch: VNB_SKIP_PROOFS=1 is set by default so the library's
+# proven theorems are installed as axioms instead of being re-proved
+# on every cold boot (~32x speedup).  Override with VNB_SKIP_PROOFS=
+# (empty) if you want full verification:
+#
+#   VNB_SKIP_PROOFS= VNB
+#
+# VNB-with-compile (which recompiles sources and re-verifies the proof
+# library) intentionally runs the compile step with proofs NOT skipped
+# -- that's the canonical re-verification path.
+
+# Default to skip-proofs unless the user explicitly sets it (including
+# to empty to opt out).
+if [ -z "${VNB_SKIP_PROOFS+x}" ]; then
+    export VNB_SKIP_PROOFS=1
+fi
+
+PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
+LAUNCH_EL="$PROVER_DIR/vnb-launch.el"
+
+if [ ! -f "$LAUNCH_EL" ]; then
+    echo "VNB: cannot find $LAUNCH_EL" >&2
+    exit 1
+fi
+
+EMACS_ARGS=(-Q -l "$LAUNCH_EL")
+
+case "$1" in
+  -nw)
+    EMACS_ARGS=(-Q -nw -l "$LAUNCH_EL")
+    ;;
+  --no-workspace)
+    # Skip the workspace; load plain vnb.el and run M-x vnb.
+    EMACS_ARGS=(-Q -l "$PROVER_DIR/vnb.el" --eval "(vnb)")
+    ;;
+esac
+
+exec emacs "${EMACS_ARGS[@]}"

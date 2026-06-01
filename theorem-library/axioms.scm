@@ -12,12 +12,12 @@
 ;;;   iota-def               -> pi-iota-def!
 ;;;   lambda-type            -> pi-lambda-type!
 ;;;   lambda-beta            -> pi-lambda-beta!
+;;;   equality-substitution  -> pi-eq-subst!  (Leibniz schema; short form `subst`)
 ;;; The 2-arg POWER head gets a definitional axiom (power-exp) below:
 ;;;   POWER(A, B) = FUN(B, A)   -- i.e. A^B = functions B -> A
 ;;;   (matching `power(2,3) = 2^3 = 8` in the arithmetic evaluator).
 ;;;
 ;;; Still pending (require new primitives or schema-level handling):
-;;;   equality-substitution  -- substitution schema; needs a primitive inference
 ;;;   union-set              -- needs UNION-SET (big union) expression primitive
 ;;;   union-set-membership   -- same
 ;;;   infinity               -- needs careful set-theoretic statement
@@ -75,6 +75,64 @@
   '(FORALL f (FORALL A (FORALL B (FORALL x
       (IMPLIES (AND (IN f (FUN A B)) (IN x A))
                (IN (f x) B)))))))
+
+;;; -----------------------------------------------------------------------
+;;; The curried/tupled apply convention
+;;;
+;;; VNB's string syntax `f(a_1, ..., a_n)` is parsed verbatim into the
+;;; **curried** S-expression `(f a_1 ... a_n)` (see parser.scm
+;;; `p-maybe-apply`, which does `(cons primary args)`).  That is, the
+;;; comma-separated argument list becomes a flat n+1-element S-expression
+;;; whose head is the function term.
+;;;
+;;; By contrast, operation signatures declared via `def-structure`'s
+;;; `(op MUL (CARTESIAN A A) A)` clause type `(MUL m)` as
+;;;   `(IN (MUL m) (FUN (CARTESIAN (A m) (A m)) (A m)))`
+;;; — a unary function whose **single** argument is a tuple in the
+;;; Cartesian product.  Likewise `fun-apply-type` is unary: it closes
+;;; `(f x) in B` from `f in FUN(A,B)` and `x in A`.
+;;;
+;;; The bridge between these two views — what the parser emits versus
+;;; what the typing expects — is the following convention:
+;;;
+;;;     (f a_1 a_2 ... a_n)  ==  (f (LIST a_1 a_2 ... a_n))
+;;;
+;;; That is: the curried n-arg application is **quasi-equal** to the unary
+;;; apply of f to the n-tuple of its arguments, for every arity n >= 1.
+;;; Quasi-equality (==) is required here, not VNB's partial equality (=):
+;;; the convention has to hold even when f is *not* typed as a tuple-domain
+;;; function, in which case both sides are undefined and (==) holds
+;;; vacuously while (=) would be FALSE (recall t=t is the definedness
+;;; predicate; see [[vnb-partial-equality]]).  When f IS typed as a
+;;; tuple-domain function and the arguments lie in the components, both
+;;; sides are defined and quasi-eq-def upgrades (==) to (=) for use in
+;;; substitution.  See [[apply-tupling-convention]].
+;;;
+;;; Stated here as a per-arity family of axioms.  A single n-ary schema
+;;; via RESTVAR / SPLICE would require a LIST-collect template (no binop
+;;; fold), which the macete engine doesn't currently expose — declare more
+;;; arities as needed.
+;;;
+;;; Together with `fun-apply-type` and `quasi-eq-def`, these axioms render
+;;; the various per-structure "carrier-closed" axioms
+;;; (monoid-carrier-closed-mul, ring-carrier-closed-add, ...) derivable:
+;;; extract the op-typing conjunct from IS-X, close (f (LIST a b)) in C by
+;;; fun-apply-type, lift apply-tupling from (==) to (=) via the resulting
+;;; definedness, then substitute.  See the manual (ch-expressions.tex
+;;; §Function application; ch-defs.tex §declare-structure; ch-proofs.tex
+;;; §curried/tupled apply convention).
+
+(theory-add-axiom! *current-theory* 'apply-tupling-1
+  '(FORALL f (FORALL a
+      (== (f a) (f (LIST a))))))
+
+(theory-add-axiom! *current-theory* 'apply-tupling-2
+  '(FORALL f (FORALL a (FORALL b
+      (== (f a b) (f (LIST a b)))))))
+
+(theory-add-axiom! *current-theory* 'apply-tupling-3
+  '(FORALL f (FORALL a (FORALL b (FORALL c
+      (== (f a b c) (f (LIST a b c))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Equality substitution for membership

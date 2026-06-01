@@ -73,16 +73,18 @@
   '(FORALL alpha (IMPLIES (IN alpha ORD) (<_ORD alpha (succ_ORD alpha)))))
 
 ;;; succ_ORD(alpha) is the immediate successor: any ordinal > alpha is >= succ_ORD(alpha)
+;;; Nested binary AND -- VNB's kernel uses binary-left/right (cadr/caddr) on
+;;; AND, which silently drops the third conjunct on a flat (AND a b c).
 (theory-add-axiom! *current-theory* 'ord-succ-immediate
   '(FORALL alpha (FORALL beta
-      (IMPLIES (AND (IN alpha ORD) (IN beta ORD) (<_ORD alpha beta))
+      (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (<_ORD alpha beta)))
                (<=_ORD (succ_ORD alpha) beta)))))
 
 ;;; succ_ORD is injective
 (theory-add-axiom! *current-theory* 'ord-succ-injective
   '(FORALL alpha (FORALL beta
-      (IMPLIES (AND (IN alpha ORD) (IN beta ORD)
-                    (= (succ_ORD alpha) (succ_ORD beta)))
+      (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD)
+                                         (= (succ_ORD alpha) (succ_ORD beta))))
                (= alpha beta)))))
 
 ;;; succ_ORD agrees with succ on NN
@@ -229,43 +231,52 @@
 (define (symbol-append . syms)
   (string->symbol (apply string-append (map symbol->string syms))))
 
-;;; (def-by-ord-recursion f-name base-val succ-spec succ-expr lim-spec lim-expr)
+;;; (def-by-ord-recursion f-name params base-val succ-spec succ-expr lim-spec lim-expr)
 ;;;
-;;; f-name     : symbol -- the function constant being defined
-;;; base-val   : S-expression -- value of (f-name 0)
-;;; succ-spec  : (alpha val) -- variables for successor step
-;;; succ-expr  : S-expression -- value of (f-name (succ_ORD alpha)) in terms of
-;;;                              alpha ∈ ORD and val = (f-name alpha)
+;;; f-name     : symbol      -- the function constant being defined
+;;; params     : (p1 p2 ...) -- extra parameters carried alongside the
+;;;                             ordinal; '() for a plain ORD->A function.
+;;;                             Mirrors def-by-nn-recursion.
+;;; base-val   : S-expression -- value of (f-name p1 p2 ... 0)
+;;; succ-spec  : (alpha val)  -- variables for successor step
+;;; succ-expr  : S-expression -- value of (f-name p1 p2 ... (succ_ORD alpha)) in
+;;;                              terms of p1..., alpha ∈ ORD, and
+;;;                              val = (f-name p1... alpha)
 ;;; lim-spec   : (lambda) -- variable for limit step
-;;; lim-expr   : S-expression -- value of (f-name lambda) in terms of
-;;;                              lambda (a limit ordinal) and free uses of f-name
+;;; lim-expr   : S-expression -- value of (f-name p1 p2 ... lambda) in terms of
+;;;                              p1..., lambda (a limit ordinal), and
+;;;                              free uses of f-name (which must be written
+;;;                              including the parameters, e.g. (f-name p1... beta))
 ;;;
-;;; Installs three characterising axioms:
-;;;   {f-name}-zero : (= (f-name 0) base-val)
-;;;   {f-name}-succ : (FORALL alpha (IMPLIES (IN alpha ORD)
-;;;                     (= (f-name (succ_ORD alpha)) succ-expr[val := (f-name alpha)])))
-;;;   {f-name}-limit: (FORALL lambda (IMPLIES (LIMIT-ORD lambda)
-;;;                     (= (f-name lambda) lim-expr)))
+;;; Installs three characterising axioms, each wrapped in FORALL over the
+;;; parameters p1, p2, ...:
+;;;   {f-name}-zero : forall p1.... (= (f-name p1... 0) base-val)
+;;;   {f-name}-succ : forall p1.... FORALL alpha (IMPLIES (IN alpha ORD)
+;;;                     (= (f-name p1... (succ_ORD alpha))
+;;;                        succ-expr[val := (f-name p1... alpha)]))
+;;;   {f-name}-limit: forall p1.... FORALL lambda (IMPLIES (LIMIT-ORD lambda)
+;;;                     (= (f-name p1... lambda) lim-expr))
 
-(define (def-by-ord-recursion f-name base-val succ-spec succ-expr lim-spec lim-expr)
+(define (def-by-ord-recursion f-name params base-val succ-spec succ-expr lim-spec lim-expr)
   (let* ((alpha     (car  succ-spec))
          (val       (cadr succ-spec))
          (lam       (car  lim-spec))
-         (succ-body (subst-free val `(,f-name ,alpha) succ-expr))
+         (succ-body (subst-free val `(,f-name ,@params ,alpha) succ-expr))
          (zero-name (symbol-append f-name '-zero))
          (succ-name (symbol-append f-name '-succ))
          (lim-name  (symbol-append f-name '-limit))
-         (zero-form `(= (,f-name 0) ,base-val))
-         (succ-form `(FORALL ,alpha
+         (zero-core `(= (,f-name ,@params 0) ,base-val))
+         (succ-core `(FORALL ,alpha
                        (IMPLIES (IN ,alpha ORD)
-                                (= (,f-name (succ_ORD ,alpha)) ,succ-body))))
-         (lim-form  `(FORALL ,lam
+                                (= (,f-name ,@params (succ_ORD ,alpha)) ,succ-body))))
+         (lim-core  `(FORALL ,lam
                        (IMPLIES (LIMIT-ORD ,lam)
-                                (= (,f-name ,lam) ,lim-expr)))))
+                                (= (,f-name ,@params ,lam) ,lim-expr))))
+         (wrap      (lambda (f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))))
     (theory-add-definition! *current-theory* f-name
-      (list (cons zero-name zero-form)
-            (cons succ-name succ-form)
-            (cons lim-name  lim-form)))))
+      (list (cons zero-name (wrap zero-core))
+            (cons succ-name (wrap succ-core))
+            (cons lim-name  (wrap lim-core))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Primitive recursion on NN  (NN = {0, 1, 2, ...})
