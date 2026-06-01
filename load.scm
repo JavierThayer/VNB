@@ -59,6 +59,10 @@
     ;; Needs NORMED-FIELD + METRIC-SPACE; loaded after views (which finishes
     ;; the normed-field view-as declarations).
     "structure-library/normed-field-metric"
+    ;; The metric space underlying a normed abelian group (NAG-METRIC-SPACE
+    ;; bridge: d(u,v) = ||u . v^-1||).  Needs NORMED-AG + METRIC-SPACE; lets
+    ;; "grp is complete" be stated as IS-COMPLETE(NAG-METRIC-SPACE grp).
+    "structure-library/normed-ag-metric"
     "structure-library/complex"
     ;; REDUCE + FAM-OF-LIST: kiddie n-ary <-> adult finite-fold bridge.
     ;; Consumed by numeric-instances (nary-plus-N-list axioms) and by
