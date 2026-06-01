@@ -101,3 +101,35 @@
    the triangle inequality NRM(r1 - r2) < eps for every eps, hence
    NRM(r1 - r2) = 0, hence r1 = r2 by definiteness of the group norm
    (is-group-norm).  A candidate to discharge into a formal `proof' later.")
+
+;;; -----------------------------------------------------------------------
+;;; The payload: absolute summability implies (unconditional) summability,
+;;; in a COMPLETE normed abelian group.
+;;;
+;;; Completeness is taken on the induced metric -- IS-COMPLETE(NAG-METRIC-
+;;; SPACE grp), d(u,v) = ||u . v^-1|| (normed-ag-metric.scm) -- so this is the
+;;; abstract Banach-space fact "absolutely convergent => unconditionally
+;;; convergent."  Unconditionality needs no separate clause: IS-SUMMABLE is
+;;; defined through the order-blind net SUMS-TO, which never sees an
+;;; enumeration of the index set.
+(support 'absolute-summable-implies-summable
+  '(FORALL grp
+     (IMPLIES (AND (IS-NORMED-AG grp)
+                   (IS-COMPLETE (NAG-METRIC-SPACE grp)))
+       (FORALL f
+         (IMPLIES (AND (IN f (FUN (DOM f) (A grp)))
+                       (IS-ABSOLUTELY-SUMMABLE grp f))
+           (IS-SUMMABLE grp f))))))
+
+(warrant! 'absolute-summable-implies-summable 'informal
+  "Absolute summability makes the norm-tails vanish: ESUM(i |-> ||f(i)||) is a
+   real, so by esum-finite-iff-bounded its finite partial sums are bounded and
+   approach their sup -- for every eps there is a finite fin <= DOM f with
+   Sum_{DOM f minus fin} ||f|| < eps.  Then for any finite ext with fin <= ext
+   <= DOM f, ||Sum_ext f - Sum_fin f|| <= Sum_{ext minus fin} ||f|| < eps by
+   the triangle inequality (subadditivity of the group norm).  Hence the net
+   of finite partial sums is Cauchy in NAG-METRIC-SPACE(grp); completeness
+   (IS-COMPLETE) supplies a limit r in the carrier, and that r witnesses
+   SUMS-TO(grp, f, r), so IS-SUMMABLE(grp, f).  The sum is unconditional by
+   construction (SUMS-TO is a net over finite subsets, not a series).  A
+   candidate to discharge into a formal `proof' later.")
