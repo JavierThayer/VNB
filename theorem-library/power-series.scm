@@ -127,3 +127,66 @@
    limit -- PS-CONVERGES-AT(coef, x).  A candidate to discharge into a formal
    `proof' later (it factors through a geometric-series lemma + comparison,
    neither yet in the library).")
+
+;;; =======================================================================
+;;; Brick 3 -- absolute convergence, and absolute => convergent.
+;;;
+;;; The series of absolute values of  Sum coef(n) x^n  is itself a power
+;;; series: termwise  |coef(n) x^n| = |coef(n)| . |x|^n  (abs is multiplicative
+;;; and |x^n| = |x|^n).  So "the power series converges absolutely at x" is
+;;; nothing but ORDINARY convergence (PS-CONVERGES-AT) of the abs'd
+;;; coefficients (n |-> |coef(n)|) at the point |x|.  This keeps the whole
+;;; notion inside the RR ordered-sum world already built -- no ESUM, no
+;;; NORMED-AG, no unordered net.  (Connecting absolute convergence to the
+;;; UNCONDITIONAL net IS-SUMMABLE / IS-ABSOLUTELY-SUMMABLE of summability.scm
+;;; is a separate later bridge: it would need a NORMED-FIELD -> NORMED-AG view
+;;; and an ordered-limit = net-sum reconciliation.)
+
+;;; -----------------------------------------------------------------------
+;;; ps-abs-term: the n-th absolute term is the n-th term of the abs'd series.
+;;; |coef(n) x^n| = |coef(n)| . |x|^n.  This is what certifies that the
+;;; definition below really expresses absolute convergence.
+(support 'ps-abs-term
+  '(FORALL coef
+     (IMPLIES (IN coef (FUN NN RR))
+       (FORALL x
+         (IMPLIES (IN x RR)
+           (FORALL n
+             (IMPLIES (IN n NN)
+               (= (abs (* (coef n) (power x n)))
+                  (* (abs (coef n)) (power (abs x) n))))))))))
+
+(warrant! 'ps-abs-term 'well-known
+  "|coef(n) x^n| = |coef(n)|.|x^n| = |coef(n)|.|x|^n, by multiplicativity of
+   the real absolute value (|ab| = |a||b|) and |x^n| = |x|^n (induction on n
+   from power-zero/power-succ).  A candidate to discharge into a `proof'.")
+
+;;; -----------------------------------------------------------------------
+;;; PS-ABSOLUTELY-CONVERGES-AT(coef, x): the series converges absolutely at x,
+;;; i.e. Sum |coef(n)| |x|^n converges -- which by ps-abs-term is Sum |term(n)|.
+;;; Defined as ordinary convergence of the abs'd power series at |x|.
+(def-predicate 'PS-ABSOLUTELY-CONVERGES-AT '(coef x)
+  '(PS-CONVERGES-AT (VNB-LAMBDA n (abs (coef n))) (abs x)))
+
+;;; -----------------------------------------------------------------------
+;;; ps-absolute-implies-convergent: absolute convergence implies convergence,
+;;; in RR.  The classical Cauchy-criterion argument, leaning on completeness
+;;; of RR (rr-complete).  Asserted + warranted for the library-build phase.
+(support 'ps-absolute-implies-convergent
+  '(FORALL coef
+     (IMPLIES (IN coef (FUN NN RR))
+       (FORALL x
+         (IMPLIES (AND (IN x RR)
+                       (PS-ABSOLUTELY-CONVERGES-AT coef x))
+           (PS-CONVERGES-AT coef x))))))
+
+(warrant! 'ps-absolute-implies-convergent 'informal
+  "Absolute convergence gives that the partial sums A_k = Sum_{n<k}
+   |coef(n)||x|^n converge, hence are Cauchy: for eps>0 there is N with
+   A_m - A_k = Sum_{k<=n<m} |coef(n)||x|^n < eps  for m >= k >= N.  By the
+   triangle inequality the ordinary partial sums S_k = Sum_{n<k} coef(n)x^n
+   satisfy |S_m - S_k| <= Sum_{k<=n<m} |coef(n) x^n| = Sum_{k<=n<m}
+   |coef(n)||x|^n < eps (ps-abs-term), so (S_k) is Cauchy in RR-MS.  RR is
+   complete (rr-complete), so (S_k) converges -- PS-CONVERGES-AT(coef, x).  A
+   candidate to discharge into a formal `proof' later (it needs a finite
+   triangle-inequality / abs-of-finsum bound not yet in the library).")
