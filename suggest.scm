@@ -111,3 +111,119 @@
                  (newline)))
              suggestions)))))
     path))
+
+;;; -----------------------------------------------------------------------
+;;; (suggest-backchain) -- index-driven candidate lemmas for the focus goal.
+;;;
+;;; bc* applies a lemma by MATCHING its conclusion against the goal (one-sided:
+;;; only the lemma's schema vars flex; the goal -- including eigenvariables --
+;;; is rigid).  So a lemma is a candidate iff its conclusion fingerprint
+;;; SUBSUMES the goal fingerprint: at every path the lemma key is `·' (a schema
+;;; var, covers anything) or equals the goal key.  This is sound as a FILTER --
+;;; same-depth fingerprints give no false negatives (if match-expr would
+;;; succeed, the lemma key is `·'-or-equal everywhere); match-expr is still the
+;;; real check on the survivors.  Read-only: suggests, never applies.
+;;;
+;;; -rev companions are NOT collapsed here (unlike the display index): a flipped
+;;; goal `b = a' is matched by `X-rev', not `X', so both orientations are live
+;;; retrieval targets.
+
+;;; The focus goal formula, or #f if no proof is in progress.
+(define (suggest--current-goal)
+  (and *ps*
+       (let ((sqn (proof-state-focus *ps*)))
+         (and sqn (wff-formula (sequent-node-assertion sqn))))))
+
+;;; Does fingerprint P (a lemma conclusion key) subsume T (the goal key)?
+;;; `·' in P covers anything; a var-HEADED P (car `·', the *match-var-head*
+;;; case) covers any head of equal arity; otherwise heads/arities must agree
+;;; and arguments subsume pointwise.
+(define (fingerprint-subsumes? p t)
+  (cond
+    ((eq? p *fingerprint-wild*) #t)
+    ((and (pair? p) (pair? t)
+          (= (length p) (length t))
+          (or (eq? (car p) *fingerprint-wild*) (eq? (car p) (car t))))
+     (let loop ((ps (cdr p)) (ts (cdr t)))
+       (or (null? ps)
+           (and (fingerprint-subsumes? (car ps) (car ts))
+                (loop (cdr ps) (cdr ts))))))
+    ((and (symbol? p) (symbol? t)) (eq? p t))
+    (else #f)))
+
+;;; Count of concrete (non-`·') nodes in a fingerprint -- a specificity score
+;;; for ranking: more-specific lemmas matched fewer goals by luck, rank first.
+(define (fingerprint-specificity fp)
+  (cond ((eq? fp *fingerprint-wild*) 0)
+        ((symbol? fp) 1)
+        ((pair? fp) (apply + (map fingerprint-specificity fp)))
+        (else 0)))
+
+;;; #t iff a fingerprint's top head is a wildcard (the near-universal
+;;; var-headed lemmas, e.g. fun-apply-type's (f x)).
+(define (fingerprint-var-headed? fp)
+  (and (pair? fp) (eq? (car fp) *fingerprint-wild*)))
+
+(define (suggest--occurs? sym e)
+  (cond ((eq? e sym) #t)
+        ((pair? e) (or (suggest--occurs? sym (car e)) (suggest--occurs? sym (cdr e))))
+        (else #f)))
+
+;;; Schema vars bc* would peel that do NOT occur in the matched conclusion --
+;;; bc* cannot discover these from the goal, so they need explicit ((v val)).
+(define (suggest--undetermined-vars name)
+  (call-with-values
+    (lambda () (bc*--peel (lookup-theorem name)))
+    (lambda (svars concl)
+      (filter (lambda (v) (not (suggest--occurs? v concl))) svars))))
+
+;;; Candidate (name . lemma-fingerprint) pairs for GOAL, ranked specific-first.
+(define (suggest-backchain-candidates goal . opt-depth)
+  (let* ((depth (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*))
+         (gfp   (conclusion-fingerprint goal depth))
+         (cands '()))
+    (for-each
+      (lambda (n)
+        (let ((lfp (conclusion-fingerprint (lookup-theorem n) depth)))
+          (when (fingerprint-subsumes? lfp gfp)
+            (set! cands (cons (cons n lfp) cands)))))
+      (hash-table-keys *theorem-table*))
+    (sort cands
+          (lambda (a b)
+            (let ((sa (fingerprint-specificity (cdr a)))
+                  (sb (fingerprint-specificity (cdr b))))
+              (if (= sa sb)
+                  (string<? (symbol->string (car a)) (symbol->string (car b)))
+                  (> sa sb)))))))
+
+;;; REPL entry point: print the focus goal, its fingerprint, and the ranked
+;;; bc* candidates (each tagged with undetermined vars / wildcard-head).
+(define (suggest-backchain . opt-depth)
+  (let ((goal (suggest--current-goal)))
+    (cond
+      ((not goal) (display ";; suggest-backchain: no proof in progress\n"))
+      (else
+       (let* ((depth (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*))
+              (gfp   (conclusion-fingerprint goal depth))
+              (cands (apply suggest-backchain-candidates goal opt-depth)))
+         (display ";; goal: ") (display (expression->string goal)) (newline)
+         (display ";; fingerprint: ") (display (fingerprint->string gfp)) (newline)
+         (display ";; ") (display (length cands))
+         (display " bc* candidate(s), most specific first:\n")
+         (for-each
+           (lambda (c)
+             (let* ((n (car c)) (lfp (cdr c)) (undet (suggest--undetermined-vars n)))
+               (display ";;   ") (display n)
+               (display "  [") (display (fingerprint->string lfp)) (display "]")
+               (when (fingerprint-var-headed? lfp) (display "  (wildcard head)"))
+               (unless (null? undet)
+                 (display "  needs ((")
+                 (let loop ((vs undet) (first #t))
+                   (unless (null? vs)
+                     (unless first (display ") ("))
+                     (display (car vs)) (display " ?")
+                     (loop (cdr vs) #f)))
+                 (display "))"))
+               (newline)))
+           cands)
+         (length cands))))))
