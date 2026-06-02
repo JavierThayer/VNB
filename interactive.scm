@@ -543,7 +543,8 @@
       (display ";; definitions: ")
       (display (length (theory-definitions *current-theory*)))
       (display " -> ") (display dpath) (newline))
-    (structure-index)))
+    (structure-index)
+    (fingerprint-index)))
 
 ;;; (display-provenance) -- REPL triage of every installed result by its
 ;;; provenance kind (primitive / definitional / asserted / proven), counts
