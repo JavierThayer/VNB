@@ -134,6 +134,7 @@
     (define-key m "t" 'vnb-ws-show-theorems)
     (define-key m "p" 'vnb-ws-show-pss)
     (define-key m "l" 'vnb-ws-browse-library)
+    (define-key m "F" 'vnb-ws-show-fingerprints)
     (define-key m "d" 'vnb-describe-structure)
     (define-key m "D" 'vnb-ws-show-definitions)
     (define-key m "m" 'vnb-structure-manual)
@@ -247,6 +248,12 @@
     (insert (propertize " navigate the structure & view-as library\n\n"
                         'face 'vnb-body))
     (insert "  ")
+    (vnb-launch--insert-button "Fingerprint Index"
+                               'vnb-ws-show-fingerprints
+                               "Open FINGERPRINT-INDEX.md: results bucketed by conclusion skeleton (engine/retrieval view)")
+    (insert (propertize " results by conclusion fingerprint (retrieval)\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
     (vnb-launch--insert-button "Describe Structure"
                                'vnb-describe-structure
                                "Rendered card: operations, the defining law, view-as, your notes")
@@ -289,8 +296,10 @@
              (concat "  Keys: s start proof  |  f build formula  |  "
                      "b build structure  |  t show theorems\n"
                      "        p show PSS  |  l browse library  |  "
-                     "d describe structure  |  D definitions\n"
-                     "        m manual  |  G structure graph  |  e examples  |  "
+                     "F fingerprint index\n"
+                     "        d describe structure  |  D definitions  |  "
+                     "m manual\n"
+                     "        G structure graph  |  e examples  |  "
                      "g refresh  |  q quit\n")
              'face 'vnb-dim))
     (insert "\n")
@@ -472,6 +481,33 @@ Browse Library / `d'.  No window split, no raw s-expressions."
          (buf  (get-buffer-create vnb-definitions-buffer-name)))
     (unless (file-exists-p path)
       (user-error "DEFINITIONS.md was not created -- check the *VNB* REPL for errors"))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert-file-contents path))
+      (goto-char (point-min))
+      (setq-local default-directory vnb-launch--dir)
+      (vnb-library-mode)
+      (vnb-library--decorate-buffer))
+    (switch-to-buffer buf)))
+
+(defvar vnb-fingerprints-buffer-name "*VNB Fingerprints*"
+  "Buffer name for the conclusion-fingerprint retrieval index viewer.")
+
+(defun vnb-ws-show-fingerprints ()
+  "Display the conclusion-fingerprint index in its own buffer.
+Asks the prover to regenerate FINGERPRINT-INDEX.md (every installed result
+bucketed by the depth-3 structural fingerprint of its conclusion -- the
+redex skeleton the matcher fires on) and opens it in `vnb-library-mode'.
+This is the ENGINE / retrieval view -- complements Browse Library (`l',
+indexing by structure).  No window split, no raw s-expressions."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (vnb-eval-string "(fingerprint-index)")
+  (let* ((path (expand-file-name "FINGERPRINT-INDEX.md" vnb-launch--dir))
+         (buf  (get-buffer-create vnb-fingerprints-buffer-name)))
+    (unless (file-exists-p path)
+      (user-error "FINGERPRINT-INDEX.md was not created -- check the *VNB* REPL for errors"))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)

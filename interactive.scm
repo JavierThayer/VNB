@@ -897,7 +897,7 @@
         (for-each
           (lambda (b)
             (let ((key (car b)) (names (sort-syms (cdr b))))
-              (display "## `") (display key) (display "`")
+              (display "### `") (display key) (display "`")
               (display "  (") (display (length names)) (display ")\n\n")
               (for-each (lambda (n) (display "- `") (display n) (display "`\n"))
                         names)
