@@ -71,3 +71,59 @@
 ;;; PS-CONVERGES-AT(coef, x): the series converges at x (to some real limit).
 (def-predicate 'PS-CONVERGES-AT '(coef x)
   '(CONVERGES RR-MS (VNB-LAMBDA k (PS-PARTIAL-SUM coef x k))))
+
+;;; =======================================================================
+;;; Brick 2 -- the ratio (d'Alembert) test.
+;;;
+;;; We take the RATIO route to the radius "for now" (dodging limsup): assume
+;;; the limit  L = lim_n |coef(n+1) / coef(n)|  exists in RR.  Rather than
+;;; package the radius R = 1/L as a separate object (which would force
+;;; 1/0 = +inf bookkeeping), we state the convergence test directly as
+;;;
+;;;     |x| . L < 1        ( <=>  |x| < R = 1/L  when L > 0;  all x when L = 0 ).
+;;;
+;;; So L = 0 (radius +inf) is automatic and needs no special case.
+
+;;; -----------------------------------------------------------------------
+;;; PS-RATIO-LIMIT(coef, L): the sequence of successive-coefficient ratios
+;;; |coef(n+1)/coef(n)| converges to L in RR.  Reused by the radius brick.
+;;; (Meaningful only when the coefficients are eventually nonzero; the test
+;;; below carries that hypothesis explicitly.)
+(def-predicate 'PS-RATIO-LIMIT '(coef L)
+  '(CONVERGES-TO RR-MS
+     (VNB-LAMBDA n (abs (* (coef (succ n)) (recip (coef n)))))
+     L))
+
+;;; -----------------------------------------------------------------------
+;;; ratio-test-converges: if the coefficients never vanish, the ratio limit
+;;; is L, and |x|.L < 1, then the series converges at x.
+;;;
+;;; This is d'Alembert specialised to a power series: the term ratio
+;;; |coef(n+1)x^{n+1} / coef(n)x^n| = |coef(n+1)/coef(n)| . |x| -> L|x| < 1,
+;;; so from some N on the terms are dominated by a geometric series of ratio
+;;; r with L|x| < r < 1; that majorant is absolutely summable, RR is complete,
+;;; hence the partial sums converge (PS-CONVERGES-AT).  Asserted + warranted
+;;; for the library-build phase.
+(support 'ratio-test-converges
+  '(FORALL coef
+     (IMPLIES (IN coef (FUN NN RR))
+       (FORALL L
+         (IMPLIES (AND (IN L RR)
+                       (<= 0 L)
+                       (FORALL n
+                         (IMPLIES (IN n NN) (NOT (= (coef n) 0))))
+                       (PS-RATIO-LIMIT coef L))
+           (FORALL x
+             (IMPLIES (AND (IN x RR) (< (* (abs x) L) 1))
+               (PS-CONVERGES-AT coef x))))))))
+
+(warrant! 'ratio-test-converges 'informal
+  "d'Alembert for a power series.  The term ratio
+   |coef(n+1)x^{n+1} / coef(n)x^n| = |coef(n+1)/coef(n)|.|x| converges to L.|x|,
+   which is < 1 by hypothesis.  Pick r with L|x| < r < 1; from some N on the
+   ratio is below r, so |term(n)| <= C r^n for a constant C.  The geometric
+   majorant Sum C r^n converges (|r|<1), so the partial sums of the power
+   series are Cauchy in RR-MS; RR is complete (rr-complete), giving a real
+   limit -- PS-CONVERGES-AT(coef, x).  A candidate to discharge into a formal
+   `proof' later (it factors through a geometric-series lemma + comparison,
+   neither yet in the library).")
