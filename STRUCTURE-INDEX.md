@@ -60,7 +60,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-abelian-group` — forall([a, mul, e, inv], is-abelian-group([a, mul, e, inv]) iff length([a, mul, e, inv]) = 4 and a in set and mul in fun(cartesian(a, a), a) and e in a and inv in fun(a, a) and is-associative(mul, a) and is-identity(mul, e, a) and has-inverses(mul, e, inv, a) and is-commutative(mul, a))
+- `is-abelian-group` — forall([a, mul, e, inv], is-abelian-group([a, mul, e, inv]) iff a in set and mul in fun(cartesian(a, a), a) and e in a and inv in fun(a, a) and is-associative(mul, a) and is-identity(mul, e, a) and has-inverses(mul, e, inv, a) and is-commutative(mul, a))
 
 *Theorems quantifying over `is-abelian-group`.*
 
@@ -120,7 +120,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-comm-monoid` — forall([a, mul, e], is-comm-monoid([a, mul, e]) iff length([a, mul, e]) = 3 and a in set and mul in fun(cartesian(a, a), a) and e in a and is-associative(mul, a) and is-identity(mul, e, a) and is-commutative(mul, a))
+- `is-comm-monoid` — forall([a, mul, e], is-comm-monoid([a, mul, e]) iff a in set and mul in fun(cartesian(a, a), a) and e in a and is-associative(mul, a) and is-identity(mul, e, a) and is-commutative(mul, a))
 
 *Theorems quantifying over `is-comm-monoid`.*
 
@@ -232,7 +232,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-field` — forall([a, add, mul, neg, zero, one, non-zero, inv], is-field([a, add, mul, neg, zero, one, non-zero, inv]) iff length([a, add, mul, neg, zero, one, non-zero, inv]) = 8 and a in set and add in fun(cartesian(a, a), a) and mul in fun(cartesian(a, a), a) and neg in fun(a, a) and zero in a and one in a and non-zero in set and inv in fun(non-zero, non-zero) and is-associative(add, a) and is-commutative(add, a) and is-identity(add, zero, a) and has-inverses(add, zero, neg, a) and is-associative(mul, a) and is-commutative(mul, a) and is-identity(mul, one, a) and is-distributive(add, mul, a))
+- `is-field` — forall([a, add, mul, neg, zero, one, non-zero, inv], is-field([a, add, mul, neg, zero, one, non-zero, inv]) iff a in set and add in fun(cartesian(a, a), a) and mul in fun(cartesian(a, a), a) and neg in fun(a, a) and zero in a and one in a and non-zero in set and inv in fun(non-zero, non-zero) and is-associative(add, a) and is-commutative(add, a) and is-identity(add, zero, a) and has-inverses(add, zero, neg, a) and is-associative(mul, a) and is-commutative(mul, a) and is-identity(mul, one, a) and is-distributive(add, mul, a))
 
 *Theorems quantifying over `is-field`.*
 
@@ -330,7 +330,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-group` — forall([a, mul, e, inv], is-group([a, mul, e, inv]) iff length([a, mul, e, inv]) = 4 and a in set and mul in fun(cartesian(a, a), a) and e in a and inv in fun(a, a) and is-associative(mul, a) and is-identity(mul, e, a) and has-inverses(mul, e, inv, a))
+- `is-group` — forall([a, mul, e, inv], is-group([a, mul, e, inv]) iff a in set and mul in fun(cartesian(a, a), a) and e in a and inv in fun(a, a) and is-associative(mul, a) and is-identity(mul, e, a) and has-inverses(mul, e, inv, a))
 
 *Theorems quantifying over `is-group`.*
 
@@ -402,7 +402,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-metric-space` — forall([x, d], is-metric-space([x, d]) iff length([x, d]) = 2 and x in set and d in fun(cartesian(x, x), rr) and is-metric(d, x))
+- `is-metric-space` — forall([x, d], is-metric-space([x, d]) iff x in set and d in fun(cartesian(x, x), rr) and is-metric(d, x))
 
 *Theorems quantifying over `is-metric-space`.*
 
@@ -429,7 +429,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-monoid` — forall([a, mul, e], is-monoid([a, mul, e]) iff length([a, mul, e]) = 3 and a in set and mul in fun(cartesian(a, a), a) and e in a and is-associative(mul, a) and is-identity(mul, e, a))
+- `is-monoid` — forall([a, mul, e], is-monoid([a, mul, e]) iff a in set and mul in fun(cartesian(a, a), a) and e in a and is-associative(mul, a) and is-identity(mul, e, a))
 
 *Theorems quantifying over `is-monoid`.*
 
@@ -479,7 +479,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-normed-ag` — forall([a, mul, e, inv, nrm], is-normed-ag([a, mul, e, inv, nrm]) iff length([a, mul, e, inv, nrm]) = 5 and a in set and mul in fun(cartesian(a, a), a) and e in a and inv in fun(a, a) and nrm in fun(a, rr) and is-associative(mul, a) and is-identity(mul, e, a) and has-inverses(mul, e, inv, a) and is-commutative(mul, a) and is-group-norm(nrm, mul, inv, e, a))
+- `is-normed-ag` — forall([a, mul, e, inv, nrm], is-normed-ag([a, mul, e, inv, nrm]) iff a in set and mul in fun(cartesian(a, a), a) and e in a and inv in fun(a, a) and nrm in fun(a, rr) and is-associative(mul, a) and is-identity(mul, e, a) and has-inverses(mul, e, inv, a) and is-commutative(mul, a) and is-group-norm(nrm, mul, inv, e, a))
 
 *Theorems quantifying over `is-normed-ag`.*
 
@@ -515,7 +515,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-normed-field` — forall([a, add, mul, neg, zero, one, nrm], is-normed-field([a, add, mul, neg, zero, one, nrm]) iff length([a, add, mul, neg, zero, one, nrm]) = 7 and a in set and add in fun(cartesian(a, a), a) and mul in fun(cartesian(a, a), a) and neg in fun(a, a) and zero in a and one in a and nrm in fun(a, rr) and is-associative(add, a) and is-commutative(add, a) and is-identity(add, zero, a) and has-inverses(add, zero, neg, a) and is-associative(mul, a) and is-commutative(mul, a) and is-identity(mul, one, a) and is-distributive(add, mul, a) and is-norm(nrm, add, mul, zero, a))
+- `is-normed-field` — forall([a, add, mul, neg, zero, one, nrm], is-normed-field([a, add, mul, neg, zero, one, nrm]) iff a in set and add in fun(cartesian(a, a), a) and mul in fun(cartesian(a, a), a) and neg in fun(a, a) and zero in a and one in a and nrm in fun(a, rr) and is-associative(add, a) and is-commutative(add, a) and is-identity(add, zero, a) and has-inverses(add, zero, neg, a) and is-associative(mul, a) and is-commutative(mul, a) and is-identity(mul, one, a) and is-distributive(add, mul, a) and is-norm(nrm, add, mul, zero, a))
 
 *Theorems quantifying over `is-normed-field`.*
 
@@ -668,7 +668,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-ring` — forall([a, add, mul, neg, zero, one], is-ring([a, add, mul, neg, zero, one]) iff length([a, add, mul, neg, zero, one]) = 6 and a in set and add in fun(cartesian(a, a), a) and mul in fun(cartesian(a, a), a) and neg in fun(a, a) and zero in a and one in a and is-associative(add, a) and is-commutative(add, a) and is-identity(add, zero, a) and has-inverses(add, zero, neg, a) and is-associative(mul, a) and is-identity(mul, one, a) and is-distributive(add, mul, a))
+- `is-ring` — forall([a, add, mul, neg, zero, one], is-ring([a, add, mul, neg, zero, one]) iff a in set and add in fun(cartesian(a, a), a) and mul in fun(cartesian(a, a), a) and neg in fun(a, a) and zero in a and one in a and is-associative(add, a) and is-commutative(add, a) and is-identity(add, zero, a) and has-inverses(add, zero, neg, a) and is-associative(mul, a) and is-identity(mul, one, a) and is-distributive(add, mul, a))
 
 *Theorems quantifying over `is-ring`.*
 
@@ -777,7 +777,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (destructured form):
 
-- `is-semigroup` — forall([a, mul], is-semigroup([a, mul]) iff length([a, mul]) = 2 and a in set and mul in fun(cartesian(a, a), a) and is-associative(mul, a))
+- `is-semigroup` — forall([a, mul], is-semigroup([a, mul]) iff a in set and mul in fun(cartesian(a, a), a) and is-associative(mul, a))
 
 *Theorems quantifying over `is-semigroup`.*
 

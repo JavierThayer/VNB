@@ -781,6 +781,140 @@
       path)))
 
 ;;; -----------------------------------------------------------------------
+;;; CONCLUSION FINGERPRINT -- the depth-bounded structural key of a result's
+;;; conclusion: head functor + immediate argument heads, recursively, to a
+;;; fixed depth.  Schema variables (the leading universally-quantified vars)
+;;; and non-symbol leaves (numerals) collapse to the wildcard `_`; constant
+;;; operators (RR, CC, succ, ...) are kept verbatim.  Descends into ALL
+;;; arguments -- including BOTH sides of a top `=`/`IFF` -- so no operator in
+;;; the conclusion leaks out of the key (unlike macete-redex-head, which keeps
+;;; only the head, and macete-subject-head, which descends only into the LEFT
+;;; operand of a relation).  This single rule subsumes both.
+;;;
+;;; Examples (depth 2):
+;;;   card-singleton  card({x})=succ(0)        -> (= (card _) (succ _))
+;;;   complete-...    converges(s,l)           -> (converges _ _)
+;;;   finsum-fubini   ...=finsum(.,finsum(.).) -> (= ... (finsum _ (finsum _ _ _) _))
+;;;
+;;; A variable-HEADED application (e.g. fun-apply-type's (f x), matched by
+;;; bc*'s *match-var-head*) keys with head `_` -- the near-universal bucket.
+;;; The key is an s-expr (equal?-hashable); render it with fingerprint->string.
+
+;;; Depth 3 is the empirical knee: it resolves the membership idiom
+;;; `iff(in(·, CONTAINER), ...)` (container one level under in under iff) that
+;;; depth 2 leaves coiled in one bucket, while depth 4 adds almost nothing.
+;;; The residual large buckets at every depth are the shallow algebraic
+;;; rearrangement lemmas (= add(·,·) add(·,·)) -- the simplifier's territory,
+;;; not the index's.
+(define *fingerprint-default-depth* 3)
+(define *fingerprint-wild* '_)   ; sentinel leaf, rendered as the dot below
+
+;;; Fingerprint expression E to remaining DEPTH, with VARS the schema-var set.
+(define (fingerprint-expr e depth vars)
+  (cond
+    ((not (pair? e))
+     (if (or (memq e vars) (not (symbol? e))) *fingerprint-wild* e))
+    ((<= depth 0) *fingerprint-wild*)            ; horizon: collapse subterm
+    (else
+     (let* ((head (car e))
+            (hkey (if (symbol? head)
+                      (if (memq head vars) *fingerprint-wild* head)
+                      ;; compound head (rare, curried apply): use leftmost atom
+                      (let ((a (leftmost-atom head)))
+                        (if (or (memq a vars) (not (symbol? a)))
+                            *fingerprint-wild* a)))))
+       (cons hkey
+             (map (lambda (a) (fingerprint-expr a (- depth 1) vars))
+                  (cdr e)))))))
+
+;;; The conclusion fingerprint of a (possibly quantified, implicational)
+;;; theorem FORMULA: strip leading FORALLs, peel the IMPLIES chain, fingerprint
+;;; the whole remaining conclusion (KEEPING a top =/IFF as the head, so both
+;;; sides are indexed).  DEPTH defaults to *fingerprint-default-depth*.
+(define (conclusion-fingerprint formula . opt-depth)
+  (let ((depth (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*)))
+    (let-values (((vars core) (strip-foralls (prenex-positive formula))))
+      (fingerprint-expr (peel-implies core) depth vars))))
+
+;;; Render a fingerprint key as f(a,b,...) with `·` for wildcards.
+(define (fingerprint->string key)
+  (cond
+    ((eq? key *fingerprint-wild*) "·")
+    ((symbol? key) (symbol->string key))
+    ((pair? key)
+     (string-append
+       (fingerprint->string (car key))
+       "("
+       (let loop ((as (cdr key)) (first #t) (acc ""))
+         (if (null? as)
+             acc
+             (loop (cdr as) #f
+                   (string-append acc (if first "" ",")
+                                  (fingerprint->string (car as))))))
+       ")"))
+    (else (call-with-output-string (lambda (p) (write key p))))))
+
+;;; REPL helper: show one result's conclusion fingerprint.
+(define (fingerprint-of name . opt-depth)
+  (let* ((thm (lookup-theorem name))
+         (key (apply conclusion-fingerprint thm opt-depth)))
+    (display ";;   ") (display name) (display " : ")
+    (display (fingerprint->string key)) (newline)
+    key))
+
+;;; (fingerprint-index) -- write FINGERPRINT-INDEX.md: bucket every installed
+;;; result by its depth-2 conclusion fingerprint.  Read-only PROTOTYPE, like
+;;; macete-index; nothing about matching or proof search changes.  The console
+;;; summary reports discrimination quality (singleton buckets / biggest piles).
+(define (fingerprint-index . opt-depth)
+  (let* ((depth   (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*))
+         (all     (hash-table-keys *theorem-table*))
+         (buckets (sort (bucket-by
+                          (lambda (n)
+                            (fingerprint->string
+                              (conclusion-fingerprint (lookup-theorem n) depth)))
+                          all)
+                        (lambda (a b)
+                          (let ((la (length (cdr a))) (lb (length (cdr b))))
+                            (if (= la lb)
+                                (string<? (car a) (car b))
+                                (> la lb))))))
+         (singles (length (filter (lambda (b) (= 1 (length (cdr b)))) buckets)))
+         (path    (string-append *prover-dir* "FINGERPRINT-INDEX.md")))
+    (with-output-to-file path
+      (lambda ()
+        (display "# Conclusion fingerprint index\n\n")
+        (display "Auto-generated by `(fingerprint-index)` -- a PROTOTYPE retrieval view.  ")
+        (display "Each installed result is bucketed by the depth-") (display depth)
+        (display " *structural fingerprint* of its conclusion: head functor + ")
+        (display "immediate argument heads, recursively, with `·` for schema ")
+        (display "variables and numerals.  Both sides of a top `=`/`IFF` are kept, ")
+        (display "so the key is the redex skeleton the matcher fires on.  ")
+        (display (length all)) (display " results, ")
+        (display (length buckets)) (display " buckets (")
+        (display singles) (display " singletons).  Read-only.\n\n")
+        (for-each
+          (lambda (b)
+            (let ((key (car b)) (names (sort-syms (cdr b))))
+              (display "## `") (display key) (display "`")
+              (display "  (") (display (length names)) (display ")\n\n")
+              (for-each (lambda (n) (display "- `") (display n) (display "`\n"))
+                        names)
+              (newline)))
+          buckets)))
+    (display ";; fingerprint-index: ") (display (length all))
+    (display " results in ") (display (length buckets))
+    (display " fingerprint buckets (") (display singles)
+    (display " singletons) -> ") (display path) (newline)
+    (display ";; biggest: ")
+    (for-each (lambda (b)
+                (display "`") (display (car b)) (display "`(")
+                (display (length (cdr b))) (display ") "))
+              (list-head buckets (min 12 (length buckets))))
+    (newline)
+    path))
+
+;;; -----------------------------------------------------------------------
 ;;; (structure-index) -- write STRUCTURE-INDEX.md: a navigable, structure-
 ;;; grouped view of the library.  For each structure registered in
 ;;; *structure-table* and each view in *view-as-table*, emit a section with
@@ -966,15 +1100,44 @@
                  (map (lambda (x) (walk x env)) (cdr e)))))))
     (walk expr '())))
 
+;;; In the destructured IS-X body the tuple-length definedness conjunct
+;;;   (= (LENGTH (LIST a mul e inv)) 4)
+;;; is vacuously true -- destructuring already commits to an n-tuple, and the
+;;; n named slots are right there -- so it only adds noise to the display.  We
+;;; drop it from the destructured RENDER (the underlying axiom, where s is an
+;;; opaque variable and the clause is load-bearing, is untouched).  Targeted:
+;;; strips a length-equality only when its argument is the literal destructured
+;;; LIST, so a genuine length constraint elsewhere would survive.
+(define (struct-index--length-conjunct? c)
+  (and (pair? c) (eq? (car c) '=) (= (length c) 3)
+       (let ((side (lambda (x)
+                     (and (pair? x) (eq? (car x) 'LENGTH)
+                          (pair? (cdr x)) (pair? (cadr x))
+                          (eq? (car (cadr x)) 'LIST)))))
+         (or (side (cadr c)) (side (caddr c))))))
+
+(define (struct-index--drop-length-conjuncts expr)
+  (cond
+    ((not (pair? expr)) expr)
+    ((eq? (car expr) 'AND)
+     (let ((kept (filter (lambda (c) (not (struct-index--length-conjunct? c)))
+                         (map struct-index--drop-length-conjuncts (cdr expr)))))
+       (cond ((null? kept)        'TRUTH)
+             ((null? (cdr kept))  (car kept))
+             (else (cons 'AND kept)))))
+    (else (cons (struct-index--drop-length-conjuncts (car expr))
+                (struct-index--drop-length-conjuncts (cdr expr))))))
+
 ;;; The destructured + bound-var-renamed IS-X law for NAME as an s-expr, or
 ;;; #f if NAME isn't a stored FORALL axiom.  Shared by the REPL string form
 ;;; (struct-index--emit-isx-axiom-destructured) and the TeX card form.
 (define (isx-destructured-expr name accessors)
   (let ((f (hash-table-ref/default *theorem-table* name #f)))
     (and f (pair? f) (eq? (car f) 'FORALL)
-         (destructure-isx-expr
-           (rename-bound-vars-off-accessors f accessors)
-           (cadr f) accessors))))
+         (struct-index--drop-length-conjuncts
+           (destructure-isx-expr
+             (rename-bound-vars-off-accessors f accessors)
+             (cadr f) accessors)))))
 
 (define (struct-index--emit-isx-axiom-destructured name accessors)
   (let ((destr (isx-destructured-expr name accessors)))
