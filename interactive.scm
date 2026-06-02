@@ -863,13 +863,65 @@
     (display (fingerprint->string key)) (newline)
     key))
 
+;;; -----------------------------------------------------------------------
+;;; X / X-rev collapse (DISPLAY-ONLY).  install-theorem! (macetes.scm)
+;;; auto-installs a reverse-direction companion `NAME-rev' for every
+;;; symmetric-core (=/IFF/==) theorem -- same fact, flipped sides.  In
+;;; human-facing listings the companion is pure noise (and shows up as the
+;;; =-MIRROR of the base's fingerprint, e.g. `=(mul(one(·),·),·)' vs
+;;; `=(·,mul(one(·),·))').  We suppress `NAME-rev' wherever its base `NAME'
+;;; is present and tag the base `(±)' so the reverse is still discoverable.
+;;; The -rev entries stay installed, matchable, and searchable; only the
+;;; DISPLAY drops them.
+
+;;; Remove ONE `-rev' segment from NAME and return the resulting symbol, or #f
+;;; if NAME has no `-rev' segment.  A segment is `-rev' that is either trailing
+;;; (`foo-rev') or infix-before-a-dash (`foo-rev-bar') -- the latter arises
+;;; because view-specialization appends its own suffix AFTER the auto-companion
+;;; flip, e.g. `abelian-group-mul-comm-rev-normed-ag-as-abelian-group'.
+(define (rev-segment-removed name)
+  (let* ((s (symbol->string name)) (n (string-length s)))
+    (let loop ((i 0))
+      (cond
+        ((> (+ i 4) n) #f)
+        ((and (string=? (substring s i (+ i 4)) "-rev")
+              (or (= (+ i 4) n) (char=? (string-ref s (+ i 4)) #\-)))
+         (string->symbol (string-append (substring s 0 i) (substring s (+ i 4) n))))
+        (else (loop (+ i 1)))))))
+
+;;; #t iff NAME is a `-rev' companion whose de-rev'd base IS installed -- the
+;;; ones safe to hide.  (An orphan companion with no base survives.)
+(define (suppressed-rev? name)
+  (let ((base (rev-segment-removed name)))
+    (and base (hash-table-ref/default *theorem-table* base #f) #t)))
+
+;;; Drop suppressed -rev companions from a list of result names.
+(define (collapse-rev-names names)
+  (filter (lambda (n) (not (suppressed-rev? n))) names))
+
+;;; The set (hash-table base->#t) of base names in NAMES that have at least one
+;;; suppressed `-rev' companion -- exactly the bases to tag `(±)'.  Exact: walks
+;;; the companions and records the base each de-revs to.
+(define (rev-companion-base-set names)
+  (let ((tbl (make-equal-hash-table)))
+    (for-each (lambda (n)
+                (let ((base (rev-segment-removed n)))
+                  (when (and base (hash-table-ref/default *theorem-table* base #f))
+                    (hash-table-set! tbl base #t))))
+              names)
+    tbl))
+
 ;;; (fingerprint-index) -- write FINGERPRINT-INDEX.md: bucket every installed
-;;; result by its depth-2 conclusion fingerprint.  Read-only PROTOTYPE, like
-;;; macete-index; nothing about matching or proof search changes.  The console
-;;; summary reports discrimination quality (singleton buckets / biggest piles).
+;;; result by its depth-N conclusion fingerprint, with X/X-rev companions
+;;; collapsed (base tagged `(±)').  Read-only PROTOTYPE, like macete-index;
+;;; nothing about matching or proof search changes.  The console summary
+;;; reports discrimination quality (singleton buckets / biggest piles).
 (define (fingerprint-index . opt-depth)
   (let* ((depth   (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*))
-         (all     (hash-table-keys *theorem-table*))
+         (full    (hash-table-keys *theorem-table*))
+         (all     (collapse-rev-names full))
+         (folded  (- (length full) (length all)))
+         (tagged  (rev-companion-base-set full))
          (buckets (sort (bucket-by
                           (lambda (n)
                             (fingerprint->string
@@ -893,20 +945,26 @@
         (display "so the key is the redex skeleton the matcher fires on.  ")
         (display (length all)) (display " results, ")
         (display (length buckets)) (display " buckets (")
-        (display singles) (display " singletons).  Read-only.\n\n")
+        (display singles) (display " singletons); ")
+        (display folded) (display " `-rev` companions folded into their base ")
+        (display "(tagged `(±)`).  Read-only.\n\n")
         (for-each
           (lambda (b)
             (let ((key (car b)) (names (sort-syms (cdr b))))
               (display "### `") (display key) (display "`")
               (display "  (") (display (length names)) (display ")\n\n")
-              (for-each (lambda (n) (display "- `") (display n) (display "`\n"))
+              (for-each (lambda (n)
+                          (display "- `") (display n) (display "`")
+                          (when (hash-table-ref/default tagged n #f) (display " (±)"))
+                          (newline))
                         names)
               (newline)))
           buckets)))
     (display ";; fingerprint-index: ") (display (length all))
     (display " results in ") (display (length buckets))
     (display " fingerprint buckets (") (display singles)
-    (display " singletons) -> ") (display path) (newline)
+    (display " singletons, ") (display folded)
+    (display " -rev folded) -> ") (display path) (newline)
     (display ";; biggest: ")
     (for-each (lambda (b)
                 (display "`") (display (car b)) (display "`(")
