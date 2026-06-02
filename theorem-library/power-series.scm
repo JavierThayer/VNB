@@ -190,3 +190,109 @@
    complete (rr-complete), so (S_k) converges -- PS-CONVERGES-AT(coef, x).  A
    candidate to discharge into a formal `proof' later (it needs a finite
    triangle-inequality / abs-of-finsum bound not yet in the library).")
+
+;;; =======================================================================
+;;; Brick 4 -- bare real series, the geometric series, and comparison.
+;;;
+;;; A power series is the series of its term sequence; comparison and the
+;;; geometric majorant are termwise facts about a plain real series Sum_n f(n),
+;;; so we name that bare object and state the two foundational lemmas there.
+;;; (Conceptually the bare series is MORE primitive than the power series;
+;;; it sits here only because power-series.scm was built first.)
+;;;
+;;; SERIES-PARTIAL-SUM(f, k) = Sum_{n<k} f(n)  is just SUM-AG over RR's additive
+;;; group -- the same fold PS-PARTIAL-SUM uses -- so PS-PARTIAL-SUM(coef,x,k)
+;;; equals SERIES-PARTIAL-SUM applied to the term sequence n |-> coef(n) x^n
+;;; (ps-partial-sum-as-series), whence the convergence bridge
+;;; ps-converges-as-series.
+
+;;; -----------------------------------------------------------------------
+;;; The bare series  Sum_n f(n)  and its partial sums.  (Sequence var is `f',
+;;; not `a' -- `a' folds to the carrier accessor `A'.)
+(def-functoid 'SERIES-PARTIAL-SUM '(f k)
+  '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-RING) f k))
+
+(def-predicate 'SERIES-CONVERGES-TO '(f L)
+  '(CONVERGES-TO RR-MS (VNB-LAMBDA k (SERIES-PARTIAL-SUM f k)) L))
+
+(def-predicate 'SERIES-CONVERGES '(f)
+  '(CONVERGES RR-MS (VNB-LAMBDA k (SERIES-PARTIAL-SUM f k))))
+
+;;; -----------------------------------------------------------------------
+;;; Bridge: a power series IS the bare series of its term sequence.
+;;; Both sides unfold to the same SUM-AG, so this is an equality by
+;;; definitional unfolding; asserted + warranted for the library phase.
+(support 'ps-partial-sum-as-series
+  '(FORALL coef
+     (IMPLIES (IN coef (FUN NN RR))
+       (FORALL x
+         (IMPLIES (IN x RR)
+           (FORALL k
+             (IMPLIES (IN k NN)
+               (= (PS-PARTIAL-SUM coef x k)
+                  (SERIES-PARTIAL-SUM (VNB-LAMBDA n (* (coef n) (power x n))) k)))))))))
+
+(warrant! 'ps-partial-sum-as-series 'well-known
+  "Both sides unfold to SUM-AG(RR-additive-AG, n |-> coef(n) x^n, k) -- the
+   PS-PARTIAL-SUM functoid is SERIES-PARTIAL-SUM of the term sequence.  Provable
+   by unfolding the two def-functoids; asserted for now.")
+
+(support 'ps-converges-as-series
+  '(FORALL coef
+     (IMPLIES (IN coef (FUN NN RR))
+       (FORALL x
+         (IMPLIES (IN x RR)
+           (IFF (PS-CONVERGES-AT coef x)
+                (SERIES-CONVERGES (VNB-LAMBDA n (* (coef n) (power x n))))))))))
+
+(warrant! 'ps-converges-as-series 'well-known
+  "Immediate from ps-partial-sum-as-series: the two partial-sum sequences are
+   equal, so one converges in RR-MS iff the other does.")
+
+;;; -----------------------------------------------------------------------
+;;; Geometric series.  Closed-form partial sum (r /= 1):
+;;;   Sum_{n<k} r^n = (1 - r^k) / (1 - r).
+(support 'geometric-partial-sum
+  '(FORALL r
+     (IMPLIES (AND (IN r RR) (NOT (= r 1)))
+       (FORALL k
+         (IMPLIES (IN k NN)
+           (= (SERIES-PARTIAL-SUM (VNB-LAMBDA n (power r n)) k)
+              (* (- 1 (power r k)) (recip (- 1 r)))))))))
+
+(warrant! 'geometric-partial-sum 'well-known
+  "Telescoping: (1-r) Sum_{n<k} r^n = Sum_{n<k}(r^n - r^{n+1}) = 1 - r^k, then
+   divide by 1-r (/= 0).  Induction on k from power-zero/power-succ.")
+
+;;; And the sum, for |r| < 1:  Sum_{n>=0} r^n = 1/(1-r).
+(support 'geometric-series-converges-to
+  '(FORALL r
+     (IMPLIES (AND (IN r RR) (< (abs r) 1))
+       (SERIES-CONVERGES-TO (VNB-LAMBDA n (power r n)) (recip (- 1 r))))))
+
+(warrant! 'geometric-series-converges-to 'informal
+  "For |r|<1, r^k -> 0, so the closed-form partial sum (1 - r^k)/(1-r)
+   (geometric-partial-sum) -> 1/(1-r) in RR-MS.  Needs r^k -> 0 (a separate
+   `power tends to 0 when |base|<1' fact, not yet in the library).")
+
+;;; -----------------------------------------------------------------------
+;;; Comparison test.  If 0 <= f(n) <= g(n) for all n and the dominating series
+;;; Sum g converges, then Sum f converges.
+(support 'comparison-test
+  '(FORALL f
+     (IMPLIES (IN f (FUN NN RR))
+       (FORALL g
+         (IMPLIES (IN g (FUN NN RR))
+           (IMPLIES (AND (FORALL n
+                           (IMPLIES (IN n NN)
+                             (AND (<= 0 (f n)) (<= (f n) (g n)))))
+                         (SERIES-CONVERGES g))
+             (SERIES-CONVERGES f)))))))
+
+(warrant! 'comparison-test 'informal
+  "The partial sums F_k = Sum_{n<k} f(n) are nondecreasing (f >= 0) and bounded
+   above by the limit of G_k = Sum_{n<k} g(n) (since f <= g termwise gives
+   F_k <= G_k <= lim G).  A nondecreasing sequence bounded above converges in
+   RR (order-completeness / monotone convergence), so Sum f converges.  Needs
+   the monotone-convergence theorem on RR, not yet in the library as a named
+   lemma.")
