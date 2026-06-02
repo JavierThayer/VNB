@@ -129,6 +129,11 @@
     ;; Unconditional summability of a normed-AG-valued function (SUMS-TO,
     ;; IS-SUMMABLE, sums-to-unique).  Needs FINSUM + the NORMED-AG view.
     "theorem-library/summability"
+    ;; Real power series  Sum coef(n) x^n  (PS-PARTIAL-SUM via SUM-AG over
+    ;; RR's additive group; PS-CONVERGES-(TO-)AT via CONVERGES on RR-MS).
+    ;; Needs sequences (SUM-AG), views (NORMED-FIELD-ADDITIVE-AG), numeric-
+    ;; instances (RR-RING/RR-MS), number-systems (power), metric-completeness.
+    "theorem-library/power-series"
     ;; Context and proof commands
     "contexts"
     "proof-commands"
