@@ -2583,10 +2583,16 @@ you to discharge with the palette.  This is the workhorse \"use a library
 lemma\" move -- distinct from `b' (vnb-pf-backchain), the primitive
 backchain on a bare implication/assumption.
 
-Two rarer cases need the full form `(bc* 'NAME ((v val)...) h1 ...)': when the
-conclusion leaves a schema variable undetermined, and when you want to script
-the per-hypothesis subproofs.  Type that at the `r' Scratch Pad.  NB: bc*
-cannot match a conclusion whose head is a structure accessor like ((MUL s) x y)."
+This button always sends empty bindings.  If the conclusion leaves a schema
+variable undetermined, pin it from the `r' Scratch Pad with
+`(bc* 'NAME ((v val)...))' -- that still proceeds step by step: it spawns the
+subgoals for you to discharge with the palette.  The further handler form
+`(bc* 'NAME (...) h1 ...)' (one tactic-thunk per hypothesis) is NOT an
+interactive move -- it needs the hypothesis count known up front and is a batch
+convenience for proof FILES like scratch-roadtest.scm; interactively you just
+let this button spawn the subgoals and close each with Assume etc.
+NB: bc* cannot match a conclusion whose head is a structure accessor like
+((MUL s) x y)."
   (interactive
    (list (vnb-launch--read-required
           "Cite lemma -- theorem/axiom name (empty cancels): ")))
