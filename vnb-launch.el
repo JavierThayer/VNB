@@ -2583,10 +2583,10 @@ you to discharge with the palette.  This is the workhorse \"use a library
 lemma\" move -- distinct from `b' (vnb-pf-backchain), the primitive
 backchain on a bare implication/assumption.
 
-Schema vars the conclusion leaves undetermined, and scripted per-hypothesis
-subproofs, need the full form `(bc* 'NAME ((v val)...) h1 ...)' -- type that
-at the `r' Scratch Pad for those rarer cases.  NB: bc* cannot match a conclusion
-whose head is a structure accessor like ((MUL s) x y)."
+Two rarer cases need the full form `(bc* 'NAME ((v val)...) h1 ...)': when the
+conclusion leaves a schema variable undetermined, and when you want to script
+the per-hypothesis subproofs.  Type that at the `r' Scratch Pad.  NB: bc*
+cannot match a conclusion whose head is a structure accessor like ((MUL s) x y)."
   (interactive
    (list (vnb-launch--read-required
           "Cite lemma -- theorem/axiom name (empty cancels): ")))
