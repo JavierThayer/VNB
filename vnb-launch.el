@@ -453,7 +453,7 @@ and Show PSS.  No window split, no raw s-expressions in the REPL."
   (let* ((path (expand-file-name "THEOREMS.md" vnb-launch--dir))
          (buf  (get-buffer-create vnb-theorems-buffer-name)))
     (unless (file-exists-p path)
-      (user-error "THEOREMS.md was not created -- check the *VNB* REPL for errors"))
+      (user-error "THEOREMS.md was not created -- check the Scratch Pad for errors"))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -480,7 +480,7 @@ Browse Library / `d'.  No window split, no raw s-expressions."
   (let* ((path (expand-file-name "DEFINITIONS.md" vnb-launch--dir))
          (buf  (get-buffer-create vnb-definitions-buffer-name)))
     (unless (file-exists-p path)
-      (user-error "DEFINITIONS.md was not created -- check the *VNB* REPL for errors"))
+      (user-error "DEFINITIONS.md was not created -- check the Scratch Pad for errors"))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -507,7 +507,7 @@ indexing by structure).  No window split, no raw s-expressions."
   (let* ((path (expand-file-name "FINGERPRINT-INDEX.md" vnb-launch--dir))
          (buf  (get-buffer-create vnb-fingerprints-buffer-name)))
     (unless (file-exists-p path)
-      (user-error "FINGERPRINT-INDEX.md was not created -- check the *VNB* REPL for errors"))
+      (user-error "FINGERPRINT-INDEX.md was not created -- check the Scratch Pad for errors"))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -567,7 +567,7 @@ way as Browse Library."
   (let* ((path (expand-file-name "PSS.md" vnb-launch--dir))
          (buf  (get-buffer-create vnb-pss-buffer-name)))
     (unless (file-exists-p path)
-      (user-error "PSS.md was not created -- check the *VNB* REPL for errors"))
+      (user-error "PSS.md was not created -- check the Scratch Pad for errors"))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -1759,7 +1759,7 @@ monospace font is installed.")
       ["Backchain..."         vnb-pf-backchain        t]
       ["Focus..."             vnb-pf-focus            t]
       ["QED..."               vnb-pf-qed              t])
-    ["Show REPL (advanced)" vnb-pf-show-repl       t]
+    ["Show Scratch Pad (advanced)" vnb-pf-show-repl t]
     "---"
     ("Display"
       ["Frame Height..."       vnb-ws-set-frame-height   t]
@@ -1955,7 +1955,7 @@ Set to nil to skip color customization.")
 ;;; proof-state update from the prover.  Action buttons / keys for the
 ;;; common tactics; each tactic that takes arguments uses guided
 ;;; prompts (empty input cancels).  The raw `*VNB*' REPL is hidden by
-;;; default; reachable via the VNB → Show REPL menu entry.
+;;; default; reachable via the VNB → Show Scratch Pad menu entry.
 
 (defvar vnb-proof-buffer-name "*VNB Focus*"
   "Name of the Focus Workspace buffer (current sequent + tactic buttons).")
@@ -2082,6 +2082,8 @@ re-querying.")
   (let ((m (make-sparse-keymap)))
     (define-key m "d" 'vnb-pf-direct-inference)
     (define-key m "a" 'vnb-pf-assumption)
+    (define-key m "=" 'vnb-pf-reflexivity)
+    (define-key m "m" 'vnb-pf-rewrite)
     (define-key m "t" 'vnb-pf-theorem)
     (define-key m "i" 'vnb-pf-instantiate)
     (define-key m "w" 'vnb-pf-exists-witness)
@@ -2119,6 +2121,9 @@ re-querying.")
     (insert "  ")
     (vnb-launch--insert-button "Assume" 'vnb-pf-assumption
                                "(ass) close goal by matching an assumption")
+    (insert "  ")
+    (vnb-launch--insert-button "Close (a=a)" 'vnb-pf-reflexivity
+                               "(rfl) close a goal that says a thing equals itself")
     (insert "\n  ")
     (vnb-launch--insert-button "Theorem" 'vnb-pf-theorem
                                "(ta NAME) add named theorem to context")
@@ -2134,6 +2139,9 @@ re-querying.")
     (insert "  ")
     (vnb-launch--insert-button "Cite Lemma" 'vnb-pf-backchain-star
                                "(bc* 'NAME ()) match a named lemma's conclusion to the goal; its hypotheses become subgoals")
+    (insert "  ")
+    (vnb-launch--insert-button "Rewrite" 'vnb-pf-rewrite
+                               "(mac 'NAME) rewrite the goal using a named equation/biconditional rule")
     (insert "  ")
     (vnb-launch--insert-button "Arith" 'vnb-pf-arith
                                "(arith) close a ground arithmetic goal, e.g. 2 + 3 = 5")
@@ -2153,8 +2161,8 @@ re-querying.")
     (vnb-launch--insert-button "Home" 'vnb-launch-workspace
                                "Back to Home Workspace")
     (insert "  ")
-    (vnb-launch--insert-button "REPL" 'vnb-pf-show-repl
-                               "Show the raw *VNB* REPL (advanced)")
+    (vnb-launch--insert-button "Scratch Pad" 'vnb-pf-show-repl
+                               "Show the Scratch Pad: type prover commands by hand (advanced; rarely needed)")
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
@@ -2185,9 +2193,10 @@ re-querying.")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             (concat "  Keys: d direct-inf  a assume  t theorem  "
-                     "i univ-inst  w witness  b bc  B cite-lemma  "
-                     "f focus  q qed  o overview  h home  r REPL  g refresh\n")
+             (concat "  Keys: d direct-inf  a assume  = close(a=a)  "
+                     "m rewrite  t theorem  i univ-inst  w witness  "
+                     "b bc  B cite-lemma  f focus  q qed  o overview  "
+                     "h home  r scratch-pad  g refresh\n")
              'face 'vnb-dim))
     (goto-char (point-min))))
 
@@ -2378,8 +2387,8 @@ Lexical binding makes the closure capture variables from the caller."
     (vnb-launch--insert-button "Refresh" 'vnb-ov-refresh
                                "Repaint the overview")
     (insert "  ")
-    (vnb-launch--insert-button "REPL" 'vnb-pf-show-repl
-                               "Show the raw *VNB* REPL (advanced)")
+    (vnb-launch--insert-button "Scratch Pad" 'vnb-pf-show-repl
+                               "Show the Scratch Pad: type prover commands by hand (advanced; rarely needed)")
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
@@ -2434,7 +2443,7 @@ Lexical binding makes the closure capture variables from the caller."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r REPL  g refresh\n"
+             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r scratch-pad  g refresh\n"
              'face 'vnb-dim))
     (goto-char (point-min))))
 
@@ -2504,6 +2513,20 @@ argument."
   (interactive)
   (vnb-launch--send-tactic "(di)"))
 
+(defun vnb-pf-reflexivity ()
+  "Close a goal of the form (= a a) -- a thing equal to itself.  Wraps (rfl)."
+  (interactive)
+  (vnb-launch--send-tactic "(rfl)"))
+
+(defun vnb-pf-rewrite (name)
+  "Rewrite the current goal using the named rule NAME.  Wraps (mac 'NAME).
+NAME is a theorem/axiom whose core is an equation or biconditional; applying
+it replaces matching pieces of the goal with the other side."
+  (interactive
+   (list (vnb-launch--read-required
+          "Rewrite goal using rule name (empty cancels): ")))
+  (vnb-launch--send-tactic (format "(mac '%s)" (vnb-launch--dequote name))))
+
 (defun vnb-pf-assumption ()
   "Close the current goal if it matches an assumption.  Wraps (ass)."
   (interactive)
@@ -2562,7 +2585,7 @@ backchain on a bare implication/assumption.
 
 Schema vars the conclusion leaves undetermined, and scripted per-hypothesis
 subproofs, need the full form `(bc* 'NAME ((v val)...) h1 ...)' -- type that
-at the `r' REPL for those rarer cases.  NB: bc* cannot match a conclusion
+at the `r' Scratch Pad for those rarer cases.  NB: bc* cannot match a conclusion
 whose head is a structure accessor like ((MUL s) x y)."
   (interactive
    (list (vnb-launch--read-required
@@ -2584,7 +2607,7 @@ A non-positive index cancels."
   (vnb-launch--send-tactic (format "(qed '%s)" name)))
 
 (defun vnb-pf-show-repl ()
-  "Pop to the raw *VNB* REPL as a single full-frame window (advanced).
+  "Pop to the Scratch Pad (the raw *VNB* command window) full-frame (advanced).
 The State buffer's content is already in Focus/Overview, so we don't
 split it in.  Use the VNB menu (or `o' / `f' / `h' from a workspace)
 to navigate back."
