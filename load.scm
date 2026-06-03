@@ -87,6 +87,10 @@
     "theorem-library/diagonalization"
     "structure-library/sequences"
     "structure-library/finsum"
+    ;; FINPROD / PROD-RING: finite product = FINSUM at a multiplicative
+    ;; commutative monoid.  Needs finsum + the COMMUTATIVE-RING-MULTIPLICATIVE-
+    ;; CM view (views.scm, already loaded).
+    "structure-library/finprod"
     ;; PSS result over finite abelian-group sums (proof archived;
     ;; statement lifted as accepted-without-proof support).
     ;; finsum-congruence was here too but was dropped 2026-05-27: it
@@ -122,6 +126,11 @@
     ;; abelian-group finsum lemmas, reusing the same FINSUM functoid.  Needed
     ;; for the unordered RR+* sum (RR+*-ADD-MONOID has no inverses).
     "theorem-library/finsum-comm-monoid"
+    ;; Product-of-sums expansion (warranted PSS tower): set-difference axioms,
+    ;; powerset finiteness + insert-split, the finite-product recurrence
+    ;; (finsum-insert) and PROD-RING's laws, capped by prod-of-sums-expansion.
+    ;; Needs finprod, injection (IMAGE), cardinality, comm-monoid view.
+    "theorem-library/prod-of-sums"
     ;; ESUM: the unordered RR+* sum = sup of finite partial sums over RR+*-
     ;; ADD-MONOID.  Every RR+*-valued f is summable; value is +inf unless the
     ;; partial sums are bounded by a real.  Needs finsum-comm-monoid + RR+*.

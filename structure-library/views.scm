@@ -98,6 +98,18 @@
   'INTEGRAL-DOMAIN '(A MUL ONE)
   'MONOID          '(A MUL E))
 
+;;; A COMMUTATIVE ring's multiplicative structure (A, MUL, ONE) is a
+;;; *commutative* monoid -- the comm-ring axiom is exactly MUL-commutativity.
+;;; This is the view the finite PRODUCT rides on: PROD-RING(R,f,X) =
+;;; FINSUM(COMMUTATIVE-RING-MULTIPLICATIVE-CM(R), f, X) (finprod.scm), so the
+;;; whole finsum-comm-monoid kit (closure / permutation-invariance /
+;;; enumeration-independence) auto-specializes to commutative-ring products.
+;;; Distinct from COMMUTATIVE-RING-MULTIPLICATIVE-MONOID above, which lands in
+;;; bare MONOID (no commutativity) -- this one reaches COMM-MONOID.
+(def-view-as 'COMMUTATIVE-RING-MULTIPLICATIVE-CM
+  'COMMUTATIVE-RING '(A MUL ONE)
+  'COMM-MONOID      '(A MUL E))
+
 ;;; FIELD now carries NON-ZERO and INV as built-in slots (see field.scm
 ;;; reshape), so its nonzero elements form a genuine group, not just a
 ;;; monoid.  This replaces the old FIELD-MULTIPLICATIVE-MONOID view.
