@@ -399,6 +399,16 @@ buffer, which comint updates regardless of how accept-process-output works."
      "Exists witness: to prove (FORSOME x p), prove p[x/TERM].")
     ("bc"      "(bc FORMULA)"
      "Backchain on FORMULA = (IMPLIES p goal): generate subgoal p.")
+    ("bc*"     "(bc* 'NAME (BINDINGS) h1 h2 ...)"
+     "Matching backchain on a NAMED theorem/axiom (the workhorse for citing a
+  lemma).  Peels NAME's leading FORALL/IMPLIES and matches its CONCLUSION
+  against the goal, then spawns one subgoal per lemma hypothesis.
+    (bc* 'thm)                  -- conclusion fully determines the instance
+    (bc* 'thm ((v val) ...))    -- supply schema vars the conclusion omits
+    (bc* 'thm () h1 h2 ...)     -- hk discharges the k-th hypothesis; (ass)
+                                   closes one already in the assumptions.
+  Orchestrates ta/inst/cut/bc/assumption -- not a primitive.  Cannot match a
+  conclusion whose head is a structure accessor like ((MUL s) x y).")
     ("wk"      "(wk FORMULA)"
      "Weaken: remove FORMULA from the current assumptions.")
     ("ta"      "(ta 'NAME)"
@@ -552,7 +562,7 @@ followed by the result — exactly like eval-print-last-sexp but for VNB."
   (interactive)
   (let* ((end   (point))
          (start (save-excursion
-                  (skip-chars-backward "[:alnum:]_-?!")
+                  (skip-chars-backward "[:alnum:]_-?!*")
                   (point)))
          (prefix (buffer-substring-no-properties start end))
          (candidates (all-completions prefix vnb-commands-alist)))
