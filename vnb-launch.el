@@ -2086,6 +2086,7 @@ re-querying.")
     (define-key m "i" 'vnb-pf-instantiate)
     (define-key m "w" 'vnb-pf-exists-witness)
     (define-key m "b" 'vnb-pf-backchain)
+    (define-key m "B" 'vnb-pf-backchain-star)
     (define-key m "c" 'vnb-pf-arith)
     (define-key m "s" 'vnb-pf-ring-simplify)
     (define-key m "f" 'vnb-pf-focus)
@@ -2130,6 +2131,9 @@ re-querying.")
     (insert "\n  ")
     (vnb-launch--insert-button "Backchain" 'vnb-pf-backchain
                                "(bc FORMULA) backchain on an implication")
+    (insert "  ")
+    (vnb-launch--insert-button "Cite Lemma" 'vnb-pf-backchain-star
+                               "(bc* 'NAME ()) match a named lemma's conclusion to the goal; its hypotheses become subgoals")
     (insert "  ")
     (vnb-launch--insert-button "Arith" 'vnb-pf-arith
                                "(arith) close a ground arithmetic goal, e.g. 2 + 3 = 5")
@@ -2182,7 +2186,7 @@ re-querying.")
     (insert "\n\n")
     (insert (propertize
              (concat "  Keys: d direct-inf  a assume  t theorem  "
-                     "i univ-inst  w witness  b bc  "
+                     "i univ-inst  w witness  b bc  B cite-lemma  "
                      "f focus  q qed  o overview  h home  r REPL  g refresh\n")
              'face 'vnb-dim))
     (goto-char (point-min))))
@@ -2547,6 +2551,23 @@ in which case it is sent as a bare index, e.g. (bc 2)."
      (if (string-match-p "\\`[0-9]+\\'" arg)
          (format "(bc %s)" arg)
        (format "(bc %S)" arg)))))
+
+(defun vnb-pf-backchain-star (name)
+  "Cite the NAMED theorem/axiom NAME against the current goal.
+Wraps (bc* 'NAME ()): peels NAME's leading FORALL/IMPLIES and matches its
+CONCLUSION to the goal, then spawns one subgoal per hypothesis of NAME for
+you to discharge with the palette.  This is the workhorse \"use a library
+lemma\" move -- distinct from `b' (vnb-pf-backchain), the primitive
+backchain on a bare implication/assumption.
+
+Schema vars the conclusion leaves undetermined, and scripted per-hypothesis
+subproofs, need the full form `(bc* 'NAME ((v val)...) h1 ...)' -- type that
+at the `r' REPL for those rarer cases.  NB: bc* cannot match a conclusion
+whose head is a structure accessor like ((MUL s) x y)."
+  (interactive
+   (list (vnb-launch--read-required
+          "Cite lemma -- theorem/axiom name (empty cancels): ")))
+  (vnb-launch--send-tactic (format "(bc* '%s ())" (vnb-launch--dequote name))))
 
 (defun vnb-pf-focus (n)
   "Switch focus to the N-th open goal (1-based).  Wraps (focus N).
