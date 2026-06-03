@@ -147,6 +147,9 @@
     "contexts"
     "proof-commands"
     "interactive"
+    ;; Warrant / proof-debt ledger: records each qed proof's bill of asserted
+    ;; facts it rests on (loads right after interactive so qed can call it).
+    "proof-debt"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Assumption-pattern scanner for forward-move discovery

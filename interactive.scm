@@ -1862,6 +1862,10 @@
       (vnb--require-proof!)
       (cmd-qed *ps* name)
       (save-proof name)
+      ;; Ledger: compute and memoize this proof's bill of asserted debt from
+      ;; the just-saved script, then report `proven modulo {...}'.  (Defined
+      ;; in proof-debt.scm, loaded right after this file.)
+      (announce-proof-debt name (record-proof-debt! name))
       name)))
 
 ;;; -----------------------------------------------------------------------
