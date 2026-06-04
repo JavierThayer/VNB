@@ -140,6 +140,7 @@
     (define-key m "m" 'vnb-structure-manual)
     (define-key m "G" 'vnb-structure-graph)
     (define-key m "e" 'vnb-ws-examples)
+    (define-key m "S" 'vnb-ws-scratch-workspace)
     m)
   "Keymap for the VNB workspace buffer.")
 
@@ -284,6 +285,12 @@
     (insert (propertize "       worked example proofs (step-through)\n\n"
                         'face 'vnb-body))
     (insert "  ")
+    (vnb-launch--insert-button "Scratch Workspace"
+                               'vnb-ws-scratch-workspace
+                               "Lisp-interaction sheet: C-j sends the sexp (or region as a block) to the prover and inserts the result")
+    (insert (propertize " C-j evaluates a sexp / region into the prover\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
     (vnb-launch--insert-button "Quit"
                                'vnb-ws-quit
                                "Exit VNB")
@@ -300,7 +307,8 @@
                      "        d describe structure  |  D definitions  |  "
                      "m manual\n"
                      "        G structure graph  |  e examples  |  "
-                     "g refresh  |  q quit\n")
+                     "S scratch workspace\n"
+                     "        g refresh  |  q quit\n")
              'face 'vnb-dim))
     (insert "\n")
     (insert (propertize "  Status: " 'face 'vnb-body))
@@ -2096,6 +2104,7 @@ re-querying.")
     (define-key m "h" 'vnb-launch-workspace)
     (define-key m "o" 'vnb-launch--show-overview-workspace)
     (define-key m "r" 'vnb-pf-show-repl)
+    (define-key m "S" 'vnb-ws-scratch-workspace)
     (define-key m "g" 'vnb-pf-refresh)
     m)
   "Keymap for the Focus Workspace buffer.")
@@ -2163,6 +2172,9 @@ re-querying.")
     (insert "  ")
     (vnb-launch--insert-button "Scratch Pad" 'vnb-pf-show-repl
                                "Show the Scratch Pad: type prover commands by hand (advanced; rarely needed)")
+    (insert "  ")
+    (vnb-launch--insert-button "Scratch Workspace" 'vnb-ws-scratch-workspace
+                               "Lisp-interaction sheet: C-j sends the sexp (or region as a block) to the prover and inserts the result")
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
@@ -2196,7 +2208,7 @@ re-querying.")
              (concat "  Keys: d direct-inf  a assume  = close(a=a)  "
                      "m rewrite  t theorem  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
-                     "h home  r scratch-pad  g refresh\n")
+                     "h home  r scratch-pad  S scratch-workspace  g refresh\n")
              'face 'vnb-dim))
     (goto-char (point-min))))
 
@@ -2338,6 +2350,7 @@ filter before this hook fires."
     (define-key m "f" 'vnb-launch--show-proof-workspace)
     (define-key m "h" 'vnb-launch-workspace)
     (define-key m "r" 'vnb-pf-show-repl)
+    (define-key m "S" 'vnb-ws-scratch-workspace)
     (define-key m "g" 'vnb-ov-refresh)
     (define-key m "n" 'vnb-ov-next-goal)
     (define-key m "p" 'vnb-ov-prev-goal)
@@ -2389,6 +2402,9 @@ Lexical binding makes the closure capture variables from the caller."
     (insert "  ")
     (vnb-launch--insert-button "Scratch Pad" 'vnb-pf-show-repl
                                "Show the Scratch Pad: type prover commands by hand (advanced; rarely needed)")
+    (insert "  ")
+    (vnb-launch--insert-button "Scratch Workspace" 'vnb-ws-scratch-workspace
+                               "Lisp-interaction sheet: C-j sends the sexp (or region as a block) to the prover and inserts the result")
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
@@ -2443,7 +2459,7 @@ Lexical binding makes the closure capture variables from the caller."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r scratch-pad  g refresh\n"
+             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r scratch-pad  S scratch-workspace  g refresh\n"
              'face 'vnb-dim))
     (goto-char (point-min))))
 
@@ -2623,6 +2639,16 @@ to navigate back."
     (delete-other-windows)
     (switch-to-buffer repl)
     (goto-char (point-max))))
+
+(defun vnb-ws-scratch-workspace ()
+  "Open the Scratch Workspace: a lisp-interaction-style sheet for VNB.
+Like the Emacs *scratch* buffer, but \\<vnb-command-mode-map>\\[vnb-command-eval-print]
+sends the S-expression before point — or, with a region active, the region
+as a (begin ...) block — to the running prover and inserts the result on the
+next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (vnb-command-buffer))
 
 ;;; Subscribe to state updates and to error events from the prover.
 (add-hook 'vnb-state-update-hook 'vnb-launch--on-state-update)

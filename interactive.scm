@@ -173,6 +173,66 @@
 (define (tfi3)  (vnb--run! 'tfi3  '()    (lambda () (cmd-tfi3 *ps*))))
 (define (ni)    (vnb--run! 'ni    '()    (lambda () (cmd-nn-induction *ps*))))
 
+;;; -----------------------------------------------------------------------
+;;; goal-status / refresh-status: one-line proof-state summaries for the
+;;; Scratch Workspace, which plunks them as a ;; comment after a command
+;;; block (whose Scheme return value is irrelevant -- the side effect on
+;;; *ps* is what matters).
+
+(define (goal-status)
+  (cond
+    ((not *ps*)          "not applicable")
+    ((proof-done? *ps*)  "done")
+    (else
+     (let ((n (length (proof-open-goals *ps*))))
+       (string-append (number->string n)
+                      (if (= n 1) " open goal" " open goals"))))))
+
+;; Refresh the *VNB State* buffer (via show) and return the summary string.
+;; The Scratch Workspace calls this after running a command block under
+;; *vnb-quiet*, so the intermediate state dumps don't pollute the captured
+;; value; the trailing show updates the State pane exactly once.
+(define (refresh-status)
+  (show)
+  (goal-status))
+
+;;; -----------------------------------------------------------------------
+;;; Tacticals.  A proof command reports success by REPLACING *ps* with a
+;;; fresh object; both soft and hard failures leave *ps* eq?-identical.  So
+;;; "did it make progress?" is exactly (not (eq? *ps* before)).  These ride
+;;; that invariant -- a command's Scheme return value is irrelevant.
+
+;; REPEAT t -- run thunk t until it stops changing *ps* (capped at CAP, default
+;; 1000).  Returns nothing useful; the resulting proof state is the point.
+;; "keep doing di until it stops" is just (repeat di).  Because begin is
+;; Scheme's progn, regionifying several commands in the Scratch Workspace and
+;; C-j is the explicit-count cousin of this.
+(define (repeat thunk #!optional cap)
+  (let ((cap (if (default-object? cap) 1000 cap)))
+    (let loop ((n 0))
+      (when (< n cap)
+        (let ((before *ps*))
+          (thunk)
+          (unless (eq? *ps* before) (loop (+ n 1))))))))
+
+;; ORELSE t1 t2 ... -- run thunks in order, stop at the first that changes
+;; *ps*.  Returns #t if one applied, #f if none did.  Compose with repeat:
+;;   (repeat (lambda () (orelse di ass)))   ; saturate, closing goals as they fall
+(define (orelse . thunks)
+  (let loop ((ts thunks))
+    (and (pair? ts)
+         (let ((before *ps*))
+           ((car ts))
+           (if (eq? *ps* before) (loop (cdr ts)) #t)))))
+
+;; QUIETLY t -- run thunk t with show output suppressed; returns t's value.
+(define (quietly thunk)
+  (let ((saved *vnb-quiet*))
+    (dynamic-wind
+      (lambda () (set! *vnb-quiet* #t))
+      thunk
+      (lambda () (set! *vnb-quiet* saved)))))
+
 (define (ai f)
   (vnb--run! 'ai (list f)
              (lambda ()

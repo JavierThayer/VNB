@@ -526,25 +526,75 @@ buffer, which comint updates regardless of how accept-process-output works."
 ;;; last S-expression to the VNB prover via vnb-eval-string and inserts
 ;;; the result below point.
 
+(defun vnb--no-value-p (result)
+  "Non-nil if RESULT from `vnb-eval-string' carries no meaningful value.
+Proof commands return unspecified / no value (\";Unspecified return value\",
+\"No return value\"); the side effect on the proof state is what matters, so
+these get a state-summary comment instead of a raw value."
+  (let ((r (vnb--trim (or result ""))))
+    (or (string= r "")
+        (string= r "No return value")
+        (string-prefix-p ";" r))))
+
+(defun vnb--unquote (s)
+  "Strip one leading and trailing double quote from Scheme string literal S."
+  (let ((s (vnb--trim (or s ""))))
+    (if (and (>= (length s) 2)
+             (eq (aref s 0) ?\")
+             (eq (aref s (1- (length s))) ?\"))
+        (substring s 1 (1- (length s)))
+      s)))
+
 (defun vnb-command-eval-print ()
-  "Send the S-expression before point to the VNB prover; insert the result.
-Finds the last complete S-expression ending at point (or before any trailing
-whitespace), sends it to the running VNB process, then inserts a newline
-followed by the result — exactly like eval-print-last-sexp but for VNB."
+  "Evaluate VNB code and insert the result, like \\[eval-print-last-sexp].
+With an active region, send the region as a block: it is wrapped in
+\(begin ...) so it yields the value of its last expression (begin is
+Scheme's progn).  Otherwise send the single S-expression ending at point.
+
+The block runs with prover state output suppressed (so command state dumps
+do not pollute the captured value), then the result is inserted on a fresh
+line just after the evaluated text — never at the end of the buffer:
+ * a real value (formula, number, …) is inserted raw;
+ * a side-effecting proof command (no useful value) gets a one-line state
+   summary as a ;; comment, e.g. `;; => 2 open goals' or `;; => done',
+   and the *VNB State* pane is refreshed once.
+Point is left after the inserted text."
   (interactive)
-  (let* ((end   (save-excursion (skip-chars-backward " \t\n") (point)))
-         (start (save-excursion
-                  (goto-char end)
+  (let (expr insert-at)
+    (if (use-region-p)
+        (let ((beg (region-beginning))
+              (end (region-end)))
+          (setq expr (concat "(begin "
+                             (vnb--trim (buffer-substring-no-properties beg end))
+                             ")")
+                insert-at end)
+          (deactivate-mark))
+      (let* ((end   (save-excursion (skip-chars-backward " \t\n") (point)))
+             (start (save-excursion
+                      (goto-char end)
+                      (condition-case nil
+                          (progn (backward-sexp 1) (point))
+                        (error (point-min))))))
+        (setq expr (vnb--trim (buffer-substring-no-properties start end))
+              insert-at end)))
+    ;; Suppress show output so a command's state dump does not get captured as
+    ;; its "value"; capture the clean value; restore.
+    (vnb-eval-string "(set! *vnb-quiet* #t)")
+    (let ((result (condition-case err
+                      (vnb-eval-string expr)
+                    (error (format "(error: %s)" (error-message-string err))))))
+      (vnb-eval-string "(set! *vnb-quiet* #f)")
+      (goto-char insert-at)
+      (unless (bolp) (insert "\n"))
+      (if (vnb--no-value-p result)
+          ;; Side-effecting command: refresh the State pane and annotate with
+          ;; a one-line summary instead of the irrelevant Scheme value.
+          (insert ";; ⇒ "
                   (condition-case nil
-                      (progn (backward-sexp 1) (point))
-                    (error (point-min)))))
-         (expr   (vnb--trim (buffer-substring-no-properties start end)))
-         (result (condition-case err
-                     (vnb-eval-string expr)
-                   (error (format "(error: %s)" (error-message-string err))))))
-    (goto-char (point-max))
-    (unless (bolp) (insert "\n"))
-    (insert result "\n")))
+                      (vnb--unquote (vnb-eval-string "(refresh-status)"))
+                    (error "done"))
+                  "\n")
+        (insert result "\n")))))
 
 (defun vnb-command-send-buffer ()
   "Send the entire buffer content to the VNB prover."
@@ -612,11 +662,15 @@ If the prover is not running, offer to start it with M-x vnb."
       (unless (eq major-mode 'vnb-command-mode)
         (vnb-command-mode)
         (insert "\
-;; VNB Commands buffer -- like *scratch* but C-j sends to the VNB prover.
+;; VNB Scratch Workspace -- like *scratch* but C-j sends to the VNB prover.
 ;; Start the prover first with M-x vnb if it is not already running.
 ;;
-;; C-j        send last S-expression to VNB, insert result here
-;; C-c C-c    send entire buffer
+;; C-j        send the S-expression before point to VNB, insert result below;
+;;            with a region active, send the region as a (begin ...) block
+;;            (begin is Scheme's progn).  A real value (formula, number) is
+;;            inserted raw; a side-effecting command gets a ;; state summary,
+;;            e.g.  ;; => 2 open goals.  Tacticals: (repeat di), (orelse di ass)
+;; C-c C-c    send the entire buffer as one block
 ;; TAB        complete command name
 ;; C-c C-d    describe command at point
 ;; C-c C-s    refresh *VNB State* proof-state buffer
