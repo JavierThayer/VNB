@@ -295,10 +295,16 @@ Left window: *VNB* REPL.  Right window: *VNB State* proof state."
 ;;; Synchronous eval: send expression, wait for next REPL prompt
 
 (defun vnb--trim (str)
-  "Strip leading and trailing whitespace from STR."
-  (when (string-match "^[ \t\n\r]+" str)
+  "Strip leading and trailing whitespace from STR.
+Anchored with \\=\\` and \\=\\' (string start/end), NOT ^/$: in Emacs regexp
+^ also matches after every newline, so on a MULTI-LINE form ^[ \t\n\r]+ would
+match the indentation at the start of line 2 and substring away everything
+before it -- truncating e.g. `(sp (make-wff '(FORALL R ...' down to the bare
+inner `(FORALL f ...)', which then evaluates R and raises `Unbound variable:
+r'.  That was the multi-line Scratch Workspace bug."
+  (when (string-match "\\`[ \t\n\r]+" str)
     (setq str (substring str (match-end 0))))
-  (when (string-match "[ \t\n\r]+$" str)
+  (when (string-match "[ \t\n\r]+\\'" str)
     (setq str (substring str 0 (match-beginning 0))))
   str)
 
@@ -589,11 +595,46 @@ these get a state-summary comment instead of a raw value."
         (substring s 1 (1- (length s)))
       s)))
 
+(defun vnb--toplevel-sexp-bounds (pos)
+  "Return (START . END) for the S-expression to send for a C-j at POS.
+If POS is inside one or more lists, the OUTERMOST enclosing top-level form
+is returned -- so a C-j anywhere inside a multi-line `(sp (make-wff '...))'
+sends the whole quoted goal, never a bare inner sub-form (which would
+evaluate symbols like R and raise `Unbound variable: r').  If POS is between
+forms, the sexp ending at POS (skipping trailing whitespace) is used, so a
+plain `(di)' on its own still works.  Returns nil inside a string/comment."
+  (save-excursion
+    ;; Force lazy syntax-propertize to run first: on a freshly-typed buffer the
+    ;; FIRST parse-partial-sexp otherwise mis-parses (quote/paren syntax not yet
+    ;; applied), mis-locating the enclosing form and grabbing a bare inner
+    ;; sub-form -> `Unbound variable: r'.  Parse from BOB uncached so an edited
+    ;; or rebuilt buffer cannot return a stale syntax-ppss result either.
+    (syntax-propertize (point-max))
+    (let* ((ppss  (parse-partial-sexp (point-min) pos))
+           (opens (nth 9 ppss)))
+      (cond
+        ((nth 8 ppss) nil)                       ; inside string or comment
+        (opens                                   ; inside a list: outermost form
+         (let ((start (apply #'min opens)))      ; smallest pos = outermost paren
+           (goto-char start)
+           (condition-case nil
+               (progn (forward-sexp 1) (cons start (point)))
+             (error nil))))
+        (t                                       ; between forms: sexp before POS
+         (let* ((end   (progn (goto-char pos) (skip-chars-backward " \t\n") (point)))
+                (start (condition-case nil
+                           (progn (goto-char end) (backward-sexp 1) (point))
+                         (error nil))))
+           (and start (cons start end))))))))
+
 (defun vnb-command-eval-print ()
   "Evaluate VNB code and insert the result, like \\[eval-print-last-sexp].
 With an active region, send the region as a block: it is wrapped in
 \(begin ...) so it yields the value of its last expression (begin is
-Scheme's progn).  Otherwise send the single S-expression ending at point.
+Scheme's progn) -- use this for multi-command tactical blocks such as
+\(di)(di)(di).  Otherwise send the whole top-level S-expression that point
+is in (or the one ending at point), so a C-j anywhere inside a multi-line
+goal sends the entire quoted form.
 
 The block runs with prover state output suppressed (so command state dumps
 do not pollute the captured value), then the result is inserted on a fresh
@@ -613,14 +654,11 @@ Point is left after the inserted text."
                              ")")
                 insert-at end)
           (deactivate-mark))
-      (let* ((end   (save-excursion (skip-chars-backward " \t\n") (point)))
-             (start (save-excursion
-                      (goto-char end)
-                      (condition-case nil
-                          (progn (backward-sexp 1) (point))
-                        (error (point-min))))))
-        (setq expr (vnb--trim (buffer-substring-no-properties start end))
-              insert-at end)))
+      (let ((b (vnb--toplevel-sexp-bounds (point))))
+        (unless b
+          (error "Nothing to send: place point in or after a VNB expression"))
+        (setq expr (vnb--trim (buffer-substring-no-properties (car b) (cdr b)))
+              insert-at (cdr b))))
     ;; Suppress show output so a command's state dump does not get captured as
     ;; its "value"; capture the clean value; restore.
     (vnb-eval-string "(set! *vnb-quiet* #t)")
