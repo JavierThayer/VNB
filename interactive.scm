@@ -22,8 +22,21 @@
 
 (define *proof-script* '())
 
+;; True while replay-proof is re-running a saved script: suppresses recording
+;; so re-execution (incl. orchestrators like bc* that re-run sub-commands)
+;; does not corrupt *proof-script*.
+(define *replaying?* #f)
+
 (define (record-cmd! name args)
-  (set! *proof-script* (append *proof-script* (list (cons name args)))))
+  (unless *replaying?*
+    (set! *proof-script* (append *proof-script* (list (cons name args))))))
+
+;; The raw goal formula of the current proof (set by sp), so an emitted script
+;; can be wrapped as a standalone (sp (make-wff '...)) ... (qed 'name) block.
+(define *current-goal* #f)
+
+;; Completed proofs this session: list of (name goal script), appended at qed.
+(define *session-log* '())
 
 (define *proof-script-table* (make-equal-hash-table))
 
@@ -133,6 +146,7 @@
            (*skip-proofs-cont* 'skipped)))
         (else
          (set! *proof-script* '())
+         (set! *current-goal* (wff-formula wic))
          (set! *ps* (start-proof wic))
          (show))))))
 
@@ -386,7 +400,7 @@
                 #f)
                (else
                 (let ((gs (bc*--drive! name thm subst)))
-                  (record-cmd! 'bc* (list name))
+                  (record-cmd! 'bc* (list name bindings))
                   gs))))))))))
 
 ;; Run bc* for `name` with `bindings` (alist).  On success returns the list
@@ -1931,6 +1945,9 @@
       (vnb--require-proof!)
       (cmd-qed *ps* name)
       (save-proof name)
+      (set! *session-log*
+            (append *session-log*
+                    (list (list name *current-goal* *proof-script*))))
       ;; Ledger: compute and memoize this proof's bill of asserted debt from
       ;; the just-saved script, then report `proven modulo {...}'.  (Defined
       ;; in proof-debt.scm, loaded right after this file.)
@@ -1950,13 +1967,14 @@
       (vnb--require-proof!)
       (let ((script (lookup-proof name))
             (subst  (if (null? maybe-subst) '() (car maybe-subst))))
-        (for-each (lambda (entry)
-                    (let ((cmd-name (car entry))
-                          (args     (cdr entry)))
-                      (apply-recorded-cmd! cmd-name
-                                           (map (lambda (a) (replay--subst-args subst a))
-                                                args))))
-                  script)
+        (fluid-let ((*replaying?* #t))
+          (for-each (lambda (entry)
+                      (let ((cmd-name (car entry))
+                            (args     (cdr entry)))
+                        (apply-recorded-cmd! cmd-name
+                                             (map (lambda (a) (replay--subst-args subst a))
+                                                  args))))
+                    script))
         (show)))))
 
 (define (replay--subst-args subst expr)
@@ -2021,10 +2039,95 @@
       ((focus)  (focus-on *ps*
                           (list-ref (proof-open-goals *ps*)
                                     (- (car args) 1))))
+      ;; bc* re-derives by re-matching the conclusion (and any recorded
+      ;; bindings) against the current goal, mutating *ps* in place; return
+      ;; *ps* so the uniform (set! *ps* result) below is a no-op.  Faithful for
+      ;; (bc* 'n) and (bc* 'n ((v val))); the hyp-discharge form is not.
+      ((bc*)    (let ((gs (bc*-run! (car args)
+                                    (if (pair? (cdr args)) (cadr args) '()))))
+                  (if (list? gs)
+                      *ps*
+                      (error "replay: bc* failed to re-apply" (car args)))))
       (else (error "replay: unknown recorded command" name)))))
     (if (vnb-warning? result)
         (error "replay: command failed" name (vnb-warning-message result))
         (set! *ps* result))))
+
+;;; -----------------------------------------------------------------------
+;;; Emit a recorded proof script as readable, re-runnable command forms.
+;;;
+;;; A tactical like (repeat di) was already flattened into its primitive steps
+;;; at record time, so the emitted script is in terms of kernel-ish commands
+;;; and does NOT depend on repeat/orelse existing.  bc* stays as one entry and
+;;; re-derives on replay.  Known gaps (NOT step-recorded, so an emitted script
+;;; may under-represent them): the (bc* 'n () h ...) hyp-discharge form and
+;;; (ass-all).  The exact, guaranteed re-execution path is (replay-proof name);
+;;; the emitted text is the human-readable / editable form.
+
+;; Quote data args (symbols, lists) so the printed form re-reads; leave
+;; self-evaluating args (numbers, strings, booleans) bare.
+(define (script--emit-arg a)
+  (if (or (number? a) (string? a) (boolean? a) (char? a))
+      a
+      (list 'quote a)))
+
+(define (proof-script->forms script)
+  (map (lambda (entry)
+         (cons (car entry) (map script--emit-arg (cdr entry))))
+       script))
+
+(define (script--write-forms port script)
+  (for-each (lambda (form) (write form port) (newline port))
+            (proof-script->forms script)))
+
+;; Emit one (sp ...) <commands> (qed 'name) block to PORT.
+(define (script--write-block port name goal script)
+  (when goal
+    (write `(sp (make-wff (quote ,goal))) port) (newline port))
+  (script--write-forms port script)
+  (when name
+    (write `(qed (quote ,name)) port) (newline port)))
+
+;; Print the current proof script (commands since the last sp) to the console.
+(define (dump-proof-script)
+  (let ((n (length *proof-script*)))
+    (display ";; --- proof script: ")
+    (display n) (display (if (= n 1) " step ---" " steps ---")) (newline)
+    (script--write-forms (current-output-port) *proof-script*)
+    (display ";; --- end ---") (newline)))
+
+;; Write the current proof script to FILE as a standalone, re-loadable block:
+;; (sp (make-wff '<goal>)) ... [ (qed 'NAME) ].  NAME optional.
+(define (write-proof-script filename #!optional name)
+  (let ((nm (if (default-object? name) #f name)))
+    (call-with-output-file filename
+      (lambda (port)
+        (display ";; VNB proof script -- auto-emitted.  Re-load to replay.\n" port)
+        (script--write-block port nm *current-goal* *proof-script*))))
+  filename)
+
+;; Print every proof completed this session (since load) as a sequence of
+;; (sp ...) ... (qed 'name) blocks -- the whole session as one big script.
+(define (dump-session)
+  (if (null? *session-log*)
+      (begin (display ";; (no proofs completed this session)") (newline))
+      (for-each
+       (lambda (rec)
+         (script--write-block (current-output-port) (car rec) (cadr rec) (caddr rec))
+         (newline))
+       *session-log*)))
+
+;; Write the whole session (all completed proofs, in order) to FILE.
+(define (write-session filename)
+  (call-with-output-file filename
+    (lambda (port)
+      (display ";; VNB session script -- all proofs completed this session.\n" port)
+      (for-each
+       (lambda (rec)
+         (script--write-block port (car rec) (cadr rec) (caddr rec))
+         (newline port))
+       *session-log*)))
+  filename)
 
 ;;; -----------------------------------------------------------------------
 ;;; Multi-variable quantification expanders
