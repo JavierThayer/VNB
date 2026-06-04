@@ -27,6 +27,12 @@
 ;; does not corrupt *proof-script*.
 (define *replaying?* #f)
 
+;; While bc*-dispatch is committing a hyp-discharge bc*, this holds the QUOTED
+;; handler forms (e.g. ((ass) (ass) (ass))) so bc*--attempt can record them as
+;; part of the single bc* entry -- (bc* name bindings . forms) -- instead of
+;; the handlers landing as separate flattened steps after it.
+(define *bc*-handler-forms* '())
+
 (define (record-cmd! name args)
   (unless *replaying?*
     (set! *proof-script* (append *proof-script* (list (cons name args))))))
@@ -400,7 +406,10 @@
                 #f)
                (else
                 (let ((gs (bc*--drive! name thm subst)))
-                  (record-cmd! 'bc* (list name bindings))
+                  ;; Record name + bindings + any hyp-discharge handler forms as
+                  ;; ONE entry: (bc* name bindings . forms).  forms is '() for the
+                  ;; bc*-apply path, so this stays (bc* name bindings) there.
+                  (record-cmd! 'bc* (cons name (cons bindings *bc*-handler-forms*)))
                   gs))))))))))
 
 ;; Run bc* for `name` with `bindings` (alist).  On success returns the list
@@ -424,23 +433,30 @@
     gs))
 
 ;; (bc* 'name ((v val) ...) h1 h2 ...) : run hk focused on the k-th subgoal.
-(define (bc*-dispatch name bindings . thunks)
-  (let ((gs (bc*-run! name bindings)))
-    (cond
-      ((not (list? gs)) #f)              ; soft failure, already reported
-      ((not (= (length gs) (length thunks)))
-       (display ";VNB warning: bc*: ")
-       (write (length thunks))
-       (display " handler(s) but ")
-       (write (length gs))
-       (display " subgoal(s) from ")
-       (display name) (newline))
-      (else
-       (for-each (lambda (g th)
-                   (set-proof-state-focus! *ps* g)
-                   (th))
-                 gs thunks)
-       (show)))))
+;; Each handler arrives as a (FORM THUNK) pair from the bc* macro: FORM is the
+;; quoted handler syntax (recorded into the bc* entry so the script re-nests),
+;; THUNK runs it.  The handler runs with recording suppressed so it does NOT
+;; also land as a separate flattened step.
+(define (bc*-dispatch name bindings . handlers)
+  (let ((forms  (map car  handlers))
+        (thunks (map cadr handlers)))
+    (fluid-let ((*bc*-handler-forms* forms))
+      (let ((gs (bc*-run! name bindings)))   ; records (bc* name bindings . forms)
+        (cond
+          ((not (list? gs)) #f)              ; soft failure, already reported
+          ((not (= (length gs) (length thunks)))
+           (display ";VNB warning: bc*: ")
+           (write (length thunks))
+           (display " handler(s) but ")
+           (write (length gs))
+           (display " subgoal(s) from ")
+           (display name) (newline))
+          (else
+           (for-each (lambda (g th)
+                       (set-proof-state-focus! *ps* g)
+                       (fluid-let ((*replaying?* #t)) (th)))
+                     gs thunks)
+           (show)))))))
 
 ;; Turn ((v val) ...) binding clauses into a runtime alist ((v . val) ...).
 (define-syntax bc*-binds
@@ -456,7 +472,7 @@
      (bc*-apply name (bc*-binds bind ...)))
     ((_ name (bind ...) handler ...)
      (bc*-dispatch name (bc*-binds bind ...)
-                   (lambda () handler) ...))))
+                   (list (quote handler) (lambda () handler)) ...))))
 
 ;;; -----------------------------------------------------------------------
 ;;; (ass-all) -- close every open goal dischargeable directly by assumption.
@@ -2041,13 +2057,26 @@
                                     (- (car args) 1))))
       ;; bc* re-derives by re-matching the conclusion (and any recorded
       ;; bindings) against the current goal, mutating *ps* in place; return
-      ;; *ps* so the uniform (set! *ps* result) below is a no-op.  Faithful for
-      ;; (bc* 'n) and (bc* 'n ((v val))); the hyp-discharge form is not.
-      ((bc*)    (let ((gs (bc*-run! (car args)
-                                    (if (pair? (cdr args)) (cadr args) '()))))
-                  (if (list? gs)
-                      *ps*
-                      (error "replay: bc* failed to re-apply" (car args)))))
+      ;; *ps* so the uniform (set! *ps* result) below is a no-op.  The recorded
+      ;; entry is (bc* name bindings . handler-forms); any handler forms are
+      ;; discharged on their subgoals via apply-recorded-cmd! (so the
+      ;; hyp-discharge form replays faithfully too, not just (bc* 'n)).
+      ((bc*)    (let* ((nm    (car args))
+                       (bd    (if (pair? (cdr args)) (cadr args) '()))
+                       (forms (if (pair? (cdr args)) (cddr args) '()))
+                       (gs    (bc*-run! nm bd)))
+                  (cond
+                    ((not (list? gs))
+                     (error "replay: bc* failed to re-apply" nm))
+                    ((null? forms) *ps*)
+                    ((not (= (length gs) (length forms)))
+                     (error "replay: bc* handler/subgoal count mismatch" nm))
+                    (else
+                     (for-each (lambda (g form)
+                                 (set-proof-state-focus! *ps* g)
+                                 (apply-recorded-cmd! (car form) (cdr form)))
+                               gs forms)
+                     *ps*))))
       (else (error "replay: unknown recorded command" name)))))
     (if (vnb-warning? result)
         (error "replay: command failed" name (vnb-warning-message result))
@@ -2058,11 +2087,12 @@
 ;;;
 ;;; A tactical like (repeat di) was already flattened into its primitive steps
 ;;; at record time, so the emitted script is in terms of kernel-ish commands
-;;; and does NOT depend on repeat/orelse existing.  bc* stays as one entry and
-;;; re-derives on replay.  Known gaps (NOT step-recorded, so an emitted script
-;;; may under-represent them): the (bc* 'n () h ...) hyp-discharge form and
-;;; (ass-all).  The exact, guaranteed re-execution path is (replay-proof name);
-;;; the emitted text is the human-readable / editable form.
+;;; and does NOT depend on repeat/orelse existing.  bc* is one entry --
+;;; (bc* name bindings . handler-forms) -- emitted as loadable macro syntax
+;;; (bc* 'name (binds ...) handler ...), so the hyp-discharge form re-nests
+;;; instead of flattening its handlers into trailing steps.  Remaining gap:
+;;; (ass-all) is not step-recorded.  The exact, guaranteed re-execution path is
+;;; (replay-proof name); the emitted text is the human-readable / editable form.
 
 ;; Quote data args (symbols, lists) so the printed form re-reads; leave
 ;; self-evaluating args (numbers, strings, booleans) bare.
@@ -2071,9 +2101,27 @@
       a
       (list 'quote a)))
 
+;; bc* is a MACRO, so its emitted form must be literal macro syntax, NOT data:
+;;   (bc* 'name (binds ...) handler ...)
+;; The recorded entry is (bc* name bindings-alist . handler-forms).  Emit name
+;; quoted (evaluated to the symbol), bindings as a LITERAL ((v val) ...) clause
+;; list (NOT (quote ...), which the bc*-binds pattern would reject -> the old
+;; `Ill-formed special form: (bc*-binds quote ())' bug), and handler forms RAW
+;; as code.  An empty bindings + no handlers emits (bc* 'name ()), which the
+;; macro routes to bc*-apply exactly as before.
+(define (script--emit-bc* args)
+  (let* ((name     (car args))
+         (bindings (if (pair? (cdr args)) (cadr args) '()))
+         (forms    (if (pair? (cdr args)) (cddr args) '()))
+         (clauses  (map (lambda (p) (list (car p) (script--emit-arg (cdr p))))
+                        bindings)))
+    (append (list 'bc* (list 'quote name) clauses) forms)))
+
 (define (proof-script->forms script)
   (map (lambda (entry)
-         (cons (car entry) (map script--emit-arg (cdr entry))))
+         (if (eq? (car entry) 'bc*)
+             (script--emit-bc* (cdr entry))
+             (cons (car entry) (map script--emit-arg (cdr entry)))))
        script))
 
 (define (script--write-forms port script)
