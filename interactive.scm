@@ -36,12 +36,21 @@
       (error "lookup-proof: unknown proof script" name)))
 
 ;;; Print the current proof state wrapped in sentinel markers.
+;; When #t, (show) suppresses the per-step state dump.  Batch harnesses
+;; (e.g. scratch-roadtest's `rt') fluid-let this true around a multi-tactic
+;; thunk so the run isn't a wall of intermediate goal trees.  NEVER leave it
+;; bound during interactive / workspace use: the Emacs repaint depends on the
+;; VNB-STATE block this emits.  qed's ledger line uses `display', not `show',
+;; so it still prints under quiet.
+(define *vnb-quiet* #f)
+
 (define (show)
-  (display ";;VNB-STATE-BEGIN\n")
-  (if *ps*
-      (print-proof-state *ps*)
-      (display "No current proof.  Use (sp (make-wff '(formula))) to start one.\n"))
-  (display ";;VNB-STATE-END\n"))
+  (unless *vnb-quiet*
+    (display ";;VNB-STATE-BEGIN\n")
+    (if *ps*
+        (print-proof-state *ps*)
+        (display "No current proof.  Use (sp (make-wff '(formula))) to start one.\n"))
+    (display ";;VNB-STATE-END\n")))
 
 (define (pp w)
   (display (wff->string w))

@@ -41,7 +41,11 @@
         (display "  ERROR: ") (display (condition/report-string e)) (newline)
         (set! *rt-fail* (+ *rt-fail* 1)) (k #f))
       (lambda ()
-        (thunk)
+        ;; Run the tactic thunk quietly -- suppress each step's goal-tree
+        ;; dump so only the per-fixture header, the qed ledger line, and
+        ;; PROVED/OPEN show.  qed runs OUTSIDE the quiet extent (its `modulo'
+        ;; line uses display, not show), so the warrant bill stays visible.
+        (fluid-let ((*vnb-quiet* #t)) (thunk))
         (cond
           ((and *ps* (proof-done? *ps*))
            (qed name)
