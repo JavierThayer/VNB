@@ -321,10 +321,47 @@ text after \";Value: \" or \"No return value\" for void results."
     (t raw)))
 
 (defun vnb--prompt-past-p (pos)
-  "Return non-nil if a Scheme REPL prompt appears in current buffer after POS."
+  "Return the prompt kind for the first Scheme REPL prompt after POS, or nil.
+The value is `ok' for a normal `N ]=> ' top-level prompt or `error' for a
+`N error> ' nested error-REPL prompt.  Recognising the error prompt is
+essential: otherwise an evaluation error leaves `vnb-eval-string' spinning
+for the full timeout while the prover sits wedged in the error REPL."
   (save-excursion
     (goto-char pos)
-    (re-search-forward "[0-9]+ \\]=> " nil t)))
+    (when (re-search-forward "[0-9]+ \\(\\]=>\\|error>\\) " nil t)
+      (if (equal (match-string 1) "]=>") 'ok 'error))))
+
+(defun vnb--last-prompt-type ()
+  "Return `ok', `error', or nil for the LAST REPL prompt in the buffer."
+  (save-excursion
+    (goto-char (point-max))
+    (when (re-search-backward "[0-9]+ \\(\\]=>\\|error>\\) ?" nil t)
+      (if (equal (match-string 1) "]=>") 'ok 'error))))
+
+(defun vnb--repl-recover (proc)
+  "Climb PROC's MIT Scheme REPL out of any nested error level to top level.
+Issues `(restart 1)' (\"return to read-eval-print level 1\") until the last
+prompt is a normal top-level prompt again, so a stray erroring C-j cannot
+brick the rest of the session."
+  (with-current-buffer (process-buffer proc)
+    (let ((tries 0))
+      (while (and (< tries 6) (eq (vnb--last-prompt-type) 'error))
+        (let ((mark (point-max)) (n 0))
+          (process-send-string proc "(restart 1)\n")
+          (while (and (< n 20) (not (vnb--prompt-past-p mark)))
+            (accept-process-output proc 0.5)
+            (setq n (1+ n))))
+        (setq tries (1+ tries))))))
+
+(defun vnb--extract-error (raw)
+  "Extract a one-line `;; error: MSG' summary from RAW error-REPL output."
+  (let ((msg nil))
+    (dolist (line (split-string raw "\n"))
+      (when (and (null msg)
+                 (string-match "\\`;\\([^;].*\\)\\'" line)
+                 (not (string-prefix-p ";Value" line)))
+        (setq msg (vnb--trim (match-string 1 line)))))
+    (concat ";; error: " (or msg "evaluation error"))))
 
 (defun vnb-eval-string (str &optional timeout)
   "Send STR to the VNB prover; return its Scheme return value as a string.
@@ -338,14 +375,21 @@ buffer, which comint updates regardless of how accept-process-output works."
       (error "VNB prover is not running.  Use M-x vnb to start it."))
     (with-current-buffer buf
       (let ((start (point-max))
-            (n 0))
+            (n 0)
+            (kind nil))
         (process-send-string proc (concat str "\n"))
-        (while (and (< n timeout)
-                    (not (vnb--prompt-past-p start)))
-          (accept-process-output proc 1)
+        (while (and (< n (* 2 timeout))
+                    (not (setq kind (vnb--prompt-past-p start))))
+          (accept-process-output proc 0.5)
           (setq n (1+ n)))
-        (vnb--extract-value
-         (buffer-substring-no-properties start (point-max)))))))
+        (let ((raw (buffer-substring-no-properties start (point-max))))
+          (if (eq kind 'error)
+              ;; The form errored and dropped the prover into a nested error
+              ;; REPL.  Climb back to top level so the session stays usable,
+              ;; and return a readable one-line error instead of hanging.
+              (progn (vnb--repl-recover proc)
+                     (vnb--extract-error raw))
+            (vnb--extract-value raw)))))))
 
 (defun vnb-insert-result (str)
   "Evaluate STR in the VNB prover and insert the result at point."
@@ -586,15 +630,20 @@ Point is left after the inserted text."
       (vnb-eval-string "(set! *vnb-quiet* #f)")
       (goto-char insert-at)
       (unless (bolp) (insert "\n"))
-      (if (vnb--no-value-p result)
-          ;; Side-effecting command: refresh the State pane and annotate with
-          ;; a one-line summary instead of the irrelevant Scheme value.
-          (insert ";; ⇒ "
-                  (condition-case nil
-                      (vnb--unquote (vnb-eval-string "(refresh-status)"))
-                    (error "done"))
-                  "\n")
-        (insert result "\n")))))
+      (cond
+        ;; The form errored: the prover has already been climbed back to top
+        ;; level by `vnb-eval-string'; just show the error, do not touch state.
+        ((and (stringp result) (string-prefix-p ";; error:" result))
+         (insert result "\n"))
+        ;; Side-effecting command: refresh the State pane and annotate with a
+        ;; one-line summary instead of the irrelevant Scheme value.
+        ((vnb--no-value-p result)
+         (insert ";; ⇒ "
+                 (condition-case nil
+                     (vnb--unquote (vnb-eval-string "(refresh-status)"))
+                   (error "done"))
+                 "\n"))
+        (t (insert result "\n"))))))
 
 (defun vnb-command-send-buffer ()
   "Send the entire buffer content to the VNB prover."
