@@ -141,6 +141,7 @@
     (define-key m "G" 'vnb-structure-graph)
     (define-key m "e" 'vnb-ws-examples)
     (define-key m "S" 'vnb-ws-scratch-workspace)
+    (define-key m "W" 'vnb-ws-save-session)
     m)
   "Keymap for the VNB workspace buffer.")
 
@@ -291,6 +292,12 @@
     (insert (propertize " C-j evaluates a sexp / region into the prover\n\n"
                         'face 'vnb-body))
     (insert "  ")
+    (vnb-launch--insert-button "Save Session"
+                               'vnb-ws-save-session
+                               "Write every proof completed this session to one re-loadable script file")
+    (insert (propertize "     this session's proofs as one script file\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
     (vnb-launch--insert-button "Quit"
                                'vnb-ws-quit
                                "Exit VNB")
@@ -308,7 +315,7 @@
                      "m manual\n"
                      "        G structure graph  |  e examples  |  "
                      "S scratch workspace\n"
-                     "        g refresh  |  q quit\n")
+                     "        W save session  |  g refresh  |  q quit\n")
              'face 'vnb-dim))
     (insert "\n")
     (insert (propertize "  Status: " 'face 'vnb-body))
@@ -498,6 +505,42 @@ Browse Library / `d'.  No window split, no raw s-expressions."
       (vnb-library-mode)
       (vnb-library--decorate-buffer))
     (switch-to-buffer buf)))
+
+(defun vnb-pf-save-proof-script ()
+  "Write the current proof's command script to a file you choose.
+Emits a standalone, re-loadable block
+  (sp (make-wff '<goal>))  <commands>  [ (qed 'NAME) ]
+Prompts for a filename and an optional theorem name (empty omits the
+trailing qed).  Works mid-proof or just after qed -- the script persists
+until the next (sp)."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (let* ((file  (expand-file-name
+                 (read-file-name "Save proof script to: "
+                                 (file-name-as-directory vnb-launch--dir))))
+         (name  (read-string "Install-as theorem name (RET to omit qed): "))
+         (named (not (string-match-p "\\`[ \t]*\\'" name)))
+         (form  (if named
+                    (format "(write-proof-script %S '%s)" file name)
+                  (format "(write-proof-script %S)" file))))
+    (vnb-eval-string form)
+    (if (file-exists-p file)
+        (message "Wrote proof script to %s" file)
+      (user-error "Proof script not written -- is a proof in progress?  Check the Scratch Pad"))))
+
+(defun vnb-ws-save-session ()
+  "Write every proof completed this session to a file you choose.
+Emits one (sp ...) <commands> (qed 'name) block per proof, in order --
+the whole session as one re-loadable script."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (let ((file (expand-file-name
+               (read-file-name "Save session script to: "
+                               (file-name-as-directory vnb-launch--dir)))))
+    (vnb-eval-string (format "(write-session %S)" file))
+    (if (file-exists-p file)
+        (message "Wrote session script to %s" file)
+      (user-error "Session script not written -- no proofs completed yet?  Check the Scratch Pad"))))
 
 (defvar vnb-fingerprints-buffer-name "*VNB Fingerprints*"
   "Buffer name for the conclusion-fingerprint retrieval index viewer.")
@@ -2105,6 +2148,7 @@ re-querying.")
     (define-key m "o" 'vnb-launch--show-overview-workspace)
     (define-key m "r" 'vnb-pf-show-repl)
     (define-key m "S" 'vnb-ws-scratch-workspace)
+    (define-key m "W" 'vnb-pf-save-proof-script)
     (define-key m "g" 'vnb-pf-refresh)
     m)
   "Keymap for the Focus Workspace buffer.")
@@ -2175,6 +2219,12 @@ re-querying.")
     (insert "  ")
     (vnb-launch--insert-button "Scratch Workspace" 'vnb-ws-scratch-workspace
                                "Lisp-interaction sheet: C-j sends the sexp (or region as a block) to the prover and inserts the result")
+    (insert "\n  ")
+    (vnb-launch--insert-button "Save Script" 'vnb-pf-save-proof-script
+                               "Write this proof's commands to a re-loadable script file")
+    (insert "  ")
+    (vnb-launch--insert-button "Save Session" 'vnb-ws-save-session
+                               "Write every proof completed this session to one script file")
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
@@ -2208,7 +2258,8 @@ re-querying.")
              (concat "  Keys: d direct-inf  a assume  = close(a=a)  "
                      "m rewrite  t theorem  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
-                     "h home  r scratch-pad  S scratch-workspace  g refresh\n")
+                     "h home  r scratch-pad  S scratch-workspace  "
+                     "W save-script  g refresh\n")
              'face 'vnb-dim))
     (goto-char (point-min))))
 
@@ -2351,6 +2402,7 @@ filter before this hook fires."
     (define-key m "h" 'vnb-launch-workspace)
     (define-key m "r" 'vnb-pf-show-repl)
     (define-key m "S" 'vnb-ws-scratch-workspace)
+    (define-key m "W" 'vnb-pf-save-proof-script)
     (define-key m "g" 'vnb-ov-refresh)
     (define-key m "n" 'vnb-ov-next-goal)
     (define-key m "p" 'vnb-ov-prev-goal)
@@ -2405,6 +2457,12 @@ Lexical binding makes the closure capture variables from the caller."
     (insert "  ")
     (vnb-launch--insert-button "Scratch Workspace" 'vnb-ws-scratch-workspace
                                "Lisp-interaction sheet: C-j sends the sexp (or region as a block) to the prover and inserts the result")
+    (insert "\n  ")
+    (vnb-launch--insert-button "Save Script" 'vnb-pf-save-proof-script
+                               "Write this proof's commands to a re-loadable script file")
+    (insert "  ")
+    (vnb-launch--insert-button "Save Session" 'vnb-ws-save-session
+                               "Write every proof completed this session to one script file")
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
@@ -2459,7 +2517,7 @@ Lexical binding makes the closure capture variables from the caller."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r scratch-pad  S scratch-workspace  g refresh\n"
+             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r scratch-pad  S scratch-workspace  W save-script  g refresh\n"
              'face 'vnb-dim))
     (goto-char (point-min))))
 
