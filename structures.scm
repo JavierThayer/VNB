@@ -172,6 +172,11 @@
                      ((constant)
                       (let ((set (expand-accessors (caddr slot) all-accessors ivar)))
                         `(IN (,name ,ivar) ,set)))
+                     ;; A substructure slot is typed by its structure predicate:
+                     ;; (substructure K FIELD) -> conjunct (IS-FIELD (K s)).
+                     ((substructure)
+                      (let ((type (caddr slot)))
+                        `(,(symbol-append 'IS- type) (,name ,ivar))))
                      (else
                       (error "build-is-axiom: unknown slot kind" kind slot)))))
                slots))
@@ -291,6 +296,16 @@
             ((eq? kind 'constant)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'constant (caddr clause)) slots)
+                   props))
+            ;; (substructure NAME TYPE) -- the slot holds a whole structure
+            ;; (e.g. a vector space's base FIELD), typed by IS-TYPE rather than
+            ;; the bare (IN _ SET) of a carrier.  Op signatures reach into it
+            ;; with foreign accessors, e.g. (op SMUL (CARTESIAN (A K) V) V) --
+            ;; expand-accessors leaves A intact and rewrites K to (K s), giving
+            ;; (A (K s)) = the carrier of the base field.
+            ((eq? kind 'substructure)
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'substructure (caddr clause)) slots)
                    props))
             ((eq? kind 'property)
              (loop (cdr rest) slots (cons (cdr clause) props)))
