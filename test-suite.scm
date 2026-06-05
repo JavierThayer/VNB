@@ -2042,6 +2042,21 @@
 (check-true "(IN ZZ-RING COMMUTATIVE-RING) accepted as wff"
   (lambda () (and (make-wff '(IN ZZ-RING COMMUTATIVE-RING)) #t)))
 
+;; --- MPOW: monoid power x^n, and its ZZ extension on abelian groups ---
+(check-true "abelian-group-as-monoid view installed"
+  (lambda () (and (lookup-theorem 'abelian-group-as-monoid-is-monoid) #t)))
+(for-each
+  (lambda (n)
+    (check-true (string-append (symbol->string n) " installed")
+      (lambda () (and (lookup-theorem n) #t))))
+  '(mpow-zero mpow-succ mpow-one mpow-type mpow-add mpow-mult
+    zz-act-nonneg zz-act-neg zz-act-zero zz-act-one zz-act-type
+    zz-act-neg-sign zz-act-add zz-act-distrib zz-act-assoc))
+(check-true "(MPOW M X N) accepted as wff"
+  (lambda () (and (make-wff '(IN (MPOW M X N) (A M))) #t)))
+(check-true "(ZZ-ACT G K A) accepted as wff"
+  (lambda () (and (make-wff '(IN (ZZ-ACT G K A) (A G))) #t)))
+
 ;; --- NN as comm-monoid under addition ---
 (check-true "nn-add-monoid-def installed"
   (lambda () (and (lookup-theorem 'nn-add-monoid-def) #t)))

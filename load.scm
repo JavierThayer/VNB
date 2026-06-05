@@ -74,6 +74,12 @@
     ;; Needs extended-reals (RR*, POS-INF) + set primitives (SUBSET).
     "structure-library/extended-reals-pos"
     "structure-library/ordinals"
+    ;; MPOW (monoid power x^n) + ZZ-ACT (its extension to a ZZ action on an
+    ;; abelian group).  Loaded after ordinals, which defines the
+    ;; def-by-nn-recursion combinator both files use; the
+    ;; ABELIAN-GROUP-AS-MONOID view they ride is declared earlier in views.
+    "structure-library/monoid-power"
+    "structure-library/zz-action"
     "structure-library/bijection"
     "structure-library/cardinality"
     "structure-library/injection"

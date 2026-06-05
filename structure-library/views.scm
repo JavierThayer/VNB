@@ -43,6 +43,23 @@
   'MONOID '(A MUL E))
 
 ;;; -----------------------------------------------------------------------
+;;; ABELIAN-GROUP as MONOID
+;;;
+;;; Forgetting the inverse, an abelian group (A, MUL, E, INV) is a monoid
+;;; (A, MUL, E).  ABELIAN-GROUP's first three slots already are MONOID's
+;;; three slots in the same order, so the view just projects them.  This is
+;;; what lets the monoid power MPOW (monoid-power.scm) act on an abelian
+;;; group: under the ADDITIVE view of a ring this MPOW is the n-fold sum
+;;; n.a, the NN-action that zz-action.scm extends to a ZZ action.
+;;;
+;;; Auto-specializes every MONOID theorem (mpow-type, mpow-add, ...) to
+;;; ABELIAN-GROUP, so the NN-power machinery is immediately available on
+;;; groups without restating it.
+(def-view-as 'ABELIAN-GROUP-AS-MONOID
+  'ABELIAN-GROUP '(A MUL E)
+  'MONOID        '(A MUL E))
+
+;;; -----------------------------------------------------------------------
 ;;; Additive abelian-group views for RING's definitional refinements
 ;;;
 ;;; COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD
