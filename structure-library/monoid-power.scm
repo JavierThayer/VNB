@@ -10,9 +10,11 @@
 ;;; is required only for the cross law  (x*y)^n = x^n * y^n  (mpow-mult), which is
 ;;; therefore stated over COMM-MONOID.
 ;;;
-;;; Asserted laws carry a `proof' warrant: each is a routine NN induction from
-;;; the two defining equations plus the monoid laws, installed directly during
-;;; the library-build phase (see sequences.scm for the same pattern).
+;;; Asserted laws carry an `informal' warrant: each is a routine NN induction
+;;; from the two defining equations plus the monoid laws -- a paper-proof
+;;; SKETCH lives in each warrant string, NOT a machine-checked VNB proof (that
+;;; would rate `proof', the top trust tier).  Installed directly during the
+;;; library-build phase (see sequences.scm for the same pattern).
 ;;;
 ;;; Dependencies: monoid.scm (IS-MONOID, IS-COMM-MONOID, MUL, E),
 ;;; number-systems.scm (NN, succ, +).
@@ -32,7 +34,7 @@
      (IMPLIES (IS-MONOID m)
        (FORALL x (IMPLIES (IN x (A m))
          (= (MPOW m x 1) x))))))
-(warrant! 'mpow-one 'proof
+(warrant! 'mpow-one 'informal
   "MPOW(m,x,1)=MUL(x,MPOW(m,x,0))=MUL(x,E(m))=x by mpow-succ(0), mpow-zero, right identity.")
 
 ;;; Type: the power stays in the carrier.
@@ -44,7 +46,7 @@
        (FORALL x (IMPLIES (IN x (A m))
          (FORALL n (IMPLIES (IN n NN)
            (IN (MPOW m x n) (A m)))))))))
-(warrant! 'mpow-type 'proof
+(warrant! 'mpow-type 'informal
   "NN induction on n: base (E m) in A(m); step closes under MUL by mpow-succ.")
 
 ;;; Homomorphism law (no commutativity):  x^(j+k) = x^j * x^k.
@@ -58,7 +60,7 @@
            (FORALL k (IMPLIES (IN k NN)
              (= (MPOW m x (+ j k))
                 ((MUL m) (MPOW m x j) (MPOW m x k))))))))))))
-(warrant! 'mpow-add 'proof
+(warrant! 'mpow-add 'informal
   "n|->x^n is a monoid hom (NN,+,0)->(A,*,E).  NN induction on k: base k=0 by mpow-zero+right id; step by mpow-succ+associativity.  No commutativity used.")
 
 ;;; Cross law (commutativity required):  (x*y)^n = x^n * y^n.
@@ -74,3 +76,12 @@
                 ((MUL m) (MPOW m x n) (MPOW m y n))))))))))))
 (warrant! 'mpow-mult 'well-known
   "(xy)^n = x^n y^n in a commutative monoid; NN induction on n using commutativity to interleave factors.  Fails without commutativity.")
+
+;;; Retroactive transport.  ABELIAN-GROUP-AS-MONOID is declared in views.scm,
+;;; which loads BEFORE this file, so its one-shot auto-specialization ran when
+;;; the MPOW theorems above did not yet exist.  view-as-auto-specialize! is
+;;; idempotent (it skips names already installed), so re-running it here -- now
+;;; that mpow-one/type/add (and the comm-monoid mpow-mult) are in the theorem
+;;; table -- finally lowers them onto ABELIAN-GROUP (and, by view composition,
+;;; onto the additive group of every ring/field/integral-domain/normed-field).
+(view-as-auto-specialize! 'ABELIAN-GROUP-AS-MONOID)

@@ -19,8 +19,9 @@
 ;;; zz-act-zero) then hold.  zz-act-add is the keystone: its proof is a sign-case
 ;;; analysis that reduces the mixed-sign cases to the NN law mpow-add together
 ;;; with inverse/cancellation -- the work the slogan "every abelian group is a
-;;; ZZ-module" silently elides.  Asserted with `proof' warrants in the
-;;; library-build phase.
+;;; ZZ-module" silently elides.  Asserted with `informal' warrants in the
+;;; library-build phase: each warrant string is a paper-proof SKETCH, not a
+;;; machine-checked VNB proof (which would rate the stronger `proof' tier).
 ;;;
 ;;; Dependencies: abelian-group.scm (IS-ABELIAN-GROUP, MUL, E, INV),
 ;;; monoid-power.scm (MPOW, mpow-add), views.scm (ABELIAN-GROUP-AS-MONOID),
@@ -53,7 +54,7 @@
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL a (IMPLIES (IN a (A g))
          (= (ZZ-ACT g 0 a) (E g)))))))
-(warrant! 'zz-act-zero 'proof
+(warrant! 'zz-act-zero 'informal
   "0 in NN so zz-act-nonneg gives MPOW(.,a,0)=E(g) by mpow-zero and the view E-correspondence.")
 
 ;;; 1 . a = a.
@@ -62,7 +63,7 @@
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL a (IMPLIES (IN a (A g))
          (= (ZZ-ACT g 1 a) a))))))
-(warrant! 'zz-act-one 'proof
+(warrant! 'zz-act-one 'informal
   "1 in NN so zz-act-nonneg gives MPOW(.,a,1)=a by mpow-one.")
 
 ;;; ---- Type ----------------------------------------------------------------
@@ -73,7 +74,7 @@
        (FORALL k (IMPLIES (IN k ZZ)
          (FORALL a (IMPLIES (IN a (A g))
            (IN (ZZ-ACT g k a) (A g)))))))))
-(warrant! 'zz-act-type 'proof
+(warrant! 'zz-act-type 'informal
   "Sign-case on k: nonneg branch is mpow-type (via the AG-as-MONOID view); neg branch closes under INV (group inverse stays in carrier).")
 
 ;;; ---- Sign law:  (-k) . a = -(k . a) --------------------------------------
@@ -84,7 +85,7 @@
        (FORALL k (IMPLIES (IN k ZZ)
          (FORALL a (IMPLIES (IN a (A g))
            (= (ZZ-ACT g (- k) a) ((INV g) (ZZ-ACT g k a))))))))))
-(warrant! 'zz-act-neg-sign 'proof
+(warrant! 'zz-act-neg-sign 'informal
   "Two sub-cases (k>=0, k<0); the negative case uses double-inverse INV(INV x)=x.  Extends zz-act-neg from NN to all of ZZ.")
 
 ;;; ---- Keystone module law:  (j+k) . a = j.a + k.a -------------------------
@@ -99,7 +100,7 @@
            (FORALL a (IMPLIES (IN a (A g))
              (= (ZZ-ACT g (+ j k) a)
                 ((MUL g) (ZZ-ACT g j a) (ZZ-ACT g k a))))))))))))
-(warrant! 'zz-act-add 'proof
+(warrant! 'zz-act-add 'informal
   "Keystone. Both nonneg: mpow-add directly. Mixed sign j>=0,k<0 (and symmetric): reduce via cancellation using INV against the NN identity mpow-add(min)+mpow-add(diff). Both negative: invert the all-positive case using AG commutativity. This is the content elided by 'rings are ZZ-modules'.")
 
 ;;; ---- Module distributivity:  k . (a + b) = k.a + k.b ---------------------
@@ -112,7 +113,7 @@
            (FORALL b (IMPLIES (IN b (A g))
              (= (ZZ-ACT g k ((MUL g) a b))
                 ((MUL g) (ZZ-ACT g k a) (ZZ-ACT g k b))))))))))))
-(warrant! 'zz-act-distrib 'proof
+(warrant! 'zz-act-distrib 'informal
   "Nonneg case is mpow-mult on the (commutative) AG monoid; neg case applies INV to it using INV(MUL a b)=MUL(INV a)(INV b) in an abelian group.  Commutativity is essential.")
 
 ;;; ---- Mixed associativity:  (j*k) . a = j . (k . a) -----------------------
@@ -124,5 +125,5 @@
            (FORALL a (IMPLIES (IN a (A g))
              (= (ZZ-ACT g (* j k) a)
                 (ZZ-ACT g j (ZZ-ACT g k a))))))))))))
-(warrant! 'zz-act-assoc 'proof
+(warrant! 'zz-act-assoc 'informal
   "Sign-case on j and k; each reduces to iterating zz-act-add (k.a added j times) with sign bookkeeping handled by zz-act-neg-sign.")

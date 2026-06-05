@@ -38,13 +38,13 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `commutative-ring`, `integral-domain`, `normed-field`, `euclidean-ring`, `field`, `normed-ag`
+- [`abelian-group`](#abelian-group) ← `ring`, `integral-domain`, `commutative-ring`, `normed-field`, `euclidean-ring`, `field`, `normed-ag`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
 - [`group`](#group) ← `field`
 - [`integral-domain`](#integral-domain) ← `field`, `normed-field`
-- [`monoid`](#monoid) ← `abelian-group`, `euclidean-ring`, `ring`, `integral-domain`, `commutative-ring`
+- [`monoid`](#monoid) ← `abelian-group`, `euclidean-ring`, `integral-domain`, `ring`, `commutative-ring`
 
 *Structures with no incoming views (graph sources):* `cc-ring`, `field`, `metric-space`, `nn-add-monoid`, `normed-ag`, `normed-field`, `qq-field`, `qq-ring`, `ring`, `rr+*-add-monoid`, `rr-ring`, `semigroup`, `zz-ring`.
 
@@ -87,6 +87,15 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in a(r)], a = (mul(r))(a, e(r))))
 - `monoid-right-id-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in a(r)], a = (mul(r))(a, e(r))))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in a(r)], (mul(r))(a, e(r)) = a))
+- `mpow-add-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in a(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
+- `mpow-add-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in a(r), j in nn, k in nn], (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
+- `mpow-add-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in a(r), j in nn, k in nn], (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
+- `mpow-add-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in a(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
+- `mpow-one-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in a(r)], mpow(abelian-group-as-monoid(r), x, 1) = x))
+- `mpow-one-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in a(r)], x = mpow(abelian-group-as-monoid(r), x, 1)))
+- `mpow-one-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in a(r)], x = mpow(abelian-group-as-monoid(r), x, 1)))
+- `mpow-one-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in a(r)], mpow(abelian-group-as-monoid(r), x, 1) = x))
+- `mpow-type-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in a(r), n in nn], mpow(abelian-group-as-monoid(r), x, n) in a(r)))
 - `sum-ag-as-reduce` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, a(ag)), n], n in nn and 1 <= n implies sum-ag(ag, f, n) = reduce(mul(ag), f, n)))
 - `sum-ag-as-reduce-rev` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, a(ag)), n], n in nn and 1 <= n implies reduce(mul(ag), f, n) = sum-ag(ag, f, n)))
 - `sum-ag-singleton` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, a(ag))], sum-ag(ag, f, 1) = f(0)))
@@ -113,8 +122,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Views into `abelian-group`.*
 
 - `ring-additive-ag` — from `ring`: (a add zero neg) ↦ (a mul e inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
 - `integral-domain-additive-ag` — from `integral-domain`: (a add zero neg) ↦ (a mul e inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
 - `normed-field-additive-ag` — from `normed-field`: (a add zero neg) ↦ (a mul e inv)
 - `euclidean-ring-additive-ag` — from `euclidean-ring`: (a add zero neg) ↦ (a mul e inv)
 - `field-additive-ag` — from `field`: (a add zero neg) ↦ (a mul e inv)
