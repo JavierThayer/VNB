@@ -1046,11 +1046,37 @@ Press `g' to refresh, `q' to quit."
                               'face 'vnb-dim)))
         (goto-char (point-min))))))
 
+(defcustom vnb-graph-browser nil
+  "Which browser opens the clickable structure graph.
+Affects only `vnb-structure-graph-html'; your global browsing is untouched.
+  nil      -- the `browse-url' default (your system default browser).
+  string   -- an executable name or path, opened via `browse-url-generic'
+              (e.g. \"chromium\", \"epiphany\", \"surf\", \"qutebrowser\").
+  function -- used as `browse-url-browser-function' (e.g. #\\='eww-browse-url
+              to view inside Emacs -- note: EWW renders the SVG as a static
+              image, so graph NODES aren't clickable there; the text reference
+              links and #anchors still work)."
+  :type '(choice (const :tag "System default" nil)
+                 (string :tag "Browser executable")
+                 (function :tag "browse-url function"))
+  :group 'vnb)
+
+(defun vnb--browse-graph (url)
+  "Open URL according to `vnb-graph-browser'."
+  (cond
+   ((functionp vnb-graph-browser) (funcall vnb-graph-browser url))
+   ((and (stringp vnb-graph-browser) (> (length vnb-graph-browser) 0))
+    (let ((browse-url-generic-program    vnb-graph-browser)
+          (browse-url-browser-function   #'browse-url-generic))
+      (browse-url url)))
+   (t (browse-url url))))
+
 ;;; The inline PNG above is a flat raster -- nodes aren't clickable.  The
 ;;; mouse-sensitive graph is a self-contained HTML page (one inlined SVG plus a
 ;;; per-structure reference section): click a node/arrow and the page scrolls to
 ;;; that entry.  reference/build-graph-html.py builds it from the prover's .dot
-;;; (it runs `dot -Tsvg' itself).  We regenerate both, then open in a browser.
+;;; (it runs `dot -Tsvg' itself).  We regenerate both, then open in a browser
+;;; (the one chosen by `vnb-graph-browser').
 (defun vnb-structure-graph-html ()
   "Open the mouse-sensitive structure graph in a web browser.
 Regenerates reference/structure-graph.{dot,html} from the live prover,
@@ -1074,9 +1100,10 @@ structure's entry (slots, views-out, refines) or the all-views table."
         (user-error "build-graph-html.py failed (see ` *vnb-graph-html*')")))
     (unless (file-exists-p html)
       (user-error "structure-graph.html was not produced"))
-    ;; 3. hand off to the browser, where the SVG's clicks are live
-    (browse-url (concat "file://" html))
-    (message "Opened clickable structure graph: %s" html)))
+    ;; 3. hand off to the chosen browser, where the SVG's clicks are live
+    (vnb--browse-graph (concat "file://" html))
+    (message "Opened clickable structure graph in %s: %s"
+             (or vnb-graph-browser "default browser") html)))
 
 ;;; -----------------------------------------------------------------------
 ;;; Suggest Forward Moves: scan the current proof state's assumptions
