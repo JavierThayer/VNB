@@ -41,6 +41,11 @@
     ;; order (number-systems) and POS-RR (order-predicates).  Loaded before
     ;; complex.scm so cc-complete can be stated as IS-COMPLETE(CC-MS).
     "structure-library/metric-completeness"
+    ;; Continuous maps between metric spaces (IS-CONTINUOUS(-AT),
+    ;; IS-UNIFORMLY-CONTINUOUS): the morphisms of the metric-space structure.
+    ;; Needs metric-space + order-predicates (POS-RR); kept with the metric
+    ;; cluster, before the ring refinements.
+    "structure-library/metric-continuity"
     ;; Restrictive ring/field structures (genuine IS-X predicates; need NN/RR
     ;; from number-systems, used by numeric-instances below).
     "structure-library/commutative-ring"
