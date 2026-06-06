@@ -28,3 +28,6 @@
 
 # OS noise
 .DS_Store
+
+# Compiled Emacs Lisp
+*.elc

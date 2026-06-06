@@ -147,7 +147,7 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
     (define-key m "d" 'vnb-describe-structure)
     (define-key m "D" 'vnb-ws-show-definitions)
     (define-key m "m" 'vnb-structure-manual)
-    (define-key m "G" 'vnb-structure-graph)
+    (define-key m "G" 'vnb-structure-graph-html)
     (define-key m "e" 'vnb-ws-examples)
     (define-key m "S" 'vnb-ws-scratch-workspace)
     (define-key m "W" 'vnb-ws-save-session)
@@ -284,9 +284,9 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
                         'face 'vnb-body))
     (insert "  ")
     (vnb-launch--insert-button "Structure Graph"
-                               'vnb-structure-graph
-                               "Graphviz figure of refines (solid) and view-as (dashed) relations")
-    (insert (propertize "  refines & view-as relations as a diagram\n\n"
+                               'vnb-structure-graph-html
+                               "Open the clickable structure graph (refines + view-as) in a browser")
+    (insert (propertize "  refines & view-as relations as a clickable diagram\n\n"
                         'face 'vnb-body))
     (insert "  ")
     (vnb-launch--insert-button "Examples"
@@ -847,7 +847,7 @@ so `vnb-tex-toggle-source' can reveal it."
     (define-key m "r" 'vnb-tex-toggle-source)
     (define-key m "d" 'vnb-describe-structure)
     (define-key m "m" 'vnb-structure-manual)
-    (define-key m "G" 'vnb-structure-graph)
+    (define-key m "G" 'vnb-structure-graph-html)
     (define-key m "q" 'quit-window)
     (define-key m "?" 'describe-mode)
     m)
@@ -1045,6 +1045,38 @@ Press `g' to refresh, `q' to quit."
           (insert (propertize (format "  (no image display here; PNG at %s)\n" png)
                               'face 'vnb-dim)))
         (goto-char (point-min))))))
+
+;;; The inline PNG above is a flat raster -- nodes aren't clickable.  The
+;;; mouse-sensitive graph is a self-contained HTML page (one inlined SVG plus a
+;;; per-structure reference section): click a node/arrow and the page scrolls to
+;;; that entry.  reference/build-graph-html.py builds it from the prover's .dot
+;;; (it runs `dot -Tsvg' itself).  We regenerate both, then open in a browser.
+(defun vnb-structure-graph-html ()
+  "Open the mouse-sensitive structure graph in a web browser.
+Regenerates reference/structure-graph.{dot,html} from the live prover,
+then `browse-url's the HTML.  Click a node or arrow to scroll to that
+structure's entry (slots, views-out, refines) or the all-views table."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (unless (executable-find "dot")
+    (user-error "Graphviz `dot' not found on PATH -- install graphviz"))
+  (unless (executable-find "python3")
+    (user-error "`python3' not found on PATH -- needed to build the graph HTML"))
+  (let ((py   (expand-file-name "build-graph-html.py" vnb-launch--ref-dir))
+        (html (expand-file-name "structure-graph.html" vnb-launch--ref-dir))
+        (log  (get-buffer-create " *vnb-graph-html*")))
+    ;; 1. rewrite the .dot from the live prover (slots/views/refines current)
+    (vnb-eval-string "(structure-graph-dot-file)")
+    ;; 2. build the self-contained HTML (the script runs `dot -Tsvg' internally)
+    (with-current-buffer log (erase-buffer))
+    (let ((default-directory vnb-launch--ref-dir))
+      (unless (eq 0 (call-process "python3" nil log nil py))
+        (user-error "build-graph-html.py failed (see ` *vnb-graph-html*')")))
+    (unless (file-exists-p html)
+      (user-error "structure-graph.html was not produced"))
+    ;; 3. hand off to the browser, where the SVG's clicks are live
+    (browse-url (concat "file://" html))
+    (message "Opened clickable structure graph: %s" html)))
 
 ;;; -----------------------------------------------------------------------
 ;;; Suggest Forward Moves: scan the current proof state's assumptions
@@ -1801,7 +1833,7 @@ monospace font is installed.")
     ["Describe Structure..." vnb-describe-structure t]
     ["Definitions"        vnb-ws-show-definitions t]
     ["Structure Manual"   vnb-structure-manual  t]
-    ["Structure Graph"    vnb-structure-graph   t]
+    ["Structure Graph"    vnb-structure-graph-html   t]
     ["View as PDF"        vnb-view-as-pdf       t]
     ["Suggest Forward Moves" vnb-suggest-forward-moves t]
     "---"
