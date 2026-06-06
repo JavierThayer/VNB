@@ -292,16 +292,24 @@ CSS = """
  nav a { display:block; padding:.18rem .3rem; color:#33536f; text-decoration:none;
          border-radius:4px; font-size:.92rem; }
  nav a:hover { background:#e3edf8; }
- main { padding:1.5rem 2.4rem; max-width:62rem; }
+ /* min-width:0 lets this flex child shrink below its content's intrinsic
+    width; without it a wide <pre> formula forces main past the viewport and
+    the off-page text can't be reached by the scrollbar. */
+ main { padding:1.5rem 2.4rem; max-width:62rem; min-width:0; flex:1 1 auto; }
  h2 { color:#2a4a6a; border-bottom:2px solid #e3edf8; padding-bottom:.2rem;
       margin-top:2.4rem; }
  h3,h4,h5,h6 { color:#365b7d; margin:.9rem 0 .25rem; }
  :target { background:#fff4e0; box-shadow:-.5rem 0 0 #fff4e0, .3rem 0 0 #fff4e0; }
  [id] { scroll-margin-top: .6rem; }
  code { background:#f2f6fb; padding:0 .25rem; border-radius:3px;
-        font-family: ui-monospace, Menlo, Consolas, monospace; font-size:.92em; }
+        font-family: ui-monospace, Menlo, Consolas, monospace; font-size:.92em;
+        overflow-wrap:anywhere; }
+ /* wrap long formulas instead of overflowing -- they stay readable without
+    any horizontal scrolling; pre-wrap keeps the original spacing. */
  pre { background:#f7f9fc; border:1px solid #e6edf6; border-radius:6px;
-       padding:.6rem .8rem; overflow:auto; font-size:.86rem; }
+       padding:.6rem .8rem; font-size:.86rem;
+       white-space:pre-wrap; overflow-wrap:anywhere; }
+ li, p { overflow-wrap:anywhere; }
  a.x { text-decoration:none; }
  a.x:hover code { background:#dbe9fb; }
  .pm { color:#9aa7b4; font-size:.85em; cursor:help; }
