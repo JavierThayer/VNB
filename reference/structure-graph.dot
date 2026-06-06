@@ -4,33 +4,33 @@ digraph VNB {
   node [shape=box, style="rounded,filled", fillcolor="#eaf2fb", color="#2a4a6a", fontname="Helvetica", fontsize=13];
   edge [fontname="Helvetica", fontsize=11];
 
-  "abelian-group" [tooltip="abelian-group -- slots (a mul e inv)", URL="STRUCTURE-INDEX.md#abelian-group"];
-  "cc-ring" [tooltip="cc-ring -- slots (a add mul neg zero one nrm)", URL="STRUCTURE-INDEX.md#cc-ring"];
-  "comm-monoid" [tooltip="comm-monoid -- slots (a mul e)", URL="STRUCTURE-INDEX.md#comm-monoid"];
-  "commutative-ring" [tooltip="commutative-ring -- slots (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#commutative-ring"];
-  "euclidean-ring" [tooltip="euclidean-ring -- slots (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#euclidean-ring"];
-  "field" [tooltip="field -- slots (a add mul neg zero one non-zero inv)", URL="STRUCTURE-INDEX.md#field"];
-  "group" [tooltip="group -- slots (a mul e inv)", URL="STRUCTURE-INDEX.md#group"];
-  "integral-domain" [tooltip="integral-domain -- slots (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#integral-domain"];
-  "metric-space" [tooltip="metric-space -- slots (x d)", URL="STRUCTURE-INDEX.md#metric-space"];
-  "monoid" [tooltip="monoid -- slots (a mul e)", URL="STRUCTURE-INDEX.md#monoid"];
-  "nn-add-monoid" [tooltip="nn-add-monoid -- slots (a mul e)", URL="STRUCTURE-INDEX.md#nn-add-monoid"];
-  "normed-ag" [tooltip="normed-ag -- slots (a mul e inv nrm)", URL="STRUCTURE-INDEX.md#normed-ag"];
-  "normed-field" [tooltip="normed-field -- slots (a add mul neg zero one nrm)", URL="STRUCTURE-INDEX.md#normed-field"];
-  "qq-field" [tooltip="qq-field -- slots (a add mul neg zero one non-zero inv)", URL="STRUCTURE-INDEX.md#qq-field"];
-  "qq-ring" [tooltip="qq-ring -- slots (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#qq-ring"];
-  "ring" [tooltip="ring -- slots (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#ring"];
-  "rr+*-add-monoid" [tooltip="rr+*-add-monoid -- slots (a mul e)", URL="STRUCTURE-INDEX.md#rr+*-add-monoid"];
-  "rr-ring" [tooltip="rr-ring -- slots (a add mul neg zero one nrm)", URL="STRUCTURE-INDEX.md#rr-ring"];
-  "semigroup" [tooltip="semigroup -- slots (a mul)", URL="STRUCTURE-INDEX.md#semigroup"];
-  "zz-ring" [tooltip="zz-ring -- slots (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#zz-ring"];
+  "abelian-group" [tooltip="abelian-group -- slots (a mul e inv)", URL="structure-graph.html#abelian-group"];
+  "cc-ring" [tooltip="cc-ring -- slots (a add mul neg zero one nrm)", URL="structure-graph.html#cc-ring"];
+  "comm-monoid" [tooltip="comm-monoid -- slots (a mul e)", URL="structure-graph.html#comm-monoid"];
+  "commutative-ring" [tooltip="commutative-ring -- slots (a add mul neg zero one)", URL="structure-graph.html#commutative-ring"];
+  "euclidean-ring" [tooltip="euclidean-ring -- slots (a add mul neg zero one)", URL="structure-graph.html#euclidean-ring"];
+  "field" [tooltip="field -- slots (a add mul neg zero one non-zero inv)", URL="structure-graph.html#field"];
+  "group" [tooltip="group -- slots (a mul e inv)", URL="structure-graph.html#group"];
+  "integral-domain" [tooltip="integral-domain -- slots (a add mul neg zero one)", URL="structure-graph.html#integral-domain"];
+  "metric-space" [tooltip="metric-space -- slots (x d)", URL="structure-graph.html#metric-space"];
+  "monoid" [tooltip="monoid -- slots (a mul e)", URL="structure-graph.html#monoid"];
+  "nn-add-monoid" [tooltip="nn-add-monoid -- slots (a mul e)", URL="structure-graph.html#nn-add-monoid"];
+  "normed-ag" [tooltip="normed-ag -- slots (a mul e inv nrm)", URL="structure-graph.html#normed-ag"];
+  "normed-field" [tooltip="normed-field -- slots (a add mul neg zero one nrm)", URL="structure-graph.html#normed-field"];
+  "qq-field" [tooltip="qq-field -- slots (a add mul neg zero one non-zero inv)", URL="structure-graph.html#qq-field"];
+  "qq-ring" [tooltip="qq-ring -- slots (a add mul neg zero one)", URL="structure-graph.html#qq-ring"];
+  "ring" [tooltip="ring -- slots (a add mul neg zero one)", URL="structure-graph.html#ring"];
+  "rr+*-add-monoid" [tooltip="rr+*-add-monoid -- slots (a mul e)", URL="structure-graph.html#rr+*-add-monoid"];
+  "rr-ring" [tooltip="rr-ring -- slots (a add mul neg zero one nrm)", URL="structure-graph.html#rr-ring"];
+  "semigroup" [tooltip="semigroup -- slots (a mul)", URL="structure-graph.html#semigroup"];
+  "zz-ring" [tooltip="zz-ring -- slots (a add mul neg zero one)", URL="structure-graph.html#zz-ring"];
 
   // refines (specialisation): child -> parent
   "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
   "commutative-ring" -> "ring" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-ring refines ring"];
-  "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
-  "rr-ring" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-ring refines normed-field"];
   "cc-ring" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ring refines normed-field"];
+  "rr-ring" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-ring refines normed-field"];
+  "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
   "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
   "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
   "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
@@ -38,17 +38,17 @@ digraph VNB {
   "rr+*-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr+*-add-monoid refines comm-monoid"];
 
   // view-as (forgetful / component maps): source -> target
-  "field" -> "euclidean-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-euclidean-ring", tooltip="field-as-euclidean-ring :  field -> euclidean-ring    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#views"];
-  "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="STRUCTURE-INDEX.md#views"];
-  "field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="field-as-integral-domain :  field -> integral-domain    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#views"];
-  "field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="field-additive-ag :  field -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="STRUCTURE-INDEX.md#views"];
-  "ring" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-monoid", tooltip="ring-multiplicative-monoid :  ring -> monoid    (a mul one) |-> (a mul e)", URL="STRUCTURE-INDEX.md#views"];
-  "field" -> "group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-group", tooltip="field-multiplicative-group :  field -> group    (non-zero mul one inv) |-> (a mul e inv)", URL="STRUCTURE-INDEX.md#views"];
-  "commutative-ring" -> "comm-monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-cm", tooltip="commutative-ring-multiplicative-cm :  commutative-ring -> comm-monoid    (a mul one) |-> (a mul e)", URL="STRUCTURE-INDEX.md#views"];
-  "abelian-group" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-monoid", tooltip="abelian-group-as-monoid :  abelian-group -> monoid    (a mul e) |-> (a mul e)", URL="STRUCTURE-INDEX.md#views"];
-  "normed-field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="normed-field-as-integral-domain :  normed-field -> integral-domain    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#views"];
-  "commutative-ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="commutative-ring-additive-ag :  commutative-ring -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="STRUCTURE-INDEX.md#views"];
-  "normed-ag" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-abelian-group", tooltip="normed-ag-as-abelian-group :  normed-ag -> abelian-group    (a mul e inv) |-> (a mul e inv)", URL="STRUCTURE-INDEX.md#views"];
-  "normed-field" -> "commutative-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-commutative-ring", tooltip="normed-field-as-commutative-ring :  normed-field -> commutative-ring    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="STRUCTURE-INDEX.md#views"];
-  "normed-field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="normed-field-additive-ag :  normed-field -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="STRUCTURE-INDEX.md#views"];
+  "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="structure-graph.html#views"];
+  "field" -> "euclidean-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-euclidean-ring", tooltip="field-as-euclidean-ring :  field -> euclidean-ring    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="structure-graph.html#views"];
+  "field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="field-as-integral-domain :  field -> integral-domain    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="structure-graph.html#views"];
+  "commutative-ring" -> "comm-monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-cm", tooltip="commutative-ring-multiplicative-cm :  commutative-ring -> comm-monoid    (a mul one) |-> (a mul e)", URL="structure-graph.html#views"];
+  "field" -> "group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-group", tooltip="field-multiplicative-group :  field -> group    (non-zero mul one inv) |-> (a mul e inv)", URL="structure-graph.html#views"];
+  "ring" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-monoid", tooltip="ring-multiplicative-monoid :  ring -> monoid    (a mul one) |-> (a mul e)", URL="structure-graph.html#views"];
+  "field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="field-additive-ag :  field -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="structure-graph.html#views"];
+  "abelian-group" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-monoid", tooltip="abelian-group-as-monoid :  abelian-group -> monoid    (a mul e) |-> (a mul e)", URL="structure-graph.html#views"];
+  "normed-ag" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-abelian-group", tooltip="normed-ag-as-abelian-group :  normed-ag -> abelian-group    (a mul e inv) |-> (a mul e inv)", URL="structure-graph.html#views"];
+  "commutative-ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="commutative-ring-additive-ag :  commutative-ring -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="structure-graph.html#views"];
+  "normed-field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="normed-field-as-integral-domain :  normed-field -> integral-domain    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="structure-graph.html#views"];
+  "normed-field" -> "commutative-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-commutative-ring", tooltip="normed-field-as-commutative-ring :  normed-field -> commutative-ring    (a add mul neg zero one) |-> (a add mul neg zero one)", URL="structure-graph.html#views"];
+  "normed-field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="normed-field-additive-ag :  normed-field -> abelian-group    (a add zero neg) |-> (a mul e inv)", URL="structure-graph.html#views"];
 }
