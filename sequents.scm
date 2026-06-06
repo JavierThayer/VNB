@@ -140,12 +140,34 @@
         (cons (reverse bindings) cur))))
 
 ;;; Internal precedence-aware printer.
+;;; num-leaf->string renders a numeric leaf for display.  Reals go through
+;;; the standard writer; non-real (complex) numbers are rendered in a+bi
+;;; surface form using "i" rather than MIT Scheme's "+...i" spelling, so the
+;;; display matches the %i input notation (e.g. +3i -> "3i", 2+3i -> "2+3i",
+;;; -i -> "-i", 2-i -> "2-i").
+(define (num-leaf->string n)
+  (define (w x) (with-output-to-string (lambda () (write x))))
+  (if (real? n)
+      (w n)
+      (let* ((r (real-part n))
+             (m (imag-part n))
+             ;; imaginary coefficient: 1 -> "", -1 -> "-", else the number
+             (mag (cond ((= m  1) "")
+                        ((= m -1) "-")
+                        (else (w m))))
+             (imag (string-append mag "i")))
+        (if (zero? r)
+            imag                                       ; pure imaginary: i, -i, 3i, -3i
+            (if (> m 0)
+                (string-append (w r) "+" imag)         ; r+i, r+3i
+                (string-append (w r) imag))))))        ; mag carries the sign: r-i, r-3i
+
 ;;; min-prec: the minimum precedence this expression must have to avoid
 ;;; being wrapped in an extra pair of parens by the caller.
 (define (expr->str e min-prec)
   (cond
     ((symbol? e) (symbol->string e))
-    ((number? e) (with-output-to-string (lambda () (write e))))
+    ((number? e) (num-leaf->string e))
     ;; Functoid record: lambda([x in A, y in B], body)
     ((functoid? e)
      (let* ((bindings (functoid-bindings e))
