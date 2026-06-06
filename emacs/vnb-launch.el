@@ -148,6 +148,7 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
     (define-key m "D" 'vnb-ws-show-definitions)
     (define-key m "m" 'vnb-structure-manual)
     (define-key m "G" 'vnb-structure-graph-html)
+    (define-key m "R" 'vnb-reference-html)
     (define-key m "e" 'vnb-ws-examples)
     (define-key m "S" 'vnb-ws-scratch-workspace)
     (define-key m "W" 'vnb-ws-save-session)
@@ -287,6 +288,12 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
                                'vnb-structure-graph-html
                                "Open the clickable structure graph (refines + view-as) in a browser")
     (insert (propertize "  refines & view-as relations as a clickable diagram\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
+    (vnb-launch--insert-button "Library (HTML)"
+                               'vnb-reference-html
+                               "Open the cross-linked HTML library reference (theorems, structures, PSS, indexes) in a browser")
+    (insert (propertize "    whole library, cross-linked, in a browser\n\n"
                         'face 'vnb-body))
     (insert "  ")
     (vnb-launch--insert-button "Examples"
@@ -848,6 +855,7 @@ so `vnb-tex-toggle-source' can reveal it."
     (define-key m "d" 'vnb-describe-structure)
     (define-key m "m" 'vnb-structure-manual)
     (define-key m "G" 'vnb-structure-graph-html)
+    (define-key m "R" 'vnb-reference-html)
     (define-key m "q" 'quit-window)
     (define-key m "?" 'describe-mode)
     m)
@@ -1114,6 +1122,35 @@ structure's entry (slots, views-out, refines) or the all-views table."
     ;; 3. hand off to the chosen browser, where the SVG's clicks are live
     (vnb--browse-graph (concat "file://" html))
     (message "Opened clickable structure graph in %s: %s"
+             (or vnb-graph-browser "default browser") html)))
+
+;;; The whole library as one cross-linked browser page.  reference/*.md (the
+;;; docs the prover writes on load) plus the structure graph are compiled by
+;;; build-reference-html.py into a single self-contained reference.html: a
+;;; sticky nav pane, every backticked name hyperlinked to its entry, and the
+;;; graph nodes clicking through into the structure sections.  Read-only and
+;;; prover-independent -- it just renders files already on disk.
+(defun vnb-reference-html ()
+  "Build and open the cross-linked HTML library reference in a browser.
+Compiles reference/*.md (theorems, structures, PSS, definitions, the
+operator/macete/fingerprint indexes, proof-debt) plus the structure
+graph into one self-contained reference.html, opened via `vnb-graph-browser'.
+Click any backticked name to jump to its entry.  Refreshes the .md by
+reloading the prover; this command just renders whatever is on disk."
+  (interactive)
+  (unless (executable-find "python3")
+    (user-error "`python3' not found on PATH -- needed to build the reference HTML"))
+  (let ((py   (expand-file-name "build-reference-html.py" vnb-launch--ref-dir))
+        (html (expand-file-name "reference.html" vnb-launch--ref-dir))
+        (log  (get-buffer-create " *vnb-reference-html*")))
+    (with-current-buffer log (erase-buffer))
+    (let ((default-directory vnb-launch--ref-dir))
+      (unless (eq 0 (call-process "python3" nil log nil py))
+        (user-error "build-reference-html.py failed (see ` *vnb-reference-html*')")))
+    (unless (file-exists-p html)
+      (user-error "reference.html was not produced"))
+    (vnb--browse-graph (concat "file://" html))
+    (message "Opened library reference in %s: %s"
              (or vnb-graph-browser "default browser") html)))
 
 ;;; -----------------------------------------------------------------------
@@ -1872,6 +1909,7 @@ monospace font is installed.")
     ["Definitions"        vnb-ws-show-definitions t]
     ["Structure Manual"   vnb-structure-manual  t]
     ["Structure Graph"    vnb-structure-graph-html   t]
+    ["Library (HTML)"     vnb-reference-html         t]
     ["View as PDF"        vnb-view-as-pdf       t]
     ["Suggest Forward Moves" vnb-suggest-forward-moves t]
     "---"
