@@ -520,7 +520,7 @@
 ;;; vnb-library-mode machinery that drives STRUCTURE-INDEX.md.
 ;;; Returns the path written.
 (define (write-pss-md)
-  (let* ((path (string-append *prover-dir* "PSS.md"))
+  (let* ((path (string-append *reference-dir* "PSS.md"))
          (names (filter (lambda (n) (memq n *support-theorem-names*))
                         (sort (hash-table-keys *theorem-table*)
                               (lambda (a b)
@@ -554,7 +554,7 @@
 ;;; structures.  Section headers (### name) make it navigable and PDF-viewable
 ;;; with the same vnb-library-mode machinery.  Returns the path written.
 (define (write-definitions-md)
-  (let* ((path (string-append *prover-dir* "DEFINITIONS.md"))
+  (let* ((path (string-append *reference-dir* "DEFINITIONS.md"))
          (defs (sort (theory-definitions *current-theory*)
                      (lambda (a b) (string<? (symbol->string (car a))
                                              (symbol->string (car b)))))))
@@ -597,7 +597,7 @@
          (defn    (filter (lambda (n) (eq? (provenance-of n) 'definitional)) axioms))
          (asrt    (filter (lambda (n) (and (not (memq n prim))
                                            (not (memq n defn)))) axioms))
-         (path    (string-append *prover-dir* "THEOREMS.md")))
+         (path    (string-append *reference-dir* "THEOREMS.md")))
     (with-output-to-file path
       (lambda ()
         (display "# VNB theorem & axiom catalog\n\n")
@@ -736,7 +736,7 @@
                                 (string<? (symbol->string (car a))
                                           (symbol->string (car b)))
                                 (> la lb))))))
-         (path    (string-append *prover-dir* "MACETE-INDEX.md")))
+         (path    (string-append *reference-dir* "MACETE-INDEX.md")))
     (with-output-to-file path
       (lambda ()
         (display "# Macete head-symbol index\n\n")
@@ -854,7 +854,7 @@
     (let* ((entries (sort (hash-table->alist tbl)
                           (lambda (a b) (string<? (symbol->string (car a))
                                                   (symbol->string (car b))))))
-           (path    (string-append *prover-dir* "BY-OPERATOR.md")))
+           (path    (string-append *reference-dir* "BY-OPERATOR.md")))
       (with-output-to-file path
         (lambda ()
           (display "# Macete index by operator\n\n")
@@ -1032,7 +1032,7 @@
                                 (string<? (car a) (car b))
                                 (> la lb))))))
          (singles (length (filter (lambda (b) (= 1 (length (cdr b)))) buckets)))
-         (path    (string-append *prover-dir* "FINGERPRINT-INDEX.md")))
+         (path    (string-append *reference-dir* "FINGERPRINT-INDEX.md")))
     (with-output-to-file path
       (lambda ()
         (display "# Conclusion fingerprint index\n\n")
@@ -1899,7 +1899,7 @@
 ;;;   dot -Tsvg prover/structure-graph.dot -o prover/structure-graph.svg
 ;;; then open the .svg in a browser for live tooltips + click-through.
 (define (structure-graph-dot-file)
-  (let ((dot (string-append *prover-dir* "structure-graph.dot")))
+  (let ((dot (string-append *reference-dir* "structure-graph.dot")))
     (write-structure-graph-dot dot)
     dot))
 
@@ -1910,7 +1910,7 @@
          (all-struct  (sort (append structures defstructs) sym<))
          (views       (sort (hash-table-keys *view-as-table*) sym<))
          (all-names   (sort (hash-table-keys *theorem-table*) sym<))
-         (path        (string-append *prover-dir* "STRUCTURE-INDEX.md")))
+         (path        (string-append *reference-dir* "STRUCTURE-INDEX.md")))
     (with-output-to-file path
       (lambda ()
         (display "# VNB structure-grouped index\n\n")

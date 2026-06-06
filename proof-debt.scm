@@ -156,7 +156,7 @@
 ;;;     AND reverse keystone index (each asserted leaf -> proven dependents,
 ;;;     "discharge X -> unlocks N").
 (define (proof-debt-ledger)
-  (let* ((path  (string-append *prover-dir* "PROOF-DEBT.md"))
+  (let* ((path  (string-append *reference-dir* "PROOF-DEBT.md"))
          (proven (sort (hash-table-keys *proof-debt*)
                        (lambda (a b) (string<? (symbol->string a)
                                                (symbol->string b)))))

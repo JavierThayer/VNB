@@ -7,6 +7,11 @@
 (define *prover-dir*
   (directory-namestring (current-load-pathname)))
 
+;;; Generated reference artifacts (THEOREMS.md, STRUCTURE-INDEX.md, the
+;;; structure graph, ...) are written here, out of the source root.
+(define *reference-dir*
+  (string-append *prover-dir* "reference/"))
+
 (define *vnb-files*
   '(;; Core kernel
     "errors"

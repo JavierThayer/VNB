@@ -12,11 +12,20 @@
 ;;; -----------------------------------------------------------------------
 ;;; Where am I
 
-(defconst vnb-launch--dir
+(defconst vnb-launch--el-dir
   (file-name-directory (or load-file-name buffer-file-name "."))
-  "Directory containing this launcher (= the prover directory).")
+  "Directory holding the VNB elisp bundle (this file, vnb.el, vnb-commands.lisp).")
 
-(load (expand-file-name "vnb.el" vnb-launch--dir) nil t)
+(defconst vnb-launch--dir
+  (file-name-directory (directory-file-name vnb-launch--el-dir))
+  "The prover root: the parent of the elisp dir.  Used for prover
+resources (structure-notes, examples, user-additions, file-picker defaults).")
+
+(defconst vnb-launch--ref-dir
+  (file-name-as-directory (expand-file-name "reference" vnb-launch--dir))
+  "Generated-index directory (THEOREMS.md, STRUCTURE-INDEX.md, ...).")
+
+(load (expand-file-name "vnb.el" vnb-launch--el-dir) nil t)
 
 ;;; -----------------------------------------------------------------------
 ;;; Faces -- white-on-black with highlights.
@@ -465,7 +474,7 @@ and Show PSS.  No window split, no raw s-expressions in the REPL."
   (interactive)
   (vnb-launch--ensure-prover)
   (vnb-eval-string "(catalog)")
-  (let* ((path (expand-file-name "THEOREMS.md" vnb-launch--dir))
+  (let* ((path (expand-file-name "THEOREMS.md" vnb-launch--ref-dir))
          (buf  (get-buffer-create vnb-theorems-buffer-name)))
     (unless (file-exists-p path)
       (user-error "THEOREMS.md was not created -- check the Scratch Pad for errors"))
@@ -492,7 +501,7 @@ Browse Library / `d'.  No window split, no raw s-expressions."
   (interactive)
   (vnb-launch--ensure-prover)
   (vnb-eval-string "(write-definitions-md)")
-  (let* ((path (expand-file-name "DEFINITIONS.md" vnb-launch--dir))
+  (let* ((path (expand-file-name "DEFINITIONS.md" vnb-launch--ref-dir))
          (buf  (get-buffer-create vnb-definitions-buffer-name)))
     (unless (file-exists-p path)
       (user-error "DEFINITIONS.md was not created -- check the Scratch Pad for errors"))
@@ -555,7 +564,7 @@ indexing by structure).  No window split, no raw s-expressions."
   (interactive)
   (vnb-launch--ensure-prover)
   (vnb-eval-string "(fingerprint-index)")
-  (let* ((path (expand-file-name "FINGERPRINT-INDEX.md" vnb-launch--dir))
+  (let* ((path (expand-file-name "FINGERPRINT-INDEX.md" vnb-launch--ref-dir))
          (buf  (get-buffer-create vnb-fingerprints-buffer-name)))
     (unless (file-exists-p path)
       (user-error "FINGERPRINT-INDEX.md was not created -- check the Scratch Pad for errors"))
@@ -615,7 +624,7 @@ way as Browse Library."
   (interactive)
   (vnb-launch--ensure-prover)
   (vnb-eval-string "(write-pss-md)")
-  (let* ((path (expand-file-name "PSS.md" vnb-launch--dir))
+  (let* ((path (expand-file-name "PSS.md" vnb-launch--ref-dir))
          (buf  (get-buffer-create vnb-pss-buffer-name)))
     (unless (file-exists-p path)
       (user-error "PSS.md was not created -- check the Scratch Pad for errors"))
@@ -1156,7 +1165,7 @@ shape licenses (currently: `fun-domain-extensionality')."
 
 (defun vnb-library--index-path ()
   "Absolute path to the STRUCTURE-INDEX.md file."
-  (expand-file-name "STRUCTURE-INDEX.md" vnb-launch--dir))
+  (expand-file-name "STRUCTURE-INDEX.md" vnb-launch--ref-dir))
 
 (defvar vnb-library--link-keymap
   (let ((m (make-sparse-keymap)))
