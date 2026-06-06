@@ -62,28 +62,32 @@
 ;;; -----------------------------------------------------------------------
 ;;; Additive abelian-group views for RING's definitional refinements
 ;;;
-;;; COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD
-;;; all share the RING shape (6 slots).  Each one is also a ring's additive
-;;; abelian group.  The view component pattern is identical to
-;;; RING-ADDITIVE-AG; only the source predicate differs (stronger as we
-;;; descend the hierarchy).  Each view auto-specializes every
-;;; ABELIAN-GROUP-quantified theorem to a theorem on the source structure.
+;;; COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING all share the RING
+;;; shape (6 slots), so the additive view of each is the *identical*
+;;; constructor RING-ADDITIVE-AG, only with a stronger source predicate.
+;;; Because IS-INTEGRAL-DOMAIN ⇒ IS-RING etc. (the same-shape inclusion
+;;; axioms), the RING-ADDITIVE-AG functoid and its auto-specialized AG
+;;; theorems already apply to any integral domain / Euclidean ring via a
+;;; one-step backchain on the inclusion.  So the standalone
+;;; INTEGRAL-DOMAIN-ADDITIVE-AG / EUCLIDEAN-RING-ADDITIVE-AG views were
+;;; redundant and were removed 2026-06-06 (both had zero references).
+;;;
+;;; COMMUTATIVE-RING-ADDITIVE-AG is kept: same redundancy in principle, but
+;;; it is a live functoid in prod-of-sums-expansion (theorem-library/
+;;; prod-of-sums.scm), so its name is load-bearing, not just a lemma handle.
+;;;
+;;; FIELD-ADDITIVE-AG / NORMED-FIELD-ADDITIVE-AG are NOT same-shape sub-types
+;;; of RING (FIELD is 8-slot, NORMED-FIELD 7-slot), so the base view +
+;;; inclusion does NOT regenerate their AG theorems — they earn their own
+;;; declaration.  (NORMED-FIELD-ADDITIVE-AG is also live in power-series.scm.)
 
 (def-view-as 'COMMUTATIVE-RING-ADDITIVE-AG
   'COMMUTATIVE-RING '(A ADD ZERO NEG)
   'ABELIAN-GROUP    '(A MUL E INV))
 
-(def-view-as 'INTEGRAL-DOMAIN-ADDITIVE-AG
-  'INTEGRAL-DOMAIN '(A ADD ZERO NEG)
-  'ABELIAN-GROUP   '(A MUL E INV))
-
 (def-view-as 'FIELD-ADDITIVE-AG
   'FIELD         '(A ADD ZERO NEG)
   'ABELIAN-GROUP '(A MUL E INV))
-
-(def-view-as 'EUCLIDEAN-RING-ADDITIVE-AG
-  'EUCLIDEAN-RING '(A ADD ZERO NEG)
-  'ABELIAN-GROUP  '(A MUL E INV))
 
 (def-view-as 'NORMED-FIELD-ADDITIVE-AG
   'NORMED-FIELD  '(A ADD ZERO NEG)
@@ -106,14 +110,13 @@
 ;;; that requires a subset carrier — see views.scm comment block below on
 ;;; "the group of invertible elements" — and isn't expressible in the
 ;;; current def-view-as form.
-
-(def-view-as 'COMMUTATIVE-RING-MULTIPLICATIVE-MONOID
-  'COMMUTATIVE-RING '(A MUL ONE)
-  'MONOID           '(A MUL E))
-
-(def-view-as 'INTEGRAL-DOMAIN-MULTIPLICATIVE-MONOID
-  'INTEGRAL-DOMAIN '(A MUL ONE)
-  'MONOID          '(A MUL E))
+;;;
+;;; The bare-MONOID multiplicative views for COMMUTATIVE-RING /
+;;; INTEGRAL-DOMAIN / EUCLIDEAN-RING were removed 2026-06-06: same-shape
+;;; refinements of RING, so RING-MULTIPLICATIVE-MONOID + the IS-X ⇒ IS-RING
+;;; inclusion already cover them, and all three were unreferenced.  (The
+;;; COMMUTATIVE-RING-MULTIPLICATIVE-CM view below is NOT one of these — it
+;;; reaches the stronger COMM-MONOID target and is live in finprod.)
 
 ;;; A COMMUTATIVE ring's multiplicative structure (A, MUL, ONE) is a
 ;;; *commutative* monoid -- the comm-ring axiom is exactly MUL-commutativity.
@@ -148,10 +151,6 @@
 (def-view-as 'FIELD-AS-EUCLIDEAN-RING
   'FIELD          '(A ADD MUL NEG ZERO ONE)
   'EUCLIDEAN-RING '(A ADD MUL NEG ZERO ONE))
-
-(def-view-as 'EUCLIDEAN-RING-MULTIPLICATIVE-MONOID
-  'EUCLIDEAN-RING '(A MUL ONE)
-  'MONOID         '(A MUL E))
 
 ;;; -----------------------------------------------------------------------
 ;;; NORMED-FIELD as COMMUTATIVE-RING / INTEGRAL-DOMAIN
