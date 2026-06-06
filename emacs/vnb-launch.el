@@ -1046,28 +1046,34 @@ Press `g' to refresh, `q' to quit."
                               'face 'vnb-dim)))
         (goto-char (point-min))))))
 
-(defcustom vnb-graph-browser nil
+(defcustom vnb-graph-browser "epiphany-browser"
   "Which browser opens the clickable structure graph.
 Affects only `vnb-structure-graph-html'; your global browsing is untouched.
-  nil      -- the `browse-url' default (your system default browser).
+Default is GNOME Web (\"epiphany-browser\") -- a clean, chromeless WebKit
+browser; if it is not installed we fall back to the system default browser.
   string   -- an executable name or path, opened via `browse-url-generic'
-              (e.g. \"chromium\", \"epiphany\", \"surf\", \"qutebrowser\").
+              (e.g. \"epiphany-browser\", \"chromium\", \"surf\", \"qutebrowser\").
+  nil      -- the `browse-url' default (your system default browser).
   function -- used as `browse-url-browser-function' (e.g. #\\='eww-browse-url
               to view inside Emacs -- note: EWW renders the SVG as a static
               image, so graph NODES aren't clickable there; the text reference
               links and #anchors still work)."
-  :type '(choice (const :tag "System default" nil)
-                 (string :tag "Browser executable")
+  :type '(choice (string :tag "Browser executable")
+                 (const :tag "System default" nil)
                  (function :tag "browse-url function"))
   :group 'vnb)
 
 (defun vnb--browse-graph (url)
-  "Open URL according to `vnb-graph-browser'."
+  "Open URL according to `vnb-graph-browser', falling back to the default."
   (cond
    ((functionp vnb-graph-browser) (funcall vnb-graph-browser url))
    ((and (stringp vnb-graph-browser) (> (length vnb-graph-browser) 0))
-    (let ((browse-url-generic-program    vnb-graph-browser)
-          (browse-url-browser-function   #'browse-url-generic))
+    (if (executable-find vnb-graph-browser)
+        (let ((browse-url-generic-program  vnb-graph-browser)
+              (browse-url-browser-function  #'browse-url-generic))
+          (browse-url url))
+      (message "vnb-graph-browser %S not on PATH; using system default browser"
+               vnb-graph-browser)
       (browse-url url)))
    (t (browse-url url))))
 
