@@ -1065,6 +1065,11 @@ browser; if it is not installed we fall back to the system default browser.
 
 (defun vnb--browse-graph (url)
   "Open URL according to `vnb-graph-browser', falling back to the default."
+  ;; Load browse-url first so `browse-url-generic-program' is a declared
+  ;; special var: under lexical-binding, let-binding it before the library
+  ;; is loaded would create a lexical (not dynamic) binding that
+  ;; `browse-url-generic' never sees -- the "works on the second try" bug.
+  (require 'browse-url)
   (cond
    ((functionp vnb-graph-browser) (funcall vnb-graph-browser url))
    ((and (stringp vnb-graph-browser) (> (length vnb-graph-browser) 0))
