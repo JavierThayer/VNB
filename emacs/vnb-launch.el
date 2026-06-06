@@ -149,6 +149,7 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
     (define-key m "m" 'vnb-structure-manual)
     (define-key m "G" 'vnb-structure-graph-html)
     (define-key m "R" 'vnb-reference-html)
+    (define-key m "H" 'vnb-home-html)
     (define-key m "e" 'vnb-ws-examples)
     (define-key m "S" 'vnb-ws-scratch-workspace)
     (define-key m "W" 'vnb-ws-save-session)
@@ -294,6 +295,12 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
                                'vnb-reference-html
                                "Open the cross-linked HTML library reference (theorems, structures, PSS, indexes) in a browser")
     (insert (propertize "    whole library, cross-linked, in a browser\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
+    (vnb-launch--insert-button "Browser Home"
+                               'vnb-home-html
+                               "Open the HTML landing page: reference links stay in the browser, workbench links bounce back to Emacs")
+    (insert (propertize "      HTML front door; workbench links return to Emacs\n\n"
                         'face 'vnb-body))
     (insert "  ")
     (vnb-launch--insert-button "Examples"
@@ -1154,6 +1161,89 @@ reloading the prover; this command just renders whatever is on disk."
              (or vnb-graph-browser "default browser") html)))
 
 ;;; -----------------------------------------------------------------------
+;;; Browser landing page (home.html) + a tiny localhost listener.
+;;;
+;;; The HTML front door lives in the browser: reference links open other HTML
+;;; pages, workbench links fetch http://127.0.0.1:PORT/do?fn=NAME, and this
+;;; listener dispatches NAME through a FIXED WHITELIST (never arbitrary eval),
+;;; then raises the Emacs frame -- so proving stays in Emacs.  Bound to
+;;; loopback only.
+
+(defcustom vnb-home-port 8973
+  "TCP port for the localhost listener that the browser landing page
+\(home.html) pokes to invoke Emacs commands.  Bound to 127.0.0.1 only."
+  :type 'integer :group 'vnb)
+
+(defvar vnb--home-server nil
+  "The home-page localhost listener process, or nil when not running.")
+
+(defconst vnb--home-actions
+  '(("workspace"      . vnb-launch-workspace)
+    ("start-proof"    . vnb-ws-start-proof)
+    ("scratch"        . vnb-ws-scratch-workspace)
+    ("examples"       . vnb-ws-examples)
+    ("browse-library" . vnb-ws-browse-library))
+  "Whitelist mapping home.html `fn=' names to commands.  ONLY these run;
+the listener never evaluates arbitrary input from the socket.")
+
+(defun vnb--home-respond (proc status)
+  "Send a bodyless HTTP response with STATUS and close PROC."
+  (ignore-errors
+    (process-send-string
+     proc (concat "HTTP/1.1 " status "\r\n"
+                  "Access-Control-Allow-Origin: *\r\n"
+                  "Content-Length: 0\r\nConnection: close\r\n\r\n"))
+    (delete-process proc)))
+
+(defun vnb--home-filter (proc data)
+  "Parse the HTTP request line in DATA and dispatch a whitelisted action."
+  (if (not (string-match "GET /do\\?fn=\\([A-Za-z0-9_-]+\\)" data))
+      (vnb--home-respond proc "404 Not Found")
+    (let ((cmd (cdr (assoc (match-string 1 data) vnb--home-actions))))
+      (if (not cmd)
+          (vnb--home-respond proc "403 Forbidden")
+        (vnb--home-respond proc "204 No Content")
+        ;; defer out of the process filter; raise Emacs so the user lands here
+        (run-at-time 0 nil
+                     (lambda ()
+                       (ignore-errors (funcall cmd))
+                       (when (display-graphic-p)
+                         (ignore-errors (raise-frame)
+                                        (x-focus-frame (selected-frame))))))))))
+
+(defun vnb--home-server-ensure ()
+  "Start the loopback listener if it is not already up; return the port."
+  (unless (and vnb--home-server (process-live-p vnb--home-server))
+    (setq vnb--home-server
+          (make-network-process
+           :name "vnb-home" :server t :host 'local
+           :service vnb-home-port :family 'ipv4 :coding 'utf-8
+           :filter #'vnb--home-filter)))
+  vnb-home-port)
+
+(defun vnb-home-html ()
+  "Open the VNB browser landing page (home.html) in a browser.
+Reference links open other HTML pages; workbench links poke a localhost
+listener that runs a whitelisted Emacs command and raises this frame, so
+the actual proving keeps happening in Emacs."
+  (interactive)
+  (unless (executable-find "python3")
+    (user-error "`python3' not found on PATH -- needed to build home.html"))
+  (let ((port (vnb--home-server-ensure))
+        (py   (expand-file-name "build-home-html.py" vnb-launch--ref-dir))
+        (html (expand-file-name "home.html" vnb-launch--ref-dir))
+        (log  (get-buffer-create " *vnb-home-html*")))
+    (with-current-buffer log (erase-buffer))
+    (let ((default-directory vnb-launch--ref-dir))
+      (unless (eq 0 (call-process "python3" nil log nil py
+                                  (number-to-string port)))
+        (user-error "build-home-html.py failed (see ` *vnb-home-html*')")))
+    (unless (file-exists-p html)
+      (user-error "home.html was not produced"))
+    (vnb--browse-graph (concat "file://" html))
+    (message "Opened VNB browser home (listener on 127.0.0.1:%d)" port)))
+
+;;; -----------------------------------------------------------------------
 ;;; Suggest Forward Moves: scan the current proof state's assumptions
 ;;; for patterns that license a forward derivation (e.g. pointwise
 ;;; equality → fun-domain-extensionality).  Result is a markdown report
@@ -1910,6 +2000,7 @@ monospace font is installed.")
     ["Structure Manual"   vnb-structure-manual  t]
     ["Structure Graph"    vnb-structure-graph-html   t]
     ["Library (HTML)"     vnb-reference-html         t]
+    ["Browser Home"       vnb-home-html              t]
     ["View as PDF"        vnb-view-as-pdf       t]
     ["Suggest Forward Moves" vnb-suggest-forward-moves t]
     "---"
