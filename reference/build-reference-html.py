@@ -206,9 +206,25 @@ def md_to_html(text, docid, used_ids):
                     stmt = re.match(r"`([^`]+)`\s*—\s*(.*)$", raw)
                     if stmt:
                         name, body = stmt.group(1), stmt.group(2)
+                        # Fold mechanical -rev mirrors into their base entry,
+                        # like the fingerprint index: drop the standalone -rev,
+                        # tag the base (±), but keep a t-<name>-rev anchor on the
+                        # base so existing cross-links still resolve.
+                        if docid == "THEOREMS" and name.endswith("-rev") \
+                                and name[:-4] in THMS:
+                            i += 1
+                            continue
+                        extra = marker = ""
                         if docid == "THEOREMS" and name in THMS:
                             itid = claim("t-" + name)
-                        inner = f"<code>{esc(name)}</code> — " + inline_stmt(body)
+                            if name + "-rev" in THMS:
+                                extra  = f'<a id="t-{esc(name)}-rev"></a>'
+                                marker = (' <span class="pm" title="reverse'
+                                          ' (-rev) mirror folded in">(±)</span>')
+                            inner = extra + f"<code>{esc(name)}</code>{marker} — " \
+                                    + inline_stmt(body)
+                        elif stmt:
+                            inner = f"<code>{esc(name)}</code> — " + inline_stmt(body)
                     else:
                         inner = inline(raw)
                     items.append([lvl, inner, itid])
@@ -288,6 +304,7 @@ CSS = """
        padding:.6rem .8rem; overflow:auto; font-size:.86rem; }
  a.x { text-decoration:none; }
  a.x:hover code { background:#dbe9fb; }
+ .pm { color:#9aa7b4; font-size:.85em; cursor:help; }
  ul { margin:.3rem 0; }
  li { margin:.12rem 0; }
  hr { border:0; border-top:1px solid #e6edf6; margin:1.2rem 0; }
