@@ -40,6 +40,7 @@
                             (list 'fn-ext dom (car lhs) (car rhs))))))))))
 
 (define (suggest--render-fn-ext asm match)
+  asm   ; unused here; kept in the signature for the uniform (asm match) render-fn convention
   (let ((dom (cadr match)) (f (caddr match)) (g (cadddr match)))
     (string-append
       "**`fun-domain-extensionality` applies.**\n\n"

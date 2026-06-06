@@ -28,7 +28,8 @@ if [ -z "${VNB_SKIP_PROOFS+x}" ]; then
 fi
 
 PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
-LAUNCH_EL="$PROVER_DIR/vnb-launch.el"
+# The elisp bundle lives under emacs/ (root declutter 2026-06-06).
+LAUNCH_EL="$PROVER_DIR/emacs/vnb-launch.el"
 
 if [ ! -f "$LAUNCH_EL" ]; then
     echo "VNB: cannot find $LAUNCH_EL" >&2
@@ -43,7 +44,7 @@ case "$1" in
     ;;
   --no-workspace)
     # Skip the workspace; load plain vnb.el and run M-x vnb.
-    EMACS_ARGS=(-Q -l "$PROVER_DIR/vnb.el" --eval "(vnb)")
+    EMACS_ARGS=(-Q -l "$PROVER_DIR/emacs/vnb.el" --eval "(vnb)")
     ;;
 esac
 
