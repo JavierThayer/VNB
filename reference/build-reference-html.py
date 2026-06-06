@@ -108,13 +108,24 @@ def inline(text):
                   text)
     # 3. escape everything else
     text = esc(text)
-    # 4. safe, targeted emphasis (avoid mangling * and _ inside statements)
+    # 4. emphasis.  **bold** first so single-* doesn't nibble it.  Single-*
+    #    is adjacency-aware: an opening '*' must be followed by non-space and a
+    #    closing '*' preceded by non-space, so spaced multiplication " * " in
+    #    statements is never treated as emphasis.  '_' stays targeted to the
+    #    warrant tag (statements contain trailing-underscore vars like n_).
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"_(\[warrant:[^\]]*\])_", r"<em>\1</em>", text)
-    text = re.sub(r"\*(\([^)]*\))\*", r"<em>\1</em>", text)
+    text = re.sub(r"\*(\S|\S[^*]*?\S)\*", r"<em>\1</em>", text)
     # 5. restore placeholders
     text = re.sub(r"\x00(\d+)\x00", lambda m: spans[int(m.group(1))], text)
     return text
+
+def inline_stmt(text):
+    """Render a formal statement verbatim: escape only, plus the trailing
+    warrant tag.  NO emphasis -- statements legitimately contain bare `*`
+    (e.g. the structure `rr+*`), which star-emphasis would mangle."""
+    t = esc(text)
+    return re.sub(r"_(\[warrant:[^\]]*\])_", r'<em>\1</em>', t)
 
 # --- block markdown ---------------------------------------------------------
 
@@ -127,6 +138,10 @@ def md_to_html(text, docid, used_ids):
     """Convert a markdown doc to HTML.  docid namespaces generic headings;
     structure/def/pss headings get their canonical ids instead."""
     out = []
+    # Drop the prover's explicit empty anchors (e.g. <a id="field"></a>): our
+    # generated heading ids already provide those targets, and passing the raw
+    # tag through would both show as literal text and duplicate the id.
+    text = re.sub(r'<a id="[^"]*"></a>', "", text)
     lines = text.split("\n")
     i, n = 0, len(lines)
 
@@ -184,13 +199,16 @@ def md_to_html(text, docid, used_ids):
                     lvl = len(lm.group(1)) // 2
                     raw = lm.group(2)
                     itid = None
-                    # THEOREMS.md is the canonical home: give each catalog entry
-                    # the `t-<name>` id its cross-links point at, and render the
-                    # entry's own name as plain code (no self-link).
-                    nm = re.match(r"`([^`]+)`(.*)$", raw)
-                    if docid == "THEOREMS" and nm and nm.group(1) in THMS:
-                        itid = claim("t-" + nm.group(1))
-                        inner = f"<code>{esc(nm.group(1))}</code>" + inline(nm.group(2))
+                    # A catalog entry `name` U+2014 statement: render the name as
+                    # plain code and the statement verbatim (no emphasis -- it may
+                    # contain bare `*`).  THEOREMS.md is the canonical theorem
+                    # home, so its entries also get the `t-<name>` cross-link id.
+                    stmt = re.match(r"`([^`]+)`\s*—\s*(.*)$", raw)
+                    if stmt:
+                        name, body = stmt.group(1), stmt.group(2)
+                        if docid == "THEOREMS" and name in THMS:
+                            itid = claim("t-" + name)
+                        inner = f"<code>{esc(name)}</code> — " + inline_stmt(body)
                     else:
                         inner = inline(raw)
                     items.append([lvl, inner, itid])
