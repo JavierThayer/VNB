@@ -1808,6 +1808,48 @@
         (substring vs (string-length ss) (string-length vs))
         vs)))
 
+;;; "(a add zero neg)" from the symbol list (a, add, zero, neg) -- for the
+;;; component-map shown in an arrow's hover tooltip.
+(define (structure-graph--symlist lst)
+  (let loop ((l lst) (acc "(") (first? #t))
+    (if (null? l)
+        (string-append acc ")")
+        (loop (cdr l)
+              (string-append acc (if first? "" " ")
+                             (string-downcase (symbol->string (car l))))
+              #f))))
+
+;;; Edge tooltip = the UNABBREVIATED functoid name (the symbol you actually
+;;; call in proofs, e.g. RING-ADDITIVE-AG) plus the component map, so the SVG
+;;; recovers what the short visible label drops.
+(define (structure-graph--view-tooltip v)
+  (string-append
+    (string-downcase (symbol->string (view-as-name v))) " :  "
+    (structure-graph--id (view-as-source-struct v)) " -> "
+    (structure-graph--id (view-as-target-struct v)) "    "
+    (structure-graph--symlist (view-as-source-comps v)) " |-> "
+    (structure-graph--symlist (view-as-target-comps v))))
+
+;;; Node tooltip = the structure's slot list.
+(define (structure-graph--node-tooltip name)
+  (let ((sd (find-shape-structure name)))
+    (if sd
+        (string-append (structure-graph--id name) " -- slots "
+                       (structure-graph--symlist (structure-slot-names sd)))
+        (structure-graph--id name))))
+
+;;; All structures that should get an explicit, tooltip/URL-carrying node:
+;;; shape structures plus definitional refinements (deduped).
+(define (structure-graph--all-nodes)
+  (let ((seen (make-equal-hash-table)) (out '()))
+    (for-each (lambda (n)
+                (unless (hash-table-ref/default seen n #f)
+                  (hash-table-set! seen n #t)
+                  (set! out (cons n out))))
+              (append (known-structures)
+                      (hash-table-keys *definitional-structure-table*)))
+    (reverse out)))
+
 (define (write-structure-graph-dot path)
   (with-output-to-file path
     (lambda ()
@@ -1816,9 +1858,14 @@
       (display "  bgcolor=\"white\";\n")
       (display "  node [shape=box, style=\"rounded,filled\", fillcolor=\"#eaf2fb\", color=\"#2a4a6a\", fontname=\"Helvetica\", fontsize=13];\n")
       (display "  edge [fontname=\"Helvetica\", fontsize=11];\n\n")
+      ;; Nodes carry a slot-list tooltip and a click-through into the index.
       (for-each
-        (lambda (n) (display "  \"") (display (structure-graph--id n)) (display "\";\n"))
-        (known-structures))
+        (lambda (n)
+          (display "  \"") (display (structure-graph--id n))
+          (display "\" [tooltip=\"") (display (structure-graph--node-tooltip n))
+          (display "\", URL=\"STRUCTURE-INDEX.md#") (display (structure-graph--id n))
+          (display "\"];\n"))
+        (structure-graph--all-nodes))
       (display "\n  // refines (specialisation): child -> parent\n")
       (for-each
         (lambda (name)
@@ -1827,7 +1874,9 @@
             (when parent
               (display "  \"") (display (structure-graph--id name))
               (display "\" -> \"") (display (structure-graph--id parent))
-              (display "\" [color=\"#2a4a6a\", penwidth=1.4];\n"))))
+              (display "\" [color=\"#2a4a6a\", penwidth=1.4, tooltip=\"")
+              (display (structure-graph--id name)) (display " refines ")
+              (display (structure-graph--id parent)) (display "\"];\n"))))
         (hash-table-keys *definitional-structure-table*))
       (display "\n  // view-as (forgetful / component maps): source -> target\n")
       (for-each
@@ -1838,10 +1887,21 @@
               (display "\" -> \"") (display (structure-graph--id (view-as-target-struct v)))
               (display "\" [style=dashed, color=\"#b06a00\", fontcolor=\"#b06a00\", label=\"")
               (display (structure-graph--edge-label vname (view-as-source-struct v)))
-              (display "\"];\n"))))
+              (display "\", tooltip=\"") (display (structure-graph--view-tooltip v))
+              (display "\", URL=\"STRUCTURE-INDEX.md#views\"];\n"))))
         (hash-table-keys *view-as-table*))
       (display "}\n")))
   path)
+
+;;; Convenience for the CLI workflow (no Emacs launcher needed): write the
+;;; enriched .dot to a stable path and return it.  MIT Scheme has no
+;;; subprocess here, so render externally:
+;;;   dot -Tsvg prover/structure-graph.dot -o prover/structure-graph.svg
+;;; then open the .svg in a browser for live tooltips + click-through.
+(define (structure-graph-dot-file)
+  (let ((dot (string-append *prover-dir* "structure-graph.dot")))
+    (write-structure-graph-dot dot)
+    dot))
 
 (define (structure-index)
   (let* ((sym<        (lambda (a b) (string<? (symbol->string a) (symbol->string b))))
