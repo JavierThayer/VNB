@@ -1,0 +1,4 @@
+#!/bin/bash
+# VNB-nw -- launch VNB in terminal (-nw) mode: no browser; the in-Emacs Home
+# Workspace is the front door.  Convenience wrapper for `VNB -nw'.
+exec "$(cd "$(dirname "$0")" && pwd)/VNB" -nw "$@"

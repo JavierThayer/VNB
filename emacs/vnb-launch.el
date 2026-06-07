@@ -1169,11 +1169,14 @@ reloading the prover; this command just renders whatever is on disk."
   :type 'integer :group 'vnb)
 
 (defcustom vnb-lobby-first t
-  "When non-nil, the browser lobby (home.html) is the first impression at
-launch: the Emacs workspace is built and the listener started, but the
-Emacs frame is iconified so the browser is what the user sees.  Clicking a
-workbench link in the lobby raises Emacs.  Set to nil to land directly in
-the Emacs workspace as before."
+  "Graphical-mode front door.  When non-nil (the default), launching in a
+window system makes the browser lobby (home.html) the front door: the frame is
+set up and the listener started, the lobby opens in the browser, and Emacs
+iconifies itself; clicking a Workbench link raises Emacs into the matching work
+surface.  The in-Emacs landing menu is suppressed (still on \\[execute-extended-command] vnb-launch-workspace).
+Set to nil to keep the old in-Emacs landing page in graphical mode.  Has no
+effect in terminal (-nw) mode, where there is no browser and the in-Emacs Home
+Workspace is always the front door."
   :type 'boolean :group 'vnb)
 
 (defvar vnb--home-server nil
@@ -2184,39 +2187,68 @@ Set to nil to skip color customization.")
 ;;; -----------------------------------------------------------------------
 ;;; Entry point: open the workspace.
 
-(defun vnb-launch-workspace ()
-  "Create or switch to the Initial Workspace buffer."
-  (interactive)
-  ;; Tell Emacs to stop tracking GNOME's "system font" setting.  Without
-  ;; this, on Ubuntu/GNOME the system font (often a proportional
-  ;; condensed sans-serif like "TeX Gyre Heros Cn") keeps reasserting
-  ;; itself over our frame font, which is why VNB launches with a tiny
-  ;; unreadable window even though `set-frame-parameter' returned cleanly.
+(defun vnb-launch--frame-setup ()
+  "Frame/font/colour/minibuffer/menu setup shared by every entry path.
+Must run before any VNB buffer is shown, graphical or terminal -- skipping it
+is what leaves the frame with GNOME's tiny system font."
+  ;; Tell Emacs to stop tracking GNOME's "system font" setting.  Without this,
+  ;; on Ubuntu/GNOME the system font (often a proportional condensed sans-serif
+  ;; like "TeX Gyre Heros Cn") keeps reasserting itself over our frame font --
+  ;; VNB launches with a tiny unreadable window even though
+  ;; `set-frame-parameter' returned cleanly.
   (when (boundp 'font-use-system-font)
     (setq font-use-system-font nil))
-  ;; Let a command that prompts (e.g. Describe Structure) be invoked while
-  ;; another minibuffer prompt is already live, instead of erroring out
-  ;; with "Command attempted to use minibuffer while in minibuffer".  The
-  ;; depth indicator shows a [N] marker so a nested prompt is visible; C-g
-  ;; backs out one level at a time.
+  ;; Let a prompting command (e.g. Describe Structure) be invoked while another
+  ;; minibuffer prompt is already live, instead of erroring with "Command
+  ;; attempted to use minibuffer while in minibuffer".  The depth indicator
+  ;; shows a [N] marker; C-g backs out one level at a time.
   (setq enable-recursive-minibuffers t)
   (minibuffer-depth-indicate-mode 1)
-  ;; Built-in defaults first.
+  ;; Built-in defaults first, then user prefs LAST so they always win (whether
+  ;; the prefs file updates the defvars or calls set-frame-parameter directly).
   (vnb-launch--apply-frame-params)
   (vnb-launch--apply-colors)
   (vnb-launch--apply-saved-font-size)
-  ;; User prefs LAST so they always win, whether the file updates the
-  ;; defvars (auto-saved format) or calls set-frame-parameter/set-face-
-  ;; attribute directly (hand-edited format).  The auto-saved format
-  ;; emitted by `vnb-launch--write-prefs' invokes the apply helpers at
-  ;; the bottom, so either style takes effect.
   (vnb-launch--load-prefs)
   (vnb-launch--install-menu)
-  (vnb-launch--install-toolbar)
+  (vnb-launch--install-toolbar))
+
+(defun vnb-launch-workspace ()
+  "Create or switch to the in-Emacs Home Workspace (the full menu).
+This is the front door in terminal (-nw) mode; in graphical mode the browser
+lobby is the front door, but this stays available via \\[execute-extended-command] vnb-launch-workspace."
+  (interactive)
+  (vnb-launch--frame-setup)
   (let ((buf (get-buffer-create vnb-workspace-buffer-name)))
     (with-current-buffer buf
       (vnb-workspace-mode)
       (vnb-launch--paint-workspace))
+    (switch-to-buffer buf)
+    (delete-other-windows)))
+
+(defvar vnb-lobby-buffer-name "*VNB Lobby*"
+  "Name of the minimal graphical-mode lobby buffer (front door is the browser).")
+
+(defun vnb-launch--show-lobby-splash ()
+  "Show a minimal orienting buffer for graphical mode.  The real front door is
+the browser lobby; there is no in-Emacs menu here -- work surfaces open in
+Emacs when a Workbench link is clicked in the browser."
+  (let ((buf (get-buffer-create vnb-lobby-buffer-name)))
+    (with-current-buffer buf
+      (special-mode)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert "\n")
+        (insert (propertize "  VNB Math Assistant" 'face 'vnb-title)) (insert "\n")
+        (insert (propertize "  Front door: your browser" 'face 'vnb-heading)) (insert "\n\n")
+        (insert (propertize (make-string 60 ?-) 'face 'vnb-accent)) (insert "\n\n")
+        (insert (propertize "  The home page opened in your browser.\n" 'face 'vnb-body))
+        (insert (propertize "  Reference reading happens there; click a Workbench link and\n" 'face 'vnb-body))
+        (insert (propertize "  the matching work surface opens here in Emacs.\n\n" 'face 'vnb-body))
+        (insert (propertize "  Reopen the lobby:   M-x vnb-home-html\n" 'face 'vnb-dim))
+        (insert (propertize "  In-Emacs menu:      M-x vnb-launch-workspace\n" 'face 'vnb-dim))
+        (insert (propertize "  Terminal instead:   launch with  VNB -nw\n" 'face 'vnb-dim)))
+      (goto-char (point-min)))
     (switch-to-buffer buf)
     (delete-other-windows)))
 
@@ -3320,16 +3352,25 @@ Blank lines and comment-only lines (starting with `;') are skipped."
 ;;; Skip in batch mode so the file can be byte-loaded for syntax checks.
 
 (defun vnb-launch--enter ()
-  "Top-level startup.  Build the Emacs workspace, then either show it or,
-when `vnb-lobby-first' is set, hand the first impression to the browser
-lobby and iconify Emacs (a workbench link from the lobby raises it back)."
-  (vnb-launch-workspace)
-  (when vnb-lobby-first
+  "Top-level startup, branching on whether there is a window system.
+Terminal (-nw): no browser, so the in-Emacs Home Workspace is the front door.
+Graphical, `vnb-lobby-first' (default): the browser lobby is the front door --
+set up the frame, open the lobby, show a minimal splash, and iconify Emacs; a
+Workbench link raises Emacs into the work surface.  The in-Emacs landing menu
+is suppressed (still on M-x vnb-launch-workspace).
+Graphical, `vnb-lobby-first' nil: keep the old in-Emacs landing page."
+  (cond
+   ((not (display-graphic-p))
+    (vnb-launch-workspace))
+   (vnb-lobby-first
+    (vnb-launch--frame-setup)
+    (vnb-launch--show-lobby-splash)
     (ignore-errors (vnb-home-html))     ; starts listener + opens home.html
-    (when (display-graphic-p)
-      ;; let the browser map first, then drop Emacs to the taskbar
-      (run-at-time 0.6 nil
-                   (lambda () (ignore-errors (iconify-frame (selected-frame))))))))
+    ;; let the browser map first, then drop Emacs to the taskbar
+    (run-at-time 0.6 nil
+                 (lambda () (ignore-errors (iconify-frame (selected-frame))))))
+   (t
+    (vnb-launch-workspace))))
 
 (unless noninteractive
   (add-hook 'window-setup-hook
