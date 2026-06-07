@@ -40,6 +40,9 @@
     "structure-library/metric-space"
     "structure-library/metric-topology"
     "structure-library/ring-simplify"
+    ;; Commutative-ring identity decision procedure (multiset monomials);
+    ;; reuses ring-simplify's poly plumbing, so loads right after it.
+    "structure-library/comm-ring-simplify"
     "number-systems"
     "structure-library/order-predicates"
     ;; Cauchy/convergence/completeness on a generic metric space; needs RR's
@@ -51,6 +54,10 @@
     ;; Needs metric-space + order-predicates (POS-RR); kept with the metric
     ;; cluster, before the ring refinements.
     "structure-library/metric-continuity"
+    ;; Open sets + the open-preimage characterisation of continuity.  Needs
+    ;; metric-topology (BALL) and metric-continuity (IS-CONTINUOUS); stays
+    ;; with the metric cluster.
+    "structure-library/metric-open-sets"
     ;; Restrictive ring/field structures (genuine IS-X predicates; need NN/RR
     ;; from number-systems, used by numeric-instances below).
     "structure-library/commutative-ring"

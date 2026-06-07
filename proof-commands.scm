@@ -411,6 +411,16 @@
         (vnb--warn "ring-simplify: goal is not a provable ring identity"
                    (vnb--goal-str sqn)))))
 
+;;; (cmd-comm-ring-simplify ps) closes a goal (= e1 e2) by reducing both sides
+;;; to their sum-of-monomials normal form in the free COMMUTATIVE ring
+;;; ZZ[generators] (so x*y = y*x closes, unlike the non-commutative rs).
+(define (cmd-comm-ring-simplify ps)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-comm-ring-simplify! sqn)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "comm-ring-simplify: goal is not a provable commutative-ring identity"
+                   (vnb--goal-str sqn)))))
+
 ;;; -----------------------------------------------------------------------
 ;;; D-7 commands: SEP / COMP / IOTA / VNB-LAMBDA characterizations
 ;;; (REVIEW.md D-7).  Skeletal: schemas in the body formula are handled

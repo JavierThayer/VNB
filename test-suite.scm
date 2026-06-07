@@ -2153,6 +2153,58 @@
     (unless (proof-done? *ps*) (error "RR-MS complete: proof did not close"))))
 
 ;;; -----------------------------------------------------------------------
+;;; Commutative ring-simplify (crs): multiset-monomial normal form.
+
+(display "\n=== Commutative ring-simplify (crs) ===\n")
+
+;; crs peels the typed FORALL chain itself -- no prior (di) needed.
+(check-proof "crs closes commutativity x*y = y*x over ZZ"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ)
+                    (FORALL y (IMPLIES (IN y ZZ)
+                      (= (* x y) (* y x))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs: commutativity did not close"))))
+
+(check-proof "crs closes (x+y)*(x+y) = x*x + 2*x*y + y*y over ZZ"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ)
+                    (FORALL y (IMPLIES (IN y ZZ)
+                      (= (* (+ x y) (+ x y))
+                         (+ (* x x) (+ (* 2 (* x y)) (* y y))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs: distributive expansion did not close"))))
+
+(check-true "comm-ring-simplify warrant recorded"
+  (lambda () (and (warrant-of 'comm-ring-simplify) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Metric topology: open sets + open-preimage characterisation of continuity.
+
+(display "\n=== Metric topology: open sets + open-preimage ===\n")
+
+(check-true "IS-OPEN predicate installed"
+  (lambda () (and (lookup-theorem 'IS-OPEN) #t)))
+(check-true "PREIMAGE membership installed"
+  (lambda () (and (lookup-theorem 'preimage-membership) #t)))
+(check-true "empty-is-open support installed"
+  (lambda () (and (lookup-theorem 'empty-is-open) #t)))
+(check-true "carrier-is-open support installed"
+  (lambda () (and (lookup-theorem 'carrier-is-open) #t)))
+(check-true "ball-is-open support installed"
+  (lambda () (and (lookup-theorem 'ball-is-open) #t)))
+(check-true "union-of-opens-open support installed"
+  (lambda () (and (lookup-theorem 'union-of-opens-open) #t)))
+(check-true "inter-of-opens-open support installed"
+  (lambda () (and (lookup-theorem 'inter-of-opens-open) #t)))
+(check-true "continuous-implies-open-preimage support installed"
+  (lambda () (and (lookup-theorem 'continuous-implies-open-preimage) #t)))
+(check-true "open-preimage-implies-continuous support installed"
+  (lambda () (and (lookup-theorem 'open-preimage-implies-continuous) #t)))
+(check-true "ball-is-open carries a warrant"
+  (lambda () (and (warrant-of 'ball-is-open) #t)))
+
+;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 
 (display "\n=== describe-structure cards (instance vs refinement) ===\n")

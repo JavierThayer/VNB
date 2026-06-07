@@ -38,7 +38,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -123,8 +123,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `ring-additive-ag` — from `ring`: (a add zero neg) ↦ (a mul e inv)
 - `field-additive-ag` — from `field`: (a add zero neg) ↦ (a mul e inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (a mul e inv) ↦ (a mul e inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
 - `normed-field-additive-ag` — from `normed-field`: (a add zero neg) ↦ (a mul e inv)
 
 *Views from `abelian-group`.*
@@ -349,8 +349,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (a add mul neg zero one) ↦ (a add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (a add mul neg zero one) ↦ (a add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
+- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 
 ### group
 <a id="group"></a>
@@ -416,7 +416,11 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `ball-2r-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies forall([y in ball(s, x, r), z in ball(s, x, r)], (d(s))(y, z) <= r + r and not((d(s))(y, z) = r + r))))
 - `ball-center-in` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies x in ball(s, x, r)))
+- `ball-is-open` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies is-open(s, ball(s, x, r))))
 - `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
+- `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))
+- `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
+- `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))
 - `metric-pos` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], 0 <= (d(s))(x, y)))
 - `metric-self-zero` — forall([s], is-metric-space(s) implies forall([x in x(s)], (d(s))(x, x) = 0))
 - `metric-self-zero-rev` — forall([s], is-metric-space(s) implies forall([x in x(s)], 0 = (d(s))(x, x)))
@@ -425,6 +429,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `metric-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s), z in x(s)], (d(s))(x, z) <= (d(s))(x, y) + (d(s))(y, z)))
 - `metric-zero-eq` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = 0 implies x = y))
 - `metric-zero-eq-rev` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = 0 implies y = x))
+- `union-of-opens-open` — forall([s], is-metric-space(s) implies forall([a, g], forall([i in a], is-open(s, g(i))) implies is-open(s, big-union(i, a, g(i)))))
 
 ### monoid
 <a id="monoid"></a>
