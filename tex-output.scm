@@ -434,3 +434,40 @@
     (with-output-to-file path
       (lambda () (display doc)))
     path))
+
+;;; --- live focused-sequent TeX (for the Emacs Focus inline-PNG toggle) ---
+;;;
+;;; Unlike formula-tex (which renders a NAMED catalog entry), this renders
+;;; the FOCUSED sequent of a live proof state PS -- its assumptions and goal
+;;; -- as LaTeX MATH strings (no document wrapper; Emacs' vnb-tex--render-one
+;;; supplies $\displaystyle ... $ and dvipng).  Output is a Scheme plist that
+;;; Emacs `read' consumes directly:
+;;;
+;;;   (status open count N assumptions ("tex" ...) goal "tex")
+;;;   (status done)        ; proof complete
+;;;   (status none)        ; no proof in progress
+;;;
+;;; expr->tex-display breaks long formulas across array rows, which renders
+;;; fine inside the displaystyle math dvipng wraps each string in.
+(define (sequent-tex-plist ps)
+  (cond
+    ((not ps)          (list 'status 'none))
+    ((proof-done? ps)  (list 'status 'done))
+    (else
+     (let* ((sqn  (proof-state-focus ps))
+            (asms (sequent-node-assumptions sqn))
+            (goal (sequent-node-assertion sqn))
+            (open (proof-open-goals ps)))
+       (list 'status 'open
+             'count  (length open)
+             'assumptions
+               (map (lambda (w) (expr->tex-display (wff-formula w))) asms)
+             'goal   (expr->tex-display (wff-formula goal)))))))
+
+;;; Write the focused-sequent plist for the current proof state *ps* to PATH
+;;; (overwrites).  `write' escapes the TeX strings as Scheme/Elisp-readable
+;;; string literals.  Returns PATH.
+(define (write-sequent-tex path)
+  (with-output-to-file path
+    (lambda () (write (sequent-tex-plist *ps*)) (newline)))
+  path)

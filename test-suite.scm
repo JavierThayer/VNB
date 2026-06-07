@@ -2260,6 +2260,26 @@
     (unless (proof-done? *ps*) (error "ring-goal square did not close"))))
 
 ;;; -----------------------------------------------------------------------
+;;; Focused-sequent TeX emitter (drives the Emacs Focus inline-PNG toggle).
+
+(display "\n=== Focused-sequent TeX (write-sequent-tex) ===\n")
+
+(check-true "sequent-tex-plist: open goal yields status/goal/assumptions as TeX"
+  (lambda ()
+    (sp (ring-goal '(x y) '(= (* x y) (* y x))))
+    (di) (di) (di)
+    (let* ((p    (sequent-tex-plist *ps*))
+           (asms (cadr (memq 'assumptions p))))
+      (and (eq? (cadr (memq 'status p)) 'open)
+           (string? (cadr (memq 'goal p)))
+           (list? asms)
+           (= (length asms) 3)
+           (string? (car asms)) (string? (cadr asms)) (string? (caddr asms))))))
+
+(check-true "sequent-tex-plist: no proof -> (status none)"
+  (lambda () (equal? (sequent-tex-plist #f) '(status none))))
+
+;;; -----------------------------------------------------------------------
 ;;; Metric topology: open sets + open-preimage characterisation of continuity.
 
 (display "\n=== Metric topology: open sets + open-preimage ===\n")

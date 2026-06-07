@@ -817,6 +817,79 @@ so `vnb-tex-toggle-source' can reveal it."
     (message "Showing rendered formulas")))
 
 ;;; -----------------------------------------------------------------------
+;;; Focus Workspace inline-PNG toggle: render the LIVE focused sequent's
+;;; assumptions and goal as LaTeX images instead of infix text.
+;;;
+;;; The prover emits TeX for the focused sequent (`write-sequent-tex' in
+;;; tex-output.scm); we cache it stamped with the proof-state text it
+;;; belongs to, paint the sequent block with $...$ spans, then let
+;;; `vnb-tex-render-buffer' turn the spans into cached PNGs (dvipng).
+;;;
+;;; Re-entrancy: `vnb-state-update-hook' fires INSIDE the comint process
+;;; filter, and `vnb-eval-string' sends-and-waits, so the prover round-trip
+;;; must NOT run there.  The fetch is deferred with `run-at-time' after each
+;;; state update; the deferred fetch caches the TeX and repaints.  The first
+;;; (synchronous) paint after a step shows text; images appear a beat later.
+
+(defvar vnb-focus-render-tex nil
+  "When non-nil, the Focus Workspace renders the sequent as LaTeX images.
+Toggle with `T' in the Focus Workspace (`vnb-pf-toggle-tex').")
+
+(defvar vnb-pf--tex-cache nil
+  "Cached focused-sequent TeX, or nil.
+Shape: (:for STATE-TEXT :data PLIST), PLIST as written by the prover's
+`write-sequent-tex' (symbol keys status/count/assumptions/goal).  Used
+only while :for matches `vnb-proof--last-state', so stale TeX never shows.")
+
+(defun vnb-pf--tex-data-for-current-state ()
+  "Return the cached sequent-TeX PLIST if it matches the current state, else nil."
+  (and vnb-pf--tex-cache
+       (equal (plist-get vnb-pf--tex-cache :for) vnb-proof--last-state)
+       (plist-get vnb-pf--tex-cache :data)))
+
+(defun vnb-pf--prover-live-p ()
+  "Non-nil when the VNB prover process is running."
+  (let* ((buf  (get-buffer vnb-buffer-name))
+         (proc (and buf (get-buffer-process buf))))
+    (and proc (eq (process-status proc) 'run))))
+
+(defun vnb-pf--fetch-tex ()
+  "Round-trip the prover for the focused sequent's TeX, cache it, repaint.
+Runs OUTSIDE the comint filter (scheduled via `run-at-time').  No-op
+unless the Focus Workspace is live, the toggle is on, and the prover is up."
+  (when (and vnb-focus-render-tex
+             (get-buffer vnb-proof-buffer-name)
+             (vnb-pf--prover-live-p))
+    (vnb-tex--ensure-cache-dir)
+    (let ((state vnb-proof--last-state)
+          (path  (expand-file-name "focus-sequent.el" vnb-tex-cache-dir)))
+      (ignore-errors (delete-file path))
+      (ignore-errors (vnb-eval-string (format "(write-sequent-tex %S)" path)))
+      (when (file-exists-p path)
+        (let ((data (ignore-errors
+                      (with-temp-buffer
+                        (insert-file-contents path)
+                        (goto-char (point-min))
+                        (read (current-buffer))))))
+          (when data
+            (setq vnb-pf--tex-cache (list :for state :data data))
+            (vnb-pf-refresh)))))))
+
+(defun vnb-pf-toggle-tex ()
+  "Toggle LaTeX-image rendering of the sequent in the Focus Workspace."
+  (interactive)
+  (when (and (not vnb-focus-render-tex) (not (display-images-p)))
+    (user-error "This display can't show images (e.g. -nw); TeX rendering needs a graphical frame"))
+  (setq vnb-focus-render-tex (not vnb-focus-render-tex))
+  (if vnb-focus-render-tex
+      (progn
+        (message "Focus: rendering sequent as LaTeX (rendering...)")
+        (vnb-pf--fetch-tex))
+    (setq vnb-pf--tex-cache nil)
+    (vnb-pf-refresh)
+    (message "Focus: showing sequent as text")))
+
+;;; -----------------------------------------------------------------------
 ;;; Structure cards: a rendered "card" per structure (operations, the
 ;;; characteristic law, view-as relations) plus an editable notes file.
 ;;; The generated half comes from the prover (`write-structure-card-md');
@@ -2348,7 +2421,18 @@ re-querying.")
     (nreverse parts)))
 
 (defun vnb-launch--render-sequent-block (seq)
-  "Render a parsed sequent SEQ with assumptions one per line."
+  "Render a parsed sequent SEQ with assumptions one per line.
+When `vnb-focus-render-tex' is on and matching prover TeX is cached, emit
+the assumptions and goal as $...$ math spans (turned into PNGs by
+`vnb-tex-render-buffer' after the buffer is painted); otherwise as text."
+  (let ((texdata (and vnb-focus-render-tex
+                      (vnb-pf--tex-data-for-current-state))))
+    (if texdata
+        (vnb-launch--render-sequent-block-tex seq texdata)
+      (vnb-launch--render-sequent-block-text seq))))
+
+(defun vnb-launch--render-sequent-block-text (seq)
+  "Render a parsed sequent SEQ as styled infix text, assumptions one per line."
   (let* ((num   (plist-get seq :num))
          (asms  (plist-get seq :asms))
          ;; Strip the surrounding quotes older builds emit (wff->string);
@@ -2382,6 +2466,38 @@ re-querying.")
       (insert (propertize "[GROUNDED]" 'face 'vnb-dim)))
     (insert "\n")))
 
+(defun vnb-launch--render-sequent-block-tex (seq texdata)
+  "Render sequent SEQ using TEXDATA (the prover's focused-sequent TeX plist).
+Each assumption and the goal go in as a $...$ span; `vnb-tex-render-buffer'
+later replaces the spans with cached PNGs.  SEQ supplies the goal number
+and the GROUNDED flag; TEXDATA supplies the LaTeX."
+  (let ((num      (plist-get seq :num))
+        (grounded (plist-get seq :grounded))
+        (asms     (plist-get texdata 'assumptions))
+        (goal     (plist-get texdata 'goal)))
+    (insert "    ")
+    (insert (propertize (format "[%d]" num) 'face 'vnb-dim))
+    (insert "\n")
+    (if (null asms)
+        (progn (insert "      ")
+               (insert (propertize "(no assumptions)" 'face 'vnb-dim))
+               (insert "\n"))
+      (let ((i 1))
+        (dolist (a asms)
+          (insert "      ")
+          (insert (propertize (format "%d. " i) 'face 'vnb-dim))
+          (insert "$" a "$")
+          (insert "\n")
+          (cl-incf i))))
+    (insert "    ")
+    (insert (propertize "⊢" 'face 'vnb-accent))
+    (insert "  ")
+    (insert "$" goal "$")
+    (when grounded
+      (insert "  ")
+      (insert (propertize "[GROUNDED]" 'face 'vnb-dim)))
+    (insert "\n")))
+
 (defvar vnb-proof-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m "d" 'vnb-pf-direct-inference)
@@ -2402,6 +2518,7 @@ re-querying.")
     (define-key m "r" 'vnb-pf-show-repl)
     (define-key m "S" 'vnb-ws-scratch-workspace)
     (define-key m "W" 'vnb-pf-save-proof-script)
+    (define-key m "T" 'vnb-pf-toggle-tex)
     (define-key m "g" 'vnb-pf-refresh)
     m)
   "Keymap for the Focus Workspace buffer.")
@@ -2512,8 +2629,11 @@ re-querying.")
                      "m rewrite  t theorem  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
                      "h home  r scratch-pad  S scratch-workspace  "
-                     "W save-script  g refresh\n")
+                     "T tex-toggle  W save-script  g refresh\n")
              'face 'vnb-dim))
+    ;; Turn the $...$ spans the TeX renderer emitted into inline PNGs.
+    (when (and vnb-focus-render-tex (vnb-pf--tex-data-for-current-state))
+      (vnb-tex-render-buffer))
     (goto-char (point-min))))
 
 (defun vnb-pf-refresh ()
@@ -2615,7 +2735,13 @@ error from a prior failed attempt is also cleared here."
   (let ((fb (get-buffer vnb-proof-buffer-name))
         (ob (get-buffer vnb-overview-buffer-name)))
     (when fb (with-current-buffer fb (vnb-launch--paint-proof)))
-    (when ob (with-current-buffer ob (vnb-launch--paint-overview)))))
+    (when ob (with-current-buffer ob (vnb-launch--paint-overview)))
+    ;; The first paint above shows text (no fresh TeX yet).  If the toggle
+    ;; is on, fetch the new sequent's TeX OUTSIDE this comint filter and
+    ;; repaint with images.  run-at-time defers past the filter so the
+    ;; send-and-wait round-trip can't re-enter it.
+    (when (and fb vnb-focus-render-tex)
+      (run-at-time 0 nil #'vnb-pf--fetch-tex))))
 
 (defun vnb-launch--on-vnb-error (_msg)
   "Repaint any open Focus / Overview workspace so the error panel appears.
