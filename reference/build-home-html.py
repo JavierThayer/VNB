@@ -21,34 +21,36 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8973
 
 def esc(s): return html.escape(s, quote=True)
 
-# (label, href, blurb) -- plain HTML pages, normal in-browser navigation
+# Reference reading -- all in the browser.  (label, href, blurb).  The #ANCHORS
+# are reference.html's per-doc sections (build-reference-html.py: secid = the
+# .md filename).  These cover what used to be the Emacs "Show X" home items.
 REF_LINKS = [
-    ("Library",         "reference.html",       "theorems, structures, PSS, indexes — cross-linked"),
-    ("Structure Graph", "structure-graph.html", "refines & view-as relations, clickable"),
+    ("Library",           "reference.html",                  "everything cross-linked — start here"),
+    ("Structures",        "reference.html#STRUCTURE-INDEX",  "every structure: slots, laws, views"),
+    ("Theorems & axioms", "reference.html#THEOREMS",         "the full installed catalog"),
+    ("Definitions",       "reference.html#DEFINITIONS",      "term & predicate definitions"),
+    ("Proof Support Set", "reference.html#PSS",              "results accepted as warranted support"),
+    ("Fingerprint Index", "reference.html#FINGERPRINT-INDEX","results bucketed by conclusion skeleton"),
+    ("Structure Graph",   "structure-graph.html",            "refines & view-as relations, clickable"),
 ]
-# Workbench: (heading, [(label, fn-name, blurb), ...]).  Each fn-name is
-# dispatched in Emacs via vnb--home-actions in vnb-launch.el -- KEEP THE TWO
-# IN SYNC.  These mirror the items on the Emacs Home Workspace.
+# Workbench: (heading, [(label, fn-name, blurb), ...]).  Emacs is ONLY for work
+# the user actually performs -- starting/continuing proofs, scratch, building.
+# Each fn-name MUST have a matching entry in vnb--home-actions (vnb-launch.el);
+# keep the two in sync by hand.  No "Open Workspace": the browser IS the home
+# page, so there is no separate Emacs landing page to bounce to.
 WORKBENCH = [
     ("Prove", [
-        ("Open Workspace", "workspace",     "the Emacs home workspace"),
-        ("Start Proof",    "start-proof",   "edit the goal in a buffer, then begin in the Focus workspace"),
-        ("Scratch",        "scratch",       "Lisp-interaction sheet: C-j sends a sexp/region to the prover"),
-        ("Calculator",     "calculator",    "work out an arithmetic expression"),
-        ("Build Formula",  "build-formula", "parse and validate a formula"),
+        ("Start Proof",    "start-proof",    "edit the goal in a buffer, then begin in the Focus workspace"),
+        ("Continue Proof", "continue-proof", "return to the proof in progress (Focus workspace)"),
+        ("Scratch",        "scratch",        "Lisp-interaction sheet: C-j sends a sexp/region to the prover"),
     ]),
-    ("Library & structures", [
-        ("Browse Library",     "browse-library",     "navigate the structure & view-as library"),
-        ("Show Theorems",      "show-theorems",      "list installed theorems"),
-        ("Show PSS",           "show-pss",           "Proof Support Set entries"),
-        ("Definitions",        "definitions",        "term & predicate definitions"),
-        ("Fingerprint Index",  "fingerprints",       "results bucketed by conclusion fingerprint"),
-        ("Describe Structure", "describe-structure", "a structure's ops, law & views (rendered)"),
-        ("Structure Manual",   "structure-manual",   "all structures, one rendered reference"),
-        ("Build Structure",    "build-structure",    "define a new structure (saved to file)"),
+    ("Build", [
+        ("Build Formula",  "build-formula",  "parse and validate a formula"),
+        ("Build Structure","build-structure","define a new structure (saved to file)"),
+        ("Calculator",     "calculator",     "work out an arithmetic expression"),
     ]),
     ("Session", [
-        ("Examples",     "examples",     "worked example proofs, step-through"),
+        ("Examples",     "examples",     "step through worked example proofs"),
         ("Save Session", "save-session", "this session's proofs as one re-loadable script"),
     ]),
 ]

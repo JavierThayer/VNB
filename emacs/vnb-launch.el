@@ -1180,25 +1180,20 @@ the Emacs workspace as before."
   "The home-page localhost listener process, or nil when not running.")
 
 (defconst vnb--home-actions
-  '(("workspace"          . vnb-launch-workspace)
-    ("start-proof"        . vnb-ws-start-proof)
-    ("scratch"            . vnb-ws-scratch-workspace)
-    ("calculator"         . vnb-ws-calculator)
-    ("build-formula"      . vnb-ws-build-formula)
-    ("build-structure"    . vnb-ws-build-structure)
-    ("browse-library"     . vnb-ws-browse-library)
-    ("show-theorems"      . vnb-ws-show-theorems)
-    ("show-pss"           . vnb-ws-show-pss)
-    ("definitions"        . vnb-ws-show-definitions)
-    ("fingerprints"       . vnb-ws-show-fingerprints)
-    ("describe-structure" . vnb-describe-structure)
-    ("structure-manual"   . vnb-structure-manual)
-    ("examples"           . vnb-ws-examples)
-    ("save-session"       . vnb-ws-save-session))
-  "Whitelist mapping home.html `fn=' names to commands.  ONLY these run;
-the listener never evaluates arbitrary input from the socket.  Each name must
-also appear in build-home-html.py's link tables (the two are kept in sync by
-hand).")
+  '(("start-proof"     . vnb-ws-start-proof)
+    ("continue-proof"  . vnb-launch--show-proof-workspace)
+    ("scratch"         . vnb-ws-scratch-workspace)
+    ("build-formula"   . vnb-ws-build-formula)
+    ("build-structure" . vnb-ws-build-structure)
+    ("calculator"      . vnb-ws-calculator)
+    ("examples"        . vnb-ws-examples)
+    ("save-session"    . vnb-ws-save-session))
+  "Whitelist mapping home.html `fn=' names to commands.  ONLY these run; the
+listener never evaluates arbitrary input from the socket.  Emacs is reserved
+for WORK (start/continue proofs, scratch, building) -- reference reading lives
+in the browser (reference.html), so there is no `workspace'/landing-page entry
+here.  Each name must also appear in build-home-html.py's WORKBENCH table; the
+two are kept in sync by hand.")
 
 (defun vnb--home-respond (proc status)
   "Send a bodyless HTTP response with STATUS and close PROC."
