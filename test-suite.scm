@@ -2175,6 +2175,56 @@
     (crs)
     (unless (proof-done? *ps*) (error "crs: distributive expansion did not close"))))
 
+;; Concrete binary structure surface: binplus/bintimes alias +/*.
+(check-proof "crs closes bintimes commutativity over ZZ (binary surface)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ)
+                    (FORALL y (IMPLIES (IN y ZZ)
+                      (= (bintimes x y) (bintimes y x))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs: bintimes commutativity did not close"))))
+
+;; Generic surface: an ARBITRARY commutative ring R, structure operators.
+(check-proof "crs closes (MUL R) commutativity in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (A R))
+                    (FORALL b (IMPLIES (IN b (A R))
+                      (= ((MUL R) a b) ((MUL R) b a))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: MUL commutativity did not close"))))
+
+(check-proof "crs closes left distributivity in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (A R))
+                    (FORALL b (IMPLIES (IN b (A R))
+                    (FORALL c (IMPLIES (IN c (A R))
+                      (= ((MUL R) a ((ADD R) b c))
+                         ((ADD R) ((MUL R) a b) ((MUL R) a c)))))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: distributivity did not close"))))
+
+(check-proof "crs closes (x+y)^2 = x^2 + 2xy + y^2 in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (A R))
+                    (FORALL b (IMPLIES (IN b (A R))
+                      (= ((MUL R) ((ADD R) a b) ((ADD R) a b))
+                         ((ADD R) ((MUL R) a a)
+                          ((ADD R) ((ADD R) ((MUL R) a b) ((MUL R) a b))
+                                   ((MUL R) b b))))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: square expansion did not close"))))
+
+(check-proof "crs closes the ONE identity (ONE R)*a = a in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (A R))
+                      (= ((MUL R) (ONE R) a) a)))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: ONE identity did not close"))))
+
 (check-true "comm-ring-simplify warrant recorded"
   (lambda () (and (warrant-of 'comm-ring-simplify) #t)))
 
