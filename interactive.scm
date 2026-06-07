@@ -161,6 +161,81 @@
 (define (wff str) (make-wff-from-string str))
 
 ;;; -----------------------------------------------------------------------
+;;; Ring-expression copilot.  Write commutative-ring goals with ordinary
+;;; + * - ^ and have them resolved to the ring's OWN operators.  In an abstract
+;;; ring `s' addition is (ADD s), multiplication (MUL s), negation (NEG s), the
+;;; unit (ONE s), zero (ZERO s); a LITERAL power x^k expands to k-fold
+;;; multiplication (so (crs) can normalize it), a SYMBOLIC power x^n becomes
+;;; RING-POWER (ring-power.scm).  You write the algebra; this expands it.
+;;;
+;;;   (ring-term 's '(* z (+ x y)))      => ((MUL s) z ((ADD s) x y))
+;;;   (sp (ring-goal '(x y z) '(= (* z (+ x y)) (+ (* z x) (* z y)))))
+;;;       starts:  forall s, is-commutative-ring(s) =>
+;;;                  forall x,y,z in a(s).  z*(x+y) = z*x + z*y
+;;;   (sp (ring-goal '(x y) '(= (^ (+ x y) 2)
+;;;                             (+ (^ x 2) (+ (* x y) (+ (* x y) (^ y 2)))))))
+;;;
+;;; Heads handled: + and * (n-ary, left-folded into the binary slot); - (unary
+;;; negate or binary/n-ary subtract); ^ or expt; constants 0 -> (ZERO s) and
+;;; 1 -> (ONE s).  Symbols pass through as ring elements; any other head is kept
+;;; with its arguments resolved.  Default ring variable is `s' -- don't reuse it
+;;; as an element name, or call ring-goal-in with your own ring symbol.
+
+(define (ring-term--fold op args)
+  (cond ((null? args) (error "ring-term: empty + or *"))
+        ((null? (cdr args)) (car args))
+        (else (let loop ((acc (car args)) (rest (cdr args)))
+                (if (null? rest) acc
+                    (loop (list op acc (car rest)) (cdr rest)))))))
+
+(define (ring-term--pow s base k)        ; literal k >= 0 -> k-fold MUL
+  (cond ((= k 0) (list 'ONE s))
+        ((= k 1) base)
+        (else (let loop ((i (- k 1)) (acc base))
+                (if (= i 0) acc
+                    (loop (- i 1) (list (list 'MUL s) acc base)))))))
+
+(define (ring-term s e)
+  (cond
+    ((eqv? e 0) (list 'ZERO s))
+    ((eqv? e 1) (list 'ONE s))
+    ((not (pair? e)) e)                  ; symbol / other atom -> ring element
+    (else
+     (case (car e)
+       ((+) (ring-term--fold (list 'ADD s)
+              (map (lambda (a) (ring-term s a)) (cdr e))))
+       ((*) (ring-term--fold (list 'MUL s)
+              (map (lambda (a) (ring-term s a)) (cdr e))))
+       ((-) (let ((as (map (lambda (a) (ring-term s a)) (cdr e))))
+              (cond ((null? as) (error "ring-term: empty -"))
+                    ((null? (cdr as)) (list (list 'NEG s) (car as)))
+                    (else (ring-term--fold (list 'ADD s)
+                            (cons (car as)
+                                  (map (lambda (a) (list (list 'NEG s) a))
+                                       (cdr as))))))))
+       ((^ expt)
+        (let ((base (ring-term s (cadr e))) (ex (caddr e)))
+          (if (and (integer? ex) (>= ex 0))
+              (ring-term--pow s base ex)            ; literal power -> k-fold MUL
+              (list 'RING-POWER s base ex))))        ; symbolic power -> RING-POWER
+       (else (cons (car e) (map (lambda (a) (ring-term s a)) (cdr e))))))))
+
+;;; Build a full commutative-ring goal: forall s, is-commutative-ring(s) =>
+;;; forall <vars> in a(s). <body>, with the operators in BODY resolved against s.
+(define (ring-goal vars body) (ring-goal-in 's vars body))
+
+(define (ring-goal-in s vars body)
+  (make-wff
+   (list 'FORALL s
+     (list 'IMPLIES (list 'IS-COMMUTATIVE-RING s)
+       (let loop ((vs vars))
+         (if (null? vs)
+             (ring-term s body)
+             (list 'FORALL (car vs)
+               (list 'IMPLIES (list 'IN (car vs) (list 'A s))
+                 (loop (cdr vs))))))))))
+
+;;; -----------------------------------------------------------------------
 ;;; Short-form proof commands.
 ;;;
 ;;; vnb--run! executes a cmd-* thunk, records and updates *ps* on success,

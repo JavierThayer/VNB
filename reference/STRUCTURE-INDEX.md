@@ -245,6 +245,13 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `prod-ring-singleton` — forall([r], is-commutative-ring(r) implies forall([x in set, f in fun({x}, a(r))], prod-ring(r, f, {x}) = f(x)))
 - `prod-ring-singleton-rev` — forall([r], is-commutative-ring(r) implies forall([x in set, f in fun({x}, a(r))], f(x) = prod-ring(r, f, {x})))
 - `prod-ring-type` — forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([f in fun(x, a(r))], prod-ring(r, f, x) in a(r))))
+- `ring-power-add` — forall([r], is-commutative-ring(r) implies forall([x in a(r), j in nn, k in nn], ring-power(r, x, j + k) = (mul(r))(ring-power(r, x, j), ring-power(r, x, k))))
+- `ring-power-add-rev` — forall([r], is-commutative-ring(r) implies forall([x in a(r), j in nn, k in nn], (mul(r))(ring-power(r, x, j), ring-power(r, x, k)) = ring-power(r, x, j + k)))
+- `ring-power-mult` — forall([r], is-commutative-ring(r) implies forall([x in a(r), y in a(r), n in nn], ring-power(r, (mul(r))(x, y), n) = (mul(r))(ring-power(r, x, n), ring-power(r, y, n))))
+- `ring-power-mult-rev` — forall([r], is-commutative-ring(r) implies forall([x in a(r), y in a(r), n in nn], (mul(r))(ring-power(r, x, n), ring-power(r, y, n)) = ring-power(r, (mul(r))(x, y), n)))
+- `ring-power-one` — forall([r], is-commutative-ring(r) implies forall([x in a(r)], ring-power(r, x, 1) = x))
+- `ring-power-one-rev` — forall([r], is-commutative-ring(r) implies forall([x in a(r)], x = ring-power(r, x, 1)))
+- `ring-power-type` — forall([r], is-commutative-ring(r) implies forall([x in a(r), n in nn], ring-power(r, x, n) in a(r)))
 
 *Views into `commutative-ring`.*
 

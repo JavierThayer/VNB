@@ -2229,6 +2229,37 @@
   (lambda () (and (warrant-of 'comm-ring-simplify) #t)))
 
 ;;; -----------------------------------------------------------------------
+;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
+
+(display "\n=== Ring-power + ring-expression copilot ===\n")
+
+(check-true "ring-power laws installed"
+  (lambda () (and (lookup-theorem 'ring-power-zero)
+                  (lookup-theorem 'ring-power-add)
+                  (lookup-theorem 'ring-power-mult) #t)))
+(check-true "ring-term: * and + resolve to the ring's slots"
+  (lambda () (equal? (ring-term 's '(* z (+ x y)))
+                     '((MUL s) z ((ADD s) x y)))))
+(check-true "ring-term: literal power expands to k-fold MUL"
+  (lambda () (equal? (ring-term 's '(^ x 3))
+                     '((MUL s) ((MUL s) x x) x))))
+(check-true "ring-term: symbolic power stays RING-POWER"
+  (lambda () (equal? (ring-term 's '(^ x n))
+                     '(RING-POWER s x n))))
+(check-proof "copilot: ring-goal distributivity closes under crs"
+  (lambda ()
+    (sp (ring-goal '(x y z) '(= (* z (+ x y)) (+ (* z x) (* z y)))))
+    (crs)
+    (unless (proof-done? *ps*) (error "ring-goal distributivity did not close"))))
+(check-proof "copilot: (x+y)^2 = x^2+2xy+y^2 (via ^ expansion) closes under crs"
+  (lambda ()
+    (sp (ring-goal '(x y)
+          '(= (^ (+ x y) 2)
+              (+ (^ x 2) (+ (* x y) (+ (* x y) (^ y 2)))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "ring-goal square did not close"))))
+
+;;; -----------------------------------------------------------------------
 ;;; Metric topology: open sets + open-preimage characterisation of continuity.
 
 (display "\n=== Metric topology: open sets + open-preimage ===\n")

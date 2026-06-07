@@ -97,6 +97,10 @@
     ;; ABELIAN-GROUP-AS-MONOID view they ride is declared earlier in views.
     "structure-library/monoid-power"
     "structure-library/zz-action"
+    ;; RING-POWER x^n in a commutative ring = MPOW on its multiplicative
+    ;; comm-monoid (COMMUTATIVE-RING-MULTIPLICATIVE-CM, views.scm).  Needs
+    ;; monoid-power + that view + commutative-ring.
+    "structure-library/ring-power"
     "structure-library/bijection"
     "structure-library/cardinality"
     "structure-library/injection"
