@@ -1174,6 +1174,14 @@ reloading the prover; this command just renders whatever is on disk."
 \(home.html) pokes to invoke Emacs commands.  Bound to 127.0.0.1 only."
   :type 'integer :group 'vnb)
 
+(defcustom vnb-lobby-first t
+  "When non-nil, the browser lobby (home.html) is the first impression at
+launch: the Emacs workspace is built and the listener started, but the
+Emacs frame is iconified so the browser is what the user sees.  Clicking a
+workbench link in the lobby raises Emacs.  Set to nil to land directly in
+the Emacs workspace as before."
+  :type 'boolean :group 'vnb)
+
 (defvar vnb--home-server nil
   "The home-page localhost listener process, or nil when not running.")
 
@@ -1208,7 +1216,9 @@ the listener never evaluates arbitrary input from the socket.")
                      (lambda ()
                        (ignore-errors (funcall cmd))
                        (when (display-graphic-p)
-                         (ignore-errors (raise-frame)
+                         ;; pull Emacs up even if lobby-first iconified it
+                         (ignore-errors (make-frame-visible (selected-frame))
+                                        (raise-frame)
                                         (x-focus-frame (selected-frame))))))))))
 
 (defun vnb--home-server-ensure ()
@@ -3211,10 +3221,23 @@ Blank lines and comment-only lines (starting with `;') are skipped."
 ;;; load-file" symptom.
 ;;;
 ;;; Skip in batch mode so the file can be byte-loaded for syntax checks.
+
+(defun vnb-launch--enter ()
+  "Top-level startup.  Build the Emacs workspace, then either show it or,
+when `vnb-lobby-first' is set, hand the first impression to the browser
+lobby and iconify Emacs (a workbench link from the lobby raises it back)."
+  (vnb-launch-workspace)
+  (when vnb-lobby-first
+    (ignore-errors (vnb-home-html))     ; starts listener + opens home.html
+    (when (display-graphic-p)
+      ;; let the browser map first, then drop Emacs to the taskbar
+      (run-at-time 0.6 nil
+                   (lambda () (ignore-errors (iconify-frame (selected-frame))))))))
+
 (unless noninteractive
   (add-hook 'window-setup-hook
             (lambda ()
-              (run-at-time 0.3 nil 'vnb-launch-workspace))))
+              (run-at-time 0.3 nil 'vnb-launch--enter))))
 
 (provide 'vnb-launch)
 ;;; vnb-launch.el ends here
