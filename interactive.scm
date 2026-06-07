@@ -156,6 +156,10 @@
          (set! *ps* (start-proof wic))
          (show))))))
 
+;;; (wff "...") -- short alias for make-wff-from-string, so a goal can be
+;;; started from the scratch sheet as (sp (wff "forall([x in nn], x in zz)")).
+(define (wff str) (make-wff-from-string str))
+
 ;;; -----------------------------------------------------------------------
 ;;; Short-form proof commands.
 ;;;

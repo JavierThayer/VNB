@@ -21,18 +21,36 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8973
 
 def esc(s): return html.escape(s, quote=True)
 
-# (label, href, blurb) -- plain HTML pages, normal navigation
+# (label, href, blurb) -- plain HTML pages, normal in-browser navigation
 REF_LINKS = [
     ("Library",         "reference.html",       "theorems, structures, PSS, indexes — cross-linked"),
     ("Structure Graph", "structure-graph.html", "refines & view-as relations, clickable"),
 ]
-# (label, fn-name, blurb) -- dispatched in Emacs via the whitelist
-EMACS_LINKS = [
-    ("Open Workspace", "workspace",       "the Emacs home workspace"),
-    ("Start Proof",    "start-proof",     "begin a new proof in the Focus workspace"),
-    ("Scratch",        "scratch",         "Lisp-interaction scratch sheet"),
-    ("Examples",       "examples",        "worked example proofs, step-through"),
-    ("Browse Library", "browse-library",  "context-aware library browser"),
+# Workbench: (heading, [(label, fn-name, blurb), ...]).  Each fn-name is
+# dispatched in Emacs via vnb--home-actions in vnb-launch.el -- KEEP THE TWO
+# IN SYNC.  These mirror the items on the Emacs Home Workspace.
+WORKBENCH = [
+    ("Prove", [
+        ("Open Workspace", "workspace",     "the Emacs home workspace"),
+        ("Start Proof",    "start-proof",   "edit the goal in a buffer, then begin in the Focus workspace"),
+        ("Scratch",        "scratch",       "Lisp-interaction sheet: C-j sends a sexp/region to the prover"),
+        ("Calculator",     "calculator",    "work out an arithmetic expression"),
+        ("Build Formula",  "build-formula", "parse and validate a formula"),
+    ]),
+    ("Library & structures", [
+        ("Browse Library",     "browse-library",     "navigate the structure & view-as library"),
+        ("Show Theorems",      "show-theorems",      "list installed theorems"),
+        ("Show PSS",           "show-pss",           "Proof Support Set entries"),
+        ("Definitions",        "definitions",        "term & predicate definitions"),
+        ("Fingerprint Index",  "fingerprints",       "results bucketed by conclusion fingerprint"),
+        ("Describe Structure", "describe-structure", "a structure's ops, law & views (rendered)"),
+        ("Structure Manual",   "structure-manual",   "all structures, one rendered reference"),
+        ("Build Structure",    "build-structure",    "define a new structure (saved to file)"),
+    ]),
+    ("Session", [
+        ("Examples",     "examples",     "worked example proofs, step-through"),
+        ("Save Session", "save-session", "this session's proofs as one re-loadable script"),
+    ]),
 ]
 
 CSS = """
@@ -85,8 +103,16 @@ def emacs_card(label, fn, blurb):
             f'<div class="b">{esc(blurb)}</div></a>')
 
 def build():
-    refs   = "".join(ref_card(*r)   for r in REF_LINKS)
-    emacss = "".join(emacs_card(*e) for e in EMACS_LINKS)
+    refs = "".join(ref_card(*r) for r in REF_LINKS)
+    work_sections = []
+    n_work = 0
+    for heading, items in WORKBENCH:
+        cards = "".join(emacs_card(*e) for e in items)
+        n_work += len(items)
+        work_sections.append(
+            f'<h2>{esc(heading)} <span class="sub" style="font-size:.85rem">'
+            f'(opens in Emacs)</span></h2>\n{cards}')
+    works = "\n".join(work_sections)
     doc = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <title>VNB Math Assistant</title>
@@ -94,18 +120,17 @@ def build():
 <div id="flash"></div>
 <main>
 <h1>VNB Math Assistant</h1>
-<p class="sub">Reference reading happens here in the browser; proving happens in Emacs.</p>
+<p class="sub">The home page. Reference reading happens here in the browser; proving happens in Emacs.</p>
 <h2>Reference</h2>
 {refs}
-<h2>Workbench <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
-{emacss}
+{works}
 </main>
 <script>{JS}</script>
 </body></html>
 """
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(doc)
-    print(f"wrote {OUT}  (port {PORT}, {len(REF_LINKS)} reference + {len(EMACS_LINKS)} workbench links)")
+    print(f"wrote {OUT}  (port {PORT}, {len(REF_LINKS)} reference + {n_work} workbench links)")
 
 if __name__ == "__main__":
     build()

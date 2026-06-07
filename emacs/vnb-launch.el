@@ -453,17 +453,11 @@ so callers can safely send input without racing the load.scm phase."
 ;;; -----------------------------------------------------------------------
 ;;; Action commands
 
-(defun vnb-ws-start-proof (formula)
-  "Start a new proof.  FORMULA is the goal string in VNB string syntax.
-Switches to the Proof Workspace; the prover's state output triggers an
-auto-repaint there via `vnb-state-update-hook'."
-  (interactive "sFormula (string syntax): ")
-  (when (string-match-p "\\`[ \t]*\\'" formula)
-    (user-error "No formula given"))
-  (vnb-launch--ensure-prover)
-  (vnb-launch--show-proof-workspace)
-  (vnb-launch--send
-   (format "(sp (make-wff-from-string %S))" formula)))
+;; `vnb-ws-start-proof' now opens the Start Proof Workspace -- a real editing
+;; buffer for the goal formula, so long formulas are no longer cramped into a
+;; one-line minibuffer prompt.  Its definition lives with that workspace's
+;; machinery (search for "Start Proof Workspace" below), next to Build
+;; Structure, which it mirrors.
 
 (defun vnb-ws-build-formula (formula)
   "Parse FORMULA and display the result."
@@ -1186,13 +1180,25 @@ the Emacs workspace as before."
   "The home-page localhost listener process, or nil when not running.")
 
 (defconst vnb--home-actions
-  '(("workspace"      . vnb-launch-workspace)
-    ("start-proof"    . vnb-ws-start-proof)
-    ("scratch"        . vnb-ws-scratch-workspace)
-    ("examples"       . vnb-ws-examples)
-    ("browse-library" . vnb-ws-browse-library))
+  '(("workspace"          . vnb-launch-workspace)
+    ("start-proof"        . vnb-ws-start-proof)
+    ("scratch"            . vnb-ws-scratch-workspace)
+    ("calculator"         . vnb-ws-calculator)
+    ("build-formula"      . vnb-ws-build-formula)
+    ("build-structure"    . vnb-ws-build-structure)
+    ("browse-library"     . vnb-ws-browse-library)
+    ("show-theorems"      . vnb-ws-show-theorems)
+    ("show-pss"           . vnb-ws-show-pss)
+    ("definitions"        . vnb-ws-show-definitions)
+    ("fingerprints"       . vnb-ws-show-fingerprints)
+    ("describe-structure" . vnb-describe-structure)
+    ("structure-manual"   . vnb-structure-manual)
+    ("examples"           . vnb-ws-examples)
+    ("save-session"       . vnb-ws-save-session))
   "Whitelist mapping home.html `fn=' names to commands.  ONLY these run;
-the listener never evaluates arbitrary input from the socket.")
+the listener never evaluates arbitrary input from the socket.  Each name must
+also appear in build-home-html.py's link tables (the two are kept in sync by
+hand).")
 
 (defun vnb--home-respond (proc status)
   "Send a bodyless HTTP response with STATUS and close PROC."
@@ -1211,10 +1217,12 @@ the listener never evaluates arbitrary input from the socket.")
       (if (not cmd)
           (vnb--home-respond proc "403 Forbidden")
         (vnb--home-respond proc "204 No Content")
-        ;; defer out of the process filter; raise Emacs so the user lands here
+        ;; defer out of the process filter; raise Emacs so the user lands here.
+        ;; call-interactively (not funcall) so commands that prompt -- Describe
+        ;; Structure, Build Formula, ... -- read their input in Emacs as usual.
         (run-at-time 0 nil
                      (lambda ()
-                       (ignore-errors (funcall cmd))
+                       (ignore-errors (call-interactively cmd))
                        (when (display-graphic-p)
                          ;; pull Emacs up even if lobby-first iconified it
                          (ignore-errors (make-frame-visible (selected-frame))
@@ -2929,6 +2937,100 @@ next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
 ;;; Subscribe to state updates and to error events from the prover.
 (add-hook 'vnb-state-update-hook 'vnb-launch--on-state-update)
 (add-hook 'vnb-error-hook        'vnb-launch--on-vnb-error)
+
+;;; -----------------------------------------------------------------------
+;;; Start Proof Workspace: edit the goal formula in a real buffer, then begin
+;;; the proof.  Mirrors Build Structure (a *VNB Structure* editor): an editing
+;;; buffer with C-c C-c to commit and C-c C-k to cancel.  Replaces the old
+;;; one-line minibuffer prompt, which made long formulas painful to type.
+
+(defvar vnb-startproof-buffer-name "*VNB Start Proof*"
+  "Name of the Start Proof editing buffer.")
+
+(defvar vnb-startproof-template "\
+;; ============================================================
+;; START PROOF     C-c C-c = Begin proof     C-c C-k = Cancel
+;; ============================================================
+;;
+;; Write the goal below in VNB string (infix) syntax, e.g.
+;;
+;;   forall([x in nn], x in zz)
+;;
+;;   forall([R], is-commutative-ring(R) implies
+;;     forall([a in a(R), b in a(R)], (mul(R))(a, b) = (mul(R))(b, a)))
+;;
+;; Multiple lines are fine -- they are joined into one formula; comment
+;; lines (starting with ';') are ignored.  C-c C-c parses the goal, starts
+;; the proof, and switches to the Focus workspace.  (A quick one-liner can
+;; still go straight through  (sp (wff \"...\"))  in the Scratch Workspace.)
+
+"
+  "Initial content inserted into a fresh Start Proof buffer.")
+
+(defvar vnb-startproof-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "C-c C-c") 'vnb-startproof-submit)
+    (define-key m (kbd "C-c C-k") 'vnb-startproof-cancel)
+    m)
+  "Keymap for the Start Proof editing buffer.")
+
+(define-derived-mode vnb-startproof-mode prog-mode "VNB-StartProof"
+  "Major mode for the Start Proof workspace.
+\\<vnb-startproof-mode-map>
+Edit the goal formula, then \\[vnb-startproof-submit] to begin the proof,
+or \\[vnb-startproof-cancel] to cancel.  Comment lines (starting with `;')
+are ignored when the goal is read."
+  (setq truncate-lines nil)
+  (setq-local comment-start ";")
+  (when (fboundp 'show-paren-local-mode)   (show-paren-local-mode 1))
+  (when (fboundp 'electric-pair-local-mode) (electric-pair-local-mode 1)))
+
+(defun vnb-launch--startproof-formula ()
+  "Return the goal from the current buffer: every non-comment, non-blank line
+joined with spaces, trimmed.  Comment lines start with `;'."
+  (let ((lines '()))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let ((line (buffer-substring-no-properties
+                     (line-beginning-position) (line-end-position))))
+          (unless (string-match-p "\\`[ \t]*\\(;.*\\)?\\'" line)
+            (push line lines)))
+        (forward-line 1)))
+    (string-trim (mapconcat #'identity (nreverse lines) " "))))
+
+(defun vnb-startproof-submit ()
+  "Parse the goal in this buffer and begin the proof in the Focus workspace."
+  (interactive)
+  (let ((formula (vnb-launch--startproof-formula)))
+    (when (string= formula "")
+      (user-error "No formula given -- write the goal below the header"))
+    (vnb-launch--ensure-prover)
+    (vnb-launch--show-proof-workspace)
+    (vnb-launch--send
+     (format "(sp (make-wff-from-string %S))" formula))))
+
+(defun vnb-startproof-cancel ()
+  "Discard the Start Proof buffer and return to the Home Workspace."
+  (interactive)
+  (when (yes-or-no-p "Discard this formula? ")
+    (kill-buffer)
+    (vnb-launch-workspace)))
+
+(defun vnb-ws-start-proof ()
+  "Open the *VNB Start Proof* workspace: edit the goal formula in a real
+buffer (VNB string syntax), then \\<vnb-startproof-mode-map>\\[vnb-startproof-submit] to begin the proof in the
+Focus workspace.  Gives long formulas room the minibuffer never had."
+  (interactive)
+  (let ((buf (get-buffer-create vnb-startproof-buffer-name)))
+    (with-current-buffer buf
+      (unless (eq major-mode 'vnb-startproof-mode)
+        (vnb-startproof-mode))
+      (when (= (point-min) (point-max))
+        (insert vnb-startproof-template)
+        (goto-char (point-max))))
+    (delete-other-windows)
+    (switch-to-buffer buf)))
 
 ;;; -----------------------------------------------------------------------
 ;;; Build Structure: define a new structure and save it to structure-library/
