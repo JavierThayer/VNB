@@ -2561,7 +2561,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
                                "(bc FORMULA) backchain on an implication")
     (insert "  ")
     (vnb-launch--insert-button "Cite Lemma" 'vnb-pf-backchain-star
-                               "(bc* 'NAME ()) match a named lemma's conclusion to the goal; its hypotheses become subgoals")
+                               "(bc* 'NAME ...) match a named lemma's conclusion to the goal; prompts for any schema vars left open (as VNB terms); hypotheses become subgoals")
     (insert "  ")
     (vnb-launch--insert-button "Rewrite" 'vnb-pf-rewrite
                                "(mac 'NAME) rewrite the goal using a named equation/biconditional rule")
@@ -3029,27 +3029,57 @@ in which case it is sent as a bare index, e.g. (bc 2)."
        (format "(bc %S)" arg)))))
 
 (defun vnb-pf-backchain-star (name)
-  "Cite the NAMED theorem/axiom NAME against the current goal.
-Wraps (bc* 'NAME ()): peels NAME's leading FORALL/IMPLIES and matches its
-CONCLUSION to the goal, then spawns one subgoal per hypothesis of NAME for
-you to discharge with the palette.  This is the workhorse \"use a library
-lemma\" move -- distinct from `b' (vnb-pf-backchain), the primitive
-backchain on a bare implication/assumption.
+  "Cite the NAMED theorem/axiom NAME against the current goal, prompting for
+any schema variables its conclusion leaves undetermined.
 
-This button always sends empty bindings.  If the conclusion leaves a schema
-variable undetermined, pin it from the `r' Scratch Pad with
-`(bc* 'NAME ((v val)...))' -- that still proceeds step by step: it spawns the
-subgoals for you to discharge with the palette.  The further handler form
-`(bc* 'NAME (...) h1 ...)' (one tactic-thunk per hypothesis) is NOT an
-interactive move -- it needs the hypothesis count known up front and is a batch
-convenience for proof FILES like scratch-roadtest.scm; interactively you just
-let this button spawn the subgoals and close each with Assume etc.
+Wraps (bc* 'NAME ...): peels NAME's leading FORALL/IMPLIES and matches its
+CONCLUSION to the goal, then spawns one subgoal per hypothesis of NAME for you
+to discharge with the palette.  This is the workhorse \"use a library lemma\"
+move -- distinct from `b' (vnb-pf-backchain), the primitive backchain on a
+bare implication/assumption.
+
+Before sending, it asks the prover which schema variables the conclusion-match
+leaves open (those living only in NAME's hypotheses).  For each, you type a
+value as a VNB term in surface syntax (e.g. RAN(f), nn) -- no quoting, no
+((v val)) form; the command parses it and supplies it.  If the conclusion
+determines everything, it sends straight through with no extra prompts.
+
+The further handler form (bc* 'NAME (...) h1 ...) (one tactic-thunk per
+hypothesis) is NOT an interactive move -- it needs the hypothesis count known
+up front and is a batch convenience for proof FILES; interactively you just let
+this spawn the subgoals and close each with Assume etc.
 NB: bc* cannot match a conclusion whose head is a structure accessor like
 ((MUL s) x y)."
   (interactive
    (list (vnb-launch--read-required
           "Cite lemma -- theorem/axiom name (empty cancels): ")))
-  (vnb-launch--send-tactic (format "(bc* '%s ())" (vnb-launch--dequote name))))
+  (vnb-launch--ensure-prover)
+  (let* ((nm   (vnb-launch--dequote name))
+         (raw  (vnb-eval-string (format "(bc*-undetermined '%s)" nm)))
+         (resp (and raw (string-match "(\\(.*\\))" raw)
+                    (ignore-errors (car (read-from-string raw))))))
+    (pcase (and (consp resp) (car resp))
+      ('unknown  (user-error "No such theorem/axiom: %s" nm))
+      ('no-proof (user-error "No current proof"))
+      ('no-match (user-error "Conclusion of %s does not match the goal" nm))
+      ('ok
+       (let ((vars (cdr resp)) (binds '()))
+         (dolist (v vars)
+           (push (cons v (vnb-launch--dequote
+                          (vnb-launch--read-required
+                           (format "%s = (VNB term, empty cancels): " v))))
+                 binds))
+         (vnb-launch--send-tactic
+          (if (null binds)
+              (format "(bc* '%s ())" nm)
+            (format "(bc*-apply-term-bindings '%s (list %s))"
+                    nm
+                    (mapconcat (lambda (b)
+                                 (format "(cons '%s %S)" (car b) (cdr b)))
+                               (nreverse binds) " "))))))
+      (_ (user-error "Backchain query failed: %s"
+                     (if (and raw (> (length (string-trim raw)) 0))
+                         (string-trim raw) "no response from prover"))))))
 
 (defun vnb-pf-focus (n)
   "Switch focus to the N-th open goal (1-based).  Wraps (focus N).

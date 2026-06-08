@@ -538,6 +538,50 @@
                      gs thunks)
            (show)))))))
 
+;;; -----------------------------------------------------------------------
+;;; Front end for an interactive "backchain, then prompt for the schema vars
+;;; the match leaves open" command (the Emacs Focus `B' key).
+;;;
+;;; bc*-undetermined: a PURE query -- report which schema vars bc* on `name'
+;;; would leave undetermined against the current focused goal, WITHOUT driving
+;;; the proof, mutating *ps*, or printing a warning.  Result is a read-able
+;;; sexp the front end dispatches on:
+;;;   (ok V ...)   match succeeds; V... = undetermined schema vars ('() = none)
+;;;   (no-proof)   no current proof
+;;;   (unknown)    no such theorem
+;;;   (no-match)   conclusion of `name' does not match the goal
+(define (bc*-undetermined name)
+  (cond
+    ((not *ps*) '(no-proof))
+    ((not (hash-table-ref/default *theorem-table* name #f)) '(unknown))
+    (else
+     (let* ((thm  (lookup-theorem name))
+            (goal (wff-formula
+                   (sequent-node-assertion (proof-state-focus *ps*)))))
+       (let-values (((svars concl) (bc*--peel thm)))
+         (let ((m (fluid-let ((*match-var-head* #t))
+                    (match-expr concl goal svars))))
+           (if (not m)
+               '(no-match)
+               (cons 'ok
+                     (filter (lambda (v) (not (assoc v m))) svars)))))))))
+
+;;; bc*-apply-term-bindings: drive bc* on `name' with bindings given as
+;;; (var . term-string) pairs; each string is parsed in VNB surface term
+;;; syntax (parse-string).  This is the value-typed entry behind `B': the user
+;;; types each undetermined var's value as a term ("RAN(f)", "nn"), never the
+;;; ((v 'val)) quoting.  Empty list == plain (bc* 'name).
+(define (bc*-apply-term-bindings name str-bindings)
+  (bc*-apply name
+             (map (lambda (p)
+                    (let ((term (parse-string (cdr p))))
+                      (when (vnb-warning? term)
+                        (error (string-append
+                                "bc*: could not parse term for "
+                                (symbol->string (car p)) ": " (cdr p))))
+                      (cons (car p) term)))
+                  str-bindings)))
+
 ;; Turn ((v val) ...) binding clauses into a runtime alist ((v . val) ...).
 (define-syntax bc*-binds
   (syntax-rules ()

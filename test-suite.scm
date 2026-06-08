@@ -2396,6 +2396,34 @@
     (ass-all)
     (unless (proof-done? *ps*) (error "compose-type-2 did not close"))))
 
+;; Interactive B-key front end (interactive.scm): bc*-undetermined reports the
+;; schema vars left open by the conclusion-match (here just X, the outer
+;; domain), and bc*-apply-term-bindings drives bc* with the value typed as a
+;; VNB term string -- the same close, but supplied as "nn" not ((X 'nn)).
+(check-true "bc*-undetermined reports the open var (and unknown/no-match tags)"
+  (lambda ()
+    (and (eq? (car (bc*-undetermined 'no-such-lemma)) 'unknown)
+         (begin
+           (sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+              (IMPLIES (IN f (FUN X))
+                (IMPLIES (IN g (FUN (RAN f)))
+                  (IMPLIES (IN a X)
+                    (IN (g (f a)) (RAN g)))))))))))
+           (di)(di)(di)(di)
+           ;; conclusion pins f,g,a; only the outer domain X is left open.
+           (equal? (bc*-undetermined 'compose-type-2) '(ok x))))))
+(check-proof "bc*-apply-term-bindings closes via a term-string binding (X:=nn)"
+  (lambda ()
+    (sp (make-wff '(FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN nn))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a nn)
+             (IN (g (f a)) (RAN g))))))))))
+    (di)(di)(di)(di)
+    (bc*-apply-term-bindings 'compose-type-2 (list (cons 'x "nn")))
+    (ass-all)
+    (unless (proof-done? *ps*) (error "term-string binding did not close"))))
+
 ;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 
