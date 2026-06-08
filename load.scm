@@ -107,6 +107,9 @@
     "structure-library/bijection"
     "structure-library/cardinality"
     "structure-library/injection"
+    ;; RAN (range) + the mindless nested-application typing lemmas
+    ;; (compose-type-2..5); needs IMAGE (injection) and DOM (theory).
+    "structure-library/compose-typing"
     "structure-library/inf-subsets"
     ;; Dependent recursion / dependent choice on NN.  Foundational
     ;; sequence-building principle behind pigeonhole, subsequence-capture,

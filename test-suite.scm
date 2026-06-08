@@ -2353,6 +2353,50 @@
     (unless (proof-done? *ps*) (error "compose-apply did not close via beta"))))
 
 ;;; -----------------------------------------------------------------------
+;;; RAN (range) + the mindless nested-application typing lemmas.  Writing the
+;;; intermediate space as RAN(f) (a term) instead of a free codomain makes it
+;;; determined by matching, so these close in a single bc* (compose-typing.scm).
+
+(display "\n=== RAN + nested-application typing (compose-type-N) ===\n")
+
+(check-true "RAN functoid + range-membership installed"
+  (lambda () (and (lookup-theorem 'range-membership)
+                  (lookup-theorem 'fun-range-membership)
+                  (lookup-theorem 'ran-subset-codomain) #t)))
+(check-true "compose-type-2..5 installed"
+  (lambda () (and (lookup-theorem 'compose-type-2)
+                  (lookup-theorem 'compose-type-3)
+                  (lookup-theorem 'compose-type-4)
+                  (lookup-theorem 'compose-type-5) #t)))
+(check-true "RAN(f) unfolds to IMAGE(f, DOM f)"
+  (lambda ()
+    (sp (make-wff '(IN y (RAN f))))
+    (mac 'RAN)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(IN y (IMAGE f (DOM f))))))
+;; Headline (the goal IS compose-type-2's shape, closed by one self-citation;
+;; supply the outer domain X, the only schema var the conclusion omits).
+;; Domain is X not A: VNB case-folds, so a bound A and a bound a would capture.
+(check-proof "compose-type-2 closes g(f(a)) in RAN(g) via one bc*"
+  (lambda ()
+    (sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN X))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a X)
+             (IN (g (f a)) (RAN g)))))))))))
+    (di)(di)(di)(di)
+    ;; recover the outer domain X: the only `in' assumption whose set is a bare
+    ;; symbol is `a in X' (the FUN(.) ones have compound sets).
+    (let ((dom (let scan ((as (sequent-node-assumptions (proof-state-focus *ps*))))
+                 (if (null? as) (error "compose-type-2 test: no a in X assumption")
+                     (let ((w (wff-formula (car as))))
+                       (if (and (pair? w) (eq? (car w) 'in) (symbol? (caddr w)))
+                           (caddr w) (scan (cdr as))))))))
+      (bc* 'compose-type-2 ((X dom))))
+    (ass-all)
+    (unless (proof-done? *ps*) (error "compose-type-2 did not close"))))
+
+;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 
 (display "\n=== describe-structure cards (instance vs refinement) ===\n")

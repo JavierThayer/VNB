@@ -121,7 +121,30 @@
 ;;; eigenvariable (the "let d be the witness" step).  ai also splits
 ;;; AND-hypotheses and case-splits OR.
 ;;; ====================================================================
-(--- "SUCCESS 7: ai eliminates an existential hypothesis")
+(--- "SUCCESS 7a: nested-application typing via compose-type-2 (RAN)")
+;; g(f(a)) in RAN(g), one bc* -- the intermediate space is RAN(f), a COMPUTED
+;; term, so it isn't an undetermined schema var.  Domain is X not A (case-fold).
+(sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+   (IMPLIES (IN f (FUN X))
+     (IMPLIES (IN g (FUN (RAN f)))
+       (IMPLIES (IN a X)
+         (IN (g (f a)) (RAN g)))))))))))
+(di)(di)(di)(di)
+(let ((dom (let scan ((as (sequent-node-assumptions (proof-state-focus *ps*))))
+             (let ((w (wff-formula (car as))))
+               (if (and (pair? w) (eq? (car w) 'in) (symbol? (caddr w))) (caddr w) (scan (cdr as)))))))
+  (bc* 'compose-type-2 ((X dom))))
+(ass-all)
+(==> "g(f(a)) in RAN(g) closes in one bc*" (proof-done? *ps*))
+
+;;; ====================================================================
+;;; SUCCESS 7.  The hypothesis-side machinery 3.14's full proof needs DOES
+;;; exist -- under the terse name `ai' (antecedent-inference), the dual of
+;;; `di'.  Here it eliminates an existential HYPOTHESIS, introducing a fresh
+;;; eigenvariable (the "let d be the witness" step).  ai also splits
+;;; AND-hypotheses and case-splits OR.
+;;; ====================================================================
+(--- "SUCCESS 7b: ai eliminates an existential hypothesis")
 (sp (make-wff '(IMPLIES (FORSOME x (P x)) (FORSOME y (P y)))))
 (di) (ai '(FORSOME x (P x)))
 (==> "ai introduced a fresh witness; goal now"
