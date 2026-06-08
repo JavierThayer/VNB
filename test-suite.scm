@@ -2423,6 +2423,29 @@
     (bc*-apply-term-bindings 'compose-type-2 (list (cons 'x "nn")))
     (ass-all)
     (unless (proof-done? *ps*) (error "term-string binding did not close"))))
+;; B's completion seeding: the fingerprint index ranks the lemma whose
+;; conclusion matches the goal FIRST.  For g(f(a)) in RAN(g) that's
+;; compose-type-2 (suggest-backchain-names, the same index behind `B').
+(check-true "suggest-backchain-names ranks the matching lemma first"
+  (lambda ()
+    (sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN X))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a X)
+             (IN (g (f a)) (RAN g)))))))))))
+    (di)(di)(di)(di)
+    (eq? (car (suggest-backchain-names)) 'compose-type-2)))
+(check-true "theorem-names lists the full pool (alphabetical, non-empty)"
+  (lambda ()
+    (let ((ns (theorem-names)))
+      (and (pair? ns)
+           (memq 'compose-type-2 ns)
+           ;; sorted: each name <= the next
+           (let loop ((ns ns))
+             (or (null? (cdr ns))
+                 (and (string<=? (symbol->string (car ns))
+                                 (symbol->string (cadr ns)))
+                      (loop (cdr ns)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes

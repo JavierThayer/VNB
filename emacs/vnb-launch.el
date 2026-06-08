@@ -3076,6 +3076,42 @@ in which case it is sent as a bare index, e.g. (bc 2)."
          (format "(bc %s)" arg)
        (format "(bc %S)" arg)))))
 
+(defun vnb-pf--name-list (form)
+  "Eval FORM in the prover; parse its `(a b c)' result into a list of strings.
+Splits on whitespace -- robust for the flat symbol lists `theorem-names' /
+`suggest-backchain-names' return (names carry no internal spaces).  nil on a
+missing/garbled response."
+  (let ((raw (ignore-errors (vnb-eval-string form))))
+    (when (and raw (string-match "(\\(.*\\))" raw))
+      (split-string (match-string 1 raw) "[ \t\n]+" t))))
+
+(defun vnb-pf--read-lemma-name ()
+  "Read a Cite-Lemma name, offering goal-matched suggestions first.
+Asks the prover `(suggest-backchain-names)' for lemmas whose conclusion
+fingerprint-matches the current focus goal (the same index behind
+`suggest-backchain'), ranks them ahead of the full `(theorem-names)' pool in
+completion, and defaults to the top suggestion -- RET on empty input takes it.
+TAB lists the ranked matches; any other name can still be typed freely."
+  (vnb-launch--ensure-prover)
+  (let* ((sugg    (vnb-pf--name-list "(suggest-backchain-names)"))
+         (all     (vnb-pf--name-list "(theorem-names)"))
+         (ordered (delete-dups (append sugg all)))
+         ;; identity sort so the fingerprint ranking survives into *Completions*
+         ;; (completing-read sorts alphabetically otherwise).
+         (table   (lambda (string pred action)
+                    (if (eq action 'metadata)
+                        '(metadata (display-sort-function . identity)
+                                   (cycle-sort-function . identity))
+                      (complete-with-action action ordered string pred))))
+         (prompt  (if sugg
+                      (format "Cite lemma [%d match the goal; top: %s] (RET=top): "
+                              (length sugg) (car sugg))
+                    "Cite lemma -- theorem/axiom name (empty cancels): "))
+         (input   (completing-read prompt table nil nil nil nil (car sugg))))
+    (if (and (stringp input) (string-match-p "\\`[ \t]*\\'" input))
+        (user-error "Cancelled")
+      input)))
+
 (defun vnb-pf-backchain-star (name)
   "Cite the NAMED theorem/axiom NAME against the current goal, prompting for
 any schema variables its conclusion leaves undetermined.
@@ -3085,6 +3121,11 @@ CONCLUSION to the goal, then spawns one subgoal per hypothesis of NAME for you
 to discharge with the palette.  This is the workhorse \"use a library lemma\"
 move -- distinct from `b' (vnb-pf-backchain), the primitive backchain on a
 bare implication/assumption.
+
+The name prompt offers SUGGESTIONS first: lemmas whose conclusion fingerprint-
+matches the current goal (via `suggest-backchain-names'), ranked most-specific
+first, with the top one as the default.  RET takes it; TAB lists them; you can
+still type any other name.
 
 Before sending, it asks the prover which schema variables the conclusion-match
 leaves open (those living only in NAME's hypotheses).  For each, you type a
@@ -3098,9 +3139,7 @@ up front and is a batch convenience for proof FILES; interactively you just let
 this spawn the subgoals and close each with Assume etc.
 NB: bc* cannot match a conclusion whose head is a structure accessor like
 ((MUL s) x y)."
-  (interactive
-   (list (vnb-launch--read-required
-          "Cite lemma -- theorem/axiom name (empty cancels): ")))
+  (interactive (list (vnb-pf--read-lemma-name)))
   (vnb-launch--ensure-prover)
   (let* ((nm   (vnb-launch--dequote name))
          (raw  (vnb-eval-string (format "(bc*-undetermined '%s)" nm)))

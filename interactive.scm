@@ -1696,6 +1696,12 @@
                 (hash-table-keys *definitional-structure-table*))
         (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
 
+;;; All installed theorem/support/axiom names, alphabetical -- the completion
+;;; pool for interactive lemma entry (the Focus Cite-Lemma `B' prompt).
+(define (theorem-names)
+  (sort (hash-table-keys *theorem-table*)
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
 ;;; Write the describe-structure card for NAME to PATH (consumed by the
 ;;; elisp card buffer, which then splices the editable notes underneath).
 (define (write-structure-card name path)

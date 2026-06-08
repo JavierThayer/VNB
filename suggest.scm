@@ -197,6 +197,15 @@
                   (string<? (symbol->string (car a)) (symbol->string (car b)))
                   (> sa sb)))))))
 
+;;; Names only (ranked, most-specific first) of the bc* candidates for the
+;;; current focus goal -- the read-able list an interactive front end seeds its
+;;; completion with (the Focus `B' prompt).  '() if no proof or no candidate.
+(define (suggest-backchain-names . opt-depth)
+  (let ((goal (suggest--current-goal)))
+    (if (not goal)
+        '()
+        (map car (apply suggest-backchain-candidates goal opt-depth)))))
+
 ;;; REPL entry point: print the focus goal, its fingerprint, and the ranked
 ;;; bc* candidates (each tagged with undetermined vars / wildcard-head).
 (define (suggest-backchain . opt-depth)
