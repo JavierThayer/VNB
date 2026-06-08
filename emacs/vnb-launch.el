@@ -3112,6 +3112,18 @@ TAB lists the ranked matches; any other name can still be typed freely."
         (user-error "Cancelled")
       input)))
 
+(defun vnb-pf--bc-undetermined (nm)
+  "Ask the prover which schema vars citing NM leaves undetermined.
+Returns the parsed (ok …)/(unknown)/(no-proof)/(no-match) sexp, or nil."
+  (let ((raw (vnb-eval-string (format "(bc*-undetermined '%s)" nm))))
+    (and raw (string-match "(\\(.*\\))" raw)
+         (ignore-errors (car (read-from-string raw))))))
+
+(defun vnb-pf--reduce-goal ()
+  "Peel the focus goal's leading FORALL/IMPLIES (di); return the di count (0+)."
+  (let ((raw (vnb-eval-string "(bc*-reduce-goal!)")))
+    (or (and raw (ignore-errors (car (read-from-string (string-trim raw))))) 0)))
+
 (defun vnb-pf-backchain-star (name)
   "Cite the NAMED theorem/axiom NAME against the current goal, prompting for
 any schema variables its conclusion leaves undetermined.
@@ -3126,6 +3138,13 @@ The name prompt offers SUGGESTIONS first: lemmas whose conclusion fingerprint-
 matches the current goal (via `suggest-backchain-names'), ranked most-specific
 first, with the top one as the default.  RET takes it; TAB lists them; you can
 still type any other name.
+
+Because suggestions are ranked by the goal's EVENTUAL conclusion (the leading
+FORALL/IMPLIES is peeled before fingerprinting), a suggested lemma can fail to
+match a goal that still carries an antecedent like (a in X) => ….  When that
+happens this peels the goal (a di) and retries automatically -- exactly the
+step you'd take by hand, and the antecedent it assumes is usually a hypothesis
+the lemma then needs.
 
 Before sending, it asks the prover which schema variables the conclusion-match
 leaves open (those living only in NAME's hypotheses).  For each, you type a
@@ -3142,9 +3161,15 @@ NB: bc* cannot match a conclusion whose head is a structure accessor like
   (interactive (list (vnb-pf--read-lemma-name)))
   (vnb-launch--ensure-prover)
   (let* ((nm   (vnb-launch--dequote name))
-         (raw  (vnb-eval-string (format "(bc*-undetermined '%s)" nm)))
-         (resp (and raw (string-match "(\\(.*\\))" raw)
-                    (ignore-errors (car (read-from-string raw))))))
+         (resp (vnb-pf--bc-undetermined nm)))
+    ;; The suggester ranks lemmas by the goal's EVENTUAL conclusion -- it peels
+    ;; the leading FORALL/IMPLIES.  So a suggested lemma can fail to match the
+    ;; LITERAL goal that still carries an antecedent (a ∈ X) ⇒ ….  If so, peel
+    ;; the goal (di) -- the move you'd make by hand, and the antecedent it
+    ;; assumes is usually a hypothesis the lemma needs -- and retry once.
+    (when (and (eq (and (consp resp) (car resp)) 'no-match)
+               (> (vnb-pf--reduce-goal) 0))
+      (setq resp (vnb-pf--bc-undetermined nm)))
     (pcase (and (consp resp) (car resp))
       ('unknown  (user-error "No such theorem/axiom: %s" nm))
       ('no-proof (user-error "No current proof"))
@@ -3164,9 +3189,7 @@ NB: bc* cannot match a conclusion whose head is a structure accessor like
                     (mapconcat (lambda (b)
                                  (format "(cons '%s %S)" (car b) (cdr b)))
                                (nreverse binds) " "))))))
-      (_ (user-error "Backchain query failed: %s"
-                     (if (and raw (> (length (string-trim raw)) 0))
-                         (string-trim raw) "no response from prover"))))))
+      (_ (user-error "Backchain query failed: no response from prover")))))
 
 (defun vnb-pf-focus (n)
   "Switch focus to the N-th open goal (1-based).  Wraps (focus N).

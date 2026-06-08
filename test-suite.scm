@@ -2435,6 +2435,27 @@
              (IN (g (f a)) (RAN g)))))))))))
     (di)(di)(di)(di)
     (eq? (car (suggest-backchain-names)) 'compose-type-2)))
+;; B's auto-peel: when the focus goal still carries an antecedent (a in X) =>
+;; ..., the literal goal doesn't match compose-type-2 (it's an IMPLIES), but
+;; bc*-reduce-goal! di's the leading FORALL/IMPLIES so it does -- the recovery
+;; B runs when a suggestion fails to match the unreduced goal.
+(check-proof "bc*-reduce-goal! peels leading IMPLIES so the citation matches"
+  (lambda ()
+    ;; concrete domain nn (not a FORALL-bound X) so x:=nn is drift-proof.
+    (sp (make-wff '(FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN nn))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a nn)
+             (IN (g (f a)) (RAN g))))))))))
+    (di)(di)(di)   ; stop on the implicational node (a in nn) => ..., like [3]
+    (unless (eq? (car (bc*-undetermined 'compose-type-2)) 'no-match)
+      (error "expected no-match on the unreduced (implicational) goal"))
+    (unless (> (bc*-reduce-goal!) 0) (error "reduce did not peel anything"))
+    (unless (equal? (bc*-undetermined 'compose-type-2) '(ok x))
+      (error "after reduce, expected (ok x)"))
+    (bc*-apply-term-bindings 'compose-type-2 (list (cons 'x "nn")))
+    (ass-all)
+    (unless (proof-done? *ps*) (error "reduce+cite did not close"))))
 (check-true "theorem-names lists the full pool (alphabetical, non-empty)"
   (lambda ()
     (let ((ns (theorem-names)))

@@ -582,6 +582,27 @@
                       (cons (car p) term)))
                   str-bindings)))
 
+;;; bc*-reduce-goal!: peel the focus goal to its citeable core by di-ing away
+;;; leading FORALL/IMPLIES -- the SAME shape conclusion-fingerprint peels when
+;;; the suggester ranks lemmas, so a lemma suggested for the goal's eventual
+;;; conclusion can actually be cited.  Stops at the first non-FORALL/IMPLIES
+;;; head (AND, =, an atom): never splits a conjunction.  Quiet (no per-step
+;;; dumps).  Returns the number of di steps taken (0 = nothing to peel).
+(define (bc*-reduce-goal!)
+  (vnb--require-proof!)
+  (quietly
+    (lambda ()
+      (define (goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+      (let loop ((n 0))
+        (let ((w (goal)))
+          (if (and (pair? w) (memq (car w) '(forall implies)))
+              (begin
+                (di)
+                ;; di mutates *ps* in place, so compare the goal FORMULA, not
+                ;; object identity, to detect progress (and avoid a wedge).
+                (if (equal? (goal) w) n (loop (+ n 1))))
+              n))))))
+
 ;; Turn ((v val) ...) binding clauses into a runtime alist ((v . val) ...).
 (define-syntax bc*-binds
   (syntax-rules ()
