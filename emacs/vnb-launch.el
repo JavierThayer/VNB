@@ -2137,6 +2137,7 @@ monospace font is installed.")
       ["Direct Inference"     vnb-pf-direct-inference t]
       ["Assume"               vnb-pf-assumption       t]
       ["Assume All"           vnb-pf-assume-all       t]
+      ["B+ (auto-close)"      vnb-pf-bplus            t]
       ["Theorem..."           vnb-pf-theorem          t]
       ["Univ. Instantiate..." vnb-pf-instantiate      t]
       ["Exist. Witness..."    vnb-pf-exists-witness   t]
@@ -2539,6 +2540,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "d" 'vnb-pf-direct-inference)
     (define-key m "a" 'vnb-pf-assumption)
     (define-key m "A" 'vnb-pf-assume-all)
+    (define-key m "+" 'vnb-pf-bplus)
     (define-key m "=" 'vnb-pf-reflexivity)
     (define-key m "m" 'vnb-pf-rewrite)
     (define-key m "t" 'vnb-pf-theorem)
@@ -2584,6 +2586,9 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert "  ")
     (vnb-launch--insert-button "Assume All" 'vnb-pf-assume-all
                                "(ass-all) close every open goal already matched by an assumption")
+    (insert "  ")
+    (vnb-launch--insert-button "B+ (auto-close)" 'vnb-pf-bplus
+                               "(bplus) sweep every open goal; peel + cite the top lemma whenever its hypotheses are already assumptions, and ass-all; stop where a real choice is needed")
     (insert "  ")
     (vnb-launch--insert-button "Close (a=a)" 'vnb-pf-reflexivity
                                "(rfl) close a goal that says a thing equals itself")
@@ -2665,7 +2670,8 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             (concat "  Keys: d direct-inf  a assume  A assume-all  = close(a=a)  "
+             (concat "  Keys: d direct-inf  a assume  A assume-all  + B+auto-close  "
+                     "= close(a=a)  "
                      "m rewrite  t theorem  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
                      "h home  r scratch-pad  S scratch-workspace  "
@@ -3190,6 +3196,23 @@ NB: bc* cannot match a conclusion whose head is a structure accessor like
                                  (format "(cons '%s %S)" (car b) (cdr b)))
                                (nreverse binds) " "))))))
       (_ (user-error "Backchain query failed: no response from prover")))))
+
+(defun vnb-pf-bplus ()
+  "B+ -- the saturating closer.  Wraps (bplus).
+Sweeps EVERY open goal under the proof and closes everything it can DECISIVELY
+close: goals already discharged by their own context (ass-all), plus a cite of
+the top fingerprint-ranked backchain lemma WHENEVER all that lemma's hypotheses
+are already assumptions.  Each goal is peeled (di) to its conclusion first.
+Repeats until a pass closes nothing, then reports whether the proof closed or
+how many goals it stalled on (and lands focus on the first such goal).
+
+It makes only moves it can SEE will land -- the dg has no undo, so rather than
+guess-and-backtrack it stops wherever a real choice is needed and leaves that
+goal to you.  Think of it as `A' (ass-all) plus automatic `B' on every goal
+whose lemma hypotheses are already in hand: it clears the mechanical/plumbing
+goals in one keystroke."
+  (interactive)
+  (vnb-launch--send-tactic "(bplus)"))
 
 (defun vnb-pf-focus (n)
   "Switch focus to the N-th open goal (1-based).  Wraps (focus N).

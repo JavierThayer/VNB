@@ -237,3 +237,60 @@
                (newline)))
            cands)
          (length cands))))))
+
+;;; -----------------------------------------------------------------------
+;;; B+ -- the saturating closer.
+;;;
+;;; From the current proof, sweep EVERY open goal (all goals under the start
+;;; node) and close everything it can DECISIVELY close:
+;;;   - ass-all: goals already discharged by their own context;
+;;;   - a cite of the top fingerprint-ranked backchain lemma, but ONLY when
+;;;     bc*-can-close? confirms (purely, no mutation) that all the lemma's
+;;;     hypotheses are already assumptions -- so cite + ass-all lands the goal.
+;;; Each goal is first peeled (bc*-reduce-goal!) to expose its conclusion.
+;;; The loop repeats until a pass closes nothing.  Because the dg has no undo
+;;; (rules mutate in place), B+ never makes a speculative move it can't see
+;;; through -- it closes the mechanical/plumbing goals and STOPS at anything
+;;; needing a real choice, rather than polluting the tree with dead ends.
+;;; (The speculative, backtracking variant is the deferred v2.)
+;;;
+;;; Optional arg = how many ranked candidates to examine per goal (default 8).
+(define (bplus . opt)
+  (vnb--require-proof!)
+  (let ((k (if (pair? opt) (car opt) 8)))
+    (define (open) (dg-ungrounded-nodes (proof-state-dg *ps*)))
+    (define (focus-goal)
+      (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+    (quietly
+     (lambda ()
+       (let sweep ()
+         (let ((before (length (open))))
+           (ass-all)                                   ; free closes
+           (for-each
+             (lambda (g)
+               (when (not (sequent-node-grounded? g))
+                 (set-proof-state-focus! *ps* g)
+                 (bc*-reduce-goal!)                    ; peel leading FORALL/IMPLIES
+                 (let ((cands (let ((c (map car (suggest-backchain-candidates
+                                                  (focus-goal)))))
+                                (if (> (length c) k) (list-head c k) c))))
+                   (let try ((cs cands))
+                     (when (pair? cs)
+                       (let ((subst (bc*-can-close? (car cs))))
+                         (if subst
+                             (bc*-apply (car cs) subst)   ; cite; hyps spawn + close
+                             (try (cdr cs)))))))))
+             (open))
+           (ass-all)                                   ; close freshly-spawned hyps
+           (when (< (length (open)) before) (sweep))))))
+    ;; Land the focus on a remaining open goal so the user has somewhere to go.
+    (let ((rest (open)))
+      (when (pair? rest) (set-proof-state-focus! *ps* (car rest))))
+    (show)
+    (let ((n (length (open))))
+      (if (proof-done? *ps*)
+          (display ";; B+ closed the proof.\n")
+          (begin (display ";; B+ stalled: ") (display n)
+                 (display " open goal(s) it could not decisively close")
+                 (display " (focus is on the first).\n"))))
+    (length (open))))

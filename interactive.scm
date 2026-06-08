@@ -603,6 +603,60 @@
                 (if (equal? (goal) w) n (loop (+ n 1))))
               n))))))
 
+;;; ----- B+ support: can a citation DECISIVELY close the focus goal? ---------
+;;; The dg has no undo, so B+ (the saturating closer) only commits a cite it can
+;;; first SEE will land.  These are pure predicates over the current goal --
+;;; they match and test membership, never touching the proof state.
+
+;; Apply substitution alist SUBST (((v . val) ...)) to expression E.
+(define (bc*--apply-subst subst e)
+  (let loop ((s subst) (e e))
+    (if (null? s) e
+        (loop (cdr s) (subst-free (caar s) (cdar s) e)))))
+
+;; Like bc*--peel but also collect the IMPLIES antecedents.
+;; Returns (values schema-vars hyps conclusion).
+(define (bc*--peel-full f)
+  (let loop ((f f) (vars '()) (hyps '()))
+    (cond
+      ((and (pair? f) (eq? (car f) 'FORALL))
+       (loop (caddr f) (cons (cadr f) vars) hyps))
+      ((and (pair? f) (eq? (car f) 'IMPLIES))
+       (loop (caddr f) vars (cons (cadr f) hyps)))
+      (else (values (reverse vars) (reverse hyps) f)))))
+
+;; bc*-can-close? NAME: is there an instantiation of NAME's schema vars under
+;; which its conclusion matches the focus goal AND every hypothesis is already
+;; an assumption?  If so return the full binding alist (ready for bc*-apply) --
+;; citing it then closes the goal by assumption.  Else #f.  PURE: no mutation.
+;; Greedy on hypothesis<->assumption pairing (first consistent assumption wins,
+;; no backtracking over that choice) -- enough for the unambiguous cases B+
+;; targets; a wrong early pairing just yields #f and B+ tries the next lemma.
+(define (bc*-can-close? name)
+  (and *ps*
+       (hash-table-ref/default *theorem-table* name #f)
+       (let* ((thm  (lookup-theorem name))
+              (sqn  (proof-state-focus *ps*))
+              (goal (wff-formula (sequent-node-assertion sqn)))
+              (asms (map wff-formula (sequent-node-assumptions sqn))))
+         (let-values (((svars hyps concl) (bc*--peel-full thm)))
+           (let ((m (fluid-let ((*match-var-head* #t))
+                      (match-expr concl goal svars))))
+             (and m
+                  (let loop ((hs hyps) (subst m))
+                    (if (null? hs)
+                        subst                         ; all hyps discharged
+                        (let* ((h   (bc*--apply-subst subst (car hs)))
+                               (rem (filter (lambda (v) (not (assoc v subst))) svars)))
+                          (let try ((as asms))
+                            (and (pair? as)
+                                 (let ((hm (fluid-let ((*match-var-head* #t))
+                                             (match-expr h (car as) rem))))
+                                   (or (and hm
+                                            (let ((merged (merge-subst subst hm)))
+                                              (and merged (loop (cdr hs) merged))))
+                                       (try (cdr as)))))))))))))))
+
 ;; Turn ((v val) ...) binding clauses into a runtime alist ((v . val) ...).
 (define-syntax bc*-binds
   (syntax-rules ()

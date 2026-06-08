@@ -2456,6 +2456,24 @@
     (bc*-apply-term-bindings 'compose-type-2 (list (cons 'x "nn")))
     (ass-all)
     (unless (proof-done? *ps*) (error "reduce+cite did not close"))))
+;; B+ (the saturating closer): from the UNTOUCHED quantified goal it peels,
+;; cites compose-type-2, and discharges the hypotheses -- closing the whole
+;; proof with no hand di/bc.  And on a goal with no decisive move it stalls
+;; gracefully (returns >0, proof not done) rather than wedging or erroring.
+(check-proof "bplus closes the compose goal autonomously from the top"
+  (lambda ()
+    (sp (make-wff '(FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN nn))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a nn)
+             (IN (g (f a)) (RAN g))))))))))
+    (bplus)
+    (unless (proof-done? *ps*) (error "bplus did not close the compose goal"))))
+(check-true "bplus stalls gracefully on a goal with no decisive move"
+  (lambda ()
+    (sp (make-wff '(IN unprovable-xyz nn)))
+    (let ((remaining (bplus)))
+      (and (> remaining 0) (not (proof-done? *ps*))))))
 (check-true "theorem-names lists the full pool (alphabetical, non-empty)"
   (lambda ()
     (let ((ns (theorem-names)))
