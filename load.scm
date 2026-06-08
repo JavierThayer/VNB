@@ -30,6 +30,9 @@
     ;; Theorem library (axioms not yet derivable from kernel)
     "theorem-library/axioms"
     "theorem-library/well-ordering"
+    ;; Function composition f o g -- a general FUN operation (needs only the
+    ;; FUN/apply axioms in theory.scm), so loaded with the foundations.
+    "structure-library/compose"
     ;; Structure library (algebraic structures, number-system instances,
     ;; ordinals, cardinality, sequences, complex extensions, ring-simplify)
     "structure-library/semigroup"

@@ -126,3 +126,54 @@
          (IS-CONTINUOUS s t f)))))))
 (warrant! 'open-preimage-implies-continuous 'proof
   "Fix a in X(s) and eps > 0. The ball V = B(t,f(a),eps) is open (ball-is-open), so PREIMAGE(s,f,V) is open by hypothesis and contains a (f(a) in V via metric-self-zero). Openness yields delta > 0 with B(s,a,delta) subset PREIMAGE(s,f,V), i.e. f maps the delta-ball into the eps-ball. Hence IS-CONTINUOUS-AT at every a, so IS-CONTINUOUS.")
+
+;;; -----------------------------------------------------------------------
+;;; Closed sets and the closed-preimage characterisation of continuity
+;;; (Prop 3.15, clause (2) of ~/docs/calculus.pdf).
+;;;
+;;; A set is closed iff its complement (relative to the carrier) is open.
+;;; The set-level relative complement COMPLEMENT-IN(A,B) = A \ B and its
+;;; membership law (complement-in-membership, theory.scm) already exist;
+;;; IS-CLOSED just wires them to the metric topology.
+
+;;; IS-CLOSED(s, A): A is a subset of X(s) whose complement X(s) \ A is open.
+(def-predicate 'IS-CLOSED '(s A)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (SUBSET A (X s))
+        (IS-OPEN s (COMPLEMENT-IN (X s) A)))))
+
+;;; preimage-complement: f-preimage commutes with relative complement,
+;;;   PREIMAGE(s, f, X(t) \ U) = X(s) \ PREIMAGE(s, f, U),
+;;; for f : X(s) -> X(t).  This is the algebraic identity that turns the
+;;; open-preimage fact into the closed-preimage fact.
+(support 'preimage-complement
+  '(FORALL s (FORALL t (FORALL f (FORALL U
+     (IMPLIES (AND (IS-METRIC-SPACE s)
+              (AND (IS-METRIC-SPACE t)
+                   (IN f (FUN (X s) (X t)))))
+       (= (PREIMAGE s f (COMPLEMENT-IN (X t) U))
+          (COMPLEMENT-IN (X s) (PREIMAGE s f U)))))))))
+(warrant! 'preimage-complement 'proof
+  "Both sides are subsets of X(s), so set-extensionality applies. For a in X(s): a in LHS iff f(a) in X(t)\\U iff f(a) in X(t) and not f(a) in U (complement-in-membership); f(a) in X(t) holds by fun-apply-type, so LHS-membership is `not f(a) in U`. a in RHS iff a in X(s) and not (a in X(s) and f(a) in U) (complement-in / preimage-membership), i.e. `not f(a) in U`. The two coincide.")
+
+;;; continuous-implies-closed-preimage: a continuous map pulls closed sets
+;;; back to closed sets -- Prop 3.15, (1) => (2).
+(support 'continuous-implies-closed-preimage
+  '(FORALL s (FORALL t (FORALL f
+     (IMPLIES (IS-CONTINUOUS s t f)
+       (FORALL A (IMPLIES (IS-CLOSED t A)
+         (IS-CLOSED s (PREIMAGE s f A)))))))))
+(warrant! 'continuous-implies-closed-preimage 'proof
+  "A closed means X(t)\\A open; continuity (continuous-implies-open-preimage) makes PREIMAGE(s,f,X(t)\\A) open; preimage-complement rewrites it to X(s)\\PREIMAGE(s,f,A). PREIMAGE(s,f,A) subset X(s) (its SEP), so its complement being open is exactly IS-CLOSED(s, PREIMAGE(s,f,A)).")
+
+;;; closed-preimage-implies-continuous: the converse -- Prop 3.15, (2) => (1).
+(support 'closed-preimage-implies-continuous
+  '(FORALL s (FORALL t (FORALL f
+     (IMPLIES (AND (IS-METRIC-SPACE s)
+              (AND (IS-METRIC-SPACE t)
+                   (IN f (FUN (X s) (X t)))))
+       (IMPLIES (FORALL A (IMPLIES (IS-CLOSED t A)
+                  (IS-CLOSED s (PREIMAGE s f A))))
+         (IS-CONTINUOUS s t f)))))))
+(warrant! 'closed-preimage-implies-continuous 'proof
+  "Complement flip of open-preimage-implies-continuous: given an open V subset X(t), X(t)\\V is closed, so by hypothesis PREIMAGE(s,f,X(t)\\V) = X(s)\\PREIMAGE(s,f,V) (preimage-complement) is closed, i.e. its complement PREIMAGE(s,f,V) is open. Every open set pulls back open, so f is continuous (open-preimage-implies-continuous).")

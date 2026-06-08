@@ -2306,6 +2306,53 @@
   (lambda () (and (warrant-of 'ball-is-open) #t)))
 
 ;;; -----------------------------------------------------------------------
+;;; Closed sets (IS-CLOSED) + closed-preimage characterisation, and the
+;;; COMPOSE functoid (Prop 3.14 / 3.15 of ~/docs/calculus.pdf).
+
+(display "\n=== Closed sets + function composition (COMPOSE) ===\n")
+
+(check-true "IS-CLOSED predicate installed"
+  (lambda () (and (lookup-theorem 'IS-CLOSED) #t)))
+(check-true "IS-CLOSED unfolds to subset + complement-open"
+  (lambda ()
+    (sp (make-wff '(IS-CLOSED s A)))
+    (mac 'IS-CLOSED)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(AND (IS-METRIC-SPACE s)
+              (AND (SUBSET A (X s)) (IS-OPEN s (COMPLEMENT-IN (X s) A)))))))
+(check-true "preimage-complement support installed"
+  (lambda () (and (lookup-theorem 'preimage-complement) #t)))
+(check-true "continuous-implies-closed-preimage support installed"
+  (lambda () (and (lookup-theorem 'continuous-implies-closed-preimage) #t)))
+(check-true "closed-preimage-implies-continuous support installed"
+  (lambda () (and (lookup-theorem 'closed-preimage-implies-continuous) #t)))
+
+(check-true "compose-apply support installed"
+  (lambda () (and (lookup-theorem 'compose-apply) #t)))
+(check-true "compose-type support installed"
+  (lambda () (and (lookup-theorem 'compose-type) #t)))
+;; COMPOSE makes f o g a denotable term: typing and the native (un-Skolemised)
+;; statement of sequential continuity (Prop 3.14) both parse.
+(check-true "(COMPOSE f g) is a well-formed function term"
+  (lambda () (and (make-wff '(IN (COMPOSE f g) (FUN A C))) #t)))
+(check-true "Prop 3.14 is natively statable with COMPOSE (no Skolem)"
+  (lambda () (and (make-wff
+    '(IMPLIES (AND (IS-CONTINUOUS-AT s t f a) (CONVERGES-TO s g a))
+       (CONVERGES-TO t (COMPOSE f g) (f a)))) #t)))
+(check-true "compose-apply conclusion is (compose(f,g))(x) = f(g(x))"
+  (lambda ()
+    (and (string-search-forward "(compose(f, g))(x) = f(g(x))"
+           (expression->string (lookup-theorem 'compose-apply)) 0)
+         #t)))
+;; COMPOSE is DEFINITIONAL (VNB-LAMBDA z. f(g z)), so the apply law is a real
+;; proof -- unfold then beta-reduce then reflexivity -- not an asserted axiom.
+(check-proof "compose-apply proves: unfold COMPOSE, lambda-beta, reflexivity"
+  (lambda ()
+    (sp (make-wff '(= ((COMPOSE f g) x) (f (g x)))))
+    (mac 'COMPOSE) (lam-b) (rfl)
+    (unless (proof-done? *ps*) (error "compose-apply did not close via beta"))))
+
+;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 
 (display "\n=== describe-structure cards (instance vs refinement) ===\n")
