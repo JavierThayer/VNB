@@ -2136,6 +2136,7 @@ monospace font is installed.")
     ("Proof"
       ["Direct Inference"     vnb-pf-direct-inference t]
       ["Assume"               vnb-pf-assumption       t]
+      ["Assume All"           vnb-pf-assume-all       t]
       ["Theorem..."           vnb-pf-theorem          t]
       ["Univ. Instantiate..." vnb-pf-instantiate      t]
       ["Exist. Witness..."    vnb-pf-exists-witness   t]
@@ -2537,6 +2538,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
   (let ((m (make-sparse-keymap)))
     (define-key m "d" 'vnb-pf-direct-inference)
     (define-key m "a" 'vnb-pf-assumption)
+    (define-key m "A" 'vnb-pf-assume-all)
     (define-key m "=" 'vnb-pf-reflexivity)
     (define-key m "m" 'vnb-pf-rewrite)
     (define-key m "t" 'vnb-pf-theorem)
@@ -2579,6 +2581,9 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert "  ")
     (vnb-launch--insert-button "Assume" 'vnb-pf-assumption
                                "(ass) close goal by matching an assumption")
+    (insert "  ")
+    (vnb-launch--insert-button "Assume All" 'vnb-pf-assume-all
+                               "(ass-all) close every open goal already matched by an assumption")
     (insert "  ")
     (vnb-launch--insert-button "Close (a=a)" 'vnb-pf-reflexivity
                                "(rfl) close a goal that says a thing equals itself")
@@ -2660,7 +2665,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             (concat "  Keys: d direct-inf  a assume  = close(a=a)  "
+             (concat "  Keys: d direct-inf  a assume  A assume-all  = close(a=a)  "
                      "m rewrite  t theorem  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
                      "h home  r scratch-pad  S scratch-workspace  "
@@ -3019,6 +3024,14 @@ it replaces matching pieces of the goal with the other side."
   "Close the current goal if it matches an assumption.  Wraps (ass)."
   (interactive)
   (vnb-launch--send-tactic "(ass)"))
+
+(defun vnb-pf-assume-all ()
+  "Close EVERY open goal already discharged by an assumption.  Wraps (ass-all).
+Order-independent sweep over all open goals -- the natural finisher after a
+`B' (Cite Lemma) spawns several hypothesis subgoals, each closable by its own
+context.  Goals not assumption-closable are left untouched."
+  (interactive)
+  (vnb-launch--send-tactic "(ass-all)"))
 
 (defun vnb-pf-arith ()
   "Close a ground arithmetic goal by evaluation, e.g. 2 + 3 = 5.  Wraps (arith)."
