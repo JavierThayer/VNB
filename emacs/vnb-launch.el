@@ -1145,8 +1145,26 @@ browser; if it is not installed we fall back to the system default browser.
                  (function :tag "browse-url function"))
   :group 'vnb)
 
+(defcustom vnb-graph-browser-args '("--incognito-mode")
+  "Extra command-line arguments passed to `vnb-graph-browser'.
+The default `--incognito-mode' makes GNOME Web (epiphany) start with user
+data READ-ONLY: it neither restores tabs from a previous session nor saves
+this one, so the VNB browser always opens clean.  These args are epiphany-
+specific; if you point `vnb-graph-browser' at another browser set this to its
+equivalent (e.g. (\"--incognito\") for chromium/chrome) or nil.
+Used only when `vnb-graph-browser' is a string naming an executable on PATH;
+ignored for the system-default and in-Emacs (function) cases."
+  :type '(repeat string)
+  :group 'vnb)
+
+(defvar vnb-launch--browser-procs nil
+  "Browser processes VNB launched, so `vnb-ws-quit' can close them on exit.")
+
 (defun vnb--browse-graph (url)
-  "Open URL according to `vnb-graph-browser', falling back to the default."
+  "Open URL according to `vnb-graph-browser', falling back to the default.
+When `vnb-graph-browser' names an executable, launch it directly (with
+`vnb-graph-browser-args') and remember the process so `vnb-ws-quit' can close
+the window on exit."
   ;; Load browse-url first so `browse-url-generic-program' is a declared
   ;; special var: under lexical-binding, let-binding it before the library
   ;; is loaded would create a lexical (not dynamic) binding that
@@ -1156,9 +1174,19 @@ browser; if it is not installed we fall back to the system default browser.
    ((functionp vnb-graph-browser) (funcall vnb-graph-browser url))
    ((and (stringp vnb-graph-browser) (> (length vnb-graph-browser) 0))
     (if (executable-find vnb-graph-browser)
-        (let ((browse-url-generic-program  vnb-graph-browser)
-              (browse-url-browser-function  #'browse-url-generic))
-          (browse-url url))
+        ;; start-process (not browse-url) so we hold the handle: lets us pass
+        ;; the incognito/no-restore args AND close the window at quit.
+        (condition-case err
+            (let ((proc (apply #'start-process "vnb-browser" nil
+                               vnb-graph-browser
+                               (append vnb-graph-browser-args (list url)))))
+              (set-process-query-on-exit-flag proc nil)
+              (push proc vnb-launch--browser-procs)
+              proc)
+          (error
+           (message "vnb: could not launch %s (%s); using system default browser"
+                    vnb-graph-browser (error-message-string err))
+           (browse-url url)))
       (message "vnb-graph-browser %S not on PATH; using system default browser"
                vnb-graph-browser)
       (browse-url url)))
@@ -1875,15 +1903,22 @@ predicates are in play, then jump straight to that structure's theorems."
   (define-key vnb-mode-map       (kbd "C-c C-b") 'vnb-library-browse-relevant))
 
 (defun vnb-ws-quit ()
-  "Shut down the prover process and exit Emacs."
+  "Shut down the prover process and the VNB browser, then exit Emacs."
   (interactive)
-  (when (yes-or-no-p "Quit VNB (this also exits Emacs)? ")
+  (when (yes-or-no-p "Quit VNB (this also exits Emacs and the VNB browser)? ")
     (let ((buf (get-buffer vnb-buffer-name)))
       (when (and buf (vnb--process-live-p buf))
         (let ((proc (get-buffer-process buf)))
           (when proc
             (set-process-query-on-exit-flag proc nil)
             (delete-process proc)))))
+    ;; Close any browser windows VNB opened.  Best-effort: a window that was
+    ;; handed off to an already-running instance, or closed by hand, is gone
+    ;; already, so delete-process is a harmless no-op there.
+    (dolist (proc vnb-launch--browser-procs)
+      (when (process-live-p proc)
+        (ignore-errors (delete-process proc))))
+    (setq vnb-launch--browser-procs nil)
     (save-buffers-kill-emacs t)))
 
 ;;; -----------------------------------------------------------------------
