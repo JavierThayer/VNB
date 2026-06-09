@@ -93,3 +93,18 @@
 (if (proof-done? *ps*)
     (qed 'bijection-is-injection)
     (error "subtype-laws: failed to prove bijection-is-injection"))
+
+;; abelian-group-mul-comm: MUL commutes -- the is-commutative property projected
+;; out of IS-ABELIAN-GROUP (the metric-sym shape: unfold IS-X, split, unfold the
+;; property, ass).  Proven modulo 0; formerly asserted with a proof-warrant.
+(sp (make-wff '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s)
+   (FORALL a (IMPLIES (IN a (A s))
+     (FORALL b (IMPLIES (IN b (A s))
+       (= ((MUL s) a b) ((MUL s) b a))))))))))
+(di) (di)
+(mac-h 'IS-ABELIAN-GROUP (stl--hyp-sub "is-abelian-group"))
+(stl--split-ands!)
+(mac-h 'is-commutative (stl--hyp-sub "is-commutative"))
+(ass)
+(if (proof-done? *ps*) (qed 'abelian-group-mul-comm)
+    (error "subtype-laws: failed to prove abelian-group-mul-comm"))

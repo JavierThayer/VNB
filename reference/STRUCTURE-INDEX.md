@@ -198,10 +198,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Theorems quantifying over `is-commutative-ring`.*
 
 - `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies is-monoid(abelian-group-as-monoid(commutative-ring-additive-ag(r))))
-- `abelian-group-mul-comm-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-commutative-ring-additive-ag-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-commutative-ring-additive-ag-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
 - `comm-monoid-is-monoid-commutative-ring-multiplicative-cm` — forall([r], is-commutative-ring(r) implies is-monoid(commutative-ring-multiplicative-cm(r)))
 - `comm-monoid-mul-comm-commutative-ring-multiplicative-cm` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (mul(r))(a, b) = (mul(r))(b, a)))
 - `comm-monoid-mul-comm-commutative-ring-multiplicative-cm-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (mul(r))(b, a) = (mul(r))(a, b)))
@@ -296,10 +292,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Theorems quantifying over `is-field`.*
 
 - `abelian-group-as-monoid-is-monoid-field-additive-ag` — forall([r], is-field(r) implies is-monoid(abelian-group-as-monoid(field-additive-ag(r))))
-- `abelian-group-mul-comm-field-additive-ag` — forall([r], is-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-field-additive-ag-rev` — forall([r], is-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-field-additive-ag` — forall([r], is-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-field-additive-ag-rev` — forall([r], is-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
 - `field-additive-ag-is-abelian-group` — forall([r], is-field(r) implies is-abelian-group(field-additive-ag(r)))
 - `field-as-euclidean-ring-is-euclidean-ring` — forall([r], is-field(r) implies is-euclidean-ring(field-as-euclidean-ring(r)))
 - `field-as-integral-domain-is-integral-domain` — forall([r], is-field(r) implies is-integral-domain(field-as-integral-domain(r)))
@@ -505,10 +497,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Theorems quantifying over `is-normed-ag`.*
 
 - `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies is-monoid(abelian-group-as-monoid(normed-ag-as-abelian-group(r))))
-- `abelian-group-mul-comm-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r)], (mul(r))(a, b) = (mul(r))(b, a)))
-- `abelian-group-mul-comm-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r)], (mul(r))(b, a) = (mul(r))(a, b)))
-- `abelian-group-mul-comm-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r)], (mul(r))(b, a) = (mul(r))(a, b)))
-- `abelian-group-mul-comm-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r)], (mul(r))(a, b) = (mul(r))(b, a)))
 - `monoid-assoc-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r), c in a(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
 - `monoid-assoc-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r), c in a(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
 - `monoid-assoc-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in a(r), b in a(r), c in a(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
@@ -567,18 +555,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies is-monoid(abelian-group-as-monoid(commutative-ring-additive-ag(normed-field-as-commutative-ring(r)))))
 - `abelian-group-as-monoid-is-monoid-normed-field-additive-ag` — forall([r], is-normed-field(r) implies is-monoid(abelian-group-as-monoid(normed-field-additive-ag(r))))
-- `abelian-group-mul-comm-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-commutative-ring-additive-ag-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-commutative-ring-additive-ag-rev-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-commutative-ring-additive-ag-rev-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-normed-field-additive-ag-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-commutative-ring-additive-ag-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-rev-commutative-ring-additive-ag-rev-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-rev-commutative-ring-additive-ag-rev-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-normed-field-additive-ag-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
 - `comm-monoid-is-monoid-commutative-ring-multiplicative-cm-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies is-monoid(commutative-ring-multiplicative-cm(normed-field-as-commutative-ring(r))))
 - `comm-monoid-mul-comm-commutative-ring-multiplicative-cm-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (mul(r))(a, b) = (mul(r))(b, a)))
 - `comm-monoid-mul-comm-commutative-ring-multiplicative-cm-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in a(r), b in a(r)], (mul(r))(b, a) = (mul(r))(a, b)))
@@ -739,10 +715,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-ring`.*
 
-- `abelian-group-mul-comm-rev-ring-additive-ag` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
-- `abelian-group-mul-comm-rev-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-ring-additive-ag` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(a, b) = (add(r))(b, a)))
-- `abelian-group-mul-comm-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r)], (add(r))(b, a) = (add(r))(a, b)))
 - `monoid-assoc-rev-ring-multiplicative-monoid` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r), c in a(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
 - `monoid-assoc-rev-ring-multiplicative-monoid-rev` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r), c in a(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
 - `monoid-assoc-ring-multiplicative-monoid` — forall([r], is-ring(r) implies forall([a in a(r), b in a(r), c in a(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
