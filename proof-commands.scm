@@ -150,14 +150,39 @@
                    (symbol->string macete-name)))))
 
 (define (cmd-apply-macete-to-assumption ps macete-name hyp-formula)
-  (let* ((sqn (proof-state-focus ps))
-         (r   (apply-macete-to-assumption! macete-name hyp-formula sqn)))
-    (if r (focus-after-rule ps r)
-        (vnb--warn (string-append
-                    "mac-h: " (symbol->string macete-name)
-                    " is not an unconditional equivalence macete, "
-                    "or it does not occur in the cited assumption")
-                   (expression->string hyp-formula)))))
+  (let ((sqn (proof-state-focus ps)))
+    (cond
+      ((not (hash-table-ref/default *theorem-table* macete-name #f))
+       (vnb--warn "mac-h: unknown theorem/macete" (symbol->string macete-name)))
+      ((not (macete-equivalence? macete-name))
+       (vnb--warn (string-append
+                   "mac-h: " (symbol->string macete-name)
+                   " is not an equivalence (its core must be IFF, =, or ==); "
+                   "a one-directional rule cannot rewrite an assumption")
+                  (symbol->string macete-name)))
+      ((not (null? (macete-rogue-vars macete-name)))
+       (vnb--warn (string-append
+                   "mac-h: " (symbol->string macete-name)
+                   " has schema var(s) undetermined by the match (S-10) "
+                   (call-with-output-string
+                    (lambda (port) (write (macete-rogue-vars macete-name) port)))
+                   " -- refusing, as the goal side does for this -rev direction")
+                  (symbol->string macete-name)))
+      (else
+       (let ((r (apply-macete-to-assumption! macete-name hyp-formula sqn)))
+         (if r
+             (begin
+               (let ((minors (- (length r) 1)))
+                 (when (> minors 0)
+                   (display ";; mac-h: ") (display macete-name)
+                   (display " applied; ") (display minors)
+                   (display " side-condition(s) spawned as subgoal(s)")
+                   (display " -- main line stays in focus.\n")))
+               (focus-after-rule ps r))
+             (vnb--warn (string-append
+                         "mac-h: " (symbol->string macete-name)
+                         " does not occur in the cited assumption")
+                        (expression->string hyp-formula))))))))
 
 (define (cmd-or-intro-left ps)
   (let* ((sqn (proof-state-focus ps))

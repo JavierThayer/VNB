@@ -336,15 +336,30 @@
 ;;; minor-premises is currently always '() — conditions not locally
 ;;; dischargeable cause the rewrite to be skipped at that position.
 
+;;; When *macete-spawn-conditions?* is #t, a top-level match fires EVEN IF its
+;;; conditions are not all discharged from local-ctx: the unmet (instantiated)
+;;; conditions ride out as minor premises instead of blocking the rewrite.
+;;; Default #f preserves the strict all-or-nothing behaviour every goal-side
+;;; macete relies on (see the note above: minors are '() under the default).
+;;; mac-h (apply-macete-to-assumption!) fluid-lets it #t so a conditional
+;;; equivalence can rewrite a hypothesis and SPAWN its side-conditions as
+;;; subgoals -- the IMPS macete behaviour.  Sound because the gated macete is a
+;;; genuine equivalence (source <=> replacement under the conditions), so
+;;; Leibniz congruence applies once the conditions are discharged.
+(define *macete-spawn-conditions?* #f)
+
 (define (rewrite-expr pattern replacement schema-vars conditions expr local-ctx)
   (let ((top-match (match-expr pattern expr schema-vars)))
-    (if (and top-match
-             (all-conditions-hold?
-              (map (lambda (c) (apply-subst top-match c)) conditions)
-              local-ctx))
-        ;; Top-level match with all conditions satisfied: fire
-        (cons (apply-subst top-match replacement) '())
-        ;; No match or conditions not met: recurse into children
+    (if top-match
+        (let ((unmet (filter (lambda (c) (not (condition-holds? c local-ctx)))
+                             (map (lambda (c) (apply-subst top-match c)) conditions))))
+          (if (or (null? unmet) *macete-spawn-conditions?*)
+              ;; Fire; unmet conditions become minor premises (empty unless spawning)
+              (cons (apply-subst top-match replacement) unmet)
+              ;; Conditions unmet and not spawning: recurse into children
+              (rewrite-subexpressions pattern replacement schema-vars conditions
+                                      expr local-ctx)))
+        ;; No top-level match: recurse into children
         (rewrite-subexpressions pattern replacement schema-vars conditions
                                 expr local-ctx))))
 
@@ -910,36 +925,68 @@
 ;;; SOUNDNESS.  Replacing assumption H by H' is sound exactly when H => H'.
 ;;; We gate on macete-equivalence?: the macete's core must be a genuine
 ;;; two-way equivalence (IFF / = / ==, the same class install-theorem! flags
-;;; for a -rev companion), so H <=> H' and the rewrite loses nothing.  Every
-;;; def-predicate / def-functoid unfold is an unconditional IFF and qualifies.
-;;; v1 supports only UNCONDITIONAL equivalences: a conditional equivalence is
-;;; refused (returns #f) rather than silently discharging its side-conditions.
+;;; for a -rev companion), so H <=> H' (UNDER the macete's side-conditions)
+;;; and the rewrite loses nothing.  Every def-predicate / def-functoid unfold
+;;; is an unconditional IFF and qualifies.
+;;;
+;;; CONDITIONAL equivalences (e.g. preimage-complement, an equation that holds
+;;; only when the typing side-conditions do) are supported the IMPS way: the
+;;; rewrite fires and each side-condition that is not already discharged from
+;;; the assumption context is SPAWNED as a minor-premise subgoal -- never
+;;; silently dropped.  Conditions already present among the assumptions are
+;;; discharged automatically (local-ctx is seeded with them), so unfolding the
+;;; other hypotheses first -- with mac-h -- makes most side-conditions vanish.
+;;; The main rewritten sequent is returned FIRST so focus-after-rule keeps the
+;;; user on the main line, with the conditions as additional open goals.
 
 (define (macete-equivalence? name)
   (let ((thm (hash-table-ref/default *theorem-table* name #f)))
     (and thm (flip-symmetric-core-in-formula thm) #t)))
 
+;;; The S-10 rogue (undetermined-by-the-match) schema vars of name's
+;;; source->replacement rewrite; '() = clean.  mac-h refuses a rewrite with
+;;; rogue vars, declining the inert/-rev directions exactly as the goal side
+;;; does at install time -- otherwise a var like a codomain `t' present only in
+;;; the replacement/conditions would be conjured free.
+(define (macete-rogue-vars name)
+  (let-values (((schema-vars core)
+                (strip-foralls (prenex-positive (lookup-theorem name)))))
+    (let-values (((conditions source replacement)
+                  (extract-rewrite-patterns core)))
+      (let loop ((vs (theorem-rogue-schema-vars schema-vars conditions
+                                                source replacement))
+                 (seen '()))
+        (cond ((null? vs) (reverse seen))
+              ((member (car vs) seen) (loop (cdr vs) seen))
+              (else (loop (cdr vs) (cons (car vs) seen))))))))
+
 (define (apply-macete-to-assumption! name hyp-formula sqn)
   (and (macete-equivalence? name)
-       (let ((f (asms-find (sequent-node-assumptions sqn) hyp-formula)))
+       (null? (macete-rogue-vars name))
+       (let* ((asms (sequent-node-assumptions sqn))
+              (f    (asms-find asms hyp-formula)))
          (and f
               (let-values (((schema-vars core)
                             (strip-foralls (prenex-positive (lookup-theorem name)))))
                 (let-values (((conditions source replacement)
                               (extract-rewrite-patterns core)))
-                  (and (null? conditions)
-                       (let* ((asms   (sequent-node-assumptions sqn))
-                              (goal   (sequent-node-assertion   sqn))
-                              (dg     (sqn-dg sqn))
-                              (h      (wff-formula f))
-                              (result (rewrite-expr source replacement schema-vars
-                                                    conditions h '()))
-                              (new-h  (car result)))
-                         (and (not (alpha-equiv? new-h h))
-                              (dg-apply-rule! dg `(macete-hyp ,source ,replacement)
-                                (list (make-sequent
-                                       (context-add-assumption
-                                        (context-remove-assumption asms f)
-                                        (wff-child f new-h))
-                                       goal))
-                                sqn))))))))))
+                  (let* ((goal      (sequent-node-assertion sqn))
+                         (dg        (sqn-dg sqn))
+                         (h         (wff-formula f))
+                         (local-ctx (map wff-formula asms))
+                         (result    (fluid-let ((*macete-spawn-conditions?* #t))
+                                      (rewrite-expr source replacement schema-vars
+                                                    conditions h local-ctx)))
+                         (new-h     (car result))
+                         (minors    (cdr result)))
+                    (and (not (alpha-equiv? new-h h))
+                         (dg-apply-rule! dg `(macete-hyp ,source ,replacement)
+                           (cons (make-sequent
+                                  (context-add-assumption
+                                   (context-remove-assumption asms f)
+                                   (wff-child f new-h))
+                                  goal)
+                                 (map (lambda (mp)
+                                        (make-sequent asms (wff-child goal mp)))
+                                      minors))
+                           sqn)))))))))

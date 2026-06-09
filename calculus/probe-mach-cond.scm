@@ -1,0 +1,28 @@
+;;; probe-mach-cond.scm -- conditional mac-h: spawn side-conditions as subgoals.
+(define (==> label val) (display "==> ") (display label) (display ": ") (write val) (newline))
+(define (--- t) (newline) (display ";;; ----- ") (display t) (display " -----") (newline))
+(define (asms) (map (lambda (w) (expression->string (wff-formula w)))
+                    (sequent-node-assumptions (proof-state-focus *ps*))))
+(define (open-goals) (map (lambda (g) (expression->string (sequent-node-assertion g)))
+                          (proof-open-goals *ps*)))
+
+(--- "conditional mac-h via preimage-complement: is-ms s,t in ctx, f-typing NOT")
+(sp (make-wff '(IMPLIES (AND (IN x (PREIMAGE s f (COMPLEMENT-IN (X t) A)))
+                        (AND (IS-METRIC-SPACE s) (IS-METRIC-SPACE t)))
+                 (IS-METRIC-SPACE s))))
+(di)
+(ai '(AND (IN x (PREIMAGE s f (COMPLEMENT-IN (X t) A)))
+          (AND (IS-METRIC-SPACE s) (IS-METRIC-SPACE t))))
+(ai '(AND (IS-METRIC-SPACE s) (IS-METRIC-SPACE t)))
+(==> "asms before" (asms))
+(mac-h 'preimage-complement '(IN x (PREIMAGE s f (COMPLEMENT-IN (X t) A))))
+(==> "asms after (hyp rewritten in place)" (asms))
+(==> "open goals (main + spawned f-typing condition)" (open-goals))
+
+(--- "rogue refusal: the inert -rev direction must be declined (S-10)")
+(sp (make-wff '(IMPLIES (IN x (COMPLEMENT-IN (X s) (PREIMAGE s f A))) (IS-METRIC-SPACE s))))
+(di)
+(mac-h 'preimage-complement-rev '(IN x (COMPLEMENT-IN (X s) (PREIMAGE s f A))))
+(==> "did rev fire? (expect #f, with an S-10 warning above)" (proof-done? *ps*))
+
+(==> "DONE-PROBE" 'ok)

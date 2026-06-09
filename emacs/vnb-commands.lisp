@@ -132,6 +132,9 @@
 (inst    (formula term)
          "Instantiate. Applies a universal formula FORALL(x, P(x)) from the context by substituting term for x, adding P(term) to context. formula is a string or S-expression; term is the instantiation value.")
 
+(mac-h   (name formula)
+         "Apply macete to a hypothesis -- the dual of mac. Unfolds a defined predicate (or applies any unconditional IFF/=/== equivalence macete) NAME inside the assumption FORMULA, replacing it by its body in place; pair with ai to split the result. For a CONDITIONAL equivalence, side-conditions not already in context are spawned as subgoals (the main line stays in focus). NAME is a quoted symbol; FORMULA is a string, S-expression, or 1-based assumption index.")
+
 (ce      (formula k)
          "Cartesian elim. Extracts the k-th component from a context assumption formula of the form [a1,...,an] IN CARTESIAN(A1,...,An), adding ak IN Ak to context. k is a 1-based integer.")
 
