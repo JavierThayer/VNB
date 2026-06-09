@@ -425,6 +425,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))
+- `metric-dist-real` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) in rr))
 - `metric-pos` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], 0 <= (d(s))(x, y)))
 - `metric-self-zero` — forall([s], is-metric-space(s) implies forall([x in x(s)], (d(s))(x, x) = 0))
 - `metric-self-zero-rev` — forall([s], is-metric-space(s) implies forall([x in x(s)], 0 = (d(s))(x, x)))
