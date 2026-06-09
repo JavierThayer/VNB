@@ -30,7 +30,7 @@
 
 ;;; ball-membership: y in BALL(s,x,r) iff y in X(s) and D(s)(x,y) < r.
 ;;; Direct from SEP membership; recorded so proofs can rewrite by name.
-(theory-add-axiom! *current-theory* 'ball-membership
+(support 'ball-membership
   '(FORALL s
      (FORALL x
        (FORALL r
@@ -43,7 +43,7 @@
   "BALL(s,x,r) is the def-functoid SEP(y in X(s) | d(x,y)<=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.")
 
 ;;; ball-subset-carrier: BALL(s,x,r) subset X(s).
-(theory-add-axiom! *current-theory* 'ball-subset-carrier
+(support 'ball-subset-carrier
   '(FORALL s
      (FORALL x
        (FORALL r
@@ -55,7 +55,7 @@
 ;;; Derivable from SEP sethood + X(s) in SET (carrier typing of
 ;;; IS-METRIC-SPACE).  Kept as a named macete so BALL-using proofs don't
 ;;; re-derive sethood at every use; not a per-operator closure proliferation.
-(theory-add-axiom! *current-theory* 'ball-is-set
+(support 'ball-is-set
   '(FORALL s
      (IMPLIES (IS-METRIC-SPACE s)
        (FORALL x
@@ -66,7 +66,7 @@
 
 ;;; ball-center-in: x is in its own r-ball when r > 0.
 ;;; Uses metric-self-zero: D(s)(x,x) = 0 < r.
-(theory-add-axiom! *current-theory* 'ball-center-in
+(support 'ball-center-in
   '(FORALL s
      (IMPLIES (IS-METRIC-SPACE s)
        (FORALL x
@@ -84,7 +84,7 @@
 ;;;
 ;;; Derivable from metric-triangle + metric-sym; left as an axiom during
 ;;; the library-build phase per [[feedback-library-axioms-fine]].
-(theory-add-axiom! *current-theory* 'ball-2r-triangle
+(support 'ball-2r-triangle
   '(FORALL s
      (IMPLIES (IS-METRIC-SPACE s)
        (FORALL x

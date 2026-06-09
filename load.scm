@@ -252,6 +252,25 @@
 ;; Regenerate the theorem/axiom catalog (THEOREMS.md) so it never goes stale.
 (catalog)
 
+;; Invariant guard (so weirdos announce themselves instead of being hunted):
+;; a `proof' warrant claims a machine proof, so it should never sit on an
+;; asserted, non-PSS fact -- that is the "Asserted yet warrant: proof" anomaly.
+;; Such a fact should be either machine-proven (provenance proven) or promoted
+;; to a PSS support.  Surface any at load.
+(let ((bad (filter (lambda (n)
+                     (let ((w (warrant-of n)))
+                       (and w (eq? (car w) 'proof)
+                            (eq? (provenance-of n) 'asserted)
+                            (not (memq n *support-theorem-names*)))))
+                   (hash-table-keys *provenance*))))
+  (if (null? bad)
+      (display ";; warrant-invariant: ok (no asserted/non-PSS fact claims a proof)\n")
+      (begin
+        (display ";; WARRANT-INVARIANT WARNING: ")
+        (display (length bad))
+        (display " asserted/non-PSS fact(s) carry a 'proof warrant -- prove or PSS-promote:\n   ")
+        (write bad) (newline))))
+
 ;; Rebuild the browser reference (reference.html) from the just-refreshed .md
 ;; files.  The .md regenerate on every load but the HTML did NOT -- it was a
 ;; manual step, so the page the browser actually renders could fossilise (e.g.
