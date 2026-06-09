@@ -94,15 +94,20 @@
 
 ;;; is-metric(dist, crr): dist is a metric on crr -- nonnegative, zero only
 ;;; on the diagonal, symmetric, and satisfying the triangle inequality.
-(theory-add-axiom! *current-theory* 'is-metric
-  '(FORALL dist (FORALL crr
-     (IFF (is-metric dist crr)
-          (FORALL u (IMPLIES (IN u crr)
-            (AND (= (dist u u) 0)
-              (FORALL v (IMPLIES (IN v crr)
-                (AND (<= 0 (dist u v))
-                  (AND (IMPLIES (= (dist u v) 0) (= u v))
-                    (AND (= (dist u v) (dist v u))
-                      (FORALL w (IMPLIES (IN w crr)
-                        (<= (dist u w)
-                            (+ (dist u v) (dist v w)))))))))))))))))
+;;; Conservative IFF definition of the property -> `definitional'.  The five
+;;; metric laws (metric-pos/self-zero/zero-eq/sym/triangle) are PROVEN by
+;;; projecting this body (structure-library/metric-laws.scm), so they must
+;;; rest on it as a definition, not as asserted debt.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'is-metric
+    '(FORALL dist (FORALL crr
+       (IFF (is-metric dist crr)
+            (FORALL u (IMPLIES (IN u crr)
+              (AND (= (dist u u) 0)
+                (FORALL v (IMPLIES (IN v crr)
+                  (AND (<= 0 (dist u v))
+                    (AND (IMPLIES (= (dist u v) 0) (= u v))
+                      (AND (= (dist u v) (dist v u))
+                        (FORALL w (IMPLIES (IN w crr)
+                          (<= (dist u w)
+                              (+ (dist u v) (dist v w))))))))))))))))))

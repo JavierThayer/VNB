@@ -187,6 +187,10 @@
     ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
     ;; interactive tactics + qed/proof-debt, so loads here.
     "structure-library/subtype-laws"
+    ;; The five metric laws (pos/self-zero/zero-eq/sym/triangle), PROVEN by
+    ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
+    ;; were redundant asserted axioms (a definition oversight).
+    "structure-library/metric-laws"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Assumption-pattern scanner for forward-move discovery
