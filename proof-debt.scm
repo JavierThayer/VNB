@@ -43,7 +43,11 @@
 
 ;;; Proof-script verbs whose first argument is a cited theorem/axiom/macete
 ;;; name.  (bc / subst / cut take raw formulas; ass / di / rfl cite nothing.)
-(define *pd-citing-verbs* '(mac ta bc*))
+;;; mac-h cites the equivalence it applies to a hypothesis -- its FIRST arg is
+;;; the macete/theorem name (the second is the assumption), so it is credited
+;;; exactly like mac.  Omitting it would let a hypothesis-side use of a
+;;; warranted support (e.g. preimage-complement) escape the debt ledger.
+(define *pd-citing-verbs* '(mac mac-h ta bc*))
 
 ;;; The set of names a proof script directly cites.  A compound-macete arg
 ;;; (e.g. (mac '(series m1 m2))) is NOT a bare name; we log it as an
