@@ -42,14 +42,12 @@
 (warrant! 'ball-membership 'proof
   "BALL(s,x,r) is the def-functoid SEP(y in X(s) | d(x,y)<=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.")
 
-;;; ball-subset-carrier: BALL(s,x,r) subset X(s).
-(support 'ball-subset-carrier
-  '(FORALL s
-     (FORALL x
-       (FORALL r
-         (SUBSET (BALL s x r) (X s))))))
-(warrant! 'ball-subset-carrier 'proof
-  "BALL is a SEP over X(s) (def-functoid), so every member lies in X(s); subset is immediate from ball-membership.")
+;;; (No `ball-subset-carrier' axiom: BALL(s,x,r) subset X(s) is a SEP over
+;;; X(s), so it falls straight out of the kernel separation rule sep-me --
+;;; a per-operator support for it would just reify the generic SEP z A p
+;;; subset A.  Prove inline when needed: (mac 'BALL) unfolds the functoid to
+;;; SEP in the goal, (mac 'subset-def)(di), then sep-me supplies IN z (X s).
+;;; [[feedback-no-closure-axiom-proliferation]])
 
 ;;; ball-mem-from-le: a point at distance <= d from the centre, with d < r,
 ;;; lies in the open r-ball.  This packages the one piece of order friction
@@ -85,7 +83,7 @@
          (FORALL r
            (IN (BALL s x r) SET))))))
 (warrant! 'ball-is-set 'proof
-  "BALL(s,x,r) is a subclass of X(s) (ball-subset-carrier); X(s) is a set (carrier typing of IS-METRIC-SPACE); a subclass of a set is a set (separation).")
+  "BALL(s,x,r) is a SEP over X(s) (def-functoid); X(s) is a set (carrier typing of IS-METRIC-SPACE); a SEP over a set is a set (kernel sep-sethood).")
 
 ;;; ball-center-in: x is in its own r-ball when r > 0.
 ;;; Uses metric-self-zero: D(s)(x,x) = 0 < r.
