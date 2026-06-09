@@ -20,12 +20,13 @@
 
 ;;; CC-MS is the list [CC, lambda([x,y], magnitude(x-y))].
 ;;; The lambda is a VNB functoid: a function from CARTESIAN(CC,CC) to RR.
+;;; def-constant already installs cc-ms-def (definitional, citable) via
+;;; theory-add-definition!; a separate theory-add-axiom! of the same equation
+;;; only RE-installs it with default `asserted' provenance -- downgrading a
+;;; definition to a phantom debt leaf.  One registration, kept definitional.
 (def-constant 'CC-MS
   (list 'cc-ms-def
         '(= CC-MS (LIST CC (VNB-LAMBDA (LIST x y) (magnitude (- x y)))))))
-
-(theory-add-axiom! *current-theory* 'cc-ms-def
-  '(= CC-MS (LIST CC (VNB-LAMBDA (LIST x y) (magnitude (- x y))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CC-MS is a metric space

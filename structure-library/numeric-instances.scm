@@ -229,12 +229,13 @@
 ;;; IS-METRIC-SPACE(RR-MS) is an axiom (provable from the abs axioms in
 ;;; number-systems.scm once FUN-typing of the lambda is in place).
 
+;; def-constant already installs rr-ms-def (definitional, citable) via
+;; theory-add-definition!; a separate theory-add-axiom! of the same equation
+;; only RE-installs it with default `asserted' provenance -- downgrading a
+;; definition to a phantom debt leaf.  One registration, kept definitional.
 (def-constant 'RR-MS
   (list 'rr-ms-def
         '(= RR-MS (LIST RR (VNB-LAMBDA (LIST x y) (abs (- x y)))))))
-
-(theory-add-axiom! *current-theory* 'rr-ms-def
-  '(= RR-MS (LIST RR (VNB-LAMBDA (LIST x y) (abs (- x y))))))
 
 (theory-add-axiom! *current-theory* 'rr-is-metric-space
   '(IS-METRIC-SPACE RR-MS))
