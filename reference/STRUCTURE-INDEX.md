@@ -414,6 +414,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ball-center-in` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies x in ball(s, x, r)))
 - `ball-is-open` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies is-open(s, ball(s, x, r))))
 - `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
+- `ball-mem-from-le` — forall([s], is-metric-space(s) implies forall([x, y, d, r], y in x(s) and d in rr and r in rr and (d(s))(x, y) <= d and <(d, r) implies y in ball(s, x, r)))
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))

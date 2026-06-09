@@ -52,3 +52,15 @@
      (FORSOME d (AND (POS-RR d) (= (+ d d) eps))))))
 (warrant! 'rr-pos-halvable 'well-known
   "Every positive real eps can be halved: there is a positive d with d + d = eps.  Standard (d = eps/2).")
+
+;;; Below every positive real sits a smaller positive real.  The form the
+;;; continuity / open-preimage argument actually wants: openness of V gives a
+;;; STRICT eps-ball, but continuity only yields a non-strict bound d(.,.) <= d;
+;;; instantiating continuity at a d < eps (this lemma) makes the non-strict
+;;; bound land strictly inside the eps-ball (cf. ball-mem-from-le).  The strict
+;;; sibling of rr-pos-halvable (take d = eps/2; eps/2 < eps).
+(support 'rr-pos-shrink
+  '(FORALL eps (IMPLIES (POS-RR eps)
+     (FORSOME d (AND (POS-RR d) (< d eps))))))
+(warrant! 'rr-pos-shrink 'well-known
+  "Every positive real eps has a smaller positive real below it (e.g. eps/2 < eps).  Order density of the reals at 0; standard.")

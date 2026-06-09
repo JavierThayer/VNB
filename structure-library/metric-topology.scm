@@ -51,6 +51,29 @@
 (warrant! 'ball-subset-carrier 'proof
   "BALL is a SEP over X(s) (def-functoid), so every member lies in X(s); subset is immediate from ball-membership.")
 
+;;; ball-mem-from-le: a point at distance <= d from the centre, with d < r,
+;;; lies in the open r-ball.  This packages the one piece of order friction
+;;; that the open-preimage argument keeps hitting: V's openness supplies a
+;;; STRICT eps-ball, but continuity only delivers a NON-strict bound
+;;; d(t)(f y, f z) <= d.  Halving eps (rr-pos-halvable) gives a d < eps, and
+;;; this lemma turns the non-strict bound at radius d into strict membership
+;;; at radius r = eps.  Stated with d, r in RR so the order chain is typed.
+(support 'ball-mem-from-le
+  '(FORALL s
+     (IMPLIES (IS-METRIC-SPACE s)
+       (FORALL x
+         (FORALL y
+           (FORALL d
+             (FORALL r
+               (IMPLIES (AND (IN y (X s))
+                        (AND (IN d RR)
+                        (AND (IN r RR)
+                        (AND (<= ((D s) x y) d)
+                             (< d r)))))
+                 (IN y (BALL s x r))))))))))
+(warrant! 'ball-mem-from-le 'proof
+  "d(x,y) <= d and d <= r (from d < r) give d(x,y) <= r by rr-leq-transitive. And d(x,y) = r would give r <= d (substituting into d(x,y) <= d), contradicting d < r by rr-leq-antisymmetric; so d(x,y) != r. With y in X(s), ball-membership yields y in BALL(s,x,r).")
+
 ;;; ball-is-set: BALL(s,x,r) in SET whenever s is a metric space.
 ;;; Derivable from SEP sethood + X(s) in SET (carrier typing of
 ;;; IS-METRIC-SPACE).  Kept as a named macete so BALL-using proofs don't
