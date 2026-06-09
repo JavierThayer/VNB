@@ -784,13 +784,13 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `matrix-membership` — forall([s, m], m in matrix(s) iff m in tuples(tuples(s)) and forall([i], i in nn and 1 <= i and i <= length(m) implies forall([j], j in nn and 1 <= j and j <= length(m) implies length(nth(i, m)) = length(nth(j, m)))))
 - `matrix-membership-rev` — forall([s, m], m in tuples(tuples(s)) and forall([i], i in nn and 1 <= i and i <= length(m) implies forall([j], j in nn and 1 <= j and j <= length(m) implies length(nth(i, m)) = length(nth(j, m)))) iff m in matrix(s))
 - `matrix-sethood` — forall([s in set], matrix(s) in set)
-- `metric-pos` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], 0 <= (d(s))(x, y)))
-- `metric-self-zero` — forall([s], is-metric-space(s) implies forall([x in x(s)], (d(s))(x, x) = 0))
+- `metric-pos` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], 0 <= (d(s))(x, y)))  _[warrant: well-known]_
+- `metric-self-zero` — forall([s], is-metric-space(s) implies forall([x in x(s)], (d(s))(x, x) = 0))  _[warrant: well-known]_
 - `metric-self-zero-rev` — forall([s], is-metric-space(s) implies forall([x in x(s)], 0 = (d(s))(x, x)))
-- `metric-sym` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = (d(s))(y, x)))
+- `metric-sym` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = (d(s))(y, x)))  _[warrant: well-known]_
 - `metric-sym-rev` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(y, x) = (d(s))(x, y)))
-- `metric-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s), z in x(s)], (d(s))(x, z) <= (d(s))(x, y) + (d(s))(y, z)))
-- `metric-zero-eq` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = 0 implies x = y))
+- `metric-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s), z in x(s)], (d(s))(x, z) <= (d(s))(x, y) + (d(s))(y, z)))  _[warrant: well-known]_
+- `metric-zero-eq` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = 0 implies x = y))  _[warrant: well-known]_
 - `metric-zero-eq-rev` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) = 0 implies y = x))
 - `monoid-assoc` — forall([s], is-monoid(s) implies forall([a in a(s), b in a(s), c in a(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
 - `monoid-assoc-rev` — forall([s], is-monoid(s) implies forall([a in a(s), b in a(s), c in a(s)], (mul(s))(a, (mul(s))(b, c)) = (mul(s))((mul(s))(a, b), c)))

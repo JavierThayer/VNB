@@ -327,11 +327,18 @@
 ;;;   => installs macete that rewrites (groupcarrier x) to (carrier x)
 
 (define (def-functoid name params body)
-  (let* ((pvars (if (pair? params) params (list params))))
-    (install-macete! name
-      (make-elementary-macete pvars '() (cons name pvars) body))
-    (register-constant! name 'functoid)
-    name))
+  ;; A functoid is a DEFINITION: its unfold macete rewrites the defined symbol
+  ;; to its body and so carries no logical debt.  Stamp it `definitional' (as
+  ;; def-predicate does), otherwise its provenance defaults to `asserted' and a
+  ;; mere unfold (e.g. `mac COMPOSE') shows up as an outstanding asserted leaf
+  ;; in the proof-debt ledger -- a phantom debt.
+  (fluid-let ((*current-provenance* 'definitional))
+    (let* ((pvars (if (pair? params) params (list params))))
+      (install-macete! name
+        (make-elementary-macete pvars '() (cons name pvars) body))
+      (register-provenance! name *current-provenance*)
+      (register-constant! name 'functoid)
+      name)))
 
 ;;; -----------------------------------------------------------------------
 ;;; def-predicate
