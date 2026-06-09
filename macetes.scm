@@ -158,6 +158,22 @@
              (match-expr (caddr pattern) (caddr expr) schema-vars)))
        (else
         (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))))
+    ;; Compound-operator application: pattern ((D s) x y) vs expr
+    ;; ((D Se) ae be) -- the operator is itself an application (a structure
+    ;; accessor applied to its instance: (D s), (mul r), ...).  The
+    ;; schema-var-head arm needs a SYMBOL head and the constant-head arm needs
+    ;; eq? heads, so neither fires -- yet this is ordinary first-order
+    ;; matching.  Recurse into the operator, then the operands.  This lets bc*
+    ;; backchain facts whose conclusion mentions a structure-op application
+    ;; ((d s)(x,y), (mul r)(a,b), ...).  Fires ONLY when both heads are pairs,
+    ;; so symbol-headed forms and the *match-var-head* gate are untouched.
+    ((and (pair? pattern) (pair? expr)
+          (pair? (car pattern)) (pair? (car expr))
+          (= (length pattern) (length expr)))
+     (let ((head-m (match-expr (car pattern) (car expr) schema-vars)))
+       (and head-m
+            (let ((rest-m (match-list-with-rest (cdr pattern) (cdr expr) schema-vars)))
+              (and rest-m (merge-subst head-m rest-m))))))
     (else #f)))
 
 (define (binding-values-equal? v1 v2)
