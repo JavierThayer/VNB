@@ -780,9 +780,19 @@
 ;;; that are too expensive to mechanize and not in active doubt.
 (define *support-theorem-names* '())
 
+(define (rev-name-of name)
+  (string->symbol (string-append (symbol->string name) "-rev")))
+
 (define (register-support-theorem! name)
   (unless (memq name *support-theorem-names*)
-    (set! *support-theorem-names* (cons name *support-theorem-names*))))
+    (set! *support-theorem-names* (cons name *support-theorem-names*)))
+  ;; The auto-generated -rev companion is the same fact flipped; if it exists,
+  ;; it belongs to the PSS alongside its forward (else it orphans as an
+  ;; asserted/not-PSS leaf -- the early "fuzzy border" leak).
+  (let ((rev (rev-name-of name)))
+    (when (and (hash-table-ref/default *theorem-table* rev #f)
+               (not (memq rev *support-theorem-names*)))
+      (set! *support-theorem-names* (cons rev *support-theorem-names*)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; WARRANTS -- the grounds on which we accept a statement.
@@ -815,6 +825,11 @@
     (display " -- expected one of ")
     (write *warrant-kinds*) (newline))
   (hash-table-set! *warrants* name (cons kind text))
+  ;; Propagate the warrant to the auto-generated -rev companion (same fact,
+  ;; flipped), so warranting a forward doesn't leave its reverse unwarranted.
+  (let ((rev (rev-name-of name)))
+    (when (hash-table-ref/default *theorem-table* rev #f)
+      (hash-table-set! *warrants* rev (cons kind text))))
   name)
 
 (define (warrant-of name)

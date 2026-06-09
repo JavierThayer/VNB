@@ -136,6 +136,10 @@
     "structure-library/matrix"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
+    ;; Reclassify hand-written defining iffs (property/class/membership defs)
+    ;; as definitional -- they were theory-add-axiom!'d without the stamp.
+    ;; Loads after every file that defines one of them.
+    "structure-library/definitional-reclass"
     ;; PSS-promoted foundational facts (formerly proven in proven-theorems.scm;
     ;; proofs archived to archive/proven-theorems-archive.scm).  Loaded in the
     ;; original prove-and-install! order so each entry's macete dependencies
