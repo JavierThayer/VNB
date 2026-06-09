@@ -16,7 +16,10 @@
 
 ;;; Defining iff: phi in BIJECTION(X, Y) iff phi : X -> Y is injective on X
 ;;; and surjective onto Y.
-(theory-add-axiom! *current-theory* 'bijection-membership-iff
+;; Conservative IFF definition of BIJECTION-membership -> `definitional', so
+;; unfolding it (bijection-is-injection) carries no debt.
+(fluid-let ((*current-provenance* 'definitional))
+ (theory-add-axiom! *current-theory* 'bijection-membership-iff
   '(FORALL X
      (FORALL Y
        (FORALL phi
@@ -35,7 +38,7 @@
                      (FORALL w
                        (IMPLIES (IN w Y)
                          (FORSOME z
-                           (AND (IN z X) (= (phi z) w))))))))))))
+                           (AND (IN z X) (= (phi z) w)))))))))))))
 
 ;;; BIJECTION(X, Y) is a set when both X and Y are sets.
 ;;; Derivable: BIJECTION(X, Y) is a subclass of FUN(X, Y), and FUN(X, Y) is

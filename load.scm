@@ -183,6 +183,10 @@
     ;; Warrant / proof-debt ledger: records each qed proof's bill of asserted
     ;; facts it rests on (loads right after interactive so qed can call it).
     "proof-debt"
+    ;; The trivial subtype-subsumption laws ("every X is a Y"), PROVEN via
+    ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
+    ;; interactive tactics + qed/proof-debt, so loads here.
+    "structure-library/subtype-laws"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Assumption-pattern scanner for forward-move discovery

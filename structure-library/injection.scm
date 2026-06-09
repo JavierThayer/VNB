@@ -41,17 +41,19 @@
 ;;; collide with the class parameters X/Y and be captured -- see bijection.scm.
 
 ;;; phi in INJECTION(X, Y) iff phi : X -> Y is injective on X.
-(theory-add-axiom! *current-theory* 'injection-membership-iff
-  '(FORALL X
-     (FORALL Y
-       (FORALL phi
-         (IFF (IN phi (INJECTION X Y))
-              (AND (IN phi (FUN X Y))
-                   (FORALL a
-                     (IMPLIES (IN a X)
-                       (FORALL b
-                         (IMPLIES (IN b X)
-                           (IMPLIES (= (phi a) (phi b)) (= a b))))))))))))
+;;; Conservative IFF definition of INJECTION-membership -> `definitional'.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'injection-membership-iff
+    '(FORALL X
+       (FORALL Y
+         (FORALL phi
+           (IFF (IN phi (INJECTION X Y))
+                (AND (IN phi (FUN X Y))
+                     (FORALL a
+                       (IMPLIES (IN a X)
+                         (FORALL b
+                           (IMPLIES (IN b X)
+                             (IMPLIES (= (phi a) (phi b)) (= a b)))))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Projection lemmas (each derivable from injection-membership-iff).
@@ -77,10 +79,9 @@
                (IN (INJECTION X Y) SET)))))
 
 ;;; Every bijection is an injection.
-(theory-add-axiom! *current-theory* 'bijection-is-injection
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (BIJECTION X Y))
-               (IN phi (INJECTION X Y)))))))
+;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
+;;; both class memberships via the -membership-iff axioms; FUN + injective
+;;; conjuncts coincide); no longer asserted here.
 
 ;;; -----------------------------------------------------------------------
 ;;; IMAGE: the image set of phi over S.

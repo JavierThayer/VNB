@@ -22,8 +22,8 @@
     (property is-commutative MUL A)))
 
 ;;; Every abelian group is a group (same shape, so this is a direct subtype).
-(theory-add-axiom! *current-theory* 'abelian-group-is-group
-  '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s) (IS-GROUP s))))
+;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (loaded
+;;; after the interactive tactics); no longer asserted here.
 
 ;;; Commutativity of MUL.
 (theory-add-axiom! *current-theory* 'abelian-group-mul-comm

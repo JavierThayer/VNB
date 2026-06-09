@@ -222,9 +222,11 @@
 ;; witness n := N, intro n_, assume N <= n_
 (ew Nw)
 (di)
-(focus-leaf! "n_4 in nn")                ; bounded-witness membership
+;; bounded-witness membership: focus by the CAPTURED witness Nw, never a
+;; hardcoded eigenvar name -- the fresh-var counter drifts with load order
+;; (e.g. n_4 -> n_10 once other proofs run first).
 (focus-leaf-goal! (list 'IN Nw 'NN)) (ass)
-(focus-leaf! "(d(t))(f(g(n_))")
+(focus-leaf! "(d(t))(f(g(n_))")          ; n_ is a BOUND var here, drift-stable
 (di) (di)
 (define M (cadr (asm-find-pred (lambda (f) (and (pair? f) (eq? (car f) 'IN)
                                                (eq? (caddr f) 'NN)
@@ -262,7 +264,9 @@
 (focus-leaf-asm! (expression->string symbound))
 
 ;; continuity at b := g(M) -> (d(t))(f(a), f(g(M))) <= eps
-(define cont-inner (asm-find-sub "(d(s))(a, b) <= delta_3 implies"))
+;; select by the CAPTURED delta D, not a hardcoded eigenvar name (drifts with
+;; load order); the continuity payload C uses the bound name "delta" instead.
+(define cont-inner (asm-find-sub (string-append "(d(s))(a, b) <= " (symbol->string D) " implies")))
 (inst cont-inner gM)
 (detach! (asm-find-pred (lambda (f) (and (pair? f) (eq? (car f) 'IMPLIES)
                                          (equal? (cadr f) (list 'IN gM Xs))))))

@@ -14,17 +14,22 @@
 ;;; are asserted as axioms.  Dependencies: ring.scm.
 
 ;;; IS-COMMUTATIVE-RING: a ring with commutative multiplication.
-(theory-add-axiom! *current-theory* 'is-commutative-ring-def
-  '(FORALL s
-     (IFF (IS-COMMUTATIVE-RING s)
-          (AND (IS-RING s)
-               (FORALL a (IMPLIES (IN a (A s))
-                 (FORALL b (IMPLIES (IN b (A s))
-                   (= ((MUL s) a b) ((MUL s) b a))))))))))
+;;; This IFF *defines* the fresh predicate IS-COMMUTATIVE-RING (a conservative
+;;; extension), so it is `definitional', not asserted debt -- exactly what
+;;; def-predicate would stamp.  Marked so proofs that merely unfold it (e.g.
+;;; commutative-ring-is-ring) rest on modulo 0, not a phantom leaf.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'is-commutative-ring-def
+    '(FORALL s
+       (IFF (IS-COMMUTATIVE-RING s)
+            (AND (IS-RING s)
+                 (FORALL a (IMPLIES (IN a (A s))
+                   (FORALL b (IMPLIES (IN b (A s))
+                     (= ((MUL s) a b) ((MUL s) b a)))))))))))
 
 ;;; Relation: every commutative ring is a ring.
-(theory-add-axiom! *current-theory* 'commutative-ring-is-ring
-  '(FORALL s (IMPLIES (IS-COMMUTATIVE-RING s) (IS-RING s))))
+;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
+;;; is-commutative-ring-def; IS-RING is a literal RHS conjunct); not asserted.
 
 ;;; Associated proper class COMMUTATIVE-RING = { s | IS-COMMUTATIVE-RING(s) }.
 ;;; Mirrors the NAME-class axiom def-structure installs for shape structures

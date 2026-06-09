@@ -11,24 +11,27 @@
 ;;; field.scm, number-systems.scm (NN, succ, <=).
 
 ;;; IS-EUCLIDEAN-RING: an integral domain with a Euclidean degree function.
-(theory-add-axiom! *current-theory* 'is-euclidean-ring-def
-  '(FORALL s
-     (IFF (IS-EUCLIDEAN-RING s)
-          (AND (IS-INTEGRAL-DOMAIN s)
-            (FORSOME deg
-              (AND (IN deg (FUN (A s) NN))
-                (FORALL a (IMPLIES (IN a (A s))
-                  (FORALL b (IMPLIES (IN b (A s))
-                    (IMPLIES (NOT (= b (ZERO s)))
-                      (FORSOME q (AND (IN q (A s))
-                        (FORSOME r (AND (IN r (A s))
-                          (AND (= a ((ADD s) ((MUL s) q b) r))
-                               (OR (= r (ZERO s))
-                                   (<= (succ (deg r)) (deg b)))))))))))))))))))
+;;; Conservative IFF definition of the fresh predicate -> `definitional', so
+;;; unfolding it (euclidean-ring-is-integral-domain) carries no debt.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'is-euclidean-ring-def
+    '(FORALL s
+       (IFF (IS-EUCLIDEAN-RING s)
+            (AND (IS-INTEGRAL-DOMAIN s)
+              (FORSOME deg
+                (AND (IN deg (FUN (A s) NN))
+                  (FORALL a (IMPLIES (IN a (A s))
+                    (FORALL b (IMPLIES (IN b (A s))
+                      (IMPLIES (NOT (= b (ZERO s)))
+                        (FORSOME q (AND (IN q (A s))
+                          (FORSOME r (AND (IN r (A s))
+                            (AND (= a ((ADD s) ((MUL s) q b) r))
+                                 (OR (= r (ZERO s))
+                                     (<= (succ (deg r)) (deg b))))))))))))))))))))
 
 ;;; Relation: every Euclidean ring is an integral domain.
-(theory-add-axiom! *current-theory* 'euclidean-ring-is-integral-domain
-  '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s) (IS-INTEGRAL-DOMAIN s))))
+;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
+;;; is-euclidean-ring-def; IS-INTEGRAL-DOMAIN is a literal RHS conjunct).
 
 ;;; The "every field is a Euclidean ring (degree = constant 0)" relation is
 ;;; provided by the view FIELD-AS-EUCLIDEAN-RING in views.scm, since FIELD
