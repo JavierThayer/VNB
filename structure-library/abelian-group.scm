@@ -32,3 +32,5 @@
        (FORALL a (IMPLIES (IN a (A s))
          (FORALL b (IMPLIES (IN b (A s))
            (= ((MUL s) a b) ((MUL s) b a)))))))))
+(warrant! 'abelian-group-mul-comm 'proof
+  "Projection of the (property is-commutative MUL A) clause folded into IS-ABELIAN-GROUP: unfold IS-ABELIAN-GROUP, then is-commutative, and read off (MUL s)(a,b)=(MUL s)(b,a).  Exactly the pattern by which the metric laws are proven from is-metric (structure-library/metric-laws.scm); retire to proven the same way.")

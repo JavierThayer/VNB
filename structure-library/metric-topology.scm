@@ -39,6 +39,8 @@
                 (AND (IN y (X s))
                      (AND (<= ((D s) x y) r)
                           (NOT (= ((D s) x y) r))))))))))
+(warrant! 'ball-membership 'proof
+  "BALL(s,x,r) is the def-functoid SEP(y in X(s) | d(x,y)<=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.")
 
 ;;; ball-subset-carrier: BALL(s,x,r) subset X(s).
 (theory-add-axiom! *current-theory* 'ball-subset-carrier
@@ -46,6 +48,8 @@
      (FORALL x
        (FORALL r
          (SUBSET (BALL s x r) (X s))))))
+(warrant! 'ball-subset-carrier 'proof
+  "BALL is a SEP over X(s) (def-functoid), so every member lies in X(s); subset is immediate from ball-membership.")
 
 ;;; ball-is-set: BALL(s,x,r) in SET whenever s is a metric space.
 ;;; Derivable from SEP sethood + X(s) in SET (carrier typing of
@@ -57,6 +61,8 @@
        (FORALL x
          (FORALL r
            (IN (BALL s x r) SET))))))
+(warrant! 'ball-is-set 'proof
+  "BALL(s,x,r) is a subclass of X(s) (ball-subset-carrier); X(s) is a set (carrier typing of IS-METRIC-SPACE); a subclass of a set is a set (separation).")
 
 ;;; ball-center-in: x is in its own r-ball when r > 0.
 ;;; Uses metric-self-zero: D(s)(x,x) = 0 < r.
@@ -68,6 +74,8 @@
            (FORALL r
              (IMPLIES (AND (IN r RR) (<= 0 r) (NOT (= 0 r)))
                (IN x (BALL s x r)))))))))
+(warrant! 'ball-center-in 'proof
+  "metric-self-zero gives d(s)(x,x)=0, so 0<=r and 0!=r (r>0) put x into the SEP; ball-membership then gives x in BALL(s,x,r).")
 
 ;;; ball-2r-triangle: two points in the same r-ball are within 2r of each
 ;;; other.  The workhorse for arguments that pigeonhole sequence terms
@@ -89,6 +97,8 @@
                      (IMPLIES (IN z (BALL s x r))
                        (AND (<= ((D s) y z) (+ r r))
                             (NOT (= ((D s) y z) (+ r r)))))))))))))))
+(warrant! 'ball-2r-triangle 'proof
+  "metric-triangle: d(y,z) <= d(y,x)+d(x,z).  Each of d(y,x)=d(x,y) (metric-sym) and d(x,z) is < r by ball-membership, so d(y,z) < r+r.")
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-R-NET(s, F, A, r) -- F is an r-net for A in metric space s.

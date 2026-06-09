@@ -588,14 +588,14 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 
 Genuine mathematical content with no machine proof — the warrant candidates.
 
-- `abelian-group-mul-comm` — forall([s], is-abelian-group(s) implies forall([a in a(s), b in a(s)], (mul(s))(a, b) = (mul(s))(b, a)))
+- `abelian-group-mul-comm` — forall([s], is-abelian-group(s) implies forall([a in a(s), b in a(s)], (mul(s))(a, b) = (mul(s))(b, a)))  _[warrant: proof]_
 - `abelian-group-mul-comm-rev` — forall([s], is-abelian-group(s) implies forall([a in a(s), b in a(s)], (mul(s))(b, a) = (mul(s))(a, b)))
-- `ball-2r-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies forall([y in ball(s, x, r), z in ball(s, x, r)], (d(s))(y, z) <= r + r and not((d(s))(y, z) = r + r))))
-- `ball-center-in` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies x in ball(s, x, r)))
-- `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
-- `ball-membership` — forall([s, x, r, y], y in ball(s, x, r) iff y in x(s) and (d(s))(x, y) <= r and not((d(s))(x, y) = r))
+- `ball-2r-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies forall([y in ball(s, x, r), z in ball(s, x, r)], (d(s))(y, z) <= r + r and not((d(s))(y, z) = r + r))))  _[warrant: proof]_
+- `ball-center-in` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies x in ball(s, x, r)))  _[warrant: proof]_
+- `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))  _[warrant: proof]_
+- `ball-membership` — forall([s, x, r, y], y in ball(s, x, r) iff y in x(s) and (d(s))(x, y) <= r and not((d(s))(x, y) = r))  _[warrant: proof]_
 - `ball-membership-rev` — forall([s, x, r, y], y in x(s) and (d(s))(x, y) <= r and not((d(s))(x, y) = r) iff y in ball(s, x, r))
-- `ball-subset-carrier` — forall([s, x, r], ball(s, x, r) subset x(s))
+- `ball-subset-carrier` — forall([s, x, r], ball(s, x, r) subset x(s))  _[warrant: proof]_
 - `bijection-compose` — forall([x, y, z, phi, psi], phi in bijection(x, y) and psi in bijection(y, z) implies vnb-lambda(x_, psi(phi(x_))) in bijection(x, z))
 - `bijection-identity` — forall([x], vnb-lambda(x_, x_) in bijection(x, x))
 - `bijection-in-fun` — forall([x, y, phi in bijection(x, y)], phi in fun(x, y))
