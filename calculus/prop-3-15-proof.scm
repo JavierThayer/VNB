@@ -115,9 +115,17 @@
 (focus-leaf! "is-metric-space")
 (mac-h 'IS-CONTINUOUS (asm-find-sub "is-continuous")) (split-ands!) (ass)
 
-;;; split G2 ; G2a: PREIMAGE(s,f,V) subset X(s)
+;;; split G2 ; G2a: PREIMAGE(s,f,V) subset X(s) -- straight from the kernel SEP
+;;; rule (PREIMAGE is a SEP over X(s)); no asserted support needed.
+(define (asm-in-headed head)                 ; assumption (IN _ (head ...))
+  (asm-find-pred (lambda (w) (and (pair? w) (eq? (car w) 'IN)
+                                  (pair? (caddr w)) (eq? (car (caddr w)) head)))))
 (focus-leaf! "and forall(") (di)
-(focus-leaf! "subset x(s") (bc* 'preimage-subset-carrier)
+(focus-leaf! "subset x(s")
+(mac 'PREIMAGE)                               ; goal SUBSET (SEP a (X s) (IN (f a) V)) (X s)
+(mac 'subset-def) (di)                        ; goal IN z (X s) ; asm IN z (SEP a (X s) ...)
+(sep-me (asm-in-headed 'SEP))                 ; context gains IN z (X s) and IN (f z) V
+(ass)
 
 ;;; G2b: peel the open point y, capture structural eigenvars
 (focus-leaf! "forall([y in preimage") (di)
