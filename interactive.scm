@@ -372,6 +372,17 @@
 (define (ta n)  (vnb--run! 'ta (list n) (lambda () (cmd-theorem-assumption *ps* n))))
 (define (mac n) (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))
 
+;; mac-h -- hypothesis-side `mac`.  Unfold a defined predicate (or apply any
+;; unconditional IFF/=/== equivalence macete) inside a cited ASSUMPTION,
+;; replacing it by its body in place.  The dual of `mac`; pairs with `ai` the
+;; way `mac` pairs with `di`.  n is the macete name, f the assumption to hit.
+(define (mac-h n f)
+  (vnb--run! 'mac-h (list n f)
+             (lambda ()
+               (let ((raw (->raw-formula/idx f)))
+                 (if (vnb-warning? raw) raw
+                     (cmd-apply-macete-to-assumption *ps* n raw))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; bc* -- matching backchain.
 ;;;
@@ -2299,6 +2310,7 @@
       ((ue)     (cmd-union-elim *ps* (car args)))
       ((ta)     (cmd-theorem-assumption *ps* (car args)))
       ((mac)    (cmd-apply-macete *ps* (car args)))
+      ((mac-h)  (cmd-apply-macete-to-assumption *ps* (car args) (->raw-formula/idx (cadr args))))
       ((inst)   (cmd-instantiate *ps* (car args) (cadr args)))
       ((ce)     (cmd-cartesian-elim *ps* (car args) (cadr args)))
       ((ie)     (cmd-intersection-elim *ps* (car args) (cadr args)))

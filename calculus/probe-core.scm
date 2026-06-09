@@ -1,0 +1,37 @@
+;;; probe-core.scm -- does the algebraic core close once the typing facts are
+;;; GRANTED in context (isolating the typing-extraction obstacle)?
+(define (==> label val)
+  (display "==> ") (display label) (display ": ") (write val) (newline))
+(define (--- title)
+  (newline) (display ";;; ----- ") (display title) (display " -----") (newline))
+(define (goal) (expression->string (sequent-node-assertion (proof-state-focus *ps*))))
+(define (asms) (map (lambda (w) (expression->string (wff-formula w)))
+                    (sequent-node-assumptions (proof-state-focus *ps*))))
+(define (asm-arg head argpos)
+  (let loop ((as (sequent-node-assumptions (proof-state-focus *ps*))))
+    (if (null? as) (error "asm-arg: none headed by" head)
+        (let ((f (wff-formula (car as))))
+          (if (and (pair? f) (eq? (car f) head)) (list-ref f argpos)
+              (loop (cdr as)))))))
+
+(--- "core conjunct 3, typing granted as antecedents")
+(sp (make-wff '(IMPLIES (IS-METRIC-SPACE s)
+               (IMPLIES (IS-METRIC-SPACE t)
+               (IMPLIES (IN f (FUN (X s) (X t)))
+               (IMPLIES (IS-CONTINUOUS s t f)
+               (IMPLIES (IS-OPEN t (COMPLEMENT-IN (X t) A))
+                 (IS-OPEN s (COMPLEMENT-IN (X s) (PREIMAGE s f A))))))))))
+(di)(di)(di)(di)(di)
+(==> "goal" (goal))
+(==> "asms" (asms))
+
+(--- "rewrite complement-form -> preimage-form (does typing-in-ctx let it fire + bind t?)")
+(mac 'preimage-complement-rev)
+(==> "after mac preimage-complement-rev" (goal))
+
+(--- "now bc* the open-preimage support; codomain t from context")
+(bc* 'continuous-implies-open-preimage ((t (asm-arg 'is-continuous 2))))
+(ass-all)
+(==> "core conjunct 3 closes?" (proof-done? *ps*))
+
+(==> "DONE-PROBE" 'ok)

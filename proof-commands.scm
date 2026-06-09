@@ -149,6 +149,16 @@
         (vnb--warn "apply-macete: macete not applicable"
                    (symbol->string macete-name)))))
 
+(define (cmd-apply-macete-to-assumption ps macete-name hyp-formula)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (apply-macete-to-assumption! macete-name hyp-formula sqn)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn (string-append
+                    "mac-h: " (symbol->string macete-name)
+                    " is not an unconditional equivalence macete, "
+                    "or it does not occur in the cited assumption")
+                   (expression->string hyp-formula)))))
+
 (define (cmd-or-intro-left ps)
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-or-intro-left! sqn)))

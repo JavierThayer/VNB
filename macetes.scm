@@ -897,3 +897,49 @@
                                        conditions g '()))
                  (new-g  (car result)))
             (if (alpha-equiv? new-g g) #f (wff-child w new-g))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Apply a definitional/equational macete to an ASSUMPTION -- the
+;;; hypothesis-side dual of apply-macete!.  Where apply-macete! unfolds a
+;;; defined predicate in the GOAL, this unfolds it inside a cited assumption,
+;;; replacing H by its equivalent body IN PLACE.  Together with `ai` this is
+;;; the hypothesis-side counterpart of the goal-side `mac`/`di` pair: it lets
+;;; a proof reach the typing conjuncts and quantified payload that were
+;;; otherwise locked inside a folded hypothesis.
+;;;
+;;; SOUNDNESS.  Replacing assumption H by H' is sound exactly when H => H'.
+;;; We gate on macete-equivalence?: the macete's core must be a genuine
+;;; two-way equivalence (IFF / = / ==, the same class install-theorem! flags
+;;; for a -rev companion), so H <=> H' and the rewrite loses nothing.  Every
+;;; def-predicate / def-functoid unfold is an unconditional IFF and qualifies.
+;;; v1 supports only UNCONDITIONAL equivalences: a conditional equivalence is
+;;; refused (returns #f) rather than silently discharging its side-conditions.
+
+(define (macete-equivalence? name)
+  (let ((thm (hash-table-ref/default *theorem-table* name #f)))
+    (and thm (flip-symmetric-core-in-formula thm) #t)))
+
+(define (apply-macete-to-assumption! name hyp-formula sqn)
+  (and (macete-equivalence? name)
+       (let ((f (asms-find (sequent-node-assumptions sqn) hyp-formula)))
+         (and f
+              (let-values (((schema-vars core)
+                            (strip-foralls (prenex-positive (lookup-theorem name)))))
+                (let-values (((conditions source replacement)
+                              (extract-rewrite-patterns core)))
+                  (and (null? conditions)
+                       (let* ((asms   (sequent-node-assumptions sqn))
+                              (goal   (sequent-node-assertion   sqn))
+                              (dg     (sqn-dg sqn))
+                              (h      (wff-formula f))
+                              (result (rewrite-expr source replacement schema-vars
+                                                    conditions h '()))
+                              (new-h  (car result)))
+                         (and (not (alpha-equiv? new-h h))
+                              (dg-apply-rule! dg `(macete-hyp ,source ,replacement)
+                                (list (make-sequent
+                                       (context-add-assumption
+                                        (context-remove-assumption asms f)
+                                        (wff-child f new-h))
+                                       goal))
+                                sqn))))))))))
