@@ -387,6 +387,22 @@ through the Emacs interface).
 \item \texttt{(mac \textit{n})}
   \texttt{cmd-apply-macete} --- Apply named macete \textit{n} to goal.
 
+\item \texttt{(mac-h \textit{n} \textit{f})}
+  \texttt{cmd-apply-macete-to-assumption} --- The hypothesis-side dual of
+  \texttt{mac}: unfold a defined predicate (or apply any unconditional
+  \texttt{iff}/\texttt{=}/\texttt{==} equivalence macete) \textit{n} inside
+  assumption \textit{f}, replacing it by its body in place; pair with
+  \texttt{ai} to split the result, the way \texttt{mac}/\texttt{di} crack the
+  goal.  \textit{f} is a formula or a $1$-based assumption index.  Only a
+  genuine two-way equivalence may rewrite an assumption (replacing $H$ by $H'$
+  needs $H \Leftrightarrow H'$); a one-directional rule, or a direction with a
+  schema variable left undetermined by the match (the S-10 \texttt{-rev}
+  case), is refused.  For a \emph{conditional} equivalence, each instantiated
+  side-condition not already discharged from the assumption context is spawned
+  as a minor-premise subgoal --- never silently dropped --- while the main
+  line stays in focus.  Adds no kernel rule beyond the macete rewrite, and its
+  citation of \textit{n} is credited to the proof-debt ledger like \texttt{mac}.
+
 \item \texttt{(inst \textit{f t})}
   \texttt{cmd-instantiate} --- Instantiate \texttt{forall} assumption
   \textit{f} with term \textit{t}.
