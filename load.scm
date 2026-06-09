@@ -247,3 +247,12 @@
 
 ;; Regenerate the theorem/axiom catalog (THEOREMS.md) so it never goes stale.
 (catalog)
+
+;; Rebuild the browser reference (reference.html) from the just-refreshed .md
+;; files.  The .md regenerate on every load but the HTML did NOT -- it was a
+;; manual step, so the page the browser actually renders could fossilise (e.g.
+;; show a now-proven theorem under "Asserted -- accepted without proof").
+;; ~0.5s; non-fatal (a missing python3 just leaves the previous HTML in place).
+(load-option 'synchronous-subprocess)
+(run-shell-command
+  (string-append "python3 " *prover-dir* "reference/build-reference-html.py"))
