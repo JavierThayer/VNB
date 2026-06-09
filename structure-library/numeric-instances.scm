@@ -37,14 +37,20 @@
 ;;; unconditional in the variables, matching the totality of the n-ary
 ;;; operations.
 
-(theory-add-axiom! *current-theory* 'binplus-apply
-  '(FORALL x (FORALL y (= (binplus x y) (+ x y)))))
+;; These three are the DEFINING equations of the primitive bridge symbols
+;; binplus / bintimes / binneg -- each introduces a fresh symbol by an
+;; equation, a conservative definitional extension.  Marked `definitional'
+;; (not the bare `asserted' default): there is nothing above them to prove
+;; FROM, so they are not warrant candidates.
+(fluid-let ((*current-provenance* 'definitional))
+ (theory-add-axiom! *current-theory* 'binplus-apply
+   '(FORALL x (FORALL y (= (binplus x y) (+ x y)))))
 
-(theory-add-axiom! *current-theory* 'bintimes-apply
-  '(FORALL x (FORALL y (= (bintimes x y) (* x y)))))
+ (theory-add-axiom! *current-theory* 'bintimes-apply
+   '(FORALL x (FORALL y (= (bintimes x y) (* x y)))))
 
-(theory-add-axiom! *current-theory* 'binneg-apply
-  '(FORALL x (= (binneg x) (- x))))
+ (theory-add-axiom! *current-theory* 'binneg-apply
+   '(FORALL x (= (binneg x) (- x)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Typing axioms per domain
@@ -82,6 +88,19 @@
   '(IN binneg (FUN RR RR)))
 (theory-add-axiom! *current-theory* 'binneg-in-fun-cc
   '(IN binneg (FUN CC CC)))
+
+;;; The typing axioms above are CLOSURE facts about the primitive numeric
+;;; domains (e.g. CC is closed under negation).  Closure of a domain under
+;;; its operations is not tactic-derivable here -- `(IN <expr> D)' does not
+;;; compose through fun-apply-type (the known numeric-closure gap).  So these
+;;; are genuine asserted content; warrant them `well-known' rather than leave
+;;; them as unexamined `asserted' defaults in the warrant-candidate bucket.
+(for-each
+ (lambda (n) (warrant! n 'well-known
+   "Closure of a primitive numeric domain under its arithmetic operation; standard."))
+ '(binplus-in-fun-nn binplus-in-fun-zz binplus-in-fun-qq binplus-in-fun-rr binplus-in-fun-cc
+   bintimes-in-fun-nn bintimes-in-fun-zz bintimes-in-fun-qq bintimes-in-fun-rr bintimes-in-fun-cc
+   binneg-in-fun-zz binneg-in-fun-qq binneg-in-fun-rr binneg-in-fun-cc))
 
 ;;; -----------------------------------------------------------------------
 ;;; n-ary surface form -> nested binary bridge

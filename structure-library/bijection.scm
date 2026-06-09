@@ -49,33 +49,17 @@
      (FORALL Y
        (IMPLIES (AND (IN X SET) (IN Y SET))
                 (IN (BIJECTION X Y) SET)))))
+(warrant! 'bijection-set-iff 'informal
+  "BIJECTION(X,Y) is a subclass of FUN(X,Y), a set when X,Y are sets
+   (fun-set-iff); a subclass of a set is a set by separation.  Mechanization
+   needs to exhibit BIJECTION(X,Y) as a separation of FUN(X,Y); deferred.")
 
 ;;; -----------------------------------------------------------------------
-;;; Projection lemmas (each derivable from bijection-membership-iff;
-;;; installed as axioms for direct use).
-
-(theory-add-axiom! *current-theory* 'bijection-in-fun
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (BIJECTION X Y))
-               (IN phi (FUN X Y)))))))
-
-(theory-add-axiom! *current-theory* 'bijection-injective
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (BIJECTION X Y))
-               (FORALL a
-                 (IMPLIES (IN a X)
-                   (FORALL b
-                     (IMPLIES (IN b X)
-                       (IMPLIES (= (phi a) (phi b)) (= a b)))))))))))
-
-;; Element vars w (codomain) / z (domain) -- not y/x, which case-fold onto
-;; the class parameters Y/X and would be captured.
-(theory-add-axiom! *current-theory* 'bijection-surjective
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (BIJECTION X Y))
-               (FORALL w
-                 (IMPLIES (IN w Y)
-                   (FORSOME z (AND (IN z X) (= (phi z) w))))))))))
+;;; Projection lemmas (bijection-in-fun / bijection-injective /
+;;; bijection-surjective) are each one RHS conjunct of bijection-membership-iff
+;;; and are PROVEN modulo 0 in structure-library/bijection-derived.scm (loaded
+;;; after the interactive tactics).  They used to be asserted here "for direct
+;;; use"; that was phantom debt, now retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; INVERSE-BIJ: inverse of a bijection, defined via CHOICE.
@@ -138,12 +122,22 @@
                     (IN psi (BIJECTION Y Z)))
                (IN (VNB-LAMBDA x_ (psi (phi x_)))
                    (BIJECTION X Z)))))))))
+(warrant! 'bijection-compose 'informal
+  "Derivable from bijection-membership-iff in both directions plus lambda-beta:
+   the composite is a function X->Z, injective (phi,psi injective) and
+   surjective (phi,psi surjective).  Mechanization needs VNB-LAMBDA typing +
+   beta on the nested application; deferred.")
 
 ;;; The identity on X is a bijection X -> X.
 ;;; Derivable trivially; useful base case in induction proofs.
 (theory-add-axiom! *current-theory* 'bijection-identity
   '(FORALL X
      (IN (VNB-LAMBDA x_ x_) (BIJECTION X X))))
+(warrant! 'bijection-identity 'informal
+  "Backward direction of bijection-membership-iff: the identity lambda is in
+   FUN(X,X), injective (lambda(a)=lambda(b) beta-reduces to a=b) and surjective
+   (witness z:=w).  Mechanization needs VNB-LAMBDA typing + beta + exists-intro;
+   deferred.")
 
 ;;; -----------------------------------------------------------------------
 ;;; DELETE-AT: restriction-and-shift on NN-indexed functions.

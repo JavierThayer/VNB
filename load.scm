@@ -191,6 +191,10 @@
     ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
     ;; interactive tactics + qed/proof-debt, so loads here.
     "structure-library/subtype-laws"
+    ;; The three BIJECTION projection lemmas (in-fun / injective / surjective),
+    ;; PROVEN modulo 0 from bijection-membership-iff -- formerly asserted in
+    ;; bijection.scm "for direct use" (phantom debt).
+    "structure-library/bijection-derived"
     ;; The five metric laws (pos/self-zero/zero-eq/sym/triangle), PROVEN by
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
