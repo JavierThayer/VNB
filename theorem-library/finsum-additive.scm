@@ -8,12 +8,20 @@
 ;;; half, plus the two missing arithmetic operators (CHOOSE, NN-MINUS) the
 ;;; binomial statement needs.
 ;;;
-;;; Stated at the RING-ADDITIVE level -- over IS-COMMUTATIVE-RING R, summing in
-;;; (COMMUTATIVE-RING-ADDITIVE-AG R) whose (MUL .) is (ADD R) -- so the binomial
-;;; proof consumes them with no view-discharge.  The natural generalizations
-;;; (finsum-add / finsum-reindex over a bare IS-ABELIAN-GROUP, finsum commuting
-;;; with any AG-endomorphism) are left for later; these are the directly-usable
-;;; specializations, exactly as prod-ring-insert specializes finsum-insert.
+;;; TWO tiers, matching the existing finsum-comm-monoid / finsum-fubini family:
+;;;
+;;;   GENERAL (over IS-COMM-MONOID m, op (MUL m), seed (E m) -- the honest
+;;;   minimal hypotheses, no inverses):  finsum-add and finsum-reindex are
+;;;   properties of ANY finite sum, exactly like finsum-fubini.  These are the
+;;;   reusable PSS principles.
+;;;
+;;;   RING-LEVEL (over IS-COMMUTATIVE-RING R, summing in the additive AG whose
+;;;   (MUL .) is (ADD R)):  finsum-ring-distrib-left (a ring element distributes
+;;;   across a sum -- the AG-endomorphism a|->r*a specialization) and
+;;;   finsum-ring-scalar-zz (ring mult is ZZ-bilinear) are genuinely ring facts,
+;;;   not pure finsum facts, so they stay here.  The general form of distrib-left
+;;;   -- FINSUM commutes with a comm-monoid endomorphism -- waits on a monoid
+;;;   homomorphism predicate (none in the library yet; IS-HOM is the metric one).
 ;;;
 ;;; Library-build phase: asserted as warranted support [[feedback-library-axioms-fine]];
 ;;; each warrant names the standard fold-induction that proves it.  The honest
@@ -89,22 +97,27 @@
 ;;; The additive layer
 ;;; =======================================================================
 
-;; finsum-add: SUM_z (f z + h z) = (SUM_z f z) + (SUM_z h z).
+;; finsum-add (GENERAL, comm-monoid):  the FINSUM of a pointwise structure-
+;; combination is the combination of the FINSUMs --
+;;   SUM_z (MUL m)(f z, h z) = (MUL m)( SUM_z f z, SUM_z h z ).
+;; Additively (m = an additive AG) this is SUM(f+h)=SUM f+SUM h; multiplicatively
+;; (m = the multiplicative monoid) it is the PROD version.  The general
+;; linearity principle, like finsum-fubini.
 (support 'finsum-add
-  (tf 'R '(IS-COMMUTATIVE-RING R)
+  (tf 'm '(IS-COMM-MONOID m)
    (tf 'S (finite 'S)
-    (tf 'f '(IN f (FUN S (A R)))
-     (tf 'h '(IN h (FUN S (A R)))
+    (tf 'f '(IN f (FUN S (A m)))
+     (tf 'h '(IN h (FUN S (A m)))
       (list '=
-        (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(ADD R) '(f z) '(h z))) 'S)
-        (list '(ADD R)
-              (list 'FINSUM cra 'f 'S)
-              (list 'FINSUM cra 'h 'S))))))))
+        (list 'FINSUM 'm (list 'VNB-LAMBDA 'z (list '(MUL m) '(f z) '(h z))) 'S)
+        (list '(MUL m)
+              (list 'FINSUM 'm 'f 'S)
+              (list 'FINSUM 'm 'h 'S))))))))
 (warrant! 'finsum-add 'well-known
-  "Induction on |S| via finsum-insert in the additive AG: base 0+0=0
-   (finsum-empty); step folds in one z0, regrouping (a+b)+(c+d)=(a+c)+(b+d) by
-   additive commutativity/associativity.  The additive twin of the
-   multiplicative fold.")
+  "Induction on |S| via finsum-insert: base is (E m)*(E m)=(E m) (finsum-empty);
+   step folds in one z0, regrouping (a*b)*(c*d)=(a*c)*(b*d) by the commutativity
+   and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies
+   (no inverses used).  Holds for every commutative-monoid-valued finite sum.")
 
 ;; finsum-ring-distrib-left: r * SUM_z f z = SUM_z (r * f z).
 (support 'finsum-ring-distrib-left
@@ -136,17 +149,18 @@
    pushes r through each summand, so r*(c.a)=c.(r*a).  Sign cases via
    zz-act-neg.  Ring multiplication is ZZ-bilinear.")
 
-;; finsum-reindex: SUM_{s in S} f s = SUM_{t in T} f(phi t),  phi : T -> S a bij.
+;; finsum-reindex (GENERAL, comm-monoid):  a sum is invariant under a bijective
+;; change of index --  SUM_{s in S} f s = SUM_{t in T} f(phi t),  phi : T -> S.
 (support 'finsum-reindex
-  (tf 'R '(IS-COMMUTATIVE-RING R)
+  (tf 'm '(IS-COMM-MONOID m)
    (tf 'S (finite 'S)
     (tf 'T (finite 'T)
      (tf 'phi '(IN phi (BIJECTION T S))
-      (tf 'f '(IN f (FUN S (A R)))
+      (tf 'f '(IN f (FUN S (A m)))
        (list '=
-         (list 'FINSUM cra 'f 'S)
-         (list 'FINSUM cra (list 'VNB-LAMBDA 'z '(f (phi z))) 'T))))))))
+         (list 'FINSUM 'm 'f 'S)
+         (list 'FINSUM 'm (list 'VNB-LAMBDA 'z '(f (phi z))) 'T))))))))
 (warrant! 'finsum-reindex 'well-known
   "Compose the chosen enumeration of T with phi to get an enumeration of S;
    SUM-AG along it is the same fold.  Independence of enumeration is
-   finsum-comm-monoid-permutation-invariance.")
+   finsum-comm-monoid-permutation-invariance.  Holds for any comm-monoid sum.")

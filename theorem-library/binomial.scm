@@ -56,4 +56,7 @@
    the interior with Pascal -- choose-succ together with zz-act-add,
    C(n,k-1).T + C(n,k).T = (C(n,k-1)+C(n,k)).T = C(n+1,k).T -- regroups
    everything into SUM_{k in {0..n+1}} C(n+1,k) x^k y^(n+1-k).  Every step cites
-   an installed support; no primitive is missing.")
+   an installed support; no primitive is missing.  finsum-add and finsum-reindex
+   are the GENERAL comm-monoid principles instantiated at m =
+   COMMUTATIVE-RING-ADDITIVE-AG R (a comm-monoid via ABELIAN-GROUP-AS-MONOID),
+   where (MUL m) is (ADD R).")
