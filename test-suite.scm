@@ -2601,6 +2601,34 @@
     (proof-done? *ps*)))
 
 ;;; -----------------------------------------------------------------------
+;;; wff->english verbalizer (wff-english.scm).  Logical skeleton -> prose,
+;;; terms left symbolic; quantifier folds (bounded + unary sort qualifier).
+
+(check "english: pos-rr fold + forsome + <"
+  (lambda () (wff->english '(FORALL eps (IMPLIES (POS-RR eps)
+                              (FORSOME d (AND (POS-RR d) (< d eps)))))))
+  "for every positive real eps, there is some positive real d such that d is less than eps")
+
+(check "english: bounded quantifier + symbolic order term"
+  (lambda () (wff->english '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                              (FORALL x (IMPLIES (IN x (X s)) (<= ((D s) x x) 0)))))))
+  "for every metric space s, for every x in x(s), (d(s))(x, x) is at most 0")
+
+(check "english: negated relations + iff"
+  (lambda () (wff->english '(IFF (NOT (= a b)) (NOT (IN a S)))))
+  "a is not equal to b if and only if a is not in s")
+
+(check "english: nested implies keeps terms symbolic"
+  (lambda () (wff->english '(FORALL s (FORALL t (FORALL f
+                (IMPLIES (IS-CONTINUOUS s t f)
+                  (FORALL V (IMPLIES (IS-OPEN t V) (IS-OPEN s (PREIMAGE s f V))))))))))
+  "for every s, t, f, if f is continuous from s to t, then for every v, if v is open in t, then preimage(s, f, v) is open in s")
+
+(check "english: sort fold + sort predication"
+  (lambda () (wff->english '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s) (IS-GROUP s)))))
+  "for every abelian group s, s is a group")
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)

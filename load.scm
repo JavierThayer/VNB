@@ -203,7 +203,10 @@
     "tex-output"
     ;; Assumption-pattern scanner for forward-move discovery
     ;; (used by Emacs vnb-suggest-forward-moves).
-    "suggest"))
+    "suggest"
+    ;; English verbalization of a wff (companion to expr->str symbolic /
+    ;; describe-structure).  Loads last: uses expr->str + the theorem table.
+    "wff-english"))
 
 ;;; Files whose top-level axioms are part of the trusted VNB base (not
 ;;; definitional sugar, not asserted math).  Their loads run with
