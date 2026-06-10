@@ -31,6 +31,7 @@ REF_LINKS = [
     ("Definitions",       "reference.html#DEFINITIONS",      "term & predicate definitions"),
     ("Proof Support Set", "reference.html#PSS",              "results accepted as warranted support"),
     ("Fingerprint Index", "reference.html#FINGERPRINT-INDEX","results bucketed by conclusion skeleton"),
+    ("Tactics",           "reference.html#TACTICS",          "interactive proof commands, each with a one-line gloss"),
     ("Structure Graph",   "structure-graph.html",            "refines & view-as relations, clickable"),
 ]
 # Workbench: (heading, [(label, fn-name, blurb), ...]).  Emacs is ONLY for work

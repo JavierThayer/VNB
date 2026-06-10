@@ -37,6 +37,7 @@ DOCS = [
     ("Macete index",       "MACETE-INDEX.md"),
     ("Fingerprint index",  "FINGERPRINT-INDEX.md"),
     ("Proof debt",         "PROOF-DEBT.md"),
+    ("Tactics",            "TACTICS.md"),
 ]
 
 def esc(s):

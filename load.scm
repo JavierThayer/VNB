@@ -168,6 +168,14 @@
     ;; (finsum-insert) and PROD-RING's laws, capped by prod-of-sums-expansion.
     ;; Needs finprod, injection (IMAGE), cardinality, comm-monoid view.
     "theorem-library/prod-of-sums"
+    ;; FINSUM's ADDITIVE layer (finsum-add / -ring-distrib-left / -ring-scalar-zz
+    ;; / -reindex), ord-segment-insert, ring-power-succ, and the CHOOSE / NN-MINUS
+    ;; operators.  The additive twin of prod-of-sums' multiplicative layer; what
+    ;; the binomial theorem needs.  Needs finsum + ring-power + zz-action + views.
+    "theorem-library/finsum-additive"
+    ;; The Binomial Theorem for commutative rings (asserted+warranted capstone,
+    ;; like prod-of-sums-expansion).  Needs the additive layer above.
+    "theorem-library/binomial"
     ;; ESUM: the unordered RR+* sum = sup of finite partial sums over RR+*-
     ;; ADD-MONOID.  Every RR+*-valued f is summable; value is +inf unless the
     ;; partial sums are bounded by a real.  Needs finsum-comm-monoid + RR+*.
@@ -206,7 +214,11 @@
     "suggest"
     ;; English verbalization of a wff (companion to expr->str symbolic /
     ;; describe-structure).  Loads last: uses expr->str + the theorem table.
-    "wff-english"))
+    "wff-english"
+    ;; Self-describing registry of the interactive tactics: (tactics) prints
+    ;; the menu, (write-tactics-md) emits reference/TACTICS.md for the browser
+    ;; reference.  Pure display/string; no dependencies beyond *reference-dir*.
+    "tactics-help"))
 
 ;;; Files whose top-level axioms are part of the trusted VNB base (not
 ;;; definitional sugar, not asserted math).  Their loads run with
@@ -258,6 +270,9 @@
 
 ;; Regenerate the theorem/axiom catalog (THEOREMS.md) so it never goes stale.
 (catalog)
+
+;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
+(write-tactics-md)
 
 ;; Invariant guard (so weirdos announce themselves instead of being hunted):
 ;; a `proof' warrant claims a machine proof, so it should never sit on an
