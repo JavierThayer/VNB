@@ -2135,12 +2135,17 @@ monospace font is installed.")
     "---"
     ("Proof"
       ["Direct Inference"     vnb-pf-direct-inference t]
+      ["Decompose Hyp..."     vnb-pf-antecedent-inference t]
       ["Assume"               vnb-pf-assumption       t]
       ["Assume All"           vnb-pf-assume-all       t]
       ["B+ (auto-close)"      vnb-pf-bplus            t]
       ["Theorem..."           vnb-pf-theorem          t]
       ["Univ. Instantiate..." vnb-pf-instantiate      t]
       ["Exist. Witness..."    vnb-pf-exists-witness   t]
+      ["Rewrite Hyp..."       vnb-pf-rewrite-hyp      t]
+      ["Sep-Membership Elim..."   vnb-pf-sep-elim     t]
+      ["Complement Elim..."   vnb-pf-comp-elim        t]
+      ["Big-Union Elim..."    vnb-pf-bigunion-elim    t]
       ["Backchain..."         vnb-pf-backchain        t]
       ["Focus..."             vnb-pf-focus            t]
       ["QED..."               vnb-pf-qed              t])
@@ -2538,11 +2543,14 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
 (defvar vnb-proof-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m "d" 'vnb-pf-direct-inference)
+    (define-key m "D" 'vnb-pf-antecedent-inference) ; hyp-side dual of d
     (define-key m "a" 'vnb-pf-assumption)
     (define-key m "A" 'vnb-pf-assume-all)
     (define-key m "+" 'vnb-pf-bplus)
     (define-key m "=" 'vnb-pf-reflexivity)
     (define-key m "m" 'vnb-pf-rewrite)
+    (define-key m "M" 'vnb-pf-rewrite-hyp)          ; hyp-side dual of m
+    (define-key m "e" 'vnb-pf-sep-elim)
     (define-key m "t" 'vnb-pf-theorem)
     (define-key m "i" 'vnb-pf-instantiate)
     (define-key m "w" 'vnb-pf-exists-witness)
@@ -2601,6 +2609,15 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert "  ")
     (vnb-launch--insert-button "Witness" 'vnb-pf-exists-witness
                                "(ew TERM) supply a witness for a FORSOME goal")
+    (insert "\n  ")
+    (vnb-launch--insert-button "Decompose Hyp" 'vnb-pf-antecedent-inference
+                               "(ai ASM) split/eliminate an assumption by its top connective -- the hypothesis-side Direct Inference; takes an assumption # or formula")
+    (insert "  ")
+    (vnb-launch--insert-button "Rewrite Hyp" 'vnb-pf-rewrite-hyp
+                               "(mac-h 'NAME ASM) rewrite an assumption with a named equation/biconditional -- the hypothesis-side Rewrite; takes an assumption # or formula")
+    (insert "  ")
+    (vnb-launch--insert-button "Sep-Elim" 'vnb-pf-sep-elim
+                               "(sep-me ASM) eliminate a separation-membership assumption y in SEP(x,A,p): adds y in A and p[x:=y]; takes an assumption # or formula")
     (insert "\n  ")
     (vnb-launch--insert-button "Backchain" 'vnb-pf-backchain
                                "(bc FORMULA) backchain on an implication")
@@ -2670,9 +2687,10 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             (concat "  Keys: d direct-inf  a assume  A assume-all  + B+auto-close  "
-                     "= close(a=a)  "
-                     "m rewrite  t theorem  i univ-inst  w witness  "
+             (concat "  Keys: d direct-inf  D decompose-hyp  a assume  A assume-all  "
+                     "+ B+auto-close  = close(a=a)  "
+                     "m rewrite  M rewrite-hyp  e sep-elim  "
+                     "t theorem  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
                      "h home  r scratch-pad  S scratch-workspace  "
                      "T tex-toggle  W save-script  g refresh\n")
@@ -3005,6 +3023,25 @@ argument."
         (substring s 1 (1- (length s)))
       s)))
 
+(defun vnb-pf--asm-arg (s)
+  "Format an assumption selector S for splicing into a hyp-targeting tactic.
+A bare assumption number -- the number the Focus Workspace shows next to each
+assumption -- is passed through literally, so `(sep-me 2)' selects the 2nd
+assumption (the SAME numbering the Scratch Pad uses; the two control surfaces
+agree).  Anything else is treated as a formula and quoted with %S.  S is
+assumed already `vnb-launch--dequote'd."
+  (if (string-match-p "\\`[0-9]+\\'" s)
+      s
+    (format "%S" s)))
+
+(defun vnb-pf--read-asm-arg (prompt)
+  "Read an assumption selector with PROMPT: an assumption # or a formula.
+Returns the splice-ready string (a bare index or a %S-quoted formula).
+Empty input cancels.  Shared by every hypothesis-targeting Focus command so
+they all accept `#N' identically -- the interactive counterpart of the
+Scheme-side `->raw-formula/idx'."
+  (vnb-pf--asm-arg (vnb-launch--dequote (vnb-launch--read-required prompt))))
+
 ;;; ----- Tactic commands (guided prompts) -----
 
 (defun vnb-pf-direct-inference ()
@@ -3056,13 +3093,58 @@ context.  Goals not assumption-closable are left untouched."
   (vnb-launch--send-tactic (format "(ta '%s)" name)))
 
 (defun vnb-pf-instantiate (formula term)
-  "Instantiate FORALL hypothesis FORMULA at TERM.  Wraps (inst FORMULA TERM)."
+  "Instantiate a FORALL hypothesis at TERM.  Wraps (inst FORMULA TERM).
+FORMULA may be the hypothesis's assumption # (as shown in the Focus Workspace)
+instead of the retyped formula, e.g. (inst 1 n)."
   (interactive
-   (list (vnb-launch--read-required "FORALL hypothesis to instantiate (type as shown, no quotes): ")
+   (list (vnb-launch--read-required "FORALL hypothesis: assumption # or formula (type as shown): ")
          (vnb-launch--read-required "Term: ")))
-  (vnb-launch--send-tactic (format "(inst %S %S)"
-                                   (vnb-launch--dequote formula)
+  (vnb-launch--send-tactic (format "(inst %s %S)"
+                                   (vnb-pf--asm-arg (vnb-launch--dequote formula))
                                    (vnb-launch--dequote term))))
+
+(defun vnb-pf-antecedent-inference (sel)
+  "Decompose an ASSUMPTION by its top connective -- the hypothesis-side dual of
+Direct Inference.  Wraps (ai SEL); SEL is an assumption # (as shown) or the
+assumption formula.  Splits an AND hypothesis into its conjuncts, eliminates a
+FORSOME hypothesis into a fresh witness plus its body, etc."
+  (interactive
+   (list (vnb-pf--read-asm-arg "Decompose which assumption (# or formula): ")))
+  (vnb-launch--send-tactic (format "(ai %s)" sel)))
+
+(defun vnb-pf-rewrite-hyp (name sel)
+  "Rewrite an ASSUMPTION using named rule NAME -- the hypothesis-side dual of
+Rewrite.  Wraps (mac-h 'NAME SEL); SEL is an assumption # (as shown) or the
+assumption formula.  NAME must be an equation/biconditional, including a
+defined-PREDICATE unfold.  (Functoid unfolds live in the macete table, not the
+theorem table, so they can't be applied to a hypothesis this way -- unfold them
+in the goal with Rewrite instead.)"
+  (interactive
+   (list (vnb-launch--read-required "Rewrite hypothesis using rule name: ")
+         (vnb-pf--read-asm-arg "...in which assumption (# or formula): ")))
+  (vnb-launch--send-tactic (format "(mac-h '%s %s)" (vnb-launch--dequote name) sel)))
+
+(defun vnb-pf-sep-elim (sel)
+  "Eliminate a separation-membership assumption y in SEP(x, A, p).  Wraps
+(sep-me SEL); SEL is an assumption # (as shown) or the assumption formula.
+Adds y in A and p[x:=y] to the context."
+  (interactive
+   (list (vnb-pf--read-asm-arg "Sep-membership assumption to eliminate (# or formula): ")))
+  (vnb-launch--send-tactic (format "(sep-me %s)" sel)))
+
+(defun vnb-pf-comp-elim (sel)
+  "Eliminate a complement-membership assumption y in COMP(A).  Wraps
+(comp-me SEL); SEL is an assumption # (as shown) or the assumption formula."
+  (interactive
+   (list (vnb-pf--read-asm-arg "Complement-membership assumption to eliminate (# or formula): ")))
+  (vnb-launch--send-tactic (format "(comp-me %s)" sel)))
+
+(defun vnb-pf-bigunion-elim (sel)
+  "Eliminate a big-union-membership assumption y in BIG-UNION(...).  Wraps
+(bu-me SEL); SEL is an assumption # (as shown) or the assumption formula."
+  (interactive
+   (list (vnb-pf--read-asm-arg "Big-union-membership assumption to eliminate (# or formula): ")))
+  (vnb-launch--send-tactic (format "(bu-me %s)" sel)))
 
 (defun vnb-pf-exists-witness (term)
   "Supply TERM as a witness for the current FORSOME goal.  Wraps (ew TERM)."
@@ -3076,11 +3158,8 @@ FORMULA may be an assumption's number (as shown in the Focus Workspace),
 in which case it is sent as a bare index, e.g. (bc 2)."
   (interactive
    (list (vnb-launch--read-required "Backchain on assumption # or implication (type as shown): ")))
-  (let ((arg (vnb-launch--dequote formula)))
-    (vnb-launch--send-tactic
-     (if (string-match-p "\\`[0-9]+\\'" arg)
-         (format "(bc %s)" arg)
-       (format "(bc %S)" arg)))))
+  (vnb-launch--send-tactic
+   (format "(bc %s)" (vnb-pf--asm-arg (vnb-launch--dequote formula)))))
 
 (defun vnb-pf--name-list (form)
   "Eval FORM in the prover; parse its `(a b c)' result into a list of strings.
