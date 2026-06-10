@@ -544,6 +544,21 @@
     (ass) (ass) (ass)
     (unless (proof-done? *ps*) (error "bc test: proof did not close"))))
 
+;;; 6g'. Assumption-by-#N for hyp-targeting tactics (interactive-surface
+;;; convergence: (inst 1 ..) selects the 1st focus assumption, same numbering
+;;; the Focus Workspace shows -- no retyping the universal).  Mirrors 6g but
+;;; cites the ta'd universal (assumption #1, newest-first) by its index.
+(check-proof "inst: select universal by assumption index"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
+    (di) (ai (make-wff-from-string "n in nn and m in nn"))
+    (ta 'nn-add-closed)
+    (inst 1 'n)                          ; universal is assumption #1 by index
+    (inst '(FORALL m (IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN))) 'm)
+    (bc '(IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN)))
+    (ass) (ass) (ass)
+    (unless (proof-done? *ps*) (error "inst-by-index: proof did not close"))))
+
 ;;; 6h. Proof by contradiction (pbc)
 (check-proof "pbc: classic double negation"
   (lambda ()

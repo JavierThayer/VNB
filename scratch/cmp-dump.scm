@@ -1,0 +1,11 @@
+(sp (make-wff '(FORALL X (FORALL Y (FORALL Z (FORALL phi (FORALL psi
+   (IMPLIES (AND (IN phi (BIJECTION X Y)) (IN psi (BIJECTION Y Z)))
+            (IN (VNB-LAMBDA x_ (psi (phi x_))) (BIJECTION X Z))))))))))
+(di)
+(display "after di, goal=")(write (bd--goalof (bd--cur)))(newline)
+(display "asms:")(newline)
+(for-each (lambda (w)(display "  ")(write (wff-formula w))(newline)) (bd--asms (bd--cur)))
+(bd--split-ands!)
+(display "after split, goal=")(write (bd--goalof (bd--cur)))(newline)
+(display "asms:")(newline)
+(for-each (lambda (w)(display "  ")(write (wff-formula w))(newline)) (bd--asms (bd--cur)))
