@@ -28,7 +28,14 @@
           preimage-membership image-membership-iff inf-subsets-membership
           matrix-membership rr-star-membership rr-pos-star-membership
           ;; order / topology definitions
-          ord-lt-iff limit-ord-iff is-r-net-def totally-bounded-def)))
+          ord-lt-iff limit-ord-iff is-r-net-def totally-bounded-def
+          ;; functoid-beta slot reads + definitional elimination forms that
+          ;; were stated as `support' rather than derived (caught 2026-06-12).
+          ;; nf-metric-carrier/-distance just read a slot off the NF-METRIC-SPACE
+          ;; def-functoid; complete-cauchy-converges is the elimination form of
+          ;; the is-complete definition.  (nf-metric-space-is-metric-space is NOT
+          ;; here -- it discharges the metric axioms, so it is a genuine theorem.)
+          nf-metric-carrier nf-metric-distance complete-cauchy-converges)))
   (for-each (lambda (n)
               (register-provenance! n 'definitional)
               (register-provenance! (string->symbol (string-append (symbol->string n) "-rev"))

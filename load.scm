@@ -189,6 +189,9 @@
     ;; Needs sequences (SUM-AG), views (NORMED-FIELD-ADDITIVE-AG), numeric-
     ;; instances (RR-RING/RR-MS), number-systems (power), metric-completeness.
     "theorem-library/power-series"
+    ;; Retroactive warrants for founding PSS members admitted before warrants
+    ;; were standard; loads after every result it warrants is installed.
+    "theorem-library/founder-warrants"
     ;; Context and proof commands
     "contexts"
     "proof-commands"
