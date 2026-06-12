@@ -9,9 +9,9 @@ Per-result detail: `(status 'name)` at the REPL.
 | provenance | count | meaning |
 |---|---|---|
 | primitive | 91 | kernel axiom, trusted by fiat |
-| definitional | 420 | true by construction |
+| definitional | 425 | true by construction |
 | proven | 18 | closed by `qed` |
-| asserted | 630 | assumed, not proved |
+| asserted | 625 | assumed, not proved |
 
 ## Asserted, by warrant tier
 
@@ -19,14 +19,14 @@ Worst -> best.  `none` = assumed *and* unjustified.
 
 | tier | count |
 |---|---|
-| none | 487 |
+| none | 472 |
 | hand-wave | 0 |
-| informal | 59 |
+| informal | 65 |
 | reference | 0 |
-| well-known | 57 |
+| well-known | 61 |
 | proof | 27 |
 
-## FLAG: asserted with no warrant (487)
+## FLAG: asserted with no warrant (472)
 
 Each should get a `(warrant! ...)`, be proved, or be retired if a definition now subsumes it.  Scan for names that read like *theorems* -- those are status drift.
 
@@ -97,7 +97,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `comm-monoid-is-monoid`
 - `comm-monoid-mul-comm`
 - `comm-monoid-mul-comm-rev`
-- `complete-cauchy-converges`
 - `continuous-is-continuous-at`
 - `dc-on-nn`
 - `delete-at-above-k`
@@ -128,15 +127,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `field-zero-not-one`
 - `fin-enum-is-bijection`
 - `finite-set-induction`
-- `finsum-empty`
-- `finsum-empty-rev`
-- `finsum-fubini`
-- `finsum-fubini-rev`
-- `finsum-singleton`
-- `finsum-singleton-rev`
-- `finsum-type`
-- `finsum-well-defined`
-- `finsum-well-defined-rev`
 - `group-assoc`
 - `group-assoc-rev`
 - `group-identity-in`
@@ -217,11 +207,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `neg-inf-lower-bound`
 - `neg-inf-not-in-rr`
 - `neg-inf-not-in-rr-pos-star`
-- `nf-metric-carrier`
-- `nf-metric-carrier-rev`
-- `nf-metric-distance`
-- `nf-metric-distance-rev`
-- `nf-metric-space-is-metric-space`
 - `nn-add-assoc`
 - `nn-add-assoc-rev`
 - `nn-add-closed`
@@ -518,34 +503,19 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `zz-subset-qq`
 - `zz-zero-in`
 
-## FLAG: PSS supports that are unjustified (49)
+## FLAG: PSS supports that are unjustified (34)
 
 Curated rewrite rules the prover trusts, yet nothing justifies them.  Highest-priority warrants.
 
 - `card-singleton`
 - `card-singleton-rev`
-- `complete-cauchy-converges`
 - `continuous-is-continuous-at`
 - `dc-on-nn`
 - `diagonalization`
 - `enum-fam-in-fun`
 - `fin-enum-is-bijection`
-- `finsum-empty`
-- `finsum-empty-rev`
-- `finsum-fubini`
-- `finsum-fubini-rev`
-- `finsum-singleton`
-- `finsum-singleton-rev`
-- `finsum-type`
-- `finsum-well-defined`
-- `finsum-well-defined-rev`
 - `injection-extension-recurrence`
 - `injection-extension-recurrence-rev`
-- `nf-metric-carrier`
-- `nf-metric-carrier-rev`
-- `nf-metric-distance`
-- `nf-metric-distance-rev`
-- `nf-metric-space-is-metric-space`
 - `nn-enum-spec`
 - `ord-segment-nn-subset`
 - `ord-segment-nn-succ`

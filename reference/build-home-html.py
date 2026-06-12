@@ -29,7 +29,7 @@ REF_LINKS = [
     ("Structures",        "reference.html#STRUCTURE-INDEX",  "every structure: slots, laws, views"),
     ("Theorems & axioms", "reference.html#THEOREMS",         "the full installed catalog"),
     ("Definitions",       "reference.html#DEFINITIONS",      "term & predicate definitions"),
-    ("Proof Support Set", "reference.html#PSS",              "results accepted as warranted support"),
+    ("Proof Support Set", "reference.html#PSS",              "theorems excused from the VNB test, accepted on a warrant"),
     ("Fingerprint Index", "reference.html#FINGERPRINT-INDEX","results bucketed by conclusion skeleton"),
     ("Tactics",           "reference.html#TACTICS",          "interactive proof commands, each with a one-line gloss"),
     ("Structure Graph",   "structure-graph.html",            "refines & view-as relations, clickable"),
@@ -76,6 +76,14 @@ CSS = """
           padding:.5rem .9rem; border-radius:6px; opacity:0; transition:opacity .2s;
           font-size:.9rem; }
  #flash.show { opacity:.95; }
+ .classify { background:#fff; border:1px solid #dde6f0; border-radius:10px;
+             padding:.4rem 1.1rem 1rem; margin:.5rem 0 1rem; }
+ .classify dt { font-weight:600; color:#2a4a6a; margin-top:.7rem; }
+ .classify dd { margin:.15rem 0 0; color:#445; font-size:.92rem; }
+ .classify .note { color:#556; font-size:.9rem; margin-top:.9rem;
+                   border-top:1px solid #eef2f7; padding-top:.7rem; }
+ .classify summary { cursor:pointer; color:#365b7d; font-weight:600;
+                     font-size:1.05rem; padding:.6rem 0 .2rem; }
 """
 
 JS = f"""
@@ -105,6 +113,32 @@ def emacs_card(label, fn, blurb):
             f'<div class="t">{esc(label)}</div>'
             f'<div class="b">{esc(blurb)}</div></a>')
 
+# Documents the result taxonomy.  Provenance (why we hold it true) is ONE axis;
+# whether the engine may fire it as a rewrite is a SEPARATE, orthogonal axis.
+CLASSIFY = """
+<details class="classify" open>
+<summary>How results are classified</summary>
+<dl>
+  <dt>Axiom</dt>
+  <dd>A primitive of VNB. The base we build on &mdash; small and essentially fixed.</dd>
+  <dt>Definition</dt>
+  <dd>True by construction (a defining equation, or an unfolding of one). <em>Not a
+      theorem</em>, so it is never proved and is <em>not</em> a Proof Support Set
+      member &mdash; but it still <strong>fires as a rewrite</strong> in proofs.</dd>
+  <dt>Theorem</dt>
+  <dd>Carries a machine proof, re-certified by the VNB test.</dd>
+  <dt>Proof Support Set (PSS)</dt>
+  <dd>A <em>theorem we trust on a warrant, without a machine proof</em> &mdash; excused
+      from the VNB test. Each entry carries credentials: a plain statement plus why we
+      accept it.</dd>
+</dl>
+<p class="note"><strong>Firing is a separate matter.</strong> Whether the prover may apply
+a result as a rewrite is independent of this classification: axioms, definitions, theorems,
+and PSS members can all be rewrite rules. A definition keeps that right even though it is
+not a PSS member.</p>
+</details>
+"""
+
 def build():
     refs = "".join(ref_card(*r) for r in REF_LINKS)
     work_sections = []
@@ -124,6 +158,7 @@ def build():
 <main>
 <h1>VNB Math Assistant</h1>
 <p class="sub">The home page. Reference reading happens here in the browser; proving happens in Emacs.</p>
+{CLASSIFY}
 <h2>Reference</h2>
 {refs}
 {works}

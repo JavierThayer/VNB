@@ -275,6 +275,24 @@
       (display ";; Use (display-inert-macetes) to list them.")
       (newline)))
 
+;; Classification invariant: DEFINITIONS ARE NOT PSS MEMBERS.  The PSS is the
+;; set of *theorems* we excuse from the vnb-test (trusted on a warrant, never
+;; re-proved); a definition is true by construction, not a theorem, so it has
+;; no place on that roster.  It KEEPS its right to fire as a rewrite -- macete
+;; installation is a separate registry, untouched here -- so a defining
+;; equation still simplifies goals; it just is not a "support theorem".
+;; Enforced globally (order-independent) so any definitional-provenance entry
+;; that was installed via `support' is dropped from the PSS here.  MUST run
+;; before (catalog)/(write-pss-md) so the generated .md and HTML count it right.
+(let* ((before *support-theorem-names*)
+       (kept   (filter (lambda (n) (not (eq? (provenance-of n) 'definitional)))
+                       before)))
+  (set! *support-theorem-names* kept)
+  (let ((dropped (- (length before) (length kept))))
+    (when (> dropped 0)
+      (display ";; classification: ") (display dropped)
+      (display " definition(s) de-supported (not PSS; still fire as rewrites)\n"))))
+
 ;; Regenerate the theorem/axiom catalog (THEOREMS.md) so it never goes stale.
 (catalog)
 

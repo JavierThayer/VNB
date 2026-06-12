@@ -21,13 +21,44 @@
           padding:.5rem .9rem; border-radius:6px; opacity:0; transition:opacity .2s;
           font-size:.9rem; }
  #flash.show { opacity:.95; }
+ .classify { background:#fff; border:1px solid #dde6f0; border-radius:10px;
+             padding:.4rem 1.1rem 1rem; margin:.5rem 0 1rem; }
+ .classify dt { font-weight:600; color:#2a4a6a; margin-top:.7rem; }
+ .classify dd { margin:.15rem 0 0; color:#445; font-size:.92rem; }
+ .classify .note { color:#556; font-size:.9rem; margin-top:.9rem;
+                   border-top:1px solid #eef2f7; padding-top:.7rem; }
+ .classify summary { cursor:pointer; color:#365b7d; font-weight:600;
+                     font-size:1.05rem; padding:.6rem 0 .2rem; }
 </style></head><body>
 <div id="flash"></div>
 <main>
 <h1>VNB Math Assistant</h1>
 <p class="sub">The home page. Reference reading happens here in the browser; proving happens in Emacs.</p>
+
+<details class="classify" open>
+<summary>How results are classified</summary>
+<dl>
+  <dt>Axiom</dt>
+  <dd>A primitive of VNB. The base we build on &mdash; small and essentially fixed.</dd>
+  <dt>Definition</dt>
+  <dd>True by construction (a defining equation, or an unfolding of one). <em>Not a
+      theorem</em>, so it is never proved and is <em>not</em> a Proof Support Set
+      member &mdash; but it still <strong>fires as a rewrite</strong> in proofs.</dd>
+  <dt>Theorem</dt>
+  <dd>Carries a machine proof, re-certified by the VNB test.</dd>
+  <dt>Proof Support Set (PSS)</dt>
+  <dd>A <em>theorem we trust on a warrant, without a machine proof</em> &mdash; excused
+      from the VNB test. Each entry carries credentials: a plain statement plus why we
+      accept it.</dd>
+</dl>
+<p class="note"><strong>Firing is a separate matter.</strong> Whether the prover may apply
+a result as a rewrite is independent of this classification: axioms, definitions, theorems,
+and PSS members can all be rewrite rules. A definition keeps that right even though it is
+not a PSS member.</p>
+</details>
+
 <h2>Reference</h2>
-<a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="reference.html#STRUCTURE-INDEX"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="reference.html#THEOREMS"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="reference.html#DEFINITIONS"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="reference.html#PSS"><div class="t">Proof Support Set</div><div class="b">results accepted as warranted support</div></a><a class="card" href="reference.html#FINGERPRINT-INDEX"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="reference.html#TACTICS"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
+<a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="reference.html#STRUCTURE-INDEX"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="reference.html#THEOREMS"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="reference.html#DEFINITIONS"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="reference.html#PSS"><div class="t">Proof Support Set</div><div class="b">theorems excused from the VNB test, accepted on a warrant</div></a><a class="card" href="reference.html#FINGERPRINT-INDEX"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="reference.html#TACTICS"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
 <h2>Prove <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
 <a class="card emacs" href="#" onclick="poke(event, 'start-proof', 'Start Proof')"><div class="t">Start Proof</div><div class="b">edit the goal in a buffer, then begin in the Focus workspace</div></a><a class="card emacs" href="#" onclick="poke(event, 'continue-proof', 'Continue Proof')"><div class="t">Continue Proof</div><div class="b">return to the proof in progress (Focus workspace)</div></a><a class="card emacs" href="#" onclick="poke(event, 'scratch', 'Scratch')"><div class="t">Scratch</div><div class="b">Lisp-interaction sheet: C-j sends a sexp/region to the prover</div></a>
 <h2>Build <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
