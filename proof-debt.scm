@@ -156,6 +156,50 @@
     (newline)
     bill))
 
+;;; (2b) STATUS: one command, every axis.  Answers "what IS this result, and
+;;;      is its proof complete?" without the user having to remember which of
+;;;      provenance-of / warrant-of / debt-of-proof / *support-theorem-names*
+;;;      to call.  "complete" is not a separate flag: a result is as complete
+;;;      as its provenance + modulo line say it is.  The legend:
+;;;        primitive    -- a kernel axiom; trusted by fiat, no proof expected.
+;;;        definitional -- introduced by a definition; true by construction.
+;;;        asserted     -- ASSUMED, not proved.  Its own justification is only
+;;;                        the warrant (if any).  This is the "not complete" case.
+;;;        proven       -- closed by qed.  "modulo 0" = unconditional relative
+;;;                        to the trusted base (primitive + definitional); i.e.
+;;;                        as complete as anything gets here.  "modulo {..}" =
+;;;                        proven, but still leaning on those asserted leaves.
+(define (status name)
+  (let ((prov (provenance-of name))
+        (pss? (memq name *support-theorem-names*))
+        (w    (warrant-of name)))
+    (display name) (display ":") (newline)
+    (display "  provenance : ") (display prov)
+    (case prov
+      ((primitive)    (display "   (kernel axiom -- trusted by fiat)"))
+      ((definitional) (display "   (true by construction)"))
+      ((proven)       (display "   (closed by qed)"))
+      (else           (display "   (ASSUMED, not proved)")))
+    (newline)
+    (display "  PSS        : ") (display (if pss? "yes (curated support theorem)" "no"))
+    (newline)
+    (display "  warrant    : ")
+    (if w (begin (display (car w)) (display " -- ") (display (cdr w)))
+          (display "NONE"))
+    (newline)
+    (display "  completion : ")
+    (case prov
+      ((primitive definitional) (display "n/a -- trusted base, modulo 0"))
+      ((proven)
+       (let ((bill (debt-of name)))
+         (if (null? bill)
+             (display "COMPLETE -- proven modulo 0 (unconditional)")
+             (begin (display "proven modulo ") (pd-display-set bill)
+                    (display "  [trust: ") (display (debt-trust-level bill))
+                    (display "]")))))
+      (else (display "INCOMPLETE -- asserted; rests on itself")))
+    (newline)))
+
 ;;; (3) PROOF-DEBT.md: forward map (each proven theorem -> outstanding base)
 ;;;     AND reverse keystone index (each asserted leaf -> proven dependents,
 ;;;     "discharge X -> unlocks N").
@@ -238,4 +282,136 @@
                         (loop (cdr d) #f)))
                     (newline)))
                 leaves)))))
+    path))
+
+;;; --- (4) status audit ------------------------------------------------
+;;; Survey the WHOLE catalog on the status axes and surface the hygiene
+;;; questions behind "what is, and what SHOULD be, the status of each":
+;;;   - provenance census (primitive/definitional/asserted/proven);
+;;;   - the asserted pile broken down by warrant quality -- `none' is the
+;;;     scary tier (assumed AND unjustified);
+;;;     NB asserted is NOT itself a defect in library-build phase; an
+;;;     asserted leaf with NO warrant is the thing to chase;
+;;;   - PSS supports that are asserted-with-no-warrant (rewrite rules the
+;;;     prover trusts yet nothing justifies);
+;;;   - proven theorems still modulo a non-empty base (the keystones).
+;;; Drift (a result we BELIEVE is proven but stored asserted) is not
+;;; machine-detectable here -- it shows up as an asserted-trust-none entry
+;;; whose name reads like a theorem; eyeball the list for those.
+(define (sa--by name)            ; classify into a coarse bucket symbol
+  (let ((p (provenance-of name)))
+    (case p
+      ((primitive definitional proven) p)
+      (else 'asserted))))
+
+(define (status-audit)
+  (let* ((all   (hash-table-keys *theorem-table*))
+         (prim  (filter (lambda (n) (eq? (sa--by n) 'primitive)) all))
+         (defn  (filter (lambda (n) (eq? (sa--by n) 'definitional)) all))
+         (prov  (filter (lambda (n) (eq? (sa--by n) 'proven)) all))
+         (asrt  (filter (lambda (n) (eq? (sa--by n) 'asserted)) all))
+         ;; asserted, bucketed by warrant tier (pd-leaf-trust -> kind or 'none)
+         (tiers (map (lambda (k)
+                       (cons k (filter (lambda (n) (eq? (pd-leaf-trust n) k)) asrt)))
+                     *pd-trust-order*))
+         (none  (cdr (assq 'none tiers)))
+         ;; PSS supports that are unjustified asserted leaves
+         (pss-bad (filter (lambda (n) (and (memq n *support-theorem-names*)
+                                           (memq n none)))
+                          all))
+         ;; asserted facts carrying a 'proof warrant: the warrant claims a
+         ;; machine proof, so provenance OUGHT to be `proven'.  (The load-time
+         ;; invariant misses these when they are PSS; we don't.)
+         (claims-proof (filter (lambda (n)
+                                 (let ((w (warrant-of n)))
+                                   (and w (eq? (car w) 'proof))))
+                               asrt))
+         ;; proven theorems still resting on a non-empty base
+         (keystone (filter (lambda (n) (not (null? (debt-of n)))) prov))
+         (sym<  (lambda (a b) (string<? (symbol->string a) (symbol->string b))))
+         (path  (string-append *reference-dir* "STATUS-AUDIT.md")))
+    ;; --- REPL summary ---
+    (display ";; status-audit: ") (display (length all)) (display " results -- ")
+    (display (length prim)) (display " primitive, ")
+    (display (length defn)) (display " definitional, ")
+    (display (length prov)) (display " proven, ")
+    (display (length asrt)) (display " asserted\n")
+    (display ";;   asserted by warrant: ")
+    (for-each (lambda (t) (unless (null? (cdr t))
+                            (display (length (cdr t))) (display " ")
+                            (display (car t)) (display "  ")))
+              tiers)
+    (newline)
+    (display ";;   FLAGS: ") (display (length none))
+    (display " asserted-no-warrant, ")
+    (display (length pss-bad)) (display " PSS-unjustified, ")
+    (display (length claims-proof)) (display " asserted-claims-proof, ")
+    (display (length keystone)) (display " proven-modulo-nonzero\n")
+    (display ";;   full report -> ") (display path) (newline)
+    ;; --- the report ---
+    (with-output-to-file path
+      (lambda ()
+        (display "# Status Audit\n\n")
+        (display "Auto-generated by `(status-audit)`.  Census of every named ")
+        (display "result on the status axes, and the hygiene flags behind ")
+        (display "\"what *should* the status be\".\n\n")
+        (display "Per-result detail: `(status 'name)` at the REPL.\n\n")
+        (display "## Census\n\n")
+        (display "| provenance | count | meaning |\n|---|---|---|\n")
+        (display "| primitive | ") (display (length prim))
+        (display " | kernel axiom, trusted by fiat |\n")
+        (display "| definitional | ") (display (length defn))
+        (display " | true by construction |\n")
+        (display "| proven | ") (display (length prov))
+        (display " | closed by `qed` |\n")
+        (display "| asserted | ") (display (length asrt))
+        (display " | assumed, not proved |\n\n")
+        (display "## Asserted, by warrant tier\n\n")
+        (display "Worst -> best.  `none` = assumed *and* unjustified.\n\n")
+        (display "| tier | count |\n|---|---|\n")
+        (for-each (lambda (t)
+                    (display "| ") (display (car t)) (display " | ")
+                    (display (length (cdr t))) (display " |\n"))
+                  tiers)
+        (newline)
+        (display "## FLAG: asserted with no warrant (")
+        (display (length none)) (display ")\n\n")
+        (display "Each should get a `(warrant! ...)`, be proved, or be ")
+        (display "retired if a definition now subsumes it.  Scan for names ")
+        (display "that read like *theorems* -- those are status drift.\n\n")
+        (for-each (lambda (n) (display "- `") (display n) (display "`\n"))
+                  (sort none sym<))
+        (newline)
+        (display "## FLAG: PSS supports that are unjustified (")
+        (display (length pss-bad)) (display ")\n\n")
+        (display "Curated rewrite rules the prover trusts, yet nothing ")
+        (display "justifies them.  Highest-priority warrants.\n\n")
+        (if (null? pss-bad)
+            (display "_None._\n\n")
+            (for-each (lambda (n) (display "- `") (display n) (display "`\n"))
+                      (sort pss-bad sym<)))
+        (newline)
+        (display "## FLAG: asserted, but warrant claims a proof (")
+        (display (length claims-proof)) (display ")\n\n")
+        (display "The `proof` warrant says machine-proven, so provenance ")
+        (display "ought to be `proven` (or the warrant downgraded).  Drift.\n\n")
+        (if (null? claims-proof)
+            (display "_None._\n\n")
+            (for-each (lambda (n) (display "- `") (display n) (display "`\n"))
+                      (sort claims-proof sym<)))
+        (newline)
+        (display "## FLAG: proven, modulo a non-empty base (")
+        (display (length keystone)) (display ")\n\n")
+        (display "Proven by `qed` but still leaning on asserted leaves.  ")
+        (display "See `PROOF-DEBT.md` for each bill.\n\n")
+        (for-each (lambda (n)
+                    (display "- `") (display n) (display "` modulo ")
+                    (let ((bill (debt-of n)))
+                      (let loop ((b bill) (first #t))
+                        (unless (null? b)
+                          (unless first (display ", "))
+                          (display (car b)) (loop (cdr b) #f))))
+                    (display "  *(trust: ") (display (debt-trust-level (debt-of n)))
+                    (display ")*\n"))
+                  (sort keystone sym<))))
     path))
