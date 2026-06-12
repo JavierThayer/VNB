@@ -2629,6 +2629,43 @@
   "for every abelian group s, s is a group")
 
 ;;; -----------------------------------------------------------------------
+;;; parts.scm -- surface-syntax accessors for the parts of a formula.
+
+(display "=== P. parts-accessor language (part / match / formula-kind) ===\n")
+
+(check "parts: formula-kind implication"
+  (lambda () (formula-kind "a in nn implies a + 0 = a")) 'implication)
+(check "parts: formula-kind op-application is equation"
+  (lambda () (formula-kind "(mul(r))(a,b) = c")) 'equation)
+(check "parts: antecedent"
+  (lambda () (wff->sexp (part "a in nn implies a + 0 = a" 'antecedent))) '(in a nn))
+(check "parts: chained consequent->lhs"
+  (lambda () (wff->sexp (part "a in nn implies a + 0 = a" 'consequent 'lhs))) '(+ a 0))
+(check "parts: conjuncts flattens the binary right-spine"
+  (lambda () (map wff->sexp (part "1=1 and 2=2 and 3=3 and 4=4" 'conjuncts)))
+  '((= 1 1) (= 2 2) (= 3 3) (= 4 4)))
+(check "parts: (conjunct 3) is 1-indexed"
+  (lambda () (wff->sexp (part "1=1 and 2=2 and 3=3 and 4=4" (list 'conjunct 3)))) '(= 3 3))
+(check "parts: operator of structure-op application"
+  (lambda () (wff->sexp (part "(mul(r))(a,b) = c" 'lhs 'operator))) '(mul r))
+(check "parts: operands of structure-op application (de-tupled)"
+  (lambda () (map wff->sexp (part "(mul(r))(a,b) = c" 'lhs 'operands))) '(a b))
+(check-error "parts: selector errors on wrong shape"
+  (lambda () (vnb-guard (lambda () (part "a = b" 'antecedent)))))
+(check "parts: ?-sigil match binds holes"
+  (lambda ()
+    (let ((b (match "?P implies ?Q" "a in nn implies a + 0 = a")))
+      (list (wff->sexp (cdr (assq '?p b))) (wff->sexp (cdr (assq '?q b))))))
+  '((in a nn) (= (+ a 0) a)))
+(check "parts: ?-sigil match on op-application pattern"
+  (lambda ()
+    (let ((b (match "(mul(r))(?a, ?b) = ?c" "(mul(r))(x,y) = z")))
+      (map (lambda (v) (wff->sexp (cdr (assq v b)))) '(?a ?b ?c))))
+  '(x y z))
+(check-false "parts: match returns #f on no match"
+  (lambda () (match "?P and ?Q" "a in nn implies a + 0 = a")))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)

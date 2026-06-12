@@ -193,6 +193,9 @@
     "contexts"
     "proof-commands"
     "interactive"
+    ;; Surface-syntax accessors for the PARTS of a formula (part / match /
+    ;; formula-kind): reach subterms by surface names, never by s-expr position.
+    "parts"
     ;; Warrant / proof-debt ledger: records each qed proof's bill of asserted
     ;; facts it rests on (loads right after interactive so qed can call it).
     "proof-debt"

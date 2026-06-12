@@ -120,7 +120,11 @@
               ((char=? c #\:) (adv-ch) (let ((r (collect))) (cons 'colon    r)))
               ((char=? c #\|) (adv-ch) (let ((r (collect))) (cons 'pipe     r)))
               ((char=? c #\,) (adv-ch) (let ((r (collect))) (cons 'comma    r)))
-              ((char-alphabetic? c)
+              ;; `?' starts a pattern-variable identifier (?P, ?body) for the
+              ;; parts-accessor match language (parts.scm); `?' is also an
+              ;; ident-CONTinuation char.  Pure extension: a leading `?' was
+              ;; previously a tokenize error, so nothing else relies on it.
+              ((or (char-alphabetic? c) (char=? c #\?))
                (adv-ch)
                (let* ((tok (read-ident c)) (rest (collect))) (cons tok rest)))
               ((op-ch? c)
