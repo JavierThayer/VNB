@@ -2,9 +2,9 @@
 ;;;
 ;;; String syntax (precedence low to high):
 ;;;   implies   A implies B                      (IMPLIES A B)    binary, right-assoc
-;;;   iff       A iff B iff C                    (IFF A B C)      n-ary
-;;;   or        A or B or C                      (OR A B C)       n-ary
-;;;   and       A and B and C                    (AND A B C)      n-ary
+;;;   iff       A iff B iff C                    (IFF A (IFF B C)) binary, right-assoc
+;;;   or        A or B or C                      (OR A (OR B C))   binary, right-assoc
+;;;   and       A and B and C                    (AND A (AND B C)) binary, right-assoc
 ;;;   cmp       x in A,  x=y,  x==y,  x<=y      binary
 ;;;   add       x + y + z,  x - y               (+ x y z) n-ary / (- x y) binary
 ;;;   mul       x * y * z,  x / y               (* x y z) n-ary / (* x (recip y))
@@ -185,40 +185,31 @@
         (begin (p-adv) (list 'implies left (p-parse-implies)))
         left)))
 
-;; IFF — n-ary
+;; IFF — binary, right-associative.  Surface `a iff b iff c' folds to the
+;; binary right-nested (iff a (iff b c)), the one conjunction/biconditional
+;; shape the validator (make-wff) and the whole theorem corpus speak.  (The
+;; parser used to build a flat n-ary node here, but make-wff rejects n-ary
+;; IFF/OR/AND on arity, so n-ary was dead on arrival -- a surface `a and b and
+;; c' could not be constructed at all.  Right-fold matches implies and makes a
+;; typed chain indistinguishable from a hand-written nested one.)
 (define (p-parse-iff)
-  (let loop ((left (p-parse-or)))
+  (let ((left (p-parse-or)))
     (if (p-peek-sym? 'iff)
-        (begin (p-adv)
-               (let* ((right (p-parse-or))
-                      (node  (if (and (pair? left) (eq? (car left) 'iff))
-                                 (append left (list right))
-                                 (list 'iff left right))))
-                 (loop node)))
+        (begin (p-adv) (list 'iff left (p-parse-iff)))
         left)))
 
-;; OR — n-ary
+;; OR — binary, right-associative (see p-parse-iff).
 (define (p-parse-or)
-  (let loop ((left (p-parse-and)))
+  (let ((left (p-parse-and)))
     (if (p-peek-sym? 'or)
-        (begin (p-adv)
-               (let* ((right (p-parse-and))
-                      (node  (if (and (pair? left) (eq? (car left) 'or))
-                                 (append left (list right))
-                                 (list 'or left right))))
-                 (loop node)))
+        (begin (p-adv) (list 'or left (p-parse-or)))
         left)))
 
-;; AND — n-ary
+;; AND — binary, right-associative (see p-parse-iff).
 (define (p-parse-and)
-  (let loop ((left (p-parse-cmp)))
+  (let ((left (p-parse-cmp)))
     (if (p-peek-sym? 'and)
-        (begin (p-adv)
-               (let* ((right (p-parse-cmp))
-                      (node  (if (and (pair? left) (eq? (car left) 'and))
-                                 (append left (list right))
-                                 (list 'and left right))))
-                 (loop node)))
+        (begin (p-adv) (list 'and left (p-parse-and)))
         left)))
 
 ;; CMP — binary: in subset = == <=
