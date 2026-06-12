@@ -41,6 +41,7 @@
     "structure-library/abelian-group"
     "structure-library/ring"
     "structure-library/metric-space"
+    "structure-library/setoid"
     "structure-library/metric-topology"
     "structure-library/ring-simplify"
     ;; Commutative-ring identity decision procedure (multiset monomials);
