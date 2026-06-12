@@ -19,14 +19,14 @@ Worst -> best.  `none` = assumed *and* unjustified.
 
 | tier | count |
 |---|---|
-| none | 472 |
+| none | 438 |
 | hand-wave | 0 |
-| informal | 65 |
+| informal | 86 |
 | reference | 0 |
-| well-known | 61 |
+| well-known | 74 |
 | proof | 27 |
 
-## FLAG: asserted with no warrant (472)
+## FLAG: asserted with no warrant (438)
 
 Each should get a `(warrant! ...)`, be proved, or be retired if a definition now subsumes it.  Scan for names that read like *theorems* -- those are status drift.
 
@@ -41,8 +41,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `card-insert-rev`
 - `card-segment`
 - `card-segment-rev`
-- `card-singleton`
-- `card-singleton-rev`
 - `card-union-disjoint`
 - `card-union-disjoint-rev`
 - `cc-add-assoc`
@@ -97,16 +95,12 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `comm-monoid-is-monoid`
 - `comm-monoid-mul-comm`
 - `comm-monoid-mul-comm-rev`
-- `continuous-is-continuous-at`
-- `dc-on-nn`
 - `delete-at-above-k`
 - `delete-at-above-k-rev`
 - `delete-at-below-k`
 - `delete-at-below-k-rev`
 - `delete-at-in-fun`
 - `delete-at-is-bijection`
-- `diagonalization`
-- `enum-fam-in-fun`
 - `eplus-in-fun`
 - `eplus-pos-inf-left`
 - `eplus-pos-inf-left-rev`
@@ -125,7 +119,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `field-non-zero-carrier`
 - `field-non-zero-carrier-rev`
 - `field-zero-not-one`
-- `fin-enum-is-bijection`
 - `finite-set-induction`
 - `group-assoc`
 - `group-assoc-rev`
@@ -137,8 +130,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `image-set`
 - `image-subset-codomain`
 - `inf-subsets-is-set`
-- `injection-extension-recurrence`
-- `injection-extension-recurrence-rev`
 - `injection-from-empty`
 - `injection-from-empty-rev`
 - `injection-in-fun`
@@ -219,7 +210,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `nn-add-zero-rev`
 - `nn-distributive`
 - `nn-distributive-rev`
-- `nn-enum-spec`
 - `nn-induction`
 - `nn-is-set`
 - `nn-minus-in-nn`
@@ -253,15 +243,9 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `ord-segment-limit`
 - `ord-segment-membership`
 - `ord-segment-membership-rev`
-- `ord-segment-nn-subset`
-- `ord-segment-nn-succ`
-- `ord-segment-nn-succ-rev`
-- `ord-segment-self`
 - `ord-segment-succ`
 - `ord-segment-succ-rev`
-- `ord-segment-trans`
 - `ord-segment-zero`
-- `ord-segment-zero-no-members`
 - `ord-segment-zero-rev`
 - `ord-succ-above`
 - `ord-succ-immediate`
@@ -271,11 +255,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `ord-succ-nn`
 - `ord-succ-nn-rev`
 - `ord-zero-least`
-- `permutation-recurrence`
-- `permutation-recurrence-rev`
-- `permutations-zero`
-- `permutations-zero-rev`
-- `pigeonhole-infinite`
 - `pos-inf-in-rr-pos-star`
 - `pos-inf-in-rr-star`
 - `pos-inf-neq-neg-inf`
@@ -421,13 +400,8 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `rr-zero-in`
 - `semigroup-assoc`
 - `semigroup-assoc-rev`
-- `subsequence-capture`
-- `succ-nn-ord`
-- `succ-nn-ord-rev`
 - `sum-ag-as-reduce`
 - `sum-ag-as-reduce-rev`
-- `sum-ag-permutation-invariance`
-- `sum-ag-permutation-invariance-rev`
 - `sum-ag-singleton`
 - `sum-ag-singleton-rev`
 - `sum-ag-succ`
@@ -441,10 +415,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `sum-set-disjoint-union-rev`
 - `sum-set-empty`
 - `sum-set-empty-rev`
-- `sum-set-left-scalar`
-- `sum-set-left-scalar-rev`
-- `sum-set-right-scalar`
-- `sum-set-right-scalar-rev`
 - `sum-set-singleton`
 - `sum-set-singleton-rev`
 - `sum-set-type`
@@ -463,10 +433,6 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `sup-ord-succ-segment-rev`
 - `sup-ord-upper`
 - `transfinite-induction`
-- `uniformly-continuous-is-continuous`
-- `union-empty-left`
-- `union-empty-left-rev`
-- `well-ordering-principle`
 - `zero-in-rr-pos-star`
 - `zero-ring-is-ring`
 - `zz-act-neg`
@@ -503,44 +469,12 @@ Each should get a `(warrant! ...)`, be proved, or be retired if a definition now
 - `zz-subset-qq`
 - `zz-zero-in`
 
-## FLAG: PSS supports that are unjustified (34)
+## FLAG: PSS supports that are unjustified (0)
 
 Curated rewrite rules the prover trusts, yet nothing justifies them.  Highest-priority warrants.
 
-- `card-singleton`
-- `card-singleton-rev`
-- `continuous-is-continuous-at`
-- `dc-on-nn`
-- `diagonalization`
-- `enum-fam-in-fun`
-- `fin-enum-is-bijection`
-- `injection-extension-recurrence`
-- `injection-extension-recurrence-rev`
-- `nn-enum-spec`
-- `ord-segment-nn-subset`
-- `ord-segment-nn-succ`
-- `ord-segment-nn-succ-rev`
-- `ord-segment-self`
-- `ord-segment-trans`
-- `ord-segment-zero-no-members`
-- `permutation-recurrence`
-- `permutation-recurrence-rev`
-- `permutations-zero`
-- `permutations-zero-rev`
-- `pigeonhole-infinite`
-- `subsequence-capture`
-- `succ-nn-ord`
-- `succ-nn-ord-rev`
-- `sum-ag-permutation-invariance`
-- `sum-ag-permutation-invariance-rev`
-- `sum-set-left-scalar`
-- `sum-set-left-scalar-rev`
-- `sum-set-right-scalar`
-- `sum-set-right-scalar-rev`
-- `uniformly-continuous-is-continuous`
-- `union-empty-left`
-- `union-empty-left-rev`
-- `well-ordering-principle`
+_None._
+
 
 ## FLAG: asserted, but warrant claims a proof (27)
 

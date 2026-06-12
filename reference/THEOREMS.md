@@ -33,8 +33,8 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `binomial-theorem` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], ring-power(r, (add(r))(x, y), n) = finsum(commutative-ring-additive-ag(r), vnb-lambda(k, zz-act(commutative-ring-additive-ag(r), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n)))))  _[warrant: well-known]_
 - `binomial-theorem-rev` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], finsum(commutative-ring-additive-ag(r), vnb-lambda(k, zz-act(commutative-ring-additive-ag(r), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n))) = ring-power(r, (add(r))(x, y), n)))  _[warrant: well-known]_
 - `card-power-nn` — forall([x], x in set and card(x) in nn implies card(power(x)) in nn)  _[warrant: well-known]_
-- `card-singleton` — forall([x in set], card({x}) = succ(0))
-- `card-singleton-rev` — forall([x in set], succ(0) = card({x}))
+- `card-singleton` — forall([x in set], card({x}) = succ(0))  _[warrant: well-known]_
+- `card-singleton-rev` — forall([x in set], succ(0) = card({x}))  _[warrant: well-known]_
 - `card-subset-nn` — forall([x], x in set and card(x) in nn implies forall([s], s in set and forall([z in s], z in x) implies card(s) in nn))  _[warrant: well-known]_
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))  _[warrant: proof]_
 - `closed-preimage-implies-continuous` — forall([s, t, f], is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) implies forall([a], is-closed(t, a) implies is-closed(s, preimage(s, f, a))) implies is-continuous(s, t, f))  _[warrant: proof]_
@@ -48,17 +48,17 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `compose-type-5` — forall([x, f, g, h, k, m, a], f in fun(x) implies g in fun(ran(f)) implies h in fun(ran(g)) implies k in fun(ran(h)) implies m in fun(ran(k)) implies a in x implies m(k(h(g(f(a))))) in ran(m))  _[warrant: proof]_
 - `continuous-implies-closed-preimage` — forall([s, t, f], is-continuous(s, t, f) implies forall([a], is-closed(t, a) implies is-closed(s, preimage(s, f, a))))  _[warrant: proof]_
 - `continuous-implies-open-preimage` — forall([s, t, f], is-continuous(s, t, f) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))))  _[warrant: proof]_
-- `continuous-is-continuous-at` — forall([s, t, f], is-continuous(s, t, f) implies forall([a in x(s)], is-continuous-at(s, t, f, a)))
-- `dc-on-nn` — forall([x in set, a in x, r in set], forall([k in nn, u in x], forsome([y in x], [k, u, y] in r)) implies forsome([f in fun(nn, x)], f(0) = a and forall([k in nn], [k, f(k), f(succ(k))] in r)))
-- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f in fun(nn, nn)], forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n))) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))
+- `continuous-is-continuous-at` — forall([s, t, f], is-continuous(s, t, f) implies forall([a in x(s)], is-continuous-at(s, t, f, a)))  _[warrant: informal]_
+- `dc-on-nn` — forall([x in set, a in x, r in set], forall([k in nn, u in x], forsome([y in x], [k, u, y] in r)) implies forsome([f in fun(nn, x)], f(0) = a and forall([k in nn], [k, f(k), f(succ(k))] in r)))  _[warrant: informal]_
+- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f in fun(nn, nn)], forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n))) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  _[warrant: informal]_
 - `difference-membership` — forall([x, b, x], x in difference(x, b) iff x in x and not(x in b))  _[warrant: well-known]_
 - `difference-membership-rev` — forall([x, b, x], x in x and not(x in b) iff x in difference(x, b))  _[warrant: well-known]_
 - `difference-set` — forall([x in set, b], difference(x, b) in set)  _[warrant: well-known]_
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))  _[warrant: proof]_
-- `enum-fam-in-fun` — forall([n in nn, ag], is-group(ag) implies forall([s, phi in fun(ord-segment(n), s), f in fun(s, a(ag))], enum-fam(ag, f, phi, n) in fun(nn, a(ag))))
+- `enum-fam-in-fun` — forall([n in nn, ag], is-group(ag) implies forall([s, phi in fun(ord-segment(n), s), f in fun(s, a(ag))], enum-fam(ag, f, phi, n) in fun(nn, a(ag))))  _[warrant: informal]_
 - `esum-finite-iff-bounded` — forall([f in fun(dom(f), rr+*)], esum(f) in rr iff forsome([m in rr], forall([s], s in set and card(s) in nn and s subset dom(f) implies finsum(rr+*-add-monoid, f, s) <= m)))  _[warrant: informal]_
 - `esum-finite-iff-bounded-rev` — forall([f in fun(dom(f), rr+*)], forsome([m in rr], forall([s], s in set and card(s) in nn and s subset dom(f) implies finsum(rr+*-add-monoid, f, s) <= m)) iff esum(f) in rr)  _[warrant: informal]_
-- `fin-enum-is-bijection` — forall([s in set], card(s) in nn implies fin-enum(s) in bijection(ord-segment(card(s)), s))
+- `fin-enum-is-bijection` — forall([s in set], card(s) in nn implies fin-enum(s) in bijection(ord-segment(card(s)), s))  _[warrant: informal]_
 - `finsum-add` — forall([m], is-comm-monoid(m) implies forall([s], s in set and card(s) in nn implies forall([f in fun(s, a(m)), h in fun(s, a(m))], finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s) = (mul(m))(finsum(m, f, s), finsum(m, h, s)))))  _[warrant: well-known]_
 - `finsum-add-rev` — forall([m], is-comm-monoid(m) implies forall([s], s in set and card(s) in nn implies forall([f in fun(s, a(m)), h in fun(s, a(m))], (mul(m))(finsum(m, f, s), finsum(m, h, s)) = finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s))))  _[warrant: well-known]_
 - `finsum-comm-monoid-permutation-invariance` — forall([n in nn, m], is-comm-monoid(m) implies forall([g in fun(nn, a(m)), h in fun(nn, a(m)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(m, g, n) = sum-ag(m, h, n)))  _[warrant: well-known]_
@@ -87,8 +87,8 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `geometric-partial-sum` — forall([r], r in rr and not(r = 1) implies forall([k in nn], series-partial-sum(vnb-lambda(n, r ^ n), k) = (1 - r ^ k) * recip(1 - r)))  _[warrant: well-known]_
 - `geometric-partial-sum-rev` — forall([r], r in rr and not(r = 1) implies forall([k in nn], (1 - r ^ k) * recip(1 - r) = series-partial-sum(vnb-lambda(n, r ^ n), k)))  _[warrant: well-known]_
 - `geometric-series-converges-to` — forall([r], r in rr and <(abs(r), 1) implies series-converges-to(vnb-lambda(n, r ^ n), recip(1 - r)))  _[warrant: informal]_
-- `injection-extension-recurrence` — forall([a, c, b, m], not(b in a) and a in set and c in set and card(a) in nn and m in nn and card(c) = card(a) + m implies card(injection(union(a, {b}), c)) = m * card(injection(a, c)))
-- `injection-extension-recurrence-rev` — forall([a, c, b, m], not(b in a) and a in set and c in set and card(a) in nn and m in nn and card(c) = card(a) + m implies m * card(injection(a, c)) = card(injection(union(a, {b}), c)))
+- `injection-extension-recurrence` — forall([a, c, b, m], not(b in a) and a in set and c in set and card(a) in nn and m in nn and card(c) = card(a) + m implies card(injection(union(a, {b}), c)) = m * card(injection(a, c)))  _[warrant: informal]_
+- `injection-extension-recurrence-rev` — forall([a, c, b, m], not(b in a) and a in set and c in set and card(a) in nn and m in nn and card(c) = card(a) + m implies m * card(injection(a, c)) = card(injection(union(a, {b}), c)))  _[warrant: informal]_
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))  _[warrant: proof]_
 - `metric-dist-real` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) in rr))  _[warrant: well-known]_
 - `nag-metric-carrier` — forall([nag], x(nag-metric-space(nag)) = a(nag))  _[warrant: informal]_
@@ -97,21 +97,21 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `nag-metric-distance-rev` — forall([nag], is-normed-ag(nag) implies forall([u in a(nag), v in a(nag)], (nrm(nag))((mul(nag))(u, (inv(nag))(v))) = (d(nag-metric-space(nag)))(u, v)))  _[warrant: informal]_
 - `nag-metric-space-is-metric-space` — forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))  _[warrant: informal]_
 - `nf-metric-space-is-metric-space` — forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))  _[warrant: informal]_
-- `nn-enum-spec` — forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], <(m, n) implies <((nn-enum(s))(m), (nn-enum(s))(n))))
+- `nn-enum-spec` — forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], <(m, n) implies <((nn-enum(s))(m), (nn-enum(s))(n))))  _[warrant: informal]_
 - `open-preimage-implies-continuous` — forall([s, t, f], is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))) implies is-continuous(s, t, f))  _[warrant: proof]_
 - `ord-segment-insert` — forall([n in nn], ord-segment(succ(n)) = union(ord-segment(n), {n}))  _[warrant: well-known]_
 - `ord-segment-insert-rev` — forall([n in nn], union(ord-segment(n), {n}) = ord-segment(succ(n)))  _[warrant: well-known]_
-- `ord-segment-nn-subset` — forall([m in nn, k in ord-segment(m)], k in nn)
-- `ord-segment-nn-succ` — forall([n, k], n in nn implies k in ord-segment(succ(n)) iff k in ord-segment(n) or k = n)
-- `ord-segment-nn-succ-rev` — forall([n, k], n in nn implies k in ord-segment(n) or k = n iff k in ord-segment(succ(n)))
-- `ord-segment-self` — forall([n in nn], not(n in ord-segment(n)))
-- `ord-segment-trans` — forall([m in nn, k, i], i in ord-segment(k) and k in ord-segment(m) implies i in ord-segment(m))
-- `ord-segment-zero-no-members` — forall([k], not(k in ord-segment(0)))
-- `permutation-recurrence` — forall([n in nn], card(permutations(succ(n))) = succ(n) * card(permutations(n)))
-- `permutation-recurrence-rev` — forall([n in nn], succ(n) * card(permutations(n)) = card(permutations(succ(n))))
-- `permutations-zero` — card(permutations(0)) = succ(0)
-- `permutations-zero-rev` — succ(0) = card(permutations(0))
-- `pigeonhole-infinite` — forall([s], s in set and not(card(s) in nn) implies forall([f], f in set and card(f) in nn implies forall([pi in fun(s, f)], forsome([c in f], not(card({x in s: pi(x) = c}) in nn)))))
+- `ord-segment-nn-subset` — forall([m in nn, k in ord-segment(m)], k in nn)  _[warrant: well-known]_
+- `ord-segment-nn-succ` — forall([n, k], n in nn implies k in ord-segment(succ(n)) iff k in ord-segment(n) or k = n)  _[warrant: well-known]_
+- `ord-segment-nn-succ-rev` — forall([n, k], n in nn implies k in ord-segment(n) or k = n iff k in ord-segment(succ(n)))  _[warrant: well-known]_
+- `ord-segment-self` — forall([n in nn], not(n in ord-segment(n)))  _[warrant: well-known]_
+- `ord-segment-trans` — forall([m in nn, k, i], i in ord-segment(k) and k in ord-segment(m) implies i in ord-segment(m))  _[warrant: well-known]_
+- `ord-segment-zero-no-members` — forall([k], not(k in ord-segment(0)))  _[warrant: well-known]_
+- `permutation-recurrence` — forall([n in nn], card(permutations(succ(n))) = succ(n) * card(permutations(n)))  _[warrant: informal]_
+- `permutation-recurrence-rev` — forall([n in nn], succ(n) * card(permutations(n)) = card(permutations(succ(n))))  _[warrant: informal]_
+- `permutations-zero` — card(permutations(0)) = succ(0)  _[warrant: well-known]_
+- `permutations-zero-rev` — succ(0) = card(permutations(0))  _[warrant: well-known]_
+- `pigeonhole-infinite` — forall([s], s in set and not(card(s) in nn) implies forall([f], f in set and card(f) in nn implies forall([pi in fun(s, f)], forsome([c in f], not(card({x in s: pi(x) = c}) in nn)))))  _[warrant: informal]_
 - `power-insert-cover` — forall([x in set, k], k in set and not(k in x) implies power(union(x, {k})) = union(power(x), image(vnb-lambda(s, union(s, {k})), power(x))))  _[warrant: well-known]_
 - `power-insert-cover-rev` — forall([x in set, k], k in set and not(k in x) implies union(power(x), image(vnb-lambda(s, union(s, {k})), power(x))) = power(union(x, {k})))  _[warrant: well-known]_
 - `power-insert-disjoint` — forall([x in set, k], k in set and not(k in x) implies intersection(power(x), image(vnb-lambda(s, union(s, {k})), power(x))) = empty-set)  _[warrant: well-known]_
@@ -152,20 +152,20 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `rr-le-all-pos-nonpos` — forall([x in rr], forall([eps], pos-rr(eps) implies x <= eps) implies x <= 0)  _[warrant: well-known]_
 - `rr-pos-halvable` — forall([eps], pos-rr(eps) implies forsome([d], pos-rr(d) and d + d = eps))  _[warrant: well-known]_
 - `rr-pos-shrink` — forall([eps], pos-rr(eps) implies forsome([d], pos-rr(d) and <(d, eps)))  _[warrant: well-known]_
-- `subsequence-capture` — forall([s in inf-subsets(nn)], forsome([f in fun(nn, s)], forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n)))))
-- `succ-nn-ord` — forall([n in nn], succ(n) = succ_ord(n))
-- `succ-nn-ord-rev` — forall([n in nn], succ_ord(n) = succ(n))
-- `sum-ag-permutation-invariance` — forall([n in nn, ag], is-abelian-group(ag) implies forall([g in fun(nn, a(ag)), h in fun(nn, a(ag)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(ag, g, n) = sum-ag(ag, h, n)))
-- `sum-ag-permutation-invariance-rev` — forall([n in nn, ag], is-abelian-group(ag) implies forall([g in fun(nn, a(ag)), h in fun(nn, a(ag)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(ag, h, n) = sum-ag(ag, g, n)))
-- `sum-set-left-scalar` — forall([s], is-ring(s) implies forall([a in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], (mul(s))(a, sum-set(s, x, f)) = sum-set(s, x, vnb-lambda(z, (mul(s))(a, f(z)))))))
-- `sum-set-left-scalar-rev` — forall([s], is-ring(s) implies forall([a in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], sum-set(s, x, vnb-lambda(z, (mul(s))(a, f(z)))) = (mul(s))(a, sum-set(s, x, f)))))
-- `sum-set-right-scalar` — forall([s], is-ring(s) implies forall([b in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], (mul(s))(sum-set(s, x, f), b) = sum-set(s, x, vnb-lambda(z, (mul(s))(f(z), b))))))
-- `sum-set-right-scalar-rev` — forall([s], is-ring(s) implies forall([b in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], sum-set(s, x, vnb-lambda(z, (mul(s))(f(z), b))) = (mul(s))(sum-set(s, x, f), b))))
-- `uniformly-continuous-is-continuous` — forall([s, t, f], is-uniformly-continuous(s, t, f) implies is-continuous(s, t, f))
-- `union-empty-left` — forall([a in set], union(empty-set, a) = a)
-- `union-empty-left-rev` — forall([a in set], a = union(empty-set, a))
+- `subsequence-capture` — forall([s in inf-subsets(nn)], forsome([f in fun(nn, s)], forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n)))))  _[warrant: informal]_
+- `succ-nn-ord` — forall([n in nn], succ(n) = succ_ord(n))  _[warrant: informal]_
+- `succ-nn-ord-rev` — forall([n in nn], succ_ord(n) = succ(n))  _[warrant: informal]_
+- `sum-ag-permutation-invariance` — forall([n in nn, ag], is-abelian-group(ag) implies forall([g in fun(nn, a(ag)), h in fun(nn, a(ag)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(ag, g, n) = sum-ag(ag, h, n)))  _[warrant: informal]_
+- `sum-ag-permutation-invariance-rev` — forall([n in nn, ag], is-abelian-group(ag) implies forall([g in fun(nn, a(ag)), h in fun(nn, a(ag)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(ag, h, n) = sum-ag(ag, g, n)))  _[warrant: informal]_
+- `sum-set-left-scalar` — forall([s], is-ring(s) implies forall([a in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], (mul(s))(a, sum-set(s, x, f)) = sum-set(s, x, vnb-lambda(z, (mul(s))(a, f(z)))))))  _[warrant: informal]_
+- `sum-set-left-scalar-rev` — forall([s], is-ring(s) implies forall([a in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], sum-set(s, x, vnb-lambda(z, (mul(s))(a, f(z)))) = (mul(s))(a, sum-set(s, x, f)))))  _[warrant: informal]_
+- `sum-set-right-scalar` — forall([s], is-ring(s) implies forall([b in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], (mul(s))(sum-set(s, x, f), b) = sum-set(s, x, vnb-lambda(z, (mul(s))(f(z), b))))))  _[warrant: informal]_
+- `sum-set-right-scalar-rev` — forall([s], is-ring(s) implies forall([b in a(s), x], x in set and card(x) in nn implies forall([f in fun(x, a(s))], sum-set(s, x, vnb-lambda(z, (mul(s))(f(z), b))) = (mul(s))(sum-set(s, x, f), b))))  _[warrant: informal]_
+- `uniformly-continuous-is-continuous` — forall([s, t, f], is-uniformly-continuous(s, t, f) implies is-continuous(s, t, f))  _[warrant: informal]_
+- `union-empty-left` — forall([a in set], union(empty-set, a) = a)  _[warrant: well-known]_
+- `union-empty-left-rev` — forall([a in set], a = union(empty-set, a))  _[warrant: well-known]_
 - `union-of-opens-open` — forall([s], is-metric-space(s) implies forall([a, g], forall([i in a], is-open(s, g(i))) implies is-open(s, big-union(i, a, g(i)))))  _[warrant: proof]_
-- `well-ordering-principle` — forall([s in set], forsome([phi], phi in bijection(ord-segment(card(s)), s)))
+- `well-ordering-principle` — forall([s in set], forsome([phi], phi in bijection(ord-segment(card(s)), s)))  _[warrant: well-known]_
 
 ## Axioms
 
