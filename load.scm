@@ -275,6 +275,18 @@
       (display ";; Use (display-inert-macetes) to list them.")
       (newline)))
 
+;; Certification stamps from the last VNB test (reference/certification.scm, a
+;; list of (certify! 'name "date") forms).  Written by `vnb-test'; absent until
+;; the test has run at least once.  Loaded here so (status) can report when each
+;; proven theorem was last re-verified.  certify! is defined in proof-debt.scm.
+(let ((cert (string-append *reference-dir* "certification.scm")))
+  (if (file-exists? cert)
+      (begin (load cert)
+             (display ";; certifications: ")
+             (display (hash-table/count *certifications*))
+             (display " proven theorem(s) stamped by the last VNB test\n"))
+      (display ";; certifications: none on file -- run ./vnb-test to stamp\n")))
+
 ;; Classification invariant: DEFINITIONS ARE NOT PSS MEMBERS.  The PSS is the
 ;; set of *theorems* we excuse from the vnb-test (trusted on a warrant, never
 ;; re-proved); a definition is true by construction, not a theorem, so it has

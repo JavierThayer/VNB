@@ -156,6 +156,18 @@
     (newline)
     bill))
 
+;;; (2a) CERTIFICATION STAMP.  The VNB test (vnb-test: a periodic full run of
+;;; every proof script in sequence) records, per proven theorem, the date its
+;;; proof last re-ran to QED.  An at-load proof is certified by the load that
+;;; runs it; a standalone proof script (e.g. calculus/*) is certified only when
+;;; the VNB test runs it.  Stamps live in reference/certification.scm (a list of
+;;; (certify! 'name "date") forms) which load.scm loads if present -- so (status)
+;;; can show "certified <date>": the proof claim with a date behind it, not just
+;;; the word "proven".  PSS members are NEVER certified here (excused by design).
+(define *certifications* (make-equal-hash-table))   ; name -> date string
+(define (certify! name date) (hash-table-set! *certifications* name date))
+(define (certification-of name) (hash-table-ref/default *certifications* name #f))
+
 ;;; (2b) STATUS: one command, every axis.  Answers "what IS this result, and
 ;;;      is its proof complete?" without the user having to remember which of
 ;;;      provenance-of / warrant-of / debt-of-proof / *support-theorem-names*
@@ -187,18 +199,32 @@
     (if w (begin (display (car w)) (display " -- ") (display (cdr w)))
           (display "NONE"))
     (newline)
-    (display "  completion : ")
-    (case prov
-      ((primitive definitional) (display "n/a -- trusted base, modulo 0"))
-      ((proven)
-       (let ((bill (debt-of name)))
-         (if (null? bill)
-             (display "COMPLETE -- proven modulo 0 (unconditional)")
-             (begin (display "proven modulo ") (pd-display-set bill)
-                    (display "  [trust: ") (display (debt-trust-level bill))
-                    (display "]")))))
-      (else (display "INCOMPLETE -- asserted; rests on itself")))
-    (newline)))
+    (let ((cert (certification-of name)))
+      (display "  completion : ")
+      (cond
+        ((memq prov '(primitive definitional))
+         (display "n/a -- trusted base, modulo 0"))
+        ((eq? prov 'proven)
+         (let ((bill (debt-of name)))
+           (if (null? bill)
+               (display "COMPLETE -- proven modulo 0 (unconditional)")
+               (begin (display "proven modulo ") (pd-display-set bill)
+                      (display "  [trust: ") (display (debt-trust-level bill))
+                      (display "]")))))
+        ;; asserted in the catalog (cached so the everyday load need not re-run
+        ;; it) but its proof SCRIPT ran to QED in the last VNB test -- genuinely
+        ;; proven, just not re-proved at load.  Certification makes this honest.
+        (cert (display "PROVEN by a certified script (cached as asserted for load speed)"))
+        (w    (display "asserted on a warrant -- no machine proof"))
+        (else (display "INCOMPLETE -- asserted; rests on itself")))
+      (newline)
+      ;; A "certified" line wherever there is a proof claim to vouch for:
+      ;; proven provenance, OR a certification stamp on an asserted entry.
+      (when (or (eq? prov 'proven) cert)
+        (display "  certified  : ")
+        (if cert (begin (display "VNB test ") (display cert))
+                 (display "NOT since last VNB test run -- proof unverified"))
+        (newline)))))
 
 ;;; (3) PROOF-DEBT.md: forward map (each proven theorem -> outstanding base)
 ;;;     AND reverse keystone index (each asserted leaf -> proven dependents,
