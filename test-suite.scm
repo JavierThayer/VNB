@@ -2664,6 +2664,21 @@
   '(x y z))
 (check-false "parts: match returns #f on no match"
   (lambda () (match "?P and ?Q" "a in nn implies a + 0 = a")))
+;; Quantified patterns: the pattern's typed binding must be desugared like the
+;; target's, else they never match (the binder-position fix).
+(check "parts: match through a typed quantifier binding"
+  (lambda ()
+    (let ((b (match "forall([x in ?S], ?body)" "forall([x in nn], x + 0 = x)")))
+      (and b (wff->sexp (cdr (assq '?s b))))))
+  'nn)
+(check "parts: binder selector"
+  (lambda () (wff->sexp (part "forall([x in nn], x + 0 = x)" 'binder))) 'x)
+(check "parts: matrix selector"
+  (lambda () (wff->sexp (part "forall([x in nn], x + 0 = x)" 'matrix)))
+  '(implies (in x nn) (= (+ x 0) x)))
+;; Documented limitation: a hole in the BINDER VARIABLE slot does not bind.
+(check-false "parts: hole in binder-var position does not match (limitation)"
+  (lambda () (match "forall([?v in ?S], ?body)" "forall([x in nn], x + 0 = x)")))
 
 ;;; -----------------------------------------------------------------------
 ;;; Summary

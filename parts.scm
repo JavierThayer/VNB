@@ -198,10 +198,16 @@
 ;; (match "?P implies ?Q" target) -> ((?p . wff) (?q . wff)) | #f.
 ;; The pattern is parsed RAW (parse-string), not validated as a wff, because a
 ;; hole stands for an arbitrary sub-formula/term and the template need not be a
-;; standalone wff.  Holes are matched by the macete one-way matcher.
+;; standalone wff.  But we DO run expand-destructuring-quantifiers on it (the
+;; same binder desugaring make-wff applies to the target): parse-string leaves
+;; a typed binding as the raw (FORALL ((IN x A)) body), while the target is the
+;; desugared (FORALL x (IMPLIES (IN x A) body)) -- without this they would
+;; never match.  Holes pass through the desugaring untouched; applied to the
+;; target too, it is a no-op (already desugared).  Holes are then matched by
+;; the macete one-way matcher.
 (define (match pattern-string target)
-  (let* ((pat    (parse-string pattern-string))
-         (tgt    (parts->sexp target))
+  (let* ((pat    (expand-destructuring-quantifiers (parse-string pattern-string)))
+         (tgt    (expand-destructuring-quantifiers (parts->sexp target)))
          (vars   (parts-dedup (parts-collect-holes pat)))
          (parent (parts->parent target))
          (subst  (fluid-let ((*match-var-head* #t))
