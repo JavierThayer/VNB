@@ -215,3 +215,65 @@
                 (and entry
                      (cons (sort-qualifier (symbol->string v) entry)
                            (caddr body))))))))
+
+;;; -----------------------------------------------------------------------
+;;; (pss-letter 'name) -- a PSS membership recommendation letter.
+;;;
+;;; PSS membership (the curated set the engine may invoke freely) is largely
+;;; a subjective curation call -- but a candidate is far easier to judge read
+;;; aloud as English than as an s-expression.  This drafts the letter the
+;;; board reads: the candidate verbalized, its current standing, and an
+;;; assessment against the five admission gates.  Gates 1-2 are machine-
+;;; checkable and auto-filled; gates 3-5 (terminating / general / non-
+;;; redundant) are judgment and left for the board to rule on.
+(define (pss-letter name)
+  (let ((thm (hash-table-ref/default *theorem-table* name #f)))
+    (if (not thm)
+        (begin (display "No result named `") (display name)
+               (display "' is installed.\n"))
+        (let* ((prov   (provenance-of name))
+               (w      (warrant-of name))
+               (member? (memq name *support-theorem-names*))
+               (inert?  (assq name *inert-macetes*))
+               ;; gate 1: TRUE -- proven, or asserted-with-a-warrant.
+               (g1 (or (eq? prov 'proven) (eq? prov 'primitive)
+                       (eq? prov 'definitional) w))
+               ;; gate 2: SOUND as an auto-firing rewrite -- not S-10 inert.
+               (g2 (not inert?)))
+          (display "================================================\n")
+          (display "RE: PSS membership of `") (display name) (display "'\n")
+          (display "================================================\n\n")
+          (display "Statement (read aloud):\n  ")
+          (display (english-of name)) (newline) (newline)
+          (display "Current standing:\n")
+          (display "  provenance : ") (display prov)
+          (display (if (eq? prov 'asserted) "  (assumed)" "")) (newline)
+          (display "  warrant    : ") (display (if w (car w) 'NONE))
+          (when w (display " -- ") (display (cdr w))) (newline)
+          (display "  in PSS now : ") (display (if member? "yes (sitting member)" "no (candidate)"))
+          (newline) (newline)
+          (display "Admission gates:\n")
+          (display "  [") (display (if g1 "PASS" "FAIL"))
+          (display "] 1. True -- proven or warranted")
+          (display (if g1 "" "  <-- no proof, no warrant")) (newline)
+          (display "  [") (display (if g2 "PASS" "FAIL"))
+          (display "] 2. Sound rewrite -- not S-10 inert")
+          (display (if g2 "" "  <-- macete form unsound; admit named-only at most")) (newline)
+          (display "  [board] 3. Terminating -- oriented, won't loop when fired\n")
+          (display "  [board] 4. General -- reused across proofs, not a one-off\n")
+          (display "  [board] 5. Non-redundant -- not subsumed by an existing entry\n")
+          (newline)
+          (display "Recommendation: ")
+          (cond
+            ((and member? (not g1))
+             (display "SITTING MEMBER, but carries no warrant -- please\n")
+             (display "  supply one (or a proof) to clear gate 1.\n"))
+            ((not g1)
+             (display "HOLD -- give it a warrant or a proof first (gate 1).\n"))
+            ((not g2)
+             (display "DECLINE as an auto-firing rule (gate 2 fails); it may\n")
+             (display "  still be cited by name.\n"))
+            (member?
+             (display "CLEARED on gates 1-2; sitting member in good standing.\n"))
+            (else
+             (display "CLEARED on gates 1-2; board to rule on 3-5.\n")))))))
