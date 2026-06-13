@@ -283,8 +283,15 @@ in the current theory.  No quoting is needed.
 (declare-structure NAME
   (carriers C1 C2 ...)
   (op OPNAME DOMAIN RANGE)
-  (constant CNAME SET))
+  (constant CNAME SET)
+  (substructure SNAME TYPE)
+  (property PRED ACC ...))
 \end{VNBcode}
+
+The first four clause kinds describe the structure's \emph{shape} --- its
+components and their types.  The \texttt{property} clause is different in
+kind: it names a \emph{characteristic law} the components must satisfy.  The
+distinction is developed in the remark on shape versus properties below.
 
 \begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
@@ -311,6 +318,24 @@ in the current theory.  No quoting is needed.
 
 \item \texttt{(constant NAME SET)}
   Declares a constant-valued slot: $\mathit{NAME}(s) \in \mathit{SET}(s)$.
+
+\item \texttt{(substructure NAME TYPE)}
+  Declares a slot that holds a whole structure of kind \texttt{TYPE}
+  (for example a vector space's base \texttt{FIELD}).  It is typed by
+  \texttt{IS-\textit{TYPE}}$(\mathit{NAME}(s))$ rather than by the bare
+  $\in \textsc{set}$ of a carrier.  An op signature may reach into it
+  with foreign accessors --- e.g.\
+  \texttt{(op SMUL (CARTESIAN (A K) V) V)}, where \texttt{K} is a
+  \texttt{(substructure K FIELD)} slot and \texttt{(A K)} is the base
+  field's carrier.
+
+\item \texttt{(property PRED ACC ...)}
+  Names a characteristic law --- \emph{not} a component.  \texttt{PRED}
+  is a property predicate (Section~\ref{sec:shape-vs-property}), applied
+  to the named accessors, and is conjoined into the
+  \texttt{IS-\textit{NAME}} definition.  For example
+  \texttt{(property is-metric D X)} folds the metric axioms on
+  $\mathit{D}(s)$ over $\mathit{X}(s)$ into \texttt{IS-METRIC-SPACE}.
 
 \end{itemize}
 
@@ -373,19 +398,27 @@ in a goal.
 
 \paragraph{IS-\textit{NAME} axiom.}
 The predicate \texttt{IS-\textit{NAME}} is axiomatized as a conjunction
-whose first conjunct asserts that $s$ is a VNB list of exactly the right
-length, followed by typing conditions on each accessor:
+of two groups of conjuncts: the \emph{shape} (a length condition plus a
+typing condition per slot) and the \emph{properties} (one conjunct per
+\texttt{property} clause):
 \begin{align*}
   \forall s.\;\mathit{IS\text{-}NAME}(s) \;\Leftrightarrow\; &
-  \mathtt{length}(s) = n \\
-  &\land\; C_1(s) \in \mathit{SET} \land \cdots \land C_m(s) \in \mathit{SET}\\
+  \mathtt{length}(s) = n
+  && \text{\small(shape: length)}\\
+  &\land\; C_1(s) \in \mathit{SET} \land \cdots \land C_m(s) \in \mathit{SET}
+  && \text{\small(shape: carriers)}\\
   &\land\; \mathit{op}_1(s) \in \mathit{FUN}(\mathit{dom}_1, \mathit{rng}_1)
   \land \cdots
+  && \text{\small(shape: ops/constants)}\\
+  &\land\; \mathit{PRED}_1(\mathit{acc}(s), \ldots) \land \cdots
+  && \text{\small(properties)}
 \end{align*}
 where $n = m + k$ is the total number of components ($m$ carriers and $k$
 operations/constants).  The length condition ties the predicate to the
 instance side of the three-part picture: only a VNB list of exactly $n$
-elements can satisfy \texttt{IS-\textit{NAME}}.
+elements can satisfy \texttt{IS-\textit{NAME}}.  A declaration with no
+\texttt{property} clause has the property group empty --- \texttt{IS-NAME}
+is then a pure shape predicate.
 
 \begin{sloppypar}The axiom is named \texttt{IS-\textit{NAME}} and is immediately available
 via \texttt{cmd-theorem-assumption} and \texttt{cmd-apply-macete}.\end{sloppypar}
@@ -408,9 +441,68 @@ $\forall s.\; s \in \mathit{NAME} \Rightarrow \ldots$; the
 \texttt{\textit{NAME}-class} axiom then converts the antecedent to
 the predicate form $\mathit{IS\text{-}NAME}(s)$ exactly when needed.
 
-Characteristic axioms (associativity, distributivity, etc.) are
-\emph{not} generated automatically; they are installed by separate
-\texttt{theory-add-axiom!} calls after the declaration.
+\subsection{Shape versus properties}
+\label{sec:shape-vs-property}
+
+A structure declaration says two separate things about an instance $s$.
+Its \textbf{shape} is the list of components and their types: how long
+$s$ is, which slots are carriers, which are operations of which
+signature, which are constants or substructures.  Its \textbf{properties}
+are the characteristic laws those components must obey: that the
+operation is associative, that the constant is a two-sided identity, that
+the distance function is a metric.  Shape is what \texttt{carriers},
+\texttt{op}, \texttt{constant}, and \texttt{substructure} contribute;
+properties are what \texttt{property} clauses contribute.  Both are
+conjoined into \texttt{IS-\textit{NAME}}, so the predicate means
+\emph{``$s$ is an $\mathit{NAME}$,''} not merely \emph{``$s$ is
+$\mathit{NAME}$-shaped.''}
+
+\paragraph{Property predicates.}
+Each \texttt{property} clause names a predicate defined once, on its own,
+in \texttt{operation-properties.scm}, and applies it to the structure's
+accessors:
+\begin{description}[leftmargin=2.4cm, style=nextline]
+\item[\texttt{is-associative}] $(op, crr)$ --- $op$ is associative on $crr$.
+\item[\texttt{is-commutative}] $(op, crr)$ --- $op$ is commutative on $crr$.
+\item[\texttt{is-identity}] $(op, unit, crr)$ --- $unit$ is a two-sided identity.
+\item[\texttt{has-inverses}] $(op, unit, invop, crr)$ --- $invop$ gives two-sided inverses.
+\item[\texttt{is-distributive}] $(addop, mulop, crr)$ --- $mulop$ distributes over $addop$.
+\item[\texttt{is-metric}] $(dist, crr)$ --- $dist$ is a metric (nonneg, zero on the diagonal, symmetric, triangle).
+\item[\texttt{is-norm}, \texttt{is-group-norm}] --- norms for \texttt{NORMED-FIELD} / \texttt{NORMED-AG}.
+\end{description}
+The parameter names (\texttt{op}, \texttt{crr}, \texttt{unit}, \ldots)
+deliberately avoid the registered accessor constants
+(\texttt{A}, \texttt{MUL}, \texttt{E}, \texttt{X}, \texttt{D}, \ldots):
+the reader case-folds, so a bound \texttt{A} would collide with the
+carrier accessor \texttt{A}.
+
+\begin{remark}
+Folding the laws into \texttt{IS-\textit{NAME}} is not cosmetic.  Without
+the property group, two structures of the same shape would have
+\emph{equivalent} predicates: \texttt{IS-ABELIAN-GROUP} would be
+$\Leftrightarrow$ \texttt{IS-GROUP}, since both are 4-slot
+$(\mathit{A}, \mathit{MUL}, \mathit{E}, \mathit{INV})$ structures.  A
+commutativity axiom stated separately would then force \emph{every}
+group commutative.  With the property clause, \texttt{IS-ABELIAN-GROUP}
+is \texttt{IS-GROUP}'s body \emph{plus} \texttt{is-commutative} --- a
+genuine sub-predicate, and non-commutative groups remain expressible.
+\end{remark}
+
+\begin{remark}
+The equational laws are additionally available under their own names
+(\texttt{monoid-assoc}, \texttt{metric-triangle}, \ldots) as separate
+axioms, for citing a single law directly in a proof.  Once a structure
+carries the law through a \texttt{property} clause, these named
+restatements are derivable by projection rather than independent
+assumptions: the metric laws, for instance, are proven modulo~0 by
+projecting \texttt{is-metric} out of \texttt{IS-METRIC-SPACE}.  The
+ring-tower predicates
+(\texttt{COMMUTATIVE-RING}, \texttt{FIELD}, \ldots) still spell their
+\texttt{IS-\textit{NAME}} out by a hand-written
+$\texttt{IS-}\mathit{NAME} \Leftrightarrow \texttt{IS-}\mathit{parent}
+\land \text{properties}$ axiom rather than through \texttt{property}
+clauses --- equivalent in effect, a candidate for later unification.
+\end{remark}
 
 \subsection{Pre-loaded algebraic structures}
 \label{sec:algebraic}
@@ -949,6 +1041,113 @@ segment $\{0, 1, \ldots, n-1\}$ has cardinality exactly $n$.  The
 axiom \texttt{card-finite-bij} supplies an enumeration bijection for
 any finite set, which is the key ingredient for defining unordered
 finite sums in Section~\ref{sec:sequences}.
+
+%%% -----------------------------------------------------------------------
+\section{Viewing one structure as another: \texttt{view-as}}
+\label{sec:view-as}
+
+A ring's additive part $(\mathit{A}, \mathit{ADD}, \mathit{ZERO},
+\mathit{NEG})$ is an abelian group; its multiplicative part
+$(\mathit{A}, \mathit{MUL}, \mathit{ONE})$ is a monoid.  A
+\emph{view-as} records such a relationship: a way of \emph{seeing} an
+instance of one structure as an instance of another.  The relationship
+is asymmetric (the ring's additive group forgets the multiplication;
+there is no route back) and not unique (the same ring has both an
+additive-group view and a multiplicative-monoid view).  We call these
+\emph{views}, not ``bridges'': a bridge sounds symmetric, and the
+asymmetry and the multiplicity are exactly the point.
+
+\subsection{The \texttt{def-view-as} form}
+
+\begin{VNBcode}
+(def-view-as NAME
+  SOURCE-STRUCT  (src-comp-1 src-comp-2 ... src-comp-n)
+  TARGET-STRUCT  (tgt-slot-1 tgt-slot-2 ... tgt-slot-n))
+\end{VNBcode}
+
+The two component lists are flat lists of accessor symbols of equal
+length, matched position by position: the value at the target's $k$-th
+slot is the source's $k$-th named component.  The target list must be
+the target structure's slots in their declared order (the form checks
+this); the source list names, in that same order, which source accessor
+fills each target slot.  So a view is a \textbf{slot map written in the
+target's coordinate system}.  Read in that direction it may freely
+
+\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\item \textbf{forget} source slots (any not named simply drop),
+\item \textbf{reshuffle} (the source accessors are named in the target's
+  order, not the source's),
+\item \textbf{re-carrier} (name a non-carrier source slot as the target's
+  carrier --- e.g.\ a field's non-zero elements as a multiplicative
+  group's carrier),
+\item \textbf{add assumptions} (\texttt{IS-SOURCE} may be strictly
+  stronger than \texttt{IS-TARGET} on the image).
+\end{itemize}
+
+\begin{VNBcode}
+;;; A ring's additive structure is an abelian group.
+;;; ABELIAN-GROUP's slots, in order, are (A MUL E INV); the view fills
+;;; them from the ring's (A ADD ZERO NEG):
+(def-view-as 'RING-ADDITIVE-AG
+  'RING          '(A ADD ZERO NEG)
+  'ABELIAN-GROUP '(A MUL E INV))
+\end{VNBcode}
+
+\subsection{What \texttt{def-view-as} installs}
+
+\begin{enumerate}
+\item \textbf{A constructor functoid} \texttt{(NAME s)} whose defining
+  equation gathers the named source components into a target-shaped list:
+  \[
+    \mathtt{(RING\text{-}ADDITIVE\text{-}AG}\;r) \;=\;
+      \mathtt{LIST}(\mathit{A}(r),\, \mathit{ADD}(r),\,
+                    \mathit{ZERO}(r),\, \mathit{NEG}(r)).
+  \]
+  Inside a proof, \texttt{(MUL (RING-ADDITIVE-AG r))} reduces to
+  \texttt{(ADD r)} by unfolding the functoid and the accessor.
+
+\item \textbf{A typing axiom}, named
+  \texttt{\textit{name}-is-\textit{target}} (here
+  \texttt{ring-additive-ag-is-abelian-group}):
+  \[
+    \forall r.\; \mathit{IS\text{-}SOURCE}(r) \;\Rightarrow\;
+      \mathit{IS\text{-}TARGET}(\mathit{NAME}(r)).
+  \]
+  During the library-build phase this is installed as an \emph{axiom}
+  (a warranted assertion, Section~\ref{sec:warrants}), not proved;
+  promoting it to a theorem is a separate task.
+
+\item \textbf{Auto-specializations.}  Every theorem of the form
+  $\forall s.\; \mathit{IS\text{-}TARGET}(s) \Rightarrow P[s]$ already in
+  the theory is re-installed as
+  $\forall r.\; \mathit{IS\text{-}SOURCE}(r) \Rightarrow P[\mathit{NAME}(r)]$,
+  with the target-slot accessors reduced to source components (so
+  $\mathit{MUL}(s)$ becomes $\mathit{ADD}(r)$, etc.), under the name
+  \texttt{\textit{original}-\textit{name}}.  Thus declaring the additive
+  view immediately carries every abelian-group theorem over to the
+  additive structure of every ring.
+\end{enumerate}
+
+\begin{remark}
+A view-as is a covariant functor in waiting: the constructor is the
+object map (an instance of the source becomes an instance of the
+target), and the auto-specialization transports the target's theorems
+along it.  The morphism half --- transporting homomorphisms across a
+view --- is deferred until homomorphisms are first-class.  The
+auto-specializer currently matches only theorems guarded by exactly
+\texttt{IS-TARGET}; it does not chain through structure-inclusion axioms,
+so same-shape refinements (a commutative ring's additive view, say) are
+declared directly rather than derived.
+\end{remark}
+
+\begin{remark}
+Same-shape inclusions --- every abelian group is a group, every
+commutative ring is a ring --- are \emph{not} views.  They are recorded
+as plain $\texttt{IS-}X \Rightarrow \texttt{IS-}Y$ typing axioms, because
+the constructor would be a redundant identity list.  A \texttt{view-as}
+earns its keep when source and target have different shapes, so the
+constructor genuinely projects.
+\end{remark}
 
 %%% -----------------------------------------------------------------------
 \section{Monoid products and ring sums}

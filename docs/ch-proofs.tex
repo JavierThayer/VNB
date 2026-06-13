@@ -123,9 +123,13 @@ advances the focus to the first new ungrounded subgoal.
   Close a goal by reducing both sides to their canonical form in the free
   associative $\mathbb{Z}$-algebra.  Addition is commutative (both sides
   are brought to the same sorted canonical order); multiplication is
-  non-commutative.  Generator symbols are detected automatically: any
-  symbol not reducible to an integer by \texttt{arith-eval} is treated as
-  a ring generator.  No generator list need be supplied.
+  non-commutative.  Generators are detected automatically and no generator
+  list need be supplied: \texttt{(rs)} treats any \emph{term} that
+  \texttt{arith-eval} cannot reduce to a number as a generator of the free
+  ring --- a bare symbol such as \texttt{x}, or a compound term such as
+  \texttt{f(x)} whose head is not one of $+\,-\,*$.  A compound generator is
+  a single opaque indeterminate: \texttt{f(x)} is atomic and its argument is
+  not examined.
 
   The goal may be in either of two forms:
   \begin{itemize}[label=$-$, leftmargin=0.85cm]
@@ -141,9 +145,15 @@ advances the focus to the first new ungrounded subgoal.
 
   In both cases every generator must be certified as an element of one of
   the five ring domains $\mathit{NN}$, $\mathit{ZZ}$, $\mathit{QQ}$,
-  $\mathit{RR}$, $\mathit{CC}$.  Any subterm that is neither a symbol nor
-  reducible to an integer causes the command to fail gracefully with a
-  warning; no unsound inference is ever made.
+  $\mathit{RR}$, $\mathit{CC}$ --- a symbol \texttt{x} by an
+  \texttt{(IN x $D$)} typing, a compound generator \texttt{f(x)} by an
+  \texttt{(IN f(x) $D$)} assumption.  This certification is also what keeps
+  the rule sound on partial terms.  Since \texttt{=} is strict (it requires
+  both sides defined), \texttt{3 + f(x) = 1 + f(x) + 2}
+  holds only when \texttt{f(x)} is defined; membership entails definedness,
+  so demanding \texttt{(IN f(x) $D$)} supplies exactly that guarantee.  A
+  generator that is not certified leaves the goal untouched --- the command
+  never makes an unsound step.
 
   \begin{VNBcode}
 ;;; Directly on a universally quantified goal -- no (di) needed:
@@ -151,10 +161,10 @@ advances the focus to the first new ungrounded subgoal.
   "forall([a in ZZ, b in ZZ, c in ZZ], a + b + c = c + b + a)"))
 (rs)    ; closes in one step
 
-;;; After (di), bare equality in context:
+;;; After (di), a compound term certified in context becomes a generator:
 (sp (make-wff-from-string
-  "forall([x in CC, y in CC], (x-y)*(x+y) = x*x - y*y)"))
-(di) (rs)
+  "forall([x in ZZ], (f(x) in ZZ) implies 3 + f(x) = 1 + f(x) + 2)"))
+(di) (di) (rs)    ; di peels the forall then the hypothesis; rs then closes
 
 ;;; Coefficient arithmetic:
 (sp (make-wff-from-string "forall([x in ZZ], 2*x + 3*x = 5*x)"))
@@ -164,6 +174,52 @@ advances the focus to the first new ungrounded subgoal.
   The underlying decision procedure is \texttt{ring-poly-equal?}; the
   primitive inference is \texttt{pi-ring-simplify!}, both in
   \texttt{algebraic.scm}.  The interactive short form is \texttt{(rs)}.
+
+\item \texttt{(cmd-comm-ring-simplify ps)}
+  The commutative counterpart of \texttt{(cmd-ring-simplify ps)}.  Where
+  \texttt{(rs)} fixes the order of factors within a monomial,
+  \texttt{(crs)} treats multiplication as commutative: a monomial is a
+  \emph{multiset} of generators, canonicalised as a sorted generator
+  list, so \texttt{x*y} and \texttt{y*x} share one normal form and
+  commutativity lives in the representation rather than in any rewrite
+  step.  Each side reduces to a sum of such monomials over \texttt{ZZ},
+  and the goal closes iff the two normal forms coincide.  Use it for any
+  identity whose proof needs reordering of factors, which \texttt{(rs)}
+  cannot perform.
+
+  The goal may take the same two shapes as for \texttt{(rs)} (a bare
+  equality with generators certified by context typings, or a typed
+  universally quantified identity), and additionally a \textbf{generic}
+  form over an arbitrary ring: \texttt{forall($R$, IS-COMMUTATIVE-RING($R$)
+  implies \ldots)} built from \texttt{(ADD $R$)}, \texttt{(MUL $R$)},
+  \texttt{(NEG $R$)}, \texttt{(ZERO $R$)}, \texttt{(ONE $R$)}, with the
+  generators ranging over the carrier \texttt{(A $R$)}.
+
+  Generators are detected and certified exactly as for \texttt{(rs)}: a
+  symbol or an opaque compound term, certified by an \texttt{(IN $v$ $D$)}
+  typing in the concrete form or an \texttt{(IN $v$ (A $R$))} assumption in
+  the generic form.  The same partiality caveat applies --- a compound
+  generator fires only once certified, which in VNB guarantees it is
+  defined.
+
+  \begin{VNBcode}
+;;; Reordering of factors -- (rs) cannot close this, (crs) does:
+(sp (make-wff-from-string
+  "forall([x in ZZ, y in ZZ], x*y*x = x*x*y)"))
+(crs)   ; closes in one step
+
+;;; Commutative expansion:
+(sp (make-wff-from-string
+  "forall([x in ZZ, y in ZZ], (x+y)*(x+y) = x*x + 2*x*y + y*y)"))
+(crs)
+  \end{VNBcode}
+
+  The procedure is a trusted oracle (it compares canonical normal forms
+  rather than mechanising the ring axioms), carrying the warrant
+  \texttt{comm-ring-simplify} of kind \texttt{well-known}.  The primitive
+  inference is \texttt{pi-comm-ring-simplify!} in
+  \texttt{comm-ring-simplify.scm}.  The interactive short form is
+  \texttt{(crs)}.
 
 \item \texttt{(cmd-reflexivity ps)}
   Close goal \texttt{a = a} when \texttt{a} is demonstrably defined.
@@ -268,6 +324,125 @@ advances the focus to the first new ungrounded subgoal.
 \end{itemize}
 
 %% =========================================================
+\section{Two surfaces, one script}
+\label{sec:two-surfaces}
+
+Every proof step exists in two forms.
+
+The \emph{builder} \texttt{(cmd-\textit{name}\ \textit{ps}\ \textit{arg}
+\ldots)} (Section~\ref{sec:commands}) takes a proof state explicitly and
+\emph{returns} a new one; it has no side effects and never prints.  It is
+the form to call from Scheme code that manipulates proof states as values.
+
+The \emph{interactive short form} \texttt{(\textit{name}\ \textit{arg}
+\ldots)} (Section~\ref{sec:interactive}) is a thin wrapper around the
+builder: it reads the global proof state \texttt{*ps*}, applies the
+builder, stores the result back in \texttt{*ps*}, and calls \texttt{(show)}
+so the new state is displayed.  This is the form typed in a live session.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Builder & Short form & \\
+\midrule
+\texttt{(cmd-direct-inference ps)}        & \texttt{(di)}    & no argument \\
+\texttt{(cmd-antecedent-inference ps $f$)}& \texttt{(ai $f$)}& formula argument \\
+\texttt{(cmd-backchain ps $F$)}           & \texttt{(bc $F$)}& formula argument \\
+\texttt{(cmd-instantiate ps $F$ $t$)}     & \texttt{(inst $F$ $t$)} & formula + term \\
+\texttt{(cmd-apply-macete ps $n$)}        & \texttt{(mac $n$)} & theorem name \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The wrapper does one more thing: it \emph{records itself}.  Each short form
+appends an entry \texttt{(\textit{name}\ .\ \textit{args})} to the global
+accumulator \texttt{*proof-script*}, which \texttt{(sp \ldots)} clears at
+the start of a proof.  So there is no separate scripting language to learn:
+\textbf{the script is the transcript} --- the very sequence of short forms
+you typed.  \texttt{(qed \textit{name})} and \texttt{(save-proof
+\textit{name})} store that sequence; \texttt{(replay-proof \textit{name})}
+re-runs it (Section~\ref{sec:replay}).
+
+\subsection{Supplying arguments}
+\label{sec:arg-collection}
+
+A short form takes one of a few kinds of argument, and each kind is
+collected the same way wherever it appears.
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{Nothing.}  The structural steps --- \texttt{di}, \texttt{ass},
+  \texttt{pbc}, \texttt{rs}, \texttt{rfl}, \texttt{ci}, \texttt{ni},
+  \ldots\ --- read the focus goal and need no argument.
+
+\item \textbf{A formula} (\texttt{ai}, \texttt{bc}, \texttt{wk},
+  \texttt{cut}, \texttt{ue}, the assumption cited by \texttt{inst} and
+  \texttt{mac-h}).  It may be supplied three interchangeable ways:
+  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \item a \textbf{surface string}, parsed for you ---
+    \texttt{"n in NN and m in NN"};
+  \item a \textbf{raw S-expression} ---
+    \texttt{'(and (in n nn) (in m nn))};
+  \item for a command that cites an existing \emph{assumption}, a
+    \textbf{1-based assumption index}: a positive integer $k$ selects the
+    $k$-th assumption of the focus sequent, exactly as numbered in the
+    display.  \texttt{(ai 1)} stands in for retyping the first assumption.
+  \end{itemize}
+
+\item \textbf{A term} (\texttt{ew}, the witness slot of \texttt{inst},
+  \texttt{if-true}/\texttt{if-false}).  A string or an S-expression; there
+  is no index form, since a term is not an assumption to point at.
+
+\item \textbf{A name} (\texttt{ta}, \texttt{mac}, \texttt{bc*},
+  \texttt{qed}).  A symbol naming an installed theorem or macete.
+
+\item \textbf{A small integer} (\texttt{ui $k$}, \texttt{ce $f$ $k$},
+  \texttt{focus $n$}).  Selects a branch, a tuple component, or an open
+  goal --- not an assumption index.
+\end{itemize}
+
+\begin{VNBcode}
+(sp (make-wff-from-string "n in NN and m in NN implies n in NN"))
+(di)        ; assume the conjunction (now assumption #1)
+(ai 1)      ; crack assumption #1 -- the index, not the retyped formula
+(ass)
+(qed 'and-elim-demo)
+
+(lookup-proof 'and-elim-demo)
+; => ((di) (ai 1) (ass))     -- the index is recorded verbatim
+\end{VNBcode}
+
+\begin{remark}
+The assumption-index form is accepted by the commands that \emph{cite} an
+assumption --- \texttt{ai}, \texttt{bc}, \texttt{wk}, \texttt{inst},
+\texttt{ce}, \texttt{te}, \texttt{ie}, \texttt{mac-h}.  It is recorded
+verbatim in the script, so a replay re-resolves ``assumption~1'' against
+the focus sequent it actually reaches --- robust to the formula's exact
+text, but dependent on the assumption \emph{order} being the same on
+replay.  When that is in doubt, give the formula itself.
+\end{remark}
+
+\subsection{Argument collection in a front end: \texttt{bc*}, \texttt{B}, \texttt{B+}}
+\label{sec:bc-star-collection}
+
+\texttt{bc*} (Section~\ref{sec:interactive}) matches a theorem's conclusion
+against the goal and instantiates whatever that match determines.  A schema
+variable the match leaves \emph{undetermined} must be supplied --- as a
+binding list \texttt{((\textit{v}\ \textit{val})\ \ldots)} of Scheme
+expressions.  The pure query \texttt{(bc*-undetermined '\textit{name})}
+reports exactly which variables those are, without touching the proof.
+
+A front end uses that query to collect the values \emph{by name} instead of
+making the user write the quoted binding list: it asks for each undetermined
+variable's value as an ordinary \emph{term string} (\texttt{"RAN(f)"},
+\texttt{"nn"}) and parses it.  That is the \texttt{B} builder.  Its
+companion \texttt{B+} is a saturating closer: it only commits a citation it
+can first \emph{prove} will close the focus goal
+(\texttt{bc*-can-close?} matches the conclusion \emph{and} checks every
+hypothesis is already an assumption), so it never leaves the proof worse
+than it found it.
+
+%% =========================================================
 \section{Interactive short-form commands}
 \label{sec:interactive}
 
@@ -298,6 +473,14 @@ through the Emacs interface).
   \texttt{cmd-ring-simplify} --- Close a ring identity goal by polynomial
   normalization.  Works directly on universally quantified goals or on
   bare equalities after \texttt{(di)}.  See Section~\ref{sec:commands}.
+
+\item \texttt{(crs)}
+  \texttt{cmd-comm-ring-simplify} --- The commutative analogue of
+  \texttt{(rs)}.  Decides a polynomial identity in the generators by
+  reducing both sides to a canonical sum of monomials (each monomial a
+  sorted multiset of generators) over \texttt{ZZ}, then comparing.  Use it where
+  commutativity of multiplication is needed and \texttt{(rs)}, which
+  fixes factor order, will not close the goal.
 
 \item \texttt{(rfl)} \texttt{cmd-reflexivity}
 

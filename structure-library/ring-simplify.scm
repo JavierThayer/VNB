@@ -4,14 +4,46 @@
 ;;; supplied set of generators (non-commutative polynomial ring).
 ;;; Addition is commutative; multiplication respects generator order.
 ;;;
-;;;   word = list of generator symbols  e.g. '(x y x) means x*y*x
-;;;   term = (word . integer-coeff)     zero coefficients are dropped
+;;;   word = list of generators       e.g. '(x y x) means x*y*x
+;;;   term = (word . integer-coeff)    zero coefficients are dropped
 ;;;   poly = list of terms sorted by word<?
 ;;;
-;;; Any symbol that arith-eval-term cannot reduce to a number is treated as
-;;; a ring generator (non-commuting).  Known numeric constants (0, 1, PI …)
-;;; are folded into coefficients.  Any sub-expression that is neither
-;;; arithmetic nor +/-/* applied to such causes vnb->poly to return #f.
+;;; A GENERATOR is any maximal sub-term arith-eval-term cannot reduce to a
+;;; number: a bare symbol like x, OR a compound term like f(x) whose head is
+;;; not one of +/-/*.  Generators do not commute.  Numeric constants
+;;; (0, 1, PI …) fold into coefficients.  Only a genuinely malformed term (a
+;;; non-symbol non-pair, or a degenerate (-) with no operands) makes
+;;; vnb->poly return #f.
+;;;
+;;; SOUNDNESS for compound generators rests entirely on ring-vars-ok?: every
+;;; generator must be certified (IN g D) for a ring domain D.  In VNB
+;;; membership entails definedness, so the certification doubles as a
+;;; definedness guarantee.  Hence 3 + f(x) = 1 + f(x) + 2 -- valid only when
+;;; f(x) is defined -- fires exactly when (IN (f x) D) is in context, and the
+;;; command does nothing otherwise.  No separate is-defined premise is needed:
+;;; the ring-domain certification already supplies it.
+
+;;; Total order on generators.  A generator is a symbol or a compound term,
+;;; so symbol<? alone no longer suffices.  Order by a type rank
+;;; (number < symbol < () < pair), then within a class: numbers by <, symbols
+;;; by symbol<?, pairs lexicographically by car then cdr (recursively).  Total
+;;; and deterministic, so monomial canonicalisation has a unique normal form.
+;;; On two symbols it agrees with symbol<?, so symbol-only behaviour is
+;;; unchanged.
+(define (gen-rank x)
+  (cond ((number? x) 0) ((symbol? x) 1) ((null? x) 2) ((pair? x) 3) (else 4)))
+(define (gen<? a b)
+  (let ((ra (gen-rank a)) (rb (gen-rank b)))
+    (cond ((< ra rb) #t)
+          ((> ra rb) #f)
+          (else
+           (case ra
+             ((0) (< a b))
+             ((1) (symbol<? a b))
+             ((3) (cond ((gen<? (car a) (car b)) #t)
+                        ((gen<? (car b) (car a)) #f)
+                        (else (gen<? (cdr a) (cdr b)))))
+             (else #f))))))      ; () vs (), or non-term atoms: not strictly <
 
 ;;; Length-then-lex ordering on words.
 (define (word<? w1 w2)
@@ -20,8 +52,8 @@
           ((> l1 l2) #f)
           (else (let lp ((a w1) (b w2))
                   (cond ((null? a) #f)
-                        ((symbol<? (car a) (car b)) #t)
-                        ((symbol<? (car b) (car a)) #f)
+                        ((gen<? (car a) (car b)) #t)
+                        ((gen<? (car b) (car a)) #f)
                         (else (lp (cdr a) (cdr b)))))))))
 
 ;;; Merge two sorted poly lists, combining coefficients for equal words.
@@ -92,12 +124,18 @@
                           (and p (lp (cdr args)
                                      (poly-add acc (poly-neg p))))))))))))
        (else
+        ;; A compound term whose head is not +/-/*.  If arith-eval can reduce
+        ;; it to a number it is a constant; otherwise treat the whole term as
+        ;; a single opaque generator (e.g. f(x)).  Soundness is guarded later
+        ;; by ring-vars-ok? requiring (IN expr D).
         (let ((v (arith-eval-term expr)))
-          (and v (number? v)
-               (if (zero? v) '() (list (cons '() v))))))))
+          (if (and v (number? v))
+              (if (zero? v) '() (list (cons '() v)))
+              (list (cons (list expr) 1)))))))
     (else #f)))
 
-;;; Collect unique generator symbols from two polynomials.
+;;; Collect unique generators from two polynomials.  Generators may be
+;;; compound terms, so dedup with member (equal?), not memq (eq?).
 (define (poly-generators p1 p2)
   (let loop ((terms (append p1 p2)) (seen '()))
     (if (null? terms)
@@ -106,7 +144,7 @@
           (if (null? gs)
               (loop (cdr terms) s)
               (inner (cdr gs)
-                     (if (memq (car gs) s) s (cons (car gs) s))))))))
+                     (if (member (car gs) s) s (cons (car gs) s))))))))
 
 ;;; Ring domains: the five standard number systems.
 ;;; string-downcase makes the check work on both case-folding (MIT 11.2)
@@ -144,14 +182,14 @@
   (let check ((vs gens))
     (or (null? vs)
         (let ((v (car vs)))
-          (and (or (let ((q (assq v qvars)))
+          (and (or (let ((q (assoc v qvars)))   ; assoc: v may be a compound term
                      (and q (ring-domain? (cdr q))))
                    (let find ((as asms))
                      (cond ((null? as) #f)
                            ((let ((f (wff-formula (car as))))
                               (and (pair? f) (= (length f) 3)
                                    (eq? (car f) 'IN)
-                                   (eq? (cadr f) v)
+                                   (equal? (cadr f) v)   ; equal?: certify (IN (f x) D)
                                    (ring-domain? (caddr f))))
                             #t)
                            (else (find (cdr as))))))

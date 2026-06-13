@@ -1,0 +1,215 @@
+\chapter{Classification of results}
+\label{ch:classification}
+
+Every named result in the current theory carries a \emph{classification}.
+It answers two independent questions, and keeping them apart is the whole
+point of this chapter:
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{What justifies the statement?} --- is it a primitive
+  assumed as a base, a definition true by construction, a theorem with a
+  machine proof, or a result trusted on a stated warrant without proof?
+\item \textbf{May the proof engine activate it unbidden?} --- whether the
+  prover is allowed to apply the result as a rewrite rule during a proof.
+\end{itemize}
+
+\noindent
+These two questions are \emph{orthogonal}.  The first sorts results into
+the four kinds below; the second is a separate matter, discussed in
+Section~\ref{sec:firing}.  A common confusion --- ``is this proved?'' ---
+conflates them, and most of what follows is aimed at pulling them apart.
+
+%% =========================================================
+\section{The four kinds}
+\label{sec:four-kinds}
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{Axiom.} A primitive of VNB --- the base we build on.  The
+  axiom set is small and essentially fixed; see
+  Section~\ref{sec:primitives}.  The only reason to add one is the
+  discovery that the existing primitives do not capture the full power of
+  VNB.  An axiom is assumed, not proved.
+
+\item \textbf{Definition.} True \emph{by construction}: a defining
+  equation, or an unfolding of one.  A definition is \emph{not a theorem}
+  --- there is nothing to prove, since it holds by the meaning of the
+  symbol it introduces.  Consequently it is never submitted to the VNB
+  test and is \emph{not} a member of the Proof Support Set.  It does,
+  however, still \textbf{fire as a rewrite} (Section~\ref{sec:firing}):
+  the defining equation is exactly the rule that unfolds the symbol.
+
+\item \textbf{Theorem.} Carries a machine proof.  Its proof script runs
+  end-to-end and is re-certified by the VNB test
+  (Section~\ref{sec:vnb-test}).  This is the only kind whose truth rests
+  on a checked derivation inside the system.
+
+\item \textbf{Proof Support Set (PSS).} A theorem \emph{trusted on a
+  warrant, without a machine proof} --- and so \emph{excused} from the VNB
+  test.  Every PSS member carries credentials: a plain statement of what
+  it says plus a short justification of why it is accepted
+  (Section~\ref{sec:warrants}).  The PSS is the curated foundational
+  engine of obvious-but-tedious facts (finite-sum identities, ordinal and
+  set commonplaces) that are not in doubt and not worth the cost of
+  mechanising.  A second motive is reuse: a proof typically calls on many
+  small, well-established intermediate facts that recur across unrelated
+  developments, and collecting them in the PSS makes each available
+  everywhere at once rather than re-derived context after context.
+\end{itemize}
+
+\begin{remark}
+The PSS exists for a practical reason.  Pushing into new
+mathematical territory, a proof constantly bumps into basic --- and
+genuinely important --- facts whose proofs are well known but tedious and
+time-consuming to mechanise.  Stopping to grind each one out would stall
+the advance.  The PSS is the mechanism for brushing them aside: assert the
+fact on a warrant, keep moving.  That is exactly why it was introduced.
+\end{remark}
+
+\begin{remark}
+``Asserted'' is not a fifth kind.  A result installed without a proof is
+debt against the fixed axiom base: it is destined either to be discharged
+(promoted to a \emph{theorem} with a proof) or recognised as a genuine
+primitive gap (an \emph{axiom}), or --- if it is an obvious support fact
+--- credentialed into the \emph{PSS}.  An asserted result carrying no
+warrant at all is a backlog item, not a stable category.
+\end{remark}
+
+%% =========================================================
+\section{Activation versus justification}
+\label{sec:firing}
+
+Whether the prover may apply a result as a rewrite rule is
+\emph{independent} of the four-way classification above.  Axioms,
+definitions, theorems, and PSS members can \emph{all} be rewrite rules,
+and any of them can equally be inert (cited only by name).  Activation is
+the business of the \emph{macete} mechanism, a separate registry described
+in Section~\ref{sec:macetes}: installing a result as a macete with
+\texttt{install-theorem!} is what lets the engine fire it, and that is a
+decision about \emph{use}, not about what justifies the statement.
+
+The clearest case is the definition: it is not a PSS member, yet its
+defining equation is precisely the rewrite that unfolds the defined
+symbol.  Conversely, a fully proved theorem may be left inert if it is too
+specialised to be worth firing automatically.
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Kind} & \textbf{Believed because} & \textbf{In VNB test?} & \textbf{May fire?}\\
+\midrule
+Axiom      & assumed (primitive)   & no  & yes\\
+Definition & true by construction  & no  & yes\\
+Theorem    & machine proof         & yes & yes\\
+PSS        & a stated warrant      & no (excused) & yes\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The last column is the same ``yes'' in every row: firing rights cut across
+the classification entirely.
+
+%% =========================================================
+\section{Warrants}
+\label{sec:warrants}
+
+A definition needs no warrant: it is true by construction, so there is
+nothing to justify.  A PSS member, by contrast, is an asserted theorem ---
+something that \emph{could} be false and is not being proved here --- and
+so it must carry credentials.  A \emph{warrant} is that justification: a
+comprehensible statement of the fact together with at least a couple of
+lines saying why we accept it without a machine proof.
+
+A warrant is attached with
+
+\begin{VNBsnip}
+(warrant! 'name 'kind "free-text justification")
+\end{VNBsnip}
+
+\noindent
+where \texttt{kind} is one of the recognised grades of justification (the
+set \texttt{*warrant-kinds*}), weakest to strongest:
+
+\begin{itemize}[label=$\ast$, leftmargin=0.85cm]
+\item \texttt{hand-wave} --- a heuristic or plausibility argument;
+  convincing, not rigorous.
+\item \texttt{well-known} --- a standard textbook fact, asserted without
+  argument.
+\item \texttt{reference} --- cites a specific source, named in the text.
+\item \texttt{informal} --- a rigorous paper-proof exists (often sketched
+  in the file comment or the text), just not mechanised in VNB.
+\item \texttt{proof} --- a machine-checked VNB proof exists.
+\end{itemize}
+
+\begin{remark}
+A warrant is a promissory note, not a permanent verdict: any weaker kind
+may later be discharged into \texttt{proof}.  Nothing logical depends on
+it --- it is metadata for review and triage.  A result with no warrant at
+all ranks below even \texttt{hand-wave}.
+\end{remark}
+
+\begin{remark}
+Warrants propagate.  When a biconditional theorem is installed, its
+automatically generated \texttt{-rev} companion inherits the same warrant,
+so the reverse-direction rewrite is credentialed identically to the
+forward one.
+\end{remark}
+
+%% =========================================================
+\section{The VNB test}
+\label{sec:vnb-test}
+
+The \emph{VNB test} is the standing examination that certifies the
+\textbf{theorem} bucket.  It re-proves, in sequence, every result that has
+a runnable proof script, and reports whether each still reaches
+\texttt{QED}.  Definitions and PSS members are excused by construction:
+the former have nothing to prove, the latter are accepted on a warrant.
+Run it from the prover root:
+
+\begin{VNBsnip}
+./vnb-test
+\end{VNBsnip}
+
+\noindent
+It harvests the proofs that run at load time and the standalone proof
+scripts, runs each, and writes a \emph{certification stamp}
+(\texttt{reference/certification.scm}) recording the date and which results
+passed, together with a human-readable report
+(\texttt{reference/VNB-TEST.md}).  The next time the prover loads, the
+stamp is read back, so a result's status can report ``certified by the VNB
+test on \textit{date}'' rather than merely ``has a proof script.''
+
+\begin{remark}
+The VNB test is \emph{not} the unit test suite.
+\texttt{test-suite.scm} is a fast feature-and-regression suite of several
+hundred cases run constantly during development; it checks that the
+machinery behaves, not that the library's theorems still derive.  The VNB
+test is the slower, periodic exam that re-runs the mathematics
+itself --- re-deriving every proof in the library, as any serious proof
+system must.  Keep both: they answer different questions.
+\end{remark}
+
+%% =========================================================
+\section{Inspecting a result}
+\label{sec:status-query}
+
+Three commands expose the classification at the REPL.
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \texttt{(status 'name)} prints, on one screen, a result's
+  provenance, whether it is a PSS member, any warrant it carries, and its
+  certification state (``certified by the VNB test on \textit{date}'' or
+  ``not certified since the last run'').
+
+\item \texttt{(status-audit)} writes \texttt{reference/STATUS-AUDIT.md}: a
+  census of the whole library by kind, flagging hygiene issues --- asserted
+  results with no warrant, theorem-shaped names that have drifted out of
+  the theorem bucket, and the like.
+
+\item \texttt{(pss-letter 'name)} drafts a plain-English ``recommendation
+  letter'' for a candidate PSS member: an English rendering of what it
+  says, its current standing, and an assessment against the admission
+  gates (true; a sound, terminating rewrite shape; general rather than
+  bespoke; non-redundant).  It is an aid to deciding whether a result
+  belongs in the curated support set, not an automatic admission.
+\end{itemize}

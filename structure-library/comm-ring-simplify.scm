@@ -16,15 +16,19 @@
 ;;; poly-generators, ring-domain?, peel-ring-foralls, ring-vars-ok?.  Only
 ;;; multiplication changes -- the product monomial is the SORTED concatenation
 ;;; of the two factor monomials, so commutativity lives in the representation.
-;;; Coefficients live in ZZ; symbols arith-eval-term cannot reduce to a number
-;;; are generators (the ZZ-module / [[project-ag-are-zz-modules]] view of the
-;;; additive group).
+;;; Coefficients live in ZZ; any maximal sub-term arith-eval-term cannot reduce
+;;; to a number is a generator -- a bare symbol or a compound term like f(x)
+;;; (the ZZ-module / [[project-ag-are-zz-modules]] view of the additive group).
+;;; As in ring-simplify.scm, a compound generator is sound only because
+;;; cring-vars-ok? requires it certified (IN g D) / (IN g (A R)), which in VNB
+;;; entails it is defined.
 ;;;
 ;;; Dependencies: ring-simplify.scm (loaded just before), arith-eval.scm.
 
-;;; Canonicalise a monomial: sort its generator symbols (multiset normal form).
+;;; Canonicalise a monomial: sort its generators (multiset normal form).
+;;; gen<? (ring-simplify.scm) totally orders symbols and compound terms alike.
 (define (cmonomial-sort gens)
-  (sort gens (lambda (a b) (symbol<? a b))))
+  (sort gens (lambda (a b) (gen<? a b))))
 
 ;;; Normalise an unsorted term list (each term a sorted-word . coeff): sort by
 ;;; word<?, combine equal monomials, drop zero-coefficient terms.
@@ -105,9 +109,13 @@
         (let ((p (cvnb->poly (cadr expr))))
           (and p (poly-neg p))))
        (else
+        ;; Compound term, head not +/-/* or a binary structure alias: a number
+        ;; if arith-eval reduces it, else an opaque generator (e.g. f(x)).
+        ;; cring-vars-ok? backstops soundness via (IN expr D).
         (let ((v (arith-eval-term expr)))
-          (and v (number? v)
-               (if (zero? v) '() (list (cons '() v))))))))
+          (if (and v (number? v))
+              (if (zero? v) '() (list (cons '() v)))
+              (list (cons (list expr) 1)))))))
     (else #f)))
 
 ;;; =======================================================================
@@ -137,8 +145,10 @@
                         (or (find-cring (car xs)) (loop (cdr xs))))))))))
 
 ;;; Convert an expression over the fixed ring R to a commutative poly.
-;;; Symbols are carrier elements (generators); ring operators recurse; any
-;;; foreign operator or a ring operator over a DIFFERENT ring returns #f.
+;;; Symbols are carrier elements (generators); R's ring operators recurse; any
+;;; other compound term (a foreign function on the carrier, or a ring operator
+;;; over a DIFFERENT ring) is taken as an opaque generator, certified later by
+;;; cring-vars-ok? as (IN it (A R)).  Only a non-symbol non-pair returns #f.
 (define (cring->poly e R)
   (cond
     ((symbol? e) (list (cons (list e) 1)))      ; carrier element -> generator
@@ -156,7 +166,7 @@
          ((and (eq? h 'ZERO) (equal? (cadr e) R) (= (length e) 2)) '())
          ((and (eq? h 'ONE)  (equal? (cadr e) R) (= (length e) 2))
           (list (cons '() 1)))
-         (else #f))))
+         (else (list (cons (list e) 1))))))   ; opaque carrier element -> generator
     (else #f)))
 
 ;;; Peel (FORALL R (IMPLIES (IS-COMMUTATIVE-RING R) <rest>)) and then a chain
@@ -203,13 +213,13 @@
     (let check ((vs gens))
       (or (null? vs)
           (let ((v (car vs)))
-            (and (or (memq v qvars)
+            (and (or (member v qvars)   ; member: v may be a compound term
                      (let find ((as asms))
                        (and (pair? as)
                             (or (let ((f (wff-formula (car as))))
                                   (and (pair? f) (= (length f) 3)
                                        (eq? (car f) 'IN)
-                                       (eq? (cadr f) v)
+                                       (equal? (cadr f) v)   ; equal?: certify (IN (f x) (A R))
                                        (equal? (caddr f) carrier)))
                                 (find (cdr as))))))
                  (check (cdr vs))))))))

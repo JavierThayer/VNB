@@ -1072,4 +1072,172 @@ All identifiers are case-folded to lowercase by MIT~Scheme, so
 
 %% =========================================================
 
+\section{Naming the parts of a formula}
+\label{sec:parts}
+
+The parser and printer of the previous section are the surface-conforming
+way to \emph{build} and \emph{display} a formula.  This section gives the
+surface-conforming way to \emph{take one apart}.
+
+A script or a piece of scratch-workspace code must never reach into the
+internal S-expression by position --- \texttt{(caddr (cadr f))} and the
+like.  Such code is welded to a representation accident and breaks the
+moment the internal form shifts (the \texttt{and}-nesting, the
+\texttt{+}/\texttt{binplus} split, a new sugar): it is the
+representation-independence sin one level down.  The accessors in
+\texttt{parts.scm} name the parts the way the \emph{external} syntax names
+them, so the code that uses them survives changes to the internal form.
+
+There are three entry points: \texttt{formula-kind} classifies the top
+construct, \texttt{part} navigates to a named sub-part, and \texttt{match}
+fills in the blanks of a surface pattern.  All three accept a wff, a
+surface string, or a raw S-expression interchangeably.
+
+\subsection{\texttt{formula-kind} --- what is this, at the top?}
+
+\texttt{(formula-kind \textit{x})} returns a single symbol naming the
+outermost surface construct, without committing to any internal detail
+below it:
+
+\begin{VNBsnip}
+(formula-kind "p(x) implies q(x)")       ; => implication
+(formula-kind "x = y")                   ; => equation
+(formula-kind "p(x) and q(x) and r(x)")  ; => conjunction
+(formula-kind "forall([x in nn], p(x))") ; => universal
+(formula-kind "x in nn")                 ; => membership
+(formula-kind "f(a, b)")                 ; => application
+(formula-kind '((MUL R) a b))            ; => op-application
+\end{VNBsnip}
+
+\noindent
+The complete set of tags follows.
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \texttt{truth}, \texttt{falsity} --- the logical constants.
+\item \texttt{atom} --- a bare symbol; \texttt{number} --- a numeric literal.
+\item \texttt{implication} (\texttt{implies}), \texttt{biconditional}
+  (\texttt{iff}), \texttt{conjunction} (\texttt{and}), \texttt{disjunction}
+  (\texttt{or}), \texttt{negation} (\texttt{not}) --- the connectives.
+\item \texttt{equation} (\texttt{=}), \texttt{equivalence} (\texttt{==}),
+  \texttt{membership} (\texttt{in}), \texttt{inequality} (\texttt{<=}),
+  \texttt{subset} (\texttt{subset}) --- the binary relations.
+\item \texttt{universal} (\texttt{forall}), \texttt{existential}
+  (\texttt{forsome}), \texttt{description} (\texttt{iota}) --- the binders.
+\item \texttt{arithmetic} (\texttt{+}, \texttt{*}).
+\item \texttt{set-construction} (\texttt{union}, \texttt{intersection},
+  \texttt{cartesian}).
+\item \texttt{op-application} --- a structure operator such as
+  \texttt{(MUL R)} applied to arguments.
+\item \texttt{application} --- a named predicate or function applied.
+\item \texttt{unknown} --- anything that matches none of the above.
+\end{itemize}
+
+\begin{remark}
+This vocabulary is meant to be \emph{closed}.  Each tag names a construct
+the surface grammar actually has, so the list grows only if the grammar
+itself does --- a rare event.  The pull to add a tag for some derived or
+compound form should be resisted: such forms already classify as
+\texttt{application}, \texttt{op-application}, or \texttt{unknown}, and a
+proliferation of fine-grained tags would couple the classifier to passing
+notational fashion rather than to the language.
+\end{remark}
+
+\subsection{\texttt{part} --- navigate to a sub-part}
+
+\texttt{(part \textit{x} \textit{step} \ldots)} walks a path of selector
+steps and returns the part reached.  A single result is itself a wff (it
+prints through the normal verbalizer and round-trips); a \emph{plural}
+selector returns a \emph{list} of wffs and must be the last step.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}llp{6.0cm}@{}}
+\toprule
+Selector & Applies to & Yields \\
+\midrule
+\texttt{antecedent}, \texttt{consequent} & implication & the two sides \\[2pt]
+\texttt{lhs}/\texttt{left}, \texttt{rhs}/\texttt{right} & any binary relation (\texttt{= == iff in <= subset}) & the two sides \\[2pt]
+\texttt{negand} & negation & the negated formula \\[2pt]
+\texttt{conjuncts}, \texttt{disjuncts} & conjunction / disjunction & \emph{(plural)} the flattened list of conjuncts / disjuncts \\[2pt]
+\texttt{(conjunct \textit{N})}, \texttt{(disjunct \textit{N})} & conjunction / disjunction & the \textit{N}-th, 1-indexed \\[2pt]
+\texttt{binder} & quantifier (\texttt{forall}/\texttt{forsome}/\texttt{iota}) & the bound variable \\[2pt]
+\texttt{matrix}/\texttt{scope}/\texttt{body} & quantifier & the scope \\[2pt]
+\texttt{operator}/\texttt{op}/\texttt{head} & application & the operator (e.g.\ \texttt{(mul r)}) \\[2pt]
+\texttt{operands}/\texttt{args} & application & \emph{(plural)} the argument list \\[2pt]
+\texttt{(operand \textit{N})} & application & the \textit{N}-th argument, 1-indexed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{VNBsnip}
+(part "p(x) implies q(x)" 'antecedent)         ; => p(x)
+(part "x = y" 'lhs)                            ; => x
+(part "p(x) and q(x) and r(x)" '(conjunct 2))  ; => q(x)
+(part "p(x) and q(x) and r(x)" 'conjuncts)     ; => (p(x) q(x) r(x))
+(part "f(a, b, c)" '(operand 2))               ; => b
+(part "f(a, b, c)" 'operands)                  ; => (a b c)
+(part "forall([x in nn], p(x))" 'binder)       ; => x
+(part "forall([x in nn], p(x))" 'matrix)       ; => (x in nn implies p(x))
+
+;; steps chain left-to-right: descend, then descend again
+(part "p(x) implies y = z" 'consequent 'lhs)   ; => y
+\end{VNBsnip}
+
+\noindent
+The selectors are \emph{total over their declared shape and loud
+otherwise}: \texttt{(part "x = y" 'antecedent)} is an \emph{error}, not a
+silent \texttt{\#f} --- the same partial-\texttt{=} definedness discipline
+that runs through the rest of the system (Section~\ref{sec:funapp}).
+
+\begin{remark}
+The accessors honour the \emph{surface structure} of a formula --- the
+string-syntax view laid out in Section~\ref{sec:parser-printer} --- not the
+internal S-expression that stores it.  \texttt{conjuncts} flattens the
+associative spine, so \texttt{p and q and r} yields three conjuncts however
+the binary \texttt{and} happens to be nested.  \texttt{operands} de-tuples the apply-tupling convention
+(Section~\ref{sec:curried-tupled-apply}), so the single internal
+\texttt{(LIST a b)} argument comes back as the operand list
+\texttt{(a~b)}.  And the binary structure-op application \texttt{(MUL
+R)(a, b)} is first-class: \texttt{operator} gives \texttt{(mul r)},
+\texttt{operands} gives \texttt{(a b)}.
+\end{remark}
+
+\subsection{\texttt{match} --- fill the blanks of a pattern}
+
+\texttt{(match \textit{pattern-string} \textit{x})} matches a surface
+pattern against \textit{x}.  The pattern is an ordinary formula in which
+some sub-parts are left \emph{blank}, each blank written as a name with a
+leading question mark --- \texttt{?P}, \texttt{?Q}, \texttt{?a} --- standing
+for an arbitrary sub-formula or term.  The call returns an association list
+\texttt{((?v\ .\ \textit{wff})\ \ldots)} pairing each blank with what it
+matched, or \texttt{\#f} if the pattern does not fit.
+
+\begin{VNBsnip}
+(match "?P implies ?Q" "x in nn implies x in zz")
+; => ((?q . x in zz) (?p . x in nn))
+
+(match "?P and ?Q" "x in nn implies x in zz")
+; => #f
+\end{VNBsnip}
+
+\noindent
+Matching reuses the macete one-way matcher
+(Section~\ref{sec:macetes}) rather than introducing a second pattern
+engine, and binder desugaring is applied to both sides so a quantified
+pattern matches a quantified target.  Where \texttt{part} is the right tool
+when the shape is known in advance, \texttt{match} is the right tool when
+the shape is the thing being tested.
+
+\begin{remark}
+Input is coerced uniformly: \texttt{part} and friends accept a wff, a
+surface string, or a raw S-expression.  Given a wff or string they hand
+back wffs (re-wrapped in the same theory); given a bare S-expression there
+is no wff parent to re-wrap against, so the parts come back as raw
+S-expressions.  One asymmetry follows from \texttt{make-wff} validation: a
+standalone \emph{term} string such as \texttt{"x + y"} is not a wff, so
+\texttt{(formula-kind "x + y")} signals an error --- classify a term by
+passing the S-expression, \texttt{(formula-kind '(+ x y))}, or reach it as
+a \texttt{part} of the formula it sits in.
+\end{remark}
+
 %% =========================================================
