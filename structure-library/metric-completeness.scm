@@ -80,3 +80,42 @@
      (IMPLIES (IS-COMPLETE s)
        (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
                           (CONVERGES s f))))))
+
+;;; -----------------------------------------------------------------------
+;;; cauchy-rapid-subsequence: every Cauchy sequence has a "rapidly Cauchy"
+;;; subsequence -- one whose consecutive distances are bounded by ANY
+;;; prescribed positive real sequence a (in particular a(k) = 2^-k).  The
+;;; subsequence is a strictly increasing reindexing phi : NN -> NN; the
+;;; subsequence itself is k |-> f(phi k).
+;;;
+;;; This is the bridge from Cauchy to summable: sum_k d(y_k, y_{k+1}) is then
+;;; dominated by sum_k a(k), so picking a summable a makes the subsequence's
+;;; consecutive-distance series converge.  Coupled with series summation and
+;;; diagonalization it gives the completeness of a completion (and the general
+;;; "Cauchy with a convergent subsequence => convergent" lemma).  Recorded in
+;;; the PSS for that future use; standard, no proof attempted
+;;; [[feedback-pss-over-proof-slog]] [[project-metric-completion]].
+;;;
+;;; Proof sketch (NN-recursion + choice): a(k) > 0, so Cauchyness gives N_k with
+;;; d(f m, f n) <= a(k) for all m,n >= N_k.  Define phi(0) := N_0,
+;;; phi(succ k) := max(succ(phi k), N_{succ k}); strictly increasing, and
+;;; phi(k), phi(succ k) >= N_k, so d(f(phi k), f(phi(succ k))) <= a(k).
+(support 'cauchy-rapid-subsequence
+  '(FORALL s (FORALL f (FORALL a
+     (IMPLIES (AND (IS-CAUCHY-SEQ s f)
+              (AND (IN a (FUN NN RR))
+                   (FORALL k (IMPLIES (IN k NN) (POS-RR (a k))))))
+       (FORSOME phi
+         (AND (IN phi (FUN NN NN))
+         (AND (FORALL m (IMPLIES (IN m NN)
+                (FORALL n_ (IMPLIES (IN n_ NN)
+                  (IMPLIES (< m n_) (< (phi m) (phi n_)))))))
+              (FORALL k (IMPLIES (IN k NN)
+                (<= ((D s) (f (phi k)) (f (phi (succ k)))) (a k))))))))))))
+(warrant! 'cauchy-rapid-subsequence 'well-known
+  "Standard subsequence extraction.  For each k, a(k) > 0 and f Cauchy give an
+   N_k with d(f m, f n) <= a(k) whenever m,n >= N_k (IS-CAUCHY-SEQ at eps=a(k)).
+   Build phi by NN-recursion: phi(0)=N_0, phi(succ k)=max(succ(phi k),N_{succ k})
+   -- strictly increasing, with phi(k) and phi(succ k) both >= N_k, so the
+   consecutive distance is <= a(k).  Choice picks the N_k.  a(k)=2^-k is the
+   usual instance, making sum_k d-consecutive dominated by the geometric series.")
