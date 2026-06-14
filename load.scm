@@ -90,6 +90,11 @@
     ;; sequences (sum-ag-as-reduce); kernel-only deps (LIST/NTH/LENGTH/NN).
     "structure-library/reduce"
     "structure-library/numeric-instances"
+    ;; Completion of a metric space = Cauchy sequences / null-distance, as a
+    ;; concrete setoid quotient.  Needs setoid (QUOTIENT/CLASS), metric-
+    ;; completeness (IS-CAUCHY-SEQ/CONVERGES-TO/IS-COMPLETE) and RR-MS
+    ;; (numeric-instances, just above, for the real limit of d(f_n,g_n)).
+    "structure-library/metric-completion"
     "structure-library/extended-reals"
     ;; RR+* = [0,+inf]: nonnegative extended reals, order-complete via ESUP.
     ;; Needs extended-reals (RR*, POS-INF) + set primitives (SUBSET).
