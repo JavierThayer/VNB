@@ -1071,18 +1071,29 @@ slot is the source's $k$-th named component.  The target list must be
 the target structure's slots in their declared order (the form checks
 this); the source list names, in that same order, which source accessor
 fills each target slot.  So a view is a \textbf{slot map written in the
-target's coordinate system}.  Read in that direction it may freely
+target's coordinate system}.
+
+A view-as is a \emph{forgetful functor} between structure categories, and a
+forgetful functor does exactly one or both of two things (recall
+\S\ref{sec:shape-vs-property}: a structure is a \emph{shape} plus
+\emph{properties}):
 
 \begin{itemize}[label=$-$, leftmargin=0.85cm]
-\item \textbf{forget} source slots (any not named simply drop),
-\item \textbf{reshuffle} (the source accessors are named in the target's
-  order, not the source's),
-\item \textbf{re-carrier} (name a non-carrier source slot as the target's
-  carrier --- e.g.\ a field's non-zero elements as a multiplicative
-  group's carrier),
-\item \textbf{add assumptions} (\texttt{IS-SOURCE} may be strictly
-  stronger than \texttt{IS-TARGET} on the image).
+\item \textbf{forget shape} --- the source list keeps only a sub-list of the
+  source's slots; the rest drop.  (A ring's additive group forgets
+  \texttt{MUL}/\texttt{ONE}; a field's multiplicative group keeps the
+  \texttt{NON-ZERO} carrier slot and forgets the additive ones.)
+\item \textbf{forget properties} --- \texttt{IS-TARGET} folds fewer laws than
+  \texttt{IS-SOURCE}, so the image satisfies less (a commutative ring viewed
+  as a ring forgets commutativity).
 \end{itemize}
+
+\noindent These are the \emph{only} two forgetful operations.  Writing the kept
+slots in the target's coordinate order (a ring's \texttt{ADD} filling a group's
+\texttt{MUL} slot, or a non-first slot serving as the carrier) is just
+notation, not a third kind --- it is what lets shape-forgetting be expressed at
+all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
+--- are constructions, not views; they are written as plain functoids.
 
 \begin{VNBcode}
 ;;; A ring's additive structure is an abelian group.
@@ -1404,7 +1415,7 @@ ZERO-RING = [{0},
    \lambda(p,q).\,0,\; \lambda(p,q).\,0,\; \lambda(p).\,0,\; 0,\; 0]$.
 \item[\texttt{zero-ring-is-ring}]
   $\mathit{IS\text{-}RING}(\mathit{ZERO\text{-}RING})$.
-  (Taken as an axiom; the proof would verify the nine ring axioms for
+  (Asserted; the proof would verify the nine ring properties for
   the trivial one-element ring.)
 \end{description}
 
@@ -1457,15 +1468,15 @@ rewrite and then the accessor macete.
 \item[\texttt{ring-prod-is-ring}]
   $\mathit{IS\text{-}RING}(X) \wedge \mathit{IS\text{-}RING}(Y)
   \;\Rightarrow\; \mathit{IS\text{-}RING}(\mathit{RING\text{-}PROD}(X,Y))$.
-  (Taken as an axiom.  The proof would verify that the componentwise
-  operations satisfy each ring axiom, given that $X$ and $Y$ do.)
+  (Asserted.  The proof would verify that the componentwise
+  operations satisfy each ring property, given that $X$ and $Y$ do.)
 \end{description}
 
 \begin{remark}[Totality]
 \texttt{RING-PROD} is total: $\mathit{RING\text{-}PROD}(X,Y)$ is a
 well-defined tuple for \emph{any} $X$ and $Y$.  When neither is a ring
 --- when bongos are passed in --- the result is some tuple that satisfies
-no ring axioms.  \texttt{ring-prod-is-ring} is silent on this case (its
+no ring properties.  \texttt{ring-prod-is-ring} is silent on this case (its
 antecedent is false), so no contradiction arises.  This is the VNB
 tradition: totality and typing are separate concerns.
 \end{remark}

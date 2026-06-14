@@ -8,7 +8,7 @@
 ;;; commutative-ring terms are equal in EVERY commutative ring iff their
 ;;; sum-of-monomials normal forms coincide; normal-form equality is therefore a
 ;;; sound and complete certificate -- a decision procedure, run as a trusted
-;;; oracle rather than mechanised through the ring axioms (warrant below,
+;;; oracle rather than mechanised through the ring properties (warrant below,
 ;;; [[feedback-warrants]]).
 ;;;
 ;;; Reuses ring-simplify.scm's plumbing wholesale: word<? (length-then-lex
@@ -268,4 +268,4 @@
 
 ;;; The procedure is a trusted oracle; the warrant records the grounds.
 (warrant! 'comm-ring-simplify 'well-known
-  "Decision procedure for commutative-ring identities, on two surfaces: the concrete number-domain operators (+/*/- and their binary aliases binplus/bintimes/binneg) and the generic structure operators ((ADD R) (MUL R) (NEG R) (ZERO R) (ONE R)) of an arbitrary R satisfying IS-COMMUTATIVE-RING. Each side is normalised to its sum-of-monomials form in the free commutative ring ZZ[generators] (monomial = sorted multiset of generators, coefficient in ZZ); two terms are equal in every commutative ring iff these normal forms coincide. Sound and complete by the standard normal-form theorem for commutative-ring equational logic; computed in Scheme rather than mechanised through the ring axioms.")
+  "Decision procedure for commutative-ring identities, on two surfaces: the concrete number-domain operators (+/*/- and their binary aliases binplus/bintimes/binneg) and the generic structure operators ((ADD R) (MUL R) (NEG R) (ZERO R) (ONE R)) of an arbitrary R satisfying IS-COMMUTATIVE-RING. Each side is normalised to its sum-of-monomials form in the free commutative ring ZZ[generators] (monomial = sorted multiset of generators, coefficient in ZZ); two terms are equal in every commutative ring iff these normal forms coincide. Sound and complete by the standard normal-form theorem for commutative-ring equational logic; computed in Scheme rather than mechanised through the ring properties.")

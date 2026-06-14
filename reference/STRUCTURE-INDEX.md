@@ -896,6 +896,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 ## View-as declarations (alphabetical)
 
+A view-as is a *forgetful functor* between structure categories, in exactly two cases: it forgets **shape** (keeps a sub-list of the source's slots) and/or forgets **properties** (the target's laws are fewer than the source's).  The slot map below is written in the *target's* coordinates: position k shows which source accessor fills the target's k-th slot.  Non-forgetful functors (quotient, completion) are constructions, not views.
+
 - `abelian-group-as-monoid` — `abelian-group` → `monoid`: (a mul e) ↦ (a mul e)
 - `commutative-ring-additive-ag` — `commutative-ring` → `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 - `commutative-ring-multiplicative-cm` — `commutative-ring` → `comm-monoid`: (a mul one) ↦ (a mul e)

@@ -412,6 +412,14 @@
 ;;;   SOURCE-STRUCT  (src-comp-1 src-comp-2 ... src-comp-n)
 ;;;   TARGET-STRUCT  (tgt-slot-1 tgt-slot-2 ... tgt-slot-n))
 ;;;
+;;; A view-as is a FORGETFUL FUNCTOR, in exactly two cases: it forgets SHAPE
+;;; (the source list is a sub-list of the source's slots -- some slots drop)
+;;; and/or forgets PROPERTIES (the target's IS-X folds fewer laws than the
+;;; source's).  The source list is written in the TARGET's coordinate order,
+;;; which is all "reshuffle" / "re-carrier" amount to -- not extra functor
+;;; kinds.  Non-forgetful functors (quotient, completion) are constructions,
+;;; not views; they are plain def-functoids.
+;;;
 ;;; Example:
 ;;;   (def-view-as RING-ADDITIVE-AG
 ;;;     RING          (A ADD NEG ZERO)

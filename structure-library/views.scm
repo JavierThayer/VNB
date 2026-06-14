@@ -119,7 +119,7 @@
 ;;; reaches the stronger COMM-MONOID target and is live in finprod.)
 
 ;;; A COMMUTATIVE ring's multiplicative structure (A, MUL, ONE) is a
-;;; *commutative* monoid -- the comm-ring axiom is exactly MUL-commutativity.
+;;; *commutative* monoid -- the comm-ring property is exactly MUL-commutativity.
 ;;; This is the view the finite PRODUCT rides on: PROD-RING(R,f,X) =
 ;;; FINSUM(COMMUTATIVE-RING-MULTIPLICATIVE-CM(R), f, X) (finprod.scm), so the
 ;;; whole finsum-comm-monoid kit (closure / permutation-invariance /
