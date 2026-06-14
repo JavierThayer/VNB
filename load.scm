@@ -47,6 +47,10 @@
     ;; Commutative-ring identity decision procedure (multiset monomials);
     ;; reuses ring-simplify's poly plumbing, so loads right after it.
     "structure-library/comm-ring-simplify"
+    ;; Linear-arithmetic decision core (Fourier-Motzkin + Farkas certificates),
+    ;; the engine behind the (ineq) oracle.  Pure Scheme, no deps; the kernel
+    ;; integration (term parsing, pi-ineq!, (ineq)) is a separate file.
+    "structure-library/linear-arith"
     "number-systems"
     "structure-library/order-predicates"
     ;; The finite order calculus of RR (chaining, adding inequalities, scaling,
