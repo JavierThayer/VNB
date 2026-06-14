@@ -326,6 +326,15 @@
 ;;;   (def-functoid GroupCarrier (G) (CARRIER G))
 ;;;   => installs macete that rewrites (groupcarrier x) to (carrier x)
 
+;; Catalog registry: name -> (list params body source-file).  *constant-registry*
+;; records only the KIND tag, so functoids are otherwise invisible to the
+;; reference docs (unlike def-constant/def-predicate, which land in
+;; DEFINITIONS.md).  This lets (write-functoids-md) list them with their
+;; unfolding bodies.  def-view-as functoids are recorded here too, but the
+;; catalog writer filters them out via lookup-view-as (they have their own
+;; STRUCTURE-INDEX section).
+(define *functoid-registry* (make-equal-hash-table))
+
 (define (def-functoid name params body)
   ;; A functoid is a DEFINITION: its unfold macete rewrites the defined symbol
   ;; to its body and so carries no logical debt.  Stamp it `definitional' (as
@@ -338,6 +347,8 @@
         (make-elementary-macete pvars '() (cons name pvars) body))
       (register-provenance! name *current-provenance*)
       (register-constant! name 'functoid)
+      (hash-table-set! *functoid-registry* name
+        (list pvars body (current-load-pathname)))
       name)))
 
 ;;; -----------------------------------------------------------------------
