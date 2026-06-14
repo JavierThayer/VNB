@@ -49,6 +49,9 @@
     "structure-library/comm-ring-simplify"
     "number-systems"
     "structure-library/order-predicates"
+    ;; The finite order calculus of RR (chaining, adding inequalities, scaling,
+    ;; abs bounds) -- workhorse PSS layer over the number-systems order axioms.
+    "structure-library/order-lemmas"
     ;; Cauchy/convergence/completeness on a generic metric space; needs RR's
     ;; order (number-systems) and POS-RR (order-predicates).  Loaded before
     ;; complex.scm so cc-complete can be stated as IS-COMPLETE(CC-MS).
@@ -194,6 +197,9 @@
     ;; Needs sequences (SUM-AG), views (NORMED-FIELD-ADDITIVE-AG), numeric-
     ;; instances (RR-RING/RR-MS), number-systems (power), metric-completeness.
     "theorem-library/power-series"
+    ;; Order facts about real partial sums + monotone-convergence on RR (the
+    ;; keystone comparison-test cited as missing).  Needs power-series.
+    "theorem-library/series-order-lemmas"
     ;; Telescoping bridge: consecutive distances bounded by a summable series
     ;; => Cauchy (and, if complete, convergent).  Needs power-series
     ;; (SERIES-CONVERGES) + metric-completeness (IS-CAUCHY-SEQ/IS-COMPLETE).
