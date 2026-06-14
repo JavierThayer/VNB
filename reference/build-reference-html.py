@@ -32,7 +32,7 @@ DOCS = [
     ("Structure notes",    "STRUCTURES.md"),
     ("Theorems & axioms",  "THEOREMS.md"),
     ("Definitions",        "DEFINITIONS.md"),
-    ("Functors",           "FUNCTORS.md"),
+    ("Functoids",          "FUNCTORS.md"),
     ("Proof Support Set",  "PSS.md"),
     ("By operator",        "BY-OPERATOR.md"),
     ("Macete index",       "MACETE-INDEX.md"),
