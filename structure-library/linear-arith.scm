@@ -26,13 +26,17 @@
 ;;; -----------------------------------------------------------------------
 ;;; Tiny alist arithmetic (keys are symbols/atoms; values rationals).
 
-(define (la-uniq lst)                       ; dedup, eqv?
+;; Keys are atoms -- symbols OR COMPOUND TERMS (e.g. (f x), ((D s) x y)) -- so
+;; comparison must be equal?, not eqv? (two distinct (f x) list objects are not
+;; eqv?).  This is what lets compound atoms cancel/combine, mirroring how crs
+;; compares generators.
+(define (la-uniq lst)                       ; dedup, equal?
   (let loop ((l lst) (acc '()))
     (cond ((null? l) (reverse acc))
-          ((memv (car l) acc) (loop (cdr l) acc))
+          ((member (car l) acc) (loop (cdr l) acc))
           (else (loop (cdr l) (cons (car l) acc))))))
 
-(define (la-get al k) (let ((p (assv k al))) (if p (cdr p) 0)))
+(define (la-get al k) (let ((p (assoc k al))) (if p (cdr p) 0)))
 
 (define (la-scale al k)                     ; multiply every value by k
   (map (lambda (p) (cons (car p) (* k (cdr p)))) al))

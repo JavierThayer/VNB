@@ -456,6 +456,15 @@
         (vnb--warn "comm-ring-simplify: goal is not a provable commutative-ring identity"
                    (vnb--goal-str sqn)))))
 
+;;; (cmd-ineq ps idxs) closes a linear-inequality goal over RR from the
+;;; assumptions named (1-based) in idxs, via the Fourier-Motzkin/Farkas oracle.
+(define (cmd-ineq ps idxs)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-ineq! sqn idxs)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "ineq: goal not a linear-RR consequence of the named assumptions"
+                   (vnb--goal-str sqn)))))
+
 ;;; -----------------------------------------------------------------------
 ;;; D-7 commands: SEP / COMP / IOTA / VNB-LAMBDA characterizations
 ;;; (REVIEW.md D-7).  Skeletal: schemas in the body formula are handled

@@ -51,6 +51,10 @@
     ;; the engine behind the (ineq) oracle.  Pure Scheme, no deps; the kernel
     ;; integration (term parsing, pi-ineq!, (ineq)) is a separate file.
     "structure-library/linear-arith"
+    ;; The (ineq) oracle: linearizes a goal + named premises over RR (atoms =
+    ;; maximal non-arithmetic subterms), runs the FM engine, closes via pi-ineq!
+    ;; with a Farkas certificate.  Needs linear-arith + kernel (dg/sequent).
+    "structure-library/ineq-oracle"
     "number-systems"
     "structure-library/order-predicates"
     ;; The finite order calculus of RR (chaining, adding inequalities, scaling,

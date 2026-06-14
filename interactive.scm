@@ -260,6 +260,7 @@
 (define (arith) (vnb--run! 'arith '()    (lambda () (cmd-arith *ps*))))
 (define (rs)    (vnb--run! 'rs    '()    (lambda () (cmd-ring-simplify *ps*))))
 (define (crs)   (vnb--run! 'crs   '()    (lambda () (cmd-comm-ring-simplify *ps*))))
+(define (ineq . idxs) (vnb--run! 'ineq idxs (lambda () (cmd-ineq *ps* idxs))))
 (define (rfl)   (vnb--run! 'rfl   '()    (lambda () (cmd-reflexivity *ps*))))
 (define (qrfl)  (vnb--run! 'qrfl  '()    (lambda () (cmd-quasi-reflexivity *ps*))))
 (define (oi-l)  (vnb--run! 'oi-l  '()    (lambda () (cmd-or-intro-left *ps*))))
@@ -2435,6 +2436,7 @@
       ((ni)     (cmd-nn-induction *ps*))
       ((rs)     (cmd-ring-simplify *ps*))
       ((crs)    (cmd-comm-ring-simplify *ps*))
+      ((ineq)   (cmd-ineq *ps* args))
       ;; D-7 replay dispatch
       ((sep-set) (cmd-sep-sethood       *ps*))
       ((sep-mi)  (cmd-sep-mem-intro     *ps*))
