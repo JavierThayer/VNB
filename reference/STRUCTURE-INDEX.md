@@ -358,8 +358,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (a add mul neg zero one) ↦ (a add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (a add mul neg zero one) ↦ (a add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
+- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 
 ### group
 <a id="group"></a>
@@ -429,6 +429,12 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
 - `ball-mem-from-le` — forall([s], is-metric-space(s) implies forall([x, y, d, r], y in x(s) and d in rr and r in rr and (d(s))(x, y) <= d and <(d, r) implies y in ball(s, x, r)))
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))
+- `cauchy-setoid-is-setoid` — forall([m], is-metric-space(m) implies is-setoid(cauchy-setoid(m)))
+- `completion-is-complete` — forall([m], is-metric-space(m) implies is-complete(completion(m)))
+- `completion-is-metric-space` — forall([m], is-metric-space(m) implies is-metric-space(completion(m)))
+- `embed-in-fun` — forall([m], is-metric-space(m) implies embed(m) in fun(x(m), x(completion(m))))
+- `embed-isometry` — forall([m], is-metric-space(m) implies forall([u in x(m), v in x(m)], (d(completion(m)))(embed(m, u), embed(m, v)) = (d(m))(u, v)))
+- `embed-isometry-rev` — forall([m], is-metric-space(m) implies forall([u in x(m), v in x(m)], (d(m))(u, v) = (d(completion(m)))(embed(m, u), embed(m, v))))
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))
 - `metric-dist-real` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) in rr))

@@ -17,7 +17,7 @@
     ring-power-zero ring-power-add ring-left-dist ring-right-dist
     zz-act-one zz-act-add finsum-insert finsum-singleton finsum-empty
     ord-segment-nn-succ ord-segment-self
-    choose-n-0 choose-succ nn-minus-0 nn-minus-succ))
+    choose-n-0 choose-succ nn-minus-def nn-minus-in-nn))
 
 (display "\n===== B. (ni) sets up base + step from the INSTALLED statement =====\n")
 (sp (make-wff (lookup-theorem 'binomial-theorem)))

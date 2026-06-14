@@ -217,3 +217,103 @@
 ;;; factorial-zero; step |PERMUTATIONS(succ n)| = (succ n)*|PERMUTATIONS(n)|
 ;;; = (succ n)*n! = (succ n)! by permutation-recurrence, the IH, and
 ;;; factorial-succ.
+
+;;; =======================================================================
+;;; BINOMIAL COEFFICIENT, defined CONCRETELY as a cardinality.
+;;;
+;;; CHOOSE(n,m) := the number of m-element subsets of {0,...,n-1}.  This IS the
+;;; object; Pascal's rule and the falling-factorial identity below are THEOREMS
+;;; about it, not its definition (the project's "define concretely, the
+;;; characterising law is a theorem" discipline -- cf. quotients, completions).
+;;; =======================================================================
+
+;; CHOOSE-SET(n,m) = { A subset ORD-SEGMENT(n) : CARD(A) = m }.  A set by
+;; separation over the power set of the finite segment ORD-SEGMENT(n).
+(def-functoid 'CHOOSE-SET '(n m)
+  '(SEP A (POWER (ORD-SEGMENT n)) (= (CARD A) m)))
+
+;; CHOOSE(n,m) = |CHOOSE-SET(n,m)| : the binomial coefficient C(n,m).
+(def-functoid 'CHOOSE '(n m)
+  '(CARD (CHOOSE-SET n m)))
+
+;; Typing: a binomial coefficient is a natural number.
+(support 'choose-in-nn
+  '(FORALL n (IMPLIES (IN n NN) (FORALL m (IMPLIES (IN m NN) (IN (CHOOSE n m) NN))))))
+(warrant! 'choose-in-nn 'well-known
+  "ORD-SEGMENT(n) is finite (card-segment: CARD = n), so POWER(ORD-SEGMENT n) is
+   finite and its subset { A : CARD A = m } is finite; the cardinality lies in NN.")
+
+;; Boundary values + Pascal's rule -- now THEOREMS of the cardinality definition,
+;; kept as supports for the binomial layer (which rewrites with them).
+(support 'choose-n-0
+  '(FORALL n (IMPLIES (IN n NN) (= (CHOOSE n 0) (succ 0)))))
+(support 'choose-0-succ
+  '(FORALL k (IMPLIES (IN k NN) (= (CHOOSE 0 (succ k)) 0))))
+(support 'choose-succ
+  '(FORALL n (IMPLIES (IN n NN)
+     (FORALL k (IMPLIES (IN k NN)
+       (= (CHOOSE (succ n) (succ k))
+          (+ (CHOOSE n k) (CHOOSE n (succ k)))))))))
+(warrant! 'choose-n-0 'well-known
+  "The unique 0-element subset is EMPTY-SET, so CHOOSE(n,0) = 1.")
+(warrant! 'choose-0-succ 'well-known
+  "ORD-SEGMENT(0) = EMPTY-SET has no (k+1)-element subset, so CHOOSE(0,k+1) = 0.")
+(warrant! 'choose-succ 'well-known
+  "The (k+1)-subsets of ORD-SEGMENT(succ n) = {0,...,n} split disjointly on
+   whether they contain the new point n: those that do not are the (k+1)-subsets
+   of {0,...,n-1} (CHOOSE(n,succ k)); those that do are {n} u B with B a
+   k-subset of {0,...,n-1} (CHOOSE(n,k)).  card-union-disjoint gives Pascal.")
+
+;;; -----------------------------------------------------------------------
+;;; Falling factorial  n^{(m)} = n(n-1)...(n-m+1)  (m descending factors).
+;;; Single-index primitive recursion on m, via def-by-nn-recursion -- hence a
+;;; CONSERVATIVE definitional extension (justified by the NN-recursion theorem),
+;;; not a free postulate.  For the identity below only m <= n is used, where
+;;; every factor n-k (k < m <= n) is a natural and integer subtraction is exact.
+;;;   FALLING(n,0)      = 1
+;;;   FALLING(n,succ k) = (n - k) * FALLING(n,k)
+(def-by-nn-recursion 'FALLING '(n)
+  '(succ 0)
+  '(k val)
+  '(* (- n k) val))
+
+;; Typing: positive for m <= n, and 0 once a factor vanishes for m > n.
+(support 'falling-in-nn
+  '(FORALL n (IMPLIES (IN n NN) (FORALL m (IMPLIES (IN m NN) (IN (FALLING n m) NN))))))
+(warrant! 'falling-in-nn 'well-known
+  "For m <= n each factor n-k (0 <= k < m) is a positive natural; for m > n the
+   factor at k = n is 0 and the product stays 0.  Either way FALLING(n,m) in NN.")
+
+;; nPk: the number of injections of an m-set into an n-set IS the falling
+;; factorial.  Generalises permutation-recurrence (the m = n diagonal gives n!).
+(support 'injection-count-falling
+  '(FORALL n (IMPLIES (IN n NN)
+     (FORALL m (IMPLIES (AND (IN m NN) (<= m n))
+       (= (CARD (INJECTION (ORD-SEGMENT m) (ORD-SEGMENT n))) (FALLING n m)))))))
+(warrant! 'injection-count-falling 'well-known
+  "Induction on m via injection-extension-recurrence.  Base: m = 0,
+   |INJECTION(EMPTY-SET, C)| = 1 = FALLING(n,0) (injection-from-empty,
+   ORD-SEGMENT 0 = EMPTY-SET).  Step: a domain of size m into a codomain of
+   size n leaves n - m free targets, so extending the domain by one point
+   multiplies the count by (n - m): exactly FALLING(n,succ m) = (n-m)*FALLING(n,m).")
+
+;;; -----------------------------------------------------------------------
+;;; THE THEOREM:   CHOOSE(n,m) * m!  =  n(n-1)...(n-m+1)  =  FALLING(n,m).
+;;;
+;;; Count injections phi : ORD-SEGMENT(m) -> ORD-SEGMENT(n) two ways:
+;;;   (i)  by image + ordering: an injection is its m-element image (CHOOSE(n,m)
+;;;        choices) together with a bijection of ORD-SEGMENT(m) onto that image
+;;;        (m! = CARD(PERMUTATIONS m) choices) -- so CHOOSE(n,m) * m!;
+;;;   (ii) directly, FALLING(n,m) by injection-count-falling.
+(support 'choose-times-factorial
+  '(FORALL n (IMPLIES (IN n NN)
+     (FORALL m (IMPLIES (AND (IN m NN) (<= m n))
+       (= (* (CHOOSE n m) (FACTORIAL m)) (FALLING n m)))))))
+(warrant! 'choose-times-factorial 'well-known
+  "Both sides count the injections of an m-element set into an n-element set.
+   (i) Each injection ORD-SEGMENT(m) -> ORD-SEGMENT(n) factors uniquely as a
+   choice of m-element image A subset ORD-SEGMENT(n) (CHOOSE(n,m) of them, with
+   card-image-injection making |A| = m) followed by a bijection ORD-SEGMENT(m)
+   onto A (m! = CARD(PERMUTATIONS m) of them); so the count is CHOOSE(n,m) * m!.
+   (ii) injection-count-falling gives the same count as FALLING(n,m) =
+   n(n-1)...(n-m+1).  Equate the two counts.")

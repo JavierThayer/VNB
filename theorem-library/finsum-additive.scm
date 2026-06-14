@@ -5,8 +5,9 @@
 ;;; stress probe (theorem-library/binomial-probe.scm) showed the ADDITIVE half
 ;;; was missing: nothing distributes a ring element across a FINSUM, nothing
 ;;; splits a sum of pointwise sums, nothing reindexes.  This file supplies that
-;;; half, plus the two missing arithmetic operators (CHOOSE, NN-MINUS) the
-;;; binomial statement needs.
+;;; half, plus NN-MINUS (the n-k exponent operator) the binomial statement
+;;; needs.  CHOOSE itself is defined CONCRETELY in injection.scm (as the count
+;;; of m-element subsets), not here.
 ;;;
 ;;; TWO tiers, matching the existing finsum-comm-monoid / finsum-fubini family:
 ;;;
@@ -39,28 +40,31 @@
 (define (finite S) (list 'AND (list 'IN S 'SET) (list 'IN (list 'CARD S) 'NN)))
 
 ;;; =======================================================================
-;;; Missing arithmetic operators
+;;; Missing arithmetic operator: NN-MINUS  (CHOOSE now lives in injection.scm)
 ;;; =======================================================================
 
-;; Binomial coefficient via Pascal's rule (no factorial division).
-(def-constant 'CHOOSE
-  '(choose-n-0    (FORALL n (IMPLIES (IN n NN) (= (CHOOSE n 0) (succ 0)))))
-  '(choose-0-succ (FORALL k (IMPLIES (IN k NN) (= (CHOOSE 0 (succ k)) 0))))
-  '(choose-succ   (FORALL n (IMPLIES (IN n NN)
-                    (FORALL k (IMPLIES (IN k NN)
-                      (= (CHOOSE (succ n) (succ k))
-                         (+ (CHOOSE n k) (CHOOSE n (succ k))))))))))
-(theory-add-axiom! *current-theory* 'choose-in-nn
-  '(FORALL n (IMPLIES (IN n NN) (FORALL k (IMPLIES (IN k NN) (IN (CHOOSE n k) NN))))))
-
-;; Truncated natural subtraction (monus) for the n-k exponent.
+;; Truncated natural subtraction (monus) for the n-k exponent.  Defined
+;; EXPLICITLY as a closed term in existing vocabulary -- NOT by a recursion-
+;; shaped postulate.  NN subset ZZ, so for l <= k the integer difference k - l
+;; is already the right natural; below it, the conventional 0.  An explicit
+;; definition is conservative by construction (eliminable by unfolding): no
+;; recursion theorem, no two-index recursion combinator, no consistency debt --
+;; the monus recurrences nn-minus(n,0)=n, nn-minus(succ n,succ k)=nn-minus(n,k),
+;; nn-minus(0,succ k)=0 are now one-step THEOREMS (IF case split on l<=k +
+;; integer arithmetic), not axioms.
 (def-constant 'NN-MINUS
-  '(nn-minus-0    (FORALL n (IMPLIES (IN n NN) (= (NN-MINUS n 0) n))))
-  '(nn-minus-succ (FORALL n (IMPLIES (IN n NN)
-                    (FORALL k (IMPLIES (IN k NN)
-                      (= (NN-MINUS (succ n) (succ k)) (NN-MINUS n k))))))))
-(theory-add-axiom! *current-theory* 'nn-minus-in-nn
-  '(FORALL n (IMPLIES (IN n NN) (FORALL k (IMPLIES (IN k NN) (IN (NN-MINUS n k) NN))))))
+  '(nn-minus-def
+    (FORALL k (IMPLIES (IN k NN)
+      (FORALL l (IMPLIES (IN l NN)
+        (= (NN-MINUS k l) (IF (<= l k) (- k l) 0))))))))
+;; Typing: monus lands back in NN.  A support (warranted derivable from
+;; nn-minus-def) -- IF-reduction alone won't expose it without the case split.
+(support 'nn-minus-in-nn
+  '(FORALL k (IMPLIES (IN k NN) (FORALL l (IMPLIES (IN l NN) (IN (NN-MINUS k l) NN))))))
+(warrant! 'nn-minus-in-nn 'hand-wave
+  "From nn-minus-def by IF case split on l<=k: then-branch k-l in NN (since
+   k = (k-l)+l with both in NN forces the difference into NN); else-branch 0 in
+   NN.  One-step derivation; asserted library-phase rather than mechanized.")
 
 ;;; =======================================================================
 ;;; Index-set plumbing
