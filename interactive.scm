@@ -373,6 +373,21 @@
 (define (ta n)  (vnb--run! 'ta (list n) (lambda () (cmd-theorem-assumption *ps* n))))
 (define (mac n) (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))
 
+;; detach! -- forward modus ponens: from an in-context (IMPLIES A B) whose A is
+;; also in context, leave B in context.  The forward dual of bc.
+(define (detach! f)
+  (vnb--run! 'detach! (list f)
+             (lambda ()
+               (let ((raw (->raw-formula/idx f)))
+                 (if (vnb-warning? raw) raw (cmd-detach *ps* raw))))))
+
+;; fact -- forward application of a theorem.  (fact 'thm term ...) brings the
+;; theorem in, instantiates its leading universals with the terms, and detaches
+;; every antecedent already in context, landing the consequent as a hypothesis.
+;; The forward-assembly workhorse for structure proofs ("apply this law here").
+(define (fact thm . args)
+  (vnb--run! 'fact (list thm args) (lambda () (cmd-fact *ps* thm args))))
+
 ;; mac-h -- hypothesis-side `mac`.  Unfold a defined predicate (or apply any
 ;; unconditional IFF/=/== equivalence macete) inside a cited ASSUMPTION,
 ;; replacing it by its body in place.  The dual of `mac`; pairs with `ai` the

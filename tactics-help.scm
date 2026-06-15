@@ -48,6 +48,10 @@
        "The hypothesis-side dual of `di'.  `hyp' may be the raw formula, a \"string\", or a 1-based assumption index from the Focus display.")
      (ass  "(ass)"  "Close the goal by an assumption alpha-equivalent to it.")
      (inst "(inst forall-hyp term)" "Instantiate a universally-quantified assumption at `term', adding the instance to context.")
+     (detach! "(detach! impl)" "Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context."
+       "The forward dual of `bc' -- it grows the CONTEXT instead of the goal.  Sound (A and A=>B give B).  Realised by the kernel rule pi-detach!.")
+     (fact "(fact 'thm term ...)" "Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis."
+       "Handles interleaved forall/implies (e.g. forall s. IS-X(s) => forall a. a in A(s) => P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) => P(x)' becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.")
      (ce   "(ce hyp k)" "Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.")
      (te   "(te hyp k)" "Tuple elim: project the k-th component out of a tuple-membership assumption.")
      (ie   "(ie hyp k)" "Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption."))
@@ -101,8 +105,8 @@
      (quietly "(quietly thunk)" "Run thunk with state-dump output suppressed; returns its value."))
 
     ("Forward-reasoning idioms  [proof-local -- NOT yet surface tactics]"
-     (detach!         "(detach! impl)" "Forward modus ponens on a local (IMPLIES A B) whose A is in context: leaves B in context."
-       "Currently defined inline at the top of calculus/prop-3-14-proof.scm and copy-pasted into prop-3-15-proof.scm -- it is NOT loaded as a surface command.  Promoting these helpers to a shared tactics file is an open agenda item; until then they exist only inside those proof scripts.")
+     ;; detach! was promoted to a real surface tactic (see "Using a hypothesis"),
+     ;; backed by the kernel rule pi-detach!; `fact' is built on it.
      (cut-mem!        "(cut-mem! mem A)" "Prove a membership (IN (f x) B) by fun-apply-type with domain A, leaving it in context.  [proof-local]")
      (metric-sym-eq!  "(metric-sym-eq! S P Q)" "Add (= ((D S) P Q) ((D S) Q P)) to context via the metric-sym axiom.  [proof-local]")
      (focus-leaf!     "(focus-leaf! substr)" "Focus the frontier leaf whose goal contains substr (never trust auto-advance).  [proof-local]")

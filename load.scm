@@ -244,6 +244,9 @@
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
     "structure-library/metric-laws"
+    ;; 0.x = 0_V : first proven MODULE theorem; worked test of `fact' + the
+    ;; MODULE-VECTOR-AG view.  Needs interactive tactics + the module bricks.
+    "theorem-library/module-zero-act"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Assumption-pattern scanner for forward-move discovery

@@ -142,6 +142,46 @@
         (vnb--warn "backchain: no matching implication"
                    (expression->string implies-formula)))))
 
+(define (cmd-detach ps implies-formula)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-detach! sqn implies-formula)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "detach: need an in-context (IMPLIES A B) whose A is in context"
+                   (expression->string implies-formula)))))
+
+;;; fact -- forward APPLICATION of a theorem.  Bring the named theorem into
+;;; context, instantiate its leading universals with the given terms, and
+;;; auto-detach every antecedent already present in context, landing the
+;;; consequent as a new assumption.  Handles INTERLEAVED forall/implies (e.g.
+;;; forall s. IS-X(s) => forall a. a in A(s) => P), consuming an arg per
+;;; forall and detaching each implies whose antecedent is in context.  This is
+;;; the forward-assembly workhorse: a theorem becomes a usable fact in one call,
+;;; instead of a ta + inst* + cut/backchain hand-chain.
+(define (cmd-fact ps thm-name args)
+  (let ((f0 (and (symbol? thm-name)
+                 (hash-table-ref/default *theorem-table* thm-name #f))))
+    (if (not f0)
+        (vnb--warn "fact: unknown theorem"
+                   (if (symbol? thm-name) (symbol->string thm-name) "(not a symbol)"))
+        (let ((ps1 (cmd-theorem-assumption ps thm-name)))
+          (if (vnb-warning? ps1) ps1
+              (let loop ((ps ps1) (formula f0) (args args))
+                (cond
+                  ((vnb-warning? ps) ps)
+                  ((and (pair? formula) (eq? (car formula) 'FORALL) (pair? args))
+                   (let* ((x    (quantifier-var formula))
+                          (body (quantifier-body formula))
+                          (ps2  (cmd-instantiate ps formula (car args))))
+                     (if (vnb-warning? ps2) ps2
+                         (loop ps2 (subst-free x (car args) body) (cdr args)))))
+                  ((and (pair? formula) (eq? (car formula) 'IMPLIES)
+                        (asms-find (sequent-node-assumptions (proof-state-focus ps))
+                                   (binary-left formula)))
+                   (let ((ps2 (cmd-detach ps formula)))
+                     (if (vnb-warning? ps2) ps2
+                         (loop ps2 (binary-right formula) args))))
+                  (else ps))))))))
+
 (define (cmd-apply-macete ps macete-name)
   (let* ((sqn (proof-state-focus ps))
          (r   (apply-macete! macete-name sqn)))

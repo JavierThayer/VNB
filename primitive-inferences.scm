@@ -306,6 +306,30 @@
                   sqn))))))
 
 ;;; -----------------------------------------------------------------------
+;;; DETACH  (forward modus ponens)
+;;;
+;;; From an in-context (IMPLIES A B) whose antecedent A is ALSO in context,
+;;; add B to the context.  Sound: A and A=>B entail B, so the new assumption
+;;; is derivable and adding it preserves the sequent's validity.  The forward
+;;; dual of BACKCHAIN -- it grows the CONTEXT (forward) rather than the goal
+;;; (backward), which is what assembling from `IS-X(s) => law' theorems needs.
+(define (pi-detach! sqn implies-formula)
+  ;; implies-formula: raw S-expression of the in-context implication
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (dg   (sqn-dg sqn))
+         (f    (asms-find asms implies-formula)))
+    (and f
+         (let ((raw-f (wff-formula f)))
+           (and (pair? raw-f) (eq? (car raw-f) 'IMPLIES)
+                (context-contains? asms (wff-child f (binary-left raw-f)))
+                (dg-apply-rule! dg 'detach
+                  (list (make-sequent
+                         (context-add-assumption asms (wff-child f (binary-right raw-f)))
+                         goal))
+                  sqn))))))
+
+;;; -----------------------------------------------------------------------
 ;;; CONTRAPOSITION
 
 (define (pi-contraposit! sqn implies-formula)
