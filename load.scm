@@ -219,6 +219,10 @@
     "contexts"
     "proof-commands"
     "interactive"
+    ;; Generalized context-discharge + operator-remap engine: ring-term/ring-goal
+    ;; lifted to any registered structure kind.  Loads after interactive so the
+    ;; differential anchor (run-context-tests) can compare against live ring-goal.
+    "input-context"
     ;; Surface-syntax accessors for the PARTS of a formula (part / match /
     ;; formula-kind): reach subterms by surface names, never by s-expr position.
     "parts"
