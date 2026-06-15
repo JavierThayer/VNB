@@ -180,6 +180,19 @@
 ;;; once NORMED-FIELD's slot layout grows to carry NON-ZERO / INV.
 
 ;;; -----------------------------------------------------------------------
+;;; A MODULE's vectors form an abelian group
+;;;
+;;; The vector part (VEC, VADD, VZERO, VNEG) of a module is an abelian group.
+;;; This is the bridge the 0.x=0 proof needed: it specializes every
+;;; ABELIAN-GROUP theorem (cancellation, idempotent-is-id, the monoid-derived
+;;; identity laws, ...) to a module's additive structure, so module proofs cite
+;;; ready-made group lemmas instead of re-deriving them from the raw property
+;;; predicates folded into IS-MODULE.
+(def-view-as 'MODULE-VECTOR-AG
+  'MODULE        '(VEC VADD VZERO VNEG)
+  'ABELIAN-GROUP '(A   MUL  E     INV))
+
+;;; -----------------------------------------------------------------------
 ;;; The multiplicative group of a FIELD is implemented above by giving
 ;;; FIELD its own shape with NON-ZERO and INV as built-in slots; see
 ;;; field.scm for the design note.

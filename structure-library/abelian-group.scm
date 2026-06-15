@@ -28,3 +28,14 @@
 ;;; Commutativity of MUL: the is-commutative property projected out of
 ;;; IS-ABELIAN-GROUP.  PROVEN modulo 0 in structure-library/subtype-laws.scm
 ;;; (the metric-sym pattern); no longer asserted here.
+
+;;; Idempotent => identity: in a group a*a = a forces a = E (from a*a=a,
+;;; left-multiply by a^{-1}).  Standard; asserted in the library phase.  It
+;;; specializes through every additive view-as -- crucially MODULE-VECTOR-AG
+;;; (views.scm) -- delivering the cancellation endgame  a +_V a = a => a = 0_V
+;;; on a module's vectors without re-deriving it from the raw property predicates.
+(theory-add-axiom! *current-theory* 'abelian-group-idempotent-is-id
+  '(FORALL s
+     (IMPLIES (IS-ABELIAN-GROUP s)
+       (FORALL a (IMPLIES (IN a (A s))
+         (IMPLIES (= ((MUL s) a a) a) (= a (E s))))))))

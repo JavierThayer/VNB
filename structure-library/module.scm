@@ -95,3 +95,59 @@
   ;; --- MODULE as the proper class { m | IS-MODULE(m) } ---
   (theory-add-axiom! *current-theory* 'MODULE-class
     '(FORALL s (IFF (IN s MODULE) (IS-MODULE s)))))
+
+;;; -----------------------------------------------------------------------
+;;; Projected module laws.  Each is a CONJUNCT of the IS-MODULE definition,
+;;; surfaced as a standalone citable theorem so a proof can bc*/inst it
+;;; directly instead of peeling the 15-conjunct IFF.  Definitional (a
+;;; projection of the definition), not new mathematical content.
+
+(fluid-let ((*current-provenance* 'definitional))
+
+  ;; the scalar component is a ring
+  (theory-add-axiom! *current-theory* 'module-scalar-ring
+    '(FORALL m (IMPLIES (IS-MODULE m) (IS-RING (SCAL m)))))
+
+  ;; ring zero lives in the scalar carrier (an action argument)
+  (theory-add-axiom! *current-theory* 'module-scalar-zero-in
+    '(FORALL m (IMPLIES (IS-MODULE m) (IN (ZERO (SCAL m)) (A (SCAL m))))))
+
+  ;; action closure:  r . x  is a vector
+  (theory-add-axiom! *current-theory* 'module-act-type
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+         (FORALL x_ (IMPLIES (IN x_ (VEC m))
+           (IN ((ACT m) r_ x_) (VEC m)))))))))
+
+  ;; (1) action distributes over vector addition
+  (theory-add-axiom! *current-theory* 'module-act-distrib-vec
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+         (FORALL x_ (IMPLIES (IN x_ (VEC m))
+           (FORALL y_ (IMPLIES (IN y_ (VEC m))
+             (= ((ACT m) r_ ((VADD m) x_ y_))
+                ((VADD m) ((ACT m) r_ x_) ((ACT m) r_ y_))))))))))))
+
+  ;; (2) action distributes over ring addition
+  (theory-add-axiom! *current-theory* 'module-act-distrib-scalar
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+         (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+           (FORALL x_ (IMPLIES (IN x_ (VEC m))
+             (= ((ACT m) ((ADD (SCAL m)) r_ s_) x_)
+                ((VADD m) ((ACT m) r_ x_) ((ACT m) s_ x_))))))))))))
+
+  ;; (3) action compatible with ring multiplication
+  (theory-add-axiom! *current-theory* 'module-act-mul-compat
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+         (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+           (FORALL x_ (IMPLIES (IN x_ (VEC m))
+             (= ((ACT m) ((MUL (SCAL m)) r_ s_) x_)
+                ((ACT m) r_ ((ACT m) s_ x_))))))))))))
+
+  ;; (4) unital
+  (theory-add-axiom! *current-theory* 'module-act-unital
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL x_ (IMPLIES (IN x_ (VEC m))
+         (= ((ACT m) (ONE (SCAL m)) x_) x_)))))))
