@@ -1779,6 +1779,9 @@
       ((constant) (display " : ")
                   (display (expression->string (car extra)))
                   (display "   (distinguished element)"))
+      ((substructure) (display "   ")
+                  (display (string-downcase (symbol->string (car extra))))
+                  (display " — a substructure of this kind"))
       (else       (display "   ?")))
     (newline)))
 
@@ -1907,6 +1910,9 @@
                                  " \\to " (expr->tex (cadr extra)) "$"))
       ((constant) (string-append "- **" nm "** : $" (expr->tex (car extra))
                                  "$ — distinguished element"))
+      ((substructure) (string-append "- **" nm "** — a "
+                                 (string-downcase (symbol->string (car extra)))
+                                 " substructure"))
       (else       (string-append "- **" nm "**")))))
 
 ;;; The IS-X law, peeled to its defining conditions and emitted as one

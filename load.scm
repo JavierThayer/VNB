@@ -78,6 +78,9 @@
     "structure-library/commutative-ring"
     "structure-library/integral-domain"
     "structure-library/field"
+    ;; MODULE over a ring (scalar ring as a substructure slot; complete IS-MODULE
+    ;; IFF incl. the four action laws).  Needs RING + operation-properties.
+    "structure-library/module"
     "structure-library/euclidean-ring"
     "structure-library/normed-field"
     ;; Normed abelian group: AG subtype (slots A MUL E INV) + norm NRM at
