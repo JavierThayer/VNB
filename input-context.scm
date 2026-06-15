@@ -54,14 +54,22 @@
 ;;;               (A ADD MUL NEG ZERO ONE) -- used to bind the destructuring
 ;;;               names of  let [c1 c2 ...] be a <kind>  positionally.
 
-(define (make-notation-profile predicate carrier ops lits accessors)
-  (list 'notation-profile predicate carrier ops lits accessors))
+;;;   resolver  : #f for a single-carrier structure (the + * - ^ remap is the
+;;;               profile-driven struct-term), or a procedure
+;;;               (svar elt-frames body) -> resolved-body for a MULTI-CARRIER
+;;;               structure whose operators must be picked by operand SORT
+;;;               (e.g. a module: vector + vs scalar +, scalar*vector action).
+
+(define (make-notation-profile predicate carrier ops lits accessors . resolver)
+  (list 'notation-profile predicate carrier ops lits accessors
+        (if (pair? resolver) (car resolver) #f)))
 (define (notation-profile? p) (and (pair? p) (eq? (car p) 'notation-profile)))
 (define (np-predicate  p) (list-ref p 1))
 (define (np-carrier    p) (list-ref p 2))
 (define (np-ops        p) (list-ref p 3))
 (define (np-lits       p) (list-ref p 4))
 (define (np-accessors  p) (list-ref p 5))
+(define (np-resolver   p) (list-ref p 6))
 
 ;;; -----------------------------------------------------------------------
 ;;; struct-fold / struct-pow / struct-term : the operator-remap walk.
@@ -301,7 +309,11 @@
          (sframes (filter (lambda (f) (eq? (car f) 'struct)) *current-context*))
          (b2 (cond ((null? sframes) b1)
                    ((null? (cdr sframes))
-                    (struct-term (caddr (car sframes)) (cadr (car sframes)) b1))
+                    (let* ((sf (car sframes)) (prof (caddr sf)) (svar (cadr sf)))
+                      (if (np-resolver prof)
+                          ((np-resolver prof) svar
+                             (filter (lambda (f) (eq? (car f) 'elts)) *current-context*) b1)
+                          (struct-term prof svar b1))))
                    (else
                     (display ";VNB note: multiple structures active -- + * - ^ left unresolved")
                     (newline)
@@ -377,3 +389,118 @@
       (display "=== surface vs ring-goal: ")
       (display (+ (if ok1 1 0) (if ok2 1 0))) (display "/2 identical ===") (newline)
       (+ (if ok1 0 1) (if ok2 0 1)))))
+
+;;; =======================================================================
+;;; 2a -- SORT-DIRECTED OVERLOADING (multi-carrier structures: the module).
+;;;
+;;; In a module M over a ring, one `+' / `*' must resolve by operand SORT:
+;;;   x + y   (both vectors)            -> (VADD s) x y
+;;;   c + k   (both scalars)            -> (ADD (SCAL s)) c k
+;;;   c * x   (scalar, vector)          -> (ACT s) c x          [the action]
+;;;   c * k   (both scalars)            -> (MUL (SCAL s)) c k
+;;;   -x / -c                            -> (VNEG s) x / (NEG (SCAL s)) c
+;;; A subterm's sort is its carrier: an element variable's sort comes from the
+;;; element frame that bound it (`in V' -> vector, `in A(R)' -> scalar); an
+;;; operation's result sort is its codomain.  vector*vector, scalar+vector and
+;;; integer-mixing are sort errors (the literal pin keeps numerals out of the
+;;; carriers).  This is the disambiguation you chose over distinct `++' tokens.
+
+(define (module-resolve svar elt-frames body)
+  (let* ((vsort (list 'vec svar))               ; (vec s)        -- vector carrier
+         (ssort (list 'a (list 'scal svar)))     ; (a (scal s))   -- scalar carrier
+         (var-sorts
+          (apply append
+            (map (lambda (f)
+                   (let ((tag (cond ((equal? (caddr f) vsort) 'vec)
+                                    ((equal? (caddr f) ssort) 'scalar)
+                                    (else 'unknown))))
+                     (map (lambda (v) (cons v tag)) (cadr f))))
+                 elt-frames))))
+    (define (vadd a b) (list (list 'vadd svar) a b))
+    (define (vneg a)   (list (list 'vneg svar) a))
+    (define (act r x)  (list (list 'act svar) r x))
+    (define (radd a b) (list (list 'add (list 'scal svar)) a b))
+    (define (rmul a b) (list (list 'mul (list 'scal svar)) a b))
+    (define (rneg a)   (list (list 'neg (list 'scal svar)) a))
+    (define (rone)     (list 'one (list 'scal svar)))
+    (define (fail msg x) (error (string-append "context (module): " msg) x))
+    (define (fold-comb comb first rest)
+      (if (null? rest) first (fold-comb comb (comb first (car rest)) (cdr rest))))
+    (define (combine-add p q)
+      (cond ((and (eq? (cdr p) 'vec)    (eq? (cdr q) 'vec))    (cons (vadd (car p) (car q)) 'vec))
+            ((and (eq? (cdr p) 'scalar) (eq? (cdr q) 'scalar)) (cons (radd (car p) (car q)) 'scalar))
+            (else (fail "cannot add operands of unlike sort (vector vs scalar / literal)" (list (cdr p) (cdr q))))))
+    (define (combine-mul p q)
+      (cond ((and (eq? (cdr p) 'scalar) (eq? (cdr q) 'vec))    (cons (act (car p) (car q)) 'vec))
+            ((and (eq? (cdr p) 'vec)    (eq? (cdr q) 'scalar)) (cons (act (car q) (car p)) 'vec))
+            ((and (eq? (cdr p) 'scalar) (eq? (cdr q) 'scalar)) (cons (rmul (car p) (car q)) 'scalar))
+            (else (fail "cannot multiply these sorts (no vector*vector; use scalar*vector)" (list (cdr p) (cdr q))))))
+    (define (negate p)
+      (cond ((eq? (cdr p) 'vec)    (cons (vneg (car p)) 'vec))
+            ((eq? (cdr p) 'scalar) (cons (rneg (car p)) 'scalar))
+            (else (fail "cannot negate this sort" (cdr p)))))
+    (define (head-sort h)
+      (cond ((or (equal? h (list 'vadd svar)) (equal? h (list 'vneg svar))
+                 (equal? h (list 'act svar))) 'vec)
+            ((or (equal? h (list 'add (list 'scal svar))) (equal? h (list 'mul (list 'scal svar)))
+                 (equal? h (list 'neg (list 'scal svar)))) 'scalar)
+            (else 'unknown)))
+    (define (recur e)
+      (cond
+        ((number? e) (cons e 'numeric))
+        ((symbol? e) (cons e (let ((p (assq e var-sorts))) (if p (cdr p) 'unknown))))
+        ((not (pair? e)) (cons e 'unknown))
+        (else
+         (case (car e)
+           ((+) (fold-comb combine-add (recur (cadr e)) (map recur (cddr e))))
+           ((*) (fold-comb combine-mul (recur (cadr e)) (map recur (cddr e))))
+           ((-) (let ((as (map recur (cdr e))))
+                  (if (null? (cdr as))
+                      (negate (car as))                                  ; unary
+                      (fold-comb combine-add (car as) (map negate (cdr as)))))) ; a-b-c = a+(-b)+(-c)
+           ((^ expt)
+            (let ((bp (recur (cadr e))) (ex (caddr e)))
+              (cond ((not (eq? (cdr bp) 'scalar)) (fail "power base must be a scalar" (cdr bp)))
+                    ((and (integer? ex) (>= ex 0))
+                     (cons (if (= ex 0) (rone)
+                               (let loop ((i (- ex 1)) (acc (car bp)))
+                                 (if (= i 0) acc (loop (- i 1) (rmul acc (car bp))))))
+                           'scalar))
+                    (else (cons (list 'ring-power (list 'scal svar) (car bp) ex) 'scalar)))))
+           (else (cons (cons (car e) (map (lambda (a) (car (recur a))) (cdr e)))
+                       (head-sort (car e))))))))
+    (car (recur body))))
+
+;;; Register the module notation profile (kind `module').  Destructuring order
+;;; is the structure's slot order SCAL VEC VADD VZERO VNEG ACT; the resolver is
+;;; module-resolve.  carrier/ops/lits are unused by the resolver path.
+(register-notation-profile! 'module
+  (make-notation-profile 'IS-MODULE 'VEC '() '()
+    '(SCAL VEC VADD VZERO VNEG ACT)
+    module-resolve))
+
+;;; ---- module sort-resolution test ----
+(define (no-surface-ops? e)               ; #t iff no +/*/- head survives
+  (cond ((not (pair? e)) #t)
+        ((memq (car e) '(+ * -)) #f)
+        (else (let loop ((l e))
+                (or (not (pair? l)) (and (no-surface-ops? (car l)) (loop (cdr l))))))))
+
+(define (run-module-tests)
+  (nullify)
+  (context "let [R, V, vadd, vzero, vneg, act] be a module")
+  (context "let x, y in V")
+  (context "let c, k in A(R)")
+  (let ((results
+         (list (cons "action distributes c*(x+y)" (let ((w (wff "c*(x+y) = c*x + c*y"))) (and (wff? w) (no-surface-ops? (wff-formula w)))))
+               (cons "scalar add c+k"             (let ((w (wff "c + k = k + c")))      (and (wff? w) (no-surface-ops? (wff-formula w)))))
+               (cons "mul-compat (c*k)*x"         (let ((w (wff "(c*k)*x = c*(k*x)")))   (and (wff? w) (no-surface-ops? (wff-formula w)))))
+               (cons "vector add x+y"             (let ((w (wff "x + y = y + x")))       (and (wff? w) (no-surface-ops? (wff-formula w)))))
+               (cons "reject vector*vector x*y"   (vnb-error? (wff "x * y = vzero")))
+               (cons "reject scalar+vector c+x"   (vnb-error? (wff "c + x = x"))))))
+    (nullify)
+    (let ((bad (filter (lambda (r) (not (cdr r))) results)))
+      (for-each (lambda (r) (unless (cdr r) (display "  MODULE FAIL ") (display (car r)) (newline))) results)
+      (display "=== module sort-resolution: ") (display (- (length results) (length bad)))
+      (display "/") (display (length results)) (display " ok ===") (newline)
+      (length bad))))
