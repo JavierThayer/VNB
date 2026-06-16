@@ -344,6 +344,10 @@
 ;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
 (write-tactics-md)
 
+;; Regenerate emacs/vnb-commands.lisp (the command-completion catalog) from the
+;; same registry, so the M-x/button surface can never drift from (tactics).
+(write-vnb-commands)
+
 ;; Invariant guard (so weirdos announce themselves instead of being hunted):
 ;; a `proof' warrant claims a machine proof, so it should never sit on an
 ;; asserted, non-PSS fact -- that is the "Asserted yet warrant: proof" anomaly.

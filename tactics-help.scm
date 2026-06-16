@@ -192,3 +192,128 @@
               (cdr cat)))
           *tactic-help*)))
     path))
+
+;;; --------------------------------------------------------------------
+;;; emacs/vnb-commands.lisp  --  the COMPLETION catalog, generated.
+;;;
+;;; vnb-complete.el (M-x vnb-insert-command) reads a single sexp:
+;;;   ((name (arg ...) "description") ...)
+;;; It used to be a hand-maintained .lisp file that drifted badly from the
+;;; live command set (missing bc*/crs/fact/sep-*/subst/... ; carrying renamed
+;;; ghosts).  Now it is GENERATED from this registry plus `*command-aux*', so
+;;; the button/M-x surface and the (tactics) menu can never diverge again.
+;;;
+;;; `*command-aux*' holds live commands the curated menu does not list but
+;;; completion should still offer: genuine tactics the menu just omits
+;;; (cut/wk/ui/ue/spec/tfi -- candidates to promote into *tactic-help*), plus
+;;; wff/term constructors and REPL utilities.  Same entry shape as the menu.
+;;; --------------------------------------------------------------------
+
+(define *command-aux*
+  '(;; --- proof tactics not (yet) in the curated menu ---
+    (cut  "(cut formula)" "Cut: prove `formula' as a side subgoal, then continue with it added to context (Gentzen cut).")
+    (wk   "(wk hyp)"      "Weaken: drop a cited assumption from the context.")
+    (ui   "(ui k)"        "Union intro: prove (IN x (UNION a b)) via branch k (1 = left, 2 = right).")
+    (ue   "(ue hyp)"      "Union elim: split a (IN x (UNION a b)) assumption into its two cases.")
+    (spec "(spec instance struct is-thm)" "Specialize: bring the axioms of structure instance `instance' into context as `struct', justified by its IS-STRUCT theorem `is-thm'.")
+    (tfi  "(tfi)"         "Transfinite induction: on a goal (FORALL v. v in ORD => P) reduce to the ordinal induction step.")
+    (tfi3 "(tfi3)"        "Transfinite induction, 3-case variant (zero / successor / limit) of `tfi'.")
+    ;; --- wff / term constructors ---
+    (fa   "(fa bindings body)" "Build a FORALL wff: each binding is (x), (x IN A), or (IN x A); nests right over `body'.")
+    (fs   "(fs bindings body)" "Build a FORSOME wff: existential companion to `fa'.")
+    ;; --- REPL utilities ---
+    (pp   "(pp wff)"      "Pretty-print a wff / term in surface syntax.")
+    (calc "(calc term)"   "Evaluate a ground term and print the result.")
+    (make-wff-from-string "(make-wff-from-string str)" "Parse a surface-syntax string into a <wff> object.")
+    (parse-string "(parse-string str)" "Parse a surface-syntax string into a raw S-expression.")))
+
+;;; Does string S contain character CH?  (avoid leaning on srfi string-index)
+(define (vnb-cmd--str-has-char? s ch)
+  (let loop ((i 0))
+    (cond ((>= i (string-length s)) #f)
+          ((char=? (string-ref s i) ch) #t)
+          (else (loop (+ i 1))))))
+
+;;; Drop the #f elements of a list.
+(define (vnb-cmd--keep lst)
+  (cond ((null? lst) '())
+        ((car lst) (cons (car lst) (vnb-cmd--keep (cdr lst))))
+        (else (vnb-cmd--keep (cdr lst)))))
+
+;;; Split STR into tokens at whitespace, but only at paren/bracket depth 0,
+;;; so a nested form like '(= s t) or [((v val)...)] stays one token.
+(define (vnb-cmd--top-tokens str)
+  (let loop ((i 0) (depth 0) (start #f) (acc '()))
+    (if (>= i (string-length str))
+        (reverse (if start (cons (substring str start i) acc) acc))
+        (let ((c (string-ref str i)))
+          (cond
+            ((or (char=? c #\() (char=? c #\[))
+             (loop (+ i 1) (+ depth 1) (or start i) acc))
+            ((or (char=? c #\)) (char=? c #\]))
+             (loop (+ i 1) (- depth 1) (or start i) acc))
+            ((and (char-whitespace? c) (= depth 0))
+             (loop (+ i 1) depth #f
+                   (if start (cons (substring str start i) acc) acc)))
+            (else
+             (loop (+ i 1) depth (or start i) acc)))))))
+
+;;; Normalise one argument token to a bare arg symbol, or #f to drop it.
+;;; Strips [ ] optional markers and a leading quote; a nested form collapses
+;;; to the generic kind `formula'; a `...' rest marker is dropped.
+(define (vnb-cmd--norm-arg tok)
+  (let ((t tok))
+    (when (and (> (string-length t) 1)
+               (char=? (string-ref t 0) #\[)
+               (char=? (string-ref t (- (string-length t) 1)) #\]))
+      (set! t (substring t 1 (- (string-length t) 1))))
+    (when (and (> (string-length t) 0) (char=? (string-ref t 0) #\'))
+      (set! t (substring t 1 (string-length t))))
+    (cond
+      ((string=? t "") #f)
+      ((string=? t "...") #f)
+      ((or (vnb-cmd--str-has-char? t #\()
+           (vnb-cmd--str-has-char? t #\[)) 'formula)
+      ;; downcase placeholder names so `write' need not bar-escape them
+      ;; (MIT symbols read case-folded); these are display hints only.
+      (else (string->symbol (string-downcase t))))))
+
+;;; Derive a vnb-commands.lisp arglist from a registry signature string,
+;;; e.g. "(mac 'name)" -> (name), "(ce hyp k)" -> (hyp k), "(di)" -> ().
+(define (vnb-cmd--sig->arglist sig)
+  (let* ((n (string-length sig))
+         (inner (if (and (> n 1)
+                         (char=? (string-ref sig 0) #\()
+                         (char=? (string-ref sig (- n 1)) #\)))
+                    (substring sig 1 (- n 1))
+                    sig))
+         (toks (vnb-cmd--top-tokens inner)))
+    (if (null? toks)
+        '()
+        (vnb-cmd--keep (map vnb-cmd--norm-arg (cdr toks))))))
+
+;;; Flat list of (name (arg ...) "gloss") from menu registry ++ aux.
+(define (vnb-cmd--all-commands)
+  (map (lambda (e)
+         (list (car e) (vnb-cmd--sig->arglist (cadr e)) (tactics--gloss e)))
+       (append (tactics--all-entries) *command-aux*)))
+
+(define (write-vnb-commands)
+  (let ((path (string-append *reference-dir* "../emacs/vnb-commands.lisp")))
+    (with-output-to-file path
+      (lambda ()
+        (display ";;; vnb-commands.lisp -- machine-readable VNB command registry\n")
+        (display ";;;\n")
+        (display ";;; GENERATED by (write-vnb-commands) from `*tactic-help*' +\n")
+        (display ";;; `*command-aux*' in tactics-help.scm.  DO NOT EDIT BY HAND --\n")
+        (display ";;; edit the registry and reload; the writer runs on load.\n")
+        (display ";;;\n")
+        (display ";;; Format: (command-name (arg ...) \"description\")\n")
+        (display ";;; Read by emacs/vnb-complete.el: (read) the whole list.\n\n")
+        (display "(\n")
+        (for-each
+          (lambda (c)
+            (write c) (newline))
+          (vnb-cmd--all-commands))
+        (display ")\n")))
+    path))
