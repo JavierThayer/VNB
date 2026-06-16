@@ -366,64 +366,47 @@
        (lambda () (make-wff (context-discharge (vnb-parse-tokens (vnb-tokenize str))))))))
 
 ;;; =======================================================================
-;;; tm -- build a term s-expr from VNB SURFACE syntax with POSITIONAL holes.
+;;; tm -- build a term s-expr from VNB SURFACE syntax with ~a holes.
 ;;;
-;;; A hole is written  <<name>>  in the string; the name is just a mnemonic
-;;; LABEL.  Holes are filled POSITIONALLY by the trailing arguments, in order of
-;;; first appearance -- exactly like  format's  ~a.  A label repeated in the
-;;; string reuses its single argument:
+;;; Each  ~a  in the template is a hole, filled POSITIONALLY by the trailing
+;;; arguments left to right -- exactly like  format's  ~a  (and ~s is accepted
+;;; as a synonym).  Unlike format, the argument is NOT stringified: each ~a is
+;;; replaced by a marker that is spliced via subst-free AFTER the template is
+;;; parsed, so a spliced value may be any compound term and is inserted exactly.
 ;;;
-;;;   (tm "act(<<S>>)(<<Z>>,<<X>>)" s z x)          =>  ((act s) z x)
-;;;   (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" s a)    =>  (= ((vadd s) a a) a)
-;;;       ^ two holes (S, A); A occurs 3x but takes ONE argument.
+;;;   (tm "act(~a)(~a,~a)" s z x)          =>  ((act s) z x)
+;;;   (tm "vadd(~a)(~a,~a) = ~a" s a a a)  =>  (= ((vadd s) a a) a)
 ;;;
-;;; The string is parsed by the ordinary VNB reader -- so f(x), CURRIED heads
-;;; f(x)(y,z), and infix all parse -- and each hole is then replaced by its
-;;; argument via subst-free, AFTER parsing.  So a spliced value may be any term
-;;; s-expr (an eigenvariable, a compound accessor term, ...): nothing is printed
-;;; and re-read, so compound splices are exact.  This is the surface-syntax
-;;; analogue of Scheme quasiquote: <<x>> is ,x.
-;;;
-;;; A hole becomes the marker symbol  hole_<name>_  before parsing, so a literal
-;;; in the template that happens to share a hole's letter is NOT captured (only
-;;; the marked occurrences splice).
+;;; WHY NOT literal  (make-wff-from-string (apply format #f str args)).  format
+;;; would stringify each arg; a COMPOUND arg like (scal s) prints in Lisp prefix
+;;; -- "zero((scal s))" -- which is not VNB surface syntax (would be
+;;; "zero(scal(s))") and fails to re-parse.  Splicing AFTER the parse (here) is
+;;; the surface analogue of Scheme quasiquote -- ~a is ,(next arg) -- with no
+;;; print/re-read round trip.  A repeated value is simply passed again.
 
-(define (tm--canon nm) (string->symbol (string-downcase (symbol->string nm))))
-(define (tm--marker nm) (string-append "hole_" (symbol->string (tm--canon nm)) "_"))
+(define (tm--marker k) (string-append "hole_" (number->string k) "_"))
 
-(define (tm--distinct lst)               ; first-appearance order, deduped
-  (let loop ((l lst) (seen '()))
-    (cond ((null? l) (reverse seen))
-          ((memq (car l) seen) (loop (cdr l) seen))
-          (else (loop (cdr l) (cons (car l) seen))))))
-
-(define (tm--rewrite str)                ; -> (clean-string . hole-name-list)
+(define (tm--rewrite str)                ; -> (clean-string . hole-count)
   (let ((n (string-length str)))
-    (let loop ((i 0) (out '()) (holes '()))
+    (let loop ((i 0) (out '()) (k 0))
       (cond
-        ((>= i n) (cons (list->string (reverse out)) (reverse holes)))
-        ((and (< (+ i 1) n) (char=? (string-ref str i) #\<) (char=? (string-ref str (+ i 1)) #\<))
-         (let scan ((j (+ i 2)) (cs '()))
-           (cond ((>= j n) (error "tm: unterminated `<<' in template" str))
-                 ((and (< (+ j 1) n) (char=? (string-ref str j) #\>) (char=? (string-ref str (+ j 1)) #\>))
-                  (let ((nm (string->symbol (list->string (reverse cs)))))
-                    (loop (+ j 2)
-                          (append (reverse (string->list (tm--marker nm))) out)
-                          (cons (tm--canon nm) holes))))
-                 (else (scan (+ j 1) (cons (string-ref str j) cs))))))
-        (else (loop (+ i 1) (cons (string-ref str i) out) holes))))))
+        ((>= i n) (cons (list->string (reverse out)) k))
+        ((and (< (+ i 1) n) (char=? (string-ref str i) #\~)
+              (memv (string-ref str (+ i 1)) '(#\a #\s #\A #\S)))
+         (loop (+ i 2) (append (reverse (string->list (tm--marker (+ k 1)))) out) (+ k 1)))
+        (else (loop (+ i 1) (cons (string-ref str i) out) k))))))
 
 (define (tm str . vals)
   (vnb-guard
    (lambda ()
      (let* ((rw    (tm--rewrite str))
-            (holes (tm--distinct (cdr rw))))      ; distinct, first-appearance
-       (unless (= (length holes) (length vals))
-         (error "tm: holes" holes "want" (length holes) "args, got" (length vals) "in" str))
-       (let loop ((hs holes) (vs vals) (e (vnb-parse-tokens (vnb-tokenize (car rw)))))
-         (if (null? hs) e
-             (loop (cdr hs) (cdr vs)
-                   (subst-free (string->symbol (tm--marker (car hs))) (car vs) e))))))))
+            (count (cdr rw)))
+       (unless (= count (length vals))
+         (error "tm:" count "holes (~a) but" (length vals) "args in" str))
+       (let loop ((k 1) (vs vals) (e (vnb-parse-tokens (vnb-tokenize (car rw)))))
+         (if (null? vs) e
+             (loop (+ k 1) (cdr vs)
+                   (subst-free (string->symbol (tm--marker k)) (car vs) e))))))))
 
 ;;; differential check: tm surface forms == the hand-built s-exprs they replace.
 (define (run-tm-tests)
@@ -435,10 +418,10 @@
         (display "  TM MISMATCH got: ") (write got)
         (display "  want: ") (write want) (newline)))
     (let ((s 's_7) (x 'x_3))
-      (chk (tm "zero(scal(<<S>>))" s)                 (list 'zero (list 'scal s)))
-      (chk (tm "act(<<S>>)(<<Z>>,<<X>>)" s (list 'zero (list 'scal s)) x)
+      (chk (tm "zero(scal(~a))" s)                    (list 'zero (list 'scal s)))
+      (chk (tm "act(~a)(~a,~a)" s (list 'zero (list 'scal s)) x)
            (list (list 'act s) (list 'zero (list 'scal s)) x))
-      (chk (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" s x)        ; A reused, ONE arg
+      (chk (tm "vadd(~a)(~a,~a) = ~a" s x x x)        ; reused value passed again
            (list '= (list (list 'vadd s) x x) x)))
     (display "=== tm surface == hand-built: ") (display (- n bad))
     (display "/") (display n) (display " identical ===") (newline)
