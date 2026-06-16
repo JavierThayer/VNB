@@ -31,3 +31,4 @@
 
 # Compiled Emacs Lisp
 *.elc
+reference/__pycache__/

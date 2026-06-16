@@ -2176,6 +2176,75 @@
                       (hash-table-keys *definitional-structure-table*)))
     (reverse out)))
 
+;;; ---- bridges: structure-valued functoids as functor object-maps ----
+;;; A BRIDGE is a def-functoid that carries one structure to another by BUILDING
+;;; a new slot rather than reshuffling existing ones -- e.g.
+;;;   NF-METRIC-SPACE : normed-field -> metric-space,  d(x,y) = NRM(x - y).
+;;; Because the target's distinguishing slot (the metric D) is not a slot of the
+;;; source, it cannot be a def-view-as (see normed-field-metric.scm) -- it is a
+;;; plain functoid, hence invisible to the refines/view-as layers.  We recover
+;;; the edges from the theorem that certifies the functor lands in its target:
+;;;     FORALL x. IS-SRC(x) [and ...] => IS-TGT(F(x ...))
+;;; with F a STRUCTURE-VALUED functoid and SRC/TGT both graph nodes.
+
+(define (structure-graph--pred->struct pred)
+  ;; IS-METRIC-SPACE -> 'metric-space, but only when that is a graph node.
+  (and (symbol? pred)
+       (let ((s (string-downcase (symbol->string pred))))
+         (and (> (string-length s) 3)
+              (string=? (substring s 0 3) "is-")
+              (let ((nm (string->symbol (substring s 3 (string-length s)))))
+                (and (memq nm (structure-graph--all-nodes)) nm))))))
+
+(define (structure-graph--guard-structs ante)
+  ;; source structures named by IS-X(var) conjuncts in an antecedent (AND-tree).
+  (cond ((not (pair? ante)) '())
+        ((eq? (car ante) 'AND)
+         (append (structure-graph--guard-structs (binary-left ante))
+                 (structure-graph--guard-structs (binary-right ante))))
+        ((and (= (length ante) 2) (structure-graph--pred->struct (car ante)))
+         (list (structure-graph--pred->struct (car ante))))
+        (else '())))
+
+(define (structure-graph--bridge-of formula)
+  ;; strip FORALLs; on (IMPLIES ante (IS-TGT (F ...))) with F a structure-valued
+  ;; functoid, return a list of (src tgt F) triples (one per guarded source).
+  (let loop ((f formula))
+    (cond
+      ((and (pair? f) (eq? (car f) 'FORALL)) (loop (quantifier-body f)))
+      ((and (pair? f) (eq? (car f) 'IMPLIES) (= (length f) 3))
+       (let ((concl (binary-right f)))
+         (and (pair? concl) (= (length concl) 2)
+              (let ((tgt (structure-graph--pred->struct (car concl)))
+                    (arg (cadr concl)))
+                (and tgt (pair? arg) (symbol? (car arg))
+                     ;; a bridge is a functoid that is NOT a view-as: a view-as
+                     ;; reshuffles existing slots (its own layer); a bridge
+                     ;; BUILDS a new one.  Exclude view-as functoids so we don't
+                     ;; duplicate the dashed layer.
+                     (not (lookup-view-as (car arg)))
+                     (let ((reg (hash-table-ref/default *functoid-registry* (car arg) #f)))
+                       (and reg
+                            (functoid--structure-valued? (cadr reg) '())
+                            (map (lambda (s) (list s tgt (car arg)))
+                                 (structure-graph--guard-structs (binary-left f))))))))))
+      (else #f))))
+
+(define (structure-graph--bridges)
+  (let ((seen (make-equal-hash-table)) (out '()))
+    (for-each
+      (lambda (name)
+        (let ((b (structure-graph--bridge-of (lookup-theorem name))))
+          (when (pair? b)
+            (for-each
+              (lambda (triple)
+                (unless (hash-table-ref/default seen triple #f)
+                  (hash-table-set! seen triple #t)
+                  (set! out (cons triple out))))
+              b))))
+      (hash-table-keys *theorem-table*))
+    (reverse out)))
+
 (define (write-structure-graph-dot path)
   (with-output-to-file path
     (lambda ()
@@ -2216,6 +2285,21 @@
               (display "\", tooltip=\"") (display (structure-graph--view-tooltip v))
               (display "\", URL=\"structure-graph.html#views\"];\n"))))
         (hash-table-keys *view-as-table*))
+      (display "\n  // bridges (structure-valued functoids): source -> target\n")
+      (for-each
+        (lambda (triple)
+          (let ((src (car triple)) (tgt (cadr triple))
+                (fn  (string-downcase (symbol->string (caddr triple)))))
+            (display "  \"") (display (structure-graph--id src))
+            (display "\" -> \"") (display (structure-graph--id tgt))
+            (display "\" [style=dotted, color=\"#2a8a4a\", fontcolor=\"#2a8a4a\", penwidth=1.3, label=\"")
+            (display fn)
+            (display "\", tooltip=\"") (display fn) (display " :  ")
+            (display (structure-graph--id src)) (display " -> ")
+            (display (structure-graph--id tgt))
+            (display "    (constructor functoid)\", URL=\"structure-graph.html#")
+            (display (structure-graph--id tgt)) (display "\"];\n")))
+        (structure-graph--bridges))
       (display "}\n")))
   path)
 
