@@ -27,6 +27,12 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
 
 (load (expand-file-name "vnb.el" vnb-launch--el-dir) nil t)
 
+;; Auto-derived interactive commands for the no-argument tactics, read from the
+;; generated command catalog (emacs/vnb-commands.lisp).  Defines M-x vnb-cmd-*
+;; for every kind-0 tactic; the "No-arg Tactics" menu is installed into the
+;; Focus keymap just below (after `vnb-proof-mode-map' is defined).
+(load (expand-file-name "vnb-cmd-gen.el" vnb-launch--el-dir) nil t)
+
 ;;; -----------------------------------------------------------------------
 ;;; Faces -- white-on-black with highlights.
 ;;;
@@ -2569,6 +2575,10 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "g" 'vnb-pf-refresh)
     m)
   "Keymap for the Focus Workspace buffer.")
+
+;; Hang the auto-generated "No-arg Tactics" menu off the Focus keymap, so every
+;; no-argument tactic is reachable by mouse as well as M-x vnb-cmd-NAME.
+(vnb-cmd-install-menu vnb-proof-mode-map)
 
 (define-derived-mode vnb-proof-mode special-mode "VNB-Focus"
   "Major mode for the VNB Focus Workspace buffer."
