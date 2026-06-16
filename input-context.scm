@@ -257,6 +257,17 @@
              (accs (np-accessors profile)))
         (unless (= (length names) (length accs))
           (error "context:" kind "has" (length accs) "components; got" (length names) "in" str))
+        ;; A $-prefixed alias name opts that accessor into capitalized DISPLAY:
+        ;; e.g. [$x, d] makes the carrier accessor print X(s) (head position
+        ;; only -- a bare element x stays x).  Display-only; the alias still
+        ;; resolves to the real (folded) accessor, so the proven corpus is
+        ;; untouched.  Plain (non-$) names leave the accessor's display as is.
+        (for-each
+         (lambda (nm acc)
+           (let ((s (symbol->string nm)))
+             (when (and (> (string-length s) 0) (char=? (string-ref s 0) #\$))
+               (hash-table-set! *accessor-display* acc (sym->display-leaf nm)))))
+         names accs)
         (list 'struct svar profile
               (map (lambda (nm acc) (cons nm (list acc svar))) names accs))))))
 
@@ -334,6 +345,7 @@
 
 (define (nullify)
   (set! *current-context* '())
+  (hash-table-clear! *accessor-display*)   ; drop $-alias display capitalizations
   (display ";VNB context nullified -- input is tel-quel (no closure, no remap)")
   (newline))
 
@@ -540,6 +552,18 @@
   (make-notation-profile 'IS-MODULE 'VEC '() '()
     '(SCAL VEC VADD VZERO VNEG ACT)
     module-resolve))
+
+;;; Register the metric-space notation profile (kind `metric-space').  Slot
+;;; order is the structure's: carrier X (slot 1), metric D (slot 2).  A metric
+;;; space has NO algebraic + * - of its own -- the metric D is a function, and
+;;; the +/<= in the triangle inequality are the AMBIENT real ops, which must
+;;; pass through unremapped.  So the profile carries an IDENTITY resolver: the
+;;; body is already alias-substituted ([A,d] -> (X s)/(D s)) before the resolver
+;;; runs, and we leave its operators alone.  (ops/lits are unused on this path.)
+(register-notation-profile! 'metric-space
+  (make-notation-profile 'IS-METRIC-SPACE 'X '() '()
+    '(X D)
+    (lambda (svar elt-frames body) body)))
 
 ;;; ---- module sort-resolution test ----
 (define (no-surface-ops? e)               ; #t iff no +/*/- head survives

@@ -127,6 +127,24 @@
               ((or (char-alphabetic? c) (char=? c #\?))
                (adv-ch)
                (let* ((tok (read-ident c)) (rest (collect))) (cons tok rest)))
+              ;; `$' prefixes a CASE-DISTINCT identifier: $x is a symbol that
+              ;; does NOT fold onto x (so it dodges the X/x case-fold clash) and
+              ;; DISPLAYS capitalized ($x -> X).  Pure extension: a leading `$'
+              ;; was previously a tokenize error.  The body is read normally
+              ;; (and downcased), then re-prefixed with `$' to keep it distinct.
+              ((char=? c #\$)
+               (adv-ch)
+               (let ((c2 (peek-ch)))
+                 (if (and c2 (char-alphabetic? c2))
+                     (let* ((base (read-ident (adv-ch)))   ; (sym|funsym . name)
+                            (tok  (cons (car base)
+                                        (string->symbol
+                                         (string-append
+                                          "$" (symbol->string (cdr base))))))
+                            (rest (collect)))
+                       (cons tok rest))
+                     (error "vnb-tokenize: `$' must be followed by a letter"
+                            "in" str))))
               ((op-ch? c)
                (adv-ch)
                (let* ((tok (read-op c))    (rest (collect))) (cons tok rest)))

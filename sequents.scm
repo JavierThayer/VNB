@@ -162,17 +162,37 @@
                 (string-append (w r) "+" imag)         ; r+i, r+3i
                 (string-append (w r) imag))))))        ; mag carries the sign: r-i, r-3i
 
+;;; ---- case-distinct ($) display + accessor-head capitalization ----
+;;; Two display-only conventions, both keyed so the underlying (folded) symbols
+;;; are never disturbed:
+;;;   * a $-prefixed symbol ($x) prints as its uppercased body (X) -- a
+;;;     case-distinct variable that dodges the X/x fold clash;
+;;;   * an accessor symbol registered in *accessor-display* prints under its
+;;;     declared capitalization, but ONLY in HEAD position (so the carrier
+;;;     accessor x in x(s) shows as X while a bare element variable x stays x).
+(define *accessor-display* (make-strong-eqv-hash-table))
+
+(define (sym->display-leaf s)             ; variables / standalone symbols
+  (let ((nm (symbol->string s)))
+    (if (and (> (string-length nm) 0) (char=? (string-ref nm 0) #\$))
+        (string-upcase (substring nm 1 (string-length nm)))
+        nm)))
+
+(define (sym->display-head s)             ; application heads (accessors etc.)
+  (or (hash-table-ref/default *accessor-display* s #f)
+      (sym->display-leaf s)))
+
 ;;; min-prec: the minimum precedence this expression must have to avoid
 ;;; being wrapped in an extra pair of parens by the caller.
 (define (expr->str e min-prec)
   (cond
-    ((symbol? e) (symbol->string e))
+    ((symbol? e) (sym->display-leaf e))
     ((number? e) (num-leaf->string e))
     ;; Functoid record: lambda([x in A, y in B], body)
     ((functoid? e)
      (let* ((bindings (functoid-bindings e))
             (bstrs    (map (lambda (b)
-                             (string-append (symbol->string (car b))
+                             (string-append (sym->display-leaf (car b))
                                             " in "
                                             (expr->str (cdr b) 0)))
                            bindings))
@@ -248,12 +268,12 @@
               (string-append "{" (expr->str (cadr e) 0) ", " (expr->str (caddr e) 0) "}")))
          ;; (SEP x A p) -> {x in A: p}
          ((and (eq? head 'SEP) (= (length e) 4))
-          (string-append "{" (symbol->string (cadr e))
+          (string-append "{" (sym->display-leaf (cadr e))
                          " in " (expr->str (caddr e) 0)
                          ": " (expr->str (cadddr e) 0) "}"))
          ;; (COMP x p) -> {x | p}
          ((and (eq? head 'COMP) (= (length e) 3))
-          (string-append "{" (symbol->string (cadr e))
+          (string-append "{" (sym->display-leaf (cadr e))
                          " | " (expr->str (caddr e) 0) "}"))
          ;; (apply-functoid <ftd> arg ...) -> lambda([...], body)(arg, ...)
          ((eq? head 'apply-functoid)
@@ -273,8 +293,8 @@
          ;; Everything else: f(x, y, z) — self-delimiting
          (else
           (if (null? args)
-              (symbol->string head)
-              (string-append (symbol->string head)
+              (sym->display-head head)
+              (string-append (sym->display-head head)
                              "("
                              (str-join (map (lambda (a) (expr->str a 0)) args) ", ")
                              ")"))))))
@@ -285,11 +305,11 @@
     ;; (var) or (var1 var2 ...) — unrestricted, all symbols
     ((and (pair? spec) (not (null? spec))
           (all-symbols? spec) (not (eq? (car spec) 'in)))
-     (str-join (map symbol->string spec) ", "))
+     (str-join (map sym->display-leaf spec) ", "))
     ;; (in var A)
     ((and (pair? spec) (= (length spec) 3)
           (eq? (car spec) 'in) (symbol? (cadr spec)))
-     (string-append (symbol->string (cadr spec))
+     (string-append (sym->display-leaf (cadr spec))
                     " in "
                     (expr->str (caddr spec) 0)))
     (else (expr->str spec 0))))
