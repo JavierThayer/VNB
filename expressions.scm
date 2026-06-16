@@ -145,6 +145,15 @@
 (define (quantifier-var e)   (cadr e))
 (define (quantifier-body e)  (caddr e))
 
+;;; Application terms  (f a1 ... an): operator head + 1-indexed arguments.
+;;; opr / arg replace ad-hoc (car ...) / (cadr ...) pawing when tearing apart a
+;;; function application -- e.g. for ((act s) z x):  (opr e) = (act s),
+;;; (arg e) = z (the first argument), (arg-ref e 2) = x, (args e) = (z x).
+(define (opr e)         (car e))         ; operator / head
+(define (args e)        (cdr e))         ; argument list
+(define (arg-ref e k)   (list-ref e k))  ; k-th argument, 1-indexed (pos 0 = opr)
+(define (arg e)         (arg-ref e 1))   ; first argument
+
 ;;; For LIST and CARTESIAN: the arguments are (cdr expr)
 (define (list-elems e)        (cdr e))   ; (LIST a b c) -> (a b c)
 (define (cartesian-sets e)    (cdr e))   ; (CARTESIAN A B C) -> (A B C)

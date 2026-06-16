@@ -25,13 +25,13 @@
 
 (let* ((goal (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
        (lhs  (binary-left goal))         ; ((act S) (zero (scal S)) X) -- = is binary
-       (S    (cadr (car lhs)))           ; operator (act S); its argument is S
-       (X    (caddr lhs))                ; 2nd argument of the action application
-       ;; subterms in SURFACE syntax, eigenvars spliced through <<holes>>:
-       (SR    (tm "scal(<<S>>)" 'S S))                     ; the scalar ring
-       (Z     (tm "zero(<<SR>>)" 'SR SR))                  ; its zero
-       (AA    (tm "act(<<S>>)(<<Z>>,<<X>>)" 'S S 'Z Z 'X X))      ; a := 0.x
-       (ADD00 (tm "add(<<SR>>)(<<Z>>,<<Z>>)" 'SR SR 'Z Z)))       ; 0 +_R 0
+       (S    (arg (opr lhs)))            ; opr lhs = (act S); its argument is S
+       (X    (arg-ref lhs 2))            ; 2nd argument of the action application
+       ;; subterms in SURFACE syntax, eigenvars spliced into positional <<holes>>:
+       (SR    (tm "scal(<<S>>)" S))                  ; the scalar ring
+       (Z     (tm "zero(<<SR>>)" SR))                ; its zero
+       (AA    (tm "act(<<S>>)(<<Z>>,<<X>>)" S Z X))  ; a := 0.x
+       (ADD00 (tm "add(<<SR>>)(<<Z>>,<<Z>>)" SR Z))) ; 0 +_R 0
   ;; --- forward facts: closures + the two equations ---
   (fact 'module-scalar-ring S)                        ; IS-RING(scal S)
   (fact 'module-scalar-zero-in S)                     ; 0 in A(scal S)
@@ -39,10 +39,9 @@
   (fact 'module-act-distrib-scalar S Z Z X)           ; a = 0.x ; (0+0).x = a +_V a
   (fact 'ring-add-left-id SR Z)                        ; 0 +_R 0 = 0
   ;; --- key equation a +_V a = a, by rewriting with the two facts ---
-  (cut   (tm "vadd(<<S>>)(<<AA>>,<<AA>>) = <<AA>>" 'S S 'AA AA))
-  (subst (tm "vadd(<<S>>)(<<AA>>,<<AA>>) = act(<<S>>)(<<ADD00>>,<<X>>)"
-             'S S 'AA AA 'ADD00 ADD00 'X X))
-  (subst (tm "<<ADD00>> = <<Z>>" 'ADD00 ADD00 'Z Z))
+  (cut   (tm "vadd(<<S>>)(<<AA>>,<<AA>>) = <<AA>>" S AA))
+  (subst (tm "vadd(<<S>>)(<<AA>>,<<AA>>) = act(<<S>>)(<<ADD00>>,<<X>>)" S AA ADD00 X))
+  (subst (tm "<<ADD00>> = <<Z>>" ADD00 Z))
   (rfl)
   ;; --- idempotent under +_V  =>  a = 0_V ---
   (fact 'abelian-group-idempotent-is-id-module-vector-ag S AA)

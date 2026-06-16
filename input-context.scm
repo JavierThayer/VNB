@@ -366,19 +366,23 @@
        (lambda () (make-wff (context-discharge (vnb-parse-tokens (vnb-tokenize str))))))))
 
 ;;; =======================================================================
-;;; tm -- build a term s-expr from VNB SURFACE syntax with spliced holes.
+;;; tm -- build a term s-expr from VNB SURFACE syntax with POSITIONAL holes.
 ;;;
-;;; A hole is written  <<name>>  in the string and given a value in the trailing
-;;;   name value name value ...   arguments (or a single alist).  The string is
-;;; parsed by the ordinary VNB reader -- so f(x), CURRIED heads f(x)(y,z), and
-;;; infix all parse -- and each hole is then replaced by its value via
-;;; subst-free.  This is the surface-syntax analogue of Scheme quasiquote:
-;;; <<x>> is ,x.  Because the value is spliced AFTER parsing it may be any term
-;;; s-expr (an eigenvariable, a compound accessor term, ...) -- nothing is
-;;; printed and re-read, so compound splices are exact.
+;;; A hole is written  <<name>>  in the string; the name is just a mnemonic
+;;; LABEL.  Holes are filled POSITIONALLY by the trailing arguments, in order of
+;;; first appearance -- exactly like  format's  ~a.  A label repeated in the
+;;; string reuses its single argument:
 ;;;
-;;;   (tm "act(<<S>>)(<<Z>>,<<X>>)" 'S s 'Z z 'X x)   =>  ((act s) z x)
-;;;   (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" 'S s 'A a) => (= ((vadd s) a a) a)
+;;;   (tm "act(<<S>>)(<<Z>>,<<X>>)" s z x)          =>  ((act s) z x)
+;;;   (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" s a)    =>  (= ((vadd s) a a) a)
+;;;       ^ two holes (S, A); A occurs 3x but takes ONE argument.
+;;;
+;;; The string is parsed by the ordinary VNB reader -- so f(x), CURRIED heads
+;;; f(x)(y,z), and infix all parse -- and each hole is then replaced by its
+;;; argument via subst-free, AFTER parsing.  So a spliced value may be any term
+;;; s-expr (an eigenvariable, a compound accessor term, ...): nothing is printed
+;;; and re-read, so compound splices are exact.  This is the surface-syntax
+;;; analogue of Scheme quasiquote: <<x>> is ,x.
 ;;;
 ;;; A hole becomes the marker symbol  hole_<name>_  before parsing, so a literal
 ;;; in the template that happens to share a hole's letter is NOT captured (only
@@ -387,14 +391,11 @@
 (define (tm--canon nm) (string->symbol (string-downcase (symbol->string nm))))
 (define (tm--marker nm) (string-append "hole_" (symbol->string (tm--canon nm)) "_"))
 
-(define (tm--binds->alist binds)
-  (cond ((null? binds) '())
-        ((and (null? (cdr binds)) (pair? (car binds)) (pair? (car (car binds))))
-         (car binds))                                   ; single alist argument
-        (else (let loop ((b binds) (acc '()))
-                (cond ((null? b) (reverse acc))
-                      ((null? (cdr b)) (error "tm: hole name with no value" (car b)))
-                      (else (loop (cddr b) (cons (cons (tm--canon (car b)) (cadr b)) acc))))))))
+(define (tm--distinct lst)               ; first-appearance order, deduped
+  (let loop ((l lst) (seen '()))
+    (cond ((null? l) (reverse seen))
+          ((memq (car l) seen) (loop (cdr l) seen))
+          (else (loop (cdr l) (cons (car l) seen))))))
 
 (define (tm--rewrite str)                ; -> (clean-string . hole-name-list)
   (let ((n (string-length str)))
@@ -412,20 +413,17 @@
                  (else (scan (+ j 1) (cons (string-ref str j) cs))))))
         (else (loop (+ i 1) (cons (string-ref str i) out) holes))))))
 
-(define (tm str . binds)
+(define (tm str . vals)
   (vnb-guard
    (lambda ()
-     (let* ((alist (tm--binds->alist binds))
-            (rw    (tm--rewrite str))
-            (holes (cdr rw)))
-       (for-each (lambda (h) (unless (assq h alist)
-                               (error "tm: hole <<" h ">> has no binding" str)))
-                 holes)
-       (let loop ((hs holes) (e (vnb-parse-tokens (vnb-tokenize (car rw)))))
+     (let* ((rw    (tm--rewrite str))
+            (holes (tm--distinct (cdr rw))))      ; distinct, first-appearance
+       (unless (= (length holes) (length vals))
+         (error "tm: holes" holes "want" (length holes) "args, got" (length vals) "in" str))
+       (let loop ((hs holes) (vs vals) (e (vnb-parse-tokens (vnb-tokenize (car rw)))))
          (if (null? hs) e
-             (loop (cdr hs)
-                   (subst-free (string->symbol (tm--marker (car hs)))
-                               (cdr (assq (car hs) alist)) e))))))))
+             (loop (cdr hs) (cdr vs)
+                   (subst-free (string->symbol (tm--marker (car hs))) (car vs) e))))))))
 
 ;;; differential check: tm surface forms == the hand-built s-exprs they replace.
 (define (run-tm-tests)
@@ -437,12 +435,11 @@
         (display "  TM MISMATCH got: ") (write got)
         (display "  want: ") (write want) (newline)))
     (let ((s 's_7) (x 'x_3))
-      (chk (tm "zero(scal(<<S>>))" 'S s)              (list 'zero (list 'scal s)))
-      (chk (tm "act(<<S>>)(<<Z>>,<<X>>)" 'S s 'Z (list 'zero (list 'scal s)) 'X x)
+      (chk (tm "zero(scal(<<S>>))" s)                 (list 'zero (list 'scal s)))
+      (chk (tm "act(<<S>>)(<<Z>>,<<X>>)" s (list 'zero (list 'scal s)) x)
            (list (list 'act s) (list 'zero (list 'scal s)) x))
-      (chk (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" 'S s 'A x)
-           (list '= (list (list 'vadd s) x x) x))
-      (chk (tm "<<P>> = <<Q>>" '((p . a) (q . b)))    (list '= 'a 'b)))   ; alist form
+      (chk (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" s x)        ; A reused, ONE arg
+           (list '= (list (list 'vadd s) x x) x)))
     (display "=== tm surface == hand-built: ") (display (- n bad))
     (display "/") (display n) (display " identical ===") (newline)
     bad))
