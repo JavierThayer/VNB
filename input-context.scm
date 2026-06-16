@@ -365,6 +365,88 @@
       (vnb-guard
        (lambda () (make-wff (context-discharge (vnb-parse-tokens (vnb-tokenize str))))))))
 
+;;; =======================================================================
+;;; tm -- build a term s-expr from VNB SURFACE syntax with spliced holes.
+;;;
+;;; A hole is written  <<name>>  in the string and given a value in the trailing
+;;;   name value name value ...   arguments (or a single alist).  The string is
+;;; parsed by the ordinary VNB reader -- so f(x), CURRIED heads f(x)(y,z), and
+;;; infix all parse -- and each hole is then replaced by its value via
+;;; subst-free.  This is the surface-syntax analogue of Scheme quasiquote:
+;;; <<x>> is ,x.  Because the value is spliced AFTER parsing it may be any term
+;;; s-expr (an eigenvariable, a compound accessor term, ...) -- nothing is
+;;; printed and re-read, so compound splices are exact.
+;;;
+;;;   (tm "act(<<S>>)(<<Z>>,<<X>>)" 'S s 'Z z 'X x)   =>  ((act s) z x)
+;;;   (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" 'S s 'A a) => (= ((vadd s) a a) a)
+;;;
+;;; A hole becomes the marker symbol  hole_<name>_  before parsing, so a literal
+;;; in the template that happens to share a hole's letter is NOT captured (only
+;;; the marked occurrences splice).
+
+(define (tm--canon nm) (string->symbol (string-downcase (symbol->string nm))))
+(define (tm--marker nm) (string-append "hole_" (symbol->string (tm--canon nm)) "_"))
+
+(define (tm--binds->alist binds)
+  (cond ((null? binds) '())
+        ((and (null? (cdr binds)) (pair? (car binds)) (pair? (car (car binds))))
+         (car binds))                                   ; single alist argument
+        (else (let loop ((b binds) (acc '()))
+                (cond ((null? b) (reverse acc))
+                      ((null? (cdr b)) (error "tm: hole name with no value" (car b)))
+                      (else (loop (cddr b) (cons (cons (tm--canon (car b)) (cadr b)) acc))))))))
+
+(define (tm--rewrite str)                ; -> (clean-string . hole-name-list)
+  (let ((n (string-length str)))
+    (let loop ((i 0) (out '()) (holes '()))
+      (cond
+        ((>= i n) (cons (list->string (reverse out)) (reverse holes)))
+        ((and (< (+ i 1) n) (char=? (string-ref str i) #\<) (char=? (string-ref str (+ i 1)) #\<))
+         (let scan ((j (+ i 2)) (cs '()))
+           (cond ((>= j n) (error "tm: unterminated `<<' in template" str))
+                 ((and (< (+ j 1) n) (char=? (string-ref str j) #\>) (char=? (string-ref str (+ j 1)) #\>))
+                  (let ((nm (string->symbol (list->string (reverse cs)))))
+                    (loop (+ j 2)
+                          (append (reverse (string->list (tm--marker nm))) out)
+                          (cons (tm--canon nm) holes))))
+                 (else (scan (+ j 1) (cons (string-ref str j) cs))))))
+        (else (loop (+ i 1) (cons (string-ref str i) out) holes))))))
+
+(define (tm str . binds)
+  (vnb-guard
+   (lambda ()
+     (let* ((alist (tm--binds->alist binds))
+            (rw    (tm--rewrite str))
+            (holes (cdr rw)))
+       (for-each (lambda (h) (unless (assq h alist)
+                               (error "tm: hole <<" h ">> has no binding" str)))
+                 holes)
+       (let loop ((hs holes) (e (vnb-parse-tokens (vnb-tokenize (car rw)))))
+         (if (null? hs) e
+             (loop (cdr hs)
+                   (subst-free (string->symbol (tm--marker (car hs)))
+                               (cdr (assq (car hs) alist)) e))))))))
+
+;;; differential check: tm surface forms == the hand-built s-exprs they replace.
+(define (run-tm-tests)
+  (let ((n 0) (bad 0))
+    (define (chk got want)
+      (set! n (+ n 1))
+      (unless (equal? got want)
+        (set! bad (+ bad 1))
+        (display "  TM MISMATCH got: ") (write got)
+        (display "  want: ") (write want) (newline)))
+    (let ((s 's_7) (x 'x_3))
+      (chk (tm "zero(scal(<<S>>))" 'S s)              (list 'zero (list 'scal s)))
+      (chk (tm "act(<<S>>)(<<Z>>,<<X>>)" 'S s 'Z (list 'zero (list 'scal s)) 'X x)
+           (list (list 'act s) (list 'zero (list 'scal s)) x))
+      (chk (tm "vadd(<<S>>)(<<A>>,<<A>>) = <<A>>" 'S s 'A x)
+           (list '= (list (list 'vadd s) x x) x))
+      (chk (tm "<<P>> = <<Q>>" '((p . a) (q . b)))    (list '= 'a 'b)))   ; alist form
+    (display "=== tm surface == hand-built: ") (display (- n bad))
+    (display "/") (display n) (display " identical ===") (newline)
+    bad))
+
 ;;; ---- surface differential test: (wff "...") under a ring context == ring-goal ----
 (define (run-surface-tests)
   (nullify)
