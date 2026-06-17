@@ -1134,11 +1134,15 @@ Press `g' to refresh, `q' to quit."
                               'face 'vnb-dim)))
         (goto-char (point-min))))))
 
-(defcustom vnb-graph-browser "epiphany-browser"
+(defcustom vnb-graph-browser nil
   "Which browser opens the clickable structure graph.
 Affects only `vnb-structure-graph-html'; your global browsing is untouched.
-Default is GNOME Web (\"epiphany-browser\") -- a clean, chromeless WebKit
-browser; if it is not installed we fall back to the system default browser.
+Default is nil -- your system default browser -- so VNB needs no particular
+browser installed.  For a clean, chromeless view, set this to a string naming
+GNOME Web (\"epiphany-browser\" on Debian/Ubuntu, \"epiphany\" elsewhere);
+combined with `vnb-graph-browser-args' (\"--incognito-mode\", the default) it
+opens a fresh window every time.  If the named browser is not installed we
+fall back to the system default.
   string   -- an executable name or path, opened via `browse-url-generic'
               (e.g. \"epiphany-browser\", \"chromium\", \"surf\", \"qutebrowser\").
   nil      -- the `browse-url' default (your system default browser).
@@ -3886,6 +3890,19 @@ Graphical, `vnb-lobby-first' nil: keep the old in-Emacs landing page."
                  (lambda () (ignore-errors (iconify-frame (selected-frame))))))
    (t
     (vnb-launch-workspace))))
+
+;; -----------------------------------------------------------------------
+;; Personal configuration.  The `VNB' launcher runs `emacs -Q', so your
+;; ~/.emacs and ~/.emacs.d/init.el are NOT read (a deliberate, predictable
+;; environment).  Instead, if ~/.vnb.el exists it is loaded here -- put your
+;; VNB option overrides there.  It loads AFTER every defcustom, so a plain
+;; setq wins (no `with-eval-after-load' needed) and takes effect before the
+;; workspace opens any browser below.  Example ~/.vnb.el:
+;;     (setq vnb-graph-browser "epiphany")   ; "epiphany-browser" on Debian/Ubuntu
+;; Override the path with the VNB_CONFIG environment variable if you like.
+(let ((user-cfg (or (getenv "VNB_CONFIG") (expand-file-name "~/.vnb.el"))))
+  (when (file-readable-p user-cfg)
+    (load (expand-file-name user-cfg) nil t)))
 
 (unless noninteractive
   (add-hook 'window-setup-hook
