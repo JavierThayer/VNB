@@ -764,7 +764,10 @@ If the prover is not running, offer to start it with M-x vnb."
 ;; C-c C-s    refresh *VNB State* proof-state buffer
 
 ")))
-    (pop-to-buffer buf)
+    ;; switch-to-buffer (reuse the selected window), not pop-to-buffer: the
+    ;; launcher navigates every workspace this way, so the Scratch Workspace
+    ;; replaces the *VNB Lobby* window instead of splitting alongside it.
+    (switch-to-buffer buf)
     (goto-char (point-max))))
 
 (provide 'vnb)
