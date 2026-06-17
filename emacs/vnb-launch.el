@@ -3639,7 +3639,9 @@ Focus workspace.  Gives long formulas room the minibuffer never had."
 ;; ============================================================
 ;;
 ;;  The goal on the last line says: every natural number is a natural
-;;  number.  Obviously true -- which makes it the perfect first proof.
+;;  number.  It is true purely by logic, with no real mathematical
+;;  content -- a *tautology* -- which is exactly what makes it a safe,
+;;  perfect first proof.
 ;;
 ;;  Press  C-c C-c  to begin.  A \"Focus\" window opens, showing the goal.
 ;;  There, type each of these and press RET:
