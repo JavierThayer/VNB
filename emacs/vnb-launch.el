@@ -593,39 +593,84 @@ indexing by structure).  No window split, no raw s-expressions."
     (switch-to-buffer buf)))
 
 (defvar vnb-calculator-buffer-name "*VNB Calculator*"
-  "Buffer name for the kid-facing arithmetic calculator tape.")
+  "Buffer name for the kid-facing arithmetic calculator sheet.")
 
-(defun vnb-ws-calculator (expr)
-  "Evaluate a plain arithmetic expression and append it to a calculator tape.
-Kid-facing front end to the prover's (calc ...) evaluator: type something
-like 2 + 3 + 5 (also 10 - 4, 2 * 3 * 5) and the answer is recorded in the
-*VNB Calculator* buffer as `expr = answer'.  Only ground arithmetic;
-(calc ...) is vnb-guarded, so a nonsense entry can't wedge the prover."
-  (interactive "sCalculate (e.g. 2 + 3 + 5): ")
-  (when (string-match-p "\\`[ \t]*\\'" expr)
-    (user-error "Nothing to calculate"))
+(defvar vnb-calc-template "\
+;; ============================================================
+;;  VNB CALCULATOR      C-j = work out this line      C-c C-k = close
+;; ============================================================
+;;
+;;  The same engine that checks proofs also does the sums.  Type an
+;;  arithmetic expression on its own line and press  C-j  -- the answer
+;;  is written right after it.  Use whole numbers with  +  -  *.
+;;  Try these (put the cursor on a line and press C-j):
+
+2 + 3 + 5
+10 - 4
+2 * 3 * 5
+"
+  "Initial content inserted into a fresh Calculator sheet.")
+
+(defvar vnb-calc-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "C-j")     'vnb-calc-eval-line)
+    (define-key m (kbd "C-c C-c") 'vnb-calc-eval-line)
+    (define-key m (kbd "C-c C-k") 'vnb-calc-cancel)
+    m)
+  "Keymap for the Calculator sheet.")
+
+(define-derived-mode vnb-calc-mode prog-mode "VNB-Calc"
+  "Major mode for the Calculator sheet -- a Scratch-style editable tape.
+\\<vnb-calc-mode-map>Type an arithmetic expression on a line and \\[vnb-calc-eval-line]
+to work it out in place; \\[vnb-calc-cancel] closes the sheet."
+  (setq truncate-lines nil)
+  (setq-local comment-start ";"))
+
+(defun vnb-calc-eval-line ()
+  "Work out the arithmetic expression on the current line, in place.
+Sends it to the prover's vnb-guarded (calc ...) evaluator and appends
+`=  answer' to the line, then opens a fresh line below.  Blank, comment
+(`;'), and already-evaluated (`=') lines just get a newline."
+  (interactive)
+  (let* ((raw-line (buffer-substring-no-properties
+                    (line-beginning-position) (line-end-position)))
+         (expr     (string-trim raw-line)))
+    (if (or (string= expr "")
+            (string-prefix-p ";" expr)
+            (string-match-p "=" expr))
+        (progn (end-of-line) (insert "\n"))
+      (vnb-launch--ensure-prover)
+      (let* ((e   (vnb-launch--dequote expr))
+             (rawv (vnb-eval-string (format "(calc %S)" e)))
+             (ans (and rawv (string-trim rawv)))
+             (ok  (and ans (string-match-p "\\`-?[0-9][0-9/.eE+-]*\\'" ans))))
+        (end-of-line)
+        (insert (if ok (format "   =  %s" ans)
+                  "   =  ?   (use whole numbers with  +  -  *)"))
+        (insert "\n")
+        (when ok (message "%s = %s" e ans))))))
+
+(defun vnb-calc-cancel ()
+  "Close the Calculator sheet and return to the Home Workspace."
+  (interactive)
+  (kill-buffer)
+  (vnb-launch-workspace))
+
+(defun vnb-ws-calculator ()
+  "Open the *VNB Calculator*: a Scratch-style editable tape.
+\\<vnb-calc-mode-map>Type an arithmetic expression on a line and press \\[vnb-calc-eval-line] to work it
+out right there -- the same prover that checks proofs also does the sums."
+  (interactive)
   (vnb-launch--ensure-prover)
-  (let* ((e    (vnb-launch--dequote (string-trim expr)))
-         (raw  (vnb-eval-string (format "(calc %S)" e)))
-         (ans  (and raw (string-trim raw)))
-         (ok   (and ans (string-match-p "\\`-?[0-9][0-9/.eE+-]*\\'" ans)))
-         (line (if ok
-                   (format "  %s  =  %s\n" e ans)
-                 (format "  %s  =  ?   (use numbers with  +  -  *)\n" e)))
-         (buf  (get-buffer-create vnb-calculator-buffer-name)))
+  (let ((buf (get-buffer-create vnb-calculator-buffer-name)))
     (with-current-buffer buf
-      (let ((inhibit-read-only t))
-        (when (= (point-min) (point-max))
-          (setq-local mode-line-format vnb-launch--mode-line-format)
-          (insert (propertize "  VNB Calculator\n" 'face 'vnb-title))
-          (insert (propertize (concat "  " (make-string 30 ?─) "\n\n")
-                              'face 'vnb-accent)))
-        (goto-char (point-max))
-        (insert (propertize line 'face (if ok 'vnb-goal 'vnb-dim)))
-        (goto-char (point-max)))
-      (unless buffer-read-only (setq buffer-read-only t)))
-    (display-buffer buf)
-    (when ok (message "%s = %s" e ans))))
+      (unless (eq major-mode 'vnb-calc-mode)
+        (vnb-calc-mode))
+      (when (= (point-min) (point-max))
+        (insert vnb-calc-template)
+        (goto-char (point-max))))
+    (delete-other-windows)
+    (switch-to-buffer buf)))
 
 (defvar vnb-pss-buffer-name "*VNB PSS*"
   "Buffer name for the Proof Support Set viewer.")
@@ -1295,6 +1340,7 @@ Workspace is always the front door."
 
 (defconst vnb--home-actions
   '(("start-proof"     . vnb-ws-start-proof)
+    ("first-proof"     . vnb-ws-first-proof)
     ("continue-proof"  . vnb-launch--show-proof-workspace)
     ("scratch"         . vnb-ws-scratch-workspace)
     ("build-formula"   . vnb-ws-build-formula)
@@ -3574,6 +3620,51 @@ Focus workspace.  Gives long formulas room the minibuffer never had."
         (vnb-startproof-mode))
       (when (= (point-min) (point-max))
         (insert vnb-startproof-template)
+        (goto-char (point-max))))
+    (delete-other-windows)
+    (switch-to-buffer buf)))
+
+;;; -----------------------------------------------------------------------
+;;; Your First Proof: a gentle, guided on-ramp for a complete newcomer.
+;;; Reuses vnb-startproof-mode (so C-c C-c submits the goal); the template
+;;; pre-fills a tautological goal whose proof is the two-step assume/discharge
+;;; loop -- verified to close via (di) then (ass).
+
+(defvar vnb-firstproof-buffer-name "*VNB First Proof*"
+  "Name of the guided first-proof buffer.")
+
+(defvar vnb-firstproof-template "\
+;; ============================================================
+;;  YOUR FIRST PROOF      C-c C-c = Begin      C-c C-k = Cancel
+;; ============================================================
+;;
+;;  The goal on the last line says: every natural number is a natural
+;;  number.  Obviously true -- which makes it the perfect first proof.
+;;
+;;  Press  C-c C-c  to begin.  A \"Focus\" window opens, showing the goal.
+;;  There, type each of these and press RET:
+;;
+;;      (di)      \"assume x is a natural number\"  -- the goal becomes  x in nn
+;;      (ass)     \"but that's already what we assumed\"  -- proved!
+;;
+;;  That assume-then-discharge loop is the heart of every proof.  When you
+;;  are ready for more, try  Start Proof  with a goal of your own.
+
+forall([x in nn], x in nn)
+"
+  "Initial content for the guided first-proof buffer.")
+
+(defun vnb-ws-first-proof ()
+  "Open *VNB First Proof*: a guided, two-step first proof for newcomers.
+Pre-fills a tiny true goal; \\<vnb-startproof-mode-map>\\[vnb-startproof-submit] begins it, then (di) and (ass)
+in the Focus window close it -- the whole assume/discharge loop in miniature."
+  (interactive)
+  (let ((buf (get-buffer-create vnb-firstproof-buffer-name)))
+    (with-current-buffer buf
+      (unless (eq major-mode 'vnb-startproof-mode)
+        (vnb-startproof-mode))
+      (when (= (point-min) (point-max))
+        (insert vnb-firstproof-template)
         (goto-char (point-max))))
     (delete-other-windows)
     (switch-to-buffer buf)))

@@ -41,6 +41,7 @@ REF_LINKS = [
 # page, so there is no separate Emacs landing page to bounce to.
 WORKBENCH = [
     ("Prove", [
+        ("Your first proof","first-proof",   "brand new? a gentle two-step proof, guided all the way"),
         ("Start Proof",    "start-proof",    "edit the goal in a buffer, then begin in the Focus workspace"),
         ("Continue Proof", "continue-proof", "return to the proof in progress (Focus workspace)"),
         ("Scratch",        "scratch",        "Lisp-interaction sheet: C-j sends a sexp/region to the prover"),
@@ -48,7 +49,7 @@ WORKBENCH = [
     ("Build", [
         ("Build Formula",  "build-formula",  "parse and validate a formula"),
         ("Build Structure","build-structure","define a new structure (saved to file)"),
-        ("Calculator",     "calculator",     "work out an arithmetic expression"),
+        ("…and a calculator too!", "calculator", "not just proofs — type 2 + 3 × 5 on a live tape, C-j works it out"),
     ]),
     ("Session", [
         ("Examples",     "examples",     "step through worked example proofs"),
