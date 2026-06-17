@@ -239,6 +239,122 @@
          (length cands))))))
 
 ;;; -----------------------------------------------------------------------
+;;; (suggest-rewrite) -- index-driven candidate REWRITE rules for the focus.
+;;;
+;;; The rewrite analogue of suggest-backchain.  bc* matches a lemma's
+;;; CONCLUSION against the whole goal; `mac' instead matches a rule's LHS
+;;; PATTERN against SOME SUBTERM of the goal (or, for `mac-h', of an
+;;; assumption) and rewrites it to the RHS.  So the candidate test is
+;;; different: a rule X is a candidate iff its core is a symmetric form
+;;; (=/IFF/==) and the fingerprint of its LHS SUBSUMES the fingerprint of at
+;;; least one subterm of the target.  Same one-sided direction as bc*: the
+;;; rule's schema vars flex, the target subterm is rigid.
+;;;
+;;; `-rev' companions are NOT collapsed (as in suggest-backchain): X rewrites
+;;; L->R, X-rev rewrites R->L, and both are legitimate `mac' targets, so a
+;;; goal subterm shaped like either side surfaces the matching orientation.
+;;;
+;;; Scope: only theorem-table rules (equations, biconditionals, defined-
+;;; PREDICATE unfolds).  Pure functoid/macete-table unfolds with no theorem
+;;; entry are out of scope here, exactly as for suggest-backchain.
+
+;;; Every pair-subterm of E (E itself included), pre-order.  Non-pairs (atoms,
+;;; the empty list) contribute nothing.  Recurs through EVERY element -- args
+;;; and a compound head alike -- so a rewriteable position anywhere is seen.
+(define (suggest--subterms e)
+  (if (pair? e)
+      (cons e (append-map suggest--subterms e))
+      '()))
+
+;;; The rewrite-LHS fingerprint of theorem FORMULA at DEPTH, or #f if FORMULA's
+;;; core (under FORALLs and at-most-one IMPLIES) is not a symmetric =/IFF/==
+;;; rule.  `mac' rewrites that core's LHS (the second element) to its RHS.
+(define (suggest--rewrite-lhs-fingerprint formula depth)
+  (let-values (((vars core) (strip-foralls (prenex-positive formula))))
+    (let ((c (peel-implies core)))
+      (and (pair? c)
+           (memq (car c) *symmetric-core-heads*)
+           (= (length c) 3)
+           (fingerprint-expr (cadr c) depth vars)))))
+
+;;; Candidate (name . lhs-fingerprint) pairs whose LHS pattern can fire on some
+;;; subterm of TARGET, ranked specific-first.  A fully-wild LHS (a bare schema
+;;; var, which would "match" everything) is dropped -- it is never a useful
+;;; rewrite suggestion.
+(define (suggest-rewrite-candidates target . opt-depth)
+  (let* ((depth  (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*))
+         (subfps (map (lambda (s) (fingerprint-expr s depth '()))
+                      (suggest--subterms target)))
+         (cands  '()))
+    (for-each
+      (lambda (n)
+        (let ((lfp (suggest--rewrite-lhs-fingerprint (lookup-theorem n) depth)))
+          (when (and lfp
+                     (not (eq? lfp *fingerprint-wild*))
+                     (any (lambda (sfp) (fingerprint-subsumes? lfp sfp)) subfps))
+            (set! cands (cons (cons n lfp) cands)))))
+      (hash-table-keys *theorem-table*))
+    (sort cands
+          (lambda (a b)
+            (let ((sa (fingerprint-specificity (cdr a)))
+                  (sb (fingerprint-specificity (cdr b))))
+              (if (= sa sb)
+                  (string<? (symbol->string (car a)) (symbol->string (car b)))
+                  (> sa sb)))))))
+
+;;; Names only (ranked) of the rewrite rules that can fire on the current focus
+;;; GOAL -- the completion seed for the Focus `mac' (Rewrite goal) prompt.
+(define (suggest-rewrite-names . opt-depth)
+  (let ((goal (suggest--current-goal)))
+    (if (not goal)
+        '()
+        (map car (apply suggest-rewrite-candidates goal opt-depth)))))
+
+;;; Names only (ranked) of the rewrite rules that can fire on the ASSUMPTION
+;;; named by SEL (an assumption index as shown, or its formula) -- the
+;;; completion seed for the Focus `mac-h' (Rewrite hypothesis) prompt.  '() if
+;;; no proof, or SEL does not resolve to an assumption.
+(define (suggest-rewrite-names-asm sel . opt-depth)
+  (if (not *ps*)
+      '()
+      (let ((raw (->raw-formula/idx sel)))
+        (if (vnb-warning? raw)
+            '()
+            (map car (apply suggest-rewrite-candidates raw opt-depth))))))
+
+;;; The pool of all installed rewrite-rule names (symmetric-core theorems),
+;;; sorted -- the completion fallback for `mac'/`mac-h' when no suggestion
+;;; matches (the rewrite analogue of `theorem-names', which `ta' uses).
+(define (rewrite-names . opt-depth)
+  (let ((depth (if (pair? opt-depth) (car opt-depth) *fingerprint-default-depth*)))
+    (sort
+      (filter (lambda (n)
+                (suggest--rewrite-lhs-fingerprint (lookup-theorem n) depth))
+              (hash-table-keys *theorem-table*))
+      (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+
+;;; REPL entry point (parity with suggest-backchain): print the focus goal and
+;;; the ranked rewrite candidates that can fire on one of its subterms.
+(define (suggest-rewrite . opt-depth)
+  (let ((goal (suggest--current-goal)))
+    (cond
+      ((not goal) (display ";; suggest-rewrite: no proof in progress\n"))
+      (else
+       (let ((cands (apply suggest-rewrite-candidates goal opt-depth)))
+         (display ";; goal: ") (display (expression->string goal)) (newline)
+         (display ";; ") (display (length cands))
+         (display " rewrite candidate(s), most specific first:\n")
+         (for-each
+           (lambda (c)
+             (let ((n (car c)) (lfp (cdr c)))
+               (display ";;   ") (display n)
+               (display "  [LHS ") (display (fingerprint->string lfp)) (display "]")
+               (when (fingerprint-var-headed? lfp) (display "  (wildcard head)"))
+               (newline)))
+           cands)
+         (length cands))))))
+
+;;; -----------------------------------------------------------------------
 ;;; B+ -- the saturating closer.
 ;;;
 ;;; From the current proof, sweep EVERY open goal (all goals under the start

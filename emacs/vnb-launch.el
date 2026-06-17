@@ -3067,10 +3067,15 @@ Scheme-side `->raw-formula/idx'."
 (defun vnb-pf-rewrite (name)
   "Rewrite the current goal using the named rule NAME.  Wraps (mac 'NAME).
 NAME is a theorem/axiom whose core is an equation or biconditional; applying
-it replaces matching pieces of the goal with the other side."
+it replaces matching pieces of the goal with the other side.
+
+The name prompt offers SUGGESTIONS first: rules whose LHS pattern fingerprint-
+matches a subterm of the current goal (via `suggest-rewrite-names'), ranked
+most-specific first, with the top one as the RET default.  TAB lists them; the
+full `(rewrite-names)' pool is the fallback, and any name can still be typed."
   (interactive
-   (list (vnb-launch--read-required
-          "Rewrite goal using rule name (empty cancels): ")))
+   (list (vnb-pf--read-name "(suggest-rewrite-names)" "(rewrite-names)"
+                            "Rewrite goal using rule")))
   (vnb-launch--send-tactic (format "(mac '%s)" (vnb-launch--dequote name))))
 
 (defun vnb-pf-assumption ()
@@ -3097,10 +3102,15 @@ context.  Goals not assumption-closable are left untouched."
   (vnb-launch--send-tactic "(rs)"))
 
 (defun vnb-pf-theorem (name)
-  "Add the named theorem NAME to the current context.  Wraps (ta 'NAME)."
+  "Add the named theorem NAME to the current context.  Wraps (ta 'NAME).
+The name prompt completes over the full `(theorem-names)' pool, floating the
+lemmas whose conclusion fingerprint-matches the current goal
+(`suggest-backchain-names') to the top -- the facts you are most likely about
+to use.  TAB lists them; any name can still be typed."
   (interactive
-   (list (vnb-launch--read-required "Theorem name (empty cancels): ")))
-  (vnb-launch--send-tactic (format "(ta '%s)" name)))
+   (list (vnb-pf--read-name "(suggest-backchain-names)" "(theorem-names)"
+                            "Add theorem")))
+  (vnb-launch--send-tactic (format "(ta '%s)" (vnb-launch--dequote name))))
 
 (defun vnb-pf-instantiate (formula term)
   "Instantiate a FORALL hypothesis at TERM.  Wraps (inst FORMULA TERM).
@@ -3128,10 +3138,17 @@ Rewrite.  Wraps (mac-h 'NAME SEL); SEL is an assumption # (as shown) or the
 assumption formula.  NAME must be an equation/biconditional, including a
 defined-PREDICATE unfold.  (Functoid unfolds live in the macete table, not the
 theorem table, so they can't be applied to a hypothesis this way -- unfold them
-in the goal with Rewrite instead.)"
+in the goal with Rewrite instead.)
+
+The ASSUMPTION is read first so the rule prompt can offer SUGGESTIONS: rules
+whose LHS pattern fingerprint-matches a subterm of THAT assumption (via
+`suggest-rewrite-names-asm'), ranked most-specific first, top one as the RET
+default.  TAB lists them; the `(rewrite-names)' pool is the fallback."
   (interactive
-   (list (vnb-launch--read-required "Rewrite hypothesis using rule name: ")
-         (vnb-pf--read-asm-arg "...in which assumption (# or formula): ")))
+   (let ((sel (vnb-pf--read-asm-arg "Rewrite which assumption (# or formula): ")))
+     (list (vnb-pf--read-name (format "(suggest-rewrite-names-asm %s)" sel)
+                              "(rewrite-names)" "Rewrite hyp using rule")
+           sel)))
   (vnb-launch--send-tactic (format "(mac-h '%s %s)" (vnb-launch--dequote name) sel)))
 
 (defun vnb-pf-sep-elim (sel)
@@ -3180,18 +3197,25 @@ missing/garbled response."
     (when (and raw (string-match "(\\(.*\\))" raw))
       (split-string (match-string 1 raw) "[ \t\n]+" t))))
 
-(defun vnb-pf--read-lemma-name ()
-  "Read a Cite-Lemma name, offering goal-matched suggestions first.
-Asks the prover `(suggest-backchain-names)' for lemmas whose conclusion
-fingerprint-matches the current focus goal (the same index behind
-`suggest-backchain'), ranks them ahead of the full `(theorem-names)' pool in
-completion, and defaults to the top suggestion -- RET on empty input takes it.
-TAB lists the ranked matches; any other name can still be typed freely."
+(defun vnb-pf--read-name (suggest-form pool-form label)
+  "Read a name argument with index-driven completion.  Shared by every Focus
+command whose argument is the NAME of a stored result -- Cite-Lemma (`bc*'),
+Rewrite (`mac'/`mac-h'), Add-Theorem (`ta').
+
+SUGGEST-FORM is a prover s-expression string returning a RANKED list of the
+names most relevant to the current focus (e.g. `(suggest-backchain-names)',
+`(suggest-rewrite-names)'); its results are offered first and the top one is
+the RET default.  POOL-FORM returns the full fallback pool (e.g.
+`(theorem-names)', `(rewrite-names)') so any other name can still be typed.
+LABEL is the prompt noun (e.g. \"Cite lemma\").  Both forms are evaluated in
+the prover via `vnb-pf--name-list'; this is the elisp counterpart of the
+Scheme-side index facility, so the two surfaces complete from the same ranking.
+TAB lists the ranked matches; empty input cancels."
   (vnb-launch--ensure-prover)
-  (let* ((sugg    (vnb-pf--name-list "(suggest-backchain-names)"))
-         (all     (vnb-pf--name-list "(theorem-names)"))
+  (let* ((sugg    (vnb-pf--name-list suggest-form))
+         (all     (vnb-pf--name-list pool-form))
          (ordered (delete-dups (append sugg all)))
-         ;; identity sort so the fingerprint ranking survives into *Completions*
+         ;; identity sort so the index ranking survives into *Completions*
          ;; (completing-read sorts alphabetically otherwise).
          (table   (lambda (string pred action)
                     (if (eq action 'metadata)
@@ -3199,13 +3223,22 @@ TAB lists the ranked matches; any other name can still be typed freely."
                                    (cycle-sort-function . identity))
                       (complete-with-action action ordered string pred))))
          (prompt  (if sugg
-                      (format "Cite lemma [%d match the goal; top: %s] (RET=top): "
-                              (length sugg) (car sugg))
-                    "Cite lemma -- theorem/axiom name (empty cancels): "))
+                      (format "%s [%d match; top: %s] (RET=top): "
+                              label (length sugg) (car sugg))
+                    (format "%s -- name (empty cancels): " label)))
          (input   (completing-read prompt table nil nil nil nil (car sugg))))
     (if (and (stringp input) (string-match-p "\\`[ \t]*\\'" input))
         (user-error "Cancelled")
       input)))
+
+(defun vnb-pf--read-lemma-name ()
+  "Read a Cite-Lemma name, offering goal-matched suggestions first.
+Asks the prover `(suggest-backchain-names)' for lemmas whose conclusion
+fingerprint-matches the current focus goal (the same index behind
+`suggest-backchain'), ranks them ahead of the full `(theorem-names)' pool in
+completion, and defaults to the top suggestion -- RET on empty input takes it.
+TAB lists the ranked matches; any other name can still be typed freely."
+  (vnb-pf--read-name "(suggest-backchain-names)" "(theorem-names)" "Cite lemma"))
 
 (defun vnb-pf--bc-undetermined (nm)
   "Ask the prover which schema vars citing NM leaves undetermined.

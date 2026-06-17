@@ -2502,6 +2502,49 @@
                       (loop (cdr ns)))))))))
 
 ;;; -----------------------------------------------------------------------
+;;; suggest-rewrite: the rule-name index behind Focus `mac' / `mac-h'.
+;;; The rewrite analogue of suggest-backchain: rank rules whose LHS pattern
+;;; fires on a subterm of the goal (mac) or a chosen assumption (mac-h).
+
+(display "\n=== suggest-rewrite (mac/mac-h name index) ===\n")
+
+;; rewrite-names is the pool of symmetric-core (=/IFF/==) rules: a subset of
+;; theorem-names, and every member genuinely has a rewrite LHS.
+(check-true "rewrite-names: non-empty subset of theorem-names, all symmetric-core"
+  (lambda ()
+    (let ((rw (rewrite-names)) (all (theorem-names)))
+      (and (pair? rw)
+           (every (lambda (n) (memq n all)) rw)
+           (every (lambda (n)
+                    (suggest--rewrite-lhs-fingerprint
+                      (lookup-theorem n) *fingerprint-default-depth*))
+                  rw)))))
+
+;; mac's seed: on goal x + 0 = y the index surfaces rules whose LHS fires on a
+;; subterm -- non-empty, and every suggestion is a genuine rewrite rule.
+(check-true "suggest-rewrite-names: non-empty, every suggestion is a rewrite rule"
+  (lambda ()
+    (sp (make-wff-from-string "x + 0 = y"))
+    (let ((s (suggest-rewrite-names)) (rw (rewrite-names)))
+      (and (pair? s) (every (lambda (n) (memq n rw)) s)))))
+
+;; mac-h's seed ranks against the chosen ASSUMPTION, not the goal.  After di on
+;; (x = y implies x + 0 = y) the assumption is x = y, whose only rewrite
+;; candidates are =/IFF-headed; the goal x + 0 = y additionally admits +-headed
+;; rules.  So some goal-candidate is NOT an assumption-candidate, and the index
+;; and formula selectors agree.
+(check-true "suggest-rewrite-names-asm ranks against the assumption, not the goal"
+  (lambda ()
+    (sp (make-wff-from-string "x = y implies x + 0 = y"))
+    (di)                                  ; asm 1 := x = y ; goal := x + 0 = y
+    (let ((asm  (suggest-rewrite-names-asm 1))
+          (goal (suggest-rewrite-names)))
+      (and (pair? asm) (pair? goal)
+           (equal? asm (suggest-rewrite-names-asm "x = y"))   ; # and formula agree
+           (any (lambda (n) (not (memq n asm))) goal)         ; +-rules fire on goal only
+           (every (lambda (n) (memq n (rewrite-names))) asm)))))
+
+;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 
 (display "\n=== describe-structure cards (instance vs refinement) ===\n")
