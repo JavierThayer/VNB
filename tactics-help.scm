@@ -41,6 +41,7 @@
      (ci   "(ci)"   "Cartesian intro: prove a CARTESIAN-product membership component-wise.")
      (ti   "(ti)"   "Tuple intro: prove a tuple/LIST membership component-wise.")
      (ii   "(ii)"   "Intersection intro: prove (IN x (INTERSECTION ...)) for each branch.")
+     (ui   "(ui k)" "Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set (1-based).")
      (ni   "(ni)"   "Natural-number induction on the goal's leading FORALL over NN."))
 
     ("Using a hypothesis"
@@ -54,7 +55,11 @@
        "Handles interleaved forall/implies (e.g. forall s. IS-X(s) => forall a. a in A(s) => P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) => P(x)' becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.")
      (ce   "(ce hyp k)" "Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.")
      (te   "(te hyp k)" "Tuple elim: project the k-th component out of a tuple-membership assumption.")
-     (ie   "(ie hyp k)" "Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption."))
+     (ie   "(ie hyp k)" "Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption.")
+     (ue   "(ue hyp)" "Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui'.")
+     (cut  "(cut formula)" "Cut: prove `formula' as a side subgoal, then continue the main goal with `formula' added as an assumption (Gentzen cut)."
+       "How to introduce a lemma you prove inline: spawns `formula' as its own goal and, on the main branch, hands it to you as a fresh assumption.  Sound -- nothing is left assumed-but-unproved, since the side subgoal discharges it.")
+     (wk   "(wk hyp)" "Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a \"string\", or a 1-based assumption index."))
 
     ("Rewriting"
      (mac   "(mac 'name)" "Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context."
@@ -205,16 +210,12 @@
 ;;;
 ;;; `*command-aux*' holds live commands the curated menu does not list but
 ;;; completion should still offer: genuine tactics the menu just omits
-;;; (cut/wk/ui/ue/spec/tfi -- candidates to promote into *tactic-help*), plus
-;;; wff/term constructors and REPL utilities.  Same entry shape as the menu.
+;;; (spec/tfi -- candidates to promote into *tactic-help*), plus wff/term
+;;; constructors and REPL utilities.  Same entry shape as the menu.
 ;;; --------------------------------------------------------------------
 
 (define *command-aux*
   '(;; --- proof tactics not (yet) in the curated menu ---
-    (cut  "(cut formula)" "Cut: prove `formula' as a side subgoal, then continue with it added to context (Gentzen cut).")
-    (wk   "(wk hyp)"      "Weaken: drop a cited assumption from the context.")
-    (ui   "(ui k)"        "Union intro: prove (IN x (UNION a b)) via branch k (1 = left, 2 = right).")
-    (ue   "(ue hyp)"      "Union elim: split a (IN x (UNION a b)) assumption into its two cases.")
     (spec "(spec instance struct is-thm)" "Specialize: bring the axioms of structure instance `instance' into context as `struct', justified by its IS-STRUCT theorem `is-thm'.")
     (tfi  "(tfi)"         "Transfinite induction: on a goal (FORALL v. v in ORD => P) reduce to the ordinal induction step.")
     (tfi3 "(tfi3)"        "Transfinite induction, 3-case variant (zero / successor / limit) of `tfi'.")

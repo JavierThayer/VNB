@@ -82,6 +82,12 @@ Tuple intro: prove a tuple/LIST membership component-wise.
 
 Intersection intro: prove (IN x (INTERSECTION ...)) for each branch.
 
+### ui
+
+    (ui k)
+
+Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set (1-based).
+
 ### ni
 
     (ni)
@@ -143,6 +149,26 @@ Tuple elim: project the k-th component out of a tuple-membership assumption.
     (ie hyp k)
 
 Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption.
+
+### ue
+
+    (ue hyp)
+
+Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui'.
+
+### cut
+
+    (cut formula)
+
+Cut: prove `formula' as a side subgoal, then continue the main goal with `formula' added as an assumption (Gentzen cut).
+
+How to introduce a lemma you prove inline: spawns `formula' as its own goal and, on the main branch, hands it to you as a fresh assumption.  Sound -- nothing is left assumed-but-unproved, since the side subgoal discharges it.
+
+### wk
+
+    (wk hyp)
+
+Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a "string", or a 1-based assumption index.
 
 ## Rewriting
 
