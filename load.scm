@@ -82,6 +82,10 @@
     ;; IFF incl. the four action laws).  Needs RING + operation-properties.
     "structure-library/module"
     "structure-library/euclidean-ring"
+    ;; Ideals, principal ideals, and principal-ideal domains over a commutative
+    ;; ring (IS-IDEAL / PRINCIPAL-IDEAL / IS-PID), plus the well-ordering of NN
+    ;; (nn-least-element).  Vocabulary for the Euclidean-ring => PID proof.
+    "structure-library/ideal"
     "structure-library/normed-field"
     ;; Normed abelian group: AG subtype (slots A MUL E INV) + norm NRM at
     ;; slot 5.  Needs abelian-group, operation-properties (is-group-norm),

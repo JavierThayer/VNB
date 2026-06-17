@@ -36,6 +36,7 @@ SCRIPTS=(
   calculus/prop-3-14-proof.scm
   calculus/prop-3-15-proof.scm
   calculus/uniqueness-of-limits.scm
+  calculus/euclidean-ring-pid.scm
 )
 
 say() { [ "$QUIET" = 0 ] && echo "$@"; }
