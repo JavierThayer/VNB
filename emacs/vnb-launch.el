@@ -2578,7 +2578,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
 
 ;; Hang the auto-generated "No-arg Tactics" menu off the Focus keymap, so every
 ;; no-argument tactic is reachable by mouse as well as M-x vnb-cmd-NAME.
-(vnb-cmd-install-menu vnb-proof-mode-map)
+(vnb-cmdgen-install-menu vnb-proof-mode-map)
 
 (define-derived-mode vnb-proof-mode special-mode "VNB-Focus"
   "Major mode for the VNB Focus Workspace buffer."
