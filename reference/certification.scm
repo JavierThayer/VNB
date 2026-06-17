@@ -21,4 +21,5 @@
 (certify! 'metric-zero-eq "2026-06-17")
 (certify! 'module-zero-act "2026-06-17")
 (certify! 'nn-in-rr "2026-06-17")
+(certify! 'nn-least-element "2026-06-17")
 (certify! 'pos-rr-real "2026-06-17")

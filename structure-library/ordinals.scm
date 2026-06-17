@@ -214,6 +214,26 @@
           (IMPLIES (IN alpha ORD) (IN alpha C))))))
 
 ;;; -----------------------------------------------------------------------
+;;; Well-ordering of ORD.  Every nonempty subclass A of ORD has a <=_ORD-
+;;; least element.  This is the order-theoretic face of transfinite-induction
+;;; above: instantiate that schema with C = { a : a not in A }; if A had no
+;;; least element, totality (ord-le-total) makes every a with all smaller
+;;; ordinals outside A itself outside A, so C = ORD and A is empty.  Asserted
+;;; here as the canonical home of the well-ordering principle so downstream
+;;; results (e.g. nn-least-element) DERIVE it rather than re-assert a bespoke
+;;; copy.  [[feedback-library-axioms-fine]] [[feedback-warrants]]
+;; Bound vars are case-fold-distinct (cl/w/x/m/k): the reader folds A and a
+;; to one identifier, so an `A'/`a' pairing would capture.  [[feedback-no-case-variant-binders]]
+(support 'ord-well-ordered
+  '(FORALL cl
+     (IMPLIES (AND (FORALL x (IMPLIES (IN x cl) (IN x ORD)))
+                   (FORSOME w (IN w cl)))
+       (FORSOME m (AND (IN m cl)
+                       (FORALL k (IMPLIES (IN k cl) (<=_ORD m k))))))))
+(warrant! 'ord-well-ordered 'proof
+  "Classically equivalent to the transfinite-induction axiom already assumed: a nonempty subclass A of ORD with no <=_ORD-least element gives, via transfinite induction on P(a) = (a not in A) using totality of <=_ORD, that A is empty -- a contradiction.")
+
+;;; -----------------------------------------------------------------------
 ;;; Transfinite recursion (axiom schema)
 ;;;
 ;;; The three-case form is most convenient for defining functions on ORD:

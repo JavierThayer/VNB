@@ -251,6 +251,10 @@
     ;; 0.x = 0_V : first proven MODULE theorem; worked test of `fact' + the
     ;; MODULE-VECTOR-AG view.  Needs interactive tactics + the module bricks.
     "theorem-library/module-zero-act"
+    ;; Well-ordering of NN, PROVEN from ord-well-ordered (ordinals.scm) via
+    ;; the <=_ORD/<= bridge; exercises the new ai iff-elim.  Needs interactive
+    ;; tactics + qed and the ordinal axioms.
+    "theorem-library/nn-least-element"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Assumption-pattern scanner for forward-move discovery

@@ -169,6 +169,24 @@
                                            goal))
                        sqn)))
 
+                  ;; IFF-ELIM: from P <-> Q infer both directions.  The
+                  ;; hypothesis dual of di's iff-intro on a goal.  Replaces
+                  ;; the iff by (IMPLIES P Q) and (IMPLIES Q P), which lets a
+                  ;; biconditional assumption (e.g. a conditional iff landed by
+                  ;; `fact') be consumed by detach/backchain.  Sound: P<->Q
+                  ;; entails (P=>Q) and (Q=>P).
+                  ((IFF)
+                   (let ((p (binary-left raw-f)) (q (binary-right raw-f)))
+                     (dg-apply-rule! dg 'iff-elim
+                       (list (make-sequent
+                              (context-add-assumption
+                               (context-add-assumption
+                                (context-remove-assumption asms f)
+                                (wff-child f (list 'IMPLIES p q)))
+                               (wff-child f (list 'IMPLIES q p)))
+                              goal))
+                       sqn)))
+
                   (else #f)))))))
 
 ;;; -----------------------------------------------------------------------

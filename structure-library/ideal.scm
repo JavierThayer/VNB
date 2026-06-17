@@ -67,19 +67,12 @@
 (register-definitional-structure! 'PID 'INTEGRAL-DOMAIN)
 
 ;;; -----------------------------------------------------------------------
-;;; nn-least-element: the well-ordering of NN.  Every nonempty subset of NN
-;;; has a least element.  This is the math content of the PID proof's
-;;; "minimal-degree" step; everything else is ring algebra.  Asserted as PSS
-;;; in the library-build phase [[feedback-library-axioms-fine]] with a
-;;; well-known warrant [[feedback-warrants]] -- NN is the finite ordinals and
-;;; ORD is well-ordered.
-(support 'nn-least-element
-  '(FORALL T (IMPLIES (AND (SUBSET T NN)
-                           (FORSOME n (IN n T)))
-       (FORSOME m (AND (IN m T)
-                       (FORALL k (IMPLIES (IN k T) (<= m k))))))))
-(warrant! 'nn-least-element 'well-known
-  "Well-ordering of NN: NN is the set of finite ordinals and ORD is well-ordered by membership, so any nonempty subset has a least element.")
+;;; nn-least-element (the well-ordering of NN -- the math content of the PID
+;;; proof's minimal-degree step) is NOT asserted here.  It is PROVEN in
+;;; theorem-library/nn-least-element.scm from ord-well-ordered (ordinals.scm),
+;;; the canonical home of the well-ordering principle.  ideal.scm loads before
+;;; ordinals.scm, and nothing here depends on nn-least-element at load time
+;;; (it is named only in the euclidean-ideal-has-generator warrant below).
 
 ;;; -----------------------------------------------------------------------
 ;;; The three lemmas the Euclidean-ring => PID proof leans on.  Antecedents
