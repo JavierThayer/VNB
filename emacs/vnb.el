@@ -758,7 +758,8 @@ If the prover is not running, offer to start it with M-x vnb."
 ;;            inserted raw; a side-effecting command gets a ;; state summary,
 ;;            e.g.  ;; => 2 open goals.  Tacticals: (repeat di), (orelse di ass)
 ;; C-c C-c    send the entire buffer as one block
-;; TAB        complete command name
+;; TAB        complete at point: a command name, or -- inside (mac '… / (bc* '…
+;;            / (ta '… -- a rule/lemma name from the live index (★ = goal-relevant)
 ;; C-c C-d    describe command at point
 ;; C-c C-s    refresh *VNB State* proof-state buffer
 

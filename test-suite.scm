@@ -2544,6 +2544,29 @@
            (any (lambda (n) (not (memq n asm))) goal)         ; +-rules fire on goal only
            (every (lambda (n) (memq n (rewrite-names))) asm)))))
 
+;; find-mac/find-thm: substring search over the rule / theorem pools.  Every
+;; hit contains the needle and lives in the right pool; with a proof up, the
+;; goal-relevant hits sort ahead of the rest.
+(check-true "find-mac: substring hits are rewrite rules containing the needle"
+  (lambda ()
+    (let ((hits (find-mac "add-zero")) (rw (rewrite-names)))
+      (and (pair? hits)
+           (every (lambda (n) (memq n rw)) hits)
+           (every (lambda (n) (string-search-forward
+                                "add-zero" (symbol->string n) 0))
+                  hits)))))
+(check-true "find-thm: goal-relevant hits float ahead of the rest"
+  (lambda ()
+    (sp (make-wff-from-string "x + 0 = y"))
+    (let* ((rel   (suggest-backchain-names))           ; goal-relevant lemmas
+           (hits  (find-thm "add"))                    ; many add-* lemmas
+           (flags (map (lambda (n) (if (memq n rel) 0 1)) hits)))
+      ;; flags must be non-decreasing: all relevant (0) before all non- (1).
+      (and (pair? hits)
+           (let loop ((f flags))
+             (or (null? (cdr f))
+                 (and (<= (car f) (cadr f)) (loop (cdr f)))))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 

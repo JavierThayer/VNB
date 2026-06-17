@@ -225,7 +225,9 @@
     (pp   "(pp wff)"      "Pretty-print a wff / term in surface syntax.")
     (calc "(calc term)"   "Evaluate a ground term and print the result.")
     (make-wff-from-string "(make-wff-from-string str)" "Parse a surface-syntax string into a <wff> object.")
-    (parse-string "(parse-string str)" "Parse a surface-syntax string into a raw S-expression.")))
+    (parse-string "(parse-string str)" "Parse a surface-syntax string into a raw S-expression.")
+    (find-mac "(find-mac substr)" "Search the rewrite-rule pool for names containing SUBSTR; tags the rules that fire on the current goal. The s-expr-surface counterpart to `mac' name completion.")
+    (find-thm "(find-thm substr)" "Search the full theorem pool for names containing SUBSTR; tags the lemmas that backchain the current goal. Counterpart to `bc*'/`ta' name completion.")))
 
 ;;; Does string S contain character CH?  (avoid leaning on srfi string-index)
 (define (vnb-cmd--str-has-char? s ch)

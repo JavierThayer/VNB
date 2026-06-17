@@ -3240,6 +3240,110 @@ completion, and defaults to the top suggestion -- RET on empty input takes it.
 TAB lists the ranked matches; any other name can still be typed freely."
   (vnb-pf--read-name "(suggest-backchain-names)" "(theorem-names)" "Cite lemma"))
 
+;;; -----------------------------------------------------------------------
+;;; Slice 4: completion-at-point for the s-expr / Scratch Workspace surface.
+;;;
+;;; The Focus readers above complete a name in the MINIBUFFER.  Here we give
+;;; the SAME index to the surface where you TYPE the s-expression directly: a
+;;; completion-at-point function that, when point is on the name argument of a
+;;; name-taking command -- (mac 'R..., (bc* 'R..., (ta 'R... -- completes it
+;;; against the live index (ranked suggestions first, full pool behind), and
+;;; otherwise completes the command name itself.  TAB drives it (and corfu /
+;;; company too, if the user runs them).  Same ranking the buttons use, inline.
+;;; The lighter `(find-mac substr)' / `(find-thm substr)' REPL search is the
+;;; grep-style counterpart for when you'd rather not complete at point.
+
+(defvar vnb-launch--name-arg-commands
+  '(("mac"   "(suggest-rewrite-names)"   "(rewrite-names)")
+    ("mac-h" nil                         "(rewrite-names)")
+    ("ta"    "(suggest-backchain-names)" "(theorem-names)")
+    ("bc*"   "(suggest-backchain-names)" "(theorem-names)")
+    ("fact"  "(suggest-backchain-names)" "(theorem-names)"))
+  "Commands whose first argument is the NAME of a stored result.
+Each entry is (HEAD SUGGEST-FORM POOL-FORM): inside that argument, ranked
+names from SUGGEST-FORM (nil = none, e.g. `mac-h' whose ranking needs the
+assumption that is typed later) come first, then the POOL-FORM fallback.  The
+s-expr twin of the Focus `vnb-pf--read-name' readers -- same prover forms.")
+
+(defun vnb-launch--ordered-table (names)
+  "A completion table over NAMES preserving their order in *Completions*,
+so the index ranking is not re-sorted alphabetically."
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        '(metadata (display-sort-function . identity)
+                   (cycle-sort-function . identity))
+      (complete-with-action action names string pred))))
+
+(defconst vnb-launch--name-token-chars "[:alnum:]_?!*+/<>=.-"
+  "Characters making up a VNB command/result name token (for completion).")
+
+(defun vnb-launch--capf-symbol-bounds ()
+  "Bounds (START . END) of the name-ish token ending at point, or nil."
+  (let ((end (point))
+        (start (save-excursion
+                 (skip-chars-backward vnb-launch--name-token-chars)
+                 (point))))
+    (and (< start end) (cons start end))))
+
+(defun vnb-launch--capf-name-entry (tokstart)
+  "If the token at TOKSTART is an argument of a name-taking command, return
+that command's `vnb-launch--name-arg-commands' entry; else nil.  The head is
+the first symbol of the innermost enclosing list; the token counts as an
+argument only when it begins strictly after that head."
+  (save-excursion
+    (let ((open (car (last (nth 9 (syntax-ppss tokstart))))))
+      (when open
+        (goto-char (1+ open))
+        (skip-chars-forward " \t\n")
+        (let ((hstart (point)))
+          (skip-chars-forward vnb-launch--name-token-chars)
+          (and (> (point) hstart)        ; a head symbol exists
+               (> tokstart (point))      ; token is AFTER it -> an argument
+               (assoc (buffer-substring-no-properties hstart (point))
+                      vnb-launch--name-arg-commands)))))))
+
+(defun vnb-launch--capf-command-names ()
+  "All VNB command names, for head-position completion.
+Prefers the generated catalog `vnb-cmd--catalog' (single-sourced from the
+Scheme registry); falls back to the static `vnb-commands-alist'."
+  (cond
+   ((and (boundp 'vnb-cmd--catalog) vnb-cmd--catalog)
+    (mapcar (lambda (e) (symbol-name (car e))) vnb-cmd--catalog))
+   ((boundp 'vnb-commands-alist) (mapcar #'car vnb-commands-alist))
+   (t nil)))
+
+(defun vnb-launch--command-capf ()
+  "`completion-at-point-functions' entry for the VNB Scratch Workspace.
+On the NAME argument of a name-taking command, complete against the live
+index (ranked suggestions + pool, the relevant ones annotated); elsewhere
+complete the command name.  Returns nil when there is nothing to complete, so
+any other capf may still run."
+  (let ((b (vnb-launch--capf-symbol-bounds)))
+    (when b
+      (let* ((start (car b)) (end (cdr b))
+             (entry (vnb-launch--capf-name-entry start)))
+        (if entry
+            (let* ((sugg  (and (nth 1 entry)
+                               (ignore-errors (vnb-pf--name-list (nth 1 entry)))))
+                   (pool  (ignore-errors (vnb-pf--name-list (nth 2 entry))))
+                   (names (delete-dups (append sugg pool))))
+              (when names
+                (list start end (vnb-launch--ordered-table names)
+                      :exclusive 'no
+                      :annotation-function
+                      (lambda (c) (and (member c sugg) " ★goal")))))
+          (let ((names (vnb-launch--capf-command-names)))
+            (when names
+              (list start end names :exclusive 'no))))))))
+
+(defun vnb-launch--command-capf-setup ()
+  "Install the s-expr-surface CAPF in this Scratch Workspace buffer and point
+TAB at `completion-at-point' so it drives the live index."
+  (add-hook 'completion-at-point-functions #'vnb-launch--command-capf nil t)
+  (local-set-key (kbd "TAB") #'completion-at-point))
+
+(add-hook 'vnb-command-mode-hook #'vnb-launch--command-capf-setup)
+
 (defun vnb-pf--bc-undetermined (nm)
   "Ask the prover which schema vars citing NM leaves undetermined.
 Returns the parsed (ok …)/(unknown)/(no-proof)/(no-match) sexp, or nil."

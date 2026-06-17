@@ -355,6 +355,50 @@
          (length cands))))))
 
 ;;; -----------------------------------------------------------------------
+;;; (find-mac SUBSTR) / (find-thm SUBSTR) -- REPL name search.
+;;;
+;;; The s-expr-surface counterpart to the Focus name completers: when you are
+;;; TYPING a `(mac '...' or `(bc* '...' form and only half-remember a name, you
+;;; want to grep the pool.  find-mac searches the rewrite-rule pool, find-thm
+;;; the full theorem pool, for names CONTAINING substr (a string or symbol).
+;;; When a proof is in progress, each hit the index calls relevant to the
+;;; current goal -- fires on it (find-mac) / backchains it (find-thm) -- is
+;;; tagged `*' and floated to the top, so the same ranking the buttons use
+;;; shows up here too.  Returns the matching names, relevant ones first.
+
+(define (find--name-search needle pool relevant)
+  (let* ((s      (if (symbol? needle) (symbol->string needle) needle))
+         (hits   (filter (lambda (n)
+                           (string-search-forward s (symbol->string n) 0))
+                         pool))
+         (ranked (sort hits
+                       (lambda (a b)
+                         (let ((ra (if (memq a relevant) 0 1))
+                               (rb (if (memq b relevant) 0 1)))
+                           (if (= ra rb)
+                               (string<? (symbol->string a) (symbol->string b))
+                               (< ra rb)))))))
+    (display ";; ") (display (length ranked))
+    (display " match(es) for \"") (display s) (display "\"")
+    (if (pair? relevant)
+        (display "  (* = relevant to current goal):")
+        (display ":"))
+    (newline)
+    (for-each (lambda (n)
+                (display ";;   ") (display (if (memq n relevant) "* " "  "))
+                (display n) (newline))
+              ranked)
+    ranked))
+
+(define (find-mac substr)
+  (find--name-search substr (rewrite-names)
+                     (if *ps* (suggest-rewrite-names) '())))
+
+(define (find-thm substr)
+  (find--name-search substr (theorem-names)
+                     (if *ps* (suggest-backchain-names) '())))
+
+;;; -----------------------------------------------------------------------
 ;;; B+ -- the saturating closer.
 ;;;
 ;;; From the current proof, sweep EVERY open goal (all goals under the start
