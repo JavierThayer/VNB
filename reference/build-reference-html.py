@@ -266,23 +266,10 @@ def render_list(items):
     html_out.extend("</ul>" for _ in stack)
     return "".join(html_out)
 
-# --- structure graph embed --------------------------------------------------
-
-def graph_svg():
-    if not os.path.exists(DOT):
-        return ""
-    try:
-        svg = subprocess.run(["dot", "-Tsvg", DOT],
-                             capture_output=True, text=True, check=True).stdout
-    except Exception as e:
-        print("warning: dot failed, embedding no graph:", e, file=sys.stderr)
-        return ""
-    svg = svg[svg.index("<svg"):]
-    svg = svg.replace('structure-graph.html#views', '#STRUCTURE-INDEX__top')
-    svg = svg.replace("structure-graph.html#", "#")   # node URLs -> in-page
-    return f'<div class="graph">{svg}</div>'
-
 # --- assemble ---------------------------------------------------------------
+# (No graph is embedded in the Structures section: the clickable graph lives in
+#  its own page, structure-graph.html.  The Structures section links to it
+#  rather than carrying a second, static copy.)
 
 CSS = """
  body { font-family: Helvetica, Arial, sans-serif; color:#1a2a3a; margin:0; }
@@ -328,7 +315,6 @@ def build():
     used_ids = set()
     nav, body = [], []
     nav.append('<h1>VNB reference</h1>')
-    svg_block = graph_svg()
     for title, fname in DOCS:
         text = read(fname)
         if not text:
@@ -336,12 +322,14 @@ def build():
         secid = fname.replace(".md", "")          # e.g. THEOREMS, STRUCTURE-INDEX
         used_ids.add(secid)
         nav.append(f'<a href="#{esc(secid)}">{esc(title)}</a>')
-        # an extra empty anchor so the graph's #STRUCTURE-INDEX__top resolves
-        top_anchor = f'<span id="{esc(secid)}__top"></span>' if secid == "STRUCTURE-INDEX" else ""
         body.append(f'<section><h2 id="{esc(secid)}">{esc(title)}'
-                    f' <span class="lead">&mdash; {esc(fname)}</span></h2>{top_anchor}')
-        if secid == "STRUCTURE-INDEX" and svg_block:
-            body.append(svg_block)
+                    f' <span class="lead">&mdash; {esc(fname)}</span></h2>')
+        if secid == "STRUCTURE-INDEX":
+            # The clickable graph lives in its own page; link to it rather than
+            # embedding a static second copy here.
+            body.append('<p class="lead">See the clickable '
+                        '<a href="structure-graph.html">structure graph</a> '
+                        '&mdash; refines &amp; view-as relations, with every node a link.</p>')
         body.append(md_to_html(text, secid, used_ids))
         body.append("</section>")
 

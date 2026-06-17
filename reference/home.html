@@ -1,14 +1,37 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<title>VNB Math Assistant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vienbi — VNB Math Assistant</title>
 <style>
  body { font-family: Helvetica, Arial, sans-serif; color:#1a2a3a;
-        background:#eef3f9; margin:0; padding:3rem 1rem; }
+        background:#eef3f9; margin:0; padding:2.4rem 1rem 3rem; }
  main { max-width:46rem; margin:0 auto; }
+ .hero { text-align:center; margin:0 auto 1.2rem; }
+ .hero-art { width:100%; max-width:30rem; height:auto; display:block; margin:0 auto .3rem; }
+ .wordmark { font-family:"Palatino Linotype","Book Antiqua",Palatino,"Iowan Old Style",
+             "Hoefler Text",Georgia,"Times New Roman",serif;
+             font-size:4.2rem; line-height:1; font-weight:600; letter-spacing:.01em;
+             margin:.1rem 0 0;
+             background:linear-gradient(95deg,#2a4a6a 0%,#3f7fb0 55%,#b06a00 100%);
+             -webkit-background-clip:text; background-clip:text; color:transparent; }
+ .tagline { color:#557; font-size:1.05rem; margin:.25rem 0 0; }
+ .tagline b { color:#2a4a6a; letter-spacing:.04em; }
  h1 { color:#2a4a6a; font-size:1.6rem; margin:.2rem 0; }
  .sub { color:#667; margin:.2rem 0 2rem; }
  h2 { color:#365b7d; font-size:1.05rem; margin:1.8rem 0 .6rem;
       border-bottom:2px solid #dde6f0; padding-bottom:.2rem; }
+ .intro { background:#fff; border:1px solid #dde6f0; border-radius:12px;
+          padding:1rem 1.3rem; margin:1.3rem 0; line-height:1.55; color:#243446; }
+ .intro p { margin:.5rem 0; }
+ .fits { display:grid; grid-template-columns:repeat(auto-fit,minmax(12.5rem,1fr));
+         gap:.7rem; margin:.6rem 0; }
+ .fits .part { background:#fff; border:1px solid #dde6f0; border-radius:10px;
+               padding:.8rem 1rem; }
+ .fits .part h3 { margin:.1rem 0 .3rem; color:#2a4a6a; font-size:1rem; }
+ .fits .part p { margin:0; color:#556; font-size:.92rem; line-height:1.45; }
+ .reassure { background:#fdf6ec; border:1px solid #f0e0c4; border-left:4px solid #d59a3c;
+             border-radius:8px; padding:.8rem 1.1rem; margin:1rem 0 1.4rem;
+             color:#5a4a30; font-size:.95rem; line-height:1.5; }
  .card { display:block; background:#fff; border:1px solid #dde6f0;
          border-radius:10px; padding:.8rem 1rem; margin:.5rem 0;
          text-decoration:none; color:inherit; transition:box-shadow .12s; }
@@ -22,7 +45,7 @@
           font-size:.9rem; }
  #flash.show { opacity:.95; }
  .classify { background:#fff; border:1px solid #dde6f0; border-radius:10px;
-             padding:.4rem 1.1rem 1rem; margin:.5rem 0 1rem; }
+             padding:.4rem 1.1rem 1rem; margin:1.4rem 0 1rem; }
  .classify dt { font-weight:600; color:#2a4a6a; margin-top:.7rem; }
  .classify dd { margin:.15rem 0 0; color:#445; font-size:.92rem; }
  .classify .note { color:#556; font-size:.9rem; margin-top:.9rem;
@@ -32,10 +55,81 @@
 </style></head><body>
 <div id="flash"></div>
 <main>
-<h1>VNB Math Assistant</h1>
-<p class="sub">The home page. Reference reading happens here in the browser; proving happens in Emacs.</p>
+<header class="hero">
 
-<details class="classify" open>
+<svg class="hero-art" viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="A graph of mathematical structures growing out of one another: set, group, ring, field, metric space, Euclidean ring.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9bb6d4"/>
+    </marker>
+  </defs>
+  <g fill="none" stroke="#9bb6d4" stroke-width="2" marker-end="url(#ar)">
+    <path d="M120,115 C175,75 195,70 235,62"/>
+    <path d="M120,115 C185,150 210,165 250,178"/>
+    <path d="M300,62 C345,72 360,90 388,108"/>
+    <path d="M300,178 C350,168 362,150 388,122"/>
+    <path d="M470,108 C510,80 520,72 548,64"/>
+  </g>
+  <g font-family="Georgia, serif" font-size="15" text-anchor="middle">
+    <g><ellipse cx="80"  cy="115" rx="48" ry="30" fill="#eaf2fb" stroke="#7fa6cf"/><text x="80"  y="120" fill="#2a4a6a">set</text></g>
+    <g><ellipse cx="268" cy="62"  rx="52" ry="30" fill="#e7f0ea" stroke="#86b08f"/><text x="268" y="67"  fill="#34603f">group</text></g>
+    <g><ellipse cx="268" cy="178" rx="78" ry="31" fill="#f3ecf6" stroke="#a98cbf"/><text x="268" y="183" fill="#5a3f72">metric space</text></g>
+    <g><ellipse cx="430" cy="115" rx="48" ry="30" fill="#e7f0ea" stroke="#86b08f"/><text x="430" y="120" fill="#34603f">ring</text></g>
+    <g><ellipse cx="580" cy="62"  rx="50" ry="30" fill="#fbf2e6" stroke="#d59a3c"/><text x="580" y="67"  fill="#8a5a12">field</text></g>
+    <g><ellipse cx="560" cy="170" rx="74" ry="31" fill="#fbf2e6" stroke="#d59a3c"/><text x="560" y="175" fill="#8a5a12">Euclidean ring</text></g>
+  </g>
+  <g fill="none" stroke="#9bb6d4" stroke-width="2" marker-end="url(#ar)">
+    <path d="M430,145 C475,165 495,168 520,170"/>
+  </g>
+</svg>
+
+<div class="wordmark">Vienbi</div>
+<p class="tagline"><b>VNB</b> &middot; the von Neumann&ndash;Bernays Math Assistant</p>
+</header>
+
+<section class="intro">
+  <p><b>Vienbi</b> (written <b>VNB</b>) is an <b>interactive proof assistant</b> &mdash;
+  a program you do mathematics <em>with</em>. You state a theorem and build its proof a
+  step at a time; the machine checks every step against a small, auditable logical
+  kernel, so a finished proof is correct <em>by construction</em>, not by trust.</p>
+  <p>Its foundation is a first-order set theory in the style of von&nbsp;Neumann&ndash;Bernays:
+  one universe of <em>classes</em>, with membership&nbsp;(&isin;) the only primitive notion.
+  But you rarely touch that bedrock &mdash; numbers, functions, and ordinals are built in as
+  primitives governed by ordinary axioms, so a proof reads the way mathematics is actually
+  written, not as a tower of encodings.</p>
+  <p>It is also a small experiment: a rigorous proof system built largely by an AI, with
+  mathematical direction from F.&nbsp;J.&nbsp;Thayer.</p>
+</section>
+
+
+<h2>How it fits together</h2>
+<div class="fits">
+  <div class="part"><h3>The engine</h3>
+    <p>An MIT&nbsp;Scheme program: the logical kernel, the library of structures and
+    theorems, and the tactics you steer a proof with. The part that does the checking.</p></div>
+  <div class="part"><h3>This page</h3>
+    <p>Where you <em>read</em>: browse the library, the catalog of theorems, and the
+    clickable structure graph. No setup &mdash; just links in your browser.</p></div>
+  <div class="part"><h3>Emacs</h3>
+    <p>Where you <em>work</em>: starting or continuing a proof opens an Emacs buffer. The
+    launcher configures it for you; it&rsquo;s the worktable where steps get typed.</p></div>
+</div>
+<p class="reassure"><b>New to Emacs? You don&rsquo;t need to learn it.</b> The launcher sets
+everything up, and the buttons below open the right window on their own. In practice you type
+your goal and press a single chord (<code>C-c&nbsp;C-c</code>) to send it to the prover. Think
+of Emacs here as the table you work at, not a thing to study &mdash; the mathematics is the point.</p>
+
+<h2>Reference <span class="sub" style="font-size:.85rem">(reads in the browser)</span></h2>
+<a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="reference.html#STRUCTURE-INDEX"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="reference.html#THEOREMS"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="reference.html#DEFINITIONS"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="reference.html#PSS"><div class="t">Proof Support Set</div><div class="b">theorems excused from the VNB test, accepted on a warrant</div></a><a class="card" href="reference.html#FINGERPRINT-INDEX"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="reference.html#TACTICS"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
+<h2>Prove <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
+<a class="card emacs" href="#" onclick="poke(event, 'start-proof', 'Start Proof')"><div class="t">Start Proof</div><div class="b">edit the goal in a buffer, then begin in the Focus workspace</div></a><a class="card emacs" href="#" onclick="poke(event, 'continue-proof', 'Continue Proof')"><div class="t">Continue Proof</div><div class="b">return to the proof in progress (Focus workspace)</div></a><a class="card emacs" href="#" onclick="poke(event, 'scratch', 'Scratch')"><div class="t">Scratch</div><div class="b">Lisp-interaction sheet: C-j sends a sexp/region to the prover</div></a>
+<h2>Build <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
+<a class="card emacs" href="#" onclick="poke(event, 'build-formula', 'Build Formula')"><div class="t">Build Formula</div><div class="b">parse and validate a formula</div></a><a class="card emacs" href="#" onclick="poke(event, 'build-structure', 'Build Structure')"><div class="t">Build Structure</div><div class="b">define a new structure (saved to file)</div></a><a class="card emacs" href="#" onclick="poke(event, 'calculator', 'Calculator')"><div class="t">Calculator</div><div class="b">work out an arithmetic expression</div></a>
+<h2>Session <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
+<a class="card emacs" href="#" onclick="poke(event, 'examples', 'Examples')"><div class="t">Examples</div><div class="b">step through worked example proofs</div></a><a class="card emacs" href="#" onclick="poke(event, 'save-session', 'Save Session')"><div class="t">Save Session</div><div class="b">this session&#x27;s proofs as one re-loadable script</div></a>
+
+<details class="classify">
 <summary>How results are classified</summary>
 <dl>
   <dt>Axiom</dt>
@@ -57,14 +151,6 @@ and PSS members can all be rewrite rules. A definition keeps that right even tho
 not a PSS member.</p>
 </details>
 
-<h2>Reference</h2>
-<a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="reference.html#STRUCTURE-INDEX"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="reference.html#THEOREMS"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="reference.html#DEFINITIONS"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="reference.html#PSS"><div class="t">Proof Support Set</div><div class="b">theorems excused from the VNB test, accepted on a warrant</div></a><a class="card" href="reference.html#FINGERPRINT-INDEX"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="reference.html#TACTICS"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
-<h2>Prove <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
-<a class="card emacs" href="#" onclick="poke(event, 'start-proof', 'Start Proof')"><div class="t">Start Proof</div><div class="b">edit the goal in a buffer, then begin in the Focus workspace</div></a><a class="card emacs" href="#" onclick="poke(event, 'continue-proof', 'Continue Proof')"><div class="t">Continue Proof</div><div class="b">return to the proof in progress (Focus workspace)</div></a><a class="card emacs" href="#" onclick="poke(event, 'scratch', 'Scratch')"><div class="t">Scratch</div><div class="b">Lisp-interaction sheet: C-j sends a sexp/region to the prover</div></a>
-<h2>Build <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
-<a class="card emacs" href="#" onclick="poke(event, 'build-formula', 'Build Formula')"><div class="t">Build Formula</div><div class="b">parse and validate a formula</div></a><a class="card emacs" href="#" onclick="poke(event, 'build-structure', 'Build Structure')"><div class="t">Build Structure</div><div class="b">define a new structure (saved to file)</div></a><a class="card emacs" href="#" onclick="poke(event, 'calculator', 'Calculator')"><div class="t">Calculator</div><div class="b">work out an arithmetic expression</div></a>
-<h2>Session <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
-<a class="card emacs" href="#" onclick="poke(event, 'examples', 'Examples')"><div class="t">Examples</div><div class="b">step through worked example proofs</div></a><a class="card emacs" href="#" onclick="poke(event, 'save-session', 'Save Session')"><div class="t">Save Session</div><div class="b">this session&#x27;s proofs as one re-loadable script</div></a>
 </main>
 <script>
  const PORT = 8973;
