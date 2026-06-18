@@ -78,9 +78,10 @@
 ;;; hypotheses (pure beta).
 ;;; ====================================================================
 (--- "SUCCESS 3: compose-apply proves by beta")
-(sp (make-wff '(= ((COMPOSE f g) x) (f (g x)))))
-(mac 'COMPOSE) (lam-b) (rfl)
-(==> "(COMPOSE f g)(x) = f(g(x)) proves" (proof-done? *ps*))
+;; Untyped, so a QUASI-equality (off-domain both sides undefined): close by qrfl.
+(sp (make-wff '(== ((COMPOSE f g) x) (f (g x)))))
+(mac 'COMPOSE) (lam-b) (qrfl)
+(==> "(COMPOSE f g)(x) == f(g(x)) proves" (proof-done? *ps*))
 
 ;;; ====================================================================
 ;;; SUCCESS 4.  compose-type reduces by lambda-type (lam-t): the function-

@@ -2351,6 +2351,19 @@
 (check-true "quasi-eq-subst-membership installed"
   (lambda () (and (lookup-theorem 'quasi-eq-subst-membership) #t)))
 
+;;; Reflexivity definedness guard: (= t t) closes ONLY when t is defined --
+;;; syntactically (variable / ground / total-op tree) or witnessed in context
+;;; -- so the partial-equality reading is enforced (no proving undefined = self).
+(check-true "rfl guard: x = x (variable) closes"
+  (lambda () (sp (make-wff '(= x x))) (rfl) (proof-done? *ps*)))
+(check-true "rfl guard: (+ a b)=(+ a b) untyped is REFUSED (would assert + defined)"
+  (lambda () (sp (make-wff '(= (+ a b) (+ a b)))) (rfl) (not (proof-done? *ps*))))
+(check-true "rfl guard: == version closes by qrfl unconditionally"
+  (lambda () (sp (make-wff '(== (+ a b) (+ a b)))) (qrfl) (proof-done? *ps*)))
+(check-true "rfl guard: context (IN (f a) S) lets (= (f a)(f a)) close"
+  (lambda () (sp (make-wff '(IMPLIES (IN (f a) S) (= (f a) (f a)))))
+             (di) (rfl) (proof-done? *ps*)))
+
 ;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
 
@@ -2469,10 +2482,13 @@
          #t)))
 ;; COMPOSE is DEFINITIONAL (VNB-LAMBDA z. f(g z)), so the apply law is a real
 ;; proof -- unfold then beta-reduce then reflexivity -- not an asserted axiom.
-(check-proof "compose-apply proves: unfold COMPOSE, lambda-beta, reflexivity"
+;; Untyped beta identity: off-domain both sides are undefined, so it is a
+;; QUASI-equality (==), closed by quasi-reflexivity.  (The installed, TYPED
+;; compose-apply uses strict = -- both sides are defined points of C there.)
+(check-proof "compose-apply proves: unfold COMPOSE, lambda-beta, quasi-reflexivity"
   (lambda ()
-    (sp (make-wff '(= ((COMPOSE f g) x) (f (g x)))))
-    (mac 'COMPOSE) (lam-b) (rfl)
+    (sp (make-wff '(== ((COMPOSE f g) x) (f (g x)))))
+    (mac 'COMPOSE) (lam-b) (qrfl)
     (unless (proof-done? *ps*) (error "compose-apply did not close via beta"))))
 
 ;;; -----------------------------------------------------------------------

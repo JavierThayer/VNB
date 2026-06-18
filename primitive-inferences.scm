@@ -505,13 +505,64 @@
 ;;; -----------------------------------------------------------------------
 ;;; REFLEXIVITY
 
+;;; Class constructors that are TOTAL over classes (defined on ANY arguments,
+;;; set or not -- theory.scm): so a tree built from them over defined args is
+;;; defined.  Conservative whitelist; extend only with genuinely-total ops.
+(define *total-term-heads*
+  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN LIST PAIR))
+
+;;; Is t SYNTACTICALLY GUARANTEED defined?  SOUND: returns #t only for
+;;; certainly-defined t, so closing (= t t) by reflexivity stays sound under
+;;; the partial-equality reading ((= t t) IS the definedness predicate).
+;;;   - an atom: a variable ranges over defined classes; a numeral/constant is
+;;;     defined;
+;;;   - a ground arithmetic term that arith-eval reduces to a number;
+;;;   - a total class-constructor applied to defined args.
+;;; A PARTIAL operation (+ * - / on non-ground args, function application
+;;; f(x), IOTA, structure ops, set-builders) is NOT certified -- definedness
+;;; there needs a proof (e.g. via (IN t S)), so reflexivity refuses.  This is
+;;; what rejects the unsound (= (+ bongo bongo) (+ bongo bongo)).  When t is
+;;; genuinely undefined or its definedness is not established, use (qrfl):
+;;; (== t t) holds unconditionally.
+(define (term-self-defined? t)
+  (cond
+    ((not (pair? t)) #t)
+    ((let ((v (arith-eval-term t))) (and v (number? v))) #t)
+    ((and (memq (car t) *total-term-heads*)
+          (every term-self-defined? (cdr t))) #t)
+    (else #f)))
+
+;;; Does some assumption WITNESS that t is defined?  (IN t S) gives t in a
+;;; class, hence defined; a strict (= t _)/(= _ t) asserts t defined too.  (A
+;;; == fact does NOT -- both sides may be undefined.)  Sound basis for closing
+;;; (= t t) when t is defined in context though not syntactically (e.g. a
+;;; function application f(x) that an earlier step typed via fun-apply-type).
+(define (asm-establishes-defined? asms t)
+  (let loop ((as asms))
+    (and (pair? as)
+         (let ((f (wff-formula (car as))))
+           (if (and (pair? f)
+                    (or (and (eq? (car f) 'IN) (= (length f) 3)
+                             (alpha-equiv? (cadr f) t))
+                        (and (eq? (car f) '=) (= (length f) 3)
+                             (or (alpha-equiv? (cadr f) t)
+                                 (alpha-equiv? (caddr f) t)))))
+               #t
+               (loop (cdr as)))))))
+
 (define (pi-reflexivity! sqn)
   (let* ((goal (sequent-node-assertion sqn))
          (g    (wff-formula goal))
          (dg   (sqn-dg sqn)))
     (if (or (eq? g 'TRUTH)
             (and (pair? g) (eq? (car g) '=)
-                 (alpha-equiv? (cadr g) (caddr g))))
+                 (alpha-equiv? (cadr g) (caddr g))
+                 ;; definedness guard: t = t only when t is defined -- either
+                 ;; SYNTACTICALLY (variable/ground/total-op tree) or witnessed
+                 ;; by a context assumption (IN t _)/(= t _).
+                 (or (term-self-defined? (cadr g))
+                     (asm-establishes-defined?
+                       (sequent-node-assumptions sqn) (cadr g)))))
         (dg-apply-rule! dg 'reflexivity '() sqn)
         #f)))
 

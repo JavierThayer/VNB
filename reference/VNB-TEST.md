@@ -10,9 +10,9 @@ not examined (excused by design).
 |---|---|---|---|
 | `LOAD (at-load proofs)` | PASS | 17s | 15 theorem(s) |
 | `calculus/prop-3-14-proof.scm` | PASS | 34s | 1/1 qed: converges-to-compose-continuous |
-| `calculus/prop-3-15-proof.scm` | PASS | 27s | 1/1 qed: continuous-implies-open-preimage |
-| `calculus/uniqueness-of-limits.scm` | PASS | 103s | 3/3 qed: metric-le-all-pos-eq nn-in-rr pos-rr-real |
-| `calculus/euclidean-ring-pid.scm` | PASS | 16s | 1/1 qed: euclidean-ring-is-pid |
+| `calculus/prop-3-15-proof.scm` | PASS | 29s | 1/1 qed: continuous-implies-open-preimage |
+| `calculus/uniqueness-of-limits.scm` | PASS | 102s | 3/3 qed: metric-le-all-pos-eq nn-in-rr pos-rr-real |
+| `calculus/euclidean-ring-pid.scm` | PASS | 18s | 1/1 qed: euclidean-ring-is-pid |
 
 ## Certified theorems
 
