@@ -44,13 +44,13 @@
 ;; FROM, so they are not warrant candidates.
 (fluid-let ((*current-provenance* 'definitional))
  (theory-add-axiom! *current-theory* 'binplus-apply
-   '(FORALL x (FORALL y (= (binplus x y) (+ x y)))))
+   '(FORALL x (FORALL y (== (binplus x y) (+ x y)))))
 
  (theory-add-axiom! *current-theory* 'bintimes-apply
-   '(FORALL x (FORALL y (= (bintimes x y) (* x y)))))
+   '(FORALL x (FORALL y (== (bintimes x y) (* x y)))))
 
  (theory-add-axiom! *current-theory* 'binneg-apply
-   '(FORALL x (= (binneg x) (- x)))))
+   '(FORALL x (== (binneg x) (- x)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Typing axioms per domain
@@ -123,36 +123,36 @@
 
 (theory-add-axiom! *current-theory* 'nary-plus-2
   '(FORALL x (FORALL y
-      (= (+ x y) (binplus x y)))))
+      (== (+ x y) (binplus x y)))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-3
   '(FORALL x (FORALL y (FORALL z
-      (= (+ x y z) (binplus (binplus x y) z))))))
+      (== (+ x y z) (binplus (binplus x y) z))))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-4
   '(FORALL w (FORALL x (FORALL y (FORALL z
-      (= (+ w x y z) (binplus (binplus (binplus w x) y) z)))))))
+      (== (+ w x y z) (binplus (binplus (binplus w x) y) z)))))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-5
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (= (+ v w x y z)
+      (== (+ v w x y z)
          (binplus (binplus (binplus (binplus v w) x) y) z))))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-2
   '(FORALL x (FORALL y
-      (= (* x y) (bintimes x y)))))
+      (== (* x y) (bintimes x y)))))
 
 (theory-add-axiom! *current-theory* 'nary-times-3
   '(FORALL x (FORALL y (FORALL z
-      (= (* x y z) (bintimes (bintimes x y) z))))))
+      (== (* x y z) (bintimes (bintimes x y) z))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-4
   '(FORALL w (FORALL x (FORALL y (FORALL z
-      (= (* w x y z) (bintimes (bintimes (bintimes w x) y) z)))))))
+      (== (* w x y z) (bintimes (bintimes (bintimes w x) y) z)))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-5
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (= (* v w x y z)
+      (== (* v w x y z)
          (bintimes (bintimes (bintimes (bintimes v w) x) y) z))))))))
 
 ;;; Unary - (negation) and binary - (subtraction).
@@ -162,11 +162,11 @@
 
 (theory-add-axiom! *current-theory* 'nary-neg-1
   '(FORALL x
-      (= (- x) (binneg x))))
+      (== (- x) (binneg x))))
 
 (theory-add-axiom! *current-theory* 'nary-minus-2
   '(FORALL x (FORALL y
-      (= (- x y) (binplus x (binneg y))))))
+      (== (- x y) (binplus x (binneg y))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Ring instances: ZZ, QQ, RR, CC as RING
@@ -309,34 +309,34 @@
 
 (theory-add-axiom! *current-theory* 'nary-plus-2-list
   '(FORALL x (FORALL y
-      (= (+ x y) (REDUCE binplus (FAM-OF-LIST (LIST x y)) 2)))))
+      (== (+ x y) (REDUCE binplus (FAM-OF-LIST (LIST x y)) 2)))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-3-list
   '(FORALL x (FORALL y (FORALL z
-      (= (+ x y z) (REDUCE binplus (FAM-OF-LIST (LIST x y z)) 3))))))
+      (== (+ x y z) (REDUCE binplus (FAM-OF-LIST (LIST x y z)) 3))))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-4-list
   '(FORALL w (FORALL x (FORALL y (FORALL z
-      (= (+ w x y z) (REDUCE binplus (FAM-OF-LIST (LIST w x y z)) 4)))))))
+      (== (+ w x y z) (REDUCE binplus (FAM-OF-LIST (LIST w x y z)) 4)))))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-5-list
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (= (+ v w x y z)
+      (== (+ v w x y z)
          (REDUCE binplus (FAM-OF-LIST (LIST v w x y z)) 5))))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-2-list
   '(FORALL x (FORALL y
-      (= (* x y) (REDUCE bintimes (FAM-OF-LIST (LIST x y)) 2)))))
+      (== (* x y) (REDUCE bintimes (FAM-OF-LIST (LIST x y)) 2)))))
 
 (theory-add-axiom! *current-theory* 'nary-times-3-list
   '(FORALL x (FORALL y (FORALL z
-      (= (* x y z) (REDUCE bintimes (FAM-OF-LIST (LIST x y z)) 3))))))
+      (== (* x y z) (REDUCE bintimes (FAM-OF-LIST (LIST x y z)) 3))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-4-list
   '(FORALL w (FORALL x (FORALL y (FORALL z
-      (= (* w x y z) (REDUCE bintimes (FAM-OF-LIST (LIST w x y z)) 4)))))))
+      (== (* w x y z) (REDUCE bintimes (FAM-OF-LIST (LIST w x y z)) 4)))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-5-list
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
-      (= (* v w x y z)
+      (== (* v w x y z)
          (REDUCE bintimes (FAM-OF-LIST (LIST v w x y z)) 5))))))))

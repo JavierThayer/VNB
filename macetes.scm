@@ -697,6 +697,12 @@
   (cond
     ((and (pair? f) (eq? (car f) '=))
      (values (binary-left f) (binary-right f)))
+    ;; quasi-equality rewrites just like = : quasi-equal terms are
+    ;; interchangeable (same definedness, same value), so a `==' macete is a
+    ;; sound rewrite rule.  Needed since the partial-op DEFINING equations
+    ;; (binplus-apply, nary-*, ...) are stated with == (true off-domain too).
+    ((and (pair? f) (eq? (car f) '==))
+     (values (binary-left f) (binary-right f)))
     ((and (pair? f) (eq? (car f) 'IFF))
      (values (binary-left f) (binary-right f)))
     (else
