@@ -146,6 +146,44 @@
               (inner (cdr gs)
                      (if (member (car gs) s) s (cons (car gs) s))))))))
 
+;;; Dedupe a list under equal? (generators may be compound terms).
+(define (dedup-equal lst)
+  (let loop ((xs lst) (seen '()))
+    (cond ((null? xs) (reverse seen))
+          ((member (car xs) seen) (loop (cdr xs) seen))
+          (else (loop (cdr xs) (cons (car xs) seen))))))
+
+;;; SOURCE generators of a concrete-surface expression: every maximal sub-term
+;;; that (c)vnb->poly would treat as a generator, INCLUDING ones that later
+;;; cancel.  poly-generators sees only the surviving normal-form monomials, so
+;;; it misses a generator that cancels within a side (x in `x - x', y in
+;;; `x + y - y').  Definedness must cover the vanished ones too: in VNB `=' is
+;;; partial, so `e1 = e2' asserts e1, e2 DEFINED, and e_i is defined only if all
+;;; its atoms lie in the ring carrier.  Mirrors (c)vnb->poly's case split exactly
+;;; (same surface for the commutative and non-commutative simplifiers); a
+;;; non-ring-op compound is one opaque generator (not recursed), as there.
+(define (cvnb-source-generators expr)
+  (cond
+    ((number? expr) '())
+    ((symbol? expr)
+     (let ((v (arith-eval-term expr)))
+       (if (and v (number? v)) '() (list expr))))
+    ((pair? expr)
+     (case (car expr)
+       ((+ * -)            (apply append (map cvnb-source-generators (cdr expr))))
+       ((binplus bintimes) (append (cvnb-source-generators (cadr expr))
+                                   (cvnb-source-generators (caddr expr))))
+       ((binneg)           (cvnb-source-generators (cadr expr)))
+       (else
+        (let ((v (arith-eval-term expr)))
+          (if (and v (number? v)) '() (list expr))))))
+    (else '())))
+
+;;; The two source terms' generators, deduped — the set the definedness check
+;;; must range over for a `(= e1 e2)' goal on the concrete surface.
+(define (cvnb-eq-source-generators e1 e2)
+  (dedup-equal (append (cvnb-source-generators e1) (cvnb-source-generators e2))))
+
 ;;; Ring domains: the five standard number systems.
 ;;; string-downcase makes the check work on both case-folding (MIT 11.2)
 ;;; and case-sensitive (MIT 12.1) Scheme readers.
@@ -213,5 +251,9 @@
                       (p2 (vnb->poly (caddr inner))))
                   (and p1 p2
                        (equal? p1 p2)
-                       (ring-vars-ok? (poly-generators p1 p2) qvars asms)
+                       ;; certify SOURCE generators (incl. cancelled), not just
+                       ;; survivors -- else `x - x = 0' closes for untyped x.
+                       (ring-vars-ok? (cvnb-eq-source-generators
+                                        (cadr inner) (caddr inner))
+                                      qvars asms)
                        (dg-apply-rule! dg 'ring-simplify '() sqn))))))))

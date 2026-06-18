@@ -254,6 +254,33 @@
          (else (list (cons (list e) 1))))))   ; opaque carrier element -> generator
     (else #f)))
 
+;;; SOURCE generators of a generic-ring expression over R: mirrors cring->poly
+;;; but keeps cancelled atoms, so the (IN g (A R)) definedness check covers a
+;;; generator that vanishes (e.g. x in ((ADD R) x ((NEG R) x))).  ZERO/ONE are
+;;; constants (no generator); any other compound is one opaque carrier element.
+(define (cring-source-generators e R)
+  (cond
+    ((symbol? e) (list e))
+    ((pair? e)
+     (let ((h (car e)))
+       (cond
+         ((and (pair? h) (eq? (car h) 'ADD) (equal? (cadr h) R) (= (length e) 3))
+          (append (cring-source-generators (cadr e) R)
+                  (cring-source-generators (caddr e) R)))
+         ((and (pair? h) (eq? (car h) 'MUL) (equal? (cadr h) R) (= (length e) 3))
+          (append (cring-source-generators (cadr e) R)
+                  (cring-source-generators (caddr e) R)))
+         ((and (pair? h) (eq? (car h) 'NEG) (equal? (cadr h) R) (= (length e) 2))
+          (cring-source-generators (cadr e) R))
+         ((and (eq? h 'ZERO) (equal? (cadr e) R) (= (length e) 2)) '())
+         ((and (eq? h 'ONE)  (equal? (cadr e) R) (= (length e) 2)) '())
+         (else (list e)))))
+    (else '())))
+
+(define (cring-eq-source-generators e1 e2 R)
+  (dedup-equal (append (cring-source-generators e1 R)
+                       (cring-source-generators e2 R))))
+
 ;;; Peel (FORALL R (IMPLIES (IS-COMMUTATIVE-RING R) <rest>)) and then a chain
 ;;; of (FORALL v (IMPLIES (IN v (A R)) ...)).  Returns (list R qvars inner)
 ;;; with qvars the element variables certified in (A R), or #f if the goal is
@@ -333,7 +360,10 @@
                    (let ((p1 (cvnb->poly (cadr inner)))
                          (p2 (cvnb->poly (caddr inner))))
                      (and p1 p2 (equal? p1 p2)
-                          (ring-vars-ok? (poly-generators p1 p2) qvars asms)
+                          ;; SOURCE generators (incl. cancelled), not survivors
+                          (ring-vars-ok? (cvnb-eq-source-generators
+                                           (cadr inner) (caddr inner))
+                                         qvars asms)
                           (dg-apply-rule! dg 'comm-ring-simplify '() sqn)))))))
      ;; (2) Generic arbitrary-commutative-ring path.
      (let* ((cpeeled (peel-cring-foralls g))
@@ -348,7 +378,10 @@
                    (let ((p1 (cring->poly (cadr inner) R))
                          (p2 (cring->poly (caddr inner) R)))
                      (and p1 p2 (equal? p1 p2)
-                          (cring-vars-ok? (poly-generators p1 p2) R qvars asms)
+                          ;; SOURCE generators (incl. cancelled), not survivors
+                          (cring-vars-ok? (cring-eq-source-generators
+                                            (cadr inner) (caddr inner) R)
+                                          R qvars asms)
                           (dg-apply-rule! dg 'comm-ring-simplify '() sqn))))))))))
 
 ;;; The procedure is a trusted oracle; the warrant records the grounds.

@@ -2243,6 +2243,42 @@
 (check-true "comm-ring-simplify warrant recorded"
   (lambda () (and (warrant-of 'comm-ring-simplify) #t)))
 
+;;; Soundness: warrant (2) -- a generator that CANCELS still needs definedness.
+;;; `=' is partial, so x - x = 0 is FALSE for a non-number x; crs/rs must refuse
+;;; it unless x is carrier-typed.  poly-generators saw only survivors, so the
+;;; check now ranges over the SOURCE generators (cvnb/cring-eq-source-generators).
+(check-true "crs REFUSES x - x = 0 for untyped x (cancelled generator undefined)"
+  (lambda ()
+    (sp (make-wff '(= (- x x) 0)))
+    (not (pi-comm-ring-simplify! (proof-state-focus *ps*)))))
+(check-true "rs REFUSES x - x = 0 for untyped x (cancelled generator undefined)"
+  (lambda ()
+    (sp (make-wff '(= (- x x) 0)))
+    (not (pi-ring-simplify! (proof-state-focus *ps*)))))
+(check-true "crs REFUSES f(a) - f(a) = 0 for an untyped compound generator"
+  (lambda ()
+    (sp (make-wff '(= (- (f a) (f a)) 0)))
+    (not (pi-comm-ring-simplify! (proof-state-focus *ps*)))))
+(check-proof "crs STILL closes forall x in RR, x - x = 0 (typed cancellation OK)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (- x x) 0)))))
+    (crs)
+    (unless (proof-done? *ps*) (error "typed all-cancel regressed"))))
+(check-proof "crs STILL closes forall x,y in RR, x + y - y = x (cancel + survivor)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR) (= (- (+ x y) y) x)))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "typed cancel+survivor regressed"))))
+
+;;; The calculator's one-term normal form (cring-normal-form): P - Q -> 0 iff
+;;; P = Q is a commutative-ring identity (warrant 1, exposed for free terms).
+(check-true "calc: (x+y)^2 - (x^2+2xy+y^2) normalizes to 0"
+  (lambda () (eqv? 0 (cring-normal-form
+                       (parse-string "(x + y)^2 - (x^2 + 2*x*y + y^2)")))))
+(check-true "calc: x*y - y*x normalizes to 0 (commutativity)"
+  (lambda () (eqv? 0 (cring-normal-form (parse-string "x*y - y*x")))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
 
