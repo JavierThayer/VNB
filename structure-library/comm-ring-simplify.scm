@@ -215,26 +215,24 @@
        (memq (car e) '(+ * - binplus bintimes binneg power ^ expt))))
 
 ;;; Find the OUTERMOST ring subterm of g whose canonical form DIFFERS from it
-;;; -- the redex (simp) will rewrite.  Returns (cons e e') or #f.  Never
+;;; -- the redex (simp) will rewrite.  Returns (list e e' surface R) or #f,
+;;; surface in {concrete, generic} and R the ring (#f for concrete).  Never
 ;;; descends into FORALL/FORSOME bodies: a subterm whose variables are bound
 ;;; inside g cannot be lifted to a sequent-level equality without capture (the
 ;;; post-di idiom keeps the ring term at sequent level anyway).  With TARGET (a
 ;;; raw term) given, finds that exact subterm rather than the outermost.
+;;; (cring-redex-here, the per-node test, is defined after both normalizers.)
 (define (find-cring-redex g target)
-  (define (redex-of e)            ; e' if e simplifies to something different
-    (let ((nf (cring-normal-form e)))
-      (and nf (not (equal? nf e)) nf)))
   (let walk ((e g))
     (cond
       ((not (pair? e)) #f)
       ((memq (car e) '(FORALL FORSOME)) #f)         ; never enter a binder
       (target
        (if (equal? e target)
-           (let ((nf (redex-of e))) (and nf (cons e nf)))
+           (cring-redex-here e)
            (let loop ((xs (cdr e)))
              (and (pair? xs) (or (walk (car xs)) (loop (cdr xs)))))))
-      ((and (concrete-ring-head? e) (redex-of e))
-       => (lambda (nf) (cons e nf)))
+      ((cring-redex-here e))                         ; a redex at this node?
       (else
        (let loop ((xs (cdr e)))
          (and (pair? xs) (or (walk (car xs)) (loop (cdr xs)))))))))
@@ -321,6 +319,53 @@
 (define (cring-eq-source-generators e1 e2 R)
   (dedup-equal (append (cring-source-generators e1 R)
                        (cring-source-generators e2 R))))
+
+;;; Render a poly back to the GENERIC ring surface over R, the inverse of
+;;; cring->poly: (ADD R)/(MUL R)/(NEG R)/(ZERO R)/(ONE R).  A generic ring has
+;;; no literal integers, so an integer coefficient c becomes c copies of the
+;;; monomial added (the ZZ-module action n*a = a + ... + a); crs -- which has
+;;; no coefficient or RING-POWER notion on this surface -- re-normalizes that
+;;; back to the same poly, so (= e e') stays crs-dischargeable.  (Verbose for
+;;; large coefficients; algebra coefficients are small.)
+(define (cpoly->cring-term poly R)
+  (let ((ADDr (list 'ADD R)) (MULr (list 'MUL R)) (NEGr (list 'NEG R)))
+    (define (mono->term gens)            ; product of generators via (MUL R)
+      (if (null? gens) (list 'ONE R)
+          (let loop ((gs (cdr gens)) (acc (car gens)))
+            (if (null? gs) acc (loop (cdr gs) (list MULr acc (car gs)))))))
+    (define (repeat-add term n)          ; n>=1 copies of term, via (ADD R)
+      (let loop ((i (- n 1)) (acc term))
+        (if (= i 0) acc (loop (- i 1) (list ADDr acc term)))))
+    (define (term->expr t)               ; (mono . coeff) -> ring expr w/ sign
+      (let ((base (repeat-add (mono->term (car t)) (abs (cdr t)))))
+        (if (< (cdr t) 0) (list NEGr base) base)))
+    (if (null? poly) (list 'ZERO R)
+        (let loop ((ts (cdr poly)) (acc (term->expr (car poly))))
+          (if (null? ts) acc
+              (loop (cdr ts) (list ADDr acc (term->expr (car ts)))))))))
+
+;;; Canonical form of a generic-ring expression e over R (or #f).
+(define (cring-generic-normal-form e R)
+  (let ((poly (cring->poly e R)))
+    (and poly (cpoly->cring-term poly R))))
+
+;;; A term whose head is a structure ring operator ((ADD R)/(MUL R)/(NEG R)).
+(define (generic-ring-head? e)
+  (and (pair? e) (pair? (car e))
+       (memq (caar e) '(ADD MUL NEG)) (= (length (car e)) 2)))
+
+;;; Per-node redex test for (simp): is e a ring expression (either surface)
+;;; whose canonical form differs?  Returns (list e e' surface R) or #f.
+(define (cring-redex-here e)
+  (cond
+    ((concrete-ring-head? e)
+     (let ((nf (cring-normal-form e)))
+       (and nf (not (equal? nf e)) (list e nf 'concrete #f))))
+    ((generic-ring-head? e)
+     (let ((R (find-cring e)))
+       (and R (let ((nf (cring-generic-normal-form e R)))
+                (and nf (not (equal? nf e)) (list e nf 'generic R))))))
+    (else #f)))
 
 ;;; Peel (FORALL R (IMPLIES (IS-COMMUTATIVE-RING R) <rest>)) and then a chain
 ;;; of (FORALL v (IMPLIES (IN v (A R)) ...)).  Returns (list R qvars inner)

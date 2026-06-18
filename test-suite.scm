@@ -2311,6 +2311,17 @@
   (lambda ()
     (sp (make-wff '(IN (- w w) RR)))
     (vnb-warning? (cmd-cring-simp *ps*))))
+(check-true "simp: generic ring surface -- (MUL s)(ADD s a b)(ADD s a b) rewrites in place"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-COMMUTATIVE-RING s)
+                    (FORALL a (IMPLIES (IN a (A s))
+                    (FORALL b (IMPLIES (IN b (A s))
+                      (IN ((MUL s) ((ADD s) a b) ((ADD s) a b)) (A s))))))))))
+    (di) (di) (di) (simp)
+    (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (pair? g) (eq? (car g) 'IN)
+           (let ((R (find-cring (cadr g))))
+             (and R (equal? (cring-generic-normal-form (cadr g) R) (cadr g))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).

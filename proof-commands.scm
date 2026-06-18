@@ -523,16 +523,24 @@
        (vnb--warn "simp: no commutative-ring subterm to simplify"
                   (vnb--goal-str sqn)))
       (else
-       (let* ((e    (car redex))
-              (e*   (cdr redex))
-              (gens (cring-redex-source-generators e)))
-         (if (not (ring-vars-ok? gens '() asms))
+       (let* ((e       (car redex))
+              (e*      (cadr redex))
+              (surface (caddr redex))
+              (R       (cadddr redex))
+              ;; warrant (2): every SOURCE generator of e (incl. cancelled)
+              ;; must be a certified carrier element, on the matching surface.
+              (gens    (if (eq? surface 'concrete)
+                           (cring-redex-source-generators e)
+                           (dedup-equal (cring-source-generators e R))))
+              (certified?
+               (lambda (g) (if (eq? surface 'concrete)
+                               (ring-vars-ok?  (list g)   '() asms)
+                               (cring-vars-ok? (list g) R '() asms))))
+              (bad (filter (lambda (g) (not (certified? g))) gens)))
+         (if (pair? bad)
              (vnb--warn
               "simp: subterm generators not known to be ring elements (type them first)"
-              (str-join (map expression->string
-                             (filter (lambda (gv) (not (ring-vars-ok? (list gv) '() asms)))
-                                     gens))
-                        ", "))
+              (str-join (map expression->string bad) ", "))
              (let* ((eq         (list '= e e*))
                     (children   (pi-cut! sqn eq))
                     (lemma-node (car children))
