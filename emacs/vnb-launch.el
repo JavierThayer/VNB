@@ -601,13 +601,24 @@ indexing by structure).  No window split, no raw s-expressions."
 ;; ============================================================
 ;;
 ;;  The same engine that checks proofs also does the sums.  Type an
-;;  arithmetic expression on its own line and press  C-j  -- the answer
-;;  is written right after it.  Use whole numbers with  +  -  *.
+;;  expression on its own line and press  C-j  -- the answer is written
+;;  right after it.  Two kinds of expression work:
+;;
+;;    * NUMBERS  -- whole numbers with  +  -  *   (e.g. 2 * 3 * 5)
+;;    * ALGEBRA  -- letters stand for unknowns; it multiplies the
+;;                  brackets out and tidies up.  Use  ^  for powers, and
+;;                  write  x*y  for \"x times y\"  (xy on its own would be
+;;                  read as a single name).
+;;
 ;;  Try these (put the cursor on a line and press C-j):
 
 2 + 3 + 5
 10 - 4
 2 * 3 * 5
+(x + y)^2
+(x + y)^2 - x*y
+(x - y)*(x + y)
+(a + b)^3
 "
   "Initial content inserted into a fresh Calculator sheet.")
 
@@ -642,13 +653,21 @@ Sends it to the prover's vnb-guarded (calc ...) evaluator and appends
       (vnb-launch--ensure-prover)
       (let* ((e   (vnb-launch--dequote expr))
              (rawv (vnb-eval-string (format "(calc %S)" e)))
-             (ans (and rawv (string-trim rawv)))
-             (ok  (and ans (string-match-p "\\`-?[0-9][0-9/.eE+-]*\\'" ans))))
-        (end-of-line)
-        (insert (if ok (format "   =  %s" ans)
-                  "   =  ?   (use whole numbers with  +  -  *)"))
-        (insert "\n")
-        (when ok (message "%s = %s" e ans))))))
+             (ans (and rawv (string-trim rawv))))
+        ;; A symbolic answer comes back as a quoted Scheme string
+        ;; ("x ^ 2 + x * y + y ^ 2"); peel the quotes for display.
+        (when (and ans (string-match "\\`\"\\(.*\\)\"\\'" ans))
+          (setq ans (match-string 1 ans)))
+        ;; Accept a numeric result OR a polynomial result (letters, digits,
+        ;; + - * ^ ( ) and spaces).  The error message contains a colon, which
+        ;; the charset excludes, so it is correctly rejected.
+        (let ((ok (and ans (> (length ans) 0)
+                       (string-match-p "\\`[-+ *^/.()0-9A-Za-z_]+\\'" ans))))
+          (end-of-line)
+          (insert (if ok (format "   =  %s" ans)
+                    "   =  ?   (numbers, or algebra in  +  -  *  ^  -- write x*y, not xy)"))
+          (insert "\n")
+          (when ok (message "%s = %s" e ans)))))))
 
 (defun vnb-calc-cancel ()
   "Close the Calculator sheet and return to the Home Workspace."

@@ -77,14 +77,28 @@
 
 ;;; Evaluate a ground arithmetic term and display the result.
 ;;; Accepts a string ("2^10") or a raw S-expression ('(POWER 2 10)).
+;;; (calc t) -- the calculator tape's evaluator.  Two modes, tried in order:
+;;;  (1) GROUND arithmetic: if every symbol reduces, print the number (2+3*5 -> 17).
+;;;  (2) SYMBOLIC: otherwise normalise t as a free commutative-ring expression
+;;;      and print its canonical sum-of-monomials form ((x+y)*(x+y) - x*y ->
+;;;      x^2 + x*y + y^2).  Bare identifiers are generators; remember VNB reads
+;;;      `xy' as ONE symbol, so multiplication must be written x*y (or x y).
 (define (calc t)
   (vnb-guard
     (lambda ()
       (let* ((raw (if (string? t) (parse-string t) t))
              (v   (arith-eval-term raw)))
-        (if v
-            (begin (display v) (newline) v)
-            (error "calc: not a ground arithmetic term" raw))))))
+        (cond
+          (v (display v) (newline) v)
+          ((cring-normal-form raw)
+           => (lambda (term)
+                ;; return the rendered STRING (not the term s-expr) so the
+                ;; Emacs tape's ;Value: capture shows x^2 + x*y + y^2, not
+                ;; the internal (+ (power x 2) ...) form.
+                (let ((s (expression->string term)))
+                  (display s) (newline) s)))
+          (else
+           (error "calc: not a ground or polynomial commutative-ring term" raw)))))))
 
 (define (vnb--require-proof!)
   (unless *ps*

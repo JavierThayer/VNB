@@ -49,7 +49,7 @@ WORKBENCH = [
     ("Build", [
         ("Build Formula",  "build-formula",  "parse and validate a formula"),
         ("Build Structure","build-structure","define a new structure (saved to file)"),
-        ("…and a calculator too!", "calculator", "not just proofs — type 2 + 3 × 5 on a live tape, C-j works it out"),
+        ("…and a calculator too!", "calculator", "not just proofs — a live tape that does sums (2 + 3 × 5) and algebra ((x + y)² → x² + xy + y²); C-j works it out"),
     ]),
     ("Session", [
         ("Examples",     "examples",     "step through worked example proofs"),

@@ -119,6 +119,91 @@
     (else #f)))
 
 ;;; =======================================================================
+;;; Symbolic normal form (the "simplify" / calculator surface).
+;;;
+;;; cvnb->poly already computes the sum-of-monomials canonical form of a
+;;; concrete-surface expression; (crs) only ever uses it to COMPARE two sides
+;;; and throws the polynomial away.  These two helpers expose the other half:
+;;; take ONE free term and print its canonical commutative-ring form, so the
+;;; calculator can turn (x+y)*(x+y) - x*y into x^2 + x*y + y^2.  No new math --
+;;; just a literal-power pre-pass (cvnb->poly has no `^') and a poly->term
+;;; printer (the inverse of the reader above), rendered via expression->string.
+;;; =======================================================================
+
+;;; Pre-expand a literal natural-number power (^ b k) / (expt b k) into the
+;;; k-fold product cvnb->poly understands; recurse through every subterm.  A
+;;; non-literal or negative exponent is left intact (becomes an opaque
+;;; generator downstream, which is the honest thing to do).
+(define (cvnb-expand-pow e)
+  (cond
+    ((not (pair? e)) e)
+    ((and (memq (car e) '(power ^ expt))
+          (pair? (cdr e)) (pair? (cddr e)) (null? (cdddr e))
+          (integer? (caddr e)) (>= (caddr e) 0))
+     ;; NB: VNB shadows Scheme's make-list (expressions.scm builds a LIST
+     ;; term), so build the k-fold repeat by hand.
+     (let ((base (cvnb-expand-pow (cadr e))) (k (caddr e)))
+       (cond ((= k 0) 1)
+             ((= k 1) base)
+             (else (cons '* (let rep ((i k) (acc '()))
+                              (if (= i 0) acc (rep (- i 1) (cons base acc)))))))))
+    (else (cons (car e) (map cvnb-expand-pow (cdr e))))))
+
+;;; Render one canonicalised monomial (a sorted generator multiset) as a VNB
+;;; factor: run-length-encode repeats into (^ g n), join distinct generators
+;;; with `*'.  The empty monomial is the unit, returned as #f so the caller
+;;; can attach the bare coefficient.
+(define (cmonomial->term gens)
+  (if (null? gens) #f
+      (let loop ((gs gens) (factors '()))
+        (if (null? gs)
+            (let ((fs (reverse factors)))
+              (if (null? (cdr fs)) (car fs) (cons '* fs)))
+            (let count ((rest (cdr gs)) (n 1))
+              (if (and (pair? rest) (equal? (car rest) (car gs)))
+                  (count (cdr rest) (+ n 1))
+                  (loop rest
+                        ;; head `power' so expression->string renders g^n infix
+                        (cons (if (= n 1) (car gs) (list 'power (car gs) n))
+                              factors))))))))
+
+;;; Attach an integer coefficient to a monomial term, using the ABSOLUTE value
+;;; (sign is handled by the +/- assembly in cpoly->term).  |c|=1 with a real
+;;; monomial drops the coefficient; an empty monomial yields the bare |c|.
+(define (cterm->term coeff mono)
+  (let ((a (abs coeff)))
+    (cond ((not mono) a)
+          ((= a 1) mono)
+          (else (list '* a mono)))))
+
+;;; Inverse of cvnb->poly: a canonical poly (sorted (monomial . coeff) terms)
+;;; back to a readable VNB term.  Positive terms are joined by `+'; negative
+;;; terms are subtracted, so we print x^2 + y^2 - x*y rather than x^2 + y^2 +
+;;; (-1)*x*y.  The empty poly is 0.
+(define (cpoly->term poly)
+  (if (null? poly) 0
+      (let* ((pos (filter (lambda (t) (> (cdr t) 0)) poly))
+             (neg (filter (lambda (t) (< (cdr t) 0)) poly))
+             (->t (lambda (t) (cterm->term (cdr t) (cmonomial->term (car t)))))
+             (pos-part
+              (cond ((null? pos) #f)
+                    ((null? (cdr pos)) (->t (car pos)))
+                    (else (cons '+ (map ->t pos))))))
+        (cond
+          ((null? neg) (or pos-part 0))
+          (pos-part (cons '- (cons pos-part (map ->t neg))))
+          ;; all-negative: negate the sum of the magnitudes
+          ((null? (cdr neg)) (list '- (->t (car neg))))
+          (else (list '- (cons '+ (map ->t neg))))))))
+
+;;; Top-level: a concrete-surface expression (string or s-expr) to its
+;;; canonical commutative-ring term, or #f if it is not polynomializable
+;;; (e.g. contains division).  Pure -- no proof state touched.
+(define (cring-normal-form expr)
+  (let ((poly (cvnb->poly (cvnb-expand-pow expr))))
+    (and poly (cpoly->term poly))))
+
+;;; =======================================================================
 ;;; Generic path: expressions in an ARBITRARY commutative ring R, written
 ;;; with the structure operators ((ADD R) x y), ((MUL R) x y), ((NEG R) x),
 ;;; (ZERO R), (ONE R) and carrier elements typed (IN v (A R)).  This is what
