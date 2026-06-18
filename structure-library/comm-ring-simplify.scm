@@ -203,6 +203,47 @@
   (let ((poly (cvnb->poly (cvnb-expand-pow expr))))
     (and poly (cpoly->term poly))))
 
+;;; ----- In-formula simplification: find a concrete ring redex in a goal -----
+;;; The (simp) tactic rewrites a commutative-ring SUBTERM of the goal to its
+;;; canonical form in place (the calculator's normal form, but as a sound proof
+;;; step -- see cmd-cring-simp).  These helpers just LOCATE the subterm.
+
+;;; A term is a concrete ring expression when its head is one of the
+;;; number-surface ring operators (same set cvnb->poly walks, plus powers).
+(define (concrete-ring-head? e)
+  (and (pair? e)
+       (memq (car e) '(+ * - binplus bintimes binneg power ^ expt))))
+
+;;; Find the OUTERMOST ring subterm of g whose canonical form DIFFERS from it
+;;; -- the redex (simp) will rewrite.  Returns (cons e e') or #f.  Never
+;;; descends into FORALL/FORSOME bodies: a subterm whose variables are bound
+;;; inside g cannot be lifted to a sequent-level equality without capture (the
+;;; post-di idiom keeps the ring term at sequent level anyway).  With TARGET (a
+;;; raw term) given, finds that exact subterm rather than the outermost.
+(define (find-cring-redex g target)
+  (define (redex-of e)            ; e' if e simplifies to something different
+    (let ((nf (cring-normal-form e)))
+      (and nf (not (equal? nf e)) nf)))
+  (let walk ((e g))
+    (cond
+      ((not (pair? e)) #f)
+      ((memq (car e) '(FORALL FORSOME)) #f)         ; never enter a binder
+      (target
+       (if (equal? e target)
+           (let ((nf (redex-of e))) (and nf (cons e nf)))
+           (let loop ((xs (cdr e)))
+             (and (pair? xs) (or (walk (car xs)) (loop (cdr xs)))))))
+      ((and (concrete-ring-head? e) (redex-of e))
+       => (lambda (nf) (cons e nf)))
+      (else
+       (let loop ((xs (cdr e)))
+         (and (pair? xs) (or (walk (car xs)) (loop (cdr xs)))))))))
+
+;;; SOURCE generators of a concrete subterm with literal powers expanded -- the
+;;; set whose carrier-membership (simp)/crs must certify (warrant 2).
+(define (cring-redex-source-generators e)
+  (dedup-equal (cvnb-source-generators (cvnb-expand-pow e))))
+
 ;;; =======================================================================
 ;;; Generic path: expressions in an ARBITRARY commutative ring R, written
 ;;; with the structure operators ((ADD R) x y), ((MUL R) x y), ((NEG R) x),
@@ -352,19 +393,21 @@
          (dg   (sqn-dg sqn))
          (asms (sequent-node-assumptions sqn)))
     (or
-     ;; (1) Concrete number-domain path.
+     ;; (1) Concrete number-domain path.  Expand literal powers first so
+     ;; `(x+y)^2 = ...' closes directly (cvnb->poly has no power case); source
+     ;; generators are then read off the expanded sides (x, not (power x 2)).
      (let ((peeled (peel-ring-foralls g)))
        (and peeled
             (let ((inner (car peeled)) (qvars (cdr peeled)))
               (and (pair? inner) (eq? (car inner) '=) (= (length inner) 3)
-                   (let ((p1 (cvnb->poly (cadr inner)))
-                         (p2 (cvnb->poly (caddr inner))))
-                     (and p1 p2 (equal? p1 p2)
-                          ;; SOURCE generators (incl. cancelled), not survivors
-                          (ring-vars-ok? (cvnb-eq-source-generators
-                                           (cadr inner) (caddr inner))
-                                         qvars asms)
-                          (dg-apply-rule! dg 'comm-ring-simplify '() sqn)))))))
+                   (let ((e1 (cvnb-expand-pow (cadr inner)))
+                         (e2 (cvnb-expand-pow (caddr inner))))
+                     (let ((p1 (cvnb->poly e1)) (p2 (cvnb->poly e2)))
+                       (and p1 p2 (equal? p1 p2)
+                            ;; SOURCE generators (incl. cancelled), not survivors
+                            (ring-vars-ok? (cvnb-eq-source-generators e1 e2)
+                                           qvars asms)
+                            (dg-apply-rule! dg 'comm-ring-simplify '() sqn))))))))
      ;; (2) Generic arbitrary-commutative-ring path.
      (let* ((cpeeled (peel-cring-foralls g))
             (inner   (if cpeeled (caddr cpeeled) g))

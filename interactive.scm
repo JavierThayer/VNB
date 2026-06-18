@@ -359,6 +359,14 @@
                      (vnb--run! 'subst (list raw) (lambda () (cmd-eq-subst *ps* raw)))))
 (define (cut f) (let ((raw (->raw-formula f)))
                   (vnb--run! 'cut (list raw) (lambda () (cmd-cut *ps* raw)))))
+;; In-formula commutative-ring simplification: rewrite a ring SUBTERM of the
+;; goal to canonical form, in place.  (simp) auto-finds the outermost ring
+;; subterm; (simp "term") targets a specific one.  Sound by cut+crs+eq-subst;
+;; needs the subterm's generators typed in context (usually true post-di).
+(define (simp . args)
+  (let ((raw (and (pair? args) (->raw-formula (car args)))))
+    (vnb--run! 'simp (if raw (list raw) '())
+      (lambda () (if raw (cmd-cring-simp *ps* raw) (cmd-cring-simp *ps*))))))
 ;; Conditional-term reduction: t is an (IF p a b) term.  if-true spawns p
 ;; as a subgoal; if-false spawns (NOT p).  The other branch gains the
 ;; equation (= (IF p a b) a) resp. (= (IF p a b) b) as an assumption.

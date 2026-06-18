@@ -2279,6 +2279,39 @@
 (check-true "calc: x*y - y*x normalizes to 0 (commutativity)"
   (lambda () (eqv? 0 (cring-normal-form (parse-string "x*y - y*x")))))
 
+;;; crs now expands literal powers on the concrete surface (so (simp) can lean
+;;; on it to discharge (= e e') lemmas with `^').
+(check-proof "crs closes concrete (x+y)^2 = x^2+2xy+y^2 over RR (power expansion)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (= (power (+ x y) 2)
+                         (+ (power x 2) (+ (* 2 (* x y)) (power y 2))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "concrete power identity did not close"))))
+
+;;; (simp): in-formula commutative-ring simplification (cut + crs + eq-subst).
+(check-true "simp rewrites a ring subterm in place; result is canonical"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (IN (- (power (+ x y) 2) (* x y)) RR)))))))
+    (di) (di) (simp)
+    (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (pair? g) (eq? (car g) 'IN)
+           ;; the rewritten subterm is now its own normal form
+           (equal? (cring-normal-form (cadr g)) (cadr g))))))
+(check-true "simp: a cancelled subterm (z - z) in typed context becomes 0"
+  (lambda ()
+    (sp (make-wff '(FORALL z (IMPLIES (IN z RR) (IN (- z z) RR)))))
+    (di) (simp)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(IN 0 RR))))
+(check-true "simp REFUSES an untyped subterm generator (warrant 2)"
+  (lambda ()
+    (sp (make-wff '(IN (- w w) RR)))
+    (vnb-warning? (cmd-cring-simp *ps*))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
 

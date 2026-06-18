@@ -75,7 +75,8 @@
     ("Arithmetic & ring oracles"
      (arith "(arith)" "Discharge a ground arithmetic goal by evaluation.")
      (rs    "(rs)"    "Ring-simplify the goal (normal form over the ambient ring).")
-     (crs   "(crs)"   "Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators]."))
+     (crs   "(crs)"   "Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.")
+     (simp  "(simp [\"term\"])" "Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  No arg = outermost ring subterm; \"term\" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them."))
 
     ("Backchaining with a theorem"
      (ta  "(ta 'name)" "Theorem-assumption: bring the named installed theorem into context as an assumption.")

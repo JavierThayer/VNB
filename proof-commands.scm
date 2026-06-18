@@ -496,6 +496,54 @@
         (vnb--warn "comm-ring-simplify: goal is not a provable commutative-ring identity"
                    (vnb--goal-str sqn)))))
 
+;;; (cmd-cring-simp ps [target]) -- IN-FORMULA commutative-ring simplification.
+;;; Rewrite a commutative-ring SUBTERM e of the goal to its canonical form e',
+;;; in place (e.g. turn (x+y)^2 inside a larger goal into x^2 + 2*x*y + y^2).
+;;;
+;;; Proof-grade and adds NO new kernel rule -- it composes three existing sound
+;;; primitives:
+;;;   1. (cut (= e e'))     spawns the equality as a lemma + a main branch that
+;;;                         gains (= e e') as an assumption;
+;;;   2. crs on the lemma   discharges (= e e') -- warrant (1) [the normal-form
+;;;                         theorem] and warrant (2) [crs certifies every SOURCE
+;;;                         generator of e, including cancelled ones, is a
+;;;                         carrier element], so the lemma holds;
+;;;   3. (eq-subst (= e e')) Leibniz-rewrites e -> e' in the main goal.
+;;; Warrant (2) is pre-checked here (ring-vars-ok? over e's source generators)
+;;; so an unprovable case is refused cleanly, BEFORE the graph is mutated,
+;;; naming the generators the user must type first (post-di they already are).
+(define (cmd-cring-simp ps . opt)
+  (let* ((target (and (pair? opt) (car opt)))
+         (sqn    (proof-state-focus ps))
+         (asms   (sequent-node-assumptions sqn))
+         (goal   (wff-formula (sequent-node-assertion sqn)))
+         (redex  (find-cring-redex goal target)))
+    (cond
+      ((not redex)
+       (vnb--warn "simp: no commutative-ring subterm to simplify"
+                  (vnb--goal-str sqn)))
+      (else
+       (let* ((e    (car redex))
+              (e*   (cdr redex))
+              (gens (cring-redex-source-generators e)))
+         (if (not (ring-vars-ok? gens '() asms))
+             (vnb--warn
+              "simp: subterm generators not known to be ring elements (type them first)"
+              (str-join (map expression->string
+                             (filter (lambda (gv) (not (ring-vars-ok? (list gv) '() asms)))
+                                     gens))
+                        ", "))
+             (let* ((eq         (list '= e e*))
+                    (children   (pi-cut! sqn eq))
+                    (lemma-node (car children))
+                    (main-node  (cadr children)))
+               ;; discharge (= e e') by crs -- guaranteed: equal normal forms
+               ;; (e' = normalize e) and generators certified above.
+               (pi-comm-ring-simplify! lemma-node)
+               ;; rewrite e -> e' in the main goal, then focus the result.
+               (pi-eq-subst! main-node eq)
+               (focus-on-first-open ps))))))))
+
 ;;; (cmd-ineq ps idxs) closes a linear-inequality goal over RR from the
 ;;; assumptions named (1-based) in idxs, via the Fourier-Motzkin/Farkas oracle.
 (define (cmd-ineq ps idxs)
