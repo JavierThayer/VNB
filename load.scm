@@ -382,7 +382,17 @@
 ;; files.  The .md regenerate on every load but the HTML did NOT -- it was a
 ;; manual step, so the page the browser actually renders could fossilise (e.g.
 ;; show a now-proven theorem under "Asserted -- accepted without proof").
-;; ~0.5s; non-fatal (a missing python3 just leaves the previous HTML in place).
+;;
+;; This runs at the END of every load, INCLUDING when the prover is launched as
+;; an Emacs subprocess (the GUI launcher).  A synchronous child that inherits
+;; Emacs's pty can deadlock on terminal I/O -- which wedges the whole load, so
+;; the prover never reaches its prompt: the launcher then sits with no Emacs
+;; workspace and a blank browser.  So make the rebuild strictly best-effort and
+;; un-wedgeable: detach the child from the terminal (stdin from /dev/null,
+;; output discarded) and guard it (a missing/failing/blocking python3 just
+;; leaves the previous HTML in place).
 (load-option 'synchronous-subprocess)
-(run-shell-command
-  (string-append "python3 " *prover-dir* "reference/build-reference-html.py"))
+(ignore-errors
+  (run-shell-command
+    (string-append "python3 " *prover-dir*
+                   "reference/build-reference-html.py < /dev/null > /dev/null 2>&1 &")))
