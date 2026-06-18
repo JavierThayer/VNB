@@ -44,6 +44,7 @@
 (rs () "Ring-simplify the goal (normal form over the ambient ring).")
 (crs () "Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.")
 (simp (|"term"|) "Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; \"term\" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.")
+(ineq (i1 i2) "Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)")
 (ta (name) "Theorem-assumption: bring the named installed theorem into context as an assumption.")
 (bc (impl) "Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.")
 (bc* (thm formula h1 h2) "Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals; optional handlers hk run on the k-th subgoal.")

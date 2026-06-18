@@ -244,6 +244,12 @@ Commutative-ring decision procedure: prove a polynomial identity over ZZ[generat
 
 Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; "term" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.
 
+### ineq
+
+    (ineq i1 i2 ...)
+
+Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)
+
 ## Backchaining with a theorem
 
 ### ta
