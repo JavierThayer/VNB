@@ -33,9 +33,9 @@ sequence, convergence, completeness.
 
 ### falling
 
-    forall([n], falling(n, 0) = succ(0))
+    forall([n], falling(n, 0) == succ(0))
 
-    forall([n, k in nn], falling(n, succ(k)) = (n - k) * falling(n, k))
+    forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))
 
 ### fam-of-list
 
@@ -87,9 +87,9 @@ sequence, convergence, completeness.
 
 ### mpow
 
-    forall([m, x], mpow(m, x, 0) = e(m))
+    forall([m, x], mpow(m, x, 0) == e(m))
 
-    forall([m, x, n in nn], mpow(m, x, succ(n)) = (mul(m))(x, mpow(m, x, n)))
+    forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))
 
 ### nn-minus
 
@@ -101,9 +101,9 @@ sequence, convergence, completeness.
 
 ### prod-ord
 
-    forall([m, f], prod-ord(m, f, 0) = e(m))
+    forall([m, f], prod-ord(m, f, 0) == e(m))
 
-    forall([m, f, n in nn], prod-ord(m, f, succ(n)) = (mul(m))(prod-ord(m, f, n), f(n)))
+    forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))
 
 ### ps-absolutely-converges-at
 
@@ -123,15 +123,15 @@ sequence, convergence, completeness.
 
 ### reduce
 
-    forall([op, f], reduce(op, f, 1) = f(0))
+    forall([op, f], reduce(op, f, 1) == f(0))
 
-    forall([op, f, n], n in nn and 1 <= n implies reduce(op, f, succ(n)) = op(reduce(op, f, n), f(n)))
+    forall([op, f, n], n in nn and 1 <= n implies reduce(op, f, succ(n)) == op(reduce(op, f, n), f(n)))
 
 ### ring-prod-n
 
-    forall([f], ring-prod-n(f, 0) = zero-ring)
+    forall([f], ring-prod-n(f, 0) == zero-ring)
 
-    forall([f, n in nn], ring-prod-n(f, succ(n)) = ring-prod(ring-prod-n(f, n), f(n)))
+    forall([f, n in nn], ring-prod-n(f, succ(n)) == ring-prod(ring-prod-n(f, n), f(n)))
 
 ### rr-ms
 
@@ -147,15 +147,15 @@ sequence, convergence, completeness.
 
 ### sum
 
-    forall([r, f], sum(r, f, 0) = zero(r))
+    forall([r, f], sum(r, f, 0) == zero(r))
 
-    forall([r, f, n in nn], sum(r, f, succ(n)) = (add(r))(sum(r, f, n), f(n)))
+    forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
 
 ### sum-ag
 
-    forall([ag, f], sum-ag(ag, f, 0) = e(ag))
+    forall([ag, f], sum-ag(ag, f, 0) == e(ag))
 
-    forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) = (mul(ag))(sum-ag(ag, f, n), f(n)))
+    forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))
 
 ### sums-to
 

@@ -82,7 +82,7 @@
 
 (support 'nag-metric-carrier
   '(FORALL nag
-     (= (X (NAG-METRIC-SPACE nag)) (A nag))))
+     (== (X (NAG-METRIC-SPACE nag)) (A nag))))
 
 (warrant! 'nag-metric-carrier 'informal
   "First component of the LIST constructor: by functoid-beta + nth-reduce,

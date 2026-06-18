@@ -147,6 +147,17 @@
       (IMPLIES (AND (= a b) (IN b S))
                (IN a S))))))
 
+;;; Quasi-equality companion: a == b and b in S give a in S.  Sound -- b in S
+;;; forces b defined, so a == b collapses to a = b (both defined), hence a in S.
+;;; Needed since the partial-op recursion/bridge facts are now stated with ==
+;;; (e.g. SUM r f 0 == ZERO r): membership transfer through a == fact.
+(theory-add-axiom! *current-theory* 'quasi-eq-subst-membership
+  '(FORALL a (FORALL b (FORALL S
+      (IMPLIES (AND (== a b) (IN b S))
+               (IN a S))))))
+(warrant! 'quasi-eq-subst-membership 'well-known
+  "If a == b (quasi-equal) and b in S then b is defined, so a = b and a in S; the quasi-equality analogue of eq-subst-membership.")
+
 ;;; -----------------------------------------------------------------------
 ;;; List sethood
 ;;;
@@ -172,4 +183,4 @@
 
 (theory-add-axiom! *current-theory* 'power-exp
   '(FORALL A (FORALL B
-      (= (POWER A B) (FUN B A)))))
+      (== (POWER A B) (FUN B A)))))

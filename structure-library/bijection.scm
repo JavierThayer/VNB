@@ -159,7 +159,7 @@
 (theory-add-axiom! *current-theory* 'delete-at-below-k
   '(FORALL h (FORALL k (FORALL i
       (IMPLIES (IN i (ORD-SEGMENT k))
-               (= ((DELETE-AT h k) i) (h i)))))))
+               (== ((DELETE-AT h k) i) (h i)))))))
 
 ;;; At-or-above-k characterising equation: k <= i (both in NN).
 (theory-add-axiom! *current-theory* 'delete-at-above-k

@@ -64,4 +64,4 @@
 
 (support 'nf-metric-carrier
   '(FORALL nf
-     (= (X (NF-METRIC-SPACE nf)) (A nf))))
+     (== (X (NF-METRIC-SPACE nf)) (A nf))))

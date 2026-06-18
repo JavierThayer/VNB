@@ -28,7 +28,7 @@
 ;;; x^0 = 1 (the ring's ONE).  mpow-zero is unconditional; the view gives
 ;;; E(COMMUTATIVE-RING-MULTIPLICATIVE-CM R) = (ONE R).
 (support 'ring-power-zero
-  '(FORALL R (FORALL x (= (RING-POWER R x 0) (ONE R)))))
+  '(FORALL R (FORALL x (== (RING-POWER R x 0) (ONE R)))))
 (warrant! 'ring-power-zero 'informal
   "mpow-zero: MPOW(m,x,0)=E(m); the view's E|->ONE slot gives E(COMMUTATIVE-RING-MULTIPLICATIVE-CM R)=(ONE R).")
 

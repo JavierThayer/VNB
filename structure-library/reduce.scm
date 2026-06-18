@@ -57,11 +57,11 @@
   '(reduce-one
     (FORALL op
       (FORALL f
-        (= (REDUCE op f 1) (f 0)))))
+        (== (REDUCE op f 1) (f 0)))))
   '(reduce-succ
     (FORALL op
       (FORALL f
         (FORALL n
           (IMPLIES (AND (IN n NN) (<= 1 n))
-                   (= (REDUCE op f (succ n))
+                   (== (REDUCE op f (succ n))
                       (op (REDUCE op f n) (f n)))))))))

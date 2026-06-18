@@ -423,17 +423,23 @@
                (else
                 (cons (car e) (map walk (cdr e)))))))))))
 
-;;; pi-eq-subst!: eq-formula is a raw (= s t).  The equality must appear in
-;;; the assumptions in either orientation; the goal is rewritten s -> t.
+;;; pi-eq-subst!: eq-formula is a raw (= s t) OR (== s t).  The (quasi-)equality
+;;; must appear in the assumptions in either orientation and under either head;
+;;; the goal is rewritten s -> t.  Quasi-equal terms are interchangeable (a
+;;; congruence: same definedness, equal where defined), so == licenses the
+;;; substitution exactly as = does -- needed since the partial-op recursion/
+;;; bridge facts are now stated with ==.
 (define (pi-eq-subst! sqn eq-formula)
-  (and (pair? eq-formula) (eq? (car eq-formula) '=)
+  (and (pair? eq-formula) (memq (car eq-formula) '(= ==))
        (let* ((asms (sequent-node-assumptions sqn))
               (goal (sequent-node-assertion   sqn))
               (dg   (sqn-dg sqn))
               (s    (binary-left  eq-formula))
               (t    (binary-right eq-formula)))
          (and (or (asms-find asms `(= ,s ,t))
-                  (asms-find asms `(= ,t ,s)))
+                  (asms-find asms `(= ,t ,s))
+                  (asms-find asms `(== ,s ,t))
+                  (asms-find asms `(== ,t ,s)))
               (let* ((g     (wff-formula goal))
                      (new-g (replace-term s t g)))
                 (and (not (alpha-equiv? new-g g))

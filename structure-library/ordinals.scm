@@ -321,10 +321,14 @@
          (succ-body (subst-free val `(,f-name ,@params ,n) succ-expr))
          (zero-name (symbol-append f-name '-zero))
          (succ-name (symbol-append f-name '-succ))
-         (zero-core `(= (,f-name ,@params 0) ,base-val))
+         ;; quasi-equality: the structure params are UNBOUNDED, so off-domain
+         ;; (e.g. a non-group ag) both sides are undefined -- strict = would
+         ;; assert undefined=undefined (false under partial =).  == is true
+         ;; there (both undefined => quasi-equal) and equal on-domain.
+         (zero-core `(== (,f-name ,@params 0) ,base-val))
          (succ-core `(FORALL ,n
                        (IMPLIES (IN ,n NN)
-                                (= (,f-name ,@params (succ ,n)) ,succ-body))))
+                                (== (,f-name ,@params (succ ,n)) ,succ-body))))
          (wrap      (lambda (f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))))
     (theory-add-definition! *current-theory* f-name
       (list (cons zero-name (wrap zero-core))

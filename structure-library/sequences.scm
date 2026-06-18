@@ -213,7 +213,7 @@
 
 (theory-add-axiom! *current-theory* 'sum-set-empty
   '(FORALL r (FORALL f
-      (= (SUM-SET r EMPTY-SET f) (ZERO r)))))
+      (== (SUM-SET r EMPTY-SET f) (ZERO r)))))
 
 (theory-add-axiom! *current-theory* 'sum-set-singleton
   '(FORALL r
@@ -266,7 +266,7 @@
 
 (theory-add-axiom! *current-theory* 'prod-set-empty
   '(FORALL cm (FORALL f
-      (= (PROD-SET cm EMPTY-SET f) (E cm)))))
+      (== (PROD-SET cm EMPTY-SET f) (E cm)))))
 
 (theory-add-axiom! *current-theory* 'prod-set-singleton
   '(FORALL cm
