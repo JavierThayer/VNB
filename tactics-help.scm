@@ -76,7 +76,7 @@
      (arith "(arith)" "Discharge a ground arithmetic goal by evaluation.")
      (rs    "(rs)"    "Ring-simplify the goal (normal form over the ambient ring).")
      (crs   "(crs)"   "Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.")
-     (simp  "(simp [\"term\"])" "Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; \"term\" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.")
+     (simp  "(simp [target])" "Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; \"term\" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.")
      (ineq  "(ineq i1 i2 ...)" "Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)"))
 
     ("Backchaining with a theorem"
@@ -232,7 +232,7 @@
     (find-mac "(find-mac substr)" "Search the rewrite-rule pool for names containing SUBSTR; tags the rules that fire on the current goal. The s-expr-surface counterpart to `mac' name completion.")
     (find-thm "(find-thm substr)" "Search the full theorem pool for names containing SUBSTR; tags the lemmas that backchain the current goal. Counterpart to `bc*'/`ta' name completion.")
     (audit-unbounded "(audit-unbounded)" "Library-hygiene scan: list every installed theorem/axiom whose statement has an UNBOUNDED universal variable (never typed by an (IN v D)) feeding a PARTIAL term under a strict `=' in assertion position -- i.e. it quietly asserts `undefined = undefined' off-domain (VNB `=' is partial).  Category A = arithmetic partial ops; B = function application / structure ops.  Predicate (`iff') definitions are excluded.")
-    (things-to-try "(things-to-try)  [alias (tt)]" "Unified \"what can I do here?\" menu for the current focus: aggregates the shape-based tactic checks (closers ass/rfl/crs/rs/arith/ineq, decomposition di, simplifiers simp, the to-binary/to-nary surface bridges) with the index-driven rewrite-macete and backchain-lemma suggesters and the forward-move scan. Advice only -- nothing is applied.")
+    (things-to-try "(things-to-try)" "Alias (tt).  Unified \"what can I do here?\" menu for the current focus: aggregates the shape-based tactic checks (closers ass/rfl/crs/rs/arith/ineq, decomposition di, simplifiers simp, the to-binary/to-nary surface bridges) with the index-driven rewrite-macete and backchain-lemma suggesters and the forward-move scan. Advice only -- nothing is applied.")
     (to-binary "(to-binary)" "Saturating one-shot rewrite of the goal's kiddie n-ary +/*/- onto the binary structure operators binplus/bintimes/binneg (= the (ADD s)/(MUL s)/(NEG s) slots of ZZ/QQ/RR/CC-RING), so a structure-level theorem can match. Unconditional (definitional bridge). Arities 2..5.")
     (to-nary "(to-nary)" "Inverse of to-binary: rewrite binplus/bintimes/binneg back to everyday +/*/-.")))
 
@@ -267,9 +267,23 @@
             (else
              (loop (+ i 1) depth (or start i) acc)))))))
 
+;;; Keep only identifier characters (a-z 0-9 -) of S.  Used to guarantee the
+;;; emitted arg symbol is readable by BOTH MIT Scheme and Emacs Lisp -- the
+;;; latter has no |...| bar-escaping, so a symbol whose name carries a quote or
+;;; bracket (e.g. from a sloppy `["term"]' signature) would make the generated
+;;; vnb-commands.lisp UNREADABLE and abort the launcher's whole init.
+(define (vnb-cmd--ident-sanitize s)
+  (list->string
+    (filter (lambda (c)
+              (or (char-alphabetic? c) (char-numeric? c) (char=? c #\-)))
+            (string->list s))))
+
 ;;; Normalise one argument token to a bare arg symbol, or #f to drop it.
-;;; Strips [ ] optional markers and a leading quote; a nested form collapses
-;;; to the generic kind `formula'; a `...' rest marker is dropped.
+;;; Strips [ ] optional markers, a leading quote, and surrounding "double
+;;; quotes"; a nested form collapses to the generic kind `formula'; a `...'
+;;; rest marker is dropped.  The final name is sanitised to identifier chars so
+;;; it is always cleanly readable (no bar-escaping) -- a malformed help
+;;; signature must never be able to wedge the Emacs launcher's catalog load.
 (define (vnb-cmd--norm-arg tok)
   (let ((t tok))
     (when (and (> (string-length t) 1)
@@ -278,14 +292,19 @@
       (set! t (substring t 1 (- (string-length t) 1))))
     (when (and (> (string-length t) 0) (char=? (string-ref t 0) #\'))
       (set! t (substring t 1 (string-length t))))
+    (when (and (> (string-length t) 1)
+               (char=? (string-ref t 0) #\")
+               (char=? (string-ref t (- (string-length t) 1)) #\"))
+      (set! t (substring t 1 (- (string-length t) 1))))
     (cond
       ((string=? t "") #f)
       ((string=? t "...") #f)
       ((or (vnb-cmd--str-has-char? t #\()
            (vnb-cmd--str-has-char? t #\[)) 'formula)
-      ;; downcase placeholder names so `write' need not bar-escape them
-      ;; (MIT symbols read case-folded); these are display hints only.
-      (else (string->symbol (string-downcase t))))))
+      ;; downcase + keep only identifier chars (MIT symbols read case-folded);
+      ;; drop the token if nothing clean remains.  Display hints only.
+      (else (let ((clean (vnb-cmd--ident-sanitize (string-downcase t))))
+              (and (> (string-length clean) 0) (string->symbol clean)))))))
 
 ;;; Derive a vnb-commands.lisp arglist from a registry signature string,
 ;;; e.g. "(mac 'name)" -> (name), "(ce hyp k)" -> (hyp k), "(di)" -> ().
