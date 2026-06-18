@@ -454,3 +454,101 @@
                  (display " open goal(s) it could not decisively close")
                  (display " (focus is on the first).\n"))))
     (length (open))))
+
+;;; -----------------------------------------------------------------------
+;;; (things-to-try) -- a unified "what can I do at the current focus?" menu.
+;;;
+;;; As the tactic and macete sets grow, this is the single front door: it
+;;; aggregates the cheap SHAPE-based tactic checks (closers, decomposition,
+;;; simplifiers, the +/binplus surface bridges) with the two index-driven
+;;; suggesters (rewrite macetes, backchaining lemmas) and the forward-move
+;;; scan.  Each line is a command you can paste; nothing is applied -- it is
+;;; advice, ranked cheaply by category.  (tt) is the short alias.
+;;; -----------------------------------------------------------------------
+
+;;; Does SYM occur as the head of E or any subterm?
+(define (ttry--has-head? sym e)
+  (and (pair? e)
+       (or (eq? (car e) sym)
+           (let lp ((xs e))
+             (and (pair? xs)
+                  (or (ttry--has-head? sym (car xs)) (lp (cdr xs))))))))
+
+;;; The goal's CORE: strip leading universals, then one IMPLIES antecedent.
+(define (ttry--core g)
+  (let-values (((vs c) (strip-foralls g))) (peel-implies c)))
+
+(define (things-to-try)
+  (if (not *ps*)
+      (display ";; things-to-try: no proof in progress\n")
+      (let* ((sqn   (proof-state-focus *ps*))
+             (g     (wff-formula (sequent-node-assertion sqn)))
+             (asms  (map wff-formula (sequent-node-assumptions sqn)))
+             (core  (ttry--core g))
+             (groups '()))
+        (define (add! label cmd why)
+          (let ((cell (assoc label groups)))
+            (if cell
+                (set-cdr! cell (cons (cons cmd why) (cdr cell)))
+                (set! groups (cons (list label (cons cmd why)) groups)))))
+        (define (take ns k) (if (> (length ns) k) (list-head ns k) ns))
+        ;; ---- closers ----
+        (when (or (member g asms) (equal? g '(TRUTH)))
+          (add! "Close" "(ass)" "goal is already an assumption / TRUTH"))
+        (when (and (pair? core) (eq? (car core) '=) (= (length core) 3))
+          (when (equal? (cadr core) (caddr core))
+            (add! "Close" "(rfl)" "both sides identical"))
+          (if (and (arith-eval-term (cadr core)) (arith-eval-term (caddr core)))
+              (add! "Close" "(arith)" "ground arithmetic -- evaluate")
+              (begin
+                (add! "Close" "(crs)" "ring equation? -- commutative-ring decision procedure")
+                (add! "Close" "(rs)"  "ring equation? -- non-commutative"))))
+        (when (and (pair? core) (memq (car core) '(<= < > >=)))
+          (add! "Close" "(ineq i1 i2 ...)" "linear RR inequality from named assumptions"))
+        ;; ---- decompose ----
+        (when (and (pair? g) (memq (car g) '(FORALL FORSOME IMPLIES AND IFF NOT)))
+          (add! "Decompose" "(di)"
+                (string-append "goal head is " (symbol->string (car g)))))
+        ;; ---- simplify / surface ----
+        (when (find-cring-redex g #f)
+          (add! "Simplify" "(simp)" "a commutative-ring subterm is non-canonical"))
+        (when (or (ttry--has-head? '+ g) (ttry--has-head? '* g))
+          (add! "Surface" "(to-binary)"
+                "push +/* onto the binplus/bintimes structure surface"))
+        (when (or (ttry--has-head? 'binplus g) (ttry--has-head? 'bintimes g)
+                  (ttry--has-head? 'binneg g))
+          (add! "Surface" "(to-nary)" "bring binplus/bintimes back to +/*"))
+        ;; ---- rewrite (index-driven) ----
+        (for-each (lambda (n)
+                    (add! "Rewrite (mac)"
+                          (string-append "(mac '" (symbol->string n) ")") ""))
+                  (take (suggest-rewrite-names) 6))
+        ;; ---- backchain (index-driven) ----
+        (for-each (lambda (n)
+                    (add! "Backchain (bc*/ta)"
+                          (string-append "(bc* '" (symbol->string n) ")") ""))
+                  (take (suggest-backchain-names) 6))
+        ;; ---- forward ----
+        (let ((fm (suggest-forward-moves)))
+          (when (pair? fm)
+            (add! "Forward" "(suggest-forward-moves)"
+                  (string-append (number->string (length fm))
+                                 " applicable assumption move(s) (fact/detach!)"))))
+        ;; ---- print ----
+        (display ";; things to try at the focus:\n")
+        (display ";;   goal: ") (display (expression->string g)) (newline)
+        (if (null? groups)
+            (display ";;   (nothing obvious -- try (find-thm \"..\") / (find-mac \"..\"))\n")
+            (for-each
+              (lambda (grp)
+                (display ";; ") (display (car grp)) (display ":\n")
+                (for-each
+                  (lambda (cw)
+                    (display ";;   ") (display (car cw))
+                    (unless (string=? (cdr cw) "")
+                      (display "   -- ") (display (cdr cw)))
+                    (newline))
+                  (reverse (cdr grp))))
+              (reverse groups))))))
+
+(define (tt) (things-to-try))

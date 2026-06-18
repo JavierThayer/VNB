@@ -260,9 +260,10 @@
     (cond
       ((vnb-error? result) #f)          ; already displayed by vnb-guard
       ((vnb-warning? result)
-       (display ";VNB warning: ")
-       (display (vnb-warning-message result))
-       (newline))
+       (unless *vnb-quiet*               ; quietly suppresses soft warnings too
+         (display ";VNB warning: ")
+         (display (vnb-warning-message result))
+         (newline)))
       (else
        (record-cmd! sym args)
        (set! *ps* result)
@@ -367,6 +368,40 @@
   (let ((raw (and (pair? args) (->raw-formula (car args)))))
     (vnb--run! 'simp (if raw (list raw) '())
       (lambda () (if raw (cmd-cring-simp *ps* raw) (cmd-cring-simp *ps*))))))
+
+;; to-binary / to-nary -- one-shot surface conversion between the kiddie n-ary
+;; +/*/-  and the binary structure operators binplus/bintimes/binneg (which are
+;; the (ADD s)/(MUL s)/(NEG s) slots of the number rings ZZ/QQ/RR/CC-RING).
+;; Saturating: applies the arity-bridge macetes until none fire.  Unconditional
+;; -- the binX-apply / nary-* axioms are definitional, so no typing is needed.
+;; to-binary pushes a goal onto the STRUCTURE surface (so a structure-level
+;; theorem or macete can match); to-nary brings it back to everyday arithmetic.
+;; n-ary arities 2..5 are bridged; longer sums/products need more nary-* axioms.
+(define *to-binary-macetes*
+  '(nary-plus-5 nary-plus-4 nary-plus-3 nary-plus-2
+    nary-times-5 nary-times-4 nary-times-3 nary-times-2
+    nary-minus-2 nary-neg-1))
+(define *to-nary-macetes* '(binplus-apply bintimes-apply binneg-apply))
+(define (to-binary--focus-formula)
+  (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+;; Saturate the bridge MACETES over the focus goal.  Each (mac m) is recorded
+;; (so proof scripts replay) and quiet (warnings suppressed for non-firing
+;; macetes); we loop on the GOAL FORMULA changing -- NOT (eq? *ps* ...), which
+;; never changes because tactics mutate *ps* in place (repeat/orelse rely on
+;; that identity and so silently run once -- a separate latent bug).
+(define (to-binary--saturate macetes)
+  (vnb--require-proof!)
+  (quietly
+    (lambda ()
+      (let loop ((guard 0))
+        (let ((before (to-binary--focus-formula)))
+          (for-each mac macetes)
+          (when (and (< guard 200)
+                     (not (equal? (to-binary--focus-formula) before)))
+            (loop (+ guard 1)))))))
+  (show))
+(define (to-binary) (to-binary--saturate *to-binary-macetes*))
+(define (to-nary)   (to-binary--saturate *to-nary-macetes*))
 ;; Conditional-term reduction: t is an (IF p a b) term.  if-true spawns p
 ;; as a subgoal; if-false spawns (NOT p).  The other branch gains the
 ;; equation (= (IF p a b) a) resp. (= (IF p a b) b) as an assumption.

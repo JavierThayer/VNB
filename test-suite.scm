@@ -2323,6 +2323,24 @@
            (let ((R (find-cring (cadr g))))
              (and R (equal? (cring-generic-normal-form (cadr g) R) (cadr g))))))))
 
+;;; to-binary / to-nary: saturating surface conversion between kiddie +/*/-
+;;; and binplus/bintimes/binneg.  Round-trip flips the surface and back.
+(check-true "to-binary/to-nary flip the arithmetic surface (round-trip)"
+  (lambda ()
+    (define (has-head? sym e)
+      (and (pair? e)
+           (or (eq? (car e) sym)
+               (let lp ((xs e))
+                 (and (pair? xs) (or (has-head? sym (car xs)) (lp (cdr xs))))))))
+    (sp (make-wff '(IN (+ (* a b) (+ x y z) (- w)) RR)))
+    (to-binary)
+    (let ((bin (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (to-nary)
+      (let ((nary (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+        (and (has-head? 'binplus bin) (has-head? 'bintimes bin) (has-head? 'binneg bin)
+             (not (has-head? '+ bin)) (not (has-head? '* bin))
+             (has-head? '+ nary) (has-head? '* nary))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
 

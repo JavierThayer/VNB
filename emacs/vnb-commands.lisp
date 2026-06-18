@@ -83,4 +83,7 @@
 (parse-string (str) "Parse a surface-syntax string into a raw S-expression.")
 (find-mac (substr) "Search the rewrite-rule pool for names containing SUBSTR; tags the rules that fire on the current goal. The s-expr-surface counterpart to `mac' name completion.")
 (find-thm (substr) "Search the full theorem pool for names containing SUBSTR; tags the lemmas that backchain the current goal. Counterpart to `bc*'/`ta' name completion.")
+(things-to-try (formula) "Unified \"what can I do here?\" menu for the current focus: aggregates the shape-based tactic checks (closers ass/rfl/crs/rs/arith/ineq, decomposition di, simplifiers simp, the to-binary/to-nary surface bridges) with the index-driven rewrite-macete and backchain-lemma suggesters and the forward-move scan. Advice only -- nothing is applied.")
+(to-binary () "Saturating one-shot rewrite of the goal's kiddie n-ary +/*/- onto the binary structure operators binplus/bintimes/binneg (= the (ADD s)/(MUL s)/(NEG s) slots of ZZ/QQ/RR/CC-RING), so a structure-level theorem can match. Unconditional (definitional bridge). Arities 2..5.")
+(to-nary () "Inverse of to-binary: rewrite binplus/bintimes/binneg back to everyday +/*/-.")
 )
