@@ -2363,6 +2363,13 @@
 (check-true "rfl guard: context (IN (f a) S) lets (= (f a)(f a)) close"
   (lambda () (sp (make-wff '(IMPLIES (IN (f a) S) (= (f a) (f a)))))
              (di) (rfl) (proof-done? *ps*)))
+;; ':=' is DEFINITION sugar: lexes to quasi-equality == (a definition's logical
+;; content), while a lone ':' is still the set-builder separator.
+(check-true "':=' lexes to == (definition sugar)"
+  (lambda () (let ((p (parse-string "a := b"))) (and (pair? p) (eq? (car p) '==)))))
+(check-true "set-builder ':' separator unaffected by := "
+  (lambda () (let ((p (parse-string "{x in nn : x in nn}")))
+               (and (pair? p) (eq? (car p) 'sep) #t))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).

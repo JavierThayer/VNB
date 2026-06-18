@@ -72,6 +72,7 @@ with well-formed formulas.
 \item \texttt{forsome([$b_1$, \ldots, $b_n$], $p$)} existential quantification; see Section~\ref{sec:multiquant}
 \item \texttt{$a$ = $b$} strict equality: both defined and equal
 \item \texttt{$a$ == $b$} quasi-equality: both defined and equal, or both undefined
+\item \texttt{$t$ := $s$} definition (sugar for \texttt{$t$ == $s$}): $t$ is defined iff $s$ is, and then equal
 \item \texttt{$a$ in $b$} membership $a \in b$
 \item \texttt{$A$ subset $B$} subclass $A \subseteq B$; see Section~\ref{sec:class-set-discipline}
 \end{itemize}
@@ -193,10 +194,30 @@ Variables and class constants (\texttt{ORD}, \texttt{RR},
 \texttt{x in A} are provable for some $A$, $B$.
 
 \paragraph{Reflexivity in proofs.}
-\texttt{cmd-quasi-reflexivity} closes any goal of the form
+\texttt{cmd-quasi-reflexivity} (\texttt{qrfl}) closes any goal of the form
 \texttt{a == a} unconditionally.
-\texttt{cmd-reflexivity} closes \texttt{a = a} only when \texttt{a} is
-demonstrably defined.
+\texttt{cmd-reflexivity} (\texttt{rfl}) closes \texttt{a = a} only when
+\texttt{a} is demonstrably defined: either \emph{syntactically} (a variable
+or constant, ground arithmetic that evaluates, or a tree of total class
+constructors over defined arguments) or by a \emph{context} witness --- an
+assumption \texttt{a in $S$} (membership entails definedness) or a strict
+\texttt{a = $\cdots$}.  For a term whose definedness is not established, use
+\texttt{qrfl}; the strict reflexivity is \emph{not} a triviality.
+
+\paragraph{Definitions: \texttt{$t$ := $s$}.}
+A definition is a different speech act from an equation.  Writing
+\texttt{$t$ := $s$} introduces $t$ \emph{as} $s$: $t$ is defined exactly when
+$s$ is, and then equal --- $t$ inherits its definedness from $s$, having none
+of its own.  That is precisely quasi-equality, so \texttt{:=} is surface
+sugar for \texttt{==}: the parser reads \texttt{$t$ := $s$} as
+\texttt{$t$ == $s$}.  Use \texttt{:=} for the defining equation of a partial
+operation --- e.g.\ \texttt{(compose(f, g))(x) := f(g(x))} --- and reserve
+\texttt{=} for a genuine \emph{identity}, asserted between two terms each
+\emph{independently} known to be defined.  Writing a definition with
+\texttt{=} over-claims: it asserts the defined term is defined at
+\emph{every} argument, which is false off its domain (there both sides are
+undefined, and \texttt{=}, being strict, is then false --- whereas
+\texttt{==} is true).
 
 \section{Class constructors}
 \label{sec:class-set-discipline}

@@ -117,7 +117,15 @@
               ((char=? c #\]) (adv-ch) (let ((r (collect))) (cons 'rbracket r)))
               ((char=? c #\{) (adv-ch) (let ((r (collect))) (cons 'lbrace   r)))
               ((char=? c #\}) (adv-ch) (let ((r (collect))) (cons 'rbrace   r)))
-              ((char=? c #\:) (adv-ch) (let ((r (collect))) (cons 'colon    r)))
+              ;; `:=' is DEFINITION sugar -- lexes to the quasi-equality `=='
+              ;; operator (its logical content: t defined iff s is, then equal).
+              ;; A lone `:' (set-builder separator {x in A : p}) is never
+              ;; immediately followed by `=', so this is unambiguous.
+              ((char=? c #\:)
+               (adv-ch)
+               (if (eqv? (peek-ch) #\=)
+                   (begin (adv-ch) (let ((r (collect))) (cons (cons 'sym '==) r)))
+                   (let ((r (collect))) (cons 'colon r))))
               ((char=? c #\|) (adv-ch) (let ((r (collect))) (cons 'pipe     r)))
               ((char=? c #\,) (adv-ch) (let ((r (collect))) (cons 'comma    r)))
               ;; `?' starts a pattern-variable identifier (?P, ?body) for the
