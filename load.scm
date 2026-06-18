@@ -260,6 +260,9 @@
     ;; Assumption-pattern scanner for forward-move discovery
     ;; (used by Emacs vnb-suggest-forward-moves).
     "suggest"
+    ;; Library hygiene diagnostics: (audit-unbounded) scans for the partial-
+    ;; equality hazard (unbounded universals feeding partial terms under =).
+    "audit"
     ;; English verbalization of a wff (companion to expr->str symbolic /
     ;; describe-structure).  Loads last: uses expr->str + the theorem table.
     "wff-english"
