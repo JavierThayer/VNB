@@ -87,3 +87,12 @@
 ;;;    conclusions, or (ii) reformulate lemma B to conclude IS-R-NET about a
 ;;;    NAMED centre-set functoid R-NET-OF(s,r) (non-existential), then close the
 ;;;    goal with (ew '(R-NET-OF s r)) + bc*.  Both are clean follow-ups.
+;;;
+;;; DONE 2026-06-20 via route (i): match-expr is now ALPHA-AWARE on binders
+;;; (macetes.scm) -- bc* matches a FORSOME-/FORALL-headed conclusion against a
+;;; goal with a differently-named bound variable.  So bc* backchains the
+;;; EXISTENTIAL lemma finite-ball-subcover-r-net directly, no Skolem functoid
+;;; needed.  The completed QED is calculus/compact-tb-proof.scm (installed as
+;;; `compact-tb', proven modulo the two warranted ball-cover lemmas).  The
+;;; alpha-aware fix is a reusable, general capability (helps mac + bc* on every
+;;; quantified conclusion), not specific to this proof.

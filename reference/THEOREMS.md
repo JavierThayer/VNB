@@ -75,7 +75,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `compact-iff-tb-complete` — forall([s], is-metric-space(s) implies is-compact(s) iff totally-bounded(s) and is-complete(s))  _[warrant: reference]_
 - `compact-iff-tb-complete-rev` — forall([s], is-metric-space(s) implies totally-bounded(s) and is-complete(s) iff is-compact(s))  _[warrant: reference]_
 - `compact-implies-complete` — forall([s], is-compact(s) implies is-complete(s))  _[warrant: reference]_
-- `compact-implies-totally-bounded` — forall([s], is-compact(s) implies totally-bounded(s))  _[warrant: reference]_
+- `compact-implies-totally-bounded` — forall([s], is-compact(s) implies totally-bounded(s))  _[warrant: proof]_
 - `comparison-test` — forall([f in fun(nn, rr), g in fun(nn, rr)], forall([n in nn], 0 <= f(n) and f(n) <= g(n)) and series-converges(g) implies series-converges(f))  _[warrant: informal]_
 - `completion-is-complete` — forall([m], is-metric-space(m) implies is-complete(completion(m)))  _[warrant: well-known]_
 - `completion-is-metric-space` — forall([m], is-metric-space(m) implies is-metric-space(completion(m)))  _[warrant: well-known]_

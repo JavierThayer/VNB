@@ -154,8 +154,25 @@
                    (mp (match-expr (cadddr pattern) (cadddr expr) schema-vars)))
                (and ma mp (merge-subst ma mp)))))
        ((FORALL FORSOME IOTA)
-        (and (eq? (cadr pattern) (cadr expr))
-             (match-expr (caddr pattern) (caddr expr) schema-vars)))
+        ;; Alpha-aware: the bound variables need not be the SAME name, only
+        ;; alpha-equivalent.  When they differ, rename BOTH to a fresh var
+        ;; (avoiding capture of any schema var or free var) and match the
+        ;; renamed bodies.  This lets bc*/mac backchain a lemma whose
+        ;; conclusion is FORSOME-/FORALL-headed against a goal with a
+        ;; differently-named bound variable (e.g. an existence lemma
+        ;; (... => FORSOME N. P(N)) closing a goal FORSOME F. P(F)).
+        (let ((pv (cadr pattern)) (ev (cadr expr)))
+          (cond
+            ((eq? pv ev)
+             (match-expr (caddr pattern) (caddr expr) schema-vars))
+            ;; A schema-var hole in the BINDER position stays unsupported (we
+            ;; must not rename a schema var away) -- keep the old non-match.
+            ((member pv schema-vars) #f)
+            (else
+             (let ((z (fresh-var pv (caddr pattern) (caddr expr))))
+               (match-expr (subst-free pv z (caddr pattern))
+                           (subst-free ev z (caddr expr))
+                           schema-vars))))))
        (else
         (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))))
     ;; Compound-operator application: pattern ((D s) x y) vs expr

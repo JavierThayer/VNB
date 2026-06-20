@@ -132,10 +132,13 @@
 
 (support 'compact-implies-totally-bounded
   '(FORALL s (IMPLIES (IS-COMPACT s) (TOTALLY-BOUNDED s))))
-(warrant! 'compact-implies-totally-bounded 'reference
+(warrant! 'compact-implies-totally-bounded 'proof
   "Compact => totally bounded (calculus.pdf Prop 3.12).  For eps > 0 the open
    balls {B(x,eps) : x in X} cover X; a finite subcover's centres form a finite
-   eps-net.  Half of (1)=>(4).")
+   eps-net.  Half of (1)=>(4).  MACHINE-PROVEN in calculus/compact-tb-proof.scm
+   (installed there as `compact-tb', modulo the asserted ball-cover lemmas
+   ball-cover-is-open-cover + finite-ball-subcover-r-net); kept here as an
+   asserted PSS citation, the proof run offline.")
 
 (support 'compact-implies-complete
   '(FORALL s (IMPLIES (IS-COMPACT s) (IS-COMPLETE s))))
