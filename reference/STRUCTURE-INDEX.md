@@ -440,6 +440,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `ball-2r-triangle` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies forall([y in ball(s, x, r), z in ball(s, x, r)], (d(s))(y, z) <= r + r and not((d(s))(y, z) = r + r))))
 - `ball-center-in` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies x in ball(s, x, r)))
+- `ball-cover-is-open-cover` — forall([s], is-metric-space(s) implies forall([r], r in rr and 0 <= r and not(0 = r) implies is-open-cover(s, ball-cover(s, r))))
 - `ball-is-open` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies is-open(s, ball(s, x, r))))
 - `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
 - `ball-mem-from-le` — forall([s], is-metric-space(s) implies forall([x, y, d, r], y in x(s) and d in rr and r in rr and (d(s))(x, y) <= d and <(d, r) implies y in ball(s, x, r)))
@@ -462,6 +463,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `embed-isometry` — forall([m], is-metric-space(m) implies forall([u in x(m), v in x(m)], (d(completion(m)))(embed(m, u), embed(m, v)) = (d(m))(u, v)))
 - `embed-isometry-rev` — forall([m], is-metric-space(m) implies forall([u in x(m), v in x(m)], (d(m))(u, v) = (d(completion(m)))(embed(m, u), embed(m, v))))
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
+- `finite-ball-subcover-r-net` — forall([s], is-metric-space(s) implies forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], f subset ball-cover(s, r) and card(f) in nn and is-open-cover(s, f)) implies forsome([n], card(n) in nn and is-r-net(s, n, x(s), r))))
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))
 - `metric-dist-real` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(s))(x, y) in rr))
 - `metric-pos` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], 0 <= (d(s))(x, y)))

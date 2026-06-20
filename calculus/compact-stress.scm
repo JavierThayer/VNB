@@ -62,3 +62,28 @@
 ;;; STATUS: vocabulary (IS-COMPACT etc.) and the Prop 3.12 equivalences are
 ;;; installed as warranted supports (compactness.scm); the machine proof waits
 ;;; on the two ball-cover lemmas above.  Left as a documented probe.
+;;;
+;;; UPDATE 2026-06-20 (assembly attempt with the two ball-cover lemmas built):
+;;;  - BUG FOUND + FIXED: totally-bounded-def's r-condition was the 3-arg
+;;;    (AND (IN r RR) (<= 0 r) (NOT (= 0 r))).  AND is strictly BINARY
+;;;    (make-wff: connective arity error on 3 args), so theory-add-axiom!
+;;;    stored it with the r/=0 conjunct silently DROPPED -- TB wrongly allowed
+;;;    r=0.  Rewritten as nested binary (metric-topology.scm).  [Audit lead:
+;;;    grep other axioms for 3-arg AND/OR similarly truncated.]
+;;;  - The assembly then drives cleanly to the crux subgoal
+;;;       r in rr, 0<=r, r/=0, (forall C: open-cover => finite subcover),
+;;;       is-metric-space(s)  =>  forsome F. card(F) in NN and is-r-net(s,F,X(s),r)
+;;;    via: (di)(di) (mac-h 'IS-COMPACT 1) (ai 1) (mac 'totally-bounded-def)
+;;;         (di) (ass) (di)(di).
+;;;  - WALL: (bc* 'finite-ball-subcover-r-net) does NOT fire -- its conclusion
+;;;    is EXISTENTIAL (forsome N ...), and bc* matches relation-headed
+;;;    conclusions, not FORSOME-headed ones.  Finishing needs FORWARD chaining:
+;;;    establish forsome-subcover from compactness (inst (forall C) at
+;;;    BALL-COVER(s,r); discharge open-cover by ball-cover-is-open-cover), then
+;;;    ta/inst/detach! lemma B's three antecedents to land forsome-N in context
+;;;    and close by (ass).  ~15-20 forward steps -> a slog, so left asserted
+;;;    (compact-implies-totally-bounded) per the not-a-slog guard.
+;;;  - To make it a SHORT proof later: either (i) a bc* that matches existential
+;;;    conclusions, or (ii) reformulate lemma B to conclude IS-R-NET about a
+;;;    NAMED centre-set functoid R-NET-OF(s,r) (non-existential), then close the
+;;;    goal with (ew '(R-NET-OF s r)) + bc*.  Both are clean follow-ups.

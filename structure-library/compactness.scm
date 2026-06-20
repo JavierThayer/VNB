@@ -90,7 +90,45 @@
    finite subcover is exactly a closed family with the FIP and empty
    intersection.")
 
-;;; ----- the two directions used most often, stated directly -----
+;;; ----- ball-cover machinery: the two lemmas that close compact => TB -----
+
+;;; The r-ball cover of s: the family of all open r-balls { B(x,r) : x in X(s) },
+;;; as the image of X(s) under  x |-> BALL(s,x,r).
+(def-functoid 'BALL-COVER '(s r)
+  '(IMAGE (VNB-LAMBDA x (BALL s x r)) (X s)))
+
+;;; Lemma A: for r > 0 the r-ball cover is an open cover of s.
+;;; (r-condition matches totally-bounded-def verbatim: r in RR, 0 <= r, r /= 0.)
+(support 'ball-cover-is-open-cover
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
+       (IS-OPEN-COVER s (BALL-COVER s r)))))))
+(warrant! 'ball-cover-is-open-cover 'well-known
+  "The r-ball cover { B(x,r) : x in X(s) } is an open cover for r > 0: each
+   ball is open (ball-is-open), and the union is all of X(s) because every
+   point x lies in its own ball B(x,r) (d(x,x)=0 < r).")
+
+;;; Lemma B: if some finite subfamily of the r-ball cover still covers s, then
+;;; s has a finite r-net (the centres of the chosen balls).  This is the
+;;; centre-extraction step: a finite set of balls drawn from the ball cover
+;;; carries a finite set of centres, and covering by the balls is exactly the
+;;; r-net condition for the centres.
+(support 'finite-ball-subcover-r-net
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
+       (IMPLIES (FORSOME F (AND (SUBSET F (BALL-COVER s r))
+                           (AND (IN (CARD F) NN) (IS-OPEN-COVER s F))))
+         (FORSOME N (AND (IN (CARD N) NN) (IS-R-NET s N (X s) r)))))))))
+(warrant! 'finite-ball-subcover-r-net 'well-known
+  "A finite subcover of the r-ball cover yields a finite r-net.  Each ball in
+   the finite subfamily F is B(c,r) for some centre c in X(s); the (finite) set
+   N of those centres satisfies IS-R-NET(s,N,X(s),r): every point p in X(s) is
+   covered by some B(c,r) in F, i.e. d(c,p) < r with c in N.  |N| <= |F| is
+   finite.  The centre-extraction step (choosing a centre per ball) is sound
+   because the balls come from the cover BALL-COVER(s,r), whose members are by
+   construction the balls B(x,r), x in X(s).")
+
+;;; ----- the directions used most often, stated directly -----
 
 (support 'compact-implies-totally-bounded
   '(FORALL s (IMPLIES (IS-COMPACT s) (TOTALLY-BOUNDED s))))

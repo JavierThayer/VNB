@@ -157,7 +157,11 @@
      (IFF (TOTALLY-BOUNDED s)
           (AND (IS-METRIC-SPACE s)
                (FORALL r
-                 (IMPLIES (AND (IN r RR) (<= 0 r) (NOT (= 0 r)))
+                 ;; NB: AND is strictly binary -- the old 3-arg
+                 ;; (AND (IN r RR) (<= 0 r) (NOT (= 0 r))) silently dropped the
+                 ;; r/=0 conjunct (make-wff arity), so TB wrongly allowed r=0.
+                 ;; Nested binary form keeps all three: r in RR, 0<=r, r/=0.
+                 (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
                    (FORSOME F
                      (AND (IN (CARD F) NN)
                           (IS-R-NET s F (X s) r)))))))))
