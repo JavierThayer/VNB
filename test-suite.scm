@@ -2372,6 +2372,69 @@
                (and (pair? p) (eq? (car p) 'sep) #t))))
 
 ;;; -----------------------------------------------------------------------
+;;; Sum-of-squares oracle (sos): nonstrict polynomial inequalities over RR.
+
+(display "\n=== Sum-of-squares oracle (sos) ===\n")
+
+;; Pure LP engine (sos-arith.scm): nonnegative-combination feasibility/witness.
+(check "sos-arith: D=(x-y)^2 from {(x-y)^2,x^2,y^2} = (1/2,1/2,1/2)"
+  (lambda ()
+    (sos-nonneg-combo
+      (list '(((x x) . 1) ((x y) . -2) ((y y) . 1)) '(((x x) . 1)) '(((y y) . 1)))
+      '(((x x) . 1) ((x y) . -1) ((y y) . 1))))
+  (list 1/2 1/2 1/2))
+(check-false "sos-arith: D=-x^2 infeasible from {x^2}"
+  (lambda () (sos-nonneg-combo (list '(((x x) . 1))) '(((x x) . -1)))))
+(check-false "sos-arith: D=x*y infeasible from {x^2,y^2}"
+  (lambda () (sos-nonneg-combo (list '(((x x) . 1)) '(((y y) . 1)))
+                               '(((x y) . 1)))))
+
+;; End-to-end: sos peels the typed FORALL chain itself (run before di).
+(check-proof "sos closes x*y <= x^2 + y^2 over RR"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (* x y) (+ (power x 2) (power y 2)))))))))
+    (sos "x - y" "x" "y")
+    (unless (proof-done? *ps*) (error "sos: x*y<=x^2+y^2 did not close"))))
+
+(check-proof "sos closes 2*x*y <= x^2 + y^2 with one square"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (* 2 (* x y)) (+ (power x 2) (power y 2)))))))))
+    (sos "x - y")
+    (unless (proof-done? *ps*) (error "sos: 2xy<=x^2+y^2 did not close"))))
+
+(check-proof "sos closes 3-var AM-GM a*b+b*c+c*a <= a^2+b^2+c^2"
+  (lambda ()
+    (sp (make-wff '(FORALL a (IMPLIES (IN a RR)
+                    (FORALL b (IMPLIES (IN b RR)
+                    (FORALL c (IMPLIES (IN c RR)
+                      (<= (+ (* a b) (+ (* b c) (* c a)))
+                          (+ (power a 2) (+ (power b 2) (power c 2))))))))))))
+    (sos "a - b" "b - c" "c - a")
+    (unless (proof-done? *ps*) (error "sos: 3-var AM-GM did not close"))))
+
+;; A false inequality must be REFUSED (oracle leaves the goal open).
+(check-true "sos refuses the false goal x^2+y^2 <= x*y"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (+ (power x 2) (power y 2)) (* x y))))))))
+    (sos "x - y" "x" "y")
+    (not (proof-done? *ps*))))
+
+;; An insufficient certificate must be refused (no nonneg combination exists).
+(check-true "sos refuses x*y<=x^2+y^2 with insufficient certificate {x}"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (* x y) (+ (power x 2) (power y 2)))))))))
+    (sos "x")
+    (not (proof-done? *ps*))))
+
+;;; -----------------------------------------------------------------------
 ;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
 
 (display "\n=== Ring-power + ring-expression copilot ===\n")
@@ -2876,6 +2939,28 @@
 ;; Documented limitation: a hole in the BINDER VARIABLE slot does not bind.
 (check-false "parts: hole in binder-var position does not match (limitation)"
   (lambda () (match "forall([?v in ?S], ?body)" "forall([x in nn], x + 0 = x)")))
+
+;;; -----------------------------------------------------------------------
+;;; what-is copilot: numeral tower, fuzzy match, name split, aliases
+
+(check "what-is: 7 lands in nn"
+  (lambda () (what-is--number-set 7)) 'nn)
+(check "what-is: -3 lands in zz"
+  (lambda () (what-is--number-set -3)) 'zz)
+(check "what-is: 1/2 lands in qq"
+  (lambda () (what-is--number-set 1/2)) 'qq)
+(check "what-is: 3.14 lands in rr"
+  (lambda () (what-is--number-set 3.14)) 'rr)
+(check "what-is: tower tail from qq"
+  (lambda () (what-is--tower-tail 'qq)) '(qq rr cc))
+(check "what-is: edit distance mtric/metric = 1"
+  (lambda () (what-is--levenshtein "mtric" "metric")) 1)
+(check "what-is: edit distance ring/ring = 0"
+  (lambda () (what-is--levenshtein "ring" "ring")) 0)
+(check "what-is: split metric-space"
+  (lambda () (what-is--split-dash "metric-space")) '("metric" "space"))
+(check "what-is: alias complex -> cc-ring"
+  (lambda () (cdr (assoc "complex" *what-is-aliases*))) '(cc-ring))
 
 ;;; -----------------------------------------------------------------------
 ;;; Summary

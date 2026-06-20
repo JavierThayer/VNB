@@ -276,6 +276,7 @@
 (define (rs)    (vnb--run! 'rs    '()    (lambda () (cmd-ring-simplify *ps*))))
 (define (crs)   (vnb--run! 'crs   '()    (lambda () (cmd-comm-ring-simplify *ps*))))
 (define (ineq . idxs) (vnb--run! 'ineq idxs (lambda () (cmd-ineq *ps* idxs))))
+(define (sos . certs) (vnb--run! 'sos certs (lambda () (cmd-sos *ps* certs))))
 (define (rfl)   (vnb--run! 'rfl   '()    (lambda () (cmd-reflexivity *ps*))))
 (define (qrfl)  (vnb--run! 'qrfl  '()    (lambda () (cmd-quasi-reflexivity *ps*))))
 (define (oi-l)  (vnb--run! 'oi-l  '()    (lambda () (cmd-or-intro-left *ps*))))
@@ -1960,6 +1961,264 @@
   path)
 
 ;;; -----------------------------------------------------------------------
+;;; what-is: a "what is this thing?" copilot.  You type a token; it figures
+;;; out what KIND of thing you meant and answers in kind.  A dispatcher runs
+;;; ordered resolvers, first one that fires wins:
+;;;
+;;;   numeral   "7"        -> 7 in nn subseteq zz subseteq ... cc (the tower)
+;;;   constant  "pi"/"%i"  -> symbol + TeX + type (pi in rr, i in cc)
+;;;   alias     "complex"  -> the structure(s)/set(s) that word means
+;;;   concept   "number"   -> the family (nn, zz-ring, qq-ring, ... ord)
+;;;   substring "metric"   -> matching structure names + their shape/parts
+;;;   fuzzy     "ordnial"  -> nearest name(s) by edit distance ("did you mean")
+;;;
+;;; The three tables below (*what-is-constants*, *what-is-aliases*,
+;;; *what-is-sets*) are the data; extend them as the copilot grows.  Backs the
+;;; elisp `M-x what-is' -- the front door for building a formula, since for a
+;;; structure it tells you what `(OP s)' accessors you actually have.
+
+(define (what-is--summary-line name)
+  ;; one compact line: NAME — kind; parts: a b c
+  (let ((sd  (lookup-structure name))
+        (dsd (lookup-definitional-structure name)))
+    (display "  ") (display name)
+    (cond
+      (sd
+       (display "  — shape;  parts: ")
+       (display (describe-structure--join (structure-slot-names sd) " ")))
+      (dsd
+       (let ((shape (find-shape-structure (definitional-structure-parent dsd))))
+         (display "  — refines ")
+         (display (definitional-structure-parent dsd))
+         (when shape
+           (display ";  parts: ")
+           (display (describe-structure--join (structure-slot-names shape) " "))))))
+    (newline)))
+
+;;; --- data (case-folded lowercase, as the reader stores everything) -------
+
+;;; The numeric tower, smallest first.  Inclusions: nn-subset-zz ... rr-subset-cc.
+(define *what-is-tower* '(nn zz qq rr cc))
+
+;;; Set name -> one-line gloss (the carriers a numeral/number-word lands in).
+(define *what-is-sets*
+  '((nn  . "natural numbers (0, 1, 2, ...)")
+    (zz  . "integers")
+    (qq  . "rationals")
+    (rr  . "reals")
+    (cc  . "complex numbers")
+    (ord . "ordinals (a proper class)")))
+
+;;; Named constant -> (TeX  surface-input  type  gloss).  %pi/%e parse as formal
+;;; symbols (no value yet); %i evaluates to the exact Gaussian unit +i.
+(define *what-is-constants*
+  '((pi "\\pi"        "%pi" rr "ratio of a circle's circumference to its diameter; parsed as %pi, a formal symbol (no value/axiom yet)")
+    (e  "\\mathrm{e}" "%e"  rr "base of the natural logarithm; parsed as %e, a formal symbol (no value/axiom yet)")
+    (i  "i"           "%i"  cc "the imaginary unit, i^2 = -1; %i evaluates to the exact Gaussian unit +i")))
+
+;;; Common word -> the structure(s)/set(s) it means.  Targets are resolved by
+;;; `what-is--describe-target' (structure -> shape line; set -> gloss line).
+(define *what-is-aliases*
+  '(("complex"   cc-ring)
+    ("real"      rr-ring)     ("reals"     rr-ring)
+    ("rational"  qq-ring)     ("rationals" qq-ring)
+    ("integer"   zz-ring)     ("integers"  zz-ring)
+    ("natural"   nn)          ("naturals"  nn)
+    ("ordinal"   ord)         ("ordinals"  ord)
+    ("number"    nn zz-ring qq-ring rr-ring cc-ring ord)
+    ("numbers"   nn zz-ring qq-ring rr-ring cc-ring ord)))
+
+;;; --- resolvers (each prints + returns #t when it handles S, else #f) ------
+
+(define (what-is--describe-target name)
+  ;; A target is a structure (-> shape summary) or a tower set (-> gloss).
+  (let ((setrow (assq name *what-is-sets*)))
+    (cond
+      ((or (lookup-structure name) (lookup-definitional-structure name))
+       (what-is--summary-line name))
+      (setrow
+       (display "  ") (display name) (display "  -- set: ")
+       (display (cdr setrow)) (newline))
+      (else (display "  ") (display name) (newline)))))
+
+(define (what-is--tower-tail set)
+  ;; Suffix of the tower from SET up to cc.
+  (let loop ((t *what-is-tower*))
+    (cond ((null? t) '())
+          ((eq? (car t) set) t)
+          (else (loop (cdr t))))))
+
+(define (what-is--number-set v)
+  ;; Smallest tower set containing the real number V.
+  (cond ((and (exact? v) (integer? v) (>= v 0)) 'nn)
+        ((and (exact? v) (integer? v))          'zz)
+        ((and (exact? v) (rational? v))         'qq)
+        ((real? v)                              'rr)
+        (else                                   'cc)))
+
+(define (what-is--try-numeral s)
+  (let ((v (string->number s)))
+    (and v (real? v)
+         (let* ((set (what-is--number-set v)) (tail (what-is--tower-tail set)))
+           (display s) (display "  -- a number.") (newline)
+           (display "  ") (display s) (display " in ")
+           (display (describe-structure--join tail " subseteq ")) (newline)
+           (display "  (smallest tower set: ") (display set)
+           (display ";  inclusions nn-subset-zz ... rr-subset-cc)") (newline)
+           #t))))
+
+(define (what-is--try-constant s)
+  (let* ((bare (if (and (> (string-length s) 0) (char=? (string-ref s 0) #\%))
+                   (string-tail s 1) s))
+         (row  (assq (string->symbol (string-downcase bare)) *what-is-constants*)))
+    (and row
+         (let ((tex (cadr row)) (mx (caddr row))
+               (ty (cadddr row)) (gl (car (cddddr row))))
+           (display (car row)) (display "  -- a named constant.") (newline)
+           (display "  input as  ") (display mx)
+           (display "      TeX  ") (display tex) (newline)
+           (display "  ") (display mx) (display " in ") (display ty) (newline)
+           (display "  (") (display gl) (display ")") (newline)
+           #t))))
+
+(define (what-is--try-alias s)
+  (let ((row (assoc (string-downcase s) *what-is-aliases*)))
+    (and row
+         (let ((targets (cdr row)))
+           (display s) (display "  -- ")
+           (display (if (null? (cdr targets)) "means:" "could mean:")) (newline)
+           (for-each what-is--describe-target targets)
+           #t))))
+
+(define (what-is--try-structures s)
+  (let* ((low  (string-downcase s))
+         (hits (filter (lambda (n)
+                         (string-search-forward low (string-downcase (symbol->string n)) 0))
+                       (known-structures))))
+    (cond
+      ((null? hits) #f)
+      ((null? (cdr hits)) (describe-structure (car hits)) #t)
+      (else
+       (display (length hits)) (display " structures match \"")
+       (display s) (display "\":") (newline) (newline)
+       (for-each what-is--summary-line hits)
+       (newline)
+       (display "(describe-structure 'NAME) -- or M-x what-is on the full name -- for the full card.")
+       (newline)
+       #t))))
+
+;;; Levenshtein edit distance (two-row DP) for typo-tolerant fallback.
+(define (what-is--levenshtein a b)
+  (let* ((la (string-length a)) (lb (string-length b))
+         (prev (make-vector (+ lb 1) 0))
+         (cur  (make-vector (+ lb 1) 0)))
+    (do ((j 0 (+ j 1))) ((> j lb)) (vector-set! prev j j))
+    (do ((i 1 (+ i 1))) ((> i la))
+      (vector-set! cur 0 i)
+      (do ((j 1 (+ j 1))) ((> j lb))
+        (let ((cost (if (char=? (string-ref a (- i 1)) (string-ref b (- j 1))) 0 1)))
+          (vector-set! cur j
+            (min (+ (vector-ref cur (- j 1)) 1)
+                 (+ (vector-ref prev j) 1)
+                 (+ (vector-ref prev (- j 1)) cost)))))
+      (do ((j 0 (+ j 1))) ((> j lb)) (vector-set! prev j (vector-ref cur j))))
+    (vector-ref prev lb)))
+
+(define (what-is--split-dash s)
+  (let ((n (string-length s)))
+    (let loop ((i 0) (start 0) (acc '()))
+      (cond
+        ((= i n) (reverse (cons (substring s start n) acc)))
+        ((char=? (string-ref s i) #\-)
+         (loop (+ i 1) (+ i 1) (cons (substring s start i) acc)))
+        (else (loop (+ i 1) start acc))))))
+
+;;; Distinct hyphen-components of structure names (>= 3 chars), each routed
+;;; back through the substring resolver -- so a typo of a component ("mtric"
+;;; for the "metric" in metric-space) still finds it.
+(define (what-is--name-components)
+  (let loop ((names (known-structures)) (seen '()) (acc '()))
+    (if (null? names)
+        (reverse acc)
+        (let inner ((parts (what-is--split-dash (symbol->string (car names))))
+                    (seen seen) (acc acc))
+          (cond
+            ((null? parts) (loop (cdr names) seen acc))
+            ((or (< (string-length (car parts)) 3) (member (car parts) seen))
+             (inner (cdr parts) seen acc))
+            (else
+             (let ((c (car parts)))
+               (inner (cdr parts) (cons c seen)
+                      (cons (cons c (lambda () (what-is--try-structures c))) acc)))))))))
+
+;;; Every name a typo might have meant -- structures, their components, tower
+;;; sets, alias words -- each paired with a thunk that renders it the right way
+;;; (so a fuzzy hit on a set or alias word answers as a set/alias, not as a
+;;; missing structure).
+(define (what-is--fuzzy-candidates)
+  (append
+    (map (lambda (n) (cons (symbol->string n) (lambda () (describe-structure n))))
+         (known-structures))
+    (what-is--name-components)
+    (map (lambda (r) (cons (symbol->string (car r))
+                           (lambda () (what-is--describe-target (car r)))))
+         *what-is-sets*)
+    (map (lambda (r) (cons (car r) (lambda () (what-is--try-alias (car r)))))
+         *what-is-aliases*)))
+
+;; Keep the first (lowest-distance) entry per candidate string.
+(define (what-is--dedup-near pairs)
+  (let loop ((ps pairs) (seen '()) (acc '()))
+    (cond ((null? ps) (reverse acc))
+          ((member (car (caar ps)) seen) (loop (cdr ps) seen acc))
+          (else (loop (cdr ps) (cons (car (caar ps)) seen) (cons (car ps) acc))))))
+
+(define (what-is--try-fuzzy s)
+  (let* ((low    (string-downcase s))
+         (scored (map (lambda (c)
+                        (cons c (what-is--levenshtein low (string-downcase (car c)))))
+                      (what-is--fuzzy-candidates)))
+         (thresh (max 2 (quotient (string-length low) 3)))
+         (near   (what-is--dedup-near
+                  (sort (filter (lambda (p) (<= (cdr p) thresh)) scored)
+                        (lambda (a b) (< (cdr a) (cdr b)))))))
+    (and (pair? near)
+         (cond
+           ;; one strictly-closest hit -> render it
+           ((or (null? (cdr near)) (< (cdar near) (cdr (cadr near))))
+            (display "what-is: no exact match for \"") (display s)
+            (display "\" -- showing nearest, ") (display (car (caar near))) (display ":")
+            (newline) (newline)
+            ((cdr (caar near))) #t)
+           (else
+            (display "what-is: no match for \"") (display s)
+            (display "\".  Did you mean:") (newline)
+            (for-each (lambda (p) (display "  ") (display (car (car p))) (newline))
+                      (list-head near (min 5 (length near))))
+            #t)))))
+
+;;; --- the dispatcher -------------------------------------------------------
+
+(define (what-is needle)
+  (let ((s (if (symbol? needle) (symbol->string needle) needle)))
+    (or (what-is--try-numeral s)
+        (what-is--try-constant s)
+        (what-is--try-alias s)
+        (what-is--try-structures s)
+        (what-is--try-fuzzy s)
+        (begin
+          (display "what-is: nothing matching \"") (display s) (display "\".") (newline)
+          (display "Try (catalog) or Browse Library for the full list.") (newline)
+          #t))
+    (if #f #f)))
+
+;;; Capture a what-is answer to PATH (consumed by the elisp `vnb-what-is',
+;;; which shows it in its own single-window buffer -- no REPL/proof split).
+(define (write-what-is needle path)
+  (with-output-to-file path (lambda () (what-is needle)))
+  path)
+
+;;; -----------------------------------------------------------------------
 ;;; Markdown + TeX card (the "beautiful" Emacs / manual form)
 ;;;
 ;;; Same content as `describe-structure', but emitted as markdown with every
@@ -2599,6 +2858,7 @@
       ((rs)     (cmd-ring-simplify *ps*))
       ((crs)    (cmd-comm-ring-simplify *ps*))
       ((ineq)   (cmd-ineq *ps* args))
+      ((sos)    (cmd-sos *ps* args))
       ;; D-7 replay dispatch
       ((sep-set) (cmd-sep-sethood       *ps*))
       ((sep-mi)  (cmd-sep-mem-intro     *ps*))

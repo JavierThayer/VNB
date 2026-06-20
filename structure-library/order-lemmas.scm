@@ -116,3 +116,34 @@
 (warrant! 'rr-abs-reverse-triangle 'well-known
   "||x|-|y|| <= |x-y|.  From the triangle inequality applied to x=(x-y)+y and
    y=(y-x)+x; standard.")
+
+;;; -----------------------------------------------------------------------
+;;; Squares are nonnegative, and the two order/arithmetic glue moves that
+;;; turn a sum-of-squares certificate into a goal `<='.  Together with crs
+;;; (which verifies the polynomial identity behind the certificate) these
+;;; close every elementary polynomial inequality, e.g.
+;;;   x*y <= x^2 + y^2   via   2*(x^2+y^2-x*y) = (x-y)^2 + x^2 + y^2.
+;;; The missing real-line counterpart of cc-self-conj-nonneg (0 <= a*conj a).
+
+(support 'rr-sq-nonneg
+  '(FORALL x (IMPLIES (IN x RR) (<= 0 (* x x)))))
+(warrant! 'rr-sq-nonneg 'well-known
+  "0 <= x*x for every real.  If 0<=x, mul-nonneg gives 0<=x*x; if x<=0 then
+   0<=(-x) and 0<=(-x)*(-x)=x*x.  The base square-positivity fact; the seed of
+   every sum-of-squares inequality (Cauchy-Schwarz, AM-GM, x*y<=x^2+y^2).")
+
+(support 'rr-le-from-diff-nonneg
+  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+     (IMPLIES (<= 0 (- y x)) (<= x y)))))))
+(warrant! 'rr-le-from-diff-nonneg 'well-known
+  "0 <= y-x gives x <= y.  Add x to both sides of 0<=y-x (rr-leq-add-compatible)
+   and simplify y-x+x=y.  The standard `move everything to one side' step that
+   reduces an inequality goal to a nonnegativity goal.")
+
+(support 'rr-double-nonneg
+  '(FORALL x (IMPLIES (IN x RR)
+     (IMPLIES (<= 0 (+ x x)) (<= 0 x)))))
+(warrant! 'rr-double-nonneg 'well-known
+  "0 <= x+x gives 0 <= x.  Contrapositive: x<0 adds to x+x<0 (rr-leq-add-compat).
+   Lets a doubled sum-of-squares certificate (which avoids fractional 1/2
+   coefficients) discharge the undoubled goal.")

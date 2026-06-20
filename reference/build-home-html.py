@@ -21,18 +21,19 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8973
 
 def esc(s): return html.escape(s, quote=True)
 
-# Reference reading -- all in the browser.  (label, href, blurb).  The #ANCHORS
-# are reference.html's per-doc sections (build-reference-html.py: secid = the
-# .md filename).  These cover what used to be the Emacs "Show X" home items.
+# Reference reading -- all in the browser.  (label, href, blurb).  Each doc is
+# now its OWN page (build-reference-html.py: <secid>.html, secid = the .md
+# filename); reference.html is the hub linking them all.  These cover what used
+# to be the Emacs "Show X" home items.
 REF_LINKS = [
-    ("Library",           "reference.html",                  "everything cross-linked — start here"),
-    ("Structures",        "reference.html#STRUCTURE-INDEX",  "every structure: slots, laws, views"),
-    ("Theorems & axioms", "reference.html#THEOREMS",         "the full installed catalog"),
-    ("Definitions",       "reference.html#DEFINITIONS",      "term & predicate definitions"),
-    ("Proof Support Set", "reference.html#PSS",              "theorems excused from the VNB test, accepted on a warrant"),
-    ("Fingerprint Index", "reference.html#FINGERPRINT-INDEX","results bucketed by conclusion skeleton"),
-    ("Tactics",           "reference.html#TACTICS",          "interactive proof commands, each with a one-line gloss"),
-    ("Structure Graph",   "structure-graph.html",            "refines & view-as relations, clickable"),
+    ("Library",           "reference.html",          "everything cross-linked — start here"),
+    ("Structures",        "STRUCTURE-INDEX.html",    "every structure: slots, laws, views"),
+    ("Theorems & axioms", "THEOREMS.html",           "the full installed catalog"),
+    ("Definitions",       "DEFINITIONS.html",        "term & predicate definitions"),
+    ("Proof Support Set", "PSS.html",                "theorems excused from the VNB test, accepted on a warrant"),
+    ("Fingerprint Index", "FINGERPRINT-INDEX.html",  "results bucketed by conclusion skeleton"),
+    ("Tactics",           "TACTICS.html",            "interactive proof commands, each with a one-line gloss"),
+    ("Structure Graph",   "structure-graph.html",    "refines & view-as relations, clickable"),
 ]
 # Workbench: (heading, [(label, fn-name, blurb), ...]).  Emacs is ONLY for work
 # the user actually performs -- starting/continuing proofs, scratch, building.
@@ -42,12 +43,12 @@ REF_LINKS = [
 WORKBENCH = [
     ("Prove", [
         ("Your first proof","first-proof",   "brand new? a gentle two-step proof, guided all the way"),
-        ("Start Proof",    "start-proof",    "edit the goal in a buffer, then begin in the Focus workspace"),
-        ("Continue Proof", "continue-proof", "return to the proof in progress (Focus workspace)"),
-        ("Scratch",        "scratch",        "Lisp-interaction sheet: C-j sends a sexp/region to the prover"),
+        ("Start Proof",    "start-proof",    "compose the goal theorem, then carry out its proof in a Focus workspace"),
+        ("Continue Proof", "continue-proof", "return to the proof in progress, in its Focus workspace"),
+        ("Scratch",        "scratch",        "a free-form workspace for trying things out; C-j runs the current line or selection"),
     ]),
     ("Build", [
-        ("Build Formula",  "build-formula",  "parse and validate a formula"),
+        ("What Is…?",      "what-is",        "look up a structure, number, or constant — its accessors, shape, type"),
         ("Build Structure","build-structure","define a new structure (saved to file)"),
         ("…and a calculator too!", "calculator", "not just proofs — a live tape that does sums (2 + 3 × 5) and algebra ((x + y)² → x² + xy + y²); C-j works it out"),
     ]),
@@ -92,7 +93,8 @@ HERO_SVG = """
 # What VNB is -- faithful to docs/ch-intro.tex (paraphrased, no new claims).
 INTRO = """
 <section class="intro">
-  <p><b>Vienbi</b> (written <b>VNB</b>) is an <b>interactive proof assistant</b> &mdash;
+  <p><b>Vienbi</b> &mdash; pronounced as (reading in English) the letters <b>VNB</b> &mdash;
+  is an <b>interactive proof assistant</b> &mdash;
   a program you do mathematics <em>with</em>. You state a theorem and build its proof a
   step at a time; the machine checks every step against a small, auditable logical
   kernel, so a finished proof is correct <em>by construction</em>, not by trust.</p>
@@ -101,8 +103,6 @@ INTRO = """
   But you rarely touch that bedrock &mdash; numbers, functions, and ordinals are built in as
   primitives governed by ordinary axioms, so a proof reads the way mathematics is actually
   written, not as a tower of encodings.</p>
-  <p>It is also a small experiment: a rigorous proof system built largely by an AI, with
-  mathematical direction from F.&nbsp;J.&nbsp;Thayer.</p>
 </section>
 """
 
@@ -117,13 +117,20 @@ FITS = """
     <p>Where you <em>read</em>: browse the library, the catalog of theorems, and the
     clickable structure graph. No setup &mdash; just links in your browser.</p></div>
   <div class="part"><h3>Emacs</h3>
-    <p>Where you <em>work</em>: starting or continuing a proof opens an Emacs buffer. The
-    launcher configures it for you; it&rsquo;s the worktable where steps get typed.</p></div>
+    <p>The real work of doing mathematics takes place in several workspaces in Emacs,
+    as explained below.</p></div>
 </div>
-<p class="reassure"><b>New to Emacs? You don&rsquo;t need to learn it.</b> The launcher sets
-everything up, and the buttons below open the right window on their own. In practice you type
-your goal and press a single chord (<code>C-c&nbsp;C-c</code>) to send it to the prover. Think
-of Emacs here as the table you work at, not a thing to study &mdash; the mathematics is the point.</p>
+<div class="reassure">
+  <p>The launcher sets everything up, and the links below open the right workspace in Emacs:</p>
+  <ol>
+    <li>writing and editing formal mathematical statements or potential theorems;</li>
+    <li>starting proofs, either interactively &mdash; entering commands that modify the
+    proof state &mdash; or by running scripts, sequences of commands that also modify the
+    proof state. The two methods are entirely equivalent: what a user can do with one of
+    these approaches can be done with the other;</li>
+    <li>a copilot facility that suggests proof moves to the user.</li>
+  </ol>
+</div>
 """
 
 CSS = """

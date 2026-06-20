@@ -89,7 +89,8 @@
 </header>
 
 <section class="intro">
-  <p><b>Vienbi</b> (written <b>VNB</b>) is an <b>interactive proof assistant</b> &mdash;
+  <p><b>Vienbi</b> &mdash; pronounced as (reading in English) the letters <b>VNB</b> &mdash;
+  is an <b>interactive proof assistant</b> &mdash;
   a program you do mathematics <em>with</em>. You state a theorem and build its proof a
   step at a time; the machine checks every step against a small, auditable logical
   kernel, so a finished proof is correct <em>by construction</em>, not by trust.</p>
@@ -98,8 +99,6 @@
   But you rarely touch that bedrock &mdash; numbers, functions, and ordinals are built in as
   primitives governed by ordinary axioms, so a proof reads the way mathematics is actually
   written, not as a tower of encodings.</p>
-  <p>It is also a small experiment: a rigorous proof system built largely by an AI, with
-  mathematical direction from F.&nbsp;J.&nbsp;Thayer.</p>
 </section>
 
 
@@ -112,20 +111,27 @@
     <p>Where you <em>read</em>: browse the library, the catalog of theorems, and the
     clickable structure graph. No setup &mdash; just links in your browser.</p></div>
   <div class="part"><h3>Emacs</h3>
-    <p>Where you <em>work</em>: starting or continuing a proof opens an Emacs buffer. The
-    launcher configures it for you; it&rsquo;s the worktable where steps get typed.</p></div>
+    <p>The real work of doing mathematics takes place in several workspaces in Emacs,
+    as explained below.</p></div>
 </div>
-<p class="reassure"><b>New to Emacs? You don&rsquo;t need to learn it.</b> The launcher sets
-everything up, and the buttons below open the right window on their own. In practice you type
-your goal and press a single chord (<code>C-c&nbsp;C-c</code>) to send it to the prover. Think
-of Emacs here as the table you work at, not a thing to study &mdash; the mathematics is the point.</p>
+<div class="reassure">
+  <p>The launcher sets everything up, and the links below open the right workspace in Emacs:</p>
+  <ol>
+    <li>writing and editing formal mathematical statements or potential theorems;</li>
+    <li>starting proofs, either interactively &mdash; entering commands that modify the
+    proof state &mdash; or by running scripts, sequences of commands that also modify the
+    proof state. The two methods are entirely equivalent: what a user can do with one of
+    these approaches can be done with the other;</li>
+    <li>a copilot facility that suggests proof moves to the user.</li>
+  </ol>
+</div>
 
 <h2>Reference <span class="sub" style="font-size:.85rem">(reads in the browser)</span></h2>
-<a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="reference.html#STRUCTURE-INDEX"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="reference.html#THEOREMS"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="reference.html#DEFINITIONS"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="reference.html#PSS"><div class="t">Proof Support Set</div><div class="b">theorems excused from the VNB test, accepted on a warrant</div></a><a class="card" href="reference.html#FINGERPRINT-INDEX"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="reference.html#TACTICS"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
+<a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="STRUCTURE-INDEX.html"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="THEOREMS.html"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="DEFINITIONS.html"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="PSS.html"><div class="t">Proof Support Set</div><div class="b">theorems excused from the VNB test, accepted on a warrant</div></a><a class="card" href="FINGERPRINT-INDEX.html"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="TACTICS.html"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
 <h2>Prove <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
-<a class="card emacs" href="#" onclick="poke(event, 'first-proof', 'Your first proof')"><div class="t">Your first proof</div><div class="b">brand new? a gentle two-step proof, guided all the way</div></a><a class="card emacs" href="#" onclick="poke(event, 'start-proof', 'Start Proof')"><div class="t">Start Proof</div><div class="b">edit the goal in a buffer, then begin in the Focus workspace</div></a><a class="card emacs" href="#" onclick="poke(event, 'continue-proof', 'Continue Proof')"><div class="t">Continue Proof</div><div class="b">return to the proof in progress (Focus workspace)</div></a><a class="card emacs" href="#" onclick="poke(event, 'scratch', 'Scratch')"><div class="t">Scratch</div><div class="b">Lisp-interaction sheet: C-j sends a sexp/region to the prover</div></a>
+<a class="card emacs" href="#" onclick="poke(event, 'first-proof', 'Your first proof')"><div class="t">Your first proof</div><div class="b">brand new? a gentle two-step proof, guided all the way</div></a><a class="card emacs" href="#" onclick="poke(event, 'start-proof', 'Start Proof')"><div class="t">Start Proof</div><div class="b">compose the goal theorem, then carry out its proof in a Focus workspace</div></a><a class="card emacs" href="#" onclick="poke(event, 'continue-proof', 'Continue Proof')"><div class="t">Continue Proof</div><div class="b">return to the proof in progress, in its Focus workspace</div></a><a class="card emacs" href="#" onclick="poke(event, 'scratch', 'Scratch')"><div class="t">Scratch</div><div class="b">a free-form workspace for trying things out; C-j runs the current line or selection</div></a>
 <h2>Build <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
-<a class="card emacs" href="#" onclick="poke(event, 'build-formula', 'Build Formula')"><div class="t">Build Formula</div><div class="b">parse and validate a formula</div></a><a class="card emacs" href="#" onclick="poke(event, 'build-structure', 'Build Structure')"><div class="t">Build Structure</div><div class="b">define a new structure (saved to file)</div></a><a class="card emacs" href="#" onclick="poke(event, 'calculator', '…and a calculator too!')"><div class="t">…and a calculator too!</div><div class="b">not just proofs — a live tape that does sums (2 + 3 × 5) and algebra ((x + y)² → x² + xy + y²); C-j works it out</div></a>
+<a class="card emacs" href="#" onclick="poke(event, 'what-is', 'What Is…?')"><div class="t">What Is…?</div><div class="b">look up a structure, number, or constant — its accessors, shape, type</div></a><a class="card emacs" href="#" onclick="poke(event, 'build-structure', 'Build Structure')"><div class="t">Build Structure</div><div class="b">define a new structure (saved to file)</div></a><a class="card emacs" href="#" onclick="poke(event, 'calculator', '…and a calculator too!')"><div class="t">…and a calculator too!</div><div class="b">not just proofs — a live tape that does sums (2 + 3 × 5) and algebra ((x + y)² → x² + xy + y²); C-j works it out</div></a>
 <h2>Session <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>
 <a class="card emacs" href="#" onclick="poke(event, 'examples', 'Examples')"><div class="t">Examples</div><div class="b">step through worked example proofs</div></a><a class="card emacs" href="#" onclick="poke(event, 'save-session', 'Save Session')"><div class="t">Save Session</div><div class="b">this session&#x27;s proofs as one re-loadable script</div></a>
 

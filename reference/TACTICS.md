@@ -250,6 +250,12 @@ Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g.
 
 Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)
 
+### sos
+
+    (sos "c1" "c2" ...)
+
+Close a NONSTRICT polynomial inequality a <= b over RR by a sum-of-squares certificate -- the nonlinear companion of (ineq).  Supply the certificate terms c_i (surface strings or s-exprs); the oracle checks that b - a is a nonnegative rational combination Sum lambda_i (c_i)^2 of their squares (exact LP over crs's commutative-ring normal form), and prints the lambda_i.  Makes AM-GM / Cauchy-Schwarz / x*y<=x^2+y^2 fall out in one step.  Run it on the QUANTIFIED goal (before di), so the c_i may use the goal's own variable names; generators must be certified in RR.  Strict (<) goals are refused (a square may vanish).
+
 ## Backchaining with a theorem
 
 ### ta

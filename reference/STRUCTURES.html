@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Structure notes &mdash; VNB reference</title>
+<style>
+ :root { --ink:#1a2a3a; --accent:#2a4a6a; --accent2:#3f7fb0; --rule:#dde6f0;
+         --bg:#eef3f9; --panel:#f5f8fc; }
+ * { box-sizing:border-box; }
+ body { font-family: Helvetica, Arial, sans-serif; color:var(--ink); margin:0;
+        background:#fff; }
+ #wrap { display:flex; align-items:flex-start; }
+ nav { position:sticky; top:0; align-self:flex-start; min-width:14rem; width:14rem;
+       height:100vh; overflow:auto; padding:1.2rem 1rem; background:var(--panel);
+       border-right:1px solid var(--rule); box-sizing:border-box; }
+ nav .home { font-size:1.05rem; font-weight:600; color:var(--accent);
+             text-decoration:none; display:block; margin:.1rem 0 1rem; }
+ nav .home:hover { text-decoration:underline; }
+ nav a.doc { display:block; padding:.28rem .5rem; color:#33536f; text-decoration:none;
+             border-radius:5px; font-size:.92rem; line-height:1.3; }
+ nav a.doc:hover { background:#e3edf8; }
+ nav a.doc.active { background:var(--accent); color:#fff; font-weight:600; }
+ nav .extra { display:block; margin-top:1.2rem; padding-top:.8rem;
+              border-top:1px solid var(--rule); }
+ /* min-width:0 lets this flex child shrink below its content's intrinsic
+    width; without it a wide <pre> formula forces main past the viewport. */
+ main { padding:1.6rem 2.4rem 3rem; max-width:62rem; min-width:0; flex:1 1 auto; }
+ h1.page { color:var(--accent); font-size:1.9rem; margin:.2rem 0 .1rem;
+           background:linear-gradient(95deg,#2a4a6a 0%,#3f7fb0 60%,#b06a00 100%);
+           -webkit-background-clip:text; background-clip:text; color:transparent; }
+ .page-sub { color:#667; margin:.1rem 0 1.6rem; font-size:1.02rem; }
+ h2 { color:var(--accent); border-bottom:2px solid #e3edf8; padding-bottom:.2rem;
+      margin-top:2.2rem; }
+ h3,h4,h5,h6 { color:#365b7d; margin:.9rem 0 .25rem; }
+ :target { background:#fff4e0; box-shadow:-.5rem 0 0 #fff4e0, .3rem 0 0 #fff4e0; }
+ [id] { scroll-margin-top: .6rem; }
+ code { background:#f2f6fb; padding:0 .25rem; border-radius:3px;
+        font-family: ui-monospace, Menlo, Consolas, monospace; font-size:.92em;
+        overflow-wrap:anywhere; }
+ pre { background:#f7f9fc; border:1px solid #e6edf6; border-radius:6px;
+       padding:.6rem .8rem; font-size:.86rem;
+       white-space:pre-wrap; overflow-wrap:anywhere; }
+ li, p { overflow-wrap:anywhere; }
+ a.x { text-decoration:none; }
+ a.x:hover code { background:#dbe9fb; }
+ .pm { color:#9aa7b4; font-size:.85em; cursor:help; }
+ ul { margin:.3rem 0; }
+ li { margin:.12rem 0; }
+ hr { border:0; border-top:1px solid #e6edf6; margin:1.2rem 0; }
+ .lead { color:#667; }
+ /* hub */
+ .hub main { max-width:54rem; }
+ .hub-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));
+             gap:.9rem; margin:1.4rem 0; }
+ a.card { display:block; background:#fff; border:1px solid var(--rule);
+          border-radius:10px; padding:.9rem 1.1rem; text-decoration:none;
+          color:inherit; transition:border-color .12s, box-shadow .12s; }
+ a.card:hover { border-color:var(--accent2);
+                box-shadow:0 2px 10px rgba(42,74,106,.10); }
+ a.card .t { color:var(--accent); font-weight:600; font-size:1.05rem; }
+ a.card .b { color:#667; font-size:.9rem; margin-top:.2rem; line-height:1.4; }
+</style></head><body>
+<div id="wrap">
+<nav><a class="home" href="reference.html">&#8962; VNB reference</a><a class="doc" href="LIBRARY.html">Library map</a><a class="doc" href="STRUCTURE-INDEX.html">Structures</a><a class="doc active" href="STRUCTURES.html">Structure notes</a><a class="doc" href="THEOREMS.html">Theorems &amp; axioms</a><a class="doc" href="DEFINITIONS.html">Definitions</a><a class="doc" href="FUNCTORS.html">Functoids</a><a class="doc" href="PSS.html">Proof Support Set</a><a class="doc" href="BY-OPERATOR.html">By operator</a><a class="doc" href="MACETE-INDEX.html">Macete index</a><a class="doc" href="FINGERPRINT-INDEX.html">Fingerprint index</a><a class="doc" href="PROOF-DEBT.html">Proof debt</a><a class="doc" href="TACTICS.html">Tactics</a><a class="doc extra" href="structure-graph.html">Structure graph &#8599;</a></nav>
+<main><h1 class="page">Structure notes</h1>
+<p class="page-sub">prose notes on the structure hierarchy <span class="lead">&mdash; STRUCTURES.md</span></p>
+<h2 id="STRUCTURES__vnb-structure-catalog">VNB structure catalog</h2>
+<p>The mathematical structures the system knows at startup, and the relations between them. All relations listed here are <strong>axioms</strong> (no proofs yet).</p>
+<h3 id="STRUCTURES__how-a-structure-is-encoded">How a structure is encoded</h3>
+<p>A <em>structure</em> is a VNB list (a tuple); its accessors are projections (<code>(A s) = (NTH 1 s)</code>, …). A <em>structure species</em> — the symbol <code>RING</code>, <code>FIELD</code>, … — denotes the proper class <code>{ s | IS-X(s) }</code>.</p>
+<p><strong>Declaration is grouped; instance is flat.</strong> The clauses in a <code>def-structure-from-clauses</code> call — <code>(carriers A B) (op MUL …) (constant E …)</code> — are <em>parsing sugar</em>: the parser consumes the grouping, then installs each carrier, op, and constant at a single flat top-level slot in declaration order. A 2-carrier <code>BONGO-GROUP</code> with one op <code>MUL</code> and one constant <code>E</code> has 4 flat slots:</p>
+<p>``<code> (LIST a-val bongo-val mul-val e-val)        ; correct: 4 slots, (LENGTH _) = 4 (LIST [a-val bongo-val] mul-val e-val)      ; WRONG: 3 slots, IS-BONGO-GROUP refutes </code>``</p>
+<p>So when building an instance by hand (or a bridge from another structure, e.g. the additive AG of a ring), write the slots flat in declaration order; do not nest the carriers as a sub-list. The IS-X predicate enforces this — a misaligned LIST is simply refutable in the class — but writing it correctly the first time is easier with the convention spelled out.</p>
+<p>Two kinds of <code>IS-X</code>:</p>
+<ul><li><strong>Shape predicates</strong> (<code>def-structure-from-clauses</code>): <code>IS-X(s)</code> checks only that <code>s</code> has the right length and its slots are typed. SEMIGROUP, MONOID, COMM-MONOID, GROUP, ABELIAN-GROUP, RING, METRIC-SPACE.</li><li><strong>Definitional predicates</strong> (plain <code>IFF</code> axiom): <code>IS-X(s)</code> is <code>IS-parent(s) ∧ &lt;characteristic properties&gt;</code>. Used where a property would be violated by an existing instance — e.g. INTEGRAL-DOMAIN&#x27;s <code>ONE ≠ ZERO</code> is false in the zero ring, so <code>IS-INTEGRAL-DOMAIN</code> cannot be shape-only. COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD.</li></ul>
+<h3 id="STRUCTURES__hierarchy">Hierarchy</h3>
+<p>``` SEMIGROUP                       carrier A; MUL └─ MONOID                       + identity E ├─ COMM-MONOID               + MUL commutative └─ GROUP                     + inverse INV</p>
+<pre>  └─ ABELIAN-GROUP          + MUL commutative</pre>
+<p>RING                            carrier A; ADD MUL NEG; ZERO ONE └─ COMMUTATIVE-RING             + MUL commutative └─ INTEGRAL-DOMAIN           + ONE≠ZERO, no zero divisors</p>
+<pre>  ├─ EUCLIDEAN-RING         + a Euclidean degree function exists
+  └─ FIELD                  + every nonzero element is invertible
+     └─ NORMED-FIELD        + a norm A→RR exists</pre>
+<p>(also: FIELD ⊆ EUCLIDEAN-RING)</p>
+<p>METRIC-SPACE                    carrier X; distance D: X×X → RR ```</p>
+<p>Relation axioms: <a class="x" href="THEOREMS.html#t-comm-monoid-is-monoid"><code>comm-monoid-is-monoid</code></a>, <a class="x" href="THEOREMS.html#t-abelian-group-is-group"><code>abelian-group-is-group</code></a>, <a class="x" href="THEOREMS.html#t-commutative-ring-is-ring"><code>commutative-ring-is-ring</code></a>, <a class="x" href="THEOREMS.html#t-integral-domain-is-commutative-ring"><code>integral-domain-is-commutative-ring</code></a>, <code>field-is-integral-domain</code>, <a class="x" href="THEOREMS.html#t-euclidean-ring-is-integral-domain"><code>euclidean-ring-is-integral-domain</code></a>, <code>field-is-euclidean-ring</code>, <code>normed-field-is-field</code>. Each <code>def-structure</code>&#x27;d shape predicate also collapses with its parent (e.g. a richer-shape GROUP is not a structural subtype of MONOID — note there is no <code>group-is-monoid</code>).</p>
+<h3 id="STRUCTURES__numeric-instances">Numeric instances</h3>
+<p>| Domain | Instance | Memberships | |---|---|---| | NN | <code>NN-ADD-MONOID</code> | COMM-MONOID | | ZZ | <code>ZZ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING | | QQ | <code>QQ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD | | RR | <code>RR-RING</code> | …, FIELD, NORMED-FIELD | | CC | <code>CC-RING</code> | …, FIELD, NORMED-FIELD; <code>CC-MS</code>: METRIC-SPACE |</p>
+<p>ZZ is a Euclidean ring (degree = <code>abs</code>) but not a field. QQ/RR/CC are fields. The Euclidean / normed witnesses are existential; for the numeric instances the actual functions are <code>abs</code> (RR) and <code>magnitude</code> (CC).</p>
+<h3 id="STRUCTURES__functions-on-rr-/-cc">Functions on RR / CC</h3>
+<ul><li><strong>RR</strong>: <code>+ * - recip abs &lt;=</code>; <code>power(x,n)</code> for <code>n ∈ NN</code>.</li><li><strong>CC</strong>: <code>+ * - recip conjugate magnitude</code> (the modulus, <code>CC→RR</code>, axiomatized directly — needs no <code>sqrt</code>); <code>power(x,n)</code> for <code>n ∈ NN</code>.</li><li>No <code>sqrt</code>; <code>power</code> takes only <code>NN</code> exponents.</li></ul>
+<h3 id="STRUCTURES__matrices">Matrices</h3>
+<p><code>MATRIX(S)</code> — the class of matrices over a set <code>S</code>: a list of rows, each row a list of elements of <code>S</code>, all rows of equal length. Formally a matrix is an element of <code>TUPLES(TUPLES S)</code> with equilong rows (<a class="x" href="THEOREMS.html#t-matrix-membership"><code>matrix-membership</code></a>); <code>MATRIX(S)</code> is a set when <code>S</code> is (<a class="x" href="THEOREMS.html#t-matrix-sethood"><code>matrix-sethood</code></a>). <code>SIZE(M)</code> = <code>[rows, columns]</code> = <code>[LENGTH M, LENGTH(NTH 1 M)]</code>. A class-former like <code>FUN</code>/<code>TUPLES</code>, not an algebraic structure. <code>structure-library/matrix.scm</code>.</p>
+<h3 id="STRUCTURES__not-yet-defined">Not yet defined</h3>
+<p>VECTOR-SPACE (two-sorted: vectors + a scalar field) — deferred.</p></main>
+</div></body></html>

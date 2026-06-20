@@ -55,6 +55,15 @@
     ;; maximal non-arithmetic subterms), runs the FM engine, closes via pi-ineq!
     ;; with a Farkas certificate.  Needs linear-arith + kernel (dg/sequent).
     "structure-library/ineq-oracle"
+    ;; Exact-rational LP feasibility-with-witness (Phase-I simplex); the
+    ;; nonnegative-combination solver behind the (sos) oracle.  Pure Scheme,
+    ;; reuses linear-arith's alist helpers, so loads after it.
+    "structure-library/sos-arith"
+    ;; The (sos) sum-of-squares oracle: the nonlinear companion of (ineq).
+    ;; Closes a <= b over RR from a supplied list of square certificates, via
+    ;; crs's commutative-poly normal form + sos-arith's nonneg solve.  Needs
+    ;; comm-ring-simplify + ineq-oracle + sos-arith + kernel.
+    "structure-library/sos-oracle"
     "number-systems"
     "structure-library/order-predicates"
     ;; The finite order calculus of RR (chaining, adding inequalities, scaling,
@@ -378,8 +387,9 @@
         (display " asserted/non-PSS fact(s) carry a 'proof warrant -- prove or PSS-promote:\n   ")
         (write bad) (newline))))
 
-;; Rebuild the browser reference (reference.html) from the just-refreshed .md
-;; files.  The .md regenerate on every load but the HTML did NOT -- it was a
+;; Rebuild the browser reference (the reference.html hub + one page per doc)
+;; from the just-refreshed .md files.  The .md regenerate on every load but the
+;; HTML did NOT -- it was a
 ;; manual step, so the page the browser actually renders could fossilise (e.g.
 ;; show a now-proven theorem under "Asserted -- accepted without proof").
 ;;

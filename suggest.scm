@@ -239,6 +239,161 @@
          (length cands))))))
 
 ;;; -----------------------------------------------------------------------
+;;; what-now -- the proof copilot's first pass (block 2, the proof-assistance
+;;; analogue of `what-is').  During a live proof, fingerprint the OPEN SUBGOAL's
+;;; conclusion and list the backchain lemmas whose conclusion is compatible,
+;;; most-specific first, as literal (bc* 'name) calls you can paste -- each
+;;; shown with the conclusion it would apply and a hint when bc* needs extra
+;;; bindings.  A clean surface over suggest-backchain-candidates: (suggest-
+;;; backchain) is the same ranking with fingerprints exposed; (tt) folds it into
+;;; a wider tactic menu.  FIRST PASS ONLY -- conclusion fingerprint, backchain
+;;; lane; no rewrite (mac) lane and no AC normalization yet.
+;;;
+;;; BESIDES PRINTING, what-now RETURNS the suggested moves as a list of runnable
+;;; tactic forms -- e.g. ((di) (crs) (rs)), ((rfl)), or ((bc* 'n1) (bc* 'n2) ...)
+;;; -- so it can feed an automated "throw everything at the wall, keep what
+;;; sticks" tactic (try each on a saved state; keep the ones that close/reduce).
+
+(define *what-now-limit* 15)
+
+;;; The lemma's conclusion (foralls stripped, hypotheses peeled) -- the part
+;;; that fingerprinted to the goal -- for a compact display, not the whole stmt.
+(define (what-now--conclusion formula)
+  (call-with-values
+    (lambda () (strip-foralls (prenex-positive formula)))
+    (lambda (vars core) (peel-implies core))))
+
+;;; Goal-kind classifier (the "which lane?" step).  Runs on the prenex-
+;;; normalised conclusion (`what-now--conclusion' = prenex-positive, then strip
+;;; foralls + peel hypotheses -- the same peeling conclusion-fingerprint uses,
+;;; so it sees through the alternating forall/implies that `[x in cc, y in cc]'
+;;; expands to).  An algebraic = goal routes to the closer lane ((crs)/(arith)/(rfl)),
+;;; not the backchain flood; a structured-predicate / set-or-fun = / comparison
+;;; goal routes to the backchain lane (where bc* candidates actually apply).
+
+;;; A term built only from arithmetic operators over atoms/numerals -- the
+;;; shape (crs) decides.  Bare atoms count, but a *ring equality* needs at least
+;;; one compound side (else `a = b' is just two opaque names -> backchain).
+(define (what-now--arith-term? e)
+  (or (not (pair? e))
+      (and (memq (car e) '(+ * - / ^ power expt negate binplus bintimes binneg))
+           (let loop ((xs (cdr e)))
+             (or (null? xs)
+                 (and (what-now--arith-term? (car xs)) (loop (cdr xs))))))))
+
+(define (what-now--classify core)
+  (cond
+    ((not (pair? core)) 'predicate)
+    ((and (eq? (car core) '=) (= (length core) 3))
+     (cond
+       ((equal? (cadr core) (caddr core)) 'reflexive)
+       ((and (arith-eval-term (cadr core)) (arith-eval-term (caddr core))) 'ground-arith)
+       ((and (what-now--arith-term? (cadr core))
+             (what-now--arith-term? (caddr core))
+             (or (pair? (cadr core)) (pair? (caddr core))))
+        'ring-equality)
+       (else 'equality-other)))            ; set / function / structure equality
+    ((memq (car core) '(<= < > >=)) 'comparison)
+    (else 'predicate)))                     ; membership, defined predicate, ...
+
+;;; Print the ranked (bc* ...) candidate list for GOAL (the backchain lane);
+;;; RETURN the candidate names (most-specific first) so the caller can turn
+;;; them into (bc* 'name) moves.
+(define (what-now--show-backchain goal opt-depth)
+  (let* ((cands (apply suggest-backchain-candidates goal opt-depth))
+         (names (map car cands))
+         (n     (length cands)))
+    (cond
+      ((null? cands)
+       (display ";; backchain lane: no lemma conclusion fingerprints to this goal.") (newline)
+       (display ";; try (suggest-rewrite) for rewrites, or (tt) for the full menu.") (newline))
+      (else
+       (display ";; backchain lane -- ") (display n)
+       (display " (bc* ...) candidate(s), most-specific first")
+       (when (> n *what-now-limit*)
+         (display " (showing ") (display *what-now-limit*) (display ")"))
+       (display ":") (newline)
+       (let loop ((cs cands) (k 0))
+         (when (and (pair? cs) (< k *what-now-limit*))
+           (let* ((name  (caar cs))
+                  (undet (suggest--undetermined-vars name)))
+             (display ";;   (bc* '") (display name) (display ")")
+             (unless (null? undet)
+               (display "   -- needs bindings for ")
+               (let iloop ((vs undet) (first #t))
+                 (unless (null? vs)
+                   (unless first (display ", "))
+                   (display (car vs))
+                   (iloop (cdr vs) #f))))
+             (newline)
+             (display ";;        concludes  ")
+             (display (expression->string
+                       (what-now--conclusion (lookup-theorem name))))
+             (newline))
+           (loop (cdr cs) (+ k 1))))
+       (when (> n *what-now-limit*)
+         (display ";;   ... ") (display (- n *what-now-limit*))
+         (display " more -- (suggest-backchain) for the full ranking.") (newline))))
+    names))
+
+(define (what-now . opt-depth)
+  (let ((goal (suggest--current-goal)))
+    (cond
+      ((not goal)
+       (display ";; what-now: no proof in progress -- start one, then ask again.")
+       (newline)
+       '())
+      (else
+       (let* ((core     (what-now--conclusion goal))   ; prenex-normalised conclusion
+              (kind     (what-now--classify core))
+              (needs-di (and (pair? goal)
+                             (memq (car goal) '(forall forsome implies and iff not))))
+              (moves    '()))                  ; the tactic forms, returned for automation
+         (display ";; what-now -- open goal:") (newline)
+         (display ";;   ") (display (expression->string goal)) (newline)
+         (case kind
+           ((reflexive)
+            (set! moves '((rfl)))
+            (display ";; both sides are identical -> (rfl).") (newline))
+           ((ground-arith)
+            (set! moves '((arith) (crs)))
+            (display ";; ground arithmetic equality -> (arith)   (or (crs)).") (newline))
+           ((ring-equality)
+            (set! moves (if needs-di '((di) (crs) (rs)) '((crs) (rs))))
+            (display ";; ring / arithmetic equality -- closer lane, NOT backchain:") (newline)
+            (when needs-di
+              (display ";;   (di)    -- introduce the bound variables / hypotheses first, then:") (newline))
+            (display ";;   (crs)   -- commutative-ring decision procedure   ((rs) if non-commutative)") (newline)
+            (display ";; (backchain suppressed: an = goal floods with generic equality lemmas; (suggest-backchain) to see them.)") (newline))
+           ((comparison)
+            (display ";; comparison goal -- (ineq i1 i2 ...) from named ordering assumptions, or backchain:") (newline)
+            ;; polynomial inequality (both sides arithmetic, <=): also offer the
+            ;; sum-of-squares lane, which ineq (linear only) cannot reach.
+            (when (and (memq (car core) '(<= >=))
+                       (what-now--arith-term? (cadr core))
+                       (what-now--arith-term? (caddr core))
+                       (or (pair? (cadr core)) (pair? (caddr core))))
+              (display ";;   (sos \"c1\" \"c2\" ...) -- polynomial inequality via a sum-of-squares") (newline)
+              (display ";;     certificate (supply the squares; run BEFORE di so c_i use the goal vars).") (newline))
+            (set! moves (map (lambda (nm) (list 'bc* (list 'quote nm)))
+                             (what-now--show-backchain goal opt-depth))))
+           (else                                ; equality-other, predicate
+            (set! moves (map (lambda (nm) (list 'bc* (list 'quote nm)))
+                             (what-now--show-backchain goal opt-depth)))))
+         (when (and needs-di (memq kind '(comparison equality-other predicate)))
+           (display ";; (goal has binders/structure -- (di) first if you'd rather introduce them.)") (newline))
+         (display ";; first pass: goal-kind classifier + backchain lane (no rewrite/mac lane yet).")
+         (newline)
+         moves)))))                             ; <- return the move list (besides printing)
+
+;;; Capture a what-now answer to PATH (consumed by the elisp `vnb-what-now',
+;;; which shows it in the What-Now workspace instead of the REPL).  Reads the
+;;; live *ps*, same as (what-now).
+(define (write-what-now path . opt-depth)
+  (with-output-to-file path (lambda () (apply what-now opt-depth)))
+  path)
+
+;;; -----------------------------------------------------------------------
 ;;; (suggest-rewrite) -- index-driven candidate REWRITE rules for the focus.
 ;;;
 ;;; The rewrite analogue of suggest-backchain.  bc* matches a lemma's

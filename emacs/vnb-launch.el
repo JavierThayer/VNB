@@ -144,7 +144,7 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
     (define-key m "g" 'vnb-ws-refresh)
     (define-key m "q" 'vnb-ws-quit)
     (define-key m "s" 'vnb-ws-start-proof)
-    (define-key m "f" 'vnb-ws-build-formula)
+    (define-key m "f" 'vnb-ws-what-is)
     (define-key m "b" 'vnb-ws-build-structure)
     (define-key m "t" 'vnb-ws-show-theorems)
     (define-key m "p" 'vnb-ws-show-pss)
@@ -239,10 +239,10 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
     (insert (propertize "    add, multiply, subtract — see the answer\n\n"
                         'face 'vnb-body))
     (insert "  ")
-    (vnb-launch--insert-button "Build Formula"
-                               'vnb-ws-build-formula
-                               "Parse and validate a formula")
-    (insert (propertize "   parse and validate a formula\n\n" 'face 'vnb-body))
+    (vnb-launch--insert-button "What Is…?"
+                               'vnb-ws-what-is
+                               "Look up a structure, number, or constant")
+    (insert (propertize "   look up a structure, number, or constant — its accessors, shape, type\n\n" 'face 'vnb-body))
     (insert "  ")
     (vnb-launch--insert-button "Build Structure"
                                'vnb-ws-build-structure
@@ -596,9 +596,9 @@ indexing by structure).  No window split, no raw s-expressions."
   "Buffer name for the kid-facing arithmetic calculator sheet.")
 
 (defvar vnb-calc-template "\
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;;  VNB CALCULATOR      C-j = work out this line      C-c C-k = close
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;;
 ;;  The same engine that checks proofs also does the sums.  Type an
 ;;  expression on its own line and press  C-j  -- the answer is written
@@ -621,6 +621,7 @@ indexing by structure).  No window split, no raw s-expressions."
 (a + b)^3
 "
   "Initial content inserted into a fresh Calculator sheet.")
+;; ordinary single-backslash LaTeX.
 
 (defvar vnb-calc-mode-map
   (let ((m (make-sparse-keymap)))
@@ -675,6 +676,33 @@ Sends it to the prover's vnb-guarded (calc ...) evaluator and appends
   (kill-buffer)
   (vnb-launch-workspace))
 
+(defun vnb-launch--protect-banner ()
+  "Make the leading comment banner of the current buffer read-only.
+Protects the contiguous run of comment (`;') lines at the top -- the workspace's
+instruction header -- so it can't be edited or deleted by accident.  The body
+below stays fully editable: the banner's trailing newline is `rear-nonsticky',
+so typing on the first body line is allowed."
+  (save-excursion
+    (goto-char (point-min))
+    (while (and (not (eobp)) (looking-at "^[ \t]*;"))
+      (forward-line 1))
+    (let ((end (point))
+          (inhibit-read-only t))
+      (when (> end (point-min))
+        (add-text-properties (point-min) end
+                             '(read-only t front-sticky t rear-nonsticky t))))))
+
+(defun vnb-launch--accent-rule-lines ()
+  "Paint the banner's `;; ───…' rule lines in the accent (pink) colour.
+Uses overlays so the colour survives font-lock; the lines stay `;;' comments
+\(so they're ignored when the workspace's contents are read), but read as the
+same red/pink rules that fence off read-only regions elsewhere."
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "^;;[ \t]*─+[ \t]*$" nil t)
+      (overlay-put (make-overlay (match-beginning 0) (match-end 0))
+                   'face 'vnb-accent))))
+
 (defun vnb-ws-calculator ()
   "Open the *VNB Calculator*: a Scratch-style editable tape.
 \\<vnb-calc-mode-map>Type an arithmetic expression on a line and press \\[vnb-calc-eval-line] to work it
@@ -687,6 +715,8 @@ out right there -- the same prover that checks proofs also does the sums."
         (vnb-calc-mode))
       (when (= (point-min) (point-max))
         (insert vnb-calc-template)
+        (vnb-launch--protect-banner)
+        (vnb-launch--accent-rule-lines)
         (goto-char (point-max))))
     (delete-other-windows)
     (switch-to-buffer buf)))
@@ -1074,6 +1104,143 @@ to toggle TeX source."
       (switch-to-buffer buf)
       (delete-other-windows))))
 
+(defvar vnb-what-is-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "g" 'vnb-what-is)        ; look up another
+    (define-key m "w" 'vnb-what-is)
+    (define-key m "q" 'quit-window)
+    (define-key m "?" 'describe-mode)
+    m)
+  "Keymap for `vnb-what-is-mode'.")
+
+(define-derived-mode vnb-what-is-mode special-mode "VNB-WhatIs"
+  "Major mode for the What-Is lookup workspace.
+\\{vnb-what-is-mode-map}"
+  (setq buffer-read-only t truncate-lines nil))
+
+(defun vnb-launch--insert-rule (&optional width)
+  "Insert a horizontal accent rule (the red line) and a newline.
+The reusable read-only-region delimiter -- used in place of `;;;' comment
+margins to fence off a header."
+  (insert (propertize (make-string (or width 64) ?─) 'face 'vnb-accent) "\n"))
+
+(defun vnb-what-is--insert-header ()
+  "Insert the What-Is workspace header: instructions fenced by accent rules
+\(no `;;;' margins -- the red rules mark the read-only region)."
+  (vnb-launch--insert-rule)
+  (insert (propertize "  What Is — lookup workspace\n" 'face 'vnb-title))
+  (insert (propertize "  Enter  M-x what-is  (or press  g) to look something up:\n" 'face 'vnb-body))
+  (insert (propertize "  a structure name · a number · a named constant · a concept word\n" 'face 'vnb-body))
+  (insert (propertize "  metric · ring · 7 · 1/2 · pi · %i · complex · number\n" 'face 'vnb-dim))
+  (insert (propertize "  the answer appears below.   (g look up another · q quit)\n" 'face 'vnb-dim))
+  (vnb-launch--insert-rule))
+
+(defun vnb-what-is--render (body-inserter)
+  "Show the `*VNB: What Is*' workspace: the banner header, then BODY-INSERTER.
+Single window -- no REPL or proof-state split.  BODY-INSERTER is called with
+point just below the header to fill in the empty-state hint or an answer."
+  (vnb-launch--ensure-prover)
+  (let ((buf (get-buffer-create "*VNB: What Is*")))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (vnb-what-is-mode)
+        (setq-local default-directory vnb-launch--dir)
+        (erase-buffer)
+        (vnb-what-is--insert-header)
+        (insert "\n")
+        (funcall body-inserter)
+        (goto-char (point-min))))
+    (switch-to-buffer buf)
+    (delete-other-windows)))
+
+(defun vnb-ws-what-is ()
+  "Open the What-Is lookup workspace (instructions; press `g' to look up).
+This is what the launcher's `What Is…?' link/button opens -- it does NOT
+prompt; it lands you in the workspace with the read-only header, and you
+start a lookup from there with `g' or \\[execute-extended-command] what-is."
+  (interactive)
+  (vnb-what-is--render
+   (lambda () (insert "    (nothing looked up yet — press  g  to begin)\n"))))
+
+(defun vnb-what-is (name)
+  "Look up NAME and show what it is, in the `*VNB: What Is*' workspace.
+NAME may be a (partial, case-insensitive) structure name, a number, a named
+constant (`pi', `%i'), or a concept word (`complex', `number').  Prompts with
+`Name:'.  The answer -- a structure's parts/accessors and shape, a number's
+place in the nn..cc tower, a constant's type, the family a word names -- is
+rendered below the header, NOT split against the REPL or proof state.  Press
+`g' to look up another, `q' to quit.  Front door to building a formula: find
+what a structure is called and what its accessors are, then write the term."
+  (interactive
+   (list (completing-read
+          "Name: " (or (vnb-structure--names) '()) nil nil
+          (and (derived-mode-p 'vnb-library-mode 'vnb-structure-card-mode 'vnb-what-is-mode)
+               (ignore-errors (vnb-tex--name-at-point))))))
+  (setq name (string-trim name))
+  (when (string-empty-p name) (user-error "No name given"))
+  (vnb-launch--ensure-prover)
+  (vnb-tex--ensure-cache-dir)
+  (let ((path (expand-file-name "what-is.txt" vnb-tex-cache-dir)))
+    (when (file-exists-p path) (delete-file path))      ; never show a stale answer
+    (vnb-eval-string (format "(write-what-is %S \"%s\")" name path))
+    (vnb-what-is--render
+     (lambda ()
+       (if (file-exists-p path)
+           (insert-file-contents path)
+         (insert (format "what-is: no response from the prover for \"%s\".\n" name)))))))
+
+(defalias 'what-is 'vnb-what-is
+  "So `M-x what-is' works as advertised.")
+
+(defvar vnb-what-now-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "g" 'vnb-what-now)       ; re-run on the current goal
+    (define-key m "q" 'quit-window)
+    (define-key m "?" 'describe-mode)
+    m)
+  "Keymap for `vnb-what-now-mode'.")
+
+(define-derived-mode vnb-what-now-mode special-mode "VNB-WhatNow"
+  "Major mode for the What-Now proof-advice workspace.
+\\{vnb-what-now-mode-map}"
+  (setq buffer-read-only t truncate-lines nil))
+
+(defun vnb-what-now ()
+  "Proof copilot: ask what to try on the current open subgoal.
+Captures the advice -- the lane it picks (closer / backchain / decompose) and
+the moves to try -- into the `*VNB: What Now*' workspace and drops you there
+(single window), rather than dumping it in the REPL where you drive the proof.
+In the workspace, `g' re-runs on the current goal, `q' returns to the proof.
+Run during a live proof; with none in progress it just says so."
+  (interactive)
+  (vnb-launch--ensure-prover)
+  (vnb-tex--ensure-cache-dir)
+  (let ((path (expand-file-name "what-now.txt" vnb-tex-cache-dir))
+        (buf  (get-buffer-create "*VNB: What Now*")))
+    (when (file-exists-p path) (delete-file path))    ; never show stale advice
+    (vnb-eval-string (format "(write-what-now \"%s\")" path))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (vnb-what-now-mode)
+        (setq-local default-directory vnb-launch--dir)
+        (erase-buffer)
+        (vnb-launch--insert-rule)
+        (insert (propertize "  What Now — what to try on the focused goal\n" 'face 'vnb-title))
+        (vnb-launch--insert-rule)
+        (insert "\n")
+        (if (file-exists-p path)
+            (insert-file-contents path)
+          (insert "what-now: no response from the prover.\n"))
+        ;; drop the `;;' REPL comment margins -- the red rules fence the region now
+        (goto-char (point-min))
+        (while (re-search-forward "^;; ?" nil t) (replace-match ""))
+        (goto-char (point-min))))
+    (switch-to-buffer buf)
+    (delete-other-windows)))
+
+(defalias 'what-now 'vnb-what-now
+  "So `M-x what-now' works alongside `M-x what-is'.")
+
 (defun vnb-structure-edit-notes ()
   "Open (creating if needed) the editable notes file for this card."
   (interactive)
@@ -1300,17 +1467,18 @@ structure's entry (slots, views-out, refines) or the all-views table."
     (message "Opened clickable structure graph in %s: %s"
              (or vnb-graph-browser "default browser") html)))
 
-;;; The whole library as one cross-linked browser page.  reference/*.md (the
-;;; docs the prover writes on load) plus the structure graph are compiled by
-;;; build-reference-html.py into a single self-contained reference.html: a
-;;; sticky nav pane, every backticked name hyperlinked to its entry, and the
-;;; graph nodes clicking through into the structure sections.  Read-only and
-;;; prover-independent -- it just renders files already on disk.
+;;; The whole library as a set of cross-linked browser pages.  reference/*.md
+;;; (the docs the prover writes on load) are compiled by build-reference-html.py
+;;; into one standalone page per doc (THEOREMS.html, STRUCTURE-INDEX.html, ...)
+;;; plus a reference.html hub that links them all.  Every page has a shared
+;;; sidebar and every backticked name is hyperlinked to its entry (across pages
+;;; when needed).  We open the hub.  Read-only and prover-independent -- it just
+;;; renders files already on disk.
 (defun vnb-reference-html ()
   "Build and open the cross-linked HTML library reference in a browser.
 Compiles reference/*.md (theorems, structures, PSS, definitions, the
-operator/macete/fingerprint indexes, proof-debt) plus the structure
-graph into one self-contained reference.html, opened via `vnb-graph-browser'.
+operator/macete/fingerprint indexes, proof-debt) into one standalone page per
+doc plus a reference.html hub, opened via `vnb-graph-browser'.
 Click any backticked name to jump to its entry.  Refreshes the .md by
 reloading the prover; this command just renders whatever is on disk."
   (interactive)
@@ -1362,7 +1530,7 @@ Workspace is always the front door."
     ("first-proof"     . vnb-ws-first-proof)
     ("continue-proof"  . vnb-launch--show-proof-workspace)
     ("scratch"         . vnb-ws-scratch-workspace)
-    ("build-formula"   . vnb-ws-build-formula)
+    ("what-is"         . vnb-ws-what-is)
     ("build-structure" . vnb-ws-build-structure)
     ("calculator"      . vnb-ws-calculator)
     ("examples"        . vnb-ws-examples)
@@ -1393,7 +1561,7 @@ two are kept in sync by hand.")
         (vnb--home-respond proc "204 No Content")
         ;; defer out of the process filter; raise Emacs so the user lands here.
         ;; call-interactively (not funcall) so commands that prompt -- Describe
-        ;; Structure, Build Formula, ... -- read their input in Emacs as usual.
+        ;; Structure, What Is, ... -- read their input in Emacs as usual.
         (run-at-time 0 nil
                      (lambda ()
                        (ignore-errors (call-interactively cmd))
@@ -2190,7 +2358,7 @@ monospace font is installed.")
 (defvar vnb-launch--menu
   '("VNB"
     ["Start Proof..."     vnb-ws-start-proof    t]
-    ["Build Formula..."   vnb-ws-build-formula  t]
+    ["What Is..."         vnb-ws-what-is        t]
     ["Build Structure..." vnb-ws-build-structure t]
     ["Show Theorems"      vnb-ws-show-theorems  t]
     ["Show PSS"           vnb-ws-show-pss       t]
@@ -2283,9 +2451,9 @@ user's Lisp Machine vintage Elisp instincts.)"
   (tool-bar-local-item "new"        'vnb-ws-start-proof
                        'vnb-tb-start-proof   vnb-launch--toolbar-map
                        :help "Start a new proof")
-  (tool-bar-local-item "spell"      'vnb-ws-build-formula
-                       'vnb-tb-build-formula vnb-launch--toolbar-map
-                       :help "Build/parse a formula")
+  (tool-bar-local-item "search"     'vnb-ws-what-is
+                       'vnb-tb-what-is       vnb-launch--toolbar-map
+                       :help "Look up a structure, number, or constant")
   (tool-bar-local-item "index"      'vnb-ws-show-theorems
                        'vnb-tb-show-theorems vnb-launch--toolbar-map
                        :help "Show installed theorems")
@@ -2664,79 +2832,15 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert (propertize "  VNB Focus Workspace" 'face 'vnb-title))
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
-    (insert "\n\n  ")
-    (vnb-launch--insert-button "Direct Inference" 'vnb-pf-direct-inference
-                               "(di) decompose goal by top connective")
-    (insert "  ")
-    (vnb-launch--insert-button "Assume" 'vnb-pf-assumption
-                               "(ass) close goal by matching an assumption")
-    (insert "  ")
-    (vnb-launch--insert-button "Assume All" 'vnb-pf-assume-all
-                               "(ass-all) close every open goal already matched by an assumption")
-    (insert "  ")
-    (vnb-launch--insert-button "B+ (auto-close)" 'vnb-pf-bplus
-                               "(bplus) sweep every open goal; peel + cite the top lemma whenever its hypotheses are already assumptions, and ass-all; stop where a real choice is needed")
-    (insert "  ")
-    (vnb-launch--insert-button "Close (a=a)" 'vnb-pf-reflexivity
-                               "(rfl) close a goal that says a thing equals itself")
-    (insert "\n  ")
-    (vnb-launch--insert-button "Theorem" 'vnb-pf-theorem
-                               "(ta NAME) add named theorem to context")
-    (insert "  ")
-    (vnb-launch--insert-button "Univ. Inst." 'vnb-pf-instantiate
-                               "(inst FORMULA TERM) instantiate a FORALL hypothesis")
-    (insert "  ")
-    (vnb-launch--insert-button "Witness" 'vnb-pf-exists-witness
-                               "(ew TERM) supply a witness for a FORSOME goal")
-    (insert "\n  ")
-    (vnb-launch--insert-button "Decompose Hyp" 'vnb-pf-antecedent-inference
-                               "(ai ASM) split/eliminate an assumption by its top connective -- the hypothesis-side Direct Inference; takes an assumption # or formula")
-    (insert "  ")
-    (vnb-launch--insert-button "Rewrite Hyp" 'vnb-pf-rewrite-hyp
-                               "(mac-h 'NAME ASM) rewrite an assumption with a named equation/biconditional -- the hypothesis-side Rewrite; takes an assumption # or formula")
-    (insert "  ")
-    (vnb-launch--insert-button "Sep-Elim" 'vnb-pf-sep-elim
-                               "(sep-me ASM) eliminate a separation-membership assumption y in SEP(x,A,p): adds y in A and p[x:=y]; takes an assumption # or formula")
-    (insert "\n  ")
-    (vnb-launch--insert-button "Backchain" 'vnb-pf-backchain
-                               "(bc FORMULA) backchain on an implication")
-    (insert "  ")
-    (vnb-launch--insert-button "Cite Lemma" 'vnb-pf-backchain-star
-                               "(bc* 'NAME ...) match a named lemma's conclusion to the goal; prompts for any schema vars left open (as VNB terms); hypotheses become subgoals")
-    (insert "  ")
-    (vnb-launch--insert-button "Rewrite" 'vnb-pf-rewrite
-                               "(mac 'NAME) rewrite the goal using a named equation/biconditional rule")
-    (insert "  ")
-    (vnb-launch--insert-button "Arith" 'vnb-pf-arith
-                               "(arith) close a ground arithmetic goal, e.g. 2 + 3 = 5")
-    (insert "  ")
-    (vnb-launch--insert-button "Simplify" 'vnb-pf-ring-simplify
-                               "(rs) ring-simplify: close an equality, incl. variables, e.g. (x+1)*(x-1) = x*x - 1")
-    (insert "  ")
-    (vnb-launch--insert-button "Focus" 'vnb-pf-focus
-                               "(focus N) switch to another open goal")
-    (insert "\n  ")
-    (vnb-launch--insert-button "QED" 'vnb-pf-qed
-                               "(qed NAME) install completed proof as theorem")
-    (insert "  ")
-    (vnb-launch--insert-button "Overview" 'vnb-launch--show-overview-workspace
-                               "Show the Proof Overview (all open goals)")
-    (insert "  ")
-    (vnb-launch--insert-button "Home" 'vnb-launch-workspace
-                               "Back to Home Workspace")
-    (insert "  ")
-    (vnb-launch--insert-button "Scratch Pad" 'vnb-pf-show-repl
-                               "Show the Scratch Pad: type prover commands by hand (advanced; rarely needed)")
-    (insert "  ")
-    (vnb-launch--insert-button "Scratch Workspace" 'vnb-ws-scratch-workspace
-                               "Lisp-interaction sheet: C-j sends the sexp (or region as a block) to the prover and inserts the result")
-    (insert "\n  ")
-    (vnb-launch--insert-button "Save Script" 'vnb-pf-save-proof-script
-                               "Write this proof's commands to a re-loadable script file")
-    (insert "  ")
-    (vnb-launch--insert-button "Save Session" 'vnb-ws-save-session
-                               "Write every proof completed this session to one script file")
     (insert "\n\n")
+    (insert (propertize "  ▸  M-x what-now" 'face 'vnb-accent))
+    (insert (propertize "   — ask the copilot what to try on this goal\n" 'face 'vnb-body))
+    (insert (propertize "  ▸  M-x what-is " 'face 'vnb-accent))
+    (insert (propertize "  — look up a structure, number, or constant\n" 'face 'vnb-body))
+    (insert (propertize
+             "     (tactics run from the single-key shortcuts below, or the Scratch Workspace)\n"
+             'face 'vnb-dim))
+    (insert "\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (vnb-launch--insert-error-panel)
@@ -3559,9 +3663,9 @@ next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
   "Name of the Start Proof editing buffer.")
 
 (defvar vnb-startproof-template "\
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;; START PROOF     C-c C-c = Begin proof     C-c C-k = Cancel
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;;
 ;; Write the goal below in VNB string (infix) syntax, e.g.
 ;;
@@ -3576,7 +3680,7 @@ next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
 ;; still go straight through  (sp (wff \"...\"))  in the Scratch Workspace.)
 
 "
-  "Initial content inserted into a fresh Start Proof buffer.")
+  "Initial content inserted into a fresh Start Proof workspace.")
 
 (defvar vnb-startproof-mode-map
   (let ((m (make-sparse-keymap)))
@@ -3629,9 +3733,9 @@ joined with spaces, trimmed.  Comment lines start with `;'."
     (vnb-launch-workspace)))
 
 (defun vnb-ws-start-proof ()
-  "Open the *VNB Start Proof* workspace: edit the goal formula in a real
-buffer (VNB string syntax), then \\<vnb-startproof-mode-map>\\[vnb-startproof-submit] to begin the proof in the
-Focus workspace.  Gives long formulas room the minibuffer never had."
+  "Open the Start Proof workspace: compose the goal formula (VNB infix syntax),
+then \\<vnb-startproof-mode-map>\\[vnb-startproof-submit] to carry out its proof in the Focus workspace.  Gives long
+formulas room the minibuffer never had."
   (interactive)
   (let ((buf (get-buffer-create vnb-startproof-buffer-name)))
     (with-current-buffer buf
@@ -3639,6 +3743,8 @@ Focus workspace.  Gives long formulas room the minibuffer never had."
         (vnb-startproof-mode))
       (when (= (point-min) (point-max))
         (insert vnb-startproof-template)
+        (vnb-launch--protect-banner)
+        (vnb-launch--accent-rule-lines)
         (goto-char (point-max))))
     (delete-other-windows)
     (switch-to-buffer buf)))
@@ -3653,9 +3759,9 @@ Focus workspace.  Gives long formulas room the minibuffer never had."
   "Name of the guided first-proof buffer.")
 
 (defvar vnb-firstproof-template "\
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;;  YOUR FIRST PROOF      C-c C-c = Begin      C-c C-k = Cancel
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;;
 ;;  The goal on the last line says: every natural number is a natural
 ;;  number.  It is true purely by logic, with no real mathematical
@@ -3673,10 +3779,10 @@ Focus workspace.  Gives long formulas room the minibuffer never had."
 
 forall([x in nn], x in nn)
 "
-  "Initial content for the guided first-proof buffer.")
+  "Initial content for the guided first-proof workspace.")
 
 (defun vnb-ws-first-proof ()
-  "Open *VNB First Proof*: a guided, two-step first proof for newcomers.
+  "Open the Your First Proof workspace: a guided, two-step first proof.
 Pre-fills a tiny true goal; \\<vnb-startproof-mode-map>\\[vnb-startproof-submit] begins it, then (di) and (ass)
 in the Focus window close it -- the whole assume/discharge loop in miniature."
   (interactive)
@@ -3686,6 +3792,8 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
         (vnb-startproof-mode))
       (when (= (point-min) (point-max))
         (insert vnb-firstproof-template)
+        (vnb-launch--protect-banner)
+        (vnb-launch--accent-rule-lines)
         (goto-char (point-max))))
     (delete-other-windows)
     (switch-to-buffer buf)))
@@ -3697,9 +3805,9 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
   "Name of the Build Structure scratch buffer.")
 
 (defvar vnb-structure-template "\
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;; BUILD STRUCTURE     C-c C-s = Save & Load     C-c C-k = Cancel
-;; ============================================================
+;; ────────────────────────────────────────────────────────────
 ;;
 ;; Edit the declare-structure form below.  The NAME symbol becomes the
 ;; file name structure-library/<name>.scm (lowercased).  Save writes the
@@ -3723,7 +3831,7 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
 ;;   (theory-add-axiom! *current-theory* 'name-of-axiom
 ;;     '(FORALL s (IMPLIES (IS-NAME s) ...)))
 "
-  "Initial content inserted into a fresh Build Structure buffer.")
+  "Initial content inserted into a fresh Build Structure workspace.")
 
 (defvar vnb-structure-mode-map
   (let ((m (make-sparse-keymap)))
@@ -3807,7 +3915,7 @@ structure-library/user-additions.scm for auto-load on next launch."
     (vnb-launch-workspace)))
 
 (defun vnb-ws-build-structure ()
-  "Open the *VNB Structure* buffer with a declare-structure template."
+  "Open the Build Structure workspace with a declare-structure template."
   (interactive)
   (let ((buf (get-buffer-create vnb-structure-buffer-name)))
     (with-current-buffer buf
@@ -3815,6 +3923,8 @@ structure-library/user-additions.scm for auto-load on next launch."
         (vnb-structure-mode))
       (when (= (point-min) (point-max))
         (insert vnb-structure-template)
+        (vnb-launch--protect-banner)
+        (vnb-launch--accent-rule-lines)
         (goto-char (point-min))
         (when (search-forward "NAME" nil t)
           (forward-char -4)

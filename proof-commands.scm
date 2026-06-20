@@ -561,6 +561,18 @@
         (vnb--warn "ineq: goal not a linear-RR consequence of the named assumptions"
                    (vnb--goal-str sqn)))))
 
+;;; (cmd-sos ps cert-args) closes a nonstrict polynomial inequality a <= b over
+;;; RR by the supplied sum-of-squares certificate (the nonlinear companion of
+;;; ineq).  cert-args are surface-string or s-expr terms c_i; the goal closes
+;;; when b - a is a nonnegative rational combination of the squares c_i^2.
+(define (cmd-sos ps cert-args)
+  (let* ((sqn   (proof-state-focus ps))
+         (certs (map ->raw-formula cert-args))
+         (r     (pi-sos! sqn certs)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "sos: goal is not a <= over RR closed by the given squares as a nonnegative certificate"
+                   (vnb--goal-str sqn)))))
+
 ;;; -----------------------------------------------------------------------
 ;;; D-7 commands: SEP / COMP / IOTA / VNB-LAMBDA characterizations
 ;;; (REVIEW.md D-7).  Skeletal: schemas in the body formula are handled
