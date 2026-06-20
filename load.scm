@@ -86,6 +86,11 @@
     ;; metric-topology (BALL) and metric-continuity (IS-CONTINUOUS); stays
     ;; with the metric cluster.
     "structure-library/metric-open-sets"
+    ;; Compactness + the four-way characterization (calculus.pdf Prop 3.12):
+    ;; IS-COMPACT / IS-OPEN-COVER / CLUSTER-POINT / HAS-FIP + the equivalences.
+    ;; Needs IS-OPEN/IS-CLOSED (above), TOTALLY-BOUNDED/BALL (metric-topology),
+    ;; IS-COMPLETE (metric-completeness).
+    "structure-library/compactness"
     ;; Restrictive ring/field structures (genuine IS-X predicates; need NN/RR
     ;; from number-systems, used by numeric-instances below).
     "structure-library/commutative-ring"
