@@ -73,6 +73,10 @@
     ;; Schwarz(2), Bernoulli) plus the bounded-function family f(t)=t/(1+t);
     ;; warranted PSS supports.  Needs only the RR order calculus above.
     "structure-library/scalar-inequalities"
+    ;; Rational powers a^b of positive reals (RPOW) + SQRT, introduced
+    ;; axiomatically (power laws), with the scalar inequalities they unlock
+    ;; (Young, AM-GM root form, Bernoulli).  Needs RR/QQ + power (number-systems).
+    "structure-library/real-powers"
     ;; Cauchy/convergence/completeness on a generic metric space; needs RR's
     ;; order (number-systems) and POS-RR (order-predicates).  Loaded before
     ;; complex.scm so cc-complete can be stated as IS-COMPLETE(CC-MS).
