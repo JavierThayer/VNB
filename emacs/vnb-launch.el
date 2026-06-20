@@ -46,8 +46,8 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
   :group 'vnb)
 
 (defface vnb-default
-  '((t :background "black" :foreground "#e0e0e0"))
-  "Default text in VNB workspace buffers."
+  '((t :background "#133333" :foreground "#e0e0e0"))
+  "Default text in VNB workspace buffers (dark-teal chalkboard background)."
   :group 'vnb-faces)
 
 (defface vnb-title
@@ -132,6 +132,38 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
 (defun vnb-launch--apply-faces ()
   "Remap the buffer's default face to vnb-default."
   (face-remap-add-relative 'default 'vnb-default))
+
+;;; -----------------------------------------------------------------------
+;;; Frame-wide look: dark-teal background + a beveled, light-grey mode line.
+;;;
+;;; The VNB launcher runs in its own GNU Emacs, so we set the stock `default'
+;;; and `mode-line' faces GLOBALLY (not just inside themed workspaces) -- a
+;;; chalkboard feel that's easier on the eyes, with a raised 3-D mode line.
+;;; The bevel in GNU Emacs is the face `:box' with the `released-button'
+;;; style (the analogue of XEmacs `modeline-shadow-thickness'); Emacs derives
+;;; the highlight/shadow edges from the grey background automatically.
+
+(defvar vnb-launch-bevel-width 3
+  "Mode-line bevel thickness in pixels (raised `released-button' box).")
+
+(defun vnb-launch-apply-global-theme ()
+  "Set the frame-wide VNB colours: dark-teal default, beveled grey mode line."
+  (interactive)
+  ;; Dark-teal default with a light foreground, so text stays readable in the
+  ;; REPL / minibuffer too (not only in the face-remapped workspaces).
+  (set-face-attribute 'default nil :background "#133333" :foreground "#e0e0e0")
+  ;; Light-grey, raised (beveled) mode line; dimmer/recessed when inactive.
+  (set-face-attribute 'mode-line nil
+                      :background "Gray60" :foreground "black"
+                      :box (list :line-width vnb-launch-bevel-width
+                                 :style 'released-button))
+  (set-face-attribute 'mode-line-inactive nil
+                      :background "Gray35" :foreground "Gray80"
+                      :box (list :line-width vnb-launch-bevel-width
+                                 :style 'released-button)))
+
+;; Apply once when the launcher loads (it owns this GNU Emacs session).
+(vnb-launch-apply-global-theme)
 
 ;;; -----------------------------------------------------------------------
 ;;; Workspace mode and buffer
