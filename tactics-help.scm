@@ -24,9 +24,12 @@
 
 (define *tactic-help*
   '(("Starting & finishing a proof"
-     (sp   "(sp wff)"        "Start a proof of wff (a \"string\" or raw S-expr); clears the script.")
-     (qed  "(qed 'name)"     "Install the finished proof as theorem `name' and save its replayable script.")
-     (save-proof   "(save-proof 'name)"   "Save the current script under a name without finishing.")
+     (sp   "(sp wff)"        "Start a proof of wff (a \"string\" or raw S-expr); clears the script."
+       "Begin a new proof: state what you want to prove (as a \"string\" or an s-expr).  This becomes your one open goal and clears any previous script.  (Technically: set the proof goal.)")
+     (qed  "(qed 'name)"     "Install the finished proof as theorem `name' and save its replayable script."
+       "Finish: once there are no open goals, this records the result as a named theorem you can cite later, and saves the replayable script.  (Technically: install-theorem! plus script capture; reports the asserted facts the proof still rests on, `proven modulo {...}'.)")
+     (save-proof   "(save-proof 'name)"   "Save the current script under a name without finishing."
+       "Save the current (possibly unfinished) proof script under a name, to resume or replay later.  (Technically: snapshot the script without installing a theorem.)")
      (replay-proof "(replay-proof 'name [subst])"
        "Re-run a saved script on the current goal, optionally renaming free vars."
        "The optional subst is an alist ((old . new) ...) applied to every command argument before replay -- this is how one proof is reused at fresh eigenvariables."))
@@ -36,15 +39,22 @@
        "Break the goal into its pieces.  A conjunction `A and B' splits into two goals, A and B.  An implication `P implies Q' assumes P (P becomes a hypothesis you may use) and leaves you to prove Q.  A universal `for all x, ...' fixes an arbitrary x (a new constant standing for `any x') and asks for the statement at that x.  Apply it repeatedly until the goal is a single atomic statement.  (Technically: the goal-side introduction rules for AND / IMPLIES / FORALL; the constant introduced for a FORALL is an eigenvariable.  Pairs with mac, which unfolds a definition in the goal.)")
      (pbc  "(pbc)"  "Proof by contradiction: assume the goal's negation, prove FALSITY."
        "Argue by contradiction: assume the goal is false and derive an absurdity.  (Technically: classical reductio -- adds the negation of the goal as a hypothesis and changes the goal to FALSITY.)")
-     (oi-l "(oi-l)" "OR-intro left: reduce an (OR a b) goal to a.")
-     (oi-r "(oi-r)" "OR-intro right: reduce an (OR a b) goal to b.")
+     (oi-l "(oi-l)" "OR-intro left: reduce an (OR a b) goal to a."
+       "Prove a disjunction `A or B' by proving the LEFT alternative, A.  (Technically: or-introduction, left.)")
+     (oi-r "(oi-r)" "OR-intro right: reduce an (OR a b) goal to b."
+       "Prove a disjunction `A or B' by proving the RIGHT alternative, B.  (Technically: or-introduction, right.)")
      (ew   "(ew term)" "Existential witness: discharge a FORSOME goal by supplying the witness term."
        "Prove `there exists an x with property P' by exhibiting a specific witness: you supply the term, and the goal becomes `P holds of that term'.  The everyday `take x = ...' step.  (Technically: existential introduction for a FORSOME goal.)")
-     (ci   "(ci)"   "Cartesian intro: prove a CARTESIAN-product membership component-wise.")
-     (ti   "(ti)"   "Tuple intro: prove a tuple/LIST membership component-wise.")
-     (ii   "(ii)"   "Intersection intro: prove (IN x (INTERSECTION ...)) for each branch.")
-     (ui   "(ui k)" "Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set (1-based).")
-     (ni   "(ni)"   "Natural-number induction on the goal's leading FORALL over NN."))
+     (ci   "(ci)"   "Cartesian intro: prove a CARTESIAN-product membership component-wise."
+       "Prove that a pair (or tuple) belongs to a Cartesian product A x B by proving each coordinate lies in its factor.  (Technically: Cartesian-membership introduction, component-wise.)")
+     (ti   "(ti)"   "Tuple intro: prove a tuple/LIST membership component-wise."
+       "Prove that a list belongs to the set of tuples over A by proving each entry lies in A.  (Technically: tuple-membership introduction, component-wise.)")
+     (ii   "(ii)"   "Intersection intro: prove (IN x (INTERSECTION ...)) for each branch."
+       "Prove that x lies in an intersection of sets by proving it lies in each of them.  (Technically: intersection-membership introduction.)")
+     (ui   "(ui k)" "Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set (1-based)."
+       "Prove that x lies in a union of sets by proving it lies in the k-th one (you choose which).  (Technically: union-membership introduction at branch k.)")
+     (ni   "(ni)"   "Natural-number induction on the goal's leading FORALL over NN."
+       "Prove `for all natural numbers n, P(n)' by induction: show P(0), and that P(n) implies P(n+1).  (Technically: natural-number induction on the goal's leading FORALL over NN.)"))
 
     ("Using a hypothesis"
      (ai   "(ai hyp)" "Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable."
@@ -57,13 +67,18 @@
        "If you have both `P' and `P implies Q' among your hypotheses, this adds `Q' to them.  It grows what you KNOW (the hypotheses) rather than changing the goal -- the forward counterpart of bc.  (Technically: forward modus ponens, the kernel rule pi-detach!; sound since P and P=>Q give Q.)")
      (fact "(fact 'thm term ...)" "Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis."
        "Handles interleaved forall/implies (e.g. forall s. IS-X(s) => forall a. a in A(s) => P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) => P(x)' becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.")
-     (ce   "(ce hyp k)" "Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.")
-     (te   "(te hyp k)" "Tuple elim: project the k-th component out of a tuple-membership assumption.")
-     (ie   "(ie hyp k)" "Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption.")
-     (ue   "(ue hyp)" "Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui'.")
+     (ce   "(ce hyp k)" "Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption."
+       "From a hypothesis that a tuple lies in a Cartesian product, extract that its k-th coordinate lies in the k-th factor.  (Technically: Cartesian-membership elimination, k-th projection.)")
+     (te   "(te hyp k)" "Tuple elim: project the k-th component out of a tuple-membership assumption."
+       "From a hypothesis that something is a tuple over A, extract that its k-th entry lies in A.  (Technically: tuple-membership elimination, k-th projection.)")
+     (ie   "(ie hyp k)" "Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption."
+       "From a hypothesis that x lies in an intersection, extract that x lies in the k-th set.  (Technically: intersection-membership elimination.)")
+     (ue   "(ue hyp)" "Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui'."
+       "From a hypothesis that x lies in a union, split into cases -- one for each set x might belong to -- and prove the goal in each.  (Technically: union-membership elimination, case analysis; the dual of ui.)")
      (cut  "(cut formula)" "Cut: prove `formula' as a side subgoal, then continue the main goal with `formula' added as an assumption (Gentzen cut)."
        "Introduce a lemma you prove on the spot.  You state a formula; it becomes a side goal to prove, and on the main line you may then use it as a hypothesis.  The standard `we first show that ..., and now using it ...' move.  (Technically: Gentzen's cut -- nothing is left assumed-but-unproved, the side goal discharges it.)")
-     (wk   "(wk hyp)" "Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a \"string\", or a 1-based assumption index."))
+     (wk   "(wk hyp)" "Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a \"string\", or a 1-based assumption index."
+       "Discard a hypothesis you no longer need, to keep the assumption list readable.  (Technically: weakening -- removing a hypothesis is always sound.)"))
 
     ("Rewriting"
      (mac   "(mac 'name)" "Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context."
@@ -72,10 +87,14 @@
        "Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven't established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)")
      (subst "(subst '(= s t))" "Rewrite s -> t throughout the goal, using an equation s = t that is in context (Leibniz substitution)."
        "Use an equation `s = t' that is among your hypotheses to replace s by t everywhere in the goal.  (Technically: Leibniz substitution from an in-context equality.)")
-     (beta  "(beta)"  "Beta-reduce a functoid application in the goal.")
-     (nth-r "(nth-r)" "Reduce an NTH applied to a literal LIST in the goal.")
-     (rfl   "(rfl)"   "Close a reflexive equality goal (t = t).")
-     (qrfl  "(qrfl)"  "Quasi-reflexivity: close t = t under the partial-equality definedness reading."))
+     (beta  "(beta)"  "Beta-reduce a functoid application in the goal."
+       "Simplify a function-expression applied to an argument by substituting the argument into its body.  (Technically: beta-reduction of a functoid application in the goal.)")
+     (nth-r "(nth-r)" "Reduce an NTH applied to a literal LIST in the goal."
+       "Simplify `the k-th entry of an explicit list [a1, a2, ...]' to that entry.  (Technically: reduce NTH applied to a literal LIST.)")
+     (rfl   "(rfl)"   "Close a reflexive equality goal (t = t)."
+       "Close a goal `t = t' -- a thing equals itself.  (Technically: reflexivity of equality.)")
+     (qrfl  "(qrfl)"  "Quasi-reflexivity: close t = t under the partial-equality definedness reading."
+       "Close `t = t' under the partial-equality reading, where asserting t = t also asserts that t is DEFINED.  Use this rather than rfl when t might be undefined.  (Technically: quasi-reflexivity; see the partial-equality convention, where `t = t' is the definedness predicate.)"))
 
     ("Arithmetic & ring oracles"
      (arith "(arith)" "Discharge a ground arithmetic goal by evaluation."
@@ -101,21 +120,34 @@
        "Apply a known theorem to your goal.  If you have a theorem `if A and B then C' and your goal is its conclusion C -- matching the theorem's variables to yours, and the names of any dummy/bound variables don't matter (`there exists a net N' applies to a goal `there exists a net F') -- this replaces `prove the goal' with `prove A' and `prove B', the theorem's hypotheses.  The everyday `by Theorem X it suffices to show A and B'.  You may attach a handler to each hypothesis to dispatch it; values the match can't determine you supply as ((v val) ...).  (Technically: peels the theorem's leading universals and implications, matches the conclusion -- alpha-aware on bound variables -- and replays ta/inst/cut/bc automatically.)"))
 
     ("Lambda, comprehension & description"
-     (lam-t  "(lam-t)" "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.")
-     (lam-b  "(lam-b)" "VNB-LAMBDA beta: reduce an applied lambda to its substituted body.")
-     (sep-set "(sep-set)" "Separation sethood: the separation set {x in A | p} is a set.")
-     (sep-mi  "(sep-mi)"  "Separation membership intro: prove (IN t {x in A | p}).")
-     (sep-me  "(sep-me hyp)" "Separation membership elim: split a separation-membership assumption into A-membership and the predicate.")
-     (comp-mi "(comp-mi)" "Comprehension membership intro.")
-     (comp-me "(comp-me hyp)" "Comprehension membership elim.")
-     (iota-d  "(iota-d term)" "Definite-description: discharge the IOTA uniqueness obligation for `term'.")
-     (bu-set  "(bu-set)" "Big-union sethood.")
-     (bu-mi   "(bu-mi w)" "Big-union membership intro via the index witness w.")
-     (bu-me   "(bu-me hyp)" "Big-union membership elim."))
+     (lam-t  "(lam-t)" "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation."
+       "Show that a function defined by a formula (`x |-> ...') maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B.  (Technically: VNB-LAMBDA typing into FUN A B.)")
+     (lam-b  "(lam-b)" "VNB-LAMBDA beta: reduce an applied lambda to its substituted body."
+       "Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)")
+     (sep-set "(sep-set)" "Separation sethood: the separation set {x in A | p} is a set."
+       "Show that a set-builder set {x in A | p(x)} is genuinely a set.  (Technically: separation sethood -- a subclass of a set is a set.)")
+     (sep-mi  "(sep-mi)"  "Separation membership intro: prove (IN t {x in A | p})."
+       "Prove that a term t belongs to {x in A | p(x)} by showing t lies in A and satisfies the condition p.  (Technically: separation-membership introduction.)")
+     (sep-me  "(sep-me hyp)" "Separation membership elim: split a separation-membership assumption into A-membership and the predicate."
+       "From a hypothesis that t belongs to {x in A | p(x)}, extract the two facts it packs: t lies in A, and p(t) holds.  (Technically: separation-membership elimination.)")
+     (comp-mi "(comp-mi)" "Comprehension membership intro."
+       "Prove that something belongs to a comprehension set by establishing the set's defining condition for it.  (Technically: comprehension-membership introduction.)")
+     (comp-me "(comp-me hyp)" "Comprehension membership elim."
+       "From a comprehension-membership hypothesis, extract its defining condition.  (Technically: comprehension-membership elimination.)")
+     (iota-d  "(iota-d term)" "Definite-description: discharge the IOTA uniqueness obligation for `term'."
+       "Justify `the unique x such that p(x)' (a definite description) by proving that exactly one such x exists.  (Technically: IOTA -- discharge the uniqueness obligation for the described term.)")
+     (bu-set  "(bu-set)" "Big-union sethood."
+       "Show that a big union (the union of an indexed family of sets) is itself a set.  (Technically: big-union sethood.)")
+     (bu-mi   "(bu-mi w)" "Big-union membership intro via the index witness w."
+       "Prove that an element lies in a big union by exhibiting one index w whose set already contains it.  (Technically: big-union-membership introduction via the index witness.)")
+     (bu-me   "(bu-me hyp)" "Big-union membership elim."
+       "From a hypothesis that an element lies in a big union, obtain an index whose set contains it (a fresh name for that index).  (Technically: big-union-membership elimination.)"))
 
     ("Conditional terms"
-     (if-true  "(if-true t)"  "Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a).")
-     (if-false "(if-false t)" "Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b)."))
+     (if-true  "(if-true t)"  "Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a)."
+       "Evaluate a conditional term `if p then a else b' on the assumption that p holds: you take on p as a side goal, and may then use that the conditional equals a.  (Technically: if-true reduction, spawning p.)")
+     (if-false "(if-false t)" "Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b)."
+       "Evaluate a conditional term `if p then a else b' on the assumption that p fails: you take on `not p' as a side goal, and may then use that the conditional equals b.  (Technically: if-false reduction, spawning not p.)"))
 
     ("Navigation, display & tacticals"
      (focus  "(focus n)"  "Switch the focus to the n-th open goal (1-based).")
