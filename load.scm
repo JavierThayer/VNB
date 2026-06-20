@@ -241,6 +241,11 @@
     ;; => Cauchy (and, if complete, convergent).  Needs power-series
     ;; (SERIES-CONVERGES) + metric-completeness (IS-CAUCHY-SEQ/IS-COMPLETE).
     "theorem-library/summable-cauchy"
+    ;; The countable product of metric spaces (product topology): the weighted
+    ;; product metric D_w = SUM w(n) d_n/(1+d_n), coordinatewise convergence,
+    ;; infinitely many equivalent metrics.  Needs bounded-metric (BDD-METRIC),
+    ;; power-series (SERIES-CONVERGES-TO), BIG-UNION/IOTA (kernel).
+    "structure-library/product-metric"
     ;; Retroactive warrants for founding PSS members admitted before warrants
     ;; were standard; loads after every result it warrants is installed.
     "theorem-library/founder-warrants"
