@@ -2341,7 +2341,17 @@ monospace font is installed.")
           (condition-case err
               (progn (load vnb-launch-prefs-file nil t)
                      (format "loaded %s" vnb-launch-prefs-file))
-            (error (format "load failed: %s" (error-message-string err))))))))
+            ;; A `load' aborts at the FIRST error, so everything after the
+            ;; offending form silently never runs (this is how a bad line in
+            ;; ~/.vnb-display.el made later settings -- e.g. vnb-graph-browser --
+            ;; appear to be ignored).  Make the failure LOUD instead of leaving
+            ;; only a status string nobody reads.
+            (error
+             (let ((msg (format "VNB: %s failed to load (settings after the error were NOT applied): %s"
+                                vnb-launch-prefs-file (error-message-string err))))
+               (display-warning 'vnb msg :error)
+               (message "%s" msg)
+               (format "load failed: %s" (error-message-string err)))))))))
 
 (defun vnb-launch--apply-saved-font-size ()
   "Apply font family AND size from defvars."
