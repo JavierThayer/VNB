@@ -38,13 +38,15 @@ The optional subst is an alist ((old . new) ...) applied to every command argume
 
 Direct inference: split an AND goal, move an IMPLIES antecedent into the assumptions, or introduce a fresh eigenvariable for a leading FORALL.
 
-The goal-side workhorse.  Pairs with `mac' (which unfolds a defined predicate in the goal).  After `(di)' on an implication the antecedent becomes a new assumption and the focus is the consequent.
+Break the goal into its pieces.  A conjunction `A and B' splits into two goals, A and B.  An implication `P implies Q' assumes P (P becomes a hypothesis you may use) and leaves you to prove Q.  A universal `for all x, ...' fixes an arbitrary x (a new constant standing for `any x') and asks for the statement at that x.  Apply it repeatedly until the goal is a single atomic statement.  (Technically: the goal-side introduction rules for AND / IMPLIES / FORALL; the constant introduced for a FORALL is an eigenvariable.  Pairs with mac, which unfolds a definition in the goal.)
 
 ### pbc
 
     (pbc)
 
 Proof by contradiction: assume the goal's negation, prove FALSITY.
+
+Argue by contradiction: assume the goal is false and derive an absurdity.  (Technically: classical reductio -- adds the negation of the goal as a hypothesis and changes the goal to FALSITY.)
 
 ### oi-l
 
@@ -63,6 +65,8 @@ OR-intro right: reduce an (OR a b) goal to b.
     (ew term)
 
 Existential witness: discharge a FORSOME goal by supplying the witness term.
+
+Prove `there exists an x with property P' by exhibiting a specific witness: you supply the term, and the goal becomes `P holds of that term'.  The everyday `take x = ...' step.  (Technically: existential introduction for a FORSOME goal.)
 
 ### ci
 
@@ -102,7 +106,7 @@ Natural-number induction on the goal's leading FORALL over NN.
 
 Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable.
 
-The hypothesis-side dual of `di'.  `hyp' may be the raw formula, a "string", or a 1-based assumption index from the Focus display.
+Break a hypothesis into its pieces -- the mirror image of di, but on the assumptions instead of the goal.  From a hypothesis `A and B' you get both A and B; from `A or B' you split into two cases (prove the goal in each); from `there exists x, P(x)' you get a fresh name for such an x together with P(x).  Cite the hypothesis by its number in the display, its formula, or a "string".  (Technically: the hypothesis-side elimination rules for AND / OR / FORSOME; the fresh name is an eigenvariable.)
 
 ### ass
 
@@ -110,11 +114,15 @@ The hypothesis-side dual of `di'.  `hyp' may be the raw formula, a "string", or 
 
 Close the goal by an assumption alpha-equivalent to it.
 
+Finish the goal because it is already one of your hypotheses -- the `that is exactly what we assumed' step.  Renaming of dummy/bound variables doesn't matter (`there exists x, P(x)' closes `there exists y, P(y)').  (Technically: the assumption rule, matching up to alpha-equivalence.)
+
 ### inst
 
     (inst forall-hyp term)
 
 Instantiate a universally-quantified assumption at `term', adding the instance to context.
+
+Use a `for all x, ...' hypothesis at a particular value: you supply the term, and the statement with x replaced by that term is added to your hypotheses.  (Technically: universal instantiation of an assumption.)
 
 ### detach!
 
@@ -122,7 +130,7 @@ Instantiate a universally-quantified assumption at `term', adding the instance t
 
 Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context.
 
-The forward dual of `bc' -- it grows the CONTEXT instead of the goal.  Sound (A and A=>B give B).  Realised by the kernel rule pi-detach!.
+If you have both `P' and `P implies Q' among your hypotheses, this adds `Q' to them.  It grows what you KNOW (the hypotheses) rather than changing the goal -- the forward counterpart of bc.  (Technically: forward modus ponens, the kernel rule pi-detach!; sound since P and P=>Q give Q.)
 
 ### fact
 
@@ -162,7 +170,7 @@ Union elim: split a cited (IN x (UNION ...)) membership assumption into one subg
 
 Cut: prove `formula' as a side subgoal, then continue the main goal with `formula' added as an assumption (Gentzen cut).
 
-How to introduce a lemma you prove inline: spawns `formula' as its own goal and, on the main branch, hands it to you as a fresh assumption.  Sound -- nothing is left assumed-but-unproved, since the side subgoal discharges it.
+Introduce a lemma you prove on the spot.  You state a formula; it becomes a side goal to prove, and on the main line you may then use it as a hypothesis.  The standard `we first show that ..., and now using it ...' move.  (Technically: Gentzen's cut -- nothing is left assumed-but-unproved, the side goal discharges it.)
 
 ### wk
 
@@ -178,7 +186,7 @@ Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `
 
 Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context.
 
-All-or-nothing by design: where a conditional macete's side-conditions are NOT discharged from context, `mac' declines at that position and recurses into subterms rather than spawning goals.  The IMPS `apply-macete-with-minor-premises' behaviour -- fire on the GOAL regardless and leave the unmet conditions as new goals -- is a separate, planned goal-side command (`mac+'), not yet built.  (`mac-h' already spawns such conditions, but it acts on a hypothesis, not the goal.)
+Rewrite the goal using a definition or a known equivalence/equality (a `macete').  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law's side-conditions already hold in your hypotheses; where they don't, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h.)
 
 ### mac-h
 
@@ -186,13 +194,15 @@ All-or-nothing by design: where a conditional macete's side-conditions are NOT d
 
 Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal.
 
-The hypothesis-side dual of `mac': where `mac' rewrites the goal, `mac-h' rewrites inside a cited assumption, replacing H by an equivalent H'.  Sound by the Leibniz substitution of equivalents -- valid because the macete is a genuine equivalence under its side-conditions, any of which not already in context is spawned as a new goal (so nothing is left assumed-but-undischarged).  NB this is NOT IMPS's `apply-macete-with-minor-premises', which rewrites the GOAL and adds unmet hypotheses as goals; `mac-h' is its hypothesis-side cousin, not the same command.
+Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven't established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)
 
 ### subst
 
     (subst '(= s t))
 
 Rewrite s -> t throughout the goal, using an equation s = t that is in context (Leibniz substitution).
+
+Use an equation `s = t' that is among your hypotheses to replace s by t everywhere in the goal.  (Technically: Leibniz substitution from an in-context equality.)
 
 ### beta
 
@@ -226,17 +236,23 @@ Quasi-reflexivity: close t = t under the partial-equality definedness reading.
 
 Discharge a ground arithmetic goal by evaluation.
 
+Close a goal that is a concrete numerical fact with no variables -- e.g. 2 + 3 = 5, or 7 in NN -- by just computing it.  (Technically: decision by ground arithmetic evaluation.)
+
 ### rs
 
     (rs)
 
 Ring-simplify the goal (normal form over the ambient ring).
 
+Simplify the goal to a normal form in the ambient ring (which need not be commutative).  The non-commutative companion of crs.  (Technically: ring-simplify to a canonical word form.)
+
 ### crs
 
     (crs)
 
 Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.
+
+Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)
 
 ### simp
 
@@ -249,6 +265,8 @@ Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g.
     (ineq i1 i2 ...)
 
 Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)
+
+Close a LINEAR inequality over the reals that follows from inequalities you cite (by their hypothesis numbers) -- by chaining them, adding them, and scaling by positive constants.  Anything that is not built from + - and multiplication-by-constants is treated as an opaque quantity, so it handles e.g. the triangle inequality where the distances are unknowns.  For NONLINEAR (polynomial) inequalities use sos instead.  (Technically: Fourier-Motzkin / Farkas over the ordered field RR; every atom must be certified real.)
 
 ### sos
 
@@ -295,11 +313,15 @@ Notes.
 
 Theorem-assumption: bring the named installed theorem into context as an assumption.
 
+Bring an already-proved theorem into your current hypotheses so you can use it (instantiate it, detach from it, ...).  (Technically: adds the named installed theorem as an assumption.)
+
 ### bc
 
     (bc impl)
 
 Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.
+
+Work backwards through an implication you already have.  If `P implies Q' is among your hypotheses and your goal is Q, this reduces the goal to proving P.  The everyday `to get Q it's enough to show P'.  (Technically: backchaining the goal through an in-context implication whose conclusion matches.)
 
 ### bc*
 
@@ -307,7 +329,7 @@ Backchain the goal through an (IMPLIES A B) already in context: if the goal matc
 
 Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals; optional handlers hk run on the k-th subgoal.
 
-Peels leading FORALLs and right-nested IMPLIES, matches the conclusion, and replays the ta/inst/cut/bc idiom automatically.  Schema vars not pinned by the match are supplied as ((v val) ...).  Without handlers it focuses the first subgoal; with handlers it refocuses to each subgoal in tree order.
+Apply a known theorem to your goal.  If you have a theorem `if A and B then C' and your goal is its conclusion C -- matching the theorem's variables to yours, and the names of any dummy/bound variables don't matter (`there exists a net N' applies to a goal `there exists a net F') -- this replaces `prove the goal' with `prove A' and `prove B', the theorem's hypotheses.  The everyday `by Theorem X it suffices to show A and B'.  You may attach a handler to each hypothesis to dispatch it; values the match can't determine you supply as ((v val) ...).  (Technically: peels the theorem's leading universals and implications, matches the conclusion -- alpha-aware on bound variables -- and replays ta/inst/cut/bc automatically.)
 
 ## Lambda, comprehension & description
 

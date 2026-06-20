@@ -82,10 +82,11 @@
 <h4 id="TACTICS__di">di</h4>
 <pre>(di)</pre>
 <p>Direct inference: split an AND goal, move an IMPLIES antecedent into the assumptions, or introduce a fresh eigenvariable for a leading FORALL.</p>
-<p>The goal-side workhorse.  Pairs with <code>mac&#x27; (which unfolds a defined predicate in the goal).  After </code>(di)&#x27; on an implication the antecedent becomes a new assumption and the focus is the consequent.</p>
+<p>Break the goal into its pieces.  A conjunction <code>A and B&#x27; splits into two goals, A and B.  An implication </code>P implies Q&#x27; assumes P (P becomes a hypothesis you may use) and leaves you to prove Q.  A universal <code>for all x, ...&#x27; fixes an arbitrary x (a new constant standing for </code>any x&#x27;) and asks for the statement at that x.  Apply it repeatedly until the goal is a single atomic statement.  (Technically: the goal-side introduction rules for AND / IMPLIES / FORALL; the constant introduced for a FORALL is an eigenvariable.  Pairs with mac, which unfolds a definition in the goal.)</p>
 <h4 id="TACTICS__pbc">pbc</h4>
 <pre>(pbc)</pre>
 <p>Proof by contradiction: assume the goal&#x27;s negation, prove FALSITY.</p>
+<p>Argue by contradiction: assume the goal is false and derive an absurdity.  (Technically: classical reductio -- adds the negation of the goal as a hypothesis and changes the goal to FALSITY.)</p>
 <h4 id="TACTICS__oi-l">oi-l</h4>
 <pre>(oi-l)</pre>
 <p>OR-intro left: reduce an (OR a b) goal to a.</p>
@@ -95,6 +96,7 @@
 <h4 id="TACTICS__ew">ew</h4>
 <pre>(ew term)</pre>
 <p>Existential witness: discharge a FORSOME goal by supplying the witness term.</p>
+<p>Prove <code>there exists an x with property P&#x27; by exhibiting a specific witness: you supply the term, and the goal becomes </code>P holds of that term&#x27;.  The everyday `take x = ...&#x27; step.  (Technically: existential introduction for a FORSOME goal.)</p>
 <h4 id="TACTICS__ci">ci</h4>
 <pre>(ci)</pre>
 <p>Cartesian intro: prove a CARTESIAN-product membership component-wise.</p>
@@ -114,17 +116,19 @@
 <h4 id="TACTICS__ai">ai</h4>
 <pre>(ai hyp)</pre>
 <p>Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable.</p>
-<p>The hypothesis-side dual of <code>di&#x27;.  </code>hyp&#x27; may be the raw formula, a &quot;string&quot;, or a 1-based assumption index from the Focus display.</p>
+<p>Break a hypothesis into its pieces -- the mirror image of di, but on the assumptions instead of the goal.  From a hypothesis <code>A and B&#x27; you get both A and B; from </code>A or B&#x27; you split into two cases (prove the goal in each); from `there exists x, P(x)&#x27; you get a fresh name for such an x together with P(x).  Cite the hypothesis by its number in the display, its formula, or a &quot;string&quot;.  (Technically: the hypothesis-side elimination rules for AND / OR / FORSOME; the fresh name is an eigenvariable.)</p>
 <h4 id="TACTICS__ass">ass</h4>
 <pre>(ass)</pre>
 <p>Close the goal by an assumption alpha-equivalent to it.</p>
+<p>Finish the goal because it is already one of your hypotheses -- the <code>that is exactly what we assumed&#x27; step.  Renaming of dummy/bound variables doesn&#x27;t matter (</code>there exists x, P(x)&#x27; closes `there exists y, P(y)&#x27;).  (Technically: the assumption rule, matching up to alpha-equivalence.)</p>
 <h4 id="TACTICS__inst">inst</h4>
 <pre>(inst forall-hyp term)</pre>
 <p>Instantiate a universally-quantified assumption at `term&#x27;, adding the instance to context.</p>
+<p>Use a `for all x, ...&#x27; hypothesis at a particular value: you supply the term, and the statement with x replaced by that term is added to your hypotheses.  (Technically: universal instantiation of an assumption.)</p>
 <h4 id="TACTICS__detach">detach!</h4>
 <pre>(detach! impl)</pre>
 <p>Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context.</p>
-<p>The forward dual of `bc&#x27; -- it grows the CONTEXT instead of the goal.  Sound (A and A=&gt;B give B).  Realised by the kernel rule pi-detach!.</p>
+<p>If you have both <code>P&#x27; and </code>P implies Q&#x27; among your hypotheses, this adds `Q&#x27; to them.  It grows what you KNOW (the hypotheses) rather than changing the goal -- the forward counterpart of bc.  (Technically: forward modus ponens, the kernel rule pi-detach!; sound since P and P=&gt;Q give Q.)</p>
 <h4 id="TACTICS__fact">fact</h4>
 <pre>(fact &#x27;thm term ...)</pre>
 <p>Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis.</p>
@@ -144,7 +148,7 @@
 <h4 id="TACTICS__cut">cut</h4>
 <pre>(cut formula)</pre>
 <p>Cut: prove <code>formula&#x27; as a side subgoal, then continue the main goal with </code>formula&#x27; added as an assumption (Gentzen cut).</p>
-<p>How to introduce a lemma you prove inline: spawns `formula&#x27; as its own goal and, on the main branch, hands it to you as a fresh assumption.  Sound -- nothing is left assumed-but-unproved, since the side subgoal discharges it.</p>
+<p>Introduce a lemma you prove on the spot.  You state a formula; it becomes a side goal to prove, and on the main line you may then use it as a hypothesis.  The standard `we first show that ..., and now using it ...&#x27; move.  (Technically: Gentzen&#x27;s cut -- nothing is left assumed-but-unproved, the side goal discharges it.)</p>
 <h4 id="TACTICS__wk">wk</h4>
 <pre>(wk hyp)</pre>
 <p>Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp&#x27; may be a formula, a &quot;string&quot;, or a 1-based assumption index.</p>
@@ -152,14 +156,15 @@
 <h4 id="TACTICS__mac">mac</h4>
 <pre>(mac &#x27;name)</pre>
 <p>Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete&#x27;s side-conditions already hold in context.</p>
-<p>All-or-nothing by design: where a conditional macete&#x27;s side-conditions are NOT discharged from context, <code>mac&#x27; declines at that position and recurses into subterms rather than spawning goals.  The IMPS </code>apply-macete-with-minor-premises&#x27; behaviour -- fire on the GOAL regardless and leave the unmet conditions as new goals -- is a separate, planned goal-side command (<code>mac+&#x27;), not yet built.  (</code>mac-h&#x27; already spawns such conditions, but it acts on a hypothesis, not the goal.)</p>
+<p>Rewrite the goal using a definition or a known equivalence/equality (a `macete&#x27;).  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law&#x27;s side-conditions already hold in your hypotheses; where they don&#x27;t, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h.)</p>
 <h4 id="TACTICS__mac-h">mac-h</h4>
 <pre>(mac-h &#x27;name hyp)</pre>
 <p>Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal.</p>
-<p>The hypothesis-side dual of <code>mac&#x27;: where </code>mac&#x27; rewrites the goal, <code>mac-h&#x27; rewrites inside a cited assumption, replacing H by an equivalent H&#x27;.  Sound by the Leibniz substitution of equivalents -- valid because the macete is a genuine equivalence under its side-conditions, any of which not already in context is spawned as a new goal (so nothing is left assumed-but-undischarged).  NB this is NOT IMPS&#x27;s </code>apply-macete-with-minor-premises&#x27;, which rewrites the GOAL and adds unmet hypotheses as goals; `mac-h&#x27; is its hypothesis-side cousin, not the same command.</p>
+<p>Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven&#x27;t established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)</p>
 <h4 id="TACTICS__subst">subst</h4>
 <pre>(subst &#x27;(= s t))</pre>
 <p>Rewrite s -&gt; t throughout the goal, using an equation s = t that is in context (Leibniz substitution).</p>
+<p>Use an equation `s = t&#x27; that is among your hypotheses to replace s by t everywhere in the goal.  (Technically: Leibniz substitution from an in-context equality.)</p>
 <h4 id="TACTICS__beta">beta</h4>
 <pre>(beta)</pre>
 <p>Beta-reduce a functoid application in the goal.</p>
@@ -176,18 +181,22 @@
 <h4 id="TACTICS__arith">arith</h4>
 <pre>(arith)</pre>
 <p>Discharge a ground arithmetic goal by evaluation.</p>
+<p>Close a goal that is a concrete numerical fact with no variables -- e.g. 2 + 3 = 5, or 7 in NN -- by just computing it.  (Technically: decision by ground arithmetic evaluation.)</p>
 <h4 id="TACTICS__rs">rs</h4>
 <pre>(rs)</pre>
 <p>Ring-simplify the goal (normal form over the ambient ring).</p>
+<p>Simplify the goal to a normal form in the ambient ring (which need not be commutative).  The non-commutative companion of crs.  (Technically: ring-simplify to a canonical word form.)</p>
 <h4 id="TACTICS__crs">crs</h4>
 <pre>(crs)</pre>
 <p>Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.</p>
+<p>Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)</p>
 <h4 id="TACTICS__simp">simp</h4>
 <pre>(simp [target])</pre>
 <p>Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2<em>x</em>y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; &quot;term&quot; targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm&#x27;s generators typed in context (true post-di), else refuses and names them.</p>
 <h4 id="TACTICS__ineq">ineq</h4>
 <pre>(ineq i1 i2 ...)</pre>
 <p>Close a linear-inequality goal over RR (&lt;= &lt; &gt; &gt;= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring&#x27;s (ADD s)/(MUL s) -- those become opaque atoms.)</p>
+<p>Close a LINEAR inequality over the reals that follows from inequalities you cite (by their hypothesis numbers) -- by chaining them, adding them, and scaling by positive constants.  Anything that is not built from + - and multiplication-by-constants is treated as an opaque quantity, so it handles e.g. the triangle inequality where the distances are unknowns.  For NONLINEAR (polynomial) inequalities use sos instead.  (Technically: Fourier-Motzkin / Farkas over the ordered field RR; every atom must be certified real.)</p>
 <h4 id="TACTICS__sos">sos</h4>
 <pre>(sos &quot;c1&quot; &quot;c2&quot; ...)</pre>
 <p>Sum-of-squares closer for a nonstrict polynomial inequality a &lt;= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics &#x27;sos) for the worked example.</p>
@@ -204,13 +213,15 @@
 <h4 id="TACTICS__ta">ta</h4>
 <pre>(ta &#x27;name)</pre>
 <p>Theorem-assumption: bring the named installed theorem into context as an assumption.</p>
+<p>Bring an already-proved theorem into your current hypotheses so you can use it (instantiate it, detach from it, ...).  (Technically: adds the named installed theorem as an assumption.)</p>
 <h4 id="TACTICS__bc">bc</h4>
 <pre>(bc impl)</pre>
 <p>Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.</p>
+<p>Work backwards through an implication you already have.  If <code>P implies Q&#x27; is among your hypotheses and your goal is Q, this reduces the goal to proving P.  The everyday </code>to get Q it&#x27;s enough to show P&#x27;.  (Technically: backchaining the goal through an in-context implication whose conclusion matches.)</p>
 <h4 id="TACTICS__bc*">bc*</h4>
 <pre>(bc* &#x27;thm [((v val)...)] h1 h2 ...)</pre>
 <p>Matching backchain: unify the theorem&#x27;s conclusion against the goal, then leave its (instantiated) antecedents as subgoals; optional handlers hk run on the k-th subgoal.</p>
-<p>Peels leading FORALLs and right-nested IMPLIES, matches the conclusion, and replays the ta/inst/cut/bc idiom automatically.  Schema vars not pinned by the match are supplied as ((v val) ...).  Without handlers it focuses the first subgoal; with handlers it refocuses to each subgoal in tree order.</p>
+<p>Apply a known theorem to your goal.  If you have a theorem <code>if A and B then C&#x27; and your goal is its conclusion C -- matching the theorem&#x27;s variables to yours, and the names of any dummy/bound variables don&#x27;t matter (</code>there exists a net N&#x27; applies to a goal <code>there exists a net F&#x27;) -- this replaces </code>prove the goal&#x27; with <code>prove A&#x27; and </code>prove B&#x27;, the theorem&#x27;s hypotheses.  The everyday `by Theorem X it suffices to show A and B&#x27;.  You may attach a handler to each hypothesis to dispatch it; values the match can&#x27;t determine you supply as ((v val) ...).  (Technically: peels the theorem&#x27;s leading universals and implications, matches the conclusion -- alpha-aware on bound variables -- and replays ta/inst/cut/bc automatically.)</p>
 <h3 id="TACTICS__lambda-comprehension-description">Lambda, comprehension &amp; description</h3>
 <h4 id="TACTICS__lam-t">lam-t</h4>
 <pre>(lam-t)</pre>
