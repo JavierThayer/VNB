@@ -82,12 +82,24 @@
 
 ;;; The standard convention  0^b = 0  for b > 0 (so RPOW is total on a >= 0 for
 ;;; positive exponents; this is what makes Hoelder hold with zero entries).
-;;; 0^0 is left unspecified.
+;;; The companion 0^0 = 1 is rpow-zero-zero below -- the convention adopted
+;;; project-wide and shared with the NN-power `power' ((power 0 0) = 1).
 (support 'rpow-zero-base
   '(FORALL b (IMPLIES (AND (IN b QQ) (< 0 b)) (= (RPOW 0 b) 0))))
 (warrant! 'rpow-zero-base 'well-known
   "0^b = 0 for rational b > 0 (the limiting/standard convention), extending
-   RPOW to base 0 with positive exponent.  0^0 is left unspecified.")
+   RPOW to base 0 with positive exponent.  The exponent is strictly positive,
+   so this never touches 0^0 (= 1, rpow-zero-zero).")
+
+;;; 0^0 = 1: the project-wide adopted convention, consistent with the NN-power
+;;; ((power 0 0) = 1) and with rpow-zero (a^0 = 1 for a > 0), so a^0 = 1 for
+;;; EVERY a >= 0.
+(support 'rpow-zero-zero
+  '(= (RPOW 0 0) 1))
+(warrant! 'rpow-zero-zero 'well-known
+  "0^0 = 1 -- the standard convention adopted project-wide and matching the
+   NN-power (power 0 0) = 1.  Together with rpow-zero (a^0 = 1 for a > 0) this
+   gives a^0 = 1 for all a >= 0.")
 
 ;;; ----- monotonicity -----
 
