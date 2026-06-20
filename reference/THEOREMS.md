@@ -31,22 +31,22 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `ball-cover-is-open-cover` — forall([s], is-metric-space(s) implies forall([r], r in rr and 0 <= r and not(0 = r) implies is-open-cover(s, ball-cover(s, r))))  _[warrant: well-known]_
 - `ball-is-open` — forall([s], is-metric-space(s) implies forall([x in x(s), r], r in rr and 0 <= r and not(0 = r) implies is-open(s, ball(s, x, r))))  _[warrant: proof]_
 - `ball-is-set` — forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))  _[warrant: proof]_
-- `ball-mem-from-le` — forall([s], is-metric-space(s) implies forall([x, y, d, r], y in x(s) and d in rr and r in rr and (d(s))(x, y) <= d and <(d, r) implies y in ball(s, x, r)))  _[warrant: proof]_
+- `ball-mem-from-le` — forall([s], is-metric-space(s) implies forall([x, y, d, r], y in x(s) and d in rr and r in rr and (d(s))(x, y) <= d and d < r implies y in ball(s, x, r)))  _[warrant: proof]_
 - `ball-membership` — forall([s, x, r, y], y in ball(s, x, r) iff y in x(s) and (d(s))(x, y) <= r and not((d(s))(x, y) = r))  _[warrant: proof]_
 - `ball-membership-rev` — forall([s, x, r, y], y in x(s) and (d(s))(x, y) <= r and not((d(s))(x, y) = r) iff y in ball(s, x, r))  _[warrant: proof]_
 - `bdd-fn-le-arg` — forall([t in rr], 0 <= t implies /(t, 1 + t) <= t)  _[warrant: well-known]_
-- `bdd-fn-lt-one` — forall([t in rr], 0 <= t implies <(/(t, 1 + t), 1))  _[warrant: well-known]_
+- `bdd-fn-lt-one` — forall([t in rr], 0 <= t implies /(t, 1 + t) < 1)  _[warrant: well-known]_
 - `bdd-fn-mono` — forall([s in rr, t in rr], 0 <= s and s <= t implies /(s, 1 + s) <= /(t, 1 + t))  _[warrant: well-known]_
 - `bdd-fn-nonneg` — forall([t in rr], 0 <= t implies 0 <= /(t, 1 + t))  _[warrant: well-known]_
 - `bdd-fn-subadd` — forall([a in rr, b in rr], 0 <= a and 0 <= b implies /(a + b, 1 + a + b) <= /(a, 1 + a) + /(b, 1 + b))  _[warrant: well-known]_
-- `bdd-metric-bounded` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], <((d(bdd-metric(s)))(x, y), 1)))  _[warrant: well-known]_
+- `bdd-metric-bounded` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(bdd-metric(s)))(x, y) < 1))  _[warrant: well-known]_
 - `bdd-metric-carrier` — forall([s], x(bdd-metric(s)) == x(s))  _[warrant: well-known]_
 - `bdd-metric-carrier-rev` — forall([s], x(s) == x(bdd-metric(s)))  _[warrant: well-known]_
 - `bdd-metric-distance` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], (d(bdd-metric(s)))(x, y) = /((d(s))(x, y), 1 + (d(s))(x, y))))  _[warrant: well-known]_
 - `bdd-metric-distance-rev` — forall([s], is-metric-space(s) implies forall([x in x(s), y in x(s)], /((d(s))(x, y), 1 + (d(s))(x, y)) = (d(bdd-metric(s)))(x, y)))  _[warrant: well-known]_
 - `bdd-metric-id-bicontinuous` — forall([s], is-metric-space(s) implies is-continuous(s, bdd-metric(s), vnb-lambda(x, x)) and is-continuous(bdd-metric(s), s, vnb-lambda(x, x)))  _[warrant: well-known]_
 - `bdd-metric-is-metric-space` — forall([s], is-metric-space(s) implies is-metric-space(bdd-metric(s)))  _[warrant: well-known]_
-- `bernoulli-rpow` — forall([x], x in rr and <(0, 1 + x) implies forall([b], b in qq and 1 <= b implies 1 + b * x <= rpow(1 + x, b)))  _[warrant: well-known]_
+- `bernoulli-rpow` — forall([x], x in rr and 0 < 1 + x implies forall([b], b in qq and 1 <= b implies 1 + b * x <= rpow(1 + x, b)))  _[warrant: well-known]_
 - `binomial-theorem` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], ring-power(r, (add(r))(x, y), n) = finsum(commutative-ring-additive-ag(r), vnb-lambda(k, zz-act(commutative-ring-additive-ag(r), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n)))))  _[warrant: well-known]_
 - `binomial-theorem-rev` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], finsum(commutative-ring-additive-ag(r), vnb-lambda(k, zz-act(commutative-ring-additive-ag(r), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n))) = ring-power(r, (add(r))(x, y), n)))  _[warrant: well-known]_
 - `card-power-nn` — forall([x], x in set and card(x) in nn implies card(power(x)) in nn)  _[warrant: well-known]_
@@ -54,7 +54,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `card-singleton-rev` — forall([x in set], succ(0) = card({x}))  _[warrant: well-known]_
 - `card-subset-nn` — forall([x], x in set and card(x) in nn implies forall([s], s in set and forall([z in s], z in x) implies card(s) in nn))  _[warrant: well-known]_
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))  _[warrant: proof]_
-- `cauchy-rapid-subsequence` — forall([s, f, rad], is-cauchy-seq(s, f) and rad in fun(nn, rr) and forall([k in nn], pos-rr(rad(k))) implies forsome([phi in fun(nn, nn)], forall([m in nn, n_ in nn], <(m, n_) implies <(phi(m), phi(n_))) and forall([k in nn], (d(s))(f(phi(k)), f(phi(succ(k)))) <= rad(k))))  _[warrant: well-known]_
+- `cauchy-rapid-subsequence` — forall([s, f, rad], is-cauchy-seq(s, f) and rad in fun(nn, rr) and forall([k in nn], pos-rr(rad(k))) implies forsome([phi in fun(nn, nn)], forall([m in nn, n_ in nn], m < n_ implies phi(m) < phi(n_)) and forall([k in nn], (d(s))(f(phi(k)), f(phi(succ(k)))) <= rad(k))))  _[warrant: well-known]_
 - `cauchy-schwarz-finite` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * b(i)), s) * finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * b(i)), s) <= finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s) * finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, b(i) * b(i)), s)))  _[warrant: well-known]_
 - `cauchy-schwarz-sqrt` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * b(i)), s)) <= sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s)) * sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, b(i) * b(i)), s))))  _[warrant: well-known]_
 - `cauchy-setoid-is-setoid` — forall([m], is-metric-space(m) implies is-setoid(cauchy-setoid(m)))  _[warrant: well-known]_
@@ -90,7 +90,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `continuous-implies-open-preimage` — forall([s, t, f], is-continuous(s, t, f) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))))  _[warrant: proof]_
 - `continuous-is-continuous-at` — forall([s, t, f], is-continuous(s, t, f) implies forall([a in x(s)], is-continuous-at(s, t, f, a)))  _[warrant: informal]_
 - `dc-on-nn` — forall([x in set, a in x, r in set], forall([k in nn, u in x], forsome([y in x], [k, u, y] in r)) implies forsome([f in fun(nn, x)], f(0) = a and forall([k in nn], [k, f(k), f(succ(k))] in r)))  _[warrant: informal]_
-- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f in fun(nn, nn)], forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n))) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  _[warrant: informal]_
+- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f in fun(nn, nn)], forall([m in nn, n in nn], m < n implies f(m) < f(n)) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  _[warrant: informal]_
 - `difference-membership` — forall([x, b, x], x in difference(x, b) iff x in x and not(x in b))  _[warrant: well-known]_
 - `difference-membership-rev` — forall([x, b, x], x in x and not(x in b) iff x in difference(x, b))  _[warrant: well-known]_
 - `difference-set` — forall([x in set, b], difference(x, b) in set)  _[warrant: well-known]_
@@ -135,8 +135,8 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `fun-range-membership` — forall([x, f, a], f in fun(x) implies a in x implies f(a) in ran(f))  _[warrant: proof]_
 - `geometric-partial-sum` — forall([r], r in rr and not(r = 1) implies forall([k in nn], series-partial-sum(vnb-lambda(n, r ^ n), k) = (1 - r ^ k) * recip(1 - r)))  _[warrant: well-known]_
 - `geometric-partial-sum-rev` — forall([r], r in rr and not(r = 1) implies forall([k in nn], (1 - r ^ k) * recip(1 - r) = series-partial-sum(vnb-lambda(n, r ^ n), k)))  _[warrant: well-known]_
-- `geometric-series-converges-to` — forall([r], r in rr and <(abs(r), 1) implies series-converges-to(vnb-lambda(n, r ^ n), recip(1 - r)))  _[warrant: informal]_
-- `holder-finite` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr), p], p in qq and <(1, p) implies forall([q], q in qq and <(1, q) implies /(1, p) + /(1, q) = 1 implies finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, abs(a(i) * b(i))), s) <= rpow(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, rpow(abs(a(i)), p)), s), /(1, p)) * rpow(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, rpow(abs(b(i)), q)), s), /(1, q)))))  _[warrant: well-known]_
+- `geometric-series-converges-to` — forall([r], r in rr and abs(r) < 1 implies series-converges-to(vnb-lambda(n, r ^ n), recip(1 - r)))  _[warrant: informal]_
+- `holder-finite` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr), p], p in qq and 1 < p implies forall([q], q in qq and 1 < q implies /(1, p) + /(1, q) = 1 implies finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, abs(a(i) * b(i))), s) <= rpow(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, rpow(abs(a(i)), p)), s), /(1, p)) * rpow(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, rpow(abs(b(i)), q)), s), /(1, q)))))  _[warrant: well-known]_
 - `ideal-elt-in-carrier` — forall([s, i, x], is-ideal(s, i) implies x in i implies x in a(s))  _[warrant: proof]_
 - `injection-count-falling` — forall([n in nn, m], m in nn and m <= n implies card(injection(ord-segment(m), ord-segment(n))) = falling(n, m))  _[warrant: well-known]_
 - `injection-count-falling-rev` — forall([n in nn, m], m in nn and m <= n implies falling(n, m) = card(injection(ord-segment(m), ord-segment(n))))  _[warrant: well-known]_
@@ -152,7 +152,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `nag-metric-distance-rev` — forall([nag], is-normed-ag(nag) implies forall([u in a(nag), v in a(nag)], (nrm(nag))((mul(nag))(u, (inv(nag))(v))) = (d(nag-metric-space(nag)))(u, v)))  _[warrant: informal]_
 - `nag-metric-space-is-metric-space` — forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))  _[warrant: informal]_
 - `nf-metric-space-is-metric-space` — forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))  _[warrant: informal]_
-- `nn-enum-spec` — forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], <(m, n) implies <((nn-enum(s))(m), (nn-enum(s))(n))))  _[warrant: informal]_
+- `nn-enum-spec` — forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], m < n implies (nn-enum(s))(m) < (nn-enum(s))(n)))  _[warrant: informal]_
 - `nn-minus-in-nn` — forall([k in nn, l in nn], nn-minus(k, l) in nn)  _[warrant: hand-wave]_
 - `open-preimage-implies-continuous` — forall([s, t, f], is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))) implies is-continuous(s, t, f))  _[warrant: proof]_
 - `ord-segment-insert` — forall([n in nn], ord-segment(succ(n)) = union(ord-segment(n), {n}))  _[warrant: well-known]_
@@ -204,7 +204,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `ps-partial-sum-as-series-rev` — forall([coef in fun(nn, rr), x in rr, k in nn], series-partial-sum(vnb-lambda(n, coef(n) * x ^ n), k) = ps-partial-sum(coef, x, k))  _[warrant: well-known]_
 - `ran-subset-codomain` — forall([x, y, f in fun(x, y)], ran(f) subset y)  _[warrant: proof]_
 - `range-membership` — forall([f, a in dom(f)], f(a) in ran(f))  _[warrant: proof]_
-- `ratio-test-converges` — forall([coef in fun(nn, rr), l], l in rr and 0 <= l and forall([n in nn], not(coef(n) = 0)) and ps-ratio-limit(coef, l) implies forall([x], x in rr and <(abs(x) * l, 1) implies ps-converges-at(coef, x)))  _[warrant: informal]_
+- `ratio-test-converges` — forall([coef in fun(nn, rr), l], l in rr and 0 <= l and forall([n in nn], not(coef(n) = 0)) and ps-ratio-limit(coef, l) implies forall([x], x in rr and abs(x) * l < 1 implies ps-converges-at(coef, x)))  _[warrant: informal]_
 - `ring-power-add` — forall([r], is-commutative-ring(r) implies forall([x in a(r), j in nn, k in nn], ring-power(r, x, j + k) = (mul(r))(ring-power(r, x, j), ring-power(r, x, k))))  _[warrant: informal]_
 - `ring-power-add-rev` — forall([r], is-commutative-ring(r) implies forall([x in a(r), j in nn, k in nn], (mul(r))(ring-power(r, x, j), ring-power(r, x, k)) = ring-power(r, x, j + k)))  _[warrant: informal]_
 - `ring-power-mult` — forall([r], is-commutative-ring(r) implies forall([x in a(r), y in a(r), n in nn], ring-power(r, (mul(r))(x, y), n) = (mul(r))(ring-power(r, x, n), ring-power(r, y, n))))  _[warrant: informal]_
@@ -216,26 +216,26 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `ring-power-type` — forall([r], is-commutative-ring(r) implies forall([x in a(r), n in nn], ring-power(r, x, n) in a(r)))  _[warrant: informal]_
 - `ring-power-zero` — forall([r, x], ring-power(r, x, 0) == one(r))  _[warrant: informal]_
 - `ring-power-zero-rev` — forall([r, x], one(r) == ring-power(r, x, 0))  _[warrant: informal]_
-- `rpow-add` — forall([a], a in rr and <(0, a) implies forall([b in qq, d in qq], rpow(a, b + d) = rpow(a, b) * rpow(a, d)))  _[warrant: well-known]_
-- `rpow-add-rev` — forall([a], a in rr and <(0, a) implies forall([b in qq, d in qq], rpow(a, b) * rpow(a, d) = rpow(a, b + d)))  _[warrant: well-known]_
-- `rpow-mono-base` — forall([a], a in rr and <(0, a) implies forall([c], c in rr and a <= c implies forall([b], b in qq and 0 <= b implies rpow(a, b) <= rpow(c, b))))  _[warrant: well-known]_
+- `rpow-add` — forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(a, b + d) = rpow(a, b) * rpow(a, d)))  _[warrant: well-known]_
+- `rpow-add-rev` — forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(a, b) * rpow(a, d) = rpow(a, b + d)))  _[warrant: well-known]_
+- `rpow-mono-base` — forall([a], a in rr and 0 < a implies forall([c], c in rr and a <= c implies forall([b], b in qq and 0 <= b implies rpow(a, b) <= rpow(c, b))))  _[warrant: well-known]_
 - `rpow-mono-exp-ge1` — forall([a], a in rr and 1 <= a implies forall([b in qq, d], d in qq and b <= d implies rpow(a, b) <= rpow(a, d)))  _[warrant: well-known]_
-- `rpow-mono-exp-le1` — forall([a], a in rr and <(0, a) and a <= 1 implies forall([b in qq, d], d in qq and b <= d implies rpow(a, d) <= rpow(a, b)))  _[warrant: well-known]_
-- `rpow-mul-base` — forall([a], a in rr and <(0, a) implies forall([c], c in rr and <(0, c) implies forall([b in qq], rpow(a * c, b) = rpow(a, b) * rpow(c, b))))  _[warrant: well-known]_
-- `rpow-mul-base-rev` — forall([a], a in rr and <(0, a) implies forall([c], c in rr and <(0, c) implies forall([b in qq], rpow(a, b) * rpow(c, b) = rpow(a * c, b))))  _[warrant: well-known]_
-- `rpow-nat` — forall([a], a in rr and <(0, a) implies forall([n in nn], rpow(a, n) = a ^ n))  _[warrant: well-known]_
-- `rpow-nat-rev` — forall([a], a in rr and <(0, a) implies forall([n in nn], a ^ n = rpow(a, n)))  _[warrant: well-known]_
-- `rpow-neg` — forall([a], a in rr and <(0, a) implies forall([b in qq], rpow(a, 0 - b) = recip(rpow(a, b))))  _[warrant: well-known]_
-- `rpow-neg-rev` — forall([a], a in rr and <(0, a) implies forall([b in qq], recip(rpow(a, b)) = rpow(a, 0 - b)))  _[warrant: well-known]_
-- `rpow-one` — forall([a], a in rr and <(0, a) implies rpow(a, 1) = a)  _[warrant: well-known]_
-- `rpow-one-rev` — forall([a], a in rr and <(0, a) implies a = rpow(a, 1))  _[warrant: well-known]_
-- `rpow-pos` — forall([a], a in rr and <(0, a) implies forall([b in qq], rpow(a, b) in rr and <(0, rpow(a, b))))  _[warrant: well-known]_
-- `rpow-pow` — forall([a], a in rr and <(0, a) implies forall([b in qq, d in qq], rpow(rpow(a, b), d) = rpow(a, b * d)))  _[warrant: well-known]_
-- `rpow-pow-rev` — forall([a], a in rr and <(0, a) implies forall([b in qq, d in qq], rpow(a, b * d) = rpow(rpow(a, b), d)))  _[warrant: well-known]_
-- `rpow-zero` — forall([a], a in rr and <(0, a) implies rpow(a, 0) = 1)  _[warrant: well-known]_
-- `rpow-zero-base` — forall([b], b in qq and <(0, b) implies rpow(0, b) = 0)  _[warrant: well-known]_
-- `rpow-zero-base-rev` — forall([b], b in qq and <(0, b) implies 0 = rpow(0, b))  _[warrant: well-known]_
-- `rpow-zero-rev` — forall([a], a in rr and <(0, a) implies 1 = rpow(a, 0))  _[warrant: well-known]_
+- `rpow-mono-exp-le1` — forall([a], a in rr and 0 < a and a <= 1 implies forall([b in qq, d], d in qq and b <= d implies rpow(a, d) <= rpow(a, b)))  _[warrant: well-known]_
+- `rpow-mul-base` — forall([a], a in rr and 0 < a implies forall([c], c in rr and 0 < c implies forall([b in qq], rpow(a * c, b) = rpow(a, b) * rpow(c, b))))  _[warrant: well-known]_
+- `rpow-mul-base-rev` — forall([a], a in rr and 0 < a implies forall([c], c in rr and 0 < c implies forall([b in qq], rpow(a, b) * rpow(c, b) = rpow(a * c, b))))  _[warrant: well-known]_
+- `rpow-nat` — forall([a], a in rr and 0 < a implies forall([n in nn], rpow(a, n) = a ^ n))  _[warrant: well-known]_
+- `rpow-nat-rev` — forall([a], a in rr and 0 < a implies forall([n in nn], a ^ n = rpow(a, n)))  _[warrant: well-known]_
+- `rpow-neg` — forall([a], a in rr and 0 < a implies forall([b in qq], rpow(a, 0 - b) = recip(rpow(a, b))))  _[warrant: well-known]_
+- `rpow-neg-rev` — forall([a], a in rr and 0 < a implies forall([b in qq], recip(rpow(a, b)) = rpow(a, 0 - b)))  _[warrant: well-known]_
+- `rpow-one` — forall([a], a in rr and 0 < a implies rpow(a, 1) = a)  _[warrant: well-known]_
+- `rpow-one-rev` — forall([a], a in rr and 0 < a implies a = rpow(a, 1))  _[warrant: well-known]_
+- `rpow-pos` — forall([a], a in rr and 0 < a implies forall([b in qq], rpow(a, b) in rr and 0 < rpow(a, b)))  _[warrant: well-known]_
+- `rpow-pow` — forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(rpow(a, b), d) = rpow(a, b * d)))  _[warrant: well-known]_
+- `rpow-pow-rev` — forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(a, b * d) = rpow(rpow(a, b), d)))  _[warrant: well-known]_
+- `rpow-zero` — forall([a], a in rr and 0 < a implies rpow(a, 0) = 1)  _[warrant: well-known]_
+- `rpow-zero-base` — forall([b], b in qq and 0 < b implies rpow(0, b) = 0)  _[warrant: well-known]_
+- `rpow-zero-base-rev` — forall([b], b in qq and 0 < b implies 0 = rpow(0, b))  _[warrant: well-known]_
+- `rpow-zero-rev` — forall([a], a in rr and 0 < a implies 1 = rpow(a, 0))  _[warrant: well-known]_
 - `rpow-zero-zero` — rpow(0, 0) = 1  _[warrant: well-known]_
 - `rpow-zero-zero-rev` — 1 = rpow(0, 0)  _[warrant: well-known]_
 - `rr-abs-bound` — forall([x in rr, c in rr], abs(x) <= c iff -c <= x and x <= c)  _[warrant: well-known]_
@@ -245,7 +245,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `rr-amgm-2` — forall([a in rr, b in rr], 4 * a * b <= (a + b) * (a + b))  _[warrant: well-known]_
 - `rr-bernoulli` — forall([x in rr, n in nn], -1 <= x implies 1 + n * x <= (1 + x) ^ n)  _[warrant: well-known]_
 - `rr-bounded-equivalent` — is-continuous(rr-ms, rr-bounded-ms, vnb-lambda(x, x)) and is-continuous(rr-bounded-ms, rr-ms, vnb-lambda(x, x))  _[warrant: well-known]_
-- `rr-bounded-ms-bounded` — forall([x in rr, y in rr], <((d(rr-bounded-ms))(x, y), 1))  _[warrant: well-known]_
+- `rr-bounded-ms-bounded` — forall([x in rr, y in rr], (d(rr-bounded-ms))(x, y) < 1)  _[warrant: well-known]_
 - `rr-bounded-ms-is-metric-space` — is-metric-space(rr-bounded-ms)  _[warrant: well-known]_
 - `rr-cauchy-schwarz-2` — forall([a1 in rr, a2 in rr, b1 in rr, b2 in rr], (a1 * b1 + a2 * b2) * (a1 * b1 + a2 * b2) <= (a1 * a1 + a2 * a2) * (b1 * b1 + b2 * b2))  _[warrant: well-known]_
 - `rr-double-nonneg` — forall([x in rr], 0 <= x + x implies 0 <= x)  _[warrant: well-known]_
@@ -253,15 +253,15 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `rr-le-add` — forall([x in rr, y in rr, u in rr, v in rr], x <= y and u <= v implies x + u <= y + v)  _[warrant: well-known]_
 - `rr-le-all-pos-nonpos` — forall([x in rr], forall([eps], pos-rr(eps) implies x <= eps) implies x <= 0)  _[warrant: well-known]_
 - `rr-le-from-diff-nonneg` — forall([x in rr, y in rr], 0 <= y - x implies x <= y)  _[warrant: well-known]_
-- `rr-le-lt-trans` — forall([x in rr, y in rr, z in rr], x <= y and <(y, z) implies <(x, z))  _[warrant: well-known]_
+- `rr-le-lt-trans` — forall([x in rr, y in rr, z in rr], x <= y and y < z implies x < z)  _[warrant: well-known]_
 - `rr-le-scale-nonneg` — forall([c in rr, x in rr, y in rr], 0 <= c and x <= y implies c * x <= c * y)  _[warrant: well-known]_
-- `rr-lt-add` — forall([x in rr, y in rr, u in rr, v in rr], <(x, y) and u <= v implies <(x + u, y + v))  _[warrant: well-known]_
-- `rr-lt-implies-le` — forall([x in rr, y in rr], <(x, y) implies x <= y)  _[warrant: well-known]_
-- `rr-lt-le-trans` — forall([x in rr, y in rr, z in rr], <(x, y) and y <= z implies <(x, z))  _[warrant: well-known]_
-- `rr-lt-scale-pos` — forall([c in rr, x in rr, y in rr], <(0, c) and <(x, y) implies <(c * x, c * y))  _[warrant: well-known]_
-- `rr-lt-trans` — forall([x in rr, y in rr, z in rr], <(x, y) and <(y, z) implies <(x, z))  _[warrant: well-known]_
+- `rr-lt-add` — forall([x in rr, y in rr, u in rr, v in rr], x < y and u <= v implies x + u < y + v)  _[warrant: well-known]_
+- `rr-lt-implies-le` — forall([x in rr, y in rr], x < y implies x <= y)  _[warrant: well-known]_
+- `rr-lt-le-trans` — forall([x in rr, y in rr, z in rr], x < y and y <= z implies x < z)  _[warrant: well-known]_
+- `rr-lt-scale-pos` — forall([c in rr, x in rr, y in rr], 0 < c and x < y implies c * x < c * y)  _[warrant: well-known]_
+- `rr-lt-trans` — forall([x in rr, y in rr, z in rr], x < y and y < z implies x < z)  _[warrant: well-known]_
 - `rr-pos-halvable` — forall([eps], pos-rr(eps) implies forsome([d], pos-rr(d) and d + d = eps))  _[warrant: well-known]_
-- `rr-pos-shrink` — forall([eps], pos-rr(eps) implies forsome([d], pos-rr(d) and <(d, eps)))  _[warrant: well-known]_
+- `rr-pos-shrink` — forall([eps], pos-rr(eps) implies forsome([d], pos-rr(d) and d < eps))  _[warrant: well-known]_
 - `rr-qm-am-2` — forall([a in rr, b in rr], (a + b) * (a + b) <= 2 * (a * a + b * b))  _[warrant: well-known]_
 - `rr-sq-nonneg` — forall([x in rr], 0 <= x * x)  _[warrant: well-known]_
 - `rr-young-2` — forall([a in rr, b in rr], a * b <= /(a * a + b * b, 2))  _[warrant: well-known]_
@@ -275,11 +275,11 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `sqrt-nonneg` — forall([a], a in rr and 0 <= a implies sqrt(a) in rr and 0 <= sqrt(a))  _[warrant: well-known]_
 - `sqrt-of-sq` — forall([a in rr], sqrt(a * a) = abs(a))  _[warrant: well-known]_
 - `sqrt-of-sq-rev` — forall([a in rr], abs(a) = sqrt(a * a))  _[warrant: well-known]_
-- `sqrt-rpow` — forall([a], a in rr and <(0, a) implies sqrt(a) = rpow(a, /(1, 2)))  _[warrant: well-known]_
-- `sqrt-rpow-rev` — forall([a], a in rr and <(0, a) implies rpow(a, /(1, 2)) = sqrt(a))  _[warrant: well-known]_
+- `sqrt-rpow` — forall([a], a in rr and 0 < a implies sqrt(a) = rpow(a, /(1, 2)))  _[warrant: well-known]_
+- `sqrt-rpow-rev` — forall([a], a in rr and 0 < a implies rpow(a, /(1, 2)) = sqrt(a))  _[warrant: well-known]_
 - `sqrt-sq` — forall([a], a in rr and 0 <= a implies sqrt(a) * sqrt(a) = a)  _[warrant: well-known]_
 - `sqrt-sq-rev` — forall([a], a in rr and 0 <= a implies a = sqrt(a) * sqrt(a))  _[warrant: well-known]_
-- `subsequence-capture` — forall([s in inf-subsets(nn)], forsome([f in fun(nn, s)], forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n)))))  _[warrant: informal]_
+- `subsequence-capture` — forall([s in inf-subsets(nn)], forsome([f in fun(nn, s)], forall([m in nn, n in nn], m < n implies f(m) < f(n))))  _[warrant: informal]_
 - `succ-nn-ord` — forall([n in nn], succ(n) = succ_ord(n))  _[warrant: informal]_
 - `succ-nn-ord-rev` — forall([n in nn], succ_ord(n) = succ(n))  _[warrant: informal]_
 - `sum-ag-permutation-invariance` — forall([n in nn, ag], is-abelian-group(ag) implies forall([g in fun(nn, a(ag)), h in fun(nn, a(ag)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(ag, g, n) = sum-ag(ag, h, n)))  _[warrant: informal]_
@@ -295,7 +295,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `union-empty-left-rev` — forall([a in set], a = union(empty-set, a))  _[warrant: well-known]_
 - `union-of-opens-open` — forall([s], is-metric-space(s) implies forall([a, g], forall([i in a], is-open(s, g(i))) implies is-open(s, big-union(i, a, g(i)))))  _[warrant: proof]_
 - `well-ordering-principle` — forall([s in set], forsome([phi], phi in bijection(ord-segment(card(s)), s)))  _[warrant: well-known]_
-- `young-inequality` — forall([a], a in rr and <(0, a) implies forall([b], b in rr and <(0, b) implies forall([p], p in qq and <(1, p) implies forall([q], q in qq and <(1, q) implies /(1, p) + /(1, q) = 1 implies a * b <= /(rpow(a, p), p) + /(rpow(b, q), q)))))  _[warrant: well-known]_
+- `young-inequality` — forall([a], a in rr and 0 < a implies forall([b], b in rr and 0 < b implies forall([p], p in qq and 1 < p implies forall([q], q in qq and 1 < q implies /(1, p) + /(1, q) = 1 implies a * b <= /(rpow(a, p), p) + /(rpow(b, q), q)))))  _[warrant: well-known]_
 
 ## Stated without proof
 
@@ -402,8 +402,8 @@ The foundational axioms of VNB set theory (make-vnb-base-theory core + theorem-l
 
 Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name new vocabulary; add no strength.
 
-- `<` — forall([x, y], <(x, y) iff x <= y and not(x = y))
-- `<-rev` — forall([x, y], x <= y and not(x = y) iff <(x, y))
+- `<` — forall([x, y], x < y iff x <= y and not(x = y))
+- `<-rev` — forall([x, y], x <= y and not(x = y) iff x < y)
 - `abelian-group-as-monoid-is-monoid` — forall([r], is-abelian-group(r) implies is-monoid(abelian-group-as-monoid(r)))
 - `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies is-monoid(abelian-group-as-monoid(commutative-ring-additive-ag(r))))
 - `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies is-monoid(abelian-group-as-monoid(commutative-ring-additive-ag(normed-field-as-commutative-ring(r)))))
@@ -462,8 +462,8 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `class-is-set` — forall([s], is-setoid(s) implies forall([a in x(s)], class(s, a) in set))  _[warrant: well-known]_
 - `class-self` — forall([s], is-setoid(s) implies forall([a in x(s)], a in class(s, a)))  _[warrant: well-known]_
 - `class-subset-carrier` — forall([s], is-setoid(s) implies forall([a in x(s)], class(s, a) subset x(s)))  _[warrant: well-known]_
-- `cluster-point` — forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and <((d(s))(f(n), x), eps)))))
-- `cluster-point-rev` — forall([s, f, x], is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and <((d(s))(f(n), x), eps)))) iff cluster-point(s, f, x))
+- `cluster-point` — forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and (d(s))(f(n), x) < eps))))
+- `cluster-point-rev` — forall([s, f, x], is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and (d(s))(f(n), x) < eps))) iff cluster-point(s, f, x))
 - `comm-monoid-class` — forall([s], s in comm-monoid iff is-comm-monoid(s))
 - `comm-monoid-class-rev` — forall([s], is-comm-monoid(s) iff s in comm-monoid)
 - `comm-monoid-is-monoid-commutative-ring-multiplicative-cm` — forall([r], is-commutative-ring(r) implies is-monoid(commutative-ring-multiplicative-cm(r)))
@@ -904,10 +904,10 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `series-converges-to-rev` — forall([f, l], converges-to(rr-ms, vnb-lambda(k, series-partial-sum(f, k)), l) iff series-converges-to(f, l))
 - `setoid-class` — forall([s], s in setoid iff is-setoid(s))
 - `setoid-class-rev` — forall([s], is-setoid(s) iff s in setoid)
-- `summable-weight` — forall([w], summable-weight(w) iff w in fun(nn, rr) and forall([n in nn], <(0, w(n))) and series-converges(w))
-- `summable-weight-rev` — forall([w], w in fun(nn, rr) and forall([n in nn], <(0, w(n))) and series-converges(w) iff summable-weight(w))
-- `sums-to` — forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies <((nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))), eps)))))
-- `sums-to-rev` — forall([grp, f, r], forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies <((nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))), eps)))) iff sums-to(grp, f, r))
+- `summable-weight` — forall([w], summable-weight(w) iff w in fun(nn, rr) and forall([n in nn], 0 < w(n)) and series-converges(w))
+- `summable-weight-rev` — forall([w], w in fun(nn, rr) and forall([n in nn], 0 < w(n)) and series-converges(w) iff summable-weight(w))
+- `sums-to` — forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies (nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))) < eps))))
+- `sums-to-rev` — forall([grp, f, r], forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies (nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))) < eps))) iff sums-to(grp, f, r))
 - `totally-bounded-def` — forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, x(s), r))))
 - `totally-bounded-def-rev` — forall([s], is-metric-space(s) and forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, x(s), r))) iff totally-bounded(s))
 - `zero-ring-def` — zero-ring = [{0}, vnb-lambda([p, q], 0), vnb-lambda([p, q], 0), vnb-lambda([p], 0), 0, 0]

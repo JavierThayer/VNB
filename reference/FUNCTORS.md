@@ -159,7 +159,7 @@ Body is a function (`vnb-lambda`), element, number, or proposition — distance 
 
 ### nn-enum
 
-    nn-enum(s) = choice({f in fun(nn, s): forall([m in nn, n in nn], <(m, n) implies <(f(m), f(n)))})
+    nn-enum(s) = choice({f in fun(nn, s): forall([m in nn, n in nn], m < n implies f(m) < f(n))})
 
 ### prod-ring
 

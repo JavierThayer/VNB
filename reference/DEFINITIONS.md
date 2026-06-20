@@ -7,7 +7,7 @@ sequence, convergence, completeness.
 
 ### <
 
-    forall([x, y], <(x, y) iff x <= y and not(x = y))
+    forall([x, y], x < y iff x <= y and not(x = y))
 
 ### cc-ms
 
@@ -15,7 +15,7 @@ sequence, convergence, completeness.
 
 ### cluster-point
 
-    forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and <((d(s))(f(n), x), eps)))))
+    forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and (d(s))(f(n), x) < eps))))
 
 ### converges
 
@@ -179,11 +179,11 @@ sequence, convergence, completeness.
 
 ### summable-weight
 
-    forall([w], summable-weight(w) iff w in fun(nn, rr) and forall([n in nn], <(0, w(n))) and series-converges(w))
+    forall([w], summable-weight(w) iff w in fun(nn, rr) and forall([n in nn], 0 < w(n)) and series-converges(w))
 
 ### sums-to
 
-    forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies <((nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))), eps)))))
+    forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies (nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))) < eps))))
 
 ### zero-ring
 

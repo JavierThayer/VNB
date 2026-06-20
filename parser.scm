@@ -242,12 +242,16 @@
         (begin (p-adv) (list 'and left (p-parse-and)))
         left)))
 
-;; CMP — binary: in subset = == <=
+;; CMP — binary: in subset = == <= <
+;; (`<' is the strict order; the tokenizer already emits (sym . <), and the
+;; predicate is defined  (< x y) <=> (<= x y and not(x=y))  in
+;; order-predicates.scm.  `<=' must precede `<' nowhere here -- they are
+;; distinct tokens from the lexer, so order in this list is irrelevant.)
 (define (p-parse-cmp)
   (let ((left (p-parse-add)))
     (let ((t (p-peek)))
       (if (and (pair? t) (eq? (car t) 'sym)
-               (memq (cdr t) '(in subset = == <=)))
+               (memq (cdr t) '(in subset = == <= <)))
           (let* ((op    (cdr (p-adv)))
                  (right (p-parse-add)))
             (list op left right))

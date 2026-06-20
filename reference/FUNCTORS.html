@@ -142,7 +142,7 @@
 <h4 id="FUNCTORS__inverse-bij">inverse-bij</h4>
 <pre>inverse-bij(phi, x, y) = vnb-lambda(y, choice({x in x: phi(x) = y}))</pre>
 <h4 id="FUNCTORS__nn-enum">nn-enum</h4>
-<pre>nn-enum(s) = choice({f in fun(nn, s): forall([m in nn, n in nn], &lt;(m, n) implies &lt;(f(m), f(n)))})</pre>
+<pre>nn-enum(s) = choice({f in fun(nn, s): forall([m in nn, n in nn], m &lt; n implies f(m) &lt; f(n))})</pre>
 <h4 id="FUNCTORS__prod-ring">prod-ring</h4>
 <pre>prod-ring(r, f, s) = finprod(commutative-ring-multiplicative-cm(r), f, s)</pre>
 <h4 id="FUNCTORS__product-proj">product-proj</h4>

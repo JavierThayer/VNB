@@ -94,7 +94,7 @@
     ((eq?  head 'iff)               1)
     ((eq?  head 'or)                2)
     ((eq?  head 'and)               3)
-    ((memq head '(in = == <=))      4)
+    ((memq head '(in = == <= <))    4)
     ((memq head '(+ -))             5)
     ((memq head '(* recip))         6)
     ((memq head '(power))           7)
@@ -228,8 +228,8 @@
                                    " implies "
                                    (expr->str (caddr e) p))))
             (paren-if s p min-prec)))
-         ;; Binary comparison: in subset = == <=  (non-associative; both args at p)
-         ((and (memq head '(in subset SUBSET = == <=)) (= (length e) 3))
+         ;; Binary comparison: in subset = == <= <  (non-associative; both args at p)
+         ((and (memq head '(in subset SUBSET = == <= <)) (= (length e) 3))
           (let* ((p (op-prec head))
                  (s (string-append (expr->str (cadr e) p)
                                    " " (symbol->string head) " "
