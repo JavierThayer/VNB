@@ -704,8 +704,33 @@ same red/pink rules that fence off read-only regions elsewhere."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "^;;[ \t]*─+[ \t]*$" nil t)
-      (overlay-put (make-overlay (match-beginning 0) (match-end 0))
-                   'face 'vnb-accent))))
+      (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+        (overlay-put ov 'face 'vnb-accent)
+        ;; Sit above the whole-banner dim overlay laid by
+        ;; `vnb-launch--paint-banner' so the pink rules still show.
+        (overlay-put ov 'priority 1)))))
+
+(defun vnb-launch--paint-banner ()
+  "Paint the leading read-only comment banner in one uniform face.
+The banner lines are `;'-comments (so the prover ignores them when the
+workspace's contents are read), but in a scheme-derived workspace -- Build
+Structure uses `scheme-mode' -- font-lock would otherwise colour the text
+with `font-lock-comment-face' and the leading `;;'/`;;;' with
+`font-lock-comment-delimiter-face': two clashing colours that make the
+semicolons stand out at the start of every banner line.  An overlay (which
+layers above font-lock's text-property faces) repaints the whole run as dim
+secondary text, so the header reads as uniform read-only chrome regardless
+of the buffer's major mode.  Call before `vnb-launch--accent-rule-lines',
+which re-overlays the `;; ───' rules in accent pink at a higher priority."
+  (save-excursion
+    (goto-char (point-min))
+    (while (and (not (eobp)) (looking-at "^[ \t]*;"))
+      (forward-line 1))
+    (let ((end (point)))
+      (when (> end (point-min))
+        (let ((ov (make-overlay (point-min) end)))
+          (overlay-put ov 'face 'vnb-dim)
+          (overlay-put ov 'priority 0))))))
 
 (defun vnb-ws-calculator ()
   "Open the *VNB Calculator*: a Scratch-style editable tape.
@@ -720,6 +745,7 @@ out right there -- the same prover that checks proofs also does the sums."
       (when (= (point-min) (point-max))
         (insert vnb-calc-template)
         (vnb-launch--protect-banner)
+        (vnb-launch--paint-banner)
         (vnb-launch--accent-rule-lines)
         (goto-char (point-max))))
     (delete-other-windows)
@@ -3762,6 +3788,7 @@ formulas room the minibuffer never had."
       (when (= (point-min) (point-max))
         (insert vnb-startproof-template)
         (vnb-launch--protect-banner)
+        (vnb-launch--paint-banner)
         (vnb-launch--accent-rule-lines)
         (goto-char (point-max))))
     (delete-other-windows)
@@ -3812,6 +3839,7 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
       (when (= (point-min) (point-max))
         (insert vnb-firstproof-template)
         (vnb-launch--protect-banner)
+        (vnb-launch--paint-banner)
         (vnb-launch--accent-rule-lines)
         (goto-char (point-max))))
     (delete-other-windows)
@@ -3944,6 +3972,7 @@ structure-library/user-additions.scm for auto-load on next launch."
       (when (= (point-min) (point-max))
         (insert vnb-structure-template)
         (vnb-launch--protect-banner)
+        (vnb-launch--paint-banner)
         (vnb-launch--accent-rule-lines)
         (goto-char (point-min))
         (when (search-forward "NAME" nil t)
