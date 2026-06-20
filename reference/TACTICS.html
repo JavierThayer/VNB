@@ -190,7 +190,16 @@
 <p>Close a linear-inequality goal over RR (&lt;= &lt; &gt; &gt;= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring&#x27;s (ADD s)/(MUL s) -- those become opaque atoms.)</p>
 <h4 id="TACTICS__sos">sos</h4>
 <pre>(sos &quot;c1&quot; &quot;c2&quot; ...)</pre>
-<p>Close a NONSTRICT polynomial inequality a &lt;= b over RR by a sum-of-squares certificate -- the nonlinear companion of (ineq).  Supply the terms c_i TO BE SQUARED (not the squares themselves), as surface strings or s-exprs; the oracle squares them, then checks that b - a is a nonnegative rational combination  Sum lambda_i (c_i)^2  and prints the lambda_i it found (you do NOT supply them).  Example: for  x*y &lt;= x^2 + y^2  call  (sos &quot;x - y&quot; &quot;x&quot; &quot;y&quot;)  and it closes with 1/2(x-y)^2 + 1/2 x^2 + 1/2 y^2.  Makes AM-GM / Cauchy-Schwarz fall out in one step.  Run it on the QUANTIFIED goal (BEFORE di) so the c_i may use the goal&#x27;s own variable names; every generator must be certified in RR.  A wrong/insufficient certificate just refuses cleanly.  Strict (&lt;) goals are refused (a square may vanish).</p>
+<p>Sum-of-squares closer for a nonstrict polynomial inequality a &lt;= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics &#x27;sos) for the worked example.</p>
+<p>A sum-of-squares closer.  To prove  a &lt;= b  it is enough to exhibit b - a  as a sum of squares (each obviously &gt;= 0), reducing the inequality to an algebraic identity.  You hand sos the terms to be SQUARED -- the c_i, NOT the squares -- and it solves for nonnegative rationals lambda_i with</p>
+<pre>  b - a  =  lambda_1 c_1^2 + ... + lambda_n c_n^2</pre>
+<p>(matched coefficient-by-coefficient in crs&#x27;s commutative-ring normal form), then PRINTS the lambda_i it found.  You do not supply them.</p>
+<p>Worked example.  Goal  forall([x in rr, y in rr], x<em>y &lt;= x^2 + y^2).  Here b - a = x^2 - x</em>y + y^2 = 1/2(x-y)^2 + 1/2 x^2 + 1/2 y^2,  so the things squared are  x-y, x, y:</p>
+<pre>  (sos &quot;x - y&quot; &quot;x&quot; &quot;y&quot;)
+      ;; closes, printing  1/2(x-y)^2 + 1/2 x^2 + 1/2 y^2</pre>
+<p>2<em>x</em>y &lt;= x^2 + y^2 needs only one square:  (sos &quot;x - y&quot;).  The three-variable a<em>b+b</em>c+c*a &lt;= a^2+b^2+c^2  wants  (sos &quot;a - b&quot; &quot;b - c&quot; &quot;c - a&quot;).</p>
+<p>Notes.</p>
+<ul><li>Write the c_i with the goal&#x27;s own variable names.  di preserves them, so sos works before OR after di; skip di and sos peels the typed forall([... in rr]) wrapper itself.</li><li>Every generator (variable) must be certified in RR -- a goal binder x in rr  or an  (IN g RR)  assumption.</li><li>A wrong or insufficient certificate refuses cleanly: nothing is closed, you simply try other squares.</li><li>Strict (&lt;) goals are refused -- a square can be 0, so squares alone never force a strict inequality.</li></ul>
 <h3 id="TACTICS__backchaining-with-a-theorem">Backchaining with a theorem</h3>
 <h4 id="TACTICS__ta">ta</h4>
 <pre>(ta &#x27;name)</pre>

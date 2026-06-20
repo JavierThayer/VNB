@@ -566,12 +566,14 @@
 ;;; ineq).  cert-args are surface-string or s-expr terms c_i; the goal closes
 ;;; when b - a is a nonnegative rational combination of the squares c_i^2.
 (define (cmd-sos ps cert-args)
-  (let* ((sqn   (proof-state-focus ps))
-         (certs (map ->raw-formula cert-args))
-         (r     (pi-sos! sqn certs)))
-    (if r (focus-after-rule ps r)
-        (vnb--warn "sos: goal is not a <= over RR closed by the given squares as a nonnegative certificate"
-                   (vnb--goal-str sqn)))))
+  (if (null? cert-args)
+      (begin (sos-print-usage) ps)       ; bare (sos): explain, leave the state unchanged
+      (let* ((sqn   (proof-state-focus ps))
+             (certs (map ->raw-formula cert-args))
+             (r     (pi-sos! sqn certs)))
+        (if r (focus-after-rule ps r)
+            (vnb--warn "sos: goal is not a <= over RR closed by the given squares as a nonnegative certificate"
+                       (vnb--goal-str sqn))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; D-7 commands: SEP / COMP / IOTA / VNB-LAMBDA characterizations

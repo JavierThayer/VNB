@@ -58,6 +58,15 @@
        (display "(") (display (expression->string (car cs))) (display ")^2")
        (loop (cdr cs) (cdr ls) #f)))))
 
+;;; Short usage, printed when (sos) is called with no certificate -- a friendly
+;;; nudge instead of an attempted (and failing) proof.
+(define (sos-print-usage)
+  (display ";; sos -- sum-of-squares closer for a nonstrict polynomial  a <= b  over RR.\n")
+  (display ";; Supply the terms to be SQUARED (not the squares); sos finds nonnegative\n")
+  (display ";; lambda_i with  b - a = lambda_1 c_1^2 + ... + lambda_n c_n^2  and closes.\n")
+  (display ";;   e.g.  x*y <= x^2 + y^2  is closed by   (sos \"x - y\" \"x\" \"y\")\n")
+  (display ";; Full explanation and more examples:  (tactics 'sos)\n"))
+
 ;;; Primitive inference: close  a <= b  (or  b >= a) over RR by a supplied
 ;;; sum-of-squares certificate.  cert-terms are raw s-expr terms.
 (define (pi-sos! sqn cert-terms)
