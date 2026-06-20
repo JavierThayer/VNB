@@ -254,7 +254,7 @@ Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a conse
 
     (sos "c1" "c2" ...)
 
-Close a NONSTRICT polynomial inequality a <= b over RR by a sum-of-squares certificate -- the nonlinear companion of (ineq).  Supply the certificate terms c_i (surface strings or s-exprs); the oracle checks that b - a is a nonnegative rational combination Sum lambda_i (c_i)^2 of their squares (exact LP over crs's commutative-ring normal form), and prints the lambda_i.  Makes AM-GM / Cauchy-Schwarz / x*y<=x^2+y^2 fall out in one step.  Run it on the QUANTIFIED goal (before di), so the c_i may use the goal's own variable names; generators must be certified in RR.  Strict (<) goals are refused (a square may vanish).
+Close a NONSTRICT polynomial inequality a <= b over RR by a sum-of-squares certificate -- the nonlinear companion of (ineq).  Supply the terms c_i TO BE SQUARED (not the squares themselves), as surface strings or s-exprs; the oracle squares them, then checks that b - a is a nonnegative rational combination  Sum lambda_i (c_i)^2  and prints the lambda_i it found (you do NOT supply them).  Example: for  x*y <= x^2 + y^2  call  (sos "x - y" "x" "y")  and it closes with 1/2(x-y)^2 + 1/2 x^2 + 1/2 y^2.  Makes AM-GM / Cauchy-Schwarz fall out in one step.  Run it on the QUANTIFIED goal (BEFORE di) so the c_i may use the goal's own variable names; every generator must be certified in RR.  A wrong/insufficient certificate just refuses cleanly.  Strict (<) goals are refused (a square may vanish).
 
 ## Backchaining with a theorem
 

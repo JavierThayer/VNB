@@ -373,8 +373,10 @@
                        (what-now--arith-term? (cadr core))
                        (what-now--arith-term? (caddr core))
                        (or (pair? (cadr core)) (pair? (caddr core))))
-              (display ";;   (sos \"c1\" \"c2\" ...) -- polynomial inequality via a sum-of-squares") (newline)
-              (display ";;     certificate (supply the squares; run BEFORE di so c_i use the goal vars).") (newline))
+              (display ";;   (sos \"c1\" \"c2\" ...) -- sum-of-squares closer for a polynomial <=.") (newline)
+              (display ";;     Supply the terms to be SQUARED (not the squares): e.g. for") (newline)
+              (display ";;     x*y <= x^2 + y^2 type  (sos \"x - y\" \"x\" \"y\").  Write the c_i") (newline)
+              (display ";;     with the goal's variable names (di preserves them).") (newline))
             (set! moves (map (lambda (nm) (list 'bc* (list 'quote nm)))
                              (what-now--show-backchain goal opt-depth))))
            (else                                ; equality-other, predicate

@@ -42,8 +42,21 @@
   (if (and (pair? raw-goal) (eq? (car raw-goal) 'FORALL))
       (let* ((x     (quantifier-var raw-goal))
              (body  (quantifier-body raw-goal))
-             (y     (apply fresh-var x body raw-goal
-                           (append added ambient-avoids)))
+             ;; Keep the bound name x as the eigenvariable when that is sound,
+             ;; instead of always minting x_<n>.  The only side condition for
+             ;; forall-intro is that the eigenvariable not already be free in
+             ;; the context -- here the assumptions/goal (ambient-avoids) or an
+             ;; eigenvariable already introduced earlier in this same di
+             ;; (added).  y=x is an IDENTITY substitution on body, so it can
+             ;; never capture there; we therefore check x only against that
+             ;; context, NOT against body (where x is of course free).  Only
+             ;; when x genuinely clashes do we fall back to a fresh x_<n>.
+             ;; This keeps variable names stable and predictable across di
+             ;; (no gratuitous gensym drift) in the common no-conflict case.
+             (avoids (append added ambient-avoids))
+             (y     (if (memq x (apply append (map free-vars avoids)))
+                        (apply fresh-var x body raw-goal avoids)
+                        x))
              (body* (subst-free x y body)))
         (if (and (pair? body*)
                  (eq? (car body*) 'IMPLIES)
