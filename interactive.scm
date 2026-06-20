@@ -2766,6 +2766,27 @@
               (display (length goals)) (display " open goals)")
               (newline)))))))
 
+;;; (focus-id k) -- focus the open goal whose displayed NODE NUMBER is k (the
+;;; bracketed [k] in the state display), as opposed to (focus n) which takes a
+;;; 1-based position.  This is what UI surfaces that show [k] should drive, so
+;;; "focus [0]" focuses node 0 regardless of its position in the open-goal list.
+(define (focus-id k)
+  (vnb-guard
+    (lambda ()
+      (vnb--require-proof!)
+      (let ((g (let loop ((gs (proof-open-goals *ps*)))
+                 (cond ((null? gs) #f)
+                       ((eqv? (sequent-node-number (car gs)) k) (car gs))
+                       (else (loop (cdr gs)))))))
+        (if g
+            (begin
+              (record-cmd! 'focus-id (list k))
+              (set! *ps* (focus-on *ps* g))
+              (show))
+            (begin
+              (display ";VNB warning: focus-id: no open goal with node number ")
+              (display k) (newline)))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Install the completed current proof as a named theorem AND save the
 ;;; proof script under the same name.

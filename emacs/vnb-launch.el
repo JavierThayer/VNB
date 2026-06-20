@@ -3069,8 +3069,10 @@ Lexical binding makes the closure capture variables from the caller."
    'action (lambda (_) (funcall fn))))
 
 (defun vnb-launch--focus-on (n)
-  "Send (focus N) to the prover and switch to the Focus Workspace."
-  (vnb-launch--send-tactic (format "(focus %d)" n))
+  "Focus the open goal whose displayed node number is N, then switch to the
+Focus Workspace.  N is the bracketed [N] node id from the overview, so we drive
+the prover's `focus-id' (by node number), NOT `focus' (a 1-based position)."
+  (vnb-launch--send-tactic (format "(focus-id %d)" n))
   (vnb-launch--show-proof-workspace))
 
 (defun vnb-launch--paint-overview ()
