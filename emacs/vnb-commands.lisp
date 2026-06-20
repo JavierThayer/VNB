@@ -48,7 +48,7 @@
 (sos (c1 c2) "Sum-of-squares closer for a nonstrict polynomial inequality a <= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics 'sos) for the worked example.")
 (ta (name) "Theorem-assumption: bring the named installed theorem into context as an assumption.")
 (bc (impl) "Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.")
-(bc* (thm formula h1 h2) "Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals; optional handlers hk run on the k-th subgoal.")
+(bc* (thm formula h1 h2) "Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals -- optional handlers hk run on the k-th subgoal.")
 (lam-t () "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.")
 (lam-b () "VNB-LAMBDA beta: reduce an applied lambda to its substituted body.")
 (sep-set () "Separation sethood: the separation set {x in A | p} is a set.")

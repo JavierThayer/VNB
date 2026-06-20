@@ -614,6 +614,7 @@ indexing by structure).  No window split, no raw s-expressions."
 ;;                  read as a single name).
 ;;
 ;;  Try these (put the cursor on a line and press C-j):
+;; ────────────────────────────────────────────────────────────
 
 2 + 3 + 5
 10 - 4
@@ -3692,6 +3693,7 @@ next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
 ;; lines (starting with ';') are ignored.  C-c C-c parses the goal, starts
 ;; the proof, and switches to the Focus workspace.  (A quick one-liner can
 ;; still go straight through  (sp (wff \"...\"))  in the Scratch Workspace.)
+;; ────────────────────────────────────────────────────────────
 
 "
   "Initial content inserted into a fresh Start Proof workspace.")
@@ -3790,6 +3792,7 @@ formulas room the minibuffer never had."
 ;;
 ;;  That assume-then-discharge loop is the heart of every proof.  When you
 ;;  are ready for more, try  Start Proof  with a goal of your own.
+;; ────────────────────────────────────────────────────────────
 
 forall([x in nn], x in nn)
 "
@@ -3832,6 +3835,7 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
 ;;   (carriers C1 C2 ...)        one or more carrier set names
 ;;   (op   OP   (D1 D2 ...) R)   operation OP : D1 x ... x Dn -> R
 ;;   (constant CONST DOMAIN)     distinguished element
+;; ────────────────────────────────────────────────────────────
 
 (declare-structure NAME
   (carriers ELEMENTS)

@@ -365,7 +365,7 @@ Work backwards through an implication you already have.  If `P implies Q' is amo
 
     (bc* 'thm [((v val)...)] h1 h2 ...)
 
-Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals; optional handlers hk run on the k-th subgoal.
+Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals -- optional handlers hk run on the k-th subgoal.
 
 Apply a known theorem to your goal.  If you have a theorem `if A and B then C' and your goal is its conclusion C -- matching the theorem's variables to yours, and the names of any dummy/bound variables don't matter (`there exists a net N' applies to a goal `there exists a net F') -- this replaces `prove the goal' with `prove A' and `prove B', the theorem's hypotheses.  The everyday `by Theorem X it suffices to show A and B'.  You may attach a handler to each hypothesis to dispatch it; values the match can't determine you supply as ((v val) ...).  (Technically: peels the theorem's leading universals and implications, matches the conclusion -- alpha-aware on bound variables -- and replays ta/inst/cut/bc automatically.)
 
