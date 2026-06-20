@@ -69,6 +69,10 @@
     ;; The finite order calculus of RR (chaining, adding inequalities, scaling,
     ;; abs bounds) -- workhorse PSS layer over the number-systems order axioms.
     "structure-library/order-lemmas"
+    ;; Important elementary inequalities over RR (Young, AM-GM, QM-AM, Cauchy-
+    ;; Schwarz(2), Bernoulli) plus the bounded-function family f(t)=t/(1+t);
+    ;; warranted PSS supports.  Needs only the RR order calculus above.
+    "structure-library/scalar-inequalities"
     ;; Cauchy/convergence/completeness on a generic metric space; needs RR's
     ;; order (number-systems) and POS-RR (order-predicates).  Loaded before
     ;; complex.scm so cc-complete can be stated as IS-COMPLETE(CC-MS).
@@ -117,6 +121,11 @@
     ;; sequences (sum-ag-as-reduce); kernel-only deps (LIST/NTH/LENGTH/NN).
     "structure-library/reduce"
     "structure-library/numeric-instances"
+    ;; The bounded metric d/(1+d) of a metric space + its topological
+    ;; equivalence to d (identity bicontinuous); the RR-BOUNDED-MS instance.
+    ;; Needs IS-CONTINUOUS (metric-continuity), RR-MS (numeric-instances above)
+    ;; and the f(t)=t/(1+t) family (scalar-inequalities).
+    "structure-library/bounded-metric"
     ;; Completion of a metric space = Cauchy sequences / null-distance, as a
     ;; concrete setoid quotient.  Needs setoid (QUOTIENT/CLASS), metric-
     ;; completeness (IS-CAUCHY-SEQ/CONVERGES-TO/IS-COMPLETE) and RR-MS
@@ -206,6 +215,10 @@
     ;; operators.  The additive twin of prod-of-sums' multiplicative layer; what
     ;; the binomial theorem needs.  Needs finsum + ring-power + zz-action + views.
     "theorem-library/finsum-additive"
+    ;; Finite-sum inequalities over RR (Cauchy-Schwarz, sum-of-squares nonneg,
+    ;; the sum triangle inequality, termwise monotonicity); warranted supports.
+    ;; Needs FINSUM + the additive layer above + RR-RING (numeric-instances).
+    "theorem-library/analysis-inequalities"
     ;; The Binomial Theorem for commutative rings (asserted+warranted capstone,
     ;; like prod-of-sums-expansion).  Needs the additive layer above.
     "theorem-library/binomial"
