@@ -105,6 +105,14 @@ frame background -- controls every background, REPL and workspace alike."
   "Dim/secondary text."
   :group 'vnb-faces)
 
+(defface vnb-comment
+  '((t :inherit vnb-default :foreground "#9fb3c8"))
+  "Comment / read-only header text in scheme-derived workspaces.
+Readable secondary colour on the dark frame -- replaces the stock
+`font-lock-comment-face', which is barely legible on the dark teal
+background (and used for the `;;;' headers of worked-example scripts)."
+  :group 'vnb-faces)
+
 ;;; Faces for the library browser (vnb-library-mode).
 (defface vnb-library-section
   '((t :inherit vnb-heading :foreground "#66ccff" :weight bold :height 1.15))
@@ -135,6 +143,17 @@ frame background -- controls every background, REPL and workspace alike."
 (defun vnb-launch--apply-faces ()
   "Remap the buffer's default face to vnb-default."
   (face-remap-add-relative 'default 'vnb-default))
+
+(defun vnb-launch--readable-comments ()
+  "Remap scheme/lisp comment faces to the readable `vnb-comment'.
+Scheme-derived workspaces (Build Structure, worked-example scripts) inherit
+the stock `font-lock-comment-face' / `font-lock-comment-delimiter-face',
+which are barely legible on the dark frame -- and they paint the `;;;'
+header lines of example scripts.  Remapping both buffer-locally fixes the
+readability and gives the leading `;'/`;;'/`;;;' the same colour as the
+comment text, so the semicolons no longer clash at line starts."
+  (face-remap-add-relative 'font-lock-comment-face 'vnb-comment)
+  (face-remap-add-relative 'font-lock-comment-delimiter-face 'vnb-comment))
 
 ;;; -----------------------------------------------------------------------
 ;;; Workspace mode and buffer
@@ -729,7 +748,7 @@ which re-overlays the `;; ───' rules in accent pink at a higher priority."
     (let ((end (point)))
       (when (> end (point-min))
         (let ((ov (make-overlay (point-min) end)))
-          (overlay-put ov 'face 'vnb-dim)
+          (overlay-put ov 'face 'vnb-comment)
           (overlay-put ov 'priority 0))))))
 
 (defun vnb-ws-calculator ()
@@ -3893,7 +3912,9 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
   "Major mode for the Build Structure scratch buffer.
 \\<vnb-structure-mode-map>
 Edit the declare-structure form, then \\[vnb-structure-save] to save."
-  (setq truncate-lines nil))
+  (setq truncate-lines nil)
+  (vnb-launch--apply-faces)
+  (vnb-launch--readable-comments))
 
 (defun vnb-launch--parse-structure-name ()
   "Read the first declare-structure form in the current buffer; return its
@@ -4096,7 +4117,9 @@ structure-library/user-additions.scm for auto-load on next launch."
 RET on a line sends just that line to the prover REPL and advances.
 Blank lines and comment-only lines are skipped silently."
   (setq buffer-read-only t)
-  (setq truncate-lines nil))
+  (setq truncate-lines nil)
+  (vnb-launch--apply-faces)
+  (vnb-launch--readable-comments))
 
 (defun vnb-launch--show-example (path)
   "Open PATH read-only in `vnb-example-script-mode' next to the REPL."
