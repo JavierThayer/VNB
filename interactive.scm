@@ -2866,22 +2866,22 @@
       ((ii)     (cmd-intersection-intro *ps*))
       ((tfi)    (cmd-tfi  *ps*))
       ((tfi3)   (cmd-tfi3 *ps*))
-      ((ai)     (cmd-antecedent-inference *ps* (car args)))
+      ((ai)     (cmd-antecedent-inference *ps* (->raw-formula/idx (car args))))
       ((cut)    (cmd-cut *ps* (car args)))
       ((if-true)  (cmd-if-true  *ps* (car args)))
       ((if-false) (cmd-if-false *ps* (car args)))
       ((ew)     (cmd-exists-witness *ps* (car args)))
-      ((bc)     (cmd-backchain *ps* (car args)))
-      ((wk)     (cmd-weaken *ps* (car args)))
+      ((bc)     (cmd-backchain *ps* (->raw-formula/idx (car args))))
+      ((wk)     (cmd-weaken *ps* (->raw-formula/idx (car args))))
       ((ui)     (cmd-union-intro *ps* (car args)))
       ((ue)     (cmd-union-elim *ps* (car args)))
       ((ta)     (cmd-theorem-assumption *ps* (car args)))
       ((mac)    (cmd-apply-macete *ps* (car args)))
       ((mac-h)  (cmd-apply-macete-to-assumption *ps* (car args) (->raw-formula/idx (cadr args))))
-      ((inst)   (cmd-instantiate *ps* (car args) (cadr args)))
-      ((ce)     (cmd-cartesian-elim *ps* (car args) (cadr args)))
-      ((ie)     (cmd-intersection-elim *ps* (car args) (cadr args)))
-      ((te)     (cmd-tuples-elim *ps* (car args) (cadr args)))
+      ((inst)   (cmd-instantiate *ps* (->raw-formula/idx (car args)) (->raw-formula (cadr args))))
+      ((ce)     (cmd-cartesian-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
+      ((ie)     (cmd-intersection-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
+      ((te)     (cmd-tuples-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
       ((ni)     (cmd-nn-induction *ps*))
       ((rs)     (cmd-ring-simplify *ps*))
       ((crs)    (cmd-comm-ring-simplify *ps*))
@@ -2890,15 +2890,15 @@
       ;; D-7 replay dispatch
       ((sep-set) (cmd-sep-sethood       *ps*))
       ((sep-mi)  (cmd-sep-mem-intro     *ps*))
-      ((sep-me)  (cmd-sep-mem-elim      *ps* (car args)))
+      ((sep-me)  (cmd-sep-mem-elim      *ps* (->raw-formula/idx (car args))))
       ((comp-mi) (cmd-comp-mem-intro    *ps*))
-      ((comp-me) (cmd-comp-mem-elim     *ps* (car args)))
+      ((comp-me) (cmd-comp-mem-elim     *ps* (->raw-formula/idx (car args))))
       ((iota-d)  (cmd-iota-def          *ps* (car args)))
       ((lam-t)   (cmd-lambda-type       *ps*))
       ((lam-b)   (cmd-lambda-beta       *ps*))
       ((bu-set)  (cmd-big-union-sethood  *ps*))
       ((bu-mi)   (cmd-big-union-mem-intro *ps* (car args)))
-      ((bu-me)   (cmd-big-union-mem-elim  *ps* (car args)))
+      ((bu-me)   (cmd-big-union-mem-elim  *ps* (->raw-formula/idx (car args))))
       ((focus)  (focus-on *ps*
                           (list-ref (proof-open-goals *ps*)
                                     (- (car args) 1))))
@@ -2921,7 +2921,16 @@
                     (else
                      (for-each (lambda (g form)
                                  (set-proof-state-focus! *ps* g)
-                                 (apply-recorded-cmd! (car form) (cdr form)))
+                                 ;; Handler forms are recorded as re-runnable
+                                 ;; SOURCE syntax ((quote handler) in the bc*
+                                 ;; macro) -- quotes, nested begin/bc* intact --
+                                 ;; NOT evaluated args.  Eval them directly:
+                                 ;; routing through apply-recorded-cmd! (which
+                                 ;; expects evaluated args) only ever coped with
+                                 ;; bare (ass) and choked on (begin ...) or any
+                                 ;; handler carrying a (quoted) argument.
+                                 ;; Recording is suppressed here (*replaying?*).
+                                 (eval form user-initial-environment))
                                gs forms)
                      *ps*))))
       (else (error "replay: unknown recorded command" name)))))

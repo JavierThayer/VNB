@@ -2963,6 +2963,21 @@
   (lambda () (cdr (assoc "complex" *what-is-aliases*))) '(cc-ring))
 
 ;;; -----------------------------------------------------------------------
+;;; proof-tex / replay: assumption-by-INDEX args must be resolved on replay
+;;; (apply-recorded-cmd! once passed the bare integer through, so (ai 1) etc.
+;;; replayed as "cannot decompose: 1").  The begin-handler bc* replay path is
+;;; covered by calculus/compact-tb-proof.scm.
+
+(check-true "replay: ai resolves assumption index, proof-tex renders"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (IN 0 NN) (IN 1 NN)) (IN 0 NN))))
+    (di)                ; (AND ..) -> assumption 1
+    (ai 1)              ; decompose assumption-by-INDEX (the regressed path)
+    (ass)               ; goal (IN 0 NN) now in context
+    (qed 'replay-idx-regr)
+    (string? (proof-tex 'replay-idx-regr))))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)
