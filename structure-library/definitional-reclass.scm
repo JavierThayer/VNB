@@ -16,10 +16,10 @@
 ;;; if more hand-written defining iffs are added.)
 
 (let ((defining-iffs
-        '(;; named operation properties (operation-properties.scm) -- the
-          ;; characteristic laws conjoined into every IS-X
-          is-associative is-commutative is-identity has-inverses is-distributive
-          is-norm is-group-norm
+        '(;; (the named operation properties -- is-associative, is-commutative,
+          ;;  is-identity, has-inverses, is-distributive, is-norm, is-group-norm
+          ;;  -- were converted to def-predicate at source 2026-06-21, so they are
+          ;;  stamped definitional directly and indexed in DEFINITIONS.md.)
           ;; NAME-class axioms  s in X  <=>  IS-X(s)
           commutative-ring-class integral-domain-class euclidean-ring-class
           ;; restrictive-structure defining iff missed in the earlier pass
