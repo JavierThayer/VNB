@@ -433,3 +433,15 @@
   (run-shell-command
     (string-append "python3 " *prover-dir*
                    "reference/build-reference-html.py < /dev/null > /dev/null 2>&1 &")))
+
+;; Clean slate.  The theorem-library / calculus proof scripts loaded above each
+;; run an interactive (sp ...) ... (qed ...) and leave their finished proof
+;; sitting in the global *ps* (qed does not null it).  Without this reset a
+;; freshly started prover boots holding the LAST script's proof, so the first
+;; (show) dumps a foreign "Proof complete" tree instead of "No current proof"
+;; -- and worse, if a subsequent (sp ...) fails to actually evaluate, the stale
+;; *ps* gets repainted and looks like sp printed someone else's proof.  A new
+;; session must start with no current proof.
+(set! *ps* #f)
+(set! *proof-script* '())
+(set! *current-goal* #f)
