@@ -32,25 +32,7 @@
 ;; the reader case-folds and `rel' would BE the accessor REL.  Conservative
 ;; IFF -> `definitional', so projecting any of the three laws out of
 ;; IS-SETOID (as metric-laws.scm projects the metric laws) carries no debt.
-(fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'is-equivalence
-    '(FORALL rho (FORALL crr
-       (IFF (is-equivalence rho crr)
-            (AND (IN rho (POWER (CARTESIAN crr crr)))
-              (AND
-                ;; reflexive
-                (FORALL u (IMPLIES (IN u crr) (IN (LIST u u) rho)))
-                (AND
-                  ;; symmetric
-                  (FORALL u (IMPLIES (IN u crr)
-                    (FORALL v (IMPLIES (IN v crr)
-                      (IMPLIES (IN (LIST u v) rho) (IN (LIST v u) rho))))))
-                  ;; transitive
-                  (FORALL u (IMPLIES (IN u crr)
-                    (FORALL v (IMPLIES (IN v crr)
-                      (FORALL w (IMPLIES (IN w crr)
-                        (IMPLIES (AND (IN (LIST u v) rho) (IN (LIST v w) rho))
-                                 (IN (LIST u w) rho)))))))))))))))
+(def-predicate 'is-equivalence '(rho crr) '(AND (IN rho (POWER (CARTESIAN crr crr))) (AND (FORALL u (IMPLIES (IN u crr) (IN (LIST u u) rho))) (AND (FORALL u (IMPLIES (IN u crr) (FORALL v (IMPLIES (IN v crr) (IMPLIES (IN (LIST u v) rho) (IN (LIST v u) rho)))))) (FORALL u (IMPLIES (IN u crr) (FORALL v (IMPLIES (IN v crr) (FORALL w (IMPLIES (IN w crr) (IMPLIES (AND (IN (LIST u v) rho) (IN (LIST v w) rho)) (IN (LIST u w) rho))))))))))))
 
 ;;; =======================================================================
 ;;; The structure.
@@ -244,7 +226,7 @@
                  (IMPLIES (AND (IN g_ (FUN (QUOTIENT s) Z))
                                (FORALL a (IMPLIES (IN a (X s))
                                  (= (g_ (CLASS s a)) (f a)))))
-                          (= g_ g)))))))))))))
+                          (= g_ g))))))))))))
 (warrant! 'quotient-universal 'well-known
   "EXISTENCE: take g = DESCEND(f); descend-in-fun types it and descend-computes
    gives the factorization g([a])=f(a).  UNIQUENESS: any g' factoring f agrees
