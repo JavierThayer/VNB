@@ -12,13 +12,12 @@
 (di) (di)                       ; peel forall s; move IS-COMPACT(s) to a hyp
 ;; NB: ONE (di) peels only the forall here; the trailing IMPLIES needs a
 ;;     SECOND (di).  Idiom: di until the goal is atomic.
-(mac 'totally-bounded-def)      ; unfold the GOAL's TOTALLY-BOUNDED.
-;; NB: TOTALLY-BOUNDED is register-constant!'d (an opaque predicate symbol),
-;;     NOT a def-predicate, so it has no macete of its own name -- you unfold
-;;     it with its characterizing IFF axiom `totally-bounded-def' (likewise
-;;     `is-r-net-def' for IS-R-NET).  Contrast IS-COMPACT / IS-OPEN-COVER /
-;;     CLUSTER-POINT / HAS-FIP (compactness.scm), which ARE def-predicates and
-;;     unfold by their own name.  [OBSTACLE 1: a vocabulary inconsistency.]
+(mac 'TOTALLY-BOUNDED)          ; unfold the GOAL's TOTALLY-BOUNDED.
+;; NB: TOTALLY-BOUNDED and IS-R-NET are now def-predicates (metric-topology.scm),
+;;     so they unfold by their OWN name -- uniform with IS-COMPACT / IS-OPEN-COVER
+;;     / CLUSTER-POINT / HAS-FIP (compactness.scm), and both now appear in
+;;     DEFINITIONS.md / the browser.  [OBSTACLE 1 RESOLVED: was register-constant!'d
+;;     with a hand-rolled `totally-bounded-def' IFF axiom, invisible to the index.]
 (di) (di)                       ; split the AND; peel r, assume r > 0.
 ;; Now two subgoals:
 ;;   [a]  is-compact(s)  =>  is-metric-space(s)

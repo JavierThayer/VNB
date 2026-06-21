@@ -129,20 +129,17 @@
 ;;; subset A often have centers outside A (e.g. centers in the closure).
 ;;; For our use A = X(s) and F lives inside X(s) by the typing of D(s).
 
-(register-constant! 'IS-R-NET 'predicate)
-
-(theory-add-axiom! *current-theory* 'is-r-net-def
-  '(FORALL s
-     (FORALL F
-       (FORALL A
-         (FORALL r
-           (IFF (IS-R-NET s F A r)
-                (FORALL p
-                  (IMPLIES (IN p A)
-                    (FORSOME c
-                      (AND (IN c F)
-                           (AND (<= ((D s) c p) r)
-                                (NOT (= ((D s) c p) r)))))))))))))
+;; def-predicate (not a raw theory-add-axiom!) so IS-R-NET registers in
+;; `theory-definitions' -> DEFINITIONS.md -> the browser Definitions page, and
+;; is stamped `definitional' at source (the macete name is the predicate name,
+;; IS-R-NET; cf. IS-COMPACT in compactness.scm).
+(def-predicate 'IS-R-NET '(s F A r)
+  '(FORALL p
+     (IMPLIES (IN p A)
+       (FORSOME c
+         (AND (IN c F)
+              (AND (<= ((D s) c p) r)
+                   (NOT (= ((D s) c p) r))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; TOTALLY-BOUNDED(s) -- every positive r admits a finite r-net for X(s).
@@ -150,18 +147,16 @@
 ;;; Includes IS-METRIC-SPACE(s) in the unfolding; total-boundedness is
 ;;; only meaningful on a metric space.
 
-(register-constant! 'TOTALLY-BOUNDED 'predicate)
-
-(theory-add-axiom! *current-theory* 'totally-bounded-def
-  '(FORALL s
-     (IFF (TOTALLY-BOUNDED s)
-          (AND (IS-METRIC-SPACE s)
-               (FORALL r
-                 ;; NB: AND is strictly binary -- the old 3-arg
-                 ;; (AND (IN r RR) (<= 0 r) (NOT (= 0 r))) silently dropped the
-                 ;; r/=0 conjunct (make-wff arity), so TB wrongly allowed r=0.
-                 ;; Nested binary form keeps all three: r in RR, 0<=r, r/=0.
-                 (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
-                   (FORSOME F
-                     (AND (IN (CARD F) NN)
-                          (IS-R-NET s F (X s) r)))))))))
+;; def-predicate so TOTALLY-BOUNDED is indexed in DEFINITIONS.md / the browser
+;; and stamped `definitional' at source (macete name = predicate name).
+(def-predicate 'TOTALLY-BOUNDED '(s)
+  '(AND (IS-METRIC-SPACE s)
+        (FORALL r
+          ;; NB: AND is strictly binary -- the old 3-arg
+          ;; (AND (IN r RR) (<= 0 r) (NOT (= 0 r))) silently dropped the
+          ;; r/=0 conjunct (make-wff arity), so TB wrongly allowed r=0.
+          ;; Nested binary form keeps all three: r in RR, 0<=r, r/=0.
+          (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
+            (FORSOME F
+              (AND (IN (CARD F) NN)
+                   (IS-R-NET s F (X s) r)))))))

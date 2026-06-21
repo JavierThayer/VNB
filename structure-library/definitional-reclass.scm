@@ -28,7 +28,10 @@
           preimage-membership image-membership-iff inf-subsets-membership
           matrix-membership rr-star-membership rr-pos-star-membership
           ;; order / topology definitions
-          ord-lt-iff limit-ord-iff is-r-net-def totally-bounded-def
+          ;; (is-r-net-def / totally-bounded-def removed 2026-06-21: converted to
+          ;;  def-predicate at source in metric-topology.scm, so they are stamped
+          ;;  definitional directly and indexed in DEFINITIONS.md.)
+          ord-lt-iff limit-ord-iff
           ;; functoid-beta slot reads + definitional elimination forms that
           ;; were stated as `support' rather than derived (caught 2026-06-12).
           ;; nf-metric-carrier/-distance just read a slot off the NF-METRIC-SPACE

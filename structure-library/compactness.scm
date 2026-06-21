@@ -98,7 +98,7 @@
   '(IMAGE (VNB-LAMBDA x (BALL s x r)) (X s)))
 
 ;;; Lemma A: for r > 0 the r-ball cover is an open cover of s.
-;;; (r-condition matches totally-bounded-def verbatim: r in RR, 0 <= r, r /= 0.)
+;;; (r-condition matches the TOTALLY-BOUNDED def verbatim: r in RR, 0 <= r, r /= 0.)
 (support 'ball-cover-is-open-cover
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))

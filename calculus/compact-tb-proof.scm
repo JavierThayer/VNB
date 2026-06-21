@@ -26,7 +26,7 @@
 (di) (di)                       ; peel forall s; move IS-COMPACT(s) to a hyp
 (mac-h 'IS-COMPACT 1)           ; unfold compactness: metric-space + subcover law
 (ai 1)                          ; split that conjunction into two assumptions
-(mac 'totally-bounded-def)      ; unfold the goal's TOTALLY-BOUNDED (IFF axiom)
+(mac 'TOTALLY-BOUNDED)          ; unfold the goal's TOTALLY-BOUNDED (IFF axiom)
 (di)                            ; split the goal AND
 
 (ass)                           ; subgoal 1: is-metric-space(s)  -- in context
