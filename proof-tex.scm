@@ -28,10 +28,12 @@
       #f
       (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
 
-(define (proof-tex--nasm)
+;; The focus node's assumptions, as raw formulas (1-indexed to match the
+;; assumption-by-number args that ai/inst/sep-me/... accept, e.g. (ai 2)).
+(define (proof-tex--focus-asms)
   (if (proof-done? *ps*)
-      0
-      (length (sequent-node-assumptions (proof-state-focus *ps*)))))
+      '()
+      (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
 
 ;; A recorded command's argument: render symbols/numbers verbatim (witnesses,
 ;; indices, macete names) and collapse formula/list args to an ellipsis, so the
@@ -50,26 +52,157 @@
                (cdr entry)))
    ")"))
 
-;; Returns a list of (label goal-or-#f nasm), label a plain string.
+;; Replay the proof, capturing for each step a (label goal-or-#f asms) triple
+;; (asms = the focus node's assumption formulas).  Returns a 5-list:
+;;   (goal  steps  cmds  syms  heads)
+;; where cmds is the de-duped set of tactic names used (for the tactic
+;; glossary), syms every symbol that appears in any goal/assumption, and heads
+;; every symbol used as an application head (for the notation glossary).
 (define (proof-tex--steps name)
   (let ((rec (proof-tex--record name)))
     (if (not rec)
         (error "proof-tex: no proof named this in *session-log* (proofs run this session)" name)
-        (let ((goal (cadr rec)) (script (caddr rec)) (acc '()))
+        (let ((goal (cadr rec)) (script (caddr rec))
+              (acc '()) (forms '()) (cmds (list 'sp)))
           (quietly
            (lambda ()
              (sp (make-wff goal))
-             (set! acc (list (list "sp" (proof-tex--focus-goal) (proof-tex--nasm))))
+             (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms)))
+               (set! acc (list (list "sp" g a)))
+               (set! forms (append (if g (list g) '()) a forms)))
              (fluid-let ((*replaying?* #t))
                (for-each
                 (lambda (entry)
                   (apply-recorded-cmd! (car entry) (cdr entry))
-                  (set! acc (cons (list (proof-tex--cmd-label entry)
-                                        (proof-tex--focus-goal)
-                                        (proof-tex--nasm))
-                                  acc)))
+                  (set! cmds (cons (car entry) cmds))
+                  (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms)))
+                    (set! acc (cons (list (proof-tex--cmd-label entry) g a) acc))
+                    (set! forms (append (if g (list g) '()) a forms))))
                 script))))
-          (cons goal (reverse acc))))))   ; car = the overall goal
+          (let ((allforms (cons goal forms)))
+            (list goal
+                  (reverse acc)
+                  (proof-tex--dedupe (reverse cmds))
+                  (proof-tex--dedupe (apply append (map proof-tex--syms allforms)))
+                  (proof-tex--dedupe (apply append (map proof-tex--heads allforms)))))))))
+
+;;; --- glossary machinery ----------------------------------------------
+
+(define (proof-tex--dedupe lst)
+  (let loop ((xs lst) (seen '()))
+    (cond ((null? xs) (reverse seen))
+          ((memq (car xs) seen) (loop (cdr xs) seen))
+          (else (loop (cdr xs) (cons (car xs) seen))))))
+
+;; Every symbol occurring anywhere in formula e.
+(define (proof-tex--syms e)
+  (cond ((symbol? e) (list e))
+        ((pair? e) (apply append (map proof-tex--syms e)))
+        (else '())))
+
+;; Every symbol used as an application head (car of a pair) in formula e.
+(define (proof-tex--heads e)
+  (cond ((and (pair? e) (symbol? (car e)))
+         (cons (car e) (apply append (map proof-tex--heads (cdr e)))))
+        ((pair? e) (apply append (map proof-tex--heads e)))
+        (else '())))
+
+;; Tactic name -> one-line description.  Only tactics that the replayed proof
+;; actually uses are emitted, so the glossary tracks the proof.  Descriptions
+;; are plain text (no LaTeX-special characters), shown verbatim.
+(define *proof-tex-tactic-doc*
+  '((sp       . "start the proof: install the claim as the initial goal")
+    (di       . "direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable")
+    (ai       . "antecedent inference: decompose a structured assumption, named by its number or its formula")
+    (mac      . "macete: rewrite the goal using a named theorem or definition")
+    (mac-h    . "macete in a hypothesis: unfold a defined predicate inside an assumption")
+    (bc       . "backchain: reduce the goal through a named implication")
+    (bc*      . "iterated backchain: backchain repeatedly, sending each resulting subgoal to a recorded handler")
+    (inst     . "instantiate: supply a witness term for a universally quantified assumption")
+    (wk       . "weaken: close the goal by matching it against an assumption")
+    (ass      . "assert: close the goal directly from the assumptions")
+    (subst    . "substitute: rewrite the goal using an equality assumption")
+    (cut      . "cut: introduce an intermediate lemma, discharged as a side goal")
+    (simp     . "simplify: normalise a commutative-ring subterm of the goal")
+    (ce       . "cartesian elimination: extract a component from a tuple or pair assumption")
+    (te       . "tuple elimination: destructure a tuple assumption")
+    (ie       . "intersection elimination: use a membership-in-an-intersection assumption")
+    (sep-me   . "separation membership: use an assumption that an element lies in a separation set")
+    (comp-me  . "comprehension membership elimination")
+    (bu-me    . "big-union membership: use an assumption that an element lies in a big union")
+    (focus    . "switch focus to another open subgoal")
+    (focus-id . "switch focus to the subgoal with the given node number")
+    (to-binary . "rewrite n-ary plus, times, minus into the binary structure operators")
+    (to-nary  . "rewrite binary structure operators back into n-ary plus, times, minus")
+    (qed      . "close the completed proof and install it as a theorem")))
+
+;; Notation symbol -> plain-English meaning, for glyphs expr->tex emits that a
+;; reader can't decode by sight.  Keyed by the (lower-cased) operator/atom.
+(define *proof-tex-notation-doc*
+  '((card    . "$|x|$ -- the cardinality (number of elements) of the set $x$")
+    (nn      . "$\\mathbb{N}$ -- the natural numbers")
+    (rr      . "$\\mathbb{R}$ -- the real numbers")
+    (qq      . "$\\mathbb{Q}$ -- the rationals")
+    (zz      . "$\\mathbb{Z}$ -- the integers")
+    (cc      . "$\\mathbb{C}$ -- the complex numbers")
+    (ord     . "$\\mathrm{Ord}$ -- the ordinals")
+    (empty-set . "$\\emptyset$ -- the empty set")
+    (in      . "$\\in$ -- set membership")
+    (subset  . "$\\subseteq$ -- subset")
+    (fun     . "$(A \\to B)$ -- the set of functions from $A$ to $B$")
+    (cartesian . "$\\times$ -- Cartesian product")
+    (union   . "$\\cup$ -- union")
+    (intersection . "$\\cap$ -- intersection")
+    (pair    . "$\\{a,b\\}$ -- the unordered pair (a singleton $\\{x\\}$ when the two are equal)")
+    (list    . "$\\langle \\ldots \\rangle$ -- a finite tuple")
+    (sep     . "$\\{x \\in A : \\varphi\\}$ -- the subset of $A$ carved out by the condition $\\varphi$")
+    (choice  . "$\\varepsilon$ -- the global choice operator")
+    (iota    . "$\\iota$ -- the definite-description operator")
+    (inf-subsets . "$\\mathrm{Inf}(x)$ -- the infinite subsets of $x$")
+    (iff     . "$\\Leftrightarrow$ -- if and only if")
+    (implies . "$\\Rightarrow$ -- implies")
+    (and     . "$\\wedge$ -- and")
+    (or      . "$\\vee$ -- or")
+    (not     . "$\\neg$ -- not")))
+
+;; Itemised glossary of the tactics actually used, in first-use order.
+(define (proof-tex--tactic-glossary cmds)
+  (let ((entries (filter (lambda (c) (assq c *proof-tex-tactic-doc*)) cmds)))
+    (if (null? entries)
+        ""
+        (apply string-append
+          "\\subsection*{Tactics used}\n\\begin{itemize}\n"
+          (append
+           (map (lambda (c)
+                  (string-append
+                   "\\item \\texttt{" (proof-tex--escape-tt (symbol->string c))
+                   "} -- " (cdr (assq c *proof-tex-tactic-doc*)) "\n"))
+                entries)
+           (list "\\end{itemize}\n\n"))))))
+
+;; Itemised glossary of the notation used: known glyphs from the notation
+;; table, plus any application head that is a registered definition (pointed at
+;; the Definitions reference, which carries its full defining formula).
+(define (proof-tex--notation-glossary syms heads)
+  (let* ((noted (filter (lambda (s) (assq s *proof-tex-notation-doc*)) syms))
+         (defs  (map car (theory-definitions *current-theory*)))
+         (defheads (filter (lambda (h) (and (memq h defs)
+                                            (not (assq h *proof-tex-notation-doc*))))
+                           heads)))
+    (if (and (null? noted) (null? defheads))
+        ""
+        (apply string-append
+          "\\subsection*{Notation}\n\\begin{itemize}\n"
+          (append
+           (map (lambda (s)
+                  (string-append "\\item " (cdr (assq s *proof-tex-notation-doc*)) "\n"))
+                noted)
+           (map (lambda (h)
+                  (string-append
+                   "\\item \\texttt{" (proof-tex--escape-tt (symbol->string h))
+                   "}$(\\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition\n"))
+                defheads)
+           (list "\\end{itemize}\n\n"))))))
 
 ;;; --- LaTeX assembly --------------------------------------------------
 
@@ -96,24 +229,43 @@
    "\\setlength{\\parindent}{0pt}\n"
    "\\begin{document}\n"))
 
-(define (proof-tex--row n label goal nasm)
+;; One assumption line:  A<i>.  <formula>   (i matches index args like (ai i)).
+(define (proof-tex--asm-line i a)
+  (string-append
+   "{\\small\\textbf{A" (number->string i) ".}}\\; "
+   "\\fit{$\\displaystyle " (expr->tex a) "$}\\\\[1pt]\n"))
+
+(define (proof-tex--row n label goal asms)
   (string-append
    "\\medskip\\noindent\\textbf{" (number->string n) ".}\\quad "
    "\\texttt{" (proof-tex--escape-tt label) "}"
    (if goal
        (string-append
-        "\\hfill{\\small[" (number->string nasm) " asm]}\\\\[2pt]\n"
-        "\\fit{$\\displaystyle " (expr->tex goal) "$}\\par\n")
+        "\\\\[2pt]\n"
+        (if (null? asms)
+            "{\\small (no assumptions)}\\\\[2pt]\n"
+            (apply string-append
+                   (map proof-tex--asm-line
+                        (iota (length asms) 1) asms)))
+        "$\\vdash\\;$\\fit{$\\displaystyle " (expr->tex goal) "$}\\par\n")
        "\\hfill{\\small[proof complete]}\\\\[2pt]\n\\emph{QED.}\\par\n")))
 
 (define (proof-tex name)
   (let* ((data  (proof-tex--steps name))
-         (goal  (car data))
-         (steps (cdr data)))
+         (goal  (list-ref data 0))
+         (steps (list-ref data 1))
+         (cmds  (list-ref data 2))
+         (syms  (list-ref data 3))
+         (heads (list-ref data 4)))
     (apply string-append
      proof-tex--preamble
      "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
      "\\textbf{Claim.}\\quad \\fit{$\\displaystyle " (expr->tex goal) "$}\n\\bigskip\n\n"
+     (proof-tex--tactic-glossary cmds)
+     (proof-tex--notation-glossary syms heads)
+     "\\subsection*{Derivation}\nEach step shows the tactic applied, the focus "
+     "node's assumptions (\\textbf{A1}, \\textbf{A2}, \\dots{}, the numbering the "
+     "tactic args refer to), and the goal $G$ it leaves, written $\\vdash G$.\n\n"
      (append
       (let loop ((ss steps) (n 0) (rows '()))
         (if (null? ss)

@@ -2977,6 +2977,21 @@
     (qed 'replay-idx-regr)
     (string? (proof-tex 'replay-idx-regr))))
 
+(check-true "proof-tex: glossaries + per-node assumptions rendered"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (IN 0 NN) (IN 1 NN)) (IN 0 NN))))
+    (di)
+    (ai 1)
+    (ass)
+    (qed 'proof-tex-gloss-regr)
+    (let ((s (proof-tex 'proof-tex-gloss-regr)))
+      (and (substring? "Tactics used" s)        ; tactic glossary
+           (substring? "direct inference" s)    ; di described
+           (substring? "Notation" s)            ; notation glossary
+           (substring? "set membership" s)      ; `in' glossed
+           (substring? "\\textbf{A1.}" s)       ; assumptions listed, numbered
+           (substring? "\\vdash" s)))))         ; goal shown as a sequent
+
 ;;; -----------------------------------------------------------------------
 ;;; Summary
 
