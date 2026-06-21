@@ -303,6 +303,10 @@
     "theorem-library/nn-least-element"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
+    ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
+    ;; (view-proof-pdf name)).  Needs tex-output (expr->tex) + the replay
+    ;; machinery in interactive.scm.
+    "proof-tex"
     ;; Assumption-pattern scanner for forward-move discovery
     ;; (used by Emacs vnb-suggest-forward-moves).
     "suggest"
