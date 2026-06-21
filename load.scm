@@ -7,6 +7,16 @@
 (define *prover-dir*
   (directory-namestring (current-load-pathname)))
 
+;; Held #t for the whole load.  Several entries in *vnb-files* (the
+;; theorem-library / calculus proof scripts) run real interactive
+;; (sp ...) ... (qed ...) sequences, and every tactic ends in (show).  With
+;; this flag off, a fresh load dumps ~250 full sequent states to the terminal
+;; -- which then looks, to whoever just started the prover, like THEIR command
+;; printed a giant foreign proof.  show consults this (interactive.scm) so the
+;; library still verifies at load (the qed ledger lines use display, not show,
+;; so they still print) without the per-tactic flood.  Reset to #f at end.
+(define *vnb-loading* #t)
+
 ;;; Generated reference artifacts (THEOREMS.md, STRUCTURE-INDEX.md, the
 ;;; structure graph, ...) are written here, out of the source root.
 (define *reference-dir*
@@ -445,3 +455,7 @@
 (set! *ps* #f)
 (set! *proof-script* '())
 (set! *current-goal* #f)
+
+;; Load done: re-enable interactive show output.  (Held #t since the top of
+;; this file to suppress the per-tactic flood from the library proof scripts.)
+(set! *vnb-loading* #f)

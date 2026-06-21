@@ -63,8 +63,15 @@
 ;; so it still prints under quiet.
 (define *vnb-quiet* #f)
 
+;; *vnb-loading* is defined at the top of load.scm and held #t for the whole
+;; load so the interactive proof scripts in *vnb-files* don't flood the terminal
+;; with a per-tactic state dump at startup.  Fallback to #f here so interactive.scm
+;; is also loadable standalone.
+(if (not (environment-bound? system-global-environment '*vnb-loading*))
+    (eval '(define *vnb-loading* #f) system-global-environment))
+
 (define (show)
-  (unless *vnb-quiet*
+  (unless (or *vnb-quiet* *vnb-loading*)
     (display ";;VNB-STATE-BEGIN\n")
     (if *ps*
         (print-proof-state *ps*)
