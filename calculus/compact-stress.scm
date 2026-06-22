@@ -108,3 +108,19 @@
 ;;; separately in context, and it spawns sibling goals.  Pure backward bc*
 ;;; (stating the lemmas with relation-/FORSOME-headed conclusions) is the clean
 ;;; route -- 11 tactics, same style as compact-tb-proof.scm.
+
+;;; -----------------------------------------------------------------------
+;;; CENTRE EXTRACTION CLOSED (2026-06-22).  Obstacle (iii) above -- "recovering
+;;; a finite set of centres from a finite family of balls needs a choice
+;;; function; no reusable lemma does this" -- is now resolved by making the
+;;; choice EXPLICIT with the global Hilbert epsilon:
+;;;   CENTRES(s,B,r)   = { c in X(s) : B(c,r) = B }        (def-functoid)
+;;;   CENTRE-SET(s,r,F)= IMAGE(B |-> CHOICE(CENTRES s B r), F)
+;;; (compactness.scm).  finite-ball-subcover-r-net is then MACHINE-PROVEN in
+;;; calculus/finite-ball-subcover-proof.scm (with chosen-centre-is-centre: the
+;;; epsilon pick is a genuine centre, defined because the cover ball's centre
+;;; set is inhabited -- the iota/epsilon definedness proviso).  So compact-tb is
+;;; now proven modulo the explicit-construction membership lemmas, not the
+;;; opaque centre-extraction hand-wave.  bc* GOTCHAS hit en route: it chokes on
+;;; a CONJUNCTION conclusion and on a nested-application conclusion ((D s) c p);
+;;; split into atomic-conclusion lemmas and/or discharge forward with `fact'.
