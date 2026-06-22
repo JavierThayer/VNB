@@ -83,6 +83,12 @@
                 (sort added <))))
           (quietly
            (lambda ()
+            ;; Restore the fresh-var counter to the proof's sp-time value so
+            ;; eigenvariables (ai/ew witnesses) replay to the SAME names the
+            ;; recorded args pin.  fluid-let restores it afterward, preserving
+            ;; the global monotonic invariant outside this read-only replay.
+            (fluid-let ((*fresh-counter*
+                         (hash-table-ref/default *proof-start-counter* name *fresh-counter*)))
              (sp (make-wff goal))
              (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms))
                    (fid (proof-tex--focus-id)) (nw (new-ids)))
@@ -97,7 +103,7 @@
                         (fid (proof-tex--focus-id)) (nw (new-ids)))
                     (set! acc (cons (list (proof-tex--cmd-label entry) g a fid nw) acc))
                     (set! forms (append (if g (list g) '()) a forms))))
-                script))))
+                script)))))
           (let ((allforms (cons goal forms)))
             (list goal
                   (reverse acc)

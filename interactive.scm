@@ -44,6 +44,15 @@
 ;; Completed proofs this session: list of (name goal script), appended at qed.
 (define *session-log* '())
 
+;; *fresh-counter* (expressions.scm) value captured at each proof's sp, keyed by
+;; proof name at qed.  proof-tex replay restores it so a proof that pins specific
+;; eigenvariable names (ai/ew witnesses like `u_4') replays to the SAME names --
+;; the global counter is monotonic and would otherwise mint different ones,
+;; breaking the recorded witness args.  (Read-only: the replay fluid-lets it and
+;; restores, so the monotonic invariant holds outside the replay.)
+(define *proof-start-counter* (make-equal-hash-table))
+(define *sp-counter-snapshot* 0)
+
 (define *proof-script-table* (make-equal-hash-table))
 
 (define (save-proof name)
@@ -174,6 +183,7 @@
         (else
          (set! *proof-script* '())
          (set! *current-goal* (wff-formula wic))
+         (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
          (set! *ps* (start-proof wic))
          (show))))))
 
@@ -2873,6 +2883,7 @@
       (set! *session-log*
             (append *session-log*
                     (list (list name *current-goal* *proof-script*))))
+      (hash-table-set! *proof-start-counter* name *sp-counter-snapshot*)
       ;; Ledger: compute and memoize this proof's bill of asserted debt from
       ;; the just-saved script, then report `proven modulo {...}'.  (Defined
       ;; in proof-debt.scm, loaded right after this file.)
@@ -2942,6 +2953,8 @@
       ((ui)     (cmd-union-intro *ps* (car args)))
       ((ue)     (cmd-union-elim *ps* (car args)))
       ((ta)     (cmd-theorem-assumption *ps* (car args)))
+      ;; fact records (thm arglist): forward application of a theorem.
+      ((fact)   (cmd-fact *ps* (car args) (cadr args)))
       ((mac)    (cmd-apply-macete *ps* (car args)))
       ((mac-h)  (cmd-apply-macete-to-assumption *ps* (car args) (->raw-formula/idx (cadr args))))
       ((inst)   (cmd-instantiate *ps* (->raw-formula/idx (car args)) (->raw-formula (cadr args))))
