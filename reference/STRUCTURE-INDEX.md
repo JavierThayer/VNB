@@ -293,7 +293,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Theorems quantifying over `is-euclidean-ring`.*
 
 - `euclidean-ideal-has-generator` — forall([s], is-euclidean-ring(s) implies forall([i], is-ideal(s, i) implies forsome([b in i], forall([a in i], a in principal-ideal(s, b)))))
+- `euclidean-ring-has-gauge` — forall([s], is-euclidean-ring(s) implies forsome([deg in fun(a(s), nn)], has-div-remainder(s, deg)))
 - `euclidean-ring-is-integral-domain` — forall([s], is-euclidean-ring(s) implies is-integral-domain(s))
+- `gauge-is-degree` — forall([s], is-euclidean-ring(s) implies gauge(s) in fun(a(s), nn) and has-div-remainder(s, gauge(s)))
 
 *Views into `euclidean-ring`.*
 
@@ -320,6 +322,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `abelian-group-idempotent-is-id-rev-field-additive-ag` — forall([r], is-field(r) implies forall([a in a(r)], (add(r))(a, a) = a implies zero(r) = a))
 - `abelian-group-idempotent-is-id-rev-field-additive-ag-rev` — forall([r], is-field(r) implies forall([a in a(r)], (add(r))(a, a) = a implies a = zero(r)))
 - `euclidean-ideal-has-generator-field-as-euclidean-ring` — forall([r], is-field(r) implies forall([i], is-ideal(field-as-euclidean-ring(r), i) implies forsome([b in i], forall([a in i], a in principal-ideal(field-as-euclidean-ring(r), b)))))
+- `euclidean-ring-has-gauge-field-as-euclidean-ring` — forall([r], is-field(r) implies forsome([deg in fun(a(r), nn)], has-div-remainder(field-as-euclidean-ring(r), deg)))
 - `field-additive-ag-is-abelian-group` — forall([r], is-field(r) implies is-abelian-group(field-additive-ag(r)))
 - `field-as-euclidean-ring-is-euclidean-ring` — forall([r], is-field(r) implies is-euclidean-ring(field-as-euclidean-ring(r)))
 - `field-as-integral-domain-is-integral-domain` — forall([r], is-field(r) implies is-integral-domain(field-as-integral-domain(r)))
@@ -329,6 +332,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `field-non-zero-carrier` — forall([s], is-field(s) implies non-zero(s) = difference(a(s), singleton(zero(s))))
 - `field-non-zero-carrier-rev` — forall([s], is-field(s) implies difference(a(s), singleton(zero(s))) = non-zero(s))
 - `field-zero-not-one` — forall([s], is-field(s) implies not(zero(s) = one(s)))
+- `gauge-is-degree-field-as-euclidean-ring` — forall([r], is-field(r) implies gauge(field-as-euclidean-ring(r)) in fun(a(r), nn) and has-div-remainder(field-as-euclidean-ring(r), gauge(field-as-euclidean-ring(r))))
 - `group-assoc-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r), b in non-zero(r), c in non-zero(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
 - `group-assoc-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r), b in non-zero(r), c in non-zero(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
 - `group-assoc-rev-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r), b in non-zero(r), c in non-zero(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
