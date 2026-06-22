@@ -256,6 +256,53 @@
 
 (define *what-now-limit* 15)
 
+;;; -----------------------------------------------------------------------
+;;; El-cheapo hypothesis lane.  "Today's motto: el cheapo, 'mano."
+;;;
+;;; Pure lookup, NO validity check: for each focus assumption, is its head a
+;;; definitional macete (mac-h would unfold it) or is it an AND (ai would split
+;;; it)?  It does not apply anything or analyse side-conditions -- it just names
+;;; the moves (mac-h*) would make, so the copilot can point at the saturating
+;;; tactic.  The soundness is recovered downstream: mac-h*/mac-h run through the
+;;; kernel.  Returns a list of (index tag formula), tag = 'AND or the unfold
+;;; macete name.  (vnb--hyp-unfold-name lives in interactive.scm, loaded first.)
+(define (suggest-hyp-unfolds)
+  (if (not *ps*)
+      '()
+      (let loop ((as (sequent-node-assumptions (proof-state-focus *ps*)))
+                 (i 1) (acc '()))
+        (if (null? as)
+            (reverse acc)
+            (let* ((f   (wff-formula (car as)))
+                   (tag (cond ((and (pair? f) (eq? (car f) 'AND)) 'AND)
+                              ((vnb--hyp-unfold-name f))
+                              (else #f))))
+              (loop (cdr as) (+ i 1)
+                    (if tag (cons (list i tag f) acc) acc)))))))
+
+;;; Print the hypothesis lane and return the moves it suggests (possibly '()).
+;;; (mac-h*) is the one-shot; the per-assumption (mac-h 'name k) lines show what
+;;; it will touch so the user can do it surgically instead.
+(define (what-now--show-hyp-unfolds)
+  (let ((us (suggest-hyp-unfolds)))
+    (if (null? us)
+        '()
+        (begin
+          (display ";; hypotheses you can break open -- (mac-h*) does all of these at once:")
+          (newline)
+          (for-each
+            (lambda (u)
+              (let ((i (car u)) (tag (cadr u)))
+                (display ";;   A") (display i) (display ": ")
+                (if (eq? tag 'AND)
+                    (display (string-append "split the conjunction  (ai " (number->string i) ")"))
+                    (begin (display "unfold ") (display tag)
+                           (display (string-append "  (mac-h '" (symbol->string tag)
+                                                    " " (number->string i) ")"))))
+                (newline)))
+            us)
+          '((mac-h*))))))
+
 ;;; The lemma's conclusion (foralls stripped, hypotheses peeled) -- the part
 ;;; that fingerprinted to the goal -- for a compact display, not the whole stmt.
 (define (what-now--conclusion formula)
@@ -384,7 +431,9 @@
                              (what-now--show-backchain goal opt-depth)))))
          (when (and needs-di (memq kind '(comparison equality-other predicate)))
            (display ";; (goal has binders/structure -- (di) first if you'd rather introduce them.)") (newline))
-         (display ";; first pass: goal-kind classifier + backchain lane (no rewrite/mac lane yet).")
+         ;; El-cheapo hypothesis lane: name the assumptions mac-h* would unfold/split.
+         (set! moves (append moves (what-now--show-hyp-unfolds)))
+         (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
          (newline)
          moves)))))                             ; <- return the move list (besides printing)
 

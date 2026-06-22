@@ -2992,6 +2992,29 @@
            (substring? "\\textbf{A1.}" s)       ; assumptions listed, numbered
            (substring? "\\vdash" s)))))         ; goal shown as a sequent
 
+(check-true "mac-h*: saturates hyps, closes, renders as one trace row"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (= (length s) 2)))))
+    (di) (di)
+    (mac-h*)            ; unfold IS-METRIC-SPACE, split, unfold is-metric, split
+    (ass)               ; length(s)=2 is now a hypothesis
+    (qed 'mac-h-star-regr)
+    (let* ((entry  (assq 'mac-h-star-regr *session-log*))
+           (script (and entry (caddr entry))))
+      (and (proof-done? *ps*)
+           (member '(mac-h*) script)                  ; one (mac-h*) entry, no expansion
+           (= 1 (length (filter (lambda (c) (eq? (car c) 'mac-h*)) script)))
+           (string? (proof-tex 'mac-h-star-regr))))))  ; replay dispatch handles mac-h*
+
+(check-true "suggest-hyp-unfolds: el-cheapo lane names the foldable assumption"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (= (length s) 2)))))
+    (di) (di)
+    (let ((us (suggest-hyp-unfolds)))
+      (and (pair? us)
+           (assv 1 us)                                 ; assumption 1 is foldable
+           (eq? 'is-metric-space (cadr (assv 1 us)))))))  ; via its definition unfold
+
 ;;; -----------------------------------------------------------------------
 ;;; Summary
 

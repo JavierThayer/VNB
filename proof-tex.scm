@@ -141,6 +141,7 @@
     (ai       . "antecedent inference: decompose a structured assumption, named by its number or its formula")
     (mac      . "macete: rewrite the goal using a named theorem or definition")
     (mac-h    . "macete in a hypothesis: unfold a defined predicate inside an assumption")
+    (mac-h*   . "saturating hypothesis unfold: repeatedly unfold every defined predicate in the assumptions and split the conjunctions they expose, until nothing remains folded")
     (bc       . "backchain: reduce the goal through a named implication")
     (bc*      . "iterated backchain: backchain repeatedly, sending each resulting subgoal to a recorded handler")
     (inst     . "instantiate: supply a witness term for a universally quantified assumption")

@@ -367,6 +367,70 @@
       thunk
       (lambda () (set! *vnb-quiet* saved)))))
 
+;;; -----------------------------------------------------------------------
+;;; mac-h* -- SATURATING hypothesis-side unfold.  The repeated ritual
+;;;
+;;;     (mac-h 'IS-METRIC-SPACE A1) (ai ...) (mac-h 'is-metric A2) (ai ...) ...
+;;;
+;;; -- "keep unfolding defined predicates in the hypotheses, splitting the
+;;; conjunctions they expose, until nothing is left folded" -- collapses to a
+;;; single (mac-h*).  Each pass over the focus node's assumptions: split any
+;;; AND (the ai), and unfold any assumption whose OUTERMOST head is a defined
+;;; predicate with a registered definitional macete (the mac-h, name = head
+;;; symbol -- exactly how the by-hand proofs cite them).  Restart the pass
+;;; whenever something fires; stop when a full pass is inert.
+;;;
+;;; It drives the cmd-* layer directly, so the dozen primitive steps record as
+;;; ONE (mac-h*) entry -- the trace (and its PDF) shrinks accordingly -- and it
+;;; adds no kernel rule: every unfold is the same kernel-checked mac-h, every
+;;; split the same ai.  Sound by construction, just terser.
+
+;; Outermost defined-predicate unfold name for assumption formula F (its head
+;; symbol, when that head is a registered definitional macete), else #f.
+(define (vnb--hyp-unfold-name f)
+  (and (pair? f) (symbol? (car f))
+       (let ((h (car f)))
+         (and (hash-table-ref/default *macete-table* h #f)  ; a registered macete
+              (eq? (provenance-of h) 'definitional)          ; that is a definition
+              h))))
+
+;; Core: saturate the focus hypotheses, mutating the proof graph in place (as
+;; every cmd-* does).  Each pass scans the focus assumptions for one that is
+;; foldable -- an AND (split with ai) or an outermost defined predicate (unfold
+;; with mac-h) not already tried -- fires it, and restarts the pass so freshly
+;; exposed assumptions surface.  A `seen' set of (formula . tag) pairs both
+;; breaks loops and guarantees termination.  Returns ps0 if anything fired
+;; (success, per the cmd-* contract -- the object is mutated in place), else a
+;; vnb-warning so the surface wrapper records no no-op.
+(define (cmd-mac-h* ps0)
+  (let ((seen '()))
+    (define (one-pass)            ; #t iff some assumption genuinely fired
+      (let scan ((as (sequent-node-assumptions (proof-state-focus ps0))))
+        (and (pair? as)
+             (let* ((f   (wff-formula (car as)))
+                    (tag (cond ((and (pair? f) (eq? (car f) 'AND)) 'AND)
+                               ((vnb--hyp-unfold-name f))
+                               (else #f)))
+                    (key (and tag (cons f tag))))
+               (if (and key (not (member key seen)))
+                   (begin
+                     (set! seen (cons key seen))
+                     (let ((r (if (eq? tag 'AND)
+                                  (cmd-antecedent-inference ps0 f)
+                                  (cmd-apply-macete-to-assumption ps0 tag f))))
+                       (if (or (vnb-warning? r) (vnb-error? r))
+                           (scan (cdr as))    ; this one didn't take; keep looking
+                           #t)))              ; fired -> restart the pass
+                   (scan (cdr as)))))))
+    (let loop ((fired-any #f) (n 0))
+      (if (and (< n 500) (one-pass))
+          (loop #t (+ n 1))
+          (if fired-any ps0
+              (vnb--warn "mac-h*"
+                "no foldable predicate or conjunction in the hypotheses"))))))
+
+(define (mac-h*) (vnb--run! 'mac-h* '() (lambda () (cmd-mac-h* *ps*))))
+
 (define (ai f)
   (vnb--run! 'ai (list f)
              (lambda ()
@@ -2957,6 +3021,7 @@
       ((fact)   (cmd-fact *ps* (car args) (cadr args)))
       ((mac)    (cmd-apply-macete *ps* (car args)))
       ((mac-h)  (cmd-apply-macete-to-assumption *ps* (car args) (->raw-formula/idx (cadr args))))
+      ((mac-h*) (cmd-mac-h* *ps*))
       ((inst)   (cmd-instantiate *ps* (->raw-formula/idx (car args)) (->raw-formula (cadr args))))
       ((ce)     (cmd-cartesian-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
       ((ie)     (cmd-intersection-elim *ps* (->raw-formula/idx (car args)) (cadr args)))

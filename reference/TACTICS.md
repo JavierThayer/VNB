@@ -226,6 +226,14 @@ Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-conditi
 
 Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven't established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)
 
+### mac-h*
+
+    (mac-h*)
+
+Saturating mac-h: repeatedly unfold every defined predicate in the hypotheses and split the conjunctions they expose, until nothing is left folded.  One step in the trace instead of a dozen.
+
+The hands-free version of mac-h.  Instead of naming each definition and each conjunction by hand -- (mac-h 'IS-METRIC-SPACE A1), split, (mac-h 'is-metric A2), split, ... -- (mac-h*) keeps unfolding any assumption whose head is a defined predicate and splitting any AND assumption, restarting until a full pass changes nothing.  It records as a SINGLE step, so the proof (and its PDF) is far shorter.  It adds no kernel rule: every unfold is the same kernel-checked mac-h, every split the same ai -- just driven to a fixpoint.  Ask (what-now) to see which hypotheses it would touch first.
+
 ### subst
 
     (subst '(= s t))
