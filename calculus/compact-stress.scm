@@ -95,3 +95,16 @@
 ;;; `compact-tb', proven modulo the two warranted ball-cover lemmas).  The
 ;;; alpha-aware fix is a reusable, general capability (helps mac + bc* on every
 ;;; quantified conclusion), not specific to this proof.
+
+;;; -----------------------------------------------------------------------
+;;; COMPANION (2026-06-22): the OTHER half of (1)=>(4), compact => COMPLETE,
+;;; is now machine-proven in calculus/compact-complete-proof.scm (installed as
+;;; `compact-complete'), modulo three warranted backchain-ready lemmas:
+;;;   compact-seq-has-cluster  (=> slice of Prop 3.12 (1)=>(3))
+;;;   cauchy-cluster-converges (the analytic keystone: Cauchy + cluster => conv)
+;;;   cauchy-seq-is-fun        (typing projection of IS-CAUCHY-SEQ)
+;;; STRESS-TEST FINDING: the wall was NOT a missing tactic but forward `fact':
+;;; it will not detach a CONJUNCTIVE antecedent whose conjuncts are only
+;;; separately in context, and it spawns sibling goals.  Pure backward bc*
+;;; (stating the lemmas with relation-/FORSOME-headed conclusions) is the clean
+;;; route -- 11 tactics, same style as compact-tb-proof.scm.

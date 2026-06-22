@@ -82,6 +82,23 @@
                           (CONVERGES s f))))))
 
 ;;; -----------------------------------------------------------------------
+;;; cauchy-seq-is-fun: the TYPING conjunct of IS-CAUCHY-SEQ -- a Cauchy
+;;; sequence is by definition a function NN -> X(s).  Like
+;;; complete-cauchy-converges, this is the directly-backchainable slice of the
+;;; definition (the second conjunct of the unfolded IS-CAUCHY-SEQ), so a proof
+;;; can recover the typing of f without unfolding IS-CAUCHY-SEQ in a hypothesis
+;;; and digging out the conjunct by hand.  Trivially derivable; library-build
+;;; phase support [[feedback-library-axioms-fine]].
+
+(support 'cauchy-seq-is-fun
+  '(FORALL s (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
+                                (IN f (FUN NN (X s)))))))
+(warrant! 'cauchy-seq-is-fun 'well-known
+  "A Cauchy sequence is by definition a function NN -> X(s): this is the second
+   conjunct of the unfolded IS-CAUCHY-SEQ(s,f).  Carries no content beyond the
+   definition.")
+
+;;; -----------------------------------------------------------------------
 ;;; cauchy-rapid-subsequence: every Cauchy sequence has a "rapidly Cauchy"
 ;;; subsequence -- one whose consecutive distances are bounded by ANY
 ;;; prescribed positive real sequence rad (in particular rad(k) = 2^-k).  The

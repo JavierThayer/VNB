@@ -142,7 +142,41 @@
 
 (support 'compact-implies-complete
   '(FORALL s (IMPLIES (IS-COMPACT s) (IS-COMPLETE s))))
-(warrant! 'compact-implies-complete 'reference
+(warrant! 'compact-implies-complete 'proof
   "Compact => complete (calculus.pdf Prop 3.12).  A Cauchy sequence in a compact
    space has a cluster point (condition (3)); a Cauchy sequence with a cluster
-   point converges to it.  Half of (1)=>(4).")
+   point converges to it.  Half of (1)=>(4).  MACHINE-PROVEN in
+   calculus/compact-complete-proof.scm (installed there as `compact-complete',
+   modulo the three asserted lemmas compact-seq-has-cluster +
+   cauchy-cluster-converges + cauchy-seq-is-fun); kept here as an asserted PSS
+   citation, the proof run offline.")
+
+;;; ----- the two lemmas that close compact => complete -----
+
+;;; Lemma C (forward slice of Prop 3.12 (1)=>(3)): in a compact space every
+;;; sequence f : NN -> X(s) has a cluster point.  Directly backchainable
+;;; (relation-/FORSOME-headed conclusion), unlike the IFF compact-iff-cluster-
+;;; point which a goal cannot match against.  AND-shaped antecedent so bc*
+;;; splits it into the two conjuncts (both land in context during the proof).
+(support 'compact-seq-has-cluster
+  '(FORALL s (FORALL f
+     (IMPLIES (AND (IS-COMPACT s) (IN f (FUN NN (X s))))
+              (FORSOME x (CLUSTER-POINT s f x))))))
+(warrant! 'compact-seq-has-cluster 'reference
+  "calculus.pdf Prop 3.12 (1)=>(3): a compact metric space is sequentially
+   compact -- every sequence has a cluster point (a convergent subsequence).
+   The forward, directly-backchainable slice of compact-iff-cluster-point.")
+
+;;; Lemma D (the analytic keystone): a Cauchy sequence with a cluster point
+;;; CONVERGES (to that cluster point).  AND-shaped antecedent + existential
+;;; cluster hypothesis, conclusion the folded CONVERGES so bc* matches the goal.
+(support 'cauchy-cluster-converges
+  '(FORALL s (FORALL f
+     (IMPLIES (AND (IS-CAUCHY-SEQ s f) (FORSOME x (CLUSTER-POINT s f x)))
+              (CONVERGES s f)))))
+(warrant! 'cauchy-cluster-converges 'well-known
+  "A Cauchy sequence with a cluster point x converges to x.  Given eps > 0:
+   Cauchyness gives N with d(f m, f n) <= eps/2 for m,n >= N; x is a cluster
+   point, so some n >= N has d(f n, x) < eps/2; then for every m >= N,
+   d(f m, x) <= d(f m, f n) + d(f n, x) < eps.  Hence f converges to x.  This
+   is the standard fact powering compact => complete (calculus.pdf Prop 3.12).")
