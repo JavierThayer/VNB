@@ -35,6 +35,17 @@
       '()
       (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
 
+;; The focus node's display number (the bracketed [k] of the state display),
+;; or #f when the proof is complete.
+(define (proof-tex--focus-id)
+  (if (proof-done? *ps*)
+      #f
+      (sequent-node-number (proof-state-focus *ps*))))
+
+;; The display numbers of all currently-open goals.
+(define (proof-tex--open-ids)
+  (map sequent-node-number (proof-open-goals *ps*)))
+
 ;; A recorded command's argument: render symbols/numbers verbatim (witnesses,
 ;; indices, macete names) and collapse formula/list args to an ellipsis, so the
 ;; step annotation stays a tidy `(inst ... x)' / `(mac totally-bounded-def)'.
@@ -63,20 +74,28 @@
     (if (not rec)
         (error "proof-tex: no proof named this in *session-log* (proofs run this session)" name)
         (let ((goal (cadr rec)) (script (caddr rec))
-              (acc '()) (forms '()) (cmds (list 'sp)))
+              (acc '()) (forms '()) (cmds (list 'sp)) (prev '()))
+          ;; nodes opened by THIS step = open-now minus open-before.
+          (define (new-ids)
+            (let ((now (proof-tex--open-ids)))
+              (let ((added (filter (lambda (k) (not (memv k prev))) now)))
+                (set! prev now)
+                (sort added <))))
           (quietly
            (lambda ()
              (sp (make-wff goal))
-             (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms)))
-               (set! acc (list (list "sp" g a)))
+             (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms))
+                   (fid (proof-tex--focus-id)) (nw (new-ids)))
+               (set! acc (list (list "sp" g a fid nw)))
                (set! forms (append (if g (list g) '()) a forms)))
              (fluid-let ((*replaying?* #t))
                (for-each
                 (lambda (entry)
                   (apply-recorded-cmd! (car entry) (cdr entry))
                   (set! cmds (cons (car entry) cmds))
-                  (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms)))
-                    (set! acc (cons (list (proof-tex--cmd-label entry) g a) acc))
+                  (let ((g (proof-tex--focus-goal)) (a (proof-tex--focus-asms))
+                        (fid (proof-tex--focus-id)) (nw (new-ids)))
+                    (set! acc (cons (list (proof-tex--cmd-label entry) g a fid nw) acc))
                     (set! forms (append (if g (list g) '()) a forms))))
                 script))))
           (let ((allforms (cons goal forms)))
@@ -235,12 +254,35 @@
    "{\\small\\textbf{A" (number->string i) ".}}\\; "
    "\\fit{$\\displaystyle " (expr->tex a) "$}\\\\[1pt]\n"))
 
-(define (proof-tex--row n label goal asms)
+;; "adds nodes 79, 80, 81 -- focus 79" annotation for a step.
+(define (proof-tex--nodes-line focus-id new-ids)
+  (string-append
+   "\\hfill{\\small "
+   (if (null? new-ids)
+       "adds no nodes"
+       (string-append "adds node"
+                      (if (> (length new-ids) 1) "s" "") " "
+                      (proof-tex--num-list new-ids)))
+   (if focus-id
+       (string-append " $\\;\\cdot\\;$ focus " (number->string focus-id))
+       "")
+   "}"))
+
+(define (proof-tex--num-list ks)
+  (proof-tex--join (map number->string ks) ", "))
+
+(define (proof-tex--join strs sep)
+  (cond ((null? strs) "")
+        ((null? (cdr strs)) (car strs))
+        (else (string-append (car strs) sep (proof-tex--join (cdr strs) sep)))))
+
+(define (proof-tex--row n label goal asms focus-id new-ids)
   (string-append
    "\\medskip\\noindent\\textbf{" (number->string n) ".}\\quad "
    "\\texttt{" (proof-tex--escape-tt label) "}"
    (if goal
        (string-append
+        (proof-tex--nodes-line focus-id new-ids)
         "\\\\[2pt]\n"
         (if (null? asms)
             "{\\small (no assumptions)}\\\\[2pt]\n"
@@ -248,7 +290,9 @@
                    (map proof-tex--asm-line
                         (iota (length asms) 1) asms)))
         "$\\vdash\\;$\\fit{$\\displaystyle " (expr->tex goal) "$}\\par\n")
-       "\\hfill{\\small[proof complete]}\\\\[2pt]\n\\emph{QED.}\\par\n")))
+       (string-append
+        (proof-tex--nodes-line focus-id new-ids)
+        "\\\\[2pt]\n\\emph{QED.}\\par\n"))))
 
 (define (proof-tex name)
   (let* ((data  (proof-tex--steps name))
@@ -263,16 +307,20 @@
      "\\textbf{Claim.}\\quad \\fit{$\\displaystyle " (expr->tex goal) "$}\n\\bigskip\n\n"
      (proof-tex--tactic-glossary cmds)
      (proof-tex--notation-glossary syms heads)
-     "\\subsection*{Derivation}\nEach step shows the tactic applied, the focus "
-     "node's assumptions (\\textbf{A1}, \\textbf{A2}, \\dots{}, the numbering the "
-     "tactic args refer to), and the goal $G$ it leaves, written $\\vdash G$.\n\n"
+     "\\subsection*{Derivation}\nEach step shows the tactic applied; the goal "
+     "nodes it opens and which one is now in focus (the bracketed \\texttt{[k]} "
+     "of the workspace display); the focus node's assumptions (\\textbf{A1}, "
+     "\\textbf{A2}, \\dots{}, the numbering the tactic args refer to); and the "
+     "goal $G$ it leaves, written $\\vdash G$.\n\n"
      (append
       (let loop ((ss steps) (n 0) (rows '()))
         (if (null? ss)
             (reverse rows)
-            (loop (cdr ss) (+ n 1)
-                  (cons (proof-tex--row n (car (car ss)) (cadr (car ss)) (caddr (car ss)))
-                        rows))))
+            (let ((st (car ss)))
+              (loop (cdr ss) (+ n 1)
+                    (cons (proof-tex--row n (list-ref st 0) (list-ref st 1)
+                                          (list-ref st 2) (list-ref st 3) (list-ref st 4))
+                          rows)))))
       (list "\n\\end{document}\n")))))
 
 (define (write-proof-tex name path)
