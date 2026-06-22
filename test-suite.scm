@@ -2989,7 +2989,8 @@
            (substring? "direct inference" s)    ; di described
            (substring? "Notation" s)            ; notation glossary
            (substring? "set membership" s)      ; `in' glossed
-           (substring? "\\textbf{A1.}" s)       ; assumptions listed, numbered
+           (substring? "\\begin{align*}" s)     ; formulas in editable align* blocks
+           (substring? "\\mathbf{A1.}" s)       ; assumptions listed, numbered
            (substring? "\\vdash" s)))))         ; goal shown as a sequent
 
 (check-true "mac-h*: saturates hyps, closes, renders as one trace row"

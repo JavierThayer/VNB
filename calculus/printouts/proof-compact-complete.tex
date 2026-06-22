@@ -1,0 +1,141 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{Proof of \texttt{compact-complete}}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; (\mathsf{is{-}compact}(s) \Rightarrow \mathsf{is{-}complete}(s))
+\end{align*}
+\bigskip
+
+\subsection*{Tactics used}
+\begin{itemize}
+\item \texttt{sp} -- start the proof: install the claim as the initial goal
+\item \texttt{di} -- direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable
+\item \texttt{mac} -- macete: rewrite the goal using a named theorem or definition
+\item \texttt{mac-h} -- macete in a hypothesis: unfold a defined predicate inside an assumption
+\item \texttt{ai} -- antecedent inference: decompose a structured assumption, named by its number or its formula
+\item \texttt{ass} -- assert: close the goal directly from the assumptions
+\end{itemize}
+
+\subsection*{Notation}
+\begin{itemize}
+\item $\Rightarrow$ -- implies
+\item $\in$ -- set membership
+\item $(A \to B)$ -- the set of functions from $A$ to $B$
+\item $\mathbb{N}$ -- the natural numbers
+\item $\wedge$ -- and
+\item $\subseteq$ -- subset
+\item $|x|$ -- the cardinality (number of elements) of the set $x$
+\item \texttt{is-compact}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\item \texttt{is-complete}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\item \texttt{cluster-point}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\item \texttt{is-cauchy-seq}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\item \texttt{converges}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\item \texttt{is-open-cover}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\end{itemize}
+
+\subsection*{Derivation}
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
+
+\medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
+\begin{align*}
+  \vdash\quad & \forall s.\; (\mathsf{is{-}compact}(s) \Rightarrow \mathsf{is{-}complete}(s))
+\end{align*}
+\medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\mathsf{is{-}compact}(s) \Rightarrow \mathsf{is{-}complete}(s))
+\end{align*}
+\medskip\noindent\textbf{2.}\quad \texttt{(di)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \mathsf{is{-}complete}(s)
+\end{align*}
+\medskip\noindent\textbf{3.}\quad \texttt{(mac is-complete)}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & (\mathsf{is{-}metric{-}space}(s) \wedge \forall f.\; (\mathsf{is{-}cauchy{-}seq}(s, f) \Rightarrow \mathit{converges}(s, f)))
+\end{align*}
+\medskip\noindent\textbf{4.}\quad \texttt{(di)}\hfill{\small adds nodes 4, 5 $\;\cdot\;$ focus 4}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \mathsf{is{-}metric{-}space}(s)
+\end{align*}
+\medskip\noindent\textbf{5.}\quad \texttt{(mac-h is-compact 1)}\hfill{\small adds node 6 $\;\cdot\;$ focus 6}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{is{-}metric{-}space}(s) \wedge \forall c.\; (\mathsf{is{-}open{-}cover}(s, c) \Rightarrow \exists f.\; ((f \subseteq c) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))))) \\
+  \vdash\quad & \mathsf{is{-}metric{-}space}(s)
+\end{align*}
+\medskip\noindent\textbf{6.}\quad \texttt{(ai 1)}\hfill{\small adds node 7 $\;\cdot\;$ focus 7}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \forall c.\; (\mathsf{is{-}open{-}cover}(s, c) \Rightarrow \exists f.\; ((f \subseteq c) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f)))) \\
+  \mathbf{A2.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \mathsf{is{-}metric{-}space}(s)
+\end{align*}
+\medskip\noindent\textbf{7.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 5}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \forall f.\; (\mathsf{is{-}cauchy{-}seq}(s, f) \Rightarrow \mathit{converges}(s, f))
+\end{align*}
+\medskip\noindent\textbf{8.}\quad \texttt{(di)}\hfill{\small adds node 8 $\;\cdot\;$ focus 8}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & (\mathsf{is{-}cauchy{-}seq}(s, f) \Rightarrow \mathit{converges}(s, f))
+\end{align*}
+\medskip\noindent\textbf{9.}\quad \texttt{(di)}\hfill{\small adds node 9 $\;\cdot\;$ focus 9}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}cauchy{-}seq}(s, f) \\
+  \mathbf{A2.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \mathit{converges}(s, f)
+\end{align*}
+\medskip\noindent\textbf{10.}\quad \texttt{(di)}\hfill{\small adds nodes 10, 11, 12, 14, 15, 16 $\;\cdot\;$ focus 15}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A2.}\quad & \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A3.}\quad & \forall s.\; \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A4.}\quad & \mathsf{is{-}cauchy{-}seq}(s, f) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \mathsf{is{-}cauchy{-}seq}(s, f)
+\end{align*}
+\medskip\noindent\textbf{11.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 16}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A2.}\quad & \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A3.}\quad & \forall s.\; \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A4.}\quad & \mathsf{is{-}cauchy{-}seq}(s, f) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \exists x.\; \mathsf{cluster{-}point}(s, f, x)
+\end{align*}
+\medskip\noindent\textbf{12.}\quad \texttt{(di)}\hfill{\small adds nodes 17, 18, 19, 21, 22, 23 $\;\cdot\;$ focus 22}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{is{-}compact}(s) \wedge (f \in (\mathbb{N} \to x(s)))) \Rightarrow \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \\
+  \mathbf{A2.}\quad & \forall f.\; ((\mathsf{is{-}compact}(s) \wedge (f \in (\mathbb{N} \to x(s)))) \Rightarrow \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \\
+  \mathbf{A3.}\quad & \forall s.\; \forall f.\; ((\mathsf{is{-}compact}(s) \wedge (f \in (\mathbb{N} \to x(s)))) \Rightarrow \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \\
+  \mathbf{A4.}\quad & ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A5.}\quad & \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A7.}\quad & \mathsf{is{-}cauchy{-}seq}(s, f) \\
+  \mathbf{A8.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & \mathsf{is{-}compact}(s)
+\end{align*}
+\medskip\noindent\textbf{13.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 23}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{is{-}compact}(s) \wedge (f \in (\mathbb{N} \to x(s)))) \Rightarrow \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \\
+  \mathbf{A2.}\quad & \forall f.\; ((\mathsf{is{-}compact}(s) \wedge (f \in (\mathbb{N} \to x(s)))) \Rightarrow \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \\
+  \mathbf{A3.}\quad & \forall s.\; \forall f.\; ((\mathsf{is{-}compact}(s) \wedge (f \in (\mathbb{N} \to x(s)))) \Rightarrow \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \\
+  \mathbf{A4.}\quad & ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A5.}\quad & \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall f.\; ((\mathsf{is{-}cauchy{-}seq}(s, f) \wedge \exists x.\; \mathsf{cluster{-}point}(s, f, x)) \Rightarrow \mathit{converges}(s, f)) \\
+  \mathbf{A7.}\quad & \mathsf{is{-}cauchy{-}seq}(s, f) \\
+  \mathbf{A8.}\quad & \mathsf{is{-}compact}(s) \\
+  \vdash\quad & (f \in (\mathbb{N} \to x(s)))
+\end{align*}
+\medskip\noindent\textbf{14.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
+\emph{QED.}\par
+
+\end{document}

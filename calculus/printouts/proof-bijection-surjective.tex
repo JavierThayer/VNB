@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{Proof of \texttt{bijection-surjective}}
+\textbf{Claim.}
+\begin{align*}
+  \forall x.\; \forall y.\; \forall \varphi \in \mathrm{Bij}(x, y).\; \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\bigskip
+
+\subsection*{Tactics used}
+\begin{itemize}
+\item \texttt{sp} -- start the proof: install the claim as the initial goal
+\item \texttt{di} -- direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable
+\item \texttt{mac-h} -- macete in a hypothesis: unfold a defined predicate inside an assumption
+\item \texttt{ai} -- antecedent inference: decompose a structured assumption, named by its number or its formula
+\item \texttt{inst} -- instantiate: supply a witness term for a universally quantified assumption
+\item \texttt{bc} -- backchain: reduce the goal through a named implication
+\item \texttt{ass} -- assert: close the goal directly from the assumptions
+\end{itemize}
+
+\subsection*{Notation}
+\begin{itemize}
+\item $\Rightarrow$ -- implies
+\item $\in$ -- set membership
+\item $\wedge$ -- and
+\item $(A \to B)$ -- the set of functions from $A$ to $B$
+\end{itemize}
+
+\subsection*{Derivation}
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
+
+\medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
+\begin{align*}
+  \vdash\quad & \forall x.\; \forall y.\; \forall \varphi \in \mathrm{Bij}(x, y).\; \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\varphi \in \mathrm{Bij}(x, y)) \\
+  \mathbf{A2.}\quad & (w \in y) \\
+  \vdash\quad & \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\medskip\noindent\textbf{2.}\quad \texttt{(mac-h bijection-membership-iff ...)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\varphi \in (x \to y)) \wedge (\forall a \in x.\; \forall b \in x.\; ((\varphi(a) = \varphi(b)) \Rightarrow (a = b)) \wedge \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w))) \\
+  \mathbf{A2.}\quad & (w \in y) \\
+  \vdash\quad & \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\medskip\noindent\textbf{3.}\quad \texttt{(ai ...)}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\forall a \in x.\; \forall b \in x.\; ((\varphi(a) = \varphi(b)) \Rightarrow (a = b)) \wedge \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w)) \\
+  \mathbf{A2.}\quad & (\varphi \in (x \to y)) \\
+  \mathbf{A3.}\quad & (w \in y) \\
+  \vdash\quad & \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\medskip\noindent\textbf{4.}\quad \texttt{(ai ...)}\hfill{\small adds node 4 $\;\cdot\;$ focus 4}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w) \\
+  \mathbf{A2.}\quad & \forall a \in x.\; \forall b \in x.\; ((\varphi(a) = \varphi(b)) \Rightarrow (a = b)) \\
+  \mathbf{A3.}\quad & (\varphi \in (x \to y)) \\
+  \mathbf{A4.}\quad & (w \in y) \\
+  \vdash\quad & \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\medskip\noindent\textbf{5.}\quad \texttt{(inst ... w)}\hfill{\small adds node 5 $\;\cdot\;$ focus 5}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((w \in y) \Rightarrow \exists z \in x.\; (\varphi(z) = w)) \\
+  \mathbf{A2.}\quad & \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w) \\
+  \mathbf{A3.}\quad & \forall a \in x.\; \forall b \in x.\; ((\varphi(a) = \varphi(b)) \Rightarrow (a = b)) \\
+  \mathbf{A4.}\quad & (\varphi \in (x \to y)) \\
+  \mathbf{A5.}\quad & (w \in y) \\
+  \vdash\quad & \exists z \in x.\; (\varphi(z) = w)
+\end{align*}
+\medskip\noindent\textbf{6.}\quad \texttt{(bc ...)}\hfill{\small adds node 6 $\;\cdot\;$ focus 6}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((w \in y) \Rightarrow \exists z \in x.\; (\varphi(z) = w)) \\
+  \mathbf{A2.}\quad & \forall w \in y.\; \exists z \in x.\; (\varphi(z) = w) \\
+  \mathbf{A3.}\quad & \forall a \in x.\; \forall b \in x.\; ((\varphi(a) = \varphi(b)) \Rightarrow (a = b)) \\
+  \mathbf{A4.}\quad & (\varphi \in (x \to y)) \\
+  \mathbf{A5.}\quad & (w \in y) \\
+  \vdash\quad & (w \in y)
+\end{align*}
+\medskip\noindent\textbf{7.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
+\emph{QED.}\par
+
+\end{document}

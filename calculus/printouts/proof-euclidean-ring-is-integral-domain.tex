@@ -1,0 +1,66 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{Proof of \texttt{euclidean-ring-is-integral-domain}}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \mathsf{is{-}integral{-}domain}(s))
+\end{align*}
+\bigskip
+
+\subsection*{Tactics used}
+\begin{itemize}
+\item \texttt{sp} -- start the proof: install the claim as the initial goal
+\item \texttt{di} -- direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable
+\item \texttt{mac-h} -- macete in a hypothesis: unfold a defined predicate inside an assumption
+\item \texttt{ai} -- antecedent inference: decompose a structured assumption, named by its number or its formula
+\item \texttt{ass} -- assert: close the goal directly from the assumptions
+\end{itemize}
+
+\subsection*{Notation}
+\begin{itemize}
+\item $\Rightarrow$ -- implies
+\item $\wedge$ -- and
+\item $\in$ -- set membership
+\item $(A \to B)$ -- the set of functions from $A$ to $B$
+\item $\mathbb{N}$ -- the natural numbers
+\item $\neg$ -- not
+\item $\vee$ -- or
+\end{itemize}
+
+\subsection*{Derivation}
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
+
+\medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
+\begin{align*}
+  \vdash\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \mathsf{is{-}integral{-}domain}(s))
+\end{align*}
+\medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \mathsf{is{-}integral{-}domain}(s))
+\end{align*}
+\medskip\noindent\textbf{2.}\quad \texttt{(di)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & \mathsf{is{-}integral{-}domain}(s)
+\end{align*}
+\medskip\noindent\textbf{3.}\quad \texttt{(mac-h is-euclidean-ring-def ...)}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{is{-}integral{-}domain}(s) \wedge \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \forall a \in a(s).\; \forall b \in a(s).\; (\neg (b = \mathit{zero}(s)) \Rightarrow \exists q \in a(s).\; \exists r \in a(s).\; ((a = \mathit{add}(s)(\mathit{mul}(s)(q, b), r)) \wedge ((r = \mathit{zero}(s)) \vee ((\mathit{deg}(r) + 1) \leq \mathit{deg}(b)))))) \\
+  \vdash\quad & \mathsf{is{-}integral{-}domain}(s)
+\end{align*}
+\medskip\noindent\textbf{4.}\quad \texttt{(ai ...)}\hfill{\small adds node 4 $\;\cdot\;$ focus 4}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \forall a \in a(s).\; \forall b \in a(s).\; (\neg (b = \mathit{zero}(s)) \Rightarrow \exists q \in a(s).\; \exists r \in a(s).\; ((a = \mathit{add}(s)(\mathit{mul}(s)(q, b), r)) \wedge ((r = \mathit{zero}(s)) \vee ((\mathit{deg}(r) + 1) \leq \mathit{deg}(b))))) \\
+  \mathbf{A2.}\quad & \mathsf{is{-}integral{-}domain}(s) \\
+  \vdash\quad & \mathsf{is{-}integral{-}domain}(s)
+\end{align*}
+\medskip\noindent\textbf{5.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
+\emph{QED.}\par
+
+\end{document}

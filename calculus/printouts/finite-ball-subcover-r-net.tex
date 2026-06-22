@@ -7,7 +7,10 @@
 \setlength{\parindent}{0pt}
 \begin{document}
 \section*{Proof of \texttt{finite-ball-subcover-r-net}}
-\textbf{Claim.}\quad \fit{$\displaystyle \forall s.\; (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))))$}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))))
+\end{align*}
 \bigskip
 
 \subsection*{Tactics used}
@@ -35,405 +38,457 @@
 \end{itemize}
 
 \subsection*{Derivation}
-Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
 
 \medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
-{\small (no assumptions)}\\[2pt]
-$\vdash\;$\fit{$\displaystyle \forall s.\; (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))))$}\par
+\begin{align*}
+  \vdash\quad & \forall s.\; (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))))
+\end{align*}
 \medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
-{\small (no assumptions)}\\[2pt]
-$\vdash\;$\fit{$\displaystyle (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))))$}\par
+\begin{align*}
+  \vdash\quad & (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))))
+\end{align*}
 \medskip\noindent\textbf{2.}\quad \texttt{(di)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))))
+\end{align*}
 \medskip\noindent\textbf{3.}\quad \texttt{(di)}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))))
+\end{align*}
 \medskip\noindent\textbf{4.}\quad \texttt{(di)}\hfill{\small adds node 4 $\;\cdot\;$ focus 4}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A2.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & (\exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \Rightarrow \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r)))
+\end{align*}
 \medskip\noindent\textbf{5.}\quad \texttt{(di)}\hfill{\small adds node 5 $\;\cdot\;$ focus 5}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f)))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \exists f.\; ((f \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|f| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, f))) \\
+  \mathbf{A2.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A3.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))
+\end{align*}
 \medskip\noindent\textbf{6.}\quad \texttt{(ai 1)}\hfill{\small adds node 6 $\;\cdot\;$ focus 6}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|\mathsf{f\_3}| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \wedge ((|\mathsf{f\_3}| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}))) \\
+  \mathbf{A2.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A3.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))
+\end{align*}
 \medskip\noindent\textbf{7.}\quad \texttt{(ai 1)}\hfill{\small adds node 7 $\;\cdot\;$ focus 7}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((|\mathsf{f\_3}| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((|\mathsf{f\_3}| \in \mathbb{N}) \wedge \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})) \\
+  \mathbf{A2.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A3.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A4.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))
+\end{align*}
 \medskip\noindent\textbf{8.}\quad \texttt{(ai 1)}\hfill{\small adds node 8 $\;\cdot\;$ focus 8}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A2.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A3.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A4.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists n.\; ((|n| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, n, x(s), r))
+\end{align*}
 \medskip\noindent\textbf{9.}\quad \texttt{(ew ...)}\hfill{\small adds node 9 $\;\cdot\;$ focus 9}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((|\mathsf{centre{-}set}(s, r, \mathsf{f\_3})| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, \mathsf{centre{-}set}(s, r, \mathsf{f\_3}), x(s), r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A2.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A3.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A4.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & ((|\mathsf{centre{-}set}(s, r, \mathsf{f\_3})| \in \mathbb{N}) \wedge \mathsf{is{-}r{-}net}(s, \mathsf{centre{-}set}(s, r, \mathsf{f\_3}), x(s), r))
+\end{align*}
 \medskip\noindent\textbf{10.}\quad \texttt{(di)}\hfill{\small adds nodes 10, 11 $\;\cdot\;$ focus 10}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (|\mathsf{centre{-}set}(s, r, \mathsf{f\_3})| \in \mathbb{N})$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A2.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A3.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A4.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & (|\mathsf{centre{-}set}(s, r, \mathsf{f\_3})| \in \mathbb{N})
+\end{align*}
 \medskip\noindent\textbf{11.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 11}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \mathsf{is{-}r{-}net}(s, \mathsf{centre{-}set}(s, r, \mathsf{f\_3}), x(s), r)$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A2.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A3.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A4.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \mathsf{is{-}r{-}net}(s, \mathsf{centre{-}set}(s, r, \mathsf{f\_3}), x(s), r)
+\end{align*}
 \medskip\noindent\textbf{12.}\quad \texttt{(mac is-r-net)}\hfill{\small adds node 18 $\;\cdot\;$ focus 18}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \forall p \in x(s).\; \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A2.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A3.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A4.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \forall p \in x(s).\; \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{13.}\quad \texttt{(di)}\hfill{\small adds node 19 $\;\cdot\;$ focus 19}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (p \in x(s)) \\
+  \mathbf{A2.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A3.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A4.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A5.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A6.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{14.}\quad \texttt{(fact open-cover-covers-point ...)}\hfill{\small adds nodes 20, 21, 22, 23, 24, 25 $\;\cdot\;$ focus 25}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A2.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A3.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A4.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A5.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A7.}\quad & (p \in x(s)) \\
+  \mathbf{A8.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A9.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A10.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A11.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A12.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{15.}\quad \texttt{(ai 1)}\hfill{\small adds node 26 $\;\cdot\;$ focus 26}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \wedge (p \in \mathsf{u\_4}))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \wedge (p \in \mathsf{u\_4})) \\
+  \mathbf{A2.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A3.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A4.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A5.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A7.}\quad & (p \in x(s)) \\
+  \mathbf{A8.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A9.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A10.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A11.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A12.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{16.}\quad \texttt{(ai 1)}\hfill{\small adds node 27 $\;\cdot\;$ focus 27}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A3.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A4.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A5.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A6.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A7.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A8.}\quad & (p \in x(s)) \\
+  \mathbf{A9.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A10.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A11.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A12.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A13.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{17.}\quad \texttt{(fact subset-mem-fwd ...)}\hfill{\small adds nodes 28, 29, 30, 31, 32, 33 $\;\cdot\;$ focus 33}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A2.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A3.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A4.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A5.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A6.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A7.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A8.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A9.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A10.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A11.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A12.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A13.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A14.}\quad & (p \in x(s)) \\
+  \mathbf{A15.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A16.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A17.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A18.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A19.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{18.}\quad \texttt{(fact chosen-centre-is-centre ...)}\hfill{\small adds nodes 34, 35, 36, 37, 38 $\;\cdot\;$ focus 38}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})) \\
+  \mathbf{A2.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A3.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A4.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A7.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A8.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A9.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A11.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A13.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A14.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A15.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A16.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A17.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & (p \in x(s)) \\
+  \mathbf{A20.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A21.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A22.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A23.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A24.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{19.}\quad \texttt{(ai 1)}\hfill{\small adds node 39 $\;\cdot\;$ focus 39}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A3.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A7.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A8.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A9.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A11.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A13.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A14.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A15.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A16.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A17.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A20.}\quad & (p \in x(s)) \\
+  \mathbf{A21.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A22.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A23.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A24.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \exists c \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}).\; ((d(s)(c, p) \leq r) \wedge \neg (d(s)(c, p) = r))
+\end{align*}
 \medskip\noindent\textbf{20.}\quad \texttt{(ew ...)}\hfill{\small adds node 40 $\;\cdot\;$ focus 40}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3})) \wedge ((d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r) \wedge \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A3.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A7.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A8.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A9.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A11.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A13.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A14.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A15.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A16.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A17.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A20.}\quad & (p \in x(s)) \\
+  \mathbf{A21.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A22.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A23.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A24.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3})) \wedge ((d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r) \wedge \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)))
+\end{align*}
 \medskip\noindent\textbf{21.}\quad \texttt{(di)}\hfill{\small adds nodes 41, 42 $\;\cdot\;$ focus 41}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A3.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A7.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A8.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A9.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A11.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A13.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A14.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A15.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A16.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A17.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A20.}\quad & (p \in x(s)) \\
+  \mathbf{A21.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A22.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A23.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A24.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in \mathsf{centre{-}set}(s, r, \mathsf{f\_3}))
+\end{align*}
 \medskip\noindent\textbf{22.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 42}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r) \wedge \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A3.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A7.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A8.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A9.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A11.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A13.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A14.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A15.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A16.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A17.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A20.}\quad & (p \in x(s)) \\
+  \mathbf{A21.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A22.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A23.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A24.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & ((d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r) \wedge \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r))
+\end{align*}
 \medskip\noindent\textbf{23.}\quad \texttt{(di)}\hfill{\small adds nodes 50, 51 $\;\cdot\;$ focus 50}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A3.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A7.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A8.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A9.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A11.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A13.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A14.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A15.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A16.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A17.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A20.}\quad & (p \in x(s)) \\
+  \mathbf{A21.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A22.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A23.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A24.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)
+\end{align*}
 \medskip\noindent\textbf{24.}\quad \texttt{(fact ball-point-le ...)}\hfill{\small adds nodes 52, 53, 54, 55, 56, 57, 58, 59 $\;\cdot\;$ focus 59}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((p \in \mathsf{u\_4}) \Rightarrow ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall p \in \mathsf{u\_4}.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = w) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall \mathsf{r\_5}.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), \mathsf{r\_5}) = w) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq \mathsf{r\_5}))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow (d(s)(c, p) \leq r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle \forall s.\; \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow (d(s)(c, p) \leq r))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A26.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A27.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A28.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A29.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A30.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A31.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A32.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A33.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r) \\
+  \mathbf{A2.}\quad & ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)) \\
+  \mathbf{A3.}\quad & ((p \in \mathsf{u\_4}) \Rightarrow ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r))) \\
+  \mathbf{A4.}\quad & \forall p \in \mathsf{u\_4}.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)) \\
+  \mathbf{A5.}\quad & \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = w) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)) \\
+  \mathbf{A6.}\quad & \forall \mathsf{r\_5}.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), \mathsf{r\_5}) = w) \Rightarrow (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq \mathsf{r\_5})) \\
+  \mathbf{A7.}\quad & \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow (d(s)(c, p) \leq r)) \\
+  \mathbf{A8.}\quad & \forall s.\; \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow (d(s)(c, p) \leq r)) \\
+  \mathbf{A9.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A10.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A11.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A12.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A13.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A14.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A15.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A16.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A17.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A18.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A19.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A20.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A21.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A22.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A23.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A24.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A25.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A26.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A27.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A28.}\quad & (p \in x(s)) \\
+  \mathbf{A29.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A30.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A31.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A32.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A33.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) \leq r)
+\end{align*}
 \medskip\noindent\textbf{25.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 51}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A2.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A3.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A7.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A8.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A9.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A10.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A11.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A12.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A13.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A14.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A15.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A16.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A17.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A18.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A19.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A20.}\quad & (p \in x(s)) \\
+  \mathbf{A21.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A22.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A23.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A24.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)
+\end{align*}
 \medskip\noindent\textbf{26.}\quad \texttt{(fact ball-point-ne ...)}\hfill{\small adds nodes 60, 61, 62, 63, 64, 65, 66, 67 $\;\cdot\;$ focus 67}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((p \in \mathsf{u\_4}) \Rightarrow ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall p \in \mathsf{u\_4}.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = w) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall \mathsf{r\_7}.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), \mathsf{r\_7}) = w) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = \mathsf{r\_7}))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow \neg (d(s)(c, p) = r))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle \forall s.\; \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow \neg (d(s)(c, p) = r))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4})))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r))))$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b)))$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle (p \in \mathsf{u\_4})$}\\[1pt]
-{\small\textbf{A22.}}\; \fit{$\displaystyle (\mathsf{u\_4} \in \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A23.}}\; \fit{$\displaystyle ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A24.}}\; \fit{$\displaystyle \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)$}\\[1pt]
-{\small\textbf{A25.}}\; \fit{$\displaystyle (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u))$}\\[1pt]
-{\small\textbf{A26.}}\; \fit{$\displaystyle \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A27.}}\; \fit{$\displaystyle \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u))$}\\[1pt]
-{\small\textbf{A28.}}\; \fit{$\displaystyle (p \in x(s))$}\\[1pt]
-{\small\textbf{A29.}}\; \fit{$\displaystyle \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3})$}\\[1pt]
-{\small\textbf{A30.}}\; \fit{$\displaystyle (|\mathsf{f\_3}| \in \mathbb{N})$}\\[1pt]
-{\small\textbf{A31.}}\; \fit{$\displaystyle (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-{\small\textbf{A32.}}\; \fit{$\displaystyle ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r)))$}\\[1pt]
-{\small\textbf{A33.}}\; \fit{$\displaystyle \mathsf{is{-}metric{-}space}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r) \\
+  \mathbf{A2.}\quad & ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)) \\
+  \mathbf{A3.}\quad & ((p \in \mathsf{u\_4}) \Rightarrow ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r))) \\
+  \mathbf{A4.}\quad & \forall p \in \mathsf{u\_4}.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)) \\
+  \mathbf{A5.}\quad & \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = w) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)) \\
+  \mathbf{A6.}\quad & \forall \mathsf{r\_7}.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), \mathsf{r\_7}) = w) \Rightarrow \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = \mathsf{r\_7})) \\
+  \mathbf{A7.}\quad & \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow \neg (d(s)(c, p) = r)) \\
+  \mathbf{A8.}\quad & \forall s.\; \forall c.\; \forall r.\; \forall w.\; \forall p \in w.\; ((\mathit{ball}(s, c, r) = w) \Rightarrow \neg (d(s)(c, p) = r)) \\
+  \mathbf{A9.}\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}) \\
+  \mathbf{A10.}\quad & (\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \\
+  \mathbf{A11.}\quad & ((\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), r) = \mathsf{u\_4}))) \\
+  \mathbf{A12.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A13.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A14.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A15.}\quad & (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A16.}\quad & ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r))) \\
+  \mathbf{A17.}\quad & ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((\mathsf{u\_4} \in \mathsf{f\_3}) \Rightarrow (\mathsf{u\_4} \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A18.}\quad & \forall x.\; ((\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in \mathsf{ball{-}cover}(s, r)))) \\
+  \mathbf{A19.}\quad & \forall b.\; \forall x.\; ((\mathsf{f\_3} \subseteq b) \Rightarrow ((x \in \mathsf{f\_3}) \Rightarrow (x \in b))) \\
+  \mathbf{A20.}\quad & \forall a.\; \forall b.\; \forall x.\; ((a \subseteq b) \Rightarrow ((x \in a) \Rightarrow (x \in b))) \\
+  \mathbf{A21.}\quad & (p \in \mathsf{u\_4}) \\
+  \mathbf{A22.}\quad & (\mathsf{u\_4} \in \mathsf{f\_3}) \\
+  \mathbf{A23.}\quad & ((p \in x(s)) \Rightarrow \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A24.}\quad & \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u) \\
+  \mathbf{A25.}\quad & (\mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \Rightarrow \forall p \in x(s).\; \exists u \in \mathsf{f\_3}.\; (p \in u)) \\
+  \mathbf{A26.}\quad & \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A27.}\quad & \forall s.\; \forall f.\; (\mathsf{is{-}open{-}cover}(s, f) \Rightarrow \forall p \in x(s).\; \exists u \in f.\; (p \in u)) \\
+  \mathbf{A28.}\quad & (p \in x(s)) \\
+  \mathbf{A29.}\quad & \mathsf{is{-}open{-}cover}(s, \mathsf{f\_3}) \\
+  \mathbf{A30.}\quad & (|\mathsf{f\_3}| \in \mathbb{N}) \\
+  \mathbf{A31.}\quad & (\mathsf{f\_3} \subseteq \mathsf{ball{-}cover}(s, r)) \\
+  \mathbf{A32.}\quad & ((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \\
+  \mathbf{A33.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \neg (d(s)(\varepsilon(\mathit{centres}(s, \mathsf{u\_4}, r)), p) = r)
+\end{align*}
 \medskip\noindent\textbf{27.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
 \emph{QED.}\par
 

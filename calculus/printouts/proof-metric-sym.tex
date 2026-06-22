@@ -1,0 +1,268 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{Proof of \texttt{metric-sym}}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x)))
+\end{align*}
+\bigskip
+
+\subsection*{Tactics used}
+\begin{itemize}
+\item \texttt{sp} -- start the proof: install the claim as the initial goal
+\item \texttt{di} -- direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable
+\item \texttt{mac-h} -- macete in a hypothesis: unfold a defined predicate inside an assumption
+\item \texttt{ai} -- antecedent inference: decompose a structured assumption, named by its number or its formula
+\item \texttt{inst} -- instantiate: supply a witness term for a universally quantified assumption
+\item \texttt{cut} -- cut: introduce an intermediate lemma, discharged as a side goal
+\item \texttt{bc} -- backchain: reduce the goal through a named implication
+\item \texttt{ass} -- assert: close the goal directly from the assumptions
+\end{itemize}
+
+\subsection*{Notation}
+\begin{itemize}
+\item $\Rightarrow$ -- implies
+\item $\in$ -- set membership
+\item $\wedge$ -- and
+\item $(A \to B)$ -- the set of functions from $A$ to $B$
+\item $\times$ -- Cartesian product
+\item $\mathbb{R}$ -- the real numbers
+\item \texttt{is-metric}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\end{itemize}
+
+\subsection*{Derivation}
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
+
+\medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
+\begin{align*}
+  \vdash\quad & \forall s.\; (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x)))
+\end{align*}
+\medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\mathsf{is{-}metric{-}space}(s) \Rightarrow \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x)))
+\end{align*}
+\medskip\noindent\textbf{2.}\quad \texttt{(di)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}metric{-}space}(s) \\
+  \vdash\quad & \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{3.}\quad \texttt{(mac-h is-metric-space ...)}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathit{length}(s) = 2) \wedge ((x(s) \in \mathbf{Set}) \wedge ((d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \wedge \mathsf{is{-}metric}(d(s), x(s))))) \\
+  \vdash\quad & \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{4.}\quad \texttt{(ai ...)}\hfill{\small adds node 4 $\;\cdot\;$ focus 4}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((x(s) \in \mathbf{Set}) \wedge ((d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \wedge \mathsf{is{-}metric}(d(s), x(s)))) \\
+  \mathbf{A2.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{5.}\quad \texttt{(ai ...)}\hfill{\small adds node 5 $\;\cdot\;$ focus 5}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \wedge \mathsf{is{-}metric}(d(s), x(s))) \\
+  \mathbf{A2.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A3.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{6.}\quad \texttt{(ai ...)}\hfill{\small adds node 6 $\;\cdot\;$ focus 6}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}metric}(d(s), x(s)) \\
+  \mathbf{A2.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A3.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A4.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{7.}\quad \texttt{(mac-h is-metric ...)}\hfill{\small adds node 7 $\;\cdot\;$ focus 7}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A2.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A3.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A4.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & \forall x \in x(s).\; \forall y \in x(s).\; (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{8.}\quad \texttt{(di)}\hfill{\small adds node 8 $\;\cdot\;$ focus 8}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (x \in x(s)) \\
+  \mathbf{A2.}\quad & (y \in x(s)) \\
+  \mathbf{A3.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A4.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A5.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A6.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{9.}\quad \texttt{(inst ... x)}\hfill{\small adds node 9 $\;\cdot\;$ focus 9}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A2.}\quad & (x \in x(s)) \\
+  \mathbf{A3.}\quad & (y \in x(s)) \\
+  \mathbf{A4.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A5.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A6.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A7.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{10.}\quad \texttt{(cut ...)}\hfill{\small adds nodes 10, 11 $\;\cdot\;$ focus 10}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A2.}\quad & (x \in x(s)) \\
+  \mathbf{A3.}\quad & (y \in x(s)) \\
+  \mathbf{A4.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A5.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A6.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A7.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))
+\end{align*}
+\medskip\noindent\textbf{11.}\quad \texttt{(bc ...)}\hfill{\small adds node 12 $\;\cdot\;$ focus 12}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A2.}\quad & (x \in x(s)) \\
+  \mathbf{A3.}\quad & (y \in x(s)) \\
+  \mathbf{A4.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A5.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A6.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A7.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (x \in x(s))
+\end{align*}
+\medskip\noindent\textbf{12.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 11}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w))))))) \\
+  \mathbf{A2.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A3.}\quad & (x \in x(s)) \\
+  \mathbf{A4.}\quad & (y \in x(s)) \\
+  \mathbf{A5.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A6.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A7.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A8.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{13.}\quad \texttt{(ai ...)}\hfill{\small adds node 13 $\;\cdot\;$ focus 13}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A2.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A3.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A4.}\quad & (x \in x(s)) \\
+  \mathbf{A5.}\quad & (y \in x(s)) \\
+  \mathbf{A6.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A7.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A8.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A9.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{14.}\quad \texttt{(inst ... y)}\hfill{\small adds node 14 $\;\cdot\;$ focus 14}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A2.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A3.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A4.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A5.}\quad & (x \in x(s)) \\
+  \mathbf{A6.}\quad & (y \in x(s)) \\
+  \mathbf{A7.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A8.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A9.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A10.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{15.}\quad \texttt{(cut ...)}\hfill{\small adds nodes 15, 16 $\;\cdot\;$ focus 15}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A2.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A3.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A4.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A5.}\quad & (x \in x(s)) \\
+  \mathbf{A6.}\quad & (y \in x(s)) \\
+  \mathbf{A7.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A8.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A9.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A10.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))
+\end{align*}
+\medskip\noindent\textbf{16.}\quad \texttt{(bc ...)}\hfill{\small adds node 17 $\;\cdot\;$ focus 17}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A2.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A3.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A4.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A5.}\quad & (x \in x(s)) \\
+  \mathbf{A6.}\quad & (y \in x(s)) \\
+  \mathbf{A7.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A8.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A9.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A10.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (y \in x(s))
+\end{align*}
+\medskip\noindent\textbf{17.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 16}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w)))))) \\
+  \mathbf{A2.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A3.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A4.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A5.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A6.}\quad & (x \in x(s)) \\
+  \mathbf{A7.}\quad & (y \in x(s)) \\
+  \mathbf{A8.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A9.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A10.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A11.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{18.}\quad \texttt{(ai ...)}\hfill{\small adds node 18 $\;\cdot\;$ focus 18}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))) \\
+  \mathbf{A2.}\quad & (0 \leq d(s)(x, y)) \\
+  \mathbf{A3.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A4.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A5.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A6.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A7.}\quad & (x \in x(s)) \\
+  \mathbf{A8.}\quad & (y \in x(s)) \\
+  \mathbf{A9.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A10.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A11.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A12.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{19.}\quad \texttt{(ai ...)}\hfill{\small adds node 19 $\;\cdot\;$ focus 19}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w)))) \\
+  \mathbf{A2.}\quad & ((d(s)(x, y) = 0) \Rightarrow (x = y)) \\
+  \mathbf{A3.}\quad & (0 \leq d(s)(x, y)) \\
+  \mathbf{A4.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A5.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A6.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A7.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A8.}\quad & (x \in x(s)) \\
+  \mathbf{A9.}\quad & (y \in x(s)) \\
+  \mathbf{A10.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A11.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A12.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A13.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{20.}\quad \texttt{(ai ...)}\hfill{\small adds node 20 $\;\cdot\;$ focus 20}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))) \\
+  \mathbf{A2.}\quad & (d(s)(x, y) = d(s)(y, x)) \\
+  \mathbf{A3.}\quad & ((d(s)(x, y) = 0) \Rightarrow (x = y)) \\
+  \mathbf{A4.}\quad & (0 \leq d(s)(x, y)) \\
+  \mathbf{A5.}\quad & ((y \in x(s)) \Rightarrow ((0 \leq d(s)(x, y)) \wedge (((d(s)(x, y) = 0) \Rightarrow (x = y)) \wedge ((d(s)(x, y) = d(s)(y, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, y) + d(s)(y, w))))))) \\
+  \mathbf{A6.}\quad & \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))) \\
+  \mathbf{A7.}\quad & (d(s)(x, x) = 0) \\
+  \mathbf{A8.}\quad & ((x \in x(s)) \Rightarrow ((d(s)(x, x) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(x, v)) \wedge (((d(s)(x, v) = 0) \Rightarrow (x = v)) \wedge ((d(s)(x, v) = d(s)(v, x)) \wedge \forall w \in x(s).\; (d(s)(x, w) \leq (d(s)(x, v) + d(s)(v, w)))))))) \\
+  \mathbf{A9.}\quad & (x \in x(s)) \\
+  \mathbf{A10.}\quad & (y \in x(s)) \\
+  \mathbf{A11.}\quad & \forall u \in x(s).\; ((d(s)(u, u) = 0) \wedge \forall v \in x(s).\; ((0 \leq d(s)(u, v)) \wedge (((d(s)(u, v) = 0) \Rightarrow (u = v)) \wedge ((d(s)(u, v) = d(s)(v, u)) \wedge \forall w \in x(s).\; (d(s)(u, w) \leq (d(s)(u, v) + d(s)(v, w))))))) \\
+  \mathbf{A12.}\quad & (d(s) \in ((x(s) \times x(s)) \to \mathbb{R})) \\
+  \mathbf{A13.}\quad & (x(s) \in \mathbf{Set}) \\
+  \mathbf{A14.}\quad & (\mathit{length}(s) = 2) \\
+  \vdash\quad & (d(s)(x, y) = d(s)(y, x))
+\end{align*}
+\medskip\noindent\textbf{21.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
+\emph{QED.}\par
+
+\end{document}

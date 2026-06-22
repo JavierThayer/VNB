@@ -1,0 +1,330 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{Proof of \texttt{module-zero-act}}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; (\mathsf{is{-}module}(s) \Rightarrow \forall x \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s)))
+\end{align*}
+\bigskip
+
+\subsection*{Tactics used}
+\begin{itemize}
+\item \texttt{sp} -- start the proof: install the claim as the initial goal
+\item \texttt{di} -- direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable
+\item \texttt{cut} -- cut: introduce an intermediate lemma, discharged as a side goal
+\item \texttt{subst} -- substitute: rewrite the goal using an equality assumption
+\item \texttt{ass} -- assert: close the goal directly from the assumptions
+\end{itemize}
+
+\subsection*{Notation}
+\begin{itemize}
+\item $\Rightarrow$ -- implies
+\item $\in$ -- set membership
+\end{itemize}
+
+\subsection*{Derivation}
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
+
+\medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
+\begin{align*}
+  \vdash\quad & \forall s.\; (\mathsf{is{-}module}(s) \Rightarrow \forall x \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s)))
+\end{align*}
+\medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall x \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s)))
+\end{align*}
+\medskip\noindent\textbf{2.}\quad \texttt{(di)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & \forall x \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{3.}\quad \texttt{(di)}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A2.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{4.}\quad \texttt{(fact module-scalar-ring ...)}\hfill{\small adds nodes 4, 5, 6 $\;\cdot\;$ focus 6}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A2.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A3.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A4.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{5.}\quad \texttt{(fact module-scalar-zero-in ...)}\hfill{\small adds nodes 7, 8, 9 $\;\cdot\;$ focus 9}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A2.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A3.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A4.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A5.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A6.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A7.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A8.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{6.}\quad \texttt{(fact module-act-type ...)}\hfill{\small adds nodes 10, 11, 12, 13, 14, 15, 16 $\;\cdot\;$ focus 16}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A2.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A3.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A4.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A5.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A6.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A7.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A8.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A9.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A10.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A11.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A12.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A13.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A14.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A15.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{7.}\quad \texttt{(fact module-act-distrib-scalar ...)}\hfill{\small adds nodes 17, 18, 19, 20, 21, 22, 23, 24, 25 $\;\cdot\;$ focus 25}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A2.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A3.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A4.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A5.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A6.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A7.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A8.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A9.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A10.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A11.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A12.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A13.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A14.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A15.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A16.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A17.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A18.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A19.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A20.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A21.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A22.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A23.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A24.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{8.}\quad \texttt{(fact ring-add-left-id ...)}\hfill{\small adds nodes 26, 27, 28, 29, 30 $\;\cdot\;$ focus 30}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s))) \\
+  \mathbf{A2.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s)))) \\
+  \mathbf{A3.}\quad & \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a) \\
+  \mathbf{A4.}\quad & (\mathsf{is{-}ring}(\mathit{scal}(s)) \Rightarrow \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a)) \\
+  \mathbf{A5.}\quad & \forall s.\; (\mathsf{is{-}ring}(s) \Rightarrow \forall a \in a(s).\; (\mathit{add}(s)(\mathit{zero}(s), a) = a)) \\
+  \mathbf{A6.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A7.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A8.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A9.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A10.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A11.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A12.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A13.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A14.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A15.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A16.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A17.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A18.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A19.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A20.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A21.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A22.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A23.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A24.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A26.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A27.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A28.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A29.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{9.}\quad \texttt{(cut ...)}\hfill{\small adds nodes 31, 32 $\;\cdot\;$ focus 31}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s))) \\
+  \mathbf{A2.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s)))) \\
+  \mathbf{A3.}\quad & \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a) \\
+  \mathbf{A4.}\quad & (\mathsf{is{-}ring}(\mathit{scal}(s)) \Rightarrow \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a)) \\
+  \mathbf{A5.}\quad & \forall s.\; (\mathsf{is{-}ring}(s) \Rightarrow \forall a \in a(s).\; (\mathit{add}(s)(\mathit{zero}(s), a) = a)) \\
+  \mathbf{A6.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A7.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A8.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A9.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A10.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A11.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A12.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A13.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A14.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A15.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A16.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A17.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A18.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A19.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A20.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A21.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A22.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A23.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A24.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A26.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A27.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A28.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A29.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))
+\end{align*}
+\medskip\noindent\textbf{10.}\quad \texttt{(subst ...)}\hfill{\small adds node 33 $\;\cdot\;$ focus 33}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s))) \\
+  \mathbf{A2.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s)))) \\
+  \mathbf{A3.}\quad & \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a) \\
+  \mathbf{A4.}\quad & (\mathsf{is{-}ring}(\mathit{scal}(s)) \Rightarrow \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a)) \\
+  \mathbf{A5.}\quad & \forall s.\; (\mathsf{is{-}ring}(s) \Rightarrow \forall a \in a(s).\; (\mathit{add}(s)(\mathit{zero}(s), a) = a)) \\
+  \mathbf{A6.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A7.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A8.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A9.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A10.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A11.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A12.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A13.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A14.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A15.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A16.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A17.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A18.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A19.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A20.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A21.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A22.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A23.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A24.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A26.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A27.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A28.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A29.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))
+\end{align*}
+\medskip\noindent\textbf{11.}\quad \texttt{(subst ...)}\hfill{\small adds node 34 $\;\cdot\;$ focus 34}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s))) \\
+  \mathbf{A2.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s)))) \\
+  \mathbf{A3.}\quad & \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a) \\
+  \mathbf{A4.}\quad & (\mathsf{is{-}ring}(\mathit{scal}(s)) \Rightarrow \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a)) \\
+  \mathbf{A5.}\quad & \forall s.\; (\mathsf{is{-}ring}(s) \Rightarrow \forall a \in a(s).\; (\mathit{add}(s)(\mathit{zero}(s), a) = a)) \\
+  \mathbf{A6.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A7.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A8.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A9.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A10.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A11.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A12.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A13.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A14.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A15.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A16.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A17.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A18.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A19.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A20.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A21.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A22.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A23.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A24.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A25.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A26.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A27.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A28.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A29.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))
+\end{align*}
+\medskip\noindent\textbf{12.}\quad \texttt{(rfl)}\hfill{\small adds no nodes $\;\cdot\;$ focus 32}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) \\
+  \mathbf{A2.}\quad & (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s))) \\
+  \mathbf{A3.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s)))) \\
+  \mathbf{A4.}\quad & \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a) \\
+  \mathbf{A5.}\quad & (\mathsf{is{-}ring}(\mathit{scal}(s)) \Rightarrow \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a)) \\
+  \mathbf{A6.}\quad & \forall s.\; (\mathsf{is{-}ring}(s) \Rightarrow \forall a \in a(s).\; (\mathit{add}(s)(\mathit{zero}(s), a) = a)) \\
+  \mathbf{A7.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A8.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A9.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A10.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A11.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A12.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A13.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A14.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A15.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A16.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A17.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A18.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A19.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A20.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A21.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A22.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A23.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A24.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A25.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A26.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A27.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A28.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A29.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A30.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{13.}\quad \texttt{(fact abelian-group-idempotent-is-id-module-vector-ag ...)}\hfill{\small adds nodes 35, 36, 37, 38, 39, 40 $\;\cdot\;$ focus 40}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s)) \\
+  \mathbf{A2.}\quad & ((\mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))) \\
+  \mathbf{A3.}\quad & ((\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \Rightarrow ((\mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s)))) \\
+  \mathbf{A4.}\quad & \forall a \in \mathit{vec}(s).\; ((\mathit{vadd}(s)(a, a) = a) \Rightarrow (a = \mathit{vzero}(s))) \\
+  \mathbf{A5.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall a \in \mathit{vec}(s).\; ((\mathit{vadd}(s)(a, a) = a) \Rightarrow (a = \mathit{vzero}(s)))) \\
+  \mathbf{A6.}\quad & \forall r.\; (\mathsf{is{-}module}(r) \Rightarrow \forall a \in \mathit{vec}(r).\; ((\mathit{vadd}(r)(a, a) = a) \Rightarrow (a = \mathit{vzero}(r)))) \\
+  \mathbf{A7.}\quad & (\mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) = \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)) \\
+  \mathbf{A8.}\quad & (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s))) \\
+  \mathbf{A9.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))) = \mathit{zero}(\mathit{scal}(s)))) \\
+  \mathbf{A10.}\quad & \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a) \\
+  \mathbf{A11.}\quad & (\mathsf{is{-}ring}(\mathit{scal}(s)) \Rightarrow \forall a \in a(\mathit{scal}(s)).\; (\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), a) = a)) \\
+  \mathbf{A12.}\quad & \forall s.\; (\mathsf{is{-}ring}(s) \Rightarrow \forall a \in a(s).\; (\mathit{add}(s)(\mathit{zero}(s), a) = a)) \\
+  \mathbf{A13.}\quad & (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x))) \\
+  \mathbf{A14.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), x) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x)))) \\
+  \mathbf{A15.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}))) \\
+  \mathbf{A16.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathit{zero}(\mathit{scal}(s))), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_})))) \\
+  \mathbf{A17.}\quad & \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A18.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathit{zero}(\mathit{scal}(s)), \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A19.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_}))) \\
+  \mathbf{A20.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{add}(\mathit{scal}(s))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(s)(\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(s)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A21.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{s\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathit{add}(\mathit{scal}(m))(\mathsf{r\_}, \mathsf{s\_}), \mathsf{x\_}) = \mathit{vadd}(m)(\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}), \mathit{act}(m)(\mathsf{s\_}, \mathsf{x\_})))) \\
+  \mathbf{A22.}\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s)) \\
+  \mathbf{A23.}\quad & ((x \in \mathit{vec}(s)) \Rightarrow (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) \in \mathit{vec}(s))) \\
+  \mathbf{A24.}\quad & \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A25.}\quad & ((\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \Rightarrow \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A26.}\quad & \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s)) \\
+  \mathbf{A27.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(s)).\; \forall \mathsf{x\_} \in \mathit{vec}(s).\; (\mathit{act}(s)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(s))) \\
+  \mathbf{A28.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \forall \mathsf{r\_} \in a(\mathit{scal}(m)).\; \forall \mathsf{x\_} \in \mathit{vec}(m).\; (\mathit{act}(m)(\mathsf{r\_}, \mathsf{x\_}) \in \mathit{vec}(m))) \\
+  \mathbf{A29.}\quad & (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s))) \\
+  \mathbf{A30.}\quad & (\mathsf{is{-}module}(s) \Rightarrow (\mathit{zero}(\mathit{scal}(s)) \in a(\mathit{scal}(s)))) \\
+  \mathbf{A31.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow (\mathit{zero}(\mathit{scal}(m)) \in a(\mathit{scal}(m)))) \\
+  \mathbf{A32.}\quad & \mathsf{is{-}ring}(\mathit{scal}(s)) \\
+  \mathbf{A33.}\quad & (\mathsf{is{-}module}(s) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(s))) \\
+  \mathbf{A34.}\quad & \forall m.\; (\mathsf{is{-}module}(m) \Rightarrow \mathsf{is{-}ring}(\mathit{scal}(m))) \\
+  \mathbf{A35.}\quad & (x \in \mathit{vec}(s)) \\
+  \mathbf{A36.}\quad & \mathsf{is{-}module}(s) \\
+  \vdash\quad & (\mathit{act}(s)(\mathit{zero}(\mathit{scal}(s)), x) = \mathit{vzero}(s))
+\end{align*}
+\medskip\noindent\textbf{14.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
+\emph{QED.}\par
+
+\end{document}

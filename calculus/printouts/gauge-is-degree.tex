@@ -7,7 +7,10 @@
 \setlength{\parindent}{0pt}
 \begin{document}
 \section*{Proof of \texttt{gauge-is-degree}}
-\textbf{Claim.}\quad \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s))))$}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s))))
+\end{align*}
 \bigskip
 
 \subsection*{Tactics used}
@@ -31,118 +34,140 @@
 \end{itemize}
 
 \subsection*{Derivation}
-Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
 
 \medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
-{\small (no assumptions)}\\[2pt]
-$\vdash\;$\fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s))))$}\par
+\begin{align*}
+  \vdash\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s))))
+\end{align*}
 \medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
-{\small (no assumptions)}\\[2pt]
-$\vdash\;$\fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s))))$}\par
+\begin{align*}
+  \vdash\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s))))
+\end{align*}
 \medskip\noindent\textbf{2.}\quad \texttt{(di)}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))
+\end{align*}
 \medskip\noindent\textbf{3.}\quad \texttt{(fact euclidean-ring-has-gauge ...)}\hfill{\small adds nodes 3, 4, 5 $\;\cdot\;$ focus 5}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}) \\
+  \mathbf{A2.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A3.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A4.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))
+\end{align*}
 \medskip\noindent\textbf{4.}\quad \texttt{(ai 1)}\hfill{\small adds node 6 $\;\cdot\;$ focus 6}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})) \\
+  \mathbf{A2.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A3.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A4.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))
+\end{align*}
 \medskip\noindent\textbf{5.}\quad \texttt{(ai 1)}\hfill{\small adds node 7 $\;\cdot\;$ focus 7}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A2.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A3.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A4.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A5.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))
+\end{align*}
 \medskip\noindent\textbf{6.}\quad \texttt{(fact gauges-mem-build ...)}\hfill{\small adds nodes 8, 9, 10, 11, 12 $\;\cdot\;$ focus 12}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)) \\
+  \mathbf{A2.}\quad & (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A3.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A4.}\quad & \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A6.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A7.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A8.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A9.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A10.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & ((\mathit{gauge}(s) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \mathit{gauge}(s)))
+\end{align*}
 \medskip\noindent\textbf{7.}\quad \texttt{(mac gauge)}\hfill{\small adds node 13 $\;\cdot\;$ focus 13}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \varepsilon(\mathsf{euclidean{-}gauges}(s))))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)) \\
+  \mathbf{A2.}\quad & (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A3.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A4.}\quad & \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A6.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A7.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A8.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A9.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A10.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & ((\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in (a(s) \to \mathbb{N})) \wedge \mathsf{has{-}div{-}remainder}(s, \varepsilon(\mathsf{euclidean{-}gauges}(s))))
+\end{align*}
 \medskip\noindent\textbf{8.}\quad \texttt{(di)}\hfill{\small adds nodes 14, 15 $\;\cdot\;$ focus 14}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in (a(s) \to \mathbb{N}))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)) \\
+  \mathbf{A2.}\quad & (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A3.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A4.}\quad & \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A6.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A7.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A8.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A9.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A10.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in (a(s) \to \mathbb{N}))
+\end{align*}
 \medskip\noindent\textbf{9.}\quad \texttt{(ew deg\_2)}\hfill{\small adds nodes 16, 17, 18, 20, 21, 22, 24, 25 $\;\cdot\;$ focus 25}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\exists x.\; (x \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in (a(s) \to \mathbb{N})))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; (\mathit{dg} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; (\mathit{dg} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\exists x.\; (x \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A2.}\quad & \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a)) \\
+  \mathbf{A3.}\quad & ((\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in (a(s) \to \mathbb{N}))) \\
+  \mathbf{A4.}\quad & \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; (\mathit{dg} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; (\mathit{dg} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A6.}\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)) \\
+  \mathbf{A7.}\quad & (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A8.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A9.}\quad & \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A10.}\quad & \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A11.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A12.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A13.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A14.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A15.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))
+\end{align*}
 \medskip\noindent\textbf{10.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 15}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \varepsilon(\mathsf{euclidean{-}gauges}(s)))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)) \\
+  \mathbf{A2.}\quad & (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A3.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A4.}\quad & \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A6.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A7.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A8.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A9.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A10.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & \mathsf{has{-}div{-}remainder}(s, \varepsilon(\mathsf{euclidean{-}gauges}(s)))
+\end{align*}
 \medskip\noindent\textbf{11.}\quad \texttt{(ew deg\_2)}\hfill{\small adds nodes 26, 27, 28, 30, 31, 32, 34, 35 $\;\cdot\;$ focus 35}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\exists x.\; (x \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow \mathsf{has{-}div{-}remainder}(s, \varepsilon(\mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; \mathsf{has{-}div{-}remainder}(s, \mathit{dg})$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; \mathsf{has{-}div{-}remainder}(s, \mathit{dg})$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s)))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2})$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle (\mathsf{deg\_2} \in (a(s) \to \mathbb{N}))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg}))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle \mathsf{is{-}euclidean{-}ring}(s)$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\exists x.\; (x \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow (\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A2.}\quad & \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a)) \\
+  \mathbf{A3.}\quad & ((\varepsilon(\mathsf{euclidean{-}gauges}(s)) \in \mathsf{euclidean{-}gauges}(s)) \Rightarrow \mathsf{has{-}div{-}remainder}(s, \varepsilon(\mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A4.}\quad & \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; \mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall \mathit{dg} \in \mathsf{euclidean{-}gauges}(s).\; \mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \\
+  \mathbf{A6.}\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)) \\
+  \mathbf{A7.}\quad & (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A8.}\quad & ((\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \Rightarrow (\mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \Rightarrow (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s)))) \\
+  \mathbf{A9.}\quad & \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A10.}\quad & \forall s.\; \forall \mathit{dg} \in (a(s) \to \mathbb{N}).\; (\mathsf{has{-}div{-}remainder}(s, \mathit{dg}) \Rightarrow (\mathit{dg} \in \mathsf{euclidean{-}gauges}(s))) \\
+  \mathbf{A11.}\quad & \mathsf{has{-}div{-}remainder}(s, \mathsf{deg\_2}) \\
+  \mathbf{A12.}\quad & (\mathsf{deg\_2} \in (a(s) \to \mathbb{N})) \\
+  \mathbf{A13.}\quad & (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A14.}\quad & \forall s.\; (\mathsf{is{-}euclidean{-}ring}(s) \Rightarrow \exists \mathit{deg} \in (a(s) \to \mathbb{N}).\; \mathsf{has{-}div{-}remainder}(s, \mathit{deg})) \\
+  \mathbf{A15.}\quad & \mathsf{is{-}euclidean{-}ring}(s) \\
+  \vdash\quad & (\mathsf{deg\_2} \in \mathsf{euclidean{-}gauges}(s))
+\end{align*}
 \medskip\noindent\textbf{12.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
 \emph{QED.}\par
 

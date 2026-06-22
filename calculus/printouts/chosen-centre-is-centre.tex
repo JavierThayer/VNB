@@ -7,7 +7,10 @@
 \setlength{\parindent}{0pt}
 \begin{document}
 \section*{Proof of \texttt{chosen-centre-is-centre}}
-\textbf{Claim.}\quad \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}
+\textbf{Claim.}
+\begin{align*}
+  \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \bigskip
 
 \subsection*{Tactics used}
@@ -27,133 +30,152 @@
 \end{itemize}
 
 \subsection*{Derivation}
-Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
 
 \medskip\noindent\textbf{0.}\quad \texttt{sp}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
-{\small (no assumptions)}\\[2pt]
-$\vdash\;$\fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\par
+\begin{align*}
+  \vdash\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \medskip\noindent\textbf{1.}\quad \texttt{(di)}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \medskip\noindent\textbf{2.}\quad \texttt{(fact ball-cover-mem-fwd ...)}\hfill{\small adds nodes 2, 3, 4, 5, 6 $\;\cdot\;$ focus 6}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A2.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A3.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A4.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A6.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \medskip\noindent\textbf{3.}\quad \texttt{(ai 1)}\hfill{\small adds node 7 $\;\cdot\;$ focus 7}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle ((\mathsf{c\_2} \in x(s)) \wedge (\mathit{ball}(s, \mathsf{c\_2}, r) = u))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & ((\mathsf{c\_2} \in x(s)) \wedge (\mathit{ball}(s, \mathsf{c\_2}, r) = u)) \\
+  \mathbf{A2.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A3.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A4.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A5.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A6.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \medskip\noindent\textbf{4.}\quad \texttt{(ai 1)}\hfill{\small adds node 8 $\;\cdot\;$ focus 8}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathit{ball}(s, \mathsf{c\_2}, r) = u)$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in x(s))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathit{ball}(s, \mathsf{c\_2}, r) = u) \\
+  \mathbf{A2.}\quad & (\mathsf{c\_2} \in x(s)) \\
+  \mathbf{A3.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A4.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A6.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A7.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \medskip\noindent\textbf{5.}\quad \texttt{(fact centres-mem-build ...)}\hfill{\small adds nodes 9, 10, 11, 12, 13, 14, 15 $\;\cdot\;$ focus 15}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathit{ball}(s, \mathsf{c\_2}, r) = u)$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in x(s))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r)) \\
+  \mathbf{A2.}\quad & ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A3.}\quad & ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))) \\
+  \mathbf{A4.}\quad & \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A6.}\quad & \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A7.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A8.}\quad & (\mathit{ball}(s, \mathsf{c\_2}, r) = u) \\
+  \mathbf{A9.}\quad & (\mathsf{c\_2} \in x(s)) \\
+  \mathbf{A10.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A11.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A12.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A13.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A14.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in x(s)) \wedge (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))
+\end{align*}
 \medskip\noindent\textbf{6.}\quad \texttt{(di)}\hfill{\small adds nodes 16, 17 $\;\cdot\;$ focus 16}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathit{ball}(s, \mathsf{c\_2}, r) = u)$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in x(s))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\varepsilon(\mathit{centres}(s, u, r)) \in x(s))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r)) \\
+  \mathbf{A2.}\quad & ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A3.}\quad & ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))) \\
+  \mathbf{A4.}\quad & \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A6.}\quad & \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A7.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A8.}\quad & (\mathit{ball}(s, \mathsf{c\_2}, r) = u) \\
+  \mathbf{A9.}\quad & (\mathsf{c\_2} \in x(s)) \\
+  \mathbf{A10.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A11.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A12.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A13.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A14.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & (\varepsilon(\mathit{centres}(s, u, r)) \in x(s))
+\end{align*}
 \medskip\noindent\textbf{7.}\quad \texttt{(ew c\_2)}\hfill{\small adds nodes 18, 19, 20, 21, 22, 24, 25, 26, 28, 29 $\;\cdot\;$ focus 29}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\exists x.\; (x \in \mathit{centres}(s, u, r)) \Rightarrow (\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r)) \Rightarrow (\varepsilon(\mathit{centres}(s, u, r)) \in x(s)))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall c \in \mathit{centres}(s, u, r).\; (c \in x(s))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall c \in \mathit{centres}(s, u, r).\; (c \in x(s))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (c \in x(s))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (c \in x(s))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle (\mathit{ball}(s, \mathsf{c\_2}, r) = u)$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in x(s))$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\exists x.\; (x \in \mathit{centres}(s, u, r)) \Rightarrow (\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A2.}\quad & \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a)) \\
+  \mathbf{A3.}\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r)) \Rightarrow (\varepsilon(\mathit{centres}(s, u, r)) \in x(s))) \\
+  \mathbf{A4.}\quad & \forall c \in \mathit{centres}(s, u, r).\; (c \in x(s)) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall c \in \mathit{centres}(s, u, r).\; (c \in x(s)) \\
+  \mathbf{A6.}\quad & \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (c \in x(s)) \\
+  \mathbf{A7.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (c \in x(s)) \\
+  \mathbf{A8.}\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r)) \\
+  \mathbf{A9.}\quad & ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A10.}\quad & ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))) \\
+  \mathbf{A11.}\quad & \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A12.}\quad & \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A13.}\quad & \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A14.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A15.}\quad & (\mathit{ball}(s, \mathsf{c\_2}, r) = u) \\
+  \mathbf{A16.}\quad & (\mathsf{c\_2} \in x(s)) \\
+  \mathbf{A17.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A18.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A19.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A20.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A21.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r))
+\end{align*}
 \medskip\noindent\textbf{8.}\quad \texttt{(ass)}\hfill{\small adds no nodes $\;\cdot\;$ focus 17}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathit{ball}(s, \mathsf{c\_2}, r) = u)$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in x(s))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r)) \\
+  \mathbf{A2.}\quad & ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A3.}\quad & ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))) \\
+  \mathbf{A4.}\quad & \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A6.}\quad & \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A7.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A8.}\quad & (\mathit{ball}(s, \mathsf{c\_2}, r) = u) \\
+  \mathbf{A9.}\quad & (\mathsf{c\_2} \in x(s)) \\
+  \mathbf{A10.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A11.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A12.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A13.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A14.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)
+\end{align*}
 \medskip\noindent\textbf{9.}\quad \texttt{(ew c\_2)}\hfill{\small adds nodes 30, 31, 32, 33, 34, 36, 37, 38, 40, 41 $\;\cdot\;$ focus 41}\\[2pt]
-{\small\textbf{A1.}}\; \fit{$\displaystyle (\exists x.\; (x \in \mathit{centres}(s, u, r)) \Rightarrow (\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A2.}}\; \fit{$\displaystyle \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a))$}\\[1pt]
-{\small\textbf{A3.}}\; \fit{$\displaystyle ((\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r)) \Rightarrow (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u))$}\\[1pt]
-{\small\textbf{A4.}}\; \fit{$\displaystyle \forall c \in \mathit{centres}(s, u, r).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A5.}}\; \fit{$\displaystyle \forall r.\; \forall c \in \mathit{centres}(s, u, r).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A6.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (\mathit{ball}(s, c, r) = b)$}\\[1pt]
-{\small\textbf{A7.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (\mathit{ball}(s, c, r) = b)$}\\[1pt]
-{\small\textbf{A8.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\\[1pt]
-{\small\textbf{A9.}}\; \fit{$\displaystyle ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A10.}}\; \fit{$\displaystyle ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))))$}\\[1pt]
-{\small\textbf{A11.}}\; \fit{$\displaystyle \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A12.}}\; \fit{$\displaystyle \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r)))$}\\[1pt]
-{\small\textbf{A13.}}\; \fit{$\displaystyle \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A14.}}\; \fit{$\displaystyle \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r)))$}\\[1pt]
-{\small\textbf{A15.}}\; \fit{$\displaystyle (\mathit{ball}(s, \mathsf{c\_2}, r) = u)$}\\[1pt]
-{\small\textbf{A16.}}\; \fit{$\displaystyle (\mathsf{c\_2} \in x(s))$}\\[1pt]
-{\small\textbf{A17.}}\; \fit{$\displaystyle ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u))$}\\[1pt]
-{\small\textbf{A18.}}\; \fit{$\displaystyle \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A19.}}\; \fit{$\displaystyle \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A20.}}\; \fit{$\displaystyle \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)$}\\[1pt]
-{\small\textbf{A21.}}\; \fit{$\displaystyle (u \in \mathsf{ball{-}cover}(s, r))$}\\[1pt]
-$\vdash\;$\fit{$\displaystyle (\mathsf{c\_2} \in \mathit{centres}(s, u, r))$}\par
+\begin{align*}
+  \mathbf{A1.}\quad & (\exists x.\; (x \in \mathit{centres}(s, u, r)) \Rightarrow (\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A2.}\quad & \forall a.\; (\exists x.\; (x \in a) \Rightarrow (\varepsilon(a) \in a)) \\
+  \mathbf{A3.}\quad & ((\varepsilon(\mathit{centres}(s, u, r)) \in \mathit{centres}(s, u, r)) \Rightarrow (\mathit{ball}(s, \varepsilon(\mathit{centres}(s, u, r)), r) = u)) \\
+  \mathbf{A4.}\quad & \forall c \in \mathit{centres}(s, u, r).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A5.}\quad & \forall r.\; \forall c \in \mathit{centres}(s, u, r).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A6.}\quad & \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (\mathit{ball}(s, c, r) = b) \\
+  \mathbf{A7.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in \mathit{centres}(s, b, r).\; (\mathit{ball}(s, c, r) = b) \\
+  \mathbf{A8.}\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r)) \\
+  \mathbf{A9.}\quad & ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A10.}\quad & ((\mathsf{c\_2} \in x(s)) \Rightarrow ((\mathit{ball}(s, \mathsf{c\_2}, r) = u) \Rightarrow (\mathsf{c\_2} \in \mathit{centres}(s, u, r)))) \\
+  \mathbf{A11.}\quad & \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A12.}\quad & \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = u) \Rightarrow (c \in \mathit{centres}(s, u, r))) \\
+  \mathbf{A13.}\quad & \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A14.}\quad & \forall s.\; \forall b.\; \forall r.\; \forall c \in x(s).\; ((\mathit{ball}(s, c, r) = b) \Rightarrow (c \in \mathit{centres}(s, b, r))) \\
+  \mathbf{A15.}\quad & (\mathit{ball}(s, \mathsf{c\_2}, r) = u) \\
+  \mathbf{A16.}\quad & (\mathsf{c\_2} \in x(s)) \\
+  \mathbf{A17.}\quad & ((u \in \mathsf{ball{-}cover}(s, r)) \Rightarrow \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u)) \\
+  \mathbf{A18.}\quad & \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A19.}\quad & \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A20.}\quad & \forall s.\; \forall r.\; \forall u \in \mathsf{ball{-}cover}(s, r).\; \exists c \in x(s).\; (\mathit{ball}(s, c, r) = u) \\
+  \mathbf{A21.}\quad & (u \in \mathsf{ball{-}cover}(s, r)) \\
+  \vdash\quad & (\mathsf{c\_2} \in \mathit{centres}(s, u, r))
+\end{align*}
 \medskip\noindent\textbf{10.}\quad \texttt{(ass)}\hfill{\small adds no nodes}\\[2pt]
 \emph{QED.}\par
 

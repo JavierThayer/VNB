@@ -288,11 +288,25 @@
    "\\setlength{\\parindent}{0pt}\n"
    "\\begin{document}\n"))
 
-;; One assumption line:  A<i>.  <formula>   (i matches index args like (ai i)).
-(define (proof-tex--asm-line i a)
+;; A single formula as an editable align* block.  align* (not inline $...$ +
+;; \fit) so the .tex is easy to hand-edit: insert `\\' for line breaks and `&'
+;; to align/indent long formulas.  No auto-shrink -- manual control is the point.
+(define (proof-tex--formula-align e)
+  (string-append "\\begin{align*}\n  " (expr->tex e) "\n\\end{align*}\n"))
+
+;; A whole sequent (assumptions A1..An, then the goal after \vdash) as ONE
+;; align* block, aligned at `&'.  One editable environment per step: break a
+;; long row by hand with `\\ &  ...', indent by adjusting the alignment column.
+(define (proof-tex--sequent-align asms goal)
   (string-append
-   "{\\small\\textbf{A" (number->string i) ".}}\\; "
-   "\\fit{$\\displaystyle " (expr->tex a) "$}\\\\[1pt]\n"))
+   "\\begin{align*}\n"
+   (apply string-append
+     (map (lambda (i a)
+            (string-append "  \\mathbf{A" (number->string i) ".}\\quad & "
+                           (expr->tex a) " \\\\\n"))
+          (iota (length asms) 1) asms))
+   "  \\vdash\\quad & " (expr->tex goal) "\n"
+   "\\end{align*}\n"))
 
 ;; "adds nodes 79, 80, 81 -- focus 79" annotation for a step.
 (define (proof-tex--nodes-line focus-id new-ids)
@@ -324,12 +338,7 @@
        (string-append
         (proof-tex--nodes-line focus-id new-ids)
         "\\\\[2pt]\n"
-        (if (null? asms)
-            "{\\small (no assumptions)}\\\\[2pt]\n"
-            (apply string-append
-                   (map proof-tex--asm-line
-                        (iota (length asms) 1) asms)))
-        "$\\vdash\\;$\\fit{$\\displaystyle " (expr->tex goal) "$}\\par\n")
+        (proof-tex--sequent-align asms goal))
        (string-append
         (proof-tex--nodes-line focus-id new-ids)
         "\\\\[2pt]\n\\emph{QED.}\\par\n"))))
@@ -344,14 +353,17 @@
     (apply string-append
      proof-tex--preamble
      "\\section*{Proof of \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
-     "\\textbf{Claim.}\\quad \\fit{$\\displaystyle " (expr->tex goal) "$}\n\\bigskip\n\n"
+     "\\textbf{Claim.}\n" (proof-tex--formula-align goal) "\\bigskip\n\n"
      (proof-tex--tactic-glossary cmds)
      (proof-tex--notation-glossary syms heads)
      "\\subsection*{Derivation}\nEach step shows the tactic applied; the goal "
      "nodes it opens and which one is now in focus (the bracketed \\texttt{[k]} "
      "of the workspace display); the focus node's assumptions (\\textbf{A1}, "
      "\\textbf{A2}, \\dots{}, the numbering the tactic args refer to); and the "
-     "goal $G$ it leaves, written $\\vdash G$.\n\n"
+     "goal $G$ it leaves, written $\\vdash G$.  Each sequent is an "
+     "\\texttt{align*} environment: break a long formula by hand with "
+     "\\texttt{\\textbackslash\\textbackslash\\ \\&} and indent at the "
+     "alignment column.\n\n"
      (append
       (let loop ((ss steps) (n 0) (rows '()))
         (if (null? ss)
