@@ -3015,6 +3015,22 @@
            (assv 1 us)                                 ; assumption 1 is foldable
            (eq? 'is-metric-space (cadr (assv 1 us)))))))  ; via its definition unfold
 
+(check-true "cheap-mac: speculative goal probe finds the unfold, leaves *ps* intact"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (IS-METRIC-SPACE s)))))
+    (di) (di)                                       ; goal = IS-METRIC-SPACE(s)
+    (let* ((before (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+           (moves  (cheap-mac))                      ; probes on scratch copies
+           (after  (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (member '(mac (quote is-metric-space)) moves)  ; the unfold is reported, runnable
+           (equal? before after)))))                      ; live goal untouched by probing
+
+(check-true "cheap-mac-h: hypothesis probe finds the in-place unfold"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (IS-METRIC-SPACE s)))))
+    (di) (di)
+    (and (member '(mac-h (quote is-metric-space) 1) (cheap-mac-h 1)) #t)))
+
 ;;; -----------------------------------------------------------------------
 ;;; Summary
 

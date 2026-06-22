@@ -69,7 +69,40 @@
 ;; where cmds is the de-duped set of tactic names used (for the tactic
 ;; glossary), syms every symbol that appears in any goal/assumption, and heads
 ;; every symbol used as an application head (for the notation glossary).
+;; Build the proof-tex 5-list from a LIVE capture (interactive.scm's
+;; *proof-live-trace*, snapshot as the proof actually ran) -- no replay, so
+;; forward-`fact' proofs that defeat replay render faithfully.  Each live record
+;; is (entry goal asms focus-id open-ids); new-ids = this step's open-ids minus
+;; the previous step's.  Returns the same 5-list as proof-tex--steps, or #f when
+;; no live capture exists for NAME (then the caller falls back to replay).
+(define (proof-tex--steps-from-live name)
+  (let ((trace (hash-table-ref/default *proof-live-trace* name #f)))
+    (and (pair? trace)
+         (let ((goal (cadr (car trace)))      ; sp record's focus goal = the claim
+               (steps '()) (cmds '()) (forms '()) (prev '()))
+           (for-each
+            (lambda (rec)
+              (let* ((entry (car rec)) (g (cadr rec)) (a (caddr rec))
+                     (fid (cadddr rec)) (open (list-ref rec 4))
+                     (added (sort (filter (lambda (k) (not (memv k prev))) open) <))
+                     (label (if (eq? (car entry) 'sp) "sp" (proof-tex--cmd-label entry))))
+                (set! prev open)
+                (set! steps (cons (list label g a fid added) steps))
+                (set! cmds  (cons (car entry) cmds))
+                (set! forms (append (if g (list g) '()) a forms))))
+            trace)
+           (let ((allforms (cons goal forms)))
+             (list goal
+                   (reverse steps)
+                   (proof-tex--dedupe (reverse cmds))
+                   (proof-tex--dedupe (apply append (map proof-tex--syms allforms)))
+                   (proof-tex--dedupe (apply append (map proof-tex--heads allforms)))))))))
+
 (define (proof-tex--steps name)
+  (or (proof-tex--steps-from-live name)        ; prefer the live capture
+      (proof-tex--steps-by-replay name)))
+
+(define (proof-tex--steps-by-replay name)
   (let ((rec (proof-tex--record name)))
     (if (not rec)
         (error "proof-tex: no proof named this in *session-log* (proofs run this session)" name)

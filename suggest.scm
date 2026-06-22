@@ -433,6 +433,8 @@
            (display ";; (goal has binders/structure -- (di) first if you'd rather introduce them.)") (newline))
          ;; El-cheapo hypothesis lane: name the assumptions mac-h* would unfold/split.
          (set! moves (append moves (what-now--show-hyp-unfolds)))
+         (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
+         (newline)
          (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
          (newline)
          moves)))))                             ; <- return the move list (besides printing)
@@ -559,6 +561,124 @@
                (newline)))
            cands)
          (length cands))))))
+
+;;; -----------------------------------------------------------------------
+;;; cheap-mac / cheap-mac-h -- the DEEPER el-cheapo explorer.
+;;;
+;;; suggest-rewrite only FINGERPRINTS: it lists rules whose LHS pattern could
+;;; fire on a goal subterm.  cheap-mac goes one step further and ACTUALLY FIRES
+;;; each candidate -- but on a THROWAWAY copy of the focus, so the live proof is
+;;; never touched -- and reports the ones that change the goal, with the result.
+;;; "El cheapo, 'mano": brute-force trial on scratch, no reasoning about whether
+;;; a move is wise; you eyeball the effects and pick.  It uses the REAL (sound)
+;;; mac / mac-h on the scratch copy, so every move it shows is runnable verbatim.
+;;;
+;;; The scratch copy is a fresh deduction graph holding a single node that
+;;; mirrors the live focus (same assumptions + assertion -- the wff objects are
+;;; immutable, so sharing them is safe).  Tactics mutate the scratch graph, not
+;;; *ps*.
+
+(define (vnb--scratch-state)
+  (and *ps* (not (proof-done? *ps*))
+       (let* ((sqn  (proof-state-focus *ps*))
+              (dg   (make-deduction-graph))
+              (root (dg-post! dg (make-sequent (sequent-node-assumptions sqn)
+                                               (sequent-node-assertion sqn)))))
+         (make-proof-state dg root root))))
+
+;; The focus goal formula of PS, or #f if PS is done.
+(define (vnb--ps-goal ps)
+  (and (not (proof-done? ps))
+       (wff-formula (sequent-node-assertion (proof-state-focus ps)))))
+
+;; Run THUNK (which drives *ps*) on a scratch copy of the live focus, guarded
+;; against errors.  Returns 'CLOSED if it closed the goal, the new goal formula
+;; if it changed it, or #f if it warned / errored / left the goal unchanged.
+(define (vnb--probe-on-scratch thunk)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (let ((before (vnb--ps-goal scratch)))
+           (fluid-let ((*ps* scratch))
+             (quietly
+              (lambda ()
+                (let ((r (vnb-guard thunk)))
+                  (cond ((or (vnb-error? r) (vnb-warning? r)) #f)
+                        ((proof-done? scratch) 'CLOSED)
+                        (else (let ((after (vnb--ps-goal scratch)))
+                                (and after (not (equal? after before)) after))))))))))))
+
+;; Print one (verb 'name) => effect line; effect is 'CLOSED or a goal formula.
+(define (vnb--cheap-line verb name effect)
+  (display ";;   (") (display verb) (display " '") (display name) (display ")")
+  (display "  =>  ")
+  (display (if (eq? effect 'CLOSED) "closes the goal"
+               (expression->string effect)))
+  (newline))
+
+;;; (cheap-mac) -- speculatively fire every fingerprint-candidate GOAL rewrite
+;;; on a scratch copy; show the ones that change the goal, return them as
+;;; runnable (mac 'name) forms.
+(define (cheap-mac . opt-depth)
+  (let ((goal (suggest--current-goal)))
+    (if (not goal)
+        (begin (display ";; cheap-mac: no proof in progress.\n") '())
+        (let ((hits '()))
+          (for-each
+            (lambda (nm)
+              (let ((eff (vnb--probe-on-scratch (lambda () (cmd-apply-macete *ps* nm)))))
+                (when eff (set! hits (cons (cons nm eff) hits)))))
+            (map car (apply suggest-rewrite-candidates goal opt-depth)))
+          (set! hits (reverse hits))
+          (display ";; cheap-mac -- goal rewrites that FIRE on a scratch copy ")
+          (display "(the real, sound mac -- runnable verbatim):\n")
+          (display ";; goal: ") (display (expression->string goal)) (newline)
+          (if (null? hits)
+              (display ";;   (no candidate rewrite changes the goal)\n")
+              (for-each (lambda (h) (vnb--cheap-line 'mac (car h) (cdr h))) hits))
+          (map (lambda (h) (list 'mac (list 'quote (car h)))) hits)))))
+
+;;; (cheap-mac-h SEL) -- the hypothesis-side probe: speculatively fire every
+;;; candidate on the cited ASSUMPTION (index or formula), show what each turns
+;;; it into / whether it discharges, return runnable (mac-h 'name SEL) forms.
+;;; With no SEL, probes the (mac-h*) saturation: reports the foldable hyps.
+(define (cheap-mac-h . args)
+  (cond
+    ((not *ps*) (display ";; cheap-mac-h: no proof in progress.\n") '())
+    ((null? args)                                   ; no target -> the mac-h* preview
+     (what-now--show-hyp-unfolds))
+    (else
+     (let* ((sel (car args))
+            (raw (->raw-formula/idx sel)))
+       (if (vnb-warning? raw)
+           (begin (display ";; cheap-mac-h: no such assumption.\n") '())
+           (let ((hits '()))
+             ;; An assumption rewrite usually doesn't move the GOAL, so success
+             ;; here = "applied without a warning" (vnb--probe-asm-fires?).
+             (for-each
+               (lambda (nm)
+                 (when (vnb--probe-asm-fires? nm raw) (set! hits (cons nm hits))))
+               (suggest-rewrite-names-asm raw))
+             (set! hits (reverse hits))
+             (display ";; cheap-mac-h -- rewrites that fire on assumption ")
+             (display (expression->string raw)) (display ":\n")
+             (if (null? hits)
+                 (display ";;   (no candidate rewrite applies to this assumption)\n")
+                 (for-each (lambda (nm)
+                             (display ";;   (mac-h '") (display nm) (display " ")
+                             (write sel) (display ")\n"))
+                           hits))
+             (map (lambda (nm) (list 'mac-h (list 'quote nm) sel)) hits)))))))
+
+;; Does macete NM fire on assumption RAW (on a scratch copy)?  An assumption
+;; rewrite rarely moves the goal, so we test "applied without a warning".
+(define (vnb--probe-asm-fires? nm raw)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (fluid-let ((*ps* scratch))
+           (quietly
+            (lambda ()
+              (let ((r (vnb-guard (lambda () (cmd-apply-macete-to-assumption *ps* nm raw)))))
+                (not (or (vnb-error? r) (vnb-warning? r))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; (find-mac SUBSTR) / (find-thm SUBSTR) -- REPL name search.

@@ -44,6 +44,38 @@
 ;; Completed proofs this session: list of (name goal script), appended at qed.
 (define *session-log* '())
 
+;;; -----------------------------------------------------------------------
+;;; LIVE proof-trace capture.  proof-tex's first design RE-RUNS the recorded
+;;; script (apply-recorded-cmd! under *replaying?*); that breaks for forward-
+;;; `fact`-heavy proofs, where the sibling goal nodes `fact' spawns perturb the
+;;; open-goal ordering bc*/focus navigate on replay.  Instead we snapshot the
+;;; live focus AS THE REAL PROOF RUNS -- every successful surface tactic appends
+;;; a record -- so the trace is the genuine state sequence, no replay needed and
+;;; nothing to perturb.  proof-tex prefers this capture when it exists.
+;;;
+;;; A step record is (entry goal asms focus-id open-ids):
+;;;   entry    -- the (sym . args) as recorded (its label via proof-tex--cmd-label)
+;;;   goal     -- focus assertion formula, or #f when the proof is done
+;;;   asms     -- focus assumption formulas (1-indexed, as ai/inst cite them)
+;;;   focus-id -- focus node display number, or #f when done
+;;;   open-ids -- display numbers of all open goals (proof-tex derives new-ids)
+(define *live-trace* '())                          ; reversed records, in-flight proof
+(define *proof-live-trace* (make-equal-hash-table)) ; name -> ordered records, at qed
+
+;; Snapshot the current *ps* focus under ENTRY and push onto *live-trace*.
+;; Skipped during replay (apply-recorded-cmd! bypasses vnb--run! anyway) and
+;; when there is no live proof.
+(define (vnb--capture-step! entry)
+  (when (and *ps* (not *replaying?*))
+    (let ((done (proof-done? *ps*)))
+      (set! *live-trace*
+        (cons (list entry
+                    (and (not done) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+                    (if done '() (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
+                    (and (not done) (sequent-node-number (proof-state-focus *ps*)))
+                    (map sequent-node-number (proof-open-goals *ps*)))
+              *live-trace*)))))
+
 ;; *fresh-counter* (expressions.scm) value captured at each proof's sp, keyed by
 ;; proof name at qed.  proof-tex replay restores it so a proof that pins specific
 ;; eigenvariable names (ai/ew witnesses like `u_4') replays to the SAME names --
@@ -185,6 +217,8 @@
          (set! *current-goal* (wff-formula wic))
          (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
          (set! *ps* (start-proof wic))
+         (set! *live-trace* '())                        ; begin a fresh live capture
+         (vnb--capture-step! (cons 'sp '()))            ; seed it with the initial goal
          (show))))))
 
 ;;; (wff "...") -- short alias for make-wff-from-string, so a goal can be
@@ -284,6 +318,7 @@
       (else
        (record-cmd! sym args)
        (set! *ps* result)
+       (vnb--capture-step! (cons sym args))   ; live trace for proof-tex
        (show)))))
 
 (define (di)    (vnb--run! 'di    '()    (lambda () (cmd-direct-inference *ps*))))
@@ -2948,6 +2983,9 @@
             (append *session-log*
                     (list (list name *current-goal* *proof-script*))))
       (hash-table-set! *proof-start-counter* name *sp-counter-snapshot*)
+      ;; Harvest the live trace (captured as the proof actually ran) so
+      ;; proof-tex can render WITHOUT replaying -- robust for forward-fact proofs.
+      (hash-table-set! *proof-live-trace* name (reverse *live-trace*))
       ;; Ledger: compute and memoize this proof's bill of asserted debt from
       ;; the just-saved script, then report `proven modulo {...}'.  (Defined
       ;; in proof-debt.scm, loaded right after this file.)
