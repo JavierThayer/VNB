@@ -1065,13 +1065,89 @@
             (if (member forms seen)
                 (loop (cdr ps) n)
                 (begin (set! seen (cons forms seen))
-                       (set! out (cons (cons (car op) forms) out))
+                       (set! out (cons (list (car op) forms) out))   ; (open (forms...))
                        (loop (cdr ps) (+ n 1)))))))))
 
 (define *last-scout* '())     ; closing-branch scripts from the last (scout)
 
-;;; (scout [d [b [maxnodes]]]) -- search; print CLOSING branches + best partials.
+;; expression->string for a possibly-malformed goal: fall back to the raw
+;; write-key if the pretty-printer chokes (non-symbol head -- see vnb--scout-key).
+(define (vnb--safe-expr-str e)
+  (quietly (lambda ()
+    (let ((r (vnb-guard (lambda () (expression->string e)))))
+      (if (vnb-error? r) (vnb--scout-key e) r)))))
+
+;; Run the search and assemble the structured result.  Returns an 8-list:
+;;   (nodes (d b) goal best-partials closing-branches trunc qmore maxnodes)
+;; whose FIRST FIVE elements are the public (scout) value; the last three feed
+;; the printer.  Sets *last-scout* (closing branches, for (scout-run k)).
+(define (vnb--scout-collect d b maxnodes goal)
+  (let* ((res     (quietly (lambda () (vnb--scout-search d b maxnodes))))
+         (sols    (car res))   (partials (cadr res))
+         (nodes   (caddr res)) (trunc (cadddr res)) (qmore (list-ref res 4))
+         (scripts (vnb--dedup
+                    (map vnb--path->forms
+                         (sort sols (lambda (a b) (< (length a) (length b)))))))
+         (best    (vnb--scout-best-partials partials)))
+    (set! *last-scout* scripts)
+    (list nodes (list d b) goal best scripts trunc qmore maxnodes)))
+
+;;; (scout [d [b [maxnodes]]]) -- speculative search; RETURNS a nested list
+;;;   (number-of-branches (d b) goal best-partials closing-branches)
+;;; rather than printing.  best-partials = ((open-count (form ...)) ...), most
+;;; reduced first; closing-branches = ((form ...) ...), shortest first.  The
+;;; forms are paste-runnable / evaluable; (scout-run k) adopts closing branch k.
+;;; Use (scout-show ...) for the human-readable REPL report.  '() if no proof.
 (define (scout . opts)
+  (cond
+    ((not *ps*) '())
+    ((proof-done? *ps*) '())
+    (else
+     (let* ((d        (if (>= (length opts) 1) (car opts)   4))
+            (b        (if (>= (length opts) 2) (cadr opts)  *scout-branch*))
+            (maxnodes (if (>= (length opts) 3) (caddr opts) *scout-nodes*))
+            (goal     (suggest--current-goal)))
+       (list-head (vnb--scout-collect d b maxnodes goal) 5)))))   ; public 5-list
+
+;; Print the readable report from a vnb--scout-collect 8-list.
+(define (vnb--scout-print full)
+  (let ((nodes (car full)) (d (caar (cdr full))) (b (cadr (cadr full)))
+        (goal (caddr full)) (best (list-ref full 3)) (scripts (list-ref full 4))
+        (trunc (list-ref full 5)) (qmore (list-ref full 6)) (maxnodes (list-ref full 7)))
+    (display ";; scout d=") (display d) (display " b=") (display b)
+    (display " -- examined ") (display nodes)
+    (display " branch(es) on independent scratch clones.\n")
+    (display ";; goal: ") (display (vnb--safe-expr-str goal)) (newline)
+    (cond
+      ((pair? scripts)
+       (display ";; === CLOSING branches (paste-runnable; (scout-run k) to adopt) ===\n")
+       (let loop ((ss scripts) (k 1))
+         (cond
+           ((null? ss) #t)
+           ((> k *scout-show*)
+            (display ";;   ... ") (display (length ss))
+            (display " more closing branch(es) (all in (scout-run k)).\n"))
+           (else
+            (display ";;   [") (display k) (display "] ")
+            (vnb--print-forms (car ss)) (newline)
+            (loop (cdr ss) (+ k 1))))))
+      (else
+       (display ";; no CLOSING branch within depth ") (display d)
+       (display " -- best partials (fewest goals left):\n")
+       (if (null? best)
+           (display ";;   (no branch made progress -- try (tt) / raise (scout d b))\n")
+           (for-each (lambda (op)                       ; op = (open (forms...))
+                       (display ";;   ") (display (car op))
+                       (display " open: ") (vnb--print-forms (cadr op)) (newline))
+                     best))))
+    (when trunc
+      (display ";; [truncated at ") (display maxnodes) (display " nodes; ")
+      (display qmore) (display " branch(es) left unexpanded -- raise (scout ")
+      (display d) (display " ") (display b) (display " N)]\n"))))
+
+;;; (scout-show [d [b [maxnodes]]]) -- run scout and PRINT the readable report
+;;; (the old behaviour); also returns the same nested list (scout) would.
+(define (scout-show . opts)
   (cond
     ((not *ps*)         (display ";; scout: no proof in progress.\n") '())
     ((proof-done? *ps*) (display ";; scout: proof already complete.\n") '())
@@ -1080,48 +1156,9 @@
             (b        (if (>= (length opts) 2) (cadr opts)  *scout-branch*))
             (maxnodes (if (>= (length opts) 3) (caddr opts) *scout-nodes*))
             (goal     (suggest--current-goal))
-            ;; quietly => guard catches stay silent (we drop bad branches on
-            ;; purpose) and no cmd-* state dumps leak during the search; the
-            ;; result printing below runs OUTSIDE quietly, unaffected.
-            (res      (quietly (lambda () (vnb--scout-search d b maxnodes))))
-            (sols     (car res))   (partials (cadr res))
-            (nodes    (caddr res)) (trunc (cadddr res)) (qmore (list-ref res 4))
-            (scripts  (vnb--dedup
-                        (map vnb--path->forms
-                             (sort sols (lambda (a b) (< (length a) (length b))))))))
-       (display ";; scout d=") (display d) (display " b=") (display b)
-       (display " -- examined ") (display nodes)
-       (display " branch(es) on independent scratch clones.\n")
-       (display ";; goal: ") (display (expression->string goal)) (newline)
-       (cond
-         ((pair? scripts)
-          (display ";; === CLOSING branches (paste-runnable; (scout-run k) to adopt) ===\n")
-          (let loop ((ss scripts) (k 1))
-            (cond
-              ((null? ss) #t)
-              ((> k *scout-show*)
-               (display ";;   ... ") (display (length ss))
-               (display " more closing branch(es) (all in (scout-run k)).\n"))
-              (else
-               (display ";;   [") (display k) (display "] ")
-               (vnb--print-forms (car ss)) (newline)
-               (loop (cdr ss) (+ k 1))))))
-         (else
-          (display ";; no CLOSING branch within depth ") (display d)
-          (display " -- best partials (fewest goals left):\n")
-          (let ((best (vnb--scout-best-partials partials)))
-            (if (null? best)
-                (display ";;   (no branch made progress -- try (tt) / raise (scout d b))\n")
-                (for-each (lambda (op)
-                            (display ";;   ") (display (car op))
-                            (display " open: ") (vnb--print-forms (cdr op)) (newline))
-                          best)))))
-       (when trunc
-         (display ";; [truncated at ") (display maxnodes) (display " nodes; ")
-         (display qmore) (display " branch(es) left unexpanded -- raise (scout ")
-         (display d) (display " ") (display b) (display " N)]\n"))
-       (set! *last-scout* scripts)
-       scripts))))
+            (full     (vnb--scout-collect d b maxnodes goal)))
+       (vnb--scout-print full)
+       (list-head full 5)))))
 
 ;;; (scout-run k) -- adopt CLOSING branch k of the last (scout) onto the LIVE
 ;;; proof: evaluate its forms through the real tactics, so they record + show

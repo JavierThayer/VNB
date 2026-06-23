@@ -3043,16 +3043,40 @@
            (and (pair? g) (eq? (car g) '=)))
          (begin (ass) (proof-done? *ps*)))))         ; the unfolded hyp closes it
 
-(check-true "scout: finds a CLOSING branch on independent clones, leaves *ps* intact"
+(check-true "scout: returns (nodes (d b) goal partials closing), leaves *ps* intact"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
     (let* ((before (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
-           (scripts (scout 4 3))                      ; speculative search
+           (result (scout 4 3))                       ; structured nested list, no print
            (after  (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
-      (and (pair? scripts)
-           (member '((grind) (ass)) scripts)          ; the obvious 2-step closure found
+      (and (= 5 (length result))                      ; the documented 5-list shape
+           (number? (car result))                     ; number-of-branches examined
+           (equal? '(4 3) (cadr result))              ; (d b)
+           (member '((grind) (ass)) (list-ref result 4)) ; closing branches incl the 2-step
            (equal? before after)                      ; live proof untouched by scouting
            (not (proof-done? *ps*))))))
+
+(check-true "scout: best-partials are (open-count (form ...)) nested lists"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (X s))
+                       (FORALL y (IMPLIES (IN y (X s))
+                         (= ((D s) x y) ((D s) y x))))))))))
+    (let* ((result   (scout 4 2))                     ; no closure -> partials populated
+           (closing  (list-ref result 4))
+           (partials (list-ref result 3)))
+      (and (null? closing)                            ; metric-sym needs inst: no closure
+           (pair? partials)
+           (number? (caar partials))                  ; each partial: (open-count ...)
+           (list? (cadar partials))))))                ; ... (form ...)
+
+(check-true "scout-show: prints and returns the same 5-list"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
+    (let ((result (scout-show 4 3)))
+      (and (= 5 (length result))
+           (member '((grind) (ass)) (list-ref result 4))
+           #t))))
 
 (check-true "scout-run: adopts a scout branch and drives the live proof to done"
   (lambda ()

@@ -246,17 +246,25 @@ The deterministic normalizer.  It keeps applying di -- which strips a leading FO
 
     (scout [depth [branch [nodes]]])
 
-Speculatively search to a bounded depth across INDEPENDENT scratch branches and report the tactic sequences that CLOSE the focus (or, failing that, the ones that reduce it furthest).  Never touches the live proof.
+Speculatively search to a bounded depth across INDEPENDENT scratch branches; RETURNS a nested list (number-of-branches (d b) goal best-partials closing-branches) rather than printing.  Never touches the live proof.
 
-The copilot's deep lane.  Where (what-now)/(tt) suggest one move, scout actually TRIES sequences: it clones the focus into a fresh deduction graph per branch (so backtracking is free -- a dead branch is just discarded), and does a breadth-first search whose alphabet is (grind), the closers (ass/rfl/crs/arith), the top rewrite-index (mac) rules, and the parameterless backchain (bc*) lemmas.  Every move is the real, kernel-checked tactic, so a reported CLOSING branch is a genuine proof when you adopt it with (scout-run k).  Bounds (all reported when hit): depth (default 4), per-node fan-out branch (default 3), total nodes (default 300).  El cheapo: it does not reason about which move is wise, it brute-forces a small tree and you eyeball the survivors.  It cannot yet INSTANTIATE a universal hypothesis (no inst lane), so goals that need to pick a witness term -- the metric laws past grind -- show up under `best partials', not as closures.
+The copilot's deep lane.  Where (what-now)/(tt) suggest one move, scout actually TRIES sequences: it clones the focus into a fresh deduction graph per branch (so backtracking is free -- a dead branch is just discarded), and does a breadth-first search whose alphabet is (grind), the closers (ass/rfl/crs/arith), the top rewrite-index (mac) rules, and the parameterless backchain (bc*) lemmas.  It RETURNS the result as data -- (examined-count (depth branch) goal best-partials closing-branches), where best-partials is ((open-goals-left (form ...)) ...) most-reduced first and closing-branches is ((form ...) ...) shortest first -- so you can pick it apart programmatically; use (scout-show ...) for the readable REPL report.  Every move is the real, kernel-checked tactic, so a closing branch is a genuine proof when you adopt it with (scout-run k).  Bounds: depth (default 4), per-node fan-out branch (default 3), total nodes (default 300).  El cheapo: it does not reason about which move is wise, it brute-forces a small tree and you eyeball the survivors.  It cannot yet INSTANTIATE a universal hypothesis (no inst lane), so goals that need to pick a witness term -- the metric laws past grind -- show up under best-partials, not as closures.
+
+### scout-show
+
+    (scout-show [depth [branch [nodes]]])
+
+Like (scout), but PRINTS the human-readable report (examined count, goal, closing branches or best partials) to the REPL.  Returns the same nested list (scout) does.
+
+The eyeball version of scout: same search, same return value, but it also prints the numbered CLOSING branches (or, when none close, the best partials with how many goals each leaves open).  Use scout-show interactively, (scout) when you want to consume the result as data.
 
 ### scout-run
 
     (scout-run k)
 
-Adopt closing branch k from the last (scout) onto the live proof, running its tactics for real (they record and display normally).
+Adopt closing branch k from the last (scout)/(scout-show) onto the live proof, running its tactics for real (they record and display normally).
 
-After (scout) lists its CLOSING branches [1], [2], ..., (scout-run k) replays branch k's tactic forms through the real tactics on your live *ps*, from the same focus scout cloned -- so the proof advances and the steps are recorded for the script / PDF exactly as if you had typed them.
+After scout finds CLOSING branches [1], [2], ..., (scout-run k) replays branch k's tactic forms through the real tactics on your live *ps*, from the same focus scout cloned -- so the proof advances and the steps are recorded for the script / PDF exactly as if you had typed them.  Works after either (scout) or (scout-show); both stash the closing branches.
 
 ### subst
 
