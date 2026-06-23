@@ -415,6 +415,34 @@ fresh existential, a constructed term like `1/n` — are out of reach; those goa
 still surface as best-partials.  That is the next frontier (see the stress
 target below).
 
+### The citation guard (2026-06-24)
+
+A closing branch that discharges the goal by citing a library theorem
+*alpha-equal to the goal itself* is `P proved by P` — kernel-valid but vacuous:
+it only shows the goal is already a (often merely **asserted**) theorem, not
+that scout found a proof.  This surfaced when `(scout)` on
+`∀s. is-compact(s) ⇒ is-complete(s)` produced `… (bc* 'compact-implies-complete)
+…` — and `compact-implies-complete` *is* that statement, an asserted PSS
+citation whose real proof lives offline.  Circular.
+
+`vnb--scout-cites-goal` scans a path's goal-discharging steps (`bc*`/`bc`/`fact`/
+`ta`; their first arg is the theorem name) and flags any whose looked-up
+statement is `alpha-equiv?` to the goal.  `vnb--scout-collect` partitions the
+closers: genuine ones become `closing-branches` (and `*last-scout*`, so
+`scout-run` can never adopt a circular closure); the suppressed theorem names
+go to `*scout-citations*` and the report prints *"the goal is already theorem
+X — citing it would be circular."*  Note this is what makes `inst+`-style
+*definitional* proofs the honest kind: `metric-sym` posed in full still closes
+genuinely (unfold the `is-metric` definition, instantiate) — it does **not**
+cite the `metric-sym` theorem — whereas a goal scout cannot re-derive
+(`equality-symmetry`, which needs `subst`) has only the circular closure, and is
+correctly left open with the citation noted.
+
+The deeper lesson for stress targets: a goal that is **already an asserted
+theorem** (`compact⇒complete`, `compact⇒totally-bounded`, …) is a bad scout
+demo — citing it proves nothing.  Point scout at goals *not* already in the
+library.
+
 ### Stress-test target (planned obstacle map)
 
 *"X totally bounded ⟹ every sequence in X has a Cauchy subsequence"* — the

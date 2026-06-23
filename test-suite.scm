@@ -3131,6 +3131,42 @@
     (scout-run 1)                                     ; replay branch 1 for real
     (proof-done? *ps*)))
 
+;; Citation guard: a closing branch that discharges the goal by citing a
+;; library theorem alpha-equal to the goal itself is `P proved by P' -- vacuous.
+;; vnb--scout-cites-goal detects such a step (bc*/bc/fact/ta naming a theorem
+;; whose statement is alpha-equal to the goal).
+(check-true "scout citation guard: detects a self-citation step, ignores the rest"
+  (lambda ()
+    (let ((g '(FORALL a (FORALL b (IMPLIES (= a b) (= b a))))))
+      (and (eq? 'equality-symmetry
+                (vnb--scout-cites-goal '((grind) (bc* equality-symmetry)) g))
+           (eq? 'equality-symmetry
+                (vnb--scout-cites-goal '((ta equality-symmetry)) g))
+           (not (vnb--scout-cites-goal '((grind) (bc* equality-transitivity)) g))
+           (not (vnb--scout-cites-goal '((grind) (ass)) g))))))
+
+;; The guard's invariant: scout NEVER presents a self-citation as a closing
+;; branch.  equality-symmetry can only be closed by citing itself (scout has no
+;; subst lane), so any closure scout finds is circular and must be suppressed --
+;; no surviving closing branch may discharge the goal by citing a theorem
+;; alpha-equal to it.  (Robust to whichever closers best-first happens to reach
+;; in the fully-loaded theory: if it finds the citation it's filtered; if it
+;; finds none the set is empty -- either way no citation is presented.)
+(check-true "scout citation guard: never presents a self-citation as a closure"
+  (lambda ()
+    (sp (make-wff '(FORALL a (FORALL b (IMPLIES (= a b) (= b a))))))
+    (let ((closing (list-ref (scout) 4))
+          (goal    '(FORALL a (FORALL b (IMPLIES (= a b) (= b a))))))
+      (not (any (lambda (br)               ; br = list of forms, args quoted
+                  (any (lambda (f)
+                         (and (pair? f) (memq (car f) '(bc* bc fact ta))
+                              (pair? (cdr f)) (pair? (cadr f))
+                              (eq? (car (cadr f)) 'quote)
+                              (let ((thm (lookup-theorem (cadr (cadr f)))))
+                                (and thm (alpha-equiv? thm goal)))))
+                       br))
+                closing)))))
+
 ;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
 ;; non-symbol in head position; the dedup key must survive it (write-based, not
 ;; the pretty-printer which calls symbol->string on the head).  Without the fix

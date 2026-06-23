@@ -1242,7 +1242,32 @@
                        (set! out (cons (list (car op) forms) out))   ; (open (forms...))
                        (loop (cdr ps) (+ n 1)))))))))
 
-(define *last-scout* '())     ; closing-branch scripts from the last (scout)
+(define *last-scout* '())       ; GENUINE closing-branch scripts (for scout-run)
+(define *scout-citations* '())  ; theorem names of the SUPPRESSED circular closers
+
+;; Citation guard.  A closing branch is CIRCULAR if it discharges the goal by
+;; citing a library theorem whose statement is alpha-equal to the goal itself
+;; -- `P proved by P'.  Such a closure is kernel-valid but vacuous: it only
+;; shows the goal is already a (possibly merely ASSERTED) theorem, not that
+;; scout found a proof.  We scan a PATH's goal-discharging steps (bc*/bc/fact/ta;
+;; their first arg is the theorem name, a bare symbol in a path) and return the
+;; offending theorem name, or #f.  inst+ cites a HYPOTHESIS, not a theorem, and
+;; a goal that is literally a hypothesis closes by ass (given, not circular), so
+;; those lanes are not citations.
+(define (vnb--scout-cites-goal path goal)
+  (let loop ((p path))
+    (if (null? p)
+        #f
+        (let* ((step (car p))
+               (nm   (and (pair? step)
+                          (memq (car step) '(bc* bc fact ta))
+                          (pair? (cdr step))
+                          (cadr step))))
+          (if (and (symbol? nm)
+                   (let ((thm (lookup-theorem nm)))
+                     (and thm (alpha-equiv? thm goal))))
+              nm
+              (loop (cdr p)))))))
 
 ;; expression->string for a possibly-malformed goal: fall back to the raw
 ;; write-key if the pretty-printer chokes (non-symbol head -- see vnb--scout-key).
@@ -1251,20 +1276,27 @@
     (let ((r (vnb-guard (lambda () (expression->string e)))))
       (if (vnb-error? r) (vnb--scout-key e) r)))))
 
-;; Run the search and assemble the structured result.  Returns an 8-list:
-;;   (nodes (d b) goal best-partials closing-branches trunc qmore maxnodes)
-;; whose FIRST FIVE elements are the public (scout) value; the last three feed
-;; the printer.  Sets *last-scout* (closing branches, for (scout-run k)).
+;; Run the search and assemble the structured result.  Returns a 9-list:
+;;   (nodes (d b) goal best-partials closing-branches trunc qmore maxnodes cites)
+;; whose FIRST FIVE elements are the public (scout) value; the rest feed the
+;; printer.  The citation guard partitions the closers: GENUINE ones become
+;; closing-branches (and *last-scout*, so scout-run never adopts a circular
+;; closure); the theorem names of the suppressed circular ones become `cites'
+;; (and *scout-citations*) for the report.
 (define (vnb--scout-collect d b maxnodes goal)
   (let* ((res     (quietly (lambda () (vnb--scout-search d b maxnodes))))
-         (sols    (car res))   (partials (cadr res))
+         (sols    (sort (car res) (lambda (a b) (< (length a) (length b)))))
+         (partials (cadr res))
          (nodes   (caddr res)) (trunc (cadddr res)) (qmore (list-ref res 4))
-         (scripts (vnb--dedup
-                    (map vnb--path->forms
-                         (sort sols (lambda (a b) (< (length a) (length b)))))))
+         (genuine (filter (lambda (p) (not (vnb--scout-cites-goal p goal))) sols))
+         (cites   (vnb--dedup
+                    (filter (lambda (x) x)
+                            (map (lambda (p) (vnb--scout-cites-goal p goal)) sols))))
+         (scripts (vnb--dedup (map vnb--path->forms genuine)))
          (best    (vnb--scout-best-partials partials)))
     (set! *last-scout* scripts)
-    (list nodes (list d b) goal best scripts trunc qmore maxnodes)))
+    (set! *scout-citations* cites)
+    (list nodes (list d b) goal best scripts trunc qmore maxnodes cites)))
 
 ;;; (scout [d [b [maxnodes]]]) -- speculative search; RETURNS a nested list
 ;;;   (number-of-branches (d b) goal best-partials closing-branches)
@@ -1283,11 +1315,27 @@
             (goal     (suggest--current-goal)))
        (list-head (vnb--scout-collect d b maxnodes goal) 5)))))   ; public 5-list
 
-;; Print the readable report from a vnb--scout-collect 8-list.
+;; Print one ";; ..." line listing the suppressed circular-citation theorems.
+(define (vnb--scout-print-cites cites scripts)
+  (when (pair? cites)
+    (if (pair? scripts)
+        (display ";; (also suppressed ")
+        (display ";; NO genuine closure -- the goal is already theorem "))
+    (let loop ((cs cites) (first #t))
+      (when (pair? cs)
+        (unless first (display ", "))
+        (display (car cs))
+        (loop (cdr cs) #f)))
+    (if (pair? scripts)
+        (display " as a CIRCULAR closure -- it cites a theorem alpha-equal to the goal.)\n")
+        (display ": citing it would be circular (P by P), so no closure is shown.\n"))))
+
+;; Print the readable report from a vnb--scout-collect 9-list.
 (define (vnb--scout-print full)
   (let ((nodes (car full)) (d (caar (cdr full))) (b (cadr (cadr full)))
         (goal (caddr full)) (best (list-ref full 3)) (scripts (list-ref full 4))
-        (trunc (list-ref full 5)) (qmore (list-ref full 6)) (maxnodes (list-ref full 7)))
+        (trunc (list-ref full 5)) (qmore (list-ref full 6)) (maxnodes (list-ref full 7))
+        (cites (if (> (length full) 8) (list-ref full 8) '())))
     (display ";; scout d=") (display d) (display " b=") (display b)
     (display " -- examined ") (display nodes)
     (display " branch(es) on independent scratch clones.\n")
@@ -1306,7 +1354,7 @@
             (vnb--print-forms (car ss)) (newline)
             (loop (cdr ss) (+ k 1))))))
       (else
-       (display ";; no CLOSING branch within depth ") (display d)
+       (display ";; no genuine CLOSING branch within depth ") (display d)
        (display " -- best partials (fewest goals left):\n")
        (if (null? best)
            (display ";;   (no branch made progress -- try (tt) / raise (scout d b))\n")
@@ -1314,6 +1362,7 @@
                        (display ";;   ") (display (car op))
                        (display " open: ") (vnb--print-forms (cadr op)) (newline))
                      best))))
+    (vnb--scout-print-cites cites scripts)
     (when trunc
       (display ";; [truncated at ") (display maxnodes) (display " nodes; ")
       (display qmore) (display " branch(es) left unexpanded -- raise (scout ")
