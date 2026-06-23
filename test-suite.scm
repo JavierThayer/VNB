@@ -3167,6 +3167,36 @@
                        br))
                 closing)))))
 
+;; Transitive circularity: proving goal F by citing a PROVEN lemma L whose own
+;; proof rests on F (a name alpha-equal to F is in L's debt) is `P by P' one hop
+;; removed -- the `compact=>complete by compact=>bongo + bongo=>complete' trap.
+;; The guard catches it via proof-debt's debt-of.  No such (proven-rests-on-
+;; asserted) pair exists in the base load (every proven theorem is modulo 0), so
+;; we synthesize one: assert F=bongo-fact, install a proven L=compact-bongo-lemma
+;; whose debt is (bongo-fact); then citing L to prove F must read as circular,
+;; while a real modulo-0 theorem (metric-sym) does not.  Clean up after.
+(check-true "scout citation guard: catches TRANSITIVE circularity via debt-of"
+  (lambda ()
+    (let ((Fstmt '(FORALL zzz (BONGO-PRED zzz))))
+      (hash-table-set! *theorem-table* 'bongo-fact Fstmt)
+      (hash-table-set! *theorem-table* 'compact-bongo-lemma '(QUUX-CONCL))
+      (register-provenance! 'bongo-fact 'asserted)
+      (register-provenance! 'compact-bongo-lemma 'proven)
+      (hash-table-set! *proof-debt* 'compact-bongo-lemma '(bongo-fact))
+      (let* ((gn (vnb--goal-theorem-names Fstmt))
+             (ok (and (memq 'bongo-fact gn)                  ; F resolves to its name
+                      ;; cite the proven lemma that RESTS ON F to prove F -> circular
+                      (eq? 'compact-bongo-lemma
+                           (vnb--scout-cites-names '((bc* compact-bongo-lemma)) gn))
+                      ;; a genuine modulo-0 theorem is NOT circular for F
+                      (not (vnb--scout-cites-names '((bc* metric-sym)) gn)))))
+        (hash-table-delete! *theorem-table* 'bongo-fact)
+        (hash-table-delete! *theorem-table* 'compact-bongo-lemma)
+        (hash-table-delete! *proof-debt* 'compact-bongo-lemma)
+        (hash-table-delete! *provenance* 'bongo-fact)
+        (hash-table-delete! *provenance* 'compact-bongo-lemma)
+        ok))))
+
 ;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
 ;; non-symbol in head position; the dedup key must survive it (write-based, not
 ;; the pretty-printer which calls symbol->string on the head).  Without the fix

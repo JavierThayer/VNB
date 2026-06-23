@@ -425,13 +425,34 @@ that scout found a proof.  This surfaced when `(scout)` on
 …` — and `compact-implies-complete` *is* that statement, an asserted PSS
 citation whose real proof lives offline.  Circular.
 
-`vnb--scout-cites-goal` scans a path's goal-discharging steps (`bc*`/`bc`/`fact`/
-`ta`; their first arg is the theorem name) and flags any whose looked-up
-statement is `alpha-equiv?` to the goal.  `vnb--scout-collect` partitions the
+`vnb--scout-cites-names` scans a path's goal-discharging steps (`bc*`/`bc`/
+`fact`/`ta`; their first arg is the theorem name) and flags a cited theorem `T`
+that is circular **directly or transitively** (`vnb--circular-citation?`):
+*direct* — `T`'s statement is `alpha-equiv?` to the goal (`P by P`); *transitive*
+— a name alpha-equal to the goal is in `debt-of(T)`, i.e. `T` was itself proven
+*using* the goal (proof-debt.scm's transitive asserted-fact closure).  The
+transitive case is the **`compact⇒complete` by `compact⇒bongo` + `bongo⇒complete`**
+trap: neither lemma *is* the goal, but if `bongo⇒complete`'s proof leaned on
+`compact⇒complete`, citing it is circular.  The goal's theorem name(s) are
+resolved once per `scout` call by `vnb--goal-theorem-names` (reverse lookup over
+the theorem table) and reused per closer.  `vnb--scout-collect` partitions the
 closers: genuine ones become `closing-branches` (and `*last-scout*`, so
 `scout-run` can never adopt a circular closure); the suppressed theorem names
 go to `*scout-citations*` and the report prints *"the goal is already theorem
-X — citing it would be circular."*  Note this is what makes `inst+`-style
+X — citing it would be circular."*
+
+**Honest limit of the transitive check.**  `debt-of` of an *asserted* fact is
+just itself (a leaf) — no live dependency edges run between assertions.  A loop
+built entirely from independent asserted PSS citations therefore has nothing for
+the guard to detect; composing them is valid-but-redundant, and any real
+circularity lives in their *offline* proofs.  That layer is warrant/debt hygiene
+(proof-debt trust levels + the warrant audit), not scout's to police.  The
+transitive guard closes the loop precisely for chains through **proven** lemmas,
+whose debt the live system actually tracks.  (Note also: in the base load *every*
+proven theorem is modulo 0, so there is no natural transitive-circular pair yet
+— the test synthesises one.)
+
+Note this is what makes `inst+`-style
 *definitional* proofs the honest kind: `metric-sym` posed in full still closes
 genuinely (unfold the `is-metric` definition, instantiate) — it does **not**
 cite the `metric-sym` theorem — whereas a goal scout cannot re-derive

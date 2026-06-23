@@ -1246,15 +1246,40 @@
 (define *scout-citations* '())  ; theorem names of the SUPPRESSED circular closers
 
 ;; Citation guard.  A closing branch is CIRCULAR if it discharges the goal by
-;; citing a library theorem whose statement is alpha-equal to the goal itself
-;; -- `P proved by P'.  Such a closure is kernel-valid but vacuous: it only
-;; shows the goal is already a (possibly merely ASSERTED) theorem, not that
-;; scout found a proof.  We scan a PATH's goal-discharging steps (bc*/bc/fact/ta;
-;; their first arg is the theorem name, a bare symbol in a path) and return the
-;; offending theorem name, or #f.  inst+ cites a HYPOTHESIS, not a theorem, and
-;; a goal that is literally a hypothesis closes by ass (given, not circular), so
-;; those lanes are not citations.
-(define (vnb--scout-cites-goal path goal)
+;; citing a library theorem that is -- DIRECTLY OR TRANSITIVELY -- the goal:
+;;   * direct: the cited theorem's statement is alpha-equal to the goal
+;;     (`P proved by P');
+;;   * transitive: the cited theorem was itself PROVEN *using* the goal, i.e. a
+;;     name alpha-equal to the goal is in its debt -- the transitive set of
+;;     asserted facts the proof rests on (proof-debt.scm `debt-of').  This
+;;     catches `prove compact=>complete by compact=>bongo + bongo=>complete'
+;;     when bongo=>complete's offline proof leaned on compact=>complete.
+;; Either way the closure is kernel-valid but vacuous.
+;;
+;; HONEST LIMIT: debt-of an ASSERTED fact is just itself (a leaf), so a loop
+;; built ENTIRELY from independent asserted PSS citations has no live dependency
+;; edge to detect -- composing them is valid-but-redundant, not circular; that
+;; layer is warrant/debt hygiene, not scout's to police.
+;;
+;; inst+ cites a HYPOTHESIS, not a theorem, and a goal that is literally a
+;; hypothesis closes by ass (given, not circular), so those lanes never cite.
+
+;; Names of library theorems whose statement is alpha-equal to GOAL -- the goal
+;; viewed as a named result (usually 0 or 1, plus any -rev companion).
+(define (vnb--goal-theorem-names goal)
+  (filter (lambda (n) (let ((s (lookup-theorem n))) (and s (alpha-equiv? s goal))))
+          (hash-table-keys *theorem-table*)))
+
+;; #t iff citing theorem T is circular w.r.t. the goal (named in GOAL-NAMES):
+;; T IS the goal, or T's debt (transitive asserted-fact closure) contains it.
+(define (vnb--circular-citation? t goal-names)
+  (and (hash-table-ref/default *theorem-table* t #f)   ; a real theorem (lookup-theorem ERRORS on unknown)
+       (or (memq t goal-names)
+           (any (lambda (leaf) (memq leaf goal-names)) (debt-of t)))))
+
+;; First cited theorem (bc*/bc/fact/ta step; first arg is the name, bare in a
+;; path) in PATH whose use is circular w.r.t. GOAL-NAMES, or #f.
+(define (vnb--scout-cites-names path goal-names)
   (let loop ((p path))
     (if (null? p)
         #f
@@ -1263,11 +1288,15 @@
                           (memq (car step) '(bc* bc fact ta))
                           (pair? (cdr step))
                           (cadr step))))
-          (if (and (symbol? nm)
-                   (let ((thm (lookup-theorem nm)))
-                     (and thm (alpha-equiv? thm goal))))
+          (if (and (symbol? nm) (vnb--circular-citation? nm goal-names))
               nm
               (loop (cdr p)))))))
+
+;; Formula-goal entry point (used by tests): resolve the goal's theorem names,
+;; then scan.  Callers in a loop should resolve names once and use the -names
+;; form directly.
+(define (vnb--scout-cites-goal path goal)
+  (vnb--scout-cites-names path (vnb--goal-theorem-names goal)))
 
 ;; expression->string for a possibly-malformed goal: fall back to the raw
 ;; write-key if the pretty-printer chokes (non-symbol head -- see vnb--scout-key).
@@ -1288,10 +1317,11 @@
          (sols    (sort (car res) (lambda (a b) (< (length a) (length b)))))
          (partials (cadr res))
          (nodes   (caddr res)) (trunc (cadddr res)) (qmore (list-ref res 4))
-         (genuine (filter (lambda (p) (not (vnb--scout-cites-goal p goal))) sols))
+         (gnames  (vnb--goal-theorem-names goal))   ; resolve once, reuse per sol
+         (genuine (filter (lambda (p) (not (vnb--scout-cites-names p gnames))) sols))
          (cites   (vnb--dedup
                     (filter (lambda (x) x)
-                            (map (lambda (p) (vnb--scout-cites-goal p goal)) sols))))
+                            (map (lambda (p) (vnb--scout-cites-names p gnames)) sols))))
          (scripts (vnb--dedup (map vnb--path->forms genuine)))
          (best    (vnb--scout-best-partials partials)))
     (set! *last-scout* scripts)
