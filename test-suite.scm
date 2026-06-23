@@ -3062,13 +3062,45 @@
                      (FORALL x (IMPLIES (IN x (X s))
                        (FORALL y (IMPLIES (IN y (X s))
                          (= ((D s) x y) ((D s) y x))))))))))
-    (let* ((result   (scout 4 2))                     ; no closure -> partials populated
-           (closing  (list-ref result 4))
+    (let* ((result   (scout 4 2))                     ; d=4: the inst closer is ~5
+           (closing  (list-ref result 4))             ; plies deep, so still no closure
            (partials (list-ref result 3)))
-      (and (null? closing)                            ; metric-sym needs inst: no closure
+      (and (null? closing)                            ; ... -> partials populated
            (pair? partials)
            (number? (caar partials))                  ; each partial: (open-count ...)
            (list? (cadar partials))))))                ; ... (form ...)
+
+;; The inst lane: with a chosen witness term scout now CLOSES the metric laws.
+;; Symmetry's proof is grind; inst+ the is-metric universal at x; grind to split
+;; the exposed conjunction; inst+ the inner universal at y; grind; ass -- all
+;; real kernel rules, so the closing branch is a genuine proof.  (di/mac-h* are
+;; folded into the (grind) plies.)  Needs depth >= 5; default is 6.
+(check-true "scout inst lane: closes metric-sym, closing branch uses inst+"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (X s))
+                       (FORALL y (IMPLIES (IN y (X s))
+                         (= ((D s) x y) ((D s) y x))))))))))
+    (grind)
+    (let* ((result  (scout 6 3 300))
+           (closing (list-ref result 4)))
+      (and (pair? closing)                            ; the inst lane found a proof
+           ;; some closing branch instantiates a universal (an inst+ step)
+           (any (lambda (br) (any (lambda (f) (eq? (car f) 'inst+)) br))
+                closing)))))
+
+;; scout-run adopts that inst-lane proof onto the live deduction graph and the
+;; kernel accepts it -> metric symmetry proved, end to end, by the copilot.
+(check-true "scout inst lane: scout-run drives the metric-sym proof to done"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (X s))
+                       (FORALL y (IMPLIES (IN y (X s))
+                         (= ((D s) x y) ((D s) y x))))))))))
+    (grind)
+    (scout 6 3 300)
+    (scout-run 1)
+    (proof-done? *ps*)))
 
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()

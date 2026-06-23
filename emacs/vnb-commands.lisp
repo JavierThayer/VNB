@@ -25,6 +25,7 @@
 (ai (hyp) "Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable.")
 (ass () "Close the goal by an assumption alpha-equivalent to it.")
 (inst (forall-hyp term) "Instantiate a universally-quantified assumption at `term', adding the instance to context.")
+(inst+ (forall-hyp term) "Instantiate an in-context universal at `term', then forward-detach any guards whose antecedents are in context.")
 (detach! (impl) "Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context.")
 (fact (thm term) "Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis.")
 (ce (hyp k) "Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.")

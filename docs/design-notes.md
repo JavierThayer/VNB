@@ -349,53 +349,71 @@ pruned branch sprayed a `;; VNB error:` line.  (There remains a latent,
 pre-existing issue worth a separate look: some gauge/euclidean-ring macete
 produces a goal `expression->string` cannot render.)
 
-### What scout cannot do yet — the inst lane (planned)
+### The inst lane — scout's witness-choosing move (BUILT 2026-06-24)
 
-scout's alphabet is entirely **parameterless**.  The first move that needs a
-*chosen term* — `(inst <hyp> <witness>)`, instantiate a universally-quantified
-hypothesis — is absent.  That is the wall every non-trivial goal hits: after
-`grind`, `metric-sym`'s symmetry fact sits inside a hypothesis
-`∀u∈X. (… ∧ ∀v∈X. (… ∧ d(u,v)=d(v,u) …))`, and nothing in the current alphabet
-can reach it.  So the metric laws, the gauge goal, and `totally-bounded` all
-show up as **best-partials, never closures**.
+scout v1's alphabet was entirely **parameterless**, so the first move that needs
+a *chosen term* was missing and every witness-needing goal stalled as a partial.
+The inst lane closes that gap.  scout now **closes `metric-sym`** end to end
+(`scout-run` drives the live deduction graph to QED, all kernel-checked).
 
-Planned design (build deferred to 2026-06-24):
+1. **`inst+` — instantiate then detach.**  `(inst+ hyp term)` (`cmd-inst+`,
+   proof-commands.scm) instantiates an in-context universal at `term`, then
+   forward-detaches each guard whose antecedent is already in context, peeling a
+   guarded `(IMPLIES (IN term DOM) P)` down to `P`.  It is the *hypothesis-side*
+   analogue of `fact` (which assembles a THEOREM); `inst+` assembles an
+   in-context UNIVERSAL.  **Design correction:** the planned detacher was `ai`
+   (antecedent-inference), but `ai` only decomposes AND/OR/NOT/FORSOME/IFF
+   assumptions — it has *no IMPLIES case*.  The right tool is `cmd-detach`
+   (`pi-detach!`, forward modus ponens), which is what `inst+` uses.
 
-1. **Candidate generation.**  Scan focus hypotheses for `(FORALL v body)` /
-   domain-guarded `(FORALL v (IMPLIES (IN v DOM) body))`.  Witness terms:
-   *primary* — the **domain-typed** ones (`t` with `(IN t DOM)` already a
-   hypothesis; after `grind` that is `x, y` for `DOM = (X s)` — 1–3 candidates,
-   and the inst's domain side-condition is then `ass`-dischargeable); *fallback*
-   (untyped ∀) — atomic subterms of goal + hypotheses.  A **relevance filter**
-   keeps a `(hyp, term)` pair only if the instantiated body shares symbols with
-   the goal (fingerprint overlap), so scout does not instantiate the triangle
-   hypothesis while proving symmetry.
+2. **Candidate generation** (`vnb--scout-inst-candidates`, suggest.scm).  Scan
+   focus hypotheses for `(FORALL v body)`.  Witness terms come from the
+   **context-typed** pool: every `t` with an assumption `(IN t S)`.  A guarded
+   `(FORALL v (IMPLIES (IN v DOM) …))` prefers witnesses with `S = DOM` (its
+   guard is then `detach`-dischargeable); the rest are the fallback.  A
+   **relevance filter** keeps `(hyp, term)` only if the instantiated body shares
+   a non-connective symbol with the goal, and a per-node guard skips a
+   `(hyp, term)` whose instance is already an assumption.  Ranked by overlap,
+   capped at `*scout-inst-fanout*` (6).  Candidates are emitted **first** in the
+   expansion so the dive tries witnesses before the doomed parameterless moves.
 
-2. **Detach companion (the forward-MP gap).**  VNB has no forward modus ponens.
-   Instantiating `∀u∈X.body` at `x` yields an *implication* hypothesis
-   `(IN x (X s)) ⇒ body[x]` the current alphabet cannot consume.  So the inst
-   lane ships a compound **`(inst+ hyp term)`** = instantiate, then
-   antecedent-inference (`ai`) to detach, discharging the `(IN x (X s))` guard
-   by `ass` — one ply, to keep depth sane.
+3. **Depth.**  The `metric-sym` closer is `grind / inst+ (u:=x) / grind /
+   inst+ (v:=y) / grind / ass` — note the **interleaved `grind`s**: `is-metric`
+   unfolds to a *single* `(FORALL u …)` whose body is the five laws AND-ed under
+   the `u,v,w` quantifiers, so after each `inst+` a `grind` is needed to split
+   the exposed conjunction and surface the next inner `(FORALL v …)` / the bare
+   equality.  That is **5 plies** ⇒ default depth raised 4 → 6 (`*scout-depth*`),
+   node budget 300 → 600.
 
-3. **Interleave + depth.**  The cycle is
-   `inst+ (u:=x) → grind → inst+ (v:=y) → grind → close`, ≈ 5 plies; the
-   inst-enabled default depth rises to ~6.
+4. **Best-first search (the real cost lever) + the open-goal-count bug.**  The
+   frontier is ordered by open-subgoal count (deeper-first tiebreak, so scout
+   *dives*).  **This forced a correctness fix.**  `proof-open-goals` =
+   `dg-ungrounded-nodes` returns *every ungrounded node including ancestors*, so
+   its count **grows with derivation length** — and since each `inst+` adds
+   ancestor nodes, best-first read the inst chain as *regress* and fled it.  The
+   genuine "how much is left" measure is the count of ungrounded **leaves**
+   (nodes with null `in-arrows` — the actual obligations); `vnb--scout-open-leaves`
+   computes it, and the fingerprint now keys on the leaf frontier too.
 
-4. **Best-first search (the real cost lever).**  inst widens the tree enough
-   that pure BFS wastes the node budget.  Order the frontier by open-goal-count
-   (depth tiebreak) so scout *dives* toward closure rather than exploring
-   breadth uniformly.  This is the single biggest win for landing proofs within
-   the node cap.
+5. **The `-rev` cycle trap.**  A `-rev` round-trip `((mac 'foo)(mac 'foo-rev))`
+   folds the goal back to an *identical* sequent; `dg-post!` dedups onto the
+   earlier node, and the graph closes into a **cycle** where every node has an
+   in-arrow — so open-leaves = 0 while the proof is **not** done.  Counting
+   leaves naively reported this as a bogus "0 open" best-partial (and best-first
+   would chase it).  Fix: a non-done clone with **no open leaf is a dead end** —
+   prune it (don't record, don't expand).
 
-5. **Soundness/termination.**  inst/ai are real kernel rules, so closing
-   branches stay genuine proofs; the el-cheapo is only the witness *guess* (a
-   wrong guess just dies on the clone).  The open-goal-set fingerprint blocks
-   re-instantiating into an identical state; add per-`(hyp, term)` dedup per
-   node and a tight inst fan-out cap.
+6. **Soundness/termination.**  `inst+` is `cmd-instantiate` + `cmd-detach`, both
+   real kernel rules, so a closing branch is a genuine proof; the only el-cheapo
+   is the witness *guess* (a bad guess — e.g. instantiating the open-cover
+   `∀c` at the carrier `(X s)` — just produces a useless hypothesis that dies on
+   the clone).  Leaf-set fingerprint + per-`(hyp,term)` dedup + the fan-out cap
+   bound the widening.
 
-After the build, re-stress the metric laws / gauge to confirm inst-scout now
-**closes** them (today they are partials).
+**What it still cannot do:** witnesses scout cannot *type* from the context — a
+fresh existential, a constructed term like `1/n` — are out of reach; those goals
+still surface as best-partials.  That is the next frontier (see the stress
+target below).
 
 ### Stress-test target (planned obstacle map)
 

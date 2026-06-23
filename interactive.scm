@@ -2941,6 +2941,14 @@
                (let ((rawf (->raw-formula/idx f))
                      (rawt (->raw-formula t)))
                  (if (vnb-warning? rawf) rawf (cmd-instantiate *ps* rawf rawt))))))
+;; inst+ : instantiate an in-context universal at a term, then forward-detach
+;; any in-context guards (the witness-choosing move scout's inst lane emits).
+(define (inst+ f t)
+  (vnb--run! 'inst+ (list f t)
+             (lambda ()
+               (let ((rawf (->raw-formula/idx f))
+                     (rawt (->raw-formula t)))
+                 (if (vnb-warning? rawf) rawf (cmd-inst+ *ps* rawf rawt))))))
 (define (ce f k)
   (vnb--run! 'ce (list f k)
              (lambda ()
@@ -3088,6 +3096,7 @@
       ((mac-h*) (cmd-mac-h* *ps*))
       ((grind)  (cmd-grind *ps*))
       ((inst)   (cmd-instantiate *ps* (->raw-formula/idx (car args)) (->raw-formula (cadr args))))
+      ((inst+)  (cmd-inst+ *ps* (->raw-formula/idx (car args)) (->raw-formula (cadr args))))
       ((ce)     (cmd-cartesian-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
       ((ie)     (cmd-intersection-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
       ((te)     (cmd-tuples-elim *ps* (->raw-formula/idx (car args)) (cadr args)))

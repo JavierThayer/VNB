@@ -182,6 +182,34 @@
                          (loop ps2 (binary-right formula) args))))
                   (else ps))))))))
 
+;;; inst+ -- instantiate an IN-CONTEXT universal at TERM, then discharge any
+;;; in-context guards by forward detach, landing the specialised consequent.
+;;; The hypothesis-side analogue of `fact' (which assembles a THEOREM): here the
+;;; universal is already an assumption (e.g. a metric axiom exposed by grind),
+;;; and we want body[term] usable in one ply.  inst alone would leave a guarded
+;;; (IMPLIES (IN term DOM) P) the parameterless alphabet can't consume; inst+
+;;; detaches each guard whose antecedent is already in context, peeling the
+;;; nest until the consequent is atomic / a fresh universal.  scout's
+;;; witness-choosing lane (vnb--scout-inst-candidates) emits these.  A failed
+;;; instantiate propagates; a guard we cannot detach just stops the peel and we
+;;; keep the (still-useful) instantiated body -- both stay sound, every step is
+;;; a real kernel rule.
+(define (cmd-inst+ ps forall-formula term)
+  (let ((p1 (cmd-instantiate ps forall-formula term)))
+    (if (or (vnb-warning? p1) (vnb-error? p1))
+        p1
+        (let loop ((ps p1)
+                   (body (subst-free (quantifier-var forall-formula) term
+                                     (quantifier-body forall-formula))))
+          (if (and (pair? body) (eq? (car body) 'IMPLIES)
+                   (asms-find (sequent-node-assumptions (proof-state-focus ps))
+                              (binary-left body)))
+              (let ((p2 (cmd-detach ps body)))
+                (if (or (vnb-warning? p2) (vnb-error? p2))
+                    ps
+                    (loop p2 (binary-right body))))
+              ps)))))
+
 (define (cmd-apply-macete ps macete-name)
   (let* ((sqn (proof-state-focus ps))
          (r   (apply-macete! macete-name sqn)))

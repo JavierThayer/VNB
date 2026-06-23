@@ -144,6 +144,14 @@ Instantiate a universally-quantified assumption at `term', adding the instance t
 
 Use a `for all x, ...' hypothesis at a particular value: you supply the term, and the statement with x replaced by that term is added to your hypotheses.  (Technically: universal instantiation of an assumption.)
 
+### inst+
+
+    (inst+ forall-hyp term)
+
+Instantiate an in-context universal at `term', then forward-detach any guards whose antecedents are in context.
+
+inst followed by detach: from `forall x. (x in S) => P(x)' and `t in S' already known, this lands `P(t)' directly (peeling nested guards level by level), instead of leaving the guarded implication for you to detach by hand.  The hypothesis-side analogue of `fact' (which assembles a THEOREM); this assembles an in-context UNIVERSAL.  scout's inst lane emits these to close witness-needing goals like the metric laws.  (Technically: pi-instantiate! then pi-detach! while the consequent stays a guard with an in-context antecedent.)
+
 ### detach!
 
     (detach! impl)
@@ -248,7 +256,7 @@ The deterministic normalizer.  It keeps applying di -- which strips a leading FO
 
 Speculatively search to a bounded depth across INDEPENDENT scratch branches; RETURNS a nested list (number-of-branches (d b) goal best-partials closing-branches) rather than printing.  Never touches the live proof.
 
-The copilot's deep lane.  Where (what-now)/(tt) suggest one move, scout actually TRIES sequences: it clones the focus into a fresh deduction graph per branch (so backtracking is free -- a dead branch is just discarded), and does a breadth-first search whose alphabet is (grind), the closers (ass/rfl/crs/arith), the top rewrite-index (mac) rules, and the parameterless backchain (bc*) lemmas.  It RETURNS the result as data -- (examined-count (depth branch) goal best-partials closing-branches), where best-partials is ((open-goals-left (form ...)) ...) most-reduced first and closing-branches is ((form ...) ...) shortest first -- so you can pick it apart programmatically; use (scout-show ...) for the readable REPL report.  Every move is the real, kernel-checked tactic, so a closing branch is a genuine proof when you adopt it with (scout-run k).  Bounds: depth (default 4), per-node fan-out branch (default 3), total nodes (default 300).  El cheapo: it does not reason about which move is wise, it brute-forces a small tree and you eyeball the survivors.  It cannot yet INSTANTIATE a universal hypothesis (no inst lane), so goals that need to pick a witness term -- the metric laws past grind -- show up under best-partials, not as closures.
+The copilot's deep lane.  Where (what-now)/(tt) suggest one move, scout actually TRIES sequences: it clones the focus into a fresh deduction graph per branch (so backtracking is free -- a dead branch is just discarded), and does a BEST-FIRST search (frontier ordered by open subgoals left, ties broken deeper-first so it dives toward a closure) whose alphabet is (grind), the closers (ass/rfl/crs/arith), the top rewrite-index (mac) rules, the parameterless backchain (bc*) lemmas, and the INST LANE -- (inst+ <universal hyp> <context-typed term>), instantiating a `forall' hypothesis at a term the context already types and detaching the guard.  It RETURNS the result as data -- (examined-count (depth branch) goal best-partials closing-branches), where best-partials is ((open-goals-left (form ...)) ...) most-reduced first and closing-branches is ((form ...) ...) shortest first -- so you can pick it apart programmatically; use (scout-show ...) for the readable REPL report.  Every move is the real, kernel-checked tactic, so a closing branch is a genuine proof when you adopt it with (scout-run k).  Bounds: depth (default 6), per-node fan-out branch (default 3), total nodes (default 600).  El cheapo: it does not reason about which move is wise (only the witness terms are guessed, from what the context already types -- a bad guess just dies on the clone); it brute-forces a small tree and you eyeball the survivors.  The inst lane closes the metric laws past grind; goals that need a witness scout can't type (a fresh existential, a constructed term) still surface under best-partials.
 
 ### scout-show
 

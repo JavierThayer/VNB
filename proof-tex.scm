@@ -179,6 +179,7 @@
     (bc       . "backchain: reduce the goal through a named implication")
     (bc*      . "iterated backchain: backchain repeatedly, sending each resulting subgoal to a recorded handler")
     (inst     . "instantiate: supply a witness term for a universally quantified assumption")
+    (inst+    . "instantiate and detach: specialise a universal assumption at a term, then discharge its in-context guards")
     (wk       . "weaken: close the goal by matching it against an assumption")
     (ass      . "assert: close the goal directly from the assumptions")
     (subst    . "substitute: rewrite the goal using an equality assumption")

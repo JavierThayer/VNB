@@ -909,8 +909,9 @@
 ;;; Bounds (all logged when hit -- no silent truncation): depth d (default 4),
 ;;; per-node fan-out b (default *scout-branch*), total nodes *scout-nodes*.
 
+(define *scout-depth* 6)      ; default search depth (the inst closer is ~5 plies)
 (define *scout-branch* 3)     ; default per-node mac/bc* fan-out
-(define *scout-nodes* 300)    ; default total-node budget
+(define *scout-nodes* 600)    ; default total-node budget (inst lane widens trees)
 (define *scout-show* 8)       ; max closing branches to print (rest via scout-run)
 
 (define (vnb--take xs k) (if (> (length xs) k) (list-head xs k) xs))
@@ -975,10 +976,110 @@
 ;; whatever terms the macetes produce.
 (define (vnb--scout-key formula)
   (call-with-output-string (lambda (port) (write formula port))))
+;; A single open node's key = its goal PLUS its (order-independent) assumption
+;; set.  The inst lane changes only the HYPOTHESES (inst+ adds body[term],
+;; leaving the goal fixed), so a goal-only key would collapse every inst step
+;; onto its parent and the loop-pruner would kill the whole witness chain.
+;; Keying on goal+hyps distinguishes "same goal, new fact" as the real progress
+;; it is; re-instantiating the same universal at the same term reproduces the
+;; identical assumption set, so it still dedups (no infinite re-inst).
+(define (vnb--scout-node-key g)
+  (vnb--scout-key
+    (cons (wff-formula (sequent-node-assertion g))
+          (sort (map wff-formula (sequent-node-assumptions g))
+                (lambda (a b) (string<? (vnb--scout-key a) (vnb--scout-key b)))))))
+;; The genuine open subgoals of CLONE: ungrounded nodes with NO in-arrows --
+;; the leaves of the search frontier, the obligations a tactic still has to
+;; discharge.  `proof-open-goals' (= dg-ungrounded-nodes) ALSO returns the
+;; ungrounded ANCESTORS, whose count grows with derivation length: useless as a
+;; "how much is left" measure and actively misleading for the inst lane, where
+;; each inst+ adds ancestor nodes without adding any obligation.  Counting
+;; leaves is what lets best-first dive an inst chain (every node still 1 leaf)
+;; instead of fleeing it as apparent regress.
+(define (vnb--scout-open-leaves clone)
+  (filter (lambda (sqn) (null? (sequent-node-in-arrows sqn)))
+          (proof-open-goals clone)))
 (define (vnb--scout-fingerprint clone)
-  (sort (map (lambda (g) (vnb--scout-key (wff-formula (sequent-node-assertion g))))
-             (proof-open-goals clone))
-        string<?))
+  (sort (map vnb--scout-node-key (vnb--scout-open-leaves clone)) string<?))
+
+;;; ---- the inst lane: scout's witness-choosing move ----------------------
+;;; Everything above is parameterless (grind / closers / bare mac / bare bc*).
+;;; inst needs a CHOSEN term -- the wall the metric laws + totally-bounded hit
+;;; (they surface as partials, never closures).  This lane proposes
+;;;   (inst+ <in-context universal> <context-typed term>)
+;;; moves: instantiate a FORALL hypothesis at a term the context already types
+;;; (some `(IN t S)' assumption), then forward-detach the guard.  Soundness is
+;;; unchanged (inst+/detach are real kernel rules); the only guess is the
+;;; witness, and a bad guess dies on the clone.
+
+(define *scout-inst* #t)          ; enable the inst+ lane in scout
+(define *scout-inst-fanout* 6)    ; max inst+ candidates emitted per node
+
+(define *scout-logical-syms* '(FORALL FORSOME IMPLIES AND OR NOT IFF))
+;; Symbols occurring in E (dups kept), minus the pure connectives -- the basis
+;; for the goal-overlap relevance score.
+(define (vnb--syms e)
+  (cond ((symbol? e) (if (memq e *scout-logical-syms*) '() (list e)))
+        ((pair? e) (append (vnb--syms (car e)) (vnb--syms (cdr e))))
+        (else '())))
+(define (vnb--sym-overlap a b)    ; # of distinct symbols A and B share
+  (let ((sb (vnb--dedup (vnb--syms b))))
+    (length (filter (lambda (s) (memq s sb)) (vnb--dedup (vnb--syms a))))))
+
+;; Terms the context already types: (t . S) for every assumption `(IN t S)'.
+;; A guarded FORALL over domain DOM prefers witnesses with S = DOM (so its
+;; `(IN t DOM)' guard is ass/detach-dischargeable); the rest are the fallback.
+(define (vnb--scout-typed-terms clone)
+  (let loop ((as (sequent-node-assumptions (proof-state-focus clone))) (acc '()))
+    (if (null? as)
+        (reverse acc)
+        (let ((f (wff-formula (car as))))
+          (loop (cdr as)
+                (if (and (pair? f) (eq? (car f) 'IN) (= (length f) 3))
+                    (cons (cons (cadr f) (caddr f)) acc)
+                    acc))))))
+
+;; (inst+ HYP TERM) path-elements for CLONE's focus, ranked by goal-symbol
+;; overlap and capped at *scout-inst-fanout*.  HYP ranges over in-context
+;; FORALL assumptions, TERM over context-typed terms (domain-matching first for
+;; guarded foralls).  A (hyp,term) whose instantiated body is ALREADY an
+;; assumption is skipped (per-node re-inst guard).
+(define (vnb--scout-inst-candidates clone)
+  (let* ((sqn   (proof-state-focus clone))
+         (goal  (wff-formula (sequent-node-assertion sqn)))
+         (asms  (sequent-node-assumptions sqn))
+         (typed (vnb--scout-typed-terms clone))
+         (cands '()))
+    (for-each
+     (lambda (w)
+       (let ((f (wff-formula w)))
+         (when (and (pair? f) (eq? (car f) 'FORALL))
+           (let* ((v   (quantifier-var  f))
+                  (bdy (quantifier-body f))
+                  (dom (and (pair? bdy) (eq? (car bdy) 'IMPLIES)
+                            (let ((a (binary-left bdy)))
+                              (and (pair? a) (eq? (car a) 'IN) (= (length a) 3)
+                                   (caddr a)))))
+                  (terms (vnb--dedup
+                          (map car
+                               (if dom
+                                   (let ((m (filter (lambda (p) (equal? (cdr p) dom))
+                                                    typed)))
+                                     (if (pair? m) m typed))
+                                   typed)))))
+             (for-each
+              (lambda (t)
+                (let ((ibody (subst-free v t bdy)))
+                  (when (and (not (asms-find asms ibody))   ; not already a hyp
+                             (> (vnb--sym-overlap ibody goal) 0))
+                    (set! cands
+                          (cons (cons (vnb--sym-overlap ibody goal)
+                                      (list 'inst+ f t))
+                                cands)))))
+              terms)))))
+     asms)
+    (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
+               *scout-inst-fanout*)))
 
 ;; The CHOICE-move candidates at CLONE's focus, as (name . args) elements.
 (define (vnb--scout-expand clone b)
@@ -1005,47 +1106,77 @@
                 (vnb--take (filter (lambda (n) (null? (suggest--undetermined-vars n)))
                                    (suggest-backchain-names))
                            b))
-      (reverse cands))))
+      ;; inst lane: (inst+ <universal hyp> <typed term>) path-elements, ranked
+      ;; + capped by the candidate gen.  Put them FIRST (the parameterless moves
+      ;; can't close a witness-needing goal, so on stuck goals the inst chain is
+      ;; the productive dive -- best-first's deeper-first tiebreak should reach
+      ;; it without wading through doomed mac/bc* siblings).
+      (if *scout-inst*
+          (append (vnb--scout-inst-candidates clone) (reverse cands))
+          (reverse cands)))))
 
-;; The BFS.  Returns (closing-paths partials nodes-examined truncated? unexpanded).
+;; The search.  BEST-FIRST: the frontier is ordered by open-goal count (fewest
+;; first; ties broken DEEPER-first so scout dives toward a closure rather than
+;; fanning the shallow tree).  This is the cost lever -- the inst lane widens
+;; each node enough that pure breadth wastes the node budget; diving spends it
+;; on the branches nearest to closing.  Each frontier entry is a node record
+;;   (open fp clone path)
+;; built by `consider' (which replays the path on a fresh clone, registers any
+;; solution / partial, and prunes by depth + the goal+hyps fingerprint).  We
+;; keep the clone in the record so expansion never re-replays.
+;; Returns (closing-paths partials nodes-examined truncated? unexpanded).
 (define (vnb--scout-search d b maxnodes)
   (let ((seen '()) (sols '()) (partials '()) (nodes 0) (trunc #f) (qmore 0))
-    (let bfs ((queue (list '())))
+    (define (node-open n)  (car n))
+    (define (node-clone n) (caddr n))
+    (define (node-path n)  (cadddr n))
+    (define (node< a c)                                 ; frontier order
+      (if (= (node-open a) (node-open c))
+          (> (length (node-path a)) (length (node-path c)))   ; deeper first -> dive
+          (< (node-open a) (node-open c))))                   ; fewer goals first
+    ;; Replay PATH; record closure/partial; return a frontier node or #f (dead,
+    ;; depth-capped, un-fingerprintable, or a seen state).  Bumps nodes once.
+    (define (consider path)
+      (set! nodes (+ nodes 1))
+      (let ((clone (vnb--scout-replay path)))
+        (cond
+          ((not clone) #f)                              ; branch died / errored
+          ((proof-done? clone) (set! sols (cons path sols)) #f)   ; closed -- leaf
+          ;; Not done, yet NO open leaf = a dead end: every ungrounded node is
+          ;; justified-but-unground, nothing left to act on.  A `-rev' round-trip
+          ;; ((mac 'foo)(mac 'foo-rev)) produces exactly this -- the fold-back's
+          ;; child sequent equals an earlier one, dg-post! dedups onto it, and the
+          ;; graph closes into a cycle that grounds nothing.  Prune it (don't log
+          ;; a bogus "0 open" partial, don't expand a non-leaf focus).
+          ((null? (vnb--scout-open-leaves clone)) #f)
+          (else
+           (let ((open (length (vnb--scout-open-leaves clone))))
+             (when (pair? path)                         ; root isn't a "partial"
+               (set! partials (cons (cons open path) partials)))
+             (if (>= (length path) d)
+                 #f                                     ; depth cap -> leaf
+                 ;; Fingerprint + candidate-gen read whatever the path produced;
+                 ;; a pathological rewrite can make a stringifier/suggester
+                 ;; throw -- guard so ONLY this branch dies, never the search.
+                 (let ((fp (vnb-guard (lambda () (vnb--scout-fingerprint clone)))))
+                   (cond
+                     ((vnb-error? fp) #f)               ; un-fingerprintable -> leaf
+                     ((member fp seen) #f)              ; duplicate state -> leaf
+                     (else (set! seen (cons fp seen))
+                           (list open fp clone path))))))))))
+    (let loop ((frontier (let ((r (consider '()))) (if r (list r) '()))))
       (cond
-        ((null? queue) #t)
-        ((>= nodes maxnodes) (set! trunc #t) (set! qmore (length queue)) #t)
+        ((null? frontier) #t)
+        ((>= nodes maxnodes) (set! trunc #t) (set! qmore (length frontier)) #t)
         (else
-         (let* ((path  (car queue))
-                (rest  (cdr queue))
-                (clone (vnb--scout-replay path)))
-           (set! nodes (+ nodes 1))
-           (cond
-             ((not clone) (bfs rest))                         ; branch died
-             ((proof-done? clone)                             ; closed -- record, don't expand
-              (set! sols (cons path sols)) (bfs rest))
-             (else
-              (let ((open (length (proof-open-goals clone))))
-                (when (pair? path)                            ; root isn't a "partial"
-                  (set! partials (cons (cons open path) partials)))
-                (if (>= (length path) d)
-                    (bfs rest)
-                    ;; Fingerprinting and candidate-generation read whatever goal
-                    ;; the path produced; a pathological rewrite result can make a
-                    ;; stringifier/suggester throw.  Guard both so that ONLY this
-                    ;; branch is dropped (treated as a leaf), never the whole
-                    ;; search.  (replay is already guarded.)
-                    (let ((fp (vnb-guard (lambda () (vnb--scout-fingerprint clone)))))
-                      (cond
-                        ((vnb-error? fp) (bfs rest))         ; un-fingerprintable -> leaf
-                        ((member fp seen) (bfs rest))
-                        (else
-                         (set! seen (cons fp seen))
-                         (let ((kids (vnb-guard (lambda () (vnb--scout-expand clone b)))))
-                           (bfs (append rest
-                                  (if (vnb-error? kids)       ; expansion threw -> leaf
-                                      '()
-                                      (map (lambda (c) (append path (list c)))
-                                           kids))))))))))))))))
+         (let* ((best  (car frontier))
+                (rest  (cdr frontier))
+                (kids  (vnb-guard (lambda () (vnb--scout-expand (node-clone best) b))))
+                (paths (if (vnb-error? kids)            ; expansion threw -> no kids
+                           '()
+                           (map (lambda (c) (append (node-path best) (list c))) kids)))
+                (new   (filter (lambda (x) x) (map consider paths))))
+           (loop (sort (append rest new) node<))))))
     (list (reverse sols) partials nodes trunc qmore)))
 
 ;; Pick the most-reduced partial branches: fewest open goals, then shortest,
@@ -1103,7 +1234,7 @@
     ((not *ps*) '())
     ((proof-done? *ps*) '())
     (else
-     (let* ((d        (if (>= (length opts) 1) (car opts)   4))
+     (let* ((d        (if (>= (length opts) 1) (car opts)   *scout-depth*))
             (b        (if (>= (length opts) 2) (cadr opts)  *scout-branch*))
             (maxnodes (if (>= (length opts) 3) (caddr opts) *scout-nodes*))
             (goal     (suggest--current-goal)))
@@ -1152,7 +1283,7 @@
     ((not *ps*)         (display ";; scout: no proof in progress.\n") '())
     ((proof-done? *ps*) (display ";; scout: proof already complete.\n") '())
     (else
-     (let* ((d        (if (>= (length opts) 1) (car opts)   4))
+     (let* ((d        (if (>= (length opts) 1) (car opts)   *scout-depth*))
             (b        (if (>= (length opts) 2) (cadr opts)  *scout-branch*))
             (maxnodes (if (>= (length opts) 3) (caddr opts) *scout-nodes*))
             (goal     (suggest--current-goal))
