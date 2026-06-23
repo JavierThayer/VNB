@@ -966,10 +966,17 @@
                           #f
                           (loop (cdr p))))))))))))
 
-;; Canonical key for the open-goal SET of CLONE (sorted goal strings), for
-;; loop/duplicate-state pruning.
+;; Canonical key for the open-goal SET of CLONE (sorted goal keys), for
+;; loop/duplicate-state pruning.  Keys are produced with `write' on the raw
+;; formula s-expr, NOT expression->string: the latter is the PRETTY-printer and
+;; calls symbol->string on operator heads, so a goal a rewrite leaves with a
+;; non-symbol in head position (seen in the gauge/euclidean-ring neighbourhood)
+;; makes it throw.  write never throws on an s-expr, so dedup stays robust to
+;; whatever terms the macetes produce.
+(define (vnb--scout-key formula)
+  (call-with-output-string (lambda (port) (write formula port))))
 (define (vnb--scout-fingerprint clone)
-  (sort (map (lambda (g) (expression->string (wff-formula (sequent-node-assertion g))))
+  (sort (map (lambda (g) (vnb--scout-key (wff-formula (sequent-node-assertion g))))
              (proof-open-goals clone))
         string<?))
 
@@ -1022,14 +1029,23 @@
                   (set! partials (cons (cons open path) partials)))
                 (if (>= (length path) d)
                     (bfs rest)
-                    (let ((fp (vnb--scout-fingerprint clone)))
-                      (if (member fp seen)
-                          (bfs rest)
-                          (begin
-                            (set! seen (cons fp seen))
-                            (bfs (append rest
-                                   (map (lambda (c) (append path (list c)))
-                                        (vnb--scout-expand clone b)))))))))))))))
+                    ;; Fingerprinting and candidate-generation read whatever goal
+                    ;; the path produced; a pathological rewrite result can make a
+                    ;; stringifier/suggester throw.  Guard both so that ONLY this
+                    ;; branch is dropped (treated as a leaf), never the whole
+                    ;; search.  (replay is already guarded.)
+                    (let ((fp (vnb-guard (lambda () (vnb--scout-fingerprint clone)))))
+                      (cond
+                        ((vnb-error? fp) (bfs rest))         ; un-fingerprintable -> leaf
+                        ((member fp seen) (bfs rest))
+                        (else
+                         (set! seen (cons fp seen))
+                         (let ((kids (vnb-guard (lambda () (vnb--scout-expand clone b)))))
+                           (bfs (append rest
+                                  (if (vnb-error? kids)       ; expansion threw -> leaf
+                                      '()
+                                      (map (lambda (c) (append path (list c)))
+                                           kids))))))))))))))))
     (list (reverse sols) partials nodes trunc qmore)))
 
 ;; Pick the most-reduced partial branches: fewest open goals, then shortest,
@@ -1064,7 +1080,10 @@
             (b        (if (>= (length opts) 2) (cadr opts)  *scout-branch*))
             (maxnodes (if (>= (length opts) 3) (caddr opts) *scout-nodes*))
             (goal     (suggest--current-goal))
-            (res      (vnb--scout-search d b maxnodes))
+            ;; quietly => guard catches stay silent (we drop bad branches on
+            ;; purpose) and no cmd-* state dumps leak during the search; the
+            ;; result printing below runs OUTSIDE quietly, unaffected.
+            (res      (quietly (lambda () (vnb--scout-search d b maxnodes))))
             (sols     (car res))   (partials (cadr res))
             (nodes    (caddr res)) (trunc (cadddr res)) (qmore (list-ref res 4))
             (scripts  (vnb--dedup

@@ -3061,6 +3061,14 @@
     (scout-run 1)                                     ; replay branch 1 for real
     (proof-done? *ps*)))
 
+;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
+;; non-symbol in head position; the dedup key must survive it (write-based, not
+;; the pretty-printer which calls symbol->string on the head).  Without the fix
+;; this term crashed the whole scout search at the fingerprint step.
+(check-true "scout: dedup key survives a term the pretty-printer can't render"
+  (lambda ()
+    (string? (vnb--scout-key '(0 (gauge s))))))         ; would throw via expression->string
+
 ;;; -----------------------------------------------------------------------
 ;;; Summary
 
