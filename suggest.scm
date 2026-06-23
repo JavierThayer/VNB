@@ -303,6 +303,45 @@
             us)
           '((mac-h*))))))
 
+;;; 1-based index of FORMULA in the assumption list (equal? on the raw wff), or
+;;; #f.  Lets the inst lane suggest the compact (inst+ k 'term) -- k an
+;;; assumption number, which (inst+)'s ->raw-formula/idx accepts -- instead of
+;;; echoing the whole universal back at the user.
+(define (vnb--asm-index asms formula)
+  (let loop ((as asms) (i 1))
+    (cond ((null? as) #f)
+          ((equal? (wff-formula (car as)) formula) i)
+          (else (loop (cdr as) (+ i 1))))))
+
+;;; The inst lane for the single-move copilot: name the (inst+ hyp term) moves
+;;; scout's inst lane would try first -- instantiate an in-context universal at
+;;; a context-typed witness, then detach the guard.  Reuses the SAME ranked,
+;;; relevance-filtered, capped generator scout uses (vnb--scout-inst-candidates),
+;;; so what-now and scout never diverge on which witnesses are worth a look; it
+;;; just renders each universal as its assumption number for a compact,
+;;; paste-runnable suggestion.  Returns the move forms (also printed).  '() when
+;;; there is no universal to instantiate.  (Defined here, before its callees in
+;;; the file -- top-level defines resolve at call time.)
+(define (what-now--show-inst)
+  (let ((cands (and *ps* (vnb--scout-inst-candidates *ps*))))
+    (if (or (not cands) (null? cands))
+        '()
+        (let* ((asms  (sequent-node-assumptions (proof-state-focus *ps*)))
+               (forms (map (lambda (c)            ; c = (inst+ <forall> <term>)
+                             (list 'inst+
+                                   (or (vnb--asm-index asms (cadr c))
+                                       (script--emit-arg (cadr c)))
+                                   (script--emit-arg (caddr c))))
+                           cands)))
+          (display ";; universals you can instantiate at a context-typed term")
+          (newline)
+          (display ";; -- scout's inst lane tries these first (inst+ assumption-# term):")
+          (newline)
+          (for-each (lambda (form)
+                      (display ";;   ") (vnb--write-form form) (newline))
+                    forms)
+          forms))))
+
 ;;; The lemma's conclusion (foralls stripped, hypotheses peeled) -- the part
 ;;; that fingerprinted to the goal -- for a compact display, not the whole stmt.
 (define (what-now--conclusion formula)
@@ -433,6 +472,10 @@
            (display ";; (goal has binders/structure -- (di) first if you'd rather introduce them.)") (newline))
          ;; El-cheapo hypothesis lane: name the assumptions mac-h* would unfold/split.
          (set! moves (append moves (what-now--show-hyp-unfolds)))
+         ;; Inst lane: name the universals worth instantiating (witness chosen
+         ;; from the context-typed pool) -- the move scout finds but the single
+         ;; suggestion lanes above can't, on goals like the metric laws.
+         (set! moves (append moves (what-now--show-inst)))
          (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
          (newline)
          (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")

@@ -3102,6 +3102,20 @@
     (scout-run 1)
     (proof-done? *ps*)))
 
+;; The single-move copilot grows the same inst lane: what-now now names the
+;; (inst+ assumption-# term) universals worth instantiating -- the same ranked
+;; candidates scout tries -- so on a witness-needing goal it no longer points
+;; only at backchain/closers and miss the witness.
+(check-true "what-now: inst lane suggests (inst+ k term) on a witness-needing goal"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (X s))
+                       (FORALL y (IMPLIES (IN y (X s))
+                         (= ((D s) x y) ((D s) y x))))))))))
+    (grind)
+    (let ((moves (what-now)))
+      (any (lambda (m) (and (pair? m) (eq? (car m) 'inst+))) moves))))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
