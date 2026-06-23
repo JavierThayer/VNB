@@ -878,3 +878,244 @@
               (reverse groups))))))
 
 (define (tt) (things-to-try))
+
+;;; -----------------------------------------------------------------------
+;;; (scout d b) -- the speculative, backtracking proof search.
+;;;
+;;; B+ (`bplus' above) sweeps the open goals and closes only what it can
+;;; DECISIVELY close, because the live deduction graph has no undo -- it never
+;;; makes a move it can't see through.  scout is the deferred v2: it EXPLORES.
+;;; Each search branch is replayed on its OWN fresh `vnb--scratch-state' (an
+;;; independent deduction graph sharing the immutable wff objects), so
+;;; backtracking is free -- you don't undo a move, you throw the clone away and
+;;; clone again.  The live *ps* is never touched.
+;;;
+;;; A branch is a PATH: a list of recorded command forms (name . evaluated-args),
+;;; exactly the alphabet `apply-recorded-cmd!' interprets.  To evaluate a path
+;;; we make one fresh clone and replay the whole path on it under vnb-guard
+;;; (a soft-failing tactic raises inside apply-recorded-cmd! -> guard catches ->
+;;; that branch is dead).  Because every move is the REAL, kernel-checked cmd-*,
+;;; a reported CLOSING branch is a genuine proof of the focus (up to eigenvar
+;;; renaming) when run live with (scout-run k).  "El cheapo, 'mano": we don't
+;;; reason about which move is wise, we brute-force a bounded tree and you pick.
+;;;
+;;; Alphabet at a node (the CHOICE moves; di/mac-h* are folded into one (grind)
+;;; ply so the search never branches on the no-choice normalization):
+;;;   (grind)                    when the goal is structural or a hyp is foldable
+;;;   (ass) (rfl) (crs) (arith)  closers, gated by goal kind
+;;;   (mac 'n)   x b             top-b rewrite-index candidates on the goal
+;;;   (bc* 'n)   x b             top-b backchain candidates with no undetermined vars
+;;;
+;;; Bounds (all logged when hit -- no silent truncation): depth d (default 4),
+;;; per-node fan-out b (default *scout-branch*), total nodes *scout-nodes*.
+
+(define *scout-branch* 3)     ; default per-node mac/bc* fan-out
+(define *scout-nodes* 300)    ; default total-node budget
+(define *scout-show* 8)       ; max closing branches to print (rest via scout-run)
+
+(define (vnb--take xs k) (if (> (length xs) k) (list-head xs k) xs))
+
+(define (vnb--dedup xs)       ; remove equal? duplicates, keep first occurrence
+  (let loop ((xs xs) (acc '()))
+    (cond ((null? xs) (reverse acc))
+          ((member (car xs) acc) (loop (cdr xs) acc))
+          (else (loop (cdr xs) (cons (car xs) acc))))))
+
+;; A path element (name . args) -> a paste-runnable form, quoting data args.
+(define (vnb--path->forms path)
+  (map (lambda (step) (cons (car step) (map script--emit-arg (cdr step)))) path))
+
+;; Print a form, abbreviating (quote x) as 'x (write leaves it as (quote x)).
+(define (vnb--write-form f)
+  (cond
+    ((and (pair? f) (eq? (car f) 'quote) (pair? (cdr f)) (null? (cddr f)))
+     (display "'") (vnb--write-form (cadr f)))
+    ((pair? f)
+     (display "(")
+     (let loop ((xs f) (first #t))
+       (when (pair? xs)
+         (unless first (display " "))
+         (vnb--write-form (car xs))
+         (loop (cdr xs) #f)))
+     (display ")"))
+    (else (write f))))
+
+;; Display a list of forms space-separated: (grind) (bc* 'foo) (ass)
+(define (vnb--print-forms forms)
+  (let loop ((fs forms) (first #t))
+    (when (pair? fs)
+      (unless first (display " "))
+      (vnb--write-form (car fs))
+      (loop (cdr fs) #f))))
+
+;; Replay PATH on a fresh scratch clone of the live focus.  Returns the mutated
+;; clone proof-state, or #f if any step soft-failed / errored.
+(define (vnb--scout-replay path)
+  (let ((clone (vnb--scratch-state)))
+    (and clone
+         (fluid-let ((*ps* clone) (*replaying?* #t))
+           (quietly
+            (lambda ()
+              (let loop ((p path))
+                (if (null? p)
+                    clone
+                    (let ((r (vnb-guard
+                              (lambda ()
+                                (apply-recorded-cmd! (caar p) (cdar p))))))
+                      (if (or (vnb-error? r) (vnb-warning? r))
+                          #f
+                          (loop (cdr p))))))))))))
+
+;; Canonical key for the open-goal SET of CLONE (sorted goal strings), for
+;; loop/duplicate-state pruning.
+(define (vnb--scout-fingerprint clone)
+  (sort (map (lambda (g) (expression->string (wff-formula (sequent-node-assertion g))))
+             (proof-open-goals clone))
+        string<?))
+
+;; The CHOICE-move candidates at CLONE's focus, as (name . args) elements.
+(define (vnb--scout-expand clone b)
+  (fluid-let ((*ps* clone))
+    (let* ((g    (wff-formula (sequent-node-assertion (proof-state-focus clone))))
+           (core (what-now--conclusion g))
+           (kind (what-now--classify core))
+           (cands '()))
+      (define (add! name . args) (set! cands (cons (cons name args) cands)))
+      ;; grind -- only when it would fire (structural goal or foldable hyp)
+      (when (or (and (pair? g) (memq (car g) '(FORALL FORSOME IMPLIES AND IFF NOT)))
+                (pair? (suggest-hyp-unfolds)))
+        (add! 'grind))
+      ;; closers
+      (add! 'ass)
+      (case kind
+        ((reflexive)    (add! 'rfl))
+        ((ground-arith) (add! 'arith) (add! 'crs))
+        ((ring-equality)(add! 'crs)))
+      ;; rewrite-index candidates
+      (for-each (lambda (n) (add! 'mac n)) (vnb--take (suggest-rewrite-names) b))
+      ;; backchain candidates that need no extra bindings (bc* can run bare)
+      (for-each (lambda (n) (add! 'bc* n))
+                (vnb--take (filter (lambda (n) (null? (suggest--undetermined-vars n)))
+                                   (suggest-backchain-names))
+                           b))
+      (reverse cands))))
+
+;; The BFS.  Returns (closing-paths partials nodes-examined truncated? unexpanded).
+(define (vnb--scout-search d b maxnodes)
+  (let ((seen '()) (sols '()) (partials '()) (nodes 0) (trunc #f) (qmore 0))
+    (let bfs ((queue (list '())))
+      (cond
+        ((null? queue) #t)
+        ((>= nodes maxnodes) (set! trunc #t) (set! qmore (length queue)) #t)
+        (else
+         (let* ((path  (car queue))
+                (rest  (cdr queue))
+                (clone (vnb--scout-replay path)))
+           (set! nodes (+ nodes 1))
+           (cond
+             ((not clone) (bfs rest))                         ; branch died
+             ((proof-done? clone)                             ; closed -- record, don't expand
+              (set! sols (cons path sols)) (bfs rest))
+             (else
+              (let ((open (length (proof-open-goals clone))))
+                (when (pair? path)                            ; root isn't a "partial"
+                  (set! partials (cons (cons open path) partials)))
+                (if (>= (length path) d)
+                    (bfs rest)
+                    (let ((fp (vnb--scout-fingerprint clone)))
+                      (if (member fp seen)
+                          (bfs rest)
+                          (begin
+                            (set! seen (cons fp seen))
+                            (bfs (append rest
+                                   (map (lambda (c) (append path (list c)))
+                                        (vnb--scout-expand clone b)))))))))))))))
+    (list (reverse sols) partials nodes trunc qmore)))
+
+;; Pick the most-reduced partial branches: fewest open goals, then shortest,
+;; deduped by their printed script; at most 6.
+(define (vnb--scout-best-partials partials)
+  (let* ((sorted (sort partials
+                       (lambda (a b)
+                         (if (= (car a) (car b))
+                             (< (length (cdr a)) (length (cdr b)))
+                             (< (car a) (car b))))))
+         (seen '()) (out '()))
+    (let loop ((ps sorted) (n 0))
+      (if (or (null? ps) (>= n 6))
+          (reverse out)
+          (let* ((op (car ps))
+                 (forms (vnb--path->forms (cdr op))))
+            (if (member forms seen)
+                (loop (cdr ps) n)
+                (begin (set! seen (cons forms seen))
+                       (set! out (cons (cons (car op) forms) out))
+                       (loop (cdr ps) (+ n 1)))))))))
+
+(define *last-scout* '())     ; closing-branch scripts from the last (scout)
+
+;;; (scout [d [b [maxnodes]]]) -- search; print CLOSING branches + best partials.
+(define (scout . opts)
+  (cond
+    ((not *ps*)         (display ";; scout: no proof in progress.\n") '())
+    ((proof-done? *ps*) (display ";; scout: proof already complete.\n") '())
+    (else
+     (let* ((d        (if (>= (length opts) 1) (car opts)   4))
+            (b        (if (>= (length opts) 2) (cadr opts)  *scout-branch*))
+            (maxnodes (if (>= (length opts) 3) (caddr opts) *scout-nodes*))
+            (goal     (suggest--current-goal))
+            (res      (vnb--scout-search d b maxnodes))
+            (sols     (car res))   (partials (cadr res))
+            (nodes    (caddr res)) (trunc (cadddr res)) (qmore (list-ref res 4))
+            (scripts  (vnb--dedup
+                        (map vnb--path->forms
+                             (sort sols (lambda (a b) (< (length a) (length b))))))))
+       (display ";; scout d=") (display d) (display " b=") (display b)
+       (display " -- examined ") (display nodes)
+       (display " branch(es) on independent scratch clones.\n")
+       (display ";; goal: ") (display (expression->string goal)) (newline)
+       (cond
+         ((pair? scripts)
+          (display ";; === CLOSING branches (paste-runnable; (scout-run k) to adopt) ===\n")
+          (let loop ((ss scripts) (k 1))
+            (cond
+              ((null? ss) #t)
+              ((> k *scout-show*)
+               (display ";;   ... ") (display (length ss))
+               (display " more closing branch(es) (all in (scout-run k)).\n"))
+              (else
+               (display ";;   [") (display k) (display "] ")
+               (vnb--print-forms (car ss)) (newline)
+               (loop (cdr ss) (+ k 1))))))
+         (else
+          (display ";; no CLOSING branch within depth ") (display d)
+          (display " -- best partials (fewest goals left):\n")
+          (let ((best (vnb--scout-best-partials partials)))
+            (if (null? best)
+                (display ";;   (no branch made progress -- try (tt) / raise (scout d b))\n")
+                (for-each (lambda (op)
+                            (display ";;   ") (display (car op))
+                            (display " open: ") (vnb--print-forms (cdr op)) (newline))
+                          best)))))
+       (when trunc
+         (display ";; [truncated at ") (display maxnodes) (display " nodes; ")
+         (display qmore) (display " branch(es) left unexpanded -- raise (scout ")
+         (display d) (display " ") (display b) (display " N)]\n"))
+       (set! *last-scout* scripts)
+       scripts))))
+
+;;; (scout-run k) -- adopt CLOSING branch k of the last (scout) onto the LIVE
+;;; proof: evaluate its forms through the real tactics, so they record + show
+;;; normally.  Re-derives on *ps* from the same focus the scout cloned.
+(define (scout-run k)
+  (cond
+    ((not *ps*) (display ";; scout-run: no proof in progress.\n"))
+    ((or (< k 1) (> k (length *last-scout*)))
+     (display ";; scout-run: no branch ") (display k)
+     (display " (last scout found ") (display (length *last-scout*))
+     (display " closing branch(es)).\n"))
+    (else
+     (display ";; adopting scout branch ") (display k) (display ":  ")
+     (vnb--print-forms (list-ref *last-scout* (- k 1))) (newline)
+     (for-each (lambda (f) (eval f user-initial-environment))
+               (list-ref *last-scout* (- k 1))))))

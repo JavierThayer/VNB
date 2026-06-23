@@ -3032,6 +3032,35 @@
     (di) (di)
     (and (member '(mac-h (quote is-metric-space) 1) (cheap-mac-h 1)) #t)))
 
+(check-true "grind: saturates di + mac-h*, normalizes the focus in one step"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (= (length s) 2)))))
+    (grind)                                          ; di, di, mac-h* all at once
+    (and (member '(grind) *proof-script*)            ; recorded as ONE step
+         (= 1 (length (filter (lambda (c) (eq? (car c) 'grind)) *proof-script*)))
+         ;; goal fully introduced: a bare equality with length(s)=2 now in context
+         (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+           (and (pair? g) (eq? (car g) '=)))
+         (begin (ass) (proof-done? *ps*)))))         ; the unfolded hyp closes it
+
+(check-true "scout: finds a CLOSING branch on independent clones, leaves *ps* intact"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
+    (let* ((before (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+           (scripts (scout 4 3))                      ; speculative search
+           (after  (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (pair? scripts)
+           (member '((grind) (ass)) scripts)          ; the obvious 2-step closure found
+           (equal? before after)                      ; live proof untouched by scouting
+           (not (proof-done? *ps*))))))
+
+(check-true "scout-run: adopts a scout branch and drives the live proof to done"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
+    (scout 4 3)
+    (scout-run 1)                                     ; replay branch 1 for real
+    (proof-done? *ps*)))
+
 ;;; -----------------------------------------------------------------------
 ;;; Summary
 

@@ -396,11 +396,11 @@
 
 ;; QUIETLY t -- run thunk t with show output suppressed; returns t's value.
 (define (quietly thunk)
-  (let ((saved *vnb-quiet*))
+  (let ((saved *vnb-quiet*) (saved-g *vnb-guard-quiet*))
     (dynamic-wind
-      (lambda () (set! *vnb-quiet* #t))
+      (lambda () (set! *vnb-quiet* #t) (set! *vnb-guard-quiet* #t))
       thunk
-      (lambda () (set! *vnb-quiet* saved)))))
+      (lambda () (set! *vnb-quiet* saved) (set! *vnb-guard-quiet* saved-g)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; mac-h* -- SATURATING hypothesis-side unfold.  The repeated ritual
@@ -465,6 +465,32 @@
                 "no foldable predicate or conjunction in the hypotheses"))))))
 
 (define (mac-h*) (vnb--run! 'mac-h* '() (lambda () (cmd-mac-h* *ps*))))
+
+;; (grind) -- the deterministic normalizer: saturate the NO-CHOICE moves at the
+;; focus.  Repeatedly (a) decompose the goal connective with direct-inference
+;; (di -- peels FORALL/IMPLIES/AND/IFF/NOT, introducing binders + hypotheses)
+;; and (b) break open the hypotheses with mac-h* (split ANDs, unfold defined
+;; predicates), until neither fires.  Neither move involves a lemma CHOICE, so a
+;; search never has to backtrack across grind -- it collapses the whole
+;; `di ... di mac-h*' prefix that bloats proofs (metric-triangle) into one ply.
+;; Mutates in place like every cmd-*; returns ps0 if anything fired else a
+;; vnb-warning.  (di auto-advances the focus to the first new subgoal, so grind
+;; normalizes that branch; sibling subgoals are left for the caller/search.)
+(define (cmd-grind ps0)
+  (let loop ((fired-any #f) (n 0))
+    (if (>= n 500)
+        (if fired-any ps0 (vnb--warn "grind" "step budget exhausted"))
+        (let ((d (cmd-direct-inference ps0)))
+          (if (not (or (vnb-warning? d) (vnb-error? d)))
+              (loop #t (+ n 1))                 ; di fired -> keep going
+              (let ((h (cmd-mac-h* ps0)))
+                (if (not (or (vnb-warning? h) (vnb-error? h)))
+                    (loop #t (+ n 1))           ; mac-h* fired -> keep going
+                    (if fired-any ps0           ; neither fired -> done
+                        (vnb--warn "grind"
+                          "nothing to introduce or break open at the focus")))))))))
+
+(define (grind) (vnb--run! 'grind '() (lambda () (cmd-grind *ps*))))
 
 (define (ai f)
   (vnb--run! 'ai (list f)
@@ -3060,6 +3086,7 @@
       ((mac)    (cmd-apply-macete *ps* (car args)))
       ((mac-h)  (cmd-apply-macete-to-assumption *ps* (car args) (->raw-formula/idx (cadr args))))
       ((mac-h*) (cmd-mac-h* *ps*))
+      ((grind)  (cmd-grind *ps*))
       ((inst)   (cmd-instantiate *ps* (->raw-formula/idx (car args)) (->raw-formula (cadr args))))
       ((ce)     (cmd-cartesian-elim *ps* (->raw-formula/idx (car args)) (cadr args)))
       ((ie)     (cmd-intersection-elim *ps* (->raw-formula/idx (car args)) (cadr args)))

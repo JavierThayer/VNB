@@ -27,6 +27,12 @@
 
 (define *vnb-guard-active* #f)
 
+;;; When #t, vnb-guard catches errors SILENTLY (no auto one-line print).  Bound
+;;; by `quietly' so speculative drivers (scout, cheap-mac, bplus, proof-tex
+;;; replay) that EXPECT branches to fail don't spray "VNB error: ..." per prune.
+;;; The <vnb-error> is still returned, so callers detect the failure as usual.
+(define *vnb-guard-quiet* #f)
+
 ;;; Run THUNK inside an error-catching boundary.
 ;;; - First (outermost) call: installs a handler; any Scheme error produces
 ;;;   a one-line message and a <vnb-error> return value.
@@ -52,6 +58,6 @@
                                 (call-with-output-string
                                   (lambda (p) (write exn p))))))))
                      thunk))))))
-        (when (vnb-error? result)
+        (when (and (vnb-error? result) (not *vnb-guard-quiet*))
           (vnb-error-display result))
         result)))
