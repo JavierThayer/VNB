@@ -251,3 +251,167 @@ the cons:
 (let ((node (dg-post! dg node)))
   (cons node (rest ...)))
 ```
+
+---
+
+## scout — speculative depth-bounded proof search (2026-06-23)
+
+A copilot facility that goes beyond *suggesting* a move (`what-now`/`tt`,
+`cheap-mac`) to actually *trying tactic sequences* and reporting which ones
+close the focus.  Conceptually it is the speculative, backtracking **v2 of
+`B+`** (`bplus`) — whose own comment defers exactly this — made cheap by two
+pieces that already existed: `vnb--scout-state`/`vnb--scratch-state` (clone the
+focus into an **independent deduction graph**) and `apply-recorded-cmd!` (map a
+tactic *form* to its `cmd-*`).  A search branch is then just a list of forms
+replayed on a fresh clone; backtracking is free — you discard the clone, you
+do not undo a move.  The live `*ps*` is never touched.
+
+### grind — the deterministic normalizer
+
+`(grind)` saturates the **no-choice** moves at the focus: `di` (decompose the
+goal connective — strip ∀/⇒/∧, introduce binders + hypotheses) and `mac-h*`
+(break open the hypotheses — unfold defined predicates, split conjunctions),
+looping until neither fires.  Neither move involves *choosing* a lemma, so a
+search never has to reconsider them: `grind` just puts the focus into normal
+form.  It collapses the whole `di … di mac-h*` prefix that bloats proofs (the
+7-page `metric-triangle` PDF) into a **single recorded ply**, and adds no kernel
+rule.  Standalone-useful: `(grind)` on `metric-sym` lands you at goal
+`(d s)(x,y) = (d s)(y,x)` with the metric's defining properties unfolded in
+context.  Implementation calls the `cmd-*` layer directly (bypassing the
+recording wrappers) so it logs as one `(grind)`.
+
+### scout / scout-show / scout-run
+
+`(scout [d [b [nodes]]])` runs a breadth-first search whose **alphabet** is the
+*choice* moves only — `grind`, the closers (`ass`/`rfl`/`crs`/`arith`), the
+top-`b` rewrite-index `mac` rules, and the top-`b` parameterless `bc*` lemmas
+(those with no undetermined schema vars, so they run bare).  `di`/`mac-h*` are
+folded into the single `grind` ply, so the search never branches on
+normalization.  Each frontier node is a *path* of forms, evaluated by replaying
+it on a fresh clone under `vnb-guard` (a soft-failing tactic raises inside
+`apply-recorded-cmd!` → guard catches → that branch is dead).  Duplicate /
+looping states are pruned by a fingerprint of the open-goal set.
+
+Every move is the **real, kernel-checked** tactic, so a reported *closing*
+branch is a genuine proof (up to eigenvariable renaming) when adopted.  The
+"el cheapo, 'mano" principle: scout does **not reason** about which move is
+wise — it brute-forces a small tree and you eyeball the survivors; soundness is
+recovered because the survivors actually closed through the kernel.
+
+Bounds, all reported when hit (no silent truncation): depth `d` (default 4),
+per-node fan-out `b` (default 3), total nodes (default 300).
+
+`(scout …)` **returns data, does not print** — a nested list
+
+```
+(number-of-branches  (d b)  goal  best-partials  closing-branches)
+```
+
+where `best-partials` is `((open-count (form …)) …)` most-reduced first, and
+`closing-branches` is `((form …) …)` shortest first; the forms are
+paste-runnable / evaluable.  Example, on `compact ⇒ totally-bounded` after
+`grind` (focus `totally-bounded(s)`):
+
+```
+(59 (4 3) (totally-bounded s)
+    ((2 ((mac 'totally-bounded)))
+     (2 ((mac 'totally-bounded) (mac 'totally-bounded-rev)))
+     (3 ((mac 'totally-bounded) (mac 'bdd-metric-carrier-rev)))
+     …)
+    ())                       ; <- empty closing-branches: scout could not close it
+```
+
+`(scout-show …)` runs the same search and **prints** the readable REPL report
+(examined count, goal, numbered closing branches or best partials with
+goals-left), returning the same nested list.  `(scout-run k)` adopts closing
+branch *k* onto the live proof — it evaluates the branch's forms through the
+real tactics, so they record and display normally.  Both `scout` and
+`scout-show` stash the closing branches in `*last-scout*` for `scout-run`.
+
+### Robustness lesson (the gauge/euclidean-ring crash)
+
+The first roadtest crashed: `(scout)` after `(grind)` on a gauge /
+euclidean-ring goal died with *"object 0 passed to symbol->string."*  Root
+cause: the BFS ran the fingerprint and candidate-expansion **outside** any
+guard (only replay was guarded), so one pathological clone state crashed the
+*whole* search.  The state is fine for the kernel, but some rewrite leaves the
+goal with a non-symbol (`0`) in head position, and `expression->string` — the
+*pretty*-printer, which calls `symbol->string` on operator heads — throws on
+it.  The fingerprint used that printer for its dedup key.
+
+Two fixes, both general: (1) the dedup key now uses `write` on the raw s-expr
+(`vnb--scout-key`), which never throws on data; (2) the BFS guards the
+fingerprint **and** the expansion — a node that throws is dropped as a leaf,
+never killing the search — and the whole search runs under `quietly`.  Along
+the way `quietly` was taught to bind a new `*vnb-guard-quiet*` flag so the
+guard's auto one-line error print is suppressed; otherwise every *expected*
+pruned branch sprayed a `;; VNB error:` line.  (There remains a latent,
+pre-existing issue worth a separate look: some gauge/euclidean-ring macete
+produces a goal `expression->string` cannot render.)
+
+### What scout cannot do yet — the inst lane (planned)
+
+scout's alphabet is entirely **parameterless**.  The first move that needs a
+*chosen term* — `(inst <hyp> <witness>)`, instantiate a universally-quantified
+hypothesis — is absent.  That is the wall every non-trivial goal hits: after
+`grind`, `metric-sym`'s symmetry fact sits inside a hypothesis
+`∀u∈X. (… ∧ ∀v∈X. (… ∧ d(u,v)=d(v,u) …))`, and nothing in the current alphabet
+can reach it.  So the metric laws, the gauge goal, and `totally-bounded` all
+show up as **best-partials, never closures**.
+
+Planned design (build deferred to 2026-06-24):
+
+1. **Candidate generation.**  Scan focus hypotheses for `(FORALL v body)` /
+   domain-guarded `(FORALL v (IMPLIES (IN v DOM) body))`.  Witness terms:
+   *primary* — the **domain-typed** ones (`t` with `(IN t DOM)` already a
+   hypothesis; after `grind` that is `x, y` for `DOM = (X s)` — 1–3 candidates,
+   and the inst's domain side-condition is then `ass`-dischargeable); *fallback*
+   (untyped ∀) — atomic subterms of goal + hypotheses.  A **relevance filter**
+   keeps a `(hyp, term)` pair only if the instantiated body shares symbols with
+   the goal (fingerprint overlap), so scout does not instantiate the triangle
+   hypothesis while proving symmetry.
+
+2. **Detach companion (the forward-MP gap).**  VNB has no forward modus ponens.
+   Instantiating `∀u∈X.body` at `x` yields an *implication* hypothesis
+   `(IN x (X s)) ⇒ body[x]` the current alphabet cannot consume.  So the inst
+   lane ships a compound **`(inst+ hyp term)`** = instantiate, then
+   antecedent-inference (`ai`) to detach, discharging the `(IN x (X s))` guard
+   by `ass` — one ply, to keep depth sane.
+
+3. **Interleave + depth.**  The cycle is
+   `inst+ (u:=x) → grind → inst+ (v:=y) → grind → close`, ≈ 5 plies; the
+   inst-enabled default depth rises to ~6.
+
+4. **Best-first search (the real cost lever).**  inst widens the tree enough
+   that pure BFS wastes the node budget.  Order the frontier by open-goal-count
+   (depth tiebreak) so scout *dives* toward closure rather than exploring
+   breadth uniformly.  This is the single biggest win for landing proofs within
+   the node cap.
+
+5. **Soundness/termination.**  inst/ai are real kernel rules, so closing
+   branches stay genuine proofs; the el-cheapo is only the witness *guess* (a
+   wrong guess just dies on the clone).  The open-goal-set fingerprint blocks
+   re-instantiating into an identical state; add per-`(hyp, term)` dedup per
+   node and a tight inst fan-out cap.
+
+After the build, re-stress the metric laws / gauge to confirm inst-scout now
+**closes** them (today they are partials).
+
+### Stress-test target (planned obstacle map)
+
+*"X totally bounded ⟹ every sequence in X has a Cauchy subsequence"* — the
+sequential characterization of total boundedness.  This is a **deep** theorem
+(a diagonal / nested-subsequence argument: cover by finitely many 1/n-balls,
+pass to a subsequence inside one ball, diagonalize over n).  It is **not** a
+closure target for scout+inst — it is an **obstacle-mapping** target: inst-scout
+should get *past* the first wall (unfold `totally-bounded`, instantiate the
+finite cover at radius `1/n`) and then stall exactly at the diagonal
+construction, with `best-partials` marking the boundary, telling us what
+machinery to build next.
+
+Prerequisites before it can even be *stated*: (a) an `IS-SUBSEQUENCE` /
+reindexing predicate (we have φ : ℕ→ℕ as a strictly-increasing reindexing
+*inside* the `cauchy-rapid-subsequence` support, but no standalone vocabulary);
+(b) the statement form `∀ f:ℕ→X(s). ∃ φ strictly-increasing.
+IS-CAUCHY-SEQ(s, k ↦ f(φ k))`.  `IS-CAUCHY-SEQ` and `CONVERGES-TO` already
+exist.
