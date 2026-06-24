@@ -343,6 +343,8 @@ Not proved in VNB; split by *origin*.  "Axiom" is reserved for the first group �
 
 The foundational axioms of VNB set theory (make-vnb-base-theory core + theorem-library/axioms).  Fixed, though not finite (separation/replacement are schemas).  Everything else rests on these.
 
+> **The axioms below are NOT the whole trusted base.**  The set- & class-formation *schemas* (separation `{x∈A|p}`, comprehension `{x|p}`, indexed union `⋃_{z∈A}body`) carry a formula schema in their body and so live in the proof checker as primitive inference rules, not as formulas in this table.  They are documented in `KERNEL-RULES.md`, which is the honest statement of the trusted base: these axioms **plus** the kernel rules.
+
 - `apply-tupling-1` — forall([f, a], f(a) == f([a]))
 - `apply-tupling-1-rev` — forall([f, a], f([a]) == f(a))
 - `apply-tupling-2` — forall([f, a, b], f(a, b) == f([a, b]))

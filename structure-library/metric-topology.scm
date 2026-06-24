@@ -21,12 +21,21 @@
 ;;; standard metric-space arguments actually use.
 
 ;;; -----------------------------------------------------------------------
-;;; BALL(s, x, r) -- the open r-ball around x in metric space s.
+;;; BALL(s, c, r) -- the open r-ball around centre c in metric space s.
+;;;
+;;; The centre parameter is `c', NOT `x': the carrier accessor is X, and the
+;;; MIT reader case-folds, so X and x are the SAME symbol.  A param named `x'
+;;; would therefore be a PATTERN VARIABLE that captures the carrier (x s) in the
+;;; body -- unfolding BALL(s, t, r) at any centre t would rewrite (X s) to
+;;; (t s).  It only ever worked because every call site applied BALL at the
+;;; literal variable `x' (the substitution was the identity).  Naming the centre
+;;; `c' (as `centres' below already does) keeps it disjoint from the carrier.
+;;; [[feedback-no-case-variant-binders]]
 
-(def-functoid 'BALL '(s x r)
+(def-functoid 'BALL '(s c r)
   '(SEP y (X s)
-        (AND (<= ((D s) x y) r)
-             (NOT (= ((D s) x y) r)))))
+        (AND (<= ((D s) c y) r)
+             (NOT (= ((D s) c y) r)))))
 
 ;;; ball-membership: y in BALL(s,x,r) iff y in X(s) and D(s)(x,y) < r.
 ;;; Direct from SEP membership; recorded so proofs can rewrite by name.

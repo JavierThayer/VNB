@@ -2511,6 +2511,21 @@
 (check-true "ball-is-open carries a warrant"
   (lambda () (and (warrant-of 'ball-is-open) #t)))
 
+;; Case-fold capture regression: the carrier accessor X folds to the symbol x
+;; (MIT reader case-folds), so BALL's centre parameter must NOT be x -- else it
+;; is a pattern variable that captures the carrier (X s) on unfold.  With centre
+;; `c', unfolding BALL at a centre term that is NOT literally x (here `ctr')
+;; must leave the carrier (X s) intact, not rewrite it to (ctr s).
+;; [[feedback_no_case_variant_binders]]
+(check-true "BALL unfold at a non-x centre keeps the carrier X(s) (no capture)"
+  (lambda ()
+    (sp (make-wff '(IN q (BALL s ctr rad))))
+    (mac 'BALL)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(IN q (SEP y (X s)
+                     (AND (<= ((D s) ctr y) rad)
+                          (NOT (= ((D s) ctr y) rad))))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Closed sets (IS-CLOSED) + closed-preimage characterisation, and the
 ;;; COMPOSE functoid (Prop 3.14 / 3.15 of ~/docs/calculus.pdf).
