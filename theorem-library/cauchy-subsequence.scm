@@ -164,6 +164,47 @@
    assembly is the proof target.")
 
 ;;; =======================================================================
+;;; 2.6  The relativized pigeonhole fibre  --  the shared primitive
+;;; =======================================================================
+
+;;; tb-block-step: within ANY infinite index block J, total boundedness at
+;;; radius r pins an infinite SUB-block J_ subset J into a single r-ball.  This
+;;; is the recursion-free primitive that BOTH headline routes rest on:
+;;;   * tb-has-eps-cauchy-subseq = block-step at J = NN, then enumerate the fibre
+;;;     (nn-enum-spec) and estimate (ball-2r-triangle);
+;;;   * block-family = block-step RECURSED via dc-on-nn (X = INF-SUBSETS(NN),
+;;;     a = NN, the step relation R(k,J,J_) = "J_ is the rad(k)-fibre tb-block-step
+;;;     gives inside J"); its totality hypothesis IS this lemma at r = rad(k).
+;;; The single pigeonhole: TOTALLY-BOUNDED at r gives a finite r-net F; CHOICE a
+;;; classifier pi : J -> F sending i to a net point whose r-ball holds f(i);
+;;; pigeonhole-infinite on the infinite J yields c with an infinite fibre
+;;; J_ = { i in J : pi(i) = c } subset J, every f(i) (i in J_) in BALL(s,c,r).
+(support 'tb-block-step
+  '(FORALL s
+     (IMPLIES (TOTALLY-BOUNDED s)
+       (FORALL f
+         (IMPLIES (IN f (FUN NN (X s)))
+           (FORALL r
+             (IMPLIES (POS-RR r)
+               (FORALL J
+                 (IMPLIES (IN J (INF-SUBSETS NN))
+                   (FORSOME J_
+                     (AND (IN J_ (INF-SUBSETS NN))
+                     (AND (SUBSET J_ J)
+                          (FORSOME c
+                            (AND (IN c (X s))
+                                 (FORALL i
+                                   (IMPLIES (IN i J_)
+                                     (IN (f i) (BALL s c r))))))))))))))))))
+(warrant! 'tb-block-step 'reference
+  "Relativized single pigeonhole (calculus.pdf Prop 3.31, the per-level step):
+   finite r-net (TOTALLY-BOUNDED) + classifier pi:J->F (choice) +
+   pigeonhole-infinite on the infinite J (infinite fibre J_ subset J in one
+   r-ball).  Same pieces as tb-has-eps-cauchy-subseq but over a sub-block J and
+   producing the index set, not its enumeration.  The shared primitive of the
+   eps-Cauchy lemma and block-family; see calculus/block-family-rederive.scm.")
+
+;;; =======================================================================
 ;;; 3.  (A) The nested block family  --  pigeonhole recursion
 ;;; =======================================================================
 
