@@ -3221,7 +3221,9 @@
     (sp (make-wff '(IMPLIES
                     (FORSOME f (AND (IN f FUBA) (FORALL eps (GUBA f eps))))
                     (FORALL eps (FORSOME g (AND (IN g FUBA) (GUBA g eps)))))))
-    (pair? (list-ref (scout 8 3 400) 4))))
+    ;; closing branch is 6 plies (grind/ew/inst+/grind/ass/ass), so depth 6 +
+    ;; a modest node cap suffice -- keep the test fast.
+    (pair? (list-ref (scout 6 3 200) 4))))
 
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()

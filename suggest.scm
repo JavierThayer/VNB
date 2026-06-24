@@ -1158,6 +1158,18 @@
   (let ((sb (vnb--dedup (vnb--syms b))))
     (length (filter (lambda (s) (memq s sb)) (vnb--dedup (vnb--syms a))))))
 
+;; Atoms of E in ARGUMENT position (operands, never the operator head) -- the
+;; terms one would instantiate a universal AT.  Skips the car at every level, so
+;; predicate/function heads (GUBA in `(GUBA f eps)', (D s) in `((D s) x y)') are
+;; excluded while the operands (f, eps; x, y) are kept.  This is the inst lane's
+;; UNGUARDED-forall fallback pool -- tight, so the search doesn't blow up on junk
+;; head candidates.  (free-vars is no good here: VNB treats operators as vars, so
+;; it returns the heads too.)
+(define (vnb--arg-atoms e)
+  (cond ((symbol? e) (if (memq e *scout-logical-syms*) '() (list e)))
+        ((pair? e)   (apply append (map vnb--arg-atoms (cdr e))))   ; skip head
+        (else '())))
+
 ;; Terms the context already types: (t . S) for every assumption `(IN t S)'.
 ;; A guarded FORALL over domain DOM prefers witnesses with S = DOM (so its
 ;; `(IN t DOM)' guard is ass/detach-dischargeable); the rest are the fallback.
@@ -1205,9 +1217,11 @@
                               ;; eigenvariable (an unguarded forall-var like eps in
                               ;; a forall-eps goal) carries no `(IN _)' type yet IS
                               ;; the right instantiation -- it appears in the goal.
-                              ;; The overlap filter+rank below keeps eps (full goal
-                              ;; match) and drops the junk (e.g. predicate heads).
-                              (append (map car typed) (vnb--syms goal))))))
+                              ;; Argument-position atoms only (vnb--arg-atoms),
+                              ;; so the eigenvar eps is offered but predicate/
+                              ;; function heads are NOT -- a tight pool that keeps
+                              ;; the search from blowing up.
+                              (append (map car typed) (vnb--arg-atoms goal))))))
              (for-each
               (lambda (t)
                 (let ((ibody (subst-free v t bdy)))
