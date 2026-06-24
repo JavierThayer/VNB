@@ -3165,6 +3165,44 @@
     (let ((moves (what-now)))
       (any (lambda (m) (and (pair? m) (eq? (car m) 'ew))) moves))))
 
+;; The ai lane -- existential-HYPOTHESIS skolemization, the dual of ew.  Goal
+;; `(exists v. g(v) in SS) => (exists w. w in SS)': NOT alpha-equal (the bodies
+;; differ), so (ass) can't shortcut.  scout MUST skolemize the existential hyp
+;; (ai) to expose `g(v_2) in SS' -- only then is g(v_2) a typed witness the ew
+;; lane can supply for the goal, after which (ass) closes.  grind can't do it (di
+;; splits AND hyps but never skolemizes a FORSOME), so a closing branch must
+;; contain an (ai ...) step.  ai+ew compose: skolemize the hyp, witness the goal.
+;; (This also exercises the fresh-var-drift fix: the skolem g(v_2) is captured at
+;; gen-time and must be reproduced when the path is replayed.)
+(check-true "scout ai lane: skolemizes an existential hypothesis to close the goal"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+    (let* ((result  (scout 6 3 300))
+           (closing (list-ref result 4)))
+      (and (pair? closing)
+           (any (lambda (br) (any (lambda (f) (eq? (car f) 'ai)) br)) closing)))))
+
+;; scout-run adopts that ai+ew proof onto the live deduction graph; the kernel
+;; accepts it -> the existential is proved end to end by the copilot.  Relies on
+;; scout-run pinning *fresh-counter* to the search base so the captured g(v_2)
+;; reproduces live.
+(check-true "scout ai lane: scout-run drives the skolemize+witness proof to done"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+    (scout 6 3 300)
+    (scout-run 1)
+    (proof-done? *ps*)))
+
+;; The single-move copilot grows the same ai lane: on an existential hypothesis
+;; what-now names the (ai k) skolemization -- the forward move show-ew (goals)
+;; and show-inst (universal hyps) both miss.
+(check-true "what-now: ai lane suggests (ai k) on an existential hypothesis"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+    (di)
+    (let ((moves (what-now)))
+      (any (lambda (m) (and (pair? m) (eq? (car m) 'ai))) moves))))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))

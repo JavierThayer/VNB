@@ -362,6 +362,28 @@
                     forms)
           forms))))
 
+;;; The ai lane for the single-move copilot: name the (ai k) skolemizations
+;;; scout's ai lane would try on existential HYPOTHESES -- the hypothesis-side
+;;; dual of what-now--show-ew.  Reuses the SAME generator (vnb--scout-ai-
+;;; candidates); renders each existential assumption as its assumption number.
+;;; Returns the move forms (also printed); '() when no assumption is existential.
+(define (what-now--show-ai)
+  (let ((cands (and *ps* (vnb--scout-ai-candidates *ps*))))
+    (if (or (not cands) (null? cands))
+        '()
+        (let* ((asms  (sequent-node-assumptions (proof-state-focus *ps*)))
+               (forms (map (lambda (c)             ; c = (ai <forsome>)
+                             (list 'ai
+                                   (or (vnb--asm-index asms (cadr c))
+                                       (script--emit-arg (cadr c)))))
+                           cands)))
+          (display ";; existential hypotheses you can skolemize (open with a fresh witness)") (newline)
+          (display ";; -- scout's ai lane tries these (ai assumption-#):") (newline)
+          (for-each (lambda (form)
+                      (display ";;   ") (vnb--write-form form) (newline))
+                    forms)
+          forms))))
+
 ;;; The lemma's conclusion (foralls stripped, hypotheses peeled) -- the part
 ;;; that fingerprinted to the goal -- for a compact display, not the whole stmt.
 (define (what-now--conclusion formula)
@@ -499,6 +521,9 @@
          ;; Ew lane: on an existential goal, name the typed witnesses worth
          ;; trying -- the dual move, the one inst+ (hypothesis witnesses) misses.
          (set! moves (append moves (what-now--show-ew)))
+         ;; Ai lane: on an existential HYPOTHESIS, name the (ai k) skolemizations
+         ;; -- the forward move grind can't do (di splits AND hyps, never ∃).
+         (set! moves (append moves (what-now--show-ai)))
          (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
          (newline)
          (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
@@ -1017,8 +1042,24 @@
 
 ;; Replay PATH on a fresh scratch clone of the live focus.  Returns the mutated
 ;; clone proof-state, or #f if any step soft-failed / errored.
+;; Fresh-var drift control.  `fresh-var' (expressions.scm) bumps a GLOBAL
+;; *fresh-counter*, so an eigenvariable a path introduces (di inside grind, ai's
+;; skolem) gets a different name every time the path is replayed -- and a later
+;; step that references that name (an ew witness `(g v_2)', an inst at the
+;; skolem) then refers to a variable that no longer exists, so the branch dies.
+;; That silently defeats any multi-step proof that skolemizes-then-uses (the
+;; whole ai lane, and the Cauchy assembly).  Fix: pin *fresh-counter* to a fixed
+;; base, snapshotted once at search entry (vnb--scout-search), for the duration
+;; of EACH replay.  fluid-let restores it afterwards, so replays don't drift the
+;; live counter, and replaying the same path twice now yields identical fresh
+;; names -- captured witnesses stay valid.  Isolated clones may reuse names
+;; across branches, which is harmless (separate deduction graphs); fresh-var's
+;; own avoid-set is the collision backstop.
+(define *scout-fresh-base* 0)
+
 (define (vnb--scout-replay path)
-  (let ((clone (vnb--scratch-state)))
+  (fluid-let ((*fresh-counter* *scout-fresh-base*))
+   (let ((clone (vnb--scratch-state)))
     (and clone
          (fluid-let ((*ps* clone) (*replaying?* #t))
            (quietly
@@ -1031,7 +1072,7 @@
                                 (apply-recorded-cmd! (caar p) (cdar p))))))
                       (if (or (vnb-error? r) (vnb-warning? r))
                           #f
-                          (loop (cdr p))))))))))))
+                          (loop (cdr p)))))))))))))
 
 ;; Canonical key for the open-goal SET of CLONE (sorted goal keys), for
 ;; loop/duplicate-state pruning.  Keys are produced with `write' on the raw
@@ -1207,6 +1248,46 @@
           (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
                      *scout-ew-fanout*)))))
 
+;;; -----------------------------------------------------------------------
+;;; The ai lane -- existential-HYPOTHESIS elimination (skolemization), the dual
+;;; of the ew lane on the hypothesis side.
+;;;
+;;; `ew' witnesses a FORSOME GOAL; `(ai HYP)' on a FORSOME ASSUMPTION skolemizes
+;;; it -- pi-antecedent-inference!'s FORSOME case introduces a fresh eigenvariable
+;;; y and replaces the hypothesis by body[v:=y].  This is the forward step the
+;;; by-hand Cauchy assembly does with `ai' and the one grind CANNOT: grind's di
+;;; splits conjunctive hypotheses but never skolemizes an existential
+;;; (forsome-elim is reachable only through ai).  Unlike ew/inst there is no term
+;;; to guess -- the eigenvariable is fresh -- so the only choice is WHICH
+;;; existential to open; opening one is always sound (fresh-var elimination), so
+;;; a candidate never dies the way a bad witness does.  (ai also eliminates
+;;; AND/OR/IFF/NOT assumptions, but grind already splits AND, OR branches, NOT is
+;;; niche -- so this lane surfaces the FORSOME case, the gap.)
+(define *scout-ai* #t)            ; enable the ai lane in scout
+(define *scout-ai-fanout* 4)      ; max ai candidates emitted per node
+
+;; (ai HYP) path-elements for CLONE's focus: one per FORSOME assumption, ranked
+;; by the existential body's symbol-overlap with the goal (open the existential
+;; most relevant to what we're proving first), capped at *scout-ai-fanout*.  HYP
+;; is the raw assumption formula (->raw-formula/idx accepts it on replay).  '()
+;; when no assumption is existential.
+(define (vnb--scout-ai-candidates clone)
+  (let* ((sqn  (proof-state-focus clone))
+         (goal (wff-formula (sequent-node-assertion sqn)))
+         (asms (sequent-node-assumptions sqn))
+         (cands '()))
+    (for-each
+     (lambda (w)
+       (let ((f (wff-formula w)))
+         (when (and (pair? f) (eq? (car f) 'FORSOME))
+           (set! cands
+                 (cons (cons (vnb--sym-overlap (quantifier-body f) goal)
+                             (list 'ai f))
+                       cands)))))
+     asms)
+    (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
+               *scout-ai-fanout*)))
+
 ;; The CHOICE-move candidates at CLONE's focus, as (name . args) elements.
 (define (vnb--scout-expand clone b)
   (fluid-let ((*ps* clone))
@@ -1237,10 +1318,14 @@
       ;; dive -- best-first's deeper-first tiebreak should reach it without
       ;; wading through doomed mac/bc* siblings):
       ;;   inst lane -- (inst+ <universal hyp> <typed term>): witness a FORALL hyp;
-      ;;   ew   lane -- (ew <typed term>): witness a FORSOME goal (the dual).
-      ;; ew fires only on an existential focus, inst only when a universal hyp is
-      ;; present, so the two never both apply at one node -- no double fan-out.
+      ;;   ew   lane -- (ew <typed term>): witness a FORSOME goal;
+      ;;   ai   lane -- (ai <forsome hyp>): skolemize a FORSOME hypothesis.
+      ;; ew fires on an existential GOAL, ai on an existential HYPOTHESIS, inst on
+      ;; a universal hypothesis -- they key off different focus features and just
+      ;; union their candidates when several apply (ai then feeds ew: skolemizing
+      ;; (IN v0 _) makes v0 a typed witness for a later ew).
       (append (if *scout-ew*   (vnb--scout-ew-candidates   clone) '())
+              (if *scout-ai*   (vnb--scout-ai-candidates   clone) '())
               (if *scout-inst* (vnb--scout-inst-candidates clone) '())
               (reverse cands)))))
 
@@ -1255,6 +1340,8 @@
 ;; keep the clone in the record so expansion never re-replays.
 ;; Returns (closing-paths partials nodes-examined truncated? unexpanded).
 (define (vnb--scout-search d b maxnodes)
+  (set! *scout-fresh-base* *fresh-counter*)   ; pin replays to a fixed fresh-var
+                                              ; base so they reproduce eigenvars
   (let ((seen '()) (sols '()) (partials '()) (nodes 0) (trunc #f) (qmore 0))
     (define (node-open n)  (car n))
     (define (node-clone n) (caddr n))
@@ -1512,5 +1599,12 @@
     (else
      (display ";; adopting scout branch ") (display k) (display ":  ")
      (vnb--print-forms (list-ref *last-scout* (- k 1))) (newline)
+     ;; Reproduce the search's eigenvariables.  The branch's witness terms (an ew
+     ;; `(g v_2)', an inst at a skolem) name fresh vars the search minted from
+     ;; *scout-fresh-base*; replaying LIVE from a drifted *fresh-counter* would
+     ;; mint different names and the captured witnesses would dangle.  Pin the
+     ;; live counter to the same base, then let the adoption bump it naturally
+     ;; (leaving it correctly above the adopted skolems).
+     (set! *fresh-counter* *scout-fresh-base*)
      (for-each (lambda (f) (eval f user-initial-environment))
                (list-ref *last-scout* (- k 1))))))
