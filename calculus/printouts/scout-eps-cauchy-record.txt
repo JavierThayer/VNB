@@ -77,37 +77,37 @@ Other open goals:
 ;;VNB-STATE-BEGIN
 1 open goal(s).
 Focus:
-  [0] ()  =>  forsome([n in nn], bigger(n)) implies a = a
+  [0] ()  =>  forsome([n in nn], fuba(n)) implies a = a
 ;;VNB-STATE-END
 ;;VNB-STATE-BEGIN
 2 open goal(s).
 Focus:
-  [1] forsome([n in nn], bigger(n))  =>  a = a
+  [1] forsome([n in nn], fuba(n))  =>  a = a
 Other open goals:
-  [0] ()  =>  forsome([n in nn], bigger(n)) implies a = a
+  [0] ()  =>  forsome([n in nn], fuba(n)) implies a = a
 ;;VNB-STATE-END
 ;;VNB-STATE-BEGIN
 3 open goal(s).
 Focus:
-  [2] n_3 in nn and bigger(n_3)  =>  a = a
+  [2] n_3 in nn and fuba(n_3)  =>  a = a
 Other open goals:
-  [0] ()  =>  forsome([n in nn], bigger(n)) implies a = a
-  [1] forsome([n in nn], bigger(n))  =>  a = a
+  [0] ()  =>  forsome([n in nn], fuba(n)) implies a = a
+  [1] forsome([n in nn], fuba(n))  =>  a = a
 ;;VNB-STATE-END
-;;;   [after ai: gained ONE assumption (AND (IN N_k NN) (BIGGER N_k))]
-;;;     asms: ((and (in n_3 nn) (bigger n_3)))
+;;;   [after ai: gained ONE assumption (AND (IN N_k NN) (FUBA N_k))]
+;;;     asms: ((and (in n_3 nn) (fuba n_3)))
 ;;;     goal: (= a a)
 ;;VNB-STATE-BEGIN
 4 open goal(s).
 Focus:
-  [3] bigger(n_3), n_3 in nn  =>  a = a
+  [3] fuba(n_3), n_3 in nn  =>  a = a
 Other open goals:
-  [0] ()  =>  forsome([n in nn], bigger(n)) implies a = a
-  [1] forsome([n in nn], bigger(n))  =>  a = a
-  [2] n_3 in nn and bigger(n_3)  =>  a = a
+  [0] ()  =>  forsome([n in nn], fuba(n)) implies a = a
+  [1] forsome([n in nn], fuba(n))  =>  a = a
+  [2] n_3 in nn and fuba(n_3)  =>  a = a
 ;;VNB-STATE-END
-;;;   [after second ai: conjunction split into (IN N_k NN) and (BIGGER N_k)]
-;;;     asms: ((bigger n_3) (in n_3 nn))
+;;;   [after second ai: conjunction split into (IN N_k NN) and (FUBA N_k)]
+;;;     asms: ((fuba n_3) (in n_3 nn))
 ;;;     goal: (= a a)
 
 ;;; ===== A3  skolemize UNLOCKS a witness: ai then ew, driven to QED by hand =====

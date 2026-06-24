@@ -55,12 +55,12 @@
 (--- "A2  ai on an AND-bodied existential (the Cauchy threshold shape)")
 ;; (exists N. N in NN and P(N)) -- ai skolemizes to the AND body at a fresh N_k;
 ;; a SECOND ai (the AND case of antecedent inference) splits that conjunction.
-(sp (make-wff '(IMPLIES (FORSOME N (AND (IN N NN) (BIGGER N))) (= a a))))
+(sp (make-wff '(IMPLIES (FORSOME N (AND (IN N NN) (FUBA N))) (= a a))))
 (di)
-(ai '(FORSOME N (AND (IN N NN) (BIGGER N))))    ; <-- SKOLEMIZE
-(snap "after ai: gained ONE assumption (AND (IN N_k NN) (BIGGER N_k))")
+(ai '(FORSOME N (AND (IN N NN) (FUBA N))))    ; <-- SKOLEMIZE
+(snap "after ai: gained ONE assumption (AND (IN N_k NN) (FUBA N_k))")
 (ai (find-head 'AND))                           ; <-- ai's AND case = and-elim
-(snap "after second ai: conjunction split into (IN N_k NN) and (BIGGER N_k)")
+(snap "after second ai: conjunction split into (IN N_k NN) and (FUBA N_k)")
 
 (--- "A3  skolemize UNLOCKS a witness: ai then ew, driven to QED by hand")
 ;; Goal (exists w. w in SS) does NOT follow from (exists v. g(v) in SS) by
