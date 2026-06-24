@@ -342,6 +342,26 @@
                     forms)
           forms))))
 
+;;; The ew lane for the single-move copilot: name the (ew term) witnesses
+;;; scout's ew lane would try on an existential goal -- the dual of
+;;; what-now--show-inst.  Reuses the SAME ranked, capped generator scout uses
+;;; (vnb--scout-ew-candidates), so the single-move and search copilots agree on
+;;; which witnesses are worth a look.  Returns the move forms (also printed).
+;;; '() when the goal is not existential / no typed witness is in scope.
+(define (what-now--show-ew)
+  (let ((cands (and *ps* (vnb--scout-ew-candidates *ps*))))
+    (if (or (not cands) (null? cands))
+        '()
+        (let ((forms (map (lambda (c)             ; c = (ew <term>)
+                            (list 'ew (script--emit-arg (cadr c))))
+                          cands)))
+          (display ";; existential goal -- supply a witness from the typed context") (newline)
+          (display ";; -- scout's ew lane tries these first (ew term):") (newline)
+          (for-each (lambda (form)
+                      (display ";;   ") (vnb--write-form form) (newline))
+                    forms)
+          forms))))
+
 ;;; The lemma's conclusion (foralls stripped, hypotheses peeled) -- the part
 ;;; that fingerprinted to the goal -- for a compact display, not the whole stmt.
 (define (what-now--conclusion formula)
@@ -476,6 +496,9 @@
          ;; from the context-typed pool) -- the move scout finds but the single
          ;; suggestion lanes above can't, on goals like the metric laws.
          (set! moves (append moves (what-now--show-inst)))
+         ;; Ew lane: on an existential goal, name the typed witnesses worth
+         ;; trying -- the dual move, the one inst+ (hypothesis witnesses) misses.
+         (set! moves (append moves (what-now--show-ew)))
          (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
          (newline)
          (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
@@ -1124,6 +1147,66 @@
     (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
                *scout-inst-fanout*)))
 
+;;; -----------------------------------------------------------------------
+;;; The ew lane -- existential-GOAL introduction, the DUAL of the inst lane.
+;;;
+;;; inst+ instantiates a FORALL HYPOTHESIS at a context-typed term; (ew TERM)
+;;; discharges a FORSOME GOAL by supplying the witness.  Same witness pool (the
+;;; context-typed terms -- every `t' with an `(IN t S)' assumption), so a fresh
+;;; existential whose witness has already been skolemized into context (e.g. the
+;;; null-sequence threshold N0 typed `(IN N0 NN)') is reached for free.  Two
+;;; differences from the universal lane: the guard for an existential is an AND
+;;; `(FORSOME v (AND (IN v S) body))' not the universal's IMPLIES, and the
+;;; relevance score is the witnessed body's overlap with the ASSUMPTIONS (the
+;;; body becomes the new goal, so prefer a witness the context can discharge --
+;;; e.g. an L already appearing in a CONVERGES-TO hyp over an unrelated point).
+;;; A bad witness dies on the clone (cmd-exists-witness warns -> branch pruned).
+(define *scout-ew* #t)            ; enable the ew lane in scout
+(define *scout-ew-fanout* 6)      ; max ew candidates emitted per node
+
+;; Multiset of non-connective symbols across all of ASMS' formulas -- the basis
+;; the ew lane scores a candidate witness body against (cf. vnb--syms on goal).
+(define (vnb--asms-syms asms)
+  (apply append (map (lambda (w) (vnb--syms (wff-formula w))) asms)))
+
+;; (ew TERM) path-elements for CLONE's focus when the goal is existential,
+;; ranked by the witnessed body's symbol-overlap with the assumptions and
+;; capped at *scout-ew-fanout*.  TERM ranges over the context-typed terms
+;; (domain-matching first when the existential is guarded `(IN v DOM)').  '()
+;; when the goal is not a FORSOME or there is no typed witness to offer.
+(define (vnb--scout-ew-candidates clone)
+  (let* ((sqn  (proof-state-focus clone))
+         (goal (wff-formula (sequent-node-assertion sqn)))
+         (asms (sequent-node-assumptions sqn)))
+    (if (not (and (pair? goal) (eq? (car goal) 'FORSOME)))
+        '()
+        (let* ((v     (quantifier-var  goal))
+               (bdy   (quantifier-body goal))
+               (dom   (and (pair? bdy) (eq? (car bdy) 'AND)
+                           (let ((a (binary-left bdy)))
+                             (and (pair? a) (eq? (car a) 'IN) (= (length a) 3)
+                                  (caddr a)))))
+               (typed (vnb--scout-typed-terms clone))
+               (terms (vnb--dedup
+                       (map car
+                            (if dom
+                                (let ((m (filter (lambda (p) (equal? (cdr p) dom))
+                                                 typed)))
+                                  (if (pair? m) m typed))
+                                typed))))
+               (asyms (vnb--asms-syms asms))
+               (cands '()))
+          (for-each
+           (lambda (t)
+             (let ((ibody (subst-free v t bdy)))
+               (set! cands
+                     (cons (cons (vnb--sym-overlap ibody asyms)
+                                 (list 'ew t))
+                           cands))))
+           terms)
+          (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
+                     *scout-ew-fanout*)))))
+
 ;; The CHOICE-move candidates at CLONE's focus, as (name . args) elements.
 (define (vnb--scout-expand clone b)
   (fluid-let ((*ps* clone))
@@ -1149,14 +1232,17 @@
                 (vnb--take (filter (lambda (n) (null? (suggest--undetermined-vars n)))
                                    (suggest-backchain-names))
                            b))
-      ;; inst lane: (inst+ <universal hyp> <typed term>) path-elements, ranked
-      ;; + capped by the candidate gen.  Put them FIRST (the parameterless moves
-      ;; can't close a witness-needing goal, so on stuck goals the inst chain is
-      ;; the productive dive -- best-first's deeper-first tiebreak should reach
-      ;; it without wading through doomed mac/bc* siblings).
-      (if *scout-inst*
-          (append (vnb--scout-inst-candidates clone) (reverse cands))
-          (reverse cands)))))
+      ;; Witness lanes FIRST (the parameterless moves can't close a goal that
+      ;; needs a chosen term, so on stuck goals a witness move is the productive
+      ;; dive -- best-first's deeper-first tiebreak should reach it without
+      ;; wading through doomed mac/bc* siblings):
+      ;;   inst lane -- (inst+ <universal hyp> <typed term>): witness a FORALL hyp;
+      ;;   ew   lane -- (ew <typed term>): witness a FORSOME goal (the dual).
+      ;; ew fires only on an existential focus, inst only when a universal hyp is
+      ;; present, so the two never both apply at one node -- no double fan-out.
+      (append (if *scout-ew*   (vnb--scout-ew-candidates   clone) '())
+              (if *scout-inst* (vnb--scout-inst-candidates clone) '())
+              (reverse cands)))))
 
 ;; The search.  BEST-FIRST: the frontier is ordered by open-goal count (fewest
 ;; first; ties broken DEEPER-first so scout dives toward a closure rather than

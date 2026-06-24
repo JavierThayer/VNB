@@ -3116,6 +3116,40 @@
     (let ((moves (what-now)))
       (any (lambda (m) (and (pair? m) (eq? (car m) 'inst+))) moves))))
 
+;; The ew lane -- existential-GOAL introduction, the dual of the inst lane.
+;; Goal `exists x. x in SS' with `a in SS' in context: scout supplies the typed
+;; witness a, then closes by ass.  inst+ (universal-hypothesis witnesses) cannot
+;; reach this -- the witness is for the GOAL's existential.  A closing branch
+;; therefore must contain an (ew ...) step, and it is a genuine kernel proof.
+(check-true "scout ew lane: closes an existential goal with a context-typed witness"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
+    (di)
+    (let* ((result  (scout 4 3 200))
+           (closing (list-ref result 4)))
+      (and (pair? closing)
+           (any (lambda (br) (any (lambda (f) (eq? (car f) 'ew)) br)) closing)))))
+
+;; scout-run adopts that ew-lane proof onto the live deduction graph and the
+;; kernel accepts it -> the existential is proved end to end by the copilot.
+(check-true "scout ew lane: scout-run drives the existential proof to done"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
+    (di)
+    (scout 4 3 200)
+    (scout-run 1)
+    (proof-done? *ps*)))
+
+;; The single-move copilot grows the same ew lane: on an existential goal
+;; what-now names the (ew term) witnesses -- the move what-now--show-inst, which
+;; only witnesses universal hypotheses, misses.
+(check-true "what-now: ew lane suggests (ew term) on an existential goal"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
+    (di)
+    (let ((moves (what-now)))
+      (any (lambda (m) (and (pair? m) (eq? (car m) 'ew))) moves))))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))

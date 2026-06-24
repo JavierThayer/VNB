@@ -415,6 +415,49 @@ fresh existential, a constructed term like `1/n` — are out of reach; those goa
 still surface as best-partials.  That is the next frontier (see the stress
 target below).
 
+### The ew lane — existential-GOAL introduction (BUILT 2026-06-24)
+
+The dual of the inst lane.  `inst+` witnesses a universal **hypothesis**; the
+Cauchy-subsequence stress test showed the matching gap on the other side —
+scout's alphabet had **no move that witnesses an existential goal**, so the
+`∃N` Cauchy threshold (and any `∃φ`, `∃L`) stalled as a partial even when the
+witness was sitting in context.  `(ew TERM)` (`cmd-exists-witness`, a real
+kernel rule) discharges a `FORSOME` goal by supplying the witness; this lane
+chooses that term.
+
+- **Candidate generation** (`vnb--scout-ew-candidates`, suggest.scm).  Fires
+  only when the focus goal is `(FORSOME v body)`.  Witness pool is the **same**
+  context-typed terms as the inst lane (`vnb--scout-typed-terms` — every `t`
+  with an `(IN t S)` assumption).  Where a guarded universal reads
+  `(FORALL v (IMPLIES (IN v DOM) …))`, the existential guard is an **AND**:
+  `(FORSOME v (AND (IN v DOM) …))` — so the domain is `(car (binary-left body))`
+  under `AND`, and witnesses with `S = DOM` are tried first.  Relevance score is
+  the witnessed body's symbol overlap with the **assumptions** (the body becomes
+  the new goal — prefer a witness the context can discharge), capped at
+  `*scout-ew-fanout*` (6).
+- **The numeric-`N` case falls out for free.**  Once a null/Cauchy threshold has
+  been skolemized into context as `(IN N0 NN)`, `N0` *is* a context-typed term,
+  so on goal `(FORSOME N (AND (IN N NN) …))` the lane offers `(ew N0)` first
+  (domain `NN` matches), and the `RR`-typed `eps` is correctly excluded.  The
+  witness scout *"never offered"* per the stress-test write-up is now proposed by
+  the structural dual — no special numeric extraction needed.
+- **Integration.**  Emitted **first** in `vnb--scout-expand` alongside the inst
+  candidates (witness moves are the productive dive on stuck goals).  `ew` fires
+  only on a `FORSOME` focus and `inst+` only when a universal hypothesis is
+  present, so the two never both apply at one node — no double fan-out.
+  `what-now--show-ew` renders the same ranked candidates as `(ew term)` for the
+  single-move copilot, so search and what-now agree on the witness.
+- **Soundness.**  `cmd-exists-witness` *warns* (soft-fails) on a non-existential
+  goal or an ill-typed witness, so a bad guess dies on the clone under
+  `vnb-guard`; a closing branch is a genuine kernel proof.
+
+**Still open (the next dual):** scout has no `ai` — it cannot *skolemize* an
+existential **hypothesis** to GET the threshold `N0` into context in the first
+place (the forward step the by-hand Cauchy assembly does with `ai`).  The ew
+lane consumes a context that an `ai` lane would have to produce.  That
+`ai`-suggester is the remaining gap between the by-hand assembly and a fully
+automated `totally-bounded ⇒ Cauchy-subseq` close.
+
 ### The citation guard (2026-06-24)
 
 A closing branch that discharges the goal by citing a library theorem
