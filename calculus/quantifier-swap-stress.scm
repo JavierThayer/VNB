@@ -6,22 +6,29 @@
 ;;; Easy swap:  exists f in FUBA. forall eps>0. GUBA(f,eps)
 ;;;        |--  forall eps>0. exists g in FUBA. GUBA(g,eps)        (g := f0)
 ;;;
-;;; RESULT (2026-06-24):
-;;;   * HAND-DRIVE closes to QED -- every move (ai skolemize, ew witness g:=f0
-;;;     a BARE skolem term, inst+ the universal at eps) is in the alphabet.
-;;;   * scout(10,3,600) finds 0 closing branches.  THE WALL IS SEARCH GUIDANCE,
-;;;     NOT THE ALPHABET: best-first orders by open-leaf count, but skolemize ->
-;;;     intro -> witness -> instantiate is a long run of moves that DON'T lower
-;;;     the leaf count (the post-ew AND-split even raises it 1->2, which
-;;;     best-first flees).  No downhill gradient -> scout wanders, burns budget.
+;;; RESULT (2026-06-24): the UNGUARDED swap (drop the pos-rr guard) now CLOSES
+;;; automatically -- scout branch:
+;;;   (grind) (ew f0) (inst+ forall-eps.Q(f0,eps) AT eps) (grind) (ass) (ass).
+;;; It took THREE search-guidance pieces, each found by stress-testing here:
+;;;   1. grind SKOLEMIZES existential hypotheses (cmd-mac-h*) + intros eps -- the
+;;;      structural prefix collapses into one ply (commit a063dc8);
+;;;   2. the inst lane offers the EIGENVAR eps: an unguarded forall-var carries no
+;;;      (IN _) type, so the typed-only pool never tried it -- added the
+;;;      atomic-subterm-of-goal fallback the inst design always specified;
+;;;   3. the effective-open metric DISCOUNTS trivially-closable leaves (ass/rfl),
+;;;      so the post-ew AND-split (one conjunct is the typing hyp already in
+;;;      context) isn't read as regress 1->2 and fled.
+;;; Originally scout found 0 closing in 600 nodes: best-first had no downhill
+;;; gradient through skolemize -> intro -> witness -> instantiate.
 ;;;
-;;; TWO frontiers this isolates:
-;;;   A. SEARCH GUIDANCE -- fold ai-skolemize + AND-hyp-split into `grind' so the
-;;;      structural plies collapse and search branches only on the real choices
-;;;      (ew witness, inst term).  High leverage; also explains the Cauchy blowup.
-;;;   B. APPLIED WITNESSES -- ew cannot construct g := f(eps) (witness depends on
-;;;      the goal's bound var), the genuine alphabet gap for e.g. the Cauchy
-;;;      threshold N := null-threshold(eps/2).
+;;; STILL OPEN:
+;;;   * the GUARDED swap below (inner `pos-rr(eps) implies ...') is NOT closed:
+;;;     grind UNFOLDS pos-rr(eps) in the hyps into its conjuncts, destroying the
+;;;     whole (pos-rr eps) that inst+'s detach needs -- a grind-unfold vs detach
+;;;     tension (the hand-drive dodges it by using di, which keeps pos-rr folded).
+;;;   * APPLIED WITNESSES -- ew cannot construct g := f(eps) (witness depends on
+;;;     the goal's bound var), the genuine alphabet gap for e.g. the Cauchy
+;;;     threshold N := null-threshold(eps/2).
 ;;;
 ;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
 ;;;        --load calculus/quantifier-swap-stress.scm --eval '(exit)' 2>&1 | grep ';;S'

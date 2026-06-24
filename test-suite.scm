@@ -3206,6 +3206,23 @@
     (let ((moves (what-now)))
       (any (lambda (m) (and (pair? m) (eq? (car m) 'ai))) moves))))
 
+;; QUANTIFIER-ALTERNATION SWAP (the analysis pattern): scout closes
+;;   exists f in P. forall e. Q(f,e)  =>  forall e. exists g in P. Q(g,e)
+;; -- the easy (exists-forall => forall-exists) direction.  This is the payoff
+;; of three search-guidance pieces working together:
+;;   * grind SKOLEMIZES the existential hyp + intros eps (collapsed prefix);
+;;   * the inst lane offers the EIGENVAR eps (unguarded-forall atomic-subterm
+;;     fallback) so inst+ can instantiate forall-e. Q(f,e) at eps;
+;;   * the effective-open metric DISCOUNTS the typing conjunct (in f P) after
+;;     the ew witness, so the AND-split isn't read as regress and fled.
+;; The closing branch is grind / ew / inst+ (at eps) / grind / ass / ass.
+(check-true "scout: closes the exists-forall => forall-exists quantifier swap"
+  (lambda ()
+    (sp (make-wff '(IMPLIES
+                    (FORSOME f (AND (IN f FUBA) (FORALL eps (GUBA f eps))))
+                    (FORALL eps (FORSOME g (AND (IN g FUBA) (GUBA g eps)))))))
+    (pair? (list-ref (scout 8 3 400) 4))))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))

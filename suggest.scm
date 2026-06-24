@@ -1106,6 +1106,31 @@
 (define (vnb--scout-open-leaves clone)
   (filter (lambda (sqn) (null? (sequent-node-in-arrows sqn)))
           (proof-open-goals clone)))
+
+;; A leaf scout closes in ONE trivial step: its goal is literally an assumption
+;; (ass) or is t=t (rfl).  Such leaves must NOT count in the best-first ordering
+;; metric.  When grind splits (AND <typing-hyp> <real-goal>) into two leaves, one
+;; conjunct is already an assumption -- so the split is not regress, the
+;; effective work is still one goal.  Counting it as 2 is what made best-first
+;; FLEE the productive branch of a forward / quantifier-alternation proof (the
+;; post-ew AND-split spikes 1->2).  Discounting them keeps the dive on track.
+;; (Optimistic: rfl is judged by t=t syntactically, definedness not checked --
+;; a heuristic for ORDERING only; a mis-discounted leaf just costs a few wasted
+;; nodes, never a wrong answer, since `consider' still records a solution only on
+;; an actual proof-done? clone.)
+(define (vnb--scout-trivial-leaf? leaf)
+  (let ((g  (wff-formula (sequent-node-assertion leaf)))
+        (as (sequent-node-assumptions leaf)))
+    (or (and (asms-find as g) #t)                          ; ass-closable
+        (and (pair? g) (eq? (car g) '=) (= (length g) 3)
+             (alpha-equiv? (cadr g) (caddr g))))))         ; rfl-closable (t = t)
+
+;; Open-leaf count with the trivially-closable leaves discounted -- the best-
+;; first ORDERING key ONLY.  The dead-end test and the loop fingerprint above
+;; keep using the RAW leaf set (they must see every ungrounded leaf).
+(define (vnb--scout-effective-open clone)
+  (length (filter (lambda (l) (not (vnb--scout-trivial-leaf? l)))
+                  (vnb--scout-open-leaves clone))))
 (define (vnb--scout-fingerprint clone)
   (sort (map vnb--scout-node-key (vnb--scout-open-leaves clone)) string<?))
 
@@ -1168,12 +1193,21 @@
                               (and (pair? a) (eq? (car a) 'IN) (= (length a) 3)
                                    (caddr a)))))
                   (terms (vnb--dedup
-                          (map car
-                               (if dom
+                          (if dom
+                              ;; GUARDED `(FORALL v (IMPLIES (IN v DOM) ...))':
+                              ;; context-typed terms, domain-matching first.
+                              (map car
                                    (let ((m (filter (lambda (p) (equal? (cdr p) dom))
                                                     typed)))
-                                     (if (pair? m) m typed))
-                                   typed)))))
+                                     (if (pair? m) m typed)))
+                              ;; UNGUARDED `(FORALL v body)': typed terms PLUS the
+                              ;; goal's atomic subterms.  A di-introduced
+                              ;; eigenvariable (an unguarded forall-var like eps in
+                              ;; a forall-eps goal) carries no `(IN _)' type yet IS
+                              ;; the right instantiation -- it appears in the goal.
+                              ;; The overlap filter+rank below keeps eps (full goal
+                              ;; match) and drops the junk (e.g. predicate heads).
+                              (append (map car typed) (vnb--syms goal))))))
              (for-each
               (lambda (t)
                 (let ((ibody (subst-free v t bdy)))
@@ -1366,7 +1400,10 @@
           ;; a bogus "0 open" partial, don't expand a non-leaf focus).
           ((null? (vnb--scout-open-leaves clone)) #f)
           (else
-           (let ((open (length (vnb--scout-open-leaves clone))))
+           ;; ORDERING metric: effective open count (trivially-closable leaves
+           ;; discounted) so an AND-split that exposes an already-present typing
+           ;; hyp isn't read as regress and fled.
+           (let ((open (vnb--scout-effective-open clone)))
              (when (pair? path)                         ; root isn't a "partial"
                (set! partials (cons (cons open path) partials)))
              (if (>= (length path) d)
