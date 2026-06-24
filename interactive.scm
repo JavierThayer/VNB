@@ -443,14 +443,25 @@
       (let scan ((as (sequent-node-assumptions (proof-state-focus ps0))))
         (and (pair? as)
              (let* ((f   (wff-formula (car as)))
+                    ;; The NO-CHOICE hypothesis decompositions: split a
+                    ;; conjunction (AND) and skolemize an existential (FORSOME)
+                    ;; -- both via antecedent-inference, both deterministic (the
+                    ;; FORSOME eigenvariable is fresh) -- plus unfold a defined
+                    ;; predicate.  OR is excluded (case-split -> branches, a
+                    ;; CHOICE, so it stays out of the normalizer).  Folding
+                    ;; FORSOME in here is what lets `grind' collapse the
+                    ;; skolemize plies of a forward / quantifier-alternation
+                    ;; proof, so search branches only on real choices (the ew
+                    ;; witness, the inst term).
                     (tag (cond ((and (pair? f) (eq? (car f) 'AND)) 'AND)
+                               ((and (pair? f) (eq? (car f) 'FORSOME)) 'FORSOME)
                                ((vnb--hyp-unfold-name f))
                                (else #f)))
                     (key (and tag (cons f tag))))
                (if (and key (not (member key seen)))
                    (begin
                      (set! seen (cons key seen))
-                     (let ((r (if (eq? tag 'AND)
+                     (let ((r (if (memq tag '(AND FORSOME))
                                   (cmd-antecedent-inference ps0 f)
                                   (cmd-apply-macete-to-assumption ps0 tag f))))
                        (if (or (vnb-warning? r) (vnb-error? r))
@@ -469,10 +480,12 @@
 ;; (grind) -- the deterministic normalizer: saturate the NO-CHOICE moves at the
 ;; focus.  Repeatedly (a) decompose the goal connective with direct-inference
 ;; (di -- peels FORALL/IMPLIES/AND/IFF/NOT, introducing binders + hypotheses)
-;; and (b) break open the hypotheses with mac-h* (split ANDs, unfold defined
-;; predicates), until neither fires.  Neither move involves a lemma CHOICE, so a
-;; search never has to backtrack across grind -- it collapses the whole
-;; `di ... di mac-h*' prefix that bloats proofs (metric-triangle) into one ply.
+;; and (b) break open the hypotheses with mac-h* (split ANDs, SKOLEMIZE
+;; existentials, unfold defined predicates), until neither fires.  None of these
+;; involves a lemma CHOICE or a witness/eigenvar CHOICE (skolem vars are fresh),
+;; so a search never has to backtrack across grind -- it collapses the whole
+;; `di ... di mac-h*' prefix (and the skolemize plies of a forward / quantifier-
+;; alternation proof) that bloats proofs into one ply.
 ;; Mutates in place like every cmd-*; returns ps0 if anything fired else a
 ;; vnb-warning.  (di auto-advances the focus to the first new subgoal, so grind
 ;; normalizes that branch; sibling subgoals are left for the caller/search.)
