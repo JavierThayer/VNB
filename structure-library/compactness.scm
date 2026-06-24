@@ -92,10 +92,13 @@
 
 ;;; ----- ball-cover machinery: the two lemmas that close compact => TB -----
 
-;;; The r-ball cover of s: the family of all open r-balls { B(x,r) : x in X(s) },
-;;; as the image of X(s) under  x |-> BALL(s,x,r).
+;;; The r-ball cover of s: the family of all open r-balls { B(c,r) : c in X(s) },
+;;; as the image of X(s) under  c |-> BALL(s,c,r).  The lambda variable is `c'
+;;; (centre), NOT `x': the carrier accessor X folds to x, and the cover's domain
+;;; (X s) sits next to the lambda -- keeping them disjoint avoids the carrier/
+;;; point name clash.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BALL-COVER '(s r)
-  '(IMAGE (VNB-LAMBDA x (BALL s x r)) (X s)))
+  '(IMAGE (VNB-LAMBDA c (BALL s c r)) (X s)))
 
 ;;; Lemma A: for r > 0 the r-ball cover is an open cover of s.
 ;;; (r-condition matches the TOTALLY-BOUNDED def verbatim: r in RR, 0 <= r, r /= 0.)

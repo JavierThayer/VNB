@@ -14,11 +14,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ball-cover
 
-    ball-cover(s, r) := image(vnb-lambda(x, ball(s, x, r)), x(s))
+    ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), x(s))
 
 ### bdd-metric
 
-    bdd-metric(s) := [x(s), vnb-lambda([x, y], /((d(s))(x, y), 1 + (d(s))(x, y)))]
+    bdd-metric(s) := [x(s), vnb-lambda([u, v], /((d(s))(u, v), 1 + (d(s))(u, v)))]
 
 ### cauchy-setoid
 

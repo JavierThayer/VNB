@@ -25,10 +25,13 @@
 ;;; Loads after metric-continuity.scm (IS-CONTINUOUS) and scalar-inequalities.
 
 ;;; The construction: same carrier, distance pushed through f(t)=t/(1+t).
+;;; The distance lambda binds the two points as `u, v', NOT `x, y': the carrier
+;;; accessor X folds to x and sits in the adjacent slot (X s), so a lambda var
+;;; `x' would clash with the carrier name.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BDD-METRIC '(s)
   '(LIST (X s)
-         (VNB-LAMBDA (LIST x y)
-           (/ ((D s) x y) (+ 1 ((D s) x y))))))
+         (VNB-LAMBDA (LIST u v)
+           (/ ((D s) u v) (+ 1 ((D s) u v))))))
 
 ;;; Carrier is unchanged.
 (support 'bdd-metric-carrier

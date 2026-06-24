@@ -70,9 +70,9 @@
 <h4 id="FUNCTORS__ball">ball</h4>
 <pre>ball(s, c, r) := {y in x(s): (d(s))(c, y) &lt;= r and not((d(s))(c, y) = r)}</pre>
 <h4 id="FUNCTORS__ball-cover">ball-cover</h4>
-<pre>ball-cover(s, r) := image(vnb-lambda(x, ball(s, x, r)), x(s))</pre>
+<pre>ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), x(s))</pre>
 <h4 id="FUNCTORS__bdd-metric">bdd-metric</h4>
-<pre>bdd-metric(s) := [x(s), vnb-lambda([x, y], /((d(s))(x, y), 1 + (d(s))(x, y)))]</pre>
+<pre>bdd-metric(s) := [x(s), vnb-lambda([u, v], /((d(s))(u, v), 1 + (d(s))(u, v)))]</pre>
 <h4 id="FUNCTORS__cauchy-setoid">cauchy-setoid</h4>
 <pre>cauchy-setoid(m) := [cseq(m), crel(m)]</pre>
 <h4 id="FUNCTORS__centre-set">centre-set</h4>
