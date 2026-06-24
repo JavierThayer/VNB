@@ -74,6 +74,21 @@
   "f : NN -> X(s) and phi : NN -> NN, so the composite SUBSEQ(f,phi) = k |-> f(phi
    k) is again a function NN -> X(s).  Pure composition typing.")
 
+;;; IS-EPS-CAUCHY-SEQ(s, eps, y) -- y : NN -> X(s) is eps-Cauchy: EVERY pair of
+;;; terms is within eps.  This is a FIXED eps and ALL pairs -- the global, no-
+;;; threshold cousin of IS-CAUCHY-SEQ (which quantifies eps and only bounds the
+;;; tail past some N).  An eps-Cauchy subsequence is the single-radius output of
+;;; one pigeonhole step; the diagonal argument laces these together across
+;;; eps = rad(k) into a genuine IS-CAUCHY-SEQ.
+(def-predicate 'IS-EPS-CAUCHY-SEQ '(s eps y)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (IN y (FUN NN (X s)))
+        (FORALL m
+          (IMPLIES (IN m NN)
+            (FORALL n_
+              (IMPLIES (IN n_ NN)
+                (<= ((D s) (y m) (y n_)) eps))))))))
+
 ;;; =======================================================================
 ;;; 2.  Null radius sequences
 ;;; =======================================================================
@@ -101,6 +116,52 @@
 (warrant! 'null-rr-seq-exists 'well-known
   "k |-> 2^-k is in FUN(NN,RR), is positive, and 2^-k -> 0 (Archimedean / geometric
    decay): given eps>0 pick N with 2^-N <= eps.  A concrete witness; no content.")
+
+;;; =======================================================================
+;;; 2.5  The single-pigeonhole base case  --  eps-Cauchy subsequence
+;;; =======================================================================
+
+;;; tb-has-eps-cauchy-subseq: total boundedness + a sequence + ONE radius eps
+;;; gives a subsequence that is eps-Cauchy.  This is the heart of sequential
+;;; compactness with the recursion stripped off:
+;;;   * block-family is exactly this step applied recursively inside a shrinking
+;;;     infinite block (replace NN by S(k), eps by rad(k));
+;;;   * the headline (totally-bounded-has-cauchy-subseq) is this laced across
+;;;     eps = rad(k) by diagonalization.
+;;;
+;;; Proof -- ONE pigeonhole; every cited piece is already PSS:
+;;;   eps>0:  TOTALLY-BOUNDED at radius eps/2 gives a FINITE eps/2-net F for X(s)
+;;;           (IS-R-NET s F (X s) (eps/2), CARD F in NN).
+;;;   classifier:  CHOICE gives pi : NN -> F with pi(n) = a net point whose
+;;;           eps/2-ball holds f(n) -- exists because F is an eps/2-net (every
+;;;           f(n) in X(s) is within eps/2 of some net point).
+;;;   pigeonhole:  NN infinite, F finite, pi : NN -> F, so pigeonhole-infinite
+;;;           gives c in F with an INFINITE fibre I = { n : pi(n)=c } in
+;;;           INF-SUBSETS(NN); every n in I has f(n) in BALL(s, c, eps/2).
+;;;   enumerate:  nn-enum-spec gives phi = NN-ENUM(I) : NN -> I strictly
+;;;           monotone, so f(phi k) in BALL(s, c, eps/2) for every k.
+;;;   estimate:  f(phi m), f(phi n) lie in one eps/2-ball, so ball-2r-triangle
+;;;           gives d(f(phi m), f(phi n)) <= 2*(eps/2) = eps.  SUBSEQ(f,phi) is
+;;;           eps-Cauchy.  (IS-METRIC-SPACE s and the typing of SUBSEQ come from
+;;;           TOTALLY-BOUNDED s and subseq-is-fun.)
+(support 'tb-has-eps-cauchy-subseq
+  '(FORALL s
+     (IMPLIES (TOTALLY-BOUNDED s)
+       (FORALL f
+         (IMPLIES (IN f (FUN NN (X s)))
+           (FORALL eps
+             (IMPLIES (POS-RR eps)
+               (FORSOME phi
+                 (AND (STRICTLY-MONO-NN phi)
+                      (IS-EPS-CAUCHY-SEQ s eps (SUBSEQ f phi)))))))))))
+(warrant! 'tb-has-eps-cauchy-subseq 'reference
+  "Single pigeonhole step of sequential compactness (calculus.pdf Prop 3.31):
+   finite eps/2-net (TOTALLY-BOUNDED) + classifier pi:NN->F (choice) +
+   pigeonhole-infinite (infinite fibre I) + nn-enum-spec (strictly monotone phi
+   enumerating I) + ball-2r-triangle (two terms in one eps/2-ball are <= eps
+   apart).  Every cited piece is already PSS; the recursion-free core that
+   block-family iterates.  Stated warranted during library-build; the forward
+   assembly is the proof target.")
 
 ;;; =======================================================================
 ;;; 3.  (A) The nested block family  --  pigeonhole recursion
