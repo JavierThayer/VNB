@@ -1264,11 +1264,33 @@
 (define (vnb--asms-syms asms)
   (apply append (map (lambda (w) (vnb--syms (wff-formula w))) asms)))
 
+;; Context functions: (f . DOMAIN) for every assumption `(IN f (FUN A ...))'.
+;; The terms one can build an APPLIED witness `(f t)' from -- f applied to a
+;; domain-A term.  (FUN A) and (FUN A B) both expose A = (cadr funtype).
+(define (vnb--scout-context-funs clone)
+  (let loop ((as (sequent-node-assumptions (proof-state-focus clone))) (acc '()))
+    (if (null? as)
+        (reverse acc)
+        (let ((f (wff-formula (car as))))
+          (loop (cdr as)
+                (if (and (pair? f) (eq? (car f) 'IN) (= (length f) 3)
+                         (pair? (caddr f)) (eq? (car (caddr f)) 'FUN)
+                         (>= (length (caddr f)) 2))
+                    (cons (cons (cadr f) (cadr (caddr f))) acc)  ; (f . domain)
+                    acc))))))
+
 ;; (ew TERM) path-elements for CLONE's focus when the goal is existential,
 ;; ranked by the witnessed body's symbol-overlap with the assumptions and
-;; capped at *scout-ew-fanout*.  TERM ranges over the context-typed terms
-;; (domain-matching first when the existential is guarded `(IN v DOM)').  '()
-;; when the goal is not a FORSOME or there is no typed witness to offer.
+;; capped at *scout-ew-fanout*.  Witnesses are:
+;;   * BARE context-typed terms (domain-matching first when the existential is
+;;     guarded `(IN v DOM)'); and
+;;   * APPLIED witnesses `(f t)' -- a context function f : A -> _ applied to a
+;;     domain-A term t.  This is the constructed witness the forall-eps.exists-delta
+;;     (delta := f(eps)) analysis pattern needs: f a Skolem/sequence in context,
+;;     t the goal's just-introduced eigenvar.  Bounded by domain-matching (f
+;;     applied only to its own domain) + the overlap>0 relevance filter + the cap,
+;;     so it doesn't blow up the search.
+;; '() when the goal is not a FORSOME.
 (define (vnb--scout-ew-candidates clone)
   (let* ((sqn  (proof-state-focus clone))
          (goal (wff-formula (sequent-node-assertion sqn)))
@@ -1291,14 +1313,23 @@
                                 typed))))
                (asyms (vnb--asms-syms asms))
                (cands '()))
+          (define (offer witness lenient?)
+            (let* ((ibody (subst-free v witness bdy))
+                   (ov    (vnb--sym-overlap ibody asyms)))
+              (when (or lenient? (> ov 0))      ; applied witnesses must be relevant
+                (set! cands (cons (cons ov (list 'ew witness)) cands)))))
+          ;; bare typed terms (lenient -- the original behaviour)
+          (for-each (lambda (t) (offer t #t)) terms)
+          ;; applied witnesses (f t): every context function applied to a term of
+          ;; its own domain (relevance-gated).
           (for-each
-           (lambda (t)
-             (let ((ibody (subst-free v t bdy)))
-               (set! cands
-                     (cons (cons (vnb--sym-overlap ibody asyms)
-                                 (list 'ew t))
-                           cands))))
-           terms)
+           (lambda (fn)                          ; fn = (f . domain)
+             (for-each
+              (lambda (p)                        ; p = (t . type)
+                (when (equal? (cdr p) (cdr fn))  ; t : f's domain
+                  (offer (list (car fn) (car p)) #f)))
+              typed))
+           (vnb--scout-context-funs clone))
           (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
                      *scout-ew-fanout*)))))
 

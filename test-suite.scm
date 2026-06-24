@@ -3225,6 +3225,21 @@
     ;; a modest node cap suffice -- keep the test fast.
     (pair? (list-ref (scout 6 3 200) 4))))
 
+;; APPLIED WITNESS -- the forall-eps.exists-delta (delta := f(eps)) construction.
+;; SUUB : NN -> GUBA in context, hyp forall n in NN. LUBA(SUUB(n), n); goal
+;; forall n in NN. exists y. LUBA(y, n).  The ONLY witness that works is
+;; y := SUUB(n) -- a context FUNCTION applied to the eigenvar n.  Bare ew (atoms
+;; only) offers SUUB and n, giving LUBA(SUUB,n) / LUBA(n,n), neither derivable;
+;; the ew lane must CONSTRUCT the application.  So scout closing at all proves the
+;; applied-witness lane fired.  Branch: grind / ew (SUUB n) / inst+ at n / ass.
+(check-true "scout ew applied-witness: closes via f(eps), a function applied to the eigenvar"
+  (lambda ()
+    (sp (make-wff '(IMPLIES
+                    (AND (IN SUUB (FUN NN GUBA))
+                         (FORALL n (IMPLIES (IN n NN) (LUBA (SUUB n) n))))
+                    (FORALL n (IMPLIES (IN n NN) (FORSOME y (LUBA y n)))))))
+    (pair? (list-ref (scout 6 3 200) 4))))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
