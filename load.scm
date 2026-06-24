@@ -179,6 +179,11 @@
     "theorem-library/pigeonhole"
     "theorem-library/subsequence-capture"
     "theorem-library/diagonalization"
+    ;; Totally bounded => every sequence has a Cauchy subsequence.  Assembles
+    ;; pigeonhole + diagonalization + ball-2r-triangle; supplies the SUBSEQ /
+    ;; STRICTLY-MONO-NN / IS-SUBSEQUENCE vocabulary.  Needs TOTALLY-BOUNDED/BALL
+    ;; (metric-topology), IS-CAUCHY-SEQ (metric-completeness), INF-SUBSETS.
+    "theorem-library/cauchy-subsequence"
     "structure-library/sequences"
     "structure-library/finsum"
     ;; FINPROD / PROD-RING: finite product = FINSUM at a multiplicative

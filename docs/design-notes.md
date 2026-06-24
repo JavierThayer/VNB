@@ -464,21 +464,53 @@ theorem** (`compact⇒complete`, `compact⇒totally-bounded`, …) is a bad scou
 demo — citing it proves nothing.  Point scout at goals *not* already in the
 library.
 
-### Stress-test target (planned obstacle map)
+### Stress-test: totally bounded ⟹ has Cauchy subsequence (2026-06-24, BUILT)
 
 *"X totally bounded ⟹ every sequence in X has a Cauchy subsequence"* — the
-sequential characterization of total boundedness.  This is a **deep** theorem
-(a diagonal / nested-subsequence argument: cover by finitely many 1/n-balls,
-pass to a subsequence inside one ball, diagonalize over n).  It is **not** a
-closure target for scout+inst — it is an **obstacle-mapping** target: inst-scout
-should get *past* the first wall (unfold `totally-bounded`, instantiate the
-finite cover at radius `1/n`) and then stall exactly at the diagonal
-construction, with `best-partials` marking the boundary, telling us what
-machinery to build next.
+sequential characterization of total boundedness, a diagonal/nested-subsequence
+argument.  Now **stated and decomposed** in `theorem-library/cauchy-subsequence.scm`,
+with a runnable obstacle-map probe in `calculus/totally-bounded-cauchy-subseq.scm`.
 
-Prerequisites before it can even be *stated*: (a) an `IS-SUBSEQUENCE` /
-reindexing predicate (we have φ : ℕ→ℕ as a strictly-increasing reindexing
-*inside* the `cauchy-rapid-subsequence` support, but no standalone vocabulary);
-(b) the statement form `∀ f:ℕ→X(s). ∃ φ strictly-increasing.
-IS-CAUCHY-SEQ(s, k ↦ f(φ k))`.  `IS-CAUCHY-SEQ` and `CONVERGES-TO` already
-exist.
+**Vocabulary added** (was the stated prerequisite): `STRICTLY-MONO-NN` (φ:ℕ→ℕ
+strictly increasing — factored out of the three inline copies in
+subsequence-capture / nn-enum-spec / cauchy-rapid-subsequence); `SUBSEQ(f,φ)` =
+`k ↦ f(φ k)`; `IS-SUBSEQUENCE`; `NULL-RR-SEQ` (positive + → 0, elementary eps/N
+form).  Case-fold trap dodged: the block family variable is `blk`, **not** `S`,
+because the reader folds `S`≡`s` and the space `s` is in scope.
+
+**Decomposition** — every leaf already existed; this theorem was the *intended*
+consumer named in `pigeonhole.scm` / `diagonalization.scm`:
+- `block-family` (new, warranted): TB + null `rad` ⟹ a nested family
+  `blk : ℕ→INF-SUBSETS(ℕ)`, each `blk(k)` pinning `f` into one `rad(k)`-ball.
+  The pigeonhole recursion — the one genuinely new construction.
+- `diagonalization` (existing): nested infinite blocks ⟹ strictly-mono φ with
+  tail past `k` inside `blk(k)`.
+- `ball-2r-triangle` (existing): two points in one `r`-ball are `< 2r` apart.
+- `null-rr-seq-exists` + the rad-parametrised / parameter-free headlines.
+
+**What the probe established (the actual stress-test result):**
+1. The **forward assembly is fully driveable by hand** through the kernel.
+   `fact` cites a PSS universal, instantiates it, and auto-detaches in-context
+   antecedents; `ai` skolemizes the resulting existential; `ew` witnesses an
+   existential *goal*.  block-family's `∃ blk` skolemizes to `blk_2`,
+   diagonalization's `∃ (diagonal)` to `f_3`, and `(ew f_3)` splits the goal into
+   `strictly-mono-nn(f_3)` and `is-cauchy-seq(s, subseq(f,f_3))`.
+2. The **`STRICTLY-MONO-NN` half closes to grounded** by `(mac)(di)(ass-all)` —
+   both conjuncts are literally diagonalization's output in context.  (Verified
+   via the ungrounded-LEAF frontier: `(strictly-mono-nn is-cauchy-seq)` → `(is-cauchy-seq)`.)
+3. **Scout cannot drive the rest**, and this is the headline finding.  On
+   `is-cauchy-seq` scout returns `closing=()` (genuine non-closure — `*scout-citations*`
+   empty, not a suppressed circular citation).  Its `best-partials` are only
+   `mac`/`grind` unfolds and `inst+` on universal *hypotheses*.  **Scout's
+   alphabet has no existential-GOAL introduction.**  Proving `is-cauchy-seq`
+   needs `∃ N` (the Cauchy threshold) witnessed from `NULL-RR-SEQ` at `eps/2`;
+   `inst+` chooses witnesses for ∀-hypotheses, but nothing offers a witness for a
+   `FORSOME` goal.
+
+**Next machinery (recommended):** an **`ew`-suggester lane** — the dual of
+`vnb--scout-inst-candidates` — that proposes context-typed terms (and, for
+numeric thresholds, the `N` extracted from a null/Cauchy hypothesis) as
+existential-goal witnesses, for both `what-now` and scout's alphabet.  This is
+the single gap between the by-hand assembly and an automated close.  The maths
+beyond it (the eps/2 + ball-2r-triangle estimate) is then ordinary ∀-instantiation
++ arithmetic, which the inst lane already handles.
