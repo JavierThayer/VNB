@@ -1204,34 +1204,40 @@
                             (let ((a (binary-left bdy)))
                               (and (pair? a) (eq? (car a) 'IN) (= (length a) 3)
                                    (caddr a)))))
-                  (terms (vnb--dedup
-                          (if dom
-                              ;; GUARDED `(FORALL v (IMPLIES (IN v DOM) ...))':
-                              ;; context-typed terms, domain-matching first.
-                              (map car
-                                   (let ((m (filter (lambda (p) (equal? (cdr p) dom))
-                                                    typed)))
-                                     (if (pair? m) m typed)))
-                              ;; UNGUARDED `(FORALL v body)': typed terms PLUS the
-                              ;; goal's atomic subterms.  A di-introduced
-                              ;; eigenvariable (an unguarded forall-var like eps in
-                              ;; a forall-eps goal) carries no `(IN _)' type yet IS
-                              ;; the right instantiation -- it appears in the goal.
-                              ;; Argument-position atoms only (vnb--arg-atoms),
-                              ;; so the eigenvar eps is offered but predicate/
-                              ;; function heads are NOT -- a tight pool that keeps
-                              ;; the search from blowing up.
-                              (append (map car typed) (vnb--arg-atoms goal))))))
-             (for-each
-              (lambda (t)
-                (let ((ibody (subst-free v t bdy)))
-                  (when (and (not (asms-find asms ibody))   ; not already a hyp
-                             (> (vnb--sym-overlap ibody goal) 0))
-                    (set! cands
-                          (cons (cons (vnb--sym-overlap ibody goal)
-                                      (list 'inst+ f t))
-                                cands)))))
-              terms)))))
+                  ;; LENIENT pool: context-typed terms (domain-matched for a
+                  ;; guarded forall).  Filtered only by `shares a symbol with the
+                  ;; goal' below.
+                  (lenient (vnb--dedup
+                            (map car
+                                 (if dom
+                                     (let ((m (filter (lambda (p) (equal? (cdr p) dom))
+                                                      typed)))
+                                       (if (pair? m) m typed))
+                                     typed))))
+                  ;; STRICT pool (UNGUARDED forall only): the goal's
+                  ;; argument-position atoms that AREN'T already typed -- the
+                  ;; in-scope eigenvariables (a di-introduced `eps' carries no
+                  ;; `(IN _)' type yet IS the right instantiation).  Gated HARD
+                  ;; below (full symbol containment) so this fallback fires only
+                  ;; where instantiating the universal directly yields goal
+                  ;; content -- otherwise it widens the search across every
+                  ;; unguarded universal and ~doubles scout's cost.
+                  (strict (if dom '()
+                              (let ((tt (map car typed)))
+                                (filter (lambda (a) (not (memq a tt)))
+                                        (vnb--dedup (vnb--arg-atoms goal)))))))
+             (define (offer t strict?)
+               (let* ((ibody (subst-free v t bdy))
+                      (ov    (vnb--sym-overlap ibody goal)))
+                 (when (and (not (asms-find asms ibody))   ; not already a hyp
+                            (> ov 0)
+                            (or (not strict?)
+                                ;; EVERY symbol of the instantiated body occurs in
+                                ;; the goal -- the tight relevance gate.
+                                (= ov (length (vnb--dedup (vnb--syms ibody))))))
+                   (set! cands (cons (cons ov (list 'inst+ f t)) cands)))))
+             (for-each (lambda (t) (offer t #f)) lenient)
+             (for-each (lambda (t) (offer t #t)) strict)))))
      asms)
     (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
                *scout-inst-fanout*)))
