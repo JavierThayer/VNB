@@ -49,28 +49,28 @@ VNB proof checker loaded.  Theory: vnb-set-theory
 ;;VNB-STATE-BEGIN
 1 open goal(s).
 Focus:
-  [0] ()  =>  forsome([v], v in ss) implies a = a
+  [0] ()  =>  forsome([v], v in guba) implies a = a
 ;;VNB-STATE-END
 ;;VNB-STATE-BEGIN
 2 open goal(s).
 Focus:
-  [1] forsome([v], v in ss)  =>  a = a
+  [1] forsome([v], v in guba)  =>  a = a
 Other open goals:
-  [0] ()  =>  forsome([v], v in ss) implies a = a
+  [0] ()  =>  forsome([v], v in guba) implies a = a
 ;;VNB-STATE-END
-;;;   [before ai: existential hypothesis (FORSOME v (IN v SS)) present]
-;;;     asms: ((forsome v (in v ss)))
+;;;   [before ai: existential hypothesis (FORSOME v (IN v GUBA)) present]
+;;;     asms: ((forsome v (in v guba)))
 ;;;     goal: (= a a)
 ;;VNB-STATE-BEGIN
 3 open goal(s).
 Focus:
-  [2] v_2 in ss  =>  a = a
+  [2] v_2 in guba  =>  a = a
 Other open goals:
-  [0] ()  =>  forsome([v], v in ss) implies a = a
-  [1] forsome([v], v in ss)  =>  a = a
+  [0] ()  =>  forsome([v], v in guba) implies a = a
+  [1] forsome([v], v in guba)  =>  a = a
 ;;VNB-STATE-END
-;;;   [after  ai: hypothesis opened to (IN v_k SS) with v_k fresh]
-;;;     asms: ((in v_2 ss))
+;;;   [after  ai: hypothesis opened to (IN v_k GUBA) with v_k fresh]
+;;;     asms: ((in v_2 guba))
 ;;;     goal: (= a a)
 
 ;;; ===== A2  ai on an AND-bodied existential (the Cauchy threshold shape) =====
@@ -114,44 +114,44 @@ Other open goals:
 ;;VNB-STATE-BEGIN
 1 open goal(s).
 Focus:
-  [0] ()  =>  forsome([v], g(v) in ss) implies forsome([w], w in ss)
+  [0] ()  =>  forsome([v], luba(v) in guba) implies forsome([w], w in guba)
 ;;VNB-STATE-END
 ;;;   [start]
 ;;;     asms: ()
-;;;     goal: (implies (forsome v (in (g v) ss)) (forsome w (in w ss)))
+;;;     goal: (implies (forsome v (in (luba v) guba)) (forsome w (in w guba)))
 ;;VNB-STATE-BEGIN
 2 open goal(s).
 Focus:
-  [1] forsome([v], g(v) in ss)  =>  forsome([w], w in ss)
+  [1] forsome([v], luba(v) in guba)  =>  forsome([w], w in guba)
 Other open goals:
-  [0] ()  =>  forsome([v], g(v) in ss) implies forsome([w], w in ss)
+  [0] ()  =>  forsome([v], luba(v) in guba) implies forsome([w], w in guba)
 ;;VNB-STATE-END
 ;;;   [after grind]
-;;;     asms: ((forsome v (in (g v) ss)))
-;;;     goal: (forsome w (in w ss))
+;;;     asms: ((forsome v (in (luba v) guba)))
+;;;     goal: (forsome w (in w guba))
 ;;VNB-STATE-BEGIN
 3 open goal(s).
 Focus:
-  [2] g(v_4) in ss  =>  forsome([w], w in ss)
+  [2] luba(v_4) in guba  =>  forsome([w], w in guba)
 Other open goals:
-  [0] ()  =>  forsome([v], g(v) in ss) implies forsome([w], w in ss)
-  [1] forsome([v], g(v) in ss)  =>  forsome([w], w in ss)
+  [0] ()  =>  forsome([v], luba(v) in guba) implies forsome([w], w in guba)
+  [1] forsome([v], luba(v) in guba)  =>  forsome([w], w in guba)
 ;;VNB-STATE-END
-;;;   [after ai: g(v_k) in SS now in context -- a usable witness]
-;;;     asms: ((in (g v_4) ss))
-;;;     goal: (forsome w (in w ss))
+;;;   [after ai: luba(v_k) in GUBA now in context -- a usable witness]
+;;;     asms: ((in (luba v_4) guba))
+;;;     goal: (forsome w (in w guba))
 ;;VNB-STATE-BEGIN
 4 open goal(s).
 Focus:
-  [3] g(v_4) in ss  =>  g(v_4) in ss
+  [3] luba(v_4) in guba  =>  luba(v_4) in guba
 Other open goals:
-  [0] ()  =>  forsome([v], g(v) in ss) implies forsome([w], w in ss)
-  [1] forsome([v], g(v) in ss)  =>  forsome([w], w in ss)
-  [2] g(v_4) in ss  =>  forsome([w], w in ss)
+  [0] ()  =>  forsome([v], luba(v) in guba) implies forsome([w], w in guba)
+  [1] forsome([v], luba(v) in guba)  =>  forsome([w], w in guba)
+  [2] luba(v_4) in guba  =>  forsome([w], w in guba)
 ;;VNB-STATE-END
-;;;   [after ew: goal reduced to (IN (g v_k) SS), which IS an assumption]
-;;;     asms: ((in (g v_4) ss))
-;;;     goal: (in (g v_4) ss)
+;;;   [after ew: goal reduced to (IN (luba v_k) GUBA), which IS an assumption]
+;;;     asms: ((in (luba v_4) guba))
+;;;     goal: (in (luba v_4) guba)
 ;;VNB-STATE-BEGIN
 Proof complete.
 ;;VNB-STATE-END
@@ -161,7 +161,7 @@ Proof complete.
 ;;VNB-STATE-BEGIN
 1 open goal(s).
 Focus:
-  [0] ()  =>  forsome([v], g(v) in ss) implies forsome([w], w in ss)
+  [0] ()  =>  forsome([v], luba(v) in guba) implies forsome([w], w in guba)
 ;;VNB-STATE-END
 ;VNB warning: bc*: conclusion of finite-set-induction does not match the goal
 ;VNB warning: bc*: conclusion of nn-induction does not match the goal
@@ -174,7 +174,7 @@ Focus:
 ;VNB warning: bc*: conclusion of transfinite-induction does not match the goal
 ;;;   scout closing branch(es): 1
 ;;;   branch 1 (note the (ai ...) and (ew ...) steps):
-;;;     ((grind) (ai (quote (forsome v (in (g v) ss)))) (ew (quote (g v_5))) (ass))
+;;;     ((grind) (ai (quote (forsome v (in (luba v) guba)))) (ew (quote (luba v_5))) (ass))
 
 ;;; ===== B  scout on the eps-Cauchy lemma -- how far, and the wall =====
 ;;VNB-STATE-BEGIN

@@ -45,12 +45,12 @@
 (--- "A1  ai skolemizes a bare existential hypothesis")
 ;; `ai HYP' on an existential assumption (FORSOME v body) introduces a FRESH
 ;; eigenvariable y (avoiding the goal + other asms) and replaces the hypothesis
-;; with body[v := y].  Below: (exists v. v in SS) becomes (v_k in SS).
-(sp (make-wff '(IMPLIES (FORSOME v (IN v SS)) (= a a))))
+;; with body[v := y].  Below: (exists v. v in GUBA) becomes (v_k in GUBA).
+(sp (make-wff '(IMPLIES (FORSOME v (IN v GUBA)) (= a a))))
 (di)                                            ; move antecedent into the asms
-(snap "before ai: existential hypothesis (FORSOME v (IN v SS)) present")
-(ai '(FORSOME v (IN v SS)))                     ; <-- SKOLEMIZE
-(snap "after  ai: hypothesis opened to (IN v_k SS) with v_k fresh")
+(snap "before ai: existential hypothesis (FORSOME v (IN v GUBA)) present")
+(ai '(FORSOME v (IN v GUBA)))                     ; <-- SKOLEMIZE
+(snap "after  ai: hypothesis opened to (IN v_k GUBA) with v_k fresh")
 
 (--- "A2  ai on an AND-bodied existential (the Cauchy threshold shape)")
 ;; (exists N. N in NN and P(N)) -- ai skolemizes to the AND body at a fresh N_k;
@@ -63,18 +63,18 @@
 (snap "after second ai: conjunction split into (IN N_k NN) and (FUBA N_k)")
 
 (--- "A3  skolemize UNLOCKS a witness: ai then ew, driven to QED by hand")
-;; Goal (exists w. w in SS) does NOT follow from (exists v. g(v) in SS) by
-;; assumption (different bodies).  ai exposes g(v_k) in SS; THAT term is then a
+;; Goal (exists w. w in GUBA) does NOT follow from (exists v. luba(v) in GUBA) by
+;; assumption (different bodies).  ai exposes luba(v_k) in GUBA; THAT term is then a
 ;; legal witness for the goal (ew); ass closes.  This is the skolemize->witness
 ;; pattern at the heart of every forward existence proof.
-(sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+(sp (make-wff '(IMPLIES (FORSOME v (IN (luba v) GUBA)) (FORSOME w (IN w GUBA)))))
 (snap "start")
 (grind)                                         ; di moves the existential hyp in
 (snap "after grind")
 (ai (find-head 'FORSOME))                       ; <-- SKOLEMIZE the hypothesis
-(snap "after ai: g(v_k) in SS now in context -- a usable witness")
-(ew (typed-elt 'SS))                            ; witness the goal with g(v_k)
-(snap "after ew: goal reduced to (IN (g v_k) SS), which IS an assumption")
+(snap "after ai: luba(v_k) in GUBA now in context -- a usable witness")
+(ew (typed-elt 'GUBA))                            ; witness the goal with luba(v_k)
+(snap "after ew: goal reduced to (IN (luba v_k) GUBA), which IS an assumption")
 (ass)
 (display ";;;   done? ")(write (proof-done? *ps*))(newline)
 
@@ -82,7 +82,7 @@
 ;; The copilot assembles grind -> ai -> ew -> ass on its own (the ai lane feeds
 ;; the ew lane).  This is the move the morning's lanes + the fresh-var-drift fix
 ;; made reachable in search.
-(sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+(sp (make-wff '(IMPLIES (FORSOME v (IN (luba v) GUBA)) (FORSOME w (IN w GUBA)))))
 (let ((r (scout 6 3 300)))
   (display ";;;   scout closing branch(es): ")(write (length (list-ref r 4)))(newline)
   (when (pair? (list-ref r 4))
