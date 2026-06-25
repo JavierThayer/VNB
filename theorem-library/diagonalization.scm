@@ -25,20 +25,19 @@
 ;;; Accepted here without mechanical proof during the library-building
 ;;; phase.
 
+;; Conclusion stated with the factored STRICTLY-MONO-NN predicate (which IS
+;; `IN f (FUN NN NN)' AND the spelled-out monotonicity), not the inline form --
+;; library hygiene, and it lets the produces-witness index key this lemma under
+;; (STRICTLY-MONO-NN ?w), matching a Cauchy-subsequence goal's own witness shape.
 (support 'diagonalization
   '(FORALL S
      (IMPLIES (IN S (FUN NN (INF-SUBSETS NN)))
        (IMPLIES (FORALL k
                   (IMPLIES (IN k NN) (SUBSET (S (succ k)) (S k))))
          (FORSOME f
-           (AND (IN f (FUN NN NN))
-                (AND (FORALL m
-                       (IMPLIES (IN m NN)
-                         (FORALL n
-                           (IMPLIES (IN n NN)
-                             (IMPLIES (< m n) (< (f m) (f n)))))))
-                     (FORALL k
-                       (IMPLIES (IN k NN)
-                         (FORALL j
-                           (IMPLIES (IN j NN)
-                             (IMPLIES (<= k j) (IN (f j) (S k))))))))))))))
+           (AND (STRICTLY-MONO-NN f)
+                (FORALL k
+                  (IMPLIES (IN k NN)
+                    (FORALL j
+                      (IMPLIES (IN j NN)
+                        (IMPLIES (<= k j) (IN (f j) (S k)))))))))))))

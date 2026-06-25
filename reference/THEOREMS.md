@@ -114,7 +114,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `descend-computes` — forall([s], is-setoid(s) implies forall([z, f], f in fun(x(s), z) and respects(s, f) implies forall([a in x(s)], (descend(f))(class(s, a)) = f(a))))  _[warrant: well-known]_
 - `descend-computes-rev` — forall([s], is-setoid(s) implies forall([z, f], f in fun(x(s), z) and respects(s, f) implies forall([a in x(s)], f(a) = (descend(f))(class(s, a)))))  _[warrant: well-known]_
 - `descend-in-fun` — forall([s], is-setoid(s) implies forall([z, f], f in fun(x(s), z) and respects(s, f) implies descend(f) in fun(quotient(s), z)))  _[warrant: well-known]_
-- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f in fun(nn, nn)], forall([m in nn, n in nn], m < n implies f(m) < f(n)) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  _[warrant: informal]_
+- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f], strictly-mono-nn(f) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  _[warrant: informal]_
 - `difference-membership` — forall([x, b, x], x in difference(x, b) iff x in x and not(x in b))  _[warrant: well-known]_
 - `difference-membership-rev` — forall([x, b, x], x in x and not(x in b) iff x in difference(x, b))  _[warrant: well-known]_
 - `difference-set` — forall([x in set, b], difference(x, b) in set)  _[warrant: well-known]_

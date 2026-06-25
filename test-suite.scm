@@ -3240,6 +3240,31 @@
                     (FORALL n (IMPLIES (IN n NN) (FORSOME y (LUBA y n)))))))
     (pair? (list-ref (scout 6 3 200) 4))))
 
+;; The produces-witness index: an existential GOAL retrieves the PSS lemmas that
+;; MANUFACTURE a witness of its shape -- keyed on the leading typing/structure
+;; conjuncts (binder abstracted), so a Cauchy-subsequence goal finds
+;; `diagonalization' (both make a STRICTLY-MONO-NN phi) though their bodies
+;; differ -- the connection plain bc* misses.  The circular headlines that
+;; CONCLUDE the goal are filtered out.
+(check-true "produces-witness index: Cauchy goal retrieves diagonalization, not the circular headline"
+  (lambda ()
+    (rebuild-witness-index!)
+    (let ((prods (witness-producers
+                  '(FORSOME phi (AND (STRICTLY-MONO-NN phi)
+                                     (IS-CAUCHY-SEQ s (SUBSEQ f phi)))))))
+      (and (and (memq 'diagonalization prods) #t)
+           (not (memq 'totally-bounded-has-cauchy-subsequence prods))))))
+
+(check-true "produces-witness index: nested-family goal retrieves block-family"
+  (lambda ()
+    (rebuild-witness-index!)
+    (and (memq 'block-family
+               (witness-producers
+                '(FORSOME s (AND (IN s (FUN NN (INF-SUBSETS NN)))
+                                 (FORALL k (IMPLIES (IN k NN)
+                                   (SUBSET (s (succ k)) (s k))))))))
+         #t)))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))

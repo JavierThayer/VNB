@@ -524,6 +524,10 @@
          ;; Ai lane: on an existential HYPOTHESIS, name the (ai k) skolemizations
          ;; -- the forward move grind can't do (di splits AND hyps, never ∃).
          (set! moves (append moves (what-now--show-ai)))
+         ;; Witness-producer lane: on an existential goal, name PSS lemmas that
+         ;; BUILD a witness of this shape (the diagonalization / block-family
+         ;; construction) -- the leap the assembler can't search out.
+         (set! moves (append moves (what-now--show-witness-producers)))
          (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
          (newline)
          (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
@@ -1332,6 +1336,123 @@
            (vnb--scout-context-funs clone))
           (vnb--take (map cdr (sort cands (lambda (a b) (> (car a) (car b)))))
                      *scout-ew-fanout*)))))
+
+;;; -----------------------------------------------------------------------
+;;; The PRODUCES-WITNESS index + witness-shape backchain.
+;;;
+;;; A bare `bc*' demands the WHOLE conclusion unify with the goal, so it bounces
+;;; off `exists phi. STRICTLY-MONO-NN(phi) and IS-CAUCHY-SEQ(...)' vs
+;;; `diagonalization's exists phi. STRICTLY-MONO-NN(phi) and (tail-in-blocks)' --
+;;; the bodies differ.  But they MANUFACTURE THE SAME WITNESS SHAPE: a strictly-
+;;; monotone phi.  This index keys PSS lemmas by the shape of the existential
+;;; witness their conclusion produces -- the leading typing/structure conjunct,
+;;; binder abstracted -- so an existential GOAL retrieves exactly the lemmas that
+;;; build the right kind of object (diagonalization for a STRICTLY-MONO-NN, block-
+;;; family for an `s in FUN(NN, INF-SUBSETS(NN))').  This is the discovery hook:
+;;; the chain phi <- diagonalization <- s <- block-family <- (TB + null radii) is
+;;; a sequence of witness-shape backchains, each producing the next object down.
+
+(define *witness-placeholder* '?w)
+
+;; Flatten a (possibly nested-binary) AND into its list of conjuncts.
+(define (vnb--flatten-and e)
+  (if (and (pair? e) (eq? (car e) 'AND) (= (length e) 3))
+      (append (vnb--flatten-and (binary-left e)) (vnb--flatten-and (binary-right e)))
+      (list e)))
+
+;; Witness-shape KEYS (plural) of an existential wff CONCL (already foralls-
+;; stripped, hyps-peeled), or '().  EVERY conjunct of the body, binder -> ?w:
+;;   exists phi. (IN phi (FUN NN NN) and STRICTLY-MONO-NN phi and ...)
+;;     -> ((IN ?w (FUN NN NN)) (STRICTLY-MONO-NN ?w) ...)
+;; Indexing under every conjunct (not just the leading one) is what lets a goal
+;; whose conjunct is the PROPERTY `STRICTLY-MONO-NN phi' find a lemma whose body
+;; leads with the TYPING `IN phi (FUN NN NN)' -- the two name one witness from
+;; different angles, and bc* (whole-conclusion unify) misses the connection.
+(define (vnb--witness-keys concl)
+  (if (and (pair? concl) (eq? (car concl) 'FORSOME))
+      (let ((v (quantifier-var concl)) (bdy (quantifier-body concl)))
+        (vnb--dedup
+         (map (lambda (c) (subst-free v *witness-placeholder* c))
+              (vnb--flatten-and bdy))))
+      '()))
+
+;; LEMMA name -> its witness-shape keys (via the normalised conclusion), or '().
+(define (vnb--lemma-witness-keys name)
+  (let ((stmt (lookup-theorem name)))
+    (if stmt (vnb--witness-keys (what-now--conclusion stmt)) '())))
+
+;; The index: witness-key -> list of producer lemma names.  Cached (the PSS is
+;; fixed after load); (rebuild-witness-index!) forces a rebuild.
+(define *witness-producer-index* #f)
+(define (rebuild-witness-index!)
+  (let ((tbl (make-equal-hash-table)))
+    (for-each
+     (lambda (name)
+       (let ((keys (vnb-guard (lambda () (vnb--lemma-witness-keys name)))))
+         (unless (vnb-error? keys)
+           (for-each (lambda (k)
+                       (hash-table-update!/default tbl k (lambda (l) (cons name l)) '()))
+                     keys))))
+     (vnb--dedup (append *support-theorem-names* *proven-theorem-names*)))
+    (set! *witness-producer-index* tbl)
+    tbl))
+(define (vnb--witness-producer-index)
+  (or *witness-producer-index* (rebuild-witness-index!)))
+
+;; Producer-lemma names for GOAL's witness shape -- the union over the goal's
+;; conjunct keys, deduped, EXCLUDING any lemma whose CONCLUSION is alpha-equal to
+;; the goal's (citing a theorem that already concludes the goal to prove the goal
+;; is circular -- the headline trap: tb-has-eps-cauchy-subseq et al. conclude the
+;; very `exists phi. mono and Cauchy' we're after; `diagonalization' does not, it
+;; concludes `exists phi. mono and tail-in-blocks', so it survives).  '() if the
+;; goal isn't existential or nothing produces the shape.
+(define (witness-producers goal)
+  (let* ((gc   (what-now--conclusion goal))
+         (idx  (vnb--witness-producer-index))
+         (keys (vnb--witness-keys gc)))
+    (vnb--dedup
+     (filter (lambda (name)
+               (let* ((stmt (lookup-theorem name))
+                      (sc   (and stmt (vnb-guard (lambda () (what-now--conclusion stmt))))))
+                 (not (and (pair? sc) (alpha-equiv? sc gc)))))
+             (apply append
+                    (map (lambda (k) (hash-table-ref/default idx k '())) keys))))))
+
+;; what-now lane: on an existential goal, name the PSS lemmas that MANUFACTURE a
+;; witness of the goal's shape -- the diagonalization / block-family construction
+;; the assembler (inst/ew) can't invent.  Returns (wbc 'name) forms; '() if none.
+(define (what-now--show-witness-producers)
+  (let* ((goal  (and *ps* (suggest--current-goal)))
+         (prods (and goal (witness-producers goal))))
+    (if (or (not prods) (null? prods))
+        '()
+        (begin
+          (display ";; witness-producers -- PSS lemmas that BUILD this goal's witness shape:")
+          (newline)
+          (display ";; -- cite one (wbc 'name), then inst+ its hyps / grind to skolemize / ew:")
+          (newline)
+          (for-each (lambda (n) (display ";;   (wbc '") (display n) (display ")") (newline))
+                    prods)
+          (map (lambda (n) (list 'wbc (list 'quote n))) prods)))))
+
+;; (wbc [name]) -- witness-shape backchain: cite a witness-PRODUCER for the
+;; current existential goal (its conclusion makes the right kind of object), so
+;; the assembler can finish with inst+/grind/ew.  Defaults to the first retrieved
+;; producer; the recorded move is the (ta name) it performs.
+(define (wbc . opt-name)
+  (let* ((goal  (and *ps* (suggest--current-goal)))
+         (prods (and goal (witness-producers goal)))
+         (name  (cond ((pair? opt-name) (car opt-name))
+                      ((and (list? prods) (pair? prods)) (car prods))
+                      (else #f))))
+    (cond
+      ((not goal) (vnb--warn "wbc" "no proof in progress"))
+      ((not name) (vnb--warn "wbc" "no witness-producer lemma for this goal's shape"))
+      (else
+       (display ";; wbc: citing witness-producer ") (display name) (newline)
+       (display ";;   now inst+ its hypotheses from context, grind to skolemize, ew the witness.")
+       (newline)
+       (ta name)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The ai lane -- existential-HYPOTHESIS elimination (skolemization), the dual
