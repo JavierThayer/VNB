@@ -1429,16 +1429,80 @@
         (begin
           (display ";; witness-producers -- PSS lemmas that BUILD this goal's witness shape:")
           (newline)
-          (display ";; -- cite one (wbc 'name), then inst+ its hyps / grind to skolemize / ew:")
+          (display ";; -- (wbc 'name) resolves+applies it (fact+grind, lands the object); then ew it:")
           (newline)
           (for-each (lambda (n) (display ";;   (wbc '") (display n) (display ")") (newline))
                     prods)
           (map (lambda (n) (list 'wbc (list 'quote n))) prods)))))
 
-;; (wbc [name]) -- witness-shape backchain: cite a witness-PRODUCER for the
-;; current existential goal (its conclusion makes the right kind of object), so
-;; the assembler can finish with inst+/grind/ew.  Defaults to the first retrieved
-;; producer; the recorded move is the (ta name) it performs.
+;; Single-variable first-order match: does PAT (which may contain the unknown V)
+;; match TERM?  Returns V's binding term, or #f (also #f if V never bound).
+(define (wbc--match1 pat term v)
+  (let ((bind #f) (ok #t))
+    (let rec ((p pat) (t term))
+      (cond ((not ok) #f)
+            ((eq? p v) (if bind (unless (equal? bind t) (set! ok #f)) (set! bind t)))
+            ((and (pair? p) (pair? t) (= (length p) (length t))) (for-each rec p t))
+            ((and (not (pair? p)) (not (pair? t)) (eqv? p t)) #t)
+            (else (set! ok #f))))
+    (and ok bind)))
+
+;; Find a context hyp (in ASMS, raw formulas) matching GUARD with unknown V;
+;; return V's value, or #f.
+(define (wbc--match-guard guard v asms)
+  (let loop ((as asms))
+    (and (pair? as)
+         (or (wbc--match1 guard (car as) v) (loop (cdr as))))))
+
+;; Apply a list of (var . val) bindings to a formula.
+(define (wbc--subst-all sub e)
+  (fold-left (lambda (acc p) (subst-free (car p) (cdr p) acc)) e sub))
+
+;; Resolve the instantiation terms for a FORALL-GUARDED lemma STMT from the
+;; context ASMS (raw formulas): walk `FORALL v. (IMPLIES guard(v) rest)',
+;; matching each guard against a hypothesis to pin v.  Returns the term list in
+;; FORALL order (stops at the first unguarded forall / non-forall = the premises
+;; fact will auto-detach), or #f if a guard can't be matched.
+(define (wbc--resolve-terms stmt asms)
+  (let loop ((f stmt) (terms '()) (sub '()))
+    (if (and (pair? f) (eq? (car f) 'FORALL))
+        (let ((v (quantifier-var f)) (body (quantifier-body f)))
+          (if (and (pair? body) (eq? (car body) 'IMPLIES))
+              (let* ((guard (wbc--subst-all sub (binary-left body)))
+                     (val   (wbc--match-guard guard v asms)))
+                (if val
+                    (loop (binary-right body) (cons val terms) (cons (cons v val) sub))
+                    #f))                       ; guard unmatched -> give up
+              (reverse terms)))                ; unguarded forall -> stop
+        (reverse terms))))                     ; conclusion reached
+
+;; After `fact' lands the producer's existential conclusion as a hypothesis,
+;; OPEN it: skolemize the FORSOME and split the AND body, WITHOUT unfolding any
+;; defined predicate (unlike grind -- crucial, so the produced premises a later
+;; producer must detach, e.g. the nesting `forall k. SUBSET(...)', stay FOLDED).
+;; Just `ai' (antecedent inference: FORSOME-elim + AND-split) the FORSOME/AND
+;; hypotheses until none remain; bounded.
+(define (wbc--open!)
+  (let loop ((n 0))
+    (when (< n 30)
+      (let ((h (let scan ((as (sequent-node-assumptions (proof-state-focus *ps*))))
+                 (and (pair? as)
+                      (let ((f (wff-formula (car as))))
+                        (if (and (pair? f) (memq (car f) '(FORSOME AND))) f
+                            (scan (cdr as))))))))
+        (when h
+          (let ((r (vnb-guard (lambda () (ai h)))))
+            (unless (or (vnb-error? r) (vnb-warning? r)) (loop (+ n 1)))))))))
+
+;; (wbc [name]) -- witness-shape backchain, EXECUTED.  Pick a witness-producer for
+;; the current existential goal (default: the top retrieved), RESOLVE its premise
+;; variables against the context (the eigenvariables their guards match -- s from
+;; TB(s), f from the typing, rad from null-rr-seq(rad)), then `fact' it at those
+;; terms (instantiate + auto-detach the premises) and `grind' to skolemize the
+;; produced existential -- landing the constructed object (blk / phi) in context.
+;; The recorded moves are the plain (fact 'name terms...) and (grind), so the
+;; proof script is explicit and reproducible.  REQUIRES the producer's premises be
+;; present, so grind FIRST (to deposit TB(s), the typing, etc.).
 (define (wbc . opt-name)
   (let* ((goal  (and *ps* (suggest--current-goal)))
          (prods (and goal (witness-producers goal)))
@@ -1449,10 +1513,23 @@
       ((not goal) (vnb--warn "wbc" "no proof in progress"))
       ((not name) (vnb--warn "wbc" "no witness-producer lemma for this goal's shape"))
       (else
-       (display ";; wbc: citing witness-producer ") (display name) (newline)
-       (display ";;   now inst+ its hypotheses from context, grind to skolemize, ew the witness.")
-       (newline)
-       (ta name)))))
+       (let* ((stmt  (lookup-theorem name))
+              (asms  (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
+              (terms (and stmt (wbc--resolve-terms stmt asms))))
+         (cond
+           ((not (pair? terms))
+            (display ";; wbc: can't match ") (display name)
+            (display "'s premises against the context -- grind first so its hyps")
+            (display " (TB s, the typing, ...) are present, then retry,") (newline)
+            (display ";;   or apply it by hand: (fact '") (display name) (display " <terms>).")
+            (newline)
+            (vnb--warn "wbc" "producer premises unmatched in context"))
+           (else
+            (display ";; wbc: applying witness-producer ") (display name)
+            (display " at ") (write terms)
+            (display "  (fact, then skolemize+split its output):") (newline)
+            (apply fact name terms)
+            (wbc--open!))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The ai lane -- existential-HYPOTHESIS elimination (skolemization), the dual

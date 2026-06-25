@@ -3265,6 +3265,36 @@
                                    (SUBSET (s (succ k)) (s k))))))))
          #t)))
 
+;; wbc EXECUTED -- the witness-shape backchain resolves a producer's premises
+;; against context, applies it (fact: instantiate + auto-detach), and skolemizes
+;; its output, landing the constructed object.  Two steps assemble the whole
+;; Cauchy-subsequence CONSTRUCTION: (wbc 'block-family) builds the nested infinite
+;; family, (wbc 'diagonalization) builds the strictly-monotone reindexer.  Then ew
+;; supplies it and the strictly-mono conjunct closes -- leaving ONLY the
+;; is-cauchy-seq estimate.  (di, not grind, for the intros: keeps the producers'
+;; premises folded so they can be detached.)  This is the invention half of an
+;; existence proof, driven automatically.
+(check-true "wbc: drives the Cauchy-subsequence construction down to the estimate"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (TOTALLY-BOUNDED s)
+                     (FORALL f (IMPLIES (IN f (FUN NN (X s)))
+                       (FORALL rad (IMPLIES (NULL-RR-SEQ rad)
+                         (FORSOME phi (AND (STRICTLY-MONO-NN phi)
+                           (IS-CAUCHY-SEQ s (SUBSEQ f phi))))))))))))
+    (di)(di)(di)(di)(di)(di)
+    (rebuild-witness-index!)
+    (wbc 'block-family)
+    (wbc 'diagonalization)
+    (let ((phi0 (let loop ((as (map wff-formula
+                                    (sequent-node-assumptions (proof-state-focus *ps*)))))
+                  (cond ((null? as) #f)
+                        ((and (pair? (car as)) (eq? (caar as) 'STRICTLY-MONO-NN)) (cadr (car as)))
+                        (else (loop (cdr as)))))))
+      (and phi0
+           (begin (ew phi0) (di) (ass)
+                  (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+                    (and (pair? g) (eq? (car g) 'IS-CAUCHY-SEQ))))))))
+
 (check-true "scout-show: prints and returns the same 5-list"
   (lambda ()
     (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
