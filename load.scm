@@ -311,6 +311,9 @@
     ;; were redundant asserted axioms (a definition oversight).
     "structure-library/metric-laws"
     "theorem-library/cauchy-subseq-proof"
+    ;; countable Tychonoff headline, PROVEN to QED modulo the diagonalization
+    ;; keystone.  Needs seq-compact-product's supports + interactive/proof-debt.
+    "theorem-library/tychonoff-proof"
     ;; totally-bounded => every sequence has a Cauchy subsequence, PROVEN to QED
     ;; via the combinatorial block family.  Needs cauchy-subsequence (the cited
     ;; supports) + interactive/proof-debt (sp/di/mac/fact/qed).

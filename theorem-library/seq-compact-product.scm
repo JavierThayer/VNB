@@ -121,16 +121,10 @@
 
 ;;; compact-countable-product: a countable product of COMPACT metric spaces is
 ;;; compact.  calculus.pdf countable Tychonoff via sequential compactness.
-(support 'compact-countable-product
-  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
-     (IMPLIES (FORALL n (IMPLIES (IN n NN) (IS-COMPACT (ms n))))
-       (IS-COMPACT (PRODUCT-METRIC ms))))))
-(warrant! 'compact-countable-product 'reference
-  "Countable Tychonoff for compact metric spaces.  Each factor compact =>
-   sequentially compact (compact-iff-seq-compact, forward); then
-   seq-compact-countable-product makes PRODUCT-METRIC(ms) sequentially compact;
-   the product is a metric space (product-is-metric-space at the default
-   summable weights, product-metric-default-summable); compact-iff-seq-compact
-   backward turns sequential compactness back into compactness.  No open covers
-   or ultrafilters -- the metric/sequential route, countably-based.  The whole
-   theorem rests on the diagonalization keystone coordinatewise-diagonal-subseq.")
+;;; PROVEN (not asserted) -- theorem-library/tychonoff-proof.scm drives it to
+;;; QED: each factor compact => seq-compact (compact-iff-seq-compact); product
+;;; seq-compact (seq-compact-countable-product); product is a metric space
+;;; (product-is-metric-space @ default weight); seq-compact => compact.  The
+;;; cross-coordinate diagonalisation is isolated in the keystone coordinatewise-
+;;; diagonal-subseq (cited through seq-compact-countable-product).  The statement
+;;; is reproduced there in its (sp ...).
