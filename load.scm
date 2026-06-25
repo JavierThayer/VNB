@@ -434,6 +434,13 @@
 ;; Regenerate the theorem/axiom catalog (THEOREMS.md) so it never goes stale.
 (catalog)
 
+;; Regenerate PSS.md (the dedicated Proof Support Set page) from the SAME
+;; *support-theorem-names* the catalog's "Proof Support Set" section uses, so
+;; the two never diverge.  Previously only (catalog) ran here, so PSS.md (and
+;; its PSS.html) fossilised while THEOREMS.md kept current -- the two PSS lists
+;; drifted apart (144 vs ~320 entries).
+(write-pss-md)
+
 ;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
 (write-tactics-md)
 
