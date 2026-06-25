@@ -968,11 +968,14 @@
 ;;; Returns the path written.
 (define (write-pss-md)
   (let* ((path (string-append *reference-dir* "PSS.md"))
-         (names (filter (lambda (n) (memq n *support-theorem-names*))
-                        (sort (hash-table-keys *theorem-table*)
-                              (lambda (a b)
-                                (string<? (symbol->string a)
-                                          (symbol->string b)))))))
+         ;; collapse-rev-names: omit the auto-installed `-rev' companions (derived
+         ;; flips, not independent supports) from the listing, as the catalog does.
+         (names (collapse-rev-names
+                 (filter (lambda (n) (memq n *support-theorem-names*))
+                         (sort (hash-table-keys *theorem-table*)
+                               (lambda (a b)
+                                 (string<? (symbol->string a)
+                                           (symbol->string b))))))))
     (with-output-to-file path
       (lambda ()
         (display "# Proof Support Set\n\n")
@@ -1179,9 +1182,14 @@
     (list path (length functors) (length helpers))))
 
 (define (catalog)
-  (let* ((all     (sort (hash-table-keys *theorem-table*)
-                        (lambda (a b) (string<? (symbol->string a)
-                                                (symbol->string b)))))
+  (let* (;; Drop the auto-installed `-rev' companions (same fact, flipped) -- they
+         ;; are derived rewrite directions, not independent results, so listing
+         ;; them doubles the catalog.  They stay installed/matchable; only the
+         ;; listing omits them, as DEFINITIONS.md and the fingerprint index do.
+         (all     (collapse-rev-names
+                   (sort (hash-table-keys *theorem-table*)
+                         (lambda (a b) (string<? (symbol->string a)
+                                                 (symbol->string b))))))
          (proven  (filter (lambda (n) (memq n *proven-theorem-names*)) all))
          (support (filter (lambda (n) (memq n *support-theorem-names*)) all))
          (axioms  (filter (lambda (n)
