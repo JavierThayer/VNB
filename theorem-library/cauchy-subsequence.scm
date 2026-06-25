@@ -247,6 +247,28 @@
    The metric content total boundedness contributes to block-family, isolated
    in one bridge -- see calculus/cauchy-subseq-via-combinatorial.scm.")
 
+;;; cauchy-block-estimate: the metric LEAF of the Cauchy estimate, folded into
+;;; one fully-curried lemma so the headline proof closes by a single `fact'
+;;; (no goal-only eq-subst gymnastics).  Two points y,z of one r-ball U =
+;;; BALL(s,c,r), with r <= d and d+d = eps, are <= eps apart.
+(support 'cauchy-block-estimate
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (FORALL c (IMPLIES (IN c (X s))
+       (FORALL r (IMPLIES (POS-RR r)
+         (FORALL U (IMPLIES (= U (BALL s c r))
+           (FORALL y (IMPLIES (IN y U)
+             (FORALL z (IMPLIES (IN z U)
+               (FORALL d (IMPLIES (POS-RR d)
+                 (FORALL eps (IMPLIES (IN eps RR)
+                   (IMPLIES (<= r d)
+                     (IMPLIES (= (+ d d) eps)
+                       (<= ((D s) y z) eps))))))))))))))))))))
+(warrant! 'cauchy-block-estimate 'proof
+  "y,z in U = BALL(s,c,r): substitute U, ball-2r-triangle gives d(y,z) <= r+r.
+   r <= d gives r+r <= d+d (rr-le-add), and d+d = eps, so r+r <= eps; rr-le-trans
+   then gives d(y,z) <= eps.  Curried (no AND antecedents) so the headline proof
+   discharges every premise by in-context `fact' auto-detach.")
+
 ;;; NOTE: the metric is inessential here.  block-family is the instance
 ;;;   V := X(s), cov(k) := { BALL(s,c,rad k) : c in a finite rad(k)-net }
 ;;; of block-family-combinatorial (theorem-library/block-family-combinatorial
@@ -333,17 +355,9 @@
    are < 2 rad(k) apart) + NULL-RR-SEQ (rad(k) <= eps/2 eventually).  calculus.pdf
    Prop 3.31; assembly posed as a proof goal for the engine in calculus/.")
 
-;;; totally-bounded-has-cauchy-subsequence: the parameter-free headline.  Drop rad
-;;; by null-rr-seq-exists + the rad-parametrised form.
-(support 'totally-bounded-has-cauchy-subsequence
-  '(FORALL s
-     (IMPLIES (TOTALLY-BOUNDED s)
-       (FORALL f
-         (IMPLIES (IN f (FUN NN (X s)))
-           (FORSOME phi
-             (AND (STRICTLY-MONO-NN phi)
-                  (IS-CAUCHY-SEQ s (SUBSEQ f phi)))))))))
-(warrant! 'totally-bounded-has-cauchy-subsequence 'reference
-  "Instantiate totally-bounded-has-cauchy-subseq-rad at a null radius sequence
-   supplied by null-rr-seq-exists.  The sequential-compactness consequence of total
-   boundedness; calculus.pdf Prop 3.31.")
+;;; totally-bounded-has-cauchy-subsequence: the parameter-free headline.
+;;; PROVEN (not asserted) -- see theorem-library/cauchy-subseq-proof.scm, which
+;;; drives it to QED via the combinatorial route (null-rr-seq-exists for rad,
+;;; tb-rad-ball-cover for the finite covers, block-family-combinatorial for the
+;;; block witness, diagonalization for phi, cauchy-block-estimate for the 2r
+;;; estimate).  The statement is reproduced there in its (sp ...).

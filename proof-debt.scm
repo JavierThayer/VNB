@@ -47,7 +47,11 @@
 ;;; the macete/theorem name (the second is the assumption), so it is credited
 ;;; exactly like mac.  Omitting it would let a hypothesis-side use of a
 ;;; warranted support (e.g. preimage-complement) escape the debt ledger.
-(define *pd-citing-verbs* '(mac mac-h ta bc*))
+;;; fact cites a PSS theorem forward -- its FIRST arg is the theorem name (the
+;;; rest are instantiation terms), so a forward-assembled proof (e.g.
+;;; cauchy-subseq-proof) bills its cited supports honestly; crediting proven /
+;;; definitional citations resolves to nothing, so only asserted leaves count.
+(define *pd-citing-verbs* '(mac mac-h ta bc* fact))
 
 ;;; The set of names a proof script directly cites.  A compound-macete arg
 ;;; (e.g. (mac '(series m1 m2))) is NOT a bare name; we log it as an

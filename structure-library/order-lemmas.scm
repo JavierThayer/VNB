@@ -35,6 +35,24 @@
   "Strict order is transitive: from x<y<z, x<=z by rr-leq-transitive and x=/=z
    (else y would be both > and < x).")
 
+(support 'nn-in-rr
+  '(FORALL k (IMPLIES (IN k NN) (IN k RR))))
+(warrant! 'nn-in-rr 'proof
+  "The inclusion chain NN subset ZZ subset QQ subset RR (nn-subset-zz,
+   zz-subset-qq, qq-subset-rr) composed: a natural number is a real.")
+
+(support 'nn-le-refl
+  '(FORALL k (IMPLIES (IN k NN) (<= k k))))
+(warrant! 'nn-le-refl 'proof
+  "k in NN gives k in RR (nn-in-rr); rr-leq-reflexive then gives k <= k.")
+
+(support 'rr-le-trans
+  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+     (FORALL z (IMPLIES (IN z RR)
+       (IMPLIES (AND (<= x y) (<= y z)) (<= x z)))))))))
+(warrant! 'rr-le-trans 'well-known
+  "Non-strict order is transitive: x <= y <= z gives x <= z (rr-leq-transitive).")
+
 (support 'rr-lt-le-trans
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
      (FORALL z (IMPLIES (IN z RR)

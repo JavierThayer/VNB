@@ -454,6 +454,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `bdd-metric-id-bicontinuous` — forall([s], is-metric-space(s) implies is-continuous(s, bdd-metric(s), vnb-lambda(x, x)) and is-continuous(bdd-metric(s), s, vnb-lambda(x, x)))
 - `bdd-metric-is-metric-space` — forall([s], is-metric-space(s) implies is-metric-space(bdd-metric(s)))
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, x(s)))
+- `cauchy-block-estimate` — forall([s], is-metric-space(s) implies forall([c in x(s), r], pos-rr(r) implies forall([u], u = ball(s, c, r) implies forall([y in u, z in u, d], pos-rr(d) implies forall([eps in rr], r <= d implies d + d = eps implies (d(s))(y, z) <= eps)))))
 - `cauchy-setoid-is-setoid` — forall([m], is-metric-space(m) implies is-setoid(cauchy-setoid(m)))
 - `compact-iff-cluster-point` — forall([s], is-metric-space(s) implies is-compact(s) iff forall([f in fun(nn, x(s))], forsome([x], cluster-point(s, f, x))))
 - `compact-iff-cluster-point-rev` — forall([s], is-metric-space(s) implies forall([f in fun(nn, x(s))], forsome([x], cluster-point(s, f, x))) iff is-compact(s))

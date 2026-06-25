@@ -303,6 +303,11 @@
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
     "structure-library/metric-laws"
+    "theorem-library/cauchy-subseq-proof"
+    ;; totally-bounded => every sequence has a Cauchy subsequence, PROVEN to QED
+    ;; via the combinatorial block family.  Needs cauchy-subsequence (the cited
+    ;; supports) + interactive/proof-debt (sp/di/mac/fact/qed).
+
     ;; 0.x = 0_V : first proven MODULE theorem; worked test of `fact' + the
     ;; MODULE-VECTOR-AG view.  Needs interactive tactics + the module bricks.
     "theorem-library/module-zero-act"
