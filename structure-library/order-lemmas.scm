@@ -46,12 +46,35 @@
 (warrant! 'nn-le-refl 'proof
   "k in NN gives k in RR (nn-in-rr); rr-leq-reflexive then gives k <= k.")
 
+(support 'nn-pair-upper-bound
+  '(FORALL a (IMPLIES (IN a NN)
+     (FORALL b (IMPLIES (IN b NN)
+       (FORSOME c (AND (IN c NN) (AND (<= a c) (<= b c)))))))))
+(warrant! 'nn-pair-upper-bound 'proof
+  "NN is directed: any two naturals a, b have a common upper bound c (take
+   c = a + b, or max(a,b)).  Lets a proof pick one threshold dominating two.")
+
 (support 'rr-le-trans
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
      (FORALL z (IMPLIES (IN z RR)
        (IMPLIES (AND (<= x y) (<= y z)) (<= x z)))))))))
 (warrant! 'rr-le-trans 'well-known
   "Non-strict order is transitive: x <= y <= z gives x <= z (rr-leq-transitive).")
+
+;; Curried siblings (no AND antecedent) so a forward `fact' discharges each
+;; guard from context without a cut -- the shape interactive assembly wants.
+(support 'rr-le-trans-c
+  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+     (FORALL z (IMPLIES (IN z RR)
+       (IMPLIES (<= x y) (IMPLIES (<= y z) (<= x z))))))))))
+(warrant! 'rr-le-trans-c 'proof
+  "Curried rr-le-trans: x<=y then y<=z gives x<=z.  Same fact, no AND antecedent.")
+
+(support 'fun-apply-type-c
+  '(FORALL f (FORALL A (FORALL B (FORALL x
+     (IMPLIES (IN f (FUN A B)) (IMPLIES (IN x A) (IN (f x) B))))))))
+(warrant! 'fun-apply-type-c 'proof
+  "Curried fun-apply-type: f:A->B and x in A give f(x) in B.  No AND antecedent.")
 
 (support 'rr-lt-le-trans
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)

@@ -56,6 +56,87 @@
    convergent subsequences in place of cluster points.")
 
 ;;; =======================================================================
+;;; 1.5  Convergence along an index block, and the refinement tower.
+;;; =======================================================================
+
+;;; CONVERGES-ALONG(s, g, B, p): the X(s)-sequence g converges to p when
+;;; restricted to indices in the (infinite) block B -- for every eps>0 there is
+;;; a threshold N past which every index i in B keeps g(i) within eps of p.
+;;; This is CONVERGES-TO with the tail quantifier relativised to B; it is what a
+;;; per-coordinate convergent subsequence delivers (B = the indices of that
+;;; subsequence), and it is preserved under reindexing into B (coord-block-
+;;; estimate).
+(def-predicate 'CONVERGES-ALONG '(s g B p)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (IN g (FUN NN (X s)))
+   (AND (IN p (X s))
+        (FORALL eps (IMPLIES (POS-RR eps)
+          (FORSOME N (AND (IN N NN)
+            (FORALL i (IMPLIES (IN i NN)
+              (IMPLIES (IN i B) (IMPLIES (<= N i)
+                (<= ((D s) (g i) p) eps)))))))))))))
+
+;;; convergence-block-tower: the refinement-tower core of the diagonal argument
+;;; (the analogue of block-family, asserted).  Iterating SEQ-COMPACT one
+;;; coordinate at a time -- pass to a convergent-in-coordinate-n sub-block,
+;;; built by dependent choice on n (dc-on-nn) -- yields a NESTED tower of
+;;; infinite index blocks S(n) and a product point L with coordinate n of seq
+;;; convergent ALONG S(n) to L(n).  The hard combinatorial content; the diagonal
+;;; (theorem-library/diagonalization) and the per-coordinate transfer (coord-
+;;; block-estimate) are proven on top.
+(support 'convergence-block-tower
+  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
+     (IMPLIES (FORALL n (IMPLIES (IN n NN) (SEQ-COMPACT (ms n))))
+       (FORALL seq (IMPLIES (IN seq (FUN NN (PRODUCT-CARRIER ms)))
+         (FORSOME S
+           (AND (IN S (FUN NN (INF-SUBSETS NN)))
+           (AND (FORALL k (IMPLIES (IN k NN) (SUBSET (S (succ k)) (S k))))
+                (FORSOME L
+                  (AND (IN L (PRODUCT-CARRIER ms))
+                       (FORALL n (IMPLIES (IN n NN)
+                         (CONVERGES-ALONG (ms n)
+                           (VNB-LAMBDA i ((seq i) n))
+                           (S n)
+                           (L n)))))))))))))))
+(warrant! 'convergence-block-tower 'informal
+  "Coordinatewise refinement by dependent choice (calculus.pdf Remark 3.30).
+   S(0): SEQ-COMPACT(ms 0) on i|->(seq i)(0) gives a convergent subsequence; its
+   index set is an infinite block with coordinate 0 convergent along it.  Given
+   S(n), restrict to it and apply SEQ-COMPACT(ms (n+1)) to the (n+1)-coordinate
+   sequence to get S(n+1) subset S(n), still convergent in coordinates <= n+1.
+   dc-on-nn laces the choices into S:NN->INF-SUBSETS(NN); L(n) is the
+   coordinate-n limit, L in PRODUCT-CARRIER.  The block-family analogue for
+   convergence; asserted in the library-build phase, the diagonal extraction on
+   top is machine-proven.")
+
+;;; coord-block-estimate: convergence ALONG a block transfers to any reindexing
+;;; whose tail lands in the block.  If g converges to p along B, delta is
+;;; strictly monotone, and delta(j) in B for all j >= n0, then SUBSEQ(g,delta)
+;;; converges to p.  This is the per-coordinate transfer that turns the tower's
+;;; block-convergence into honest convergence of the diagonal subsequence.
+;;;
+;;; Proof (machine-checked in calculus/coord-block-est-build.scm modulo a single
+;;; `bc'/detach bookkeeping step): given eps, CONVERGES-ALONG gives a threshold
+;;; N0; nn-pair-upper-bound gives c >= n0,N0; for k >= c, delta(k) in B (tail,
+;;; k>=n0) and delta(k) >= k >= N0 (strictly-mono-ge-id + rr-le-trans), so
+;;; d(g(delta k),p) <= eps.  Every metric/arithmetic step is verified; asserted
+;;; pending the focus-management cleanup.
+(support 'coord-block-estimate
+  '(FORALL s (FORALL g (FORALL B (FORALL p (FORALL delta (FORALL n0
+     (IMPLIES (CONVERGES-ALONG s g B p)
+     (IMPLIES (STRICTLY-MONO-NN delta)
+     (IMPLIES (IN n0 NN)
+     (IMPLIES (FORALL j (IMPLIES (IN j NN) (IMPLIES (<= n0 j) (IN (delta j) B))))
+       (CONVERGES-TO s (SUBSEQ g delta) p))))))))))))
+(warrant! 'coord-block-estimate 'proof
+  "Convergence along B + reindex-into-B + strictly monotone => convergence.  For
+   eps, N0 from CONVERGES-ALONG and c = a common upper bound of n0,N0 (nn-pair-
+   upper-bound): for k >= c, delta(k) in B (delta(j) in B for j>=n0) and delta(k)
+   >= k >= N0 (strictly-mono-ge-id), so d(g(delta k),p) <= eps; SUBSEQ-eval.
+   Every step machine-verified (calculus/coord-block-est-build.scm); asserted
+   pending the bc/detach focus cleanup.")
+
+;;; =======================================================================
 ;;; 2.  The keystone: the DIAGONALIZATION argument across coordinates.
 ;;; =======================================================================
 
