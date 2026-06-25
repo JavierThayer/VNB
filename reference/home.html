@@ -126,6 +126,27 @@
   </ol>
 </div>
 
+
+<h2>Two surfaces for running tactics</h2>
+<div class="fits">
+  <div class="part"><h3>(a) The interactive surface</h3>
+    <p>The Focus workspace: single-key commands and menus. You are <em>prompted</em>
+    for each argument and type it <em>bare</em> &mdash; a lemma's <b>name</b> with no
+    quote, a term in the minibuffer &mdash; and the command assembles the call for you.
+    E.g. press <code>F</code>, accept <code>null-rr-seq-exists</code>, <kbd>RET</kbd>.</p></div>
+  <div class="part"><h3>(b) The programmatic surface</h3>
+    <p>The Scratch workspace, the REPL, and saved proof scripts: you write the tactic
+    as a Scheme s-expression, with the quoting <em>explicit</em>. A lemma name is a
+    quoted <b>symbol</b>; a formula argument is a quoted <b>s-expression</b>:<br>
+    <code>(fact 'null-rr-seq-exists)</code>,
+    <code>(ai '(forsome rad (null-rr-seq rad)))</code>.</p></div>
+</div>
+<div class="reassure">
+  <p>The two are equivalent &mdash; anything you can do at one you can do at the other.
+  They differ only in how you supply arguments: <b>prompted and bare</b> at (a),
+  <b>written and quoted</b> at (b).</p>
+</div>
+
 <h2>Reference <span class="sub" style="font-size:.85rem">(reads in the browser)</span></h2>
 <a class="card" href="reference.html"><div class="t">Library</div><div class="b">everything cross-linked — start here</div></a><a class="card" href="STRUCTURE-INDEX.html"><div class="t">Structures</div><div class="b">every structure: slots, laws, views</div></a><a class="card" href="THEOREMS.html"><div class="t">Theorems &amp; axioms</div><div class="b">the full installed catalog</div></a><a class="card" href="DEFINITIONS.html"><div class="t">Definitions</div><div class="b">term &amp; predicate definitions</div></a><a class="card" href="PSS.html"><div class="t">Proof Support Set</div><div class="b">theorems excused from the VNB test, accepted on a warrant</div></a><a class="card" href="FINGERPRINT-INDEX.html"><div class="t">Fingerprint Index</div><div class="b">results bucketed by conclusion skeleton</div></a><a class="card" href="TACTICS.html"><div class="t">Tactics</div><div class="b">interactive proof commands, each with a one-line gloss</div></a><a class="card" href="structure-graph.html"><div class="t">Structure Graph</div><div class="b">refines &amp; view-as relations, clickable</div></a>
 <h2>Prove <span class="sub" style="font-size:.85rem">(opens in Emacs)</span></h2>

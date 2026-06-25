@@ -2442,6 +2442,7 @@ monospace font is installed.")
       ["Assume All"           vnb-pf-assume-all       t]
       ["B+ (auto-close)"      vnb-pf-bplus            t]
       ["Theorem..."           vnb-pf-theorem          t]
+      ["Cite Lemma (fact)..." vnb-pf-fact             t]
       ["Univ. Instantiate..." vnb-pf-instantiate      t]
       ["Exist. Witness..."    vnb-pf-exists-witness   t]
       ["Rewrite Hyp..."       vnb-pf-rewrite-hyp      t]
@@ -2855,6 +2856,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "M" 'vnb-pf-rewrite-hyp)          ; hyp-side dual of m
     (define-key m "e" 'vnb-pf-sep-elim)
     (define-key m "t" 'vnb-pf-theorem)
+    (define-key m "F" 'vnb-pf-fact)
     (define-key m "i" 'vnb-pf-instantiate)
     (define-key m "w" 'vnb-pf-exists-witness)
     (define-key m "b" 'vnb-pf-backchain)
@@ -2933,7 +2935,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
              (concat "  Keys: d direct-inf  D decompose-hyp  a assume  A assume-all  "
                      "+ B+auto-close  = close(a=a)  "
                      "m rewrite  M rewrite-hyp  e sep-elim  "
-                     "t theorem  i univ-inst  w witness  "
+                     "t theorem  F fact  i univ-inst  w witness  "
                      "b bc  B cite-lemma  f focus  q qed  o overview  "
                      "h home  r scratch-pad  S scratch-workspace  "
                      "T tex-toggle  W save-script  g refresh\n")
@@ -3360,6 +3362,39 @@ to use.  TAB lists them; any name can still be typed."
    (list (vnb-pf--read-name "(suggest-backchain-names)" "(theorem-names)"
                             "Add theorem")))
   (vnb-launch--send-tactic (format "(ta '%s)" (vnb-launch--dequote name))))
+
+(defun vnb-pf-fact (name terms)
+  "Cite lemma NAME forward: add it, instantiate at TERMS, detach in-context
+guards.  Wraps (fact 'NAME term...).
+
+Unlike `t' (Theorem, which only ADDS the lemma via `ta'), `fact' ASSEMBLES
+it -- peeling the lemma's leading FORALLs at the TERMS you give and
+discharging hypotheses already in the assumptions -- so the instantiated,
+detached consequent lands ready to use.
+
+Reads the lemma name, then instantiation terms one at a time, the standard
+variadic protocol: RET on an empty term finishes.  A lemma with no leading
+FORALLs (e.g. null-rr-seq-exists) takes no terms -- just RET at the first
+term prompt to send (fact 'NAME).  Terms are VNB surface syntax (s, f,
+x(s)); they are parsed prover-side."
+  (interactive
+   (let ((nm   (vnb-pf--read-lemma-name))
+         (ts   '())
+         (more t)
+         (i    1))
+     (while more
+       (let ((s (string-trim
+                 (read-string
+                  (format "Instantiation term %d (RET to finish): " i)))))
+         (if (string-empty-p s)
+             (setq more nil)
+           (push s ts)
+           (setq i (1+ i)))))
+     (list nm (nreverse ts))))
+  (vnb-launch--send-tactic
+   (format "(fact '%s%s)"
+           (vnb-launch--dequote name)
+           (mapconcat (lambda (tm) (format " %S" tm)) terms ""))))
 
 (defun vnb-pf-instantiate (formula term)
   "Instantiate a FORALL hypothesis at TERM.  Wraps (inst FORMULA TERM).

@@ -599,7 +599,15 @@
 ;; every antecedent already in context, landing the consequent as a hypothesis.
 ;; The forward-assembly workhorse for structure proofs ("apply this law here").
 (define (fact thm . args)
-  (vnb--run! 'fact (list thm args) (lambda () (cmd-fact *ps* thm args))))
+  ;; Parse each instantiation arg so surface-syntax terms work from any
+  ;; interactive surface, e.g. (fact 'thm "x(s)") -- ->raw-formula parses a
+  ;; string and passes a symbol / s-expression through unchanged, so existing
+  ;; (fact 'thm (list 'X s) ...) script calls are unaffected.
+  (let ((parsed (map ->raw-formula args)))
+    ;; Record the args FLAT -- (fact thm a b c), not (fact thm (a b c)) -- so the
+    ;; proof script / proof-tex trace reads as you'd type it and replays as
+    ;; (apply fact (cons thm parsed)) = (fact thm a b c).
+    (vnb--run! 'fact (cons thm parsed) (lambda () (cmd-fact *ps* thm parsed)))))
 
 ;; mac-h -- hypothesis-side `mac`.  Unfold a defined predicate (or apply any
 ;; unconditional IFF/=/== equivalence macete) inside a cited ASSUMPTION,

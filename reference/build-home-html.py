@@ -133,6 +133,31 @@ FITS = """
 </div>
 """
 
+# The two named tactic-evaluation surfaces.  Same tactics, two ways to invoke
+# them -- they differ only in how arguments are supplied (prompted-and-bare vs
+# written-and-quoted), which is the usual source of quoting confusion.
+SURFACES = """
+<h2>Two surfaces for running tactics</h2>
+<div class="fits">
+  <div class="part"><h3>(a) The interactive surface</h3>
+    <p>The Focus workspace: single-key commands and menus. You are <em>prompted</em>
+    for each argument and type it <em>bare</em> &mdash; a lemma's <b>name</b> with no
+    quote, a term in the minibuffer &mdash; and the command assembles the call for you.
+    E.g. press <code>F</code>, accept <code>null-rr-seq-exists</code>, <kbd>RET</kbd>.</p></div>
+  <div class="part"><h3>(b) The programmatic surface</h3>
+    <p>The Scratch workspace, the REPL, and saved proof scripts: you write the tactic
+    as a Scheme s-expression, with the quoting <em>explicit</em>. A lemma name is a
+    quoted <b>symbol</b>; a formula argument is a quoted <b>s-expression</b>:<br>
+    <code>(fact 'null-rr-seq-exists)</code>,
+    <code>(ai '(forsome rad (null-rr-seq rad)))</code>.</p></div>
+</div>
+<div class="reassure">
+  <p>The two are equivalent &mdash; anything you can do at one you can do at the other.
+  They differ only in how you supply arguments: <b>prompted and bare</b> at (a),
+  <b>written and quoted</b> at (b).</p>
+</div>
+"""
+
 CSS = """
  body { font-family: Helvetica, Arial, sans-serif; color:#1a2a3a;
         background:#eef3f9; margin:0; padding:2.4rem 1rem 3rem; }
@@ -264,6 +289,7 @@ def build():
 </header>
 {INTRO}
 {FITS}
+{SURFACES}
 <h2>Reference <span class="sub" style="font-size:.85rem">(reads in the browser)</span></h2>
 {refs}
 {works}

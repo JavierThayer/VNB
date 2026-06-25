@@ -46,20 +46,36 @@
 (define (proof-tex--open-ids)
   (map sequent-node-number (proof-open-goals *ps*)))
 
-;; A recorded command's argument: render symbols/numbers verbatim (witnesses,
-;; indices, macete names) and collapse formula/list args to an ellipsis, so the
-;; step annotation stays a tidy `(inst ... x)' / `(mac totally-bounded-def)'.
+;; A recorded command's argument, rendered exactly as you would TYPE it in a
+;; proof script so the step is reproducible:
+;;   - a symbol (theorem/macete NAME, witness) is a QUOTED SYMBOL -- `'name' --
+;;     because that is how it is passed, e.g. (fact 'null-rr-seq-exists) (a name
+;;     must stay a symbol: cmd-fact looks it up by `symbol?', so a string fails);
+;;   - a number (assumption index) is verbatim, e.g. (ai 2);
+;;   - a formula / term is a QUOTED S-EXPRESSION -- `'(forsome rad ...)' -- the
+;;     recorded internal form (lowercase, the reader case-folds), which
+;;     ->raw-formula passes through UNCHANGED.  We do NOT render it as the
+;;     surface string "forsome([rad], ...)": although prettier, surface does not
+;;     round-trip (it reparses with a canonicalised binder, ((rad)) vs rad), so
+;;     the quoted s-expr is the only form that names the SAME assumption `ai'
+;;     actually decomposed.  Still not an opaque `...' -- you see the term;
+;;   - the empty list (e.g. fact's no-arg tail) contributes nothing.
 (define (proof-tex--arg-short a)
-  (cond ((symbol? a) (symbol->string a))
+  (cond ((symbol? a) (string-append "'" (symbol->string a)))
         ((number? a) (number->string a))
-        ((null? a)   "()")
-        (else        "...")))
+        ((string? a) (string-append "\"" a "\""))
+        ((null? a)   #f)                            ; render nothing
+        ((pair? a)   (string-append "'" (call-with-output-string
+                                          (lambda (p) (write a p)))))
+        (else        (call-with-output-string (lambda (p) (write a p))))))
 
 (define (proof-tex--cmd-label entry)
   (string-append
    "(" (symbol->string (car entry))
    (apply string-append
-          (map (lambda (a) (string-append " " (proof-tex--arg-short a)))
+          (map (lambda (a)
+                 (let ((s (proof-tex--arg-short a)))
+                   (if s (string-append " " s) "")))   ; skip #f (empty-list) args
                (cdr entry)))
    ")"))
 
@@ -335,7 +351,9 @@
 (define (proof-tex--row n label goal asms focus-id new-ids)
   (string-append
    "\\medskip\\noindent\\textbf{" (number->string n) ".}\\quad "
-   "\\texttt{" (proof-tex--escape-tt label) "}"
+   ;; \fit so a long faithful label (e.g. an `ai' on a big assumption) shrinks
+   ;; to the line instead of overflowing the margin; short labels are untouched.
+   "\\fit{\\texttt{" (proof-tex--escape-tt label) "}}"
    (if goal
        (string-append
         (proof-tex--nodes-line focus-id new-ids)
