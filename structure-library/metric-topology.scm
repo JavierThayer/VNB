@@ -21,6 +21,42 @@
 ;;; standard metric-space arguments actually use.
 
 ;;; -----------------------------------------------------------------------
+;;; CONVENTION: functoids over a structure `s' are deliberately UNGUARDED.
+;;;
+;;; BALL(s,c,r), BALL-COVER(s,r) (compactness.scm), BDD-METRIC(s)
+;;; (bounded-metric.scm), CAUCHY-SETOID(M) (metric-completion.scm) and the
+;;; like are defined for ANY `s', with no IS-METRIC-SPACE(s) precondition in
+;;; the definition body.  `s' could be a bongo for which X(s)/D(s) happen to
+;;; denote something.  This is intentional and harmless:
+;;;
+;;;   1. The logic is untyped and partial, so the term is always well-formed.
+;;;      The body uses whatever D(s) denotes; no metric law (symmetry,
+;;;      triangle, ...) is INVOKED in the definition, so none is NEEDED.  If
+;;;      D(s) is undefined, undefinedness propagates (t=t is definedness) and
+;;;      you get the empty set / an undefined term -- never a false theorem.
+;;;
+;;;   2. A definition is a conservative abbreviation, not an assertion:
+;;;      BALL(s,c,r) := {...} is just (FORALL s c r. BALL(s,c,r) = {...}),
+;;;      true by fiat.  It introduces no new theorem in the old vocabulary,
+;;;      so it cannot make IS-METRIC-SPACE(bongo) -- or anything false --
+;;;      provable.  Garbage in, garbage out; "garbage out" is never a lie.
+;;;
+;;;   3. The mathematical content lives in the GUARDED theorems.  Every
+;;;      substantive support (BALL-COVER is an open cover, BDD-METRIC(s) is a
+;;;      metric space, CAUCHY-SETOID(M) is a setoid) carries IS-METRIC-SPACE
+;;;      as a hypothesis; the IS-OPEN-COVER / IS-COMPACT predicates fold it in
+;;;      as a conjunct.  That is where the bongo is excluded.  Leaving the
+;;;      definitions naked avoids an IF-IS-METRIC-SPACE-THEN-ELSE wart in
+;;;      every body and the duplicated guard in every downstream proof.
+;;;
+;;;   So the only purely-definitional supports below (ball-membership,
+;;;   bdd-metric-carrier, centres-*, ball-point-*, subset-mem-fwd) are
+;;;   CORRECTLY unguarded -- they are SEP/slot read-offs that hold for any s.
+;;;   The one discipline that actually bites: a substantive theorem must not
+;;;   FORGET its IS-METRIC-SPACE hypothesis -- but that is a theorem-statement
+;;;   bug caught by the proof failing, not something a definition can launder.
+;;;
+;;; -----------------------------------------------------------------------
 ;;; BALL(s, c, r) -- the open r-ball around centre c in metric space s.
 ;;;
 ;;; The centre parameter is `c', NOT `x': the carrier accessor is X, and the

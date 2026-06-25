@@ -177,6 +177,10 @@
     ;; and the diagonalization argument.
     "theorem-library/dc-on-nn"
     "theorem-library/pigeonhole"
+    ;; The metric-free core of block-family: nested infinite blocks captured
+    ;; by a SEQUENCE OF FINITE COVERS (cover-block-step recursed via dc-on-nn).
+    ;; No metric vocabulary; block-family/tb-block-step are its instances.
+    "theorem-library/block-family-combinatorial"
     "theorem-library/subsequence-capture"
     "theorem-library/diagonalization"
     ;; Totally bounded => every sequence has a Cauchy subsequence.  Assembles

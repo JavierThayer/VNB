@@ -208,6 +208,13 @@
 ;;; 3.  (A) The nested block family  --  pigeonhole recursion
 ;;; =======================================================================
 
+;;; NOTE: the metric is inessential here.  block-family is the instance
+;;;   V := X(s), cov(k) := { BALL(s,c,rad k) : c in a finite rad(k)-net }
+;;; of block-family-combinatorial (theorem-library/block-family-combinatorial
+;;; .scm), where total boundedness supplies only "cov(k) is a finite cover"
+;;; and rad's positivity/nullity are used solely to MANUFACTURE that cover
+;;; (and, downstream, the 2r Cauchy estimate) -- never in the construction.
+;;;
 ;;; block-family: total boundedness lets us recursively pigeonhole the index
 ;;; set NN into a NESTED descending family of INFINITE index blocks, each block
 ;;; pinning f into a single small ball.
