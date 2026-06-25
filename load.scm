@@ -314,6 +314,10 @@
     ;; countable Tychonoff headline, PROVEN to QED modulo the diagonalization
     ;; keystone.  Needs seq-compact-product's supports + interactive/proof-debt.
     "theorem-library/tychonoff-proof"
+    ;; subseq-of-convergent: a subsequence of a convergent sequence converges to
+    ;; the same limit.  A keystone brick.  Needs cauchy-subsequence + metric-
+    ;; completeness supports + interactive.
+    "theorem-library/subseq-convergence-proof"
     ;; totally-bounded => every sequence has a Cauchy subsequence, PROVEN to QED
     ;; via the combinatorial block family.  Needs cauchy-subsequence (the cited
     ;; supports) + interactive/proof-debt (sp/di/mac/fact/qed).

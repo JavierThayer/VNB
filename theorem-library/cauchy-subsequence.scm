@@ -51,6 +51,19 @@
               (IMPLIES (IN n_ NN)
                 (IMPLIES (< m n_) (< (phi m) (phi n_)))))))))
 
+;;; strictly-mono-ge-id: a strictly monotone reindexing of NN dominates the
+;;; identity -- k <= phi(k) for all k.  The fundamental fact that lets a "tail
+;;; past position k" of a subsequence reach index >= any threshold: if phi is
+;;; strictly monotone then phi(k) >= k, so n >= N forces phi(n) >= N.  Used by
+;;; subseq-of-convergent and every diagonal/tail estimate.
+(support 'strictly-mono-ge-id
+  '(FORALL phi (IMPLIES (STRICTLY-MONO-NN phi)
+     (FORALL k (IMPLIES (IN k NN) (<= k (phi k)))))))
+(warrant! 'strictly-mono-ge-id 'proof
+  "NN-induction on k.  k=0: 0 <= phi(0) (NN is nonnegative).  k -> succ k:
+   phi(k) >= k (IH) and phi(succ k) > phi(k) (strict monotonicity at k < succ k),
+   so phi(succ k) > k, i.e. phi(succ k) >= succ k on NN.  Standard.")
+
 ;;; SUBSEQ(f, phi) -- the reindexed sequence  k |-> f(phi k)  (= f o phi).
 (def-functoid 'SUBSEQ '(f phi)
   '(VNB-LAMBDA k (f (phi k))))
