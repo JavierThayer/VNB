@@ -208,6 +208,45 @@
 ;;; 3.  (A) The nested block family  --  pigeonhole recursion
 ;;; =======================================================================
 
+;;; tb-rad-ball-cover: the metric-to-combinatorial BRIDGE.  Total boundedness
+;;; turns a pointwise-positive radius sequence into a SEQUENCE OF FINITE COVERS
+;;; of X(s) -- exactly the input block-family-combinatorial wants -- each of
+;;; whose members is a rad(k)-ball about a centre in X(s).  (i) feeds the
+;;; combinatorial recursion; (ii) lets its "U in cov(k)" capture be read back
+;;; as the metric "some centre c in X(s)".  Only POS-RR(rad k) is used; rad's
+;;; decay plays no part (it is consumed downstream, in the 2r estimate).
+(support 'tb-rad-ball-cover
+  '(FORALL s
+     (IMPLIES (TOTALLY-BOUNDED s)
+       (FORALL rad
+         (IMPLIES (FORALL k (IMPLIES (IN k NN) (POS-RR (rad k))))
+           (AND
+             ;; carrier sethood -- the combinatorial engine needs V=(X s) in SET;
+             ;; free here since TOTALLY-BOUNDED s gives IS-METRIC-SPACE s.
+             (IN (X s) SET)
+             (FORSOME cov
+               (AND
+                 (FORALL k
+                   (IMPLIES (IN k NN) (IS-FINITE-COVER (cov k) (X s))))
+                 (FORALL k
+                   (IMPLIES (IN k NN)
+                     (FORALL U
+                       (IMPLIES (IN U (cov k))
+                         (FORSOME c
+                           (AND (IN c (X s))
+                                (= U (BALL s c (rad k)))))))))))))))))
+(warrant! 'tb-rad-ball-cover 'reference
+  "cov(k) := IMAGE(c |-> BALL(s,c,rad k), F_k), F_k a finite rad(k)-net
+   (TOTALLY-BOUNDED at rad k > 0; CHOICE picks one per k).  (i) cov(k) is a
+   finite cover of X(s): image of the finite F_k is finite, and IS-R-NET makes
+   every p in X(s) lie within rad(k) of some c in F_k, i.e. p in BALL(s,c,rad k)
+   in cov(k) (IS-R-NET uses d<r, matching the open ball, so the balls truly
+   cover).  (ii) every member is by construction BALL(s,c,rad k) with c in F_k
+   subset X(s) (centres in X(s) by D(s) typing).  Also hands back (X s) in SET
+   (free from IS-METRIC-SPACE s), the set V the combinatorial engine needs.
+   The metric content total boundedness contributes to block-family, isolated
+   in one bridge -- see calculus/cauchy-subseq-via-combinatorial.scm.")
+
 ;;; NOTE: the metric is inessential here.  block-family is the instance
 ;;;   V := X(s), cov(k) := { BALL(s,c,rad k) : c in a finite rad(k)-net }
 ;;; of block-family-combinatorial (theorem-library/block-family-combinatorial
