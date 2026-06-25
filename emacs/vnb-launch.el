@@ -2944,12 +2944,26 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (goto-char (point-min))))
 
 (defun vnb-pf-refresh ()
-  "Repaint the Proof Workspace from the cached last state."
+  "Refresh the Proof Workspace.
+
+PULL a fresh proof state from a live prover: re-emit (show), whose
+VNB-STATE block flows back through the preoutput filter and triggers a
+repaint via `vnb-launch--on-state-update'.  This recovers the display
+whenever a state PUSH was missed -- e.g. the sp/tactic block arrived
+before the workspace hook was wired, or the comint filter was wedged by a
+reload -- which a cache-only repaint cannot do.
+
+Repaint from the cache first (immediate, and the only effect when the
+prover is not running).  Does NOT auto-start the prover, so refresh has no
+window side effects."
   (interactive)
   (let ((buf (get-buffer vnb-proof-buffer-name)))
     (when buf
       (with-current-buffer buf
-        (vnb-launch--paint-proof)))))
+        (vnb-launch--paint-proof))))
+  (let ((pbuf (get-buffer vnb-buffer-name)))
+    (when (and pbuf (get-buffer-process pbuf))
+      (comint-send-string pbuf "(show)\n"))))
 
 ;;; ----- Structured renderer for VNB proof-state text -----
 ;;;

@@ -41,7 +41,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -129,8 +129,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (a add zero neg) ↦ (a mul e inv)
 - `field-additive-ag` — from `field`: (a add zero neg) ↦ (a mul e inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (a mul e inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (a mul e inv) ↦ (a mul e inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
 - `normed-field-additive-ag` — from `normed-field`: (a add zero neg) ↦ (a mul e inv)
 
 *Views from `abelian-group`.*
@@ -377,8 +377,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (a add mul neg zero one) ↦ (a add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (a add mul neg zero one) ↦ (a add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
+- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 
 ### group
 <a id="group"></a>
@@ -460,6 +460,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `compact-iff-cluster-point-rev` — forall([s], is-metric-space(s) implies forall([f in fun(nn, x(s))], forsome([x], cluster-point(s, f, x))) iff is-compact(s))
 - `compact-iff-fip` — forall([s], is-metric-space(s) implies is-compact(s) iff forall([c], has-fip(s, c) implies forsome([p], p in big-intersection(a, c, a))))
 - `compact-iff-fip-rev` — forall([s], is-metric-space(s) implies forall([c], has-fip(s, c) implies forsome([p], p in big-intersection(a, c, a))) iff is-compact(s))
+- `compact-iff-seq-compact` — forall([s], is-metric-space(s) implies is-compact(s) iff seq-compact(s))
+- `compact-iff-seq-compact-rev` — forall([s], is-metric-space(s) implies seq-compact(s) iff is-compact(s))
 - `compact-iff-tb-complete` — forall([s], is-metric-space(s) implies is-compact(s) iff totally-bounded(s) and is-complete(s))
 - `compact-iff-tb-complete-rev` — forall([s], is-metric-space(s) implies totally-bounded(s) and is-complete(s) iff is-compact(s))
 - `completion-is-complete` — forall([m], is-metric-space(m) implies is-complete(completion(m)))

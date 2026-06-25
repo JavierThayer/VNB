@@ -274,6 +274,13 @@
     ;; infinitely many equivalent metrics.  Needs bounded-metric (BDD-METRIC),
     ;; power-series (SERIES-CONVERGES-TO), BIG-UNION/IOTA (kernel).
     "structure-library/product-metric"
+    ;; Countable Tychonoff for compact metric spaces (a countable product of
+    ;; compact metric spaces is compact), via sequential compactness + the
+    ;; coordinate diagonalization keystone.  Needs product-metric (PRODUCT-METRIC
+    ;; + product-convergence-coordinatewise), compactness (IS-COMPACT),
+    ;; cauchy-subsequence (STRICTLY-MONO-NN/SUBSEQ), metric-completeness
+    ;; (CONVERGES-TO).
+    "theorem-library/seq-compact-product"
     ;; Retroactive warrants for founding PSS members admitted before warrants
     ;; were standard; loads after every result it warrants is installed.
     "theorem-library/founder-warrants"
