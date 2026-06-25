@@ -355,7 +355,18 @@
         (load (string-append *prover-dir* f)))
       (load (string-append *prover-dir* f))))
 
-(for-each prover-load *vnb-files*)
+;; Load every file -- but clear *vnb-loading* if a file errors mid-load, so a
+;; broken file can't strand the flag at #t and leave every (show) suppressed
+;; for the rest of the session (the reset at the end of this file is skipped
+;; when loading aborts).  On error: clear the flag, escape, then RE-RAISE so
+;; the error still surfaces in the REPL -- now with interactive output enabled
+;; for debugging.  On a clean load the thunk returns #f and nothing re-raises.
+(let ((err (call-with-current-continuation
+             (lambda (k)
+               (with-exception-handler
+                 (lambda (exn) (set! *vnb-loading* #f) (k exn))
+                 (lambda () (for-each prover-load *vnb-files*) #f))))))
+  (if err (raise err)))
 
 ;;; Files skipped by (compile-vnb!): they use macros (e.g. `bc*' from
 ;;; interactive.scm) that MIT Scheme's compile-file doesn't see, because
