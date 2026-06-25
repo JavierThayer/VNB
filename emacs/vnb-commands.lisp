@@ -53,6 +53,7 @@
 (ineq (i1 i2) "Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)")
 (sos (c1 c2) "Sum-of-squares closer for a nonstrict polynomial inequality a <= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics 'sos) for the worked example.")
 (ta (name) "Theorem-assumption: bring the named installed theorem into context as an assumption.")
+(wbc (name) "Witness-shape backchain: on an `exists v. ...' goal, cite a PSS lemma that MANUFACTURES a witness of that shape, so you can finish with inst+/grind/ew.")
 (bc (impl) "Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.")
 (bc* (thm formula h1 h2) "Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals -- optional handlers hk run on the k-th subgoal.")
 (lam-t () "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.")

@@ -401,6 +401,14 @@ Theorem-assumption: bring the named installed theorem into context as an assumpt
 
 Bring an already-proved theorem into your current hypotheses so you can use it (instantiate it, detach from it, ...).  (Technically: adds the named installed theorem as an assumption.)
 
+### wbc
+
+    (wbc ['name])
+
+Witness-shape backchain: on an `exists v. ...' goal, cite a PSS lemma that MANUFACTURES a witness of that shape, so you can finish with inst+/grind/ew.
+
+The discovery move for existence proofs.  Faced with `there exists phi with ...', it looks up the produces-witness index for lemmas whose conclusion builds the RIGHT KIND of object -- the same existential-witness shape -- even when the rest of the statement differs (which is why plain bc* misses them: bc* demands the WHOLE conclusion unify).  E.g. on `exists phi. STRICTLY-MONO-NN(phi) and IS-CAUCHY-SEQ(SUBSEQ f phi)' it reaches for `diagonalization' (which makes a STRICTLY-MONO-NN phi from a nested family); on a nested-family goal it reaches for `block-family'.  With no argument it cites the top retrieved producer; (wbc 'name) cites the one you name.  It brings the lemma in (via ta); you then discharge its hypotheses (inst+), skolemize its existential (grind), and supply its witness to your goal (ew).  Circular `headline' lemmas that already conclude your exact goal are filtered out.  (See (witness-producers goal) for the raw retrieval; what-now lists the (wbc 'name) candidates on any existential goal.)
+
 ### bc
 
     (bc impl)

@@ -257,6 +257,10 @@
 <pre>(ta &#x27;name)</pre>
 <p>Theorem-assumption: bring the named installed theorem into context as an assumption.</p>
 <p>Bring an already-proved theorem into your current hypotheses so you can use it (instantiate it, detach from it, ...).  (Technically: adds the named installed theorem as an assumption.)</p>
+<h4 id="TACTICS__wbc">wbc</h4>
+<pre>(wbc [&#x27;name])</pre>
+<p>Witness-shape backchain: on an `exists v. ...&#x27; goal, cite a PSS lemma that MANUFACTURES a witness of that shape, so you can finish with inst+/grind/ew.</p>
+<p>The discovery move for existence proofs.  Faced with <code>there exists phi with ...&#x27;, it looks up the produces-witness index for lemmas whose conclusion builds the RIGHT KIND of object -- the same existential-witness shape -- even when the rest of the statement differs (which is why plain bc* misses them: bc* demands the WHOLE conclusion unify).  E.g. on </code>exists phi. STRICTLY-MONO-NN(phi) and IS-CAUCHY-SEQ(SUBSEQ f phi)&#x27; it reaches for <code>diagonalization&#x27; (which makes a STRICTLY-MONO-NN phi from a nested family); on a nested-family goal it reaches for </code>block-family&#x27;.  With no argument it cites the top retrieved producer; (wbc &#x27;name) cites the one you name.  It brings the lemma in (via ta); you then discharge its hypotheses (inst+), skolemize its existential (grind), and supply its witness to your goal (ew).  Circular `headline&#x27; lemmas that already conclude your exact goal are filtered out.  (See (witness-producers goal) for the raw retrieval; what-now lists the (wbc &#x27;name) candidates on any existential goal.)</p>
 <h4 id="TACTICS__bc">bc</h4>
 <pre>(bc impl)</pre>
 <p>Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.</p>
