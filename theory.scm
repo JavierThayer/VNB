@@ -60,6 +60,14 @@
 (define (warrant! name kind text)
   (register-warrant! name kind text))
 
+;;; User-facing: (gloss! 'NAME "plain-English rendition of the statement")
+;;; records what the formula SAYS in words -- for the deeply-nested supports
+;;; whose s-expression does not read at a glance.  Orthogonal to warrant!
+;;; (which records WHY we accept it); rendered by write-pss-md under the
+;;; statement.  Place right after the statement, like warrant!.
+(define (gloss! name text)
+  (register-gloss! name text))
+
 (define (theory-get-theorem th name)
   (hash-table-ref/default (theory-theorems th) name #f))
 

@@ -120,3 +120,11 @@
    for conjugate exponents 1/p+1/q=1 (p,q>1).  Termwise Young (young-inequality)
    on the normalised vectors, summed.  Cauchy-Schwarz is the p=q=2 case.  Zero
    entries are handled by the 0^p=0 convention (rpow-zero-base).")
+
+;;; ----- Plain-English glosses (PSS review 2026-06-26): 3+-line statements -----
+(gloss! 'cauchy-schwarz-finite
+  "For any finite index set S and real vectors a, b on S: the square of the dot product SUM a(i)*b(i) is at most the product of the two squared norms, (SUM a(i)^2)*(SUM b(i)^2).  Cauchy-Schwarz for finite sums, square form.")
+(gloss! 'minkowski-l2
+  "For any finite index set S and real vectors a, b on S: the Euclidean norm of the coordinatewise sum, sqrt(SUM (a_i+b_i)^2), is at most the sum of the Euclidean norms sqrt(SUM a_i^2) + sqrt(SUM b_i^2).  The l^2 triangle inequality.")
+(gloss! 'holder-finite
+  "For any finite index set S, real vectors a, b on S, and conjugate exponents p,q>1 (rational, 1/p+1/q=1): the sum of |a(i)*b(i)| over S is at most the product of the p-norm of a and the q-norm of b -- (SUM |a_i|^p)^(1/p) times (SUM |b_i|^q)^(1/q).  Holder's inequality for finite sums.")

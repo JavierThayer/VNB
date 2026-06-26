@@ -124,9 +124,10 @@
    ratio is below r, so |term(n)| <= C r^n for a constant C.  The geometric
    majorant Sum C r^n converges (|r|<1), so the partial sums of the power
    series are Cauchy in RR-MS; RR is complete (rr-complete), giving a real
-   limit -- PS-CONVERGES-AT(coef, x).  A candidate to discharge into a formal
-   `proof' later (it factors through a geometric-series lemma + comparison,
-   neither yet in the library).")
+   limit -- PS-CONVERGES-AT(coef, x).  Now a PSS->proven candidate: it factors
+   through the geometric majorant (geometric-series-converges-to) and the
+   comparison test (comparison-test), both now in the library -- the proof
+   chain is assembled, not missing.")
 
 ;;; =======================================================================
 ;;; Brick 3 -- absolute convergence, and absolute => convergent.
@@ -292,7 +293,8 @@
 (warrant! 'comparison-test 'informal
   "The partial sums F_k = Sum_{n<k} f(n) are nondecreasing (f >= 0) and bounded
    above by the limit of G_k = Sum_{n<k} g(n) (since f <= g termwise gives
-   F_k <= G_k <= lim G).  A nondecreasing sequence bounded above converges in
-   RR (order-completeness / monotone convergence), so Sum f converges.  Needs
-   the monotone-convergence theorem on RR, not yet in the library as a named
-   lemma.")
+   F_k <= G_k <= lim G, by series-partial-sum-le-termwise).  A nondecreasing
+   (series-partial-sum-monotone-nonneg) sequence bounded above converges in RR
+   by monotone-convergence-rr (order-completeness), so Sum f converges.  All
+   three ingredients are now in the library (series-order-lemmas.scm), so this
+   is a PSS->proven candidate -- the chain is assembled, not missing.")

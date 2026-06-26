@@ -859,6 +859,25 @@
   (hash-table-ref/default *warrants* name #f))
 
 ;;; -----------------------------------------------------------------------
+;;; Glosses: a plain-English rendition of a support's STATEMENT (what the
+;;; formula says, in words), distinct from its WARRANT (why we accept it).
+;;; Only the deeply-nested multi-line supports carry one -- the short ones
+;;; read fine as formulas.  Metadata for review/PSS.md, like warrants.
+(define *glosses* (make-equal-hash-table))   ; name -> text
+
+(define (register-gloss! name text)
+  (hash-table-set! *glosses* name text)
+  ;; Propagate to the -rev companion (same statement, flipped) so a glossed
+  ;; forward does not leave its reverse bare -- mirrors register-warrant!.
+  (let ((rev (rev-name-of name)))
+    (when (hash-table-ref/default *theorem-table* rev #f)
+      (hash-table-set! *glosses* rev text)))
+  name)
+
+(define (gloss-of name)
+  (hash-table-ref/default *glosses* name #f))
+
+;;; -----------------------------------------------------------------------
 ;;; Provenance: the epistemic origin of an installed statement, orthogonal
 ;;; to the support/proven display tags.  Every theorem-table entry gets one,
 ;;; stamped at install time from the dynamic variable *current-provenance*:

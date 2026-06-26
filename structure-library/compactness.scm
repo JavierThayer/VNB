@@ -288,3 +288,7 @@
    point, so some n >= N has d(f n, x) < eps/2; then for every m >= N,
    d(f m, x) <= d(f m, f n) + d(f n, x) < eps.  Hence f converges to x.  This
    is the standard fact powering compact => complete (calculus.pdf Prop 3.12).")
+
+;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
+(gloss! 'finite-ball-subcover-r-net
+  "For a metric space s and radius r>0: if the r-ball cover of s has a finite subcover, then s has a finite r-net (a finite set N of points such that every point of s is within r of some member of N).  Extracting a net from a finite subcover -- its centres.")

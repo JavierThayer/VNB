@@ -140,3 +140,9 @@
    r>0) and, downstream, the 2r Cauchy estimate.  Derivation and the sole
    residual (dc-on-nn's relation-set plumbing, O1) in calculus/block-family-
    rederive.scm; same fix (dc-on-nn-pred) applies.")
+
+;;; ----- Plain-English glosses (PSS review 2026-06-26): 3+-line statements -----
+(gloss! 'cover-block-step
+  "For any set V, a sequence f of elements of V, a finite cover C of V, and an infinite index block J: there is a smaller infinite block J' contained in J and a single cover member U such that all f(i) for i in J' lie in U.  The metric-free single pigeonhole step that block-family-combinatorial iterates.")
+(gloss! 'block-family-combinatorial
+  "For any set V, a sequence f of elements of V, and a sequence cov of finite covers of V (one cover cov(k) per level k): there is a nested tower of infinite index blocks blk(0) >= blk(1) >= ... such that at each level k all f(i) for i in blk(k) lie in a single member of the cover cov(k).  The metric-free combinatorial core that block-family instantiates.")

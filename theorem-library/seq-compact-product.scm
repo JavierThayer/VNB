@@ -194,3 +194,9 @@
 ;;; cross-coordinate diagonalisation is isolated in the keystone coordinatewise-
 ;;; diagonal-subseq (cited through seq-compact-countable-product).  The statement
 ;;; is reproduced there in its (sp ...).
+
+;;; ----- Plain-English glosses (PSS review 2026-06-26): 3+-line statements -----
+(gloss! 'convergence-block-tower
+  "For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a nested tower of infinite index blocks S(0) >= S(1) >= ... and a product point L such that, in each coordinate n, the n-th coordinates of seq converge to L(n) ALONG the block S(n) (i.e. once restricted to indices in S(n)).  The coordinatewise refinement underlying the diagonal argument.")
+(gloss! 'coordinatewise-diagonal-subseq
+  "For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a single strictly increasing reindexing delta and a product point L such that the subsequence seq o delta converges to L in EVERY coordinate at once.  The diagonal argument extracting one subsequence convergent in all coordinates.")

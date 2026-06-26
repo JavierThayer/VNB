@@ -238,3 +238,7 @@
    supports, in the prod-of-sums-expansion / binomial-theorem library style --
    the machinery is the deliverable, the QED induction-free factorization
    argument is the deferred tactic grind, with no missing primitive.")
+
+;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
+(gloss! 'quotient-universal
+  "For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient X(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.")

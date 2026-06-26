@@ -22,3 +22,7 @@
      (FORALL f (IMPLIES (IN f (FUN (CARTESIAN X Y) (A ag)))
        (= (FINSUM ag (VNB-LAMBDA i (FINSUM ag (VNB-LAMBDA j (f (LIST i j))) Y)) X)
           (FINSUM ag (VNB-LAMBDA j (FINSUM ag (VNB-LAMBDA i (f (LIST i j))) X)) Y)))))))))))
+
+;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
+(gloss! 'finsum-fubini
+  "For an abelian group ag, finite index sets X and Y, and a function f on the product X*Y valued in ag: summing f over Y inside and X outside gives the same result as summing over X inside and Y outside.  Fubini / order-of-summation for finite double sums.")

@@ -995,6 +995,9 @@
             (display "    ")
             (display (expression->string (lookup-theorem name)))
             (newline) (newline)
+            (let ((g (gloss-of name)))
+              (when g
+                (display "*In words:* ") (display g) (newline) (newline)))
             (let ((w (warrant-of name)))
               (when w
                 (display "*Warrant (") (display (car w)) (display "):* ")

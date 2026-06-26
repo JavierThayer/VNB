@@ -194,3 +194,7 @@
   "Bernoulli with real exponent:  (1+x)^b >= 1 + b*x  for 1+x > 0 and rational
    b >= 1 (convexity of t |-> (1+x)^t, or t^b).  For 0 <= b <= 1 the inequality
    reverses; stated here for the b >= 1 branch.")
+
+;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
+(gloss! 'young-inequality
+  "For positive reals a, b and conjugate exponents p,q>1 (rational, 1/p+1/q=1): the product a*b is at most a^p/p + b^q/q.  Young's inequality -- the engine behind Holder.")

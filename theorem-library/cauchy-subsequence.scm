@@ -374,3 +374,13 @@
 ;;; tb-rad-ball-cover for the finite covers, block-family-combinatorial for the
 ;;; block witness, diagonalization for phi, cauchy-block-estimate for the 2r
 ;;; estimate).  The statement is reproduced there in its (sp ...).
+
+;;; ----- Plain-English glosses (PSS review 2026-06-26): 3+-line statements -----
+(gloss! 'tb-block-step
+  "For a totally bounded space s, a sequence f of points of s, a radius r>0, and an infinite index block J: there is a smaller infinite block J' contained in J and a single centre c such that all f(i) for i in J' lie in the ball of radius r about c.  One relativized pigeonhole step over a sub-block.")
+(gloss! 'tb-rad-ball-cover
+  "For a totally bounded space s and a pointwise-positive radius sequence rad: the carrier X(s) is a set, and there is a sequence cov of finite covers of X(s) in which every member of cov(k) is a ball of radius rad(k) about some centre in X(s).  The bridge turning total boundedness into the finite-cover input the combinatorial block recursion consumes.")
+(gloss! 'cauchy-block-estimate
+  "For a metric space s, a ball U = BALL(s,c,r), two points y,z of U, and reals d,eps with r<=d and d+d=eps: the distance from y to z is at most eps.  The fully-curried 2r estimate -- two points in one r-ball are within 2r.")
+(gloss! 'block-family
+  "For a totally bounded space s, a sequence f of points of s, and a positive null radius sequence rad: there is a nested tower of infinite index blocks blk(0) >= blk(1) >= ... such that at each level k all the f(i) for i in blk(k) lie in a single ball of radius rad(k) about some centre.  Recursive pigeonhole into ever-smaller blocks -- the engine of the Cauchy-subsequence extraction.")
