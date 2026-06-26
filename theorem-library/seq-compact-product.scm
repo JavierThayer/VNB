@@ -111,30 +111,15 @@
 
 ;;; coord-block-estimate: convergence ALONG a block transfers to any reindexing
 ;;; whose tail lands in the block.  If g converges to p along B, delta is
-;;; strictly monotone, and delta(j) in B for all j >= n0, then SUBSEQ(g,delta)
+;;; strictly monotone, and delta(j) in B for all j >= m0, then SUBSEQ(g,delta)
 ;;; converges to p.  This is the per-coordinate transfer that turns the tower's
 ;;; block-convergence into honest convergence of the diagonal subsequence.
 ;;;
-;;; Proof (machine-checked in calculus/coord-block-est-build.scm modulo a single
-;;; `bc'/detach bookkeeping step): given eps, CONVERGES-ALONG gives a threshold
-;;; N0; nn-pair-upper-bound gives c >= n0,N0; for k >= c, delta(k) in B (tail,
-;;; k>=n0) and delta(k) >= k >= N0 (strictly-mono-ge-id + rr-le-trans), so
-;;; d(g(delta k),p) <= eps.  Every metric/arithmetic step is verified; asserted
-;;; pending the focus-management cleanup.
-(support 'coord-block-estimate
-  '(FORALL s (FORALL g (FORALL B (FORALL p (FORALL delta (FORALL n0
-     (IMPLIES (CONVERGES-ALONG s g B p)
-     (IMPLIES (STRICTLY-MONO-NN delta)
-     (IMPLIES (IN n0 NN)
-     (IMPLIES (FORALL j (IMPLIES (IN j NN) (IMPLIES (<= n0 j) (IN (delta j) B))))
-       (CONVERGES-TO s (SUBSEQ g delta) p))))))))))))
-(warrant! 'coord-block-estimate 'proof
-  "Convergence along B + reindex-into-B + strictly monotone => convergence.  For
-   eps, N0 from CONVERGES-ALONG and c = a common upper bound of n0,N0 (nn-pair-
-   upper-bound): for k >= c, delta(k) in B (delta(j) in B for j>=n0) and delta(k)
-   >= k >= N0 (strictly-mono-ge-id), so d(g(delta k),p) <= eps; SUBSEQ-eval.
-   Every step machine-verified (calculus/coord-block-est-build.scm); asserted
-   pending the bc/detach focus cleanup.")
+;;; PROVEN to QED -- theorem-library/coord-block-estimate-proof.scm (interactive
+;;; phase).  No longer asserted here.  Modulo {subseq-is-fun, nn-pair-upper-bound,
+;;; strictly-mono-ge-id, fun-apply-type-c, nn-in-rr, rr-le-trans-c}.  The proof's
+;;; tail-threshold bound var is m0, not n0, to dodge a fresh-var collision with
+;;; the cainner skolem's n_* namespace (see that file's FRESH-VAR NOTE).
 
 ;;; =======================================================================
 ;;; 2.  The keystone: the DIAGONALIZATION argument across coordinates.

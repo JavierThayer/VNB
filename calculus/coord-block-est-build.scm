@@ -54,12 +54,20 @@
                              (memq (caadr a) heads)
                              (let loop ((xs incl)) (or (null? xs) (and (has? (car xs) a) (loop (cdr xs)))))))))
 
+;; The tail-threshold bound var is named m0, NOT n0: the cainner existential is
+;; skolemized into the kernel's fresh-name namespace (n_1, n_2, ...), and a lemma
+;; var literally named `n0' COLLIDES with that namespace -- the skolemizer reuses
+;; n_k, so the tail threshold and the convergence skolem N0 end up the same object
+;; (proved exhaustively: (eq n0 N0)=#t, and the symbol n0 even renders as "n_11").
+;; Naming it m0 (outside the n_* namespace) keeps raw extraction faithful and lets
+;; the plain inst+ flow go through.  DRIFT LESSON: name lemma bound vars away from
+;; the skolemizer's n_* namespace.
 (sp (make-wff
-     '(FORALL s (FORALL g (FORALL B (FORALL p (FORALL delta (FORALL n0
+     '(FORALL s (FORALL g (FORALL B (FORALL p (FORALL delta (FORALL m0
         (IMPLIES (CONVERGES-ALONG s g B p)
         (IMPLIES (STRICTLY-MONO-NN delta)
-        (IMPLIES (IN n0 NN)
-        (IMPLIES (FORALL j (IMPLIES (IN j NN) (IMPLIES (<= n0 j) (IN (delta j) B))))
+        (IMPLIES (IN m0 NN)
+        (IMPLIES (FORALL j (IMPLIES (IN j NN) (IMPLIES (<= m0 j) (IN (delta j) B))))
           (CONVERGES-TO s (SUBSEQ g delta) p)))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)(di)(di)(di)))
 (define s*   (cadr (find-asm (head? 'CONVERGES-ALONG))))
@@ -69,17 +77,17 @@
 (define p*   (car (cddddr Hca)))
 (define delta* (cadr (find-asm (head? 'STRICTLY-MONO-NN))))
 (define Hmono (find-asm (head? 'STRICTLY-MONO-NN)))
-(define n0*  (cadr (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'IN)(equal? (caddr a) 'NN))))))
-(define Htail (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'FORALL)(has? delta* a)(has? B* a)))))
+;; tail = (FORALL j (IMPLIES (IN j NN) (IMPLIES (<= m0 j) (IN (delta j) B)))).
+;; Signature: has <=, delta and B, no FUN (the STRICTLY-MONO-NN unfold is also a
+;; FORALL with delta and a bound `b', but it carries FUN).
+(define (live-tail) (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'FORALL)(has? '<= a)(has? delta* a)(has? B* a)(not (has? 'FUN a))))))
+(define m0* (cadr (cadr (caddr (caddr (live-tail))))))     ; (<= m0 j) -> m0 (faithful)
 (dump "after strip")
-(display ";;; s*=")(write s*)(display " g*=")(write g*)(display " B*=")(write B*)
-(display " p*=")(write p*)(display " delta*=")(write delta*)(display " n0*=")(write n0*)(newline)
+(display ";;; s*=")(write s*)(display " delta*=")(write delta*)(display " m0*=")(write m0*)(newline)
 
 ;; unfold CONVERGES-ALONG hyp
 (quietly (lambda () (mac-h 'CONVERGES-ALONG Hca) (split-ands)))
 (define cainner (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'FORALL)(has? g* a)(has? B* a)(has? 'POS-RR a)))))
-(dump "after unfold CONVERGES-ALONG")
-(display ";;; cainner=")(write cainner)(newline)
 
 ;; unfold goal, dispatch structural
 (quietly (lambda () (mac 'CONVERGES-TO)))
@@ -99,16 +107,14 @@
 ;; N0 from cainner @ eps
 (quietly (lambda () (inst+ cainner eps*)
   (let ((fs (find-asm (head? 'FORSOME)))) (and fs (ai fs))) (split-ands)))
-(define N0* (let ((a (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'IN)(equal? (caddr a) 'NN)
-                                                (not (equal? (cadr a) n0*))))))) (and a (cadr a))))
 (define caN0 (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'FORALL)(has? g* a)(has? B* a)(not (has? 'POS-RR a))))))
-;; common upper bound c of n0, N0
-(quietly (lambda () (fact 'nn-pair-upper-bound n0* N0*)
+(define N0* (cadr (cadr (caddr (caddr (caddr caN0))))))    ; (<= N0 i) -> N0 (faithful)
+;; common upper bound c of m0, N0
+(quietly (lambda () (fact 'nn-pair-upper-bound m0* N0*)
   (let ((fs (find-asm (head? 'FORSOME)))) (and fs (ai fs))) (split-ands)))
-(define c* (let ((a (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'IN)(equal? (caddr a) 'NN)
-                  (not (equal? (cadr a) n0*)) (not (equal? (cadr a) N0*))))))) (and a (cadr a))))
+(define c* (caddr (find-asm (lambda (a) (and (pair? a)(eq? (car a) '<=)(equal? (cadr a) m0*))))))
 (dump "after N0, c")
-(display ";;; N0*=")(write N0*)(display " c*=")(write c*)(newline)
+(display ";;; m0*=")(write m0*)(display " N0*=")(write N0*)(display " c*=")(write c*)(newline)
 ;; ew c; close c in NN; intro n_
 (quietly (lambda () (ew c*) (di)))
 (fpred (lambda (a) (equal? a (list 'IN c* 'NN)))) (quietly (lambda () (ass)))
@@ -117,43 +123,34 @@
 (define gg (gf))
 (define n_* (cadr (cadr (cadr gg))))
 (dump "estimate goal")
-(display ";;; n_*=")(write n_*)(newline)
 
-;; All forward, curried (no cuts): typings + transitivity via fact auto-detach
+;; strictly-mono-ge-id FIRST (needs the STRICTLY-MONO-NN hyp), THEN unfold it for
+;; fun-apply-type-c.
+(quietly (lambda () (fact 'strictly-mono-ge-id delta* n_*)))            ; n_ <= delta(n_)
+(quietly (lambda () (mac-h 'STRICTLY-MONO-NN Hmono) (split-ands)))      ; delta in FUN(NN,NN)
+;; typings + transitivity, all forward via fact auto-detach (curried, no cuts)
 (quietly (lambda ()
-  (fact 'strictly-mono-ge-id delta* n_*)               ; n_ <= delta(n_)
-  (mac-h 'STRICTLY-MONO-NN Hmono) (split-ands)          ; delta in FUN(NN,NN)
   (fact 'fun-apply-type-c delta* 'NN 'NN n_*)           ; delta(n_) in NN
-  (fact 'nn-in-rr n0*) (fact 'nn-in-rr N0*) (fact 'nn-in-rr c*)
+  (fact 'nn-in-rr m0*) (fact 'nn-in-rr N0*) (fact 'nn-in-rr c*)
   (fact 'nn-in-rr n_*) (fact 'nn-in-rr (list delta* n_*))
-  (fact 'rr-le-trans-c n0* c* n_*)                      ; n0 <= n_
+  (fact 'rr-le-trans-c m0* c* n_*)                      ; m0 <= n_
   (fact 'rr-le-trans-c N0* c* n_*)                      ; N0 <= n_
   (fact 'rr-le-trans-c N0* n_* (list delta* n_*))))     ; N0 <= delta(n_)
-(display ";;; n0<=n_? ")(write (and (find-asm (lambda(a)(equal? a (list '<= n0* n_*)))) #t))
+(display ";;; m0<=n_? ")(write (and (find-asm (lambda(a)(equal? a (list '<= m0* n_*)))) #t))
 (display " N0<=delta(n_)? ")(write (and (find-asm (lambda(a)(equal? a (list '<= N0* (list delta* n_*))))) #t))(newline)
-;; Htail @ n_: inst+ peels IN; detach the <= guard -> delta(n_) in B
-;; Htail @ n_: inst+ peels (IN n_ NN); detach! the (<= n0 n_) guard -> delta(n_) in B
-(quietly (lambda ()
-  (and Htail (inst+ Htail n_*))
-  (let ((impl (find-impl-ante '(<=) (list delta* n_*) B*))) (and impl (detach! impl)))))
-;; ca-N0 @ delta(n_): inst+ peels IN guards; detach! the (<= N0 delta(n_)) guard
-(quietly (lambda ()
-  (and caN0 (inst+ caN0 (list delta* n_*)))
-  (let ((impl (find-impl-ante '(<=) (list delta* n_*) eps*))) (and impl (detach! impl)))))
-(display ";;; delta(n_) in B? ")(write (and (find-asm (lambda(a)(equal? a (list 'IN (list delta* n_*) B*)))) #t))
-(display "  d(g(delta n_),p)<=eps? ")
+;; delta(n_) in B: inst+ tail peels (in n_ NN) and (<= m0 n_)
+(quietly (lambda () (inst+ (live-tail) n_*)))
+(display ";;; delta(n_) in B? ")(write (and (find-asm (lambda(a)(equal? a (list 'IN (list delta* n_*) B*)))) #t))(newline)
+;; d(g(delta n_),p)<=eps: inst+ caN0 peels (in delta(n_) NN),(in delta(n_) B),(N0<=delta(n_))
+(quietly (lambda () (inst+ caN0 (list delta* n_*))))
+(display ";;; d(g(delta n_),p)<=eps? ")
 (write (and (find-asm (lambda(a)(equal? a (list '<= (list (list 'D s*) (list g* (list delta* n_*)) p*) eps*)))) #t))(newline)
-;; rewrite SUBSEQ, close
+;; rewrite SUBSEQ in goal, close
 (quietly (lambda () (mac 'SUBSEQ) (lam-b) (lam-b) (ass)))
-;; sweep any leftover detach antecedent leaves (they hold in context)
-(quietly (lambda ()
-  (let loop ((k 0))
-    (when (< k 6)
-      (when (fpred (lambda (a) (and (pair? a)(eq? (car a) '<=))))
-        (ass) (loop (+ k 1)))))))
 (dump "after close")
 (display ";;; PROOF DONE? ")(write (proof-done? *ps*))(display "  ungrounded: ")
 (write (length (dg-ungrounded-nodes (proof-state-dg *ps*))))(newline)
 (display ";;; OPEN LEAVES:\n")
 (for-each (lambda (n) (display ";;;   ")(write (wff-formula (sequent-node-assertion n)))(newline)) (leaves))
-(--- "END v2")
+(qed 'coord-block-estimate)
+(--- "END v3")

@@ -318,6 +318,11 @@
     ;; the same limit.  A keystone brick.  Needs cauchy-subsequence + metric-
     ;; completeness supports + interactive.
     "theorem-library/subseq-convergence-proof"
+    ;; coord-block-estimate: convergence ALONG a block transfers to a reindexing
+    ;; whose tail lands in the block, PROVEN to QED.  The estimate brick of the
+    ;; coordinatewise-diagonal-subseq keystone.  Needs seq-compact-product's
+    ;; CONVERGES-ALONG def + order-lemmas + interactive.
+    "theorem-library/coord-block-estimate-proof"
     ;; totally-bounded => every sequence has a Cauchy subsequence, PROVEN to QED
     ;; via the combinatorial block family.  Needs cauchy-subsequence (the cited
     ;; supports) + interactive/proof-debt (sp/di/mac/fact/qed).
