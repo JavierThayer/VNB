@@ -202,11 +202,18 @@
 ;;; When *skip-proofs?* is set, capture the formula and bail out via
 ;;; *skip-proofs-cont* (the caller in prove-and-install! installed it).
 
-(define (sp wic)
+;; sp accepts what its documentation promises: a wff, a "string" in surface
+;; syntax (parsed), or a raw S-expr.  Strings/S-exprs are coerced exactly as the
+;; user would by hand -- make-wff-from-string / make-wff -- so (sp "forall(...)")
+;; and (sp '(FORALL ...)) both work, not only (sp (make-wff-from-string "...")).
+(define (sp wic-in)
   (vnb-guard
     (lambda ()
-      (unless (wff? wic)
-        (error "sp: expected a wff -- use (make-wff-from-string \"...\") first" wic))
+      (define wic
+        (cond ((wff? wic-in) wic-in)
+              ((string? wic-in) (make-wff-from-string wic-in))
+              ((pair? wic-in) (make-wff wic-in))
+              (else (error "sp: expected a wff, a \"string\", or an S-expr" wic-in))))
       (cond
         (*skip-proofs?*
          (set! *skip-proofs-captured* (wff-formula wic))

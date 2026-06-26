@@ -24,8 +24,8 @@
 
 (define *tactic-help*
   '(("Starting & finishing a proof"
-     (sp   "(sp wff)"        "Start a proof of wff (a \"string\" or raw S-expr); clears the script."
-       "Begin a new proof: state what you want to prove (as a \"string\" or an s-expr).  This becomes your one open goal and clears any previous script.  (Technically: set the proof goal.)")
+     (sp   "(sp goal)"        "Start a proof of `goal' (a \"string\", a raw S-expr, or a wff); clears the script."
+       "Begin a new proof: state what you want to prove.  The goal may be a \"string\" in surface syntax, a raw S-expr, or an already-built wff (e.g. (wff \"...\") or (make-wff '(...)));  sp coerces a string/S-expr for you.  This becomes your one open goal and clears any previous script.  (Technically: set the proof goal.)")
      (qed  "(qed 'name)"     "Install the finished proof as theorem `name' and save its replayable script."
        "Finish: once there are no open goals, this records the result as a named theorem you can cite later, and saves the replayable script.  (Technically: install-theorem! plus script capture; reports the asserted facts the proof still rests on, `proven modulo {...}'.)")
      (save-proof   "(save-proof 'name)"   "Save the current script under a name without finishing."
@@ -181,6 +181,39 @@
      (ass-all-frontier! "(ass-all-frontier!)" "Close every frontier leaf whose goal is already among its assumptions.  [proof-local]"))))
 
 ;;; --------------------------------------------------------------------
+;;; How arguments are entered -- ONE statement, rendered in both surfaces
+;;; (the (tactics) menu and reference/TACTICS.md), so the per-entry
+;;; signatures can use the bare arg names (`'name', term, hyp) without each
+;;; one re-explaining quoting.  Two surfaces, same tactics:
+;;;   * PROGRAMMATIC (Scratch Workspace / REPL / proof scripts): explicit,
+;;;     quoted Scheme.
+;;;   * INTERACTIVE (Focus Workspace prompts): the bare value, unquoted.
+;;; --------------------------------------------------------------------
+
+(define *tactics-arg-help*
+  (string-append
+   "Entering arguments.  The same tactics serve two surfaces:\n"
+   "  * PROGRAMMATIC  (Scratch Workspace / REPL / scripts) -- write explicit\n"
+   "    quoted Scheme, e.g. (mac 'IS-METRIC-SPACE), (cut \"x in nn\").\n"
+   "  * INTERACTIVE   (Focus Workspace prompts) -- type the bare value at the\n"
+   "    prompt (no outer quote): a name as NAME, a formula as its surface text.\n"
+   "\n"
+   "Three argument kinds (the per-entry signatures use these names):\n"
+   "  'name   a quoted symbol -- a macete / theorem name.\n"
+   "          mac, mac-h, ta, bc*, fact (1st arg), qed, save-proof, replay-proof.\n"
+   "  term / formula / wff / impl / eq\n"
+   "          a \"string\" in surface syntax (parsed for you) OR a raw quoted\n"
+   "          S-expr '(...).  sp's goal, ew's witness, cut, subst, the term of\n"
+   "          inst / inst+, fact's remaining args.\n"
+   "  hyp     same as a formula -- \"string\" or '(...) -- OR a 1-based assumption\n"
+   "          NUMBER from the Focus display.  ai, bc, wk, detach!, and the\n"
+   "          hypothesis arg of inst / inst+ / mac-h / ce / te / ie.\n"
+   "\n"
+   "So a goal-citing arg and a hypothesis-citing arg accept the same forms; only\n"
+   "a hypothesis arg additionally accepts its display number.  A 'name never\n"
+   "takes a string.  Interactively, drop the quote/quotes and just type it.\n"))
+
+;;; --------------------------------------------------------------------
 ;;; REPL printer
 ;;; --------------------------------------------------------------------
 
@@ -204,6 +237,8 @@
      (newline)
      (display "VNB interactive tactics  --  (tactics 'name) for detail\n")
      (display "========================================================\n")
+     (newline)
+     (display *tactics-arg-help*)
      (for-each
        (lambda (cat)
          (newline)
@@ -246,6 +281,10 @@
         (display "`tactics-help.scm`.  These are the short-form commands you type ")
         (display "at the REPL / Scratch Workspace during a proof.  At the REPL, ")
         (display "`(tactics)` prints this menu and `(tactics 'name)` the detail.\n\n")
+        (display "## Entering arguments\n\n")
+        (display "```\n")
+        (display *tactics-arg-help*)
+        (display "```\n\n")
         (for-each
           (lambda (cat)
             (display "## ") (display (car cat)) (display "\n\n")

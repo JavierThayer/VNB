@@ -8,7 +8,7 @@
 ;;; Read by emacs/vnb-complete.el: (read) the whole list.
 
 (
-(sp (wff) "Start a proof of wff (a \"string\" or raw S-expr); clears the script.")
+(sp (goal) "Start a proof of `goal' (a \"string\", a raw S-expr, or a wff); clears the script.")
 (qed (name) "Install the finished proof as theorem `name' and save its replayable script.")
 (save-proof (name) "Save the current script under a name without finishing.")
 (replay-proof (name subst) "Re-run a saved script on the current goal, optionally renaming free vars.")
