@@ -349,6 +349,9 @@
     ;; English verbalization of a wff (companion to expr->str symbolic /
     ;; describe-structure).  Loads last: uses expr->str + the theorem table.
     "wff-english"
+    ;; PSS partition: files every support under a category bucket (after all
+    ;; supports + their -rev companions are installed).  Soft-nudge in load.scm.
+    "theorem-library/pss-categories"
     ;; Self-describing registry of the interactive tactics: (tactics) prints
     ;; the menu, (write-tactics-md) emits reference/TACTICS.md for the browser
     ;; reference.  Pure display/string; no dependencies beyond *reference-dir*.
@@ -478,6 +481,17 @@
         (display (length bad))
         (display " asserted/non-PSS fact(s) carry a 'proof warrant -- prove or PSS-promote:\n   ")
         (write bad) (newline))))
+
+;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
+;; support should be filed under a *pss-category-order* bucket via category!.
+;; Report how many are not yet filed; never fails the build.
+(let ((un (uncategorized-pss-names)))
+  (if (null? un)
+      (display ";; pss-categories: ok (all support entries filed)\n")
+      (begin
+        (display ";; pss-categories: ") (display (length un))
+        (display " uncategorized PSS entr(y/ies) -- file with (category! 'name 'cat):\n   ")
+        (write un) (newline))))
 
 ;; Rebuild the browser reference (the reference.html hub + one page per doc)
 ;; from the just-refreshed .md files.  The .md regenerate on every load but the

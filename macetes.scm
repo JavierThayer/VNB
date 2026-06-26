@@ -878,6 +878,53 @@
   (hash-table-ref/default *glosses* name #f))
 
 ;;; -----------------------------------------------------------------------
+;;; Categories: which KIND of PSS fact this is -- and, as an intake
+;;; discipline, WHY it is asserted rather than proven (see each title's
+;;; "why not grind" rationale in PSS.md).  Orthogonal to warrant (why we
+;;; accept it) and gloss (what it says).  The canonical ordered list drives
+;;; both the category! validity check and the section order in write-pss-md.
+(define *pss-category-order*
+  '((plumbing      . "Plumbing & typing")
+    (inequalities  . "Inequalities & order")
+    (combinatorial . "Combinatorial constructions")
+    (analysis      . "Real analysis: limits, series, completeness")
+    (algebra       . "Algebraic & ring-structure facts")
+    (topology      . "Metric topology & continuity")
+    (constructions . "Metric-space constructions")
+    (set-quotient  . "Set & quotient constructions")))
+
+(define (pss-category-title cat)
+  (cond ((assq cat *pss-category-order*) => cdr) (else #f)))
+
+(define *pss-categories* (make-equal-hash-table))   ; name -> category symbol
+
+(define (register-category! name cat)
+  (if (not (pss-category-title cat))
+      (begin
+        (display ";; WARNING: unknown PSS category ") (write cat)
+        (display " for ") (write name) (display " -- expected one of ")
+        (write (map car *pss-category-order*)) (newline))
+      (begin
+        (hash-table-set! *pss-categories* name cat)
+        ;; Propagate to the -rev companion, like warrants/glosses.
+        (let ((rev (rev-name-of name)))
+          (when (hash-table-ref/default *theorem-table* rev #f)
+            (hash-table-set! *pss-categories* rev cat)))))
+  name)
+
+(define (category-of name)
+  (hash-table-ref/default *pss-categories* name #f))
+
+;;; Soft-nudge support: the PSS support names (collapsed of -rev) with no
+;;; category yet.  load.scm reports the count; categorisation is a discipline,
+;;; not a soundness gate, so this never fails the build.
+(define (uncategorized-pss-names)
+  (filter (lambda (n) (not (category-of n)))
+          (collapse-rev-names
+           (filter (lambda (n) (memq n *support-theorem-names*))
+                   (hash-table-keys *theorem-table*)))))
+
+;;; -----------------------------------------------------------------------
 ;;; Provenance: the epistemic origin of an installed statement, orthogonal
 ;;; to the support/proven display tags.  Every theorem-table entry gets one,
 ;;; stamped at install time from the dynamic variable *current-provenance*:

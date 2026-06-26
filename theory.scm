@@ -68,6 +68,15 @@
 (define (gloss! name text)
   (register-gloss! name text))
 
+;;; User-facing: (category! 'NAME 'category) files NAME under one of the PSS
+;;; categories (*pss-category-order* in macetes.scm).  The category is also the
+;;; INTAKE DISCIPLINE for new entries: when a proof is blocked and you assert a
+;;; fact instead of grinding, the category says WHAT KIND of fact it is and why
+;;; grinding is not worth it.  Place right after the statement, like warrant!;
+;;; new supports SHOULD carry one (load.scm soft-nudges the uncategorised count).
+(define (category! name cat)
+  (register-category! name cat))
+
 (define (theory-get-theorem th name)
   (hash-table-ref/default (theory-theorems th) name #f))
 
