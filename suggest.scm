@@ -464,6 +464,44 @@
          (display " more -- (suggest-backchain) for the full ranking.") (newline))))
     names))
 
+;; Live-fire lane: which PARAMETERLESS tactics actually FIRE on the focus right
+;; now, via (vnb-apply? 'name <focus sequent>) on a throwaway clone -- the
+;; executable form of the tactics' `when:' notes.  Shape-specific probes only;
+;; always-fire moves (pbc/cut) and arg-needing tactics are omitted.  Returns the
+;; firing moves as (name) forms; prints a summary line per hit.
+(define *what-now-fire-probes*
+  '(grind di ni ci ti ii beta lam-b lam-t nth-r sep-mi sep-set comp-mi bu-set
+    ass rfl qrfl arith crs rs))
+
+(define (what-now--show-fires)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let* ((sqn  (proof-state-focus *ps*))
+             (seq  (make-sequent (sequent-node-assumptions sqn)
+                                 (sequent-node-assertion sqn)))
+             (hits (let loop ((ns *what-now-fire-probes*) (acc '()))
+                     (if (null? ns)
+                         (reverse acc)
+                         (let ((r (vnb-apply? (car ns) seq)))
+                           (loop (cdr ns)
+                                 (if r (cons (cons (car ns) r) acc) acc)))))))
+        (when (pair? hits)
+          (display ";; tactics that FIRE on this goal now (vnb-apply? probe):")
+          (newline)
+          (for-each
+            (lambda (h)
+              (let ((nm (symbol->string (car h))))
+                (display ";;   (") (display nm) (display ")")
+                (display (make-string (max 1 (- 8 (string-length nm))) #\space))
+                (display "=> ")
+                (display (if (eq? (cdr h) 'CLOSED)
+                             "CLOSES the goal"
+                             (string-append (number->string (length (cdr h)))
+                                            " subgoal(s)")))
+                (newline)))
+            hits))
+        (map (lambda (h) (list (car h))) hits))))
+
 (define (what-now . opt-depth)
   (let ((goal (suggest--current-goal)))
     (cond
@@ -528,6 +566,8 @@
          ;; BUILD a witness of this shape (the diagonalization / block-family
          ;; construction) -- the leap the assembler can't search out.
          (set! moves (append moves (what-now--show-witness-producers)))
+         ;; Live-fire lane: which parameterless tactics actually fire right now.
+         (set! moves (append moves (what-now--show-fires)))
          (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
          (newline)
          (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
@@ -701,6 +741,54 @@
                         ((proof-done? scratch) 'CLOSED)
                         (else (let ((after (vnb--ps-goal scratch)))
                                 (and after (not (equal? after before)) after))))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; (vnb-apply? 'name goal . args) -- APPLICABILITY PROBE.  Does the surface
+;;; tactic `name' (quoted; given any extra `args' it takes) FIRE on `goal'?
+;;; `goal' is a "string" / S-expr / wff (the assertion), or a full sequent
+;;; object when you need to supply assumptions.  The tactic runs for real on a
+;;; throwaway scratch deduction graph -- the live *ps* is NEVER touched -- and
+;;; the result reports what it did:
+;;;     'CLOSED        closes the goal outright (ass / rfl / crs / arith / ...)
+;;;     (g1 g2 ...)    fires, leaving these open subgoal formulas
+;;;     #f             does not apply (warns / errors, or makes no progress)
+;;; The executable form of a tactic's "when useful" note: rather than eyeball
+;;; whether di/ni/sos/bc* matches the goal shape, ask.  Examples:
+;;;     (vnb-apply? 'di   "forall([x in rr], 0 <= x * x)")    => the body goal
+;;;     (vnb-apply? 'ni   "forall([n in nn], P(n))")          => base + step
+;;;     (vnb-apply? 'sos  "forall([x in rr,y in rr], x*y <= x*x+y*y)" "x - y")
+;;;     (vnb-apply? 'crs  "forall([x in rr], (x+1)*(x+1) = x*x + 2*x + 1)") => CLOSED
+(define (vnb--scratch-from-goal goal)
+  (let* ((seq  (if (sequent? goal)
+                   goal
+                   (make-sequent '() (make-wff (->raw-formula goal)))))
+         (dg   (make-deduction-graph))
+         (root (dg-post! dg seq)))
+    (make-proof-state dg root root)))
+
+(define (vnb-apply? name goal . args)
+  (if (not (environment-bound? user-initial-environment name))
+      (begin
+        (display ";; vnb-apply?: unknown tactic ") (write name) (newline)
+        #f)
+  (let* ((scratch (vnb--scratch-from-goal goal))
+         (before  (vnb--ps-goal scratch))
+         (proc    (eval name user-initial-environment)))
+    (fluid-let ((*ps* scratch))
+      (quietly
+       (lambda ()
+         (let ((r (vnb-guard (lambda () (apply proc args)))))
+           (cond
+             ((or (vnb-error? r) (vnb-warning? r)) #f)
+             ((proof-done? scratch) 'CLOSED)
+             (else
+              ;; Report the NEW open subgoals -- those not equal to the original
+              ;; goal.  If nothing new remains, the tactic made no progress.
+              (let* ((all (map (lambda (n)
+                                 (wff-formula (sequent-node-assertion n)))
+                               (proof-open-goals scratch)))
+                     (new (filter (lambda (g) (not (equal? g before))) all)))
+                (if (null? new) #f new)))))))))))
 
 ;; Print one (verb 'name) => effect line; effect is 'CLOSED or a goal formula.
 (define (vnb--cheap-line verb name effect)

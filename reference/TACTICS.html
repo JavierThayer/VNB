@@ -83,10 +83,12 @@
 <h4 id="TACTICS__sp">sp</h4>
 <pre>(sp goal)</pre>
 <p>Start a proof of `goal&#x27; (a &quot;string&quot;, a raw S-expr, or a wff); clears the script.</p>
+<p><em>When useful:</em> starting a new proof</p>
 <p>Begin a new proof: state what you want to prove.  The goal may be a &quot;string&quot; in surface syntax, a raw S-expr, or an already-built wff (e.g. (wff &quot;...&quot;) or (make-wff &#x27;(...)));  sp coerces a string/S-expr for you.  This becomes your one open goal and clears any previous script.  (Technically: set the proof goal.)</p>
 <h4 id="TACTICS__qed">qed</h4>
 <pre>(qed &#x27;name)</pre>
 <p>Install the finished proof as theorem `name&#x27; and save its replayable script.</p>
+<p><em>When useful:</em> no open goals remain -- record the result</p>
 <p>Finish: once there are no open goals, this records the result as a named theorem you can cite later, and saves the replayable script.  (Technically: install-theorem! plus script capture; reports the asserted facts the proof still rests on, `proven modulo {...}&#x27;.)</p>
 <h4 id="TACTICS__save-proof">save-proof</h4>
 <pre>(save-proof &#x27;name)</pre>
@@ -100,164 +102,204 @@
 <h4 id="TACTICS__di">di</h4>
 <pre>(di)</pre>
 <p>Direct inference: split an AND goal, move an IMPLIES antecedent into the assumptions, or introduce a fresh eigenvariable for a leading FORALL.</p>
+<p><em>When useful:</em> the goal head is AND / IMPLIES / FORALL -- decompose before deciding</p>
 <p>Break the goal into its pieces.  A conjunction <code>A and B&#x27; splits into two goals, A and B.  An implication </code>P implies Q&#x27; assumes P (P becomes a hypothesis you may use) and leaves you to prove Q.  A universal <code>for all x, ...&#x27; fixes an arbitrary x (a new constant standing for </code>any x&#x27;) and asks for the statement at that x.  Apply it repeatedly until the goal is a single atomic statement.  (Technically: the goal-side introduction rules for AND / IMPLIES / FORALL; the constant introduced for a FORALL is an eigenvariable.  Pairs with mac, which unfolds a definition in the goal.)</p>
 <h4 id="TACTICS__pbc">pbc</h4>
 <pre>(pbc)</pre>
 <p>Proof by contradiction: assume the goal&#x27;s negation, prove FALSITY.</p>
+<p><em>When useful:</em> a direct argument stalls and assuming the negation gives something concrete to work with</p>
 <p>Argue by contradiction: assume the goal is false and derive an absurdity.  (Technically: classical reductio -- adds the negation of the goal as a hypothesis and changes the goal to FALSITY.)</p>
 <h4 id="TACTICS__oi-l">oi-l</h4>
 <pre>(oi-l)</pre>
 <p>OR-intro left: reduce an (OR a b) goal to a.</p>
+<p><em>When useful:</em> the goal is (OR a b) and the LEFT alternative is provable</p>
 <p>Prove a disjunction `A or B&#x27; by proving the LEFT alternative, A.  (Technically: or-introduction, left.)</p>
 <h4 id="TACTICS__oi-r">oi-r</h4>
 <pre>(oi-r)</pre>
 <p>OR-intro right: reduce an (OR a b) goal to b.</p>
+<p><em>When useful:</em> the goal is (OR a b) and the RIGHT alternative is provable</p>
 <p>Prove a disjunction `A or B&#x27; by proving the RIGHT alternative, B.  (Technically: or-introduction, right.)</p>
 <h4 id="TACTICS__ew">ew</h4>
 <pre>(ew term)</pre>
 <p>Existential witness: discharge a FORSOME goal by supplying the witness term.</p>
+<p><em>When useful:</em> the goal is FORSOME and you have a witness term in mind</p>
 <p>Prove <code>there exists an x with property P&#x27; by exhibiting a specific witness: you supply the term, and the goal becomes </code>P holds of that term&#x27;.  The everyday `take x = ...&#x27; step.  (Technically: existential introduction for a FORSOME goal.)</p>
 <h4 id="TACTICS__ci">ci</h4>
 <pre>(ci)</pre>
 <p>Cartesian intro: prove a CARTESIAN-product membership component-wise.</p>
+<p><em>When useful:</em> the goal is membership in a CARTESIAN product</p>
 <p>Prove that a pair (or tuple) belongs to a Cartesian product A x B by proving each coordinate lies in its factor.  (Technically: Cartesian-membership introduction, component-wise.)</p>
 <h4 id="TACTICS__ti">ti</h4>
 <pre>(ti)</pre>
 <p>Tuple intro: prove a tuple/LIST membership component-wise.</p>
+<p><em>When useful:</em> the goal is membership in a set of tuples / LIST</p>
 <p>Prove that a list belongs to the set of tuples over A by proving each entry lies in A.  (Technically: tuple-membership introduction, component-wise.)</p>
 <h4 id="TACTICS__ii">ii</h4>
 <pre>(ii)</pre>
 <p>Intersection intro: prove (IN x (INTERSECTION ...)) for each branch.</p>
+<p><em>When useful:</em> the goal is membership in an INTERSECTION</p>
 <p>Prove that x lies in an intersection of sets by proving it lies in each of them.  (Technically: intersection-membership introduction.)</p>
 <h4 id="TACTICS__ui">ui</h4>
 <pre>(ui k)</pre>
 <p>Union intro: reduce a goal (IN x (UNION ...)) to membership of x in the k-th set (1-based).</p>
+<p><em>When useful:</em> the goal is membership in a UNION and you know which branch</p>
 <p>Prove that x lies in a union of sets by proving it lies in the k-th one (you choose which).  (Technically: union-membership introduction at branch k.)</p>
 <h4 id="TACTICS__ni">ni</h4>
 <pre>(ni)</pre>
 <p>Natural-number induction on the goal&#x27;s leading FORALL over NN.</p>
+<p><em>When useful:</em> the goal is `forall n in NN, P(n)&#x27;</p>
 <p>Prove `for all natural numbers n, P(n)&#x27; by induction: show P(0), and that P(n) implies P(n+1).  (Technically: natural-number induction on the goal&#x27;s leading FORALL over NN.)</p>
 <h3 id="TACTICS__using-a-hypothesis">Using a hypothesis</h3>
 <h4 id="TACTICS__ai">ai</h4>
 <pre>(ai hyp)</pre>
 <p>Antecedent inference: decompose a cited assumption -- AND-split, OR-into-cases, or FORSOME-elimination to a fresh eigenvariable.</p>
+<p><em>When useful:</em> a hypothesis is an AND / OR / FORSOME to break apart</p>
 <p>Break a hypothesis into its pieces -- the mirror image of di, but on the assumptions instead of the goal.  From a hypothesis <code>A and B&#x27; you get both A and B; from </code>A or B&#x27; you split into two cases (prove the goal in each); from `there exists x, P(x)&#x27; you get a fresh name for such an x together with P(x).  Cite the hypothesis by its number in the display, its formula, or a &quot;string&quot;.  (Technically: the hypothesis-side elimination rules for AND / OR / FORSOME; the fresh name is an eigenvariable.)</p>
 <h4 id="TACTICS__ass">ass</h4>
 <pre>(ass)</pre>
 <p>Close the goal by an assumption alpha-equivalent to it.</p>
+<p><em>When useful:</em> the goal already appears (up to bound-var renaming) among the hypotheses</p>
 <p>Finish the goal because it is already one of your hypotheses -- the <code>that is exactly what we assumed&#x27; step.  Renaming of dummy/bound variables doesn&#x27;t matter (</code>there exists x, P(x)&#x27; closes `there exists y, P(y)&#x27;).  (Technically: the assumption rule, matching up to alpha-equivalence.)</p>
 <h4 id="TACTICS__inst">inst</h4>
 <pre>(inst forall-hyp term)</pre>
 <p>Instantiate a universally-quantified assumption at `term&#x27;, adding the instance to context.</p>
+<p><em>When useful:</em> you have a forall-hypothesis and a specific value to use it at</p>
 <p>Use a `for all x, ...&#x27; hypothesis at a particular value: you supply the term, and the statement with x replaced by that term is added to your hypotheses.  (Technically: universal instantiation of an assumption.)</p>
 <h4 id="TACTICS__inst+">inst+</h4>
 <pre>(inst+ forall-hyp term)</pre>
 <p>Instantiate an in-context universal at `term&#x27;, then forward-detach any guards whose antecedents are in context.</p>
+<p><em>When useful:</em> a GUARDED forall-hyp whose guards are dischargeable from context (e.g. the metric laws post-grind)</p>
 <p>inst followed by detach: from <code>forall x. (x in S) =&gt; P(x)&#x27; and </code>t in S&#x27; already known, this lands <code>P(t)&#x27; directly (peeling nested guards level by level), instead of leaving the guarded implication for you to detach by hand.  The hypothesis-side analogue of </code>fact&#x27; (which assembles a THEOREM); this assembles an in-context UNIVERSAL.  scout&#x27;s inst lane emits these to close witness-needing goals like the metric laws.  (Technically: pi-instantiate! then pi-detach! while the consequent stays a guard with an in-context antecedent.)</p>
 <h4 id="TACTICS__detach">detach!</h4>
 <pre>(detach! impl)</pre>
 <p>Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context.</p>
+<p><em>When useful:</em> you have both P and (P =&gt; Q) in context and want Q</p>
 <p>If you have both <code>P&#x27; and </code>P implies Q&#x27; among your hypotheses, this adds `Q&#x27; to them.  It grows what you KNOW (the hypotheses) rather than changing the goal -- the forward counterpart of bc.  (Technically: forward modus ponens, the kernel rule pi-detach!; sound since P and P=&gt;Q give Q.)</p>
 <h4 id="TACTICS__fact">fact</h4>
 <pre>(fact &#x27;thm term ...)</pre>
 <p>Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis.</p>
+<p><em>When useful:</em> a library law `forall x. H(x) =&gt; P(x)&#x27; whose P you want landed as a hypothesis</p>
 <p>Handles interleaved forall/implies (e.g. forall s. IS-X(s) =&gt; forall a. a in A(s) =&gt; P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) =&gt; P(x)&#x27; becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.</p>
 <h4 id="TACTICS__ce">ce</h4>
 <pre>(ce hyp k)</pre>
 <p>Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.</p>
+<p><em>When useful:</em> a hypothesis is CARTESIAN-product membership</p>
 <p>From a hypothesis that a tuple lies in a Cartesian product, extract that its k-th coordinate lies in the k-th factor.  (Technically: Cartesian-membership elimination, k-th projection.)</p>
 <h4 id="TACTICS__te">te</h4>
 <pre>(te hyp k)</pre>
 <p>Tuple elim: project the k-th component out of a tuple-membership assumption.</p>
+<p><em>When useful:</em> a hypothesis is tuple membership</p>
 <p>From a hypothesis that something is a tuple over A, extract that its k-th entry lies in A.  (Technically: tuple-membership elimination, k-th projection.)</p>
 <h4 id="TACTICS__ie">ie</h4>
 <pre>(ie hyp k)</pre>
 <p>Intersection elim: extract the k-th branch of an INTERSECTION-membership assumption.</p>
+<p><em>When useful:</em> a hypothesis is INTERSECTION membership</p>
 <p>From a hypothesis that x lies in an intersection, extract that x lies in the k-th set.  (Technically: intersection-membership elimination.)</p>
 <h4 id="TACTICS__ue">ue</h4>
 <pre>(ue hyp)</pre>
 <p>Union elim: split a cited (IN x (UNION ...)) membership assumption into one subgoal per set -- union-side case analysis, the dual of `ui&#x27;.</p>
+<p><em>When useful:</em> a hypothesis is UNION membership -- case-split on it</p>
 <p>From a hypothesis that x lies in a union, split into cases -- one for each set x might belong to -- and prove the goal in each.  (Technically: union-membership elimination, case analysis; the dual of ui.)</p>
 <h4 id="TACTICS__cut">cut</h4>
 <pre>(cut formula)</pre>
 <p>Cut: prove <code>formula&#x27; as a side subgoal, then continue the main goal with </code>formula&#x27; added as an assumption (Gentzen cut).</p>
+<p><em>When useful:</em> you want to prove a lemma on the spot, then use it</p>
 <p>Introduce a lemma you prove on the spot.  You state a formula; it becomes a side goal to prove, and on the main line you may then use it as a hypothesis.  The standard `we first show that ..., and now using it ...&#x27; move.  (Technically: Gentzen&#x27;s cut -- nothing is left assumed-but-unproved, the side goal discharges it.)</p>
 <h4 id="TACTICS__wk">wk</h4>
 <pre>(wk hyp)</pre>
 <p>Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp&#x27; may be a formula, a &quot;string&quot;, or a 1-based assumption index.</p>
+<p><em>When useful:</em> the hypothesis list is cluttered with something no longer needed</p>
 <p>Discard a hypothesis you no longer need, to keep the assumption list readable.  (Technically: weakening -- removing a hypothesis is always sound.)</p>
 <h3 id="TACTICS__rewriting">Rewriting</h3>
 <h4 id="TACTICS__mac">mac</h4>
 <pre>(mac &#x27;name)</pre>
 <p>Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete&#x27;s side-conditions already hold in context.</p>
+<p><em>When useful:</em> the GOAL has a defined predicate to unfold / an identity to apply, side-conditions already met</p>
 <p>Rewrite the goal using a definition or a known equivalence/equality (a `macete&#x27;).  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law&#x27;s side-conditions already hold in your hypotheses; where they don&#x27;t, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h.)</p>
 <h4 id="TACTICS__mac-h">mac-h</h4>
 <pre>(mac-h &#x27;name hyp)</pre>
 <p>Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal.</p>
+<p><em>When useful:</em> a HYPOTHESIS has a definition to unfold / an equivalence to apply</p>
 <p>Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven&#x27;t established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)</p>
 <h4 id="TACTICS__mac-h*">mac-h*</h4>
 <pre>(mac-h*)</pre>
 <p>Saturating mac-h: repeatedly unfold every defined predicate in the hypotheses and split the conjunctions they expose, until nothing is left folded.  One step in the trace instead of a dozen.</p>
+<p><em>When useful:</em> several hypotheses are folded definitions / conjunctions to open at once</p>
 <p>The hands-free version of mac-h.  Instead of naming each definition and each conjunction by hand -- (mac-h &#x27;IS-METRIC-SPACE A1), split, (mac-h &#x27;is-metric A2), split, ... -- (mac-h*) keeps unfolding any assumption whose head is a defined predicate and splitting any AND assumption, restarting until a full pass changes nothing.  It records as a SINGLE step, so the proof (and its PDF) is far shorter.  It adds no kernel rule: every unfold is the same kernel-checked mac-h, every split the same ai -- just driven to a fixpoint.  Ask (what-now) to see which hypotheses it would touch first.</p>
 <h4 id="TACTICS__grind">grind</h4>
 <pre>(grind)</pre>
 <p>Saturate the no-choice moves at the focus: decompose the goal connective (di) and break open the hypotheses (mac-h*), repeatedly, until neither fires.  The whole introduce-everything prefix in one step.</p>
+<p><em>When useful:</em> right after sp, or any time the focus has connective/definitional structure -- normalize first</p>
 <p>The deterministic normalizer.  It keeps applying di -- which strips a leading FORALL/IMPLIES/AND, introducing the bound variables and moving antecedents into your hypotheses -- and mac-h<em>, which unfolds defined predicates and splits conjunctions in the hypotheses, until the goal head is no longer a connective and no hypothesis is foldable.  None of these moves involves CHOOSING a lemma, so there is never anything to reconsider: grind just puts the focus into normal form (e.g. a metric-law goal becomes `(d s)(x,y) = (d s)(y,x)&#x27; with the metric&#x27;s defining properties sitting unfolded in context).  It collapses the di...di mac-h</em> prefix that bloats proofs into a single step, and adds no kernel rule.</p>
 <h4 id="TACTICS__scout">scout</h4>
 <pre>(scout [depth [branch [nodes]]])</pre>
 <p>Speculatively search to a bounded depth across INDEPENDENT scratch branches; RETURNS a nested list (number-of-branches (d b) goal best-partials closing-branches) rather than printing.  Never touches the live proof.</p>
+<p><em>When useful:</em> you are stuck and want the machine to TRY move-sequences (returns data)</p>
 <p>The copilot&#x27;s deep lane.  Where (what-now)/(tt) suggest one move, scout actually TRIES sequences: it clones the focus into a fresh deduction graph per branch (so backtracking is free -- a dead branch is just discarded), and does a BEST-FIRST search (frontier ordered by open subgoals left, ties broken deeper-first so it dives toward a closure) whose alphabet is (grind), the closers (ass/rfl/crs/arith), the top rewrite-index (mac) rules, the parameterless backchain (bc*) lemmas, and the INST LANE -- (inst+ &lt;universal hyp&gt; &lt;context-typed term&gt;), instantiating a <code>forall&#x27; hypothesis at a term the context already types and detaching the guard.  It RETURNS the result as data -- (examined-count (depth branch) goal best-partials closing-branches), where best-partials is ((open-goals-left (form ...)) ...) most-reduced first and closing-branches is ((form ...) ...) shortest first -- so you can pick it apart programmatically; use (scout-show ...) for the readable REPL report.  Every move is the real, kernel-checked tactic, so a closing branch is a genuine proof when you adopt it with (scout-run k).  A CITATION GUARD suppresses circular closures: a branch that discharges the goal by citing a library theorem that is the goal -- DIRECTLY (statement alpha-equal to the goal, </code>P proved by P&#x27;) or TRANSITIVELY (the cited theorem was itself proven using the goal, i.e. a name alpha-equal to the goal is in its proof-debt closure -- the <code>compact=&gt;complete by compact=&gt;bongo + bongo=&gt;complete&#x27; trap) -- is dropped from closing-branches, the theorem name recorded in *scout-citations*, and scout-show notes </code>the goal is already theorem X&#x27;.  (Loops built purely from independent ASSERTED facts have no live dependency edge to detect; that is warrant/debt hygiene, not scout&#x27;s to check.)  Bounds: depth (default 6), per-node fan-out branch (default 3), total nodes (default 600).  El cheapo: it does not reason about which move is wise (only the witness terms are guessed, from what the context already types -- a bad guess just dies on the clone); it brute-forces a small tree and you eyeball the survivors.  The inst lane closes the metric laws past grind; goals that need a witness scout can&#x27;t type (a fresh existential, a constructed term) still surface under best-partials.</p>
 <h4 id="TACTICS__scout-show">scout-show</h4>
 <pre>(scout-show [depth [branch [nodes]]])</pre>
 <p>Like (scout), but PRINTS the human-readable report (examined count, goal, closing branches or best partials) to the REPL.  Returns the same nested list (scout) does.</p>
+<p><em>When useful:</em> same as scout but you want the readable report at the REPL</p>
 <p>The eyeball version of scout: same search, same return value, but it also prints the numbered CLOSING branches (or, when none close, the best partials with how many goals each leaves open).  Use scout-show interactively, (scout) when you want to consume the result as data.</p>
 <h4 id="TACTICS__scout-run">scout-run</h4>
 <pre>(scout-run k)</pre>
 <p>Adopt closing branch k from the last (scout)/(scout-show) onto the live proof, running its tactics for real (they record and display normally).</p>
+<p><em>When useful:</em> scout found a closing branch you want to adopt onto the live proof</p>
 <p>After scout finds CLOSING branches [1], [2], ..., (scout-run k) replays branch k&#x27;s tactic forms through the real tactics on your live <em>ps</em>, from the same focus scout cloned -- so the proof advances and the steps are recorded for the script / PDF exactly as if you had typed them.  Works after either (scout) or (scout-show); both stash the closing branches.</p>
 <h4 id="TACTICS__subst">subst</h4>
 <pre>(subst &#x27;(= s t))</pre>
 <p>Rewrite s -&gt; t throughout the goal, using an equation s = t that is in context (Leibniz substitution).</p>
+<p><em>When useful:</em> you have an equation s = t in context and want to rewrite the goal by it</p>
 <p>Use an equation `s = t&#x27; that is among your hypotheses to replace s by t everywhere in the goal.  (Technically: Leibniz substitution from an in-context equality.)</p>
 <h4 id="TACTICS__beta">beta</h4>
 <pre>(beta)</pre>
 <p>Beta-reduce a functoid application in the goal.</p>
+<p><em>When useful:</em> the goal has a functoid applied to an argument</p>
 <p>Simplify a function-expression applied to an argument by substituting the argument into its body.  (Technically: beta-reduction of a functoid application in the goal.)</p>
 <h4 id="TACTICS__nth-r">nth-r</h4>
 <pre>(nth-r)</pre>
 <p>Reduce an NTH applied to a literal LIST in the goal.</p>
+<p><em>When useful:</em> the goal has NTH of a literal LIST</p>
 <p>Simplify `the k-th entry of an explicit list [a1, a2, ...]&#x27; to that entry.  (Technically: reduce NTH applied to a literal LIST.)</p>
 <h4 id="TACTICS__rfl">rfl</h4>
 <pre>(rfl)</pre>
 <p>Close a reflexive equality goal (t = t).</p>
+<p><em>When useful:</em> the goal is `t = t&#x27; with t manifestly defined</p>
 <p>Close a goal `t = t&#x27; -- a thing equals itself.  (Technically: reflexivity of equality.)</p>
 <h4 id="TACTICS__qrfl">qrfl</h4>
 <pre>(qrfl)</pre>
 <p>Quasi-reflexivity: close t = t under the partial-equality definedness reading.</p>
+<p><em>When useful:</em> the goal is `t = t&#x27; but t might be UNDEFINED (partial =)</p>
 <p>Close <code>t = t&#x27; under the partial-equality reading, where asserting t = t also asserts that t is DEFINED.  Use this rather than rfl when t might be undefined.  (Technically: quasi-reflexivity; see the partial-equality convention, where </code>t = t&#x27; is the definedness predicate.)</p>
 <h3 id="TACTICS__arithmetic-ring-oracles">Arithmetic &amp; ring oracles</h3>
 <h4 id="TACTICS__arith">arith</h4>
 <pre>(arith)</pre>
 <p>Discharge a ground arithmetic goal by evaluation.</p>
+<p><em>When useful:</em> the goal is ground arithmetic -- no variables</p>
 <p>Close a goal that is a concrete numerical fact with no variables -- e.g. 2 + 3 = 5, or 7 in NN -- by just computing it.  (Technically: decision by ground arithmetic evaluation.)</p>
 <h4 id="TACTICS__rs">rs</h4>
 <pre>(rs)</pre>
 <p>Ring-simplify the goal (normal form over the ambient ring).</p>
+<p><em>When useful:</em> the goal is a (possibly non-commutative) ring-word identity</p>
 <p>Simplify the goal to a normal form in the ambient ring (which need not be commutative).  The non-commutative companion of crs.  (Technically: ring-simplify to a canonical word form.)</p>
 <h4 id="TACTICS__crs">crs</h4>
 <pre>(crs)</pre>
 <p>Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly.</p>
+<p><em>When useful:</em> the goal is a commutative-ring identity, e.g. (x+y)^2 = x^2+2xy+y^2</p>
 <p>Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)</p>
 <h4 id="TACTICS__simp">simp</h4>
 <pre>(simp [target])</pre>
 <p>Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2<em>x</em>y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; &quot;term&quot; targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm&#x27;s generators typed in context (true post-di), else refuses and names them.</p>
+<p><em>When useful:</em> a ring SUBTERM of a larger goal should be put in normal form in place</p>
 <h4 id="TACTICS__ineq">ineq</h4>
 <pre>(ineq i1 i2 ...)</pre>
 <p>Close a linear-inequality goal over RR (&lt;= &lt; &gt; &gt;= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring&#x27;s (ADD s)/(MUL s) -- those become opaque atoms.)</p>
+<p><em>When useful:</em> a LINEAR &lt;= / &lt; over RR that follows from inequalities you can cite</p>
 <p>Close a LINEAR inequality over the reals that follows from inequalities you cite (by their hypothesis numbers) -- by chaining them, adding them, and scaling by positive constants.  Anything that is not built from + - and multiplication-by-constants is treated as an opaque quantity, so it handles e.g. the triangle inequality where the distances are unknowns.  For NONLINEAR (polynomial) inequalities use sos instead.  (Technically: Fourier-Motzkin / Farkas over the ordered field RR; every atom must be certified real.)</p>
 <h4 id="TACTICS__sos">sos</h4>
 <pre>(sos &quot;c1&quot; &quot;c2&quot; ...)</pre>
 <p>Sum-of-squares closer for a nonstrict polynomial inequality a &lt;= b over RR (the nonlinear companion of (ineq)).  You supply the terms to be SQUARED; it finds the nonnegative coefficients.  (tactics &#x27;sos) for the worked example.</p>
+<p><em>When useful:</em> a NONSTRICT POLYNOMIAL &lt;= over RR (the nonlinear cousin of ineq)</p>
 <p>A sum-of-squares closer.  To prove  a &lt;= b  it is enough to exhibit b - a  as a sum of squares (each obviously &gt;= 0), reducing the inequality to an algebraic identity.  You hand sos the terms to be SQUARED -- the c_i, NOT the squares -- and it solves for nonnegative rationals lambda_i with</p>
 <pre>  b - a  =  lambda_1 c_1^2 + ... + lambda_n c_n^2</pre>
 <p>(matched coefficient-by-coefficient in crs&#x27;s commutative-ring normal form), then PRINTS the lambda_i it found.  You do not supply them.</p>
@@ -271,72 +313,89 @@
 <h4 id="TACTICS__ta">ta</h4>
 <pre>(ta &#x27;name)</pre>
 <p>Theorem-assumption: bring the named installed theorem into context as an assumption.</p>
+<p><em>When useful:</em> you want a library theorem available as a hypothesis</p>
 <p>Bring an already-proved theorem into your current hypotheses so you can use it (instantiate it, detach from it, ...).  (Technically: adds the named installed theorem as an assumption.)</p>
 <h4 id="TACTICS__wbc">wbc</h4>
 <pre>(wbc [&#x27;name])</pre>
 <p>Witness-shape backchain: on an `exists v. ...&#x27; goal, cite a PSS lemma that MANUFACTURES a witness of that shape, so you can finish with inst+/grind/ew.</p>
+<p><em>When useful:</em> an EXISTENCE goal whose witness a PSS lemma manufactures (diagonalization / block-family)</p>
 <p>The discovery move for existence proofs.  Faced with <code>there exists phi with ...&#x27;, it looks up the produces-witness index for lemmas whose conclusion builds the RIGHT KIND of object -- the same existential-witness shape -- even when the rest of the statement differs (which is why plain bc* misses them: bc* demands the WHOLE conclusion unify).  E.g. on </code>exists phi. STRICTLY-MONO-NN(phi) and IS-CAUCHY-SEQ(SUBSEQ f phi)&#x27; it reaches for <code>diagonalization&#x27; (which makes a STRICTLY-MONO-NN phi from a nested family); on a nested-family goal it reaches for </code>block-family&#x27;.  With no argument it cites the top retrieved producer; (wbc &#x27;name) cites the one you name.  It brings the lemma in (via ta); you then discharge its hypotheses (inst+), skolemize its existential (grind), and supply its witness to your goal (ew).  Circular `headline&#x27; lemmas that already conclude your exact goal are filtered out.  (See (witness-producers goal) for the raw retrieval; what-now lists the (wbc &#x27;name) candidates on any existential goal.)</p>
 <h4 id="TACTICS__bc">bc</h4>
 <pre>(bc impl)</pre>
 <p>Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.</p>
+<p><em>When useful:</em> you have (P =&gt; Q) in context and the goal is Q</p>
 <p>Work backwards through an implication you already have.  If <code>P implies Q&#x27; is among your hypotheses and your goal is Q, this reduces the goal to proving P.  The everyday </code>to get Q it&#x27;s enough to show P&#x27;.  (Technically: backchaining the goal through an in-context implication whose conclusion matches.)</p>
 <h4 id="TACTICS__bc*">bc*</h4>
 <pre>(bc* &#x27;thm [((v val)...)] h1 h2 ...)</pre>
 <p>Matching backchain: unify the theorem&#x27;s conclusion against the goal, then leave its (instantiated) antecedents as subgoals -- optional handlers hk run on the k-th subgoal.</p>
+<p><em>When useful:</em> a library theorem&#x27;s CONCLUSION matches your goal</p>
 <p>Apply a known theorem to your goal.  If you have a theorem <code>if A and B then C&#x27; and your goal is its conclusion C -- matching the theorem&#x27;s variables to yours, and the names of any dummy/bound variables don&#x27;t matter (</code>there exists a net N&#x27; applies to a goal <code>there exists a net F&#x27;) -- this replaces </code>prove the goal&#x27; with <code>prove A&#x27; and </code>prove B&#x27;, the theorem&#x27;s hypotheses.  The everyday `by Theorem X it suffices to show A and B&#x27;.  You may attach a handler to each hypothesis to dispatch it; values the match can&#x27;t determine you supply as ((v val) ...).  (Technically: peels the theorem&#x27;s leading universals and implications, matches the conclusion -- alpha-aware on bound variables -- and replays ta/inst/cut/bc automatically.)</p>
 <h3 id="TACTICS__lambda-comprehension-description">Lambda, comprehension &amp; description</h3>
 <h4 id="TACTICS__lam-t">lam-t</h4>
 <pre>(lam-t)</pre>
 <p>VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.</p>
+<p><em>When useful:</em> the goal types a VNB-LAMBDA into FUN(A,B)</p>
 <p>Show that a function defined by a formula (`x |-&gt; ...&#x27;) maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B.  (Technically: VNB-LAMBDA typing into FUN A B.)</p>
 <h4 id="TACTICS__lam-b">lam-b</h4>
 <pre>(lam-b)</pre>
 <p>VNB-LAMBDA beta: reduce an applied lambda to its substituted body.</p>
+<p><em>When useful:</em> the goal has a VNB-LAMBDA applied to an argument</p>
 <p>Simplify a function `x |-&gt; e(x)&#x27; applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)</p>
 <h4 id="TACTICS__sep-set">sep-set</h4>
 <pre>(sep-set)</pre>
 <p>Separation sethood: the separation set {x in A | p} is a set.</p>
+<p><em>When useful:</em> the goal asserts a separation set { x in A | p } is a set</p>
 <p>Show that a set-builder set {x in A | p(x)} is genuinely a set.  (Technically: separation sethood -- a subclass of a set is a set.)</p>
 <h4 id="TACTICS__sep-mi">sep-mi</h4>
 <pre>(sep-mi)</pre>
 <p>Separation membership intro: prove (IN t {x in A | p}).</p>
+<p><em>When useful:</em> the goal is membership in a separation set { x in A | p }</p>
 <p>Prove that a term t belongs to {x in A | p(x)} by showing t lies in A and satisfies the condition p.  (Technically: separation-membership introduction.)</p>
 <h4 id="TACTICS__sep-me">sep-me</h4>
 <pre>(sep-me hyp)</pre>
 <p>Separation membership elim: split a separation-membership assumption into A-membership and the predicate.</p>
+<p><em>When useful:</em> a hypothesis is separation-set membership -- unpack it</p>
 <p>From a hypothesis that t belongs to {x in A | p(x)}, extract the two facts it packs: t lies in A, and p(t) holds.  (Technically: separation-membership elimination.)</p>
 <h4 id="TACTICS__comp-mi">comp-mi</h4>
 <pre>(comp-mi)</pre>
 <p>Comprehension membership intro.</p>
+<p><em>When useful:</em> the goal is comprehension-set membership</p>
 <p>Prove that something belongs to a comprehension set by establishing the set&#x27;s defining condition for it.  (Technically: comprehension-membership introduction.)</p>
 <h4 id="TACTICS__comp-me">comp-me</h4>
 <pre>(comp-me hyp)</pre>
 <p>Comprehension membership elim.</p>
+<p><em>When useful:</em> a hypothesis is comprehension-set membership</p>
 <p>From a comprehension-membership hypothesis, extract its defining condition.  (Technically: comprehension-membership elimination.)</p>
 <h4 id="TACTICS__iota-d">iota-d</h4>
 <pre>(iota-d term)</pre>
 <p>Definite-description: discharge the IOTA uniqueness obligation for `term&#x27;.</p>
+<p><em>When useful:</em> the goal involves IOTA and you must discharge its uniqueness obligation</p>
 <p>Justify `the unique x such that p(x)&#x27; (a definite description) by proving that exactly one such x exists.  (Technically: IOTA -- discharge the uniqueness obligation for the described term.)</p>
 <h4 id="TACTICS__bu-set">bu-set</h4>
 <pre>(bu-set)</pre>
 <p>Big-union sethood.</p>
+<p><em>When useful:</em> the goal asserts a BIG-UNION is a set</p>
 <p>Show that a big union (the union of an indexed family of sets) is itself a set.  (Technically: big-union sethood.)</p>
 <h4 id="TACTICS__bu-mi">bu-mi</h4>
 <pre>(bu-mi w)</pre>
 <p>Big-union membership intro via the index witness w.</p>
+<p><em>When useful:</em> the goal is BIG-UNION membership -- you have the index witness</p>
 <p>Prove that an element lies in a big union by exhibiting one index w whose set already contains it.  (Technically: big-union-membership introduction via the index witness.)</p>
 <h4 id="TACTICS__bu-me">bu-me</h4>
 <pre>(bu-me hyp)</pre>
 <p>Big-union membership elim.</p>
+<p><em>When useful:</em> a hypothesis is BIG-UNION membership -- obtain its index</p>
 <p>From a hypothesis that an element lies in a big union, obtain an index whose set contains it (a fresh name for that index).  (Technically: big-union-membership elimination.)</p>
 <h3 id="TACTICS__conditional-terms">Conditional terms</h3>
 <h4 id="TACTICS__if-true">if-true</h4>
 <pre>(if-true t)</pre>
 <p>Reduce an (IF p a b) term on the p branch: spawns p as a subgoal; the continuation gains (= (IF p a b) a).</p>
+<p><em>When useful:</em> the goal has an (IF p a b) term to evaluate on the p branch</p>
 <p>Evaluate a conditional term `if p then a else b&#x27; on the assumption that p holds: you take on p as a side goal, and may then use that the conditional equals a.  (Technically: if-true reduction, spawning p.)</p>
 <h4 id="TACTICS__if-false">if-false</h4>
 <pre>(if-false t)</pre>
 <p>Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b).</p>
+<p><em>When useful:</em> the goal has an (IF p a b) term to evaluate on the not-p branch</p>
 <p>Evaluate a conditional term <code>if p then a else b&#x27; on the assumption that p fails: you take on </code>not p&#x27; as a side goal, and may then use that the conditional equals b.  (Technically: if-false reduction, spawning not p.)</p>
 <h3 id="TACTICS__navigation-display-tacticals">Navigation, display &amp; tacticals</h3>
 <h4 id="TACTICS__focus">focus</h4>
