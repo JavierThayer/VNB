@@ -182,12 +182,16 @@
     ;; No metric vocabulary; block-family/tb-block-step are its instances.
     "theorem-library/block-family-combinatorial"
     "theorem-library/subsequence-capture"
-    "theorem-library/diagonalization"
     ;; Totally bounded => every sequence has a Cauchy subsequence.  Assembles
     ;; pigeonhole + diagonalization + ball-2r-triangle; supplies the SUBSEQ /
     ;; STRICTLY-MONO-NN / IS-SUBSEQUENCE vocabulary.  Needs TOTALLY-BOUNDED/BALL
     ;; (metric-topology), IS-CAUCHY-SEQ (metric-completeness), INF-SUBSETS.
     "theorem-library/cauchy-subsequence"
+    ;; The three generic supports the diagonalization PROOF rests on
+    ;; (consecutive-mono, nested-chain, infinite-unbounded).  Data-level
+    ;; (support/warrant!), so loaded here; the proof itself runs later,
+    ;; after the interactive engine.  Needs STRICTLY-MONO-NN (above).
+    "theorem-library/diagonalization-lemmas"
     "structure-library/sequences"
     "structure-library/finsum"
     ;; FINPROD / PROD-RING: finite product = FINSUM at a multiplicative
@@ -310,6 +314,12 @@
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
     "structure-library/metric-laws"
+    ;; Diagonalization: nested infinite subsets of NN -> a single strictly-
+    ;; monotone sequence with tail in every member.  PROVEN to QED via
+    ;; dc-on-nn-pred + diagonalization-lemmas' three generic supports.  Runs
+    ;; here (needs the interactive engine + proof-debt) and BEFORE
+    ;; cauchy-subseq-proof, which cites it.
+    "theorem-library/diagonalization"
     "theorem-library/cauchy-subseq-proof"
     ;; countable Tychonoff headline, PROVEN to QED modulo the diagonalization
     ;; keystone.  Needs seq-compact-product's supports + interactive/proof-debt.

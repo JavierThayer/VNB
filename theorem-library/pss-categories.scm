@@ -177,7 +177,10 @@
 (category! 'null-rr-seq-exists 'combinatorial)
 (category! 'dc-on-nn 'combinatorial)
 (category! 'dc-on-nn-pred 'combinatorial)
-(category! 'diagonalization 'combinatorial)
+;; diagonalization is now PROVEN (not a support); its three generic leaves:
+(category! 'nn-step-strictly-mono 'combinatorial)
+(category! 'nn-nested-subset-chain 'combinatorial)
+(category! 'inf-subset-nn-unbounded 'combinatorial)
 (category! 'pigeonhole-infinite 'combinatorial)
 (category! 'convergence-block-tower 'combinatorial)
 (category! 'coordinatewise-diagonal-subseq 'combinatorial)

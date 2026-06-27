@@ -163,12 +163,8 @@
    recursion on NN assembles f in fun(NN, x).  Derivable from VNB's global
    choice operator applied to the (hypothesis-nonempty) successor sets.")
 
-(warrant! 'diagonalization 'informal
-  "The diagonal subsequence for a nested family of infinite sets.  Pick f(k)
-   in s(k) strictly above f(k-1) -- possible since each s(k), being infinite,
-   is unbounded; since the family decreases, f(j) in s(j) is a subset of s(k)
-   for every k <= j.  The standard diagonal argument; the recursive choice is
-   dependent choice over NN (dc-on-nn).")
+;; diagonalization was here (asserted 'informal); now PROVEN to QED in
+;; theorem-library/diagonalization.scm, so its warrant lives at the proof.
 
 (warrant! 'pigeonhole-infinite 'informal
   "Infinite pigeonhole: an infinite set mapped to finitely many boxes fills
