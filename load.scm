@@ -358,6 +358,10 @@
     ;; NN-recursion on DERIV (nth-deriv-zero / -succ).  Needs DERIV
     ;; (differentiation) + def-by-nn-recursion (ordinals).
     "theorem-library/higher-derivatives"
+    ;; Calculus Section 2.2: the o/O calculus, limit-free (LITTLE-O-AT) -- the
+    ;; eq-12 bridge to IS-DIFF-AT + o-algebra (sum, scalar).  Needs IS-DIFF-AT
+    ;; + IS-CONTINUOUS-AT.
+    "theorem-library/little-o"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
