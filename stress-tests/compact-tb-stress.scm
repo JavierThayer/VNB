@@ -1,7 +1,17 @@
-;;; compact-stress.scm -- STRESS TEST of the compactness characterization
+;;; compact-tb-stress.scm -- STRESS TEST of the compactness characterization
 ;;; (calculus.pdf Prop 3.12), per the "proof requests are PSS probes" lens:
 ;;; the deliverable is the surfaced obstacles, not a QED.  Run with
-;;;   ./prover -i calculus/compact-stress.scm
+;;;   ./prover -i stress-tests/compact-tb-stress.scm
+;;;
+;;; KIND: machinery-gap probe (names the missing reusable lemmas).
+;;; PSS SUPPORTS LEANED ON (see theorem-library/pss-categories.scm):
+;;;   compactness vocab    IS-COMPACT, IS-OPEN-COVER, TOTALLY-BOUNDED, IS-R-NET
+;;;                        (topology bucket; def-predicates, metric-topology.scm)
+;;;   ball-cover-is-open-cover    the ball family is an open cover  (topology)
+;;;   finite-ball-subcover-r-net  finite subcover yields a finite r-net
+;;;                               (now PROVEN, modulo chosen-centre-is-centre)
+;;;   chosen-centre-is-centre     the epsilon centre pick is a genuine centre
+;;; OUTCOME: closed the gap -> compact-tb (proven theorem, compact-tb-proof.scm).
 ;;;
 ;;; Target direction: (1) => (4) half,  compact => totally bounded.
 ;;; The driven prefix below reaches the heart of the argument cleanly; the

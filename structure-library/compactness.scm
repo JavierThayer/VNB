@@ -2,7 +2,7 @@
 ;;; characterization (calculus.pdf Prop 3.12).  Supplies the missing
 ;;; vocabulary (IS-COMPACT, IS-OPEN-COVER, CLUSTER-POINT, HAS-FIP) and states
 ;;; the characterization as warranted supports (library phase); the proof
-;;; directions are the stress test in calculus/compact-stress.scm.
+;;; directions are the stress test in stress-tests/compact-tb-stress.scm.
 ;;;
 ;;; Prop 3.12.  For a metric space X the following are equivalent:
 ;;;   (1) X is compact (every open cover has a finite subcover);

@@ -3,7 +3,7 @@
 ;;; warranted ball-cover lemmas (compactness.scm).  Run:
 ;;;   ./prover calculus/compact-tb-proof.scm
 ;;;
-;;; This is the QED the stress test (calculus/compact-stress.scm) was blocked
+;;; This is the QED the stress test (stress-tests/compact-tb-stress.scm) was blocked
 ;;; on.  The block was that bc* could not match a lemma whose conclusion is
 ;;; FORSOME-headed; that is now fixed (match-expr is alpha-aware on binders,
 ;;; macetes.scm), so bc* backchains the EXISTENTIAL lemma

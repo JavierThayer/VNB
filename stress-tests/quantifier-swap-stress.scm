@@ -1,4 +1,9 @@
-;;; calculus/quantifier-swap-stress.scm
+;;; stress-tests/quantifier-swap-stress.scm
+;;; ====================================================================
+;;; KIND: tactic/search-capability probe (NOT a library-lemma probe) -- it
+;;; leans on NO PSS support; the deliverable is what the SCOUT and the inst/grind
+;;; lanes can and cannot drive.  Contrast compact-tb-stress.scm, which names
+;;; missing PSS lemmas.  Both flavors belong in this directory.
 ;;; ====================================================================
 ;;; STRESS TEST -- the QUANTIFIER-ALTERNATION (a la nonstandard analysis) case
 ;;; that the A1-A4 toy examples in scout-eps-cauchy-record.scm hide.
@@ -31,7 +36,7 @@
 ;;;     threshold N := null-threshold(eps/2).
 ;;;
 ;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
-;;;        --load calculus/quantifier-swap-stress.scm --eval '(exit)' 2>&1 | grep ';;S'
+;;;        --load stress-tests/quantifier-swap-stress.scm --eval '(exit)' 2>&1 | grep ';;S'
 ;;; ====================================================================
 
 (define (gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
