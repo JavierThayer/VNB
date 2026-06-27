@@ -344,6 +344,11 @@
     ;; the <=_ORD/<= bridge; exercises the new ai iff-elim.  Needs interactive
     ;; tactics + qed and the ordinal axioms.
     "theorem-library/nn-least-element"
+    ;; Chapter 2 (Differentiation) of calculus.pdf: the Caratheodory/o(h)
+    ;; derivative IS-DIFF-AT + DERIV, and the first results (uniqueness, Prop 2.4
+    ;; diff=>continuous, sum/product rules, const/identity).  Needs IS-CONTINUOUS-
+    ;; AT (metric-continuity) + RR-MS / RR arithmetic (numeric-instances).
+    "theorem-library/differentiation"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
