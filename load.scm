@@ -344,6 +344,11 @@
     ;; the <=_ORD/<= bridge; exercises the new ai iff-elim.  Needs interactive
     ;; tactics + qed and the ordinal axioms.
     "theorem-library/nn-least-element"
+    ;; Pointwise continuity algebra on RR (const/identity continuous; sum/product
+    ;; of continuous-at-a is continuous-at-a) -- the supporting machinery the
+    ;; differentiation rules are proved on top of.  Needs IS-CONTINUOUS-AT
+    ;; (metric-continuity) + RR-MS (numeric-instances).
+    "theorem-library/continuity-algebra"
     ;; Chapter 2 (Differentiation) of calculus.pdf: the Caratheodory/o(h)
     ;; derivative IS-DIFF-AT + DERIV, and the first results (uniqueness, Prop 2.4
     ;; diff=>continuous, sum/product rules, const/identity).  Needs IS-CONTINUOUS-

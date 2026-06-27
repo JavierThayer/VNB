@@ -1,0 +1,7 @@
+(verify-proofs!)
+(display "\n#### isolate const-continuous-at bc* ####\n")
+(sp '(FORALL a (IMPLIES (IN a RR) (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x 1) a))))
+(grind)
+(display "\n--BEFORE bc*--\n")
+(bc* 'const-continuous-at)
+(display "\n--AFTER bc* (focus = antecedent?)--\n")

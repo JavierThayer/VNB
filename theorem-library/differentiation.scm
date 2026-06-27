@@ -14,12 +14,18 @@
 ;;;
 ;;; Real functions f : RR -> RR; values use the +/-/*/abs surface (the same the
 ;;; RR-MS metric uses); point continuity is IS-CONTINUOUS-AT(RR-MS,RR-MS,phi,a)
-;;; (structure-library/metric-continuity.scm).  This first increment installs
-;;; the VOCABULARY (IS-DIFF-AT, DERIV) and states the first results as warranted
-;;; supports (analysis bucket); machine proofs from the algebraic definition are
-;;; the next increment -- the supporting "continuity algebra" (sum/product of
-;;; functions continuous at a, constant/identity continuous) is the machinery to
-;;; build first, after which these rules go through as ring-/o-algebra.
+;;; (structure-library/metric-continuity.scm).  The supporting "continuity
+;;; algebra" lives in theorem-library/continuity-algebra.scm.
+;;;
+;;; STATUS: deriv-const and deriv-identity are MACHINE-PROVEN from the algebraic
+;;; definition (the witness phi is a constant, continuity by const-continuous-at,
+;;; the factorization closes by crs) -- proof-of-concept that the foundation
+;;; fires.  derivative-unique, diff-implies-continuous (Prop 2.4), deriv-sum
+;;; (2.5), deriv-product (2.6) remain warranted supports: they additionally need
+;;; (a) skolemizing the IS-DIFF-AT hypotheses to extract the factor phi, (b) for
+;;; sum/product the RR-closure of f(x)+g(x) / f(x)*g(x) under fun-apply-type
+;;; (the known [[numeric-closure-gap]]), and (c) a "continuity respects pointwise
+;;; equality" lemma for Prop 2.4 -- the next increment.
 
 ;;; ===================================================================
 ;;; The Caratheodory derivative
@@ -69,25 +75,37 @@
    as x -> a, phi(x) -> phi(a) (bounded) and (x-a) -> 0, so f(x) -> f(a).")
 (category! 'diff-implies-continuous 'analysis)
 
-;;; Derivative of a constant function is 0  (witness phi = const 0).
-(support 'deriv-const
-  '(FORALL c (FORALL a
-     (IMPLIES (AND (IN c RR) (IN a RR))
-              (IS-DIFF-AT (VNB-LAMBDA x c) a 0)))))
-(warrant! 'deriv-const 'well-known
-  "The constant function x|->c factors as c-c = 0 = 0*(x-a); phi = const 0 is
-   continuous at a with phi(a)=0.")
-(category! 'deriv-const 'analysis)
+;;; Derivative of a constant function is 0  (PROVEN).  Witness phi = const 0:
+;;; c-c = 0 = 0*(x-a), and phi = const 0 is continuous at a with phi(a)=0.
+(sp '(FORALL c (FORALL a
+       (IMPLIES (AND (IN c RR) (IN a RR))
+                (IS-DIFF-AT (VNB-LAMBDA x c) a 0)))))
+(grind) (mac 'IS-DIFF-AT) (fact 'rr-zero-in)
+(di) (lam-t) (grind) (ass)                       ; lambda(x,c) : RR -> RR
+(di) (ass)                                       ; a in RR
+(di) (ass)                                       ; 0 in RR
+(ew '(VNB-LAMBDA x 0))                             ; phi := const 0
+(di) (lam-t) (grind) (ass)                       ; lambda(x,0) : RR -> RR
+(di) (bc* 'const-continuous-at () (ass) (ass))    ; phi continuous at a
+(di) (lam-b) (rfl)                               ; phi(a) = 0
+(grind) (lam-b) (crs)                            ; c-c = 0*(x-a)
+(qed 'deriv-const)
 
-;;; Derivative of the identity function is 1  (witness phi = const 1).
-(support 'deriv-identity
-  '(FORALL a
-     (IMPLIES (IN a RR)
-              (IS-DIFF-AT (VNB-LAMBDA x x) a 1))))
-(warrant! 'deriv-identity 'well-known
-  "The identity x|->x factors as x-a = 1*(x-a); phi = const 1 is continuous at a
-   with phi(a)=1.")
-(category! 'deriv-identity 'analysis)
+;;; Derivative of the identity function is 1  (PROVEN).  Witness phi = const 1:
+;;; x-a = 1*(x-a), and phi = const 1 is continuous at a with phi(a)=1.
+(sp '(FORALL a
+       (IMPLIES (IN a RR)
+                (IS-DIFF-AT (VNB-LAMBDA x x) a 1))))
+(grind) (mac 'IS-DIFF-AT) (fact 'rr-one-in)
+(di) (lam-t) (grind) (ass)                       ; lambda(x,x) : RR -> RR
+(di) (ass)                                       ; a in RR
+(di) (ass)                                       ; 1 in RR
+(ew '(VNB-LAMBDA x 1))                             ; phi := const 1
+(di) (lam-t) (grind) (ass)                       ; lambda(x,1) : RR -> RR
+(di) (bc* 'const-continuous-at () (ass) (ass))    ; phi continuous at a
+(di) (lam-b) (rfl)                               ; phi(a) = 1
+(grind) (lam-b) (crs)                            ; x-a = 1*(x-a)
+(qed 'deriv-identity)
 
 ;;; Prop 2.5: sum rule.  phi_{f+g} = phi_f + phi_g.
 (support 'deriv-sum
