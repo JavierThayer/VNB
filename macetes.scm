@@ -105,6 +105,17 @@
      (and (equal? pattern expr) '()))
     ((number? pattern)
      (and (equal? pattern expr) '()))
+    ;; Numeral <-> successor bridge: a pattern (succ P) matches a positive
+    ;; integer literal m by treating m as (succ (m-1)) and matching P against
+    ;; m-1.  So (succ n)-headed recursion axioms (nth-deriv-succ, mpow-succ,
+    ;; power-succ, ...) fire on numerals 1,2,3,... directly, not only on
+    ;; syntactic succ-towers -- the numeral<->succ normalizer that makes
+    ;; concrete-order recursion dumb-assemblable (scout/mac use this matcher).
+    ;; Purely additive: only ADDS valid matches (m really does equal succ(m-1)).
+    ((and (pair? pattern) (eq? (car pattern) 'succ)
+          (pair? (cdr pattern)) (null? (cddr pattern))
+          (integer? expr) (positive? expr))
+     (match-expr (cadr pattern) (- expr 1) schema-vars))
     ;; Functoid records: match structurally (same kind, same arity, domains match, body matches)
     ((and (functoid? pattern) (functoid? expr))
      (let ((bp (functoid-bindings pattern)) (be (functoid-bindings expr)))

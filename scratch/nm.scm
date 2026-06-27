@@ -1,0 +1,7 @@
+(verify-proofs!)
+(define (gf) (and *ps* (not (proof-done? *ps*)) (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+(sp '(FORALL f (== (NTH-DERIV f 1) (VNB-LAMBDA x (DERIV f x)))))
+(grind)
+(fact 'nn-zero-in)
+(mac 'nth-deriv-succ) (display ";; after succ (numeral 1): ") (write (or (gf) 'DONE)) (newline)
+(mac 'nth-deriv-zero) (qrfl) (display ";; DONE (no bridge)? ") (display (proof-done? *ps*)) (newline)

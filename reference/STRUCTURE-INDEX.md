@@ -377,8 +377,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (a add mul neg zero one) ↦ (a add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (a add mul neg zero one) ↦ (a add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
 - `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
 
 ### group
 <a id="group"></a>

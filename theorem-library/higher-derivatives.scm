@@ -22,15 +22,14 @@
   '(n val)                              ; step vars: n in NN, val = NTH-DERIV(f, n)
   '(VNB-LAMBDA x (DERIV val x)))        ; NTH-DERIV(f, succ n) = x |-> DERIV(val, x)
 
-;;; f^(1) = the derivative function  x |-> f'(x)  (PROVEN).  The concrete-order
-;;; assembly pattern: a numeral has to be bridged to a succ-tower for the
-;;; recursion axiom to fire -- cut `1 = succ 0' (discharge by arith), subst it,
-;;; supply the NN-guard (nn-zero-in), then the two recursion rewrites.  (A
-;;; numeral<->succ normalizer would let a plain scout pass do this unaided; see
-;;; [[automatable-assembly]] -- noted as the next bridge block.)
+;;; f^(1) = the derivative function  x |-> f'(x)  (PROVEN).  The recursion axiom
+;;; nth-deriv-succ now fires on the literal numeral 1 directly, thanks to the
+;;; numeral<->succ matcher bridge (macetes.scm: a pattern (succ n) matches a
+;;; positive integer m via n:=m-1).  So concrete orders need only the NN-guard
+;;; (nn-zero-in) + the two recursion rewrites -- no cut/subst/arith dance.  This
+;;; is dumb-assemblable: scout closes it unaided (see [[automatable-assembly]]).
 (sp '(FORALL f (== (NTH-DERIV f 1) (VNB-LAMBDA x (DERIV f x)))))
 (grind)
-(cut '(= 1 (succ 0))) (arith) (subst '(= 1 (succ 0)))
 (fact 'nn-zero-in)
 (mac 'nth-deriv-succ) (mac 'nth-deriv-zero) (qrfl)
 (qed 'nth-deriv-one)
