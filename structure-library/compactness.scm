@@ -53,7 +53,12 @@
 ;;; ----- Prop 3.12: the four-way characterization (stated as supports) -----
 
 ;;; (1) <=> (4):  compact  iff  totally bounded and complete.
-(support 'compact-iff-tb-complete
+;;; A headline named theorem, not PSS plumbing: installed as a warranted
+;;; ASSERTION (matchable macete, believed machine-provable, deferred to a
+;;; minimal-base project) rather than a Proof Support.  See [[pss-central-role]]:
+;;; PSS = curated reusable minutiae; a Prop-3.12 equivalence is a result.
+;;; (Its three siblings below stay `support' pending the queued PSS review.)
+(theory-add-axiom! *current-theory* 'compact-iff-tb-complete
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s)
           (AND (TOTALLY-BOUNDED s) (IS-COMPLETE s))))))

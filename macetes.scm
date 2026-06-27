@@ -787,6 +787,14 @@
 
 (define *theorem-table* (make-equal-hash-table))
 
+;;; Memo of each lemma's conclusion-fingerprint at the default depth (the key
+;;; the backchain-candidate scan recomputes per call).  A lemma's conclusion
+;;; never changes once installed, so this turns the hot retrieval loop (scout /
+;;; auto-prove sweep, suggest-backchain-candidates) from O(corpus) fingerprint
+;;; recomputes per node into O(corpus) hash lookups.  Filled lazily by
+;;; `lemma-fingerprint' (interactive.scm); invalidated here on (re)install.
+(define *lemma-fingerprint-memo* (make-equal-hash-table))   ; name -> fp
+
 ;;; Names of results established by proof (prove-and-install! / cmd-qed),
 ;;; as opposed to axioms.  Used by (catalog) to split the registry.
 (define *proven-theorem-names* '())
@@ -991,6 +999,7 @@
                          (wff-formula formula-or-wff)
                          formula-or-wff)))
         (hash-table-set! *theorem-table* name formula)
+        (hash-table-delete! *lemma-fingerprint-memo* name)   ; stale on reinstall
         (register-provenance! name *current-provenance*)
         (install-macete! name (theorem->elementary-macete formula name))
         ;; Symmetric-core theorems also install a reverse-direction macete.
@@ -999,6 +1008,7 @@
             (let ((rev-name (string->symbol
                              (string-append (symbol->string name) "-rev"))))
               (hash-table-set! *theorem-table* rev-name flipped)
+              (hash-table-delete! *lemma-fingerprint-memo* rev-name)
               (register-provenance! rev-name *current-provenance*)
               (install-macete! rev-name
                 (theorem->elementary-macete flipped rev-name)))))

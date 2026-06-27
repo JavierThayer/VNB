@@ -185,7 +185,7 @@
          (cands '()))
     (for-each
       (lambda (n)
-        (let ((lfp (conclusion-fingerprint (lookup-theorem n) depth)))
+        (let ((lfp (lemma-fingerprint n depth)))
           (when (fingerprint-subsumes? lfp gfp)
             (set! cands (cons (cons n lfp) cands)))))
       (hash-table-keys *theorem-table*))

@@ -1586,6 +1586,20 @@
     (let-values (((vars core) (strip-foralls (prenex-positive formula))))
       (fingerprint-expr (peel-implies core) depth vars))))
 
+;;; Memoized conclusion-fingerprint of an INSTALLED lemma, by name.  The hot
+;;; retrieval loop (suggest-backchain-candidates) recomputes lemma fingerprints
+;;; per goal per scout node; the lemma's conclusion is fixed, so cache it at the
+;;; default depth (the only depth the hot path uses).  Non-default depths fall
+;;; through to a fresh compute.  *lemma-fingerprint-memo* (macetes.scm) is
+;;; invalidated by install-theorem! when a name is (re)installed.
+(define (lemma-fingerprint name depth)
+  (if (= depth *fingerprint-default-depth*)
+      (or (hash-table-ref/default *lemma-fingerprint-memo* name #f)
+          (let ((fp (conclusion-fingerprint (lookup-theorem name) depth)))
+            (hash-table-set! *lemma-fingerprint-memo* name fp)
+            fp))
+      (conclusion-fingerprint (lookup-theorem name) depth)))
+
 ;;; Render a fingerprint key as f(a,b,...) with `·` for wildcards.
 (define (fingerprint->string key)
   (cond
