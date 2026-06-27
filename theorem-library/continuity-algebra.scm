@@ -51,3 +51,16 @@
    |gh(x)-gh(a)| <= |g(x)||h(x)-h(a)| + |h(a)||g(x)-g(a)|; choose deltas making
    each summand < eps/2.")
 (category! 'product-continuous-at 'analysis)
+
+;;; Composition of continuous: f continuous at a and g continuous at f(a) give
+;;; g o f = COMPOSE(g,f) continuous at a.  (The block the Caratheodory chain
+;;; rule needs: phi_g o f is continuous at a.)
+(support 'compose-continuous-at
+  '(FORALL g (FORALL f (FORALL a (IMPLIES
+     (IS-CONTINUOUS-AT RR-MS RR-MS f a)
+     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g (f a))
+     (IS-CONTINUOUS-AT RR-MS RR-MS (COMPOSE g f) a)))))))
+(warrant! 'compose-continuous-at 'well-known
+  "Composition of continuous: given eps, the g-at-f(a) delta feeds the f-at-a
+   delta; (g o f)(x) = g(f(x)) stays within eps of g(f(a)).")
+(category! 'compose-continuous-at 'topology)

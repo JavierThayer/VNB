@@ -128,3 +128,20 @@
    by adding and subtracting f(a)g(x); the bracket is continuous at a with
    value L*g(a)+f(a)*M.")
 (category! 'deriv-product 'analysis)
+
+;;; Prop 2.8: the CHAIN RULE.  COMPOSE(g,f)(x) = g(f(x)); (g o f)'(a)=g'(f(a))f'(a).
+;;; Caratheodory form (limit-free, no o/O algebra): with f(x)-f(a)=phi_f(x)(x-a)
+;;; and g(y)-g(f(a))=phi_g(y)(y-f(a)),
+;;;   (gof)(x)-(gof)(a) = phi_g(f(x)) * (f(x)-f(a)) = [phi_g(f(x))*phi_f(x)]*(x-a),
+;;; so the Caratheodory factor of g o f is (phi_g o f)*phi_f -- continuous at a
+;;; (compose-continuous-at + product-continuous-at; f cont at a by diff=>cont),
+;;; value phi_g(f(a))*phi_f(a) = M*L.
+(support 'deriv-chain
+  '(FORALL f (FORALL g (FORALL a (FORALL L (FORALL M
+     (IMPLIES (IS-DIFF-AT f a L)
+     (IMPLIES (IS-DIFF-AT g (f a) M)
+       (IS-DIFF-AT (COMPOSE g f) a (* M L))))))))))
+(warrant! 'deriv-chain 'reference
+  "calculus.pdf Prop 2.8 (chain rule), Caratheodory form: the factor of g o f is
+   (phi_g o f)*phi_f, continuous at a with value g'(f(a))*f'(a) = M*L.")
+(category! 'deriv-chain 'analysis)
