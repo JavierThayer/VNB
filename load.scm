@@ -354,6 +354,10 @@
     ;; diff=>continuous, sum/product rules, const/identity).  Needs IS-CONTINUOUS-
     ;; AT (metric-continuity) + RR-MS / RR arithmetic (numeric-instances).
     "theorem-library/differentiation"
+    ;; Calculus Def 2.2: the n-th derivative NTH-DERIV(f,n) as a function, by
+    ;; NN-recursion on DERIV (nth-deriv-zero / -succ).  Needs DERIV
+    ;; (differentiation) + def-by-nn-recursion (ordinals).
+    "theorem-library/higher-derivatives"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

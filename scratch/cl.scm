@@ -1,0 +1,11 @@
+(verify-proofs!)
+(define (gf) (and *ps* (not (proof-done? *ps*)) (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+;; RR-specialized fun-apply-type (domain pinned to RR -> no undetermined var)
+(support 'rr-fun-apply
+  '(FORALL f (FORALL x (IMPLIES (AND (IN f (FUN RR RR)) (IN x RR)) (IN (f x) RR)))))
+(sp '(FORALL f (FORALL g (FORALL x (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN g (FUN RR RR)) (IN x RR)))
+        (IN (+ (f x) (g x)) RR))))))
+(grind)
+(bc* 'rr-add-closed () (begin (bc* 'rr-fun-apply () (ass) (ass)))
+                       (begin (bc* 'rr-fun-apply () (ass) (ass))))
+(display "sum-closure DONE? ") (display (proof-done? *ps*)) (display "  focus: ") (write (gf)) (newline)
