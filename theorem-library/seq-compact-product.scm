@@ -45,6 +45,9 @@
                           (CONVERGES-TO s (SUBSEQ f phi) L)))))))))
 
 ;;; compact <=> sequentially compact, for a metric space (Prop 3.12 (1)<=>(3)).
+;; A Prop-3.12 equivalence, BUT kept in PSS: the proven Tychonoff theorem
+;; compact-countable-product backchains through it, so it is a genuine fast
+;; lemma (used-as-fast-lemma test passes), not just a headline destination.
 (support 'compact-iff-seq-compact
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s) (SEQ-COMPACT s)))))
@@ -167,6 +170,8 @@
 
 ;;; seq-compact-countable-product: a countable product of sequentially compact
 ;;; metric spaces is sequentially compact.
+;; Sequential Tychonoff (countable product).  Kept in PSS: the proven
+;; compact-countable-product backchains through it -- a genuine fast lemma.
 (support 'seq-compact-countable-product
   '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
      (IMPLIES (FORALL n (IMPLIES (IN n NN) (SEQ-COMPACT (ms n))))

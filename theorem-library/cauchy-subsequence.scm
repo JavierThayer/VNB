@@ -352,7 +352,10 @@
 ;;;   terms f(phi m), f(phi n) both lie in BALL(s, c_k, rad k), so ball-2r-triangle
 ;;;   gives d(f(phi m), f(phi n)) < 2 rad(k).  Given eps>0, NULL-RR-SEQ at eps/2
 ;;;   supplies k with rad(k) <= eps/2, hence < eps: SUBSEQ(f,phi) is Cauchy.
-(support 'totally-bounded-has-cauchy-subseq-rad
+;; Headline result (radius-indexed tb => Cauchy subsequence), not PSS plumbing;
+;; the non-radius headline `totally-bounded-has-cauchy-subsequence' is already
+;; proven and not in PSS.  Installed as a warranted ASSERTION, not a support.
+(theory-add-axiom! *current-theory* 'totally-bounded-has-cauchy-subseq-rad
   '(FORALL s
      (IMPLIES (TOTALLY-BOUNDED s)
        (FORALL f

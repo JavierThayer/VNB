@@ -33,7 +33,10 @@
         '(RING-POWER R ((ADD R) x y) n)
         (list 'FINSUM cra binom-summand '(ORD-SEGMENT (succ n)))))))))
 
-(support 'binomial-theorem binomial-stmt)
+;; A named capstone (the Binomial Theorem), not PSS plumbing: a result you prove,
+;; not a fast lemma you backchain through.  Installed as a warranted ASSERTION
+;; (matchable macete, not PSS).  See [[pss-central-role]].
+(theory-add-axiom! *current-theory* 'binomial-theorem binomial-stmt)
 
 (warrant! 'binomial-theorem 'well-known
   "Induction on n, all of finsum-additive.scm.  BASE n=0: ring-power-zero makes

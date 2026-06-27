@@ -50,14 +50,13 @@
         (FORALL F (IMPLIES (AND (SUBSET F C) (IN (CARD F) NN))
           (FORSOME p (IN p (BIG-INTERSECTION A F A))))))))
 
-;;; ----- Prop 3.12: the four-way characterization (stated as supports) -----
+;;; ----- Prop 3.12: the four-way characterization (warranted ASSERTIONS) -----
+;;; These equivalences are headline results, not PSS plumbing, so each is a
+;;; warranted assertion (matchable macete, not a Proof Support).  See
+;;; [[pss-central-role]]: PSS = curated reusable minutiae a proof backchains;
+;;; a Prop-3.12 equivalence is a destination you prove, not a fast lemma.
 
 ;;; (1) <=> (4):  compact  iff  totally bounded and complete.
-;;; A headline named theorem, not PSS plumbing: installed as a warranted
-;;; ASSERTION (matchable macete, believed machine-provable, deferred to a
-;;; minimal-base project) rather than a Proof Support.  See [[pss-central-role]]:
-;;; PSS = curated reusable minutiae; a Prop-3.12 equivalence is a result.
-;;; (Its three siblings below stay `support' pending the queued PSS review.)
 (theory-add-axiom! *current-theory* 'compact-iff-tb-complete
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s)
@@ -71,7 +70,7 @@
    diagonal/rapidly-Cauchy-subsequence argument, which gives compactness.")
 
 ;;; (1) <=> (3):  compact  iff  every sequence has a cluster point.
-(support 'compact-iff-cluster-point
+(theory-add-axiom! *current-theory* 'compact-iff-cluster-point
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s)
           (FORALL f (IMPLIES (IN f (FUN NN (X s)))
@@ -83,7 +82,7 @@
    subsequence (cauchy-rapid-subsequence).")
 
 ;;; (1) <=> (2):  compact  iff  every closed family with FIP has common point.
-(support 'compact-iff-fip
+(theory-add-axiom! *current-theory* 'compact-iff-fip
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s)
           (FORALL C (IMPLIES (HAS-FIP s C)
