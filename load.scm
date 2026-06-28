@@ -418,17 +418,37 @@
                  (lambda () (for-each prover-load *vnb-files*) #f))))))
   (if err (raise err)))
 
-;;; Files skipped by (compile-vnb!): they use macros (e.g. `bc*' from
-;;; interactive.scm) that MIT Scheme's compile-file doesn't see, because
-;;; each compile-file call starts with a fresh syntactic environment.
-;;; They load fast enough as source.
+;;; Files (compile-vnb!) always skips, independent of contents.  test-suite is
+;;; not even in *vnb-files*; it is listed here only for documentation.
 (define *vnb-no-compile-files*
   '("test-suite"))
+
+;;; A file with a top-level (bc* ...) use must NOT be compiled.  bc* is a macro
+;;; defined in interactive.scm; MIT's compile-file processes each file in a
+;;; fresh syntactic environment that cannot see it, so it emits a bare variable
+;;; reference to bc*.  Loading that .com then aborts with
+;;;   ;Variable reference to a syntactic keyword: bc*
+;;; which strands the rest of load.scm -- every file after the offender
+;;; (suggest/scout, audit, ...) never loads.  We detect such files by source
+;;; scan rather than a hand-maintained list, so a newly added proof script that
+;;; uses bc* can never silently reintroduce the abort.  The definition site
+;;; (interactive) is exempt; it compiles fine.  Over-detection (a file that
+;;; only mentions "(bc* " in quoted data) is harmless: it just loads as source.
+(define (vnb-file-uses-bc*-macro? f)
+  (and (not (string=? f "interactive"))
+       (call-with-input-file (string-append *prover-dir* f ".scm")
+         (lambda (port)
+           (let loop ()
+             (let ((line (read-line port)))
+               (cond ((eof-object? line) #f)
+                     ((substring? "(bc* " line) #t)
+                     (else (loop)))))))))
 
 ;;; Recompile every file (call manually after editing sources).
 (define (compile-vnb!)
   (for-each (lambda (f)
-              (unless (member f *vnb-no-compile-files*)
+              (unless (or (member f *vnb-no-compile-files*)
+                          (vnb-file-uses-bc*-macro? f))
                 (compile-file (string-append *prover-dir* f ".scm"))))
             *vnb-files*))
 
