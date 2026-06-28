@@ -373,6 +373,10 @@
     ;; product-sign + continuity pinch + antisymmetry), using the (in-rr) typing
     ;; tactic.  Needs mean-value (continuity supports) + order-lemmas + in-rr.
     "theorem-library/interior-extremum-proof"
+    ;; Rolle's theorem, machine-proven: EVT argmax/argmin + Fermat
+    ;; (interior-max/min-deriv-zero) + constant-case midpoint.  Needs EVT
+    ;; (extreme-value), the Fermat proofs above, and order helpers.
+    "theorem-library/rolle-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

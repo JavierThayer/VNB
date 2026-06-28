@@ -53,23 +53,9 @@
 ;;; Rolle's lemma (2.12): h continuous on [a,b], differentiable on (a,b), with
 ;;; h(a)=h(b), has an interior critical point.
 ;;; ===================================================================
-(add-to-pss 'rolle
-  '(FORALL h (FORALL a (FORALL b
-     (IMPLIES (AND (IN h (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b))
-                 (IS-CONTINUOUS-AT RR-MS RR-MS h x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
-                 (FORSOME L (IS-DIFF-AT h x L))))
-     (IMPLIES (= (h a) (h b))
-       (FORSOME theta (AND (< a theta) (AND (< theta b)
-                      (IS-DIFF-AT h theta 0))))))))))))
-(warrant! 'rolle 'reference
-  "calculus.pdf Lemma 2.12.  EVT gives a max and a min of h on [a,b].  If the
-   max is interior, interior-max-deriv-zero gives h'=0 there; likewise an
-   interior min via interior-min-deriv-zero.  If BOTH are endpoints then, since
-   h(a)=h(b), max=min so h is constant on [a,b] and h'=0 at any interior point.
-   The witness theta is EVT's argmax/argmin, not a guess.")
-(category! 'rolle 'analysis)
+;; rolle is now MACHINE-PROVEN from EVT (extreme-value-max/min) + Fermat
+;; (interior-max/min-deriv-zero) + the constant-case midpoint -- see
+;; theorem-library/rolle-proof.scm.  generalized-mvt/mvt below still bc* it.
 
 ;;; ===================================================================
 ;;; Generalized MVT (Thm 2.11) -> MVT (Thm 2.13) -> corollaries (2.14, 2.15).
