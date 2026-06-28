@@ -213,3 +213,13 @@
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
      (IMPLIES (AND (< v 0) (<= (* u v) 0)) (<= 0 u)))))))
 (warrant! 'rr-prod-nonpos-neg 'well-known "u*v<=0 with v<0 forces u>=0.")
+
+;;; Negation and order: flips <=, and -u=0 forces u=0 (used by interior-min via
+;;; the reduction to interior-max applied to -f).
+(support 'rr-le-neg
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (IMPLIES (<= u v) (<= (- v) (- u))))))))
+(warrant! 'rr-le-neg 'well-known "u<=v => -v<=-u.")
+(support 'rr-neg-eq-zero
+  '(FORALL u (IMPLIES (IN u RR) (IMPLIES (= (- u) 0) (= u 0)))))
+(warrant! 'rr-neg-eq-zero 'well-known "-u=0 => u=0.")

@@ -45,16 +45,9 @@
    >=0 at th.")
 (category! 'continuous-nonneg-left 'analysis)
 
-(add-to-pss 'interior-min-deriv-zero
-  '(FORALL f (FORALL a (FORALL b (FORALL theta (FORALL L
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR)
-              (AND (IN theta RR) (AND (< a theta) (< theta b))))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (<= (f theta) (f x))))
-     (IMPLIES (IS-DIFF-AT f theta L)
-       (= L 0))))))))))
-(warrant! 'interior-min-deriv-zero 'reference
-  "calculus.pdf Prop 2.10 (interior min): apply interior-max-deriv-zero to -f.")
-(category! 'interior-min-deriv-zero 'analysis)
+;; interior-min-deriv-zero is MACHINE-PROVEN from interior-max-deriv-zero applied
+;; to g = -f (deriv-neg + rr-le-neg + rr-neg-eq-zero) -- see
+;; theorem-library/interior-extremum-proof.scm.
 
 ;;; ===================================================================
 ;;; Rolle's lemma (2.12): h continuous on [a,b], differentiable on (a,b), with

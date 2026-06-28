@@ -167,3 +167,58 @@
 (quietly (lambda () (ass-all)))
 (qed 'interior-max-deriv-zero)
 (category! 'interior-max-deriv-zero 'analysis)
+
+;;; ====================================================================
+;;; Prop 2.10 (interior min): interior-min-deriv-zero, proven FROM
+;;; interior-max-deriv-zero applied to g = -f.  At an interior min of f, -f has
+;;; an interior max; deriv-neg gives IS-DIFF-AT(-f,theta,-L); interior-max then
+;;; forces -L=0, so L=0.  Supports: deriv-neg (differentiation.scm), rr-le-neg /
+;;; rr-neg-eq-zero (order-lemmas.scm).
+;;; ====================================================================
+(sp '(FORALL f (FORALL a (FORALL b (FORALL theta (FORALL L
+     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR)
+              (AND (IN theta RR) (AND (< a theta) (< theta b))))))
+     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (<= (f theta) (f x))))
+     (IMPLIES (IS-DIFF-AT f theta L)
+       (= L 0))))))))))
+(quietly (lambda () (di)(di)(di)(di)(di)))
+(iez-split-ands)
+(quietly (lambda () (di)(di)))           ; MNCOND condition, IS-DIFF-AT
+(define MING (list 'VNB-LAMBDA 'z (list '- (list 'f 'z))))   ; g = -f
+(define MNCOND (iez-find-asm (lambda (a) (and ((iez-head? 'FORALL) a)
+                                           (iez-mentions? 'CCINT a)))))
+;; (1) IS-DIFF-AT g theta (-l), and expose (IN l RR) from the consumed IS-DIFF-AT
+(quietly (lambda () (fact 'deriv-neg 'f 'theta 'l)))
+(quietly (lambda () (mac-h 'IS-DIFF-AT '(IS-DIFF-AT f theta l)) (iez-split-ands)))
+;; (2) g in FUN RR RR
+(cut (list 'IN MING '(FUN RR RR)))
+(iez-focus! (list 'IN MING '(FUN RR RR)))
+(lam-t)
+(quietly (lambda () (di) (di) (in-rr)))
+;; (3) max condition for g: forall x in CCINT(a,b). (g x) <= (g theta)
+(define MAXG (list 'FORALL 'x (list 'IMPLIES '(IN x (CCINT a b))
+                  (list '<= (list MING 'x) (list MING 'theta)))))
+(define MGBODY (list '<= (list '- '(f x)) (list '- '(f theta))))
+(iez-focus! '(= l 0))
+(cut MAXG)
+(iez-focus! MAXG)
+(di) (di)
+(quietly (lambda () (inst+ MNCOND 'x)))     ; f(theta) <= f(x)  (x in CCINT still present)
+(mac-h 'ccint-membership '(IN x (CCINT a b)))   ; expose x in RR
+(iez-split-ands)
+(lam-b)                                  ; (g x)->-(f x), (g theta)->-(f theta)
+(iez-have! '(IN (f x) RR) MGBODY)
+(iez-have! '(IN (f theta) RR) MGBODY)
+(quietly (lambda () (fact 'rr-le-neg '(f theta) '(f x))))   ; -(f x) <= -(f theta)
+(quietly (lambda () (ass-all)))
+;; (4) interior-max-deriv-zero on g -> (- l) = 0
+(iez-focus! '(= l 0))
+(cut '(= (- l) 0))
+(iez-focus! '(= (- l) 0))
+(bc* 'interior-max-deriv-zero ((f MING) (a 'a) (b 'b) (theta 'theta)))
+(iez-grind!)
+;; (5) l = 0
+(iez-focus! '(= l 0))
+(quietly (lambda () (fact 'rr-neg-eq-zero 'l) (ass-all)))
+(qed 'interior-min-deriv-zero)
+(category! 'interior-min-deriv-zero 'analysis)

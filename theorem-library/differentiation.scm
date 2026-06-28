@@ -145,3 +145,15 @@
   "calculus.pdf Prop 2.8 (chain rule), Caratheodory form: the factor of g o f is
    (phi_g o f)*phi_f, continuous at a with value g'(f(a))*f'(a) = M*L.")
 (category! 'deriv-chain 'analysis)
+
+;;; Negation rule: derivative of -f is -f'.  Special case of the scalar rule
+;;; (c = -1); witness -phi (continuous at a, value -L).  Used by
+;;; interior-min-deriv-zero (apply interior-max-deriv-zero to g = -f).
+(support 'deriv-neg
+  '(FORALL f (FORALL a (FORALL L
+     (IMPLIES (IS-DIFF-AT f a L)
+       (IS-DIFF-AT (VNB-LAMBDA z (- (f z))) a (- L)))))))
+(warrant! 'deriv-neg 'reference
+  "Derivative of -f is -f': f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a) =
+   (-phi)(x)(x-a), with -phi continuous at a and value -L.")
+(category! 'deriv-neg 'analysis)
