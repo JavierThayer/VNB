@@ -565,6 +565,83 @@
   (show))
 (define (to-binary) (to-binary--saturate *to-binary-macetes*))
 (define (to-nary)   (to-binary--saturate *to-nary-macetes*))
+
+;; (in-rr) -- discharge a goal (IN <arith-term> D) for a ring domain D in
+;; {RR,ZZ,QQ,CC}, by structural recursion: to-binary normalizes the n-ary
+;; +/-/* surface to binplus/bintimes/binneg, then each application is typed
+;; FORWARD via fun-apply-type-c (driven by `fact`, NOT `bc` -- bc on its
+;; higher-order conclusion (f x) loops) plus cartesian-intro (ci) for the
+;; tupled binary operators.  Function applications (f x) with (IN f (FUN A D))
+;; in context are typed too.  No new closure axioms: everything reduces to the
+;; operator typings (binplus-in-fun-D ...) + apply-tupling + fun-apply-type-c.
+(define (in-rr--goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+(define (in-rr--focus-goal! raw)
+  (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
+                     (proof-leaves))))
+    (and s (set-proof-state-focus! *ps* s) s)))
+(define (in-rr--focus-asm! raw)
+  (let ((s (any-pred (lambda (s) (any-pred (lambda (w) (equal? (wff-formula w) raw))
+                                           (sequent-node-assumptions s)))
+                     (proof-leaves))))
+    (and s (set-proof-state-focus! *ps* s) s)))
+(define (in-rr--in-ctx? raw)
+  (any-pred (lambda (w) (equal? (wff-formula w) raw))
+            (sequent-node-assumptions (proof-state-focus *ps*))))
+(define (in-rr--fun-dom g S)
+  (let ((a (any-pred (lambda (w)
+                       (let ((wf (wff-formula w)))
+                         (and (pair? wf) (eq? (car wf) 'IN) (equal? (cadr wf) g)
+                              (pair? (caddr wf)) (eq? (car (caddr wf)) 'FUN)
+                              (equal? (caddr (caddr wf)) S))))
+                     (sequent-node-assumptions (proof-state-focus *ps*)))))
+    (and a (cadr (caddr (wff-formula a))))))
+(define (in-rr--op-typ op D)
+  (string->symbol (string-append (symbol->string op) "-in-fun-" (symbol->string D))))
+(define (in-rr--ensure! t S)               ; land (IN t S) in context, refocus continuation
+  (let ((mem (list 'IN t S)))
+    (if (in-rr--in-ctx? mem) #t
+        (begin (cut mem) (in-rr--focus-goal! mem) (in-rr--close!)
+               (in-rr--focus-asm! mem)))))
+(define (in-rr--close!)                    ; close current focus goal (IN term S)
+  (let* ((g (in-rr--goal)) (term (cadr g)) (S (caddr g)))
+    (cond
+      ((in-rr--in-ctx? g) (ass))
+      ((symbol? term) (ass))
+      ((number? term) (ass))
+      ((and (pair? term) (eq? (car term) 'binneg))
+       (let ((a (cadr term)))
+         (in-rr--ensure! a S) (in-rr--focus-goal! g)
+         (quietly (lambda () (fact (in-rr--op-typ 'binneg S))
+                             (fact 'fun-apply-type-c 'binneg S S a) (ass)))))
+      ((and (pair? term) (memq (car term) '(binplus bintimes)))
+       (let* ((op (car term)) (a (cadr term)) (b (caddr term))
+              (lst (list 'LIST a b)) (tup (list op lst)) (cart (list 'CARTESIAN S S)))
+         (fact 'apply-tupling-2 op a b)
+         (subst (list '== (list op a b) tup))
+         (in-rr--ensure! lst cart) (in-rr--focus-goal! (list 'IN tup S))
+         (quietly (lambda () (fact (in-rr--op-typ op S))
+                             (fact 'fun-apply-type-c op cart S lst) (ass)))))
+      ((and (pair? term) (eq? (car term) 'LIST))
+       (ci)
+       (for-each (lambda (elt fac)
+                   (or (in-rr--focus-goal! (list 'IN elt fac))
+                       (error "in-rr: cannot focus component" (list 'IN elt fac)))
+                   (in-rr--close!))
+                 (cdr term) (cdr S)))
+      (else
+       (let ((dom (and (pair? term) (= (length term) 2)
+                       (in-rr--fun-dom (car term) S))))
+         (if dom
+             (let ((gfn (car term)) (a (cadr term)))
+               (in-rr--ensure! a dom) (in-rr--focus-goal! g)
+               (quietly (lambda () (fact 'fun-apply-type-c gfn dom S a) (ass))))
+             (ass)))))))
+(define (in-rr)
+  (vnb--require-proof!)
+  (to-binary)
+  (in-rr--close!)
+  (quietly (lambda () (ass-all)))
+  (proof-done? *ps*))
 ;; Conditional-term reduction: t is an (IF p a b) term.  if-true spawns p
 ;; as a subgoal; if-false spawns (NOT p).  The other branch gains the
 ;; equation (= (IF p a b) a) resp. (= (IF p a b) b) as an assumption.
