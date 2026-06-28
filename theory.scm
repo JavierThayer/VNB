@@ -48,9 +48,11 @@
   name)
 
 ;;; User-facing: (support 'NAME 'formula) records a result in the current
-;;; theory's Proof Support Set.
+;;; theory's Proof Support Set.  `add-to-pss' is the same operation under the
+;;; plain-English name -- (support ...) literally means "add NAME to the PSS".
 (define (support name formula)
   (theory-add-support! *current-theory* name formula))
+(define add-to-pss support)
 
 ;;; User-facing: (warrant! 'NAME 'kind "informal justification text")
 ;;; records the grounds on which NAME is accepted (see *warrant-kinds* in
