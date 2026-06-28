@@ -366,6 +366,9 @@
     ;; (continuous on [a,b] attains max/min) -- the base of the MVT arc.  Needs
     ;; IS-CONTINUOUS-AT + RR order.
     "theorem-library/extreme-value"
+    ;; Calculus Ch 2.4-2.5: interior-extremum => f'=0 (Prop 2.10) + Rolle's
+    ;; lemma (2.12), toward the MVT.  Needs EVT + IS-DIFF-AT + strict <.
+    "theorem-library/mean-value"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
