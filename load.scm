@@ -369,6 +369,10 @@
     ;; Calculus Ch 2.4-2.5: interior-extremum => f'=0 (Prop 2.10) + Rolle's
     ;; lemma (2.12), toward the MVT.  Needs EVT + IS-DIFF-AT + strict <.
     "theorem-library/mean-value"
+    ;; Prop 2.10 interior-max-deriv-zero: machine-proven (Caratheodory factor +
+    ;; product-sign + continuity pinch + antisymmetry), using the (in-rr) typing
+    ;; tactic.  Needs mean-value (continuity supports) + order-lemmas + in-rr.
+    "theorem-library/interior-extremum-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

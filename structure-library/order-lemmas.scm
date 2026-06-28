@@ -188,3 +188,28 @@
   "0 <= x+x gives 0 <= x.  Contrapositive: x<0 adds to x+x<0 (rr-leq-add-compat).
    Lets a doubled sum-of-squares certificate (which avoids fractional 1/2
    coefficients) discharge the undoubled goal.")
+
+;;; --------------------------------------------------------------------
+;;; Sign of a difference, and sign of a product from the sign of a factor.
+;;; The nonlinear product-sign facts (Farkas cannot see them) plus the
+;;; difference<->order glue that the Caratheodory mean-value arc needs.
+(support 'rr-le-diff-nonpos
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (IMPLIES (<= u v) (<= (- u v) 0)))))))
+(warrant! 'rr-le-diff-nonpos 'well-known "u<=v => u-v<=0.")
+(support 'rr-lt-diff-pos
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (IMPLIES (< u v) (< 0 (- v u))))))))
+(warrant! 'rr-lt-diff-pos 'well-known "u<v => 0<v-u.")
+(support 'rr-lt-diff-neg
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (IMPLIES (< u v) (< (- u v) 0)))))))
+(warrant! 'rr-lt-diff-neg 'well-known "u<v => u-v<0.")
+(support 'rr-prod-nonpos-pos
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (IMPLIES (AND (< 0 v) (<= (* u v) 0)) (<= u 0)))))))
+(warrant! 'rr-prod-nonpos-pos 'well-known "u*v<=0 with v>0 forces u<=0.")
+(support 'rr-prod-nonpos-neg
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (IMPLIES (AND (< v 0) (<= (* u v) 0)) (<= 0 u)))))))
+(warrant! 'rr-prod-nonpos-neg 'well-known "u*v<=0 with v<0 forces u>=0.")

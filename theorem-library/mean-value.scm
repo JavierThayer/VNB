@@ -16,18 +16,34 @@
 ;;; phi(theta)=L.  At an interior max, f(x)-f(theta) <= 0 on [a,b]; for x>theta
 ;;; (x-theta>0) phi(x)<=0, for x<theta phi(x)>=0; continuity at theta forces
 ;;; phi(theta)=L=0.
-(add-to-pss 'interior-max-deriv-zero
-  '(FORALL f (FORALL a (FORALL b (FORALL theta (FORALL L
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR)
-              (AND (IN theta RR) (AND (< a theta) (< theta b))))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (<= (f x) (f theta))))
-     (IMPLIES (IS-DIFF-AT f theta L)
-       (= L 0))))))))))
-(warrant! 'interior-max-deriv-zero 'reference
-  "calculus.pdf Prop 2.10 (interior max).  Caratheodory factor phi: phi(x)<=0
-   for x>theta and phi(x)>=0 for x<theta (since f(x)-f(theta)<=0); continuity at
-   theta forces phi(theta)=L=0.")
-(category! 'interior-max-deriv-zero 'analysis)
+;;;
+;;; interior-max-deriv-zero is now MACHINE-PROVEN from these two continuity
+;;; sign-preservation supports (+ product-sign / difference-sign in
+;;; order-lemmas.scm) -- see theorem-library/interior-extremum-proof.scm.
+;;; The supports are stated with CURRIED antecedents (no AND) so the proof can
+;;; apply them FORWARD by `fact` (their conclusion (g th) is higher-order, so
+;;; bc* would loop the matcher).
+(add-to-pss 'continuous-nonpos-right
+  '(FORALL g (FORALL th (FORALL bb
+     (IMPLIES (IN g (FUN RR RR)) (IMPLIES (IN th RR) (IMPLIES (IN bb RR) (IMPLIES (< th bb)
+     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g th)
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< th x) (< x bb))) (<= (g x) 0)))
+       (<= (g th) 0)))))))))))
+(warrant! 'continuous-nonpos-right 'well-known
+  "A function continuous at th that is <=0 on a right-neighborhood (th,bb) is
+   <=0 at th (sign preservation under continuity / one-sided limit).")
+(category! 'continuous-nonpos-right 'analysis)
+
+(add-to-pss 'continuous-nonneg-left
+  '(FORALL g (FORALL aa (FORALL th
+     (IMPLIES (IN g (FUN RR RR)) (IMPLIES (IN aa RR) (IMPLIES (IN th RR) (IMPLIES (< aa th)
+     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g th)
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< aa x) (< x th))) (<= 0 (g x))))
+       (<= 0 (g th))))))))))))
+(warrant! 'continuous-nonneg-left 'well-known
+  "A function continuous at th that is >=0 on a left-neighborhood (aa,th) is
+   >=0 at th.")
+(category! 'continuous-nonneg-left 'analysis)
 
 (add-to-pss 'interior-min-deriv-zero
   '(FORALL f (FORALL a (FORALL b (FORALL theta (FORALL L
