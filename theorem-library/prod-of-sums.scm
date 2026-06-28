@@ -37,11 +37,12 @@
 ;;; Layer 1 -- set difference X \ B
 ;;; =======================================================================
 
-;;; x in (X \ B)  iff  x in X and x not in B.
+;;; x in (U \ B)  iff  x in U and x not in B.
+;;; U, NOT X: the reader case-folds X to x, collapsing (IN x X) to (IN x x).
 (support 'difference-membership
-  '(FORALL X (FORALL B (FORALL x
-      (IFF (IN x (DIFFERENCE X B))
-           (AND (IN x X) (NOT (IN x B))))))))
+  '(FORALL U (FORALL B (FORALL x
+      (IFF (IN x (DIFFERENCE U B))
+           (AND (IN x U) (NOT (IN x B))))))))
 
 (warrant! 'difference-membership 'well-known
   "Defining property of set difference.  DIFFERENCE was already in use

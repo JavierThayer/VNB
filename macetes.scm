@@ -878,6 +878,44 @@
   (hash-table-ref/default *warrants* name #f))
 
 ;;; -----------------------------------------------------------------------
+;;; Classic-name discovery.  Theorems carry terse internal names (rolle, mvt,
+;;; extreme-value-max); humans look them up by their textbook names ("Rolle's
+;;; theorem", "intermediate value theorem").  (alias! 'name "Classic Name" ...)
+;;; records the human names; (find-theorem "rolle") searches the internal name,
+;;; the warrant prose, AND the aliases, case-insensitively, and prints matches.
+(define *theorem-aliases* (make-equal-hash-table))   ; name -> list of name strings
+(define (alias! name . strs)
+  (hash-table-set! *theorem-aliases* name
+                   (append (hash-table-ref/default *theorem-aliases* name '()) strs)))
+(define (aliases-of name) (hash-table-ref/default *theorem-aliases* name '()))
+
+(define (find-theorem pattern)
+  (let* ((pat   (string-downcase pattern))
+         (names (sort (hash-table-keys *theorem-table*)
+                      (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+         (hit?  (lambda (n)
+                  (let ((nm (string-downcase (symbol->string n)))
+                        (w  (warrant-of n)))
+                    (or (substring? pat nm)
+                        (and w (substring? pat (string-downcase (cdr w))))
+                        (any-pred (lambda (s) (substring? pat (string-downcase s)))
+                                  (aliases-of n))))))
+         (hits  (filter hit? names)))
+    (if (null? hits)
+        (begin (display ";; find-theorem: no match for \"") (display pattern) (display "\"")
+               (newline))
+        (for-each
+         (lambda (n)
+           (display ";; ") (display n)
+           (let ((al (aliases-of n)))
+             (when (pair? al) (display "  (") (display (car al)) (display ")")))
+           (let ((w (warrant-of n))) (when w (display "  [") (display (car w)) (display "]")))
+           (newline)
+           (display ";;     ") (display (expression->string (lookup-theorem n))) (newline))
+         hits))
+    hits))
+
+;;; -----------------------------------------------------------------------
 ;;; Glosses: a plain-English rendition of a support's STATEMENT (what the
 ;;; formula says, in words), distinct from its WARRANT (why we accept it).
 ;;; Only the deeply-nested multi-line supports carry one -- the short ones

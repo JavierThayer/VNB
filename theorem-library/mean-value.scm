@@ -146,3 +146,13 @@
 (warrant! 'mvt-lower-bound 'reference
   "calculus.pdf Cor 2.14 (lower): MVT gives f(b)-f(a)=f'(theta)(b-a)>=m(b-a).")
 (category! 'mvt-lower-bound 'analysis)
+
+;;; Classic textbook names, for (find-theorem "...") lookup.
+(alias! 'rolle "Rolle's theorem" "Rolle's lemma")
+(alias! 'mvt "Mean Value Theorem" "MVT" "Lagrange Mean Value Theorem")
+(alias! 'generalized-mvt "Generalized Mean Value Theorem" "Cauchy Mean Value Theorem")
+(alias! 'mvt-upper-bound "Mean Value Theorem (upper bound corollary)")
+(alias! 'mvt-lower-bound "Mean Value Theorem (lower bound corollary)")
+(alias! 'interior-max-deriv-zero "Fermat's theorem (interior maximum)" "interior extremum theorem")
+(alias! 'interior-min-deriv-zero "Fermat's theorem (interior minimum)" "interior extremum theorem")
+(alias! 'deriv-zero-implies-constant "constant function theorem (zero derivative)")

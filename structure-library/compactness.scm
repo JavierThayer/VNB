@@ -37,9 +37,11 @@
    (AND (IN f (FUN NN (X s)))
    (AND (IN x (X s))
         (FORALL eps (IMPLIES (POS-RR eps)
-          (FORALL N (IMPLIES (IN N NN)
+          ;; m, NOT N: the reader case-folds N to n, which would collapse
+          ;; (<= N n) to (<= n n) and silently drop the cofinality.
+          (FORALL m (IMPLIES (IN m NN)
             (FORSOME n (AND (IN n NN)
-                       (AND (<= N n)
+                       (AND (<= m n)
                             (< ((D s) (f n) x) eps))))))))))))
 
 ;;; A family C of closed sets with the FINITE-INTERSECTION PROPERTY: every

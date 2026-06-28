@@ -53,3 +53,7 @@
   "EVT (min form): apply extreme-value-max to -f; the argmax of -f is the argmin
    of f.")
 (category! 'extreme-value-min 'analysis)
+
+;;; Classic textbook names, for (find-theorem "...") lookup.
+(alias! 'extreme-value-max "Extreme Value Theorem" "EVT" "Weierstrass extreme value theorem")
+(alias! 'extreme-value-min "Extreme Value Theorem" "EVT")
