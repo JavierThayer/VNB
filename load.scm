@@ -362,6 +362,10 @@
     ;; eq-12 bridge to IS-DIFF-AT + o-algebra (sum, scalar).  Needs IS-DIFF-AT
     ;; + IS-CONTINUOUS-AT.
     "theorem-library/little-o"
+    ;; Calculus Ch 2.5: closed interval CCINT(a,b) + Extreme Value Theorem
+    ;; (continuous on [a,b] attains max/min) -- the base of the MVT arc.  Needs
+    ;; IS-CONTINUOUS-AT + RR order.
+    "theorem-library/extreme-value"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
