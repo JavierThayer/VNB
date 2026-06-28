@@ -3376,6 +3376,27 @@
         (hash-table-delete! *provenance* 'compact-bongo-lemma)
         ok))))
 
+;; proof-cycle-check: a load-time soundness gate over the LIVE citation graph.
+;; Synthesize a 2-node cycle gribble <-> grobble (both proven, each citing the
+;; other); proof-cycle-from must return a path, an acyclic node must return #f.
+(check-true "proof-cycle-check: detects a circular proof dependency"
+  (lambda ()
+    (register-provenance! 'gribble 'proven)
+    (register-provenance! 'grobble 'proven)
+    (hash-table-set! *proof-citation-graph* 'gribble '(grobble))
+    (hash-table-set! *proof-citation-graph* 'grobble '(gribble))
+    (register-provenance! 'gralone 'proven)
+    (hash-table-set! *proof-citation-graph* 'gralone '())
+    (let ((cyc (proof-cycle-from 'gribble))
+          (clean (proof-cycle-from 'gralone)))
+      (hash-table-delete! *proof-citation-graph* 'gribble)
+      (hash-table-delete! *proof-citation-graph* 'grobble)
+      (hash-table-delete! *proof-citation-graph* 'gralone)
+      (hash-table-delete! *provenance* 'gribble)
+      (hash-table-delete! *provenance* 'grobble)
+      (hash-table-delete! *provenance* 'gralone)
+      (and (memq 'gribble cyc) (memq 'grobble cyc) (not clean)))))
+
 ;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
 ;; non-symbol in head position; the dedup key must survive it (write-based, not
 ;; the pretty-printer which calls symbol->string on the head).  Without the fix

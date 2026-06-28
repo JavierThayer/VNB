@@ -541,6 +541,25 @@
         (display " asserted/non-PSS fact(s) carry a 'proof warrant -- prove or PSS-promote:\n   ")
         (write bad) (newline))))
 
+;; Soundness gate: a proven theorem must not depend -- transitively, through the
+;; proof citation graph -- on ITSELF.  That is a circular proof with no real
+;; grounding (assert X, prove Y from X, then "prove" X from Y: each step looks
+;; fine, but together nothing is founded).  Walk the live citation graph.
+(let ((cycles (proof-cycle-check)))
+  (if (null? cycles)
+      (display ";; proof-cycle-check: ok (no proven theorem depends on itself)\n")
+      (begin
+        (display ";; PROOF-CYCLE WARNING: ")
+        (display (length cycles))
+        (display " circular dependency cycle(s) among proven theorems:\n")
+        (for-each (lambda (c)
+                    (display ";;   ")
+                    (let inner ((p c))
+                      (cond ((null? (cdr p)) (display (car p)))
+                            (else (display (car p)) (display " -> ") (inner (cdr p)))))
+                    (newline))
+                  cycles))))
+
 ;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
 ;; support should be filed under a *pss-category-order* bucket via category!.
 ;; Report how many are not yet filed; never fails the build.

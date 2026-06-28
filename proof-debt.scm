@@ -75,6 +75,7 @@
 ;;; --- the bill --------------------------------------------------------
 
 (define *proof-debt* (make-equal-hash-table))   ; proven name -> bill (name list)
+(define *proof-citation-graph* (make-equal-hash-table))  ; proven name -> immediate citations
 
 ;;; debt(NAME): the set of asserted facts NAME ultimately rests on.
 (define (debt-of name)
@@ -87,10 +88,47 @@
 ;;; current *proof-script*.  Returns the bill.  Called by qed AFTER install
 ;;; (so NAME's own provenance is already 'proven and won't self-cite).
 (define (record-proof-debt! name)
-  (let loop ((cs (proof-citations *proof-script*)) (bill '()))
-    (if (null? cs)
-        (begin (hash-table-set! *proof-debt* name bill) bill)
-        (loop (cdr cs) (pd-union bill (debt-of (car cs)))))))
+  (let ((cits (proof-citations *proof-script*)))
+    (hash-table-set! *proof-citation-graph* name cits)  ; live graph, for cycle check
+    (let loop ((cs cits) (bill '()))
+      (if (null? cs)
+          (begin (hash-table-set! *proof-debt* name bill) bill)
+          (loop (cdr cs) (pd-union bill (debt-of (car cs))))))))
+
+;;; --- circular-dependency detection -----------------------------------
+;;; Bills (above) are FROZEN snapshots taken at qed time, so they go stale when
+;;; an asserted leaf is later retired to proven -- they cannot be trusted to
+;;; reveal a cycle.  This walks the LIVE citation graph instead.  Only proven
+;;; theorems have outgoing edges; asserted / primitive / definitional are leaves.
+(define (proof-citations-of name)
+  (if (eq? (provenance-of name) 'proven)
+      (hash-table-ref/default *proof-citation-graph* name '())
+      '()))
+
+;;; A path START -> ... -> START through proven-node citations, or #f.  `seen'
+;;; is the current path's ancestors, so the walk always terminates.
+(define (proof-cycle-from start)
+  (let dfs ((node start) (path (list start)) (seen '()))
+    (let loop ((cs (proof-citations-of node)))
+      (cond
+        ((null? cs) #f)
+        ((eq? (car cs) start) (reverse (cons start path)))   ; back-edge to start
+        ((memq (car cs) seen) (loop (cdr cs)))               ; ancestor already on path
+        (else (or (dfs (car cs) (cons (car cs) path) (cons (car cs) seen))
+                  (loop (cdr cs))))))))
+
+;;; Every distinct dependency cycle among proven theorems, each as a name path
+;;; n -> ... -> n.  Empty list = acyclic = every proof is genuinely grounded.
+(define (proof-cycle-check)
+  (let loop ((names *proven-theorem-names*) (covered '()) (cycles '()))
+    (cond
+      ((null? names) (reverse cycles))
+      ((memq (car names) covered) (loop (cdr names) covered cycles))
+      (else
+       (let ((c (proof-cycle-from (car names))))
+         (if c
+             (loop (cdr names) (append c covered) (cons c cycles))
+             (loop (cdr names) covered cycles)))))))
 
 ;;; --- trust level -----------------------------------------------------
 
