@@ -3397,6 +3397,20 @@
       (hash-table-delete! *provenance* 'gralone)
       (and (memq 'gribble cyc) (memq 'grobble cyc) (not clean)))))
 
+;; case-fold-audit: the whole installed library must be free of binders that
+;; shadow an in-scope variable -- the post-read signature of a case-fold
+;; collision (FORALL N .. FORSOME n).  This is a HARD soundness gate: any new
+;; collision (in a literal def, a tf-built statement, or a -rev companion)
+;; fails the suite.
+(check-true "case-fold-audit: installed library is collision-free"
+  (lambda () (null? (case-fold-audit))))
+(check-true "wff-shadowing-binders: flags a shadow, passes a clean binder pair"
+  (lambda ()
+    (and (pair? (wff-shadowing-binders '(FORALL n (FORSOME n (<= n n)))))
+         (null? (wff-shadowing-binders '(FORALL m (FORSOME n (<= m n)))))
+         ;; multi-binder lambda: the source scanner's blind spot
+         (pair? (wff-shadowing-binders '(FORALL x (= x (VNB-LAMBDA (LIST y x) y))))))))
+
 ;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
 ;; non-symbol in head position; the dedup key must survive it (write-based, not
 ;; the pretty-printer which calls symbol->string on the head).  Without the fix

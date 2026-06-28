@@ -560,6 +560,23 @@
                     (newline))
                   cycles))))
 
+;; Soundness gate: the reader case-folds symbols, so a binder pair differing
+;; only in case (FORALL N .. FORSOME n) collapses and silently changes meaning
+;; (cluster-point, difference-membership, finsum-ring-*).  Post-read that is
+;; ALWAYS a binder whose variable is already in scope; case-fold-audit walks
+;; every installed formula with the kernel's full binder vocabulary, so zero
+;; hits => zero case-fold collisions in the library.  Authoritative over the
+;; source-level scan-case-fold.py (which cannot see tf-built / -rev formulas).
+(let ((bad (case-fold-audit)))
+  (if (null? bad)
+      (display ";; case-fold-audit: ok (no binder shadows an in-scope variable)\n")
+      (begin
+        (display ";; CASE-FOLD WARNING: ") (display (length bad))
+        (display " formula(s) have a shadowing binder (likely a case-fold collision):\n")
+        (for-each (lambda (e)
+                    (display ";;   ") (display (car e)) (display ": ") (write (cdr e)) (newline))
+                  bad))))
+
 ;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
 ;; support should be filed under a *pss-category-order* bucket via category!.
 ;; Report how many are not yet filed; never fails the build.

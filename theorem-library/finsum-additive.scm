@@ -36,7 +36,9 @@
 ;; the support formulas this way keeps every quantifier level locally balanced,
 ;; so there is no deep hand-counting of trailing parens.
 (define (tf v type body) (list 'FORALL v (list 'IMPLIES type body)))
-(define cra '(COMMUTATIVE-RING-ADDITIVE-AG R))   ; the ring's additive AG
+;; rng, NOT R: the reader case-folds R to r, colliding with the element var r
+;; in the finsum-ring-* theorems below (ring conflated with its element).
+(define cra '(COMMUTATIVE-RING-ADDITIVE-AG rng))   ; the ring's additive AG
 (define (finite S) (list 'AND (list 'IN S 'SET) (list 'IN (list 'CARD S) 'NN)))
 
 ;;; =======================================================================
@@ -125,13 +127,13 @@
 
 ;; finsum-ring-distrib-left: r * SUM_z f z = SUM_z (r * f z).
 (support 'finsum-ring-distrib-left
-  (tf 'R '(IS-COMMUTATIVE-RING R)
-   (tf 'r '(IN r (A R))
+  (tf 'rng '(IS-COMMUTATIVE-RING rng)
+   (tf 'r '(IN r (A rng))
     (tf 'S (finite 'S)
-     (tf 'f '(IN f (FUN S (A R)))
+     (tf 'f '(IN f (FUN S (A rng)))
       (list '=
-        (list '(MUL R) 'r (list 'FINSUM cra 'f 'S))
-        (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(MUL R) 'r '(f z))) 'S)))))))
+        (list '(MUL rng) 'r (list 'FINSUM cra 'f 'S))
+        (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(MUL rng) 'r '(f z))) 'S)))))))
 (warrant! 'finsum-ring-distrib-left 'well-known
   "Induction on |S| via finsum-insert: r*(SUM_X f + f z0) = r*SUM_X f + r*f z0
    by ring-left-dist, then the IH.  a |-> r*a is an endomorphism of (R,+), and
@@ -141,13 +143,13 @@
 ;; Ring multiplication is ZZ-linear -- lets a binomial coefficient (a ZZ-ACT
 ;; scalar) pass through the x*(...) / y*(...) multiplications.
 (support 'finsum-ring-scalar-zz
-  (tf 'R '(IS-COMMUTATIVE-RING R)
-   (tf 'r '(IN r (A R))
+  (tf 'rng '(IS-COMMUTATIVE-RING rng)
+   (tf 'r '(IN r (A rng))
     (tf 'c '(IN c ZZ)
-     (tf 'a '(IN a (A R))
+     (tf 'a '(IN a (A rng))
       (list '=
-        (list '(MUL R) 'r (list 'ZZ-ACT cra 'c 'a))
-        (list 'ZZ-ACT cra 'c (list '(MUL R) 'r 'a))))))))
+        (list '(MUL rng) 'r (list 'ZZ-ACT cra 'c 'a))
+        (list 'ZZ-ACT cra 'c (list '(MUL rng) 'r 'a))))))))
 (warrant! 'finsum-ring-scalar-zz 'well-known
   "c.a is the c-fold additive multiple of a (zz-act); ring left-distributivity
    pushes r through each summand, so r*(c.a)=c.(r*a).  Sign cases via

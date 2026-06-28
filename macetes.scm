@@ -878,6 +878,59 @@
   (hash-table-ref/default *warrants* name #f))
 
 ;;; -----------------------------------------------------------------------
+;;; Case-fold shadowing audit.  The reader case-folds symbols, so a binder pair
+;;; differing only in case (FORALL N ... FORSOME n) collapses to the SAME name:
+;;; the inner binder then shadows the outer, silently changing the formula
+;;; (cluster-point, difference-membership).  After the read, that collision is
+;;; ALWAYS "a binder whose variable is already in scope" -- so walking every
+;;; installed formula with the kernel's full binder vocabulary and flagging any
+;;; in-scope rebinding is a COMPLETE check for the class: zero hits => zero
+;;; case-fold collisions in the library.  (def-predicate stores params as outer
+;;; FORALL binders, so binder-vs-parameter collisions are covered too.)
+;;; Authoritative complement to scan-case-fold.py (source-level, parser-limited).
+(define (wff-shadowing-binders e)
+  (let ((hits '()))
+    (define (bind v scope where)
+      (when (memq v scope) (set! hits (cons (list where v) hits)))
+      (cons v scope))
+    (define (walk e scope)
+      (cond
+        ((functoid? e)
+         (let ((scope* (fold-left (lambda (s b) (bind (car b) s 'FUNCTOID))
+                                  scope (functoid-bindings e))))
+           (for-each (lambda (b) (walk (cdr b) scope)) (functoid-bindings e))
+           (walk (functoid-body e) scope*)))
+        ((not (pair? e)) #t)
+        (else
+         (case (car e)
+           ((FORALL FORSOME COMP IOTA)            ; (OP var body)
+            (walk (caddr e) (bind (cadr e) scope (car e))))
+           ((SEP)                                 ; (SEP var dom body)
+            (walk (caddr e) scope)
+            (walk (cadddr e) (bind (cadr e) scope 'SEP)))
+           ((BIG-UNION)                           ; (BIG-UNION var A body)
+            (walk (caddr e) scope)
+            (walk (cadddr e) (bind (cadr e) scope 'BIG-UNION)))
+           ((VNB-LAMBDA)                          ; (VNB-LAMBDA bspec body)
+            (walk (caddr e)
+                  (fold-left (lambda (s v) (bind v s 'VNB-LAMBDA))
+                             scope (vnb-lambda-bvars (cadr e)))))
+           (else (for-each (lambda (c) (walk c scope)) (cdr e)))))))
+    (walk e '())
+    (reverse hits)))
+
+;;; Every installed formula whose statement has a shadowing binder.  Returns a
+;;; list of (name . shadows); empty = the whole library is collision-free.
+(define (case-fold-audit)
+  (let ((bad '()))
+    (for-each (lambda (name)
+                (let* ((f  (lookup-theorem name))
+                       (sh (and f (wff-shadowing-binders f))))
+                  (when (pair? sh) (set! bad (cons (cons name sh) bad)))))
+              (hash-table-keys *theorem-table*))
+    (reverse bad)))
+
+;;; -----------------------------------------------------------------------
 ;;; Classic-name discovery.  Theorems carry terse internal names (rolle, mvt,
 ;;; extreme-value-max); humans look them up by their textbook names ("Rolle's
 ;;; theorem", "intermediate value theorem").  (alias! 'name "Classic Name" ...)
