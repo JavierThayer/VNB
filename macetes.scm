@@ -953,20 +953,27 @@
                         (and w (substring? pat (string-downcase (cdr w))))
                         (any-pred (lambda (s) (substring? pat (string-downcase s)))
                                   (aliases-of n))))))
-         (hits  (filter hit? names)))
-    (if (null? hits)
+         ;; one record per hit: an alist carrying EVERYTHING printed, so a
+         ;; caller can consume the result, not just read the side-effect.
+         (records (map (lambda (n)
+                         (list (cons 'name      n)
+                               (cons 'aliases   (aliases-of n))
+                               (cons 'warrant   (warrant-of n))      ; (kind . text) or #f
+                               (cons 'statement (lookup-theorem n))))
+                       (filter hit? names))))
+    (if (null? records)
         (begin (display ";; find-theorem: no match for \"") (display pattern) (display "\"")
                (newline))
         (for-each
-         (lambda (n)
-           (display ";; ") (display n)
-           (let ((al (aliases-of n)))
-             (when (pair? al) (display "  (") (display (car al)) (display ")")))
-           (let ((w (warrant-of n))) (when w (display "  [") (display (car w)) (display "]")))
-           (newline)
-           (display ";;     ") (display (expression->string (lookup-theorem n))) (newline))
-         hits))
-    hits))
+         (lambda (r)
+           (let ((n (cdr (assq 'name r))) (al (cdr (assq 'aliases r))) (w (cdr (assq 'warrant r))))
+             (display ";; ") (display n)
+             (when (pair? al) (display "  (") (display (car al)) (display ")"))
+             (when w (display "  [") (display (car w)) (display "]"))
+             (newline)
+             (display ";;     ") (display (expression->string (cdr (assq 'statement r)))) (newline)))
+         records))
+    records))
 
 ;;; -----------------------------------------------------------------------
 ;;; Glosses: a plain-English rendition of a support's STATEMENT (what the
