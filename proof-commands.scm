@@ -123,6 +123,13 @@
         (vnb--warn "instantiate: formula not in context or not universal"
                    (expression->string forall-formula)))))
 
+(define (cmd-spec ps thm-name terms)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-spec! sqn thm-name terms)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "spec: unknown theorem (or too many terms)"
+                   (if (symbol? thm-name) (symbol->string thm-name) "")))))
+
 (define (cmd-exists-witness ps term)
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-exists-witness! sqn term)))

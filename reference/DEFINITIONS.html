@@ -71,7 +71,7 @@
 <h4 id="d-cc-ms">cc-ms</h4>
 <pre>cc-ms = [cc, vnb-lambda([x, y], magnitude(x - y))]</pre>
 <h4 id="d-cluster-point">cluster-point</h4>
-<pre>forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n &lt;= n and (d(s))(f(n), x) &lt; eps))))</pre>
+<pre>forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m &lt;= n and (d(s))(f(n), x) &lt; eps))))</pre>
 <h4 id="d-converges">converges</h4>
 <pre>forall([s, f], converges(s, f) iff forsome([l], converges-to(s, f, l)))</pre>
 <h4 id="d-converges-along">converges-along</h4>

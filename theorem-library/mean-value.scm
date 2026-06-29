@@ -83,19 +83,8 @@
    h(a)=h(b)=f(a)g(b)-g(a)f(b), and h'(theta)=0 is the stated identity.")
 (category! 'generalized-mvt 'analysis)
 
-;;; Thm 2.13: MVT.  generalized-mvt at g = identity (g(b)-g(a)=b-a, g'=1).
-(add-to-pss 'mvt
-  '(FORALL f (FORALL a (FORALL b
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b)) (FORSOME L (IS-DIFF-AT f x L))))
-       (FORSOME theta (AND (< a theta) (AND (< theta b)
-         (FORSOME L (AND (IS-DIFF-AT f theta L)
-           (= (* L (- b a)) (- (f b) (f a)))))))))))))))
-(warrant! 'mvt 'reference
-  "calculus.pdf Thm 2.13: generalized-mvt with g = identity, so f'(theta)(b-a) =
-   f(b)-f(a).")
-(category! 'mvt 'analysis)
+;;; Thm 2.13: MVT.  Now MACHINE-PROVEN in theorem-library/mvt-proof.scm (apply
+;;; Rolle to the auxiliary h(z)=f(z)(b-a)-z(f(b)-f(a))); the alias! below stays.
 
 ;;; Cor 2.15: derivative identically 0 on (a,b) => f constant on [a,b].
 (add-to-pss 'deriv-zero-implies-constant

@@ -18,7 +18,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### cluster-point
 
-    forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([n in nn], forsome([n in nn], n <= n and (d(s))(f(n), x) < eps))))
+    forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m <= n and (d(s))(f(n), x) < eps))))
 
 ### converges
 

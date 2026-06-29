@@ -256,6 +256,43 @@
                     (list (make-sequent (context-add-assumption asms (wff-child f inst)) goal))
                     sqn)))))))
 
+;;; pi-spec!: instantiate a registered theorem THM-NAME at TERMS (positionally,
+;;; one per leading FORALL), landing the fully-instantiated body as an
+;;; assumption.  It chains theorem-assumption + forall-elim over the LIVE wff
+;;; OBJECTS it builds (never re-finding an intermediate via asms-find/
+;;; alpha-equiv?, which fails on VNB-LAMBDA-bearing formulas -- the reason `inst`
+;;; cannot drive a multi-arg application whose term is a lambda).  subst-free is
+;;; capture-avoiding, so a term that mentions the theorem's own bound-variable
+;;; names is handled (the binders get renamed; terms still apply positionally).
+(define (pi-spec! sqn thm-name terms)
+  (let ((S (hash-table-ref/default *theorem-table* thm-name #f)))
+    (and S
+      (let* ((goal  (sequent-node-assertion sqn))
+             (dg    (sqn-dg sqn))
+             (S-wff (wff-child goal S))
+             (sqn1  (car (dg-apply-rule! dg 'theorem-assumption
+                          (list (make-sequent
+                                 (context-add-assumption (sequent-node-assumptions sqn) S-wff)
+                                 goal))
+                          sqn))))
+        (let loop ((cur sqn1) (uwff S-wff) (ts terms))
+          (if (null? ts)
+              (list cur)
+              (let ((raw (wff-formula uwff)))
+                (if (and (pair? raw) (eq? (car raw) 'FORALL))
+                    (let* ((x     (quantifier-var  raw))
+                           (body  (quantifier-body raw))
+                           (inst  (subst-free x (car ts) body))
+                           (child (wff-child uwff inst)))
+                      (validate-wff! inst)
+                      (loop (car (dg-apply-rule! dg 'forall-elim
+                                  (list (make-sequent
+                                         (context-add-assumption (sequent-node-assumptions cur) child)
+                                         goal))
+                                  cur))
+                            child (cdr ts)))
+                    (error "spec: more terms than leading universals in" thm-name)))))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; EXISTENTIAL INTRODUCTION
 

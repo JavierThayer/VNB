@@ -212,8 +212,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `abelian-group-idempotent-is-id-commutative-ring-additive-ag-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r)], (add(r))(a, a) = a implies zero(r) = a))
 - `abelian-group-idempotent-is-id-rev-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in a(r)], (add(r))(a, a) = a implies zero(r) = a))
 - `abelian-group-idempotent-is-id-rev-commutative-ring-additive-ag-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r)], (add(r))(a, a) = a implies a = zero(r)))
-- `binomial-theorem` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], ring-power(r, (add(r))(x, y), n) = finsum(commutative-ring-additive-ag(r), vnb-lambda(k, zz-act(commutative-ring-additive-ag(r), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n)))))
-- `binomial-theorem-rev` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], finsum(commutative-ring-additive-ag(r), vnb-lambda(k, zz-act(commutative-ring-additive-ag(r), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n))) = ring-power(r, (add(r))(x, y), n)))
+- `binomial-theorem` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], ring-power(r, (add(r))(x, y), n) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(k, zz-act(commutative-ring-additive-ag(rng), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n)))))
+- `binomial-theorem-rev` — forall([r], is-commutative-ring(r) implies forall([n in nn, x in a(r), y in a(r)], finsum(commutative-ring-additive-ag(rng), vnb-lambda(k, zz-act(commutative-ring-additive-ag(rng), choose(n, k), (mul(r))(ring-power(r, x, k), ring-power(r, y, nn-minus(n, k))))), ord-segment(succ(n))) = ring-power(r, (add(r))(x, y), n)))
 - `comm-monoid-is-monoid-commutative-ring-multiplicative-cm` — forall([r], is-commutative-ring(r) implies is-monoid(commutative-ring-multiplicative-cm(r)))
 - `comm-monoid-mul-comm-commutative-ring-multiplicative-cm` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (mul(r))(a, b) = (mul(r))(b, a)))
 - `comm-monoid-mul-comm-commutative-ring-multiplicative-cm-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r)], (mul(r))(b, a) = (mul(r))(a, b)))
@@ -222,10 +222,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `commutative-ring-additive-ag-is-abelian-group` — forall([r], is-commutative-ring(r) implies is-abelian-group(commutative-ring-additive-ag(r)))
 - `commutative-ring-is-ring` — forall([s], is-commutative-ring(s) implies is-ring(s))
 - `commutative-ring-multiplicative-cm-is-comm-monoid` — forall([r], is-commutative-ring(r) implies is-comm-monoid(commutative-ring-multiplicative-cm(r)))
-- `finsum-ring-distrib-left` — forall([r], is-commutative-ring(r) implies forall([r in a(r), s], s in set and card(s) in nn implies forall([f in fun(s, a(r))], (mul(r))(r, finsum(commutative-ring-additive-ag(r), f, s)) = finsum(commutative-ring-additive-ag(r), vnb-lambda(z, (mul(r))(r, f(z))), s))))
-- `finsum-ring-distrib-left-rev` — forall([r], is-commutative-ring(r) implies forall([r in a(r), s], s in set and card(s) in nn implies forall([f in fun(s, a(r))], finsum(commutative-ring-additive-ag(r), vnb-lambda(z, (mul(r))(r, f(z))), s) = (mul(r))(r, finsum(commutative-ring-additive-ag(r), f, s)))))
-- `finsum-ring-scalar-zz` — forall([r], is-commutative-ring(r) implies forall([r in a(r), c in zz, a in a(r)], (mul(r))(r, zz-act(commutative-ring-additive-ag(r), c, a)) = zz-act(commutative-ring-additive-ag(r), c, (mul(r))(r, a))))
-- `finsum-ring-scalar-zz-rev` — forall([r], is-commutative-ring(r) implies forall([r in a(r), c in zz, a in a(r)], zz-act(commutative-ring-additive-ag(r), c, (mul(r))(r, a)) = (mul(r))(r, zz-act(commutative-ring-additive-ag(r), c, a))))
+- `finsum-ring-distrib-left` — forall([rng], is-commutative-ring(rng) implies forall([r in a(rng), s], s in set and card(s) in nn implies forall([f in fun(s, a(rng))], (mul(rng))(r, finsum(commutative-ring-additive-ag(rng), f, s)) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(r, f(z))), s))))
+- `finsum-ring-distrib-left-rev` — forall([rng], is-commutative-ring(rng) implies forall([r in a(rng), s], s in set and card(s) in nn implies forall([f in fun(s, a(rng))], finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(r, f(z))), s) = (mul(rng))(r, finsum(commutative-ring-additive-ag(rng), f, s)))))
+- `finsum-ring-scalar-zz` — forall([rng], is-commutative-ring(rng) implies forall([r in a(rng), c in zz, a in a(rng)], (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a)) = zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a))))
+- `finsum-ring-scalar-zz-rev` — forall([rng], is-commutative-ring(rng) implies forall([r in a(rng), c in zz, a in a(rng)], zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a)) = (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a))))
 - `monoid-assoc-abelian-group-as-monoid-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r), c in a(r)], (add(r))((add(r))(a, b), c) = (add(r))(a, (add(r))(b, c))))
 - `monoid-assoc-abelian-group-as-monoid-commutative-ring-additive-ag-rev` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r), c in a(r)], (add(r))(a, (add(r))(b, c)) = (add(r))((add(r))(a, b), c)))
 - `monoid-assoc-abelian-group-as-monoid-rev-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in a(r), b in a(r), c in a(r)], (add(r))(a, (add(r))(b, c)) = (add(r))((add(r))(a, b), c)))
@@ -377,8 +377,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (a add mul neg zero one) ↦ (a add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (a add mul neg zero one) ↦ (a add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
+- `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
 
 ### group
 <a id="group"></a>
