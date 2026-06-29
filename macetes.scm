@@ -798,6 +798,11 @@
 
 (define *theorem-table* (make-equal-hash-table))
 
+;;; name -> the source pathname where it was installed (current-load-pathname at
+;;; install time).  Used by the browser topic pages to link each entry to the
+;;; .scm file that states/proves it.  #f-valued (REPL installs) entries skipped.
+(define *theorem-source* (make-equal-hash-table))
+
 ;;; Memo of each lemma's conclusion-fingerprint at the default depth (the key
 ;;; the backchain-candidate scan recomputes per call).  A lemma's conclusion
 ;;; never changes once installed, so this turns the hot retrieval loop (scout /
@@ -1109,6 +1114,8 @@
                          formula-or-wff)))
         (hash-table-set! *theorem-table* name formula)
         (hash-table-delete! *lemma-fingerprint-memo* name)   ; stale on reinstall
+        (let ((src (current-load-pathname)))
+          (when src (hash-table-set! *theorem-source* name src)))
         (register-provenance! name *current-provenance*)
         (install-macete! name (theorem->elementary-macete formula name))
         ;; Symmetric-core theorems also install a reverse-direction macete.

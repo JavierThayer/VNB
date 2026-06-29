@@ -165,10 +165,26 @@ def inline(text):
 
 def inline_stmt(text):
     """Render a formal statement verbatim: escape only, plus the trailing
-    warrant tag.  NO emphasis -- statements legitimately contain bare `*`
-    (e.g. the structure `rr+*`), which star-emphasis would mangle."""
+    warrant tag and explicit [text](href) links (e.g. the 'proof:' source
+    link on the topic pages).  NO emphasis -- statements legitimately contain
+    bare `*` (e.g. the structure `rr+*`), which star-emphasis would mangle."""
+    spans = []
+    def stash(html):
+        spans.append(html)
+        return f"\x00{len(spans)-1}\x00"
+    # protect explicit links before escaping (label/href escaped into the <a>)
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)",
+                  lambda m: stash(f'<a class="x" href="{esc(m.group(2))}">'
+                                  f'{esc(m.group(1))}</a>'),
+                  text)
     t = esc(text)
-    return re.sub(r"_(\[warrant:[^\]]*\])_", r'<em>\1</em>', t)
+    t = re.sub(r"_(\[warrant:[^\]]*\])_", r'<em>\1</em>', t)
+    while "\x00" in t:
+        new = re.sub(r"\x00(\d+)\x00", lambda m: spans[int(m.group(1))], t)
+        if new == t:
+            break
+        t = new
+    return t
 
 # --- block markdown ---------------------------------------------------------
 

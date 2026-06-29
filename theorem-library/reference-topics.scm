@@ -14,11 +14,34 @@
 ;;; result; otherwise list it as a vocabulary pointer (def-functoid/-predicate
 ;;; names are not theorems, but belong on the page as the topic's vocabulary).
 (define (topic--known? name) (hash-table-ref *theorem-table* name (lambda () #f)))
+
+;;; inline " · [`file`](file)" link to the .scm that states/proves `name'
+;;; (relative to *prover-dir*, forced to .scm -- same pathing as the structure
+;;; source links).  Empty when no source was stamped (e.g. REPL installs).
+(define (topic--file-link name)
+  (let ((p (hash-table-ref *theorem-source* name (lambda () #f))))
+    (if (not p) ""
+        (let* ((s   (->namestring (pathname-new-type (->pathname p) "scm")))
+               (pd  *prover-dir*)
+               (rel (if (and (>= (string-length s) (string-length pd))
+                             (string=? (substring s 0 (string-length pd)) pd))
+                        (substring s (string-length pd) (string-length s))
+                        s)))
+          (string-append "  (proof: [" rel "](" rel "))")))))
+
+;;; textbook entry: name -- statement -- [warrant] -- link to its proof file.
+;;; (Vocabulary names that are not installed results list as plain pointers.)
 (define (topic--line name)
-  (if (topic--known? name)
-      (catalog--line name)               ; installed result: reuse catalog renderer
-      (begin (display "- `") (display name)
-             (display "` — _(definition / vocabulary)_") (newline))))
+  (cond
+    ((topic--known? name)
+     (display "- `") (display name) (display "` — ")
+     (display (expression->string (lookup-theorem name)))
+     (let ((w (warrant-of name)))
+       (when w (display "  _[warrant: ") (display (car w)) (display "]_")))
+     (display (topic--file-link name))
+     (newline))
+    (else
+     (display "- `") (display name) (display "` — _(definition / vocabulary)_") (newline))))
 
 (define (write-topic-md filename title blurb sections)
   (let ((path (string-append *reference-dir* filename)))
