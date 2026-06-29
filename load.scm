@@ -397,6 +397,11 @@
     ;; machine-proven from MVT on [u,v] (f(v)-f(u)=f'(theta)(v-u)>0).  Reuses
     ;; deriv-constant-proof's dc-* helpers.
     "theorem-library/deriv-monotone-proof"
+    ;; Taylor's theorem with Lagrange remainder (Cauchy-MVT route): generalized-mvt
+    ;; on G(t)=f(x)-TAYLOR-POLY(f,t,n,x), H(t)=(x-t)^(n+1).  Needs generalized-mvt,
+    ;; higher-derivatives (NTH-DERIV), power-series (SERIES-PARTIAL-SUM), injection
+    ;; (FACTORIAL), ring-power (power), and deriv-constant-proof's dc-* helpers.
+    "theorem-library/taylor-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
