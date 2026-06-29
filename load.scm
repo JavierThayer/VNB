@@ -423,7 +423,12 @@
     ;; Self-describing registry of the interactive tactics: (tactics) prints
     ;; the menu, (write-tactics-md) emits reference/TACTICS.md for the browser
     ;; reference.  Pure display/string; no dependencies beyond *reference-dir*.
-    "tactics-help"))
+    "tactics-help"
+    ;; Curated browser topic pages (Elementary calculus, Metric spaces): pure
+    ;; reading-order organization of already-installed results.  Loads LAST so
+    ;; every result it lists is installed; emits reference/<TOPIC>.md, which the
+    ;; end-of-load build-reference-html.py turns into hub cards.
+    "theorem-library/reference-topics"))
 
 ;;; Files whose top-level axioms are part of the trusted VNB base (not
 ;;; definitional sugar, not asserted math).  Their loads run with

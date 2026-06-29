@@ -41,6 +41,8 @@ DOCS = [
     ("Fingerprint index",  "FINGERPRINT-INDEX.md","results bucketed by conclusion skeleton"),
     ("Proof debt",         "PROOF-DEBT.md",       "what each proof rests on (asserted base)"),
     ("Tactics",            "TACTICS.md",          "interactive proof commands, each with a one-line gloss"),
+    ("Elementary calculus","ELEMENTARY-CALCULUS.md","derivatives, the mean value theorems, and Taylor — reading order"),
+    ("Metric spaces",      "METRIC-SPACES.md",    "sequences, completeness, continuity, compactness, products"),
 ]
 
 # secid (filename without .md) -> output page filename.
