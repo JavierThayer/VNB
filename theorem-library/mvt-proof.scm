@@ -3,8 +3,9 @@
 ;;;     h(z) = f(z)*(b-a) - z*(f(b)-f(a))
 ;;; which satisfies h(a)=h(b); Rolle gives an interior theta with h'(theta)=0,
 ;;; and h'(theta) = f'(theta)(b-a) - (f(b)-f(a)), so f'(theta)(b-a)=f(b)-f(a).
-;;; Loads after rolle-proof.scm.  Uses apply-thm (capture-safe instantiation of
-;;; Rolle at the lambda AUX) + forward `fact`; no bc*, so it compiles normally.
+;;; Loads after rolle-proof.scm.  Applies Rolle to the lambda AUX with forward
+;;; `fact` (capture-avoidance handles AUX's free a,b vs Rolle's bound a,b);
+;;; no bc*, so it compiles normally.
 ;;; Proven modulo the warranted calc-101 supports below
 ;;; (mvt-aux-cont/-diff, rr-diff-zero-eq, diff-value-real).
 ;;; ====================================================================
@@ -129,14 +130,15 @@
 (mv-focus! GOAL)
 
 ;; (4) Rolle on AUX (FORWARD: its conclusion is a FORSOME) -> theta, AUX'(theta)=0.
-;; apply-thm instantiates Rolle at the lambda AUX (capture-safe), landing the full
-;; instantiated implication chain; detach the 4 hypotheses (all in context).
+;; `fact` instantiates Rolle at the lambda AUX -- the kernel renames Rolle's bound
+;; a,b to avoid capturing AUX's free a,b, then the a,b args apply cleanly, landing
+;; the full instantiated implication chain; detach the 4 hypotheses (all in ctx).
 (define RTYP (list 'AND (list 'IN AUX '(FUN RR RR)) (list 'AND '(IN a RR) (list 'AND '(IN b RR) '(< a b)))))
 (cut RTYP)
 (mv-focus! RTYP)
 (quietly (lambda () (ass-all)))
 (mv-focus! GOAL)
-(apply-thm 'rolle AUX 'a 'b)
+(quietly (lambda () (fact 'rolle AUX 'a 'b)))
 ;; NB: mv-ment? uses eq?, fine for symbols; the AUX *list* is a fresh copy after
 ;; subst-free, so match the embedded 'VNB-LAMBDA symbol instead.
 (let loop ((n 0))

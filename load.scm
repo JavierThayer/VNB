@@ -377,9 +377,9 @@
     ;; (interior-max/min-deriv-zero) + constant-case midpoint.  Needs EVT
     ;; (extreme-value), the Fermat proofs above, and order helpers.
     "theorem-library/rolle-proof"
-    ;; Mean Value Theorem, machine-proven: apply Rolle to the auxiliary
-    ;; h(z)=f(z)(b-a)-z(f(b)-f(a)) (via apply-thm, capture-safe at the lambda),
-    ;; then derivative-unique.  Needs rolle-proof + derivative-unique + in-rr.
+    ;; Mean Value Theorem, machine-proven: apply Rolle (via fact) to the
+    ;; auxiliary h(z)=f(z)(b-a)-z(f(b)-f(a)), then derivative-unique.
+    ;; Needs rolle-proof + derivative-unique + in-rr.
     "theorem-library/mvt-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"

@@ -3104,12 +3104,14 @@
                  (if (vnb-warning? rawf) rawf (cmd-instantiate *ps* rawf rawt))))))
 
 ;; (apply-thm 'thm t1 t2 ...) -- apply a registered theorem to terms positionally
-;; (one per leading FORALL), landing the instantiated body in context.  Unlike
-;; (fact ...) it consumes every term even when one is a VNB-LAMBDA, and unlike
-;; (inst ...) it never re-finds a lambda-bearing intermediate -- it threads the
-;; live wff objects.  Capture-safe: a term may mention the theorem's own bound
-;; names.  The forward "apply this theorem here" move for constructed functions.
-;; (Named apply-thm, not spec: spec is the structure-specialization tactic.)
+;; (one per leading FORALL), landing the instantiated body in context.  A direct
+;; "instantiate this theorem at these terms" move: it threads the live wff
+;; objects through theorem-assumption + forall-elim rather than re-finding each
+;; intermediate by alpha-equivalence.  NOTE: (fact ...) already does the same
+;; instantiation (including when a term is a VNB-LAMBDA whose free vars collide
+;; with the theorem's bound vars -- capture-avoidance handles that), so apply-thm
+;; is a convenience, not a workaround for any defect; it differs from fact only
+;; in skipping fact's forward-detach pass over in-context guards.
 (define (apply-thm thm-name . terms)
   (let ((parsed (map ->raw-formula terms)))
     (vnb--run! 'apply-thm (cons thm-name parsed)

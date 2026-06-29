@@ -259,11 +259,13 @@
 ;;; pi-spec!: instantiate a registered theorem THM-NAME at TERMS (positionally,
 ;;; one per leading FORALL), landing the fully-instantiated body as an
 ;;; assumption.  It chains theorem-assumption + forall-elim over the LIVE wff
-;;; OBJECTS it builds (never re-finding an intermediate via asms-find/
-;;; alpha-equiv?, which fails on VNB-LAMBDA-bearing formulas -- the reason `inst`
-;;; cannot drive a multi-arg application whose term is a lambda).  subst-free is
-;;; capture-avoiding, so a term that mentions the theorem's own bound-variable
-;;; names is handled (the binders get renamed; terms still apply positionally).
+;;; OBJECTS it builds rather than re-finding each intermediate via asms-find/
+;;; alpha-equiv?.  subst-free is capture-avoiding, so a term that mentions the
+;;; theorem's own bound-variable names is handled (the binders get renamed; the
+;;; terms still apply positionally).  NB: asms-find/alpha-equiv? DO handle
+;;; VNB-LAMBDA-bearing formulas (tested), and (fact ...) instantiates such
+;;; theorems correctly too -- this is a more direct mechanism, not a fix for a
+;;; defect in the alpha-equivalence path.
 (define (pi-spec! sqn thm-name terms)
   (let ((S (hash-table-ref/default *theorem-table* thm-name #f)))
     (and S
