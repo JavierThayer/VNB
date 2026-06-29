@@ -393,6 +393,10 @@
     ;; two-function auxiliary h(x)=f(x)(g(b)-g(a))-g(x)(f(b)-f(a)).  Reuses
     ;; deriv-constant-proof's dc-* helpers; needs rolle + derivative-unique.
     "theorem-library/generalized-mvt-proof"
+    ;; Increasing function theorem: f'>0 on (a,b) => f strictly increasing,
+    ;; machine-proven from MVT on [u,v] (f(v)-f(u)=f'(theta)(v-u)>0).  Reuses
+    ;; deriv-constant-proof's dc-* helpers.
+    "theorem-library/deriv-monotone-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
