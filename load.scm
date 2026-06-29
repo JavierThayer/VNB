@@ -389,6 +389,10 @@
     ;; machine-proven from MVT + derivative-unique + scale-by-nonneg.  Reuses
     ;; deriv-constant-proof's dc-* helpers, so loads after it.
     "theorem-library/mvt-bounds-proof"
+    ;; Cauchy / generalized MVT (Thm 2.11), machine-proven by Rolle on the
+    ;; two-function auxiliary h(x)=f(x)(g(b)-g(a))-g(x)(f(b)-f(a)).  Reuses
+    ;; deriv-constant-proof's dc-* helpers; needs rolle + derivative-unique.
+    "theorem-library/generalized-mvt-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

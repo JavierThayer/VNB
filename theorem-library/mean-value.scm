@@ -63,25 +63,11 @@
 ;;; Stated with product forms (L*(b-a) = f(b)-f(a)) to avoid division.
 ;;; ===================================================================
 
-;;; Thm 2.11: generalized MVT.  Rolle on h(x)=f(x)(g(b)-g(a))-g(x)(f(b)-f(a)).
-(add-to-pss 'generalized-mvt
-  '(FORALL f (FORALL g (FORALL a (FORALL b
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN g (FUN RR RR))
-              (AND (IN a RR) (AND (IN b RR) (< a b)))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b))
-                 (AND (IS-CONTINUOUS-AT RR-MS RR-MS f x)
-                      (IS-CONTINUOUS-AT RR-MS RR-MS g x))))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
-                 (AND (FORSOME L (IS-DIFF-AT f x L))
-                      (FORSOME M (IS-DIFF-AT g x M)))))
-       (FORSOME theta (AND (< a theta) (AND (< theta b)
-         (FORSOME L (FORSOME M (AND (IS-DIFF-AT f theta L)
-                                (AND (IS-DIFF-AT g theta M)
-           (= (* L (- (g b) (g a))) (* M (- (f b) (f a)))))))))))))))))))
-(warrant! 'generalized-mvt 'reference
-  "calculus.pdf Thm 2.11.  Apply rolle to h(x)=f(x)(g(b)-g(a))-g(x)(f(b)-f(a));
-   h(a)=h(b)=f(a)g(b)-g(a)f(b), and h'(theta)=0 is the stated identity.")
-(category! 'generalized-mvt 'analysis)
+;;; Thm 2.11: generalized MVT (Cauchy MVT).  Now MACHINE-PROVEN in
+;;; theorem-library/generalized-mvt-proof.scm (apply Rolle to the auxiliary
+;;; h(x)=f(x)(g(b)-g(a))-g(x)(f(b)-f(a)); h(a)=h(b), and h'(theta)=0 is the
+;;; stated identity).  The asserted statement is retired from here; the alias!
+;;; below stays.
 
 ;;; Thm 2.13: MVT.  Now MACHINE-PROVEN in theorem-library/mvt-proof.scm (apply
 ;;; Rolle to the auxiliary h(z)=f(z)(b-a)-z(f(b)-f(a))); the alias! below stays.
