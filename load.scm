@@ -385,6 +385,10 @@
     ;; trichotomy on u,v + MVT on [min,max] + derivative-unique.  Needs
     ;; mvt-proof + ccint/order supports + in-rr.
     "theorem-library/deriv-constant-proof"
+    ;; Cor 2.14: f'<=M on (a,b) => f(b)-f(a)<=M(b-a) (and the lower form),
+    ;; machine-proven from MVT + derivative-unique + scale-by-nonneg.  Reuses
+    ;; deriv-constant-proof's dc-* helpers, so loads after it.
+    "theorem-library/mvt-bounds-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

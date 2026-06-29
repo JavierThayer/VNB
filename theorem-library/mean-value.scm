@@ -92,27 +92,10 @@
 ;;; statement is retired from here.  The alias! below stays.
 
 ;;; Cor 2.14: f' <= M on (a,b) => f(b)-f(a) <= M(b-a)  (and the >= m form).
-(add-to-pss 'mvt-upper-bound
-  '(FORALL f (FORALL a (FORALL b (FORALL M
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (AND (IN M RR) (< a b)))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
-                 (FORSOME L (AND (IS-DIFF-AT f x L) (<= L M)))))
-       (<= (- (f b) (f a)) (* M (- b a)))))))))))
-(warrant! 'mvt-upper-bound 'reference
-  "calculus.pdf Cor 2.14: MVT gives theta with f(b)-f(a)=f'(theta)(b-a)<=M(b-a).")
-(category! 'mvt-upper-bound 'analysis)
-
-(add-to-pss 'mvt-lower-bound
-  '(FORALL f (FORALL a (FORALL b (FORALL m
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (AND (IN m RR) (< a b)))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
-                 (FORSOME L (AND (IS-DIFF-AT f x L) (<= m L)))))
-       (<= (* m (- b a)) (- (f b) (f a)))))))))))
-(warrant! 'mvt-lower-bound 'reference
-  "calculus.pdf Cor 2.14 (lower): MVT gives f(b)-f(a)=f'(theta)(b-a)>=m(b-a).")
-(category! 'mvt-lower-bound 'analysis)
+;;; Both now MACHINE-PROVEN in theorem-library/mvt-bounds-proof.scm (MVT gives
+;;; theta with f(b)-f(a)=f'(theta)(b-a); the bound on f'(theta) -- transferred to
+;;; the MVT witness via derivative-unique -- scales by (b-a)>=0).  The asserted
+;;; statements are retired from here; the alias!s below stay.
 
 ;;; Classic textbook names, for (find-theorem "...") lookup.
 (alias! 'rolle "Rolle's theorem" "Rolle's lemma")
