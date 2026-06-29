@@ -381,6 +381,10 @@
     ;; auxiliary h(z)=f(z)(b-a)-z(f(b)-f(a)), then derivative-unique.
     ;; Needs rolle-proof + derivative-unique + in-rr.
     "theorem-library/mvt-proof"
+    ;; Cor 2.15: f'=0 on (a,b) => f constant on [a,b], machine-proven by
+    ;; trichotomy on u,v + MVT on [min,max] + derivative-unique.  Needs
+    ;; mvt-proof + ccint/order supports + in-rr.
+    "theorem-library/deriv-constant-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

@@ -87,17 +87,9 @@
 ;;; Rolle to the auxiliary h(z)=f(z)(b-a)-z(f(b)-f(a))); the alias! below stays.
 
 ;;; Cor 2.15: derivative identically 0 on (a,b) => f constant on [a,b].
-(add-to-pss 'deriv-zero-implies-constant
-  '(FORALL f (FORALL a (FORALL b
-     (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b)) (IS-DIFF-AT f x 0)))
-       (FORALL u (FORALL v (IMPLIES (AND (IN u (CCINT a b)) (IN v (CCINT a b)))
-         (= (f u) (f v))))))))))))
-(warrant! 'deriv-zero-implies-constant 'reference
-  "calculus.pdf Cor 2.15: MVT on any subinterval [u,v] gives f(v)-f(u) =
-   f'(theta)(v-u) = 0, so f is constant.")
-(category! 'deriv-zero-implies-constant 'analysis)
+;;; Now MACHINE-PROVEN in theorem-library/deriv-constant-proof.scm (trichotomy
+;;; on u,v + MVT on the subinterval [min,max] + derivative-unique); the asserted
+;;; statement is retired from here.  The alias! below stays.
 
 ;;; Cor 2.14: f' <= M on (a,b) => f(b)-f(a) <= M(b-a)  (and the >= m form).
 (add-to-pss 'mvt-upper-bound

@@ -91,7 +91,7 @@
 
 (add-to-pss 'diff-value-real
   '(FORALL f (FORALL a (FORALL L (IMPLIES (IS-DIFF-AT f a L) (IN L RR))))))
-(warrant! 'diff-value-real 'definitional
+(warrant! 'diff-value-real 'informal
   "IS-DIFF-AT's definition includes (IN L RR) as a conjunct.")
 
 ;; (1) AUX continuous on [a,b]
