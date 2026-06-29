@@ -113,6 +113,10 @@
     ;; MODULE over a ring (scalar ring as a substructure slot; complete IS-MODULE
     ;; IFF incl. the four action laws).  Needs RING + operation-properties.
     "structure-library/module"
+    ;; Finite-dimensional vector spaces, Zorn-free: IS-VECTOR-SPACE (module over
+    ;; a field), IS-SUBMODULE, IS-NOETHERIAN (ascending chain condition), and
+    ;; IS-FINITE-DIMENSIONAL (= noetherian vector space).  Vocabulary only.
+    "structure-library/finite-dimensional"
     "structure-library/euclidean-ring"
     ;; Ideals, principal ideals, and principal-ideal domains over a commutative
     ;; ring (IS-IDEAL / PRINCIPAL-IDEAL / IS-PID), plus the well-ordering of NN
