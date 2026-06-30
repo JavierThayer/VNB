@@ -331,7 +331,7 @@ $\mathit{FUN}(\mathit{TUPLES}(A), B)$, which take a single set-level
 tuple as their one argument (see the remark on $\mathit{TUPLES}$ in
 Section~\ref{sec:constructor-examples}), and from fixed-arity functoids
 such as ring addition
-$\mathit{ADD}(r) \in \mathit{FUN}(\mathit{CARTESIAN}(A(r), A(r)), A(r))$,
+$\mathit{ADD}(r) \in \mathit{FUN}(\mathit{CARTESIAN}(CARR(r), CARR(r)), CARR(r))$,
 which have a single argument slot of fixed Cartesian type.
 \end{remark}
 
@@ -708,7 +708,7 @@ However, an operation declared via
 \texttt{(op MUL (CARTESIAN A A) A)} (Section~\ref{sec:declare-structure})
 is typed (Section~\ref{sec:declare-structure}) as the \emph{unary} function
 \[
-  (\textsc{mul}\ s)\ \in\ \textsc{fun}(\textsc{cartesian}(A(s),\,A(s)),\ A(s))
+  (\textsc{mul}\ s)\ \in\ \textsc{fun}(\textsc{cartesian}(CARR(s),\,CARR(s)),\ CARR(s))
 \]
 whose single argument is an element of the Cartesian product.
 Likewise the typing axiom \texttt{fun-apply-type} is unary
@@ -802,13 +802,13 @@ is the derived form $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
   $f \in \mathit{FUN}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
   (in \texttt{axioms.scm}; derivable from \texttt{fun-codomain-iff})
 \item \texttt{fun-set-iff}
-  $\mathit{FUN}(A,B) \in \mathit{SET} \;\Leftrightarrow\; (A \in \mathit{SET}) \land (B \in \mathit{SET})$
+  $\mathit{FUN}(A,B) \in \mathit{SET} \;\Leftrightarrow\; (CARR \in \mathit{SET}) \land (B \in \mathit{SET})$
 \item \texttt{fun-elements-are-sets}
   $f \in \mathit{FUN}(A,B) \land A \in \mathit{SET} \;\Rightarrow\; f \in \mathit{SET}$
 \item \texttt{fun-domain-elements-are-sets}
   $f \in \mathit{FUN}(A) \land A \in \mathit{SET} \;\Rightarrow\; f \in \mathit{SET}$
 \item \texttt{cartesian-set-iff}
-  $A \times B \in \mathit{SET} \;\Leftrightarrow\; (A \in \mathit{SET}) \land (B \in \mathit{SET})$
+  $A \times B \in \mathit{SET} \;\Leftrightarrow\; (CARR \in \mathit{SET}) \land (B \in \mathit{SET})$
 \item \texttt{tuples-sethood}
   $A \in \mathit{SET} \;\Rightarrow\; \mathit{TUPLES}(A) \in \mathit{SET}$
 \end{itemize}
@@ -865,16 +865,22 @@ The registry is therefore not fixed: it grows as a theory is built, so
 declaring a structure or adding a definition extends the set of symbols
 that count as constant heads.
 
-\begin{remark}[The case-fold trap]
+\begin{remark}[The case-fold trap, and how the library forbids it]
 The reader case-folds symbols.  A bound variable whose name case-folds
 to a registered constant cannot be applied as a function --- the head
-\texttt{($v$ \ldots)} reads as the constant, not the variable.
-\texttt{warn-binder-shadowing} warns when a binder variable collides
-with a registered \texttt{operator}, \texttt{defined-fn}, or
-\texttt{functoid}.  Accessor collisions are deliberately \emph{not}
-warned: binding an element variable \texttt{a} while \texttt{A} is a
-carrier accessor is the standard, correct pattern, and the two are
-indistinguishable from the S-expression in any case.
+\texttt{($v$ \ldots)} reads as the constant, not the variable, scope-blind,
+silently changing a formula's meaning.  Two safeguards keep the installed
+library clean.  First, structure accessors are given \emph{distinctive}
+names (\texttt{CARR}, \texttt{PTS}, \texttt{DIST}, \texttt{ID}, \texttt{MUL},
+\texttt{VEC}, \ldots) precisely so they never collide with the natural
+element variables (\texttt{a}, \texttt{x}, \texttt{d}, \texttt{e}, \ldots).
+Second, \texttt{constant-binder-audit} walks every installed formula and
+\emph{hard-fails the load}, with a deliberately loud banner, if any binder
+variable is named like a registered \texttt{accessor}, \texttt{operator},
+\texttt{defined-fn}, \texttt{functoid}, or \texttt{predicate}; its companion
+\texttt{case-fold-audit} catches the binder-over-binder case.  Together they
+turn the whole case-fold collision class into a build error rather than a
+silent hazard.
 \end{remark}
 
 \section{Constructor examples}

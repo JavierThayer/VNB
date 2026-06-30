@@ -1,6 +1,6 @@
 ;;; summability.scm -- unconditional summability of a normed-AG-valued function
 ;;;
-;;; For a NORMED-AG grp and a function f : DOM(f) -> (A grp) on an arbitrary
+;;; For a NORMED-AG grp and a function f : DOM(f) -> (CARR grp) on an arbitrary
 ;;; index set DOM(f), SUMS-TO(grp, f, r) says the finite partial sums of f
 ;;; converge to r in the Moore-Smith sense over the finite subsets of DOM(f)
 ;;; directed by inclusion:

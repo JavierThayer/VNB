@@ -20,7 +20,7 @@
 ;;; PROD-ORD: monoid product over {0, ..., n-1}
 
 ;;; Defining recursion (installs prod-ord-zero and prod-ord-succ):
-;;;   PROD-ORD(m, f, 0)       = E(m)
+;;;   PROD-ORD(m, f, 0)       = ID(m)
 ;;;   PROD-ORD(m, f, succ(n)) = PROD-ORD(m, f, n) * f(n)
 
 (def-by-nn-recursion 'PROD-ORD '(m f)
@@ -43,7 +43,7 @@
 
 ;;; Singleton: PROD-ORD(m, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): prod-ord-succ at n=0 gives
-;;; (MUL m)(E m)(f 0), then monoid-left-id closes to (f 0).  Installed
+;;; (MUL m)(ID m)(f 0), then monoid-left-id closes to (f 0).  Installed
 ;;; as an axiom for direct use.
 (theory-add-axiom! *current-theory* 'prod-ord-singleton
   '(FORALL m
@@ -96,11 +96,11 @@
 ;;;
 ;;; Written multiplicatively because ABELIAN-GROUP uses MUL/E (inherited
 ;;; from GROUP's accessors).  When the abelian group is the additive group
-;;; of some structure, the caller reads (MUL ag) as "addition" and (E ag)
+;;; of some structure, the caller reads (MUL ag) as "addition" and (ID ag)
 ;;; as "zero" by convention; nothing in the structure machinery cares.
 ;;;
 ;;; Defining recursion (installs sum-ag-zero and sum-ag-succ):
-;;;   SUM-AG(ag, f, 0)       = E(ag)
+;;;   SUM-AG(ag, f, 0)       = ID(ag)
 ;;;   SUM-AG(ag, f, succ(n)) = (MUL ag)(SUM-AG ag f n, f(n))
 
 (def-by-nn-recursion 'SUM-AG '(ag f)
@@ -135,7 +135,7 @@
 ;;;
 ;;;   SUM-AG(ag, f, n) = REDUCE (MUL ag) f n        for n >= 1
 ;;;
-;;; The n = 0 case has no REDUCE counterpart: SUM-AG(ag, f, 0) = E(ag) is
+;;; The n = 0 case has no REDUCE counterpart: SUM-AG(ag, f, 0) = ID(ag) is
 ;;; the identity supplied by the abelian-group, and REDUCE has no identity
 ;;; argument.  Provable by NN induction (base n = 1 from sum-ag-singleton +
 ;;; reduce-one; step from sum-ag-succ + reduce-succ); installed for direct
@@ -222,7 +222,7 @@
                   (= (SUM-SET r (PAIR x x) f) (f x)))))))
 
 ;;; Disjoint-union: S1 cap S2 = empty => sum over S1 cup S2 splits additively.
-;;; f's typing is stated via the union (FUN (UNION S1 S2) (A r)); sum-set-type
+;;; f's typing is stated via the union (FUN (UNION S1 S2) (CARR r)); sum-set-type
 ;;; covers each piece via the SUBSET clause.
 (theory-add-axiom! *current-theory* 'sum-set-disjoint-union
   '(FORALL r
@@ -236,7 +236,7 @@
                               ((ADD r) (SUM-SET r S1 f) (SUM-SET r S2 f))))))))))
 
 ;;; Type: result is in the carrier whenever f is defined on a superset of S
-;;; with values in A(r).  Stated with an explicit superset X to keep the
+;;; with values in CARR(r).  Stated with an explicit superset X to keep the
 ;;; disjoint-union axiom usable (where f's typing is on UNION(S1, S2) but
 ;;; the RHS uses sums over S1, S2).
 (theory-add-axiom! *current-theory* 'sum-set-type

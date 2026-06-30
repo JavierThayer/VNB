@@ -30,8 +30,8 @@
 ;;; 1.  Sequential compactness
 ;;; =======================================================================
 
-;;; SEQ-COMPACT(s): every sequence in X(s) has a subsequence converging to a
-;;; point of X(s).  The metric face of compactness.  Bound vars: phi the
+;;; SEQ-COMPACT(s): every sequence in PTS(s) has a subsequence converging to a
+;;; point of PTS(s).  The metric face of compactness.  Bound vars: phi the
 ;;; reindexing, L the limit -- never `x' (the carrier accessor X folds to x and
 ;;; sits next to the point set) [[feedback_no_case_variant_binders]].
 (def-predicate 'SEQ-COMPACT '(s)
@@ -62,7 +62,7 @@
 ;;; 1.5  Convergence along an index block, and the refinement tower.
 ;;; =======================================================================
 
-;;; CONVERGES-ALONG(s, g, B, p): the X(s)-sequence g converges to p when
+;;; CONVERGES-ALONG(s, g, B, p): the PTS(s)-sequence g converges to p when
 ;;; restricted to indices in the (infinite) block B -- for every eps>0 there is
 ;;; a threshold N past which every index i in B keeps g(i) within eps of p.
 ;;; This is CONVERGES-TO with the tail quantifier relativised to B; it is what a
@@ -161,7 +161,7 @@
    DIAGONAL delta(k) := psi_k(k) is strictly monotone and, for each n, its tail
    { delta(k) : k >= n } is a subsequence of psi_n, hence seq o delta converges
    in coordinate n.  L(n) := that coordinate-n limit; L lies in PRODUCT-CARRIER
-   (each L(n) in X(ms n)).  The per-coordinate convergent subsequence is exactly
+   (each L(n) in PTS(ms n)).  The per-coordinate convergent subsequence is exactly
    SEQ-COMPACT of each factor; the lacing-together is dc-on-nn + the diagonal.")
 
 ;;; =======================================================================
@@ -177,7 +177,7 @@
      (IMPLIES (FORALL n (IMPLIES (IN n NN) (SEQ-COMPACT (ms n))))
        (SEQ-COMPACT (PRODUCT-METRIC ms))))))
 (warrant! 'seq-compact-countable-product 'reference
-  "Given a sequence seq in the product carrier (= X(PRODUCT-METRIC ms), by
+  "Given a sequence seq in the product carrier (= PTS(PRODUCT-METRIC ms), by
    product-metric-carrier), coordinatewise-diagonal-subseq yields a strictly
    monotone delta and L in PRODUCT-CARRIER(ms) with SUBSEQ(seq,delta) converging
    in every coordinate to L(n).  product-convergence-coordinatewise -- at the

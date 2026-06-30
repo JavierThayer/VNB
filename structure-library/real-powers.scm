@@ -5,7 +5,7 @@
 ;;; rational-power map) -- would delay every root-form inequality behind a
 ;;; substantial development; positing the power laws now puts Young, AM-GM,
 ;;; Hoelder, Minkowski and the l^2 triangle inequality into the PSS today.
-;;; (A later IVT construction can DISCHARGE these axioms; until then they are
+;;; (CARR later IVT construction can DISCHARGE these axioms; until then they are
 ;;; warranted 'well-known.)
 ;;;
 ;;; Operators:

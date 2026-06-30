@@ -3,7 +3,7 @@
 ;;; metric-pos / metric-self-zero / metric-zero-eq / metric-sym /
 ;;; metric-triangle were long ASSERTED as standalone axioms.  But symmetry --
 ;;; and all four siblings -- are constitutive of the definition of a metric:
-;;; IS-METRIC-SPACE(s) folds in the property `is-metric(D(s),X(s))', and
+;;; IS-METRIC-SPACE(s) folds in the property `is-metric(DIST(s),PTS(s))', and
 ;;; `is-metric' (operation-properties.scm) is an IFF whose body already states
 ;;; non-negativity, the two identity-of-indiscernibles halves, SYMMETRY, and
 ;;; the triangle inequality.  So the five axioms were redundant -- a

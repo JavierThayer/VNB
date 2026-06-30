@@ -1,13 +1,13 @@
 ;;; normed-ag-metric.scm -- the metric space underlying a normed abelian group.
 ;;;
-;;; The structural bridge between a NORMED-AG's *group* register (A MUL E INV
+;;; The structural bridge between a NORMED-AG's *group* register (CARR MUL ID INV
 ;;; + norm NRM) and its *metric* register (METRIC-SPACE : X D).  Like
 ;;; NF-METRIC-SPACE for normed fields, it cannot be a def-view-as: a view-as
-;;; maps slots to slots, but METRIC-SPACE's distance D is not a slot of a
+;;; maps slots to slots, but METRIC-SPACE's distance DIST is not a slot of a
 ;;; normed AG -- it is the *constructed* function d(u,v) = NRM(u - v).  So the
 ;;; bridge is a constructor functoid plus its laws.
 ;;;
-;;;   NAG-METRIC-SPACE(nag) = [ A(nag),  lambda([u,v], NRM(nag)(u . INV(v))) ]
+;;;   NAG-METRIC-SPACE(nag) = [ CARR(nag),  lambda([u,v], NRM(nag)(u . INV(v))) ]
 ;;;
 ;;; The group is written multiplicatively, so the "difference" u - v is the
 ;;; group element  MUL(nag)(u, INV(nag)(v)) = u . v^-1.  Then
@@ -56,7 +56,7 @@
               ((NRM nag) ((MUL nag) u ((INV nag) v)))))))))))
 
 (warrant! 'nag-metric-distance 'informal
-  "By functoid-beta NAG-METRIC-SPACE(nag) = [A(nag), lambda([u,v],
+  "By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), lambda([u,v],
    NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce)
    and lambda-beta evaluates it at (u,v), giving NRM(nag)(MUL(nag)(u, INV(nag)
    v)) = ||u . v^-1||.")
@@ -86,4 +86,4 @@
 
 (warrant! 'nag-metric-carrier 'informal
   "First component of the LIST constructor: by functoid-beta + nth-reduce,
-   X(NAG-METRIC-SPACE nag) = A(nag).")
+   PTS(NAG-METRIC-SPACE nag) = CARR(nag).")

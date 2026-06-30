@@ -26,7 +26,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; Tiny alist arithmetic (keys are symbols/atoms; values rationals).
 
-;; Keys are atoms -- symbols OR COMPOUND TERMS (e.g. (f x), ((D s) x y)) -- so
+;; Keys are atoms -- symbols OR COMPOUND TERMS (e.g. (f x), ((DIST s) x y)) -- so
 ;; comparison must be equal?, not eqv? (two distinct (f x) list objects are not
 ;; eqv?).  This is what lets compound atoms cancel/combine, mirroring how crs
 ;; compares generators.

@@ -36,7 +36,7 @@
 ;;; (RING, FIELD, ...), so bounded quantification forall([s in
 ;;; COMMUTATIVE-RING], ...) works uniformly.  Unfolding the predicate gives
 ;;; the parent-class reading
-;;;   s in COMMUTATIVE-RING  <=>  s in RING and (MUL s) commutes on (A s).
+;;;   s in COMMUTATIVE-RING  <=>  s in RING and (MUL s) commutes on (CARR s).
 (theory-add-axiom! *current-theory* 'commutative-ring-class
   '(FORALL s (IFF (IN s COMMUTATIVE-RING) (IS-COMMUTATIVE-RING s))))
 

@@ -12,7 +12,7 @@
 ;;; Workhorse for nested-pigeonhole / diagonalisation arguments.
 ;;; The totally-bounded => has-Cauchy-subseq theorem uses this at every
 ;;; recursion step: given infinite S_k subset NN of indices and a finite
-;;; cover {c_1, ..., c_n} of X(s) by r_k-balls, the function
+;;; cover {c_1, ..., c_n} of PTS(s) by r_k-balls, the function
 ;;; pi(m) = "which ball center is x_m closest to" gives an infinite
 ;;; fiber, and that's S_{k+1}.
 ;;;

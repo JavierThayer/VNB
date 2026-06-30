@@ -193,11 +193,11 @@ advances the focus to the first new ungrounded subgoal.
   form over an arbitrary ring: \texttt{forall($R$, IS-COMMUTATIVE-RING($R$)
   implies \ldots)} built from \texttt{(ADD $R$)}, \texttt{(MUL $R$)},
   \texttt{(NEG $R$)}, \texttt{(ZERO $R$)}, \texttt{(ONE $R$)}, with the
-  generators ranging over the carrier \texttt{(A $R$)}.
+  generators ranging over the carrier \texttt{(CARR $R$)}.
 
   Generators are detected and certified exactly as for \texttt{(rs)}: a
   symbol or an opaque compound term, certified by an \texttt{(IN $v$ $D$)}
-  typing in the concrete form or an \texttt{(IN $v$ (A $R$))} assumption in
+  typing in the concrete form or an \texttt{(IN $v$ (CARR $R$))} assumption in
   the generic form.  The same partiality caveat applies --- a compound
   generator fires only once certified, which in VNB guarantees it is
   defined.
@@ -896,27 +896,27 @@ directly.
 \begin{sloppypar}The \texttt{(op name domain range)} clause declares
 $\texttt{name}(s) \in \texttt{FUN}(\texttt{domain}, \texttt{range})$.
 Higher-arity operations write the Cartesian product explicitly:
-\texttt{(op MUL (CARTESIAN A A) A)}, not \texttt{(op MUL (A A) A)}.
+\texttt{(op MUL (CARTESIAN A A) A)}, not \texttt{(op MUL (CARR A) A)}.
 A \texttt{(constant name S)} clause declares an element of set $S$.
 Accessor indices are assigned sequentially: carriers first (starting
 at~1), then operations in declaration order.\end{sloppypar}
 
 A \texttt{declare-structure} call installs two things automatically:
 \begin{itemize}[label=$\circ$, leftmargin=0.85cm]
-\item \emph{Accessor macetes}: \texttt{A}$(s)$ rewrites to
+\item \emph{Accessor macetes}: \texttt{CARR}$(s)$ rewrites to
   \texttt{nth(1,$s$)}, \texttt{MUL}$(s)$ to \texttt{nth(2,$s$)}, etc.
 \item \emph{Definitional biconditional} \texttt{IS-NAME}: the axiom
   $\forall s.\;\texttt{IS-GROUP}(s) \Leftrightarrow
-   (\texttt{A}(s)\in\mathrm{SET} \wedge \texttt{MUL}(s)\in\cdots)$.
+   (\texttt{CARR}(s)\in\mathrm{SET} \wedge \texttt{MUL}(s)\in\cdots)$.
 \end{itemize}
 
 Given \texttt{IS-GROUP(g)} in context, the \texttt{IS-GROUP} macete
 unfolds to:
 \begin{VNBsnip}
-A(g) in SET
-and MUL(g) in fun(cartesian(A(g), A(g)), A(g))
-and E(g) in A(g)
-and INV(g) in fun(A(g), A(g))
+CARR(g) in SET
+and MUL(g) in fun(cartesian(CARR(g), CARR(g)), CARR(g))
+and ID(g) in CARR(g)
+and INV(g) in fun(CARR(g), CARR(g))
 \end{VNBsnip}
 
 \paragraph{Pre-loaded structures.}
@@ -929,20 +929,20 @@ loaded automatically.
 \textbf{Structure} & \textbf{Accessor slots (index)} & \textbf{Characteristic axioms} \\
 \midrule
 \texttt{SEMIGROUP} &
-  \texttt{A}\,(1), \texttt{MUL}\,(2) &
+  \texttt{CARR}\,(1), \texttt{MUL}\,(2) &
   \texttt{semigroup-assoc} \\[4pt]
 \texttt{MONOID} &
-  \texttt{A}\,(1), \texttt{MUL}\,(2), \texttt{E}\,(3) &
+  \texttt{CARR}\,(1), \texttt{MUL}\,(2), \texttt{ID}\,(3) &
   \texttt{monoid-assoc},
   \texttt{monoid-left-id},
   \texttt{monoid-right-id} \\[4pt]
 \texttt{GROUP} &
-  \texttt{A}\,(1), \texttt{MUL}\,(2), \texttt{E}\,(3), \texttt{INV}\,(4) &
+  \texttt{CARR}\,(1), \texttt{MUL}\,(2), \texttt{ID}\,(3), \texttt{INV}\,(4) &
   \texttt{group-assoc},
   \texttt{group-left-id},
   \texttt{group-left-inv} \\[4pt]
 \texttt{RING} &
-  \texttt{A}\,(1), \texttt{ADD}\,(2), \texttt{MUL}\,(3),
+  \texttt{CARR}\,(1), \texttt{ADD}\,(2), \texttt{MUL}\,(3),
   \texttt{NEG}\,(4), \texttt{ZERO}\,(5), \texttt{ONE}\,(6) &
   \texttt{ring-add-assoc}, \texttt{ring-add-comm},
   \texttt{ring-add-left-id}, \texttt{ring-add-left-inv},
@@ -950,7 +950,7 @@ loaded automatically.
   \texttt{ring-mul-right-id},
   \texttt{ring-left-dist}, \texttt{ring-right-dist} \\[4pt]
 \texttt{METRIC-SPACE} &
-  \texttt{X}\,(1), \texttt{D}\,(2) &
+  \texttt{PTS}\,(1), \texttt{DIST}\,(2) &
   \texttt{metric-pos},
   \texttt{metric-self-zero},
   \texttt{metric-zero-eq},
@@ -964,8 +964,8 @@ loaded automatically.
 Characteristic axioms are ordinary theorems; use \texttt{(ta 'name)} to
 transport one into the current proof.  For example, to apply
 \texttt{group-left-inv} (which asserts
-$\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{A}(s)
- \Rightarrow \texttt{MUL}(s)(\texttt{INV}(s)(a),a)=\texttt{E}(s)$),
+$\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{CARR}(s)
+ \Rightarrow \texttt{MUL}(s)(\texttt{INV}(s)(a),a)=\texttt{ID}(s)$),
 supply the group and the element as instantiation witnesses.
 \end{remark}
 
@@ -1210,39 +1210,39 @@ $\forall n \in \mathit{NN}.\; P(n)$ to two subgoals:
 a base case $P(0)$ (focused first) and a step case
 $\forall n \in \mathit{NN}.\; P(n) \Rightarrow P(\mathrm{succ}(n))$.
 The following proof shows that $\mathit{PROD\text{-}ORD}(m, f, n)$
-stays in the carrier $\mathit{A}(m)$ for every $n \in \mathit{NN}$,
+stays in the carrier $\mathit{CARR}(m)$ for every $n \in \mathit{NN}$,
 deriving \texttt{prod-ord-type} from first principles.
 
 \begin{VNBcode}
 (sp (make-wff '(IMPLIES (IS-MONOID m)
-               (IMPLIES (IN f (FUN NN (A m)))
+               (IMPLIES (IN f (FUN NN (CARR m)))
                  (FORALL n (IMPLIES (IN n NN)
-                   (IN (PROD-ORD m f n) (A m))))))))
-(di) (di)   ; IS-MONOID(m) and f in FUN(NN,A(m)) enter context
+                   (IN (PROD-ORD m f n) (CARR m))))))))
+(di) (di)   ; IS-MONOID(m) and f in FUN(NN,CARR(m)) enter context
 (ni)        ; NN-induction; BASE gets focus first
 
-;; --- BASE: PROD-ORD(m,f,0) in A(m) ---
-;; Strategy: PROD-ORD(m,f,0) = E(m) (prod-ord-zero),
-;;           E(m) in A(m)            (monoid-identity-in),
+;; --- BASE: PROD-ORD(m,f,0) in CARR(m) ---
+;; Strategy: PROD-ORD(m,f,0) = ID(m) (prod-ord-zero),
+;;           ID(m) in CARR(m)            (monoid-identity-in),
 ;;           so by eq-subst-membership the goal closes.
 (ta 'eq-subst-membership)
-(inst ... '(PROD-ORD m f 0)) (inst ... '(E m)) (inst ... '(A m))
-(bc '(IMPLIES (AND (= (PROD-ORD m f 0) (E m)) (IN (E m) (A m)))
-              (IN (PROD-ORD m f 0) (A m))))
+(inst ... '(PROD-ORD m f 0)) (inst ... '(ID m)) (inst ... '(CARR m))
+(bc '(IMPLIES (AND (= (PROD-ORD m f 0) (ID m)) (IN (ID m) (CARR m)))
+              (IN (PROD-ORD m f 0) (CARR m))))
 (di)    ; AND-split: focus = equality goal
 (ta 'prod-ord-zero) (inst ... 'm) (inst ... 'f) (ass)
         ; focus jumps: manually refocus on membership goal
 (ta 'monoid-identity-in) (inst ... 'm)
-(bc '(IMPLIES (IS-MONOID m) (IN (E m) (A m)))) (ass)
+(bc '(IMPLIES (IS-MONOID m) (IN (ID m) (CARR m)))) (ass)
         ; BASE complete; focus moves to STEP
 
-;; --- STEP: forall([n in NN], IH => PROD-ORD(m,f,succ n) in A(m)) ---
+;; --- STEP: forall([n in NN], IH => PROD-ORD(m,f,succ n) in CARR(m)) ---
 (di)    ; peel FORALL n -> n_k; (IN n_k NN) enters context
 ;; n_k is the bound name introduced by (di); fetch it via:
 ;;   (cadr (wff-formula
 ;;           (car (sequent-node-assumptions
 ;;                  (proof-state-focus *ps*)))))
-(di)    ; peel IH: PROD-ORD(m,f,n_k) in A(m) enters context
+(di)    ; peel IH: PROD-ORD(m,f,n_k) in CARR(m) enters context
 ;; Strategy:
 ;;   PROD-ORD(m,f,succ n_k)
 ;;     = MUL(m)(PROD-ORD(m,f,n_k), f(n_k))   (prod-ord-succ)
@@ -1253,17 +1253,17 @@ deriving \texttt{prod-ord-type} from first principles.
 (ta 'prod-ord-succ)
 (inst ...) (inst ...) (inst ...)
 (bc ...) (ass)   ; n_k in NN closes it
-;; focus moves to membership goal: MUL(m)(...) in A(m)
+;; focus moves to membership goal: MUL(m)(...) in CARR(m)
 (ta 'monoid-carrier-closed-mul)
 (inst ...) (inst ...) (inst ...)
 (bc ...)
 (di) (ass)   ; IS-MONOID(m)
-(di) (ass)   ; PROD-ORD(m,f,n_k) in A(m) [IH]
-;; f(n_k) in A(m) via fun-apply-type:
+(di) (ass)   ; PROD-ORD(m,f,n_k) in CARR(m) [IH]
+;; f(n_k) in CARR(m) via fun-apply-type:
 (ta 'fun-apply-type)
 (inst ...) (inst ...) (inst ...) (inst ...)
 (bc ...) (di) (ass) (ass)
-;; closes f in FUN(NN,A(m)) and n_k in NN
+;; closes f in FUN(NN,CARR(m)) and n_k in NN
 \end{VNBcode}
 
 \begin{remark}

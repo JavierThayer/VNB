@@ -156,7 +156,7 @@
 
 ;;; For LIST and CARTESIAN: the arguments are (cdr expr)
 (define (list-elems e)        (cdr e))   ; (LIST a b c) -> (a b c)
-(define (cartesian-sets e)    (cdr e))   ; (CARTESIAN A B C) -> (A B C)
+(define (cartesian-sets e)    (cdr e))   ; (CARTESIAN A B C) -> (CARR B C)
 (define (nth-index e)         (cadr e))  ; (NTH k x) -> k
 (define (nth-expr e)          (caddr e)) ; (NTH k x) -> x
 
@@ -430,7 +430,7 @@
         ;; into so ((MUL m) a b) instantiates `m`.  A symbol head is
         ;; substituted iff it is the variable x AND not a registered
         ;; constant: an applied function variable (x arg) becomes
-        ;; (replacement arg); an operator/accessor head (MUL m), (A m) is
+        ;; (replacement arg); an operator/accessor head (MUL m), (CARR m) is
         ;; passed through.  The registry breaks the accessor/variable
         ;; case-fold tie.
         (let ((h (car expr)))

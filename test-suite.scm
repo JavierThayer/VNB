@@ -314,7 +314,7 @@
 (install-theorem! 'and-comm-iff
   '(FORALL p (FORALL q (IFF (AND p q) (AND q p)))))
 
-(check "and-comm: (A and B) -> (B and A)"
+(check "and-comm: (CARR and B) -> (B and A)"
        (lambda () (macete-str 'and-comm-iff "n in nn and m in nn"))
        "m in nn and n in nn")
 
@@ -487,7 +487,7 @@
     (di) (ass) (ass)))
 
 ;;; 6d. Weakening (wk) — generalize assumption
-(check-proof "wk: A implies (A or B)"
+(check-proof "wk: A implies (CARR or B)"
   (lambda ()
     (sp (make-wff-from-string "n in nn implies n in nn or m in nn"))
     (di) (oi-l) (ass)))
@@ -826,7 +826,7 @@
   (lambda () (make-wff '(IN x (COMPLEMENT-IN CARR)))))
 
 ;; Free-vars / subst-free / alpha-equiv treat COMPLEMENT-IN as a binary term.
-(check "free-vars (COMPLEMENT-IN A B) = (A B)"
+(check "free-vars (COMPLEMENT-IN A B) = (CARR B)"
   (lambda () (free-vars '(COMPLEMENT-IN CARR B)))
   '(CARR B))
 
@@ -864,7 +864,7 @@
   (lambda () (free-vars '(FUN CARR)))
   '(CARR))
 
-(check "free-vars (FUN A B) = (A B)"
+(check "free-vars (FUN A B) = (CARR B)"
   (lambda () (free-vars '(FUN CARR B)))
   '(CARR B))
 
@@ -1310,7 +1310,7 @@
 (check-proof "ni: sum-zero fires as theorem-assumption"
   (lambda ()
     (sp (make-wff-from-string
-          "forall([r, f], IS-RING(r) implies f in FUN(NN, A(r)) implies SUM(r, f, 0) = ZERO(r)"))
+          "forall([r, f], IS-RING(r) implies f in FUN(NN, CARR(r)) implies SUM(r, f, 0) = ZERO(r)"))
     (di) (di) (di)
     (ta 'sum-zero)
     (ass)))
@@ -1329,9 +1329,9 @@
                      (IMPLIES (IN f (FUN NN (CARR m)))
                        (FORALL n (IMPLIES (IN n NN) (IN (PROD-ORD m f n) (CARR m))))))))
     (di) (di) (ni)
-    ;; --- BASE: PROD-ORD(m,f,0) in A(m) ---
+    ;; --- BASE: PROD-ORD(m,f,0) in CARR(m) ---
     ;; Use eq-subst-membership: (== a b) /\ b in S -> a in S,
-    ;; with a = PROD-ORD(m,f,0), b = E(m), S = A(m).
+    ;; with a = PROD-ORD(m,f,0), b = ID(m), S = CARR(m).
     (ta 'quasi-eq-subst-membership)
     (inst '(FORALL a (FORALL b (FORALL S (IMPLIES (AND (== a b) (IN b S)) (IN a S)))))
           '(PROD-ORD m f 0))
@@ -1340,7 +1340,7 @@
     (inst '(FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) (ID m)) (IN (ID m) S)) (IN (PROD-ORD m f 0) S)))
           '(CARR m))
     (bc '(IMPLIES (AND (== (PROD-ORD m f 0) (ID m)) (IN (ID m) (CARR m))) (IN (PROD-ORD m f 0) (CARR m))))
-    (di)                          ; AND-split -> focus: (== PROD-ORD(m,f,0) E(m))
+    (di)                          ; AND-split -> focus: (== PROD-ORD(m,f,0) ID(m))
     ;; Membership conjunct is the last DG node after AND-split.
     ;; Save it now; after (ass) closes equality, focus jumps to STEP.
     (let* ((mem-node (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
@@ -1353,12 +1353,12 @@
       (inst '(FORALL m (IMPLIES (IS-MONOID m) (IN (ID m) (CARR m)))) 'm)
       (bc '(IMPLIES (IS-MONOID m) (IN (ID m) (CARR m))))
       (ass))                      ; base done; focus -> STEP
-    ;; --- STEP: forall n in NN. PROD-ORD(m,f,n) in A(m) -> PROD-ORD(m,f,succ n) in A(m) ---
+    ;; --- STEP: forall n in NN. PROD-ORD(m,f,n) in CARR(m) -> PROD-ORD(m,f,succ n) in CARR(m) ---
     (di)    ; peel FORALL n, freshens n -> n_k, adds (IN n_k NN)
     (let* ((n-k (cadr (wff-formula (car (sequent-node-assumptions (proof-state-focus *ps*)))))))
-      (di)  ; peel IMPLIES IH, adds PROD-ORD(m,f,n_k) in A(m); focus = PROD-ORD(m,f,succ n_k) in A(m)
+      (di)  ; peel IMPLIES IH, adds PROD-ORD(m,f,n_k) in CARR(m); focus = PROD-ORD(m,f,succ n_k) in CARR(m)
       ;; Use eq-subst-membership with a = PROD-ORD(m,f,succ n_k),
-      ;;   b = (MUL m)(PROD-ORD m f n_k)(f n_k), S = A(m).
+      ;;   b = (MUL m)(PROD-ORD m f n_k)(f n_k), S = CARR(m).
       (ta 'quasi-eq-subst-membership)
       (inst '(FORALL a (FORALL b (FORALL S (IMPLIES (AND (== a b) (IN b S)) (IN a S)))))
             `(PROD-ORD m f (succ ,n-k)))
@@ -1385,8 +1385,8 @@
                (== (PROD-ORD m f (succ n)) ((MUL m) (PROD-ORD m f n) (f n))))) n-k)
       (bc `(IMPLIES (IN ,n-k NN)
                     (== (PROD-ORD m f (succ ,n-k)) ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))))
-      (ass)   ; (IN n_k NN) in context; focus: (IN (MUL m)... A(m))
-      ;; Prove (MUL m)(PROD-ORD m f n_k)(f n_k) in A(m) via monoid-carrier-closed-mul.
+      (ass)   ; (IN n_k NN) in context; focus: (IN (MUL m)... CARR(m))
+      ;; Prove (MUL m)(PROD-ORD m f n_k)(f n_k) in CARR(m) via monoid-carrier-closed-mul.
       (ta 'monoid-carrier-closed-mul)
       (inst '(FORALL m (FORALL a (FORALL b
                (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
@@ -1401,8 +1401,8 @@
                          (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN (f ,n-k) (CARR m))))
                     (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m))))
       (di) (ass)   ; IS-MONOID(m) [ass]
-      (di) (ass)   ; PROD-ORD(m,f,n_k) in A(m) [IH]
-      ;; Prove (f n_k) in A(m) via fun-apply-type.
+      (di) (ass)   ; PROD-ORD(m,f,n_k) in CARR(m) [IH]
+      ;; Prove (f n_k) in CARR(m) via fun-apply-type.
       (ta 'fun-apply-type)
       (inst '(FORALL f (FORALL A (FORALL B (FORALL x
                (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B)))))) 'f)
@@ -1412,7 +1412,7 @@
                (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(CARR m))
       (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (CARR m))) (IN x NN)) (IN (f x) (CARR m)))) n-k)
       (bc `(IMPLIES (AND (IN f (FUN NN (CARR m))) (IN ,n-k NN)) (IN (f ,n-k) (CARR m))))
-      (di) (ass) (ass))  ; f in FUN(NN,A(m)) [ass]; n_k in NN [ass]; proof done
+      (di) (ass) (ass))  ; f in FUN(NN,CARR(m)) [ass]; n_k in NN [ass]; proof done
     (unless (proof-done? *ps*) (error "prod-ord-type proof incomplete"))))
 
 (check-proof "sum-type provable by ni"
@@ -1421,7 +1421,7 @@
                      (IMPLIES (IN f (FUN NN (CARR r)))
                        (FORALL n (IMPLIES (IN n NN) (IN (SUM r f n) (CARR r))))))))
     (di) (di) (ni)
-    ;; --- BASE: SUM(r,f,0) in A(r) ---
+    ;; --- BASE: SUM(r,f,0) in CARR(r) ---
     (ta 'quasi-eq-subst-membership)
     (inst '(FORALL a (FORALL b (FORALL S (IMPLIES (AND (== a b) (IN b S)) (IN a S)))))
           '(SUM r f 0))
@@ -2513,11 +2513,11 @@
 
 ;; Case-fold capture regression: the carrier accessor X folds to the symbol x
 ;; (MIT reader case-folds), so BALL's centre parameter must NOT be x -- else it
-;; is a pattern variable that captures the carrier (X s) on unfold.  With centre
+;; is a pattern variable that captures the carrier (PTS s) on unfold.  With centre
 ;; `c', unfolding BALL at a centre term that is NOT literally x (here `ctr')
-;; must leave the carrier (X s) intact, not rewrite it to (ctr s).
+;; must leave the carrier (PTS s) intact, not rewrite it to (ctr s).
 ;; [[feedback_no_case_variant_binders]]
-(check-true "BALL unfold at a non-x centre keeps the carrier X(s) (no capture)"
+(check-true "BALL unfold at a non-x centre keeps the carrier PTS(s) (no capture)"
   (lambda ()
     (sp (make-wff '(IN q (BALL s ctr rad))))
     (mac 'BALL)
@@ -2623,7 +2623,7 @@
 ;; Interactive B-key front end (interactive.scm): bc*-undetermined reports the
 ;; schema vars left open by the conclusion-match (here just X, the outer
 ;; domain), and bc*-apply-term-bindings drives bc* with the value typed as a
-;; VNB term string -- the same close, but supplied as "nn" not ((X 'nn)).
+;; VNB term string -- the same close, but supplied as "nn" not ((PTS 'nn)).
 (check-true "bc*-undetermined reports the open var (and unknown/no-match tags)"
   (lambda ()
     (and (eq? (car (bc*-undetermined 'no-such-lemma)) 'unknown)
@@ -3213,7 +3213,7 @@
 ;;   * grind SKOLEMIZES the existential hyp + intros eps (collapsed prefix);
 ;;   * the inst lane offers the EIGENVAR eps (unguarded-forall atomic-subterm
 ;;     fallback) so inst+ can instantiate forall-e. Q(f,e) at eps;
-;;   * the effective-open metric DISCOUNTS the typing conjunct (in f P) after
+;;   * the effective-open metric DISTISCOUNTS the typing conjunct (in f P) after
 ;;     the ew witness, so the AND-split isn't read as regress and fled.
 ;; The closing branch is grind / ew / inst+ (at eps) / grind / ass / ass.
 (check-true "scout: closes the exists-forall => forall-exists quantifier swap"

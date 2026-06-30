@@ -3,9 +3,9 @@
 ;;; Builds on metric-space.scm.  Adds basic point-set vocabulary for
 ;;; arguments about covers and approximation:
 ;;;
-;;;   BALL(s, x, r)        open ball: { y in X(s) : D(s)(x,y) < r }
+;;;   BALL(s, x, r)        open ball: { y in PTS(s) : DIST(s)(x,y) < r }
 ;;;   IS-R-NET(s, F, A, r) F approximates A to within r in s
-;;;   TOTALLY-BOUNDED(s)   for every positive r, X(s) has a finite r-net
+;;;   TOTALLY-BOUNDED(s)   for every positive r, PTS(s) has a finite r-net
 ;;;
 ;;; "r > 0" is spelled (AND (IN r RR) (<= 0 r) (NOT (= 0 r))), matching
 ;;; the eps > 0 idiom already in cc-complete (complex.scm).  Strict <
@@ -15,7 +15,7 @@
 ;;; vocabulary and the inconsistency would be jarring if introduced here
 ;;; piecemeal.
 ;;;
-;;; Centers-only formulation: F is a set of points (centers) in X(s),
+;;; Centers-only formulation: F is a set of points (centers) in PTS(s),
 ;;; not a set of balls.  The set-of-balls view is one functoid away
 ;;; ({ BALL(s,c,r) : c in F }), but pigeonhole-on-centers is what the
 ;;; standard metric-space arguments actually use.
@@ -26,13 +26,13 @@
 ;;; BALL(s,c,r), BALL-COVER(s,r) (compactness.scm), BDD-METRIC(s)
 ;;; (bounded-metric.scm), CAUCHY-SETOID(M) (metric-completion.scm) and the
 ;;; like are defined for ANY `s', with no IS-METRIC-SPACE(s) precondition in
-;;; the definition body.  `s' could be a bongo for which X(s)/D(s) happen to
+;;; the definition body.  `s' could be a bongo for which PTS(s)/DIST(s) happen to
 ;;; denote something.  This is intentional and harmless:
 ;;;
 ;;;   1. The logic is untyped and partial, so the term is always well-formed.
-;;;      The body uses whatever D(s) denotes; no metric law (symmetry,
+;;;      The body uses whatever DIST(s) denotes; no metric law (symmetry,
 ;;;      triangle, ...) is INVOKED in the definition, so none is NEEDED.  If
-;;;      D(s) is undefined, undefinedness propagates (t=t is definedness) and
+;;;      DIST(s) is undefined, undefinedness propagates (t=t is definedness) and
 ;;;      you get the empty set / an undefined term -- never a false theorem.
 ;;;
 ;;;   2. A definition is a conservative abbreviation, not an assertion:
@@ -62,7 +62,7 @@
 ;;; The centre parameter is `c', NOT `x': the carrier accessor is X, and the
 ;;; MIT reader case-folds, so X and x are the SAME symbol.  A param named `x'
 ;;; would therefore be a PATTERN VARIABLE that captures the carrier (x s) in the
-;;; body -- unfolding BALL(s, t, r) at any centre t would rewrite (X s) to
+;;; body -- unfolding BALL(s, t, r) at any centre t would rewrite (PTS s) to
 ;;; (t s).  It only ever worked because every call site applied BALL at the
 ;;; literal variable `x' (the substitution was the identity).  Naming the centre
 ;;; `c' (as `centres' below already does) keeps it disjoint from the carrier.
@@ -73,7 +73,7 @@
         (AND (<= ((DIST s) c y) r)
              (NOT (= ((DIST s) c y) r)))))
 
-;;; ball-membership: y in BALL(s,x,r) iff y in X(s) and D(s)(x,y) < r.
+;;; ball-membership: y in BALL(s,x,r) iff y in PTS(s) and DIST(s)(x,y) < r.
 ;;; Direct from SEP membership; recorded so proofs can rewrite by name.
 (support 'ball-membership
   '(FORALL s
@@ -85,13 +85,13 @@
                      (AND (<= ((DIST s) x y) r)
                           (NOT (= ((DIST s) x y) r))))))))))
 (warrant! 'ball-membership 'proof
-  "BALL(s,x,r) is the def-functoid SEP(y in X(s) | d(x,y)<=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.")
+  "BALL(s,x,r) is the def-functoid SEP(y in PTS(s) | d(x,y)<=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.")
 
-;;; (No `ball-subset-carrier' axiom: BALL(s,x,r) subset X(s) is a SEP over
-;;; X(s), so it falls straight out of the kernel separation rule sep-me --
+;;; (No `ball-subset-carrier' axiom: BALL(s,x,r) subset PTS(s) is a SEP over
+;;; PTS(s), so it falls straight out of the kernel separation rule sep-me --
 ;;; a per-operator support for it would just reify the generic SEP z A p
 ;;; subset A.  Prove inline when needed: (mac 'BALL) unfolds the functoid to
-;;; SEP in the goal, (mac 'subset-def)(di), then sep-me supplies IN z (X s).
+;;; SEP in the goal, (mac 'subset-def)(di), then sep-me supplies IN z (PTS s).
 ;;; [[feedback-no-closure-axiom-proliferation]])
 
 ;;; ball-mem-from-le: a point at distance <= d from the centre, with d < r,
@@ -115,10 +115,10 @@
                              (< d r)))))
                  (IN y (BALL s x r))))))))))
 (warrant! 'ball-mem-from-le 'proof
-  "d(x,y) <= d and d <= r (from d < r) give d(x,y) <= r by rr-leq-transitive. And d(x,y) = r would give r <= d (substituting into d(x,y) <= d), contradicting d < r by rr-leq-antisymmetric; so d(x,y) != r. With y in X(s), ball-membership yields y in BALL(s,x,r).")
+  "d(x,y) <= d and d <= r (from d < r) give d(x,y) <= r by rr-leq-transitive. And d(x,y) = r would give r <= d (substituting into d(x,y) <= d), contradicting d < r by rr-leq-antisymmetric; so d(x,y) != r. With y in PTS(s), ball-membership yields y in BALL(s,x,r).")
 
 ;;; ball-is-set: BALL(s,x,r) in SET whenever s is a metric space.
-;;; Derivable from SEP sethood + X(s) in SET (carrier typing of
+;;; Derivable from SEP sethood + PTS(s) in SET (carrier typing of
 ;;; IS-METRIC-SPACE).  Kept as a named macete so BALL-using proofs don't
 ;;; re-derive sethood at every use; not a per-operator closure proliferation.
 (support 'ball-is-set
@@ -128,10 +128,10 @@
          (FORALL r
            (IN (BALL s x r) SET))))))
 (warrant! 'ball-is-set 'proof
-  "BALL(s,x,r) is a SEP over X(s) (def-functoid); X(s) is a set (carrier typing of IS-METRIC-SPACE); a SEP over a set is a set (kernel sep-sethood).")
+  "BALL(s,x,r) is a SEP over PTS(s) (def-functoid); PTS(s) is a set (carrier typing of IS-METRIC-SPACE); a SEP over a set is a set (kernel sep-sethood).")
 
 ;;; ball-center-in: x is in its own r-ball when r > 0.
-;;; Uses metric-self-zero: D(s)(x,x) = 0 < r.
+;;; Uses metric-self-zero: DIST(s)(x,x) = 0 < r.
 (support 'ball-center-in
   '(FORALL s
      (IMPLIES (IS-METRIC-SPACE s)
@@ -172,7 +172,7 @@
 ;;; Every point of A is within distance < r of some point of F.  The
 ;;; centers F need not lie inside A; in classical analysis r-nets for a
 ;;; subset A often have centers outside A (e.g. centers in the closure).
-;;; For our use A = X(s) and F lives inside X(s) by the typing of D(s).
+;;; For our use A = PTS(s) and F lives inside PTS(s) by the typing of DIST(s).
 
 ;; def-predicate (not a raw theory-add-axiom!) so IS-R-NET registers in
 ;; `theory-definitions' -> DEFINITIONS.md -> the browser Definitions page, and
@@ -187,7 +187,7 @@
                    (NOT (= ((DIST s) c p) r))))))))
 
 ;;; -----------------------------------------------------------------------
-;;; TOTALLY-BOUNDED(s) -- every positive r admits a finite r-net for X(s).
+;;; TOTALLY-BOUNDED(s) -- every positive r admits a finite r-net for PTS(s).
 ;;;
 ;;; Includes IS-METRIC-SPACE(s) in the unfolding; total-boundedness is
 ;;; only meaningful on a metric space.

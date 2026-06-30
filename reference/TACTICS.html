@@ -179,7 +179,7 @@
 <pre>(fact &#x27;thm term ...)</pre>
 <p>Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis.</p>
 <p><em>When useful:</em> a library law `forall x. H(x) =&gt; P(x)&#x27; whose P you want landed as a hypothesis</p>
-<p>Handles interleaved forall/implies (e.g. forall s. IS-X(s) =&gt; forall a. a in A(s) =&gt; P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) =&gt; P(x)&#x27; becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.</p>
+<p>Handles interleaved forall/implies (e.g. forall s. IS-X(s) =&gt; forall a. a in CARR(s) =&gt; P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) =&gt; P(x)&#x27; becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.</p>
 <h4 id="TACTICS__ce">ce</h4>
 <pre>(ce hyp k)</pre>
 <p>Cartesian elim: project the k-th component out of a CARTESIAN-membership assumption.</p>
@@ -289,7 +289,7 @@
 <p>Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)</p>
 <h4 id="TACTICS__simp">simp</h4>
 <pre>(simp [target])</pre>
-<p>Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2<em>x</em>y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; &quot;term&quot; targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm&#x27;s generators typed in context (true post-di), else refuses and names them.</p>
+<p>Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2<em>x</em>y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (CARR s)).  No arg = outermost ring subterm; &quot;term&quot; targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm&#x27;s generators typed in context (true post-di), else refuses and names them.</p>
 <p><em>When useful:</em> a ring SUBTERM of a larger goal should be put in normal form in place</p>
 <h4 id="TACTICS__ineq">ineq</h4>
 <pre>(ineq i1 i2 ...)</pre>
@@ -422,7 +422,7 @@
 <p>Prove a membership (IN (f x) B) by fun-apply-type with domain A, leaving it in context.  [proof-local]</p>
 <h4 id="TACTICS__metric-sym-eq">metric-sym-eq!</h4>
 <pre>(metric-sym-eq! S P Q)</pre>
-<p>Add (= ((D S) P Q) ((D S) Q P)) to context via the metric-sym axiom.  [proof-local]</p>
+<p>Add (= ((DIST S) P Q) ((DIST S) Q P)) to context via the metric-sym axiom.  [proof-local]</p>
 <h4 id="TACTICS__focus-leaf">focus-leaf!</h4>
 <pre>(focus-leaf! substr)</pre>
 <p>Focus the frontier leaf whose goal contains substr (never trust auto-advance).  [proof-local]</p>

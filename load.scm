@@ -123,7 +123,7 @@
     ;; (nn-least-element).  Vocabulary for the Euclidean-ring => PID proof.
     "structure-library/ideal"
     "structure-library/normed-field"
-    ;; Normed abelian group: AG subtype (slots A MUL E INV) + norm NRM at
+    ;; Normed abelian group: AG subtype (slots CARR MUL ID INV) + norm NRM at
     ;; slot 5.  Needs abelian-group, operation-properties (is-group-norm),
     ;; and RR (number-systems).  Its AG view is registered in views.scm.
     "structure-library/normed-ag"
@@ -286,7 +286,7 @@
     ;; (SERIES-CONVERGES) + metric-completeness (IS-CAUCHY-SEQ/IS-COMPLETE).
     "theorem-library/summable-cauchy"
     ;; The countable product of metric spaces (product topology): the weighted
-    ;; product metric D_w = SUM w(n) d_n/(1+d_n), coordinatewise convergence,
+    ;; product metric DIST_w = SUM w(n) d_n/(1+d_n), coordinatewise convergence,
     ;; infinitely many equivalent metrics.  Needs bounded-metric (BDD-METRIC),
     ;; power-series (SERIES-CONVERGES-TO), BIG-UNION/IOTA (kernel).
     "structure-library/product-metric"

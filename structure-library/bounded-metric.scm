@@ -26,7 +26,7 @@
 
 ;;; The construction: same carrier, distance pushed through f(t)=t/(1+t).
 ;;; The distance lambda binds the two points as `u, v', NOT `x, y': the carrier
-;;; accessor X folds to x and sits in the adjacent slot (X s), so a lambda var
+;;; accessor X folds to x and sits in the adjacent slot (PTS s), so a lambda var
 ;;; `x' would clash with the carrier name.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BDD-METRIC '(s)
   '(LIST (PTS s)
@@ -37,8 +37,8 @@
 (support 'bdd-metric-carrier
   '(FORALL s (== (PTS (BDD-METRIC s)) (PTS s))))
 (warrant! 'bdd-metric-carrier 'well-known
-  "BDD-METRIC keeps the point set: X(BDD-METRIC s) = X(s).  Read off the
-   functoid (the carrier slot is (X s) verbatim).")
+  "BDD-METRIC keeps the point set: PTS(BDD-METRIC s) = PTS(s).  Read off the
+   functoid (the carrier slot is (PTS s) verbatim).")
 
 ;;; The distance formula.
 (support 'bdd-metric-distance
@@ -71,7 +71,7 @@
   "rho(x,y) = d/(1+d) < 1 always (bdd-fn-lt-one): the bounded metric has
    diameter at most 1, whatever the diameter of (X,d).")
 
-;;; Topological equivalence: the identity map X(s) -> X(BDD-METRIC s) is
+;;; Topological equivalence: the identity map PTS(s) -> PTS(BDD-METRIC s) is
 ;;; continuous in BOTH directions (a homeomorphism), so rho and d give the
 ;;; same open sets.  This is the precise sense of "topologically equivalent".
 (support 'bdd-metric-id-bicontinuous

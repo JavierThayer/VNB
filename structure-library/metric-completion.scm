@@ -15,7 +15,7 @@
 ;;; are identified exactly when d(f_n, g_n) -> 0.  This is null-distance, the
 ;;; classic reason the setoid quotient was built.
 ;;;
-;;; A sequence is a function f : NN -> X(M) (as in metric-completeness.scm).
+;;; A sequence is a function f : NN -> PTS(M) (as in metric-completeness.scm).
 ;;; The real sequence n |-> d(f_n, g_n) is Cauchy in RR (triangle inequality),
 ;;; and RR is complete (rr-complete), so it has a unique limit -- the completion
 ;;; distance.  RR-MS (numeric-instances.scm) is that metric space on RR; this
@@ -48,8 +48,8 @@
 ;;; The setoid of Cauchy sequences.
 ;;; =======================================================================
 
-;; CSEQ(M) = the set of Cauchy sequences of M = { f in FUN(NN,X(M)) : Cauchy }.
-;; A subset of the function set FUN(NN,X(M)) (a set), hence a set by separation.
+;; CSEQ(M) = the set of Cauchy sequences of M = { f in FUN(NN,PTS(M)) : Cauchy }.
+;; A subset of the function set FUN(NN,PTS(M)) (a set), hence a set by separation.
 (def-functoid 'CSEQ '(M)
   '(SEP f (FUN NN (PTS M)) (IS-CAUCHY-SEQ M f)))
 
@@ -61,7 +61,7 @@
   '(SEP p (CARTESIAN (CSEQ M) (CSEQ M))
         (CSEQ-EQUIV M (NTH 1 p) (NTH 2 p))))
 
-;; CAUCHY-SETOID(M) = [CSEQ(M), CREL(M)] : a SETOID instance (X = CSEQ, REL =
+;; CAUCHY-SETOID(M) = [CSEQ(M), CREL(M)] : a SETOID instance (PTS = CSEQ, REL =
 ;; CREL).  All of CLASS / QUOTIENT / PROJ / DESCEND and the quotient universal
 ;; property apply to it verbatim.
 (def-functoid 'CAUCHY-SETOID '(M)
@@ -99,7 +99,7 @@
          (AND (= (NTH 2 p) (CLASS (CAUCHY-SETOID M) g))
               (CONVERGES-TO RR-MS (DIST-SEQ M f g) dval))))))))))
 
-;; COMPLETION(M) = [ X(M)/~ , d-hat ] : the completion as a METRIC-SPACE
+;; COMPLETION(M) = [ PTS(M)/~ , d-hat ] : the completion as a METRIC-SPACE
 ;; instance.  Carrier = QUOTIENT(CAUCHY-SETOID(M)); metric = COMPLETION-DIST(M).
 (def-functoid 'COMPLETION '(M)
   '(LIST (QUOTIENT (CAUCHY-SETOID M)) (COMPLETION-DIST M)))
@@ -138,18 +138,18 @@
 (def-functoid 'EMBED-SEQ '(M u)
   '(VNB-LAMBDA n u))
 
-;; EMBED(M) = u |-> [constant sequence u] : X(M) -> X(COMPLETION(M)).
+;; EMBED(M) = u |-> [constant sequence u] : PTS(M) -> PTS(COMPLETION(M)).
 (def-functoid 'EMBED '(M)
   '(VNB-LAMBDA u (CLASS (CAUCHY-SETOID M) (EMBED-SEQ M u))))
 
-;; embed-in-fun: EMBED(M) maps X(M) into the completion's carrier.
+;; embed-in-fun: EMBED(M) maps PTS(M) into the completion's carrier.
 (support 'embed-in-fun
   '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
      (IN (EMBED M) (FUN (PTS M) (PTS (COMPLETION M)))))))
 (warrant! 'embed-in-fun 'well-known
   "The constant sequence at u is Cauchy (d(u,u)=0 < eps for all n), so it lies
-   in CSEQ(M) and its class lies in QUOTIENT(CAUCHY-SETOID(M)) = X(COMPLETION M)
-   (class-in-quotient).  EMBED(M) is total on X(M).")
+   in CSEQ(M) and its class lies in QUOTIENT(CAUCHY-SETOID(M)) = PTS(COMPLETION M)
+   (class-in-quotient).  EMBED(M) is total on PTS(M).")
 
 ;; embed-isometry: EMBED preserves distance -- d-hat(embed u, embed v) = d(u,v).
 ;; So M sits inside its completion isometrically.

@@ -16,7 +16,7 @@
 ;;; RING as additive ABELIAN-GROUP
 ;;;
 ;;; A ring's additive structure (A, ADD, ZERO, NEG) is an abelian group.
-;;; AG's slot order from its def-structure-from-clauses is (A MUL E INV)
+;;; AG's slot order from its def-structure-from-clauses is (CARR MUL ID INV)
 ;;; -- the identity constant `E` comes before the unary inverse op `INV`.
 ;;; So the additive view maps:
 ;;;   ring's A    -> AG's A
@@ -33,7 +33,7 @@
 ;;;
 ;;; A ring's multiplicative structure (A, MUL, ONE) is a monoid.
 ;;; (Not a group: nonzero elements lack inverses in general rings.)
-;;; MONOID's slot order is (A MUL E), so the multiplicative view maps:
+;;; MONOID's slot order is (CARR MUL ID), so the multiplicative view maps:
 ;;;   ring's A   -> MONOID's A
 ;;;   ring's MUL -> MONOID's MUL
 ;;;   ring's ONE -> MONOID's E

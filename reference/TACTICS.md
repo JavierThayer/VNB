@@ -227,7 +227,7 @@ Forward APPLICATION of a theorem: bring it in, instantiate its leading universal
 
 *When useful:* a library law `forall x. H(x) => P(x)' whose P you want landed as a hypothesis
 
-Handles interleaved forall/implies (e.g. forall s. IS-X(s) => forall a. a in A(s) => P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) => P(x)' becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.
+Handles interleaved forall/implies (e.g. forall s. IS-X(s) => forall a. a in CARR(s) => P): consumes one term per FORALL, detaches each IMPLIES whose antecedent is in context.  The forward-assembly workhorse -- a law `forall x. H(x) => P(x)' becomes the usable fact P in one call, instead of ta + inst* + cut/backchain.  See theorem-library/module-zero-act.scm.
 
 ### ce
 
@@ -447,7 +447,7 @@ Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2
 
     (simp [target])
 
-Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (A s)).  No arg = outermost ring subterm; "term" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.
+Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (CARR s)).  No arg = outermost ring subterm; "term" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.
 
 *When useful:* a ring SUBTERM of a larger goal should be put in normal form in place
 
@@ -726,7 +726,7 @@ Prove a membership (IN (f x) B) by fun-apply-type with domain A, leaving it in c
 
     (metric-sym-eq! S P Q)
 
-Add (= ((D S) P Q) ((D S) Q P)) to context via the metric-sym axiom.  [proof-local]
+Add (= ((DIST S) P Q) ((DIST S) Q P)) to context via the metric-sym axiom.  [proof-local]
 
 ### focus-leaf!
 

@@ -37,12 +37,12 @@
    (AND (FORALL n (IMPLIES (IN n NN) (< 0 (w n))))
         (SERIES-CONVERGES w))))
 
-;;; The product carrier: sequences x with x(n) in X(ms n) for every n.
+;;; The product carrier: sequences x with x(n) in PTS(ms n) for every n.
 (def-functoid 'PRODUCT-CARRIER '(ms)
   '(SEP x (FUN NN (BIG-UNION n NN (PTS (ms n))))
         (FORALL n (IMPLIES (IN n NN) (IN (x n) (PTS (ms n)))))))
 
-;;; The n-th projection  x |-> x(n)  :  P -> X(ms n).
+;;; The n-th projection  x |-> x(n)  :  P -> PTS(ms n).
 (def-functoid 'PRODUCT-PROJ '(ms n)
   '(VNB-LAMBDA x (x n)))
 
@@ -64,8 +64,8 @@
 (support 'product-metric-carrier
   '(FORALL ms (FORALL w (== (PTS (PRODUCT-METRIC-W ms w)) (PRODUCT-CARRIER ms)))))
 (warrant! 'product-metric-carrier 'well-known
-  "X(PRODUCT-METRIC-W(ms,w)) = PRODUCT-CARRIER(ms), the set of sequences x with
-   x(n) in X(ms n) for all n.  Read off the functoid carrier slot.")
+  "PTS(PRODUCT-METRIC-W(ms,w)) = PRODUCT-CARRIER(ms), the set of sequences x with
+   x(n) in PTS(ms n) for all n.  Read off the functoid carrier slot.")
 
 ;;; ----- the defining series converges, so the distance is well-defined -----
 (support 'product-weighted-summable
@@ -101,7 +101,7 @@
        (FORALL n (IMPLIES (IN n NN)
          (IS-CONTINUOUS (PRODUCT-METRIC-W ms w) (ms n) (PRODUCT-PROJ ms n)))))))))
 (warrant! 'product-projection-continuous 'well-known
-  "Each projection pi_n(x)=x(n) is continuous P -> X(ms n): w(n)*rho_n(x(n),y(n))
+  "Each projection pi_n(x)=x(n) is continuous P -> PTS(ms n): w(n)*rho_n(x(n),y(n))
    <= D_w(x,y), and rho_n is topologically equivalent to d_n, so small product
    distance forces small d_n-distance in coordinate n.")
 

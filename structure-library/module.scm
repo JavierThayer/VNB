@@ -13,7 +13,7 @@
 ;;;   3 VADD  op (CARTESIAN VEC VEC) -> VEC      -- vector addition
 ;;;   4 VZERO constant in VEC                    -- zero vector
 ;;;   5 VNEG  op VEC -> VEC                       -- vector negation
-;;;   6 ACT   op (CARTESIAN (A SCAL) VEC) -> VEC  -- scalar action  r . x
+;;;   6 ACT   op (CARTESIAN (CARR SCAL) VEC) -> VEC  -- scalar action  r . x
 ;;; (VEC.VADD.VZERO.VNEG mirrors ABELIAN-GROUP's A.MUL.E.INV order, so a later
 ;;; MODULE -> ABELIAN-GROUP view-as on the vector part is a clean remap.)
 ;;;

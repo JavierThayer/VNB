@@ -601,7 +601,7 @@
 ;;; PREDICATE unfolds).  Pure functoid/macete-table unfolds with no theorem
 ;;; entry are out of scope here, exactly as for suggest-backchain.
 
-;;; Every pair-subterm of E (E itself included), pre-order.  Non-pairs (atoms,
+;;; Every pair-subterm of E (ID itself included), pre-order.  Non-pairs (atoms,
 ;;; the empty list) contribute nothing.  Recurs through EVERY element -- args
 ;;; and a compound head alike -- so a rewriteable position anywhere is seen.
 (define (suggest--subterms e)
@@ -1252,7 +1252,7 @@
 
 ;; Atoms of E in ARGUMENT position (operands, never the operator head) -- the
 ;; terms one would instantiate a universal AT.  Skips the car at every level, so
-;; predicate/function heads (GUBA in `(GUBA f eps)', (D s) in `((D s) x y)') are
+;; predicate/function heads (GUBA in `(GUBA f eps)', (DIST s) in `((DIST s) x y)') are
 ;; excluded while the operands (f, eps; x, y) are kept.  This is the inst lane's
 ;; UNGUARDED-forall fallback pool -- tight, so the search doesn't blow up on junk
 ;; head candidates.  (free-vars is no good here: VNB treats operators as vars, so

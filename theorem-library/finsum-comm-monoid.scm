@@ -4,7 +4,7 @@
 ;;;
 ;;; SUM-AG / FINSUM (sequences.scm, finsum.scm) are DEFINED using only the
 ;;; monoid fragment of their structure argument -- `(MUL m)' folds and
-;;; `(E m)' seeds the empty sum.  Inverses (INV) and commutativity are never
+;;; `(ID m)' seeds the empty sum.  Inverses (INV) and commutativity are never
 ;;; touched by the DEFINITION.  So FINSUM(m, f, S) already COMPUTES for any
 ;;; commutative monoid m; what was missing were the supporting THEOREMS,
 ;;; which the abelian-group layer states under IS-ABELIAN-GROUP.  This file
@@ -28,7 +28,7 @@
 ;;; Closure: FINSUM stays in the carrier.
 ;;;
 ;;; The abelian-group version is finsum-type.  The fold SUM-AG(m,_,n) starts
-;;; at (E m) -- in the carrier by the identity law -- and at each step applies
+;;; at (ID m) -- in the carrier by the identity law -- and at each step applies
 ;;; (MUL m), which closes on the carrier by the monoid's binary-operation
 ;;; typing.  Neither fact uses inverses or commutativity, so finsum-type's
 ;;; induction goes through verbatim over a bare monoid.
@@ -40,7 +40,7 @@
        (IN (FINSUM m f S) (CARR m))))))))))
 
 (warrant! 'finsum-comm-monoid-type 'informal
-  "Same induction as finsum-type: SUM-AG seeds at (E m) -- in the carrier by
+  "Same induction as finsum-type: SUM-AG seeds at (ID m) -- in the carrier by
    the identity law -- and folds with (MUL m), which closes on the carrier by
    the binary-operation typing.  Neither step uses inverses, so the
    abelian-group proof carries over to a bare commutative monoid unchanged.")

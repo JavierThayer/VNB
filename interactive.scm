@@ -1953,9 +1953,9 @@
 ;;; accept it for the display.
 
 ;;; Capture-avoiding rename, applied BEFORE destructuring.  A law like
-;;;   (FORALL a (IMPLIES (IN a (A s)) ... a ...))
+;;;   (FORALL a (IMPLIES (IN a (CARR s)) ... a ...))
 ;;; binds an ELEMENT variable `a` while the carrier accessor is also `a`.
-;;; Destructuring (A s) -> a then turns the carrier into a bare `a`, so the
+;;; Destructuring (CARR s) -> a then turns the carrier into a bare `a`, so the
 ;;; law reads `forall a in a` -- a real variable capture, not just a clash.
 ;;; We rename any FORALL/FORSOME-bound var whose name is a slot accessor to a
 ;;; fresh name first.  Positional rule disambiguates the two roles: an
@@ -2669,7 +2669,7 @@
         vs-in))))
 
 ;;; An instance constant NAME has a `<name>-def' axiom of the form
-;;; (= NAME (LIST ...)) -- the tuple.  (A refinement-predicate class has
+;;; (= NAME (LIST ...)) -- the tuple.  (CARR refinement-predicate class has
 ;;; `is-<name>-def' instead.)  Return the component list, or #f if NAME is
 ;;; not such an instance.  This is the instance/refinement discriminator the
 ;;; card generator uses.
@@ -2867,7 +2867,7 @@
 ;;; A BRIDGE is a def-functoid that carries one structure to another by BUILDING
 ;;; a new slot rather than reshuffling existing ones -- e.g.
 ;;;   NF-METRIC-SPACE : normed-field -> metric-space,  d(x,y) = NRM(x - y).
-;;; Because the target's distinguishing slot (the metric D) is not a slot of the
+;;; Because the target's distinguishing slot (the metric DIST) is not a slot of the
 ;;; source, it cannot be a def-view-as (see normed-field-metric.scm) -- it is a
 ;;; plain functoid, hence invisible to the refines/view-as layers.  We recover
 ;;; the edges from the theorem that certifies the functor lands in its target:

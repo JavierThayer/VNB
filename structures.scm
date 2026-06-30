@@ -52,7 +52,7 @@
 ;;;
 ;;; An individual structure -- an `ag` with IS-ABELIAN-GROUP(ag) -- is just a
 ;;; VNB list (a tuple) of LENGTH n.  The accessors are literally projections:
-;;; (A ag) = (NTH 1 ag), (MUL ag) = (NTH 2 ag), and so on.  The IS-NAME axiom
+;;; (CARR ag) = (NTH 1 ag), (MUL ag) = (NTH 2 ag), and so on.  The IS-NAME axiom
 ;;; is exactly the shape constraint: right length, carriers are sets, ops land
 ;;; in the declared FUN classes.
 ;;;
@@ -64,15 +64,15 @@
 ;;;   1. Proper-class argument.  Its structure argument ranges over NAME, a
 ;;;      proper class.  A VNB function is a set; its domain must be a set.
 ;;;
-;;;   2. Dependent codomain.  SUM-AG(ag,f,n) lands in (A ag) -- the result
+;;;   2. Dependent codomain.  SUM-AG(ag,f,n) lands in (CARR ag) -- the result
 ;;;      class depends on the argument.  FUN(X,Y) needs fixed X,Y; it cannot
 ;;;      express a codomain that varies with the input.
 ;;;
-;;; So a "signature" like  ABELIAN-GROUP x FUN(NN,A(ag)) x NN -> A(ag)  is
+;;; So a "signature" like  ABELIAN-GROUP x FUN(NN,CARR(ag)) x NN -> CARR(ag)  is
 ;;; informal shorthand, not a VNB object: a functoid has no membership type.
 ;;; What is real is a conditional **typing theorem** -- e.g. sum-ag-type:
-;;;   IS-ABELIAN-GROUP(ag) AND f in FUN(NN,A(ag)) AND n in NN
-;;;     ==> SUM-AG(ag,f,n) in A(ag).
+;;;   IS-ABELIAN-GROUP(ag) AND f in FUN(NN,CARR(ag)) AND n in NN
+;;;     ==> SUM-AG(ag,f,n) in CARR(ag).
 ;;; The term (SUM-AG ag f n) is well-formed for any arguments; it denotes
 ;;; something well-behaved only when those hypotheses hold (VNB partiality).
 
@@ -239,7 +239,7 @@
 ;;;
 ;;; --- Curried/tupled apply convention ---
 ;;; An op declared as `(op MUL (CARTESIAN A A) A)` is typed as the unary
-;;; function `(MUL s) ∈ FUN(CARTESIAN(A(s), A(s)), A(s))` — its single
+;;; function `(MUL s) ∈ FUN(CARTESIAN(CARR(s), CARR(s)), CARR(s))` — its single
 ;;; argument is an element of CARTESIAN(A,A).  But the string-syntax form
 ;;;     mul(s)(a, b)
 ;;; parses into the curried S-expression
@@ -300,9 +300,9 @@
             ;; (substructure NAME TYPE) -- the slot holds a whole structure
             ;; (e.g. a vector space's base FIELD), typed by IS-TYPE rather than
             ;; the bare (IN _ SET) of a carrier.  Op signatures reach into it
-            ;; with foreign accessors, e.g. (op SMUL (CARTESIAN (A K) V) V) --
+            ;; with foreign accessors, e.g. (op SMUL (CARTESIAN (CARR K) V) V) --
             ;; expand-accessors leaves A intact and rewrites K to (K s), giving
-            ;; (A (K s)) = the carrier of the base field.
+            ;; (CARR (K s)) = the carrier of the base field.
             ((eq? kind 'substructure)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'substructure (caddr clause)) slots)
@@ -364,7 +364,7 @@
 ;;;   forall p1 p2 ... . pred-name(p1,p2,...) <=> body
 ;;;
 ;;; Example:
-;;;   (def-predicate 'IS-CAUCHY-SEQ '(X f) '(AND ... ))
+;;;   (def-predicate 'IS-CAUCHY-SEQ '(PTS f) '(AND ... ))
 
 (define (def-predicate pred-name params body)
   (fluid-let ((*current-provenance* 'definitional))
@@ -422,8 +422,8 @@
 ;;;
 ;;; Example:
 ;;;   (def-view-as RING-ADDITIVE-AG
-;;;     RING          (A ADD NEG ZERO)
-;;;     ABELIAN-GROUP (A MUL INV E))
+;;;     RING          (CARR ADD NEG ZERO)
+;;;     ABELIAN-GROUP (CARR MUL INV E))
 ;;;
 ;;; Reads as: given a RING r, build the ABELIAN-GROUP-shaped object whose A
 ;;; slot is r's A, MUL slot is r's ADD, INV slot is r's NEG, E slot is r's

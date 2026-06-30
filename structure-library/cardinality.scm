@@ -62,7 +62,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; Finite additivity
 
-;;; CARD(A ∪ B) = CARD(A) + CARD(B) when A and B are finite and disjoint.
+;;; CARD(CARR ∪ B) = CARD(A) + CARD(B) when A and B are finite and disjoint.
 ;;; The + on the right is NN addition (both cardinalities are in NN).
 (theory-add-axiom! *current-theory* 'card-union-disjoint
   '(FORALL A

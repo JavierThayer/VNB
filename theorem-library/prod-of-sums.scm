@@ -89,7 +89,7 @@
 
 ;;; Insert-split, cover half.  For k not in X, every subset of X u {k} either
 ;;; avoids k (a subset of X) or is S u {k} for a unique subset S of X.  So
-;;; POWER(X u {k}) is the union of POWER(X) and the image of POWER(X) under
+;;; POWER(PTS u {k}) is the union of POWER(X) and the image of POWER(X) under
 ;;; S |-> S u {k}.  This is the set-level heart of the induction on |X|.
 (support 'power-insert-cover
   '(FORALL X (IMPLIES (IN X SET)
@@ -156,8 +156,8 @@
 
 (warrant! 'prod-ring-empty 'informal
   "PROD-RING(R,f,S) = FINSUM(R^x,f,S) with R^x the multiplicative comm-monoid
-   of R, whose identity E maps to ONE(R); finsum-empty gives the empty fold =
-   E(R^x) = ONE(R).  The empty product is 1.")
+   of R, whose identity ID maps to ONE(R); finsum-empty gives the empty fold =
+   ID(R^x) = ONE(R).  The empty product is 1.")
 
 ;;; PROD-RING over a singleton {x} is f(x).
 (support 'prod-ring-singleton
@@ -195,7 +195,7 @@
 
 (warrant! 'prod-ring-type 'informal
   "finsum-comm-monoid-type through the multiplicative view: the product folds
-   with (MUL R), which closes on A(R), seeded at ONE(R) in A(R).")
+   with (MUL R), which closes on CARR(R), seeded at ONE(R) in CARR(R).")
 
 ;;; =======================================================================
 ;;; Capstone -- the product-of-sums expansion
@@ -227,5 +227,5 @@
    via finite-set-induction.  Base |X|=0: prod-ring-empty gives 1, and POWER
    (EMPTY-SET)={EMPTY-SET} contributes ONE*ONE=1.  Step X u {k0}: prod-ring-
    insert factors out (a(k0)+b(k0)), ring-left-dist splits it, and power-
-   insert-cover / power-insert-disjoint reindex POWER(X u {k0}) into the
+   insert-cover / power-insert-disjoint reindex POWER(PTS u {k0}) into the
    subsets containing vs avoiding k0 -- matching the two distributed sums.")

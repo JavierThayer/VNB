@@ -160,7 +160,7 @@
 ;;; context, instantiate its leading universals with the given terms, and
 ;;; auto-detach every antecedent already present in context, landing the
 ;;; consequent as a new assumption.  Handles INTERLEAVED forall/implies (e.g.
-;;; forall s. IS-X(s) => forall a. a in A(s) => P), consuming an arg per
+;;; forall s. IS-X(s) => forall a. a in CARR(s) => P), consuming an arg per
 ;;; forall and detaching each implies whose antecedent is in context.  This is
 ;;; the forward-assembly workhorse: a theorem becomes a usable fact in one call,
 ;;; instead of a ta + inst* + cut/backchain hand-chain.

@@ -16,7 +16,7 @@
 
 ;;; ----- vocabulary -----
 
-;;; An open cover of s: a collection C of open sets whose union is X(s).
+;;; An open cover of s: a collection C of open sets whose union is PTS(s).
 (def-predicate 'IS-OPEN-COVER '(s C)
   '(AND (IS-METRIC-SPACE s)
    (AND (FORALL U (IMPLIES (IN U C) (IS-OPEN s U)))
@@ -98,10 +98,10 @@
 
 ;;; ----- ball-cover machinery: the two lemmas that close compact => TB -----
 
-;;; The r-ball cover of s: the family of all open r-balls { B(c,r) : c in X(s) },
-;;; as the image of X(s) under  c |-> BALL(s,c,r).  The lambda variable is `c'
+;;; The r-ball cover of s: the family of all open r-balls { B(c,r) : c in PTS(s) },
+;;; as the image of PTS(s) under  c |-> BALL(s,c,r).  The lambda variable is `c'
 ;;; (centre), NOT `x': the carrier accessor X folds to x, and the cover's domain
-;;; (X s) sits next to the lambda -- keeping them disjoint avoids the carrier/
+;;; (PTS s) sits next to the lambda -- keeping them disjoint avoids the carrier/
 ;;; point name clash.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BALL-COVER '(s r)
   '(IMAGE (VNB-LAMBDA c (BALL s c r)) (PTS s)))
@@ -113,8 +113,8 @@
      (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
        (IS-OPEN-COVER s (BALL-COVER s r)))))))
 (warrant! 'ball-cover-is-open-cover 'well-known
-  "The r-ball cover { B(x,r) : x in X(s) } is an open cover for r > 0: each
-   ball is open (ball-is-open), and the union is all of X(s) because every
+  "The r-ball cover { B(x,r) : x in PTS(s) } is an open cover for r > 0: each
+   ball is open (ball-is-open), and the union is all of PTS(s) because every
    point x lies in its own ball B(x,r) (d(x,x)=0 < r).")
 
 ;;; ----- centre extraction, made explicit via global choice -----
@@ -131,7 +131,7 @@
 ;;; F under  B |-> CHOICE(CENTRES s B r)  -- a bona fide function (VNB-LAMBDA),
 ;;; so "choose a centre per ball" is a one-liner, not a hand-wave.
 
-;;; CENTRES(s,B,r): the centres of the ball B at radius r (a SEP-subset of X(s)).
+;;; CENTRES(s,B,r): the centres of the ball B at radius r (a SEP-subset of PTS(s)).
 (def-functoid 'CENTRES '(s B r) '(SEP c (PTS s) (= (BALL s c r) B)))
 
 ;;; CENTRE-SET(s,r,F): the chosen centres of the balls in F -- the image of F
@@ -140,7 +140,7 @@
   '(IMAGE (VNB-LAMBDA B (CHOICE (CENTRES s B r))) F))
 
 ;;; Directional slices of the CENTRES SEP-membership equivalence (definitional:
-;;; c in {c in X(s) : B(c,r)=B} iff c in X(s) and B(c,r)=B).
+;;; c in {c in PTS(s) : B(c,r)=B} iff c in PTS(s) and B(c,r)=B).
 (support 'centres-mem-build
   '(FORALL s (FORALL B (FORALL r (FORALL c
      (IMPLIES (IN c (PTS s)) (IMPLIES (= (BALL s c r) B) (IN c (CENTRES s B r)))))))))
@@ -151,18 +151,18 @@
   '(FORALL s (FORALL B (FORALL r (FORALL c
      (IMPLIES (IN c (CENTRES s B r)) (= (BALL s c r) B)))))))
 (warrant! 'centres-mem-build 'well-known "SEP-membership of CENTRES (definitional).")
-(warrant! 'centres-in-carrier 'well-known "CENTRES(s,B,r) is a SEP-subset of X(s) (definitional).")
+(warrant! 'centres-in-carrier 'well-known "CENTRES(s,B,r) is a SEP-subset of PTS(s) (definitional).")
 (warrant! 'centres-ball-eq 'well-known "Each centre c of B satisfies B(c,r)=B (definitional).")
 
-;;; A member of the ball cover is a ball B(c,r) about some centre c in X(s)
+;;; A member of the ball cover is a ball B(c,r) about some centre c in PTS(s)
 ;;; (forward direction of IMAGE-membership for BALL-COVER).
 (support 'ball-cover-mem-fwd
   '(FORALL s (FORALL r (FORALL U
      (IMPLIES (IN U (BALL-COVER s r))
               (FORSOME c (AND (IN c (PTS s)) (= (BALL s c r) U))))))))
 (warrant! 'ball-cover-mem-fwd 'well-known
-  "BALL-COVER(s,r) = { B(x,r) : x in X(s) }, so each member is a ball about a
-   centre in X(s) (image-membership of BALL-COVER; definitional).")
+  "BALL-COVER(s,r) = { B(x,r) : x in PTS(s) }, so each member is a ball about a
+   centre in PTS(s) (image-membership of BALL-COVER; definitional).")
 
 ;;; The chosen centre of a ball U in F lies in CENTRE-SET(s,r,F)
 ;;; (image-membership of CENTRE-SET + lambda-beta; witness B := U).
@@ -181,14 +181,14 @@
   "The image of a finite set under a function is finite: |CENTRE-SET(s,r,F)| <=
    |F|, so it is in NN when |F| is.")
 
-;;; The members of an open cover cover X(s): every point lies in some member.
+;;; The members of an open cover cover PTS(s): every point lies in some member.
 (support 'open-cover-covers-point
   '(FORALL s (FORALL F (IMPLIES (IS-OPEN-COVER s F)
      (FORALL p (IMPLIES (IN p (PTS s))
        (FORSOME U (AND (IN U F) (IN p U)))))))))
 (warrant! 'open-cover-covers-point 'well-known
-  "An open cover has union X(s) (IS-OPEN-COVER's third conjunct), so every point
-   p in X(s) lies in some member U of the cover (BIG-UNION membership).")
+  "An open cover has union PTS(s) (IS-OPEN-COVER's third conjunct), so every point
+   p in PTS(s) lies in some member U of the cover (BIG-UNION membership).")
 
 ;;; Forward direction of subset-def.
 (support 'subset-mem-fwd
@@ -220,7 +220,7 @@
        (AND (IN (CHOICE (CENTRES s U r)) (PTS s))
             (= (BALL s (CHOICE (CENTRES s U r)) r) U)))))))
 (warrant! 'chosen-centre-is-centre 'proof
-  "CHOICE(CENTRES s U r) in X(s) and B(CHOICE(CENTRES s U r),r) = U: U in the
+  "CHOICE(CENTRES s U r) in PTS(s) and B(CHOICE(CENTRES s U r),r) = U: U in the
    ball cover makes CENTRES(s,U,r) inhabited, so the epsilon choice lands in it
    (choice-axiom) and CENTRES-membership gives both conjuncts.  MACHINE-PROVEN
    in calculus/finite-ball-subcover-proof.scm.")
@@ -236,7 +236,7 @@
 (warrant! 'finite-ball-subcover-r-net 'proof
   "A finite subcover F of the r-ball cover yields a finite r-net N = CENTRE-SET
    (s,r,F), the chosen centres of the balls in F: |N| <= |F| is finite, and for
-   p in X(s) some U in F contains p (open-cover-covers-point), U = B(c,r) with
+   p in PTS(s) some U in F contains p (open-cover-covers-point), U = B(c,r) with
    c = CHOICE(CENTRES s U r) a genuine centre (chosen-centre-is-centre), so c in
    N with d(c,p) < r.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm,
    modulo the explicit-construction membership lemmas above; the centre choice
@@ -268,7 +268,7 @@
 ;;; ----- the two lemmas that close compact => complete -----
 
 ;;; Lemma C (forward slice of Prop 3.12 (1)=>(3)): in a compact space every
-;;; sequence f : NN -> X(s) has a cluster point.  Directly backchainable
+;;; sequence f : NN -> PTS(s) has a cluster point.  Directly backchainable
 ;;; (relation-/FORSOME-headed conclusion), unlike the IFF compact-iff-cluster-
 ;;; point which a goal cannot match against.  AND-shaped antecedent so bc*
 ;;; splits it into the two conjuncts (both land in context during the proof).

@@ -245,7 +245,7 @@
 ;;; mistake.  Accessor names (e.g. carrier `A` vs an element variable `a`)
 ;;; are deliberately NOT warned: binding `a` as an operand variable while
 ;;; `A` is a carrier accessor is a routine, correct pattern (the registry
-;;; keeps `(A m)` meaning the accessor), and the two cannot be told apart
+;;; keeps `(CARR m)` meaning the accessor), and the two cannot be told apart
 ;;; from the S-expression anyway.
 (define (warn-binder-shadowing v)
   (let ((kind (constant-head? v)))

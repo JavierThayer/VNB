@@ -186,9 +186,9 @@
                            schema-vars))))))
        (else
         (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))))
-    ;; Compound-operator application: pattern ((D s) x y) vs expr
-    ;; ((D Se) ae be) -- the operator is itself an application (a structure
-    ;; accessor applied to its instance: (D s), (mul r), ...).  The
+    ;; Compound-operator application: pattern ((DIST s) x y) vs expr
+    ;; ((DIST Se) ae be) -- the operator is itself an application (a structure
+    ;; accessor applied to its instance: (DIST s), (mul r), ...).  The
     ;; schema-var-head arm needs a SYMBOL head and the constant-head arm needs
     ;; eq? heads, so neither fires -- yet this is ordinary first-order
     ;; matching.  Recurse into the operator, then the operands.  This lets bc*

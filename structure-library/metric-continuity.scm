@@ -1,12 +1,12 @@
 ;;; metric-continuity.scm -- continuous maps between metric spaces.
 ;;;
-;;; A map f : X(s) -> X(t) between two metric spaces s (domain) and t
+;;; A map f : PTS(s) -> PTS(t) between two metric spaces s (domain) and t
 ;;; (codomain).  Three predicates, all in the established eps/delta idiom of
 ;;; metric-completeness.scm (POS-RR for "> 0", <= for the estimates -- VNB
 ;;; has no strict <):
 ;;;
-;;;   IS-CONTINUOUS-AT(s, t, f, a)   f is continuous at the point a in X(s)
-;;;   IS-CONTINUOUS(s, t, f)         f is continuous at every point of X(s)
+;;;   IS-CONTINUOUS-AT(s, t, f, a)   f is continuous at the point a in PTS(s)
+;;;   IS-CONTINUOUS(s, t, f)         f is continuous at every point of PTS(s)
 ;;;   IS-UNIFORMLY-CONTINUOUS(s,t,f) one delta works for all points at once
 ;;;
 ;;; These are the morphisms of the metric-space "structure": IS-CONTINUOUS is
@@ -55,7 +55,7 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-UNIFORMLY-CONTINUOUS(s, t, f): the delta is chosen before the point --
-;;; one delta works uniformly across all a, b in X(s).  This is the form the
+;;; one delta works uniformly across all a, b in PTS(s).  This is the form the
 ;;; totally-bounded / completion arguments will need.
 
 (def-predicate 'IS-UNIFORMLY-CONTINUOUS '(s t f)

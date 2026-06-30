@@ -1,6 +1,6 @@
 ;;; theorem-library/finsum-type.scm
 ;;;
-;;; finsum-type:  FINSUM(ag, f, S) inhabits the carrier (A ag) whenever
+;;; finsum-type:  FINSUM(ag, f, S) inhabits the carrier (CARR ag) whenever
 ;;; the inputs have the right types.  Type lemma.
 ;;;
 ;;; PSS-promoted 2026-05-27 from proven-theorems.scm.  Original proof

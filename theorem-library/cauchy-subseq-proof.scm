@@ -7,7 +7,7 @@
 ;;;
 ;;;   rad  <- null-rr-seq-exists           (a positive null radius seq)
 ;;;   cov  <- tb-rad-ball-cover (s, rad)    (finite ball-cover per level)  [bridge]
-;;;   blk  <- block-family-combinatorial(X s, f, cov)   ***** WITNESS *****
+;;;   blk  <- block-family-combinatorial(PTS s, f, cov)   ***** WITNESS *****
 ;;;   phi  <- diagonalization (blk)         (strictly mono, tail in blk(k))
 ;;;   ew phi;  strictly-mono closes;  the Cauchy estimate is cauchy-block-
 ;;;   estimate at the common block radius rad(N0), with rad(N0)+rad(N0) <= eps
@@ -88,7 +88,7 @@
   (quietly (lambda ()
     (fact 'tb-rad-ball-cover s* rad*) (split-ands)
     (let ((fs (find-asm (head? 'FORSOME)))) (and fs (ai fs))) (split-ands)))
-  ;; cov is the operator in (i): ...(IS-FINITE-COVER (cov k) (X s))...  -- nested
+  ;; cov is the operator in (i): ...(IS-FINITE-COVER (cov k) (PTS s))...  -- nested
   ;; inside a FORALL, so dig it out by subterm.
   (define cov* (let* ((a (find-asm (lambda (f) (subterm-head 'IS-FINITE-COVER f))))
                       (ifc (and a (subterm-head 'IS-FINITE-COVER a))))
@@ -181,7 +181,7 @@
      (contains? Ustar a)(contains? blk* a)))))
   (quietly (lambda () (inst+ capinner (list phi* m*)) (inst+ capinner (list phi* n_*))))
 
-  ;; bridge (ii): U = BALL(s,c,rad N0), c in X(s)
+  ;; bridge (ii): U = BALL(s,c,rad N0), c in PTS(s)
   (define brii (find-asm (lambda (a) (and (pair? a)(eq? (car a) 'FORALL)
      (contains? cov* a)(contains? 'BALL a)))))
   (quietly (lambda () (inst+ brii N0*)))

@@ -1,8 +1,8 @@
 ;;; ring.scm -- RING, RING-PROD, ZERO-RING
 ;;;
-;;; RING: carrier A, addition ADD, multiplication MUL, additive inverse NEG,
+;;; RING: carrier CARR, addition ADD, multiplication MUL, additive inverse NEG,
 ;;;       zero ZERO, multiplicative identity ONE.
-;;; Accessor indices: A -> 1, ADD -> 2, MUL -> 3, NEG -> 4, ZERO -> 5, ONE -> 6.
+;;; Accessor indices: CARR -> 1, ADD -> 2, MUL -> 3, NEG -> 4, ZERO -> 5, ONE -> 6.
 ;;;
 ;;; (A, ADD, ZERO, NEG) is an abelian group; (A, MUL, ONE) is a monoid;
 ;;; MUL distributes over ADD.
@@ -105,7 +105,7 @@
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) a (ZERO s)) (ZERO s)))))))
 
-;;; ZERO(r) ∈ A(r) when IS-RING(r).
+;;; ZERO(r) ∈ CARR(r) when IS-RING(r).
 ;;; DERIVED (REVIEW.md R-2): follows from the auto-generated IS-RING IFF.
 (theory-add-axiom! *current-theory* 'ring-zero-in
   '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (CARR r)))))

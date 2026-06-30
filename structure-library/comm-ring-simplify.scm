@@ -20,7 +20,7 @@
 ;;; to a number is a generator -- a bare symbol or a compound term like f(x)
 ;;; (the ZZ-module / [[project-ag-are-zz-modules]] view of the additive group).
 ;;; As in ring-simplify.scm, a compound generator is sound only because
-;;; cring-vars-ok? requires it certified (IN g D) / (IN g (A R)), which in VNB
+;;; cring-vars-ok? requires it certified (IN g D) / (IN g (CARR R)), which in VNB
 ;;; entails it is defined.
 ;;;
 ;;; Dependencies: ring-simplify.scm (loaded just before), arith-eval.scm.
@@ -245,7 +245,7 @@
 ;;; =======================================================================
 ;;; Generic path: expressions in an ARBITRARY commutative ring R, written
 ;;; with the structure operators ((ADD R) x y), ((MUL R) x y), ((NEG R) x),
-;;; (ZERO R), (ONE R) and carrier elements typed (IN v (A R)).  This is what
+;;; (ZERO R), (ONE R) and carrier elements typed (IN v (CARR R)).  This is what
 ;;; "normalise in an arbitrary commutative ring" actually means: R is opaque
 ;;; (a variable satisfying IS-COMMUTATIVE-RING), its operators are treated
 ;;; structurally, ONE R is the unit monomial, ZERO R the zero poly, integer
@@ -272,7 +272,7 @@
 ;;; Symbols are carrier elements (generators); R's ring operators recurse; any
 ;;; other compound term (a foreign function on the carrier, or a ring operator
 ;;; over a DIFFERENT ring) is taken as an opaque generator, certified later by
-;;; cring-vars-ok? as (IN it (A R)).  Only a non-symbol non-pair returns #f.
+;;; cring-vars-ok? as (IN it (CARR R)).  Only a non-symbol non-pair returns #f.
 (define (cring->poly e R)
   (cond
     ((symbol? e) (list (cons (list e) 1)))      ; carrier element -> generator
@@ -294,7 +294,7 @@
     (else #f)))
 
 ;;; SOURCE generators of a generic-ring expression over R: mirrors cring->poly
-;;; but keeps cancelled atoms, so the (IN g (A R)) definedness check covers a
+;;; but keeps cancelled atoms, so the (IN g (CARR R)) definedness check covers a
 ;;; generator that vanishes (e.g. x in ((ADD R) x ((NEG R) x))).  ZERO/ONE are
 ;;; constants (no generator); any other compound is one opaque carrier element.
 (define (cring-source-generators e R)
@@ -368,8 +368,8 @@
     (else #f)))
 
 ;;; Peel (FORALL R (IMPLIES (IS-COMMUTATIVE-RING R) <rest>)) and then a chain
-;;; of (FORALL v (IMPLIES (IN v (A R)) ...)).  Returns (list R qvars inner)
-;;; with qvars the element variables certified in (A R), or #f if the goal is
+;;; of (FORALL v (IMPLIES (IN v (CARR R)) ...)).  Returns (list R qvars inner)
+;;; with qvars the element variables certified in (CARR R), or #f if the goal is
 ;;; not in that shape.
 (define (peel-cring-foralls raw)
   (and (pair? raw) (eq? (car raw) 'FORALL)
@@ -404,8 +404,8 @@
                         (equal? (cadr f) R)))
                  (find (cdr as)))))))
 
-;;; Every generator is certified in the carrier (A R) by a peeled typing or an
-;;; (IN v (A R)) assumption.
+;;; Every generator is certified in the carrier (CARR R) by a peeled typing or an
+;;; (IN v (CARR R)) assumption.
 (define (cring-vars-ok? gens R qvars asms)
   (let ((carrier (list 'CARR R)))
     (let check ((vs gens))
@@ -417,7 +417,7 @@
                             (or (let ((f (wff-formula (car as))))
                                   (and (pair? f) (= (length f) 3)
                                        (eq? (car f) 'IN)
-                                       (equal? (cadr f) v)   ; equal?: certify (IN (f x) (A R))
+                                       (equal? (cadr f) v)   ; equal?: certify (IN (f x) (CARR R))
                                        (equal? (caddr f) carrier)))
                                 (find (cdr as))))))
                  (check (cdr vs))))))))

@@ -20,7 +20,7 @@
 ;;;   3 VADD  op (CARTESIAN VEC VEC) -> VEC        -- vector addition
 ;;;   4 VZERO constant in VEC                      -- zero vector
 ;;;   5 VNEG  op VEC -> VEC                         -- vector negation
-;;;   6 ACT   op (CARTESIAN (A SCAL) VEC) -> VEC    -- scalar action r . x
+;;;   6 ACT   op (CARTESIAN (CARR SCAL) VEC) -> VEC    -- scalar action r . x
 ;;;   7 VNRM  op VEC -> RR                          -- the norm
 ;;; Slots 1-6 mirror MODULE exactly (same accessors at the same indices), so the
 ;;; MODULE view-as is a clean forget-the-norm projection.  The norm accessor is

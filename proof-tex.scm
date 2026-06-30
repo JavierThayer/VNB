@@ -226,7 +226,7 @@
     (empty-set . "$\\emptyset$ -- the empty set")
     (in      . "$\\in$ -- set membership")
     (subset  . "$\\subseteq$ -- subset")
-    (fun     . "$(A \\to B)$ -- the set of functions from $A$ to $B$")
+    (fun     . "$(CARR \\to B)$ -- the set of functions from $A$ to $B$")
     (cartesian . "$\\times$ -- Cartesian product")
     (union   . "$\\cup$ -- union")
     (intersection . "$\\cap$ -- intersection")

@@ -1,7 +1,7 @@
 ;;; euclidean-ring.scm -- EUCLIDEAN-RING: an integral domain admitting a
 ;;; Euclidean (degree) function with division-with-remainder.
 ;;;
-;;; The degree function deg : A -> NN is asserted to EXIST (FORSOME deg);
+;;; The degree function deg : CARR -> NN is asserted to EXIST (FORSOME deg);
 ;;; it is not carried as structure data.  Division-with-remainder: for every
 ;;; a and every nonzero b there are q, r with  a = q*b + r  and either
 ;;; r = ZERO or deg(r) < deg(b).  "<" on NN is written  succ(deg r) <= deg b.
@@ -86,7 +86,7 @@
      (FORSOME deg (AND (IN deg (FUN (CARR s) NN)) (HAS-DIV-REMAINDER s deg))))))
 (warrant! 'euclidean-ring-has-gauge 'well-known
   "The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a
-   degree function deg : A(s) -> NN with division-with-remainder (HAS-DIV-
+   degree function deg : CARR(s) -> NN with division-with-remainder (HAS-DIV-
    REMAINDER s deg).  Definitional once HAS-DIV-REMAINDER names the clause.")
 
 ;;; SEP-membership slices of EUCLIDEAN-GAUGES (definitional).
@@ -98,7 +98,7 @@
 (support 'gauges-spec
   '(FORALL s (FORALL dg (IMPLIES (IN dg (EUCLIDEAN-GAUGES s)) (HAS-DIV-REMAINDER s dg)))))
 (warrant! 'gauges-mem-build 'well-known "SEP-membership of EUCLIDEAN-GAUGES (definitional).")
-(warrant! 'gauges-in-fun    'well-known "EUCLIDEAN-GAUGES(s) is a SEP-subset of FUN(A s, NN) (definitional).")
+(warrant! 'gauges-in-fun    'well-known "EUCLIDEAN-GAUGES(s) is a SEP-subset of FUN(CARR s, NN) (definitional).")
 (warrant! 'gauges-spec      'well-known "Each member of EUCLIDEAN-GAUGES(s) has division-with-remainder (definitional).")
 
 ;;; gauge-is-degree: the chosen GAUGE(s) really is a valid degree function --
@@ -109,7 +109,7 @@
      (AND (IN (GAUGE s) (FUN (CARR s) NN))
           (HAS-DIV-REMAINDER s (GAUGE s))))))
 (warrant! 'gauge-is-degree 'proof
-  "GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(A s, NN) and has division-
+  "GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(CARR s, NN) and has division-
    with-remainder: IS-EUCLIDEAN-RING(s) makes EUCLIDEAN-GAUGES(s) inhabited
    (euclidean-ring-has-gauge + gauges-mem-build), so the epsilon pick lands in
    it (choice-axiom) and the SEP slices give both conjuncts.  MACHINE-PROVEN in

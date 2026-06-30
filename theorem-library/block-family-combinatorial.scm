@@ -4,7 +4,7 @@
 ;;; abstracted away.
 ;;;
 ;;; block-family (theorem-library/cauchy-subsequence.scm) says: for a
-;;; totally bounded s, a sequence f:NN->X(s) and a positive null radius
+;;; totally bounded s, a sequence f:NN->PTS(s) and a positive null radius
 ;;; sequence rad, the index set NN splits into a nested descending family
 ;;; of INFINITE blocks blk(k), each pinning f into a single rad(k)-ball.
 ;;;
@@ -25,7 +25,7 @@
 ;;;            (nesting)  blk(succ k) subset blk(k)               for all k
 ;;;            (capture)  some U in cov(k) has f(i) in U for all i in blk(k).
 ;;;
-;;; The metric block-family is the instance V := X(s),
+;;; The metric block-family is the instance V := PTS(s),
 ;;; cov(k) := { BALL(s,c,rad k) : c in (a finite rad(k)-net) }; and
 ;;; tb-block-step is the per-level cover-block-step at that same cover.
 ;;;
@@ -133,9 +133,9 @@
    step (cov(k) finite by hypothesis); dc-on-nn builds aux:NN->INF-SUBSETS
    (NN) with aux(0)=NN and (k,aux k,aux(succ k)) in R; index-shift blk(k):=
    aux(succ k) gives nesting + single-member capture.  The metric block-
-   family is the instance V:=X(s), cov(k):={BALL(s,c,rad k):c in a finite
+   family is the instance V:=PTS(s), cov(k):={BALL(s,c,rad k):c in a finite
    rad(k)-net} (finite + covering by TOTALLY-BOUNDED), where 'U in cov(k)'
-   becomes 'some centre c in X(s)'.  Note: rad's positivity/nullity are NOT
+   becomes 'some centre c in PTS(s)'.  Note: rad's positivity/nullity are NOT
    used here -- they only serve to PRODUCE the finite cover (an r-net needs
    r>0) and, downstream, the 2r Cauchy estimate.  Derivation and the sole
    residual (dc-on-nn's relation-set plumbing, O1) in calculus/block-family-

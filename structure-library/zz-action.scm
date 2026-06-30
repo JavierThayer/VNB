@@ -7,7 +7,7 @@
 ;;; and then re-proves the module axioms across sign boundaries.  This file
 ;;; carries that step.
 ;;;
-;;;   ZZ-ACT(g, k, a) = k . a       (k in ZZ, a in A(g))
+;;;   ZZ-ACT(g, k, a) = k . a       (k in ZZ, a in CARR(g))
 ;;;
 ;;; defined by two conditional equations splitting on the sign of k:
 ;;;   k in NN        :  ZZ-ACT(g, k, a)     = MPOW(g-as-monoid, a, k)
@@ -48,14 +48,14 @@
                   ((INV g) (MPOW (ABELIAN-GROUP-AS-MONOID g) a k))))))))))))
 
 ;;; ---- Endpoints ------------------------------------------------------------
-;;; 0 . a = E(g).
+;;; 0 . a = ID(g).
 (theory-add-axiom! *current-theory* 'zz-act-zero
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL a (IMPLIES (IN a (CARR g))
          (= (ZZ-ACT g 0 a) (ID g)))))))
 (warrant! 'zz-act-zero 'informal
-  "0 in NN so zz-act-nonneg gives MPOW(.,a,0)=E(g) by mpow-zero and the view E-correspondence.")
+  "0 in NN so zz-act-nonneg gives MPOW(.,a,0)=ID(g) by mpow-zero and the view E-correspondence.")
 
 ;;; 1 . a = a.
 (theory-add-axiom! *current-theory* 'zz-act-one

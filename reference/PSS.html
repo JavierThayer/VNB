@@ -67,13 +67,13 @@
 <h3 id="PSS__plumbing-typing-71">Plumbing &amp; typing  (71)</h3>
 <h4 id="p-ball-cover-mem-fwd">ball-cover-mem-fwd</h4>
 <pre>forall([s, r, u in ball-cover(s, r)], forsome([c in pts(s)], ball(s, c, r) = u))</pre>
-<p><em>Warrant (well-known):</em> BALL-COVER(s,r) = { B(x,r) : x in X(s) }, so each member is a ball about a centre in X(s) (image-membership of BALL-COVER; definitional).</p>
+<p><em>Warrant (well-known):</em> BALL-COVER(s,r) = { B(x,r) : x in PTS(s) }, so each member is a ball about a centre in PTS(s) (image-membership of BALL-COVER; definitional).</p>
 <h4 id="p-ball-is-set">ball-is-set</h4>
 <pre>forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))</pre>
-<p><em>Warrant (proof):</em> BALL(s,x,r) is a SEP over X(s) (def-functoid); X(s) is a set (carrier typing of IS-METRIC-SPACE); a SEP over a set is a set (kernel sep-sethood).</p>
+<p><em>Warrant (proof):</em> BALL(s,x,r) is a SEP over PTS(s) (def-functoid); PTS(s) is a set (carrier typing of IS-METRIC-SPACE); a SEP over a set is a set (kernel sep-sethood).</p>
 <h4 id="p-ball-membership">ball-membership</h4>
 <pre>forall([s, x, r, y], y in ball(s, x, r) iff y in pts(s) and (dist(s))(x, y) &lt;= r and not((dist(s))(x, y) = r))</pre>
-<p><em>Warrant (proof):</em> BALL(s,x,r) is the def-functoid SEP(y in X(s) | d(x,y)&lt;=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.</p>
+<p><em>Warrant (proof):</em> BALL(s,x,r) is the def-functoid SEP(y in PTS(s) | d(x,y)&lt;=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.</p>
 <h4 id="p-ball-point-le">ball-point-le</h4>
 <pre>forall([s, c, r, w, p in w], ball(s, c, r) = w implies (dist(s))(c, p) &lt;= r)</pre>
 <p><em>Warrant (well-known):</em> If p in W and W = B(s,c,r) then d(c,p) &lt;= r (ball-membership, modulo the eq).</p>
@@ -82,7 +82,7 @@
 <p><em>Warrant (well-known):</em> If p in W and W = B(s,c,r) then d(c,p) /= r (ball-membership, modulo the eq).</p>
 <h4 id="p-bdd-metric-carrier">bdd-metric-carrier</h4>
 <pre>forall([s], pts(bdd-metric(s)) == pts(s))</pre>
-<p><em>Warrant (well-known):</em> BDD-METRIC keeps the point set: X(BDD-METRIC s) = X(s).  Read off the functoid (the carrier slot is (X s) verbatim).</p>
+<p><em>Warrant (well-known):</em> BDD-METRIC keeps the point set: PTS(BDD-METRIC s) = PTS(s).  Read off the functoid (the carrier slot is (PTS s) verbatim).</p>
 <h4 id="p-card-power-nn">card-power-nn</h4>
 <pre>forall([x], x in set and card(x) in nn implies card(power(x)) in nn)</pre>
 <p><em>Warrant (well-known):</em> A finite set has 2^|X| subsets -- finitely many.  This is what makes the sum over POWER(X) on the right of the expansion a genuine FINSUM.  (The exact count |POWER(X)| = 2^|X| is deliberately NOT stated: the 2-arg `power&#x27; head is overloaded -- power-exp reads (power 2 n) as the function space FUN(n,2), not the number -- so the exact-value support would be ambiguous.  Finiteness is all the induction needs.)</p>
@@ -94,7 +94,7 @@
 <p><em>Warrant (well-known):</em> A subset of a finite set is finite (its cardinality is bounded by the superset&#x27;s).  Standard; the RHS terms PROD-RING(R,a,S) and PROD-RING(R,b,X\S) need S and X\S finite to be well-defined.</p>
 <h4 id="p-cauchy-seq-is-fun">cauchy-seq-is-fun</h4>
 <pre>forall([s, f], is-cauchy-seq(s, f) implies f in fun(nn, pts(s)))</pre>
-<p><em>Warrant (well-known):</em> A Cauchy sequence is by definition a function NN -&gt; X(s): this is the second conjunct of the unfolded IS-CAUCHY-SEQ(s,f).  Carries no content beyond the definition.</p>
+<p><em>Warrant (well-known):</em> A Cauchy sequence is by definition a function NN -&gt; PTS(s): this is the second conjunct of the unfolded IS-CAUCHY-SEQ(s,f).  Carries no content beyond the definition.</p>
 <h4 id="p-centre-set-contains-choice">centre-set-contains-choice</h4>
 <pre>forall([s, r, f, u in f], choice(centres(s, u, r)) in centre-set(s, r, f))</pre>
 <p><em>Warrant (well-known):</em> CHOICE(CENTRES s U r) = (B |-&gt; CHOICE(CENTRES s B r))(U) is in the image of F when U in F (image-membership + beta; definitional).</p>
@@ -106,7 +106,7 @@
 <p><em>Warrant (well-known):</em> Each centre c of B satisfies B(c,r)=B (definitional).</p>
 <h4 id="p-centres-in-carrier">centres-in-carrier</h4>
 <pre>forall([s, b, r, c in centres(s, b, r)], c in pts(s))</pre>
-<p><em>Warrant (well-known):</em> CENTRES(s,B,r) is a SEP-subset of X(s) (definitional).</p>
+<p><em>Warrant (well-known):</em> CENTRES(s,B,r) is a SEP-subset of PTS(s) (definitional).</p>
 <h4 id="p-centres-mem-build">centres-mem-build</h4>
 <pre>forall([s, b, r, c in pts(s)], ball(s, c, r) = b implies c in centres(s, b, r))</pre>
 <p><em>Warrant (well-known):</em> SEP-membership of CENTRES (definitional).</p>
@@ -115,16 +115,16 @@
 <p><em>Warrant (well-known):</em> ORD-SEGMENT(n) is finite (card-segment: CARD = n), so POWER(ORD-SEGMENT n) is finite and its subset { A : CARD A = m } is finite; the cardinality lies in NN.</p>
 <h4 id="p-class-in-quotient">class-in-quotient</h4>
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) in quotient(s)))</pre>
-<p><em>Warrant (well-known):</em> QUOTIENT(s) = IMAGE(PROJ(s), X(s)); a in X(s) witnesses [a]=PROJ(s)(a) as a member of the image (image-membership + lambda-beta on PROJ).</p>
+<p><em>Warrant (well-known):</em> QUOTIENT(s) = IMAGE(PROJ(s), PTS(s)); a in PTS(s) witnesses [a]=PROJ(s)(a) as a member of the image (image-membership + lambda-beta on PROJ).</p>
 <h4 id="p-class-is-set">class-is-set</h4>
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) in set))</pre>
-<p><em>Warrant (well-known):</em> A subclass of a set is a set (separation); CLASS(s,a) subset X(s) in SET.</p>
+<p><em>Warrant (well-known):</em> A subclass of a set is a set (separation); CLASS(s,a) subset PTS(s) in SET.</p>
 <h4 id="p-class-self">class-self</h4>
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s)], a in class(s, a)))</pre>
-<p><em>Warrant (well-known):</em> Unfold CLASS: a in CLASS(s,a) iff a in X(s) and RELATED(s,a,a); the latter is reflexivity of REL (the is-equivalence conjunct folded into IS-SETOID).</p>
+<p><em>Warrant (well-known):</em> Unfold CLASS: a in CLASS(s,a) iff a in PTS(s) and RELATED(s,a,a); the latter is reflexivity of REL (the is-equivalence conjunct folded into IS-SETOID).</p>
 <h4 id="p-class-subset-carrier">class-subset-carrier</h4>
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s)], class(s, a) subset pts(s)))</pre>
-<p><em>Warrant (well-known):</em> CLASS(s,a) = SEP(b, X(s), ...) is by construction a subset of X(s).</p>
+<p><em>Warrant (well-known):</em> CLASS(s,a) = SEP(b, PTS(s), ...) is by construction a subset of PTS(s).</p>
 <h4 id="p-compose-apply">compose-apply</h4>
 <pre>forall([a, b, c, f, g], g in fun(a, b) and f in fun(b, c) implies forall([x in a], (compose(f, g))(x) = f(g(x))))</pre>
 <p><em>Warrant (proof):</em> Unfold COMPOSE to VNB-LAMBDA z. f(g(z)), then lambda-beta (lam-b): ((VNB-LAMBDA z. f(g(z))) x) reduces to f(g(x)), and reflexivity closes it.  The beta step needs no hypotheses; the typing is carried only so both sides are defined points of C.</p>
@@ -151,7 +151,7 @@
 <p><em>Warrant (well-known):</em> X \ B is a subclass of the set X, hence a set by separation (cf. set-equality-not-class: a subclass of a set is a set).</p>
 <h4 id="p-enum-fam-in-fun">enum-fam-in-fun</h4>
 <pre>forall([n in nn, ag], is-group(ag) implies forall([s, phi in fun(ord-segment(n), s), f in fun(s, carr(ag))], enum-fam(ag, f, phi, n) in fun(nn, carr(ag))))</pre>
-<p><em>Warrant (informal):</em> enum-fam(ag, f, phi, n) is a total function NN -&gt; (A ag): on indices i &lt; n it returns f(phi(i)), in the carrier since f maps into (A ag); on i &gt;= n it returns the identity (E ag), in the carrier by the identity law.  Total and carrier-valued, hence in fun(NN, A ag).  Routine typing, no induction.</p>
+<p><em>Warrant (informal):</em> enum-fam(ag, f, phi, n) is a total function NN -&gt; (CARR ag): on indices i &lt; n it returns f(phi(i)), in the carrier since f maps into (CARR ag); on i &gt;= n it returns the identity (ID ag), in the carrier by the identity law.  Total and carrier-valued, hence in fun(NN, A ag).  Routine typing, no induction.</p>
 <h4 id="p-falling-in-nn">falling-in-nn</h4>
 <pre>forall([n in nn, m in nn], falling(n, m) in nn)</pre>
 <p><em>Warrant (well-known):</em> For m &lt;= n each factor n-k (0 &lt;= k &lt; m) is a positive natural; for m &gt; n the factor at k = n is 0 and the product stays 0.  Either way FALLING(n,m) in NN.</p>
@@ -160,16 +160,16 @@
 <p><em>Warrant (informal):</em> fin-enum(s) is the chosen enumeration of a finite set: a bijection from ord-segment(card s) onto s.  Existence of SOME such bijection is exactly card(s) in NN (the definition of finiteness); fin-enum names one, using VNB&#x27;s choice operator to pick it.</p>
 <h4 id="p-finsum-comm-monoid-type">finsum-comm-monoid-type</h4>
 <pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m))], finsum(m, f, s) in carr(m))))</pre>
-<p><em>Warrant (informal):</em> Same induction as finsum-type: SUM-AG seeds at (E m) -- in the carrier by the identity law -- and folds with (MUL m), which closes on the carrier by the binary-operation typing.  Neither step uses inverses, so the abelian-group proof carries over to a bare commutative monoid unchanged.</p>
+<p><em>Warrant (informal):</em> Same induction as finsum-type: SUM-AG seeds at (ID m) -- in the carrier by the identity law -- and folds with (MUL m), which closes on the carrier by the binary-operation typing.  Neither step uses inverses, so the abelian-group proof carries over to a bare commutative monoid unchanged.</p>
 <h4 id="p-finsum-empty">finsum-empty</h4>
 <pre>forall([ag, f], finsum(ag, f, empty-set) == id(ag))</pre>
-<p><em>Warrant (well-known):</em> The empty sum is the group identity.  FINSUM is the SUM-AG fold over an enumeration of S; at cardinality 0 there are no summands and the fold returns its seed (E ag).  Definitional in all but name.</p>
+<p><em>Warrant (well-known):</em> The empty sum is the group identity.  FINSUM is the SUM-AG fold over an enumeration of S; at cardinality 0 there are no summands and the fold returns its seed (ID ag).  Definitional in all but name.</p>
 <h4 id="p-finsum-singleton">finsum-singleton</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], finsum(ag, f, {x}) = f(x)))</pre>
-<p><em>Warrant (well-known):</em> A one-element sum is its single term.  FINSUM enumerates {x} as a length-1 sequence and folds (E ag) with f(x); the identity law collapses (E ag) MUL f(x) to f(x).</p>
+<p><em>Warrant (well-known):</em> A one-element sum is its single term.  FINSUM enumerates {x} as a length-1 sequence and folds (ID ag) with f(x); the identity law collapses (ID ag) MUL f(x) to f(x).</p>
 <h4 id="p-finsum-type">finsum-type</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], finsum(ag, f, s) in carr(ag))))</pre>
-<p><em>Warrant (informal):</em> Closure of the finite sum on the carrier.  Induction on card(S): the fold seeds at (E ag), in (A ag) by the identity law, and each step applies (MUL ag), which closes on (A ag) by the group&#x27;s binary-operation typing. No inverses used -- the same argument as finsum-comm-monoid-type.</p>
+<p><em>Warrant (informal):</em> Closure of the finite sum on the carrier.  Induction on card(S): the fold seeds at (ID ag), in (CARR ag) by the identity law, and each step applies (MUL ag), which closes on (CARR ag) by the group&#x27;s binary-operation typing. No inverses used -- the same argument as finsum-comm-monoid-type.</p>
 <h4 id="p-fun-apply-type-c">fun-apply-type-c</h4>
 <pre>forall([f, a, b, x], f in fun(a, b) implies x in a implies f(x) in b)</pre>
 <p><em>Warrant (proof):</em> Curried fun-apply-type: f:A-&gt;B and x in A give f(x) in B.  No AND antecedent.</p>
@@ -181,7 +181,7 @@
 <p><em>Warrant (proof):</em> dom-fun-membership: f in FUN(X) gives a in X =&gt; a in DOM(f); then range-membership gives (f a) in RAN(f).</p>
 <h4 id="p-gauges-in-fun">gauges-in-fun</h4>
 <pre>forall([s, dg in euclidean-gauges(s)], dg in fun(carr(s), nn))</pre>
-<p><em>Warrant (well-known):</em> EUCLIDEAN-GAUGES(s) is a SEP-subset of FUN(A s, NN) (definitional).</p>
+<p><em>Warrant (well-known):</em> EUCLIDEAN-GAUGES(s) is a SEP-subset of FUN(CARR s, NN) (definitional).</p>
 <h4 id="p-gauges-mem-build">gauges-mem-build</h4>
 <pre>forall([s, dg in fun(carr(s), nn)], has-div-remainder(s, dg) implies dg in euclidean-gauges(s))</pre>
 <p><em>Warrant (well-known):</em> SEP-membership of EUCLIDEAN-GAUGES (definitional).</p>
@@ -190,10 +190,10 @@
 <p><em>Warrant (well-known):</em> Each member of EUCLIDEAN-GAUGES(s) has division-with-remainder (definitional).</p>
 <h4 id="p-metric-dist-real">metric-dist-real</h4>
 <pre>forall([s], is-metric-space(s) implies forall([x in pts(s), y in pts(s)], (dist(s))(x, y) in rr))</pre>
-<p><em>Warrant (well-known):</em> The distance is real-valued: D(s) maps X(s) x X(s) into RR, so d(s)(x,y) in RR.  Codomain typing of the metric op (the op-clause in the METRIC-SPACE declaration).</p>
+<p><em>Warrant (well-known):</em> The distance is real-valued: DIST(s) maps PTS(s) x PTS(s) into RR, so d(s)(x,y) in RR.  Codomain typing of the metric op (the op-clause in the METRIC-SPACE declaration).</p>
 <h4 id="p-nag-metric-carrier">nag-metric-carrier</h4>
 <pre>forall([nag], pts(nag-metric-space(nag)) == carr(nag))</pre>
-<p><em>Warrant (informal):</em> First component of the LIST constructor: by functoid-beta + nth-reduce, X(NAG-METRIC-SPACE nag) = A(nag).</p>
+<p><em>Warrant (informal):</em> First component of the LIST constructor: by functoid-beta + nth-reduce, PTS(NAG-METRIC-SPACE nag) = CARR(nag).</p>
 <h4 id="p-neq-sym">neq-sym</h4>
 <pre>forall([a, b], not(a = b) implies not(b = a))</pre>
 <p><em>Warrant (well-known):</em> Symmetry of disequality.</p>
@@ -211,7 +211,7 @@
 <p><em>Warrant (hand-wave):</em> From nn-minus-def by IF case split on l&lt;=k: then-branch k-l in NN (since k = (k-l)+l with both in NN forces the difference into NN); else-branch 0 in NN.  One-step derivation; asserted library-phase rather than mechanized.</p>
 <h4 id="p-open-cover-covers-point">open-cover-covers-point</h4>
 <pre>forall([s, f], is-open-cover(s, f) implies forall([p in pts(s)], forsome([u in f], p in u)))</pre>
-<p><em>Warrant (well-known):</em> An open cover has union X(s) (IS-OPEN-COVER&#x27;s third conjunct), so every point p in X(s) lies in some member U of the cover (BIG-UNION membership).</p>
+<p><em>Warrant (well-known):</em> An open cover has union PTS(s) (IS-OPEN-COVER&#x27;s third conjunct), so every point p in PTS(s) lies in some member U of the cover (BIG-UNION membership).</p>
 <h4 id="p-ord-segment-insert">ord-segment-insert</h4>
 <pre>forall([n in nn], ord-segment(succ(n)) = union(ord-segment(n), {n}))</pre>
 <p><em>Warrant (well-known):</em> Set-extensionality on ord-segment-nn-succ: k in ORD-SEGMENT(succ n) iff k in ORD-SEGMENT(n) or k = n; the RHS is membership in the union with the singleton {n} = (PAIR n n).</p>
@@ -235,22 +235,22 @@
 <p><em>Warrant (well-known):</em> Induction on n: x^0 = 1 in RR (power-zero); x^{n+1} = x * x^n stays in RR since RR is closed under multiplication (power-succ).  A candidate to discharge into a formal `proof&#x27; later.</p>
 <h4 id="p-prod-ring-empty">prod-ring-empty</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([f], prod-ring(r, f, empty-set) = one(r)))</pre>
-<p><em>Warrant (informal):</em> PROD-RING(R,f,S) = FINSUM(R^x,f,S) with R^x the multiplicative comm-monoid of R, whose identity E maps to ONE(R); finsum-empty gives the empty fold = E(R^x) = ONE(R).  The empty product is 1.</p>
+<p><em>Warrant (informal):</em> PROD-RING(R,f,S) = FINSUM(R^x,f,S) with R^x the multiplicative comm-monoid of R, whose identity ID maps to ONE(R); finsum-empty gives the empty fold = ID(R^x) = ONE(R).  The empty product is 1.</p>
 <h4 id="p-prod-ring-singleton">prod-ring-singleton</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([x in set, f in fun({x}, carr(r))], prod-ring(r, f, {x}) = f(x)))</pre>
 <p><em>Warrant (informal):</em> FINSUM over a one-point set is the single value (finsum-singleton through the multiplicative view); the one-factor product is that factor.</p>
 <h4 id="p-prod-ring-type">prod-ring-type</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([f in fun(x, carr(r))], prod-ring(r, f, x) in carr(r))))</pre>
-<p><em>Warrant (informal):</em> finsum-comm-monoid-type through the multiplicative view: the product folds with (MUL R), which closes on A(R), seeded at ONE(R) in A(R).</p>
+<p><em>Warrant (informal):</em> finsum-comm-monoid-type through the multiplicative view: the product folds with (MUL R), which closes on CARR(R), seeded at ONE(R) in CARR(R).</p>
 <h4 id="p-product-metric-carrier">product-metric-carrier</h4>
 <pre>forall([ms, w], pts(product-metric-w(ms, w)) == product-carrier(ms))</pre>
-<p><em>Warrant (well-known):</em> X(PRODUCT-METRIC-W(ms,w)) = PRODUCT-CARRIER(ms), the set of sequences x with x(n) in X(ms n) for all n.  Read off the functoid carrier slot.</p>
+<p><em>Warrant (well-known):</em> PTS(PRODUCT-METRIC-W(ms,w)) = PRODUCT-CARRIER(ms), the set of sequences x with x(n) in PTS(ms n) for all n.  Read off the functoid carrier slot.</p>
 <h4 id="p-proj-in-fun">proj-in-fun</h4>
 <pre>forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))</pre>
-<p><em>Warrant (well-known):</em> PROJ(s) = VNB-LAMBDA a. CLASS(s,a) is total on X(s) and, by class-in-quotient, every value lies in QUOTIENT(s); so it is in FUN(X(s),QUOTIENT(s)).  It is surjective by construction (QUOTIENT is its image).</p>
+<p><em>Warrant (well-known):</em> PROJ(s) = VNB-LAMBDA a. CLASS(s,a) is total on PTS(s) and, by class-in-quotient, every value lies in QUOTIENT(s); so it is in FUN(PTS(s),QUOTIENT(s)).  It is surjective by construction (QUOTIENT is its image).</p>
 <h4 id="p-quotient-is-set">quotient-is-set</h4>
 <pre>forall([s], is-setoid(s) implies quotient(s) in set)</pre>
-<p><em>Warrant (well-known):</em> X(s) is a set (carrier shape constraint); the IMAGE of a set under a function is a set (replacement/image-is-set).</p>
+<p><em>Warrant (well-known):</em> PTS(s) is a set (carrier shape constraint); the IMAGE of a set under a function is a set (replacement/image-is-set).</p>
 <h4 id="p-ran-subset-codomain">ran-subset-codomain</h4>
 <pre>forall([x, y, f in fun(x, y)], ran(f) subset y)</pre>
 <p><em>Warrant (proof):</em> w in RAN(f)=IMAGE(f,DOM f) means w=f(x) for some x in DOM(f)=X (dom-fun-membership); fun-codomain-iff on f in FUN(X,Y) gives f(x) in Y.  So RAN(f) subset Y.</p>
@@ -259,7 +259,7 @@
 <p><em>Warrant (proof):</em> Unfold RAN to IMAGE(f, DOM f); image-membership-iff says (f a) in IMAGE(f, DOM f) iff some x in DOM(f) has f(x)=(f a).  Witness x:=a: a in DOM(f) by hypothesis and (f a)=(f a) is defined there (dom-membership).</p>
 <h4 id="p-ring-power-type">ring-power-type</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([x in carr(r), n in nn], ring-power(r, x, n) in carr(r)))</pre>
-<p><em>Warrant (informal):</em> mpow-type on COMMUTATIVE-RING-MULTIPLICATIVE-CM(R): NN induction, base (ONE R) in A(R), step closes under (MUL R).</p>
+<p><em>Warrant (informal):</em> mpow-type on COMMUTATIVE-RING-MULTIPLICATIVE-CM(R): NN induction, base (ONE R) in CARR(R), step closes under (MUL R).</p>
 <h4 id="p-rpow-pos">rpow-pos</h4>
 <pre>forall([a], a in rr and 0 &lt; a implies forall([b in qq], rpow(a, b) in rr and 0 &lt; rpow(a, b)))</pre>
 <p><em>Warrant (well-known):</em> a^b is a positive real for a &gt; 0 and rational b.  Axiomatic introduction of RPOW; provable once a^b is constructed (IVT continuous extension).</p>
@@ -268,7 +268,7 @@
 <p><em>Warrant (well-known):</em> sqrt(a) is a nonnegative real for a &gt;= 0.</p>
 <h4 id="p-subseq-is-fun">subseq-is-fun</h4>
 <pre>forall([s, f, phi], f in fun(nn, pts(s)) and strictly-mono-nn(phi) implies subseq(f, phi) in fun(nn, pts(s)))</pre>
-<p><em>Warrant (well-known):</em> f : NN -&gt; X(s) and phi : NN -&gt; NN, so the composite SUBSEQ(f,phi) = k |-&gt; f(phi k) is again a function NN -&gt; X(s).  Pure composition typing.</p>
+<p><em>Warrant (well-known):</em> f : NN -&gt; PTS(s) and phi : NN -&gt; NN, so the composite SUBSEQ(f,phi) = k |-&gt; f(phi k) is again a function NN -&gt; PTS(s).  Pure composition typing.</p>
 <h4 id="p-subset-mem-fwd">subset-mem-fwd</h4>
 <pre>forall([a, b, x], a subset b implies x in a implies x in b)</pre>
 <p><em>Warrant (well-known):</em> Forward direction of subset-def (definitional).</p>
@@ -419,11 +419,11 @@
 <h4 id="p-block-family">block-family</h4>
 <pre>forall([s], totally-bounded(s) implies forall([f in fun(nn, pts(s)), rad], null-rr-seq(rad) implies forsome([blk in fun(nn, inf-subsets(nn))], forall([k in nn], blk(succ(k)) subset blk(k)) and forall([k in nn], forsome([c in pts(s)], forall([i in blk(k)], f(i) in ball(s, c, rad(k))))))))</pre>
 <p><em>In words:</em> For a totally bounded space s, a sequence f of points of s, and a positive null radius sequence rad: there is a nested tower of infinite index blocks blk(0) &gt;= blk(1) &gt;= ... such that at each level k all the f(i) for i in blk(k) lie in a single ball of radius rad(k) about some centre.  Recursive pigeonhole into ever-smaller blocks -- the engine of the Cauchy-subsequence extraction.</p>
-<p><em>Warrant (reference):</em> Nested-pigeonhole construction (calculus.pdf, proof of sequential compactness of a totally bounded space).  S(0)=NN; given infinite S(k), a finite rad(k)-net for X(s) sends f(S(k)) into finitely many balls, so pigeonhole-infinite yields an infinite fibre S(k+1) subset S(k) inside one rad(k)-ball.  CHOICE supplies the net and the fibre centre.  The hard core of the theorem; the headline below is the diagonalize-and-estimate assembly on top of this.</p>
+<p><em>Warrant (reference):</em> Nested-pigeonhole construction (calculus.pdf, proof of sequential compactness of a totally bounded space).  S(0)=NN; given infinite S(k), a finite rad(k)-net for PTS(s) sends f(S(k)) into finitely many balls, so pigeonhole-infinite yields an infinite fibre S(k+1) subset S(k) inside one rad(k)-ball.  CHOICE supplies the net and the fibre centre.  The hard core of the theorem; the headline below is the diagonalize-and-estimate assembly on top of this.</p>
 <h4 id="p-block-family-combinatorial">block-family-combinatorial</h4>
 <pre>forall([v in set, f in fun(nn, v), cov], forall([k in nn], is-finite-cover(cov(k), v)) implies forsome([blk in fun(nn, inf-subsets(nn))], forall([k in nn], blk(succ(k)) subset blk(k)) and forall([k in nn], forsome([u in cov(k)], forall([i in blk(k)], f(i) in u)))))</pre>
 <p><em>In words:</em> For any set V, a sequence f of elements of V, and a sequence cov of finite covers of V (one cover cov(k) per level k): there is a nested tower of infinite index blocks blk(0) &gt;= blk(1) &gt;= ... such that at each level k all f(i) for i in blk(k) lie in a single member of the cover cov(k).  The metric-free combinatorial core that block-family instantiates.</p>
-<p><em>Warrant (reference):</em> cover-block-step recursed via dc-on-nn.  Step relation R(k,J,J_) = the cover-block-step fibre inside J for cover cov(k); totality IS cover-block- step (cov(k) finite by hypothesis); dc-on-nn builds aux:NN-&gt;INF-SUBSETS (NN) with aux(0)=NN and (k,aux k,aux(succ k)) in R; index-shift blk(k):= aux(succ k) gives nesting + single-member capture.  The metric block- family is the instance V:=X(s), cov(k):={BALL(s,c,rad k):c in a finite rad(k)-net} (finite + covering by TOTALLY-BOUNDED), where &#x27;U in cov(k)&#x27; becomes &#x27;some centre c in X(s)&#x27;.  Note: rad&#x27;s positivity/nullity are NOT used here -- they only serve to PRODUCE the finite cover (an r-net needs r&gt;0) and, downstream, the 2r Cauchy estimate.  Derivation and the sole residual (dc-on-nn&#x27;s relation-set plumbing, O1) in calculus/block-family- rederive.scm; same fix (dc-on-nn-pred) applies.</p>
+<p><em>Warrant (reference):</em> cover-block-step recursed via dc-on-nn.  Step relation R(k,J,J_) = the cover-block-step fibre inside J for cover cov(k); totality IS cover-block- step (cov(k) finite by hypothesis); dc-on-nn builds aux:NN-&gt;INF-SUBSETS (NN) with aux(0)=NN and (k,aux k,aux(succ k)) in R; index-shift blk(k):= aux(succ k) gives nesting + single-member capture.  The metric block- family is the instance V:=PTS(s), cov(k):={BALL(s,c,rad k):c in a finite rad(k)-net} (finite + covering by TOTALLY-BOUNDED), where &#x27;U in cov(k)&#x27; becomes &#x27;some centre c in PTS(s)&#x27;.  Note: rad&#x27;s positivity/nullity are NOT used here -- they only serve to PRODUCE the finite cover (an r-net needs r&gt;0) and, downstream, the 2r Cauchy estimate.  Derivation and the sole residual (dc-on-nn&#x27;s relation-set plumbing, O1) in calculus/block-family- rederive.scm; same fix (dc-on-nn-pred) applies.</p>
 <h4 id="p-cauchy-block-estimate">cauchy-block-estimate</h4>
 <pre>forall([s], is-metric-space(s) implies forall([c in pts(s), r], pos-rr(r) implies forall([u], u = ball(s, c, r) implies forall([y in u, z in u, d], pos-rr(d) implies forall([eps in rr], r &lt;= d implies d + d = eps implies (dist(s))(y, z) &lt;= eps)))))</pre>
 <p><em>In words:</em> For a metric space s, a ball U = BALL(s,c,r), two points y,z of U, and reals d,eps with r&lt;=d and d+d=eps: the distance from y to z is at most eps.  The fully-curried 2r estimate -- two points in one r-ball are within 2r.</p>
@@ -442,7 +442,7 @@
 <p><em>Warrant (well-known):</em> Both sides count the injections of an m-element set into an n-element set. (i) Each injection ORD-SEGMENT(m) -&gt; ORD-SEGMENT(n) factors uniquely as a choice of m-element image A subset ORD-SEGMENT(n) (CHOOSE(n,m) of them, with card-image-injection making |A| = m) followed by a bijection ORD-SEGMENT(m) onto A (m! = CARD(PERMUTATIONS m) of them); so the count is CHOOSE(n,m) * m!. (ii) injection-count-falling gives the same count as FALLING(n,m) = n(n-1)...(n-m+1).  Equate the two counts.</p>
 <h4 id="p-chosen-centre-is-centre">chosen-centre-is-centre</h4>
 <pre>forall([s, r, u in ball-cover(s, r)], choice(centres(s, u, r)) in pts(s) and ball(s, choice(centres(s, u, r)), r) = u)</pre>
-<p><em>Warrant (proof):</em> CHOICE(CENTRES s U r) in X(s) and B(CHOICE(CENTRES s U r),r) = U: U in the ball cover makes CENTRES(s,U,r) inhabited, so the epsilon choice lands in it (choice-axiom) and CENTRES-membership gives both conjuncts.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm.</p>
+<p><em>Warrant (proof):</em> CHOICE(CENTRES s U r) in PTS(s) and B(CHOICE(CENTRES s U r),r) = U: U in the ball cover makes CENTRES(s,U,r) inhabited, so the epsilon choice lands in it (choice-axiom) and CENTRES-membership gives both conjuncts.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm.</p>
 <h4 id="p-convergence-block-tower">convergence-block-tower</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies forall([seq in fun(nn, product-carrier(ms))], forsome([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) and forsome([l in product-carrier(ms)], forall([n in nn], converges-along(ms(n), vnb-lambda(i, (seq(i))(n)), s(n), l(n)))))))</pre>
 <p><em>In words:</em> For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a nested tower of infinite index blocks S(0) &gt;= S(1) &gt;= ... and a product point L such that, in each coordinate n, the n-th coordinates of seq converge to L(n) ALONG the block S(n) (i.e. once restricted to indices in S(n)).  The coordinatewise refinement underlying the diagonal argument.</p>
@@ -450,7 +450,7 @@
 <h4 id="p-coordinatewise-diagonal-subseq">coordinatewise-diagonal-subseq</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies forall([seq in fun(nn, product-carrier(ms))], forsome([delta], strictly-mono-nn(delta) and forsome([l in product-carrier(ms)], forall([n in nn], converges-to(ms(n), vnb-lambda(k, ((subseq(seq, delta))(k))(n)), l(n)))))))</pre>
 <p><em>In words:</em> For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a single strictly increasing reindexing delta and a product point L such that the subsequence seq o delta converges to L in EVERY coordinate at once.  The diagonal argument extracting one subsequence convergent in all coordinates.</p>
-<p><em>Warrant (informal):</em> The diagonal argument (calculus.pdf Remark 3.30 applied across coordinates). Build reindexings by dependent choice on the coordinate index (dc-on-nn over X = strictly-mono maps NN-&gt;NN): phi_0 strictly monotone with coordinate 0 of seq o phi_0 convergent -- SEQ-COMPACT(ms 0) on k|-&gt;(seq k)(0); given the cumulative psi_n = phi_0 o ... o phi_n, choose phi_{n+1} so coordinate n+1 of seq o psi_n o phi_{n+1} converges -- SEQ-COMPACT(ms (n+1)); a subsequence of a convergent sequence still converges, so coordinates &lt;= n stay convergent.  The DIAGONAL delta(k) := psi_k(k) is strictly monotone and, for each n, its tail { delta(k) : k &gt;= n } is a subsequence of psi_n, hence seq o delta converges in coordinate n.  L(n) := that coordinate-n limit; L lies in PRODUCT-CARRIER (each L(n) in X(ms n)).  The per-coordinate convergent subsequence is exactly SEQ-COMPACT of each factor; the lacing-together is dc-on-nn + the diagonal.</p>
+<p><em>Warrant (informal):</em> The diagonal argument (calculus.pdf Remark 3.30 applied across coordinates). Build reindexings by dependent choice on the coordinate index (dc-on-nn over X = strictly-mono maps NN-&gt;NN): phi_0 strictly monotone with coordinate 0 of seq o phi_0 convergent -- SEQ-COMPACT(ms 0) on k|-&gt;(seq k)(0); given the cumulative psi_n = phi_0 o ... o phi_n, choose phi_{n+1} so coordinate n+1 of seq o psi_n o phi_{n+1} converges -- SEQ-COMPACT(ms (n+1)); a subsequence of a convergent sequence still converges, so coordinates &lt;= n stay convergent.  The DIAGONAL delta(k) := psi_k(k) is strictly monotone and, for each n, its tail { delta(k) : k &gt;= n } is a subsequence of psi_n, hence seq o delta converges in coordinate n.  L(n) := that coordinate-n limit; L lies in PRODUCT-CARRIER (each L(n) in PTS(ms n)).  The per-coordinate convergent subsequence is exactly SEQ-COMPACT of each factor; the lacing-together is dc-on-nn + the diagonal.</p>
 <h4 id="p-cover-block-step">cover-block-step</h4>
 <pre>forall([v in set, f in fun(nn, v), c], is-finite-cover(c, v) implies forall([j in inf-subsets(nn)], forsome([j_ in inf-subsets(nn)], j_ subset j and forsome([u in c], forall([i in j_], f(i) in u)))))</pre>
 <p><em>In words:</em> For any set V, a sequence f of elements of V, a finite cover C of V, and an infinite index block J: there is a smaller infinite block J&#x27; contained in J and a single cover member U such that all f(i) for i in J&#x27; lie in U.  The metric-free single pigeonhole step that block-family-combinatorial iterates.</p>
@@ -464,7 +464,7 @@
 <h4 id="p-finite-ball-subcover-r-net">finite-ball-subcover-r-net</h4>
 <pre>forall([s], is-metric-space(s) implies forall([r], r in rr and 0 &lt;= r and not(0 = r) implies forsome([f], f subset ball-cover(s, r) and card(f) in nn and is-open-cover(s, f)) implies forsome([n], card(n) in nn and is-r-net(s, n, pts(s), r))))</pre>
 <p><em>In words:</em> For a metric space s and radius r&gt;0: if the r-ball cover of s has a finite subcover, then s has a finite r-net (a finite set N of points such that every point of s is within r of some member of N).  Extracting a net from a finite subcover -- its centres.</p>
-<p><em>Warrant (proof):</em> A finite subcover F of the r-ball cover yields a finite r-net N = CENTRE-SET (s,r,F), the chosen centres of the balls in F: |N| &lt;= |F| is finite, and for p in X(s) some U in F contains p (open-cover-covers-point), U = B(c,r) with c = CHOICE(CENTRES s U r) a genuine centre (chosen-centre-is-centre), so c in N with d(c,p) &lt; r.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm, modulo the explicit-construction membership lemmas above; the centre choice is the global epsilon, no longer a hand-wave.</p>
+<p><em>Warrant (proof):</em> A finite subcover F of the r-ball cover yields a finite r-net N = CENTRE-SET (s,r,F), the chosen centres of the balls in F: |N| &lt;= |F| is finite, and for p in PTS(s) some U in F contains p (open-cover-covers-point), U = B(c,r) with c = CHOICE(CENTRES s U r) a genuine centre (chosen-centre-is-centre), so c in N with d(c,p) &lt; r.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm, modulo the explicit-construction membership lemmas above; the centre choice is the global epsilon, no longer a hand-wave.</p>
 <h4 id="p-finsum-comm-monoid-permutation-invariance">finsum-comm-monoid-permutation-invariance</h4>
 <pre>forall([n in nn, m], is-comm-monoid(m) implies forall([g in fun(nn, carr(m)), h in fun(nn, carr(m)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(m, g, n) = sum-ag(m, h, n)))</pre>
 <p><em>Warrant (well-known):</em> Commutativity and associativity alone make a finite sum independent of the order of its summands -- the standard fact underlying unordered summation. Concretely, the archived proof of sum-ag-permutation-invariance is an induction whose only steps are splice-out and rearrange, built purely from the associative and commutative laws of (MUL m); it never forms an inverse. Commutativity is precisely what IS-COMM-MONOID supplies, so that proof transfers verbatim.  (Candidate to discharge into a formal `proof&#x27; by reinstating the archived script over a monoid.)</p>
@@ -522,7 +522,7 @@
 <p><em>Warrant (well-known):</em> Every member of POWER(X) omits k (k not in X); every member of the image contains k.  Hence the two halves of power-insert-cover are disjoint.</p>
 <h4 id="p-prod-of-sums-expansion">prod-of-sums-expansion</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([a in fun(x, carr(r)), b in fun(x, carr(r))], prod-ring(r, vnb-lambda(k, (add(r))(a(k), b(k))), x) = finsum(commutative-ring-additive-ag(r), vnb-lambda(s, (mul(r))(prod-ring(r, a, s), prod-ring(r, b, difference(x, s)))), power(x)))))</pre>
-<p><em>Warrant (well-known):</em> Expand each binomial factor and collect: choosing a(k) or b(k) at each k in X corresponds to a subset S (the k&#x27;s where a was chosen), contributing prod_S a * prod_{X\S} b; summing over all 2^|X| choices gives the result (commutativity makes the regrouping valid).  Formal route: induction on |X| via finite-set-induction.  Base |X|=0: prod-ring-empty gives 1, and POWER (EMPTY-SET)={EMPTY-SET} contributes ONE*ONE=1.  Step X u {k0}: prod-ring- insert factors out (a(k0)+b(k0)), ring-left-dist splits it, and power- insert-cover / power-insert-disjoint reindex POWER(X u {k0}) into the subsets containing vs avoiding k0 -- matching the two distributed sums.</p>
+<p><em>Warrant (well-known):</em> Expand each binomial factor and collect: choosing a(k) or b(k) at each k in X corresponds to a subset S (the k&#x27;s where a was chosen), contributing prod_S a * prod_{X\S} b; summing over all 2^|X| choices gives the result (commutativity makes the regrouping valid).  Formal route: induction on |X| via finite-set-induction.  Base |X|=0: prod-ring-empty gives 1, and POWER (EMPTY-SET)={EMPTY-SET} contributes ONE*ONE=1.  Step X u {k0}: prod-ring- insert factors out (a(k0)+b(k0)), ring-left-dist splits it, and power- insert-cover / power-insert-disjoint reindex POWER(PTS u {k0}) into the subsets containing vs avoiding k0 -- matching the two distributed sums.</p>
 <h4 id="p-strictly-mono-ge-id">strictly-mono-ge-id</h4>
 <pre>forall([phi], strictly-mono-nn(phi) implies forall([k in nn], k &lt;= phi(k)))</pre>
 <p><em>Warrant (proof):</em> NN-induction on k.  k=0: 0 &lt;= phi(0) (NN is nonnegative).  k -&gt; succ k: phi(k) &gt;= k (IH) and phi(succ k) &gt; phi(k) (strict monotonicity at k &lt; succ k), so phi(succ k) &gt; k, i.e. phi(succ k) &gt;= succ k on NN.  Standard.</p>
@@ -541,8 +541,8 @@
 <p><em>Warrant (reference):</em> Single pigeonhole step of sequential compactness (calculus.pdf Prop 3.31): finite eps/2-net (TOTALLY-BOUNDED) + classifier pi:NN-&gt;F (choice) + pigeonhole-infinite (infinite fibre I) + nn-enum-spec (strictly monotone phi enumerating I) + ball-2r-triangle (two terms in one eps/2-ball are &lt;= eps apart).  Every cited piece is already PSS; the recursion-free core that block-family iterates.  Stated warranted during library-build; the forward assembly is the proof target.</p>
 <h4 id="p-tb-rad-ball-cover">tb-rad-ball-cover</h4>
 <pre>forall([s], totally-bounded(s) implies forall([rad], forall([k in nn], pos-rr(rad(k))) implies pts(s) in set and forsome([cov], forall([k in nn], is-finite-cover(cov(k), pts(s))) and forall([k in nn, u in cov(k)], forsome([c in pts(s)], u = ball(s, c, rad(k)))))))</pre>
-<p><em>In words:</em> For a totally bounded space s and a pointwise-positive radius sequence rad: the carrier X(s) is a set, and there is a sequence cov of finite covers of X(s) in which every member of cov(k) is a ball of radius rad(k) about some centre in X(s).  The bridge turning total boundedness into the finite-cover input the combinatorial block recursion consumes.</p>
-<p><em>Warrant (reference):</em> cov(k) := IMAGE(c |-&gt; BALL(s,c,rad k), F_k), F_k a finite rad(k)-net (TOTALLY-BOUNDED at rad k &gt; 0; CHOICE picks one per k).  (i) cov(k) is a finite cover of X(s): image of the finite F_k is finite, and IS-R-NET makes every p in X(s) lie within rad(k) of some c in F_k, i.e. p in BALL(s,c,rad k) in cov(k) (IS-R-NET uses d&lt;r, matching the open ball, so the balls truly cover).  (ii) every member is by construction BALL(s,c,rad k) with c in F_k subset X(s) (centres in X(s) by D(s) typing).  Also hands back (X s) in SET (free from IS-METRIC-SPACE s), the set V the combinatorial engine needs. The metric content total boundedness contributes to block-family, isolated in one bridge -- see calculus/cauchy-subseq-via-combinatorial.scm.</p>
+<p><em>In words:</em> For a totally bounded space s and a pointwise-positive radius sequence rad: the carrier PTS(s) is a set, and there is a sequence cov of finite covers of PTS(s) in which every member of cov(k) is a ball of radius rad(k) about some centre in PTS(s).  The bridge turning total boundedness into the finite-cover input the combinatorial block recursion consumes.</p>
+<p><em>Warrant (reference):</em> cov(k) := IMAGE(c |-&gt; BALL(s,c,rad k), F_k), F_k a finite rad(k)-net (TOTALLY-BOUNDED at rad k &gt; 0; CHOICE picks one per k).  (i) cov(k) is a finite cover of PTS(s): image of the finite F_k is finite, and IS-R-NET makes every p in PTS(s) lie within rad(k) of some c in F_k, i.e. p in BALL(s,c,rad k) in cov(k) (IS-R-NET uses d&lt;r, matching the open ball, so the balls truly cover).  (ii) every member is by construction BALL(s,c,rad k) with c in F_k subset PTS(s) (centres in PTS(s) by DIST(s) typing).  Also hands back (PTS s) in SET (free from IS-METRIC-SPACE s), the set V the combinatorial engine needs. The metric content total boundedness contributes to block-family, isolated in one bridge -- see calculus/cauchy-subseq-via-combinatorial.scm.</p>
 <h4 id="p-well-ordering-principle">well-ordering-principle</h4>
 <pre>forall([s in set], forsome([phi], phi in bijection(ord-segment(card(s)), s)))</pre>
 <p><em>Warrant (well-known):</em> Every set is in bijection with the ordinal segment of its cardinal -- i.e. every set can be enumerated by an ordinal.  The classical well-ordering theorem, equivalent to the axiom of choice, which VNB carries as a global operator; too expensive to mechanize and not in active doubt.  This is the canonical PSS member named in the source.</p>
@@ -829,10 +829,10 @@
 <p><em>Warrant (proof):</em> If I = {0} take b = 0, since (0) = {0} = I.  Otherwise the set of degrees { deg(x) : x in I, x /= 0 } is a nonempty subset of NN, so by nn-least-element it has a least element, attained at some nonzero b in I.  For any a in I, Euclidean division gives a = q.b + r with r = 0 or deg(r) &lt; deg(b).  Then r = a - q.b lies in I (a in I, q.b in I by absorption, I closed under subtraction).  If r /= 0 its degree would be &lt; deg(b), contradicting minimality; so r = 0 and a = q.b is in (b).</p>
 <h4 id="p-euclidean-ring-has-gauge">euclidean-ring-has-gauge</h4>
 <pre>forall([s], is-euclidean-ring(s) implies forsome([deg in fun(carr(s), nn)], has-div-remainder(s, deg)))</pre>
-<p><em>Warrant (well-known):</em> The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a degree function deg : A(s) -&gt; NN with division-with-remainder (HAS-DIV- REMAINDER s deg).  Definitional once HAS-DIV-REMAINDER names the clause.</p>
+<p><em>Warrant (well-known):</em> The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a degree function deg : CARR(s) -&gt; NN with division-with-remainder (HAS-DIV- REMAINDER s deg).  Definitional once HAS-DIV-REMAINDER names the clause.</p>
 <h4 id="p-finsum-add">finsum-add</h4>
 <pre>forall([m], is-comm-monoid(m) implies forall([s], s in set and card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s) = (mul(m))(finsum(m, f, s), finsum(m, h, s)))))</pre>
-<p><em>Warrant (well-known):</em> Induction on |S| via finsum-insert: base is (E m)<em>(E m)=(E m) (finsum-empty); step folds in one z0, regrouping (a</em>b)<em>(c</em>d)=(a<em>c)</em>(b*d) by the commutativity and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies (no inverses used).  Holds for every commutative-monoid-valued finite sum.</p>
+<p><em>Warrant (well-known):</em> Induction on |S| via finsum-insert: base is (ID m)<em>(ID m)=(ID m) (finsum-empty); step folds in one z0, regrouping (a</em>b)<em>(c</em>d)=(a<em>c)</em>(b*d) by the commutativity and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies (no inverses used).  Holds for every commutative-monoid-valued finite sum.</p>
 <h4 id="p-finsum-insert">finsum-insert</h4>
 <pre>forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (mul(m))(finsum(m, f, x), f(k))))))</pre>
 <p><em>Warrant (well-known):</em> Enumerate X then append k last (INSERT-LAST, finsum.scm): a bijection ORD-SEGMENT(|X|+1) -&gt; X u {k} placing k at index |X|, so SUM-AG peels f(k) as the final fold step (sum-ag-succ) on top of FINSUM over X.  Independence of the chosen enumeration is finsum-comm-monoid-well-defined.  Uses no inverses, hence holds over a bare commutative monoid.  (Candidate to discharge into a `proof&#x27; once insert-last-is-bijection is finished -- groundwork in scratch-fs3.scm.)</p>
@@ -844,10 +844,10 @@
 <p><em>Warrant (well-known):</em> c.a is the c-fold additive multiple of a (zz-act); ring left-distributivity pushes r through each summand, so r<em>(c.a)=c.(r</em>a).  Sign cases via zz-act-neg.  Ring multiplication is ZZ-bilinear.</p>
 <h4 id="p-gauge-is-degree">gauge-is-degree</h4>
 <pre>forall([s], is-euclidean-ring(s) implies gauge(s) in fun(carr(s), nn) and has-div-remainder(s, gauge(s)))</pre>
-<p><em>Warrant (proof):</em> GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(A s, NN) and has division- with-remainder: IS-EUCLIDEAN-RING(s) makes EUCLIDEAN-GAUGES(s) inhabited (euclidean-ring-has-gauge + gauges-mem-build), so the epsilon pick lands in it (choice-axiom) and the SEP slices give both conjuncts.  MACHINE-PROVEN in calculus/gauge-proof.scm.</p>
+<p><em>Warrant (proof):</em> GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(CARR s, NN) and has division- with-remainder: IS-EUCLIDEAN-RING(s) makes EUCLIDEAN-GAUGES(s) inhabited (euclidean-ring-has-gauge + gauges-mem-build), so the epsilon pick lands in it (choice-axiom) and the SEP slices give both conjuncts.  MACHINE-PROVEN in calculus/gauge-proof.scm.</p>
 <h4 id="p-ideal-elt-in-carrier">ideal-elt-in-carrier</h4>
 <pre>forall([s, i, x], is-ideal(s, i) implies x in i implies x in carr(s))</pre>
-<p><em>Warrant (proof):</em> IS-IDEAL(s,I) has SUBSET I (A s) as a conjunct; apply subset-def at x.</p>
+<p><em>Warrant (proof):</em> IS-IDEAL(s,I) has SUBSET I (CARR s) as a conjunct; apply subset-def at x.</p>
 <h4 id="p-principal-ideal-in-ideal">principal-ideal-in-ideal</h4>
 <pre>forall([s, i, b], is-ideal(s, i) implies b in i implies forall([x in principal-ideal(s, b)], x in i))</pre>
 <p><em>Warrant (proof):</em> x in (b) gives x = r.b for some r in A (principal-ideal-membership); IS-IDEAL&#x27;s multiplicative-absorption conjunct then puts r.b in I.</p>
@@ -856,7 +856,7 @@
 <p><em>Warrant (informal):</em> finsum-insert specialized to R&#x27;s multiplicative commutative monoid (COMMUTATIVE-RING-MULTIPLICATIVE-CM R), whose MUL is (MUL R) and whose FINSUM is PROD-RING.  prod_{X u {k}} = (prod_X) * f(k).</p>
 <h4 id="p-ring-power-add">ring-power-add</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([x in carr(r), j in nn, k in nn], ring-power(r, x, j + k) = (mul(r))(ring-power(r, x, j), ring-power(r, x, k))))</pre>
-<p><em>Warrant (informal):</em> mpow-add: n|-&gt;x^n is a monoid hom (NN,+,0)-&gt;((A R),(MUL R),(ONE R)).  NN induction on k; no commutativity used.</p>
+<p><em>Warrant (informal):</em> mpow-add: n|-&gt;x^n is a monoid hom (NN,+,0)-&gt;((CARR R),(MUL R),(ONE R)).  NN induction on k; no commutativity used.</p>
 <h4 id="p-ring-power-mult">ring-power-mult</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([x in carr(r), y in carr(r), n in nn], ring-power(r, (mul(r))(x, y), n) = (mul(r))(ring-power(r, x, n), ring-power(r, y, n))))</pre>
 <p><em>Warrant (informal):</em> mpow-mult on COMMUTATIVE-RING-MULTIPLICATIVE-CM(R); commutativity of (MUL R) is exactly IS-COMMUTATIVE-RING(R).</p>
@@ -868,7 +868,7 @@
 <p><em>Warrant (informal):</em> succ n = n + 1; ring-power-add gives x^(n+1) = x^n * x^1 and ring-power-one gives x^1 = x.  Successor restatement so the macete fires on `succ&#x27;.</p>
 <h4 id="p-ring-power-zero">ring-power-zero</h4>
 <pre>forall([r, x], ring-power(r, x, 0) == one(r))</pre>
-<p><em>Warrant (informal):</em> mpow-zero: MPOW(m,x,0)=E(m); the view&#x27;s E|-&gt;ONE slot gives E(COMMUTATIVE-RING-MULTIPLICATIVE-CM R)=(ONE R).</p>
+<p><em>Warrant (informal):</em> mpow-zero: MPOW(m,x,0)=ID(m); the view&#x27;s E|-&gt;ONE slot gives ID(COMMUTATIVE-RING-MULTIPLICATIVE-CM R)=(ONE R).</p>
 <h4 id="p-rpow-add">rpow-add</h4>
 <pre>forall([a], a in rr and 0 &lt; a implies forall([b in qq, d in qq], rpow(a, b + d) = rpow(a, b) * rpow(a, d)))</pre>
 <p><em>Warrant (well-known):</em> a^(b+d) = a^b * a^d, the defining homomorphism QQ -&gt; (RR&gt;0, *) of x |-&gt; a^x.</p>
@@ -923,22 +923,22 @@
 <p><em>Warrant (proof):</em> metric-self-zero gives d(s)(x,x)=0, so 0&lt;=r and 0!=r (r&gt;0) put x into the SEP; ball-membership then gives x in BALL(s,x,r).</p>
 <h4 id="p-ball-cover-is-open-cover">ball-cover-is-open-cover</h4>
 <pre>forall([s], is-metric-space(s) implies forall([r], r in rr and 0 &lt;= r and not(0 = r) implies is-open-cover(s, ball-cover(s, r))))</pre>
-<p><em>Warrant (well-known):</em> The r-ball cover { B(x,r) : x in X(s) } is an open cover for r &gt; 0: each ball is open (ball-is-open), and the union is all of X(s) because every point x lies in its own ball B(x,r) (d(x,x)=0 &lt; r).</p>
+<p><em>Warrant (well-known):</em> The r-ball cover { B(x,r) : x in PTS(s) } is an open cover for r &gt; 0: each ball is open (ball-is-open), and the union is all of PTS(s) because every point x lies in its own ball B(x,r) (d(x,x)=0 &lt; r).</p>
 <h4 id="p-ball-is-open">ball-is-open</h4>
 <pre>forall([s], is-metric-space(s) implies forall([x in pts(s), r], r in rr and 0 &lt;= r and not(0 = r) implies is-open(s, ball(s, x, r))))</pre>
-<p><em>Warrant (proof):</em> For y in BALL(s,x,r) the slack t = r - D(s)(x,y) is &gt; 0 (ball-membership); the triangle inequality (metric-triangle) gives BALL(s,y,t) subset BALL(s,x,r), so y is interior. Hence BALL(s,x,r) is open.</p>
+<p><em>Warrant (proof):</em> For y in BALL(s,x,r) the slack t = r - DIST(s)(x,y) is &gt; 0 (ball-membership); the triangle inequality (metric-triangle) gives BALL(s,y,t) subset BALL(s,x,r), so y is interior. Hence BALL(s,x,r) is open.</p>
 <h4 id="p-ball-mem-from-le">ball-mem-from-le</h4>
 <pre>forall([s], is-metric-space(s) implies forall([x, y, d, r], y in pts(s) and d in rr and r in rr and (dist(s))(x, y) &lt;= d and d &lt; r implies y in ball(s, x, r)))</pre>
-<p><em>Warrant (proof):</em> d(x,y) &lt;= d and d &lt;= r (from d &lt; r) give d(x,y) &lt;= r by rr-leq-transitive. And d(x,y) = r would give r &lt;= d (substituting into d(x,y) &lt;= d), contradicting d &lt; r by rr-leq-antisymmetric; so d(x,y) != r. With y in X(s), ball-membership yields y in BALL(s,x,r).</p>
+<p><em>Warrant (proof):</em> d(x,y) &lt;= d and d &lt;= r (from d &lt; r) give d(x,y) &lt;= r by rr-leq-transitive. And d(x,y) = r would give r &lt;= d (substituting into d(x,y) &lt;= d), contradicting d &lt; r by rr-leq-antisymmetric; so d(x,y) != r. With y in PTS(s), ball-membership yields y in BALL(s,x,r).</p>
 <h4 id="p-carrier-is-open">carrier-is-open</h4>
 <pre>forall([s], is-metric-space(s) implies is-open(s, pts(s)))</pre>
-<p><em>Warrant (proof):</em> SUBSET(X(s),X(s)) is reflexivity; at each point pick any r &gt; 0, and BALL(s,y,r) subset X(s) (a SEP over X(s), via the kernel sep rule).</p>
+<p><em>Warrant (proof):</em> SUBSET(PTS(s),PTS(s)) is reflexivity; at each point pick any r &gt; 0, and BALL(s,y,r) subset PTS(s) (a SEP over PTS(s), via the kernel sep rule).</p>
 <h4 id="p-ccint-membership">ccint-membership</h4>
 <pre>forall([a, b, x], x in ccint(a, b) iff x in rr and a &lt;= x and x &lt;= b)</pre>
 <p><em>Warrant (proof):</em> Separation: x in CCINT(a,b) = SEP(x in RR | a&lt;=x and x&lt;=b) iff x in RR and a&lt;=x and x&lt;=b, by the SEP membership kernel rule.</p>
 <h4 id="p-closed-preimage-implies-continuous">closed-preimage-implies-continuous</h4>
 <pre>forall([s, t, f], is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) implies forall([a], is-closed(t, a) implies is-closed(s, preimage(s, f, a))) implies is-continuous(s, t, f))</pre>
-<p><em>Warrant (proof):</em> Complement flip of open-preimage-implies-continuous: given an open V subset X(t), X(t)\V is closed, so by hypothesis PREIMAGE(s,f,X(t)\V) = X(s)\PREIMAGE(s,f,V) (preimage-complement) is closed, i.e. its complement PREIMAGE(s,f,V) is open. Every open set pulls back open, so f is continuous (open-preimage-implies-continuous).</p>
+<p><em>Warrant (proof):</em> Complement flip of open-preimage-implies-continuous: given an open V subset PTS(t), PTS(t)\V is closed, so by hypothesis PREIMAGE(s,f,PTS(t)\V) = PTS(s)\PREIMAGE(s,f,V) (preimage-complement) is closed, i.e. its complement PREIMAGE(s,f,V) is open. Every open set pulls back open, so f is continuous (open-preimage-implies-continuous).</p>
 <h4 id="p-compact-iff-seq-compact">compact-iff-seq-compact</h4>
 <pre>forall([s], is-metric-space(s) implies is-compact(s) iff seq-compact(s))</pre>
 <p><em>Warrant (reference):</em> calculus.pdf Prop 3.12 (1)&lt;=&gt;(3): a metric space is compact iff it is sequentially compact.  A cluster point of a sequence is exactly the limit of a convergent subsequence (CLUSTER-POINT s f x iff some strictly-mono phi has SUBSEQ(f,phi) -&gt; x), so this is compact-iff-cluster-point restated with convergent subsequences in place of cluster points.</p>
@@ -956,28 +956,28 @@
 <p><em>Warrant (well-known):</em> Composition of continuous: given eps, the g-at-f(a) delta feeds the f-at-a delta; (g o f)(x) = g(f(x)) stays within eps of g(f(a)).</p>
 <h4 id="p-continuous-implies-closed-preimage">continuous-implies-closed-preimage</h4>
 <pre>forall([s, t, f], is-continuous(s, t, f) implies forall([a], is-closed(t, a) implies is-closed(s, preimage(s, f, a))))</pre>
-<p><em>Warrant (proof):</em> A closed means X(t)\A open; continuity (continuous-implies-open-preimage) makes PREIMAGE(s,f,X(t)\A) open; preimage-complement rewrites it to X(s)\PREIMAGE(s,f,A). PREIMAGE(s,f,A) subset X(s) (its SEP), so its complement being open is exactly IS-CLOSED(s, PREIMAGE(s,f,A)).</p>
+<p><em>Warrant (proof):</em> A closed means PTS(t)\A open; continuity (continuous-implies-open-preimage) makes PREIMAGE(s,f,PTS(t)\A) open; preimage-complement rewrites it to PTS(s)\PREIMAGE(s,f,A). PREIMAGE(s,f,A) subset PTS(s) (its SEP), so its complement being open is exactly IS-CLOSED(s, PREIMAGE(s,f,A)).</p>
 <h4 id="p-continuous-implies-open-preimage">continuous-implies-open-preimage</h4>
 <pre>forall([s, t, f], is-continuous(s, t, f) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))))</pre>
-<p><em>Warrant (proof):</em> MACHINE-PROVEN in calculus/prop-3-15-proof.scm (qed; proven modulo {rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at}; the PREIMAGE-subset-X(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half&lt;eps (rr-pos-shrink); continuity at a for half gives delta&gt;0 with d(s)(a,z)&lt;=delta =&gt; d(t)(f a,f z)&lt;=half&lt;eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.</p>
+<p><em>Warrant (proof):</em> MACHINE-PROVEN in calculus/prop-3-15-proof.scm (qed; proven modulo {rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at}; the PREIMAGE-subset-PTS(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half&lt;eps (rr-pos-shrink); continuity at a for half gives delta&gt;0 with d(s)(a,z)&lt;=delta =&gt; d(t)(f a,f z)&lt;=half&lt;eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.</p>
 <h4 id="p-continuous-is-continuous-at">continuous-is-continuous-at</h4>
 <pre>forall([s, t, f], is-continuous(s, t, f) implies forall([a in pts(s)], is-continuous-at(s, t, f, a)))</pre>
 <p><em>Warrant (informal):</em> A globally continuous map is continuous at every point.  IS-CONTINUOUS(f) is the metric IS-HOM condition stated over the whole space; specializing it at a fixed a in x(s) yields exactly continuity-at-a.  The pointwise notion is the global one localized.</p>
 <h4 id="p-empty-is-open">empty-is-open</h4>
 <pre>forall([s], is-metric-space(s) implies is-open(s, empty-set))</pre>
-<p><em>Warrant (proof):</em> EMPTY-SET subset X(s) holds vacuously and the point-quantifier in IS-OPEN ranges over no points; unfold IS-OPEN and discharge both conjuncts.</p>
+<p><em>Warrant (proof):</em> EMPTY-SET subset PTS(s) holds vacuously and the point-quantifier in IS-OPEN ranges over no points; unfold IS-OPEN and discharge both conjuncts.</p>
 <h4 id="p-inter-of-opens-open">inter-of-opens-open</h4>
 <pre>forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))</pre>
 <p><em>Warrant (proof):</em> At a point y in U cap W, openness gives balls of radii r_U, r_W inside U, W respectively; the ball of radius min(r_U,r_W) lies in both, hence in the intersection.</p>
 <h4 id="p-open-preimage-implies-continuous">open-preimage-implies-continuous</h4>
 <pre>forall([s, t, f], is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))) implies is-continuous(s, t, f))</pre>
-<p><em>Warrant (proof):</em> Fix a in X(s) and eps &gt; 0. The ball V = B(t,f(a),eps) is open (ball-is-open), so PREIMAGE(s,f,V) is open by hypothesis and contains a (f(a) in V via metric-self-zero). Openness yields delta &gt; 0 with B(s,a,delta) subset PREIMAGE(s,f,V), i.e. f maps the delta-ball into the eps-ball. Hence IS-CONTINUOUS-AT at every a, so IS-CONTINUOUS.</p>
+<p><em>Warrant (proof):</em> Fix a in PTS(s) and eps &gt; 0. The ball V = B(t,f(a),eps) is open (ball-is-open), so PREIMAGE(s,f,V) is open by hypothesis and contains a (f(a) in V via metric-self-zero). Openness yields delta &gt; 0 with B(s,a,delta) subset PREIMAGE(s,f,V), i.e. f maps the delta-ball into the eps-ball. Hence IS-CONTINUOUS-AT at every a, so IS-CONTINUOUS.</p>
 <h4 id="p-preimage-complement">preimage-complement</h4>
 <pre>forall([s, t, f, u], is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) implies preimage(s, f, complement-in(pts(t), u)) = complement-in(pts(s), preimage(s, f, u)))</pre>
-<p><em>Warrant (proof):</em> Both sides are subsets of X(s), so set-extensionality applies. For a in X(s): a in LHS iff f(a) in X(t)\U iff f(a) in X(t) and not f(a) in U (complement-in-membership); f(a) in X(t) holds by fun-apply-type, so LHS-membership is <code>not f(a) in U</code>. a in RHS iff a in X(s) and not (a in X(s) and f(a) in U) (complement-in / preimage-membership), i.e. <code>not f(a) in U</code>. The two coincide.</p>
+<p><em>Warrant (proof):</em> Both sides are subsets of PTS(s), so set-extensionality applies. For a in PTS(s): a in LHS iff f(a) in PTS(t)\U iff f(a) in PTS(t) and not f(a) in U (complement-in-membership); f(a) in PTS(t) holds by fun-apply-type, so LHS-membership is <code>not f(a) in U</code>. a in RHS iff a in PTS(s) and not (a in PTS(s) and f(a) in U) (complement-in / preimage-membership), i.e. <code>not f(a) in U</code>. The two coincide.</p>
 <h4 id="p-seq-compact-countable-product">seq-compact-countable-product</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies seq-compact(product-metric(ms)))</pre>
-<p><em>Warrant (reference):</em> Given a sequence seq in the product carrier (= X(PRODUCT-METRIC ms), by product-metric-carrier), coordinatewise-diagonal-subseq yields a strictly monotone delta and L in PRODUCT-CARRIER(ms) with SUBSEQ(seq,delta) converging in every coordinate to L(n).  product-convergence-coordinatewise -- at the default summable weights (product-metric-default-summable) -- turns coordinatewise convergence into CONVERGES-TO(PRODUCT-METRIC ms, SUBSEQ(seq,delta), L).  So every product sequence has a convergent subsequence: PRODUCT-METRIC(ms) is sequentially compact.</p>
+<p><em>Warrant (reference):</em> Given a sequence seq in the product carrier (= PTS(PRODUCT-METRIC ms), by product-metric-carrier), coordinatewise-diagonal-subseq yields a strictly monotone delta and L in PRODUCT-CARRIER(ms) with SUBSEQ(seq,delta) converging in every coordinate to L(n).  product-convergence-coordinatewise -- at the default summable weights (product-metric-default-summable) -- turns coordinatewise convergence into CONVERGES-TO(PRODUCT-METRIC ms, SUBSEQ(seq,delta), L).  So every product sequence has a convergent subsequence: PRODUCT-METRIC(ms) is sequentially compact.</p>
 <h4 id="p-uniformly-continuous-is-continuous">uniformly-continuous-is-continuous</h4>
 <pre>forall([s, t, f], is-uniformly-continuous(s, t, f) implies is-continuous(s, t, f))</pre>
 <p><em>Warrant (informal):</em> Uniform continuity implies continuity.  The uniform delta -- one delta per epsilon, good at every point -- serves as the pointwise delta at each point, so IS-UNIFORMLY-CONTINUOUS entails IS-CONTINUOUS by forgetting uniformity.</p>
@@ -1005,13 +1005,13 @@
 <p><em>Warrant (well-known):</em> Carrier QUOTIENT(CAUCHY-SETOID(M)) is a set (quotient-is-set, setoid.scm). COMPLETION-DIST descends the real limit of d(f_n,g_n) through both class arguments: well-defined (the limit exists -- DIST-SEQ is Cauchy in the complete RR -- and is independent of representatives by null distance), and it inherits the metric laws from d -- nonnegativity and symmetry pointwise then in the limit; the triangle inequality in the limit; and d-hat([f],[g])=0 iff d(f_n,g_n)-&gt;0 iff [f]=[g] (separation of points).</p>
 <h4 id="p-embed-in-fun">embed-in-fun</h4>
 <pre>forall([m], is-metric-space(m) implies embed(m) in fun(pts(m), pts(completion(m))))</pre>
-<p><em>Warrant (well-known):</em> The constant sequence at u is Cauchy (d(u,u)=0 &lt; eps for all n), so it lies in CSEQ(M) and its class lies in QUOTIENT(CAUCHY-SETOID(M)) = X(COMPLETION M) (class-in-quotient).  EMBED(M) is total on X(M).</p>
+<p><em>Warrant (well-known):</em> The constant sequence at u is Cauchy (d(u,u)=0 &lt; eps for all n), so it lies in CSEQ(M) and its class lies in QUOTIENT(CAUCHY-SETOID(M)) = PTS(COMPLETION M) (class-in-quotient).  EMBED(M) is total on PTS(M).</p>
 <h4 id="p-embed-isometry">embed-isometry</h4>
 <pre>forall([m], is-metric-space(m) implies forall([u in pts(m), v in pts(m)], (dist(completion(m)))(embed(m, u), embed(m, v)) = (dist(m))(u, v)))</pre>
 <p><em>Warrant (well-known):</em> For constant sequences the real distance sequence n |-&gt; d(u,v) is constant, so its limit is d(u,v) itself.  Hence d-hat([const u],[const v]) = d(u,v), exactly the isometry condition; EMBED is an isometric (in particular injective) embedding of M into COMPLETION(M).</p>
 <h4 id="p-nag-metric-distance">nag-metric-distance</h4>
 <pre>forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (dist(nag-metric-space(nag)))(u, v) = (nrm(nag))((mul(nag))(u, (inv(nag))(v)))))</pre>
-<p><em>Warrant (informal):</em> By functoid-beta NAG-METRIC-SPACE(nag) = [A(nag), lambda([u,v], NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce) and lambda-beta evaluates it at (u,v), giving NRM(nag)(MUL(nag)(u, INV(nag) v)) = ||u . v^-1||.</p>
+<p><em>Warrant (informal):</em> By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), lambda([u,v], NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce) and lambda-beta evaluates it at (u,v), giving NRM(nag)(MUL(nag)(u, INV(nag) v)) = ||u . v^-1||.</p>
 <h4 id="p-nag-metric-space-is-metric-space">nag-metric-space-is-metric-space</h4>
 <pre>forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))</pre>
 <p><em>Warrant (informal):</em> The four is-metric clauses for d(u,v) = ||u . v^-1|| follow from is-group-norm plus the abelian-group laws: nonnegativity (norm &gt;= 0); point-separation (d(u,v)=0 iff u.v^-1=E iff u=v, by norm definiteness); symmetry (v.u^-1 = (u.v^-1)^-1, so equal norm by inverse-invariance); triangle (u.w^-1 = (u.v^-1).(v.w^-1), so ||u.w^-1|| &lt;= ||u.v^-1|| + ||v.w^-1|| by subadditivity).</p>
@@ -1029,7 +1029,7 @@
 <p><em>Warrant (well-known):</em> The default weights w(n)=2^-(n+1) are a summable positive sequence (geometric, SUM = 1), so PRODUCT-METRIC(ms)=PRODUCT-METRIC-W(ms,2^-(n+1)) is a bounded metric (diameter &lt;= 1) realising the product topology.</p>
 <h4 id="p-product-projection-continuous">product-projection-continuous</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([n in nn], is-continuous(product-metric-w(ms, w), ms(n), product-proj(ms, n)))))</pre>
-<p><em>Warrant (well-known):</em> Each projection pi_n(x)=x(n) is continuous P -&gt; X(ms n): w(n)*rho_n(x(n),y(n)) &lt;= D_w(x,y), and rho_n is topologically equivalent to d_n, so small product distance forces small d_n-distance in coordinate n.</p>
+<p><em>Warrant (well-known):</em> Each projection pi_n(x)=x(n) is continuous P -&gt; PTS(ms n): w(n)*rho_n(x(n),y(n)) &lt;= D_w(x,y), and rho_n is topologically equivalent to d_n, so small product distance forces small d_n-distance in coordinate n.</p>
 <h4 id="p-product-weighted-summable">product-weighted-summable</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([x in product-carrier(ms), y in product-carrier(ms)], series-converges(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n)))))))</pre>
 <p><em>Warrant (well-known):</em> The series defining D_w converges: 0 &lt;= w(n)*rho_n &lt; w(n) since the bounded metric rho_n &lt; 1 (bdd-metric-bounded), so termwise it is dominated by the summable weight series SUM w(n); comparison test gives convergence.  Hence the IOTA limit in PRODUCT-METRIC-W is well-defined.</p>
@@ -1051,7 +1051,7 @@
 <p><em>Warrant (well-known):</em> CREL(M) subset CARTESIAN(CSEQ,CSEQ) by construction, and null distance is an equivalence relation on Cauchy sequences: REFLEXIVE since d(f_n,f_n)=0 -&gt; 0; SYMMETRIC since d is symmetric, so d(f_n,g_n) and d(g_n,f_n) are the same real sequence; TRANSITIVE since d(f_n,h_n) &lt;= d(f_n,g_n)+d(g_n,h_n) (triangle), and a sum of two null real sequences is null.  So IS-SETOID (the is-equivalence property folded into it) holds.</p>
 <h4 id="p-class-disjoint">class-disjoint</h4>
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) or intersection(class(s, a), class(s, b)) = empty-set))</pre>
-<p><em>Warrant (well-known):</em> If [a],[b] share a c then a~c and b~c, so a~b (transitivity+symmetry) and [a]=[b] by class-eq-iff.  Contrapositive: distinct classes meet emptily. Together with class-self (cover) this is `QUOTIENT(s) partitions X(s)&#x27;.</p>
+<p><em>Warrant (well-known):</em> If [a],[b] share a c then a~c and b~c, so a~b (transitivity+symmetry) and [a]=[b] by class-eq-iff.  Contrapositive: distinct classes meet emptily. Together with class-self (cover) this is `QUOTIENT(s) partitions PTS(s)&#x27;.</p>
 <h4 id="p-class-eq-iff">class-eq-iff</h4>
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) iff related(s, a, b)))</pre>
 <p><em>Warrant (well-known):</em> (&lt;=) a~b: for any c, b~c iff a~c by transitivity+symmetry, so the two separations have the same members; set-extensionality gives [a]=[b]. (=&gt;) [a]=[b]: a in [a]=[b] (class-self) means a~b.  Uses exactly the three equivalence laws folded into IS-SETOID.</p>
@@ -1060,10 +1060,10 @@
 <p><em>Warrant (well-known):</em> Lambda-beta: DESCEND(f)([a]) = IOTA z. exists a&#x27; in [a]. z = f(a&#x27;).  Since a in [a] (class-self), f(a) satisfies the body.  For uniqueness: any a&#x27; in [a] has a~a&#x27;, so f(a&#x27;)=f(a) by RESPECTS; the body pins z = f(a) uniquely, and IOTA returns it.  Representation-independent -- the value never depends on which member is named.</p>
 <h4 id="p-descend-in-fun">descend-in-fun</h4>
 <pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(f) in fun(quotient(s), z)))</pre>
-<p><em>Warrant (well-known):</em> Every element of QUOTIENT(s) is some [a] with a in X(s) (it is the image of PROJ); on it DESCEND(f) returns f(a) in Z (descend-computes), well-defined by RESPECTS.  So DESCEND(f) is total QUOTIENT(s) -&gt; Z.</p>
+<p><em>Warrant (well-known):</em> Every element of QUOTIENT(s) is some [a] with a in PTS(s) (it is the image of PROJ); on it DESCEND(f) returns f(a) in Z (descend-computes), well-defined by RESPECTS.  So DESCEND(f) is total QUOTIENT(s) -&gt; Z.</p>
 <h4 id="p-quotient-universal">quotient-universal</h4>
 <pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forsome([g in fun(quotient(s), z)], forall([a in pts(s)], g(class(s, a)) = f(a)) and forall([g_], g_ in fun(quotient(s), z) and forall([a in pts(s)], g_(class(s, a)) = f(a)) implies g_ = g))))</pre>
-<p><em>In words:</em> For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient X(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.</p>
+<p><em>In words:</em> For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient PTS(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.</p>
 <p><em>Warrant (well-known):</em> EXISTENCE: take g = DESCEND(f); descend-in-fun types it and descend-computes gives the factorization g([a])=f(a).  UNIQUENESS: any g&#x27; factoring f agrees with g on every [a] (both equal f(a)); every element of QUOTIENT(s) is such an [a] (image of PROJ), so g&#x27; and g agree everywhere on QUOTIENT(s) and are equal by function extensionality.  This is what makes X |-&gt; X/REL a functor: the concrete quotient has the defining mapping property.  Capstone asserted with a faithful sketch over the installed CLASS/QUOTIENT/PROJ/DESCEND supports, in the prod-of-sums-expansion / binomial-theorem library style -- the machinery is the deliverable, the QED induction-free factorization argument is the deferred tactic grind, with no missing primitive.</p>
 <h3 id="PSS__uncategorized-12">Uncategorized  (12)</h3>
 <p>Not yet filed under a PSS category -- see <code>category!</code>.</p>

@@ -15,7 +15,7 @@
 ;;; (definite description), not CHOICE-of-representative: representation-
 ;;; independent by construction (project_representation_independence).
 ;;;
-;;; Accessor indices: X -> 1, REL -> 2.  REL is the relation as an extensional
+;;; Accessor indices: PTS -> 1, REL -> 2.  REL is the relation as an extensional
 ;;; SET (a subset of CARTESIAN(X,X)); `a ~ b' is (IN (LIST a b) (REL s)),
 ;;; sugared (RELATED s a b).  The slot is named REL, not R, to avoid the
 ;;; ubiquitous ring variable R and its case-fold (feedback_no_case_variant_binders).
@@ -47,7 +47,7 @@
 
 ;; The three equivalence laws (refl/sym/trans) and the typing REL subset
 ;; CARTESIAN(X,X) are NOT separate axioms: (property is-equivalence REL X)
-;; folds is-equivalence((REL s),(X s)) into IS-SETOID, so each is PROVEN
+;; folds is-equivalence((REL s),(PTS s)) into IS-SETOID, so each is PROVEN
 ;; modulo 0 by projecting that conjunct -- the metric-space.scm pattern.
 
 ;;; =======================================================================
@@ -62,18 +62,18 @@
 ;;; The quotient, concretely.
 ;;; =======================================================================
 
-;; CLASS(s,a) = { b in X(s) : a ~ b } -- the equivalence class of a.  A
-;; subset of X(s), hence a SET by separation (feedback_set_equality_not_class).
+;; CLASS(s,a) = { b in PTS(s) : a ~ b } -- the equivalence class of a.  A
+;; subset of PTS(s), hence a SET by separation (feedback_set_equality_not_class).
 ;; Param `a' (not `x'): the reader case-folds and `x' would BE the carrier
 ;; accessor X used in the body.
 (def-functoid 'CLASS '(s a)
   '(SEP b (PTS s) (RELATED s a b)))
 
-;; PROJ(s) = a |-> [a] -- the canonical projection X(s) -> X(s)/REL.
+;; PROJ(s) = a |-> [a] -- the canonical projection PTS(s) -> PTS(s)/REL.
 (def-functoid 'PROJ '(s)
   '(VNB-LAMBDA a (CLASS s a)))
 
-;; QUOTIENT(s) = X(s)/REL = the IMAGE of the class map = { [a] : a in X(s) }.
+;; QUOTIENT(s) = PTS(s)/REL = the IMAGE of the class map = { [a] : a in PTS(s) }.
 ;; The indexed/binder form (feedback_family_operations), not a loose POWER(X)
 ;; comprehension.
 (def-functoid 'QUOTIENT '(s)
@@ -89,24 +89,24 @@
      (FORALL a (IMPLIES (IN a (PTS s))
        (IN a (CLASS s a)))))))
 (warrant! 'class-self 'well-known
-  "Unfold CLASS: a in CLASS(s,a) iff a in X(s) and RELATED(s,a,a); the latter
+  "Unfold CLASS: a in CLASS(s,a) iff a in PTS(s) and RELATED(s,a,a); the latter
    is reflexivity of REL (the is-equivalence conjunct folded into IS-SETOID).")
 
-;; class-subset-carrier: [a] subset X(s).  (CLASS is a separation OF X(s).)
+;; class-subset-carrier: [a] subset PTS(s).  (CLASS is a separation OF PTS(s).)
 (support 'class-subset-carrier
   '(FORALL s (IMPLIES (IS-SETOID s)
      (FORALL a (IMPLIES (IN a (PTS s))
        (SUBSET (CLASS s a) (PTS s)))))))
 (warrant! 'class-subset-carrier 'well-known
-  "CLASS(s,a) = SEP(b, X(s), ...) is by construction a subset of X(s).")
+  "CLASS(s,a) = SEP(b, PTS(s), ...) is by construction a subset of PTS(s).")
 
-;; class-is-set: [a] is a set (subclass of the set X(s), by separation).
+;; class-is-set: [a] is a set (subclass of the set PTS(s), by separation).
 (support 'class-is-set
   '(FORALL s (IMPLIES (IS-SETOID s)
      (FORALL a (IMPLIES (IN a (PTS s))
        (IN (CLASS s a) SET))))))
 (warrant! 'class-is-set 'well-known
-  "A subclass of a set is a set (separation); CLASS(s,a) subset X(s) in SET.")
+  "A subclass of a set is a set (separation); CLASS(s,a) subset PTS(s) in SET.")
 
 ;; class-eq-iff: [a] = [b]  <=>  a ~ b.  THE fundamental fact -- equal classes
 ;; exactly captures the relation.  (=>) by class-self + symmetry; (<=) by
@@ -134,7 +134,7 @@
 (warrant! 'class-disjoint 'well-known
   "If [a],[b] share a c then a~c and b~c, so a~b (transitivity+symmetry) and
    [a]=[b] by class-eq-iff.  Contrapositive: distinct classes meet emptily.
-   Together with class-self (cover) this is `QUOTIENT(s) partitions X(s)'.")
+   Together with class-self (cover) this is `QUOTIENT(s) partitions PTS(s)'.")
 
 ;; class-in-quotient: [a] is a member of the quotient.  (PROJ lands in QUOTIENT.)
 (support 'class-in-quotient
@@ -142,25 +142,25 @@
      (FORALL a (IMPLIES (IN a (PTS s))
        (IN (CLASS s a) (QUOTIENT s)))))))
 (warrant! 'class-in-quotient 'well-known
-  "QUOTIENT(s) = IMAGE(PROJ(s), X(s)); a in X(s) witnesses [a]=PROJ(s)(a) as
+  "QUOTIENT(s) = IMAGE(PROJ(s), PTS(s)); a in PTS(s) witnesses [a]=PROJ(s)(a) as
    a member of the image (image-membership + lambda-beta on PROJ).")
 
-;; quotient-is-set: X(s)/REL is a set when X(s) is (IMAGE of a set is a set).
+;; quotient-is-set: PTS(s)/REL is a set when PTS(s) is (IMAGE of a set is a set).
 (support 'quotient-is-set
   '(FORALL s (IMPLIES (IS-SETOID s)
      (IN (QUOTIENT s) SET))))
 (warrant! 'quotient-is-set 'well-known
-  "X(s) is a set (carrier shape constraint); the IMAGE of a set under a
+  "PTS(s) is a set (carrier shape constraint); the IMAGE of a set under a
    function is a set (replacement/image-is-set).")
 
-;; proj-in-fun: PROJ(s) : X(s) -> QUOTIENT(s).
+;; proj-in-fun: PROJ(s) : PTS(s) -> QUOTIENT(s).
 (support 'proj-in-fun
   '(FORALL s (IMPLIES (IS-SETOID s)
      (IN (PROJ s) (FUN (PTS s) (QUOTIENT s))))))
 (warrant! 'proj-in-fun 'well-known
-  "PROJ(s) = VNB-LAMBDA a. CLASS(s,a) is total on X(s) and, by
+  "PROJ(s) = VNB-LAMBDA a. CLASS(s,a) is total on PTS(s) and, by
    class-in-quotient, every value lies in QUOTIENT(s); so it is in
-   FUN(X(s),QUOTIENT(s)).  It is surjective by construction (QUOTIENT is its
+   FUN(PTS(s),QUOTIENT(s)).  It is surjective by construction (QUOTIENT is its
    image).")
 
 ;;; =======================================================================
@@ -203,12 +203,12 @@
        (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
          (IN (DESCEND f) (FUN (QUOTIENT s) Z))))))))
 (warrant! 'descend-in-fun 'well-known
-  "Every element of QUOTIENT(s) is some [a] with a in X(s) (it is the image of
+  "Every element of QUOTIENT(s) is some [a] with a in PTS(s) (it is the image of
    PROJ); on it DESCEND(f) returns f(a) in Z (descend-computes), well-defined
    by RESPECTS.  So DESCEND(f) is total QUOTIENT(s) -> Z.")
 
 ;; quotient-universal (CAPSTONE): the universal property of the quotient.
-;; A relation-respecting f : X(s) -> Z factors UNIQUELY through PROJ(s):
+;; A relation-respecting f : PTS(s) -> Z factors UNIQUELY through PROJ(s):
 ;; there is exactly one g : QUOTIENT(s) -> Z with g([a]) = f(a) for all a.
 ;; (VNB has no FORSOME-unique; uniqueness is spelled out as the inner FORALL.)
 (support 'quotient-universal
@@ -241,4 +241,4 @@
 
 ;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
 (gloss! 'quotient-universal
-  "For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient X(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.")
+  "For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient PTS(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.")

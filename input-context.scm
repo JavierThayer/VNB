@@ -10,7 +10,7 @@
 ;;;     forall s, IS-X(s) implies forall <elts> in <carrier>(s). <body>
 ;;;
 ;;; WHY THE PACKED ACCESSOR FORM.  A VNB structure IS a tuple (structures.scm:
-;;; "the accessors are literally projections: (A ag) = (NTH 1 ag), (MUL ag) =
+;;; "the accessors are literally projections: (CARR ag) = (NTH 1 ag), (MUL ag) =
 ;;; (NTH 2 ag)").  So the flat presentation
 ;;;     let [X,plus,times,neg,zero,unity] be a commutative-ring
 ;;; and the library's packed  IS-COMMUTATIVE-RING(s)  are the SAME object: the
@@ -51,7 +51,7 @@
 ;;; ring-term hardcodes, and what keeps the differential anchor exact.
 
 ;;;   accessors : the structure's accessor symbols IN SLOT ORDER, e.g.
-;;;               (A ADD MUL NEG ZERO ONE) -- used to bind the destructuring
+;;;               (CARR ADD MUL NEG ZERO ONE) -- used to bind the destructuring
 ;;;               names of  let [c1 c2 ...] be a <kind>  positionally.
 
 ;;;   resolver  : #f for a single-carrier structure (the + * - ^ remap is the
@@ -258,7 +258,7 @@
         (unless (= (length names) (length accs))
           (error "context:" kind "has" (length accs) "components; got" (length names) "in" str))
         ;; A $-prefixed alias name opts that accessor into capitalized DISPLAY:
-        ;; e.g. [$x, d] makes the carrier accessor print X(s) (head position
+        ;; e.g. [$x, d] makes the carrier accessor print PTS(s) (head position
         ;; only -- a bare element x stays x).  Display-only; the alias still
         ;; resolves to the real (folded) accessor, so the proven corpus is
         ;; untouched.  Plain (non-$) names leave the accessor's display as is.
@@ -474,7 +474,7 @@
 ;;;   c * k   (both scalars)            -> (MUL (SCAL s)) c k
 ;;;   -x / -c                            -> (VNEG s) x / (NEG (SCAL s)) c
 ;;; A subterm's sort is its carrier: an element variable's sort comes from the
-;;; element frame that bound it (`in V' -> vector, `in A(R)' -> scalar); an
+;;; element frame that bound it (`in V' -> vector, `in CARR(R)' -> scalar); an
 ;;; operation's result sort is its codomain.  vector*vector, scalar+vector and
 ;;; integer-mixing are sort errors (the literal pin keeps numerals out of the
 ;;; carriers).  This is the disambiguation you chose over distinct `++' tokens.
@@ -554,11 +554,11 @@
     module-resolve))
 
 ;;; Register the metric-space notation profile (kind `metric-space').  Slot
-;;; order is the structure's: carrier X (slot 1), metric D (slot 2).  A metric
-;;; space has NO algebraic + * - of its own -- the metric D is a function, and
+;;; order is the structure's: carrier PTS (slot 1), metric DIST (slot 2).  A metric
+;;; space has NO algebraic + * - of its own -- the metric DIST is a function, and
 ;;; the +/<= in the triangle inequality are the AMBIENT real ops, which must
 ;;; pass through unremapped.  So the profile carries an IDENTITY resolver: the
-;;; body is already alias-substituted ([A,d] -> (X s)/(D s)) before the resolver
+;;; body is already alias-substituted ([A,d] -> (PTS s)/(DIST s)) before the resolver
 ;;; runs, and we leave its operators alone.  (ops/lits are unused on this path.)
 (register-notation-profile! 'metric-space
   (make-notation-profile 'IS-METRIC-SPACE 'X '() '()
@@ -576,7 +576,7 @@
   (nullify)
   (context "let [R, V, vadd, vzero, vneg, act] be a module")
   (context "let x, y in V")
-  (context "let c, k in A(R)")
+  (context "let c, k in CARR(R)")
   (let ((results
          (list (cons "action distributes c*(x+y)" (let ((w (wff "c*(x+y) = c*x + c*y"))) (and (wff? w) (no-surface-ops? (wff-formula w)))))
                (cons "scalar add c+k"             (let ((w (wff "c + k = k + c")))      (and (wff? w) (no-surface-ops? (wff-formula w)))))

@@ -14,8 +14,8 @@
 ;;; (Compare RING-POWER, which wraps MPOW.)
 ;;;
 ;;; Argument order follows the mathematical o: COMPOSE(f, g) = f o g means g
-;;; runs first.  In particular, for a sequence g : NN -> X(s) and a map
-;;; f : X(s) -> X(t), COMPOSE(f, g) : NN -> X(t) is the sequence n |-> f(g(n))
+;;; runs first.  In particular, for a sequence g : NN -> PTS(s) and a map
+;;; f : PTS(s) -> PTS(t), COMPOSE(f, g) : NN -> PTS(t) is the sequence n |-> f(g(n))
 ;;; -- the term Prop 3.14 (~/docs/calculus.pdf) needs to state sequential
 ;;; continuity natively, with no Skolem stand-in.
 ;;;

@@ -87,7 +87,7 @@
 ;;;
 ;;; By contrast, operation signatures declared via `def-structure`'s
 ;;; `(op MUL (CARTESIAN A A) A)` clause type `(MUL m)` as
-;;;   `(IN (MUL m) (FUN (CARTESIAN (A m) (A m)) (A m)))`
+;;;   `(IN (MUL m) (FUN (CARTESIAN (CARR m) (CARR m)) (CARR m)))`
 ;;; — a unary function whose **single** argument is a tuple in the
 ;;; Cartesian product.  Likewise `fun-apply-type` is unary: it closes
 ;;; `(f x) in B` from `f in FUN(A,B)` and `x in A`.

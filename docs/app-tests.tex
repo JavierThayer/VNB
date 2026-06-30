@@ -234,7 +234,7 @@ right disjunct of \texttt{or} adds the negation of the left disjunct.
 (install-theorem! 'and-comm-iff
   (make-wff-from-string "forall([P, Q], P and Q iff Q and P)"))
 
-(check "and-comm: (A and B) -> (B and A)"
+(check "and-comm: (CARR and B) -> (B and A)"
        (lambda () (macete-str 'and-comm-iff "n in nn and m in nn"))
        "m in nn and n in nn")
 (check "and-comm: fires inside implies antecedent"
@@ -323,7 +323,7 @@ Each sub-test proves a simple theorem using one or two rules.
     (di) (ass) (ass)))
 
 ;;; OR introduction (oi-l, oi-r)
-(check-proof "oi-l: A implies (A or B)"
+(check-proof "oi-l: A implies (CARR or B)"
   (lambda ()
     (sp (make-wff-from-string "n in nn implies n in nn or m in nn"))
     (di) (oi-l) (ass)))

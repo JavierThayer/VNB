@@ -11,7 +11,7 @@
 ;;;
 ;;; TWO tiers, matching the existing finsum-comm-monoid / finsum-fubini family:
 ;;;
-;;;   GENERAL (over IS-COMM-MONOID m, op (MUL m), seed (E m) -- the honest
+;;;   GENERAL (over IS-COMM-MONOID m, op (MUL m), seed (ID m) -- the honest
 ;;;   minimal hypotheses, no inverses):  finsum-add and finsum-reindex are
 ;;;   properties of ANY finite sum, exactly like finsum-fubini.  These are the
 ;;;   reusable PSS principles.
@@ -120,7 +120,7 @@
               (list 'FINSUM 'm 'f 'S)
               (list 'FINSUM 'm 'h 'S))))))))
 (warrant! 'finsum-add 'well-known
-  "Induction on |S| via finsum-insert: base is (E m)*(E m)=(E m) (finsum-empty);
+  "Induction on |S| via finsum-insert: base is (ID m)*(ID m)=(ID m) (finsum-empty);
    step folds in one z0, regrouping (a*b)*(c*d)=(a*c)*(b*d) by the commutativity
    and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies
    (no inverses used).  Holds for every commutative-monoid-valued finite sum.")

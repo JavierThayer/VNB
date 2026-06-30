@@ -13,10 +13,10 @@
 ;;; codomain C by the size of the unused part of C.  For b not in A and
 ;;; |C| = |A| + m:
 ;;;
-;;;     |INJECTION(A u {b}, C)| = m * |INJECTION(A, C)|.
+;;;     |INJECTION(CARR u {b}, C)| = m * |INJECTION(A, C)|.
 ;;;
 ;;; Why: restriction  f |-> <f|A, f(b)>  is a bijection
-;;;     INJECTION(A u {b}, C)
+;;;     INJECTION(CARR u {b}, C)
 ;;;        ~  { <g, c> : g in INJECTION(A, C), c in C \ IMAGE(g, A) },
 ;;; with inverse "extend g by b |-> c" (injective exactly because c is
 ;;; unused).  Each g is injective, so |IMAGE(g, A)| = |A| and the unused
@@ -130,7 +130,7 @@
 ;;; For b not in A, with |C| = |A| + m (so the unused part of C has m
 ;;; elements), extending the domain by b multiplies the injection count by m:
 ;;;
-;;;     |INJECTION(A u {b}, C)| = m * |INJECTION(A, C)|.
+;;;     |INJECTION(CARR u {b}, C)| = m * |INJECTION(A, C)|.
 ;;;
 ;;; Boundary is automatic: if |A| = |C| then m = 0 and the right side is 0,
 ;;; correctly reporting that a strictly larger set has no injection into C.

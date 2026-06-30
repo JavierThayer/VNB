@@ -1,7 +1,7 @@
 ;;; abelian-group.scm -- ABELIAN-GROUP structure
 ;;;
-;;; Carrier A, operation MUL, identity E, inverse INV.
-;;; Same shape (and accessor indices) as GROUP: A -> 1, MUL -> 2, E -> 3, INV -> 4.
+;;; Carrier CARR, operation MUL, identity ID, inverse INV.
+;;; Same shape (and accessor indices) as GROUP: CARR -> 1, MUL -> 2, ID -> 3, INV -> 4.
 ;;; An abelian group is a group whose MUL is commutative.
 ;;;
 ;;; Pattern follows COMM-MONOID in monoid.scm: declare the structure with the

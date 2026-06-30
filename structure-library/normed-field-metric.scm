@@ -3,12 +3,12 @@
 ;;; This is the structural bridge between the *field* register of RR/CC
 ;;; (RR-RING, CC-RING : NORMED-FIELD) and their *metric* register
 ;;; (RR-MS, CC-MS : METRIC-SPACE).  It cannot be a def-view-as: a view-as
-;;; maps slots to slots, but METRIC-SPACE's distance D is not a slot of a
+;;; maps slots to slots, but METRIC-SPACE's distance DIST is not a slot of a
 ;;; normed field -- it is the *constructed* function d(x,y) = NRM(x - y).
 ;;; (Same reason views.scm cannot register NORMED-FIELD's multiplicative-
 ;;; group view.)  So the bridge is a constructor functoid plus its laws.
 ;;;
-;;;   NF-METRIC-SPACE(nf) = [ A(nf),  lambda([x,y], NRM(nf)(x - y)) ]
+;;;   NF-METRIC-SPACE(nf) = [ CARR(nf),  lambda([x,y], NRM(nf)(x - y)) ]
 ;;;
 ;;; where x - y is ADD(nf)(x, NEG(nf)(y)).  Then NF-METRIC-SPACE(nf) is a
 ;;; metric space whenever nf is a normed field: nonnegativity, point-
@@ -20,7 +20,7 @@
 ;;;   NF-METRIC-SPACE(CC-RING)  ~  CC-MS   (NRM = magnitude)
 ;;; These are stated pointwise (nf-metric-distance), not as raw term
 ;;; equalities of the structures: the VNB-LAMBDA distance functions agree
-;;; on A(nf) x A(nf) but their off-carrier behaviour is unconstrained, so a
+;;; on CARR(nf) x CARR(nf) but their off-carrier behaviour is unconstrained, so a
 ;;; naked (= RR-MS (NF-METRIC-SPACE RR-RING)) would lean on accidents of the
 ;;; lambda outside RR -- see [[project-representation-independence]].
 ;;;

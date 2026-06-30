@@ -455,7 +455,7 @@ rather than wrap a malformed expression.  The checks are:
   \texttt{(make-wff-from-string "choice(A)")} as a top-level wff fails because
   \texttt{choice} produces a term, not a wff.
 \item \textbf{Wff-forming heads in term positions} are rejected:
-  \texttt{(make-wff-from-string "(A and B) in C")} fails because \texttt{A and B}
+  \texttt{(make-wff-from-string "(CARR and B) in C")} fails because \texttt{A and B}
   is a wff and the first argument of \texttt{in} must be a term.
 \item \textbf{Bare symbols in wff positions} are rejected.  Only
   \texttt{truth} and \texttt{falsity} are valid bare-symbol wffs;

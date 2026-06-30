@@ -68,7 +68,7 @@
 (def-functoid 'SUBSEQ '(f phi)
   '(VNB-LAMBDA k (f (phi k))))
 
-;;; IS-SUBSEQUENCE(s, y, f) -- y is a subsequence of the X(s)-sequence f:
+;;; IS-SUBSEQUENCE(s, y, f) -- y is a subsequence of the PTS(s)-sequence f:
 ;;; y = f o phi for some strictly monotone reindexing phi.
 (def-predicate 'IS-SUBSEQUENCE '(s y f)
   '(AND (IN f (FUN NN (PTS s)))
@@ -76,18 +76,18 @@
           (AND (STRICTLY-MONO-NN phi)
                (= y (SUBSEQ f phi))))))
 
-;;; subseq-is-fun: a subsequence of an X(s)-sequence is again an X(s)-sequence.
-;;; phi : NN -> NN and f : NN -> X(s), so f o phi : NN -> X(s).  Typing slice,
+;;; subseq-is-fun: a subsequence of an PTS(s)-sequence is again an PTS(s)-sequence.
+;;; phi : NN -> NN and f : NN -> PTS(s), so f o phi : NN -> PTS(s).  Typing slice,
 ;;; directly backchainable (VNB macetes rewrite goals not hyps).
 (support 'subseq-is-fun
   '(FORALL s (FORALL f (FORALL phi
      (IMPLIES (AND (IN f (FUN NN (PTS s))) (STRICTLY-MONO-NN phi))
               (IN (SUBSEQ f phi) (FUN NN (PTS s))))))))
 (warrant! 'subseq-is-fun 'well-known
-  "f : NN -> X(s) and phi : NN -> NN, so the composite SUBSEQ(f,phi) = k |-> f(phi
-   k) is again a function NN -> X(s).  Pure composition typing.")
+  "f : NN -> PTS(s) and phi : NN -> NN, so the composite SUBSEQ(f,phi) = k |-> f(phi
+   k) is again a function NN -> PTS(s).  Pure composition typing.")
 
-;;; IS-EPS-CAUCHY-SEQ(s, eps, y) -- y : NN -> X(s) is eps-Cauchy: EVERY pair of
+;;; IS-EPS-CAUCHY-SEQ(s, eps, y) -- y : NN -> PTS(s) is eps-Cauchy: EVERY pair of
 ;;; terms is within eps.  This is a FIXED eps and ALL pairs -- the global, no-
 ;;; threshold cousin of IS-CAUCHY-SEQ (which quantifies eps and only bounds the
 ;;; tail past some N).  An eps-Cauchy subsequence is the single-radius output of
@@ -143,11 +143,11 @@
 ;;;     eps = rad(k) by diagonalization.
 ;;;
 ;;; Proof -- ONE pigeonhole; every cited piece is already PSS:
-;;;   eps>0:  TOTALLY-BOUNDED at radius eps/2 gives a FINITE eps/2-net F for X(s)
-;;;           (IS-R-NET s F (X s) (eps/2), CARD F in NN).
+;;;   eps>0:  TOTALLY-BOUNDED at radius eps/2 gives a FINITE eps/2-net F for PTS(s)
+;;;           (IS-R-NET s F (PTS s) (eps/2), CARD F in NN).
 ;;;   classifier:  CHOICE gives pi : NN -> F with pi(n) = a net point whose
 ;;;           eps/2-ball holds f(n) -- exists because F is an eps/2-net (every
-;;;           f(n) in X(s) is within eps/2 of some net point).
+;;;           f(n) in PTS(s) is within eps/2 of some net point).
 ;;;   pigeonhole:  NN infinite, F finite, pi : NN -> F, so pigeonhole-infinite
 ;;;           gives c in F with an INFINITE fibre I = { n : pi(n)=c } in
 ;;;           INF-SUBSETS(NN); every n in I has f(n) in BALL(s, c, eps/2).
@@ -185,7 +185,7 @@
 ;;; is the recursion-free primitive that BOTH headline routes rest on:
 ;;;   * tb-has-eps-cauchy-subseq = block-step at J = NN, then enumerate the fibre
 ;;;     (nn-enum-spec) and estimate (ball-2r-triangle);
-;;;   * block-family = block-step RECURSED via dc-on-nn (X = INF-SUBSETS(NN),
+;;;   * block-family = block-step RECURSED via dc-on-nn (PTS = INF-SUBSETS(NN),
 ;;;     a = NN, the step relation R(k,J,J_) = "J_ is the rad(k)-fibre tb-block-step
 ;;;     gives inside J"); its totality hypothesis IS this lemma at r = rad(k).
 ;;; The single pigeonhole: TOTALLY-BOUNDED at r gives a finite r-net F; CHOICE a
@@ -223,10 +223,10 @@
 
 ;;; tb-rad-ball-cover: the metric-to-combinatorial BRIDGE.  Total boundedness
 ;;; turns a pointwise-positive radius sequence into a SEQUENCE OF FINITE COVERS
-;;; of X(s) -- exactly the input block-family-combinatorial wants -- each of
-;;; whose members is a rad(k)-ball about a centre in X(s).  (i) feeds the
+;;; of PTS(s) -- exactly the input block-family-combinatorial wants -- each of
+;;; whose members is a rad(k)-ball about a centre in PTS(s).  (i) feeds the
 ;;; combinatorial recursion; (ii) lets its "U in cov(k)" capture be read back
-;;; as the metric "some centre c in X(s)".  Only POS-RR(rad k) is used; rad's
+;;; as the metric "some centre c in PTS(s)".  Only POS-RR(rad k) is used; rad's
 ;;; decay plays no part (it is consumed downstream, in the 2r estimate).
 (support 'tb-rad-ball-cover
   '(FORALL s
@@ -234,7 +234,7 @@
        (FORALL rad
          (IMPLIES (FORALL k (IMPLIES (IN k NN) (POS-RR (rad k))))
            (AND
-             ;; carrier sethood -- the combinatorial engine needs V=(X s) in SET;
+             ;; carrier sethood -- the combinatorial engine needs V=(PTS s) in SET;
              ;; free here since TOTALLY-BOUNDED s gives IS-METRIC-SPACE s.
              (IN (PTS s) SET)
              (FORSOME cov
@@ -251,11 +251,11 @@
 (warrant! 'tb-rad-ball-cover 'reference
   "cov(k) := IMAGE(c |-> BALL(s,c,rad k), F_k), F_k a finite rad(k)-net
    (TOTALLY-BOUNDED at rad k > 0; CHOICE picks one per k).  (i) cov(k) is a
-   finite cover of X(s): image of the finite F_k is finite, and IS-R-NET makes
-   every p in X(s) lie within rad(k) of some c in F_k, i.e. p in BALL(s,c,rad k)
+   finite cover of PTS(s): image of the finite F_k is finite, and IS-R-NET makes
+   every p in PTS(s) lie within rad(k) of some c in F_k, i.e. p in BALL(s,c,rad k)
    in cov(k) (IS-R-NET uses d<r, matching the open ball, so the balls truly
    cover).  (ii) every member is by construction BALL(s,c,rad k) with c in F_k
-   subset X(s) (centres in X(s) by D(s) typing).  Also hands back (X s) in SET
+   subset PTS(s) (centres in PTS(s) by DIST(s) typing).  Also hands back (PTS s) in SET
    (free from IS-METRIC-SPACE s), the set V the combinatorial engine needs.
    The metric content total boundedness contributes to block-family, isolated
    in one bridge -- see calculus/cauchy-subseq-via-combinatorial.scm.")
@@ -283,7 +283,7 @@
    discharges every premise by in-context `fact' auto-detach.")
 
 ;;; NOTE: the metric is inessential here.  block-family is the instance
-;;;   V := X(s), cov(k) := { BALL(s,c,rad k) : c in a finite rad(k)-net }
+;;;   V := PTS(s), cov(k) := { BALL(s,c,rad k) : c in a finite rad(k)-net }
 ;;; of block-family-combinatorial (theorem-library/block-family-combinatorial
 ;;; .scm), where total boundedness supplies only "cov(k) is a finite cover"
 ;;; and rad's positivity/nullity are used solely to MANUFACTURE that cover
@@ -293,17 +293,17 @@
 ;;; set NN into a NESTED descending family of INFINITE index blocks, each block
 ;;; pinning f into a single small ball.
 ;;;
-;;;   For TB s, f : NN -> X(s) and a positive null rad, there is
+;;;   For TB s, f : NN -> PTS(s) and a positive null rad, there is
 ;;;     S : NN -> INF-SUBSETS(NN)  with
 ;;;       (nesting)  S(succ k) subset S(k)             for all k, and
-;;;       (small)    for each k some centre c_k in X(s) has
+;;;       (small)    for each k some centre c_k in PTS(s) has
 ;;;                  f(i) in BALL(s, c_k, rad k)        for every i in S(k).
 ;;;
 ;;; This is the recursive engine of the diagonal argument and the one new
 ;;; construction here.  Proof sketch (NN-recursion + choice, like
 ;;; cauchy-rapid-subsequence):
 ;;;   S(0) := NN (infinite).  Given S(k) infinite, TB at radius rad(k) gives a
-;;;   finite rad(k)-net F_k for X(s); the map  i |-> (a net point whose rad(k)-
+;;;   finite rad(k)-net F_k for PTS(s); the map  i |-> (a net point whose rad(k)-
 ;;;   ball contains f(i))  sends the infinite S(k) into the finite F_k, so by
 ;;;   pigeonhole-infinite some centre c_k has an infinite fibre
 ;;;   S(k+1) := { i in S(k) : f(i) in BALL(s, c_k, rad k) }.  S(k+1) subset S(k)
@@ -333,7 +333,7 @@
 (warrant! 'block-family 'reference
   "Nested-pigeonhole construction (calculus.pdf, proof of sequential compactness
    of a totally bounded space).  S(0)=NN; given infinite S(k), a finite rad(k)-net
-   for X(s) sends f(S(k)) into finitely many balls, so pigeonhole-infinite yields
+   for PTS(s) sends f(S(k)) into finitely many balls, so pigeonhole-infinite yields
    an infinite fibre S(k+1) subset S(k) inside one rad(k)-ball.  CHOICE supplies
    the net and the fibre centre.  The hard core of the theorem; the headline below
    is the diagonalize-and-estimate assembly on top of this.")
@@ -343,7 +343,7 @@
 ;;; =======================================================================
 
 ;;; totally-bounded-has-cauchy-subseq-rad: the rad-parametrised workhorse.  Given
-;;; a positive null rad, every X(s)-sequence has a Cauchy subsequence.
+;;; a positive null rad, every PTS(s)-sequence has a Cauchy subsequence.
 ;;;
 ;;; Assembly (the non-circular glue -- the scout/tactic stress target, posed as a
 ;;; goal in calculus/totally-bounded-cauchy-subseq.scm):
@@ -382,7 +382,7 @@
 (gloss! 'tb-block-step
   "For a totally bounded space s, a sequence f of points of s, a radius r>0, and an infinite index block J: there is a smaller infinite block J' contained in J and a single centre c such that all f(i) for i in J' lie in the ball of radius r about c.  One relativized pigeonhole step over a sub-block.")
 (gloss! 'tb-rad-ball-cover
-  "For a totally bounded space s and a pointwise-positive radius sequence rad: the carrier X(s) is a set, and there is a sequence cov of finite covers of X(s) in which every member of cov(k) is a ball of radius rad(k) about some centre in X(s).  The bridge turning total boundedness into the finite-cover input the combinatorial block recursion consumes.")
+  "For a totally bounded space s and a pointwise-positive radius sequence rad: the carrier PTS(s) is a set, and there is a sequence cov of finite covers of PTS(s) in which every member of cov(k) is a ball of radius rad(k) about some centre in PTS(s).  The bridge turning total boundedness into the finite-cover input the combinatorial block recursion consumes.")
 (gloss! 'cauchy-block-estimate
   "For a metric space s, a ball U = BALL(s,c,r), two points y,z of U, and reals d,eps with r<=d and d+d=eps: the distance from y to z is at most eps.  The fully-curried 2r estimate -- two points in one r-ball are within 2r.")
 (gloss! 'block-family

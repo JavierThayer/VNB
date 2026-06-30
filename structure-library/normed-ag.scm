@@ -15,7 +15,7 @@
 ;;; (views.scm), which forgets NRM.  That projection is what lets the AG
 ;;; summation machinery -- FINSUM, sum-ag-permutation-invariance -- apply to
 ;;; the underlying group of a normed AG, which is the point: to sum and
-;;; reorder f : X -> A we sum in NORMED-AG-AS-ABELIAN-GROUP(nag).
+;;; reorder f : X -> CARR we sum in NORMED-AG-AS-ABELIAN-GROUP(nag).
 ;;;
 ;;; The norm itself is the is-group-norm property (operation-properties.scm):
 ;;; nonnegative, zero only at E, inverse-invariant, subadditive over MUL.

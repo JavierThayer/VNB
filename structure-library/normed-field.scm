@@ -8,7 +8,7 @@
 ;;; NRM lives at slot 7.
 ;;;
 ;;;   carriers: A
-;;;   ops:      ADD, MUL, NEG, NRM   (NRM : A -> RR)
+;;;   ops:      ADD, MUL, NEG, NRM   (NRM : CARR -> RR)
 ;;;   const:    ZERO, ONE
 ;;;
 ;;; The defining IFF (auto-generated from the property clauses) asserts the

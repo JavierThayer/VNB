@@ -1,14 +1,14 @@
 ;;; semigroup.scm -- SEMIGROUP structure
 ;;;
-;;; Carrier A, binary operation MUL.
-;;; Accessor indices: A -> 1, MUL -> 2.
+;;; Carrier CARR, binary operation MUL.
+;;; Accessor indices: CARR -> 1, MUL -> 2.
 
 (def-structure-from-clauses 'SEMIGROUP
   '((carriers CARR)
     (op MUL (CARTESIAN CARR CARR) CARR)
     (property is-associative MUL CARR)))
 
-;;; forall s. IS-SEMIGROUP(s) => forall a,b,c in A(s). (a*b)*c = a*(b*c)
+;;; forall s. IS-SEMIGROUP(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
 (theory-add-axiom! *current-theory* 'semigroup-assoc
   '(FORALL s
      (IMPLIES (IS-SEMIGROUP s)

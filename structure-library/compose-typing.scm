@@ -60,7 +60,7 @@
 ;;; The mindless chain lemmas, depth 2..5.  Each says: feed a in X through a
 ;;; let*-chain of functions whose domains are the running ranges, and the
 ;;; nested value lands in the last range.  Each proof is fun-range-membership
-;;; applied once per link (X |-> RAN f |-> RAN g |-> ...).  Cite the one of
+;;; applied once per link (PTS |-> RAN f |-> RAN g |-> ...).  Cite the one of
 ;;; the matching depth; bc* spawns the curried hypotheses as subgoals, all
 ;;; closed by ass-all (supply the outer domain X, the only schema var the
 ;;; conclusion does not pin down).

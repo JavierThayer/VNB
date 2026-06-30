@@ -1,7 +1,7 @@
 ;;; monoid.scm -- MONOID and COMM-MONOID structures
 ;;;
-;;; MONOID: carrier A, operation MUL, identity E.
-;;; Accessor indices: A -> 1, MUL -> 2, E -> 3.
+;;; MONOID: carrier CARR, operation MUL, identity ID.
+;;; Accessor indices: CARR -> 1, MUL -> 2, ID -> 3.
 ;;; COMM-MONOID: same shape as MONOID with an extra commutativity axiom.
 
 (def-structure-from-clauses 'MONOID
@@ -11,7 +11,7 @@
     (property is-associative MUL CARR)
     (property is-identity MUL ID CARR)))
 
-;;; forall s. IS-MONOID(s) => forall a,b,c in A(s). (a*b)*c = a*(b*c)
+;;; forall s. IS-MONOID(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
 (theory-add-axiom! *current-theory* 'monoid-assoc
   '(FORALL s
      (IMPLIES (IS-MONOID s)
@@ -21,21 +21,21 @@
              (= ((MUL s) ((MUL s) a b) c)
                 ((MUL s) a ((MUL s) b c))))))))))))
 
-;;; forall s. IS-MONOID(s) => forall a in A(s). E(s)*a = a
+;;; forall s. IS-MONOID(s) => forall a in CARR(s). ID(s)*a = a
 (theory-add-axiom! *current-theory* 'monoid-left-id
   '(FORALL s
      (IMPLIES (IS-MONOID s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) (ID s) a) a))))))
 
-;;; forall s. IS-MONOID(s) => forall a in A(s). a*E(s) = a
+;;; forall s. IS-MONOID(s) => forall a in CARR(s). a*ID(s) = a
 (theory-add-axiom! *current-theory* 'monoid-right-id
   '(FORALL s
      (IMPLIES (IS-MONOID s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) a (ID s)) a))))))
 
-;;; E(m) ∈ A(m) when IS-MONOID(m).
+;;; ID(m) ∈ CARR(m) when IS-MONOID(m).
 ;;; DERIVED (REVIEW.md R-1): follows from the auto-generated IS-MONOID IFF.
 (theory-add-axiom! *current-theory* 'monoid-identity-in
   '(FORALL m (IMPLIES (IS-MONOID m) (IN (ID m) (CARR m)))))

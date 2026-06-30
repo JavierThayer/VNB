@@ -34,7 +34,7 @@
        (ADD00 (tm "add(~a)(~a,~a)" SR Z Z)))   ; 0 +_R 0
   ;; --- forward facts: closures + the two equations ---
   (fact 'module-scalar-ring S)                        ; IS-RING(scal S)
-  (fact 'module-scalar-zero-in S)                     ; 0 in A(scal S)
+  (fact 'module-scalar-zero-in S)                     ; 0 in CARR(scal S)
   (fact 'module-act-type S Z PTS)                       ; a in VEC(S)
   (fact 'module-act-distrib-scalar S Z Z PTS)           ; a = 0.x ; (0+0).x = a +_V a
   (fact 'ring-add-left-id SR Z)                        ; 0 +_R 0 = 0

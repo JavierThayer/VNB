@@ -1,6 +1,6 @@
 ;;; theorem-library/enum-fam-in-fun.scm
 ;;;
-;;; enum-fam-in-fun:  ENUM-FAM(ag, f, phi, n) is in FUN(NN, A(ag))
+;;; enum-fam-in-fun:  ENUM-FAM(ag, f, phi, n) is in FUN(NN, CARR(ag))
 ;;; whenever the inputs have the right types.  Type lemma for ENUM-FAM.
 ;;;
 ;;; PSS-promoted 2026-05-27 from proven-theorems.scm.  Original proof

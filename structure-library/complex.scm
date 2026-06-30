@@ -40,7 +40,7 @@
 ;;; Every Cauchy sequence in CC-MS converges in CC-MS.  Now stated through
 ;;; the generic IS-COMPLETE predicate (metric-completeness.scm) instead of
 ;;; the magnitude-hard-coded form: IS-CAUCHY-SEQ/CONVERGES-TO read the
-;;; distance off (D CC-MS), which is lambda([x,y], magnitude(x-y)) by
+;;; distance off (DIST CC-MS), which is lambda([x,y], magnitude(x-y)) by
 ;;; cc-ms-def, so this is the same statement as before up to unfolding.
 
 (theory-add-axiom! *current-theory* 'cc-complete

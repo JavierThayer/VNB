@@ -3,13 +3,13 @@
 ;;;
 ;;; Generic replacements for the magnitude-hard-coded cc-complete idiom:
 ;;;
-;;;   IS-CAUCHY-SEQ(s, f)   f : NN -> X(s) is Cauchy in metric space s
+;;;   IS-CAUCHY-SEQ(s, f)   f : NN -> PTS(s) is Cauchy in metric space s
 ;;;   CONVERGES-TO(s, f, L) f converges to L in s
 ;;;   CONVERGES(s, f)       f converges to some limit in s
 ;;;   IS-COMPLETE(s)        s is a metric space in which every Cauchy
 ;;;                         sequence converges
 ;;;
-;;; A sequence is a function f : NN -> X(s); distances ((D s) (f m) (f n_))
+;;; A sequence is a function f : NN -> PTS(s); distances ((DIST s) (f m) (f n_))
 ;;; land in RR, so the eps-estimates use the numeric order <= and the
 ;;; POS-RR ("eps > 0") predicate from order-predicates.scm.
 ;;;
@@ -23,7 +23,7 @@
 ;;; and before complex.scm so cc-complete can be stated as IS-COMPLETE(CC-MS).
 
 ;;; -----------------------------------------------------------------------
-;;; IS-CAUCHY-SEQ(s, f): f : NN -> X(s) is a Cauchy sequence in s.
+;;; IS-CAUCHY-SEQ(s, f): f : NN -> PTS(s) is a Cauchy sequence in s.
 
 (def-predicate 'IS-CAUCHY-SEQ '(s f)
   '(AND (IS-METRIC-SPACE s)
@@ -83,7 +83,7 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; cauchy-seq-is-fun: the TYPING conjunct of IS-CAUCHY-SEQ -- a Cauchy
-;;; sequence is by definition a function NN -> X(s).  Like
+;;; sequence is by definition a function NN -> PTS(s).  Like
 ;;; complete-cauchy-converges, this is the directly-backchainable slice of the
 ;;; definition (the second conjunct of the unfolded IS-CAUCHY-SEQ), so a proof
 ;;; can recover the typing of f without unfolding IS-CAUCHY-SEQ in a hypothesis
@@ -94,7 +94,7 @@
   '(FORALL s (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
                                 (IN f (FUN NN (PTS s)))))))
 (warrant! 'cauchy-seq-is-fun 'well-known
-  "A Cauchy sequence is by definition a function NN -> X(s): this is the second
+  "A Cauchy sequence is by definition a function NN -> PTS(s): this is the second
    conjunct of the unfolded IS-CAUCHY-SEQ(s,f).  Carries no content beyond the
    definition.")
 
@@ -118,7 +118,7 @@
 ;;; phi(succ k) := max(succ(phi k), N_{succ k}); strictly increasing, and
 ;;; phi(k), phi(succ k) >= N_k, so d(f(phi k), f(phi(succ k))) <= rad(k).
 ;; Bound var is `rad' (the radii), NOT `a': the reader case-folds and `a'
-;; collides with the carrier accessor `A', so `(a k)' would read as `A(k)'
+;; collides with the carrier accessor `A', so `(a k)' would read as `CARR(k)'
 ;; (the same trap power-series.scm flags for its series variable).
 (support 'cauchy-rapid-subsequence
   '(FORALL s (FORALL f (FORALL rad
