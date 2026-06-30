@@ -28,43 +28,11 @@
 ;;; Loads after hahn-banach-proof.scm.  Reuses deriv-constant's global dc-* helpers.
 
 ;;; ====================================================================
-;;; vocabulary: norm-preserving extension to a subspace, and reachability
-;;; ====================================================================
-
-;;; NPE(m,s,f,t,g): g is a norm-preserving extension of f to the subspace t
-;;; (bound measured against the original ||f||_s = DUAL-NORM-ON(m,s,f)).
-(def-predicate 'NPE '(m s f t g)
-  (conjuncts->and
-   '((IS-SUBMODULE m t)
-     (SUBSET s t)
-     (IS-LINEAR-FUNCTIONAL-ON m t g)
-     (EXTENDS-ON s g f)
-     (FORALL w_ (IMPLIES (IN w_ t)
-        (<= (abs (g w_)) (* (DUAL-NORM-ON m s f) ((VNRM m) w_))))))))
-
-;;; GOOD-SUB(m,s,f,t): t is reachable -- some g is a norm-preserving extension to t.
-(def-predicate 'GOOD-SUB '(m s f t)
-  '(FORSOME g_ (NPE m s f t g_)))
-
-;;; ====================================================================
 ;;; warranted plumbing
 ;;; ====================================================================
-
-;;; noetherian => the (nonempty: s itself) reachable family has a maximal element.
-(add-to-pss 'hb-good-has-maximal
-  '(FORALL m (FORALL s (FORALL f
-     (IMPLIES (IS-FINITE-DIMENSIONAL m)
-      (IMPLIES (IS-SUBMODULE m s)
-       (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
-         (FORSOME t (AND (GOOD-SUB m s f t)
-           (FORALL u (IMPLIES (AND (GOOD-SUB m s f u) (SUBSET t u))
-              (= t u))))))))))))
-(warrant! 'hb-good-has-maximal 'reference
-  "The reachable family { t : GOOD-SUB(m,s,f,t) } is nonempty (s itself, with
-   g=f) and consists of submodules of VEC(m).  In a noetherian module the
-   ascending chain condition is equivalent to the maximal condition, so this
-   family has a member maximal under inclusion.")
-(category! 'hb-good-has-maximal 'analysis)
+;;; NPE / GOOD-SUB (the reachable-subspace vocabulary), good-sub-submodule, and
+;;; hb-good-has-maximal (noetherian => a maximal reachable subspace exists) are
+;;; now defined and PROVEN in noetherian-maximal-proof.scm, which loads first.
 
 ;;; the operator norm is a nonnegative real.
 (add-to-pss 'dual-norm-on-nonneg
@@ -121,13 +89,6 @@
 (warrant! 'vec-is-set 'reference
   "VEC(m) in SET, a defining clause of IS-NORMED-VECTOR-SPACE (definedness).")
 (category! 'vec-is-set 'analysis)
-
-(add-to-pss 'good-sub-submodule
-  '(FORALL m (FORALL s (FORALL f (FORALL t
-     (IMPLIES (GOOD-SUB m s f t) (IS-SUBMODULE m t)))))))
-(warrant! 'good-sub-submodule 'reference
-  "GOOD-SUB unfolds to NPE, whose first conjunct is IS-SUBMODULE m t.")
-(category! 'good-sub-submodule 'analysis)
 
 (add-to-pss 'submodule-subset
   '(FORALL m (FORALL t (IMPLIES (IS-SUBMODULE m t) (SUBSET t (VEC m))))))

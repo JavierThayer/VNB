@@ -418,6 +418,10 @@
     ;; norm-preserving extension of a bounded functional to s + RR.v.  Modulo
     ;; warranted core (hb-gap, hb-extend-construct).  Reuses dc-* helpers.
     "theorem-library/hahn-banach-proof"
+    ;; Noetherian maximal-element principle (ACC => maximal), PROVEN from the
+    ;; IS-NOETHERIAN chain condition + dependent choice; plus the reachable-
+    ;; subspace vocabulary (NPE/GOOD-SUB) and hb-good-has-maximal it discharges.
+    "theorem-library/noetherian-maximal-proof"
     ;; FULL finite-dimensional Hahn-Banach: iterate the one-step extension to the
     ;; whole space (good-step + a maximal reachable subspace).  Modulo warranted
     ;; plumbing (noetherian-maximal, dual-norm, span/subset structure).
