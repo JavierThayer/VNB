@@ -414,6 +414,10 @@
     ;; higher-derivatives (NTH-DERIV), power-series (SERIES-PARTIAL-SUM), injection
     ;; (FACTORIAL), ring-power (power), and deriv-constant-proof's dc-* helpers.
     "theorem-library/taylor-proof"
+    ;; Hahn-Banach one-dimension extension step (real normed vector space):
+    ;; norm-preserving extension of a bounded functional to s + RR.v.  Modulo
+    ;; warranted core (hb-gap, hb-extend-construct).  Reuses dc-* helpers.
+    "theorem-library/hahn-banach-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
