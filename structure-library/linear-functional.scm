@@ -49,3 +49,44 @@
                                      (FORALL x_ (IMPLIES (IN x_ (VEC m))
                                        (<= (abs (f x_)) (* d_ ((VNRM m) x_)))))))
                         (<= c_ d_))))))))
+
+;;; ====================================================================
+;;; Functionals on a SUBSPACE s (domain s, not all of VEC m).  The whole-space
+;;; predicates above are the s = VEC(m) case; these carry an explicit subspace
+;;; domain, as the Hahn-Banach extension machinery needs.  (s is a submodule;
+;;; downstream uses supply IS-SUBMODULE(m, s).)
+;;; ====================================================================
+
+(def-predicate 'IS-LINEAR-FUNCTIONAL-ON '(m s f)
+  '(AND (IN f (FUN s RR))
+   (AND (FORALL x_ (IMPLIES (IN x_ s)
+          (FORALL y_ (IMPLIES (IN y_ s)
+            (= (f ((VADD m) x_ y_)) (+ (f x_) (f y_)))))))
+        (FORALL r_ (IMPLIES (IN r_ RR)
+          (FORALL x_ (IMPLIES (IN x_ s)
+            (= (f ((ACT m) r_ x_)) (* r_ (f x_))))))))))
+
+(def-predicate 'IS-BOUNDED-LINEAR-FUNCTIONAL-ON '(m s f)
+  '(AND (IS-LINEAR-FUNCTIONAL-ON m s f)
+        (FORSOME c_ (AND (IN c_ RR)
+                    (AND (<= 0 c_)
+                         (FORALL x_ (IMPLIES (IN x_ s)
+                           (<= (abs (f x_)) (* c_ ((VNRM m) x_))))))))))
+
+;;; DUAL-NORM-ON(m, s, f) = operator norm of f relative to the subspace s:
+;;; the least c >= 0 with |f(x)| <= c*||x|| for all x in s (IOTA LUB).
+(def-functoid 'DUAL-NORM-ON '(m s f)
+  '(IOTA c_
+     (AND (IN c_ RR)
+      (AND (<= 0 c_)
+       (AND (FORALL x_ (IMPLIES (IN x_ s)
+              (<= (abs (f x_)) (* c_ ((VNRM m) x_)))))
+            (FORALL d_ (IMPLIES (AND (IN d_ RR)
+                                (AND (<= 0 d_)
+                                     (FORALL x_ (IMPLIES (IN x_ s)
+                                       (<= (abs (f x_)) (* d_ ((VNRM m) x_)))))))
+                        (<= c_ d_))))))))
+
+;;; g extends f from the subspace s: the two agree on s.
+(def-predicate 'EXTENDS-ON '(s g f)
+  '(FORALL x_ (IMPLIES (IN x_ s) (= (g x_) (f x_)))))

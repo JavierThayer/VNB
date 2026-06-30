@@ -46,3 +46,16 @@
 ;;; A finite-dimensional vector space is a noetherian vector space.
 (def-predicate 'IS-FINITE-DIMENSIONAL '(m)
   '(AND (IS-VECTOR-SPACE m) (IS-NOETHERIAN m)))
+
+;;; A subspace of a (real) vector space is exactly a submodule.
+(def-predicate 'IS-SUBSPACE '(m s)
+  '(IS-SUBMODULE m s))
+
+;;; SPAN-ADD-ONE(m, s, v) = s + RR.v = { x + r.v : x in s, r in RR }: the
+;;; subspace spanned by s together with one more vector v -- the "one dimension
+;;; higher" domain of the Hahn-Banach extension step.
+(def-functoid 'SPAN-ADD-ONE '(m s v)
+  '(SEP y_ (VEC m)
+     (FORSOME x_ (AND (IN x_ s)
+       (FORSOME r_ (AND (IN r_ RR)
+         (= y_ ((VADD m) x_ ((ACT m) r_ v)))))))))
