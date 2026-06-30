@@ -418,6 +418,10 @@
     ;; norm-preserving extension of a bounded functional to s + RR.v.  Modulo
     ;; warranted core (hb-gap, hb-extend-construct).  Reuses dc-* helpers.
     "theorem-library/hahn-banach-proof"
+    ;; FULL finite-dimensional Hahn-Banach: iterate the one-step extension to the
+    ;; whole space (good-step + a maximal reachable subspace).  Modulo warranted
+    ;; plumbing (noetherian-maximal, dual-norm, span/subset structure).
+    "theorem-library/hahn-banach-full-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /

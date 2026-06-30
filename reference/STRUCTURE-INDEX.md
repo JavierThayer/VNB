@@ -42,7 +42,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -132,8 +132,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (a add zero neg) ↦ (a mul e inv)
 - `field-additive-ag` — from `field`: (a add zero neg) ↦ (a mul e inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (a mul e inv)
-- `normed-ag-as-abelian-group` — from `normed-ag`: (a mul e inv) ↦ (a mul e inv)
 - `commutative-ring-additive-ag` — from `commutative-ring`: (a add zero neg) ↦ (a mul e inv)
+- `normed-ag-as-abelian-group` — from `normed-ag`: (a mul e inv) ↦ (a mul e inv)
 - `normed-field-additive-ag` — from `normed-field`: (a add zero neg) ↦ (a mul e inv)
 
 *Views from `abelian-group`.*
@@ -380,8 +380,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (a add mul neg zero one) ↦ (a add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (a add mul neg zero one) ↦ (a add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
 - `field-additive-ag` — into `abelian-group`: (a add zero neg) ↦ (a mul e inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (a mul e inv)
 
 ### group
 <a id="group"></a>
@@ -968,6 +968,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `normed-ag-nrm-type-normed-vector-space-as-normed-ag` — forall([r], is-normed-vector-space(r) implies vnrm(r) in fun(vec(r), rr))
 - `normed-vector-space-as-module-is-module` — forall([r], is-normed-vector-space(r) implies is-module(normed-vector-space-as-module(r)))
 - `normed-vector-space-as-normed-ag-is-normed-ag` — forall([r], is-normed-vector-space(r) implies is-normed-ag(normed-vector-space-as-normed-ag(r)))
+- `vec-is-set` — forall([m], is-normed-vector-space(m) implies vec(m) in set)
 
 *Views from `normed-vector-space`.*
 
