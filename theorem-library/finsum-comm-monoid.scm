@@ -36,8 +36,8 @@
 (support 'finsum-comm-monoid-type
   '(FORALL m (IMPLIES (IS-COMM-MONOID m)
      (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (A m)))
-       (IN (FINSUM m f S) (A m))))))))))
+     (FORALL f (IMPLIES (IN f (FUN S (CARR m)))
+       (IN (FINSUM m f S) (CARR m))))))))))
 
 (warrant! 'finsum-comm-monoid-type 'informal
   "Same induction as finsum-type: SUM-AG seeds at (E m) -- in the carrier by
@@ -58,8 +58,8 @@
 (support 'finsum-comm-monoid-permutation-invariance
   '(FORALL n (IMPLIES (IN n NN)
      (FORALL m (IMPLIES (IS-COMM-MONOID m)
-     (FORALL g (IMPLIES (IN g (FUN NN (A m)))
-     (FORALL h (IMPLIES (IN h (FUN NN (A m)))
+     (FORALL g (IMPLIES (IN g (FUN NN (CARR m)))
+     (FORALL h (IMPLIES (IN h (FUN NN (CARR m)))
      (FORALL phi (IMPLIES (IN phi (BIJECTION (ORD-SEGMENT n) (ORD-SEGMENT n)))
        (IMPLIES (FORALL i (IMPLIES (IN i (ORD-SEGMENT n)) (= (h i) (g (phi i)))))
          (= (SUM-AG m g n) (SUM-AG m h n))))))))))))))
@@ -90,7 +90,7 @@
      (FORALL m
      (IMPLIES (IS-COMM-MONOID m)
      (FORALL f
-     (IMPLIES (IN f (FUN S (A m)))
+     (IMPLIES (IN f (FUN S (CARR m)))
      (FORALL enm
      (IMPLIES (IN enm (BIJECTION (ORD-SEGMENT (CARD S)) S))
        (= (FINSUM m f S)

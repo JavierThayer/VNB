@@ -25,8 +25,8 @@
 ;;;   ring's NEG  -> AG's INV
 
 (def-view-as 'RING-ADDITIVE-AG
-  'RING          '(A ADD ZERO NEG)
-  'ABELIAN-GROUP '(A MUL E INV))
+  'RING          '(CARR ADD ZERO NEG)
+  'ABELIAN-GROUP '(CARR MUL ID INV))
 
 ;;; -----------------------------------------------------------------------
 ;;; RING as multiplicative MONOID
@@ -39,8 +39,8 @@
 ;;;   ring's ONE -> MONOID's E
 
 (def-view-as 'RING-MULTIPLICATIVE-MONOID
-  'RING   '(A MUL ONE)
-  'MONOID '(A MUL E))
+  'RING   '(CARR MUL ONE)
+  'MONOID '(CARR MUL ID))
 
 ;;; -----------------------------------------------------------------------
 ;;; ABELIAN-GROUP as MONOID
@@ -56,8 +56,8 @@
 ;;; ABELIAN-GROUP, so the NN-power machinery is immediately available on
 ;;; groups without restating it.
 (def-view-as 'ABELIAN-GROUP-AS-MONOID
-  'ABELIAN-GROUP '(A MUL E)
-  'MONOID        '(A MUL E))
+  'ABELIAN-GROUP '(CARR MUL ID)
+  'MONOID        '(CARR MUL ID))
 
 ;;; -----------------------------------------------------------------------
 ;;; Additive abelian-group views for RING's definitional refinements
@@ -82,24 +82,24 @@
 ;;; declaration.  (NORMED-FIELD-ADDITIVE-AG is also live in power-series.scm.)
 
 (def-view-as 'COMMUTATIVE-RING-ADDITIVE-AG
-  'COMMUTATIVE-RING '(A ADD ZERO NEG)
-  'ABELIAN-GROUP    '(A MUL E INV))
+  'COMMUTATIVE-RING '(CARR ADD ZERO NEG)
+  'ABELIAN-GROUP    '(CARR MUL ID INV))
 
 (def-view-as 'FIELD-ADDITIVE-AG
-  'FIELD         '(A ADD ZERO NEG)
-  'ABELIAN-GROUP '(A MUL E INV))
+  'FIELD         '(CARR ADD ZERO NEG)
+  'ABELIAN-GROUP '(CARR MUL ID INV))
 
 (def-view-as 'NORMED-FIELD-ADDITIVE-AG
-  'NORMED-FIELD  '(A ADD ZERO NEG)
-  'ABELIAN-GROUP '(A MUL E INV))
+  'NORMED-FIELD  '(CARR ADD ZERO NEG)
+  'ABELIAN-GROUP '(CARR MUL ID INV))
 
 ;;; The underlying abelian group of a NORMED-AG: forget the norm slot.
 ;;; Slots align directly (NORMED-AG was shaped that way), so this is the
 ;;; identity projection on slots 1-4.  This view is the bridge that lets
 ;;; FINSUM / sum-ag-permutation-invariance sum a normed-AG-valued function.
 (def-view-as 'NORMED-AG-AS-ABELIAN-GROUP
-  'NORMED-AG     '(A MUL E INV)
-  'ABELIAN-GROUP '(A MUL E INV))
+  'NORMED-AG     '(CARR MUL ID INV)
+  'ABELIAN-GROUP '(CARR MUL ID INV))
 
 ;;; -----------------------------------------------------------------------
 ;;; Multiplicative monoid views for RING's definitional refinements
@@ -127,30 +127,30 @@
 ;;; Distinct from COMMUTATIVE-RING-MULTIPLICATIVE-MONOID above, which lands in
 ;;; bare MONOID (no commutativity) -- this one reaches COMM-MONOID.
 (def-view-as 'COMMUTATIVE-RING-MULTIPLICATIVE-CM
-  'COMMUTATIVE-RING '(A MUL ONE)
-  'COMM-MONOID      '(A MUL E))
+  'COMMUTATIVE-RING '(CARR MUL ONE)
+  'COMM-MONOID      '(CARR MUL ID))
 
 ;;; FIELD now carries NON-ZERO and INV as built-in slots (see field.scm
 ;;; reshape), so its nonzero elements form a genuine group, not just a
 ;;; monoid.  This replaces the old FIELD-MULTIPLICATIVE-MONOID view.
 (def-view-as 'FIELD-MULTIPLICATIVE-GROUP
   'FIELD '(NON-ZERO MUL ONE INV)
-  'GROUP '(A MUL E INV))
+  'GROUP '(CARR MUL ID INV))
 
 ;;; Forget the extra slots to recover the integral-domain (and hence ring)
 ;;; view of a field.  This re-attaches FIELD to the RING-shape chain so
 ;;; every ring/comm-ring/integral-domain theorem auto-specializes back.
 (def-view-as 'FIELD-AS-INTEGRAL-DOMAIN
-  'FIELD            '(A ADD MUL NEG ZERO ONE)
-  'INTEGRAL-DOMAIN  '(A ADD MUL NEG ZERO ONE))
+  'FIELD            '(CARR ADD MUL NEG ZERO ONE)
+  'INTEGRAL-DOMAIN  '(CARR ADD MUL NEG ZERO ONE))
 
 ;;; Every field is a Euclidean ring under the trivial degree function
 ;;; deg(x) = 0 — division is exact because every nonzero element is a unit:
 ;;; a = (a * b^-1) * b + 0.  The view component pattern is identical to
 ;;; FIELD-AS-INTEGRAL-DOMAIN since EUCLIDEAN-RING shares the RING shape.
 (def-view-as 'FIELD-AS-EUCLIDEAN-RING
-  'FIELD          '(A ADD MUL NEG ZERO ONE)
-  'EUCLIDEAN-RING '(A ADD MUL NEG ZERO ONE))
+  'FIELD          '(CARR ADD MUL NEG ZERO ONE)
+  'EUCLIDEAN-RING '(CARR ADD MUL NEG ZERO ONE))
 
 ;;; -----------------------------------------------------------------------
 ;;; NORMED-FIELD as COMMUTATIVE-RING / INTEGRAL-DOMAIN
@@ -165,12 +165,12 @@
 ;;; theorem to RR-RING / CC-RING through the projection.
 
 (def-view-as 'NORMED-FIELD-AS-COMMUTATIVE-RING
-  'NORMED-FIELD     '(A ADD MUL NEG ZERO ONE)
-  'COMMUTATIVE-RING '(A ADD MUL NEG ZERO ONE))
+  'NORMED-FIELD     '(CARR ADD MUL NEG ZERO ONE)
+  'COMMUTATIVE-RING '(CARR ADD MUL NEG ZERO ONE))
 
 (def-view-as 'NORMED-FIELD-AS-INTEGRAL-DOMAIN
-  'NORMED-FIELD    '(A ADD MUL NEG ZERO ONE)
-  'INTEGRAL-DOMAIN '(A ADD MUL NEG ZERO ONE))
+  'NORMED-FIELD    '(CARR ADD MUL NEG ZERO ONE)
+  'INTEGRAL-DOMAIN '(CARR ADD MUL NEG ZERO ONE))
 
 ;;; NORMED-FIELD is its own 7-slot shape (carrier, ring ops, NRM at slot 7);
 ;;; no structural NON-ZERO / INV slots, so its multiplicative-group view is
@@ -190,7 +190,7 @@
 ;;; predicates folded into IS-MODULE.
 (def-view-as 'MODULE-VECTOR-AG
   'MODULE        '(VEC VADD VZERO VNEG)
-  'ABELIAN-GROUP '(A   MUL  E     INV))
+  'ABELIAN-GROUP '(CARR   MUL  ID     INV))
 
 ;;; -----------------------------------------------------------------------
 ;;; The multiplicative group of a FIELD is implemented above by giving

@@ -12,14 +12,14 @@
 ;;; Dependencies: group.scm (GROUP, IS-GROUP).
 
 (def-structure-from-clauses 'ABELIAN-GROUP
-  '((carriers A)
-    (op MUL (CARTESIAN A A) A)
-    (constant E A)
-    (op INV A A)
-    (property is-associative MUL A)
-    (property is-identity MUL E A)
-    (property has-inverses MUL E INV A)
-    (property is-commutative MUL A)))
+  '((carriers CARR)
+    (op MUL (CARTESIAN CARR CARR) CARR)
+    (constant ID CARR)
+    (op INV CARR CARR)
+    (property is-associative MUL CARR)
+    (property is-identity MUL ID CARR)
+    (property has-inverses MUL ID INV CARR)
+    (property is-commutative MUL CARR)))
 
 ;;; Every abelian group is a group (same shape, so this is a direct subtype).
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (loaded
@@ -37,5 +37,5 @@
 (theory-add-axiom! *current-theory* 'abelian-group-idempotent-is-id
   '(FORALL s
      (IMPLIES (IS-ABELIAN-GROUP s)
-       (FORALL a (IMPLIES (IN a (A s))
-         (IMPLIES (= ((MUL s) a a) a) (= a (E s))))))))
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (IMPLIES (= ((MUL s) a a) a) (= a (ID s))))))))

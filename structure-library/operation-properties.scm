@@ -54,29 +54,29 @@
 ;;; is-norm(nrm, addop, mulop, zero, crr): nrm : crr -> RR is a (multiplicative)
 ;;; norm on crr -- nonnegative, zero only at zero, multiplicative on mulop,
 ;;; subadditive on addop.  Used as the characteristic property of NORMED-FIELD.
-(def-predicate 'is-norm '(nrm addop mulop zero crr)
-  '(AND (IN nrm (FUN crr RR))
+(def-predicate 'is-norm '(nm addop mulop zr crr)
+  '(AND (IN nm (FUN crr RR))
      (FORALL a (IMPLIES (IN a crr)
-       (AND (<= 0 (nrm a))
-         (AND (IFF (= (nrm a) 0) (= a zero))
+       (AND (<= 0 (nm a))
+         (AND (IFF (= (nm a) 0) (= a zr))
            (FORALL b (IMPLIES (IN b crr)
-             (AND (= (nrm (mulop a b)) (* (nrm a) (nrm b)))
-                  (<= (nrm (addop a b))
-                      (+ (nrm a) (nrm b))))))))))))
+             (AND (= (nm (mulop a b)) (* (nm a) (nm b)))
+                  (<= (nm (addop a b))
+                      (+ (nm a) (nm b))))))))))))
 
 ;;; is-group-norm(nrm, op, invop, unit, crr): nrm : crr -> RR is a norm on the
 ;;; abelian group (crr, op, unit, invop) -- nonnegative, zero only at the
 ;;; identity, invariant under inverse, and subadditive over op.  Unlike
 ;;; is-norm there is NO multiplicativity clause: a group carries one operation,
 ;;; not a ring's two.  Characteristic property of NORMED-AG.
-(def-predicate 'is-group-norm '(nrm op invop unit crr)
-  '(AND (IN nrm (FUN crr RR))
+(def-predicate 'is-group-norm '(nm op invop unit crr)
+  '(AND (IN nm (FUN crr RR))
      (FORALL u (IMPLIES (IN u crr)
-       (AND (<= 0 (nrm u))
-         (AND (IFF (= (nrm u) 0) (= u unit))
-           (AND (= (nrm (invop u)) (nrm u))
+       (AND (<= 0 (nm u))
+         (AND (IFF (= (nm u) 0) (= u unit))
+           (AND (= (nm (invop u)) (nm u))
              (FORALL v (IMPLIES (IN v crr)
-               (<= (nrm (op u v)) (+ (nrm u) (nrm v))))))))))))
+               (<= (nm (op u v)) (+ (nm u) (nm v))))))))))))
 
 ;;; is-metric(dist, crr): dist is a metric on crr -- nonnegative, zero only
 ;;; on the diagonal, symmetric, and satisfying the triangle inequality.
@@ -84,13 +84,13 @@
 ;;; stamps that at source).  The five metric laws (metric-pos/self-zero/zero-eq/
 ;;; sym/triangle) are PROVEN by projecting this body (metric-laws.scm), so they
 ;;; must rest on it as a definition, not as asserted debt.
-(def-predicate 'is-metric '(dist crr)
+(def-predicate 'is-metric '(dst crr)
   '(FORALL u (IMPLIES (IN u crr)
-     (AND (= (dist u u) 0)
+     (AND (= (dst u u) 0)
        (FORALL v (IMPLIES (IN v crr)
-         (AND (<= 0 (dist u v))
-           (AND (IMPLIES (= (dist u v) 0) (= u v))
-             (AND (= (dist u v) (dist v u))
+         (AND (<= 0 (dst u v))
+           (AND (IMPLIES (= (dst u v) 0) (= u v))
+             (AND (= (dst u v) (dst v u))
                (FORALL w (IMPLIES (IN w crr)
-                 (<= (dist u w)
-                     (+ (dist u v) (dist v w))))))))))))))
+                 (<= (dst u w)
+                     (+ (dst u v) (dst v w))))))))))))))

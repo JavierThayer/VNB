@@ -19,12 +19,12 @@
        (IFF (IS-EUCLIDEAN-RING s)
             (AND (IS-INTEGRAL-DOMAIN s)
               (FORSOME deg
-                (AND (IN deg (FUN (A s) NN))
-                  (FORALL a (IMPLIES (IN a (A s))
-                    (FORALL b (IMPLIES (IN b (A s))
+                (AND (IN deg (FUN (CARR s) NN))
+                  (FORALL a (IMPLIES (IN a (CARR s))
+                    (FORALL b (IMPLIES (IN b (CARR s))
                       (IMPLIES (NOT (= b (ZERO s)))
-                        (FORSOME q (AND (IN q (A s))
-                          (FORSOME r (AND (IN r (A s))
+                        (FORSOME q (AND (IN q (CARR s))
+                          (FORSOME r (AND (IN r (CARR s))
                             (AND (= a ((ADD s) ((MUL s) q b) r))
                                  (OR (= r (ZERO s))
                                      (<= (succ (deg r)) (deg b))))))))))))))))))))
@@ -63,18 +63,18 @@
 ;;; is the division-with-remainder clause of is-euclidean-ring-def, named once.
 ;;; (Inner element var a_ avoids the case-fold clash with the carrier accessor A.)
 (def-predicate 'HAS-DIV-REMAINDER '(s deg)
-  '(FORALL a_ (IMPLIES (IN a_ (A s))
-     (FORALL b (IMPLIES (IN b (A s))
+  '(FORALL a_ (IMPLIES (IN a_ (CARR s))
+     (FORALL b (IMPLIES (IN b (CARR s))
        (IMPLIES (NOT (= b (ZERO s)))
-         (FORSOME q (AND (IN q (A s))
-           (FORSOME r (AND (IN r (A s))
+         (FORSOME q (AND (IN q (CARR s))
+           (FORSOME r (AND (IN r (CARR s))
              (AND (= a_ ((ADD s) ((MUL s) q b) r))
                   (OR (= r (ZERO s))
                       (<= (succ (deg r)) (deg b))))))))))))))
 
 ;;; EUCLIDEAN-GAUGES(s): the set of valid degree functions on s.
 (def-functoid 'EUCLIDEAN-GAUGES '(s)
-  '(SEP dg (FUN (A s) NN) (HAS-DIV-REMAINDER s dg)))
+  '(SEP dg (FUN (CARR s) NN) (HAS-DIV-REMAINDER s dg)))
 
 ;;; GAUGE(s): a chosen degree function -- the global epsilon pick of a valid one.
 (def-functoid 'GAUGE '(s) '(CHOICE (EUCLIDEAN-GAUGES s)))
@@ -83,7 +83,7 @@
 ;;; is-euclidean-ring-def (its division clause, named HAS-DIV-REMAINDER).
 (support 'euclidean-ring-has-gauge
   '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
-     (FORSOME deg (AND (IN deg (FUN (A s) NN)) (HAS-DIV-REMAINDER s deg))))))
+     (FORSOME deg (AND (IN deg (FUN (CARR s) NN)) (HAS-DIV-REMAINDER s deg))))))
 (warrant! 'euclidean-ring-has-gauge 'well-known
   "The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a
    degree function deg : A(s) -> NN with division-with-remainder (HAS-DIV-
@@ -91,10 +91,10 @@
 
 ;;; SEP-membership slices of EUCLIDEAN-GAUGES (definitional).
 (support 'gauges-mem-build
-  '(FORALL s (FORALL dg (IMPLIES (IN dg (FUN (A s) NN))
+  '(FORALL s (FORALL dg (IMPLIES (IN dg (FUN (CARR s) NN))
        (IMPLIES (HAS-DIV-REMAINDER s dg) (IN dg (EUCLIDEAN-GAUGES s)))))))
 (support 'gauges-in-fun
-  '(FORALL s (FORALL dg (IMPLIES (IN dg (EUCLIDEAN-GAUGES s)) (IN dg (FUN (A s) NN))))))
+  '(FORALL s (FORALL dg (IMPLIES (IN dg (EUCLIDEAN-GAUGES s)) (IN dg (FUN (CARR s) NN))))))
 (support 'gauges-spec
   '(FORALL s (FORALL dg (IMPLIES (IN dg (EUCLIDEAN-GAUGES s)) (HAS-DIV-REMAINDER s dg)))))
 (warrant! 'gauges-mem-build 'well-known "SEP-membership of EUCLIDEAN-GAUGES (definitional).")
@@ -106,7 +106,7 @@
 ;;; inhabited).  MACHINE-PROVEN in calculus/gauge-proof.scm.
 (support 'gauge-is-degree
   '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
-     (AND (IN (GAUGE s) (FUN (A s) NN))
+     (AND (IN (GAUGE s) (FUN (CARR s) NN))
           (HAS-DIV-REMAINDER s (GAUGE s))))))
 (warrant! 'gauge-is-degree 'proof
   "GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(A s, NN) and has division-

@@ -41,7 +41,7 @@
 ;;; The constructor.
 
 (def-functoid 'NAG-METRIC-SPACE '(nag)
-  '(LIST (A nag)
+  '(LIST (CARR nag)
          (VNB-LAMBDA (LIST u v) ((NRM nag) ((MUL nag) u ((INV nag) v))))))
 
 ;;; -----------------------------------------------------------------------
@@ -50,9 +50,9 @@
 (support 'nag-metric-distance
   '(FORALL nag
      (IMPLIES (IS-NORMED-AG nag)
-       (FORALL u (IMPLIES (IN u (A nag))
-         (FORALL v (IMPLIES (IN v (A nag))
-           (= ((D (NAG-METRIC-SPACE nag)) u v)
+       (FORALL u (IMPLIES (IN u (CARR nag))
+         (FORALL v (IMPLIES (IN v (CARR nag))
+           (= ((DIST (NAG-METRIC-SPACE nag)) u v)
               ((NRM nag) ((MUL nag) u ((INV nag) v)))))))))))
 
 (warrant! 'nag-metric-distance 'informal
@@ -82,7 +82,7 @@
 
 (support 'nag-metric-carrier
   '(FORALL nag
-     (== (X (NAG-METRIC-SPACE nag)) (A nag))))
+     (== (PTS (NAG-METRIC-SPACE nag)) (CARR nag))))
 
 (warrant! 'nag-metric-carrier 'informal
   "First component of the LIST constructor: by functoid-beta + nth-reduce,

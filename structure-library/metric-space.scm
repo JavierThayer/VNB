@@ -5,9 +5,9 @@
 ;;; Real arithmetic uses built-in <= and +.
 
 (def-structure-from-clauses 'METRIC-SPACE
-  '((carriers X)
-    (op D (CARTESIAN X X) RR)
-    (property is-metric D X)))
+  '((carriers PTS)
+    (op DIST (CARTESIAN PTS PTS) RR)
+    (property is-metric DIST PTS)))
 
 ;;; The five metric laws -- non-negativity, the two identity-of-indiscernibles
 ;;; halves, SYMMETRY, and the triangle inequality -- are NOT separate axioms.
@@ -27,8 +27,8 @@
 ;;; rather than re-grinding the tuple typing in every metric proof.
 (support 'metric-dist-real
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (IN ((D s) x y) RR))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (IN ((DIST s) x y) RR))))))))
 (warrant! 'metric-dist-real 'well-known
   "The distance is real-valued: D(s) maps X(s) x X(s) into RR, so d(s)(x,y) in RR.  Codomain typing of the metric op (the op-clause in the METRIC-SPACE declaration).")

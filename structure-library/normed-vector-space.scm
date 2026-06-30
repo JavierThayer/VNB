@@ -41,7 +41,7 @@
         (VADD  op (CARTESIAN VEC VEC) VEC)
         (VZERO constant VEC)
         (VNEG  op VEC VEC)
-        (ACT   op (CARTESIAN (A SCAL) VEC) VEC)
+        (ACT   op (CARTESIAN (CARR SCAL) VEC) VEC)
         (VNRM  op VEC RR))
       '()                                ; IS-NORMED-VECTOR-SPACE is hand-written
       (current-load-pathname)))
@@ -62,7 +62,7 @@
               '(IN (VADD m) (FUN (CARTESIAN (VEC m) (VEC m)) (VEC m)))
               '(IN (VZERO m) (VEC m))
               '(IN (VNEG m) (FUN (VEC m) (VEC m)))
-              '(IN (ACT m) (FUN (CARTESIAN (A (SCAL m)) (VEC m)) (VEC m)))
+              '(IN (ACT m) (FUN (CARTESIAN (CARR (SCAL m)) (VEC m)) (VEC m)))
               '(IN (VNRM m) (FUN (VEC m) RR))
               ;; vector part (VEC, VADD, VZERO, VNEG) is an abelian group
               '(is-associative (VADD m) (VEC m))
@@ -70,20 +70,20 @@
               '(is-identity (VADD m) (VZERO m) (VEC m))
               '(has-inverses (VADD m) (VZERO m) (VNEG m) (VEC m))
               ;; (1) action distributes over vector addition
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
                  (FORALL x_ (IMPLIES (IN x_ (VEC m))
                    (FORALL y_ (IMPLIES (IN y_ (VEC m))
                      (= ((ACT m) r_ ((VADD m) x_ y_))
                         ((VADD m) ((ACT m) r_ x_) ((ACT m) r_ y_)))))))))
               ;; (2) action distributes over ring addition
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
-                 (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+                 (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
                    (FORALL x_ (IMPLIES (IN x_ (VEC m))
                      (= ((ACT m) ((ADD (SCAL m)) r_ s_) x_)
                         ((VADD m) ((ACT m) r_ x_) ((ACT m) s_ x_)))))))))
               ;; (3) action compatible with ring multiplication
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
-                 (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+                 (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
                    (FORALL x_ (IMPLIES (IN x_ (VEC m))
                      (= ((ACT m) ((MUL (SCAL m)) r_ s_) x_)
                         ((ACT m) r_ ((ACT m) s_ x_)))))))))
@@ -98,7 +98,7 @@
               '(FORALL x_ (IMPLIES (IN x_ (VEC m))
                  (IFF (= ((VNRM m) x_) 0) (= x_ (VZERO m)))))
               ;; homogeneous (the law beyond a group norm):  ||r.x|| = |r| ||x||
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
                  (FORALL x_ (IMPLIES (IN x_ (VEC m))
                    (= ((VNRM m) ((ACT m) r_ x_))
                       (* (abs r_) ((VNRM m) x_)))))))
@@ -122,4 +122,4 @@
 ;;; over the underlying group of a normed vector space applies)
 (def-view-as 'NORMED-VECTOR-SPACE-AS-NORMED-AG
   'NORMED-VECTOR-SPACE '(VEC VADD VZERO VNEG VNRM)
-  'NORMED-AG           '(A   MUL  E     INV  NRM))
+  'NORMED-AG           '(CARR   MUL  ID     INV  NRM))

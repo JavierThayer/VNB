@@ -15,8 +15,8 @@
 
 (support 'sum-set-left-scalar
   '(FORALL s (IMPLIES (IS-RING s)
-     (FORALL a (IMPLIES (IN a (A s))
+     (FORALL a (IMPLIES (IN a (CARR s))
      (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
-     (FORALL f (IMPLIES (IN f (FUN X (A s)))
+     (FORALL f (IMPLIES (IN f (FUN X (CARR s)))
        (= ((MUL s) a (SUM-SET s X f))
           (SUM-SET s X (VNB-LAMBDA z ((MUL s) a (f z))))))))))))))

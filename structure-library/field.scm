@@ -26,30 +26,30 @@
   '(;; Slots 1-6: identical layout to RING, so shared accessor macetes
     ;; ADD/MUL/NEG/ZERO/ONE keep the same NTH index on FIELD tuples as on
     ;; RING tuples.
-    (carriers A)
-    (op ADD (CARTESIAN A A) A)
-    (op MUL (CARTESIAN A A) A)
-    (op NEG A A)
-    (constant ZERO A)
-    (constant ONE A)
+    (carriers CARR)
+    (op ADD (CARTESIAN CARR CARR) CARR)
+    (op MUL (CARTESIAN CARR CARR) CARR)
+    (op NEG CARR CARR)
+    (constant ZERO CARR)
+    (constant ONE CARR)
     ;; Slots 7-8: FIELD-specific carrier and op.
     (carriers NON-ZERO)
     (op INV NON-ZERO NON-ZERO)
     ;; Additive abelian group on A.
-    (property is-associative ADD A)
-    (property is-commutative ADD A)
-    (property is-identity   ADD ZERO A)
-    (property has-inverses  ADD ZERO NEG A)
+    (property is-associative ADD CARR)
+    (property is-commutative ADD CARR)
+    (property is-identity   ADD ZERO CARR)
+    (property has-inverses  ADD ZERO NEG CARR)
     ;; Multiplicative commutative monoid on A; distributive.
-    (property is-associative MUL A)
-    (property is-commutative MUL A)
-    (property is-identity   MUL ONE A)
-    (property is-distributive ADD MUL A)))
+    (property is-associative MUL CARR)
+    (property is-commutative MUL CARR)
+    (property is-identity   MUL ONE CARR)
+    (property is-distributive ADD MUL CARR)))
 
 ;;; Carrier relation: NON-ZERO is A with the zero element removed.
 (theory-add-axiom! *current-theory* 'field-non-zero-carrier
   '(FORALL s (IMPLIES (IS-FIELD s)
-     (= (NON-ZERO s) (DIFFERENCE (A s) (SINGLETON (ZERO s)))))))
+     (= (NON-ZERO s) (DIFFERENCE (CARR s) (SINGLETON (ZERO s)))))))
 
 ;;; Multiplicative inverse: INV is the right inverse of MUL on NON-ZERO.
 (theory-add-axiom! *current-theory* 'field-mul-inverse

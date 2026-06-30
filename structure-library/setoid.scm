@@ -42,8 +42,8 @@
 ;; constraint (IN (REL s) SET) -- a relation IS a set.  The tighter typing
 ;; (REL s) subset CARTESIAN(X,X) and the three laws come from the property.
 (def-structure-from-clauses 'SETOID
-  '((carriers X REL)
-    (property is-equivalence REL X)))
+  '((carriers PTS REL)
+    (property is-equivalence REL PTS)))
 
 ;; The three equivalence laws (refl/sym/trans) and the typing REL subset
 ;; CARTESIAN(X,X) are NOT separate axioms: (property is-equivalence REL X)
@@ -67,7 +67,7 @@
 ;; Param `a' (not `x'): the reader case-folds and `x' would BE the carrier
 ;; accessor X used in the body.
 (def-functoid 'CLASS '(s a)
-  '(SEP b (X s) (RELATED s a b)))
+  '(SEP b (PTS s) (RELATED s a b)))
 
 ;; PROJ(s) = a |-> [a] -- the canonical projection X(s) -> X(s)/REL.
 (def-functoid 'PROJ '(s)
@@ -77,7 +77,7 @@
 ;; The indexed/binder form (feedback_family_operations), not a loose POWER(X)
 ;; comprehension.
 (def-functoid 'QUOTIENT '(s)
-  '(IMAGE (PROJ s) (X s)))
+  '(IMAGE (PROJ s) (PTS s)))
 
 ;;; =======================================================================
 ;;; Class / partition supports (library-phase, warranted).
@@ -86,7 +86,7 @@
 ;; class-self: a in [a].  This is reflexivity of REL, projected through SEP.
 (support 'class-self
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (X s))
+     (FORALL a (IMPLIES (IN a (PTS s))
        (IN a (CLASS s a)))))))
 (warrant! 'class-self 'well-known
   "Unfold CLASS: a in CLASS(s,a) iff a in X(s) and RELATED(s,a,a); the latter
@@ -95,15 +95,15 @@
 ;; class-subset-carrier: [a] subset X(s).  (CLASS is a separation OF X(s).)
 (support 'class-subset-carrier
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (X s))
-       (SUBSET (CLASS s a) (X s)))))))
+     (FORALL a (IMPLIES (IN a (PTS s))
+       (SUBSET (CLASS s a) (PTS s)))))))
 (warrant! 'class-subset-carrier 'well-known
   "CLASS(s,a) = SEP(b, X(s), ...) is by construction a subset of X(s).")
 
 ;; class-is-set: [a] is a set (subclass of the set X(s), by separation).
 (support 'class-is-set
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (X s))
+     (FORALL a (IMPLIES (IN a (PTS s))
        (IN (CLASS s a) SET))))))
 (warrant! 'class-is-set 'well-known
   "A subclass of a set is a set (separation); CLASS(s,a) subset X(s) in SET.")
@@ -113,8 +113,8 @@
 ;; transitivity + symmetry, set-extensionality on the class memberships.
 (support 'class-eq-iff
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (X s))
-       (FORALL b (IMPLIES (IN b (X s))
+     (FORALL a (IMPLIES (IN a (PTS s))
+       (FORALL b (IMPLIES (IN b (PTS s))
          (IFF (= (CLASS s a) (CLASS s b))
               (RELATED s a b)))))))))
 (warrant! 'class-eq-iff 'well-known
@@ -127,8 +127,8 @@
 ;; Either [a] = [b], or they share no element.
 (support 'class-disjoint
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (X s))
-       (FORALL b (IMPLIES (IN b (X s))
+     (FORALL a (IMPLIES (IN a (PTS s))
+       (FORALL b (IMPLIES (IN b (PTS s))
          (OR (= (CLASS s a) (CLASS s b))
              (= (INTERSECTION (CLASS s a) (CLASS s b)) EMPTY-SET)))))))))
 (warrant! 'class-disjoint 'well-known
@@ -139,7 +139,7 @@
 ;; class-in-quotient: [a] is a member of the quotient.  (PROJ lands in QUOTIENT.)
 (support 'class-in-quotient
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (X s))
+     (FORALL a (IMPLIES (IN a (PTS s))
        (IN (CLASS s a) (QUOTIENT s)))))))
 (warrant! 'class-in-quotient 'well-known
   "QUOTIENT(s) = IMAGE(PROJ(s), X(s)); a in X(s) witnesses [a]=PROJ(s)(a) as
@@ -156,7 +156,7 @@
 ;; proj-in-fun: PROJ(s) : X(s) -> QUOTIENT(s).
 (support 'proj-in-fun
   '(FORALL s (IMPLIES (IS-SETOID s)
-     (IN (PROJ s) (FUN (X s) (QUOTIENT s))))))
+     (IN (PROJ s) (FUN (PTS s) (QUOTIENT s))))))
 (warrant! 'proj-in-fun 'well-known
   "PROJ(s) = VNB-LAMBDA a. CLASS(s,a) is total on X(s) and, by
    class-in-quotient, every value lies in QUOTIENT(s); so it is in
@@ -170,8 +170,8 @@
 ;; RESPECTS(s,f): f is constant on equivalence classes (a ~ b => f(a)=f(b)).
 ;; Exactly the condition under which f descends to the quotient.
 (def-functoid 'RESPECTS '(s f)
-  '(FORALL a (IMPLIES (IN a (X s))
-     (FORALL b (IMPLIES (IN b (X s))
+  '(FORALL a (IMPLIES (IN a (PTS s))
+     (FORALL b (IMPLIES (IN b (PTS s))
        (IMPLIES (RELATED s a b) (= (f a) (f b))))))))
 
 ;; DESCEND(f) : X/REL -> Z, the induced map.  On a class c it returns the
@@ -186,8 +186,8 @@
 (support 'descend-computes
   '(FORALL s (IMPLIES (IS-SETOID s)
      (FORALL Z (FORALL f
-       (IMPLIES (AND (IN f (FUN (X s) Z)) (RESPECTS s f))
-         (FORALL a (IMPLIES (IN a (X s))
+       (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
+         (FORALL a (IMPLIES (IN a (PTS s))
            (= ((DESCEND f) (CLASS s a)) (f a))))))))))
 (warrant! 'descend-computes 'well-known
   "Lambda-beta: DESCEND(f)([a]) = IOTA z. exists a' in [a]. z = f(a').  Since
@@ -200,7 +200,7 @@
 (support 'descend-in-fun
   '(FORALL s (IMPLIES (IS-SETOID s)
      (FORALL Z (FORALL f
-       (IMPLIES (AND (IN f (FUN (X s) Z)) (RESPECTS s f))
+       (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
          (IN (DESCEND f) (FUN (QUOTIENT s) Z))))))))
 (warrant! 'descend-in-fun 'well-known
   "Every element of QUOTIENT(s) is some [a] with a in X(s) (it is the image of
@@ -214,17 +214,17 @@
 (support 'quotient-universal
   '(FORALL s (IMPLIES (IS-SETOID s)
      (FORALL Z (FORALL f
-       (IMPLIES (AND (IN f (FUN (X s) Z)) (RESPECTS s f))
+       (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
          (FORSOME g
            (AND (IN g (FUN (QUOTIENT s) Z))
              (AND
                ;; g factors f through the projection
-               (FORALL a (IMPLIES (IN a (X s))
+               (FORALL a (IMPLIES (IN a (PTS s))
                  (= (g (CLASS s a)) (f a))))
                ;; ... and is the only such map
                (FORALL g_
                  (IMPLIES (AND (IN g_ (FUN (QUOTIENT s) Z))
-                               (FORALL a (IMPLIES (IN a (X s))
+                               (FORALL a (IMPLIES (IN a (PTS s))
                                  (= (g_ (CLASS s a)) (f a)))))
                           (= g_ g))))))))))))
 (warrant! 'quotient-universal 'well-known

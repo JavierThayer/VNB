@@ -29,7 +29,7 @@
 ;; forward MP on a local (IMPLIES A B) with A in ctx; leaves B in ctx.
 (define (ml--detach! impl) (let ((B (caddr impl))) (cut B) (ml--fl-goal! B) (bc impl) (ass) (ml--fl-asm! (expression->string B))))
 ;; the un-instantiated (FORALL v (IMPLIES (IN v X) ..)) at the current nest level
-(define (ml--forall-over X) (ml--hyp-pred (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (let ((b (caddr f))) (and (pair? b) (eq? (car b) 'IMPLIES) (equal? (cadr b) (list 'IN (cadr f) X))))))))
+(define (ml--forall-over PTS) (ml--hyp-pred (lambda (f) (and (pair? f) (eq? (car f) 'FORALL) (let ((b (caddr f))) (and (pair? b) (eq? (car b) 'IMPLIES) (equal? (cadr b) (list 'IN (cadr f) PTS))))))))
 ;; di through the goal's bounded universals (and any law-internal implies),
 ;; then read the introduced point-eigenvars off the (IN e X) membership hyps.
 ;; Reading from the goal is fragile (di on a bounded forall with an atomic
@@ -61,7 +61,7 @@
   (ml--split!)
   (let* ((imv (ml--hyp-pred (lambda (f) (and (pair? f) (eq? (car f) 'is-metric)))))
          (Se  (cadr (cadr imv)))
-         (Xse (list 'X Se)))
+         (Xse (list 'PTS Se)))
     (mac-h 'is-metric imv)
     (for-each (lambda (e)
                 (inst (ml--forall-over Xse) e)
@@ -82,26 +82,26 @@
 ;;; --- the five laws (same statements that were asserted) -----------------
 (prove-metric-law! 'metric-pos
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (<= 0 ((D s) x y)))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (<= 0 ((DIST s) x y)))))))))
 (prove-metric-law! 'metric-self-zero
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (= ((D s) x x) 0))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (= ((DIST s) x x) 0))))))
 (prove-metric-law! 'metric-zero-eq
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (IMPLIES (= ((D s) x y) 0) (= x y)))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (IMPLIES (= ((DIST s) x y) 0) (= x y)))))))))
 (prove-metric-law! 'metric-sym
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (= ((D s) x y) ((D s) y x)))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (= ((DIST s) x y) ((DIST s) y x)))))))))
 (prove-metric-law! 'metric-triangle
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (FORALL z (IMPLIES (IN z (X s))
-           (<= ((D s) x z) (+ ((D s) x y) ((D s) y z))))))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (FORALL z (IMPLIES (IN z (PTS s))
+           (<= ((DIST s) x z) (+ ((DIST s) x y) ((DIST s) y z))))))))))))

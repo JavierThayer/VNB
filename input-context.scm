@@ -150,10 +150,10 @@
 ;;; Seed: commutative-ring -- the exact table ring-term hardcodes, including
 ;;; the 0->ZERO / 1->ONE literal aliases (so the anchor is byte-exact).
 (register-notation-profile! 'commutative-ring
-  (make-notation-profile 'IS-COMMUTATIVE-RING 'A
+  (make-notation-profile 'IS-COMMUTATIVE-RING 'CARR
     '((add . ADD) (mul . MUL) (neg . NEG) (pow . RING-POWER) (one . ONE) (zero . ZERO))
     '((0 . zero) (1 . one))
-    '(A ADD MUL NEG ZERO ONE)))            ; ring.scm slot order: A.ADD.MUL.NEG.ZERO.ONE
+    '(CARR ADD MUL NEG ZERO ONE)))         ; ring.scm slot order: CARR.ADD.MUL.NEG.ZERO.ONE
 
 ;;; -----------------------------------------------------------------------
 ;;; Differential test: struct-goal (commutative-ring profile) vs the live

@@ -35,7 +35,7 @@
 ;;; x^1 = x.  mpow-one (uses the right-identity law, hence the typing).
 (support 'ring-power-one
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (A R))
+     (FORALL x (IMPLIES (IN x (CARR R))
        (= (RING-POWER R x 1) x))))))
 (warrant! 'ring-power-one 'informal
   "mpow-one on the multiplicative monoid: x^1 = MUL(x, x^0) = MUL(x, ONE) = x by the right-identity law.")
@@ -43,16 +43,16 @@
 ;;; Carrier closure: x^n stays in A(R).  mpow-type via the view (A|->A).
 (support 'ring-power-type
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (A R))
+     (FORALL x (IMPLIES (IN x (CARR R))
        (FORALL n (IMPLIES (IN n NN)
-         (IN (RING-POWER R x n) (A R)))))))))
+         (IN (RING-POWER R x n) (CARR R)))))))))
 (warrant! 'ring-power-type 'informal
   "mpow-type on COMMUTATIVE-RING-MULTIPLICATIVE-CM(R): NN induction, base (ONE R) in A(R), step closes under (MUL R).")
 
 ;;; x^(j+k) = x^j * x^k.  mpow-add -- the monoid-hom law, no commutativity.
 (support 'ring-power-add
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (A R))
+     (FORALL x (IMPLIES (IN x (CARR R))
        (FORALL j (IMPLIES (IN j NN)
          (FORALL k (IMPLIES (IN k NN)
            (= (RING-POWER R x (+ j k))
@@ -64,8 +64,8 @@
 ;;; commutative, which is exactly IS-COMMUTATIVE-RING(R).
 (support 'ring-power-mult
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (A R))
-       (FORALL y (IMPLIES (IN y (A R))
+     (FORALL x (IMPLIES (IN x (CARR R))
+       (FORALL y (IMPLIES (IN y (CARR R))
          (FORALL n (IMPLIES (IN n NN)
            (= (RING-POWER R ((MUL R) x y) n)
               ((MUL R) (RING-POWER R x n) (RING-POWER R y n))))))))))))

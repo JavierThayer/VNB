@@ -19,7 +19,7 @@
   '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
      (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
      (FORALL Y (IMPLIES (AND (IN Y SET) (IN (CARD Y) NN))
-     (FORALL f (IMPLIES (IN f (FUN (CARTESIAN X Y) (A ag)))
+     (FORALL f (IMPLIES (IN f (FUN (CARTESIAN X Y) (CARR ag)))
        (= (FINSUM ag (VNB-LAMBDA i (FINSUM ag (VNB-LAMBDA j (f (LIST i j))) Y)) X)
           (FINSUM ag (VNB-LAMBDA j (FINSUM ag (VNB-LAMBDA i (f (LIST i j))) X)) Y)))))))))))
 

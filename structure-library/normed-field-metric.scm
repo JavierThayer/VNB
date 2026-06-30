@@ -37,7 +37,7 @@
 ;;; The constructor.
 
 (def-functoid 'NF-METRIC-SPACE '(nf)
-  '(LIST (A nf)
+  '(LIST (CARR nf)
          (VNB-LAMBDA (LIST x y) ((NRM nf) ((ADD nf) x ((NEG nf) y))))))
 
 ;;; -----------------------------------------------------------------------
@@ -46,9 +46,9 @@
 (support 'nf-metric-distance
   '(FORALL nf
      (IMPLIES (IS-NORMED-FIELD nf)
-       (FORALL x (IMPLIES (IN x (A nf))
-         (FORALL y (IMPLIES (IN y (A nf))
-           (= ((D (NF-METRIC-SPACE nf)) x y)
+       (FORALL x (IMPLIES (IN x (CARR nf))
+         (FORALL y (IMPLIES (IN y (CARR nf))
+           (= ((DIST (NF-METRIC-SPACE nf)) x y)
               ((NRM nf) ((ADD nf) x ((NEG nf) y)))))))))))
 
 ;;; -----------------------------------------------------------------------
@@ -64,4 +64,4 @@
 
 (support 'nf-metric-carrier
   '(FORALL nf
-     (== (X (NF-METRIC-SPACE nf)) (A nf))))
+     (== (PTS (NF-METRIC-SPACE nf)) (CARR nf))))

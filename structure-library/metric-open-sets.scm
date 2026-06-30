@@ -31,7 +31,7 @@
 
 (def-predicate 'IS-OPEN '(s U)
   '(AND (IS-METRIC-SPACE s)
-   (AND (SUBSET U (X s))
+   (AND (SUBSET U (PTS s))
         (FORALL y (IMPLIES (IN y U)
           (FORSOME r (AND (POS-RR r)
                           (SUBSET (BALL s y r) U))))))))
@@ -41,14 +41,14 @@
 ;;; Written directly as a separation, so its membership law is SEP's.
 
 (def-functoid 'PREIMAGE '(s f V)
-  '(SEP a (X s) (IN (f a) V)))
+  '(SEP a (PTS s) (IN (f a) V)))
 
 ;;; preimage-membership: a in PREIMAGE(s,f,V) iff a in X(s) and f(a) in V.
 ;;; Direct from SEP membership; recorded so proofs can rewrite by name.
 (theory-add-axiom! *current-theory* 'preimage-membership
   '(FORALL s (FORALL f (FORALL V (FORALL a
      (IFF (IN a (PREIMAGE s f V))
-          (AND (IN a (X s)) (IN (f a) V))))))))
+          (AND (IN a (PTS s)) (IN (f a) V))))))))
 
 ;;; (No `preimage-subset-carrier' axiom: PREIMAGE(s,f,V) subset X(s) is a SEP
 ;;; over X(s), so it falls straight out of the kernel separation rule sep-me
@@ -70,7 +70,7 @@
 ;;; each point since BALL(s,y,r) is a SEP over X(s), hence subset X(s).
 (support 'carrier-is-open
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (IS-OPEN s (X s)))))
+     (IS-OPEN s (PTS s)))))
 (warrant! 'carrier-is-open 'proof
   "SUBSET(X(s),X(s)) is reflexivity; at each point pick any r > 0, and BALL(s,y,r) subset X(s) (a SEP over X(s), via the kernel sep rule).")
 
@@ -79,7 +79,7 @@
 ;;; BALL(s,x,r) by the triangle inequality (cf. ball-2r-triangle).
 (support 'ball-is-open
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
+     (FORALL x (IMPLIES (IN x (PTS s))
        (FORALL r (IMPLIES (AND (IN r RR) (<= 0 r) (NOT (= 0 r)))
          (IS-OPEN s (BALL s x r)))))))))
 (warrant! 'ball-is-open 'proof
@@ -126,7 +126,7 @@
   '(FORALL s (FORALL t (FORALL f
      (IMPLIES (AND (IS-METRIC-SPACE s)
               (AND (IS-METRIC-SPACE t)
-                   (IN f (FUN (X s) (X t)))))
+                   (IN f (FUN (PTS s) (PTS t)))))
        (IMPLIES (FORALL V (IMPLIES (IS-OPEN t V)
                   (IS-OPEN s (PREIMAGE s f V))))
          (IS-CONTINUOUS s t f)))))))
@@ -145,8 +145,8 @@
 ;;; IS-CLOSED(s, A): A is a subset of X(s) whose complement X(s) \ A is open.
 (def-predicate 'IS-CLOSED '(s A)
   '(AND (IS-METRIC-SPACE s)
-   (AND (SUBSET A (X s))
-        (IS-OPEN s (COMPLEMENT-IN (X s) A)))))
+   (AND (SUBSET A (PTS s))
+        (IS-OPEN s (COMPLEMENT-IN (PTS s) A)))))
 
 ;;; preimage-complement: f-preimage commutes with relative complement,
 ;;;   PREIMAGE(s, f, X(t) \ U) = X(s) \ PREIMAGE(s, f, U),
@@ -156,9 +156,9 @@
   '(FORALL s (FORALL t (FORALL f (FORALL U
      (IMPLIES (AND (IS-METRIC-SPACE s)
               (AND (IS-METRIC-SPACE t)
-                   (IN f (FUN (X s) (X t)))))
-       (= (PREIMAGE s f (COMPLEMENT-IN (X t) U))
-          (COMPLEMENT-IN (X s) (PREIMAGE s f U)))))))))
+                   (IN f (FUN (PTS s) (PTS t)))))
+       (= (PREIMAGE s f (COMPLEMENT-IN (PTS t) U))
+          (COMPLEMENT-IN (PTS s) (PREIMAGE s f U)))))))))
 (warrant! 'preimage-complement 'proof
   "Both sides are subsets of X(s), so set-extensionality applies. For a in X(s): a in LHS iff f(a) in X(t)\\U iff f(a) in X(t) and not f(a) in U (complement-in-membership); f(a) in X(t) holds by fun-apply-type, so LHS-membership is `not f(a) in U`. a in RHS iff a in X(s) and not (a in X(s) and f(a) in U) (complement-in / preimage-membership), i.e. `not f(a) in U`. The two coincide.")
 
@@ -177,7 +177,7 @@
   '(FORALL s (FORALL t (FORALL f
      (IMPLIES (AND (IS-METRIC-SPACE s)
               (AND (IS-METRIC-SPACE t)
-                   (IN f (FUN (X s) (X t)))))
+                   (IN f (FUN (PTS s) (PTS t)))))
        (IMPLIES (FORALL A (IMPLIES (IS-CLOSED t A)
                   (IS-CLOSED s (PREIMAGE s f A))))
          (IS-CONTINUOUS s t f)))))))

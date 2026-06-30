@@ -27,8 +27,8 @@
 (define binomial-stmt
   (tf 'R '(IS-COMMUTATIVE-RING R)
    (tf 'n '(IN n NN)
-    (tf 'x '(IN x (A R))
-     (tf 'y '(IN y (A R))
+    (tf 'x '(IN x (CARR R))
+     (tf 'y '(IN y (CARR R))
       (list '=
         '(RING-POWER R ((ADD R) x y) n)
         (list 'FINSUM cra binom-summand '(ORD-SEGMENT (succ n)))))))))

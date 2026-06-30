@@ -58,7 +58,7 @@
 ;;; IS-SUMMABLE: f is summable in grp iff it sums to some r in the carrier.
 
 (def-predicate 'IS-SUMMABLE '(grp f)
-  '(FORSOME r (AND (IN r (A grp)) (SUMS-TO grp f r))))
+  '(FORSOME r (AND (IN r (CARR grp)) (SUMS-TO grp f r))))
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-ABSOLUTELY-SUMMABLE: the sum of the norms is finite.
@@ -87,11 +87,11 @@
   '(FORALL grp
      (IMPLIES (IS-NORMED-AG grp)
        (FORALL f
-         (IMPLIES (IN f (FUN (DOM f) (A grp)))
+         (IMPLIES (IN f (FUN (DOM f) (CARR grp)))
            (FORALL r1
-             (IMPLIES (IN r1 (A grp))
+             (IMPLIES (IN r1 (CARR grp))
                (FORALL r2
-                 (IMPLIES (IN r2 (A grp))
+                 (IMPLIES (IN r2 (CARR grp))
                    (IMPLIES (AND (SUMS-TO grp f r1) (SUMS-TO grp f r2))
                      (= r1 r2)))))))))))
 
@@ -117,7 +117,7 @@
      (IMPLIES (AND (IS-NORMED-AG grp)
                    (IS-COMPLETE (NAG-METRIC-SPACE grp)))
        (FORALL f
-         (IMPLIES (AND (IN f (FUN (DOM f) (A grp)))
+         (IMPLIES (AND (IN f (FUN (DOM f) (CARR grp)))
                        (IS-ABSOLUTELY-SUMMABLE grp f))
            (IS-SUMMABLE grp f))))))
 

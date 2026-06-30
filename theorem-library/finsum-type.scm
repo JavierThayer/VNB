@@ -9,5 +9,5 @@
 (support 'finsum-type
   '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
      (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (A ag)))
-       (IN (FINSUM ag f S) (A ag))))))))))
+     (FORALL f (IMPLIES (IN f (FUN S (CARR ag)))
+       (IN (FINSUM ag f S) (CARR ag))))))))))

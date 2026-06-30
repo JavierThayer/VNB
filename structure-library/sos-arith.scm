@@ -57,19 +57,19 @@
 ;;; targets = (S_1 .. S_n), D the target.  Returns a length-n nonnegative
 ;;; rational list lambda with Sum lambda_i S_i = D, or #f if none exists.
 
-(define (sos-nonneg-combo targets D)
-  (let* ((keys (sv-keys (cons D targets)))
+(define (sos-nonneg-combo targets DIST)
+  (let* ((keys (sv-keys (cons DIST targets)))
          (n    (length targets))
          (m    (length keys)))
     (cond
       ((= m 0)                                  ; no equations: 0 = 0
        (map (lambda (ignore) 0) targets))
-      (else (sos-phase1 keys targets n m D)))))
+      (else (sos-phase1 keys targets n m DIST)))))
 
 ;;; Build the Phase-I tableau and run simplex.  Columns 0..n-1 are the lambdas,
 ;;; n..n+m-1 the artificials, column W=n+m is the right-hand side.  The cost
 ;;; row (rc) carries reduced costs in cols 0..W-1 and -objective in col W.
-(define (sos-phase1 keys targets n m D)
+(define (sos-phase1 keys targets n m DIST)
   (let* ((W      (+ n m))
          (ncol   (+ W 1))
          (T      (make-vector m))
@@ -78,7 +78,7 @@
     (let rowloop ((ks keys) (r 0))
       (when (pair? ks)
         (let ((row (make-vector ncol 0))
-              (dk  (sv-get D (car ks))))
+              (dk  (sv-get DIST (car ks))))
           (let cloop ((ts targets) (j 0))   ; lambda coefficients = S_i(key)
             (when (pair? ts)
               (vector-set! row j (sv-get (car ts) (car ks)))

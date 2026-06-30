@@ -33,13 +33,13 @@
 (def-predicate 'IS-CONTINUOUS-AT '(s t f a)
   '(AND (IS-METRIC-SPACE s)
    (AND (IS-METRIC-SPACE t)
-   (AND (IN f (FUN (X s) (X t)))
-   (AND (IN a (X s))
+   (AND (IN f (FUN (PTS s) (PTS t)))
+   (AND (IN a (PTS s))
         (FORALL eps (IMPLIES (POS-RR eps)
           (FORSOME delta (AND (POS-RR delta)
-            (FORALL b (IMPLIES (IN b (X s))
-              (IMPLIES (<= ((D s) a b) delta)
-                       (<= ((D t) (f a) (f b)) eps)))))))))))))
+            (FORALL b (IMPLIES (IN b (PTS s))
+              (IMPLIES (<= ((DIST s) a b) delta)
+                       (<= ((DIST t) (f a) (f b)) eps)))))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-CONTINUOUS(s, t, f): continuous at every point of the domain.  The
@@ -49,8 +49,8 @@
 (def-predicate 'IS-CONTINUOUS '(s t f)
   '(AND (IS-METRIC-SPACE s)
    (AND (IS-METRIC-SPACE t)
-   (AND (IN f (FUN (X s) (X t)))
-        (FORALL a (IMPLIES (IN a (X s))
+   (AND (IN f (FUN (PTS s) (PTS t)))
+        (FORALL a (IMPLIES (IN a (PTS s))
           (IS-CONTINUOUS-AT s t f a)))))))
 
 ;;; -----------------------------------------------------------------------
@@ -61,13 +61,13 @@
 (def-predicate 'IS-UNIFORMLY-CONTINUOUS '(s t f)
   '(AND (IS-METRIC-SPACE s)
    (AND (IS-METRIC-SPACE t)
-   (AND (IN f (FUN (X s) (X t)))
+   (AND (IN f (FUN (PTS s) (PTS t)))
         (FORALL eps (IMPLIES (POS-RR eps)
           (FORSOME delta (AND (POS-RR delta)
-            (FORALL a (IMPLIES (IN a (X s))
-              (FORALL b (IMPLIES (IN b (X s))
-                (IMPLIES (<= ((D s) a b) delta)
-                         (<= ((D t) (f a) (f b)) eps))))))))))))))
+            (FORALL a (IMPLIES (IN a (PTS s))
+              (FORALL b (IMPLIES (IN b (PTS s))
+                (IMPLIES (<= ((DIST s) a b) delta)
+                         (<= ((DIST t) (f a) (f b)) eps))))))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; continuous-is-continuous-at: the backchain-ready conjunct of IS-CONTINUOUS
@@ -80,7 +80,7 @@
 (support 'continuous-is-continuous-at
   '(FORALL s (FORALL t (FORALL f
      (IMPLIES (IS-CONTINUOUS s t f)
-       (FORALL a (IMPLIES (IN a (X s))
+       (FORALL a (IMPLIES (IN a (PTS s))
          (IS-CONTINUOUS-AT s t f a))))))))
 
 ;;; -----------------------------------------------------------------------

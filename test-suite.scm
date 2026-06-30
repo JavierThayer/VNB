@@ -413,7 +413,7 @@
   '((= x 0) (IN y NN)))
 
 (check "lc-drop-shadowed: drops on any of multiple bvars"
-  (lambda () (lc-drop-shadowed '(p q) '((IN p A) (IN y NN) (= q 0))))
+  (lambda () (lc-drop-shadowed '(p q) '((IN p CARR) (IN y NN) (= q 0))))
   '((IN y NN)))
 
 ;;; The audit's exact macete witness: a conditional rewrite that USED to
@@ -687,8 +687,8 @@
 (check "free-vars: (VNB-LAMBDA (LIST p q) ((ADD X) p q)) hides p,q; exposes X via compound head"
   ;; ADD is a symbol head -> treated as constant.  X is INSIDE the
   ;; compound head (ADD X) -> exposed via compound-head recursion.
-  (lambda () (free-vars '(VNB-LAMBDA (LIST p q) ((ADD X) p q))))
-  '(X))
+  (lambda () (free-vars '(VNB-LAMBDA (LIST p q) ((ADD PTS) p q))))
+  '(PTS))
 
 (check "subst-free: i -> 99 in (VNB-LAMBDA i (+ i 1)) leaves binder intact"
   (lambda () (subst-free 'i 99 '(VNB-LAMBDA i (+ i 1))))
@@ -811,31 +811,31 @@
 
 ;; Validator now accepts (UNION A B C) and (INTERSECTION A B C).
 (check-true "make-wff accepts (UNION A B C)"
-  (lambda () (wff? (make-wff '(IN x (UNION A B C))))))
+  (lambda () (wff? (make-wff '(IN x (UNION CARR B C))))))
 
 (check-true "make-wff accepts (INTERSECTION A B C D)"
-  (lambda () (wff? (make-wff '(IN x (INTERSECTION A B C D))))))
+  (lambda () (wff? (make-wff '(IN x (INTERSECTION CARR B C DIST))))))
 
 (check-true "make-wff accepts (COMPLEMENT-IN A B)"
-  (lambda () (wff? (make-wff '(IN x (COMPLEMENT-IN A B))))))
+  (lambda () (wff? (make-wff '(IN x (COMPLEMENT-IN CARR B))))))
 
 (check-error "(UNION A) (1 arg) rejected"
-  (lambda () (make-wff '(IN x (UNION A)))))
+  (lambda () (make-wff '(IN x (UNION CARR)))))
 
 (check-error "(COMPLEMENT-IN A) (wrong arity) rejected"
-  (lambda () (make-wff '(IN x (COMPLEMENT-IN A)))))
+  (lambda () (make-wff '(IN x (COMPLEMENT-IN CARR)))))
 
 ;; Free-vars / subst-free / alpha-equiv treat COMPLEMENT-IN as a binary term.
 (check "free-vars (COMPLEMENT-IN A B) = (A B)"
-  (lambda () (free-vars '(COMPLEMENT-IN A B)))
-  '(A B))
+  (lambda () (free-vars '(COMPLEMENT-IN CARR B)))
+  '(CARR B))
 
 (check "subst-free A->X in (COMPLEMENT-IN A B) = (COMPLEMENT-IN X B)"
-  (lambda () (subst-free 'A 'X '(COMPLEMENT-IN A B)))
-  '(COMPLEMENT-IN X B))
+  (lambda () (subst-free 'CARR 'PTS '(COMPLEMENT-IN CARR B)))
+  '(COMPLEMENT-IN PTS B))
 
 (check-true "alpha-equiv (COMPLEMENT-IN A B) ~ itself"
-  (lambda () (alpha-equiv? '(COMPLEMENT-IN A B) '(COMPLEMENT-IN A B))))
+  (lambda () (alpha-equiv? '(COMPLEMENT-IN CARR B) '(COMPLEMENT-IN CARR B))))
 
 ;; New axioms are installed and looked up.
 (check-true "union-membership axiom installed"
@@ -861,26 +861,26 @@
 (display "\n=== 6u. Unary (FUN A) handled by free-vars/subst-free/alpha-equiv ===\n")
 
 (check "free-vars (FUN A) = (A)"
-  (lambda () (free-vars '(FUN A)))
-  '(A))
+  (lambda () (free-vars '(FUN CARR)))
+  '(CARR))
 
 (check "free-vars (FUN A B) = (A B)"
-  (lambda () (free-vars '(FUN A B)))
-  '(A B))
+  (lambda () (free-vars '(FUN CARR B)))
+  '(CARR B))
 
 (check "subst-free A->X in (FUN A) = (FUN X)"
-  (lambda () (subst-free 'A 'X '(FUN A)))
-  '(FUN X))
+  (lambda () (subst-free 'CARR 'PTS '(FUN CARR)))
+  '(FUN PTS))
 
 (check "subst-free A->X in (FUN A B) = (FUN X B)"
-  (lambda () (subst-free 'A 'X '(FUN A B)))
-  '(FUN X B))
+  (lambda () (subst-free 'CARR 'PTS '(FUN CARR B)))
+  '(FUN PTS B))
 
 (check-true "alpha-equiv (FUN A) ~ itself"
-  (lambda () (alpha-equiv? '(FUN A) '(FUN A))))
+  (lambda () (alpha-equiv? '(FUN CARR) '(FUN CARR))))
 
 (check-false "alpha-equiv (FUN A) !~ (FUN A B)"
-  (lambda () (alpha-equiv? '(FUN A) '(FUN A B))))
+  (lambda () (alpha-equiv? '(FUN CARR) '(FUN CARR B))))
 
 ;; All four fun-* axioms now register in the theorem table.
 (check-true "fun-domain-apply-def in theorem table"
@@ -905,7 +905,7 @@
 ;; --- SEPARATION ---
 (check-proof "pi-sep-sethood: (IN (SEP x A p) SET) reduces to (IN A SET)"
   (lambda ()
-    (sp (make-wff '(IN (SEP x A (IN x NN)) SET)))
+    (sp (make-wff '(IN (SEP x CARR (IN x NN)) SET)))
     (let ((sqn (proof-state-focus *ps*)))
       (let ((r (pi-sep-sethood! sqn)))
         (or r (error "pi-sep-sethood! failed"))))))
@@ -1015,39 +1015,39 @@
 (check "RESTVAR captures all UNION args (n=2)"
   (lambda ()
     (let ((m (match-expr '(IN x (UNION (RESTVAR AS)))
-                         '(IN x (UNION A B))
+                         '(IN x (UNION CARR B))
                          '(x AS))))
       (and m (restbound-exprs (cdr (assq 'AS m))))))
-  '(A B))
+  '(CARR B))
 
 (check "RESTVAR captures all UNION args (n=3)"
   (lambda ()
     (let ((m (match-expr '(IN x (UNION (RESTVAR AS)))
-                         '(IN x (UNION A B C))
+                         '(IN x (UNION CARR B C))
                          '(x AS))))
       (and m (restbound-exprs (cdr (assq 'AS m))))))
-  '(A B C))
+  '(CARR B C))
 
 (check "RESTVAR captures tail after fixed prefix"
   (lambda ()
     (let ((m (match-expr '(IN x (UNION X1 (RESTVAR AS)))
-                         '(IN x (UNION A B C D))
+                         '(IN x (UNION CARR B C DIST))
                          '(x X1 AS))))
       (and m
            (list (cdr (assq 'X1 m))
                  (restbound-exprs (cdr (assq 'AS m)))))))
-  '(A (B C D)))
+  '(CARR (B C DIST)))
 
 (check-false "RESTVAR on INTERSECTION does not match UNION expr"
   (lambda ()
     (match-expr '(IN x (INTERSECTION (RESTVAR AS)))
-                '(IN x (UNION A B))
+                '(IN x (UNION CARR B))
                 '(x AS))))
 
 (check "RESTVAR with empty tail (UNION has only fixed prefix)"
   (lambda ()
     (let ((m (match-expr '(UNION X1 X2 (RESTVAR AS))
-                         '(UNION A B)
+                         '(UNION CARR B)
                          '(X1 X2 AS))))
       (and m (restbound-exprs (cdr (assq 'AS m))))))
   '())
@@ -1055,33 +1055,33 @@
 (check-true "RESTVAR strict-mode: pattern without RESTVAR still requires equal length"
   (lambda ()
     (not (match-expr '(UNION X1 X2)
-                     '(UNION A B C)
+                     '(UNION CARR B C)
                      '(X1 X2)))))
 
 ;; --- List-aware merge-subst (rest-var bound twice must be alpha-equiv) ---
 
 (check-true "merge-subst accepts two equal restbound bindings"
   (lambda ()
-    (let ((s1 (list (cons 'AS (make-restbound '(A B C)))))
-          (s2 (list (cons 'AS (make-restbound '(A B C))))))
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B C)))))
+          (s2 (list (cons 'AS (make-restbound '(CARR B C))))))
       (and (merge-subst s1 s2) #t))))
 
 (check-false "merge-subst rejects differing restbound bindings (lengths)"
   (lambda ()
-    (let ((s1 (list (cons 'AS (make-restbound '(A B)))))
-          (s2 (list (cons 'AS (make-restbound '(A B C))))))
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B)))))
+          (s2 (list (cons 'AS (make-restbound '(CARR B C))))))
       (merge-subst s1 s2))))
 
 (check-false "merge-subst rejects differing restbound bindings (contents)"
   (lambda ()
-    (let ((s1 (list (cons 'AS (make-restbound '(A B)))))
-          (s2 (list (cons 'AS (make-restbound '(A C))))))
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B)))))
+          (s2 (list (cons 'AS (make-restbound '(CARR C))))))
       (merge-subst s1 s2))))
 
 (check-false "merge-subst rejects mixing restbound with ordinary"
   (lambda ()
-    (let ((s1 (list (cons 'AS (make-restbound '(A B)))))
-          (s2 (list (cons 'AS 'A))))
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B)))))
+          (s2 (list (cons 'AS 'CARR))))
       (merge-subst s1 s2))))
 
 ;; --- SPLICE expansion ---
@@ -1089,23 +1089,23 @@
 (check "SPLICE OR over 3 elements: right-fold"
   (lambda ()
     (apply-subst (list (cons 'x 'a)
-                       (cons 'AS (make-restbound '(A B C))))
+                       (cons 'AS (make-restbound '(CARR B C))))
                  '(SPLICE OR e AS (IN x e))))
-  '(OR (IN a A) (OR (IN a B) (IN a C))))
+  '(OR (IN a CARR) (OR (IN a B) (IN a C))))
 
 (check "SPLICE OR over 1 element: just the template instance"
   (lambda ()
     (apply-subst (list (cons 'x 'a)
-                       (cons 'AS (make-restbound '(A))))
+                       (cons 'AS (make-restbound '(CARR))))
                  '(SPLICE OR e AS (IN x e))))
-  '(IN a A))
+  '(IN a CARR))
 
 (check "SPLICE AND mirrors OR shape"
   (lambda ()
     (apply-subst (list (cons 'x 'a)
-                       (cons 'AS (make-restbound '(A B C))))
+                       (cons 'AS (make-restbound '(CARR B C))))
                  '(SPLICE AND e AS (IN x e))))
-  '(AND (IN a A) (AND (IN a B) (IN a C))))
+  '(AND (IN a CARR) (AND (IN a B) (IN a C))))
 
 ;; --- End-to-end: the three decompose macetes, installed by theory.scm ---
 
@@ -1140,42 +1140,42 @@
 (check-true "build-cartesian-witness (n=2): structure matches expected chain"
   (lambda ()
     (alpha-equiv?
-      (build-cartesian-witness 'x '(A B))
-      '(FORSOME u (AND (IN u A)
+      (build-cartesian-witness 'x '(CARR B))
+      '(FORSOME u (AND (IN u CARR)
          (FORSOME v (AND (IN v B) (= x (LIST u v)))))))))
 
 (check-true "build-cartesian-witness (n=3): structure matches expected chain"
   (lambda ()
     (alpha-equiv?
-      (build-cartesian-witness 'x '(A B C))
-      '(FORSOME u (AND (IN u A)
+      (build-cartesian-witness 'x '(CARR B C))
+      '(FORSOME u (AND (IN u CARR)
          (FORSOME v (AND (IN v B)
             (FORSOME w (AND (IN w C) (= x (LIST u v w)))))))))))
 
 (check-true "build-cartesian-witness (n=1): single FORSOME"
   (lambda ()
     (alpha-equiv?
-      (build-cartesian-witness 'x '(A))
-      '(FORSOME u (AND (IN u A) (= x (LIST u)))))))
+      (build-cartesian-witness 'x '(CARR))
+      '(FORSOME u (AND (IN u CARR) (= x (LIST u)))))))
 
 (check-true "build-cartesian-witness avoids x as a fresh-var name"
   (lambda ()
     ;; Pass x=a so the fresh-var would naturally collide with one of the
     ;; class names if it weren't avoided.
-    (let ((w (build-cartesian-witness 'a '(A B))))
+    (let ((w (build-cartesian-witness 'a '(CARR B))))
       ;; The outer bound var must NOT be the symbol 'a' (would shadow x).
       (not (eq? (cadr w) 'a)))))
 
 (check-proof "cartesian-decompose on (IN x (CARTESIAN A B)) at goal top"
   (lambda ()
-    (sp (make-wff '(IN x (CARTESIAN A B))))
+    (sp (make-wff '(IN x (CARTESIAN CARR B))))
     (let ((sqn (proof-state-focus *ps*)))
       (or (apply-macete! 'cartesian-decompose sqn)
           (error "cartesian-decompose failed to fire")))))
 
 (check-proof "cartesian-decompose descends through IMPLIES"
   (lambda ()
-    (sp (make-wff '(IMPLIES (IN x SET) (IN x (CARTESIAN A B)))))
+    (sp (make-wff '(IMPLIES (IN x SET) (IN x (CARTESIAN CARR B)))))
     (let ((sqn (proof-state-focus *ps*)))
       (or (apply-macete! 'cartesian-decompose sqn)
           (error "cartesian-decompose failed to descend through IMPLIES")))))
@@ -1187,7 +1187,7 @@
     ;; The bvar `y` is in scope; the rewrite generates fresh `a_i` names
     ;; that must not collide with y (else the result mis-parses y as a
     ;; reference to the FORALL-bound name from outside).
-    (let* ((g       '(FORALL y (IN y (CARTESIAN A B))))
+    (let* ((g       '(FORALL y (IN y (CARTESIAN CARR B))))
            (rewrote (rewrite-by-proc cartesian-decompose-fire g))
            (body    (caddr rewrote))      ; under FORALL y
            (bv1     (cadr body))          ; outer FORSOME bvar
@@ -1326,8 +1326,8 @@
 (check-proof "prod-ord-type provable by ni"
   (lambda ()
     (sp (make-wff '(IMPLIES (IS-MONOID m)
-                     (IMPLIES (IN f (FUN NN (A m)))
-                       (FORALL n (IMPLIES (IN n NN) (IN (PROD-ORD m f n) (A m))))))))
+                     (IMPLIES (IN f (FUN NN (CARR m)))
+                       (FORALL n (IMPLIES (IN n NN) (IN (PROD-ORD m f n) (CARR m))))))))
     (di) (di) (ni)
     ;; --- BASE: PROD-ORD(m,f,0) in A(m) ---
     ;; Use eq-subst-membership: (== a b) /\ b in S -> a in S,
@@ -1336,22 +1336,22 @@
     (inst '(FORALL a (FORALL b (FORALL S (IMPLIES (AND (== a b) (IN b S)) (IN a S)))))
           '(PROD-ORD m f 0))
     (inst '(FORALL b (FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) b) (IN b S)) (IN (PROD-ORD m f 0) S))))
-          '(E m))
-    (inst '(FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) (E m)) (IN (E m) S)) (IN (PROD-ORD m f 0) S)))
-          '(A m))
-    (bc '(IMPLIES (AND (== (PROD-ORD m f 0) (E m)) (IN (E m) (A m))) (IN (PROD-ORD m f 0) (A m))))
+          '(ID m))
+    (inst '(FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) (ID m)) (IN (ID m) S)) (IN (PROD-ORD m f 0) S)))
+          '(CARR m))
+    (bc '(IMPLIES (AND (== (PROD-ORD m f 0) (ID m)) (IN (ID m) (CARR m))) (IN (PROD-ORD m f 0) (CARR m))))
     (di)                          ; AND-split -> focus: (== PROD-ORD(m,f,0) E(m))
     ;; Membership conjunct is the last DG node after AND-split.
     ;; Save it now; after (ass) closes equality, focus jumps to STEP.
     (let* ((mem-node (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
       (ta 'prod-ord-zero)
-      (inst '(FORALL m (FORALL f (== (PROD-ORD m f 0) (E m)))) 'm)
-      (inst '(FORALL f (== (PROD-ORD m f 0) (E m))) 'f)
+      (inst '(FORALL m (FORALL f (== (PROD-ORD m f 0) (ID m)))) 'm)
+      (inst '(FORALL f (== (PROD-ORD m f 0) (ID m))) 'f)
       (ass)                       ; closes equality; focus jumps to STEP
       (set-proof-state-focus! *ps* mem-node)
       (ta 'monoid-identity-in)
-      (inst '(FORALL m (IMPLIES (IS-MONOID m) (IN (E m) (A m)))) 'm)
-      (bc '(IMPLIES (IS-MONOID m) (IN (E m) (A m))))
+      (inst '(FORALL m (IMPLIES (IS-MONOID m) (IN (ID m) (CARR m)))) 'm)
+      (bc '(IMPLIES (IS-MONOID m) (IN (ID m) (CARR m))))
       (ass))                      ; base done; focus -> STEP
     ;; --- STEP: forall n in NN. PROD-ORD(m,f,n) in A(m) -> PROD-ORD(m,f,succ n) in A(m) ---
     (di)    ; peel FORALL n, freshens n -> n_k, adds (IN n_k NN)
@@ -1369,11 +1369,11 @@
                                         ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))
                                     (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) S))
                                 (IN (PROD-ORD m f (succ ,n-k)) S)))
-            '(A m))
+            '(CARR m))
       (bc `(IMPLIES (AND (== (PROD-ORD m f (succ ,n-k))
                              ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))
-                         (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (A m)))
-                    (IN (PROD-ORD m f (succ ,n-k)) (A m))))
+                         (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m)))
+                    (IN (PROD-ORD m f (succ ,n-k)) (CARR m))))
       (di)  ; AND-split -> focus: (== PROD-ORD(m,f,succ n_k) ...)
       ;; Prove the succ equation from prod-ord-succ.
       (ta 'prod-ord-succ)
@@ -1389,17 +1389,17 @@
       ;; Prove (MUL m)(PROD-ORD m f n_k)(f n_k) in A(m) via monoid-carrier-closed-mul.
       (ta 'monoid-carrier-closed-mul)
       (inst '(FORALL m (FORALL a (FORALL b
-               (IMPLIES (AND (IS-MONOID m) (AND (IN a (A m)) (IN b (A m))))
-                        (IN ((MUL m) a b) (A m)))))) 'm)
+               (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
+                        (IN ((MUL m) a b) (CARR m)))))) 'm)
       (inst `(FORALL a (FORALL b
-               (IMPLIES (AND (IS-MONOID m) (AND (IN a (A m)) (IN b (A m))))
-                        (IN ((MUL m) a b) (A m))))) `(PROD-ORD m f ,n-k))
+               (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
+                        (IN ((MUL m) a b) (CARR m))))) `(PROD-ORD m f ,n-k))
       (inst `(FORALL b
-               (IMPLIES (AND (IS-MONOID m) (AND (IN (PROD-ORD m f ,n-k) (A m)) (IN b (A m))))
-                        (IN ((MUL m) (PROD-ORD m f ,n-k) b) (A m)))) `(f ,n-k))
+               (IMPLIES (AND (IS-MONOID m) (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN b (CARR m))))
+                        (IN ((MUL m) (PROD-ORD m f ,n-k) b) (CARR m)))) `(f ,n-k))
       (bc `(IMPLIES (AND (IS-MONOID m)
-                         (AND (IN (PROD-ORD m f ,n-k) (A m)) (IN (f ,n-k) (A m))))
-                    (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (A m))))
+                         (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN (f ,n-k) (CARR m))))
+                    (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m))))
       (di) (ass)   ; IS-MONOID(m) [ass]
       (di) (ass)   ; PROD-ORD(m,f,n_k) in A(m) [IH]
       ;; Prove (f n_k) in A(m) via fun-apply-type.
@@ -1409,17 +1409,17 @@
       (inst '(FORALL A (FORALL B (FORALL x
                (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B))))) 'NN)
       (inst '(FORALL B (FORALL x
-               (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(A m))
-      (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (A m))) (IN x NN)) (IN (f x) (A m)))) n-k)
-      (bc `(IMPLIES (AND (IN f (FUN NN (A m))) (IN ,n-k NN)) (IN (f ,n-k) (A m))))
+               (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(CARR m))
+      (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (CARR m))) (IN x NN)) (IN (f x) (CARR m)))) n-k)
+      (bc `(IMPLIES (AND (IN f (FUN NN (CARR m))) (IN ,n-k NN)) (IN (f ,n-k) (CARR m))))
       (di) (ass) (ass))  ; f in FUN(NN,A(m)) [ass]; n_k in NN [ass]; proof done
     (unless (proof-done? *ps*) (error "prod-ord-type proof incomplete"))))
 
 (check-proof "sum-type provable by ni"
   (lambda ()
     (sp (make-wff '(IMPLIES (IS-RING r)
-                     (IMPLIES (IN f (FUN NN (A r)))
-                       (FORALL n (IMPLIES (IN n NN) (IN (SUM r f n) (A r))))))))
+                     (IMPLIES (IN f (FUN NN (CARR r)))
+                       (FORALL n (IMPLIES (IN n NN) (IN (SUM r f n) (CARR r))))))))
     (di) (di) (ni)
     ;; --- BASE: SUM(r,f,0) in A(r) ---
     (ta 'quasi-eq-subst-membership)
@@ -1428,8 +1428,8 @@
     (inst '(FORALL b (FORALL S (IMPLIES (AND (== (SUM r f 0) b) (IN b S)) (IN (SUM r f 0) S))))
           '(ZERO r))
     (inst '(FORALL S (IMPLIES (AND (== (SUM r f 0) (ZERO r)) (IN (ZERO r) S)) (IN (SUM r f 0) S)))
-          '(A r))
-    (bc '(IMPLIES (AND (== (SUM r f 0) (ZERO r)) (IN (ZERO r) (A r))) (IN (SUM r f 0) (A r))))
+          '(CARR r))
+    (bc '(IMPLIES (AND (== (SUM r f 0) (ZERO r)) (IN (ZERO r) (CARR r))) (IN (SUM r f 0) (CARR r))))
     (di)                          ; AND-split -> focus: (== SUM(r,f,0) ZERO(r))
     (let* ((mem-node (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
       (ta 'sum-zero)
@@ -1438,8 +1438,8 @@
       (ass)                       ; closes equality; focus jumps to STEP
       (set-proof-state-focus! *ps* mem-node)
       (ta 'ring-zero-in)
-      (inst '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (A r)))) 'r)
-      (bc '(IMPLIES (IS-RING r) (IN (ZERO r) (A r))))
+      (inst '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (CARR r)))) 'r)
+      (bc '(IMPLIES (IS-RING r) (IN (ZERO r) (CARR r))))
       (ass))                      ; base done; focus -> STEP
     ;; --- STEP ---
     (di)    ; peel FORALL n -> n_k
@@ -1455,11 +1455,11 @@
                                         ((ADD r) (SUM r f ,n-k) (f ,n-k)))
                                     (IN ((ADD r) (SUM r f ,n-k) (f ,n-k)) S))
                                 (IN (SUM r f (succ ,n-k)) S)))
-            '(A r))
+            '(CARR r))
       (bc `(IMPLIES (AND (== (SUM r f (succ ,n-k))
                              ((ADD r) (SUM r f ,n-k) (f ,n-k)))
-                         (IN ((ADD r) (SUM r f ,n-k) (f ,n-k)) (A r)))
-                    (IN (SUM r f (succ ,n-k)) (A r))))
+                         (IN ((ADD r) (SUM r f ,n-k) (f ,n-k)) (CARR r)))
+                    (IN (SUM r f (succ ,n-k)) (CARR r))))
       (di)
       (ta 'sum-succ)
       (inst '(FORALL r (FORALL f (FORALL n (IMPLIES (IN n NN)
@@ -1473,17 +1473,17 @@
       (ass)
       (ta 'ring-carrier-closed-add)
       (inst '(FORALL r (FORALL a (FORALL b
-               (IMPLIES (AND (IS-RING r) (AND (IN a (A r)) (IN b (A r))))
-                        (IN ((ADD r) a b) (A r)))))) 'r)
+               (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
+                        (IN ((ADD r) a b) (CARR r)))))) 'r)
       (inst `(FORALL a (FORALL b
-               (IMPLIES (AND (IS-RING r) (AND (IN a (A r)) (IN b (A r))))
-                        (IN ((ADD r) a b) (A r))))) `(SUM r f ,n-k))
+               (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
+                        (IN ((ADD r) a b) (CARR r))))) `(SUM r f ,n-k))
       (inst `(FORALL b
-               (IMPLIES (AND (IS-RING r) (AND (IN (SUM r f ,n-k) (A r)) (IN b (A r))))
-                        (IN ((ADD r) (SUM r f ,n-k) b) (A r)))) `(f ,n-k))
+               (IMPLIES (AND (IS-RING r) (AND (IN (SUM r f ,n-k) (CARR r)) (IN b (CARR r))))
+                        (IN ((ADD r) (SUM r f ,n-k) b) (CARR r)))) `(f ,n-k))
       (bc `(IMPLIES (AND (IS-RING r)
-                         (AND (IN (SUM r f ,n-k) (A r)) (IN (f ,n-k) (A r))))
-                    (IN ((ADD r) (SUM r f ,n-k) (f ,n-k)) (A r))))
+                         (AND (IN (SUM r f ,n-k) (CARR r)) (IN (f ,n-k) (CARR r))))
+                    (IN ((ADD r) (SUM r f ,n-k) (f ,n-k)) (CARR r))))
       (di) (ass)
       (di) (ass)
       (ta 'fun-apply-type)
@@ -1492,9 +1492,9 @@
       (inst '(FORALL A (FORALL B (FORALL x
                (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B))))) 'NN)
       (inst '(FORALL B (FORALL x
-               (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(A r))
-      (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (A r))) (IN x NN)) (IN (f x) (A r)))) n-k)
-      (bc `(IMPLIES (AND (IN f (FUN NN (A r))) (IN ,n-k NN)) (IN (f ,n-k) (A r))))
+               (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(CARR r))
+      (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (CARR r))) (IN x NN)) (IN (f x) (CARR r)))) n-k)
+      (bc `(IMPLIES (AND (IN f (FUN NN (CARR r))) (IN ,n-k NN)) (IN (f ,n-k) (CARR r))))
       (di) (ass) (ass))
     (unless (proof-done? *ps*) (error "sum-type proof incomplete"))))
 
@@ -1655,13 +1655,13 @@
   (lambda () (and (lookup-theorem 'partial-fun-binary-sethood) #t)))
 
 (check-true "(IN f (PARTIAL-FUN A)) accepted as wff"
-  (lambda () (and (make-wff '(IN f (PARTIAL-FUN A))) #t)))
+  (lambda () (and (make-wff '(IN f (PARTIAL-FUN CARR))) #t)))
 
 (check-true "(IN f (PARTIAL-FUN A C)) accepted as wff"
-  (lambda () (and (make-wff '(IN f (PARTIAL-FUN A C))) #t)))
+  (lambda () (and (make-wff '(IN f (PARTIAL-FUN CARR C))) #t)))
 
 (check-error "(PARTIAL-FUN A) rejected in wff position"
-  (lambda () (make-wff '(PARTIAL-FUN A))))
+  (lambda () (make-wff '(PARTIAL-FUN CARR))))
 
 ;;; -----------------------------------------------------------------------
 ;;; def-structure NAME-class axiom: associated class is named after structure
@@ -1712,9 +1712,9 @@
 
 ;; --- Free variables (z bound in body, free in A) ---
 (check "free-vars: z in body is bound; A is free"
-  (lambda () (sort (free-vars '(BIG-UNION z A z))
+  (lambda () (sort (free-vars '(BIG-UNION z CARR z))
                    (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
-  '(A))
+  '(CARR))
 
 (check "free-vars: vars only in A are free"
   (lambda () (sort (free-vars '(BIG-UNION z (UNION A B) z))
@@ -1723,18 +1723,18 @@
 
 ;; --- Substitution (capture-avoiding) ---
 (check "subst-free: leaves body alone when bound var = subst var"
-  (lambda () (subst-free 'z 'w '(BIG-UNION z A z)))
-  '(BIG-UNION z A z))
+  (lambda () (subst-free 'z 'w '(BIG-UNION z CARR z)))
+  '(BIG-UNION z CARR z))
 
 (check "subst-free: substitutes into A"
-  (lambda () (subst-free 'A 'NN '(BIG-UNION z A z)))
+  (lambda () (subst-free 'CARR 'NN '(BIG-UNION z CARR z)))
   '(BIG-UNION z NN z))
 
 ;; Capture-avoiding: substituting w for q in (BIG-UNION z A (PAIR z q)) where
 ;; w = z would otherwise capture; expect alpha-renamed binder.
 (check-true "subst-free: renames bound var to avoid capture"
   (lambda ()
-    (let ((result (subst-free 'q 'z '(BIG-UNION z A (PAIR z q)))))
+    (let ((result (subst-free 'q 'z '(BIG-UNION z CARR (PAIR z q)))))
       ;; result must NOT have raw `z` paired with itself; the binder is renamed
       (and (pair? result) (eq? (car result) 'BIG-UNION)
            ;; bound var should NOT be z (it would capture)
@@ -1742,10 +1742,10 @@
 
 ;; --- Alpha-equivalence ---
 (check-true "alpha-equiv: (BIG-UNION x A x) ~ (BIG-UNION y A y)"
-  (lambda () (alpha-equiv? '(BIG-UNION x A x) '(BIG-UNION y A y))))
+  (lambda () (alpha-equiv? '(BIG-UNION x CARR x) '(BIG-UNION y CARR y))))
 
 (check-false "alpha-equiv: differs in A"
-  (lambda () (alpha-equiv? '(BIG-UNION x A x) '(BIG-UNION y B y))))
+  (lambda () (alpha-equiv? '(BIG-UNION x CARR x) '(BIG-UNION y B y))))
 
 ;; --- Primitive inferences ---
 (check-proof "pi-big-union-sethood: posts (IN A SET) + family-of-sets subgoal"
@@ -1829,7 +1829,7 @@
   (lambda () (and (lookup-theorem 'sum-set-type) #t)))
 
 (check-true "(SUM-SET r S f) accepted in term position"
-  (lambda () (and (make-wff '(IN (SUM-SET r S f) (A r))) #t)))
+  (lambda () (and (make-wff '(IN (SUM-SET r S f) (CARR r))) #t)))
 
 (check-error "SUM-SET rejected in wff position"
   (lambda () (make-wff '(SUM-SET r S f))))
@@ -1849,7 +1849,7 @@
   (lambda () (and (lookup-theorem 'prod-set-type) #t)))
 
 (check-true "(PROD-SET cm S f) accepted in term position"
-  (lambda () (and (make-wff '(IN (PROD-SET cm S f) (A cm))) #t)))
+  (lambda () (and (make-wff '(IN (PROD-SET cm S f) (CARR cm))) #t)))
 
 (check-error "PROD-SET rejected in wff position"
   (lambda () (make-wff '(PROD-SET cm S f))))
@@ -1885,7 +1885,7 @@
   (lambda () (and (lookup-theorem 'sum-ag-permutation-invariance) #t)))
 
 (check-true "(SUM-AG ag f n) accepted in term position"
-  (lambda () (and (make-wff '(IN (SUM-AG ag f n) (A ag))) #t)))
+  (lambda () (and (make-wff '(IN (SUM-AG ag f n) (CARR ag))) #t)))
 
 (check-true "group-identity-in installed"
   (lambda () (and (lookup-theorem 'group-identity-in) #t)))
@@ -1897,7 +1897,7 @@
   (lambda () (and (lookup-theorem 'fin-enum-is-bijection) #t)))
 
 (check-true "(FINSUM ag f S) accepted in term position"
-  (lambda () (and (make-wff '(IN (FINSUM ag f S) (A ag))) #t)))
+  (lambda () (and (make-wff '(IN (FINSUM ag f S) (CARR ag))) #t)))
 
 (check-true "finsum-well-defined proved + installed"
   (lambda () (and (lookup-theorem 'finsum-well-defined) #t)))
@@ -1970,10 +1970,10 @@
   (lambda () (and (lookup-theorem 'bijection-identity) #t)))
 
 (check-true "(IN phi (BIJECTION X Y)) accepted as wff"
-  (lambda () (and (make-wff '(IN phi (BIJECTION X Y))) #t)))
+  (lambda () (and (make-wff '(IN phi (BIJECTION PTS Y))) #t)))
 
 (check-true "(IN (INVERSE-BIJ phi X Y) (FUN Y X)) accepted as wff"
-  (lambda () (and (make-wff '(IN (INVERSE-BIJ phi X Y) (FUN Y X))) #t)))
+  (lambda () (and (make-wff '(IN (INVERSE-BIJ phi PTS Y) (FUN Y PTS))) #t)))
 
 (check-true "delete-at-below-k axiom installed"
   (lambda () (and (lookup-theorem 'delete-at-below-k) #t)))
@@ -2068,9 +2068,9 @@
     zz-act-nonneg zz-act-neg zz-act-zero zz-act-one zz-act-type
     zz-act-neg-sign zz-act-add zz-act-distrib zz-act-assoc))
 (check-true "(MPOW M X N) accepted as wff"
-  (lambda () (and (make-wff '(IN (MPOW M X N) (A M))) #t)))
+  (lambda () (and (make-wff '(IN (MPOW M PTS N) (CARR M))) #t)))
 (check-true "(ZZ-ACT G K A) accepted as wff"
-  (lambda () (and (make-wff '(IN (ZZ-ACT G K A) (A G))) #t)))
+  (lambda () (and (make-wff '(IN (ZZ-ACT G K CARR) (CARR G))) #t)))
 
 ;; --- NN as comm-monoid under addition ---
 (check-true "nn-add-monoid-def installed"
@@ -2203,8 +2203,8 @@
 (check-proof "crs closes (MUL R) commutativity in an arbitrary commutative ring"
   (lambda ()
     (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-                    (FORALL a (IMPLIES (IN a (A R))
-                    (FORALL b (IMPLIES (IN b (A R))
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                    (FORALL b (IMPLIES (IN b (CARR R))
                       (= ((MUL R) a b) ((MUL R) b a))))))))))
     (crs)
     (unless (proof-done? *ps*) (error "crs generic: MUL commutativity did not close"))))
@@ -2212,9 +2212,9 @@
 (check-proof "crs closes left distributivity in an arbitrary commutative ring"
   (lambda ()
     (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-                    (FORALL a (IMPLIES (IN a (A R))
-                    (FORALL b (IMPLIES (IN b (A R))
-                    (FORALL c (IMPLIES (IN c (A R))
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                    (FORALL b (IMPLIES (IN b (CARR R))
+                    (FORALL c (IMPLIES (IN c (CARR R))
                       (= ((MUL R) a ((ADD R) b c))
                          ((ADD R) ((MUL R) a b) ((MUL R) a c)))))))))))))
     (crs)
@@ -2223,8 +2223,8 @@
 (check-proof "crs closes (x+y)^2 = x^2 + 2xy + y^2 in an arbitrary commutative ring"
   (lambda ()
     (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-                    (FORALL a (IMPLIES (IN a (A R))
-                    (FORALL b (IMPLIES (IN b (A R))
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                    (FORALL b (IMPLIES (IN b (CARR R))
                       (= ((MUL R) ((ADD R) a b) ((ADD R) a b))
                          ((ADD R) ((MUL R) a a)
                           ((ADD R) ((ADD R) ((MUL R) a b) ((MUL R) a b))
@@ -2235,7 +2235,7 @@
 (check-proof "crs closes the ONE identity (ONE R)*a = a in an arbitrary commutative ring"
   (lambda ()
     (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-                    (FORALL a (IMPLIES (IN a (A R))
+                    (FORALL a (IMPLIES (IN a (CARR R))
                       (= ((MUL R) (ONE R) a) a)))))))
     (crs)
     (unless (proof-done? *ps*) (error "crs generic: ONE identity did not close"))))
@@ -2314,9 +2314,9 @@
 (check-true "simp: generic ring surface -- (MUL s)(ADD s a b)(ADD s a b) rewrites in place"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (IS-COMMUTATIVE-RING s)
-                    (FORALL a (IMPLIES (IN a (A s))
-                    (FORALL b (IMPLIES (IN b (A s))
-                      (IN ((MUL s) ((ADD s) a b) ((ADD s) a b)) (A s))))))))))
+                    (FORALL a (IMPLIES (IN a (CARR s))
+                    (FORALL b (IMPLIES (IN b (CARR s))
+                      (IN ((MUL s) ((ADD s) a b) ((ADD s) a b)) (CARR s))))))))))
     (di) (di) (di) (simp)
     (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
       (and (pair? g) (eq? (car g) 'IN)
@@ -2522,9 +2522,9 @@
     (sp (make-wff '(IN q (BALL s ctr rad))))
     (mac 'BALL)
     (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
-            '(IN q (SEP y (X s)
-                     (AND (<= ((D s) ctr y) rad)
-                          (NOT (= ((D s) ctr y) rad))))))))
+            '(IN q (SEP y (PTS s)
+                     (AND (<= ((DIST s) ctr y) rad)
+                          (NOT (= ((DIST s) ctr y) rad))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Closed sets (IS-CLOSED) + closed-preimage characterisation, and the
@@ -2536,11 +2536,11 @@
   (lambda () (and (lookup-theorem 'IS-CLOSED) #t)))
 (check-true "IS-CLOSED unfolds to subset + complement-open"
   (lambda ()
-    (sp (make-wff '(IS-CLOSED s A)))
+    (sp (make-wff '(IS-CLOSED s CARR)))
     (mac 'IS-CLOSED)
     (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
             '(AND (IS-METRIC-SPACE s)
-              (AND (SUBSET A (X s)) (IS-OPEN s (COMPLEMENT-IN (X s) A)))))))
+              (AND (SUBSET CARR (PTS s)) (IS-OPEN s (COMPLEMENT-IN (PTS s) CARR)))))))
 (check-true "preimage-complement support installed"
   (lambda () (and (lookup-theorem 'preimage-complement) #t)))
 (check-true "continuous-implies-closed-preimage support installed"
@@ -2555,7 +2555,7 @@
 ;; COMPOSE makes f o g a denotable term: typing and the native (un-Skolemised)
 ;; statement of sequential continuity (Prop 3.14) both parse.
 (check-true "(COMPOSE f g) is a well-formed function term"
-  (lambda () (and (make-wff '(IN (COMPOSE f g) (FUN A C))) #t)))
+  (lambda () (and (make-wff '(IN (COMPOSE f g) (FUN CARR C))) #t)))
 (check-true "Prop 3.14 is natively statable with COMPOSE (no Skolem)"
   (lambda () (and (make-wff
     '(IMPLIES (AND (IS-CONTINUOUS-AT s t f a) (CONVERGES-TO s g a))
@@ -2851,8 +2851,8 @@
          '(IMPLIES (IN nn0 NN)
           (IMPLIES (IS-GROUP gg0)
           (IMPLIES (IN ph0 (FUN (ORD-SEGMENT nn0) ss0))
-          (IMPLIES (IN ff0 (FUN ss0 (A gg0)))
-            (IN (ENUM-FAM gg0 ff0 ph0 nn0) (FUN NN (A gg0)))))))))
+          (IMPLIES (IN ff0 (FUN ss0 (CARR gg0)))
+            (IN (ENUM-FAM gg0 ff0 ph0 nn0) (FUN NN (CARR gg0)))))))))
     (di) (di) (di) (di)
     ;; S occurs only in the antecedents, so it must be supplied explicitly.
     (bc* 'enum-fam-in-fun ((S 'ss0)) (ass) (ass) (ass) (ass))
@@ -2886,8 +2886,8 @@
 
 (check "english: bounded quantifier + symbolic order term"
   (lambda () (wff->english '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-                              (FORALL x (IMPLIES (IN x (X s)) (<= ((D s) x x) 0)))))))
-  "for every metric space s, for every x in x(s), (d(s))(x, x) is at most 0")
+                              (FORALL x (IMPLIES (IN x (PTS s)) (<= ((DIST s) x x) 0)))))))
+  "for every metric space s, for every x in pts(s), (dist(s))(x, x) is at most 0")
 
 (check "english: negated relations + iff"
   (lambda () (wff->english '(IFF (NOT (= a b)) (NOT (IN a S)))))
@@ -3074,9 +3074,9 @@
 (check-true "scout: best-partials are (open-count (form ...)) nested lists"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-                     (FORALL x (IMPLIES (IN x (X s))
-                       (FORALL y (IMPLIES (IN y (X s))
-                         (= ((D s) x y) ((D s) y x))))))))))
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
     (let* ((result   (scout 4 2))                     ; d=4: the inst closer is ~5
            (closing  (list-ref result 4))             ; plies deep, so still no closure
            (partials (list-ref result 3)))
@@ -3093,9 +3093,9 @@
 (check-true "scout inst lane: closes metric-sym, closing branch uses inst+"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-                     (FORALL x (IMPLIES (IN x (X s))
-                       (FORALL y (IMPLIES (IN y (X s))
-                         (= ((D s) x y) ((D s) y x))))))))))
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
     (grind)
     (let* ((result  (scout 6 3 300))
            (closing (list-ref result 4)))
@@ -3109,9 +3109,9 @@
 (check-true "scout inst lane: scout-run drives the metric-sym proof to done"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-                     (FORALL x (IMPLIES (IN x (X s))
-                       (FORALL y (IMPLIES (IN y (X s))
-                         (= ((D s) x y) ((D s) y x))))))))))
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
     (grind)
     (scout 6 3 300)
     (scout-run 1)
@@ -3124,9 +3124,9 @@
 (check-true "what-now: inst lane suggests (inst+ k term) on a witness-needing goal"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-                     (FORALL x (IMPLIES (IN x (X s))
-                       (FORALL y (IMPLIES (IN y (X s))
-                         (= ((D s) x y) ((D s) y x))))))))))
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
     (grind)
     (let ((moves (what-now)))
       (any (lambda (m) (and (pair? m) (eq? (car m) 'inst+))) moves))))
@@ -3277,7 +3277,7 @@
 (check-true "wbc: drives the Cauchy-subsequence construction down to the estimate"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (TOTALLY-BOUNDED s)
-                     (FORALL f (IMPLIES (IN f (FUN NN (X s)))
+                     (FORALL f (IMPLIES (IN f (FUN NN (PTS s)))
                        (FORALL rad (IMPLIES (NULL-RR-SEQ rad)
                          (FORSOME phi (AND (STRICTLY-MONO-NN phi)
                            (IS-CAUCHY-SEQ s (SUBSEQ f phi))))))))))))
@@ -3410,6 +3410,18 @@
          (null? (wff-shadowing-binders '(FORALL m (FORSOME n (<= m n)))))
          ;; multi-binder lambda: the source scanner's blind spot
          (pair? (wff-shadowing-binders '(FORALL x (= x (VNB-LAMBDA (LIST y x) y))))))))
+
+;; constant-binder-audit: no installed binder is named like a registered
+;; constant (accessor/operator/functoid/predicate).  The accessor/variable
+;; collision class -- HARD soundness gate (distinctive accessor names CARR/PTS/
+;; DIST/ID/MUL/... exist so this stays empty).
+(check-true "constant-binder-audit: no binder collides with a registered constant"
+  (lambda () (null? (constant-binder-audit))))
+(check-true "wff-constant-binders: flags an accessor-named binder, passes a clean one"
+  (lambda ()
+    (and (pair? (wff-constant-binders '(FORALL MUL (IN MUL (FUN CARR)))))   ; MUL is an accessor
+         (pair? (wff-constant-binders '(FORSOME CARR (IN CARR SET))))       ; CARR is an accessor
+         (null? (wff-constant-binders '(FORALL m (FORSOME n (<= m n))))))))
 
 ;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
 ;; non-symbol in head position; the dedup key must survive it (write-based, not

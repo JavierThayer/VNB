@@ -48,7 +48,7 @@
 (def-functoid 'ENUM-FAM '(ag f phi n)
   '(VNB-LAMBDA i (IF (IN i (ORD-SEGMENT n))
                      (f (phi i))
-                     (E ag))))
+                     (ID ag))))
 
 ;;; -----------------------------------------------------------------------
 ;;; FINSUM(ag, f, S) -- sum of f over the finite set S, in abelian group ag.

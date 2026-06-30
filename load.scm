@@ -635,6 +635,19 @@
                     (display ";;   ") (display (car e)) (display ": ") (write (cdr e)) (newline))
                   bad))))
 
+;; Soundness gate: a bound variable named like a registered constant (accessor /
+;; operator / functoid / predicate / defined fn) is read as that CONSTANT in head
+;; position, scope-blind, silently changing the formula's meaning.  This is the
+;; accessor/variable collision class (distinct from the binder-over-binder one
+;; above).  HARD gate, with a deliberately loud report -- accessors carry
+;; distinctive names (CARR/PTS/DIST/ID/MUL/VEC/...) precisely so this never
+;; happens; a hit means someone reused one as a bound variable.
+(let ((bad (constant-binder-audit)))
+  (if (null? bad)
+      (display ";; constant-binder-audit: ok (no binder is named like a registered constant)\n")
+      (begin (shout-constant-binders! bad)
+             (error "constant-binder-audit: bound variable(s) collide with registered constants -- see above"))))
+
 ;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
 ;; support should be filed under a *pss-category-order* bucket via category!.
 ;; Report how many are not yet filed; never fails the build.

@@ -19,7 +19,7 @@
      (FORALL ag
      (IMPLIES (IS-ABELIAN-GROUP ag)
      (FORALL f
-     (IMPLIES (IN f (FUN S (A ag)))
+     (IMPLIES (IN f (FUN S (CARR ag)))
      (FORALL enm
      (IMPLIES (IN enm (BIJECTION (ORD-SEGMENT (CARD S)) S))
        (= (FINSUM ag f S)

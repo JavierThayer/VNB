@@ -68,11 +68,11 @@
 <h3 id="FUNCTORS__set--structure-valued-functoids">Set- &amp; structure-valued functoids</h3>
 <p>Body builds a tuple (<code>list</code>) or a set (<code>sep</code>, <code>image</code>, …).  A few are the object map of a genuine functor — <code>quotient</code> (setoid ↦ quotient set, with <code>descend</code> the morphism map), <code>completion</code>, <code>ring-prod</code>, the <code>*-metric-space</code> bridges; the rest (<code>class</code>, <code>ball</code>, <code>preimage</code>, <code>choose-set</code>, …) are set-valued <em>constructions</em>, not functors.  <code>class(s,a)</code> in particular is element-indexed: the value <code>proj(s)(a)</code> of the quotient morphism, not a functor.</p>
 <h4 id="FUNCTORS__ball">ball</h4>
-<pre>ball(s, c, r) := {y in x(s): (d(s))(c, y) &lt;= r and not((d(s))(c, y) = r)}</pre>
+<pre>ball(s, c, r) := {y in pts(s): (dist(s))(c, y) &lt;= r and not((dist(s))(c, y) = r)}</pre>
 <h4 id="FUNCTORS__ball-cover">ball-cover</h4>
-<pre>ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), x(s))</pre>
+<pre>ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), pts(s))</pre>
 <h4 id="FUNCTORS__bdd-metric">bdd-metric</h4>
-<pre>bdd-metric(s) := [x(s), vnb-lambda([u, v], /((d(s))(u, v), 1 + (d(s))(u, v)))]</pre>
+<pre>bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]</pre>
 <h4 id="FUNCTORS__cauchy-setoid">cauchy-setoid</h4>
 <pre>cauchy-setoid(m) := [cseq(m), crel(m)]</pre>
 <h4 id="FUNCTORS__ccint">ccint</h4>
@@ -80,43 +80,43 @@
 <h4 id="FUNCTORS__centre-set">centre-set</h4>
 <pre>centre-set(s, r, f) := image(vnb-lambda(b, choice(centres(s, b, r))), f)</pre>
 <h4 id="FUNCTORS__centres">centres</h4>
-<pre>centres(s, b, r) := {c in x(s): ball(s, c, r) = b}</pre>
+<pre>centres(s, b, r) := {c in pts(s): ball(s, c, r) = b}</pre>
 <h4 id="FUNCTORS__choose-set">choose-set</h4>
 <pre>choose-set(n, m) := {a in power(ord-segment(n)): card(a) = m}</pre>
 <h4 id="FUNCTORS__class">class</h4>
-<pre>class(s, a) := {b in x(s): related(s, a, b)}</pre>
+<pre>class(s, a) := {b in pts(s): related(s, a, b)}</pre>
 <h4 id="FUNCTORS__completion">completion</h4>
 <pre>completion(m) := [quotient(cauchy-setoid(m)), completion-dist(m)]</pre>
 <h4 id="FUNCTORS__crel">crel</h4>
 <pre>crel(m) := {p in cartesian(cseq(m), cseq(m)): cseq-equiv(m, nth(1, p), nth(2, p))}</pre>
 <h4 id="FUNCTORS__cseq">cseq</h4>
-<pre>cseq(m) := {f in fun(nn, x(m)): is-cauchy-seq(m, f)}</pre>
+<pre>cseq(m) := {f in fun(nn, pts(m)): is-cauchy-seq(m, f)}</pre>
 <h4 id="FUNCTORS__euclidean-gauges">euclidean-gauges</h4>
-<pre>euclidean-gauges(s) := {dg in fun(a(s), nn): has-div-remainder(s, dg)}</pre>
+<pre>euclidean-gauges(s) := {dg in fun(carr(s), nn): has-div-remainder(s, dg)}</pre>
 <h4 id="FUNCTORS__inf-subsets">inf-subsets</h4>
 <pre>inf-subsets(a) := {s in power(a): not(card(s) in nn)}</pre>
 <h4 id="FUNCTORS__nag-metric-space">nag-metric-space</h4>
-<pre>nag-metric-space(nag) := [a(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]</pre>
+<pre>nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]</pre>
 <h4 id="FUNCTORS__nf-metric-space">nf-metric-space</h4>
-<pre>nf-metric-space(nf) := [a(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]</pre>
+<pre>nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]</pre>
 <h4 id="FUNCTORS__permutations">permutations</h4>
 <pre>permutations(n) := injection(ord-segment(n), ord-segment(n))</pre>
 <h4 id="FUNCTORS__preimage">preimage</h4>
-<pre>preimage(s, f, v) := {a in x(s): f(a) in v}</pre>
+<pre>preimage(s, f, v) := {a in pts(s): f(a) in v}</pre>
 <h4 id="FUNCTORS__principal-ideal">principal-ideal</h4>
-<pre>principal-ideal(s, a) := {x in a(s): forsome([r in a(s)], x = (mul(s))(r, a))}</pre>
+<pre>principal-ideal(s, a) := {x in carr(s): forsome([r in carr(s)], x = (mul(s))(r, a))}</pre>
 <h4 id="FUNCTORS__product-carrier">product-carrier</h4>
-<pre>product-carrier(ms) := {x in fun(nn, big-union(n, nn, x(ms(n)))): forall([n in nn], x(n) in x(ms(n)))}</pre>
+<pre>product-carrier(ms) := {x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))}</pre>
 <h4 id="FUNCTORS__product-metric">product-metric</h4>
 <pre>product-metric(ms) := product-metric-w(ms, vnb-lambda(n, /(1, 2 ^ (n + 1))))</pre>
 <h4 id="FUNCTORS__product-metric-w">product-metric-w</h4>
-<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (d(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
+<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
 <h4 id="FUNCTORS__quotient">quotient</h4>
-<pre>quotient(s) := image(proj(s), x(s))</pre>
+<pre>quotient(s) := image(proj(s), pts(s))</pre>
 <h4 id="FUNCTORS__ran">ran</h4>
 <pre>ran(f) := image(f, dom(f))</pre>
 <h4 id="FUNCTORS__ring-prod">ring-prod</h4>
-<pre>ring-prod(x, y) := [cartesian(a(x), a(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]</pre>
+<pre>ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]</pre>
 <h4 id="FUNCTORS__rr-bounded-ms">rr-bounded-ms</h4>
 <pre>rr-bounded-ms(()) := bdd-metric(rr-ms)</pre>
 <h4 id="FUNCTORS__size">size</h4>
@@ -136,7 +136,7 @@
 <h4 id="FUNCTORS__descend">descend</h4>
 <pre>descend(f) := vnb-lambda(c, iota(z, forsome([a in c], z = f(a))))</pre>
 <h4 id="FUNCTORS__dist-seq">dist-seq</h4>
-<pre>dist-seq(m, f, g) := vnb-lambda(n, (d(m))(f(n), g(n)))</pre>
+<pre>dist-seq(m, f, g) := vnb-lambda(n, (dist(m))(f(n), g(n)))</pre>
 <h4 id="FUNCTORS__dual-norm">dual-norm</h4>
 <pre>dual-norm(m, f) := iota(c_, c_ in rr and 0 &lt;= c_ and forall([x_ in vec(m)], abs(f(x_)) &lt;= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 &lt;= d_ and forall([x_ in vec(m)], abs(f(x_)) &lt;= d_ * (vnrm(m))(x_)) implies c_ &lt;= d_))</pre>
 <h4 id="FUNCTORS__dual-norm-on">dual-norm-on</h4>
@@ -146,7 +146,7 @@
 <h4 id="FUNCTORS__embed-seq">embed-seq</h4>
 <pre>embed-seq(m, u) := vnb-lambda(n, u)</pre>
 <h4 id="FUNCTORS__enum-fam">enum-fam</h4>
-<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), e(ag)))</pre>
+<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), id(ag)))</pre>
 <h4 id="FUNCTORS__fin-enum">fin-enum</h4>
 <pre>fin-enum(s) := choice(bijection(ord-segment(card(s)), s))</pre>
 <h4 id="FUNCTORS__finprod">finprod</h4>
@@ -172,7 +172,7 @@
 <h4 id="FUNCTORS__related">related</h4>
 <pre>related(s, a, b) := [a, b] in rel(s)</pre>
 <h4 id="FUNCTORS__respects">respects</h4>
-<pre>respects(s, f) := forall([a in x(s), b in x(s)], related(s, a, b) implies f(a) = f(b))</pre>
+<pre>respects(s, f) := forall([a in pts(s), b in pts(s)], related(s, a, b) implies f(a) = f(b))</pre>
 <h4 id="FUNCTORS__ring-power">ring-power</h4>
 <pre>ring-power(r, x, n) := mpow(commutative-ring-multiplicative-cm(r), x, n)</pre>
 <h4 id="FUNCTORS__series-partial-sum">series-partial-sum</h4>

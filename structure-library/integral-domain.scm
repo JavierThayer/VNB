@@ -12,8 +12,8 @@
      (IFF (IS-INTEGRAL-DOMAIN s)
           (AND (IS-COMMUTATIVE-RING s)
             (AND (NOT (= (ONE s) (ZERO s)))
-                 (FORALL a (IMPLIES (IN a (A s))
-                   (FORALL b (IMPLIES (IN b (A s))
+                 (FORALL a (IMPLIES (IN a (CARR s))
+                   (FORALL b (IMPLIES (IN b (CARR s))
                      (IMPLIES (= ((MUL s) a b) (ZERO s))
                               (OR (= a (ZERO s)) (= b (ZERO s)))))))))))))
 

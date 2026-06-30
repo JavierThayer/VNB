@@ -98,8 +98,8 @@
 ;; out of IS-ABELIAN-GROUP (the metric-sym shape: unfold IS-X, split, unfold the
 ;; property, ass).  Proven modulo 0; formerly asserted with a proof-warrant.
 (sp (make-wff '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s)
-   (FORALL a (IMPLIES (IN a (A s))
-     (FORALL b (IMPLIES (IN b (A s))
+   (FORALL a (IMPLIES (IN a (CARR s))
+     (FORALL b (IMPLIES (IN b (CARR s))
        (= ((MUL s) a b) ((MUL s) b a))))))))))
 (di) (di)
 (mac-h 'IS-ABELIAN-GROUP (stl--hyp-sub "is-abelian-group"))

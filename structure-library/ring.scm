@@ -8,84 +8,84 @@
 ;;; MUL distributes over ADD.
 
 (def-structure-from-clauses 'RING
-  '((carriers A)
-    (op ADD (CARTESIAN A A) A)
-    (op MUL (CARTESIAN A A) A)
-    (op NEG A A)
-    (constant ZERO A)
-    (constant ONE A)
-    (property is-associative ADD A)
-    (property is-commutative ADD A)
-    (property is-identity ADD ZERO A)
-    (property has-inverses ADD ZERO NEG A)
-    (property is-associative MUL A)
-    (property is-identity MUL ONE A)
-    (property is-distributive ADD MUL A)))
+  '((carriers CARR)
+    (op ADD (CARTESIAN CARR CARR) CARR)
+    (op MUL (CARTESIAN CARR CARR) CARR)
+    (op NEG CARR CARR)
+    (constant ZERO CARR)
+    (constant ONE CARR)
+    (property is-associative ADD CARR)
+    (property is-commutative ADD CARR)
+    (property is-identity ADD ZERO CARR)
+    (property has-inverses ADD ZERO NEG CARR)
+    (property is-associative MUL CARR)
+    (property is-identity MUL ONE CARR)
+    (property is-distributive ADD MUL CARR)))
 
 (theory-add-axiom! *current-theory* 'ring-add-assoc
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
-         (FORALL b (IMPLIES (IN b (A s))
-           (FORALL c (IMPLIES (IN c (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (FORALL c (IMPLIES (IN c (CARR s))
              (= ((ADD s) ((ADD s) a b) c)
                 ((ADD s) a ((ADD s) b c))))))))))))
 
 (theory-add-axiom! *current-theory* 'ring-add-comm
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
-         (FORALL b (IMPLIES (IN b (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
            (= ((ADD s) a b) ((ADD s) b a)))))))))
 
 (theory-add-axiom! *current-theory* 'ring-add-left-id
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
          (= ((ADD s) (ZERO s) a) a))))))
 
 (theory-add-axiom! *current-theory* 'ring-add-left-inv
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
          (= ((ADD s) ((NEG s) a) a) (ZERO s)))))))
 
 (theory-add-axiom! *current-theory* 'ring-mul-assoc
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
-         (FORALL b (IMPLIES (IN b (A s))
-           (FORALL c (IMPLIES (IN c (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (FORALL c (IMPLIES (IN c (CARR s))
              (= ((MUL s) ((MUL s) a b) c)
                 ((MUL s) a ((MUL s) b c))))))))))))
 
 (theory-add-axiom! *current-theory* 'ring-mul-left-id
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) (ONE s) a) a))))))
 
 (theory-add-axiom! *current-theory* 'ring-mul-right-id
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) a (ONE s)) a))))))
 
 (theory-add-axiom! *current-theory* 'ring-left-dist
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
-         (FORALL b (IMPLIES (IN b (A s))
-           (FORALL c (IMPLIES (IN c (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (FORALL c (IMPLIES (IN c (CARR s))
              (= ((MUL s) a ((ADD s) b c))
                 ((ADD s) ((MUL s) a b) ((MUL s) a c))))))))))))
 
 (theory-add-axiom! *current-theory* 'ring-right-dist
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
-         (FORALL b (IMPLIES (IN b (A s))
-           (FORALL c (IMPLIES (IN c (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (FORALL c (IMPLIES (IN c (CARR s))
              (= ((MUL s) ((ADD s) a b) c)
                 ((ADD s) ((MUL s) a c) ((MUL s) b c))))))))))))
 
@@ -96,25 +96,25 @@
 (theory-add-axiom! *current-theory* 'ring-mul-zero-left
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) (ZERO s) a) (ZERO s)))))))
 
 (theory-add-axiom! *current-theory* 'ring-mul-zero-right
   '(FORALL s
      (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (A s))
+       (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) a (ZERO s)) (ZERO s)))))))
 
 ;;; ZERO(r) ∈ A(r) when IS-RING(r).
 ;;; DERIVED (REVIEW.md R-2): follows from the auto-generated IS-RING IFF.
 (theory-add-axiom! *current-theory* 'ring-zero-in
-  '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (A r)))))
+  '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (CARR r)))))
 
 ;;; DERIVED (REVIEW.md R-3): IS-RING IFF + fun-apply-type.
 (theory-add-axiom! *current-theory* 'ring-carrier-closed-add
   '(FORALL r (FORALL a (FORALL b
-      (IMPLIES (AND (IS-RING r) (AND (IN a (A r)) (IN b (A r))))
-               (IN ((ADD r) a b) (A r)))))))
+      (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
+               (IN ((ADD r) a b) (CARR r)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; RING-PROD: product of two rings.  Total: defined for any X, Y;
@@ -122,7 +122,7 @@
 
 (def-functoid 'RING-PROD '(X Y)
   '(LIST
-     (CARTESIAN (A X) (A Y))
+     (CARTESIAN (CARR X) (CARR Y))
      (VNB-LAMBDA (LIST p q)
        (LIST ((ADD X) (NTH 1 p) (NTH 1 q))
              ((ADD Y) (NTH 2 p) (NTH 2 q))))

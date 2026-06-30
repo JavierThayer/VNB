@@ -101,21 +101,21 @@
       (IMPLIES (IN S SET)
                (IN (IMAGE phi S) SET)))))
 
-;;; The image of phi : dom -> cod lands in cod.
+;;; The image of phi : dm -> cod lands in cod.
 (theory-add-axiom! *current-theory* 'image-subset-codomain
-  '(FORALL dom (FORALL cod (FORALL phi
-      (IMPLIES (IN phi (FUN dom cod))
+  '(FORALL dm (FORALL cod (FORALL phi
+      (IMPLIES (IN phi (FUN dm cod))
                (FORALL w
-                 (IMPLIES (IN w (IMAGE phi dom)) (IN w cod))))))))
+                 (IMPLIES (IN w (IMAGE phi dm)) (IN w cod))))))))
 
-;;; An injection preserves cardinality on its image: |IMAGE(phi, dom)| = |dom|.
-;;; (phi restricted to dom is a bijection dom -> IMAGE(phi, dom).)
+;;; An injection preserves cardinality on its image: |IMAGE(phi, dm)| = |dm|.
+;;; (phi restricted to dm is a bijection dm -> IMAGE(phi, dm).)
 (theory-add-axiom! *current-theory* 'card-image-injection
-  '(FORALL dom (FORALL cod (FORALL phi
-      (IMPLIES (AND (IN phi (INJECTION dom cod))
-                    (IN dom SET)
-                    (IN (CARD dom) NN))
-               (= (CARD (IMAGE phi dom)) (CARD dom)))))))
+  '(FORALL dm (FORALL cod (FORALL phi
+      (IMPLIES (AND (IN phi (INJECTION dm cod))
+                    (IN dm SET)
+                    (IN (CARD dm) NN))
+               (= (CARD (IMAGE phi dm)) (CARD dm)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Base case: the empty function is the unique injection out of {}.

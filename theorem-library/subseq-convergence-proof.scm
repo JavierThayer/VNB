@@ -64,7 +64,7 @@
       (cond ((sc--fhead 'AND) (di) (loop (+ n 1)))
             ((sc--fhead 'IS-METRIC-SPACE) (ass) (loop (+ n 1)))
             ((sc--fpred (lambda (a) (and (pair? a)(eq? (car a) 'IN)
-                                         (equal? (caddr a) (list 'FUN 'NN (list 'X sc--s))))))
+                                         (equal? (caddr a) (list 'FUN 'NN (list 'PTS sc--s))))))
              (if (sc--has? 'SUBSEQ (sc--gf)) (begin (bc* 'subseq-is-fun)(di)(ass-all)) (ass))
              (loop (+ n 1)))
             (else 'done))))))

@@ -82,25 +82,25 @@
 
 ;;; Left inverse: for x in X, INVERSE-BIJ(phi)(phi(x)) = x.
 ;;; Derivable from CHOICE on a singleton (singleton because phi is injective).
-;;; NB: bound vars are dom/cod (not X/Y) -- the reader case-folds, so an
+;;; NB: bound vars are dm/cod (not X/Y) -- the reader case-folds, so an
 ;;; outer X and an inner x would be the same symbol and capture.
 (theory-add-axiom! *current-theory* 'inverse-bij-left
-  '(FORALL dom (FORALL cod (FORALL phi
-      (IMPLIES (IN phi (BIJECTION dom cod))
+  '(FORALL dm (FORALL cod (FORALL phi
+      (IMPLIES (IN phi (BIJECTION dm cod))
                (FORALL x
-                 (IMPLIES (IN x dom)
-                          (= ((INVERSE-BIJ phi dom cod) (phi x)) x))))))))
+                 (IMPLIES (IN x dm)
+                          (= ((INVERSE-BIJ phi dm cod) (phi x)) x))))))))
 
 ;;; Right inverse: for y in Y, phi(INVERSE-BIJ(phi)(y)) = y.
 ;;; Derivable from CHOICE + surjectivity (the chosen pre-image satisfies
 ;;; phi(x) = y by definition of the set we are choosing from).
-;;; NB: bound vars dom/cod (not X/Y) -- see inverse-bij-left note.
+;;; NB: bound vars dm/cod (not X/Y) -- see inverse-bij-left note.
 (theory-add-axiom! *current-theory* 'inverse-bij-right
-  '(FORALL dom (FORALL cod (FORALL phi
-      (IMPLIES (IN phi (BIJECTION dom cod))
+  '(FORALL dm (FORALL cod (FORALL phi
+      (IMPLIES (IN phi (BIJECTION dm cod))
                (FORALL y
                  (IMPLIES (IN y cod)
-                          (= (phi ((INVERSE-BIJ phi dom cod) y)) y))))))))
+                          (= (phi ((INVERSE-BIJ phi dm cod) y)) y))))))))
 
 ;;; The inverse is itself a bijection.
 ;;; Derivable from inverse-bij-left, inverse-bij-right, and the iff.

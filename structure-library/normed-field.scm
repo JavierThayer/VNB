@@ -34,34 +34,34 @@
 
 (def-structure-from-clauses 'NORMED-FIELD
   '(;; Slots 1-6 mirror RING so shared accessors keep their NTH indices.
-    (carriers A)
-    (op ADD (CARTESIAN A A) A)
-    (op MUL (CARTESIAN A A) A)
-    (op NEG A A)
-    (constant ZERO A)
-    (constant ONE A)
+    (carriers CARR)
+    (op ADD (CARTESIAN CARR CARR) CARR)
+    (op MUL (CARTESIAN CARR CARR) CARR)
+    (op NEG CARR CARR)
+    (constant ZERO CARR)
+    (constant ONE CARR)
     ;; Slot 7: the structurally-carried norm.
-    (op NRM A RR)
+    (op NRM CARR RR)
     ;; Additive abelian group on A.
-    (property is-associative ADD A)
-    (property is-commutative ADD A)
-    (property is-identity   ADD ZERO A)
-    (property has-inverses  ADD ZERO NEG A)
+    (property is-associative ADD CARR)
+    (property is-commutative ADD CARR)
+    (property is-identity   ADD ZERO CARR)
+    (property has-inverses  ADD ZERO NEG CARR)
     ;; Multiplicative commutative monoid; distributive.
-    (property is-associative MUL A)
-    (property is-commutative MUL A)
-    (property is-identity   MUL ONE A)
-    (property is-distributive ADD MUL A)
+    (property is-associative MUL CARR)
+    (property is-commutative MUL CARR)
+    (property is-identity   MUL ONE CARR)
+    (property is-distributive ADD MUL CARR)
     ;; The norm.
-    (property is-norm NRM ADD MUL ZERO A)))
+    (property is-norm NRM ADD MUL ZERO CARR)))
 
 ;;; Multiplicative inverses: every nonzero element has a multiplicative
 ;;; inverse.  Asserted existentially (no structural INV slot in this shape).
 (theory-add-axiom! *current-theory* 'normed-field-mul-inverses
   '(FORALL s (IMPLIES (IS-NORMED-FIELD s)
-     (FORALL a (IMPLIES (AND (IN a (A s)) (NOT (= a (ZERO s))))
+     (FORALL a (IMPLIES (AND (IN a (CARR s)) (NOT (= a (ZERO s))))
        (FORSOME b
-         (AND (IN b (A s))
+         (AND (IN b (CARR s))
               (NOT (= b (ZERO s)))
               (= ((MUL s) a b) (ONE s)))))))))
 

@@ -135,7 +135,7 @@
   '(FORALL m (IMPLIES (IS-COMM-MONOID m)
       (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
       (FORALL k (IMPLIES (AND (IN k SET) (NOT (IN k X)))
-      (FORALL f (IMPLIES (IN f (FUN (UNION X (PAIR k k)) (A m)))
+      (FORALL f (IMPLIES (IN f (FUN (UNION X (PAIR k k)) (CARR m)))
         (= (FINSUM m f (UNION X (PAIR k k)))
            ((MUL m) (FINSUM m f X) (f k))))))))))))
 
@@ -163,7 +163,7 @@
 (support 'prod-ring-singleton
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
       (FORALL x (IMPLIES (IN x SET)
-      (FORALL f (IMPLIES (IN f (FUN (PAIR x x) (A R)))
+      (FORALL f (IMPLIES (IN f (FUN (PAIR x x) (CARR R)))
         (= (PROD-RING R f (PAIR x x)) (f x)))))))))
 
 (warrant! 'prod-ring-singleton 'informal
@@ -177,7 +177,7 @@
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
       (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
       (FORALL k (IMPLIES (AND (IN k SET) (NOT (IN k X)))
-      (FORALL f (IMPLIES (IN f (FUN (UNION X (PAIR k k)) (A R)))
+      (FORALL f (IMPLIES (IN f (FUN (UNION X (PAIR k k)) (CARR R)))
         (= (PROD-RING R f (UNION X (PAIR k k)))
            ((MUL R) (PROD-RING R f X) (f k))))))))))))
 
@@ -190,8 +190,8 @@
 (support 'prod-ring-type
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
       (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
-      (FORALL f (IMPLIES (IN f (FUN X (A R)))
-        (IN (PROD-RING R f X) (A R)))))))))
+      (FORALL f (IMPLIES (IN f (FUN X (CARR R)))
+        (IN (PROD-RING R f X) (CARR R)))))))))
 
 (warrant! 'prod-ring-type 'informal
   "finsum-comm-monoid-type through the multiplicative view: the product folds
@@ -211,8 +211,8 @@
 (support 'prod-of-sums-expansion
   '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
       (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
-      (FORALL a (IMPLIES (IN a (FUN X (A R)))
-      (FORALL b (IMPLIES (IN b (FUN X (A R)))
+      (FORALL a (IMPLIES (IN a (FUN X (CARR R)))
+      (FORALL b (IMPLIES (IN b (FUN X (CARR R)))
         (= (PROD-RING R (VNB-LAMBDA k ((ADD R) (a k) (b k))) X)
            (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG R)
                    (VNB-LAMBDA S ((MUL R) (PROD-RING R a S)

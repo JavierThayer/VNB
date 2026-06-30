@@ -24,7 +24,7 @@
 ;;;   PROD-ORD(m, f, succ(n)) = PROD-ORD(m, f, n) * f(n)
 
 (def-by-nn-recursion 'PROD-ORD '(m f)
-  '(E m)                              ; base value
+  '(ID m)                              ; base value
   '(n val)                            ; step vars: n ∈ NN, val = PROD-ORD(m,f,n)
   '((MUL m) val (f n))); PROD-ORD(m,f,succ n) = val * f(n)
 
@@ -36,10 +36,10 @@
   '(FORALL m
       (IMPLIES (IS-MONOID m)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A m)))
+                 (IMPLIES (IN f (FUN NN (CARR m)))
                           (FORALL n
                             (IMPLIES (IN n NN)
-                                     (IN (PROD-ORD m f n) (A m)))))))))
+                                     (IN (PROD-ORD m f n) (CARR m)))))))))
 
 ;;; Singleton: PROD-ORD(m, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): prod-ord-succ at n=0 gives
@@ -49,7 +49,7 @@
   '(FORALL m
       (IMPLIES (IS-MONOID m)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A m)))
+                 (IMPLIES (IN f (FUN NN (CARR m)))
                           (= (PROD-ORD m f 1) (f 0)))))))
 
 ;;; -----------------------------------------------------------------------
@@ -76,10 +76,10 @@
   '(FORALL r
       (IMPLIES (IS-RING r)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A r)))
+                 (IMPLIES (IN f (FUN NN (CARR r)))
                           (FORALL n
                             (IMPLIES (IN n NN)
-                                     (IN (SUM r f n) (A r)))))))))
+                                     (IN (SUM r f n) (CARR r)))))))))
 
 ;;; Singleton: SUM(r, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): sum-succ at n=0 gives (ADD r)(ZERO r)(f 0),
@@ -88,7 +88,7 @@
   '(FORALL r
       (IMPLIES (IS-RING r)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A r)))
+                 (IMPLIES (IN f (FUN NN (CARR r)))
                           (= (SUM r f 1) (f 0)))))))
 
 ;;; -----------------------------------------------------------------------
@@ -104,7 +104,7 @@
 ;;;   SUM-AG(ag, f, succ(n)) = (MUL ag)(SUM-AG ag f n, f(n))
 
 (def-by-nn-recursion 'SUM-AG '(ag f)
-  '(E ag)                              ; base value
+  '(ID ag)                              ; base value
   '(n val)                             ; step vars
   '((MUL ag) val (f n))); SUM-AG(ag,f,succ n) = val * f(n)
 
@@ -116,10 +116,10 @@
   '(FORALL ag
       (IMPLIES (IS-ABELIAN-GROUP ag)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A ag)))
+                 (IMPLIES (IN f (FUN NN (CARR ag)))
                           (FORALL n
                             (IMPLIES (IN n NN)
-                                     (IN (SUM-AG ag f n) (A ag)))))))))
+                                     (IN (SUM-AG ag f n) (CARR ag)))))))))
 
 ;;; Singleton: SUM-AG(ag, f, 1) = f(0).
 ;;; Provable from sum-ag-succ at n=0 + sum-ag-zero + group-left-id
@@ -128,7 +128,7 @@
   '(FORALL ag
       (IMPLIES (IS-ABELIAN-GROUP ag)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A ag)))
+                 (IMPLIES (IN f (FUN NN (CARR ag)))
                           (= (SUM-AG ag f 1) (f 0)))))))
 
 ;;; SUM-AG <-> REDUCE bridge (n >= 1).
@@ -145,7 +145,7 @@
   '(FORALL ag
       (IMPLIES (IS-ABELIAN-GROUP ag)
                (FORALL f
-                 (IMPLIES (IN f (FUN NN (A ag)))
+                 (IMPLIES (IN f (FUN NN (CARR ag)))
                           (FORALL n
                             (IMPLIES (AND (IN n NN) (<= 1 n))
                                      (= (SUM-AG ag f n)
@@ -193,9 +193,9 @@
   '(FORALL r
       (IMPLIES (IS-RING r)
                (FORALL a
-                 (IMPLIES (IN a (A r))
+                 (IMPLIES (IN a (CARR r))
                           (FORALL f
-                            (IMPLIES (IN f (FUN NN (A r)))
+                            (IMPLIES (IN f (FUN NN (CARR r)))
                                      (FORALL n
                                        (IMPLIES (IN n NN)
                                          (= (SUM r (VNB-LAMBDA i ((MUL r) a (f i))) n)
@@ -231,7 +231,7 @@
                   (IMPLIES (AND (IN S1 SET)
                            (AND (IN S2 SET)
                            (AND (= (INTERSECTION S1 S2) EMPTY-SET)
-                                (IN f (FUN (UNION S1 S2) (A r))))))
+                                (IN f (FUN (UNION S1 S2) (CARR r))))))
                            (= (SUM-SET r (UNION S1 S2) f)
                               ((ADD r) (SUM-SET r S1 f) (SUM-SET r S2 f))))))))))
 
@@ -244,8 +244,8 @@
       (IMPLIES (AND (IS-RING r)
                (AND (IN X SET)
                (AND (SUBSET S X)
-                    (IN f (FUN X (A r))))))
-               (IN (SUM-SET r S f) (A r))))))))
+                    (IN f (FUN X (CARR r))))))
+               (IN (SUM-SET r S f) (CARR r))))))))
 
 ;;; Scalar pull-out for finite sums (PSS-promoted 2026-05-27):
 ;;;   a · (sum_{x ∈ X} f(x))      = sum_{x ∈ X} a · f(x)
@@ -266,7 +266,7 @@
 
 (theory-add-axiom! *current-theory* 'prod-set-empty
   '(FORALL cm (FORALL f
-      (== (PROD-SET cm EMPTY-SET f) (E cm)))))
+      (== (PROD-SET cm EMPTY-SET f) (ID cm)))))
 
 (theory-add-axiom! *current-theory* 'prod-set-singleton
   '(FORALL cm
@@ -281,7 +281,7 @@
                   (IMPLIES (AND (IN S1 SET)
                            (AND (IN S2 SET)
                            (AND (= (INTERSECTION S1 S2) EMPTY-SET)
-                                (IN f (FUN (UNION S1 S2) (A cm))))))
+                                (IN f (FUN (UNION S1 S2) (CARR cm))))))
                            (= (PROD-SET cm (UNION S1 S2) f)
                               ((MUL cm) (PROD-SET cm S1 f) (PROD-SET cm S2 f))))))))))
 
@@ -290,5 +290,5 @@
       (IMPLIES (AND (IS-COMM-MONOID cm)
                (AND (IN X SET)
                (AND (SUBSET S X)
-                    (IN f (FUN X (A cm))))))
-               (IN (PROD-SET cm S f) (A cm))))))))
+                    (IN f (FUN X (CARR cm))))))
+               (IN (PROD-SET cm S f) (CARR cm))))))))

@@ -36,7 +36,7 @@
 
 ;; DIST-SEQ(M,f,g) = the real sequence  n |-> d(f_n, g_n)  in RR.
 (def-functoid 'DIST-SEQ '(M f g)
-  '(VNB-LAMBDA n ((D M) (f n) (g n))))
+  '(VNB-LAMBDA n ((DIST M) (f n) (g n))))
 
 ;; CSEQ-EQUIV(M,f,g): f ~ g, i.e. d(f_n,g_n) -> 0.  This is the equivalence
 ;; relation underlying the completion -- null distance.  Stated as convergence
@@ -51,7 +51,7 @@
 ;; CSEQ(M) = the set of Cauchy sequences of M = { f in FUN(NN,X(M)) : Cauchy }.
 ;; A subset of the function set FUN(NN,X(M)) (a set), hence a set by separation.
 (def-functoid 'CSEQ '(M)
-  '(SEP f (FUN NN (X M)) (IS-CAUCHY-SEQ M f)))
+  '(SEP f (FUN NN (PTS M)) (IS-CAUCHY-SEQ M f)))
 
 ;; CREL(M) = the null-distance relation as an extensional SET: the pairs
 ;; (f,g) of Cauchy sequences with f ~ g.  A subset of CARTESIAN(CSEQ,CSEQ),
@@ -145,7 +145,7 @@
 ;; embed-in-fun: EMBED(M) maps X(M) into the completion's carrier.
 (support 'embed-in-fun
   '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (IN (EMBED M) (FUN (X M) (X (COMPLETION M)))))))
+     (IN (EMBED M) (FUN (PTS M) (PTS (COMPLETION M)))))))
 (warrant! 'embed-in-fun 'well-known
   "The constant sequence at u is Cauchy (d(u,u)=0 < eps for all n), so it lies
    in CSEQ(M) and its class lies in QUOTIENT(CAUCHY-SETOID(M)) = X(COMPLETION M)
@@ -155,10 +155,10 @@
 ;; So M sits inside its completion isometrically.
 (support 'embed-isometry
   '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (FORALL u (IMPLIES (IN u (X M))
-       (FORALL v (IMPLIES (IN v (X M))
-         (= ((D (COMPLETION M)) (EMBED M u) (EMBED M v))
-            ((D M) u v)))))))))
+     (FORALL u (IMPLIES (IN u (PTS M))
+       (FORALL v (IMPLIES (IN v (PTS M))
+         (= ((DIST (COMPLETION M)) (EMBED M u) (EMBED M v))
+            ((DIST M) u v)))))))))
 (warrant! 'embed-isometry 'well-known
   "For constant sequences the real distance sequence n |-> d(u,v) is constant,
    so its limit is d(u,v) itself.  Hence d-hat([const u],[const v]) = d(u,v),

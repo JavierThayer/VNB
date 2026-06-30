@@ -304,7 +304,7 @@
          (if (null? vs)
              (ring-term s body)
              (list 'FORALL (car vs)
-               (list 'IMPLIES (list 'IN (car vs) (list 'A s))
+               (list 'IMPLIES (list 'IN (car vs) (list 'CARR s))
                  (loop (cdr vs))))))))))
 
 ;;; -----------------------------------------------------------------------

@@ -24,14 +24,14 @@
 ;;; a - q.b in I directly.
 (def-predicate 'IS-IDEAL '(s I)
   '(AND (IS-COMMUTATIVE-RING s)
-   (AND (SUBSET I (A s))
+   (AND (SUBSET I (CARR s))
    (AND (IN (ZERO s) I)
    (AND (FORALL a (IMPLIES (IN a I)
           (FORALL b (IMPLIES (IN b I)
             (IN ((ADD s) a b) I)))))
    (AND (FORALL a (IMPLIES (IN a I)
             (IN ((NEG s) a) I)))
-        (FORALL r (IMPLIES (IN r (A s))
+        (FORALL r (IMPLIES (IN r (CARR s))
           (FORALL a (IMPLIES (IN a I)
             (IN ((MUL s) r a) I)))))))))))
 
@@ -40,7 +40,7 @@
 ;;;   { x in A(s) : x = r.a for some r in A(s) }.  Written as a SEP, so its
 ;;; membership law is the kernel separation rule sep-me.
 (def-functoid 'PRINCIPAL-IDEAL '(s a)
-  '(SEP x (A s) (FORSOME r (AND (IN r (A s)) (= x ((MUL s) r a))))))
+  '(SEP x (CARR s) (FORSOME r (AND (IN r (CARR s)) (= x ((MUL s) r a))))))
 
 ;;; principal-ideal-membership: x in (a) iff x in A(s) and x = r.a for some
 ;;; r in A(s).  Direct from SEP membership (cf. preimage-membership); recorded
@@ -48,8 +48,8 @@
 (theory-add-axiom! *current-theory* 'principal-ideal-membership
   '(FORALL s (FORALL a (FORALL x
      (IFF (IN x (PRINCIPAL-IDEAL s a))
-          (AND (IN x (A s))
-               (FORSOME r (AND (IN r (A s)) (= x ((MUL s) r a))))))))))
+          (AND (IN x (CARR s))
+               (FORSOME r (AND (IN r (CARR s)) (= x ((MUL s) r a))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-PID(s): s is a principal-ideal domain -- an integral domain in which
@@ -57,7 +57,7 @@
 (def-predicate 'IS-PID '(s)
   '(AND (IS-INTEGRAL-DOMAIN s)
         (FORALL I (IMPLIES (IS-IDEAL s I)
-          (FORSOME a (AND (IN a (A s))
+          (FORSOME a (AND (IN a (CARR s))
                           (= I (PRINCIPAL-IDEAL s a))))))))
 
 ;;; Associated proper class PID = { s | IS-PID(s) }, mirroring INTEGRAL-DOMAIN.
@@ -89,7 +89,7 @@
 ;;; Immediate from the SUBSET I (A s) conjunct of IS-IDEAL.
 (support 'ideal-elt-in-carrier
   '(FORALL s (FORALL I (FORALL x
-     (IMPLIES (IS-IDEAL s I) (IMPLIES (IN x I) (IN x (A s))))))))
+     (IMPLIES (IS-IDEAL s I) (IMPLIES (IN x I) (IN x (CARR s))))))))
 (warrant! 'ideal-elt-in-carrier 'proof
   "IS-IDEAL(s,I) has SUBSET I (A s) as a conjunct; apply subset-def at x.")
 

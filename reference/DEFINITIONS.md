@@ -18,7 +18,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### cluster-point
 
-    forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m <= n and (d(s))(f(n), x) < eps))))
+    forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, pts(s)) and x in pts(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m <= n and (dist(s))(f(n), x) < eps))))
 
 ### converges
 
@@ -26,11 +26,11 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### converges-along
 
-    forall([s, g, b, p], converges-along(s, g, b, p) iff is-metric-space(s) and g in fun(nn, x(s)) and p in x(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([i in nn], i in b implies n <= i implies (d(s))(g(i), p) <= eps))))
+    forall([s, g, b, p], converges-along(s, g, b, p) iff is-metric-space(s) and g in fun(nn, pts(s)) and p in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([i in nn], i in b implies n <= i implies (dist(s))(g(i), p) <= eps))))
 
 ### converges-to
 
-    forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, x(s)) and l in x(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n_ in nn], n <= n_ implies (d(s))(f(n_), l) <= eps))))
+    forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n_ in nn], n <= n_ implies (dist(s))(f(n_), l) <= eps))))
 
 ### cseq-equiv
 
@@ -62,11 +62,11 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### has-div-remainder
 
-    forall([s, deg], has-div-remainder(s, deg) iff forall([a_ in a(s), b in a(s)], not(b = zero(s)) implies forsome([q in a(s), r in a(s)], a_ = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) <= deg(b)))))
+    forall([s, deg], has-div-remainder(s, deg) iff forall([a_ in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a_ = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) <= deg(b)))))
 
 ### has-fip
 
-    forall([s, c], has-fip(s, c) iff is-metric-space(s) and forall([a in c], is-closed(s, a)) and forall([f], f subset c and card(f) in nn implies forsome([p], p in big-intersection(a, f, a))))
+    forall([s, c], has-fip(s, c) iff is-metric-space(s) and forall([a in c], is-closed(s, a)) and forall([f], f subset c and card(f) in nn implies forsome([p], p in big-intersection(carr, f, carr))))
 
 ### has-inverses
 
@@ -90,11 +90,11 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-cauchy-seq
 
-    forall([s, f], is-cauchy-seq(s, f) iff is-metric-space(s) and f in fun(nn, x(s)) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([m in nn, n_ in nn], n <= m and n <= n_ implies (d(s))(f(m), f(n_)) <= eps))))
+    forall([s, f], is-cauchy-seq(s, f) iff is-metric-space(s) and f in fun(nn, pts(s)) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([m in nn, n_ in nn], n <= m and n <= n_ implies (dist(s))(f(m), f(n_)) <= eps))))
 
 ### is-closed
 
-    forall([s, a], is-closed(s, a) iff is-metric-space(s) and a subset x(s) and is-open(s, complement-in(x(s), a)))
+    forall([s, a], is-closed(s, a) iff is-metric-space(s) and a subset pts(s) and is-open(s, complement-in(pts(s), a)))
 
 ### is-commutative
 
@@ -110,11 +110,11 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-continuous
 
-    forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) and forall([a in x(s)], is-continuous-at(s, t, f, a)))
+    forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))
 
 ### is-continuous-at
 
-    forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) and a in x(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in x(s)], (d(s))(a, b) <= delta implies (d(t))(f(a), f(b)) <= eps))))
+    forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and a in pts(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
 
 ### is-diff-at
 
@@ -126,7 +126,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-eps-cauchy-seq
 
-    forall([s, eps, y], is-eps-cauchy-seq(s, eps, y) iff is-metric-space(s) and y in fun(nn, x(s)) and forall([m in nn, n_ in nn], (d(s))(y(m), y(n_)) <= eps))
+    forall([s, eps, y], is-eps-cauchy-seq(s, eps, y) iff is-metric-space(s) and y in fun(nn, pts(s)) and forall([m in nn, n_ in nn], (dist(s))(y(m), y(n_)) <= eps))
 
 ### is-equivalence
 
@@ -142,11 +142,11 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-group-norm
 
-    forall([nrm, op, invop, unit, crr], is-group-norm(nrm, op, invop, unit, crr) iff nrm in fun(crr, rr) and forall([u in crr], 0 <= nrm(u) and (nrm(u) = 0 iff u = unit) and nrm(invop(u)) = nrm(u) and forall([v in crr], nrm(op(u, v)) <= nrm(u) + nrm(v))))
+    forall([nm, op, invop, unit, crr], is-group-norm(nm, op, invop, unit, crr) iff nm in fun(crr, rr) and forall([u in crr], 0 <= nm(u) and (nm(u) = 0 iff u = unit) and nm(invop(u)) = nm(u) and forall([v in crr], nm(op(u, v)) <= nm(u) + nm(v))))
 
 ### is-ideal
 
-    forall([s, i], is-ideal(s, i) iff is-commutative-ring(s) and i subset a(s) and zero(s) in i and forall([a in i, b in i], (add(s))(a, b) in i) and forall([a in i], (neg(s))(a) in i) and forall([r in a(s), a in i], (mul(s))(r, a) in i))
+    forall([s, i], is-ideal(s, i) iff is-commutative-ring(s) and i subset carr(s) and zero(s) in i and forall([a in i, b in i], (add(s))(a, b) in i) and forall([a in i], (neg(s))(a) in i) and forall([r in carr(s), a in i], (mul(s))(r, a) in i))
 
 ### is-identity
 
@@ -162,7 +162,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-metric
 
-    forall([dist, crr], is-metric(dist, crr) iff forall([u in crr], dist(u, u) = 0 and forall([v in crr], 0 <= dist(u, v) and (dist(u, v) = 0 implies u = v) and dist(u, v) = dist(v, u) and forall([w in crr], dist(u, w) <= dist(u, v) + dist(v, w)))))
+    forall([dst, crr], is-metric(dst, crr) iff forall([u in crr], dst(u, u) = 0 and forall([v in crr], 0 <= dst(u, v) and (dst(u, v) = 0 implies u = v) and dst(u, v) = dst(v, u) and forall([w in crr], dst(u, w) <= dst(u, v) + dst(v, w)))))
 
 ### is-ms-sequence
 
@@ -174,31 +174,31 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-norm
 
-    forall([nrm, addop, mulop, zero, crr], is-norm(nrm, addop, mulop, zero, crr) iff nrm in fun(crr, rr) and forall([a in crr], 0 <= nrm(a) and (nrm(a) = 0 iff a = zero) and forall([b in crr], nrm(mulop(a, b)) = nrm(a) * nrm(b) and nrm(addop(a, b)) <= nrm(a) + nrm(b))))
+    forall([nm, addop, mulop, zr, crr], is-norm(nm, addop, mulop, zr, crr) iff nm in fun(crr, rr) and forall([a in crr], 0 <= nm(a) and (nm(a) = 0 iff a = zr) and forall([b in crr], nm(mulop(a, b)) = nm(a) * nm(b) and nm(addop(a, b)) <= nm(a) + nm(b))))
 
 ### is-open
 
-    forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset x(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
+    forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
 
 ### is-open-cover
 
-    forall([s, c], is-open-cover(s, c) iff is-metric-space(s) and forall([u in c], is-open(s, u)) and big-union(u, c, u) == x(s))
+    forall([s, c], is-open-cover(s, c) iff is-metric-space(s) and forall([u in c], is-open(s, u)) and big-union(u, c, u) == pts(s))
 
 ### is-pid
 
-    forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in a(s)], i = principal-ideal(s, a))))
+    forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in carr(s)], i = principal-ideal(s, a))))
 
 ### is-r-net
 
-    forall([s, f, a, r], is-r-net(s, f, a, r) iff forall([p in a], forsome([c in f], (d(s))(c, p) <= r and not((d(s))(c, p) = r))))
+    forall([s, f, a, r], is-r-net(s, f, a, r) iff forall([p in a], forsome([c in f], (dist(s))(c, p) <= r and not((dist(s))(c, p) = r))))
 
 ### is-submodule
 
-    forall([m, s], is-submodule(m, s) iff s subset vec(m) and vzero(m) in s and forall([x_ in s, y_ in s], (vadd(m))(x_, y_) in s) and forall([x_ in s], (vneg(m))(x_) in s) and forall([r_ in a(scal(m)), x_ in s], (act(m))(r_, x_) in s))
+    forall([m, s], is-submodule(m, s) iff s subset vec(m) and vzero(m) in s and forall([x_ in s, y_ in s], (vadd(m))(x_, y_) in s) and forall([x_ in s], (vneg(m))(x_) in s) and forall([r_ in carr(scal(m)), x_ in s], (act(m))(r_, x_) in s))
 
 ### is-subsequence
 
-    forall([s, y, f], is-subsequence(s, y, f) iff f in fun(nn, x(s)) and forsome([phi], strictly-mono-nn(phi) and y = subseq(f, phi)))
+    forall([s, y, f], is-subsequence(s, y, f) iff f in fun(nn, pts(s)) and forsome([phi], strictly-mono-nn(phi) and y = subseq(f, phi)))
 
 ### is-subspace
 
@@ -206,11 +206,11 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### is-summable
 
-    forall([grp, f], is-summable(grp, f) iff forsome([r in a(grp)], sums-to(grp, f, r)))
+    forall([grp, f], is-summable(grp, f) iff forsome([r in carr(grp)], sums-to(grp, f, r)))
 
 ### is-uniformly-continuous
 
-    forall([s, t, f], is-uniformly-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([a in x(s), b in x(s)], (d(s))(a, b) <= delta implies (d(t))(f(a), f(b)) <= eps))))
+    forall([s, t, f], is-uniformly-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([a in pts(s), b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
 
 ### is-vector-space
 
@@ -222,7 +222,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### mpow
 
-    forall([m, x], mpow(m, x, 0) == e(m))
+    forall([m, x], mpow(m, x, 0) == id(m))
 
     forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))
 
@@ -250,7 +250,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### prod-ord
 
-    forall([m, f], prod-ord(m, f, 0) == e(m))
+    forall([m, f], prod-ord(m, f, 0) == id(m))
 
     forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))
 
@@ -288,7 +288,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### seq-compact
 
-    forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, x(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in x(s)], converges-to(s, subseq(f, phi), l)))))
+    forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, pts(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in pts(s)], converges-to(s, subseq(f, phi), l)))))
 
 ### series-converges
 
@@ -310,7 +310,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### sum-ag
 
-    forall([ag, f], sum-ag(ag, f, 0) == e(ag))
+    forall([ag, f], sum-ag(ag, f, 0) == id(ag))
 
     forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))
 
@@ -328,7 +328,7 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### totally-bounded
 
-    forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, x(s), r))))
+    forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, pts(s), r))))
 
 ### zero-ring
 
@@ -336,9 +336,9 @@ Introduced by `def-constant` / `def-predicate`; the macete is the definiendum's 
 
 ### zz-act
 
-    forall([g], is-abelian-group(g) implies forall([k in nn, a in a(g)], zz-act(g, k, a) = mpow(abelian-group-as-monoid(g), a, k)))
+    forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, k, a) = mpow(abelian-group-as-monoid(g), a, k)))
 
-    forall([g], is-abelian-group(g) implies forall([k in nn, a in a(g)], zz-act(g, -k, a) = (inv(g))(mpow(abelian-group-as-monoid(g), a, k))))
+    forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, -k, a) = (inv(g))(mpow(abelian-group-as-monoid(g), a, k))))
 
 ## Other definitional axioms
 
@@ -390,7 +390,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### nf-metric-carrier
 
-    forall([nf], x(nf-metric-space(nf)) == a(nf))
+    forall([nf], pts(nf-metric-space(nf)) == carr(nf))
 
 ### ord-lt-iff
 
@@ -398,7 +398,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### preimage-membership
 
-    forall([s, f, v, a], a in preimage(s, f, v) iff a in x(s) and f(a) in v)
+    forall([s, f, v, a], a in preimage(s, f, v) iff a in pts(s) and f(a) in v)
 
 ### reduce-one
 

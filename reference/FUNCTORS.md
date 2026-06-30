@@ -10,15 +10,15 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ball
 
-    ball(s, c, r) := {y in x(s): (d(s))(c, y) <= r and not((d(s))(c, y) = r)}
+    ball(s, c, r) := {y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)}
 
 ### ball-cover
 
-    ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), x(s))
+    ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), pts(s))
 
 ### bdd-metric
 
-    bdd-metric(s) := [x(s), vnb-lambda([u, v], /((d(s))(u, v), 1 + (d(s))(u, v)))]
+    bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 
 ### cauchy-setoid
 
@@ -34,7 +34,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### centres
 
-    centres(s, b, r) := {c in x(s): ball(s, c, r) = b}
+    centres(s, b, r) := {c in pts(s): ball(s, c, r) = b}
 
 ### choose-set
 
@@ -42,7 +42,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### class
 
-    class(s, a) := {b in x(s): related(s, a, b)}
+    class(s, a) := {b in pts(s): related(s, a, b)}
 
 ### completion
 
@@ -54,11 +54,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### cseq
 
-    cseq(m) := {f in fun(nn, x(m)): is-cauchy-seq(m, f)}
+    cseq(m) := {f in fun(nn, pts(m)): is-cauchy-seq(m, f)}
 
 ### euclidean-gauges
 
-    euclidean-gauges(s) := {dg in fun(a(s), nn): has-div-remainder(s, dg)}
+    euclidean-gauges(s) := {dg in fun(carr(s), nn): has-div-remainder(s, dg)}
 
 ### inf-subsets
 
@@ -66,11 +66,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### nag-metric-space
 
-    nag-metric-space(nag) := [a(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]
+    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]
 
 ### nf-metric-space
 
-    nf-metric-space(nf) := [a(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]
+    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]
 
 ### permutations
 
@@ -78,15 +78,15 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### preimage
 
-    preimage(s, f, v) := {a in x(s): f(a) in v}
+    preimage(s, f, v) := {a in pts(s): f(a) in v}
 
 ### principal-ideal
 
-    principal-ideal(s, a) := {x in a(s): forsome([r in a(s)], x = (mul(s))(r, a))}
+    principal-ideal(s, a) := {x in carr(s): forsome([r in carr(s)], x = (mul(s))(r, a))}
 
 ### product-carrier
 
-    product-carrier(ms) := {x in fun(nn, big-union(n, nn, x(ms(n)))): forall([n in nn], x(n) in x(ms(n)))}
+    product-carrier(ms) := {x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))}
 
 ### product-metric
 
@@ -94,11 +94,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### product-metric-w
 
-    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (d(bdd-metric(ms(n))))(x(n), y(n))), l)))]
+    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
 
 ### quotient
 
-    quotient(s) := image(proj(s), x(s))
+    quotient(s) := image(proj(s), pts(s))
 
 ### ran
 
@@ -106,7 +106,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ring-prod
 
-    ring-prod(x, y) := [cartesian(a(x), a(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
+    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
 
 ### rr-bounded-ms
 
@@ -147,7 +147,7 @@ Body is a function (`vnb-lambda`), element, number, or proposition — distance 
 
 ### dist-seq
 
-    dist-seq(m, f, g) := vnb-lambda(n, (d(m))(f(n), g(n)))
+    dist-seq(m, f, g) := vnb-lambda(n, (dist(m))(f(n), g(n)))
 
 ### dual-norm
 
@@ -167,7 +167,7 @@ Body is a function (`vnb-lambda`), element, number, or proposition — distance 
 
 ### enum-fam
 
-    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), e(ag)))
+    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), id(ag)))
 
 ### fin-enum
 
@@ -219,7 +219,7 @@ Body is a function (`vnb-lambda`), element, number, or proposition — distance 
 
 ### respects
 
-    respects(s, f) := forall([a in x(s), b in x(s)], related(s, a, b) implies f(a) = f(b))
+    respects(s, f) := forall([a in pts(s), b in pts(s)], related(s, a, b) implies f(a) = f(b))
 
 ### ring-power
 

@@ -70,12 +70,12 @@
   ;; ---- the goal ----
   (sp (make-wff
        '(FORALL s (IMPLIES (TOTALLY-BOUNDED s)
-          (FORALL f (IMPLIES (IN f (FUN NN (X s)))
+          (FORALL f (IMPLIES (IN f (FUN NN (PTS s)))
             (FORSOME phi (AND (STRICTLY-MONO-NN phi)
                               (IS-CAUCHY-SEQ s (SUBSEQ f phi))))))))))
   (quietly (lambda () (di)(di)(di)(di)))
   (define s* (cadr (find-asm (head? 'TOTALLY-BOUNDED))))
-  (define f* (typed-elt '(FUN NN (X s))))
+  (define f* (typed-elt '(FUN NN (PTS s))))
 
   ;; rad : positive null radius sequence
   (quietly (lambda ()
@@ -96,7 +96,7 @@
 
   ;; blk : the nested block family -- the combinatorial witness
   (quietly (lambda ()
-    (fact 'block-family-combinatorial (list 'X s*) f* cov*)
+    (fact 'block-family-combinatorial (list 'PTS s*) f* cov*)
     (let ((fs (find-asm (head? 'FORSOME)))) (and fs (ai fs))) (split-ands)))
   (define blk* (typed-elt '(FUN NN (INF-SUBSETS NN))))
 
@@ -125,7 +125,7 @@
               ((leaf-head? 'IS-METRIC-SPACE) (ass) (loop (+ n 1)))
               ((leaf-head? 'STRICTLY-MONO-NN) (ass) (loop (+ n 1)))
               ((leaf-pred? (lambda (a) (and (pair? a) (eq? (car a) 'IN)
-                                            (equal? (caddr a) (list 'FUN 'NN (list 'X s*))))))
+                                            (equal? (caddr a) (list 'FUN 'NN (list 'PTS s*))))))
                (bc* 'subseq-is-fun) (di) (ass-all) (loop (+ n 1)))
               (else 'done))))))
 

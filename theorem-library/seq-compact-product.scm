@@ -37,11 +37,11 @@
 (def-predicate 'SEQ-COMPACT '(s)
   '(AND (IS-METRIC-SPACE s)
         (FORALL f
-          (IMPLIES (IN f (FUN NN (X s)))
+          (IMPLIES (IN f (FUN NN (PTS s)))
             (FORSOME phi
               (AND (STRICTLY-MONO-NN phi)
                    (FORSOME L
-                     (AND (IN L (X s))
+                     (AND (IN L (PTS s))
                           (CONVERGES-TO s (SUBSEQ f phi) L)))))))))
 
 ;;; compact <=> sequentially compact, for a metric space (Prop 3.12 (1)<=>(3)).
@@ -71,13 +71,13 @@
 ;;; estimate).
 (def-predicate 'CONVERGES-ALONG '(s g B p)
   '(AND (IS-METRIC-SPACE s)
-   (AND (IN g (FUN NN (X s)))
-   (AND (IN p (X s))
+   (AND (IN g (FUN NN (PTS s)))
+   (AND (IN p (PTS s))
         (FORALL eps (IMPLIES (POS-RR eps)
           (FORSOME N (AND (IN N NN)
             (FORALL i (IMPLIES (IN i NN)
               (IMPLIES (IN i B) (IMPLIES (<= N i)
-                (<= ((D s) (g i) p) eps)))))))))))))
+                (<= ((DIST s) (g i) p) eps)))))))))))))
 
 ;;; convergence-block-tower: the refinement-tower core of the diagonal argument
 ;;; (the analogue of block-family, asserted).  Iterating SEQ-COMPACT one

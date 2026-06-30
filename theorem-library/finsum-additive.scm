@@ -91,7 +91,7 @@
 ;; x^(succ n) = x^n * x.
 (support 'ring-power-succ
   (tf 'R '(IS-COMMUTATIVE-RING R)
-   (tf 'x '(IN x (A R))
+   (tf 'x '(IN x (CARR R))
     (tf 'n '(IN n NN)
      '(= (RING-POWER R x (succ n))
          ((MUL R) (RING-POWER R x n) x))))))
@@ -112,8 +112,8 @@
 (support 'finsum-add
   (tf 'm '(IS-COMM-MONOID m)
    (tf 'S (finite 'S)
-    (tf 'f '(IN f (FUN S (A m)))
-     (tf 'h '(IN h (FUN S (A m)))
+    (tf 'f '(IN f (FUN S (CARR m)))
+     (tf 'h '(IN h (FUN S (CARR m)))
       (list '=
         (list 'FINSUM 'm (list 'VNB-LAMBDA 'z (list '(MUL m) '(f z) '(h z))) 'S)
         (list '(MUL m)
@@ -128,9 +128,9 @@
 ;; finsum-ring-distrib-left: r * SUM_z f z = SUM_z (r * f z).
 (support 'finsum-ring-distrib-left
   (tf 'rng '(IS-COMMUTATIVE-RING rng)
-   (tf 'r '(IN r (A rng))
+   (tf 'r '(IN r (CARR rng))
     (tf 'S (finite 'S)
-     (tf 'f '(IN f (FUN S (A rng)))
+     (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) 'r (list 'FINSUM cra 'f 'S))
         (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(MUL rng) 'r '(f z))) 'S)))))))
@@ -144,9 +144,9 @@
 ;; scalar) pass through the x*(...) / y*(...) multiplications.
 (support 'finsum-ring-scalar-zz
   (tf 'rng '(IS-COMMUTATIVE-RING rng)
-   (tf 'r '(IN r (A rng))
+   (tf 'r '(IN r (CARR rng))
     (tf 'c '(IN c ZZ)
-     (tf 'a '(IN a (A rng))
+     (tf 'a '(IN a (CARR rng))
       (list '=
         (list '(MUL rng) 'r (list 'ZZ-ACT cra 'c 'a))
         (list 'ZZ-ACT cra 'c (list '(MUL rng) 'r 'a))))))))
@@ -162,7 +162,7 @@
    (tf 'S (finite 'S)
     (tf 'T (finite 'T)
      (tf 'phi '(IN phi (BIJECTION T S))
-      (tf 'f '(IN f (FUN S (A m)))
+      (tf 'f '(IN f (FUN S (CARR m)))
        (list '=
          (list 'FINSUM 'm 'f 'S)
          (list 'FINSUM 'm (list 'VNB-LAMBDA 'z '(f (phi z))) 'T))))))))

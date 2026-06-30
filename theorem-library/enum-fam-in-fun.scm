@@ -10,5 +10,5 @@
   '(FORALL n (IMPLIES (IN n NN)
      (FORALL ag (IMPLIES (IS-GROUP ag)
      (FORALL S (FORALL phi (IMPLIES (IN phi (FUN (ORD-SEGMENT n) S))
-     (FORALL f (IMPLIES (IN f (FUN S (A ag)))
-       (IN (ENUM-FAM ag f phi n) (FUN NN (A ag)))))))))))))
+     (FORALL f (IMPLIES (IN f (FUN S (CARR ag)))
+       (IN (ENUM-FAM ag f phi n) (FUN NN (CARR ag)))))))))))))

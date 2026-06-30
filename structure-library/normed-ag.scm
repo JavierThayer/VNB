@@ -31,40 +31,40 @@
 ;;; (is-group-norm), number-systems.scm (RR).
 
 (def-structure-from-clauses 'NORMED-AG
-  '((carriers A)
-    (op MUL (CARTESIAN A A) A)
-    (constant E A)
-    (op INV A A)
-    (op NRM A RR)
-    (property is-associative MUL A)
-    (property is-identity   MUL E A)
-    (property has-inverses  MUL E INV A)
-    (property is-commutative MUL A)
-    (property is-group-norm NRM MUL INV E A)))
+  '((carriers CARR)
+    (op MUL (CARTESIAN CARR CARR) CARR)
+    (constant ID CARR)
+    (op INV CARR CARR)
+    (op NRM CARR RR)
+    (property is-associative MUL CARR)
+    (property is-identity   MUL ID CARR)
+    (property has-inverses  MUL ID INV CARR)
+    (property is-commutative MUL CARR)
+    (property is-group-norm NRM MUL INV ID CARR)))
 
 ;;; Convenience restatement: the norm is a real-valued function on the carrier.
 ;;; (Immediate from is-group-norm; stated as a named axiom so callers need not
 ;;; peel the property's iff.)
 (theory-add-axiom! *current-theory* 'normed-ag-nrm-type
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (IN (NRM s) (FUN (A s) RR)))))
+     (IN (NRM s) (FUN (CARR s) RR)))))
 
 ;;; The norm is nonnegative on the carrier.
 (theory-add-axiom! *current-theory* 'normed-ag-nrm-nonneg
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (FORALL a (IMPLIES (IN a (A s))
+     (FORALL a (IMPLIES (IN a (CARR s))
        (<= 0 ((NRM s) a)))))))
 
 ;;; Definiteness: the norm vanishes exactly at the identity.
 (theory-add-axiom! *current-theory* 'normed-ag-nrm-definite
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (FORALL a (IMPLIES (IN a (A s))
-       (IFF (= ((NRM s) a) 0) (= a (E s))))))))
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (IFF (= ((NRM s) a) 0) (= a (ID s))))))))
 
 ;;; Subadditivity (the triangle inequality for the norm).
 (theory-add-axiom! *current-theory* 'normed-ag-nrm-subadditive
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
-     (FORALL a (IMPLIES (IN a (A s))
-       (FORALL b (IMPLIES (IN b (A s))
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (FORALL b (IMPLIES (IN b (CARR s))
          (<= ((NRM s) ((MUL s) a b))
              (+ ((NRM s) a) ((NRM s) b))))))))))

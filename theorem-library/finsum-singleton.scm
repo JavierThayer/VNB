@@ -8,5 +8,5 @@
 (support 'finsum-singleton
   '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
      (FORALL x (IMPLIES (IN x SET)
-     (FORALL f (IMPLIES (IN f (FUN (PAIR x x) (A ag)))
+     (FORALL f (IMPLIES (IN f (FUN (PAIR x x) (CARR ag)))
        (= (FINSUM ag f (PAIR x x)) (f x)))))))))

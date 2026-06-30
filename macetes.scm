@@ -936,6 +936,82 @@
     (reverse bad)))
 
 ;;; -----------------------------------------------------------------------
+;;; ACCESSOR-NAMED-BINDER audit.  The constant-head registry is consulted ONLY
+;;; in head position and is SCOPE-BLIND: a bound variable whose (case-folded)
+;;; name is a registered constant -- an accessor, operator, functoid, predicate
+;;; or defined fn -- reads as that constant the instant it appears applied,
+;;; (v x) silently becoming the CONSTANT v, not the bound v.  The quantifier
+;;; then binds a variable the body never mentions: the formula means something
+;;; other than what was written, with no error.  This walker flags every binder
+;;; whose variable is a registered constant; constant-binder-audit sweeps the
+;;; whole installed library (empty => clean).  Companion to wff-shadowing-binders
+;;; (binder-over-binder); together they close the case-fold collision class.
+(define (wff-constant-binders e)
+  (let ((hits '()))
+    (define (chk v where)
+      (let ((k (constant-head? v)))
+        (when k (set! hits (cons (list where v k) hits)))))
+    (define (walk e)
+      (cond
+        ((functoid? e)
+         (for-each (lambda (b) (chk (car b) 'FUNCTOID) (walk (cdr b)))
+                   (functoid-bindings e))
+         (walk (functoid-body e)))
+        ((not (pair? e)) #t)
+        (else
+         (case (car e)
+           ((FORALL FORSOME COMP IOTA) (chk (cadr e) (car e)) (walk (caddr e)))
+           ((SEP)       (walk (caddr e)) (chk (cadr e) 'SEP) (walk (cadddr e)))
+           ((BIG-UNION) (walk (caddr e)) (chk (cadr e) 'BIG-UNION) (walk (cadddr e)))
+           ((VNB-LAMBDA)
+            (for-each (lambda (v) (chk v 'VNB-LAMBDA)) (vnb-lambda-bvars (cadr e)))
+            (walk (caddr e)))
+           (else (for-each walk (cdr e)))))))
+    (walk e)
+    (reverse hits)))
+
+(define (constant-binder-audit)
+  (let ((bad '()))
+    (for-each (lambda (name)
+                (let* ((f  (lookup-theorem name))
+                       (sh (and f (wff-constant-binders f))))
+                  (when (pair? sh) (set! bad (cons (cons name sh) bad)))))
+              (hash-table-keys *theorem-table*))
+    (reverse bad)))
+
+;;; LOUD, deliberately unpleasant report.  A binder that collides with a
+;;; registered constant is a silent soundness hazard; make it impossible to
+;;; ignore and unpleasant enough that nobody does it twice.
+(define (bang-line) (display "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"))
+(define (shout-constant-binders! bad)
+  (newline) (bang-line) (bang-line)
+  (display "!!!!!                                                                  !!!!!\n")
+  (display "!!!!!     STOP.  A BOUND VARIABLE IS NAMED LIKE A REGISTERED CONSTANT.  !!!!!\n")
+  (display "!!!!!     THIS IS A SILENT SOUNDNESS HAZARD.  DO NOT DO THIS.           !!!!!\n")
+  (display "!!!!!                                                                  !!!!!\n")
+  (display "!!!!!     The head registry is SCOPE-BLIND: wherever your bound var     !!!!!\n")
+  (display "!!!!!     appears APPLIED, (v ...) reads as the CONSTANT v, not your    !!!!!\n")
+  (display "!!!!!     variable.  Your quantifier then binds a name the body never   !!!!!\n")
+  (display "!!!!!     uses.  The formula MEANS SOMETHING ELSE -- with no error.     !!!!!\n")
+  (display "!!!!!                                                                  !!!!!\n")
+  (display "!!!!!     FIX: RENAME THE BOUND VARIABLE.  (Trailing underscore, or a   !!!!!\n")
+  (display "!!!!!     name that is not an accessor/operator/functoid/predicate.)    !!!!!\n")
+  (display "!!!!!                                                                  !!!!!\n")
+  (bang-line)
+  (display "!!!!!     OFFENDERS:                                                    !!!!!\n")
+  (for-each
+   (lambda (entry)
+     (let ((name (car entry)))
+       (for-each
+        (lambda (hit)
+          (display "!!!!!  in `") (display name) (display "' : the ")
+          (display (car hit)) (display " binder `") (display (cadr hit))
+          (display "' shadows a registered ") (display (caddr hit)) (display ".\n"))
+        (cdr entry))))
+   bad)
+  (bang-line) (bang-line) (newline))
+
+;;; -----------------------------------------------------------------------
 ;;; Classic-name discovery.  Theorems carry terse internal names (rolle, mvt,
 ;;; extreme-value-max); humans look them up by their textbook names ("Rolle's
 ;;; theorem", "intermediate value theorem").  (alias! 'name "Classic Name" ...)

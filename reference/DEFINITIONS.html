@@ -71,13 +71,13 @@
 <h4 id="d-cc-ms">cc-ms</h4>
 <pre>cc-ms = [cc, vnb-lambda([x, y], magnitude(x - y))]</pre>
 <h4 id="d-cluster-point">cluster-point</h4>
-<pre>forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, x(s)) and x in x(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m &lt;= n and (d(s))(f(n), x) &lt; eps))))</pre>
+<pre>forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, pts(s)) and x in pts(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m &lt;= n and (dist(s))(f(n), x) &lt; eps))))</pre>
 <h4 id="d-converges">converges</h4>
 <pre>forall([s, f], converges(s, f) iff forsome([l], converges-to(s, f, l)))</pre>
 <h4 id="d-converges-along">converges-along</h4>
-<pre>forall([s, g, b, p], converges-along(s, g, b, p) iff is-metric-space(s) and g in fun(nn, x(s)) and p in x(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([i in nn], i in b implies n &lt;= i implies (d(s))(g(i), p) &lt;= eps))))</pre>
+<pre>forall([s, g, b, p], converges-along(s, g, b, p) iff is-metric-space(s) and g in fun(nn, pts(s)) and p in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([i in nn], i in b implies n &lt;= i implies (dist(s))(g(i), p) &lt;= eps))))</pre>
 <h4 id="d-converges-to">converges-to</h4>
-<pre>forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, x(s)) and l in x(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n_ in nn], n &lt;= n_ implies (d(s))(f(n_), l) &lt;= eps))))</pre>
+<pre>forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n_ in nn], n &lt;= n_ implies (dist(s))(f(n_), l) &lt;= eps))))</pre>
 <h4 id="d-cseq-equiv">cseq-equiv</h4>
 <pre>forall([m, f, g], cseq-equiv(m, f, g) iff converges-to(rr-ms, dist-seq(m, f, g), 0))</pre>
 <h4 id="d-extends-on">extends-on</h4>
@@ -95,9 +95,9 @@ forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))</pre>
 <h4 id="d-good-sub">good-sub</h4>
 <pre>forall([m, s, f, t], good-sub(m, s, f, t) iff forsome([g_], npe(m, s, f, t, g_)))</pre>
 <h4 id="d-has-div-remainder">has-div-remainder</h4>
-<pre>forall([s, deg], has-div-remainder(s, deg) iff forall([a_ in a(s), b in a(s)], not(b = zero(s)) implies forsome([q in a(s), r in a(s)], a_ = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) &lt;= deg(b)))))</pre>
+<pre>forall([s, deg], has-div-remainder(s, deg) iff forall([a_ in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a_ = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) &lt;= deg(b)))))</pre>
 <h4 id="d-has-fip">has-fip</h4>
-<pre>forall([s, c], has-fip(s, c) iff is-metric-space(s) and forall([a in c], is-closed(s, a)) and forall([f], f subset c and card(f) in nn implies forsome([p], p in big-intersection(a, f, a))))</pre>
+<pre>forall([s, c], has-fip(s, c) iff is-metric-space(s) and forall([a in c], is-closed(s, a)) and forall([f], f subset c and card(f) in nn implies forsome([p], p in big-intersection(carr, f, carr))))</pre>
 <h4 id="d-has-inverses">has-inverses</h4>
 <pre>forall([op, unit, invop, crr], has-inverses(op, unit, invop, crr) iff forall([u in crr], op(invop(u), u) = unit and op(u, invop(u)) = unit))</pre>
 <h4 id="d-is-absolutely-summable">is-absolutely-summable</h4>
@@ -109,9 +109,9 @@ forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))</pre>
 <h4 id="d-is-bounded-linear-functional-on">is-bounded-linear-functional-on</h4>
 <pre>forall([m, s, f], is-bounded-linear-functional-on(m, s, f) iff is-linear-functional-on(m, s, f) and forsome([c_ in rr], 0 &lt;= c_ and forall([x_ in s], abs(f(x_)) &lt;= c_ * (vnrm(m))(x_))))</pre>
 <h4 id="d-is-cauchy-seq">is-cauchy-seq</h4>
-<pre>forall([s, f], is-cauchy-seq(s, f) iff is-metric-space(s) and f in fun(nn, x(s)) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([m in nn, n_ in nn], n &lt;= m and n &lt;= n_ implies (d(s))(f(m), f(n_)) &lt;= eps))))</pre>
+<pre>forall([s, f], is-cauchy-seq(s, f) iff is-metric-space(s) and f in fun(nn, pts(s)) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([m in nn, n_ in nn], n &lt;= m and n &lt;= n_ implies (dist(s))(f(m), f(n_)) &lt;= eps))))</pre>
 <h4 id="d-is-closed">is-closed</h4>
-<pre>forall([s, a], is-closed(s, a) iff is-metric-space(s) and a subset x(s) and is-open(s, complement-in(x(s), a)))</pre>
+<pre>forall([s, a], is-closed(s, a) iff is-metric-space(s) and a subset pts(s) and is-open(s, complement-in(pts(s), a)))</pre>
 <h4 id="d-is-commutative">is-commutative</h4>
 <pre>forall([op, crr], is-commutative(op, crr) iff forall([u in crr, v in crr], op(u, v) = op(v, u)))</pre>
 <h4 id="d-is-compact">is-compact</h4>
@@ -119,15 +119,15 @@ forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))</pre>
 <h4 id="d-is-complete">is-complete</h4>
 <pre>forall([s], is-complete(s) iff is-metric-space(s) and forall([f], is-cauchy-seq(s, f) implies converges(s, f)))</pre>
 <h4 id="d-is-continuous">is-continuous</h4>
-<pre>forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) and forall([a in x(s)], is-continuous-at(s, t, f, a)))</pre>
+<pre>forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))</pre>
 <h4 id="d-is-continuous-at">is-continuous-at</h4>
-<pre>forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) and a in x(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in x(s)], (d(s))(a, b) &lt;= delta implies (d(t))(f(a), f(b)) &lt;= eps))))</pre>
+<pre>forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and a in pts(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in pts(s)], (dist(s))(a, b) &lt;= delta implies (dist(t))(f(a), f(b)) &lt;= eps))))</pre>
 <h4 id="d-is-diff-at">is-diff-at</h4>
 <pre>forall([f, a, l], is-diff-at(f, a, l) iff f in fun(rr, rr) and a in rr and l in rr and forsome([phi in fun(rr, rr)], is-continuous-at(rr-ms, rr-ms, phi, a) and phi(a) = l and forall([x in rr], f(x) - f(a) = phi(x) * (x - a))))</pre>
 <h4 id="d-is-distributive">is-distributive</h4>
 <pre>forall([addop, mulop, crr], is-distributive(addop, mulop, crr) iff forall([u in crr, v in crr, w in crr], mulop(u, addop(v, w)) = addop(mulop(u, v), mulop(u, w)) and mulop(addop(u, v), w) = addop(mulop(u, w), mulop(v, w))))</pre>
 <h4 id="d-is-eps-cauchy-seq">is-eps-cauchy-seq</h4>
-<pre>forall([s, eps, y], is-eps-cauchy-seq(s, eps, y) iff is-metric-space(s) and y in fun(nn, x(s)) and forall([m in nn, n_ in nn], (d(s))(y(m), y(n_)) &lt;= eps))</pre>
+<pre>forall([s, eps, y], is-eps-cauchy-seq(s, eps, y) iff is-metric-space(s) and y in fun(nn, pts(s)) and forall([m in nn, n_ in nn], (dist(s))(y(m), y(n_)) &lt;= eps))</pre>
 <h4 id="d-is-equivalence">is-equivalence</h4>
 <pre>forall([rho, crr], is-equivalence(rho, crr) iff rho in power(cartesian(crr, crr)) and forall([u in crr], [u, u] in rho) and forall([u in crr, v in crr], [u, v] in rho implies [v, u] in rho) and forall([u in crr, v in crr, w in crr], [u, v] in rho and [v, w] in rho implies [u, w] in rho))</pre>
 <h4 id="d-is-finite-cover">is-finite-cover</h4>
@@ -135,9 +135,9 @@ forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))</pre>
 <h4 id="d-is-finite-dimensional">is-finite-dimensional</h4>
 <pre>forall([m], is-finite-dimensional(m) iff is-vector-space(m) and is-noetherian(m))</pre>
 <h4 id="d-is-group-norm">is-group-norm</h4>
-<pre>forall([nrm, op, invop, unit, crr], is-group-norm(nrm, op, invop, unit, crr) iff nrm in fun(crr, rr) and forall([u in crr], 0 &lt;= nrm(u) and (nrm(u) = 0 iff u = unit) and nrm(invop(u)) = nrm(u) and forall([v in crr], nrm(op(u, v)) &lt;= nrm(u) + nrm(v))))</pre>
+<pre>forall([nm, op, invop, unit, crr], is-group-norm(nm, op, invop, unit, crr) iff nm in fun(crr, rr) and forall([u in crr], 0 &lt;= nm(u) and (nm(u) = 0 iff u = unit) and nm(invop(u)) = nm(u) and forall([v in crr], nm(op(u, v)) &lt;= nm(u) + nm(v))))</pre>
 <h4 id="d-is-ideal">is-ideal</h4>
-<pre>forall([s, i], is-ideal(s, i) iff is-commutative-ring(s) and i subset a(s) and zero(s) in i and forall([a in i, b in i], (add(s))(a, b) in i) and forall([a in i], (neg(s))(a) in i) and forall([r in a(s), a in i], (mul(s))(r, a) in i))</pre>
+<pre>forall([s, i], is-ideal(s, i) iff is-commutative-ring(s) and i subset carr(s) and zero(s) in i and forall([a in i, b in i], (add(s))(a, b) in i) and forall([a in i], (neg(s))(a) in i) and forall([r in carr(s), a in i], (mul(s))(r, a) in i))</pre>
 <h4 id="d-is-identity">is-identity</h4>
 <pre>forall([op, unit, crr], is-identity(op, unit, crr) iff forall([u in crr], op(unit, u) = u and op(u, unit) = u))</pre>
 <h4 id="d-is-linear-functional">is-linear-functional</h4>
@@ -145,37 +145,37 @@ forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))</pre>
 <h4 id="d-is-linear-functional-on">is-linear-functional-on</h4>
 <pre>forall([m, s, f], is-linear-functional-on(m, s, f) iff f in fun(s, rr) and forall([x_ in s, y_ in s], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in s], f((act(m))(r_, x_)) = r_ * f(x_)))</pre>
 <h4 id="d-is-metric">is-metric</h4>
-<pre>forall([dist, crr], is-metric(dist, crr) iff forall([u in crr], dist(u, u) = 0 and forall([v in crr], 0 &lt;= dist(u, v) and (dist(u, v) = 0 implies u = v) and dist(u, v) = dist(v, u) and forall([w in crr], dist(u, w) &lt;= dist(u, v) + dist(v, w)))))</pre>
+<pre>forall([dst, crr], is-metric(dst, crr) iff forall([u in crr], dst(u, u) = 0 and forall([v in crr], 0 &lt;= dst(u, v) and (dst(u, v) = 0 implies u = v) and dst(u, v) = dst(v, u) and forall([w in crr], dst(u, w) &lt;= dst(u, v) + dst(v, w)))))</pre>
 <h4 id="d-is-ms-sequence">is-ms-sequence</h4>
 <pre>forall([ms], is-ms-sequence(ms) iff forall([n in nn], is-metric-space(ms(n))))</pre>
 <h4 id="d-is-noetherian">is-noetherian</h4>
 <pre>forall([m], is-noetherian(m) iff is-module(m) and forall([f_ in fun(nn, power(vec(m)))], forall([n_ in nn], is-submodule(m, f_(n_))) and forall([n_ in nn], f_(n_) subset f_(succ(n_))) implies forsome([k_ in nn], forall([n_], n_ in nn and k_ &lt;= n_ implies f_(n_) = f_(k_)))))</pre>
 <h4 id="d-is-norm">is-norm</h4>
-<pre>forall([nrm, addop, mulop, zero, crr], is-norm(nrm, addop, mulop, zero, crr) iff nrm in fun(crr, rr) and forall([a in crr], 0 &lt;= nrm(a) and (nrm(a) = 0 iff a = zero) and forall([b in crr], nrm(mulop(a, b)) = nrm(a) * nrm(b) and nrm(addop(a, b)) &lt;= nrm(a) + nrm(b))))</pre>
+<pre>forall([nm, addop, mulop, zr, crr], is-norm(nm, addop, mulop, zr, crr) iff nm in fun(crr, rr) and forall([a in crr], 0 &lt;= nm(a) and (nm(a) = 0 iff a = zr) and forall([b in crr], nm(mulop(a, b)) = nm(a) * nm(b) and nm(addop(a, b)) &lt;= nm(a) + nm(b))))</pre>
 <h4 id="d-is-open">is-open</h4>
-<pre>forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset x(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))</pre>
+<pre>forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))</pre>
 <h4 id="d-is-open-cover">is-open-cover</h4>
-<pre>forall([s, c], is-open-cover(s, c) iff is-metric-space(s) and forall([u in c], is-open(s, u)) and big-union(u, c, u) == x(s))</pre>
+<pre>forall([s, c], is-open-cover(s, c) iff is-metric-space(s) and forall([u in c], is-open(s, u)) and big-union(u, c, u) == pts(s))</pre>
 <h4 id="d-is-pid">is-pid</h4>
-<pre>forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in a(s)], i = principal-ideal(s, a))))</pre>
+<pre>forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in carr(s)], i = principal-ideal(s, a))))</pre>
 <h4 id="d-is-r-net">is-r-net</h4>
-<pre>forall([s, f, a, r], is-r-net(s, f, a, r) iff forall([p in a], forsome([c in f], (d(s))(c, p) &lt;= r and not((d(s))(c, p) = r))))</pre>
+<pre>forall([s, f, a, r], is-r-net(s, f, a, r) iff forall([p in a], forsome([c in f], (dist(s))(c, p) &lt;= r and not((dist(s))(c, p) = r))))</pre>
 <h4 id="d-is-submodule">is-submodule</h4>
-<pre>forall([m, s], is-submodule(m, s) iff s subset vec(m) and vzero(m) in s and forall([x_ in s, y_ in s], (vadd(m))(x_, y_) in s) and forall([x_ in s], (vneg(m))(x_) in s) and forall([r_ in a(scal(m)), x_ in s], (act(m))(r_, x_) in s))</pre>
+<pre>forall([m, s], is-submodule(m, s) iff s subset vec(m) and vzero(m) in s and forall([x_ in s, y_ in s], (vadd(m))(x_, y_) in s) and forall([x_ in s], (vneg(m))(x_) in s) and forall([r_ in carr(scal(m)), x_ in s], (act(m))(r_, x_) in s))</pre>
 <h4 id="d-is-subsequence">is-subsequence</h4>
-<pre>forall([s, y, f], is-subsequence(s, y, f) iff f in fun(nn, x(s)) and forsome([phi], strictly-mono-nn(phi) and y = subseq(f, phi)))</pre>
+<pre>forall([s, y, f], is-subsequence(s, y, f) iff f in fun(nn, pts(s)) and forsome([phi], strictly-mono-nn(phi) and y = subseq(f, phi)))</pre>
 <h4 id="d-is-subspace">is-subspace</h4>
 <pre>forall([m, s], is-subspace(m, s) iff is-submodule(m, s))</pre>
 <h4 id="d-is-summable">is-summable</h4>
-<pre>forall([grp, f], is-summable(grp, f) iff forsome([r in a(grp)], sums-to(grp, f, r)))</pre>
+<pre>forall([grp, f], is-summable(grp, f) iff forsome([r in carr(grp)], sums-to(grp, f, r)))</pre>
 <h4 id="d-is-uniformly-continuous">is-uniformly-continuous</h4>
-<pre>forall([s, t, f], is-uniformly-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(x(s), x(t)) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([a in x(s), b in x(s)], (d(s))(a, b) &lt;= delta implies (d(t))(f(a), f(b)) &lt;= eps))))</pre>
+<pre>forall([s, t, f], is-uniformly-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([a in pts(s), b in pts(s)], (dist(s))(a, b) &lt;= delta implies (dist(t))(f(a), f(b)) &lt;= eps))))</pre>
 <h4 id="d-is-vector-space">is-vector-space</h4>
 <pre>forall([m], is-vector-space(m) iff is-module(m) and is-field(scal(m)))</pre>
 <h4 id="d-little-o-at">little-o-at</h4>
 <pre>forall([g, a], little-o-at(g, a) iff g in fun(rr, rr) and a in rr and forsome([eps in fun(rr, rr)], is-continuous-at(rr-ms, rr-ms, eps, a) and eps(a) = 0 and forall([x in rr], g(x) = eps(x) * (x - a))))</pre>
 <h4 id="d-mpow">mpow</h4>
-<pre>forall([m, x], mpow(m, x, 0) == e(m))
+<pre>forall([m, x], mpow(m, x, 0) == id(m))
 
 forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))</pre>
 <h4 id="d-nn-minus">nn-minus</h4>
@@ -191,7 +191,7 @@ forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, deriv(nth-deriv(f, n
 <h4 id="d-pos-rr">pos-rr</h4>
 <pre>forall([r], pos-rr(r) iff r in rr and 0 &lt;= r and not(0 = r))</pre>
 <h4 id="d-prod-ord">prod-ord</h4>
-<pre>forall([m, f], prod-ord(m, f, 0) == e(m))
+<pre>forall([m, f], prod-ord(m, f, 0) == id(m))
 
 forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))</pre>
 <h4 id="d-ps-absolutely-converges-at">ps-absolutely-converges-at</h4>
@@ -213,7 +213,7 @@ forall([f, n in nn], ring-prod-n(f, succ(n)) == ring-prod(ring-prod-n(f, n), f(n
 <h4 id="d-rr-ms">rr-ms</h4>
 <pre>rr-ms = [rr, vnb-lambda([x, y], abs(x - y))]</pre>
 <h4 id="d-seq-compact">seq-compact</h4>
-<pre>forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, x(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in x(s)], converges-to(s, subseq(f, phi), l)))))</pre>
+<pre>forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, pts(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in pts(s)], converges-to(s, subseq(f, phi), l)))))</pre>
 <h4 id="d-series-converges">series-converges</h4>
 <pre>forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, series-partial-sum(f, k))))</pre>
 <h4 id="d-series-converges-to">series-converges-to</h4>
@@ -225,7 +225,7 @@ forall([f, n in nn], ring-prod-n(f, succ(n)) == ring-prod(ring-prod-n(f, n), f(n
 
 forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))</pre>
 <h4 id="d-sum-ag">sum-ag</h4>
-<pre>forall([ag, f], sum-ag(ag, f, 0) == e(ag))
+<pre>forall([ag, f], sum-ag(ag, f, 0) == id(ag))
 
 forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))</pre>
 <h4 id="d-summable-weight">summable-weight</h4>
@@ -235,13 +235,13 @@ forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f
 <h4 id="d-taylor-differentiable">taylor-differentiable</h4>
 <pre>forall([f, a, x, n], taylor-differentiable(f, a, x, n) iff forall([k], k in nn and k &lt;= n implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, rr-ms, nth-deriv(f, k), t))) and forall([k], k in nn and k &lt;= n implies forall([t], a &lt; t and t &lt; x implies is-diff-at(nth-deriv(f, k), t, (nth-deriv(f, succ(k)))(t)))))</pre>
 <h4 id="d-totally-bounded">totally-bounded</h4>
-<pre>forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr and 0 &lt;= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, x(s), r))))</pre>
+<pre>forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr and 0 &lt;= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, pts(s), r))))</pre>
 <h4 id="d-zero-ring">zero-ring</h4>
 <pre>zero-ring = [{0}, vnb-lambda([p, q], 0), vnb-lambda([p, q], 0), vnb-lambda([p], 0), 0, 0]</pre>
 <h4 id="d-zz-act">zz-act</h4>
-<pre>forall([g], is-abelian-group(g) implies forall([k in nn, a in a(g)], zz-act(g, k, a) = mpow(abelian-group-as-monoid(g), a, k)))
+<pre>forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, k, a) = mpow(abelian-group-as-monoid(g), a, k)))
 
-forall([g], is-abelian-group(g) implies forall([k in nn, a in a(g)], zz-act(g, -k, a) = (inv(g))(mpow(abelian-group-as-monoid(g), a, k))))</pre>
+forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, -k, a) = (inv(g))(mpow(abelian-group-as-monoid(g), a, k))))</pre>
 <h3 id="DEFINITIONS__other-definitional-axioms">Other definitional axioms</h3>
 <p>Conservative defining <code>iff</code>/<code>==</code> axioms installed via <code>theory-add-axiom!</code>, so absent from the <code>def-*</code> registry above but stamped <code>definitional</code> in the provenance ledger: property predicates, membership characterisations, <code>bin*</code> apply laws, ordinal order, slot reads.  Unfold with <code>(mac &#x27;NAME)</code> / <code>(mac-h &#x27;NAME k)</code> under the name shown.</p>
 <h4 id="d-bijection-membership-iff">bijection-membership-iff</h4>
@@ -267,11 +267,11 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in a(g)], zz-act(g, -
 <h4 id="d-matrix-membership">matrix-membership</h4>
 <pre>forall([s, m], m in matrix(s) iff m in tuples(tuples(s)) and forall([i], i in nn and 1 &lt;= i and i &lt;= length(m) implies forall([j], j in nn and 1 &lt;= j and j &lt;= length(m) implies length(nth(i, m)) = length(nth(j, m)))))</pre>
 <h4 id="d-nf-metric-carrier">nf-metric-carrier</h4>
-<pre>forall([nf], x(nf-metric-space(nf)) == a(nf))</pre>
+<pre>forall([nf], pts(nf-metric-space(nf)) == carr(nf))</pre>
 <h4 id="d-ord-lt-iff">ord-lt-iff</h4>
 <pre>forall([alpha, beta], &lt;_ord(alpha, beta) iff &lt;=_ord(alpha, beta) and not(alpha = beta))</pre>
 <h4 id="d-preimage-membership">preimage-membership</h4>
-<pre>forall([s, f, v, a], a in preimage(s, f, v) iff a in x(s) and f(a) in v)</pre>
+<pre>forall([s, f, v, a], a in preimage(s, f, v) iff a in pts(s) and f(a) in v)</pre>
 <h4 id="d-reduce-one">reduce-one</h4>
 <pre>forall([op, f], reduce(op, f, 1) == f(0))</pre>
 <h4 id="d-rr-pos-star-membership">rr-pos-star-membership</h4>

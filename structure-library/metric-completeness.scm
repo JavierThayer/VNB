@@ -27,26 +27,26 @@
 
 (def-predicate 'IS-CAUCHY-SEQ '(s f)
   '(AND (IS-METRIC-SPACE s)
-   (AND (IN f (FUN NN (X s)))
+   (AND (IN f (FUN NN (PTS s)))
         (FORALL eps (IMPLIES (POS-RR eps)
           (FORSOME N (AND (IN N NN)
             (FORALL m (IMPLIES (IN m NN)
               (FORALL n_ (IMPLIES (IN n_ NN)
                 (IMPLIES (AND (<= N m) (<= N n_))
-                  (<= ((D s) (f m) (f n_)) eps)))))))))))))
+                  (<= ((DIST s) (f m) (f n_)) eps)))))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CONVERGES-TO(s, f, L): the sequence f converges to the point L in s.
 
 (def-predicate 'CONVERGES-TO '(s f L)
   '(AND (IS-METRIC-SPACE s)
-   (AND (IN f (FUN NN (X s)))
-   (AND (IN L (X s))
+   (AND (IN f (FUN NN (PTS s)))
+   (AND (IN L (PTS s))
         (FORALL eps (IMPLIES (POS-RR eps)
           (FORSOME N (AND (IN N NN)
             (FORALL n_ (IMPLIES (IN n_ NN)
               (IMPLIES (<= N n_)
-                (<= ((D s) (f n_) L) eps))))))))))))
+                (<= ((DIST s) (f n_) L) eps))))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CONVERGES(s, f): f converges to some limit in s.
@@ -92,7 +92,7 @@
 
 (support 'cauchy-seq-is-fun
   '(FORALL s (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
-                                (IN f (FUN NN (X s)))))))
+                                (IN f (FUN NN (PTS s)))))))
 (warrant! 'cauchy-seq-is-fun 'well-known
   "A Cauchy sequence is by definition a function NN -> X(s): this is the second
    conjunct of the unfolded IS-CAUCHY-SEQ(s,f).  Carries no content beyond the
@@ -131,7 +131,7 @@
                 (FORALL n_ (IMPLIES (IN n_ NN)
                   (IMPLIES (< m n_) (< (phi m) (phi n_)))))))
               (FORALL k (IMPLIES (IN k NN)
-                (<= ((D s) (f (phi k)) (f (phi (succ k)))) (rad k))))))))))))
+                (<= ((DIST s) (f (phi k)) (f (phi (succ k)))) (rad k))))))))))))
 (warrant! 'cauchy-rapid-subsequence 'well-known
   "Standard subsequence extraction.  For each k, rad(k) > 0 and f Cauchy give an
    N_k with d(f m, f n) <= rad(k) whenever m,n >= N_k (IS-CAUCHY-SEQ at eps=rad

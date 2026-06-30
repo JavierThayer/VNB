@@ -86,7 +86,7 @@
     (when (< n 8)
       (cond ((cbe--fhead 'AND) (di) (loop (+ n 1)))
             ((cbe--fhead 'IS-METRIC-SPACE) (ass) (loop (+ n 1)))
-            ((cbe--fpred (lambda (a) (and (pair? a)(eq? (car a) 'IN)(equal? (caddr a) (list 'FUN 'NN (list 'X cbe--s))))))
+            ((cbe--fpred (lambda (a) (and (pair? a)(eq? (car a) 'IN)(equal? (caddr a) (list 'FUN 'NN (list 'PTS cbe--s))))))
              (if (cbe--has? 'SUBSEQ (cbe--gf)) (begin (bc* 'subseq-is-fun)(di)(ass-all)) (ass))
              (loop (+ n 1)))
             (else 'done))))))

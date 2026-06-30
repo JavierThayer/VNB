@@ -29,7 +29,7 @@
    (AND (FORALL x_ (IMPLIES (IN x_ s)
           (FORALL y_ (IMPLIES (IN y_ s) (IN ((VADD m) x_ y_) s)))))
    (AND (FORALL x_ (IMPLIES (IN x_ s) (IN ((VNEG m) x_) s)))
-        (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+        (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
           (FORALL x_ (IMPLIES (IN x_ s) (IN ((ACT m) r_ x_) s))))))))))
 
 ;;; m is NOETHERIAN: it is a module, and every nondecreasing chain of submodules

@@ -29,13 +29,13 @@
 ;;; accessor X folds to x and sits in the adjacent slot (X s), so a lambda var
 ;;; `x' would clash with the carrier name.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BDD-METRIC '(s)
-  '(LIST (X s)
+  '(LIST (PTS s)
          (VNB-LAMBDA (LIST u v)
-           (/ ((D s) u v) (+ 1 ((D s) u v))))))
+           (/ ((DIST s) u v) (+ 1 ((DIST s) u v))))))
 
 ;;; Carrier is unchanged.
 (support 'bdd-metric-carrier
-  '(FORALL s (== (X (BDD-METRIC s)) (X s))))
+  '(FORALL s (== (PTS (BDD-METRIC s)) (PTS s))))
 (warrant! 'bdd-metric-carrier 'well-known
   "BDD-METRIC keeps the point set: X(BDD-METRIC s) = X(s).  Read off the
    functoid (the carrier slot is (X s) verbatim).")
@@ -43,10 +43,10 @@
 ;;; The distance formula.
 (support 'bdd-metric-distance
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (= ((D (BDD-METRIC s)) x y)
-            (/ ((D s) x y) (+ 1 ((D s) x y)))))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (= ((DIST (BDD-METRIC s)) x y)
+            (/ ((DIST s) x y) (+ 1 ((DIST s) x y)))))))))))
 (warrant! 'bdd-metric-distance 'well-known
   "Beta-reduction of the BDD-METRIC distance lambda:  rho(x,y) =
    d(x,y)/(1+d(x,y)).")
@@ -64,9 +64,9 @@
 ;;; rho is bounded: every distance is < 1.
 (support 'bdd-metric-bounded
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (X s))
-       (FORALL y (IMPLIES (IN y (X s))
-         (< ((D (BDD-METRIC s)) x y) 1))))))))
+     (FORALL x (IMPLIES (IN x (PTS s))
+       (FORALL y (IMPLIES (IN y (PTS s))
+         (< ((DIST (BDD-METRIC s)) x y) 1))))))))
 (warrant! 'bdd-metric-bounded 'well-known
   "rho(x,y) = d/(1+d) < 1 always (bdd-fn-lt-one): the bounded metric has
    diameter at most 1, whatever the diameter of (X,d).")
@@ -102,7 +102,7 @@
 (support 'rr-bounded-ms-bounded
   '(FORALL x (IMPLIES (IN x RR)
      (FORALL y (IMPLIES (IN y RR)
-       (< ((D RR-BOUNDED-MS) x y) 1))))))
+       (< ((DIST RR-BOUNDED-MS) x y) 1))))))
 (warrant! 'rr-bounded-ms-bounded 'well-known
   "Every distance in RR-BOUNDED-MS is < 1: the bounded real metric
    |x-y|/(1+|x-y|) has diameter <= 1 although RR itself is unbounded.")

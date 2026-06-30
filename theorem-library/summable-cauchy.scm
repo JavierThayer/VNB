@@ -23,11 +23,11 @@
 (support 'summable-bound-implies-cauchy
   '(FORALL s (FORALL f (FORALL rad
      (IMPLIES (AND (IS-METRIC-SPACE s)
-              (AND (IN f (FUN NN (X s)))
+              (AND (IN f (FUN NN (PTS s)))
               (AND (IN rad (FUN NN RR))
               (AND (SERIES-CONVERGES rad)
                    (FORALL k (IMPLIES (IN k NN)
-                     (<= ((D s) (f k) (f (succ k))) (rad k))))))))
+                     (<= ((DIST s) (f k) (f (succ k))) (rad k))))))))
        (IS-CAUCHY-SEQ s f))))))
 (warrant! 'summable-bound-implies-cauchy 'well-known
   "Telescoping.  For m <= n the triangle inequality gives
@@ -44,11 +44,11 @@
 (support 'summable-bound-converges
   '(FORALL s (FORALL f (FORALL rad
      (IMPLIES (AND (IS-COMPLETE s)
-              (AND (IN f (FUN NN (X s)))
+              (AND (IN f (FUN NN (PTS s)))
               (AND (IN rad (FUN NN RR))
               (AND (SERIES-CONVERGES rad)
                    (FORALL k (IMPLIES (IN k NN)
-                     (<= ((D s) (f k) (f (succ k))) (rad k))))))))
+                     (<= ((DIST s) (f k) (f (succ k))) (rad k))))))))
        (CONVERGES s f))))))
 (warrant! 'summable-bound-converges 'well-known
   "summable-bound-implies-cauchy makes f Cauchy (IS-COMPLETE carries IS-METRIC-

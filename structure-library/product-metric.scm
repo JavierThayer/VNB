@@ -39,8 +39,8 @@
 
 ;;; The product carrier: sequences x with x(n) in X(ms n) for every n.
 (def-functoid 'PRODUCT-CARRIER '(ms)
-  '(SEP x (FUN NN (BIG-UNION n NN (X (ms n))))
-        (FORALL n (IMPLIES (IN n NN) (IN (x n) (X (ms n)))))))
+  '(SEP x (FUN NN (BIG-UNION n NN (PTS (ms n))))
+        (FORALL n (IMPLIES (IN n NN) (IN (x n) (PTS (ms n)))))))
 
 ;;; The n-th projection  x |-> x(n)  :  P -> X(ms n).
 (def-functoid 'PRODUCT-PROJ '(ms n)
@@ -53,7 +53,7 @@
   '(LIST (PRODUCT-CARRIER ms)
          (VNB-LAMBDA (LIST x y)
            (IOTA L (SERIES-CONVERGES-TO
-                     (VNB-LAMBDA n (* (w n) ((D (BDD-METRIC (ms n))) (x n) (y n))))
+                     (VNB-LAMBDA n (* (w n) ((DIST (BDD-METRIC (ms n))) (x n) (y n))))
                      L)))))
 
 ;;; The canonical instance, weights 2^-(n+1)  (diameter <= SUM 2^-(n+1) = 1).
@@ -62,7 +62,7 @@
 
 ;;; ----- carrier readout -----
 (support 'product-metric-carrier
-  '(FORALL ms (FORALL w (== (X (PRODUCT-METRIC-W ms w)) (PRODUCT-CARRIER ms)))))
+  '(FORALL ms (FORALL w (== (PTS (PRODUCT-METRIC-W ms w)) (PRODUCT-CARRIER ms)))))
 (warrant! 'product-metric-carrier 'well-known
   "X(PRODUCT-METRIC-W(ms,w)) = PRODUCT-CARRIER(ms), the set of sequences x with
    x(n) in X(ms n) for all n.  Read off the functoid carrier slot.")
@@ -74,7 +74,7 @@
        (FORALL x (IMPLIES (IN x (PRODUCT-CARRIER ms))
          (FORALL y (IMPLIES (IN y (PRODUCT-CARRIER ms))
            (SERIES-CONVERGES
-             (VNB-LAMBDA n (* (w n) ((D (BDD-METRIC (ms n))) (x n) (y n))))))))))))))
+             (VNB-LAMBDA n (* (w n) ((DIST (BDD-METRIC (ms n))) (x n) (y n))))))))))))))
 (warrant! 'product-weighted-summable 'well-known
   "The series defining D_w converges: 0 <= w(n)*rho_n < w(n) since the bounded
    metric rho_n < 1 (bdd-metric-bounded), so termwise it is dominated by the

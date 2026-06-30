@@ -35,7 +35,7 @@
       '(FORALL g
          (IMPLIES (IS-ABELIAN-GROUP g)
            (FORALL k (IMPLIES (IN k NN)
-             (FORALL a (IMPLIES (IN a (A g))
+             (FORALL a (IMPLIES (IN a (CARR g))
                (= (ZZ-ACT g k a)
                   (MPOW (ABELIAN-GROUP-AS-MONOID g) a k)))))))))
     ;; Negative scalar: invert the corresponding positive power.
@@ -43,7 +43,7 @@
       '(FORALL g
          (IMPLIES (IS-ABELIAN-GROUP g)
            (FORALL k (IMPLIES (IN k NN)
-             (FORALL a (IMPLIES (IN a (A g))
+             (FORALL a (IMPLIES (IN a (CARR g))
                (= (ZZ-ACT g (- k) a)
                   ((INV g) (MPOW (ABELIAN-GROUP-AS-MONOID g) a k))))))))))))
 
@@ -52,8 +52,8 @@
 (theory-add-axiom! *current-theory* 'zz-act-zero
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
-       (FORALL a (IMPLIES (IN a (A g))
-         (= (ZZ-ACT g 0 a) (E g)))))))
+       (FORALL a (IMPLIES (IN a (CARR g))
+         (= (ZZ-ACT g 0 a) (ID g)))))))
 (warrant! 'zz-act-zero 'informal
   "0 in NN so zz-act-nonneg gives MPOW(.,a,0)=E(g) by mpow-zero and the view E-correspondence.")
 
@@ -61,7 +61,7 @@
 (theory-add-axiom! *current-theory* 'zz-act-one
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
-       (FORALL a (IMPLIES (IN a (A g))
+       (FORALL a (IMPLIES (IN a (CARR g))
          (= (ZZ-ACT g 1 a) a))))))
 (warrant! 'zz-act-one 'informal
   "1 in NN so zz-act-nonneg gives MPOW(.,a,1)=a by mpow-one.")
@@ -72,8 +72,8 @@
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL k (IMPLIES (IN k ZZ)
-         (FORALL a (IMPLIES (IN a (A g))
-           (IN (ZZ-ACT g k a) (A g)))))))))
+         (FORALL a (IMPLIES (IN a (CARR g))
+           (IN (ZZ-ACT g k a) (CARR g)))))))))
 (warrant! 'zz-act-type 'informal
   "Sign-case on k: nonneg branch is mpow-type (via the AG-as-MONOID view); neg branch closes under INV (group inverse stays in carrier).")
 
@@ -83,7 +83,7 @@
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL k (IMPLIES (IN k ZZ)
-         (FORALL a (IMPLIES (IN a (A g))
+         (FORALL a (IMPLIES (IN a (CARR g))
            (= (ZZ-ACT g (- k) a) ((INV g) (ZZ-ACT g k a))))))))))
 (warrant! 'zz-act-neg-sign 'informal
   "Two sub-cases (k>=0, k<0); the negative case uses double-inverse INV(INV x)=x.  Extends zz-act-neg from NN to all of ZZ.")
@@ -97,7 +97,7 @@
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL j (IMPLIES (IN j ZZ)
          (FORALL k (IMPLIES (IN k ZZ)
-           (FORALL a (IMPLIES (IN a (A g))
+           (FORALL a (IMPLIES (IN a (CARR g))
              (= (ZZ-ACT g (+ j k) a)
                 ((MUL g) (ZZ-ACT g j a) (ZZ-ACT g k a))))))))))))
 (warrant! 'zz-act-add 'informal
@@ -109,8 +109,8 @@
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL k (IMPLIES (IN k ZZ)
-         (FORALL a (IMPLIES (IN a (A g))
-           (FORALL b (IMPLIES (IN b (A g))
+         (FORALL a (IMPLIES (IN a (CARR g))
+           (FORALL b (IMPLIES (IN b (CARR g))
              (= (ZZ-ACT g k ((MUL g) a b))
                 ((MUL g) (ZZ-ACT g k a) (ZZ-ACT g k b))))))))))))
 (warrant! 'zz-act-distrib 'informal
@@ -122,7 +122,7 @@
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL j (IMPLIES (IN j ZZ)
          (FORALL k (IMPLIES (IN k ZZ)
-           (FORALL a (IMPLIES (IN a (A g))
+           (FORALL a (IMPLIES (IN a (CARR g))
              (= (ZZ-ACT g (* j k) a)
                 (ZZ-ACT g j (ZZ-ACT g k a))))))))))))
 (warrant! 'zz-act-assoc 'informal

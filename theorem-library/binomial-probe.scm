@@ -37,7 +37,7 @@
 (display "\n===== C. smoke-test: does ring-power-succ fire as a goal rewrite? =====\n")
 ;; A tiny standalone goal that the support should rewrite.
 (sp (make-wff
-     '(IMPLIES (IS-COMMUTATIVE-RING R) (IMPLIES (IN x (A R)) (IMPLIES (IN m NN)
+     '(IMPLIES (IS-COMMUTATIVE-RING R) (IMPLIES (IN x (CARR R)) (IMPLIES (IN m NN)
                (= (RING-POWER R x (succ m)) ((MUL R) (RING-POWER R x m) x)))))))
 (di) (di) (di)
 (display ";; goal before: ")

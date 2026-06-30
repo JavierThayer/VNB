@@ -387,7 +387,7 @@
                                         (and (pair? a) (= (length a) 3)
                                              (eq? (car a) 'IN)
                                              (eq? (cadr a) v)
-                                             (equal? (caddr a) (list 'A R)))))
+                                             (equal? (caddr a) (list 'CARR R)))))
                                  (loop (binary-right b) (cons v qvars))
                                  #f))
                            (list R qvars g)))))))))
@@ -407,7 +407,7 @@
 ;;; Every generator is certified in the carrier (A R) by a peeled typing or an
 ;;; (IN v (A R)) assumption.
 (define (cring-vars-ok? gens R qvars asms)
-  (let ((carrier (list 'A R)))
+  (let ((carrier (list 'CARR R)))
     (let check ((vs gens))
       (or (null? vs)
           (let ((v (car vs)))

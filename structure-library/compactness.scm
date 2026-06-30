@@ -20,7 +20,7 @@
 (def-predicate 'IS-OPEN-COVER '(s C)
   '(AND (IS-METRIC-SPACE s)
    (AND (FORALL U (IMPLIES (IN U C) (IS-OPEN s U)))
-        (== (BIG-UNION U C U) (X s)))))
+        (== (BIG-UNION U C U) (PTS s)))))
 
 ;;; s is compact: every open cover has a finite subcover.
 (def-predicate 'IS-COMPACT '(s)
@@ -34,15 +34,15 @@
 ;;; arbitrarily large indices (the sequence is frequently near x).
 (def-predicate 'CLUSTER-POINT '(s f x)
   '(AND (IS-METRIC-SPACE s)
-   (AND (IN f (FUN NN (X s)))
-   (AND (IN x (X s))
+   (AND (IN f (FUN NN (PTS s)))
+   (AND (IN x (PTS s))
         (FORALL eps (IMPLIES (POS-RR eps)
           ;; m, NOT N: the reader case-folds N to n, which would collapse
           ;; (<= N n) to (<= n n) and silently drop the cofinality.
           (FORALL m (IMPLIES (IN m NN)
             (FORSOME n (AND (IN n NN)
                        (AND (<= m n)
-                            (< ((D s) (f n) x) eps))))))))))))
+                            (< ((DIST s) (f n) x) eps))))))))))))
 
 ;;; A family C of closed sets with the FINITE-INTERSECTION PROPERTY: every
 ;;; finite subfamily has a common point.
@@ -50,7 +50,7 @@
   '(AND (IS-METRIC-SPACE s)
    (AND (FORALL A (IMPLIES (IN A C) (IS-CLOSED s A)))
         (FORALL F (IMPLIES (AND (SUBSET F C) (IN (CARD F) NN))
-          (FORSOME p (IN p (BIG-INTERSECTION A F A))))))))
+          (FORSOME p (IN p (BIG-INTERSECTION CARR F CARR))))))))
 
 ;;; ----- Prop 3.12: the four-way characterization (warranted ASSERTIONS) -----
 ;;; These equivalences are headline results, not PSS plumbing, so each is a
@@ -75,7 +75,7 @@
 (theory-add-axiom! *current-theory* 'compact-iff-cluster-point
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s)
-          (FORALL f (IMPLIES (IN f (FUN NN (X s)))
+          (FORALL f (IMPLIES (IN f (FUN NN (PTS s)))
             (FORSOME x (CLUSTER-POINT s f x))))))))
 (warrant! 'compact-iff-cluster-point 'reference
   "calculus.pdf Prop 3.12 (1)<=>(3): compact iff every sequence has a cluster
@@ -88,7 +88,7 @@
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (IFF (IS-COMPACT s)
           (FORALL C (IMPLIES (HAS-FIP s C)
-            (FORSOME p (IN p (BIG-INTERSECTION A C A)))))))))
+            (FORSOME p (IN p (BIG-INTERSECTION CARR C CARR)))))))))
 (warrant! 'compact-iff-fip 'reference
   "calculus.pdf Prop 3.12 (1)<=>(2): compact iff every family of closed sets
    with the finite-intersection property has nonempty intersection.  This is
@@ -104,7 +104,7 @@
 ;;; (X s) sits next to the lambda -- keeping them disjoint avoids the carrier/
 ;;; point name clash.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BALL-COVER '(s r)
-  '(IMAGE (VNB-LAMBDA c (BALL s c r)) (X s)))
+  '(IMAGE (VNB-LAMBDA c (BALL s c r)) (PTS s)))
 
 ;;; Lemma A: for r > 0 the r-ball cover is an open cover of s.
 ;;; (r-condition matches the TOTALLY-BOUNDED def verbatim: r in RR, 0 <= r, r /= 0.)
@@ -132,7 +132,7 @@
 ;;; so "choose a centre per ball" is a one-liner, not a hand-wave.
 
 ;;; CENTRES(s,B,r): the centres of the ball B at radius r (a SEP-subset of X(s)).
-(def-functoid 'CENTRES '(s B r) '(SEP c (X s) (= (BALL s c r) B)))
+(def-functoid 'CENTRES '(s B r) '(SEP c (PTS s) (= (BALL s c r) B)))
 
 ;;; CENTRE-SET(s,r,F): the chosen centres of the balls in F -- the image of F
 ;;; under the choice function  B |-> CHOICE(CENTRES s B r).
@@ -143,10 +143,10 @@
 ;;; c in {c in X(s) : B(c,r)=B} iff c in X(s) and B(c,r)=B).
 (support 'centres-mem-build
   '(FORALL s (FORALL B (FORALL r (FORALL c
-     (IMPLIES (IN c (X s)) (IMPLIES (= (BALL s c r) B) (IN c (CENTRES s B r)))))))))
+     (IMPLIES (IN c (PTS s)) (IMPLIES (= (BALL s c r) B) (IN c (CENTRES s B r)))))))))
 (support 'centres-in-carrier
   '(FORALL s (FORALL B (FORALL r (FORALL c
-     (IMPLIES (IN c (CENTRES s B r)) (IN c (X s))))))))
+     (IMPLIES (IN c (CENTRES s B r)) (IN c (PTS s))))))))
 (support 'centres-ball-eq
   '(FORALL s (FORALL B (FORALL r (FORALL c
      (IMPLIES (IN c (CENTRES s B r)) (= (BALL s c r) B)))))))
@@ -159,7 +159,7 @@
 (support 'ball-cover-mem-fwd
   '(FORALL s (FORALL r (FORALL U
      (IMPLIES (IN U (BALL-COVER s r))
-              (FORSOME c (AND (IN c (X s)) (= (BALL s c r) U))))))))
+              (FORSOME c (AND (IN c (PTS s)) (= (BALL s c r) U))))))))
 (warrant! 'ball-cover-mem-fwd 'well-known
   "BALL-COVER(s,r) = { B(x,r) : x in X(s) }, so each member is a ball about a
    centre in X(s) (image-membership of BALL-COVER; definitional).")
@@ -184,7 +184,7 @@
 ;;; The members of an open cover cover X(s): every point lies in some member.
 (support 'open-cover-covers-point
   '(FORALL s (FORALL F (IMPLIES (IS-OPEN-COVER s F)
-     (FORALL p (IMPLIES (IN p (X s))
+     (FORALL p (IMPLIES (IN p (PTS s))
        (FORSOME U (AND (IN U F) (IN p U)))))))))
 (warrant! 'open-cover-covers-point 'well-known
   "An open cover has union X(s) (IS-OPEN-COVER's third conjunct), so every point
@@ -201,11 +201,11 @@
 (support 'ball-point-le
   '(FORALL s (FORALL c (FORALL r (FORALL W (FORALL p
      (IMPLIES (IN p W) (IMPLIES (= (BALL s c r) W)
-              (<= ((D s) c p) r)))))))))
+              (<= ((DIST s) c p) r)))))))))
 (support 'ball-point-ne
   '(FORALL s (FORALL c (FORALL r (FORALL W (FORALL p
      (IMPLIES (IN p W) (IMPLIES (= (BALL s c r) W)
-              (NOT (= ((D s) c p) r))))))))))
+              (NOT (= ((DIST s) c p) r))))))))))
 (warrant! 'ball-point-le 'well-known
   "If p in W and W = B(s,c,r) then d(c,p) <= r (ball-membership, modulo the eq).")
 (warrant! 'ball-point-ne 'well-known
@@ -217,7 +217,7 @@
 (support 'chosen-centre-is-centre
   '(FORALL s (FORALL r (FORALL U
      (IMPLIES (IN U (BALL-COVER s r))
-       (AND (IN (CHOICE (CENTRES s U r)) (X s))
+       (AND (IN (CHOICE (CENTRES s U r)) (PTS s))
             (= (BALL s (CHOICE (CENTRES s U r)) r) U)))))))
 (warrant! 'chosen-centre-is-centre 'proof
   "CHOICE(CENTRES s U r) in X(s) and B(CHOICE(CENTRES s U r),r) = U: U in the
@@ -232,7 +232,7 @@
      (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
        (IMPLIES (FORSOME F (AND (SUBSET F (BALL-COVER s r))
                            (AND (IN (CARD F) NN) (IS-OPEN-COVER s F))))
-         (FORSOME N (AND (IN (CARD N) NN) (IS-R-NET s N (X s) r)))))))))
+         (FORSOME N (AND (IN (CARD N) NN) (IS-R-NET s N (PTS s) r)))))))))
 (warrant! 'finite-ball-subcover-r-net 'proof
   "A finite subcover F of the r-ball cover yields a finite r-net N = CENTRE-SET
    (s,r,F), the chosen centres of the balls in F: |N| <= |F| is finite, and for
@@ -274,7 +274,7 @@
 ;;; splits it into the two conjuncts (both land in context during the proof).
 (support 'compact-seq-has-cluster
   '(FORALL s (FORALL f
-     (IMPLIES (AND (IS-COMPACT s) (IN f (FUN NN (X s))))
+     (IMPLIES (AND (IS-COMPACT s) (IN f (FUN NN (PTS s))))
               (FORSOME x (CLUSTER-POINT s f x))))))
 (warrant! 'compact-seq-has-cluster 'reference
   "calculus.pdf Prop 3.12 (1)=>(3): a compact metric space is sequentially

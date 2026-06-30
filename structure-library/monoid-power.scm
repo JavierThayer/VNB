@@ -23,7 +23,7 @@
 ;;;   MPOW(m, x, 0)       = E(m)
 ;;;   MPOW(m, x, succ(n)) = (MUL m)(x, MPOW(m, x, n))
 (def-by-nn-recursion 'MPOW '(m x)
-  '(E m)                               ; base value
+  '(ID m)                               ; base value
   '(n val)                             ; step vars
   '((MUL m) x val))                    ; MPOW(m,x,succ n) = x * MPOW(m,x,n)
 
@@ -32,7 +32,7 @@
 (theory-add-axiom! *current-theory* 'mpow-one
   '(FORALL m
      (IMPLIES (IS-MONOID m)
-       (FORALL x (IMPLIES (IN x (A m))
+       (FORALL x (IMPLIES (IN x (CARR m))
          (= (MPOW m x 1) x))))))
 (warrant! 'mpow-one 'informal
   "MPOW(m,x,1)=MUL(x,MPOW(m,x,0))=MUL(x,E(m))=x by mpow-succ(0), mpow-zero, right identity.")
@@ -43,9 +43,9 @@
 (theory-add-axiom! *current-theory* 'mpow-type
   '(FORALL m
      (IMPLIES (IS-MONOID m)
-       (FORALL x (IMPLIES (IN x (A m))
+       (FORALL x (IMPLIES (IN x (CARR m))
          (FORALL n (IMPLIES (IN n NN)
-           (IN (MPOW m x n) (A m)))))))))
+           (IN (MPOW m x n) (CARR m)))))))))
 (warrant! 'mpow-type 'informal
   "NN induction on n: base (E m) in A(m); step closes under MUL by mpow-succ.")
 
@@ -55,7 +55,7 @@
 (theory-add-axiom! *current-theory* 'mpow-add
   '(FORALL m
      (IMPLIES (IS-MONOID m)
-       (FORALL x (IMPLIES (IN x (A m))
+       (FORALL x (IMPLIES (IN x (CARR m))
          (FORALL j (IMPLIES (IN j NN)
            (FORALL k (IMPLIES (IN k NN)
              (= (MPOW m x (+ j k))
@@ -69,8 +69,8 @@
 (theory-add-axiom! *current-theory* 'mpow-mult
   '(FORALL m
      (IMPLIES (IS-COMM-MONOID m)
-       (FORALL x (IMPLIES (IN x (A m))
-         (FORALL y (IMPLIES (IN y (A m))
+       (FORALL x (IMPLIES (IN x (CARR m))
+         (FORALL y (IMPLIES (IN y (CARR m))
            (FORALL n (IMPLIES (IN n NN)
              (= (MPOW m ((MUL m) x y) n)
                 ((MUL m) (MPOW m x n) (MPOW m y n))))))))))))

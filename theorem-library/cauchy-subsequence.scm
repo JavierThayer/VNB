@@ -71,7 +71,7 @@
 ;;; IS-SUBSEQUENCE(s, y, f) -- y is a subsequence of the X(s)-sequence f:
 ;;; y = f o phi for some strictly monotone reindexing phi.
 (def-predicate 'IS-SUBSEQUENCE '(s y f)
-  '(AND (IN f (FUN NN (X s)))
+  '(AND (IN f (FUN NN (PTS s)))
         (FORSOME phi
           (AND (STRICTLY-MONO-NN phi)
                (= y (SUBSEQ f phi))))))
@@ -81,8 +81,8 @@
 ;;; directly backchainable (VNB macetes rewrite goals not hyps).
 (support 'subseq-is-fun
   '(FORALL s (FORALL f (FORALL phi
-     (IMPLIES (AND (IN f (FUN NN (X s))) (STRICTLY-MONO-NN phi))
-              (IN (SUBSEQ f phi) (FUN NN (X s))))))))
+     (IMPLIES (AND (IN f (FUN NN (PTS s))) (STRICTLY-MONO-NN phi))
+              (IN (SUBSEQ f phi) (FUN NN (PTS s))))))))
 (warrant! 'subseq-is-fun 'well-known
   "f : NN -> X(s) and phi : NN -> NN, so the composite SUBSEQ(f,phi) = k |-> f(phi
    k) is again a function NN -> X(s).  Pure composition typing.")
@@ -95,12 +95,12 @@
 ;;; eps = rad(k) into a genuine IS-CAUCHY-SEQ.
 (def-predicate 'IS-EPS-CAUCHY-SEQ '(s eps y)
   '(AND (IS-METRIC-SPACE s)
-   (AND (IN y (FUN NN (X s)))
+   (AND (IN y (FUN NN (PTS s)))
         (FORALL m
           (IMPLIES (IN m NN)
             (FORALL n_
               (IMPLIES (IN n_ NN)
-                (<= ((D s) (y m) (y n_)) eps))))))))
+                (<= ((DIST s) (y m) (y n_)) eps))))))))
 
 ;;; =======================================================================
 ;;; 2.  Null radius sequences
@@ -161,7 +161,7 @@
   '(FORALL s
      (IMPLIES (TOTALLY-BOUNDED s)
        (FORALL f
-         (IMPLIES (IN f (FUN NN (X s)))
+         (IMPLIES (IN f (FUN NN (PTS s)))
            (FORALL eps
              (IMPLIES (POS-RR eps)
                (FORSOME phi
@@ -196,7 +196,7 @@
   '(FORALL s
      (IMPLIES (TOTALLY-BOUNDED s)
        (FORALL f
-         (IMPLIES (IN f (FUN NN (X s)))
+         (IMPLIES (IN f (FUN NN (PTS s)))
            (FORALL r
              (IMPLIES (POS-RR r)
                (FORALL J
@@ -205,7 +205,7 @@
                      (AND (IN J_ (INF-SUBSETS NN))
                      (AND (SUBSET J_ J)
                           (FORSOME c
-                            (AND (IN c (X s))
+                            (AND (IN c (PTS s))
                                  (FORALL i
                                    (IMPLIES (IN i J_)
                                      (IN (f i) (BALL s c r))))))))))))))))))
@@ -236,17 +236,17 @@
            (AND
              ;; carrier sethood -- the combinatorial engine needs V=(X s) in SET;
              ;; free here since TOTALLY-BOUNDED s gives IS-METRIC-SPACE s.
-             (IN (X s) SET)
+             (IN (PTS s) SET)
              (FORSOME cov
                (AND
                  (FORALL k
-                   (IMPLIES (IN k NN) (IS-FINITE-COVER (cov k) (X s))))
+                   (IMPLIES (IN k NN) (IS-FINITE-COVER (cov k) (PTS s))))
                  (FORALL k
                    (IMPLIES (IN k NN)
                      (FORALL U
                        (IMPLIES (IN U (cov k))
                          (FORSOME c
-                           (AND (IN c (X s))
+                           (AND (IN c (PTS s))
                                 (= U (BALL s c (rad k)))))))))))))))))
 (warrant! 'tb-rad-ball-cover 'reference
   "cov(k) := IMAGE(c |-> BALL(s,c,rad k), F_k), F_k a finite rad(k)-net
@@ -266,7 +266,7 @@
 ;;; BALL(s,c,r), with r <= d and d+d = eps, are <= eps apart.
 (support 'cauchy-block-estimate
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL c (IMPLIES (IN c (X s))
+     (FORALL c (IMPLIES (IN c (PTS s))
        (FORALL r (IMPLIES (POS-RR r)
          (FORALL U (IMPLIES (= U (BALL s c r))
            (FORALL y (IMPLIES (IN y U)
@@ -275,7 +275,7 @@
                  (FORALL eps (IMPLIES (IN eps RR)
                    (IMPLIES (<= r d)
                      (IMPLIES (= (+ d d) eps)
-                       (<= ((D s) y z) eps))))))))))))))))))))
+                       (<= ((DIST s) y z) eps))))))))))))))))))))
 (warrant! 'cauchy-block-estimate 'proof
   "y,z in U = BALL(s,c,r): substitute U, ball-2r-triangle gives d(y,z) <= r+r.
    r <= d gives r+r <= d+d (rr-le-add), and d+d = eps, so r+r <= eps; rr-le-trans
@@ -313,7 +313,7 @@
   '(FORALL s
      (IMPLIES (TOTALLY-BOUNDED s)
        (FORALL f
-         (IMPLIES (IN f (FUN NN (X s)))
+         (IMPLIES (IN f (FUN NN (PTS s)))
            (FORALL rad
              (IMPLIES (NULL-RR-SEQ rad)
                ;; family var is `blk', NOT `S': the reader case-folds, so an
@@ -326,7 +326,7 @@
                       (FORALL k
                         (IMPLIES (IN k NN)
                           (FORSOME c
-                            (AND (IN c (X s))
+                            (AND (IN c (PTS s))
                                  (FORALL i
                                    (IMPLIES (IN i (blk k))
                                      (IN (f i) (BALL s c (rad k)))))))))))))))))))
@@ -359,7 +359,7 @@
   '(FORALL s
      (IMPLIES (TOTALLY-BOUNDED s)
        (FORALL f
-         (IMPLIES (IN f (FUN NN (X s)))
+         (IMPLIES (IN f (FUN NN (PTS s)))
            (FORALL rad
              (IMPLIES (NULL-RR-SEQ rad)
                (FORSOME phi

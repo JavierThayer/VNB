@@ -18,8 +18,8 @@
 (support 'sum-ag-permutation-invariance
   '(FORALL n (IMPLIES (IN n NN)
      (FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
-     (FORALL g (IMPLIES (IN g (FUN NN (A ag)))
-     (FORALL h (IMPLIES (IN h (FUN NN (A ag)))
+     (FORALL g (IMPLIES (IN g (FUN NN (CARR ag)))
+     (FORALL h (IMPLIES (IN h (FUN NN (CARR ag)))
      (FORALL phi (IMPLIES (IN phi (BIJECTION (ORD-SEGMENT n) (ORD-SEGMENT n)))
        (IMPLIES (FORALL i (IMPLIES (IN i (ORD-SEGMENT n)) (= (h i) (g (phi i)))))
          (= (SUM-AG ag g n) (SUM-AG ag h n))))))))))))))

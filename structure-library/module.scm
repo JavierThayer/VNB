@@ -40,7 +40,7 @@
         (VADD  op (CARTESIAN VEC VEC) VEC)
         (VZERO constant VEC)
         (VNEG  op VEC VEC)
-        (ACT   op (CARTESIAN (A SCAL) VEC) VEC))
+        (ACT   op (CARTESIAN (CARR SCAL) VEC) VEC))
       '()                                ; no property-clause laws: IS-MODULE is hand-written
       (current-load-pathname)))
 
@@ -64,27 +64,27 @@
               '(IN (VADD m) (FUN (CARTESIAN (VEC m) (VEC m)) (VEC m)))
               '(IN (VZERO m) (VEC m))
               '(IN (VNEG m) (FUN (VEC m) (VEC m)))
-              '(IN (ACT m) (FUN (CARTESIAN (A (SCAL m)) (VEC m)) (VEC m)))
+              '(IN (ACT m) (FUN (CARTESIAN (CARR (SCAL m)) (VEC m)) (VEC m)))
               ;; vector part (VEC, VADD, VZERO, VNEG) is an abelian group
               '(is-associative (VADD m) (VEC m))
               '(is-commutative (VADD m) (VEC m))
               '(is-identity (VADD m) (VZERO m) (VEC m))
               '(has-inverses (VADD m) (VZERO m) (VNEG m) (VEC m))
               ;; (1) action distributes over vector addition:  r.(x+y) = r.x + r.y
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
                  (FORALL x_ (IMPLIES (IN x_ (VEC m))
                    (FORALL y_ (IMPLIES (IN y_ (VEC m))
                      (= ((ACT m) r_ ((VADD m) x_ y_))
                         ((VADD m) ((ACT m) r_ x_) ((ACT m) r_ y_)))))))))
               ;; (2) action distributes over ring addition:  (r+s).x = r.x + s.x
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
-                 (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+                 (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
                    (FORALL x_ (IMPLIES (IN x_ (VEC m))
                      (= ((ACT m) ((ADD (SCAL m)) r_ s_) x_)
                         ((VADD m) ((ACT m) r_ x_) ((ACT m) s_ x_)))))))))
               ;; (3) action compatible with ring multiplication:  (r*s).x = r.(s.x)
-              '(FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
-                 (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+                 (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
                    (FORALL x_ (IMPLIES (IN x_ (VEC m))
                      (= ((ACT m) ((MUL (SCAL m)) r_ s_) x_)
                         ((ACT m) r_ ((ACT m) s_ x_)))))))))
@@ -110,19 +110,19 @@
 
   ;; ring zero lives in the scalar carrier (an action argument)
   (theory-add-axiom! *current-theory* 'module-scalar-zero-in
-    '(FORALL m (IMPLIES (IS-MODULE m) (IN (ZERO (SCAL m)) (A (SCAL m))))))
+    '(FORALL m (IMPLIES (IS-MODULE m) (IN (ZERO (SCAL m)) (CARR (SCAL m))))))
 
   ;; action closure:  r . x  is a vector
   (theory-add-axiom! *current-theory* 'module-act-type
     '(FORALL m (IMPLIES (IS-MODULE m)
-       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+       (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL x_ (IMPLIES (IN x_ (VEC m))
            (IN ((ACT m) r_ x_) (VEC m)))))))))
 
   ;; (1) action distributes over vector addition
   (theory-add-axiom! *current-theory* 'module-act-distrib-vec
     '(FORALL m (IMPLIES (IS-MODULE m)
-       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
+       (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL x_ (IMPLIES (IN x_ (VEC m))
            (FORALL y_ (IMPLIES (IN y_ (VEC m))
              (= ((ACT m) r_ ((VADD m) x_ y_))
@@ -131,8 +131,8 @@
   ;; (2) action distributes over ring addition
   (theory-add-axiom! *current-theory* 'module-act-distrib-scalar
     '(FORALL m (IMPLIES (IS-MODULE m)
-       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
-         (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+       (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+         (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
            (FORALL x_ (IMPLIES (IN x_ (VEC m))
              (= ((ACT m) ((ADD (SCAL m)) r_ s_) x_)
                 ((VADD m) ((ACT m) r_ x_) ((ACT m) s_ x_))))))))))))
@@ -140,8 +140,8 @@
   ;; (3) action compatible with ring multiplication
   (theory-add-axiom! *current-theory* 'module-act-mul-compat
     '(FORALL m (IMPLIES (IS-MODULE m)
-       (FORALL r_ (IMPLIES (IN r_ (A (SCAL m)))
-         (FORALL s_ (IMPLIES (IN s_ (A (SCAL m)))
+       (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+         (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
            (FORALL x_ (IMPLIES (IN x_ (VEC m))
              (= ((ACT m) ((MUL (SCAL m)) r_ s_) x_)
                 ((ACT m) r_ ((ACT m) s_ x_))))))))))))
