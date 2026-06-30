@@ -66,6 +66,21 @@
     ("Taylor's theorem"
      taylor-poly-at-center taylor-lagrange)))
 
+;;; ---- Vector calculus (real vector spaces, linear functionals, Hahn-Banach) ----
+;;; The linear-functional / Hahn-Banach scaffolding for vector-valued analysis
+;;; (the route to a vector Taylor remainder bound).
+(define *vector-calculus-sections*
+  '(("Vocabulary"
+     IS-VECTOR-SPACE IS-SUBMODULE IS-SUBSPACE IS-NOETHERIAN IS-FINITE-DIMENSIONAL
+     SPAN-ADD-ONE IS-NORMED-VECTOR-SPACE
+     IS-LINEAR-FUNCTIONAL IS-LINEAR-FUNCTIONAL-ON
+     IS-BOUNDED-LINEAR-FUNCTIONAL IS-BOUNDED-LINEAR-FUNCTIONAL-ON
+     DUAL-NORM DUAL-NORM-ON EXTENDS-ON NPE GOOD-SUB)
+    ("Finite-dimensional spaces (noetherian / ascending chain condition)"
+     noetherian-set-has-maximal hb-good-has-maximal)
+    ("Hahn-Banach extension"
+     hahn-banach-extend-one good-step hahn-banach)))
+
 ;;; ---- Metric spaces ----
 (define *metric-spaces-sections*
   '(("Vocabulary"
@@ -93,8 +108,9 @@
 
 ;;; ---- the topic table: ONE page, a big section heading per subject ----
 (define *library-topics*
-  (list (list "Calculus basics" *elementary-calculus-sections*)
-        (list "Metric spaces"   *metric-spaces-sections*)))
+  (list (list "Calculus basics"  *elementary-calculus-sections*)
+        (list "Vector calculus"  *vector-calculus-sections*)
+        (list "Metric spaces"    *metric-spaces-sections*)))
 
 ;;; Emit a single reference page divided into big subject sections (## per
 ;;; subject), each with a few sub-sections (###), each result line carrying its
