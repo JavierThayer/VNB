@@ -2063,7 +2063,9 @@
                                     *prover-dir*))
                      (substring s (string-length *prover-dir*) (string-length s))
                      s)))
-       (string-append "*Declared in* [`" rel "`](" rel ").\n\n")))))
+       ;; href "../<rel>": pages live in reference/, sources one level up at the
+       ;; prover root, so a browser resolves ../structure-library/X.scm correctly.
+       (string-append "*Declared in* [`" rel "`](../" rel ").\n\n")))))
 
 (define (struct-index--emit-structure name all-theorem-names)
   (let* ((sd        (lookup-structure name))

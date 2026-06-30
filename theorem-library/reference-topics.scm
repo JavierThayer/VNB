@@ -27,7 +27,10 @@
                              (string=? (substring s 0 (string-length pd)) pd))
                         (substring s (string-length pd) (string-length s))
                         s)))
-          (string-append "  see [~/prover/" rel "](" rel ")")))))
+          ;; href is "../<rel>": the HTML pages live in reference/, the sources
+          ;; one level up at the prover root, so a browser viewing
+          ;; reference/BY-TOPIC.html resolves ../theorem-library/X.scm correctly.
+          (string-append "  see [~/prover/" rel "](../" rel ")")))))
 
 ;;; textbook entry: name -- statement -- [warrant] -- link to its proof file.
 ;;; (Vocabulary names that are not installed results list as plain pointers.)

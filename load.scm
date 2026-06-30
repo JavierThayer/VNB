@@ -138,6 +138,10 @@
     ;; bridge: d(u,v) = ||u . v^-1||).  Needs NORMED-AG + METRIC-SPACE; lets
     ;; "grp is complete" be stated as IS-COMPLETE(NAG-METRIC-SPACE grp).
     "structure-library/normed-ag-metric"
+    ;; Real normed vector space (vocabulary): IS-NORMED-VECTOR-SPACE (module over
+    ;; RR + a homogeneous norm VNRM), view-as to MODULE and NORMED-AG.  Loads
+    ;; after module + normed-ag (it views into both).
+    "structure-library/normed-vector-space"
     "structure-library/complex"
     ;; REDUCE + FAM-OF-LIST: kiddie n-ary <-> adult finite-fold bridge.
     ;; Consumed by numeric-instances (nary-plus-N-list axioms) and by
