@@ -142,6 +142,10 @@
     ;; RR + a homogeneous norm VNRM), view-as to MODULE and NORMED-AG.  Loads
     ;; after module + normed-ag (it views into both).
     "structure-library/normed-vector-space"
+    ;; Bounded linear functionals + dual norm on a normed vector space
+    ;; (vocabulary): IS-LINEAR-FUNCTIONAL, IS-BOUNDED-LINEAR-FUNCTIONAL,
+    ;; DUAL-NORM (IOTA least-upper-bound).  Loads after normed-vector-space.
+    "structure-library/linear-functional"
     "structure-library/complex"
     ;; REDUCE + FAM-OF-LIST: kiddie n-ary <-> adult finite-fold bridge.
     ;; Consumed by numeric-instances (nary-plus-N-list axioms) and by
