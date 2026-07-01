@@ -50,6 +50,14 @@
 ;;; -----------------------------------------------------------------------
 ;;; make-wff: snapshot current theory + active context stack into a <wff>
 
+;;; When #t, make-wff warns (loudly, non-fatally) if the formula binds a
+;;; variable whose case-folded name is a registered constant (accessor /
+;;; operator / functoid / predicate) -- the interactive counterpart of the
+;;; load-time constant-binder-audit.  Left #f during the library load (set #t
+;;; at the end of load.scm) so it fires only for user-constructed wffs, and so
+;;; it never runs before wff-constant-binders (macetes.scm) is defined.
+(define *warn-constant-binders?* #f)
+
 (define (make-wff formula)
   (vnb-guard
     (lambda ()
@@ -57,6 +65,9 @@
           (make-wff (parse-string formula))
           (let* ((expanded (expand-destructuring-quantifiers formula)))
             (validate-wff! expanded)
+            (when *warn-constant-binders?*
+              (let ((hits (wff-constant-binders expanded)))
+                (when (pair? hits) (warn-constant-binders! hits))))
             (%make-concrete-wff expanded
                                 (theory-name *current-theory*)
                                 (list-copy *active-local-contexts*)))))))

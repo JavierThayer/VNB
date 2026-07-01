@@ -1011,6 +1011,24 @@
    bad)
   (bang-line) (bang-line) (newline))
 
+;;; Per-wff loud warning, fired at construction time (make-wff) when the user
+;;; builds a formula whose binder is named like a registered constant -- the
+;;; interactive counterpart of the load-time constant-binder-audit gate.  `hits'
+;;; is the (where var kind) list from wff-constant-binders; non-fatal (returns),
+;;; but impossible to miss.
+(define (warn-constant-binders! hits)
+  (newline) (bang-line)
+  (display "!!!!!  RESERVED NAME: a bound variable is named like a registered constant.\n")
+  (for-each
+   (lambda (hit)
+     (display "!!!!!    the ") (display (car hit)) (display " binder `") (display (cadr hit))
+     (display "' shadows a registered ") (display (caddr hit)) (display ".\n"))
+   hits)
+  (display "!!!!!  In head position (") (display (cadr (car hits)))
+  (display " ...) reads as the CONSTANT, not your bound variable -- scope-blind.\n")
+  (display "!!!!!  RENAME IT (trailing underscore, or a non-accessor/operator/functoid name).\n")
+  (bang-line) (newline))
+
 ;;; -----------------------------------------------------------------------
 ;;; Classic-name discovery.  Theorems carry terse internal names (rolle, mvt,
 ;;; extreme-value-max); humans look them up by their textbook names ("Rolle's

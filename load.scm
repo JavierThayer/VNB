@@ -702,3 +702,9 @@
 ;; Load done: re-enable interactive show output.  (Held #t since the top of
 ;; this file to suppress the per-tactic flood from the library proof scripts.)
 (set! *vnb-loading* #f)
+
+;; Load done: from now on, make-wff warns (loudly) if a user builds a formula
+;; whose binder is named like a registered constant -- the interactive
+;; counterpart of the constant-binder-audit gate.  Off during the load above so
+;; the library's own (clean) wff construction stays silent.
+(set! *warn-constant-binders?* #t)
