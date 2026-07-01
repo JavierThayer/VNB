@@ -492,10 +492,12 @@
 
 (define (prover-load f)
   (let* ((base (string-append *prover-dir* f))
-         ;; recompile mode: bare name (-> fresh .com) when fresh, else force .scm
-         (path (cond ((not *vnb-recompile-mode*) base)
-                     ((file-fresh-com? base) base)
-                     (else (string-append base ".scm")))))
+         ;; ALWAYS prefer a fresh .com; fall back to .scm SOURCE when the .com is
+         ;; stale (older than its .scm) or absent.  This holds in BOTH normal and
+         ;; recompile mode, so a source/tarball update self-heals -- MIT's `load'
+         ;; otherwise picks a .com over its .scm blindly, silently serving a stale
+         ;; binary (the classic "edited .scm but old .com wins" footgun).
+         (path (if (file-fresh-com? base) base (string-append base ".scm"))))
     (if (member f *primitive-files*)
         (fluid-let ((*current-provenance* 'primitive)) (load path))
         (load path))))
