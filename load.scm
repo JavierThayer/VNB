@@ -426,6 +426,10 @@
     ;; whole space (good-step + a maximal reachable subspace).  Modulo warranted
     ;; plumbing (noetherian-maximal, dual-norm, span/subset structure).
     "theorem-library/hahn-banach-full-proof"
+    ;; norm-as-sup: ||x|| is the sup of |f(x)| over norm-<=1 bounded functionals.
+    ;; The "attained" half is the Hahn-Banach payoff (seed on the line RR.x, extend);
+    ;; the reduction target for the vector-valued Taylor remainder bound.
+    "theorem-library/norm-as-sup-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
