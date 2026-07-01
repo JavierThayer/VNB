@@ -8,9 +8,15 @@
 # next Emacs session picks up fresh .com binaries.
 #
 # Usage:
-#   VNB-with-compile             compile, then launch (same flags as VNB)
+#   VNB-with-compile             incremental compile (changed files), then launch
+#   VNB-with-compile --full      clean rebuild (every file) -- after a macro edit
 #   VNB-with-compile -nw         terminal Emacs after compile
 #   VNB-with-compile --no-workspace plain vnb.el after compile
+#
+# Incremental is the default: unchanged files load from their fresh .com (proofs
+# run compiled, ~seconds) and only edited files are source-loaded + recompiled.
+# Use --full after editing a cross-file macro (define-syntax), which the mtime
+# check cannot detect as invalidating dependents' baked-in expansions.
 
 PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOAD="$PROVER_DIR/load.scm"
@@ -22,11 +28,20 @@ if [ ! -f "$LOAD" ]; then
     exit 1
 fi
 
-echo "VNB-with-compile: recompiling sources (this can take a minute)..."
-# VNB_RECOMPILE=1 makes load.scm load every file from .scm SOURCE (fresh macros),
-# so this single --load doubles as recompile-vnb!'s force-load; then compile-vnb!
-# writes the .com binaries.  Loads the tree ONCE, not twice.
-env -u INSIDE_EMACS VNB_RECOMPILE=1 mit-scheme --heap "$HEAP" --quiet \
+# --full forces a clean rebuild (every file source-loaded + recompiled).  Use it
+# after editing a cross-file MACRO; drop it (the default) for ordinary edits,
+# where only changed files recompile and everything else loads from fresh .com.
+FULLENV=""
+if [ "$1" = "--full" ]; then FULLENV="VNB_FULL_RECOMPILE=1"; shift
+    echo "VNB-with-compile: FULL rebuild (recompiling every file)..."
+else
+    echo "VNB-with-compile: recompiling changed sources (incremental)..."
+fi
+# VNB_RECOMPILE=1 makes load.scm load each file from fresh .com when up-to-date
+# and from .scm SOURCE only when stale; then compile-vnb! writes .com for the
+# stale ones.  Loads the tree ONCE, not twice.  Incremental => ~seconds for a
+# small edit instead of re-running every library proof interpreted.
+env -u INSIDE_EMACS VNB_RECOMPILE=1 $FULLENV mit-scheme --heap "$HEAP" --quiet \
     --load "$LOAD" \
     --eval '(begin (compile-vnb!) (exit))' \
   || { echo "VNB-with-compile: compile step failed; aborting launch." >&2; exit 1; }

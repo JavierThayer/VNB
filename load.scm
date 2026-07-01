@@ -465,16 +465,37 @@
 ;;; (theory.scm); this list covers the remaining foundational axiom file.
 (define *primitive-files* '("theorem-library/axioms"))
 
-;; In recompile mode (VNB_RECOMPILE=1, set by the VNB-with-compile script) load
-;; every file from its .scm SOURCE, so the running image holds fresh macro /
-;; definition state before compile-vnb! runs.  This lets the compile path load
-;; the whole tree ONCE (this --load) instead of twice (--load, then a separate
-;; recompile-vnb! force-load).  In normal mode the name is loaded with no
-;; extension, so MIT picks the up-to-date .com when present -- unchanged.
+;; In recompile mode (VNB_RECOMPILE=1, set by the VNB-with-compile script) the
+;; compile path loads the tree ONCE (this --load) instead of twice.  It is also
+;; INCREMENTAL: a file whose .com is up-to-date is loaded from that fresh .com
+;; (its proofs then run COMPILED -- fast), and only files whose .scm is newer
+;; than their .com (the ones you actually edited) are source-loaded.  This keeps
+;; VNB-with-compile at ~seconds for a small edit instead of re-running every
+;; library proof interpreted (~minutes).  In normal mode the name is loaded with
+;; no extension, so MIT picks the up-to-date .com when present -- unchanged.
 (define *vnb-recompile-mode* (and (get-environment-variable "VNB_RECOMPILE") #t))
+;; VNB_FULL_RECOMPILE=1 (VNB-with-compile --full) forces EVERY file source-loaded
+;; and recompiled, ignoring .com freshness.  Use it after editing a cross-file
+;; MACRO (define-syntax in a core file): the incremental path keys off .scm/.com
+;; mtimes and cannot see that a dependent's baked-in macro expansion went stale.
+(define *vnb-full-recompile* (and (get-environment-variable "VNB_FULL_RECOMPILE") #t))
+
+;; #t iff `base'.com is usable as-is: it exists, is at least as new as `base'.scm,
+;; and we are not in a forced full recompile.
+(define (file-fresh-com? base)
+  (and (not *vnb-full-recompile*)
+       (let ((com (string-append base ".com"))
+             (scm (string-append base ".scm")))
+         (let ((ct (and (file-exists? com) (file-modification-time com)))
+               (st (and (file-exists? scm) (file-modification-time scm))))
+           (and ct st (>= ct st))))))
 
 (define (prover-load f)
-  (let ((path (string-append *prover-dir* f (if *vnb-recompile-mode* ".scm" ""))))
+  (let* ((base (string-append *prover-dir* f))
+         ;; recompile mode: bare name (-> fresh .com) when fresh, else force .scm
+         (path (cond ((not *vnb-recompile-mode*) base)
+                     ((file-fresh-com? base) base)
+                     (else (string-append base ".scm")))))
     (if (member f *primitive-files*)
         (fluid-let ((*current-provenance* 'primitive)) (load path))
         (load path))))
@@ -522,7 +543,9 @@
 (define (compile-vnb!)
   (for-each (lambda (f)
               (unless (or (member f *vnb-no-compile-files*)
-                          (vnb-file-uses-bc*-macro? f))
+                          (vnb-file-uses-bc*-macro? f)
+                          ;; incremental: skip a file whose .com is already fresh
+                          (file-fresh-com? (string-append *prover-dir* f)))
                 (compile-file (string-append *prover-dir* f ".scm"))))
             *vnb-files*))
 
