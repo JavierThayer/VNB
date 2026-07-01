@@ -23,9 +23,12 @@ if [ ! -f "$LOAD" ]; then
 fi
 
 echo "VNB-with-compile: recompiling sources (this can take a minute)..."
-env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --quiet \
+# VNB_RECOMPILE=1 makes load.scm load every file from .scm SOURCE (fresh macros),
+# so this single --load doubles as recompile-vnb!'s force-load; then compile-vnb!
+# writes the .com binaries.  Loads the tree ONCE, not twice.
+env -u INSIDE_EMACS VNB_RECOMPILE=1 mit-scheme --heap "$HEAP" --quiet \
     --load "$LOAD" \
-    --eval '(begin (recompile-vnb!) (exit))' \
+    --eval '(begin (compile-vnb!) (exit))' \
   || { echo "VNB-with-compile: compile step failed; aborting launch." >&2; exit 1; }
 
 echo "VNB-with-compile: launching Emacs workspace..."

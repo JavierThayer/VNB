@@ -461,11 +461,19 @@
 ;;; (theory.scm); this list covers the remaining foundational axiom file.
 (define *primitive-files* '("theorem-library/axioms"))
 
+;; In recompile mode (VNB_RECOMPILE=1, set by the VNB-with-compile script) load
+;; every file from its .scm SOURCE, so the running image holds fresh macro /
+;; definition state before compile-vnb! runs.  This lets the compile path load
+;; the whole tree ONCE (this --load) instead of twice (--load, then a separate
+;; recompile-vnb! force-load).  In normal mode the name is loaded with no
+;; extension, so MIT picks the up-to-date .com when present -- unchanged.
+(define *vnb-recompile-mode* (and (get-environment-variable "VNB_RECOMPILE") #t))
+
 (define (prover-load f)
-  (if (member f *primitive-files*)
-      (fluid-let ((*current-provenance* 'primitive))
-        (load (string-append *prover-dir* f)))
-      (load (string-append *prover-dir* f))))
+  (let ((path (string-append *prover-dir* f (if *vnb-recompile-mode* ".scm" ""))))
+    (if (member f *primitive-files*)
+        (fluid-let ((*current-provenance* 'primitive)) (load path))
+        (load path))))
 
 ;; Load every file -- but clear *vnb-loading* if a file errors mid-load, so a
 ;; broken file can't strand the flag at #t and leave every (show) suppressed
