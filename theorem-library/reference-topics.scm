@@ -75,13 +75,16 @@
      SPAN-ADD-ONE IS-NORMED-VECTOR-SPACE
      IS-LINEAR-FUNCTIONAL IS-LINEAR-FUNCTIONAL-ON
      IS-BOUNDED-LINEAR-FUNCTIONAL IS-BOUNDED-LINEAR-FUNCTIONAL-ON
-     DUAL-NORM DUAL-NORM-ON EXTENDS-ON NPE GOOD-SUB LINE)
+     DUAL-NORM DUAL-NORM-ON EXTENDS-ON NPE GOOD-SUB LINE
+     NVS-METRIC-SPACE IS-DIFF-AT-V DERIV-V NTH-DERIV-V TAYLOR-POLY-V TAYLOR-DIFFERENTIABLE-V)
     ("Finite-dimensional spaces (noetherian / ascending chain condition)"
      noetherian-set-has-maximal hb-good-has-maximal)
     ("Hahn-Banach extension"
      hahn-banach-extend-one good-step hahn-banach)
     ("The norm as a supremum of functionals"
-     norm-bounded-by-functionals norm-attained-by-functional norm-as-sup)))
+     norm-bounded-by-functionals norm-attained-by-functional norm-as-sup)
+    ("Vector-valued Taylor (remainder-norm bound, reduced to scalar)"
+     vector-taylor-remainder-bound)))
 
 ;;; ---- Metric spaces ----
 (define *metric-spaces-sections*

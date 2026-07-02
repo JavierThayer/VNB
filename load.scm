@@ -430,6 +430,10 @@
     ;; The "attained" half is the Hahn-Banach payoff (seed on the line RR.x, extend);
     ;; the reduction target for the vector-valued Taylor remainder bound.
     "theorem-library/norm-as-sup-proof"
+    ;; Vector-valued Taylor: the remainder-NORM bound, reduced to the scalar
+    ;; case via a norm-attaining functional (consumes norm-attained/bounded +
+    ;; scalar taylor-lagrange).  Linear-algebra commutation cores warranted.
+    "theorem-library/vector-taylor-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
