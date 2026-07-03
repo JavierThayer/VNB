@@ -40,6 +40,13 @@
 ;; in the finsum-ring-* theorems below (ring conflated with its element).
 (define cra '(COMMUTATIVE-RING-ADDITIVE-AG rng))   ; the ring's additive AG
 (define (finite S) (list 'AND (list 'IN S 'SET) (list 'IN (list 'CARD S) 'NN)))
+;; typed forall with the finiteness premise CURRIED (IN S SET => IN CARD S NN =>
+;; body), so a forward `fact' can detach each guard (fact cannot split the AND
+;; that `finite' packs).  Equivalent to (tf S (finite S) body); used where the
+;; lemma is fact-applied (the (B) bricks).
+(define (tfin S body)
+  (list 'FORALL S (list 'IMPLIES (list 'IN S 'SET)
+    (list 'IMPLIES (list 'IN (list 'CARD S) 'NN) body))))
 
 ;;; =======================================================================
 ;;; Missing arithmetic operator: NN-MINUS  (CHOOSE now lives in injection.scm)
@@ -111,7 +118,7 @@
 ;; linearity principle, like finsum-fubini.
 (support 'finsum-add
   (tf 'm '(IS-COMM-MONOID m)
-   (tf 'S (finite 'S)
+   (tfin 'S
     (tf 'f '(IN f (FUN S (CARR m)))
      (tf 'h '(IN h (FUN S (CARR m)))
       (list '=
@@ -129,7 +136,7 @@
 (support 'finsum-ring-distrib-left
   (tf 'rng '(IS-COMMUTATIVE-RING rng)
    (tf 'r '(IN r (CARR rng))
-    (tf 'S (finite 'S)
+    (tfin 'S
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) 'r (list 'FINSUM cra 'f 'S))
@@ -158,7 +165,7 @@
 ;; binder (VNB has no direct under-binder congruence rule).
 (support 'finsum-congruence
   (tf 'ag '(IS-ABELIAN-GROUP ag)
-   (tf 'S (finite 'S)
+   (tfin 'S
     (tf 'f '(IN f (FUN S (CARR ag)))
      (tf 'g '(IN g (FUN S (CARR ag)))
       (list 'IMPLIES
@@ -176,7 +183,7 @@
 (support 'finsum-ring-distrib-left-gen
   (tf 'rng '(IS-RING rng)
    (tf 'r '(IN r (CARR rng))
-    (tf 'S (finite 'S)
+    (tfin 'S
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) 'r (list 'FINSUM rag 'f 'S))
@@ -192,7 +199,7 @@
 (support 'finsum-ring-distrib-right-gen
   (tf 'rng '(IS-RING rng)
    (tf 'r '(IN r (CARR rng))
-    (tf 'S (finite 'S)
+    (tfin 'S
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) (list 'FINSUM rag 'f 'S) 'r)
@@ -221,7 +228,7 @@
 ;; change of index --  SUM_{s in S} f s = SUM_{t in T} f(phi t),  phi : T -> S.
 (support 'finsum-reindex
   (tf 'm '(IS-COMM-MONOID m)
-   (tf 'S (finite 'S)
+   (tfin 'S
     (tf 'T (finite 'T)
      (tf 'phi '(IN phi (BIJECTION T S))
       (tf 'f '(IN f (FUN S (CARR m)))
