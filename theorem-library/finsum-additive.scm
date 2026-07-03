@@ -139,6 +139,68 @@
    by ring-left-dist, then the IH.  a |-> r*a is an endomorphism of (R,+), and
    FINSUM commutes with an AG-endomorphism.")
 
+;;; =======================================================================
+;;; General-ring finite-sum infrastructure (the (B) bricks): pointwise
+;;; congruence of FINSUM, and distribution of a ring factor into a finite sum
+;;; over an ARBITRARY (not necessarily commutative) ring.  These are the
+;;; primitives that let a summand be rewritten under the FINSUM binder and a
+;;; scalar be pulled in/out on either side -- the operations the tactic layer
+;;; cannot do directly, needed by triple-entry-left/right (matmul-assoc) and,
+;;; in principle, to discharge the binomial-theorem warrant.  Warranted PSS
+;;; bricks (induction on |S| via finsum-insert), like the lemmas above.
+;;; =======================================================================
+
+;; the additive abelian group of a general ring (cf. cra for a commutative ring)
+(define rag '(RING-ADDITIVE-AG rng))
+
+;; finsum-congruence: summands equal pointwise on the finite index set => equal
+;; finite sums.  This is what licenses rewriting a FINSUM's summand under its
+;; binder (VNB has no direct under-binder congruence rule).
+(support 'finsum-congruence
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tf 'S (finite 'S)
+    (tf 'f '(IN f (FUN S (CARR ag)))
+     (tf 'g '(IN g (FUN S (CARR ag)))
+      (list 'IMPLIES
+        '(FORALL z (IMPLIES (IN z S) (= (f z) (g z))))
+        '(= (FINSUM ag f S) (FINSUM ag g S))))))))
+(warrant! 'finsum-congruence 'well-known
+  "If f(z)=g(z) for every z in the finite index set S, then FINSUM(ag,f,S)=
+   FINSUM(ag,g,S).  Induction on |S| via finsum-insert: the peeled term agrees
+   (f z0 = g z0) and the rest by the IH.  Equivalently, FINSUM depends only on
+   the restriction of the summand to S, so it factors through pointwise equality.")
+
+;; finsum-ring-distrib-left-gen: r * SUM_z f z = SUM_z (r * f z) in ANY ring.
+;; The general-ring companion of finsum-ring-distrib-left (which needs a
+;; COMMUTATIVE ring); only ring-left-dist is used, so it holds in every ring.
+(support 'finsum-ring-distrib-left-gen
+  (tf 'rng '(IS-RING rng)
+   (tf 'r '(IN r (CARR rng))
+    (tf 'S (finite 'S)
+     (tf 'f '(IN f (FUN S (CARR rng)))
+      (list '=
+        (list '(MUL rng) 'r (list 'FINSUM rag 'f 'S))
+        (list 'FINSUM rag (list 'VNB-LAMBDA 'z (list '(MUL rng) 'r '(f z))) 'S)))))))
+(warrant! 'finsum-ring-distrib-left-gen 'well-known
+  "r*(SUM_z f z) = SUM_z (r * f z) in an arbitrary ring: induction on |S| via
+   finsum-insert, r*(SUM_X f + f z0) = r*SUM_X f + r*f z0 by ring-left-dist, then
+   the IH.  No commutativity used (a |-> r*a is an additive-group endomorphism).")
+
+;; finsum-ring-distrib-right-gen: (SUM_z f z) * r = SUM_z (f z * r) in ANY ring.
+;; The right-handed mirror (ring-right-dist); has no commutative analogue in the
+;; library because a comm ring makes it identical to the left version.
+(support 'finsum-ring-distrib-right-gen
+  (tf 'rng '(IS-RING rng)
+   (tf 'r '(IN r (CARR rng))
+    (tf 'S (finite 'S)
+     (tf 'f '(IN f (FUN S (CARR rng)))
+      (list '=
+        (list '(MUL rng) (list 'FINSUM rag 'f 'S) 'r)
+        (list 'FINSUM rag (list 'VNB-LAMBDA 'z (list '(MUL rng) '(f z) 'r)) 'S)))))))
+(warrant! 'finsum-ring-distrib-right-gen 'well-known
+  "(SUM_z f z) * r = SUM_z (f z * r) in an arbitrary ring: induction on |S| via
+   finsum-insert with ring-right-dist; a |-> a*r is an additive-group endomorphism.")
+
 ;; finsum-ring-scalar-zz: r * (c . a) = c . (r * a)   (c in ZZ; . is ZZ-ACT).
 ;; Ring multiplication is ZZ-linear -- lets a binomial coefficient (a ZZ-ACT
 ;; scalar) pass through the x*(...) / y*(...) multiplications.
