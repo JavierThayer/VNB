@@ -395,8 +395,6 @@
 ;;    the accessor macetes CARR/ADD/MUL/NEG/... are keyed by NAME and last-write-
 ;;    wins across structures (MUL is slot 2 in monoid/group/AG but slot 3 in RING,
 ;;    so a global `mac MUL` reduces to the wrong slot);
-;;  * mat-ring-length: the kernel has no recursive LENGTH rule (length-of-empty
-;;    only), so the count of a literal 6-tuple is warranted;
 ;;  * mat-ring-add-fun / mat-ring-mul-fun: lam-t types only single-binder lambdas,
 ;;    so the 2-binder curried ADD/MUL into FUN(CARTESIAN A A, B) is warranted
 ;;    (NEG, single-binder, is discharged genuinely by lam-t in the proof);
@@ -404,10 +402,6 @@
 (support 'mat-is-set
   '(FORALL X (IMPLIES (IN X SET) (FORALL m (FORALL n (IN (MAT m n X) SET))))))
 (warrant! 'mat-is-set 'reference "MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.")
-(support 'mat-ring-length
-  '(FORALL a (FORALL n (= (LENGTH (MAT-RING a n)) 6))))
-(warrant! 'mat-ring-length 'reference
-  "MAT-RING(a,n) is a literal 6-tuple; LENGTH=6 (kernel has no recursive LENGTH rule).")
 (support 'mat-ring-carr
   '(FORALL a (FORALL n (= (CARR (MAT-RING a n)) (MAT n n (CARR a))))))
 (warrant! 'mat-ring-carr 'reference "slot 1 of the MAT-RING tuple.")

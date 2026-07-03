@@ -103,6 +103,8 @@
        "Simplify a function-expression applied to an argument by substituting the argument into its body.  (Technically: beta-reduction of a functoid application in the goal.)")
      (nth-r "(nth-r)" "Reduce an NTH applied to a literal LIST in the goal."
        "Simplify `the k-th entry of an explicit list [a1, a2, ...]' to that entry.  (Technically: reduce NTH applied to a literal LIST.)")
+     (len-r "(len-r)" "Reduce a LENGTH applied to a literal LIST in the goal."
+       "Simplify `the length of an explicit list [a1, ..., an]' to the count n.  Structural (the dual of nth-r): the spine of a list literal is total, so its length is n regardless of whether the entries are defined.")
      (rfl   "(rfl)"   "Close a reflexive equality goal (t = t)."
        "Close a goal `t = t' -- a thing equals itself.  (Technically: reflexivity of equality.)")
      (qrfl  "(qrfl)"  "Quasi-reflexivity: close t = t under the partial-equality definedness reading."
@@ -272,6 +274,7 @@
     (subst     . "you have an equation s = t in context and want to rewrite the goal by it")
     (beta      . "the goal has a functoid applied to an argument")
     (nth-r     . "the goal has NTH of a literal LIST")
+    (len-r     . "the goal has LENGTH of a literal LIST")
     (rfl       . "the goal is `t = t' with t manifestly defined")
     (qrfl      . "the goal is `t = t' but t might be UNDEFINED (partial =)")
     (arith     . "the goal is ground arithmetic -- no variables")

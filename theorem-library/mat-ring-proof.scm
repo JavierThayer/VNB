@@ -78,9 +78,9 @@
              (and (pair? m) (car m)))))
     (when l (set-proof-state-focus! *ps* l) (di) (lp))))
 
-;; ---- 1. length(mat-ring(a,n)) = 6 ----
+;; ---- 1. length(mat-ring(a,n)) = 6 ----  (genuine: unfold to the 6-tuple, len-r)
 (mr-disch (mr-is? '= 'LENGTH) (lambda ()
-  (fact 'mat-ring-length 'a 'n)(ass)))
+  (mac 'MAT-RING)(len-r)(rfl)))
 
 ;; ---- 2. carr(mat-ring(a,n)) in set ----
 (mr-disch (mr-is? 'IN 'CARR) (lambda ()

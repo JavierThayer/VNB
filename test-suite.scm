@@ -468,6 +468,16 @@
 (check-proof "qrfl: n == n"
   (lambda () (sp (make-wff-from-string "n == n")) (qrfl)))
 
+;;; 6b'. Length reduction (len-r): dual of nth-r; a list literal's spine is total.
+(check-proof "len-r: length of a 3-element list literal = 3"
+  (lambda () (sp '(= (LENGTH (LIST a b c)) 3)) (len-r) (rfl)))
+(check-proof "len-r: empty list length = 0"
+  (lambda () (sp '(= (LENGTH (LIST)) 0)) (len-r) (rfl)))
+(check-true "len-r: reduces LENGTH(LIST ...) even with an undefined entry"
+  ;; spine count is structural: LENGTH counts slots, not element values
+  (lambda () (equal? (reduce-length-in-expr '(= (LENGTH (LIST (recip 0) b)) 2))
+                     '(= 2 2))))
+
 ;;; 6c. Direct inference (di) — split conjunction, introduce implication
 (check-proof "di + ass: A implies A"
   (lambda ()

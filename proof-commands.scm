@@ -446,6 +446,13 @@
         (vnb--warn "nth-reduce: no reducible (NTH k (LIST ...)) in goal"
                    (vnb--goal-str sqn)))))
 
+(define (cmd-length-reduce ps)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-length-reduce! sqn)))
+    (if r (focus-after-rule ps r)
+        (vnb--warn "length-reduce: no reducible (LENGTH (LIST ...)) in goal"
+                   (vnb--goal-str sqn)))))
+
 (define (cmd-functoid-beta ps)
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-functoid-beta! sqn)))

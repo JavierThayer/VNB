@@ -783,6 +783,42 @@
            (map reduce-nth-in-expr (cdr expr))))))
 
 ;;; -----------------------------------------------------------------------
+;;; LENGTH REDUCTION -- the dual of NTH reduction.
+;;;
+;;; (LENGTH (LIST t_1 ... t_n))  ->  n
+;;;
+;;; SOUND without a definedness guard, on exactly the same footing as NTH
+;;; reduction (reduce-nth-in-expr, above): a literal LIST is a total spine
+;;; (LIST is a total constructor -- theory.scm / *total-term-heads*), so its
+;;; length is the structural count n regardless of whether the ELEMENTS are
+;;; defined.  LENGTH counts slots, not values -- just as (NTH 1 (LIST (1/0) 2))
+;;; reduces to (1/0) irrespective of its definedness, (LENGTH (LIST (1/0) 2))
+;;; reduces to 2.  (The empty case agrees with the length-of-empty axiom.)
+;;; Rewrites every such subterm, anywhere in the expression tree.
+(define (reduce-length-in-expr expr)
+  (cond
+    ((not (pair? expr)) expr)
+    ((and (eq? (car expr) 'LENGTH)
+          (pair? (cadr expr))
+          (eq? (car (cadr expr)) 'LIST))
+     (length (cdr (cadr expr))))
+    (else
+     (cons (reduce-length-in-expr (car expr))
+           (map reduce-length-in-expr (cdr expr))))))
+
+(define (pi-length-reduce! sqn)
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (g    (wff-formula goal))
+         (dg   (sqn-dg sqn)))
+    (let ((new-g (reduce-length-in-expr g)))
+      (if (alpha-equiv? new-g g)
+          #f
+          (dg-apply-rule! dg 'length-reduce
+            (list (make-sequent asms (wff-child goal new-g)))
+            sqn)))))
+
+;;; -----------------------------------------------------------------------
 ;;; FUNCTOID BETA REDUCTION
 ;;;
 ;;; (apply-functoid <functoid> v1 v2 ...) reduces by substituting each
