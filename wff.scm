@@ -225,7 +225,8 @@
     apply-functoid VNB-LAMBDA
     succ_ORD LIMIT-ORD ORD-SEGMENT SUP-ORD ESUP ESUM
     CARD PROD-ORD SUM SUM-SET PROD-SET RING-PROD RING-PROD-N ZERO-RING
-    MATRIX SIZE
+    MATRIX SIZE MAT ENTRY INTERVAL MATOF MATMUL
+    MATADD MATNEG ZEROMAT IDENTMAT MAT-RING
     + - * recip abs conjugate succ exp sin cos
     real-part imag-part magnitude))
 

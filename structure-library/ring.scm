@@ -116,6 +116,17 @@
       (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
                (IN ((ADD r) a b) (CARR r)))))))
 
+;;; MUL closes on the carrier -- curried (so a forward `fact' detaches each
+;;; guard without a cut).  From (op MUL (CARTESIAN CARR CARR) CARR) + fun-apply.
+(support 'ring-carrier-closed-mul
+  '(FORALL r (IMPLIES (IS-RING r)
+     (FORALL a (IMPLIES (IN a (CARR r))
+     (FORALL b (IMPLIES (IN b (CARR r))
+       (IN ((MUL r) a b) (CARR r)))))))))
+(warrant! 'ring-carrier-closed-mul 'proof
+  "MUL closes on CARR: (op MUL) has type CARR x CARR -> CARR (fun-apply-type).")
+(category! 'ring-carrier-closed-mul 'algebra)
+
 ;;; -----------------------------------------------------------------------
 ;;; RING-PROD: product of two rings.  Total: defined for any X, Y;
 ;;; IS-RING(RING-PROD(X,Y)) holds when both IS-RING(X) and IS-RING(Y).
