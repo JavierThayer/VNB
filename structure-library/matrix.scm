@@ -370,15 +370,76 @@
 (warrant! 'matmul-right-dist 'reference
   "(P+Q)R = PR + QR (finsum-additive + ring-right-dist).")
 
-;;; ---- the headline: MAT(n,n,A) is a ring ----
-(support 'mat-ring-is-ring
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL n (IMPLIES (IN n NN)
-     (IS-RING (MAT-RING A n)))))))
-(warrant! 'mat-ring-is-ring 'reference
-  "The n-by-n matrices over a ring A form a ring MAT-RING(A,n): the carrier
-   MAT(n,n,CARR A) with entrywise addition (a commutative group: matadd-assoc/
-   comm/zero-left/neg-left, unit ZEROMAT, inverse MATNEG) and matrix
-   multiplication (a monoid: matmul-assoc, unit IDENTMAT via identmat-left/
-   right-identity), MATMUL distributing over MATADD (matmul-left/right-dist).
-   Assembled by unfolding MAT-RING and discharging each RING property clause
-   with the corresponding matrix axiom above.")
+;;; ---- right-handed companions of the additive-group laws ----
+;; matrix.scm asserts only the LEFT zero/inverse laws; the RIGHT ones (needed for
+;; the two-sided is-identity / has-inverses clauses of IS-RING) follow by
+;; matadd-comm.  Stated so the assembly proof closes them without an in-proof
+;; commutativity rewrite.  Same warranted category as the -left originals.
+(support 'matadd-zero-right
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
+     (IMPLIES (IN P (MAT m n (CARR A)))
+       (= (MATADD A P (ZEROMAT A m n)) P))))))))
+(warrant! 'matadd-zero-right 'reference "ZEROMAT is a right identity for MATADD (matadd-comm + zero-left).")
+(support 'matadd-neg-right
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
+     (IMPLIES (IN P (MAT m n (CARR A)))
+       (= (MATADD A P (MATNEG A P)) (ZEROMAT A m n)))))))))
+(warrant! 'matadd-neg-right 'reference "MATNEG is a right inverse for MATADD (matadd-comm + neg-left).")
+
+;; ---- MAT-RING slot read-offs + set-hood / lambda-typing bricks ----
+;; The assembly proof of mat-ring-is-ring (theorem-library/mat-ring-proof.scm)
+;; unfolds IS-RING into its 14 conjuncts and reduces each through MAT-RING's
+;; slots.  These bricks are what the reduction rests on -- all trivially true,
+;; warranted because the machinery genuinely cannot compute them:
+;;  * the SLOT read-offs (carr/add/mul/neg/zero/one) are pinned per-slot because
+;;    the accessor macetes CARR/ADD/MUL/NEG/... are keyed by NAME and last-write-
+;;    wins across structures (MUL is slot 2 in monoid/group/AG but slot 3 in RING,
+;;    so a global `mac MUL` reduces to the wrong slot);
+;;  * mat-ring-length: the kernel has no recursive LENGTH rule (length-of-empty
+;;    only), so the count of a literal 6-tuple is warranted;
+;;  * mat-ring-add-fun / mat-ring-mul-fun: lam-t types only single-binder lambdas,
+;;    so the 2-binder curried ADD/MUL into FUN(CARTESIAN A A, B) is warranted
+;;    (NEG, single-binder, is discharged genuinely by lam-t in the proof);
+;;  * mat-is-set: MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.
+(support 'mat-is-set
+  '(FORALL X (IMPLIES (IN X SET) (FORALL m (FORALL n (IN (MAT m n X) SET))))))
+(warrant! 'mat-is-set 'reference "MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.")
+(support 'mat-ring-length
+  '(FORALL a (FORALL n (= (LENGTH (MAT-RING a n)) 6))))
+(warrant! 'mat-ring-length 'reference
+  "MAT-RING(a,n) is a literal 6-tuple; LENGTH=6 (kernel has no recursive LENGTH rule).")
+(support 'mat-ring-carr
+  '(FORALL a (FORALL n (= (CARR (MAT-RING a n)) (MAT n n (CARR a))))))
+(warrant! 'mat-ring-carr 'reference "slot 1 of the MAT-RING tuple.")
+(support 'mat-ring-add
+  '(FORALL a (FORALL n (= (ADD (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (MATADD a P Q))))))
+(warrant! 'mat-ring-add 'reference "slot 2 of the MAT-RING tuple (entrywise sum).")
+(support 'mat-ring-mul
+  '(FORALL a (FORALL n (= (MUL (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (MATMUL a P Q))))))
+(warrant! 'mat-ring-mul 'reference "slot 3 of the MAT-RING tuple (matrix product).")
+(support 'mat-ring-neg
+  '(FORALL a (FORALL n (= (NEG (MAT-RING a n)) (VNB-LAMBDA P (MATNEG a P))))))
+(warrant! 'mat-ring-neg 'reference "slot 4 of the MAT-RING tuple (entrywise negation).")
+(support 'mat-ring-zero
+  '(FORALL a (FORALL n (= (ZERO (MAT-RING a n)) (ZEROMAT a n n)))))
+(warrant! 'mat-ring-zero 'reference "slot 5 of the MAT-RING tuple (all-zero matrix).")
+(support 'mat-ring-one
+  '(FORALL a (FORALL n (= (ONE (MAT-RING a n)) (IDENTMAT a n)))))
+(warrant! 'mat-ring-one 'reference "slot 6 of the MAT-RING tuple (identity matrix).")
+(support 'mat-ring-add-fun
+  '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
+     (IN (VNB-LAMBDA (LIST P Q) (MATADD a P Q))
+         (FUN (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MAT n n (CARR a)))))))))
+(warrant! 'mat-ring-add-fun 'reference "curried entrywise sum is a function MAT x MAT -> MAT (2-binder).")
+(support 'mat-ring-mul-fun
+  '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
+     (IN (VNB-LAMBDA (LIST P Q) (MATMUL a P Q))
+         (FUN (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MAT n n (CARR a)))))))))
+(warrant! 'mat-ring-mul-fun 'reference "curried product is a function MAT x MAT -> MAT (2-binder).")
+
+;; ---- the headline: MAT(n,n,A) is a ring ----
+;; PROVEN (not asserted) in theorem-library/mat-ring-proof.scm: the IS-RING iff
+;; is unfolded and each of its 14 conjuncts is discharged -- the slot read-offs
+;; above reduce MAT-RING's accessors to the matrix ops, then each property clause
+;; is closed against the corresponding matrix-ring axiom (matadd-*, matmul-*,
+;; identmat-*).  So mat-ring-is-ring is installed there by (qed 'mat-ring-is-ring).

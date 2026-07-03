@@ -332,6 +332,12 @@
     ;; here (needs the interactive engine + proof-debt) and BEFORE
     ;; cauchy-subseq-proof, which cites it.
     "theorem-library/diagonalization"
+    ;; The combinatorial nested block family: cover-block-step recursed down a
+    ;; sequence of finite covers via dc-on-nn-pred.  PROVEN to QED (was asserted
+    ;; 'reference).  Needs the interactive engine + cover-block-step / IS-FINITE-
+    ;; COVER (block-family-combinatorial.scm) + dc-on-nn-pred + inf-subsets;
+    ;; BEFORE cauchy-subseq-proof, which cites it.
+    "theorem-library/block-family-combinatorial-proof"
     "theorem-library/cauchy-subseq-proof"
     ;; countable Tychonoff headline, PROVEN to QED modulo the diagonalization
     ;; keystone.  Needs seq-compact-product's supports + interactive/proof-debt.
@@ -374,6 +380,11 @@
     ;; eq-12 bridge to IS-DIFF-AT + o-algebra (sum, scalar).  Needs IS-DIFF-AT
     ;; + IS-CONTINUOUS-AT.
     "theorem-library/little-o"
+    ;; Linear algebra: MAT(n,n,A) is a ring.  Assembly proof unfolding the
+    ;; generated IS-RING iff and discharging each of its 14 conjuncts against
+    ;; matrix.scm's read-offs + matrix-ring axioms.  Needs matrix.scm (loaded
+    ;; above) + the tactic surface (interactive, loaded above).
+    "theorem-library/mat-ring-proof"
     ;; Calculus Ch 2.5: closed interval CCINT(a,b) + Extreme Value Theorem
     ;; (continuous on [a,b] attains max/min) -- the base of the MVT arc.  Needs
     ;; IS-CONTINUOUS-AT + RR order.
@@ -443,6 +454,11 @@
     ;; Assumption-pattern scanner for forward-move discovery
     ;; (used by Emacs vnb-suggest-forward-moves).
     "suggest"
+    ;; The rr-ineq applier: (rr-ineq-scan) / (rr-ineq!) sweep the curated real-
+    ;; inequality cluster (order-lemmas + scalar-inequalities) and the (ineq)
+    ;; oracle at the focus, committing the lane that closes.  Needs suggest
+    ;; (vnb--scratch-state), interactive (apply-recorded-cmd!), ineq-oracle.
+    "structure-library/rr-ineq"
     ;; Library hygiene diagnostics: (audit-unbounded) scans for the partial-
     ;; equality hazard (unbounded universals feeding partial terms under =).
     "audit"
