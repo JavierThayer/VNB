@@ -82,6 +82,13 @@
 (support 'interval-card
   '(FORALL n (IMPLIES (IN n NN) (= (CARD (INTERVAL 1 n)) n))))
 (warrant! 'interval-card 'well-known "|{1,...,n}| = n; INTERVAL(1,n) is finite.")
+;; CARD of any interval is a natural number (intervals are finite) -- needed
+;; unconditionally (the matmul-assoc dims are not typed NN), where interval-card
+;; would require IN n NN.
+(support 'interval-card-in-nn
+  '(FORALL a (FORALL b (IN (CARD (INTERVAL a b)) NN))))
+(warrant! 'interval-card-in-nn 'well-known
+  "INTERVAL(a,b) is finite, so its cardinality is a natural number.")
 
 ;;; MATOF(m, n, g) -- the m-by-n matrix whose (i, j) entry is g(i, j).  A
 ;;; constructor pinned by its computation rule (entry-of-matof) and typing
@@ -324,18 +331,26 @@
 (warrant! 'matadd-neg-left 'reference "MATNEG is a left inverse for MATADD (entrywise (-x)+x=0).")
 
 ;;; ---- MATMUL: associative, with IDENTMAT as two-sided unit ----
-;;; matmul-assoc -- THE crux (finsum-fubini): (PQ)R = P(QR).
-(support 'matmul-assoc
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL k (FORALL l (FORALL P (FORALL Q (FORALL R
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN Q (MAT n k (CARR A)))
-       (IMPLIES (IN R (MAT k l (CARR A)))
-         (= (MATMUL A (MATMUL A P Q) R) (MATMUL A P (MATMUL A Q R))))))))))))))))
-(warrant! 'matmul-assoc 'reference
-  "matrix multiplication is associative: ((PQ)R)_{il} = sum_{j,c} P_{ij}Q_{jc}R_{cl}
-   = (P(QR))_{il} by interchanging the two finite sums (finsum-fubini) and ring
-   distributivity.  The crux of MAT(n,n,A) being a ring.")
+;;; matmul-assoc -- THE crux, PROVEN via finsum-fubini in
+;;; theorem-library/matmul-assoc-proof.scm: matrix-entry-extensionality reduces
+;;; (PQ)R = P(QR) to an entry identity, both entries are expanded to the SAME
+;;; canonical double sum sum_c sum_j (P_{rj} Q_{jc}) R_{c,col} (triple-entry-
+;;; left/right), and finsum-fubini interchanges the summation order.  The bricks
+;;; that expansion rests on (matmul-entry twice + general-ring distribution under
+;;; the FINSUM binder, which the tactic layer cannot yet do -- see the earmarked
+;;; finsum-congruence / general-ring finsum-distrib follow-on) are warranted here:
+(support 'triple-entry-left
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (= (ENTRY (MATMUL A (MATMUL A P Q) R) ROW COL) (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA C (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA J ((VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (LIST C J))) (INTERVAL 1 N))) (INTERVAL 1 K))))))))))))))))))))
+(warrant! 'triple-entry-left 'well-known
+  "((PQ)R)_{row,col} = sum_c (PQ)_{row,c} R_{c,col} = sum_c sum_j (P_{row,j} Q_{j,c}) R_{c,col}: matmul-entry twice, then right-distribute the outer factor R_{c,col} into the inner sum over j.")
+(support 'triple-entry-right
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (= (ENTRY (MATMUL A P (MATMUL A Q R)) ROW COL) (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA J (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA C ((VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (LIST C J))) (INTERVAL 1 K))) (INTERVAL 1 N))))))))))))))))))))
+(warrant! 'triple-entry-right 'well-known
+  "(P(QR))_{row,col} = sum_j P_{row,j} (QR)_{j,col} = sum_j sum_c (P_{row,j} Q_{j,c}) R_{c,col}: matmul-entry twice, left-distribute P_{row,j} into the inner sum over c, then ring associativity ((ab)c=a(bc)) brings the summand to the SAME form as triple-entry-left, so the two sides differ only by summation order.")
+(support 'matmul-assoc-summand-type
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (IN (VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (FUN (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) (CARR (RING-ADDITIVE-AG A)))))))))))))))))))))
+(warrant! 'matmul-assoc-summand-type 'well-known
+  "the triple-product summand (c,j) |-> (P_{row,j} Q_{j,c}) R_{c,col} is a function INTERVAL(1,k) x INTERVAL(1,n) -> CARR A: the entries lie in CARR A (entry-in-carrier) and MUL closes on CARR A.")
 (support 'identmat-left-identity
   '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
      (IMPLIES (IN P (MAT m n (CARR A)))

@@ -380,6 +380,10 @@
     ;; eq-12 bridge to IS-DIFF-AT + o-algebra (sum, scalar).  Needs IS-DIFF-AT
     ;; + IS-CONTINUOUS-AT.
     "theorem-library/little-o"
+    ;; Linear algebra: matrix multiplication is associative, via finsum-fubini
+    ;; (matrix-entry-extensionality + triple-entry expansion + order-of-summation
+    ;; interchange).  Cited by mat-ring-proof, so loads before it.
+    "theorem-library/matmul-assoc-proof"
     ;; Linear algebra: MAT(n,n,A) is a ring.  Assembly proof unfolding the
     ;; generated IS-RING iff and discharging each of its 14 conjuncts against
     ;; matrix.scm's read-offs + matrix-ring axioms.  Needs matrix.scm (loaded
