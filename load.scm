@@ -393,6 +393,11 @@
     ;; matrix.scm's read-offs + matrix-ring axioms.  Needs matrix.scm (loaded
     ;; above) + the tactic surface (interactive, loaded above).
     "theorem-library/mat-ring-proof"
+    ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
+    ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
+    ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
+    ;; sequences.scm (SUM).
+    "theorem-library/binomial-proof"
     ;; Calculus Ch 2.5: closed interval CCINT(a,b) + Extreme Value Theorem
     ;; (continuous on [a,b] attains max/min) -- the base of the MVT arc.  Needs
     ;; IS-CONTINUOUS-AT + RR order.

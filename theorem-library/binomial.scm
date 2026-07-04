@@ -1,65 +1,97 @@
-;;; binomial.scm -- the Binomial Theorem for commutative rings.
+;;; binomial.scm -- the Binomial Theorem for commutative rings, over the
+;;; INTEGER-RANGE sum SUM (sequences.scm), with a recursively-defined weighted
+;;; coefficient COMB-KK that folds Pascal's rule into the recursion.
 ;;;
-;;;   (x + y)^n  =  SUM_{k in {0..n}}  C(n,k) . (x^k * y^(n-k))      in R
+;;;   (x + y)^n  =  SUM(R, COMB-KK(R,x,y,n), succ n)  =  sum_{k=0}^{n} C(n,k) x^k y^(n-k)
 ;;;
-;;; where C(n,k) = CHOOSE n k (Pascal), the scalar . is the ZZ-action on the
-;;; ring's additive group (the binomial coefficient acts as a c-fold sum), x^k =
-;;; RING-POWER, and {0..n} = ORD-SEGMENT(succ n).
+;;; This is the IMPS-style formulation (docs/algebra.t): the index k ranges over
+;;; ZZ, so k-1 is genuine integer subtraction and the coefficient vanishes for
+;;; k<0 / k>m DEFINITIONALLY (comb-kk-null / comb-kk-above).  No reindex
+;;; bijection, no truncated-subtraction (monus) boundary cases -- the shift is
+;;; carried by the successor recurrence of SUM inside an induction (sum-expansion),
+;;; exactly as IMPS's expansion-lemma.  PROVEN in binomial-proof.scm.
 ;;;
-;;; Asserted as a warranted-support CAPSTONE, exactly as prod-of-sums-expansion
-;;; in prod-of-sums.scm: in the library-build phase a capstone whose machine
-;;; proof is a long induction may be asserted with a faithful proof sketch while
-;;; the reusable MACHINERY (here finsum-additive.scm) is the real deliverable.
-;;; The whole point of this result was to commission that additive FINSUM layer;
-;;; with it in hand the proof below is the textbook induction, with no remaining
-;;; missing primitive -- only the tactic grind, deferred like prod-of-sums'.
+;;; This REPLACES the earlier FINSUM-over-ORD-SEGMENT statement, whose proof
+;;; drowned in reindex-bijection + monus plumbing.  Binomial is a leaf capstone
+;;; (nothing depends on it), so the representation was free to change (2026-07-04).
 ;;;
-;;; Dependencies: finsum-additive.scm (the additive layer + CHOOSE/NN-MINUS),
-;;; ring-power.scm, zz-action.scm, ordinals.scm.  (tf / cra / finite helpers are
-;;; defined in finsum-additive.scm, which loads first.)
+;;; Dependencies: sequences.scm (SUM / sum-zero / sum-succ / sum-singleton),
+;;; ring-power.scm, def-by-nn-recursion (ordinals.scm).
 
-(define binom-summand
-  (list 'VNB-LAMBDA 'k
-    (list 'ZZ-ACT cra '(CHOOSE n k)
-      (list '(MUL R) '(RING-POWER R x k)
-                     '(RING-POWER R y (NN-MINUS n k))))))
+;;; -----------------------------------------------------------------------
+;;; COMB-KK(R,x,y,m) : ZZ -> CARR R      k |-> C(m,k) . x^k y^(m-k)
+;;;   m = 0:     k |-> IF k=0 THEN ONE(R) ELSE ZERO(R)
+;;;   succ m:    k |-> x * COMB-KK(.,m)(k-1) + y * COMB-KK(.,m)(k)     [Pascal, ZZ index]
+;;; Installs comb-kk-zero and comb-kk-succ (definitional == equations).
+(def-by-nn-recursion 'COMB-KK '(R x y)
+  '(VNB-LAMBDA k (IF (= k 0) (ONE R) (ZERO R)))
+  '(m val)
+  '(VNB-LAMBDA k ((ADD R) ((MUL R) x (val (- k 1))) ((MUL R) y (val k)))))
 
-(define binomial-stmt
-  (tf 'R '(IS-COMMUTATIVE-RING R)
-   (tf 'n '(IN n NN)
-    (tf 'x '(IN x (CARR R))
-     (tf 'y '(IN y (CARR R))
-      (list '=
-        '(RING-POWER R ((ADD R) x y) n)
-        (list 'FINSUM cra binom-summand '(ORD-SEGMENT (succ n)))))))))
+;;; -----------------------------------------------------------------------
+;;; COMB-KK facts (warranted PSS supports; each is a one-step induction on m
+;;; from comb-kk-zero/-succ, in the library-build spirit).
+;;; -----------------------------------------------------------------------
 
-;; A named capstone (the Binomial Theorem), not PSS plumbing: a result you prove,
-;; not a fast lemma you backchain through.  Installed as a warranted ASSERTION
-;; (matchable macete, not PSS).  See [[pss-central-role]].
-(theory-add-axiom! *current-theory* 'binomial-theorem binomial-stmt)
+;; The coefficient family is a total ZZ-indexed function into the carrier.
+(support 'comb-kk-in-fun
+  (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'x '(IN x (CARR R))(tf 'y '(IN y (CARR R))
+   (tf 'm '(IN m NN) (list 'IN (list 'COMB-KK 'R 'x 'y 'm) '(FUN ZZ (CARR R))))))))
+(warrant! 'comb-kk-in-fun 'well-known
+  "Each COMB-KK(R,x,y,m) is a total function ZZ -> CARR R: base is IF into
+   {ONE,ZERO}; step is a sum of products of carrier elements.  Induction on m.")
 
-(warrant! 'binomial-theorem 'well-known
-  "Induction on n, all of finsum-additive.scm.  BASE n=0: ring-power-zero makes
-   the LHS ONE(R); ord-segment-insert + ord-segment-empty collapse
-   ORD-SEGMENT(succ 0) to {0}, finsum-singleton picks the k=0 term, and
-   choose-n-0 (=1), ring-power-zero (x^0=y^0=1), the ring unit law and
-   zz-act-one reduce it to ONE(R).  STEP n -> succ n:
-     (x+y)^(succ n) = (x+y) * (x+y)^n            [ring-power-succ]
-                    = (x+y) * SUM_k C(n,k) x^k y^(n-k)   [IH]
-                    = SUM_k (x+y) * C(n,k) x^k y^(n-k)   [finsum-ring-distrib-left]
-                    = SUM_k ( x*T_k + y*T_k )            [ring-right-dist, pointwise]
-                    = SUM_k x*T_k + SUM_k y*T_k          [finsum-add]
-   with T_k = C(n,k) x^k y^(n-k).  finsum-ring-scalar-zz pulls C(n,k) out past
-   the x* and y*, ring-power-succ raises the exponent (x*x^k = x^(succ k); for
-   the y term ring commutativity then y*y^(n-k) = y^(succ(n-k)) = y^(n+1-k)),
-   so the first sum is SUM_k C(n,k) x^(k+1) y^(n-k) and the second is SUM_k
-   C(n,k) x^k y^(n+1-k).  finsum-reindex shifts the first sum's index k->k+1 over
-   ord-segment-insert; peeling the boundary terms (k=0 from the second sum, the
-   top term from the first) with finsum-insert/ord-segment-insert and combining
-   the interior with Pascal -- choose-succ together with zz-act-add,
-   C(n,k-1).T + C(n,k).T = (C(n,k-1)+C(n,k)).T = C(n+1,k).T -- regroups
-   everything into SUM_{k in {0..n+1}} C(n+1,k) x^k y^(n+1-k).  Every step cites
-   an installed support; no primitive is missing.  finsum-add and finsum-reindex
-   are the GENERAL comm-monoid principles instantiated at m =
-   COMMUTATIVE-RING-ADDITIVE-AG R (a comm-monoid via ABELIAN-GROUP-AS-MONOID),
-   where (MUL m) is (ADD R).")
+;; Vanishing below the range: C(m,k)=0 for k<0.
+(support 'comb-kk-null
+  (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'x '(IN x (CARR R))(tf 'y '(IN y (CARR R))
+   (tf 'm '(IN m NN)(tf 'k '(IN k ZZ)
+    (list 'IMPLIES '(< k 0) (list '= (list (list 'COMB-KK 'R 'x 'y 'm) 'k) '(ZERO R)))))))))
+(warrant! 'comb-kk-null 'well-known
+  "k<0 => COMB-KK(.,m)(k)=ZERO.  Induction on m: base IF(k=0) is ZERO for k<0;
+   step x*val(k-1)+y*val(k) with k-1<0 and k<0 both ZERO by IH.")
+
+;; Vanishing above the range: C(m,k)=0 for k>m.
+(support 'comb-kk-above
+  (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'x '(IN x (CARR R))(tf 'y '(IN y (CARR R))
+   (tf 'm '(IN m NN)(tf 'k '(IN k ZZ)
+    (list 'IMPLIES '(< m k) (list '= (list (list 'COMB-KK 'R 'x 'y 'm) 'k) '(ZERO R)))))))))
+(warrant! 'comb-kk-above 'well-known
+  "k>m => COMB-KK(.,m)(k)=ZERO.  Induction on m: base k>0 => IF(k=0) is ZERO;
+   step k>succ m => both k-1>m and k>m, ZERO by IH.")
+
+;; The single k=0 term of the degree-0 coefficient is ONE.
+(support 'comb-kk-0-0
+  (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'x '(IN x (CARR R))(tf 'y '(IN y (CARR R))
+   (list '= (list (list 'COMB-KK 'R 'x 'y 0) 0) '(ONE R))))))
+(warrant! 'comb-kk-0-0 'well-known
+  "comb-kk-zero + IF(0=0) picks the then-branch ONE(R).")
+
+;;; -----------------------------------------------------------------------
+;;; Small arithmetic / typing shims used by the induction (all warranted;
+;;; each is a one-liner over ZZ/NN or a curried closure the tactic layer needs
+;;; because `fact' cannot split an AND-antecedent).
+;;; -----------------------------------------------------------------------
+(support 'bt-succ-minus-1 (tf 'n '(IN n ZZ) '(= (- (succ n) 1) n)))
+(warrant! 'bt-succ-minus-1 'well-known "succ n - 1 = n in ZZ.")
+(support 'bt-neg1-in-zz '(IN (- 0 1) ZZ))(warrant! 'bt-neg1-in-zz 'well-known "-1 in ZZ.")
+(support 'bt-neg1-neg   '(< (- 0 1) 0))(warrant! 'bt-neg1-neg 'well-known "-1 < 0.")
+(support 'bt-nn-in-zz   (tf 'n '(IN n NN) '(IN n ZZ)))(warrant! 'bt-nn-in-zz 'well-known "NN subset ZZ.")
+(support 'bt-succ-in-nn (tf 'n '(IN n NN) '(IN (succ n) NN)))(warrant! 'bt-succ-in-nn 'well-known "succ closes NN.")
+(support 'bt-lt-succ    (tf 'n '(IN n NN) '(< n (succ n))))(warrant! 'bt-lt-succ 'well-known "n < succ n.")
+(support 'bt-sum-in-carr-zz
+  (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'g '(IN g (FUN ZZ (CARR R)))(tf 'N '(IN N NN)
+   '(IN (SUM R g N)(CARR R))))))
+(warrant! 'bt-sum-in-carr-zz 'well-known "SUM over the NN indices of a ZZ-fn lands in CARR.")
+(support 'bt-mul-comm (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'a '(IN a (CARR R))(tf 'b '(IN b (CARR R))
+   (list '= '((MUL R) a b) '((MUL R) b a))))))
+(warrant! 'bt-mul-comm 'well-known "commutativity of MUL (the defining property).")
+(support 'bt-add-in-carr (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'a '(IN a (CARR R))(tf 'b '(IN b (CARR R))
+   '(IN ((ADD R) a b)(CARR R))))))
+(warrant! 'bt-add-in-carr 'well-known "curried ring-carrier-closed-add.")
+(support 'bt-one-in-carr (tf 'R '(IS-RING R) '(IN (ONE R)(CARR R))))
+(warrant! 'bt-one-in-carr 'well-known "ring ONE lies in CARR.")
+
+(category! 'comb-kk-in-fun 'algebra)
+(category! 'comb-kk-null 'algebra)
+(category! 'comb-kk-above 'algebra)
+(category! 'comb-kk-0-0 'algebra)

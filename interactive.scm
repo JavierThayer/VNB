@@ -671,6 +671,19 @@
 (define (ta n)  (vnb--run! 'ta (list n) (lambda () (cmd-theorem-assumption *ps* n))))
 (define (mac n) (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))
 
+;; macm -- goal-side `mac' that SPAWNS a conditional macete's unmet side
+;; conditions as minor-premise subgoals (the IMPS apply-macete-with-minor-
+;; premises analogue).  Plain `mac' only fires a conditional rewrite when its
+;; conditions ALREADY hold in the local context; macm fires regardless, leaving
+;; each unmet condition as a sibling subgoal while the rewritten main line stays
+;; in focus.  This is what makes the conditional finsum rearrangement lemmas
+;; (finsum-ord-peel / -add-ag / -ring-distrib-left / -reindex-ag / ...) usable
+;; as goal rewrites instead of only forward via `fact'.
+(define (macm n)
+  (vnb--run! 'macm (list n)
+             (lambda () (fluid-let ((*macete-spawn-conditions?* #t))
+                          (cmd-apply-macete *ps* n)))))
+
 ;; detach! -- forward modus ponens: from an in-context (IMPLIES A B) whose A is
 ;; also in context, leave B in context.  The forward dual of bc.
 (define (detach! f)

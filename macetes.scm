@@ -703,17 +703,25 @@
         (loop (caddr f) (cons (cadr f) vars))
         (values (reverse vars) f))))
 
+;; Peel ALL leading IMPLIES antecedents into the condition list, then read the
+;; equation.  Handles both the flat shape (IMPLIES (AND c1 c2 ...) (= L R)) and
+;; the CURRIED/nested shape (IMPLIES c1 (IMPLIES c2 (IMPLIES c3 (= L R)))) that
+;; the `tf' helper produces -- the shape almost every conditional support (all
+;; the finsum rearrangement lemmas) is written in.  The old version peeled only
+;; ONE IMPLIES, so a curried lemma left source = the inner nested-IMPLIES and
+;; replacement = TRUTH: a dead macete that never matched its own LHS, silently
+;; forcing those lemmas to be usable only through forward `fact'.  Each peeled
+;; antecedent is flatten-and'd so a mixed (IMPLIES (AND a b) (IMPLIES c ...))
+;; still splits cleanly.  The extracted conditions become minor premises.
 (define (extract-rewrite-patterns core)
-  (cond
-    ((and (pair? core) (eq? (car core) 'IMPLIES))
-     (let ((hyp (binary-left core))
-           (con (binary-right core)))
-       (let ((conditions (flatten-and hyp)))
-         (let-values (((s r) (extract-equation con)))
-           (values conditions s r)))))
-    (else
-     (let-values (((s r) (extract-equation core)))
-       (values '() s r)))))
+  (let loop ((core core) (conditions '()))
+    (cond
+      ((and (pair? core) (eq? (car core) 'IMPLIES))
+       (loop (binary-right core)
+             (append conditions (flatten-and (binary-left core)))))
+      (else
+       (let-values (((s r) (extract-equation core)))
+         (values conditions s r))))))
 
 (define (flatten-and f)
   (if (and (pair? f) (eq? (car f) 'AND))

@@ -146,6 +146,27 @@
    by ring-left-dist, then the IH.  a |-> r*a is an endomorphism of (R,+), and
    FINSUM commutes with an AG-endomorphism.")
 
+;; finsum-ring-distrib-right: (SUM_z f z) * r = SUM_z (f z * r).  The right-hand
+;; mirror of finsum-ring-distrib-left; in a COMMUTATIVE ring the two coincide
+;; mathematically, but the SYNTACTIC form (the ring factor on the RIGHT of the
+;; sum) is what a proof that has produced (FINSUM ...) * r needs to rewrite
+;; WITHOUT first commuting -- and multiplicative commutativity is a looping
+;; rewrite, so a directed right-distribution rule earns its place.  (Distinct
+;; from finsum-ring-distrib-right-gen, which is over an ARBITRARY ring's
+;; RING-ADDITIVE-AG; this one is over the commutative ring's cra.)
+(support 'finsum-ring-distrib-right
+  (tf 'rng '(IS-COMMUTATIVE-RING rng)
+   (tf 'r '(IN r (CARR rng))
+    (tfin 'S
+     (tf 'f '(IN f (FUN S (CARR rng)))
+      (list '=
+        (list '(MUL rng) (list 'FINSUM cra 'f 'S) 'r)
+        (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(MUL rng) '(f z) 'r)) 'S)))))))
+(warrant! 'finsum-ring-distrib-right 'well-known
+  "Right-handed finsum-ring-distrib-left: (SUM_X f + f z0)*r = SUM_X f*r + f z0*r
+   by ring-right-dist, then the IH.  a |-> a*r is an endomorphism of (R,+).")
+(category! 'finsum-ring-distrib-right 'algebra)
+
 ;;; =======================================================================
 ;;; General-ring finite-sum infrastructure (the (B) bricks): pointwise
 ;;; congruence of FINSUM, and distribution of a ring factor into a finite sum
@@ -239,3 +260,121 @@
   "Compose the chosen enumeration of T with phi to get an enumeration of S;
    SUM-AG along it is the same fold.  Independence of enumeration is
    finsum-comm-monoid-permutation-invariance.  Holds for any comm-monoid sum.")
+
+;;; =======================================================================
+;;; ABELIAN-GROUP companions of insert / add / reindex.
+;;;
+;;; FINSUM is DEFINED over an abelian group (finsum.scm: it uses ID(ag) and
+;;; SUM-AG(ag,.)), and finsum-singleton / finsum-empty are stated at
+;;; IS-ABELIAN-GROUP.  The comm-monoid forms above (finsum-insert / -add /
+;;; -reindex) are the maximally-general PSS principles, but they cannot be
+;;; instantiated at an abelian group directly: IS-COMM-MONOID pins a 3-slot
+;;; tuple (CARR MUL ID), while an abelian group is a 4-slot (CARR MUL ID INV),
+;;; and there is no ABELIAN-GROUP-AS-COMM-MONOID view (abelian-group-as-monoid
+;;; reaches only bare MONOID).  So a sum that lives in a genuine abelian group
+;;; -- e.g. the binomial sum over COMMUTATIVE-RING-ADDITIVE-AG R -- needs these
+;;; abelian-group-level restatements.  Same fold induction; an abelian group is
+;;; a commutative monoid on its first three slots, so every warrant below is the
+;;; comm-monoid warrant read through that forgetful correspondence.
+;;; =======================================================================
+
+;; finsum-insert-ag: peel one index k (k not already in X) off a FINSUM in an
+;; abelian group -- the abelian-group form of finsum-insert.  Finiteness of X
+;; is CURRIED (tfin) so a forward `fact' can detach each guard.
+(support 'finsum-insert-ag
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tfin 'X
+    (list 'FORALL 'k (list 'IMPLIES '(IN k SET)
+     (list 'IMPLIES '(NOT (IN k X))
+      (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN (UNION X (PAIR k k)) (CARR ag)))
+        (list '=
+          '(FINSUM ag f (UNION X (PAIR k k)))
+          '((MUL ag) (FINSUM ag f X) (f k)))))))))))
+(warrant! 'finsum-insert-ag 'well-known
+  "finsum-insert at m = ag viewed as its commutative monoid (CARR,MUL,ID):
+   FINSUM(ag,f,X u {k}) = (MUL ag)(FINSUM(ag,f,X), f k) for k not in X.  Standard
+   fold peel; abelian group supplies the monoid laws (no inverses used).")
+
+;; finsum-add-ag: SUM(f (+) h) = SUM f (+) SUM h in an abelian group, where (+)
+;; is (MUL ag).  Abelian-group form of finsum-add.
+(support 'finsum-add-ag
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tfin 'S
+    (tf 'f '(IN f (FUN S (CARR ag)))
+     (tf 'h '(IN h (FUN S (CARR ag)))
+      (list '=
+        (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z (list '(MUL ag) '(f z) '(h z))) 'S)
+        (list '(MUL ag)
+              (list 'FINSUM 'ag 'f 'S)
+              (list 'FINSUM 'ag 'h 'S))))))))
+(warrant! 'finsum-add-ag 'well-known
+  "finsum-add at m = ag as a commutative monoid: induction on |S| via
+   finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
+   associativity of (MUL ag).  No inverses used.")
+
+;; finsum-reindex-ag: a FINSUM in an abelian group is invariant under a
+;; bijective change of index.  Abelian-group form of finsum-reindex.
+(support 'finsum-reindex-ag
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tfin 'S
+    (tf 'T (finite 'T)
+     (tf 'phi '(IN phi (BIJECTION T S))
+      (tf 'f '(IN f (FUN S (CARR ag)))
+       (list '=
+         (list 'FINSUM 'ag 'f 'S)
+         (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z '(f (phi z))) 'T))))))))
+(warrant! 'finsum-reindex-ag 'well-known
+  "finsum-reindex at m = ag as a commutative monoid: compose the chosen
+   enumeration of T with phi to enumerate S; the fold is the same.  Holds for
+   any abelian-group-valued finite sum.")
+
+;; finsum-ord-peel: peel the TOP index n off a FINSUM over ORD-SEGMENT(succ n),
+;; in an abelian group.  This is finsum-insert-ag specialized at X=ORD-SEGMENT(n),
+;; k=n -- the case the binomial induction actually uses -- with the set-plumbing
+;; premises (ORD-SEGMENT(n) is a finite set of card n, and n not in ORD-SEGMENT(n))
+;; discharged inside the warrant, so the tactic layer sees only IS-ABELIAN-GROUP,
+;; IN n NN, and the summand typing.  ORD-SEGMENT(succ n) = ORD-SEGMENT(n) u {n}.
+(support 'finsum-ord-peel
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tf 'n '(IN n NN)
+    (tf 'f '(IN f (FUN (ORD-SEGMENT (succ n)) (CARR ag)))
+     (list '=
+       '(FINSUM ag f (ORD-SEGMENT (succ n)))
+       '((MUL ag) (FINSUM ag f (ORD-SEGMENT n)) (f n)))))))
+(warrant! 'finsum-ord-peel 'well-known
+  "finsum-insert-ag at X=ORD-SEGMENT(n), k=n: ORD-SEGMENT(succ n)=ORD-SEGMENT(n) u {n}
+   (ord-segment-insert), ORD-SEGMENT(n) is a set (ord-segment-is-set) of card n in NN,
+   and n not in ORD-SEGMENT(n) (ord-segment-self).  So the sum splits as the sum over
+   ORD-SEGMENT(n) plus the peeled top term f(n).")
+
+;; finsum-embed: extension-by-zero / restriction-to-support.  A finite sum is
+;; unchanged by dropping index points where the summand is the identity: if
+;; S subset S2 and f = ID(ag) at every index of S2 outside S, then the sum of f
+;; over S2 equals the sum of f over S.  This is the tool that puts two sums over
+;; DIFFERENT ranges onto a COMMON index set so a pointwise principle (finsum-add-ag
+;; / finsum-congruence) applies with NO reindexing bijection -- e.g. the binomial
+;; Pascal merge, where the split coefficients C(n,k) / C(n,k-1) vanish at the
+;; extra boundary index, so each split sum restricts to its natural range.
+;; The support S is NOT determined by matching the S2 sum, so this is a forward
+;; `fact' lemma (supply S), not a rewrite macete.
+(support 'finsum-embed
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tfin 'S
+    (tfin 'S2
+     (tf 'f '(IN f (FUN S2 (CARR ag)))
+      (list 'IMPLIES '(SUBSET S S2)
+       (list 'IMPLIES
+             '(FORALL z (IMPLIES (AND (IN z S2) (NOT (IN z S))) (= (f z) (ID ag))))
+        (list '=
+          '(FINSUM ag f S2)
+          '(FINSUM ag f S)))))))))
+(warrant! 'finsum-embed 'well-known
+  "Induction on |S2 \\ S| via finsum-insert-ag: each peeled index outside S
+   contributes f = ID(ag), absorbed by the group unit law.  So the sum over S2
+   collapses to the sum over its support S.")
+
+(category! 'finsum-ord-peel 'algebra)
+(category! 'finsum-insert-ag 'algebra)
+(category! 'finsum-add-ag 'algebra)
+(category! 'finsum-reindex-ag 'algebra)
+(category! 'finsum-embed 'algebra)
