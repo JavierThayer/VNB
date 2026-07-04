@@ -380,6 +380,10 @@
     ;; eq-12 bridge to IS-DIFF-AT + o-algebra (sum, scalar).  Needs IS-DIFF-AT
     ;; + IS-CONTINUOUS-AT.
     "theorem-library/little-o"
+    ;; Linear algebra: the two matrix-product entry-expansion lemmas
+    ;; (triple-entry-left/right), PROVEN from the (B) finite-sum bricks; cited by
+    ;; matmul-assoc-proof, so loads before it.
+    "theorem-library/triple-entry-proof"
     ;; Linear algebra: matrix multiplication is associative, via finsum-fubini
     ;; (matrix-entry-extensionality + triple-entry expansion + order-of-summation
     ;; interchange).  Cited by mat-ring-proof, so loads before it.

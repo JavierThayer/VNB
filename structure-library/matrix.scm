@@ -339,14 +339,10 @@
 ;;; that expansion rests on (matmul-entry twice + general-ring distribution under
 ;;; the FINSUM binder, which the tactic layer cannot yet do -- see the earmarked
 ;;; finsum-congruence / general-ring finsum-distrib follow-on) are warranted here:
-(support 'triple-entry-left
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (= (ENTRY (MATMUL A (MATMUL A P Q) R) ROW COL) (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA C (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA J ((VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (LIST C J))) (INTERVAL 1 N))) (INTERVAL 1 K))))))))))))))))))))
-(warrant! 'triple-entry-left 'well-known
-  "((PQ)R)_{row,col} = sum_c (PQ)_{row,c} R_{c,col} = sum_c sum_j (P_{row,j} Q_{j,c}) R_{c,col}: matmul-entry twice, then right-distribute the outer factor R_{c,col} into the inner sum over j.")
-(support 'triple-entry-right
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (= (ENTRY (MATMUL A P (MATMUL A Q R)) ROW COL) (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA J (FINSUM (RING-ADDITIVE-AG A) (VNB-LAMBDA C ((VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (LIST C J))) (INTERVAL 1 K))) (INTERVAL 1 N))))))))))))))))))))
-(warrant! 'triple-entry-right 'well-known
-  "(P(QR))_{row,col} = sum_j P_{row,j} (QR)_{j,col} = sum_j sum_c (P_{row,j} Q_{j,c}) R_{c,col}: matmul-entry twice, left-distribute P_{row,j} into the inner sum over c, then ring associativity ((ab)c=a(bc)) brings the summand to the SAME form as triple-entry-left, so the two sides differ only by summation order.")
+; triple-entry-left / triple-entry-right: PROVEN in
+;; theorem-library/triple-entry-proof.scm from the (B) finite-sum bricks
+;; (finsum-congruence + general-ring finsum-distrib-left/right-gen) -- formerly
+;; warranted here.  matmul-assoc-summand-type (the fubini f-typing) stays warranted.
 (support 'matmul-assoc-summand-type
   '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (IN (VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (FUN (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) (CARR (RING-ADDITIVE-AG A)))))))))))))))))))))
 (warrant! 'matmul-assoc-summand-type 'well-known
