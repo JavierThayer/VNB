@@ -84,7 +84,9 @@
 
     ("Rewriting"
      (mac   "(mac 'name)" "Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context."
-       "Rewrite the goal using a definition or a known equivalence/equality (a `macete').  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law's side-conditions already hold in your hypotheses; where they don't, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h.)")
+       "Rewrite the goal using a definition or a known equivalence/equality (a `macete').  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law's side-conditions already hold in your hypotheses; where they don't, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h; the minor-premise-spawning variant is macm.)")
+     (macm  "(macm 'name)" "Like mac, but a CONDITIONAL macete fires even when its side-conditions are not yet in context: each unmet condition is left as a new subgoal."
+       "The minor-premises variant of mac.  mac only rewrites where the law's side-conditions ALREADY hold; macm rewrites regardless, spawning each unmet condition as a fresh goal to discharge -- the goal-side mirror of what mac-h already does on hypotheses.  This is what makes conditional finite-sum lemmas (finsum-*, sum-*, ...) usable as goal rewrites instead of only forward via fact.  (Technically: goal-side rewriting by a conditional macete; it emits the SAME single `macete' kernel rule as mac -- the unmet conditions become that one step's minor-premise subgoals.  It introduces NO new inference rule.)")
      (mac-h "(mac-h 'name hyp)" "Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal."
        "Like mac, but rewrites inside one of your HYPOTHESES instead of the goal -- replacing it by an equivalent statement (e.g. unfolding a definition in a hypothesis).  If the rewrite law has a side-condition you haven't established, that side-condition becomes a new goal to prove.  (Technically: hypothesis-side rewriting by Leibniz substitution of equivalents; sound because the macete is a genuine equivalence under its side-conditions, which are spawned as goals.)")
      (|mac-h*| "(mac-h*)" "Saturating mac-h: repeatedly unfold every defined predicate in the hypotheses and split the conjunctions they expose, until nothing is left folded.  One step in the trace instead of a dozen."
@@ -265,6 +267,7 @@
     (cut       . "you want to prove a lemma on the spot, then use it")
     (wk        . "the hypothesis list is cluttered with something no longer needed")
     (mac       . "the GOAL has a defined predicate to unfold / an identity to apply, side-conditions already met")
+    (macm      . "the GOAL has a CONDITIONAL identity/definition to apply whose side-conditions you are willing to leave as subgoals")
     (mac-h     . "a HYPOTHESIS has a definition to unfold / an equivalence to apply")
     (|mac-h*|  . "several hypotheses are folded definitions / conjunctions to open at once")
     (grind     . "right after sp, or any time the focus has connective/definitional structure -- normalize first")
@@ -306,6 +309,74 @@
 (define (tactic-when-of name)
   (cond ((assq name *tactic-when*) => cdr) (else #f)))
 
+;;; --------------------------------------------------------------------
+;;; *tactic-kind* -- the TRUST taxonomy, one axis orthogonal to the
+;;; functional grouping above.  Grounded in what each tactic actually
+;;; emits into the deduction graph (the `dg-apply-rule!' tag), NOT
+;;; editorial:
+;;;
+;;;   rule       ONE primitive kernel inference rule -- the fixed trusted
+;;;              base.  A `rule' tactic is a thin wrapper over exactly one
+;;;              dg-apply-rule! tag; the set of these tags does not grow
+;;;              without a kernel change (and congressional approval).
+;;;   oracle     a trusted DECISION PROCEDURE run as a black box.  Sound +
+;;;              complete on its domain but trusted rather than mechanised
+;;;              through the axioms; each closes via its own single tag.
+;;;   composite  a Scheme procedure that only CHAINS kernel rules and other
+;;;              tactics -- it introduces NO new inference rule.  `emits'
+;;;              names the principal kernel tags it strings together.
+;;;   meta       no deduction at all: session / search / navigation.
+;;;
+;;; Each entry is (tactic kind emits) where `emits' is the dg-apply-rule!
+;;; tag (or a list of them), or #f for meta / search.
+;;; --------------------------------------------------------------------
+(define *tactic-kind*
+  '((sp meta #f) (qed meta #f) (save-proof meta #f) (replay-proof meta #f)
+    (di rule (forall-intro implies-intro and-intro))
+    (ai rule (and-elim or-elim forsome-elim))
+    (pbc rule proof-by-contradiction)
+    (oi-l rule or-intro-left) (oi-r rule or-intro-right)
+    (ew rule forsome-intro) (ci rule cartesian-intro) (ti rule tuples-intro)
+    (ii rule intersection-intro) (ui rule union-intro)
+    (ni rule nn-induction) (tfi rule transfinite-induction) (tfi3 rule transfinite-induction)
+    (ass rule assumption) (ta rule theorem-assumption)
+    (inst rule forall-elim) (detach! rule detach) (bc rule backchain)
+    (cut rule cut) (wk rule weakening)
+    (ce rule cartesian-elim) (te rule tuples-elim) (ie rule intersection-elim) (ue rule union-elim)
+    (mac rule macete) (macm rule macete) (mac-h rule macete-hyp)
+    (subst rule eq-subst) (rfl rule reflexivity) (qrfl rule quasi-reflexivity)
+    (beta rule functoid-beta) (lam-b rule lambda-beta) (lam-t rule lambda-type)
+    (nth-r rule nth-reduce) (len-r rule length-reduce)
+    (if-true rule if-true) (if-false rule if-false)
+    (sep-set rule sep-sethood) (sep-mi rule sep-mem-intro) (sep-me rule sep-mem-elim)
+    (comp-mi rule comp-mem-intro) (comp-me rule comp-mem-elim) (iota-d rule iota-def)
+    (bu-set rule big-union-sethood) (bu-mi rule big-union-mem-intro) (bu-me rule big-union-mem-elim)
+    (arith oracle arith-eval) (rs oracle ring-simplify) (crs oracle comm-ring-simplify)
+    (simp oracle ring-simplify) (ineq oracle ineq) (sos oracle sos)
+    (inst+ composite (forall-elim detach))
+    (fact composite (theorem-assumption forall-elim detach))
+    (bc* composite (backchain))
+    (mac-h* composite (macete-hyp))
+    (grind composite (forall-intro implies-intro macete-hyp))
+    (wbc composite (theorem-assumption forsome-intro))
+    (scout meta #f) (scout-show meta #f) (scout-run composite #f)))
+
+(define (tactic-kind-of  name)(cond ((assq name *tactic-kind*) => cadr)  (else #f)))
+(define (tactic-emits-of name)(cond ((assq name *tactic-kind*) => caddr) (else #f)))
+(define (tactics--of-kind kind)
+  (map car (filter (lambda (x) (eq? (cadr x) kind)) *tactic-kind*)))
+
+(define *tactic-kind-legend*
+  (string-append
+   "Each tactic carries a KIND -- what it contributes to the trusted base:\n"
+   "  rule       a single primitive KERNEL inference rule (di, ai, cut, ni, mac,\n"
+   "             subst, ...).  The set of kernel rules is FIXED.\n"
+   "  oracle     a trusted DECISION PROCEDURE run as a black box (arith, rs, crs,\n"
+   "             ineq, sos) -- sound+complete on its domain, but trusted.\n"
+   "  composite  a Scheme procedure that only CHAINS kernel rules (fact, inst+,\n"
+   "             bc*, grind, mac-h*) -- it adds NO new inference rule.\n"
+   "  meta       no deduction: session / search / navigation (sp, qed, scout).\n"))
+
 ;; (tactics)            -- print the whole grouped menu (sig + one-liner).
 ;; (tactics 'mac-h)     -- print the long blurb for one tactic.
 (define (tactics #!optional what)
@@ -314,6 +385,8 @@
      (newline)
      (display "VNB interactive tactics  --  (tactics 'name) for detail\n")
      (display "========================================================\n")
+     (newline)
+     (display *tactic-kind-legend*)
      (newline)
      (display *tactics-arg-help*)
      (for-each
@@ -326,6 +399,11 @@
              (display (make-string (max 1 (- 10 (string-length (symbol->string (car e))))) #\space))
              (display (cadr e)) (newline)
              (display "             ") (display (tactics--gloss e)) (newline)
+             (let ((k (tactic-kind-of (car e))) (em (tactic-emits-of (car e))))
+               (when k
+                 (display "             kind: ") (display k)
+                 (when (and em (not (eq? em #f))) (display "  [emits ") (write em) (display "]"))
+                 (newline)))
              (let ((w (tactic-when-of (car e))))
                (when w (display "             when: ") (display w) (newline))))
            (cdr cat)))
@@ -376,6 +454,26 @@
         (display "```\n")
         (display *tactics-arg-help*)
         (display "```\n\n")
+        ;; Trust taxonomy -- the KIND axis, orthogonal to the functional groups.
+        (display "## Tactic kinds (trust taxonomy)\n\n")
+        (display "Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` ")
+        (display "tag it emits (not editorial), so the trusted base is legible at a glance:\n\n")
+        (for-each
+          (lambda (kd)
+            (display "- **") (display (car kd)) (display "** -- ")
+            (display (cadr kd)) (display ": ")
+            (display (apply string-append
+                            (map (lambda (n)(string-append "`" (symbol->string n) "` "))
+                                 (tactics--of-kind (car kd)))))
+            (newline))
+          '((rule "a single primitive KERNEL inference rule (the fixed trusted base)")
+            (oracle "a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted")
+            (composite "a Scheme procedure that only CHAINS kernel rules, adding no new inference rule")
+            (meta "no deduction: session / search / navigation")))
+        (display "\nThe `rule` set is the fixed kernel; a proof's trust surface is exactly ")
+        (display "its `rule` steps plus whichever `oracle`s and asserted premises it cites.  ")
+        (display "You can read any finished proof's actual rule inventory off its deduction ")
+        (display "graph (each node records its justifying rule).\n\n")
         (for-each
           (lambda (cat)
             (display "## ") (display (car cat)) (display "\n\n")
@@ -384,6 +482,12 @@
                 (display "### ") (display (car e)) (newline) (newline)
                 (display "    ") (display (cadr e)) (newline) (newline)
                 (display (tactics--gloss e)) (newline) (newline)
+                (let ((k (tactic-kind-of (car e))) (em (tactic-emits-of (car e))))
+                  (when k
+                    (display "*Kind:* `") (display k) (display "`")
+                    (when (and em (not (eq? em #f)))
+                      (display " (emits `") (write em) (display "`)"))
+                    (newline) (newline)))
                 (let ((w (tactic-when-of (car e))))
                   (when w (display "*When useful:* ") (display w) (newline) (newline)))
                 (let ((b (tactics--blurb e)))
