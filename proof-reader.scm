@@ -294,6 +294,14 @@
            (string-append "\\fit{$" (proof-tex--join (map expr->tex atoms) "$},\\ \\fit{$") "$}.")
            "")))))
 
+;; a bulletless sub-header row marking the base / inductive-step branch of an
+;; `ni' proof (empty \item label -> no step number in the margin).
+(define (proof-reader--branch-hdr indvar which)
+  (let ((v (if indvar (expr->tex indvar) "n")))
+    (if (eq? which 'base)
+        (string-append "  \\item[]\\textbf{Base case} ($" v " = 0$):\n")
+        (string-append "  \\item[]\\textbf{Inductive step} ($" v " \\to " v " + 1$):\n"))))
+
 (define (proof-reader name)
   (let* ((records (proof-reader--records name))
          (claim   (cadr (car records)))            ; sp record's goal
@@ -320,8 +328,13 @@
      (proof-tex--sequent-align setup-asms setup-goal)
      "\n\\begin{itemize}\\setlength{\\itemsep}{4pt}\n"
      (append
-      ;; walk groups, threading the pre-goal / pre-asms (the setup sequent seeds it)
-      (let loop ((gs groups) (pre-goal setup-goal) (pre-asms setup-asms) (rows '()))
+      ;; walk groups, threading the pre-goal / pre-asms (the setup sequent seeds
+      ;; it) and, for an `ni' proof, the induction variable + branch phase so we
+      ;; can insert "Base case" / "Inductive step" sub-headers.  Branch signal:
+      ;; the base leaf proves P(0) (indvar not free); the step leaf proves
+      ;; P(n)=>P(n+1) (indvar free again).  See proof-reader--gloss for the ni row.
+      (let loop ((gs groups) (pre-goal setup-goal) (pre-asms setup-asms)
+                 (indvar #f) (phase 'none) (rows '()))
         (if (null? gs) (reverse rows)
             (let* ((g (car gs))
                    (primary (proof-reader--group-primary g))
@@ -334,12 +347,30 @@
                    (close-txt (cond ((not closer) "")
                                     ((memq (car (car closer)) '(ass)) "  \\emph{(holds by assumption)}")
                                     (else "  \\emph{(closes)}")))
+                   (is-ni   (and main (eq? (car (car main)) 'ni)))
+                   (new-indvar (if is-ni
+                                   (and (pair? pre-goal) (eq? (car pre-goal) 'FORALL) (cadr pre-goal))
+                                   indvar))
+                   (ggoal   (or (and main (cadr main)) pre-goal))
+                   (this-step? (and indvar (memq indvar (free-vars ggoal))))
+                   ;; header + phase transition (only for an ni proof, after the ni row)
+                   (hdr+phase
+                    (cond (is-ni (cons "" 'await-base))
+                          ((eq? phase 'await-base)
+                           (if this-step?
+                               (cons (proof-reader--branch-hdr indvar 'step) 'step)
+                               (cons (proof-reader--branch-hdr indvar 'base) 'base)))
+                          ((and (eq? phase 'base) this-step?)
+                           (cons (proof-reader--branch-hdr indvar 'step) 'step))
+                          (else (cons "" phase))))
                    (row (string-append
+                         (car hdr+phase)
                          "  \\item[\\textbf{" (proof-reader--range g) "}] "
                          gloss close-txt "\n"))
                    (new-goal (if main (cadr main) pre-goal))
                    (new-asms (if main (caddr main) pre-asms)))
-              (loop (cdr gs) new-goal new-asms (cons row rows)))))
+              (loop (cdr gs) new-goal new-asms new-indvar (cdr hdr+phase)
+                    (cons row rows)))))
       (list "\\end{itemize}\n\\hfill$\\blacksquare$\n\\end{document}\n")))))
 
 (define (write-proof-reader name path)
