@@ -464,6 +464,17 @@
     ;; (view-proof-pdf name)).  Needs tex-output (expr->tex) + the replay
     ;; machinery in interactive.scm.
     "proof-tex"
+    ;; Reader mode: a human-level collapse of a proof ((proof-reader name) /
+    ;; (write-proof-reader name path) / (view-proof-reader-pdf name)).  Folds
+    ;; di/ai runs into the opening and collapses typing/bookkeeping fact-runs;
+    ;; shows only content steps with original step-number margins.  Needs proof-tex.
+    "proof-reader"
+    ;; Centre-extraction lemma (compact => totally bounded, calculus.pdf Prop 3.12):
+    ;; chosen-centre-is-centre + finite-ball-subcover-r-net.  Needs compactness
+    ;; (support lemmas) + proof-tex (fbsr-eig uses proof-tex--focus-asms to capture
+    ;; eigenvars counter-independently).  In the suite so accessor/eigenvar drift is
+    ;; caught -- it silently rotted while standalone (X->PTS + fresh-counter drift).
+    "calculus/finite-ball-subcover-proof"
     ;; Assumption-pattern scanner for forward-move discovery
     ;; (used by Emacs vnb-suggest-forward-moves).
     "suggest"
