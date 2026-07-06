@@ -427,6 +427,11 @@
     ;; normal-form reduction (Prop 3.36) -- what shrinks a pivot below the running
     ;; minimum.  From gauge-is-degree (euclidean-ring.scm) + HAS-DIV-REMAINDER unfold.
     "theorem-library/euclidean-division-proof"
+    ;; Linear algebra Phase B: the column-reduction STEP of the Smith reduction --
+    ;; one elem-g column op puts the euclidean remainder r in the (1,j) slot,
+    ;; shrinking it below the pivot degree (euclidean-division + elem-g-action +
+    ;; comm-ring arithmetic).  Needs elem-actions-proof + euclidean-division-proof.
+    "theorem-library/pivot-col-reduce-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
