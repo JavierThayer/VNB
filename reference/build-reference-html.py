@@ -34,6 +34,7 @@ DOCS = [
     ("Structure notes",    "STRUCTURES.md",       "prose notes on the structure hierarchy"),
     ("Theorems & axioms",  "THEOREMS.md",         "the full installed catalog"),
     ("Definitions",        "DEFINITIONS.md",      "term & predicate definitions"),
+    ("Operators",          "OPERATORS.md",        "the operator census: every head as function / functoid / predicate / primitive"),
     ("Functoids",          "FUNCTORS.md",         "structure-to-structure constructions"),
     ("Proof Support Set",  "PSS.md",              "theorems excused from the VNB test, accepted on a warrant"),
     ("By operator",        "BY-OPERATOR.md",      "results indexed by the operator they mention"),
