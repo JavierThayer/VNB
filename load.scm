@@ -432,6 +432,11 @@
     ;; shrinking it below the pivot degree (euclidean-division + elem-g-action +
     ;; comm-ring arithmetic).  Needs elem-actions-proof + euclidean-division-proof.
     "theorem-library/pivot-col-reduce-proof"
+    ;; Linear algebra Phase B: the ROW-reduction step (mirror of pivot-col-reduce
+    ;; via elem-g-row-action) -- one row op puts the euclidean remainder in the
+    ;; (i,1) slot, clearing the first column.  Needs elem-row-actions-proof +
+    ;; euclidean-division-proof.
+    "theorem-library/pivot-row-reduce-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
