@@ -230,6 +230,9 @@
     ;; Elementary matrices: matrix units + the column-shift lemma (ch.3 Def 3.2-3.7,
     ;; Lemma 3.3), foundation of the elementary-operation theory over a comm. ring.
     "structure-library/elementary-matrix"
+    ;; The matrix equivalence relation ~ (Def 3.33 / Remark 3.35): C ~ D iff
+    ;; D = U.C.V for invertible U,V.  Basis of the Smith normal-form theory.
+    "structure-library/mat-equiv"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
     ;; Reclassify hand-written defining iffs (property/class/membership defs)
@@ -437,6 +440,12 @@
     ;; (i,1) slot, clearing the first column.  Needs elem-row-actions-proof +
     ;; euclidean-division-proof.
     "theorem-library/pivot-row-reduce-proof"
+    ;; Linear algebra Phase B infrastructure: the basic laws of the matrix
+    ;; equivalence relation ~ (mat-equiv.scm) -- reflexivity, mult by an invertible
+    ;; preserves ~, and the elementary swap ELEM-F is invertible (Cor 3.6).  The
+    ;; foundation for the Smith normal-form induction.  Needs mat-equiv.scm +
+    ;; elem-inverses-proof + matrix.scm identities.
+    "theorem-library/mat-equiv-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
