@@ -64,3 +64,22 @@
 (warrant! 'entry-of-submat 'reference
   "SUBMAT(P,p,q)_{ij} = P_{succ i, succ j} for i in [1,p], j in [1,q]
    (entry-of-matof on the block tabulator, beta-reduced).")
+
+;;; -----------------------------------------------------------------------
+;;; min-degree-entry: a matrix with a nonzero entry HAS a nonzero entry of
+;;; MINIMAL degree -- the "mu is achieved" fact that starts the Smith reduction
+;;; (Prop 3.36): pick a nonzero pivot of least Euclidean degree, then division-
+;;; with-remainder can only shrink it, forcing termination.  A direct application
+;;; of the PROVEN well-ordering nn-least-element: the set
+;;;   T = { d in NN : some nonzero entry P_ij has (GAUGE A)(P_ij) = d }
+;;; is a nonempty subset of NN (nonempty by the hypothesis; a subset of NN since
+;;; GAUGE(A) maps CARR A -> NN by gauge-is-degree), so nn-least-element gives a
+;;; least degree d0, and its witnessing position (i*,j*) is the minimizer.
+;;; Warranted 'well-known (the math is entirely in nn-least-element, which is
+;;; machine-proven in theorem-library/nn-least-element.scm); QED route above.
+(support 'min-degree-entry
+  '(FORALL A (IMPLIES (IS-EUCLIDEAN-RING A) (FORALL m (FORALL n (FORALL P (IMPLIES (IN P (MAT m n (CARR A))) (IMPLIES (FORSOME i0 (FORSOME j0 (AND (IN i0 (INTERVAL 1 m)) (AND (IN j0 (INTERVAL 1 n)) (NOT (= (ENTRY P i0 j0) (ZERO A))))))) (FORSOME iS (FORSOME jS (AND (IN iS (INTERVAL 1 m)) (AND (IN jS (INTERVAL 1 n)) (AND (NOT (= (ENTRY P iS jS) (ZERO A))) (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 m)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (NOT (= (ENTRY P i j) (ZERO A))) (<= ((GAUGE A) (ENTRY P iS jS)) ((GAUGE A) (ENTRY P i j)))))))))))))))))))))
+(warrant! 'min-degree-entry 'well-known
+  "Least-degree nonzero entry exists, by the well-ordering of NN (nn-least-element)
+   applied to the degree set of the nonzero entries.  The Smith reduction's minimal
+   pivot.")
