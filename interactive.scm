@@ -1365,8 +1365,13 @@
   '(SET UNION INTERSECTION COMPLEMENT-IN CARTESIAN FUN INJECTION BIJECTION
     IMAGE SEP COMP BIG-UNION POWER LIST NTH MAKE-SET LENGTH CHOICE IOTA IF
     TUPLES DOM RAN RES PARTIAL-FUN apply-functoid VNB-LAMBDA PAIR EMPTY-SET
-    + - * recip abs conjugate succ exp sin cos sqrt rpow
+    + - * recip abs conjugate succ sqrt rpow
     real-part imag-part magnitude))
+
+;; Genuine set-functions RR -> RR taken as primitive analytic functions of the
+;; numeric base (no library definition, but functions in the strict sense: an
+;; operator f with f in FUN(RR,RR)).  Classified `function', not `primitive'.
+(define *op-function-heads* '(exp sin cos))
 
 ;; Strip leading FORALL/FORSOME/IMPLIES down to the operative core formula.
 (define (op-core f)
@@ -1459,13 +1464,18 @@
              (if (eq? cls 'predicate) "proposition" "term")
              (map car axs))))
     ((eq? kind 'operator)
-     (if (memq name *op-primitive-heads*)
-         (list name 'primitive "kernel term-former" "term" '())
-         (let ((axs (op-char-axioms name)))
-           (if (null? axs)
-               (list name 'undeclared "REGISTERED HEAD, NO DECLARATION" "term" '())
-               (list name 'functoid "characterized by axiom(s)" "term"
-                     (list-head axs (min 8 (length axs))))))))
+     (cond
+       ((memq name *op-function-heads*)
+        (list name 'function "primitive analytic function on RR (numeric base)"
+              "RR -> RR" '()))
+       ((memq name *op-primitive-heads*)
+        (list name 'primitive "kernel term-former" "term" '()))
+       (else
+        (let ((axs (op-char-axioms name)))
+          (if (null? axs)
+              (list name 'undeclared "REGISTERED HEAD, NO DECLARATION" "term" '())
+              (list name 'functoid "characterized by axiom(s)" "term"
+                    (list-head axs (min 8 (length axs)))))))))
     (else
      (list name 'functoid "unknown registry kind" "term" '()))))
 
@@ -1481,6 +1491,7 @@
                                               (symbol->string b)))))
          (records (map (lambda (n) (op-classify n (constant-head? n))) heads))
          (by (lambda (cls) (filter (lambda (r) (eq? (op-record-class r) cls)) records)))
+         (fns    (by 'function))
          (preds  (by 'predicate))
          (funcs  (by 'functoid))
          (prims  (by 'primitive))
@@ -1520,12 +1531,11 @@
         (display "operator head, classified per the VNB taxonomy.\n\n")
         (display "- A **function** is an operator `f` with ")
         (display "`forsome([A in Set, B in Set], f in FUN(A, B))` — a single ")
-        (display "set-to-set map.  Almost no *named head* qualifies: each library ")
+        (display "set-to-set map.  Few *named heads* qualify: each library ")
         (display "constructor takes a structure/class argument, so its domain is ")
-        (display "a proper class.  (The numeric formers `exp`/`sin`/`cos`/… are ")
-        (display "genuine set-functions on `RR`, but are taken as **primitive** ")
-        (display "here — part of the numeric base, not library definitions.)  ")
-        (display "Otherwise functions are TERMS (elements of `FUN(A,B)`), ")
+        (display "a proper class.  The base analytic functions `exp`/`sin`/`cos` ")
+        (display "(genuine `RR -> RR` maps) are the exceptions — see **Functions** ")
+        (display "below.  Otherwise functions are TERMS (elements of `FUN(A,B)`), ")
         (display "usually the value of a functoid.\n")
         (display "- A **functoid** is a term-valued operator that is not a ")
         (display "function.  Its value may itself be a function — then it is ")
@@ -1536,6 +1546,7 @@
         (display "Every operator must be declared (a def-form, a recursion, or a ")
         (display "characterizing axiom).  An **undeclared** head is a defect.\n\n")
         (display (length records)) (display " operators: ")
+        (display (length fns))    (display " functions, ")
         (display (length funcs))  (display " functoids, ")
         (display (length preds))  (display " predicates, ")
         (display (length prims))  (display " primitives, ")
@@ -1544,6 +1555,13 @@
           (display "> **⚠ Undeclared heads (mushrooms):** ")
           (for-each (lambda (r) (display "`") (display (car r)) (display "` ")) undecl)
           (display "— registered and usable but backed by no def or axiom.\n\n"))
+        (emit-section "Functions"
+          (string-append
+           "Operators `f` with `f in FUN(A,B)` for sets A,B — genuine set-to-set "
+           "maps.  Here the base analytic functions on `RR`, taken as primitive "
+           "(no library definition, but functions in the strict sense).  Every "
+           "other named head is a functoid, predicate, or primitive.")
+          fns)
         (emit-section "Functoids"
           (string-append
            "Term-valued operators over a class domain.  Sub-labelled by how they "
@@ -1569,12 +1587,13 @@
              "axiom.  Each is a defect: declare it or retire the head.")
             undecl))))
     (display ";; operators: ") (display (length records))
-    (display " (") (display (length funcs)) (display " functoids, ")
+    (display " (") (display (length fns)) (display " functions, ")
+    (display (length funcs)) (display " functoids, ")
     (display (length preds)) (display " predicates, ")
     (display (length prims)) (display " primitives, ")
     (display (length undecl)) (display " undeclared) -> ")
     (display path) (newline)
-    (list path (length preds) (length funcs) (length prims) (length undecl))))
+    (list path (length fns) (length preds) (length funcs) (length prims) (length undecl))))
 
 (define (catalog)
   (let* (;; Drop the auto-installed `-rev' companions (same fact, flipped) -- they
