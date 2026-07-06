@@ -416,6 +416,12 @@
     ;; matrices are invertible with elementary inverses (F^-1=F[l,k], G[r]^-1=G[-r],
     ;; H[r]^-1=H[r^-1]).  matrix-entry-extensionality + the Prop 3.5 actions.
     "theorem-library/elem-inverses-proof"
+    ;; Linear algebra Phase B: Prop 3.29 (row form), the ROW operations = the action
+    ;; of the elementary matrices by LEFT-multiplication (F swaps rows, G adds a row
+    ;; multiple, H scales a row).  Left-mult mirror of elem-actions-proof; prerequisite
+    ;; for Smith/normal-form reduction (Prop 3.36).  Needs elementary-matrix.scm row
+    ;; read-offs (elem-{f,g,h}-r*).
+    "theorem-library/elem-row-actions-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

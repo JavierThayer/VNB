@@ -350,6 +350,66 @@
 (warrant! 'elem-h-entry-diag 'reference
   "H[r,k]_{cc} = r if c=k else 1 (entry-of-elem-h with the (c=c) conjunct true).")
 
+;;; ---------------------------------------------------------------------
+;;; ROW entry read-offs (Brick 5 support): (ENTRY (ELEM-x A n ...) i j), row i
+;;; fixed by a case hypothesis, j the sum var -- the left-mult analogues of the
+;;; column read-offs above.  entry-of-elem-x + IF/AND/OR reduction; warrant 'reference.
+;; ELEM-F rows (symmetric transposition): row k supported at col l, row l at col k, row i at col i.
+(support 'elem-f-rk-off
+  '(FORALL A (FORALL n (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (= i k) (IMPLIES (NOT (= k l)) (IMPLIES (NOT (= j l)) (= (ENTRY (ELEM-F A n k l) i j) (ZERO A))))))))))))))
+(warrant! 'elem-f-rk-off 'reference "F[k,l]_{ij} = 0 for i=k, j/=l.")
+
+(support 'elem-f-rk-at
+  '(FORALL A (FORALL n (FORALL k (FORALL l (FORALL i (IMPLIES (= i k) (IMPLIES (NOT (= k l)) (= (ENTRY (ELEM-F A n k l) i l) (ONE A))))))))))
+(warrant! 'elem-f-rk-at 'reference "F[k,l]_{il} = 1 for i=k.")
+
+(support 'elem-f-rl-off
+  '(FORALL A (FORALL n (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (= i l) (IMPLIES (NOT (= k l)) (IMPLIES (NOT (= j k)) (= (ENTRY (ELEM-F A n k l) i j) (ZERO A))))))))))))))
+(warrant! 'elem-f-rl-off 'reference "F[k,l]_{ij} = 0 for i=l, j/=k.")
+
+(support 'elem-f-rl-at
+  '(FORALL A (FORALL n (FORALL k (FORALL l (FORALL i (IMPLIES (= i l) (IMPLIES (NOT (= k l)) (= (ENTRY (ELEM-F A n k l) i k) (ONE A))))))))))
+(warrant! 'elem-f-rl-at 'reference "F[k,l]_{ik} = 1 for i=l.")
+
+(support 'elem-f-ro-off
+  '(FORALL A (FORALL n (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (NOT (= i k)) (IMPLIES (NOT (= i l)) (IMPLIES (NOT (= j i)) (= (ENTRY (ELEM-F A n k l) i j) (ZERO A))))))))))))))
+(warrant! 'elem-f-ro-off 'reference "F[k,l]_{ij} = 0 for i/=k, i/=l, j/=i.")
+
+(support 'elem-f-ro-at
+  '(FORALL A (FORALL n (FORALL k (FORALL l (FORALL i (IMPLIES (NOT (= i k)) (IMPLIES (NOT (= i l)) (= (ENTRY (ELEM-F A n k l) i i) (ONE A))))))))))
+(warrant! 'elem-f-ro-at 'reference "F[k,l]_{ii} = 1 for i/=k, i/=l.")
+
+;; ELEM-G rows: row k has two supports (col k val 1, col l val r); other rows are identity.
+(support 'elem-g-rk-vanish
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (= i k) (IMPLIES (NOT (= j k)) (IMPLIES (NOT (= j l)) (= (ENTRY (ELEM-G A n r k l) i j) (ZERO A)))))))))))))))
+(warrant! 'elem-g-rk-vanish 'reference "G[r,k,l]_{ij} = 0 for i=k, j/=k, j/=l.")
+
+(support 'elem-g-rk-at-k
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL l (FORALL i (IMPLIES (= i k) (= (ENTRY (ELEM-G A n r k l) i k) (ONE A))))))))))
+(warrant! 'elem-g-rk-at-k 'reference "G[r,k,l]_{ik} = 1 for i=k (diagonal).")
+
+(support 'elem-g-rk-at-l
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL l (FORALL i (IMPLIES (= i k) (IMPLIES (NOT (= k l)) (= (ENTRY (ELEM-G A n r k l) i l) r))))))))))
+(warrant! 'elem-g-rk-at-l 'reference "G[r,k,l]_{il} = r for i=k (the E[k,l] entry).")
+
+(support 'elem-g-ro-off
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (NOT (= i k)) (IMPLIES (NOT (= j i)) (= (ENTRY (ELEM-G A n r k l) i j) (ZERO A))))))))))))))
+(warrant! 'elem-g-ro-off 'reference "G[r,k,l]_{ij} = 0 for i/=k, j/=i (identity row).")
+
+(support 'elem-g-ro-at
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL l (FORALL i (IMPLIES (NOT (= i k)) (= (ENTRY (ELEM-G A n r k l) i i) (ONE A))))))))))
+(warrant! 'elem-g-ro-at 'reference "G[r,k,l]_{ii} = 1 for i/=k (identity row diagonal).")
+
+;; ELEM-H rows (diagonal): off diagonal 0, on it r (at k) or 1.
+(support 'elem-h-ro-off
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (NOT (= j i)) (= (ENTRY (ELEM-H A n r k) i j) (ZERO A))))))))))))
+(warrant! 'elem-h-ro-off 'reference "H[r,k]_{ij} = 0 for j/=i (off diagonal).")
+
+(support 'elem-h-ro-at
+  '(FORALL A (FORALL n (FORALL r (FORALL k (FORALL i (IMPLIES (IN i (INTERVAL 1 n)) (= (ENTRY (ELEM-H A n r k) i i) (IF (= i k) r (ONE A))))))))))
+(warrant! 'elem-h-ro-at 'reference "H[r,k]_{ii} = r if i=k else 1 (diagonal).")
+
+
 ;;; =====================================================================
 ;;; Brick 3 -- Prop 3.5: the ACTION of the elementary column matrices.  For an
 ;;; m-by-n matrix P over a ring A, right-multiplication P.(ELEM-x) is the
@@ -409,58 +469,11 @@
 ;;; NOT symmetric, so its row (i=k) has supports at j=k (value 1) and j=l (value
 ;;; r) -- a finsum-two-support, mirroring the column proof's c=l case.
 ;;;
-;;; STATED here (warrant 'reference), same status Bricks 3-4 first landed in;
-;;; QED route: mirror theorem-library/elem-actions-proof.scm with the elementary
-;;; matrix as the LEFT factor.  NEXT: drive to qed, then the reduction step.
-
-;;; F[k,l] . P  swaps rows k and l of P.
-(support 'elem-f-row-action
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL P (FORALL k (FORALL l
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN k (INTERVAL 1 m))
-       (IMPLIES (IN l (INTERVAL 1 m))
-       (IMPLIES (NOT (= k l))
-       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-       (FORALL c (IMPLIES (IN c (INTERVAL 1 n))
-         (= (ENTRY (MATMUL A (ELEM-F A m k l) P) i c)
-            (IF (= i k) (ENTRY P l c)
-                (IF (= i l) (ENTRY P k c) (ENTRY P i c))))))))))))))))))))
-(warrant! 'elem-f-row-action 'reference
-  "Prop 3.29 (row form): F[k,l].P swaps rows k,l of P.  Left-mult mirror of the
-   proven elem-f-action; each row of F is a unit vector, single-support collapse.")
-
-;;; G[r,k,l] . P  adds r.(row l) to row k  (k/=l).
-(support 'elem-g-row-action
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k (FORALL l
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN r (CARR A))
-       (IMPLIES (IN k (INTERVAL 1 m))
-       (IMPLIES (IN l (INTERVAL 1 m))
-       (IMPLIES (NOT (= k l))
-       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-       (FORALL c (IMPLIES (IN c (INTERVAL 1 n))
-         (= (ENTRY (MATMUL A (ELEM-G A m r k l) P) i c)
-            (IF (= i k)
-                ((ADD A) (ENTRY P k c) ((MUL A) r (ENTRY P l c)))
-                (ENTRY P i c)))))))))))))))))))))
-(warrant! 'elem-g-row-action 'reference
-  "Prop 3.29 (row form): G[r,k,l].P adds r.(row l) to row k.  Left-mult mirror of
-   elem-g-action; the i=k row of G has two supports (j=k val 1, j=l val r) ->
-   finsum-two-support, k/=l.")
-
-;;; H[r,k] . P  scales row k of P by r.
-(support 'elem-h-row-action
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN r (CARR A))
-       (IMPLIES (IN k (INTERVAL 1 m))
-       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-       (FORALL c (IMPLIES (IN c (INTERVAL 1 n))
-         (= (ENTRY (MATMUL A (ELEM-H A m r k) P) i c)
-            (IF (= i k) ((MUL A) r (ENTRY P k c)) (ENTRY P i c))))))))))))))))))
-(warrant! 'elem-h-row-action 'reference
-  "Prop 3.29 (row form): H[r,k].P scales row k by r.  Left-mult mirror of
-   elem-h-action; H is diagonal (symmetric), single-support collapse at j=i.")
+;;; The row-action THEOREMS themselves --
+;;;   elem-f-row-action : F[k,l].P swaps rows k,l of P;
+;;;   elem-g-row-action : G[r,k,l].P adds r.(row l) to row k (k/=l);
+;;;   elem-h-row-action : H[r,k].P scales row k of P by r --
+;;; are PROVEN to qed in theorem-library/elem-row-actions-proof.scm (trust: none),
+;;; mirroring theorem-library/elem-actions-proof.scm with the elementary matrix as
+;;; the LEFT factor.  The row read-offs above (elem-{f,g,h}-r*) are the support
+;;; those proofs cite.
