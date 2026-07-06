@@ -422,6 +422,11 @@
     ;; for Smith/normal-form reduction (Prop 3.36).  Needs elementary-matrix.scm row
     ;; read-offs (elem-{f,g,h}-r*).
     "theorem-library/elem-row-actions-proof"
+    ;; Linear algebra Phase B: division-with-remainder over a euclidean ring in
+    ;; usable form (euclidean-division), the ring-theoretic core of the Smith/
+    ;; normal-form reduction (Prop 3.36) -- what shrinks a pivot below the running
+    ;; minimum.  From gauge-is-degree (euclidean-ring.scm) + HAS-DIV-REMAINDER unfold.
+    "theorem-library/euclidean-division-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
