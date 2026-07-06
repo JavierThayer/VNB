@@ -64,3 +64,42 @@
   "Composition of continuous: given eps, the g-at-f(a) delta feeds the f-at-a
    delta; (g o f)(x) = g(f(x)) stays within eps of g(f(a)).")
 (category! 'compose-continuous-at 'topology)
+
+;;; Difference of two maps continuous at a is continuous at a (sum with -h).
+(support 'sub-continuous-at
+  '(FORALL g (FORALL h (FORALL a (IMPLIES
+     (IS-CONTINUOUS-AT RR-MS RR-MS g a)
+     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
+     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x (- (g x) (h x))) a)))))))
+(warrant! 'sub-continuous-at 'well-known
+  "Difference of continuous is continuous: (g-h)(x) = g(x) + (-1)*h(x); the eps/2
+   split for sum-continuous-at, negation being an isometry of RR.")
+(category! 'sub-continuous-at 'analysis)
+
+;;; Continuity is a property of the point-values: if f agrees with a map g that
+;;; is continuous at a, at every point, then f is continuous at a.  (The transfer
+;;; that lets a proof establish continuity of the tidy algebraic representative
+;;; and carry it back to the function actually in hand -- e.g. diff-implies-
+;;; continuous, where f equals f(a)+phi(x)(x-a) pointwise.)
+(support 'cont-transfer-ptwise-eq
+  '(FORALL f (FORALL g (FORALL a (IMPLIES
+     (IN f (FUN RR RR))
+     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g a)
+     (IMPLIES (FORALL x (IMPLIES (IN x RR) (= (f x) (g x))))
+              (IS-CONTINUOUS-AT RR-MS RR-MS f a))))))))
+(warrant! 'cont-transfer-ptwise-eq 'well-known
+  "f = g pointwise and g continuous at a => f continuous at a: continuity reads
+   only the values, and d(f(x),f(a)) = d(g(x),g(a)) at every x, so the same delta
+   works.")
+(category! 'cont-transfer-ptwise-eq 'analysis)
+
+;;; Two maps continuous at a that agree at every OTHER point agree at a as well.
+;;; (a is a limit point of RR, so the value at a is forced by the punctured
+;;; values; the crux of uniqueness of the Caratheodory factor, hence of DERIV.)
+(support 'cont-agree-off-pt
+  '(FORALL fa (FORALL fb (FORALL pt (IMPLIES (IN pt RR) (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS fa pt) (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS fb pt) (IMPLIES (FORALL x (IMPLIES (IN x RR) (IMPLIES (NOT (= x pt)) (= (fa x) (fb x))))) (= (fa pt) (fb pt))))))))))
+(warrant! 'cont-agree-off-pt 'well-known
+  "fa, fb continuous at pt and fa(x)=fb(x) for all x/=pt => fa(pt)=fb(pt).  pt is
+   a limit point of RR (no isolated points), so both values are the common limit
+   of the punctured values; take x -> pt.")
+(category! 'cont-agree-off-pt 'analysis)

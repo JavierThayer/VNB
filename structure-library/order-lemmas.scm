@@ -223,3 +223,36 @@
 (support 'rr-neg-eq-zero
   '(FORALL u (IMPLIES (IN u RR) (IMPLIES (= (- u) 0) (= u 0)))))
 (warrant! 'rr-neg-eq-zero 'well-known "-u=0 => u=0.")
+
+;;; --------------------------------------------------------------------
+;;; Equality glue (symmetry / transitivity of the partial =) and the two RR
+;;; arithmetic facts an eps-free cancellation argument needs (right cancellation,
+;;; subtraction closure + its nonzero-difference companion).  All one-liners of
+;;; the field axioms; named so a forward `fact' chains them (uniqueness of the
+;;; Caratheodory derivative factor, differentiation.scm, is the first customer).
+(support 'eq-sym
+  '(FORALL a (FORALL b (IMPLIES (= a b) (= b a)))))
+(warrant! 'eq-sym 'well-known "Symmetry of (partial) equality.")
+(category! 'eq-sym 'plumbing)
+
+(support 'eq-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (= b c) (= a c)))))))
+(warrant! 'eq-trans 'well-known "Transitivity of (partial) equality.")
+(category! 'eq-trans 'plumbing)
+
+(support 'rr-cancel-mul-right
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (FORALL c (IMPLIES (IN c RR) (IMPLIES (NOT (= c 0)) (IMPLIES (= (* u c) (* v c)) (= u v))))))))))
+(warrant! 'rr-cancel-mul-right 'well-known
+  "u*c=v*c with c/=0 gives u=v (multiply by 1/c).  The right-factor companion of
+   rr-cancel-mul-left (taylor-proof.scm).")
+(category! 'rr-cancel-mul-right 'algebra)
+
+(support 'rr-sub-in-rr
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IN (- u v) RR))))))
+(warrant! 'rr-sub-in-rr 'well-known "RR is closed under subtraction.")
+(category! 'rr-sub-in-rr 'plumbing)
+
+(support 'rr-sub-ne-zero
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IMPLIES (NOT (= u v)) (NOT (= (- u v) 0))))))))
+(warrant! 'rr-sub-ne-zero 'well-known "u/=v => u-v/=0.")
+(category! 'rr-sub-ne-zero 'inequalities)

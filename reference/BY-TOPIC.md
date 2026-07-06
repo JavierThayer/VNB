@@ -15,8 +15,8 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 
 ### Differentiation rules
 
-- `derivative-unique` — forall([f, a, l, m], is-diff-at(f, a, l) and is-diff-at(f, a, m) implies l = m)  _[warrant: well-known]_  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
-- `diff-implies-continuous` — forall([f, a, l], is-diff-at(f, a, l) implies is-continuous-at(rr-ms, rr-ms, f, a))  _[warrant: reference]_  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
+- `derivative-unique` — forall([f, a, l, m], is-diff-at(f, a, l) and is-diff-at(f, a, m) implies l = m)  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
+- `diff-implies-continuous` — forall([f, a, l], is-diff-at(f, a, l) implies is-continuous-at(rr-ms, rr-ms, f, a))  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
 - `deriv-const` — forall([c, a], c in rr and a in rr implies is-diff-at(vnb-lambda(x, c), a, 0))  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
 - `deriv-identity` — forall([a in rr], is-diff-at(vnb-lambda(x, x), a, 1))  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
 - `deriv-sum` — forall([f, g, a, l, m], is-diff-at(f, a, l) and is-diff-at(g, a, m) implies is-diff-at(vnb-lambda(x, f(x) + g(x)), a, l + m))  _[warrant: reference]_  see [~/prover/theorem-library/differentiation.scm](../theorem-library/differentiation.scm)
@@ -76,6 +76,13 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 - `extends-on` — forall([s, g, f], extends-on(s, g, f) iff forall([x_ in s], g(x_) = f(x_)))  see [~/prover/structure-library/linear-functional.scm](../structure-library/linear-functional.scm)
 - `npe` — forall([m, s, f, t, g], npe(m, s, f, t, g) iff is-submodule(m, t) and s subset t and is-linear-functional-on(m, t, g) and extends-on(s, g, f) and forall([w_ in t], abs(g(w_)) <= dual-norm-on(m, s, f) * (vnrm(m))(w_)))  see [~/prover/theorem-library/noetherian-maximal-proof.scm](../theorem-library/noetherian-maximal-proof.scm)
 - `good-sub` — forall([m, s, f, t], good-sub(m, s, f, t) iff forsome([g_], npe(m, s, f, t, g_)))  see [~/prover/theorem-library/noetherian-maximal-proof.scm](../theorem-library/noetherian-maximal-proof.scm)
+- `line` — _(definition / vocabulary)_
+- `nvs-metric-space` — _(definition / vocabulary)_
+- `is-diff-at-v` — forall([m, f, a, l], is-diff-at-v(m, f, a, l) iff is-normed-vector-space(m) and f in fun(rr, vec(m)) and a in rr and l in vec(m) and forsome([phi in fun(rr, vec(m))], is-continuous-at(rr-ms, nvs-metric-space(m), phi, a) and phi(a) = l and forall([x_ in rr], (vadd(m))(f(x_), (vneg(m))(f(a))) = (act(m))(x_ - a, phi(x_)))))  see [~/prover/theorem-library/vector-taylor-proof.scm](../theorem-library/vector-taylor-proof.scm)
+- `deriv-v` — _(definition / vocabulary)_
+- `nth-deriv-v` — _(definition / vocabulary)_
+- `taylor-poly-v` — _(definition / vocabulary)_
+- `taylor-differentiable-v` — forall([m, f, a, x, n], taylor-differentiable-v(m, f, a, x, n) iff forall([k], k in nn and k <= n implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, nvs-metric-space(m), nth-deriv-v(m, f, k), t))) and forall([k], k in nn and k <= n implies forall([t], a < t and t < x implies is-diff-at-v(m, nth-deriv-v(m, f, k), t, (nth-deriv-v(m, f, succ(k)))(t)))))  see [~/prover/theorem-library/vector-taylor-proof.scm](../theorem-library/vector-taylor-proof.scm)
 
 ### Finite-dimensional spaces (noetherian / ascending chain condition)
 
@@ -87,6 +94,91 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 - `hahn-banach-extend-one` — forall([m, s, f, v], is-normed-vector-space(m) and is-submodule(m, s) and is-bounded-linear-functional-on(m, s, f) and v in vec(m) and not(v in s) implies forsome([g_], is-linear-functional-on(m, span-add-one(m, s, v), g_) and extends-on(s, g_, f) and forall([w_ in span-add-one(m, s, v)], abs(g_(w_)) <= dual-norm-on(m, s, f) * (vnrm(m))(w_))))  see [~/prover/theorem-library/hahn-banach-proof.scm](../theorem-library/hahn-banach-proof.scm)
 - `good-step` — forall([m, s, f, t, x], is-normed-vector-space(m) and is-bounded-linear-functional-on(m, s, f) and good-sub(m, s, f, t) and x in vec(m) and not(x in t) implies good-sub(m, s, f, span-add-one(m, t, x)))  see [~/prover/theorem-library/hahn-banach-full-proof.scm](../theorem-library/hahn-banach-full-proof.scm)
 - `hahn-banach` — forall([m, s, f], is-normed-vector-space(m) and is-finite-dimensional(m) and is-submodule(m, s) and is-bounded-linear-functional-on(m, s, f) implies forsome([g_], is-linear-functional-on(m, vec(m), g_) and extends-on(s, g_, f) and forall([w_ in vec(m)], abs(g_(w_)) <= dual-norm-on(m, s, f) * (vnrm(m))(w_))))  see [~/prover/theorem-library/hahn-banach-full-proof.scm](../theorem-library/hahn-banach-full-proof.scm)
+
+### The norm as a supremum of functionals
+
+- `norm-bounded-by-functionals` — forall([m, f, x], is-normed-vector-space(m) and is-bounded-linear-functional(m, f) and x in vec(m) and dual-norm(m, f) <= 1 implies abs(f(x)) <= (vnrm(m))(x))  see [~/prover/theorem-library/norm-as-sup-proof.scm](../theorem-library/norm-as-sup-proof.scm)
+- `norm-attained-by-functional` — forall([m, x], is-normed-vector-space(m) and is-finite-dimensional(m) and x in vec(m) implies forsome([g], is-bounded-linear-functional(m, g) and dual-norm(m, g) <= 1 and g(x) = (vnrm(m))(x)))  see [~/prover/theorem-library/norm-as-sup-proof.scm](../theorem-library/norm-as-sup-proof.scm)
+- `norm-as-sup` — forall([m, x], is-normed-vector-space(m) and is-finite-dimensional(m) and x in vec(m) implies forall([f], is-bounded-linear-functional(m, f) implies dual-norm(m, f) <= 1 implies abs(f(x)) <= (vnrm(m))(x)) and forall([d], d in rr and forall([f], is-bounded-linear-functional(m, f) implies dual-norm(m, f) <= 1 implies abs(f(x)) <= d) implies (vnrm(m))(x) <= d))  see [~/prover/theorem-library/norm-as-sup-proof.scm](../theorem-library/norm-as-sup-proof.scm)
+
+### Vector-valued Taylor (remainder-norm bound, reduced to scalar)
+
+- `vector-taylor-remainder-bound` — forall([m, f, a, x, n], is-normed-vector-space(m) and is-finite-dimensional(m) and f in fun(rr, vec(m)) and a in rr and x in rr and n in nn and a < x implies taylor-differentiable-v(m, f, a, x, n) implies forsome([theta], a < theta and theta < x and factorial(succ(n)) * (vnrm(m))((vadd(m))(f(x), (vneg(m))(taylor-poly-v(m, f, a, x, n)))) <= (vnrm(m))((nth-deriv-v(m, f, succ(n)))(theta)) * (x - a) ^ succ(n)))  see [~/prover/theorem-library/vector-taylor-proof.scm](../theorem-library/vector-taylor-proof.scm)
+
+## Linear algebra
+
+### Vocabulary
+
+- `mat` — _(definition / vocabulary)_
+- `entry` — _(definition / vocabulary)_
+- `matof` — _(definition / vocabulary)_
+- `matmul` — _(definition / vocabulary)_
+- `identmat` — _(definition / vocabulary)_
+- `zeromat` — _(definition / vocabulary)_
+- `matadd` — _(definition / vocabulary)_
+- `matneg` — _(definition / vocabulary)_
+- `mat-ring` — _(definition / vocabulary)_
+- `matunit` — _(definition / vocabulary)_
+- `elem-f` — _(definition / vocabulary)_
+- `elem-g` — _(definition / vocabulary)_
+- `elem-h` — _(definition / vocabulary)_
+- `interval` — _(definition / vocabulary)_
+
+### The matrix ring
+
+- `matmul-assoc` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies matmul(a, matmul(a, p, q), r) = matmul(a, p, matmul(a, q, r))))  see [~/prover/theorem-library/matmul-assoc-proof.scm](../theorem-library/matmul-assoc-proof.scm)
+- `mat-ring-is-ring` — forall([a], is-ring(a) implies forall([n in nn], is-ring(mat-ring(a, n))))  see [~/prover/theorem-library/mat-ring-proof.scm](../theorem-library/mat-ring-proof.scm)
+
+### The matrix unit and its column shift (Lemma 3.3)
+
+- `matunit-col-shift` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))  see [~/prover/theorem-library/matunit-shift-proof.scm](../theorem-library/matunit-shift-proof.scm)
+
+### Elementary column operations (Prop 3.5)
+
+- `elem-f-action` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-f(a, n, k, l)), i, c) = if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c))))))  see [~/prover/theorem-library/elem-actions-proof.scm](../theorem-library/elem-actions-proof.scm)
+- `elem-g-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k, l], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-g(a, n, r, k, l)), i, c) = if(c = l, (add(a))(entry(p, i, l), (mul(a))(entry(p, i, k), r)), entry(p, i, c)))))  see [~/prover/theorem-library/elem-actions-proof.scm](../theorem-library/elem-actions-proof.scm)
+- `elem-h-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-h(a, n, r, k)), i, c) = if(c = k, (mul(a))(entry(p, i, k), r), entry(p, i, c)))))  see [~/prover/theorem-library/elem-actions-proof.scm](../theorem-library/elem-actions-proof.scm)
+
+### Elementary inverses (Cor 3.6)
+
+- `elem-f-inverse` — forall([a], is-ring(a) implies forall([n, k, l], k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies matmul(a, elem-f(a, n, k, l), elem-f(a, n, l, k)) = identmat(a, n)))  see [~/prover/theorem-library/elem-inverses-proof.scm](../theorem-library/elem-inverses-proof.scm)
+- `elem-g-inverse` — forall([a], is-ring(a) implies forall([n, r, k, l], r in carr(a) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies matmul(a, elem-g(a, n, r, k, l), elem-g(a, n, (neg(a))(r), k, l)) = identmat(a, n)))  see [~/prover/theorem-library/elem-inverses-proof.scm](../theorem-library/elem-inverses-proof.scm)
+- `elem-h-inverse` — forall([a], is-ring(a) implies forall([n, r, s, k], r in carr(a) implies s in carr(a) implies (mul(a))(r, s) = one(a) implies k in interval(1, n) implies matmul(a, elem-h(a, n, r, k), elem-h(a, n, s, k)) = identmat(a, n)))  see [~/prover/theorem-library/elem-inverses-proof.scm](../theorem-library/elem-inverses-proof.scm)
+
+### The binomial theorem
+
+- `sum-expansion` — forall([n in nn, r], is-commutative-ring(r) implies forall([x in carr(r), y in carr(r), g in fun(zz, carr(r))], sum(r, vnb-lambda(k, (add(r))((mul(r))(x, g(k - 1)), (mul(r))(y, g(k)))), succ(n)) = (add(r))((add(r))((mul(r))((add(r))(x, y), sum(r, g, n)), (mul(r))(x, g(0 - 1))), (mul(r))(y, g(n)))))  see [~/prover/theorem-library/binomial-proof.scm](../theorem-library/binomial-proof.scm)
+- `binomial-theorem` — forall([n in nn, r], is-commutative-ring(r) implies forall([x in carr(r), y in carr(r)], ring-power(r, (add(r))(x, y), n) = sum(r, comb-kk(r, x, y, n), succ(n))))  see [~/prover/theorem-library/binomial-proof.scm](../theorem-library/binomial-proof.scm)
+
+## Combinatorial
+
+### Vocabulary
+
+- `inf-subsets` — _(definition / vocabulary)_
+- `is-finite-cover` — forall([c, a], is-finite-cover(c, a) iff c in set and card(c) in nn and a subset big-union(u, c, u))  see [~/prover/theorem-library/block-family-combinatorial.scm](../theorem-library/block-family-combinatorial.scm)
+
+### Dependent choice / recursion on NN
+
+- `dc-on-nn` — forall([x in set, a in x, r in set], forall([k in nn, u in x], forsome([y in x], [k, u, y] in r)) implies forsome([f in fun(nn, x)], f(0) = a and forall([k in nn], [k, f(k), f(succ(k))] in r)))  _[warrant: informal]_  see [~/prover/theorem-library/dc-on-nn.scm](../theorem-library/dc-on-nn.scm)
+- `dc-on-nn-pred` — forall([x in set, a in x, nxt], forall([k in nn, u in x], forsome([y in x], y in nxt(k, u))) implies forsome([f in fun(nn, x)], f(0) = a and forall([k in nn], f(succ(k)) in nxt(k, f(k)))))  _[warrant: reference]_  see [~/prover/theorem-library/dc-on-nn.scm](../theorem-library/dc-on-nn.scm)
+
+### Infinite pigeonhole and the block family
+
+- `pigeonhole-infinite` — forall([s], s in set and not(card(s) in nn) implies forall([f], f in set and card(f) in nn implies forall([pi in fun(s, f)], forsome([c in f], not(card({x in s: pi(x) = c}) in nn)))))  _[warrant: informal]_  see [~/prover/theorem-library/pigeonhole.scm](../theorem-library/pigeonhole.scm)
+- `cover-block-step` — forall([v in set, f in fun(nn, v), c], is-finite-cover(c, v) implies forall([j in inf-subsets(nn)], forsome([j_ in inf-subsets(nn)], j_ subset j and forsome([u in c], forall([i in j_], f(i) in u)))))  _[warrant: well-known]_  see [~/prover/theorem-library/block-family-combinatorial.scm](../theorem-library/block-family-combinatorial.scm)
+- `block-family-combinatorial` — forall([v in set, f in fun(nn, v), cov], forall([k in nn], is-finite-cover(cov(k), v)) implies forsome([blk in fun(nn, inf-subsets(nn))], forall([k in nn], blk(succ(k)) subset blk(k)) and forall([k in nn], forsome([u in cov(k)], forall([i in blk(k)], f(i) in u)))))  see [~/prover/theorem-library/block-family-combinatorial-proof.scm](../theorem-library/block-family-combinatorial-proof.scm)
+
+### Diagonalization
+
+- `diagonalization` — forall([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) implies forsome([f], strictly-mono-nn(f) and forall([k in nn, j in nn], k <= j implies f(j) in s(k))))  see [~/prover/theorem-library/diagonalization.scm](../theorem-library/diagonalization.scm)
+- `nn-step-strictly-mono` — forall([g in fun(nn, nn)], forall([k in nn], g(k) < g(succ(k))) implies strictly-mono-nn(g))  _[warrant: well-known]_  see [~/prover/theorem-library/diagonalization-lemmas.scm](../theorem-library/diagonalization-lemmas.scm)
+- `nn-nested-subset-chain` — forall([t], forall([k in nn], t(succ(k)) subset t(k)) implies forall([k in nn, j in nn], k <= j implies t(j) subset t(k)))  _[warrant: well-known]_  see [~/prover/theorem-library/diagonalization-lemmas.scm](../theorem-library/diagonalization-lemmas.scm)
+- `inf-subset-nn-unbounded` — forall([t in inf-subsets(nn), u in nn], forsome([y in nn], y in t and u < y))  _[warrant: well-known]_  see [~/prover/theorem-library/diagonalization-lemmas.scm](../theorem-library/diagonalization-lemmas.scm)
+
+### Well-ordering of NN
+
+- `well-ordering-principle` — forall([s in set], forsome([phi], phi in bijection(ord-segment(card(s)), s)))  _[warrant: well-known]_  see [~/prover/theorem-library/well-ordering.scm](../theorem-library/well-ordering.scm)
+- `nn-least-element` — forall([t], t subset nn and forsome([n], n in t) implies forsome([m in t], forall([k in t], m <= k)))  see [~/prover/theorem-library/nn-least-element.scm](../theorem-library/nn-least-element.scm)
 
 ## Metric spaces
 

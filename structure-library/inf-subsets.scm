@@ -27,3 +27,11 @@
   '(FORALL A
      (IMPLIES (IN A SET)
        (IN (INF-SUBSETS A) SET))))
+
+;;; nn-in-inf-subsets: NN is an infinite subset of itself.  NN subset NN
+;;; (reflexive) and CARD(NN) not in NN (NN is infinite).  The base of the
+;;; block-family recursion (blk(0) = NN) and a handy INF-SUBSETS(NN) witness.
+(support 'nn-in-inf-subsets '(IN NN (INF-SUBSETS NN)))
+(warrant! 'nn-in-inf-subsets 'well-known
+  "NN is an infinite subset of NN: NN subset NN and CARD(NN) not in NN.")
+(category! 'nn-in-inf-subsets 'plumbing)

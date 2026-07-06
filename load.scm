@@ -22,6 +22,13 @@
 (define *reference-dir*
   (string-append *prover-dir* "reference/"))
 
+;;; Proof printouts (reader sketches, full step-traces) keep their .tex here,
+;;; IN the source tree so they ride the source tarball -- unlike the PDFs, which
+;;; are regenerable and stay in ~/.cache/vnb/tex/.  A reader must be able to read
+;;; the proof output after unpacking without a running prover.
+(define *printouts-dir*
+  (string-append *prover-dir* "printouts/"))
+
 (define *vnb-files*
   '(;; Core kernel
     "errors"
@@ -220,6 +227,9 @@
     "theorem-library/sum-set-right-scalar"
     "theorem-library/finsum-fubini"
     "structure-library/matrix"
+    ;; Elementary matrices: matrix units + the column-shift lemma (ch.3 Def 3.2-3.7,
+    ;; Lemma 3.3), foundation of the elementary-operation theory over a comm. ring.
+    "structure-library/elementary-matrix"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
     ;; Reclassify hand-written defining iffs (property/class/membership defs)
@@ -393,6 +403,19 @@
     ;; matrix.scm's read-offs + matrix-ring axioms.  Needs matrix.scm (loaded
     ;; above) + the tactic surface (interactive, loaded above).
     "theorem-library/mat-ring-proof"
+    ;; Linear algebra: Lemma 3.3 (algebraic-numbers.pdf ch.3), the column-shift
+    ;; formula (P.E[k,l])_{ic} = P_{ik} if c=l else 0 -- matmul-entry expansion +
+    ;; finsum-single-support collapse + EM case-split.  Engine behind Prop 3.5.
+    ;; Needs elementary-matrix.scm (matunit PSS) + matrix.scm read-offs.
+    "theorem-library/matunit-shift-proof"
+    ;; Linear algebra: Prop 3.5 (algebraic-numbers.pdf ch.3), the ACTION of the
+    ;; elementary column matrices (currently elem-h-action; g/f to follow).  Same
+    ;; finsum-collapse shape as matunit-shift-proof.  Needs elementary-matrix.scm.
+    "theorem-library/elem-actions-proof"
+    ;; Linear algebra: Cor 3.6 (algebraic-numbers.pdf ch.3), the elementary column
+    ;; matrices are invertible with elementary inverses (F^-1=F[l,k], G[r]^-1=G[-r],
+    ;; H[r]^-1=H[r^-1]).  matrix-entry-extensionality + the Prop 3.5 actions.
+    "theorem-library/elem-inverses-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

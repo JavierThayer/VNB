@@ -229,9 +229,8 @@
 ;;; (No SUP functoid: the LUB is stated as upper-bound + least, mirroring the
 ;;; body of DUAL-NORM's IOTA.)  Assembles theorems 1 and 2.
 ;;; ====================================================================
-(add-to-pss 'eq-sym '(FORALL a (FORALL b (IMPLIES (= a b) (= b a)))))
-(warrant! 'eq-sym 'well-known "Symmetry of (partial) equality.")
-(category! 'eq-sym 'plumbing)
+;; eq-sym now lives in structure-library/order-lemmas.scm (needed library-wide,
+;; earlier in the load order); used here by the fact-flips below.
 (add-to-pss 'abs-nonneg-le
   '(FORALL a (FORALL c (IMPLIES (IN a RR) (IMPLIES (<= 0 a) (IMPLIES (<= (abs a) c) (<= a c)))))))
 (warrant! 'abs-nonneg-le 'well-known "For a real a >= 0, |a| = a, so |a| <= c gives a <= c.")

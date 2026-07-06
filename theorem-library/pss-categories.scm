@@ -154,6 +154,23 @@
 (category! 'cauchy-schwarz-sqrt 'inequalities)
 (category! 'minkowski-l2 'inequalities)
 (category! 'holder-finite 'inequalities)
+;; order-lemmas.scm sign/difference/negation facts (Caratheodory MVT arc) --
+;; finite order/sign deductions, no completeness.
+(category! 'rr-le-diff-nonpos 'inequalities)
+(category! 'rr-lt-diff-pos 'inequalities)
+(category! 'rr-lt-diff-neg 'inequalities)
+(category! 'rr-prod-nonpos-pos 'inequalities)
+(category! 'rr-prod-nonpos-neg 'inequalities)
+(category! 'rr-le-neg 'inequalities)
+(category! 'rr-neg-eq-zero 'inequalities)
+;; rolle-proof.scm order helpers: trichotomy, betweenness (eps-density), and the
+;; two interior-position facts (a strict extremum above equal endpoints is
+;; interior -- order logic over the function values, not a limit/completeness).
+(category! 'rr-le-cases 'inequalities)
+(category! 'rr-le-ne-lt 'inequalities)
+(category! 'rr-midpoint-between 'inequalities)
+(category! 'max-val-strict-interior 'inequalities)
+(category! 'min-val-strict-interior 'inequalities)
 
 ;;; ===== combinatorial constructions =====
 (category! 'injection-extension-recurrence 'combinatorial)
@@ -164,7 +181,8 @@
 (category! 'choose-succ 'combinatorial)
 (category! 'injection-count-falling 'combinatorial)
 (category! 'choose-times-factorial 'combinatorial)(category! 'cover-block-step 'combinatorial)
-(category! 'block-family-combinatorial 'combinatorial)
+;; block-family-combinatorial is now PROVEN (block-family-combinatorial-proof.scm),
+;; not a support -- no category entry.
 (category! 'tb-has-eps-cauchy-subseq 'combinatorial)
 (category! 'tb-block-step 'combinatorial)
 (category! 'tb-rad-ball-cover 'combinatorial)
@@ -249,6 +267,35 @@
 (category! 'ideal-elt-in-carrier 'algebra)
 (category! 'principal-ideal-in-ideal 'algebra)
 (category! 'euclidean-ideal-has-generator 'algebra)
+;; matrices over a ring (matrix.scm): the tabulation bridge + multiplication.
+(category! 'interval-membership 'plumbing)
+(category! 'interval-in-set 'plumbing)
+(category! 'interval-card 'plumbing)
+(category! 'entry-in-carrier 'plumbing)
+(category! 'matof-in-mat 'plumbing)
+(category! 'entry-of-matof 'plumbing)
+(category! 'matrix-entry-extensionality 'algebra)
+(category! 'matmul-type 'algebra)
+(category! 'matmul-entry 'algebra)
+(category! 'entry-of-identmat 'algebra)
+(category! 'identmat-type 'algebra)
+(category! 'finsum-single-support 'algebra)
+(category! 'ras-carr 'plumbing)
+(category! 'ras-id 'plumbing)
+;; the matrix-ring axioms (obligations toward mat-ring-is-ring)
+(category! 'matadd-type 'algebra)
+(category! 'matneg-type 'algebra)
+(category! 'zeromat-type 'algebra)
+(category! 'matadd-comm 'algebra)
+(category! 'matadd-assoc 'algebra)
+(category! 'matadd-zero-left 'algebra)
+(category! 'matadd-neg-left 'algebra)
+(category! 'matmul-assoc 'algebra)
+(category! 'identmat-left-identity 'algebra)
+(category! 'identmat-right-identity 'algebra)
+(category! 'matmul-left-dist 'algebra)
+(category! 'matmul-right-dist 'algebra)
+(category! 'mat-ring-is-ring 'algebra)
 
 ;;; ===== metric topology & continuity =====
 (category! 'ball-cover-is-open-cover 'topology)

@@ -627,6 +627,23 @@ plain `(di)' on its own still works.  Returns nil inside a string/comment."
                          (error nil))))
            (and start (cons start end))))))))
 
+(defun vnb--reserved-warning-since (buf start)
+  "Return the loud reserved-name (!!!!!) banner emitted in BUF since START, or nil.
+`warn-constant-binders!' (fired by `make-wff' when a bound variable is named
+like a registered constant) prints its banner to the process buffer BEFORE the
+`;Value:' line, so `vnb--extract-value' discards it and the warning never reaches
+the *VNB Commands* sheet.  This recovers the banner lines verbatim so the caller
+can surface them.  Banner lines begin with a run of `!' (the `!!!!!' rows and the
+`bang-line' rules); nothing else the REPL echoes does."
+  (and buf
+       (with-current-buffer buf
+         (let ((raw (buffer-substring-no-properties start (point-max)))
+               (out '()))
+           (dolist (ln (split-string raw "\n"))
+             (when (string-match-p "\\`\\s-*!!" ln)
+               (push ln out)))
+           (when out (mapconcat #'identity (nreverse out) "\n"))))))
+
 (defun vnb-command-eval-print ()
   "Evaluate VNB code and insert the result, like \\[eval-print-last-sexp].
 With an active region, send the region as a block: it is wrapped in
@@ -660,14 +677,21 @@ Point is left after the inserted text."
         (setq expr (vnb--trim (buffer-substring-no-properties (car b) (cdr b)))
               insert-at (cdr b))))
     ;; Suppress show output so a command's state dump does not get captured as
-    ;; its "value"; capture the clean value; restore.
+    ;; its "value"; capture the clean value; restore.  Also recover any loud
+    ;; reserved-name (!!!!!) warning make-wff emits during the eval -- it prints
+    ;; to the process buffer before the ;Value: line, so vnb--extract-value drops
+    ;; it; read it straight from the *VNB* buffer and surface it above the result.
     (vnb-eval-string "(set! *vnb-quiet* #t)")
-    (let ((result (condition-case err
-                      (vnb-eval-string expr)
-                    (error (format "(error: %s)" (error-message-string err))))))
+    (let* ((vbuf   (get-buffer vnb-buffer-name))
+           (vstart (and vbuf (with-current-buffer vbuf (point-max))))
+           (result (condition-case err
+                       (vnb-eval-string expr)
+                     (error (format "(error: %s)" (error-message-string err)))))
+           (warn   (vnb--reserved-warning-since vbuf vstart)))
       (vnb-eval-string "(set! *vnb-quiet* #f)")
       (goto-char insert-at)
       (unless (bolp) (insert "\n"))
+      (when warn (insert warn "\n"))
       (cond
         ;; The form errored: the prover has already been climbed back to top
         ;; level by `vnb-eval-string'; just show the error, do not touch state.

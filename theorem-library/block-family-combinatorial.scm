@@ -102,47 +102,14 @@
 ;;;   dc-on-nn[X := INF-SUBSETS(NN), a := NN, R] yields aux:NN->INF-SUBSETS
 ;;;   (NN), aux(0)=NN, (k, aux k, aux(succ k)) in R;  index-shift
 ;;;   blk := lambda k. aux(succ k) gives nesting + capture verbatim.
-;;; Residual friction is the SAME and ONLY O1 of block-family-rederive: the
-;;; dc-on-nn step is a relation-SET, so R must be built as a COMP of triples
-;;; -- generic plumbing, no mathematics.  The recommended dc-on-nn-pred
-;;; (predicate-stepped recursion) collapses it for this and block-family at
-;;; once.  Asserted during library-build [[feedback-library-axioms-fine]]
-;;; [[feedback-pss-over-proof-slog]].
-(support 'block-family-combinatorial
-  '(FORALL V
-     (IMPLIES (IN V SET)
-       (FORALL f
-         (IMPLIES (IN f (FUN NN V))
-           (FORALL cov
-             (IMPLIES
-               (FORALL k (IMPLIES (IN k NN) (IS-FINITE-COVER (cov k) V)))
-               (FORSOME blk
-                 (AND (IN blk (FUN NN (INF-SUBSETS NN)))
-                 (AND (FORALL k
-                        (IMPLIES (IN k NN) (SUBSET (blk (succ k)) (blk k))))
-                      (FORALL k
-                        (IMPLIES (IN k NN)
-                          (FORSOME U
-                            (AND (IN U (cov k))
-                                 (FORALL i
-                                   (IMPLIES (IN i (blk k))
-                                     (IN (f i) U)))))))))))))))))
-(warrant! 'block-family-combinatorial 'reference
-  "cover-block-step recursed via dc-on-nn.  Step relation R(k,J,J_) = the
-   cover-block-step fibre inside J for cover cov(k); totality IS cover-block-
-   step (cov(k) finite by hypothesis); dc-on-nn builds aux:NN->INF-SUBSETS
-   (NN) with aux(0)=NN and (k,aux k,aux(succ k)) in R; index-shift blk(k):=
-   aux(succ k) gives nesting + single-member capture.  The metric block-
-   family is the instance V:=PTS(s), cov(k):={BALL(s,c,rad k):c in a finite
-   rad(k)-net} (finite + covering by TOTALLY-BOUNDED), where 'U in cov(k)'
-   becomes 'some centre c in PTS(s)'.  Note: rad's positivity/nullity are NOT
-   used here -- they only serve to PRODUCE the finite cover (an r-net needs
-   r>0) and, downstream, the 2r Cauchy estimate.  Derivation and the sole
-   residual (dc-on-nn's relation-set plumbing, O1) in calculus/block-family-
-   rederive.scm; same fix (dc-on-nn-pred) applies.")
+;;; block-family-combinatorial itself -- cover-block-step recursed down the
+;;; sequence of covers -- is now MACHINE-PROVEN to QED in the proof-script
+;;; region: theorem-library/block-family-combinatorial-proof.scm (dc-on-nn-pred
+;;; with step set nxt(k,J) = { J_ in INF-SUBSETS(NN) : J_ subset J and captured
+;;; by cov(k) }; totality is cover-block-step; blk(k) := aux(succ k)).  It loads
+;;; after interactive (needs sp/di) but before cauchy-subseq-proof, which cites
+;;; it.  The statement lives there, at the (sp ...).
 
-;;; ----- Plain-English glosses (PSS review 2026-06-26): 3+-line statements -----
+;;; ----- Plain-English gloss (PSS review 2026-06-26) -----
 (gloss! 'cover-block-step
   "For any set V, a sequence f of elements of V, a finite cover C of V, and an infinite index block J: there is a smaller infinite block J' contained in J and a single cover member U such that all f(i) for i in J' lie in U.  The metric-free single pigeonhole step that block-family-combinatorial iterates.")
-(gloss! 'block-family-combinatorial
-  "For any set V, a sequence f of elements of V, and a sequence cov of finite covers of V (one cover cov(k) per level k): there is a nested tower of infinite index blocks blk(0) >= blk(1) >= ... such that at each level k all f(i) for i in blk(k) lie in a single member of the cover cov(k).  The metric-free combinatorial core that block-family instantiates.")

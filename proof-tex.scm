@@ -298,10 +298,16 @@
 (define proof-tex--preamble
   (string-append
    "\\documentclass[11pt]{article}\n"
-   "\\usepackage{amsmath, amssymb}\n"
+   "\\usepackage[fleqn]{amsmath}\n"       ; left-align displayed equations
+   "\\usepackage{amssymb, amsthm}\n"
    "\\usepackage[utf8]{inputenc}\n"
    "\\usepackage[margin=1in]{geometry}\n"
    "\\usepackage{graphicx}\n"
+   "\\usepackage{enumitem}\n"
+   "\\theoremstyle{plain}\n"
+   "\\newtheorem{proposition}{Proposition}\n"
+   ;; \fit remains for the full-trace step LABELS (proof-tex--row); reader
+   ;; formulas now use displayed equations that wrap via expr->tex-display.
    "\\newcommand{\\fit}[1]{\\resizebox{\\ifdim\\width>\\linewidth\\linewidth\\else\\width\\fi}{!}{#1}}\n"
    "\\setlength{\\parindent}{0pt}\n"
    "\\begin{document}\n"))
@@ -403,18 +409,22 @@
 ;; Best-effort: write to the tex cache, run pdflatex, open the PDF.  Mirrors
 ;; the single-formula View-as-PDF pipeline (cache under ~/.cache/vnb/tex/).
 (define (view-proof-pdf name)
-  (let* ((dir  (string-append (get-environment-variable "HOME") "/.cache/vnb/tex/"))
-         (base (string-append "proof-" (symbol->string name)))
-         (tex  (string-append dir base ".tex")))
-    (ignore-errors (run-shell-command (string-append "mkdir -p " dir)))
+  ;; .tex lives in the source tree (*printouts-dir*) so it ships in the tarball;
+  ;; the PDF + pdflatex aux junk render into the regenerable ~/.cache scratch.
+  ;; load-option MUST precede any run-shell-command: run-shell-command is
+  ;; unassigned until synchronous-subprocess is loaded.
+  (load-option 'synchronous-subprocess)
+  (let* ((cache (string-append (get-environment-variable "HOME") "/.cache/vnb/tex/"))
+         (base  (string-append "proof-" (symbol->string name)))
+         (tex   (string-append *printouts-dir* base ".tex")))
+    (run-shell-command (string-append "mkdir -p " *printouts-dir* " " cache))
     (write-proof-tex name tex)
-    (load-option 'synchronous-subprocess)
     (run-shell-command
-     (string-append "cd " dir " && pdflatex -interaction=nonstopmode "
-                    base ".tex > /dev/null 2>&1"))
-    (let ((pdf (string-append dir base ".pdf")))
+     (string-append "pdflatex -interaction=nonstopmode -output-directory=" cache
+                    " " tex " > /dev/null 2>&1"))
+    (let ((pdf (string-append cache base ".pdf")))
       (if (file-exists? pdf)
           (begin (ignore-errors
                   (run-shell-command (string-append "xdg-open " pdf " > /dev/null 2>&1 &")))
                  pdf)
-          (error "view-proof-pdf: pdflatex produced no PDF -- see" (string-append dir base ".log"))))))
+          (error "view-proof-pdf: pdflatex produced no PDF -- see" (string-append cache base ".log"))))))

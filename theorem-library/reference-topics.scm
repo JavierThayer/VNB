@@ -111,10 +111,49 @@
     ("Normed-field metric"
      nf-metric-space-is-metric-space)))
 
+;;; ---- Combinatorial (pigeonhole, dependent choice on NN, the block family) ----
+;;; The metric-free counting/recursion core behind the compactness arguments:
+;;; infinite pigeonhole and dependent choice build the nested block family and
+;;; the diagonal sequence that make totally-bounded sequences have Cauchy
+;;; subsequences (Metric spaces > Compactness).
+(define *combinatorial-sections*
+  '(("Vocabulary"
+     INF-SUBSETS IS-FINITE-COVER)
+    ("Dependent choice / recursion on NN"
+     dc-on-nn dc-on-nn-pred)
+    ("Infinite pigeonhole and the block family"
+     pigeonhole-infinite cover-block-step block-family-combinatorial)
+    ("Diagonalization"
+     diagonalization nn-step-strictly-mono nn-nested-subset-chain
+     inf-subset-nn-unbounded)
+    ("Well-ordering of NN"
+     well-ordering-principle nn-least-element)))
+
+;;; ---- Linear algebra (matrices over a ring; elementary column operations) ----
+;;; The algebraic-numbers.pdf ch.3 arc: the matrix ring, the matrix unit and its
+;;; column-shift lemma (the engine), and the elementary column matrices F/G/H with
+;;; their Prop 3.5 actions and Cor 3.6 inverses -- all machine-checked (trust:none).
+(define *linear-algebra-sections*
+  '(("Vocabulary"
+     MAT ENTRY MATOF MATMUL IDENTMAT ZEROMAT MATADD MATNEG MAT-RING
+     MATUNIT ELEM-F ELEM-G ELEM-H INTERVAL)
+    ("The matrix ring"
+     matmul-assoc mat-ring-is-ring)
+    ("The matrix unit and its column shift (Lemma 3.3)"
+     matunit-col-shift)
+    ("Elementary column operations (Prop 3.5)"
+     elem-f-action elem-g-action elem-h-action)
+    ("Elementary inverses (Cor 3.6)"
+     elem-f-inverse elem-g-inverse elem-h-inverse)
+    ("The binomial theorem"
+     sum-expansion binomial-theorem)))
+
 ;;; ---- the topic table: ONE page, a big section heading per subject ----
 (define *library-topics*
   (list (list "Calculus basics"  *elementary-calculus-sections*)
         (list "Vector calculus"  *vector-calculus-sections*)
+        (list "Linear algebra"   *linear-algebra-sections*)
+        (list "Combinatorial"    *combinatorial-sections*)
         (list "Metric spaces"    *metric-spaces-sections*)))
 
 ;;; Emit a single reference page divided into big subject sections (## per
@@ -140,6 +179,229 @@
           *library-topics*)))
     path))
 
+;;; =====================================================================
+;;; LaTeX rendition of the same topic table, with a NATURAL-LANGUAGE proof
+;;; highlight for each machine-checked result.  Three ingredients per entry:
+;;;   * the statement as display math          -- expr->tex   (tex-output.scm)
+;;;   * an English paraphrase of the statement -- wff->english (wff-english.scm)
+;;;   * proof provenance + an NL "proof idea"  -- provenance-of / debt-of +
+;;;     the curated *proof-notes* below (or the warrant text for asserted facts).
+;;; Emits reference/BY-TOPIC.tex; build to PDF with pdflatex, or to HTML with
+;;; LaTeXML (reference/build-by-topic.sh).  Standard amsmath/amssymb/hyperref
+;;; only, so LaTeXML renders it without custom bindings.
+;;; =====================================================================
+
+;;; ---- curated NL proof highlights for the marquee machine-checked results ----
+;;; (One or two sentences: the KEY IDEA, not the step trace.  Asserted facts use
+;;; their warrant text instead; results with neither just show statement+status.)
+(define *proof-notes* (make-equal-hash-table))
+(define (proof-note! name text) (hash-table-set! *proof-notes* name text))
+(define (proof-note-of name) (hash-table-ref/default *proof-notes* name #f))
+
+(proof-note! 'derivative-unique
+  "Skolemize the two Caratheodory factors phi, psi from the two differentiability hypotheses; off the point they agree by cancelling (x-a) =/= 0, and continuity at a forces phi(a)=psi(a), i.e. L=M.")
+(proof-note! 'diff-implies-continuous
+  "f coincides pointwise with the map x |-> f(a) + phi(x)*(x-a), which the continuity algebra makes continuous at a (a constant plus phi times x-a); continuity then transfers to f.")
+(proof-note! 'deriv-const
+  "Witness phi := 0: the difference f(x)-f(a) = 0 = 0*(x-a), and the zero map is continuous with value 0.")
+(proof-note! 'deriv-identity
+  "Witness phi := 1: x-a = 1*(x-a), and the constant map 1 is continuous.")
+(proof-note! 'rolle
+  "The extreme value theorem gives an interior maximum or minimum; Fermat's lemma kills the derivative there.  A three-way case split handles the degenerate case where both extrema sit at the (equal) endpoints.")
+(proof-note! 'mvt
+  "Apply Rolle to the tilted auxiliary g(x) = f(x) - L(x), where L is the secant line through the two endpoints.")
+(proof-note! 'generalized-mvt
+  "Rolle applied to a two-function auxiliary -- the Cauchy mean value theorem.")
+(proof-note! 'taylor-lagrange
+  "The Cauchy mean value theorem (generalized-mvt) applied to the Taylor remainder against (x-a)^(n+1).")
+(proof-note! 'deriv-zero-implies-constant
+  "For any two points the mean value theorem on the subinterval gives f(y)-f(x) = f'(c)*(y-x) = 0.")
+(proof-note! 'deriv-pos-strictly-increasing
+  "The mean value theorem gives f(y)-f(x) = f'(c)*(y-x) > 0 whenever x < y.")
+(proof-note! 'hahn-banach
+  "A maximal norm-preserving extension exists by the ascending chain condition on the finite-dimensional space (via dependent choice on NN); were it proper, the one-step extension lemma would extend it further -- a contradiction.")
+(proof-note! 'norm-as-sup
+  "The Hahn-Banach payoff: on the line RR*x a norming functional attains ||x||, while every bounded functional is dominated by the norm, so ||x|| is exactly the supremum of the functional values.")
+(proof-note! 'vector-taylor-remainder-bound
+  "Reduce the vector remainder to a scalar: a norming functional g (Hahn-Banach) turns ||remainder|| into g(remainder); scalar Taylor on g o f, then bound g(f^(n+1)) by ||f^(n+1)||.")
+(proof-note! 'diagonalization
+  "Dependent choice on NN (dc-on-nn-pred) builds a strictly increasing sequence, each term hopping into the next nested set; the nested chain then puts the whole tail inside every member.")
+(proof-note! 'block-family-combinatorial
+  "Dependent choice on NN whose step is one infinite-pigeonhole refinement (cover-block-step): each block is an infinite monochromatic sub-block of the previous one for the next cover.  The index shift blk(k)=aux(succ k) aligns capture with level.")
+(proof-note! 'totally-bounded-has-cauchy-subsequence
+  "Total boundedness supplies a finite eps-net cover at each level; block-family-combinatorial builds nested infinite blocks pinned into shrinking balls; diagonalization extracts one subsequence, and the 2r triangle estimate makes it Cauchy.")
+(proof-note! 'noetherian-set-has-maximal
+  "The ascending chain condition: a strictly increasing infinite chain of subspaces would, via dependent choice, exceed every finite dimension.")
+(proof-note! 'compact-countable-product
+  "Sequential compactness of a countable metric product, obtained by a coordinatewise diagonal subsequence.")
+(proof-note! 'mat-ring-is-ring
+  "Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.")
+(proof-note! 'matmul-assoc
+  "Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.")
+(proof-note! 'matunit-col-shift
+  "matmul-entry expands (P.E[k,l])_{ic} to FINSUM_j P_{ij}.E[k,l]_{jc}; off the index k the summand vanishes, so finsum-single-support collapses the sum, and an excluded-middle split on c=l finishes.")
+(proof-note! 'elem-f-action
+  "Right-multiplication by F[k,l] permutes columns k and l: a three-way column split, each branch a single-support finsum collapse of the transposition matrix.")
+(proof-note! 'elem-g-action
+  "The l-column of G = I + r.E[k,l] has TWO supports (the diagonal l and the r-slot k), so a two-point finsum split gives P_{il} + P_{ik}.r; every other column is a single-support identity column.")
+(proof-note! 'elem-h-action
+  "H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.")
+(proof-note! 'elem-f-inverse
+  "F[k,l] is its own inverse: composing its column-swap action (Prop 3.5) with F[l,k] swaps the columns back, matching the identity entrywise.")
+(proof-note! 'elem-g-inverse
+  "G[r,k,l]^{-1} = G[-r,k,l]: on column l the added term P_{ik}.(-r) cancels the r via r + (-r) = 0; every other column is unchanged.")
+(proof-note! 'elem-h-inverse
+  "H[r,k]^{-1} = H[r^{-1},k]: the (k,k) diagonal entry becomes r.s = 1 by the unit hypothesis; the rest of the diagonal stays 1 and off-diagonal 0.")
+(proof-note! 'binomial-theorem
+  "Induction on n via a multiply-and-shift sum expansion and Pascal's recurrence on the binomial coefficients, in integer-range SUM form (no bijections).")
+
+;;; ---- LaTeX escaping for PROSE (statements go through expr->tex, which emits
+;;; math directly and must NOT be escaped) ----
+;; Map a non-ASCII code point to a pdflatex-safe rendering (the warrant/gloss
+;; prose is meant to be ASCII, but a stray math glyph must not break the build).
+(define (topic--unicode->tex code)
+  (case code
+    ((8712) "$\\in$") ((8713) "$\\notin$")
+    ((8838) "$\\subseteq$") ((8839) "$\\supseteq$")
+    ((8834) "$\\subset$") ((8835) "$\\supset$")
+    ((8746) "$\\cup$") ((8745) "$\\cap$")
+    ((8804) "$\\le$") ((8805) "$\\ge$") ((8800) "$\\ne$")
+    ((8721) "$\\sum$") ((8719) "$\\prod$") ((8734) "$\\infty$")
+    ((8594) "$\\to$") ((8658) "$\\Rightarrow$") ((8660) "$\\Leftrightarrow$")
+    ((8704) "$\\forall$") ((8707) "$\\exists$") ((172) "$\\neg$")
+    ((215) "$\\times$") ((8901) "$\\cdot$") ((8226) "$\\cdot$")
+    ((949) "$\\varepsilon$") ((948) "$\\delta$") ((966 981) "$\\varphi$")
+    ((968) "$\\psi$") ((955) "$\\lambda$") ((960) "$\\pi$") ((8747) "$\\int$")
+    (else "?")))
+
+(define (topic--tex-esc s)
+  (list->string
+   (apply append
+     (map (lambda (c)
+            (cond
+              ((eqv? c #\\) (string->list "\\textbackslash{}"))
+              ((eqv? c #\{) (string->list "\\{"))
+              ((eqv? c #\}) (string->list "\\}"))
+              ((eqv? c #\$) (string->list "\\$"))
+              ((eqv? c #\&) (string->list "\\&"))
+              ((eqv? c #\#) (string->list "\\#"))
+              ((eqv? c #\_) (string->list "\\_"))
+              ((eqv? c #\%) (string->list "\\%"))
+              ((eqv? c #\^) (string->list "\\textasciicircum{}"))
+              ((eqv? c #\~) (string->list "\\textasciitilde{}"))
+              ((> (char->integer c) 127)
+               (string->list (topic--unicode->tex (char->integer c))))
+              (else (list c))))
+          (string->list s)))))
+
+(define (topic--bill->tex bill)
+  (topic--tex-esc
+   (call-with-output-string
+    (lambda (p)
+      (let loop ((b bill) (first #t))
+        (unless (null? b)
+          (unless first (display ", " p))
+          (display (car b) p)
+          (loop (cdr b) #f)))))))
+
+;;; Render one topic entry as a LaTeX block.  (Safe hash lookup: `lookup-theorem'
+;;; ERRORS on a non-theorem name -- the Vocabulary entries are functoids /
+;;; predicates, not theorems -- so read the table directly, #f when absent.)
+(define (topic--tex-entry name)
+  (let ((f (hash-table-ref/default *theorem-table* name #f)))
+    (display "\\subsubsection*{\\texttt{")
+    (display (topic--tex-esc (symbol->string name)))
+    (display "}}\n")
+    (cond
+      ((not f)
+       (display "\\emph{Definition / vocabulary.}\n\n"))
+      (else
+       ;; English paraphrase + display-math statement
+       (display "\\emph{") (display (topic--tex-esc (english-of name))) (display "}\n")
+       (display "{\\small\\[\n") (display (expr->tex f)) (display "\n\\]}\n")
+       ;; provenance + proof idea
+       (let ((prov (provenance-of name))
+             (note (proof-note-of name))
+             (w    (warrant-of name)))
+         (case prov
+           ((proven)
+            (let* ((bill (debt-of name)) (trust (debt-trust-level bill)))
+              (display "\\noindent\\textbf{Machine-checked} (trust: ")
+              (display trust) (display ").")
+              (when note (display " ") (display (topic--tex-esc note)))
+              (newline)
+              (when (pair? bill)
+                (display "\\par\\smallskip\\noindent\\emph{Rests on ")
+                (display (length bill)) (display " fact")
+                (when (> (length bill) 1) (display "s"))
+                (display ":} \\texttt{") (display (topic--bill->tex bill))
+                (display "}.\n"))))
+           ((primitive)
+            (display "\\noindent\\textbf{Primitive} (kernel axiom).")
+            (when note (display " ") (display (topic--tex-esc note))) (newline))
+           ((definitional)
+            (display "\\noindent\\textbf{Definition.}\n"))
+           (else
+            (display "\\noindent\\textbf{Asserted}")
+            (when w (display " [warrant: ") (display (car w)) (display "].")
+                    (display " ") (display (topic--tex-esc (cdr w))))
+            (when (and (not w) note) (display ". ") (display (topic--tex-esc note)))
+            (newline)))
+         (newline))))))
+
+;; Render one entry to a string, or #f if it errors (so a single bad formula
+;; degrades to a placeholder rather than blanking the document).
+(define (topic--render-string nm)
+  (call-with-current-continuation
+   (lambda (k)
+     (with-exception-handler
+      (lambda (exn) exn (k #f))              ; escape on any error -> #f
+      (lambda ()
+        (with-output-to-string (lambda () (topic--tex-entry nm))))))))
+
+(define (write-by-topic-tex)
+  (let ((path (string-append *reference-dir* "BY-TOPIC.tex")))
+    (with-output-to-file path
+      (lambda ()
+        (display "\\documentclass[11pt]{article}\n")
+        (display "\\usepackage{amsmath,amssymb}\n")
+        (display "\\usepackage[margin=1in]{geometry}\n")
+        (display "\\usepackage{hyperref}\n")
+        (display "\\allowdisplaybreaks\n")
+        (display "\\title{The VNB Library --- Results by Topic}\n")
+        (display "\\author{Generated by the VNB proof checker}\n")
+        (display "\\date{\\today}\n")
+        (display "\\begin{document}\n\\maketitle\n")
+        (display "\\noindent Each result is shown three ways: an English paraphrase, ")
+        (display "the formal statement, and --- for machine-checked theorems --- a ")
+        (display "one-line idea of the proof together with the facts it is checked ")
+        (display "modulo.  Grouped by subject, like a textbook table of contents.\n\n")
+        (display "\\tableofcontents\n\\bigskip\n\n")
+        (for-each
+          (lambda (topic)
+            (display "\\section{") (display (topic--tex-esc (car topic))) (display "}\n\n")
+            (for-each
+              (lambda (sec)
+                (display "\\subsection{") (display (topic--tex-esc (car sec))) (display "}\n\n")
+                (for-each
+                  (lambda (nm)
+                    ;; render each entry into a string under an error guard, so a
+                    ;; single bad formula degrades to a placeholder instead of
+                    ;; blanking the document.
+                    (let ((s (topic--render-string nm)))
+                      (if (string? s)
+                          (display s)
+                          (begin
+                            (display "\\subsubsection*{\\texttt{")
+                            (display (topic--tex-esc (symbol->string nm)))
+                            (display "}}\n\\emph{(entry rendering skipped)}\n\n")))))
+                  (cdr sec)))
+              (cadr topic)))
+          *library-topics*)
+        (display "\\end{document}\n")))
+    path))
+
 ;;; emit at load (every result above is installed by now)
 (write-by-topic-md)
-(display ";; reference-topics: wrote BY-TOPIC.md\n")
+(write-by-topic-tex)
+(display ";; reference-topics: wrote BY-TOPIC.md + BY-TOPIC.tex\n")

@@ -90,10 +90,38 @@
 (warrant! 'interval-card-in-nn 'well-known
   "INTERVAL(a,b) is finite, so its cardinality is a natural number.")
 
-;;; MATOF(m, n, g) -- the m-by-n matrix whose (i, j) entry is g(i, j).  A
-;;; constructor pinned by its computation rule (entry-of-matof) and typing
-;;; (matof-in-mat); uniqueness of the tabulation is matrix-entry-extensionality.
+;;; MATOF(m, n, g) -- the m-by-n matrix whose (i, j) entry is g(i, j).
 ;;; g is applied as a function of the index pair: g(i, j) = g([i, j]).
+;;;
+;;; NOW DEFINITIONAL (was 3 asserted axioms): MATOF is the UNIQUE matrix of shape
+;;; [m, n] whose (i, j) entry is g(i, j).  Its codomain is IMAGE(g, index-box) so
+;;; the description is well-posed among matrices (uniqueness = matrix-entry-
+;;; extensionality).  The ONLY residual assumption is matof-exists (the tabulation
+;;; EXISTS); entry-of-matof and matof-in-mat are then DERIVED via iota-def
+;;; (theorem-library/matof-def-proof.scm).  matof-exists is dischargeable once a
+;;; general list-tabulation / 2-index recursion primitive is built.
+(def-functoid 'MATOF '(m n g)
+  '(IOTA P
+     (AND (IN P (MAT m n (IMAGE g (CARTESIAN (INTERVAL 1 m) (INTERVAL 1 n)))))
+          (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+            (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
+              (= (ENTRY P i j) (g i j)))))))))
+
+;; The one honest assumption: a matrix of shape [m,n] with entries g(i,j) EXISTS
+;; (the tabulation of g over the index box).  Uniqueness is matrix-entry-
+;; extensionality, so this + iota-def pin MATOF down.
+(support 'matof-exists
+  '(FORALL m (FORALL n (FORALL g
+     (FORSOME P
+       (AND (IN P (MAT m n (IMAGE g (CARTESIAN (INTERVAL 1 m) (INTERVAL 1 n)))))
+            (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+              (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
+                (= (ENTRY P i j) (g i j))))))))))))
+(warrant! 'matof-exists 'well-known
+  "A matrix of shape [m,n] whose (i,j) entry is g(i,j) exists (tabulation of g over
+   the index box).  The single assumption behind MATOF; dischargeable via a general
+   list-tabulation primitive.")
+
 (support 'matof-in-mat
   '(FORALL m (FORALL n (FORALL X (FORALL g
      (IMPLIES (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
@@ -184,6 +212,23 @@
   "(P Q)_{ic} = sum_{j=1}^{n} P_{ij}*Q_{jc}, the product summed in A's additive
    group over j in 1..n (entry-of-matof on the MATMUL tabulation).")
 
+;;; matprod-summand-type: the product-entry summand j |-> P_{ij}.Q_{jc} is a
+;;; function [1,n] -> CARR A, for P:MAT(m,n), Q:MAT(n,nn).  The FUN-typing every
+;;; finsum-single/two-support call over a matrix-product entry needs.  General in
+;;; Q, so one PSS serves matmul-entry collapses for MATUNIT / ELEM-F/G/H / ... .
+(support 'matprod-summand-type
+  '(FORALL A (IMPLIES (IS-RING A)
+     (FORALL m (FORALL n (FORALL nn (FORALL P (FORALL Q (FORALL i (FORALL c
+       (IMPLIES (IN P (MAT m n (CARR A)))
+       (IMPLIES (IN Q (MAT n nn (CARR A)))
+       (IMPLIES (IN i (INTERVAL 1 m))
+       (IMPLIES (IN c (INTERVAL 1 nn))
+         (IN (VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
+             (FUN (INTERVAL 1 n) (CARR (RING-ADDITIVE-AG A))))))))))))))))))
+(warrant! 'matprod-summand-type 'well-known
+  "j |-> P_{ij}.Q_{jc} is a function [1,n] -> CARR A for P:MAT(m,n), Q:MAT(n,nn)
+   (entry-in-carrier gives both factors in CARR A; MUL closes; CARR(RAG)=CARR A).")
+
 ;;; ---------------------------------------------------------------------
 ;;; The ring MAT-RING(A, n) of n-by-n matrices over a ring A.
 ;;;
@@ -252,6 +297,26 @@
 (support 'ras-id
   '(FORALL A (= (ID (RING-ADDITIVE-AG A)) (ZERO A))))
 (warrant! 'ras-id 'proof "identity of a ring's additive group is the ring's zero.")
+(support 'ras-op
+  '(FORALL A (= (MUL (RING-ADDITIVE-AG A)) (ADD A))))
+(warrant! 'ras-op 'proof "operation of a ring's additive group is the ring's addition.")
+;; NOTE: ring var is `s' (not A) -- MIT case-folds, so (FORALL A (FORALL a ..))
+;; would shadow-collide.  Follows the ring.scm axiom convention.
+(support 'ring-neg-in-carr
+  '(FORALL s (IMPLIES (IS-RING s)
+     (FORALL a (IMPLIES (IN a (CARR s)) (IN ((NEG s) a) (CARR s)))))))
+(warrant! 'ring-neg-in-carr 'well-known "NEG closes on the carrier (op NEG CARR CARR).")
+(support 'ring-one-in
+  '(FORALL s (IMPLIES (IS-RING s) (IN (ONE s) (CARR s)))))
+(warrant! 'ring-one-in 'well-known "ONE lies in the carrier.")
+(support 'ring-add-right-id
+  '(FORALL s (IMPLIES (IS-RING s)
+     (FORALL a (IMPLIES (IN a (CARR s)) (= ((ADD s) a (ZERO s)) a))))))
+(warrant! 'ring-add-right-id 'well-known "a + 0 = a (ring-add-left-id + comm).")
+(support 'ring-add-right-inv
+  '(FORALL s (IMPLIES (IS-RING s)
+     (FORALL a (IMPLIES (IN a (CARR s)) (= ((ADD s) a ((NEG s) a)) (ZERO s)))))))
+(warrant! 'ring-add-right-inv 'well-known "a + (-a) = 0 (ring-add-left-inv + comm).")
 
 ;;; finsum-single-support: a finite sum whose summand vanishes off a single
 ;;; index i0 equals its value there.  (Induction on |S| via finsum-insert: the
@@ -267,6 +332,24 @@
          (= (FINSUM ag f S) (f i0)))))))))))))
 (warrant! 'finsum-single-support 'well-known
   "If f(j)=0 for every j in the finite S except j=i0, then FINSUM(ag,f,S)=f(i0).")
+
+;;; finsum-two-support: a finite sum whose summand vanishes off two indices
+;;; i0 /= i1 equals the group product of its values there.  (The two-term analogue
+;;; of finsum-single-support; the engine behind elem-g-action's c=l column, where
+;;; G=I+r.E[k,l] has support at both the diagonal l and the unit's k.)
+(support 'finsum-two-support
+  '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
+     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
+     (FORALL f (IMPLIES (IN f (FUN S (CARR ag)))
+     (FORALL i0 (IMPLIES (IN i0 S)
+     (FORALL i1 (IMPLIES (IN i1 S)
+     (IMPLIES (NOT (= i0 i1))
+       (IMPLIES (FORALL j (IMPLIES (IN j S)
+                  (IMPLIES (NOT (= j i0)) (IMPLIES (NOT (= j i1)) (= (f j) (ID ag))))))
+         (= (FINSUM ag f S) ((MUL ag) (f i0) (f i1)))))))))))))))))
+(warrant! 'finsum-two-support 'well-known
+  "If f(j)=0 for every j in the finite S except j in {i0,i1} (i0/=i1), then
+   FINSUM(ag,f,S) = f(i0) * f(i1) in ag.")
 
 ;;; =====================================================================
 ;;; The matrix-ring axioms -- the obligations toward mat-ring-is-ring.

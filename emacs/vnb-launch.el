@@ -2433,6 +2433,7 @@ monospace font is installed.")
     ["Home Workspace"     vnb-launch-workspace             t]
     ["Focus Workspace"    vnb-launch--show-proof-workspace t]
     ["Proof Overview"     vnb-launch--show-overview-workspace t]
+    ["Scratch Workspace"  vnb-ws-scratch-workspace         t]
     ["Refresh"            vnb-ws-refresh                   t]
     "---"
     ("Proof"

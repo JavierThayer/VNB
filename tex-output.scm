@@ -31,6 +31,21 @@
           (else
            (loop (cdr chars) (cons (car chars) acc))))))
 
+;;; Operator identifiers render via \operatorname (upright, correctly spaced).
+;;; Inside \operatorname a bare `-' is a minus sign and `_' a subscript marker,
+;;; so a hyphenated name like comb-kk needs \text{-} to keep a real hyphen.
+(define (tex--escape-op-ident s)
+  (apply string-append
+         (map (lambda (c)
+                (cond ((char=? c #\_) "\\_")
+                      ((char=? c #\-) "\\text{-}")
+                      ((char=? c #\#) "\\#")
+                      (else (string c))))
+              (string->list s))))
+
+(define (tex--operatorname name)
+  (string-append "\\operatorname{" (tex--escape-op-ident name) "}"))
+
 ;;; --- symbol tables ---------------------------------------------------
 ;;;
 ;;; All keys are stored in case-folded (lower-case) form because MIT
@@ -77,6 +92,15 @@
     (implies . " \\Rightarrow ")
     (iff     . " \\Leftrightarrow ")))
 
+;;; Arithmetic-prefix mode (used only when rendering a PROPOSITION statement):
+;;; render the arithmetic operators PREFIX -- +(n, 1), \cdot(a, b) -- rather than
+;;; infix, so the statement's arithmetic never competes with / is confused for the
+;;; ring operations (which are already prefix, add(r)(x,y)).  A fluid flag so it
+;;; scopes to the statement and leaves the proof steps' infix arithmetic alone.
+(define *tex-arith-prefix?* #f)
+(define *tex-arith-prefix-head*
+  '((+ . "+") (binplus . "+") (* . "\\cdot") (bintimes . "\\cdot")))
+
 ;;; Per-operator render rules.  Each entry is (op-name args -> string).
 ;;; Defined after expr->tex below via a setter so they can call expr->tex
 ;;; mutually-recursively without forward-reference pain.
@@ -109,9 +133,9 @@
     (cond
       (atom  (cdr atom))
       (greek (cdr greek))
-      ;; Hyphenated identifier -> operator (\mathsf with escaped hyphens).
+      ;; Hyphenated identifier -> operator (\operatorname).
       ((tex--has-hyphen? name)
-       (string-append "\\mathsf{" (tex--escape-ident name) "}"))
+       (tex--operatorname name))
       ;; Single character -> bare math identifier (italic by default).
       ((= (string-length name) 1) name)
       ;; All lowercase letters + digits -> italic variable identifier.
@@ -119,7 +143,18 @@
        (string-append "\\mathit{" (tex--escape-ident name) "}"))
       ;; Anything else (mixed case, etc.) -> upright operator.
       (else
-       (string-append "\\mathsf{" (tex--escape-ident name) "}")))))
+       (tex--operatorname name)))))
+
+;;; Render the HEAD of a function application.  A multi-character symbol in
+;;; head position is an operator (\operatorname); single-char heads (function
+;;; variables) stay italic, and compound heads like (add r) recurse.
+(define (tex--head->tex op)
+  (if (and (symbol? op)
+           (> (string-length (symbol->string op)) 1)
+           (not (assq op *tex-atom-table*))
+           (not (assq op *tex-greek-table*)))
+      (tex--operatorname (symbol->string op))
+      (expr->tex op)))
 
 ;;; --- typed quantifier sugar ------------------------------------------
 
@@ -170,6 +205,10 @@
           (string-append (if (eq? op 'forall) "\\forall " "\\exists ")
                          (expr->tex (cadr e))
                          ".\\; " (expr->tex (caddr e))))
+         ;; arithmetic prefix (statement mode): +(n, 1) not (n + 1)
+         ((and *tex-arith-prefix?* (assq op *tex-arith-prefix-head*))
+          (string-append (cdr (assq op *tex-arith-prefix-head*)) "("
+                         (tex--string-join (map expr->tex args) ", ") ")"))
          ;; binary infix (parenthesised; over-paren is acceptable in MVP)
          ((assq op *tex-binop-table*)
           (let ((sep (cdr (assq op *tex-binop-table*))))
@@ -180,7 +219,7 @@
           ((cdr (assq op *tex-special-table*)) args))
          ;; default: application  (f a b c) -> f(a, b, c)
          (else
-          (string-append (expr->tex op) "("
+          (string-append (tex--head->tex op) "("
                          (tex--string-join (map expr->tex args) ", ")
                          ")")))))
     (else
@@ -253,7 +292,9 @@
 
 (tex--register-special! 'succ
   (lambda (args)
-    (string-append "(" (expr->tex (car args)) " + 1)")))
+    (if *tex-arith-prefix?*         ; statement mode: prefix, no infix "+"
+        (string-append "\\operatorname{succ}(" (expr->tex (car args)) ")")
+        (string-append "(" (expr->tex (car args)) " + 1)"))))
 
 (tex--register-special! 'succ_ord
   (lambda (args)
@@ -344,8 +385,81 @@
       (list (string-append (car rows) suffix))
       (cons (car rows) (tex--suffix-last (cdr rows) suffix))))
 
+;;; Relations at whose top level a long formula breaks (LHS row, then a
+;;; row beginning with the relation symbol).
+(define *tex-relation-ops* '(= < <= > >= in subset))
+
+;;; A plain function application (f a b c) -- NOT a quantifier, connective,
+;;; relation, infix binop, or specially-rendered operator.  These are the
+;;; terms whose argument list we wrap across rows when they are too wide.
+(define (tex--breakable-app? e)
+  (and (pair? e)
+       (not (tex--quant-step e))
+       (not (memq (car e) '(implies and or)))
+       (not (memq (car e) *tex-relation-ops*))
+       (not (assq (car e) *tex-binop-table*))
+       (not (assq (car e) *tex-special-table*))))
+
+;;; Drop the leading indent (tex--ind ind) known to prefix ROW.
+(define (tex--drop-ind row ind)
+  (let ((n (string-length (tex--ind ind))))
+    (if (>= (string-length row) n) (substring row n (string-length row)) row)))
+
+;;; The relation-symbol row(s): RHS rendered at IND, with "relsym\; " spliced
+;;; in after the indent of the first RHS row.
+(define (tex--rel-rows relsym rhs ind)
+  (let ((rl (tex--lines rhs ind)))
+    (cons (string-append (tex--ind ind) relsym "\\; " (tex--drop-ind (car rl) ind))
+          (cdr rl))))
+
+;;; A rough ON-PAGE width proxy for E, computed from the s-expression (not the
+;;; TeX, whose \operatorname{...} markup wildly overcounts).  Used to pack short
+;;; arguments onto a shared row instead of giving each its own line.
+(define (tex--flat-len e)
+  (cond ((number? e) (string-length (number->string e)))
+        ((symbol? e) (max 1 (string-length (symbol->string e))))
+        ((string? e) (+ 2 (string-length e)))
+        ((pair? e)
+         (let ((n (length (cdr e))))
+           (+ (tex--flat-len (car e)) 2                 ; head + ( )
+              (apply + (map tex--flat-len (cdr e)))      ; arguments
+              (* 2 (max 0 (- n 1))))))                   ; ", " separators
+        (else 4)))
+
+;;; Approximate visual width available on a wrapped row: page columns minus the
+;;; indent already consumed (each \quad ~ 2 columns).
+(define tex--row-cols 72)
+(define (tex--row-avail ind) (max 24 (- tex--row-cols (* 2 ind))))
+
+;;; Wrap an application's argument list.  Short single-line arguments are PACKED
+;;; greedily onto shared rows (up to the row width); an argument that is itself
+;;; wide breaks onto its own multi-row block via tex--lines.  Every argument is
+;;; comma-suffixed except the last, which carries the closing ')'.
+(define (tex--arg-rows args ind)
+  (let ((prefix (tex--ind ind)) (avail (tex--row-avail ind)))
+    (let loop ((as args) (cur #f) (curw 0) (out '()))
+      (if (null? as)
+          (reverse (if cur (cons (string-append prefix cur) out) out))
+          (let* ((a (car as)) (last? (null? (cdr as)))
+                 (suffix (if last? ")" ","))
+                 (w (tex--flat-len a)))
+            (if (> (+ (string-length (expr->tex a)) 0) tex--inline-threshold)
+                ;; wide argument: flush the current row, emit its own block
+                (let* ((blk (tex--suffix-last (tex--lines a ind) suffix))
+                       (out1 (if cur (cons (string-append prefix cur) out) out)))
+                  (loop (cdr as) #f 0 (append (reverse blk) out1)))
+                ;; short argument: pack onto the current row if it fits
+                (let ((piece (string-append (expr->tex a) suffix)))
+                  (if (and cur (> (+ curw 2 w) avail))
+                      (loop (cdr as) piece w (cons (string-append prefix cur) out))
+                      (loop (cdr as)
+                            (if cur (string-append cur " " piece) piece)
+                            (+ curw (if cur 2 0) w) out)))))))))
+
 ;;; Render E as a list of indented TeX row-strings, breaking at the
-;;; logical skeleton.  IND = current indent depth.
+;;; logical skeleton -- and, when a piece is still wider than the inline
+;;; threshold, at a top-level relation, a lambda body, or an application's
+;;; argument list (keeping prefix notation).  IND = current indent depth.
 (define (tex--lines e ind)
   (let ((qs (tex--quant-step e)))
     (cond
@@ -377,6 +491,28 @@
                              (append out (if (null? (cdr ps))
                                              rows
                                              (tex--suffix-last rows conn)))))))))))
+      ;; top-level relation: LHS block, then a row per RHS starting with the
+      ;; relation symbol.  Short ones stay inline.
+      ((and (pair? e) (memq (car e) *tex-relation-ops*) (= (length e) 3)
+            (> (string-length (expr->tex e)) tex--inline-threshold))
+       (append (tex--lines (cadr e) ind)
+               (tex--rel-rows (string-trim (cdr (assq (car e) *tex-binop-table*)))
+                              (caddr e) ind)))
+      ;; long lambda: "(\lambda v.\;" on this row, body indented, ')' trailing.
+      ((and (pair? e) (eq? (car e) 'vnb-lambda) (= (length e) 3)
+            (> (string-length (expr->tex e)) tex--inline-threshold))
+       (cons (string-append (tex--ind ind) "(\\lambda " (expr->tex (cadr e)) ".\\;")
+             (tex--suffix-last (tex--lines (caddr e) (+ ind 1)) ")")))
+      ;; long application: "head(" merged onto the first argument row (so a short
+      ;; leading arg like sum(r, ... stays with the head), remaining args packed.
+      ((and (tex--breakable-app? e)
+            (> (string-length (expr->tex e)) tex--inline-threshold))
+       (let ((rows (tex--arg-rows (cdr e) (+ ind 1)))
+             (head (string-append (tex--ind ind) (tex--head->tex (car e)) "(")))
+         (if (null? rows)
+             (list (string-append head ")"))
+             (cons (string-append head (tex--drop-ind (car rows) (+ ind 1)))
+                   (cdr rows)))))
       (else (list (string-append (tex--ind ind) (expr->tex e)))))))
 
 ;;; Public: render E, breaking long formulas across rows.  A single-row

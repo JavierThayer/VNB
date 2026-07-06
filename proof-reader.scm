@@ -173,7 +173,20 @@
                    (set-car! tmerged (append (car tmerged) g))
                    (set! tmerged (cons g tmerged))))
              (reverse merged))
-            (cons setup (reverse tmerged))))))))
+            ;; then merge a RUN of inst/inst+ content groups (the IH specialization:
+            ;; peel r, x, y, ... off one hypothesis) into one collapsed line.
+            (define (inst-grp? g)
+              (let ((m (proof-reader--group-main g)))
+                (and m (memq (proof-reader--tac m) '(inst inst+))
+                     (not (eq? (grp-kind g) 'typing)))))
+            (let ((imerged '()))
+              (for-each
+               (lambda (g)
+                 (if (and (inst-grp? g) (pair? imerged) (inst-grp? (car imerged)))
+                     (set-car! imerged (append (car imerged) g))
+                     (set! imerged (cons g imerged))))
+               (reverse tmerged))
+              (cons setup (reverse imerged)))))))))
 
 ;; the CONTENT record of a group = its last content record (there is exactly one
 ;; per raw group; after a closer-merge there may be two -- main + the closer).
@@ -210,12 +223,17 @@
   (cond ((string? a) (string-append "\\texttt{" (proof-tex--escape-tt a) "}"))
         ((or (pair? a) (symbol? a) (number? a)) (expr->tex a))
         (else (proof-tex--escape-tt (call-with-output-string (lambda (p)(write a p)))))))
-;; a lemma CITATION: a symbol -> its name in \texttt; a raw wff (instantiating an
-;; unnamed hypothesis) -> the phrase "the hypothesis" (no giant s-expr dump).
+;; a lemma CITATION: a symbol -> its name as an \operatorname; a raw wff
+;; (instantiating an unnamed hypothesis) -> the phrase "the hypothesis".
 (define (proof-reader--cite a)
   (if (symbol? a)
-      (string-append "\\texttt{" (proof-tex--escape-tt (symbol->string a)) "}")
+      (string-append "$" (tex--operatorname (symbol->string a)) "$")
       "the hypothesis"))
+
+;; a formula shown as its own displayed equation (breaks/wraps via
+;; expr->tex-display so wide prefix terms fit the page instead of overflowing).
+(define (proof-reader--display e)
+  (string-append "\n\\begin{equation*}\n" (expr->tex-display e) "\n\\end{equation*}\n"))
 ;; assumptions in R2 not (alpha-)in R1  -- the hypotheses a step introduced.
 (define (proof-reader--new-asms before after)
   (filter (lambda (a) (not (member a before))) after))
@@ -226,12 +244,13 @@
   '((cut       . "By a cut on the auxiliary claim.")
     (contra    . "By contradiction.")
     (weaken    . "Weakening the context.")
-    (grind     . "By exhaustive simplification (\\texttt{grind}).")
+    (grind     . "By exhaustive simplification.")
     (unfold    . "Unfold the definition.")
     (gi        . "Generalize.")))
 
 ;; gloss for the PRIMARY content record; pre-goal = goal of the record before it,
-;; pre-asms = assumptions before it.  Returns a LaTeX fragment (math via $...$).
+;; pre-asms = assumptions before it.  Returns a LaTeX fragment -- prose, with any
+;; formula shown as a displayed equation (proof-reader--display) below the text.
 (define (proof-reader--gloss main pre-goal pre-asms)
   (let* ((entry (car main)) (tac (car entry)) (args (cdr entry))
          (goal (cadr main)) (asms (caddr main))
@@ -240,25 +259,24 @@
       ((ew)
        (let ((v (and (pair? pre-goal) (eq? (car pre-goal) 'FORSOME) (cadr pre-goal)))
              (w (and (pair? args) (car args))))
-         (string-append "Take $" (if v (expr->tex v) "w") " := \\fit{$"
-                        (if w (proof-reader--arg-tex w) "\\cdot") "$}$.")))
+         (string-append "Take $" (if v (expr->tex v) "w") " :=$"
+                        (if (and w (pair? w)) (proof-reader--display w)
+                            (string-append " $" (if w (proof-reader--arg-tex w) "\\cdot") "$.")))))
       ((mac macm)
        (string-append "By " (proof-reader--cite (and (pair? args)(car args)))
-                      (if goal (string-append ", reduce to \\fit{$" (expr->tex goal) "$}.") ".")))
+                      (if goal (string-append ", reduce to" (proof-reader--display goal)) ".")))
       ((fact ta)
        (string-append "By " (proof-reader--cite (and (pair? args)(car args)))
                       (cond ((pair? news)      ; show only the CONCLUSION it detaches
-                             (string-append ": \\fit{$" (expr->tex (car news)) "$}."))
-                            (goal (string-append ", reduce to \\fit{$" (expr->tex goal) "$}."))
+                             (string-append ":" (proof-reader--display (car news))))
+                            (goal (string-append ", reduce to" (proof-reader--display goal)))
                             (else "."))))
       ((inst inst+)
        (string-append "Instantiate " (proof-reader--cite (and (pair? args)(car args)))
-                      (if (pair? news)
-                          (string-append ": \\fit{$" (expr->tex (car news)) "$}.")
-                          ".")))
+                      (if (pair? news) (string-append ":" (proof-reader--display (car news))) ".")))
       ((bc bc*)
        (string-append "Backchain through " (proof-reader--cite (and (pair? args)(car args)))
-                      (if goal (string-append "; it remains to show \\fit{$" (expr->tex goal) "$}.") ".")))
+                      (if goal (string-append "; it remains to show" (proof-reader--display goal)) ".")))
       ((ni)
        (let ((v (and (pair? pre-goal) (eq? (car pre-goal) 'FORALL) (cadr pre-goal))))
          (string-append "By induction"
@@ -268,13 +286,13 @@
       ((ass) "\\emph{Holds by assumption.}")
       ((rfl qrfl) "\\emph{Holds by reflexivity.}")
       ((crs rs simp) "\\emph{Closes by commutative-ring simplification.}")
-      ((ineq) "\\emph{Closes by linear arithmetic (ineq).}")
+      ((ineq) "\\emph{Closes by linear arithmetic.}")
       ((sos) "\\emph{Closes by sum-of-squares.}")
       ((arith) "\\emph{Closes by ground arithmetic.}")
       (else
        (let ((p (assq tac *proof-reader-tac-prose*)))
          (if p (cdr p)
-             (string-append "By \\texttt{" (proof-tex--escape-tt (symbol->string tac)) "}.")))))))
+             (string-append "By " (proof-reader--cite tac) ".")))))))
 
 ;;; --- assembly ----------------------------------------------------------
 ;; a collapsed line for a RUN of typing/bookkeeping steps: just the atoms they
@@ -288,11 +306,33 @@
            (when (pair? na) (set! atoms (cons (car na) atoms))))))
      g)
     (string-append
-     "\\emph{Establish in-carrier / typing side-conditions:} "
+     "\\emph{Establish in-carrier / typing side-conditions:}"
      (let ((atoms (reverse atoms)))
        (if (pair? atoms)
-           (string-append "\\fit{$" (proof-tex--join (map expr->tex atoms) "$},\\ \\fit{$") "$}.")
+           ;; displayed, one atom per row -- never overflows and can't break
+           ;; mid-atom the way an inline list does.
+           (string-append
+            "\n\\begin{equation*}\n\\begin{array}{@{}l@{}}\n"
+            (proof-tex--join (map expr->tex-display atoms) " \\\\\n")
+            "\n\\end{array}\n\\end{equation*}\n")
            "")))))
+
+;; a collapsed line for a RUN of inst/inst+ steps that peel nested quantifiers off
+;; one hypothesis (the classic induction-hypothesis specialization: instantiate at
+;; r, x, y, ...).  The intermediate half-peeled forms are noise; only the FINAL
+;; fully-instantiated instance matters, so show just that -- the new-asm the LAST
+;; inst/inst+ record introduced.  Mirrors proof-reader--typing-row's run-collapse.
+(define (proof-reader--inst-row g ht)
+  (let ((last-na #f))
+    (for-each
+     (lambda (ir)
+       (when (memq (proof-reader--tac (ir-rec ir)) '(inst inst+))
+         (let ((na (hash-table-ref/default ht (ir-idx ir) '())))
+           (when (pair? na) (set! last-na (car na))))))
+     g)
+    (string-append
+     "Instantiate the hypothesis"
+     (if last-na (string-append ":" (proof-reader--display last-na)) "."))))
 
 ;; a bulletless sub-header row marking the base / inductive-step branch of an
 ;; `ni' proof (empty \item label -> no step number in the margin).
@@ -301,6 +341,126 @@
     (if (eq? which 'base)
         (string-append "  \\item[]\\textbf{Base case} ($" v " = 0$):\n")
         (string-append "  \\item[]\\textbf{Inductive step} ($" v " \\to " v " + 1$):\n"))))
+
+;;; --- statement verbalizer (the Proposition) ----------------------------
+;;; Render a proposition wff as structured mathematician's English: a leading run
+;;; of guarded universals -> "Suppose/Let v in S" (a PREDICATE guard folds to
+;;; "v s.t. P(v)" and forms its own clause, preserving the formal =>); a bare
+;;; implication -> "If A then B"; an existential -> "There is v in S such that ...".
+;;; Keyword alternates Suppose/Let across clauses.  Arithmetic renders PREFIX here
+;;; (*tex-arith-prefix?*) so it never competes with the ring operations.
+
+;; internal op -> its "usual" name; drives the "we use the internal representation"
+;; note appended when a statement mentions such an op.
+(define *proof-reader-internal-notes* '((comb-kk . "the binomial coefficient term")))
+
+;; one peel of a leading guarded universal: (kind item-tex body) or #f.
+;;   'mem  v in S   (groups into a run)   'pred v s.t. P (own clause)   'bare v
+(define (proof-reader--univ-step e)
+  (cond
+    ((tex--typed-forall-parts e)
+     => (lambda (vsb)
+          (list 'mem (string-append (expr->tex (car vsb)) " \\in " (expr->tex (cadr vsb)))
+                (caddr vsb))))
+    ((and (pair? e) (eq? (car e) 'forall) (= (length e) 3)
+          (pair? (caddr e)) (eq? (car (caddr e)) 'implies) (= (length (caddr e)) 3))
+     (let ((v (cadr e)) (imp (caddr e)))
+       (list 'pred (string-append (expr->tex v) " \\text{ s.t. } " (expr->tex (cadr imp)))
+             (caddr imp))))
+    ((and (pair? e) (eq? (car e) 'forall) (= (length e) 3))
+     (list 'bare (expr->tex (cadr e)) (caddr e)))
+    (else #f)))
+
+;; peel a maximal universal run into (clauses . body); a 'mem run accumulates,
+;; a 'pred is flushed on its own (an implication boundary in the formal wff).
+(define (proof-reader--peel-univs e)
+  (let loop ((e e) (clauses '()) (cur '()))
+    (let ((step (proof-reader--univ-step e)))
+      (cond
+        ((not step)
+         (cons (append clauses (if (pair? cur) (list (cons 'mem cur)) '())) e))
+        ((eq? (car step) 'pred)
+         (loop (caddr step)
+               (append clauses (if (pair? cur) (list (cons 'mem cur)) '())
+                       (list (cons 'pred (list (cadr step)))))
+               '()))
+        (else (loop (caddr step) clauses (append cur (list (cadr step)))))))))
+
+(define (proof-reader--exists-step e)
+  (cond
+    ((tex--typed-exists-parts e)
+     => (lambda (vsb)
+          (list (string-append (expr->tex (car vsb)) " \\in " (expr->tex (cadr vsb)))
+                (caddr vsb))))
+    ((and (pair? e) (eq? (car e) 'forsome) (= (length e) 3))
+     (list (expr->tex (cadr e)) (caddr e)))
+    (else #f)))
+
+;; render clauses, alternating Suppose/Let starting at index `depth'.
+(define (proof-reader--render-clauses clauses depth)
+  (let loop ((cs clauses) (i depth) (out '()))
+    (if (null? cs) (proof-tex--join (reverse out) ". ")
+        (loop (cdr cs) (+ i 1)
+              (cons (string-append (if (even? i) "Suppose" "Let")
+                                   " $" (proof-tex--join (cdr (car cs)) ", ") "$")
+                    out)))))
+
+;; a NESTED statement (after "if ... then" / "such that"): no leading "Then".
+(define (proof-reader--stmt-tail e depth)
+  (let* ((cb (proof-reader--peel-univs e)) (clauses (car cb)) (body (cdr cb))
+         (head (if (pair? clauses)
+                   (string-append (proof-reader--render-clauses clauses depth) ", ") "")))
+    (string-append head
+      (cond
+        ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
+         (string-append "if $" (expr->tex (cadr body)) "$ then "
+                        (proof-reader--stmt-tail (caddr body) (+ depth (length clauses)))))
+        (else (proof-reader--display body))))))
+
+(define (proof-reader--stmt-body body depth)
+  (cond
+    ((proof-reader--exists-step body)
+     => (lambda (step)
+          (string-append "There is $" (car step) "$ such that "
+                         (proof-reader--stmt-tail (cadr step) depth))))
+    ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
+     (string-append "If $" (expr->tex (cadr body)) "$, then "
+                    (proof-reader--stmt-tail (caddr body) depth)))
+    (else (string-append "Then" (proof-reader--display body)))))
+
+(define (proof-reader--stmt e depth)
+  (let* ((cb (proof-reader--peel-univs e)) (clauses (car cb)) (body (cdr cb)))
+    (if (pair? clauses)
+        (string-append (proof-reader--render-clauses clauses depth) ". "
+                       (proof-reader--stmt-body body (+ depth (length clauses))))
+        (proof-reader--stmt-body body depth))))
+
+;; first subterm whose head is OP (for the internal-representation note).
+(define (proof-reader--first-app e op)
+  (cond ((not (pair? e)) #f)
+        ((eq? (car e) op) e)
+        (else (let loop ((xs e))
+                (if (pair? xs)
+                    (or (proof-reader--first-app (car xs) op) (loop (cdr xs)))
+                    #f)))))
+
+(define (proof-reader--internal-note claim)
+  (apply string-append
+    (map (lambda (kv)
+           (let ((app (proof-reader--first-app claim (car kv))))
+             (if app
+                 (string-append "\n\n\\noindent\\emph{(Here $" (expr->tex app)
+                                "$ is the internal representation of " (cdr kv)
+                                "; it is used throughout the proof.)}\n")
+                 "")))
+         *proof-reader-internal-notes*)))
+
+;; the proposition body: structured-English statement + any internal-rep note,
+;; all with arithmetic rendered prefix.
+(define (proof-reader--statement claim)
+  (fluid-let ((*tex-arith-prefix?* #t))
+    (string-append (proof-reader--stmt claim 0)
+                   (proof-reader--internal-note claim))))
 
 (define (proof-reader name)
   (let* ((records (proof-reader--records name))
@@ -318,15 +478,11 @@
          (setup-range (if (pair? setup) (proof-reader--range setup) "0")))
     (apply string-append
      proof-tex--preamble
-     "\\section*{Reader sketch: \\texttt{" (proof-tex--escape-tt (symbol->string name)) "}}\n"
-     "{\\small A human-level collapse of the machine proof: runs of \\texttt{di}/\\texttt{ai} "
-     "(decompose / unpack) are folded into the opening; only content steps are shown, each "
-     "with its original step range in the margin.  The full step-by-step is the \\texttt{proof-tex} "
-     "rendering.}\\medskip\n\n"
-     "\\textbf{Claim.}\n" (proof-tex--formula-align claim) "\\medskip\n\n"
-     "\\textbf{Proof.}\\quad\\emph{Assume} \\textbf{[" setup-range "]}:\n"
-     (proof-tex--sequent-align setup-asms setup-goal)
-     "\n\\begin{itemize}\\setlength{\\itemsep}{4pt}\n"
+     "\\begin{proposition}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
+     (proof-reader--statement claim)
+     "\n\\end{proposition}\n\n"
+     "\\begin{proof}\n"
+     "\\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]\n"
      (append
       ;; walk groups, threading the pre-goal / pre-asms (the setup sequent seeds
       ;; it) and, for an `ni' proof, the induction variable + branch phase so we
@@ -341,7 +497,12 @@
                    (main    (and primary (ir-rec primary)))
                    (kind    (and primary (proof-reader--kind primary ht)))
                    (closer  (and primary (proof-reader--group-closer g primary)))
+                   ;; an inst/inst+ content group (possibly a merged run) -> show
+                   ;; only the final peeled instance, not each half-peeled form.
+                   (inst-run? (and main (memq (car (car main)) '(inst inst+))
+                                   (not (eq? kind 'typing))))
                    (gloss   (cond ((eq? kind 'typing) (proof-reader--typing-row g ht))
+                                  (inst-run? (proof-reader--inst-row g ht))
                                   (main (proof-reader--gloss main pre-goal pre-asms))
                                   (else "")))
                    (close-txt (cond ((not closer) "")
@@ -367,11 +528,15 @@
                          (car hdr+phase)
                          "  \\item[\\textbf{" (proof-reader--range g) "}] "
                          gloss close-txt "\n"))
-                   (new-goal (if main (cadr main) pre-goal))
-                   (new-asms (if main (caddr main) pre-asms)))
+                   ;; thread the state AFTER the whole group (its last record),
+                   ;; not the first content record -- so a merged run (inst/typing)
+                   ;; hands the next step its true post-run goal/asms.
+                   (last-state (ir-rec (car (last-pair g))))
+                   (new-goal (cadr last-state))
+                   (new-asms (caddr last-state)))
               (loop (cdr gs) new-goal new-asms new-indvar (cdr hdr+phase)
                     (cons row rows)))))
-      (list "\\end{itemize}\n\\hfill$\\blacksquare$\n\\end{document}\n")))))
+      (list "\\end{itemize}\n\\end{proof}\n\\end{document}\n")))))
 
 (define (write-proof-reader name path)
   (call-with-output-file path
@@ -379,14 +544,19 @@
   path)
 
 (define (view-proof-reader-pdf name)
-  (let* ((dir  (string-append (get-environment-variable "HOME") "/.cache/vnb/tex/"))
-         (base (string-append "reader-" (symbol->string name)))
-         (tex  (string-append dir base ".tex")))
-    (ignore-errors (run-shell-command (string-append "mkdir -p " dir)))
+  ;; .tex lives in the source tree (*printouts-dir*) so it ships in the tarball;
+  ;; the PDF + pdflatex aux junk render into the regenerable ~/.cache scratch.
+  ;; load-option MUST precede any run-shell-command: run-shell-command is
+  ;; unassigned until synchronous-subprocess is loaded.
+  (load-option 'synchronous-subprocess)
+  (let* ((cache (string-append (get-environment-variable "HOME") "/.cache/vnb/tex/"))
+         (base  (string-append "reader-" (symbol->string name)))
+         (tex   (string-append *printouts-dir* base ".tex")))
+    (run-shell-command (string-append "mkdir -p " *printouts-dir* " " cache))
     (write-proof-reader name tex)
-    (load-option 'synchronous-subprocess)
     (run-shell-command
-     (string-append "cd " dir " && pdflatex -interaction=nonstopmode " base ".tex > /dev/null 2>&1"))
-    (let ((pdf (string-append dir base ".pdf")))
+     (string-append "pdflatex -interaction=nonstopmode -output-directory=" cache
+                    " " tex " > /dev/null 2>&1"))
+    (let ((pdf (string-append cache base ".pdf")))
       (if (file-exists? pdf) pdf
-          (error "view-proof-reader-pdf: pdflatex produced no PDF -- see" (string-append dir base ".log"))))))
+          (error "view-proof-reader-pdf: pdflatex produced no PDF -- see" (string-append cache base ".log"))))))
