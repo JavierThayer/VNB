@@ -393,3 +393,74 @@
 ;;;   F[k,l]^-1 = F[l,k],  G[r,k,l]^-1 = G[-r,k,l] (k/=l),  H[r,k]^-1 = H[r^-1,k]
 ;;; (r.s=1).  ALL PROVEN to qed in theorem-library/elem-inverses-proof.scm
 ;;; (trust: none), via matrix-entry-extensionality + the Prop 3.5 actions.
+
+;;; =====================================================================
+;;; Brick 5 (Phase B) -- ROW operations: the action of the elementary matrices
+;;; by LEFT-multiplication (Prop 3.29's F^row/G^row/H^row, algebraic-numbers.pdf
+;;; ch.3 p.43).  Smith/normal-form reduction (Prop 3.36) needs BOTH row and
+;;; column operations; Bricks 3-4 gave the column ops (right-mult), these are the
+;;; row ops.  The matrix is m-by-m and acts on the m rows of P in MAT(m,n).
+;;;
+;;; (E . P)_{ic} = FINSUM_j E_{ij} . P_{jc}  (matmul-entry), so a row of E picks
+;;; out a row of P.  Same collapse shape as Bricks 3-4 (matmul-entry + finsum
+;;; single/two-support + excluded-middle case split), but the surviving support
+;;; is in E's ROW index i, not its column.  F and H are symmetric matrices so
+;;; their row read-offs equal the proven column read-offs; G = I + r.E[k,l] is
+;;; NOT symmetric, so its row (i=k) has supports at j=k (value 1) and j=l (value
+;;; r) -- a finsum-two-support, mirroring the column proof's c=l case.
+;;;
+;;; STATED here (warrant 'reference), same status Bricks 3-4 first landed in;
+;;; QED route: mirror theorem-library/elem-actions-proof.scm with the elementary
+;;; matrix as the LEFT factor.  NEXT: drive to qed, then the reduction step.
+
+;;; F[k,l] . P  swaps rows k and l of P.
+(support 'elem-f-row-action
+  '(FORALL A (IMPLIES (IS-RING A)
+     (FORALL m (FORALL n (FORALL P (FORALL k (FORALL l
+       (IMPLIES (IN P (MAT m n (CARR A)))
+       (IMPLIES (IN k (INTERVAL 1 m))
+       (IMPLIES (IN l (INTERVAL 1 m))
+       (IMPLIES (NOT (= k l))
+       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+       (FORALL c (IMPLIES (IN c (INTERVAL 1 n))
+         (= (ENTRY (MATMUL A (ELEM-F A m k l) P) i c)
+            (IF (= i k) (ENTRY P l c)
+                (IF (= i l) (ENTRY P k c) (ENTRY P i c))))))))))))))))))))
+(warrant! 'elem-f-row-action 'reference
+  "Prop 3.29 (row form): F[k,l].P swaps rows k,l of P.  Left-mult mirror of the
+   proven elem-f-action; each row of F is a unit vector, single-support collapse.")
+
+;;; G[r,k,l] . P  adds r.(row l) to row k  (k/=l).
+(support 'elem-g-row-action
+  '(FORALL A (IMPLIES (IS-RING A)
+     (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k (FORALL l
+       (IMPLIES (IN P (MAT m n (CARR A)))
+       (IMPLIES (IN r (CARR A))
+       (IMPLIES (IN k (INTERVAL 1 m))
+       (IMPLIES (IN l (INTERVAL 1 m))
+       (IMPLIES (NOT (= k l))
+       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+       (FORALL c (IMPLIES (IN c (INTERVAL 1 n))
+         (= (ENTRY (MATMUL A (ELEM-G A m r k l) P) i c)
+            (IF (= i k)
+                ((ADD A) (ENTRY P k c) ((MUL A) r (ENTRY P l c)))
+                (ENTRY P i c)))))))))))))))))))))
+(warrant! 'elem-g-row-action 'reference
+  "Prop 3.29 (row form): G[r,k,l].P adds r.(row l) to row k.  Left-mult mirror of
+   elem-g-action; the i=k row of G has two supports (j=k val 1, j=l val r) ->
+   finsum-two-support, k/=l.")
+
+;;; H[r,k] . P  scales row k of P by r.
+(support 'elem-h-row-action
+  '(FORALL A (IMPLIES (IS-RING A)
+     (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k
+       (IMPLIES (IN P (MAT m n (CARR A)))
+       (IMPLIES (IN r (CARR A))
+       (IMPLIES (IN k (INTERVAL 1 m))
+       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+       (FORALL c (IMPLIES (IN c (INTERVAL 1 n))
+         (= (ENTRY (MATMUL A (ELEM-H A m r k) P) i c)
+            (IF (= i k) ((MUL A) r (ENTRY P k c)) (ENTRY P i c))))))))))))))))))
+(warrant! 'elem-h-row-action 'reference
+  "Prop 3.29 (row form): H[r,k].P scales row k by r.  Left-mult mirror of
+   elem-h-action; H is diagonal (symmetric), single-support collapse at j=i.")
