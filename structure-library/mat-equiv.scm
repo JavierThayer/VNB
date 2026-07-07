@@ -83,3 +83,61 @@
   "Least-degree nonzero entry exists, by the well-ordering of NN (nn-least-element)
    applied to the degree set of the nonzero entries.  The Smith reduction's minimal
    pivot.")
+
+;;; -----------------------------------------------------------------------
+;;; IS-DIAGONAL(A, m, n, D): the m-by-n matrix D is diagonal -- every
+;;; off-diagonal entry is zero.  The Smith reduction's TARGET shape (we take
+;;; DIAGONALIZATION ONLY; the divisibility chain b11|b22|... is a later
+;;; refinement).  The zero matrix is diagonal; a 0-row or 0-column matrix is
+;;; vacuously diagonal (the base of the min(m,n) recursion).
+(def-predicate 'IS-DIAGONAL '(A m n D)
+  '(FORALL i (FORALL j
+     (IMPLIES (IN i (INTERVAL 1 m)) (IMPLIES (IN j (INTERVAL 1 n))
+       (IMPLIES (NOT (= i j)) (= (ENTRY D i j) (ZERO A))))))))
+
+;;; -----------------------------------------------------------------------
+;;; class-min-pivot: a matrix P (over a euclidean ring) with a nonzero entry
+;;; is equivalent to a matrix B whose (1,1) entry is nonzero and of MINIMAL
+;;; euclidean degree over the WHOLE equivalence class of P -- i.e. no matrix C
+;;; equivalent to P has a nonzero entry of smaller degree.  This is the descent
+;;; invariant that forces every euclidean remainder to vanish (pivot-clears-col):
+;;; a nonzero remainder would sit in a matrix C ~ P with degree strictly below
+;;; deg(B_{1,1}), contradicting minimality.
+;;;
+;;; Warranted 'well-known: the math is the well-ordering of NN (nn-least-element)
+;;; applied to the class-degree set
+;;;   T = { (GAUGE A)(C_ij) : C ~ P and C_ij /= 0 } subset NN,
+;;; nonempty (P ~ P by mat-equiv-refl and P has a nonzero entry), so it has a
+;;; least element d0 achieved by some C0 at position (i*,j*); swap-to-corner-gen
+;;; brings C0_{i*,j*} to (1,1) giving B (B ~ C0 ~ P by mat-equiv-trans), and
+;;; deg(B_{1,1}) = d0 is <= every degree in T.  (T is a subclass of the SET NN,
+;;; hence a set.)  Exactly min-degree-entry's argument, quantified over the class.
+(support 'class-min-pivot
+  '(FORALL A (IMPLIES (IS-EUCLIDEAN-RING A) (FORALL m (FORALL n (FORALL P
+     (IMPLIES (IN P (MAT m n (CARR A)))
+       (IMPLIES (IN 1 (INTERVAL 1 m)) (IMPLIES (IN 1 (INTERVAL 1 n))
+         (IMPLIES (FORSOME i0 (FORSOME j0 (AND (IN i0 (INTERVAL 1 m))
+                    (AND (IN j0 (INTERVAL 1 n)) (NOT (= (ENTRY P i0 j0) (ZERO A)))))))
+           (FORSOME B (AND (MAT-EQUIV A m n P B)
+             (AND (NOT (= (ENTRY B 1 1) (ZERO A)))
+               (FORALL C (IMPLIES (MAT-EQUIV A m n P C)
+                 (FORALL i (FORALL j
+                   (IMPLIES (IN i (INTERVAL 1 m)) (IMPLIES (IN j (INTERVAL 1 n))
+                     (IMPLIES (NOT (= (ENTRY C i j) (ZERO A)))
+                       (<= ((GAUGE A) (ENTRY B 1 1)) ((GAUGE A) (ENTRY C i j)))))))))))))))))))))))
+(warrant! 'class-min-pivot 'well-known
+  "Minimal-degree pivot over the whole equivalence class, by the well-ordering of
+   NN (nn-least-element) on the class-degree set; swap-to-corner-gen places it at
+   (1,1).  The Smith descent invariant that forces euclidean remainders to vanish.")
+
+;;; nn-succ-le-antisym: for a,b in NN, succ a <= b makes b <= a impossible
+;;; (succ a <= b => a < b => not b <= a).  Elementary NN order; used in the Smith
+;;; descent to turn "remainder degree strictly below the minimal pivot degree"
+;;; (succ(deg r) <= deg pivot) against class-minimality (deg pivot <= deg r) into
+;;; a contradiction, forcing r = 0.
+(support 'nn-succ-le-antisym
+  '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
+     (IMPLIES (<= (succ a) b) (NOT (<= b a))))))))
+(warrant! 'nn-succ-le-antisym 'well-known
+  "succ a <= b => not(b <= a) for a,b in NN: succ a <= b gives a < b, so b <= a
+   would give a < a.  Elementary order on NN.")

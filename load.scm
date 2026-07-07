@@ -449,6 +449,10 @@
     ;; Linear algebra Phase B: the Smith normal-form reduction (Prop 3.36) --
     ;; equiv-mul-both, swap-to-corner, ... built on the ~ equivalence laws.
     "theorem-library/smith-proof"
+    ;; Linear algebra Phase B: the Smith DESCENT step -- pivot-clears-col, one
+    ;; column op zeroes an off-pivot row-1 entry (euclidean remainder forced to
+    ;; vanish by class-minimality).  Needs pivot-col-reduce + class-min hyp.
+    "theorem-library/smith-clear-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
