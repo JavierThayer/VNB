@@ -469,6 +469,9 @@
     ;; Linear algebra Phase B: bordered-eq-border -- a cross-cleared C equals
     ;; BORDER(C11, SUBMAT C); bridges clear-first-row/col to the BORDER block form.
     "theorem-library/bordered-eq-border-proof"
+    ;; Linear algebra Phase B: clear-pivot-cross -- P (euclidean ring, nonzero entry)
+    ;; ~ BORDER(b, C') block form; per-level Smith step (pivot + clear cross + border).
+    "theorem-library/clear-pivot-cross-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
