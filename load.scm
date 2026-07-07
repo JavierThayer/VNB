@@ -457,6 +457,9 @@
     ;; pivot-clears-col over the columns (clear-row-upto), then at k=n
     ;; (clear-first-row).  Needs pivot-clears-col + the NN/interval read-offs.
     "theorem-library/clear-first-row-proof"
+    ;; Linear algebra Phase B: clear the whole first column -- the row-op mirror
+    ;; of clear-first-row (pivot-clears-row + clear-col-upto at k=m).
+    "theorem-library/clear-first-col-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
