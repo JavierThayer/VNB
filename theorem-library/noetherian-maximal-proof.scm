@@ -23,9 +23,8 @@
 ;;; nn-succ-closed, fun-apply-type-c) and the obvious reachability bridges.
 
 ;;; --- foundational helpers (trivial logic / set theory) ---
-(add-to-pss 'neq-sym '(FORALL a (FORALL b (IMPLIES (NOT (= a b)) (NOT (= b a))))))
-(warrant! 'neq-sym 'well-known "Symmetry of disequality.")
-(category! 'neq-sym 'plumbing)
+;;; neq-sym now lives in structure-library/order-lemmas.scm (loaded early, so the
+;;; Smith clearing bricks can fact it); it is registered before this file loads.
 
 (add-to-pss 'fun-codomain-superset
   '(FORALL f (FORALL A (FORALL B (FORALL C

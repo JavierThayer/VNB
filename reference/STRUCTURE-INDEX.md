@@ -42,7 +42,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -150,8 +150,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr mul id inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr mul id inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr mul id inv)
-- `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul id inv) ↦ (carr mul id inv)
 - `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul id inv)
+- `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul id inv) ↦ (carr mul id inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr mul id inv)
 
 *Views from `abelian-group`.*
@@ -325,6 +325,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Theorems quantifying over `is-euclidean-ring`.*
 
 - `class-min-pivot` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], 1 in interval(1, m) implies 1 in interval(1, n) implies forsome([i0, j0], i0 in interval(1, m) and j0 in interval(1, n) and not(entry(p, i0, j0) = zero(a))) implies forsome([b], mat-equiv(a, m, n, p, b) and not(entry(b, 1, 1) = zero(a)) and forall([c], mat-equiv(a, m, n, p, c) implies forall([i, j], i in interval(1, m) implies j in interval(1, n) implies not(entry(c, i, j) = zero(a)) implies (gauge(a))(entry(b, 1, 1)) <= (gauge(a))(entry(c, i, j)))))))
+- `clear-first-row` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], m in nn implies n in nn implies 1 in interval(1, m) implies 1 in interval(1, n) implies not(entry(p, 1, 1) = zero(a)) implies forall([c], mat-equiv(a, m, n, p, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(p, 1, 1)) <= (gauge(a))(entry(c, ii, jj)))) implies forsome([q], mat-equiv(a, m, n, p, q) and entry(q, 1, 1) = entry(p, 1, 1) and forall([j in interval(1, n)], not(j = 1) implies entry(q, 1, j) = zero(a)))))
+- `clear-row-upto` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], 1 in interval(1, m) implies 1 in interval(1, n) implies not(entry(p, 1, 1) = zero(a)) implies forall([c], mat-equiv(a, m, n, p, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(p, 1, 1)) <= (gauge(a))(entry(c, ii, jj)))) implies forall([k in nn], forsome([q], mat-equiv(a, m, n, p, q) and entry(q, 1, 1) = entry(p, 1, 1) and forall([j in interval(1, n)], not(j = 1) implies j <= k implies entry(q, 1, j) = zero(a))))))
 - `euclidean-division` — forall([s], is-euclidean-ring(s) implies forall([a in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ((gauge(s))(r)) <= (gauge(s))(b)))))
 - `euclidean-ideal-has-generator` — forall([s], is-euclidean-ring(s) implies forall([i], is-ideal(s, i) implies forsome([b in i], forall([a in i], a in principal-ideal(s, b)))))
 - `euclidean-ring-has-gauge` — forall([s], is-euclidean-ring(s) implies forsome([deg in fun(carr(s), nn)], has-div-remainder(s, deg)))
@@ -416,8 +418,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 - `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 
 ### group
 <a id="group"></a>
@@ -1086,6 +1088,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `abelian-group-idempotent-is-id-ring-additive-ag` — forall([r], is-ring(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
 - `abelian-group-idempotent-is-id-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies zero(r) = a))
 - `bt-one-in-carr` — forall([r], is-ring(r) implies one(r) in carr(r))
+- `classmin-transport` — forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies mat-equiv(a, m, n, p, q) implies entry(q, 1, 1) = entry(p, 1, 1) implies forall([c], mat-equiv(a, m, n, p, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(p, 1, 1)) <= (gauge(a))(entry(c, ii, jj)))) implies forall([c], mat-equiv(a, m, n, q, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(q, 1, 1)) <= (gauge(a))(entry(c, ii, jj))))))
 - `elem-f-action` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-f(a, n, k, l)), i, c) = if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c))))))
 - `elem-f-action-rev` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c))) = entry(matmul(a, p, elem-f(a, n, k, l)), i, c))))
 - `elem-f-inverse` — forall([a], is-ring(a) implies forall([n, k, l], k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies matmul(a, elem-f(a, n, k, l), elem-f(a, n, l, k)) = identmat(a, n)))
@@ -1124,6 +1127,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `identmat-right-identity` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matmul(a, p, identmat(a, n)) = p))
 - `identmat-right-identity-rev` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], p = matmul(a, p, identmat(a, n))))
 - `identmat-type` — forall([a], is-ring(a) implies forall([n], identmat(a, n) in mat(n, n, carr(a))))
+- `mat-equiv-cod-is-mat` — forall([a], is-ring(a) implies forall([m, n, x, y], x in mat(m, n, carr(a)) implies mat-equiv(a, m, n, x, y) implies y in mat(m, n, carr(a))))
 - `mat-equiv-left-mult` — forall([a], is-ring(a) implies forall([m, n, c, u], c in mat(m, n, carr(a)) implies is-invertible-mat(a, m, u) implies mat-equiv(a, m, n, c, matmul(a, u, c))))
 - `mat-equiv-refl` — forall([a], is-ring(a) implies forall([m, n, c in mat(m, n, carr(a))], mat-equiv(a, m, n, c, c)))
 - `mat-equiv-right-mult` — forall([a], is-ring(a) implies forall([m, n, c, v], c in mat(m, n, carr(a)) implies is-invertible-mat(a, n, v) implies mat-equiv(a, m, n, c, matmul(a, c, v))))

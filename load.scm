@@ -453,6 +453,10 @@
     ;; column op zeroes an off-pivot row-1 entry (euclidean remainder forced to
     ;; vanish by class-minimality).  Needs pivot-col-reduce + class-min hyp.
     "theorem-library/smith-clear-proof"
+    ;; Linear algebra Phase B: clear the whole first row -- NN-induction iterating
+    ;; pivot-clears-col over the columns (clear-row-upto), then at k=n
+    ;; (clear-first-row).  Needs pivot-clears-col + the NN/interval read-offs.
+    "theorem-library/clear-first-row-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

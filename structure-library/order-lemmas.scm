@@ -256,3 +256,49 @@
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IMPLIES (NOT (= u v)) (NOT (= (- u v) 0))))))))
 (warrant! 'rr-sub-ne-zero 'well-known "u/=v => u-v/=0.")
 (category! 'rr-sub-ne-zero 'inequalities)
+
+;;; -----------------------------------------------------------------------
+;;; NN order facts for the Smith row/column clearing induction (clear-first-row).
+;;; Elementary discreteness/positivity of NN; warranted well-known.
+(support 'nn-le-succ-cases
+  '(FORALL k (IMPLIES (IN k NN) (FORALL j (IMPLIES (IN j NN)
+     (IMPLIES (<= j (succ k)) (OR (<= j k) (= j (succ k)))))))))
+(warrant! 'nn-le-succ-cases 'well-known
+  "j <= succ k => j <= k or j = succ k, for j,k in NN (discreteness of NN).")
+(category! 'nn-le-succ-cases 'inequalities)
+
+(support 'nn-not-le-zero-pos
+  '(FORALL j (IMPLIES (IN j NN) (IMPLIES (<= 1 j) (NOT (<= j 0))))))
+(warrant! 'nn-not-le-zero-pos 'well-known
+  "1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).")
+(category! 'nn-not-le-zero-pos 'inequalities)
+
+(support 'nn-le-imp-neq-succ
+  '(FORALL k (IMPLIES (IN k NN) (FORALL j (IMPLIES (IN j NN)
+     (IMPLIES (<= j k) (NOT (= j (succ k)))))))))
+(warrant! 'nn-le-imp-neq-succ 'well-known
+  "j <= k => j /= succ k for j,k in NN (succ k > k >= j).")
+(category! 'nn-le-imp-neq-succ 'inequalities)
+
+;;; Interval read-offs (forward direction of interval-membership), warranted
+;;; well-known -- used to pull IN i NN / the bounds out of IN i (INTERVAL a b).
+(support 'interval-elt-in-nn
+  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i (INTERVAL a b)) (IN i NN)))))) 
+(warrant! 'interval-elt-in-nn 'well-known "i in INTERVAL(a,b) => i in NN (interval-membership).")
+(category! 'interval-elt-in-nn 'plumbing)
+
+(support 'interval-lo
+  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i (INTERVAL a b)) (<= a i))))))
+(warrant! 'interval-lo 'well-known "i in INTERVAL(a,b) => a <= i (interval-membership).")
+(category! 'interval-lo 'inequalities)
+
+(support 'interval-hi
+  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i (INTERVAL a b)) (<= i b))))))
+(warrant! 'interval-hi 'well-known "i in INTERVAL(a,b) => i <= b (interval-membership).")
+(category! 'interval-hi 'inequalities)
+
+;;; Symmetry of disequality -- fact-able, needed early (Smith clearing uses it
+;;; well before noetherian-maximal-proof, its former home).
+(support 'neq-sym '(FORALL a (FORALL b (IMPLIES (NOT (= a b)) (NOT (= b a))))))
+(warrant! 'neq-sym 'well-known "Symmetry of disequality.")
+(category! 'neq-sym 'plumbing)
