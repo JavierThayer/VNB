@@ -460,6 +460,9 @@
     ;; Linear algebra Phase B: clear the whole first column -- the row-op mirror
     ;; of clear-first-row (pivot-clears-row + clear-col-upto at k=m).
     "theorem-library/clear-first-col-proof"
+    ;; Linear algebra Phase B: block-matrix multiplication BORDER(a,X).BORDER(c,Y)
+    ;; = BORDER(ac, X.Y) -- the direct-sum law the Smith bordering rests on.
+    "theorem-library/border-mult-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

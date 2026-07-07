@@ -302,3 +302,38 @@
 (support 'neq-sym '(FORALL a (FORALL b (IMPLIES (NOT (= a b)) (NOT (= b a))))))
 (warrant! 'neq-sym 'well-known "Symmetry of disequality.")
 (category! 'neq-sym 'plumbing)
+
+;;; NN-MINUS(succ z, 1) = z -- the monus predecessor of a successor.  Used by
+;;; border-mult to reduce a shifted block index.
+(support 'nn-minus-succ-1
+  '(FORALL z (IMPLIES (IN z NN) (= (NN-MINUS (succ z) 1) z))))
+(warrant! 'nn-minus-succ-1 'well-known
+  "NN-MINUS(succ z, 1) = z: 1 <= succ z, so the monus is (succ z) - 1 = z
+   (nn-minus-def + bt-succ-minus-1).")
+(category! 'nn-minus-succ-1 'plumbing)
+
+;;; Interval membership helpers for border-mult's block indexing.
+(support 'one-in-interval
+  '(FORALL n (IMPLIES (IN n NN) (IN 1 (INTERVAL 1 (succ n))))))
+(warrant! 'one-in-interval 'well-known "1 in [1, succ n] (1 <= 1 <= succ n).")
+(category! 'one-in-interval 'inequalities)
+
+(support 'pred-in-interval
+  '(FORALL p (FORALL i (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
+     (IN (NN-MINUS i 1) (INTERVAL 1 p)))))))
+(warrant! 'pred-in-interval 'well-known
+  "i in [2, succ p] => i-1 in [1, p]: the monus predecessor of an index past 1
+   lands in the block range.")
+(category! 'pred-in-interval 'inequalities)
+
+;;; succ of an index: stays in the shifted interval, and is never 1 (>= 2).
+(support 'succ-in-interval
+  '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (IN (succ z) (INTERVAL 1 (succ q)))))))
+(warrant! 'succ-in-interval 'well-known
+  "z in [1,q] => succ z in [1, succ q] (2 <= succ z <= succ q).")
+(category! 'succ-in-interval 'inequalities)
+
+(support 'succ-not-one
+  '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (NOT (= (succ z) 1))))))
+(warrant! 'succ-not-one 'well-known "z in [1,q] => succ z >= 2, so succ z /= 1.")
+(category! 'succ-not-one 'inequalities)

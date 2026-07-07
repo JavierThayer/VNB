@@ -89,6 +89,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `finsum-fubini-rev` — forall([ag], is-abelian-group(ag) implies forall([x], x in set and card(x) in nn implies forall([y], y in set and card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y) = finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x)))))
 - `finsum-insert-ag` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], finsum(ag, f, union(x, {k})) = (mul(ag))(finsum(ag, f, x), f(k))))))
 - `finsum-insert-ag-rev` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], (mul(ag))(finsum(ag, f, x), f(k)) = finsum(ag, f, union(x, {k}))))))
+- `finsum-interval-shift` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (mul(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n)))))
+- `finsum-interval-shift-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], (mul(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n))) = finsum(ag, f, interval(1, succ(n)))))
 - `finsum-ord-peel` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], finsum(ag, f, ord-segment(succ(n))) = (mul(ag))(finsum(ag, f, ord-segment(n)), f(n))))
 - `finsum-ord-peel-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], (mul(ag))(finsum(ag, f, ord-segment(n)), f(n)) = finsum(ag, f, ord-segment(succ(n)))))
 - `finsum-reindex-ag` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(ag))], finsum(ag, f, s) = finsum(ag, vnb-lambda(z, f(phi(z))), t)))))
@@ -421,8 +423,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
+- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
 
 ### group
 <a id="group"></a>
@@ -1090,6 +1092,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `abelian-group-idempotent-is-id-rev-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
 - `abelian-group-idempotent-is-id-ring-additive-ag` — forall([r], is-ring(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
 - `abelian-group-idempotent-is-id-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies zero(r) = a))
+- `border-mult` — forall([a], is-ring(a) implies forall([p, q, r, x, y, b, d], p in nn implies q in nn implies r in nn implies x in mat(p, q, carr(a)) implies y in mat(q, r, carr(a)) implies b in carr(a) implies d in carr(a) implies matmul(a, border(a, b, x, p, q), border(a, d, y, q, r)) = border(a, (mul(a))(b, d), matmul(a, x, y), p, r)))
+- `border-mult-rev` — forall([a], is-ring(a) implies forall([p, q, r, x, y, b, d], p in nn implies q in nn implies r in nn implies x in mat(p, q, carr(a)) implies y in mat(q, r, carr(a)) implies b in carr(a) implies d in carr(a) implies border(a, (mul(a))(b, d), matmul(a, x, y), p, r) = matmul(a, border(a, b, x, p, q), border(a, d, y, q, r))))
 - `bt-one-in-carr` — forall([r], is-ring(r) implies one(r) in carr(r))
 - `classmin-transport` — forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies mat-equiv(a, m, n, p, q) implies entry(q, 1, 1) = entry(p, 1, 1) implies forall([c], mat-equiv(a, m, n, p, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(p, 1, 1)) <= (gauge(a))(entry(c, ii, jj)))) implies forall([c], mat-equiv(a, m, n, q, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(q, 1, 1)) <= (gauge(a))(entry(c, ii, jj))))))
 - `elem-f-action` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-f(a, n, k, l)), i, c) = if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c))))))

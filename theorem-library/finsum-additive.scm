@@ -378,3 +378,31 @@
 (category! 'finsum-add-ag 'algebra)
 (category! 'finsum-reindex-ag 'algebra)
 (category! 'finsum-embed 'algebra)
+
+;;; finsum-interval-shift: front-peel of a FINSUM over [1, succ n] -- pull off the
+;;; first term f(1) and reindex the tail [2,succ n] to [1,n] by z |-> succ z.  The
+;;; block-matrix multiplication (border-mult) needs exactly this to drop the j=1
+;;; (zero) term of a bordered product and re-express the rest over the block index.
+;;; = finsum-insert-ag (peel j=1) + finsum-reindex-ag (succ bijection); same
+;;; warranted-well-known status as finsum-ord-peel.
+(support 'finsum-interval-shift
+  '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
+     (FORALL n (IMPLIES (IN n NN)
+       (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ n)) (CARR ag)))
+         (= (FINSUM ag f (INTERVAL 1 (succ n)))
+            ((MUL ag) (f 1) (FINSUM ag (VNB-LAMBDA z (f (succ z))) (INTERVAL 1 n)))))))))))
+(warrant! 'finsum-interval-shift 'well-known
+  "FINSUM over [1,succ n] = f(1) . FINSUM over [1,n] of (z|->f(succ z)): peel the
+   first term (finsum-insert-ag at k=1, X=[2,succ n]) then reindex the tail by the
+   succ bijection [1,n]->[2,succ n] (finsum-reindex-ag).  Standard finite-sum
+   front-peel, same status as finsum-ord-peel.")
+(category! 'finsum-interval-shift 'combinatorial)
+
+;;; funcomp-succ-type: the typing companion of finsum-interval-shift -- z |-> f(succ z)
+;;; maps [1,q] into X whenever f maps [1,succ q] into X (succ z in [1,succ q]).
+(support 'funcomp-succ-type
+  '(FORALL X (FORALL q (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ q)) X))
+     (IN (VNB-LAMBDA z (f (succ z))) (FUN (INTERVAL 1 q) X)))))))
+(warrant! 'funcomp-succ-type 'well-known
+  "z |-> f(succ z) : [1,q] -> X when f : [1,succ q] -> X (succ z in [1,succ q]).")
+(category! 'funcomp-succ-type 'combinatorial)

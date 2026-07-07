@@ -124,6 +124,18 @@
   "BORDER(A,b,M,p,q)_{succ i, succ j} = M_{i,j} for i in [1,p], j in [1,q]
    (i/=1,j/=1 branch; NN-MINUS(succ i,1)=i).")
 
+;;; border-entry-block2: same block read-off for GENERAL indices i,j >= 2 (in the
+;;; border range, /= 1), NN-MINUS form -- lets border-mult read a block entry off a
+;;; general index without destructuring it as a successor.
+(support 'border-entry-block2
+  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL i (FORALL j
+     (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
+     (IMPLIES (IN j (INTERVAL 1 (succ q))) (IMPLIES (NOT (= j 1))
+       (= (ENTRY (BORDER A b M p q) i j) (ENTRY M (NN-MINUS i 1) (NN-MINUS j 1)))))))))))))))
+(warrant! 'border-entry-block2 'reference
+  "BORDER(A,b,M,p,q)_{i,j} = M_{i-1,j-1} for i,j /= 1 in the border range (the
+   i/=1,j/=1 branch of the def; NN-MINUS = monus predecessor).")
+
 ;;; -----------------------------------------------------------------------
 ;;; min-degree-entry: a matrix with a nonzero entry HAS a nonzero entry of
 ;;; MINIMAL degree -- the "mu is achieved" fact that starts the Smith reduction
