@@ -332,6 +332,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `min-degree-entry` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], forsome([i0, j0], i0 in interval(1, m) and j0 in interval(1, n) and not(entry(p, i0, j0) = zero(a))) implies forsome([is, js], is in interval(1, m) and js in interval(1, n) and not(entry(p, is, js) = zero(a)) and forall([i, j], i in interval(1, m) implies j in interval(1, n) implies not(entry(p, i, j) = zero(a)) implies (gauge(a))(entry(p, is, js)) <= (gauge(a))(entry(p, i, j))))))
 - `pivot-col-reduce` — forall([a], is-euclidean-ring(a) implies forall([m, n, p, j], p in mat(m, n, carr(a)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies j in interval(1, n) implies not(1 = j) implies not(entry(p, 1, 1) = zero(a)) implies forsome([q in carr(a), r in carr(a)], entry(matmul(a, p, elem-g(a, n, (neg(a))(q), 1, j)), 1, j) = r and (r = zero(a) or succ((gauge(a))(r)) <= (gauge(a))(entry(p, 1, 1))))))
 - `pivot-row-reduce` — forall([a], is-euclidean-ring(a) implies forall([m, n, p, i], p in mat(m, n, carr(a)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies i in interval(1, m) implies not(i = 1) implies not(entry(p, 1, 1) = zero(a)) implies forsome([q in carr(a), r in carr(a)], entry(matmul(a, elem-g(a, m, (neg(a))(q), i, 1), p), i, 1) = r and (r = zero(a) or succ((gauge(a))(r)) <= (gauge(a))(entry(p, 1, 1))))))
+- `place-min-pivot` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], 1 in interval(1, m) implies 1 in interval(1, n) implies forsome([i0, j0], i0 in interval(1, m) and j0 in interval(1, n) and not(entry(p, i0, j0) = zero(a))) implies forsome([b], mat-equiv(a, m, n, p, b) and not(entry(b, 1, 1) = zero(a)) and forall([i, j], i in interval(1, m) implies j in interval(1, n) implies not(entry(p, i, j) = zero(a)) implies (gauge(a))(entry(b, 1, 1)) <= (gauge(a))(entry(p, i, j))))))
 
 *Views into `euclidean-ring`.*
 
@@ -413,8 +414,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
+- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
 
 ### group
 <a id="group"></a>
@@ -1110,6 +1111,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `elem-h-row-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, m) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, elem-h(a, m, r, k), p), i, c) = if(i = k, (mul(a))(r, entry(p, k, c)), entry(p, i, c)))))
 - `elem-h-row-action-rev` — forall([a], is-ring(a) implies forall([m, n, p, r, k], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, m) implies forall([i in interval(1, m), c in interval(1, n)], if(i = k, (mul(a))(r, entry(p, k, c)), entry(p, i, c)) = entry(matmul(a, elem-h(a, m, r, k), p), i, c))))
 - `elem-h-type` — forall([a], is-ring(a) implies forall([n, r, k], r in carr(a) implies elem-h(a, n, r, k) in mat(n, n, carr(a))))
+- `equiv-mul-both` — forall([r], is-ring(r) implies forall([m, n, a, u, v], a in mat(m, n, carr(r)) implies is-invertible-mat(r, m, u) implies is-invertible-mat(r, n, v) implies mat-equiv(r, m, n, a, matmul(r, matmul(r, u, a), v))))
 - `finsum-ring-distrib-left-gen` — forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(r, finsum(ring-additive-ag(rng), f, s)) = finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(r, f(z))), s))))
 - `finsum-ring-distrib-left-gen-rev` — forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(r, f(z))), s) = (mul(rng))(r, finsum(ring-additive-ag(rng), f, s)))))
 - `finsum-ring-distrib-right-gen` — forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(ring-additive-ag(rng), f, s), r) = finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(f(z), r)), s))))
@@ -1219,6 +1221,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `sum-singleton` — forall([r], is-ring(r) implies forall([f in fun(nn, carr(r))], sum(r, f, 1) = f(0)))
 - `sum-singleton-rev` — forall([r], is-ring(r) implies forall([f in fun(nn, carr(r))], f(0) = sum(r, f, 1)))
 - `sum-type` — forall([r], is-ring(r) implies forall([f in fun(nn, carr(r)), n in nn], sum(r, f, n) in carr(r)))
+- `swap-to-corner` — forall([r], is-ring(r) implies forall([m, n, a, i0, j0], a in mat(m, n, carr(r)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies i0 in interval(1, m) implies j0 in interval(1, n) implies not(1 = i0) implies not(1 = j0) implies forsome([b], mat-equiv(r, m, n, a, b) and entry(b, 1, 1) = entry(a, i0, j0))))
+- `swap-to-corner-gen` — forall([r], is-ring(r) implies forall([m, n, a, i0, j0], a in mat(m, n, carr(r)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies i0 in interval(1, m) implies j0 in interval(1, n) implies forsome([b], mat-equiv(r, m, n, a, b) and entry(b, 1, 1) = entry(a, i0, j0))))
 - `tel-dist-type` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, (mul(a))((vnb-lambda(j, (mul(a))(entry(p, row, j), entry(q, j, x))))(z), entry(r, x, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))
 - `tel-inf-type` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, (mul(a))(entry(p, row, j), entry(q, j, x))) in fun(interval(1, n), carr(a))))
 - `tel-outf-type` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, (mul(a))(entry(matmul(a, p, q), row, j), entry(r, j, col))) in fun(interval(1, k), carr(ring-additive-ag(a)))))
