@@ -1490,6 +1490,10 @@
        ((memq name *op-function-heads*)
         (list name 'function "denotes a set-function (element of FUN(A,B))"
               "set-function" '()))
+       ((memq name '(apply-functoid apply-function))
+        (list name 'functoid
+              "implicit application operator (the invisible head of `f(args)`)"
+              "term" '()))
        ((memq name *op-kernel-heads*)
         (list name 'functoid "kernel term-former" "term" '()))
        (else
@@ -1555,8 +1559,8 @@
         (display "is a predicate, a proposition).  Not every head is a symbol.  ")
         (display "Every applied term has a *head* — the expression in operator ")
         (display "position — and that head may itself be a compound term rather ")
-        (display "than a name (the function argument of `apply-functoid`, a ")
-        (display "variable of function type, a `vnb-lambda` abstraction).  So ")
+        (display "than a name (the `f` in an application `f(args)`, a variable of ")
+        (display "function type, a `vnb-lambda` abstraction).  So ")
         (display "*head term* is the general notion and *operator* is the special ")
         (display "case where the head is a symbol.  This census lists the ")
         (display "operators — the symbols.\n\n")
@@ -1578,7 +1582,10 @@
         (display "Some functoids can be regarded as functions, but a functoid is ")
         (display "not required to be one.  `lambdoid` is the binder that ")
         (display "constructs a functoid — the class-domain sibling of ")
-        (display "`vnb-lambda`; `apply-functoid` applies one.  Whether an ")
+        (display "`vnb-lambda`.  Application is implicit: writing `f(args)` ")
+        (display "denotes `apply-functoid(f, args)` when `f` is a functoid and ")
+        (display "`apply-function(f, args)` when `f` is a function — these two ")
+        (display "application operators are never written by hand.  Whether an ")
         (display "operator is a kernel primitive or a library definition is a ")
         (display "matter of ORIGIN, recorded as metadata; it is not a VNB ")
         (display "distinction and carries no semantic weight.  A kernel ")
