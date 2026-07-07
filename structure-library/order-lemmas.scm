@@ -347,3 +347,11 @@
 (warrant! 'nn-minus-1-inj 'well-known
   "i /= j and 1 <= i,j => i-1 /= j-1 (monus by 1 is injective on [1,inf)).")
 (category! 'nn-minus-1-inj 'inequalities)
+
+;;; succ(i-1) = i for i >= 1 -- the inverse of monus-by-1 on positive indices;
+;;; used to see that BORDER(b, SUBMAT(C)) restores C's lower-right block.
+(support 'succ-nn-minus-1
+  '(FORALL i (IMPLIES (IN i NN) (IMPLIES (<= 1 i) (= (succ (NN-MINUS i 1)) i)))))
+(warrant! 'succ-nn-minus-1 'well-known
+  "succ(i-1) = i for i >= 1 (monus by 1 then succ is the identity on [1,inf)).")
+(category! 'succ-nn-minus-1 'inequalities)

@@ -37,18 +37,18 @@
 ;;; matrix P -- P with its first row and first column deleted.  The Smith
 ;;; recursion (Prop 3.36) applies to this block after the pivot clears row 1
 ;;; and column 1.  Entry (i,j) = P_{i+1, j+1}.
-(def-functoid 'SUBMAT '(P p q)
-  '(MATOF p q (VNB-LAMBDA (LIST i j) (ENTRY P (succ i) (succ j)))))
+(def-functoid 'SUBMAT '(S p q)
+  '(MATOF p q (VNB-LAMBDA (LIST i j) (ENTRY S (succ i) (succ j)))))
 
 ;;; submat-type: SUBMAT(P,p,q) is a p-by-q matrix over A when P is
 ;;; (succ p)-by-(succ q) (each block entry P_{i+1,j+1} lies in CARR A).
 ;;; Warranted 'reference like the other MAT read-offs (matof-in-mat + the shift
 ;;; succ i in [1, succ p] for i in [1,p]).
 (support 'submat-type
-  '(FORALL A (FORALL p (FORALL q (FORALL P
+  '(FORALL A (FORALL p (FORALL q (FORALL S
      (IMPLIES (IN p NN) (IMPLIES (IN q NN)
-       (IMPLIES (IN P (MAT (succ p) (succ q) (CARR A)))
-         (IN (SUBMAT P p q) (MAT p q (CARR A)))))))))))
+       (IMPLIES (IN S (MAT (succ p) (succ q) (CARR A)))
+         (IN (SUBMAT S p q) (MAT p q (CARR A)))))))))))
 (warrant! 'submat-type 'reference
   "SUBMAT(P,p,q) in MAT(p,q,CARR A) for P in MAT(succ p, succ q, CARR A): each
    block entry is P_{succ i, succ j} in CARR A (entry-in-carrier; succ i in
@@ -58,9 +58,9 @@
 ;;; warranted 'reference like entry-of-matof (mac SUBMAT + entry-of-matof + beta
 ;;; reduces the goal to a reflexive equation; verified in scratchpad/submat.scm).
 (support 'entry-of-submat
-  '(FORALL P (FORALL p (FORALL q (FORALL i (FORALL j
+  '(FORALL S (FORALL p (FORALL q (FORALL i (FORALL j
      (IMPLIES (IN i (INTERVAL 1 p)) (IMPLIES (IN j (INTERVAL 1 q))
-       (= (ENTRY (SUBMAT P p q) i j) (ENTRY P (succ i) (succ j)))))))))))
+       (= (ENTRY (SUBMAT S p q) i j) (ENTRY S (succ i) (succ j)))))))))))
 (warrant! 'entry-of-submat 'reference
   "SUBMAT(P,p,q)_{ij} = P_{succ i, succ j} for i in [1,p], j in [1,q]
    (entry-of-matof on the block tabulator, beta-reduced).")
