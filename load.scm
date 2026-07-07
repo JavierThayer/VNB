@@ -446,6 +446,9 @@
     ;; foundation for the Smith normal-form induction.  Needs mat-equiv.scm +
     ;; elem-inverses-proof + matrix.scm identities.
     "theorem-library/mat-equiv-proof"
+    ;; Linear algebra Phase B: the Smith normal-form reduction (Prop 3.36) --
+    ;; equiv-mul-both, swap-to-corner, ... built on the ~ equivalence laws.
+    "theorem-library/smith-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
