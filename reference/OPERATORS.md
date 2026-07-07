@@ -474,7 +474,7 @@ Declared by: `rr-ms-def`
 
 ### `submat`  — def-functoid · element/number-valued
 
-    submat(p, p, q) := matof(p, q, vnb-lambda([i, j], entry(p, succ(i), succ(j))))
+    submat(s, p, q) := matof(p, q, vnb-lambda([i, j], entry(s, succ(i), succ(j))))
 
 ### `subseq`  — def-functoid · function-valued
 

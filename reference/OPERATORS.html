@@ -292,7 +292,7 @@
 <h4 id="OPERATORS__span-add-one-def-functoid-set-valued"><code>span-add-one</code>  — def-functoid · set-valued</h4>
 <pre>span-add-one(m, s, v) := {y_ in vec(m): forsome([x_ in s, r_ in rr], y_ = (vadd(m))(x_, (act(m))(r_, v)))}</pre>
 <h4 id="OPERATORS__submat-def-functoid-element/number-valued"><code>submat</code>  — def-functoid · element/number-valued</h4>
-<pre>submat(p, p, q) := matof(p, q, vnb-lambda([i, j], entry(p, succ(i), succ(j))))</pre>
+<pre>submat(s, p, q) := matof(p, q, vnb-lambda([i, j], entry(s, succ(i), succ(j))))</pre>
 <h4 id="OPERATORS__subseq-def-functoid-function-valued"><code>subseq</code>  — def-functoid · function-valued</h4>
 <pre>subseq(f, phi) := vnb-lambda(k, f(phi(k)))</pre>
 <h4 id="OPERATORS__succ-ord-characterized-by-axiom-s"><code>succ_ord</code>  — characterized by axiom(s)</h4>

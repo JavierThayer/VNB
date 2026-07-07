@@ -299,7 +299,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### submat
 
-    submat(p, p, q) := matof(p, q, vnb-lambda([i, j], entry(p, succ(i), succ(j))))
+    submat(s, p, q) := matof(p, q, vnb-lambda([i, j], entry(s, succ(i), succ(j))))
 
 ### subseq
 
