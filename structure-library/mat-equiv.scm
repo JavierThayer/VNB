@@ -66,6 +66,65 @@
    (entry-of-matof on the block tabulator, beta-reduced).")
 
 ;;; -----------------------------------------------------------------------
+;;; BORDER(A, b, M, p, q): the (succ p)-by-(succ q) matrix with b in the (1,1)
+;;; corner, zeros in the rest of row 1 and column 1, and the p-by-q block M in
+;;; the lower-right -- the "direct sum" [[b, 0], [0, M]].  The inverse of SUBMAT
+;;; on bordered matrices (SUBMAT(BORDER(A,b,M,p,q)) = M), it lets the Smith
+;;; recursion lift an equivalence on the lower-right block back to the full
+;;; matrix (bordering).  Entry (i,j): b if i=j=1, 0 if exactly one of i,j is 1,
+;;; else M_{i-1,j-1} (NN-MINUS = monus, valid since i,j >= 2 there).
+(def-functoid 'BORDER '(A b M p q)
+  '(MATOF (succ p) (succ q)
+     (VNB-LAMBDA (LIST i j)
+       (IF (= i 1)
+           (IF (= j 1) b (ZERO A))
+           (IF (= j 1) (ZERO A) (ENTRY M (NN-MINUS i 1) (NN-MINUS j 1)))))))
+
+;;; border-type: BORDER(A,b,M,p,q) in MAT(succ p, succ q, CARR A) when b in CARR A
+;;; and M in MAT(p,q,CARR A) -- every tabulator value is b, ZERO A, or b block
+;;; entry of M, all in CARR A (matof-in-mat).  Warranted 'reference like submat-type.
+(support 'border-type
+  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q
+     (IMPLIES (IN p NN) (IMPLIES (IN q NN)
+       (IMPLIES (IN b (CARR A))
+       (IMPLIES (IN M (MAT p q (CARR A)))
+         (IN (BORDER A b M p q) (MAT (succ p) (succ q) (CARR A)))))))))))))
+(warrant! 'border-type 'reference
+  "BORDER(A,b,M,p,q) in MAT(succ p, succ q, CARR A): each tabulator value is b
+   (in CARR A), ZERO A (in CARR A), or b block entry M_{i-1,j-1} (entry-in-carrier,
+   i-1 in [1,p] for i in [2,succ p]); matof-in-mat applies.")
+
+;;; The four entry read-offs (pure MATOF read-offs: entry-of-matof + beta + IF
+;;; reduction + NN-MINUS(succ i,1)=i via nn-minus/bt-succ-minus-1).  Warranted
+;;; 'reference like entry-of-submat / entry-of-identmat.
+(support 'border-entry-11
+  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q
+     (= (ENTRY (BORDER A b M p q) 1 1) b)))))))
+(warrant! 'border-entry-11 'reference "BORDER(A,b,M,p,q)_{1,1} = b (i=j=1 branch).")
+
+(support 'border-entry-1j
+  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL j
+     (IMPLIES (IN j (INTERVAL 1 (succ q))) (IMPLIES (NOT (= j 1))
+       (= (ENTRY (BORDER A b M p q) 1 j) (ZERO A)))))))))))
+(warrant! 'border-entry-1j 'reference
+  "BORDER(A,b,M,p,q)_{1,j} = 0 for j /= 1 (i=1, j/=1 branch).")
+
+(support 'border-entry-i1
+  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL i
+     (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
+       (= (ENTRY (BORDER A b M p q) i 1) (ZERO A)))))))))))
+(warrant! 'border-entry-i1 'reference
+  "BORDER(A,b,M,p,q)_{i,1} = 0 for i /= 1 (i/=1, j=1 branch).")
+
+(support 'border-entry-block
+  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL i (FORALL j
+     (IMPLIES (IN i (INTERVAL 1 p)) (IMPLIES (IN j (INTERVAL 1 q))
+       (= (ENTRY (BORDER A b M p q) (succ i) (succ j)) (ENTRY M i j))))))))))))
+(warrant! 'border-entry-block 'reference
+  "BORDER(A,b,M,p,q)_{succ i, succ j} = M_{i,j} for i in [1,p], j in [1,q]
+   (i/=1,j/=1 branch; NN-MINUS(succ i,1)=i).")
+
+;;; -----------------------------------------------------------------------
 ;;; min-degree-entry: a matrix with a nonzero entry HAS a nonzero entry of
 ;;; MINIMAL degree -- the "mu is achieved" fact that starts the Smith reduction
 ;;; (Prop 3.36): pick a nonzero pivot of least Euclidean degree, then division-

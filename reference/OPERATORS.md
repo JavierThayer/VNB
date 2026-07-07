@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-229 operators: 16 functions, 145 functoids, 68 predicates, 0 undeclared.
+230 operators: 16 functions, 146 functoids, 68 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -34,7 +34,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (145)
+## Functoids  (146)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -57,6 +57,10 @@ Term-valued operators that do NOT denote an element of `SET` — the big amorpho
     bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 
 ### `big-union`  — kernel term-former
+
+### `border`  — def-functoid · element/number-valued
+
+    border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
 
 ### `card`  — characterized by axiom(s)
 
