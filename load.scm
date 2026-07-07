@@ -466,6 +466,9 @@
     ;; Linear algebra Phase B: the border algebra -- border-identity /
     ;; border-is-diagonal / border-invertible (routine, on border-mult).
     "theorem-library/border-assembly-proof"
+    ;; Linear algebra Phase B: bordered-eq-border -- a cross-cleared C equals
+    ;; BORDER(C11, SUBMAT C); bridges clear-first-row/col to the BORDER block form.
+    "theorem-library/bordered-eq-border-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
