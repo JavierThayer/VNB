@@ -155,12 +155,17 @@
 (category! 'pivot-clears-row 'algebra)
 
 ;; ===================== clear-col-upto (ni on k) =====================
+
+;; ===================== clear-col-upto (ni on k) -- now also preserves row 1 =====================
 (define (CU-CLEARED Q kk)
   (list 'FORALL 'i (cr-impl* (list '(IN i (INTERVAL 1 m)) '(NOT (= i 1)) (list '<= 'i kk))
                              (list '= (list 'ENTRY Q 'i 1) '(ZERO A)))))
+(define (CU-ROW1 Q)
+  (list 'FORALL 'c (cr-impl* '((IN c (INTERVAL 1 n))) (list '= (list 'ENTRY Q 1 'c) '(ENTRY P 1 c)))))
 (define (CU-BODY kk)
   (list 'FORSOME 'Q (list 'AND '(MAT-EQUIV A m n P Q)
-    (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1)) (CU-CLEARED 'Q kk)))))
+    (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1))
+      (list 'AND (CU-CLEARED 'Q kk) (CU-ROW1 'Q))))))
 (sp (make-wff
   (list 'FORALL 'A (list 'IMPLIES '(IS-EUCLIDEAN-RING A)
     (cr-fa* '(m n P)
@@ -175,6 +180,10 @@
 (fact 'commutative-ring-is-ring 'A)
 (ni)
 
+;; helper: prove a ROW1 leaf (forall c) for witness matrix WQ via ROWPRES(rr=1)+IH,
+;; or (base) by reflexivity when WQ=P.
+(define (cu-foc-row1!) (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'c)))))
+
 ;; --- BASE : CU-BODY(0), witness Q = P ---
 (cc-foc-goal! (H? 'FORSOME))
 (ew 'P) (di)
@@ -182,23 +191,27 @@
 (cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) '(ENTRY P 1 1)))))
 (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 1 1) (rfl)
+(cc-foc-goal! (H? 'AND)) (di)                     ; split CLEARED / ROW1
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'i))))
 (di4)
 (define CU-BI (list-ref (cadr (cc-goal)) 2))
-(fact 'interval-elt-in-nn 1 'm CU-BI)
-(fact 'interval-lo 1 'm CU-BI)
-(fact 'nn-not-le-zero-pos CU-BI)
-(ai (list 'NOT (list '<= CU-BI 0)))
+(fact 'interval-elt-in-nn 1 'm CU-BI) (fact 'interval-lo 1 'm CU-BI)
+(fact 'nn-not-le-zero-pos CU-BI) (ai (list 'NOT (list '<= CU-BI 0)))
+(cu-foc-row1!)                                     ; base ROW1: P_{1,c}=P_{1,c}
+(di) (di)
+(define CU-BC (list-ref (cadr (cc-goal)) 3))
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P 1 CU-BC) (rfl)
 
 ;; --- STEP : CU-BODY(k) => CU-BODY(succ k) ---
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'k))))
 (di) (di) (di)
 (define CU-IH (cc-find (H? 'FORSOME)))
-(ai CU-IH) (ai 1) (ai 1)
+(ai CU-IH) (ai 1) (ai 1) (ai 1)                    ; decompose incl. IH-ROW1
 (define CU-QwEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
                 (eq? (car (cadr z)) 'ENTRY) (equal? (caddr z) '(ENTRY P 1 1))))))
 (define CU-Qw (cadr (cadr CU-QwEQ)))
 (define CU-CLK (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'i)))))
+(define CU-IHR1 (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'c)))))
 (define CU-VALID (list 'AND (list 'IN '(succ k) '(INTERVAL 1 m)) (list 'NOT (list '= '(succ k) 1))))
 (define CU-NOTV (cc-cases CU-VALID))
 
@@ -210,6 +223,7 @@
 (subst CU-QwEQ) (ass)
 (cc-foc! CU-TVCONT)
 (ai CU-VALID)
+(fact 'neq-sym '(succ k) 1)                        ; NOT(=1 succ k) for ROWPRES(rr=1)
 (fact 'pivot-clears-row 'A 'm 'n CU-Qw '(succ k))
 (ai 1) (ai 1) (ai 1) (ai 1)
 (define CU-QpEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
@@ -221,6 +235,7 @@
 (cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (list 'ENTRY CU-Qp 1 1)))))
 (subst CU-QpEQ) (ass)
+(cc-foc-goal! (H? 'AND)) (di)                      ; split CLEARED / ROW1
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'i))))
 (di4)
 (define CU-TI (list-ref (cadr (cc-goal)) 2))
@@ -235,11 +250,20 @@
 (inst+ CU-ROWSc 1)
 (inst+ CU-CLK CU-TI)
 (define CU-RPRES (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (equal? (cadr z) (list 'ENTRY CU-Qp CU-TI 1))))))
-(subst CU-RPRES)
-(ass)
+(subst CU-RPRES) (ass)
 (cc-foc-by-asm! (list '= CU-TI '(succ k)))
-(subst (list '= CU-TI '(succ k)))
-(ass)
+(subst (list '= CU-TI '(succ k))) (ass)
+;; TRUE branch ROW1 : Qp_{1,c} = Qw_{1,c} (ROWPRES rr=1) = P_{1,c} (IH-ROW1)
+(cu-foc-row1!)
+(di) (di)
+(define CU-TC (list-ref (cadr (cc-goal)) 3))
+(inst+ CU-ROWS 1)
+(define CU-ROWSc2 (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'c)
+                   (let ((b (caddr z))) (and (pair? b) (eq? (car b) 'IMPLIES)))))))
+(inst+ CU-ROWSc2 CU-TC)
+(define CU-RP1 (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (equal? (cadr z) (list 'ENTRY CU-Qp 1 CU-TC))))))
+(subst CU-RP1)
+(inst+ CU-IHR1 CU-TC) (ass)
 
 ;; VALIDCOL FALSE : keep Q = Qw
 (cc-foc! CU-NOTV)
@@ -249,6 +273,7 @@
 (cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (list 'ENTRY CU-Qw 1 1)))))
 (ass)
+(cc-foc-goal! (H? 'AND)) (di)                      ; split CLEARED / ROW1
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'i))))
 (di4)
 (define CU-FI (list-ref (cadr (cc-goal)) 2))
@@ -257,8 +282,7 @@
 (define CU-FOR (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'OR) (equal? (caddr z) (list '= CU-FI '(succ k)))))))
 (ai CU-FOR)
 (cc-foc-by-asm! (list '<= CU-FI 'k))
-(inst+ CU-CLK CU-FI)
-(ass)
+(inst+ CU-CLK CU-FI) (ass)
 (cc-foc-by-asm! (list '= CU-FI '(succ k)))
 (cut CU-VALID)
 (define CU-FVCONT (cc-last))
@@ -268,10 +292,16 @@
 (cc-foc-goal! (H? 'NOT)) (subst (list '= '(succ k) CU-FI)) (ass)
 (cc-foc! CU-FVCONT)
 (ai (list 'NOT CU-VALID))
+;; FALSE branch ROW1 : Qw_{1,c} = P_{1,c} (IH-ROW1)
+(cu-foc-row1!)
+(di) (di)
+(define CU-FC (list-ref (cadr (cc-goal)) 3))
+(inst+ CU-IHR1 CU-FC) (ass)
 (qed 'clear-col-upto)
 (category! 'clear-col-upto 'algebra)
 
 ;; ===================== clear-first-col (clear-col-upto at k = m) =====================
+;; Exposes: MAT-EQUIV, pivot, column 1 cleared, AND row 1 unchanged.
 (sp (make-wff
   (list 'FORALL 'A (list 'IMPLIES '(IS-EUCLIDEAN-RING A)
     (cr-fa* '(m n P)
@@ -280,28 +310,38 @@
                       '(NOT (= (ENTRY P 1 1) (ZERO A))) (cr-pcm 'P))
         (list 'FORSOME 'Q (list 'AND '(MAT-EQUIV A m n P Q)
           (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1))
-            (list 'FORALL 'i (cr-impl* (list '(IN i (INTERVAL 1 m)) '(NOT (= i 1)))
-                                       '(= (ENTRY Q i 1) (ZERO A)))))))))))))
+            (list 'AND
+              (list 'FORALL 'i (cr-impl* (list '(IN i (INTERVAL 1 m)) '(NOT (= i 1)))
+                                         '(= (ENTRY Q i 1) (ZERO A))))
+              (list 'FORALL 'c (cr-impl* '((IN c (INTERVAL 1 n)))
+                                         '(= (ENTRY Q 1 c) (ENTRY P 1 c))))))))))))))
 (cc-di*)
 (fact 'clear-col-upto 'A 'm 'n 'P)
 (define FC-UP (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'k)))))
 (inst+ FC-UP 'm)
 (define FC-BODY (cc-find (H? 'FORSOME)))
-(ai FC-BODY) (ai 1) (ai 1)
+(ai FC-BODY) (ai 1) (ai 1) (ai 1)
 (define FC-QEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
                (eq? (car (cadr z)) 'ENTRY) (equal? (caddr z) '(ENTRY P 1 1))))))
 (define FC-Q (cadr (cadr FC-QEQ)))
 (define FC-CLK (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'i)))))
+(define FC-R1 (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'c)))))
 (ew FC-Q) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (ass)
 (cc-foc-goal! (H? 'AND)) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (list 'ENTRY FC-Q 1 1)))))
 (ass)
+(cc-foc-goal! (H? 'AND)) (di)
+;; column-1 cleared: drop the <=m guard via interval-hi
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'i))))
 (di) (di) (di)
 (define FC-I (list-ref (cadr (cc-goal)) 2))
 (fact 'interval-hi 1 'm FC-I)
-(inst+ FC-CLK FC-I)
-(ass)
+(inst+ FC-CLK FC-I) (ass)
+;; row 1 unchanged: direct from clear-col-upto's ROW1
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'c))))
+(di) (di)
+(define FC-C (list-ref (cadr (cc-goal)) 3))
+(inst+ FC-R1 FC-C) (ass)
 (qed 'clear-first-col)
 (category! 'clear-first-col 'algebra)
