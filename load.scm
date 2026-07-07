@@ -463,6 +463,9 @@
     ;; Linear algebra Phase B: block-matrix multiplication BORDER(a,X).BORDER(c,Y)
     ;; = BORDER(ac, X.Y) -- the direct-sum law the Smith bordering rests on.
     "theorem-library/border-mult-proof"
+    ;; Linear algebra Phase B: the border algebra -- border-identity /
+    ;; border-is-diagonal / border-invertible (routine, on border-mult).
+    "theorem-library/border-assembly-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

@@ -337,3 +337,13 @@
   '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (NOT (= (succ z) 1))))))
 (warrant! 'succ-not-one 'well-known "z in [1,q] => succ z >= 2, so succ z /= 1.")
 (category! 'succ-not-one 'inequalities)
+
+;;; monus-by-1 is injective on indices >= 1 (needed to compare BORDER's block to
+;;; IDENTMAT's Kronecker delta in border-identity).
+(support 'nn-minus-1-inj
+  '(FORALL i (FORALL j (IMPLIES (IN i NN) (IMPLIES (IN j NN)
+     (IMPLIES (<= 1 i) (IMPLIES (<= 1 j)
+       (IMPLIES (NOT (= i j)) (NOT (= (NN-MINUS i 1) (NN-MINUS j 1)))))))))))
+(warrant! 'nn-minus-1-inj 'well-known
+  "i /= j and 1 <= i,j => i-1 /= j-1 (monus by 1 is injective on [1,inf)).")
+(category! 'nn-minus-1-inj 'inequalities)
