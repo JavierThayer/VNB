@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-234 operators: 16 functions, 148 functoids, 70 predicates, 0 undeclared.
+237 operators: 16 functions, 149 functoids, 72 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -34,7 +34,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (148)
+## Functoids  (149)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -57,6 +57,10 @@ Term-valued operators that do NOT denote an element of `SET` — the big amorpho
     bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 
 ### `big-union`  — kernel term-former
+
+### `block`  — def-functoid · element/number-valued
+
+    block(p, k, l) := matof(k, l, vnb-lambda([i, j], entry(p, i, j)))
 
 ### `border`  — def-functoid · element/number-valued
 
@@ -544,7 +548,7 @@ Declared by: `zero-ring-def`
 
 Declared by: `zz-act-nonneg` `zz-act-neg` 
 
-## Predicates  (70)
+## Predicates  (72)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -803,6 +807,14 @@ Declared by: `series-converges`
 ### `series-converges-to`  — def-predicate · proposition
 
 Declared by: `series-converges-to` 
+
+### `smith-staircase`  — def-predicate · proposition
+
+Declared by: `smith-staircase` 
+
+### `spans`  — def-predicate · proposition
+
+Declared by: `spans` 
 
 ### `strictly-mono-nn`  — def-predicate · proposition
 

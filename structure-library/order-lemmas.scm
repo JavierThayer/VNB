@@ -395,3 +395,25 @@
 (warrant! 'one-in-interval-1 'proof
   "1 in INTERVAL(1,1): 1 in NN and 1<=1<=1.  The column index of a column vector.")
 (category! 'one-in-interval-1 'plumbing)
+
+;;; -----------------------------------------------------------------------
+;;; succ is monotone and reflects <= ; 0 is least.  The Smith staircase
+;;; induction needs all three to carry its index bound k <= m across a
+;;; BORDER step (k' <= k  <=>  succ k' <= succ k).
+
+(support 'nn-zero-le
+  '(FORALL n (IMPLIES (IN n NN) (<= 0 n))))
+(warrant! 'nn-zero-le 'well-known "0 is the least natural number.")
+(category! 'nn-zero-le 'inequalities)
+
+(support 'nn-succ-mono
+  '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
+     (IMPLIES (<= a b) (<= (succ a) (succ b))))))))
+(warrant! 'nn-succ-mono 'well-known "a <= b => succ a <= succ b.")
+(category! 'nn-succ-mono 'inequalities)
+
+(support 'nn-succ-le-cancel
+  '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
+     (IMPLIES (<= (succ a) (succ b)) (<= a b)))))))
+(warrant! 'nn-succ-le-cancel 'well-known "succ a <= succ b => a <= b.")
+(category! 'nn-succ-le-cancel 'inequalities)

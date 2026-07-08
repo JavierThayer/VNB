@@ -230,3 +230,32 @@
    lam i j. ENTRY (r i) 1 j) tabulates it (matof-in-mat + entry-in-carrier), and
    v = MATACT(md,cm,u) by matrix-entry-extensionality, since both sides have
    (i,1) entry sum_j (r i)_{1j} . u_{j1} (matact-entry twice).")
+
+;;; -----------------------------------------------------------------------
+;;; SPANS(md, n, u, sm): the length-n sequence u generates the SUBMODULE sm.
+;;;
+;;; Same shape as GENERATES, but relativized to a submodule: u's own entries must
+;;; lie in sm, and every element of sm is a coefficient combination of u.
+;;; GENERATES(md,n,u) is the sm = (VEC md) case (the entry clause is then vacuous).
+;;; The submodule variable is `sm', NOT `s' -- `S' is the finsum index set below and
+;;; MIT case-folds.
+(def-predicate 'SPANS '(md n u sm)
+  '(AND (FORALL j_ (IMPLIES (IN j_ (INTERVAL 1 n)) (IN (ENTRY u j_ 1) sm)))
+        (FORALL x_ (IMPLIES (IN x_ sm)
+          (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
+                           (= x_ (ENTRY (MATACT md c_ u) 1 1))))))))
+
+;;; A submodule is closed under finite sums of its elements.  IS-SUBMODULE gives
+;;; closure under the binary VADD and contains VZERO; FINSUM is built from those by
+;;; induction on |S| (finsum-empty for the base, finsum-insert for the step).
+(support 'submodule-finsum-closed
+  '(FORALL md (IMPLIES (IS-MODULE md)
+     (FORALL sm (IMPLIES (IS-SUBMODULE md sm)
+     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
+     (FORALL f (IMPLIES (IN f (FUN S (CARR (MODULE-VECTOR-AG md))))
+       (IMPLIES (FORALL z (IMPLIES (IN z S) (IN (f z) sm)))
+         (IN (FINSUM (MODULE-VECTOR-AG md) f S) sm))))))))))))
+(warrant! 'submodule-finsum-closed 'well-known
+  "A submodule contains every finite sum of its elements: induction on |S| via
+   finsum-insert (the peeled term and the rest are both in sm, and IS-SUBMODULE is
+   closed under VADD); the base case is finsum-empty and VZERO in sm.")

@@ -166,6 +166,15 @@
      (IMPLIES (IN i (INTERVAL 1 m)) (IMPLIES (IN j (INTERVAL 1 n))
        (IMPLIES (NOT (= i j)) (= (ENTRY D i j) (ZERO A))))))))
 
+;;; SMITH-STAIRCASE(A, m, n, D, k): D is diagonal AND its nonzero diagonal entries
+;;; form the INITIAL segment [1,k] -- entries D_ii for i <= k are nonzero, and every
+;;; row past k is entirely zero.  This is what smith-diagonalization's recursion
+;;; already builds (clear-pivot-cross always selects a NONZERO pivot, so the pivot
+;;; of each BORDER level is nonzero and the zeros are pushed to the tail); recording
+;;; it lets a caller take the leading k rows without reindexing round a zero.
+(def-predicate 'SMITH-STAIRCASE '(A m n D k)
+  '(AND (IS-DIAGONAL A m n D) (AND (<= k m) (AND (<= k n) (AND (FORALL i_ (IMPLIES (IN i_ (INTERVAL 1 k)) (NOT (= (ENTRY D i_ i_) (ZERO A))))) (FORALL i_ (IMPLIES (IN i_ (INTERVAL 1 m)) (IMPLIES (NOT (<= i_ k)) (FORALL j_ (IMPLIES (IN j_ (INTERVAL 1 n)) (= (ENTRY D i_ j_) (ZERO A))))))))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; class-min-pivot: a matrix P (over a euclidean ring) with a nonzero entry
 ;;; is equivalent to a matrix B whose (1,1) entry is nonzero and of MINIMAL

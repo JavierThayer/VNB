@@ -332,6 +332,25 @@
 (warrant! 'unitrow-entry-off 'reference
   "UNITROW(A,n,i)_{1,j} = 0 for j /= i (entry-of-matof with the IF condition false).")
 
+;;; -----------------------------------------------------------------------
+;;; BLOCK(P, k, l) -- the leading k-by-l block of P (rows 1..k, columns 1..l).
+;;; The truncation SUBMAT does not give: SUBMAT deletes row 1 and column 1,
+;;; BLOCK keeps an initial segment of both.  Used to cut a matrix down to the
+;;; rows carrying the nonzero part of a Smith staircase.
+(def-functoid 'BLOCK '(P k l)
+  '(MATOF k l (VNB-LAMBDA (LIST i j) (ENTRY P i j))))
+
+(support 'block-type
+  '(FORALL m (FORALL n (FORALL X (FORALL P (FORALL k (FORALL l (IMPLIES (IN k NN) (IMPLIES (IN l NN) (IMPLIES (IN P (MAT m n X)) (IMPLIES (<= k m) (IMPLIES (<= l n) (IN (BLOCK P k l) (MAT k l X))))))))))))))
+(warrant! 'block-type 'reference
+  "The leading k-by-l block of an m-by-n matrix over X is a k-by-l matrix over X
+   (matof-in-mat; every value ENTRY P i j with i<=k<=m, j<=l<=n lies in X).")
+
+(support 'entry-of-block
+  '(FORALL P (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 k)) (IMPLIES (IN j (INTERVAL 1 l)) (= (ENTRY (BLOCK P k l) i j) (ENTRY P i j))))))))))
+(warrant! 'entry-of-block 'reference
+  "BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).")
+
 ;;; RING-ADDITIVE-AG read-offs (the view maps ring's CARR/ZERO to the AG's
 ;;; CARR/ID; derivable by unfolding the view, named for convenience).
 (support 'ras-carr

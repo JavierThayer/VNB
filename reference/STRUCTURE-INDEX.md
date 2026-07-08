@@ -396,6 +396,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `group-left-inv-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], one(r) = (mul(r))((inv(r))(a), a)))
 - `group-left-inv-rev-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r)], one(r) = (mul(r))((inv(r))(a), a)))
 - `group-left-inv-rev-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], (mul(r))((inv(r))(a), a) = one(r)))
+- `integral-domain-cancel-zero-field-as-integral-domain` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies a = zero(r)))
+- `integral-domain-cancel-zero-field-as-integral-domain-rev` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies zero(r) = a))
+- `integral-domain-cancel-zero-rev-field-as-integral-domain` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies zero(r) = a))
+- `integral-domain-cancel-zero-rev-field-as-integral-domain-rev` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies a = zero(r)))
 - `integral-domain-is-commutative-ring-field-as-integral-domain` — forall([r], is-field(r) implies is-commutative-ring(field-as-integral-domain(r)))
 - `integral-domain-nontrivial-field-as-integral-domain` — forall([r], is-field(r) implies not(one(r) = zero(r)))
 - `monoid-assoc-abelian-group-as-monoid-field-additive-ag` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (add(r))((add(r))(a, b), c) = (add(r))(a, (add(r))(b, c))))
@@ -428,8 +432,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 - `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 
 ### group
 <a id="group"></a>
@@ -471,6 +475,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-integral-domain`.*
 
+- `integral-domain-cancel-zero` — forall([s], is-integral-domain(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies not(b = zero(s)) implies a = zero(s)))
+- `integral-domain-cancel-zero-rev` — forall([s], is-integral-domain(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies not(b = zero(s)) implies zero(s) = a))
 - `integral-domain-is-commutative-ring` — forall([s], is-integral-domain(s) implies is-commutative-ring(s))
 - `integral-domain-nontrivial` — forall([s], is-integral-domain(s) implies not(one(s) = zero(s)))
 
@@ -626,6 +632,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-rev-abelian-group-as-monoid-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], a = (vadd(r))(a, vzero(r))))
+- `submodule-finsum-closed` — forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))
 
 *Views into `module`.*
 
@@ -793,6 +800,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `comm-monoid-mul-comm-rev-commutative-ring-multiplicative-cm-rev-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(b, a) = (mul(r))(a, b)))
 - `commutative-ring-additive-ag-is-abelian-group-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies is-abelian-group(commutative-ring-additive-ag(normed-field-as-commutative-ring(r))))
 - `commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies is-comm-monoid(commutative-ring-multiplicative-cm(normed-field-as-commutative-ring(r))))
+- `integral-domain-cancel-zero-normed-field-as-integral-domain` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies a = zero(r)))
+- `integral-domain-cancel-zero-normed-field-as-integral-domain-rev` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies zero(r) = a))
+- `integral-domain-cancel-zero-rev-normed-field-as-integral-domain` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies zero(r) = a))
+- `integral-domain-cancel-zero-rev-normed-field-as-integral-domain-rev` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies a = zero(r)))
 - `integral-domain-is-commutative-ring-normed-field-as-integral-domain` — forall([r], is-normed-field(r) implies is-commutative-ring(normed-field-as-integral-domain(r)))
 - `integral-domain-nontrivial-normed-field-as-integral-domain` — forall([r], is-normed-field(r) implies not(one(r) = zero(r)))
 - `monoid-assoc-abelian-group-as-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (add(r))((add(r))(a, b), c) = (add(r))(a, (add(r))(b, c))))

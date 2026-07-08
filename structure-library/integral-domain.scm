@@ -34,3 +34,13 @@
 ;;; is-integral-domain-def, surfaced as a citable theorem.
 (theory-add-axiom! *current-theory* 'integral-domain-nontrivial
   '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s) (NOT (= (ONE s) (ZERO s))))))
+
+;;; The cancellation form of "no zero divisors", shaped for a forward `fact':
+;;; a*b = 0 with b /= 0 forces a = 0.
+(theory-add-axiom! *current-theory* 'integral-domain-cancel-zero
+  '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+     (FORALL b (IMPLIES (IN b (CARR s))
+       (IMPLIES (= ((MUL s) a b) (ZERO s))
+       (IMPLIES (NOT (= b (ZERO s)))
+         (= a (ZERO s)))))))))))
