@@ -99,6 +99,50 @@
 (define (ir-idx r)(car r))
 (define (ir-rec r)(cdr r))
 
+;;; --- footprint collapse: recognise a composite tactic's PRIMITIVE trace and
+;;; fold it back to its intent.  The excluded-middle helper (cc-em / bm-em /
+;;; cc-cases) always emits the SAME deterministic 13-step block; it introduces
+;;; NO new inference rule (every step is a kernel cut/pbc/oi/ai/ass), it is pure
+;;; case analysis on a formula P.  We match that block and replace it with a
+;;; single synthetic record (CASE-SPLIT P hi) so the sketch reads "split on P"
+;;; instead of a cut/pbc/oi soup.  The margin still spans the original step range.
+(define (proof-reader--orneg f)          ; (or P (not P)) -> P, else #f
+  (and (pair? f) (= (length f) 3) (memq (car f) '(or OR))
+       (let ((a (cadr f)) (b (caddr f)))
+         (and (pair? b) (memq (car b) '(not NOT)) (equal? (cadr b) a) a))))
+(define (proof-reader--em-match irecs)   ; irecs from a candidate anchor -> P or #f
+  (and (>= (length irecs) 13)
+       (let ((es (map (lambda (ir) (car (ir-rec ir))) (list-head irecs 13))))
+         (let* ((e0 (car es))
+                (orn (and (pair? e0) (eq? (car e0) 'cut) (cadr e0)))
+                (P   (and orn (proof-reader--orneg orn))))
+           (and P
+                (let ((notP (caddr orn)))            ; (not P), with the recorded `not'
+                  (and (equal? (list-ref es 1)  '(pbc))
+                       (equal? (list-ref es 2)  (list 'cut notP))
+                       (equal? (list-ref es 3)  '(di))
+                       (equal? (list-ref es 4)  (list 'cut orn))
+                       (equal? (list-ref es 5)  '(oi-l))
+                       (equal? (list-ref es 6)  '(ass))
+                       (equal? (list-ref es 7)  (list 'ai (list (car notP) orn)))
+                       (equal? (list-ref es 8)  (list 'cut orn))
+                       (equal? (list-ref es 9)  '(oi-r))
+                       (equal? (list-ref es 10) '(ass))
+                       (equal? (list-ref es 11) (list 'ai (list (car notP) orn)))
+                       (equal? (list-ref es 12) (list 'ai orn))
+                       P)))))))
+(define (proof-reader--collapse-em irecs)
+  (let loop ((rs irecs) (out '()))
+    (if (null? rs) (reverse out)
+        (let ((P (proof-reader--em-match rs)))
+          (if P
+              (let* ((blk (list-head rs 13))
+                     (fst (car blk)) (lst (list-ref blk 12)) (rec (ir-rec lst))
+                     (nids (apply append (map (lambda (ir) (list-ref (ir-rec ir) 3)) blk)))
+                     (syn (list (list 'CASE-SPLIT P (ir-idx lst)) (cadr rec) (caddr rec) nids)))
+                (loop (list-tail rs 13) (cons (cons (ir-idx fst) syn) out)))
+              (loop (cdr rs) (cons (car rs) out)))))))
+
 (define (proof-reader--all? p lst)
   (or (null? lst) (and (p (car lst)) (proof-reader--all? p (cdr lst)))))
 
@@ -213,10 +257,16 @@
           (else (loop (cdr rs) seen-primary)))))
 
 (define (proof-reader--range g)
-  (let ((idxs (map ir-idx g)))
-    (let ((lo (apply min idxs)) (hi (apply max idxs)))
-      (if (= lo hi) (number->string lo)
-          (string-append (number->string lo) "--" (number->string hi))))))
+  ;; a CASE-SPLIT synthetic carries its collapsed block's hi index in (caddr entry)
+  (let* ((idxs (map ir-idx g))
+         (his (let lp ((rs g) (acc '()))
+                (if (null? rs) acc
+                    (let ((e (car (ir-rec (car rs)))))
+                      (lp (cdr rs) (if (and (eq? (car e) 'CASE-SPLIT) (pair? (cddr e)))
+                                       (cons (caddr e) acc) acc))))))
+         (lo (apply min idxs)) (hi (apply max (append idxs his))))
+    (if (= lo hi) (number->string lo)
+        (string-append (number->string lo) "--" (number->string hi)))))
 
 ;;; --- prose glosses -----------------------------------------------------
 (define (proof-reader--arg-tex a)
@@ -281,6 +331,9 @@
        (let ((v (and (pair? pre-goal) (eq? (car pre-goal) 'FORALL) (cadr pre-goal))))
          (string-append "By induction"
                         (if v (string-append " on $" (expr->tex v) "$") "") ".")))
+      ((CASE-SPLIT)
+       (string-append "\\emph{Split into cases} on whether"
+                      (proof-reader--display (car args))))
       ((subst) "Substitute the established equation.")
       ((lam-b) "$\\beta$-reduce the applied $\\lambda$.")
       ((ass) "\\emph{Holds by assumption.}")
@@ -465,7 +518,7 @@
 (define (proof-reader name)
   (let* ((records (proof-reader--records name))
          (claim   (cadr (car records)))            ; sp record's goal
-         (indexed (proof-reader--index records))
+         (indexed (proof-reader--collapse-em (proof-reader--index records)))
          (ht      (proof-reader--annotate indexed))
          (grp     (proof-reader--group indexed))
          (setup   (car grp))
