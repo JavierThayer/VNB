@@ -561,7 +561,7 @@
 ;; checked per group.  Returns (header-string . new-stack).
 (define (proof-reader--case-label P neg?)
   (string-append "  \\item[]\\emph{Case} $"
-                 (if neg? (string-append "\\lnot(" (expr->tex P) ")") (expr->tex P))
+                 (if neg? (string-append "\\lnot " (expr->tex P)) (expr->tex P))
                  "$:\n"))
 (define (proof-reader--case-hdr csplits main asms)
   (cond
@@ -581,8 +581,59 @@
          ((and (eq? sign 'ambig) pos neg) (cons "" (cdr csplits)))   ; both done -> pop
          (else (cons "" csplits)))))))
 
+;; --- skolem de-renaming: eigenvariables the kernel mints (di / ew / ai) carry a
+;; disambiguating counter, `q_521', `c2_522', ...  Strip it for display: map each
+;; `base_<digits>' symbol to `base' (base2, base3, ... if several share a base),
+;; consistently across the whole proof, before anything is rendered.
+(define (proof-reader--skolem-base sym)
+  (and (symbol? sym)
+       (let* ((s (symbol->string sym)) (n (string-length s)))
+         (let lp ((i (- n 1)))
+           (cond ((< i 0) #f)
+                 ((char=? (string-ref s i) #\_) (and (< i (- n 1)) (substring s 0 i)))
+                 ((char-numeric? (string-ref s i)) (lp (- i 1)))
+                 (else #f))))))
+(define (proof-reader--collect-skolems records)
+  (let ((seen (make-equal-hash-table)) (order '()))
+    (define (walk x)
+      (cond ((symbol? x)
+             (when (and (proof-reader--skolem-base x) (not (hash-table-ref/default seen x #f)))
+               (hash-table-set! seen x #t) (set! order (cons x order))))
+            ((pair? x) (walk (car x)) (walk (cdr x)))))
+    (for-each (lambda (r) (walk (car r)) (walk (cadr r)) (walk (caddr r))) records)
+    (reverse order)))
+(define (proof-reader--rename-map skolems)
+  (let ((by-base (make-equal-hash-table)) (m (make-equal-hash-table)))
+    (for-each (lambda (s)
+                (let ((b (proof-reader--skolem-base s)))
+                  (hash-table-set! by-base b (cons s (hash-table-ref/default by-base b '())))))
+              skolems)
+    (hash-table-walk by-base
+      (lambda (b syms)
+        (let lp ((ss (reverse syms)) (i 1))
+          (when (pair? ss)
+            (hash-table-set! m (car ss)
+              (string->symbol (if (= i 1) b (string-append b (number->string i)))))
+            (lp (cdr ss) (+ i 1))))))
+    m))
+(define (proof-reader--subst-syms x m)
+  (cond ((symbol? x) (or (hash-table-ref/default m x #f) x))
+        ((pair? x) (cons (proof-reader--subst-syms (car x) m)
+                         (proof-reader--subst-syms (cdr x) m)))
+        (else x)))
+(define (proof-reader--derename records)
+  (let ((sk (proof-reader--collect-skolems records)))
+    (if (null? sk) records
+        (let ((m (proof-reader--rename-map sk)))
+          (map (lambda (r)
+                 (list (proof-reader--subst-syms (car r) m)
+                       (proof-reader--subst-syms (cadr r) m)
+                       (map (lambda (a) (proof-reader--subst-syms a m)) (caddr r))
+                       (list-ref r 3)))
+               records)))))
+
 (define (proof-reader--body name)
-  (let* ((records (proof-reader--records name))
+  (let* ((records (proof-reader--derename (proof-reader--records name)))
          (claim   (cadr (car records)))            ; sp record's goal
          (indexed (proof-reader--collapse-em (proof-reader--index records)))
          (ht      (proof-reader--annotate indexed))
