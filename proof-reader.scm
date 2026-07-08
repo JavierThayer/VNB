@@ -424,6 +424,44 @@
      (list 'bare (expr->tex (cadr e)) (caddr e)))
     (else #f)))
 
+;; --- display-time prenex normalization -------------------------------------
+;; A goal may bind several variables before stating their guards, e.g.
+;;   forall n. forall p. (n in NN) => (p in mat(k,n)) => body
+;; which renders as "Let n, and suppose p s.t. (n in NN)" -- n's typing dangling
+;; on p.  Reorder for DISPLAY so each guard sits right after the binder it types:
+;;   forall n. (n in NN) => forall p. (p in mat(k,n)) => body
+;; A guard is assigned to the LATEST bound variable free in it (so p in mat(k,n)
+;; goes to p, not n).  Pure display transform -- the proof is untouched.
+(define (proof-reader--pr-any p lst)
+  (and (pair? lst) (or (p (car lst)) (proof-reader--pr-any p (cdr lst)))))
+(define (proof-reader--interleave vs guards body)
+  (if (null? vs)
+      (fold-right (lambda (g acc) (list 'implies g acc)) body guards)   ; unbound guards
+      (let* ((v (car vs)) (rest (cdr vs))
+             (mine (filter (lambda (g)
+                             (and (memq v (free-vars g))
+                                  (not (proof-reader--pr-any
+                                        (lambda (w) (memq w (free-vars g))) rest))))
+                           guards))
+             (others (filter (lambda (g) (not (memq g mine))) guards)))
+        (list 'forall v
+              (fold-right (lambda (g acc) (list 'implies g acc))
+                          (proof-reader--interleave rest others body) mine)))))
+(define (proof-reader--norm e)
+  (cond
+    ((and (pair? e) (eq? (car e) 'forall) (= (length e) 3))
+     (let vloop ((x e) (vs '()))
+       (if (and (pair? x) (eq? (car x) 'forall) (= (length x) 3))
+           (vloop (caddr x) (cons (cadr x) vs))
+           (let gloop ((y x) (gs '()))
+             (if (and (pair? y) (eq? (car y) 'implies) (= (length y) 3))
+                 (gloop (caddr y) (cons (cadr y) gs))
+                 (proof-reader--interleave (reverse vs) (reverse gs)
+                                           (proof-reader--norm y)))))))
+    ((and (pair? e) (eq? (car e) 'implies) (= (length e) 3))
+     (list 'implies (cadr e) (proof-reader--norm (caddr e))))
+    (else e)))
+
 ;; peel a maximal universal run into (clauses . body); a 'mem run accumulates,
 ;; a 'pred is flushed on its own (an implication boundary in the formal wff).
 (define (proof-reader--peel-univs e)
@@ -512,7 +550,7 @@
 ;; all with arithmetic rendered prefix.
 (define (proof-reader--statement claim)
   (fluid-let ((*tex-arith-prefix?* #t))
-    (string-append (proof-reader--stmt claim 0)
+    (string-append (proof-reader--stmt (proof-reader--norm claim) 0)
                    (proof-reader--internal-note claim))))
 
 (define (proof-reader name)
