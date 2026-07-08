@@ -553,7 +553,35 @@
     (string-append (proof-reader--stmt (proof-reader--norm claim) 0)
                    (proof-reader--internal-note claim))))
 
-(define (proof-reader name)
+;; case-branch headers: after a (CASE-SPLIT P) bullet, the following groups
+;; carry P (one branch) or (not P) (the other) among their hypotheses.  Track a
+;; stack of active splits (P pos-labelled? neg-labelled?), label each case the
+;; first time its hypothesis shows up, and pop a split once both cases are done
+;; and we have left its scope.  Nested splits stack; only the innermost is
+;; checked per group.  Returns (header-string . new-stack).
+(define (proof-reader--case-label P neg?)
+  (string-append "  \\item[]\\emph{Case} $"
+                 (if neg? (string-append "\\lnot(" (expr->tex P) ")") (expr->tex P))
+                 "$:\n"))
+(define (proof-reader--case-hdr csplits main asms)
+  (cond
+    ((and main (eq? (car (car main)) 'CASE-SPLIT))
+     (cons "" (cons (list (cadr (car main)) #f #f) csplits)))   ; push, no header
+    ((or (null? csplits) (not asms)) (cons "" csplits))
+    (else
+     (let* ((top (car csplits)) (P (car top)) (pos (cadr top)) (neg (caddr top))
+            (inP (and (member P asms) #t))
+            (inN (and (member (list 'not P) asms) #t))
+            (sign (cond ((and inP (not inN)) 'pos) ((and inN (not inP)) 'neg) (else 'ambig))))
+       (cond
+         ((and (eq? sign 'pos) (not pos))
+          (cons (proof-reader--case-label P #f) (cons (list P #t neg) (cdr csplits))))
+         ((and (eq? sign 'neg) (not neg))
+          (cons (proof-reader--case-label P #t) (cons (list P pos #t) (cdr csplits))))
+         ((and (eq? sign 'ambig) pos neg) (cons "" (cdr csplits)))   ; both done -> pop
+         (else (cons "" csplits)))))))
+
+(define (proof-reader--body name)
   (let* ((records (proof-reader--records name))
          (claim   (cadr (car records)))            ; sp record's goal
          (indexed (proof-reader--collapse-em (proof-reader--index records)))
@@ -568,7 +596,6 @@
          (setup-goal (cadr setup-last))
          (setup-range (if (pair? setup) (proof-reader--range setup) "0")))
     (apply string-append
-     proof-tex--preamble
      "\\begin{proposition}[" (proof-tex--escape-tt (symbol->string name)) "]\n"
      (proof-reader--statement claim)
      "\n\\end{proposition}\n\n"
@@ -581,7 +608,7 @@
       ;; the base leaf proves P(0) (indvar not free); the step leaf proves
       ;; P(n)=>P(n+1) (indvar free again).  See proof-reader--gloss for the ni row.
       (let loop ((gs groups) (pre-goal setup-goal) (pre-asms setup-asms)
-                 (indvar #f) (phase 'none) (rows '()))
+                 (indvar #f) (phase 'none) (csplits '()) (rows '()))
         (if (null? gs) (reverse rows)
             (let* ((g (car gs))
                    (primary (proof-reader--group-primary g))
@@ -615,8 +642,10 @@
                           ((and (eq? phase 'base) this-step?)
                            (cons (proof-reader--branch-hdr indvar 'step) 'step))
                           (else (cons "" phase))))
+                   (ch+cs   (proof-reader--case-hdr csplits main (and main (caddr main))))
                    (row (string-append
                          (car hdr+phase)
+                         (car ch+cs)
                          "  \\item[\\textbf{" (proof-reader--range g) "}] "
                          gloss close-txt "\n"))
                    ;; thread the state AFTER the whole group (its last record),
@@ -626,8 +655,21 @@
                    (new-goal (cadr last-state))
                    (new-asms (caddr last-state)))
               (loop (cdr gs) new-goal new-asms new-indvar (cdr hdr+phase)
-                    (cons row rows)))))
-      (list "\\end{itemize}\n\\end{proof}\n\\end{document}\n")))))
+                    (cdr ch+cs) (cons row rows)))))
+      (list "\\end{itemize}\n\\end{proof}\n")))))
+
+;; render one proof, or a LIST of proofs into a single document (each its own
+;; numbered proposition + proof), sharing one preamble.  A single symbol renders
+;; exactly as before.
+(define (proof-reader name-or-names)
+  (string-append
+   proof-tex--preamble
+   (if (pair? name-or-names)
+       (apply string-append
+              (map (lambda (n) (string-append (proof-reader--body n) "\n\\bigskip\n\n"))
+                   name-or-names))
+       (proof-reader--body name-or-names))
+   "\\end{document}\n"))
 
 (define (write-proof-reader name path)
   (call-with-output-file path
@@ -641,7 +683,10 @@
   ;; unassigned until synchronous-subprocess is loaded.
   (load-option 'synchronous-subprocess)
   (let* ((cache (string-append (get-environment-variable "HOME") "/.cache/vnb/tex/"))
-         (base  (string-append "reader-" (symbol->string name)))
+         (base  (string-append "reader-"
+                               (if (pair? name)
+                                   (proof-tex--join (map symbol->string name) "-")
+                                   (symbol->string name))))
          (tex   (string-append *printouts-dir* base ".tex")))
     (run-shell-command (string-append "mkdir -p " *printouts-dir* " " cache))
     (write-proof-reader name tex)
