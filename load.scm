@@ -472,6 +472,10 @@
     ;; Linear algebra Phase B: clear-pivot-cross -- P (euclidean ring, nonzero entry)
     ;; ~ BORDER(b, C') block form; per-level Smith step (pivot + clear cross + border).
     "theorem-library/clear-pivot-cross-proof"
+    ;; Linear algebra Phase B CAPSTONE: smith-diagonalization -- every matrix over a
+    ;; euclidean ring is ~ to a diagonal matrix (ni on row dim + clear-pivot-cross +
+    ;; bordering recursion).
+    "theorem-library/smith-diagonalization-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

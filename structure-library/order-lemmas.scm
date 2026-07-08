@@ -273,6 +273,17 @@
   "1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).")
 (category! 'nn-not-le-zero-pos 'inequalities)
 
+(support 'nn-le-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
+(warrant! 'nn-le-trans 'well-known "<= is transitive (a<=b, b<=c => a<=c).")
+(category! 'nn-le-trans 'inequalities)
+
+(support 'nn-pos-is-succ
+  '(FORALL n (IMPLIES (IN n NN) (IMPLIES (<= 1 n)
+     (FORSOME q (AND (IN q NN) (= n (succ q))))))))
+(warrant! 'nn-pos-is-succ 'well-known "a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).")
+(category! 'nn-pos-is-succ 'inequalities)
+
 (support 'nn-le-imp-neq-succ
   '(FORALL k (IMPLIES (IN k NN) (FORALL j (IMPLIES (IN j NN)
      (IMPLIES (<= j k) (NOT (= j (succ k)))))))))

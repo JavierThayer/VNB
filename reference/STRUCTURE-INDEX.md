@@ -343,6 +343,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `pivot-col-reduce` — forall([a], is-euclidean-ring(a) implies forall([m, n, p, j], p in mat(m, n, carr(a)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies j in interval(1, n) implies not(1 = j) implies not(entry(p, 1, 1) = zero(a)) implies forsome([q in carr(a), r in carr(a)], entry(matmul(a, p, elem-g(a, n, (neg(a))(q), 1, j)), 1, j) = r and (r = zero(a) or succ((gauge(a))(r)) <= (gauge(a))(entry(p, 1, 1))))))
 - `pivot-row-reduce` — forall([a], is-euclidean-ring(a) implies forall([m, n, p, i], p in mat(m, n, carr(a)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies i in interval(1, m) implies not(i = 1) implies not(entry(p, 1, 1) = zero(a)) implies forsome([q in carr(a), r in carr(a)], entry(matmul(a, elem-g(a, m, (neg(a))(q), i, 1), p), i, 1) = r and (r = zero(a) or succ((gauge(a))(r)) <= (gauge(a))(entry(p, 1, 1))))))
 - `place-min-pivot` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], 1 in interval(1, m) implies 1 in interval(1, n) implies forsome([i0, j0], i0 in interval(1, m) and j0 in interval(1, n) and not(entry(p, i0, j0) = zero(a))) implies forsome([b], mat-equiv(a, m, n, p, b) and not(entry(b, 1, 1) = zero(a)) and forall([i, j], i in interval(1, m) implies j in interval(1, n) implies not(entry(p, i, j) = zero(a)) implies (gauge(a))(entry(b, 1, 1)) <= (gauge(a))(entry(p, i, j))))))
+- `smith-diagonalization` — forall([a], is-euclidean-ring(a) implies forall([k in nn, n, p], n in nn implies p in mat(k, n, carr(a)) implies forsome([d], mat-equiv(a, k, n, p, d) and is-diagonal(a, k, n, d))))
 
 *Views into `euclidean-ring`.*
 
@@ -424,8 +425,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 - `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 
 ### group
 <a id="group"></a>
