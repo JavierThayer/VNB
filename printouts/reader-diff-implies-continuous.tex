@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[diff-implies-continuous]
+Suppose $f, a$. Let $l \text{ s.t. } \operatorname{is\text{-}diff\text{-}at}(f, a, l)$. Then
+\begin{equation*}
+\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, a)
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{3}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{4--11}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(f(a) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{12}] By $\operatorname{const\text{-}continuous\text{-}at}$:
+\begin{equation*}
+\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, (\lambda x.\; f(a)), a)
+\end{equation*}
+
+  \item[\textbf{13}] By $\operatorname{identity\text{-}continuous\text{-}at}$:
+\begin{equation*}
+\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, (\lambda x.\; x), a)
+\end{equation*}
+
+  \item[\textbf{14}] By $\operatorname{const\text{-}continuous\text{-}at}$:
+\begin{equation*}
+\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, (\lambda x.\; a), a)
+\end{equation*}
+
+  \item[\textbf{15}] By $\operatorname{sub\text{-}continuous\text{-}at}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, \\ \quad (\lambda x.\; \operatorname{\text{-}}((\lambda x.\; x)(x), (\lambda x.\; a)(x))), a) \end{array}
+\end{equation*}
+
+  \item[\textbf{16}] By $\operatorname{product\text{-}continuous\text{-}at}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, \\ \quad (\lambda x.\; \\ \quad \quad (\operatorname{phi\_31}(x) \cdot (\lambda x.\; \operatorname{\text{-}}((\lambda x.\; x)(x), (\lambda x.\; a)(x)))(x))), \\ \quad a) \end{array}
+\end{equation*}
+
+  \item[\textbf{17}] By $\operatorname{sum\text{-}continuous\text{-}at}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, \\ \quad (\lambda x.\; \\ \quad \quad ((\lambda x.\; f(a))(x) + (\lambda x.\; (\operatorname{phi\_31}(x) \cdot (\lambda x.\; \operatorname{\text{-}}((\lambda x.\; x)(x), (\lambda x.\; a)(x)))(x)))(x))), \\ \quad a) \end{array}
+\end{equation*}
+
+  \item[\textbf{18}] By a cut on the auxiliary claim.
+  \item[\textbf{19--20}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{21}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{\text{-}}(f(x), f(a)) \\ =\; (\operatorname{phi\_31}(x) \cdot \operatorname{\text{-}}(x, a)) \end{array}
+\end{equation*}
+
+  \item[\textbf{22}] By $\operatorname{eq\text{-}sym}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{phi\_31}(x) \cdot \operatorname{\text{-}}(x, a)) \\ =\; \operatorname{\text{-}}(f(x), f(a)) \end{array}
+\end{equation*}
+
+  \item[\textbf{23}] Substitute the established equation.
+  \item[\textbf{24--25}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(f(x) \in \mathbb{R})
+\end{array}
+\end{equation*}
+  \emph{(closes)}
+  \item[\textbf{26--27}] By $\operatorname{cont\text{-}transfer\text{-}ptwise\text{-}eq}$:
+\begin{equation*}
+\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, a)
+\end{equation*}
+  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+\end{document}

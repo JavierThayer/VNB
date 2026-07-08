@@ -1,0 +1,10 @@
+(set! *vnb-quiet* #t)
+(load "/home/ubuntu/prover/theorem-library/mod-basis-proof.scm")
+(load "/home/ubuntu/prover/theorem-library/rank-bound-proof.scm")
+(call-with-output-file "/home/ubuntu/prover/scratchpad/LEAVES.txt"
+  (lambda (p)
+    (write-string (string-append "OPEN LEAVES: " (number->string (length (rb-leaves)))) p)(newline p)
+    (for-each (lambda (nd)
+                (write (wff-formula (sequent-node-assertion nd)) p) (newline p)(newline p))
+              (rb-leaves))))
+(display "DBG-OK")(newline)

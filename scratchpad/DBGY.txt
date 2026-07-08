@@ -1,0 +1,1 @@
+(ihn forall([n, x, y], x in mat(succ(k), n, carr(a)) implies mat-equiv(a, succ(k), n, x, y) implies y in mat(succ(k), n, carr(a))) q q_641)

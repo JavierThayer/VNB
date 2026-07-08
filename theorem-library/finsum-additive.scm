@@ -198,6 +198,21 @@
    (f z0 = g z0) and the rest by the IH.  Equivalently, FINSUM depends only on
    the restriction of the summand to S, so it factors through pointwise equality.")
 
+;; A finite sum of identity elements is the identity.  finsum-single-support
+;; almost gives this, but it needs a witness index i0 in S and so fails on the
+;; empty index set; this one is uniform in S (finsum-empty is the base case).
+(support 'finsum-all-id
+  (tf 'ag '(IS-ABELIAN-GROUP ag)
+   (tfin 'S
+    (tf 'f '(IN f (FUN S (CARR ag)))
+     (list 'IMPLIES
+       '(FORALL z (IMPLIES (IN z S) (= (f z) (ID ag))))
+       '(= (FINSUM ag f S) (ID ag)))))))
+(warrant! 'finsum-all-id 'well-known
+  "If f(z) = ID(ag) for every z in the finite index set S, then FINSUM(ag,f,S) =
+   ID(ag).  Induction on |S| via finsum-insert: the peeled term is ID and the
+   rest is ID by the IH, so the sum is ID*ID = ID; the base case is finsum-empty.")
+
 ;; finsum-ring-distrib-left-gen: r * SUM_z f z = SUM_z (r * f z) in ANY ring.
 ;; The general-ring companion of finsum-ring-distrib-left (which needs a
 ;; COMMUTATIVE ring); only ring-left-dist is used, so it holds in every ring.

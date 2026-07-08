@@ -212,3 +212,16 @@
 (warrant! 'nn-succ-le-antisym 'well-known
   "succ a <= b => not(b <= a) for a,b in NN: succ a <= b gives a < b, so b <= a
    would give a < a.  Elementary order on NN.")
+
+;;; Projection of IS-DIAGONAL, with the index guards CURRIED so a forward `fact'
+;;; can detach them (the predicate's own body puts them in a shape `fact' will
+;;; not unfold).  Off the diagonal, a diagonal matrix has zero entries.
+(support 'diagonal-off-entry
+  '(FORALL A (FORALL m (FORALL n (FORALL D
+     (IMPLIES (IS-DIAGONAL A m n D)
+     (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+     (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
+     (IMPLIES (NOT (= i j))
+       (= (ENTRY D i j) (ZERO A)))))))))))))
+(warrant! 'diagonal-off-entry 'proof
+  "D_{ij} = 0 for i /= j -- IS-DIAGONAL's defining body, re-quantified for `fact'.")

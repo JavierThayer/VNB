@@ -179,3 +179,54 @@
    the scalar ring's additive group to the vector abelian group.  Induction on
    |S| via finsum-insert: (SUM_X c + c z0).x = (SUM_X c).x + (c z0).x by
    module-act-distrib-scalar, and the empty case is 0.x = 0 (module-zero-act).")
+
+;;; -----------------------------------------------------------------------
+;;; Generating and relation-free sequences (book, start of sec 8.2).
+;;;
+;;; A length-n sequence of module elements is u in MAT(n,1,VEC md).  A row of
+;;; coefficients is c in MAT(1,n,CARR(SCAL md)), and the linear combination
+;;; c . u is the single entry of the 1-by-1 product MATACT(md,c,u):
+;;;
+;;;     c . u  =  (ENTRY (MATACT md c u) 1 1)  =  sum_{j=1}^{n} c_{1j} . u_{j1}.
+;;;
+;;; So both predicates are stated purely in terms of MATACT, and Lemma 3.40
+;;; (invertible matrices preserve them) is a direct consequence of matact-assoc.
+;;;
+;;; GENERATES: every vector is a coefficient combination of u.  (The book's
+;;; "u generates E".)
+(def-predicate 'GENERATES '(md n u)
+  '(FORALL x_ (IMPLIES (IN x_ (VEC md))
+     (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
+                      (= x_ (ENTRY (MATACT md c_ u) 1 1)))))))
+
+;;; REL-FREE: the only coefficient row annihilating u is the zero row.  (The
+;;; book's "relation free", eq. 81.  Over a field this is linear independence.)
+(def-predicate 'REL-FREE '(md n u)
+  '(FORALL c_ (IMPLIES (IN c_ (MAT 1 n (CARR (SCAL md))))
+     (IMPLIES (= (ENTRY (MATACT md c_ u) 1 1) (VZERO md))
+       (FORALL j_ (IMPLIES (IN j_ (INTERVAL 1 n))
+         (= (ENTRY c_ 1 j_) (ZERO (SCAL md)))))))))
+
+;;; Assembling a coefficient MATRIX from a generating sequence.
+;;;
+;;; The book writes, without comment, "there are coefficients A = {a_ij} such
+;;; that v_i = sum_j a_ij u_j", i.e. v_col = A . u_col.  That step is a CHOICE
+;;; construction: GENERATES gives, for each i in [1,m] separately, SOME
+;;; coefficient row for v_{i1}; one then picks a row for every i at once and
+;;; tabulates.  It is the only choice step in this part of the development.
+(support 'generates-coeff-matrix
+  '(FORALL md (IMPLIES (IS-MODULE md)
+     (FORALL n (FORALL m (FORALL u (FORALL v
+       (IMPLIES (IN u (MAT n 1 (VEC md)))
+       (IMPLIES (IN v (MAT m 1 (VEC md)))
+       (IMPLIES (GENERATES md n u)
+         (FORSOME cm (AND (IN cm (MAT m n (CARR (SCAL md))))
+                          (= v (MATACT md cm u))))))))))))))
+(warrant! 'generates-coeff-matrix 'well-known
+  "If u generates the module and v is any length-m sequence, then v = cm . u for
+   some m-by-n coefficient matrix cm.  Route: GENERATES applied to the vector
+   v_{i1} yields a coefficient row r(i) in MAT(1,n,CARR(SCAL md)) for each i in
+   [1,m]; CHOICE turns i |-> r(i) into a function on [1,m]; cm = MATOF(m,n,
+   lam i j. ENTRY (r i) 1 j) tabulates it (matof-in-mat + entry-in-carrier), and
+   v = MATACT(md,cm,u) by matrix-entry-extensionality, since both sides have
+   (i,1) entry sum_j (r i)_{1j} . u_{j1} (matact-entry twice).")

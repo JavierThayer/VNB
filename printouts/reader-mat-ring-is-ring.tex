@@ -1,0 +1,367 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[mat-ring-is-ring]
+Suppose $a \text{ s.t. } \operatorname{is\text{-}ring}(a)$. Let $n \in \mathbb{N}$. Then
+\begin{equation*}
+\operatorname{is\text{-}ring}(\operatorname{mat\text{-}ring}(a, n))
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{4}] By $\operatorname{is\text{-}ring}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{mat\text{-}ring}(a, n)) = 6) \wedge \\ (\operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) \in \mathbf{Set}) \wedge \\ \operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; ((\operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) \times \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \to \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; ((\operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) \times \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \to \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; (\operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) \to \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) \wedge \\ \operatorname{one}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) \wedge \\ \operatorname{is\text{-}associative}(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{is\text{-}commutative}(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{is\text{-}identity}(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{has\text{-}inverses}(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)), \\ \quad \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{is\text{-}associative}(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{is\text{-}identity}(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{one}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \wedge \\ \operatorname{is\text{-}distributive}(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)), \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n))) \end{array}
+\end{equation*}
+
+  \item[\textbf{5--18}] By $\operatorname{mat\text{-}ring}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{length}(\langle \operatorname{mat}(n, n, \operatorname{carr}(a)), (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)), (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)), (\lambda p.\; \operatorname{matneg}(a, p)), \operatorname{zeromat}(a, n, n), \operatorname{identmat}(a, n) \rangle) \\ =\; 6 \end{array}
+\end{equation*}
+
+  \item[\textbf{19--20}] By $\operatorname{len\text{-}r}$.  \emph{(closes)}
+  \item[\textbf{21}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+(\operatorname{mat}(n, n, \operatorname{carr}(a)) \in \mathbf{Set})
+\end{equation*}
+
+  \item[\textbf{22--24}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{carr}(a) \in \mathbf{Set}) \\
+(\operatorname{mat}(n, n, \operatorname{carr}(a)) \in \mathbf{Set})
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{25}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{equation*}
+
+  \item[\textbf{26}] By $\operatorname{mat\text{-}ring\text{-}add}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)) \\ \in\; ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{equation*}
+
+  \item[\textbf{27--28}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+\begin{array}{@{}l@{}} (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)) \\ \in\; ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{29}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{equation*}
+
+  \item[\textbf{30}] By $\operatorname{mat\text{-}ring\text{-}mul}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)) \\ \in\; ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{equation*}
+
+  \item[\textbf{31--32}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+\begin{array}{@{}l@{}} (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)) \\ \in\; ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{33}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; (\operatorname{mat}(n, n, \operatorname{carr}(a)) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{equation*}
+
+  \item[\textbf{34}] By $\operatorname{mat\text{-}ring\text{-}neg}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda p.\; \operatorname{matneg}(a, p)) \\ \in\; (\operatorname{mat}(n, n, \operatorname{carr}(a)) \to \operatorname{mat}(n, n, \operatorname{carr}(a))) \end{array}
+\end{equation*}
+
+  \item[\textbf{35}] By $\operatorname{lam\text{-}t}$.
+  \item[\textbf{36--38}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+\begin{array}{@{}l@{}} \operatorname{matneg}(a, \operatorname{p\_92}) \\ \in\; \operatorname{mat}(n, n, \operatorname{carr}(a)) \end{array}
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{39}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; \operatorname{mat}(n, n, \operatorname{carr}(a)) \end{array}
+\end{equation*}
+
+  \item[\textbf{40}] By $\operatorname{mat\text{-}ring\text{-}zero}$, reduce to
+\begin{equation*}
+(\operatorname{zeromat}(a, n, n) \in \operatorname{mat}(n, n, \operatorname{carr}(a)))
+\end{equation*}
+
+  \item[\textbf{41--42}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{zeromat}(a, n, n) \in \operatorname{mat}(n, n, \operatorname{carr}(a)))
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{43}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{one}(\operatorname{mat\text{-}ring}(a, n)) \\ \in\; \operatorname{mat}(n, n, \operatorname{carr}(a)) \end{array}
+\end{equation*}
+
+  \item[\textbf{44}] By $\operatorname{mat\text{-}ring\text{-}one}$, reduce to
+\begin{equation*}
+(\operatorname{identmat}(a, n) \in \operatorname{mat}(n, n, \operatorname{carr}(a)))
+\end{equation*}
+
+  \item[\textbf{45--46}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{identmat}(a, n) \in \operatorname{mat}(n, n, \operatorname{carr}(a)))
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{47}] By $\operatorname{is\text{-}associative}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall v \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall w \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, v), w) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{48}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, v), w) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{49}] By $\operatorname{mat\text{-}ring\text{-}add}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))((\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, v), w) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{50}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{51--53}] By $\operatorname{matadd\text{-}assoc}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{matadd}(a, \operatorname{matadd}(a, u, v), w) \\ =\; \operatorname{matadd}(a, u, \operatorname{matadd}(a, v, w)) \end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{54}] By $\operatorname{is\text{-}commutative}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall v \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, v) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(v, u) \end{array}
+\end{equation*}
+
+  \item[\textbf{55}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, v) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(v, u) \end{array}
+\end{equation*}
+
+  \item[\textbf{56}] By $\operatorname{mat\text{-}ring\text{-}add}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, v) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(v, u) \end{array}
+\end{equation*}
+
+  \item[\textbf{57}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{58--60}] By $\operatorname{matadd\text{-}comm}$:
+\begin{equation*}
+(\operatorname{matadd}(a, u, v) = \operatorname{matadd}(a, v, u))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{61}] By $\operatorname{is\text{-}identity}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)), u) \\ \quad =\; u \wedge \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n))) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{62}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)), u) \\ \quad =\; u \wedge \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n))) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{63}] By $\operatorname{mat\text{-}ring\text{-}add}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(\operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)), u) \\ \quad =\; u \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n))) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{64}] By $\operatorname{mat\text{-}ring\text{-}zero}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(\operatorname{zeromat}(a, n, n), u) \\ \quad =\; u \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, \operatorname{zeromat}(a, n, n)) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{65}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{66--68}] By $\operatorname{matadd\text{-}zero\text{-}left}$:
+\begin{equation*}
+(\operatorname{matadd}(a, \operatorname{zeromat}(a, n, n), u) = u)
+\end{equation*}
+
+  \item[\textbf{69--70}] By $\operatorname{matadd\text{-}zero\text{-}right}$:
+\begin{equation*}
+(\operatorname{matadd}(a, u, \operatorname{zeromat}(a, n, n)) = u)
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{71}] By $\operatorname{matadd\text{-}zero\text{-}left}$:
+\begin{equation*}
+(\operatorname{matadd}(a, \operatorname{zeromat}(a, n, n), u) = u)
+\end{equation*}
+
+  \item[\textbf{72--73}] By $\operatorname{matadd\text{-}zero\text{-}right}$:
+\begin{equation*}
+(\operatorname{matadd}(a, u, \operatorname{zeromat}(a, n, n)) = u)
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{74}] By $\operatorname{has\text{-}inverses}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n))(u), u) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \wedge \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{neg}(\operatorname{mat\text{-}ring}(a, n))(u)) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \end{array}
+\end{equation*}
+
+  \item[\textbf{75}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n))(u), u) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \wedge \\ \quad \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{neg}(\operatorname{mat\text{-}ring}(a, n))(u)) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \end{array}
+\end{equation*}
+
+  \item[\textbf{76}] By $\operatorname{mat\text{-}ring\text{-}add}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n))(u), u) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, \operatorname{neg}(\operatorname{mat\text{-}ring}(a, n))(u)) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \end{array}
+\end{equation*}
+
+  \item[\textbf{77}] By $\operatorname{mat\text{-}ring\text{-}neg}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))((\lambda p.\; \operatorname{matneg}(a, p))(u), u) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, (\lambda p.\; \operatorname{matneg}(a, p))(u)) \\ \quad =\; \operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) \end{array}
+\end{equation*}
+
+  \item[\textbf{78}] By $\operatorname{mat\text{-}ring\text{-}zero}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))((\lambda p.\; \operatorname{matneg}(a, p))(u), u) \\ \quad =\; \operatorname{zeromat}(a, n, n) \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, (\lambda p.\; \operatorname{matneg}(a, p))(u)) \\ \quad =\; \operatorname{zeromat}(a, n, n) \end{array}
+\end{equation*}
+
+  \item[\textbf{79}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{80--82}] By $\operatorname{matadd\text{-}neg\text{-}left}$:
+\begin{equation*}
+(\operatorname{matadd}(a, \operatorname{matneg}(a, u), u) = \operatorname{zeromat}(a, n, n))
+\end{equation*}
+
+  \item[\textbf{83--84}] By $\operatorname{matadd\text{-}neg\text{-}right}$:
+\begin{equation*}
+(\operatorname{matadd}(a, u, \operatorname{matneg}(a, u)) = \operatorname{zeromat}(a, n, n))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{85}] By $\operatorname{matadd\text{-}neg\text{-}left}$:
+\begin{equation*}
+(\operatorname{matadd}(a, \operatorname{matneg}(a, u), u) = \operatorname{zeromat}(a, n, n))
+\end{equation*}
+
+  \item[\textbf{86--87}] By $\operatorname{matadd\text{-}neg\text{-}right}$:
+\begin{equation*}
+(\operatorname{matadd}(a, u, \operatorname{matneg}(a, u)) = \operatorname{zeromat}(a, n, n))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{88}] By $\operatorname{is\text{-}associative}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall v \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall w \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, v), w) \\ \quad =\; \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{89}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, v), w) \\ \quad =\; \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{90}] By $\operatorname{mat\text{-}ring\text{-}mul}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))((\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, v), w) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{91}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{92--94}] By $\operatorname{matmul\text{-}assoc}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{matmul}(a, \operatorname{matmul}(a, u, v), w) \\ =\; \operatorname{matmul}(a, u, \operatorname{matmul}(a, v, w)) \end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{95}] By $\operatorname{is\text{-}identity}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{one}(\operatorname{mat\text{-}ring}(a, n)), u) \\ \quad =\; u \wedge \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{one}(\operatorname{mat\text{-}ring}(a, n))) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{96}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{one}(\operatorname{mat\text{-}ring}(a, n)), u) \\ \quad =\; u \wedge \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{one}(\operatorname{mat\text{-}ring}(a, n))) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{97}] By $\operatorname{mat\text{-}ring\text{-}mul}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(\operatorname{one}(\operatorname{mat\text{-}ring}(a, n)), u) \\ \quad =\; u \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, \operatorname{one}(\operatorname{mat\text{-}ring}(a, n))) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{98}] By $\operatorname{mat\text{-}ring\text{-}one}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(\operatorname{identmat}(a, n), u) \\ \quad =\; u \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, \operatorname{identmat}(a, n)) \\ \quad =\; u \end{array}
+\end{equation*}
+
+  \item[\textbf{99}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{100--102}] By $\operatorname{identmat\text{-}left\text{-}identity}$:
+\begin{equation*}
+(\operatorname{matmul}(a, \operatorname{identmat}(a, n), u) = u)
+\end{equation*}
+
+  \item[\textbf{103--104}] By $\operatorname{identmat\text{-}right\text{-}identity}$:
+\begin{equation*}
+(\operatorname{matmul}(a, u, \operatorname{identmat}(a, n)) = u)
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{105}] By $\operatorname{identmat\text{-}left\text{-}identity}$:
+\begin{equation*}
+(\operatorname{matmul}(a, \operatorname{identmat}(a, n), u) = u)
+\end{equation*}
+
+  \item[\textbf{106--107}] By $\operatorname{identmat\text{-}right\text{-}identity}$:
+\begin{equation*}
+(\operatorname{matmul}(a, u, \operatorname{identmat}(a, n)) = u)
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{108}] By $\operatorname{is\text{-}distributive}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall v \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \forall w \in \operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, v), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, w)) \wedge \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, v), w) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, w), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{109}] By $\operatorname{mat\text{-}ring\text{-}carr}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, v), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, w)) \wedge \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(u, v), w) \\ \quad =\; \operatorname{add}(\operatorname{mat\text{-}ring}(a, n))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, w), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{110}] By $\operatorname{mat\text{-}ring\text{-}add}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(v, w)) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, v), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, w)) \wedge \\ \quad \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))((\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, v), w) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(u, w), \operatorname{mul}(\operatorname{mat\text{-}ring}(a, n))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{111}] By $\operatorname{mat\text{-}ring\text{-}mul}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall u \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall v \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \forall w \in \operatorname{mat}(n, n, \operatorname{carr}(a)). \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(v, w)) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))((\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, v), \\ \quad \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, w)) \wedge \\ \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))((\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))(u, v), w) \\ \quad =\; (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q))((\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(u, w), \\ \quad \quad (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{112}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{113--115}] By $\operatorname{matmul\text{-}left\text{-}dist}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{matmul}(a, u, \operatorname{matadd}(a, v, w)) \\ =\; \operatorname{matadd}(a, \operatorname{matmul}(a, u, v), \operatorname{matmul}(a, u, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{116--117}] By $\operatorname{matmul\text{-}right\text{-}dist}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{matmul}(a, \operatorname{matadd}(a, u, v), w) \\ =\; \operatorname{matadd}(a, \operatorname{matmul}(a, u, w), \operatorname{matmul}(a, v, w)) \end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{118}] By $\operatorname{matmul\text{-}left\text{-}dist}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{matmul}(a, u, \operatorname{matadd}(a, v, w)) \\ =\; \operatorname{matadd}(a, \operatorname{matmul}(a, u, v), \operatorname{matmul}(a, u, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{119--120}] By $\operatorname{matmul\text{-}right\text{-}dist}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{matmul}(a, \operatorname{matadd}(a, u, v), w) \\ =\; \operatorname{matadd}(a, \operatorname{matmul}(a, u, w), \operatorname{matmul}(a, v, w)) \end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+\end{document}

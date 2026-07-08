@@ -1,0 +1,1 @@
+not(i = j) implies entry(p, i, j) = zero(a)

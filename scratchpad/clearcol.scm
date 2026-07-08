@@ -1,0 +1,190 @@
+;;; scratchpad/clearcol.scm -- drive pivot-clears-col to QED.
+;;; Load AFTER load.scm.
+(set! *vnb-quiet* #t)
+
+(define (cc-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+(define (cc-di*) (let lp () (let* ((g (cc-goal)) (h (and (pair? g) (car g))))
+                   (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
+(define (cc-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
+(define (cc-foc! n) (set-proof-state-focus! *ps* n))
+(define (cc-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
+(define (cc-find pred) (let lp ((as (cc-asms)))
+  (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
+(define (cc-foc-goal! pred)
+  (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
+    (and s (set-proof-state-focus! *ps* s) s)))
+(define (cc-leaf-asms s) (map wff-formula (sequent-node-assumptions s)))
+(define (cc-foc-by-asm! f)
+  (let ((s (any-pred (lambda (s) (member f (cc-leaf-asms s))) (proof-leaves))))
+    (and s (set-proof-state-focus! *ps* s) s)))
+(define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
+;; excluded-middle (from matunit-shift-proof); returns the (NOT P) branch node.
+(define (cc-em P)
+  (cut `(OR ,P (NOT ,P)))
+  (let ((use-or (cc-last)))
+    (pbc)
+    (cut `(NOT ,P))
+    (let ((use-notp (cc-last)))
+      (di)
+      (cut `(OR ,P (NOT ,P)))
+      (let ((use-or2 (cc-last))) (oi-l) (ass) (cc-foc! use-or2))
+      (ai `(NOT (OR ,P (NOT ,P))))
+      (cc-foc! use-notp))
+    (cut `(OR ,P (NOT ,P)))
+    (let ((use-or3 (cc-last))) (oi-r) (ass) (cc-foc! use-or3))
+    (ai `(NOT (OR ,P (NOT ,P))))
+    (cc-foc! use-or)))
+(define (cc-cases P) (cc-em P) (ai `(OR ,P (NOT ,P))) (cc-last))
+
+(define CLASSMIN
+  '(FORALL C (IMPLIES (MAT-EQUIV A m n P C)
+      (FORALL ii (FORALL jj (IMPLIES (IN ii (INTERVAL 1 m)) (IMPLIES (IN jj (INTERVAL 1 n))
+        (IMPLIES (NOT (= (ENTRY C ii jj) (ZERO A)))
+          (<= ((GAUGE A) (ENTRY P 1 1)) ((GAUGE A) (ENTRY C ii jj)))))))))))
+
+(define (impl* gs concl) (fold-right (lambda (g acc) (list 'IMPLIES g acc)) concl gs))
+(define (fa* vs body) (fold-right (lambda (v acc) (list 'FORALL v acc)) body vs))
+(define CONCL
+  (list 'FORSOME 'Q
+    (list 'AND '(MAT-EQUIV A m n P Q)
+      (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1))
+        (list 'AND '(= (ENTRY Q 1 j) (ZERO A))
+          (fa* '(ii c)
+            (impl* (list '(IN ii (INTERVAL 1 m)) '(IN c (INTERVAL 1 n)) '(NOT (= c j)))
+                   '(= (ENTRY Q ii c) (ENTRY P ii c)))))))))
+(define STMT
+  (list 'FORALL 'A (list 'IMPLIES '(IS-EUCLIDEAN-RING A)
+    (fa* '(m n P j)
+      (impl* (list '(IN P (MAT m n (CARR A)))
+                   '(IN 1 (INTERVAL 1 m))
+                   '(IN 1 (INTERVAL 1 n))
+                   '(IN j (INTERVAL 1 n))
+                   '(NOT (= 1 j))
+                   '(NOT (= (ENTRY P 1 1) (ZERO A)))
+                   CLASSMIN)
+             CONCL)))))
+(sp (make-wff STMT))
+
+(cc-di*)
+(define MINH (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'C)))))
+
+;; coerce to a ring, then invoke the proven single-column reduction
+(fact 'euclidean-ring-is-integral-domain 'A)
+(fact 'integral-domain-is-commutative-ring 'A)
+(fact 'commutative-ring-is-ring 'A)
+(fact 'pivot-col-reduce 'A 'm 'n 'P 'j)
+(ai 1) (ai 1) (ai 1) (ai 1) (ai 1)
+(define DIV (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
+             (eq? (car (cadr z)) 'ENTRY) (pair? (cadr (cadr z))) (eq? (car (cadr (cadr z))) 'MATMUL)))))
+(define Qmat (cadr (cadr DIV)))          ; (MATMUL A P (ELEM-G A n ((NEG A) q) 1 j))
+(define R    (caddr DIV))
+(define Gmat (cadddr Qmat))              ; (ELEM-G A n ((NEG A) q) 1 j)
+(define NEGQ (list-ref Gmat 3))          ; ((NEG A) q)
+(define QE   (cadr NEGQ))                ; q
+(define OR   (cc-find (H? 'OR)))
+(define GR   (list '(GAUGE A) R))
+(define GP11 (list '(GAUGE A) '(ENTRY P 1 1)))
+(define SUCCLE (list '<= (list 'succ GR) GP11))
+(define GLE  (list '<= GP11 GR))
+(define Q1j  (list 'ENTRY Qmat 1 'j))
+
+;; MAT-EQUIV(P, Qmat)
+(fact 'ring-neg-in-carr 'A QE)
+(fact 'elem-g-invertible 'A 'n NEGQ 1 'j)
+(fact 'mat-equiv-right-mult 'A 'm 'n 'P Gmat)
+
+;; witness
+(ew Qmat) (di)
+(cc-foc-goal! (H? 'MAT-EQUIV)) (ass)
+(cc-foc-goal! (H? 'AND)) (di)
+
+;; ---- E11: (ENTRY Qmat 1 1) = (ENTRY P 1 1) ----
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (list 'ENTRY Qmat 1 1)))))
+(fact 'elem-g-action 'A 'm 'n 'P NEGQ 1 'j 1 1)
+(define IF11 (list 'IF '(= 1 j)
+   (list '(ADD A) '(ENTRY P 1 j) (list '(MUL A) '(ENTRY P 1 1) NEGQ))
+   '(ENTRY P 1 1)))
+(subst (list '= (list 'ENTRY Qmat 1 1) IF11))
+(if-false IF11) (define k11 (cc-last)) (ass) (cc-foc! k11)
+(subst (list '= IF11 '(ENTRY P 1 1)))
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P 1 1)
+(rfl)
+
+;; ---- E1J and COLPRES ----
+(cc-foc-goal! (H? 'AND)) (di)
+
+;; ---- E1J: (ENTRY Qmat 1 j) = (ZERO A) ----
+(cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) Q1j))))
+;; establish (NOT (= (ENTRY Qmat 1 j) (ZERO A))) is what we're trying to DISPROVE via r=0;
+;; case-split on r = 0.
+(define notR0 (cc-cases (list '= R '(ZERO A))))
+;; --- P branch: r = 0 ---
+(subst DIV)
+(ass)
+;; --- NOT branch: r /= 0 -> contradiction ---
+(cc-foc! notR0)
+;; get (NOT (ENTRY Qmat 1 j = 0)) for minimality's guard
+(cut (list 'NOT (list '= Q1j '(ZERO A))))
+(define contMain (cc-last))
+;; prove the cut: subst DIV -> NOT (= R 0), ass
+(subst DIV) (ass)
+(cc-foc! contMain)
+;; extract SUCCLE from OR (kill the r=0 disjunct by contradiction)
+(ai OR)
+(cc-foc-by-asm! (list '= R '(ZERO A)))
+(ai (list 'NOT (list '= R '(ZERO A))))
+(cc-foc-by-asm! SUCCLE)
+;; apply class-minimality at C = Qmat, (1,j)
+(inst+ MINH Qmat)
+(define M2 (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'ii)))))
+(inst+ M2 1)
+(define M3 (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'jj)))))
+(inst+ M3 'j)
+;; MINCONC (assumption): (<= gP11 (gauge (ENTRY Qmat 1 j))).  gauge values in NN.
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P 1 1)
+(fact 'gauge-is-degree 'A) (ai 1)
+(fact 'fun-apply-type-c '(GAUGE A) '(CARR A) 'NN R)
+(fact 'fun-apply-type-c '(GAUGE A) '(CARR A) 'NN '(ENTRY P 1 1))
+;; GLE = (<= gP11 gR) via congruence (ENTRY Qmat 1 j) = r  (subst acts on the cut GOAL)
+(fact 'eq-sym Q1j R)                 ; (= r (ENTRY Qmat 1 j))
+(cut GLE)
+(define cont (cc-last))
+(subst (list '= R Q1j))              ; goal: gP11 <= gauge(ENTRY Qmat 1 j) = MINCONC
+(ass)
+(cc-foc! cont)
+;; contradiction: succ(gR) <= gP11  and  gP11 <= gR
+(fact 'nn-succ-le-antisym GR GP11)
+(ai (list 'NOT GLE))
+
+;; ---- COLPRES ----
+(cc-foc-goal! (H? 'FORALL))
+(cc-di*)
+(define gc (cc-goal))                    ; (= (ENTRY Qmat II CC) (ENTRY P II CC))
+(define II (list-ref (cadr gc) 2))
+(define CC (list-ref (cadr gc) 3))
+(fact 'elem-g-action 'A 'm 'n 'P NEGQ 1 'j II CC)
+(define IFic (list 'IF (list '= CC 'j)
+   (list '(ADD A) (list 'ENTRY 'P II 'j) (list '(MUL A) (list 'ENTRY 'P II 1) NEGQ))
+   (list 'ENTRY 'P II CC)))
+(subst (list '= (list 'ENTRY Qmat II CC) IFic))
+(if-false IFic) (define kc (cc-last)) (ass) (cc-foc! kc)
+(subst (list '= IFic (list 'ENTRY 'P II CC)))
+(fact 'entry-in-carrier 'm 'n '(CARR A) 'P II CC)
+(rfl)
+
+(call-with-output-file "scratchpad/RESULT.txt"
+  (lambda (port)
+    (display (list 'proof-done? (proof-done? *ps*)) port) (newline port)
+    (display (list 'open-leaves (length (proof-leaves))) port) (newline port)
+    (for-each
+     (lambda (s)
+       (newline port)
+       (display "GOAL: " port)
+       (display (expression->string (wff-formula (sequent-node-assertion s))) port)
+       (newline port)
+       (display "ASMS:" port) (newline port)
+       (for-each (lambda (a) (display "  - " port)
+                   (display (expression->string (wff-formula a)) port) (newline port))
+                 (sequent-node-assumptions s)))
+     (proof-leaves))))
+(display (list 'DONE (proof-done? *ps*))) (newline)

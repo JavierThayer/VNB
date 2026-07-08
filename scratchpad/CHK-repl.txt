@@ -1,0 +1,1 @@
+"\\documentclass[11pt]{article}\n\\usepackage[fleqn]{amsmath}\n\\usepackage{amssymb, amsthm}\n\\usepackage[utf8]{inputenc}\n\\usep"

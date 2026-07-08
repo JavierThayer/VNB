@@ -29,3 +29,8 @@
   '(FORALL s (IFF (IN s INTEGRAL-DOMAIN) (IS-INTEGRAL-DOMAIN s))))
 
 (register-definitional-structure! 'INTEGRAL-DOMAIN 'COMMUTATIVE-RING)
+
+;;; Projection: an integral domain is nontrivial (1 /= 0).  A conjunct of
+;;; is-integral-domain-def, surfaced as a citable theorem.
+(theory-add-axiom! *current-theory* 'integral-domain-nontrivial
+  '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s) (NOT (= (ONE s) (ZERO s))))))

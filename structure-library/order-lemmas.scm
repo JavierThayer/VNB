@@ -366,3 +366,32 @@
 (warrant! 'succ-nn-minus-1 'well-known
   "succ(i-1) = i for i >= 1 (monus by 1 then succ is the identity on [1,inf)).")
 (category! 'succ-nn-minus-1 'inequalities)
+
+;;; -----------------------------------------------------------------------
+;;; Interval membership introduction + the NN trichotomy step the rank bound
+;;; (Prop 3.41) needs to turn NOT(m <= n) into a legal row index succ n <= m.
+
+(support 'interval-mem-intro
+  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i NN)
+     (IMPLIES (<= a i) (IMPLIES (<= i b) (IN i (INTERVAL a b)))))))))
+(warrant! 'interval-mem-intro 'proof
+  "Converse of interval-lo/interval-hi: i in NN with a<=i<=b lies in INTERVAL(a,b)
+   (the right-to-left direction of interval-membership's SEP iff).")
+(category! 'interval-mem-intro 'plumbing)
+
+(support 'nn-not-le-succ-le
+  '(FORALL m (IMPLIES (IN m NN) (FORALL n (IMPLIES (IN n NN)
+     (IMPLIES (NOT (<= m n)) (<= (succ n) m)))))))
+(warrant! 'nn-not-le-succ-le 'well-known
+  "NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.")
+(category! 'nn-not-le-succ-le 'inequalities)
+
+(support 'nn-one-le-succ
+  '(FORALL n (IMPLIES (IN n NN) (<= 1 (succ n)))))
+(warrant! 'nn-one-le-succ 'well-known "1 <= succ n for every n in NN.")
+(category! 'nn-one-le-succ 'inequalities)
+
+(support 'one-in-interval-1 '(IN 1 (INTERVAL 1 1)))
+(warrant! 'one-in-interval-1 'proof
+  "1 in INTERVAL(1,1): 1 in NN and 1<=1<=1.  The column index of a column vector.")
+(category! 'one-in-interval-1 'plumbing)

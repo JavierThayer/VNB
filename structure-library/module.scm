@@ -112,6 +112,11 @@
   (theory-add-axiom! *current-theory* 'module-scalar-zero-in
     '(FORALL m (IMPLIES (IS-MODULE m) (IN (ZERO (SCAL m)) (CARR (SCAL m))))))
 
+  ;; the zero vector is a vector (the shape conjunct, surfaced for rfl's
+  ;; definedness obligation on VZERO terms)
+  (theory-add-axiom! *current-theory* 'module-vzero-in
+    '(FORALL m (IMPLIES (IS-MODULE m) (IN (VZERO m) (VEC m)))))
+
   ;; action closure:  r . x  is a vector
   (theory-add-axiom! *current-theory* 'module-act-type
     '(FORALL m (IMPLIES (IS-MODULE m)

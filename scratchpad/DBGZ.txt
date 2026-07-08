@@ -1,0 +1,2 @@
+  fP forall([p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))
+  fP forall([p, q, m], p in nn implies q in nn implies m in mat(succ(p), succ(q), carr(a)) implies forsome([i0, j0], i0 in interval(1, succ(p)) and j0 in interval(1, succ(q)) and not(entry(m, i0, j0) = zero(a))) implies forsome([c2], mat-equiv(a, succ(p), succ(q), m, c2) and c2 = border(a, entry(c2, 1, 1), submat(c2, p, q), p, q) and not(entry(c2, 1, 1) = zero(a))))

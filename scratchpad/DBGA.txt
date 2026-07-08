@@ -1,0 +1,1 @@
+(psb forsome([q in nn], n = succ(q)))

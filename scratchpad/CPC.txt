@@ -1,0 +1,3 @@
+(b b_626 c1 q_629_631)
+(cfr-body #t cfc-body forsome([q_638], mat-equiv(a, succ(p), succ(q), q_629_631, q_638) and entry(q_638, 1, 1) = entry(q_629_631, 1, 1) and forall([i in interval(1, succ(p))], not(i = 1) implies entry(q_638, i, 1) = zero(a)) and forall([c in interval(1, succ(q))], entry(q_638, 1, c) = entry(q_629_631, 1, c))))
+(done #t open 0)

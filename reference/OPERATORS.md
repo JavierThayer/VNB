@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-231 operators: 16 functions, 147 functoids, 68 predicates, 0 undeclared.
+234 operators: 16 functions, 148 functoids, 70 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -34,7 +34,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (147)
+## Functoids  (148)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -516,6 +516,10 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 
 ### `union`  — kernel term-former
 
+### `unitrow`  — def-functoid · element/number-valued
+
+    unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], if(cl = i, one(a), zero(a))))
+
 ### `vadd`  — structure accessor · element (slot value)
 
 ### `vec`  — structure accessor · element (slot value)
@@ -540,7 +544,7 @@ Declared by: `zero-ring-def`
 
 Declared by: `zz-act-nonneg` `zz-act-neg` 
 
-## Predicates  (68)
+## Predicates  (70)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -571,6 +575,10 @@ Declared by: `cseq-equiv`
 ### `extends-on`  — def-predicate · proposition
 
 Declared by: `extends-on` 
+
+### `generates`  — def-predicate · proposition
+
+Declared by: `generates` 
 
 ### `good-sub`  — def-predicate · proposition
 
@@ -779,6 +787,10 @@ Declared by: `ps-converges-to-at`
 ### `ps-ratio-limit`  — def-predicate · proposition
 
 Declared by: `ps-ratio-limit` 
+
+### `rel-free`  — def-predicate · proposition
+
+Declared by: `rel-free` 
 
 ### `seq-compact`  — def-predicate · proposition
 

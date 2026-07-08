@@ -1,0 +1,144 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[binomial-theorem]
+Suppose $n \in \mathbb{N}$. Let $r \text{ s.t. } \operatorname{is\text{-}commutative\text{-}ring}(r)$. Suppose $x \in \operatorname{carr}(r), y \in \operatorname{carr}(r)$. Then
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) \\ =\; \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), \operatorname{succ}(n)) \end{array}
+\end{equation*}
+
+
+\noindent\emph{(Here $\operatorname{comb\text{-}kk}(r, x, y, n)$ is the internal representation of the binomial coefficient term; it is used throughout the proof.)}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{1}] By induction on $n$.
+  \item[]\textbf{Base case} ($n = 0$):
+  \item[\textbf{2--5}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(0 \in \mathbb{N})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{6}] By $\operatorname{commutative\text{-}ring\text{-}is\text{-}ring}$:
+\begin{equation*}
+\operatorname{is\text{-}ring}(r)
+\end{equation*}
+
+  \item[\textbf{7}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{one}(r) \in \operatorname{carr}(r))
+\end{array}
+\end{equation*}
+
+  \item[\textbf{8}] By $\operatorname{ring\text{-}power\text{-}zero}$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, 0), (0 + 1)))
+\end{equation*}
+
+  \item[\textbf{9}] By $\operatorname{sum\text{-}succ}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{one}(r) \\ =\; \operatorname{add}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, 0), 0), \operatorname{comb\text{-}kk}(r, x, y, 0)(0)) \end{array}
+\end{equation*}
+
+  \item[\textbf{10}] By $\operatorname{sum\text{-}zero}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{one}(r) \\ =\; \operatorname{add}(r)(\operatorname{zero}(r), \operatorname{comb\text{-}kk}(r, x, y, 0)(0)) \end{array}
+\end{equation*}
+
+  \item[\textbf{11}] By $\operatorname{comb\text{-}kk\text{-}0\text{-}0}$:
+\begin{equation*}
+(\operatorname{comb\text{-}kk}(r, x, y, 0)(0) = \operatorname{one}(r))
+\end{equation*}
+
+  \item[\textbf{12}] Substitute the established equation.
+  \item[\textbf{13--14}] By $\operatorname{ring\text{-}add\text{-}left\text{-}id}$, reduce to
+\begin{equation*}
+(\operatorname{one}(r) = \operatorname{one}(r))
+\end{equation*}
+  \emph{(closes)}
+  \item[]\textbf{Inductive step} ($n \to n + 1$):
+  \item[\textbf{15--24}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{comb\text{-}kk}(r, x, y, n) \in (\mathbb{Z} \to \operatorname{carr}(r))) \\
+((n + 1) \in \mathbb{N}) \\
+(\operatorname{\text{-}}(0, 1) \in \mathbb{Z}) \\
+(n \in \mathbb{Z}) \\
+((n + 1) \in \mathbb{Z})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{25}] By $\operatorname{commutative\text{-}ring\text{-}is\text{-}ring}$:
+\begin{equation*}
+\operatorname{is\text{-}ring}(r)
+\end{equation*}
+
+  \item[\textbf{26--27}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{add}(r)(x, y) \in \operatorname{carr}(r)) \\
+\begin{array}{@{}l@{}} \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)) \\ \in\; \operatorname{carr}(r) \end{array}
+\end{array}
+\end{equation*}
+
+  \item[\textbf{28}] By $\operatorname{bt\text{-}neg1\text{-}neg}$:
+\begin{equation*}
+(\operatorname{\text{-}}(0, 1) < 0)
+\end{equation*}
+
+  \item[\textbf{29}] By $\operatorname{bt\text{-}lt\text{-}succ}$:
+\begin{equation*}
+(n < (n + 1))
+\end{equation*}
+
+  \item[\textbf{30}] By $\operatorname{ring\text{-}power\text{-}succ}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, (n + 1)), ((n + 1) + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{31--33}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) \\ =\; \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{34}] Substitute the established equation.
+  \item[\textbf{35}] By $\operatorname{comb\text{-}kk\text{-}succ}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{mul}(r)(\operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1)), \operatorname{add}(r)(x, y)) \\ =\; \operatorname{sum}(r, \\ \quad (\lambda k.\; \\ \quad \quad \operatorname{add}(r)(\operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)(\operatorname{\text{-}}(k, 1))), \\ \quad \quad \quad \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)(k)))), \\ \quad ((n + 1) + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{36}] By $\operatorname{sum\text{-}expansion}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{sum}(r, \\ \quad (\lambda k.\; \\ \quad \quad \operatorname{add}(r)(\operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)(\operatorname{\text{-}}(k, 1))), \\ \quad \quad \quad \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)(k)))), \\ \quad ((n + 1) + 1)) \\ =\; \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))), \\ \quad \quad \operatorname{mul}(r)(x, \operatorname{comb\text{-}kk}(r, x, y, n)(\operatorname{\text{-}}(0, 1)))), \\ \quad \operatorname{mul}(r)(y, \operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)))) \end{array}
+\end{equation*}
+
+  \item[\textbf{37}] Substitute the established equation.
+  \item[\textbf{38}] By $\operatorname{comb\text{-}kk\text{-}null}$:
+\begin{equation*}
+(\operatorname{comb\text{-}kk}(r, x, y, n)(\operatorname{\text{-}}(0, 1)) = \operatorname{zero}(r))
+\end{equation*}
+
+  \item[\textbf{39}] Substitute the established equation.
+  \item[\textbf{40}] By $\operatorname{comb\text{-}kk\text{-}above}$:
+\begin{equation*}
+(\operatorname{comb\text{-}kk}(r, x, y, n)((n + 1)) = \operatorname{zero}(r))
+\end{equation*}
+
+  \item[\textbf{41--42}] Substitute the established equation.  \emph{(closes)}
+\end{itemize}
+\end{proof}
+\end{document}

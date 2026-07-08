@@ -482,6 +482,12 @@
     ;; Phase C, Remark 3.39: the matrix action on module-element sequences is
     ;; associative, (PQ).u = P.(Q.u).  Mirrors matmul-assoc via finsum-fubini.
     "theorem-library/matact-assoc-proof"
+    ;; Phase C, Lemma 3.40: I.u = u, and invertible matrices preserve generating
+    ;; and relation-free sequences.
+    "theorem-library/mod-basis-proof"
+    ;; Phase C, Prop 3.41: an n-generated module bounds every relation-free
+    ;; sequence by n -- so rank is well defined.  The payoff of the Smith arc.
+    "theorem-library/rank-bound-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +

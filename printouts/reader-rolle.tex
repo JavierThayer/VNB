@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[rolle]
+Suppose $h, a$. Let $b \text{ s.t. } ((h \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b))))$. If $\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, h, x)$, then if $\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \exists l.\; \operatorname{is\text{-}diff\text{-}at}(h, x, l))$ then if $(h(a) = h(b))$ then 
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists \theta. \\ \quad ((a < \theta) \wedge ((\theta < b) \wedge \operatorname{is\text{-}diff\text{-}at}(h, \theta, 0))) \end{array}
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{9}] By $\operatorname{rr\text{-}lt\text{-}implies\text{-}le}$:
+\begin{equation*}
+(a \leq b)
+\end{equation*}
+
+  \item[\textbf{10}] By a cut on the auxiliary claim.
+  \item[\textbf{11--16}] By a cut on the auxiliary claim.
+  \item[\textbf{17--22}] By a cut on the auxiliary claim.
+  \item[\textbf{23}] By $\operatorname{ccint\text{-}membership}$, reduce to
+\begin{equation*}
+((a \in \mathbb{R}) \wedge ((a \leq a) \wedge (a \leq b)))
+\end{equation*}
+
+  \item[\textbf{24}] By $\operatorname{rr\text{-}leq\text{-}reflexive}$:
+\begin{equation*}
+(a \leq a)
+\end{equation*}
+
+  \item[\textbf{25--28}] Instantiate the hypothesis:
+\begin{equation*}
+(h(\operatorname{d\_193}) \leq h(a))
+\end{equation*}
+
+  \item[\textbf{29}] By a cut on the auxiliary claim.
+  \item[\textbf{30}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{31--33}] By a cut on the auxiliary claim.
+  \item[\textbf{34}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{35--37}] By a cut on the auxiliary claim.
+  \item[\textbf{38--39}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(h(a) \in \mathbb{R})
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{40}] By a cut on the auxiliary claim.
+  \item[\textbf{41--42}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(h(\operatorname{c\_191}) \in \mathbb{R})
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{43}] By a cut on the auxiliary claim.
+  \item[\textbf{44--45}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(h(\operatorname{d\_193}) \in \mathbb{R})
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{46}] By $\operatorname{rr\text{-}le\text{-}cases}$:
+\begin{equation*}
+((h(a) < h(\operatorname{c\_191})) \vee (h(a) = h(\operatorname{c\_191})))
+\end{equation*}
+
+  \item[\textbf{47--48}] By $\operatorname{max\text{-}val\text{-}strict\text{-}interior}$:
+\begin{equation*}
+((a < \operatorname{c\_191}) \wedge (\operatorname{c\_191} < b))
+\end{equation*}
+
+  \item[\textbf{49--50}] By a cut on the auxiliary claim.
+  \item[\textbf{51}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists l. \\ \quad \operatorname{is\text{-}diff\text{-}at}(h, \operatorname{c\_191}, l) \end{array}
+\end{equation*}
+
+  \item[\textbf{52--53}] By a cut on the auxiliary claim.
+  \item[\textbf{54--59}] By a cut on the auxiliary claim.
+  \item[\textbf{60}] Substitute the established equation.
+  \item[\textbf{61}] Take $w :=$ $\operatorname{c\_191}$.
+  \item[\textbf{62--64}] By $\operatorname{rr\text{-}le\text{-}cases}$:
+\begin{equation*}
+((h(\operatorname{d\_193}) < h(a)) \vee (h(\operatorname{d\_193}) = h(a)))
+\end{equation*}
+
+  \item[\textbf{65--66}] By $\operatorname{min\text{-}val\text{-}strict\text{-}interior}$:
+\begin{equation*}
+((a < \operatorname{d\_193}) \wedge (\operatorname{d\_193} < b))
+\end{equation*}
+
+  \item[\textbf{67--68}] By a cut on the auxiliary claim.
+  \item[\textbf{69}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists l. \\ \quad \operatorname{is\text{-}diff\text{-}at}(h, \operatorname{d\_193}, l) \end{array}
+\end{equation*}
+
+  \item[\textbf{70--71}] By a cut on the auxiliary claim.
+  \item[\textbf{72--77}] By a cut on the auxiliary claim.
+  \item[\textbf{78}] Substitute the established equation.
+  \item[\textbf{79}] Take $w :=$ $\operatorname{d\_193}$.
+  \item[\textbf{80--82}] By $\operatorname{rr\text{-}midpoint\text{-}between}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists w \in \mathbb{R}. \\ \quad ((a < w) \wedge (w < b)) \end{array}
+\end{equation*}
+
+  \item[\textbf{83--86}] By a cut on the auxiliary claim.
+  \item[\textbf{87}] By $\operatorname{ccint\text{-}membership}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{w\_196} \in \mathbb{R}) \wedge \\ (a \leq \operatorname{w\_196}) \wedge \\ (\operatorname{w\_196} \leq b) \end{array}
+\end{equation*}
+
+  \item[\textbf{88}] By $\operatorname{rr\text{-}lt\text{-}implies\text{-}le}$:
+\begin{equation*}
+(a \leq \operatorname{w\_196})
+\end{equation*}
+
+  \item[\textbf{89}] By $\operatorname{rr\text{-}lt\text{-}implies\text{-}le}$:
+\begin{equation*}
+(\operatorname{w\_196} \leq b)
+\end{equation*}
+
+  \item[\textbf{90--92}] By a cut on the auxiliary claim.
+  \item[\textbf{93--94}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(h(\operatorname{w\_196}) \in \mathbb{R})
+\end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{95--96}] Instantiate the hypothesis:
+\begin{equation*}
+(h(\operatorname{d\_193}) \leq h(\operatorname{w\_196}))
+\end{equation*}
+
+  \item[\textbf{97}] By a cut on the auxiliary claim.
+  \item[\textbf{98}] Substitute the established equation.
+  \item[\textbf{99}] By a cut on the auxiliary claim.
+  \item[\textbf{100}] Substitute the established equation.
+  \item[\textbf{101}] By a cut on the auxiliary claim.
+  \item[\textbf{102--104}] By a cut on the auxiliary claim.
+  \item[\textbf{105--106}] Instantiate the hypothesis:
+\begin{equation*}
+(h(x) \leq h(\operatorname{c\_191}))
+\end{equation*}
+
+  \item[\textbf{107}] Substitute the established equation.
+  \item[\textbf{108}] By a cut on the auxiliary claim.
+  \item[\textbf{109}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \exists l. \\ \quad \operatorname{is\text{-}diff\text{-}at}(h, \operatorname{w\_196}, l) \end{array}
+\end{equation*}
+
+  \item[\textbf{110--111}] By a cut on the auxiliary claim.
+  \item[\textbf{112--117}] By a cut on the auxiliary claim.
+  \item[\textbf{118}] Substitute the established equation.
+  \item[\textbf{119}] Take $w :=$ $\operatorname{w\_196}$.
+  \item[\textbf{120--121}] 
+\end{itemize}
+\end{proof}
+\end{document}

@@ -1,0 +1,151 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[bordered-eq-border]
+Suppose $a \text{ s.t. } \operatorname{is\text{-}ring}(a)$. Let $p \in \mathbb{N}, q \in \mathbb{N}, c \in \operatorname{mat}(\operatorname{succ}(p), \operatorname{succ}(q), \operatorname{carr}(a))$. If $\forall j \in \operatorname{interval}(1, \operatorname{succ}(q)).\; (\neg (j = 1) \Rightarrow (\operatorname{entry}(c, 1, j) = \operatorname{zero}(a)))$, then if $\forall i \in \operatorname{interval}(1, \operatorname{succ}(p)).\; (\neg (i = 1) \Rightarrow (\operatorname{entry}(c, i, 1) = \operatorname{zero}(a)))$ then 
+\begin{equation*}
+(c = \operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q))
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{9--13}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{submat}(c, p, q) \in \operatorname{mat}(p, q, \operatorname{carr}(a))) \\
+(1 \in \operatorname{interval}(1, (p + 1))) \\
+(1 \in \operatorname{interval}(1, (q + 1))) \\
+(\operatorname{entry}(c, 1, 1) \in \operatorname{carr}(a)) \\
+\begin{array}{@{}l@{}} \operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q) \\ \in\; \operatorname{mat}((p + 1), (q + 1), \operatorname{carr}(a)) \end{array}
+\end{array}
+\end{equation*}
+
+  \item[\textbf{14}] By a cut on the auxiliary claim.
+  \item[\textbf{15--16}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\mathit{row} \in \mathbb{N})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{17}] By $\operatorname{interval\text{-}lo}$:
+\begin{equation*}
+(1 \leq \mathit{row})
+\end{equation*}
+
+  \item[\textbf{18}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\mathit{col} \in \mathbb{N})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{19}] By $\operatorname{interval\text{-}lo}$:
+\begin{equation*}
+(1 \leq \mathit{col})
+\end{equation*}
+
+  \item[\textbf{20--32}] \emph{Split into cases} on whether
+\begin{equation*}
+(\mathit{row} = 1)
+\end{equation*}
+
+  \item[\textbf{33}] Substitute the established equation.
+  \item[\textbf{34--46}] \emph{Split into cases} on whether
+\begin{equation*}
+(\mathit{col} = 1)
+\end{equation*}
+
+  \item[\textbf{47}] Substitute the established equation.
+  \item[\textbf{48}] By $\operatorname{border\text{-}entry\text{-}11}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{entry}(\operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q), 1, 1) \\ =\; \operatorname{entry}(c, 1, 1) \end{array}
+\end{equation*}
+
+  \item[\textbf{49--50}] Substitute the established equation.  \emph{(closes)}
+  \item[\textbf{51}] By $\operatorname{border\text{-}entry\text{-}1j}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{entry}(\operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q), 1, \mathit{col}) \\ =\; \operatorname{zero}(a) \end{array}
+\end{equation*}
+
+  \item[\textbf{52}] Substitute the established equation.
+  \item[\textbf{53--54}] Instantiate the hypothesis:
+\begin{equation*}
+(\operatorname{entry}(c, 1, \mathit{col}) = \operatorname{zero}(a))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{55--67}] \emph{Split into cases} on whether
+\begin{equation*}
+(\mathit{col} = 1)
+\end{equation*}
+
+  \item[\textbf{68}] Substitute the established equation.
+  \item[\textbf{69}] By $\operatorname{border\text{-}entry\text{-}i1}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{entry}(\operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q), \mathit{row}, 1) \\ =\; \operatorname{zero}(a) \end{array}
+\end{equation*}
+
+  \item[\textbf{70}] Substitute the established equation.
+  \item[\textbf{71--72}] Instantiate the hypothesis:
+\begin{equation*}
+(\operatorname{entry}(c, \mathit{row}, 1) = \operatorname{zero}(a))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{73}] By $\operatorname{border\text{-}entry\text{-}block2}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{entry}(\operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q), \mathit{row}, \mathit{col}) \\ =\; \operatorname{entry}(\operatorname{submat}(c, p, q), \operatorname{nn\text{-}minus}(\mathit{row}, 1), \operatorname{nn\text{-}minus}(\mathit{col}, 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{74}] Substitute the established equation.
+  \item[\textbf{75--76}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{nn\text{-}minus}(\mathit{row}, 1) \in \operatorname{interval}(1, p)) \\
+(\operatorname{nn\text{-}minus}(\mathit{col}, 1) \in \operatorname{interval}(1, q))
+\end{array}
+\end{equation*}
+
+  \item[\textbf{77}] By $\operatorname{entry\text{-}of\text{-}submat}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{entry}(\operatorname{submat}(c, p, q), \operatorname{nn\text{-}minus}(\mathit{row}, 1), \operatorname{nn\text{-}minus}(\mathit{col}, 1)) \\ =\; \operatorname{entry}(c, (\operatorname{nn\text{-}minus}(\mathit{row}, 1) + 1), (\operatorname{nn\text{-}minus}(\mathit{col}, 1) + 1)) \end{array}
+\end{equation*}
+
+  \item[\textbf{78}] Substitute the established equation.
+  \item[\textbf{79}] By $\operatorname{succ\text{-}nn\text{-}minus\text{-}1}$:
+\begin{equation*}
+((\operatorname{nn\text{-}minus}(\mathit{row}, 1) + 1) = \mathit{row})
+\end{equation*}
+
+  \item[\textbf{80}] Substitute the established equation.
+  \item[\textbf{81}] By $\operatorname{succ\text{-}nn\text{-}minus\text{-}1}$:
+\begin{equation*}
+((\operatorname{nn\text{-}minus}(\mathit{col}, 1) + 1) = \mathit{col})
+\end{equation*}
+
+  \item[\textbf{82}] Substitute the established equation.
+  \item[\textbf{83--84}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{entry}(c, \mathit{row}, \mathit{col}) \in \operatorname{carr}(a))
+\end{array}
+\end{equation*}
+  \emph{(closes)}
+  \item[\textbf{85--86}] By $\operatorname{matrix\text{-}entry\text{-}extensionality}$:
+\begin{equation*}
+(c = \operatorname{border}(a, \operatorname{entry}(c, 1, 1), \operatorname{submat}(c, p, q), p, q))
+\end{equation*}
+  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+\end{document}

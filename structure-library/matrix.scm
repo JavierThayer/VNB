@@ -289,6 +289,49 @@
 (warrant! 'identmat-type 'reference
   "IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).")
 
+;;; The two branches of entry-of-identmat, pre-resolved so a proof never has to
+;;; reduce the IF (cf. matunit-entry-off-row / matunit-entry-k-row).
+(support 'identmat-entry-diag
+  '(FORALL A (FORALL n (FORALL i (IMPLIES (IN i (INTERVAL 1 n))
+     (= (ENTRY (IDENTMAT A n) i i) (ONE A)))))))
+(warrant! 'identmat-entry-diag 'reference
+  "(IDENTMAT A n)_{ii} = 1 (entry-of-identmat with the IF condition true).")
+
+(support 'identmat-entry-off
+  '(FORALL A (FORALL n (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n))
+     (IMPLIES (IN j (INTERVAL 1 n))
+     (IMPLIES (NOT (= i j))
+       (= (ENTRY (IDENTMAT A n) i j) (ZERO A))))))))))
+(warrant! 'identmat-entry-off 'reference
+  "(IDENTMAT A n)_{ij} = 0 for i /= j (entry-of-identmat with the IF condition false).")
+
+;;; -----------------------------------------------------------------------
+;;; UNITROW(A, n, i) -- the 1-by-n row vector e_i: ONE in column i, ZERO
+;;; elsewhere.  The coefficient row that reads off the i-th member of a
+;;; sequence; used to test relation-freeness one coordinate at a time.
+(def-functoid 'UNITROW '(A n i)
+  '(MATOF 1 n (VNB-LAMBDA (LIST rw cl) (IF (= cl i) (ONE A) (ZERO A)))))
+
+(support 'unitrow-type
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL i
+     (IN (UNITROW A n i) (MAT 1 n (CARR A))))))))
+(warrant! 'unitrow-type 'reference
+  "UNITROW(A,n,i) is a 1-by-n matrix over CARR A (matof-in-mat; entries ONE/ZERO).")
+
+(support 'unitrow-entry-at
+  '(FORALL A (FORALL n (FORALL i (IMPLIES (IN i (INTERVAL 1 n))
+     (= (ENTRY (UNITROW A n i) 1 i) (ONE A)))))))
+(warrant! 'unitrow-entry-at 'reference
+  "UNITROW(A,n,i)_{1,i} = 1 (entry-of-matof with the IF condition true).")
+
+(support 'unitrow-entry-off
+  '(FORALL A (FORALL n (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n))
+     (IMPLIES (IN j (INTERVAL 1 n))
+     (IMPLIES (NOT (= j i))
+       (= (ENTRY (UNITROW A n i) 1 j) (ZERO A))))))))))
+(warrant! 'unitrow-entry-off 'reference
+  "UNITROW(A,n,i)_{1,j} = 0 for j /= i (entry-of-matof with the IF condition false).")
+
 ;;; RING-ADDITIVE-AG read-offs (the view maps ring's CARR/ZERO to the AG's
 ;;; CARR/ID; derivable by unfolding the view, named for convenience).
 (support 'ras-carr
