@@ -334,6 +334,10 @@
       ((CASE-SPLIT)
        (string-append "\\emph{Split into cases} on whether"
                       (proof-reader--display (car args))))
+      ((cut)
+       (if (pair? args)
+           (string-append "Introduce the auxiliary claim" (proof-reader--display (car args)))
+           "By a cut on the auxiliary claim."))
       ((subst) "Substitute the established equation.")
       ((lam-b) "$\\beta$-reduce the applied $\\lambda$.")
       ((ass) "\\emph{Holds by assumption.}")
