@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-230 operators: 16 functions, 146 functoids, 68 predicates, 0 undeclared.
+231 operators: 16 functions, 147 functoids, 68 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -34,7 +34,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (146)
+## Functoids  (147)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -285,6 +285,10 @@ Declared by: `limit-ord-iff`
 ### `mat-ring`  — def-functoid · tuple/structure-valued
 
     mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], matadd(a, p, q)), vnb-lambda([p, q], matmul(a, p, q)), vnb-lambda(p, matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
+
+### `matact`  — def-functoid · element/number-valued
+
+    matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
 
 ### `matadd`  — def-functoid · element/number-valued
 

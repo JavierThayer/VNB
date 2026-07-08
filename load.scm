@@ -233,6 +233,9 @@
     ;; The matrix equivalence relation ~ (Def 3.33 / Remark 3.35): C ~ D iff
     ;; D = U.C.V for invertible U,V.  Basis of the Smith normal-form theory.
     "structure-library/mat-equiv"
+    ;; Phase C: a matrix of scalars acting on a matrix (column sequence) of
+    ;; module elements -- MATACT, the book's A . u_col (eq. 82).
+    "structure-library/mod-seq"
     ;; User-added structures (auto-managed by Build Structure button)
     "structure-library/user-additions"
     ;; Reclassify hand-written defining iffs (property/class/membership defs)
@@ -476,6 +479,9 @@
     ;; euclidean ring is ~ to a diagonal matrix (ni on row dim + clear-pivot-cross +
     ;; bordering recursion).
     "theorem-library/smith-diagonalization-proof"
+    ;; Phase C, Remark 3.39: the matrix action on module-element sequences is
+    ;; associative, (PQ).u = P.(Q.u).  Mirrors matmul-assoc via finsum-fubini.
+    "theorem-library/matact-assoc-proof"
     ;; The Binomial Theorem (SUM form): (x+y)^n = SUM_k COMB-KK(R,x,y,n)(k),
     ;; PROVEN by induction via sum-expansion (multiply-and-shift) + Pascal on the
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
