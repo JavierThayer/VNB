@@ -484,6 +484,12 @@
     ;; SEGMENT (SMITH-STAIRCASE A m n D k).  border-staircase + smith-staircase,
     ;; both trust:none.  Needs clear-pivot-cross + bordering + the border algebra.
     "theorem-library/smith-staircase-proof"
+    ;; Phase C, Cor 3.46: a submodule of a free module over a euclidean ring is
+    ;; free of rank <= n.  submodule-fg is the lemma linear-algebra.tex \iffalse'd
+    ;; out (tex:1651) and cannot do without -- Smith CONSUMES a finite generating
+    ;; set for the submodule, it cannot produce one.  Needs mod-seq, finite-
+    ;; dimensional (IS-SUBMODULE), euclidean-ring, smith-staircase.
+    "theorem-library/submodule-free"
     ;; Phase C, Remark 3.39: the matrix action on module-element sequences is
     ;; associative, (PQ).u = P.(Q.u).  Mirrors matmul-assoc via finsum-fubini.
     "theorem-library/matact-assoc-proof"
