@@ -3,7 +3,7 @@
 ;;; Build/iterate Prop 2.10 interior-max-deriv-zero to qed modulo small
 ;;; well-known supports (product-sign + continuity sign-preservation).
 ;;; NOT part of load.scm.  Run (fast):
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;;   mit-scheme --quiet --load load.scm \
 ;;;       --load calculus/interior-extremum-build.scm --eval '(exit)'
 ;;; ====================================================================
 

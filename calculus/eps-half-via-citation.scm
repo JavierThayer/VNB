@@ -23,7 +23,7 @@
 ;;; for the full Cauchy proof.  That lane (relevance-driven library citation) is
 ;;; the real next build; see project_proof_discovery.
 ;;;
-;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;; Run: mit-scheme --quiet --load load.scm \
 ;;;        --load calculus/eps-half-via-citation.scm --eval '(exit)' 2>&1 | grep ';;H2'
 ;;; ====================================================================
 

@@ -35,7 +35,7 @@
 ;;;     the goal's bound var), the genuine alphabet gap for e.g. the Cauchy
 ;;;     threshold N := null-threshold(eps/2).
 ;;;
-;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;; Run: mit-scheme --quiet --load load.scm \
 ;;;        --load stress-tests/quantifier-swap-stress.scm --eval '(exit)' 2>&1 | grep ';;S'
 ;;; ====================================================================
 

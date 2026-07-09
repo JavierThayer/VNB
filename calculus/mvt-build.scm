@@ -1,5 +1,5 @@
 ;;; calculus/mvt-build.scm -- prove the Mean Value Theorem from Rolle.
-;;; NOT in load.scm.  Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;; NOT in load.scm.  Run: mit-scheme --quiet --load load.scm \
 ;;;   --load calculus/mvt-build.scm --eval '(exit)'
 
 (define (mv-gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))

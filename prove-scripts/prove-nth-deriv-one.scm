@@ -20,7 +20,6 @@
 ;;; Status when shipped: (scout 6 3 300) found 4 closing branches on the box;
 ;;; the adopt-and-replay step (scout-run) is what your machine runs to QED.
 
-(verify-proofs!)
 
 (sp '(FORALL f (== (NTH-DERIV f 1) (VNB-LAMBDA x (DERIV f x)))))
 (grind)

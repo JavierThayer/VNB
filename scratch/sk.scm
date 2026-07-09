@@ -1,4 +1,3 @@
-(verify-proofs!)
 (define (asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (show tag) (display tag) (newline)
   (for-each (lambda (a) (display "  - ") (write a) (newline)) (asms)))

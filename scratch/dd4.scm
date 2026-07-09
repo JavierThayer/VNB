@@ -1,4 +1,3 @@
-(verify-proofs!)
 (define (gl tag) (display "  >> ") (display tag) (display ": ")
   (if (proof-done? *ps*) (display "DONE")
     (write (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))) (newline))

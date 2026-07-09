@@ -1,4 +1,3 @@
-(verify-proofs!)
 (define (gf) (and *ps* (not (proof-done? *ps*)) (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
 ;; RR-specialized fun-apply-type (domain pinned to RR -> no undetermined var)
 (support 'rr-fun-apply

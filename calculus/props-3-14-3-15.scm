@@ -9,7 +9,7 @@
 ;;;
 ;;; Run it (fast -- skips the load-time library proofs):
 ;;;   cd ~/prover
-;;;   VNB_SKIP_PROOFS=1 ./prover -i calculus/props-3-14-3-15.scm < /dev/null
+;;;   ./prover -i calculus/props-3-14-3-15.scm < /dev/null
 ;;; then grep the output for "==>".
 ;;;
 ;;; The maths:

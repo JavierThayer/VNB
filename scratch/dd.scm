@@ -1,4 +1,3 @@
-(verify-proofs!)
 (display "\n## deriv-identity ##\n")
 (sp '(FORALL a (IMPLIES (IN a RR) (IS-DIFF-AT (VNB-LAMBDA x x) a 1))))
 (grind) (mac 'IS-DIFF-AT) (fact 'rr-one-in)

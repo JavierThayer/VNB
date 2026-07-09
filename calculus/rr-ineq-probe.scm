@@ -6,7 +6,7 @@
 ;;; winner, and report PROVED?.
 ;;;
 ;;; Run:
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet \
+;;;   mit-scheme --quiet \
 ;;;     --load load.scm \
 ;;;     --load structure-library/rr-ineq.scm \
 ;;;     --load calculus/rr-ineq-probe.scm --eval '(exit)'

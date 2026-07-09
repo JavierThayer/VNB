@@ -1,6 +1,6 @@
 ;;; calculus/interior-min-build.scm -- prove interior-min-deriv-zero FROM
 ;;; interior-max-deriv-zero, by applying it to g = -f.  NOT in load.scm.
-;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;; Run: mit-scheme --quiet --load load.scm \
 ;;;        --load calculus/interior-min-build.scm --eval '(exit)'
 
 (define (mz-gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))

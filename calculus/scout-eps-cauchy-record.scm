@@ -12,7 +12,7 @@
 ;;;
 ;;; NOT part of load.scm; a probe/record script.  Reproduce with:
 ;;;   cd ~/prover
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;;   mit-scheme --quiet --load load.scm \
 ;;;       --load calculus/scout-eps-cauchy-record.scm --eval '(exit)' \
 ;;;       > calculus/printouts/scout-eps-cauchy-record.txt 2>&1
 ;;;   grep -E '^;;;' calculus/printouts/scout-eps-cauchy-record.txt

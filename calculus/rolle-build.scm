@@ -1,5 +1,5 @@
 ;;; calculus/rolle-build.scm -- prove Rolle's theorem.  NOT in load.scm.
-;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;; Run: mit-scheme --quiet --load load.scm \
 ;;;        --load calculus/rolle-build.scm --eval '(exit)'
 
 (define (rl-gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))

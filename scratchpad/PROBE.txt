@@ -1,0 +1,29 @@
+== P branch
+   goal: falsity
+   newest asm: (= i_ 1)
+   open leaves: 3
+== cut subgoal
+   goal: (= (entry (border a b w p q) 1 1) (zero a))
+   newest asm: (= 1 i_)
+   open leaves: 4
+   BS-CB1 goal: falsity
+== after ass (focus unchanged?)
+   goal: (forall i_ (implies (in i_ (interval 1 (succ p))) (implies (not (<= i_ (succ kp))) (forall j_ (implies (in j_ (interval 1 (succ q))) (= (entry (border a b w p q) i_ j_) (zero a)))))))
+   newest asm: (forall i_ (implies (in i_ (interval 1 p)) (implies (not (<= i_ kp)) (forall j_ (implies (in j_ (interval 1 q)) (= (entry w i_ j_) (zero a)))))))
+   open leaves: 3
+== at BS-CB1
+   goal: falsity
+   newest asm: (= (entry (border a b w p q) 1 1) (zero a))
+   open leaves: 3
+== after eq-sym BRD11 b
+   goal: falsity
+   newest asm: (= b (entry (border a b w p q) 1 1))
+   open leaves: 3
+== after eq-trans
+   goal: falsity
+   newest asm: (= b (zero a))
+   open leaves: 3
+== after ai not-elim
+   goal: (forall i_ (implies (in i_ (interval 1 (succ p))) (implies (not (<= i_ (succ kp))) (forall j_ (implies (in j_ (interval 1 (succ q))) (= (entry (border a b w p q) i_ j_) (zero a)))))))
+   newest asm: (forall i_ (implies (in i_ (interval 1 p)) (implies (not (<= i_ kp)) (forall j_ (implies (in j_ (interval 1 q)) (= (entry w i_ j_) (zero a)))))))
+   open leaves: 2

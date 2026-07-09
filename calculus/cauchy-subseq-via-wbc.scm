@@ -26,7 +26,7 @@
 ;;; k lies in blk_2(k)) so two tail terms sit in one rad(k)-ball, and close with
 ;;; ball-2r-triangle (already PSS) + crs.  Left as the documented remainder.
 ;;;
-;;; Run: VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;; Run: mit-scheme --quiet --load load.scm \
 ;;;        --load calculus/cauchy-subseq-via-wbc.scm --eval '(exit)' 2>&1 | grep ';;C'
 ;;; ====================================================================
 

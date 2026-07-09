@@ -10,22 +10,15 @@
 # guaranteeing a predictable environment.  All VNB-specific setup
 # happens in vnb-launch.el.
 #
-# Fast launch: VNB_SKIP_PROOFS=1 is set by default so the library's
-# proven theorems are installed as axioms instead of being re-proved
-# on every cold boot (~32x speedup).  Override with VNB_SKIP_PROOFS=
-# (empty) if you want full verification:
+# Cold boot re-proves the whole library.  That costs 24 s on a COMPILED tree
+# and ~11 minutes on an interpreted one, so compile once with
+# ./VNB-with-compile (or (compile-vnb!) from a REPL).
 #
-#   VNB_SKIP_PROOFS= VNB
-#
-# VNB-with-compile (which recompiles sources and re-verifies the proof
-# library) intentionally runs the compile step with proofs NOT skipped
-# -- that's the canonical re-verification path.
-
-# Default to skip-proofs unless the user explicitly sets it (including
-# to empty to opt out).
-if [ -z "${VNB_SKIP_PROOFS+x}" ]; then
-    export VNB_SKIP_PROOFS=1
-fi
+# There used to be a VNB_SKIP_PROOFS=1 default here, claiming a ~32x speedup by
+# installing proven theorems as axioms instead of re-proving them.  It had
+# silently stopped working (nothing read the variable), and it should not come
+# back: it would hand you a library whose qed bills say `trust: none' about
+# theorems that were never checked.
 
 PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
 # The elisp bundle lives under emacs/ (root declutter 2026-06-06).

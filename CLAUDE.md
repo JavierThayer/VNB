@@ -14,8 +14,8 @@ operational facts that are expensive to rediscover.
     ./prover                  # interactive REPL
     ./prover file.scm         # load a proof script, exit
     ./prover -i file.scm      # load a script, then drop into the REPL
-    ./VNB                     # launcher; sets VNB_SKIP_PROOFS=1 by default (~32x faster boot)
-    VNB_SKIP_PROOFS= ./VNB    # ... override to actually re-verify the library proofs
+    ./VNB                     # launcher (cold boot re-proves the library: 24 s compiled)
+    ./VNB-with-compile        # recompile sources, then launch
 
 Full check suite (distinct from the launcher):
 
@@ -47,11 +47,11 @@ After editing a `.scm`, delete BOTH the `.com` and the `.bin`, or Scheme silentl
 loads the stale binary. `load.scm` names files without extension and prefers `.com`.
 (`file-fresh-com?` compares mtimes, so a plain re-save is usually enough.)
 
-**`VNB_SKIP_PROOFS` is dead code.** `./VNB` exports it and `interactive.scm` documents it,
-but nothing reads the env var, `skip-proofs!` is never called, `*skip-proofs-cont*` is
-never bound, and the `prove-and-install!` that used to install it is gone from
-`proven-theorems.scm`. Do not trust the "~32x faster boot" claim; compiling is the real
-speedup, and a skip-proofs mode would hand you a library whose `qed` bills lie.
+**There is no skip-proofs mode.** `VNB_SKIP_PROOFS` was removed (2026-07-09): it had
+silently stopped working, and a mode that installs goals as theorems without running their
+tactics would give you a library whose `qed` bills read `trust: none` about proofs nobody
+checked. Compiling is the honest speedup. If you find the variable named in an old
+comment, the comment is stale.
 
 ## This box
 

@@ -6,7 +6,7 @@
 ;;;
 ;;; Run (fast; full output -- do NOT pipe through head, it SIGPIPEs the run):
 ;;;   cd ~/prover
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;;   mit-scheme --quiet --load load.scm \
 ;;;       --load calculus/totally-bounded-cauchy-subseq.scm --eval '(exit)' \
 ;;;       > /tmp/tbcs.out 2>&1
 ;;;   grep -E '^;;; ' /tmp/tbcs.out

@@ -22,7 +22,7 @@
 ;;; ideal (backward).
 ;;;
 ;;; Run standalone (skips the heavy at-load proofs):
-;;;   VNB_SKIP_PROOFS=1 ./prover calculus/euclidean-ring-pid.scm
+;;;   ./prover calculus/euclidean-ring-pid.scm
 ;;; ===================================================================
 
 ;;; ---- forward-reasoning helpers (mirrors prop-3-15-proof.scm) ----

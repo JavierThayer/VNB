@@ -1,4 +1,3 @@
-(verify-proofs!)
 (define (gf) (and *ps* (not (proof-done? *ps*)) (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
 ;; pure-algebra: the Caratheodory factor of a sum (curried antecedents)
 (support 'caratheodory-sum-factor

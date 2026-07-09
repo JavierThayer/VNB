@@ -1,4 +1,3 @@
-(verify-proofs!)
 (define (ASMS) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (gf) (and *ps* (not (proof-done? *ps*)) (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
 ;; find Caratheodory factor P from hyp (forall X (implies (in X rr) (= (- (fsym X)(fsym a)) (* (P X) ..))))

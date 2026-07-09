@@ -1,6 +1,5 @@
 ;; probe: x*y <= x^2 + y^2  via sum-of-squares bricks
 (load "/home/ubuntu/prover/load")
-(set! *skip-proofs?* #f)
 
 (display "\n===== START =====\n")
 (sp (wff "forall([x in rr, y in rr], x * y <= x ^ 2 + y ^ 2)"))

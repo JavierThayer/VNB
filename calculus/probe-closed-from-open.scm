@@ -4,7 +4,7 @@
 ;;; + the IS-CLOSED unfold -- WITHOUT citing its own namesake support.
 ;;; Purely algebraic (no eps/delta).  Prints the goal state at each step so
 ;;; we can see exactly where the machinery snags.
-;;;   VNB_SKIP_PROOFS=1 ./prover -i calculus/probe-closed-from-open.scm </dev/null
+;;;   ./prover -i calculus/probe-closed-from-open.scm </dev/null
 
 (define (==> label val)
   (display "==> ") (display label) (display ": ") (write val) (newline))

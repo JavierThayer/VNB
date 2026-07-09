@@ -13,7 +13,7 @@
 ;;; asserted -> proven (cf. metric-laws.scm / subtype-laws.scm).
 ;;;
 ;;; Run standalone (deterministic eigenvars; skips the load-time proofs):
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;;   mit-scheme --quiet --load load.scm \
 ;;;                                --load calculus/prop-3-15-proof.scm
 ;;;
 ;;; THE STRESS TEST -- three pieces of machinery the eps/delta argument

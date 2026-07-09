@@ -176,31 +176,25 @@
       (->raw-formula f)))
 
 ;;; -----------------------------------------------------------------------
-;;; Skip-proofs mode.
-;;;
-;;; When *skip-proofs?* is #t, sp short-circuits: instead of building a
-;;; proof state, it stashes the goal formula and (if *skip-proofs-cont* is
-;;; bound) invokes the continuation to escape out of the surrounding proof
-;;; thunk.  prove-and-install! (proven-theorems.scm) sets up the cont,
-;;; runs the thunk, and installs the captured formula as a theorem
-;;; without running tactics.  Cuts proven-theorems.scm load time from
-;;; minutes to seconds while iterating on unrelated work.
-;;;
-;;; Enable by setting *skip-proofs?* before loading load.scm, or via the
-;;; VNB_SKIP_PROOFS env var (checked once at proven-theorems.scm load).
-
-(define *skip-proofs?* #f)
-(define *skip-proofs-captured* #f)
-(define *skip-proofs-cont* #f)
-
-(define (skip-proofs!)   (set! *skip-proofs?* #t))
-(define (verify-proofs!) (set! *skip-proofs?* #f))
-
-;;; -----------------------------------------------------------------------
 ;;; Start a proof.  Resets the proof-script accumulator.
 ;;;
-;;; When *skip-proofs?* is set, capture the formula and bail out via
-;;; *skip-proofs-cont* (the caller in prove-and-install! installed it).
+;;; There used to be a "skip-proofs mode" here: *skip-proofs?* made `sp'
+;;; short-circuit, stashing the goal and escaping through *skip-proofs-cont*,
+;;; which prove-and-install! (proven-theorems.scm) had installed around each
+;;; proof thunk.  It was DELETED, for two reasons.
+;;;
+;;; It had already stopped working.  prove-and-install! no longer exists, so
+;;; *skip-proofs-cont* was never bound, nothing read the VNB_SKIP_PROOFS env var
+;;; the launcher exported, and skip-proofs! was called from nowhere.  Today's
+;;; proofs are bare top-level forms in theorem-library/*.scm, so a bailing `sp'
+;;; has nowhere to escape to: the next (di) would run with no proof state.
+;;;
+;;; And it should not come back.  A fast-boot mode that installs goals as
+;;; theorems without running their tactics hands you a library where
+;;; smith-diagonalization is ASSERTED while its qed bill still reads
+;;; `trust: none' -- aimed squarely at the invariant proof-debt.scm exists to
+;;; protect.  The speedup it was for is available honestly: compile the tree
+;;; ((compile-vnb!) / ./VNB-with-compile) and the library loads in 24 seconds.
 
 ;; sp accepts what its documentation promises: a wff, a "string" in surface
 ;; syntax (parsed), or a raw S-expr.  Strings/S-exprs are coerced exactly as the
@@ -214,19 +208,13 @@
               ((string? wic-in) (make-wff-from-string wic-in))
               ((pair? wic-in) (make-wff wic-in))
               (else (error "sp: expected a wff, a \"string\", or an S-expr" wic-in))))
-      (cond
-        (*skip-proofs?*
-         (set! *skip-proofs-captured* (wff-formula wic))
-         (when *skip-proofs-cont*
-           (*skip-proofs-cont* 'skipped)))
-        (else
-         (set! *proof-script* '())
-         (set! *current-goal* (wff-formula wic))
-         (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
-         (set! *ps* (start-proof wic))
-         (set! *live-trace* '())                        ; begin a fresh live capture
-         (vnb--capture-step! (cons 'sp '()))            ; seed it with the initial goal
-         (show))))))
+      (set! *proof-script* '())
+      (set! *current-goal* (wff-formula wic))
+      (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
+      (set! *ps* (start-proof wic))
+      (set! *live-trace* '())                        ; begin a fresh live capture
+      (vnb--capture-step! (cons 'sp '()))            ; seed it with the initial goal
+      (show))))
 
 ;;; (wff "...") -- short alias for make-wff-from-string, so a goal can be
 ;;; started from the scratch sheet as (sp (wff "forall([x in nn], x in zz)")).

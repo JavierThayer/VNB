@@ -1,4 +1,3 @@
-(verify-proofs!)
 (define (gf) (and *ps* (not (proof-done? *ps*)) (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
 (sp '(FORALL phi (FORALL a (IMPLIES (AND (IN phi (FUN RR RR)) (IN a RR))
         (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS phi a) (IS-CONTINUOUS-AT RR-MS RR-MS phi a))))))

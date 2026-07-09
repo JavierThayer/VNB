@@ -15,7 +15,7 @@
 ;;; ordinary forward work.  See memory project_mac_h_tactic.
 ;;;
 ;;; Run standalone:
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;;   mit-scheme --quiet --load load.scm \
 ;;;                                 --load calculus/prop-3-14-proof.scm
 ;;;
 ;;; The proof installs the theorem `converges-to-compose-continuous`.

@@ -19,7 +19,7 @@
 ;;;
 ;;; NOT part of load.scm; a probe/teaching script.  Run (fast):
 ;;;   cd ~/prover
-;;;   VNB_SKIP_PROOFS=1 mit-scheme --quiet --load load.scm \
+;;;   mit-scheme --quiet --load load.scm \
 ;;;       --load calculus/cauchy-subseq-via-combinatorial.scm --eval '(exit)' \
 ;;;       > /tmp/csvc.out 2>&1
 ;;;   grep -E '^;;; ' /tmp/csvc.out
