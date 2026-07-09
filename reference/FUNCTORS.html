@@ -170,7 +170,7 @@
 <h4 id="FUNCTORS__entry">entry</h4>
 <pre>entry(m, i, j) := nth(j, nth(i, m))</pre>
 <h4 id="FUNCTORS__enum-fam">enum-fam</h4>
-<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), id(ag)))</pre>
+<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))</pre>
 <h4 id="FUNCTORS__fin-enum">fin-enum</h4>
 <pre>fin-enum(s) := choice(bijection(ord-segment(card(s)), s))</pre>
 <h4 id="FUNCTORS__finprod">finprod</h4>

@@ -1,6 +1,6 @@
 ;;; normed-ag-metric.scm -- the metric space underlying a normed abelian group.
 ;;;
-;;; The structural bridge between a NORMED-AG's *group* register (CARR MUL ID INV
+;;; The structural bridge between a NORMED-AG's *group* register (CARR MUL IDEN INV
 ;;; + norm NRM) and its *metric* register (METRIC-SPACE : X D).  Like
 ;;; NF-METRIC-SPACE for normed fields, it cannot be a def-view-as: a view-as
 ;;; maps slots to slots, but METRIC-SPACE's distance DIST is not a slot of a

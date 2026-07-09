@@ -130,7 +130,7 @@
     ;; (nn-least-element).  Vocabulary for the Euclidean-ring => PID proof.
     "structure-library/ideal"
     "structure-library/normed-field"
-    ;; Normed abelian group: AG subtype (slots CARR MUL ID INV) + norm NRM at
+    ;; Normed abelian group: AG subtype (slots CARR MUL IDEN INV) + norm NRM at
     ;; slot 5.  Needs abelian-group, operation-properties (is-group-norm),
     ;; and RR (number-systems).  Its AG view is registered in views.scm.
     "structure-library/normed-ag"
@@ -835,7 +835,7 @@
 ;; position, scope-blind, silently changing the formula's meaning.  This is the
 ;; accessor/variable collision class (distinct from the binder-over-binder one
 ;; above).  HARD gate, with a deliberately loud report -- accessors carry
-;; distinctive names (CARR/PTS/DIST/ID/MUL/VEC/...) precisely so this never
+;; distinctive names (CARR/PTS/DIST/IDEN/MUL/VEC/...) precisely so this never
 ;; happens; a hit means someone reused one as a bound variable.
 (let ((bad (constant-binder-audit)))
   (if (null? bad)

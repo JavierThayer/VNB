@@ -7,4 +7,4 @@
 ;;; script archived in archive/proven-theorems-archive.scm.
 
 (support 'finsum-empty
-  '(FORALL ag (FORALL f (== (FINSUM ag f EMPTY-SET) (ID ag)))))
+  '(FORALL ag (FORALL f (== (FINSUM ag f EMPTY-SET) (IDEN ag)))))

@@ -215,7 +215,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### enum-fam
 
-    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), id(ag)))
+    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))
 
 ### fin-enum
 

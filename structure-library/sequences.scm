@@ -20,11 +20,11 @@
 ;;; PROD-ORD: monoid product over {0, ..., n-1}
 
 ;;; Defining recursion (installs prod-ord-zero and prod-ord-succ):
-;;;   PROD-ORD(m, f, 0)       = ID(m)
+;;;   PROD-ORD(m, f, 0)       = IDEN(m)
 ;;;   PROD-ORD(m, f, succ(n)) = PROD-ORD(m, f, n) * f(n)
 
 (def-by-nn-recursion 'PROD-ORD '(m f)
-  '(ID m)                              ; base value
+  '(IDEN m)                              ; base value
   '(n val)                            ; step vars: n ∈ NN, val = PROD-ORD(m,f,n)
   '((MUL m) val (f n))); PROD-ORD(m,f,succ n) = val * f(n)
 
@@ -43,7 +43,7 @@
 
 ;;; Singleton: PROD-ORD(m, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): prod-ord-succ at n=0 gives
-;;; (MUL m)(ID m)(f 0), then monoid-left-id closes to (f 0).  Installed
+;;; (MUL m)(IDEN m)(f 0), then monoid-left-id closes to (f 0).  Installed
 ;;; as an axiom for direct use.
 (theory-add-axiom! *current-theory* 'prod-ord-singleton
   '(FORALL m
@@ -96,15 +96,15 @@
 ;;;
 ;;; Written multiplicatively because ABELIAN-GROUP uses MUL/E (inherited
 ;;; from GROUP's accessors).  When the abelian group is the additive group
-;;; of some structure, the caller reads (MUL ag) as "addition" and (ID ag)
+;;; of some structure, the caller reads (MUL ag) as "addition" and (IDEN ag)
 ;;; as "zero" by convention; nothing in the structure machinery cares.
 ;;;
 ;;; Defining recursion (installs sum-ag-zero and sum-ag-succ):
-;;;   SUM-AG(ag, f, 0)       = ID(ag)
+;;;   SUM-AG(ag, f, 0)       = IDEN(ag)
 ;;;   SUM-AG(ag, f, succ(n)) = (MUL ag)(SUM-AG ag f n, f(n))
 
 (def-by-nn-recursion 'SUM-AG '(ag f)
-  '(ID ag)                              ; base value
+  '(IDEN ag)                              ; base value
   '(n val)                             ; step vars
   '((MUL ag) val (f n))); SUM-AG(ag,f,succ n) = val * f(n)
 
@@ -135,7 +135,7 @@
 ;;;
 ;;;   SUM-AG(ag, f, n) = REDUCE (MUL ag) f n        for n >= 1
 ;;;
-;;; The n = 0 case has no REDUCE counterpart: SUM-AG(ag, f, 0) = ID(ag) is
+;;; The n = 0 case has no REDUCE counterpart: SUM-AG(ag, f, 0) = IDEN(ag) is
 ;;; the identity supplied by the abelian-group, and REDUCE has no identity
 ;;; argument.  Provable by NN induction (base n = 1 from sum-ag-singleton +
 ;;; reduce-one; step from sum-ag-succ + reduce-succ); installed for direct
@@ -266,7 +266,7 @@
 
 (theory-add-axiom! *current-theory* 'prod-set-empty
   '(FORALL cm (FORALL f
-      (== (PROD-SET cm EMPTY-SET f) (ID cm)))))
+      (== (PROD-SET cm EMPTY-SET f) (IDEN cm)))))
 
 (theory-add-axiom! *current-theory* 'prod-set-singleton
   '(FORALL cm

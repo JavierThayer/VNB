@@ -352,12 +352,12 @@
   "BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).")
 
 ;;; RING-ADDITIVE-AG read-offs (the view maps ring's CARR/ZERO to the AG's
-;;; CARR/ID; derivable by unfolding the view, named for convenience).
+;;; CARR/IDEN; derivable by unfolding the view, named for convenience).
 (support 'ras-carr
   '(FORALL A (= (CARR (RING-ADDITIVE-AG A)) (CARR A))))
 (warrant! 'ras-carr 'proof "carrier of a ring's additive group is the ring's carrier.")
 (support 'ras-id
-  '(FORALL A (= (ID (RING-ADDITIVE-AG A)) (ZERO A))))
+  '(FORALL A (= (IDEN (RING-ADDITIVE-AG A)) (ZERO A))))
 (warrant! 'ras-id 'proof "identity of a ring's additive group is the ring's zero.")
 (support 'ras-op
   '(FORALL A (= (MUL (RING-ADDITIVE-AG A)) (ADD A))))
@@ -382,7 +382,7 @@
 
 ;;; finsum-single-support: a finite sum whose summand vanishes off a single
 ;;; index i0 equals its value there.  (Induction on |S| via finsum-insert: the
-;;; peeled non-i0 terms are ID and drop out.)  The engine behind IDENTMAT being
+;;; peeled non-i0 terms are IDEN and drop out.)  The engine behind IDENTMAT being
 ;;; a two-sided identity for MATMUL.
 (support 'finsum-single-support
   '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
@@ -390,7 +390,7 @@
      (FORALL f (IMPLIES (IN f (FUN S (CARR ag)))
      (FORALL i0 (IMPLIES (IN i0 S)
        (IMPLIES (FORALL j (IMPLIES (IN j S)
-                  (IMPLIES (NOT (= j i0)) (= (f j) (ID ag)))))
+                  (IMPLIES (NOT (= j i0)) (= (f j) (IDEN ag)))))
          (= (FINSUM ag f S) (f i0)))))))))))))
 (warrant! 'finsum-single-support 'well-known
   "If f(j)=0 for every j in the finite S except j=i0, then FINSUM(ag,f,S)=f(i0).")
@@ -407,7 +407,7 @@
      (FORALL i1 (IMPLIES (IN i1 S)
      (IMPLIES (NOT (= i0 i1))
        (IMPLIES (FORALL j (IMPLIES (IN j S)
-                  (IMPLIES (NOT (= j i0)) (IMPLIES (NOT (= j i1)) (= (f j) (ID ag))))))
+                  (IMPLIES (NOT (= j i0)) (IMPLIES (NOT (= j i1)) (= (f j) (IDEN ag))))))
          (= (FINSUM ag f S) ((MUL ag) (f i0) (f i1)))))))))))))))))
 (warrant! 'finsum-two-support 'well-known
   "If f(j)=0 for every j in the finite S except j in {i0,i1} (i0/=i1), then

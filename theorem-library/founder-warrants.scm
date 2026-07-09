@@ -22,16 +22,16 @@
 (warrant! 'finsum-empty 'well-known
   "The empty sum is the group identity.  FINSUM is the SUM-AG fold over an
    enumeration of S; at cardinality 0 there are no summands and the fold
-   returns its seed (ID ag).  Definitional in all but name.")
+   returns its seed (IDEN ag).  Definitional in all but name.")
 
 (warrant! 'finsum-singleton 'well-known
   "A one-element sum is its single term.  FINSUM enumerates {x} as a length-1
-   sequence and folds (ID ag) with f(x); the identity law collapses
-   (ID ag) MUL f(x) to f(x).")
+   sequence and folds (IDEN ag) with f(x); the identity law collapses
+   (IDEN ag) MUL f(x) to f(x).")
 
 (warrant! 'finsum-type 'informal
   "Closure of the finite sum on the carrier.  Induction on card(S): the fold
-   seeds at (ID ag), in (CARR ag) by the identity law, and each step applies
+   seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
    (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.")
 
@@ -119,7 +119,7 @@
 (warrant! 'enum-fam-in-fun 'informal
   "enum-fam(ag, f, phi, n) is a total function NN -> (CARR ag): on indices i < n
    it returns f(phi(i)), in the carrier since f maps into (CARR ag); on i >= n it
-   returns the identity (ID ag), in the carrier by the identity law.  Total and
+   returns the identity (IDEN ag), in the carrier by the identity law.  Total and
    carrier-valued, hence in fun(NN, A ag).  Routine typing, no induction.")
 
 (warrant! 'permutations-zero 'well-known

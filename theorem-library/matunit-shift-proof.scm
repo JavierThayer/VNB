@@ -76,7 +76,7 @@
 ;; VANISH: off the k-row the summand is the additive identity
 (cut `(FORALL jz (IMPLIES (IN jz ,MU-INT)
         (IMPLIES (NOT (= jz k))
-          (= (,MU-FF jz) (ID ,MU-RAG))))))
+          (= (,MU-FF jz) (IDEN ,MU-RAG))))))
 (define mu-main (mu-last))
   (di) (di) (di)
   (lam-b)
@@ -86,7 +86,7 @@
   (fact 'ring-mul-zero-right 'A '(ENTRY P i jz))
   (subst `(= ((MUL A) (ENTRY P i jz) (ZERO A)) (ZERO A)))
   (fact 'ras-id 'A)
-  (subst `(= (ID (RING-ADDITIVE-AG A)) (ZERO A)))
+  (subst `(= (IDEN (RING-ADDITIVE-AG A)) (ZERO A)))
   (rfl)
 (mu-focus! mu-main)
 

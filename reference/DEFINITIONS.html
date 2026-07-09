@@ -226,7 +226,7 @@ forall([k in nn], factorial(succ(k)) = succ(k) * factorial(k))</pre>
 
 forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))</pre>
 <h4 id="d-mpow">mpow</h4>
-<pre>forall([m, x], mpow(m, x, 0) == id(m))
+<pre>forall([m, x], mpow(m, x, 0) == iden(m))
 
 forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))</pre>
 <h4 id="d-nth-deriv">nth-deriv</h4>
@@ -238,7 +238,7 @@ forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, deriv(nth-deriv(f, n
 
 forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, deriv-v(m, nth-deriv-v(m, f, n), x)))</pre>
 <h4 id="d-prod-ord">prod-ord</h4>
-<pre>forall([m, f], prod-ord(m, f, 0) == id(m))
+<pre>forall([m, f], prod-ord(m, f, 0) == iden(m))
 
 forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))</pre>
 <h4 id="d-reduce">reduce</h4>
@@ -254,7 +254,7 @@ forall([f, n in nn], ring-prod-n(f, succ(n)) == ring-prod(ring-prod-n(f, n), f(n
 
 forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))</pre>
 <h4 id="d-sum-ag">sum-ag</h4>
-<pre>forall([ag, f], sum-ag(ag, f, 0) == id(ag))
+<pre>forall([ag, f], sum-ag(ag, f, 0) == iden(ag))
 
 forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))</pre>
 <h4 id="d-taylor-poly-v">taylor-poly-v</h4>

@@ -11,7 +11,7 @@
 ;;;
 ;;; TWO tiers, matching the existing finsum-comm-monoid / finsum-fubini family:
 ;;;
-;;;   GENERAL (over IS-COMM-MONOID m, op (MUL m), seed (ID m) -- the honest
+;;;   GENERAL (over IS-COMM-MONOID m, op (MUL m), seed (IDEN m) -- the honest
 ;;;   minimal hypotheses, no inverses):  finsum-add and finsum-reindex are
 ;;;   properties of ANY finite sum, exactly like finsum-fubini.  These are the
 ;;;   reusable PSS principles.
@@ -127,7 +127,7 @@
               (list 'FINSUM 'm 'f 'S)
               (list 'FINSUM 'm 'h 'S))))))))
 (warrant! 'finsum-add 'well-known
-  "Induction on |S| via finsum-insert: base is (ID m)*(ID m)=(ID m) (finsum-empty);
+  "Induction on |S| via finsum-insert: base is (IDEN m)*(IDEN m)=(IDEN m) (finsum-empty);
    step folds in one z0, regrouping (a*b)*(c*d)=(a*c)*(b*d) by the commutativity
    and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies
    (no inverses used).  Holds for every commutative-monoid-valued finite sum.")
@@ -206,12 +206,12 @@
    (tfin 'S
     (tf 'f '(IN f (FUN S (CARR ag)))
      (list 'IMPLIES
-       '(FORALL z (IMPLIES (IN z S) (= (f z) (ID ag))))
-       '(= (FINSUM ag f S) (ID ag)))))))
+       '(FORALL z (IMPLIES (IN z S) (= (f z) (IDEN ag))))
+       '(= (FINSUM ag f S) (IDEN ag)))))))
 (warrant! 'finsum-all-id 'well-known
-  "If f(z) = ID(ag) for every z in the finite index set S, then FINSUM(ag,f,S) =
-   ID(ag).  Induction on |S| via finsum-insert: the peeled term is ID and the
-   rest is ID by the IH, so the sum is ID*ID = ID; the base case is finsum-empty.")
+  "If f(z) = IDEN(ag) for every z in the finite index set S, then FINSUM(ag,f,S) =
+   IDEN(ag).  Induction on |S| via finsum-insert: the peeled term is IDEN and the
+   rest is IDEN by the IH, so the sum is IDEN*IDEN = IDEN; the base case is finsum-empty.")
 
 ;; finsum-ring-distrib-left-gen: r * SUM_z f z = SUM_z (r * f z) in ANY ring.
 ;; The general-ring companion of finsum-ring-distrib-left (which needs a
@@ -279,12 +279,12 @@
 ;;; =======================================================================
 ;;; ABELIAN-GROUP companions of insert / add / reindex.
 ;;;
-;;; FINSUM is DEFINED over an abelian group (finsum.scm: it uses ID(ag) and
+;;; FINSUM is DEFINED over an abelian group (finsum.scm: it uses IDEN(ag) and
 ;;; SUM-AG(ag,.)), and finsum-singleton / finsum-empty are stated at
 ;;; IS-ABELIAN-GROUP.  The comm-monoid forms above (finsum-insert / -add /
 ;;; -reindex) are the maximally-general PSS principles, but they cannot be
 ;;; instantiated at an abelian group directly: IS-COMM-MONOID pins a 3-slot
-;;; tuple (CARR MUL ID), while an abelian group is a 4-slot (CARR MUL ID INV),
+;;; tuple (CARR MUL IDEN), while an abelian group is a 4-slot (CARR MUL IDEN INV),
 ;;; and there is no ABELIAN-GROUP-AS-COMM-MONOID view (abelian-group-as-monoid
 ;;; reaches only bare MONOID).  So a sum that lives in a genuine abelian group
 ;;; -- e.g. the binomial sum over COMMUTATIVE-RING-ADDITIVE-AG R -- needs these
@@ -306,7 +306,7 @@
           '(FINSUM ag f (UNION X (PAIR k k)))
           '((MUL ag) (FINSUM ag f X) (f k)))))))))))
 (warrant! 'finsum-insert-ag 'well-known
-  "finsum-insert at m = ag viewed as its commutative monoid (CARR,MUL,ID):
+  "finsum-insert at m = ag viewed as its commutative monoid (CARR,MUL,IDEN):
    FINSUM(ag,f,X u {k}) = (MUL ag)(FINSUM(ag,f,X), f k) for k not in X.  Standard
    fold peel; abelian group supplies the monoid laws (no inverses used).")
 
@@ -364,7 +364,7 @@
 
 ;; finsum-embed: extension-by-zero / restriction-to-support.  A finite sum is
 ;; unchanged by dropping index points where the summand is the identity: if
-;; S subset S2 and f = ID(ag) at every index of S2 outside S, then the sum of f
+;; S subset S2 and f = IDEN(ag) at every index of S2 outside S, then the sum of f
 ;; over S2 equals the sum of f over S.  This is the tool that puts two sums over
 ;; DIFFERENT ranges onto a COMMON index set so a pointwise principle (finsum-add-ag
 ;; / finsum-congruence) applies with NO reindexing bijection -- e.g. the binomial
@@ -379,13 +379,13 @@
      (tf 'f '(IN f (FUN S2 (CARR ag)))
       (list 'IMPLIES '(SUBSET S S2)
        (list 'IMPLIES
-             '(FORALL z (IMPLIES (AND (IN z S2) (NOT (IN z S))) (= (f z) (ID ag))))
+             '(FORALL z (IMPLIES (AND (IN z S2) (NOT (IN z S))) (= (f z) (IDEN ag))))
         (list '=
           '(FINSUM ag f S2)
           '(FINSUM ag f S)))))))))
 (warrant! 'finsum-embed 'well-known
   "Induction on |S2 \\ S| via finsum-insert-ag: each peeled index outside S
-   contributes f = ID(ag), absorbed by the group unit law.  So the sum over S2
+   contributes f = IDEN(ag), absorbed by the group unit law.  So the sum over S2
    collapses to the sum over its support S.")
 
 (category! 'finsum-ord-peel 'algebra)

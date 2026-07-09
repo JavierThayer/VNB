@@ -1,0 +1,13 @@
+(set! *vnb-quiet* #t)
+(load "/home/ubuntu/prover/theorem-library/smith-staircase-proof.scm")
+(call-with-output-file "/home/ubuntu/prover/scratchpad/LEAVES2.txt"
+  (lambda (p)
+    (write-string (string-append "OPEN LEAVES: " (number->string (length (proof-leaves)))) p)(newline p)
+    (for-each (lambda (nd)
+                (write-string "---- GOAL: " p)(write (wff-formula (sequent-node-assertion nd)) p)(newline p)
+                (let lp ((fs (map wff-formula (sequent-node-assumptions nd))) (n 0))
+                  (when (and (pair? fs) (< n 3))
+                    (write-string "    " p)(write (car fs) p)(newline p)
+                    (lp (cdr fs) (+ n 1)))))
+              (proof-leaves))))
+(display "DBG-OK")(newline)

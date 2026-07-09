@@ -601,7 +601,7 @@
 ;;; PREDICATE unfolds).  Pure functoid/macete-table unfolds with no theorem
 ;;; entry are out of scope here, exactly as for suggest-backchain.
 
-;;; Every pair-subterm of E (ID itself included), pre-order.  Non-pairs (atoms,
+;;; Every pair-subterm of E (IDEN itself included), pre-order.  Non-pairs (atoms,
 ;;; the empty list) contribute nothing.  Recurs through EVERY element -- args
 ;;; and a compound head alike -- so a rewriteable position anywhere is seen.
 (define (suggest--subterms e)

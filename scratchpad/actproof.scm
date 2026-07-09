@@ -29,7 +29,7 @@
 ;; at-support PSS `atpss' (applied as (fact atpss A n k l c)) giving F_{ROW,c}=ONE.
 (define (collapse-at ROW offpss atpss)
   (cut `(FORALL jz (IMPLIES (IN jz ,INT)
-          (IMPLIES (NOT (= jz ,ROW)) (= (,FFF jz) (ID ,RAG))))))
+          (IMPLIES (NOT (= jz ,ROW)) (= (,FFF jz) (IDEN ,RAG))))))
   (let ((mn (mlast)))
     (di)(di)(di)
     (lam-b)
@@ -39,7 +39,7 @@
     (fact 'ring-mul-zero-right 'A '(ENTRY P i jz))
     (subst `(= ((MUL A) (ENTRY P i jz) (ZERO A)) (ZERO A)))
     (fact 'ras-id 'A)
-    (subst `(= (ID (RING-ADDITIVE-AG A)) (ZERO A)))
+    (subst `(= (IDEN (RING-ADDITIVE-AG A)) (ZERO A)))
     (rfl)
     (mfoc! mn))
   (fact 'finsum-single-support RAG INT FFF ROW)

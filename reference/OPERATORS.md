@@ -190,7 +190,7 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 
 ### `enum-fam`  — def-functoid · function-valued
 
-    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), id(ag)))
+    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))
 
 ### `esum`  — characterized by axiom(s)
 
@@ -234,7 +234,7 @@ Declared by: `fam-of-list-apply`
 
     gauge(s) := choice(euclidean-gauges(s))
 
-### `id`  — structure accessor · element (slot value)
+### `iden`  — structure accessor · element (slot value)
 
 ### `identmat`  — def-functoid · element/number-valued
 

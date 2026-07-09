@@ -95,7 +95,12 @@
 (category! 'elem-g-invertible 'algebra)
 
 ;;; --- transitivity of ~ (product of invertibles is invertible + matmul-assoc) ---
-(define ID '(IDENTMAT A n))
+;; ME-IDMAT: a file-local alias for IDENTMAT.  It was called `ID', which
+;; case-folds onto what was then the abelian-group identity accessor `ID'
+;; (renamed IDEN).  A top-level Scheme define named after a REGISTERED CONSTANT
+;; slips past constant-binder-audit, which only checks WFF binders, not Scheme
+;; defines -- the same blind spot that let (define BC ...) clobber the `bc' tactic.
+(define ME-IDMAT '(IDENTMAT A n))
 (define (mm a b) (list 'MATMUL 'A a b))
 (define (mq-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (mq-find pred) (let lp ((as (mq-asms))) (cond ((null? as) #f)((pred (car as))(car as))(else (lp (cdr as))))))
@@ -112,10 +117,10 @@
 (define eq2 (mq-find (lambda (z)(and (pair? z)(eq?(car z)'=)(pair?(cadr z))(eq?(car(cadr z))'MATMUL)(eq?(caddr(cadr z))'U2)))))
 (define V2 (cadddr (cadr eq2)))
 ;; the four unit equations (reconstructed)
-(define U1V1 (list '= (list 'MATMUL 'A 'U1 V1) ID))
-(define V1U1 (list '= (list 'MATMUL 'A V1 'U1) ID))
-(define U2V2 (list '= (list 'MATMUL 'A 'U2 V2) ID))
-(define V2U2 (list '= (list 'MATMUL 'A V2 'U2) ID))
+(define U1V1 (list '= (list 'MATMUL 'A 'U1 V1) ME-IDMAT))
+(define V1U1 (list '= (list 'MATMUL 'A V1 'U1) ME-IDMAT))
+(define U2V2 (list '= (list 'MATMUL 'A 'U2 V2) ME-IDMAT))
+(define V2U2 (list '= (list 'MATMUL 'A V2 'U2) ME-IDMAT))
 ;; typings
 (fact 'matmul-type 'A 'n 'n 'n 'U1 'U2)
 (fact 'matmul-type 'A 'n 'n 'n V2 V1)

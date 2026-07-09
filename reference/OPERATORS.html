@@ -150,7 +150,7 @@
 <h4 id="OPERATORS__entry-def-functoid-element/number-valued"><code>entry</code>  — def-functoid · element/number-valued</h4>
 <pre>entry(m, i, j) := nth(j, nth(i, m))</pre>
 <h4 id="OPERATORS__enum-fam-def-functoid-function-valued"><code>enum-fam</code>  — def-functoid · function-valued</h4>
-<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), id(ag)))</pre>
+<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))</pre>
 <h4 id="OPERATORS__esum-characterized-by-axiom-s"><code>esum</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-esum-finite-iff-bounded"><code>esum-finite-iff-bounded</code></a> <a class="x" href="THEOREMS.html#t-esum-in"><code>esum-in</code></a> <a class="x" href="THEOREMS.html#t-esum-least"><code>esum-least</code></a> <a class="x" href="THEOREMS.html#t-esum-upper"><code>esum-upper</code></a> <a class="x" href="THEOREMS.html#t-is-absolutely-summable"><code>is-absolutely-summable</code></a></p>
 <h4 id="OPERATORS__esup-characterized-by-axiom-s"><code>esup</code>  — characterized by axiom(s)</h4>
@@ -172,7 +172,7 @@
 <h4 id="OPERATORS__fun-kernel-term-former"><code>fun</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__gauge-def-functoid-element/number-valued"><code>gauge</code>  — def-functoid · element/number-valued</h4>
 <pre>gauge(s) := choice(euclidean-gauges(s))</pre>
-<h4 id="OPERATORS__id-structure-accessor-element-slot-value"><code>id</code>  — structure accessor · element (slot value)</h4>
+<h4 id="OPERATORS__iden-structure-accessor-element-slot-value"><code>iden</code>  — structure accessor · element (slot value)</h4>
 <h4 id="OPERATORS__identmat-def-functoid-element/number-valued"><code>identmat</code>  — def-functoid · element/number-valued</h4>
 <pre>identmat(a, n) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), zero(a))))</pre>
 <h4 id="OPERATORS__if-kernel-term-former"><code>if</code>  — kernel term-former</h4>

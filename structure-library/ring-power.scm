@@ -26,11 +26,11 @@
   '(MPOW (COMMUTATIVE-RING-MULTIPLICATIVE-CM R) x n))
 
 ;;; x^0 = 1 (the ring's ONE).  mpow-zero is unconditional; the view gives
-;;; ID(COMMUTATIVE-RING-MULTIPLICATIVE-CM R) = (ONE R).
+;;; IDEN(COMMUTATIVE-RING-MULTIPLICATIVE-CM R) = (ONE R).
 (support 'ring-power-zero
   '(FORALL R (FORALL x (== (RING-POWER R x 0) (ONE R)))))
 (warrant! 'ring-power-zero 'informal
-  "mpow-zero: MPOW(m,x,0)=ID(m); the view's E|->ONE slot gives ID(COMMUTATIVE-RING-MULTIPLICATIVE-CM R)=(ONE R).")
+  "mpow-zero: MPOW(m,x,0)=IDEN(m); the view's E|->ONE slot gives IDEN(COMMUTATIVE-RING-MULTIPLICATIVE-CM R)=(ONE R).")
 
 ;;; x^1 = x.  mpow-one (uses the right-identity law, hence the typing).
 (support 'ring-power-one

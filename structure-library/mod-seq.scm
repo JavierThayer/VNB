@@ -43,7 +43,7 @@
 ;;;
 ;;; MODULE-VECTOR-AG is a def-view-as, so (MODULE-VECTOR-AG md) unfolds to the
 ;;; 4-tuple (VEC md, VADD md, VZERO md, VNEG md) and the ABELIAN-GROUP accessor
-;;; macetes (CARR = NTH 1, MUL = NTH 2, ID = NTH 3) reduce a slot read.  These
+;;; macetes (CARR = NTH 1, MUL = NTH 2, IDEN = NTH 3) reduce a slot read.  These
 ;;; three named equations do the reduction in one macete step, exactly as
 ;;; ras-carr / ras-op / ras-id do for RING-ADDITIVE-AG.  Note that ras-op must
 ;;; be applied with `mac' rather than fact+subst, because pi-eq-subst! does not
@@ -60,7 +60,7 @@
   "operation of a module's vector abelian group is the module's vector addition.")
 
 (support 'mvag-id
-  '(FORALL md (= (ID (MODULE-VECTOR-AG md)) (VZERO md))))
+  '(FORALL md (= (IDEN (MODULE-VECTOR-AG md)) (VZERO md))))
 (warrant! 'mvag-id 'proof
   "identity of a module's vector abelian group is the module's zero vector.")
 

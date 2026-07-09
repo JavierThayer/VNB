@@ -122,4 +122,4 @@
 ;;; over the underlying group of a normed vector space applies)
 (def-view-as 'NORMED-VECTOR-SPACE-AS-NORMED-AG
   'NORMED-VECTOR-SPACE '(VEC VADD VZERO VNEG VNRM)
-  'NORMED-AG           '(CARR   MUL  ID     INV  NRM))
+  'NORMED-AG           '(CARR   MUL  IDEN     INV  NRM))

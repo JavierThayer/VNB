@@ -1341,27 +1341,27 @@
     (di) (di) (ni)
     ;; --- BASE: PROD-ORD(m,f,0) in CARR(m) ---
     ;; Use eq-subst-membership: (== a b) /\ b in S -> a in S,
-    ;; with a = PROD-ORD(m,f,0), b = ID(m), S = CARR(m).
+    ;; with a = PROD-ORD(m,f,0), b = IDEN(m), S = CARR(m).
     (ta 'quasi-eq-subst-membership)
     (inst '(FORALL a (FORALL b (FORALL S (IMPLIES (AND (== a b) (IN b S)) (IN a S)))))
           '(PROD-ORD m f 0))
     (inst '(FORALL b (FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) b) (IN b S)) (IN (PROD-ORD m f 0) S))))
-          '(ID m))
-    (inst '(FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) (ID m)) (IN (ID m) S)) (IN (PROD-ORD m f 0) S)))
+          '(IDEN m))
+    (inst '(FORALL S (IMPLIES (AND (== (PROD-ORD m f 0) (IDEN m)) (IN (IDEN m) S)) (IN (PROD-ORD m f 0) S)))
           '(CARR m))
-    (bc '(IMPLIES (AND (== (PROD-ORD m f 0) (ID m)) (IN (ID m) (CARR m))) (IN (PROD-ORD m f 0) (CARR m))))
-    (di)                          ; AND-split -> focus: (== PROD-ORD(m,f,0) ID(m))
+    (bc '(IMPLIES (AND (== (PROD-ORD m f 0) (IDEN m)) (IN (IDEN m) (CARR m))) (IN (PROD-ORD m f 0) (CARR m))))
+    (di)                          ; AND-split -> focus: (== PROD-ORD(m,f,0) IDEN(m))
     ;; Membership conjunct is the last DG node after AND-split.
     ;; Save it now; after (ass) closes equality, focus jumps to STEP.
     (let* ((mem-node (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
       (ta 'prod-ord-zero)
-      (inst '(FORALL m (FORALL f (== (PROD-ORD m f 0) (ID m)))) 'm)
-      (inst '(FORALL f (== (PROD-ORD m f 0) (ID m))) 'f)
+      (inst '(FORALL m (FORALL f (== (PROD-ORD m f 0) (IDEN m)))) 'm)
+      (inst '(FORALL f (== (PROD-ORD m f 0) (IDEN m))) 'f)
       (ass)                       ; closes equality; focus jumps to STEP
       (set-proof-state-focus! *ps* mem-node)
       (ta 'monoid-identity-in)
-      (inst '(FORALL m (IMPLIES (IS-MONOID m) (IN (ID m) (CARR m)))) 'm)
-      (bc '(IMPLIES (IS-MONOID m) (IN (ID m) (CARR m))))
+      (inst '(FORALL m (IMPLIES (IS-MONOID m) (IN (IDEN m) (CARR m)))) 'm)
+      (bc '(IMPLIES (IS-MONOID m) (IN (IDEN m) (CARR m))))
       (ass))                      ; base done; focus -> STEP
     ;; --- STEP: forall n in NN. PROD-ORD(m,f,n) in CARR(m) -> PROD-ORD(m,f,succ n) in CARR(m) ---
     (di)    ; peel FORALL n, freshens n -> n_k, adds (IN n_k NN)
@@ -3424,7 +3424,7 @@
 ;; constant-binder-audit: no installed binder is named like a registered
 ;; constant (accessor/operator/functoid/predicate).  The accessor/variable
 ;; collision class -- HARD soundness gate (distinctive accessor names CARR/PTS/
-;; DIST/ID/MUL/... exist so this stays empty).
+;; DIST/IDEN/MUL/... exist so this stays empty).
 (check-true "constant-binder-audit: no binder collides with a registered constant"
   (lambda () (null? (constant-binder-audit))))
 (check-true "wff-constant-binders: flags an accessor-named binder, passes a clean one"

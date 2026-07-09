@@ -35,11 +35,11 @@
 ;;; ENUM-FAM(ag, f, phi, n) -- the family SUM-AG actually consumes.
 ;;;
 ;;;   ENUM-FAM(ag,f,phi,n)(i) = f(phi(i))   for i in ORD-SEGMENT(n)
-;;;   ENUM-FAM(ag,f,phi,n)(i) = ID(ag)       otherwise
+;;;   ENUM-FAM(ag,f,phi,n)(i) = IDEN(ag)       otherwise
 ;;;
 ;;; phi is an enumeration ORD-SEGMENT(n) -> S, so f(phi(i)) is only typed
 ;;; into CARR(ag) for i in ORD-SEGMENT(n).  The IF guard fills indices outside
-;;; the segment with the identity ID(ag), making ENUM-FAM total: it is in
+;;; the segment with the identity IDEN(ag), making ENUM-FAM total: it is in
 ;;; FUN(NN, CARR(ag)) whenever f maps into CARR(ag) and ag is a group.  That
 ;;; totality is what lets SUM-AG's lemmas (all typed FUN(NN,CARR(ag))) apply.
 ;;; The guard does not change any sum: SUM-AG(ag,_,n) only reads indices in
@@ -48,7 +48,7 @@
 (def-functoid 'ENUM-FAM '(ag f phi n)
   '(VNB-LAMBDA i (IF (IN i (ORD-SEGMENT n))
                      (f (phi i))
-                     (ID ag))))
+                     (IDEN ag))))
 
 ;;; -----------------------------------------------------------------------
 ;;; FINSUM(ag, f, S) -- sum of f over the finite set S, in abelian group ag.

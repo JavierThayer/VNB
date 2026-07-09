@@ -1,8 +1,13 @@
 # VNB proof checker -- working brief
 
-VNB is a proof checker for von Neumann-Bernays set theory, in MIT Scheme.
-Its research state (what is proven, what is next) lives in Claude's memory index,
-not here. This file holds the operational facts that are expensive to rediscover.
+VNB is a proof checker and generally a math assistant written in MIT
+Scheme with a user interface in GNU/Emacs. Much of the documentation
+is available using a web interface. There is also a manual which
+needs periodic update.  The logical framework is von Neumann-Bernays
+set theory but with copious ready-made constructors. Its research state
+(what is proven, what is next) lives in Claude's memory index, not
+here. This file holds the operational facts that are expensive to
+rediscover.
 
 ## Running it
 
@@ -40,16 +45,34 @@ with a bracket class, e.g. `grep "[m]it-scheme"`.
 Both the VNB reader and MIT Scheme fold symbols to lowercase. `X` is `x`, `SP` is `sp`.
 Three consequences, each of which has cost a debugging session:
 
-1. **Never name a top-level `define` in a proof file like a tactic.** `(define BC ...)`
-   rebinds the `bc` TACTIC to a term; the next `(bc 'thm)` dies with
-   "The object (...) is not applicable". Real cases: `BC` in bordered-eq-border-proof.scm,
-   `TT` in hahn-banach-full-proof.scm and nn-least-element.scm, `SP` in a Smith driver.
-   Use the file's helper prefix (`ss-`, `bm-`, `cc-`, `hb-`). Single/double capitals
-   (`BC` `TT` `SP` `NI` `AI` `DI`) are the danger zone. The `case-fold-audit` gate does
-   NOT catch this -- it only checks WFF binders.
-2. Structure accessors collide with obvious binder names. `X` (a carrier accessor)
-   folds onto a point named `x`; bind `u`, `v`, `c` instead.
+1. **Never name a top-level `define` in a proof file like a tactic or a registered
+   constant.** `(define BC ...)` rebinds the `bc` TACTIC to a term; the next
+   `(bc 'thm)` dies with "The object (...) is not applicable". Real cases: `BC` in
+   bordered-eq-border-proof.scm, `TT` in hahn-banach-full-proof.scm and
+   nn-least-element.scm, `SP` in a Smith driver, `ID` in mat-equiv-proof.scm.
+   Use the file's helper prefix (`ss-`, `bm-`, `cc-`, `hb-`, `me-`). Single/double
+   capitals (`BC` `TT` `SP` `NI` `AI` `DI`) are the danger zone. **Neither gate
+   catches this**: `case-fold-audit` and `constant-binder-audit` both inspect WFF
+   binders only, never Scheme defines.
+
+2. Structure accessors may inadvertently collide with obvious binder names, but a
+   warning is issued (`constant-binder-audit`). `X` used to be a carrier accessor
+   and is now `CARR` for algebraic structures, `PTS` for metric spaces (whose
+   distance `D` is now `DIST`). Same story for `A`, and for `ID`, now `IDEN`.
+   In general avoid single letters -- not a hard and fast rule.
+
 3. Inner binders that would collide take a trailing underscore: `i_`, `j_`, `n_`, `r_`.
+
+## Vocabulary
+
+BONGO refers to a bug, a "tournant dangereux", or an otherwise bad idea.
+FUBA, GUBA, RUBA, BLAH etc are generic names.
+
+## Working with the user
+
+Treats Claude as a colleague, and can be ill-tempered at times. Does not
+appreciate Claude forgetting previously settled questions. Does not appreciate
+gratuitous compliments.
 
 ## Writing proof drivers
 

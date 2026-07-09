@@ -3,7 +3,7 @@
 ;;;
 ;;; A finite product is a finite sum in the multiplicative structure.  There
 ;;; is nothing new to fold: FINSUM(m, f, S) (finsum.scm) already enumerates S
-;;; and folds with (MUL m) seeded at (ID m).  Take m to be a *multiplicative*
+;;; and folds with (MUL m) seeded at (IDEN m).  Take m to be a *multiplicative*
 ;;; commutative monoid and the same fold is the product.  So:
 ;;;
 ;;;   FINPROD(m, f, S)   := FINSUM(m, f, S)           -- product over comm-monoid m

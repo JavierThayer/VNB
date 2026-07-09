@@ -64,11 +64,11 @@
 (fact 'matunit-summand-type 'A 'm 'n 'P 'k 'l 'i 'c)
 (probe "after 4 finsum antecedents")
 
-;; VANISH: forall jz in [1,n], jz/=k => FF(jz) = ID(RAG)
+;; VANISH: forall jz in [1,n], jz/=k => FF(jz) = IDEN(RAG)
 (define VANISH
   `(FORALL jz (IMPLIES (IN jz ,INT)
      (IMPLIES (NOT (= jz k))
-       (= (,FF jz) (ID ,RAG))))))
+       (= (,FF jz) (IDEN ,RAG))))))
 (cut VANISH)
 (define uMAIN (last-node))
   ;; prove VANISH
@@ -82,7 +82,7 @@
   (fact 'ring-mul-zero-right 'A '(ENTRY P i jz))
   (subst `(= ((MUL A) (ENTRY P i jz) (ZERO A)) (ZERO A)))
   (fact 'ras-id 'A)
-  (subst `(= (ID (RING-ADDITIVE-AG A)) (ZERO A)))
+  (subst `(= (IDEN (RING-ADDITIVE-AG A)) (ZERO A)))
   (rfl)
   (probe "VANISH branch done?")
 (refocus! uMAIN)

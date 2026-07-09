@@ -1,7 +1,7 @@
 ;;; abelian-group.scm -- ABELIAN-GROUP structure
 ;;;
-;;; Carrier CARR, operation MUL, identity ID, inverse INV.
-;;; Same shape (and accessor indices) as GROUP: CARR -> 1, MUL -> 2, ID -> 3, INV -> 4.
+;;; Carrier CARR, operation MUL, identity IDEN, inverse INV.
+;;; Same shape (and accessor indices) as GROUP: CARR -> 1, MUL -> 2, IDEN -> 3, INV -> 4.
 ;;; An abelian group is a group whose MUL is commutative.
 ;;;
 ;;; Pattern follows COMM-MONOID in monoid.scm: declare the structure with the
@@ -14,11 +14,11 @@
 (def-structure-from-clauses 'ABELIAN-GROUP
   '((carriers CARR)
     (op MUL (CARTESIAN CARR CARR) CARR)
-    (constant ID CARR)
+    (constant IDEN CARR)
     (op INV CARR CARR)
     (property is-associative MUL CARR)
-    (property is-identity MUL ID CARR)
-    (property has-inverses MUL ID INV CARR)
+    (property is-identity MUL IDEN CARR)
+    (property has-inverses MUL IDEN INV CARR)
     (property is-commutative MUL CARR)))
 
 ;;; Every abelian group is a group (same shape, so this is a direct subtype).
@@ -38,4 +38,4 @@
   '(FORALL s
      (IMPLIES (IS-ABELIAN-GROUP s)
        (FORALL a (IMPLIES (IN a (CARR s))
-         (IMPLIES (= ((MUL s) a a) a) (= a (ID s))))))))
+         (IMPLIES (= ((MUL s) a a) a) (= a (IDEN s))))))))

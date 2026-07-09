@@ -33,14 +33,14 @@
 (def-structure-from-clauses 'NORMED-AG
   '((carriers CARR)
     (op MUL (CARTESIAN CARR CARR) CARR)
-    (constant ID CARR)
+    (constant IDEN CARR)
     (op INV CARR CARR)
     (op NRM CARR RR)
     (property is-associative MUL CARR)
-    (property is-identity   MUL ID CARR)
-    (property has-inverses  MUL ID INV CARR)
+    (property is-identity   MUL IDEN CARR)
+    (property has-inverses  MUL IDEN INV CARR)
     (property is-commutative MUL CARR)
-    (property is-group-norm NRM MUL INV ID CARR)))
+    (property is-group-norm NRM MUL INV IDEN CARR)))
 
 ;;; Convenience restatement: the norm is a real-valued function on the carrier.
 ;;; (Immediate from is-group-norm; stated as a named axiom so callers need not
@@ -59,7 +59,7 @@
 (theory-add-axiom! *current-theory* 'normed-ag-nrm-definite
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
      (FORALL a (IMPLIES (IN a (CARR s))
-       (IFF (= ((NRM s) a) 0) (= a (ID s))))))))
+       (IFF (= ((NRM s) a) 0) (= a (IDEN s))))))))
 
 ;;; Subadditivity (the triangle inequality for the norm).
 (theory-add-axiom! *current-theory* 'normed-ag-nrm-subadditive

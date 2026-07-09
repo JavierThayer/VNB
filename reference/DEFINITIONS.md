@@ -322,7 +322,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### mpow
 
-    forall([m, x], mpow(m, x, 0) == id(m))
+    forall([m, x], mpow(m, x, 0) == iden(m))
 
     forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))
 
@@ -340,7 +340,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### prod-ord
 
-    forall([m, f], prod-ord(m, f, 0) == id(m))
+    forall([m, f], prod-ord(m, f, 0) == iden(m))
 
     forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))
 
@@ -364,7 +364,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### sum-ag
 
-    forall([ag, f], sum-ag(ag, f, 0) == id(ag))
+    forall([ag, f], sum-ag(ag, f, 0) == iden(ag))
 
     forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))
 

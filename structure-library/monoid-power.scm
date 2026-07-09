@@ -1,6 +1,6 @@
 ;;; monoid-power.scm -- MPOW: the natural-number power x^n in a monoid.
 ;;;
-;;; MPOW(m, x, n) = x * x * ... * x   (n factors, MUL of m), with MPOW(m,x,0)=ID(m).
+;;; MPOW(m, x, n) = x * x * ... * x   (n factors, MUL of m), with MPOW(m,x,0)=IDEN(m).
 ;;; Needs ONLY a monoid -- commutative or not.  Written multiplicatively here;
 ;;; under the additive view of an abelian group the very same operation is the
 ;;; n-fold sum  n.a  (see zz-action.scm, which extends it to a ZZ action).
@@ -20,10 +20,10 @@
 ;;; number-systems.scm (NN, succ, +).
 
 ;;; Defining recursion (installs mpow-zero and mpow-succ):
-;;;   MPOW(m, x, 0)       = ID(m)
+;;;   MPOW(m, x, 0)       = IDEN(m)
 ;;;   MPOW(m, x, succ(n)) = (MUL m)(x, MPOW(m, x, n))
 (def-by-nn-recursion 'MPOW '(m x)
-  '(ID m)                               ; base value
+  '(IDEN m)                               ; base value
   '(n val)                             ; step vars
   '((MUL m) x val))                    ; MPOW(m,x,succ n) = x * MPOW(m,x,n)
 
@@ -35,10 +35,10 @@
        (FORALL x (IMPLIES (IN x (CARR m))
          (= (MPOW m x 1) x))))))
 (warrant! 'mpow-one 'informal
-  "MPOW(m,x,1)=MUL(x,MPOW(m,x,0))=MUL(x,ID(m))=x by mpow-succ(0), mpow-zero, right identity.")
+  "MPOW(m,x,1)=MUL(x,MPOW(m,x,0))=MUL(x,IDEN(m))=x by mpow-succ(0), mpow-zero, right identity.")
 
 ;;; Type: the power stays in the carrier.
-;;; NN induction: base mpow-zero + (ID m) in CARR(m); step mpow-succ + carrier
+;;; NN induction: base mpow-zero + (IDEN m) in CARR(m); step mpow-succ + carrier
 ;;; closure of MUL.
 (theory-add-axiom! *current-theory* 'mpow-type
   '(FORALL m
@@ -47,7 +47,7 @@
          (FORALL n (IMPLIES (IN n NN)
            (IN (MPOW m x n) (CARR m)))))))))
 (warrant! 'mpow-type 'informal
-  "NN induction on n: base (ID m) in CARR(m); step closes under MUL by mpow-succ.")
+  "NN induction on n: base (IDEN m) in CARR(m); step closes under MUL by mpow-succ.")
 
 ;;; Homomorphism law (no commutativity):  x^(j+k) = x^j * x^k.
 ;;; This is the defining property the user asked for.  NN induction on k:

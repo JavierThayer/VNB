@@ -42,7 +42,7 @@
 (define AG '(RING-ADDITIVE-AG A))
 (define FF (list 'VNB-LAMBDA 'j (list '(MUL A) (list 'ENTRY BX 'i 'j) (list 'ENTRY BY 'j 'k))))
 (define INTq '(INTERVAL 1 (succ q)))
-(define ID-AG '(ID (RING-ADDITIVE-AG A)))
+(define ID-AG '(IDEN (RING-ADDITIVE-AG A)))
 (define (VANISH) (fa* '(jz) (impl* (list '(IN jz (INTERVAL 1 (succ q))) '(NOT (= jz 1)))
                     (list '= (list FF 'jz) ID-AG))))
 

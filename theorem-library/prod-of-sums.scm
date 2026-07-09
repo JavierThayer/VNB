@@ -156,8 +156,8 @@
 
 (warrant! 'prod-ring-empty 'informal
   "PROD-RING(R,f,S) = FINSUM(R^x,f,S) with R^x the multiplicative comm-monoid
-   of R, whose identity ID maps to ONE(R); finsum-empty gives the empty fold =
-   ID(R^x) = ONE(R).  The empty product is 1.")
+   of R, whose identity IDEN maps to ONE(R); finsum-empty gives the empty fold =
+   IDEN(R^x) = ONE(R).  The empty product is 1.")
 
 ;;; PROD-RING over a singleton {x} is f(x).
 (support 'prod-ring-singleton

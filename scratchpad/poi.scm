@@ -11,7 +11,7 @@
 (define (rep nm) (display nm)(display " done? ")(display (proof-done? *ps*))(newline)
   (when (not (proof-done? *ps*))
     (for-each (lambda (s) (display "  OPEN: ")(write (wff-formula (sequent-node-assertion s)))(newline)) (proof-leaves))))
-(define ID '(IDENTMAT A n))
+(define IDEN '(IDENTMAT A n))
 
 (sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL U1 (FORALL U2
      (IMPLIES (IS-INVERTIBLE-MAT A n U1) (IMPLIES (IS-INVERTIBLE-MAT A n U2)
@@ -26,10 +26,10 @@
 (define V2 (cadddr (cadr eq2)))
 (display "V1=")(write V1)(display " V2=")(write V2)(newline)
 ;; the four unit equations (reconstructed)
-(define U1V1 (list '= (list 'MATMUL 'A 'U1 V1) ID))
-(define V1U1 (list '= (list 'MATMUL 'A V1 'U1) ID))
-(define U2V2 (list '= (list 'MATMUL 'A 'U2 V2) ID))
-(define V2U2 (list '= (list 'MATMUL 'A V2 'U2) ID))
+(define U1V1 (list '= (list 'MATMUL 'A 'U1 V1) IDEN))
+(define V1U1 (list '= (list 'MATMUL 'A V1 'U1) IDEN))
+(define U2V2 (list '= (list 'MATMUL 'A 'U2 V2) IDEN))
+(define V2U2 (list '= (list 'MATMUL 'A V2 'U2) IDEN))
 ;; typings
 (fact 'matmul-type 'A 'n 'n 'n 'U1 'U2)
 (fact 'matmul-type 'A 'n 'n 'n V2 V1)

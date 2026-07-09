@@ -305,13 +305,13 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `finsum-act-distrib-gen` — forall([md], is-module(md) implies forall([r in carr(scal(md)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], (act(md))(r, finsum(module-vector-ag(md), f, s)) = finsum(module-vector-ag(md), vnb-lambda(z, (act(md))(r, f(z))), s))))  _[warrant: well-known]_
 - `finsum-add` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s) = (mul(m))(finsum(m, f, s), finsum(m, h, s)))))  _[warrant: well-known]_
 - `finsum-add-ag` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, (mul(ag))(f(z), h(z))), s) = (mul(ag))(finsum(ag, f, s), finsum(ag, h, s)))))  _[warrant: well-known]_
-- `finsum-all-id` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], forall([z in s], f(z) = id(ag)) implies finsum(ag, f, s) = id(ag))))  _[warrant: well-known]_
+- `finsum-all-id` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], forall([z in s], f(z) = iden(ag)) implies finsum(ag, f, s) = iden(ag))))  _[warrant: well-known]_
 - `finsum-comm-monoid-permutation-invariance` — forall([n in nn, m], is-comm-monoid(m) implies forall([g in fun(nn, carr(m)), h in fun(nn, carr(m)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(m, g, n) = sum-ag(m, h, n)))  _[warrant: well-known]_
 - `finsum-comm-monoid-type` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m))], finsum(m, f, s) in carr(m))))  _[warrant: informal]_
 - `finsum-comm-monoid-well-defined` — forall([s in set], card(s) in nn implies forall([m], is-comm-monoid(m) implies forall([f in fun(s, carr(m)), enm in bijection(ord-segment(card(s)), s)], finsum(m, f, s) = sum-ag(m, enum-fam(m, f, enm, card(s)), card(s)))))  _[warrant: informal]_
 - `finsum-congruence` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), g in fun(s, carr(ag))], forall([z in s], f(z) = g(z)) implies finsum(ag, f, s) = finsum(ag, g, s))))  _[warrant: well-known]_
-- `finsum-embed` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([s2 in set], card(s2) in nn implies forall([f in fun(s2, carr(ag))], s subset s2 implies forall([z], z in s2 and not(z in s) implies f(z) = id(ag)) implies finsum(ag, f, s2) = finsum(ag, f, s)))))  _[warrant: well-known]_
-- `finsum-empty` — forall([ag, f], finsum(ag, f, empty-set) == id(ag))  _[warrant: well-known]_
+- `finsum-embed` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([s2 in set], card(s2) in nn implies forall([f in fun(s2, carr(ag))], s subset s2 implies forall([z], z in s2 and not(z in s) implies f(z) = iden(ag)) implies finsum(ag, f, s2) = finsum(ag, f, s)))))  _[warrant: well-known]_
+- `finsum-empty` — forall([ag, f], finsum(ag, f, empty-set) == iden(ag))  _[warrant: well-known]_
 - `finsum-fubini` — forall([ag], is-abelian-group(ag) implies forall([x], x in set and card(x) in nn implies forall([y], y in set and card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y)))))  _[warrant: informal]_
 - `finsum-fubini-c` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([y in set], card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y)))))  _[warrant: well-known]_
 - `finsum-insert` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (mul(m))(finsum(m, f, x), f(k))))))  _[warrant: well-known]_
@@ -326,10 +326,10 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `finsum-ring-distrib-right` — forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(commutative-ring-additive-ag(rng), f, s), r) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(f(z), r)), s))))  _[warrant: well-known]_
 - `finsum-ring-distrib-right-gen` — forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(ring-additive-ag(rng), f, s), r) = finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(f(z), r)), s))))  _[warrant: well-known]_
 - `finsum-ring-scalar-zz` — forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), c in zz, a in carr(rng)], (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a)) = zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a))))  _[warrant: well-known]_
-- `finsum-single-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s], forall([j in s], not(j = i0) implies f(j) = id(ag)) implies finsum(ag, f, s) = f(i0))))  _[warrant: well-known]_
+- `finsum-single-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s], forall([j in s], not(j = i0) implies f(j) = iden(ag)) implies finsum(ag, f, s) = f(i0))))  _[warrant: well-known]_
 - `finsum-singleton` — forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], finsum(ag, f, {x}) = f(x)))  _[warrant: well-known]_
 - `finsum-sq-nonneg` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], 0 <= finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s)))  _[warrant: well-known]_
-- `finsum-two-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = id(ag)) implies finsum(ag, f, s) = (mul(ag))(f(i0), f(i1)))))  _[warrant: well-known]_
+- `finsum-two-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (mul(ag))(f(i0), f(i1)))))  _[warrant: well-known]_
 - `finsum-type` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], finsum(ag, f, s) in carr(ag))))  _[warrant: informal]_
 - `finsum-well-defined` — forall([s in set], card(s) in nn implies forall([ag], is-abelian-group(ag) implies forall([f in fun(s, carr(ag)), enm in bijection(ord-segment(card(s)), s)], finsum(ag, f, s) = sum-ag(ag, enum-fam(ag, f, enm, card(s)), card(s)))))  _[warrant: informal]_
 - `fun-apply-type-c` — forall([f, a, b, x], f in fun(a, b) implies x in a implies f(x) in b)  _[warrant: proof]_
@@ -433,7 +433,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `minkowski-l2` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, (a(i) + b(i)) * (a(i) + b(i))), s)) <= sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s)) + sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, b(i) * b(i)), s))))  _[warrant: well-known]_
 - `monotone-convergence-rr` — forall([f in fun(nn, rr)], forall([k in nn], f(k) <= f(succ(k))) and forsome([bnd in rr], forall([k in nn], f(k) <= bnd)) implies converges(rr-ms, f))  _[warrant: well-known]_
 - `mvag-carr` — forall([md], carr(module-vector-ag(md)) = vec(md))  _[warrant: proof]_
-- `mvag-id` — forall([md], id(module-vector-ag(md)) = vzero(md))  _[warrant: proof]_
+- `mvag-id` — forall([md], iden(module-vector-ag(md)) = vzero(md))  _[warrant: proof]_
 - `mvag-op` — forall([md], mul(module-vector-ag(md)) = vadd(md))  _[warrant: proof]_
 - `mvt-aux-cont` — forall([f, a, b, x], is-continuous-at(rr-ms, rr-ms, f, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, f(z) * (b - a) - z * (f(b) - f(a))), x))  _[warrant: reference]_
 - `mvt-aux-diff` — forall([f, a, b, x, l], is-diff-at(f, x, l) implies is-diff-at(vnb-lambda(z, f(z) * (b - a) - z * (f(b) - f(a))), x, l * (b - a) - (f(b) - f(a))))  _[warrant: reference]_
@@ -513,7 +513,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `ran-subset-codomain` — forall([x, y, f in fun(x, y)], ran(f) subset y)  _[warrant: proof]_
 - `range-membership` — forall([f, a in dom(f)], f(a) in ran(f))  _[warrant: proof]_
 - `ras-carr` — forall([a], carr(ring-additive-ag(a)) = carr(a))  _[warrant: proof]_
-- `ras-id` — forall([a], id(ring-additive-ag(a)) = zero(a))  _[warrant: proof]_
+- `ras-id` — forall([a], iden(ring-additive-ag(a)) = zero(a))  _[warrant: proof]_
 - `ras-op` — forall([a], mul(ring-additive-ag(a)) = add(a))  _[warrant: proof]_
 - `ratio-test-converges` — forall([coef in fun(nn, rr), l], l in rr and 0 <= l and forall([n in nn], not(coef(n) = 0)) and ps-ratio-limit(coef, l) implies forall([x], x in rr and abs(x) * l < 1 implies ps-converges-at(coef, x)))  _[warrant: informal]_
 - `ring-add-right-id` — forall([s], is-ring(s) implies forall([a in carr(s)], (add(s))(a, zero(s)) = a))  _[warrant: well-known]_
@@ -767,7 +767,7 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `abelian-group-idempotent-is-id-field-additive-ag` — forall([r], is-field(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
 - `abelian-group-idempotent-is-id-module-vector-ag` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, a) = a implies a = vzero(r)))
 - `abelian-group-idempotent-is-id-module-vector-ag-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r)], (vadd(r))(a, a) = a implies a = vzero(r)))
-- `abelian-group-idempotent-is-id-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, a) = a implies a = id(r)))
+- `abelian-group-idempotent-is-id-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, a) = a implies a = iden(r)))
 - `abelian-group-idempotent-is-id-normed-ag-as-abelian-group-normed-vector-space-as-normed-ag` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r)], (vadd(r))(a, a) = a implies a = vzero(r)))
 - `abelian-group-idempotent-is-id-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
 - `abelian-group-idempotent-is-id-ring-additive-ag` — forall([r], is-ring(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
@@ -825,14 +825,14 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `integral-domain-is-commutative-ring-normed-field-as-integral-domain` — forall([r], is-normed-field(r) implies is-commutative-ring(normed-field-as-integral-domain(r)))
 - `integral-domain-nontrivial-field-as-integral-domain` — forall([r], is-field(r) implies not(one(r) = zero(r)))
 - `integral-domain-nontrivial-normed-field-as-integral-domain` — forall([r], is-normed-field(r) implies not(one(r) = zero(r)))
-- `is-abelian-group` — forall([s], is-abelian-group(s) iff length(s) = 4 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and id(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), id(s), carr(s)) and has-inverses(mul(s), id(s), inv(s), carr(s)) and is-commutative(mul(s), carr(s)))
+- `is-abelian-group` — forall([s], is-abelian-group(s) iff length(s) = 4 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), iden(s), carr(s)) and has-inverses(mul(s), iden(s), inv(s), carr(s)) and is-commutative(mul(s), carr(s)))
 - `is-absolutely-summable` — forall([grp, f], is-absolutely-summable(grp, f) iff esum(vnb-lambda(i, (nrm(grp))(f(i)))) in rr)
 - `is-associative` — forall([op, crr], is-associative(op, crr) iff forall([u in crr, v in crr, w in crr], op(op(u, v), w) = op(u, op(v, w))))
 - `is-bounded-linear-functional` — forall([m, f], is-bounded-linear-functional(m, f) iff is-linear-functional(m, f) and forsome([c_ in rr], 0 <= c_ and forall([x_ in vec(m)], abs(f(x_)) <= c_ * (vnrm(m))(x_))))
 - `is-bounded-linear-functional-on` — forall([m, s, f], is-bounded-linear-functional-on(m, s, f) iff is-linear-functional-on(m, s, f) and forsome([c_ in rr], 0 <= c_ and forall([x_ in s], abs(f(x_)) <= c_ * (vnrm(m))(x_))))
 - `is-cauchy-seq` — forall([s, f], is-cauchy-seq(s, f) iff is-metric-space(s) and f in fun(nn, pts(s)) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([m in nn, n_ in nn], n <= m and n <= n_ implies (dist(s))(f(m), f(n_)) <= eps))))
 - `is-closed` — forall([s, a], is-closed(s, a) iff is-metric-space(s) and a subset pts(s) and is-open(s, complement-in(pts(s), a)))
-- `is-comm-monoid` — forall([s], is-comm-monoid(s) iff length(s) = 3 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and id(s) in carr(s) and is-associative(mul(s), carr(s)) and is-identity(mul(s), id(s), carr(s)) and is-commutative(mul(s), carr(s)))
+- `is-comm-monoid` — forall([s], is-comm-monoid(s) iff length(s) = 3 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(mul(s), carr(s)) and is-identity(mul(s), iden(s), carr(s)) and is-commutative(mul(s), carr(s)))
 - `is-commutative` — forall([op, crr], is-commutative(op, crr) iff forall([u in crr, v in crr], op(u, v) = op(v, u)))
 - `is-commutative-ring-def` — forall([s], is-commutative-ring(s) iff is-ring(s) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = (mul(s))(b, a)))
 - `is-compact` — forall([s], is-compact(s) iff is-metric-space(s) and forall([c], is-open-cover(s, c) implies forsome([f], f subset c and card(f) in nn and is-open-cover(s, f))))
@@ -849,7 +849,7 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `is-field` — forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and inv(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 - `is-finite-cover` — forall([c, a], is-finite-cover(c, a) iff c in set and card(c) in nn and a subset big-union(u, c, u))
 - `is-finite-dimensional` — forall([m], is-finite-dimensional(m) iff is-vector-space(m) and is-noetherian(m))
-- `is-group` — forall([s], is-group(s) iff length(s) = 4 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and id(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), id(s), carr(s)) and has-inverses(mul(s), id(s), inv(s), carr(s)))
+- `is-group` — forall([s], is-group(s) iff length(s) = 4 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), iden(s), carr(s)) and has-inverses(mul(s), iden(s), inv(s), carr(s)))
 - `is-group-norm` — forall([nm, op, invop, unit, crr], is-group-norm(nm, op, invop, unit, crr) iff nm in fun(crr, rr) and forall([u in crr], 0 <= nm(u) and (nm(u) = 0 iff u = unit) and nm(invop(u)) = nm(u) and forall([v in crr], nm(op(u, v)) <= nm(u) + nm(v))))
 - `is-ideal` — forall([s, i], is-ideal(s, i) iff is-commutative-ring(s) and i subset carr(s) and zero(s) in i and forall([a in i, b in i], (add(s))(a, b) in i) and forall([a in i], (neg(s))(a) in i) and forall([r in carr(s), a in i], (mul(s))(r, a) in i))
 - `is-identity` — forall([op, unit, crr], is-identity(op, unit, crr) iff forall([u in crr], op(unit, u) = u and op(u, unit) = u))
@@ -860,11 +860,11 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `is-metric` — forall([dst, crr], is-metric(dst, crr) iff forall([u in crr], dst(u, u) = 0 and forall([v in crr], 0 <= dst(u, v) and (dst(u, v) = 0 implies u = v) and dst(u, v) = dst(v, u) and forall([w in crr], dst(u, w) <= dst(u, v) + dst(v, w)))))
 - `is-metric-space` — forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 - `is-module` — forall([m], is-module(m) iff length(m) = 6 and is-ring(scal(m)) and vec(m) in set and vadd(m) in fun(cartesian(vec(m), vec(m)), vec(m)) and vzero(m) in vec(m) and vneg(m) in fun(vec(m), vec(m)) and act(m) in fun(cartesian(carr(scal(m)), vec(m)), vec(m)) and is-associative(vadd(m), vec(m)) and is-commutative(vadd(m), vec(m)) and is-identity(vadd(m), vzero(m), vec(m)) and has-inverses(vadd(m), vzero(m), vneg(m), vec(m)) and forall([r_ in carr(scal(m)), x_ in vec(m), y_ in vec(m)], (act(m))(r_, (vadd(m))(x_, y_)) = (vadd(m))((act(m))(r_, x_), (act(m))(r_, y_))) and forall([r_ in carr(scal(m)), s_ in carr(scal(m)), x_ in vec(m)], (act(m))((add(scal(m)))(r_, s_), x_) = (vadd(m))((act(m))(r_, x_), (act(m))(s_, x_))) and forall([r_ in carr(scal(m)), s_ in carr(scal(m)), x_ in vec(m)], (act(m))((mul(scal(m)))(r_, s_), x_) = (act(m))(r_, (act(m))(s_, x_))) and forall([x_ in vec(m)], (act(m))(one(scal(m)), x_) = x_))
-- `is-monoid` — forall([s], is-monoid(s) iff length(s) = 3 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and id(s) in carr(s) and is-associative(mul(s), carr(s)) and is-identity(mul(s), id(s), carr(s)))
+- `is-monoid` — forall([s], is-monoid(s) iff length(s) = 3 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(mul(s), carr(s)) and is-identity(mul(s), iden(s), carr(s)))
 - `is-ms-sequence` — forall([ms], is-ms-sequence(ms) iff forall([n in nn], is-metric-space(ms(n))))
 - `is-noetherian` — forall([m], is-noetherian(m) iff is-module(m) and forall([f_ in fun(nn, power(vec(m)))], forall([n_ in nn], is-submodule(m, f_(n_))) and forall([n_ in nn], f_(n_) subset f_(succ(n_))) implies forsome([k_ in nn], forall([n_], n_ in nn and k_ <= n_ implies f_(n_) = f_(k_)))))
 - `is-norm` — forall([nm, addop, mulop, zr, crr], is-norm(nm, addop, mulop, zr, crr) iff nm in fun(crr, rr) and forall([a in crr], 0 <= nm(a) and (nm(a) = 0 iff a = zr) and forall([b in crr], nm(mulop(a, b)) = nm(a) * nm(b) and nm(addop(a, b)) <= nm(a) + nm(b))))
-- `is-normed-ag` — forall([s], is-normed-ag(s) iff length(s) = 5 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and id(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and nrm(s) in fun(carr(s), rr) and is-associative(mul(s), carr(s)) and is-identity(mul(s), id(s), carr(s)) and has-inverses(mul(s), id(s), inv(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-group-norm(nrm(s), mul(s), inv(s), id(s), carr(s)))
+- `is-normed-ag` — forall([s], is-normed-ag(s) iff length(s) = 5 and carr(s) in set and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and nrm(s) in fun(carr(s), rr) and is-associative(mul(s), carr(s)) and is-identity(mul(s), iden(s), carr(s)) and has-inverses(mul(s), iden(s), inv(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-group-norm(nrm(s), mul(s), inv(s), iden(s), carr(s)))
 - `is-normed-field` — forall([s], is-normed-field(s) iff length(s) = 7 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and nrm(s) in fun(carr(s), rr) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and is-norm(nrm(s), add(s), mul(s), zero(s), carr(s)))
 - `is-normed-vector-space` — forall([m], is-normed-vector-space(m) iff length(m) = 7 and scal(m) = rr-ring and vec(m) in set and vadd(m) in fun(cartesian(vec(m), vec(m)), vec(m)) and vzero(m) in vec(m) and vneg(m) in fun(vec(m), vec(m)) and act(m) in fun(cartesian(carr(scal(m)), vec(m)), vec(m)) and vnrm(m) in fun(vec(m), rr) and is-associative(vadd(m), vec(m)) and is-commutative(vadd(m), vec(m)) and is-identity(vadd(m), vzero(m), vec(m)) and has-inverses(vadd(m), vzero(m), vneg(m), vec(m)) and forall([r_ in carr(scal(m)), x_ in vec(m), y_ in vec(m)], (act(m))(r_, (vadd(m))(x_, y_)) = (vadd(m))((act(m))(r_, x_), (act(m))(r_, y_))) and forall([r_ in carr(scal(m)), s_ in carr(scal(m)), x_ in vec(m)], (act(m))((add(scal(m)))(r_, s_), x_) = (vadd(m))((act(m))(r_, x_), (act(m))(s_, x_))) and forall([r_ in carr(scal(m)), s_ in carr(scal(m)), x_ in vec(m)], (act(m))((mul(scal(m)))(r_, s_), x_) = (act(m))(r_, (act(m))(s_, x_))) and forall([x_ in vec(m)], (act(m))(one(scal(m)), x_) = x_) and forall([x_ in vec(m)], 0 <= (vnrm(m))(x_)) and forall([x_ in vec(m)], (vnrm(m))(x_) = 0 iff x_ = vzero(m)) and forall([r_ in carr(scal(m)), x_ in vec(m)], (vnrm(m))((act(m))(r_, x_)) = abs(r_) * (vnrm(m))(x_)) and forall([x_ in vec(m), y_ in vec(m)], (vnrm(m))((vadd(m))(x_, y_)) <= (vnrm(m))(x_) + (vnrm(m))(y_)))
 - `is-open` — forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
@@ -917,33 +917,33 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 - `monoid-assoc-abelian-group-as-monoid-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (add(r))((add(r))(a, b), c) = (add(r))(a, (add(r))(b, c))))
 - `monoid-assoc-ring-multiplicative-monoid` — forall([r], is-ring(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
 - `monoid-class` — forall([s], s in monoid iff is-monoid(s))
-- `monoid-identity-in-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies id(r) in carr(r))
+- `monoid-identity-in-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies iden(r) in carr(r))
 - `monoid-identity-in-abelian-group-as-monoid-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies zero(r) in carr(r))
 - `monoid-identity-in-abelian-group-as-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies zero(r) in carr(r))
 - `monoid-identity-in-abelian-group-as-monoid-field-additive-ag` — forall([r], is-field(r) implies zero(r) in carr(r))
 - `monoid-identity-in-abelian-group-as-monoid-module-vector-ag` — forall([r], is-module(r) implies vzero(r) in vec(r))
 - `monoid-identity-in-abelian-group-as-monoid-module-vector-ag-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies vzero(r) in vec(r))
-- `monoid-identity-in-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies id(r) in carr(r))
+- `monoid-identity-in-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies iden(r) in carr(r))
 - `monoid-identity-in-abelian-group-as-monoid-normed-ag-as-abelian-group-normed-vector-space-as-normed-ag` — forall([r], is-normed-vector-space(r) implies vzero(r) in vec(r))
 - `monoid-identity-in-abelian-group-as-monoid-normed-field-additive-ag` — forall([r], is-normed-field(r) implies zero(r) in carr(r))
 - `monoid-identity-in-ring-multiplicative-monoid` — forall([r], is-ring(r) implies one(r) in carr(r))
-- `monoid-left-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(id(r), a) = a))
+- `monoid-left-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in carr(r)], (add(r))(zero(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(zero(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-field-additive-ag` — forall([r], is-field(r) implies forall([a in carr(r)], (add(r))(zero(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-module-vector-ag` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(vzero(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-module-vector-ag-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r)], (vadd(r))(vzero(r), a) = a))
-- `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(id(r), a) = a))
+- `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group-normed-vector-space-as-normed-ag` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r)], (vadd(r))(vzero(r), a) = a))
 - `monoid-left-id-abelian-group-as-monoid-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(zero(r), a) = a))
 - `monoid-left-id-ring-multiplicative-monoid` — forall([r], is-ring(r) implies forall([a in carr(r)], (mul(r))(one(r), a) = a))
-- `monoid-right-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(a, id(r)) = a))
+- `monoid-right-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-commutative-ring-additive-ag` — forall([r], is-commutative-ring(r) implies forall([a in carr(r)], (add(r))(a, zero(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(a, zero(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-field-additive-ag` — forall([r], is-field(r) implies forall([a in carr(r)], (add(r))(a, zero(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-module-vector-ag` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-module-vector-ag-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
-- `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, id(r)) = a))
+- `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group-normed-vector-space-as-normed-ag` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-abelian-group-as-monoid-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(a, zero(r)) = a))
 - `monoid-right-id-ring-multiplicative-monoid` — forall([r], is-ring(r) implies forall([a in carr(r)], (mul(r))(a, one(r)) = a))
@@ -1005,7 +1005,7 @@ Emitted by def-/declare- forms (IS-X folding, accessor laws, view typing).  Name
 
 Genuine mathematical content with no machine proof — the warrant candidates.
 
-- `abelian-group-idempotent-is-id` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (mul(s))(a, a) = a implies a = id(s)))
+- `abelian-group-idempotent-is-id` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (mul(s))(a, a) = a implies a = iden(s)))
 - `bijection-compose` — forall([x, y, z, phi, psi], phi in bijection(x, y) and psi in bijection(y, z) implies vnb-lambda(x_, psi(phi(x_))) in bijection(x, z))  _[warrant: informal]_
 - `bijection-identity` — forall([x], vnb-lambda(x_, x_) in bijection(x, x))  _[warrant: informal]_
 - `bijection-set-iff` — forall([x, y], x in set and y in set implies bijection(x, y) in set)  _[warrant: informal]_
@@ -1093,9 +1093,9 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `field-zero-not-one` — forall([s], is-field(s) implies not(zero(s) = one(s)))
 - `finite-set-induction` — forall([c], empty-set in c and forall([s], s in set and card(s) in nn and s in c implies forall([x], x in set and not(x in s) implies union(s, {x}) in c)) implies forall([s], s in set and card(s) in nn implies s in c))
 - `group-assoc` — forall([s], is-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
-- `group-identity-in` — forall([s], is-group(s) implies id(s) in carr(s))
-- `group-left-id` — forall([s], is-group(s) implies forall([a in carr(s)], (mul(s))(id(s), a) = a))
-- `group-left-inv` — forall([s], is-group(s) implies forall([a in carr(s)], (mul(s))((inv(s))(a), a) = id(s)))
+- `group-identity-in` — forall([s], is-group(s) implies iden(s) in carr(s))
+- `group-left-id` — forall([s], is-group(s) implies forall([a in carr(s)], (mul(s))(iden(s), a) = a))
+- `group-left-inv` — forall([s], is-group(s) implies forall([a in carr(s)], (mul(s))((inv(s))(a), a) = iden(s)))
 - `image-set` — forall([phi, s in set], image(phi, s) in set)
 - `image-subset-codomain` — forall([dm, cod, phi in fun(dm, cod), w in image(phi, dm)], w in cod)
 - `inf-subsets-is-set` — forall([a in set], inf-subsets(a) in set)
@@ -1114,15 +1114,15 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `matrix-sethood` — forall([s in set], matrix(s) in set)
 - `monoid-assoc` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
 - `monoid-carrier-closed-mul` — forall([m, a, b], is-monoid(m) and a in carr(m) and b in carr(m) implies (mul(m))(a, b) in carr(m))
-- `monoid-identity-in` — forall([m], is-monoid(m) implies id(m) in carr(m))
-- `monoid-left-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (mul(s))(id(s), a) = a))
-- `monoid-right-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (mul(s))(a, id(s)) = a))
+- `monoid-identity-in` — forall([m], is-monoid(m) implies iden(m) in carr(m))
+- `monoid-left-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (mul(s))(iden(s), a) = a))
+- `monoid-right-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (mul(s))(a, iden(s)) = a))
 - `mpow-add` — forall([m], is-monoid(m) implies forall([x in carr(m), j in nn, k in nn], mpow(m, x, j + k) = (mul(m))(mpow(m, x, j), mpow(m, x, k))))  _[warrant: informal]_
 - `mpow-mult` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], mpow(m, (mul(m))(x, y), n) = (mul(m))(mpow(m, x, n), mpow(m, y, n))))  _[warrant: well-known]_
 - `mpow-one` — forall([m], is-monoid(m) implies forall([x in carr(m)], mpow(m, x, 1) = x))  _[warrant: informal]_
 - `mpow-succ` — forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))
 - `mpow-type` — forall([m], is-monoid(m) implies forall([x in carr(m), n in nn], mpow(m, x, n) in carr(m)))  _[warrant: informal]_
-- `mpow-zero` — forall([m, x], mpow(m, x, 0) == id(m))
+- `mpow-zero` — forall([m, x], mpow(m, x, 0) == iden(m))
 - `nary-minus-2` — forall([x, y], x - y == binplus(x, binneg(y)))
 - `nary-neg-1` — forall([x], -x == binneg(x))
 - `nary-plus-2` — forall([x, y], x + y == binplus(x, y))
@@ -1162,7 +1162,7 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `nn-subset-zz` — forall([n in nn], n in zz)
 - `nn-succ-closed` — forall([n in nn], succ(n) in nn)
 - `nn-zero-in` — 0 in nn
-- `normed-ag-nrm-definite` — forall([s], is-normed-ag(s) implies forall([a in carr(s)], (nrm(s))(a) = 0 iff a = id(s)))
+- `normed-ag-nrm-definite` — forall([s], is-normed-ag(s) implies forall([a in carr(s)], (nrm(s))(a) = 0 iff a = iden(s)))
 - `normed-ag-nrm-nonneg` — forall([s], is-normed-ag(s) implies forall([a in carr(s)], 0 <= (nrm(s))(a)))
 - `normed-ag-nrm-subadditive` — forall([s], is-normed-ag(s) implies forall([a in carr(s), b in carr(s)], (nrm(s))((mul(s))(a, b)) <= (nrm(s))(a) + (nrm(s))(b)))
 - `normed-ag-nrm-type` — forall([s], is-normed-ag(s) implies nrm(s) in fun(carr(s), rr))
@@ -1203,9 +1203,9 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `prod-ord-singleton` — forall([m], is-monoid(m) implies forall([f in fun(nn, carr(m))], prod-ord(m, f, 1) = f(0)))
 - `prod-ord-succ` — forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))
 - `prod-ord-type` — forall([m], is-monoid(m) implies forall([f in fun(nn, carr(m)), n in nn], prod-ord(m, f, n) in carr(m)))
-- `prod-ord-zero` — forall([m, f], prod-ord(m, f, 0) == id(m))
+- `prod-ord-zero` — forall([m, f], prod-ord(m, f, 0) == iden(m))
 - `prod-set-disjoint-union` — forall([cm], is-comm-monoid(cm) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(cm)) implies prod-set(cm, union(s1, s2), f) = (mul(cm))(prod-set(cm, s1, f), prod-set(cm, s2, f))))
-- `prod-set-empty` — forall([cm, f], prod-set(cm, empty-set, f) == id(cm))
+- `prod-set-empty` — forall([cm, f], prod-set(cm, empty-set, f) == iden(cm))
 - `prod-set-singleton` — forall([cm], is-comm-monoid(cm) implies forall([x, f], prod-set(cm, {x}, f) = f(x)))
 - `prod-set-type` — forall([cm, x, s, f], is-comm-monoid(cm) and x in set and s subset x and f in fun(x, carr(cm)) implies prod-set(cm, s, f) in carr(cm))
 - `qq-add-assoc` — forall([a, b, c], a in qq and b in qq and c in qq implies a + b + c = a + b + c)
@@ -1292,7 +1292,7 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `sum-ag-singleton` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag))], sum-ag(ag, f, 1) = f(0)))
 - `sum-ag-succ` — forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))
 - `sum-ag-type` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag)), n in nn], sum-ag(ag, f, n) in carr(ag)))
-- `sum-ag-zero` — forall([ag, f], sum-ag(ag, f, 0) == id(ag))
+- `sum-ag-zero` — forall([ag, f], sum-ag(ag, f, 0) == iden(ag))
 - `sum-left-scalar` — forall([r], is-ring(r) implies forall([a in carr(r), f in fun(nn, carr(r)), n in nn], sum(r, vnb-lambda(i, (mul(r))(a, f(i))), n) = (mul(r))(a, sum(r, f, n))))
 - `sum-set-disjoint-union` — forall([r], is-ring(r) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(r)) implies sum-set(r, union(s1, s2), f) = (add(r))(sum-set(r, s1, f), sum-set(r, s2, f))))
 - `sum-set-empty` — forall([r, f], sum-set(r, empty-set, f) == zero(r))
@@ -1322,7 +1322,7 @@ Genuine mathematical content with no machine proof — the warrant candidates.
 - `zz-act-nonneg` — forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, k, a) = mpow(abelian-group-as-monoid(g), a, k)))
 - `zz-act-one` — forall([g], is-abelian-group(g) implies forall([a in carr(g)], zz-act(g, 1, a) = a))  _[warrant: informal]_
 - `zz-act-type` — forall([g], is-abelian-group(g) implies forall([k in zz, a in carr(g)], zz-act(g, k, a) in carr(g)))  _[warrant: informal]_
-- `zz-act-zero` — forall([g], is-abelian-group(g) implies forall([a in carr(g)], zz-act(g, 0, a) = id(g)))  _[warrant: informal]_
+- `zz-act-zero` — forall([g], is-abelian-group(g) implies forall([a in carr(g)], zz-act(g, 0, a) = iden(g)))  _[warrant: informal]_
 - `zz-add-assoc` — forall([a, b, c], a in zz and b in zz and c in zz implies a + b + c = a + b + c)
 - `zz-add-closed` — forall([a, b], a in zz and b in zz implies a + b in zz)
 - `zz-add-comm` — forall([a, b], a in zz and b in zz implies a + b = b + a)

@@ -48,14 +48,14 @@
                   ((INV g) (MPOW (ABELIAN-GROUP-AS-MONOID g) a k))))))))))))
 
 ;;; ---- Endpoints ------------------------------------------------------------
-;;; 0 . a = ID(g).
+;;; 0 . a = IDEN(g).
 (theory-add-axiom! *current-theory* 'zz-act-zero
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL a (IMPLIES (IN a (CARR g))
-         (= (ZZ-ACT g 0 a) (ID g)))))))
+         (= (ZZ-ACT g 0 a) (IDEN g)))))))
 (warrant! 'zz-act-zero 'informal
-  "0 in NN so zz-act-nonneg gives MPOW(.,a,0)=ID(g) by mpow-zero and the view E-correspondence.")
+  "0 in NN so zz-act-nonneg gives MPOW(.,a,0)=IDEN(g) by mpow-zero and the view E-correspondence.")
 
 ;;; 1 . a = a.
 (theory-add-axiom! *current-theory* 'zz-act-one
