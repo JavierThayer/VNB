@@ -568,6 +568,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `free-length-le-generators` — forall([md], is-module(md) implies is-euclidean-ring(scal(md)) implies forall([n, m, u, v], n in nn implies m in nn implies u in mat(n, 1, vec(md)) implies v in mat(m, 1, vec(md)) implies generates(md, n, u) implies rel-free(md, m, v) implies m <= n))
 - `free-transport` — forall([md], is-module(md) implies forall([m, v, qm], v in mat(m, 1, vec(md)) implies is-invertible-mat(scal(md), m, qm) implies rel-free(md, m, v) implies rel-free(md, m, matact(md, qm, v))))
 - `generates-coeff-matrix` — forall([md], is-module(md) implies forall([n, m, u, v], u in mat(n, 1, vec(md)) implies v in mat(m, 1, vec(md)) implies generates(md, n, u) implies forsome([cm in mat(m, n, carr(scal(md)))], v = matact(md, cm, u))))
+- `generates-implies-spans-vec` — forall([md], is-module(md) implies forall([n in nn, u in mat(n, 1, vec(md))], generates(md, n, u) implies spans(md, n, u, vec(md))))
 - `generates-transport` — forall([md], is-module(md) implies forall([n, u, pm], u in mat(n, 1, vec(md)) implies is-invertible-mat(scal(md), n, pm) implies generates(md, n, u) implies generates(md, n, matact(md, pm, u))))
 - `mal-dist-type` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, (act(md))((vnb-lambda(j, (mul(scal(md)))(entry(p, row, j), entry(q, j, x))))(z), entry(u, x, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))
 - `mal-inf-type` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, (mul(scal(md)))(entry(p, row, j), entry(q, j, x))) in fun(interval(1, n), carr(scal(md)))))
@@ -603,7 +604,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `module-act-unital-rev` — forall([m], is-module(m) implies forall([x_ in vec(m)], x_ = (act(m))(one(scal(m)), x_)))
 - `module-scalar-ring` — forall([m], is-module(m) implies is-ring(scal(m)))
 - `module-scalar-zero-in` — forall([m], is-module(m) implies zero(scal(m)) in carr(scal(m)))
+- `module-vadd-type` — forall([m], is-module(m) implies forall([x_ in vec(m), y_ in vec(m)], (vadd(m))(x_, y_) in vec(m)))
 - `module-vector-ag-is-abelian-group` — forall([r], is-module(r) implies is-abelian-group(module-vector-ag(r)))
+- `module-vneg-type` — forall([m], is-module(m) implies forall([x_ in vec(m)], (vneg(m))(x_) in vec(m)))
 - `module-vzero-in` — forall([m], is-module(m) implies vzero(m) in vec(m))
 - `module-zero-act` — forall([s], is-module(s) implies forall([x in vec(s)], (act(s))(zero(scal(s)), x) = vzero(s)))
 - `module-zero-act-rev` — forall([s], is-module(s) implies forall([x in vec(s)], vzero(s) = (act(s))(zero(scal(s)), x)))
@@ -634,6 +637,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], a = (vadd(r))(a, vzero(r))))
 - `spans-transport` — forall([md], is-module(md) implies forall([n, u, pm, sm], u in mat(n, 1, vec(md)) implies is-invertible-mat(scal(md), n, pm) implies is-submodule(md, sm) implies spans(md, n, u, sm) implies spans(md, n, matact(md, pm, u), sm)))
 - `submodule-finsum-closed` — forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))
+- `whole-module-is-submodule` — forall([md], is-module(md) implies is-submodule(md, vec(md)))
 
 *Views into `module`.*
 
@@ -948,7 +952,9 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `module-act-unital-rev-normed-vector-space-as-module-rev` — forall([r], is-normed-vector-space(r) implies forall([x_ in vec(r)], (act(r))(one(scal(r)), x_) = x_))
 - `module-scalar-ring-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies is-ring(scal(r)))
 - `module-scalar-zero-in-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies zero(scal(r)) in carr(scal(r)))
+- `module-vadd-type-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([x_ in vec(r), y_ in vec(r)], (vadd(r))(x_, y_) in vec(r)))
 - `module-vector-ag-is-abelian-group-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies is-abelian-group(module-vector-ag(normed-vector-space-as-module(r))))
+- `module-vneg-type-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([x_ in vec(r)], (vneg(r))(x_) in vec(r)))
 - `module-vzero-in-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies vzero(r) in vec(r))
 - `monoid-assoc-abelian-group-as-monoid-module-vector-ag-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r), b in vec(r), c in vec(r)], (vadd(r))((vadd(r))(a, b), c) = (vadd(r))(a, (vadd(r))(b, c))))
 - `monoid-assoc-abelian-group-as-monoid-module-vector-ag-normed-vector-space-as-module-rev` — forall([r], is-normed-vector-space(r) implies forall([a in vec(r), b in vec(r), c in vec(r)], (vadd(r))(a, (vadd(r))(b, c)) = (vadd(r))((vadd(r))(a, b), c)))

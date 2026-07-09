@@ -124,6 +124,22 @@
          (FORALL x_ (IMPLIES (IN x_ (VEC m))
            (IN ((ACT m) r_ x_) (VEC m)))))))))
 
+  ;; addition and negation close on the vectors -- the same read-off of the shape
+  ;; conjuncts (IN (VADD m) (FUN (CARTESIAN (VEC m) (VEC m)) (VEC m))) and
+  ;; (IN (VNEG m) (FUN (VEC m) (VEC m))) that module-act-type is of its own.
+  ;; Surfaced because whole-module-is-submodule needs all three closures, and
+  ;; IS-SUBMODULE states them in applied form.
+  (theory-add-axiom! *current-theory* 'module-vadd-type
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL x_ (IMPLIES (IN x_ (VEC m))
+         (FORALL y_ (IMPLIES (IN y_ (VEC m))
+           (IN ((VADD m) x_ y_) (VEC m)))))))))
+
+  (theory-add-axiom! *current-theory* 'module-vneg-type
+    '(FORALL m (IMPLIES (IS-MODULE m)
+       (FORALL x_ (IMPLIES (IN x_ (VEC m))
+         (IN ((VNEG m) x_) (VEC m)))))))
+
   ;; (1) action distributes over vector addition
   (theory-add-axiom! *current-theory* 'module-act-distrib-vec
     '(FORALL m (IMPLIES (IS-MODULE m)

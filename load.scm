@@ -519,6 +519,12 @@
     ;; set for the submodule, it cannot produce one.  Needs mod-seq, finite-
     ;; dimensional (IS-SUBMODULE), euclidean-ring, smith-staircase.
     "theorem-library/submodule-free"
+    ;; submodule-fg, PROVEN as the bm := VEC md case of spans-submodule-fg.  The
+    ;; old submodule-fg support could not be proved by the induction its own
+    ;; warrant described: the step's IH would have to apply to a SUBMODULE, and
+    ;; GENERATES asserts the whole module.  Needs submodule-free (the corrected
+    ;; statement) + module.scm's closure axioms.
+    "theorem-library/submodule-fg-proof"
     ;; Phase C, Remark 3.39: the matrix action on module-element sequences is
     ;; associative, (PQ).u = P.(Q.u).  Mirrors matmul-assoc via finsum-fubini.
     "theorem-library/matact-assoc-proof"
