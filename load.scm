@@ -744,8 +744,15 @@
 
 ;;; Files (compile-vnb!) always skips, independent of contents.  test-suite is
 ;;; not even in *vnb-files*; it is listed here only for documentation.
+;;;
+;;; driver-kit and clobber-guard capture `(the-environment)' at top level, and
+;;; the environment a compiled block reports is not the environment its `load'
+;;; put its definitions in.  Compiling them would hand every proof file a bogus
+;;; parent environment (driver-kit) and an empty watch set (clobber-guard),
+;;; SILENTLY -- compile-file accepts the form without complaint.  They are two
+;;; small files; interpret them.
 (define *vnb-no-compile-files*
-  '("test-suite"))
+  '("test-suite" "driver-kit" "clobber-guard"))
 
 ;;; A file with a top-level (bc* ...) use must NOT be compiled.  bc* is a macro
 ;;; defined in interactive.scm; MIT's compile-file processes each file in a

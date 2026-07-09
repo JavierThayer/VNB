@@ -23,13 +23,35 @@ Full check suite (distinct from the launcher):
 
 It prints `=== SUMMARY: N passed, M failed ===`.
 
-**Give it at least 580 seconds.** The suite takes longer than that on this box. A
-`timeout 420` kills it *after* every test has passed but *before* the SUMMARY
-line, and mit-scheme exits 1 -- which reads as a failure and is not one.
+## COMPILE THE TREE FIRST -- everything below depends on it
+
+`.com`/`.bin` are in `.gitignore` AND excluded from the tarball, so a fresh clone or
+unpacked tarball is **interpreted**, and nothing tells you. Compiled vs interpreted, on
+this box:
+
+    library load     24 s   vs  ~11 min
+    full test suite   6 min vs  ~42 min
+
+Compile once, after a clone/unpack (~10 min, includes one source load):
+
+    ./VNB-with-compile          # or, from a REPL that has loaded load.scm:
+    (compile-vnb!)              # incremental: skips files whose .com is fresh
+    (recompile-vnb!)            # source-load everything, then compile
+
+If you are ever tempted to conclude "this box is slow", check `ls *.com` first.
+`compile-vnb!` skips `*vnb-no-compile-files*` (`driver-kit`, `clobber-guard`: they
+capture `(the-environment)`, which compiles WITHOUT COMPLAINT and then reports the wrong
+frame) and any file with a top-level `(bc* ...)` (a macro; the .com aborts on load).
 
 After editing a `.scm`, delete BOTH the `.com` and the `.bin`, or Scheme silently
 loads the stale binary. `load.scm` names files without extension and prefers `.com`.
-Recompile via `(recompile-vnb!)` (load.scm:699).
+(`file-fresh-com?` compares mtimes, so a plain re-save is usually enough.)
+
+**`VNB_SKIP_PROOFS` is dead code.** `./VNB` exports it and `interactive.scm` documents it,
+but nothing reads the env var, `skip-proofs!` is never called, `*skip-proofs-cont*` is
+never bound, and the `prove-and-install!` that used to install it is gone from
+`proven-theorems.scm`. Do not trust the "~32x faster boot" claim; compiling is the real
+speedup, and a skip-proofs mode would hand you a library whose `qed` bills lie.
 
 ## This box
 
