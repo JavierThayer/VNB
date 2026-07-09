@@ -282,9 +282,12 @@
 ;; forall t in SIG, IS-SUBMODULE m t
 (cut (list 'FORALL 't_ (list 'IMPLIES (list 'IN 't_ SIG) (list 'IS-SUBMODULE 'm 't_))))
 (quietly (lambda () (di)(di)))
-(define Tm (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) SIG))))))
-(sep-me (list 'IN Tm SIG))
-(quietly (lambda () (fact 'good-sub-submodule 'm 's 'f Tm)))
+;; `Tm' case-folds to `tm', which is the term-with-holes surface helper
+;; (input-context.scm:411).  A top-level (define Tm ...) here silently rebound
+;; it to a list for the rest of the session.  Use the file's dc- prefix.
+(define dc-tm (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) SIG))))))
+(sep-me (list 'IN dc-tm SIG))
+(quietly (lambda () (fact 'good-sub-submodule 'm 's 'f dc-tm)))
 (quietly (lambda () (ass-all)))
 (dc-focus! HDgoal)
 

@@ -3442,6 +3442,44 @@
     (string? (vnb--scout-key '(0 (gauge s))))))         ; would throw via expression->string
 
 ;;; -----------------------------------------------------------------------
+;;; clobber-guard (clobber-guard.scm)
+;;;
+;;; The gate against a proof file's (define BC ...) case-folding onto the `bc'
+;;; tactic.  A gate nobody has seen fire is a gate nobody should trust, so make
+;;; it fire: rebind a watched procedure to a term and check that it errors.
+;;; The victim is clobber-guard-snapshot! itself -- watched (it is defined
+;;; before the snapshot it takes) and never called again.
+
+(check-true "clobber-guard: armed, and watching the tactics"
+  (lambda () (and *clobber-guard-procs*
+                  (hash-table-ref/default *clobber-guard-procs* 'bc  #f)
+                  (hash-table-ref/default *clobber-guard-procs* 'di  #f)
+                  (hash-table-ref/default *clobber-guard-procs* 'ass #f)
+                  #t)))
+
+(check-false "clobber-guard: syntactic keywords (bc*) are not watched"
+  (lambda () (and (hash-table-ref/default *clobber-guard-procs* 'bc* #f) #t)))
+
+(check-true "clobber-guard: silent when no procedure was rebound"
+  (lambda () (begin (clobber-guard-check! "test-suite") #t)))
+
+(check-true "clobber-guard: fires when a watched procedure is rebound to a term"
+  (lambda ()
+    (let ((victim 'clobber-guard-snapshot!)
+          (fired  #f))
+      (let ((saved (environment-lookup *clobber-guard-env* victim)))
+        (environment-assign! *clobber-guard-env* victim '(a term))
+        (call-with-current-continuation
+          (lambda (k)
+            (with-exception-handler
+              (lambda (e) (set! fired #t) (k #f))
+              (lambda () (clobber-guard-check! "test-suite-victim.scm")))))
+        (environment-assign! *clobber-guard-env* victim saved)
+        ;; check! drops the casualty from the watch set; put it back
+        (hash-table-set! *clobber-guard-procs* victim #t))
+      fired)))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)

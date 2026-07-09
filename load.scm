@@ -335,6 +335,10 @@
     ;; nn-least-element, resolved by NAME at call time, so it may load here,
     ;; long before theorem-library/nn-least-element.
     "minimize"
+    ;; Snapshot every procedure binding, then let prover-load check after each
+    ;; later file that none was rebound to a non-procedure -- the case-fold trap
+    ;; ((define BC ...) clobbering the `bc' tactic) that no other gate catches.
+    "clobber-guard"
     ;; The trivial subtype-subsumption laws ("every X is a Y"), PROVEN via
     ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
     ;; interactive tactics + qed/proof-debt, so loads here.
@@ -383,6 +387,11 @@
     ;; the <=_ORD/<= bridge; exercises the new ai iff-elim.  Needs interactive
     ;; tactics + qed and the ordinal axioms.
     "theorem-library/nn-least-element"
+    ;; euclidean-ideal-has-generator, PROVEN by `minimize!' (formerly an asserted
+    ;; support in structure-library/ideal.scm).  THE mathematical core of
+    ;; "every Euclidean ring is a PID".  Needs nn-least-element (for minimize!),
+    ;; ideal.scm, euclidean-ring.scm, mat-equiv.scm (nn-succ-le-antisym).
+    "theorem-library/euclidean-ideal-generator-proof"
     ;; Pointwise continuity algebra on RR (const/identity continuous; sum/product
     ;; of continuous-at-a is continuous-at-a) -- the supporting machinery the
     ;; differentiation rules are proved on top of.  Needs IS-CONTINUOUS-AT
@@ -661,6 +670,11 @@
                (st (and (file-exists? scm) (file-modification-time scm))))
            (and ct st (>= ct st))))))
 
+;; Stub: prover-load calls this after every file, but clobber-guard.scm -- which
+;; supplies the real one -- is itself loaded by prover-load.  Redefining a
+;; procedure with another procedure is exactly what the guard permits.
+(define (clobber-guard-check! file) file)
+
 (define (prover-load f)
   (let* ((base (string-append *prover-dir* f))
          ;; ALWAYS prefer a fresh .com; fall back to .scm SOURCE when the .com is
@@ -671,7 +685,9 @@
          (path (if (file-fresh-com? base) base (string-append base ".scm"))))
     (if (member f *primitive-files*)
         (fluid-let ((*current-provenance* 'primitive)) (load path))
-        (load path))))
+        (load path))
+    ;; No-op until clobber-guard.scm has taken its snapshot.
+    (clobber-guard-check! f)))
 
 ;; Load every file -- but clear *vnb-loading* if a file errors mid-load, so a
 ;; broken file can't strand the flag at #t and leave every (show) suppressed

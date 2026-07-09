@@ -106,11 +106,9 @@
 ;;; Euclidean ring has a generator b in I with I subset (b) -- i.e. every
 ;;; element of I is a multiple of b.  (Combined with principal-ideal-in-ideal
 ;;; this gives I = (b).)
-(support 'euclidean-ideal-has-generator
-  '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
-     (FORALL I (IMPLIES (IS-IDEAL s I)
-       (FORSOME b (AND (IN b I)
-         (FORALL a (IMPLIES (IN a I)
-           (IN a (PRINCIPAL-IDEAL s b)))))))))))
-(warrant! 'euclidean-ideal-has-generator 'proof
-  "If I = {0} take b = 0, since (0) = {0} = I.  Otherwise the set of degrees { deg(x) : x in I, x /= 0 } is a nonempty subset of NN, so by nn-least-element it has a least element, attained at some nonzero b in I.  For any a in I, Euclidean division gives a = q.b + r with r = 0 or deg(r) < deg(b).  Then r = a - q.b lies in I (a in I, q.b in I by absorption, I closed under subtraction).  If r /= 0 its degree would be < deg(b), contradicting minimality; so r = 0 and a = q.b is in (b).")
+;;; It used to be ASSERTED here with a 'proof warrant whose text was the proof
+;;; sketch.  It is now PROVEN, in theorem-library/euclidean-ideal-generator-proof.scm:
+;;; the sketch's "choose a nonzero b of least degree" is one `minimize!' call
+;;; (minimize.scm), and the rest is Euclidean division plus ideal closure.
+;;; The proof uses no choice -- see minimize.scm on why well-ordering a SEP set
+;;; hands back the witness without it.

@@ -372,7 +372,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `abelian-group-idempotent-is-id-field-additive-ag-rev` — forall([r], is-field(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies zero(r) = a))
 - `abelian-group-idempotent-is-id-rev-field-additive-ag` — forall([r], is-field(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies zero(r) = a))
 - `abelian-group-idempotent-is-id-rev-field-additive-ag-rev` — forall([r], is-field(r) implies forall([a in carr(r)], (add(r))(a, a) = a implies a = zero(r)))
-- `euclidean-ideal-has-generator-field-as-euclidean-ring` — forall([r], is-field(r) implies forall([i], is-ideal(field-as-euclidean-ring(r), i) implies forsome([b in i], forall([a in i], a in principal-ideal(field-as-euclidean-ring(r), b)))))
 - `euclidean-ring-has-gauge-field-as-euclidean-ring` — forall([r], is-field(r) implies forsome([deg in fun(carr(r), nn)], has-div-remainder(field-as-euclidean-ring(r), deg)))
 - `field-additive-ag-is-abelian-group` — forall([r], is-field(r) implies is-abelian-group(field-additive-ag(r)))
 - `field-as-euclidean-ring-is-euclidean-ring` — forall([r], is-field(r) implies is-euclidean-ring(field-as-euclidean-ring(r)))

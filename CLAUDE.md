@@ -51,9 +51,14 @@ Three consequences, each of which has cost a debugging session:
    bordered-eq-border-proof.scm, `TT` in hahn-banach-full-proof.scm and
    nn-least-element.scm, `SP` in a Smith driver, `ID` in mat-equiv-proof.scm.
    Use the file's helper prefix (`ss-`, `bm-`, `cc-`, `hb-`, `me-`). Single/double
-   capitals (`BC` `TT` `SP` `NI` `AI` `DI`) are the danger zone. **Neither gate
-   catches this**: `case-fold-audit` and `constant-binder-audit` both inspect WFF
-   binders only, never Scheme defines.
+   capitals (`BC` `TT` `SP` `NI` `AI` `DI`) are the danger zone. `case-fold-audit` and
+   `constant-binder-audit` both inspect WFF binders only, never Scheme defines --
+   **`clobber-guard.scm` is the gate that does**: it snapshots every procedure binding
+   after `minimize` loads and, after each later file, errors if any was rebound to a
+   non-procedure, naming file and symbol. (It found `(define Tm ...)` in
+   noetherian-maximal-proof.scm silently killing the `tm` surface helper.) Macros are
+   invisible to it -- `environment-lookup` refuses a syntactic keyword, so `bc*` is
+   never watched.
 
 2. Structure accessors may inadvertently collide with obvious binder names, but a
    warning is issued (`constant-binder-audit`). `X` used to be a carrier accessor
@@ -98,6 +103,12 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   seems inert, dump the context and look for the one missing typing hypothesis.
 * `detach!` takes the **IMPLIES** formula, not its antecedent. `(detach! <antecedent>)`
   is a silent no-op.
+* `mac-h` **replaces** the assumption it unfolds. Unfolding `(IS-IDEAL s I)` to reach its
+  closure conjuncts therefore deletes the hypothesis that `ideal-elt-in-carrier` (and
+  every other `fact` guarded on `IS-IDEAL`) needs. Get the projection another way, or
+  unfold last.
+* `minimize!` lands `GUARD[v:=w]` as **one conjunction**, not as its conjuncts. `ai` it
+  before detaching anything against it.
 * **`cut` of a formula already in context (up to ALPHA) is a silent self-loop.**
   `dg-post!` hash-conses sequent nodes by alpha-equivalence of the assertion plus
   equality of the context, and `context-add-assumption` is alpha-idempotent -- so the
