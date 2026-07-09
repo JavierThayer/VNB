@@ -63,63 +63,63 @@
      '(FORALL T (IMPLIES (AND (SUBSET T NN) (FORSOME n (IN n T)))
         (FORSOME m (AND (IN m T) (FORALL k (IMPLIES (IN k T) (<= m k)))))))))
 (di)                                     ; peel FORALL T
-(define TT (cadr (cadr (cadr (cur-goal-raw)))))   ; from (... (SUBSET TT NN) ...)
-(di)                                     ; asm (AND (SUBSET TT NN) (FORSOME n (IN n TT)))
-(define MAINGOAL (cur-goal-raw))         ; (FORSOME m (AND (IN m TT) (FORALL k ...)))
-(split-ands!)                            ; H_sub: SUBSET TT NN ; H_ne: FORSOME n (IN n TT)
+(define NLE-TT (cadr (cadr (cadr (cur-goal-raw)))))   ; from (... (SUBSET NLE-TT NN) ...)
+(di)                                     ; asm (AND (SUBSET NLE-TT NN) (FORSOME n (IN n NLE-TT)))
+(define MAINGOAL (cur-goal-raw))         ; (FORSOME m (AND (IN m NLE-TT) (FORALL k ...)))
+(split-ands!)                            ; H_sub: SUBSET NLE-TT NN ; H_ne: FORSOME n (IN n NLE-TT)
 
 ;;; ---- supply ord-well-ordered's antecedent, then apply it ----
-(define WO-ANTE `(AND (FORALL x (IMPLIES (IN x ,TT) (IN x ORD)))
-                      (FORSOME w (IN w ,TT))))
+(define WO-ANTE `(AND (FORALL x (IMPLIES (IN x ,NLE-TT) (IN x ORD)))
+                      (FORSOME w (IN w ,NLE-TT))))
 (cut WO-ANTE)
 (focus-leaf-goal! WO-ANTE) (di)          ; split the antecedent AND into A1 / A2
 
 ;; (A1) FORALL x. x in T => x in ORD
-(focus-leaf-goal! `(FORALL x (IMPLIES (IN x ,TT) (IN x ORD))))
-(di)                                      ; bounded-forall peel: asm (IN XX TT) ; goal (IN XX ORD)
+(focus-leaf-goal! `(FORALL x (IMPLIES (IN x ,NLE-TT) (IN x ORD))))
+(di)                                      ; bounded-forall peel: asm (IN XX NLE-TT) ; goal (IN XX ORD)
 (define XX (cadr (cur-goal-raw)))         ; (IN XX ORD) -> XX
-(mac-h 'subset-def `(SUBSET ,TT NN))      ; H_sub -> FORALL x'. x' in T => x' in NN
+(mac-h 'subset-def `(SUBSET ,NLE-TT NN))      ; H_sub -> FORALL x'. x' in T => x' in NN
 (inst (forall-asm-into "nn") XX)
-(detach! `(IMPLIES (IN ,XX ,TT) (IN ,XX NN)))
+(detach! `(IMPLIES (IN ,XX ,NLE-TT) (IN ,XX NN)))
 (fact 'nn-subset-ord XX)                  ; (IN XX NN) -> (IN XX ORD)
 (ass)
 
 ;; (A2) FORSOME w. w in T  -- from the nonemptiness hypothesis
-(focus-leaf-goal! `(FORSOME w (IN w ,TT)))
+(focus-leaf-goal! `(FORSOME w (IN w ,NLE-TT)))
 (let* ((hne (asm-find-pred (lambda (w) (and (pair? w) (eq? (car w) 'FORSOME)))))
-       (body (ai-body hne))               ; (IN wn TT)
+       (body (ai-body hne))               ; (IN wn NLE-TT)
        (wn  (cadr body)))
   (ew wn))
 (ass)
 
 ;; ---- ord-well-ordered now applies: least m under <=_ORD ----
 (focus-leaf-goal! MAINGOAL)
-(fact 'ord-well-ordered TT)               ; detaches WO-ANTE -> FORSOME m (AND (IN m T)(FORALL k. k in T => m <=_ORD k))
+(fact 'ord-well-ordered NLE-TT)               ; detaches WO-ANTE -> FORSOME m (AND (IN m T)(FORALL k. k in T => m <=_ORD k))
 (define GENEX (asm-find-pred (lambda (w) (and (pair? w) (eq? (car w) 'FORSOME)))))
 (define BODY  (ai-body GENEX))
 (define MM    (cadr (cadr BODY)))         ; the least element
 (define HMLE  (caddr BODY))               ; FORALL k. k in T => MM <=_ORD k
-(split-ands!)                             ; H_mT: IN MM TT ; H_mle: HMLE
+(split-ands!)                             ; H_mT: IN MM NLE-TT ; H_mle: HMLE
 
 ;; ---- witness m := MM ----
 (ew MM)
 (di)
-(focus-leaf-goal! `(IN ,MM ,TT)) (ass)    ; first conjunct
+(focus-leaf-goal! `(IN ,MM ,NLE-TT)) (ass)    ; first conjunct
 
 ;; ---- FORALL k. k in T => MM <= k ----
-(focus-leaf-goal! `(FORALL k (IMPLIES (IN k ,TT) (<= ,MM k))))
-(di)                                      ; bounded-forall peel: asm (IN KK TT) ; goal (<= MM KK)
+(focus-leaf-goal! `(FORALL k (IMPLIES (IN k ,NLE-TT) (<= ,MM k))))
+(di)                                      ; bounded-forall peel: asm (IN KK NLE-TT) ; goal (<= MM KK)
 (define KK (caddr (cur-goal-raw)))        ; (<= MM KK) -> KK
 
 ;; MM <=_ORD KK from the least-element property
 (inst HMLE KK)
-(detach! `(IMPLIES (IN ,KK ,TT) (<=_ORD ,MM ,KK)))
+(detach! `(IMPLIES (IN ,KK ,NLE-TT) (<=_ORD ,MM ,KK)))
 
 ;; MM, KK in NN (via subset-def), then their <=_ORD/<= coincide
-(mac-h 'subset-def `(SUBSET ,TT NN))
+(mac-h 'subset-def `(SUBSET ,NLE-TT NN))
 (define HSUBF (forall-asm-into "nn"))
-(inst HSUBF MM) (detach! `(IMPLIES (IN ,MM ,TT) (IN ,MM NN)))
-(inst HSUBF KK) (detach! `(IMPLIES (IN ,KK ,TT) (IN ,KK NN)))
+(inst HSUBF MM) (detach! `(IMPLIES (IN ,MM ,NLE-TT) (IN ,MM NN)))
+(inst HSUBF KK) (detach! `(IMPLIES (IN ,KK ,NLE-TT) (IN ,KK NN)))
 (cut `(AND (IN ,MM NN) (IN ,KK NN)))
 (focus-leaf-goal! `(AND (IN ,MM NN) (IN ,KK NN))) (di)
 (focus-leaf-goal! `(IN ,MM NN)) (ass)

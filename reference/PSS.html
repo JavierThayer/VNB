@@ -1038,7 +1038,10 @@
 <h4 id="p-vtaylor-remainder-in-vec">vtaylor-remainder-in-vec</h4>
 <pre>forall([m, f, a, x, n], is-normed-vector-space(m) implies f in fun(rr, vec(m)) implies a in rr implies x in rr implies n in nn implies (vadd(m))(f(x), (vneg(m))(taylor-poly-v(m, f, a, x, n))) in vec(m))</pre>
 <p><em>Warrant (reference):</em> R = f(x) (-) TAYLOR-POLY-V(...) is a difference of vectors (VADD of f(x) and the VNEG of the polynomial), hence in VEC(m).</p>
-<h3 id="PSS__algebraic-ring-structure-facts-93">Algebraic &amp; ring-structure facts  (93)</h3>
+<h3 id="PSS__algebraic-ring-structure-facts-96">Algebraic &amp; ring-structure facts  (96)</h3>
+<h4 id="p-block-type">block-type</h4>
+<pre>forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k &lt;= m implies l &lt;= n implies block(p, k, l) in mat(k, l, x))</pre>
+<p><em>Warrant (reference):</em> The leading k-by-l block of an m-by-n matrix over X is a k-by-l matrix over X (matof-in-mat; every value ENTRY P i j with i&lt;=k&lt;=m, j&lt;=l&lt;=n lies in X).</p>
 <h4 id="p-border-entry-11">border-entry-11</h4>
 <pre>forall([a, b, m, p, q], entry(border(a, b, m, p, q), 1, 1) = b)</pre>
 <p><em>Warrant (reference):</em> BORDER(A,b,M,p,q)_{1,1} = b (i=j=1 branch).</p>
@@ -1072,6 +1075,9 @@
 <h4 id="p-diagonal-off-entry">diagonal-off-entry</h4>
 <pre>forall([a, m, n, d], is-diagonal(a, m, n, d) implies forall([i in interval(1, m), j in interval(1, n)], not(i = j) implies entry(d, i, j) = zero(a)))</pre>
 <p><em>Warrant (proof):</em> D_{ij} = 0 for i /= j -- IS-DIAGONAL&#x27;s defining body, re-quantified for `fact&#x27;.</p>
+<h4 id="p-entry-of-block">entry-of-block</h4>
+<pre>forall([p, k, l, i, j], i in interval(1, k) implies j in interval(1, l) implies entry(block(p, k, l), i, j) = entry(p, i, j))</pre>
+<p><em>Warrant (reference):</em> BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).</p>
 <h4 id="p-entry-of-identmat">entry-of-identmat</h4>
 <pre>forall([a, n, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(identmat(a, n), i, j) = if(i = j, one(a), zero(a)))</pre>
 <p><em>Warrant (reference):</em> (IDENTMAT A n)_{ij} = 1 if i=j else 0 (entry-of-matof on the Kronecker delta).</p>
@@ -1300,6 +1306,9 @@
 <h4 id="p-sqrt-sq">sqrt-sq</h4>
 <pre>forall([a], a in rr and 0 &lt;= a implies sqrt(a) * sqrt(a) = a)</pre>
 <p><em>Warrant (well-known):</em> sqrt(a)^2 = a for a &gt;= 0 (the defining property).</p>
+<h4 id="p-submodule-finsum-closed">submodule-finsum-closed</h4>
+<pre>forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))</pre>
+<p><em>Warrant (well-known):</em> A submodule contains every finite sum of its elements: induction on |S| via finsum-insert (the peeled term and the rest are both in sm, and IS-SUBMODULE is closed under VADD); the base case is finsum-empty and VZERO in sm.</p>
 <h4 id="p-sum-set-left-scalar">sum-set-left-scalar</h4>
 <pre>forall([s], is-ring(s) implies forall([a in carr(s), x], x in set and card(x) in nn implies forall([f in fun(x, carr(s))], (mul(s))(a, sum-set(s, x, f)) = sum-set(s, x, vnb-lambda(z, (mul(s))(a, f(z)))))))</pre>
 <p><em>Warrant (informal):</em> Left distributivity of a ring element across a finite sum.  Induction on card(x): the step applies the ring&#x27;s left-distributive law a<em>(u + v) = a</em>u + a*v over finsum-insert.  Mirror: sum-set-right-scalar.</p>
@@ -1469,11 +1478,8 @@
 <pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forsome([g in fun(quotient(s), z)], forall([a in pts(s)], g(class(s, a)) = f(a)) and forall([g_], g_ in fun(quotient(s), z) and forall([a in pts(s)], g_(class(s, a)) = f(a)) implies g_ = g))))</pre>
 <p><em>In words:</em> For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient PTS(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.</p>
 <p><em>Warrant (well-known):</em> EXISTENCE: take g = DESCEND(f); descend-in-fun types it and descend-computes gives the factorization g([a])=f(a).  UNIQUENESS: any g&#x27; factoring f agrees with g on every [a] (both equal f(a)); every element of QUOTIENT(s) is such an [a] (image of PROJ), so g&#x27; and g agree everywhere on QUOTIENT(s) and are equal by function extensionality.  This is what makes X |-&gt; X/REL a functor: the concrete quotient has the defining mapping property.  Capstone asserted with a faithful sketch over the installed CLASS/QUOTIENT/PROJ/DESCEND supports, in the prod-of-sums-expansion / binomial-theorem library style -- the machinery is the deliverable, the QED induction-free factorization argument is the deferred tactic grind, with no missing primitive.</p>
-<h3 id="PSS__uncategorized-96">Uncategorized  (96)</h3>
+<h3 id="PSS__uncategorized-93">Uncategorized  (93)</h3>
 <p>Not yet filed under a PSS category -- see <code>category!</code>.</p>
-<h4 id="p-block-type">block-type</h4>
-<pre>forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k &lt;= m implies l &lt;= n implies block(p, k, l) in mat(k, l, x))</pre>
-<p><em>Warrant (reference):</em> The leading k-by-l block of an m-by-n matrix over X is a k-by-l matrix over X (matof-in-mat; every value ENTRY P i j with i&lt;=k&lt;=m, j&lt;=l&lt;=n lies in X).</p>
 <h4 id="p-bt-add-in-carr">bt-add-in-carr</h4>
 <pre>forall([r], is-commutative-ring(r) implies forall([a in carr(r), b in carr(r)], (add(r))(a, b) in carr(r)))</pre>
 <p><em>Warrant (well-known):</em> curried ring-carrier-closed-add.</p>
@@ -1612,9 +1618,6 @@
 <h4 id="p-elem-h-type">elem-h-type</h4>
 <pre>forall([a], is-ring(a) implies forall([n, r, k], r in carr(a) implies elem-h(a, n, r, k) in mat(n, n, carr(a))))</pre>
 <p><em>Warrant (reference):</em> ELEM-H(A,n,r,k) is an n-by-n matrix over CARR A when r in CARR A (entries are ONE/ZERO/r, all in CARR A; matof-in-mat).</p>
-<h4 id="p-entry-of-block">entry-of-block</h4>
-<pre>forall([p, k, l, i, j], i in interval(1, k) implies j in interval(1, l) implies entry(block(p, k, l), i, j) = entry(p, i, j))</pre>
-<p><em>Warrant (reference):</em> BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).</p>
 <h4 id="p-entry-of-elem-f">entry-of-elem-f</h4>
 <pre>forall([a, n, k, l, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(elem-f(a, n, k, l), i, j) = if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a)))</pre>
 <p><em>Warrant (reference):</em> (ELEM-F A n k l)_{ij} = 1 on the swap graph {(k,l),(l,k)} and on the diagonal off k,l; else 0 (entry-of-matof on the transposition-(k l) entry function).</p>
@@ -1726,9 +1729,6 @@
 <h4 id="p-submat-type">submat-type</h4>
 <pre>forall([a, p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))</pre>
 <p><em>Warrant (reference):</em> SUBMAT(P,p,q) in MAT(p,q,CARR A) for P in MAT(succ p, succ q, CARR A): each block entry is P_{succ i, succ j} in CARR A (entry-in-carrier; succ i in [1,succ p] for i in [1,p]), so matof-in-mat applies.</p>
-<h4 id="p-submodule-finsum-closed">submodule-finsum-closed</h4>
-<pre>forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))</pre>
-<p><em>Warrant (well-known):</em> A submodule contains every finite sum of its elements: induction on |S| via finsum-insert (the peeled term and the rest are both in sm, and IS-SUBMODULE is closed under VADD); the base case is finsum-empty and VZERO in sm.</p>
 <h4 id="p-tel-dist-type">tel-dist-type</h4>
 <pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, (mul(a))((vnb-lambda(j, (mul(a))(entry(p, row, j), entry(q, j, x))))(z), entry(r, x, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>

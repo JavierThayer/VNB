@@ -289,49 +289,49 @@
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'good-sub z)))))
 (dc-split)                                        ; GOOD-SUB(T), MAX
 (define GSUBT (dc-find (lambda (z) (and ((dc-head? 'GOOD-SUB) z)))))
-(define TT (list-ref GSUBT 4))                    ; GOOD-SUB m s f T
+(define HB-TT (list-ref GSUBT 4))                    ; GOOD-SUB m s f T
 (define MAXT (dc-find (lambda (z) (and ((dc-head? 'FORALL) z) (dc-ment? 'good-sub z)))))
 
 ;;; T is a submodule (without destroying GOOD-SUB(T), which good-step needs)
-(quietly (lambda () (fact 'good-sub-submodule 'm 's 'f TT)))   ; IS-SUBMODULE m T
+(quietly (lambda () (fact 'good-sub-submodule 'm 's 'f HB-TT)))   ; IS-SUBMODULE m T
 
 ;;; ---- claim: T = VEC(m) ----
-(cut (list '= TT '(VEC m)))                       ; auto-focus this subgoal
+(cut (list '= HB-TT '(VEC m)))                       ; auto-focus this subgoal
 (pbc)                                             ; assume NOT (= T (VEC m)); goal FALSITY
-(quietly (lambda () (fact 'submodule-subset 'm TT)))          ; SUBSET T (VEC m)
-(quietly (lambda () (fact 'proper-subset-witness TT '(VEC m))))  ; needs SUBSET, NOT(= T VECm)
-(ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'vec z) (dc-ment? TT z)))))
+(quietly (lambda () (fact 'submodule-subset 'm HB-TT)))          ; SUBSET T (VEC m)
+(quietly (lambda () (fact 'proper-subset-witness HB-TT '(VEC m))))  ; needs SUBSET, NOT(= T VECm)
+(ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'vec z) (dc-ment? HB-TT z)))))
 (dc-split)                                        ; (IN XW (VEC m)), (NOT (IN XW T))
 (define XW (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) '(VEC m))
                                            (not (equal? (cadr z) '(VZERO m))))))))
-(define UU (list 'SPAN-ADD-ONE 'm TT XW))
+(define UU (list 'SPAN-ADD-ONE 'm HB-TT XW))
 
 ;;; good-step: U = T + RR.XW is reachable
 (define GSANT (conjuncts->and (list '(IS-NORMED-VECTOR-SPACE m)
                                     '(IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
-                                    (list 'GOOD-SUB 'm 's 'f TT)
+                                    (list 'GOOD-SUB 'm 's 'f HB-TT)
                                     (list 'IN XW '(VEC m))
-                                    (list 'NOT (list 'IN XW TT)))))
-(cut GSANT) (dc-grind!) (dc-focus-case! (list 'NOT (list 'IN XW TT)))
-(quietly (lambda () (fact 'good-step 'm 's 'f TT XW)))         ; GOOD-SUB(U)
-(quietly (lambda () (fact 'span-add-one-superset 'm TT XW)))   ; SUBSET T U
+                                    (list 'NOT (list 'IN XW HB-TT)))))
+(cut GSANT) (dc-grind!) (dc-focus-case! (list 'NOT (list 'IN XW HB-TT)))
+(quietly (lambda () (fact 'good-step 'm 's 'f HB-TT XW)))         ; GOOD-SUB(U)
+(quietly (lambda () (fact 'span-add-one-superset 'm HB-TT XW)))   ; SUBSET T U
 
 ;;; maximality forces T = U, but XW in U and XW notin T -- contradiction
-(quietly (lambda () (fact 'span-add-one-has-v 'm TT XW)))   ; IN XW U
+(quietly (lambda () (fact 'span-add-one-has-v 'm HB-TT XW)))   ; IN XW U
 (quietly (lambda () (inst+ MAXT UU)))                       ; IMPLIES (AND GOOD-SUB(U) SUBSET T U)(= T U)
-(define ANDMU (list 'AND (list 'GOOD-SUB 'm 's 'f UU) (list 'SUBSET TT UU)))
-(cut ANDMU) (dc-grind!) (dc-focus-case! (list 'NOT (list 'IN XW TT)))
+(define ANDMU (list 'AND (list 'GOOD-SUB 'm 's 'f UU) (list 'SUBSET HB-TT UU)))
+(cut ANDMU) (dc-grind!) (dc-focus-case! (list 'NOT (list 'IN XW HB-TT)))
 (dc-detach-impl! ANDMU)                                     ; (= T U)
-(cut (list 'IN XW TT))                                      ; auto-focus
-(subst (list '= TT UU))                                     ; (IN XW T) -> (IN XW U)
+(cut (list 'IN XW HB-TT))                                      ; auto-focus
+(subst (list '= HB-TT UU))                                     ; (IN XW T) -> (IN XW U)
 (quietly (lambda () (ass-all)))
-(dc-focus-case! (list 'NOT (list 'IN XW TT)))
-(ai (dc-find (lambda (z) (and ((dc-head? 'NOT) z) (dc-ment? XW z) (dc-ment? TT z)))))  ; not-elim closes falsity
+(dc-focus-case! (list 'NOT (list 'IN XW HB-TT)))
+(ai (dc-find (lambda (z) (and ((dc-head? 'NOT) z) (dc-ment? XW z) (dc-ment? HB-TT z)))))  ; not-elim closes falsity
 
 ;;; ---- T = VEC(m); transport GT's facts and finish ----
 (dc-focus! HBGOAL)
-(define EQT (list '= TT '(VEC m)))
-(mac-h 'GOOD-SUB (list 'GOOD-SUB 'm 's 'f TT))
+(define EQT (list '= HB-TT '(VEC m)))
+(mac-h 'GOOD-SUB (list 'GOOD-SUB 'm 's 'f HB-TT))
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'npe z)))))
 (define NPEHt (dc-find (dc-head? 'NPE)))
 (define GT (list-ref NPEHt 5))
@@ -342,7 +342,7 @@
 (define POSTEW #f)
 (ew GT)
 (set! POSTEW (dc-gf))
-(define FLIP (list '= '(VEC m) TT))
+(define FLIP (list '= '(VEC m) HB-TT))
 (cut FLIP)                                        ; (= (VEC m) T)
 (subst EQT)                                       ; EQT=(= T (VEC m)); T->(VEC m): (= (VEC m)(VEC m))
 (quietly (lambda () (fact 'vec-is-set 'm)))       ; (IN (VEC m) SET) definedness for rfl

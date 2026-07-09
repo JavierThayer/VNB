@@ -27,9 +27,24 @@
 (define (ss-foc! n) (set-proof-state-focus! *ps* n))
 (define (ss-find pred) (let lp ((as (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
+;; Focus an open leaf by its GOAL.  Errors on miss: the old version returned #f
+;; and silently LEFT FOCUS PUT, which is what let the line-291 drift below go
+;; unnoticed -- every later command then ran in whatever branch focus happened
+;; to be parked in.
 (define (ss-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (if s (begin (set-proof-state-focus! *ps* s) s)
+        (error "ss-foc-goal!: no open leaf matches the goal predicate"))))
+
+;; Focus an open leaf by its ASSUMPTIONS.  Sibling branches routinely share a
+;; goal head, so goal-head navigation cannot separate them; a context formula
+;; unique to one branch can.  Use this after any `ass'/`cut', which hand focus
+;; to an engine-chosen leaf rather than the branch you were working.
+(define (ss-foc-ctx! pred)
+  (let ((s (any-pred (lambda (s) (pred (map wff-formula (sequent-node-assumptions s))))
+                     (proof-leaves))))
+    (if s (begin (set-proof-state-focus! *ps* s) s)
+        (error "ss-foc-ctx!: no open leaf matches the context predicate"))))
 (define (SH? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (ss-di*) (let lp () (let* ((g (ss-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
@@ -53,9 +68,16 @@
 (define (ss-row-forall? f)                 ; forall i_ in [1,m]: i_ > k => row i_ zero
   (and (pair? f) (eq? (car f) 'FORALL) (pair? (caddr f)) (eq? (car (caddr f)) 'IMPLIES)
        (pair? (caddr (caddr f))) (eq? (car (caddr (caddr f))) 'IMPLIES)))
-;; the corresponding GOAL leaves after (mac 'SMITH-STAIRCASE)
+;; the corresponding GOAL leaves after (mac 'SMITH-STAIRCASE).
+;; The row goal must ALSO pin its binder to i_.  The induction STEP goal
+;;   (forall k. IN k NN => INNER2(k) => INNER2(succ k))
+;; has the very same FORALL/IMPLIES/IMPLIES shape as the row conjunct
+;;   (forall i_. i_ in [1,m] => NOT(i_ <= kk) => row i_ vanishes)
+;; and, being an open leaf, gets grabbed FIRST by a shape-only ss-foc-goal!.
+;; That collision is what mauled the step goal and left the base-case row goal
+;; open.  Binders separate them; shapes do not.
 (define (ss-nz-goal? g) (ss-nz-forall? g))
-(define (ss-row-goal? g) (ss-row-forall? g))
+(define (ss-row-goal? g) (and (ss-row-forall? g) (eq? (cadr g) 'i_)))
 
 ;; the contradiction closing any goal under an index in the empty interval [1,0]
 (define (ss-empty-interval! iv)
@@ -289,6 +311,15 @@
 (subst (list '= 'n SS-SQN))
 (cut (list 'IN 'P (list 'MAT '(succ k) SS-SQN '(CARR A))))
 (subst (list '= SS-SQN 'n)) (ass)
+;; `ass' closed the cut's SIDE goal and handed focus to an engine-chosen leaf --
+;; a stale NOT(1<=n) leaf, not the cut's main branch.  Everything below (the
+;; pivot dance) must run in the 1<=n branch, so re-focus it explicitly, keyed on
+;; context: the skolem's typing hypothesis plus the cut formula pin it uniquely.
+;; Keying on the goal head would not: several open leaves are FORALL/FORSOME.
+(ss-foc-ctx! (lambda (as)
+  (and (member (list 'IN SS-Q 'NN) as)
+       (member (list 'IN 'P (list 'MAT '(succ k) SS-SQN '(CARR A))) as)
+       #t)))
 (define SS-NZk (list 'FORSOME 'i0 (list 'FORSOME 'j0
    (list 'AND (list 'IN 'i0 (list 'INTERVAL 1 '(succ k)))
      (list 'AND (list 'IN 'j0 (list 'INTERVAL 1 SS-SQN))
@@ -296,8 +327,13 @@
 (define SS-NNZ (ss-cases SS-NZk))
 
 ;; ===== nonzero: clear-pivot-cross + IH + bordering + border-staircase =====
+;; `fact' peels the leading universals and auto-detaches every antecedent already
+;; in context -- here IS-EUCLIDEAN-RING A, (IN k NN), (IN SS-Q NN), the MAT typing
+;; and the nonzero-exists guard SS-NZk (supplied by the ss-cases split) -- so the
+;; FORSOME C2 conclusion lands directly.  NOTE: no (detach! SS-NZk) here.  detach!
+;; takes the IMPLIES formula, not its antecedent, so `(detach! SS-NZk)' was always
+;; a silent no-op (it is one in smith-diagonalization-proof.scm too, harmlessly).
 (fact 'clear-pivot-cross 'A 'k SS-Q 'P)
-(quietly (lambda () (detach! SS-NZk)))
 (define SS-CPC (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'FORSOME) (eq? (cadr z) 'C2)))))
 (ai SS-CPC) (ai 1) (ai 1)
 (define SS-C2 (list-ref (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'MAT-EQUIV) (equal? (list-ref z 4) 'P)))) 5))
@@ -336,6 +372,11 @@
 
 ;; ===== zero: no nonzero entry => P is already a staircase at 0 =====
 (ss-foc! SS-NNZ)
+;; ss-zero-witness! closes the column bound by (fact 'nn-zero-le coldim), which
+;; auto-detaches only if (IN coldim NN) is in context.  Here coldim = (succ q),
+;; and nn-succ-closed has so far been applied to k alone -- so type (succ q)
+;; first, else (<= 0 (succ q)) is left open.
+(fact 'nn-succ-closed SS-Q)
 (ss-zero-witness! '(succ k) SS-SQN)
 ;; conj1: IS-DIAGONAL -- every entry is zero
 (ss-foc-goal! (SH? 'IS-DIAGONAL))

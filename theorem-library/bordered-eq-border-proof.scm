@@ -30,7 +30,12 @@
 
 (define C11 '(ENTRY C 1 1))
 (define SC '(SUBMAT C p q))
-(define BC (list 'BORDER 'A C11 SC 'p 'q))
+;; BM-BC, not BC: the reader and MIT Scheme both case-fold, so a top-level
+;; `(define BC ...)' rebinds the `bc' TACTIC to this list, and every later
+;; (bc 'thm) dies with "The object (border ...) is not applicable".  Same trap
+;; as the SP -> sp clobber in the smith driver.  Never name a helper like a
+;; command.  [[project_clear_pivot_cross_blocker]]
+(define BM-BC (list 'BORDER 'A C11 SC 'p 'q))
 ;; the cleared-row / cleared-col hypotheses, kept as literal sexps so we can
 ;; inst+ them directly (scraping context by bound var mis-grabbed the
 ;; entry-in-carrier typing lemma's forall ancestor).
@@ -41,7 +46,7 @@
 
 (sp (make-wff (list 'FORALL 'A (list 'IMPLIES '(IS-RING A) (fa* '(p q C)
     (impl* (list '(IN p NN) '(IN q NN) '(IN C (MAT (succ p) (succ q) (CARR A))) ROWH COLH)
-      (list '= 'C BC)))))))
+      (list '= 'C BM-BC)))))))
 (bm-di*)
 (fact 'submat-type 'A 'p 'q 'C)
 (fact 'one-in-interval 'p) (fact 'one-in-interval 'q)   ; 1 in interval(1,succ p/q) -> C11-in-carr + border-type bare
@@ -51,7 +56,7 @@
 ;; reduce C = BORDER(...) to an entrywise identity.
 (cut (fa* '(row) (impl* '((IN row (INTERVAL 1 (succ p))))
        (fa* '(col) (impl* '((IN col (INTERVAL 1 (succ q))))
-         (list '= (list 'ENTRY 'C 'row 'col) (list 'ENTRY BC 'row 'col)))))))
+         (list '= (list 'ENTRY 'C 'row 'col) (list 'ENTRY BM-BC 'row 'col)))))))
 (bm-di*)
 (fact 'interval-elt-in-nn 1 '(succ p) 'row) (fact 'interval-lo 1 '(succ p) 'row)
 (fact 'interval-elt-in-nn 1 '(succ q) 'col) (fact 'interval-lo 1 '(succ q) 'col)
@@ -61,22 +66,22 @@
 (define NEQj1a (bm-cases '(= col 1)))
 ;; row=1,col=1 : the pivot corner
 (subst '(= col 1))
-(fact 'border-entry-11 'A C11 SC 'p 'q) (subst (list '= (list 'ENTRY BC 1 1) C11)) (rfl)
+(fact 'border-entry-11 'A C11 SC 'p 'q) (subst (list '= (list 'ENTRY BM-BC 1 1) C11)) (rfl)
 (bm-foc! NEQj1a)
 ;; row=1,col/=1 : both 0 (BORDER top border + cleared row)
-(fact 'border-entry-1j 'A C11 SC 'p 'q 'col) (subst (list '= (list 'ENTRY BC 1 'col) '(ZERO A)))
+(fact 'border-entry-1j 'A C11 SC 'p 'q 'col) (subst (list '= (list 'ENTRY BM-BC 1 'col) '(ZERO A)))
 (inst+ ROWH 'col) (ass)
 ;; ---- row /= 1 ----
 (bm-foc! NEQi1)
 (define NEQj1b (bm-cases '(= col 1)))
 ;; row/=1,col=1 : both 0 (BORDER left border + cleared col)
 (subst '(= col 1))
-(fact 'border-entry-i1 'A C11 SC 'p 'q 'row) (subst (list '= (list 'ENTRY BC 'row 1) '(ZERO A)))
+(fact 'border-entry-i1 'A C11 SC 'p 'q 'row) (subst (list '= (list 'ENTRY BM-BC 'row 1) '(ZERO A)))
 (inst+ COLH 'row) (ass)
 (bm-foc! NEQj1b)
 ;; row/=1,col/=1 : block = SUBMAT_{row-1,col-1} = C_{row,col}
 (fact 'border-entry-block2 'A C11 SC 'p 'q 'row 'col)
-(subst (list '= (list 'ENTRY BC 'row 'col) (list 'ENTRY SC '(NN-MINUS row 1) '(NN-MINUS col 1))))
+(subst (list '= (list 'ENTRY BM-BC 'row 'col) (list 'ENTRY SC '(NN-MINUS row 1) '(NN-MINUS col 1))))
 (fact 'pred-in-interval 'p 'row) (fact 'pred-in-interval 'q 'col)
 (fact 'entry-of-submat 'C 'p 'q '(NN-MINUS row 1) '(NN-MINUS col 1))
 (subst (list '= (list 'ENTRY SC '(NN-MINUS row 1) '(NN-MINUS col 1))
@@ -87,7 +92,7 @@
 (rfl)
 ;; ---- back to main goal: matrix-entry-extensionality ----
 (bm-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) 'C))))
-(fact 'matrix-entry-extensionality '(succ p) '(succ q) '(CARR A) 'C BC)
+(fact 'matrix-entry-extensionality '(succ p) '(succ q) '(CARR A) 'C BM-BC)
 (ass)
 
 (qed 'bordered-eq-border)
