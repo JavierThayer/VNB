@@ -37,8 +37,10 @@ Recompile via `(recompile-vnb!)` (load.scm:699).
 requests `--heap 120000`, about 1 GB. **Two concurrent provers fit; three do not.**
 
 Never `pkill -f mit-scheme` from a shell command: the pattern matches the killing
-command's own command line and takes down the shell (exit 144). Use `ps`/`pgrep`
-with a bracket class, e.g. `grep "[m]it-scheme"`.
+command's own command line and takes down the shell (exit 144). A bracket class
+(`pgrep -f "[m]it-scheme"`) only saves `pgrep` from matching *itself* -- if the surrounding
+shell was launched as `... mit-scheme ...`, `-f` still matches it and you kill your own
+shell. Match the executable, not the command line: **`pgrep -x mit-scheme`**.
 
 ## Case folding -- the trap that keeps biting
 
@@ -123,6 +125,26 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   in-arrow, so `(null? (sequent-node-in-arrows n))` afterwards means it did not.
 * Debugging recipe that works: `head -N` the proof file into scratchpad, append a dump of
   `(proof-leaves)` with each leaf's goal head and a distinguishing context formula, run it.
+
+## Where a driver helper lives
+
+**Every proof-driving Scheme procedure is either in `driver-kit.scm` -- loaded before any
+proof -- or is local to the file that defines it.** There is no third place.
+
+`load.scm` enforces the second half: once `driver-kit` has loaded, each `theorem-library/`
+and `calculus/` file is loaded into a fresh `extend-top-level-environment`. A driver's
+top-level `define`s stay in its own frame; its `set!` of `*ps*` still reaches the real
+binding, and it still sees every tactic, every macro (`bc*`) and everything `driver-kit`
+defines. So a stray `(define BC '(succ p))` now breaks only its own file.
+
+Before this, both halves were false and nobody had said so: `proof-leaves` and `any-pred`
+were defined *only* inside `theorem-library/nn-least-element.scm` -- a proof script -- and
+used by `interactive.scm`, `macetes.scm` and eighteen drivers; `deriv-constant-proof.scm`
+exported a thirteen-procedure `dc-` kit to nine drivers, under a comment calling it
+"file-local". It worked only because Scheme resolves free variables at call time.
+
+If exactly one file needs a helper, define it there with the file's prefix. If two do, it
+belongs in `driver-kit.scm`.
 
 ## Layout
 

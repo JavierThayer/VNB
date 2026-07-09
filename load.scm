@@ -327,6 +327,13 @@
     ;; Surface-syntax accessors for the PARTS of a formula (part / match /
     ;; formula-kind): reach subterms by surface names, never by s-expr position.
     "parts"
+    ;; The proof-driving helpers more than one driver needs (proof-leaves,
+    ;; any-pred, the dc- kit, ...), formerly scattered through proof scripts that
+    ;; leaked them into the global environment.  Loading it also ARMS the
+    ;; containment below: every theorem-library/ and calculus/ file after this
+    ;; point gets its own top-level environment.  Must follow interactive /
+    ;; input-context (whose tactics it calls) and precede every proof file.
+    "driver-kit"
     ;; Warrant / proof-debt ledger: records each qed proof's bill of asserted
     ;; facts it rests on (loads right after interactive so qed can call it).
     "proof-debt"
@@ -675,6 +682,30 @@
 ;; procedure with another procedure is exactly what the guard permits.
 (define (clobber-guard-check! file) file)
 
+;;; PROOF-FILE CONTAINMENT.
+;;;
+;;; The rule (driver-kit.scm): every proof-driving Scheme procedure is either
+;;; defined in driver-kit.scm, loaded before any proof, or is local to the file
+;;; that defines it.  The second half is enforced here -- once driver-kit has
+;;; loaded, each theorem-library/ and calculus/ file gets a fresh
+;;; `extend-top-level-environment'.
+;;;
+;;; What that buys, verified: a file's top-level `define's stay in its own frame
+;;; and cannot be seen by the next file, while its `set!' of *ps* still reaches
+;;; the real binding, and it still sees every tactic, every macro (`bc*') and
+;;; everything driver-kit defines.  So `(define BC '(succ p))' in a driver can no
+;;; longer take down four tests in another file -- it breaks only its own.
+;;;
+;;; The flag starts #f, so the theorem-library/ VOCABULARY files that load before
+;;; interactive (axioms, finsum-additive, ...) are untouched: they legitimately
+;;; share wff-building helpers such as `tf' and `finite'.
+(define *contain-proof-files?* #f)
+
+(define (proof-file? f)
+  (and *contain-proof-files?*
+       (or (string-prefix? "theorem-library/" f)
+           (string-prefix? "calculus/" f))))
+
 (define (prover-load f)
   (let* ((base (string-append *prover-dir* f))
          ;; ALWAYS prefer a fresh .com; fall back to .scm SOURCE when the .com is
@@ -683,10 +714,13 @@
          ;; otherwise picks a .com over its .scm blindly, silently serving a stale
          ;; binary (the classic "edited .scm but old .com wins" footgun).
          (path (if (file-fresh-com? base) base (string-append base ".scm"))))
-    (if (member f *primitive-files*)
-        (fluid-let ((*current-provenance* 'primitive)) (load path))
-        (load path))
-    ;; No-op until clobber-guard.scm has taken its snapshot.
+    (cond ((member f *primitive-files*)
+           (fluid-let ((*current-provenance* 'primitive)) (load path)))
+          ((proof-file? f)
+           (load path (extend-top-level-environment *driver-kit-env*)))
+          (else (load path)))
+    ;; No-op until clobber-guard.scm has taken its snapshot.  Contained files can
+    ;; no longer trip it; it still guards the engine and structure-library.
     (clobber-guard-check! f)))
 
 ;; Load every file -- but clear *vnb-loading* if a file errors mid-load, so a

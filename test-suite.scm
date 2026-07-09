@@ -3480,6 +3480,46 @@
       fired)))
 
 ;;; -----------------------------------------------------------------------
+;;; driver-kit + proof-file containment (driver-kit.scm, load.scm)
+;;;
+;;; The rule: every proof-driving Scheme procedure is either in driver-kit.scm,
+;;; loaded before any proof, or is local to its own file's environment.  Check
+;;; both halves, and check that a contained file's define really cannot escape.
+
+(check-true "driver-kit: the shared helpers are here, not in a proof script"
+  (lambda () (and (procedure? any-pred) (procedure? proof-leaves)
+                  (procedure? dc-find)  (procedure? dc-focus-case!)
+                  (procedure? hb-detach-opt!) (procedure? hbf-focus-open!))))
+
+(check-true "driver-kit: containment is armed"
+  (lambda () (and *contain-proof-files?* (proof-file? "theorem-library/smith-proof"))))
+
+(check-false "driver-kit: engine and structure-library files are NOT contained"
+  (lambda () (or (proof-file? "interactive") (proof-file? "structure-library/ideal"))))
+
+(check-false "containment: a proof file's local helper did not escape"
+  ;; nn-least-element.scm defines `split-ands!' and deriv-constant-proof.scm
+  ;; defines `dc-up-eq!'.  Both loaded; neither may be visible out here.
+  (lambda () (or (environment-bound? *driver-kit-env* 'split-ands!)
+                 (environment-bound? *driver-kit-env* 'dc-up-eq!))))
+
+(check-true "containment: a (define BC ...) in a proof file cannot reach the tactic"
+  (lambda ()
+    (let ((kid (extend-top-level-environment *driver-kit-env*)))
+      (eval '(define bc '(a term)) kid)
+      (and (procedure? bc)                                  ; the real tactic survives
+           (not (procedure? (environment-lookup kid 'bc))))))) ; the driver sees its term
+
+(check-true "containment: a contained file still set!s the real *ps*"
+  (lambda ()
+    (let ((kid (extend-top-level-environment *driver-kit-env*))
+          (saved *ps*))
+      (eval '(set! *ps* 'containment-probe) kid)
+      (let ((reached (eq? *ps* 'containment-probe)))
+        (set! *ps* saved)
+        reached))))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)

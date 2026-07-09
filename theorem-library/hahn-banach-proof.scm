@@ -152,15 +152,7 @@
 (define RV (cadr (caddr (caddr EQW))))            ; ((ACT m) R v) -> R
 
 ;;; conditional implication-detach (no error if already detached)
-(define (hb-detach-opt! ant)
-  (let ((target (expression->string ant)))
-    (let loop ((as (dc-asms)))
-      (cond ((null? as) #f)
-            ((and (pair? (car as)) (eq? (caar as) 'IMPLIES)
-                  (string=? (expression->string (cadr (car as))) target))
-             (detach! (car as)))
-            (else (loop (cdr as)))))))
-
+;; hb-detach-opt! is in driver-kit.scm (used by three other drivers).
 ;;; ---- (5) the bound, by rewriting g(y+r.v) = f(y)+r.alpha and citing hb-gap ----
 (subst EQW)                                       ; goal: abs(g(y+r.v)) <= M*||y+r.v||
 ;; VALREL: g(y+r.v) = f(y)+r.alpha

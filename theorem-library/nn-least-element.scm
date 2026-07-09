@@ -23,13 +23,11 @@
 ;;; ===================================================================
 
 ;;; ---- helpers (subset of prop-3-15-proof.scm) ----
-(define (proof-leaves)
-  (filter (lambda (sqn) (and (not (sequent-node-grounded? sqn))
-                             (null? (sequent-node-in-arrows sqn))))
-          (dg-ungrounded-nodes (proof-state-dg *ps*))))
+;;; `proof-leaves' and `any-pred' used to be defined HERE, and were consumed by
+;;; interactive.scm, macetes.scm and eighteen other drivers.  They now live in
+;;; driver-kit.scm.  The rest are file-local, and this file now loads in its own
+;;; environment, so they cannot escape.
 (define (sub? substr s) (and (string-search-forward substr s 0) #t))
-(define (any-pred pred lst)
-  (let loop ((l lst)) (cond ((null? l) #f) ((pred (car l)) (car l)) (else (loop (cdr l))))))
 (define (cur-sqn) (proof-state-focus *ps*))
 (define (cur-goal-raw) (wff-formula (sequent-node-assertion (cur-sqn))))
 (define (asm-set) (map wff-formula (sequent-node-assumptions (cur-sqn))))

@@ -169,13 +169,7 @@
 ;;; ====================================================================
 
 ;;; local: focus an OPEN leaf whose goal sexp satisfies `pred'.
-(define (hbf-focus-open! pred)
-  (let loop ((ls (dc-open-leaves)))
-    (cond ((null? ls) (error "hbf-focus-open!: none match"))
-          ((pred (wff-formula (sequent-node-assertion (car ls))))
-           (set-proof-state-focus! *ps* (car ls)) (car ls))
-          (else (loop (cdr ls))))))
-
+;; hbf-focus-open! is in driver-kit.scm (used by norm-as-sup-proof).
 (sp '(FORALL m (FORALL s (FORALL f (FORALL t (FORALL x
      (IMPLIES (AND (IS-NORMED-VECTOR-SPACE m)
                (AND (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)

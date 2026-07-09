@@ -1058,8 +1058,10 @@
                         (w  (warrant-of n)))
                     (or (substring? pat nm)
                         (and w (substring? pat (string-downcase (cdr w))))
-                        (any-pred (lambda (s) (substring? pat (string-downcase s)))
-                                  (aliases-of n))))))
+                        ;; find-first, not any-pred: any-pred is defined in
+                        ;; driver-kit.scm, 110 files later.
+                        (find-first (lambda (s) (substring? pat (string-downcase s)))
+                                    (aliases-of n))))))
          ;; one record per hit: an alist carrying EVERYTHING printed, so a
          ;; caller can consume the result, not just read the side-effect.
          (records (map (lambda (n)

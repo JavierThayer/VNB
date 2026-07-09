@@ -12,43 +12,11 @@
 ;;; decompose-the-focused-leaf side effect).
 ;;; ====================================================================
 
-;;; --- file-local proof helpers ---
-(define (dc-gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
-(define (dc-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
-(define (dc-find pred) (let loop ((as (dc-asms)))
-  (cond ((null? as) #f) ((pred (car as)) (car as)) (else (loop (cdr as))))))
-(define (dc-head? h) (lambda (a) (and (pair? a) (eq? (car a) h))))
-(define (dc-ment? sym form) (cond ((eq? form sym) #t)
-  ((pair? form) (or (dc-ment? sym (car form)) (dc-ment? sym (cdr form)))) (else #f)))
-(define (dc-split) (let loop ((n 0)) (let ((a (dc-find (dc-head? 'AND))))
-  (cond ((and a (< n 16)) (ai a) (loop (+ n 1))) (else n)))))
-(define (dc-focus! raw)   ; focus the leaf whose goal prints the same as `raw'
-  (let ((target (expression->string raw)))
-    (let loop ((ls (proof-leaves)))
-      (cond ((null? ls) (error "dc-focus!: none equal" target))
-            ((string=? (expression->string (wff-formula (sequent-node-assertion (car ls)))) target)
-             (set-proof-state-focus! *ps* (car ls)) (car ls))
-            (else (loop (cdr ls)))))))
-(define (dc-grind!) (let loop ((g 0)) (quietly (lambda () (ass-all)))
-  (let ((al (any-pred (lambda (s) (let ((gg (wff-formula (sequent-node-assertion s))))
-              (and (not (sequent-node-grounded? s)) (pair? gg) (eq? (car gg) 'AND)))) (proof-leaves))))
-    (when (and al (< g 40)) (set-proof-state-focus! *ps* al) (di) (loop (+ g 1))))))
-(define (dc-have! mem back)  ; cut a real-membership fact, prove by in-rr, return to `back'
-  (cut mem) (in-rr) (dc-focus! back))
-(define (dc-detach-impl! ant)   ; detach the ctx IMPLIES whose antecedent prints as `ant'
-  (let ((target (expression->string ant)))
-    (let loop ((as (dc-asms)))
-      (cond ((null? as) (error "dc-detach-impl!: no IMPLIES with antecedent" target))
-            ((and (pair? (car as)) (eq? (caar as) 'IMPLIES)
-                  (string=? (expression->string (cadr (car as))) target))
-             (detach! (car as)))
-            (else (loop (cdr as)))))))
-(define (dc-open-leaves) (filter (lambda (s) (not (sequent-node-grounded? s))) (proof-leaves)))
-(define (dc-dump tag) (display ";;; [")(display tag)(display "] done?=")(display (proof-done? *ps*))
-  (display " open=")(display (length (dc-open-leaves)))(newline)
-  (display ";;;   goal=")(write (expression->string (dc-gf)))(newline)
-  (for-each (lambda (s) (display ";;;   OPEN ")(write (expression->string (wff-formula (sequent-node-assertion s))))(newline))
-            (dc-open-leaves)))
+;;; --- proof helpers ---
+;;; The dc- kit that used to be defined here -- and that the old comment called
+;;; "file-local" while nine later drivers consumed it -- now lives in
+;;; driver-kit.scm.  dc-rr-of! and dc-up-eq!, below, stay here: they close over
+;;; this proof's own a, b, MGOAL and TYPAND.
 
 ;;; --- warranted support: trichotomy of the strict order on RR ---
 (add-to-pss 'rr-lt-trichotomy
@@ -181,16 +149,7 @@
 ;;; Cor 2.15:  deriv-zero-implies-constant -- the full statement.
 ;;; Trichotomy on u,v: u<v / u=v / v<u, each reduced to the lemma above.
 ;;; ====================================================================
-(define (dc-focus-case! marker)   ; focus the open leaf whose ctx contains `marker'
-  (let ((mstr (expression->string marker)))
-    (let loop ((ls (proof-leaves)))
-      (cond ((null? ls) (error "dc-focus-case!: none" mstr))
-            ((and (not (sequent-node-grounded? (car ls)))
-                  (any-pred (lambda (a) (string=? (expression->string a) mstr))
-                            (map wff-formula (sequent-node-assumptions (car ls)))))
-             (set-proof-state-focus! *ps* (car ls)))
-            (else (loop (cdr ls)))))))
-
+;; dc-focus-case! is in driver-kit.scm (used by six other drivers).
 (sp '(FORALL f (FORALL a (FORALL b
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))

@@ -576,18 +576,27 @@
 ;; in context are typed too.  No new closure axioms: everything reduces to the
 ;; operator typings (binplus-in-fun-D ...) + apply-tupling + fun-apply-type-c.
 (define (in-rr--goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+;; These used to call `any-pred' and `proof-leaves' -- which were defined nowhere
+;; in the engine, only inside theorem-library/nn-least-element.scm, a proof
+;; script loaded 16 files LATER.  It worked because Scheme resolves free
+;; variables at call time.  Use find-first (deduction-graphs.scm) and a local
+;; leaf scan, so `in-rr' depends on nothing that loads after it.
+(define (in-rr--leaves)
+  (filter (lambda (sqn) (and (not (sequent-node-grounded? sqn))
+                             (null? (sequent-node-in-arrows sqn))))
+          (dg-ungrounded-nodes (proof-state-dg *ps*))))
 (define (in-rr--focus-goal! raw)
-  (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
-                     (proof-leaves))))
+  (let ((s (find-first (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
+                       (in-rr--leaves))))
     (and s (set-proof-state-focus! *ps* s) s)))
 (define (in-rr--focus-asm! raw)
-  (let ((s (any-pred (lambda (s) (any-pred (lambda (w) (equal? (wff-formula w) raw))
-                                           (sequent-node-assumptions s)))
-                     (proof-leaves))))
+  (let ((s (find-first (lambda (s) (find-first (lambda (w) (equal? (wff-formula w) raw))
+                                               (sequent-node-assumptions s)))
+                       (in-rr--leaves))))
     (and s (set-proof-state-focus! *ps* s) s)))
 (define (in-rr--in-ctx? raw)
-  (any-pred (lambda (w) (equal? (wff-formula w) raw))
-            (sequent-node-assumptions (proof-state-focus *ps*))))
+  (find-first (lambda (w) (equal? (wff-formula w) raw))
+              (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (in-rr--fun-dom g S)
   (let ((a (any-pred (lambda (w)
                        (let ((wf (wff-formula w)))
