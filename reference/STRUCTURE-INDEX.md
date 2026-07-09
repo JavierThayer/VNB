@@ -42,7 +42,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -154,8 +154,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr mul id inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr mul id inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr mul id inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul id inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul id inv) ↦ (carr mul id inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul id inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr mul id inv)
 
 *Views from `abelian-group`.*
@@ -433,8 +433,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 - `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul id inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul id inv)
 
 ### group
 <a id="group"></a>
@@ -633,6 +633,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-rev-abelian-group-as-monoid-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], a = (vadd(r))(a, vzero(r))))
+- `spans-transport` — forall([md], is-module(md) implies forall([n, u, pm, sm], u in mat(n, 1, vec(md)) implies is-invertible-mat(scal(md), n, pm) implies is-submodule(md, sm) implies spans(md, n, u, sm) implies spans(md, n, matact(md, pm, u), sm)))
 - `submodule-finsum-closed` — forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))
 
 *Views into `module`.*
@@ -1194,6 +1195,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `identmat-right-identity` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matmul(a, p, identmat(a, n)) = p))
 - `identmat-right-identity-rev` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], p = matmul(a, p, identmat(a, n))))
 - `identmat-type` — forall([a], is-ring(a) implies forall([n], identmat(a, n) in mat(n, n, carr(a))))
+- `inverse-is-invertible` — forall([a], is-ring(a) implies forall([n, pm, qm], pm in mat(n, n, carr(a)) implies qm in mat(n, n, carr(a)) implies matmul(a, pm, qm) = identmat(a, n) implies matmul(a, qm, pm) = identmat(a, n) implies is-invertible-mat(a, n, qm)))
 - `mat-equiv-cod-is-mat` — forall([a], is-ring(a) implies forall([m, n, x, y], x in mat(m, n, carr(a)) implies mat-equiv(a, m, n, x, y) implies y in mat(m, n, carr(a))))
 - `mat-equiv-left-mult` — forall([a], is-ring(a) implies forall([m, n, c, u], c in mat(m, n, carr(a)) implies is-invertible-mat(a, m, u) implies mat-equiv(a, m, n, c, matmul(a, u, c))))
 - `mat-equiv-refl` — forall([a], is-ring(a) implies forall([m, n, c in mat(m, n, carr(a))], mat-equiv(a, m, n, c, c)))

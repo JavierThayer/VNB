@@ -496,6 +496,14 @@
     ;; Phase C, Lemma 3.40: I.u = u, and invertible matrices preserve generating
     ;; and relation-free sequences.
     "theorem-library/mod-basis-proof"
+    ;; The inverse of an invertible matrix is invertible.  Cor 3.46 transports
+    ;; the free generating sequence backwards along Smith's right factor, so the
+    ;; inverse must itself be invertible before the transports will accept it.
+    "theorem-library/inverse-invertible-proof"
+    ;; The SPANS-relativized generates-transport: an invertible matrix carries a
+    ;; sequence spanning a SUBMODULE to another such.  Cor 3.46 needs it because
+    ;; F is a submodule, not the whole module.
+    "theorem-library/spans-transport-proof"
     ;; Phase C, Prop 3.41: an n-generated module bounds every relation-free
     ;; sequence by n -- so rank is well defined.  The payoff of the Smith arc.
     "theorem-library/rank-bound-proof"
