@@ -180,7 +180,8 @@
 
 (qed 'pivot-clears-col)
 (category! 'pivot-clears-col 'algebra)
-;; categorize the two supports introduced for this brick (category! is unavailable
-;; in structure-library/mat-equiv.scm, which loads before the PSS layer)
-(category! 'class-min-pivot 'algebra)
+;; categorize the support introduced for this brick (category! is unavailable
+;; in structure-library/mat-equiv.scm, which loads before the PSS layer).
+;; class-min-pivot categorizes itself now that it is proven, in
+;; theorem-library/class-min-pivot-proof.scm.
 (category! 'nn-succ-le-antisym 'inequalities)

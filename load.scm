@@ -330,6 +330,11 @@
     ;; Warrant / proof-debt ledger: records each qed proof's bill of asserted
     ;; facts it rests on (loads right after interactive so qed can call it).
     "proof-debt"
+    ;; minimize! -- "choose v with MEASURE(v) least".  A composite tactic over
+    ;; the cmd-* layer (no kernel rule); its one mathematical appeal is
+    ;; nn-least-element, resolved by NAME at call time, so it may load here,
+    ;; long before theorem-library/nn-least-element.
+    "minimize"
     ;; The trivial subtype-subsumption laws ("every X is a Y"), PROVEN via
     ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
     ;; interactive tactics + qed/proof-debt, so loads here.
@@ -449,9 +454,17 @@
     ;; foundation for the Smith normal-form induction.  Needs mat-equiv.scm +
     ;; elem-inverses-proof + matrix.scm identities.
     "theorem-library/mat-equiv-proof"
+    ;; min-degree-entry, PROVEN by `minimize!' (formerly an asserted support in
+    ;; mat-equiv.scm).  Must precede smith-proof, which cites it in
+    ;; place-min-pivot.  Needs nn-least-element (above) for minimize!.
+    "theorem-library/min-degree-entry-proof"
     ;; Linear algebra Phase B: the Smith normal-form reduction (Prop 3.36) --
     ;; equiv-mul-both, swap-to-corner, ... built on the ~ equivalence laws.
     "theorem-library/smith-proof"
+    ;; mat-equiv-target-is-mat + class-min-pivot, PROVEN by `minimize!' plus
+    ;; swap-to-corner-gen (formerly an asserted support in mat-equiv.scm).  After
+    ;; smith-proof (swap-to-corner-gen), before clear-pivot-cross (which cites it).
+    "theorem-library/class-min-pivot-proof"
     ;; Linear algebra Phase B: the Smith DESCENT step -- pivot-clears-col, one
     ;; column op zeroes an off-pivot row-1 entry (euclidean remainder forced to
     ;; vanish by class-minimality).  Needs pivot-col-reduce + class-min hyp.

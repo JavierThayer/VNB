@@ -42,7 +42,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -154,8 +154,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr mul iden inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr mul iden inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul iden inv) ↦ (carr mul iden inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr mul iden inv)
 
 *Views from `abelian-group`.*
@@ -1200,6 +1200,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `mat-equiv-left-mult` — forall([a], is-ring(a) implies forall([m, n, c, u], c in mat(m, n, carr(a)) implies is-invertible-mat(a, m, u) implies mat-equiv(a, m, n, c, matmul(a, u, c))))
 - `mat-equiv-refl` — forall([a], is-ring(a) implies forall([m, n, c in mat(m, n, carr(a))], mat-equiv(a, m, n, c, c)))
 - `mat-equiv-right-mult` — forall([a], is-ring(a) implies forall([m, n, c, v], c in mat(m, n, carr(a)) implies is-invertible-mat(a, n, v) implies mat-equiv(a, m, n, c, matmul(a, c, v))))
+- `mat-equiv-target-is-mat` — forall([a], is-ring(a) implies forall([m, n, c, d], c in mat(m, n, carr(a)) implies mat-equiv(a, m, n, c, d) implies d in mat(m, n, carr(a))))
 - `mat-equiv-trans` — forall([a], is-ring(a) implies forall([m, n, c, d, e], c in mat(m, n, carr(a)) implies mat-equiv(a, m, n, c, d) implies mat-equiv(a, m, n, d, e) implies mat-equiv(a, m, n, c, e)))
 - `mat-ring-add-fun` — forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], matadd(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))
 - `mat-ring-is-ring` — forall([a], is-ring(a) implies forall([n in nn], is-ring(mat-ring(a, n))))

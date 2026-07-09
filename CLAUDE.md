@@ -1,13 +1,13 @@
 # VNB proof checker -- working brief
 
-VNB is a proof checker and generally a math assistant written in MIT
-Scheme with a user interface in GNU/Emacs. Much of the documentation
-is available using a web interface. There is also a manual which
-needs periodic update.  The logical framework is von Neumann-Bernays
-set theory but with copious ready-made constructors. Its research state
-(what is proven, what is next) lives in Claude's memory index, not
-here. This file holds the operational facts that are expensive to
-rediscover.
+VNB is a proof checker and more generally a math assistant to help
+users discover proofs. It is written in MIT Scheme with a user interface in
+GNU/Emacs. Much of the documentation is available using a web
+interface. There is also a manual which needs periodic update.  The
+logical framework is von Neumann-Bernays set theory but with copious
+ready-made constructors. Its research state (what is proven, what is
+next) lives in Claude's memory index, not here. This file holds the
+operational facts that are expensive to rediscover.
 
 ## Running it
 
@@ -74,6 +74,12 @@ Treats Claude as a colleague, and can be ill-tempered at times. Does not
 appreciate Claude forgetting previously settled questions. Does not appreciate
 gratuitous compliments.
 
+**More interested in technique than in bulk.** One general mechanism that
+dissolves a class of obligations beats N bespoke lemmas that discharge them one
+at a time. When a proof needs a nasty step, ask first whether the step is an
+instance of something the *machine* can do, and only then whether it is a lemma
+the PSS should assert. A tactic is untrusted; a support is trusted surface.
+
 ## Writing proof drivers
 
 Proof scripts navigate a deduction graph by moving focus between open leaves.
@@ -92,6 +98,18 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   seems inert, dump the context and look for the one missing typing hypothesis.
 * `detach!` takes the **IMPLIES** formula, not its antecedent. `(detach! <antecedent>)`
   is a silent no-op.
+* **`cut` of a formula already in context (up to ALPHA) is a silent self-loop.**
+  `dg-post!` hash-conses sequent nodes by alpha-equivalence of the assertion plus
+  equality of the context, and `context-add-assumption` is alpha-idempotent -- so the
+  "main" child of the cut *is* the focus node. One leaf opens instead of two, the graph
+  gains a cycle, and the failure surfaces branches later as a missing leaf. Guard with
+  `alpha-equiv?` before cutting anything you did not just construct fresh. (This is what
+  `minimize!` does; see `mz--cut!` in minimize.scm.)
+* `quietly` silences `vnb-guard` as well as `show`, so a tactic that *errors* inside it
+  becomes a silent no-op and every later command runs in the wrong branch. A composite
+  tactic wants `show` quiet and the guard loud (`mz--quietly`), plus a per-step
+  "did this rule fire?" check -- every primitive inference gives its focus node an
+  in-arrow, so `(null? (sequent-node-in-arrows n))` afterwards means it did not.
 * Debugging recipe that works: `head -N` the proof file into scratchpad, append a dump of
   `(proof-leaves)` with each leaf's goal head and a distinguishing context formula, run it.
 
@@ -115,6 +133,14 @@ is the strongest tier.
 
 When a proof turns into a grind, that is a finding, not a failure: add the obvious
 lemma to the PSS and record the obstacle. Do not slog.
+
+Before adding a support, ask whether it is an *instance* of something a tactic could do.
+`minimize!` (minimize.scm) is the worked example: `(minimize! '(v ...) GUARD MEASURE)` =
+"choose v satisfying GUARD with MEASURE as small as possible", leaving only the two
+obligations any minimization owes -- MEASURE lands in NN, and GUARD is satisfiable. It
+turned `min-degree-entry` and `class-min-pivot` from `'well-known` warrants into
+theorems. It uses no choice: well-ordering returns a *member* of the value set, which is
+a `SEP` set, so `sep-me` recovers the witness.
 
 ## Shipping
 

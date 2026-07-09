@@ -137,23 +137,12 @@
    i/=1,j/=1 branch of the def; NN-MINUS = monus predecessor).")
 
 ;;; -----------------------------------------------------------------------
-;;; min-degree-entry: a matrix with a nonzero entry HAS a nonzero entry of
-;;; MINIMAL degree -- the "mu is achieved" fact that starts the Smith reduction
-;;; (Prop 3.36): pick a nonzero pivot of least Euclidean degree, then division-
-;;; with-remainder can only shrink it, forcing termination.  A direct application
-;;; of the PROVEN well-ordering nn-least-element: the set
-;;;   T = { d in NN : some nonzero entry P_ij has (GAUGE A)(P_ij) = d }
-;;; is a nonempty subset of NN (nonempty by the hypothesis; a subset of NN since
-;;; GAUGE(A) maps CARR A -> NN by gauge-is-degree), so nn-least-element gives a
-;;; least degree d0, and its witnessing position (i*,j*) is the minimizer.
-;;; Warranted 'well-known (the math is entirely in nn-least-element, which is
-;;; machine-proven in theorem-library/nn-least-element.scm); QED route above.
-(support 'min-degree-entry
-  '(FORALL A (IMPLIES (IS-EUCLIDEAN-RING A) (FORALL m (FORALL n (FORALL P (IMPLIES (IN P (MAT m n (CARR A))) (IMPLIES (FORSOME i0 (FORSOME j0 (AND (IN i0 (INTERVAL 1 m)) (AND (IN j0 (INTERVAL 1 n)) (NOT (= (ENTRY P i0 j0) (ZERO A))))))) (FORSOME iS (FORSOME jS (AND (IN iS (INTERVAL 1 m)) (AND (IN jS (INTERVAL 1 n)) (AND (NOT (= (ENTRY P iS jS) (ZERO A))) (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 m)) (IMPLIES (IN j (INTERVAL 1 n)) (IMPLIES (NOT (= (ENTRY P i j) (ZERO A))) (<= ((GAUGE A) (ENTRY P iS jS)) ((GAUGE A) (ENTRY P i j)))))))))))))))))))))
-(warrant! 'min-degree-entry 'well-known
-  "Least-degree nonzero entry exists, by the well-ordering of NN (nn-least-element)
-   applied to the degree set of the nonzero entries.  The Smith reduction's minimal
-   pivot.")
+;;; min-degree-entry -- a matrix with a nonzero entry HAS a nonzero entry of
+;;; MINIMAL degree -- used to be ASSERTED here, warranted 'well-known with the
+;;; prose "apply nn-least-element to the degree set".  It is now PROVEN, in
+;;; theorem-library/min-degree-entry-proof.scm, by the `minimize!' tactic
+;;; (minimize.scm), whose one appeal is nn-least-element itself.  Nothing was
+;;; lost in the move: the warrant's prose has become the tactic's proof.
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-DIAGONAL(A, m, n, D): the m-by-n matrix D is diagonal -- every
@@ -184,31 +173,12 @@
 ;;; a nonzero remainder would sit in a matrix C ~ P with degree strictly below
 ;;; deg(B_{1,1}), contradicting minimality.
 ;;;
-;;; Warranted 'well-known: the math is the well-ordering of NN (nn-least-element)
-;;; applied to the class-degree set
-;;;   T = { (GAUGE A)(C_ij) : C ~ P and C_ij /= 0 } subset NN,
-;;; nonempty (P ~ P by mat-equiv-refl and P has a nonzero entry), so it has a
-;;; least element d0 achieved by some C0 at position (i*,j*); swap-to-corner-gen
-;;; brings C0_{i*,j*} to (1,1) giving B (B ~ C0 ~ P by mat-equiv-trans), and
-;;; deg(B_{1,1}) = d0 is <= every degree in T.  (T is a subclass of the SET NN,
-;;; hence a set.)  Exactly min-degree-entry's argument, quantified over the class.
-(support 'class-min-pivot
-  '(FORALL A (IMPLIES (IS-EUCLIDEAN-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN 1 (INTERVAL 1 m)) (IMPLIES (IN 1 (INTERVAL 1 n))
-         (IMPLIES (FORSOME i0 (FORSOME j0 (AND (IN i0 (INTERVAL 1 m))
-                    (AND (IN j0 (INTERVAL 1 n)) (NOT (= (ENTRY P i0 j0) (ZERO A)))))))
-           (FORSOME B (AND (MAT-EQUIV A m n P B)
-             (AND (NOT (= (ENTRY B 1 1) (ZERO A)))
-               (FORALL C (IMPLIES (MAT-EQUIV A m n P C)
-                 (FORALL i (FORALL j
-                   (IMPLIES (IN i (INTERVAL 1 m)) (IMPLIES (IN j (INTERVAL 1 n))
-                     (IMPLIES (NOT (= (ENTRY C i j) (ZERO A)))
-                       (<= ((GAUGE A) (ENTRY B 1 1)) ((GAUGE A) (ENTRY C i j)))))))))))))))))))))))
-(warrant! 'class-min-pivot 'well-known
-  "Minimal-degree pivot over the whole equivalence class, by the well-ordering of
-   NN (nn-least-element) on the class-degree set; swap-to-corner-gen places it at
-   (1,1).  The Smith descent invariant that forces euclidean remainders to vanish.")
+;;; It used to be ASSERTED here, warranted 'well-known.  That warrant swallowed
+;;; four things at once: the well-ordering of NN, the formation of the class-
+;;; degree set, swap-to-corner-gen, and the reflexivity/transitivity of ~ -- and
+;;; the last three were already PROVEN elsewhere.  It is now PROVEN, in
+;;; theorem-library/class-min-pivot-proof.scm, by the `minimize!' tactic
+;;; (minimize.scm) plus swap-to-corner-gen (smith-proof.scm).
 
 ;;; nn-succ-le-antisym: for a,b in NN, succ a <= b makes b <= a impossible
 ;;; (succ a <= b => a < b => not b <= a).  Elementary NN order; used in the Smith
