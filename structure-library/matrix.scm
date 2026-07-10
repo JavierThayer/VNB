@@ -440,6 +440,24 @@
      (IMPLIES (IN Q (MAT m n (CARR A)))
        (IN (MATADD A P Q) (MAT m n (CARR A))))))))))))
 (warrant! 'matadd-type 'reference "entrywise sum of m-by-n matrices is m-by-n.")
+
+;;; The entry read-off for MATADD.  entry-of-matof cannot do it directly: MATADD
+;;; tabulates with (NTH 1 (SIZE P)) / (NTH 2 (SIZE P)) rather than literal m, n,
+;;; so its MATOF head never matches a goal stated at m, n.  Same shape and same
+;;; warrant as matmul-entry.
+(support 'matadd-entry
+  '(FORALL A (FORALL m (FORALL n (FORALL P (FORALL Q
+     (IMPLIES (IN P (MAT m n (CARR A)))
+     (IMPLIES (IN Q (MAT m n (CARR A)))
+     (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+     (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
+       (= (ENTRY (MATADD A P Q) i j)
+          ((ADD A) (ENTRY P i j) (ENTRY Q i j)))))))))))))))
+(warrant! 'matadd-entry 'reference
+  "(P+Q)_{ij} = P_{ij} + Q_{ij}: the read-off of MATADD's MATOF tabulation via
+   entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).")
+;; (no category! here: matrix.scm loads before the PSS layer.  It is categorized
+;; in theorem-library/matact-row-linear-proof.scm, its first consumer.)
 (support 'matneg-type
   '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
      (IMPLIES (IN P (MAT m n (CARR A)))

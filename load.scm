@@ -527,6 +527,10 @@
     "theorem-library/submodule-fg-proof"
     ;; Phase C, Remark 3.39: the matrix action on module-element sequences is
     ;; associative, (PQ).u = P.(Q.u).  Mirrors matmul-assoc via finsum-fubini.
+    ;; BRICK 1 of six under spans-submodule-fg: the coefficient row acts
+    ;; linearly, (c1+c2).u = c1.u + c2.u.  First consumer of finsum-add-ag.
+    ;; Needs mod-seq (MATACT), matrix (MATADD/matadd-entry), finsum-additive.
+    "theorem-library/matact-row-linear-proof"
     "theorem-library/matact-assoc-proof"
     ;; Phase C, Lemma 3.40: I.u = u, and invertible matrices preserve generating
     ;; and relation-free sequences.

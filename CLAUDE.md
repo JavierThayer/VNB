@@ -9,6 +9,35 @@ ready-made constructors. Its research state (what is proven, what is
 next) lives in Claude's memory index, not here. This file holds the
 operational facts that are expensive to rediscover.
 
+## Where the project is going
+
+The current **prove-theorem stage** is nearly done. Its purpose was never the theorems
+themselves: it was to exercise and stress the machinery. A few more proofs (the bricks
+under `spans-submodule-fg`) finish it.
+
+Then the project **refocuses**, onto three things:
+
+1. **Print proofs and read proofs.** `proof-tex` (full trace) and `proof-reader` (sketch)
+   exist and are faithful, but they report the *official* level -- three lemma citations --
+   where a human wants the *content* level: "Since `a` is a Euclidean ring, `a` is a ring."
+   The design is a table keyed by head symbol -- `head -> (arity, TeX template, English
+   template, precedence, infix?)` -- populated by `def-predicate` / `def-functoid` at
+   definition time, read by `expr->tex`, `wff-english`, `describe-structure` and
+   `OPERATORS.md`. Not plists, not objects: one table, like `*pss-categories*` and
+   `*tactic-help*` already are. Known first entries: collapse a run of subtype-subsumption
+   citations (`register-definitional-structure!` already records the parent chain); capture
+   the goal BEFORE each step, not only after, so the reader can always name an existential's
+   bound variable (see the `proof-reader--goal-before` comment); render `IS-EUCLIDEAN-RING(a)`
+   as "a is a Euclidean ring".
+
+2. **A large database of theorems without proofs**, suitable as raw material for building new
+   proofs. Statements, indexed and searchable; the PSS is the seed.
+
+3. Revisiting the manual against all of it.
+
+Do not treat "prove one more theorem" as the goal. The deliverable of a proof request is
+usually the obstacles it exposes.
+
 ## Running it
 
     ./prover                  # interactive REPL
@@ -133,6 +162,16 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   unfold last.
 * `minimize!` lands `GUARD[v:=w]` as **one conjunction**, not as its conjuncts. `ai` it
   before detaching anything against it.
+* **`subst` cannot rewrite a term in OPERATOR position.** Its Leibniz walk reaches
+  argument positions only, so `(subst '(= (VADD md) (MUL (MODULE-VECTOR-AG md))))` is a
+  silent no-op on the goal `((VADD md) x y)` -- whose head *is* the term you meant to
+  replace. Structure accessors (`VADD`, `MUL`, `ADD`, `ACT`) are almost always in operator
+  position. Use the equation as a **macete**: `mac` on the goal, `mac-h` on an assumption.
+  Any unconditional equation (e.g. `mvag-op`) is one.
+* A macete rewrites **every** occurrence. If `fact` lands `SUM(λz. (MUL ag) …) = (MUL ag) …`
+  and you `mac-h` it, the operator changes in the summand lambda *and* at the top, while
+  the goal's copy of that same summand does not. Normalize **both sides** with the same
+  macete (`mac` the goal, `mac-h` the assumption), or `ass` silently fails to match.
 * **`cut` of a formula already in context (up to ALPHA) is a silent self-loop.**
   `dg-post!` hash-conses sequent nodes by alpha-equivalence of the assertion plus
   equality of the context, and `context-add-assumption` is alpha-idempotent -- so the
