@@ -79,6 +79,16 @@
 (warrant! 'interval-in-set 'proof
   "INTERVAL(a,b) is a subclass of NN (a set), hence a set by separation.")
 
+;;; The empty index interval.  Needed wherever a construction degenerates at
+;;; n = 0: the length-0 coefficient row, the empty MATACT, the base case of the
+;;; spans-submodule-fg induction.  Stated as an EQUATION (not `no member of
+;;; [1,0]') so finsum-empty, which is phrased over the literal EMPTY-SET, fires
+;;; after one subst.
+(support 'interval-1-0-empty
+  '(= (INTERVAL 1 0) EMPTY-SET))
+(warrant! 'interval-1-0-empty 'well-known
+  "[1,0] is empty: i in [1,0] gives 1 <= i and i <= 0, hence 1 <= 0, false in NN.")
+
 (support 'interval-card
   '(FORALL n (IMPLIES (IN n NN) (= (CARD (INTERVAL 1 n)) n))))
 (warrant! 'interval-card 'well-known "|{1,...,n}| = n; INTERVAL(1,n) is finite.")
@@ -249,6 +259,14 @@
 (def-functoid 'MATNEG '(A P)
   '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE P))
      (VNB-LAMBDA (LIST i j) ((NEG A) (ENTRY P i j)))))
+
+;;; entrywise scalar multiple  (r*P)_{ij} = r * P_{ij}.  Not a MAT-RING slot:
+;;; it is the scalar action on matrices, used by the coefficient-row linearity
+;;; bricks (matact-row-linear-proof.scm).  The scalar is named `r', not `a':
+;;; `a' folds onto the ring argument `A'.
+(def-functoid 'MATSCALE '(A r P)
+  '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE P))
+     (VNB-LAMBDA (LIST i j) ((MUL A) r (ENTRY P i j)))))
 
 ;;; the all-zero m-by-n matrix over A
 (def-functoid 'ZEROMAT '(A m n)
@@ -458,6 +476,29 @@
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).")
 ;; (no category! here: matrix.scm loads before the PSS layer.  It is categorized
 ;; in theorem-library/matact-row-linear-proof.scm, its first consumer.)
+
+;;; MATSCALE typing and its entry read-off.  Same shape, same reasons, same
+;;; warrants as matadd-type / matadd-entry: MATSCALE also tabulates with
+;;; (NTH 1 (SIZE P)), so entry-of-matof cannot supply the read-off at m, n.
+(support 'matscale-type
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL r (FORALL P
+     (IMPLIES (IN r (CARR A))
+     (IMPLIES (IN P (MAT m n (CARR A)))
+       (IN (MATSCALE A r P) (MAT m n (CARR A))))))))))))
+(warrant! 'matscale-type 'reference
+  "entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).")
+
+(support 'matscale-entry
+  '(FORALL A (FORALL m (FORALL n (FORALL r (FORALL P
+     (IMPLIES (IN r (CARR A))
+     (IMPLIES (IN P (MAT m n (CARR A)))
+     (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
+     (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
+       (= (ENTRY (MATSCALE A r P) i j)
+          ((MUL A) r (ENTRY P i j)))))))))))))))
+(warrant! 'matscale-entry 'reference
+  "(r*P)_{ij} = r * P_{ij}: the read-off of MATSCALE's MATOF tabulation via
+   entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).")
 (support 'matneg-type
   '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
      (IMPLIES (IN P (MAT m n (CARR A)))
@@ -466,6 +507,18 @@
 (support 'zeromat-type
   '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n
        (IN (ZEROMAT A m n) (MAT m n (CARR A))))))))
+
+;;; The entry read-off for ZEROMAT.  Unlike matadd-entry this one IS an
+;;; entry-of-matof instance (ZEROMAT tabulates at the literal m, n), but it is
+;;; asserted for the same reason entry-of-identmat is: every consumer would
+;;; otherwise unfold the functoid and beta-reduce by hand.
+(support 'entry-of-zeromat
+  '(FORALL A (FORALL m (FORALL n (FORALL i (FORALL j
+     (IMPLIES (IN i (INTERVAL 1 m))
+     (IMPLIES (IN j (INTERVAL 1 n))
+       (= (ENTRY (ZEROMAT A m n) i j) (ZERO A))))))))))
+(warrant! 'entry-of-zeromat 'reference
+  "(ZEROMAT A m n)_{ij} = 0 (entry-of-matof on the constant tabulation).")
 (warrant! 'zeromat-type 'reference "the all-zero m-by-n matrix is m-by-n over CARR A.")
 
 ;;; ---- MATADD is a commutative group (entrywise) ----

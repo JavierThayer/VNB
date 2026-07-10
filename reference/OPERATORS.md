@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-237 operators: 16 functions, 149 functoids, 72 predicates, 0 undeclared.
+239 operators: 16 functions, 151 functoids, 72 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -34,7 +34,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (149)
+## Functoids  (151)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -314,6 +314,10 @@ Declared by: `limit-ord-iff`
 
 Declared by: `matrix-membership` `matrix-sethood` 
 
+### `matscale`  — def-functoid · element/number-valued
+
+    matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (mul(a))(r, entry(p, i, j))))
+
 ### `matunit`  — def-functoid · element/number-valued
 
     matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l, one(a), zero(a))))
@@ -475,6 +479,10 @@ Declared by: `rr-ms-def`
 ### `size`  — def-functoid · tuple/structure-valued
 
     size(m) := [length(m), length(nth(1, m))]
+
+### `span`  — def-functoid · set-valued
+
+    span(md, n, u) := {x_ in vec(md): forsome([c_ in mat(1, n, carr(scal(md)))], x_ = entry(matact(md, c_, u), 1, 1))}
 
 ### `span-add-one`  — def-functoid · set-valued
 

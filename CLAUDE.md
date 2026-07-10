@@ -76,6 +76,17 @@ After editing a `.scm`, delete BOTH the `.com` and the `.bin`, or Scheme silentl
 loads the stale binary. `load.scm` names files without extension and prefers `.com`.
 (`file-fresh-com?` compares mtimes, so a plain re-save is usually enough.)
 
+**Then RE-COMPILE the files you edited, before you run anything.** An edited file
+loads from source; that is fine for a leaf proof script and ruinous for a core
+file. Editing `wff.scm` (whose `subst-free`/`free-vars`/`validate-wff!` run in every
+inner loop) took one library load from 24 s to **over 14 minutes**. Compiling the
+edited files back is a couple of seconds and needs no loaded library:
+
+    mit-scheme --quiet --eval '(begin (compile-file "/abs/path/wff.scm") (exit))'
+
+`compile-vnb!` does the whole tree incrementally but wants a loaded REPL -- which is
+the very load you just made slow. Compile first, load second.
+
 **There is no skip-proofs mode.** `VNB_SKIP_PROOFS` was removed (2026-07-09): it had
 silently stopped working, and a mode that installs goals as theorems without running their
 tactics would give you a library whose `qed` bills read `trust: none` about proofs nobody
@@ -222,8 +233,27 @@ and `proof-debt` in `load.scm`. Misplacing it gives "Unbound variable: make-wff"
 
 New mathematical facts are added as **warranted supports** (`support` + `warrant!`),
 not as kernel axioms -- the ~92 primitive axioms never grow. A `qed` prints its bill:
-`proven modulo {...} [trust: ...]`, the set of asserted facts it leans on. `trust: none`
-is the strongest tier.
+`proven modulo {...} [trust: ...]`, the set of asserted facts it leans on.
+
+**`trust: none` is the WEAKEST tier.** `*pd-trust-order*` (proof-debt.scm) is
+`(none hand-wave informal reference well-known proof)`, worst to best, and
+`debt-trust-level` reports the worst leaf. `none` means *some leaf has no `warrant!`
+at all* -- "scarier than a hand-wave: nothing was even claimed to justify it", as the
+code says. The unconditional case prints `modulo 0` and no tier at all; **that** is
+the strongest thing a `qed` can say. This brief claimed the reverse until 2026-07-10,
+and the misreading is loose in old commit messages ("PROVEN to QED (trust:none)");
+proof-debt.scm and the ledger's design notes always had it right.
+
+What drives the 77-of-99 `trust: none` bills is that **ring.scm / group.scm /
+abelian-group.scm stamp their projected laws `asserted` and never warrant them**
+(`ring-mul-assoc`, `ring-add-left-id`, `ring-mul-zero-left`, `group-assoc`,
+`group-left-inv`, `abelian-group-idempotent-is-id`, ...), whereas module.scm wraps the
+same kind of projection in `(fluid-let ((*current-provenance* 'definitional)) ...)`
+and so pays nothing. 465 of 1282 asserted facts carry no warrant. Open triage: the
+shape projections are projections of the `def-structure-from-clauses` IFF, exactly like
+`module-act-unital`, and want `definitional`; the genuinely derived ones
+(`abelian-group-idempotent-is-id`) want to become warranted supports. Doing so would
+repaint most of those 77 bills.
 
 When a proof turns into a grind, that is a finding, not a failure: add the obvious
 lemma to the PSS and record the obstacle. Do not slog.

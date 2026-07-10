@@ -413,6 +413,31 @@
    front-peel, same status as finsum-ord-peel.")
 (category! 'finsum-interval-shift 'combinatorial)
 
+;;; finsum-interval-peel: BACK-peel of a FINSUM over [1, succ n] -- pull off the
+;;; LAST term f(succ n), leaving the sum over [1,n] with no reindexing at all.
+;;; The twin of finsum-interval-shift, and the one an induction on the length of
+;;; a coefficient row wants: it isolates the last coefficient c_{1,succ p}, which
+;;; is the whole engine of the spans-submodule-fg descent.
+;;;
+;;; finsum-insert-ag says FINSUM(ag,f,X u {k}) = FINSUM(ag,f,X) . f(k) for k not
+;;; in X.  Instantiating X := [1,n], k := succ n needs [1,succ n] = [1,n] u
+;;; {succ n} and succ n not in [1,n].  Both are elementary and neither exists as
+;;; a named support; asserting the peel itself, as finsum-interval-shift already
+;;; does for the front, costs one warrant instead of two.
+(support 'finsum-interval-peel
+  '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
+     (FORALL n (IMPLIES (IN n NN)
+       (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ n)) (CARR ag)))
+         (= (FINSUM ag f (INTERVAL 1 (succ n)))
+            ((MUL ag) (FINSUM ag f (INTERVAL 1 n)) (f (succ n)))))))))))
+(warrant! 'finsum-interval-peel 'well-known
+  "FINSUM over [1,succ n] = (FINSUM over [1,n]) . f(succ n): finsum-insert-ag at
+   X = [1,n], k = succ n, using [1,succ n] = [1,n] u {succ n} (interval-mem-intro
+   / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would
+   give succ n <= n).  Standard finite-sum back-peel, the twin of
+   finsum-interval-shift.")
+(category! 'finsum-interval-peel 'combinatorial)
+
 ;;; funcomp-succ-type: the typing companion of finsum-interval-shift -- z |-> f(succ z)
 ;;; maps [1,q] into X whenever f maps [1,succ q] into X (succ z in [1,succ q]).
 (support 'funcomp-succ-type

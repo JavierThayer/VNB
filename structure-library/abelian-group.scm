@@ -39,3 +39,21 @@
      (IMPLIES (IS-ABELIAN-GROUP s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (IMPLIES (= ((MUL s) a a) a) (= a (IDEN s))))))))
+
+;;; Inverses are unique: a*b = e forces b = a^{-1}.  The sibling of
+;;; idempotent-is-id, and it specializes through the same additive view-as
+;;; machinery -- through MODULE-VECTOR-AG it reads  x + b = 0_V => b = -x,
+;;; which is what module-act-neg-one ((-1).x = -x) needs to finish.
+;;; A support, not an axiom: it is derived, and its bill should say so.
+(support 'abelian-group-inverse-unique
+  '(FORALL s
+     (IMPLIES (IS-ABELIAN-GROUP s)
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (IMPLIES (= ((MUL s) a b) (IDEN s))
+             (= b ((INV s) a))))))))))
+(warrant! 'abelian-group-inverse-unique 'well-known
+  "b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
+   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   Every abelian group is a group (abelian-group-is-group), so all four are in
+   scope.")

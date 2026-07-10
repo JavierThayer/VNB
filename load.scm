@@ -531,6 +531,12 @@
     ;; linearly, (c1+c2).u = c1.u + c2.u.  First consumer of finsum-add-ag.
     ;; Needs mod-seq (MATACT), matrix (MATADD/matadd-entry), finsum-additive.
     "theorem-library/matact-row-linear-proof"
+    ;; The module-action bricks under BRICK 3 (SPAN as a submodule):
+    ;; module-act-neg-one ((-1).x = -x, via the new abelian-group-inverse-unique
+    ;; specialized through MODULE-VECTOR-AG), matact-zerorow, matact-unitrow,
+    ;; matact-empty-vzero.  Needs module-zero-act, finsum-all-id, finsum-empty,
+    ;; matrix (ZEROMAT/UNITROW read-offs, interval-1-0-empty).
+    "theorem-library/span-bricks-proof"
     "theorem-library/matact-assoc-proof"
     ;; Phase C, Lemma 3.40: I.u = u, and invertible matrices preserve generating
     ;; and relation-free sequences.

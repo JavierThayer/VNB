@@ -245,6 +245,25 @@
           (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
                            (= x_ (ENTRY (MATACT md c_ u) 1 1))))))))
 
+;;; -----------------------------------------------------------------------
+;;; SPAN(md, n, u) -- the set of coefficient combinations of u, as a SEP set.
+;;;
+;;; SPANS is a PREDICATE ("this submodule is spanned by u"); the induction of
+;;; spans-submodule-fg has to CONSTRUCT the submodule spanned by a truncated
+;;; sequence u_1..u_p, so it needs the set itself.  Everything about it is a
+;;; theorem, not an axiom:
+;;;   span-is-submodule   IS-SUBMODULE(md, SPAN(md,n,u))     [matact-row-add,
+;;;                                                           matact-row-scale]
+;;;   spans-span          SPANS(md, n, u, SPAN(md,n,u))      [matact-unitrow]
+;;; both in theorem-library/span-bricks-proof.scm.
+;;;
+;;; The bound variable is x_ and the witness c_, per the file's inner-binder
+;;; convention (MIT case-folds, and `c' is a column index in matact-entry).
+(def-functoid 'SPAN '(md n u)
+  '(SEP x_ (VEC md)
+     (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
+                      (= x_ (ENTRY (MATACT md c_ u) 1 1))))))
+
 ;;; A submodule is closed under finite sums of its elements.  IS-SUBMODULE gives
 ;;; closure under the binary VADD and contains VZERO; FINSUM is built from those by
 ;;; induction on |S| (finsum-empty for the base, finsum-insert for the step).
