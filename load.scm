@@ -537,6 +537,12 @@
     ;; matact-empty-vzero.  Needs module-zero-act, finsum-all-id, finsum-empty,
     ;; matrix (ZEROMAT/UNITROW read-offs, interval-1-0-empty).
     "theorem-library/span-bricks-proof"
+    ;; Bricks 4-6 under spans-submodule-fg: matact-row-peel / matact-snoc (split
+    ;; and build a coefficient combination at its last term), submodule-
+    ;; intersection, and the zero-dimension matrix spaces are inhabited.  Needs
+    ;; SNOC-COL/ROW + BLOCK (matrix), matact-summand-type-le (mod-seq),
+    ;; finsum-interval-peel (finsum-additive), the submodule-*-closed projections.
+    "theorem-library/span-bricks2-proof"
     "theorem-library/matact-assoc-proof"
     ;; Phase C, Lemma 3.40: I.u = u, and invertible matrices preserve generating
     ;; and relation-free sequences.

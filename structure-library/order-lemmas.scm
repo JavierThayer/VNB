@@ -391,6 +391,19 @@
 (warrant! 'nn-one-le-succ 'well-known "1 <= succ n for every n in NN.")
 (category! 'nn-one-le-succ 'inequalities)
 
+;; n <= succ n.  Was declared inside theorem-library/noetherian-maximal-proof.scm
+;; (via add-to-pss) -- a plumbing fact hiding in a proof file, and unavailable to
+;; anything that loads before it (e.g. the span-bricks).  Moved here 2026-07-10.
+(support 'nn-le-succ
+  '(FORALL k (IMPLIES (IN k NN) (<= k (succ k)))))
+(warrant! 'nn-le-succ 'well-known "k <= succ k on NN.")
+(category! 'nn-le-succ 'plumbing)
+
+;; 1 in NN.  Needed for nn-le-refl at 1 (the <= 1 1 that BLOCK/SNOC typings owe).
+(support 'nn-one-in '(IN 1 NN))
+(warrant! 'nn-one-in 'well-known "1 = succ 0 in NN.")
+(category! 'nn-one-in 'plumbing)
+
 (support 'one-in-interval-1 '(IN 1 (INTERVAL 1 1)))
 (warrant! 'one-in-interval-1 'proof
   "1 in INTERVAL(1,1): 1 in NN and 1<=1<=1.  The column index of a column vector.")

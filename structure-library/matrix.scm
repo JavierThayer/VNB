@@ -369,6 +369,67 @@
 (warrant! 'entry-of-block 'reference
   "BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).")
 
+;;; SNOC-COL(w, n, x) -- append the vector x to the length-n column sequence w,
+;;; giving the length-(succ n) sequence [w_1, ..., w_n, x].  SNOC-ROW(c, n, r)
+;;; is the row analogue: append the scalar r to the width-n row c.  The length
+;;; is an explicit argument (as in BLOCK), so the entry read-offs are stated at
+;;; n and succ n without recovering a dimension from SIZE.  They are the `cons'
+;;; the spans-submodule-fg induction step builds its longer spanning sequence
+;;; (w', x0) and its longer coefficient row (d, q) with.
+(def-functoid 'SNOC-COL '(w n x)
+  '(MATOF (succ n) 1 (VNB-LAMBDA (LIST i_ j_) (IF (= i_ (succ n)) x (ENTRY w i_ 1)))))
+(def-functoid 'SNOC-ROW '(c n r)
+  '(MATOF 1 (succ n) (VNB-LAMBDA (LIST i_ j_) (IF (= j_ (succ n)) r (ENTRY c 1 j_)))))
+
+;; the appended element is `v', NOT `x': the set param `X' folds to `x' (MIT
+;; case-fold), so an element `x' would collide with the set -- the trap that
+;; broke this support once (the inner x shadowed the set X in `(IN x X)').
+(support 'snoc-col-type
+  '(FORALL X (FORALL n (FORALL w (FORALL v
+     (IMPLIES (IN n NN)
+     (IMPLIES (IN w (MAT n 1 X))
+     (IMPLIES (IN v X)
+       (IN (SNOC-COL w n v) (MAT (succ n) 1 X))))))))))
+(warrant! 'snoc-col-type 'reference
+  "[w_1..w_n, x] is a (succ n)-by-1 matrix over X: matof-in-mat, each value being
+   x in X (row succ n) or ENTRY w i 1 in X for i in [1,n] (entry-in-carrier).")
+
+(support 'snoc-row-type
+  '(FORALL X (FORALL n (FORALL c (FORALL r
+     (IMPLIES (IN n NN)
+     (IMPLIES (IN c (MAT 1 n X))
+     (IMPLIES (IN r X)
+       (IN (SNOC-ROW c n r) (MAT 1 (succ n) X))))))))))
+(warrant! 'snoc-row-type 'reference
+  "[c_1..c_n, r] is a 1-by-(succ n) matrix over X (matof-in-mat, as snoc-col-type).")
+
+(support 'entry-of-snoc-col
+  '(FORALL w (FORALL n (FORALL x (FORALL i
+     (IMPLIES (IN i (INTERVAL 1 n))
+       (= (ENTRY (SNOC-COL w n x) i 1) (ENTRY w i 1))))))))
+(warrant! 'entry-of-snoc-col 'reference
+  "SNOC-COL(w,n,x)_{i,1} = w_{i,1} for i in [1,n]: entry-of-matof (i in [1,succ n]
+   since i<=n<=succ n, and 1 in [1,1]), then the IF is false since i<=n<succ n.")
+
+(support 'snoc-col-last
+  '(FORALL w (FORALL n (FORALL x (IMPLIES (IN n NN)
+     (= (ENTRY (SNOC-COL w n x) (succ n) 1) x))))))
+(warrant! 'snoc-col-last 'reference
+  "SNOC-COL(w,n,x)_{succ n,1} = x: entry-of-matof (succ n in [1,succ n]), IF true.")
+
+(support 'entry-of-snoc-row
+  '(FORALL c (FORALL n (FORALL r (FORALL j
+     (IMPLIES (IN j (INTERVAL 1 n))
+       (= (ENTRY (SNOC-ROW c n r) 1 j) (ENTRY c 1 j))))))))
+(warrant! 'entry-of-snoc-row 'reference
+  "SNOC-ROW(c,n,r)_{1,j} = c_{1,j} for j in [1,n] (entry-of-matof, IF false as j<=n<succ n).")
+
+(support 'snoc-row-last
+  '(FORALL c (FORALL n (FORALL r (IMPLIES (IN n NN)
+     (= (ENTRY (SNOC-ROW c n r) 1 (succ n)) r))))))
+(warrant! 'snoc-row-last 'reference
+  "SNOC-ROW(c,n,r)_{1,succ n} = r (entry-of-matof, IF true).")
+
 ;;; RING-ADDITIVE-AG read-offs (the view maps ring's CARR/ZERO to the AG's
 ;;; CARR/IDEN; derivable by unfolding the view, named for convenience).
 (support 'ras-carr

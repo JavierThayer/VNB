@@ -32,6 +32,28 @@
         (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
           (FORALL x_ (IMPLIES (IN x_ s) (IN ((ACT m) r_ x_) s))))))))))
 
+;;; The four closure conjuncts of IS-SUBMODULE, surfaced as standalone citable
+;;; theorems so a proof `fact's each directly instead of unfolding IS-SUBMODULE
+;;; (which mac-h would DELETE, taking the hypothesis every other `fact' guarded
+;;; on IS-SUBMODULE needs).  Definitional: each is a projection of the IFF above,
+;;; exactly as module.scm surfaces module-vadd-type / module-act-type from
+;;; IS-MODULE.  (submodule-subset, the fifth, is already a proven theorem in
+;;; submodule-fg-proof.scm.)
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'submodule-vzero-in
+    '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s) (IN (VZERO m) s)))))
+  (theory-add-axiom! *current-theory* 'submodule-vadd-closed
+    '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s)
+       (FORALL x_ (IMPLIES (IN x_ s)
+         (FORALL y_ (IMPLIES (IN y_ s) (IN ((VADD m) x_ y_) s)))))))))
+  (theory-add-axiom! *current-theory* 'submodule-vneg-closed
+    '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s)
+       (FORALL x_ (IMPLIES (IN x_ s) (IN ((VNEG m) x_) s)))))))
+  (theory-add-axiom! *current-theory* 'submodule-act-closed
+    '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s)
+       (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
+         (FORALL x_ (IMPLIES (IN x_ s) (IN ((ACT m) r_ x_) s))))))))))
+
 ;;; m is NOETHERIAN: it is a module, and every nondecreasing chain of submodules
 ;;; f : NN -> POWER(VEC m) is eventually constant (the ascending chain condition).
 (def-predicate 'IS-NOETHERIAN '(m)

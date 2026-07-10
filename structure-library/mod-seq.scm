@@ -132,6 +132,27 @@
    and u:MAT(n,q,VEC md): entry-in-carrier types both arguments, module-act-type
    closes the action, and mvag-carr identifies CARR(MODULE-VECTOR-AG md) = VEC md.")
 
+;;; The same summand is a function on any SUB-interval [1,k] with k <= n.  When a
+;;; FINSUM over [1,succ n] is back-peeled (finsum-interval-peel), the leftover
+;;; sum keeps the ORIGINAL summand (typed on [1,succ n]) but now ranges over
+;;; [1,n]; finsum-congruence against a length-n summand then needs this shorter
+;;; typing.  matact-summand-type is the k = n special case; every peel wants the
+;;; k < n one.
+(support 'matact-summand-type-le
+  '(FORALL md (IMPLIES (IS-MODULE md)
+     (FORALL m (FORALL n (FORALL q (FORALL P (FORALL u (FORALL i (FORALL c (FORALL k
+       (IMPLIES (IN P (MAT m n (CARR (SCAL md))))
+       (IMPLIES (IN u (MAT n q (VEC md)))
+       (IMPLIES (IN i (INTERVAL 1 m))
+       (IMPLIES (IN c (INTERVAL 1 q))
+       (IMPLIES (<= k n)
+         (IN (VNB-LAMBDA j ((ACT md) (ENTRY P i j) (ENTRY u j c)))
+             (FUN (INTERVAL 1 k) (CARR (MODULE-VECTOR-AG md))))))))))))))))))))
+(warrant! 'matact-summand-type-le 'well-known
+  "j |-> P_{ij} . u_{jc} is a function [1,k] -> VEC md for k <= n: matact-summand-
+   type's argument, restricted -- entry-in-carrier still types both arguments for
+   j in [1,k] subset [1,n] (interval [1,k] subset [1,n] since k <= n).")
+
 ;;; -----------------------------------------------------------------------
 ;;; The action passes through a FINSUM, on either side.
 ;;;

@@ -42,7 +42,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -158,8 +158,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr mul iden inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr mul iden inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul iden inv) ↦ (carr mul iden inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr mul iden inv)
 
 *Views from `abelian-group`.*
@@ -607,9 +607,14 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `matact-identmat-rev` — forall([md], is-module(md) implies forall([n, q, u in mat(n, q, vec(md))], u = matact(md, identmat(scal(md), n), u)))
 - `matact-row-add` — forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies entry(matact(md, matadd(scal(md), c1, c2), u), 1, 1) = (vadd(md))(entry(matact(md, c1, u), 1, 1), entry(matact(md, c2, u), 1, 1))))
 - `matact-row-add-rev` — forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies (vadd(md))(entry(matact(md, c1, u), 1, 1), entry(matact(md, c2, u), 1, 1)) = entry(matact(md, matadd(scal(md), c1, c2), u), 1, 1)))
+- `matact-row-peel` — forall([md], is-module(md) implies forall([n in nn, c in mat(1, succ(n), carr(scal(md))), u in mat(succ(n), 1, vec(md))], entry(matact(md, c, u), 1, 1) = (vadd(md))(entry(matact(md, block(c, 1, n), block(u, n, 1)), 1, 1), (act(md))(entry(c, 1, succ(n)), entry(u, succ(n), 1)))))
+- `matact-row-peel-rev` — forall([md], is-module(md) implies forall([n in nn, c in mat(1, succ(n), carr(scal(md))), u in mat(succ(n), 1, vec(md))], (vadd(md))(entry(matact(md, block(c, 1, n), block(u, n, 1)), 1, 1), (act(md))(entry(c, 1, succ(n)), entry(u, succ(n), 1))) = entry(matact(md, c, u), 1, 1)))
 - `matact-row-scale` — forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies entry(matact(md, matscale(scal(md), r, c), u), 1, 1) = (act(md))(r, entry(matact(md, c, u), 1, 1))))
 - `matact-row-scale-rev` — forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies (act(md))(r, entry(matact(md, c, u), 1, 1)) = entry(matact(md, matscale(scal(md), r, c), u), 1, 1)))
+- `matact-snoc` — forall([md], is-module(md) implies forall([n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md)], entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1) = (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x))))
+- `matact-snoc-rev` — forall([md], is-module(md) implies forall([n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md)], (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x)) = entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1)))
 - `matact-summand-type` — forall([md], is-module(md) implies forall([m, n, q, p, u, i, c], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies i in interval(1, m) implies c in interval(1, q) implies vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))) in fun(interval(1, n), carr(module-vector-ag(md)))))
+- `matact-summand-type-le` — forall([md], is-module(md) implies forall([m, n, q, p, u, i, c, k], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies i in interval(1, m) implies c in interval(1, q) implies k <= n implies vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))) in fun(interval(1, k), carr(module-vector-ag(md)))))
 - `matact-triple-left` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies entry(matact(md, matmul(scal(md), p, q), u), row, col) = finsum(module-vector-ag(md), vnb-lambda(c, finsum(module-vector-ag(md), vnb-lambda(j, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))))
 - `matact-triple-left-rev` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies finsum(module-vector-ag(md), vnb-lambda(c, finsum(module-vector-ag(md), vnb-lambda(j, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k)) = entry(matact(md, matmul(scal(md), p, q), u), row, col)))
 - `matact-triple-right` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies entry(matact(md, p, matact(md, q, u)), row, col) = finsum(module-vector-ag(md), vnb-lambda(j, finsum(module-vector-ag(md), vnb-lambda(c, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))))
@@ -669,6 +674,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `spans-span` — forall([md], is-module(md) implies forall([n, u in mat(n, 1, vec(md))], spans(md, n, u, span(md, n, u))))
 - `spans-transport` — forall([md], is-module(md) implies forall([n, u, pm, sm], u in mat(n, 1, vec(md)) implies is-invertible-mat(scal(md), n, pm) implies is-submodule(md, sm) implies spans(md, n, u, sm) implies spans(md, n, matact(md, pm, u), sm)))
 - `submodule-finsum-closed` — forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))
+- `submodule-intersection` — forall([md], is-module(md) implies forall([s1], is-submodule(md, s1) implies forall([s2], is-submodule(md, s2) implies is-submodule(md, intersection(s1, s2)))))
 - `whole-module-is-submodule` — forall([md], is-module(md) implies is-submodule(md, vec(md)))
 
 *Views into `module`.*

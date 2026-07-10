@@ -33,9 +33,9 @@
   "A function into B is a function into any superset C (fun-codomain-iff + subset-mem).")
 (category! 'fun-codomain-superset 'plumbing)
 
-(add-to-pss 'nn-le-succ '(FORALL k (IMPLIES (IN k NN) (<= k (succ k)))))
-(warrant! 'nn-le-succ 'well-known "k <= succ k on NN.")
-(category! 'nn-le-succ 'plumbing)
+;; nn-le-succ (k <= succ k) was declared here; moved to order-lemmas.scm
+;; 2026-07-10 (a plumbing fact belongs there, not in a proof file, and the
+;; span-bricks load before this file and need it).
 
 ;;; ====================================================================
 ;;; noetherian-set-has-maximal
