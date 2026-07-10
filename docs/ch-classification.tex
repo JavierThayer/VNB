@@ -156,6 +156,58 @@ forward one.
 \end{remark}
 
 %% =========================================================
+\section{Proof debt: bills and trust tiers}
+\label{sec:proof-debt}
+
+A machine proof is only as unconditional as the facts it cites.  When a
+proof reaches \texttt{QED} the system computes its \emph{bill}: the set of
+\emph{asserted} facts it ultimately rests on.  The bill is transitive.  A
+cited \emph{proven} lemma contributes its own bill; a \emph{primitive}
+axiom or a \emph{definition} contributes nothing (it is trusted base); an
+\emph{asserted} fact --- a PSS member, or an as-yet-unwarranted assertion
+--- contributes itself.  Each fact in the bill is a \emph{leaf}.
+
+The bill is printed inline at \texttt{QED} and collected in the ledger
+\texttt{reference/PROOF-DEBT.md}:
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \texttt{proven modulo 0} --- the \emph{empty bill}.  The proof rests
+  only on the trusted base: the fixed primitive axioms, the kernel
+  inference rules, and definitions.  Nothing asserted stands between the
+  theorem and the kernel.  This is the strongest report a proof can make,
+  and it carries \emph{no} trust tier.
+\item \texttt{proven modulo \{a, b, \ldots\}} --- unconditional
+  \emph{given} $a, b, \ldots$.  Discharging every leaf (proving it, or
+  turning it into a definition) would collapse the bill to $0$.
+\end{itemize}
+
+\noindent
+A non-empty bill is stamped with a \emph{trust tier}
+\texttt{[trust:\ \textit{K}]}, and $K$ is the warrant of the bill's
+\emph{weakest} leaf: a single shaky citation caps the whole proof, however
+solid the rest.  The tiers are the warrant kinds of
+Section~\ref{sec:warrants} with one addition below the weakest ---
+\texttt{none}, an asserted leaf carrying no warrant at all --- so, weakest
+to strongest:
+\[
+  \texttt{none} \;<\; \texttt{hand-wave} \;<\; \texttt{well-known}
+  \;<\; \texttt{reference} \;<\; \texttt{informal} \;<\; \texttt{proof}.
+\]
+Thus \texttt{[trust:\ none]} is the \emph{weakest} thing a proof can
+report --- some leaf justifies nothing --- and \texttt{modulo 0}, which
+prints no tier at all, is the strongest.  The two are opposite ends of the
+same scale, and are easily misread for one another; the ledger's header
+carries this same legend for exactly that reason.
+
+\begin{remark}
+The tier is a moving target by design.  Discharging a \texttt{none} or
+\texttt{hand-wave} leaf into a warranted or proven fact lifts the tier of
+every proof that cites it.  The ledger's reverse index ranks the asserted
+leaves by how many proofs each one caps, so the highest-leverage debts to
+retire are read off the top.
+\end{remark}
+
+%% =========================================================
 \section{The VNB test}
 \label{sec:vnb-test}
 

@@ -429,7 +429,7 @@
 {\small\[
 \forall m.\; \forall s.\; \forall f.\; \forall t.\; \forall x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f) \wedge (\operatorname{good\text{-}sub}(m, s, f, t) \wedge ((x \in \operatorname{vec}(m)) \wedge \neg (x \in t))))) \Rightarrow \operatorname{good\text{-}sub}(m, s, f, \operatorname{span\text{-}add\text{-}one}(m, t, x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: reference).
+\noindent\textbf{Machine-checked} (trust: well-known).
 \par\smallskip\noindent\emph{Rests on 15 facts:} \texttt{dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, subset-trans, extends-on-trans, submodule-subset, subset-mem, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono}.
 
 \subsubsection*{\texttt{hahn-banach}}
@@ -1046,7 +1046,7 @@
 {\small\[
 \forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow (\forall n \in \mathbb{N}.\; \operatorname{is\text{-}compact}(\operatorname{ms}(n)) \Rightarrow \operatorname{is\text{-}compact}(\operatorname{product\text{-}metric}(\mathit{ms}))))
 \]}
-\noindent\textbf{Machine-checked} (trust: reference). Sequential compactness of a countable metric product, obtained by a coordinatewise diagonal subsequence.
+\noindent\textbf{Machine-checked} (trust: well-known). Sequential compactness of a countable metric product, obtained by a coordinatewise diagonal subsequence.
 \par\smallskip\noindent\emph{Rests on 5 facts:} \texttt{compact-iff-seq-compact-rev, product-metric-default-summable, product-is-metric-space, seq-compact-countable-product, compact-iff-seq-compact}.
 
 \subsection{Normed-field metric}
