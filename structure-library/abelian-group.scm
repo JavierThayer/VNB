@@ -70,3 +70,16 @@
 (warrant! 'abelian-group-right-id 'well-known
   "a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
    abelian-group-is-group).")
+
+;;; Associativity, surfaced for direct use (group-assoc is on IS-GROUP, which the
+;;; ABELIAN-GROUP view-specializer does not carry across).  Specializes through
+;;; MODULE-VECTOR-AG to VADD-associativity -- the "regroup a + b + c" step the
+;;; spans-submodule-fg remainder algebra needs.
+(support 'abelian-group-assoc
+  '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (FORALL b (IMPLIES (IN b (CARR s))
+         (FORALL c (IMPLIES (IN c (CARR s))
+           (= ((MUL s) ((MUL s) a b) c) ((MUL s) a ((MUL s) b c))))))))))))
+(warrant! 'abelian-group-assoc 'well-known
+  "(a*b)*c = a*(b*c): group-assoc via abelian-group-is-group.")

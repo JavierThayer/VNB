@@ -133,6 +133,15 @@
     (let ((leaf (find-first (lambda (s) (let ((g (wff-formula (sequent-node-assertion s))))
                                           (and (pair? g) (eq? (car g) 'AND)))) (proof-leaves))))
       (when (and leaf (< k 12)) (lc-foc! leaf) (di) (lp (+ k 1))))))
+;; cut p; prove the p subgoal; leave focus on the continuation (p now in context)
+(define (lc-cut! p prove-sub)
+  (let ((before (proof-leaves)))
+    (cut p)
+    (let* ((new (filter (lambda (l) (not (memq l before))) (proof-leaves)))
+           (sub (car (filter (lambda (l) (equal? (wff-formula (sequent-node-assertion l)) p)) new)))
+           (cont (car (filter (lambda (l) (not (eq? l sub))) new))))
+      (lc-foc! sub) (prove-sub)
+      (lc-foc! cont))))
 ;; the (IN _ (MAT 1 (succ p) SC)) witnesses currently in context
 (define (lc-wits) (filter (lambda (f) (and (pair? f) (eq? (car f) 'IN) (equal? (caddr f) (list 'MAT 1 '(succ p) SC))))
                           (lc-asms)))
@@ -295,3 +304,125 @@
 
 (qed 'lastcoeff-set-is-ideal)
 (category! 'lastcoeff-set-is-ideal 'algebra)
+
+
+;;; ===================================================================
+;;; descent-remainder (L3) -- given x = c.u and x0 = c0.u with c's last
+;;; coefficient = q*b and c0's = b, produce the remainder y = x + (-q).x0:
+;;;   * y lies in the truncated span SPAN(md,n,BLOCK u n 1)
+;;;   * x = y + q.x0   (so x is recovered from y and q.x0)
+;;;   * y = x + (-q).x0
+;;; This is the entire "subtract a multiple of x0 to kill the last coefficient"
+;;; move, packaged so the induction step only has to apply it.  d = c + (-q).c0.
+;;; ===================================================================
+(define l3-nq '((NEG (SCAL md)) q))
+(define l3-qc0 (list 'MATSCALE '(SCAL md) l3-nq 'c0))
+(define l3-d (list 'MATADD '(SCAL md) 'c l3-qc0))
+(define l3-cu  '(ENTRY (MATACT md c u) 1 1))                        ; x
+(define l3-c0u '(ENTRY (MATACT md c0 u) 1 1))                       ; x0
+(define l3-du  (list 'ENTRY (list 'MATACT 'md l3-d 'u) 1 1))        ; y
+(define l3-qc0u (list 'ENTRY (list 'MATACT 'md l3-qc0 'u) 1 1))     ; (-q).c0 . u
+(define l3-nqx0 (list '(ACT md) l3-nq l3-c0u))                      ; (-q).x0
+(define l3-qx0  (list '(ACT md) 'q l3-c0u))                         ; q.x0
+(define l3-fact3 (list '= l3-du (list '(VADD md) l3-cu l3-nqx0)))   ; y = x + (-q).x0
+(define l3-fact2 (list '= l3-cu (list '(VADD md) l3-du l3-qx0)))    ; x = y + q.x0
+(define l3-dzero (list '= (list 'ENTRY l3-d 1 '(succ n)) '(ZERO (SCAL md))))
+
+(sp (make-wff
+  '(FORALL md (IMPLIES (IS-MODULE md)
+     (IMPLIES (IS-COMMUTATIVE-RING (SCAL md))
+      (FORALL n (IMPLIES (IN n NN)
+       (FORALL u (IMPLIES (IN u (MAT (succ n) 1 (VEC md)))
+        (FORALL c (IMPLIES (IN c (MAT 1 (succ n) (CARR (SCAL md))))
+         (FORALL c0 (IMPLIES (IN c0 (MAT 1 (succ n) (CARR (SCAL md))))
+          (FORALL q (IMPLIES (IN q (CARR (SCAL md)))
+           (FORALL b (IMPLIES (IN b (CARR (SCAL md)))
+            (IMPLIES (= (ENTRY c0 1 (succ n)) b)
+             (IMPLIES (= (ENTRY c 1 (succ n)) ((MUL (SCAL md)) q b))
+              (FORSOME y (AND (IN y (SPAN md n (BLOCK u n 1)))
+                         (AND (= (ENTRY (MATACT md c u) 1 1)
+                                 ((VADD md) y ((ACT md) q (ENTRY (MATACT md c0 u) 1 1))))
+                              (= y ((VADD md) (ENTRY (MATACT md c u) 1 1)
+                                              ((ACT md) ((NEG (SCAL md)) q)
+                                               (ENTRY (MATACT md c0 u) 1 1))))))))))))))))))))))))))
+(lc-di*)
+
+(fact 'commutative-ring-is-ring '(SCAL md))
+(fact 'ring-neg-in-carr '(SCAL md) 'q)                    ; -q in CARR
+(fact 'one-in-interval-1)
+(fact 'nn-succ-closed 'n) (fact 'nn-le-refl '(succ n)) (fact 'nn-one-le-succ 'n)
+(fact 'interval-mem-intro 1 '(succ n) '(succ n))          ; succ n in [1,succ n]
+(fact 'matscale-type '(SCAL md) 1 '(succ n) l3-nq 'c0)    ; qc0 = (-q).c0 : MAT 1 (succ n)
+(fact 'matadd-type '(SCAL md) 1 '(succ n) 'c l3-qc0)      ; d : MAT 1 (succ n)
+(fact 'matact-type 'md 1 '(succ n) 1 'c 'u)
+(fact 'entry-in-carrier 1 1 '(VEC md) '(MATACT md c u) 1 1)      ; x in VEC
+(fact 'matact-type 'md 1 '(succ n) 1 'c0 'u)
+(fact 'entry-in-carrier 1 1 '(VEC md) '(MATACT md c0 u) 1 1)     ; x0 in VEC
+(fact 'module-act-type 'md 'q l3-c0u)                    ; q.x0 in VEC
+(fact 'module-act-type 'md l3-nq l3-c0u)                 ; (-q).x0 in VEC
+
+;; FACT3:  y = x + (-q).x0   (bricks 1 and 2)
+(lc-cut! l3-fact3
+  (lambda ()
+    (fact 'matact-row-add 'md '(succ n) 'c l3-qc0 'u)
+    (subst (list '= l3-du (list '(VADD md) l3-cu l3-qc0u)))
+    (fact 'matact-row-scale 'md '(succ n) l3-nq 'c0 'u)
+    (subst (list '= l3-qc0u l3-nqx0))
+    (fact 'module-vadd-type 'md l3-cu l3-nqx0)
+    (rfl)))
+
+;; FACT-DZERO:  d_{1,succ n} = 0
+(lc-cut! l3-dzero
+  (lambda ()
+    (fact 'matadd-entry '(SCAL md) 1 '(succ n) 'c l3-qc0 1 '(succ n))
+    (subst (list '= (list 'ENTRY l3-d 1 '(succ n))
+                 (list '(ADD (SCAL md)) '(ENTRY c 1 (succ n)) (list 'ENTRY l3-qc0 1 '(succ n)))))
+    (fact 'matscale-entry '(SCAL md) 1 '(succ n) l3-nq 'c0 1 '(succ n))
+    (subst (list '= (list 'ENTRY l3-qc0 1 '(succ n)) (list '(MUL (SCAL md)) l3-nq '(ENTRY c0 1 (succ n)))))
+    (subst (list '= '(ENTRY c0 1 (succ n)) 'b))          ; c0 last = b
+    (subst (list '= '(ENTRY c 1 (succ n)) (list '(MUL (SCAL md)) 'q 'b)))  ; c last = q*b
+    ;; goal (ADD (q*b) ((MUL (NEG q) b))) = 0
+    (fact 'ring-neg-mul-left '(SCAL md) 'q 'b)           ; (MUL (NEG q) b) = (NEG (q*b))
+    (subst (list '= (list '(MUL (SCAL md)) l3-nq 'b) (list '(NEG (SCAL md)) (list '(MUL (SCAL md)) 'q 'b))))
+    (fact 'ring-carrier-closed-mul '(SCAL md) 'q 'b)     ; (q*b) in CARR, for ring-add-right-inv
+    (fact 'ring-add-right-inv '(SCAL md) (list '(MUL (SCAL md)) 'q 'b))
+    (ass)))
+
+;; FACT-Y-IN-SPAN via lastcoeff-zero-in-span
+(fact 'lastcoeff-zero-in-span 'md 'n 'u l3-d)            ; d in MAT + dzero => y in truncated span
+
+;; FACT2:  x = y + q.x0   (abelian-group algebra)
+(lc-cut! l3-fact2
+  (lambda ()
+    ;; goal  x = VADD y (q.x0).  Rewrite y by FACT3.
+    (subst l3-fact3)                                     ; y -> VADD x ((-q).x0)
+    ;; goal  x = VADD (VADD x ((-q).x0)) (q.x0)
+    (fact 'abelian-group-assoc-module-vector-ag 'md l3-cu l3-nqx0 l3-qx0)
+    (subst (list '= (list '(VADD md) (list '(VADD md) l3-cu l3-nqx0) l3-qx0)
+                 (list '(VADD md) l3-cu (list '(VADD md) l3-nqx0 l3-qx0))))
+    ;; goal  x = VADD x (VADD ((-q).x0)(q.x0))
+    (fact 'module-act-distrib-scalar 'md l3-nq 'q l3-c0u)  ; ((ADD -q q).x0) = VADD ((-q).x0)(q.x0)
+    (fact 'eq-sym (list '(ACT md) (list '(ADD (SCAL md)) l3-nq 'q) l3-c0u)
+          (list '(VADD md) l3-nqx0 l3-qx0))
+    (subst (list '= (list '(VADD md) l3-nqx0 l3-qx0)
+                 (list '(ACT md) (list '(ADD (SCAL md)) l3-nq 'q) l3-c0u)))
+    ;; goal  x = VADD x (((ADD -q q)).x0)
+    (fact 'ring-add-left-inv '(SCAL md) 'q)              ; (ADD (NEG q) q) = 0
+    (subst (list '= (list '(ADD (SCAL md)) l3-nq 'q) '(ZERO (SCAL md))))
+    (fact 'module-zero-act 'md l3-c0u)                  ; 0.x0 = VZERO
+    (subst (list '= (list '(ACT md) '(ZERO (SCAL md)) l3-c0u) '(VZERO md)))
+    ;; goal  x = VADD x VZERO
+    (fact 'abelian-group-right-id-module-vector-ag 'md l3-cu)
+    (subst (list '= (list '(VADD md) l3-cu '(VZERO md)) l3-cu))
+    (rfl)))
+
+;; assemble
+(ew l3-du)
+(lc-split-and!)
+(lc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (pair? (caddr g)) (eq? (car (caddr g)) 'SPAN)))) (ass)
+(lc-foc-goal! (lambda (g) (equal? g l3-fact2))) (ass)
+(lc-foc-goal! (lambda (g) (equal? g l3-fact3))) (ass)
+
+(qed 'descent-remainder)
+(category! 'descent-remainder 'algebra)
+(category! 'abelian-group-assoc 'algebra)
