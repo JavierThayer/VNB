@@ -64,19 +64,10 @@
              (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ s)
                (list 'IN '((ACT md) r_ x_) s))))))))))
 
-;;; ===================================================================
-;;; submodule-subset -- the SUBSET conjunct, re-quantified for a forward `fact'.
-;;; mac-h destroys the IS-SUBMODULE hypothesis, which is fine: the goal wants
-;;; nothing else from it.
-;;; ===================================================================
-(sp (make-wff
-  '(FORALL md (FORALL sm (IMPLIES (IS-SUBMODULE md sm) (SUBSET sm (VEC md)))))))
-(sfg-di*)
-(mac-h 'IS-SUBMODULE '(IS-SUBMODULE md sm))
-(ai (sfg-submodule-body 'sm))
-(ass)
-(qed 'submodule-subset)
-(category! 'submodule-subset 'algebra)
+;;; submodule-subset (the SUBSET conjunct) is now a definitional projection in
+;;; finite-dimensional.scm (alongside submodule-vzero-in / -vadd-closed / etc.),
+;;; so it is available to the span-bricks, which -- since the descent moved ahead
+;;; of this file -- now load before it.  It used to be proved here.
 
 ;;; ===================================================================
 ;;; whole-module-is-submodule -- VEC md is a submodule of md.

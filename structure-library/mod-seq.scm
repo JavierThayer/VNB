@@ -301,6 +301,30 @@
                  (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
                                   (= x_ (ENTRY (MATACT md c_ u) 1 1))))))))))))
 
+;;; -----------------------------------------------------------------------
+;;; LASTCOEFF-SET(md, p, u, sm) -- the set of possible LAST coefficients of an
+;;; element of sm, written as a length-(succ p) combination of u:
+;;;   { r in CARR(SCAL md) : some c in MAT(1,succ p,CARR(SCAL md)) has
+;;;                          c_{1,succ p} = r  and  c.u in sm }.
+;;; The engine of the spans-submodule-fg descent: it is an IDEAL of SCAL md
+;;; (lastcoeff-set-is-ideal), so over a euclidean ring it is principal, and its
+;;; generator splits sm into "last coefficient a multiple of the generator".
+;;; Same binder discipline as SPAN (x_ / c_; r_ is the last coefficient).
+(def-functoid 'LASTCOEFF-SET '(md p u sm)
+  '(SEP r_ (CARR (SCAL md))
+     (FORSOME c_ (AND (IN c_ (MAT 1 (succ p) (CARR (SCAL md))))
+                 (AND (= (ENTRY c_ 1 (succ p)) r_)
+                      (IN (ENTRY (MATACT md c_ u) 1 1) sm))))))
+
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'lastcoeff-set-membership
+    '(FORALL md (FORALL p (FORALL u (FORALL sm (FORALL r_
+       (IFF (IN r_ (LASTCOEFF-SET md p u sm))
+            (AND (IN r_ (CARR (SCAL md)))
+                 (FORSOME c_ (AND (IN c_ (MAT 1 (succ p) (CARR (SCAL md))))
+                             (AND (= (ENTRY c_ 1 (succ p)) r_)
+                                  (IN (ENTRY (MATACT md c_ u) 1 1) sm)))))))))))))
+
 ;;; A submodule is closed under finite sums of its elements.  IS-SUBMODULE gives
 ;;; closure under the binary VADD and contains VZERO; FINSUM is built from those by
 ;;; induction on |S| (finsum-empty for the base, finsum-insert for the step).

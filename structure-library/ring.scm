@@ -105,6 +105,19 @@
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) a (ZERO s)) (ZERO s)))))))
 
+;;; (-a) * b = -(a*b).  Standard: a*b + (-a)*b = (a + -a)*b = 0*b = 0, so (-a)*b
+;;; is the additive inverse of a*b.  Needed wherever a coefficient is negated --
+;;; the lastcoeff ideal's neg-closure, and the spans-submodule-fg remainder
+;;; c_{1,succ p} + (-q)*b = q*b - q*b = 0.
+(support 'ring-neg-mul-left
+  '(FORALL s (IMPLIES (IS-RING s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (FORALL b (IMPLIES (IN b (CARR s))
+         (= ((MUL s) ((NEG s) a) b) ((NEG s) ((MUL s) a b))))))))))
+(warrant! 'ring-neg-mul-left 'well-known
+  "(-a)*b = -(a*b): a*b + (-a)*b = (a + -a)*b = 0*b = 0 (ring-right-dist,
+   ring-add-left-inv, ring-mul-zero-left), so (-a)*b is the inverse of a*b.")
+
 ;;; ZERO(r) ∈ CARR(r) when IS-RING(r).
 ;;; DERIVED (REVIEW.md R-2): follows from the auto-generated IS-RING IFF.
 (theory-add-axiom! *current-theory* 'ring-zero-in
@@ -115,6 +128,16 @@
   '(FORALL r (FORALL a (FORALL b
       (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
                (IN ((ADD r) a b) (CARR r)))))))
+
+;;; ADD closes on the carrier -- CURRIED (ring-carrier-closed-add above packs its
+;;; guards into one AND, which a forward `fact' will not split; this is the twin
+;;; of ring-carrier-closed-mul, usable by `fact' directly).
+(support 'ring-add-closed
+  '(FORALL s (IMPLIES (IS-RING s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (FORALL b (IMPLIES (IN b (CARR s))
+         (IN ((ADD s) a b) (CARR s)))))))))
+(warrant! 'ring-add-closed 'well-known "ADD closes on the carrier (curried form).")
 
 ;;; MUL closes on the carrier -- curried (so a forward `fact' detaches each
 ;;; guard without a cut).  From (op MUL (CARTESIAN CARR CARR) CARR) + fun-apply.

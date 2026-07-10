@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-241 operators: 16 functions, 153 functoids, 72 predicates, 0 undeclared.
+242 operators: 16 functions, 154 functoids, 72 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -34,7 +34,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (153)
+## Functoids  (154)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -267,6 +267,10 @@ Declared by: `fam-of-list-apply`
     inverse-bij(phi, x, y) := vnb-lambda(y, choice({x in x: phi(x) = y}))
 
 ### `iota`  — kernel term-former
+
+### `lastcoeff-set`  — def-functoid · set-valued
+
+    lastcoeff-set(md, p, u, sm) := {r_ in carr(scal(md)): forsome([c_ in mat(1, succ(p), carr(scal(md)))], entry(c_, 1, succ(p)) = r_ and entry(matact(md, c_, u), 1, 1) in sm)}
 
 ### `length`  — kernel term-former
 

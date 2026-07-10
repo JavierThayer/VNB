@@ -40,6 +40,8 @@
 ;;; IS-MODULE.  (submodule-subset, the fifth, is already a proven theorem in
 ;;; submodule-fg-proof.scm.)
 (fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'submodule-subset
+    '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s) (SUBSET s (VEC m))))))
   (theory-add-axiom! *current-theory* 'submodule-vzero-in
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s) (IN (VZERO m) s)))))
   (theory-add-axiom! *current-theory* 'submodule-vadd-closed

@@ -82,49 +82,12 @@
 ;;; module".  The old statement is now a COROLLARY, machine-proven in
 ;;; theorem-library/submodule-fg-proof.scm by taking bm := VEC md.
 ;;; =======================================================================
-(support 'spans-submodule-fg
-  (sf-tf 'md sf-euclid
-   (sf-tf 'n '(IN n NN)
-    (sf-tf 'u '(IN u (MAT n 1 (VEC md)))
-     (sf-tf 'bm '(IS-SUBMODULE md bm)
-      (list 'IMPLIES '(SPANS md n u bm)
-       (sf-tf 'sm '(IS-SUBMODULE md sm)
-        (list 'IMPLIES '(SUBSET sm bm)
-         (sf-ex 'k '(AND (IN k NN) (<= k n))
-          (sf-ex 'w '(IN w (MAT k 1 (VEC md)))
-                 '(SPANS md k w sm)))))))))))
-(warrant! 'spans-submodule-fg 'informal
-  "A submodule of a submodule SPANNED by n elements is spanned by <= n elements.
-   Induction on n, entirely inside md.
-   n=0: SPANS md 0 u bm forces bm = {0} (the empty finsum), so sm = {0}; take
-   k=0 and the empty sequence.
-   Step n = succ p: put u' = u_1..u_p, bm' = span(u'), sm' = sm INTERSECT bm'.
-   The last-coefficient set
-     S = { r in CARR(SCAL md) : some c in MAT(1,succ p,CARR(SCAL md)) has
-                                c_{1,succ p} = r and c.u in sm }
-   is an IDEAL of the scalar ring: closed under + because (c1+c2).u = c1.u + c2.u
-   and sm is closed under VADD, and under ring multiples because (a*c).u = a.(c.u)
-   and sm is closed under ACT.  SCAL md is euclidean, so euclidean-ideal-has-
-   generator (PROVEN, theorem-library/euclidean-ideal-generator-proof.scm, one
-   minimize! call) yields s in S with S subset (s).
-   If s = 0 then every x in sm has last coefficient 0, so sm subset bm', sm = sm',
-   and the induction hypothesis at (p, u', bm') gives k <= p <= succ p.
-   Otherwise take x0 in sm with x0 = c0.u and (c0)_{1,succ p} = s.  For x in sm,
-   x = c.u with c_{1,succ p} = q.s, and x - q.x0 = (c - q.c0).u has last
-   coefficient 0, hence lies in bm', hence in sm'.  The induction hypothesis at
-   (p, u', bm') gives w' of length k' <= p spanning sm'; then (w', x0) spans sm
-   and has length k'+1 <= succ p.
-   ASSERTED, library-phase.  What its proof still needs, none of it deep and none
-   of it present:
-     * SPAN(md,n,u) as a SEP set, span-is-submodule, SPANS md n u (SPAN md n u)
-     * sequence truncation and cons, with their MATACT entry laws
-     * (c1+c2).u = c1.u + c2.u and (a*c).u = a.(c.u) for coefficient ROWS
-       (finsum-additive + module-act-distrib-scalar; finsum-act-distrib-gen)
-     * the finsum split over INTERVAL(1,succ p) that isolates the last term
-     * intersection of two submodules is a submodule
-     * MAT(1,0,X) is inhabited, and MATACT over an empty index gives VZERO
-   Smith normal form cannot supply any of it: forming the matrix A with v = A.u
-   presupposes the finite generating sequence v.")
+;;; spans-submodule-fg is now PROVEN by induction on n in
+;;; theorem-library/spans-submodule-fg-proof.scm (loaded just before this file),
+;;; from the six bricks + euclidean-ideal-has-generator.  It used to be asserted
+;;; here ('informal).  submodule-fg-proof.scm (the bm := VEC md corollary)
+;;; consumes it exactly as before, now against a proved theorem rather than a
+;;; warranted support.
 
 ;;; =======================================================================
 ;;; Cor 3.46 -- submodule of a free module is free of rank <= n.

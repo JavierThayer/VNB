@@ -513,6 +513,23 @@
     ;; SEGMENT (SMITH-STAIRCASE A m n D k).  border-staircase + smith-staircase,
     ;; both trust:none.  Needs clear-pivot-cross + bordering + the border algebra.
     "theorem-library/smith-staircase-proof"
+    ;; ---- spans-submodule-fg: bricks, the last-coefficient ideal, the descent.
+    ;; Moved ahead of submodule-free / submodule-fg-proof so the descent (which
+    ;; proves spans-submodule-fg) precedes the corollary that consumes it.
+    ;; BRICKS 1-2: the coefficient row acts linearly (matact-row-add/-scale).
+    "theorem-library/matact-row-linear-proof"
+    ;; BRICK 3: SPAN(md,n,u) is a submodule and u spans it; module-act-neg-one,
+    ;; matact-zerorow/-unitrow/-empty-vzero.
+    "theorem-library/span-bricks-proof"
+    ;; BRICKS 4-6: matact-row-peel / matact-snoc, submodule-intersection, the
+    ;; zero-dimension MAT spaces are inhabited.
+    "theorem-library/span-bricks2-proof"
+    ;; The last-coefficient set is an IDEAL of SCAL md (the descent's engine), and
+    ;; "last coefficient 0 => the element is in the truncated span".
+    "theorem-library/lastcoeff-ideal-proof"
+    ;; THE DESCENT: spans-submodule-fg by induction on n, from the bricks +
+    ;; euclidean-ideal-has-generator.  Was asserted in submodule-free.
+    "theorem-library/spans-submodule-fg-proof"
     ;; Phase C, Cor 3.46: a submodule of a free module over a euclidean ring is
     ;; free of rank <= n.  submodule-fg is the lemma linear-algebra.tex \iffalse'd
     ;; out (tex:1651) and cannot do without -- Smith CONSUMES a finite generating
@@ -527,22 +544,9 @@
     "theorem-library/submodule-fg-proof"
     ;; Phase C, Remark 3.39: the matrix action on module-element sequences is
     ;; associative, (PQ).u = P.(Q.u).  Mirrors matmul-assoc via finsum-fubini.
-    ;; BRICK 1 of six under spans-submodule-fg: the coefficient row acts
-    ;; linearly, (c1+c2).u = c1.u + c2.u.  First consumer of finsum-add-ag.
-    ;; Needs mod-seq (MATACT), matrix (MATADD/matadd-entry), finsum-additive.
-    "theorem-library/matact-row-linear-proof"
-    ;; The module-action bricks under BRICK 3 (SPAN as a submodule):
-    ;; module-act-neg-one ((-1).x = -x, via the new abelian-group-inverse-unique
-    ;; specialized through MODULE-VECTOR-AG), matact-zerorow, matact-unitrow,
-    ;; matact-empty-vzero.  Needs module-zero-act, finsum-all-id, finsum-empty,
-    ;; matrix (ZEROMAT/UNITROW read-offs, interval-1-0-empty).
-    "theorem-library/span-bricks-proof"
-    ;; Bricks 4-6 under spans-submodule-fg: matact-row-peel / matact-snoc (split
-    ;; and build a coefficient combination at its last term), submodule-
-    ;; intersection, and the zero-dimension matrix spaces are inhabited.  Needs
-    ;; SNOC-COL/ROW + BLOCK (matrix), matact-summand-type-le (mod-seq),
-    ;; finsum-interval-peel (finsum-additive), the submodule-*-closed projections.
-    "theorem-library/span-bricks2-proof"
+    ;; (The spans-submodule-fg bricks + the descent moved UP, before submodule-
+    ;; free: the descent PROVES spans-submodule-fg, which submodule-fg-proof then
+    ;; consumes, so it must run first.)
     "theorem-library/matact-assoc-proof"
     ;; Phase C, Lemma 3.40: I.u = u, and invertible matrices preserve generating
     ;; and relation-free sequences.

@@ -57,3 +57,16 @@
    group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.")
+
+;;; a * e = a: the RIGHT identity.  group.scm has only group-left-id; in a
+;;; commutative group the right identity is left-id + commutativity.  Surfaced
+;;; because it specializes through MODULE-VECTOR-AG to (VADD md) v (VZERO md) = v
+;;; -- the "+ 0 drops" step every coefficient-combination proof ends on.
+(support 'abelian-group-right-id
+  '(FORALL s
+     (IMPLIES (IS-ABELIAN-GROUP s)
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (= ((MUL s) a (IDEN s)) a))))))
+(warrant! 'abelian-group-right-id 'well-known
+  "a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+   abelian-group-is-group).")
