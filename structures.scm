@@ -489,6 +489,12 @@
 ;;; via the view, installing  (FORALL r (IMPLIES (IS-SOURCE r) P[(NAME r)]))
 ;;; with accessor reduction.  Called once at def-view-as time; can be re-run
 ;;; manually after adding new TARGET theorems via (view-as-auto-specialize! 'NAME).
+;;; companion name -> the TARGET-structure theorem it was specialized from.
+;;; Read by debt-of (proof-debt.scm): a companion's bill is its source's bill.
+(define *view-specialized-source* (make-equal-hash-table))
+(define (view-specialized-source name)
+  (hash-table-ref/default *view-specialized-source* name #f))
+
 (define (view-as-auto-specialize! view-name)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((v          (or (lookup-view-as view-name)
@@ -522,6 +528,13 @@
                    (new-name (symbol-append thm-name suffix)))
               (unless (hash-table-ref/default *theorem-table* new-name #f)
                 (theory-add-axiom! *current-theory* new-name new-formula)
+                ;; Record where this companion came from.  It is stamped
+                ;; `definitional' (the fluid-let above) because the TRANSPORT is
+                ;; definitional -- but the transported CONTENT is only as trusted
+                ;; as thm-name.  Without this table, citing an asserted structure
+                ;; law through its view companion would report zero debt; see
+                ;; debt-of in proof-debt.scm.
+                (hash-table-set! *view-specialized-source* new-name thm-name)
                 (set! count (+ count 1)))))))
       all)
     (display ";; def-view-as ") (display view-name) (display ": ")

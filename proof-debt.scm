@@ -78,11 +78,21 @@
 (define *proof-citation-graph* (make-equal-hash-table))  ; proven name -> immediate citations
 
 ;;; debt(NAME): the set of asserted facts NAME ultimately rests on.
+;;;
+;;; A view-specialized companion (X-module-vector-ag, produced by def-view-as)
+;;; is stamped `definitional' because the TRANSPORT is definitional -- but its
+;;; content is exactly X's, so its debt is X's debt.  Without this case, citing
+;;; an asserted structure law through its companion reported an empty bill:
+;;; `module-act-neg-one' would read trust:none while resting on the asserted
+;;; abelian-group-inverse-unique.  (71 companions had an asserted source.)
 (define (debt-of name)
-  (case (provenance-of name)
-    ((primitive definitional) '())
-    ((proven) (hash-table-ref/default *proof-debt* name '()))
-    (else (list name))))            ; asserted (the bare default) -> leaf
+  (let ((src (view-specialized-source name)))
+    (if src
+        (debt-of src)
+        (case (provenance-of name)
+          ((primitive definitional) '())
+          ((proven) (hash-table-ref/default *proof-debt* name '()))
+          (else (list name))))))    ; asserted (the bare default) -> leaf
 
 ;;; Compute and store the bill for the proof just closed under NAME, from the
 ;;; current *proof-script*.  Returns the bill.  Called by qed AFTER install
