@@ -298,9 +298,26 @@
     (unfold    . "Unfold the definition.")
     (gi        . "Generalize.")))
 
-;; gloss for the PRIMARY content record; pre-goal = goal of the record before it,
-;; pre-asms = assumptions before it.  Returns a LaTeX fragment -- prose, with any
-;; formula shown as a displayed equation (proof-reader--display) below the text.
+;; The goal as it stood immediately before the group's PRIMARY record.
+;;
+;; NOT the group's entry goal.  A group routinely opens with structural di/ai
+;; steps that rewrite the goal -- `di di di ew' peels FORALLs down to the FORSOME
+;; the `ew' then witnesses -- and the ew / ni glosses read their quantified
+;; variable off that goal.  Passing the group's entry goal made `ew' see a FORALL
+;; where it wanted a FORSOME, fail to find the bound variable, and fall back to
+;; printing the literal string "w": a witness named after a variable that occurs
+;; nowhere in the proof.  (The line 301 comment always claimed this contract; the
+;; call site did not honour it.)
+(define (proof-reader--goal-before g primary pre-goal)
+  (let loop ((rs g) (prev #f))
+    (cond ((null? rs) pre-goal)
+          ((eq? (car rs) primary) (if prev (cadr (ir-rec prev)) pre-goal))
+          (else (loop (cdr rs) (car rs))))))
+
+;; gloss for the PRIMARY content record; pre-goal = goal of the record before it
+;; (see proof-reader--goal-before), pre-asms = assumptions before the group.
+;; Returns a LaTeX fragment -- prose, with any formula shown as a displayed
+;; equation (proof-reader--display) below the text.
 (define (proof-reader--gloss main pre-goal pre-asms)
   (let* ((entry (car main)) (tac (car entry)) (args (cdr entry))
          (goal (cadr main)) (asms (caddr main))
@@ -309,9 +326,16 @@
       ((ew)
        (let ((v (and (pair? pre-goal) (eq? (car pre-goal) 'FORSOME) (cadr pre-goal)))
              (w (and (pair? args) (car args))))
-         (string-append "Take $" (if v (expr->tex v) "w") " :=$"
-                        (if (and w (pair? w)) (proof-reader--display w)
-                            (string-append " $" (if w (proof-reader--arg-tex w) "\\cdot") "$.")))))
+         ;; No invented variable name: if the existential's bound variable cannot
+         ;; be recovered, say so, rather than naming the witness after a `w' the
+         ;; reader will hunt for in vain.
+         (if v
+             (string-append "Take $" (expr->tex v) " :=$"
+                            (if (and w (pair? w)) (proof-reader--display w)
+                                (string-append " $" (if w (proof-reader--arg-tex w) "\\cdot") "$.")))
+             (string-append "Supply the witness"
+                            (if (and w (pair? w)) (proof-reader--display w)
+                                (string-append " $" (if w (proof-reader--arg-tex w) "\\cdot") "$."))))))
       ((mac macm)
        (string-append "By " (proof-reader--cite (and (pair? args)(car args)))
                       (if goal (string-append ", reduce to" (proof-reader--display goal)) ".")))
@@ -674,9 +698,13 @@
                    ;; only the final peeled instance, not each half-peeled form.
                    (inst-run? (and main (memq (car (car main)) '(inst inst+))
                                    (not (eq? kind 'typing))))
+                   ;; the goal just before the primary, NOT the group's entry goal
+                   (main-pre-goal (if primary
+                                      (proof-reader--goal-before g primary pre-goal)
+                                      pre-goal))
                    (gloss   (cond ((eq? kind 'typing) (proof-reader--typing-row g ht))
                                   (inst-run? (proof-reader--inst-row g ht))
-                                  (main (proof-reader--gloss main pre-goal pre-asms))
+                                  (main (proof-reader--gloss main main-pre-goal pre-asms))
                                   (else "")))
                    (close-txt (cond ((not closer) "")
                                     ((memq (car (car closer)) '(ass)) "  \\emph{(holds by assumption)}")
