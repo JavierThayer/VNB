@@ -854,6 +854,15 @@
 ;; drifted apart (144 vs ~320 entries).
 (write-pss-md)
 
+;; Regenerate the proof-debt ledger (PROOF-DEBT.md) from *proof-debt*, which qed
+;; has just filled for every proof in the library.  It had never been wired in:
+;; `proof-debt-ledger' was defined in proof-debt.scm and called from nowhere, so
+;; the file on disk was a 2026-06-03 snapshot listing the ten `demo-*' road-test
+;; fixtures while the library grew to 125 real proofs.  Exactly the fossilisation
+;; PSS.md suffered above.  Must run after (catalog), which needs no debt data,
+;; and after every theorem-library file has reached its qed.
+(proof-debt-ledger)
+
 ;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
 (write-tactics-md)
 
