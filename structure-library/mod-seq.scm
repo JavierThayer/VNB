@@ -264,6 +264,22 @@
      (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
                       (= x_ (ENTRY (MATACT md c_ u) 1 1))))))
 
+;;; The membership IFF.  `def-functoid' installs only a rewrite macete, never a
+;;; theorem, so `mac' can unfold SPAN in a GOAL but `mac-h' -- which looks the
+;;; name up in *theorem-table* to check it is an equivalence -- cannot touch an
+;;; assumption.  Every use of SPAN reads an assumption `x in SPAN(md,n,u)', so
+;;; state the IFF once.  It is DEFINITIONAL: the functoid unfold composed with
+;;; the separation schema, both trusted base -- exactly the IFF `def-predicate'
+;;; would have generated had SPAN been a predicate.  (hahn-banach-proof.scm's
+;;; span-add-one-membership is the same read-off, but was asserted.)
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'span-membership
+    '(FORALL md (FORALL n (FORALL u (FORALL x_
+       (IFF (IN x_ (SPAN md n u))
+            (AND (IN x_ (VEC md))
+                 (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
+                                  (= x_ (ENTRY (MATACT md c_ u) 1 1))))))))))))
+
 ;;; A submodule is closed under finite sums of its elements.  IS-SUBMODULE gives
 ;;; closure under the binary VADD and contains VZERO; FINSUM is built from those by
 ;;; induction on |S| (finsum-empty for the base, finsum-insert for the step).

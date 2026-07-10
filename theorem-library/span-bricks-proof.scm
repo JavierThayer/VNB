@@ -249,3 +249,248 @@
 (qed 'matact-empty-vzero)
 (category! 'matact-empty-vzero 'algebra)
 (category! 'interval-1-0-empty 'plumbing)
+
+
+;;; ===================================================================
+;;; BRICK 3 proper.
+;;;
+;;;   span-is-submodule   IS-SUBMODULE(md, SPAN(md,n,u))
+;;;   spans-span          SPANS(md, n, u, SPAN(md,n,u))
+;;;
+;;; The five conjuncts of IS-SUBMODULE, one brick each:
+;;;   SUBSET       span-membership: a SEP set sits inside its domain
+;;;   VZERO in     matact-zerorow, witness (ZEROMAT (SCAL md) 1 n)
+;;;   VADD closed  matact-row-add,   witness (MATADD (SCAL md) c1 c2)
+;;;   VNEG closed  matact-row-scale + module-act-neg-one,
+;;;                                  witness (MATSCALE (SCAL md) (-1) c1)
+;;;   ACT closed   matact-row-scale, witness (MATSCALE (SCAL md) r c1)
+;;; and, for spans-span, matact-unitrow with witness (UNITROW (SCAL md) n j).
+;;;
+;;; Every witness is a coefficient ROW, and every proof obligation is one of the
+;;; row-linearity bricks.  That is the whole point of stating bricks 1 and 2 at
+;;; the level of rows rather than of the module.
+;;; ===================================================================
+
+;;; Unfolding a membership goal, and `di'-on-AND, each open exactly two leaves
+;;; and rename bound variables as they go.  Do not navigate by goal shape:
+;;; snapshot the leaves, and tell the two apart by which one PRED accepts.
+(define (sb-two-way! act pred-a prove-a prove-b)
+  (let ((before (proof-leaves)))
+    (act)
+    (let* ((new (filter (lambda (l) (not (memq l before))) (proof-leaves)))
+           (a   (car (filter (lambda (l) (pred-a (wff-formula (sequent-node-assertion l)))) new)))
+           (b   (car (filter (lambda (l) (not (eq? l a))) new))))
+      (unless (= (length new) 2) (error "sb-two-way!: expected 2 new leaves" (length new)))
+      (sb-foc! a) (prove-a)
+      (sb-foc! b) (prove-b))))
+
+(define (sb-head? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
+
+(define sb-span '(SPAN md n u))
+;; the context equation  t = (ENTRY (MATACT md c u) 1 1) , and its row c
+(define (sb-eq-for t)
+  (dc-find (lambda (a) (and (pair? a) (eq? (car a) '=) (equal? (cadr a) t)
+                            (pair? (caddr a)) (eq? (car (caddr a)) 'ENTRY)))))
+(define (sb-row-of eq) (caddr (cadr (caddr eq))))     ; (= t (ENTRY (MATACT md c u) 1 1)) -> c
+
+;; Unfold `t in SPAN(md,n,u)' in the CONTEXT down to its coefficient row.
+;; `mac-h' needs a *theorem*, and def-functoid installs only a macete -- hence
+;; span-membership (mod-seq.scm) rather than (mac-h 'SPAN ...), which warns
+;; "unknown theorem/macete" and then silently leaves the assumption alone.
+;; Afterwards the context holds (IN t (VEC md)), (IN c (MAT 1 n ..)) and
+;; (= t (ENTRY (MATACT md c u) 1 1)).  Returns the row c.
+(define (sb-open-span! t)
+  (mac-h 'span-membership (list 'IN t sb-span))
+  (ai (dc-find (dc-head? 'AND)))                      ; (IN t (VEC md)) ; FORSOME
+  (ai (dc-find (dc-head? 'FORSOME)))                  ; eigen row c     ; AND
+  (ai (dc-find (dc-head? 'AND)))                      ; typing ; the equation
+  (sb-row-of (sb-eq-for t)))
+
+;; goal `t in SPAN' -> two leaves: (IN t (VEC md)) and the FORSOME.
+(define (sb-span-mi) (mac 'span-membership) (di))
+
+;;; the body of IS-SUBMODULE(md, S)
+(define (sb-submodule-body s)
+  (list 'AND (list 'SUBSET s '(VEC md))
+   (list 'AND (list 'IN '(VZERO md) s)
+    (list 'AND (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ s)
+                     (list 'FORALL 'y_ (list 'IMPLIES (list 'IN 'y_ s)
+                       (list 'IN '((VADD md) x_ y_) s)))))
+     (list 'AND (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ s)
+                       (list 'IN '((VNEG md) x_) s)))
+           (list 'FORALL 'r_ (list 'IMPLIES '(IN r_ (CARR (SCAL md)))
+             (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ s)
+               (list 'IN '((ACT md) r_ x_) s))))))))))
+
+(define (sb-split-and-goals!)
+  (let lp ((n 0))
+    (let ((leaf (any-pred (lambda (s)
+                            (let ((g (wff-formula (sequent-node-assertion s))))
+                              (and (pair? g) (eq? (car g) 'AND))))
+                          (proof-leaves))))
+      (when (and leaf (< n 20)) (sb-foc! leaf) (di) (lp (+ n 1))))))
+
+;;; -------------------------------------------------------------------
+(sp (make-wff
+  (sb-wf '(md) (sb-wi '((IS-MODULE md))
+    (sb-wf '(n u) (sb-wi '((IN u (MAT n 1 (VEC md))))
+      (list 'IS-SUBMODULE 'md sb-span)))))))
+(sb-di*)
+
+(fact 'module-scalar-ring 'md)
+(fact 'module-vzero-in 'md)
+(fact 'ring-one-in '(SCAL md))
+(fact 'ring-neg-in-carr '(SCAL md) sb-one)           ; -1 in CARR(SCAL md)
+(fact 'zeromat-type '(SCAL md) 1 'n)
+
+(mac 'IS-SUBMODULE)
+(sb-split-and-goals!)                                ; five conjuncts, five leaves
+
+;; (1) SPAN subset VEC md -- a SEP set lies in its domain.
+(sb-foc-goal! (list 'SUBSET sb-span '(VEC md)))
+(mac 'subset-def)
+(di)
+(let ((xx (cadr (sb-goal))))                         ; goal (IN xx (VEC md))
+  (mac-h 'span-membership (list 'IN xx sb-span))
+  (ai (dc-find (dc-head? 'AND)))
+  (ass))
+
+;; (2) VZERO md in SPAN -- the zero row.
+(sb-foc-goal! (list 'IN '(VZERO md) sb-span))
+(sb-two-way! sb-span-mi (sb-head? 'IN)
+  (lambda () (ass))                                  ; (IN (VZERO md) (VEC md))
+  (lambda ()
+    (sb-two-way! (lambda () (ew sb-zm) (di)) (sb-head? 'IN)
+      (lambda () (ass))                              ; (IN ZEROMAT (MAT 1 n ..))
+      (lambda ()                                     ; (= (VZERO md) (ZEROMAT.u))
+        (fact 'matact-zerorow 'md 'n 'u)
+        (fact 'eq-sym (list 'ENTRY (list 'MATACT 'md sb-zm 'u) 1 1) '(VZERO md))
+        (ass)))))
+
+;; (3) SPAN closed under VADD -- add the coefficient rows (brick 1).
+(sb-foc-goal! (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ sb-span)
+                 (list 'FORALL 'y_ (list 'IMPLIES (list 'IN 'y_ sb-span)
+                   (list 'IN '((VADD md) x_ y_) sb-span))))))
+(sb-di*)
+(let* ((g  (sb-goal)) (ap (cadr g)) (xx (cadr ap)) (yy (caddr ap))
+       (c1 (sb-open-span! xx)) (c2 (sb-open-span! yy))
+       (c1u (list 'ENTRY (list 'MATACT 'md c1 'u) 1 1))
+       (c2u (list 'ENTRY (list 'MATACT 'md c2 'u) 1 1))
+       (ma  (list 'MATADD '(SCAL md) c1 c2)))
+  (fact 'module-vadd-type 'md xx yy)
+  (fact 'matadd-type '(SCAL md) 1 'n c1 c2)
+  (sb-two-way! sb-span-mi (sb-head? 'IN)
+    (lambda () (ass))                                ; (IN (VADD xx yy) (VEC md))
+    (lambda ()
+      (sb-two-way! (lambda () (ew ma) (di)) (sb-head? 'IN)
+        (lambda () (ass))                            ; (IN (MATADD ..) (MAT 1 n ..))
+        (lambda ()
+          ;; goal  (VADD md)(xx,yy) = (MATADD c1 c2).u
+          (fact 'matact-row-add 'md 'n c1 c2 'u)
+          (subst (list '= (list 'ENTRY (list 'MATACT 'md ma 'u) 1 1)
+                       (list '(VADD md) c1u c2u)))
+          (fact 'eq-sym xx c1u) (subst (list '= c1u xx))
+          (fact 'eq-sym yy c2u) (subst (list '= c2u yy))
+          (rfl))))))
+
+;; (4) SPAN closed under VNEG -- scale the row by -1 (brick 2 + module-act-neg-one).
+(sb-foc-goal! (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ sb-span)
+                                      (list 'IN '((VNEG md) x_) sb-span))))
+(sb-di*)
+(let* ((g  (sb-goal)) (ap (cadr g)) (xx (cadr ap))
+       (c1 (sb-open-span! xx))
+       (c1u (list 'ENTRY (list 'MATACT 'md c1 'u) 1 1))
+       (ms  (list 'MATSCALE '(SCAL md) sb-neg1 c1)))
+  (fact 'module-vneg-type 'md xx)
+  (fact 'matscale-type '(SCAL md) 1 'n sb-neg1 c1)
+  (sb-two-way! sb-span-mi (sb-head? 'IN)
+    (lambda () (ass))                                ; (IN (VNEG xx) (VEC md))
+    (lambda ()
+      (sb-two-way! (lambda () (ew ms) (di)) (sb-head? 'IN)
+        (lambda () (ass))                            ; (IN (MATSCALE ..) (MAT 1 n ..))
+        (lambda ()
+          ;; goal  (VNEG md) xx = ((-1)*c1).u
+          (fact 'matact-row-scale 'md 'n sb-neg1 c1 'u)
+          (subst (list '= (list 'ENTRY (list 'MATACT 'md ms 'u) 1 1)
+                       (list '(ACT md) sb-neg1 c1u)))
+          (fact 'eq-sym xx c1u) (subst (list '= c1u xx))
+          ;; goal  (VNEG md) xx = (-1).xx
+          (fact 'module-act-neg-one 'md xx)
+          (fact 'eq-sym (list '(ACT md) sb-neg1 xx) (list '(VNEG md) xx))
+          (ass))))))
+
+;; (5) SPAN closed under the scalar action -- scale the row (brick 2).
+(sb-foc-goal! (list 'FORALL 'r_ (list 'IMPLIES '(IN r_ (CARR (SCAL md)))
+                 (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ sb-span)
+                   (list 'IN '((ACT md) r_ x_) sb-span))))))
+(sb-di*)
+(let* ((g  (sb-goal)) (ap (cadr g)) (rr (cadr ap)) (xx (caddr ap))
+       (c1 (sb-open-span! xx))
+       (c1u (list 'ENTRY (list 'MATACT 'md c1 'u) 1 1))
+       (ms  (list 'MATSCALE '(SCAL md) rr c1)))
+  (fact 'module-act-type 'md rr xx)
+  (fact 'matscale-type '(SCAL md) 1 'n rr c1)
+  (sb-two-way! sb-span-mi (sb-head? 'IN)
+    (lambda () (ass))                                ; (IN (ACT rr xx) (VEC md))
+    (lambda ()
+      (sb-two-way! (lambda () (ew ms) (di)) (sb-head? 'IN)
+        (lambda () (ass))                            ; (IN (MATSCALE ..) (MAT 1 n ..))
+        (lambda ()
+          (fact 'matact-row-scale 'md 'n rr c1 'u)
+          (subst (list '= (list 'ENTRY (list 'MATACT 'md ms 'u) 1 1)
+                       (list '(ACT md) rr c1u)))
+          (fact 'eq-sym xx c1u) (subst (list '= c1u xx))
+          (rfl))))))
+
+(qed 'span-is-submodule)
+(category! 'span-is-submodule 'algebra)
+
+
+;;; ===================================================================
+;;; spans-span:  u spans SPAN(md,n,u).
+;;;   conjunct 1: u_{j1} in SPAN, witnessed by the unit row e_j (matact-unitrow)
+;;;   conjunct 2: every member of SPAN is a combination -- that IS the SEP body.
+;;; ===================================================================
+(sp (make-wff
+  (sb-wf '(md) (sb-wi '((IS-MODULE md))
+    (sb-wf '(n u) (sb-wi '((IN u (MAT n 1 (VEC md))))
+      (list 'SPANS 'md 'n 'u sb-span)))))))
+(sb-di*)
+
+(fact 'module-scalar-ring 'md)
+(fact 'one-in-interval-1)                            ; entry-in-carrier's column bound
+(mac 'SPANS)
+(sb-split-and-goals!)
+
+;; (1) each u_{j1} lies in SPAN, via the unit row.
+(sb-foc-goal! (list 'FORALL 'j_ (list 'IMPLIES '(IN j_ (INTERVAL 1 n))
+                                      (list 'IN '(ENTRY u j_ 1) sb-span))))
+(sb-di*)
+(let* ((g  (sb-goal)) (uj (cadr g)) (jj (caddr uj))   ; goal (IN (ENTRY u jj 1) SPAN)
+       (ur (list 'UNITROW '(SCAL md) 'n jj)))
+  (fact 'entry-in-carrier 'n 1 '(VEC md) 'u jj 1)
+  (fact 'unitrow-type '(SCAL md) 'n jj)
+  (sb-two-way! sb-span-mi (sb-head? 'IN)
+    (lambda () (ass))                                ; (IN (ENTRY u jj 1) (VEC md))
+    (lambda ()
+      (sb-two-way! (lambda () (ew ur) (di)) (sb-head? 'IN)
+        (lambda () (ass))                            ; (IN (UNITROW ..) (MAT 1 n ..))
+        (lambda ()
+          (fact 'matact-unitrow 'md 'n jj 'u)
+          (fact 'eq-sym (list 'ENTRY (list 'MATACT 'md ur 'u) 1 1) uj)
+          (ass))))))
+
+;; (2) every member of SPAN is a coefficient combination -- unpack the SEP.
+(sb-foc-goal! (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ sb-span)
+                 '(FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
+                                   (= x_ (ENTRY (MATACT md c_ u) 1 1)))))))
+(sb-di*)
+;; read xx off the CONTEXT, not the goal: the goal's leading binder is c_.
+(let ((xx (cadr (dc-find (lambda (a) (and (pair? a) (eq? (car a) 'IN)
+                                          (equal? (caddr a) sb-span)))))))
+  (mac-h 'span-membership (list 'IN xx sb-span))
+  (ai (dc-find (dc-head? 'AND)))
+  (ass))
+
+(qed 'spans-span)
+(category! 'spans-span 'algebra)

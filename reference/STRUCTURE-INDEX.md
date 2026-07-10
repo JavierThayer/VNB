@@ -42,7 +42,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -158,8 +158,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr mul iden inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr mul iden inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr mul iden inv)
-- `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul iden inv) ↦ (carr mul iden inv)
 - `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul iden inv)
+- `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul iden inv) ↦ (carr mul iden inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr mul iden inv)
 
 *Views from `abelian-group`.*
@@ -444,8 +444,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul iden inv)
 - `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul iden inv)
 
 ### group
 <a id="group"></a>
@@ -665,6 +665,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], a = (vadd(r))(a, vzero(r))))
 - `mra-combined-summand-type` — forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (mul(module-vector-ag(md)))((vnb-lambda(j, (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))
 - `mrs-scaled-summand-type` — forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (act(md))(r, (vnb-lambda(j, (act(md))(entry(c, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))
+- `span-is-submodule` — forall([md], is-module(md) implies forall([n, u in mat(n, 1, vec(md))], is-submodule(md, span(md, n, u))))
+- `spans-span` — forall([md], is-module(md) implies forall([n, u in mat(n, 1, vec(md))], spans(md, n, u, span(md, n, u))))
 - `spans-transport` — forall([md], is-module(md) implies forall([n, u, pm, sm], u in mat(n, 1, vec(md)) implies is-invertible-mat(scal(md), n, pm) implies is-submodule(md, sm) implies spans(md, n, u, sm) implies spans(md, n, matact(md, pm, u), sm)))
 - `submodule-finsum-closed` — forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))
 - `whole-module-is-submodule` — forall([md], is-module(md) implies is-submodule(md, vec(md)))
