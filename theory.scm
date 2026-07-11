@@ -179,6 +179,7 @@
 ;;; Install a named predicate defined by class membership.
 ;;; (def-predicate 'P 'S) adds axiom: (FORALL x (IFF (P x) (IN x S)))
 (define (def-predicate name class-expr)
+  (register-operator! name 'predicate '(x))          ; the ONE table (operators.scm)
   (fluid-let ((*current-provenance* 'definitional))
     (theory-add-axiom! *current-theory* name
       `(FORALL x (IFF (,name x) (IN x ,class-expr))))))

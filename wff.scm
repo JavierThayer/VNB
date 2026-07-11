@@ -244,14 +244,22 @@
 ;;; Warn when a binder's variable has the name of a registered operator,
 ;;; defined function, or functoid: an application (v ...) in the body then
 ;;; refers to that constant, not the bound variable -- almost always a
-;;; mistake.  Accessor names (e.g. carrier `A` vs an element variable `a`)
-;;; are deliberately NOT warned: binding `a` as an operand variable while
-;;; `A` is a carrier accessor is a routine, correct pattern (the registry
-;;; keeps `(CARR m)` meaning the accessor), and the two cannot be told apart
-;;; from the S-expression anyway.
+;;; mistake.
+;;;
+;;; This is the WEAKER of two guards, and it no longer sets the policy.  It used
+;;; to exempt ACCESSORS, on the grounds that binding an element variable `a`
+;;; while `A` was a carrier accessor was a routine pattern.  That rationale died
+;;; when the accessors were renamed (A -> CARR, X -> CARR/PTS, D -> DIST,
+;;; ID -> IDEN): nothing routine binds `carr` or `mul` now, and a wff that does
+;;; -- e.g. quantifying a ring open as (FORALL carr (FORALL add ... )) and then
+;;; writing add(mul(q,b),r) -- is exactly the scope-blind hazard.  The live gate
+;;; is warn-constant-binders! (macetes.scm), fired from make-wff via
+;;; contexts.scm, which warns on EVERY registered-constant kind including
+;;; accessors, and constant-binder-audit re-checks the whole theorem table at
+;;; load.  Keep this one aligned with them rather than exempting anything.
 (define (warn-binder-shadowing v)
   (let ((kind (constant-head? v)))
-    (if (memq kind '(operator defined-fn functoid))
+    (if (memq kind '(operator defined-fn functoid accessor predicate))
         (begin
           (display ";VNB warning: binder variable ")
           (display v)

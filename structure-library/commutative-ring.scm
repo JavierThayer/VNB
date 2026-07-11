@@ -42,3 +42,6 @@
 
 ;;; Register with the navigation index.
 (register-definitional-structure! 'COMMUTATIVE-RING 'RING)
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-COMMUTATIVE-RING   'kind 'predicate 'arity 1 'noun "commutative ring" 'article "a")

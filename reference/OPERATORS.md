@@ -572,291 +572,147 @@ Declared by: `zz-act-nonneg` `zz-act-neg`
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
-### `<`  — def-predicate · proposition
+### `<`  — def-predicate · proposition (arity 2)
 
-Declared by: `<` 
+### `cluster-point`  — def-predicate · proposition (arity 3)
 
-### `cluster-point`  — def-predicate · proposition
+### `converges`  — def-predicate · proposition (arity 2)
 
-Declared by: `cluster-point` 
+### `converges-along`  — def-predicate · proposition (arity 4)
 
-### `converges`  — def-predicate · proposition
+### `converges-to`  — def-predicate · proposition (arity 3)
 
-Declared by: `converges` 
+### `cseq-equiv`  — def-predicate · proposition (arity 3)
 
-### `converges-along`  — def-predicate · proposition
+### `extends-on`  — def-predicate · proposition (arity 3)
 
-Declared by: `converges-along` 
+### `generates`  — def-predicate · proposition (arity 3)
 
-### `converges-to`  — def-predicate · proposition
+### `good-sub`  — def-predicate · proposition (arity 4)
 
-Declared by: `converges-to` 
+### `has-div-remainder`  — def-predicate · proposition (arity 2)
 
-### `cseq-equiv`  — def-predicate · proposition
+### `has-fip`  — def-predicate · proposition (arity 2)
 
-Declared by: `cseq-equiv` 
+### `has-inverses`  — def-predicate · proposition (arity 4)
 
-### `extends-on`  — def-predicate · proposition
+### `is-absolutely-summable`  — def-predicate · proposition (arity 2)
 
-Declared by: `extends-on` 
+### `is-associative`  — def-predicate · proposition (arity 2)
 
-### `generates`  — def-predicate · proposition
+### `is-bounded-linear-functional`  — def-predicate · proposition (arity 2)
 
-Declared by: `generates` 
+### `is-bounded-linear-functional-on`  — def-predicate · proposition (arity 3)
 
-### `good-sub`  — def-predicate · proposition
+### `is-cauchy-seq`  — def-predicate · proposition (arity 2)
 
-Declared by: `good-sub` 
+### `is-closed`  — def-predicate · proposition (arity 2)
 
-### `has-div-remainder`  — def-predicate · proposition
+### `is-commutative`  — def-predicate · proposition (arity 2)
 
-Declared by: `has-div-remainder` 
+### `is-compact`  — def-predicate · proposition (arity 1)
 
-### `has-fip`  — def-predicate · proposition
+### `is-complete`  — def-predicate · proposition (arity 1)
 
-Declared by: `has-fip` 
+### `is-continuous`  — def-predicate · proposition (arity 3)
 
-### `has-inverses`  — def-predicate · proposition
+### `is-continuous-at`  — def-predicate · proposition (arity 4)
 
-Declared by: `has-inverses` 
+### `is-diagonal`  — def-predicate · proposition (arity 4)
 
-### `is-absolutely-summable`  — def-predicate · proposition
+### `is-diff-at`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-absolutely-summable` 
+### `is-diff-at-v`  — def-predicate · proposition (arity 4)
 
-### `is-associative`  — def-predicate · proposition
+### `is-distributive`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-associative` 
+### `is-eps-cauchy-seq`  — def-predicate · proposition (arity 3)
 
-### `is-bounded-linear-functional`  — def-predicate · proposition
+### `is-equivalence`  — def-predicate · proposition (arity 2)
 
-Declared by: `is-bounded-linear-functional` 
+### `is-finite-cover`  — def-predicate · proposition (arity 2)
 
-### `is-bounded-linear-functional-on`  — def-predicate · proposition
+### `is-finite-dimensional`  — def-predicate · proposition (arity 1)
 
-Declared by: `is-bounded-linear-functional-on` 
+### `is-group-norm`  — def-predicate · proposition (arity 5)
 
-### `is-cauchy-seq`  — def-predicate · proposition
+### `is-ideal`  — def-predicate · proposition (arity 2)
 
-Declared by: `is-cauchy-seq` 
+### `is-identity`  — def-predicate · proposition (arity 3)
 
-### `is-closed`  — def-predicate · proposition
+### `is-invertible-mat`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-closed` 
+### `is-linear-functional`  — def-predicate · proposition (arity 2)
 
-### `is-commutative`  — def-predicate · proposition
+### `is-linear-functional-on`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-commutative` 
+### `is-metric`  — def-predicate · proposition (arity 2)
 
-### `is-compact`  — def-predicate · proposition
+### `is-ms-sequence`  — def-predicate · proposition (arity 1)
 
-Declared by: `is-compact` 
+### `is-noetherian`  — def-predicate · proposition (arity 1)
 
-### `is-complete`  — def-predicate · proposition
+### `is-norm`  — def-predicate · proposition (arity 5)
 
-Declared by: `is-complete` 
+### `is-open`  — def-predicate · proposition (arity 2)
 
-### `is-continuous`  — def-predicate · proposition
+### `is-open-cover`  — def-predicate · proposition (arity 2)
 
-Declared by: `is-continuous` 
+### `is-pid`  — def-predicate · proposition (arity 1)
 
-### `is-continuous-at`  — def-predicate · proposition
+### `is-r-net`  — def-predicate · proposition (arity 4)
 
-Declared by: `is-continuous-at` 
+### `is-submodule`  — def-predicate · proposition (arity 2)
 
-### `is-diagonal`  — def-predicate · proposition
+### `is-subsequence`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-diagonal` 
+### `is-subspace`  — def-predicate · proposition (arity 2)
 
-### `is-diff-at`  — def-predicate · proposition
+### `is-summable`  — def-predicate · proposition (arity 2)
 
-Declared by: `is-diff-at` 
+### `is-uniformly-continuous`  — def-predicate · proposition (arity 3)
 
-### `is-diff-at-v`  — def-predicate · proposition
+### `is-vector-space`  — def-predicate · proposition (arity 1)
 
-Declared by: `is-diff-at-v` 
+### `little-o-at`  — def-predicate · proposition (arity 2)
 
-### `is-distributive`  — def-predicate · proposition
+### `mat-equiv`  — def-predicate · proposition (arity 5)
 
-Declared by: `is-distributive` 
+### `npe`  — def-predicate · proposition (arity 5)
 
-### `is-eps-cauchy-seq`  — def-predicate · proposition
+### `null-rr-seq`  — def-predicate · proposition (arity 1)
 
-Declared by: `is-eps-cauchy-seq` 
+### `pos-rr`  — def-predicate · proposition (arity 1)
 
-### `is-equivalence`  — def-predicate · proposition
+### `ps-absolutely-converges-at`  — def-predicate · proposition (arity 2)
 
-Declared by: `is-equivalence` 
+### `ps-converges-at`  — def-predicate · proposition (arity 2)
 
-### `is-finite-cover`  — def-predicate · proposition
+### `ps-converges-to-at`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-finite-cover` 
+### `ps-ratio-limit`  — def-predicate · proposition (arity 2)
 
-### `is-finite-dimensional`  — def-predicate · proposition
+### `rel-free`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-finite-dimensional` 
+### `seq-compact`  — def-predicate · proposition (arity 1)
 
-### `is-group-norm`  — def-predicate · proposition
+### `series-converges`  — def-predicate · proposition (arity 1)
 
-Declared by: `is-group-norm` 
+### `series-converges-to`  — def-predicate · proposition (arity 2)
 
-### `is-ideal`  — def-predicate · proposition
+### `smith-staircase`  — def-predicate · proposition (arity 5)
 
-Declared by: `is-ideal` 
+### `spans`  — def-predicate · proposition (arity 4)
 
-### `is-identity`  — def-predicate · proposition
+### `strictly-mono-nn`  — def-predicate · proposition (arity 1)
 
-Declared by: `is-identity` 
+### `summable-weight`  — def-predicate · proposition (arity 1)
 
-### `is-invertible-mat`  — def-predicate · proposition
+### `sums-to`  — def-predicate · proposition (arity 3)
 
-Declared by: `is-invertible-mat` 
+### `taylor-differentiable`  — def-predicate · proposition (arity 4)
 
-### `is-linear-functional`  — def-predicate · proposition
+### `taylor-differentiable-v`  — def-predicate · proposition (arity 5)
 
-Declared by: `is-linear-functional` 
-
-### `is-linear-functional-on`  — def-predicate · proposition
-
-Declared by: `is-linear-functional-on` 
-
-### `is-metric`  — def-predicate · proposition
-
-Declared by: `is-metric` 
-
-### `is-ms-sequence`  — def-predicate · proposition
-
-Declared by: `is-ms-sequence` 
-
-### `is-noetherian`  — def-predicate · proposition
-
-Declared by: `is-noetherian` 
-
-### `is-norm`  — def-predicate · proposition
-
-Declared by: `is-norm` 
-
-### `is-open`  — def-predicate · proposition
-
-Declared by: `is-open` 
-
-### `is-open-cover`  — def-predicate · proposition
-
-Declared by: `is-open-cover` 
-
-### `is-pid`  — def-predicate · proposition
-
-Declared by: `is-pid` 
-
-### `is-r-net`  — def-predicate · proposition
-
-Declared by: `is-r-net` 
-
-### `is-submodule`  — def-predicate · proposition
-
-Declared by: `is-submodule` 
-
-### `is-subsequence`  — def-predicate · proposition
-
-Declared by: `is-subsequence` 
-
-### `is-subspace`  — def-predicate · proposition
-
-Declared by: `is-subspace` 
-
-### `is-summable`  — def-predicate · proposition
-
-Declared by: `is-summable` 
-
-### `is-uniformly-continuous`  — def-predicate · proposition
-
-Declared by: `is-uniformly-continuous` 
-
-### `is-vector-space`  — def-predicate · proposition
-
-Declared by: `is-vector-space` 
-
-### `little-o-at`  — def-predicate · proposition
-
-Declared by: `little-o-at` 
-
-### `mat-equiv`  — def-predicate · proposition
-
-Declared by: `mat-equiv` 
-
-### `npe`  — def-predicate · proposition
-
-Declared by: `npe` 
-
-### `null-rr-seq`  — def-predicate · proposition
-
-Declared by: `null-rr-seq` 
-
-### `pos-rr`  — def-predicate · proposition
-
-Declared by: `pos-rr` 
-
-### `ps-absolutely-converges-at`  — def-predicate · proposition
-
-Declared by: `ps-absolutely-converges-at` 
-
-### `ps-converges-at`  — def-predicate · proposition
-
-Declared by: `ps-converges-at` 
-
-### `ps-converges-to-at`  — def-predicate · proposition
-
-Declared by: `ps-converges-to-at` 
-
-### `ps-ratio-limit`  — def-predicate · proposition
-
-Declared by: `ps-ratio-limit` 
-
-### `rel-free`  — def-predicate · proposition
-
-Declared by: `rel-free` 
-
-### `seq-compact`  — def-predicate · proposition
-
-Declared by: `seq-compact` 
-
-### `series-converges`  — def-predicate · proposition
-
-Declared by: `series-converges` 
-
-### `series-converges-to`  — def-predicate · proposition
-
-Declared by: `series-converges-to` 
-
-### `smith-staircase`  — def-predicate · proposition
-
-Declared by: `smith-staircase` 
-
-### `spans`  — def-predicate · proposition
-
-Declared by: `spans` 
-
-### `strictly-mono-nn`  — def-predicate · proposition
-
-Declared by: `strictly-mono-nn` 
-
-### `summable-weight`  — def-predicate · proposition
-
-Declared by: `summable-weight` 
-
-### `sums-to`  — def-predicate · proposition
-
-Declared by: `sums-to` 
-
-### `taylor-differentiable`  — def-predicate · proposition
-
-Declared by: `taylor-differentiable` 
-
-### `taylor-differentiable-v`  — def-predicate · proposition
-
-Declared by: `taylor-differentiable-v` 
-
-### `totally-bounded`  — def-predicate · proposition
-
-Declared by: `totally-bounded` 
+### `totally-bounded`  — def-predicate · proposition (arity 1)
 

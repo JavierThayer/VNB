@@ -183,3 +183,6 @@
          (IS-CONTINUOUS s t f)))))))
 (warrant! 'closed-preimage-implies-continuous 'proof
   "Complement flip of open-preimage-implies-continuous: given an open V subset PTS(t), PTS(t)\\V is closed, so by hypothesis PREIMAGE(s,f,PTS(t)\\V) = PTS(s)\\PREIMAGE(s,f,V) (preimage-complement) is closed, i.e. its complement PREIMAGE(s,f,V) is open. Every open set pulls back open, so f is continuous (open-preimage-implies-continuous).")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-CLOSED             'kind 'predicate 'arity 2 'english "$2 is closed in $1")

@@ -83,3 +83,6 @@
            (= ((MUL s) ((MUL s) a b) c) ((MUL s) a ((MUL s) b c))))))))))))
 (warrant! 'abelian-group-assoc 'well-known
   "(a*b)*c = a*(b*c): group-assoc via abelian-group-is-group.")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-ABELIAN-GROUP        'noun "abelian group" 'article "an")

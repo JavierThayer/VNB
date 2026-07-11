@@ -3520,6 +3520,51 @@
         reached))))
 
 ;;; -----------------------------------------------------------------------
+;;; The reserved-name gate must not answer "clean" to something it merely fails
+;;; to understand.  wff-constant-binders walks pairs; handed a wff RECORD it used
+;;; to find no binders and report CLEAN -- a silent false negative in the gate
+;;; whose whole job is catching silent hazards.
+
+(check-true "reserved names: a wff RECORD is audited, not passed as clean"
+  (lambda ()
+    (let ((f '(FORALL carr (FORALL add (IN carr add)))))    ; both are accessors
+      (and (pair? (wff-constant-binders f))                 ; raw formula: caught
+           (pair? (wff-constant-binders                     ; wff record: ALSO caught
+                    (quietly (lambda () (make-wff f)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; The operator table (operators.scm).  ONE table, keyed by head symbol:
+;;; def-predicate / def-functoid / def-structure record kind+arity+params+file at
+;;; definition time; `notation!' declares how a human writes and reads the head,
+;;; beside its definition.  expr->tex, wff->english, describe-structure and
+;;; write-operators-md all read it.
+
+(check-true "operator table: def-structure registers IS-X as a unary predicate"
+  (lambda () (let ((e (operator-ref 'IS-RING)))
+               (and e (eq? (operator-kind e) 'predicate) (= (operator-arity e) 1)))))
+
+(check-true "operator table: def-functoid records its parameters"
+  (lambda () (let ((e (operator-ref 'SPAN)))
+               (and e (eq? (operator-kind e) 'functoid) (= (operator-arity e) 3)))))
+
+(check "operator table: a declared noun reads as a predication"
+  (lambda () (wff->english '(IS-EUCLIDEAN-RING a)))
+  "a is a Euclidean ring")
+
+(check "operator table: a declared noun folds into a quantifier"
+  (lambda () (wff->english '(FORALL a (IMPLIES (IS-EUCLIDEAN-RING a) (IS-RING a)))))
+  "for every Euclidean ring a, a is a ring")
+
+(check "operator table: an English template places its arguments"
+  ;; the reader case-folds (CLAUDE.md), so V prints as v
+  (lambda () (wff->english '(IS-OPEN t V)))
+  "v is open in t")
+
+(check "operator table: an undeclared head stays honest (symbolic surface form)"
+  (lambda () (wff->english '(SPANS md n u sm)))
+  "spans(md, n, u, sm)")
+
+;;; -----------------------------------------------------------------------
 ;;; Simultaneous substitution.  A multi-variable substitution must NOT be a fold
 ;;; of subst-free: each binding would then rewrite what the previous one
 ;;; substituted in.  The live case was unfolding SPANS, whose definition has

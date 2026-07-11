@@ -43,3 +43,6 @@
 ;;; use, mirroring monoid-identity-in in monoid.scm; demote when proven.
 (theory-add-axiom! *current-theory* 'group-identity-in
   '(FORALL s (IMPLIES (IS-GROUP s) (IN (IDEN s) (CARR s)))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-GROUP                'noun "group" 'article "a")

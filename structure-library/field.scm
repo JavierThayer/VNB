@@ -60,3 +60,6 @@
 ;;; A field has at least two elements.
 (theory-add-axiom! *current-theory* 'field-zero-not-one
   '(FORALL s (IMPLIES (IS-FIELD s) (NOT (= (ZERO s) (ONE s))))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-FIELD              'kind 'predicate 'arity 1 'noun "field" 'article "a")

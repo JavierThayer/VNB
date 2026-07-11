@@ -217,6 +217,10 @@
          ;; specially-rendered operators (NOT, CARD, PAIR, FUN, ...)
          ((assq op *tex-special-table*)
           ((cdr (assq op *tex-special-table*)) args))
+         ;; a TeX template declared with `notation!' beside the definition
+         ;; (operators.scm).  Prefix application stays the default -- see the
+         ;; house LaTeX style -- so this fires only where a head asked for it.
+         ((operator-render-tex op (map expr->tex args)))
          ;; default: application  (f a b c) -> f(a, b, c)
          (else
           (string-append (tex--head->tex op) "("

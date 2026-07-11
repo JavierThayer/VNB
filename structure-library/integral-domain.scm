@@ -44,3 +44,6 @@
        (IMPLIES (= ((MUL s) a b) (ZERO s))
        (IMPLIES (NOT (= b (ZERO s)))
          (= a (ZERO s)))))))))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-INTEGRAL-DOMAIN    'kind 'predicate 'arity 1 'noun "integral domain" 'article "an")

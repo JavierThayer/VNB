@@ -92,3 +92,7 @@
   '(FORALL s (FORALL t (FORALL f
      (IMPLIES (IS-UNIFORMLY-CONTINUOUS s t f)
        (IS-CONTINUOUS s t f))))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-CONTINUOUS         'kind 'predicate 'arity 3 'english "$3 is continuous from $1 to $2")
+(notation! 'IS-CONTINUOUS-AT      'kind 'predicate 'arity 4 'english "$3 is continuous at $4")

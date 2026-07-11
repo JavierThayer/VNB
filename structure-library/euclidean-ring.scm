@@ -114,3 +114,6 @@
    (euclidean-ring-has-gauge + gauges-mem-build), so the epsilon pick lands in
    it (choice-axiom) and the SEP slices give both conjuncts.  MACHINE-PROVEN in
    calculus/gauge-proof.scm.")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-EUCLIDEAN-RING     'kind 'predicate 'arity 1 'noun "Euclidean ring" 'article "a")

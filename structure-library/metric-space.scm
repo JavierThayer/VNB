@@ -32,3 +32,6 @@
          (IN ((DIST s) x y) RR))))))))
 (warrant! 'metric-dist-real 'well-known
   "The distance is real-valued: DIST(s) maps PTS(s) x PTS(s) into RR, so d(s)(x,y) in RR.  Codomain typing of the metric op (the op-clause in the METRIC-SPACE declaration).")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-METRIC-SPACE         'noun "metric space" 'article "a")

@@ -33,6 +33,7 @@
   '(;; Core kernel
     "errors"
     "expressions"
+    "operators"
     "wff"
     "sequents"
     "parser"

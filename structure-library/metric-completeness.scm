@@ -140,3 +140,8 @@
    so the consecutive distance is <= rad(k).  Choice picks the N_k.  rad(k)=2^-k
    is the usual instance, making sum_k d-consecutive dominated by the geometric
    series.")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-COMPLETE           'kind 'predicate 'arity 1 'noun "complete" 'article "")
+(notation! 'IS-CAUCHY-SEQ         'kind 'predicate 'arity 2 'noun "Cauchy" 'article "")
+(notation! 'CONVERGES-TO         'english "$2 converges to $3 in $1")

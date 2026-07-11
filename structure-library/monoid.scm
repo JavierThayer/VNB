@@ -68,3 +68,6 @@
        (FORALL a (IMPLIES (IN a (CARR s))
          (FORALL b (IMPLIES (IN b (CARR s))
            (= ((MUL s) a b) ((MUL s) b a)))))))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-MONOID               'noun "monoid" 'article "a")

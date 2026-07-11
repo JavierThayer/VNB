@@ -956,8 +956,12 @@
 ;;; whose variable is a registered constant; constant-binder-audit sweeps the
 ;;; whole installed library (empty => clean).  Companion to wff-shadowing-binders
 ;;; (binder-over-binder); together they close the case-fold collision class.
-(define (wff-constant-binders e)
-  (let ((hits '()))
+(define (wff-constant-binders e0)
+  ;; Coerce: handed a wff RECORD, the walk below (which descends pairs) would
+  ;; find no binders and report CLEAN -- a silent false negative in the very
+  ;; gate that exists to catch silent hazards.  Take the formula out first.
+  (let ((e (if (wff? e0) (wff-formula e0) e0))
+        (hits '()))
     (define (chk v where)
       (let ((k (constant-head? v)))
         (when k (set! hits (cons (list where v k) hits)))))

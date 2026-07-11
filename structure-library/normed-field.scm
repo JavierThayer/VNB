@@ -78,3 +78,6 @@
 ;;; NORMED-FIELD reaches the ring world through the view-as projections
 ;;; NORMED-FIELD-AS-COMMUTATIVE-RING and NORMED-FIELD-AS-INTEGRAL-DOMAIN
 ;;; (views.scm), which build a fresh 6-tuple from slots 1..6.
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-NORMED-FIELD       'kind 'predicate 'arity 1 'noun "normed field" 'article "a")

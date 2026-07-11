@@ -33,52 +33,23 @@
 ;;; (e.g. is-open(t, V) -> "V is open in t"); these render a predication only,
 ;;; no qualifier fold.
 
-(define *english-sort* (make-strong-eqv-hash-table))  ; sym -> (phrase . article)
-(define *english-pred* (make-strong-eqv-hash-table))  ; sym -> (arity . proc)
-
 (define (sym-lc s) (string->symbol (string-downcase (symbol->string s))))
 
+;;; The two tables that used to live here -- *english-sort* (unary sorts, with
+;;; their article, for the "for every Euclidean ring a" fold) and *english-pred*
+;;; (general predicates) -- are now the `noun'/`article' and `english' slots of
+;;; the ONE operator table (operators.scm).  A head's English is declared with
+;;; `notation!' NEXT TO ITS DEFINITION, so is-euclidean-ring reads as "a is a
+;;; Euclidean ring" because ring.scm says so, not because wff-english.scm keeps
+;;; a private list of the heads it happens to know.
+;;;
+;;; These two remain as the spelling the old call sites use; both write into the
+;;; one table.
 (define (def-english-sort! sym phrase article)
-  (hash-table-set! *english-sort* (sym-lc sym) (cons phrase article)))
+  (notation! sym 'noun phrase 'article article))
 
 (define (def-english-pred! sym arity proc)
-  (hash-table-set! *english-pred* (sym-lc sym) (cons arity proc)))
-
-;;; Unary sorts (phrase, article).  Article "" reads as an adjective.
-(def-english-sort! 'pos-rr      "positive real"      "a")
-(def-english-sort! 'neg-rr      "negative real"      "a")
-(def-english-sort! 'nonneg-rr   "nonnegative real"   "a")
-(def-english-sort! 'is-metric-space   "metric space"   "a")
-(def-english-sort! 'is-group          "group"          "a")
-(def-english-sort! 'is-abelian-group  "abelian group"  "an")
-(def-english-sort! 'is-semigroup      "semigroup"      "a")
-(def-english-sort! 'is-monoid         "monoid"         "a")
-(def-english-sort! 'is-ring           "ring"           "a")
-(def-english-sort! 'is-commutative-ring "commutative ring" "a")
-(def-english-sort! 'is-integral-domain  "integral domain"  "an")
-(def-english-sort! 'is-field          "field"          "a")
-(def-english-sort! 'is-euclidean-ring "Euclidean ring" "a")
-(def-english-sort! 'is-normed-field   "normed field"   "a")
-(def-english-sort! 'is-complete       "complete"       "")
-(def-english-sort! 'is-cauchy-seq     "Cauchy"         "")
-
-;;; General predicates (arity . proc), proc :: list-of-arg-strings -> string.
-(def-english-pred! 'in       2 (lambda (a) (string-append (car a) " is in " (cadr a))))
-(def-english-pred! 'subset   2 (lambda (a) (string-append (car a) " is a subset of " (cadr a))))
-(def-english-pred! '=        2 (lambda (a) (string-append (car a) " equals " (cadr a))))
-(def-english-pred! '==       2 (lambda (a) (string-append (car a) " is identical to " (cadr a))))
-(def-english-pred! '<=       2 (lambda (a) (string-append (car a) " is at most " (cadr a))))
-(def-english-pred! '<        2 (lambda (a) (string-append (car a) " is less than " (cadr a))))
-(def-english-pred! '>=       2 (lambda (a) (string-append (car a) " is at least " (cadr a))))
-(def-english-pred! '>        2 (lambda (a) (string-append (car a) " is greater than " (cadr a))))
-(def-english-pred! 'is-open   2 (lambda (a) (string-append (cadr a) " is open in " (car a))))
-(def-english-pred! 'is-closed 2 (lambda (a) (string-append (cadr a) " is closed in " (car a))))
-(def-english-pred! 'is-continuous 3
-  (lambda (a) (string-append (caddr a) " is continuous from " (car a) " to " (cadr a))))
-(def-english-pred! 'is-continuous-at 4
-  (lambda (a) (string-append (caddr a) " is continuous at " (cadddr a))))
-(def-english-pred! 'converges-to 3
-  (lambda (a) (string-append (cadr a) " converges to " (caddr a) " in " (car a))))
+  (notation! sym 'arity arity 'english proc))
 
 ;;; -----------------------------------------------------------------------
 ;;; Helpers.
@@ -101,7 +72,7 @@
 ;;; Returns the sort entry or #f.
 (define (sort-of-var e v)
   (and (pair? e) (= (length e) 2) (eq? (cadr e) v) (symbol? (car e))
-       (hash-table-ref/default *english-sort* (sym-lc (car e)) #f)))
+       (operator-sort (car e))))
 
 ;;; Render one quantifier binding spec (from collect-quant-bindings) as the
 ;;; phrase that follows "for every"/"there is some".
@@ -169,12 +140,15 @@
 ;;; Atomic formula: a recognised predicate, a unary sort, or symbolic fallback.
 (define (atom->english h e)
   (let* ((args (cdr e))
-         (pred (and h (hash-table-ref/default *english-pred* h #f)))
-         (sort (and h (= (length args) 1)
-                    (hash-table-ref/default *english-sort* h #f))))
+         (entry (and h (operator-ref h)))
+         (n     (length args))
+         ;; the head's declared English, when it is about THESE arguments
+         (en    (and entry (operator-english entry)
+                     (or (not (operator-arity entry)) (= (operator-arity entry) n))
+                     (operator-render-english h (map term->english args))))
+         (sort  (and entry (= n 1) (operator-sort h))))
     (cond
-      ((and pred (= (car pred) (length args)))
-       ((cdr pred) (map term->english args)))
+      (en en)
       (sort (sort-predication (term->english (car args)) sort))
       ;; unrecognised: keep it honest -- symbolic surface form.
       (else (term->english e)))))

@@ -1458,6 +1458,16 @@
 ;; The census record for one registered head: (name class subkind valtype axs).
 (define (op-classify name kind)
   (cond
+    ;; The ONE table (operators.scm) KNOWS the kind: def-predicate / def-functoid /
+    ;; def-structure recorded it at definition time.  Ask it before falling back to
+    ;; op-defn-class, which reconstructs the kind by pattern-matching the shape of
+    ;; the defining axiom -- a guess at what was once known for certain.
+    ((let ((e (operator-ref name)))
+       (and e (memq (operator-kind e) '(predicate))
+            (list name 'predicate "def-predicate"
+                  (string-append "proposition (arity "
+                                 (number->string (or (operator-arity e) 0)) ")")
+                  '()))))
     ((eq? kind 'accessor)
      (list name 'functoid "structure accessor" "element (slot value)" '()))
     ((eq? kind 'functoid)

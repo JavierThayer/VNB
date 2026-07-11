@@ -206,12 +206,18 @@
       (unless (null? rest)
         (let ((slot-name (caar rest)))
           (register-constant! slot-name 'accessor)
+          (register-operator! slot-name 'accessor '(s))
           (install-accessor-macete! slot-name k)
           (loop (cdr rest) (+ k 1)))))
     ;; IS-NAME definitional axiom (shape + the named characteristic laws)
     (let ((is-name (symbol-append 'IS- name))
           (axiom   (build-is-axiom name slots axiom-names)))
-      (theory-add-axiom! *current-theory* is-name axiom))
+      (theory-add-axiom! *current-theory* is-name axiom)
+      ;; the ONE table (operators.scm): every structure predicate is a unary
+      ;; predicate, and def-structure is the only thing that makes one.  Its
+      ;; NOTATION -- the noun "Euclidean ring" -- is declared with `notation!'
+      ;; beside the structure, since only a human knows it.
+      (register-operator! is-name 'predicate '(s)))
     ;; Associated class: NAME itself is the proper class
     ;;   { s | IS-NAME(s) }.  Letting NAME (and not just IS-NAME) name
     ;;   the class makes bounded quantification natural:
@@ -347,6 +353,7 @@
         (make-elementary-macete pvars '() (cons name pvars) body))
       (register-provenance! name *current-provenance*)
       (register-constant! name 'functoid)
+      (register-operator! name 'functoid pvars)     ; the ONE table (operators.scm)
       (hash-table-set! *functoid-registry* name
         (list pvars body (current-load-pathname)))
       name)))
@@ -367,6 +374,7 @@
 ;;;   (def-predicate 'IS-CAUCHY-SEQ '(PTS f) '(AND ... ))
 
 (define (def-predicate pred-name params body)
+  (register-operator! pred-name 'predicate params)   ; the ONE table (operators.scm)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((app     `(,pred-name ,@params))
          (iff     `(IFF ,app ,body))

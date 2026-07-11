@@ -196,3 +196,6 @@
 
 (theory-add-axiom! *current-theory* 'zero-ring-is-ring
   '(IS-RING ZERO-RING))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-RING                 'noun "ring" 'article "a")

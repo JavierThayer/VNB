@@ -64,3 +64,8 @@
      (FORSOME d (AND (POS-RR d) (< d eps))))))
 (warrant! 'rr-pos-shrink 'well-known
   "Every positive real eps has a smaller positive real below it (e.g. eps/2 < eps).  Order density of the reals at 0; standard.")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'POS-RR                'kind 'predicate 'arity 1 'noun "positive real" 'article "a")
+(notation! 'NEG-RR                'kind 'predicate 'arity 1 'noun "negative real" 'article "a")
+(notation! 'NONNEG-RR             'kind 'predicate 'arity 1 'noun "nonnegative real" 'article "a")

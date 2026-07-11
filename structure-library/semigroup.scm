@@ -17,3 +17,6 @@
            (FORALL c (IMPLIES (IN c (CARR s))
              (= ((MUL s) ((MUL s) a b) c)
                 ((MUL s) a ((MUL s) b c))))))))))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-SEMIGROUP            'noun "semigroup" 'article "a")

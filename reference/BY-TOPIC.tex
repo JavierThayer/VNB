@@ -268,7 +268,7 @@
 \subsection{Vocabulary}
 
 \subsubsection*{\texttt{is-vector-space}}
-\emph{for every m, is-vector-space(m) if and only if is-module(m) and scal(m) is a field}
+\emph{for every m, is-vector-space(m) if and only if m is a module and scal(m) is a field}
 {\small\[
 \forall m.\; (\operatorname{is\text{-}vector\text{-}space}(m) \Leftrightarrow (\operatorname{is\text{-}module}(m) \wedge \operatorname{is\text{-}field}(\operatorname{scal}(m))))
 \]}
@@ -289,7 +289,7 @@
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{is-noetherian}}
-\emph{for every m, is-noetherian(m) if and only if is-module(m) and for every f\_ in fun(nn, power(vec(m))), if for every n\_ in nn, is-submodule(m, f\_(n\_)) and for every n\_ in nn, f\_(n\_) is a subset of f\_(succ(n\_)), then there is some k\_ in nn such that for every n\_, if n\_ is in nn and k\_ is at most n\_, then f\_(n\_) equals f\_(k\_)}
+\emph{for every m, is-noetherian(m) if and only if m is a module and for every f\_ in fun(nn, power(vec(m))), if for every n\_ in nn, is-submodule(m, f\_(n\_)) and for every n\_ in nn, f\_(n\_) is a subset of f\_(succ(n\_)), then there is some k\_ in nn such that for every n\_, if n\_ is in nn and k\_ is at most n\_, then f\_(n\_) equals f\_(k\_)}
 {\small\[
 \forall m.\; (\operatorname{is\text{-}noetherian}(m) \Leftrightarrow (\operatorname{is\text{-}module}(m) \wedge \forall \operatorname{f\_} \in (\mathbb{N} \to \operatorname{power}(\operatorname{vec}(m))).\; ((\forall \operatorname{n\_} \in \mathbb{N}.\; \operatorname{is\text{-}submodule}(m, \operatorname{f\_}(\operatorname{n\_})) \wedge \forall \operatorname{n\_} \in \mathbb{N}.\; (\operatorname{f\_}(\operatorname{n\_}) \subseteq \operatorname{f\_}((\operatorname{n\_} + 1)))) \Rightarrow \exists \operatorname{k\_} \in \mathbb{N}.\; \forall \operatorname{n\_}.\; (((\operatorname{n\_} \in \mathbb{N}) \wedge (\operatorname{k\_} \leq \operatorname{n\_})) \Rightarrow (\operatorname{f\_}(\operatorname{n\_}) = \operatorname{f\_}(\operatorname{k\_}))))))
 \]}

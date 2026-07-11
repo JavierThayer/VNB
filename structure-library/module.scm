@@ -172,3 +172,6 @@
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL x_ (IMPLIES (IN x_ (VEC m))
          (= ((ACT m) (ONE (SCAL m)) x_) x_)))))))
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-MODULE             'kind 'predicate 'arity 1 'noun "module" 'article "a")
