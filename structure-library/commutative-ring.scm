@@ -20,9 +20,7 @@
 ;;; commutative-ring-is-ring) rest on modulo 0, not a phantom leaf.
 (declare-structure COMMUTATIVE-RING
   (same-shape-as RING)
-  (law (FORALL a (IMPLIES (IN a (CARR s))
-         (FORALL b (IMPLIES (IN b (CARR s))
-           (= ((MUL s) a b) ((MUL s) b a))))))))
+  (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
 
 ;;; Relation: every commutative ring is a ring.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold

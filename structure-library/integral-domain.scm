@@ -9,11 +9,9 @@
 ;;; with no zero divisors (a*b = 0  =>  a = 0 or b = 0).
 (declare-structure INTEGRAL-DOMAIN
   (same-shape-as COMMUTATIVE-RING)
-  (law (NOT (= (ONE s) (ZERO s))))
-  (law (FORALL a (IMPLIES (IN a (CARR s))
-         (FORALL b (IMPLIES (IN b (CARR s))
-           (IMPLIES (= ((MUL s) a b) (ZERO s))
-                    (OR (= a (ZERO s)) (= b (ZERO s))))))))))
+  (law "not(one(s) = zero(s))")
+  (law "forall([a in carr(s), b in carr(s)],
+          mul(s)(a, b) = zero(s) implies (a = zero(s) or b = zero(s)))"))
 
 ;;; Relation: every integral domain is a commutative ring.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold

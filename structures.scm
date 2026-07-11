@@ -311,8 +311,24 @@
 ;;; It declares NO slots: the accessors are the parent's.  Declaring one is an
 ;;; error -- a different shape is a different structure, related by def-view-as,
 ;;; not by this.
-(define (def-substructure name parent laws)
-  (let* ((ivar      's)
+;;; A law may be written in the SURFACE SYNTAX, as a string -- and should be.
+;;; The S-expression form of a real law is a paren thicket nobody can read or
+;;; check by eye:
+;;;
+;;;   (law "forsome([deg in fun(carr(s), nn)], forall([a in carr(s), b in carr(s)],
+;;;         not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)],
+;;;         a = add(s)(mul(s)(q, b), r) and (r = zero(s) or succ(deg(r)) <= deg(b)))))")
+;;;
+;;; parses and expands to exactly the S-expression it replaces (the typed-binder
+;;; sugar `[a in carr(s), b in carr(s)]' expands the same way make-wff expands it).
+(define (structure--law->formula l)
+  (if (string? l)
+      (expand-destructuring-quantifiers (parse-string l))
+      l))
+
+(define (def-substructure name parent laws0)
+  (let* ((laws      (map structure--law->formula laws0))
+         (ivar      's)
          (is-name   (symbol-append 'IS- name))
          (is-parent (symbol-append 'IS- parent))
          (def-name  (symbol-append 'is- name '-def))

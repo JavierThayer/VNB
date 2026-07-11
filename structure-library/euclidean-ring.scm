@@ -15,16 +15,12 @@
 ;;; unfolding it (euclidean-ring-is-integral-domain) carries no debt.
 (declare-structure EUCLIDEAN-RING
   (same-shape-as INTEGRAL-DOMAIN)
-  (law (FORSOME deg
-         (AND (IN deg (FUN (CARR s) NN))
-           (FORALL a (IMPLIES (IN a (CARR s))
-             (FORALL b (IMPLIES (IN b (CARR s))
-               (IMPLIES (NOT (= b (ZERO s)))
-                 (FORSOME q (AND (IN q (CARR s))
-                   (FORSOME r (AND (IN r (CARR s))
-                     (AND (= a ((ADD s) ((MUL s) q b) r))
-                          (OR (= r (ZERO s))
-                              (<= (succ (deg r)) (deg b)))))))))))))))))
+  (law "forsome([deg in fun(carr(s), nn)],
+          forall([a in carr(s), b in carr(s)],
+            not(b = zero(s)) implies
+              forsome([q in carr(s), r in carr(s)],
+                a = add(s)(mul(s)(q, b), r)
+                and (r = zero(s) or succ(deg(r)) <= deg(b)))))"))
 
 ;;; Relation: every Euclidean ring is an integral domain.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
