@@ -7,28 +7,24 @@
 
 ;;; IS-INTEGRAL-DOMAIN: a commutative ring, nontrivial (ONE /= ZERO),
 ;;; with no zero divisors (a*b = 0  =>  a = 0 or b = 0).
-(theory-add-axiom! *current-theory* 'is-integral-domain-def
-  '(FORALL s
-     (IFF (IS-INTEGRAL-DOMAIN s)
-          (AND (IS-COMMUTATIVE-RING s)
-            (AND (NOT (= (ONE s) (ZERO s)))
-                 (FORALL a (IMPLIES (IN a (CARR s))
-                   (FORALL b (IMPLIES (IN b (CARR s))
-                     (IMPLIES (= ((MUL s) a b) (ZERO s))
-                              (OR (= a (ZERO s)) (= b (ZERO s)))))))))))))
+(declare-structure INTEGRAL-DOMAIN
+  (same-shape-as COMMUTATIVE-RING)
+  (law (NOT (= (ONE s) (ZERO s))))
+  (law (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (IMPLIES (= ((MUL s) a b) (ZERO s))
+                    (OR (= a (ZERO s)) (= b (ZERO s))))))))))
 
 ;;; Relation: every integral domain is a commutative ring.
-(theory-add-axiom! *current-theory* 'integral-domain-is-commutative-ring
-  '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s) (IS-COMMUTATIVE-RING s))))
+;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
+;;; is-integral-domain-def; IS-COMMUTATIVE-RING is a literal RHS conjunct --
+;;; guaranteed by (same-shape-as COMMUTATIVE-RING) above).  It used to be
+;;; ASSERTED here, alone among the three: hand-assembly drift.
 
 ;;; Associated proper class INTEGRAL-DOMAIN = { s | IS-INTEGRAL-DOMAIN(s) }.
 ;;; See commutative-ring.scm for the NAME-class rationale.  Parent-class
 ;;; reading: s in INTEGRAL-DOMAIN <=> s in COMMUTATIVE-RING and ONE/=ZERO and
 ;;; no zero divisors.
-(theory-add-axiom! *current-theory* 'integral-domain-class
-  '(FORALL s (IFF (IN s INTEGRAL-DOMAIN) (IS-INTEGRAL-DOMAIN s))))
-
-(register-definitional-structure! 'INTEGRAL-DOMAIN 'COMMUTATIVE-RING)
 
 ;;; Projection: an integral domain is nontrivial (1 /= 0).  A conjunct of
 ;;; is-integral-domain-def, surfaced as a citable theorem.

@@ -18,14 +18,11 @@
 ;;; extension), so it is `definitional', not asserted debt -- exactly what
 ;;; def-predicate would stamp.  Marked so proofs that merely unfold it (e.g.
 ;;; commutative-ring-is-ring) rest on modulo 0, not a phantom leaf.
-(fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'is-commutative-ring-def
-    '(FORALL s
-       (IFF (IS-COMMUTATIVE-RING s)
-            (AND (IS-RING s)
-                 (FORALL a (IMPLIES (IN a (CARR s))
-                   (FORALL b (IMPLIES (IN b (CARR s))
-                     (= ((MUL s) a b) ((MUL s) b a)))))))))))
+(declare-structure COMMUTATIVE-RING
+  (same-shape-as RING)
+  (law (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (= ((MUL s) a b) ((MUL s) b a))))))))
 
 ;;; Relation: every commutative ring is a ring.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
@@ -37,11 +34,6 @@
 ;;; COMMUTATIVE-RING], ...) works uniformly.  Unfolding the predicate gives
 ;;; the parent-class reading
 ;;;   s in COMMUTATIVE-RING  <=>  s in RING and (MUL s) commutes on (CARR s).
-(theory-add-axiom! *current-theory* 'commutative-ring-class
-  '(FORALL s (IFF (IN s COMMUTATIVE-RING) (IS-COMMUTATIVE-RING s))))
-
-;;; Register with the navigation index.
-(register-definitional-structure! 'COMMUTATIVE-RING 'RING)
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-COMMUTATIVE-RING   'kind 'predicate 'arity 1 'noun "commutative ring" 'article "a")

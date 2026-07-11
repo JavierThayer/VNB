@@ -3520,6 +3520,41 @@
         reached))))
 
 ;;; -----------------------------------------------------------------------
+;;; (same-shape-as PARENT) -- def-substructure.  A same-shape refinement must
+;;; INHERIT the shape by naming its parent, never assert one of its own: a
+;;; shape-only IS-COMMUTATIVE-RING would be equivalent to IS-RING (same six
+;;; slots) and force every ring commutative.
+
+(check-true "same-shape-as: the parent is a LITERAL conjunct of the IFF"
+  ;; this is what makes euclidean-ring-is-integral-domain provable modulo 0 by
+  ;; a single mac-h (subtype-laws.scm) -- the parent is right there on the RHS
+  (lambda ()
+    (let ((f (lookup-theorem 'is-euclidean-ring-def)))   ; forall s. IS-E(s) iff RHS
+      (let ((rhs (caddr (caddr f))))                     ; the RHS of the IFF
+        (and (pair? rhs) (eq? (car rhs) 'AND)
+             (equal? (cadr rhs) '(IS-INTEGRAL-DOMAIN s)))))))
+
+(check-true "same-shape-as: it adds NO shape clause (no LENGTH conjunct)"
+  (lambda ()
+    (not (dc-ment? 'LENGTH (lookup-theorem 'is-euclidean-ring-def)))))
+
+(check-true "same-shape-as: the class axiom and the parent chain are generated"
+  (lambda () (and (lookup-theorem 'euclidean-ring-class)
+                  (let ((e (operator-ref 'IS-EUCLIDEAN-RING)))   ; and the operator table
+                    (and e (eq? (operator-kind e) 'predicate))))))
+
+(check-true "same-shape-as: declaring a slot is an error (a new shape is a view-as)"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (bind-condition-handler (list condition-type:error)
+          (lambda (c) c (k #t))                       ; it errored: correct
+          (lambda ()
+            (def-structure-from-clauses 'BONGO-STRUCT
+              '((same-shape-as RING) (carriers CARR2)))
+            #f))))))                                  ; it did not: wrong
+
+;;; -----------------------------------------------------------------------
 ;;; The reserved-name gate must not answer "clean" to something it merely fails
 ;;; to understand.  wff-constant-binders walks pairs; handed a wff RECORD it used
 ;;; to find no binders and report CLEAN -- a silent false negative in the gate

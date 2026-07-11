@@ -13,21 +13,18 @@
 ;;; IS-EUCLIDEAN-RING: an integral domain with a Euclidean degree function.
 ;;; Conservative IFF definition of the fresh predicate -> `definitional', so
 ;;; unfolding it (euclidean-ring-is-integral-domain) carries no debt.
-(fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'is-euclidean-ring-def
-    '(FORALL s
-       (IFF (IS-EUCLIDEAN-RING s)
-            (AND (IS-INTEGRAL-DOMAIN s)
-              (FORSOME deg
-                (AND (IN deg (FUN (CARR s) NN))
-                  (FORALL a (IMPLIES (IN a (CARR s))
-                    (FORALL b (IMPLIES (IN b (CARR s))
-                      (IMPLIES (NOT (= b (ZERO s)))
-                        (FORSOME q (AND (IN q (CARR s))
-                          (FORSOME r (AND (IN r (CARR s))
-                            (AND (= a ((ADD s) ((MUL s) q b) r))
-                                 (OR (= r (ZERO s))
-                                     (<= (succ (deg r)) (deg b))))))))))))))))))))
+(declare-structure EUCLIDEAN-RING
+  (same-shape-as INTEGRAL-DOMAIN)
+  (law (FORSOME deg
+         (AND (IN deg (FUN (CARR s) NN))
+           (FORALL a (IMPLIES (IN a (CARR s))
+             (FORALL b (IMPLIES (IN b (CARR s))
+               (IMPLIES (NOT (= b (ZERO s)))
+                 (FORSOME q (AND (IN q (CARR s))
+                   (FORSOME r (AND (IN r (CARR s))
+                     (AND (= a ((ADD s) ((MUL s) q b) r))
+                          (OR (= r (ZERO s))
+                              (<= (succ (deg r)) (deg b)))))))))))))))))
 
 ;;; Relation: every Euclidean ring is an integral domain.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
@@ -42,10 +39,6 @@
 ;;; See commutative-ring.scm for the NAME-class rationale.  Parent-class
 ;;; reading: s in EUCLIDEAN-RING <=> s in INTEGRAL-DOMAIN and a Euclidean
 ;;; degree function exists.
-(theory-add-axiom! *current-theory* 'euclidean-ring-class
-  '(FORALL s (IFF (IN s EUCLIDEAN-RING) (IS-EUCLIDEAN-RING s))))
-
-(register-definitional-structure! 'EUCLIDEAN-RING 'INTEGRAL-DOMAIN)
 
 ;;; -----------------------------------------------------------------------
 ;;; The Euclidean gauge as a NAMED function, via the global epsilon.

@@ -77,6 +77,8 @@
                   'IS-ABELIAN-GROUP 'IS-GROUP 'IS-ABELIAN-GROUP "abelian-group")
 (stl--prove-pred! 'commutative-ring-is-ring
                   'IS-COMMUTATIVE-RING 'IS-RING 'is-commutative-ring-def "commutative-ring")
+(stl--prove-pred! 'integral-domain-is-commutative-ring
+                  'IS-INTEGRAL-DOMAIN 'IS-COMMUTATIVE-RING 'is-integral-domain-def "integral-domain")
 (stl--prove-pred! 'euclidean-ring-is-integral-domain
                   'IS-EUCLIDEAN-RING 'IS-INTEGRAL-DOMAIN 'is-euclidean-ring-def "euclidean-ring")
 

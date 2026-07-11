@@ -274,10 +274,87 @@
     ((_ name clause ...)
      (def-structure-from-clauses 'name (list 'clause ...)))))
 
+;;; -----------------------------------------------------------------------
+;;; def-substructure -- a SAME-SHAPE refinement.
+;;;
+;;;   (declare-structure EUCLIDEAN-RING
+;;;     (same-shape-as INTEGRAL-DOMAIN)
+;;;     (law (FORSOME deg ...)))            ; extra conditions, free variable `s'
+;;;
+;;; COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING and PID are rings with
+;;; MORE LAWS and the SAME SHAPE -- the same six slots.  They cannot be ordinary
+;;; def-structures, and the reason is not bookkeeping:
+;;;
+;;;   def-structure's IS-NAME asserts the SHAPE (the tuple and its slot types)
+;;;   plus the named laws.  A shape clause here would be a disaster.  A
+;;;   shape-only IS-COMMUTATIVE-RING is EQUIVALENT to IS-RING -- same six slots
+;;;   -- and would force every ring commutative; INTEGRAL-DOMAIN's ONE /= ZERO
+;;;   would outright contradict the zero ring.
+;;;
+;;; So a refinement must not ADD a shape clause: it must INHERIT the shape by
+;;; naming its parent, which is what the hand-written IFFs did:
+;;;
+;;;   IS-EUCLIDEAN-RING(s)  <=>  IS-INTEGRAL-DOMAIN(s) and <the new laws>
+;;;
+;;; That literal IS-PARENT conjunct is load-bearing twice over: it carries the
+;;; shape, and it is why `euclidean-ring-is-integral-domain' is provable modulo 0
+;;; by a single mac-h (subtype-laws.scm) -- the parent is right there on the RHS.
+;;; Generated here, it holds by construction.
+;;;
+;;; What this funnel buys is the four things each of those files had to remember
+;;; BY HAND, and did not always: the `definitional' provenance (a mere unfold
+;;; must carry no debt), the NAME-class axiom, register-definitional-structure!
+;;; (the parent chain the proof reader collapses subtype citations with), and
+;;; register-operator! (the operator table -- which those five predicates were
+;;; invisible to, being reachable by no def-* at all).
+;;;
+;;; It declares NO slots: the accessors are the parent's.  Declaring one is an
+;;; error -- a different shape is a different structure, related by def-view-as,
+;;; not by this.
+(define (def-substructure name parent laws)
+  (let* ((ivar      's)
+         (is-name   (symbol-append 'IS- name))
+         (is-parent (symbol-append 'IS- parent))
+         (def-name  (symbol-append 'is- name '-def))
+         ;; IS-NAME(s) <=> IS-PARENT(s) and <laws>.  The parent FIRST and
+         ;; LITERAL: subtype-laws.scm unfolds this and reads it straight off.
+         (rhs       (conjuncts->and (cons `(,is-parent ,ivar) laws))))
+    (fluid-let ((*current-provenance* 'definitional))
+      (theory-add-axiom! *current-theory* def-name
+        `(FORALL ,ivar (IFF (,is-name ,ivar) ,rhs)))
+      ;; the associated proper class, exactly as def-structure installs one
+      (theory-add-axiom! *current-theory* (symbol-append name '-class)
+        `(FORALL ,ivar (IFF (IN ,ivar ,name) (,is-name ,ivar)))))
+    (register-definitional-structure! name parent)
+    (register-operator! is-name 'predicate (list ivar))
+    name))
+
 ;;; A (property NAME accessor ...) clause names a characteristic law from
 ;;; operation-properties.scm and the accessors it constrains; collected into
 ;;; the axiom-names list and folded into IS-NAME by build-is-axiom.
 (define (def-structure-from-clauses name clauses)
+  ;; A (same-shape-as PARENT) clause makes this a REFINEMENT, not a shape: it
+  ;; inherits the parent's slots and accessors and adds laws.  See
+  ;; def-substructure above for why it must not emit a shape clause of its own.
+  (let ((sh (find-first (lambda (c) (and (pair? c) (eq? (car c) 'same-shape-as)))
+                        clauses)))
+    (if sh
+        (let ((strays (filter (lambda (c)
+                                (and (pair? c)
+                                     (memq (car c) '(carriers op constant substructure))))
+                              clauses)))
+          (if (pair? strays)
+              (error (string-append
+                      "declare-structure " (symbol->string name)
+                      ": (same-shape-as ...) inherits the parent's shape, so it "
+                      "cannot declare slots.  A different shape is a different "
+                      "structure -- relate it with def-view-as.")
+                     strays))
+          (def-substructure name (cadr sh)
+            (map cadr (filter (lambda (c) (and (pair? c) (eq? (car c) 'law))) clauses))))
+        (def-structure-from-shape-clauses name clauses))))
+
+(define (def-structure-from-shape-clauses name clauses)
   ;; Build the slot list in declaration order.  A (carriers C1 C2 ...) clause
   ;; contributes one carrier slot per name, in left-to-right order.  Op and
   ;; constant clauses each contribute one slot.  Property clauses contribute
