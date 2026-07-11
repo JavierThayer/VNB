@@ -182,32 +182,144 @@
       sel)
     sel))
 
+(define (op--file-string e)
+  (let ((f (operator-file e)))
+    (and f (let ((str (if (string? f) f (->namestring f))))
+             ;; show it relative to the prover dir -- the absolute path is noise
+             (let ((i (string-search-forward "prover/" str 0)))
+               (if i (string-tail str (+ i 7)) str))))))
+
+;;; Where an ACCESSOR lives: which structure declares it, at which slot, and so
+;;; what (ACC s) unfolds to.  The accessor macete is literally (ACC s) -> (NTH k s).
+(define (op--accessor-sites name)
+  (let ((k (op-key name)) (hits '()))
+    (hash-table-walk *structure-table*
+      (lambda (sname sd)
+        (let loop ((slots (structure-def-slots sd)) (i 1))
+          (cond ((null? slots) #t)
+                ((eq? (op-key (caar slots)) k)
+                 (set! hits (cons (list sname i (car slots)) hits)))
+                (else (loop (cdr slots) (+ i 1)))))))
+    (sort hits (lambda (a b) (string<? (symbol->string (car a)) (symbol->string (car b)))))))
+
+;;; The formula a PREDICATE is defined by: its own axiom, or its -def axiom
+;;; (the (same-shape-as ...) refinements install is-NAME-def).
+(define (op--theorem-opt name)
+  ;; lookup-theorem ERRORS on an unknown name; the table lookup does not.
+  (hash-table-ref/default *theorem-table* name #f))
+
+(define (op--predicate-definition name)
+  (or (op--theorem-opt (op-key name))
+      (op--theorem-opt (symbol-append (op-key name) '-def))))
+
+(define (op--line label str)
+  (display ";;   ") (display label) (display str) (newline))
+
 (define (describe-operator name)
   (let ((e (operator-ref name)))
     (cond
-      ((not e) (display ";; no operator named ") (display name) (newline) #f)
+      ((not e)
+       (display ";; no operator named ") (display name)
+       (display " -- (operators) lists them all") (newline)
+       #f)
       (else
-       (display ";; ") (display (op-key name))
-       (display " : ") (display (operator-kind e))
-       (display ", arity ") (display (or (operator-arity e) '?)) (newline)
-       (if (pair? (operator-params e))
-           (begin (display ";;   params:  ") (display (operator-params e)) (newline)))
-       (if (operator-noun e)
-           (begin (display ";;   reads:   x is ")
-                  (if (not (string=? (or (operator-article e) "") ""))
-                      (begin (display (operator-article e)) (display " ")))
-                  (display (operator-noun e)) (newline)))
-       (if (operator-english e)
-           (begin (display ";;   english: ")
-                  (if (string? (operator-english e))
-                      (display (operator-english e))
-                      (display "<procedure>"))
-                  (newline)))
-       (if (operator-tex e)
-           (begin (display ";;   tex:     ") (display (operator-tex e)) (newline)))
-       (if (operator-file e)
-           (begin (display ";;   defined: ") (display (operator-file e)) (newline)))
-       e))))
+       (let* ((k    (op-key name))
+              (kind (operator-kind e)))
+         (display ";; ") (display k)
+         (display " : ") (display kind)
+         (display ", arity ") (display (or (operator-arity e) '?))
+         (newline)
+         (if (pair? (operator-params e))
+             (op--line "params:   " (with-output-to-string
+                                      (lambda () (write (operator-params e))))))
+
+         ;; --- what it MEANS ---------------------------------------------
+         (case kind
+           ((accessor)
+            (for-each
+              (lambda (site)
+                (let* ((sname (car site)) (idx (cadr site)) (slot (caddr site))
+                       (skind (cadr slot)))
+                  (op--line "slot:     "
+                            (string-append (number->string idx) " of "
+                                           (symbol->string sname)
+                                           " (" (symbol->string skind)
+                                           (if (eq? skind 'op)
+                                               (string-append " "
+                                                 (expression->string (caddr slot))
+                                                 " -> "
+                                                 (expression->string (cadddr slot)))
+                                               "")
+                                           ")"))
+                  (op--line "unfolds:  "
+                            (string-append (symbol->string k) "(s) = nth("
+                                           (number->string idx) ", s)"))))
+              (op--accessor-sites k)))
+           ((functoid)
+            (let ((reg (hash-table-ref/default *functoid-registry* k #f)))
+              (if reg
+                  (op--line "unfolds:  "
+                            (string-append
+                              (expression->string (cons k (car reg)))
+                              " = " (expression->string (cadr reg)))))))
+           ((predicate)
+            (let ((f (op--predicate-definition k)))
+              (if f (op--line "defn:     " (expression->string f)))))
+           (else #f))
+
+         ;; --- how it READS ----------------------------------------------
+         (if (operator-noun e)
+             (op--line "reads:    "
+                       (string-append "x is "
+                                      (if (string=? (or (operator-article e) "") "")
+                                          "" (string-append (operator-article e) " "))
+                                      (operator-noun e))))
+         (if (operator-english e)
+             (op--line "english:  " (if (string? (operator-english e))
+                                        (operator-english e)
+                                        "<procedure>")))
+         (if (operator-tex e) (op--line "tex:      " (operator-tex e)))
+         (if (not (or (operator-noun e) (operator-english e) (operator-tex e)))
+             (op--line "notation: "
+                       (string-append "none declared -- (notation! '"
+                                      (symbol->string k)
+                                      " 'english \"...\") beside its definition")))
+         (let ((f (op--file-string e)))
+           (if f (op--line "defined:  " f)))
+         e)))))
+
+;;; The worklist: every head with no notation declared, so filling the table in
+;;; is a checklist and not a scan.  Prints AND returns.
+(define (operators-undeclared #!optional kind)
+  (let* ((bare (filter (lambda (n)
+                         (let ((e (operator-ref n)))
+                           (and (not (operator-noun e))
+                                (not (operator-english e))
+                                (not (operator-tex e))
+                                (or (default-object? kind)
+                                    (eq? (operator-kind e) kind)))))
+                       (operator-names)))
+         (of (lambda (kd) (filter (lambda (n) (eq? (operator-kind (operator-ref n)) kd))
+                                  bare))))
+    (display ";; ") (display (length bare))
+    (display " head(s) with no notation declared")
+    (if (not (default-object? kind)) (begin (display " of kind ") (display kind)))
+    (display ":\n")
+    (for-each
+      (lambda (kd)
+        (let ((ns (if (default-object? kind) (of kd) (if (eq? kd kind) bare '()))))
+          (when (pair? ns)
+            (display ";;   ") (display kd) (display " (") (display (length ns)) (display "):")
+            (for-each (lambda (n) (display " ") (display n)) ns)
+            (newline))))
+      '(predicate functoid accessor function primitive))
+    bare))
+
+;;; Print the record as something a human can read -- it is a REPL return value.
+(define-print-method operator?
+  (standard-print-method
+    (lambda (e) (string-append "operator " (symbol->string (operator-kind e))))
+    (lambda (e) (list (or (operator-arity e) '?)))))   ; get-parts returns a LIST
 
 ;;; -----------------------------------------------------------------------
 ;;; PRIMITIVE VOCABULARY.
