@@ -238,6 +238,9 @@
 ;; universal in context; the guard is then detached against the GUARD[v:=ts]
 ;; that the caller has already put there.
 (define (mz--type-at! type ts)
+  ;; nested-quantifier peel: one subst-free per binder, under the binders that
+  ;; remain (see proof-commands.scm's cmd-fact).  A substitution LIST would need
+  ;; subst-free* -- expressions.scm.
   (let loop ((f type) (ts ts))
     (if (null? ts)
         (begin (mz-detach! f) (caddr f))         ; f = (IMPLIES GUARD (IN M NN))

@@ -120,6 +120,113 @@
           (else (loop (cdr ls))))))
 
 ;;; -----------------------------------------------------------------------
+;;; The dk- kit: NAME A TACTIC'S OUTPUT BY WHAT IT LANDED, NOT BY WHAT IT
+;;; LOOKS LIKE.
+;;;
+;;; CLAUDE.md says "never navigate by goal shape alone", about LEAVES.  The same
+;;; lesson holds one level down, about ASSUMPTIONS, and it is what stalled the
+;;; spans-submodule-fg descent: the inductive step's context carries the IH, the
+;;; instantiated IH, and the spans of both bm and bm' -- four assumptions with
+;;; the same head and near-identical shape.  A `dc-find'-style shape match picks
+;;; the wrong one; worse, a `mac-h' or `ai' handed a RECONSTRUCTED formula (one
+;;; the driver rebuilds, with its own guess at the eigenvariable names) does not
+;;; match any assumption at all, silently no-ops, and every later command runs in
+;;; the wrong branch.
+;;;
+;;; The cure is to stop guessing.  Run the tactic, DIFF the assumption list, and
+;;; keep what appeared.  What comes back is the assumption itself -- the exact
+;;; term the engine built, eigenvariables and all -- so the next `mac-h'/`ai'/
+;;; `detach!' is fed a formula that is in the context BY CONSTRUCTION.
+;;;
+;;; `dk-landed' ERRORS when a tactic lands nothing.  A silent no-op is the bug;
+;;; making it loud here is the whole point.  (`dk-landed*' is the rare, explicit
+;;; "may land nothing" variant.)
+
+(define (dk-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
+(define (dk-focus! node) (set-proof-state-focus! *ps* node) node)
+(define (dk-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+(define (dk-head? h) (lambda (f) (and (pair? f) (eq? (car f) h))))
+
+(define (dk--drop-one s lst)            ; remove ONE occurrence (contexts hold duplicates)
+  (cond ((null? lst) '())
+        ((string=? s (car lst)) (cdr lst))
+        (else (cons (car lst) (dk--drop-one s (cdr lst))))))
+
+;; run `thunk'; return the assumptions it ADDED to the focus context, in context
+;; order.  May be empty.
+(define (dk-landed* thunk)
+  (let ((before (map expression->string (dk-asms))))
+    (thunk)
+    (let loop ((as (dk-asms)) (bs before) (acc '()))
+      (if (null? as)
+          (reverse acc)
+          (let ((s (expression->string (car as))))
+            (if (member s bs)
+                (loop (cdr as) (dk--drop-one s bs) acc)
+                (loop (cdr as) bs (cons (car as) acc))))))))
+
+(define (dk-landed thunk)
+  (let ((new (dk-landed* thunk)))
+    (if (null? new)
+        (error "dk-landed: the tactic landed no assumption -- silent no-op")
+        new)))
+
+(define (dk-landed-1 thunk)             ; exactly one new assumption; return it
+  (let ((new (dk-landed thunk)))
+    (if (null? (cdr new))
+        (car new)
+        (error "dk-landed-1: expected 1 new assumption, got"
+               (map expression->string new)))))
+
+(define (dk-landed-find thunk pred)     ; the UNIQUE new assumption satisfying `pred'
+  (let* ((new (dk-landed thunk))
+         (hits (filter pred new)))
+    (cond ((null? hits)
+           (error "dk-landed-find: no new assumption matches; landed"
+                  (map expression->string new)))
+          ((pair? (cdr hits))
+           (error "dk-landed-find: ambiguous; matched" (map expression->string hits)))
+          (else (car hits)))))
+
+;; `fact' lands its WHOLE instantiation chain: the theorem, each partly-peeled
+;; form, and the fully detached result.  The result is the one no other landed
+;; formula sits inside -- the deepest.  (dk-landed-1 would just error here, which
+;; is how this was found.)
+(define (dk-contains? form sub)
+  (cond ((equal? form sub) #t)
+        ((pair? form) (or (dk-contains? (car form) sub) (dk-contains? (cdr form) sub)))
+        (else #f)))
+
+(define (dk-deepest thunk)
+  (let ((new (dk-landed thunk)))
+    (or (find-first (lambda (a)
+                      (not (find-first (lambda (b) (and (not (eq? a b)) (dk-contains? a b))) new)))
+                    new)
+        (car new))))
+
+(define (dk-fact! . args) (dk-deepest (lambda () (apply fact args))))
+
+;; `ai' the landed conjunctions until none is left; return every leaf conjunct
+;; the whole cascade produced.  (`ai' of an AND lands its two conjuncts; a SPANS
+;; body or an IS-SUBMODULE unfolding is a right-nested tower of them.)
+(define (dk-split! f)
+  (let loop ((todo (dk-landed (lambda () (ai f)))) (acc '()))
+    (cond ((null? todo) (reverse acc))
+          ((and (pair? (car todo)) (eq? (caar todo) 'AND))
+           (loop (append (dk-landed (lambda () (ai (car todo)))) (cdr todo)) acc))
+          (else (loop (cdr todo) (cons (car todo) acc))))))
+
+;; leaves a branching tactic OPENED (same trick, one level up)
+(define (dk-opened thunk)
+  (let ((before (proof-leaves)))
+    (thunk)
+    (filter (lambda (l) (not (memq l before))) (proof-leaves))))
+
+;; did the last primitive inference actually fire on this node?  Every rule gives
+;; its focus node an in-arrow.
+(define (dk-fired? node) (not (null? (sequent-node-in-arrows node))))
+
+;;; -----------------------------------------------------------------------
 ;;; Arm the containment.  From here on prover-load gives every theorem-library/
 ;;; and calculus/ file its own top-level environment (load.scm).
 (define *driver-kit-env* (the-environment))

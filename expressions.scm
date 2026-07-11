@@ -296,6 +296,45 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; Substitution
+;;;
+;;; TWO PRIMITIVES, AND THE SECOND IS NOT THE FIRST ITERATED.
+;;;
+;;;   subst-free  x t e          -- one variable
+;;;   subst-free* ((x . t) ...) e -- MANY variables, SIMULTANEOUSLY
+;;;
+;;; Applying a binding list with a fold of subst-free is WRONG, and wrong
+;;; silently: each substitution exposes whatever it just substituted IN to every
+;;; later binding.  Unfolding SPANS -- whose definition has parameters
+;;; (md n u sm) -- at
+;;;     SPANS(md, k, w, INTERSECTION(sm, SPAN(md, n, BLOCK(u, n, 1))))
+;;; binds sm to a term that mentions the CALLER's own `n' and `u'; the pending
+;;; n := k and u := w bindings then rewrote them, turning the assumption into one
+;;; about SPAN(md, k, BLOCK(w, k, 1)).  No error, no warning: just a different
+;;; theorem.  It is latent until an argument term mentions a variable named like
+;;; a parameter of the definition being unfolded -- which is exactly what a
+;;; recursive construction (a span of a truncation of u) does.
+;;;
+;;; Every multi-binding substitution in the tree goes through `subst-free*':
+;;; macetes.scm (apply-subst -- the macete rewriter), interactive.scm
+;;; (bc*--apply-subst -- the bc* closer), suggest.scm (wbc--subst-all).
+;;; Iterating subst-free is legitimate ONLY when peeling nested quantifiers one
+;;; at a time (proof-commands.scm's cmd-fact, minimize.scm's mz--type-at!),
+;;; where each substitution happens under the binders that remain -- there the
+;;; later variables are still BOUND, not free, so there is nothing to capture.
+
+(define (subst-free* bindings expr)
+  (if (null? bindings)
+      expr
+      ;; Stage through fresh symbols: nothing a binding substitutes in can be
+      ;; seen by another binding, so the result does not depend on the order.
+      (let ((tmps (map (lambda (b) (generate-uninterned-symbol 'subst-arg)) bindings)))
+        (let stage ((bs bindings) (ts tmps) (e expr))          ; var -> fresh
+          (if (null? bs)
+              (let fill ((bs bindings) (ts tmps) (e e))        ; fresh -> term
+                (if (null? bs)
+                    e
+                    (fill (cdr bs) (cdr ts) (subst-free (car ts) (cdar bs) e))))
+              (stage (cdr bs) (cdr ts) (subst-free (caar bs) (car ts) e)))))))
 
 (define (subst-free x replacement expr)
   (cond

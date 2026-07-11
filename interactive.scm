@@ -952,10 +952,9 @@
 ;;; they match and test membership, never touching the proof state.
 
 ;; Apply substitution alist SUBST (((v . val) ...)) to expression E.
-(define (bc*--apply-subst subst e)
-  (let loop ((s subst) (e e))
-    (if (null? s) e
-        (loop (cdr s) (subst-free (caar s) (cdar s) e)))))
+;; SIMULTANEOUSLY -- see subst-free* (expressions.scm) on why a fold of
+;; subst-free is a silent capture bug here.
+(define (bc*--apply-subst subst e) (subst-free* subst e))
 
 ;; Like bc*--peel but also collect the IMPLIES antecedents.
 ;; Returns (values schema-vars hyps conclusion).

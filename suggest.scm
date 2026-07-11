@@ -1542,9 +1542,10 @@
     (and (pair? as)
          (or (wbc--match1 guard (car as) v) (loop (cdr as))))))
 
-;; Apply a list of (var . val) bindings to a formula.
-(define (wbc--subst-all sub e)
-  (fold-left (lambda (acc p) (subst-free (car p) (cdr p) acc)) e sub))
+;; Apply a list of (var . val) bindings to a formula, SIMULTANEOUSLY
+;; (subst-free*, expressions.scm -- a fold of subst-free lets each binding
+;; rewrite what the previous one substituted in).
+(define (wbc--subst-all sub e) (subst-free* sub e))
 
 ;; Resolve the instantiation terms for a FORALL-GUARDED lemma STMT from the
 ;; context ASMS (raw formulas): walk `FORALL v. (IMPLIES guard(v) rest)',

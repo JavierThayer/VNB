@@ -3520,6 +3520,33 @@
         reached))))
 
 ;;; -----------------------------------------------------------------------
+;;; Simultaneous substitution.  A multi-variable substitution must NOT be a fold
+;;; of subst-free: each binding would then rewrite what the previous one
+;;; substituted in.  The live case was unfolding SPANS, whose definition has
+;;; parameters (md n u sm), at an argument mentioning the caller's own `n' / `u'
+;;; (see subst-free*, expressions.scm).
+
+(check "subst-free*: a substituted term is not rewritten by a later binding"
+  (lambda () (subst-free* '((n . k) (u . w) (sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
+                          '(SPANS md n u sm)))
+  '(SPANS md k w (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
+
+(check "subst-free*: a swap is a swap, not a collapse"
+  (lambda () (subst-free* '((x . y) (y . x)) '(F x y)))
+  '(F y x))
+
+(check-true "macete rewriting substitutes its arguments simultaneously"
+  ;; mac-h 'SPANS on SPANS(md, k, w, sm') must leave sm' alone: its `n' and `u'
+  ;; are the CALLER's, not SPANS' parameters.
+  (lambda ()
+    (let ((got (apply-subst '((md . md) (n . k) (u . w)
+                              (sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
+                            '(FORALL x_ (IMPLIES (IN x_ sm) (IN (ENTRY u 1 1) sm))))))
+      (equal? got '(FORALL x_ (IMPLIES (IN x_ (INTERSECTION sm (SPAN md n (BLOCK u n 1))))
+                                       (IN (ENTRY w 1 1)
+                                           (INTERSECTION sm (SPAN md n (BLOCK u n 1))))))))))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)

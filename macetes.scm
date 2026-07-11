@@ -232,14 +232,16 @@
 ;;;   rest     (var . <restbound>)   -- used by SPLICE expansion below
 ;;; Ordinary substitutions run first.  Then any SPLICE forms in the result
 ;;; are expanded using the rest bindings.
+;;;
+;;; THE ORDINARY BINDINGS ARE APPLIED SIMULTANEOUSLY -- `subst-free*'
+;;; (expressions.scm), never a fold of subst-free.  See the comment there: a
+;;; sequential fold silently rewrote the caller's `n' and `u' INSIDE the term it
+;;; had just matched to SPANS' `sm' parameter.
 (define (apply-subst subst expr)
   (let loop ((bs subst) (ord '()) (rest '()))
     (cond
       ((null? bs)
-       (let ((after-ord (fold-left (lambda (e b)
-                                     (subst-free (car b) (cdr b) e))
-                                   expr
-                                   (reverse ord))))
+       (let ((after-ord (subst-free* (reverse ord) expr)))
          (if (null? rest)
              after-ord
              (expand-splices after-ord rest))))

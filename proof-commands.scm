@@ -175,6 +175,12 @@
               (let loop ((ps ps1) (formula f0) (args args))
                 (cond
                   ((vnb-warning? ps) ps)
+                  ;; One binder at a time, and that is CORRECT here: each
+                  ;; subst-free runs under the binders that remain, so the
+                  ;; variables still to be instantiated are bound, not free, and
+                  ;; there is nothing for a later argument to capture.  This is
+                  ;; the one shape in which iterating subst-free is legitimate;
+                  ;; a substitution LIST must use subst-free* (expressions.scm).
                   ((and (pair? formula) (eq? (car formula) 'FORALL) (pair? args))
                    (let* ((x    (quantifier-var formula))
                           (body (quantifier-body formula))

@@ -1,0 +1,12 @@
+;;; opcensus-gen.scm -- generate + inspect OPERATORS.md / DEFINITIONS.md.
+(load "load.scm")
+(set! *vnb-quiet* #t)
+(newline)
+(display "reference-dir = ") (display *reference-dir*) (newline)
+(define op-result (write-operators-md))
+(display "write-operators-md => ") (write op-result) (newline)
+(define def-result (write-definitions-md))
+(display "write-definitions-md => ") (write def-result) (newline)
+(define fr-result (write-functoids-md))
+(display "write-functoids-md => ") (write fr-result) (newline)
+(%exit 0)

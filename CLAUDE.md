@@ -11,9 +11,10 @@ operational facts that are expensive to rediscover.
 
 ## Where the project is going
 
-The current **prove-theorem stage** is nearly done. Its purpose was never the theorems
-themselves: it was to exercise and stress the machinery. A few more proofs (the bricks
-under `spans-submodule-fg`) finish it.
+The **prove-theorem stage is done** (2026-07-11): `spans-submodule-fg` -- and with it
+`submodule-fg` -- is proven, with no asserted step. Its purpose was never the theorems
+themselves: it was to exercise and stress the machinery, and it delivered, right at the
+end, the simultaneous-substitution bug in the macete rewriter (below).
 
 Then the project **refocuses**, onto three things:
 
@@ -139,9 +140,11 @@ FUBA, GUBA, RUBA, BLAH etc are generic names.
 
 ## Working with the user
 
-Treats Claude as a colleague, and can be ill-tempered at times. Does not
-appreciate Claude forgetting previously settled questions. Does not appreciate
-gratuitous compliments.
+Treats Claude as a colleague, and can be ill-tempered at times. Does
+not appreciate Claude forgetting previously settled questions. Does
+not appreciate gratuitous compliments. Avoid obvious narrative
+statements such as: "Let me check BLAH before relying on memory". Just
+say "Checking BLAH".
 
 **More interested in technique than in bulk.** One general mechanism that
 dissolves a class of obligations beats N bespoke lemmas that discharge them one
@@ -157,6 +160,17 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   `(forall k. IN k NN => IH => ...)` and a row conjunct `(forall i_. ... => ... => ...)`
   are both `FORALL/IMPLIES/IMPLIES`. Discriminate on the binder, or better, on a
   CONTEXT formula unique to the branch.
+* **Never name an ASSUMPTION by shape either** -- same rule, one level down. An induction
+  step's context holds the IH, the instantiated IH, and look-alike `SPANS`/`FORSOME`
+  siblings; and a `mac-h`/`ai` fed a formula the driver RECONSTRUCTED (with its own guess
+  at the eigenvariable names) matches nothing, silently no-ops, and every later command
+  runs in the wrong branch. Use the `dk-` kit in `driver-kit.scm`: run the tactic, DIFF
+  the assumption list, keep what appeared. `dk-landed` (errors if nothing landed --
+  a silent no-op IS the bug), `dk-landed-1`, `dk-landed-find`, `dk-split!` (ai the landed
+  conjunctions to exhaustion), `dk-opened` (leaves a branching tactic opened).
+  **`fact` and `inst+` land their whole instantiation chain**, not one formula -- the
+  theorem, each partly-peeled form, and the detached result -- so use `dk-fact!` /
+  `dk-deepest`, which take the landing no other landing contains.
 * **Never rely on where `ass` or `cut` leave focus.** `cut` opens a side goal plus the
   main branch; the `ass` that closes the side goal hands focus to an engine-chosen leaf.
   Re-focus explicitly afterwards.
@@ -173,6 +187,17 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   unfold last.
 * `minimize!` lands `GUARD[v:=w]` as **one conjunction**, not as its conjuncts. `ai` it
   before detaching anything against it.
+* **A multi-variable substitution is NOT single substitution iterated.** `subst-free*`
+  (expressions.scm) is the only multi-binding substitution in the tree; a fold of
+  `subst-free` exposes whatever each binding substitutes IN to every later binding.
+  That fold WAS `apply-subst` (the macete rewriter) until 2026-07-11: unfolding `SPANS`
+  -- parameters `(md n u sm)` -- at `SPANS(md,k,w, INTERSECTION(sm, SPAN(md,n,BLOCK(u,n,1))))`
+  let the pending `n:=k`, `u:=w` bindings rewrite the caller's own `n` and `u` INSIDE the
+  term matched to `sm`. No error, no warning: a different theorem. It is the case-fold
+  disease (a name collision) one level down, and it bites precisely when a recursive
+  construction is fed back into its own definition. Iterating `subst-free` is legitimate
+  ONLY when peeling nested quantifiers one binder at a time (`cmd-fact`, `mz--type-at!`),
+  where the remaining variables are still BOUND.
 * **`subst` cannot rewrite a term in OPERATOR position.** Its Leibniz walk reaches
   argument positions only, so `(subst '(= (VADD md) (MUL (MODULE-VECTOR-AG md))))` is a
   silent no-op on the goal `((VADD md) x y)` -- whose head *is* the term you meant to

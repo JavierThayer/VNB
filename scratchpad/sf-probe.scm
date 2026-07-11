@@ -1,0 +1,6 @@
+(newline)(display "@@@ SF-PROBE")(newline)
+(for-each (lambda (n)
+  (display "@@@ ")(display n)(display " => ")
+  (display (if (lookup-macete n) "INSTALLED" "MISSING"))(newline))
+  '(submodule-fg submodule-of-free-is-free smith-staircase generates-coeff-matrix))
+(display "@@@ END")(newline)(%exit 0)
