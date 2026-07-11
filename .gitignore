@@ -32,3 +32,4 @@
 # Compiled Emacs Lisp
 *.elc
 reference/__pycache__/
+scratchpad/

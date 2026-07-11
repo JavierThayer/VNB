@@ -1,2 +1,0 @@
-(ihp forall([p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a))))
-  * forall([n, p], n in nn implies p in mat(k, n, carr(a)) implies forsome([d], mat-equiv(a, k, n, p, d) and is-diagonal(a, k, n, d)))

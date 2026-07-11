@@ -1,1 +1,0 @@
-(cpc forsome([c2], mat-equiv(a, succ(k), succ(q_641), p, c2) and c2 = border(a, entry(c2, 1, 1), submat(c2, k, q_641), k, q_641) and not(entry(c2, 1, 1) = zero(a))))

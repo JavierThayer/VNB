@@ -1,1 +1,0 @@
-(c2m mat-equiv(a, succ(k), succ(q_641), p, c2_642))
