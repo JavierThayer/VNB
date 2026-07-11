@@ -3565,7 +3565,18 @@
     (let ((f '(FORALL carr (FORALL add (IN carr add)))))    ; both are accessors
       (and (pair? (wff-constant-binders f))                 ; raw formula: caught
            (pair? (wff-constant-binders                     ; wff record: ALSO caught
-                    (quietly (lambda () (make-wff f)))))))))
+                    (fluid-let ((*reject-constant-binders?* #f))   ; build one to audit
+                      (quietly (lambda () (make-wff f))))))))))
+
+(check-true "reserved names: make-wff REJECTS such a formula outright"
+  ;; not a warning you can walk past: (FORALL carr ...) with carr(...) in its
+  ;; body is scope-blind -- in head position it reads as the ACCESSOR.
+  (lambda ()
+    (let ((r (quietly (lambda () (make-wff '(FORALL mul (IN mul SET)))))))
+      (and (vnb-error? r) (not (wff? r))))))
+
+(check-true "reserved names: the trailing-underscore escape still builds"
+  (lambda () (wff? (make-wff '(FORALL mul_ (IN mul_ SET))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The operator table (operators.scm).  ONE table, keyed by head symbol:

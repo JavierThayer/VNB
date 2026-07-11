@@ -50,13 +50,23 @@
 ;;; -----------------------------------------------------------------------
 ;;; make-wff: snapshot current theory + active context stack into a <wff>
 
-;;; When #t, make-wff warns (loudly, non-fatally) if the formula binds a
-;;; variable whose case-folded name is a registered constant (accessor /
-;;; operator / functoid / predicate) -- the interactive counterpart of the
-;;; load-time constant-binder-audit.  Left #f during the library load (set #t
-;;; at the end of load.scm) so it fires only for user-constructed wffs, and so
-;;; it never runs before wff-constant-binders (macetes.scm) is defined.
-(define *warn-constant-binders?* #f)
+;;; When #t, make-wff REJECTS a formula that binds a variable whose case-folded
+;;; name is a registered constant (accessor / operator / functoid / predicate)
+;;; -- the interactive counterpart of the load-time constant-binder-audit.
+;;;
+;;; It used to shout and hand the wff back anyway.  That made the rule a
+;;; discouragement you could walk past: `(FORALL carr (FORALL add ...))', with
+;;; add(mul(q,b),r) in its body, would sail through make-wff and be accepted by
+;;; theory-add-axiom!.  In head position (add ...) reads as the CONSTANT, not
+;;; the bound variable -- the binder is scope-blind, and the formula does not
+;;; mean what it looks like.  There is no legitimate use, so it is now an error
+;;; and such a wff cannot be built at all.  constant-binder-audit reports the
+;;; library clean, so nothing real was relying on the old leniency.
+;;;
+;;; Left #f during the library load (set #t at the end of load.scm) so it fires
+;;; only for user-constructed wffs, and so it never runs before
+;;; wff-constant-binders (macetes.scm) is defined.
+(define *reject-constant-binders?* #f)
 
 (define (make-wff formula)
   (vnb-guard
@@ -65,9 +75,16 @@
           (make-wff (parse-string formula))
           (let* ((expanded (expand-destructuring-quantifiers formula)))
             (validate-wff! expanded)
-            (when *warn-constant-binders?*
+            (when *reject-constant-binders?*
               (let ((hits (wff-constant-binders expanded)))
-                (when (pair? hits) (warn-constant-binders! hits))))
+                (when (pair? hits)
+                  (warn-constant-binders! hits)          ; the loud diagnosis, then:
+                  (error (string-append
+                          "make-wff: bound variable named like a registered constant: "
+                          (symbol->string (cadr (car hits)))
+                          " (a " (symbol->string (caddr (car hits)))
+                          ").  In head position it reads as the constant, not your"
+                          " binder.  Rename it (trailing underscore).")))))
             (%make-concrete-wff expanded
                                 (theory-name *current-theory*)
                                 (list-copy *active-local-contexts*)))))))
