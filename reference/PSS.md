@@ -4120,11 +4120,11 @@ Not yet filed under a PSS category -- see `category!`.
 
 *Warrant (reference):* [c_1..c_n, r] is a 1-by-(succ n) matrix over X (matof-in-mat, as snoc-col-type).
 
-### spans-submodule-fg
+### spans-fg-step
 
-    forall([md], is-module(md) and is-euclidean-ring(scal(md)) implies forall([n in nn, u in mat(n, 1, vec(md)), bm], is-submodule(md, bm) implies spans(md, n, u, bm) implies forall([sm], is-submodule(md, sm) implies sm subset bm implies forsome([k], k in nn and k <= n and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm))))))
+    forall([md], is-module(md) and is-euclidean-ring(scal(md)) implies forall([n in nn], forall([u in mat(n, 1, vec(md)), bm], is-submodule(md, bm) implies spans(md, n, u, bm) implies forall([sm], is-submodule(md, sm) implies sm subset bm implies forsome([k], k in nn and k <= n and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm))))) implies forall([u in mat(succ(n), 1, vec(md)), bm], is-submodule(md, bm) implies spans(md, succ(n), u, bm) implies forall([sm], is-submodule(md, sm) implies sm subset bm implies forsome([k], k in nn and k <= succ(n) and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm)))))))
 
-*Warrant (informal):* TEMP re-assert; descent proof pending.
+*Warrant (informal):* TEMP; inductive step driver in progress (all lemmas proven).
 
 ### submat-type
 

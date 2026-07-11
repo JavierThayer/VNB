@@ -1780,9 +1780,9 @@
 <h4 id="p-snoc-row-type">snoc-row-type</h4>
 <pre>forall([x, n, c, r], n in nn implies c in mat(1, n, x) implies r in x implies snoc-row(c, n, r) in mat(1, succ(n), x))</pre>
 <p><em>Warrant (reference):</em> [c_1..c_n, r] is a 1-by-(succ n) matrix over X (matof-in-mat, as snoc-col-type).</p>
-<h4 id="p-spans-submodule-fg">spans-submodule-fg</h4>
-<pre>forall([md], is-module(md) and is-euclidean-ring(scal(md)) implies forall([n in nn, u in mat(n, 1, vec(md)), bm], is-submodule(md, bm) implies spans(md, n, u, bm) implies forall([sm], is-submodule(md, sm) implies sm subset bm implies forsome([k], k in nn and k &lt;= n and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm))))))</pre>
-<p><em>Warrant (informal):</em> TEMP re-assert; descent proof pending.</p>
+<h4 id="p-spans-fg-step">spans-fg-step</h4>
+<pre>forall([md], is-module(md) and is-euclidean-ring(scal(md)) implies forall([n in nn], forall([u in mat(n, 1, vec(md)), bm], is-submodule(md, bm) implies spans(md, n, u, bm) implies forall([sm], is-submodule(md, sm) implies sm subset bm implies forsome([k], k in nn and k &lt;= n and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm))))) implies forall([u in mat(succ(n), 1, vec(md)), bm], is-submodule(md, bm) implies spans(md, succ(n), u, bm) implies forall([sm], is-submodule(md, sm) implies sm subset bm implies forsome([k], k in nn and k &lt;= succ(n) and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm)))))))</pre>
+<p><em>Warrant (informal):</em> TEMP; inductive step driver in progress (all lemmas proven).</p>
 <h4 id="p-submat-type">submat-type</h4>
 <pre>forall([a, p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))</pre>
 <p><em>Warrant (reference):</em> SUBMAT(P,p,q) in MAT(p,q,CARR A) for P in MAT(succ p, succ q, CARR A): each block entry is P_{succ i, succ j} in CARR A (entry-in-carrier; succ i in [1,succ p] for i in [1,p]), so matof-in-mat applies.</p>
