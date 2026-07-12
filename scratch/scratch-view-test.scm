@@ -18,10 +18,10 @@
 (newline)
 
 ;; 3. Specialized theorem exists with correct accessor reduction?
-(display "(3) abelian-group-mul-comm-ring-additive-ag:") (newline)
+(display "(3) abelian-group-opr-comm-ring-additive-ag:") (newline)
 (display "    ")
 (write (hash-table-ref/default *theorem-table*
-         'abelian-group-mul-comm-ring-additive-ag #f))
+         'abelian-group-opr-comm-ring-additive-ag #f))
 (newline)
 
 ;; 4. Functoid macete fires inside a proof?

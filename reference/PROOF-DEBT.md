@@ -43,7 +43,7 @@ nothing), and `modulo 0` -- no tier -- is the strongest.
 
 proven **modulo 0** -- unconditional.
 
-### abelian-group-mul-comm  *(trust: proof)*
+### abelian-group-opr-comm  *(trust: proof)*
 
 proven **modulo 0** -- unconditional.
 
@@ -1352,7 +1352,7 @@ proven modulo:
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `ring-add-left-id` -- **NO WARRANT**
 - `abelian-group-idempotent-is-id` -- **NO WARRANT**
-- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via
    abelian-group-is-group).
 - `abelian-group-assoc` -- *warrant well-known:* (a*b)*c = a*(b*c): group-assoc via abelian-group-is-group.
 - `ring-add-left-inv` -- **NO WARRANT**
@@ -2557,7 +2557,7 @@ proven modulo:
 - `matact-type` -- *warrant reference:* P.u is an m-by-q matrix of vectors for P an m-by-n scalar matrix and u an
    n-by-q matrix of vectors: matof-in-mat, whose values are FINSUMs in the
    vector abelian group, typed by finsum-type + mvag-carr.
-- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via
    abelian-group-is-group).
 
 ### mat-0-1-nonempty  *(trust: well-known)*
@@ -3184,7 +3184,7 @@ proven modulo:
 - `ring-add-left-id` -- **NO WARRANT**
 - `abelian-group-idempotent-is-id` -- **NO WARRANT**
 - `abelian-group-inverse-unique` -- *warrant well-known:* b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
-   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   group-assoc, group-left-id, and abelian-group-opr-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.
 
@@ -4296,7 +4296,7 @@ proven modulo:
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
 - `ring-add-right-inv` -- *warrant well-known:* a + (-a) = 0 (ring-add-left-inv + comm).
 - `abelian-group-inverse-unique` -- *warrant well-known:* b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
-   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   group-assoc, group-left-id, and abelian-group-opr-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.
 
@@ -4384,7 +4384,7 @@ proven modulo:
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
 - `ring-add-right-inv` -- *warrant well-known:* a + (-a) = 0 (ring-add-left-inv + comm).
 - `abelian-group-inverse-unique` -- *warrant well-known:* b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
-   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   group-assoc, group-left-id, and abelian-group-opr-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.
 - `unitrow-type` -- *warrant reference:* UNITROW(A,n,i) is a 1-by-n matrix over CARR A (matof-in-mat; entries ONE/ZERO).
@@ -4439,7 +4439,7 @@ proven modulo:
    (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
-- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via
    abelian-group-is-group).
 - `abelian-group-assoc` -- *warrant well-known:* (a*b)*c = a*(b*c): group-assoc via abelian-group-is-group.
 - `ring-add-left-inv` -- **NO WARRANT**
@@ -4544,7 +4544,7 @@ proven modulo:
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
 - `ring-add-right-inv` -- *warrant well-known:* a + (-a) = 0 (ring-add-left-inv + comm).
 - `abelian-group-inverse-unique` -- *warrant well-known:* b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
-   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   group-assoc, group-left-id, and abelian-group-opr-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.
 - `unitrow-type` -- *warrant reference:* UNITROW(A,n,i) is a 1-by-n matrix over CARR A (matof-in-mat; entries ONE/ZERO).
@@ -4595,7 +4595,7 @@ proven modulo:
    (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
-- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via
    abelian-group-is-group).
 - `abelian-group-assoc` -- *warrant well-known:* (a*b)*c = a*(b*c): group-assoc via abelian-group-is-group.
 - `ring-add-left-inv` -- **NO WARRANT**
@@ -4753,7 +4753,7 @@ proven modulo:
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
 - `ring-add-right-inv` -- *warrant well-known:* a + (-a) = 0 (ring-add-left-inv + comm).
 - `abelian-group-inverse-unique` -- *warrant well-known:* b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
-   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   group-assoc, group-left-id, and abelian-group-opr-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.
 - `unitrow-type` -- *warrant reference:* UNITROW(A,n,i) is a 1-by-n matrix over CARR A (matof-in-mat; entries ONE/ZERO).
@@ -4804,7 +4804,7 @@ proven modulo:
    (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
-- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+- `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via
    abelian-group-is-group).
 - `abelian-group-assoc` -- *warrant well-known:* (a*b)*c = a*(b*c): group-assoc via abelian-group-is-group.
 - `ring-add-left-inv` -- **NO WARRANT**

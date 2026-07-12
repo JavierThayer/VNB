@@ -96,7 +96,7 @@
     (qed 'bijection-is-injection)
     (error "subtype-laws: failed to prove bijection-is-injection"))
 
-;; abelian-group-mul-comm: OPR commutes -- the is-commutative property projected
+;; abelian-group-opr-comm: OPR commutes -- the is-commutative property projected
 ;; out of IS-ABELIAN-GROUP (the metric-sym shape: unfold IS-X, split, unfold the
 ;; property, ass).  Proven modulo 0; formerly asserted with a proof-warrant.
 (sp (make-wff '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s)
@@ -108,5 +108,5 @@
 (stl--split-ands!)
 (mac-h 'is-commutative (stl--hyp-sub "is-commutative"))
 (ass)
-(if (proof-done? *ps*) (qed 'abelian-group-mul-comm)
-    (error "subtype-laws: failed to prove abelian-group-mul-comm"))
+(if (proof-done? *ps*) (qed 'abelian-group-opr-comm)
+    (error "subtype-laws: failed to prove abelian-group-opr-comm"))

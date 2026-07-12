@@ -1053,10 +1053,10 @@
 <p><em>Warrant (well-known):</em> (a<em>b)</em>c = a<em>(b</em>c): group-assoc via abelian-group-is-group.</p>
 <h4 id="p-abelian-group-inverse-unique">abelian-group-inverse-unique</h4>
 <pre>forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(a, b) = iden(s) implies b = (inv(s))(a)))</pre>
-<p><em>Warrant (well-known):</em> b = e<em>b = (a^{-1}</em>a)<em>b = a^{-1}</em>(a<em>b) = a^{-1}</em>e = a^{-1}, by group-left-inv, group-assoc, group-left-id, and abelian-group-mul-comm for the right identity. Every abelian group is a group (abelian-group-is-group), so all four are in scope.</p>
+<p><em>Warrant (well-known):</em> b = e<em>b = (a^{-1}</em>a)<em>b = a^{-1}</em>(a<em>b) = a^{-1}</em>e = a^{-1}, by group-left-inv, group-assoc, group-left-id, and abelian-group-opr-comm for the right identity. Every abelian group is a group (abelian-group-is-group), so all four are in scope.</p>
 <h4 id="p-abelian-group-right-id">abelian-group-right-id</h4>
 <pre>forall([s], is-abelian-group(s) implies forall([a in carr(s)], (opr(s))(a, iden(s)) = a))</pre>
-<p><em>Warrant (well-known):</em> a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via abelian-group-is-group).</p>
+<p><em>Warrant (well-known):</em> a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via abelian-group-is-group).</p>
 <h4 id="p-block-type">block-type</h4>
 <pre>forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k &lt;= m implies l &lt;= n implies block(p, k, l) in mat(k, l, x))</pre>
 <p><em>Warrant (reference):</em> The leading k-by-l block of an m-by-n matrix over X is a k-by-l matrix over X (matof-in-mat; every value ENTRY P i j with i&lt;=k&lt;=m, j&lt;=l&lt;=n lies in X).</p>

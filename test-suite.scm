@@ -1396,8 +1396,8 @@
       (bc `(IMPLIES (IN ,n-k NN)
                     (== (PROD-ORD m f (succ ,n-k)) ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)))))
       (ass)   ; (IN n_k NN) in context; focus: (IN (OPR m)... CARR(m))
-      ;; Prove (OPR m)(PROD-ORD m f n_k)(f n_k) in CARR(m) via monoid-carrier-closed-mul.
-      (ta 'monoid-carrier-closed-mul)
+      ;; Prove (OPR m)(PROD-ORD m f n_k)(f n_k) in CARR(m) via monoid-carrier-closed-opr.
+      (ta 'monoid-carrier-closed-opr)
       (inst '(FORALL m (FORALL a (FORALL b
                (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
                         (IN ((OPR m) a b) (CARR m)))))) 'm)
@@ -1801,8 +1801,8 @@
 (check-true "comm-monoid-is-monoid (subtype) axiom installed"
   (lambda () (and (lookup-theorem 'comm-monoid-is-monoid) #t)))
 
-(check-true "comm-monoid-mul-comm axiom installed"
-  (lambda () (and (lookup-theorem 'comm-monoid-mul-comm) #t)))
+(check-true "comm-monoid-opr-comm axiom installed"
+  (lambda () (and (lookup-theorem 'comm-monoid-opr-comm) #t)))
 
 (check-true "(IN cm COMM-MONOID) accepted as wff"
   (lambda () (and (make-wff '(IN cm COMM-MONOID)) #t)))
@@ -1818,8 +1818,8 @@
 (check-true "abelian-group-is-group (subtype) axiom installed"
   (lambda () (and (lookup-theorem 'abelian-group-is-group) #t)))
 
-(check-true "abelian-group-mul-comm axiom installed"
-  (lambda () (and (lookup-theorem 'abelian-group-mul-comm) #t)))
+(check-true "abelian-group-opr-comm axiom installed"
+  (lambda () (and (lookup-theorem 'abelian-group-opr-comm) #t)))
 
 (check-true "(IN ag ABELIAN-GROUP) accepted as wff"
   (lambda () (and (make-wff '(IN ag ABELIAN-GROUP)) #t)))

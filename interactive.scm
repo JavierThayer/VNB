@@ -2115,7 +2115,7 @@
 ;;; if NAME has no `-rev' segment.  A segment is `-rev' that is either trailing
 ;;; (`foo-rev') or infix-before-a-dash (`foo-rev-bar') -- the latter arises
 ;;; because view-specialization appends its own suffix AFTER the auto-companion
-;;; flip, e.g. `abelian-group-mul-comm-rev-normed-ag-as-abelian-group'.
+;;; flip, e.g. `abelian-group-opr-comm-rev-normed-ag-as-abelian-group'.
 (define (rev-segment-removed name)
   (let* ((s (symbol->string name)) (n (string-length s)))
     (let loop ((i 0))

@@ -30,7 +30,7 @@
 
 ;;; Type: result is in the carrier when m is a monoid and f maps NN into it.
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from prod-ord-zero,
-;;; prod-ord-succ, monoid-left-id, and monoid-carrier-closed-mul.  Installed
+;;; prod-ord-succ, monoid-left-id, and monoid-carrier-closed-opr.  Installed
 ;;; as an axiom for direct use; eventually demote to a proven lemma.
 (theory-add-axiom! *current-theory* 'prod-ord-type
   '(FORALL m
@@ -260,7 +260,7 @@
 ;;;
 ;;;   PROD-SET(cm, S, f)  =  prod_{x in S} f(x)  in commutative monoid cm
 ;;;
-;;; Mirrors SUM-SET; well-definedness rests on comm-monoid-mul-comm.
+;;; Mirrors SUM-SET; well-definedness rests on comm-monoid-opr-comm.
 ;;; PROD-ORD covers the NN-indexed case; PROD-SET extends to arbitrary
 ;;; finite sets when MUL is commutative.
 

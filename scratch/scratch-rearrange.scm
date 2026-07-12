@@ -3,7 +3,7 @@
 ;;;   IS-ABELIAN-GROUP(ag) =>
 ;;;     forall a,b,c in A(ag).  (a*b)*c = (a*c)*b
 ;;;
-;;; group-assoc reassociates each side; abelian-group-mul-comm swaps b,c.
+;;; group-assoc reassociates each side; abelian-group-opr-comm swaps b,c.
 ;;; group-assoc CANNOT be used as a macete -- its source ((MUL s)(..)..) has
 ;;; a compound head, which match-expr cannot match -- so it is applied the
 ;;; long way: ta + inst + a cut-chain + subst.
@@ -110,7 +110,7 @@
 (display "--- assoc2 (eq2) established ---\n") (show)
 
 ;;; ---- comm:  b*c = c*b -----------------------------------------------
-(ta 'abelian-group-mul-comm)
+(ta 'abelian-group-opr-comm)
 (inst agc ragv)
 (cut agc-Fa) (define u7 (last-node))
   (bc `(IMPLIES (IS-ABELIAN-GROUP ,ragv) ,agc-Fa)) (ass) (refocus! u7)

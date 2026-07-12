@@ -54,7 +54,7 @@
              (= b ((INV s) a))))))))))
 (warrant! 'abelian-group-inverse-unique 'well-known
   "b = e*b = (a^{-1}*a)*b = a^{-1}*(a*b) = a^{-1}*e = a^{-1}, by group-left-inv,
-   group-assoc, group-left-id, and abelian-group-mul-comm for the right identity.
+   group-assoc, group-left-id, and abelian-group-opr-comm for the right identity.
    Every abelian group is a group (abelian-group-is-group), so all four are in
    scope.")
 
@@ -68,7 +68,7 @@
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((OPR s) a (IDEN s)) a))))))
 (warrant! 'abelian-group-right-id 'well-known
-  "a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
+  "a * e = e * a = a, by abelian-group-opr-comm then group-left-id (via
    abelian-group-is-group).")
 
 ;;; Associativity, surfaced for direct use (group-assoc is on IS-GROUP, which the

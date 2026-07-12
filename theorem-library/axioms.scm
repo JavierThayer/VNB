@@ -115,7 +115,7 @@
 ;;;
 ;;; Together with `fun-apply-type` and `quasi-eq-def`, these axioms render
 ;;; the various per-structure "carrier-closed" axioms
-;;; (monoid-carrier-closed-mul, ring-carrier-closed-add, ...) derivable:
+;;; (monoid-carrier-closed-opr, ring-carrier-closed-add, ...) derivable:
 ;;; extract the op-typing conjunct from IS-X, close (f (LIST a b)) in C by
 ;;; fun-apply-type, lift apply-tupling from (==) to (=) via the resulting
 ;;; definedness, then substitute.  See the manual (ch-expressions.tex

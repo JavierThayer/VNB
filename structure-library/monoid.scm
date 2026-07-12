@@ -42,7 +42,7 @@
 
 ;;; Carrier closed under OPR.
 ;;; DERIVED (REVIEW.md R-4): IS-MONOID IFF + fun-apply-type.
-(theory-add-axiom! *current-theory* 'monoid-carrier-closed-mul
+(theory-add-axiom! *current-theory* 'monoid-carrier-closed-opr
   '(FORALL m (FORALL a (FORALL b
       (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
                (IN ((OPR m) a b) (CARR m)))))))
@@ -62,7 +62,7 @@
 (theory-add-axiom! *current-theory* 'comm-monoid-is-monoid
   '(FORALL s (IMPLIES (IS-COMM-MONOID s) (IS-MONOID s))))
 
-(theory-add-axiom! *current-theory* 'comm-monoid-mul-comm
+(theory-add-axiom! *current-theory* 'comm-monoid-opr-comm
   '(FORALL s
      (IMPLIES (IS-COMM-MONOID s)
        (FORALL a (IMPLIES (IN a (CARR s))

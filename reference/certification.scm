@@ -3,7 +3,7 @@
 ;;; Each (certify! 'name "date") records a theorem re-proved to QED.
 
 (certify! 'abelian-group-is-group "2026-06-22")
-(certify! 'abelian-group-mul-comm "2026-06-22")
+(certify! 'abelian-group-opr-comm "2026-06-22")
 (certify! 'bijection-in-fun "2026-06-22")
 (certify! 'bijection-injective "2026-06-22")
 (certify! 'bijection-is-injection "2026-06-22")
