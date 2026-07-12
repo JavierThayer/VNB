@@ -71,7 +71,7 @@
 (di)                                     ; peel FORALL s ; goal (IMPLIES (IS-EUCLIDEAN-RING S) (IS-PID S))
 (di)                                     ; peel IMPLIES ; asm IS-EUCLIDEAN-RING S ; goal (IS-PID S)
 (define S (cadr (cur-goal-raw)))         ; (IS-PID S) -> S
-(mac 'IS-PID)                            ; goal AND(IS-INTEGRAL-DOMAIN S, FORALL I ...)
+(mac 'is-pid-def)                            ; goal AND(IS-INTEGRAL-DOMAIN S, FORALL I ...)
 (di)                                     ; leaf1 / leaf2
 
 ;;; ---- leaf1: IS-INTEGRAL-DOMAIN S  (subtype law, forward) ----

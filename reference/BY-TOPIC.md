@@ -60,7 +60,7 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 
 ### Vocabulary
 
-- `is-vector-space` — forall([m], is-vector-space(m) iff is-module(m) and is-field(scal(m)))  see [~/prover/structure-library/finite-dimensional.scm](../structure-library/finite-dimensional.scm)
+- `is-vector-space` — _(definition / vocabulary)_
 - `is-submodule` — forall([m, s], is-submodule(m, s) iff s subset vec(m) and vzero(m) in s and forall([x_ in s, y_ in s], (vadd(m))(x_, y_) in s) and forall([x_ in s], (vneg(m))(x_) in s) and forall([r_ in carr(scal(m)), x_ in s], (act(m))(r_, x_) in s))  see [~/prover/structure-library/finite-dimensional.scm](../structure-library/finite-dimensional.scm)
 - `is-subspace` — forall([m, s], is-subspace(m, s) iff is-submodule(m, s))  see [~/prover/structure-library/finite-dimensional.scm](../structure-library/finite-dimensional.scm)
 - `is-noetherian` — forall([m], is-noetherian(m) iff is-module(m) and forall([f_ in fun(nn, power(vec(m)))], forall([n_ in nn], is-submodule(m, f_(n_))) and forall([n_ in nn], f_(n_) subset f_(succ(n_))) implies forsome([k_ in nn], forall([n_], n_ in nn and k_ <= n_ implies f_(n_) = f_(k_)))))  see [~/prover/structure-library/finite-dimensional.scm](../structure-library/finite-dimensional.scm)

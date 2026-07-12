@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-242 operators: 16 functions, 154 functoids, 72 predicates, 0 undeclared.
+240 operators: 16 functions, 154 functoids, 70 predicates, 0 undeclared.
 
 ## Functions  (16)
 
@@ -568,7 +568,7 @@ Declared by: `zero-ring-def`
 
 Declared by: `zz-act-nonneg` `zz-act-neg` 
 
-## Predicates  (72)
+## Predicates  (70)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -658,8 +658,6 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-open-cover`  — def-predicate · proposition (arity 2)
 
-### `is-pid`  — def-predicate · proposition (arity 1)
-
 ### `is-r-net`  — def-predicate · proposition (arity 4)
 
 ### `is-submodule`  — def-predicate · proposition (arity 2)
@@ -671,8 +669,6 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-summable`  — def-predicate · proposition (arity 2)
 
 ### `is-uniformly-continuous`  — def-predicate · proposition (arity 3)
-
-### `is-vector-space`  — def-predicate · proposition (arity 1)
 
 ### `little-o-at`  — def-predicate · proposition (arity 2)
 

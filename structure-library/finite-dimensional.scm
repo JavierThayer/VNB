@@ -17,9 +17,10 @@
 ;;; kernel subset predicate.  Bound vars carry trailing underscores to dodge
 ;;; case-fold collisions with the module accessors (per module.scm convention).
 
-;;; A vector space is a module over a field.
-(def-predicate 'IS-VECTOR-SPACE '(m)
-  '(AND (IS-MODULE m) (IS-FIELD (SCAL m))))
+;;; A vector space is a module over a field: same shape as MODULE, one more law.
+(declare-structure VECTOR-SPACE
+  (same-shape-as MODULE)
+  (law "is-field(scal(s))"))
 
 ;;; S is a submodule of m: a subset of the vectors that contains the zero vector
 ;;; and is closed under vector addition, negation, and the scalar action.

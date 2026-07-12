@@ -30,71 +30,29 @@
 ;;; Dependencies: ring.scm (RING, IS-RING, A, ADD, MUL, ONE),
 ;;;               operation-properties.scm (is-associative/commutative/...).
 
-(fluid-let ((*current-provenance* 'definitional))
-
-  ;; --- register the structure shape: accessors + structure-table + class ---
-  (hash-table-set! *structure-table* 'MODULE
-    (%make-structure-def 'MODULE
-      '((SCAL  substructure RING)
-        (VEC   carrier)
-        (VADD  op (CARTESIAN VEC VEC) VEC)
-        (VZERO constant VEC)
-        (VNEG  op VEC VEC)
-        (ACT   op (CARTESIAN (CARR SCAL) VEC) VEC))
-      '()                                ; no property-clause laws: IS-MODULE is hand-written
-      (current-load-pathname)))
-
-  (for-each (lambda (p)
-              (register-constant! (car p) 'accessor)
-              (install-accessor-macete! (car p) (cdr p)))
-            '((SCAL . 1) (VEC . 2) (VADD . 3) (VZERO . 4) (VNEG . 5) (ACT . 6)))
-
-  ;; --- the complete IS-MODULE definition (design A) ---
-  ;; bound vars r_ s_ (scalars) and x_ y_ (vectors) carry trailing underscores
-  ;; to dodge case-fold collisions with the accessors / ring ops.
-  (theory-add-axiom! *current-theory* 'IS-MODULE
-    `(FORALL m
-       (IFF (IS-MODULE m)
-         ,(conjuncts->and
-            (list
-              ;; shape
-              '(= (LENGTH m) 6)
-              '(IS-RING (SCAL m))
-              '(IN (VEC m) SET)
-              '(IN (VADD m) (FUN (CARTESIAN (VEC m) (VEC m)) (VEC m)))
-              '(IN (VZERO m) (VEC m))
-              '(IN (VNEG m) (FUN (VEC m) (VEC m)))
-              '(IN (ACT m) (FUN (CARTESIAN (CARR (SCAL m)) (VEC m)) (VEC m)))
-              ;; vector part (VEC, VADD, VZERO, VNEG) is an abelian group
-              '(is-associative (VADD m) (VEC m))
-              '(is-commutative (VADD m) (VEC m))
-              '(is-identity (VADD m) (VZERO m) (VEC m))
-              '(has-inverses (VADD m) (VZERO m) (VNEG m) (VEC m))
-              ;; (1) action distributes over vector addition:  r.(x+y) = r.x + r.y
-              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
-                 (FORALL x_ (IMPLIES (IN x_ (VEC m))
-                   (FORALL y_ (IMPLIES (IN y_ (VEC m))
-                     (= ((ACT m) r_ ((VADD m) x_ y_))
-                        ((VADD m) ((ACT m) r_ x_) ((ACT m) r_ y_)))))))))
-              ;; (2) action distributes over ring addition:  (r+s).x = r.x + s.x
-              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
-                 (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
-                   (FORALL x_ (IMPLIES (IN x_ (VEC m))
-                     (= ((ACT m) ((ADD (SCAL m)) r_ s_) x_)
-                        ((VADD m) ((ACT m) r_ x_) ((ACT m) s_ x_)))))))))
-              ;; (3) action compatible with ring multiplication:  (r*s).x = r.(s.x)
-              '(FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
-                 (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
-                   (FORALL x_ (IMPLIES (IN x_ (VEC m))
-                     (= ((ACT m) ((MUL (SCAL m)) r_ s_) x_)
-                        ((ACT m) r_ ((ACT m) s_ x_)))))))))
-              ;; (4) unital:  1.x = x
-              '(FORALL x_ (IMPLIES (IN x_ (VEC m))
-                 (= ((ACT m) (ONE (SCAL m)) x_) x_))))))))
-
-  ;; --- MODULE as the proper class { m | IS-MODULE(m) } ---
-  (theory-add-axiom! *current-theory* 'MODULE-class
-    '(FORALL s (IFF (IN s MODULE) (IS-MODULE s)))))
+(declare-structure MODULE
+  (substructure SCAL RING)                  ; the scalar ring
+  (carriers VEC)
+  (op VADD (CARTESIAN VEC VEC) VEC)
+  (constant VZERO VEC)
+  (op VNEG VEC VEC)
+  (op ACT (CARTESIAN (CARR SCAL) VEC) VEC)
+  ;; (VEC, VADD, VZERO, VNEG) is an abelian group
+  (property is-associative VADD VEC)
+  (property is-commutative VADD VEC)
+  (property is-identity VADD VZERO VEC)
+  (property has-inverses VADD VZERO VNEG VEC)
+  ;; the four action axioms.  No named operation-property expresses these, which
+  ;; is why IS-MODULE used to be written out longhand ("design A").
+  ;; Bound scalars r_ s_ and vectors x_ y_ take trailing underscores to dodge
+  ;; case-fold collisions with the accessors and the ring ops (CLAUDE.md).
+  (law "forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)],
+          act(s)(r_, vadd(s)(x_, y_)) = vadd(s)(act(s)(r_, x_), act(s)(r_, y_)))")
+  (law "forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)],
+          act(s)(add(scal(s))(r_, s_), x_) = vadd(s)(act(s)(r_, x_), act(s)(s_, x_)))")
+  (law "forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)],
+          act(s)(mul(scal(s))(r_, s_), x_) = act(s)(r_, act(s)(s_, x_)))")
+  (law "forall([x_ in vec(s)], act(s)(one(scal(s)), x_) = x_)"))
 
 ;;; -----------------------------------------------------------------------
 ;;; Projected module laws.  Each is a CONJUNCT of the IS-MODULE definition,

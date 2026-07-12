@@ -146,11 +146,18 @@
 ;;; structure's accessors.  It becomes the conjunct (NAME (acc1 s) ...) of
 ;;; the IS-X definition, so IS-X carries the structure's characteristic
 ;;; laws, not just its shape.
-(define (build-is-axiom struct-name slots properties)
+(define (build-is-axiom struct-name slots properties #!optional laws)
   (let* ((ivar          's)
          (all-accessors (map car slots))
          (is-name       (symbol-append 'IS- struct-name))
          (n             (length slots))
+         ;; extra LAWS: raw conjuncts (surface syntax welcome), free variable `s'.
+         ;; MODULE's action axioms are of this kind -- no named operation-property
+         ;; expresses r.(x+y) = r.x + r.y -- and it used to hand-write its whole
+         ;; IS-MODULE IFF for want of them.
+         (law-conjuncts (if (default-object? laws)
+                            '()
+                            (map structure--law->formula laws)))
          (property-conjuncts
           (map (lambda (prop)
                  (cons (car prop)
@@ -182,7 +189,7 @@
                slots))
          (conjuncts
           (cons `(= (LENGTH ,ivar) ,n)
-                (append slot-conjuncts property-conjuncts)))
+                (append slot-conjuncts property-conjuncts law-conjuncts)))
          (body (conjuncts->and conjuncts)))
     `(FORALL ,ivar (IFF (,is-name ,ivar) ,body))))
 
@@ -195,7 +202,7 @@
 (define (symbol-append . syms)
   (string->symbol (apply string-append (map symbol->string syms))))
 
-(define (def-structure name slots axiom-names)
+(define (def-structure name slots axiom-names #!optional laws)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((source (current-load-pathname))   ; #f when not in a load context
          (sd (%make-structure-def name slots axiom-names source)))
@@ -211,7 +218,8 @@
           (loop (cdr rest) (+ k 1)))))
     ;; IS-NAME definitional axiom (shape + the named characteristic laws)
     (let ((is-name (symbol-append 'IS- name))
-          (axiom   (build-is-axiom name slots axiom-names)))
+          (axiom   (build-is-axiom name slots axiom-names
+                                   (if (default-object? laws) '() laws))))
       (theory-add-axiom! *current-theory* is-name axiom)
       ;; the ONE table (operators.scm): every structure predicate is a unary
       ;; predicate, and def-structure is the only thing that makes one.  Its
@@ -375,9 +383,9 @@
   ;; contributes one carrier slot per name, in left-to-right order.  Op and
   ;; constant clauses each contribute one slot.  Property clauses contribute
   ;; to the props list, not slots.
-  (let loop ((rest clauses) (slots '()) (props '()))
+  (let loop ((rest clauses) (slots '()) (props '()) (laws '()))
     (if (null? rest)
-        (def-structure name (reverse slots) (reverse props))
+        (def-structure name (reverse slots) (reverse props) (reverse laws))
         (let* ((clause (car rest))
                (kind   (car clause)))
           (cond
@@ -386,16 +394,16 @@
                    (append (map (lambda (c) (list c 'carrier))
                                 (reverse (cdr clause)))
                            slots)
-                   props))
+                   props laws))
             ((eq? kind 'op)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'op (caddr clause) (cadddr clause))
                          slots)
-                   props))
+                   props laws))
             ((eq? kind 'constant)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'constant (caddr clause)) slots)
-                   props))
+                   props laws))
             ;; (substructure NAME TYPE) -- the slot holds a whole structure
             ;; (e.g. a vector space's base FIELD), typed by IS-TYPE rather than
             ;; the bare (IN _ SET) of a carrier.  Op signatures reach into it
@@ -405,9 +413,14 @@
             ((eq? kind 'substructure)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'substructure (caddr clause)) slots)
-                   props))
+                   props laws))
             ((eq? kind 'property)
-             (loop (cdr rest) slots (cons (cdr clause) props)))
+             (loop (cdr rest) slots (cons (cdr clause) props) laws))
+            ;; (law FORMULA) -- a raw conjunct of IS-NAME, in the surface syntax:
+            ;; the laws no named operation-property expresses (MODULE's action
+            ;; axioms).  Free variable `s', like every other clause.
+            ((eq? kind 'law)
+             (loop (cdr rest) slots props (cons (cadr clause) laws)))
             (else
              (error "declare-structure: unknown clause kind" kind)))))))
 

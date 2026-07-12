@@ -54,17 +54,10 @@
 ;;; -----------------------------------------------------------------------
 ;;; IS-PID(s): s is a principal-ideal domain -- an integral domain in which
 ;;; every ideal is principal.
-(def-predicate 'IS-PID '(s)
-  '(AND (IS-INTEGRAL-DOMAIN s)
-        (FORALL I (IMPLIES (IS-IDEAL s I)
-          (FORSOME a (AND (IN a (CARR s))
-                          (= I (PRINCIPAL-IDEAL s a))))))))
-
-;;; Associated proper class PID = { s | IS-PID(s) }, mirroring INTEGRAL-DOMAIN.
-(theory-add-axiom! *current-theory* 'pid-class
-  '(FORALL s (IFF (IN s PID) (IS-PID s))))
-
-(register-definitional-structure! 'PID 'INTEGRAL-DOMAIN)
+(declare-structure PID
+  (same-shape-as INTEGRAL-DOMAIN)
+  (law "forall([i], is-ideal(s, i) implies
+          forsome([a in carr(s)], i = principal-ideal(s, a)))"))
 
 ;;; -----------------------------------------------------------------------
 ;;; nn-least-element (the well-ordering of NN -- the math content of the PID
