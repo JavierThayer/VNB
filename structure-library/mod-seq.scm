@@ -41,7 +41,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; The vector abelian group's slots, as rewrite bridges.
 ;;;
-;;; MODULE-VECTOR-AG is a def-view-as, so (MODULE-VECTOR-AG md) unfolds to the
+;;; MODULE-VECTOR-AG is a def-functor, so (MODULE-VECTOR-AG md) unfolds to the
 ;;; 4-tuple (VEC md, VADD md, VZERO md, VNEG md) and the ABELIAN-GROUP accessor
 ;;; macetes (CARR = NTH 1, MUL = NTH 2, IDEN = NTH 3) reduce a slot read.  These
 ;;; three named equations do the reduction in one macete step, exactly as

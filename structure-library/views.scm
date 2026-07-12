@@ -4,9 +4,9 @@
 ;;; ABELIAN-GROUP, RING as multiplicative MONOID, ABELIAN-GROUP as MONOID,
 ;;; etc.).  Each declaration installs a constructor functoid and the
 ;;; corresponding typing axiom, and auto-specializes every target-structure
-;;; theorem to the source structure.  See def-view-as in structures.scm.
+;;; theorem to the source structure.  See def-functor in structures.scm.
 ;;;
-;;; Why this file is separate: def-view-as must be called *after* both the
+;;; Why this file is separate: def-functor must be called *after* both the
 ;;; source and target structures and all their theorems have been declared,
 ;;; so the auto-specialization at view-declaration time picks them all up.
 ;;;
@@ -24,7 +24,7 @@
 ;;;   ring's ZERO -> AG's E
 ;;;   ring's NEG  -> AG's INV
 
-(def-view-as 'RING-ADDITIVE-AG
+(def-functor 'RING-ADDITIVE-AG
   'RING          '(CARR ADD ZERO NEG)
   'ABELIAN-GROUP '(CARR OPR IDEN INV))
 
@@ -38,7 +38,7 @@
 ;;;   ring's OPR -> MONOID's OPR
 ;;;   ring's ONE -> MONOID's E
 
-(def-view-as 'RING-MULTIPLICATIVE-MONOID
+(def-functor 'RING-MULTIPLICATIVE-MONOID
   'RING   '(CARR MUL ONE)
   'MONOID '(CARR OPR IDEN))
 
@@ -55,7 +55,7 @@
 ;;; Auto-specializes every MONOID theorem (mpow-type, mpow-add, ...) to
 ;;; ABELIAN-GROUP, so the NN-power machinery is immediately available on
 ;;; groups without restating it.
-(def-view-as 'ABELIAN-GROUP-AS-MONOID
+(def-functor 'ABELIAN-GROUP-AS-MONOID
   'ABELIAN-GROUP '(CARR OPR IDEN)
   'MONOID        '(CARR OPR IDEN))
 
@@ -81,15 +81,15 @@
 ;;; inclusion does NOT regenerate their AG theorems — they earn their own
 ;;; declaration.  (NORMED-FIELD-ADDITIVE-AG is also live in power-series.scm.)
 
-(def-view-as 'COMMUTATIVE-RING-ADDITIVE-AG
+(def-functor 'COMMUTATIVE-RING-ADDITIVE-AG
   'COMMUTATIVE-RING '(CARR ADD ZERO NEG)
   'ABELIAN-GROUP    '(CARR OPR IDEN INV))
 
-(def-view-as 'FIELD-ADDITIVE-AG
+(def-functor 'FIELD-ADDITIVE-AG
   'FIELD         '(CARR ADD ZERO NEG)
   'ABELIAN-GROUP '(CARR OPR IDEN INV))
 
-(def-view-as 'NORMED-FIELD-ADDITIVE-AG
+(def-functor 'NORMED-FIELD-ADDITIVE-AG
   'NORMED-FIELD  '(CARR ADD ZERO NEG)
   'ABELIAN-GROUP '(CARR OPR IDEN INV))
 
@@ -97,7 +97,7 @@
 ;;; Slots align directly (NORMED-AG was shaped that way), so this is the
 ;;; identity projection on slots 1-4.  This view is the bridge that lets
 ;;; FINSUM / sum-ag-permutation-invariance sum a normed-AG-valued function.
-(def-view-as 'NORMED-AG-AS-ABELIAN-GROUP
+(def-functor 'NORMED-AG-AS-ABELIAN-GROUP
   'NORMED-AG     '(CARR OPR IDEN INV)
   'ABELIAN-GROUP '(CARR OPR IDEN INV))
 
@@ -109,7 +109,7 @@
 ;;; is true.  In FIELD/NORMED-FIELD the *nonzero* part forms a group, but
 ;;; that requires a subset carrier — see views.scm comment block below on
 ;;; "the group of invertible elements" — and isn't expressible in the
-;;; current def-view-as form.
+;;; current def-functor form.
 ;;;
 ;;; The bare-MONOID multiplicative views for COMMUTATIVE-RING /
 ;;; INTEGRAL-DOMAIN / EUCLIDEAN-RING were removed 2026-06-06: same-shape
@@ -126,21 +126,21 @@
 ;;; enumeration-independence) auto-specializes to commutative-ring products.
 ;;; Distinct from COMMUTATIVE-RING-MULTIPLICATIVE-MONOID above, which lands in
 ;;; bare MONOID (no commutativity) -- this one reaches COMM-MONOID.
-(def-view-as 'COMMUTATIVE-RING-MULTIPLICATIVE-CM
+(def-functor 'COMMUTATIVE-RING-MULTIPLICATIVE-CM
   'COMMUTATIVE-RING '(CARR MUL ONE)
   'COMM-MONOID      '(CARR OPR IDEN))
 
 ;;; FIELD now carries NON-ZERO and RECIP as built-in slots (see field.scm
 ;;; reshape), so its nonzero elements form a genuine group, not just a
 ;;; monoid.  This replaces the old FIELD-MULTIPLICATIVE-MONOID view.
-(def-view-as 'FIELD-MULTIPLICATIVE-GROUP
+(def-functor 'FIELD-MULTIPLICATIVE-GROUP
   'FIELD '(NON-ZERO MUL ONE RECIP)
   'GROUP '(CARR OPR IDEN INV))
 
 ;;; Forget the extra slots to recover the integral-domain (and hence ring)
 ;;; view of a field.  This re-attaches FIELD to the RING-shape chain so
 ;;; every ring/comm-ring/integral-domain theorem auto-specializes back.
-(def-view-as 'FIELD-AS-INTEGRAL-DOMAIN
+(def-functor 'FIELD-AS-INTEGRAL-DOMAIN
   'FIELD            '(CARR ADD MUL NEG ZERO ONE)
   'INTEGRAL-DOMAIN  '(CARR ADD MUL NEG ZERO ONE))
 
@@ -148,7 +148,7 @@
 ;;; deg(x) = 0 — division is exact because every nonzero element is a unit:
 ;;; a = (a * b^-1) * b + 0.  The view component pattern is identical to
 ;;; FIELD-AS-INTEGRAL-DOMAIN since EUCLIDEAN-RING shares the RING shape.
-(def-view-as 'FIELD-AS-EUCLIDEAN-RING
+(def-functor 'FIELD-AS-EUCLIDEAN-RING
   'FIELD          '(CARR ADD MUL NEG ZERO ONE)
   'EUCLIDEAN-RING '(CARR ADD MUL NEG ZERO ONE))
 
@@ -164,11 +164,11 @@
 ;;; (removed 2026-05-30) and auto-specialize every comm-ring / integral-domain
 ;;; theorem to RR-NORMED-FIELD / CC-NORMED-FIELD through the projection.
 
-(def-view-as 'NORMED-FIELD-AS-COMMUTATIVE-RING
+(def-functor 'NORMED-FIELD-AS-COMMUTATIVE-RING
   'NORMED-FIELD     '(CARR ADD MUL NEG ZERO ONE)
   'COMMUTATIVE-RING '(CARR ADD MUL NEG ZERO ONE))
 
-(def-view-as 'NORMED-FIELD-AS-INTEGRAL-DOMAIN
+(def-functor 'NORMED-FIELD-AS-INTEGRAL-DOMAIN
   'NORMED-FIELD    '(CARR ADD MUL NEG ZERO ONE)
   'INTEGRAL-DOMAIN '(CARR ADD MUL NEG ZERO ONE))
 
@@ -188,7 +188,7 @@
 ;;; identity laws, ...) to a module's additive structure, so module proofs cite
 ;;; ready-made group lemmas instead of re-deriving them from the raw property
 ;;; predicates folded into IS-MODULE.
-(def-view-as 'MODULE-VECTOR-AG
+(def-functor 'MODULE-VECTOR-AG
   'MODULE        '(VEC VADD VZERO VNEG)
   'ABELIAN-GROUP '(CARR   OPR  IDEN     INV))
 

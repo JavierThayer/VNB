@@ -1243,7 +1243,7 @@
 ;;;     (VNB-LAMBDA), an element, or a number: DIST-SEQ, EMBED, RING-POWER,
 ;;;     CHOOSE, ...  A functoid is NEVER proposition-valued (that is a
 ;;;     predicate); a VNB-LAMBDA body makes it function-VALUED, still a functoid.
-;;; def-view-as functoids are excluded (they live in STRUCTURE-INDEX.md).
+;;; def-functor functoids are excluded (they live in STRUCTURE-INDEX.md).
 
 ;; Heads whose application yields a tuple-structure or a set/space.
 (define *structure-valued-heads*
@@ -1300,7 +1300,7 @@
         (display "typing/meaning living in the warranted support lemmas).  ")
         (display "They appear in no ")
         (display "other index — `def-constant`/`def-predicate` go to ")
-        (display "`DEFINITIONS.md`, `def-structure`/`def-view-as` to ")
+        (display "`DEFINITIONS.md`, `def-structure`/`def-functor` to ")
         (display "`STRUCTURE-INDEX.md`.  Split below by *return type* (a ")
         (display "syntactic split, NOT a categorical one).\n\n")
         (display "## Set- & structure-valued functoids\n\n")
@@ -1636,7 +1636,7 @@
            "big amorphous category.  Sub-labelled by how each is declared "
            "(`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; "
            "structure accessor; or a hand-written characterizing axiom) and, "
-           "where known, by value type.  `def-view-as` bridges live in "
+           "where known, by value type.  `def-functor` bridges live in "
            "`STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a "
            "parser-level form, not a registered head.")
           funcs)
@@ -3204,7 +3204,7 @@
 ;;; a new slot rather than reshuffling existing ones -- e.g.
 ;;;   NF-METRIC-SPACE : normed-field -> metric-space,  d(x,y) = NRM(x - y).
 ;;; Because the target's distinguishing slot (the metric DIST) is not a slot of the
-;;; source, it cannot be a def-view-as (see normed-field-metric.scm) -- it is a
+;;; source, it cannot be a def-functor (see normed-field-metric.scm) -- it is a
 ;;; plain functoid, hence invisible to the refines/view-as layers.  We recover
 ;;; the edges from the theorem that certifies the functor lands in its target:
 ;;;     FORALL x. IS-SRC(x) [and ...] => IS-TGT(F(x ...))

@@ -79,7 +79,7 @@
 
 ;;; debt(NAME): the set of asserted facts NAME ultimately rests on.
 ;;;
-;;; A view-specialized companion (X-module-vector-ag, produced by def-view-as)
+;;; A view-specialized companion (X-module-vector-ag, produced by def-functor)
 ;;; is stamped `definitional' because the TRANSPORT is definitional -- but its
 ;;; content is exactly X's, so its debt is X's debt.  Without this case, citing
 ;;; an asserted structure law through its companion reported an empty bill:

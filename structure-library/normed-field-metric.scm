@@ -2,7 +2,7 @@
 ;;;
 ;;; This is the structural bridge between the *field* register of RR/CC
 ;;; (RR-NORMED-FIELD, CC-NORMED-FIELD : NORMED-FIELD) and their *metric* register
-;;; (RR-MS, CC-MS : METRIC-SPACE).  It cannot be a def-view-as: a view-as
+;;; (RR-MS, CC-MS : METRIC-SPACE).  It cannot be a def-functor: a view-as
 ;;; maps slots to slots, but METRIC-SPACE's distance DIST is not a slot of a
 ;;; normed field -- it is the *constructed* function d(x,y) = FNRM(x - y).
 ;;; (Same reason views.scm cannot register NORMED-FIELD's multiplicative-

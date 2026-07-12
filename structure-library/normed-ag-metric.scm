@@ -2,7 +2,7 @@
 ;;;
 ;;; The structural bridge between a NORMED-AG's *group* register (CARR OPR IDEN INV
 ;;; + norm NRM) and its *metric* register (METRIC-SPACE : X D).  Like
-;;; NF-METRIC-SPACE for normed fields, it cannot be a def-view-as: a view-as
+;;; NF-METRIC-SPACE for normed fields, it cannot be a def-functor: a view-as
 ;;; maps slots to slots, but METRIC-SPACE's distance DIST is not a slot of a
 ;;; normed AG -- it is the *constructed* function d(u,v) = NRM(u - v).  So the
 ;;; bridge is a constructor functoid plus its laws.

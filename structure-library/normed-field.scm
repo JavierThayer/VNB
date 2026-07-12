@@ -21,7 +21,7 @@
 ;;; NORMED-FIELD is a separate, 7-slot shape carrying FNRM.  The two are
 ;;; related at the predicate level: every normed-field is a commutative
 ;;; ring (slots 1-6 match RING's layout, so IS-COMMUTATIVE-RING reads
-;;; correctly off a NORMED-FIELD tuple).  A `def-view-as' projection to
+;;; correctly off a NORMED-FIELD tuple).  A `def-functor' projection to
 ;;; COMMUTATIVE-RING can be added when a caller needs the structure-level
 ;;; transport.
 ;;;

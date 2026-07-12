@@ -267,7 +267,22 @@
        #f))))
 
 ;;; Install macete: (accessor s) -> (NTH k s) for any s.
+;;;
+;;; PROVENANCE: definitional.  (CARR s) = (NTH 1 s) IS the definition of the
+;;; accessor -- def-structure mints the name and this equation together, exactly
+;;; as def-functoid mints a functoid and its unfold (which is stamped
+;;; definitional for the same reason).  Left unstamped it defaults to `asserted',
+;;; and every proof that so much as projects a slot picks up a phantom debt leaf
+;;; named `carr' -- which is what the functoriality proofs' bills read before
+;;; this line existed: "modulo {carr, opr, iden} [trust: none]".
+;;;
+;;; This is the same channel that billed the FALSE `mul' rewrite, so it is fair
+;;; to ask what stops a wrong accessor macete from now being trusted silently.
+;;; The answer is the two audits (accessor-index-audit, accessor-type-audit),
+;;; both HARD gates in load.scm: an accessor name may denote only one slot, and
+;;; may be applied only to a structure that has it.  A wrong one cannot load.
 (define (install-accessor-macete! accessor-name k)
+  (register-provenance! accessor-name 'definitional)
   (install-macete! accessor-name
     (make-elementary-macete
       '(svar)
@@ -491,7 +506,7 @@
 ;;; invisible to, being reachable by no def-* at all).
 ;;;
 ;;; It declares NO slots: the accessors are the parent's.  Declaring one is an
-;;; error -- a different shape is a different structure, related by def-view-as,
+;;; error -- a different shape is a different structure, related by def-functor,
 ;;; not by this.
 ;;; A law may be written in the SURFACE SYNTAX, as a string -- and should be.
 ;;; The S-expression form of a real law is a paren thicket nobody can read or
@@ -551,7 +566,7 @@
                       "declare-structure " (symbol->string name)
                       ": (same-shape-as ...) inherits the parent's shape, so it "
                       "cannot declare slots.  A different shape is a different "
-                      "structure -- relate it with def-view-as.")
+                      "structure -- relate it with def-functor.")
                      strays))
           (def-substructure name (cadr sh)
             (map cadr (filter (lambda (c) (and (pair? c) (eq? (car c) 'law))) clauses))))
@@ -631,7 +646,7 @@
 ;; records only the KIND tag, so functoids are otherwise invisible to the
 ;; reference docs (unlike def-constant/def-predicate, which land in
 ;; DEFINITIONS.md).  This lets (write-functoids-md) list them with their
-;; unfolding bodies.  def-view-as functoids are recorded here too, but the
+;; unfolding bodies.  def-functor functoids are recorded here too, but the
 ;; catalog writer filters them out via lookup-view-as (they have their own
 ;; STRUCTURE-INDEX section).
 (define *functoid-registry* (make-equal-hash-table))
@@ -709,9 +724,9 @@
                      (cons s (binary-right body))))))))
 
 ;;; -----------------------------------------------------------------------
-;;; def-view-as -- declare one structure as a view of another
+;;; def-functor -- declare one structure as a view of another
 ;;;
-;;; (def-view-as NAME
+;;; (def-functor NAME
 ;;;   SOURCE-STRUCT  (src-comp-1 src-comp-2 ... src-comp-n)
 ;;;   TARGET-STRUCT  (tgt-slot-1 tgt-slot-2 ... tgt-slot-n))
 ;;;
@@ -724,7 +739,7 @@
 ;;; not views; they are plain def-functoids.
 ;;;
 ;;; Example:
-;;;   (def-view-as RING-ADDITIVE-AG
+;;;   (def-functor RING-ADDITIVE-AG
 ;;;     RING          (CARR ADD NEG ZERO)
 ;;;     ABELIAN-GROUP (CARR MUL INV E))
 ;;;
@@ -761,7 +776,7 @@
   (source-comps   view-as-source-comps)
   (target-struct  view-as-target-struct)
   (target-comps   view-as-target-comps)
-  (source-file    view-as-source-file))   ; pathname (or #f) of the def-view-as call site
+  (source-file    view-as-source-file))   ; pathname (or #f) of the def-functor call site
 
 (define *view-as-table* (make-equal-hash-table))
 
@@ -790,7 +805,7 @@
 
 ;;; Specialize every theorem  (FORALL s (IMPLIES (IS-TARGET s) P[s]))
 ;;; via the view, installing  (FORALL r (IMPLIES (IS-SOURCE r) P[(NAME r)]))
-;;; with accessor reduction.  Called once at def-view-as time; can be re-run
+;;; with accessor reduction.  Called once at def-functor time; can be re-run
 ;;; manually after adding new TARGET theorems via (view-as-auto-specialize! 'NAME).
 ;;; companion name -> the TARGET-structure theorem it was specialized from.
 ;;; Read by debt-of (proof-debt.scm): a companion's bill is its source's bill.
@@ -840,7 +855,7 @@
                 (hash-table-set! *view-specialized-source* new-name thm-name)
                 (set! count (+ count 1)))))))
       all)
-    (display ";; def-view-as ") (display view-name) (display ": ")
+    (display ";; def-functor ") (display view-name) (display ": ")
     (display count) (display " ")
     (display (view-as-target-struct v))
     (display " theorems specialized.") (newline)
@@ -856,30 +871,30 @@
         (and dsd (find-shape-structure
                   (definitional-structure-parent dsd))))))
 
-(define (def-view-as name source-struct source-comps target-struct target-comps)
+(define (def-functor name source-struct source-comps target-struct target-comps)
   (fluid-let ((*current-provenance* 'definitional))
   ;; Validation — source/target may be shape OR definitional structures;
   ;; in the latter case we walk up to the ancestor shape for the slot list.
   (let ((src-def (find-shape-structure source-struct))
         (tgt-def (find-shape-structure target-struct)))
     (unless src-def
-      (error "def-view-as: unknown source structure" source-struct))
+      (error "def-functor: unknown source structure" source-struct))
     (unless tgt-def
-      (error "def-view-as: unknown target structure" target-struct))
+      (error "def-functor: unknown target structure" target-struct))
     (unless (= (length source-comps) (length target-comps))
-      (error "def-view-as: source/target component lists differ in length"
+      (error "def-functor: source/target component lists differ in length"
              source-comps target-comps))
     ;; Target components must equal the target's slot order exactly --
     ;; the form is self-documenting *and* self-checking.
     (let ((tgt-slots (structure-slot-names tgt-def)))
       (unless (equal? target-comps tgt-slots)
-        (error "def-view-as: target components must equal target slot order"
+        (error "def-functor: target components must equal target slot order"
                'got: target-comps 'expected: tgt-slots)))
     ;; Source components must all be valid accessors of source-struct.
     (let ((src-slots (structure-slot-names src-def)))
       (for-each (lambda (c)
                   (unless (member c src-slots)
-                    (error "def-view-as: not a source accessor" c
+                    (error "def-functor: not a source accessor" c
                            'source-struct: source-struct
                            'source-slots: src-slots)))
                 source-comps)))
@@ -1048,7 +1063,7 @@
 ;;; HOMOMORPHISMS, generated from the slot list.
 ;;;
 ;;; A structure species is a class of objects; a CATEGORY needs morphisms too.
-;;; VNB had none: `def-view-as' maps objects to objects, so calling it a functor
+;;; VNB had none: `def-functor' maps objects to objects, so calling it a functor
 ;;; was a promise the code did not keep.  A homomorphism, though, is completely
 ;;; determined by the slots -- so it is generated, once, for every species,
 ;;; present and future, exactly as build-is-axiom folds the slots into IS-X.

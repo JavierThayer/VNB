@@ -1,4 +1,4 @@
-;;; scratch-view-test.scm -- smoke test for def-view-as.
+;;; scratch-view-test.scm -- smoke test for def-functor.
 
 (load "load.scm")
 

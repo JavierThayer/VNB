@@ -2854,9 +2854,51 @@
   (lambda () (and (hash-table-ref/default *macete-table* 'opr #f) #t)))
 
 ;;; -----------------------------------------------------------------------
+;;; FUNCTORIALITY: def-functor has earned the word.  Each view's action on
+;;; morphisms is the identity on the underlying map, and that this lands in the
+;;; target's homs is PROVED (functoriality.scm), not asserted -- modulo 0.
+
+(display "\n=== functoriality ===\n")
+
+(check-true "every FREE view has a proved functoriality theorem"
+  (lambda ()
+    (null? (filter
+             (lambda (v)
+               (let ((vd (lookup-view-as v)))
+                 (and (fnc--free? vd)
+                      (not (hash-table-ref/default
+                             *theorem-table* (symbol-append v '-functorial) #f)))))
+             (hash-table-keys *view-as-table*)))))
+
+;; ring-additive-ag: a ring hom IS an abelian-group hom of the additive parts
+(check-true "ring-additive-ag-functorial says a ring hom is an AG hom"
+  (lambda ()
+    (and (string-search-forward
+           "is-hom-ring(a, b, f) implies is-hom-abelian-group(ring-additive-ag(a), ring-additive-ag(b), f)"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'ring-additive-ag-functorial #f))
+           0)
+         #t)))
+
+;; and it rests on NOTHING: the accessor macetes are definitional (they ARE the
+;; accessors' definitions), so the bill is modulo 0, not {carr, opr, iden}.
+(check-true "functoriality proofs are modulo 0 (accessor macetes are definitional)"
+  (lambda ()
+    (null? (debt-of 'ring-additive-ag-functorial))))
+
+;; FIELD-MULTIPLICATIVE-GROUP is NOT free and is honestly excluded: its target
+;; carrier comes from FIELD's DERIVED NON-ZERO, so the field hom's map is not
+;; typed for it.  That a field hom restricts to the non-zero part is a THEOREM
+;; (f(x)*f(x^-1) = 1, so f kills nothing) -- owed, not asserted.
+(check-false "field-multiplicative-group is not claimed functorial"
+  (lambda ()
+    (and (hash-table-ref/default *theorem-table*
+                                 'field-multiplicative-group-functorial #f) #t)))
+
+;;; -----------------------------------------------------------------------
 ;;; MORPHISMS, generated from the slot list (structures.scm, build-hom-axiom).
 ;;; A species with objects but no morphisms is not a category, which is why
-;;; calling def-view-as a functor was a promise the code did not keep.
+;;; calling def-functor a functor was a promise the code did not keep.
 
 (display "\n=== generated homomorphisms ===\n")
 

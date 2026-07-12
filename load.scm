@@ -136,7 +136,7 @@
     ;; and RR (number-systems).  Its AG view is registered in views.scm.
     "structure-library/normed-ag"
     ;; views.scm loads after all source structures (shape + definitional) so
-    ;; def-view-as can refer to any of them.
+    ;; def-functor can refer to any of them.
     "structure-library/views"
     ;; The metric space underlying a normed field (NF-METRIC-SPACE bridge).
     ;; Needs NORMED-FIELD + METRIC-SPACE; loaded after views (which finishes
@@ -670,7 +670,12 @@
     ;; reading-order organization of already-installed results.  Loads LAST so
     ;; every result it lists is installed; emits reference/<TOPIC>.md, which the
     ;; end-of-load build-reference-html.py turns into hub cards.
-    "theorem-library/reference-topics"))
+    "theorem-library/reference-topics"
+    ;; LAST: every view is a functor, and this proves it.  It needs every view
+    ;; declared (views.scm, normed-vector-space.scm) and the tactic layer, so it
+    ;; goes at the end.  It asserts nothing -- each functoriality theorem is
+    ;; proved, modulo 0.
+    "structure-library/functoriality"))
 
 ;;; Files whose top-level axioms are part of the trusted VNB base (not
 ;;; definitional sugar, not asserted math).  Their loads run with

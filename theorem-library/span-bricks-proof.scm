@@ -24,7 +24,7 @@
 ;;; uniqueness of inverses, which the library did not have.  Rather than assert
 ;;; the module fact, abelian-group.scm now carries the GROUP fact
 ;;; `abelian-group-inverse-unique' next to its existing idempotent-is-id, and
-;;; def-view-as auto-specializes it through MODULE-VECTOR-AG.  One general
+;;; def-functor auto-specializes it through MODULE-VECTOR-AG.  One general
 ;;; support, not one module lemma per additive structure.
 ;;;
 ;;; Needs: module.scm (module-act-unital/-mul-compat/-distrib-scalar, -act-type),

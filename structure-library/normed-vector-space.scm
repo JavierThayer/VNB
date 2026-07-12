@@ -78,12 +78,12 @@
 
 ;;; --- view-as edges (after the shape above is registered) ---
 ;;; forget the norm -> the underlying real vector space (a MODULE)
-(def-view-as 'NORMED-VECTOR-SPACE-AS-MODULE
+(def-functor 'NORMED-VECTOR-SPACE-AS-MODULE
   'NORMED-VECTOR-SPACE '(SCAL VEC VADD VZERO VNEG ACT)
   'MODULE              '(SCAL VEC VADD VZERO VNEG ACT))
 
 ;;; the additive normed group -> NORMED-AG (so FINSUM / triangle-sum machinery
 ;;; over the underlying group of a normed vector space applies)
-(def-view-as 'NORMED-VECTOR-SPACE-AS-NORMED-AG
+(def-functor 'NORMED-VECTOR-SPACE-AS-NORMED-AG
   'NORMED-VECTOR-SPACE '(VEC VADD VZERO VNEG VNRM)
   'NORMED-AG           '(CARR   OPR  IDEN     INV  NRM))
