@@ -96,11 +96,14 @@
 
 ;;; Backward-compat derived accessors.  Both list slots in declaration order
 ;;; (filtered by kind).
+;;; Carriers, INCLUDING the derived ones (NON-ZERO is a carrier -- it is just
+;;; not an independent one).  The hom generator wants the independent ones only,
+;;; and asks for kind `carrier' directly.
 (define (structure-def-carriers sd)
   (let loop ((rest (structure-def-slots sd)) (acc '()))
     (cond
       ((null? rest) (reverse acc))
-      ((eq? (cadar rest) 'carrier)
+      ((memq (cadar rest) '(carrier derived))
        (loop (cdr rest) (cons (caar rest) acc)))
       (else (loop (cdr rest) acc)))))
 
@@ -309,25 +312,44 @@
                             (cdr prop))))
                properties))
          (slot-conjuncts
-          ;; Emit one membership conjunct per slot, in declaration order.
+          ;; Emit the membership conjunct(s) per slot, in declaration order.
           ;; Carriers use the (IN _ SET) form (no separate SET(_) predicate).
-          (map (lambda (slot)
+          ;; A slot may contribute MORE than one conjunct (a derived carrier
+          ;; contributes two), so this is append-map, not map: a nested (AND a b)
+          ;; inside the conjunct chain would print the same but re-parse
+          ;; right-associated, and the docs' round-trip gate rightly rejects that.
+          (append-map
+           (lambda (slot)
                  (let ((name (car slot)) (kind (cadr slot)))
                    (case kind
                      ((carrier)
-                      `(IN (,name ,ivar) SET))
+                      `((IN (,name ,ivar) SET)))
                      ((op)
                       (let ((dom (expand-accessors (caddr  slot) all-accessors ivar))
                             (rng (expand-accessors (cadddr slot) all-accessors ivar)))
-                        `(IN (,name ,ivar) (FUN ,dom ,rng))))
+                        `((IN (,name ,ivar) (FUN ,dom ,rng)))))
                      ((constant)
                       (let ((set (expand-accessors (caddr slot) all-accessors ivar)))
-                        `(IN (,name ,ivar) ,set)))
+                        `((IN (,name ,ivar) ,set))))
+                     ;; A DERIVED carrier is a carrier CARVED OUT of another by a
+                     ;; defining expression -- FIELD's NON-ZERO = CARR \ {ZERO}.
+                     ;; It occupies a tuple slot (so accessor indices are stable),
+                     ;; but it is not an independent sort: its value is FIXED by
+                     ;; the others, so IS-X says so.  Until 2026-07-12 NON-ZERO was
+                     ;; a plain carrier and IS-FIELD said NOTHING relating it to
+                     ;; CARR -- a field's NON-ZERO could have been any set at all,
+                     ;; the equation living in a separate ASSERTED axiom
+                     ;; (field-non-zero-carrier).  A definition should not need a
+                     ;; support to finish it.
+                     ((derived)
+                      (let ((defn (expand-accessors (cadddr slot) all-accessors ivar)))
+                        `((IN (,name ,ivar) SET)
+                          (= (,name ,ivar) ,defn))))
                      ;; A substructure slot is typed by its structure predicate:
                      ;; (substructure K FIELD) -> conjunct (IS-FIELD (K s)).
                      ((substructure)
                       (let ((type (caddr slot)))
-                        `(,(symbol-append 'IS- type) (,name ,ivar))))
+                        `((,(symbol-append 'IS- type) (,name ,ivar)))))
                      (else
                       (error "build-is-axiom: unknown slot kind" kind slot)))))
                slots))
@@ -375,6 +397,9 @@
       ;; NOTATION -- the noun "Euclidean ring" -- is declared with `notation!'
       ;; beside the structure, since only a human knows it.
       (register-operator! is-name 'predicate '(s)))
+    ;; the MORPHISMS of this species, read off the same slot list (see
+    ;; build-hom-axiom).  Objects without morphisms are not a category.
+    (install-hom-axiom! name slots)
     ;; Associated class: NAME itself is the proper class
     ;;   { s | IS-NAME(s) }.  Letting NAME (and not just IS-NAME) name
     ;;   the class makes bounded quantification natural:
@@ -500,6 +525,8 @@
         `(FORALL ,ivar (IFF (IN ,ivar ,name) (,is-name ,ivar)))))
     (register-definitional-structure! name parent)
     (register-operator! is-name 'predicate (list ivar))
+    ;; a hom of X's is a hom of PARENTs between X's -- same shape, same maps
+    (install-refinement-hom-axiom! name parent)
     name))
 
 ;;; A (property NAME accessor ...) clause names a characteristic law from
@@ -565,6 +592,16 @@
             ((eq? kind 'substructure)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'substructure (caddr clause)) slots)
+                   props laws))
+            ;; (derived NAME BASE-CARRIER DEFINING-EXPR) -- a carrier carved out
+            ;; of BASE-CARRIER, e.g. FIELD's
+            ;;   (derived NON-ZERO CARR (DIFFERENCE CARR (SINGLETON ZERO)))
+            ;; It gets a tuple slot, IS-X pins its value, and a HOMOMORPHISM does
+            ;; not give it a map of its own: it rides the base carrier's map.
+            ((eq? kind 'derived)
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'derived (caddr clause) (cadddr clause))
+                         slots)
                    props laws))
             ((eq? kind 'property)
              (loop (cdr rest) slots (cons (cdr clause) props) laws))
@@ -1006,3 +1043,169 @@
       (hash-table-keys *theorem-table*))
     (sort bad (lambda (a b) (string<? (symbol->string (car a))
                                       (symbol->string (car b)))))))
+
+;;; -----------------------------------------------------------------------
+;;; HOMOMORPHISMS, generated from the slot list.
+;;;
+;;; A structure species is a class of objects; a CATEGORY needs morphisms too.
+;;; VNB had none: `def-view-as' maps objects to objects, so calling it a functor
+;;; was a promise the code did not keep.  A homomorphism, though, is completely
+;;; determined by the slots -- so it is generated, once, for every species,
+;;; present and future, exactly as build-is-axiom folds the slots into IS-X.
+;;;
+;;;   IS-HOM-X(a, b, f1, ..., fk)   -- k = the number of CARRIERS (many-sorted:
+;;;                                     one map per carrier, so a Malcev-style
+;;;                                     two-sorted structure just works)
+;;;
+;;; is defined to hold exactly when
+;;;   IS-X(a), IS-X(b)                                   -- morphisms are between objects
+;;;   fi in FUN(Ci(a), Ci(b))                            -- one map per carrier
+;;;   S(a) = S(b)                for each SUBSTRUCTURE slot S
+;;;   fi(c(a)) = c(b)            for each CONSTANT slot c landing in carrier i
+;;;   fj(OP(a)(x...)) = OP(b)(f(x)...)   for each OP slot, argument by argument
+;;;
+;;; Two conventions, both deliberate:
+;;;
+;;; SUBSTRUCTURE slots are required EQUAL (module homs are maps between modules
+;;; OVER THE SAME RING -- standard practice; the general (ring hom, additive map)
+;;; pair is a different category, and we are not building it).
+;;;
+;;; A sort that is NOT a carrier of this structure -- a norm's RR, the scalars
+;;; (CARR SCAL) -- is mapped by the IDENTITY.  So a norm slot generates
+;;; NRM(b)(f x) = NRM(a)(x): the algebraic default for a normed structure is the
+;;; ISOMETRY.  (Metric spaces will want to OVERRIDE this: their interesting
+;;; category is the continuous one, not the isometric one.  The override is not
+;;; built yet; when it is, it belongs beside the declaration, like `notation!'.)
+
+(define (structure-hom-name name) (symbol-append 'IS-HOM- name))
+
+;;; The sorts of an op's domain: (CARTESIAN d1 d2) -> (d1 d2), nested to the
+;;; left as the library writes it; a bare sort -> a one-argument op.
+(define (hom--domain-sorts dom)
+  (if (and (pair? dom) (eq? (car dom) 'CARTESIAN))
+      (append-map hom--domain-sorts (cdr dom))
+      (list dom)))
+
+;;; The map that carries a value of SORT from `a' to `b'.
+;;;   -- an independent carrier: its own fi;
+;;;   -- a DERIVED carrier (FIELD's NON-ZERO = CARR \ {ZERO}): the map of the
+;;;      carrier it was carved from, so RECIP's law reads
+;;;        f(recip(a)(x)) = recip(b)(f(x))   for x in non-zero(a)
+;;;      with ONE map, not a second, unrelated one;
+;;;   -- anything else (a norm's RR, the scalars (CARR SCAL)): the identity.
+(define (hom--map-for sort carriers fvars #!optional derived-base)
+  (let ((base (if (default-object? derived-base) '() derived-base)))
+    (let loop ((s sort))
+      (let inner ((cs carriers) (fs fvars))
+        (cond ((null? cs)
+               (let ((d (assq s base)))          ; derived -> follow to its base
+                 (and d (loop (cdr d)))))
+              ((eq? s (car cs)) (car fs))
+              (else (inner (cdr cs) (cdr fs))))))))
+
+(define (hom--apply mapf x) (if mapf (list mapf x) x))
+
+(define (build-hom-axiom name slots)
+  (let* ((avar     'a)
+         (bvar     'b)
+         (accs     (map car slots))
+         ;; INDEPENDENT carriers only: a derived one is not a sort of its own.
+         (carriers (map car (filter (lambda (s) (eq? (cadr s) 'carrier)) slots)))
+         ;; derived carrier -> the carrier it is carved from
+         (dbase    (map (lambda (s) (cons (car s) (caddr s)))
+                        (filter (lambda (s) (eq? (cadr s) 'derived)) slots)))
+         (k        (length carriers))
+         ;; f, or f1 f2 ... when many-sorted.  Trailing digits, not underscores:
+         ;; these are binders of the DEFINITION, not of a proof.
+         (fvars    (if (= k 1)
+                       '(f)
+                       (map (lambda (i)
+                              (symbol-append 'f (string->symbol (number->string i))))
+                            (iota k 1))))
+         (is-name  (symbol-append 'IS- name))
+         (at       (lambda (e v) (expand-accessors e accs v))))
+    (define (carrier-conjuncts)
+      (map (lambda (c f) `(IN ,f (FUN (,c ,avar) (,c ,bvar))))
+           carriers fvars))
+    (define (slot-conjunct slot)
+      (let ((nm (car slot)) (kind (cadr slot)))
+        (case kind
+          ((carrier) #f)                          ; handled above
+          ;; A derived carrier is PINNED by IS-X (non-zero(a) = carr(a) \ {zero a}),
+          ;; and rides its base carrier's map -- so it owes the hom nothing.
+          ((derived) #f)
+          ;; morphisms are between structures over the SAME base
+          ((substructure) `(= (,nm ,avar) (,nm ,bvar)))
+          ((constant)
+           (let ((mapf (hom--map-for (caddr slot) carriers fvars dbase)))
+             `(= ,(hom--apply mapf `(,nm ,avar)) (,nm ,bvar))))
+          ((op)
+           (let* ((sorts (hom--domain-sorts (caddr slot)))
+                  (rng   (cadddr slot))
+                  (xs    (map (lambda (i)
+                                (symbol-append 'x (string->symbol (number->string i)) '_))
+                              (iota (length sorts) 1)))
+                  (rmap  (hom--map-for rng carriers fvars dbase))
+                  (lhs   (hom--apply rmap (cons `(,nm ,avar) xs)))
+                  (rhs   (cons `(,nm ,bvar)
+                               (map (lambda (s x)
+                                      (hom--apply (hom--map-for s carriers fvars dbase) x))
+                                    sorts xs)))
+                  (body  `(= ,lhs ,rhs)))
+             ;; bind each argument in ITS OWN sort, taken in `a'
+             (let loop ((vs (reverse xs)) (ss (reverse sorts)) (acc body))
+               (if (null? vs)
+                   acc
+                   (loop (cdr vs) (cdr ss)
+                         `(FORALL ,(car vs)
+                            (IMPLIES (IN ,(car vs) ,(at (car ss) avar)) ,acc)))))))
+          (else (error "build-hom-axiom: unknown slot kind" kind slot)))))
+    (let* ((body (conjuncts->and
+                   (append (list `(,is-name ,avar) `(,is-name ,bvar))
+                           (carrier-conjuncts)
+                           (filter (lambda (x) x) (map slot-conjunct slots)))))
+           (hom  (structure-hom-name name))
+           (args (append (list avar bvar) fvars)))
+      (values hom args
+              `(FORALL ,avar (FORALL ,bvar
+                 ,(let loop ((fs fvars))
+                    (if (null? fs)
+                        `(IFF (,hom ,@args) ,body)
+                        `(FORALL ,(car fs) ,(loop (cdr fs)))))))))))
+
+;;; Install IS-HOM-NAME for a SHAPE structure.
+(define (install-hom-axiom! name slots)
+  (call-with-values (lambda () (build-hom-axiom name slots))
+    (lambda (hom args axiom)
+      (fluid-let ((*current-provenance* 'definitional))
+        (theory-add-axiom! *current-theory* (symbol-append hom '-def) axiom))
+      (register-operator! hom 'predicate args)
+      hom)))
+
+;;; A REFINEMENT shares its parent's shape, so a hom of X's is a hom of PARENTs
+;;; between X's: IS-HOM-X(a,b,f...) <=> IS-X(a) and IS-X(b) and IS-HOM-PARENT(...).
+(define (install-refinement-hom-axiom! name parent)
+  (let* ((sd (find-shape-structure parent)))
+    (and sd
+         (let* ((carriers (map car (filter (lambda (s) (eq? (cadr s) 'carrier))
+                                           (structure-def-slots sd))))
+                (fvars    (if (= (length carriers) 1)
+                              '(f)
+                              (map (lambda (i)
+                                     (symbol-append 'f (string->symbol (number->string i))))
+                                   (iota (length carriers) 1))))
+                (hom      (structure-hom-name name))
+                (phom     (structure-hom-name parent))
+                (is-name  (symbol-append 'IS- name))
+                (args     (append '(a b) fvars))
+                (body     (conjuncts->and
+                            (list `(,is-name a) `(,is-name b) `(,phom ,@args)))))
+           (fluid-let ((*current-provenance* 'definitional))
+             (theory-add-axiom! *current-theory* (symbol-append hom '-def)
+               `(FORALL a (FORALL b
+                  ,(let loop ((fs fvars))
+                     (if (null? fs)
+                         `(IFF (,hom ,@args) ,body)
+                         `(FORALL ,(car fs) ,(loop (cdr fs)))))))))
+           (register-operator! hom 'predicate args)
+           hom))))

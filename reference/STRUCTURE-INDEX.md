@@ -43,7 +43,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -177,8 +177,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr opr iden inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr opr iden inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr opr iden inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr opr iden inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (carr opr iden inv) ↦ (carr opr iden inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr opr iden inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr opr iden inv)
 
 *Views from `abelian-group`.*
@@ -439,7 +439,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
   (op neg carr carr)
   (constant zero carr)
   (constant one carr)
-  (carriers non-zero)
+  (derived non-zero carr (difference carr (singleton zero)))
   (op recip non-zero non-zero)
   (property is-associative add carr)
   (property is-commutative add carr)
@@ -453,7 +453,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (as stored):
 
-- `is-field` — forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and recip(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
+- `is-field` — forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and non-zero(s) = difference(carr(s), singleton(zero(s))) and recip(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 
 *Theorems quantifying over `is-field`.*
 
@@ -533,8 +533,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one recip) ↦ (carr opr iden inv)
+- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 
 ### group
 <a id="group"></a>

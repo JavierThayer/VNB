@@ -2854,6 +2854,77 @@
   (lambda () (and (hash-table-ref/default *macete-table* 'opr #f) #t)))
 
 ;;; -----------------------------------------------------------------------
+;;; MORPHISMS, generated from the slot list (structures.scm, build-hom-axiom).
+;;; A species with objects but no morphisms is not a category, which is why
+;;; calling def-view-as a functor was a promise the code did not keep.
+
+(display "\n=== generated homomorphisms ===\n")
+
+(define (hom-str nm)
+  (let ((f (hash-table-ref/default *theorem-table*
+                                   (symbol-append 'is-hom- nm '-def) #f)))
+    (and f (expression->string f))))
+
+(define (hom-has? nm . bits)
+  (let ((s (hom-str nm)))
+    (and s (every (lambda (b) (and (string-search-forward b s 0) #t)) bits))))
+
+;; every structure gets one
+(check-true "every shape structure has an IS-HOM-X definition"
+  (lambda ()
+    (null? (filter (lambda (n) (not (hom-str n)))
+                   (hash-table-keys *structure-table*)))))
+
+;; the group hom preserves the operation, the identity and the inverse
+(check-true "is-hom-group preserves opr, iden, inv"
+  (lambda ()
+    (hom-has? 'group
+              "f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))"
+              "f(iden(a)) = iden(b)"
+              "f((inv(a))(x1_)) = (inv(b))(f(x1_))")))
+
+;; a module hom is a map between modules OVER THE SAME RING (the standard
+;; category), and the scalar passes through the action untouched
+(check-true "is-hom-module fixes the scalars and is R-linear"
+  (lambda ()
+    (hom-has? 'module
+              "scal(a) = scal(b)"
+              "f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))")))
+
+;; a sort that is not a carrier is mapped by the identity -- so a norm slot
+;; makes the algebraic default for a normed structure the ISOMETRY
+(check-true "is-hom-normed-ag is the isometry (norm preserved)"
+  (lambda () (hom-has? 'normed-ag "(nrm(a))(x1_) = (nrm(b))(f(x1_))")))
+
+;; a refinement's hom is the parent's hom, between objects of the refinement
+(check-true "is-hom-commutative-ring is is-hom-ring between commutative rings"
+  (lambda ()
+    (hom-has? 'commutative-ring
+              "is-commutative-ring(a) and is-commutative-ring(b) and is-hom-ring(a, b, f)")))
+
+;; FIELD's NON-ZERO is a DERIVED carrier (= CARR minus ZERO), so a field
+;; morphism is ONE map, not two: NON-ZERO rides CARR's map.  When NON-ZERO was
+;; a plain carrier the generator produced f1 AND an unrelated f2 on the
+;; non-zero part -- which is not a field morphism.
+(check-true "is-hom-field is a single map (NON-ZERO is derived, not a sort)"
+  (lambda ()
+    (and (hom-has? 'field
+                   "is-hom-field(a, b, f)"
+                   "forall([x1_ in non-zero(a)], f((recip(a))(x1_)) = (recip(b))(f(x1_)))")
+         (not (and (string-search-forward "f2" (hom-str 'field) 0) #t)))))
+
+;; ... and IS-FIELD now PINS the derived carrier itself.  It used not to: the
+;; equation lived in a separate ASSERTED axiom, so a field's NON-ZERO could have
+;; been any set at all, with RECIP an arbitrary function on it.
+(check-true "IS-FIELD pins non-zero(s) = carr(s) minus zero(s)"
+  (lambda ()
+    (and (string-search-forward
+           "non-zero(s) = difference(carr(s), singleton(zero(s)))"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-field #f))
+           0)
+         #t)))
+
+;;; -----------------------------------------------------------------------
 ;;; What the docs SAY a structure is must be what it IS.
 ;;;
 ;;; The index used to print IS-X "destructured": bound `s' replaced by the
