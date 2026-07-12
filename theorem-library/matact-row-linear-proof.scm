@@ -66,7 +66,7 @@
 (define mra-h (mra-row 'c2))                        ; j |-> c2_{1j} . u_{j1}
 (define mra-l (mra-row mra-cs))                     ; j |-> (c1+c2)_{1j} . u_{j1}
 (define mra-g (list 'VNB-LAMBDA 'z                  ; j |-> f(j) (+) h(j)
-                    (list '(MUL (MODULE-VECTOR-AG md))
+                    (list '(OPR (MODULE-VECTOR-AG md))
                           (list mra-f 'z) (list mra-h 'z))))
 (define (mra-sum f) (list 'FINSUM mra-vag f mra-ivl))
 
@@ -125,7 +125,7 @@
 (subst (list '= '(ENTRY (MATACT md c2 u) 1 1) (mra-sum mra-h)))
 
 ;;; Goal is now   SUM_j L(j)  =  (SUM_j F(j)) (VADD md) (SUM_j H(j)),
-;;; while finsum-add-ag speaks the abelian group's (MUL VAG).
+;;; while finsum-add-ag speaks the abelian group's (OPR VAG).
 ;;;
 ;;; `subst' CANNOT bridge the two.  Its Leibniz walk rewrites subterms in
 ;;; ARGUMENT position, and here (VADD md) sits in OPERATOR position -- the goal
@@ -160,7 +160,7 @@
                    (list '(VADD md)
                          (list '(ACT md) (list 'ENTRY 'c1 1 wv) (list 'ENTRY 'u wv 1))
                          (list '(ACT md) (list 'ENTRY 'c2 1 wv) (list 'ENTRY 'u wv 1)))))
-      ;; goal: (VADD md)(A,B) = (MUL VAG)(A,B).  Rewrite the OPERATOR.
+      ;; goal: (VADD md)(A,B) = (OPR VAG)(A,B).  Rewrite the OPERATOR.
       (mac 'mvag-op)
       ;; rfl needs the term defined: type both actions and their sum
       (fact 'module-act-type 'md (list 'ENTRY 'c1 1 wv) (list 'ENTRY 'u wv 1))
@@ -173,16 +173,16 @@
     (fact 'finsum-congruence mra-vag mra-ivl mra-l mra-g)
     (subst (list '= (mra-sum mra-l) (mra-sum mra-g)))
     ;; ---- and now the sum of a pointwise sum splits.  finsum-add-ag lands its
-    ;; equation with (MUL VAG) in TWO places: the outer operator, and inside the
+    ;; equation with (OPR VAG) in TWO places: the outer operator, and inside the
     ;; summand lambda.  mvag-op rewrites both.  So normalize the GOAL and the
     ;; ASSUMPTION with the same macete -- rewriting only one of them makes the
-    ;; two SUM_G's diverge (one keeps (MUL VAG) inside its lambda) and `ass'
+    ;; two SUM_G's diverge (one keeps (OPR VAG) inside its lambda) and `ass'
     ;; silently fails to match.
     (fact 'finsum-add-ag mra-vag mra-ivl mra-f mra-h)
     (mac 'mvag-op)
     (mac-h 'mvag-op
            (list '= (mra-sum mra-g)
-                 (list '(MUL (MODULE-VECTOR-AG md))
+                 (list '(OPR (MODULE-VECTOR-AG md))
                        (mra-sum mra-f) (mra-sum mra-h))))
     (ass)))
 
@@ -204,7 +204,7 @@
 ;;;           = r . (c.u)                                  [matact-entry]
 ;;;
 ;;; Simpler than brick 1 in one respect: finsum-act-distrib-gen is already
-;;; phrased in (ACT md) and FINSUM, so no (MUL VAG) ever appears and the mvag-op
+;;; phrased in (ACT md) and FINSUM, so no (OPR VAG) ever appears and the mvag-op
 ;;; normalization dance of brick 1 is not needed.
 ;;;
 ;;; With brick 1 this closes the ring-module structure of the last-coefficient

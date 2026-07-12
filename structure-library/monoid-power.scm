@@ -21,11 +21,11 @@
 
 ;;; Defining recursion (installs mpow-zero and mpow-succ):
 ;;;   MPOW(m, x, 0)       = IDEN(m)
-;;;   MPOW(m, x, succ(n)) = (MUL m)(x, MPOW(m, x, n))
+;;;   MPOW(m, x, succ(n)) = (OPR m)(x, MPOW(m, x, n))
 (def-by-nn-recursion 'MPOW '(m x)
   '(IDEN m)                               ; base value
   '(n val)                             ; step vars
-  '((MUL m) x val))                    ; MPOW(m,x,succ n) = x * MPOW(m,x,n)
+  '((OPR m) x val))                    ; MPOW(m,x,succ n) = x * MPOW(m,x,n)
 
 ;;; Singleton: MPOW(m, x, 1) = x.
 ;;; From mpow-succ at n=0, mpow-zero, and the right-identity law.
@@ -59,7 +59,7 @@
          (FORALL j (IMPLIES (IN j NN)
            (FORALL k (IMPLIES (IN k NN)
              (= (MPOW m x (+ j k))
-                ((MUL m) (MPOW m x j) (MPOW m x k))))))))))))
+                ((OPR m) (MPOW m x j) (MPOW m x k))))))))))))
 (warrant! 'mpow-add 'informal
   "n|->x^n is a monoid hom (NN,+,0)->(A,*,E).  NN induction on k: base k=0 by mpow-zero+right id; step by mpow-succ+associativity.  No commutativity used.")
 
@@ -72,8 +72,8 @@
        (FORALL x (IMPLIES (IN x (CARR m))
          (FORALL y (IMPLIES (IN y (CARR m))
            (FORALL n (IMPLIES (IN n NN)
-             (= (MPOW m ((MUL m) x y) n)
-                ((MUL m) (MPOW m x n) (MPOW m y n))))))))))))
+             (= (MPOW m ((OPR m) x y) n)
+                ((OPR m) (MPOW m x n) (MPOW m y n))))))))))))
 (warrant! 'mpow-mult 'well-known
   "(xy)^n = x^n y^n in a commutative monoid; NN induction on n using commutativity to interleave factors.  Fails without commutativity.")
 

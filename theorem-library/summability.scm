@@ -25,7 +25,7 @@
 ;;; measured by grp's norm NRM and operation MUL, which the bare carrier does
 ;;; not determine.  So the minimal signature is (grp, f, r).
 ;;;
-;;; The difference r - sum is ((MUL grp) r ((INV grp) sum)); since
+;;; The difference r - sum is ((OPR grp) r ((INV grp) sum)); since
 ;;; is-group-norm makes the norm inverse-invariant, norm(r - s) = norm(s - r),
 ;;; so the order of subtraction is immaterial.
 ;;;
@@ -49,7 +49,7 @@
                               (SUBSET fin ext)
                               (SUBSET ext (DOM f)))
                   (< ((NRM grp)
-                        ((MUL grp) r
+                        ((OPR grp) r
                            ((INV grp)
                               (FINSUM (NORMED-AG-AS-ABELIAN-GROUP grp) f ext))))
                      eps))))))))

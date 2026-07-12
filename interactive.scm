@@ -523,7 +523,7 @@
 
 ;; to-binary / to-nary -- one-shot surface conversion between the kiddie n-ary
 ;; +/*/-  and the binary structure operators binplus/bintimes/binneg (which are
-;; the (ADD s)/(MUL s)/(NEG s) slots of the number rings ZZ/QQ/RR/CC-RING).
+;; the (ADD s)/(MUL s)/(NEG s) slots of the number rings ZZ/QQ/RR/CC-NORMED-FIELD).
 ;; Saturating: applies the arity-bridge macetes until none fire.  Unconditional
 ;; -- the binX-apply / nary-* axioms are definitional, so no typing is needed.
 ;; to-binary pushes a goal onto the STRUCTURE surface (so a structure-level
@@ -1755,7 +1755,19 @@
       (display (car fr)) (newline))
     (write-operators-md)
     (structure-index)
-    (fingerprint-index)))
+    (fingerprint-index)
+    ;; The rest of reference/.  These three had generators that NOTHING CALLED:
+    ;; MACETE-INDEX.md and BY-OPERATOR.md were last written 2026-06-01 and the
+    ;; structure graph's .dot 2026-06-16, while build-reference-html.py happily
+    ;; rebuilt their HTML from the stale markdown -- pages carrying today's
+    ;; timestamp and last month's content, which is the rot you cannot see.
+    ;; Everything reference/ generates is now generated HERE, on every load.
+    ;; (The .dot only: rendering it wants graphviz + python3, which a headless
+    ;; library load must not depend on.  `G' in Emacs runs build-graph-html.py
+    ;; over whatever .dot is on disk -- and that is now always current.)
+    (macete-index)
+    (operator-index)
+    (structure-graph-dot-file)))
 
 ;;; (display-provenance) -- REPL triage of every installed result by its
 ;;; provenance kind (primitive / definitional / asserted / proven), counts
@@ -2297,137 +2309,48 @@
       (display "- `") (display name) (display "` — ")
       (display (expression->string f)) (newline))))
 
-;;; Substitute `(acc s)` with `acc` and bare `s` with `(LIST acc1 acc2 …)`
-;;; throughout EXPR, where ACCESSORS is the structure's slot-name list.
-;;; Used by `struct-index--emit-isx-axiom-destructured' to render the IS-X
-;;; definitional predicate in destructured form (see the section comment
-;;; near "Destructured pretty-print of IS-X axioms" below).
-(define (destructure-isx-expr expr svar accessors)
-  (cond
-    ;; (acc s) where acc is one of the accessors → acc
-    ((and (pair? expr)
-          (= (length expr) 2)
-          (memq (car expr) accessors)
-          (eq? (cadr expr) svar))
-     (car expr))
-    ;; bare s → (LIST acc1 acc2 ...)
-    ((eq? expr svar) `(LIST ,@accessors))
-    ;; recurse into pairs (don't descend into the LIST tail we just made;
-    ;; that's harmless because LIST's args are atoms here)
-    ((pair? expr)
-     (cons (destructure-isx-expr (car expr) svar accessors)
-           (destructure-isx-expr (cdr expr) svar accessors)))
-    (else expr)))
-
 ;;; -----------------------------------------------------------------------
-;;; Destructured pretty-print of IS-X axioms
+;;; How a structure is shown: THE DECLARATION, not the expansion.
 ;;;
-;;; The raw IS-X axiom for, say, FIELD prints as
-;;;   forall([s], is-field(s) iff is-integral-domain(s) and ...)
-;;; — which leaves the reader squinting at what `s` is and what `a(s)`,
-;;; `add(s)`, … mean.  The destructured form makes the components explicit:
-;;;   forall([a, add, mul, neg, zero, one]. is-field([a, add, mul, neg, zero, one]) iff
-;;;     is-integral-domain([a, add, mul, neg, zero, one]) and ...
-;;; Bound s is replaced by the n-tuple of slot accessors; every (acc s) in
-;;; the body collapses to the bare accessor name.  No semantic change.
+;;; Until 2026-07-12 both the index and describe-structure printed the IS-X
+;;; axiom "destructured": bound `s' replaced by the tuple of its slots, every
+;;; `(mul s)' collapsed to `mul', giving
 ;;;
-;;; Bound element variables inside the body (e.g. the `a` in
-;;; `forall([a in a(s)], ...)`) keep their names and so collide visually
-;;; with the carrier accessor `a` after substitution.  This is the same
-;;; case-fold collision the rest of the prover handles by context; we
-;;; accept it for the display.
+;;;   forall([carr, add, mul, neg, zero, one],
+;;;          is-commutative-ring([carr, add, mul, neg, zero, one]) iff ...)
+;;;
+;;; That string is a lie in the one way documentation must never be: READ IT
+;;; BACK and it is a different formula.  The head registry is scope-blind, so
+;;; the `mul' this claims to bind reads, wherever it appears applied, as the
+;;; registered ACCESSOR MUL -- the very hazard constant-binder-audit exists to
+;;; shout about, published as the defining predicate.  (The audit never fired:
+;;; no such wff exists.  The binders were manufactured by the printer.)
+;;;
+;;; The declaration is both shorter and true, so we print that:
+;;;
+;;;   (declare-structure COMMUTATIVE-RING
+;;;     (same-shape-as RING)
+;;;     (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
+;;;
+;;; and, where the full predicate is wanted, the axiom AS STORED -- quantified
+;;; over `s', accessors applied.  Both parse.  structures.scm keeps the clauses
+;;; (*structure-decl-table*); nothing here reconstructs them.
 
-;;; Capture-avoiding rename, applied BEFORE destructuring.  A law like
-;;;   (FORALL a (IMPLIES (IN a (CARR s)) ... a ...))
-;;; binds an ELEMENT variable `a` while the carrier accessor is also `a`.
-;;; Destructuring (CARR s) -> a then turns the carrier into a bare `a`, so the
-;;; law reads `forall a in a` -- a real variable capture, not just a clash.
-;;; We rename any FORALL/FORSOME-bound var whose name is a slot accessor to a
-;;; fresh name first.  Positional rule disambiguates the two roles: an
-;;; accessor symbol in OPERATOR position (as in (a s)) is the free accessor
-;;; and is kept; the same symbol as a bare operand/binder is the captured
-;;; element var and gets renamed.
-(define (rename-bound-vars-off-accessors expr accessors)
-  (let ((used '()))
-    (let collect ((e expr))
-      (cond ((symbol? e) (unless (memq e used) (set! used (cons e used))))
-            ((pair? e) (collect (car e)) (collect (cdr e)))))
-    (define (fresh)
-      (let loop ((cands '(x y z u v w i j k m n)))
-        (cond ((null? cands)
-               (let suffix ((n 1))
-                 (let ((s (symbol-append 'v (string->symbol (number->string n)))))
-                   (if (or (memq s used) (memq s accessors)) (suffix (+ n 1))
-                       (begin (set! used (cons s used)) s)))))
-              ((and (not (memq (car cands) used))
-                    (not (memq (car cands) accessors)))
-               (set! used (cons (car cands) used)) (car cands))
-              (else (loop (cdr cands))))))
-    (define (walk e env)
-      (cond
-        ((symbol? e) (let ((p (assq e env))) (if p (cdr p) e)))
-        ((not (pair? e)) e)
-        ((memq (car e) '(FORALL FORSOME))
-         (let ((q (car e)) (var (cadr e)) (body (caddr e)))
-           (if (and (symbol? var) (memq var accessors))
-               (let ((nu (fresh)))
-                 (list q nu (walk body (cons (cons var nu) env))))
-               (list q var (walk body
-                                  (if (symbol? var)
-                                      (del-assq var env)
-                                      env))))))
-        (else
-         ;; application: keep an accessor symbol in operator position as-is
-         ;; (free accessor), otherwise walk it; always walk the operands.
-         (let ((op (car e)))
-           (cons (if (and (symbol? op) (memq op accessors)) op (walk op env))
-                 (map (lambda (x) (walk x env)) (cdr e)))))))
-    (walk expr '())))
-
-;;; In the destructured IS-X body the tuple-length definedness conjunct
-;;;   (= (LENGTH (LIST a mul e inv)) 4)
-;;; is vacuously true -- destructuring already commits to an n-tuple, and the
-;;; n named slots are right there -- so it only adds noise to the display.  We
-;;; drop it from the destructured RENDER (the underlying axiom, where s is an
-;;; opaque variable and the clause is load-bearing, is untouched).  Targeted:
-;;; strips a length-equality only when its argument is the literal destructured
-;;; LIST, so a genuine length constraint elsewhere would survive.
-(define (struct-index--length-conjunct? c)
-  (and (pair? c) (eq? (car c) '=) (= (length c) 3)
-       (let ((side (lambda (x)
-                     (and (pair? x) (eq? (car x) 'LENGTH)
-                          (pair? (cdr x)) (pair? (cadr x))
-                          (eq? (car (cadr x)) 'LIST)))))
-         (or (side (cadr c)) (side (caddr c))))))
-
-(define (struct-index--drop-length-conjuncts expr)
-  (cond
-    ((not (pair? expr)) expr)
-    ((eq? (car expr) 'AND)
-     (let ((kept (filter (lambda (c) (not (struct-index--length-conjunct? c)))
-                         (map struct-index--drop-length-conjuncts (cdr expr)))))
-       (cond ((null? kept)        'TRUTH)
-             ((null? (cdr kept))  (car kept))
-             (else (cons 'AND kept)))))
-    (else (cons (struct-index--drop-length-conjuncts (car expr))
-                (struct-index--drop-length-conjuncts (cdr expr))))))
-
-;;; The destructured + bound-var-renamed IS-X law for NAME as an s-expr, or
-;;; #f if NAME isn't a stored FORALL axiom.  Shared by the REPL string form
-;;; (struct-index--emit-isx-axiom-destructured) and the TeX card form.
-(define (isx-destructured-expr name accessors)
-  (let ((f (hash-table-ref/default *theorem-table* name #f)))
-    (and f (pair? f) (eq? (car f) 'FORALL)
-         (struct-index--drop-length-conjuncts
-           (destructure-isx-expr
-             (rename-bound-vars-off-accessors f accessors)
-             (cadr f) accessors)))))
-
-(define (struct-index--emit-isx-axiom-destructured name accessors)
-  (let ((destr (isx-destructured-expr name accessors)))
-    (when destr
-      (display "- `") (display name) (display "` — ")
-      (display (expression->string destr)) (newline))))
+;;; Markdown: the declaration in a fenced scheme block.  Falls back to the
+;;; stored axiom for a structure declared before the funnel existed (or by
+;;; hand), which prints over `s' and is therefore still re-readable.
+(define (struct-index--emit-declaration name def-name)
+  (let ((decl (structure-declaration->string name)))
+    (cond
+      (decl
+       (display "*Declaration.*\n\n```scheme\n")
+       (display decl)
+       (display "\n```\n\n")
+       (display "*Defining predicate* (as stored):\n\n")
+       (struct-index--emit-axiom-line def-name))
+      (else
+       (display "*Defining predicate* (as stored):\n\n")
+       (struct-index--emit-axiom-line def-name)))))
 
 ;;; Render a source-file path as a markdown link, relative to *prover-dir*.
 ;;; Returns the empty string if path is #f.
@@ -2468,8 +2391,7 @@
     (display "carriers ") (display (structure-def-carriers sd))
     (display ", ops/constants ") (display (map car (structure-def-op-specs sd)))
     (newline) (newline)
-    (display "*Defining predicate* (destructured form):\n\n")
-    (struct-index--emit-isx-axiom-destructured is-pred accessors)
+    (struct-index--emit-declaration name is-pred)
     (newline)
     (when (not (null? thms))
       (display "*Theorems quantifying over `") (display is-pred) (display "`.*\n\n")
@@ -2555,12 +2477,7 @@
          (display (struct-index--anchor parent)) (display ").  ")
          (display "Shape inherited from `") (display parent)
          (display "` — slots ") (display accessors) (display ".\n\n")
-         (display "*Defining predicate* (destructured form):\n\n")
-         (cond
-           (accessors
-            (struct-index--emit-isx-axiom-destructured def-name accessors))
-           (else
-            (struct-index--emit-axiom-line def-name)))
+         (struct-index--emit-declaration name def-name)
          (newline))))
     (when (not (null? thms))
       (display "*Theorems quantifying over `") (display is-pred) (display "`.*\n\n")
@@ -2660,6 +2577,25 @@
             (display "    ") (display (view-as-source-struct vd)) (newline)))
         vs-in))))
 
+;;; REPL form of the same two things: the declaration as written, then the
+;;; IS-X axiom as stored (over `s').  No destructuring -- see the section
+;;; comment at "How a structure is shown".
+(define (describe-structure--declaration name)
+  (let ((decl (structure-declaration->string name)))
+    (when decl
+      (display "Declared as:") (newline)
+      (for-each (lambda (line) (display "    ") (display line) (newline))
+                (burst-string decl #\newline #f))
+      (newline))))
+
+(define (describe-structure--law name def-name)
+  (let ((f (hash-table-ref/default *theorem-table* def-name #f)))
+    (display "Characteristic law  ") (display (symbol-append 'IS- name))
+    (display "(s):") (newline)
+    (if f
+        (begin (display "    ") (display (expression->string f)) (newline))
+        (begin (display "    (no stored characteristic law)") (newline)))))
+
 (define (describe-structure name)
   (let ((sd  (lookup-structure name))
         (dsd (lookup-definitional-structure name)))
@@ -2670,9 +2606,8 @@
        (display "Operations (write  (OP s)  for component OP of structure s):") (newline)
        (for-each describe-structure--slot-line (structure-def-slots sd))
        (newline)
-       (display "Characteristic law  ") (display (symbol-append 'IS- name)) (display "(s):") (newline)
-       (struct-index--emit-isx-axiom-destructured (symbol-append 'IS- name)
-                                                  (structure-slot-names sd))
+       (describe-structure--declaration name)
+       (describe-structure--law name (symbol-append 'IS- name))
        (describe-structure--views name))
       (dsd
        (let* ((chain  (describe-structure--chain name))
@@ -2687,10 +2622,8 @@
            (display "Operations (inherited shape; write  (OP s) ):") (newline)
            (for-each describe-structure--slot-line (structure-def-slots shape))
            (newline))
-         (display "Characteristic law  ") (display (symbol-append 'IS- name)) (display "(s):") (newline)
-         (if shape
-             (struct-index--emit-isx-axiom-destructured def-name (structure-slot-names shape))
-             (struct-index--emit-axiom-line def-name))
+         (describe-structure--declaration name)
+         (describe-structure--law name def-name)
          (describe-structure--views name)))
       (else
        (display "describe-structure: unknown structure '") (display name) (display "'.") (newline)
@@ -2775,14 +2708,14 @@
 ;;; Common word -> the structure(s)/set(s) it means.  Targets are resolved by
 ;;; `what-is--describe-target' (structure -> shape line; set -> gloss line).
 (define *what-is-aliases*
-  '(("complex"   cc-ring)
-    ("real"      rr-ring)     ("reals"     rr-ring)
+  '(("complex"   cc-normed-field)
+    ("real"      rr-normed-field)     ("reals"     rr-normed-field)
     ("rational"  qq-ring)     ("rationals" qq-ring)
     ("integer"   zz-ring)     ("integers"  zz-ring)
     ("natural"   nn)          ("naturals"  nn)
     ("ordinal"   ord)         ("ordinals"  ord)
-    ("number"    nn zz-ring qq-ring rr-ring cc-ring ord)
-    ("numbers"   nn zz-ring qq-ring rr-ring cc-ring ord)))
+    ("number"    nn zz-ring qq-ring rr-normed-field cc-normed-field ord)
+    ("numbers"   nn zz-ring qq-ring rr-normed-field cc-normed-field ord)))
 
 ;;; --- resolvers (each prints + returns #t when it handles S, else #f) ------
 
@@ -3005,17 +2938,33 @@
 ;;; The IS-X law, peeled to its defining conditions and emitted as one
 ;;; markdown bullet per top-level conjunct (each its own inline formula, so
 ;;; no single ruinously-wide image).
-(define (structure-card--law-md is-name accessors)
-  (let ((destr (isx-destructured-expr is-name accessors)))
+;;; The declaration as written, in a fenced block (the card renderer leaves
+;;; fenced blocks alone -- no TeX pass, so the law strings survive verbatim).
+(define (structure-card--decl-md name)
+  (let ((decl (structure-declaration->string name)))
     (cond
-      ((not destr)
+      (decl
+       (display "```scheme") (newline)
+       (display decl) (newline)
+       (display "```") (newline) (newline))
+      (else
+       (display "_(declaration not recorded)_") (newline) (newline)))))
+
+;;; The law is rendered AS STORED -- quantified over `s', accessors applied to
+;;; it -- not destructured; see "How a structure is shown" above for why the
+;;; destructured render was a lie.  Peeling the outer `forall s . IS-X(s) iff'
+;;; is safe (the card's own heading says "IS-X(s) holds exactly when"); the
+;;; conjuncts below still mention `s' and still parse.
+(define (structure-card--law-md is-name)
+  (let ((axiom (hash-table-ref/default *theorem-table* is-name #f)))
+    (cond
+      ((not (and axiom (pair? axiom) (eq? (car axiom) 'forall)))
        (display "_(no stored characteristic law)_") (newline))
       (else
-       (let* ((body (if (and (pair? destr) (eq? (car destr) 'forall)
-                             (pair? (caddr destr))
-                             (eq? (car (caddr destr)) 'iff))
-                        (caddr (caddr destr))
-                        destr))
+       (let* ((body (if (and (pair? (caddr axiom))
+                             (eq? (car (caddr axiom)) 'iff))
+                        (caddr (caddr axiom))
+                        (caddr axiom)))
               (cjs  (and-conjuncts body)))
          (display "`") (display is-name)
          (display "(s)` holds exactly when **all** of the following:")
@@ -3093,8 +3042,10 @@
        (for-each (lambda (slot) (display (structure-card--sig-md slot)) (newline))
                  (structure-def-slots sd))
        (newline)
+       (display "## Declaration") (newline) (newline)
+       (structure-card--decl-md name)
        (display "## Defining conditions") (newline) (newline)
-       (structure-card--law-md (symbol-append 'IS- name) (structure-slot-names sd))
+       (structure-card--law-md (symbol-append 'IS- name))
        (structure-card--views-md name))
       (dsd
        (let* ((inst-tuple (definitional-instance-tuple name))
@@ -3149,10 +3100,10 @@
                 (for-each (lambda (slot) (display (structure-card--sig-md slot)) (newline))
                           (structure-def-slots shape))
                 (newline))
+              (display "## Declaration") (newline) (newline)
+              (structure-card--decl-md name)
               (display "## Defining conditions") (newline) (newline)
-              (if shape
-                  (structure-card--law-md def-name (structure-slot-names shape))
-                  (struct-index--emit-axiom-line def-name))
+              (structure-card--law-md def-name)
               (structure-card--views-md name))))))
       (else
        (display "# ") (display name) (newline) (newline)

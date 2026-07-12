@@ -106,9 +106,9 @@
 <h4 id="FUNCTORS__mat-ring">mat-ring</h4>
 <pre>mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], matadd(a, p, q)), vnb-lambda([p, q], matmul(a, p, q)), vnb-lambda(p, matneg(a, p)), zeromat(a, n, n), identmat(a, n)]</pre>
 <h4 id="FUNCTORS__nag-metric-space">nag-metric-space</h4>
-<pre>nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]</pre>
+<pre>nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]</pre>
 <h4 id="FUNCTORS__nf-metric-space">nf-metric-space</h4>
-<pre>nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]</pre>
+<pre>nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]</pre>
 <h4 id="FUNCTORS__nvs-metric-space">nvs-metric-space</h4>
 <pre>nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]</pre>
 <h4 id="FUNCTORS__permutations">permutations</h4>
@@ -212,7 +212,7 @@
 <h4 id="FUNCTORS__proj">proj</h4>
 <pre>proj(s) := vnb-lambda(a, class(s, a))</pre>
 <h4 id="FUNCTORS__ps-partial-sum">ps-partial-sum</h4>
-<pre>ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-ring), vnb-lambda(n, coef(n) * x ^ n), k)</pre>
+<pre>ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, coef(n) * x ^ n), k)</pre>
 <h4 id="FUNCTORS__related">related</h4>
 <pre>related(s, a, b) := [a, b] in rel(s)</pre>
 <h4 id="FUNCTORS__respects">respects</h4>
@@ -220,7 +220,7 @@
 <h4 id="FUNCTORS__ring-power">ring-power</h4>
 <pre>ring-power(r, x, n) := mpow(commutative-ring-multiplicative-cm(r), x, n)</pre>
 <h4 id="FUNCTORS__series-partial-sum">series-partial-sum</h4>
-<pre>series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-ring), f, k)</pre>
+<pre>series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)</pre>
 <h4 id="FUNCTORS__snoc-col">snoc-col</h4>
 <pre>snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], if(i_ = succ(n), x, entry(w, i_, 1))))</pre>
 <h4 id="FUNCTORS__snoc-row">snoc-row</h4>

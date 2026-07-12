@@ -12,7 +12,7 @@
 ;;; each domain D in {NN, ZZ, QQ, RR, CC} (binneg only for the rings, not
 ;;; for NN, since NN is not closed under negation).
 ;;;
-;;; The instances ZZ-RING, QQ-RING, RR-RING, CC-RING are 6-element VNB
+;;; The instances ZZ-RING, QQ-RING, RR-NORMED-FIELD, CC-NORMED-FIELD are 6-element VNB
 ;;; lists [D, binplus, bintimes, binneg, 0, 1] -- the standard ring shape.
 ;;; IS-RING(*-RING) is taken as an axiom (proof would unfold IS-RING via
 ;;; the def-structure IFF and discharge each conjunct from typing axioms).
@@ -114,7 +114,7 @@
 ;;; Algebraic structures (RING, COMM-MONOID, ...) use the binary slot ops
 ;;; binplus / bintimes / binneg.  These axioms rewrite the n-ary surface
 ;;; form to left-folded nested binary applications, matching the accumulator
-;;; shape used by SUM-AG's recursion ((SUM-AG ag f (succ n)) = (MUL ag)(SUM-AG
+;;; shape used by SUM-AG's recursion ((SUM-AG ag f (succ n)) = (OPR ag)(SUM-AG
 ;;; ag f n)(f n)) so the same fold direction lets downstream macetes line up.
 ;;;
 ;;; Arity 2 is just binplus-apply / bintimes-apply reversed, listed for
@@ -189,7 +189,7 @@
 (theory-add-axiom! *current-theory* 'qq-ring-def
   '(= QQ-RING (LIST QQ binplus bintimes binneg 0 1)))
 
-;;; RR-RING and CC-RING are 7-tuples carrying the structural norm at slot 7
+;;; RR-NORMED-FIELD and CC-NORMED-FIELD are 7-tuples carrying the structural norm at slot 7
 ;;; (NORMED-FIELD layout).  Slots 1..6 share RING's accessor indices, but a
 ;;; 7-tuple does NOT satisfy the length-6 predicates IS-RING / IS-COMMUTATIVE-
 ;;; RING / IS-INTEGRAL-DOMAIN (each pins length(s)=6).  Asserting those here
@@ -197,18 +197,18 @@
 ;;; reach the ring world via the NORMED-FIELD-AS-{COMMUTATIVE-RING,INTEGRAL-
 ;;; DOMAIN} view-as projections (views.scm), which build a fresh 6-tuple from
 ;;; slots 1..6 -- exactly how FIELD reaches it (FIELD-AS-INTEGRAL-DOMAIN).
-(theory-add-axiom! *current-theory* 'rr-ring-def
-  '(= RR-RING (LIST RR binplus bintimes binneg 0 1 abs)))
+(theory-add-axiom! *current-theory* 'rr-normed-field-def
+  '(= RR-NORMED-FIELD (LIST RR binplus bintimes binneg 0 1 abs)))
 
-(theory-add-axiom! *current-theory* 'cc-ring-def
-  '(= CC-RING (LIST CC binplus bintimes binneg 0 1 magnitude)))
+(theory-add-axiom! *current-theory* 'cc-normed-field-def
+  '(= CC-NORMED-FIELD (LIST CC binplus bintimes binneg 0 1 magnitude)))
 
 ;;; IS-X witnesses, taken as axioms (each true of the domain; no proofs).
 ;;; CRITICAL: a structure predicate IS-X bakes in length(s)=n, so a tuple can
 ;;; only witness predicates of its OWN shape.
 ;;;   ZZ-RING, QQ-RING : 6-tuples -> RING / COMMUTATIVE-RING / INTEGRAL-DOMAIN
 ;;;                      (and ZZ also EUCLIDEAN-RING; all 6-slot).
-;;;   RR-RING, CC-RING : 7-tuples (NORMED-FIELD shape) -> IS-NORMED-FIELD only;
+;;;   RR-NORMED-FIELD, CC-NORMED-FIELD : 7-tuples (NORMED-FIELD shape) -> IS-NORMED-FIELD only;
 ;;;                      ring structure via the NORMED-FIELD-AS-* views.
 ;;;   QQ as a FIELD     : the separate 8-tuple QQ-FIELD below (FIELD is 8-slot).
 
@@ -222,8 +222,8 @@
 (theory-add-axiom! *current-theory* 'qq-is-commutative-ring '(IS-COMMUTATIVE-RING QQ-RING))
 (theory-add-axiom! *current-theory* 'qq-is-integral-domain  '(IS-INTEGRAL-DOMAIN QQ-RING))
 
-(theory-add-axiom! *current-theory* 'rr-is-normed-field     '(IS-NORMED-FIELD RR-RING))
-(theory-add-axiom! *current-theory* 'cc-is-normed-field     '(IS-NORMED-FIELD CC-RING))
+(theory-add-axiom! *current-theory* 'rr-is-normed-field     '(IS-NORMED-FIELD RR-NORMED-FIELD))
+(theory-add-axiom! *current-theory* 'cc-is-normed-field     '(IS-NORMED-FIELD CC-NORMED-FIELD))
 
 ;;; -----------------------------------------------------------------------
 ;;; QQ as a field: the 8-tuple QQ-FIELD.
@@ -291,8 +291,8 @@
 (register-definitional-structure! 'ZZ-RING        'EUCLIDEAN-RING)
 (register-definitional-structure! 'QQ-RING        'INTEGRAL-DOMAIN)
 (register-definitional-structure! 'QQ-FIELD       'FIELD)
-(register-definitional-structure! 'RR-RING        'NORMED-FIELD)
-(register-definitional-structure! 'CC-RING        'NORMED-FIELD)
+(register-definitional-structure! 'RR-NORMED-FIELD        'NORMED-FIELD)
+(register-definitional-structure! 'CC-NORMED-FIELD        'NORMED-FIELD)
 (register-definitional-structure! 'NN-ADD-MONOID  'COMM-MONOID)
 
 ;;; -----------------------------------------------------------------------

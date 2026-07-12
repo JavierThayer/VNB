@@ -439,7 +439,7 @@
   '(FORALL A (= (IDEN (RING-ADDITIVE-AG A)) (ZERO A))))
 (warrant! 'ras-id 'proof "identity of a ring's additive group is the ring's zero.")
 (support 'ras-op
-  '(FORALL A (= (MUL (RING-ADDITIVE-AG A)) (ADD A))))
+  '(FORALL A (= (OPR (RING-ADDITIVE-AG A)) (ADD A))))
 (warrant! 'ras-op 'proof "operation of a ring's additive group is the ring's addition.")
 ;; NOTE: ring var is `s' (not A) -- MIT case-folds, so (FORALL A (FORALL a ..))
 ;; would shadow-collide.  Follows the ring.scm axiom convention.
@@ -487,7 +487,7 @@
      (IMPLIES (NOT (= i0 i1))
        (IMPLIES (FORALL j (IMPLIES (IN j S)
                   (IMPLIES (NOT (= j i0)) (IMPLIES (NOT (= j i1)) (= (f j) (IDEN ag))))))
-         (= (FINSUM ag f S) ((MUL ag) (f i0) (f i1)))))))))))))))))
+         (= (FINSUM ag f S) ((OPR ag) (f i0) (f i1)))))))))))))))))
 (warrant! 'finsum-two-support 'well-known
   "If f(j)=0 for every j in the finite S except j in {i0,i1} (i0/=i1), then
    FINSUM(ag,f,S) = f(i0) * f(i1) in ag.")

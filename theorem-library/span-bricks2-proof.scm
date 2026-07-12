@@ -97,8 +97,8 @@
 (subst (list '= '(ENTRY (MATACT md c u) 1 1) (p2-sum p2-Fs '(INTERVAL 1 (succ n)))))
 (fact 'finsum-interval-peel p2-vag 'n p2-Fs)
 (subst (list '= (p2-sum p2-Fs '(INTERVAL 1 (succ n)))
-             (list '(MUL (MODULE-VECTOR-AG md)) (p2-sum p2-Fs '(INTERVAL 1 n)) (list p2-Fs '(succ n)))))
-(mac 'mvag-op)                                        ; (MUL VAG) -> (VADD md)
+             (list '(OPR (MODULE-VECTOR-AG md)) (p2-sum p2-Fs '(INTERVAL 1 n)) (list p2-Fs '(succ n)))))
+(mac 'mvag-op)                                        ; (OPR VAG) -> (VADD md)
 (lam-b) (lam-b) (lam-b)                                ; reduce (p2-Fs (succ n)) -> the last action
 
 ;; rewrite the RHS block action to its FINSUM over [1,n]
@@ -183,7 +183,7 @@
 (subst (list '= (list 'ENTRY (list 'MATACT 'md p2-SR p2-SU) 1 1) (p2-sum p2-Fss '(INTERVAL 1 (succ n)))))
 (fact 'finsum-interval-peel p2-vag 'n p2-Fss)
 (subst (list '= (p2-sum p2-Fss '(INTERVAL 1 (succ n)))
-             (list '(MUL (MODULE-VECTOR-AG md)) (p2-sum p2-Fss '(INTERVAL 1 n)) (list p2-Fss '(succ n)))))
+             (list '(OPR (MODULE-VECTOR-AG md)) (p2-sum p2-Fss '(INTERVAL 1 n)) (list p2-Fss '(succ n)))))
 (mac 'mvag-op)
 (lam-b) (lam-b) (lam-b)                                ; reduce (Fss (succ n))
 

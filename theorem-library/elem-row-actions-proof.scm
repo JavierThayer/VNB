@@ -144,7 +144,7 @@
   (rfl)
 (ea-foc! rg-m2)
 (fact 'finsum-two-support EA-RAG EA-INT EA-GFF 'k 'l)
-(subst `(= (FINSUM ,EA-RAG ,EA-GFF ,EA-INT) ((MUL ,EA-RAG) (,EA-GFF k) (,EA-GFF l))))
+(subst `(= (FINSUM ,EA-RAG ,EA-GFF ,EA-INT) ((OPR ,EA-RAG) (,EA-GFF k) (,EA-GFF l))))
 (lam-b)
 (fact 'elem-g-rk-at-k 'A 'm 'r 'k 'l 'i)
 (subst `(= (ENTRY (ELEM-G A m r k l) i k) (ONE A)))

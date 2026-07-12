@@ -1,11 +1,11 @@
 ;;; normed-ag.scm -- NORMED-AG structure (normed abelian group)
 ;;;
-;;; An abelian group (A, MUL, E, INV) carrying a real-valued norm NRM.
+;;; An abelian group (A, OPR, E, INV) carrying a real-valued norm NRM.
 ;;; Slots 1-4 are EXACTLY the ABELIAN-GROUP shape (same accessor indices:
 ;;; A->1, MUL->2, E->3, INV->4), with the norm added at slot 5:
 ;;;
 ;;;     A   -> 1   carrier
-;;;     MUL -> 2   group operation        (CARTESIAN A A) A
+;;;     OPR -> 2   group operation        (CARTESIAN A A) A
 ;;;     E   -> 3   identity               A
 ;;;     INV -> 4   inverse                A A
 ;;;     NRM -> 5   norm                   A RR
@@ -18,7 +18,7 @@
 ;;; reorder f : X -> CARR we sum in NORMED-AG-AS-ABELIAN-GROUP(nag).
 ;;;
 ;;; The norm itself is the is-group-norm property (operation-properties.scm):
-;;; nonnegative, zero only at E, inverse-invariant, subadditive over MUL.
+;;; nonnegative, zero only at E, inverse-invariant, subadditive over OPR.
 ;;; No multiplicativity -- a group has one operation, not a ring's two.
 ;;;
 ;;; As with NORMED-FIELD vs RING, NORMED-AG is a 5-tuple while ABELIAN-GROUP
@@ -32,15 +32,15 @@
 
 (def-structure-from-clauses 'NORMED-AG
   '((carriers CARR)
-    (op MUL (CARTESIAN CARR CARR) CARR)
+    (op OPR (CARTESIAN CARR CARR) CARR)
     (constant IDEN CARR)
     (op INV CARR CARR)
     (op NRM CARR RR)
-    (property is-associative MUL CARR)
-    (property is-identity   MUL IDEN CARR)
-    (property has-inverses  MUL IDEN INV CARR)
-    (property is-commutative MUL CARR)
-    (property is-group-norm NRM MUL INV IDEN CARR)))
+    (property is-associative OPR CARR)
+    (property is-identity   OPR IDEN CARR)
+    (property has-inverses  OPR IDEN INV CARR)
+    (property is-commutative OPR CARR)
+    (property is-group-norm NRM OPR INV IDEN CARR)))
 
 ;;; Convenience restatement: the norm is a real-valued function on the carrier.
 ;;; (Immediate from is-group-norm; stated as a named axiom so callers need not
@@ -66,5 +66,5 @@
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
      (FORALL a (IMPLIES (IN a (CARR s))
        (FORALL b (IMPLIES (IN b (CARR s))
-         (<= ((NRM s) ((MUL s) a b))
+         (<= ((NRM s) ((OPR s) a b))
              (+ ((NRM s) a) ((NRM s) b))))))))))

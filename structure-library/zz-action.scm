@@ -23,7 +23,7 @@
 ;;; library-build phase: each warrant string is a paper-proof SKETCH, not a
 ;;; machine-checked VNB proof (which would rate the stronger `proof' tier).
 ;;;
-;;; Dependencies: abelian-group.scm (IS-ABELIAN-GROUP, MUL, E, INV),
+;;; Dependencies: abelian-group.scm (IS-ABELIAN-GROUP, OPR, E, INV),
 ;;; monoid-power.scm (MPOW, mpow-add), views.scm (ABELIAN-GROUP-AS-MONOID),
 ;;; number-systems.scm (NN, ZZ, +, *, unary -).
 
@@ -99,22 +99,22 @@
          (FORALL k (IMPLIES (IN k ZZ)
            (FORALL a (IMPLIES (IN a (CARR g))
              (= (ZZ-ACT g (+ j k) a)
-                ((MUL g) (ZZ-ACT g j a) (ZZ-ACT g k a))))))))))))
+                ((OPR g) (ZZ-ACT g j a) (ZZ-ACT g k a))))))))))))
 (warrant! 'zz-act-add 'informal
   "Keystone. Both nonneg: mpow-add directly. Mixed sign j>=0,k<0 (and symmetric): reduce via cancellation using INV against the NN identity mpow-add(min)+mpow-add(diff). Both negative: invert the all-positive case using AG commutativity. This is the content elided by 'rings are ZZ-modules'.")
 
 ;;; ---- Module distributivity:  k . (a + b) = k.a + k.b ---------------------
-;;; Needs the group to be ABELIAN (commutativity of MUL) to interleave factors.
+;;; Needs the group to be ABELIAN (commutativity of OPR) to interleave factors.
 (theory-add-axiom! *current-theory* 'zz-act-distrib
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL k (IMPLIES (IN k ZZ)
          (FORALL a (IMPLIES (IN a (CARR g))
            (FORALL b (IMPLIES (IN b (CARR g))
-             (= (ZZ-ACT g k ((MUL g) a b))
-                ((MUL g) (ZZ-ACT g k a) (ZZ-ACT g k b))))))))))))
+             (= (ZZ-ACT g k ((OPR g) a b))
+                ((OPR g) (ZZ-ACT g k a) (ZZ-ACT g k b))))))))))))
 (warrant! 'zz-act-distrib 'informal
-  "Nonneg case is mpow-mult on the (commutative) AG monoid; neg case applies INV to it using INV(MUL a b)=MUL(INV a)(INV b) in an abelian group.  Commutativity is essential.")
+  "Nonneg case is mpow-mult on the (commutative) AG monoid; neg case applies INV to it using INV(OPR a b)=OPR(INV a)(INV b) in an abelian group.  Commutativity is essential.")
 
 ;;; ---- Mixed associativity:  (j*k) . a = j . (k . a) -----------------------
 (theory-add-axiom! *current-theory* 'zz-act-assoc

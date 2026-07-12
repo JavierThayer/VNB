@@ -32,7 +32,7 @@
 (warrant! 'finsum-type 'informal
   "Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.")
 
 (warrant! 'finsum-well-defined 'informal

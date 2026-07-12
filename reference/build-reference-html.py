@@ -153,7 +153,7 @@ def inline(text):
     text = re.sub(r"_(\[warrant:[^\]]*\])_", r"<em>\1</em>", text)
     text = re.sub(r"\*(\S|\S[^*]*?\S)\*", r"<em>\1</em>", text)
     # 5. restore placeholders.  Loop until stable: a code span nested inside a
-    #    markdown link (e.g. [`cc-ring`](#cc-ring)) leaves a placeholder INSIDE
+    #    markdown link (e.g. [`cc-normed-field`](#cc-normed-field)) leaves a placeholder INSIDE
     #    another placeholder's stashed HTML, and re.sub is single-pass -- so one
     #    substitution would expose, but not expand, the inner one.
     while "\x00" in text:
@@ -237,6 +237,18 @@ def md_to_html(text, docid, used_ids):
         # horizontal rule
         if re.match(r"^-{3,}\s*$", line):
             out.append("<hr>"); i += 1; continue
+
+        # fenced code block ```lang ... ``` : the structure DECLARATIONS emitted
+        # by (structure-index).  Verbatim, no inline pass -- a law string is
+        # surface syntax and must survive character for character.
+        if line.startswith("```"):
+            i += 1
+            buf = []
+            while i < n and not lines[i].startswith("```"):
+                buf.append(lines[i]); i += 1
+            i += 1                       # closing fence (or EOF)
+            out.append(f"<pre>{esc(chr(10).join(buf).rstrip())}</pre>")
+            continue
 
         # indented code block (4+ spaces, not a list item): the statements
         if re.match(r"^ {4,}\S", line) and not re.match(r"^\s*-\s", line):

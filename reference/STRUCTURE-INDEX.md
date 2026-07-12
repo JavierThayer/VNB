@@ -14,7 +14,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 ## Table of contents
 
 - [`abelian-group`](#abelian-group)
-- [`cc-ring`](#cc-ring) *(definitional, ⊂ normed-field)*
+- [`cc-normed-field`](#cc-normed-field) *(definitional, ⊂ normed-field)*
 - [`comm-monoid`](#comm-monoid)
 - [`commutative-ring`](#commutative-ring) *(definitional, ⊂ ring)*
 - [`euclidean-ring`](#euclidean-ring) *(definitional, ⊂ integral-domain)*
@@ -33,7 +33,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 - [`qq-ring`](#qq-ring) *(definitional, ⊂ integral-domain)*
 - [`ring`](#ring)
 - [`rr+*-add-monoid`](#rr+*-add-monoid) *(definitional, ⊂ comm-monoid)*
-- [`rr-ring`](#rr-ring) *(definitional, ⊂ normed-field)*
+- [`rr-normed-field`](#rr-normed-field) *(definitional, ⊂ normed-field)*
 - [`semigroup`](#semigroup)
 - [`setoid`](#setoid)
 - [`vector-space`](#vector-space) *(definitional, ⊂ module)*
@@ -43,7 +43,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -53,7 +53,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - [`monoid`](#monoid) ← `ring`, `abelian-group`
 - [`normed-ag`](#normed-ag) ← `normed-vector-space`
 
-*Structures with no incoming views (graph sources):* `cc-ring`, `field`, `metric-space`, `nn-add-monoid`, `normed-field`, `normed-vector-space`, `pid`, `qq-field`, `qq-ring`, `ring`, `rr+*-add-monoid`, `rr-ring`, `semigroup`, `setoid`, `vector-space`, `zz-ring`.
+*Structures with no incoming views (graph sources):* `cc-normed-field`, `field`, `metric-space`, `nn-add-monoid`, `normed-field`, `normed-vector-space`, `pid`, `qq-field`, `qq-ring`, `ring`, `rr+*-add-monoid`, `rr-normed-field`, `semigroup`, `setoid`, `vector-space`, `zz-ring`.
 
 ## Structures
 
@@ -64,28 +64,42 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (4): carriers (carr), ops/constants (mul iden inv)
+*Slots* (4): carriers (carr), ops/constants (opr iden inv)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-abelian-group` — forall([carr, mul, iden, inv], is-abelian-group([carr, mul, iden, inv]) iff carr in set and mul in fun(cartesian(carr, carr), carr) and iden in carr and inv in fun(carr, carr) and is-associative(mul, carr) and is-identity(mul, iden, carr) and has-inverses(mul, iden, inv, carr) and is-commutative(mul, carr))
+```scheme
+(declare-structure abelian-group
+  (carriers carr)
+  (op opr (cartesian carr carr) carr)
+  (constant iden carr)
+  (op inv carr carr)
+  (property is-associative opr carr)
+  (property is-identity opr iden carr)
+  (property has-inverses opr iden inv carr)
+  (property is-commutative opr carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-abelian-group` — forall([s], is-abelian-group(s) iff length(s) = 4 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)) and is-commutative(opr(s), carr(s)))
 
 *Theorems quantifying over `is-abelian-group`.*
 
 - `abelian-group-as-monoid-is-monoid` — forall([r], is-abelian-group(r) implies is-monoid(abelian-group-as-monoid(r)))
-- `abelian-group-assoc` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
-- `abelian-group-assoc-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))(a, (mul(s))(b, c)) = (mul(s))((mul(s))(a, b), c)))
-- `abelian-group-idempotent-is-id` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (mul(s))(a, a) = a implies a = iden(s)))
-- `abelian-group-idempotent-is-id-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (mul(s))(a, a) = a implies iden(s) = a))
-- `abelian-group-inverse-unique` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = iden(s) implies b = (inv(s))(a)))
-- `abelian-group-inverse-unique-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = iden(s) implies (inv(s))(a) = b))
+- `abelian-group-assoc` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))
+- `abelian-group-assoc-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))(a, (opr(s))(b, c)) = (opr(s))((opr(s))(a, b), c)))
+- `abelian-group-idempotent-is-id` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (opr(s))(a, a) = a implies a = iden(s)))
+- `abelian-group-idempotent-is-id-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (opr(s))(a, a) = a implies iden(s) = a))
+- `abelian-group-inverse-unique` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(a, b) = iden(s) implies b = (inv(s))(a)))
+- `abelian-group-inverse-unique-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(a, b) = iden(s) implies (inv(s))(a) = b))
 - `abelian-group-is-group` — forall([s], is-abelian-group(s) implies is-group(s))
-- `abelian-group-mul-comm` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = (mul(s))(b, a)))
-- `abelian-group-mul-comm-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(b, a) = (mul(s))(a, b)))
-- `abelian-group-right-id` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (mul(s))(a, iden(s)) = a))
-- `abelian-group-right-id-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], a = (mul(s))(a, iden(s))))
-- `finsum-add-ag` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, (mul(ag))(f(z), h(z))), s) = (mul(ag))(finsum(ag, f, s), finsum(ag, h, s)))))
-- `finsum-add-ag-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], (mul(ag))(finsum(ag, f, s), finsum(ag, h, s)) = finsum(ag, vnb-lambda(z, (mul(ag))(f(z), h(z))), s))))
+- `abelian-group-mul-comm` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(a, b) = (opr(s))(b, a)))
+- `abelian-group-mul-comm-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(b, a) = (opr(s))(a, b)))
+- `abelian-group-right-id` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], (opr(s))(a, iden(s)) = a))
+- `abelian-group-right-id-rev` — forall([s], is-abelian-group(s) implies forall([a in carr(s)], a = (opr(s))(a, iden(s))))
+- `finsum-add-ag` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, (opr(ag))(f(z), h(z))), s) = (opr(ag))(finsum(ag, f, s), finsum(ag, h, s)))))
+- `finsum-add-ag-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], (opr(ag))(finsum(ag, f, s), finsum(ag, h, s)) = finsum(ag, vnb-lambda(z, (opr(ag))(f(z), h(z))), s))))
 - `finsum-all-id` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], forall([z in s], f(z) = iden(ag)) implies finsum(ag, f, s) = iden(ag))))
 - `finsum-all-id-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], forall([z in s], f(z) = iden(ag)) implies iden(ag) = finsum(ag, f, s))))
 - `finsum-congruence` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), g in fun(s, carr(ag))], forall([z in s], f(z) = g(z)) implies finsum(ag, f, s) = finsum(ag, g, s))))
@@ -96,56 +110,56 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `finsum-fubini-c` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([y in set], card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y)))))
 - `finsum-fubini-c-rev` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([y in set], card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y) = finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x)))))
 - `finsum-fubini-rev` — forall([ag], is-abelian-group(ag) implies forall([x], x in set and card(x) in nn implies forall([y], y in set and card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y) = finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x)))))
-- `finsum-insert-ag` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], finsum(ag, f, union(x, {k})) = (mul(ag))(finsum(ag, f, x), f(k))))))
-- `finsum-insert-ag-rev` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], (mul(ag))(finsum(ag, f, x), f(k)) = finsum(ag, f, union(x, {k}))))))
-- `finsum-interval-peel` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (mul(ag))(finsum(ag, f, interval(1, n)), f(succ(n)))))
-- `finsum-interval-peel-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], (mul(ag))(finsum(ag, f, interval(1, n)), f(succ(n))) = finsum(ag, f, interval(1, succ(n)))))
-- `finsum-interval-shift` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (mul(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n)))))
-- `finsum-interval-shift-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], (mul(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n))) = finsum(ag, f, interval(1, succ(n)))))
-- `finsum-ord-peel` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], finsum(ag, f, ord-segment(succ(n))) = (mul(ag))(finsum(ag, f, ord-segment(n)), f(n))))
-- `finsum-ord-peel-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], (mul(ag))(finsum(ag, f, ord-segment(n)), f(n)) = finsum(ag, f, ord-segment(succ(n)))))
+- `finsum-insert-ag` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], finsum(ag, f, union(x, {k})) = (opr(ag))(finsum(ag, f, x), f(k))))))
+- `finsum-insert-ag-rev` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], (opr(ag))(finsum(ag, f, x), f(k)) = finsum(ag, f, union(x, {k}))))))
+- `finsum-interval-peel` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(finsum(ag, f, interval(1, n)), f(succ(n)))))
+- `finsum-interval-peel-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], (opr(ag))(finsum(ag, f, interval(1, n)), f(succ(n))) = finsum(ag, f, interval(1, succ(n)))))
+- `finsum-interval-shift` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n)))))
+- `finsum-interval-shift-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], (opr(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n))) = finsum(ag, f, interval(1, succ(n)))))
+- `finsum-ord-peel` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], finsum(ag, f, ord-segment(succ(n))) = (opr(ag))(finsum(ag, f, ord-segment(n)), f(n))))
+- `finsum-ord-peel-rev` — forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], (opr(ag))(finsum(ag, f, ord-segment(n)), f(n)) = finsum(ag, f, ord-segment(succ(n)))))
 - `finsum-reindex-ag` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(ag))], finsum(ag, f, s) = finsum(ag, vnb-lambda(z, f(phi(z))), t)))))
 - `finsum-reindex-ag-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, f(phi(z))), t) = finsum(ag, f, s)))))
 - `finsum-single-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s], forall([j in s], not(j = i0) implies f(j) = iden(ag)) implies finsum(ag, f, s) = f(i0))))
 - `finsum-single-support-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s], forall([j in s], not(j = i0) implies f(j) = iden(ag)) implies f(i0) = finsum(ag, f, s))))
 - `finsum-singleton` — forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], finsum(ag, f, {x}) = f(x)))
 - `finsum-singleton-rev` — forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], f(x) = finsum(ag, f, {x})))
-- `finsum-two-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (mul(ag))(f(i0), f(i1)))))
-- `finsum-two-support-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies (mul(ag))(f(i0), f(i1)) = finsum(ag, f, s))))
+- `finsum-two-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (opr(ag))(f(i0), f(i1)))))
+- `finsum-two-support-rev` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies (opr(ag))(f(i0), f(i1)) = finsum(ag, f, s))))
 - `finsum-type` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], finsum(ag, f, s) in carr(ag))))
-- `monoid-assoc-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `monoid-assoc-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `monoid-assoc-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `monoid-assoc-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
+- `monoid-assoc-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `monoid-assoc-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `monoid-assoc-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `monoid-assoc-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
 - `monoid-identity-in-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies iden(r) in carr(r))
-- `monoid-left-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
-- `monoid-left-id-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (mul(r))(iden(r), a)))
-- `monoid-left-id-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (mul(r))(iden(r), a)))
-- `monoid-left-id-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
-- `monoid-right-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `monoid-right-id-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `monoid-right-id-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `monoid-right-id-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `mpow-add-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
-- `mpow-add-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
-- `mpow-add-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
-- `mpow-add-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (mul(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
+- `monoid-left-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (opr(r))(iden(r), a) = a))
+- `monoid-left-id-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (opr(r))(iden(r), a)))
+- `monoid-left-id-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (opr(r))(iden(r), a)))
+- `monoid-left-id-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (opr(r))(iden(r), a) = a))
+- `monoid-right-id-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `monoid-right-id-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `monoid-right-id-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `monoid-right-id-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `mpow-add-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
+- `mpow-add-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
+- `mpow-add-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
+- `mpow-add-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
 - `mpow-one-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r)], mpow(abelian-group-as-monoid(r), x, 1) = x))
 - `mpow-one-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r)], x = mpow(abelian-group-as-monoid(r), x, 1)))
 - `mpow-one-rev-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r)], x = mpow(abelian-group-as-monoid(r), x, 1)))
 - `mpow-one-rev-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r)], mpow(abelian-group-as-monoid(r), x, 1) = x))
 - `mpow-type-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r), n in nn], mpow(abelian-group-as-monoid(r), x, n) in carr(r)))
-- `sum-ag-as-reduce` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag)), n], n in nn and 1 <= n implies sum-ag(ag, f, n) = reduce(mul(ag), f, n)))
-- `sum-ag-as-reduce-rev` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag)), n], n in nn and 1 <= n implies reduce(mul(ag), f, n) = sum-ag(ag, f, n)))
+- `sum-ag-as-reduce` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag)), n], n in nn and 1 <= n implies sum-ag(ag, f, n) = reduce(opr(ag), f, n)))
+- `sum-ag-as-reduce-rev` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag)), n], n in nn and 1 <= n implies reduce(opr(ag), f, n) = sum-ag(ag, f, n)))
 - `sum-ag-singleton` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag))], sum-ag(ag, f, 1) = f(0)))
 - `sum-ag-singleton-rev` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag))], f(0) = sum-ag(ag, f, 1)))
 - `sum-ag-type` — forall([ag], is-abelian-group(ag) implies forall([f in fun(nn, carr(ag)), n in nn], sum-ag(ag, f, n) in carr(ag)))
-- `zz-act-add` — forall([g], is-abelian-group(g) implies forall([j in zz, k in zz, a in carr(g)], zz-act(g, j + k, a) = (mul(g))(zz-act(g, j, a), zz-act(g, k, a))))
-- `zz-act-add-rev` — forall([g], is-abelian-group(g) implies forall([j in zz, k in zz, a in carr(g)], (mul(g))(zz-act(g, j, a), zz-act(g, k, a)) = zz-act(g, j + k, a)))
+- `zz-act-add` — forall([g], is-abelian-group(g) implies forall([j in zz, k in zz, a in carr(g)], zz-act(g, j + k, a) = (opr(g))(zz-act(g, j, a), zz-act(g, k, a))))
+- `zz-act-add-rev` — forall([g], is-abelian-group(g) implies forall([j in zz, k in zz, a in carr(g)], (opr(g))(zz-act(g, j, a), zz-act(g, k, a)) = zz-act(g, j + k, a)))
 - `zz-act-assoc` — forall([g], is-abelian-group(g) implies forall([j in zz, k in zz, a in carr(g)], zz-act(g, j * k, a) = zz-act(g, j, zz-act(g, k, a))))
 - `zz-act-assoc-rev` — forall([g], is-abelian-group(g) implies forall([j in zz, k in zz, a in carr(g)], zz-act(g, j, zz-act(g, k, a)) = zz-act(g, j * k, a)))
-- `zz-act-distrib` — forall([g], is-abelian-group(g) implies forall([k in zz, a in carr(g), b in carr(g)], zz-act(g, k, (mul(g))(a, b)) = (mul(g))(zz-act(g, k, a), zz-act(g, k, b))))
-- `zz-act-distrib-rev` — forall([g], is-abelian-group(g) implies forall([k in zz, a in carr(g), b in carr(g)], (mul(g))(zz-act(g, k, a), zz-act(g, k, b)) = zz-act(g, k, (mul(g))(a, b))))
+- `zz-act-distrib` — forall([g], is-abelian-group(g) implies forall([k in zz, a in carr(g), b in carr(g)], zz-act(g, k, (opr(g))(a, b)) = (opr(g))(zz-act(g, k, a), zz-act(g, k, b))))
+- `zz-act-distrib-rev` — forall([g], is-abelian-group(g) implies forall([k in zz, a in carr(g), b in carr(g)], (opr(g))(zz-act(g, k, a), zz-act(g, k, b)) = zz-act(g, k, (opr(g))(a, b))))
 - `zz-act-neg` — forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, -k, a) = (inv(g))(mpow(abelian-group-as-monoid(g), a, k))))
 - `zz-act-neg-rev` — forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], (inv(g))(mpow(abelian-group-as-monoid(g), a, k)) = zz-act(g, -k, a)))
 - `zz-act-neg-sign` — forall([g], is-abelian-group(g) implies forall([k in zz, a in carr(g)], zz-act(g, -k, a) = (inv(g))(zz-act(g, k, a))))
@@ -160,19 +174,19 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Views into `abelian-group`.*
 
-- `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr mul iden inv)
-- `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr mul iden inv)
-- `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr mul iden inv)
-- `normed-ag-as-abelian-group` — from `normed-ag`: (carr mul iden inv) ↦ (carr mul iden inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr mul iden inv)
-- `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr mul iden inv)
+- `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr opr iden inv)
+- `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr opr iden inv)
+- `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr opr iden inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr opr iden inv)
+- `normed-ag-as-abelian-group` — from `normed-ag`: (carr opr iden inv) ↦ (carr opr iden inv)
+- `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr opr iden inv)
 
 *Views from `abelian-group`.*
 
-- `abelian-group-as-monoid` — into `monoid`: (carr mul iden) ↦ (carr mul iden)
+- `abelian-group-as-monoid` — into `monoid`: (carr opr iden) ↦ (carr opr iden)
 
-### cc-ring
-<a id="cc-ring"></a>
+### cc-normed-field
+<a id="cc-normed-field"></a>
 
 *Declared in* [`structure-library/numeric-instances.scm`](../structure-library/numeric-instances.scm).
 
@@ -190,7 +204,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `neg` = `binneg`
 - `zero` = `0`
 - `one` = `1`
-- `nrm` = `magnitude`
+- `fnrm` = `magnitude`
 
 ### comm-monoid
 <a id="comm-monoid"></a>
@@ -199,34 +213,46 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (3): carriers (carr), ops/constants (mul iden)
+*Slots* (3): carriers (carr), ops/constants (opr iden)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-comm-monoid` — forall([carr, mul, iden], is-comm-monoid([carr, mul, iden]) iff carr in set and mul in fun(cartesian(carr, carr), carr) and iden in carr and is-associative(mul, carr) and is-identity(mul, iden, carr) and is-commutative(mul, carr))
+```scheme
+(declare-structure comm-monoid
+  (carriers carr)
+  (op opr (cartesian carr carr) carr)
+  (constant iden carr)
+  (property is-associative opr carr)
+  (property is-identity opr iden carr)
+  (property is-commutative opr carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-comm-monoid` — forall([s], is-comm-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and is-commutative(opr(s), carr(s)))
 
 *Theorems quantifying over `is-comm-monoid`.*
 
 - `comm-monoid-is-monoid` — forall([s], is-comm-monoid(s) implies is-monoid(s))
-- `comm-monoid-mul-comm` — forall([s], is-comm-monoid(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = (mul(s))(b, a)))
-- `comm-monoid-mul-comm-rev` — forall([s], is-comm-monoid(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(b, a) = (mul(s))(a, b)))
-- `finsum-add` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s) = (mul(m))(finsum(m, f, s), finsum(m, h, s)))))
-- `finsum-add-rev` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], (mul(m))(finsum(m, f, s), finsum(m, h, s)) = finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s))))
+- `comm-monoid-mul-comm` — forall([s], is-comm-monoid(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(a, b) = (opr(s))(b, a)))
+- `comm-monoid-mul-comm-rev` — forall([s], is-comm-monoid(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(b, a) = (opr(s))(a, b)))
+- `finsum-add` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (opr(m))(f(z), h(z))), s) = (opr(m))(finsum(m, f, s), finsum(m, h, s)))))
+- `finsum-add-rev` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], (opr(m))(finsum(m, f, s), finsum(m, h, s)) = finsum(m, vnb-lambda(z, (opr(m))(f(z), h(z))), s))))
 - `finsum-comm-monoid-type` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m))], finsum(m, f, s) in carr(m))))
-- `finsum-insert` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (mul(m))(finsum(m, f, x), f(k))))))
-- `finsum-insert-rev` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], (mul(m))(finsum(m, f, x), f(k)) = finsum(m, f, union(x, {k}))))))
+- `finsum-insert` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (opr(m))(finsum(m, f, x), f(k))))))
+- `finsum-insert-rev` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], (opr(m))(finsum(m, f, x), f(k)) = finsum(m, f, union(x, {k}))))))
 - `finsum-reindex` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, f, s) = finsum(m, vnb-lambda(z, f(phi(z))), t)))))
 - `finsum-reindex-rev` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, vnb-lambda(z, f(phi(z))), t) = finsum(m, f, s)))))
-- `mpow-mult` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], mpow(m, (mul(m))(x, y), n) = (mul(m))(mpow(m, x, n), mpow(m, y, n))))
-- `mpow-mult-rev` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], (mul(m))(mpow(m, x, n), mpow(m, y, n)) = mpow(m, (mul(m))(x, y), n)))
-- `prod-set-disjoint-union` — forall([cm], is-comm-monoid(cm) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(cm)) implies prod-set(cm, union(s1, s2), f) = (mul(cm))(prod-set(cm, s1, f), prod-set(cm, s2, f))))
-- `prod-set-disjoint-union-rev` — forall([cm], is-comm-monoid(cm) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(cm)) implies (mul(cm))(prod-set(cm, s1, f), prod-set(cm, s2, f)) = prod-set(cm, union(s1, s2), f)))
+- `mpow-mult` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], mpow(m, (opr(m))(x, y), n) = (opr(m))(mpow(m, x, n), mpow(m, y, n))))
+- `mpow-mult-rev` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], (opr(m))(mpow(m, x, n), mpow(m, y, n)) = mpow(m, (opr(m))(x, y), n)))
+- `prod-set-disjoint-union` — forall([cm], is-comm-monoid(cm) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(cm)) implies prod-set(cm, union(s1, s2), f) = (opr(cm))(prod-set(cm, s1, f), prod-set(cm, s2, f))))
+- `prod-set-disjoint-union-rev` — forall([cm], is-comm-monoid(cm) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(cm)) implies (opr(cm))(prod-set(cm, s1, f), prod-set(cm, s2, f)) = prod-set(cm, union(s1, s2), f)))
 - `prod-set-singleton` — forall([cm], is-comm-monoid(cm) implies forall([x, f], prod-set(cm, {x}, f) = f(x)))
 - `prod-set-singleton-rev` — forall([cm], is-comm-monoid(cm) implies forall([x, f], f(x) = prod-set(cm, {x}, f)))
 
 *Views into `comm-monoid`.*
 
-- `commutative-ring-multiplicative-cm` — from `commutative-ring`: (carr mul one) ↦ (carr mul iden)
+- `commutative-ring-multiplicative-cm` — from `commutative-ring`: (carr mul one) ↦ (carr opr iden)
 
 ### commutative-ring
 <a id="commutative-ring"></a>
@@ -235,9 +261,17 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`ring`](#ring).  Shape inherited from `ring` — slots (carr add mul neg zero one).
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-commutative-ring-def` — forall([carr, add, mul, neg, zero, one], is-commutative-ring([carr, add, mul, neg, zero, one]) iff is-ring([carr, add, mul, neg, zero, one]) and forall([a in carr, b in carr], mul(a, b) = mul(b, a)))
+```scheme
+(declare-structure commutative-ring
+  (same-shape-as ring)
+  (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-commutative-ring-def` — forall([s], is-commutative-ring(s) iff is-ring(s) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = (mul(s))(b, a)))
 
 *Theorems quantifying over `is-commutative-ring`.*
 
@@ -343,9 +377,22 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`integral-domain`](#integral-domain).  Shape inherited from `integral-domain` — slots (carr add mul neg zero one).
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-euclidean-ring-def` — forall([carr, add, mul, neg, zero, one], is-euclidean-ring([carr, add, mul, neg, zero, one]) iff is-integral-domain([carr, add, mul, neg, zero, one]) and forsome([deg in fun(carr, nn)], forall([a in carr, b in carr], not(b = zero) implies forsome([q in carr, r in carr], a = add(mul(q, b), r) and (r = zero or succ(deg(r)) <= deg(b))))))
+```scheme
+(declare-structure euclidean-ring
+  (same-shape-as integral-domain)
+  (law "forsome([deg in fun(carr(s), nn)],
+          forall([a in carr(s), b in carr(s)],
+            not(b = zero(s)) implies
+              forsome([q in carr(s), r in carr(s)],
+                a = add(s)(mul(s)(q, b), r)
+                and (r = zero(s) or succ(deg(r)) <= deg(b)))))"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-euclidean-ring-def` — forall([s], is-euclidean-ring(s) iff is-integral-domain(s) and forsome([deg in fun(carr(s), nn)], forall([a in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) <= deg(b))))))
 
 *Theorems quantifying over `is-euclidean-ring`.*
 
@@ -380,11 +427,33 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (8): carriers (carr non-zero), ops/constants (add mul neg zero one inv)
+*Slots* (8): carriers (carr non-zero), ops/constants (add mul neg zero one recip)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-field` — forall([carr, add, mul, neg, zero, one, non-zero, inv], is-field([carr, add, mul, neg, zero, one, non-zero, inv]) iff carr in set and add in fun(cartesian(carr, carr), carr) and mul in fun(cartesian(carr, carr), carr) and neg in fun(carr, carr) and zero in carr and one in carr and non-zero in set and inv in fun(non-zero, non-zero) and is-associative(add, carr) and is-commutative(add, carr) and is-identity(add, zero, carr) and has-inverses(add, zero, neg, carr) and is-associative(mul, carr) and is-commutative(mul, carr) and is-identity(mul, one, carr) and is-distributive(add, mul, carr))
+```scheme
+(declare-structure field
+  (carriers carr)
+  (op add (cartesian carr carr) carr)
+  (op mul (cartesian carr carr) carr)
+  (op neg carr carr)
+  (constant zero carr)
+  (constant one carr)
+  (carriers non-zero)
+  (op recip non-zero non-zero)
+  (property is-associative add carr)
+  (property is-commutative add carr)
+  (property is-identity add zero carr)
+  (property has-inverses add zero neg carr)
+  (property is-associative mul carr)
+  (property is-commutative mul carr)
+  (property is-identity mul one carr)
+  (property is-distributive add mul carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-field` — forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and recip(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 
 *Theorems quantifying over `is-field`.*
 
@@ -409,8 +478,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `field-additive-ag-is-abelian-group` — forall([r], is-field(r) implies is-abelian-group(field-additive-ag(r)))
 - `field-as-euclidean-ring-is-euclidean-ring` — forall([r], is-field(r) implies is-euclidean-ring(field-as-euclidean-ring(r)))
 - `field-as-integral-domain-is-integral-domain` — forall([r], is-field(r) implies is-integral-domain(field-as-integral-domain(r)))
-- `field-mul-inverse` — forall([s], is-field(s) implies forall([a in non-zero(s)], (mul(s))(a, (inv(s))(a)) = one(s)))
-- `field-mul-inverse-rev` — forall([s], is-field(s) implies forall([a in non-zero(s)], one(s) = (mul(s))(a, (inv(s))(a))))
+- `field-mul-inverse` — forall([s], is-field(s) implies forall([a in non-zero(s)], (mul(s))(a, (recip(s))(a)) = one(s)))
+- `field-mul-inverse-rev` — forall([s], is-field(s) implies forall([a in non-zero(s)], one(s) = (mul(s))(a, (recip(s))(a))))
 - `field-multiplicative-group-is-group` — forall([r], is-field(r) implies is-group(field-multiplicative-group(r)))
 - `field-non-zero-carrier` — forall([s], is-field(s) implies non-zero(s) = difference(carr(s), singleton(zero(s))))
 - `field-non-zero-carrier-rev` — forall([s], is-field(s) implies difference(carr(s), singleton(zero(s))) = non-zero(s))
@@ -425,10 +494,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `group-left-id-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], a = (mul(r))(one(r), a)))
 - `group-left-id-rev-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r)], a = (mul(r))(one(r), a)))
 - `group-left-id-rev-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], (mul(r))(one(r), a) = a))
-- `group-left-inv-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r)], (mul(r))((inv(r))(a), a) = one(r)))
-- `group-left-inv-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], one(r) = (mul(r))((inv(r))(a), a)))
-- `group-left-inv-rev-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r)], one(r) = (mul(r))((inv(r))(a), a)))
-- `group-left-inv-rev-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], (mul(r))((inv(r))(a), a) = one(r)))
+- `group-left-inv-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r)], (mul(r))((recip(r))(a), a) = one(r)))
+- `group-left-inv-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], one(r) = (mul(r))((recip(r))(a), a)))
+- `group-left-inv-rev-field-multiplicative-group` — forall([r], is-field(r) implies forall([a in non-zero(r)], one(r) = (mul(r))((recip(r))(a), a)))
+- `group-left-inv-rev-field-multiplicative-group-rev` — forall([r], is-field(r) implies forall([a in non-zero(r)], (mul(r))((recip(r))(a), a) = one(r)))
 - `integral-domain-cancel-zero-field-as-integral-domain` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies a = zero(r)))
 - `integral-domain-cancel-zero-field-as-integral-domain-rev` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies zero(r) = a))
 - `integral-domain-cancel-zero-rev-field-as-integral-domain` — forall([r], is-field(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = zero(r) implies not(b = zero(r)) implies zero(r) = a))
@@ -464,8 +533,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
-- `field-multiplicative-group` — into `group`: (non-zero mul one inv) ↦ (carr mul iden inv)
+- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one recip) ↦ (carr opr iden inv)
 
 ### group
 <a id="group"></a>
@@ -474,25 +543,38 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (4): carriers (carr), ops/constants (mul iden inv)
+*Slots* (4): carriers (carr), ops/constants (opr iden inv)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-group` — forall([carr, mul, iden, inv], is-group([carr, mul, iden, inv]) iff carr in set and mul in fun(cartesian(carr, carr), carr) and iden in carr and inv in fun(carr, carr) and is-associative(mul, carr) and is-identity(mul, iden, carr) and has-inverses(mul, iden, inv, carr))
+```scheme
+(declare-structure group
+  (carriers carr)
+  (op opr (cartesian carr carr) carr)
+  (constant iden carr)
+  (op inv carr carr)
+  (property is-associative opr carr)
+  (property is-identity opr iden carr)
+  (property has-inverses opr iden inv carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-group` — forall([s], is-group(s) iff length(s) = 4 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)))
 
 *Theorems quantifying over `is-group`.*
 
-- `group-assoc` — forall([s], is-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
-- `group-assoc-rev` — forall([s], is-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))(a, (mul(s))(b, c)) = (mul(s))((mul(s))(a, b), c)))
+- `group-assoc` — forall([s], is-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))
+- `group-assoc-rev` — forall([s], is-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))(a, (opr(s))(b, c)) = (opr(s))((opr(s))(a, b), c)))
 - `group-identity-in` — forall([s], is-group(s) implies iden(s) in carr(s))
-- `group-left-id` — forall([s], is-group(s) implies forall([a in carr(s)], (mul(s))(iden(s), a) = a))
-- `group-left-id-rev` — forall([s], is-group(s) implies forall([a in carr(s)], a = (mul(s))(iden(s), a)))
-- `group-left-inv` — forall([s], is-group(s) implies forall([a in carr(s)], (mul(s))((inv(s))(a), a) = iden(s)))
-- `group-left-inv-rev` — forall([s], is-group(s) implies forall([a in carr(s)], iden(s) = (mul(s))((inv(s))(a), a)))
+- `group-left-id` — forall([s], is-group(s) implies forall([a in carr(s)], (opr(s))(iden(s), a) = a))
+- `group-left-id-rev` — forall([s], is-group(s) implies forall([a in carr(s)], a = (opr(s))(iden(s), a)))
+- `group-left-inv` — forall([s], is-group(s) implies forall([a in carr(s)], (opr(s))((inv(s))(a), a) = iden(s)))
+- `group-left-inv-rev` — forall([s], is-group(s) implies forall([a in carr(s)], iden(s) = (opr(s))((inv(s))(a), a)))
 
 *Views into `group`.*
 
-- `field-multiplicative-group` — from `field`: (non-zero mul one inv) ↦ (carr mul iden inv)
+- `field-multiplicative-group` — from `field`: (non-zero mul one recip) ↦ (carr opr iden inv)
 
 ### integral-domain
 <a id="integral-domain"></a>
@@ -501,9 +583,19 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`commutative-ring`](#commutative-ring).  Shape inherited from `commutative-ring` — slots (carr add mul neg zero one).
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-integral-domain-def` — forall([carr, add, mul, neg, zero, one], is-integral-domain([carr, add, mul, neg, zero, one]) iff is-commutative-ring([carr, add, mul, neg, zero, one]) and not(one = zero) and forall([a in carr, b in carr], mul(a, b) = zero implies a = zero or b = zero))
+```scheme
+(declare-structure integral-domain
+  (same-shape-as commutative-ring)
+  (law "not(one(s) = zero(s))")
+  (law "forall([a in carr(s), b in carr(s)],
+          mul(s)(a, b) = zero(s) implies (a = zero(s) or b = zero(s)))"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-integral-domain-def` — forall([s], is-integral-domain(s) iff is-commutative-ring(s) and not(one(s) = zero(s)) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies a = zero(s) or b = zero(s)))
 
 *Theorems quantifying over `is-integral-domain`.*
 
@@ -526,9 +618,18 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Slots* (2): carriers (pts), ops/constants (dist)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-metric-space` — forall([pts, dist], is-metric-space([pts, dist]) iff pts in set and dist in fun(cartesian(pts, pts), rr) and is-metric(dist, pts))
+```scheme
+(declare-structure metric-space
+  (carriers pts)
+  (op dist (cartesian pts pts) rr)
+  (property is-metric dist pts))
+```
+
+*Defining predicate* (as stored):
+
+- `is-metric-space` — forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 
 *Theorems quantifying over `is-metric-space`.*
 
@@ -582,9 +683,32 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Slots* (6): carriers (vec), ops/constants (vadd vzero vneg act)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-module` — forall([scal, vec, vadd, vzero, vneg, act], is-module([scal, vec, vadd, vzero, vneg, act]) iff is-ring(scal) and vec in set and vadd in fun(cartesian(vec, vec), vec) and vzero in vec and vneg in fun(vec, vec) and act in fun(cartesian(carr(scal), vec), vec) and is-associative(vadd, vec) and is-commutative(vadd, vec) and is-identity(vadd, vzero, vec) and has-inverses(vadd, vzero, vneg, vec) and forall([r_ in carr(scal), x_ in vec, y_ in vec], act(r_, vadd(x_, y_)) = vadd(act(r_, x_), act(r_, y_))) and forall([r_ in carr(scal), s_ in carr(scal), x_ in vec], act((add(scal))(r_, s_), x_) = vadd(act(r_, x_), act(s_, x_))) and forall([r_ in carr(scal), s_ in carr(scal), x_ in vec], act((mul(scal))(r_, s_), x_) = act(r_, act(s_, x_))) and forall([x_ in vec], act(one(scal), x_) = x_))
+```scheme
+(declare-structure module
+  (substructure scal ring)
+  (carriers vec)
+  (op vadd (cartesian vec vec) vec)
+  (constant vzero vec)
+  (op vneg vec vec)
+  (op act (cartesian (carr scal) vec) vec)
+  (property is-associative vadd vec)
+  (property is-commutative vadd vec)
+  (property is-identity vadd vzero vec)
+  (property has-inverses vadd vzero vneg vec)
+  (law "forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)],
+          act(s)(r_, vadd(s)(x_, y_)) = vadd(s)(act(s)(r_, x_), act(s)(r_, y_)))")
+  (law "forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)],
+          act(s)(add(scal(s))(r_, s_), x_) = vadd(s)(act(s)(r_, x_), act(s)(s_, x_)))")
+  (law "forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)],
+          act(s)(mul(scal(s))(r_, s_), x_) = act(s)(r_, act(s)(s_, x_)))")
+  (law "forall([x_ in vec(s)], act(s)(one(scal(s)), x_) = x_)"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-module` — forall([s], is-module(s) iff length(s) = 6 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_))
 
 *Theorems quantifying over `is-module`.*
 
@@ -699,7 +823,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-rev-abelian-group-as-monoid-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag` — forall([r], is-module(r) implies forall([a in vec(r)], (vadd(r))(a, vzero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-module-vector-ag-rev` — forall([r], is-module(r) implies forall([a in vec(r)], a = (vadd(r))(a, vzero(r))))
-- `mra-combined-summand-type` — forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (mul(module-vector-ag(md)))((vnb-lambda(j, (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))
+- `mra-combined-summand-type` — forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (opr(module-vector-ag(md)))((vnb-lambda(j, (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))
 - `mrs-scaled-summand-type` — forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (act(md))(r, (vnb-lambda(j, (act(md))(entry(c, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))
 - `span-is-submodule` — forall([md], is-module(md) implies forall([n, u in mat(n, 1, vec(md))], is-submodule(md, span(md, n, u))))
 - `spans-span` — forall([md], is-module(md) implies forall([n, u in mat(n, 1, vec(md))], spans(md, n, u, span(md, n, u))))
@@ -714,7 +838,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Views from `module`.*
 
-- `module-vector-ag` — into `abelian-group`: (vec vadd vzero vneg) ↦ (carr mul iden inv)
+- `module-vector-ag` — into `abelian-group`: (vec vadd vzero vneg) ↦ (carr opr iden inv)
 
 ### monoid
 <a id="monoid"></a>
@@ -723,23 +847,34 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (3): carriers (carr), ops/constants (mul iden)
+*Slots* (3): carriers (carr), ops/constants (opr iden)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-monoid` — forall([carr, mul, iden], is-monoid([carr, mul, iden]) iff carr in set and mul in fun(cartesian(carr, carr), carr) and iden in carr and is-associative(mul, carr) and is-identity(mul, iden, carr))
+```scheme
+(declare-structure monoid
+  (carriers carr)
+  (op opr (cartesian carr carr) carr)
+  (constant iden carr)
+  (property is-associative opr carr)
+  (property is-identity opr iden carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-monoid` — forall([s], is-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)))
 
 *Theorems quantifying over `is-monoid`.*
 
-- `monoid-assoc` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
-- `monoid-assoc-rev` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))(a, (mul(s))(b, c)) = (mul(s))((mul(s))(a, b), c)))
+- `monoid-assoc` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))
+- `monoid-assoc-rev` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))(a, (opr(s))(b, c)) = (opr(s))((opr(s))(a, b), c)))
 - `monoid-identity-in` — forall([m], is-monoid(m) implies iden(m) in carr(m))
-- `monoid-left-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (mul(s))(iden(s), a) = a))
-- `monoid-left-id-rev` — forall([s], is-monoid(s) implies forall([a in carr(s)], a = (mul(s))(iden(s), a)))
-- `monoid-right-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (mul(s))(a, iden(s)) = a))
-- `monoid-right-id-rev` — forall([s], is-monoid(s) implies forall([a in carr(s)], a = (mul(s))(a, iden(s))))
-- `mpow-add` — forall([m], is-monoid(m) implies forall([x in carr(m), j in nn, k in nn], mpow(m, x, j + k) = (mul(m))(mpow(m, x, j), mpow(m, x, k))))
-- `mpow-add-rev` — forall([m], is-monoid(m) implies forall([x in carr(m), j in nn, k in nn], (mul(m))(mpow(m, x, j), mpow(m, x, k)) = mpow(m, x, j + k)))
+- `monoid-left-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (opr(s))(iden(s), a) = a))
+- `monoid-left-id-rev` — forall([s], is-monoid(s) implies forall([a in carr(s)], a = (opr(s))(iden(s), a)))
+- `monoid-right-id` — forall([s], is-monoid(s) implies forall([a in carr(s)], (opr(s))(a, iden(s)) = a))
+- `monoid-right-id-rev` — forall([s], is-monoid(s) implies forall([a in carr(s)], a = (opr(s))(a, iden(s))))
+- `mpow-add` — forall([m], is-monoid(m) implies forall([x in carr(m), j in nn, k in nn], mpow(m, x, j + k) = (opr(m))(mpow(m, x, j), mpow(m, x, k))))
+- `mpow-add-rev` — forall([m], is-monoid(m) implies forall([x in carr(m), j in nn, k in nn], (opr(m))(mpow(m, x, j), mpow(m, x, k)) = mpow(m, x, j + k)))
 - `mpow-one` — forall([m], is-monoid(m) implies forall([x in carr(m)], mpow(m, x, 1) = x))
 - `mpow-one-rev` — forall([m], is-monoid(m) implies forall([x in carr(m)], x = mpow(m, x, 1)))
 - `mpow-type` — forall([m], is-monoid(m) implies forall([x in carr(m), n in nn], mpow(m, x, n) in carr(m)))
@@ -749,8 +884,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Views into `monoid`.*
 
-- `ring-multiplicative-monoid` — from `ring`: (carr mul one) ↦ (carr mul iden)
-- `abelian-group-as-monoid` — from `abelian-group`: (carr mul iden) ↦ (carr mul iden)
+- `ring-multiplicative-monoid` — from `ring`: (carr mul one) ↦ (carr opr iden)
+- `abelian-group-as-monoid` — from `abelian-group`: (carr opr iden) ↦ (carr opr iden)
 
 ### nn-add-monoid
 <a id="nn-add-monoid"></a>
@@ -766,7 +901,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Components* (mapped to inherited `comm-monoid` slots):
 
 - `carr` = `nn`
-- `mul` = `binplus`
+- `opr` = `binplus`
 - `iden` = `0`
 
 ### normed-ag
@@ -776,75 +911,91 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (5): carriers (carr), ops/constants (mul iden inv nrm)
+*Slots* (5): carriers (carr), ops/constants (opr iden inv nrm)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-normed-ag` — forall([carr, mul, iden, inv, nrm], is-normed-ag([carr, mul, iden, inv, nrm]) iff carr in set and mul in fun(cartesian(carr, carr), carr) and iden in carr and inv in fun(carr, carr) and nrm in fun(carr, rr) and is-associative(mul, carr) and is-identity(mul, iden, carr) and has-inverses(mul, iden, inv, carr) and is-commutative(mul, carr) and is-group-norm(nrm, mul, inv, iden, carr))
+```scheme
+(declare-structure normed-ag
+  (carriers carr)
+  (op opr (cartesian carr carr) carr)
+  (constant iden carr)
+  (op inv carr carr)
+  (op nrm carr rr)
+  (property is-associative opr carr)
+  (property is-identity opr iden carr)
+  (property has-inverses opr iden inv carr)
+  (property is-commutative opr carr)
+  (property is-group-norm nrm opr inv iden carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-normed-ag` — forall([s], is-normed-ag(s) iff length(s) = 5 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and nrm(s) in fun(carr(s), rr) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)) and is-commutative(opr(s), carr(s)) and is-group-norm(nrm(s), opr(s), inv(s), iden(s), carr(s)))
 
 *Theorems quantifying over `is-normed-ag`.*
 
 - `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies is-monoid(abelian-group-as-monoid(normed-ag-as-abelian-group(r))))
-- `abelian-group-assoc-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `abelian-group-assoc-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `abelian-group-assoc-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `abelian-group-assoc-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `abelian-group-idempotent-is-id-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, a) = a implies a = iden(r)))
-- `abelian-group-idempotent-is-id-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, a) = a implies iden(r) = a))
-- `abelian-group-idempotent-is-id-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, a) = a implies iden(r) = a))
-- `abelian-group-idempotent-is-id-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, a) = a implies a = iden(r)))
-- `abelian-group-inverse-unique-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = iden(r) implies b = (inv(r))(a)))
-- `abelian-group-inverse-unique-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = iden(r) implies (inv(r))(a) = b))
-- `abelian-group-inverse-unique-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = iden(r) implies (inv(r))(a) = b))
-- `abelian-group-inverse-unique-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (mul(r))(a, b) = iden(r) implies b = (inv(r))(a)))
-- `abelian-group-right-id-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `abelian-group-right-id-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `abelian-group-right-id-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `abelian-group-right-id-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `monoid-assoc-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `monoid-assoc-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `monoid-assoc-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `monoid-assoc-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `monoid-assoc-rev-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
-- `monoid-assoc-rev-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `monoid-assoc-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))((mul(r))(a, b), c) = (mul(r))(a, (mul(r))(b, c))))
-- `monoid-assoc-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (mul(r))(a, (mul(r))(b, c)) = (mul(r))((mul(r))(a, b), c)))
+- `abelian-group-assoc-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `abelian-group-assoc-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `abelian-group-assoc-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `abelian-group-assoc-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `abelian-group-idempotent-is-id-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, a) = a implies a = iden(r)))
+- `abelian-group-idempotent-is-id-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, a) = a implies iden(r) = a))
+- `abelian-group-idempotent-is-id-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, a) = a implies iden(r) = a))
+- `abelian-group-idempotent-is-id-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, a) = a implies a = iden(r)))
+- `abelian-group-inverse-unique-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (opr(r))(a, b) = iden(r) implies b = (inv(r))(a)))
+- `abelian-group-inverse-unique-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (opr(r))(a, b) = iden(r) implies (inv(r))(a) = b))
+- `abelian-group-inverse-unique-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (opr(r))(a, b) = iden(r) implies (inv(r))(a) = b))
+- `abelian-group-inverse-unique-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (opr(r))(a, b) = iden(r) implies b = (inv(r))(a)))
+- `abelian-group-right-id-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `abelian-group-right-id-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `abelian-group-right-id-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `abelian-group-right-id-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `monoid-assoc-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `monoid-assoc-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `monoid-assoc-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `monoid-assoc-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `monoid-assoc-rev-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
+- `monoid-assoc-rev-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `monoid-assoc-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))((opr(r))(a, b), c) = (opr(r))(a, (opr(r))(b, c))))
+- `monoid-assoc-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r), c in carr(r)], (opr(r))(a, (opr(r))(b, c)) = (opr(r))((opr(r))(a, b), c)))
 - `monoid-identity-in-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies iden(r) in carr(r))
-- `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
-- `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(iden(r), a)))
-- `monoid-left-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(iden(r), a)))
-- `monoid-left-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
-- `monoid-left-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(iden(r), a)))
-- `monoid-left-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
-- `monoid-left-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(iden(r), a) = a))
-- `monoid-left-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(iden(r), a)))
-- `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `monoid-right-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `monoid-right-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `monoid-right-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `monoid-right-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `monoid-right-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (mul(r))(a, iden(r)) = a))
-- `monoid-right-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (mul(r))(a, iden(r))))
-- `nag-metric-distance` — forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (dist(nag-metric-space(nag)))(u, v) = (nrm(nag))((mul(nag))(u, (inv(nag))(v)))))
-- `nag-metric-distance-rev` — forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (nrm(nag))((mul(nag))(u, (inv(nag))(v))) = (dist(nag-metric-space(nag)))(u, v)))
+- `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(iden(r), a) = a))
+- `monoid-left-id-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(iden(r), a)))
+- `monoid-left-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(iden(r), a)))
+- `monoid-left-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(iden(r), a) = a))
+- `monoid-left-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(iden(r), a)))
+- `monoid-left-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(iden(r), a) = a))
+- `monoid-left-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(iden(r), a) = a))
+- `monoid-left-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(iden(r), a)))
+- `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `monoid-right-id-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `monoid-right-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `monoid-right-id-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `monoid-right-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `monoid-right-id-rev-abelian-group-as-monoid-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `monoid-right-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], (opr(r))(a, iden(r)) = a))
+- `monoid-right-id-rev-abelian-group-as-monoid-rev-normed-ag-as-abelian-group-rev` — forall([r], is-normed-ag(r) implies forall([a in carr(r)], a = (opr(r))(a, iden(r))))
+- `nag-metric-distance` — forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (dist(nag-metric-space(nag)))(u, v) = (nrm(nag))((opr(nag))(u, (inv(nag))(v)))))
+- `nag-metric-distance-rev` — forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (nrm(nag))((opr(nag))(u, (inv(nag))(v))) = (dist(nag-metric-space(nag)))(u, v)))
 - `nag-metric-space-is-metric-space` — forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))
 - `normed-ag-as-abelian-group-is-abelian-group` — forall([r], is-normed-ag(r) implies is-abelian-group(normed-ag-as-abelian-group(r)))
 - `normed-ag-nrm-definite` — forall([s], is-normed-ag(s) implies forall([a in carr(s)], (nrm(s))(a) = 0 iff a = iden(s)))
 - `normed-ag-nrm-definite-rev` — forall([s], is-normed-ag(s) implies forall([a in carr(s)], a = iden(s) iff (nrm(s))(a) = 0))
 - `normed-ag-nrm-nonneg` — forall([s], is-normed-ag(s) implies forall([a in carr(s)], 0 <= (nrm(s))(a)))
-- `normed-ag-nrm-subadditive` — forall([s], is-normed-ag(s) implies forall([a in carr(s), b in carr(s)], (nrm(s))((mul(s))(a, b)) <= (nrm(s))(a) + (nrm(s))(b)))
+- `normed-ag-nrm-subadditive` — forall([s], is-normed-ag(s) implies forall([a in carr(s), b in carr(s)], (nrm(s))((opr(s))(a, b)) <= (nrm(s))(a) + (nrm(s))(b)))
 - `normed-ag-nrm-type` — forall([s], is-normed-ag(s) implies nrm(s) in fun(carr(s), rr))
 - `sums-to-unique` — forall([grp], is-normed-ag(grp) implies forall([f in fun(dom(f), carr(grp)), r1 in carr(grp), r2 in carr(grp)], sums-to(grp, f, r1) and sums-to(grp, f, r2) implies r1 = r2))
 - `sums-to-unique-rev` — forall([grp], is-normed-ag(grp) implies forall([f in fun(dom(f), carr(grp)), r1 in carr(grp), r2 in carr(grp)], sums-to(grp, f, r1) and sums-to(grp, f, r2) implies r2 = r1))
 
 *Views into `normed-ag`.*
 
-- `normed-vector-space-as-normed-ag` — from `normed-vector-space`: (vec vadd vzero vneg vnrm) ↦ (carr mul iden inv nrm)
+- `normed-vector-space-as-normed-ag` — from `normed-vector-space`: (vec vadd vzero vneg vnrm) ↦ (carr opr iden inv nrm)
 
 *Views from `normed-ag`.*
 
-- `normed-ag-as-abelian-group` — into `abelian-group`: (carr mul iden inv) ↦ (carr mul iden inv)
+- `normed-ag-as-abelian-group` — into `abelian-group`: (carr opr iden inv) ↦ (carr opr iden inv)
 
 ### normed-field
 <a id="normed-field"></a>
@@ -853,11 +1004,33 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (7): carriers (carr), ops/constants (add mul neg zero one nrm)
+*Slots* (7): carriers (carr), ops/constants (add mul neg zero one fnrm)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-normed-field` — forall([carr, add, mul, neg, zero, one, nrm], is-normed-field([carr, add, mul, neg, zero, one, nrm]) iff carr in set and add in fun(cartesian(carr, carr), carr) and mul in fun(cartesian(carr, carr), carr) and neg in fun(carr, carr) and zero in carr and one in carr and nrm in fun(carr, rr) and is-associative(add, carr) and is-commutative(add, carr) and is-identity(add, zero, carr) and has-inverses(add, zero, neg, carr) and is-associative(mul, carr) and is-commutative(mul, carr) and is-identity(mul, one, carr) and is-distributive(add, mul, carr) and is-norm(nrm, add, mul, zero, carr))
+```scheme
+(declare-structure normed-field
+  (carriers carr)
+  (op add (cartesian carr carr) carr)
+  (op mul (cartesian carr carr) carr)
+  (op neg carr carr)
+  (constant zero carr)
+  (constant one carr)
+  (op fnrm carr rr)
+  (property is-associative add carr)
+  (property is-commutative add carr)
+  (property is-identity add zero carr)
+  (property has-inverses add zero neg carr)
+  (property is-associative mul carr)
+  (property is-commutative mul carr)
+  (property is-identity mul one carr)
+  (property is-distributive add mul carr)
+  (property is-norm fnrm add mul zero carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-normed-field` — forall([s], is-normed-field(s) iff length(s) = 7 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and fnrm(s) in fun(carr(s), rr) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and is-norm(fnrm(s), add(s), mul(s), zero(s), carr(s)))
 
 *Theorems quantifying over `is-normed-field`.*
 
@@ -1001,8 +1174,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-commutative-ring-additive-ag-rev-normed-field-as-commutative-ring-rev` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(a, zero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-normed-field-additive-ag` — forall([r], is-normed-field(r) implies forall([a in carr(r)], (add(r))(a, zero(r)) = a))
 - `monoid-right-id-rev-abelian-group-as-monoid-rev-normed-field-additive-ag-rev` — forall([r], is-normed-field(r) implies forall([a in carr(r)], a = (add(r))(a, zero(r))))
-- `nf-metric-distance` — forall([nf], is-normed-field(nf) implies forall([x in carr(nf), y in carr(nf)], (dist(nf-metric-space(nf)))(x, y) = (nrm(nf))((add(nf))(x, (neg(nf))(y)))))
-- `nf-metric-distance-rev` — forall([nf], is-normed-field(nf) implies forall([x in carr(nf), y in carr(nf)], (nrm(nf))((add(nf))(x, (neg(nf))(y))) = (dist(nf-metric-space(nf)))(x, y)))
+- `nf-metric-distance` — forall([nf], is-normed-field(nf) implies forall([x in carr(nf), y in carr(nf)], (dist(nf-metric-space(nf)))(x, y) = (fnrm(nf))((add(nf))(x, (neg(nf))(y)))))
+- `nf-metric-distance-rev` — forall([nf], is-normed-field(nf) implies forall([x in carr(nf), y in carr(nf)], (fnrm(nf))((add(nf))(x, (neg(nf))(y))) = (dist(nf-metric-space(nf)))(x, y)))
 - `nf-metric-space-is-metric-space` — forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))
 - `normed-field-additive-ag-is-abelian-group` — forall([r], is-normed-field(r) implies is-abelian-group(normed-field-additive-ag(r)))
 - `normed-field-as-commutative-ring-is-commutative-ring` — forall([r], is-normed-field(r) implies is-commutative-ring(normed-field-as-commutative-ring(r)))
@@ -1014,7 +1187,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `normed-field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `normed-field-as-commutative-ring` — into `commutative-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `normed-field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
+- `normed-field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 
 ### normed-vector-space
 <a id="normed-vector-space"></a>
@@ -1025,9 +1198,40 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Slots* (7): carriers (vec), ops/constants (vadd vzero vneg act vnrm)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-normed-vector-space` — forall([scal, vec, vadd, vzero, vneg, act, vnrm], is-normed-vector-space([scal, vec, vadd, vzero, vneg, act, vnrm]) iff scal = rr-ring and vec in set and vadd in fun(cartesian(vec, vec), vec) and vzero in vec and vneg in fun(vec, vec) and act in fun(cartesian(carr(scal), vec), vec) and vnrm in fun(vec, rr) and is-associative(vadd, vec) and is-commutative(vadd, vec) and is-identity(vadd, vzero, vec) and has-inverses(vadd, vzero, vneg, vec) and forall([r_ in carr(scal), x_ in vec, y_ in vec], act(r_, vadd(x_, y_)) = vadd(act(r_, x_), act(r_, y_))) and forall([r_ in carr(scal), s_ in carr(scal), x_ in vec], act((add(scal))(r_, s_), x_) = vadd(act(r_, x_), act(s_, x_))) and forall([r_ in carr(scal), s_ in carr(scal), x_ in vec], act((mul(scal))(r_, s_), x_) = act(r_, act(s_, x_))) and forall([x_ in vec], act(one(scal), x_) = x_) and forall([x_ in vec], 0 <= vnrm(x_)) and forall([x_ in vec], vnrm(x_) = 0 iff x_ = vzero) and forall([r_ in carr(scal), x_ in vec], vnrm(act(r_, x_)) = abs(r_) * vnrm(x_)) and forall([x_ in vec, y_ in vec], vnrm(vadd(x_, y_)) <= vnrm(x_) + vnrm(y_)))
+```scheme
+(declare-structure normed-vector-space
+  (substructure scal ring)
+  (carriers vec)
+  (op vadd (cartesian vec vec) vec)
+  (constant vzero vec)
+  (op vneg vec vec)
+  (op act (cartesian (carr scal) vec) vec)
+  (op vnrm vec rr)
+  (property is-associative vadd vec)
+  (property is-commutative vadd vec)
+  (property is-identity vadd vzero vec)
+  (property has-inverses vadd vzero vneg vec)
+  (law "scal(s) = rr-normed-field")
+  (law "forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)],
+          act(s)(r_, vadd(s)(x_, y_)) = vadd(s)(act(s)(r_, x_), act(s)(r_, y_)))")
+  (law "forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)],
+          act(s)(add(scal(s))(r_, s_), x_) = vadd(s)(act(s)(r_, x_), act(s)(s_, x_)))")
+  (law "forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)],
+          act(s)(mul(scal(s))(r_, s_), x_) = act(s)(r_, act(s)(s_, x_)))")
+  (law "forall([x_ in vec(s)], act(s)(one(scal(s)), x_) = x_)")
+  (law "forall([x_ in vec(s)], 0 <= vnrm(s)(x_))")
+  (law "forall([x_ in vec(s)], (vnrm(s)(x_) = 0) iff (x_ = vzero(s)))")
+  (law "forall([r_ in carr(scal(s)), x_ in vec(s)],
+          vnrm(s)(act(s)(r_, x_)) = abs(r_) * vnrm(s)(x_))")
+  (law "forall([x_ in vec(s), y_ in vec(s)],
+          vnrm(s)(vadd(s)(x_, y_)) <= vnrm(s)(x_) + vnrm(s)(y_))"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-normed-vector-space` — forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and vnrm(s) in fun(vec(s), rr) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = rr-normed-field and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_) and forall([x_ in vec(s)], 0 <= (vnrm(s))(x_)) and forall([x_ in vec(s)], (vnrm(s))(x_) = 0 iff x_ = vzero(s)) and forall([r_ in carr(scal(s)), x_ in vec(s)], (vnrm(s))((act(s))(r_, x_)) = abs(r_) * (vnrm(s))(x_)) and forall([x_ in vec(s), y_ in vec(s)], (vnrm(s))((vadd(s))(x_, y_)) <= (vnrm(s))(x_) + (vnrm(s))(y_)))
 
 *Theorems quantifying over `is-normed-vector-space`.*
 
@@ -1239,7 +1443,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Views from `normed-vector-space`.*
 
 - `normed-vector-space-as-module` — into `module`: (scal vec vadd vzero vneg act) ↦ (scal vec vadd vzero vneg act)
-- `normed-vector-space-as-normed-ag` — into `normed-ag`: (vec vadd vzero vneg vnrm) ↦ (carr mul iden inv nrm)
+- `normed-vector-space-as-normed-ag` — into `normed-ag`: (vec vadd vzero vneg vnrm) ↦ (carr opr iden inv nrm)
 
 ### pid
 <a id="pid"></a>
@@ -1248,9 +1452,18 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`integral-domain`](#integral-domain).  Shape inherited from `integral-domain` — slots (carr add mul neg zero one).
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-pid-def` — forall([carr, add, mul, neg, zero, one], is-pid([carr, add, mul, neg, zero, one]) iff is-integral-domain([carr, add, mul, neg, zero, one]) and forall([i], is-ideal([carr, add, mul, neg, zero, one], i) implies forsome([a in carr], i = principal-ideal([carr, add, mul, neg, zero, one], a))))
+```scheme
+(declare-structure pid
+  (same-shape-as integral-domain)
+  (law "forall([i], is-ideal(s, i) implies
+          forsome([a in carr(s)], i = principal-ideal(s, a)))"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-pid-def` — forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in carr(s)], i = principal-ideal(s, a))))
 
 ### qq-field
 <a id="qq-field"></a>
@@ -1272,7 +1485,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `zero` = `0`
 - `one` = `1`
 - `non-zero` = `difference(qq, singleton(0))`
-- `inv` = `recip`
+- `recip` = `recip`
 
 ### qq-ring
 <a id="qq-ring"></a>
@@ -1305,9 +1518,28 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Slots* (6): carriers (carr), ops/constants (add mul neg zero one)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-ring` — forall([carr, add, mul, neg, zero, one], is-ring([carr, add, mul, neg, zero, one]) iff carr in set and add in fun(cartesian(carr, carr), carr) and mul in fun(cartesian(carr, carr), carr) and neg in fun(carr, carr) and zero in carr and one in carr and is-associative(add, carr) and is-commutative(add, carr) and is-identity(add, zero, carr) and has-inverses(add, zero, neg, carr) and is-associative(mul, carr) and is-identity(mul, one, carr) and is-distributive(add, mul, carr))
+```scheme
+(declare-structure ring
+  (carriers carr)
+  (op add (cartesian carr carr) carr)
+  (op mul (cartesian carr carr) carr)
+  (op neg carr carr)
+  (constant zero carr)
+  (constant one carr)
+  (property is-associative add carr)
+  (property is-commutative add carr)
+  (property is-identity add zero carr)
+  (property has-inverses add zero neg carr)
+  (property is-associative mul carr)
+  (property is-identity mul one carr)
+  (property is-distributive add mul carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-ring` — forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 
 *Theorems quantifying over `is-ring`.*
 
@@ -1504,21 +1736,21 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Views from `ring`.*
 
-- `ring-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
-- `ring-multiplicative-monoid` — into `monoid`: (carr mul one) ↦ (carr mul iden)
+- `ring-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
+- `ring-multiplicative-monoid` — into `monoid`: (carr mul one) ↦ (carr opr iden)
 
 ### rr+*-add-monoid
 <a id="rr+*-add-monoid"></a>
 
 *Declared in* [`structure-library/extended-reals-pos.scm`](../structure-library/extended-reals-pos.scm).
 
-*Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`comm-monoid`](#comm-monoid).  Shape inherited from `comm-monoid` — slots (carr mul iden).
+*Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`comm-monoid`](#comm-monoid).  Shape inherited from `comm-monoid` — slots (carr opr iden).
 
-*Defining predicate* (destructured form):
+*Defining predicate* (as stored):
 
 
-### rr-ring
-<a id="rr-ring"></a>
+### rr-normed-field
+<a id="rr-normed-field"></a>
 
 *Declared in* [`structure-library/numeric-instances.scm`](../structure-library/numeric-instances.scm).
 
@@ -1536,7 +1768,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `neg` = `binneg`
 - `zero` = `0`
 - `one` = `1`
-- `nrm` = `abs`
+- `fnrm` = `abs`
 
 ### semigroup
 <a id="semigroup"></a>
@@ -1545,16 +1777,25 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape predicate (def-structure-from-clauses).
 
-*Slots* (2): carriers (carr), ops/constants (mul)
+*Slots* (2): carriers (carr), ops/constants (opr)
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-semigroup` — forall([carr, mul], is-semigroup([carr, mul]) iff carr in set and mul in fun(cartesian(carr, carr), carr) and is-associative(mul, carr))
+```scheme
+(declare-structure semigroup
+  (carriers carr)
+  (op opr (cartesian carr carr) carr)
+  (property is-associative opr carr))
+```
+
+*Defining predicate* (as stored):
+
+- `is-semigroup` — forall([s], is-semigroup(s) iff length(s) = 2 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and is-associative(opr(s), carr(s)))
 
 *Theorems quantifying over `is-semigroup`.*
 
-- `semigroup-assoc` — forall([s], is-semigroup(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))
-- `semigroup-assoc-rev` — forall([s], is-semigroup(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))(a, (mul(s))(b, c)) = (mul(s))((mul(s))(a, b), c)))
+- `semigroup-assoc` — forall([s], is-semigroup(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))
+- `semigroup-assoc-rev` — forall([s], is-semigroup(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))(a, (opr(s))(b, c)) = (opr(s))((opr(s))(a, b), c)))
 
 ### setoid
 <a id="setoid"></a>
@@ -1565,9 +1806,17 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Slots* (2): carriers (pts rel), ops/constants ()
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-setoid` — forall([pts, rel], is-setoid([pts, rel]) iff pts in set and rel in set and is-equivalence(rel, pts))
+```scheme
+(declare-structure setoid
+  (carriers pts rel)
+  (property is-equivalence rel pts))
+```
+
+*Defining predicate* (as stored):
+
+- `is-setoid` — forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))
 
 *Theorems quantifying over `is-setoid`.*
 
@@ -1592,9 +1841,17 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Definitional predicate (genuine IFF axiom).  Subtype of [`module`](#module).  Shape inherited from `module` — slots (scal vec vadd vzero vneg act).
 
-*Defining predicate* (destructured form):
+*Declaration.*
 
-- `is-vector-space-def` — forall([scal, vec, vadd, vzero, vneg, act], is-vector-space([scal, vec, vadd, vzero, vneg, act]) iff is-module([scal, vec, vadd, vzero, vneg, act]) and is-field(scal))
+```scheme
+(declare-structure vector-space
+  (same-shape-as module)
+  (law "is-field(scal(s))"))
+```
+
+*Defining predicate* (as stored):
+
+- `is-vector-space-def` — forall([s], is-vector-space(s) iff is-module(s) and is-field(scal(s)))
 
 *Theorems quantifying over `is-vector-space`.*
 
@@ -1627,19 +1884,19 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 A view-as is a *forgetful functor* between structure categories, in exactly two cases: it forgets **shape** (keeps a sub-list of the source's slots) and/or forgets **properties** (the target's laws are fewer than the source's).  The slot map below is written in the *target's* coordinates: position k shows which source accessor fills the target's k-th slot.  Non-forgetful functors (quotient, completion) are constructions, not views.
 
-- `abelian-group-as-monoid` — `abelian-group` → `monoid`: (carr mul iden) ↦ (carr mul iden)
-- `commutative-ring-additive-ag` — `commutative-ring` → `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
-- `commutative-ring-multiplicative-cm` — `commutative-ring` → `comm-monoid`: (carr mul one) ↦ (carr mul iden)
-- `field-additive-ag` — `field` → `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
+- `abelian-group-as-monoid` — `abelian-group` → `monoid`: (carr opr iden) ↦ (carr opr iden)
+- `commutative-ring-additive-ag` — `commutative-ring` → `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
+- `commutative-ring-multiplicative-cm` — `commutative-ring` → `comm-monoid`: (carr mul one) ↦ (carr opr iden)
+- `field-additive-ag` — `field` → `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 - `field-as-euclidean-ring` — `field` → `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — `field` → `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — `field` → `group`: (non-zero mul one inv) ↦ (carr mul iden inv)
-- `module-vector-ag` — `module` → `abelian-group`: (vec vadd vzero vneg) ↦ (carr mul iden inv)
-- `normed-ag-as-abelian-group` — `normed-ag` → `abelian-group`: (carr mul iden inv) ↦ (carr mul iden inv)
-- `normed-field-additive-ag` — `normed-field` → `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
+- `field-multiplicative-group` — `field` → `group`: (non-zero mul one recip) ↦ (carr opr iden inv)
+- `module-vector-ag` — `module` → `abelian-group`: (vec vadd vzero vneg) ↦ (carr opr iden inv)
+- `normed-ag-as-abelian-group` — `normed-ag` → `abelian-group`: (carr opr iden inv) ↦ (carr opr iden inv)
+- `normed-field-additive-ag` — `normed-field` → `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 - `normed-field-as-commutative-ring` — `normed-field` → `commutative-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `normed-field-as-integral-domain` — `normed-field` → `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `normed-vector-space-as-module` — `normed-vector-space` → `module`: (scal vec vadd vzero vneg act) ↦ (scal vec vadd vzero vneg act)
-- `normed-vector-space-as-normed-ag` — `normed-vector-space` → `normed-ag`: (vec vadd vzero vneg vnrm) ↦ (carr mul iden inv nrm)
-- `ring-additive-ag` — `ring` → `abelian-group`: (carr add zero neg) ↦ (carr mul iden inv)
-- `ring-multiplicative-monoid` — `ring` → `monoid`: (carr mul one) ↦ (carr mul iden)
+- `normed-vector-space-as-normed-ag` — `normed-vector-space` → `normed-ag`: (vec vadd vzero vneg vnrm) ↦ (carr opr iden inv nrm)
+- `ring-additive-ag` — `ring` → `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
+- `ring-multiplicative-monoid` — `ring` → `monoid`: (carr mul one) ↦ (carr opr iden)

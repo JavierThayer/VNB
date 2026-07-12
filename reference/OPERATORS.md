@@ -11,9 +11,9 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-240 operators: 16 functions, 154 functoids, 70 predicates, 0 undeclared.
+242 operators: 15 functions, 157 functoids, 70 predicates, 0 undeclared.
 
-## Functions  (16)
+## Functions  (15)
 
 Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets — with the standard domain shown.
 
@@ -27,14 +27,13 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `imag-part` denotes a function `CC -> RR`.
 - `magnitude` denotes a function `CC -> RR`.
 - `real-part` denotes a function `CC -> RR`.
-- `recip` denotes a function `RR -> RR`.
 - `rpow` denotes a function `RR x RR -> RR`.
 - `sin` denotes a function `RR -> RR`.
 - `sqrt` denotes a function `RR -> RR`.
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (154)
+## Functoids  (157)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-view-as` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -228,6 +227,8 @@ Declared by: `fam-of-list-apply`
 
     finsum(ag, f, s) := sum-ag(ag, enum-fam(ag, f, fin-enum(s), card(s)), card(s))
 
+### `fnrm`  — structure accessor · element (slot value)
+
 ### `fun`  — kernel term-former
 
 ### `gauge`  — def-functoid · element/number-valued
@@ -334,13 +335,13 @@ Declared by: `mpow-zero` `mpow-succ`
 
 ### `nag-metric-space`  — def-functoid · tuple/structure-valued
 
-    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]
+    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 
 ### `neg`  — structure accessor · element (slot value)
 
 ### `nf-metric-space`  — def-functoid · tuple/structure-valued
 
-    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]
+    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 
 ### `nn-enum`  — def-functoid · element/number-valued
 
@@ -369,6 +370,8 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
     nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
 
 ### `one`  — structure accessor · element (slot value)
+
+### `opr`  — structure accessor · element (slot value)
 
 ### `ord-segment`  — characterized by axiom(s)
 
@@ -424,7 +427,7 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
 
 ### `ps-partial-sum`  — def-functoid · element/number-valued
 
-    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-ring), vnb-lambda(n, coef(n) * x ^ n), k)
+    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, coef(n) * x ^ n), k)
 
 ### `pts`  — structure accessor · element (slot value)
 
@@ -435,6 +438,8 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
 ### `ran`  — def-functoid · set-valued
 
     ran(f) := image(f, dom(f))
+
+### `recip`  — structure accessor · element (slot value)
 
 ### `reduce`  — recursively defined (def-by-nn-recursion)
 
@@ -478,7 +483,7 @@ Declared by: `rr-ms-def`
 
 ### `series-partial-sum`  — def-functoid · element/number-valued
 
-    series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-ring), f, k)
+    series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
 
 ### `size`  — def-functoid · tuple/structure-valued
 

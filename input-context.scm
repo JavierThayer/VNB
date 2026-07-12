@@ -10,7 +10,7 @@
 ;;;     forall s, IS-X(s) implies forall <elts> in <carrier>(s). <body>
 ;;;
 ;;; WHY THE PACKED ACCESSOR FORM.  A VNB structure IS a tuple (structures.scm:
-;;; "the accessors are literally projections: (CARR ag) = (NTH 1 ag), (MUL ag) =
+;;; "the accessors are literally projections: (CARR ag) = (NTH 1 ag), (OPR ag) =
 ;;; (NTH 2 ag)").  So the flat presentation
 ;;;     let [X,plus,times,neg,zero,unity] be a commutative-ring
 ;;; and the library's packed  IS-COMMUTATIVE-RING(s)  are the SAME object: the

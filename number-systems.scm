@@ -331,7 +331,7 @@
                    (+ (abs a) (abs b)))))))
 
 ;;; Multiplicativity of abs -- the conjunct that `is-norm' (hence
-;;; `rr-is-normed-field') needs for NRM = abs on RR-RING.
+;;; `rr-is-normed-field') needs for NRM = abs on RR-NORMED-FIELD.
 (theory-add-axiom! *current-theory* 'rr-abs-mult
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))

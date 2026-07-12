@@ -2,23 +2,23 @@
 ;;; inverses and a structurally-carried norm into RR.
 ;;;
 ;;; Declared as its OWN shape (not a definitional refinement of FIELD): the
-;;; norm NRM is a real structural slot, not a FORSOME-existentially asserted
+;;; norm FNRM is a real structural slot, not a FORSOME-existentially asserted
 ;;; component.  Slot order matches RING for slots 1-6 so the accessors
 ;;; A/ADD/MUL/NEG/ZERO/ONE keep their RING indices on a NORMED-FIELD tuple;
-;;; NRM lives at slot 7.
+;;; FNRM lives at slot 7.
 ;;;
 ;;;   carriers: A
-;;;   ops:      ADD, MUL, NEG, NRM   (NRM : CARR -> RR)
+;;;   ops:      ADD, MUL, NEG, FNRM   (FNRM : CARR -> RR)
 ;;;   const:    ZERO, ONE
 ;;;
 ;;; The defining IFF (auto-generated from the property clauses) asserts the
-;;; commutative-ring laws and is-norm for NRM.  Multiplicative inverses are
+;;; commutative-ring laws and is-norm for FNRM.  Multiplicative inverses are
 ;;; asserted by the separate `normed-field-mul-inverses' axiom, matching
 ;;; field.scm's pattern (the existence-of-inverses law is not in the basic
 ;;; operation-properties vocabulary).
 ;;;
 ;;; FIELD remains an 8-slot shape carrying NON-ZERO and INV structurally;
-;;; NORMED-FIELD is a separate, 7-slot shape carrying NRM.  The two are
+;;; NORMED-FIELD is a separate, 7-slot shape carrying FNRM.  The two are
 ;;; related at the predicate level: every normed-field is a commutative
 ;;; ring (slots 1-6 match RING's layout, so IS-COMMUTATIVE-RING reads
 ;;; correctly off a NORMED-FIELD tuple).  A `def-view-as' projection to
@@ -41,7 +41,7 @@
     (constant ZERO CARR)
     (constant ONE CARR)
     ;; Slot 7: the structurally-carried norm.
-    (op NRM CARR RR)
+    (op FNRM CARR RR)
     ;; Additive abelian group on A.
     (property is-associative ADD CARR)
     (property is-commutative ADD CARR)
@@ -53,7 +53,7 @@
     (property is-identity   MUL ONE CARR)
     (property is-distributive ADD MUL CARR)
     ;; The norm.
-    (property is-norm NRM ADD MUL ZERO CARR)))
+    (property is-norm FNRM ADD MUL ZERO CARR)))
 
 ;;; Multiplicative inverses: every nonzero element has a multiplicative
 ;;; inverse.  Asserted existentially (no structural INV slot in this shape).

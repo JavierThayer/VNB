@@ -11,7 +11,7 @@
 ;;;
 ;;; TWO tiers, matching the existing finsum-comm-monoid / finsum-fubini family:
 ;;;
-;;;   GENERAL (over IS-COMM-MONOID m, op (MUL m), seed (IDEN m) -- the honest
+;;;   GENERAL (over IS-COMM-MONOID m, op (OPR m), seed (IDEN m) -- the honest
 ;;;   minimal hypotheses, no inverses):  finsum-add and finsum-reindex are
 ;;;   properties of ANY finite sum, exactly like finsum-fubini.  These are the
 ;;;   reusable PSS principles.
@@ -112,7 +112,7 @@
 
 ;; finsum-add (GENERAL, comm-monoid):  the FINSUM of a pointwise structure-
 ;; combination is the combination of the FINSUMs --
-;;   SUM_z (MUL m)(f z, h z) = (MUL m)( SUM_z f z, SUM_z h z ).
+;;   SUM_z (OPR m)(f z, h z) = (OPR m)( SUM_z f z, SUM_z h z ).
 ;; Additively (m = an additive AG) this is SUM(f+h)=SUM f+SUM h; multiplicatively
 ;; (m = the multiplicative monoid) it is the PROD version.  The general
 ;; linearity principle, like finsum-fubini.
@@ -122,14 +122,14 @@
     (tf 'f '(IN f (FUN S (CARR m)))
      (tf 'h '(IN h (FUN S (CARR m)))
       (list '=
-        (list 'FINSUM 'm (list 'VNB-LAMBDA 'z (list '(MUL m) '(f z) '(h z))) 'S)
-        (list '(MUL m)
+        (list 'FINSUM 'm (list 'VNB-LAMBDA 'z (list '(OPR m) '(f z) '(h z))) 'S)
+        (list '(OPR m)
               (list 'FINSUM 'm 'f 'S)
               (list 'FINSUM 'm 'h 'S))))))))
 (warrant! 'finsum-add 'well-known
   "Induction on |S| via finsum-insert: base is (IDEN m)*(IDEN m)=(IDEN m) (finsum-empty);
    step folds in one z0, regrouping (a*b)*(c*d)=(a*c)*(b*d) by the commutativity
-   and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies
+   and associativity of (OPR m) -- which is exactly what IS-COMM-MONOID supplies
    (no inverses used).  Holds for every commutative-monoid-valued finite sum.")
 
 ;; finsum-ring-distrib-left: r * SUM_z f z = SUM_z (r * f z).
@@ -304,28 +304,28 @@
       (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN (UNION X (PAIR k k)) (CARR ag)))
         (list '=
           '(FINSUM ag f (UNION X (PAIR k k)))
-          '((MUL ag) (FINSUM ag f X) (f k)))))))))))
+          '((OPR ag) (FINSUM ag f X) (f k)))))))))))
 (warrant! 'finsum-insert-ag 'well-known
   "finsum-insert at m = ag viewed as its commutative monoid (CARR,MUL,IDEN):
-   FINSUM(ag,f,X u {k}) = (MUL ag)(FINSUM(ag,f,X), f k) for k not in X.  Standard
+   FINSUM(ag,f,X u {k}) = (OPR ag)(FINSUM(ag,f,X), f k) for k not in X.  Standard
    fold peel; abelian group supplies the monoid laws (no inverses used).")
 
 ;; finsum-add-ag: SUM(f (+) h) = SUM f (+) SUM h in an abelian group, where (+)
-;; is (MUL ag).  Abelian-group form of finsum-add.
+;; is (OPR ag).  Abelian-group form of finsum-add.
 (support 'finsum-add-ag
   (tf 'ag '(IS-ABELIAN-GROUP ag)
    (tfin 'S
     (tf 'f '(IN f (FUN S (CARR ag)))
      (tf 'h '(IN h (FUN S (CARR ag)))
       (list '=
-        (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z (list '(MUL ag) '(f z) '(h z))) 'S)
-        (list '(MUL ag)
+        (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z (list '(OPR ag) '(f z) '(h z))) 'S)
+        (list '(OPR ag)
               (list 'FINSUM 'ag 'f 'S)
               (list 'FINSUM 'ag 'h 'S))))))))
 (warrant! 'finsum-add-ag 'well-known
   "finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.")
+   associativity of (OPR ag).  No inverses used.")
 
 ;; finsum-reindex-ag: a FINSUM in an abelian group is invariant under a
 ;; bijective change of index.  Abelian-group form of finsum-reindex.
@@ -355,7 +355,7 @@
     (tf 'f '(IN f (FUN (ORD-SEGMENT (succ n)) (CARR ag)))
      (list '=
        '(FINSUM ag f (ORD-SEGMENT (succ n)))
-       '((MUL ag) (FINSUM ag f (ORD-SEGMENT n)) (f n)))))))
+       '((OPR ag) (FINSUM ag f (ORD-SEGMENT n)) (f n)))))))
 (warrant! 'finsum-ord-peel 'well-known
   "finsum-insert-ag at X=ORD-SEGMENT(n), k=n: ORD-SEGMENT(succ n)=ORD-SEGMENT(n) u {n}
    (ord-segment-insert), ORD-SEGMENT(n) is a set (ord-segment-is-set) of card n in NN,
@@ -405,7 +405,7 @@
      (FORALL n (IMPLIES (IN n NN)
        (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ n)) (CARR ag)))
          (= (FINSUM ag f (INTERVAL 1 (succ n)))
-            ((MUL ag) (f 1) (FINSUM ag (VNB-LAMBDA z (f (succ z))) (INTERVAL 1 n)))))))))))
+            ((OPR ag) (f 1) (FINSUM ag (VNB-LAMBDA z (f (succ z))) (INTERVAL 1 n)))))))))))
 (warrant! 'finsum-interval-shift 'well-known
   "FINSUM over [1,succ n] = f(1) . FINSUM over [1,n] of (z|->f(succ z)): peel the
    first term (finsum-insert-ag at k=1, X=[2,succ n]) then reindex the tail by the
@@ -429,7 +429,7 @@
      (FORALL n (IMPLIES (IN n NN)
        (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ n)) (CARR ag)))
          (= (FINSUM ag f (INTERVAL 1 (succ n)))
-            ((MUL ag) (FINSUM ag f (INTERVAL 1 n)) (f (succ n)))))))))))
+            ((OPR ag) (FINSUM ag f (INTERVAL 1 n)) (f (succ n)))))))))))
 (warrant! 'finsum-interval-peel 'well-known
   "FINSUM over [1,succ n] = (FINSUM over [1,n]) . f(succ n): finsum-insert-ag at
    X = [1,n], k = succ n, using [1,succ n] = [1,n] u {succ n} (interval-mem-intro

@@ -26,7 +26,7 @@
 (def-by-nn-recursion 'PROD-ORD '(m f)
   '(IDEN m)                              ; base value
   '(n val)                            ; step vars: n ∈ NN, val = PROD-ORD(m,f,n)
-  '((MUL m) val (f n))); PROD-ORD(m,f,succ n) = val * f(n)
+  '((OPR m) val (f n))); PROD-ORD(m,f,succ n) = val * f(n)
 
 ;;; Type: result is in the carrier when m is a monoid and f maps NN into it.
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from prod-ord-zero,
@@ -43,7 +43,7 @@
 
 ;;; Singleton: PROD-ORD(m, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): prod-ord-succ at n=0 gives
-;;; (MUL m)(IDEN m)(f 0), then monoid-left-id closes to (f 0).  Installed
+;;; (OPR m)(IDEN m)(f 0), then monoid-left-id closes to (f 0).  Installed
 ;;; as an axiom for direct use.
 (theory-add-axiom! *current-theory* 'prod-ord-singleton
   '(FORALL m
@@ -96,17 +96,17 @@
 ;;;
 ;;; Written multiplicatively because ABELIAN-GROUP uses MUL/E (inherited
 ;;; from GROUP's accessors).  When the abelian group is the additive group
-;;; of some structure, the caller reads (MUL ag) as "addition" and (IDEN ag)
+;;; of some structure, the caller reads (OPR ag) as "addition" and (IDEN ag)
 ;;; as "zero" by convention; nothing in the structure machinery cares.
 ;;;
 ;;; Defining recursion (installs sum-ag-zero and sum-ag-succ):
 ;;;   SUM-AG(ag, f, 0)       = IDEN(ag)
-;;;   SUM-AG(ag, f, succ(n)) = (MUL ag)(SUM-AG ag f n, f(n))
+;;;   SUM-AG(ag, f, succ(n)) = (OPR ag)(SUM-AG ag f n, f(n))
 
 (def-by-nn-recursion 'SUM-AG '(ag f)
   '(IDEN ag)                              ; base value
   '(n val)                             ; step vars
-  '((MUL ag) val (f n))); SUM-AG(ag,f,succ n) = val * f(n)
+  '((OPR ag) val (f n))); SUM-AG(ag,f,succ n) = val * f(n)
 
 ;;; Type: result is in the carrier.
 ;;; Provable by NN induction from sum-ag-zero, sum-ag-succ, and the
@@ -133,7 +133,7 @@
 
 ;;; SUM-AG <-> REDUCE bridge (n >= 1).
 ;;;
-;;;   SUM-AG(ag, f, n) = REDUCE (MUL ag) f n        for n >= 1
+;;;   SUM-AG(ag, f, n) = REDUCE (OPR ag) f n        for n >= 1
 ;;;
 ;;; The n = 0 case has no REDUCE counterpart: SUM-AG(ag, f, 0) = IDEN(ag) is
 ;;; the identity supplied by the abelian-group, and REDUCE has no identity
@@ -149,7 +149,7 @@
                           (FORALL n
                             (IMPLIES (AND (IN n NN) (<= 1 n))
                                      (= (SUM-AG ag f n)
-                                        (REDUCE (MUL ag) f n)))))))))
+                                        (REDUCE (OPR ag) f n)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; RING-PROD-N: n-fold ring product
@@ -283,7 +283,7 @@
                            (AND (= (INTERSECTION S1 S2) EMPTY-SET)
                                 (IN f (FUN (UNION S1 S2) (CARR cm))))))
                            (= (PROD-SET cm (UNION S1 S2) f)
-                              ((MUL cm) (PROD-SET cm S1 f) (PROD-SET cm S2 f))))))))))
+                              ((OPR cm) (PROD-SET cm S1 f) (PROD-SET cm S2 f))))))))))
 
 (theory-add-axiom! *current-theory* 'prod-set-type
   '(FORALL cm (FORALL X (FORALL S (FORALL f

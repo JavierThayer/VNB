@@ -145,7 +145,7 @@
 (define GG (list 'VNB-LAMBDA 'z (list '(MUL A) (list 'ENTRY 'X IMU 'z) (list 'ENTRY 'Y 'z KMU))))
 (fact 'finsum-interval-shift AG 'q FF)
 (subst (list '= (list 'FINSUM AG FF INTq)
-             (list '(MUL (RING-ADDITIVE-AG A)) (list FF 1) (list 'FINSUM AG SHIFT '(INTERVAL 1 q)))))
+             (list '(OPR (RING-ADDITIVE-AG A)) (list FF 1) (list 'FINSUM AG SHIFT '(INTERVAL 1 q)))))
 ;; typings for GG + SHIFT
 (fact 'pred-in-interval 'p 'i) (fact 'pred-in-interval 'r 'k)
 (fact 'matprod-summand-type 'A 'p 'q 'r 'X 'Y IMU KMU)         ; GG typed
@@ -172,7 +172,7 @@
 (bm-foc! CG)
 (fact 'finsum-congruence AG '(INTERVAL 1 q) SHIFT GG)
 (subst (list '= (list 'FINSUM AG SHIFT '(INTERVAL 1 q)) (list 'FINSUM AG GG '(INTERVAL 1 q))))
-;; now goal: (MUL AG)(FF 1)(FINSUM GG) = FINSUM GG ; reduce FF(1) -> 0
+;; now goal: (OPR AG)(FF 1)(FINSUM GG) = FINSUM GG ; reduce FF(1) -> 0
 (lam-b)
 (fact 'border-entry-i1 'A 'b 'X 'p 'q 'i) (subst (list '= (list 'ENTRY BX 'i 1) '(ZERO A)))
 (fact 'entry-in-carrier '(succ q) '(succ r) '(CARR A) BY 1 'k)

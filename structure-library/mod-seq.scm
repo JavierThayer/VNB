@@ -55,7 +55,7 @@
   "carrier of a module's vector abelian group is the module's vector set.")
 
 (support 'mvag-op
-  '(FORALL md (= (MUL (MODULE-VECTOR-AG md)) (VADD md))))
+  '(FORALL md (= (OPR (MODULE-VECTOR-AG md)) (VADD md))))
 (warrant! 'mvag-op 'proof
   "operation of a module's vector abelian group is the module's vector addition.")
 

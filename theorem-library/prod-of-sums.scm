@@ -126,7 +126,7 @@
 ;;; installed; the insert-last-is-bijection groundwork is in scratch-fs3.scm).
 ;;; Adding one fresh point k to the index folds in one more factor f(k):
 ;;;
-;;;   FINSUM(m, f, X u {k}) = (MUL m)(FINSUM(m, f, X), f(k))    (k not in X)
+;;;   FINSUM(m, f, X u {k}) = (OPR m)(FINSUM(m, f, X), f(k))    (k not in X)
 ;;;
 ;;; Stated over a commutative monoid (the generality the unordered product
 ;;; needs); it is the multiplicative twin of the additive sum's recursion and
@@ -137,7 +137,7 @@
       (FORALL k (IMPLIES (AND (IN k SET) (NOT (IN k X)))
       (FORALL f (IMPLIES (IN f (FUN (UNION X (PAIR k k)) (CARR m)))
         (= (FINSUM m f (UNION X (PAIR k k)))
-           ((MUL m) (FINSUM m f X) (f k))))))))))))
+           ((OPR m) (FINSUM m f X) (f k))))))))))))
 
 (warrant! 'finsum-insert 'well-known
   "Enumerate X then append k last (INSERT-LAST, finsum.scm): a bijection

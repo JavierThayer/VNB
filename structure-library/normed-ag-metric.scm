@@ -1,6 +1,6 @@
 ;;; normed-ag-metric.scm -- the metric space underlying a normed abelian group.
 ;;;
-;;; The structural bridge between a NORMED-AG's *group* register (CARR MUL IDEN INV
+;;; The structural bridge between a NORMED-AG's *group* register (CARR OPR IDEN INV
 ;;; + norm NRM) and its *metric* register (METRIC-SPACE : X D).  Like
 ;;; NF-METRIC-SPACE for normed fields, it cannot be a def-view-as: a view-as
 ;;; maps slots to slots, but METRIC-SPACE's distance DIST is not a slot of a
@@ -10,7 +10,7 @@
 ;;;   NAG-METRIC-SPACE(nag) = [ CARR(nag),  lambda([u,v], NRM(nag)(u . INV(v))) ]
 ;;;
 ;;; The group is written multiplicatively, so the "difference" u - v is the
-;;; group element  MUL(nag)(u, INV(nag)(v)) = u . v^-1.  Then
+;;; group element  OPR(nag)(u, INV(nag)(v)) = u . v^-1.  Then
 ;;; NAG-METRIC-SPACE(nag) is a metric space whenever nag is a normed AG:
 ;;;   nonnegativity    -- norm >= 0;
 ;;;   point-separation -- d(u,v)=0 iff u.v^-1 = E iff u=v (norm definiteness);
@@ -34,7 +34,7 @@
 ;;; lambda-beta; nag-metric-space-is-metric-space by discharging the is-metric
 ;;; clauses from is-group-norm + the abelian-group laws (sketch above).
 ;;;
-;;; Dependencies: normed-ag.scm (IS-NORMED-AG, NRM/MUL/INV/A), metric-space.scm
+;;; Dependencies: normed-ag.scm (IS-NORMED-AG, NRM/OPR/INV/A), metric-space.scm
 ;;; (IS-METRIC-SPACE, X/D).
 
 ;;; -----------------------------------------------------------------------
@@ -42,7 +42,7 @@
 
 (def-functoid 'NAG-METRIC-SPACE '(nag)
   '(LIST (CARR nag)
-         (VNB-LAMBDA (LIST u v) ((NRM nag) ((MUL nag) u ((INV nag) v))))))
+         (VNB-LAMBDA (LIST u v) ((NRM nag) ((OPR nag) u ((INV nag) v))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Distance = norm of the (group) difference, on the carrier.
@@ -53,12 +53,12 @@
        (FORALL u (IMPLIES (IN u (CARR nag))
          (FORALL v (IMPLIES (IN v (CARR nag))
            (= ((DIST (NAG-METRIC-SPACE nag)) u v)
-              ((NRM nag) ((MUL nag) u ((INV nag) v)))))))))))
+              ((NRM nag) ((OPR nag) u ((INV nag) v)))))))))))
 
 (warrant! 'nag-metric-distance 'informal
   "By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), lambda([u,v],
    NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce)
-   and lambda-beta evaluates it at (u,v), giving NRM(nag)(MUL(nag)(u, INV(nag)
+   and lambda-beta evaluates it at (u,v), giving NRM(nag)(OPR(nag)(u, INV(nag)
    v)) = ||u . v^-1||.")
 
 ;;; -----------------------------------------------------------------------

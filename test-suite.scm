@@ -1368,48 +1368,48 @@
     (let* ((n-k (cadr (wff-formula (car (sequent-node-assumptions (proof-state-focus *ps*)))))))
       (di)  ; peel IMPLIES IH, adds PROD-ORD(m,f,n_k) in CARR(m); focus = PROD-ORD(m,f,succ n_k) in CARR(m)
       ;; Use eq-subst-membership with a = PROD-ORD(m,f,succ n_k),
-      ;;   b = (MUL m)(PROD-ORD m f n_k)(f n_k), S = CARR(m).
+      ;;   b = (OPR m)(PROD-ORD m f n_k)(f n_k), S = CARR(m).
       (ta 'quasi-eq-subst-membership)
       (inst '(FORALL a (FORALL b (FORALL S (IMPLIES (AND (== a b) (IN b S)) (IN a S)))))
             `(PROD-ORD m f (succ ,n-k)))
       (inst `(FORALL b (FORALL S (IMPLIES (AND (== (PROD-ORD m f (succ ,n-k)) b) (IN b S))
                                            (IN (PROD-ORD m f (succ ,n-k)) S))))
-            `((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))
+            `((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)))
       (inst `(FORALL S (IMPLIES (AND (== (PROD-ORD m f (succ ,n-k))
-                                        ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))
-                                    (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) S))
+                                        ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)))
+                                    (IN ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)) S))
                                 (IN (PROD-ORD m f (succ ,n-k)) S)))
             '(CARR m))
       (bc `(IMPLIES (AND (== (PROD-ORD m f (succ ,n-k))
-                             ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))
-                         (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m)))
+                             ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)))
+                         (IN ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m)))
                     (IN (PROD-ORD m f (succ ,n-k)) (CARR m))))
       (di)  ; AND-split -> focus: (== PROD-ORD(m,f,succ n_k) ...)
       ;; Prove the succ equation from prod-ord-succ.
       (ta 'prod-ord-succ)
       (inst '(FORALL m (FORALL f (FORALL n (IMPLIES (IN n NN)
-               (== (PROD-ORD m f (succ n)) ((MUL m) (PROD-ORD m f n) (f n))))))) 'm)
+               (== (PROD-ORD m f (succ n)) ((OPR m) (PROD-ORD m f n) (f n))))))) 'm)
       (inst '(FORALL f (FORALL n (IMPLIES (IN n NN)
-               (== (PROD-ORD m f (succ n)) ((MUL m) (PROD-ORD m f n) (f n)))))) 'f)
+               (== (PROD-ORD m f (succ n)) ((OPR m) (PROD-ORD m f n) (f n)))))) 'f)
       (inst '(FORALL n (IMPLIES (IN n NN)
-               (== (PROD-ORD m f (succ n)) ((MUL m) (PROD-ORD m f n) (f n))))) n-k)
+               (== (PROD-ORD m f (succ n)) ((OPR m) (PROD-ORD m f n) (f n))))) n-k)
       (bc `(IMPLIES (IN ,n-k NN)
-                    (== (PROD-ORD m f (succ ,n-k)) ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)))))
-      (ass)   ; (IN n_k NN) in context; focus: (IN (MUL m)... CARR(m))
-      ;; Prove (MUL m)(PROD-ORD m f n_k)(f n_k) in CARR(m) via monoid-carrier-closed-mul.
+                    (== (PROD-ORD m f (succ ,n-k)) ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)))))
+      (ass)   ; (IN n_k NN) in context; focus: (IN (OPR m)... CARR(m))
+      ;; Prove (OPR m)(PROD-ORD m f n_k)(f n_k) in CARR(m) via monoid-carrier-closed-mul.
       (ta 'monoid-carrier-closed-mul)
       (inst '(FORALL m (FORALL a (FORALL b
                (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
-                        (IN ((MUL m) a b) (CARR m)))))) 'm)
+                        (IN ((OPR m) a b) (CARR m)))))) 'm)
       (inst `(FORALL a (FORALL b
                (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
-                        (IN ((MUL m) a b) (CARR m))))) `(PROD-ORD m f ,n-k))
+                        (IN ((OPR m) a b) (CARR m))))) `(PROD-ORD m f ,n-k))
       (inst `(FORALL b
                (IMPLIES (AND (IS-MONOID m) (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN b (CARR m))))
-                        (IN ((MUL m) (PROD-ORD m f ,n-k) b) (CARR m)))) `(f ,n-k))
+                        (IN ((OPR m) (PROD-ORD m f ,n-k) b) (CARR m)))) `(f ,n-k))
       (bc `(IMPLIES (AND (IS-MONOID m)
                          (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN (f ,n-k) (CARR m))))
-                    (IN ((MUL m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m))))
+                    (IN ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m))))
       (di) (ass)   ; IS-MONOID(m) [ass]
       (di) (ass)   ; PROD-ORD(m,f,n_k) in CARR(m) [IH]
       ;; Prove (f n_k) in CARR(m) via fun-apply-type.
@@ -2025,17 +2025,17 @@
   (lambda () (and (lookup-theorem 'zz-ring-def) #t)))
 (check-true "qq-ring-def installed"
   (lambda () (and (lookup-theorem 'qq-ring-def) #t)))
-(check-true "rr-ring-def installed"
-  (lambda () (and (lookup-theorem 'rr-ring-def) #t)))
-(check-true "cc-ring-def installed"
-  (lambda () (and (lookup-theorem 'cc-ring-def) #t)))
+(check-true "rr-normed-field-def installed"
+  (lambda () (and (lookup-theorem 'rr-normed-field-def) #t)))
+(check-true "cc-normed-field-def installed"
+  (lambda () (and (lookup-theorem 'cc-normed-field-def) #t)))
 
 ;; --- IS-RING(*-RING): only the genuine 6-tuples ZZ/QQ ---
 (check-true "zz-is-ring installed"
   (lambda () (and (lookup-theorem 'zz-is-ring) #t)))
 (check-true "qq-is-ring installed"
   (lambda () (and (lookup-theorem 'qq-is-ring) #t)))
-;; RR-RING/CC-RING are 7-tuple NORMED-FIELDs: asserting the length-6 IS-RING
+;; RR-NORMED-FIELD/CC-NORMED-FIELD are 7-tuple NORMED-FIELDs: asserting the length-6 IS-RING
 ;; on them was a flat contradiction (6 = 7).  These must stay REMOVED.
 ;; lookup-theorem raises on an absent name, so probe the axiom store directly.
 (check-true "rr-is-ring removed (was length 6=7 unsound)"
@@ -2803,14 +2803,153 @@
 (check-false "qq-field card has no empty-law fallback"
   (lambda () (and (string-search-forward "no stored characteristic law"
                                          (card-str 'qq-field) 0) #t)))
-;; RR-RING's card shows normed-field membership and NOT a (removed) ring one.
-(check-true "rr-ring card: member of normed-field"
-  (lambda () (and (string-search-forward "is-normed-field" (card-str 'rr-ring) 0) #t)))
-(check-false "rr-ring card: not a ring member (soundness fix, visible)"
-  (lambda () (and (string-search-forward "is-ring" (card-str 'rr-ring) 0) #t)))
+;; RR-NORMED-FIELD's card shows normed-field membership and NOT a (removed) ring one.
+(check-true "rr-normed-field card: member of normed-field"
+  (lambda () (and (string-search-forward "is-normed-field" (card-str 'rr-normed-field) 0) #t)))
+(check-false "rr-normed-field card: not a ring member (soundness fix, visible)"
+  (lambda () (and (string-search-forward "is-ring" (card-str 'rr-normed-field) 0) #t)))
 ;; Refinement classes still render as refinements (unchanged branch).
 (check-true "commutative-ring card still a refinement"
   (lambda () (and (string-search-forward "refinement" (card-str 'commutative-ring) 0) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; ONE NAME, ONE SLOT: accessor macetes are global, so an accessor claimed at
+;;; two slot indices has no correct reduction.
+;;;
+;;; `mul' held the group family's slot 2 (they load last), so (mac 'mul) on
+;;; (MUL ZZ-RING) -- whose multiplication is slot 3 -- reduced to (NTH 2 ZZ-RING)
+;;; = binplus, and `mul(zz-ring) = binplus', the multiplication of the integers
+;;; is ADDITION, went to a qed.  def-structure now withdraws the reduction for
+;;; an ambiguous name instead of installing a false one.
+
+(display "\n=== accessor indices: one name, one slot ===\n")
+
+;; NO accessor is ambiguous any more: the group family's operation is OPR, the
+;; field's inverse RECIP, the normed field's norm FNRM.  A new collision -- e.g.
+;; a numbered carrier CARRj at slot j in one structure and slot j' in another --
+;; fails here (and hard-errors the load).
+(check-true "no accessor name is claimed at two slot indices"
+  (lambda () (null? (accessor-index-audit))))
+
+;; The other half of the rule: no formula applies an accessor to a structure that
+;; has no such slot.  This is what caught nf-metric-distance, which took NRM of a
+;; normed field after the rename and failed no proof, being still well-formed.
+(check-true "no formula applies an accessor to a structure lacking that slot"
+  (lambda () (null? (accessor-type-audit))))
+
+;; And now the reduction numeric-instances.scm always advertised is TRUE: MUL is
+;; the ring's slot 3, so (MUL ZZ-RING) computes to bintimes.  It used to compute
+;; to binplus -- the multiplication of the integers is addition -- and reach qed.
+(check-true "(MUL ZZ-RING) computes to bintimes (it used to give binplus)"
+  (lambda ()
+    (sp (make-wff '(= (MUL ZZ-RING) bintimes)))
+    (mac 'mul)                 ; (MUL ZZ-RING) -> (NTH 3 ZZ-RING)
+    (mac 'zz-ring-def)         ; ZZ-RING       -> the literal tuple
+    (nth-r)                    ; NTH 3 of it   -> bintimes
+    (rfl)
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; OPR -- the group family's operation -- has its own reduction, at slot 2.
+(check-true "OPR has an (NTH 2) reduction of its own"
+  (lambda () (and (hash-table-ref/default *macete-table* 'opr #f) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; What the docs SAY a structure is must be what it IS.
+;;;
+;;; The index used to print IS-X "destructured": bound `s' replaced by the
+;;; tuple of its slots, so `is-commutative-ring-def' read
+;;;   forall([carr, add, mul, ...], is-commutative-ring([carr, add, mul, ...]) iff ...)
+;;; -- binders named after the ACCESSORS.  The head registry is scope-blind, so
+;;; that string reads BACK as a different formula (applied `mul' is the constant
+;;; MUL, not the bound variable): the browser was publishing, as the defining
+;;; predicate, something that is not the defining predicate.  Nothing caught it,
+;;; because no such wff exists -- the printer invented the binders, so
+;;; constant-binder-audit had nothing to fire at.
+;;;
+;;; Two gates, both on the STRING the docs show.
+
+(display "\n=== structure docs: what is printed is what is stored ===\n")
+
+;; Every structure name (shape + definitional), paired with the axiom the
+;; index prints for it.  Instances (constant tuples: qq-field, ...) have no
+;; is-X-def and are skipped by the (and f ...) filter.
+(define (doc-structure-axioms)
+  (append-map
+    (lambda (name)
+      (let* ((shape? (lookup-structure name))
+             (an     (if shape?
+                         (symbol-append 'IS- name)
+                         (string->symbol
+                           (string-append "is-" (string-downcase (symbol->string name))
+                                          "-def"))))
+             (f      (hash-table-ref/default *theorem-table* an #f)))
+        (if f (list (cons an f)) '())))
+    (append (hash-table-keys *structure-table*)
+            (hash-table-keys *definitional-structure-table*))))
+
+;; GATE 1.  The printed predicate PARSES BACK to the formula it claims to be.
+;; The destructured render failed this: it was not re-readable at all.
+(check-true "every structure's printed defining predicate re-parses to itself"
+  (lambda ()
+    (let ((bad (filter (lambda (p)
+                         (let* ((f   (cdr p))
+                                (str (expression->string f)))
+                           (not (alpha-equiv?
+                                  f
+                                  (expand-destructuring-quantifiers
+                                    (parse-string str))))))
+                       (doc-structure-axioms))))
+      (when (pair? bad)
+        (display "  round-trip FAILED for: ") (display (map car bad)) (newline))
+      (null? bad))))
+
+;; GATE 2.  No accessor name appears as a BINDER in what the docs print.  This
+;; is constant-binder-audit's rule, applied to the doc layer: the audit clears
+;; the library (the wffs are clean) and cleared it while the printer was
+;; emitting exactly what the audit forbids.
+(check-true "no structure doc string binds a registered constant"
+  (lambda ()
+    (let ((bad (filter (lambda (p) (pair? (wff-constant-binders (cdr p))))
+                       (doc-structure-axioms))))
+      (null? bad))))
+
+;; The declaration -- the thing the docs now lead with -- is recorded for every
+;; structure that went through the def-structure-from-clauses funnel, and it is
+;; the source form, not a reconstruction.
+(check-true "commutative-ring's declaration is the source two-liner"
+  (lambda ()
+    (let ((d (structure-declaration->string 'commutative-ring)))
+      (and d
+           (string-search-forward "(same-shape-as ring)" d 0)
+           (string-search-forward "mul(s)(a, b) = mul(s)(b, a)" d 0)
+           #t))))
+
+;; EVERY shape structure records its declaration -- no exceptions, so no
+;; structure can be documented by a reconstruction.  NORMED-VECTOR-SPACE was the
+;; one bypass (it hand-built its %make-structure-def and hand-wrote its IS-X
+;; axiom, on the theory that sharing MODULE's accessors would collide -- it does
+;; not: the registries are idempotent and the shared slots are declared in
+;; MODULE's order, so they re-register identically).  A new bypass fails here.
+(check-true "every shape structure records its declaration"
+  (lambda ()
+    (null? (filter (lambda (n) (not (structure-declaration n)))
+                   (hash-table-keys *structure-table*)))))
+
+;; NORMED-VECTOR-SPACE, specifically: it goes through the funnel, keeps VNRM at
+;; slot 7 (the MODULE view-as is a positional remap of slots 1-6 and breaks if
+;; the order drifts), and its scalars are still pinned to the reals.
+(check-true "normed-vector-space declared through the funnel, VNRM at slot 7"
+  (lambda ()
+    (equal? (structure-slot-names (lookup-structure 'normed-vector-space))
+            '(scal vec vadd vzero vneg act vnrm))))
+(check-true "normed-vector-space still pins its scalars to rr-normed-field"
+  (lambda ()
+    (and (string-search-forward
+           "scal(s) = rr-normed-field"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'is-normed-vector-space #f))
+           0)
+         #t)))
 
 ;;; -----------------------------------------------------------------------
 ;;; IF -- conditional term former and its two kernel reduction rules
@@ -2984,8 +3123,8 @@
   (lambda () (what-is--levenshtein "ring" "ring")) 0)
 (check "what-is: split metric-space"
   (lambda () (what-is--split-dash "metric-space")) '("metric" "space"))
-(check "what-is: alias complex -> cc-ring"
-  (lambda () (cdr (assoc "complex" *what-is-aliases*))) '(cc-ring))
+(check "what-is: alias complex -> cc-normed-field"
+  (lambda () (cdr (assoc "complex" *what-is-aliases*))) '(cc-normed-field))
 
 ;;; -----------------------------------------------------------------------
 ;;; proof-tex / replay: assumption-by-INDEX args must be resolved on replay

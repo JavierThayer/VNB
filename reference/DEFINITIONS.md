@@ -276,7 +276,7 @@ Proposition-valued: `name(args) <=> body`.
 
 ### sums-to
 
-    forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies (nrm(grp))((mul(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))) < eps))))
+    forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin], fin in set and card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies (nrm(grp))((opr(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))) < eps))))
 
 ### taylor-differentiable
 
@@ -316,7 +316,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
     forall([m, x], mpow(m, x, 0) == iden(m))
 
-    forall([m, x, n in nn], mpow(m, x, succ(n)) == (mul(m))(x, mpow(m, x, n)))
+    forall([m, x, n in nn], mpow(m, x, succ(n)) == (opr(m))(x, mpow(m, x, n)))
 
 ### nth-deriv
 
@@ -334,7 +334,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
     forall([m, f], prod-ord(m, f, 0) == iden(m))
 
-    forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (mul(m))(prod-ord(m, f, n), f(n)))
+    forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (opr(m))(prod-ord(m, f, n), f(n)))
 
 ### reduce
 
@@ -358,7 +358,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
     forall([ag, f], sum-ag(ag, f, 0) == iden(ag))
 
-    forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (mul(ag))(sum-ag(ag, f, n), f(n)))
+    forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (opr(ag))(sum-ag(ag, f, n), f(n)))
 
 ### taylor-poly-v
 

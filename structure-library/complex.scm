@@ -2,7 +2,7 @@
 ;;;
 ;;; CC-MS = [CC, lambda([x,y], magnitude(x-y))]
 ;;;
-;;; CC-RING (and its IS-RING witness) lives in basic-rings.scm alongside
+;;; CC-NORMED-FIELD (and its IS-RING witness) lives in basic-rings.scm alongside
 ;;; the other numeric ring instances; this file is now only about the
 ;;; metric/topological side of CC.
 ;;;

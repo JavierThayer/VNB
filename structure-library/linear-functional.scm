@@ -6,7 +6,7 @@
 ;;; rule, f is a variable head, so f(x) = (f x) is unambiguous function
 ;;; application; the accessors VEC/VADD/ACT/VNRM are registered heads.
 ;;;
-;;; Scalars are RR (NORMED-VECTOR-SPACE pins SCAL = RR-RING), so homogeneity and
+;;; Scalars are RR (NORMED-VECTOR-SPACE pins SCAL = RR-NORMED-FIELD), so homogeneity and
 ;;; the bound use ordinary real *, abs, <=.
 ;;;
 ;;;   IS-LINEAR-FUNCTIONAL(m,f)          f additive and homogeneous

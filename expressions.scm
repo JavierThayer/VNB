@@ -167,7 +167,7 @@
 ;;;   <bind-spec> = symbol            -- single binder
 ;;;               | (LIST x y z ...)  -- multi-var binder
 ;;; Used in raw S-expression axioms (algebraic.scm RING-PROD body, complex.scm
-;;; CC-RING/CC-MS, sequences.scm sum-left-scalar) where the parser is not run.
+;;; CC-NORMED-FIELD/CC-MS, sequences.scm sum-left-scalar) where the parser is not run.
 ;;; The parsed user-string form `lambda([x in nn], body)` becomes a <functoid>
 ;;; record instead and is handled separately above.
 

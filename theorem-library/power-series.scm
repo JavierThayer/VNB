@@ -14,7 +14,7 @@
 ;;;
 ;;; The ordered partial sum is SUM-AG over the additive group of RR: SUM-AG
 ;;; is by construction  f(0) + f(1) + ... + f(k-1)  in the supplied abelian
-;;; group, and NORMED-FIELD-ADDITIVE-AG(RR-RING) is exactly (RR, +, 0, -).
+;;; group, and NORMED-FIELD-ADDITIVE-AG(RR-NORMED-FIELD) is exactly (RR, +, 0, -).
 ;;; Convergence is the ORDERED limit of partial sums in the complete metric
 ;;; space RR-MS -- the classical meaning of "Sum coef(n) x^n = L".  Inside
 ;;; the radius this also coincides with absolute / unconditional summability
@@ -25,7 +25,7 @@
 ;;; bound is `k', the term index `n' -- `N' would fold onto `n' (capture).
 ;;;
 ;;; Dependencies: sequences.scm (SUM-AG), views.scm (NORMED-FIELD-ADDITIVE-AG),
-;;; numeric-instances.scm (RR-RING, RR-MS), number-systems.scm (power),
+;;; numeric-instances.scm (RR-NORMED-FIELD, RR-MS), number-systems.scm (power),
 ;;; metric-completeness.scm (CONVERGES, CONVERGES-TO).
 
 ;;; -----------------------------------------------------------------------
@@ -51,12 +51,12 @@
 ;;; -----------------------------------------------------------------------
 ;;; PS-PARTIAL-SUM(coef, x, k) = Sum_{n<k} coef(n) x^n.
 ;;;
-;;; SUM-AG(ag, f, k) = f(0) (MUL ag) ... (MUL ag) f(k-1); with ag the additive
+;;; SUM-AG(ag, f, k) = f(0) (OPR ag) ... (OPR ag) f(k-1); with ag the additive
 ;;; group of RR this is the ordinary ordered partial sum.  The term function
 ;;; n |-> coef(n) x^n is left inline (no name): it is just (* (coef n)
 ;;; (power x n)).
 (def-functoid 'PS-PARTIAL-SUM '(coef x k)
-  '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-RING)
+  '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-NORMED-FIELD)
            (VNB-LAMBDA n (* (coef n) (power x n)))
            k))
 
@@ -211,7 +211,7 @@
 ;;; The bare series  Sum_n f(n)  and its partial sums.  (Sequence var is `f',
 ;;; not `a' -- `a' folds to the carrier accessor `A'.)
 (def-functoid 'SERIES-PARTIAL-SUM '(f k)
-  '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-RING) f k))
+  '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-NORMED-FIELD) f k))
 
 (def-predicate 'SERIES-CONVERGES-TO '(f L)
   '(CONVERGES-TO RR-MS (VNB-LAMBDA k (SERIES-PARTIAL-SUM f k)) L))

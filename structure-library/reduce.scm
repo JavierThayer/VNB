@@ -12,7 +12,7 @@
 ;;; The kiddie surface (+ x_1 ... x_n) bridges to
 ;;;   (REDUCE binplus (FAM-OF-LIST (LIST x_1 ... x_n)) n)
 ;;; via the nary-plus-N-list axioms in numeric-instances.scm; the adult
-;;; finite-sum SUM-AG bridges to (REDUCE (MUL ag) f n) for n >= 1 via
+;;; finite-sum SUM-AG bridges to (REDUCE (OPR ag) f n) for n >= 1 via
 ;;; sum-ag-as-reduce in sequences.scm.  The n = 0 case is purely SUM-AG's
 ;;; (SUM-AG(ag,f,0) = IDEN(ag)); REDUCE has no counterpart there.
 ;;;

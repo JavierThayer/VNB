@@ -52,7 +52,7 @@
 ;;;
 ;;; An individual structure -- an `ag` with IS-ABELIAN-GROUP(ag) -- is just a
 ;;; VNB list (a tuple) of LENGTH n.  The accessors are literally projections:
-;;; (CARR ag) = (NTH 1 ag), (MUL ag) = (NTH 2 ag), and so on.  The IS-NAME axiom
+;;; (CARR ag) = (NTH 1 ag), (OPR ag) = (NTH 2 ag), and so on.  The IS-NAME axiom
 ;;; is exactly the shape constraint: right length, carriers are sets, ops land
 ;;; in the declared FUN classes.
 ;;;
@@ -118,6 +118,150 @@
 
 (define (lookup-structure name)
   (hash-table-ref/default *structure-table* name #f))
+
+;;; -----------------------------------------------------------------------
+;;; The DECLARATION, kept verbatim.
+;;;
+;;; Everything else here stores the EXPANSION of a declaration -- the slot
+;;; list, the IS-X axiom.  Neither can be printed back to the reader: the
+;;; expansion of COMMUTATIVE-RING is a six-conjunct IFF over `s' whose one
+;;; interesting clause is buried in it, and the pretty-printer that used to
+;;; unbury it (destructure-isx-expr, interactive.scm) did so by inventing
+;;; bound variables NAMED AFTER THE ACCESSORS -- printing a string that reads
+;;; back, through the scope-blind head registry, as a different formula.
+;;; What a reader wants is the two lines that were actually written:
+;;;
+;;;   (declare-structure COMMUTATIVE-RING
+;;;     (same-shape-as RING)
+;;;     (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
+;;;
+;;; so we keep them.  def-structure-from-clauses is the single funnel (the
+;;; `declare-structure' macro expands to it, and the library's direct callers
+;;; call it), so one hash-table set! there catches every structure, shape and
+;;; refinement alike.  Law strings are stored AS WRITTEN, in surface syntax:
+;;; they parse.
+(define *structure-decl-table* (make-equal-hash-table))
+
+(define (record-structure-declaration! name clauses)
+  (hash-table-set! *structure-decl-table* name clauses))
+
+(define (structure-declaration name)
+  (hash-table-ref/default *structure-decl-table* name #f))
+
+;;; The declaration as source text, ready to drop into a fenced code block.
+;;;
+;;; A law is a STRING and must print as one -- but `write' escapes the newlines
+;;; of a law written over several lines into a literal \n, which is unreadable
+;;; and is not how it appears in the source.  A Scheme string literal may span
+;;; lines, so we emit the characters as they were written.  Laws contain no `"'
+;;; or `\' (they are surface-syntax formulas), and we escape them anyway rather
+;;; than rely on that.
+(define (structure--write-clause-datum d)
+  (cond
+    ((string? d)
+     (display "\"")
+     (string-for-each (lambda (c)
+                        (case c
+                          ((#\" #\\) (display "\\") (display c))
+                          (else      (display c))))
+                      d)
+     (display "\""))
+    ((pair? d)
+     (display "(")
+     (let loop ((xs d) (first #t))
+       (cond ((null? xs) (display ")"))
+             ((not (pair? xs))            ; improper tail
+              (display " . ") (structure--write-clause-datum xs) (display ")"))
+             (else
+              (unless first (display " "))
+              (structure--write-clause-datum (car xs))
+              (loop (cdr xs) #f)))))
+    (else (write d))))
+
+(define (structure-declaration->string name)
+  (let ((clauses (structure-declaration name)))
+    (and clauses
+         (with-output-to-string
+           (lambda ()
+             (display "(declare-structure ") (display name) (newline)
+             (let loop ((cs clauses))
+               (unless (null? cs)
+                 (display "  ") (structure--write-clause-datum (car cs))
+                 (if (null? (cdr cs)) (display ")") (newline))
+                 (loop (cdr cs)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; ONE NAME, ONE SLOT.
+;;;
+;;; An accessor macete is keyed by NAME and is GLOBAL: `mul' rewrites (MUL s)
+;;; to (NTH k s) for EVERY s, whatever structure s is.  So a name may live at
+;;; exactly one index, library-wide.  Three names did not:
+;;;
+;;;     nrm : normed-ag@5  normed-field@7
+;;;     mul : monoid@2 group@2 semigroup@2 abelian-group@2 comm-monoid@2
+;;;           normed-ag@2   ...but ring@3 field@3 normed-field@3
+;;;     inv : group@4 abelian-group@4 normed-ag@4   ...but field@8
+;;;
+;;; Only one rewrite survives per name (the last structure to declare it wins),
+;;; and it is then WRONG for every other structure.  This was not theoretical:
+;;; `mul' held the group family's index 2, so
+;;;
+;;;     (mac 'mul) on (MUL ZZ-RING)  -->  (NTH 2 ZZ-RING)  -->  binplus
+;;;
+;;; and the checker would take `mul(zz-ring) = binplus' -- the multiplication of
+;;; the integers is ADDITION -- all the way to a qed.  (Billed, at least: the
+;;; macete appears in the bill as the asserted leaf `mul'.  No library proof ever
+;;; cited one, which is why nobody noticed.)  numeric-instances.scm advertises
+;;; exactly this computation as a feature.
+;;;
+;;; So: an accessor name is registered with its index, and a name claimed at a
+;;; SECOND index is AMBIGUOUS -- no global reduction can be right for it.  We
+;;; install none, and withdraw the one already installed: (mac 'mul) is now an
+;;; unknown macete rather than a false one.  `accessor-index-audit' names the
+;;; ambiguous accessors, and the test suite pins the list, so a NEW collision --
+;;; e.g. a numbered carrier CARRj put at slot j in one structure and slot j' in
+;;; another -- fails loudly instead of installing a lie.
+;;;
+;;; Resolving the three (renaming one side of each, restoring the reductions) is
+;;; a separate, deliberate change to library vocabulary.
+(define *accessor-index* (make-equal-hash-table))   ; name -> (index . structure)
+(define *ambiguous-accessors* (make-equal-hash-table))  ; name -> ((struct . idx) ...)
+
+(define (accessor-ambiguous? name)
+  (hash-table-ref/default *ambiguous-accessors* name #f))
+
+;;; Every accessor claimed at more than one slot index, as
+;;;   ((name (struct . idx) (struct . idx) ...) ...)
+;;; Empty => every accessor name denotes one slot, and every accessor macete is
+;;; sound.  Companion to case-fold-audit / constant-binder-audit.
+(define (accessor-index-audit)
+  (map (lambda (name)
+         (cons name (reverse (hash-table-ref/default *ambiguous-accessors* name '()))))
+       (sort (hash-table-keys *ambiguous-accessors*)
+             (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+
+;;; Record NAME as living at slot K of structure STRUCT.  Returns #t if the name
+;;; is unambiguous (so a global reduction is installable), #f if this claim
+;;; collides with an earlier one -- in which case the earlier macete, now known
+;;; to be wrong for at least one structure, is WITHDRAWN.
+(define (register-accessor-index! name k struct)
+  (let ((prev (hash-table-ref/default *accessor-index* name #f)))
+    (cond
+      ((not prev)
+       (hash-table-set! *accessor-index* name (cons k struct))
+       (not (accessor-ambiguous? name)))
+      ((= (car prev) k)                    ; same slot: consistent, keep it
+       (not (accessor-ambiguous? name)))
+      (else
+       (let ((hits (hash-table-ref/default *ambiguous-accessors* name '())))
+         (hash-table-set! *ambiguous-accessors* name
+           (cons (cons struct k)
+                 (if (null? hits)
+                     (list (cons (cdr prev) (car prev)))
+                     hits))))
+       ;; the installed rewrite is wrong for at least one of the claimants
+       (hash-table-delete! *macete-table* name)
+       #f))))
 
 ;;; Install macete: (accessor s) -> (NTH k s) for any s.
 (define (install-accessor-macete! accessor-name k)
@@ -214,7 +358,12 @@
         (let ((slot-name (caar rest)))
           (register-constant! slot-name 'accessor)
           (register-operator! slot-name 'accessor '(s))
-          (install-accessor-macete! slot-name k)
+          ;; ONE NAME, ONE SLOT: install the (NAME s) -> (NTH k s) reduction only
+          ;; if this name denotes slot k everywhere.  A second index makes it
+          ;; ambiguous and the reduction is withdrawn -- see the comment above
+          ;; register-accessor-index!.
+          (if (register-accessor-index! slot-name k name)
+              (install-accessor-macete! slot-name k))
           (loop (cdr rest) (+ k 1)))))
     ;; IS-NAME definitional axiom (shape + the named characteristic laws)
     (let ((is-name (symbol-append 'IS- name))
@@ -360,6 +509,9 @@
   ;; A (same-shape-as PARENT) clause makes this a REFINEMENT, not a shape: it
   ;; inherits the parent's slots and accessors and adds laws.  See
   ;; def-substructure above for why it must not emit a shape clause of its own.
+  ;; Keep the clauses as written: they, not the expansion, are what the
+  ;; browser and describe-structure show (see *structure-decl-table*).
+  (record-structure-declaration! name clauses)
   (let ((sh (find-first (lambda (c) (and (pair? c) (eq? (car c) 'same-shape-as)))
                         clauses)))
     (if sh
@@ -776,3 +928,81 @@
       (display instance-name)
       (newline)
       count)))
+
+;;; -----------------------------------------------------------------------
+;;; ACCESSOR-TYPE AUDIT -- "is this accessor a slot of THAT structure?"
+;;;
+;;; The companion to the one-name-one-slot rule (register-accessor-index!).  That
+;;; rule keeps a single accessor NAME from denoting two different slots.  This
+;;; audit catches the other half: an accessor applied to a structure that has no
+;;; such slot -- (OPR ag) where ag is an ABELIAN-GROUP whose operation is OPR.
+;;;
+;;; Such a formula is WELL-FORMED and therefore silent: the head registry is
+;;; scope-blind and happily reads MUL as the ring accessor.  The formula just
+;;; means something else.  That is the whole disease of this codebase, so it gets
+;;; a checker rather than a convention.
+;;;
+;;; Method, deliberately simple and conservative:
+;;;   -- collect every guard (IS-X v) anywhere in the formula, giving v : X
+;;;      (a variable with two guards is allowed to satisfy either);
+;;;   -- for every application (ACC v) whose head is a registered accessor and
+;;;      whose argument is a guarded variable, require ACC to be a slot of the
+;;;      SHAPE of X (refinements share their parent's shape).
+;;; Unguarded variables and non-variable arguments ((MUL (SCAL m))) are skipped:
+;;; the audit reports only what it is sure of, so a hit is a real hit.
+(define (structure-accessor-names name)
+  (let ((sd (find-shape-structure name)))
+    (and sd (structure-slot-names sd))))
+
+(define (isx-predicate->structure p)
+  (let ((s (symbol->string p)))
+    (and (> (string-length s) 3)
+         (string=? (substring s 0 3) "is-")
+         (let ((nm (string->symbol (substring s 3 (string-length s)))))
+           (and (find-shape-structure nm) nm)))))
+
+;;; ((ACC var STRUCT) ...) for every accessor application in E whose argument is
+;;; a variable guarded by a structure predicate that has no such slot.
+(define (formula-accessor-type-errors e0)
+  (let ((e     (if (wff? e0) (wff-formula e0) e0))
+        (types '())      ; (var . struct), from the guards
+        (hits  '()))
+    ;; pass 1 -- the guards
+    (let collect ((x e))
+      (when (pair? x)
+        (let ((h (car x)))
+          (if (and (symbol? h) (= (length x) 2) (symbol? (cadr x))
+                   (isx-predicate->structure h))
+              (set! types (cons (cons (cadr x) (isx-predicate->structure h)) types))))
+        (for-each collect (cdr x))
+        (if (pair? (car x)) (collect (car x)))))
+    ;; pass 2 -- the accessor applications
+    (let walk ((x e))
+      (when (pair? x)
+        (let ((h (car x)))
+          (when (and (symbol? h) (= (length x) 2) (symbol? (cadr x))
+                     (eq? (constant-head? h) 'accessor))
+            (let ((guards (filter (lambda (p) (eq? (car p) (cadr x))) types)))
+              (when (and (pair? guards)
+                         ;; a hit only if NO guard on this variable admits the slot
+                         (not (find-first (lambda (p)
+                                            (let ((slots (structure-accessor-names (cdr p))))
+                                              (and slots (memq h slots))))
+                                          guards)))
+                (set! hits (cons (list h (cadr x) (cdar guards)) hits))))))
+        (for-each walk (cdr x))
+        (if (pair? (car x)) (walk (car x)))))
+    (reverse hits)))
+
+;;; Sweep the whole installed library.  Empty => every accessor application whose
+;;; argument is a guarded variable names a slot that structure actually has.
+(define (accessor-type-audit)
+  (let ((bad '()))
+    (for-each
+      (lambda (name)
+        (let* ((f    (lookup-theorem name))
+               (hits (and f (formula-accessor-type-errors f))))
+          (if (pair? hits) (set! bad (cons (cons name hits) bad)))))
+      (hash-table-keys *theorem-table*))
+    (sort bad (lambda (a b) (string<? (symbol->string (car a))
+                                      (symbol->string (car b)))))))

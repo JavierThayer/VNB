@@ -67,19 +67,27 @@
 <h3 id="STRUCTURES__how-a-structure-is-encoded">How a structure is encoded</h3>
 <p>A <em>structure</em> is a VNB list (a tuple); its accessors are projections (<code>(A s) = (NTH 1 s)</code>, …). A <em>structure species</em> — the symbol <code>RING</code>, <code>FIELD</code>, … — denotes the proper class <code>{ s | IS-X(s) }</code>.</p>
 <p><strong>Declaration is grouped; instance is flat.</strong> The clauses in a <code>def-structure-from-clauses</code> call — <code>(carriers A B) (op MUL …) (constant E …)</code> — are <em>parsing sugar</em>: the parser consumes the grouping, then installs each carrier, op, and constant at a single flat top-level slot in declaration order. A 2-carrier <code>BONGO-GROUP</code> with one op <code>MUL</code> and one constant <code>E</code> has 4 flat slots:</p>
-<p>``<code> (LIST a-val bongo-val mul-val e-val)        ; correct: 4 slots, (LENGTH _) = 4 (LIST [a-val bongo-val] mul-val e-val)      ; WRONG: 3 slots, IS-BONGO-GROUP refutes </code>``</p>
+<pre>(LIST a-val bongo-val mul-val e-val)        ; correct: 4 slots, (LENGTH _) = 4
+(LIST [a-val bongo-val] mul-val e-val)      ; WRONG: 3 slots, IS-BONGO-GROUP refutes</pre>
 <p>So when building an instance by hand (or a bridge from another structure, e.g. the additive AG of a ring), write the slots flat in declaration order; do not nest the carriers as a sub-list. The IS-X predicate enforces this — a misaligned LIST is simply refutable in the class — but writing it correctly the first time is easier with the convention spelled out.</p>
 <p>Two kinds of <code>IS-X</code>:</p>
 <ul><li><strong>Shape predicates</strong> (<code>def-structure-from-clauses</code>): <code>IS-X(s)</code> checks only that <code>s</code> has the right length and its slots are typed. SEMIGROUP, MONOID, COMM-MONOID, GROUP, ABELIAN-GROUP, RING, METRIC-SPACE.</li><li><strong>Definitional predicates</strong> (plain <code>IFF</code> axiom): <code>IS-X(s)</code> is <code>IS-parent(s) ∧ &lt;characteristic properties&gt;</code>. Used where a property would be violated by an existing instance — e.g. INTEGRAL-DOMAIN&#x27;s <code>ONE ≠ ZERO</code> is false in the zero ring, so <code>IS-INTEGRAL-DOMAIN</code> cannot be shape-only. COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD.</li></ul>
 <h3 id="STRUCTURES__hierarchy">Hierarchy</h3>
-<p>``` SEMIGROUP                       carrier A; MUL └─ MONOID                       + identity E ├─ COMM-MONOID               + MUL commutative └─ GROUP                     + inverse INV</p>
-<pre>  └─ ABELIAN-GROUP          + MUL commutative</pre>
-<p>RING                            carrier A; ADD MUL NEG; ZERO ONE └─ COMMUTATIVE-RING             + MUL commutative └─ INTEGRAL-DOMAIN           + ONE≠ZERO, no zero divisors</p>
-<pre>  ├─ EUCLIDEAN-RING         + a Euclidean degree function exists
-  └─ FIELD                  + every nonzero element is invertible
-     └─ NORMED-FIELD        + a norm A→RR exists</pre>
-<p>(also: FIELD ⊆ EUCLIDEAN-RING)</p>
-<p>METRIC-SPACE                    carrier X; distance D: X×X → RR ```</p>
+<pre>SEMIGROUP                       carrier A; MUL
+└─ MONOID                       + identity E
+   ├─ COMM-MONOID               + MUL commutative
+   └─ GROUP                     + inverse INV
+      └─ ABELIAN-GROUP          + MUL commutative
+
+RING                            carrier A; ADD MUL NEG; ZERO ONE
+└─ COMMUTATIVE-RING             + MUL commutative
+   └─ INTEGRAL-DOMAIN           + ONE≠ZERO, no zero divisors
+      ├─ EUCLIDEAN-RING         + a Euclidean degree function exists
+      └─ FIELD                  + every nonzero element is invertible
+         └─ NORMED-FIELD        + a norm A→RR exists
+   (also: FIELD ⊆ EUCLIDEAN-RING)
+
+METRIC-SPACE                    carrier X; distance D: X×X → RR</pre>
 <p>Relation axioms: <a class="x" href="THEOREMS.html#t-comm-monoid-is-monoid"><code>comm-monoid-is-monoid</code></a>, <a class="x" href="THEOREMS.html#t-abelian-group-is-group"><code>abelian-group-is-group</code></a>, <a class="x" href="THEOREMS.html#t-commutative-ring-is-ring"><code>commutative-ring-is-ring</code></a>, <a class="x" href="THEOREMS.html#t-integral-domain-is-commutative-ring"><code>integral-domain-is-commutative-ring</code></a>, <code>field-is-integral-domain</code>, <a class="x" href="THEOREMS.html#t-euclidean-ring-is-integral-domain"><code>euclidean-ring-is-integral-domain</code></a>, <code>field-is-euclidean-ring</code>, <code>normed-field-is-field</code>. Each <code>def-structure</code>&#x27;d shape predicate also collapses with its parent (e.g. a richer-shape GROUP is not a structural subtype of MONOID — note there is no <code>group-is-monoid</code>).</p>
 <h3 id="STRUCTURES__numeric-instances">Numeric instances</h3>
 <p>| Domain | Instance | Memberships | |---|---|---| | NN | <code>NN-ADD-MONOID</code> | COMM-MONOID | | ZZ | <code>ZZ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING | | QQ | <code>QQ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD | | RR | <code>RR-RING</code> | …, FIELD, NORMED-FIELD | | CC | <code>CC-RING</code> | …, FIELD, NORMED-FIELD; <code>CC-MS</code>: METRIC-SPACE |</p>

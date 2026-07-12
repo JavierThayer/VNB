@@ -185,7 +185,7 @@ proven modulo:
 - `ras-op` -- *warrant proof:* operation of a ring's additive group is the ring's addition.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `ras-carr` -- *warrant proof:* carrier of a ring's additive group is the ring's carrier.
 - `eq-sym` -- *warrant well-known:* Symmetry of (partial) equality.
@@ -261,7 +261,7 @@ proven modulo:
 - `ras-op` -- *warrant proof:* operation of a ring's additive group is the ring's addition.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `ras-carr` -- *warrant proof:* carrier of a ring's additive group is the ring's carrier.
 - `eq-sym` -- *warrant well-known:* Symmetry of (partial) equality.
@@ -371,7 +371,7 @@ proven modulo:
 - `ras-op` -- *warrant proof:* operation of a ring's additive group is the ring's addition.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `ras-carr` -- *warrant proof:* carrier of a ring's additive group is the ring's carrier.
 - `eq-sym` -- *warrant well-known:* Symmetry of (partial) equality.
@@ -1316,7 +1316,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 - `mrs-scaled-summand-type` -- *warrant well-known:* z |-> r . (c_{1z} . u_{z1}) is a function [1,n] -> VEC md: the inner action is
    (matact-summand-type), module-act-type closes the outer action, and mvag-carr
    identifies CARR(MODULE-VECTOR-AG md) = VEC md.
@@ -1347,7 +1347,7 @@ proven modulo:
 - `eq-sym` -- *warrant well-known:* Symmetry of (partial) equality.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `ring-add-left-id` -- **NO WARRANT**
@@ -1993,7 +1993,7 @@ proven modulo:
    (nn-minus-def + bt-succ-minus-1).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `ras-carr` -- *warrant proof:* carrier of a ring's additive group is the ring's carrier.
 - `ring-add-left-id` -- **NO WARRANT**
@@ -2492,7 +2492,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 - `matscale-type` -- *warrant reference:* entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).
 - `matscale-entry` -- *warrant reference:* (r*P)_{ij} = r * P_{ij}: the read-off of MATSCALE's MATOF tabulation via
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
@@ -2549,7 +2549,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `ring-add-left-id` -- **NO WARRANT**
@@ -2857,7 +2857,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 
 ### matact-row-peel  *(trust: none)*
 
@@ -2896,7 +2896,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
@@ -2972,7 +2972,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 
@@ -4082,7 +4082,7 @@ proven modulo:
    (nn-minus-def + bt-succ-minus-1).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `ras-carr` -- *warrant proof:* carrier of a ring's additive group is the ring's carrier.
 - `ring-add-left-id` -- **NO WARRANT**
@@ -4233,7 +4233,7 @@ proven modulo:
    (nn-minus-def + bt-succ-minus-1).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `ras-carr` -- *warrant proof:* carrier of a ring's additive group is the ring's carrier.
 - `ring-add-left-id` -- **NO WARRANT**
@@ -4282,7 +4282,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 - `matscale-type` -- *warrant reference:* entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).
 - `mrs-scaled-summand-type` -- *warrant well-known:* z |-> r . (c_{1z} . u_{z1}) is a function [1,n] -> VEC md: the inner action is
    (matact-summand-type), module-act-type closes the outer action, and mvag-carr
@@ -4370,7 +4370,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 - `matscale-type` -- *warrant reference:* entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).
 - `mrs-scaled-summand-type` -- *warrant well-known:* z |-> r . (c_{1z} . u_{z1}) is a function [1,n] -> VEC md: the inner action is
    (matact-summand-type), module-act-type closes the outer action, and mvag-carr
@@ -4436,7 +4436,7 @@ proven modulo:
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
@@ -4530,7 +4530,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 - `matscale-type` -- *warrant reference:* entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).
 - `mrs-scaled-summand-type` -- *warrant well-known:* z |-> r . (c_{1z} . u_{z1}) is a function [1,n] -> VEC md: the inner action is
    (matact-summand-type), module-act-type closes the outer action, and mvag-carr
@@ -4592,7 +4592,7 @@ proven modulo:
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via
@@ -4739,7 +4739,7 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 - `finsum-add-ag` -- *warrant well-known:* finsum-add at m = ag as a commutative monoid: induction on |S| via
    finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and
-   associativity of (MUL ag).  No inverses used.
+   associativity of (OPR ag).  No inverses used.
 - `matscale-type` -- *warrant reference:* entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).
 - `mrs-scaled-summand-type` -- *warrant well-known:* z |-> r . (c_{1z} . u_{z1}) is a function [1,n] -> VEC md: the inner action is
    (matact-summand-type), module-act-type closes the outer action, and mvag-carr
@@ -4801,7 +4801,7 @@ proven modulo:
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
-   (MUL ag), which closes on (CARR ag) by the group's binary-operation typing.
+   (OPR ag), which closes on (CARR ag) by the group's binary-operation typing.
    No inverses used -- the same argument as finsum-comm-monoid-type.
 - `mvag-carr` -- *warrant proof:* carrier of a module's vector abelian group is the module's vector set.
 - `abelian-group-right-id` -- *warrant well-known:* a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via

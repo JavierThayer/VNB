@@ -278,7 +278,7 @@
     "theorem-library/finsum-additive"
     ;; Finite-sum inequalities over RR (Cauchy-Schwarz, sum-of-squares nonneg,
     ;; the sum triangle inequality, termwise monotonicity); warranted supports.
-    ;; Needs FINSUM + the additive layer above + RR-RING (numeric-instances).
+    ;; Needs FINSUM + the additive layer above + RR-NORMED-FIELD (numeric-instances).
     "theorem-library/analysis-inequalities"
     ;; The Binomial Theorem for commutative rings (asserted+warranted capstone,
     ;; like prod-of-sums-expansion).  Needs the additive layer above.
@@ -293,7 +293,7 @@
     ;; Real power series  Sum coef(n) x^n  (PS-PARTIAL-SUM via SUM-AG over
     ;; RR's additive group; PS-CONVERGES-(TO-)AT via CONVERGES on RR-MS).
     ;; Needs sequences (SUM-AG), views (NORMED-FIELD-ADDITIVE-AG), numeric-
-    ;; instances (RR-RING/RR-MS), number-systems (power), metric-completeness.
+    ;; instances (RR-NORMED-FIELD/RR-MS), number-systems (power), metric-completeness.
     "theorem-library/power-series"
     ;; Order facts about real partial sums + monotone-convergence on RR (the
     ;; keystone comparison-test cited as missing).  Needs power-series.
@@ -786,15 +786,33 @@
 ;;; uses bc* can never silently reintroduce the abort.  The definition site
 ;;; (interactive) is exempt; it compiles fine.  Over-detection (a file that
 ;;; only mentions "(bc* " in quoted data) is harmless: it just loads as source.
+;;; The same trap, a second macro: `declare-structure' (structures.scm).  A
+;;; compiled commutative-ring.scm cannot see it either, so `(declare-structure
+;;; COMMUTATIVE-RING (same-shape-as RING) (law "..."))' compiles as an
+;;; APPLICATION and the .com dies on load with
+;;;   ;Unbound variable: law
+;;; It went unnoticed because those files' .com were stale, so load.scm was
+;;; reading their source anyway -- until someone compiled them fresh (2026-07-12)
+;;; and the library stopped loading.  compile-vnb! would have done the same to
+;;; anyone.  So the scan is per-MACRO, not per-file, and adding a macro to the
+;;; list is the whole fix.  Over-detection (a file merely mentioning the form in
+;;; quoted data) is harmless: it just loads as source.
+(define *vnb-top-level-macros*
+  '(("(bc* "               . "interactive")     ; macro . its definition site
+    ("(declare-structure " . "structures")))
+
 (define (vnb-file-uses-bc*-macro? f)
-  (and (not (string=? f "interactive"))
-       (call-with-input-file (string-append *prover-dir* f ".scm")
-         (lambda (port)
-           (let loop ()
-             (let ((line (read-line port)))
-               (cond ((eof-object? line) #f)
-                     ((substring? "(bc* " line) #t)
-                     (else (loop)))))))))
+  (find-first
+    (lambda (entry)
+      (and (not (string=? f (cdr entry)))
+           (call-with-input-file (string-append *prover-dir* f ".scm")
+             (lambda (port)
+               (let loop ()
+                 (let ((line (read-line port)))
+                   (cond ((eof-object? line) #f)
+                         ((substring? (car entry) line) #t)
+                         (else (loop)))))))))
+    *vnb-top-level-macros*))
 
 ;;; Recompile every file (call manually after editing sources).
 (define (compile-vnb!)
@@ -948,6 +966,55 @@
       (display ";; constant-binder-audit: ok (no binder is named like a registered constant)\n")
       (begin (shout-constant-binders! bad)
              (error "constant-binder-audit: bound variable(s) collide with registered constants -- see above"))))
+
+;; ONE NAME, ONE SLOT.  An accessor macete is global and keyed by NAME, so an
+;; accessor claimed at two different slot indices cannot have a correct global
+;; reduction.  def-structure now withdraws the reduction rather than install a
+;; false one (structures.scm, register-accessor-index!) -- `mul' used to hold the
+;; group family's slot 2, and (mac 'mul) on (MUL ZZ-RING) reduced the INTEGERS'
+;; MULTIPLICATION to binplus, their addition, all the way to a qed.
+;;
+;; HARD gate, as of the 2026-07-12 renames: the three legacy ambiguities are
+;; gone (the group family's operation is OPR, the field's inverse RECIP, the
+;; normed field's norm FNRM), so an ambiguity is now unambiguously a bug.
+(let ((amb (accessor-index-audit)))
+  (if (null? amb)
+      (display ";; accessor-index-audit: ok (every accessor name denotes one slot)\n")
+      (begin
+        (display "\n;; accessor-index-audit: ") (display (length amb))
+        (display " AMBIGUOUS accessor(s) -- a name at two slot indices has NO correct\n")
+        (display ";; global (NTH k) reduction, so none is installed.  Rename one side.\n")
+        (for-each
+          (lambda (entry)
+            (display ";;   ") (display (car entry)) (display " : ")
+            (for-each (lambda (hit)
+                        (display (car hit)) (display "@") (display (cdr hit)) (display "  "))
+                      (cdr entry))
+            (newline))
+          amb)
+        (error "accessor-index-audit: accessor name(s) claimed at two slot indices -- see above"))))
+
+;; The other half: an accessor applied to a structure that HAS no such slot.
+;; Well-formed, silent, and means something else -- (MUL ag) where ag is an
+;; abelian group whose operation is OPR.  This is what drove the OPR/RECIP/FNRM
+;; renames to completion; nothing else would have found `nf-metric-distance',
+;; which took NRM of a normed field and failed no proof.
+(let ((bad (accessor-type-audit)))
+  (if (null? bad)
+      (display ";; accessor-type-audit: ok (every accessor names a slot of its structure)\n")
+      (begin
+        (display "\n;; accessor-type-audit: accessor applied to the wrong structure:\n")
+        (for-each
+          (lambda (entry)
+            (for-each
+              (lambda (hit)
+                (display ";;   in `") (display (car entry)) (display "': (")
+                (display (car hit)) (display " ") (display (cadr hit))
+                (display ") -- but ") (display (cadr hit)) (display " : ")
+                (display (caddr hit)) (display ", which has no such slot.\n"))
+              (cdr entry)))
+          bad)
+        (error "accessor-type-audit: accessor(s) applied to a structure lacking that slot -- see above"))))
 
 ;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
 ;; support should be filed under a *pss-category-order* bucket via category!.

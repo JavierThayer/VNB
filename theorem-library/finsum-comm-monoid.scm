@@ -3,7 +3,7 @@
 ;;; Finite sums over a COMMUTATIVE MONOID.
 ;;;
 ;;; SUM-AG / FINSUM (sequences.scm, finsum.scm) are DEFINED using only the
-;;; monoid fragment of their structure argument -- `(MUL m)' folds and
+;;; monoid fragment of their structure argument -- `(OPR m)' folds and
 ;;; `(IDEN m)' seeds the empty sum.  Inverses (INV) and commutativity are never
 ;;; touched by the DEFINITION.  So FINSUM(m, f, S) already COMPUTES for any
 ;;; commutative monoid m; what was missing were the supporting THEOREMS,
@@ -20,7 +20,7 @@
 ;;; obtained by deleting the inverse-using steps -- which, as noted below,
 ;;; the proofs never used.
 ;;;
-;;; Dependencies: monoid.scm (COMM-MONOID, IS-COMM-MONOID, accessors A/MUL/E),
+;;; Dependencies: monoid.scm (COMM-MONOID, IS-COMM-MONOID, accessors A/OPR/E),
 ;;; finsum.scm (FINSUM, ENUM-FAM), sequences.scm (SUM-AG), cardinality
 ;;; (CARD/NN), bijection (BIJECTION), ordinals (ORD-SEGMENT).
 
@@ -29,7 +29,7 @@
 ;;;
 ;;; The abelian-group version is finsum-type.  The fold SUM-AG(m,_,n) starts
 ;;; at (IDEN m) -- in the carrier by the identity law -- and at each step applies
-;;; (MUL m), which closes on the carrier by the monoid's binary-operation
+;;; (OPR m), which closes on the carrier by the monoid's binary-operation
 ;;; typing.  Neither fact uses inverses or commutativity, so finsum-type's
 ;;; induction goes through verbatim over a bare monoid.
 
@@ -41,7 +41,7 @@
 
 (warrant! 'finsum-comm-monoid-type 'informal
   "Same induction as finsum-type: SUM-AG seeds at (IDEN m) -- in the carrier by
-   the identity law -- and folds with (MUL m), which closes on the carrier by
+   the identity law -- and folds with (OPR m), which closes on the carrier by
    the binary-operation typing.  Neither step uses inverses, so the
    abelian-group proof carries over to a bare commutative monoid unchanged.")
 
@@ -51,7 +51,7 @@
 ;;; The abelian-group version is sum-ag-permutation-invariance.  Its proof
 ;;; (archived) is an NN induction whose step splices one summand out of the
 ;;; sum and reorders the rest -- using ONLY associativity and commutativity
-;;; of (MUL m).  Inverses never appear (a sum is built up, never cancelled).
+;;; of (OPR m).  Inverses never appear (a sum is built up, never cancelled).
 ;;; Commutativity is exactly what IS-COMM-MONOID adds over IS-MONOID, so the
 ;;; identical argument is available here.
 
@@ -69,7 +69,7 @@
    order of its summands -- the standard fact underlying unordered summation.
    Concretely, the archived proof of sum-ag-permutation-invariance is an
    induction whose only steps are splice-out and rearrange, built purely from
-   the associative and commutative laws of (MUL m); it never forms an inverse.
+   the associative and commutative laws of (OPR m); it never forms an inverse.
    Commutativity is precisely what IS-COMM-MONOID supplies, so that proof
    transfers verbatim.  (Candidate to discharge into a formal `proof' by
    reinstating the archived script over a monoid.)")

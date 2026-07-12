@@ -86,11 +86,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### nag-metric-space
 
-    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((mul(nag))(u, (inv(nag))(v))))]
+    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 
 ### nf-metric-space
 
-    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (nrm(nf))((add(nf))(x, (neg(nf))(y))))]
+    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 
 ### nvs-metric-space
 
@@ -299,7 +299,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### ps-partial-sum
 
-    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-ring), vnb-lambda(n, coef(n) * x ^ n), k)
+    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, coef(n) * x ^ n), k)
 
 ### related
 
@@ -315,7 +315,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### series-partial-sum
 
-    series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-ring), f, k)
+    series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
 
 ### snoc-col
 

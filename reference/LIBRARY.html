@@ -85,7 +85,12 @@
 <p>The hierarchy (see <code>STRUCTURES.md</code> for the tree). Each structure declares its accessors via <code>def-structure-from-clauses</code> and folds its characteristic laws into <code>IS-X</code> via named property predicates from <code>operation-properties.scm</code>. So <code>IS-X(s)</code> is a <em>real</em> predicate, not a shape check.</p>
 <p><strong>Slot encoding — declaration is grouped, instance is flat.</strong></p>
 <p>The declaration syntax uses clause-grouping:</p>
-<p>``<code> (carriers A) (op ADD (CARTESIAN A A) A) (op MUL (CARTESIAN A A) A) (op NEG A A) (constant ZERO A) (constant ONE A) </code>``</p>
+<pre>(carriers A)
+(op ADD (CARTESIAN A A) A)
+(op MUL (CARTESIAN A A) A)
+(op NEG A A)
+(constant ZERO A)
+(constant ONE A)</pre>
 <p>But the <strong>runtime instance is a single flat VNB list</strong> of <code>(num-carriers + num-ops + num-constants)</code> slots, filled in declaration order: carriers first, then ops, then constants. So a <code>RING</code> instance is a 6-tuple <code>(LIST A-val ADD-val MUL-val NEG-val ZERO-val ONE-val)</code>; <code>(A r)</code> is sugar for <code>(NTH 1 r)</code>, <code>(ADD r)</code> for <code>(NTH 2 r)</code>, etc.</p>
 <p>The clause-grouping in <code>(carriers A B) (op …)</code> is <strong>parsing sugar</strong>. It does <em>not</em> nest in the instance — a 2-carrier structure has the two carriers in slots 1 and 2 at the top level, not in a <code>(LIST carrier1 carrier2)</code> sub-list.  Building a structure by hand means writing the slots flat in declaration order; bridges between structures of different species are positional — see section 6 (RING → AG).</p>
 <p>Bare structures (live as Scheme classes via <code>IS-X</code>):</p>
@@ -101,7 +106,7 @@
 <p>| Operator | Indexing | Algebraic target | Value | |---|---|---|---| | <code>PROD-ORD m f n</code> | NN-segment 0..n-1 | MONOID <code>m</code> | <code>f(0)·…·f(n-1)</code> | | <code>SUM r f n</code> | NN-segment 0..n-1 | RING <code>r</code> | <code>f(0)+…+f(n-1)</code> | | <code>SUM-AG ag f n</code> | NN-segment 0..n-1 | ABELIAN-GROUP <code>ag</code> | <code>f(0)+…+f(n-1)</code> | | <code>FINSUM ag f S</code> | finite set <code>S</code> | ABELIAN-GROUP <code>ag</code> | <code>Σ_{x∈S} f(x)</code> | | <code>RING-PROD-N f n</code> | NN-segment | (RING-valued) | iterated ring product |</p>
 <p>All NN-indexed operators are defined by <code>def-by-nn-recursion</code>, which installs <code>&lt;name&gt;-zero</code> and <code>&lt;name&gt;-succ</code> macetes.</p>
 <p><strong>Gap — no <code>RING → ABELIAN-GROUP</code> projector.</strong>  To use <code>FINSUM</code> over a ring <code>r</code>, you build the <em>additive</em> abelian group of <code>r</code> by hand and discharge <code>IS-ABELIAN-GROUP</code> for it from <code>IS-RING(r)</code>.  Concretely, when <code>r</code> is a ring,</p>
-<p>``<code> (LIST (A r) (ADD r) (ZERO r) (NEG r)) </code>``</p>
+<pre>(LIST (A r) (ADD r) (ZERO r) (NEG r))</pre>
 <p>is an abelian group.  This list slots into the 4-slot <code>ABELIAN-GROUP</code> shape positionally:</p>
 <p>| Position | AG slot | Built from <code>r</code> | |---:|---|---| | 1 | <code>A</code>   (carrier)        | <code>A(r)</code>    — same carrier | | 2 | <code>MUL</code> (binary op)      | <code>ADD(r)</code>  — additive op | | 3 | <code>E</code>   (identity const) | <code>ZERO(r)</code> — additive zero | | 4 | <code>INV</code> (unary inverse)  | <code>NEG(r)</code>  — additive negation |</p>
 <p>So <code>IS-ABELIAN-GROUP</code> reads <code>MUL = ADD</code>, <code>E = ZERO</code>, <code>INV = NEG</code>; the ring&#x27;s additive laws (<code>is-associative ADD</code>, <code>is-commutative ADD</code>, <code>is-identity ADD ZERO</code>, <code>has-inverses ADD ZERO NEG</code>) are <em>exactly</em> what <code>IS-ABELIAN-GROUP</code> requires.  A convenience bridge <code>ADD-AG(r)</code> returning this list, plus a single axiom <code>ring-add-ag-is-ag</code>, would close the gap.  On the wishlist.</p>

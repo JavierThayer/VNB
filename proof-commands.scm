@@ -226,9 +226,22 @@
 (define (cmd-apply-macete ps macete-name)
   (let* ((sqn (proof-state-focus ps))
          (r   (apply-macete! macete-name sqn)))
-    (if r (focus-after-rule ps r)
-        (vnb--warn "apply-macete: macete not applicable"
-                   (symbol->string macete-name)))))
+    (cond
+      (r (focus-after-rule ps r))
+      ;; An AMBIGUOUS accessor has no reduction, on purpose: its name sits at a
+      ;; different slot in two structures, so no single (NTH k) rewrite is right
+      ;; (structures.scm, register-accessor-index!).  Say so -- "not applicable"
+      ;; would send the reader hunting for a malformed goal.
+      ((accessor-ambiguous? macete-name)
+       (vnb--warn
+         (string-append
+           "apply-macete: `" (symbol->string macete-name)
+           "' is an AMBIGUOUS accessor -- it names a different slot in different "
+           "structures, so it has no (NTH k) reduction.  See (accessor-index-audit).")
+         (symbol->string macete-name)))
+      (else
+       (vnb--warn "apply-macete: macete not applicable"
+                  (symbol->string macete-name))))))
 
 (define (cmd-apply-macete-to-assumption ps macete-name hyp-formula)
   (let ((sqn (proof-state-focus ps)))

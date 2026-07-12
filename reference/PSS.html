@@ -175,7 +175,7 @@
 <p><em>Warrant (informal):</em> fin-enum(s) is the chosen enumeration of a finite set: a bijection from ord-segment(card s) onto s.  Existence of SOME such bijection is exactly card(s) in NN (the definition of finiteness); fin-enum names one, using VNB&#x27;s choice operator to pick it.</p>
 <h4 id="p-finsum-comm-monoid-type">finsum-comm-monoid-type</h4>
 <pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m))], finsum(m, f, s) in carr(m))))</pre>
-<p><em>Warrant (informal):</em> Same induction as finsum-type: SUM-AG seeds at (IDEN m) -- in the carrier by the identity law -- and folds with (MUL m), which closes on the carrier by the binary-operation typing.  Neither step uses inverses, so the abelian-group proof carries over to a bare commutative monoid unchanged.</p>
+<p><em>Warrant (informal):</em> Same induction as finsum-type: SUM-AG seeds at (IDEN m) -- in the carrier by the identity law -- and folds with (OPR m), which closes on the carrier by the binary-operation typing.  Neither step uses inverses, so the abelian-group proof carries over to a bare commutative monoid unchanged.</p>
 <h4 id="p-finsum-empty">finsum-empty</h4>
 <pre>forall([ag, f], finsum(ag, f, empty-set) == iden(ag))</pre>
 <p><em>Warrant (well-known):</em> The empty sum is the group identity.  FINSUM is the SUM-AG fold over an enumeration of S; at cardinality 0 there are no summands and the fold returns its seed (IDEN ag).  Definitional in all but name.</p>
@@ -184,7 +184,7 @@
 <p><em>Warrant (well-known):</em> A one-element sum is its single term.  FINSUM enumerates {x} as a length-1 sequence and folds (IDEN ag) with f(x); the identity law collapses (IDEN ag) MUL f(x) to f(x).</p>
 <h4 id="p-finsum-type">finsum-type</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], finsum(ag, f, s) in carr(ag))))</pre>
-<p><em>Warrant (informal):</em> Closure of the finite sum on the carrier.  Induction on card(S): the fold seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies (MUL ag), which closes on (CARR ag) by the group&#x27;s binary-operation typing. No inverses used -- the same argument as finsum-comm-monoid-type.</p>
+<p><em>Warrant (informal):</em> Closure of the finite sum on the carrier.  Induction on card(S): the fold seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies (OPR ag), which closes on (CARR ag) by the group&#x27;s binary-operation typing. No inverses used -- the same argument as finsum-comm-monoid-type.</p>
 <h4 id="p-fun-apply-type-c">fun-apply-type-c</h4>
 <pre>forall([f, a, b, x], f in fun(a, b) implies x in a implies f(x) in b)</pre>
 <p><em>Warrant (proof):</em> Curried fun-apply-type: f:A-&gt;B and x in A give f(x) in B.  No AND antecedent.</p>
@@ -358,23 +358,23 @@
 <pre>forall([x], x in rr and 0 &lt; 1 + x implies forall([b], b in qq and 1 &lt;= b implies 1 + b * x &lt;= rpow(1 + x, b)))</pre>
 <p><em>Warrant (well-known):</em> Bernoulli with real exponent:  (1+x)^b &gt;= 1 + b*x  for 1+x &gt; 0 and rational b &gt;= 1 (convexity of t |-&gt; (1+x)^t, or t^b).  For 0 &lt;= b &lt;= 1 the inequality reverses; stated here for the b &gt;= 1 branch.</p>
 <h4 id="p-cauchy-schwarz-finite">cauchy-schwarz-finite</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * b(i)), s) * finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * b(i)), s) &lt;= finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s) * finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, b(i) * b(i)), s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * b(i)), s) * finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * b(i)), s) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s) * finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, b(i) * b(i)), s)))</pre>
 <p><em>In words:</em> For any finite index set S and real vectors a, b on S: the square of the dot product SUM a(i)<em>b(i) is at most the product of the two squared norms, (SUM a(i)^2)</em>(SUM b(i)^2).  Cauchy-Schwarz for finite sums, square form.</p>
 <p><em>Warrant (well-known):</em> Cauchy-Schwarz for finite sums:  (SUM a_i b_i)^2 &lt;= (SUM a_i^2)(SUM b_i^2). The difference is the Lagrange identity SUM_{i&lt;j} (a_i b_j - a_j b_i)^2 &gt;= 0 (a finite sum of squares).  Square form -- the root form is cauchy-schwarz-sqrt below (now that SQRT exists, real-powers.scm).</p>
 <h4 id="p-cauchy-schwarz-sqrt">cauchy-schwarz-sqrt</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * b(i)), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s)) * sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, b(i) * b(i)), s))))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * b(i)), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s)) * sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, b(i) * b(i)), s))))</pre>
 <p><em>Warrant (well-known):</em> Cauchy-Schwarz, root form:  |SUM a_i b_i| &lt;= sqrt(SUM a_i^2) * sqrt(SUM b_i^2). Take square roots in cauchy-schwarz-finite (both sides nonnegative); the left side is bounded using |SUM| &lt;= sqrt((SUM)^2).</p>
 <h4 id="p-finsum-abs-triangle">finsum-abs-triangle</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-ring), a, s)) &lt;= finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, abs(a(i))), s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-normed-field), a, s)) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, abs(a(i))), s)))</pre>
 <p><em>Warrant (well-known):</em> |SUM_i a(i)| &lt;= SUM_i |a(i)|: the triangle inequality for finite sums, by induction over S from the two-term rr-abs-triangle.</p>
 <h4 id="p-finsum-le-termwise">finsum-le-termwise</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], forall([i in s], a(i) &lt;= b(i)) implies finsum(commutative-ring-additive-ag(rr-ring), a, s) &lt;= finsum(commutative-ring-additive-ag(rr-ring), b, s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], forall([i in s], a(i) &lt;= b(i)) implies finsum(commutative-ring-additive-ag(rr-normed-field), a, s) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), b, s)))</pre>
 <p><em>Warrant (well-known):</em> Monotonicity of the finite sum: if a(i) &lt;= b(i) for every index i in S then SUM_i a(i) &lt;= SUM_i b(i).  Termwise application of rr-le-add over S.</p>
 <h4 id="p-finsum-sq-nonneg">finsum-sq-nonneg</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], 0 &lt;= finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], 0 &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s)))</pre>
 <p><em>Warrant (well-known):</em> 0 &lt;= SUM_i a(i)^2: a finite sum of squares is nonnegative, each term being a square (rr-sq-nonneg) and finite sums of nonnegatives nonnegative.</p>
 <h4 id="p-holder-finite">holder-finite</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr), p], p in qq and 1 &lt; p implies forall([q], q in qq and 1 &lt; q implies /(1, p) + /(1, q) = 1 implies finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, abs(a(i) * b(i))), s) &lt;= rpow(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, rpow(abs(a(i)), p)), s), /(1, p)) * rpow(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, rpow(abs(b(i)), q)), s), /(1, q)))))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr), p], p in qq and 1 &lt; p implies forall([q], q in qq and 1 &lt; q implies /(1, p) + /(1, q) = 1 implies finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, abs(a(i) * b(i))), s) &lt;= rpow(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, rpow(abs(a(i)), p)), s), /(1, p)) * rpow(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, rpow(abs(b(i)), q)), s), /(1, q)))))</pre>
 <p><em>In words:</em> For any finite index set S, real vectors a, b on S, and conjugate exponents p,q&gt;1 (rational, 1/p+1/q=1): the sum of |a(i)*b(i)| over S is at most the product of the p-norm of a and the q-norm of b -- (SUM |a_i|^p)^(1/p) times (SUM |b_i|^q)^(1/q).  Holder&#x27;s inequality for finite sums.</p>
 <p><em>Warrant (well-known):</em> Hoelder&#x27;s inequality:  SUM |a_i b_i| &lt;= (SUM |a_i|^p)^(1/p) (SUM |b_i|^q)^(1/q) for conjugate exponents 1/p+1/q=1 (p,q&gt;1).  Termwise Young (young-inequality) on the normalised vectors, summed.  Cauchy-Schwarz is the p=q=2 case.  Zero entries are handled by the 0^p=0 convention (rpow-zero-base).</p>
 <h4 id="p-interval-hi">interval-hi</h4>
@@ -390,7 +390,7 @@
 <pre>forall([h, a, b, c in ccint(a, b)], h(a) = h(b) implies h(c) &lt; h(a) implies a &lt; c and c &lt; b)</pre>
 <p><em>Warrant (well-known):</em> c in [a,b], h(a)=h(b), h(c)&lt;h(a) =&gt; a&lt;c&lt;b.</p>
 <h4 id="p-minkowski-l2">minkowski-l2</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, (a(i) + b(i)) * (a(i) + b(i))), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, a(i) * a(i)), s)) + sqrt(finsum(commutative-ring-additive-ag(rr-ring), vnb-lambda(i, b(i) * b(i)), s))))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, (a(i) + b(i)) * (a(i) + b(i))), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s)) + sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, b(i) * b(i)), s))))</pre>
 <p><em>In words:</em> For any finite index set S and real vectors a, b on S: the Euclidean norm of the coordinatewise sum, sqrt(SUM (a_i+b_i)^2), is at most the sum of the Euclidean norms sqrt(SUM a_i^2) + sqrt(SUM b_i^2).  The l^2 triangle inequality.</p>
 <p><em>Warrant (well-known):</em> Minkowski (l^2 triangle inequality):  the Euclidean norm sqrt(SUM (a_i+b_i)^2) &lt;= sqrt(SUM a_i^2) + sqrt(SUM b_i^2).  Square and apply cauchy-schwarz-sqrt to the cross term.  This is the triangle inequality for the Euclidean metric on R^n.</p>
 <h4 id="p-nn-le-imp-neq-succ">nn-le-imp-neq-succ</h4>
@@ -616,7 +616,7 @@
 <p><em>Warrant (proof):</em> A finite subcover F of the r-ball cover yields a finite r-net N = CENTRE-SET (s,r,F), the chosen centres of the balls in F: |N| &lt;= |F| is finite, and for p in PTS(s) some U in F contains p (open-cover-covers-point), U = B(c,r) with c = CHOICE(CENTRES s U r) a genuine centre (chosen-centre-is-centre), so c in N with d(c,p) &lt; r.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm, modulo the explicit-construction membership lemmas above; the centre choice is the global epsilon, no longer a hand-wave.</p>
 <h4 id="p-finsum-comm-monoid-permutation-invariance">finsum-comm-monoid-permutation-invariance</h4>
 <pre>forall([n in nn, m], is-comm-monoid(m) implies forall([g in fun(nn, carr(m)), h in fun(nn, carr(m)), phi in bijection(ord-segment(n), ord-segment(n))], forall([i in ord-segment(n)], h(i) = g(phi(i))) implies sum-ag(m, g, n) = sum-ag(m, h, n)))</pre>
-<p><em>Warrant (well-known):</em> Commutativity and associativity alone make a finite sum independent of the order of its summands -- the standard fact underlying unordered summation. Concretely, the archived proof of sum-ag-permutation-invariance is an induction whose only steps are splice-out and rearrange, built purely from the associative and commutative laws of (MUL m); it never forms an inverse. Commutativity is precisely what IS-COMM-MONOID supplies, so that proof transfers verbatim.  (Candidate to discharge into a formal `proof&#x27; by reinstating the archived script over a monoid.)</p>
+<p><em>Warrant (well-known):</em> Commutativity and associativity alone make a finite sum independent of the order of its summands -- the standard fact underlying unordered summation. Concretely, the archived proof of sum-ag-permutation-invariance is an induction whose only steps are splice-out and rearrange, built purely from the associative and commutative laws of (OPR m); it never forms an inverse. Commutativity is precisely what IS-COMM-MONOID supplies, so that proof transfers verbatim.  (Candidate to discharge into a formal `proof&#x27; by reinstating the archived script over a monoid.)</p>
 <h4 id="p-finsum-comm-monoid-well-defined">finsum-comm-monoid-well-defined</h4>
 <pre>forall([s in set], card(s) in nn implies forall([m], is-comm-monoid(m) implies forall([f in fun(s, carr(m)), enm in bijection(ord-segment(card(s)), s)], finsum(m, f, s) = sum-ag(m, enum-fam(m, f, enm, card(s)), card(s)))))</pre>
 <p><em>Warrant (informal):</em> Identical to finsum-well-defined: any two enumerations of S differ by a bijection of ORD-SEGMENT(|S|), so finsum-comm-monoid-permutation-invariance equates their folds.  The derivation uses no inverses, hence holds over a commutative monoid.</p>
@@ -625,10 +625,10 @@
 <p><em>In words:</em> For an abelian group ag, finite index sets X and Y, and a function f on the product X*Y valued in ag: summing f over Y inside and X outside gives the same result as summing over X inside and Y outside.  Fubini / order-of-summation for finite double sums.</p>
 <p><em>Warrant (informal):</em> Interchanging the order of a finite double sum.  Standard finite Fubini: induction on card(X), the step distributing the inner sum across the newly added outer summand via finsum additivity (finsum-add) and commutativity. Both sums are finite, so no convergence hypothesis is needed; holds over any abelian group.</p>
 <h4 id="p-finsum-interval-peel">finsum-interval-peel</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (mul(ag))(finsum(ag, f, interval(1, n)), f(succ(n)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(finsum(ag, f, interval(1, n)), f(succ(n)))))</pre>
 <p><em>Warrant (well-known):</em> FINSUM over [1,succ n] = (FINSUM over [1,n]) . f(succ n): finsum-insert-ag at X = [1,n], k = succ n, using [1,succ n] = [1,n] u {succ n} (interval-mem-intro / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would give succ n &lt;= n).  Standard finite-sum back-peel, the twin of finsum-interval-shift.</p>
 <h4 id="p-finsum-interval-shift">finsum-interval-shift</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (mul(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n)))))</pre>
 <p><em>Warrant (well-known):</em> FINSUM over [1,succ n] = f(1) . FINSUM over [1,n] of (z|-&gt;f(succ z)): peel the first term (finsum-insert-ag at k=1, X=[2,succ n]) then reindex the tail by the succ bijection [1,n]-&gt;[2,succ n] (finsum-reindex-ag).  Standard finite-sum front-peel, same status as finsum-ord-peel.</p>
 <h4 id="p-finsum-reindex">finsum-reindex</h4>
 <pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, f, s) = finsum(m, vnb-lambda(z, f(phi(z))), t)))))</pre>
@@ -1049,13 +1049,13 @@
 <p><em>Warrant (reference):</em> R = f(x) (-) TAYLOR-POLY-V(...) is a difference of vectors (VADD of f(x) and the VNEG of the polynomial), hence in VEC(m).</p>
 <h3 id="PSS__algebraic-ring-structure-facts-105">Algebraic &amp; ring-structure facts  (105)</h3>
 <h4 id="p-abelian-group-assoc">abelian-group-assoc</h4>
-<pre>forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (mul(s))((mul(s))(a, b), c) = (mul(s))(a, (mul(s))(b, c))))</pre>
+<pre>forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))</pre>
 <p><em>Warrant (well-known):</em> (a<em>b)</em>c = a<em>(b</em>c): group-assoc via abelian-group-is-group.</p>
 <h4 id="p-abelian-group-inverse-unique">abelian-group-inverse-unique</h4>
-<pre>forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = iden(s) implies b = (inv(s))(a)))</pre>
+<pre>forall([s], is-abelian-group(s) implies forall([a in carr(s), b in carr(s)], (opr(s))(a, b) = iden(s) implies b = (inv(s))(a)))</pre>
 <p><em>Warrant (well-known):</em> b = e<em>b = (a^{-1}</em>a)<em>b = a^{-1}</em>(a<em>b) = a^{-1}</em>e = a^{-1}, by group-left-inv, group-assoc, group-left-id, and abelian-group-mul-comm for the right identity. Every abelian group is a group (abelian-group-is-group), so all four are in scope.</p>
 <h4 id="p-abelian-group-right-id">abelian-group-right-id</h4>
-<pre>forall([s], is-abelian-group(s) implies forall([a in carr(s)], (mul(s))(a, iden(s)) = a))</pre>
+<pre>forall([s], is-abelian-group(s) implies forall([a in carr(s)], (opr(s))(a, iden(s)) = a))</pre>
 <p><em>Warrant (well-known):</em> a * e = e * a = a, by abelian-group-mul-comm then group-left-id (via abelian-group-is-group).</p>
 <h4 id="p-block-type">block-type</h4>
 <pre>forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k &lt;= m implies l &lt;= n implies block(p, k, l) in mat(k, l, x))</pre>
@@ -1109,11 +1109,11 @@
 <pre>forall([md], is-module(md) implies forall([r in carr(scal(md)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], (act(md))(r, finsum(module-vector-ag(md), f, s)) = finsum(module-vector-ag(md), vnb-lambda(z, (act(md))(r, f(z))), s))))</pre>
 <p><em>Warrant (well-known):</em> r.(SUM_z f z) = SUM_z (r . f z) in a module: x |-&gt; r.x is an endomorphism of the vector abelian group.  Induction on |S| via finsum-insert: r.(SUM_X f + f z0) = r.SUM_X f + r.(f z0) by module-act-distrib-vec, and the empty case is r.0 = 0, itself r.(0+0) = r.0 + r.0 killed by abelian-group-idempotent-is-id on the vector group (the module-zero-act route).</p>
 <h4 id="p-finsum-add">finsum-add</h4>
-<pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (mul(m))(f(z), h(z))), s) = (mul(m))(finsum(m, f, s), finsum(m, h, s)))))</pre>
-<p><em>Warrant (well-known):</em> Induction on |S| via finsum-insert: base is (IDEN m)<em>(IDEN m)=(IDEN m) (finsum-empty); step folds in one z0, regrouping (a</em>b)<em>(c</em>d)=(a<em>c)</em>(b*d) by the commutativity and associativity of (MUL m) -- which is exactly what IS-COMM-MONOID supplies (no inverses used).  Holds for every commutative-monoid-valued finite sum.</p>
+<pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (opr(m))(f(z), h(z))), s) = (opr(m))(finsum(m, f, s), finsum(m, h, s)))))</pre>
+<p><em>Warrant (well-known):</em> Induction on |S| via finsum-insert: base is (IDEN m)<em>(IDEN m)=(IDEN m) (finsum-empty); step folds in one z0, regrouping (a</em>b)<em>(c</em>d)=(a<em>c)</em>(b*d) by the commutativity and associativity of (OPR m) -- which is exactly what IS-COMM-MONOID supplies (no inverses used).  Holds for every commutative-monoid-valued finite sum.</p>
 <h4 id="p-finsum-add-ag">finsum-add-ag</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, (mul(ag))(f(z), h(z))), s) = (mul(ag))(finsum(ag, f, s), finsum(ag, h, s)))))</pre>
-<p><em>Warrant (well-known):</em> finsum-add at m = ag as a commutative monoid: induction on |S| via finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and associativity of (MUL ag).  No inverses used.</p>
+<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, (opr(ag))(f(z), h(z))), s) = (opr(ag))(finsum(ag, f, s), finsum(ag, h, s)))))</pre>
+<p><em>Warrant (well-known):</em> finsum-add at m = ag as a commutative monoid: induction on |S| via finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and associativity of (OPR ag).  No inverses used.</p>
 <h4 id="p-finsum-all-id">finsum-all-id</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], forall([z in s], f(z) = iden(ag)) implies finsum(ag, f, s) = iden(ag))))</pre>
 <p><em>Warrant (well-known):</em> If f(z) = IDEN(ag) for every z in the finite index set S, then FINSUM(ag,f,S) = IDEN(ag).  Induction on |S| via finsum-insert: the peeled term is IDEN and the rest is IDEN by the IH, so the sum is IDEN*IDEN = IDEN; the base case is finsum-empty.</p>
@@ -1121,13 +1121,13 @@
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([s2 in set], card(s2) in nn implies forall([f in fun(s2, carr(ag))], s subset s2 implies forall([z], z in s2 and not(z in s) implies f(z) = iden(ag)) implies finsum(ag, f, s2) = finsum(ag, f, s)))))</pre>
 <p><em>Warrant (well-known):</em> Induction on |S2 \ S| via finsum-insert-ag: each peeled index outside S contributes f = IDEN(ag), absorbed by the group unit law.  So the sum over S2 collapses to the sum over its support S.</p>
 <h4 id="p-finsum-insert">finsum-insert</h4>
-<pre>forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (mul(m))(finsum(m, f, x), f(k))))))</pre>
+<pre>forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (opr(m))(finsum(m, f, x), f(k))))))</pre>
 <p><em>Warrant (well-known):</em> Enumerate X then append k last (INSERT-LAST, finsum.scm): a bijection ORD-SEGMENT(|X|+1) -&gt; X u {k} placing k at index |X|, so SUM-AG peels f(k) as the final fold step (sum-ag-succ) on top of FINSUM over X.  Independence of the chosen enumeration is finsum-comm-monoid-well-defined.  Uses no inverses, hence holds over a bare commutative monoid.  (Candidate to discharge into a `proof&#x27; once insert-last-is-bijection is finished -- groundwork in scratch-fs3.scm.)</p>
 <h4 id="p-finsum-insert-ag">finsum-insert-ag</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], finsum(ag, f, union(x, {k})) = (mul(ag))(finsum(ag, f, x), f(k))))))</pre>
-<p><em>Warrant (well-known):</em> finsum-insert at m = ag viewed as its commutative monoid (CARR,MUL,IDEN): FINSUM(ag,f,X u {k}) = (MUL ag)(FINSUM(ag,f,X), f k) for k not in X.  Standard fold peel; abelian group supplies the monoid laws (no inverses used).</p>
+<pre>forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([k in set], not(k in x) implies forall([f in fun(union(x, {k}), carr(ag))], finsum(ag, f, union(x, {k})) = (opr(ag))(finsum(ag, f, x), f(k))))))</pre>
+<p><em>Warrant (well-known):</em> finsum-insert at m = ag viewed as its commutative monoid (CARR,MUL,IDEN): FINSUM(ag,f,X u {k}) = (OPR ag)(FINSUM(ag,f,X), f k) for k not in X.  Standard fold peel; abelian group supplies the monoid laws (no inverses used).</p>
 <h4 id="p-finsum-ord-peel">finsum-ord-peel</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], finsum(ag, f, ord-segment(succ(n))) = (mul(ag))(finsum(ag, f, ord-segment(n)), f(n))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], finsum(ag, f, ord-segment(succ(n))) = (opr(ag))(finsum(ag, f, ord-segment(n)), f(n))))</pre>
 <p><em>Warrant (well-known):</em> finsum-insert-ag at X=ORD-SEGMENT(n), k=n: ORD-SEGMENT(succ n)=ORD-SEGMENT(n) u {n} (ord-segment-insert), ORD-SEGMENT(n) is a set (ord-segment-is-set) of card n in NN, and n not in ORD-SEGMENT(n) (ord-segment-self).  So the sum splits as the sum over ORD-SEGMENT(n) plus the peeled top term f(n).</p>
 <h4 id="p-finsum-reindex-ag">finsum-reindex-ag</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(ag))], finsum(ag, f, s) = finsum(ag, vnb-lambda(z, f(phi(z))), t)))))</pre>
@@ -1256,7 +1256,7 @@
 <pre>forall([a], is-ring(a) implies forall([m, n, r, p], r in carr(a) implies p in mat(m, n, carr(a)) implies matscale(a, r, p) in mat(m, n, carr(a))))</pre>
 <p><em>Warrant (reference):</em> entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).</p>
 <h4 id="p-mra-combined-summand-type">mra-combined-summand-type</h4>
-<pre>forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (mul(module-vector-ag(md)))((vnb-lambda(j, (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (opr(module-vector-ag(md)))((vnb-lambda(j, (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> j |-&gt; (c1_{1j}.u_{j1}) (+) (c2_{1j}.u_{j1}) is a function [1,n] -&gt; VEC md: each summand is (matact-summand-type), and the vector abelian group&#x27;s operation closes on its carrier (mvag-carr, mvag-op, module-vadd-type).</p>
 <h4 id="p-mrs-scaled-summand-type">mrs-scaled-summand-type</h4>
 <pre>forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (act(md))(r, (vnb-lambda(j, (act(md))(entry(c, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
@@ -1268,7 +1268,7 @@
 <pre>forall([md], iden(module-vector-ag(md)) = vzero(md))</pre>
 <p><em>Warrant (proof):</em> identity of a module&#x27;s vector abelian group is the module&#x27;s zero vector.</p>
 <h4 id="p-mvag-op">mvag-op</h4>
-<pre>forall([md], mul(module-vector-ag(md)) = vadd(md))</pre>
+<pre>forall([md], opr(module-vector-ag(md)) = vadd(md))</pre>
 <p><em>Warrant (proof):</em> operation of a module&#x27;s vector abelian group is the module&#x27;s vector addition.</p>
 <h4 id="p-principal-ideal-in-ideal">principal-ideal-in-ideal</h4>
 <pre>forall([s, i, b], is-ideal(s, i) implies b in i implies forall([x in principal-ideal(s, b)], x in i))</pre>
@@ -1459,8 +1459,8 @@
 <pre>forall([m], is-metric-space(m) implies forall([u in pts(m), v in pts(m)], (dist(completion(m)))(embed(m, u), embed(m, v)) = (dist(m))(u, v)))</pre>
 <p><em>Warrant (well-known):</em> For constant sequences the real distance sequence n |-&gt; d(u,v) is constant, so its limit is d(u,v) itself.  Hence d-hat([const u],[const v]) = d(u,v), exactly the isometry condition; EMBED is an isometric (in particular injective) embedding of M into COMPLETION(M).</p>
 <h4 id="p-nag-metric-distance">nag-metric-distance</h4>
-<pre>forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (dist(nag-metric-space(nag)))(u, v) = (nrm(nag))((mul(nag))(u, (inv(nag))(v)))))</pre>
-<p><em>Warrant (informal):</em> By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), lambda([u,v], NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce) and lambda-beta evaluates it at (u,v), giving NRM(nag)(MUL(nag)(u, INV(nag) v)) = ||u . v^-1||.</p>
+<pre>forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (dist(nag-metric-space(nag)))(u, v) = (nrm(nag))((opr(nag))(u, (inv(nag))(v)))))</pre>
+<p><em>Warrant (informal):</em> By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), lambda([u,v], NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce) and lambda-beta evaluates it at (u,v), giving NRM(nag)(OPR(nag)(u, INV(nag) v)) = ||u . v^-1||.</p>
 <h4 id="p-nag-metric-space-is-metric-space">nag-metric-space-is-metric-space</h4>
 <pre>forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))</pre>
 <p><em>Warrant (informal):</em> The four is-metric clauses for d(u,v) = ||u . v^-1|| follow from is-group-norm plus the abelian-group laws: nonnegativity (norm &gt;= 0); point-separation (d(u,v)=0 iff u.v^-1=E iff u=v, by norm definiteness); symmetry (v.u^-1 = (u.v^-1)^-1, so equal norm by inverse-invariance); triangle (u.w^-1 = (u.v^-1).(v.w^-1), so ||u.w^-1|| &lt;= ||u.v^-1|| + ||v.w^-1|| by subadditivity).</p>
@@ -1688,7 +1688,7 @@
 <pre>forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(ring-additive-ag(rng), f, s), r) = finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(f(z), r)), s))))</pre>
 <p><em>Warrant (well-known):</em> (SUM_z f z) * r = SUM_z (f z * r) in an arbitrary ring: induction on |S| via finsum-insert with ring-right-dist; a |-&gt; a*r is an additive-group endomorphism.</p>
 <h4 id="p-finsum-two-support">finsum-two-support</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (mul(ag))(f(i0), f(i1)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (opr(ag))(f(i0), f(i1)))))</pre>
 <p><em>Warrant (well-known):</em> If f(j)=0 for every j in the finite S except j in {i0,i1} (i0/=i1), then FINSUM(ag,f,S) = f(i0) * f(i1) in ag.</p>
 <h4 id="p-interval-card-in-nn">interval-card-in-nn</h4>
 <pre>forall([a, b], card(interval(a, b)) in nn)</pre>
@@ -1748,7 +1748,7 @@
 <pre>forall([a], is-ring(a) implies forall([n, k, l], matunit(a, n, k, l) in mat(n, n, carr(a))))</pre>
 <p><em>Warrant (reference):</em> MATUNIT(A,n,k,l) is an n-by-n matrix over CARR A: its entries are ONE/ZERO of A (matof-in-mat on the unit-entry function).</p>
 <h4 id="p-ras-op">ras-op</h4>
-<pre>forall([a], mul(ring-additive-ag(a)) = add(a))</pre>
+<pre>forall([a], opr(ring-additive-ag(a)) = add(a))</pre>
 <p><em>Warrant (proof):</em> operation of a ring&#x27;s additive group is the ring&#x27;s addition.</p>
 <h4 id="p-ring-add-closed">ring-add-closed</h4>
 <pre>forall([s], is-ring(s) implies forall([a in carr(s), b in carr(s)], (add(s))(a, b) in carr(s)))</pre>
