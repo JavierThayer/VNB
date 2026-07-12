@@ -36,7 +36,22 @@
 ;;; -----------------------------------------------------------------------
 ;;; The constructor.
 
-(def-functoid 'NF-METRIC-SPACE '(nf)
+;;; A CONSTRUCTED FUNCTOR, NORMED-FIELD -> METRIC-SPACE.  Not a def-functor: the
+;;; distance is not a SLOT of a normed field, it is BUILT from the norm, so no
+;;; correspondence of accessors can express this object map.  (The same will be
+;;; true of METRIC-SPACE -> TOP-SPACE, whose topology is built from the metric.)
+;;;
+;;; Being constructed, it gets nothing for free.  It OWES two theorems, and
+;;; def-constructed-functor records them rather than asserting them:
+;;;   nf-metric-space-is-metric-space : IS-NORMED-FIELD(nf) => IS-METRIC-SPACE(NF-METRIC-SPACE nf)
+;;;   nf-metric-space-functorial      : a normed-field hom is an ISOMETRY of the
+;;;                                     induced metric spaces
+;;; The first is discharged below (a warranted support).  The second is OPEN, and
+;;; `functor-obligation-audit' says so at every load: a functor you have not
+;;; proved is a functor you do not have.  Its content is real -- f preserves the
+;;; norm and the field operations, so ||x - y|| = ||f x - f y|| -- but it needs
+;;; the carrier-closure of x - y, so it is a proof, not a rewrite.
+(def-constructed-functor 'NF-METRIC-SPACE 'NORMED-FIELD 'METRIC-SPACE '(nf)
   '(LIST (CARR nf)
          (VNB-LAMBDA (LIST x y) ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
 

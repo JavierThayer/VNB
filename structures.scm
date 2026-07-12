@@ -1224,3 +1224,141 @@
                          `(FORALL ,(car fs) ,(loop (cdr fs)))))))))
            (register-operator! hom 'predicate args)
            hom))))
+
+;;; -----------------------------------------------------------------------
+;;; TWO THINGS THE ALIST CANNOT DO
+;;;
+;;; def-functor's data is an accessor CORRESPONDENCE: select the source's slots,
+;;; rename them into the target's.  That covers the forgetful functors and
+;;; nothing else, and two gaps show up the moment TOP-SPACE (topological spaces)
+;;; is on the table.
+;;;
+;;; (1) THE MORPHISMS OF A SPECIES MAY NOT BE ITS HOMOMORPHISMS.  build-hom-axiom
+;;;     generates preservation-of-slots, which is right for algebra and right for
+;;;     METRIC-SPACE (whose morphisms ARE the isometries).  It is WRONG for a
+;;;     topological space: a topology slot would generate OPENS(a) = OPENS(b),
+;;;     forcing the topologies literally equal.  Continuity is a PREIMAGE
+;;;     condition, not a preservation law.  So a species may DECLARE its morphism
+;;;     notion and override the generated one -- `declare-hom!', beside the
+;;;     structure, like `notation!'.
+;;;
+;;; (2) A FUNCTOR'S OBJECT MAP MAY BE A CONSTRUCTION, NOT A SELECTION.  The
+;;;     metric topology tau_d is not a SLOT of a metric space; it is COMPUTED
+;;;     from DIST.  No correspondence of accessors yields it.  So the object map
+;;;     may be an arbitrary TERM -- `def-constructed-functor'.
+;;;
+;;; And a constructed functor cannot have its typing and functoriality for free,
+;;; the way an alist does: "an isometry is continuous" is a theorem with content.
+;;; So the constructor ASSERTS NOTHING.  It records two OBLIGATIONS, and
+;;; `functor-obligation-audit' reports any still undischarged.  A functor you
+;;; have not proved is a functor you do not have.
+
+;;; --- (1) a species may declare its morphisms ------------------------------
+(define *hom-overrides* (make-equal-hash-table))   ; structure -> #t
+
+(define (hom-overridden? name)
+  (hash-table-ref/default *hom-overrides* name #f))
+
+;;; (declare-hom! 'TOP-SPACE '(a b f) "forall([u in opens(b)], preimage(f, u) in opens(a))")
+;;; The BODY says what it means for f to be a morphism a -> b, over and above
+;;; a and b being objects and f being typed: IS-X(a), IS-X(b) and the carrier
+;;; typing of each map are supplied here, so the body states only what is
+;;; characteristic.  Replaces the generated IS-HOM-X definition.
+(define (declare-hom! name args body)
+  (let* ((sd       (find-shape-structure name))
+         (_        (or sd (error "declare-hom!: unknown structure" name)))
+         (carriers (map car (filter (lambda (s) (eq? (cadr s) 'carrier))
+                                    (structure-def-slots sd))))
+         (avar     (car args))
+         (bvar     (cadr args))
+         (fvars    (cddr args))
+         (is-name  (symbol-append 'IS- name))
+         (hom      (structure-hom-name name))
+         (body*    (structure--law->formula body))
+         (conjs    (append (list `(,is-name ,avar) `(,is-name ,bvar))
+                           (map (lambda (c f) `(IN ,f (FUN (,c ,avar) (,c ,bvar))))
+                                carriers fvars)
+                           (list body*))))
+    (unless (= (length fvars) (length carriers))
+      (error "declare-hom!: one map per carrier expected" name carriers fvars))
+    (fluid-let ((*current-provenance* 'definitional))
+      (theory-add-axiom! *current-theory* (symbol-append hom '-def)
+        `(FORALL ,avar (FORALL ,bvar
+           ,(let loop ((fs fvars))
+              (if (null? fs)
+                  `(IFF (,hom ,avar ,bvar ,@fvars) ,(conjuncts->and conjs))
+                  `(FORALL ,(car fs) ,(loop (cdr fs)))))))))
+    (register-operator! hom 'predicate (append (list avar bvar) fvars))
+    (hash-table-set! *hom-overrides* name #t)
+    hom))
+
+;;; --- (2) a functor whose object map is a constructed term -----------------
+(define *functor-obligations* (make-equal-hash-table))  ; functor -> (name ...)
+
+(define (functor-obligations name)
+  (hash-table-ref/default *functor-obligations* name '()))
+
+;;; (def-constructed-functor NAME SRC TGT (r) TERM)
+;;;   -- the object map is the FUNCTOID (NAME r) = TERM, an arbitrary construction
+;;;      (NF-METRIC-SPACE(nf) = [CARR(nf), lambda([x,y], FNRM(nf)(x - y))]);
+;;;   -- the morphism action is the identity on the underlying maps, which is
+;;;      what every construction of this kind does (it re-tops the same carrier).
+;;; It installs the functoid and OWES two theorems.  Neither is asserted:
+;;;      NAME-is-TGT     : IS-SRC(r) => IS-TGT(NAME r)
+;;;      NAME-functorial : IS-HOM-SRC(a,b,f) => IS-HOM-TGT(NAME a, NAME b, f)
+(define (def-constructed-functor name src tgt params term)
+  (let* ((src-sd (find-shape-structure src))
+         (tgt-sd (find-shape-structure tgt)))
+    (unless src-sd (error "def-constructed-functor: unknown source" src))
+    (unless tgt-sd (error "def-constructed-functor: unknown target" tgt))
+    (let* ((ps       (if (pair? params) params (list params)))
+           (r        (car ps))
+           (is-src   (symbol-append 'IS- src))
+           (is-tgt   (symbol-append 'IS- tgt))
+           (hom-src  (structure-hom-name src))
+           (hom-tgt  (structure-hom-name tgt))
+           (carriers (lambda (sd) (map car (filter (lambda (s) (eq? (cadr s) 'carrier))
+                                                   (structure-def-slots sd)))))
+           (k        (length (carriers src-sd)))
+           (fvars    (if (= k 1)
+                         '(f)
+                         (map (lambda (i)
+                                (symbol-append 'f (string->symbol (number->string i))))
+                              (iota k 1))))
+           (typing   (symbol-append name '-is- tgt))
+           (functl   (symbol-append name '-functorial)))
+      (unless (= k (length (carriers tgt-sd)))
+        (error "def-constructed-functor: source and target have different carrier counts"
+               name src tgt))
+      (def-functoid name ps term)
+      (hash-table-set! *functor-obligations* name
+        (list (cons typing
+                    `(FORALL ,r (IMPLIES (,is-src ,r) (,is-tgt (,name ,r)))))
+              (cons functl
+                    `(FORALL a (FORALL b
+                       ,(let loop ((fs fvars))
+                          (if (null? fs)
+                              `(IMPLIES (,hom-src a b ,@fvars)
+                                        (,hom-tgt (,name a) (,name b) ,@fvars))
+                              `(FORALL ,(car fs) ,(loop (cdr fs)))))))))) 
+      name)))
+
+;;; Every obligation of every constructed functor that is not yet a theorem.
+;;; A functor you have not proved is a functor you do not have -- so this is
+;;; reported at load, and the obligations are AVAILABLE as goals (the cdr is the
+;;; statement, ready for `sp').
+(define (functor-obligation-audit)
+  (append-map
+    (lambda (fn)
+      (filter (lambda (ob)
+                (not (hash-table-ref/default *theorem-table* (car ob) #f)))
+              (functor-obligations fn)))
+    (sort (hash-table-keys *functor-obligations*)
+          (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+
+(define (functor-obligation name)
+  (let loop ((fns (hash-table-keys *functor-obligations*)))
+    (cond ((null? fns) #f)
+          ((assq name (functor-obligations (car fns)))
+           => (lambda (p) (make-wff (cdr p))))
+          (else (loop (cdr fns))))))

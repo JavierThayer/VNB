@@ -2854,6 +2854,73 @@
   (lambda () (and (hash-table-ref/default *macete-table* 'opr #f) #t)))
 
 ;;; -----------------------------------------------------------------------
+;;; The two things an accessor CORRESPONDENCE cannot express.
+
+(display "\n=== declare-hom! and def-constructed-functor ===\n")
+
+;; (1) A species may DECLARE its morphisms.  The generated hom is
+;; preservation-of-slots -- right for algebra, right for METRIC-SPACE (whose
+;; morphisms ARE the isometries), and WRONG for a topological space, where a
+;; topology slot would generate OPENS(a) = OPENS(b) (the topologies literally
+;; equal!) instead of continuity, which is a PREIMAGE condition.
+(declare-structure TOY-TOP
+  (carriers TPTS)
+  (constant TOPENS (POWERSET (POWERSET TPTS))))
+
+(check-true "the GENERATED hom of a topology-like slot is the nonsense one"
+  (lambda ()
+    ;; before the override: it demands the two 'topologies' be equal
+    (and (string-search-forward
+           "topens(a) = topens(b)"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'is-hom-toy-top-def #f))
+           0)
+         #t)))
+
+(declare-hom! 'TOY-TOP '(a b f)
+  "forall([u in topens(b)], preimage(f, u) in topens(a))")
+
+(check-true "declare-hom! replaces it with the continuity condition"
+  (lambda ()
+    (let ((s (expression->string
+               (hash-table-ref/default *theorem-table* 'is-hom-toy-top-def #f))))
+      (and (string-search-forward
+             "forall([u in topens(b)], preimage(f, u) in topens(a))" s 0)
+           ;; and the nonsense conjunct is GONE
+           (not (string-search-forward "topens(a) = topens(b)" s 0))
+           #t))))
+
+(check-true "an overridden species is recorded as such"
+  (lambda () (and (hom-overridden? 'toy-top) #t)))
+
+;; (2) A functor's object map may be a CONSTRUCTION, not a selection.  The metric
+;; of a normed field is BUILT from the norm -- no accessor correspondence yields
+;; it -- so def-constructed-functor takes a term, and OWES its two theorems
+;; instead of getting them by construction.
+(check-true "NF-METRIC-SPACE is a constructed functor with two obligations"
+  (lambda ()
+    (equal? (map car (functor-obligations 'nf-metric-space))
+            '(nf-metric-space-is-metric-space nf-metric-space-functorial))))
+
+;; its TYPING obligation is discharged (the warranted support in
+;; normed-field-metric.scm), so only functoriality is outstanding ...
+(check-true "the typing obligation is discharged"
+  (lambda ()
+    (and (hash-table-ref/default *theorem-table*
+                                 'nf-metric-space-is-metric-space #f) #t)))
+
+;; ... and the audit says so.  A functor you have not proved is a functor you do
+;; not have: nothing about NF-METRIC-SPACE's functoriality is asserted.
+(check-true "the functoriality obligation is OUTSTANDING, not asserted"
+  (lambda ()
+    (and (not (hash-table-ref/default *theorem-table*
+                                      'nf-metric-space-functorial #f))
+         (memq 'nf-metric-space-functorial (map car (functor-obligation-audit)))
+         ;; and it is available as a GOAL, ready for sp
+         (functor-obligation 'nf-metric-space-functorial)
+         #t)))
+
+;;; -----------------------------------------------------------------------
 ;;; FUNCTORIALITY: def-functor has earned the word.  Each view's action on
 ;;; morphisms is the identity on the underlying map, and that this lands in the
 ;;; target's homs is PROVED (functoriality.scm), not asserted -- modulo 0.

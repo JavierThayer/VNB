@@ -1021,6 +1021,25 @@
           bad)
         (error "accessor-type-audit: accessor(s) applied to a structure lacking that slot -- see above"))))
 
+;; A FUNCTOR YOU HAVE NOT PROVED IS A FUNCTOR YOU DO NOT HAVE.
+;; def-functor (an accessor correspondence) gets its typing and functoriality by
+;; construction -- functoriality.scm PROVES the latter, modulo 0.  A
+;; def-constructed-functor, whose object map is a built term (the metric of a
+;; normed field; the topology of a metric space), gets NOTHING for free: its two
+;; theorems have content.  So the constructor records them as OBLIGATIONS and
+;; asserts nothing, and they are listed here until discharged.  SOFT: an open
+;; obligation is honest work outstanding, not a bug.
+(let ((owed (functor-obligation-audit)))
+  (if (null? owed)
+      (display ";; functor obligations: none outstanding\n")
+      (begin
+        (display ";; functor obligations OUTSTANDING (the functor is not yet a functor):\n")
+        (for-each (lambda (ob)
+                    (display ";;   ") (display (car ob))
+                    (display "  -- (functor-obligation '") (display (car ob))
+                    (display ") for the goal\n"))
+                  owed))))
+
 ;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
 ;; support should be filed under a *pss-category-order* bucket via category!.
 ;; Report how many are not yet filed; never fails the build.

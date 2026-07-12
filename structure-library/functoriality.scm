@@ -45,16 +45,25 @@
           ((eq? (car ts) tgt-slot) (car ss))
           (else (loop (cdr ts) (cdr ss))))))
 
-;;; A view is FREE (functoriality follows with no new typing lemma) iff every
-;;; carrier of the target comes from an INDEPENDENT carrier of the source.
+;;; A view is FREE (functoriality follows with no new theorem) iff
+;;;   -- every carrier of the target comes from an INDEPENDENT carrier of the
+;;;      source (so the target's map IS the source's), and
+;;;   -- neither species OVERRIDES its morphisms (declare-hom!).  An overridden
+;;;      hom is not preservation-of-slots, so the syntactic argument -- "each of
+;;;      the target's conjuncts IS one of the source's" -- does not apply, and
+;;;      functoriality becomes a theorem with content (an isometry is continuous).
 (define (fnc--free? vd)
-  (let ((src-carr (fnc--independent-carriers (view-as-source-struct vd)))
-        (tgt-carr (fnc--independent-carriers (view-as-target-struct vd))))
-    (and src-carr tgt-carr
-         (let loop ((cs tgt-carr))
-           (cond ((null? cs) #t)
-                 ((memq (fnc--source-of vd (car cs)) src-carr) (loop (cdr cs)))
-                 (else #f))))))
+  (let ((src (view-as-source-struct vd))
+        (tgt (view-as-target-struct vd)))
+    (and (not (hom-overridden? src))
+         (not (hom-overridden? tgt))
+         (let ((src-carr (fnc--independent-carriers src))
+               (tgt-carr (fnc--independent-carriers tgt)))
+           (and src-carr tgt-carr
+                (let loop ((cs tgt-carr))
+                  (cond ((null? cs) #t)
+                        ((memq (fnc--source-of vd (car cs)) src-carr) (loop (cdr cs)))
+                        (else #f))))))))
 
 ;;; An IS-HOM-Z(...) atom that still has a definition to unfold.  A REFINEMENT's
 ;;; hom is IS-Z(a) and IS-Z(b) and IS-HOM-PARENT(a,b,f) -- so unfolding once
