@@ -43,7 +43,7 @@ instead.  Anchors are lower-case-kebab: `#monoid`,
 
 Adjacency-list view of the view-as directed graph: each target structure with the source structures pointing into it.  Anchors link to per-structure detail sections.
 
-- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `commutative-ring`, `normed-ag`, `normed-field`
+- [`abelian-group`](#abelian-group) ← `ring`, `field`, `module`, `normed-ag`, `commutative-ring`, `normed-field`
 - [`comm-monoid`](#comm-monoid) ← `commutative-ring`
 - [`commutative-ring`](#commutative-ring) ← `normed-field`
 - [`euclidean-ring`](#euclidean-ring) ← `field`
@@ -177,8 +177,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `ring-additive-ag` — from `ring`: (carr add zero neg) ↦ (carr opr iden inv)
 - `field-additive-ag` — from `field`: (carr add zero neg) ↦ (carr opr iden inv)
 - `module-vector-ag` — from `module`: (vec vadd vzero vneg) ↦ (carr opr iden inv)
-- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr opr iden inv)
 - `normed-ag-as-abelian-group` — from `normed-ag`: (carr opr iden inv) ↦ (carr opr iden inv)
+- `commutative-ring-additive-ag` — from `commutative-ring`: (carr add zero neg) ↦ (carr opr iden inv)
 - `normed-field-additive-ag` — from `normed-field`: (carr add zero neg) ↦ (carr opr iden inv)
 
 *Views from `abelian-group`.*
@@ -533,8 +533,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 - `field-multiplicative-group` — into `group`: (non-zero mul one recip) ↦ (carr opr iden inv)
+- `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 
 ### group
 <a id="group"></a>

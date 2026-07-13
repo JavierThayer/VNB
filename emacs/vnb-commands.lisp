@@ -35,6 +35,7 @@
 (cut (formula) "Cut: prove `formula' as a side subgoal, then continue the main goal with `formula' added as an assumption (Gentzen cut).")
 (wk (hyp) "Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a \"string\", or a 1-based assumption index.")
 (mac (name) "Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context.")
+(slot (acc) "Reduce a structure ACCESSOR to its projection: (CARR s) becomes (NTH 1 s).  The one door for accessor reductions -- use it, never mac, on an accessor name.")
 (macm (name) "Like mac, but a CONDITIONAL macete fires even when its side-conditions are not yet in context: each unmet condition is left as a new subgoal.")
 (mac-h (name hyp) "Rewrite a cited ASSUMPTION in place with an equivalence macete; any side-condition not already in context is spawned as a new subgoal.")
 (mac-h* () "Saturating mac-h: repeatedly unfold every defined predicate in the hypotheses and split the conjunctions they expose, until nothing is left folded.  One step in the trace instead of a dozen.")

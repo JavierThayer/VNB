@@ -668,6 +668,38 @@
 (define (ta n)  (vnb--run! 'ta (list n) (lambda () (cmd-theorem-assumption *ps* n))))
 (define (mac n) (vnb--run! 'mac (list n) (lambda () (cmd-apply-macete *ps* n))))
 
+;;; -----------------------------------------------------------------------
+;;; (slot ACC) -- reduce an ACCESSOR to its projection, THROUGH ONE DOOR.
+;;;
+;;; An accessor's meaning is a projection: (CARR s) -> (NTH 1 s), for EVERY s.
+;;; The index is global, which is coherent only because two hard gates make it
+;;; so (accessor-index-audit: one name, one slot; accessor-type-audit: no
+;;; accessor applied to a structure lacking that slot).  See structures.scm.
+;;;
+;;; That design is deliberate but PROVISIONAL.  The alternative -- "route 2" --
+;;; makes the reduction STRUCTURE-RELATIVE: (MUL s) -> (NTH 3 s) *provided*
+;;; IS-RING(s), (OPR s) -> (NTH 2 s) *provided* IS-GROUP(s).  Then a name may sit
+;;; at a different slot in each structure, numbered carriers CARR1..CARRn need no
+;;; positional convention, and (OPR r) on a ring stops silently returning its ADD.
+;;; The cost is that the reduction fires only with the typing hypothesis in hand.
+;;;
+;;; Switching costs whatever DEPENDS on the projection being unconditional.  So
+;;; every caller goes through HERE, and nowhere else: today `slot' just fires the
+;;; global macete; under route 2 it becomes the thing that finds the guarded
+;;; macete for the structure at hand and discharges its typing condition.  One
+;;; procedure changes, not N call sites.  `accessor-callsite-audit' (audit.scm)
+;;; is the pin: it fails if any file reaches past this door and fires an accessor
+;;; macete by name.
+;;; The check runs INSIDE vnb-guard, so a bad name comes back as a <vnb-error>
+;;; value (VNB errors are returned, not raised) rather than dropping the caller
+;;; into the REPL.
+(define (slot acc)
+  (vnb-guard
+    (lambda ()
+      (unless (eq? (constant-head? acc) 'accessor)
+        (error "slot: not a registered accessor -- `slot' reduces an accessor to its projection; use `mac' for anything else" acc))
+      (vnb--run! 'slot (list acc) (lambda () (cmd-apply-macete *ps* acc))))))
+
 ;; macm -- goal-side `mac' that SPAWNS a conditional macete's unmet side
 ;; conditions as minor-premise subgoals (the IMPS apply-macete-with-minor-
 ;; premises analogue).  Plain `mac' only fires a conditional rewrite when its

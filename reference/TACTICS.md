@@ -366,6 +366,14 @@ Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=
 
 Rewrite the goal using a definition or a known equivalence/equality (a `macete').  For instance, replace a defined predicate by what it stands for, or apply an identity.  It fires only where the law's side-conditions already hold in your hypotheses; where they don't, it leaves that spot untouched and looks deeper inside.  (Technically: goal-side rewriting by an equivalence/equality macete; all-or-nothing -- it does NOT spawn unmet side-conditions as goals.  Its hypothesis-side cousin is mac-h; the minor-premise-spawning variant is macm.)
 
+### slot
+
+    (slot 'acc)
+
+Reduce a structure ACCESSOR to its projection: (CARR s) becomes (NTH 1 s).  The one door for accessor reductions -- use it, never mac, on an accessor name.
+
+Replace an accessor by the tuple position it stands for: (CARR s) is slot 1, so it becomes (NTH 1 s).  Pair it with nth-r to compute on a concrete structure -- (MUL ZZ-RING) reduces to bintimes.  It refuses anything that is not an accessor.  (Technically: fires the accessor's macete, which def-structure installs at declaration.  It exists so that ALL accessor reductions go through ONE procedure: the reduction is currently global and unconditional -- index k for every argument -- and making it structure-relative later, guarded by IS-X(s), should change this door and not its callers.  accessor-callsite-audit fails the suite if any file fires an accessor macete by name.)
+
 ### macm
 
     (macm 'name)

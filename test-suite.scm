@@ -2843,7 +2843,7 @@
 (check-true "(MUL ZZ-RING) computes to bintimes (it used to give binplus)"
   (lambda ()
     (sp (make-wff '(= (MUL ZZ-RING) bintimes)))
-    (mac 'mul)                 ; (MUL ZZ-RING) -> (NTH 3 ZZ-RING)
+    (slot 'mul)                ; (MUL ZZ-RING) -> (NTH 3 ZZ-RING)  [through the door]
     (mac 'zz-ring-def)         ; ZZ-RING       -> the literal tuple
     (nth-r)                    ; NTH 3 of it   -> bintimes
     (rfl)
@@ -2852,6 +2852,31 @@
 ;; OPR -- the group family's operation -- has its own reduction, at slot 2.
 (check-true "OPR has an (NTH 2) reduction of its own"
   (lambda () (and (hash-table-ref/default *macete-table* 'opr #f) #t)))
+
+;; THE PIN.  An accessor's reduction is global and unconditional -- a deliberate
+;; but PROVISIONAL choice (route 2 would make it conditional on IS-X(s), freeing
+;; a name to sit at a different slot in each structure, which is what numbered
+;; carriers CARR1..CARRn will want).  Reversing it is cheap only while nothing
+;; depends on the reduction firing WITHOUT a typing hypothesis.  Exactly one
+;; procedure does -- `slot' -- and this keeps it that way: fire an accessor
+;; macete by name anywhere else and the suite says so, instead of the coupling
+;; growing one driver at a time until "reversible" is quietly false.
+(check-true "no file fires an accessor macete by name (use `slot')"
+  (lambda ()
+    (let ((hits (accessor-callsite-audit)))
+      (when (pair? hits)
+        (display "\n  accessor macete fired outside `slot':\n")
+        (for-each (lambda (h)
+                    (display "    ") (display (car h)) (display ".scm:")
+                    (display (cadr h)) (display "  (") (display (caddr h))
+                    (display " '") (display (cadddr h)) (display ")\n"))
+                  hits))
+      (null? hits))))
+
+;; ... and `slot' refuses anything that is not an accessor, so it cannot quietly
+;; become a second name for `mac'.
+(check-error "slot rejects a non-accessor macete name"
+  (lambda () (sp (make-wff '(= (MUL ZZ-RING) bintimes))) (slot 'zz-ring-def)))
 
 ;;; -----------------------------------------------------------------------
 ;;; The two things an accessor CORRESPONDENCE cannot express.

@@ -141,3 +141,85 @@
     (display (hash-table/count bases))
     (display " distinct base name(s) (collapsing -rev / -list companions)\n")
     (+ (length a-names) (length b-names))))
+
+;;; -----------------------------------------------------------------------
+;;; ACCESSOR-CALLSITE AUDIT -- the pin on a provisional design.
+;;;
+;;; An accessor's reduction is global and unconditional: (CARR s) -> (NTH 1 s)
+;;; for EVERY s.  That is a choice we can reverse (route 2: make it conditional
+;;; on IS-X(s), so a name may sit at a different slot in each structure), and the
+;;; reversal is cheap ONLY while nothing depends on the reduction firing without
+;;; a typing hypothesis.  Today exactly one procedure does: `slot' (interactive).
+;;;
+;;; The number stays one because this audit fails if any file fires an accessor
+;;; macete BY NAME -- (mac 'carr), (mac-h 'opr), (macm 'mul) -- instead of going
+;;; through `slot'.  Left unguarded, the coupling grows by ordinary use, one
+;;; driver at a time, and the "reversible" claim rots without anyone noticing.
+;;;
+;;; Comments are stripped before scanning (everything from the first `;'), so the
+;;; many prose mentions of "(mac 'mul)" -- the false rewrite that started all of
+;;; this -- do not register.  A mention inside a STRING would, which is a false
+;;; positive we accept: it is the safe direction.
+;;; Plain character-level substring search.  NOT string-search-forward: its range
+;;; rule on a start index is not what it looks like (it rejects starts that are
+;;; comfortably inside the string), and a scanner that walks a line hits that
+;;; edge constantly.  Returns the index of PAT in S at or after FROM, or #f.
+(define (audit--index-of pat s from)
+  (let ((plen (string-length pat))
+        (slen (string-length s)))
+    (let loop ((i from))
+      (cond
+        ((> (+ i plen) slen) #f)
+        ((let match ((j 0))
+           (cond ((= j plen) #t)
+                 ((char=? (string-ref s (+ i j)) (string-ref pat j)) (match (+ j 1)))
+                 (else #f)))
+         i)
+        (else (loop (+ i 1)))))))
+
+(define (audit--strip-comment line)
+  (let ((i (audit--index-of ";" line 0)))
+    (if i (substring line 0 i) line)))
+
+(define (audit--accessor-callsites-in file)
+  (let ((path (string-append *prover-dir* file ".scm"))
+        (hits '()))
+    (if (not (file-exists? path))
+        '()
+        (call-with-input-file path
+          (lambda (port)
+            (let loop ((n 1))
+              (let ((line (read-line port)))
+                (if (eof-object? line)
+                    (reverse hits)
+                    (let ((code (audit--strip-comment line)))
+                      (for-each
+                        (lambda (tac)
+                          (let* ((pat  (string-append "(" tac " '"))
+                                 (plen (string-length pat))
+                                 (clen (string-length code)))
+                            (let scan ((from 0))
+                              (let ((i (audit--index-of pat code from)))
+                                (when i
+                                  (let* ((start (+ i plen))
+                                         (end   (let find ((j start))
+                                                  (cond
+                                                    ((>= j clen) j)
+                                                    ((memv (string-ref code j)
+                                                           '(#\) #\space #\tab)) j)
+                                                    (else (find (+ j 1))))))
+                                         (nm    (string->symbol
+                                                  (string-downcase
+                                                    (substring code start end)))))
+                                    (when (eq? (constant-head? nm) 'accessor)
+                                      (set! hits (cons (list file n tac nm) hits)))
+                                    (scan end)))))))
+                        '("mac" "mac-h" "macm"))
+                      (loop (+ n 1)))))))))))
+
+;;; Every place that fires an accessor macete by name instead of using `slot'.
+;;; Empty => the projection's unconditionality has exactly ONE dependant, and
+;;; route 2 remains a change to one procedure.
+(define (accessor-callsite-audit)
+  (append-map audit--accessor-callsites-in
+              (append *vnb-files* (list "test-suite"))))

@@ -95,7 +95,10 @@
 ;;; the accessor-of-a-view is the only occurrence, has neither problem.
 (define (fnc--normalize-goal! vd)
   (let ((vname (view-as-name vd)))
-    (for-each (lambda (acc) (quietly (lambda () (mac acc))))
+    ;; `slot', not `mac': an accessor reduction goes through ONE door, so that
+    ;; making it structure-relative later is a change to that door and not to
+    ;; every caller (interactive.scm; accessor-callsite-audit is the pin).
+    (for-each (lambda (acc) (quietly (lambda () (slot acc))))
               (view-as-target-comps vd))
     (quietly (lambda () (mac vname)))
     (let loop ((n 0))
