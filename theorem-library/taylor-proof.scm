@@ -323,3 +323,12 @@
 ;;; Classic textbook name, for (find-theorem "...") lookup.
 (alias! 'taylor-lagrange "Taylor's theorem" "Taylor's theorem with Lagrange remainder")
 (category! 'taylor-lagrange 'analysis)
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'TAYLOR-DIFFERENTIABLE 'kind 'predicate 'arity 4
+           'english "$1 is $4 times differentiable from $2 to $3")

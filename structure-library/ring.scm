@@ -7,20 +7,20 @@
 ;;; (A, ADD, ZERO, NEG) is an abelian group; (A, MUL, ONE) is a monoid;
 ;;; MUL distributes over ADD.
 
-(def-structure-from-clauses 'RING
-  '((carriers CARR)
-    (op ADD (CARTESIAN CARR CARR) CARR)
-    (op MUL (CARTESIAN CARR CARR) CARR)
-    (op NEG CARR CARR)
-    (constant ZERO CARR)
-    (constant ONE CARR)
-    (property is-associative ADD CARR)
-    (property is-commutative ADD CARR)
-    (property is-identity ADD ZERO CARR)
-    (property has-inverses ADD ZERO NEG CARR)
-    (property is-associative MUL CARR)
-    (property is-identity MUL ONE CARR)
-    (property is-distributive ADD MUL CARR)))
+(declare-structure RING
+  (carriers CARR)
+  (op ADD (CARTESIAN CARR CARR) CARR)
+  (op MUL (CARTESIAN CARR CARR) CARR)
+  (op NEG CARR CARR)
+  (constant ZERO CARR)
+  (constant ONE CARR)
+  (property is-associative ADD CARR)
+  (property is-commutative ADD CARR)
+  (property is-identity ADD ZERO CARR)
+  (property has-inverses ADD ZERO NEG CARR)
+  (property is-associative MUL CARR)
+  (property is-identity MUL ONE CARR)
+  (property is-distributive ADD MUL CARR))
 
 (theory-add-axiom! *current-theory* 'ring-add-assoc
   '(FORALL s

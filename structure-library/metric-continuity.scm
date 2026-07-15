@@ -96,3 +96,52 @@
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-CONTINUOUS         'kind 'predicate 'arity 3 'english "$3 is continuous from $1 to $2")
 (notation! 'IS-CONTINUOUS-AT      'kind 'predicate 'arity 4 'english "$3 is continuous at $4")
+
+;;; -----------------------------------------------------------------------
+;;; THE MORPHISMS OF A METRIC SPACE ARE ITS CONTINUOUS MAPS.
+;;;
+;;; def-structure GENERATES IS-HOM-X as preservation-of-slots, which for
+;;; METRIC-SPACE reads d(t)(f(x), f(y)) = d(s)(x, y) -- an ISOMETRY.  That is a
+;;; category, but it is not the one this library works in: the header of this
+;;; file has said "these are the morphisms of the metric-space structure" about
+;;; IS-CONTINUOUS since it was written, and nothing ever cited the generated hom.
+;;; The two beliefs sat side by side until the METRIC-SPACE -> TOP-SPACE functor
+;;; forced the question: that functor carries CONTINUOUS maps to continuous maps,
+;;; and its functoriality obligation is only worth stating over them (over
+;;; isometries it degenerates to "an isometry is continuous", true and empty).
+;;;
+;;; So the species DECLARES its morphisms and overrides the generated ones.
+;;; declare-hom! supplies IS-METRIC-SPACE(s), IS-METRIC-SPACE(t) and the typing
+;;; of f, so the body states only what is characteristic.
+(declare-hom! 'METRIC-SPACE '(s t f)
+  '(IS-CONTINUOUS s t f))
+
+;;; The isometries do not disappear -- they stop being "the" hom and become a
+;;; predicate of their own (the completion embedding is an isometry, not merely
+;;; a continuous map).  This is exactly the formula def-structure used to
+;;; generate for IS-HOM-METRIC-SPACE.
+(def-predicate 'IS-ISOMETRY '(s t f)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (IS-METRIC-SPACE t)
+    (AND (IN f (FUN (PTS s) (PTS t)))
+         (FORALL x (IMPLIES (IN x (PTS s))
+           (FORALL y (IMPLIES (IN y (PTS s))
+             (= ((DIST t) (f x) (f y)) ((DIST s) x y))))))))))
+
+(notation! 'IS-ISOMETRY 'kind 'predicate 'arity 3
+           'english "$3 is an isometry from $1 to $2")
+
+;;; The metric hom is CONTINUITY, so "homomorphism" -- the default a generated hom
+;;; gets -- is the wrong word for it.  A species that overrides its morphisms owes
+;;; the reading, beside the override.
+(notation! 'IS-HOM-METRIC-SPACE 'kind 'predicate 'arity 3
+           'english "$3 is continuous from $1 to $2")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-UNIFORMLY-CONTINUOUS 'kind 'predicate 'arity 3
+           'english "$3 is uniformly continuous from $1 to $2")

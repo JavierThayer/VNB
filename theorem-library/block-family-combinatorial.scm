@@ -113,3 +113,12 @@
 ;;; ----- Plain-English gloss (PSS review 2026-06-26) -----
 (gloss! 'cover-block-step
   "For any set V, a sequence f of elements of V, a finite cover C of V, and an infinite index block J: there is a smaller infinite block J' contained in J and a single cover member U such that all f(i) for i in J' lie in U.  The metric-free single pigeonhole step that block-family-combinatorial iterates.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-FINITE-COVER 'kind 'predicate 'arity 2
+           'english "$1 is a finite cover of $2")

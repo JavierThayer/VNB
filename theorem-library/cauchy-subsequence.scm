@@ -387,3 +387,18 @@
   "For a metric space s, a ball U = BALL(s,c,r), two points y,z of U, and reals d,eps with r<=d and d+d=eps: the distance from y to z is at most eps.  The fully-curried 2r estimate -- two points in one r-ball are within 2r.")
 (gloss! 'block-family
   "For a totally bounded space s, a sequence f of points of s, and a positive null radius sequence rad: there is a nested tower of infinite index blocks blk(0) >= blk(1) >= ... such that at each level k all the f(i) for i in blk(k) lie in a single ball of radius rad(k) about some centre.  Recursive pigeonhole into ever-smaller blocks -- the engine of the Cauchy-subsequence extraction.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'STRICTLY-MONO-NN 'kind 'predicate 'arity 1
+           'english "$1 is a strictly increasing sequence of naturals")
+(notation! 'IS-SUBSEQUENCE 'kind 'predicate 'arity 3
+           'english "$2 is a subsequence of $3 in $1")
+(notation! 'IS-EPS-CAUCHY-SEQ 'kind 'predicate 'arity 3
+           'english "$3 is $2-Cauchy in $1")
+(notation! 'NULL-RR-SEQ 'kind 'predicate 'arity 1
+           'english "$1 is a sequence of positive reals tending to zero")

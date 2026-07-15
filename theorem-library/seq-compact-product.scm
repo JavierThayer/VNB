@@ -205,3 +205,14 @@
   "For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a nested tower of infinite index blocks S(0) >= S(1) >= ... and a product point L such that, in each coordinate n, the n-th coordinates of seq converge to L(n) ALONG the block S(n) (i.e. once restricted to indices in S(n)).  The coordinatewise refinement underlying the diagonal argument.")
 (gloss! 'coordinatewise-diagonal-subseq
   "For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a single strictly increasing reindexing delta and a product point L such that the subsequence seq o delta converges to L in EVERY coordinate at once.  The diagonal argument extracting one subsequence convergent in all coordinates.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'SEQ-COMPACT 'kind 'predicate 'arity 1
+           'english "$1 is sequentially compact")
+(notation! 'CONVERGES-ALONG 'kind 'predicate 'arity 4
+           'english "$2 converges to $4 along $3 in $1")

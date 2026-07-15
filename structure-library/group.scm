@@ -4,14 +4,14 @@
 ;;; Accessor indices: CARR -> 1, OPR -> 2, IDEN -> 3, INV -> 4.
 ;;; Three axioms (left-only) suffice: assoc + left-id + left-inv.
 
-(def-structure-from-clauses 'GROUP
-  '((carriers CARR)
-    (op OPR (CARTESIAN CARR CARR) CARR)
-    (constant IDEN CARR)
-    (op INV CARR CARR)
-    (property is-associative OPR CARR)
-    (property is-identity OPR IDEN CARR)
-    (property has-inverses OPR IDEN INV CARR)))
+(declare-structure GROUP
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (constant IDEN CARR)
+  (op INV CARR CARR)
+  (property is-associative OPR CARR)
+  (property is-identity OPR IDEN CARR)
+  (property has-inverses OPR IDEN INV CARR))
 
 ;;; forall s. IS-GROUP(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
 (theory-add-axiom! *current-theory* 'group-assoc

@@ -32,28 +32,28 @@
 ;;; Dependencies: ring.scm, commutative-ring.scm, number-systems.scm
 ;;; (for RR and the abs/magnitude axioms), operation-properties.scm (is-norm).
 
-(def-structure-from-clauses 'NORMED-FIELD
-  '(;; Slots 1-6 mirror RING so shared accessors keep their NTH indices.
-    (carriers CARR)
-    (op ADD (CARTESIAN CARR CARR) CARR)
-    (op MUL (CARTESIAN CARR CARR) CARR)
-    (op NEG CARR CARR)
-    (constant ZERO CARR)
-    (constant ONE CARR)
-    ;; Slot 7: the structurally-carried norm.
-    (op FNRM CARR RR)
-    ;; Additive abelian group on A.
-    (property is-associative ADD CARR)
-    (property is-commutative ADD CARR)
-    (property is-identity   ADD ZERO CARR)
-    (property has-inverses  ADD ZERO NEG CARR)
-    ;; Multiplicative commutative monoid; distributive.
-    (property is-associative MUL CARR)
-    (property is-commutative MUL CARR)
-    (property is-identity   MUL ONE CARR)
-    (property is-distributive ADD MUL CARR)
-    ;; The norm.
-    (property is-norm FNRM ADD MUL ZERO CARR)))
+(declare-structure NORMED-FIELD
+  ;; Slots 1-6 mirror RING so shared accessors keep their NTH indices.
+  (carriers CARR)
+  (op ADD (CARTESIAN CARR CARR) CARR)
+  (op MUL (CARTESIAN CARR CARR) CARR)
+  (op NEG CARR CARR)
+  (constant ZERO CARR)
+  (constant ONE CARR)
+  ;; Slot 7: the structurally-carried norm.
+  (op FNRM CARR RR)
+  ;; Additive abelian group on A.
+  (property is-associative ADD CARR)
+  (property is-commutative ADD CARR)
+  (property is-identity   ADD ZERO CARR)
+  (property has-inverses  ADD ZERO NEG CARR)
+  ;; Multiplicative commutative monoid; distributive.
+  (property is-associative MUL CARR)
+  (property is-commutative MUL CARR)
+  (property is-identity   MUL ONE CARR)
+  (property is-distributive ADD MUL CARR)
+  ;; The norm.
+  (property is-norm FNRM ADD MUL ZERO CARR))
 
 ;;; Multiplicative inverses: every nonzero element has a multiplicative
 ;;; inverse.  Asserted existentially (no structural INV slot in this shape).

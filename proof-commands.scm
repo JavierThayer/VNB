@@ -164,6 +164,37 @@
 ;;; forall and detaching each implies whose antecedent is in context.  This is
 ;;; the forward-assembly workhorse: a theorem becomes a usable fact in one call,
 ;;; instead of a ta + inst* + cut/backchain hand-chain.
+;;; Discharge a GROUND arithmetic antecedent by PROVING it, instead of demanding
+;;; it in context.
+;;;
+;;; `(IN 2 NN)' was a hole you could lose an afternoon in.  `arith' DECIDES it
+;;; (arith-membership-check, arith-eval.scm), but `fact'/`inst+' only auto-detach
+;;; a guard that is literally an assumption -- so a theorem guarded on (IN 2 NN)
+;;; went inert, and the driver had to hand-cut the typing of every numeral it
+;;; touched.  There is no axiom to add here (a `support' per numeral is exactly
+;;; the bulk this project refuses); the machine can already prove the thing.
+;;;
+;;; So: cut the antecedent, close the side goal with the `arith' rule, come back
+;;; to the main branch with it in context.  Every step is a kernel rule
+;;; (`cut', `arith-ground'), so this carries NO debt -- it is a composite, not a
+;;; new trusted surface.  Returns the new proof-state, or #f if the antecedent is
+;;; not a decidable ground truth (in which case the caller stops peeling, exactly
+;;; as before).
+;;;
+;;; Only ever called when asms-find has ALREADY missed: cutting a formula that is
+;;; in context up to alpha is a silent self-loop (dg-post! hash-conses by
+;;; alpha-equivalence), and that guard is the caller's `in-ctx' test.
+(define (pc--land-ground-antecedent ps ante)
+  (and (eq? #t (arith-eval-formula ante))
+       (let* ((sqn (proof-state-focus ps))
+              (r   (pi-cut! sqn ante)))
+         (and r
+              (let* ((side (car  r))            ; side goal: ante itself
+                     (main (cadr r))            ; main branch: ante in context
+                     (ps1  (cmd-arith (focus-on ps side))))
+                (and (not (vnb-warning? ps1))
+                     (focus-on ps1 main)))))))
+
 (define (cmd-fact ps thm-name args)
   (let ((f0 (and (symbol? thm-name)
                  (hash-table-ref/default *theorem-table* thm-name #f))))
@@ -187,12 +218,21 @@
                           (ps2  (cmd-instantiate ps formula (car args))))
                      (if (vnb-warning? ps2) ps2
                          (loop ps2 (subst-free x (car args) body) (cdr args)))))
-                  ((and (pair? formula) (eq? (car formula) 'IMPLIES)
-                        (asms-find (sequent-node-assumptions (proof-state-focus ps))
-                                   (binary-left formula)))
-                   (let ((ps2 (cmd-detach ps formula)))
-                     (if (vnb-warning? ps2) ps2
-                         (loop ps2 (binary-right formula) args))))
+                  ;; A guard is dischargeable two ways: it is already an
+                  ;; assumption, or it is a ground arithmetic truth we can prove
+                  ;; on the spot (see pc--land-ground-antecedent).  Anything else
+                  ;; stops the peel and we keep what we have -- as before.
+                  ((and (pair? formula) (eq? (car formula) 'IMPLIES))
+                   (let* ((ante   (binary-left formula))
+                          (in-ctx (asms-find
+                                    (sequent-node-assumptions (proof-state-focus ps))
+                                    ante))
+                          (ps*    (if in-ctx ps (pc--land-ground-antecedent ps ante))))
+                     (if (not ps*)
+                         ps
+                         (let ((ps2 (cmd-detach ps* formula)))
+                           (if (vnb-warning? ps2) ps2
+                               (loop ps2 (binary-right formula) args))))))
                   (else ps))))))))
 
 ;;; inst+ -- instantiate an IN-CONTEXT universal at TERM, then discharge any
@@ -214,13 +254,19 @@
         (let loop ((ps p1)
                    (body (subst-free (quantifier-var forall-formula) term
                                      (quantifier-body forall-formula))))
-          (if (and (pair? body) (eq? (car body) 'IMPLIES)
-                   (asms-find (sequent-node-assumptions (proof-state-focus ps))
-                              (binary-left body)))
-              (let ((p2 (cmd-detach ps body)))
-                (if (or (vnb-warning? p2) (vnb-error? p2))
+          (if (and (pair? body) (eq? (car body) 'IMPLIES))
+              ;; in context, or provable ground arithmetic -- same two ways as
+              ;; cmd-fact; a guard that is neither stops the peel.
+              (let* ((ante   (binary-left body))
+                     (in-ctx (asms-find (sequent-node-assumptions (proof-state-focus ps))
+                                        ante))
+                     (ps*    (if in-ctx ps (pc--land-ground-antecedent ps ante))))
+                (if (not ps*)
                     ps
-                    (loop p2 (binary-right body))))
+                    (let ((p2 (cmd-detach ps* body)))
+                      (if (or (vnb-warning? p2) (vnb-error? p2))
+                          ps
+                          (loop p2 (binary-right body))))))
               ps)))))
 
 (define (cmd-apply-macete ps macete-name)
@@ -717,3 +763,17 @@
     (if r (focus-after-rule ps r)
         (vnb--warn "lambda-beta: no reducible ((VNB-LAMBDA x body) arg ...) in goal"
                    (vnb--goal-str sqn)))))
+
+;;; lam-b's hypothesis-side twin -- what mac-h is to mac.  Cites nothing, so it
+;;; adds no debt; the assumption is replaced by its beta-equal.
+(define (cmd-lambda-beta-hyp ps hyp-formula)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-lambda-beta-hyp! sqn hyp-formula)))
+    (cond
+      (r (focus-after-rule ps r))
+      ((not (asms-find (sequent-node-assumptions sqn) hyp-formula))
+       (vnb--warn "lam-b-h: no such assumption in context"
+                  (expression->string hyp-formula)))
+      (else
+       (vnb--warn "lam-b-h: no reducible ((VNB-LAMBDA x body) arg ...) in that assumption"
+                  (expression->string hyp-formula))))))

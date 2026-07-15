@@ -183,11 +183,16 @@
 ;;; available via the def-structure machinery; combined with the LIST
 ;;; constructor + nth-reduce, (ADD ZZ-RING) computes down to binplus.
 
-(theory-add-axiom! *current-theory* 'zz-ring-def
-  '(= ZZ-RING (LIST ZZ binplus bintimes binneg 0 1)))
+;;; declare-instance! installs the tuple equation under the SAME name it always
+;;; had (zz-ring-def), and additionally the per-slot value macetes that let
+;;; `slot' answer (MUL ZZ-RING) with bintimes in one step instead of exposing
+;;; (NTH 3 ZZ-RING).  It also checks the tuple against the shape: a 7-tuple
+;;; declared RING now fails the load rather than asserting a false IS-RING.
+(declare-instance! 'ZZ-RING 'RING 'zz-ring-def
+  '(ZZ binplus bintimes binneg 0 1))
 
-(theory-add-axiom! *current-theory* 'qq-ring-def
-  '(= QQ-RING (LIST QQ binplus bintimes binneg 0 1)))
+(declare-instance! 'QQ-RING 'RING 'qq-ring-def
+  '(QQ binplus bintimes binneg 0 1))
 
 ;;; RR-NORMED-FIELD and CC-NORMED-FIELD are 7-tuples carrying the structural norm at slot 7
 ;;; (NORMED-FIELD layout).  Slots 1..6 share RING's accessor indices, but a
@@ -197,11 +202,11 @@
 ;;; reach the ring world via the NORMED-FIELD-AS-{COMMUTATIVE-RING,INTEGRAL-
 ;;; DOMAIN} view-as projections (views.scm), which build a fresh 6-tuple from
 ;;; slots 1..6 -- exactly how FIELD reaches it (FIELD-AS-INTEGRAL-DOMAIN).
-(theory-add-axiom! *current-theory* 'rr-normed-field-def
-  '(= RR-NORMED-FIELD (LIST RR binplus bintimes binneg 0 1 abs)))
+(declare-instance! 'RR-NORMED-FIELD 'NORMED-FIELD 'rr-normed-field-def
+  '(RR binplus bintimes binneg 0 1 abs))
 
-(theory-add-axiom! *current-theory* 'cc-normed-field-def
-  '(= CC-NORMED-FIELD (LIST CC binplus bintimes binneg 0 1 magnitude)))
+(declare-instance! 'CC-NORMED-FIELD 'NORMED-FIELD 'cc-normed-field-def
+  '(CC binplus bintimes binneg 0 1 magnitude))
 
 ;;; IS-X witnesses, taken as axioms (each true of the domain; no proofs).
 ;;; CRITICAL: a structure predicate IS-X bakes in length(s)=n, so a tuple can
@@ -212,7 +217,11 @@
 ;;;                      ring structure via the NORMED-FIELD-AS-* views.
 ;;;   QQ as a FIELD     : the separate 8-tuple QQ-FIELD below (FIELD is 8-slot).
 
-(theory-add-axiom! *current-theory* 'zz-is-ring '(IS-RING ZZ-RING))
+;;; zz-is-ring is NOT an axiom any more: it is PROVED, in
+;;; theorem-library/zz-ring-is-ring.scm, from the tuple definition, the three
+;;; operation typings and the arithmetic laws below -- which is what it always
+;;; was, mathematically.  As an assertion it was billed against every theorem
+;;; that reached the integers through their ring structure.
 (theory-add-axiom! *current-theory* 'qq-is-ring '(IS-RING QQ-RING))
 
 (theory-add-axiom! *current-theory* 'zz-is-commutative-ring '(IS-COMMUTATIVE-RING ZZ-RING))
@@ -233,9 +242,9 @@
 ;;; witness IS-FIELD.  QQ-FIELD carries NON-ZERO = QQ minus {0} (matching
 ;;; field-non-zero-carrier) and INV = recip; recip's multiplicative-inverse
 ;;; law (qq-recip-inverse, number-systems.scm) underwrites field-mul-inverse.
-(theory-add-axiom! *current-theory* 'qq-field-def
-  '(= QQ-FIELD (LIST QQ binplus bintimes binneg 0 1
-                     (DIFFERENCE QQ (SINGLETON 0)) recip)))
+(declare-instance! 'QQ-FIELD 'FIELD 'qq-field-def
+  '(QQ binplus bintimes binneg 0 1
+       (DIFFERENCE QQ (SINGLETON 0)) recip))
 
 (theory-add-axiom! *current-theory* 'qq-field-is-field '(IS-FIELD QQ-FIELD))
 
@@ -248,13 +257,12 @@
 ;;; IS-METRIC-SPACE(RR-MS) is an axiom (provable from the abs axioms in
 ;;; number-systems.scm once FUN-typing of the lambda is in place).
 
-;; def-constant already installs rr-ms-def (definitional, citable) via
-;; theory-add-definition!; a separate theory-add-axiom! of the same equation
-;; only RE-installs it with default `asserted' provenance -- downgrading a
-;; definition to a phantom debt leaf.  One registration, kept definitional.
-(def-constant 'RR-MS
-  (list 'rr-ms-def
-        '(= RR-MS (LIST RR (VNB-LAMBDA (LIST x y) (abs (- x y)))))))
+;; The tuple equation is a DEFINITION (def-constant, definitional, citable), not
+;; an axiom: a theory-add-axiom! of it takes the default `asserted' provenance
+;; and downgrades a definition to a phantom debt leaf.  rr-ms-def had this right
+;; before the other instances did; declare-instance! now does it for all of them.
+(declare-instance! 'RR-MS 'METRIC-SPACE 'rr-ms-def
+  '(RR (VNB-LAMBDA (LIST x y) (abs (- x y)))))
 
 (theory-add-axiom! *current-theory* 'rr-is-metric-space
   '(IS-METRIC-SPACE RR-MS))
@@ -271,8 +279,8 @@
 ;;; +, with identity 0.  IS-COMM-MONOID is taken as axiom by the same
 ;;; rationale as the ring instances above.
 
-(theory-add-axiom! *current-theory* 'nn-add-monoid-def
-  '(= NN-ADD-MONOID (LIST NN binplus 0)))
+(declare-instance! 'NN-ADD-MONOID 'COMM-MONOID 'nn-add-monoid-def
+  '(NN binplus 0))
 
 (theory-add-axiom! *current-theory* 'nn-add-monoid-is-comm-monoid
   '(IS-COMM-MONOID NN-ADD-MONOID))

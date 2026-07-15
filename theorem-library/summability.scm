@@ -133,3 +133,16 @@
    SUMS-TO(grp, f, r), so IS-SUMMABLE(grp, f).  The sum is unconditional by
    construction (SUMS-TO is a net over finite subsets, not a series).  A
    candidate to discharge into a formal `proof' later.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'SUMS-TO 'kind 'predicate 'arity 3
+           'english "$2 sums to $3 in $1")
+(notation! 'IS-SUMMABLE 'kind 'predicate 'arity 2
+           'english "$2 is summable in $1")
+(notation! 'IS-ABSOLUTELY-SUMMABLE 'kind 'predicate 'arity 2
+           'english "$2 is absolutely summable in $1")

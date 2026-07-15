@@ -693,12 +693,64 @@
 ;;; The check runs INSIDE vnb-guard, so a bad name comes back as a <vnb-error>
 ;;; value (VNB errors are returned, not raised) rather than dropping the caller
 ;;; into the REPL.
+;;;
+;;; ON A CONCRETE STRUCTURE, `slot' answers with the VALUE and not with a slot
+;;; number: (MUL ZZ-RING) becomes bintimes in one step, never (NTH 3 ZZ-RING).
+;;; declare-instance! (structures.scm) precomputed that projection, so the tuple
+;;; -- ZZ-RING's representation, and the fact that MUL is its third component --
+;;; stays out of the goal.  NTH form is what a VARIABLE structure gets, because
+;;; there it is the only thing there is; that is also the case the machinery
+;;; (fnc--normalize-goal!) wants.
+;;;
+;;; A goal holding both, (MUL a) and (MUL ZZ-RING), reduces the instances first;
+;;; a second (slot 'mul) then takes the variable to NTH.  Two calls, in the order
+;;; that keeps NTH out of the goal for as long as possible.
+;;;
+;;; The accessor's argument may be a CONSTRUCTION rather than a constant --
+;;; (PTS (METRIC-TOP md)) -- and def-constructed-functor precomputed those
+;;; projections too, so (slot 'pts) answers PTS(md) and the constructed tuple
+;;; never enters the goal.  That is not a convenience: reaching the projection by
+;;; hand means firing the accessor macete, which rewrites EVERY occurrence,
+;;; including the (PTS md) inside the tuple -- see install-functor-projections!.
+(define (slot--projection-macete e acc)
+  (and (pair? e) (eq? (car e) acc) (pair? (cdr e)) (null? (cddr e))
+       (let ((arg (cadr e)))
+         (cond
+           ;; (MUL ZZ-RING) -- a declared instance
+           ((symbol? arg) (instance-value-macete arg acc))
+           ;; (PTS (METRIC-TOP md)) -- a constructed functor's object map
+           ((and (pair? arg) (symbol? (car arg)))
+            (functor-projection-macete (car arg) acc))
+           (else #f)))))
+
+(define (slot--instance-macetes acc)
+  (let ((seen '()))
+    (let walk ((e (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))))
+      (when (pair? e)
+        (let ((m (slot--projection-macete e acc)))
+          (if m
+              (if (not (memq m seen)) (set! seen (cons m seen)))
+              (for-each walk (cdr e))))
+        (if (pair? (car e)) (walk (car e)))))
+    (reverse seen)))
+
 (define (slot acc)
   (vnb-guard
     (lambda ()
       (unless (eq? (constant-head? acc) 'accessor)
         (error "slot: not a registered accessor -- `slot' reduces an accessor to its projection; use `mac' for anything else" acc))
-      (vnb--run! 'slot (list acc) (lambda () (cmd-apply-macete *ps* acc))))))
+      (vnb--run! 'slot (list acc)
+        (lambda ()
+          (let ((ms (slot--instance-macetes acc)))
+            (if (null? ms)
+                (cmd-apply-macete *ps* acc)
+                (let loop ((ms ms) (ps *ps*))
+                  (if (null? ms)
+                      ps
+                      (let ((p (cmd-apply-macete ps (car ms))))
+                        (if (or (vnb-warning? p) (vnb-error? p))
+                            p
+                            (loop (cdr ms) p))))))))))))
 
 ;; macm -- goal-side `mac' that SPAWNS a conditional macete's unmet side
 ;; conditions as minor-premise subgoals (the IMPS apply-macete-with-minor-
@@ -1572,6 +1624,17 @@
                  (display sub)
                  (unless (string=? vt "term") (display " · ") (display vt))
                  (newline) (newline)
+                 ;; HOW IT READS.  The head table's English, applied to the head's
+                 ;; own parameter names -- the rung-3 sentence for this operator,
+                 ;; shown where a reader is already looking it up.  A head with no
+                 ;; reading simply has no line (and, for a predicate, fails the
+                 ;; suite: every predicate in the library reads as a sentence).
+                 (let* ((e  (operator-ref name))
+                        (ps (and e (operator-params e))))
+                   (when (and e (or (operator-english e) (operator-noun e)))
+                     (display "> _Reads as:_  ")
+                     (display (wff->english (cons name (or ps '()))))
+                     (newline) (newline)))
                  ;; def-functoid: show the unfolding body inline.
                  (let ((reg (hash-table-ref/default *functoid-registry* name #f)))
                    (when reg
@@ -2418,7 +2481,7 @@
     (display "### ") (display name)
     (display "\n<a id=\"") (display (struct-index--anchor name)) (display "\"></a>\n\n")
     (display (struct-index--source-link (structure-def-source-file sd)))
-    (display "*Kind.* Shape predicate (def-structure-from-clauses).\n\n")
+    (display "*Kind.* Shape structure — `declare-structure` with slot clauses.\n\n")
     (display "*Slots* (") (display n-slots) (display "): ")
     (display "carriers ") (display (structure-def-carriers sd))
     (display ", ops/constants ") (display (map car (structure-def-op-specs sd)))
@@ -2504,8 +2567,10 @@
                  inst-tuple))
            (newline)))
         (else
-         (display "*Kind.* Definitional predicate (genuine IFF axiom).  ")
-         (display "Subtype of [`") (display parent) (display "`](#")
+         (display "*Kind.* Refinement — `declare-structure` with ")
+         (display "`(same-shape-as ")  (display parent) (display ")`; its ")
+         (display "`IS-X <=> IS-PARENT and <laws>` axiom is generated, not ")
+         (display "hand-written.  Subtype of [`") (display parent) (display "`](#")
          (display (struct-index--anchor parent)) (display ").  ")
          (display "Shape inherited from `") (display parent)
          (display "` — slots ") (display accessors) (display ".\n\n")
@@ -3034,20 +3099,27 @@
             (display "- **") (display (view-as-source-struct vd)) (display "**") (newline)))
         vs-in))))
 
-;;; An instance constant NAME has a `<name>-def' axiom of the form
-;;; (= NAME (LIST ...)) -- the tuple.  (CARR refinement-predicate class has
-;;; `is-<name>-def' instead.)  Return the component list, or #f if NAME is
-;;; not such an instance.  This is the instance/refinement discriminator the
-;;; card generator uses.
+;;; An instance constant NAME denotes the tuple (= NAME (LIST ...)).  Return its
+;;; component list, or #f if NAME is not such an instance -- the instance /
+;;; refinement discriminator the card generator uses.  (A CARR refinement class
+;;; has `is-<name>-def' instead, and no tuple.)
+;;;
+;;; declare-instance! (structures.scm) is the registry, and it is asked FIRST: the
+;;; tuple equation is a DEFINITION, so it lives in theory-definitions, and the old
+;;; scan of theory-axioms for `<name>-def' -- which is all this used to do -- went
+;;; blind to every instance the moment they stopped being asserted axioms.  The
+;;; scan stays as the fallback, for a hand-rolled instance that never went through
+;;; declare-instance!.
 (define (definitional-instance-tuple name)
-  (let* ((def-name (string->symbol
-                     (string-append (string-downcase (symbol->string name)) "-def")))
-         (ax (assq def-name (theory-axioms *current-theory*))))
-    (and ax
-         (let ((f (cdr ax)))
-           (and (pair? f) (eq? (car f) '=) (eq? (cadr f) name)
-                (pair? (caddr f)) (eq? (car (caddr f)) 'list)
-                (cdr (caddr f)))))))
+  (or (instance-tuple name)
+      (let* ((def-name (string->symbol
+                         (string-append (string-downcase (symbol->string name)) "-def")))
+             (ax (assq def-name (theory-axioms *current-theory*))))
+        (and ax
+             (let ((f (cdr ax)))
+               (and (pair? f) (eq? (car f) '=) (eq? (cadr f) name)
+                    (pair? (caddr f)) (eq? (car (caddr f)) 'list)
+                    (cdr (caddr f))))))))
 
 ;;; All installed membership witnesses for the instance NAME: axioms of the
 ;;; form (IS-X NAME).  Returns a list of (is-pred . axiom-name).
@@ -3382,16 +3454,18 @@
         (display "Auto-generated by `(catalog)`.  ")
         (display (length all-struct)) (display " structures (")
         (display (length structures)) (display " shape + ")
-        (display (length defstructs)) (display " definitional), ")
+        (display (length defstructs)) (display " refinement/instance), ")
         (display (length views))      (display " views.\n\n")
         (display "Each section lists a structure's defining predicate, the\n")
         (display "theorems quantifying over it, and the view-as declarations\n")
-        (display "into/out of it.  *Shape* structures (def-structure-from-clauses)\n")
-        (display "have a slot listing; *definitional* structures (genuine IFF\n")
-        (display "predicates such as `IS-FIELD`) note their parent structure\n")
-        (display "instead.  Anchors are lower-case-kebab: `#monoid`,\n")
-        (display "`#ring-additive-ag`, etc.  Flat theorem listing in\n")
-        (display "`THEOREMS.md`.\n\n")
+        (display "into/out of it.  Every structure is declared by\n")
+        (display "`declare-structure`.  A *shape* structure declares slots\n")
+        (display "(`(carriers ...)`, `(op ...)`, `(constant ...)`) and has a\n")
+        (display "slot listing here; a *refinement* declares\n")
+        (display "`(same-shape-as PARENT)` and laws, inherits the parent's\n")
+        (display "slots, and notes its parent instead.  Anchors are\n")
+        (display "lower-case-kebab: `#monoid`, `#ring-additive-ag`, etc.\n")
+        (display "Flat theorem listing in `THEOREMS.md`.\n\n")
         (display "## Table of contents\n\n")
         (for-each
           (lambda (s)
@@ -3455,6 +3529,17 @@
                       (vnb--run! 'iota-d (list raw) (lambda () (cmd-iota-def *ps* raw)))))
 (define (lam-t)    (vnb--run! 'lam-t    '() (lambda () (cmd-lambda-type      *ps*))))
 (define (lam-b)    (vnb--run! 'lam-b    '() (lambda () (cmd-lambda-beta      *ps*))))
+;;; lam-b's hypothesis-side twin -- what mac-h is to mac.  A `fact' that
+;;; instantiates a function variable at a lambda lands the APPLIED lambda in the
+;;; context, where a goal-side beta cannot reach it.
+;;; The hypothesis is cited exactly as mac-h cites it -- a formula, or its index
+;;; in the context listing.
+(define (lam-b-h h)
+  (vnb--run! 'lam-b-h (list h)
+             (lambda ()
+               (let ((raw (->raw-formula/idx h)))
+                 (if (vnb-warning? raw) raw
+                     (cmd-lambda-beta-hyp *ps* raw))))))
 
 ;;; BIG-UNION short forms (notes-16 step 1)
 (define (bu-set)   (vnb--run! 'bu-set   '() (lambda () (cmd-big-union-sethood *ps*))))

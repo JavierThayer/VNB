@@ -298,3 +298,22 @@
    by monotone-convergence-rr (order-completeness), so Sum f converges.  All
    three ingredients are now in the library (series-order-lemmas.scm), so this
    is a PSS->proven candidate -- the chain is assembled, not missing.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'SERIES-CONVERGES 'kind 'predicate 'arity 1
+           'english "the series $1 converges")
+(notation! 'SERIES-CONVERGES-TO 'kind 'predicate 'arity 2
+           'english "the series $1 converges to $2")
+(notation! 'PS-CONVERGES-AT 'kind 'predicate 'arity 2
+           'english "the power series with coefficients $1 converges at $2")
+(notation! 'PS-CONVERGES-TO-AT 'kind 'predicate 'arity 3
+           'english "the power series with coefficients $1 converges to $3 at $2")
+(notation! 'PS-ABSOLUTELY-CONVERGES-AT 'kind 'predicate 'arity 2
+           'english "the power series with coefficients $1 converges absolutely at $2")
+(notation! 'PS-RATIO-LIMIT 'kind 'predicate 'arity 2
+           'english "the coefficients $1 have ratio limit $2")

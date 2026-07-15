@@ -333,3 +333,14 @@
 (quietly (lambda () (dc-grind!) (ass-all)))
 (qed 'vector-taylor-remainder-bound)
 (category! 'vector-taylor-remainder-bound 'analysis)
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-DIFF-AT-V 'kind 'predicate 'arity 4
+           'english "$2 is differentiable at $3 with derivative $4, as a curve in $1")
+(notation! 'TAYLOR-DIFFERENTIABLE-V 'kind 'predicate 'arity 5
+           'english "$2 is $5 times differentiable from $3 to $4, as a curve in $1")

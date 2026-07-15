@@ -164,3 +164,12 @@
    so its limit is d(u,v) itself.  Hence d-hat([const u],[const v]) = d(u,v),
    exactly the isometry condition; EMBED is an isometric (in particular
    injective) embedding of M into COMPLETION(M).")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'CSEQ-EQUIV 'kind 'predicate 'arity 3
+           'english "$2 and $3 are equivalent Cauchy sequences in $1")

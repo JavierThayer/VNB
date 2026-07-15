@@ -329,3 +329,14 @@
 (quietly (lambda () (ass-all)))
 (qed (quote hb-good-has-maximal))
 (category! 'hb-good-has-maximal 'analysis)
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'NPE 'kind 'predicate 'arity 5
+           'english "$5 is a norm-preserving extension of $3 from $2 to $4, in $1")
+(notation! 'GOOD-SUB 'kind 'predicate 'arity 4
+           'english "$3 has a norm-preserving extension from $2 to $4, in $1")

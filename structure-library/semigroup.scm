@@ -3,10 +3,10 @@
 ;;; Carrier CARR, binary operation OPR.
 ;;; Accessor indices: CARR -> 1, OPR -> 2.
 
-(def-structure-from-clauses 'SEMIGROUP
-  '((carriers CARR)
-    (op OPR (CARTESIAN CARR CARR) CARR)
-    (property is-associative OPR CARR)))
+(declare-structure SEMIGROUP
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (property is-associative OPR CARR))
 
 ;;; forall s. IS-SEMIGROUP(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
 (theory-add-axiom! *current-theory* 'semigroup-assoc

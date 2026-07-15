@@ -105,3 +105,12 @@
 ;;; (minimize.scm), and the rest is Euclidean division plus ideal closure.
 ;;; The proof uses no choice -- see minimize.scm on why well-ordering a SEP set
 ;;; hands back the witness without it.
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-IDEAL 'kind 'predicate 'arity 2
+           'english "$2 is an ideal of $1")

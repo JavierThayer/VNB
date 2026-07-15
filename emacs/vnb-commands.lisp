@@ -61,6 +61,7 @@
 (bc* (thm formula h1 h2) "Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals -- optional handlers hk run on the k-th subgoal.")
 (lam-t () "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.")
 (lam-b () "VNB-LAMBDA beta: reduce an applied lambda to its substituted body.")
+(lam-b-h (hyp) "VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.")
 (sep-set () "Separation sethood: the separation set {x in A | p} is a set.")
 (sep-mi () "Separation membership intro: prove (IN t {x in A | p}).")
 (sep-me (hyp) "Separation membership elim: split a separation-membership assumption into A-membership and the predicate.")

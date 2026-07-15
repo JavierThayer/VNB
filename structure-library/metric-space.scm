@@ -4,10 +4,10 @@
 ;;; Accessor indices: PTS -> 1, DIST -> 2.
 ;;; Real arithmetic uses built-in <= and +.
 
-(def-structure-from-clauses 'METRIC-SPACE
-  '((carriers PTS)
-    (op DIST (CARTESIAN PTS PTS) RR)
-    (property is-metric DIST PTS)))
+(declare-structure METRIC-SPACE
+  (carriers PTS)
+  (op DIST (CARTESIAN PTS PTS) RR)
+  (property is-metric DIST PTS))
 
 ;;; The five metric laws -- non-negativity, the two identity-of-indiscernibles
 ;;; halves, SYMMETRY, and the triangle inequality -- are NOT separate axioms.

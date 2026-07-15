@@ -339,3 +339,16 @@
   "A submodule contains every finite sum of its elements: induction on |S| via
    finsum-insert (the peeled term and the rest are both in sm, and IS-SUBMODULE is
    closed under VADD); the base case is finsum-empty and VZERO in sm.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'GENERATES 'kind 'predicate 'arity 3
+           'english "the $2 vectors $3 generate $1")
+(notation! 'REL-FREE 'kind 'predicate 'arity 3
+           'english "the $2 vectors $3 are linearly independent in $1")
+(notation! 'SPANS 'kind 'predicate 'arity 4
+           'english "the $2 vectors $3 span $4 in $1")

@@ -422,6 +422,12 @@
 ;;;   IMPLIES (= x 0) (FORALL x (= (foo x) (g x)))
 ;;; to (IMPLIES (= x 0) (FORALL x (= x (g x)))) -- using the OUTER (= x 0)
 ;;; to discharge a condition that semantically refers to the inner x.
+;; `foo' is deliberately uninterpreted -- it is a rewrite target, not a notion.
+;; It still gets DECLARED: unknown-head-audit holds that every symbol applied in
+;; an installed theorem is a head somebody registered, and this fixture installs
+;; a theorem.  (Undeclared, `foo' is indistinguishable from the POWERSET typo it
+;; exists to catch.)
+(register-operator! 'foo 'functoid '(x))
 (install-theorem! 'foo-zero-cond
   '(FORALL y (IMPLIES (= y 0) (= (foo y) y))))
 
@@ -2812,6 +2818,27 @@
 (check-true "commutative-ring card still a refinement"
   (lambda () (and (string-search-forward "refinement" (card-str 'commutative-ring) 0) #t)))
 
+;; EVERY declared instance has a card.  RR-MS and CC-MS had none -- the six numeric
+;; instances were registered as definitional structures by hand and the two metric
+;; spaces were forgotten, so (describe-structure 'RR-MS) said "Unknown structure"
+;; about a constant the library proves theorems over.  declare-instance! registers
+;; them now, so forgetting one cannot lose it.
+(check-true "rr-ms card rendered as Instance, with its components"
+  (lambda ()
+    (let ((s (card-str 'rr-ms)))
+      (and (string-search-forward "Instance" s 0)
+           (string-search-forward "pts"  s 0)     ; the carrier slot
+           (string-search-forward "dist" s 0)     ; the distance slot
+           (string-search-forward "is-metric-space" s 0)   ; membership witness
+           (not (string-search-forward "Unknown structure" s 0))
+           #t))))
+(check-true "cc-ms card rendered as Instance"
+  (lambda ()
+    (let ((s (card-str 'cc-ms)))
+      (and (string-search-forward "Instance" s 0)
+           (not (string-search-forward "Unknown structure" s 0))
+           #t))))
+
 ;;; -----------------------------------------------------------------------
 ;;; ONE NAME, ONE SLOT: accessor macetes are global, so an accessor claimed at
 ;;; two slot indices has no correct reduction.
@@ -2840,14 +2867,64 @@
 ;; And now the reduction numeric-instances.scm always advertised is TRUE: MUL is
 ;; the ring's slot 3, so (MUL ZZ-RING) computes to bintimes.  It used to compute
 ;; to binplus -- the multiplication of the integers is addition -- and reach qed.
-(check-true "(MUL ZZ-RING) computes to bintimes (it used to give binplus)"
+;;
+;; ONE step: declare-instance! precomputed the projection, so the tuple equation
+;; and the NTH it exposes never enter the goal.  (It took three -- slot, mac the
+;; tuple equation, nth-r -- and the goal met `nth(3, zz-ring)' on the way, which
+;; is ZZ-RING's REPRESENTATION and none of a reader's business.)
+(check-true "(MUL ZZ-RING) computes to bintimes in one step"
   (lambda ()
     (sp (make-wff '(= (MUL ZZ-RING) bintimes)))
-    (slot 'mul)                ; (MUL ZZ-RING) -> (NTH 3 ZZ-RING)  [through the door]
-    (mac 'zz-ring-def)         ; ZZ-RING       -> the literal tuple
-    (nth-r)                    ; NTH 3 of it   -> bintimes
+    (slot 'mul)                ; (MUL ZZ-RING) -> bintimes  [through the door]
     (rfl)
     (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; A VARIABLE structure has no value to project to, so there `slot' still gives
+;; NTH form -- which is what fnc--normalize-goal! wants, and the reason the
+;; global reduction stays.
+(check-true "slot on a variable structure still gives NTH form"
+  (lambda ()
+    (sp (make-wff '(FORALL a (IMPLIES (IS-RING a) (= (MUL a) (MUL a))))))
+    (di)
+    (slot 'mul)
+    (and (string-search-forward "nth(3, a)"
+           (expression->string
+             (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+           0)
+         #t)))
+
+;; A tuple equation DEFINES its constant -- nothing else pins ZZ-RING -- so it is
+;; definitional, and so are the value macetes read off it: reducing (MUL ZZ-RING)
+;; bills NOTHING.  (It used to bill zz-ring-def, an asserted axiom: a phantom debt
+;; leaf on every proof that so much as multiplied two integers in ring form.  The
+;; instance's mathematical content is IS-RING(ZZ-RING), which stays asserted and
+;; stays billed.)  The provenance is READ OFF the equation, never hard-coded, so
+;; an instance declared on an asserted equation would still pay -- hard-coding it
+;; here would be the def-view-as laundering bug one level down.
+(check-true "tuple equations are definitional, and the value macetes inherit it"
+  (lambda ()
+    (equal? (list (provenance-of 'zz-ring-def)   (provenance-of 'zz-ring@mul)
+                  (provenance-of 'qq-field-def)  (provenance-of 'qq-field@recip)
+                  (provenance-of 'rr-ms-def)     (provenance-of 'rr-ms@dist))
+            '(definitional definitional definitional definitional
+              definitional definitional))))
+
+;; The shape gate.  A tuple whose length differs from its structure's cannot
+;; satisfy that structure's IS-X (which pins length(s) = n); declaring one used
+;; to be possible, and asserting IS-RING of a 7-tuple was a flat inconsistency
+;; (fixed 2026-05-30).  Now the declaration itself fails.
+;; (a Scheme error, not a <vnb-error>: a bad DECLARATION is a bug in the library
+;; source, not bad input to a tactic, and must stop the load.)
+(check-true "declare-instance! rejects a tuple of the wrong length"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (bind-condition-handler (list condition-type:error)
+          (lambda (c) c (k #t))                       ; it errored: correct
+          (lambda ()
+            (declare-instance! 'FUBA-RING 'RING 'fuba-ring-def
+                               '(ZZ binplus bintimes))
+            #f))))))                                  ; it did not: wrong
 
 ;; OPR -- the group family's operation -- has its own reduction, at slot 2.
 (check-true "OPR has an (NTH 2) reduction of its own"
@@ -2884,13 +2961,15 @@
 (display "\n=== declare-hom! and def-constructed-functor ===\n")
 
 ;; (1) A species may DECLARE its morphisms.  The generated hom is
-;; preservation-of-slots -- right for algebra, right for METRIC-SPACE (whose
-;; morphisms ARE the isometries), and WRONG for a topological space, where a
-;; topology slot would generate OPENS(a) = OPENS(b) (the topologies literally
-;; equal!) instead of continuity, which is a PREIMAGE condition.
+;; preservation-of-slots -- right for algebra, and WRONG for a topological space,
+;; where a topology slot would generate OPENS(a) = OPENS(b) (the topologies
+;; literally equal!) instead of continuity, which is a PREIMAGE condition.
+;; (It is wrong for METRIC-SPACE too, which the comment here used to deny: the
+;; generated hom is the ISOMETRIES, and the library's metric morphisms are the
+;; continuous maps.  See the TOP-SPACE block below.)
 (declare-structure TOY-TOP
   (carriers TPTS)
-  (constant TOPENS (POWERSET (POWERSET TPTS))))
+  (constant TOPENS (POWER (POWER TPTS))))
 
 (check-true "the GENERATED hom of a topology-like slot is the nonsense one"
   (lambda ()
@@ -2944,6 +3023,246 @@
          ;; and it is available as a GOAL, ready for sp
          (functor-obligation 'nf-metric-space-functorial)
          #t)))
+
+;;; -----------------------------------------------------------------------
+;;; TOP-SPACE, and the functor Met -> Top: the real instance of both gaps.
+
+(display "\n=== TOP-SPACE and METRIC-TOP ===\n")
+
+(check-true "TOP-SPACE is a 2-slot structure [PTS, OPENS]"
+  (lambda () (equal? (structure-accessor-names 'top-space) '(pts opens))))
+
+;; THE GATE THAT WOULD HAVE CAUGHT IT.  TOP-SPACE was first declared with the
+;; slot type (POWERSET (POWERSET PTS)).  The powerset constructor is POWER
+;; (theory.scm: power-set, power-set-membership); POWERSET is a name this theory
+;; has never had.  The reader took it for a FREE FUNCTION VARIABLE, so IS-TOP-SPACE
+;; said "opens(s) in powerset(powerset(pts(s)))" with `powerset' an uninterpreted
+;; symbol -- no axioms, no meaning.  The structure loaded, the card rendered in
+;; LaTeX, and the whole suite passed.  Every symbol APPLIED in an installed
+;; theorem must be a kernel head, a registered operator, or BOUND in the formula.
+(check-true "no installed theorem applies an unknown head"
+  (lambda ()
+    (let ((hits (unknown-head-audit)))
+      (when (pair? hits)
+        (display "\n  unknown applied head(s):\n")
+        (for-each (lambda (h)
+                    (display "    ") (display (car h))
+                    (display ": ") (display (cdr h)) (newline))
+                  hits))
+      (null? hits))))
+
+;; and the slot type is the REAL powerset
+(check-true "OPENS is typed by POWER, the theory's powerset"
+  (lambda ()
+    (and (string-search-forward "power(power(pts(s)))"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-top-space #f)) 0)
+         #t)))
+
+;; PTS is slot 1 in TOP-SPACE as it is in METRIC-SPACE -- one name, one slot --
+;; which is exactly what lets PREIMAGE (a SEP over PTS(s)) serve both species.
+(check-true "TOP-SPACE reuses PTS at the same slot as METRIC-SPACE"
+  (lambda () (null? (accessor-index-audit))))
+
+(check-true "TOP-SPACE's hom is the preimage condition, not slot preservation"
+  (lambda ()
+    (let ((s (expression->string
+               (hash-table-ref/default *theorem-table* 'is-hom-top-space-def #f))))
+      (and (string-search-forward "preimage(s, f, u) in opens(s)" s 0)
+           (not (string-search-forward "opens(s) = opens(t)" s 0))
+           (hom-overridden? 'top-space)
+           #t))))
+
+;; THE MORPHISMS OF A METRIC SPACE ARE ITS CONTINUOUS MAPS.  The generated hom
+;; was the isometries, and nothing ever cited it, while metric-continuity.scm's
+;; header called IS-CONTINUOUS "the morphisms of the metric-space structure".
+;; The Met -> Top functor forced the question: it carries CONTINUOUS maps, and
+;; over isometries its functoriality obligation would degenerate to "an isometry
+;; is continuous" -- true and empty.  The isometries survive as IS-ISOMETRY.
+(check-true "METRIC-SPACE's hom is continuity (the isometry hom is overridden)"
+  (lambda ()
+    (let ((s (expression->string
+               (hash-table-ref/default *theorem-table* 'is-hom-metric-space-def #f))))
+      (and (string-search-forward "is-continuous(s, t, f)" s 0)
+           (hom-overridden? 'metric-space)
+           #t))))
+
+;; (def-predicate names its defining IFF after the predicate itself -- `is-isometry',
+;; not `is-isometry-def'.  Only def-structure / declare-hom! use the -def suffix.)
+(check-true "the isometries survive as IS-ISOMETRY"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'is-isometry #f)))
+      (and f
+           (string-search-forward "(dist(t))(f(x), f(y)) = (dist(s))(x, y)"
+                                  (expression->string f) 0)
+           #t))))
+
+;; The object map is CONSTRUCTED (the metric topology is computed from DIST, not
+;; selected from a slot), so METRIC-TOP asserts nothing and owes two theorems.
+(check-true "METRIC-TOP records both obligations, and asserts neither"
+  (lambda ()
+    (and (equal? (map car (functor-obligations 'metric-top))
+                 '(metric-top-is-top-space metric-top-functorial))
+         ;; both are available as goals, ready for sp
+         (functor-obligation 'metric-top-is-top-space)
+         (functor-obligation 'metric-top-functorial)
+         #t)))
+
+;; The TYPING obligation is DISCHARGED: the metric open sets form a topology
+;; (theorem-library/metric-top-proof.scm), leaning only on the four warranted
+;; topology supports and the two set-theoretic ones.
+(check-true "metric-top-is-top-space is PROVEN"
+  (lambda () (and (hash-table-ref/default *theorem-table* 'metric-top-is-top-space #f) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; lam-b-h: VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.
+;;;
+;;; `fact' at a lambda lands the APPLIED lambda in the CONTEXT, where the
+;;; goal-side lam-b cannot reach it (union-of-opens-open at the identity family
+;;; g := x |-> x).  Without this tactic a proof must detour through a cut
+;;; beta-equation and a subst -- which is what metric-top-proof.scm did until the
+;;; tactic existed.  It cites nothing, so it adds no debt.
+
+(display "\n=== lam-b-h ===\n")
+
+(check-true "lam-b-h beta-reduces an applied lambda inside an assumption"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN ((VNB-LAMBDA x_ x_) a) NN) (IN a NN))))
+    (di)
+    (lam-b-h '(IN ((VNB-LAMBDA x_ x_) a) NN))   ; the hypothesis becomes (IN a NN)
+    (ass)
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; A no-op WARNS and fires no rule -- every primitive inference gives its focus
+;; node an in-arrow, so no in-arrow means the rule did not fire (CLAUDE.md).
+(check-true "lam-b-h on an assumption with no redex fires no rule"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a NN) (IN a NN))))
+    (di)
+    (lam-b-h '(IN a NN))
+    (null? (sequent-node-in-arrows (proof-state-focus *ps*)))))
+
+;; FUNCTORIALITY is proven too: eps-delta continuity => preimages of opens are
+;; open (theorem-library/metric-top-functorial-proof.scm).  That is the theorem
+;; the functor exists to force, and it is a theorem only because METRIC-SPACE's
+;; morphisms are its CONTINUOUS maps -- over the generated isometry hom it would
+;; have degenerated into "an isometry is continuous".
+(check-true "metric-top-functorial is PROVEN"
+  (lambda () (and (hash-table-ref/default *theorem-table* 'metric-top-functorial #f) #t)))
+
+;; So METRIC-TOP owes NOTHING: a functor we have, not one we declared.  (The audit
+;; still reports NF-METRIC-SPACE's functoriality, which is genuinely open.)
+(check-true "METRIC-TOP has no outstanding obligation"
+  (lambda ()
+    (null? (filter (lambda (n) (memq n '(metric-top-is-top-space metric-top-functorial)))
+                   (map car (functor-obligation-audit))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE PRESENTATION LADDER, rung 2/3 substrate: every structure predicate has an
+;;; ENGLISH reading, derived from its name at declaration.
+;;;
+;;; It used to be "only a human knows the noun", and the result was that 104 of 113
+;;; predicates had no reading at all -- so the proof reader printed
+;;; `is-metric-space(a)' where a human says "a is a metric space".  The DEFAULT is
+;;; derivable; only the wording of a proper noun is not ("Euclidean ring" wants its
+;;; capital), so a `notation!' beside the structure overrides, and
+;;; english-derived-nouns names the ones still wearing the machine's wording.
+
+(display "\n=== presentation ladder: the English of a structure ===\n")
+
+(check-true "every structure predicate reads as a sentence"
+  (lambda ()
+    (and (string=? (wff->english '(IS-METRIC-SPACE a)) "a is a metric space")
+         (string=? (wff->english '(IS-RING a)) "a is a ring")
+         #t)))
+
+;; and the noun FOLDS into a quantifier qualifier -- which is why the table stores
+;; the bare noun + article, not a finished sentence.
+(check-true "the noun folds into the binder: 'for every Euclidean ring a'"
+  (lambda ()
+    (string=? (wff->english '(FORALL a (IMPLIES (IS-EUCLIDEAN-RING a) (IS-RING a))))
+              "for every Euclidean ring a, a is a ring")))
+
+;; A GENERATED hom is preservation-of-slots, so "homomorphism" is right for it.  A
+;; species that OVERRIDES its morphisms means something else and says so beside the
+;; override: METRIC-SPACE's hom is CONTINUITY.
+(check-true "a generated hom reads 'homomorphism'; an overridden one says its own word"
+  (lambda ()
+    (and (string=? (wff->english '(IS-HOM-RING a b f))
+                   "f is a homomorphism from a to b")
+         (string=? (wff->english '(IS-HOM-METRIC-SPACE a b f))
+                   "f is continuous from a to b")
+         #t)))
+
+(check-true "the whole functoriality theorem reads as English"
+  (lambda ()
+    (string=? (wff->english (lookup-theorem 'metric-top-is-top-space))
+              "for every metric space md, metric-top(md) is a topological space")))
+
+;; THE GATE.  Every predicate in the library reads as a sentence -- 113 of 113.
+;; A structure gets its noun derived; a def-predicate cannot (noun vs adjective),
+;; so it must carry a `notation!' beside its definition.  This fails the moment
+;; someone adds a predicate without one, which is how the vocabulary stops rotting:
+;; it was 9 of 113 two days ago because nothing was watching.
+(check-true "every predicate in the library has an English reading"
+  (lambda ()
+    (let ((bare (operators-undeclared 'predicate)))
+      (when (pair? bare)
+        (display "\n  predicates with no notation!: ") (display bare) (newline))
+      (null? bare))))
+
+;; spot-check the readings that are easy to get BACKWARDS -- the argument order is
+;; the thing a name cannot tell you.
+(check-true "the argument order is right where it is easy to invert"
+  (lambda ()
+    (and (string=? (wff->english '(IS-IDEAL s i)) "i is an ideal of s")
+         (string=? (wff->english '(IS-OPEN-COVER s c)) "c is an open cover of s")
+         (string=? (wff->english '(IS-SUBMODULE m s)) "s is a submodule of m")
+         (string=? (wff->english '(IS-METRIC dst crr)) "dst is a metric on crr")
+         (string=? (wff->english '(SUMS-TO grp f r)) "f sums to r in grp")
+         #t)))
+
+;;; -----------------------------------------------------------------------
+;;; FUNCTOR INVARIANCE: the constructions a functor cannot be seen by.
+;;;
+;;; PREIMAGE reads its structure argument only through PTS, and METRIC-TOP carries
+;;; PTS across ON THE NOSE -- so PREIMAGE(METRIC-TOP r, f, V) == PREIMAGE(r, f, V)
+;;; for EVERY r.  Not naturality (no map, no square): the syntactic shadow of a
+;;; strict commuting triangle -- on the slots it carries on the nose the functor IS
+;;; the identity, so anything defined through those slots alone cannot tell it was
+;;; applied.
+;;;
+;;; It is `==', not `=': VNB's `=' is partial (t = t IS the definedness claim), so
+;;; an unconditional `=' would assert both preimages DEFINED for every r, metric
+;;; space or not.  `==' claims exactly what holds, unconditionally, and `qrfl'
+;;; closes it with no definedness obligation.
+;;;
+;;; And it is PROVED, not warranted: the machine may generate statements freely, it
+;;; may not assert them.  A qualifying pair whose canned proof fails is reported.
+
+(display "\n=== functor invariance ===\n")
+
+(check-true "metric-top@preimage is PROVEN, modulo 0, and is a quasi-equality"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'metric-top@preimage #f)))
+      (and f
+           (eq? (provenance-of 'metric-top@preimage) 'proven)   ; proved, not asserted
+           (null? (debt-of 'metric-top@preimage))               ; ... modulo 0
+           (string-search-forward "==" (expression->string f) 0)
+           #t))))
+
+;; PREIMAGE qualifies (reads only PTS); BALL does not (it reads DIST, which the
+;; topology has not got) -- so no BALL equation is minted.
+(check-true "the qualifying condition discriminates: PREIMAGE yes, BALL no"
+  (lambda ()
+    (and (equal? (fni--accessors-read 'preimage) '(pts))
+         (memq 'dist (fni--accessors-read 'ball))
+         (fni--qualifies? 'preimage 'metric-top)
+         (not (fni--qualifies? 'ball 'metric-top))
+         #t)))
+
+;; Nothing is owed: every qualifying pair's canned proof closed.
+(check-true "no functor-invariance pair is owed"
+  (lambda () (null? *functor-invariance-owed*)))
 
 ;;; -----------------------------------------------------------------------
 ;;; FUNCTORIALITY: def-functor has earned the word.  Each view's action on
@@ -3950,9 +4269,18 @@
   (lambda () (wff->english '(IS-OPEN t V)))
   "v is open in t")
 
+;; An UNDECLARED head falls back to the symbolic surface form -- never invented
+;; prose.  (The example used to be SPANS, which now HAS a reading: every predicate
+;; in the library does.  So the fallback is exercised on a head that has none and
+;; never will -- a nonce.)
 (check "operator table: an undeclared head stays honest (symbolic surface form)"
+  (lambda () (wff->english '(FUBA md n u sm)))
+  "fuba(md, n, u, sm)")
+
+;; ... and SPANS, which the vocabulary sweep gave a reading, now reads as one.
+(check "spans reads as a sentence"
   (lambda () (wff->english '(SPANS md n u sm)))
-  "spans(md, n, u, sm)")
+  "the n vectors u span sm in md")
 
 ;;; -----------------------------------------------------------------------
 ;;; Simultaneous substitution.  A multi-variable substitution must NOT be a fold

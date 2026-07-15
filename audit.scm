@@ -25,7 +25,11 @@
 (define *audit-total-or-logical-heads*
   '(= == IFF IMPLIES AND OR NOT FORALL FORSOME IN SUBSET <= < > >= TRUTH FALSITY
     IS-SET UNION INTERSECTION COMPLEMENT COMPLEMENT-IN CARTESIAN LIST SET COMP
-    SEP BIG-UNION POWERSET PAIR))
+    ;; POWER, not POWERSET: the powerset constructor is POWER (theory.scm).  This
+    ;; list said POWERSET, a name the theory has never had -- so a POWER term was
+    ;; being treated as a partial function APPLICATION by audit-unbounded, and it
+    ;; is the stale name that seeded the TOP-SPACE bug.  See unknown-head-audit.
+    SEP BIG-UNION POWER PAIR))
 
 (define (audit--occurs? v e)
   (if (pair? e) (any (lambda (x) (audit--occurs? v x)) e) (eq? e v)))
@@ -211,7 +215,13 @@
                                          (nm    (string->symbol
                                                   (string-downcase
                                                     (substring code start end)))))
-                                    (when (eq? (constant-head? nm) 'accessor)
+                                    ;; Both doors are `slot's: the global (NTH k s)
+                                    ;; reduction keyed by the accessor's name, and
+                                    ;; the per-instance value macete ZZ-RING@MUL
+                                    ;; that declare-instance! precomputed.  Firing
+                                    ;; either by name is reaching past `slot'.
+                                    (when (or (eq? (constant-head? nm) 'accessor)
+                                              (instance-value-macete-name? nm))
                                       (set! hits (cons (list file n tac nm) hits)))
                                     (scan end)))))))
                         '("mac" "mac-h" "macm"))
@@ -223,3 +233,83 @@
 (define (accessor-callsite-audit)
   (append-map audit--accessor-callsites-in
               (append *vnb-files* (list "test-suite"))))
+
+;;; -----------------------------------------------------------------------
+;;; UNKNOWN APPLIED HEADS -- the gate for "that name is not what it looks like".
+;;;
+;;; VNB's reader accepts (POWERSET x) exactly as happily as (POWER x): a head it
+;;; does not know is read as a FREE FUNCTION VARIABLE applied to an argument, and
+;;; a free function variable in a closed library axiom is a symbol with nothing
+;;; attached to it -- no axioms, no definition, no meaning.  The formula is still
+;;; well-formed, still prints, still renders in a card, and says NOTHING.
+;;;
+;;; TOP-SPACE was declared on 2026-07-13 with the slot type (POWERSET (POWER-
+;;; SET PTS)).  The powerset constructor in this theory is POWER (theory.scm:
+;;; power-set, power-set-membership).  So IS-TOP-SPACE read "opens(s) in
+;;; powerset(powerset(pts(s)))" with `powerset' an uninterpreted symbol, the
+;;; structure loaded, the card rendered, and the whole suite passed.  It is the
+;;; case-fold disease one level out: a name that is not the name you think.
+;;;
+;;; So: every symbol APPLIED in an installed theorem must be known -- a kernel
+;;; head, a registered operator (def-predicate/def-functoid/accessor/structure),
+;;; or BOUND in the formula (a genuine function variable, (f x) under FORALL f).
+;;; Anything else is a typo with axioms hanging off nothing.
+;;;
+;;; The allowlist below is the pre-existing baseline: real constants introduced
+;;; by bare theory-add-axiom! that never got a register-operator! call.  They are
+;;; a TO-TRIAGE list, not a design -- each should get a def-functoid / notation!
+;;; and leave this list -- but they are known-good, and pinning them here is what
+;;; makes a NEW unknown head fail loudly instead of joining the noise.
+
+(define *audit-known-unregistered-heads*
+  '(binplus bintimes binneg          ; the polymorphic binary numeric ops
+    bijection delete-at splice restvar ; combinatorics + list surgery
+    eplus                            ; extended-real addition
+    <=_ord <_ord                     ; the ordinal order
+    is-fun))                         ; the function predicate
+
+(define *audit-kernel-heads*
+  '(NOT AND OR IMPLIES IFF FORALL FORSOME = == IN SUBSET <= < > >= + - * / ^
+    TRUTH FALSITY UNION INTERSECTION COMPLEMENT COMPLEMENT-IN CARTESIAN DIFFERENCE
+    FUN SEP BIG-UNION BIG-INTERSECTION POWER LIST NTH MAKE-SET LENGTH CHOICE IOTA
+    IF TUPLES COMP PAIR SINGLETON VNB-LAMBDA apply-functoid succ))
+
+(define (audit--binder-head? h)
+  (memq h '(FORALL FORSOME IOTA SEP BIG-UNION BIG-INTERSECTION COMP VNB-LAMBDA)))
+
+;;; Every symbol applied in E that is free, not a kernel head, not a registered
+;;; operator, and not allowlisted.
+(define (formula-unknown-applied-heads e0)
+  (let ((hits '()))
+    (let scan ((e (if (wff? e0) (wff-formula e0) e0)) (bound '()))
+      (when (pair? e)
+        (if (audit--binder-head? (car e))
+            (let ((bv (cadr e)))
+              (let ((bound* (cond ((symbol? bv) (cons bv bound))
+                                  ((pair? bv)   (append (filter symbol? (cdr bv)) bound))
+                                  (else bound))))
+                (for-each (lambda (x) (scan x bound*)) (cddr e))))
+            (let ((h (car e)))
+              (when (and (symbol? h)
+                         (not (memq h bound))
+                         (not (memq h *audit-kernel-heads*))
+                         (not (memq h *audit-known-unregistered-heads*))
+                         (not (operator-ref h))
+                         (not (constant-head? h)))
+                (if (not (memq h hits)) (set! hits (cons h hits))))
+              (for-each (lambda (x) (scan x bound)) (cdr e))
+              (if (pair? h) (scan h bound))))))
+    (reverse hits)))
+
+;;; ((theorem head ...) ...) -- empty means every applied head in the library is
+;;; a head somebody declared.
+(define (unknown-head-audit)
+  (let ((bad '()))
+    (for-each
+      (lambda (name)
+        (let* ((f    (hash-table-ref/default *theorem-table* name #f))
+               (hits (and f (formula-unknown-applied-heads f))))
+          (if (pair? hits) (set! bad (cons (cons name hits) bad)))))
+      (hash-table-keys *theorem-table*))
+    (sort bad (lambda (a b) (string<? (symbol->string (car a))
+                                      (symbol->string (car b)))))))

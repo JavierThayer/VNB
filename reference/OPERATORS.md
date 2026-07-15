@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-242 operators: 15 functions, 157 functoids, 70 predicates, 0 undeclared.
+251 operators: 15 functions, 165 functoids, 71 predicates, 0 undeclared.
 
 ## Functions  (15)
 
@@ -33,7 +33,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (157)
+## Functoids  (165)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -80,6 +80,10 @@ Declared by: `card-empty` `card-finite-bij` `card-image-injection` `card-in-ord`
 ### `cc-ms`  — characterized by axioms (def-constant)
 
 Declared by: `cc-ms-def` 
+
+### `cc-normed-field`  — characterized by axioms (def-constant)
+
+Declared by: `cc-normed-field-def` 
 
 ### `ccint`  — def-functoid · set-valued
 
@@ -327,6 +331,12 @@ Declared by: `matrix-membership` `matrix-sethood`
 
     matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l, one(a), zero(a))))
 
+### `metric-top`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the metric topology of md
+
+    metric-top(md) := [pts(md), {u in power(pts(md)): is-open(md, u)}]
+
 ### `mpow`  — recursively defined (def-by-nn-recursion)
 
 Declared by: `mpow-zero` `mpow-succ` 
@@ -342,6 +352,10 @@ Declared by: `mpow-zero` `mpow-succ`
 ### `nf-metric-space`  — def-functoid · tuple/structure-valued
 
     nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
+
+### `nn-add-monoid`  — characterized by axioms (def-constant)
+
+Declared by: `nn-add-monoid-def` 
 
 ### `nn-enum`  — def-functoid · element/number-valued
 
@@ -370,6 +384,10 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
     nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
 
 ### `one`  — structure accessor · element (slot value)
+
+### `opens`  — structure accessor · element (slot value)
+
+> _Reads as:_  the topology of s
 
 ### `opr`  — structure accessor · element (slot value)
 
@@ -431,6 +449,14 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
 
 ### `pts`  — structure accessor · element (slot value)
 
+### `qq-field`  — characterized by axioms (def-constant)
+
+Declared by: `qq-field-def` 
+
+### `qq-ring`  — characterized by axioms (def-constant)
+
+Declared by: `qq-ring-def` 
+
 ### `quotient`  — def-functoid · set-valued
 
     quotient(s) := image(proj(s), pts(s))
@@ -476,6 +502,10 @@ Declared by: `ring-prod-n-zero` `ring-prod-n-succ`
 ### `rr-ms`  — characterized by axioms (def-constant)
 
 Declared by: `rr-ms-def` 
+
+### `rr-normed-field`  — characterized by axioms (def-constant)
+
+Declared by: `rr-normed-field-def` 
 
 ### `scal`  — structure accessor · element (slot value)
 
@@ -573,147 +603,295 @@ Declared by: `zero-ring-def`
 
 Declared by: `zz-act-nonneg` `zz-act-neg` 
 
-## Predicates  (70)
+### `zz-ring`  — characterized by axioms (def-constant)
+
+Declared by: `zz-ring-def` 
+
+## Predicates  (71)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
 ### `<`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  x is less than y
+
 ### `cluster-point`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  x is a cluster point of the sequence f in s
 
 ### `converges`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  f converges in s
+
 ### `converges-along`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  g converges to p along b in s
 
 ### `converges-to`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  f converges to l in s
+
 ### `cseq-equiv`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f and g are equivalent Cauchy sequences in m
 
 ### `extends-on`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  g agrees with f on s
+
 ### `generates`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  the n vectors u generate md
 
 ### `good-sub`  — def-predicate · proposition (arity 4)
 
+> _Reads as:_  f has a norm-preserving extension from s to t, in m
+
 ### `has-div-remainder`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  s has division with remainder for the degree function deg
 
 ### `has-fip`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  c has the finite intersection property in s
+
 ### `has-inverses`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  every element of crr has an inverse under op, given by invop, with unit unit
 
 ### `is-absolutely-summable`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  f is absolutely summable in grp
+
 ### `is-associative`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  op is associative on crr
 
 ### `is-bounded-linear-functional`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  f is a bounded linear functional on m
+
 ### `is-bounded-linear-functional-on`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a bounded linear functional on the subspace s of m
 
 ### `is-cauchy-seq`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  is-cauchy-seq(s, f)
+
 ### `is-closed`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a is closed in s
 
 ### `is-commutative`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  op is commutative on crr
+
 ### `is-compact`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is compact
 
 ### `is-complete`  — def-predicate · proposition (arity 1)
 
+> _Reads as:_  s is complete
+
 ### `is-continuous`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is continuous from s to t
 
 ### `is-continuous-at`  — def-predicate · proposition (arity 4)
 
+> _Reads as:_  f is continuous at a
+
 ### `is-diagonal`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  d is a diagonal m-by-n matrix over a
 
 ### `is-diff-at`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  f is differentiable at a, with derivative l
+
 ### `is-diff-at-v`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  f is differentiable at a with derivative l, as a curve in m
 
 ### `is-distributive`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  mulop distributes over addop on crr
+
 ### `is-eps-cauchy-seq`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  y is eps-Cauchy in s
 
 ### `is-equivalence`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  rho is an equivalence relation on crr
+
 ### `is-finite-cover`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  c is a finite cover of a
 
 ### `is-finite-dimensional`  — def-predicate · proposition (arity 1)
 
+> _Reads as:_  m is finite dimensional
+
 ### `is-group-norm`  — def-predicate · proposition (arity 5)
+
+> _Reads as:_  nm is a group norm for op on crr
 
 ### `is-ideal`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  i is an ideal of s
+
 ### `is-identity`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  unit is an identity for op on crr
 
 ### `is-invertible-mat`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  u is an invertible n-by-n matrix over a
+
+### `is-isometry`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is an isometry from s to t
+
 ### `is-linear-functional`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  f is a linear functional on m
 
 ### `is-linear-functional-on`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  f is a linear functional on the subspace s of m
+
 ### `is-metric`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  dst is a metric on crr
 
 ### `is-ms-sequence`  — def-predicate · proposition (arity 1)
 
+> _Reads as:_  ms is a sequence of metric spaces
+
 ### `is-noetherian`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  m is Noetherian
 
 ### `is-norm`  — def-predicate · proposition (arity 5)
 
+> _Reads as:_  nm is a norm on crr
+
 ### `is-open`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  u is open in s
 
 ### `is-open-cover`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  c is an open cover of s
+
 ### `is-r-net`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  f is an r-net for a in s
 
 ### `is-submodule`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  s is a submodule of m
+
 ### `is-subsequence`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  y is a subsequence of f in s
 
 ### `is-subspace`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  s is a subspace of m
+
 ### `is-summable`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  f is summable in grp
 
 ### `is-uniformly-continuous`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  f is uniformly continuous from s to t
+
 ### `little-o-at`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  g is little-o at a
 
 ### `mat-equiv`  — def-predicate · proposition (arity 5)
 
+> _Reads as:_  c and d are equivalent m-by-n matrices over a
+
 ### `npe`  — def-predicate · proposition (arity 5)
+
+> _Reads as:_  g is a norm-preserving extension of f from s to t, in m
 
 ### `null-rr-seq`  — def-predicate · proposition (arity 1)
 
+> _Reads as:_  rad is a sequence of positive reals tending to zero
+
 ### `pos-rr`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  r is a positive real
 
 ### `ps-absolutely-converges-at`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  the power series with coefficients coef converges absolutely at x
+
 ### `ps-converges-at`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  the power series with coefficients coef converges at x
 
 ### `ps-converges-to-at`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  the power series with coefficients coef converges to l at x
+
 ### `ps-ratio-limit`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  the coefficients coef have ratio limit l
 
 ### `rel-free`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  the n vectors u are linearly independent in md
+
 ### `seq-compact`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is sequentially compact
 
 ### `series-converges`  — def-predicate · proposition (arity 1)
 
+> _Reads as:_  the series f converges
+
 ### `series-converges-to`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  the series f converges to l
 
 ### `smith-staircase`  — def-predicate · proposition (arity 5)
 
+> _Reads as:_  d is in Smith staircase form of rank k, as an m-by-n matrix over a
+
 ### `spans`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  the n vectors u span sm in md
 
 ### `strictly-mono-nn`  — def-predicate · proposition (arity 1)
 
+> _Reads as:_  phi is a strictly increasing sequence of naturals
+
 ### `summable-weight`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  w is a summable sequence of positive weights
 
 ### `sums-to`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  f sums to r in grp
+
 ### `taylor-differentiable`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  f is n times differentiable from a to x
 
 ### `taylor-differentiable-v`  — def-predicate · proposition (arity 5)
 
+> _Reads as:_  f is n times differentiable from a to x, as a curve in m
+
 ### `totally-bounded`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is totally bounded
 

@@ -204,3 +204,18 @@
        (= (ENTRY D i j) (ZERO A)))))))))))))
 (warrant! 'diagonal-off-entry 'proof
   "D_{ij} = 0 for i /= j -- IS-DIAGONAL's defining body, re-quantified for `fact'.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-DIAGONAL 'kind 'predicate 'arity 4
+           'english "$4 is a diagonal $2-by-$3 matrix over $1")
+(notation! 'IS-INVERTIBLE-MAT 'kind 'predicate 'arity 3
+           'english "$3 is an invertible $2-by-$2 matrix over $1")
+(notation! 'MAT-EQUIV 'kind 'predicate 'arity 5
+           'english "$4 and $5 are equivalent $2-by-$3 matrices over $1")
+(notation! 'SMITH-STAIRCASE 'kind 'predicate 'arity 5
+           'english "$4 is in Smith staircase form of rank $5, as an $2-by-$3 matrix over $1")

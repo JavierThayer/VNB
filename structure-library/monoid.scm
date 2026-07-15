@@ -4,12 +4,12 @@
 ;;; Accessor indices: CARR -> 1, OPR -> 2, IDEN -> 3.
 ;;; COMM-MONOID: same shape as MONOID with an extra commutativity axiom.
 
-(def-structure-from-clauses 'MONOID
-  '((carriers CARR)
-    (op OPR (CARTESIAN CARR CARR) CARR)
-    (constant IDEN CARR)
-    (property is-associative OPR CARR)
-    (property is-identity OPR IDEN CARR)))
+(declare-structure MONOID
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (constant IDEN CARR)
+  (property is-associative OPR CARR)
+  (property is-identity OPR IDEN CARR))
 
 ;;; forall s. IS-MONOID(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
 (theory-add-axiom! *current-theory* 'monoid-assoc
@@ -51,13 +51,13 @@
 ;;; COMM-MONOID: commutative monoid -- a MONOID whose OPR is commutative.
 ;;; Same accessor layout as MONOID.
 
-(def-structure-from-clauses 'COMM-MONOID
-  '((carriers CARR)
-    (op OPR (CARTESIAN CARR CARR) CARR)
-    (constant IDEN CARR)
-    (property is-associative OPR CARR)
-    (property is-identity OPR IDEN CARR)
-    (property is-commutative OPR CARR)))
+(declare-structure COMM-MONOID
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (constant IDEN CARR)
+  (property is-associative OPR CARR)
+  (property is-identity OPR IDEN CARR)
+  (property is-commutative OPR CARR))
 
 (theory-add-axiom! *current-theory* 'comm-monoid-is-monoid
   '(FORALL s (IMPLIES (IS-COMM-MONOID s) (IS-MONOID s))))

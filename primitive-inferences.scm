@@ -1330,6 +1330,36 @@
             (list (make-sequent asms (wff-child goal new-g)))
             sqn)))))
 
+;;; pi-lambda-beta-hyp!: the same reduction, on a cited ASSUMPTION.
+;;;
+;;; `mac' has `mac-h'; `lam-b' had nothing, and the gap is not cosmetic.  A `fact'
+;;; that instantiates a theorem's function variable at a lambda LANDS the applied
+;;; lambda in the context -- union-of-opens-open at the identity family g := \x.x
+;;; lands IS-OPEN(md, BIG-UNION(i, fam, (\x.x)(i))) -- and with only a goal-side
+;;; beta the proof must detour: cut the beta-equation, lam-b IT, subst it into the
+;;; goal.  (metric-top-proof.scm did exactly that.)  Here the assumption is simply
+;;; reduced in place.
+;;;
+;;; Sound for the same reason lambda-beta is: the new assumption is beta-equal to
+;;; the old one, so the context is unchanged as a set of propositions.  It cites
+;;; nothing, so it adds no debt (proof-debt bills the *citing* verbs).
+(define (pi-lambda-beta-hyp! sqn hyp-formula)
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (dg   (sqn-dg sqn))
+         (f    (asms-find asms hyp-formula)))
+    (and f
+         (let* ((h     (wff-formula f))
+                (new-h (reduce-lambda-in-expr h)))
+           (and (not (alpha-equiv? new-h h))
+                (dg-apply-rule! dg 'lambda-beta-hyp
+                  (list (make-sequent
+                          (context-add-assumption
+                            (context-remove-assumption asms f)
+                            (wff-child f new-h))
+                          goal))
+                  sqn))))))
+
 ;;; reduce-lambda-in-expr: parallel beta reduction of any
 ;;; ((VNB-LAMBDA <bind-spec> body) arg ...) anywhere in expr.
 ;;; Single- and multi-binder forms both supported.  Recurses into all subterms.

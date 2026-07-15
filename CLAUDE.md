@@ -88,6 +88,16 @@ edited files back is a couple of seconds and needs no loaded library:
 `compile-vnb!` does the whole tree incrementally but wants a loaded REPL -- which is
 the very load you just made slow. Compile first, load second.
 
+**But never compile a file that USES a top-level macro that way.** `compile-file` from a
+bare REPL cannot see `bc*` (interactive.scm) or `declare-structure` (structures.scm), so
+it compiles the form as an APPLICATION: a fresh `structure-library/ring.com` then dies on
+load with `;Unbound variable: carr`, stranding every file after it. `compile-vnb!` knows
+this (`*vnb-top-level-macros*` in load.scm) and SKIPS such files -- they load from source,
+which costs nothing measurable (their work is in the compiled procedures they call:
+moving the whole structure-library to source-load changed a cold load by under a second,
+36.8 s -> 36.9 s). So `(compile-vnb!)` from a loaded REPL is the safe recipe; the one-file
+`--eval (compile-file ...)` is only for files with no macro use.
+
 **There is no skip-proofs mode.** `VNB_SKIP_PROOFS` was removed (2026-07-09): it had
 silently stopped working, and a mode that installs goals as theorems without running their
 tactics would give you a library whose `qed` bills read `trust: none` about proofs nobody

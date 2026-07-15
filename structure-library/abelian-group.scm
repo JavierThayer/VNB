@@ -11,15 +11,15 @@
 ;;;
 ;;; Dependencies: group.scm (GROUP, IS-GROUP).
 
-(def-structure-from-clauses 'ABELIAN-GROUP
-  '((carriers CARR)
-    (op OPR (CARTESIAN CARR CARR) CARR)
-    (constant IDEN CARR)
-    (op INV CARR CARR)
-    (property is-associative OPR CARR)
-    (property is-identity OPR IDEN CARR)
-    (property has-inverses OPR IDEN INV CARR)
-    (property is-commutative OPR CARR)))
+(declare-structure ABELIAN-GROUP
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (constant IDEN CARR)
+  (op INV CARR CARR)
+  (property is-associative OPR CARR)
+  (property is-identity OPR IDEN CARR)
+  (property has-inverses OPR IDEN INV CARR)
+  (property is-commutative OPR CARR))
 
 ;;; Every abelian group is a group (same shape, so this is a direct subtype).
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (loaded

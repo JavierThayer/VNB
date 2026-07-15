@@ -30,17 +30,17 @@
 ;;; Dependencies: abelian-group.scm (ABELIAN-GROUP), operation-properties.scm
 ;;; (is-group-norm), number-systems.scm (RR).
 
-(def-structure-from-clauses 'NORMED-AG
-  '((carriers CARR)
-    (op OPR (CARTESIAN CARR CARR) CARR)
-    (constant IDEN CARR)
-    (op INV CARR CARR)
-    (op NRM CARR RR)
-    (property is-associative OPR CARR)
-    (property is-identity   OPR IDEN CARR)
-    (property has-inverses  OPR IDEN INV CARR)
-    (property is-commutative OPR CARR)
-    (property is-group-norm NRM OPR INV IDEN CARR)))
+(declare-structure NORMED-AG
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (constant IDEN CARR)
+  (op INV CARR CARR)
+  (op NRM CARR RR)
+  (property is-associative OPR CARR)
+  (property is-identity   OPR IDEN CARR)
+  (property has-inverses  OPR IDEN INV CARR)
+  (property is-commutative OPR CARR)
+  (property is-group-norm NRM OPR INV IDEN CARR))
 
 ;;; Convenience restatement: the norm is a real-valued function on the carrier.
 ;;; (Immediate from is-group-norm; stated as a named axiom so callers need not

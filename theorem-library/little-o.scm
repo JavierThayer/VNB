@@ -73,3 +73,12 @@
   "A constant multiple of o(x-a) is o(x-a): witness c*eps_g (continuous at a,
    value 0), and (c g)(x) = (c eps_g(x))(x-a).")
 (category! 'little-o-scalar 'analysis)
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'LITTLE-O-AT 'kind 'predicate 'arity 2
+           'english "$1 is little-o at $2")

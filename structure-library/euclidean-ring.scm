@@ -106,3 +106,12 @@
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-EUCLIDEAN-RING     'kind 'predicate 'arity 1 'noun "Euclidean ring" 'article "a")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'HAS-DIV-REMAINDER 'kind 'predicate 'arity 2
+           'english "$1 has division with remainder for the degree function $2")

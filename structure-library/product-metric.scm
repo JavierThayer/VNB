@@ -147,3 +147,14 @@
   "The default weights w(n)=2^-(n+1) are a summable positive sequence
    (geometric, SUM = 1), so PRODUCT-METRIC(ms)=PRODUCT-METRIC-W(ms,2^-(n+1)) is
    a bounded metric (diameter <= 1) realising the product topology.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-MS-SEQUENCE 'kind 'predicate 'arity 1
+           'english "$1 is a sequence of metric spaces")
+(notation! 'SUMMABLE-WEIGHT 'kind 'predicate 'arity 1
+           'english "$1 is a summable sequence of positive weights")

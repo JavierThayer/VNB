@@ -24,9 +24,8 @@
 ;;; theory-add-definition!; a separate theory-add-axiom! of the same equation
 ;;; only RE-installs it with default `asserted' provenance -- downgrading a
 ;;; definition to a phantom debt leaf.  One registration, kept definitional.
-(def-constant 'CC-MS
-  (list 'cc-ms-def
-        '(= CC-MS (LIST CC (VNB-LAMBDA (LIST x y) (magnitude (- x y)))))))
+(declare-instance! 'CC-MS 'METRIC-SPACE 'cc-ms-def
+  '(CC (VNB-LAMBDA (LIST x y) (magnitude (- x y)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CC-MS is a metric space

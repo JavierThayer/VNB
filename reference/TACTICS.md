@@ -31,7 +31,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.
 
 Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` tag it emits (not editorial), so the trusted base is legible at a glance:
 
-- **rule** -- a single primitive KERNEL inference rule (the fixed trusted base): `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-b` `lam-t` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `bu-set` `bu-mi` `bu-me` 
+- **rule** -- a single primitive KERNEL inference rule (the fixed trusted base): `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-b` `lam-b-h` `lam-t` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `bu-set` `bu-mi` `bu-me` 
 - **oracle** -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: `arith` `rs` `crs` `simp` `ineq` `sos` 
 - **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `inst+` `fact` `bc*` `mac-h*` `grind` `wbc` `scout-run` 
 - **meta** -- no deduction: session / search / navigation: `sp` `qed` `save-proof` `replay-proof` `scout` `scout-show` 
@@ -706,6 +706,16 @@ VNB-LAMBDA beta: reduce an applied lambda to its substituted body.
 *When useful:* the goal has a VNB-LAMBDA applied to an argument
 
 Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)
+
+### lam-b-h
+
+    (lam-b-h hyp)
+
+VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.
+
+*Kind:* `rule` (emits `lambda-beta-hyp`)
+
+Beta-reduce an applied lambda inside a hypothesis, in place.  Needed because a `fact' that instantiates a theorem's function variable at a lambda lands the APPLIED lambda in the CONTEXT, where the goal-side `lam-b' cannot reach it: union-of-opens-open at the identity family g := x |-> x lands is-open(md, big-union(i, fam, (x |-> x)(i))).  Without this the proof must detour through a cut beta-equation and a subst.  Cites nothing, so it adds no debt.
 
 ### sep-set
 

@@ -205,3 +205,14 @@
             (FORSOME F
               (AND (IN (CARD F) NN)
                    (IS-R-NET s F (PTS s) r)))))))
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'TOTALLY-BOUNDED 'kind 'predicate 'arity 1
+           'english "$1 is totally bounded")
+(notation! 'IS-R-NET 'kind 'predicate 'arity 4
+           'english "$2 is an $4-net for $3 in $1")

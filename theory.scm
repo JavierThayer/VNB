@@ -761,3 +761,14 @@
          (dg-apply-rule! dg 'tuple-equality-decompose
            (list (make-sequent asms (wff-child goal new)))
            sqn))))))
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-SET 'kind 'predicate 'arity 1
+           'english "$1 is a set")
+(notation! 'IS-ORD 'kind 'predicate 'arity 1
+           'english "$1 is an ordinal")

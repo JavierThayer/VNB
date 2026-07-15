@@ -90,3 +90,20 @@
 ;;; g extends f from the subspace s: the two agree on s.
 (def-predicate 'EXTENDS-ON '(s g f)
   '(FORALL x_ (IMPLIES (IN x_ s) (= (g x_) (f x_)))))
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-LINEAR-FUNCTIONAL 'kind 'predicate 'arity 2
+           'english "$2 is a linear functional on $1")
+(notation! 'IS-LINEAR-FUNCTIONAL-ON 'kind 'predicate 'arity 3
+           'english "$3 is a linear functional on the subspace $2 of $1")
+(notation! 'IS-BOUNDED-LINEAR-FUNCTIONAL 'kind 'predicate 'arity 2
+           'english "$2 is a bounded linear functional on $1")
+(notation! 'IS-BOUNDED-LINEAR-FUNCTIONAL-ON 'kind 'predicate 'arity 3
+           'english "$3 is a bounded linear functional on the subspace $2 of $1")
+(notation! 'EXTENDS-ON 'kind 'predicate 'arity 3
+           'english "$2 agrees with $3 on $1")

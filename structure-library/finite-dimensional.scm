@@ -84,3 +84,18 @@
      (FORSOME x_ (AND (IN x_ s)
        (FORSOME r_ (AND (IN r_ RR)
          (= y_ ((VADD m) x_ ((ACT m) r_ v)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-SUBMODULE 'kind 'predicate 'arity 2
+           'english "$2 is a submodule of $1")
+(notation! 'IS-SUBSPACE 'kind 'predicate 'arity 2
+           'english "$2 is a subspace of $1")
+(notation! 'IS-NOETHERIAN 'kind 'predicate 'arity 1
+           'english "$1 is Noetherian")
+(notation! 'IS-FINITE-DIMENSIONAL 'kind 'predicate 'arity 1
+           'english "$1 is finite dimensional")

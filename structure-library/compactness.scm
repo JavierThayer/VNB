@@ -301,3 +301,18 @@
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-OPEN               'kind 'predicate 'arity 2 'english "$2 is open in $1")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-COMPACT 'kind 'predicate 'arity 1
+           'english "$1 is compact")
+(notation! 'IS-OPEN-COVER 'kind 'predicate 'arity 2
+           'english "$2 is an open cover of $1")
+(notation! 'HAS-FIP 'kind 'predicate 'arity 2
+           'english "$2 has the finite intersection property in $1")
+(notation! 'CLUSTER-POINT 'kind 'predicate 'arity 3
+           'english "$3 is a cluster point of the sequence $2 in $1")

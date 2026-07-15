@@ -183,46 +183,62 @@ closed VNB arithmetic terms and formulas using Scheme's exact arithmetic
 
 ## `declare-structure` — syntax design
 
-### Why not quote arguments?
+### `declare-structure` and `def-structure-from-clauses` are one thing
 
-The original `def-structure` required quoted S-expressions:
+`declare-structure` is a macro; `def-structure-from-clauses` is the procedure
+it expands to.  They differ in quoting and in nothing else:
 ```scheme
-(def-structure 'GROUP '(A) '((MUL (CARTESIAN A A) A) (E A) (INV A A)) '())
+(define-syntax declare-structure
+  (syntax-rules ()
+    ((_ name clause ...)
+     (def-structure-from-clauses 'name (list 'clause ...)))))
 ```
-The new `declare-structure` macro eliminates all quoting:
+Write the macro.  The procedure is the entry point the macro calls, and the
+one to call if you ever compute clauses programmatically; it is the single
+funnel through which every structure — shape and refinement alike — reaches
+`def-structure` and `record-structure-declaration!`.
+
+The original `def-structure` took quoted S-expressions, positionally:
+```scheme
+(def-structure 'GROUP '(CARR) '((OPR (CARTESIAN CARR CARR) CARR) (IDEN CARR) (INV CARR CARR)) '())
+```
+The macro eliminates the quoting and names each clause:
 ```scheme
 (declare-structure GROUP
-  (carriers A)
-  (op MUL (CARTESIAN A A) A)
-  (constant E A)
-  (op INV A A))
-```
-This is both easier to read and less error-prone (no mismatched quotes).
-
-### Why `er-macro-transformer`, not `syntax-rules`?
-
-MIT Scheme's `syntax-rules` does not properly substitute pattern variables
-inside `quote` in template position.  Specifically,
-```scheme
-(syntax-rules () ((_ name clause ...) (f 'name '(clause ...))))
-```
-does not quote each `clause` datum — the `...` expansion does not work
-inside `'()`.  The fix is `er-macro-transformer`, where `form` is the
-raw S-expression after read-time lowercasing, so `(cddr form)` is a
-plain Scheme list of clause datums that can be quasiquoted directly:
-```scheme
-(er-macro-transformer
-  (lambda (form rename compare)
-    `(def-structure-from-clauses ',(cadr form) ',(cddr form))))
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)
+  (constant IDEN CARR)
+  (op INV CARR CARR)
+  (property is-associative OPR CARR)
+  (property is-identity OPR IDEN CARR)
+  (property has-inverses OPR IDEN INV CARR))
 ```
 
-### Why no `axioms` clause?
+### `(list 'clause ...)`, not `'(clause ...)`
 
-An `(axioms name1 name2 ...)` clause was considered but removed.  The
-problem: MIT Scheme evaluates macro arguments before the macro body
-runs, so `name1` is looked up as a variable and throws `Unbound variable`.
-Characteristic axioms are always installed by separate `theory-add-axiom!`
-calls immediately after the `declare-structure` form.
+The quoting has one wrinkle, and an earlier version of this note drew the
+wrong conclusion from it.  A `syntax-rules` template cannot expand an
+ellipsis *inside* a `quote`: `'(clause ...)` does not distribute the quote
+over the clauses.  The note concluded that `syntax-rules` was unusable and
+that `er-macro-transformer` was required.  It is not: quote each clause and
+build the list at run time — `(list 'clause ...)` — and plain `syntax-rules`
+does the job.  That is what structures.scm has.
+
+### Laws live in the form
+
+There is no `(axioms name1 name2 ...)` clause naming axioms installed
+elsewhere; the characteristic laws are clauses of the declaration itself,
+and `build-is-axiom` folds them into `IS-NAME`:
+
+* `(property is-associative OPR CARR)` — a named law from
+  `operation-properties.scm` plus the accessors it constrains.
+* `(law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))")` —
+  an arbitrary law, in surface syntax, over the structure variable `s`.
+  Write these as strings: the S-expression form of a real law is a paren
+  thicket nobody can check by eye.
+
+So `IS-NAME` means "is an X", not "is X-shaped", and a refinement
+(`(same-shape-as PARENT)` + laws) is a genuine sub-predicate of its parent.
 
 ### Stale compiled binaries
 

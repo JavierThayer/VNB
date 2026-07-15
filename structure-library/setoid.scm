@@ -41,9 +41,9 @@
 ;; REL is declared as a `carriers' slot: that imposes the bare shape
 ;; constraint (IN (REL s) SET) -- a relation IS a set.  The tighter typing
 ;; (REL s) subset CARTESIAN(X,X) and the three laws come from the property.
-(def-structure-from-clauses 'SETOID
-  '((carriers PTS REL)
-    (property is-equivalence REL PTS)))
+(declare-structure SETOID
+  (carriers PTS REL)
+  (property is-equivalence REL PTS))
 
 ;; The three equivalence laws (refl/sym/trans) and the typing REL subset
 ;; CARTESIAN(X,X) are NOT separate axioms: (property is-equivalence REL X)
@@ -242,3 +242,14 @@
 ;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
 (gloss! 'quotient-universal
   "For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient PTS(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-EQUIVALENCE 'kind 'predicate 'arity 2
+           'english "$1 is an equivalence relation on $2")
+(notation! 'IS-HOM-SETOID 'kind 'predicate 'arity 4
+           'english "$3 is a setoid homomorphism from $1 to $2")

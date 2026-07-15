@@ -14,9 +14,12 @@
 ;;;                 accessors it constrains, e.g. (is-associative MUL A).
 ;;;                 build-is-axiom folds them into the IS-NAME definition.
 ;;;
-;;; Most callers use the surface form `def-structure-from-clauses` (or
-;;; the syntax `declare-structure`), which parses `(carriers ...)`, `(op ...)`,
-;;; `(constant ...)`, and `(property ...)` clauses into the slot list.
+;;; Nothing in the library calls this directly.  The surface is the macro
+;;; `declare-structure`, which expands to the procedure
+;;; `def-structure-from-clauses`; that parses `(carriers ...)`, `(op ...)`,
+;;; `(constant ...)`, `(derived ...)`, `(substructure ...)`, `(property ...)`
+;;; and `(law ...)` clauses into the slot list.  The two are the same thing:
+;;; the macro exists only to spare the caller the quoting.
 ;;;
 ;;; Auto-generates:
 ;;;   Accessor macetes (one per slot, indexed by position in declaration order):
@@ -138,11 +141,11 @@
 ;;;     (same-shape-as RING)
 ;;;     (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
 ;;;
-;;; so we keep them.  def-structure-from-clauses is the single funnel (the
-;;; `declare-structure' macro expands to it, and the library's direct callers
-;;; call it), so one hash-table set! there catches every structure, shape and
-;;; refinement alike.  Law strings are stored AS WRITTEN, in surface syntax:
-;;; they parse.
+;;; so we keep them.  def-structure-from-clauses is the single funnel --
+;;; `declare-structure' is a macro that expands to it, and nothing else in the
+;;; library reaches def-structure directly -- so one hash-table set! there
+;;; catches every structure, shape and refinement alike.  Law strings are stored
+;;; AS WRITTEN, in surface syntax: they parse.
 (define *structure-decl-table* (make-equal-hash-table))
 
 (define (record-structure-declaration! name clauses)
@@ -290,6 +293,124 @@
       `(,accessor-name svar)
       `(NTH ,k svar))))
 
+;;; -----------------------------------------------------------------------
+;;; INSTANCES: an accessor of a CONCRETE structure reduces to its VALUE.
+;;;
+;;; (MUL ZZ-RING) MEANS bintimes.  Saying so took three steps -- `slot' to reach
+;;; (NTH 3 ZZ-RING), `mac' the tuple equation to expose the list, `nth-r' to
+;;; project -- of which the last two are pure bookkeeping: the answer is fixed
+;;; the moment the instance is declared, and nothing about a proof can change it.
+;;; Worse, the intermediate step puts NTH -- the REPRESENTATION -- in the user's
+;;; goal.  Which slot MUL occupies is an implementation fact about the RING
+;;; tuple; a reader of the goal should never meet it.
+;;;
+;;; So declare-instance! does the projection once, at declaration time, and
+;;; installs (ACC NAME) -> value_k as a ground macete, one per slot.  `slot'
+;;; fires those when the accessor's argument IS an instance, and falls back to
+;;; the (NTH k s) reduction for a variable structure -- where there is nothing
+;;; to project to, and where the machinery that wants NTH form
+;;; (fnc--normalize-goal!) lives.
+;;;
+;;; THE TUPLE EQUATION IS A DEFINITION, and goes in through def-constant.
+;;; (= ZZ-RING (LIST ZZ binplus bintimes binneg 0 1)) is what the name ZZ-RING
+;;; MEANS -- nothing else pins it -- so it is `definitional', as rr-ms-def
+;;; already was, and not an asserted phantom debt leaf that every proof touching
+;;; the integers-as-a-ring had to pay.  The mathematical content of the instance
+;;; is IS-RING(ZZ-RING), which stays an asserted axiom and stays billed.
+;;;
+;;; PROVENANCE IS THEN INHERITED, never invented: the value equation is the tuple
+;;; equation plus two definitional steps, so it is worth exactly what the tuple
+;;; equation is worth -- read off (provenance-of DEF-AXIOM), not hard-coded.  A
+;;; hard-coded `definitional' here would silently launder any instance later
+;;; declared on an asserted equation: the def-view-as bug, one level down.
+;;;
+;;; The length check is a gate, not a convenience: a tuple whose length differs
+;;; from its structure's shape cannot satisfy that structure's IS-X (which pins
+;;; length(s) = n), and declaring one was a real inconsistency once (the 7-tuple
+;;; RR-NORMED-FIELD asserted IS-RING, fixed 2026-05-30).  Now it cannot load.
+
+;; inst -> (struct . ((acc macete-name value) ...))
+(define *structure-instances* (make-equal-hash-table))
+
+(define (instance-structure inst)
+  (let ((e (hash-table-ref/default *structure-instances* inst #f)))
+    (and e (car e))))
+
+;;; The macete (ACC INST) -> value, or #f if INST is not an instance / has no
+;;; such slot.  The ONE lookup `slot' uses; nothing else should fire these.
+;;; The instance's components, in slot order, or #f if INST is not an instance.
+(define (instance-tuple inst)
+  (let ((e (hash-table-ref/default *structure-instances* inst #f)))
+    (and e (map caddr (cdr e)))))
+
+(define (instance-value-macete inst acc)
+  (let ((e (hash-table-ref/default *structure-instances* inst #f)))
+    (and e (let ((hit (assq acc (cdr e)))) (and hit (cadr hit))))))
+
+(define (instance-value-macete-name? name)
+  (there-exists? (hash-table-values *structure-instances*)
+    (lambda (e)
+      (there-exists? (cdr e) (lambda (p) (eq? (cadr p) name))))))
+
+;;; ((INST STRUCT (ACC . value) ...) ...) -- what the instances project to.
+(define (instance-audit)
+  (map (lambda (inst)
+         (let ((e (hash-table-ref/default *structure-instances* inst '(#f))))
+           (cons* inst (car e)
+                  (map (lambda (p) (cons (car p) (caddr p))) (cdr e)))))
+       (sort (hash-table-keys *structure-instances*)
+             (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+
+;;; Declare NAME as the STRUCT-shaped tuple TUPLE, defining it by the equation
+;;; DEF-AXIOM -- kept under the name it always had, so every existing
+;;; (mac 'zz-ring-def) still cites it.
+;;;
+;;; It also registers NAME as a definitional structure with STRUCT as its parent,
+;;; so that every declared instance HAS a card, appears in (known-structures) and
+;;; is a node in the structure graph.  RR-MS and CC-MS did not: the six numeric
+;;; instances were registered by hand (numeric-instances.scm) and the two metric
+;;; spaces were forgotten, so `(describe-structure 'RR-MS)' answered "Unknown
+;;; structure" -- for a constant the library proves theorems about.  A later,
+;;; deeper registration still overrides this one (ZZ-RING's parent is
+;;; EUCLIDEAN-RING, not the RING shape it was declared with); the point is that
+;;; forgetting one can no longer LOSE it.
+(define (declare-instance! name struct def-axiom tuple)
+  (let ((slots (structure-accessor-names struct)))
+    (if (not slots)
+        (error "declare-instance!: unknown structure" struct))
+    (if (not (= (length slots) (length tuple)))
+        (error "declare-instance!: tuple length does not match the shape of"
+               struct (list 'got (length tuple) 'want (length slots))))
+    (def-constant name (list def-axiom `(= ,name (LIST ,@tuple))))
+    (register-definitional-structure! name struct)
+    (let ((prov (provenance-of def-axiom)))
+      (hash-table-set! *structure-instances* name
+        (cons struct
+              (let loop ((accs slots) (vals tuple) (k 1) (acc '()))
+                (if (null? accs)
+                    (reverse acc)
+                    (let ((mname (symbol-append name '@ (car accs))))
+                      (if (hash-table-ref/default *macete-table* mname #f)
+                          (error "declare-instance!: macete name already taken" mname))
+                      ;; The slot equation goes in as a THEOREM, not as a bare
+                      ;; rewrite rule.  install-theorem! builds the same
+                      ;; elementary macete from it, so `slot' and `mac' behave
+                      ;; exactly as before -- but the hypothesis side now works
+                      ;; too: apply-macete-to-assumption! rebuilds its rule from
+                      ;; (lookup-theorem name), so a macete that is not a theorem
+                      ;; can never rewrite an assumption.  It IS a fact --
+                      ;; (ADD ZZ-RING) == binplus is what ZZ-RING MEANS -- and
+                      ;; transport! (transport.scm) needs to cite it as one.
+                      ;; `==' (not `='): the slot value is unconditionally that
+                      ;; term, so no definedness obligation is owed.
+                      (fluid-let ((*current-provenance* prov))
+                        (install-theorem! mname
+                          `(== (,(car accs) ,name) ,(car vals))))
+                      (register-provenance! mname prov)
+                      (loop (cdr accs) (cdr vals) (+ k 1)
+                            (cons (list (car accs) mname (car vals)) acc)))))))))
+  name)
+
 ;;; Expand bare accessor names in a domain/range expression to (ACCESSOR s).
 ;;; Recurses through the full cons tree so nested CARTESIAN etc. are handled.
 (define (expand-accessors expr all-accessors ivar)
@@ -383,6 +504,41 @@
 (define (symbol-append . syms)
   (string->symbol (apply string-append (map symbol->string syms))))
 
+;;; --- the English of a structure predicate, derived from its name -----------
+;;;
+;;; IS-METRIC-SPACE -> "a is a metric space", and the same entry folds into a
+;;; quantifier qualifier ("for every metric space a") because the table stores the
+;;; bare NOUN plus its ARTICLE, not a finished sentence (wff-english.scm).
+;;;
+;;; Derived, never imposed: a `notation!' beside the structure overrides this, and
+;;; `english-derived-nouns' lists every predicate still wearing the machine's
+;;; wording -- which is where a human goes to write "Euclidean ring" over
+;;; "euclidean ring".  A structure declared BEFORE this ran (or re-declared) keeps
+;;; whatever a human already said.
+
+(define *derived-structure-nouns* '())      ; is-name ... , in declaration order
+
+(define (english-derived-nouns) (reverse *derived-structure-nouns*))
+
+(define (structure--noun-of name)
+  (let loop ((cs (string->list (string-downcase (symbol->string name)))) (acc '()))
+    (cond ((null? cs) (list->string (reverse acc)))
+          ((char=? (car cs) #\-) (loop (cdr cs) (cons #\space acc)))
+          (else (loop (cdr cs) (cons (car cs) acc))))))
+
+(define (structure--article-for phrase)
+  (if (and (> (string-length phrase) 0)
+           (memv (string-ref phrase 0) '(#\a #\e #\i #\o #\u)))
+      "an" "a"))
+
+(define (declare-structure-noun! is-name name)
+  (let ((entry (operator-ref is-name)))
+    (when (and entry (not (operator-noun entry)) (not (operator-english entry)))
+      (let ((phrase (structure--noun-of name)))
+        (notation! is-name 'kind 'predicate 'arity 1
+                   'noun phrase 'article (structure--article-for phrase))
+        (set! *derived-structure-nouns* (cons is-name *derived-structure-nouns*))))))
+
 (define (def-structure name slots axiom-names #!optional laws)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((source (current-load-pathname))   ; #f when not in a load context
@@ -408,10 +564,18 @@
                                    (if (default-object? laws) '() laws))))
       (theory-add-axiom! *current-theory* is-name axiom)
       ;; the ONE table (operators.scm): every structure predicate is a unary
-      ;; predicate, and def-structure is the only thing that makes one.  Its
-      ;; NOTATION -- the noun "Euclidean ring" -- is declared with `notation!'
-      ;; beside the structure, since only a human knows it.
-      (register-operator! is-name 'predicate '(s)))
+      ;; predicate, and def-structure is the only thing that makes one.
+      (register-operator! is-name 'predicate '(s))
+      ;; ... and it gets its ENGLISH here too.  This used to say "the noun is
+      ;; declared with `notation!' beside the structure, since only a human knows
+      ;; it" -- and the result was that 104 of 113 predicates had no reading at
+      ;; all, so the proof reader said `is-metric-space(a)' where a human says
+      ;; "a is a metric space".  The DEFAULT is derivable from the name; only the
+      ;; wording of a proper noun is not (`euclidean ring' wants a capital E).
+      ;; So: derive, record that it was derived, and let a human's `notation!'
+      ;; override it.  english-derived-nouns names the ones still wearing the
+      ;; machine's wording.
+      (declare-structure-noun! is-name name))
     ;; the MORPHISMS of this species, read off the same slot list (see
     ;; build-hom-axiom).  Objects without morphisms are not a category.
     (install-hom-axiom! name slots)
@@ -540,6 +704,7 @@
         `(FORALL ,ivar (IFF (IN ,ivar ,name) (,is-name ,ivar)))))
     (register-definitional-structure! name parent)
     (register-operator! is-name 'predicate (list ivar))
+    (declare-structure-noun! is-name name)   ; "s is a commutative ring"
     ;; a hom of X's is a hom of PARENTs between X's -- same shape, same maps
     (install-refinement-hom-axiom! name parent)
     name))
@@ -862,9 +1027,9 @@
     count)))
 
 ;;; Walk up the definitional-structure parent chain to find the underlying
-;;; shape (i.e. def-structure-from-clauses) structure-def.  Definitional
-;;; structures (COMMUTATIVE-RING, FIELD, …) share the shape of their parent,
-;;; so a view-as FROM a definitional structure uses its ancestor's slots.
+;;; shape structure-def (one declared with slot clauses).  Refinements
+;;; (COMMUTATIVE-RING, EUCLIDEAN-RING, …) declare no slots of their own, so a
+;;; view-as FROM a refinement uses its ancestor's slots.
 (define (find-shape-structure name)
   (or (lookup-structure name)
       (let ((dsd (lookup-definitional-structure name)))
@@ -918,21 +1083,30 @@
 ;;; -----------------------------------------------------------------------
 ;;; Definitional structures
 ;;;
-;;; A *definitional structure* is one whose IS-X is not a shape predicate
-;;; (def-structure-from-clauses) but a genuine IFF axiom
+;;; A *definitional structure* (a REFINEMENT) is one whose IS-X declares no
+;;; shape of its own but is an IFF against its parent:
 ;;;
-;;;   (FORALL s (IFF (IS-X s) (AND (IS-PARENT s) <extra constraints>)))
+;;;   (FORALL s (IFF (IS-X s) (AND (IS-PARENT s) <extra laws>)))
 ;;;
-;;; declared in the source file as `(theory-add-axiom! ... 'is-X-def ...)`
-;;; alongside a sibling relation axiom `X-is-parent`.  COMMUTATIVE-RING,
-;;; INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD are declared this
-;;; way (reusing RING's 6-slot shape with extra properties; see the comment
-;;; at the top of commutative-ring.scm).
+;;; It is written with a `(same-shape-as PARENT)` clause and its laws:
 ;;;
-;;; `register-definitional-structure!` exposes these to the navigation
-;;; index (structure-index in interactive.scm) without changing how the
-;;; predicates themselves are declared.  Call it from the same file as the
-;;; `is-X-def` axiom; `(current-load-pathname)` captures the source.
+;;;   (declare-structure INTEGRAL-DOMAIN
+;;;     (same-shape-as COMMUTATIVE-RING)
+;;;     (law "not(one(s) = zero(s))")
+;;;     ...)
+;;;
+;;; and def-structure-from-clauses routes it to `def-substructure`, which
+;;; GENERATES that IFF (parent conjunct first and literal), the class axiom,
+;;; the `definitional' provenance, the operator-table entry and this
+;;; registration.  Nobody hand-writes the axiom any more.  COMMUTATIVE-RING,
+;;; INTEGRAL-DOMAIN, EUCLIDEAN-RING, PID, VECTOR-SPACE are refinements; FIELD
+;;; and NORMED-FIELD are NOT -- they declare their own slots (RECIP, FNRM) and
+;;; so are shape structures with laws.
+;;;
+;;; `register-definitional-structure!` records the parent chain: the navigation
+;;; index (structure-index in interactive.scm) reads it, and so does the proof
+;;; reader, which collapses a run of subtype-subsumption citations with it.
+;;; `(current-load-pathname)` captures the source.
 
 (define-record-type <definitional-structure>
   (%make-definitional-structure name parent source-file)
@@ -1189,12 +1363,27 @@
                         `(FORALL ,(car fs) ,(loop (cdr fs)))))))))))
 
 ;;; Install IS-HOM-NAME for a SHAPE structure.
+;;; The English of a hom predicate.  IS-HOM-RING(a, b, f) reads "f is a
+;;; homomorphism from a to b" -- derivable, because that is what the GENERATED hom
+;;; means (preservation of the slots).  A species that OVERRIDES its morphisms
+;;; means something else by them, and says so with `notation!' beside the
+;;; declare-hom! (METRIC-SPACE: "f is continuous from a to b").  Only the
+;;; single-map case gets a default; a many-sorted hom carries several maps and no
+;;; one sentence fits.
+(define (declare-hom-english! hom args)
+  (let ((entry (operator-ref hom)))
+    (when (and entry (= (length args) 3)
+               (not (operator-english entry)) (not (operator-noun entry)))
+      (notation! hom 'kind 'predicate 'arity 3
+                 'english "$3 is a homomorphism from $1 to $2"))))
+
 (define (install-hom-axiom! name slots)
   (call-with-values (lambda () (build-hom-axiom name slots))
     (lambda (hom args axiom)
       (fluid-let ((*current-provenance* 'definitional))
         (theory-add-axiom! *current-theory* (symbol-append hom '-def) axiom))
       (register-operator! hom 'predicate args)
+      (declare-hom-english! hom args)
       hom)))
 
 ;;; A REFINEMENT shares its parent's shape, so a hom of X's is a hom of PARENTs
@@ -1223,6 +1412,7 @@
                          `(IFF (,hom ,@args) ,body)
                          `(FORALL ,(car fs) ,(loop (cdr fs)))))))))
            (register-operator! hom 'predicate args)
+           (declare-hom-english! hom args)   ; "f is a homomorphism from a to b"
            hom))))
 
 ;;; -----------------------------------------------------------------------
@@ -1289,10 +1479,100 @@
                   `(IFF (,hom ,avar ,bvar ,@fvars) ,(conjuncts->and conjs))
                   `(FORALL ,(car fs) ,(loop (cdr fs)))))))))
     (register-operator! hom 'predicate (append (list avar bvar) fvars))
+    ;; An OVERRIDDEN hom is not preservation-of-slots, so "homomorphism" may be the
+    ;; wrong word for it -- but it is not a WRONG default, and a `notation!' beside
+    ;; the declare-hom! says the right one (METRIC-SPACE / TOP-SPACE: "continuous").
+    (declare-hom-english! hom (append (list avar bvar) fvars))
     (hash-table-set! *hom-overrides* name #t)
     hom))
 
 ;;; --- (2) a functor whose object map is a constructed term -----------------
+;;;
+;;; PROJECTIONS OF A CONSTRUCTION, precomputed -- declare-instance!'s trick, one
+;;; level up.  METRIC-TOP(md) is the literal pair [PTS(md), {U in POWER(PTS md) :
+;;; IS-OPEN(md,U)}], so PTS(METRIC-TOP md) = PTS(md) is settled the moment the
+;;; functor is declared, and no proof should have to rediscover it.
+;;;
+;;; Without this it is not merely tedious, it is a TRAP.  Reaching the projection
+;;; by hand means unfolding the functoid and firing the accessor macete -- and a
+;;; macete rewrites EVERY occurrence, so the (PTS md) sitting INSIDE the tuple is
+;;; rewritten too, and the goal collapses to NTH form: `nth(1, [nth(1, md), ...])'
+;;; where the supports it must meet (empty-is-open, carrier-is-open, ...) all say
+;;; PTS(md).  Nothing matches, and `=' being partial, rfl will not even close
+;;; nth(1,md) = nth(1,md) for an untyped md.  functoriality.scm:90 records this
+;;; as the reason the projection equations "are not proved as standalone lemmas".
+;;; With the projections precomputed, the tuple never enters the goal at all.
+;;;
+;;; PROVENANCE: definitional -- the functoid's unfold is definitional, the
+;;; accessor macete is definitional, and NTH-reduction is a kernel rule.  Nothing
+;;; asserted is being laundered (contrast declare-instance!, which INHERITS its
+;;; tuple equation's provenance because that equation may be an axiom).
+(define *functor-projections* (make-equal-hash-table))  ; functor -> ((acc mname term) ...)
+(define *functor-info* (make-equal-hash-table))         ; functor -> (src tgt param)
+
+(define (functor-info fn) (hash-table-ref/default *functor-info* fn #f))
+(define (functor-names)
+  (sort (hash-table-keys *functor-info*)
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
+;;; The accessors this functor carries across ON THE NOSE: ACC(G r) = ACC(r), the
+;;; projection being the SAME accessor of the parameter.  METRIC-TOP carries PTS
+;;; (a metric space and its topology have the same points); it does NOT carry
+;;; OPENS on the nose (a metric space has none -- the topology is CONSTRUCTED).
+;;; NF-METRIC-SPACE carries nothing on the nose: its PTS is the source's CARR.
+;;;
+;;; This is the syntactic form of a strict commuting triangle: on these slots the
+;;; functor is the identity, so anything defined THROUGH them alone cannot see it.
+(define (functor-nose-accessors fn)
+  (let ((info (functor-info fn)))
+    (and info
+         (let ((r (caddr info)))
+           (map car
+                (filter (lambda (p) (equal? (caddr p) (list (car p) r)))
+                        (hash-table-ref/default *functor-projections* fn '())))))))
+
+(define (functor-projection-macete fn acc)
+  (let ((e (hash-table-ref/default *functor-projections* fn #f)))
+    (and e (let ((hit (assq acc e))) (and hit (cadr hit))))))
+
+(define (functor-projection-macete-name? name)
+  (there-exists? (hash-table-values *functor-projections*)
+    (lambda (e) (there-exists? e (lambda (p) (eq? (cadr p) name))))))
+
+;;; ((FN (ACC . term) ...) ...) -- what each constructed functor's slots project to.
+(define (functor-projection-audit)
+  (map (lambda (fn)
+         (cons fn (map (lambda (p) (cons (car p) (caddr p)))
+                       (hash-table-ref/default *functor-projections* fn '()))))
+       (sort (hash-table-keys *functor-projections*)
+             (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+
+;;; TERM is the object map's body, in the parameter R.  If it is a literal LIST,
+;;; install (ACC (NAME r)) -> component_k for each of the target's slots.  A
+;;; non-LIST object map (none today) simply gets no projections: the proof can
+;;; still unfold the functoid by hand.
+(define (install-functor-projections! name tgt-sd r term)
+  (when (and (pair? term) (eq? (car term) 'LIST))
+    (let ((slots (structure-slot-names tgt-sd))
+          (comps (cdr term)))
+      (when (= (length slots) (length comps))
+        (hash-table-set! *functor-projections* name
+          (let loop ((accs slots) (ts comps) (acc '()))
+            (if (null? accs)
+                (reverse acc)
+                (let ((mname (symbol-append name '@ (car accs))))
+                  (if (hash-table-ref/default *macete-table* mname #f)
+                      (error "def-constructed-functor: macete name already taken" mname))
+                  (install-macete! mname
+                    (make-elementary-macete
+                      (list r) '()
+                      `(,(car accs) (,name ,r))
+                      (car ts)))
+                  (register-provenance! mname 'definitional)
+                  (loop (cdr accs) (cdr ts)
+                        (cons (list (car accs) mname (car ts)) acc)))))))))
+  name)
+
 (define *functor-obligations* (make-equal-hash-table))  ; functor -> (name ...)
 
 (define (functor-obligations name)
@@ -1331,6 +1611,8 @@
         (error "def-constructed-functor: source and target have different carrier counts"
                name src tgt))
       (def-functoid name ps term)
+      (hash-table-set! *functor-info* name (list src tgt r))
+      (install-functor-projections! name tgt-sd r term)
       (hash-table-set! *functor-obligations* name
         (list (cons typing
                     `(FORALL ,r (IMPLIES (,is-src ,r) (,is-tgt (,name ,r)))))

@@ -22,37 +22,37 @@
 ;;;
 ;;; Dependencies: ring.scm, commutative-ring.scm, integral-domain.scm.
 
-(def-structure-from-clauses 'FIELD
-  '(;; Slots 1-6: identical layout to RING, so shared accessor macetes
-    ;; ADD/MUL/NEG/ZERO/ONE keep the same NTH index on FIELD tuples as on
-    ;; RING tuples.
-    (carriers CARR)
-    (op ADD (CARTESIAN CARR CARR) CARR)
-    (op MUL (CARTESIAN CARR CARR) CARR)
-    (op NEG CARR CARR)
-    (constant ZERO CARR)
-    (constant ONE CARR)
-    ;; Slots 7-8: FIELD-specific carrier and op.  NON-ZERO is DERIVED -- it is
-    ;; CARR with the zero removed, not a set the tuple may choose freely.  Until
-    ;; 2026-07-12 it was a plain carrier and IS-FIELD said NOTHING relating it to
-    ;; CARR: a "field" could have had any set at all in slot 7, with RECIP an
-    ;; arbitrary function on it.  The equation lived in a separate ASSERTED axiom
-    ;; (field-non-zero-carrier, below), i.e. a support was finishing a definition.
-    ;; Being derived also makes a field MORPHISM one map instead of two: NON-ZERO
-    ;; is not an independent sort, so it rides CARR's map (structures.scm,
-    ;; build-hom-axiom).
-    (derived NON-ZERO CARR (DIFFERENCE CARR (SINGLETON ZERO)))
-    (op RECIP NON-ZERO NON-ZERO)
-    ;; Additive abelian group on A.
-    (property is-associative ADD CARR)
-    (property is-commutative ADD CARR)
-    (property is-identity   ADD ZERO CARR)
-    (property has-inverses  ADD ZERO NEG CARR)
-    ;; Multiplicative commutative monoid on A; distributive.
-    (property is-associative MUL CARR)
-    (property is-commutative MUL CARR)
-    (property is-identity   MUL ONE CARR)
-    (property is-distributive ADD MUL CARR)))
+(declare-structure FIELD
+  ;; Slots 1-6: identical layout to RING, so shared accessor macetes
+  ;; ADD/MUL/NEG/ZERO/ONE keep the same NTH index on FIELD tuples as on
+  ;; RING tuples.
+  (carriers CARR)
+  (op ADD (CARTESIAN CARR CARR) CARR)
+  (op MUL (CARTESIAN CARR CARR) CARR)
+  (op NEG CARR CARR)
+  (constant ZERO CARR)
+  (constant ONE CARR)
+  ;; Slots 7-8: FIELD-specific carrier and op.  NON-ZERO is DERIVED -- it is
+  ;; CARR with the zero removed, not a set the tuple may choose freely.  Until
+  ;; 2026-07-12 it was a plain carrier and IS-FIELD said NOTHING relating it to
+  ;; CARR: a "field" could have had any set at all in slot 7, with RECIP an
+  ;; arbitrary function on it.  The equation lived in a separate ASSERTED axiom
+  ;; (field-non-zero-carrier, below), i.e. a support was finishing a definition.
+  ;; Being derived also makes a field MORPHISM one map instead of two: NON-ZERO
+  ;; is not an independent sort, so it rides CARR's map (structures.scm,
+  ;; build-hom-axiom).
+  (derived NON-ZERO CARR (DIFFERENCE CARR (SINGLETON ZERO)))
+  (op RECIP NON-ZERO NON-ZERO)
+  ;; Additive abelian group on A.
+  (property is-associative ADD CARR)
+  (property is-commutative ADD CARR)
+  (property is-identity   ADD ZERO CARR)
+  (property has-inverses  ADD ZERO NEG CARR)
+  ;; Multiplicative commutative monoid on A; distributive.
+  (property is-associative MUL CARR)
+  (property is-commutative MUL CARR)
+  (property is-identity   MUL ONE CARR)
+  (property is-distributive ADD MUL CARR))
 
 ;;; Carrier relation: NON-ZERO is CARR with the zero element removed.  This is now
 ;;; a CONJUNCT of IS-FIELD (the `derived' slot above), so it is a projection of the

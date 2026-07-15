@@ -63,39 +63,57 @@
 <main><h1 class="page">Structure notes</h1>
 <p class="page-sub">prose notes on the structure hierarchy <span class="lead">&mdash; STRUCTURES.md</span></p>
 <h2 id="STRUCTURES__vnb-structure-catalog">VNB structure catalog</h2>
-<p>The mathematical structures the system knows at startup, and the relations between them. All relations listed here are <strong>axioms</strong> (no proofs yet).</p>
+<p>The mathematical structures the system knows at startup, and the relations between them. Prose notes; the machine-generated, always-current listing — every structure&#x27;s declaration, slots, parent and theorems — is <code>STRUCTURE-INDEX.md</code>.</p>
 <h3 id="STRUCTURES__how-a-structure-is-encoded">How a structure is encoded</h3>
-<p>A <em>structure</em> is a VNB list (a tuple); its accessors are projections (<code>(A s) = (NTH 1 s)</code>, …). A <em>structure species</em> — the symbol <code>RING</code>, <code>FIELD</code>, … — denotes the proper class <code>{ s | IS-X(s) }</code>.</p>
-<p><strong>Declaration is grouped; instance is flat.</strong> The clauses in a <code>def-structure-from-clauses</code> call — <code>(carriers A B) (op MUL …) (constant E …)</code> — are <em>parsing sugar</em>: the parser consumes the grouping, then installs each carrier, op, and constant at a single flat top-level slot in declaration order. A 2-carrier <code>BONGO-GROUP</code> with one op <code>MUL</code> and one constant <code>E</code> has 4 flat slots:</p>
-<pre>(LIST a-val bongo-val mul-val e-val)        ; correct: 4 slots, (LENGTH _) = 4
-(LIST [a-val bongo-val] mul-val e-val)      ; WRONG: 3 slots, IS-BONGO-GROUP refutes</pre>
-<p>So when building an instance by hand (or a bridge from another structure, e.g. the additive AG of a ring), write the slots flat in declaration order; do not nest the carriers as a sub-list. The IS-X predicate enforces this — a misaligned LIST is simply refutable in the class — but writing it correctly the first time is easier with the convention spelled out.</p>
-<p>Two kinds of <code>IS-X</code>:</p>
-<ul><li><strong>Shape predicates</strong> (<code>def-structure-from-clauses</code>): <code>IS-X(s)</code> checks only that <code>s</code> has the right length and its slots are typed. SEMIGROUP, MONOID, COMM-MONOID, GROUP, ABELIAN-GROUP, RING, METRIC-SPACE.</li><li><strong>Definitional predicates</strong> (plain <code>IFF</code> axiom): <code>IS-X(s)</code> is <code>IS-parent(s) ∧ &lt;characteristic properties&gt;</code>. Used where a property would be violated by an existing instance — e.g. INTEGRAL-DOMAIN&#x27;s <code>ONE ≠ ZERO</code> is false in the zero ring, so <code>IS-INTEGRAL-DOMAIN</code> cannot be shape-only. COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD, EUCLIDEAN-RING, NORMED-FIELD.</li></ul>
+<p>A <em>structure</em> is a VNB list (a tuple); its accessors are projections (<code>(CARR s) = (NTH 1 s)</code>, …). A <em>structure species</em> — the symbol <code>RING</code>, <code>FIELD</code>, … — denotes the proper class <code>{ s | IS-X(s) }</code>.</p>
+<p>Every structure is declared by <strong><code>declare-structure</code></strong>. That is a macro over the procedure <code>def-structure-from-clauses</code> — <code>(declare-structure NAME clause ...)</code> expands to <code>(def-structure-from-clauses &#x27;NAME (list &#x27;clause ...))</code> and they are otherwise the same thing; the macro exists to spare you the quoting, the procedure is what you call if you ever compute the clauses. Everything below — the class axiom, the accessor macetes, the <code>IS-X</code> definition, the operator-table entry, the recorded declaration the browser shows — comes out of that one funnel.</p>
+<p><strong>Declaration is grouped; instance is flat.</strong> The clauses <code>(carriers CARR OTHER) (op MUL …) (constant IDEN …)</code> are <em>parsing sugar</em>: the parser consumes the grouping and installs each carrier, op and constant at a single flat top-level slot, in declaration order. A 2-carrier <code>BONGO-GROUP</code> with one op <code>MUL</code> and one constant <code>IDEN</code> has 4 flat slots:</p>
+<pre>(LIST carr-val other-val mul-val iden-val)     ; correct: 4 slots, (LENGTH _) = 4
+(LIST [carr-val other-val] mul-val iden-val)   ; WRONG: 3 slots, IS-BONGO-GROUP refutes</pre>
+<p>So when building an instance by hand (or a bridge from another structure, e.g. the additive AG of a ring), write the slots flat in declaration order; do not nest the carriers as a sub-list. <code>IS-X</code> enforces it — a misaligned <code>LIST</code> is simply refutable in the class — but writing it right the first time is easier with the convention spelled out.</p>
+<h4 id="STRUCTURES__two-ways-to-declare-not-two-mechanisms">Two ways to declare, not two mechanisms</h4>
+<p><code>IS-X</code> always means &quot;is an X&quot;, never merely &quot;is X-shaped&quot;: the laws are clauses of the declaration and <code>build-is-axiom</code> folds them into the definition. What differs between two structures is whether the declaration brings its own <em>shape</em>.</p>
+<ul><li><strong>Shape structures</strong> declare slots — <code>(carriers …)</code>, <code>(op …)</code>, <code>(constant …)</code>, <code>(derived …)</code>, <code>(substructure …)</code> — plus their laws, as <code>(property is-associative OPR CARR)</code> (a named law from <code>operation-properties.scm</code>) or <code>(law &quot;…&quot;)</code> (an arbitrary law in surface syntax, over the structure variable <code>s</code>). SEMIGROUP, MONOID, COMM-MONOID, GROUP, ABELIAN-GROUP, NORMED-AG, RING, FIELD, NORMED-FIELD, MODULE, NORMED-VECTOR-SPACE, METRIC-SPACE, TOP-SPACE, SETOID.</li></ul>
+<ul><li><strong>Refinements</strong> declare <code>(same-shape-as PARENT)</code> and laws, and <em>no slots</em>: the accessors are the parent&#x27;s. <code>def-substructure</code> generates <code>IS-X(s) &lt;=&gt; IS-PARENT(s) and &lt;laws&gt;</code>, parent conjunct first and literal. COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING, PID, VECTOR-SPACE.</li></ul>
+<p>A refinement <em>must not</em> add a shape clause, and it is an error to try. A shape-only <code>IS-COMMUTATIVE-RING</code> would be equivalent to <code>IS-RING</code> (same six slots) and so force every ring commutative; INTEGRAL-DOMAIN&#x27;s <code>ONE ≠ ZERO</code> would outright contradict the zero ring. The literal <code>IS-PARENT</code> conjunct is load-bearing twice over: it carries the shape, and it is why <a class="x" href="THEOREMS.html#t-euclidean-ring-is-integral-domain"><code>euclidean-ring-is-integral-domain</code></a> is provable modulo 0 by a single <code>mac-h</code> (<code>structure-library/subtype-laws.scm</code>) — the parent is right there on the RHS.</p>
+<p>Nobody hand-writes an <code>is-X-def</code> IFF axiom any more. (Until 2026-07-12 the refinements did, which is why older notes speak of &quot;definitional predicates&quot; as if they were a separate mechanism; they are not.)</p>
 <h3 id="STRUCTURES__hierarchy">Hierarchy</h3>
-<pre>SEMIGROUP                       carrier A; MUL
-└─ MONOID                       + identity E
-   ├─ COMM-MONOID               + MUL commutative
-   └─ GROUP                     + inverse INV
-      └─ ABELIAN-GROUP          + MUL commutative
+<p>Two different relations hold structures together, and the difference is the shape:</p>
+<p>* <strong>Subtype</strong> — same shape, more laws. <code>IS-X(s) =&gt; IS-PARENT(s)</code>, on the nose. * <strong>Functor</strong> (<code>def-functor</code>, <code>structure-library/views.scm</code>) — <em>different</em> shape. It builds the parent-shaped tuple out of the child&#x27;s slots, and specializes the parent&#x27;s theorems to it. A ring&#x27;s additive abelian group is a functor, and so is FIELD&#x27;s route back to the RING chain: FIELD has eight slots (it carries <code>NON-ZERO</code> and <code>RECIP</code>), so it is not a RING-shaped tuple at all.</p>
+<pre>SEMIGROUP                 CARR; OPR
+└─ MONOID                 + IDEN                     (comm-monoid-is-monoid: axiom)
+   ├─ COMM-MONOID         + OPR commutative
+   └─ GROUP               + INV                      (abelian-group-is-group: PROVEN)
+      └─ ABELIAN-GROUP    + OPR commutative
+         └─ NORMED-AG     + NRM: CARR → RR           (a separate shape; functor back)
 
-RING                            carrier A; ADD MUL NEG; ZERO ONE
-└─ COMMUTATIVE-RING             + MUL commutative
-   └─ INTEGRAL-DOMAIN           + ONE≠ZERO, no zero divisors
-      ├─ EUCLIDEAN-RING         + a Euclidean degree function exists
-      └─ FIELD                  + every nonzero element is invertible
-         └─ NORMED-FIELD        + a norm A→RR exists
-   (also: FIELD ⊆ EUCLIDEAN-RING)
+RING                      CARR; ADD MUL NEG; ZERO ONE          (6 slots)
+└─ COMMUTATIVE-RING       same shape + MUL commutative         PROVEN
+   └─ INTEGRAL-DOMAIN     same shape + ONE≠ZERO, no zero divisors   PROVEN
+      ├─ EUCLIDEAN-RING   same shape + a Euclidean degree exists    PROVEN
+      └─ PID              same shape + every ideal principal
 
-METRIC-SPACE                    carrier X; distance D: X×X → RR</pre>
-<p>Relation axioms: <a class="x" href="THEOREMS.html#t-comm-monoid-is-monoid"><code>comm-monoid-is-monoid</code></a>, <a class="x" href="THEOREMS.html#t-abelian-group-is-group"><code>abelian-group-is-group</code></a>, <a class="x" href="THEOREMS.html#t-commutative-ring-is-ring"><code>commutative-ring-is-ring</code></a>, <a class="x" href="THEOREMS.html#t-integral-domain-is-commutative-ring"><code>integral-domain-is-commutative-ring</code></a>, <code>field-is-integral-domain</code>, <a class="x" href="THEOREMS.html#t-euclidean-ring-is-integral-domain"><code>euclidean-ring-is-integral-domain</code></a>, <code>field-is-euclidean-ring</code>, <code>normed-field-is-field</code>. Each <code>def-structure</code>&#x27;d shape predicate also collapses with its parent (e.g. a richer-shape GROUP is not a structural subtype of MONOID — note there is no <code>group-is-monoid</code>).</p>
+FIELD                     RING&#x27;s 6 slots + NON-ZERO (derived) + RECIP   (8 slots)
+NORMED-FIELD              RING&#x27;s 6 slots + FNRM: CARR → RR             (7 slots)
+   — related to the RING chain by functor, not subtype:
+     FIELD-AS-INTEGRAL-DOMAIN, FIELD-AS-EUCLIDEAN-RING,
+     NORMED-FIELD-AS-COMMUTATIVE-RING, NORMED-FIELD-AS-INTEGRAL-DOMAIN
+
+MODULE                    SCAL (a RING); VEC; VADD VZERO VNEG; ACT
+└─ VECTOR-SPACE           same shape + SCAL is a field
+NORMED-VECTOR-SPACE       MODULE&#x27;s slots + VNRM (a separate shape; functor back)
+
+METRIC-SPACE              PTS; DIST: PTS×PTS → RR
+TOP-SPACE                 PTS; OPENS ⊆ P(PTS)         (Met → Top: the METRIC-TOP functor)
+SETOID                    PTS; REL an equivalence</pre>
+<p>Slots 1–6 of FIELD and NORMED-FIELD deliberately mirror RING&#x27;s, so the shared accessor macetes (<code>ADD</code>, <code>MUL</code>, <code>NEG</code>, <code>ZERO</code>, <code>ONE</code>) keep the same <code>NTH</code> index on all three. FIELD&#x27;s <code>NON-ZERO</code> is a <strong>derived</strong> slot: <code>IS-FIELD</code> pins it to <code>CARR \ {ZERO}</code>, so it is not a set the tuple may choose freely, and a field morphism is one map, not two.</p>
+<p>The four subsumptions marked PROVEN (<a class="x" href="THEOREMS.html#t-abelian-group-is-group"><code>abelian-group-is-group</code></a>, <a class="x" href="THEOREMS.html#t-commutative-ring-is-ring"><code>commutative-ring-is-ring</code></a>, <a class="x" href="THEOREMS.html#t-integral-domain-is-commutative-ring"><code>integral-domain-is-commutative-ring</code></a>, <a class="x" href="THEOREMS.html#t-euclidean-ring-is-integral-domain"><code>euclidean-ring-is-integral-domain</code></a>) are theorems, modulo 0, in <code>subtype-laws.scm</code> — a one-breath <code>mac-h</code> off the parent conjunct. They were asserted axioms until <code>mac-h</code> existed.</p>
 <h3 id="STRUCTURES__numeric-instances">Numeric instances</h3>
-<p>| Domain | Instance | Memberships | |---|---|---| | NN | <code>NN-ADD-MONOID</code> | COMM-MONOID | | ZZ | <code>ZZ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING | | QQ | <code>QQ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, FIELD | | RR | <code>RR-RING</code> | …, FIELD, NORMED-FIELD | | CC | <code>CC-RING</code> | …, FIELD, NORMED-FIELD; <code>CC-MS</code>: METRIC-SPACE |</p>
+<p>Installed by <code>declare-instance!</code> (<code>structure-library/numeric-instances.scm</code>, <code>complex.scm</code>), which precomputes the instance&#x27;s slots.</p>
+<p>| Domain | Instance | Memberships | |---|---|---| | NN | <code>NN-ADD-MONOID</code> | COMM-MONOID | | ZZ | <code>ZZ-RING</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN, EUCLIDEAN-RING | | QQ | <code>QQ-RING</code>, <code>QQ-FIELD</code> | RING, COMMUTATIVE-RING, INTEGRAL-DOMAIN; FIELD | | RR | <code>RR-NORMED-FIELD</code>, <code>RR-MS</code> | NORMED-FIELD; METRIC-SPACE (and complete) | | CC | <code>CC-NORMED-FIELD</code>, <code>CC-MS</code> | NORMED-FIELD; METRIC-SPACE |</p>
 <p>ZZ is a Euclidean ring (degree = <code>abs</code>) but not a field. QQ/RR/CC are fields. The Euclidean / normed witnesses are existential; for the numeric instances the actual functions are <code>abs</code> (RR) and <code>magnitude</code> (CC).</p>
 <h3 id="STRUCTURES__functions-on-rr-/-cc">Functions on RR / CC</h3>
-<ul><li><strong>RR</strong>: <code>+ * - recip abs &lt;=</code>; <code>power(x,n)</code> for <code>n ∈ NN</code>.</li><li><strong>CC</strong>: <code>+ * - recip conjugate magnitude</code> (the modulus, <code>CC→RR</code>, axiomatized directly — needs no <code>sqrt</code>); <code>power(x,n)</code> for <code>n ∈ NN</code>.</li><li>No <code>sqrt</code>; <code>power</code> takes only <code>NN</code> exponents.</li></ul>
+<ul><li><strong>RR</strong>: <code>+ * - recip abs &lt;=</code>; <code>power(x,n)</code> for <code>n ∈ NN</code>; and, from <code>structure-library/real-powers.scm</code>, <code>RPOW(a,b)</code> for <code>a &gt; 0</code> and <code>b ∈ QQ</code>, and <code>SQRT(a)</code> for <code>a &gt;= 0</code> (<a class="x" href="THEOREMS.html#t-sqrt-sq"><code>sqrt-sq</code></a>, <a class="x" href="THEOREMS.html#t-sqrt-of-sq"><code>sqrt-of-sq</code></a>, <a class="x" href="THEOREMS.html#t-sqrt-mono"><code>sqrt-mono</code></a>, <a class="x" href="THEOREMS.html#t-sqrt-mul"><code>sqrt-mul</code></a>, <code>SQRT(a) = RPOW(a, 1/2)</code>). RPOW and SQRT are axiomatized outright, as warranted supports — they are not constructed.</li><li><strong>CC</strong>: <code>+ * - recip conjugate magnitude</code> (the modulus, <code>CC→RR</code>, axiomatized directly — it needs no <code>SQRT</code>); <code>power(x,n)</code> for <code>n ∈ NN</code>.</li><li><code>power</code> takes only <code>NN</code> exponents; for anything else use <code>RPOW</code>.</li></ul>
 <h3 id="STRUCTURES__matrices">Matrices</h3>
-<p><code>MATRIX(S)</code> — the class of matrices over a set <code>S</code>: a list of rows, each row a list of elements of <code>S</code>, all rows of equal length. Formally a matrix is an element of <code>TUPLES(TUPLES S)</code> with equilong rows (<a class="x" href="THEOREMS.html#t-matrix-membership"><code>matrix-membership</code></a>); <code>MATRIX(S)</code> is a set when <code>S</code> is (<a class="x" href="THEOREMS.html#t-matrix-sethood"><code>matrix-sethood</code></a>). <code>SIZE(M)</code> = <code>[rows, columns]</code> = <code>[LENGTH M, LENGTH(NTH 1 M)]</code>. A class-former like <code>FUN</code>/<code>TUPLES</code>, not an algebraic structure. <code>structure-library/matrix.scm</code>.</p>
-<h3 id="STRUCTURES__not-yet-defined">Not yet defined</h3>
-<p>VECTOR-SPACE (two-sorted: vectors + a scalar field) — deferred.</p></main>
+<p><code>MATRIX(S)</code> — the class of matrices over a set <code>S</code>: a list of rows, each row a list of elements of <code>S</code>, all rows of equal length. Formally a matrix is an element of <code>TUPLES(TUPLES S)</code> with equilong rows (<a class="x" href="THEOREMS.html#t-matrix-membership"><code>matrix-membership</code></a>); <code>MATRIX(S)</code> is a set when <code>S</code> is (<a class="x" href="THEOREMS.html#t-matrix-sethood"><code>matrix-sethood</code></a>). <code>SIZE(M)</code> = <code>[rows, columns]</code> = <code>[LENGTH M, LENGTH(NTH 1 M)]</code>. A class-former like <code>FUN</code>/<code>TUPLES</code>, not an algebraic structure. <code>structure-library/matrix.scm</code>.</p></main>
 </div></body></html>

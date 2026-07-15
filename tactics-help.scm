@@ -144,6 +144,8 @@
        "Show that a function defined by a formula (`x |-> ...') maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B.  (Technically: VNB-LAMBDA typing into FUN A B.)")
      (lam-b  "(lam-b)" "VNB-LAMBDA beta: reduce an applied lambda to its substituted body."
        "Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)")
+     (lam-b-h "(lam-b-h hyp)" "VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac."
+       "Beta-reduce an applied lambda inside a hypothesis, in place.  Needed because a `fact' that instantiates a theorem's function variable at a lambda lands the APPLIED lambda in the CONTEXT, where the goal-side `lam-b' cannot reach it: union-of-opens-open at the identity family g := x |-> x lands is-open(md, big-union(i, fam, (x |-> x)(i))).  Without this the proof must detour through a cut beta-equation and a subst.  Cites nothing, so it adds no debt.")
      (sep-set "(sep-set)" "Separation sethood: the separation set {x in A | p} is a set."
        "Show that a set-builder set {x in A | p(x)} is genuinely a set.  (Technically: separation sethood -- a subclass of a set is a set.)")
      (sep-mi  "(sep-mi)"  "Separation membership intro: prove (IN t {x in A | p})."
@@ -347,7 +349,8 @@
     (ce rule cartesian-elim) (te rule tuples-elim) (ie rule intersection-elim) (ue rule union-elim)
     (mac rule macete) (macm rule macete) (mac-h rule macete-hyp)
     (subst rule eq-subst) (rfl rule reflexivity) (qrfl rule quasi-reflexivity)
-    (beta rule functoid-beta) (lam-b rule lambda-beta) (lam-t rule lambda-type)
+    (beta rule functoid-beta) (lam-b rule lambda-beta) (lam-b-h rule lambda-beta-hyp)
+    (lam-t rule lambda-type)
     (nth-r rule nth-reduce) (len-r rule length-reduce)
     (if-true rule if-true) (if-false rule if-false)
     (sep-set rule sep-sethood) (sep-mi rule sep-mem-intro) (sep-me rule sep-mem-elim)

@@ -94,3 +94,26 @@
                (FORALL w (IMPLIES (IN w crr)
                  (<= (dst u w)
                      (+ (dst u v) (dst v w))))))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-ASSOCIATIVE 'kind 'predicate 'arity 2
+           'english "$1 is associative on $2")
+(notation! 'IS-COMMUTATIVE 'kind 'predicate 'arity 2
+           'english "$1 is commutative on $2")
+(notation! 'IS-IDENTITY 'kind 'predicate 'arity 3
+           'english "$2 is an identity for $1 on $3")
+(notation! 'IS-DISTRIBUTIVE 'kind 'predicate 'arity 3
+           'english "$2 distributes over $1 on $3")
+(notation! 'HAS-INVERSES 'kind 'predicate 'arity 4
+           'english "every element of $4 has an inverse under $1, given by $3, with unit $2")
+(notation! 'IS-METRIC 'kind 'predicate 'arity 2
+           'english "$1 is a metric on $2")
+(notation! 'IS-NORM 'kind 'predicate 'arity 5
+           'english "$1 is a norm on $5")
+(notation! 'IS-GROUP-NORM 'kind 'predicate 'arity 5
+           'english "$1 is a group norm for $2 on $5")
