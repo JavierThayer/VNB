@@ -32,8 +32,9 @@
 
 ;;; SEQ-COMPACT(s): every sequence in PTS(s) has a subsequence converging to a
 ;;; point of PTS(s).  The metric face of compactness.  Bound vars: phi the
-;;; reindexing, L the limit -- never `x' (the carrier accessor X folds to x and
-;;; sits next to the point set) [[feedback_no_case_variant_binders]].
+;;; reindexing, L the limit -- never `x' (the point-set accessor was `X' when
+;;; this was written -- it is `PTS' now -- and folds to x, sitting next to the
+;;; point set) [[feedback_no_case_variant_binders]].
 (def-predicate 'SEQ-COMPACT '(s)
   '(AND (IS-METRIC-SPACE s)
         (FORALL f

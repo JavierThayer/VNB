@@ -1,0 +1,70 @@
+;;; baire-category.scm -- interior/closure, nowhere-dense, meager/nonmeager, and
+;;; the BAIRE CATEGORY theorem (statement only).  Seed for functional analysis.
+;;; Added 2026-07-22.  Uses "meager / nonmeager" (per the user: "1st/2nd category
+;;; terminology is bad").  Builds on metric-open-sets (IS-OPEN, IS-CLOSED).
+;;; ====================================================================
+
+(define (ba-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))
+(define (ba-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))
+
+;;; ---- interior / closure of a set --------------------------------------
+
+;;; INTERIOR(s, A): the points with an open neighbourhood contained in A.
+(def-functoid 'INTERIOR '(s A)
+  '(SEP x (PTS s)
+     (FORSOME u (AND (IS-OPEN s u) (AND (IN x u) (SUBSET u A))))))
+
+;;; CLOSURE(s, A): the points every open neighbourhood of which meets A.
+(def-functoid 'CLOSURE '(s A)
+  '(SEP x (PTS s)
+     (FORALL u (IMPLIES (AND (IS-OPEN s u) (IN x u))
+       (FORSOME y (AND (IN y u) (IN y A)))))))
+
+;;; ---- category vocabulary ----------------------------------------------
+
+;;; IS-NOWHERE-DENSE(s, A): the closure of A has empty interior.
+(def-predicate 'IS-NOWHERE-DENSE '(s A)
+  (conjuncts->and
+    (list
+      '(IS-METRIC-SPACE s)
+      '(SUBSET A (PTS s))
+      '(= (INTERIOR s (CLOSURE s A)) EMPTY-SET))))
+
+;;; IS-MEAGER(s, A): A is contained in a countable union of nowhere-dense sets
+;;; (a countable family ee : NN -> POWER(PTS s), each ee(n) nowhere dense).
+(def-predicate 'IS-MEAGER '(s A)
+  (conjuncts->and
+    (list
+      '(IS-METRIC-SPACE s)
+      '(SUBSET A (PTS s))
+      (ba-some 'ee '(IN ee (FUN NN (POWER (PTS s))))
+        (conjuncts->and
+          (list
+            (ba-all 'n '(IN n NN) '(IS-NOWHERE-DENSE s (ee n)))
+            '(SUBSET A (BIG-UNION n NN (ee n)))))))))
+
+;;; IS-NONMEAGER(s, A): A is not meager.
+(def-predicate 'IS-NONMEAGER '(s A)
+  (conjuncts->and
+    (list
+      '(IS-METRIC-SPACE s)
+      '(SUBSET A (PTS s))
+      '(NOT (IS-MEAGER s A)))))
+
+;;; ---- the Baire category theorem ---------------------------------------
+
+;;; A complete metric space is nonmeager in itself: it is not a countable union
+;;; of nowhere-dense sets.  (Equivalently, a countable intersection of dense open
+;;; sets is dense -- the Gdelta form -- see the gloss.)
+(support 'baire-category
+  '(FORALL s (IMPLIES (IS-COMPLETE s) (IS-NONMEAGER s (PTS s)))))
+(warrant! 'baire-category 'reference '(yosida "Baire's Theorem 1, Ch. 0.2" 29))
+(gloss! 'baire-category
+  "Baire category theorem: a complete metric space s is nonmeager in itself -- PTS(s)
+   is not contained in any countable union of nowhere-dense sets.  Equivalent Gdelta
+   form: a countable intersection of dense open subsets of s is dense.  Proof: nested
+   nonempty closed balls of radii -> 0 have a common point (completeness), so no
+   countable family of nowhere-dense sets can cover s.  Terminology per the user:
+   meager = first category, nonmeager = second category.  Sources: Yosida 0.2; the
+   user's notes (exercise).")
+(category! 'baire-category 'topology)

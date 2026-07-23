@@ -94,7 +94,7 @@
 ;;; finite covers.  No metric, no radius, no positivity, no decay -- the
 ;;; bare combinatorial content of block-family.
 ;;;
-;;; Derivation (identical in shape to calculus/block-family-rederive.scm,
+;;; Derivation (identical in shape to archive/calculus-pre-rename/block-family-rederive.scm,
 ;;; one abstraction layer down):
 ;;;   step relation  R(k, J, J_) = "J_ in INF-SUBSETS(NN), J_ subset J, and
 ;;;     some U in cov(k) has f(i) in U for all i in J_";

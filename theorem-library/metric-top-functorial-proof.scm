@@ -11,7 +11,7 @@
 ;;; continuous", true and empty.
 ;;;
 ;;; The content is continuous-implies-open-preimage (metric-open-sets.scm, itself
-;;; machine-proven in calculus/prop-3-15-proof.scm).  What is left is bookkeeping,
+;;; machine-proven in archive/calculus-pre-rename/prop-3-15-proof.scm).  What is left is bookkeeping,
 ;;; and ONE real obstacle:
 ;;;
 ;;;   PREIMAGE(METRIC-TOP a, f, u)  vs  PREIMAGE(a, f, u)
@@ -64,8 +64,15 @@
 (di)                          ; `di' peels ALL the leading foralls at once: a, b, f
 (di)                          ; IS-HOM-METRIC-SPACE(a,b,f) into the context
 
-;;; Unfold the source hom: IS-METRIC-SPACE(a), IS-METRIC-SPACE(b), the typing of f,
-;;; and IS-CONTINUOUS(a,b,f) -- the last is the whole content of the hypothesis.
+;;; The source hom is now an ISOMETRY, not continuity.  The functor's action on arrows
+;;; is that an isometry INDUCES a continuous map -- metric-hom-is-continuous.  Land
+;;; IS-CONTINUOUS(a,b,f) HERE, while IS-HOM-METRIC-SPACE is still in context (mac-h below
+;;; REPLACES it), then everything downstream is the old continuous-implies-open-preimage
+;;; argument unchanged.
+(fact 'metric-hom-is-continuous 'a 'b 'f)
+
+;;; Unfold the source hom: IS-METRIC-SPACE(a), IS-METRIC-SPACE(b), the typing of f, and
+;;; the isometry equation.  We need only the first two and the typing below.
 (dk-split! (car (dk-landed (lambda () (mac-h 'is-hom-metric-space-def mf-hom)))))
 
 ;;; PTS(a) in SET, for sep-set below.  mac-h REPLACES what it unfolds and every
@@ -78,7 +85,7 @@
 (mf-longest!)
 (dk-split! mf-conj)           ; lands PTS(a) in SET, the DIST typing, is-metric(...)
 
-(mac 'is-hom-top-space-def)       ; the four conjuncts of the target hom
+(mac 'is-hom-metrizable-top-space-def)   ; the four conjuncts of the target hom
 (slot 'pts)                   ; pts(METRIC-TOP a), pts(METRIC-TOP b) -> pts(a), pts(b)
 (slot 'opens)                 ; opens(METRIC-TOP _) -> the separations
 
@@ -86,15 +93,15 @@
 (mf-longest!) (di)
 (mf-longest!) (di)
 
-;;; --- 1, 2. the two objects are topological spaces -------------------------
-;;; Exactly what metric-top-is-top-space says.
+;;; --- 1, 2. the two objects are metrizable topological spaces --------------
+;;; Exactly what metric-top-is-metrizable-top-space says.
 
-(mf-focus! "is-top-space(metric-top(a))")
-(fact 'metric-top-is-top-space 'a)
+(mf-focus! "is-metrizable-top-space(metric-top(a))")
+(fact 'metric-top-is-metrizable-top-space 'a)
 (ass)
 
-(mf-focus! "is-top-space(metric-top(b))")
-(fact 'metric-top-is-top-space 'b)
+(mf-focus! "is-metrizable-top-space(metric-top(b))")
+(fact 'metric-top-is-metrizable-top-space 'b)
 (ass)
 
 ;;; --- 3. f is still a map of the underlying sets ---------------------------

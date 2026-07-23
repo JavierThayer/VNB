@@ -106,5 +106,5 @@
    (k,u)} is defined by the totality hypothesis, then recurse f(0):=a,
    f(succ k):=g(k,f k); f:NN->X by induction.  No relation-set encoding --
    nxt(k,u) is the successor SET, supplied as a VNB-LAMBDA, so callers avoid
-   the (LIST k u y)-in-R comprehension/sethood/NTH plumbing (O1 of calculus/
-   block-family-rederive.scm).  Accepted asserted during library-build.")
+   the (LIST k u y)-in-R comprehension/sethood/NTH plumbing (O1 of
+   archive/calculus-pre-rename/block-family-rederive.scm).  Accepted asserted during library-build.")

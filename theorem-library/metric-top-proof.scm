@@ -77,7 +77,11 @@
 ;;; (A cut of a formula already in context up to alpha is a silent self-loop; this
 ;;; one is not in context, mac-h having just consumed it.)
 
-(sp (functor-obligation 'metric-top-is-top-space))
+;;; First, the underlying fact as a named theorem: the metric opens form a topology.
+;;; (It used to be METRIC-TOP's typing obligation; since the functor retargeted to
+;;; METRIZABLE-TOP-SPACE, that obligation is now the wrapper at the foot of this file,
+;;; and this is the lemma it cites.)
+(sp (make-wff '(FORALL md (IMPLIES (IS-METRIC-SPACE md) (IS-TOP-SPACE (METRIC-TOP md))))))
 
 (di)                          ; forall md
 (di)                          ; IS-METRIC-SPACE(md) into the context
@@ -308,3 +312,27 @@
 (ass)
 
 (qed 'metric-top-is-top-space)
+
+;;; -----------------------------------------------------------------------
+;;; The functor's TYPING obligation: METRIC-TOP(md) is a METRIZABLE-TOP-SPACE.
+;;; IS-METRIZABLE-TOP-SPACE folds (same-shape-as TOP-SPACE) to
+;;;   IS-TOP-SPACE(s) AND (exists md_. is-metric-space(md_) and s == metric-top(md_)).
+;;; The first conjunct is the theorem above; the second holds with md itself the
+;;; witness -- METRIC-TOP(md) is on the nose the metric topology of md.
+(sp (functor-obligation 'metric-top-is-metrizable-top-space))
+(di)                                  ; forall md
+(di)                                  ; is-metric-space(md)
+(mac 'is-metrizable-top-space-def)    ; refinement: the macete is the -def axiom name
+(di)                                  ; split the AND
+(mt-focus! "is-top-space(metric-top")
+(fact 'metric-top-is-top-space 'md)
+(ass)
+(mt-focus! "forsome")
+(ew 'md)                              ; witness: md
+(di)                                  ; split  is-metric-space(md)  AND  == 
+(mt-focus! "is-metric-space(md)")
+(ass)
+(mt-focus! "metric-top(md) ==")
+(mac 'metric-top)                     ; both sides become [pts(md), {u : is-open(md,u)}]
+(qrfl)
+(qed 'metric-top-is-metrizable-top-space)

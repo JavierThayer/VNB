@@ -118,11 +118,26 @@
 (category! 'taylor-H-in-fun 'analysis)
 
 ;;; endpoint computations
+;; Guarded 2026-07-23.  TAYLOR-POLY(f,x,n,x) mentions the higher derivatives
+;; f^(k)(x) (k<=n), so it is DEFINED only when those exist as reals; without a
+;; guard the unrestricted forall f,x over-asserts (for a non-differentiable f the
+;; polynomial is undefined while f(x) may not be, so neither `=' nor `==' holds).
+;; Under the guard both sides are defined and this is a genuine partial equality.
 (add-to-pss 'taylor-poly-at-center
-  '(FORALL f (FORALL x (FORALL n (IMPLIES (IN n NN) (= (TAYLOR-POLY f x n x) (f x)))))))
+  (forall-guarded '(f x n)
+    (list
+      '(IN x RR)
+      '(IN n NN)
+      '(FORALL k (IMPLIES (AND (IN k NN) (<= k n)) (IN ((NTH-DERIV f k) x) RR))))
+    '(= (TAYLOR-POLY f x n x) (f x))))
 (warrant! 'taylor-poly-at-center 'reference
-  "TAYLOR-POLY(f,x,n,x): every term k>=1 carries (x-x)^k = 0, and term 0 is
-   f^(0)(x)(x-x)^0/0! = f(x).  So the Taylor polynomial at its own centre is f(x).")
+  "Given x in RR and f^(k)(x) in RR for every k <= n (all derivatives up to order n
+   exist at the centre x), TAYLOR-POLY(f,x,n,x) is defined and collapses: each term
+   k>=1 carries (x-x)^k = 0, killed by mul-zero (valid since f^(k)(x) is a real), and
+   term 0 is f^(0)(x)(x-x)^0/0! = f(x).  So the Taylor polynomial at its own centre
+   equals f(x).  The derivative-existence guard is what makes both sides defined; the
+   consumer taylor-lagrange supplies it via TAYLOR-DIFFERENTIABLE (f^(k) continuous on
+   [a,x], so f^(k)(x) exists).")
 (category! 'taylor-poly-at-center 'analysis)
 
 (add-to-pss 'power-zero-base

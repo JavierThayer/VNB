@@ -21,8 +21,8 @@
 ;;; nn-le-refl + the rr order lemmas.
 ;;;
 ;;; Loaded after cauchy-subsequence (the cited supports) + interactive +
-;;; proof-debt (sp/di/mac/fact/qed).  See calculus/cauchy-subseq-via-
-;;; combinatorial.scm for the same assembly as an annotated probe.
+;;; proof-debt (sp/di/mac/fact/qed).  See archive/calculus-pre-rename/
+;;; cauchy-subseq-via-combinatorial.scm for the same assembly as an annotated probe.
 ;;; ====================================================================
 
 ;; ---- proof helpers (file-local; names verified unique across the load) ----

@@ -215,7 +215,7 @@
    pigeonhole-infinite on the infinite J (infinite fibre J_ subset J in one
    r-ball).  Same pieces as tb-has-eps-cauchy-subseq but over a sub-block J and
    producing the index set, not its enumeration.  The shared primitive of the
-   eps-Cauchy lemma and block-family; see calculus/block-family-rederive.scm.")
+   eps-Cauchy lemma and block-family; see archive/calculus-pre-rename/block-family-rederive.scm.")
 
 ;;; =======================================================================
 ;;; 3.  (A) The nested block family  --  pigeonhole recursion
@@ -258,7 +258,7 @@
    subset PTS(s) (centres in PTS(s) by DIST(s) typing).  Also hands back (PTS s) in SET
    (free from IS-METRIC-SPACE s), the set V the combinatorial engine needs.
    The metric content total boundedness contributes to block-family, isolated
-   in one bridge -- see calculus/cauchy-subseq-via-combinatorial.scm.")
+   in one bridge -- see archive/calculus-pre-rename/cauchy-subseq-via-combinatorial.scm.")
 
 ;;; cauchy-block-estimate: the metric LEAF of the Cauchy estimate, folded into
 ;;; one fully-curried lemma so the headline proof closes by a single `fact'
@@ -346,7 +346,7 @@
 ;;; a positive null rad, every PTS(s)-sequence has a Cauchy subsequence.
 ;;;
 ;;; Assembly (the non-circular glue -- the scout/tactic stress target, posed as a
-;;; goal in calculus/totally-bounded-cauchy-subseq.scm):
+;;; goal in archive/calculus-pre-rename/totally-bounded-cauchy-subseq.scm):
 ;;;   block-family gives the nested small-ball family S.  diagonalization gives a
 ;;;   strictly monotone phi with phi(j) in S(k) for all j >= k.  For m,n >= k the
 ;;;   terms f(phi m), f(phi n) both lie in BALL(s, c_k, rad k), so ball-2r-triangle

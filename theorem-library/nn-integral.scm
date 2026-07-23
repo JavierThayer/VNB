@@ -130,20 +130,15 @@
    both sides of 0 < y-x and simplify.  Strict twin of rr-le-from-diff-nonneg.")
 
 ;;; =======================================================================
-;;; nn-lt-double : k /= 0 => k < 2*k.  Your chain: k < 2k  iff  0 < 2k - k = k
-;;; iff  0 < k  iff  k /= 0.  Via NN <= RR, since the reduction uses subtraction.
+;;; nn-lt-double : k /= 0 => k < 2*k.  PROVEN by `calc' -- the notes-27 directive
+;;; grounded as the order/equational chain  k = k+0 < k+k = 2*k, with 0<k from
+;;; nn-pos-of-nonzero (discreteness, order-lemmas).  crs on the = links, the
+;;; NN->RR bridge + ineq (a real Farkas certificate) on the strict link, the
+;;; order composer folding them through co-lt-eq-trans / co-eq-lt-trans.  This
+;;; replaced a 14-line hand chain that billed trust:none (via nn-mul-closed);
+;;; the calc proof bills trust:well-known.
 (sp (make-wff '(FORALL k (IMPLIES (IN k NN) (IMPLIES (NOT (= k 0)) (< k (* 2 k)))))))
 (di)(di)(di)
-(fact 'nn-in-rr 'k)                      ; k in RR
-(ni-cut! '(AND (IN 2 NN) (IN k NN)))
-(fact 'nn-mul-closed 2 'k)               ; 2k in NN
-(fact 'nn-in-rr '(* 2 k))                ; 2k in RR
-(fact 'nn-zero-le 'k)                    ; 0 <= k
-(fact 'neq-sym 'k 0)                     ; 0 /= k
-(ni-cut! '(< 0 k) (lambda () (mac '<) (ni-from-context!)))   ; 0 < k := 0<=k and 0/=k
-;; 0 < 2k - k   (since 2k - k = k)
-(ni-cut! '(= (- (* 2 k) k) k) (lambda () (crs)))
-(ni-cut! '(< 0 (- (* 2 k) k)) (lambda () (subst '(= (- (* 2 k) k) k)) (ass)))
-(fact 'rr-lt-from-diff-pos 'k '(* 2 k))  ; 0 < 2k - k  =>  k < 2k
-(ass)
+(fact 'nn-pos-of-nonzero 'k)             ; 0 < k
+(calc 'k '(= (+ k 0)) '(< (+ k k)) '(= (* 2 k)))
 (ni-qed! 'nn-lt-double)

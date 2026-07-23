@@ -7,7 +7,8 @@
 ;;; Cauchy-criterion facts that back comparison-test, summable-cauchy, and the
 ;;; absolute => convergent bridges.
 ;;;
-;;; Real sequence vars are f, g (NOT `a' -> accessor A); index n_ / m (NOT `n'
+;;; Real sequence vars are f, g (NOT `a' -> the carrier accessor, `A' when this
+;;; was written, `CARR' now); index n_ / m (NOT `n'
 ;;; alone where it could fold with N); a bound is bnd; eps as usual.  Loads after
 ;;; power-series (SERIES-PARTIAL-SUM / SERIES-CONVERGES) and order-lemmas.
 ;;;

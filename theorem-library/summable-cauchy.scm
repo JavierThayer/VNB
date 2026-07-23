@@ -7,13 +7,13 @@
 ;;; The hypothesis "the consecutive-distance bound is summable" is stated with
 ;;; SERIES-CONVERGES (power-series.scm) on the real bound sequence rad, which is
 ;;; why this file loads after power-series.  Bound var is `rad', NOT `a' (case-
-;;; folds to the carrier accessor A).
+;;; folds to the carrier accessor, `A' when this was written, `CARR' now).
 ;;;
 ;;; Library-build phase: warranted well-known, no proof attempted
 ;;; [[feedback-pss-over-proof-slog]] [[project-metric-completion]].
 ;;;
 ;;; Dependencies: metric-completeness.scm (IS-CAUCHY-SEQ, CONVERGES, IS-COMPLETE,
-;;; IS-METRIC-SPACE, X, D), power-series.scm (SERIES-CONVERGES), numeric-
+;;; IS-METRIC-SPACE, PTS, DIST), power-series.scm (SERIES-CONVERGES), numeric-
 ;;; instances.scm (RR, RR-MS).
 
 ;;; -----------------------------------------------------------------------
