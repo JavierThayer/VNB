@@ -429,8 +429,8 @@
 ;;; structure's accessors.  It becomes the conjunct (NAME (acc1 s) ...) of
 ;;; the IS-X definition, so IS-X carries the structure's characteristic
 ;;; laws, not just its shape.
-(define (build-is-axiom struct-name slots properties #!optional laws)
-  (let* ((ivar          's)
+(define (build-is-axiom struct-name slots properties #!optional laws ivar0)
+  (let* ((ivar          (if (default-object? ivar0) 's ivar0))
          (all-accessors (map car slots))
          (is-name       (symbol-append 'IS- struct-name))
          (n             (length slots))
@@ -501,6 +501,18 @@
     ((null? (cdr cs))  (car cs))
     (else              `(AND ,(car cs) ,(conjuncts->and (cdr cs))))))
 
+;;; Build a guarded universal  (FORALL v1..vn. a1 => a2 => ... => concl)  and an
+;;; iff-over-a-conjunction  (FORALL v1..vn. IFF(lhs, AND(c1,...,ck)))  from FLAT
+;;; lists, so a deep formula is written as data rather than a hand-counted paren
+;;; pyramid.  (The recurring miscount is always the same: a right-nested AND/IMPLIES
+;;; chain loses its last close.  There is no last close to lose here.)
+(define (forall-guarded binders antecedents consequent)
+  (nest-quantifiers 'FORALL binders
+    (fold-right (lambda (a acc) `(IMPLIES ,a ,acc)) consequent antecedents)))
+
+(define (forall-iff binders lhs conjuncts)
+  (nest-quantifiers 'FORALL binders `(IFF ,lhs ,(conjuncts->and conjuncts))))
+
 (define (symbol-append . syms)
   (string->symbol (apply string-append (map symbol->string syms))))
 
@@ -539,7 +551,7 @@
                    'noun phrase 'article (structure--article-for phrase))
         (set! *derived-structure-nouns* (cons is-name *derived-structure-nouns*))))))
 
-(define (def-structure name slots axiom-names #!optional laws)
+(define (def-structure name slots axiom-names #!optional laws ivar0)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((source (current-load-pathname))   ; #f when not in a load context
          (sd (%make-structure-def name slots axiom-names source)))
@@ -561,7 +573,8 @@
     ;; IS-NAME definitional axiom (shape + the named characteristic laws)
     (let ((is-name (symbol-append 'IS- name))
           (axiom   (build-is-axiom name slots axiom-names
-                                   (if (default-object? laws) '() laws))))
+                                   (if (default-object? laws) '() laws)
+                                   (if (default-object? ivar0) 's ivar0))))
       (theory-add-axiom! *current-theory* is-name axiom)
       ;; the ONE table (operators.scm): every structure predicate is a unary
       ;; predicate, and def-structure is the only thing that makes one.
@@ -687,9 +700,9 @@
       (expand-destructuring-quantifiers (parse-string l))
       l))
 
-(define (def-substructure name parent laws0)
+(define (def-substructure name parent laws0 #!optional ivar0)
   (let* ((laws      (map structure--law->formula laws0))
-         (ivar      's)
+         (ivar      (if (default-object? ivar0) 's ivar0))
          (is-name   (symbol-append 'IS- name))
          (is-parent (symbol-append 'IS- parent))
          (def-name  (symbol-append 'is- name '-def))
@@ -719,32 +732,56 @@
   ;; Keep the clauses as written: they, not the expansion, are what the
   ;; browser and describe-structure show (see *structure-decl-table*).
   (record-structure-declaration! name clauses)
-  (let ((sh (find-first (lambda (c) (and (pair? c) (eq? (car c) 'same-shape-as)))
-                        clauses)))
-    (if sh
-        (let ((strays (filter (lambda (c)
-                                (and (pair? c)
-                                     (memq (car c) '(carriers op constant substructure))))
-                              clauses)))
-          (if (pair? strays)
-              (error (string-append
-                      "declare-structure " (symbol->string name)
-                      ": (same-shape-as ...) inherits the parent's shape, so it "
-                      "cannot declare slots.  A different shape is a different "
-                      "structure -- relate it with def-functor.")
-                     strays))
-          (def-substructure name (cadr sh)
-            (map cadr (filter (lambda (c) (and (pair? c) (eq? (car c) 'law))) clauses))))
-        (def-structure-from-shape-clauses name clauses))))
+  ;; The variable a (law ...) clause uses to name the instance is named EXPLICITLY
+  ;; by an (instance-var VAR) clause, and REQUIRED whenever the declaration carries
+  ;; any (law ...) clause: a law's bare `s' (or whatever) is a free variable captured
+  ;; by the FORALL of the IS-NAME axiom, and a reader should not have to infer which
+  ;; variable that is.  VAR is threaded through as the actual binder (build-is-axiom /
+  ;; def-substructure), so a group's laws may read over `g' if declared so.  A
+  ;; law-free declaration needs no instance variable and defaults to `s' internally.
+  (let* ((iv-clause (find-first (lambda (c) (and (pair? c) (eq? (car c) 'instance-var)))
+                                clauses))
+         (has-law   (find-first (lambda (c) (and (pair? c) (eq? (car c) 'law))) clauses))
+         (ivar      (if iv-clause (cadr iv-clause) 's))
+         (clauses   (filter (lambda (c) (not (and (pair? c) (eq? (car c) 'instance-var))))
+                            clauses)))
+    (when (and has-law (not iv-clause))
+      (error (string-append
+              "declare-structure " (symbol->string name)
+              ": a (law ...) clause uses a free variable for the structure instance,"
+              " so the declaration must name it with an (instance-var VAR) clause"
+              " (conventionally (instance-var s)).")))
+    (unless (symbol? ivar)
+      (error (string-append "declare-structure " (symbol->string name)
+                            ": (instance-var VAR) needs a symbol") ivar))
+    (let ((sh (find-first (lambda (c) (and (pair? c) (eq? (car c) 'same-shape-as)))
+                          clauses)))
+      (if sh
+          (let ((strays (filter (lambda (c)
+                                  (and (pair? c)
+                                       (memq (car c) '(carriers op constant substructure))))
+                                clauses)))
+            (if (pair? strays)
+                (error (string-append
+                        "declare-structure " (symbol->string name)
+                        ": (same-shape-as ...) inherits the parent's shape, so it "
+                        "cannot declare slots.  A different shape is a different "
+                        "structure -- relate it with def-functor.")
+                       strays))
+            (def-substructure name (cadr sh)
+              (map cadr (filter (lambda (c) (and (pair? c) (eq? (car c) 'law))) clauses))
+              ivar))
+          (def-structure-from-shape-clauses name clauses ivar)))))
 
-(define (def-structure-from-shape-clauses name clauses)
+(define (def-structure-from-shape-clauses name clauses #!optional ivar0)
   ;; Build the slot list in declaration order.  A (carriers C1 C2 ...) clause
   ;; contributes one carrier slot per name, in left-to-right order.  Op and
   ;; constant clauses each contribute one slot.  Property clauses contribute
   ;; to the props list, not slots.
   (let loop ((rest clauses) (slots '()) (props '()) (laws '()))
     (if (null? rest)
-        (def-structure name (reverse slots) (reverse props) (reverse laws))
+        (def-structure name (reverse slots) (reverse props) (reverse laws)
+                       (if (default-object? ivar0) 's ivar0))
         (let* ((clause (car rest))
                (kind   (car clause)))
           (cond

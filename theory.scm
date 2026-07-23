@@ -70,6 +70,28 @@
 (define (gloss! name text)
   (register-gloss! name text))
 
+;;; User-facing: (cite-book! 'KEY "Name" "Title" "Edition" "/path/to.pdf")
+;;; registers a source a `reference' warrant may cite by KEY.  Only KEY and
+;;; Name are required; Title/Edition/PDF may be omitted or "".  Thereafter
+;;;   (warrant! 'thm 'reference '(KEY "Prop. II.2.1"))       ; human citation
+;;;   (warrant! 'thm 'reference '(KEY "Prop. II.2.1" 87))    ; + PDF page anchor
+;;; The inline citation renders "Name, Title, Prop. II.2.1" (edition-stable);
+;;; the page is kept as a separate machine anchor, not shown in the human text.
+(define (cite-book! key name #!optional title edition pdf-path)
+  (register-book! key name
+                  (if (default-object? title) #f title)
+                  (if (default-object? edition) #f edition)
+                  (if (default-object? pdf-path) #f pdf-path)))
+
+;;; User-facing: (rests-on 'R '(A B)) declares that the ASSERTED theorem R's
+;;; cited (textbook) proof rests on base theorems A, B.  These become edges the
+;;; cycle checker walks, so the reference base is verified acyclic and a proof
+;;; built on it cannot be circular.  Asserted metadata: the machine enforces the
+;;; declared order is a DAG, it does not verify the dependency claim.  Place
+;;; after the warrant!, like gloss!.  See the REST-ON GRAPH block in macetes.scm.
+(define (rests-on name deps)
+  (register-rests-on! name deps))
+
 ;;; User-facing: (category! 'NAME 'category) files NAME under one of the PSS
 ;;; categories (*pss-category-order* in macetes.scm).  The category is also the
 ;;; INTAKE DISCIPLINE for new entries: when a proof is blocked and you assert a

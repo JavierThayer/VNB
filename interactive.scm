@@ -506,8 +506,9 @@
              (lambda ()
                (let ((raw (->raw-formula/idx f)))
                  (if (vnb-warning? raw) raw (cmd-antecedent-inference *ps* raw))))))
-;; Equality substitution: eq is (= s t); s = t must be in context.
-;; Rewrites s -> t throughout the goal (Leibniz schema).
+;; Equality substitution: eq is (= s t) or (== s t); the (quasi-)equality must
+;; be in context, under EITHER head and in EITHER orientation (pi-eq-subst!
+;; searches all four).  Rewrites s -> t throughout the goal (Leibniz schema).
 (define (subst eq) (let ((raw (->raw-formula eq)))
                      (vnb--run! 'subst (list raw) (lambda () (cmd-eq-subst *ps* raw)))))
 (define (cut f) (let ((raw (->raw-formula f)))

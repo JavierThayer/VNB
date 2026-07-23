@@ -227,6 +227,43 @@
 (define (dk-fired? node) (not (null? (sequent-node-in-arrows node))))
 
 ;;; -----------------------------------------------------------------------
+;;; have! / from-context! -- the "let it be so, here's why" step and a structural
+;;; closer.  Promoted from the sqrt(2) descent; shared by that proof and `vlet'.
+
+(define (dk-goal-of s) (wff-formula (sequent-node-assertion s)))
+(define (dk-asms-of s) (map wff-formula (sequent-node-assumptions s)))
+
+;; ground the FOCUS goal by its structure:
+;;   AND        -> di-split and recurse on each conjunct
+;;   (IN a*b NN) -> nn-mul-closed on the factors, then ass  (typing bookkeeping)
+;;   (IN k NN), k a numeral -> arith
+;;   otherwise  -> ass (the goal is a context assumption up to alpha)
+(define (from-context!)
+  (let ((g (dk-goal)))
+    (cond
+      ((and (pair? g) (eq? (car g) 'AND))
+       (for-each (lambda (k) (dk-focus! k) (from-context!)) (dk-opened (lambda () (di)))))
+      ((and (pair? g) (eq? (car g) 'IN) (eq? (caddr g) 'NN)
+            (pair? (cadr g)) (eq? (car (cadr g)) '*))
+       (fact 'nn-mul-closed (cadr (cadr g)) (caddr (cadr g))) (ass))
+      ((and (pair? g) (eq? (car g) 'IN) (number? (cadr g))) (arith))
+      (else (ass)))))
+
+;; (have! CLAIM)         -- cut CLAIM, prove its side goal with from-context!
+;; (have! CLAIM THUNK)   -- ... prove it with THUNK instead
+;; Leaves focus on the MAIN branch (CLAIM now a context assumption).  Errors --
+;; never silently no-ops -- if CLAIM is already in context up to alpha (the cut
+;; self-loops: one child, no main branch).
+(define (have! form . opt)
+  (let* ((thunk (and (pair? opt) (car opt)))
+         (new  (dk-opened (lambda () (cut form))))
+         (side (or (any-pred (lambda (s) (alpha-equiv? (dk-goal-of s) form)) new)
+                   (error "have!: no side goal for" form)))
+         (main (or (any-pred (lambda (s) (not (eq? s side))) new)
+                   (error "have!: no main branch (CLAIM already in context up to alpha?)" form))))
+    (dk-focus! side) (if thunk (thunk) (from-context!)) (dk-focus! main) main))
+
+;;; -----------------------------------------------------------------------
 ;;; Arm the containment.  From here on prover-load gives every theorem-library/
 ;;; and calculus/ file its own top-level environment (load.scm).
 (define *driver-kit-env* (the-environment))

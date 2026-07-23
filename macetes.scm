@@ -873,6 +873,128 @@
 ;;; is metadata for review and triage.
 (define *warrant-kinds* '(hand-wave well-known reference informal proof))
 
+;;; -----------------------------------------------------------------------
+;;; BOOK REGISTRY -- the sources a `reference' warrant may cite.
+;;;
+;;; A reference splits into two jobs that were being conflated in the free
+;;; text.  A HUMAN citation -- a named/numbered result, edition-stable
+;;; ("Lang, Algebra, Prop. II.2.1"), what a person reads and re-finds on any
+;;; edition.  And an optional MACHINE anchor -- {book-key, page} -- a tool
+;;; resolves against the PDF the user actually holds.  ONE registry carries
+;;; both: a short key -> the book's cite name + title (+ edition, + local PDF).
+;;;
+;;;   (cite-book! 'lang "Lang" "Algebra" "3rd ed." "/home/ubuntu/books/lang.pdf")
+;;;   (warrant! 'foo 'reference '(lang "Prop. II.2.1"))       ; human only
+;;;   (warrant! 'foo 'reference '(lang "Prop. II.2.1" 87))    ; + page anchor
+;;;
+;;; DELIBERATELY additive and reversible: a reference locator may still be a
+;;; bare STRING (the pre-registry form, 158 legacy entries), in which case it
+;;; is the human citation verbatim -- no key, no anchor.  Nothing is migrated;
+;;; if the discipline proves unworkable, the registry lifts out cleanly.
+(define-record-type <book>
+  (make-book bkey name title edition pdf-path)
+  book?
+  (bkey     book-key)
+  (name     book-name)                  ; short cite name, e.g. "Lang"
+  (title    book-title)                 ; e.g. "Algebra"
+  (edition  book-edition)               ; e.g. "3rd ed."  (NOT in the inline cite)
+  (pdf-path book-pdf-path))             ; local PDF, or #f when not yet on disk
+
+(define *books* (make-equal-hash-table))   ; key-symbol -> <book>
+
+(define (register-book! key name title edition pdf-path)
+  (define (blank? s) (or (not s) (and (string? s) (string-null? s))))
+  (hash-table-set! *books* key
+    (make-book key name
+               (and (not (blank? title)) title)
+               (and (not (blank? edition)) edition)
+               (and (not (blank? pdf-path)) pdf-path)))
+  key)
+
+(define (book-of key) (hash-table-ref/default *books* key #f))
+
+;;; "Lang, Algebra" -- short name plus title (title dropped if absent).  Falls
+;;; back to the bare key string when the book was never registered.
+(define (book-cite-name bk key)
+  (if bk
+      (if (book-title bk)
+          (string-append (book-name bk) ", " (book-title bk))
+          (book-name bk))
+      (symbol->string key)))
+
+;;; Parse a reference locator (as passed to warrant! with kind 'reference).
+;;; Returns (values HUMAN-STRING ANCHOR) where ANCHOR is #f or (book-key . page):
+;;;   STRING             -- legacy: HUMAN = the string verbatim, ANCHOR = #f.
+;;;   (KEY LOCATOR)      -- HUMAN = "<cite-name>, <LOCATOR>", ANCHOR = #f.
+;;;   (KEY LOCATOR PAGE) -- additionally ANCHOR = (KEY . PAGE).
+;;; An unregistered KEY warns (like an unknown warrant kind) but still renders.
+(define (reference-parse loc)
+  (cond
+    ((string? loc) (values loc #f))
+    ((and (pair? loc) (symbol? (car loc)))
+     (let* ((key   (car loc))
+            (where (and (pair? (cdr loc)) (cadr loc)))
+            (page  (and (pair? (cdr loc)) (pair? (cddr loc)) (caddr loc)))
+            (bk    (book-of key)))
+       (unless bk
+         (display ";; WARNING: reference cites unregistered book ")
+         (write key) (display " -- register it with (cite-book! ...)") (newline))
+       (values (if (and where (not (string-null? where)))
+                   (string-append (book-cite-name bk key) ", " where)
+                   (book-cite-name bk key))
+               (and page (cons key page)))))
+    (else
+     (display ";; WARNING: malformed reference locator ") (write loc) (newline)
+     (values (call-with-output-string (lambda (p) (write loc p))) #f))))
+
+(define *reference-anchors* (make-equal-hash-table))  ; name -> (book-key . page)
+(define (reference-anchor-of name)
+  (hash-table-ref/default *reference-anchors* name #f))
+
+;;; -----------------------------------------------------------------------
+;;; REST-ON GRAPH -- declared logical dependencies of ASSERTED theorems.
+;;;
+;;; An asserted (e.g. reference-warranted) theorem has no VNB proof, so it is a
+;;; LEAF in the proof-citation graph: the cycle checker cannot see that its
+;;; TEXTBOOK proof rests on other base theorems, hence cannot catch a circular
+;;; reference base.  (rests-on! 'R '(A B)) records that R's cited proof depends
+;;; on A and B -- asserted metadata (the machine enforces the declared order is
+;;; acyclic; it cannot verify the claim itself).  proof-debt.scm's
+;;; proof-citations-of reads this for NON-proven nodes, so the SAME
+;;; proof-cycle-check then walks the asserted base too, and a new proof is
+;;; non-circular by construction (unreachable from its own declared base).  A
+;;; proven node ignores its rests-on (its real proof citations supersede the
+;;; declaration).  Undeclared => a sink, exactly as before.  Storage lives here
+;;; (loaded early, before any citing file); proof-debt.scm does the walking.
+(define *rests-on-graph* (make-equal-hash-table))   ; name -> (dep ...)
+
+(define (register-rests-on! name deps)
+  (unless (list? deps)
+    (display ";; WARNING: rests-on for ") (write name)
+    (display " expects a list of theorem names, got ") (write deps) (newline))
+  (hash-table-set! *rests-on-graph* name (if (list? deps) deps '()))
+  name)
+
+(define (rests-on-of name)
+  (hash-table-ref/default *rests-on-graph* name '()))
+
+(define (rests-on-declared-names)
+  (hash-table-keys *rests-on-graph*))
+
+;;; rests-on deps that name no installed theorem -- typo guard, since a mistyped
+;;; dep would silently be a sink and weaken the cycle check.  Returns a list of
+;;; (declaring-name . bad-dep).  Soft-nudged at load-end (all names installed by
+;;; then; a forward reference during load is not yet resolvable, so check late).
+(define (rests-on-unknown-deps)
+  (let ((bad '()))
+    (hash-table-walk *rests-on-graph*
+      (lambda (name deps)
+        (for-each (lambda (d)
+                    (unless (hash-table-ref/default *theorem-table* d #f)
+                      (set! bad (cons (cons name d) bad))))
+                  deps)))
+    (reverse bad)))
+
 (define *warrants* (make-equal-hash-table))   ; name -> (kind . text)
 
 (define (register-warrant! name kind text)
@@ -881,12 +1003,24 @@
     (write kind) (display " for ") (write name)
     (display " -- expected one of ")
     (write *warrant-kinds*) (newline))
-  (hash-table-set! *warrants* name (cons kind text))
-  ;; Propagate the warrant to the auto-generated -rev companion (same fact,
-  ;; flipped), so warranting a forward doesn't leave its reverse unwarranted.
-  (let ((rev (rev-name-of name)))
-    (when (hash-table-ref/default *theorem-table* rev #f)
-      (hash-table-set! *warrants* rev (cons kind text))))
+  ;; For 'reference, TEXT may be a structured locator (book-key ...): resolve
+  ;; it to the human citation stored/rendered as before, and stash any machine
+  ;; anchor separately.  A bare string passes through untouched (legacy form),
+  ;; so every existing warrant and every renderer is unaffected.
+  (let ((text* text) (anchor #f))
+    (when (eq? kind 'reference)
+      (call-with-values (lambda () (reference-parse text))
+        (lambda (human a) (set! text* human) (set! anchor a))))
+    (hash-table-set! *warrants* name (cons kind text*))
+    (if anchor
+        (hash-table-set! *reference-anchors* name anchor)
+        (hash-table-delete! *reference-anchors* name))
+    ;; Propagate the warrant to the auto-generated -rev companion (same fact,
+    ;; flipped), so warranting a forward doesn't leave its reverse unwarranted.
+    (let ((rev (rev-name-of name)))
+      (when (hash-table-ref/default *theorem-table* rev #f)
+        (hash-table-set! *warrants* rev (cons kind text*))
+        (when anchor (hash-table-set! *reference-anchors* rev anchor)))))
   name)
 
 (define (warrant-of name)
@@ -1108,6 +1242,23 @@
 
 (define (gloss-of name)
   (hash-table-ref/default *glosses* name #f))
+
+;;; DISCIPLINE (soft, going forward): a reference-warranted entry SHOULD carry
+;;; a gloss! -- the plain-English statement is what makes the base searchable
+;;; by content rather than by symbol soup.  Returns the reference-warranted
+;;; names with no gloss, sorted.  Soft-nudged (count only) in load.scm; never a
+;;; gate.  The 158 legacy computational lemmas are grandfathered, not migrated.
+(define (reference-warrants-without-gloss)
+  (let ((bad '()))
+    (hash-table-walk *warrants*
+      (lambda (name w)
+        (when (and (eq? (car w) 'reference) (not (gloss-of name)))
+          (set! bad (cons name bad)))))
+    ;; Drop auto-installed -rev companions: they inherit the forward's warrant
+    ;; and gloss and are not independent entries (collapse-rev-names loads later,
+    ;; in interactive.scm, but this runs at load-end when it is present).
+    (sort (collapse-rev-names bad)
+          (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Categories: which KIND of PSS fact this is -- and, as an intake

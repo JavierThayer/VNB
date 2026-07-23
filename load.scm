@@ -43,6 +43,9 @@
     "macetes"
     "theory"
     "structures"
+    ;; Book registry — sources a `reference' warrant may cite by key.  Must
+    ;; precede every structure-library / theorem-library file that cites one.
+    "structure-library/references"
     ;; Named operation properties — referenced by structure declarations.
     "structure-library/operation-properties"
     ;; Theorem library (axioms not yet derivable from kernel)
@@ -63,6 +66,11 @@
     "structure-library/ring"
     "structure-library/metric-space"
     "structure-library/setoid"
+    ;; RINGOID = [R, I]: a ring with a distinguished two-sided ideal.  The ring
+    ;; analogue of SETOID; the ideal induces the congruence a~b iff a-b in I, and
+    ;; R/I is the setoid quotient with ring operations descended.  Needs ring +
+    ;; setoid (the view target, wired in a later increment).
+    "structure-library/ringoid"
     "structure-library/metric-topology"
     "structure-library/ring-simplify"
     ;; Commutative-ring identity decision procedure (multiset monomials);
@@ -141,6 +149,7 @@
     ;; Needs IS-OPEN/IS-CLOSED (above), TOTALLY-BOUNDED/BALL (metric-topology),
     ;; IS-COMPLETE (metric-completeness).
     "structure-library/compactness"
+    "structure-library/separable"
     ;; Restrictive ring/field structures (genuine IS-X predicates; need NN/RR
     ;; from number-systems, used by numeric-instances below).
     "structure-library/commutative-ring"
@@ -193,6 +202,11 @@
     ;; Needs IS-CONTINUOUS (metric-continuity), RR-MS (numeric-instances above)
     ;; and the f(t)=t/(1+t) family (scalar-inequalities).
     "structure-library/bounded-metric"
+    ;; PSEUDOMETRIC-SPACE + the gauge topology of a countable pseudometric family
+    ;; (PSEUDO-GAUGE-TOP / IS-GAUGE-COUNTABLE), and the metrizability cluster
+    ;; T2/T3/T4 as warranted supports.  Needs top-space (IS-METRIZABLE-TOP-SPACE,
+    ;; METRIC-TOP, IS-HAUSDORFF) and bounded-metric (IS-BOUNDED-METRIC-SPACE).
+    "structure-library/pseudometric"
     ;; Completion of a metric space = Cauchy sequences / null-distance, as a
     ;; concrete setoid quotient.  Needs setoid (QUOTIENT/CLASS), metric-
     ;; completeness (IS-CAUCHY-SEQ/CONVERGES-TO/IS-COMPLETE) and RR-MS
@@ -371,6 +385,23 @@
     ;; nn-least-element, resolved by NAME at call time, so it may load here,
     ;; long before theorem-library/nn-least-element.
     "minimize"
+    ;; calc -- the directive/chain checker (notes-27): ground a goal (REL L0 Ln)
+    ;; by a chain of intermediaries, proving each link (crs / ineq+bridge / cited)
+    ;; and composing them (cong / iff / order composers).  A composite over the
+    ;; cmd-* layer; the composition lemmas (co-*-trans) live in order-lemmas.
+    ;; Needs interactive + driver-kit + ineq-oracle + order-lemmas, all above.
+    "calc"
+    ;; sketch -- the structured-proof surface (sketch/step/obtain/qed-sketch):
+    ;; generalizes `calc' off chains onto the whole argument.  Each intermediate
+    ;; claim is cut and discharged by a lane; a claim that will not discharge is
+    ;; GRANTED to context and reported by name (the two-outcome calc contract).
+    ;; Reuses calc's lane machinery, so it loads right after calc.
+    "sketch"
+    ;; vlet -- (vlet (names) FORMER): bind names to proof objects.  `match' selects
+    ;; subterms of a context formula by a pattern with named holes; `choice' eliminates
+    ;; an existential (present, or cut-as-debt) and binds its witness, landing the
+    ;; witness's defining property for free.  Reuses driver-kit + sketch (sk--split!).
+    "vlet"
     ;; transport! -- a law proved in a STRUCTURE, delivered at an INSTANCE in the
     ;; SURFACE language: specialize-structure, then the instance's own slot
     ;; macetes (ZZ-RING@ADD), then the surface bridges (binplus-apply).  All
@@ -411,6 +442,11 @@
     ;; (2x is never succ(2y)) -- the two halves of "even iff not odd", and the
     ;; engine for parity on ZZ.  Needs nn-arith, order-lemmas, driver-kit.
     "theorem-library/nn-parity-proof"
+    ;; mod-3 arithmetic on NN, the mirror of nn-parity-proof: the trichotomy
+    ;; (n = 3k / succ 3k / succ^2 3k), residue-exclusivity (3x /= succ 3y), and the
+    ;; linchpin nn-3-div-square (3|p*p => 3|p) -- plus nn-3-cancel / nn-lt-triple.
+    ;; Feeds sqrt3-proof.  Needs nn-parity-proof + nn-integral (nn-mul-cancel).
+    "theorem-library/nn-mod3-proof"
     ;; The three BIJECTION projection lemmas (in-fun / injective / surjective),
     ;; PROVEN modulo 0 from bijection-membership-iff -- formerly asserted in
     ;; bijection.scm "for direct use" (phantom debt).
@@ -435,6 +471,14 @@
     ;; countable Tychonoff headline, PROVEN to QED modulo the diagonalization
     ;; keystone.  Needs seq-compact-product's supports + interactive/proof-debt.
     "theorem-library/tychonoff-proof"
+    "theorem-library/ascoli-arzela-statement"
+    "theorem-library/ascoli-bridge"
+    ;; Functional-analysis statement seeds (stated 2026-07-22; proofs deferred).
+    "theorem-library/order-zorn"
+    "theorem-library/zorn-proof"
+    "theorem-library/seminorm-hahn-banach"
+    "theorem-library/baire-category"
+    "theorem-library/frechet-open-mapping"
     ;; subseq-of-convergent: a subsequence of a convergent sequence converges to
     ;; the same limit.  A keystone brick.  Needs cauchy-subsequence + metric-
     ;; completeness supports + interactive.
@@ -455,6 +499,16 @@
     ;; the <=_ORD/<= bridge; exercises the new ai iff-elim.  Needs interactive
     ;; tactics + qed and the ordinal axioms.
     "theorem-library/nn-least-element"
+    ;; sqrt(2) is irrational, on NN: forall p,q in NN. q/=0 => p*p /= 2*(q*q).
+    ;; Infinite descent by minimize! (so loads after nn-least-element); every witness
+    ;; named by `obtain', typing and algebra by have!/from-context!.  Asserts nothing
+    ;; of its own (nn-mul-nonzero / nn-2-cancel are proven above).  Needs nn-even-square
+    ;; (nn-parity-proof), nn-lt-double (nn-integral), sketch (obtain/sk--split!).
+    "theorem-library/sqrt2-proof"
+    ;; sqrt(3) irrational, on NN: forall p,q in NN. q/=0 => p*p /= 3*(q*q).  Port of
+    ;; sqrt2-proof, 2 -> 3, nn-even-square -> nn-3-div-square (nn-mod3-proof).  Asserts
+    ;; nothing of its own.  Needs nn-mod3-proof + nn-least-element (minimize!).
+    "theorem-library/sqrt3-proof"
     ;; euclidean-ideal-has-generator, PROVEN by `minimize!' (formerly an asserted
     ;; support in structure-library/ideal.scm).  THE mathematical core of
     ;; "every Euclidean ring is a PID".  Needs nn-least-element (for minimize!),
@@ -688,6 +742,7 @@
     ;; case via a norm-attaining functional (consumes norm-attained/bounded +
     ;; scalar taylor-lagrange).  Linear-algebra commutation cores warranted.
     "theorem-library/vector-taylor-proof"
+    "theorem-library/nvs-taylor-statement"
     ;; The constructions a functor is INVISIBLE to.  A functoid that reads its
     ;; structure argument only through slots the functor carries ON THE NOSE
     ;; (PREIMAGE reads only PTS; METRIC-TOP carries PTS) satisfies
@@ -698,13 +753,21 @@
     ;; the tactic layer, and BEFORE any proof that cites one of its equations
     ;; (metric-top-functorial-proof does).
     "structure-library/functor-invariance"
-    ;; The metric open sets form a topology: METRIC-TOP's TYPING obligation
-    ;; (top-space.scm).
+    ;; The metric opens form a topology (metric-top-is-top-space) and METRIC-TOP(md)
+    ;; is a METRIZABLE-TOP-SPACE: METRIC-TOP's TYPING obligation (top-space.scm).
     "theorem-library/metric-top-proof"
-    ;; ... and its FUNCTORIALITY: a continuous map pulls opens back to opens, so
-    ;; Met -> Top is a functor.  Both obligations discharged; METRIC-TOP is now a
-    ;; functor we HAVE rather than one we declared.  Needs metric-top-proof.
+    ;; ... and its FUNCTORIALITY: an isometry induces a continuous map, so
+    ;; Met -> Metrizable-Top is a functor.  Both obligations discharged.  Needs
+    ;; metric-top-proof (cites metric-top-is-metrizable-top-space).
     "theorem-library/metric-top-functorial-proof"
+    ;; T1: metrizable <=> metrizable by a BOUNDED metric.  Needs metric-top-proof
+    ;; (metric-top-is-metrizable-top-space) and the bounded-metric packagings
+    ;; (metrizable-has-metric-top, bdd-metric-is-bounded-metric-space,
+    ;; bdd-metric-preserves-metric-top).
+    "theorem-library/metrizable-bounded-proof"
+    ;; A ringoid's congruence (a ~ b iff a-b in the ideal) is an equivalence
+    ;; relation, so RINGOID-SETOID is a setoid.  Needs structure-library/ringoid.
+    "theorem-library/ringoid-setoid-proof"
     ;; LaTeX rendering of formulas (used by Emacs vnb-view-as-pdf).
     "tex-output"
     ;; Render a completed proof as a LaTeX step-trace ((proof-tex name) /
@@ -730,6 +793,11 @@
     ;; oracle at the focus, committing the lane that closes.  Needs suggest
     ;; (vnb--scratch-state), interactive (apply-recorded-cmd!), ineq-oracle.
     "structure-library/rr-ineq"
+    ;; (prep 'ineq) -- the diagnosis table: run a tactic's OWN preconditions and
+    ;; report which one fails and what repairs it, instead of the single #f every
+    ;; unmet precondition collapses to.  Read-only; every probe is a scratch
+    ;; clone.  Needs suggest (vnb--scratch-state), ineq-oracle, interactive.
+    "prep"
     ;; Library hygiene diagnostics: (audit-unbounded) scans for the partial-
     ;; equality hazard (unbounded universals feeding partial terms under =).
     "audit"
@@ -881,7 +949,8 @@
 ;;; quoted data) is harmless: it just loads as source.
 (define *vnb-top-level-macros*
   '(("(bc* "               . "interactive")     ; macro . its definition site
-    ("(declare-structure " . "structures")))
+    ("(declare-structure " . "structures")
+    ("(vlet "              . "vlet")))
 
 (define (vnb-file-uses-bc*-macro? f)
   (find-first
@@ -1008,7 +1077,7 @@
   (if (null? cycles)
       (display ";; proof-cycle-check: ok (no proven theorem depends on itself)\n")
       (begin
-        (display ";; PROOF-CYCLE WARNING: ")
+        (display ";; PROOF-CYCLE ERROR: ")
         (display (length cycles))
         (display " circular dependency cycle(s) among proven theorems:\n")
         (for-each (lambda (c)
@@ -1017,7 +1086,27 @@
                       (cond ((null? (cdr p)) (display (car p)))
                             (else (display (car p)) (display " -> ") (inner (cdr p)))))
                     (newline))
-                  cycles))))
+                  cycles)
+        ;; Hard gate: a genuine proof cycle is a soundness bug -- stop the world,
+        ;; as the case-fold gate below does.  (Own-name and definitional-unfold
+        ;; edges are already excluded in record-proof-debt!, so a surviving cycle
+        ;; runs through real proven citations.)  If a legitimate mutual induction
+        ;; ever trips this, the fix is to exclude that edge at record time, never
+        ;; to soften the gate to a warning.
+        (error "proof-cycle-check: circular proof dependency among proven theorems"
+               cycles))))
+
+;; rests-on typo nudge (soft): a (rests-on 'R '(A B)) dep that names no installed
+;; theorem is silently a sink -- it weakens the DAG check without saying so.
+;; Report them by (declaring . bad-dep) so they can be fixed; never a gate.
+(let ((bad (rests-on-unknown-deps)))
+  (if (null? bad)
+      (when (pair? (rests-on-declared-names))
+        (display ";; rests-on: ok (all declared dependencies name installed theorems)\n"))
+      (begin
+        (display ";; rests-on: ") (display (length bad))
+        (display " declared dependenc(y/ies) naming no installed theorem:\n   ")
+        (write bad) (newline))))
 
 ;; Soundness gate: the reader case-folds symbols, so a binder pair differing
 ;; only in case (FORALL N .. FORSOME n) collapses and silently changes meaning
@@ -1127,6 +1216,18 @@
         (display ";; pss-categories: ") (display (length un))
         (display " uncategorized PSS entr(y/ies) -- file with (category! 'name 'cat):\n   ")
         (write un) (newline))))
+
+;; Gloss nudge (soft, count only -- a discipline going forward, not a gate and
+;; not a march-order over the legacy backlog): reference-warranted entries want
+;; a gloss! so the base is searchable by content.  Report a bare count; the
+;; names are available via (reference-warrants-without-gloss) when wanted.
+(let ((n (length (reference-warrants-without-gloss))))
+  (if (zero? n)
+      (display ";; reference-glosses: ok (every reference-warranted entry glossed)\n")
+      (begin
+        (display ";; reference-glosses: ") (display n)
+        (display " reference-warranted entr(y/ies) without a gloss")
+        (display " -- (reference-warrants-without-gloss) to list\n"))))
 
 ;; Rebuild the browser reference (the reference.html hub + one page per doc)
 ;; from the just-refreshed .md files.  The .md regenerate on every load but the

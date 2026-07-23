@@ -706,8 +706,20 @@
                                   (inst-run? (proof-reader--inst-row g ht))
                                   (main (proof-reader--gloss main main-pre-goal pre-asms))
                                   (else "")))
+                   ;; What a merged closer closed depends on what it followed: a
+                   ;; `cut' opens a SIDE goal and the steps after it prove that,
+                   ;; and a typing row is a side condition; anything else and the
+                   ;; closer closed the branch's own goal.  Saying "(closes)" for
+                   ;; both read as though the auxiliary claim closed the theorem.
+                   (side?   (and primary
+                                 (or (eq? kind 'typing)
+                                     (eq? (proof-reader--tac (ir-rec primary)) 'cut))))
+                   (by-ass? (and closer (eq? (proof-reader--tac closer) 'ass)))
                    (close-txt (cond ((not closer) "")
-                                    ((memq (car (car closer)) '(ass)) "  \\emph{(holds by assumption)}")
+                                    (side? (if by-ass?
+                                               "  \\emph{(side goal holds by assumption)}"
+                                               "  \\emph{(side goal discharged)}"))
+                                    (by-ass? "  \\emph{(holds by assumption)}")
                                     (else "  \\emph{(closes)}")))
                    (is-ni   (and main (eq? (car (car main)) 'ni)))
                    (new-indvar (if is-ni

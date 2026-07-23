@@ -3078,12 +3078,16 @@
 ;; The Met -> Top functor forced the question: it carries CONTINUOUS maps, and
 ;; over isometries its functoriality obligation would degenerate to "an isometry
 ;; is continuous" -- true and empty.  The isometries survive as IS-ISOMETRY.
-(check-true "METRIC-SPACE's hom is continuity (the isometry hom is overridden)"
+;; METRIC-SPACE's morphisms are its ISOMETRIES (the generated preservation of DIST),
+;; NOT continuity -- a continuous map is a morphism of the underlying metrizable
+;; topological space, which is a different category (METRIZABLE-TOP-SPACE).  So the hom
+;; is the GENERATED one, no declare-hom! override.
+(check-true "METRIC-SPACE's hom is its isometry (generated preservation-of-DIST, not overridden)"
   (lambda ()
     (let ((s (expression->string
                (hash-table-ref/default *theorem-table* 'is-hom-metric-space-def #f))))
-      (and (string-search-forward "is-continuous(s, t, f)" s 0)
-           (hom-overridden? 'metric-space)
+      (and (string-search-forward "(dist(b))(f(" s 0)
+           (not (hom-overridden? 'metric-space))
            #t))))
 
 ;; (def-predicate names its defining IFF after the predicate itself -- `is-isometry',
@@ -3101,9 +3105,9 @@
 (check-true "METRIC-TOP records both obligations, and asserts neither"
   (lambda ()
     (and (equal? (map car (functor-obligations 'metric-top))
-                 '(metric-top-is-top-space metric-top-functorial))
+                 '(metric-top-is-metrizable-top-space metric-top-functorial))
          ;; both are available as goals, ready for sp
-         (functor-obligation 'metric-top-is-top-space)
+         (functor-obligation 'metric-top-is-metrizable-top-space)
          (functor-obligation 'metric-top-functorial)
          #t)))
 
@@ -3182,15 +3186,16 @@
     (string=? (wff->english '(FORALL a (IMPLIES (IS-EUCLIDEAN-RING a) (IS-RING a))))
               "for every Euclidean ring a, a is a ring")))
 
-;; A GENERATED hom is preservation-of-slots, so "homomorphism" is right for it.  A
-;; species that OVERRIDES its morphisms means something else and says so beside the
-;; override: METRIC-SPACE's hom is CONTINUITY.
-(check-true "a generated hom reads 'homomorphism'; an overridden one says its own word"
+;; A GENERATED hom is preservation-of-slots.  For a ring that reads "homomorphism"; for
+;; METRIC-SPACE the preserved slot is DIST, so its generated hom is the ISOMETRY.  (An
+;; OVERRIDDEN hom, like TOP-SPACE's / METRIZABLE-TOP-SPACE's continuity, says its own word
+;; beside the override.)
+(check-true "a generated hom reads its slot-preservation word (ring homomorphism; metric isometry)"
   (lambda ()
     (and (string=? (wff->english '(IS-HOM-RING a b f))
                    "f is a homomorphism from a to b")
          (string=? (wff->english '(IS-HOM-METRIC-SPACE a b f))
-                   "f is continuous from a to b")
+                   "f is an isometry from a to b")
          #t)))
 
 (check-true "the whole functoriality theorem reads as English"
@@ -3209,6 +3214,24 @@
       (when (pair? bare)
         (display "\n  predicates with no notation!: ") (display bare) (newline))
       (null? bare))))
+
+;; The reader annotates a group that ends in a closer.  WHAT got closed is the
+;; whole content of the annotation, and it is not uniform: a `cut' opens a SIDE
+;; goal (and a typing row is a side condition), so the steps that follow prove
+;; that -- but the proof's LAST group closes the theorem itself.  Printing
+;; "(closes)" under both read as though the auxiliary claim closed the theorem.
+;; nn-lt-double is the specimen: `calc' emits three side goals (two cuts and the
+;; NN->RR typing row) and then closes the main goal by `ass'.
+(check-true "a cut's closer says SIDE goal; the closer of the main goal does not"
+  (lambda ()
+    (let ((s (proof-reader 'nn-lt-double)))
+      (and (string-search-forward "Introduce the auxiliary claim" s 0)
+           (string-search-forward "(side goal discharged)" s 0)
+           ;; the final row closes the THEOREM: it must not claim to be a side goal
+           (string-search-forward "(holds by assumption)" s 0)
+           (not (string-search-forward "(side goal holds by assumption)" s 0))
+           (not (string-search-forward "(closes)" s 0))
+           #t))))
 
 ;; spot-check the readings that are easy to get BACKWARDS -- the argument order is
 ;; the thing a name cannot tell you.

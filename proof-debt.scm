@@ -99,7 +99,26 @@
 ;;; (so NAME's own provenance is already 'proven and won't self-cite).
 (define (record-proof-debt! name)
   (let ((cits (proof-citations *proof-script*)))
-    (hash-table-set! *proof-citation-graph* name cits)  ; live graph, for cycle check
+    ;; The BILL (below) is computed over the FULL citation list and is unchanged
+    ;; by the filter here.  The cycle GRAPH, however, must exclude two kinds of
+    ;; edge that are never a real proof dependency, or a well-founded induction
+    ;; reads as a cycle:
+    ;;   (a) the proof's OWN name -- a `mac'/`mac-h' of the theorem's own name is
+    ;;       its induction hypothesis / its own predicate's definitional unfold,
+    ;;       not a dependence of the theorem on itself;
+    ;;   (b) a citation that is DEFINITIONAL at record time -- unfolding a
+    ;;       definition (e.g. `mac 'SMITH-STAIRCASE' unfolds the PREDICATE, which
+    ;;       shares the case-folded name of the later-proven THEOREM) adds no
+    ;;       dependency; debt-of already scores it 0.
+    ;; Dropping both is debt-neutral: debt-of(self) is the not-yet-stored '() and
+    ;; debt-of(definitional) is '().  It can only remove false cycles, never hide
+    ;; a real one (a genuine circular DEPENDENCY runs through proven citations,
+    ;; which are kept).
+    (hash-table-set! *proof-citation-graph* name
+      (filter (lambda (c)
+                (and (not (eq? c name))
+                     (not (eq? (provenance-of c) 'definitional))))
+              cits))
     (let loop ((cs cits) (bill '()))
       (if (null? cs)
           (begin (hash-table-set! *proof-debt* name bill) bill)
@@ -113,7 +132,10 @@
 (define (proof-citations-of name)
   (if (eq? (provenance-of name) 'proven)
       (hash-table-ref/default *proof-citation-graph* name '())
-      '()))
+      ;; A non-proven node is a leaf UNLESS it declared (rests-on ...): those
+      ;; edges make the asserted reference base a checkable DAG.  A proven node
+      ;; ignores any rests-on -- its real proof citations are the truth.
+      (rests-on-of name)))
 
 ;;; A path START -> ... -> START through proven-node citations, or #f.  `seen'
 ;;; is the current path's ancestors, so the walk always terminates.
@@ -130,7 +152,11 @@
 ;;; Every distinct dependency cycle among proven theorems, each as a name path
 ;;; n -> ... -> n.  Empty list = acyclic = every proof is genuinely grounded.
 (define (proof-cycle-check)
-  (let loop ((names *proven-theorem-names*) (covered '()) (cycles '()))
+  ;; Seed the DFS from every proven theorem AND every node that declared a
+  ;; rests-on -- so a cycle living entirely in the ASSERTED base (A rests-on B,
+  ;; B rests-on A, neither proven) is caught, not just cycles through proofs.
+  (let loop ((names (append *proven-theorem-names* (rests-on-declared-names)))
+             (covered '()) (cycles '()))
     (cond
       ((null? names) (reverse cycles))
       ((memq (car names) covered) (loop (cdr names) covered cycles))
