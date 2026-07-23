@@ -19,6 +19,7 @@
 
 ;;; A vector space is a module over a field: same shape as MODULE, one more law.
 (declare-structure VECTOR-SPACE
+  (instance-var s)
   (same-shape-as MODULE)
   (law "is-field(scal(s))"))
 

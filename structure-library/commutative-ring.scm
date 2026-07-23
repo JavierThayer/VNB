@@ -19,6 +19,7 @@
 ;;; def-predicate would stamp.  Marked so proofs that merely unfold it (e.g.
 ;;; commutative-ring-is-ring) rest on modulo 0, not a phantom leaf.
 (declare-structure COMMUTATIVE-RING
+  (instance-var s)
   (same-shape-as RING)
   (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
 

@@ -22,11 +22,12 @@
 ;;; file therefore loads after numeric-instances.
 ;;;
 ;;; Bound-var hygiene (feedback_no_case_variant_binders, feedback_mit_case_fold):
-;;; element points are u, v -- NOT x (= the carrier accessor X under case-fold);
+;;; element points are u, v -- NOT x (the point-set accessor was `X' under case-
+;;; fold when this was written; it is `PTS' now);
 ;;; sequences f, g; the index n; the class pair p; the real limit dval.
 ;;;
 ;;; Dependencies: setoid.scm (CLASS, QUOTIENT, PROJ, IS-SETOID), metric-space.scm
-;;; (IS-METRIC-SPACE, X, D), metric-completeness.scm (IS-CAUCHY-SEQ, CONVERGES-TO,
+;;; (IS-METRIC-SPACE, PTS, DIST), metric-completeness.scm (IS-CAUCHY-SEQ, CONVERGES-TO,
 ;;; IS-COMPLETE), numeric-instances.scm (RR-MS), kernel (SEP, IMAGE, CARTESIAN,
 ;;; FUN, LIST, NTH, IOTA, VNB-LAMBDA, FORSOME).
 

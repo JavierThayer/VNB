@@ -8,6 +8,7 @@
 ;;; IS-INTEGRAL-DOMAIN: a commutative ring, nontrivial (ONE /= ZERO),
 ;;; with no zero divisors (a*b = 0  =>  a = 0 or b = 0).
 (declare-structure INTEGRAL-DOMAIN
+  (instance-var s)
   (same-shape-as COMMUTATIVE-RING)
   (law "not(one(s) = zero(s))")
   (law "forall([a in carr(s), b in carr(s)],

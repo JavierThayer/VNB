@@ -14,6 +14,7 @@
 ;;; Conservative IFF definition of the fresh predicate -> `definitional', so
 ;;; unfolding it (euclidean-ring-is-integral-domain) carries no debt.
 (declare-structure EUCLIDEAN-RING
+  (instance-var s)
   (same-shape-as INTEGRAL-DOMAIN)
   (law "forsome([deg in fun(carr(s), nn)],
           forall([a in carr(s), b in carr(s)],
@@ -45,12 +46,13 @@
 ;;; pattern (compactness.scm: CENTRES/CENTRE-SET), we NAME it with the global
 ;;; Hilbert epsilon: GAUGE(s) is a chosen valid degree function, defined exactly
 ;;; when one exists (the iota/epsilon definedness proviso), i.e. when s is a
-;;; Euclidean ring.  gauge-is-degree (proven, calculus/gauge-proof.scm) is the
+;;; Euclidean ring.  gauge-is-degree (proven, archive/calculus-pre-rename/gauge-proof.scm) is the
 ;;; soundness fact: GAUGE(s) really is a degree function.
 
 ;;; HAS-DIV-REMAINDER(s, deg): deg gives division-with-remainder on s.  The body
 ;;; is the division-with-remainder clause of is-euclidean-ring-def, named once.
-;;; (Inner element var a_ avoids the case-fold clash with the carrier accessor A.)
+;;; (Inner element var a_ avoids the case-fold clash with the carrier accessor,
+;;; named `A' when this was written and `CARR' now; the name is kept.)
 (def-predicate 'HAS-DIV-REMAINDER '(s deg)
   '(FORALL a_ (IMPLIES (IN a_ (CARR s))
      (FORALL b (IMPLIES (IN b (CARR s))
@@ -92,7 +94,7 @@
 
 ;;; gauge-is-degree: the chosen GAUGE(s) really is a valid degree function --
 ;;; the soundness of the epsilon pick (defined because the gauge set is
-;;; inhabited).  MACHINE-PROVEN in calculus/gauge-proof.scm.
+;;; inhabited).  MACHINE-PROVEN in archive/calculus-pre-rename/gauge-proof.scm.
 (support 'gauge-is-degree
   '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
      (AND (IN (GAUGE s) (FUN (CARR s) NN))
@@ -102,7 +104,7 @@
    with-remainder: IS-EUCLIDEAN-RING(s) makes EUCLIDEAN-GAUGES(s) inhabited
    (euclidean-ring-has-gauge + gauges-mem-build), so the epsilon pick lands in
    it (choice-axiom) and the SEP slices give both conjuncts.  MACHINE-PROVEN in
-   calculus/gauge-proof.scm.")
+   archive/calculus-pre-rename/gauge-proof.scm.")
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-EUCLIDEAN-RING     'kind 'predicate 'arity 1 'noun "Euclidean ring" 'article "a")

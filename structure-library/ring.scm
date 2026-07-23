@@ -129,6 +129,22 @@
       (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
                (IN ((ADD r) a b) (CARR r)))))))
 
+;;; Provenance.  The property/shape projections above ARE the IS-RING definition
+;;; -- each is a conjunct of the auto-generated IS-RING IFF, unfolded -- so they
+;;; are DEFINITIONAL and pay nothing, not asserted facts owing trust.  (This is
+;;; the fix for the `trust: none' bills CLAUDE.md flags: an unwarranted projection
+;;; drags every ring theorem to the weakest tier.)  ring-mul-zero-left/right ARE
+;;; genuinely derived (0.a = 0 by distributivity + cancellation), so they take a
+;;; well-known warrant rather than definitional provenance.
+(for-each (lambda (n) (register-provenance! n 'definitional))
+  '(ring-add-assoc ring-add-comm ring-add-left-id ring-add-left-inv
+    ring-mul-assoc ring-mul-left-id ring-mul-right-id ring-left-dist ring-right-dist
+    ring-zero-in ring-carrier-closed-add))
+(warrant! 'ring-mul-zero-left 'well-known
+  "0.a = 0: a.0 = a.(0+0) = a.0 + a.0, cancel a.0 in the additive group.  Lang, Algebra II.1.")
+(warrant! 'ring-mul-zero-right 'well-known
+  "a.0 = 0: symmetric to ring-mul-zero-left.  Lang, Algebra II.1.")
+
 ;;; ADD closes on the carrier -- CURRIED (ring-carrier-closed-add above packs its
 ;;; guards into one AND, which a forward `fact' will not split; this is the twin
 ;;; of ring-carrier-closed-mul, usable by `fact' directly).

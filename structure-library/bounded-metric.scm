@@ -25,9 +25,10 @@
 ;;; Loads after metric-continuity.scm (IS-CONTINUOUS) and scalar-inequalities.
 
 ;;; The construction: same carrier, distance pushed through f(t)=t/(1+t).
-;;; The distance lambda binds the two points as `u, v', NOT `x, y': the carrier
-;;; accessor X folds to x and sits in the adjacent slot (PTS s), so a lambda var
-;;; `x' would clash with the carrier name.  [[feedback_no_case_variant_binders]]
+;;; The distance lambda binds the two points as `u, v', NOT `x, y': the point-set
+;;; accessor was `X' when this was written -- it folds to x and sits in the
+;;; adjacent slot -- so a lambda var `x' would have clashed with it.  The accessor
+;;; is `PTS' now; the names are kept.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BDD-METRIC '(s)
   '(LIST (PTS s)
          (VNB-LAMBDA (LIST u v)
@@ -85,6 +86,32 @@
    d(x,y) < eps (f is an increasing bijection [0,oo)->[0,1) with continuous
    inverse t/(1-t)), so id is continuous the other way too.")
 
+;;; -----------------------------------------------------------------------
+;;; Two packagings of the engine above, so the metrizability theorem
+;;; (metrizable-iff-bounded-metrizable, proven in theorem-library) reads in a few
+;;; steps instead of re-deriving the typing and topology plumbing inline.
+
+;;; BDD-METRIC of a metric space is a BOUNDED metric space.
+(support 'bdd-metric-is-bounded-metric-space
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (IS-BOUNDED-METRIC-SPACE (BDD-METRIC s)))))
+(warrant! 'bdd-metric-is-bounded-metric-space 'well-known
+  "BDD-METRIC(s) is a bounded metric space: a metric space by
+   bdd-metric-is-metric-space, and 1 in RR bounds every distance since
+   d/(1+d) < 1 <= 1 (bdd-metric-bounded).")
+
+;;; BDD-METRIC preserves the metric topology -- the topological-invariance step.
+(support 'bdd-metric-preserves-metric-top
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (== (METRIC-TOP (BDD-METRIC s)) (METRIC-TOP s)))))
+(warrant! 'bdd-metric-preserves-metric-top 'well-known
+  "METRIC-TOP(BDD-METRIC s) = METRIC-TOP(s): d and d/(1+d) are topologically
+   equivalent.  The identity map is bicontinuous (bdd-metric-id-bicontinuous), so
+   applying continuous-implies-open-preimage to the identity (whose preimage of a
+   set is that set) in both directions gives IS-OPEN(s,U) <=> IS-OPEN(BDD-METRIC s, U);
+   the carriers agree (bdd-metric-carrier), so the two [carrier, opens] tuples are
+   equal.")
+
 ;;; =======================================================================
 ;;; The RR instance: RR carries a bounded metric equivalent to the usual one.
 ;;; RR-MS = (RR, |x-y|) is the standard metric (numeric-instances.scm);
@@ -118,3 +145,29 @@
    |x-y|/(1+|x-y|)) is continuous in both directions, so the two metrics
    define the same topology on RR while the latter is bounded.  Instance of
    bdd-metric-id-bicontinuous at s = RR-MS.")
+
+;;; =======================================================================
+;;; The PREDICATE `bounded metric space', and the metrizability theorem it
+;;; enables.  Everything above is per-instance ("this distance is < 1"); this
+;;; packages boundedness as a first-class hypothesis so it can appear in the
+;;; statement of T1.
+;;;
+;;; IS-BOUNDED-METRIC-SPACE(s): a metric space whose diameter is finite -- some
+;;; real b bounds every distance.  (Diameter <= b for some b, not necessarily
+;;; < 1; BDD-METRIC gives the < 1 witness when one is wanted.)
+
+(def-predicate 'IS-BOUNDED-METRIC-SPACE '(s)
+  (conjuncts->and
+    (list
+      '(IS-METRIC-SPACE s)
+      (list 'FORSOME 'b
+        (conjuncts->and
+          (list '(IN b RR)
+                (forall-guarded '(x y)
+                  (list '(IN x (PTS s)) '(IN y (PTS s)))
+                  '(<= ((DIST s) x y) b))))))))
+(notation! 'IS-BOUNDED-METRIC-SPACE 'noun "bounded metric space" 'article "a")
+
+;;; The metrizability theorem T1 (metrizable <=> bounded-metrizable) is PROVEN in
+;;; theorem-library/metrizable-bounded-proof.scm, from the three packagings above
+;;; plus metric-top-is-metrizable-top-space.

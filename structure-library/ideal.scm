@@ -55,6 +55,7 @@
 ;;; IS-PID(s): s is a principal-ideal domain -- an integral domain in which
 ;;; every ideal is principal.
 (declare-structure PID
+  (instance-var s)
   (same-shape-as INTEGRAL-DOMAIN)
   (law "forall([i], is-ideal(s, i) implies
           forsome([a in carr(s)], i = principal-ideal(s, a)))"))

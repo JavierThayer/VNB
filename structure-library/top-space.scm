@@ -36,6 +36,7 @@
 ;;; PREIMAGE, whose body is SEP over PTS(s), serve both species).
 
 (declare-structure TOP-SPACE
+  (instance-var s)                          ; the laws below range over the instance s
   (carriers PTS)
   (constant OPENS (POWER (POWER PTS)))
   ;; the empty set and the whole space are open
@@ -63,28 +64,79 @@
       (IN (PREIMAGE s f u) (OPENS s)))))
 
 ;;; -----------------------------------------------------------------------
-;;; The functor Met -> Top: a metric space carries the topology of its open sets.
+;;; METRIZABLE-TOP-SPACE: the topological spaces that carry a compatible metric.
+;;;
+;;; A full subcategory of TOP-SPACE -- same shape [PTS, OPENS], same morphisms
+;;; (continuity) -- refined by ONE property: the topology is INDUCED by some metric,
+;;; i.e. s is the metric topology of some metric space md.  This is the category
+;;; where continuity is the morphism; METRIC-SPACE's own morphisms are its isometries
+;;; (metric-continuity.scm).  The law names the induced-topology tuple directly (it is
+;;; METRIC-TOP(md) unfolded -- the functoid is declared just below, so cannot be named
+;;; here yet).
+(declare-structure METRIZABLE-TOP-SPACE
+  (instance-var s)
+  (same-shape-as TOP-SPACE)
+  (law (FORSOME md (AND (IS-METRIC-SPACE md)
+                    (== s (LIST (PTS md) (SEP u (POWER (PTS md)) (IS-OPEN md u))))))))
+
+;;; Its morphisms are TOP-SPACE's -- continuity.  (same-shape-as inherits the shape,
+;;; not the hom override, so it is stated here.)
+(declare-hom! 'METRIZABLE-TOP-SPACE '(s t f)
+  '(FORALL u (IMPLIES (IN u (OPENS t))
+      (IN (PREIMAGE s f u) (OPENS s)))))
+(notation! 'IS-METRIZABLE-TOP-SPACE 'kind 'predicate 'arity 1
+           'english "$1 is a metrizable topological space")
+(notation! 'IS-HOM-METRIZABLE-TOP-SPACE 'kind 'predicate 'arity 3
+           'english "$3 is continuous from $1 to $2")
+
+;;; -----------------------------------------------------------------------
+;;; IS-HAUSDORFF(s): distinct points have disjoint open neighbourhoods (T2).
+;;;
+;;; Points are `a'/`b' (never `x' -- PTS folds onto x); the separating opens are
+;;; `u'/`v'.  Every METRIC topology is Hausdorff (the balls of radius d(a,b)/2
+;;; separate), so this adds nothing over metrizability -- but the pseudometric
+;;; GAUGE topologies (forthcoming) need not be, and there Hausdorff is exactly
+;;; the separation hypothesis that upgrades the pseudometric family to a metric.
+;;; So it lives as a predicate to be assumed, not a fact to be derived.  The
+;;; distinctness `(NOT (== a b))' is folded in as an antecedent, so the whole
+;;; body is a guarded universal, not a hand-counted paren pyramid.
+(def-predicate 'IS-HAUSDORFF '(s)
+  (conjuncts->and
+    (list
+      '(IS-TOP-SPACE s)
+      (forall-guarded '(a b)
+        (list '(IN a (PTS s)) '(IN b (PTS s)) '(NOT (== a b)))
+        (list 'FORSOME 'u
+          (list 'FORSOME 'v
+            (conjuncts->and
+              (list '(IN u (OPENS s))
+                    '(IN v (OPENS s))
+                    '(IN a u)
+                    '(IN b v)
+                    '(== (INTERSECTION u v) EMPTY-SET)))))))))
+(notation! 'IS-HAUSDORFF 'kind 'predicate 'arity 1 'english "$1 is Hausdorff")
+
+;;; -----------------------------------------------------------------------
+;;; The functor Met -> Metrizable-Top: a metric space carries the topology of its open
+;;; sets, and that topology is metrizable BY CONSTRUCTION (the metric itself witnesses).
 ;;;
 ;;;   METRIC-TOP(md) = [PTS(md), { U in POWER(PTS(md)) : IS-OPEN(md, U) }]
 ;;;
-;;; def-constructed-functor ASSERTS NOTHING.  It installs the object map as a
-;;; functoid and records two obligations, which functor-obligation-audit reports
-;;; until they are theorems -- a functor you have not proved is a functor you do
-;;; not have:
+;;; def-constructed-functor ASSERTS NOTHING.  It installs the object map as a functoid
+;;; and records two obligations, reported by functor-obligation-audit until proven:
 ;;;
-;;;   metric-top-is-top-space : IS-METRIC-SPACE(md) => IS-TOP-SPACE(METRIC-TOP md)
-;;;       -- the metric open sets form a topology.  metric-open-sets.scm already
-;;;       has the pieces (open-union over a family, open-intersection, the whole
-;;;       space and the empty set open).
+;;;   metric-top-is-metrizable-top-space : IS-METRIC-SPACE(md)
+;;;                                          => IS-METRIZABLE-TOP-SPACE(METRIC-TOP md)
+;;;       -- the metric opens form a topology (metric-open-sets.scm) AND it is
+;;;          metrizable, with md itself the witness.
 ;;;
 ;;;   metric-top-functorial : IS-HOM-METRIC-SPACE(a, b, f)
-;;;                             => IS-HOM-TOP-SPACE(METRIC-TOP a, METRIC-TOP b, f)
-;;;       -- eps-delta continuity implies the preimage of every open set is open.
-;;;       THIS is the theorem the functor exists to force, and it is a theorem
-;;;       only because the metric hom is continuity: over isometries it would
-;;;       degenerate into "an isometry is continuous".
+;;;                             => IS-HOM-METRIZABLE-TOP-SPACE(METRIC-TOP a, METRIC-TOP b, f)
+;;;       -- an isometry induces a continuous map: metric-hom-is-continuous
+;;;          (metric-continuity.scm) then continuous => open-preimage.  The functor's
+;;;          genuine action on arrows -- forgetful, well-defined, not empty.
 
-(def-constructed-functor 'METRIC-TOP 'METRIC-SPACE 'TOP-SPACE '(md)
+(def-constructed-functor 'METRIC-TOP 'METRIC-SPACE 'METRIZABLE-TOP-SPACE '(md)
   '(LIST (PTS md)
          (SEP u (POWER (PTS md)) (IS-OPEN md u))))
 
@@ -97,3 +149,18 @@
            'english "$3 is continuous from $1 to $2")
 (notation! 'METRIC-TOP       'kind 'functoid  'arity 1
            'english "the metric topology of $1")
+
+;;; -----------------------------------------------------------------------
+;;; metrizable-has-metric-top: a metrizable space is (up to ==) the metric topology
+;;; of SOME metric space -- the METRIZABLE-TOP-SPACE law with its tuple named
+;;; METRIC-TOP.  The clean extraction dual of metric-top-is-metrizable-top-space, so
+;;; a proof pulls a compatible metric out of metrizability without unfolding the raw
+;;; LIST tuple of the defining law.
+(support 'metrizable-has-metric-top
+  '(FORALL s (IMPLIES (IS-METRIZABLE-TOP-SPACE s)
+     (FORSOME md (AND (IS-METRIC-SPACE md)
+                      (== (METRIC-TOP md) s))))))
+(warrant! 'metrizable-has-metric-top 'well-known
+  "IS-METRIZABLE-TOP-SPACE(s) means s is induced by some metric: the structure's
+   defining law gives a metric space md with s == METRIC-TOP(md) -- the law's tuple
+   [PTS md, {U : IS-OPEN(md,U)}] is METRIC-TOP(md) by definition of the functor.")

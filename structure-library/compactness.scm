@@ -100,9 +100,9 @@
 
 ;;; The r-ball cover of s: the family of all open r-balls { B(c,r) : c in PTS(s) },
 ;;; as the image of PTS(s) under  c |-> BALL(s,c,r).  The lambda variable is `c'
-;;; (centre), NOT `x': the carrier accessor X folds to x, and the cover's domain
-;;; (PTS s) sits next to the lambda -- keeping them disjoint avoids the carrier/
-;;; point name clash.  [[feedback_no_case_variant_binders]]
+;;; (centre), NOT `x': the point-set accessor was `X' when this was written (it
+;;; is `PTS' now) and folds to x, and the cover's domain (PTS s) sits next to the
+;;; lambda -- keeping them disjoint avoided the accessor/point name clash.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BALL-COVER '(s r)
   '(IMAGE (VNB-LAMBDA c (BALL s c r)) (PTS s)))
 

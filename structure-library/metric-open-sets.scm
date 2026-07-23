@@ -20,7 +20,7 @@
 ;;; `a' / `b', never `x' (PTS is the carrier accessor -- case-fold capture).
 ;;; The point ranging over an open set is `y' (matching BALL's own SEP var).
 ;;;
-;;; Dependencies: metric-space.scm (IS-METRIC-SPACE, X, D), metric-topology.scm
+;;; Dependencies: metric-space.scm (IS-METRIC-SPACE, PTS, DIST), metric-topology.scm
 ;;; (BALL, ball-2r-triangle, ball-mem-from-le), metric-continuity.scm
 ;;; (IS-CONTINUOUS), order-predicates.scm (POS-RR), set kernel (SEP, SUBSET,
 ;;; BIG-UNION, INTERSECTION, EMPTY-SET).  Loaded right after metric-continuity.
@@ -53,7 +53,7 @@
 ;;; (No `preimage-subset-carrier' axiom: PREIMAGE(s,f,V) subset PTS(s) is a SEP
 ;;; over PTS(s), so it falls straight out of the kernel separation rule sep-me
 ;;; -- a per-operator support for it would just reify the generic SEP z A p
-;;; subset A.  Proved inline where needed, e.g. calculus/prop-3-15-proof.scm.
+;;; subset A.  Proved inline where needed, e.g. archive/calculus-pre-rename/prop-3-15-proof.scm.
 ;;; [[feedback-no-closure-axiom-proliferation]])
 
 ;;; -----------------------------------------------------------------------
@@ -118,7 +118,7 @@
        (FORALL V (IMPLIES (IS-OPEN t V)
          (IS-OPEN s (PREIMAGE s f V)))))))))
 (warrant! 'continuous-implies-open-preimage 'proof
-  "MACHINE-PROVEN in calculus/prop-3-15-proof.scm (qed; proven modulo {rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at}; the PREIMAGE-subset-PTS(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half<eps (rr-pos-shrink); continuity at a for half gives delta>0 with d(s)(a,z)<=delta => d(t)(f a,f z)<=half<eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.")
+  "MACHINE-PROVEN in archive/calculus-pre-rename/prop-3-15-proof.scm (qed; proven modulo {rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at}; the PREIMAGE-subset-PTS(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half<eps (rr-pos-shrink); continuity at a for half gives delta>0 with d(s)(a,z)<=delta => d(t)(f a,f z)<=half<eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.")
 
 ;;; open-preimage-implies-continuous: the converse -- if every open set pulls
 ;;; back to an open set, the map is continuous.

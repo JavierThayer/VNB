@@ -22,7 +22,7 @@
 ;;; case-fold capture (see [[feedback-no-case-variant-binders]]).  Spaces are
 ;;; `s' (domain) and `t' (codomain).
 ;;;
-;;; Dependencies: metric-space.scm (IS-METRIC-SPACE, X, D), number-systems.scm
+;;; Dependencies: metric-space.scm (IS-METRIC-SPACE, PTS, DIST), number-systems.scm
 ;;; (RR, <=), order-predicates.scm (POS-RR).  Loaded right after
 ;;; metric-completeness.scm so the metric cluster stays together.
 
@@ -98,28 +98,26 @@
 (notation! 'IS-CONTINUOUS-AT      'kind 'predicate 'arity 4 'english "$3 is continuous at $4")
 
 ;;; -----------------------------------------------------------------------
-;;; THE MORPHISMS OF A METRIC SPACE ARE ITS CONTINUOUS MAPS.
+;;; THE MORPHISMS OF METRIC-SPACE ARE ITS ISOMETRIES.
 ;;;
-;;; def-structure GENERATES IS-HOM-X as preservation-of-slots, which for
-;;; METRIC-SPACE reads d(t)(f(x), f(y)) = d(s)(x, y) -- an ISOMETRY.  That is a
-;;; category, but it is not the one this library works in: the header of this
-;;; file has said "these are the morphisms of the metric-space structure" about
-;;; IS-CONTINUOUS since it was written, and nothing ever cited the generated hom.
-;;; The two beliefs sat side by side until the METRIC-SPACE -> TOP-SPACE functor
-;;; forced the question: that functor carries CONTINUOUS maps to continuous maps,
-;;; and its functoriality obligation is only worth stating over them (over
-;;; isometries it degenerates to "an isometry is continuous", true and empty).
+;;; def-structure GENERATES IS-HOM-METRIC-SPACE as preservation of the DIST slot,
+;;; d(t)(f(x), f(y)) = d(s)(x, y) -- an ISOMETRY.  That IS the metric category: its
+;;; isomorphisms are the surjective isometries, and the metric does categorical work.
 ;;;
-;;; So the species DECLARES its morphisms and overrides the generated ones.
-;;; declare-hom! supplies IS-METRIC-SPACE(s), IS-METRIC-SPACE(t) and the typing
-;;; of f, so the body states only what is characteristic.
-(declare-hom! 'METRIC-SPACE '(s t f)
-  '(IS-CONTINUOUS s t f))
+;;; An earlier cut OVERRODE this to IS-CONTINUOUS, reasoning the Met -> Top functor
+;;; should carry continuous maps to continuous maps.  But a continuous bijection with
+;;; continuous inverse is a HOMEOMORPHISM, so in (Met, continuous) an isomorphism forgets
+;;; the metric entirely -- that category is Metrizable-Top wearing a metric as dead
+;;; weight, not Met.  Continuity is topological; it now lives in the METRIZABLE-TOP-SPACE
+;;; category and the Met -> Metrizable-Top functor (top-space.scm).
+;;;
+;;; So METRIC-SPACE keeps its GENERATED isometry hom -- NO declare-hom! override.  The
+;;; functor's action on arrows (an isometry induces a continuous map) is a THEOREM, not
+;;; an empty degeneracy: metric-hom-is-continuous below, cited by metric-top-functorial.
 
-;;; The isometries do not disappear -- they stop being "the" hom and become a
-;;; predicate of their own (the completion embedding is an isometry, not merely
-;;; a continuous map).  This is exactly the formula def-structure used to
-;;; generate for IS-HOM-METRIC-SPACE.
+;;; IS-ISOMETRY names the same predicate as the generated IS-HOM-METRIC-SPACE (both are
+;;; preservation of DIST); kept as the readable name -- the completion embedding is an
+;;; isometry, and callers say so.
 (def-predicate 'IS-ISOMETRY '(s t f)
   '(AND (IS-METRIC-SPACE s)
    (AND (IS-METRIC-SPACE t)
@@ -131,11 +129,17 @@
 (notation! 'IS-ISOMETRY 'kind 'predicate 'arity 3
            'english "$3 is an isometry from $1 to $2")
 
-;;; The metric hom is CONTINUITY, so "homomorphism" -- the default a generated hom
-;;; gets -- is the wrong word for it.  A species that overrides its morphisms owes
-;;; the reading, beside the override.
+;;; IS-HOM-METRIC-SPACE is the isometry hom (the generated preservation-of-DIST).
 (notation! 'IS-HOM-METRIC-SPACE 'kind 'predicate 'arity 3
-           'english "$3 is continuous from $1 to $2")
+           'english "$3 is an isometry from $1 to $2")
+
+;;; metric-hom-is-continuous: the Met -> Metrizable-Top functor's action on arrows --
+;;; a metric-space morphism (isometry) is uniformly continuous (delta = eps), hence
+;;; continuous.  Cited by metric-top-functorial.
+(support 'metric-hom-is-continuous
+  (forall-guarded '(s t f) '((IS-HOM-METRIC-SPACE s t f)) '(IS-CONTINUOUS s t f)))
+(warrant! 'metric-hom-is-continuous 'well-known
+  "An isometry preserves distance, so it is uniformly continuous (delta = eps) and hence continuous.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

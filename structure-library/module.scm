@@ -31,6 +31,7 @@
 ;;;               operation-properties.scm (is-associative/commutative/...).
 
 (declare-structure MODULE
+  (instance-var s)
   (substructure SCAL RING)                  ; the scalar ring
   (carriers VEC)
   (op VADD (CARTESIAN VEC VEC) VEC)

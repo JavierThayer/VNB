@@ -8,9 +8,11 @@
 ;;; applied to the structure's accessors, into the IS-X definition -- so a
 ;;; structure genuinely carries its axioms and IS-X means what it says.
 ;;;
-;;; Parameter names avoid the registered accessor constants (A, MUL, E, INV,
-;;; ADD, NEG, ZERO, ONE, X, D, ...): the reader case-folds, so a bound `A`
-;;; would collide with the carrier accessor `A`.  Hence op / crr / unit /
+;;; Parameter names avoid the registered accessor constants (CARR, MUL, IDEN,
+;;; INV, ADD, NEG, ZERO, ONE, PTS, DIST, ...): the reader case-folds, so a bound
+;;; `CARR` would collide with the carrier accessor `CARR`.  (These were the single
+;;; letters A, MUL, E, INV, ..., X, D when this was written; no accessor is a
+;;; single letter now.)  Hence op / crr / unit /
 ;;; invop / dist, and inner element vars u, v, w.  These names are invisible
 ;;; to the structure declarations (the property clause names accessors; the
 ;;; matcher substitutes).  Dependencies: none beyond the kernel.
@@ -95,6 +97,21 @@
                  (<= (dst u w)
                      (+ (dst u v) (dst v w))))))))))))))
 
+;;; is-pseudometric(dist, crr): is-metric MINUS identity-of-indiscernibles --
+;;; nonnegative, zero on the diagonal, symmetric, triangle, but d(u,v)=0 is
+;;; ALLOWED for u /= v.  Exactly the is-metric body with the clause
+;;; `(IMPLIES (= (dst u v) 0) (= u v))' dropped.  A metric is a pseudometric that
+;;; additionally separates points; this is the property a gauge topology needs.
+(def-predicate 'is-pseudometric '(dst crr)
+  '(FORALL u (IMPLIES (IN u crr)
+     (AND (= (dst u u) 0)
+       (FORALL v (IMPLIES (IN v crr)
+         (AND (<= 0 (dst u v))
+           (AND (= (dst u v) (dst v u))
+             (FORALL w (IMPLIES (IN w crr)
+               (<= (dst u w)
+                   (+ (dst u v) (dst v w)))))))))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their
 ;;; definitions and read by wff->english / the proof reader (operators.scm).
@@ -113,6 +130,8 @@
            'english "every element of $4 has an inverse under $1, given by $3, with unit $2")
 (notation! 'IS-METRIC 'kind 'predicate 'arity 2
            'english "$1 is a metric on $2")
+(notation! 'IS-PSEUDOMETRIC 'kind 'predicate 'arity 2
+           'english "$1 is a pseudometric on $2")
 (notation! 'IS-NORM 'kind 'predicate 'arity 5
            'english "$1 is a norm on $5")
 (notation! 'IS-GROUP-NORM 'kind 'predicate 'arity 5

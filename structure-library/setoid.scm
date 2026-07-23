@@ -64,8 +64,9 @@
 
 ;; CLASS(s,a) = { b in PTS(s) : a ~ b } -- the equivalence class of a.  A
 ;; subset of PTS(s), hence a SET by separation (feedback_set_equality_not_class).
-;; Param `a' (not `x'): the reader case-folds and `x' would BE the carrier
-;; accessor X used in the body.
+;; Param `a' (not `x'): the reader case-folds, and the point-set accessor was
+;; `X' when this was written -- `x' would have BEEN the accessor used in the
+;; body.  It is `PTS' now; the name is kept.
 (def-functoid 'CLASS '(s a)
   '(SEP b (PTS s) (RELATED s a b)))
 
@@ -144,6 +145,17 @@
 (warrant! 'class-in-quotient 'well-known
   "QUOTIENT(s) = IMAGE(PROJ(s), PTS(s)); a in PTS(s) witnesses [a]=PROJ(s)(a) as
    a member of the image (image-membership + lambda-beta on PROJ).")
+
+;; quotient-rep: every element of the quotient is a class -- x in QUOTIENT(s) has
+;; a representative a in PTS(s) with x = [a].  The reverse of class-in-quotient;
+;; what every forall-over-the-quotient proof needs to pick a representative.
+(support 'quotient-rep
+  '(FORALL s (IMPLIES (IS-SETOID s)
+     (FORALL x (IMPLIES (IN x (QUOTIENT s))
+       (FORSOME a (AND (IN a (PTS s)) (= x (CLASS s a)))))))))
+(warrant! 'quotient-rep 'well-known
+  "QUOTIENT(s) = IMAGE(PROJ(s), PTS(s)); image-membership-iff gives an a in PTS(s)
+   with x = PROJ(s)(a), and PROJ beta-reduces PROJ(s)(a) = CLASS(s,a).")
 
 ;; quotient-is-set: PTS(s)/REL is a set when PTS(s) is (IMAGE of a set is a set).
 (support 'quotient-is-set
@@ -242,6 +254,56 @@
 ;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
 (gloss! 'quotient-universal
   "For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient PTS(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.")
+
+;;; =======================================================================
+;;; Binary descent -- descend an OPERATION that respects the congruence in
+;;; BOTH slots.  The unary DESCEND cannot take a ring's ADD or MUL; this is
+;;; its two-slot twin, and it is the mechanism that quotients a ring, a group
+;;; or a module by a congruence: each operation descends to the classes.
+;;; =======================================================================
+
+;; RESPECTS2(s,f): f : PTS x PTS -> Z is constant on pairs of classes --
+;;   a ~ a', b ~ b'  =>  f(a,b) = f(a',b').  The two-slot RESPECTS.
+(def-functoid 'RESPECTS2 '(s f)
+  (forall-guarded '(a b a_ b_)
+      '((IN a (PTS s)) (IN b (PTS s)) (IN a_ (PTS s)) (IN b_ (PTS s)))
+    (list 'IMPLIES (list 'AND '(RELATED s a a_) '(RELATED s b b_))
+          '(= (f a b) (f a_ b_)))))
+
+;; DESCEND2(f) : (X/REL) x (X/REL) -> Z, the induced binary map.  On a pair of
+;; classes (c,d) it returns the unique z that is f of some members -- IOTA, not
+;; chosen representatives.  When f RESPECTS2 the relation the value set is a
+;; singleton, so the description is well-defined and representative-independent.
+(def-functoid 'DESCEND2 '(f)
+  '(VNB-LAMBDA (LIST c d)
+     (IOTA z (FORSOME a (AND (IN a c)
+                (FORSOME b (AND (IN b d) (= z (f a b)))))))))
+
+;; descend2-computes: the descent equation  DESCEND2(f)([a],[b]) = f(a,b).
+(support 'descend2-computes
+  (forall-guarded '(s) '((IS-SETOID s))
+    (forall-guarded '(Z f)
+        '((IN f (FUN (CARTESIAN (PTS s) (PTS s)) Z)) (RESPECTS2 s f))
+      (forall-guarded '(a b) '((IN a (PTS s)) (IN b (PTS s)))
+        '(= ((DESCEND2 f) (CLASS s a) (CLASS s b)) (f a b))))))
+(warrant! 'descend2-computes 'well-known
+  "Tuple-beta then the unary argument: DESCEND2(f)([a],[b]) = IOTA z. exists
+   a' in [a], b' in [b]. z = f(a',b').  Since a in [a] and b in [b] (class-self),
+   f(a,b) satisfies the body; and any a'~a, b'~b give f(a',b')=f(a,b) by RESPECTS2,
+   so the body pins z = f(a,b) uniquely and IOTA returns it.  The two-slot twin of
+   descend-computes; representative-independent in both arguments.")
+
+;; descend2-in-fun: DESCEND2(f) : QUOTIENT(s) x QUOTIENT(s) -> Z.
+(support 'descend2-in-fun
+  (forall-guarded '(s) '((IS-SETOID s))
+    (forall-guarded '(Z f)
+        '((IN f (FUN (CARTESIAN (PTS s) (PTS s)) Z)) (RESPECTS2 s f))
+      '(IN (DESCEND2 f) (FUN (CARTESIAN (QUOTIENT s) (QUOTIENT s)) Z)))))
+(warrant! 'descend2-in-fun 'well-known
+  "Every element of QUOTIENT(s) is some [a] with a in PTS(s) (image of PROJ), so
+   every pair in QUOTIENT(s) x QUOTIENT(s) is ([a],[b]); on it DESCEND2(f) returns
+   f(a,b) in Z (descend2-computes), well-defined by RESPECTS2.  So DESCEND2(f) is
+   total QUOTIENT(s) x QUOTIENT(s) -> Z.  The two-slot twin of descend-in-fun.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

@@ -10,10 +10,12 @@
 ;;; proven-theorems.scm) records that, and frees later proofs from the
 ;;; CHOICE in the definition.
 ;;;
-;;; The set parameter is named S, not A: A is the carrier accessor of every
-;;; algebraic structure (a registered constant), so a parameter A would
-;;; shadow it.  Likewise the enumeration parameter is phi, not e: e would
-;;; case-fold onto the identity accessor E.  See structures.scm header.
+;;; The set parameter is named S, not A: the carrier accessor of every algebraic
+;;; structure (a registered constant) was named `A' when this was written, so a
+;;; parameter A would shadow it.  Likewise the enumeration parameter is phi, not
+;;; e: e would case-fold onto the identity accessor, then named `E'.  Those
+;;; accessors are `CARR' and `IDEN' now -- no accessor is a single letter any
+;;; more -- but the parameter names are kept.  See structures.scm header.
 ;;;
 ;;; Dependencies: sequences.scm (SUM-AG), cardinality.scm (CARD,
 ;;; card-finite-bij), bijection.scm (BIJECTION), ordinals.scm (ORD-SEGMENT),

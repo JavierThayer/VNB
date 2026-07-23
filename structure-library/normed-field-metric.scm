@@ -30,8 +30,8 @@
 ;;; nf-metric-space-is-metric-space by discharging the is-metric clauses
 ;;; from is-norm + the additive abelian-group laws.
 ;;;
-;;; Dependencies: normed-field.scm (IS-NORMED-FIELD, FNRM/ADD/NEG/A),
-;;; metric-space.scm (IS-METRIC-SPACE, X/D).
+;;; Dependencies: normed-field.scm (IS-NORMED-FIELD, FNRM/ADD/NEG/CARR),
+;;; metric-space.scm (IS-METRIC-SPACE, PTS/DIST).
 
 ;;; -----------------------------------------------------------------------
 ;;; The constructor.

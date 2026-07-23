@@ -9,8 +9,9 @@
 ;;; or two-step consequence of the axioms, recorded so proofs (and the future
 ;;; inequality decision procedure) can lean on them by name.
 ;;;
-;;; All over RR.  Bound vars avoid the case-fold traps: NOT `a' (-> accessor A),
-;;; NOT `e' (-> identity accessor E), NOT `n'/`N' collisions; reals are
+;;; All over RR.  Bound vars avoid the case-fold traps as they stood when this
+;;; was written: NOT `a' (the carrier accessor, `A' then, `CARR' now), NOT `e'
+;;; (the identity accessor, `E' then, `IDEN' now), NOT `n'/`N' collisions; reals are
 ;;; x y z u v, a nonneg/pos factor is c, a bound is bnd.
 ;;;
 ;;; Library-build phase: warranted well-known [[feedback-library-axioms-fine]].
@@ -239,6 +240,54 @@
   '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (= b c) (= a c)))))))
 (warrant! 'eq-trans 'well-known "Transitivity of (partial) equality.")
 (category! 'eq-trans 'plumbing)
+
+;;; -----------------------------------------------------------------------
+;;; calc-chain composition lemmas: UNTYPED CURRIED transitivity for every
+;;; (relation, relation) combination the `calc' order composer folds through.
+;;; They mirror eq-trans / nn-le-trans (untyped, curried, well-known) so a
+;;; forward `fact' discharges both order antecedents from context with no RR
+;;; typing guard.  The `co-' (compose) prefix keeps them off the surface.
+(support 'co-le-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
+(warrant! 'co-le-trans 'well-known "a<=b then b<=c gives a<=c.")
+(category! 'co-le-trans 'inequalities)
+(support 'co-lt-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (< b c) (< a c)))))))
+(warrant! 'co-lt-trans 'well-known "a<b then b<c gives a<c.")
+(category! 'co-lt-trans 'inequalities)
+(support 'co-le-lt-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (< b c) (< a c)))))))
+(warrant! 'co-le-lt-trans 'well-known "a<=b then b<c gives a<c.")
+(category! 'co-le-lt-trans 'inequalities)
+(support 'co-lt-le-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (<= b c) (< a c)))))))
+(warrant! 'co-lt-le-trans 'well-known "a<b then b<=c gives a<c.")
+(category! 'co-lt-le-trans 'inequalities)
+(support 'co-le-eq-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (= b c) (<= a c)))))))
+(warrant! 'co-le-eq-trans 'well-known "a<=b then b=c gives a<=c.")
+(category! 'co-le-eq-trans 'inequalities)
+(support 'co-lt-eq-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (= b c) (< a c)))))))
+(warrant! 'co-lt-eq-trans 'well-known "a<b then b=c gives a<c.")
+(category! 'co-lt-eq-trans 'inequalities)
+(support 'co-eq-le-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (<= b c) (<= a c)))))))
+(warrant! 'co-eq-le-trans 'well-known "a=b then b<=c gives a<=c.")
+(category! 'co-eq-le-trans 'inequalities)
+(support 'co-eq-lt-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (< b c) (< a c)))))))
+(warrant! 'co-eq-lt-trans 'well-known "a=b then b<c gives a<c.")
+(category! 'co-eq-lt-trans 'inequalities)
+
+;;; Discreteness of NN: a nonzero natural is strictly positive.  0<=k (nn-zero-le)
+;;; and k/=0 give 0<k.  This is the single fact that made sqrt2 ASSERT nn-lt-double
+;;; (trust:reference); as a well-known support it lets `calc' PROVE nn-lt-double.
+(support 'nn-pos-of-nonzero
+  '(FORALL k (IMPLIES (IN k NN) (IMPLIES (NOT (= k 0)) (< 0 k)))))
+(warrant! 'nn-pos-of-nonzero 'well-known
+  "k in NN, k/=0 => 0<k: 0<=k (nn-zero-le) and 0/=k give the strict inequality.")
+(category! 'nn-pos-of-nonzero 'inequalities)
 
 (support 'rr-cancel-mul-right
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (FORALL c (IMPLIES (IN c RR) (IMPLIES (NOT (= c 0)) (IMPLIES (= (* u c) (* v c)) (= u v))))))))))

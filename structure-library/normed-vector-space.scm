@@ -45,6 +45,7 @@
 ;;; slot and the four norm laws are what this adds.  SCAL is pinned to RR-NORMED-FIELD
 ;;; by a law (decision (1)); the substructure slot separately types it a RING.
 (declare-structure NORMED-VECTOR-SPACE
+  (instance-var s)
   (substructure SCAL RING)                  ; the scalars -- pinned to RR-NORMED-FIELD below
   (carriers VEC)
   (op VADD (CARTESIAN VEC VEC) VEC)
