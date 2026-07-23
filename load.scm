@@ -276,6 +276,10 @@
     ;; The matrix equivalence relation ~ (Def 3.33 / Remark 3.35): C ~ D iff
     ;; D = U.C.V for invertible U,V.  Basis of the Smith normal-form theory.
     "structure-library/mat-equiv"
+    ;; Determinant by recursive cofactor expansion (the pedestrian definition):
+    ;; MINOR + DET's two definitional recursion axioms + the first theorem menu
+    ;; (computational checks det-1x1/2x2, det-identity, alternating, product).
+    "structure-library/determinant"
     ;; Phase C: a matrix of scalars acting on a matrix (column sequence) of
     ;; module elements -- MATACT, the book's A . u_col (eq. 82).
     "structure-library/mod-seq"
