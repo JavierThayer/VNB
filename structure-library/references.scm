@@ -20,8 +20,8 @@
 ;;; wired in when the file is actually on disk; where it is absent the human
 ;;; citation stands alone and a page anchor would resolve to nothing, so do not
 ;;; give one.  On disk today: lang, bourbaki-algebra, thayer-calc,
-;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne.  NOT on
-;;; disk: schaefer.
+;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne, lima.
+;;; NOT on disk: schaefer.
 
 ;; Lang: OCR'd scan on disk (934 pp, one book page per PDF page).
 ;; PAGE ANCHORS ARE PDF PAGES: pdf page = printed page + 15 (verified at printed
@@ -43,9 +43,11 @@
 ;; The user's own calculus notes -- first source with a real PDF on disk, so the
 ;; machine anchor (page) resolves.  Short name from the author (F. Javier Thayer).
 (cite-book! 'thayer-calc "Thayer" "Calculus (notes)" "" "/home/ubuntu/docs/calculus.pdf")
-;; Functional analysis: the user's spectral-theory notes (Portuguese; these results
-;; appear as exercises) and the classic reference.
-(cite-book! 'thayer-spectral "Thayer" "Spectral Theory (notes)" "" "/home/ubuntu/docs/th-main.pdf")
+;; Thayer's functional-analysis / spectral-theory text (Portuguese), a PUBLISHED
+;; source -- citable as a real reference, not just exercises (user, 2026-07-23).
+;; Born-digital LaTeX, clean text incl. math.  PAGE ANCHOR = pdf page = printed
+;; page (offset 0; verified at printed 50/100/200).
+(cite-book! 'thayer-spectral "Thayer" "Análise Funcional e Teoria Espectral" "" "/home/ubuntu/docs/th-main.pdf")
 ;; Yosida: two scans of the same book are on disk.  Use Yosida-Functional_Analysis.pdf
 ;; -- 517 pages, one book page per PDF page, and it carries an OCR text layer, so
 ;; pdftotext works on it.  (YosidaFnalAnalysis.pdf is a 2-up scan with NO text layer:
@@ -56,6 +58,10 @@
 ;; PAGE ANCHOR = pdf page = printed page + 8 (folios in `-N-` form; verified at
 ;; printed 2/32/62/92).  French OCR clean incl. accents; math noise as usual.
 (cite-book! 'theorie-spectrale "Théorie Spectrale" "Théorie Spectrale (notes)" "" "/home/ubuntu/docs/TheorieSpectrale-ocr.pdf")
+;; Elon Lages Lima, Espacos Metricos (IMPA), a published classic (Portuguese).
+;; Born-digital, clean text.  PAGE ANCHOR = pdf page = printed page + 10
+;; (verified at printed 20/50/90/190/290).
+(cite-book! 'lima "Lima" "Espacos Metricos (IMPA)" "" "/home/ubuntu/docs/MetricSpacesLima.pdf")
 ;; The user's topological-vector-space notes: Ch. 4 is the open mapping (Thm 4.7),
 ;; closed graph (Thm 4.9) and uniform boundedness chapter.
 (cite-book! 'thayer-tvs "Thayer" "Topological Vector Spaces (notes)" "" "/home/ubuntu/docs/topological-vector-space.pdf")
