@@ -20,8 +20,8 @@
 ;;; wired in when the file is actually on disk; where it is absent the human
 ;;; citation stands alone and a page anchor would resolve to nothing, so do not
 ;;; give one.  On disk today: lang, bourbaki-algebra, thayer-calc,
-;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne, lima.
-;;; NOT on disk: schaefer.
+;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne, lima,
+;;; hoffman-kunze, lima-la.  NOT on disk: schaefer.
 
 ;; Lang: OCR'd scan on disk (934 pp, one book page per PDF page).
 ;; PAGE ANCHORS ARE PDF PAGES: pdf page = printed page + 15 (verified at printed
@@ -62,6 +62,13 @@
 ;; Born-digital, clean text.  PAGE ANCHOR = pdf page = printed page + 10
 ;; (verified at printed 20/50/90/190/290).
 (cite-book! 'lima "Lima" "Espacos Metricos (IMPA)" "" "/home/ubuntu/docs/MetricSpacesLima.pdf")
+;; Linear algebra references.  Hoffman & Kunze (the classic) -- OCR'd scan,
+;; pdf = printed + 8 (verified at printed 22/92/192/292), prose clean / math
+;; noisy.  Lima, Algebra Linear (IMPA, Portuguese) -- born-digital, clean,
+;; pdf = printed + 6 (verified at printed 24/94/194/294).  `lima-la' is a
+;; DISTINCT key from `lima' (Espacos Metricos), same author.
+(cite-book! 'hoffman-kunze "Hoffman-Kunze" "Linear Algebra" "2nd ed." "/home/ubuntu/docs/HoffmanKunze-ocr.pdf")
+(cite-book! 'lima-la "Lima" "Algebra Linear (IMPA)" "" "/home/ubuntu/docs/LimaAlgebraLinear.pdf")
 ;; The user's topological-vector-space notes: Ch. 4 is the open mapping (Thm 4.7),
 ;; closed graph (Thm 4.9) and uniform boundedness chapter.
 (cite-book! 'thayer-tvs "Thayer" "Topological Vector Spaces (notes)" "" "/home/ubuntu/docs/topological-vector-space.pdf")
