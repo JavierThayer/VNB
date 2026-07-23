@@ -46,5 +46,20 @@ env -u INSIDE_EMACS VNB_RECOMPILE=1 $FULLENV mit-scheme --heap "$HEAP" --quiet \
     --eval '(begin (compile-vnb!) (exit))' \
   || { echo "VNB-with-compile: compile step failed; aborting launch." >&2; exit 1; }
 
+# The --load above ran a full load, which REWRITES reference/structure-graph.dot
+# but never the rendered html/svg (rendering wants graphviz + python3, which the
+# headless load deliberately skips -- see interactive.scm structure-graph-dot-file).
+# So the render lags the source after every library change.  Refresh it here, off
+# the fresh .dot.  Non-fatal: a box without graphviz/python3 still launches.
+if command -v dot >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+    echo "VNB-with-compile: rendering structure graph..."
+    ( cd "$PROVER_DIR/reference" \
+        && python3 build-graph-html.py >/dev/null \
+        && dot -Tsvg structure-graph.dot > structure-graph.svg ) \
+      || echo "VNB-with-compile: graph render failed (continuing)." >&2
+else
+    echo "VNB-with-compile: graphviz/python3 absent -- skipping graph render." >&2
+fi
+
 echo "VNB-with-compile: launching Emacs workspace..."
 exec "$PROVER_DIR/VNB" "$@"
