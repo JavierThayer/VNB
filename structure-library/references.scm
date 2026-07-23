@@ -21,7 +21,7 @@
 ;;; citation stands alone and a page anchor would resolve to nothing, so do not
 ;;; give one.  On disk today: lang, bourbaki-algebra, thayer-calc,
 ;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne, lima,
-;;; hoffman-kunze, lima-la.  NOT on disk: schaefer.
+;;; hoffman-kunze, lima-la, reed-simon-1.  NOT on disk: schaefer.
 
 ;; Lang: OCR'd scan on disk (934 pp, one book page per PDF page).
 ;; PAGE ANCHORS ARE PDF PAGES: pdf page = printed page + 15 (verified at printed
@@ -69,6 +69,12 @@
 ;; DISTINCT key from `lima' (Espacos Metricos), same author.
 (cite-book! 'hoffman-kunze "Hoffman-Kunze" "Linear Algebra" "2nd ed." "/home/ubuntu/docs/HoffmanKunze-ocr.pdf")
 (cite-book! 'lima-la "Lima" "Algebra Linear (IMPA)" "" "/home/ubuntu/docs/LimaAlgebraLinear.pdf")
+;; Reed & Simon, Methods of Modern Mathematical Physics I: Functional Analysis.
+;; OCR'd scan, pdf = printed + 7 (verified printed 53/153/253/293/303).  Prose
+;; clean; a `zyxwv...' watermark artifact (as in Dieudonne) eats the running head
+;; on some pages -- read the image when a head comes back garbled; the folio
+;; sits at the END of the head line.
+(cite-book! 'reed-simon-1 "Reed-Simon" "Methods of Modern Mathematical Physics I" "" "/home/ubuntu/docs/Reed-Simon-vol-I-ocr.pdf")
 ;; The user's topological-vector-space notes: Ch. 4 is the open mapping (Thm 4.7),
 ;; closed graph (Thm 4.9) and uniform boundedness chapter.
 (cite-book! 'thayer-tvs "Thayer" "Topological Vector Spaces (notes)" "" "/home/ubuntu/docs/topological-vector-space.pdf")
