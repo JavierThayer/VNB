@@ -21,7 +21,7 @@
 ;;; citation stands alone and a page anchor would resolve to nothing, so do not
 ;;; give one.  On disk today: lang, bourbaki-algebra, thayer-calc,
 ;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne, lima,
-;;; hoffman-kunze, lima-la, reed-simon-1.  NOT on disk: schaefer.
+;;; hoffman-kunze, lima-la, reed-simon-1, reed-simon-2.  NOT on disk: schaefer.
 
 ;; Lang: OCR'd scan on disk (934 pp, one book page per PDF page).
 ;; PAGE ANCHORS ARE PDF PAGES: pdf page = printed page + 15 (verified at printed
@@ -75,6 +75,10 @@
 ;; on some pages -- read the image when a head comes back garbled; the folio
 ;; sits at the END of the head line.
 (cite-book! 'reed-simon-1 "Reed-Simon" "Methods of Modern Mathematical Physics I" "" "/home/ubuntu/docs/Reed-Simon-vol-I-ocr.pdf")
+;; Vol II (Fourier Analysis, Self-Adjointness).  Same OCR/watermark caveats, but
+;; a DIFFERENT offset: pdf = printed + 4 (verified printed 76/136/196/256/316) --
+;; the two volumes have different front matter, so don't share vol I's +7.
+(cite-book! 'reed-simon-2 "Reed-Simon" "Methods of Modern Mathematical Physics II" "" "/home/ubuntu/docs/Reed-Simon-vol-II-ocr.pdf")
 ;; The user's topological-vector-space notes: Ch. 4 is the open mapping (Thm 4.7),
 ;; closed graph (Thm 4.9) and uniform boundedness chapter.
 (cite-book! 'thayer-tvs "Thayer" "Topological Vector Spaces (notes)" "" "/home/ubuntu/docs/topological-vector-space.pdf")
