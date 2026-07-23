@@ -248,12 +248,17 @@
 \subsection{Taylor's theorem}
 
 \subsubsection*{\texttt{taylor-poly-at-center}}
-\emph{for every f, x, n in nn, taylor-poly(f, x, n, x) equals f(x)}
+\emph{for every f, x, n, if x is in rr, then if n is in nn, then if for every k, if k is in nn and k is at most n, then (nth-deriv(f, k))(x) is in rr, then taylor-poly(f, x, n, x) equals f(x)}
 {\small\[
-\forall f.\; \forall x.\; \forall n \in \mathbb{N}.\; (\operatorname{taylor\text{-}poly}(f, x, n, x) = f(x))
+\forall f.\; \forall x.\; \forall n.\; ((x \in \mathbb{R}) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\forall k.\; (((k \in \mathbb{N}) \wedge (k \leq n)) \Rightarrow (\operatorname{nth\text{-}deriv}(f, k)(x) \in \mathbb{R})) \Rightarrow (\operatorname{taylor\text{-}poly}(f, x, n, x) = f(x)))))
 \]}
-\noindent\textbf{Asserted} [warrant: reference]. TAYLOR-POLY(f,x,n,x): every term k>=1 carries (x-x)\textasciicircum{}k = 0, and term 0 is
-   f\textasciicircum{}(0)(x)(x-x)\textasciicircum{}0/0! = f(x).  So the Taylor polynomial at its own centre is f(x).
+\noindent\textbf{Asserted} [warrant: reference]. Given x in RR and f\textasciicircum{}(k)(x) in RR for every k <= n (all derivatives up to order n
+   exist at the centre x), TAYLOR-POLY(f,x,n,x) is defined and collapses: each term
+   k>=1 carries (x-x)\textasciicircum{}k = 0, killed by mul-zero (valid since f\textasciicircum{}(k)(x) is a real), and
+   term 0 is f\textasciicircum{}(0)(x)(x-x)\textasciicircum{}0/0! = f(x).  So the Taylor polynomial at its own centre
+   equals f(x).  The derivative-existence guard is what makes both sides defined; the
+   consumer taylor-lagrange supplies it via TAYLOR-DIFFERENTIABLE (f\textasciicircum{}(k) continuous on
+   [a,x], so f\textasciicircum{}(k)(x) exists).
 
 \subsubsection*{\texttt{taylor-lagrange}}
 \emph{for every f, a, x, n, if f is in fun(rr, rr) and a is in rr and x is in rr and n is in nn and a is less than x, then if f is n times differentiable from a to x, then there is some theta such that a is less than theta and theta is less than x and factorial(succ(n)) * (f(x) - taylor-poly(f, a, n, x)) equals (nth-deriv(f, succ(n)))(theta) * (x - a) \textasciicircum{} succ(n)}
@@ -525,16 +530,16 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall r.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(k, l, \operatorname{carr}(a))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matmul}(a, p, q), r) = \operatorname{matmul}(a, p, \operatorname{matmul}(a, q, r)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.
-\par\smallskip\noindent\emph{Rests on 23 facts:} \texttt{matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, ring-mul-assoc, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality}.
+\noindent\textbf{Machine-checked} (trust: well-known). Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.
+\par\smallskip\noindent\emph{Rests on 22 facts:} \texttt{matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality}.
 
 \subsubsection*{\texttt{mat-ring-is-ring}}
 \emph{for every ring a, for every n in nn, mat-ring(a, n) is a ring}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; \operatorname{is\text{-}ring}(\operatorname{mat\text{-}ring}(a, n)))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.
-\par\smallskip\noindent\emph{Rests on 46 facts:} \texttt{mat-ring-carr, ring-carr-in-set, mat-is-set, mat-ring-add, mat-ring-add-fun, mat-ring-mul, mat-ring-mul-fun, mat-ring-neg, matneg-type, mat-ring-zero, zeromat-type, mat-ring-one, identmat-type, matadd-assoc, matadd-comm, matadd-zero-left, matadd-zero-right, matadd-neg-left, matadd-neg-right, matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, ring-mul-assoc, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality, identmat-left-identity, identmat-right-identity, matmul-left-dist, matmul-right-dist}.
+\noindent\textbf{Machine-checked} (trust: well-known). Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.
+\par\smallskip\noindent\emph{Rests on 45 facts:} \texttt{mat-ring-carr, ring-carr-in-set, mat-is-set, mat-ring-add, mat-ring-add-fun, mat-ring-mul, mat-ring-mul-fun, mat-ring-neg, matneg-type, mat-ring-zero, zeromat-type, mat-ring-one, identmat-type, matadd-assoc, matadd-comm, matadd-zero-left, matadd-zero-right, matadd-neg-left, matadd-neg-right, matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality, identmat-left-identity, identmat-right-identity, matmul-left-dist, matmul-right-dist}.
 
 \subsection{The matrix unit and its column shift (Lemma 3.3)}
 
@@ -543,8 +548,8 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall k.\; \forall l.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{matunit}(a, n, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{zero}(a)\right))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). matmul-entry expands (P.E[k,l])\_\{ic\} to FINSUM\_j P\_\{ij\}.E[k,l]\_\{jc\}; off the index k the summand vanishes, so finsum-single-support collapses the sum, and an excluded-middle split on c=l finishes.
-\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{matunit-type, matmul-entry, interval-in-set, interval-card-in-nn, matunit-summand-type, matunit-entry-off-row, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, matunit-entry-k-row, ring-mul-right-id}.
+\noindent\textbf{Machine-checked} (trust: well-known). matmul-entry expands (P.E[k,l])\_\{ic\} to FINSUM\_j P\_\{ij\}.E[k,l]\_\{jc\}; off the index k the summand vanishes, so finsum-single-support collapses the sum, and an excluded-middle split on c=l finishes.
+\par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{matunit-type, matmul-entry, interval-in-set, interval-card-in-nn, matunit-summand-type, matunit-entry-off-row, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, matunit-entry-k-row}.
 
 \subsection{Elementary column operations (Prop 3.5)}
 
@@ -553,24 +558,24 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall k.\; \forall l.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}f}(a, n, k, l)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{entry}(p, i, l)\text{ else }\left(\text{if }(c = l)\text{ then }\operatorname{entry}(p, i, k)\text{ else }\operatorname{entry}(p, i, c)\right)\right)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Right-multiplication by F[k,l] permutes columns k and l: a three-way column split, each branch a single-support finsum collapse of the transposition matrix.
-\par\smallskip\noindent\emph{Rests on 16 facts:} \texttt{elem-f-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-f-ck-off, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-f-ck-at, ring-mul-right-id, elem-f-cl-off, elem-f-cl-at, elem-f-co-off, elem-f-co-at}.
+\noindent\textbf{Machine-checked} (trust: well-known). Right-multiplication by F[k,l] permutes columns k and l: a three-way column split, each branch a single-support finsum collapse of the transposition matrix.
+\par\smallskip\noindent\emph{Rests on 15 facts:} \texttt{elem-f-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-f-ck-off, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-f-ck-at, elem-f-cl-off, elem-f-cl-at, elem-f-co-off, elem-f-co-at}.
 
 \subsubsection*{\texttt{elem-g-action}}
 \emph{for every ring a, for every m, n, p, r, k, l, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-g(a, n, r, k, l)), i, c) equals if(c = l, (add(a))(entry(p, i, l), (mul(a))(entry(p, i, k), r)), entry(p, i, c))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall r.\; \forall k.\; \forall l.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}g}(a, n, r, k, l)), i, c) = \left(\text{if }(c = l)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, i, l), \operatorname{mul}(a)(\operatorname{entry}(p, i, k), r))\text{ else }\operatorname{entry}(p, i, c)\right))))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). The l-column of G = I + r.E[k,l] has TWO supports (the diagonal l and the r-slot k), so a two-point finsum split gives P\_\{il\} + P\_\{ik\}.r; every other column is a single-support identity column.
-\par\smallskip\noindent\emph{Rests on 18 facts:} \texttt{elem-g-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, eq-sym, elem-g-entry-l-vanish, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-two-support, elem-g-entry-l-at-l, elem-g-entry-l-at-k, ring-mul-right-id, ras-op, elem-g-entry-off-l-off-diag, finsum-single-support, elem-g-entry-off-l-diag}.
+\noindent\textbf{Machine-checked} (trust: well-known). The l-column of G = I + r.E[k,l] has TWO supports (the diagonal l and the r-slot k), so a two-point finsum split gives P\_\{il\} + P\_\{ik\}.r; every other column is a single-support identity column.
+\par\smallskip\noindent\emph{Rests on 17 facts:} \texttt{elem-g-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, eq-sym, elem-g-entry-l-vanish, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-two-support, elem-g-entry-l-at-l, elem-g-entry-l-at-k, ras-op, elem-g-entry-off-l-off-diag, finsum-single-support, elem-g-entry-off-l-diag}.
 
 \subsubsection*{\texttt{elem-h-action}}
 \emph{for every ring a, for every m, n, p, r, k, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, n), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-h(a, n, r, k)), i, c) equals if(c = k, (mul(a))(entry(p, i, k), r), entry(p, i, c))}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall r.\; \forall k.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, p, \operatorname{elem\text{-}h}(a, n, r, k)), i, c) = \left(\text{if }(c = k)\text{ then }\operatorname{mul}(a)(\operatorname{entry}(p, i, k), r)\text{ else }\operatorname{entry}(p, i, c)\right))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.
-\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{elem-h-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-entry-off-diag, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-h-entry-diag, ring-mul-right-id}.
+\noindent\textbf{Machine-checked} (trust: well-known). H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.
+\par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{elem-h-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-entry-off-diag, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-h-entry-diag}.
 
 \subsection{Elementary inverses (Cor 3.6)}
 
@@ -579,24 +584,24 @@
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall k.\; \forall l.\; ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow (\neg (k = l) \Rightarrow (\operatorname{matmul}(a, \operatorname{elem\text{-}f}(a, n, k, l), \operatorname{elem\text{-}f}(a, n, l, k)) = \operatorname{identmat}(a, n))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). F[k,l] is its own inverse: composing its column-swap action (Prop 3.5) with F[l,k] swaps the columns back, matching the identity entrywise.
-\par\smallskip\noindent\emph{Rests on 24 facts:} \texttt{eq-sym, elem-f-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-f-ck-off, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-f-ck-at, ring-mul-right-id, elem-f-cl-off, elem-f-cl-at, elem-f-co-off, elem-f-co-at, entry-of-identmat, elem-f-col-k, elem-f-col-l, elem-f-col-other, matrix-entry-extensionality}.
+\noindent\textbf{Machine-checked} (trust: well-known). F[k,l] is its own inverse: composing its column-swap action (Prop 3.5) with F[l,k] swaps the columns back, matching the identity entrywise.
+\par\smallskip\noindent\emph{Rests on 23 facts:} \texttt{eq-sym, elem-f-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-f-ck-off, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-f-ck-at, elem-f-cl-off, elem-f-cl-at, elem-f-co-off, elem-f-co-at, entry-of-identmat, elem-f-col-k, elem-f-col-l, elem-f-col-other, matrix-entry-extensionality}.
 
 \subsubsection*{\texttt{elem-g-inverse}}
 \emph{for every ring a, for every n, r, k, l, if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then matmul(a, elem-g(a, n, r, k, l), elem-g(a, n, (neg(a))(r), k, l)) equals identmat(a, n)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall r.\; \forall k.\; \forall l.\; ((r \in \operatorname{carr}(a)) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow (\neg (k = l) \Rightarrow (\operatorname{matmul}(a, \operatorname{elem\text{-}g}(a, n, r, k, l), \operatorname{elem\text{-}g}(a, n, \operatorname{neg}(a)(r), k, l)) = \operatorname{identmat}(a, n)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). G[r,k,l]\textasciicircum{}\{-1\} = G[-r,k,l]: on column l the added term P\_\{ik\}.(-r) cancels the r via r + (-r) = 0; every other column is unchanged.
-\par\smallskip\noindent\emph{Rests on 32 facts:} \texttt{ring-neg-in-carr, elem-g-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, eq-sym, elem-g-entry-l-vanish, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-two-support, elem-g-entry-l-at-l, elem-g-entry-l-at-k, ring-mul-right-id, ras-op, elem-g-entry-off-l-off-diag, finsum-single-support, elem-g-entry-off-l-diag, entry-of-identmat, elem-g-col-l, elem-g-col-k, ring-mul-zero-left, ring-one-in, ring-add-right-id, ring-mul-left-id, ring-add-right-inv, ring-zero-in, elem-g-col-other, matrix-entry-extensionality}.
+\noindent\textbf{Machine-checked} (trust: well-known). G[r,k,l]\textasciicircum{}\{-1\} = G[-r,k,l]: on column l the added term P\_\{ik\}.(-r) cancels the r via r + (-r) = 0; every other column is unchanged.
+\par\smallskip\noindent\emph{Rests on 29 facts:} \texttt{ring-neg-in-carr, elem-g-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, eq-sym, elem-g-entry-l-vanish, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-two-support, elem-g-entry-l-at-l, elem-g-entry-l-at-k, ras-op, elem-g-entry-off-l-off-diag, finsum-single-support, elem-g-entry-off-l-diag, entry-of-identmat, elem-g-col-l, elem-g-col-k, ring-mul-zero-left, ring-one-in, ring-add-right-id, ring-add-right-inv, elem-g-col-other, matrix-entry-extensionality}.
 
 \subsubsection*{\texttt{elem-h-inverse}}
 \emph{for every ring a, for every n, r, s, k, if r is in carr(a), then if s is in carr(a), then if (mul(a))(r, s) equals one(a), then if k is in interval(1, n), then matmul(a, elem-h(a, n, r, k), elem-h(a, n, s, k)) equals identmat(a, n)}
 {\small\[
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall r.\; \forall s.\; \forall k.\; ((r \in \operatorname{carr}(a)) \Rightarrow ((s \in \operatorname{carr}(a)) \Rightarrow ((\operatorname{mul}(a)(r, s) = \operatorname{one}(a)) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{matmul}(a, \operatorname{elem\text{-}h}(a, n, r, k), \operatorname{elem\text{-}h}(a, n, s, k)) = \operatorname{identmat}(a, n)))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). H[r,k]\textasciicircum{}\{-1\} = H[r\textasciicircum{}\{-1\},k]: the (k,k) diagonal entry becomes r.s = 1 by the unit hypothesis; the rest of the diagonal stays 1 and off-diagonal 0.
-\par\smallskip\noindent\emph{Rests on 17 facts:} \texttt{elem-h-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-entry-off-diag, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-h-entry-diag, ring-mul-right-id, entry-of-identmat, ring-mul-zero-left, matrix-entry-extensionality}.
+\noindent\textbf{Machine-checked} (trust: well-known). H[r,k]\textasciicircum{}\{-1\} = H[r\textasciicircum{}\{-1\},k]: the (k,k) diagonal entry becomes r.s = 1 by the unit hypothesis; the rest of the diagonal stays 1 and off-diagonal 0.
+\par\smallskip\noindent\emph{Rests on 16 facts:} \texttt{elem-h-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-entry-off-diag, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-h-entry-diag, entry-of-identmat, ring-mul-zero-left, matrix-entry-extensionality}.
 
 \subsection{The binomial theorem}
 
@@ -653,8 +658,8 @@
    (k,u)\} is defined by the totality hypothesis, then recurse f(0):=a,
    f(succ k):=g(k,f k); f:NN->X by induction.  No relation-set encoding --
    nxt(k,u) is the successor SET, supplied as a VNB-LAMBDA, so callers avoid
-   the (LIST k u y)-in-R comprehension/sethood/NTH plumbing (O1 of calculus/
-   block-family-rederive.scm).  Accepted asserted during library-build.
+   the (LIST k u y)-in-R comprehension/sethood/NTH plumbing (O1 of
+   archive/calculus-pre-rename/block-family-rederive.scm).  Accepted asserted during library-build.
 
 \subsection{Infinite pigeonhole and the block family}
 
@@ -918,7 +923,7 @@
 {\small\[
 \forall s.\; \forall t.\; \forall f.\; (\operatorname{is\text{-}continuous}(s, t, f) \Rightarrow \forall v.\; (\operatorname{is\text{-}open}(t, v) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{preimage}(s, f, v))))
 \]}
-\noindent\textbf{Asserted} [warrant: proof]. MACHINE-PROVEN in calculus/prop-3-15-proof.scm (qed; proven modulo \{rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at\}; the PREIMAGE-subset-PTS(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half<eps (rr-pos-shrink); continuity at a for half gives delta>0 with d(s)(a,z)<=delta => d(t)(f a,f z)<=half<eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.
+\noindent\textbf{Asserted} [warrant: proof]. MACHINE-PROVEN in archive/calculus-pre-rename/prop-3-15-proof.scm (qed; proven modulo \{rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at\}; the PREIMAGE-subset-PTS(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half<eps (rr-pos-shrink); continuity at a for half gives delta>0 with d(s)(a,z)<=delta => d(t)(f a,f z)<=half<eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.
 
 \subsubsection*{\texttt{open-preimage-implies-continuous}}
 \emph{for every s, t, f, if s is a metric space and t is a metric space and f is in fun(pts(s), pts(t)), then if for every v, if v is open in t, then preimage(s, f, v) is open in s, then f is continuous from s to t}

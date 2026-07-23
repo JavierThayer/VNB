@@ -33,7 +33,7 @@ Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` tag it 
 
 - **rule** -- a single primitive KERNEL inference rule (the fixed trusted base): `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-b` `lam-b-h` `lam-t` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `bu-set` `bu-mi` `bu-me` 
 - **oracle** -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: `arith` `rs` `crs` `simp` `ineq` `sos` 
-- **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `inst+` `fact` `bc*` `mac-h*` `grind` `wbc` `scout-run` 
+- **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `inst+` `fact` `bc*` `mac-h*` `grind` `wbc` `calc` `scout-run` `minimize!` `obtain` `have!` `vlet` 
 - **meta** -- no deduction: session / search / navigation: `sp` `qed` `save-proof` `replay-proof` `scout` `scout-show` 
 
 The `rule` set is the fixed kernel; a proof's trust surface is exactly its `rule` steps plus whichever `oracle`s and asserted premises it cites.  You can read any finished proof's actual rule inventory off its deduction graph (each node records its justifying rule).
@@ -458,17 +458,25 @@ Adopt closing branch k from the last (scout)/(scout-show) onto the live proof, r
 
 After scout finds CLOSING branches [1], [2], ..., (scout-run k) replays branch k's tactic forms through the real tactics on your live *ps*, from the same focus scout cloned -- so the proof advances and the steps are recorded for the script / PDF exactly as if you had typed them.  Works after either (scout) or (scout-show); both stash the closing branches.
 
+### prep
+
+    (prep 'ineq)
+
+Why will a tactic not fire here, and what must be done first?  Runs the tactic's OWN preconditions one at a time, marks each ok / PREP / STOP, names the library lemma that repairs each unmet one, and prints a PLAN it has checked by running it on a scratch clone.  READ-ONLY: the live proof is never touched.  (prep 'ineq) is the only method so far.
+
+A tactic reports failure as a boolean, so every unmet precondition comes out as the same #f and the same warning -- (ineq) says `goal not a linear-RR consequence of the named assumptions' whether your goal merely needs a di, or an atom needs a typing fact the library already proves, or the goal is simply false.  prep runs the same predicates separately and tells you WHICH failed.  For ineq the obligations are: the goal must BE an order relation (repair: di, counted by measuring, since one di consumes a typed FORALL and its guard together); every atom must be certified in RR by a LITERAL (IN t RR) scan -- (IN k NN) does not count, the oracle does no subtype reasoning (repair: a coercion lemma, e.g. nn-in-rr); some assumption must be order-shaped, since a fact like not(k=0) is invisible to Farkas (repair: a bridge lemma, e.g. nn-pos-of-nonzero); and the goal must actually follow, which only Fourier-Motzkin decides -- a STOP there means no prepping will help, which is the useful answer.  The repair search is by SHAPE over the whole library and is verified by SPECULATION: a candidate counts only if ineq then fires, not merely because it landed something order-shaped.  Every repair that works is reported, not just the first -- they come out alphabetical, which is no order of merit, and if the goal is itself a library theorem then citing IT is one of the closers.  Worked case: |- forall k in NN. ~(k=0) => k < 2k.  prep returns (di) (di) (fact 'nn-in-rr 'k) (fact 'nn-pos-of-nonzero 'k) (ineq 4) -- six steps, where the hand-built cut/crs route through k = k+0 < k+k = 2k took thirteen and billed two extra transitivity lemmas.  A tactic joins the table with (prep-method! 'FUBA proc); crs and ass are the obvious next two.
+
 ### subst
 
-    (subst '(= s t))
+    (subst '(= s t))  |  (subst '(== s t))
 
-Rewrite s -> t throughout the goal, using an equation s = t that is in context (Leibniz substitution).
+Rewrite s -> t throughout the goal, using an equation s = t -- or a quasi-equation s == t -- that is in context, in EITHER orientation (Leibniz substitution).  Cannot reach a term in OPERATOR position: use the equation as a macete instead.
 
 *Kind:* `rule` (emits `eq-subst`)
 
-*When useful:* you have an equation s = t in context and want to rewrite the goal by it
+*When useful:* you have an equation s = t (or a quasi-equation s == t) in context and want to rewrite the goal by it -- and the target is not in operator position
 
-Use an equation `s = t' that is among your hypotheses to replace s by t everywhere in the goal.  (Technically: Leibniz substitution from an in-context equality.)
+Use an equation among your hypotheses to replace s by t everywhere in the goal.  BOTH equalities license it: `=' is VNB's partial equality, and `s = t' already entails s = s and t = t, so t is defined wherever s was and the rewrite never replaces a defined term by an undefined one; `==' is quasi-equality (same definedness, equal where defined), which is a congruence and so substitutes exactly as `=' does -- which you need, since the partial-op recursion and bridge facts are stated with `=='.  The head you pass need not match the head in context, and neither need the orientation: all four of (= s t), (= t s), (== s t), (== t s) are searched for, and the goal is always rewritten s -> t.  LIMIT: the rewrite walk reaches argument positions only, so it is a silent no-op on a term in OPERATOR position -- (subst '(= (VADD md) ...)) will not touch the goal ((VADD md) x y).  Structure accessors are almost always in operator position; use the equation as a macete there (mac on the goal, mac-h on a hypothesis).  (Technically: Leibniz substitution from an in-context equality or quasi-equality.)
 
 ### beta
 
@@ -630,6 +638,46 @@ Notes.
    you simply try other squares.
  - Strict (<) goals are refused -- a square can be 0, so squares alone never
    force a strict inequality.
+
+## Chained reasoning
+
+### calc
+
+    (calc L0 (rel1 L1 [just1]) (rel2 L2 [just2]) ...)
+
+Ground the focus goal (REL L0 Ln) by a CHAIN of intermediaries L0 rel1 L1 rel2 L2 ... reln Ln: proves each link and composes them into the endpoint.  A link no lane can close is LEFT OPEN as a leaf -- the refinement point, and the PSS candidate.  Relations: = == (folded by transitivity), < <= (folded through the co-*-trans lemmas, with = steps riding along), IFF (chained per direction).  RETURNS the links, the open ones, and their PSS candidates as an alist.
+
+*Kind:* `composite` (emits `(cut)`)
+
+*When useful:* the goal is (REL L0 Ln) and you can WRITE the chain of intermediaries that gets there -- or you want the one link that will not close isolated as a PSS candidate
+
+Write the argument the way you would on paper -- as a chain through intermediate terms -- and let the machine prove each link:
+
+      Goal  k < 2*k   (with k in NN, ~(k=0))
+      (calc 'k '(= (+ k 0)) '(< (+ k k)) '(= (* 2 k)))
+          ;; i.e.  k = k+0 < k+k = 2*k
+
+Each step names a RELATION and the next LINE; calc cuts the link (rel L(i-1) Li), dispatches a lane at it, and on success composes the whole chain into the goal.  It is pure bookkeeping over the trusted tactics -- no kernel rule, no axiom of its own -- so a calc proof bills exactly the lemmas its lanes and composers cite.
+
+The COMPOSER is forced by the relations you used, and there are three families: `cong' for = and ==, folded by eq-trans; `order' for < and <=, folded through the co-lt-trans / co-le-lt-trans / co-eq-lt-trans ... lemmas (a = step rewrites an endpoint of the running relation and rides along, which is why the chain above needs no separate arithmetic); and `iff', which di's the goal into its two directions and chains each with ai/detach!, because VNB cannot quantify over propositions and so has NO first-order iff-trans lemma to fold with.
+
+The JUSTIFICATION of a link is optional and defaults to 'auto -- try the relation's lanes: crs then arith for = / ==; for < / <= the NN->RR bridge then ineq over the order-shaped premises; grind for IFF.  Otherwise pass 'scout (a small scout search), a macete/theorem NAME (mac it, then close), an explicit tactic form like '(fact 'nn-pos-of-nonzero 'k) eval'd at the link's focus, or 'open / #f to leave the link open ON PURPOSE.
+
+Sanity first: calc ERRORS before touching the proof if the goal's head is not the composed relation, or its LHS is not L0, or its RHS is not Ln.  A link already in the main context is taken as a GIVEN and skipped -- cutting it would be an alpha self-loop that opens no leaf.
+
+What it is FOR is the open links.  A chain whose links are all closed is a proof; a chain with one open link has isolated your obstacle to a single formula, printed with its free variables and their context typing -- which is the PSS candidate to state as a lemma.  Refine by inserting more intermediaries until each link is discoverable.  (See also (prep 'ineq), which answers the other question: why a lane will not fire.)
+
+### have!
+
+    (have! CLAIM [THUNK])
+
+Assert CLAIM as an intermediate step and carry on with it as a hypothesis: cut CLAIM, discharge the side goal from context (or by THUNK), and stay on the main branch.
+
+*Kind:* `composite` (emits `cut`)
+
+*When useful:* you want to state an intermediate fact that follows immediately from context and continue with it -- the `we have X' step
+
+The `we have X' step.  You state an intermediate fact CLAIM that follows immediately from what is already known; have! cuts it, proves the resulting side goal automatically, and returns you to the main branch with CLAIM now available as a hypothesis.  The automatic discharge (`from-context!') closes the everyday cases -- a conjunction, splitwise; an (IN (a*b) NN) by nn-mul-closed on the factors; a numeral membership by arith; otherwise the goal is already a context assumption up to alpha.  When the side goal needs more than that, pass a THUNK -- any tactic sequence -- as the second argument to discharge it your way.  It ERRORS, never silently no-ops, if CLAIM is already in context up to alpha: the cut would self-loop, opening one child and no main branch.  So a script reads as the argument does -- `we have q0*q0 = 3*(k*k); we have k =/= 0; ...'.  (Technically: composite -- cut then from-context! or THUNK; adds no kernel rule.)
 
 ## Backchaining with a theorem
 
@@ -920,4 +968,42 @@ Flatten every AND assumption of the focus into separate assumptions.  [proof-loc
     (ass-all-frontier!)
 
 Close every frontier leaf whose goal is already among its assumptions.  [proof-local]
+
+## Choosing and naming witnesses
+
+### minimize!
+
+    (minimize! '(v1 ... vk) GUARD MEASURE)
+
+Choose v1..vk satisfying GUARD with the NN-valued MEASURE as small as possible: lands the witnesses and their minimality, and opens the two obligations any minimisation owes (MEASURE lands in NN; GUARD is satisfiable).
+
+*Kind:* `composite` (emits `(cut forall-intro forsome-elim)`)
+
+*When useful:* the goal falls to a `least such' / minimal-counterexample argument -- descent proofs (sqrt 2, sqrt 3 irrational), least-degree or least-pivot witnesses
+
+The `least such' / minimal-counterexample step, mechanised.  You give three things: the variables to choose, a GUARD formula they must satisfy, and a natural-number-valued MEASURE term to make small.  On the main branch it hands you fresh eigenconstants w1..wk with two hypotheses -- GUARD holds of them, and nothing satisfying GUARD has a strictly smaller MEASURE -- and it opens exactly the two side goals a minimisation genuinely owes: that MEASURE lands in NN wherever GUARD holds (the TYPE goal), and that GUARD holds somewhere (the NONEMPTY goal).  Everything in between -- forming the value set, well-ordering it, unpacking the least witness, and restating minimality in terms of your variables rather than the set -- is done for you.  Every vi must occur in MEASURE (a variable the measure ignores is not one you are minimising over).  Because it quantifies over the vk at the META level, no lambda and no FUN(U,NN) typing obligation ever enters the logic -- it takes a formula and a term, which is what a driver has in hand, and never forms the set U at all.  Returns (list (w1 ... wk) TYPE-node NONEMPTY-node); either node is #f when that obligation was already in context up to alpha, so test before refocusing.  (Technically: composite -- it drives cut / di / ai / ew / sep-mi / sep-me / fact / inst / detach! / subst / ass / rfl and adds no kernel rule; its one mathematical appeal is `nn-least-element', the well-ordering of NN, proven from ord-well-ordered.  NO choice principle is used: well-ordering returns a MEMBER of a separation set, and sep-me recovers the witness.)
+
+### obtain
+
+    (obtain LANE)
+
+Run LANE -- a thunk whose forward step lands a `there exists' into context -- then eliminate that existential and RETURN the fresh witness's name, read off the proof state rather than guessed.
+
+*Kind:* `composite` (emits `(forsome-elim)`)
+
+*When useful:* a forward step yields `there exists ...' and you want to name the witness for later use, without guessing the engine's eigenvariable
+
+The `let w be such an x' step, with the eigenvariable named for you.  LANE is a zero-argument procedure whose effect is to land some `there exists v. P(v)' among your hypotheses -- e.g. (lambda () (fact 'nn-3-div-square w)).  obtain runs it, spots the existential that newly appeared, eliminates it (introducing a fresh eigenvariable and landing P at that witness), unpacks any conjunction in the body, and hands back the eigenvariable's NAME -- identified by free-variable set-difference (the symbol now in context that was not there before), so the driver never guesses what the engine called it.  This is the robust way to name a descended witness: (define k (obtain (lambda () ...))), then use k.  Returns #f (with a note) if the lane landed no existential.  (Technically: composite -- a guarded forward discharge followed by forsome-elim (ai) and AND-splitting.  Plain existential elimination, so it owes nothing and uses no choice.)
+
+### vlet
+
+    (vlet (n1 ...) FORMER)
+
+Bind proof-object names from the current state.  FORMER is (match PATTERN) -- bind each name to its slot in a context formula matching PATTERN -- or (choice [v body]) -- eliminate an in-context existential and bind its witness.
+
+*Kind:* `composite` (emits `(cut forsome-elim)`)
+
+*When useful:* you need to NAME a witness or a matched subterm from the proof state, rather than navigate to it by shape
+
+A binding form for the pieces of a proof, so a driver NAMES what it needs instead of navigating to it by shape.  Two FORMERs.  (match PATTERN): the listed names ARE the holes (wildcards) in PATTERN; everything else is literal.  vlet searches the context for a formula or subterm matching PATTERN and binds each name to what filled its slot -- pure selection, no proof step, no obligation; a hard error if nothing matches (you named a piece of something absent).  (choice): eliminate the sole existential in context and bind its witness.  (choice v body): present-else-debt -- if `there exists v. body' is already in context up to alpha, eliminate it; otherwise cut it, LEAVE the existence side-goal open as a debt leaf, and eliminate on the main branch -- either way the witness is bound and body[witness] is landed.  vlet's (choice) and `obtain' are the same underlying mechanism -- eliminate an existential, name the witness by free-variable difference -- differing only in what they take: obtain runs a lane and names what it just produced, vlet names an existential already (or, with a body, about to be) in context.  No choice AXIOM is used; a single witness is plain existential-elimination.  (Technically: a define-syntax expanding to (define n ...) over vlet--match / vlet--choice!; composite, no kernel rule beyond forsome-elim and, for present-else-debt, cut.)
 

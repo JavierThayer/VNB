@@ -53,7 +53,7 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 
 ### Taylor's theorem
 
-- `taylor-poly-at-center` — forall([f, x, n in nn], taylor-poly(f, x, n, x) = f(x))  _[warrant: reference]_  see [~/prover/theorem-library/taylor-proof.scm](../theorem-library/taylor-proof.scm)
+- `taylor-poly-at-center` — forall([f, x, n], x in rr implies n in nn implies forall([k], k in nn and k <= n implies (nth-deriv(f, k))(x) in rr) implies taylor-poly(f, x, n, x) = f(x))  _[warrant: reference]_  see [~/prover/theorem-library/taylor-proof.scm](../theorem-library/taylor-proof.scm)
 - `taylor-lagrange` — forall([f, a, x, n], f in fun(rr, rr) and a in rr and x in rr and n in nn and a < x implies taylor-differentiable(f, a, x, n) implies forsome([theta], a < theta and theta < x and factorial(succ(n)) * (f(x) - taylor-poly(f, a, n, x)) = (nth-deriv(f, succ(n)))(theta) * (x - a) ^ succ(n)))  see [~/prover/theorem-library/taylor-proof.scm](../theorem-library/taylor-proof.scm)
 
 ## Vector calculus
