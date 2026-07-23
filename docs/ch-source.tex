@@ -1,127 +1,37 @@
 \chapter{Source file overview}
 \label{app:source}
 
-The prover sources live in \texttt{\textasciitilde/prover/} and are
-organised into three groups:
+The prover sources live in \texttt{\textasciitilde/prover/}.  This appendix is a
+map of the tree, not a design document: it says what each file \emph{is}, so a
+reader following a cross-reference or extending the system can find the right
+place.  The layout is:
 
 \begin{itemize}[label=\textendash, leftmargin=0.85cm]
-\item \textbf{Kernel} (root of \texttt{\textasciitilde/prover/}) ---
-  the proof checker engine, parser, theory record, and interactive
-  command layer.
-\item \textbf{\texttt{structure-library/}} --- algebraic structures
-  (semigroup, monoid, group, ring, metric-space), the numeric-system
-  instances (NN/ZZ/QQ/RR/CC as rings), ordinals, cardinality,
-  sequences, the complex-number library, and the polynomial
-  ring-identity decision procedure.
-\item \textbf{\texttt{theorem-library/}} --- axioms not yet derivable
-  from the primitive inference kernel.  Today this is just
-  \texttt{axioms.scm}; future lemma collections will accumulate here.
+\item \textbf{Root} (\texttt{\textasciitilde/prover/*.scm}) --- the proof
+  kernel, the reader and theory record, the interactive command layer, and the
+  documentation, proof-printing, and proof-driving subsystems.
+\item \textbf{\texttt{structure-library/}} --- definitions, structures,
+  vocabulary, and warranted supports: the mathematical objects the system knows
+  at startup.
+\item \textbf{\texttt{theorem-library/}} --- proofs that reach \texttt{(qed
+  \ldots)}, loaded, gated, and counted.
+\item \textbf{\texttt{calculus/}} --- probes and stress tests, \emph{not} in the
+  load path.
+\item \textbf{\texttt{reference/}} --- generated documentation (see below); never
+  hand-edited.
 \end{itemize}
 
-\medskip
-\noindent
-File-by-file:
+\begin{remark}
+The file listings below are \emph{generated} from the tree by
+\texttt{docs/gen-source-appendix.py}, which harvests each file's
+\texttt{;;;\ \textit{name} -- \textit{description}} header.  Regenerate after
+adding or renaming files so this appendix cannot drift from the sources it
+describes:
+\begin{VNBsnip}
+python3 docs/gen-source-appendix.py
+\end{VNBsnip}
+\end{remark}
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
-
-\item \begin{sloppypar}\texttt{expressions.scm}
-  Expression representation, free variables, substitution
-  (capture-avoiding), alpha-equivalence.\end{sloppypar}
-
-\item \texttt{sequents.scm}
-  Sequents (list of assumptions + assertion), context operations.
-
-\item \texttt{deduction-graphs.scm}
-  Sequent nodes, inference nodes, the deduction graph record type,
-  grounding propagation.
-
-\item \texttt{primitive-inferences.scm}
-  The kernel: all proof rules as Scheme procedures.  The only code
-  allowed to extend the deduction graph.
-
-\item \texttt{macetes.scm}
-  Pattern matching, elementary macete construction from theorems,
-  compound macete combinators.
-
-\item \texttt{theory.scm}
-  Theory record, axiom/theorem registration, the VNB base theory.
-
-\item \begin{sloppypar}\texttt{structures.scm}
-  \texttt{declare-structure} (user-facing macro) and \texttt{def-structure}
-  (lower-level Scheme procedure): register structure definitions, install
-  NTH-based accessor macetes, auto-generate \texttt{IS-\textit{NAME}}
-  axioms.\end{sloppypar}
-
-\item \texttt{number-systems.scm}
-  Declares \texttt{NN}, \texttt{ZZ}, \texttt{QQ}, \texttt{RR},
-  \texttt{CC} as constants and installs their arithmetic axioms
-  (sethood, inclusion chain, ring/field laws, absolute value,
-  conjugation).
-
-\item \begin{sloppypar}\texttt{wff.scm}
-  \texttt{<wff>} record type (\texttt{formula}, \texttt{theory},
-  \texttt{contexts} fields); \texttt{wff?}, \texttt{wff-formula},
-  \texttt{wff-theory}; \texttt{wff-child} (inherit theory from parent),
-  \texttt{wff-in-theory} (bare constructor), \texttt{wff-equiv?}.\end{sloppypar}
-
-\item \begin{sloppypar}\texttt{contexts.scm}
-  \texttt{make-wff} (snapshot current theory and context stack),
-  \texttt{wff-free-vars}, \texttt{declare-local-context},
-  \texttt{undeclare-local-context}, \texttt{get-context},
-  \texttt{unravel}, \texttt{print-wff}, \texttt{display-contents}
-  (browse a wff's formula, theory, and kind).\end{sloppypar}
-
-\item \texttt{arith-eval.scm}
-  Ground arithmetic decision procedure.  Evaluates closed formulas over
-  $\mathit{NN}/\mathit{ZZ}/\mathit{QQ}/\mathit{RR}/\mathit{CC}$ using
-  Scheme's exact arithmetic.  Handles \texttt{+}, \texttt{*},
-  \texttt{-}, \texttt{recip}, \texttt{abs}, \texttt{conjugate},
-  \texttt{succ}, \texttt{<=}, \texttt{=}, \texttt{IN}, and
-  \texttt{power}.  Provides \texttt{vnb-do-arith} (standalone
-  predicate), \texttt{vnb-create-num-theorem} (verify and install a
-  numeric theorem), and \texttt{pi-arith!} / \texttt{cmd-arith} (closes
-  proof goals).
-
-\item \texttt{proof-commands.scm}
-  High-level command wrappers with automatic focus management.  Also
-  \texttt{cmd-qed} (install a completed proof as a theorem) and
-  \texttt{subst-wff} (meta-level substitution into a wff).
-
-\item \texttt{interactive.scm}
-  Interactive short-form commands (\texttt{sp}, \texttt{di},
-  \texttt{ai}, \ldots), \texttt{fa}/\texttt{fs} quantification helpers,
-  and the \texttt{show} display function.  Loaded at session startup.
-
-\item \texttt{vnb.el}
-  Emacs interface.  REPL window (\texttt{*VNB*}),
-  proof-state display window (\texttt{*VNB State*}), command scratch
-  window (\texttt{*VNB Commands*}), command alist and completion,
-  \texttt{vnb-eval-string} for programmatic evaluation.
-
-\item \texttt{vnb-launch.el}
-  Workspace launcher.  Loaded by the \texttt{VNB} shell script; sets
-  up the styled Home, Focus, and Proof Overview workspaces, the VNB
-  menu bar and toolbar, the Display preferences panel, and the error
-  panel that catches \texttt{;; VNB error:} lines streaming back from
-  the prover.
-
-\item \texttt{structure-library/} --- one file per declared structure
-  (\texttt{semigroup.scm}, \texttt{monoid.scm} (includes \texttt{COMM-MONOID}),
-  \texttt{group.scm}, \texttt{ring.scm} (includes \texttt{RING-PROD}
-  and \texttt{ZERO-RING}), \texttt{metric-space.scm}), plus
-  \texttt{ring-simplify.scm} (polynomial-normal-form decision procedure),
-  \texttt{numeric-instances.scm} (NN/ZZ/QQ/RR/CC as algebraic
-  structures), \texttt{complex.scm}, \texttt{extended-reals.scm},
-  \texttt{ordinals.scm}, \texttt{cardinality.scm}, and
-  \texttt{sequences.scm}.  New structures land here automatically when
-  saved via the \textbf{Build Structure} button on the Home Workspace.
-
-\item \texttt{theorem-library/axioms.scm} --- axioms still taken as
-  primitive: equality substitution and other facts not yet derivable
-  from the kernel.  The accompanying source header lists what is
-  installed and what is still pending.
-
-\end{itemize}
+\input{app-source-generated}
 
 %% =========================================================
-

@@ -75,7 +75,7 @@ Commands are Scheme procedures of the form
 Each command applies one primitive inference to the focus node, then
 advances the focus to the first new ungrounded subgoal.
 
-\section{Logical connectives}
+\subsection{Logical connectives}
 
 \begin{itemize}[label = $\circ$, leftmargin=0.85cm]
 
@@ -171,9 +171,9 @@ advances the focus to the first new ungrounded subgoal.
 (rs)
   \end{VNBcode}
 
-  The underlying decision procedure is \texttt{ring-poly-equal?}; the
-  primitive inference is \texttt{pi-ring-simplify!}, both in
-  \texttt{algebraic.scm}.  The interactive short form is \texttt{(rs)}.
+  The primitive inference is \texttt{pi-ring-simplify!}, in
+  \texttt{structure-library/ring-simplify.scm}; it normalizes each side to a
+  canonical sum-of-monomials polynomial (\texttt{vnb->poly}) and compares.  The interactive short form is \texttt{(rs)}.
 
 \item \texttt{(cmd-comm-ring-simplify ps)}
   The commutative counterpart of \texttt{(cmd-ring-simplify ps)}.  Where
@@ -435,8 +435,9 @@ reports exactly which variables those are, without touching the proof.
 A front end uses that query to collect the values \emph{by name} instead of
 making the user write the quoted binding list: it asks for each undetermined
 variable's value as an ordinary \emph{term string} (\texttt{"RAN(f)"},
-\texttt{"nn"}) and parses it.  That is the \texttt{B} builder.  Its
-companion \texttt{B+} is a saturating closer: it only commits a citation it
+\texttt{"nn"}) and parses it.  In the Emacs Focus workspace this is the
+\texttt{B} key --- the argument \emph{builder}.  Its companion key
+\texttt{B+} is a saturating closer: it only commits a citation it
 can first \emph{prove} will close the focus goal
 (\texttt{bc*-can-close?} matches the conclusion \emph{and} checks every
 hypothesis is already an assumption), so it never leaves the proof worse
@@ -446,232 +447,21 @@ than it found it.
 \section{Interactive short-form commands}
 \label{sec:interactive}
 
-The file \texttt{interactive.scm} provides single- or two-letter wrappers
-around every \texttt{cmd-*} proof command, together with the global proof
-state variable \texttt{*ps*} and the \texttt{show} display function.
-These are the primary commands used in a live proof session (including
-through the Emacs interface).
+\texttt{interactive.scm} provides the short-form commands --- one- or two-letter
+wrappers around the \texttt{cmd-*} proof procedures --- that you type in a live
+proof session, at the bare REPL or through the Emacs workspace.  Each mutates the
+global proof state \texttt{*ps*} and calls \texttt{(show)} automatically; the
+exceptions, which return a value rather than mutating state, are \texttt{sp},
+\texttt{show}, \texttt{pp}, \texttt{fa}, \texttt{fs}, \texttt{vnb-unwind},
+\texttt{vnb-wind}, \texttt{parse-string}, and \texttt{make-wff-from-string}.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+The reference below is \emph{generated} from the live \texttt{*tactic-help*}
+registry (through \texttt{reference/TACTICS.md}), so it lists the current commands
+with their signatures and trust \emph{kind} and cannot drift from the prover.  At
+the REPL, \texttt{(tactics)} prints the same menu and \texttt{(tactics 'name)} the
+full per-command help.
 
-\item \texttt{(sp \textit{wff})}
-  \texttt{start-proof} --- Start a new proof from a \texttt{wff};
-  context unrolled to assumptions.
-
-\item \texttt{(di)}
-  \texttt{cmd-direct-inference} --- Decompose goal; peels leading
-  \texttt{forall} chain.
-
-\item \texttt{(pbc)} \texttt{cmd-proof-by-contradiction}
-
-\item \texttt{(ass)} \texttt{cmd-assumption}
-
-\item \texttt{(arith)}
-  \texttt{cmd-arith} --- Close goal by exact arithmetic evaluation.
-
-\item \texttt{(rs)}
-  \texttt{cmd-ring-simplify} --- Close a ring identity goal by polynomial
-  normalization.  Works directly on universally quantified goals or on
-  bare equalities after \texttt{(di)}.  See Section~\ref{sec:commands}.
-
-\item \texttt{(crs)}
-  \texttt{cmd-comm-ring-simplify} --- The commutative analogue of
-  \texttt{(rs)}.  Decides a polynomial identity in the generators by
-  reducing both sides to a canonical sum of monomials (each monomial a
-  sorted multiset of generators) over \texttt{ZZ}, then comparing.  Use it where
-  commutativity of multiplication is needed and \texttt{(rs)}, which
-  fixes factor order, will not close the goal.
-
-\item \texttt{(rfl)} \texttt{cmd-reflexivity}
-
-\item \texttt{(qrfl)} \texttt{cmd-quasi-reflexivity}
-
-\item \texttt{(oi-l)} \texttt{cmd-or-intro-left}
-
-\item \texttt{(oi-r)} \texttt{cmd-or-intro-right}
-
-\item \texttt{(ci)} \texttt{cmd-cartesian-intro}
-
-\item \texttt{(ti)} \texttt{cmd-tuples-intro}
-
-\item \texttt{(nth-r)} \texttt{cmd-nth-reduce}
-
-\item \texttt{(beta)}
-  \texttt{cmd-functoid-beta} --- $\beta$-reduce
-  \texttt{lambda}/\texttt{lambdoid} application in goal.
-
-\item \texttt{(ii)} \texttt{cmd-intersection-intro}
-
-\item \texttt{(ai \textit{f})}
-  \texttt{cmd-antecedent-inference} --- Decompose assumption \textit{f}.
-
-\item \texttt{(cut \textit{f})}
-  \texttt{cmd-cut} --- Introduce lemma \textit{f}.
-
-\item \texttt{(ew \textit{t})}
-  \texttt{cmd-exists-witness} --- Provide witness \textit{t} for
-  \texttt{forsome} goal.
-
-\item \texttt{(bc \textit{f})}
-  \texttt{cmd-backchain} --- Backchain on implication \textit{f}.
-
-\item \texttt{(wk \textit{f})}
-  \texttt{cmd-weaken} --- Remove \textit{f} from assumptions.
-
-\item \texttt{(ui \textit{k})}
-  \texttt{cmd-union-intro} --- Prove \texttt{x in union(\ldots)} via the
-  $k$-th branch.
-
-\item \texttt{(ue \textit{f})}
-  \texttt{cmd-union-elim} --- Case-split on \texttt{x in union(\ldots)}
-  assumption \textit{f}.
-
-\item \texttt{(ce \textit{f k})}
-  \texttt{cmd-cartesian-elim} --- Extract $k$-th component from Cartesian
-  assumption \textit{f}.
-
-\item \texttt{(te \textit{f k})}
-  \texttt{cmd-tuples-elim} --- Extract $k$-th component from
-  \texttt{tuples} assumption \textit{f}.
-
-\item \texttt{(ie \textit{f k})}
-  \texttt{cmd-intersection-elim} --- Extract $k$-th component from
-  intersection assumption \textit{f}.
-
-\item \texttt{(ni)}
-  \texttt{cmd-nn-induction} --- Apply $\mathit{NN}$-induction to a goal of
-  the form \texttt{forall([n in NN], P(n))}.
-  Produces two subgoals: the base case \texttt{P(0)} (focused first) and
-  the step case \texttt{forall([n in NN], P(n) implies P(succ(n)))}.
-  The kernel rule \texttt{pi-nn-induction!} is self-contained;
-  the named axiom \texttt{nn-induction} (in \texttt{number-systems.scm},
-  the class form of NN induction) coexists with it as a redundant
-  convenience for direct use via \texttt{(ta 'nn-induction)}.  Both
-  encode the same induction principle.
-
-\item \texttt{(tfi)} \texttt{cmd-tfi}
-
-\item \texttt{(tfi3)} \texttt{cmd-tfi3}
-
-\item \texttt{(qed \textit{name})}
-  \texttt{cmd-qed} --- Install the completed proof as a named theorem and
-  save the proof script under the same name.
-
-\item \texttt{(save-proof \textit{name})}
-  Save the current proof script under \textit{name}.
-
-\item \texttt{(replay-proof \textit{name} [\textit{subst}])}
-  Re-run a saved proof script, optionally with a schematic substitution.
-
-\item \texttt{(ta \textit{n})}
-  \texttt{cmd-theorem-assumption} --- Add named theorem \textit{n} to
-  assumptions.
-
-\item \texttt{(mac \textit{n})}
-  \texttt{cmd-apply-macete} --- Apply named macete \textit{n} to goal.
-
-\item \texttt{(mac-h \textit{n} \textit{f})}
-  \texttt{cmd-apply-macete-to-assumption} --- The hypothesis-side dual of
-  \texttt{mac}: unfold a defined predicate (or apply any unconditional
-  \texttt{iff}/\texttt{=}/\texttt{==} equivalence macete) \textit{n} inside
-  assumption \textit{f}, replacing it by its body in place; pair with
-  \texttt{ai} to split the result, the way \texttt{mac}/\texttt{di} crack the
-  goal.  \textit{f} is a formula or a $1$-based assumption index.  Only a
-  genuine two-way equivalence may rewrite an assumption (replacing $H$ by $H'$
-  needs $H \Leftrightarrow H'$); a one-directional rule, or a direction with a
-  schema variable left undetermined by the match (the S-10 \texttt{-rev}
-  case), is refused.  For a \emph{conditional} equivalence, each instantiated
-  side-condition not already discharged from the assumption context is spawned
-  as a minor-premise subgoal --- never silently dropped --- while the main
-  line stays in focus.  Adds no kernel rule beyond the macete rewrite, and its
-  citation of \textit{n} is credited to the proof-debt ledger like \texttt{mac}.
-
-\item \texttt{(inst \textit{f t})}
-  \texttt{cmd-instantiate} --- Instantiate \texttt{forall} assumption
-  \textit{f} with term \textit{t}.
-
-\item \texttt{(bc* \textit{name})}, \quad
-  \texttt{(bc* \textit{name} ((\textit{v}\ \textit{val})\ \ldots))}, \quad
-  \texttt{(bc* \textit{name} ((\textit{v}\ \textit{val})\ \ldots)\ $h_1\ h_2\ \ldots$)}\\
-  \emph{Matching backchain.}  Applies the registered theorem \textit{name}
-  to the current goal by unifying the theorem's conclusion against the
-  goal, then replaying the \texttt{ta}/\texttt{inst}/\texttt{cut}/\texttt{bc}
-  idiom automatically.  The theorem may carry any nesting of leading
-  \texttt{forall}s and right-nested \texttt{implies}; its instantiated
-  antecedents are left as subgoals.  A schema variable not determined by
-  matching the conclusion is supplied explicitly as
-  \texttt{((\textit{v}\ \textit{val})\ \ldots)} (each \textit{val} a Scheme
-  expression).  Given handlers $h_k$, \texttt{bc*} refocuses to the $k$-th
-  subgoal in tree order before running $h_k$ --- the handler count must
-  match the number of antecedents.  \texttt{bc*} drives the \texttt{cmd-*}
-  layer and adds no kernel rule, so the proof it builds is checked by the
-  existing primitive inferences.
-
-\item \texttt{(ass-all)}
-  Close every open goal that is dischargeable directly by assumption,
-  sweeping all goals and repeating to a fixpoint.  Order-independent ---
-  it sidesteps the focus hazard left by a case-split (\texttt{di} on an
-  \texttt{and}, \texttt{if-true}, \texttt{cut}) that scatters several
-  trivial subgoals.  Goals not assumption-closable are left untouched.
-
-\item \texttt{(catalog)}
-  Write \texttt{THEOREMS.md} --- every installed result (theorem or axiom),
-  split into proven theorems and axioms, alphabetical, with its statement.
-  Regenerated at load.  Use it to see what the library contains.
-
-\item \texttt{(focus \textit{n})}
-  \texttt{focus-on} --- Switch focus to the $n$-th open goal (1-based).
-
-\item \texttt{(show)}
-  \texttt{print-proof-state} --- Display current proof state; updates
-  Emacs state buffer.
-
-\item \texttt{(pp \textit{w})}
-  \texttt{wff->string} --- Display a \texttt{wff} in string syntax.
-
-\item \texttt{(fa \textit{bs b})}
-  Expand bindings \textit{bs} into nested \texttt{forall} formula
-  (Section~\ref{sec:multiquant}).
-
-\item \texttt{(fs \textit{bs b})}
-  Expand bindings \textit{bs} into nested \texttt{forsome} formula
-  (Section~\ref{sec:multiquant}).
-
-\item \texttt{(vnb-unwind \textit{expr})}
-  Expand a multi-binding surface expression to nested single-binding form
-  (Section~\ref{sec:multiquant}).
-
-\item \texttt{(vnb-wind \textit{expr})}
-  Collapse a nested single-binding chain into multi-binding form
-  (Section~\ref{sec:multiquant}).
-
-\item \texttt{(parse-string \textit{str})}
-  Parse a string to a raw S-expression.  Note: \texttt{ai}, \texttt{bc},
-  \texttt{inst}, \texttt{cut}, \texttt{wk}, \texttt{ue}, \texttt{ce},
-  \texttt{ie} accept formula strings directly; \texttt{parse-string} is
-  needed only for the low-level \texttt{cmd-*} API.
-
-\item \texttt{(make-wff-from-string \textit{str})}
-  Parse a string and validate as a \texttt{wff}; use for \texttt{sp}.
-
-\item \texttt{(spec \textit{instance struct is-thm})}
-  \texttt{specialize-structure} --- Transport all theorems of the form
-  $\forall s.\;\mathit{IS\text{-}STRUCT}(s)\Rightarrow P[s]$ to the
-  specific certified instance \textit{instance}, installing $P[\textit{instance}]$
-  under the name $\langle\textit{thm\text{-}name}\rangle$\texttt{-}\textit{instance}.
-  Not a proof command; does not touch \texttt{*ps*}.
-  See Section~\ref{sec:specialize-structure} for full details.
-
-\end{itemize}
-
-Each command mutates the global \texttt{*ps*} and calls \texttt{(show)}
-automatically.  The exceptions --- which return values rather than
-mutating state --- are:
-\begin{quote}
-\texttt{sp}, \texttt{show}, \texttt{pp}, \texttt{fa}, \texttt{fs},
-\texttt{vnb-unwind}, \texttt{vnb-wind}, \texttt{parse-string},
-\texttt{make-wff-from-string}.
-\end{quote}
+\input{app-tactics-generated}
 
 %% =========================================================
 \section{Focus management}
@@ -886,17 +676,18 @@ directly.
 
 \begin{VNBcode}
 (declare-structure GROUP
-  (carriers A)
-  (op MUL (CARTESIAN A A) A)  ; binary product: A x A -> A
-  (constant E A)               ; identity element: E in A
-  (op INV A A))                ; inverse: A -> A
-; Accessor indices: A -> 1, MUL -> 2, E -> 3, INV -> 4
+  (carriers CARR)
+  (op OPR (CARTESIAN CARR CARR) CARR)  ; operation: CARR x CARR -> CARR
+  (constant IDEN CARR)                 ; identity: IDEN in CARR
+  (op INV CARR CARR))                  ; inverse: CARR -> CARR
+; Accessor indices: CARR -> 1, OPR -> 2, IDEN -> 3, INV -> 4
+; (the group laws are folded in by additional (property ...) clauses)
 \end{VNBcode}
 
 \begin{sloppypar}The \texttt{(op name domain range)} clause declares
 $\texttt{name}(s) \in \texttt{FUN}(\texttt{domain}, \texttt{range})$.
 Higher-arity operations write the Cartesian product explicitly:
-\texttt{(op MUL (CARTESIAN A A) A)}, not \texttt{(op MUL (CARR A) A)}.
+\texttt{(op OPR (CARTESIAN CARR CARR) CARR)} for a binary operation.
 A \texttt{(constant name S)} clause declares an element of set $S$.
 Accessor indices are assigned sequentially: carriers first (starting
 at~1), then operations in declaration order.\end{sloppypar}
@@ -904,24 +695,24 @@ at~1), then operations in declaration order.\end{sloppypar}
 A \texttt{declare-structure} call installs two things automatically:
 \begin{itemize}[label=$\circ$, leftmargin=0.85cm]
 \item \emph{Accessor macetes}: \texttt{CARR}$(s)$ rewrites to
-  \texttt{nth(1,$s$)}, \texttt{MUL}$(s)$ to \texttt{nth(2,$s$)}, etc.
+  \texttt{nth(1,$s$)}, \texttt{OPR}$(s)$ to \texttt{nth(2,$s$)}, etc.
 \item \emph{Definitional biconditional} \texttt{IS-NAME}: the axiom
   $\forall s.\;\texttt{IS-GROUP}(s) \Leftrightarrow
-   (\texttt{CARR}(s)\in\mathrm{SET} \wedge \texttt{MUL}(s)\in\cdots)$.
+   (\texttt{CARR}(s)\in\mathrm{SET} \wedge \texttt{OPR}(s)\in\cdots)$.
 \end{itemize}
 
 Given \texttt{IS-GROUP(g)} in context, the \texttt{IS-GROUP} macete
 unfolds to:
 \begin{VNBsnip}
 CARR(g) in SET
-and MUL(g) in fun(cartesian(CARR(g), CARR(g)), CARR(g))
-and ID(g) in CARR(g)
+and OPR(g) in fun(cartesian(CARR(g), CARR(g)), CARR(g))
+and IDEN(g) in CARR(g)
 and INV(g) in fun(CARR(g), CARR(g))
 \end{VNBsnip}
 
 \paragraph{Pre-loaded structures.}
-The following structures are defined in \texttt{algebraic.scm} and
-loaded automatically.
+The following structures are defined in \texttt{structure-library/} (one
+file per structure) and loaded automatically.
 
 \begin{center}\scriptsize
 \begin{tabular}{@{}p{2.3cm}p{4.3cm}p{5.3cm}@{}}
@@ -929,15 +720,15 @@ loaded automatically.
 \textbf{Structure} & \textbf{Accessor slots (index)} & \textbf{Characteristic axioms} \\
 \midrule
 \texttt{SEMIGROUP} &
-  \texttt{CARR}\,(1), \texttt{MUL}\,(2) &
+  \texttt{CARR}\,(1), \texttt{OPR}\,(2) &
   \texttt{semigroup-assoc} \\[4pt]
 \texttt{MONOID} &
-  \texttt{CARR}\,(1), \texttt{MUL}\,(2), \texttt{ID}\,(3) &
+  \texttt{CARR}\,(1), \texttt{OPR}\,(2), \texttt{IDEN}\,(3) &
   \texttt{monoid-assoc},
   \texttt{monoid-left-id},
   \texttt{monoid-right-id} \\[4pt]
 \texttt{GROUP} &
-  \texttt{CARR}\,(1), \texttt{MUL}\,(2), \texttt{ID}\,(3), \texttt{INV}\,(4) &
+  \texttt{CARR}\,(1), \texttt{OPR}\,(2), \texttt{IDEN}\,(3), \texttt{INV}\,(4) &
   \texttt{group-assoc},
   \texttt{group-left-id},
   \texttt{group-left-inv} \\[4pt]
@@ -965,7 +756,7 @@ Characteristic axioms are ordinary theorems; use \texttt{(ta 'name)} to
 transport one into the current proof.  For example, to apply
 \texttt{group-left-inv} (which asserts
 $\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{CARR}(s)
- \Rightarrow \texttt{MUL}(s)(\texttt{INV}(s)(a),a)=\texttt{ID}(s)$),
+ \Rightarrow \texttt{OPR}(s)(\texttt{INV}(s)(a),a)=\texttt{IDEN}(s)$),
 supply the group and the element as instantiation witnesses.
 \end{remark}
 
@@ -1222,18 +1013,18 @@ deriving \texttt{prod-ord-type} from first principles.
 (ni)        ; NN-induction; BASE gets focus first
 
 ;; --- BASE: PROD-ORD(m,f,0) in CARR(m) ---
-;; Strategy: PROD-ORD(m,f,0) = ID(m) (prod-ord-zero),
-;;           ID(m) in CARR(m)            (monoid-identity-in),
+;; Strategy: PROD-ORD(m,f,0) = IDEN(m) (prod-ord-zero),
+;;           IDEN(m) in CARR(m)            (monoid-identity-in),
 ;;           so by eq-subst-membership the goal closes.
 (ta 'eq-subst-membership)
-(inst ... '(PROD-ORD m f 0)) (inst ... '(ID m)) (inst ... '(CARR m))
-(bc '(IMPLIES (AND (= (PROD-ORD m f 0) (ID m)) (IN (ID m) (CARR m)))
+(inst ... '(PROD-ORD m f 0)) (inst ... '(IDEN m)) (inst ... '(CARR m))
+(bc '(IMPLIES (AND (= (PROD-ORD m f 0) (IDEN m)) (IN (IDEN m) (CARR m)))
               (IN (PROD-ORD m f 0) (CARR m))))
 (di)    ; AND-split: focus = equality goal
 (ta 'prod-ord-zero) (inst ... 'm) (inst ... 'f) (ass)
         ; focus jumps: manually refocus on membership goal
 (ta 'monoid-identity-in) (inst ... 'm)
-(bc '(IMPLIES (IS-MONOID m) (IN (ID m) (CARR m)))) (ass)
+(bc '(IMPLIES (IS-MONOID m) (IN (IDEN m) (CARR m)))) (ass)
         ; BASE complete; focus moves to STEP
 
 ;; --- STEP: forall([n in NN], IH => PROD-ORD(m,f,succ n) in CARR(m)) ---
@@ -1245,16 +1036,16 @@ deriving \texttt{prod-ord-type} from first principles.
 (di)    ; peel IH: PROD-ORD(m,f,n_k) in CARR(m) enters context
 ;; Strategy:
 ;;   PROD-ORD(m,f,succ n_k)
-;;     = MUL(m)(PROD-ORD(m,f,n_k), f(n_k))   (prod-ord-succ)
-;;   then close via monoid-carrier-closed-mul.
+;;     = OPR(m)(PROD-ORD(m,f,n_k), f(n_k))   (prod-ord-succ)
+;;   then close via monoid-carrier-closed-opr.
 (ta 'eq-subst-membership) (inst ...) (inst ...) (inst ...)
 (bc ...)
 (di)    ; AND-split: focus = equality goal
 (ta 'prod-ord-succ)
 (inst ...) (inst ...) (inst ...)
 (bc ...) (ass)   ; n_k in NN closes it
-;; focus moves to membership goal: MUL(m)(...) in CARR(m)
-(ta 'monoid-carrier-closed-mul)
+;; focus moves to membership goal: OPR(m)(...) in CARR(m)
+(ta 'monoid-carrier-closed-opr)
 (inst ...) (inst ...) (inst ...)
 (bc ...)
 (di) (ass)   ; IS-MONOID(m)
@@ -1287,7 +1078,7 @@ immediately after the AND-split:
 Second, \texttt{alpha-equiv?} --- used by \texttt{(inst)} and
 \texttt{(bc)} when searching assumptions --- relies on structural
 equality of formula heads.  Compound heads such as
-\texttt{((MUL m) a b)} (a curried two-argument application; see
+\texttt{((OPR m) a b)} (a curried two-argument application; see
 Section~\ref{sec:apply-tupling}) are compared correctly only when
 the head pair is the same \emph{object}.  If \texttt{alpha-equiv?}
 fails to locate a formula you know is in context, the likely cause
@@ -1316,5 +1107,217 @@ either side is undefined.  Combined with \texttt{fun-apply-type} and
 \((f\ a_1\ \ldots\ a_n)\in B\) from the operation's signature and
 the membership of each $a_i$ in its declared component.
 \end{remark}
+
+\subsection{Infinite descent: \texorpdfstring{$\sqrt3$}{sqrt3} is irrational}
+\label{sec:ex-sqrt3}
+
+Stated without reals or division --- the form the checker proves, entirely
+inside $\mathit{NN}$ --- $\sqrt3$ irrational is
+\[
+  \forall p,q \in \mathit{NN}.\quad
+  q \neq 0 \;\Longrightarrow\; p\cdot p \neq 3\cdot(q\cdot q) ,
+\]
+that is, the goal
+\begin{VNBsnip}
+(FORALL p (IMPLIES (IN p NN) (FORALL q (IMPLIES (IN q NN)
+  (IMPLIES (NOT (= q 0)) (NOT (= (* p p) (* 3 (* q q)))))))))
+\end{VNBsnip}
+
+\paragraph{The argument.}
+Infinite descent.  Suppose the equation has a solution with $q \neq 0$, and
+among all such solutions choose one whose numerator $w$ is \emph{least}.  Since
+$3 \mid w\cdot w$ we have $3 \mid w$, say $w = 3k$; substituting and cancelling
+the factor $3$ gives $q_0\cdot q_0 = 3\cdot(k\cdot k)$, whence $3 \mid q_0$, say
+$q_0 = 3m_0$; cancelling once more gives $k\cdot k = 3\cdot(m_0\cdot m_0)$.  Thus
+$(k,m_0)$ is again a solution, with $k \neq 0$ and $k < 3k = w$ --- a numerator
+strictly below the least one.  Contradiction.
+
+The entire mathematical content is the single implication
+\begin{equation}\label{eq:3divsq}
+  3 \mid p\cdot p \;\Longrightarrow\; 3 \mid p ;
+\end{equation}
+everything else --- clearing denominators, the two cancellations, the order
+step $k < 3k$ --- is bookkeeping.
+
+\paragraph{Why parity is not special.}
+The $\sqrt2$ proof is the same skeleton with \emph{even} for \emph{divisible by
+$3$}: there \eqref{eq:3divsq} reads ``$p\cdot p$ even $\Rightarrow p$ even'' and
+follows from parity, every natural being $2k$ or $2k+1$.  For $\sqrt3$ it follows
+from the trichotomy --- every natural is $3k$, $3k+1$, or $3k+2$ --- together
+with the fact that the three residues square to $0,1,1$ modulo $3$, so a square
+is divisible by $3$ only when its root is.  Parity is the $r=2$ instance of a
+uniform statement about residues modulo $r$; the $\sqrt3$ development is the
+$\sqrt2$ development with the residue system widened by one, and nothing changes
+in kind.
+
+\paragraph{The lemma ladder.}
+The mod-$3$ arithmetic (\texttt{theorem-library/nn-mod3-proof.scm}) is built by
+induction from the two Peano recursion equations for $+$ and $\cdot$, in exact
+parallel with the parity ladder (\texttt{nn-parity-proof.scm}).  Each lemma is
+\emph{proven}; none is asserted.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+parity ($r=2$) & this proof ($r=3$) & statement \\
+\midrule
+\texttt{nn-two-mul-succ}     & \texttt{nn-three-mul-succ} & $r\cdot\mathrm{succ}(k) = \mathrm{succ}^{\,r}(r\cdot k)$ \\
+\texttt{nn-parity}           & \texttt{nn-trichotomy-3}   & every $n$ is $r\cdot k + i$, residue $i<r$ \\
+\texttt{nn-parity-exclusive} & \texttt{nn-3-not-succ}     & $r\cdot x$ is never $r\cdot y + 1$ \\
+\texttt{nn-even-square}      & \texttt{nn-3-div-square}   & $r \mid p\cdot p \Rightarrow r \mid p$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent For $r=3$ a single residue-inequality suffices: both nonzero residues
+square to $r\cdot j + 1$, so only ``not $\equiv 1$'' is ever needed.
+
+\paragraph{The descent, mechanized.}
+The driver (\texttt{theorem-library/sqrt3-proof.scm}) states the goal and hands
+the descent to three tools; the intermediate steps are elided.
+
+\begin{VNBcode}
+(sp (make-wff '(FORALL p (IMPLIES (IN p NN) (FORALL q (IMPLIES (IN q NN)
+     (IMPLIES (NOT (= q 0)) (NOT (= (* p p) (* 3 (* q q)))))))))))
+(di)(di)(di)(di)(di)(di)                 ; intro p,q, hyps; assume p*p = 3*(q*q)
+
+(define R (minimize! '(pv) (guard 'pv) 'pv))    ; choose the LEAST numerator w
+;; ... discharge minimize!'s two obligations: measure in NN; guard satisfiable
+
+(define k (obtain (lambda () (fact 'nn-3-div-square w))))   ; 3|w  =>  w = 3k
+;; ... q0*q0 = 3*(k*k) by have! ; 3|q0 => q0 = 3*m0 by obtain ; k*k = 3*(m0*m0)
+
+(inst+ minf k)              ; minimality gives  w <= k
+(fact 'nn-lt-triple k)      ; but k < 3k = w -- contradiction
+\end{VNBcode}
+
+\begin{itemize}
+\item \texttt{minimize!} supplies the least-numerator witness together with its
+  two honest obligations --- the measure lands in $\mathit{NN}$, and the guard
+  is satisfiable --- and appeals to no choice principle.
+\item \texttt{obtain} names each descended witness --- the $k$ with $w = 3k$,
+  the $m_0$ with $q_0 = 3m_0$ --- by \emph{reading it off the proof state} (the
+  variable left free once the existential is eliminated), never by guessing a
+  machine-generated name.  This is what makes the descent survive a re-run.
+\item \texttt{have!} discharges each intermediate equality and typing from
+  context, so the script reads as the argument does: ``we have
+  $q_0\cdot q_0 = 3\cdot(k\cdot k)$; we have $k \neq 0$; \ldots''.
+\end{itemize}
+
+\begin{remark}[The \texttt{minimize!} step]
+\label{remark:minimize}
+The enigmatic-looking \texttt{(minimize! '(pv) (guard 'pv) 'pv)} decodes as:
+choose the single number \texttt{pv} satisfying the descent guard, with
+\texttt{pv} itself as the quantity to minimise --- that is, take the
+\emph{least} numerator meeting the guard.
+
+The second argument to \texttt{minimize!} is the \textbf{guard formula} itself:
+an ordinary VNB formula, free in the variables being chosen (here \texttt{pv}),
+stating the property those values must satisfy.  \texttt{guard} is \emph{not} a
+built-in and is nothing special to \texttt{minimize!} --- it is a helper the
+proof author writes (named \texttt{s3-guard} in \texttt{sqrt3-proof.scm}), a
+one-argument function that takes a term and returns the guard formula about it.
+So \texttt{(guard 'pv)} yields the formula with \texttt{pv} free --- exactly what
+\texttt{minimize!} wants --- and the \emph{same} helper, called later at the
+chosen witness $w$ as \texttt{(guard $w$)}, restates that property of $w$.  Here
+the property is ``\texttt{pv} is a natural number that is the numerator of a
+fraction whose square is~$3$''; written out, the helper is just a formula
+constructor:
+
+\begin{VNBcode}
+(define (s3-guard pv)
+  (list 'AND (list 'IN pv 'NN)
+        (list 'FORSOME 'q_
+          (list 'AND (list 'IN 'q_ 'NN)
+                (list 'AND (list 'NOT (list '= 'q_ 0))
+                      (list '= (list '* pv pv) (list '* 3 (list '* 'q_ 'q_))))))))
+\end{VNBcode}
+
+Passing the formula literally would work just as well; the helper only spares the
+author from writing it twice.  In general,
+\[
+  \texttt{(minimize! '($v_1$ \ldots\ $v_k$) GUARD MEASURE)}
+\]
+means ``choose $v_1,\ldots,v_k$ satisfying the formula \texttt{GUARD} with the
+$\mathit{NN}$-valued term \texttt{MEASURE} as small as possible.''  On the main
+branch it lands two hypotheses, for fresh eigenconstants $w_1,\ldots,w_k$: that
+\texttt{GUARD} holds of them, and that nothing satisfying \texttt{GUARD} has a
+strictly smaller \texttt{MEASURE}.  It leaves exactly the two obligations any
+minimisation owes --- that \texttt{MEASURE} lands in $\mathit{NN}$ wherever
+\texttt{GUARD} holds, and that \texttt{GUARD} holds somewhere.  Everything
+between --- forming the value set, well-ordering it, unpacking the least
+witness, restating minimality over the $v_i$ rather than the set --- it does for
+you.  Every $v_i$ must occur in \texttt{MEASURE} (a variable the measure ignores
+is not one you are minimising over).
+
+It adds no kernel rule --- it chains \texttt{cut}, \texttt{di}, \texttt{ai},
+\texttt{ew}, \ldots --- and uses \emph{no choice principle}: its one appeal is
+\texttt{nn-least-element}, the well-ordering of $\mathit{NN}$, and well-ordering
+returns a genuine \emph{member} of the value set, from which the witness is read
+back.  Stated instead as a first-order lemma, the same fact would force every
+call site to tuple its variables into a Cartesian product, build a lambda, and
+prove that lambda inhabits $\mathit{FUN}(U,\mathit{NN})$ --- a typing obligation
+larger than the minimisation it buys.  As a tactic it quantifies over the $v_i$
+at the meta level and never forms $U$ at all.
+\end{remark}
+
+\begin{remark}[\texttt{obtain} versus \texttt{vlet}]
+\texttt{obtain} and the \texttt{choice} former of \texttt{vlet} are the same
+mechanism --- eliminate an existential and read its witness off by
+free-variable difference --- but they differ in what they take.  \texttt{obtain}
+takes a \emph{lane}: it runs a forward step and names the witness that step
+\emph{just produced}.  That is the right fit inside a descent, where the relevant
+existential is freshly landed and typically sits beside others: at the
+``$3 \mid w$'' step the conclusion $\exists k.\,w = 3k$ coexists in context with
+the evidence $\exists m.\,w\cdot w = 3m$ cut in to derive it, and \texttt{obtain}
+selects the new one automatically.  Concretely, that one step reads
+\begin{VNBsnip}
+;; as written in the proof:
+(define k (obtain (lambda () (fact 'nn-3-div-square w))))
+;; the vlet alternative -- land the existential, then name it by its body:
+(fact 'nn-3-div-square w)
+(define k (vlet--choice! 'k '(AND (IN k NN) (= w (* 3 k)))))
+\end{VNBsnip}
+The \texttt{vlet} body names the eigenconstant $w$, a value produced at run
+time, so this is the procedure \texttt{vlet--choice!}, not the
+\texttt{(vlet \ldots)} macro (whose body is a fixed literal pattern).
+\texttt{vlet} instead destructures a
+\emph{named, stable} formula: its \texttt{match} former binds the holes of a
+pattern (``the $a$ and $b$ in $x\cdot b = a$''), and its \texttt{choice} former
+eliminates a \emph{designated} existential.  The rule of thumb: \texttt{obtain}
+to name whatever a forward step produced, \texttt{vlet} to take apart a formula
+you can already name.
+\end{remark}
+
+\begin{remark}
+The proof adds no asserted step of its own: the mod-$3$ ladder is proven and the
+descent cites it, exactly as \texttt{sqrt2-proof.scm} cites the parity ladder.
+A new irrationality --- $\sqrt r$ for any non-square $r$ --- is then a matter of
+widening the residue ladder, not of inventing an argument.  That division of
+labour is the lesson: the author states the intermediate claims, and the machine
+supplies the least witness (\texttt{minimize!}), the fresh names
+(\texttt{obtain}), and the bookkeeping (\texttt{have!}, \texttt{from-context!}).
+\end{remark}
+
+\paragraph{The same proof at the interactive surface.}
+By the transcript principle (Section~\ref{sec:two-surfaces}), most of this
+script is \emph{already} a sequence of interactive short forms: \texttt{di},
+\texttt{ai}, \texttt{ew}, \texttt{fact}, \texttt{cut}, \texttt{subst},
+\texttt{crs}, \texttt{ass}, and \texttt{minimize!} are exactly what a user
+types.  What the driver adds is the orchestration a human otherwise does by eye,
+and it is of two kinds.  \emph{Focus}: after a branching command one selects the
+next open leaf from the frontier, where the script calls \texttt{dk-focus!}.
+\emph{Names}: each \texttt{(ai\ (FORSOME \ldots))} skolemizes to a machine-chosen
+eigenconstant, printed in the resulting sequent, which the user reads and types
+into the following commands.  The $3\mid w$ step, done by hand, is
+\begin{VNBsnip}
+(fact 'nn-3-div-square w)                          ; lands  exists k. w = 3k
+(ai '(FORSOME k (AND (IN k NN) (= w (* 3 k)))))    ; skolemize; sequent now shows k_899
+;; ... read k_899 off the sequent; type it into the subsequent (subst ...) / (fact ...)
+\end{VNBsnip}
+\texttt{obtain} is exactly this pair automated --- run the forward step, read the
+fresh name back by free-variable difference --- so that a \emph{script}, unlike a
+transcript with \texttt{k\_899} hard-coded, replays unchanged when the
+eigenvariable counter lands on a different number.
 
 %% =========================================================

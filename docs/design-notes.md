@@ -528,7 +528,7 @@ library.
 *"X totally bounded ⟹ every sequence in X has a Cauchy subsequence"* — the
 sequential characterization of total boundedness, a diagonal/nested-subsequence
 argument.  Now **stated and decomposed** in `theorem-library/cauchy-subsequence.scm`,
-with a runnable obstacle-map probe in `calculus/totally-bounded-cauchy-subseq.scm`.
+with a runnable obstacle-map probe in `archive/calculus-pre-rename/totally-bounded-cauchy-subseq.scm`.
 
 **Vocabulary added** (was the stated prerequisite): `STRICTLY-MONO-NN` (φ:ℕ→ℕ
 strictly increasing — factored out of the three inline copies in

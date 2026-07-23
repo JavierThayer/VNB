@@ -5,7 +5,6 @@ MIT~Scheme.  Its logical foundation is a first-order set theory in the
 style of von~Neumann--Bernays (VNB): a single-sorted universe of
 \emph{classes}, with \textsc{set} as a distinguished predicate and
 membership ($\in$) as the only non-logical primitive.\end{sloppypar}
-[[NOTE: References needed. NO HALLUCINATIONS please]]
 
 The proof architecture follows the sequent-calculus approach of the
 IMPS~2.0 system~\cite{IMPS}: proofs are \emph{deduction graphs} whose
@@ -17,13 +16,9 @@ the inference kernel and cannot introduce unsoundness.
 The deduction-graph proof structure and the use of local contexts in
 macete application are due to L.~G.~Monk~\cite{Monk1988}, whose work
 was a direct influence on IMPS.
-[[Reference to IMPS and an online Portuguese language dictionary
-(e.g.\ \url{https://dicionario.acad-ciencias.pt/pesquisa/macete/} has
-an entry)]]
 
 This project is, among other things, a proof of concept: a rigorous
-mathematical proof system built entirely by AI
-[[Note: we can reference documentation for Claude]],
+mathematical proof system built entirely by AI,
 with architectural direction from F.~J.~Thayer.  It is inspired by
 ideas from IMPS~\cite{IMPS}.
 
@@ -118,7 +113,7 @@ the base VNB axioms and the primitive number-system axioms.  This reflects
 the view of mathematics as one unified body of knowledge rather than a
 federation of isolated theories.
 
-The system does permit \emph{minimal} or even \emph{odd-ball theories}
+The system does permit \emph{minimal} or even \emph{special-purpose theories}
 for the cases where a genuinely separate context becomes necessary.
 These theories can be created with \texttt{make-theory} and carry
 the primitive class constants but \emph{no structural axioms}.  Such

@@ -77,28 +77,31 @@ The axiom is immediately available via \texttt{(ta 'PRED-NAME)} in a proof.
 
 \paragraph{Example: Cauchy sequence in a metric space.}
 \begin{VNBcode}
-(def-predicate 'IS-CAUCHY-SEQ '(PTS f)
-  '(AND (IS-METRIC-SPACE X)
-        (IN f (FUN NN (CARRIER X)))
-        (FORALL eps
-          (IMPLIES (AND (IN eps RR) (< 0 eps))
-            (FORSOME N (IN N NN)
-              (FORALL m (IMPLIES (IN m NN)
-                (FORALL n (IMPLIES (IN n NN)
-                  (IMPLIES (AND (<= N m) (<= N n))
-                    (< ((DIST X) (f m) (f n)) eps)))))))))))
+(def-predicate 'IS-CAUCHY-SEQ '(s f)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (IN f (FUN NN (PTS s)))
+        (FORALL eps (IMPLIES (POS-RR eps)
+          (FORSOME N (AND (IN N NN)
+            (FORALL m (IMPLIES (IN m NN)
+              (FORALL n_ (IMPLIES (IN n_ NN)
+                (IMPLIES (AND (<= N m) (<= N n_))
+                  (<= ((DIST s) (f m) (f n_)) eps)))))))))))))
 \end{VNBcode}
 
-This installs:
+\noindent
+This is the predicate shipped in
+\texttt{structure-library/metric-completeness.scm}; \texttt{POS-RR}
+(``$r \in \mathit{RR}$ and $r > 0$'') is the convenience predicate introduced
+next.  It installs:
 \begin{VNBsnip}
-forall([X, f],
-  IS-CAUCHY-SEQ(X, f) iff
-    IS-METRIC-SPACE(X)
-    and f in fun(NN, CARRIER(X))
-    and forall([eps in RR], 0 < eps implies
+forall([s, f],
+  IS-CAUCHY-SEQ(s, f) iff
+    IS-METRIC-SPACE(s)
+    and f in fun(NN, PTS(s))
+    and forall([eps], POS-RR(eps) implies
           forsome([N in NN],
-            forall([m in NN, n in NN], N <= m and N <= n implies
-              DIST(X)(f(m), f(n)) < eps)))
+            forall([m in NN, n_ in NN], N <= m and N <= n_ implies
+              DIST(s)(f(m), f(n_)) <= eps)))
 \end{VNBsnip}
 
 \paragraph{Order predicates: \texttt{<} and \texttt{POS-RR}.}  Two
@@ -274,7 +277,9 @@ A full definition would use nested ordinal recursion.)
 \subsection{The \texttt{declare-structure} form}
 
 \texttt{declare-structure} declares a named mathematical structure at the
-Scheme level.  It registers the structure, installs NTH-based accessor
+meta-level --- in the Scheme REPL or a \texttt{.scm} source file, as the
+chapter opening explains, not inside the object language.  It registers
+the structure, installs NTH-based accessor
 macetes for every carrier set and every operation, and posts a
 definitional axiom for the associated \texttt{IS-\textit{NAME}} predicate
 in the current theory.  No quoting is needed.
@@ -289,7 +294,7 @@ in the current theory.  No quoting is needed.
 \end{VNBcode}
 
 The first four clause kinds describe the structure's \emph{shape} --- its
-components and their types.  The \texttt{property} clause is different in
+components and the role each plays.  The \texttt{property} clause is different in
 kind: it names a \emph{characteristic law} the components must satisfy.  The
 distinction is developed in the remark on shape versus properties below.
 
@@ -329,6 +334,17 @@ distinction is developed in the remark on shape versus properties below.
   \texttt{(substructure K FIELD)} slot and \texttt{(CARR K)} is the base
   field's carrier.
 
+\item \texttt{(derived NAME BASE EXPR)}
+  Declares a carrier \emph{carved out} of another rather than an independent
+  one.  \texttt{NAME(s)} still occupies its own slot, but \texttt{IS-\textit{NAME}}
+  pins its value with an equation, \texttt{NAME(s) = EXPR}, where \texttt{EXPR}
+  is a term over the other accessors --- not the bare $\in\textsc{set}$ a plain
+  carrier gets.  \texttt{FIELD} declares
+  \texttt{(derived NON-ZERO CARR (DIFFERENCE CARR (SINGLETON ZERO)))}: the unit
+  group's carrier is the field carrier minus zero.  Because its value is fixed
+  by the other slots, a derived carrier owes a homomorphism no map of its own;
+  it rides the base carrier's (Section~\ref{sec:morphisms}).
+
 \item \texttt{(property PRED ACC ...)}
   Names a characteristic law --- \emph{not} a component.  \texttt{PRED}
   is a property predicate (Section~\ref{sec:shape-vs-property}), applied
@@ -337,11 +353,52 @@ distinction is developed in the remark on shape versus properties below.
   \texttt{(property is-metric D X)} folds the metric axioms on
   $\mathit{DIST}(s)$ over $\mathit{PTS}(s)$ into \texttt{IS-METRIC-SPACE}.
 
+\item \texttt{(law "\textit{formula}")}
+  Adds a raw conjunct to \texttt{IS-\textit{NAME}}, written in the surface
+  string syntax and parsed like any user formula (its free variable is the
+  instance \texttt{s}).  It is the escape hatch for a characteristic law that no
+  named \texttt{property} predicate captures --- \texttt{MODULE}'s scalar-action
+  axioms are laws of this kind.  A \texttt{property} clause is just the special
+  case where the law already has a name in \texttt{operation-properties.scm}.
+
 \end{itemize}
 
 Accessor indices are assigned sequentially: carriers occupy indices
 $1, \ldots, m$ in declaration order; operations and constants follow
 at indices $m+1, m+2, \ldots$.
+
+Every slot name --- carrier, operation, constant, or substructure --- is
+registered as a global \emph{accessor constant} of that name.  The
+particular names are the declarer's to choose (\texttt{CARR} for a ring's
+carrier, \texttt{PTS} for a metric space's points, \texttt{OPR} for a
+group's operation); nothing forces one spelling over another.  But once
+declared, a name is \emph{reserved}: because the reader case-folds
+(Remark~\ref{rem:case-fold}), using it as a bound variable anywhere ---
+\texttt{forall([CARR in \ldots], \ldots)} --- makes the binder read as the
+accessor rather than the variable, and the load-time
+\texttt{constant-binder-audit} rejects it outright.  This is why the
+property-predicate parameters below (\texttt{op}, \texttt{crr}, \ldots)
+are spelled to avoid the accessor constants they stand in for.
+
+\begin{remark}[What the form permits, and what the idiom favours]
+\texttt{declare-structure} is general.  A \texttt{(carriers \ldots)} clause
+admits any number of carriers, and operations of arbitrary signature over them,
+so an arbitrary finitary algebraic system --- many-sorted, in the sense of
+Mal'cev's \emph{algebraic systems} --- can be declared.  A setoid, for instance,
+declares two carriers (\texttt{PTS} and its relation \texttt{REL}), and a vector
+space has separate scalar and vector carriers.
+
+What the library's \emph{idiom} favours is narrower than what the form
+\emph{permits}.  Most examples --- groups, rings, fields --- have a single
+distinguished carrier, and their homomorphisms are functions on it; the generated
+morphism predicate (Section~\ref{sec:morphisms}) takes that as its default.  But
+neither is imposed by the mechanism.  A structure may carry several independent
+carriers, and its generated homomorphism is then one map per carrier; and
+\texttt{declare-hom!} may replace the notion of morphism entirely with one that is
+not a carrier-function at all --- continuity, for a topological space.  The
+single-carrier reading, with homomorphisms as carrier maps, is a convention of the
+material at hand, not a constraint the framework enforces.
+\end{remark}
 
 \begin{remark}
 A \texttt{declare-structure} declaration involves three distinct things,
@@ -433,8 +490,8 @@ The symbol $\mathit{NAME}$ thereby denotes the proper class
 $\{s \mid \mathit{IS\text{-}NAME}(s)\}$, ready to use as the
 quantification range:
 \begin{VNBsnip}
-forall([r in RING], blah(r))             ; bounded over the ring class
-forall([E in NORMEDSPACE], blah(E))      ; bounded over normed spaces
+forall([r in RING],        some-claim-about(r))   ; bounded over the ring class
+forall([E in NORMEDSPACE], some-claim-about(E))   ; bounded over normed spaces
 \end{VNBsnip}
 which the parser expands to
 $\forall s.\; s \in \mathit{NAME} \Rightarrow \ldots$; the
@@ -445,7 +502,7 @@ the predicate form $\mathit{IS\text{-}NAME}(s)$ exactly when needed.
 \label{sec:shape-vs-property}
 
 A structure declaration says two separate things about an instance $s$.
-Its \textbf{shape} is the list of components and their types: how long
+Its \textbf{shape} is the list of components and the role each plays: how long
 $s$ is, which slots are carriers, which are operations of which
 signature, which are constants or substructures.  Its \textbf{properties}
 are the characteristic laws those components must obey: that the
@@ -472,7 +529,7 @@ accessors:
 \end{description}
 The parameter names (\texttt{op}, \texttt{crr}, \texttt{unit}, \ldots)
 deliberately avoid the registered accessor constants
-(\texttt{CARR}, \texttt{MUL}, \texttt{ID}, \texttt{PTS}, \texttt{DIST}, \ldots):
+(\texttt{CARR}, \texttt{MUL}, \texttt{IDEN}, \texttt{PTS}, \texttt{DIST}, \ldots):
 the reader case-folds, so a bound \texttt{CARR} would collide with the
 carrier accessor \texttt{CARR}.
 
@@ -507,253 +564,15 @@ clauses --- equivalent in effect, a candidate for later unification.
 \subsection{Pre-loaded algebraic structures}
 \label{sec:algebraic}
 
-The file \texttt{algebraic.scm} is loaded automatically and declares the
-following structures, each paired with its characteristic axioms.
+The core algebraic species are declared in \texttt{structure-library/} (one file
+per structure) and loaded at startup.  The declarations below are \emph{generated}
+from the live catalogue (\texttt{reference/STRUCTURE-INDEX.md}), so their slots and
+laws match the running system.  Names are shown as \emph{stored}: the reader and
+MIT~Scheme fold case, so \texttt{MONOID} and \texttt{monoid}, \texttt{CARR} and
+\texttt{carr}, denote the same symbol.  Each \texttt{(property \ldots)} clause folds
+one characteristic law into the structure's \texttt{is-X} predicate.
 
-\subsubsection{Semigroup}
-
-\begin{VNBcode}
-(declare-structure SEMIGROUP
-  (carriers A)
-  (op MUL (CARTESIAN A A) A))
-; A -> (NTH 1 s),  MUL -> (NTH 2 s)
-\end{VNBcode}
-
-One axiom:
-\begin{VNBsnip}
-semigroup-assoc:
-  forall([s], IS-SEMIGROUP(s) implies
-    forall([x in CARR(s), y in CARR(s), z in CARR(s)],
-      MUL(s)(MUL(s)(x, y), z) = MUL(s)(x, MUL(s)(y, z))))
-\end{VNBsnip}
-
-\subsubsection{Monoid}
-
-\begin{VNBcode}
-(declare-structure MONOID
-  (carriers A)
-  (op MUL (CARTESIAN A A) A)
-  (constant E A))
-; A -> (NTH 1 s),  MUL -> (NTH 2 s),  E -> (NTH 3 s)
-\end{VNBcode}
-
-Three axioms: \texttt{monoid-assoc}, \texttt{monoid-left-id}, \texttt{monoid-right-id}.
-\begin{VNBsnip}
-monoid-left-id:
-  forall([s], IS-MONOID(s) implies
-    forall([a in CARR(s)], MUL(s)(ID(s), a) = a))
-
-monoid-right-id:
-  forall([s], IS-MONOID(s) implies
-    forall([a in CARR(s)], MUL(s)(a, ID(s)) = a))
-\end{VNBsnip}
-
-Two convenience lemmas are installed in \texttt{axioms.scm}:
-\begin{description}
-\item[\texttt{monoid-identity-in}]
-  $\mathit{IS\text{-}MONOID}(m) \Rightarrow \mathit{ID}(m) \in \mathit{CARR}(m)$.
-\item[\texttt{monoid-carrier-closed-mul}]
-  $\mathit{IS\text{-}MONOID}(m) \land a \in \mathit{CARR}(m) \land b \in \mathit{CARR}(m)
-  \Rightarrow \mathit{MUL}(m)(a,b) \in \mathit{CARR}(m)$.
-\end{description}
-
-\subsubsection{Commutative monoid}
-
-\begin{VNBcode}
-(declare-structure COMM-MONOID
-  (carriers A)
-  (op MUL (CARTESIAN A A) A)
-  (constant E A))
-; same shape as MONOID: A->1, MUL->2, E->3
-\end{VNBcode}
-
-Commutative monoid: a monoid whose \texttt{MUL} is commutative.  Same
-structural shape as \texttt{MONOID}, so the accessors \texttt{CARR},
-\texttt{MUL}, \texttt{ID} carry over polymorphically.  The relationship
-to \texttt{MONOID} is captured by a subtype axiom; the only additional
-content is commutativity.
-\begin{VNBsnip}
-comm-monoid-is-monoid:
-  forall([s], IS-COMM-MONOID(s) implies IS-MONOID(s))
-
-comm-monoid-mul-comm:
-  forall([s], IS-COMM-MONOID(s) implies
-    forall([a in CARR(s), b in CARR(s)],
-      MUL(s)(a, b) = MUL(s)(b, a)))
-\end{VNBsnip}
-
-\begin{remark}
-The subtype axiom \texttt{comm-monoid-is-monoid} means associativity,
-left identity, and right identity inherit automatically: any proof
-needing \texttt{monoid-assoc} on a commutative monoid first applies
-the subtype axiom to obtain \texttt{IS-MONOID}, then the monoid
-axiom.  Many ambient monoidal structures in the basic theory
-(e.g.\ the additive monoid of a ring, by \texttt{ring-add-comm}) are
-commutative; \texttt{COMM-MONOID} gives them a typed name and is the
-typing prerequisite for \texttt{PROD-SET} below.
-\end{remark}
-
-\subsubsection{Group}
-
-\begin{VNBcode}
-(declare-structure GROUP
-  (carriers A)
-  (op MUL (CARTESIAN A A) A)
-  (constant E A)
-  (op INV A A))
-; A -> (NTH 1 s),  MUL -> (NTH 2 s),  E -> (NTH 3 s),  INV -> (NTH 4 s)
-\end{VNBcode}
-
-\begin{sloppypar}Three axioms suffice (left-only): \texttt{group-assoc}, \texttt{group-left-id},
-\texttt{group-left-inv}.\end{sloppypar}
-\begin{VNBsnip}
-group-left-inv:
-  forall([s], IS-GROUP(s) implies
-    forall([a in CARR(s)], MUL(s)(INV(s)(a), a) = ID(s)))
-\end{VNBsnip}
-
-\subsubsection{Ring}
-
-\begin{VNBcode}
-(declare-structure RING
-  (carriers A)
-  (op ADD  (CARTESIAN A A) A)
-  (op MUL  (CARTESIAN A A) A)
-  (op NEG  A A)
-  (constant ZERO A)
-  (constant ONE  A))
-; A->1, ADD->2, MUL->3, NEG->4, ZERO->5, ONE->6
-\end{VNBcode}
-
-\begin{sloppypar}
-Nine axioms: \texttt{ring-add-assoc}, \texttt{ring-add-comm},
-\texttt{ring-add-left-id}, \texttt{ring-add-left-inv},
-\texttt{ring-mul-assoc}, \texttt{ring-mul-left-id}, \texttt{ring-mul-right-id},
-\texttt{ring-left-dist}, \texttt{ring-right-dist}.
-\end{sloppypar}
-
-$(A, \mathit{ADD}, \mathit{ZERO}, \mathit{NEG})$ is an abelian group;
-$(A, \mathit{MUL}, \mathit{ONE})$ is a monoid; $\mathit{MUL}$ distributes
-over $\mathit{ADD}$.
-
-Two convenience lemmas are installed in \texttt{axioms.scm}:
-\begin{description}
-\item[\texttt{ring-zero-in}]
-  $\mathit{IS\text{-}RING}(r) \Rightarrow \mathit{ZERO}(r) \in \mathit{CARR}(r)$.
-\item[\texttt{ring-carrier-closed-add}]
-  $\mathit{IS\text{-}RING}(r) \land a \in \mathit{CARR}(r) \land b \in \mathit{CARR}(r)
-  \Rightarrow \mathit{ADD}(r)(a,b) \in \mathit{CARR}(r)$.
-\end{description}
-
-\subsubsection{Metric space}
-
-\begin{VNBcode}
-(declare-structure METRIC-SPACE
-  (carriers X)
-  (op D (CARTESIAN X X) RR))
-; X -> (NTH 1 s),  D -> (NTH 2 s)
-\end{VNBcode}
-
-Five axioms: \texttt{metric-pos}, \texttt{metric-self-zero},
-\texttt{metric-zero-eq}, \texttt{metric-sym}, \texttt{metric-triangle}.
-\begin{VNBsnip}
-metric-triangle:
-  forall([s], IS-METRIC-SPACE(s) implies
-    forall([u in PTS(s), v in PTS(s), w in PTS(s)],
-      DIST(s)(u, w) <= DIST(s)(u, v) + DIST(s)(v, w)))
-\end{VNBsnip}
-
-\subsubsection{Open balls, r-nets, total-boundedness}
-\label{sec:metric-topology}
-
-The \texttt{metric-topology.scm} extension layers the standard
-point-set vocabulary onto \texttt{METRIC-SPACE}: open balls, $r$-nets,
-and total-boundedness.  Loads immediately after \texttt{metric-space}
-so the predicates are available everywhere \texttt{IS-METRIC-SPACE}
-is.
-
-\paragraph{Open ball.}  \texttt{BALL(s, x, r)} is the open
-$r$-ball around $x$ in metric space $s$:
-\begin{VNBcode}
-(def-functoid 'BALL '(s x r)
-  '(SEP y (PTS s)
-        (AND (<= ((DIST s) x y) r)
-             (NOT (= ((DIST s) x y) r)))))
-\end{VNBcode}
-
-\begin{remark}
-VNB has \texttt{<=} as a primitive predicate but no strict \texttt{<}.
-``$d < r$'' is therefore spelled \texttt{(AND (<= d r) (NOT (= d r)))}
-throughout the analytic vocabulary, matching the established idiom in
-\texttt{cc-complete}.  A future cleanup pass may introduce \texttt{<}
-as a derived predicate.
-\end{remark}
-
-Four axioms accompany the functoid:
-\begin{description}
-\item[\texttt{ball-membership}]
-  $y \in \mathit{BALL}(s,x,r) \iff y \in PTS(s)$ and $DIST(s)(x,y) < r$.
-\item[\texttt{ball-subset-carrier}]
-  $\mathit{BALL}(s,x,r) \subseteq PTS(s)$.
-\item[\texttt{ball-is-set}]
-  $\mathit{IS\text{-}METRIC\text{-}SPACE}(s) \Rightarrow
-   \mathit{BALL}(s,x,r) \in \mathit{SET}$.
-\item[\texttt{ball-center-in}]
-  $\mathit{IS\text{-}METRIC\text{-}SPACE}(s) \land x \in PTS(s)
-   \land r > 0 \Rightarrow x \in \mathit{BALL}(s,x,r)$.
-\end{description}
-
-Plus the workhorse lemma for cover-and-pigeonhole arguments: two
-points sharing an $r$-ball are within $2r$ of each other.
-\begin{VNBsnip}
-ball-2r-triangle:
-  forall([s], IS-METRIC-SPACE(s) implies
-    forall([x in PTS(s)], forall([r], r > 0 implies
-      forall([y in BALL(s, x, r), z in BALL(s, x, r)],
-        DIST(s)(y, z) < r + r))))
-\end{VNBsnip}
-
-\paragraph{r-net.}  \texttt{IS-R-NET(s, F, A, r)} says $F$
-approximates $A$ to within $r$ in $s$: every point of $A$ has some
-point of $F$ within distance strictly less than $r$.
-\begin{VNBsnip}
-IS-R-NET(s, F, A, r) iff
-  forall([p in A], forsome c, c in F and DIST(s)(c, p) < r)
-\end{VNBsnip}
-
-\begin{remark}
-Centers-only formulation.  $F$ is a set of \emph{points} in the metric
-space, not a set of balls; the set-of-balls view is one functoid away
-($\{ \mathit{BALL}(s,c,r) : c \in F \}$) but every standard metric-space
-argument pigeonholes on the centers anyway.  $F$ is not required to be
-a subset of $A$: classical $r$-nets for a subset $A$ may have centers
-outside $A$.  For the totally-bounded case ($A = PTS(s)$) the distinction
-vanishes since the typing of $DIST(s)$ forces $F \subseteq PTS(s)$.
-\end{remark}
-
-\paragraph{Total-boundedness.}  \texttt{TOTALLY-BOUNDED(s)} says
-every positive $r$ admits a finite $r$-net for $PTS(s)$.  The predicate
-folds in \texttt{IS-METRIC-SPACE(s)} because the notion is only
-meaningful on a metric space.
-\begin{VNBsnip}
-TOTALLY-BOUNDED(s) iff
-  IS-METRIC-SPACE(s) and
-  forall([r], r > 0 implies
-    forsome F, CARD(F) in NN and IS-R-NET(s, F, PTS(s), r))
-\end{VNBsnip}
-
-\begin{remark}
-``$F$ finite'' is encoded as \texttt{(IN (CARD F) NN)}: the cardinality
-of $F$, computed by the \texttt{CARD} functoid, lands in $\mathit{NN}$
-iff $F$ is finite.  Same convention as elsewhere in the cardinality
-machinery.
-\end{remark}
-
-The downstream client of these definitions will be the theorem
-``every sequence in a totally bounded metric space has a Cauchy
-subsequence'' --- a nested-pigeonhole / diagonalization argument
-that pigeonholes successive terms through ever-finer
-\texttt{IS-R-NET}$(s, F, PTS(s), 1/2^k)$ approximations.
+\input{app-structures-generated}
 
 \subsection{Further structure definitions}
 
@@ -808,6 +627,90 @@ A vector space over an arbitrary field:
   (op NEG          VECTORS VECTORS))
 ; FIELD->1, VECTORS->2, SCALAR-TIMES->3, PLUS->4, ZERO->5, NEG->6
 \end{VNBcode}
+
+\begin{remark}
+\texttt{NORMEDSPACE} and \texttt{VECTORSPACE} above are illustrations of
+multi-carrier declaration, not pre-loaded structures.  The library's actual
+normed and vector spaces are \texttt{NORMED-VECTOR-SPACE} (carrier \texttt{VEC},
+with \texttt{VADD}/\texttt{VZERO}/\texttt{VNEG}/\texttt{ACT}/\texttt{VNRM} and a
+\texttt{(substructure SCAL RING)} for the scalars) and \texttt{VECTOR-SPACE}
+(declared \texttt{(same-shape-as MODULE)} with \texttt{(law "is-field(scal(s))")});
+see \texttt{reference/STRUCTURE-INDEX.md}.
+\end{remark}
+
+%%----------------------------------------------------------
+\subsection{Refinement: \texttt{same-shape-as}}
+\label{sec:same-shape-as}
+
+A \emph{refinement} is a species with the same components as another but more
+laws: a commutative ring is a ring whose multiplication commutes; an integral
+domain, a commutative ring with no zero divisors.  Re-declaring the parent's
+every slot would be verbose and would risk drifting from it.  A
+\texttt{(same-shape-as PARENT)} clause instead inherits the parent's shape
+wholesale --- its slots, its accessor indices, its shape conjuncts --- and the
+declaration adds only the new \texttt{(law "\ldots")} clauses:
+
+\begin{VNBcode}
+(declare-structure COMMUTATIVE-RING
+  (same-shape-as RING)
+  (law "forall([a in carr(s), b in carr(s)], mul(s)(a, b) = mul(s)(b, a))"))
+\end{VNBcode}
+
+The installed predicate is the parent's, strengthened, with
+\texttt{IS-\textit{PARENT}} as its \emph{first, literal} conjunct:
+\[
+  \forall s.\;\mathit{IS\text{-}COMMUTATIVE\text{-}RING}(s)
+    \;\Leftrightarrow\;
+    \mathit{IS\text{-}RING}(s)\ \wedge\ (\text{multiplication commutes}).
+\]
+Two things follow.  The refinement is transparently a sub-predicate of its
+parent --- the subtype machinery (\texttt{subtype-laws.scm}) reads
+\texttt{IS-RING} straight off the first conjunct --- and \texttt{CARR},
+\texttt{ADD}, \texttt{MUL}, \ldots keep exactly the indices they carry under
+\texttt{RING}, so every accessor macete is shared.
+
+Because the shape is inherited, a \texttt{same-shape-as} declaration \emph{may
+not} declare slots of its own: a \texttt{(carriers \ldots)}, \texttt{(op
+\ldots)}, \texttt{(constant \ldots)}, or \texttt{(substructure \ldots)} clause
+beside it is a load error.  A species of genuinely different shape is a
+different structure, related to this one not by refinement but by a functor
+(Section~\ref{sec:view-as}).
+
+%%----------------------------------------------------------
+\subsection{Declaring an instance: \texttt{declare-instance!}}
+\label{sec:declare-instance}
+
+A structure \emph{species} is a class; an \emph{instance} is one concrete tuple
+belonging to it --- $\mathbb{Z}$ as a ring, $\mathbb{C}$ as a metric space.
+\texttt{declare-instance!} names such a tuple, defines it, and wires it into the
+catalogue in one call:
+
+\begin{VNBcode}
+(declare-instance! 'ZZ-RING 'RING 'zz-ring-def
+  '(ZZ binplus bintimes binneg 0 1))
+\end{VNBcode}
+
+The arguments are the instance name, the species it instantiates, the name to
+give its defining equation, and the tuple of slot values in declared slot order.
+The call:
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{checks the tuple against the shape} --- a tuple of the wrong length
+  for \texttt{RING} fails the load rather than silently asserting a false
+  \texttt{IS-RING};
+\item \textbf{installs the defining equation} under the given name
+  (\texttt{zz-ring-def}: $\mathit{ZZ\text{-}RING} = \mathtt{LIST}(\ldots)$);
+\item \textbf{installs one per-slot value macete}, \texttt{\textit{name}@\textit{acc}},
+  so \texttt{(MUL ZZ-RING)} reduces to \texttt{bintimes} in a single
+  \texttt{slot} step instead of exposing \texttt{(NTH 3 ZZ-RING)}.  These use
+  \texttt{==}, not \texttt{=}: the slot value is unconditionally that term, so no
+  definedness obligation is owed;
+\item \textbf{registers the instance} as a definitional structure with the
+  species as parent, so it earns a card in \texttt{describe-structure}, a node in
+  the structure graph, and a place in \texttt{known-structures}.
+\end{itemize}
+The instance still owes an \texttt{IS-\textit{SPECIES}} theorem to be
+\emph{certified}; once that is proved, \texttt{specialize-structure} (below)
+transports the species' theorems to it.
 
 %%----------------------------------------------------------
 \subsection{Structure specialization: \texttt{specialize-structure}}
@@ -918,10 +821,9 @@ Since the domain is the proper class of all normed spaces, \texttt{fun}
 cannot express this mapping and a functoid is required:
 
 \begin{VNBcode}
-(def-functoid NormedToMetric (S)
-  [(VECTORS S),
-   (lambda [[x, y] in cartesian((VECTORS S), (VECTORS S))],
-     ((NORM S) ((MINUS S) x y)))])
+(def-functoid 'NormedToMetric '(S)
+  '(LIST (VECTORS S)
+         (VNB-LAMBDA (LIST x y) ((NORM S) ((MINUS S) x y)))))
 \end{VNBcode}
 
 The result is a tuple \texttt{[VECTORS(S), D]} matching the
@@ -934,16 +836,16 @@ the metric axioms follow from the norm axioms and the definition of
 Dropping the norm recovers the underlying vector space:
 
 \begin{VNBcode}
-(def-functoid NormedToVector (S)
-  [(VECTORS S), (SCALAR-TIMES S), (PLUS S), (MINUS S)])
+(def-functoid 'NormedToVector '(S)
+  '(LIST (VECTORS S) (SCALAR-TIMES S) (PLUS S) (MINUS S)))
 \end{VNBcode}
 
 \paragraph{Example: the carrier functor.}
 \begin{VNBcode}
-(def-functoid GroupCarrier (G) (CARRIER G))
+(def-functoid 'GroupCarrier '(G) '(CARR G))
 \end{VNBcode}
 This maps every group to its underlying carrier set.  The result is
-always a set (\texttt{IS-GROUP} entails \texttt{CARRIER(G) in SET}),
+always a set (\texttt{IS-GROUP} entails \texttt{CARR(G) in SET}),
 even though the domain is a proper class.
 
 \paragraph{Transfinite recursion and functoids.}
@@ -970,6 +872,56 @@ restricted to all earlier ordinals.
 ;      IN alpha ORD => MySeq(succ_ORD alpha) = succ_ORD(MySeq alpha)
 ;      LIMIT-ORD lambda => MySeq(lambda) = SUP-ORD(image-of MySeq below lambda)
 \end{VNBcode}
+
+%%% -----------------------------------------------------------------------
+\section{Notation: \texttt{notation!}}
+\label{sec:notation}
+
+Every head the system knows --- a predicate, a functoid, a structure predicate,
+even a primitive like \texttt{=} or \texttt{IN} --- has an entry in a single
+operator table.  \texttt{def-predicate}, \texttt{def-functoid} and
+\texttt{declare-structure} fill in the \emph{structural} part of the entry (its
+kind, its arity) at the definition point.  \texttt{notation!} fills in the
+\emph{reading} --- how the head renders in \LaTeX, in English, and to the
+parser.  The two are orthogonal: re-declaring a head updates the structural slots
+and keeps whatever notation was declared, so a \texttt{notation!} may sit beside
+the definition or well after it.
+
+It is a keyword form; a call names only the slots it has to set:
+\begin{VNBcode}
+(notation! 'IS-RING 'noun "ring" 'article "a")
+(notation! 'IS-EUCLIDEAN-RING 'kind 'predicate 'arity 1
+           'noun "Euclidean ring" 'article "a")
+(notation! 'IS-COUNTABLE-PSEUDOMETRIC-FAMILY 'kind 'predicate 'arity 2
+           'english "$1 is a countable family of pseudometrics on $2")
+\end{VNBcode}
+
+The recognised keys are
+\texttt{tex}, \texttt{english}, \texttt{noun}, \texttt{article},
+\texttt{prec}, \texttt{infix?}, \texttt{arity}, and \texttt{kind}.
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \texttt{tex} and \texttt{english} are \emph{templates} --- strings with
+  placeholders \texttt{\$1}\ldots\texttt{\$9} for the rendered arguments.  A
+  binary operator combining both with \texttt{prec} (a precedence for
+  parenthesisation) and \texttt{infix?} reads, schematically,
+  \texttt{(notation! '+ 'tex "\$1 + \$2" 'english "\$1 plus \$2" 'prec 60 'infix?
+  \#t)}.  When a template cannot express the rendering, \texttt{english} may
+  instead be a \emph{procedure} from the list of argument strings to a string.
+\item \texttt{noun} and \texttt{article} are the special case of a unary
+  structure predicate: given them, \texttt{IS-RING($s$)} reads ``$s$ is a
+  ring'' throughout the prose renderers, and the article joins correctly
+  (``a ring'', ``an $R$-module'').
+\item \texttt{kind} and \texttt{arity} let a \texttt{notation!} register a head
+  the def-forms never introduced --- a primitive such as \texttt{=} or
+  \texttt{IN} --- so it, too, gets a reading.
+\end{itemize}
+
+One table, one declaration form, read by every renderer: \texttt{expr->tex} and
+\texttt{wff-english} for formulas, \texttt{describe-structure} for the structure
+cards, and the generated \texttt{OPERATORS.md}.  A head with no
+\texttt{notation!} still works --- it falls back to prefix application,
+\texttt{IS-RING($s$)} --- so notation is an enrichment, never a prerequisite.
 
 %%% -----------------------------------------------------------------------
 \section{Cardinality: \texttt{CARD}}
@@ -1043,6 +995,61 @@ any finite set, which is the key ingredient for defining unordered
 finite sums in Section~\ref{sec:sequences}.
 
 %%% -----------------------------------------------------------------------
+\section{Morphisms of structures}
+\label{sec:morphisms}
+
+Declaring a structure declares its morphisms too.  From the slot list alone,
+\texttt{declare-structure} generates a homomorphism predicate
+\texttt{IS-HOM-\textit{NAME}}$(a, b, f_1 \ldots f_k)$ --- one map $f_i$ per
+\emph{independent} carrier --- whose meaning is the obvious one: each map is
+typed between the corresponding carriers, and every operation and constant is
+preserved.
+
+\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\item \textbf{carrier} $c$: a map \texttt{$f$ in fun($c(a)$, $c(b)$)}.
+\item \textbf{operation} \texttt{OP}: preservation ---
+  \texttt{$f$(OP($a$)($x_1,\ldots$)) = OP($b$)($f(x_1),\ldots$)} for all
+  arguments in their sorts (each argument mapped by its own carrier's map).
+\item \textbf{constant} \texttt{C}: \texttt{$f$(C($a$)) = C($b$)}.
+\item \textbf{substructure} \texttt{K}: agreement, \texttt{K($a$) = K($b$)} ---
+  morphisms are taken between structures over the \emph{same} base.
+\item \textbf{derived} carrier: nothing.  Its value is pinned by
+  \texttt{IS-\textit{NAME}} (Section~\ref{sec:declare-structure}), so it rides
+  the base carrier's map and owes no map of its own.  This is why a field
+  homomorphism is one map, not two.
+\end{itemize}
+
+\noindent A group's generated hom, for instance, is the single map \texttt{$f$
+in fun(carr($a$), carr($b$))} with \texttt{$f$(opr($a$)($x$,$y$)) =
+opr($b$)($f(x)$,$f(y)$)} and \texttt{$f$(iden($a$)) = iden($b$)} --- exactly a
+group homomorphism.  The definition is installed with \emph{definitional}
+provenance, so it costs no warrant.
+
+\subsection{Overriding the default: \texttt{declare-hom!}}
+\label{sec:declare-hom}
+
+Preservation-of-slots is the right notion for algebra, but not everywhere.  A
+topological space carries an \texttt{OPENS} slot, and the generated hom would
+demand \texttt{OPENS($a$) = OPENS($b$)} --- forcing the two topologies literally
+equal.  The morphisms of \texttt{TOP-SPACE} are the \emph{continuous} maps, a
+preimage condition, not a preservation law.  A species declares its own morphism
+notion with \texttt{declare-hom!}, beside the structure like \texttt{notation!}:
+
+\begin{VNBcode}
+(declare-hom! 'TOP-SPACE '(s t f)
+  '(FORALL u (IMPLIES (IN u (OPENS t))
+      (IN (PREIMAGE s f u) (OPENS s)))))
+\end{VNBcode}
+
+The argument list is the two objects and one map per carrier.  The body states
+\emph{only} what is characteristic: the object typings \texttt{IS-TOP-SPACE($s$)},
+\texttt{IS-TOP-SPACE($t$)} and the map typing \texttt{$f$ in fun(pts($s$),
+pts($t$))} are supplied automatically and need not be repeated.  The declaration
+replaces the generated \texttt{IS-HOM-TOP-SPACE} entirely.  Because ``homomorphism''
+is then the wrong word, a \texttt{notation!} beside it names the arrow
+(``continuous''); see Section~\ref{sec:notation}.  \texttt{METRIC-SPACE} overrides
+the same way, its morphisms being the isometries.
+
 \section{Viewing one structure as another: \texttt{view-as}}
 \label{sec:view-as}
 
@@ -1057,10 +1064,10 @@ additive-group view and a multiplicative-monoid view).  We call these
 \emph{views}, not ``bridges'': a bridge sounds symmetric, and the
 asymmetry and the multiplicity are exactly the point.
 
-\subsection{The \texttt{def-view-as} form}
+\subsection{The \texttt{def-functor} form}
 
 \begin{VNBcode}
-(def-view-as NAME
+(def-functor NAME
   SOURCE-STRUCT  (src-comp-1 src-comp-2 ... src-comp-n)
   TARGET-STRUCT  (tgt-slot-1 tgt-slot-2 ... tgt-slot-n))
 \end{VNBcode}
@@ -1097,14 +1104,14 @@ all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
 
 \begin{VNBcode}
 ;;; A ring's additive structure is an abelian group.
-;;; ABELIAN-GROUP's slots, in order, are (CARR MUL E INV); the view fills
+;;; ABELIAN-GROUP's slots, in order, are (CARR OPR IDEN INV); the view fills
 ;;; them from the ring's (CARR ADD ZERO NEG):
-(def-view-as 'RING-ADDITIVE-AG
+(def-functor 'RING-ADDITIVE-AG
   'RING          '(CARR ADD ZERO NEG)
-  'ABELIAN-GROUP '(CARR MUL E INV))
+  'ABELIAN-GROUP '(CARR OPR IDEN INV))
 \end{VNBcode}
 
-\subsection{What \texttt{def-view-as} installs}
+\subsection{What \texttt{def-functor} installs}
 
 \begin{enumerate}
 \item \textbf{A constructor functoid} \texttt{(NAME s)} whose defining
@@ -1143,8 +1150,9 @@ all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
 A view-as is a covariant functor in waiting: the constructor is the
 object map (an instance of the source becomes an instance of the
 target), and the auto-specialization transports the target's theorems
-along it.  The morphism half --- transporting homomorphisms across a
-view --- is deferred until homomorphisms are first-class.  The
+along it.  Homomorphisms are now first-class
+(Section~\ref{sec:morphisms}); the morphism half --- transporting a
+homomorphism across a view --- remains deferred.  The
 auto-specializer currently matches only theorems guarded by exactly
 \texttt{IS-TARGET}; it does not chain through structure-inclusion axioms,
 so same-shape refinements (a commutative ring's additive view, say) are
@@ -1159,6 +1167,47 @@ the constructor would be a redundant identity list.  A \texttt{view-as}
 earns its keep when source and target have different shapes, so the
 constructor genuinely projects.
 \end{remark}
+
+\subsection{Constructed functors: \texttt{def-constructed-functor}}
+\label{sec:constructed-functor}
+
+A \texttt{view-as} selects the target's slots from among the source's --- its
+object map is a re-shuffling of accessors.  Some functors are not like that.
+The metric topology $\tau_d$ is \emph{computed} from the distance, not read off a
+slot; the distance of a normed field is \emph{computed} from the norm.  For these
+the object map is an arbitrary term, and the form is
+\texttt{def-constructed-functor}:
+
+\begin{VNBcode}
+;;; A normed field is a metric space, with d(x, y) = norm(x - y).
+(def-constructed-functor 'NF-METRIC-SPACE 'NORMED-FIELD 'METRIC-SPACE '(nf)
+  '(LIST (CARR nf)
+         (VNB-LAMBDA (LIST x y) ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
+\end{VNBcode}
+
+The arguments are the functor name, its source and target species, the
+parameter list, and the defining term --- installed as an ordinary functoid
+(Section~\ref{sec:def-functoid}), so \texttt{(NF-METRIC-SPACE nf)} rewrites to
+that tuple.
+
+The decisive difference from \texttt{view-as} is what it \emph{claims}.  A view's
+typing axiom is installed as a warranted assertion; a constructed functor
+\textbf{asserts nothing}.  ``An isometry is continuous'' and ``the norm-difference
+is a metric'' are theorems with content, not free consequences of a slot
+correspondence.  So the form only \emph{records} the two obligations any functor
+owes, and \texttt{functor-obligation-audit} reports at load any still
+undischarged:
+\[
+  \begin{aligned}
+    \texttt{\textit{name}-is-\textit{tgt}} &:\quad
+      \mathit{IS\text{-}SRC}(r) \Rightarrow \mathit{IS\text{-}TGT}(\mathit{NAME}(r)), \\
+    \texttt{\textit{name}-functorial} &:\quad
+      \mathit{IS\text{-}HOM\text{-}SRC}(a, b, f) \Rightarrow
+      \mathit{IS\text{-}HOM\text{-}TGT}(\mathit{NAME}(a), \mathit{NAME}(b), f).
+  \end{aligned}
+\]
+Both are available as goals, ready for \texttt{sp}.  A functor whose obligations
+are unproved is a functor you do not yet have.
 
 %%% -----------------------------------------------------------------------
 \section{Monoid products and ring sums}
@@ -1207,7 +1256,7 @@ where $*$ denotes $\mathit{MUL}(m)$.
   \mathit{PROD\text{-}ORD}(m, f, n) \in \mathit{CARR}(m)$.
   Installed as an axiom for convenience; formally derivable from
   \texttt{prod-ord-zero}, \texttt{prod-ord-succ}, \texttt{monoid-identity-in},
-  and \texttt{monoid-carrier-closed-mul} by $\mathit{NN}$-induction
+  and \texttt{monoid-carrier-closed-opr} by $\mathit{NN}$-induction
   (see Section~\ref{sec:ex-ni-type}).
 
 \item[\texttt{prod-ord-singleton}]
@@ -1340,7 +1389,7 @@ enumeration.  Four axioms:
    \mathit{PROD\text{-}SET}(\mathit{cm},\, S,\, f) \;=\; \prod_{x \in S} f(x)
 \]
 Mirrors \texttt{SUM-SET} but in a commutative monoid; well-definedness
-rests on \texttt{comm-monoid-mul-comm}.
+rests on \texttt{comm-monoid-opr-comm}.
 \begin{description}
 \item[\texttt{prod-set-empty}]
   $\mathit{PROD\text{-}SET}(\mathit{cm},\, \emptyset,\, f) = \mathit{ID}(\mathit{cm})$.
@@ -1389,7 +1438,7 @@ double-counts $S_1 \cap S_2$.
 \section{Ring products}
 \label{sec:ring-prod}
 
-\texttt{algebraic.scm} defines the binary ring product, and
+\texttt{ring.scm} defines the binary ring product, and
 \texttt{sequences.scm} extends it to finite indexed products.
 Both follow Path~2: the operations are \emph{total} functoids, defined
 for any arguments; typing theorems fire conditionally when the inputs
@@ -1536,7 +1585,7 @@ computed in: a flat sum or product of many arguments.
 The algebraic structures \texttt{RING} and \texttt{COMM-MONOID}, by
 contrast, require their operations to be \emph{binary} ---
 elements of $\mathit{FUN}(\mathit{CARTESIAN}(A, A),\, A)$.  The file
-\texttt{basic-rings.scm} (loaded after \texttt{complex.scm}) bridges
+\texttt{numeric-instances.scm} (loaded after \texttt{complex.scm}) bridges
 the two presentations.
 
 \begin{remark}
@@ -1703,7 +1752,7 @@ The extended real line
 \]
 adds two new constants $\mathtt{POS\text{-}INF}$ and
 $\mathtt{NEG\text{-}INF}$ at the top and bottom of the real line.  The
-file \texttt{extended-reals.scm} (loaded after \texttt{basic-rings.scm})
+file \texttt{extended-reals.scm} (loaded after \texttt{numeric-instances.scm})
 installs the carrier class and the ordering.
 
 \begin{remark}

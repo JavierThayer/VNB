@@ -208,6 +208,48 @@ retire are read off the top.
 \end{remark}
 
 %% =========================================================
+\section{Circular dependency}
+\label{sec:proof-cycle}
+
+The bill of Section~\ref{sec:proof-debt} is computed from a \emph{citation
+graph}: at each \texttt{QED} the system records which named results the finished
+proof cited.  That graph carries a soundness obligation of its own, independent
+of the trust tiers: \textbf{no proven theorem may depend --- transitively,
+through its citations --- on itself.}
+
+The failure it guards against is a circle that no single step betrays.  Assert
+$X$; prove $Y$ citing $X$; then ``prove'' $X$ citing $Y$.  Each proof is locally
+valid, yet together they rest on nothing --- $X$ is believed because of $Y$, and
+$Y$ because of $X$.  A bill, a frozen snapshot taken at \texttt{QED}, cannot
+reveal such a loop, so the check walks the \emph{live} citation graph instead.
+
+\texttt{(proof-cycle-check)} returns every dependency cycle among the proven
+theorems --- the empty list when there are none.  \texttt{load.scm} runs it as a
+load-time gate and, on any surviving cycle, \textbf{aborts the load} rather than
+merely warn: a genuine circular proof is a soundness bug and is treated as one.
+
+Two kinds of citation edge are deliberately \emph{not} dependencies, and are
+excluded when the graph is recorded.  Without the exclusion an ordinary
+well-founded induction would read as a cycle:
+
+\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\item \textbf{A proof's citation of its own name.}  A proof by induction applies
+  its induction hypothesis --- the theorem's own statement at a smaller
+  instance --- as a rewrite; likewise a structure predicate is unfolded by a
+  macete bearing the very name the finished theorem will carry.  Neither is a
+  dependence of the theorem on itself.
+\item \textbf{A citation that is a definition when it is recorded.}  Unfolding a
+  definition adds no debt (Section~\ref{sec:proof-debt}) and no dependency; a
+  definitional macete that happens to share a later theorem's name is excluded
+  on the same ground.
+\end{itemize}
+
+\noindent
+Excluding these leaves every genuine circular dependency intact --- such a loop
+runs through \emph{proven} citations, which are always kept --- so the gate
+neither cries wolf on sound induction nor lets a real circle through.
+
+%% =========================================================
 \section{The VNB test}
 \label{sec:vnb-test}
 

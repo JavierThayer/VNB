@@ -28,7 +28,7 @@ structure definitions.
 
 MIT~Scheme reads symbols case-insensitively (folding to lower case),
 so \texttt{FORALL}, \texttt{Forall}, and \texttt{forall} are the same
-symbol at the Scheme level.
+symbol once read.
 
 As should be the case in any formal system, we distingish between
 syntax and semantics. In what follows, we distinguish two distinct
@@ -866,12 +866,13 @@ declaring a structure or adding a definition extends the set of symbols
 that count as constant heads.
 
 \begin{remark}[The case-fold trap, and how the library forbids it]
+\label{rem:case-fold}
 The reader case-folds symbols.  A bound variable whose name case-folds
 to a registered constant cannot be applied as a function --- the head
 \texttt{($v$ \ldots)} reads as the constant, not the variable, scope-blind,
 silently changing a formula's meaning.  Two safeguards keep the installed
 library clean.  First, structure accessors are given \emph{distinctive}
-names (\texttt{CARR}, \texttt{PTS}, \texttt{DIST}, \texttt{ID}, \texttt{MUL},
+names (\texttt{CARR}, \texttt{PTS}, \texttt{DIST}, \texttt{IDEN}, \texttt{MUL},
 \texttt{VEC}, \ldots) precisely so they never collide with the natural
 element variables (\texttt{a}, \texttt{x}, \texttt{d}, \texttt{e}, \ldots).
 Second, \texttt{constant-binder-audit} walks every installed formula and
