@@ -65,6 +65,19 @@
                         ((memq (fnc--source-of vd (car cs)) src-carr) (loop (cdr cs)))
                         (else #f))))))))
 
+;;; di that STAYS QUIET when the focus goal cannot be decomposed.  The peel/split
+;;; drivers below call `di' speculatively -- after the connectives are gone the
+;;; goal is a bare IS-HOM-TGT(...) atom, and plain `(di)' would warn
+;;; "direct-inference: cannot decompose" on every such no-op.  A di that cannot
+;;; fire is already a no-op; this just drops the warning.  (Not `quietly', which
+;;; would also swallow a genuine guard error -- this only suppresses the one
+;;; benign not-applicable case, by applying the rule directly and skipping the
+;;; warn wrapper.)
+(define (fnc--di-quiet)
+  (let* ((sqn (proof-state-focus *ps*))
+         (r   (pi-direct-inference! sqn)))
+    (when r (focus-after-rule *ps* r))))
+
 ;;; An IS-HOM-Z(...) atom that still has a definition to unfold.  A REFINEMENT's
 ;;; hom is IS-Z(a) and IS-Z(b) and IS-HOM-PARENT(a,b,f) -- so unfolding once
 ;;; leaves one of these behind, on whichever side it appears.
@@ -208,8 +221,8 @@
     (sp (fnc--functoriality-statement vd))
     ;; peel the universals, assume the source hom
     (let peel ((n (+ 2 (length (fnc--hom-maps src)))))
-      (unless (= n 0) (di) (peel (- n 1))))
-    (di)
+      (unless (= n 0) (fnc--di-quiet) (peel (- n 1))))
+    (fnc--di-quiet)
     ;; The hypothesis, conjunct by conjunct.  mac-h REPLACES the assumption, so
     ;; take what it LANDED -- never reconstruct the formula and hope it matches.
     ;; A REFINEMENT's hom is IS-X(a) and IS-X(b) and IS-HOM-PARENT(a,b,f), so one
@@ -256,7 +269,7 @@
           (quietly
             (lambda ()
               (if conj
-                  (di)
+                  (fnc--di-quiet)
                   (mac (symbol-append
                          (car (wff-formula (sequent-node-assertion hom))) '-def)))))
           (split (+ guard 1)))))
