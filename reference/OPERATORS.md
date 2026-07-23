@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-297 operators: 15 functions, 179 functoids, 103 predicates, 0 undeclared.
+299 operators: 15 functions, 181 functoids, 103 predicates, 0 undeclared.
 
 ## Functions  (15)
 
@@ -33,7 +33,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (179)
+## Functoids  (181)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -158,6 +158,12 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 ### `descend2`  — def-functoid · function-valued
 
     descend2(f) := vnb-lambda([c, d], iota(z, forsome([a in c, b in d], z = f(a, b))))
+
+### `det`  — recursively defined (def-by-nn-recursion)
+
+> _Reads as:_  det
+
+Declared by: `det-zero` `det-cofactor` 
 
 ### `dist`  — structure accessor · element (slot value)
 
@@ -362,6 +368,10 @@ Declared by: `matrix-membership` `matrix-sethood`
 > _Reads as:_  the metric topology of md
 
     metric-top(md) := [pts(md), {u in power(pts(md)): is-open(md, u)}]
+
+### `minor`  — def-functoid · element/number-valued
+
+    minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 
 ### `mpow`  — recursively defined (def-by-nn-recursion)
 
