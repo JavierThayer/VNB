@@ -21,11 +21,12 @@ Then the project **refocuses**, onto three things:
 1. **Print proofs and read proofs.** `proof-tex` (full trace) and `proof-reader` (sketch)
    exist and are faithful, but they report the *official* level -- three lemma citations --
    where a human wants the *content* level: "Since `a` is a Euclidean ring, `a` is a ring."
-   The design is a table keyed by head symbol -- `head -> (arity, TeX template, English
-   template, precedence, infix?)` -- populated by `def-predicate` / `def-functoid` at
-   definition time, read by `expr->tex`, `wff-english`, `describe-structure` and
-   `OPERATORS.md`. Not plists, not objects: one table, like `*pss-categories*` and
-   `*tactic-help*` already are. Known first entries: collapse a run of subtype-subsumption
+   The table is BUILT (`operators.scm`, the ONE table keyed by head symbol; populated by
+   `def-predicate` / `def-functoid` at definition time via `register-operator!`, and the
+   reading declared next to the definition with `notation!`). It is read by `wff-english`
+   (`operator-ref` / `operator-english`), `describe-structure` and `OPERATORS.md`.
+   STILL OUTSTANDING: `expr->tex` does NOT read it -- tex-output.scm keeps its own
+   per-operator render rules, so TeX and English can disagree. Known first entries: collapse a run of subtype-subsumption
    citations (`register-definitional-structure!` already records the parent chain); capture
    the goal BEFORE each step, not only after, so the reader can always name an existential's
    bound variable (see the `proof-reader--goal-before` comment); render `IS-EUCLIDEAN-RING(a)`
@@ -69,9 +70,10 @@ Compile once, after a clone/unpack (~10 min, includes one source load):
     (recompile-vnb!)            # source-load everything, then compile
 
 If you are ever tempted to conclude "this box is slow", check `ls *.com` first.
-`compile-vnb!` skips `*vnb-no-compile-files*` (`driver-kit`, `clobber-guard`: they
-capture `(the-environment)`, which compiles WITHOUT COMPLAINT and then reports the wrong
-frame) and any file with a top-level `(bc* ...)` (a macro; the .com aborts on load).
+`compile-vnb!` skips `*vnb-no-compile-files*` (`test-suite`, `driver-kit`,
+`clobber-guard`: the latter two capture `(the-environment)`, which compiles WITHOUT
+COMPLAINT and then reports the wrong frame) and any file using a top-level macro
+(the .com aborts on load).
 
 After editing a `.scm`, delete BOTH the `.com` and the `.bin`, or Scheme silently
 loads the stale binary. `load.scm` names files without extension and prefers `.com`.
@@ -89,7 +91,8 @@ edited files back is a couple of seconds and needs no loaded library:
 the very load you just made slow. Compile first, load second.
 
 **But never compile a file that USES a top-level macro that way.** `compile-file` from a
-bare REPL cannot see `bc*` (interactive.scm) or `declare-structure` (structures.scm), so
+bare REPL cannot see `bc*` (interactive.scm), `declare-structure` (structures.scm) or
+`vlet` (vlet.scm) -- the three entries of `*vnb-top-level-macros*` (load.scm:950) -- so
 it compiles the form as an APPLICATION: a fresh `structure-library/ring.com` then dies on
 load with `;Unbound variable: carr`, stranding every file after it. `compile-vnb!` knows
 this (`*vnb-top-level-macros*` in load.scm) and SKIPS such files -- they load from source,
@@ -148,6 +151,15 @@ Three consequences, each of which has cost a debugging session:
 BONGO refers to a bug, a "tournant dangereux", or an otherwise bad idea.
 FUBA, GUBA, RUBA, BLAH etc are generic names.
 
+RANDO MUBA and his sister RANDA MUBA are hypothetical VNB users, invoked when a
+question is about the WORKFLOW rather than about the mathematics: "RANDO finishes a
+proof and types `qed` -- then what?". Either party may raise them. The user uses them
+to request a clarification; Claude uses them to give one. The answer they call for is
+a concrete end-to-end walkthrough -- which command, on which surface, writing which
+file, at which moment, and what it costs -- with the file and line the claim comes
+from, not a description of the design intent. If the walkthrough cannot be given
+without checking the code, check the code.
+
 ## Working with the user
 
 Treats Claude as a colleague, and can be ill-tempered at times. Does
@@ -155,6 +167,15 @@ not appreciate Claude forgetting previously settled questions. Does
 not appreciate gratuitous compliments. Avoid obvious narrative
 statements such as: "Let me check BLAH before relying on memory". Just
 say "Checking BLAH".
+
+Register: The user's interaction with the assistant is on an informal
+register, very much like the register coworkers would use to interact
+in the course of a technical discussion. Use of metaphor, imagery,
+analogies to current events etc. to animate the conversation and ease
+the burden of finding a pedantic formulation of an idea. The assistant
+is allowed to use the same register if the alternative is too
+pedantic. However, in any form of documentation the register should be
+formal and precise, even if pedantic.
 
 **More interested in technique than in bulk.** One general mechanism that
 dissolves a class of obligations beats N bespoke lemmas that discharge them one
@@ -257,9 +278,17 @@ belongs in `driver-kit.scm`.
 
     structure-library/   definitions, structures, vocabulary, warranted supports
     theorem-library/     proofs that reach (qed ...); loaded, gated, counted
-    calculus/            probes and stress tests; NOT in load.scm
+    calculus/            probes and stress tests; MOSTLY not in load.scm -- but
+                         `calculus/finite-ball-subcover-proof` IS loaded (load.scm:787),
+                         and load.scm's per-file environment containment covers
+                         `calculus/` exactly because such files can be loaded
     reference/           GENERATED (PSS.md, THEOREMS.md, ...) -- never hand-edit
     scratchpad/          throwaway drivers (untracked)
+
+Also on disk, not described above: `prove-scripts/`, `stress-tests/`, `examples/`,
+`structure-notes/`, `archive/`, `printouts/`, `emacs/`, `docs/`, and a SECOND
+scratch directory `scratch/` alongside `scratchpad/` (both in use; no rule
+distinguishes them).
 
 **Load order matters.** A file using `sp`/`qed`/`make-wff` must come after `interactive`
 and `proof-debt` in `load.scm`. Misplacing it gives "Unbound variable: make-wff".
@@ -271,20 +300,29 @@ not as kernel axioms -- the ~92 primitive axioms never grow. A `qed` prints its 
 `proven modulo {...} [trust: ...]`, the set of asserted facts it leans on.
 
 **`trust: none` is the WEAKEST tier.** `*pd-trust-order*` (proof-debt.scm) is
-`(none hand-wave informal reference well-known proof)`, worst to best, and
-`debt-trust-level` reports the worst leaf. `none` means *some leaf has no `warrant!`
+`(none hand-wave well-known reference informal proof)`, worst to best, and
+`debt-trust-level` reports the worst leaf. It is literally
+`(cons 'none *warrant-kinds*)`, so the ranking cannot drift from macetes.scm.
+Note that `informal` OUTRANKS `reference` and `well-known`: `informal` means a
+rigorous paper-proof exists (just not mechanized), which beats both a citation
+nobody has checked and a textbook fact asserted with no argument at all.
+`none` means *some leaf has no `warrant!`
 at all* -- "scarier than a hand-wave: nothing was even claimed to justify it", as the
 code says. The unconditional case prints `modulo 0` and no tier at all; **that** is
 the strongest thing a `qed` can say. This brief claimed the reverse until 2026-07-10,
 and the misreading is loose in old commit messages ("PROVEN to QED (trust:none)");
-proof-debt.scm and the ledger's design notes always had it right.
+proof-debt.scm and the ledger's design notes always had it right. (The brief also
+had `informal` and `well-known` swapped until 2026-07-23 -- the same swap that was
+fixed in proof-debt.scm on 2026-07-10 and never propagated here.)
 
-What drives the 77-of-99 `trust: none` bills is that **ring.scm / group.scm /
+What drives the `trust: none` bills -- 80 of the 157 bills that carry any debt, out
+of 256 proven theorems, 99 of which are unconditional (`modulo 0`); recounted
+2026-07-23 -- is that **ring.scm / group.scm /
 abelian-group.scm stamp their projected laws `asserted` and never warrant them**
 (`ring-mul-assoc`, `ring-add-left-id`, `ring-mul-zero-left`, `group-assoc`,
 `group-left-inv`, `abelian-group-idempotent-is-id`, ...), whereas module.scm wraps the
 same kind of projection in `(fluid-let ((*current-provenance* 'definitional)) ...)`
-and so pays nothing. 465 of 1282 asserted facts carry no warrant. Open triage: the
+and so pays nothing. 438 of 1325 asserted facts carry no warrant (2026-07-23). Open triage: the
 shape projections are projections of the `def-structure-from-clauses` IFF, exactly like
 `module-act-unital`, and want `definitional`; the genuinely derived ones
 (`abelian-group-idempotent-is-id`) want to become warranted supports. Doing so would
