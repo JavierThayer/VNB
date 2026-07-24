@@ -21,8 +21,8 @@
 ;;; citation stands alone and a page anchor would resolve to nothing, so do not
 ;;; give one.  On disk today: lang, bourbaki-algebra, thayer-calc,
 ;;; thayer-spectral, yosida, theorie-spectrale, thayer-tvs, dieudonne, lima,
-;;; hoffman-kunze, lima-la, reed-simon-1, reed-simon-2, munroe.  NOT on disk:
-;;; schaefer.
+;;; hoffman-kunze, lima-la, reed-simon-1, reed-simon-2, munroe, treves.  NOT on
+;;; disk: schaefer.
 
 ;; Lang: OCR'd scan on disk (934 pp, one book page per PDF page).
 ;; PAGE ANCHORS ARE PDF PAGES: pdf page = printed page + 15 (verified at printed
@@ -86,6 +86,13 @@
 ;; drop the 6x-larger `-ocr' duplicate.  pdf = printed + 10 (verified 30/50/70);
 ;; OCR prose is rough (headers/math garbled) -- read the image to quote.
 (cite-book! 'munroe "Munroe" "Introduction to Measure and Integration" "2nd ed." "/home/ubuntu/docs/MunroeMeasureIntegration.pdf")
+;; Treves, Topological Vector Spaces, Distributions and Kernels -- the definitive
+;; TVS/distributions reference.  Two copies supplied with equally CLEAN OCR (prose
+;; and proposition numbers intact); keep the smaller (17 MB) non-`-ocr' one.  The
+;; offset is NOT constant -- ~+4 in early Part I, drifting to +1 later (part-
+;; divider pages inserted).  The OCR is clean enough that the printed folio reads
+;; reliably, so anchor by reading the folio rather than trusting a fixed offset.
+(cite-book! 'treves "Treves" "Topological Vector Spaces, Distributions and Kernels" "" "/home/ubuntu/docs/TopologicalVectorSpacesTreves.pdf")
 ;; The user's topological-vector-space notes: Ch. 4 is the open mapping (Thm 4.7),
 ;; closed graph (Thm 4.9) and uniform boundedness chapter.
 (cite-book! 'thayer-tvs "Thayer" "Topological Vector Spaces (notes)" "" "/home/ubuntu/docs/topological-vector-space.pdf")
