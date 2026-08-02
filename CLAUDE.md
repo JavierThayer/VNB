@@ -210,6 +210,23 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
 * `fact` peels leading universals and auto-detaches each antecedent already in context;
   it will NOT split a conjunctive antecedent (use backward `bc*` for those). If a `fact`
   seems inert, dump the context and look for the one missing typing hypothesis.
+  `ord-le-total`, `ord-le-antisymm`, `ord-le-trans` and `ord-succ-immediate` all have
+  AND antecedents, so each wants a `(have! '(AND ...))` immediately before the `fact`.
+  Without it the citation lands the *implication*, silently, and a following `use-cases`
+  cuts the disjunction it was supposed to find in context -- leaving an exhaustiveness
+  obligation open branches away.
+* **`di` is greedy.** One call takes the whole leading FORALL/IMPLIES prefix, and the
+  next call will take a `NOT` (assuming it, goal `FALSITY`) or SPLIT an `AND` goal into
+  two leaves. Counting `di`s is therefore not a way to land on a chosen goal -- write a
+  peel-until-the-head-changes helper and guard it on progress (`zb-peel!` in
+  zz-bezout-proof.scm, `z2-peel!` in zorn-route-two.scm).
+* `ai` on a `NOT` assumption is NOT-ELIM, not "reduce the goal to the positive": it fires
+  only when the positive is ALREADY in context. Every contradiction is therefore
+  `have!` the positive, then `ai` the negation -- never an `ai` you expect to leave the
+  positive as your new goal.
+* `dk-split!` begins by `ai`-ing the formula you hand it, so handing it an ATOM is an
+  error (`dk-landed: the tactic landed no assumption`), not a no-op. It is for
+  conjunctions only; for a single landed atom keep `dk-landed-1`.
 * `detach!` takes the **IMPLIES** formula, not its antecedent. `(detach! <antecedent>)`
   is a silent no-op.
 * `mac-h` **replaces** the assumption it unfolds. Unfolding `(IS-IDEAL s I)` to reach its
@@ -296,8 +313,99 @@ and `proof-debt` in `load.scm`. Misplacing it gives "Unbound variable: make-wff"
 ## Library-build policy
 
 New mathematical facts are added as **warranted supports** (`support` + `warrant!`),
-not as kernel axioms -- the ~92 primitive axioms never grow. A `qed` prints its bill:
-`proven modulo {...} [trust: ...]`, the set of asserted facts it leans on.
+not as kernel axioms. A `qed` prints its bill: `proven modulo {...} [trust: ...]`, the
+set of asserted facts it leans on.
+
+**The primitive shelf CAN grow, but only by an explicit foundational decision.**
+`primitive` provenance (proof-debt.scm:12) is trusted base: it contributes {} to every
+bill, exactly like the ~92 axioms of `make-vnb-base-theory`, which theory.scm:613 installs
+inside `(fluid-let ((*current-provenance* 'primitive)) ...)`. This brief used to say the
+~92 never grow. They grew, once, on 2026-07-27: the **28 ordinal axioms** of
+structure-library/ordinals.scm (burali-forti, ord-le-*, ord-succ-*, limit-ord-iff,
+ord-segment-*, sup-ord-*, transfinite-induction) are now wrapped the same way, by the
+user's decision that the ordinals are foundational rather than owed an argument. They had
+been billing as `asserted` only because `theory-add-axiom!` defaults to that
+(macetes.scm:1405) and nobody had written the fluid-let. Note the distinction that makes
+this NOT a loophole: a `warrant!` moves a fact from `none` to `well-known` -- a better tier
+of DEBT; `primitive` says it is not debt at all. Use it only where a mathematician would
+answer "because that is what ordinals are", and say so in the file.
+
+They grew a second time on 2026-07-28, and this one is INSIDE
+`make-vnb-base-theory`, so the count itself moved: **92 -> 93**. The new axiom is
+`app-graph` (theory.scm, at the head of the function-space block):
+
+    forall f, x.   (f x)  ==  IOTA y. (LIST x y) in f
+
+"A functoid is a class; a function is a functoid that is a set." It DEFINES
+application as the description over the graph, unguarded -- guarding it on `IS-FUN`
+would restrict it to set-functions, which is the restriction it exists to remove.
+Safe unguarded because `f` is a VARIABLE and an axiom is instantiated only at TERMS:
+`UNION`, `POWER`, `FUN`, `CHOICE`, the accessors and every `def-functoid` head are
+constant heads, and `CARR` alone is not a term. Operators are syntax, not objects.
+The argument is `docs/functoids-and-functions.md`.
+
+It is **named-only** and has to be: its left-hand side is a bare application with both
+sides schema variables, so as a live macete it would rewrite every application in every
+goal into an `IOTA`. `declare-named-only!` (macetes.scm) is the new facility that says
+so -- distinct from S-10, which catches a rewrite that is UNSOUND; this catches one that
+is sound and ruinous to fire automatically. It suppresses the `-rev` companion too.
+Adding it moved nothing else: 219 proven, every bill unchanged, every gate still ok.
+
+The shelf grew a THIRD time on 2026-07-28: **`image-set`** (replacement,
+structure-library/injection.scm) is now wrapped `primitive` too, by the user's decision
+that the image of a set under a class function being a set is what sets ARE. It was the
+SOLE entry in the bills of `ord-no-injection-into-set` and, through it, **Zorn's lemma** --
+both now read `modulo 0`. Catalog moved 94 -> 95 axioms and 263 -> 262 assertions, i.e. one
+fact crossed columns and nothing else did.
+
+The shelf grew a FOURTH time on 2026-08-01, and this one is much the largest: the
+user's rebuild of the **arithmetic base**. `number-systems.scm` joined
+`*primitive-files*` in load.scm -- the list `prover-load` wraps in
+`(fluid-let ((*current-provenance* 'primitive)) (load path))`, alongside
+`theorem-library/axioms` -- so its ~107 axioms (Peano closure, the ZZ/QQ/RR/CC field
+and order axioms, abs) stopped billing as debt. They had been `asserted` with no
+`warrant!` at all, which is exactly `trust: none`, so every arithmetic proof in the
+library was billing the axioms of arithmetic as unjustified assumptions. Measured
+across all 238 bills, before vs after: **81 shrank, 0 grew, 45 changed trust tier,
+5 cleared to `modulo 0`**; `trust: none` bills went 96 -> 51, `modulo 0` 62 -> 67, and
+the catalog columns moved 95 -> 212 axioms / 273 -> 156 assertions.
+
+The same cleanup ADDED the axioms that say what each system IS, since the ring/field
+axioms alone pinned down none of them (QQ is a model of ZZ; RR was any ordered field):
+`zz-generated-by-nn` (moved in from zz-arith.scm), `qq-is-fraction`,
+`rr-sup-in`/`rr-sup-upper`/`rr-sup-least` (order completeness, with `SUP` and the
+predicates `RR-UPPER-BOUND` / `RR-BOUNDED-ABOVE`), and for CC `cc-i-in`,
+`cc-i-squared`, `cc-generated-by-rr`, `cc-conjugate-fixes-rr`, `cc-conjugate-i`.
+`qq-dense-in-rr` is the one that is NOT in the base: it needs `<` and `POS-RR`, which
+do not exist until order-predicates.scm, so it lives there and stays `asserted` --
+honest, since density is a theorem of the base rather than part of it.
+
+A LATER FINDING of the same cleanup, 2026-08-01: **binary minus had no axiom at all.**
+Every minus axiom was UNARY (`rr-neg-closed`, `rr-neg-inverse`, ...), while the parser
+emits binary `(- x y)` for "x - y"; nothing said `u - v` was a difference. The only
+statement about that head was `rr-sub-in-rr`, a `well-known` support that read like a
+restatement of `rr-add-closed`. It mattered because **`ineq` -- a TRUSTED oracle --
+"linearizes over + - *"**, so it was reading a meaning the theory declined to state.
+number-systems.scm now carries `binary-minus-def` (`(- a b) == a + (- b)`), stamped
+`definitional` and `declare-named-only!` -- as a live macete its left side matches every
+difference in the library. `rr-sub-in-rr` is now PROVEN `modulo 0` in
+theorem-library/binary-minus-laws.scm, and that alone shrank **ten** bills (the whole
+differentiation/MVT/Taylor arc), because every one of them differences two reals.
+The same question is still open for `/`, which is parser sugar for `(* x (recip y))`
+while several quoted supports carry a literal `/` head with no axiom.
+
+Two consequences worth keeping in view. **The archimedean property is now derivable**
+(`nn-unbounded-in-rr` in order-predicates.scm was re-tiered `well-known` -> `informal`
+on that basis, and `rr-le-all-pos-nonpos` / `rr-pos-halvable` / `rr-pos-shrink` are in
+the same position but were deliberately left alone -- re-tiering moves every citing
+bill). And **numeric literals are now exact rationals**: parser.scm's `p--exact-num`
+reads every literal with the `#e` prefix, so `0.1` is `1/10` -- NOT
+`(inexact->exact .1)`, the dyadic value of the double. arith-eval.scm's sound-arith
+gate stays; its remaining job is rejecting inexactness arithmetic PRODUCED
+(exp/sin/cos/magnitude), which is a different thing from a literal that was read.
+
+Still `asserted` and arguably in the same class, awaiting the same call: the `card-*`
+axioms (cardinality.scm).
 
 **`trust: none` is the WEAKEST tier.** `*pd-trust-order*` (proof-debt.scm) is
 `(none hand-wave well-known reference informal proof)`, worst to best, and
@@ -315,18 +423,24 @@ proof-debt.scm and the ledger's design notes always had it right. (The brief als
 had `informal` and `well-known` swapped until 2026-07-23 -- the same swap that was
 fixed in proof-debt.scm on 2026-07-10 and never propagated here.)
 
-What drives the `trust: none` bills -- 80 of the 157 bills that carry any debt, out
-of 256 proven theorems, 99 of which are unconditional (`modulo 0`); recounted
-2026-07-23 -- is that **ring.scm / group.scm /
-abelian-group.scm stamp their projected laws `asserted` and never warrant them**
-(`ring-mul-assoc`, `ring-add-left-id`, `ring-mul-zero-left`, `group-assoc`,
-`group-left-inv`, `abelian-group-idempotent-is-id`, ...), whereas module.scm wraps the
-same kind of projection in `(fluid-let ((*current-provenance* 'definitional)) ...)`
-and so pays nothing. 438 of 1325 asserted facts carry no warrant (2026-07-23). Open triage: the
-shape projections are projections of the `def-structure-from-clauses` IFF, exactly like
-`module-act-unital`, and want `definitional`; the genuinely derived ones
-(`abelian-group-idempotent-is-id`) want to become warranted supports. Doing so would
-repaint most of those 77 bills.
+What drives the `trust: none` bills -- 51 of the 171 bills that carry any debt, out of
+238 proven theorems, 67 of which are unconditional (`modulo 0`); recounted 2026-08-01,
+after the arithmetic base went `primitive`, which is what took this from 96 to 51 --
+is that **ring.scm / group.scm / abelian-group.scm stamp their projected laws
+`asserted` and never warrant them** (`ring-mul-assoc`, `ring-add-left-id`,
+`group-assoc`, `group-left-inv`, `abelian-group-idempotent-is-id`, ...), whereas
+module.scm wraps the same kind of projection in
+`(fluid-let ((*current-provenance* 'definitional)) ...)` (module.scm:64) and so pays
+nothing. Re-verified 2026-08-01: those three files contain no provenance wrap at all,
+and each name above carries no `warrant!` -- except `ring-mul-zero-left`, which this
+list used to include and which IS warranted `well-known`. (The companion figure "438 of
+1325 asserted facts carry no warrant" was measured 2026-07-23 and is stale: 117 facts
+left the asserted column on 2026-08-01. It wants re-measuring, not adjusting.)
+Open triage: the shape projections are projections of the
+`def-structure-from-clauses` IFF, exactly like `module-act-unital`, and want
+`definitional`; the genuinely derived ones (`abelian-group-idempotent-is-id`) want to
+become warranted supports. With arithmetic out of the picture, this is now the largest
+single source of `trust: none` in the library.
 
 When a proof turns into a grind, that is a finding, not a failure: add the obvious
 lemma to the PSS and record the obstacle. Do not slog.

@@ -76,9 +76,9 @@
         (begin (set-operator-kind! old kind)
                (set-operator-arity! old (length ps))
                (set-operator-params! old ps)
-               (if (not (operator-file old)) (set-operator-file! old (current-load-pathname))))
+               (if (not (operator-file old)) (set-operator-file! old (safe-load-pathname))))
         (hash-table-set! *operators* k
-          (make-operator kind (length ps) ps #f #f #f #f #f #f (current-load-pathname))))
+          (make-operator kind (length ps) ps #f #f #f #f #f #f (safe-load-pathname))))
     name))
 
 ;;; Declare the NOTATION of a head.  Keyword-style, so a call names only what it

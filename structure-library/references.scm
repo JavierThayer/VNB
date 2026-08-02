@@ -41,6 +41,27 @@
 ;; Prose clean, math noise, and a `zyxwv...' watermark artifact eats the head
 ;; line on some pages -- read the image when the running head comes back garbled.
 (cite-book! 'dieudonne "Dieudonné" "Foundations of Modern Analysis" "" "/home/ubuntu/docs/Dieudonne-ocr.pdf")
+;; ---- Galois theory: the published book and the user's own notes ----
+;; Artin, Galois Theory (the Notre Dame lectures).  Scan carrying a 1999 Acrobat
+;; 4.0 Capture text layer, 86 pp.  pdf = printed + 4 (verified at printed
+;; 10/36/60/78).  Prose is 94.5% in-dictionary; DISPLAYED MATH IS NOISE (a matrix
+;; comes out as `iia ml' . . amn'), so navigate by the text layer and read the
+;; page image to quote anything with a subscript.  Re-OCR was measured against
+;; the 1999 layer on 2026-07-24 and abandoned: tesseract 5.5 scored the same
+;; 94.5%, mangled the matrices just as badly, and cost 17.8x the file size.
+;; Neither engine is a MATH OCR.  The user has this one in hardcopy.
+(cite-book! 'artin "Artin" "Galois Theory" "2nd ed." "/home/ubuntu/docs/Artin.pdf")
+;; The user's own Galois theory notes (F. Javier Thayer, 56 pp).  BORN-DIGITAL
+;; LaTeX, clean text including math.  pdf = printed page, offset 0 (verified at
+;; printed 8/20/30/45/52/55; the folio leads the running head on even pages and
+;; trails it on odd ones).  Ch. 1 sec. 4-6 -- matrices over a Euclidean domain,
+;; normal forms, structure of finitely generated modules -- is the arc the
+;; library has ALREADY mechanized (elementary column operations, Smith normal
+;; form, spans-submodule-fg); Ch. 2-3 (extension fields, the Galois group and
+;; the fundamental theorem, solvable and radical extensions) is not started.
+;; Per the user's standing preference, cite `artin' where it states the result
+;; and keep this for what the book does not state in VNB's form.
+(cite-book! 'thayer-galois "Thayer" "Galois Theory (notes)" "" "/home/ubuntu/docs/galois-theory.pdf")
 ;; The user's own calculus notes -- first source with a real PDF on disk, so the
 ;; machine anchor (page) resolves.  Short name from the author (F. Javier Thayer).
 (cite-book! 'thayer-calc "Thayer" "Calculus (notes)" "" "/home/ubuntu/docs/calculus.pdf")
@@ -70,6 +91,12 @@
 ;; DISTINCT key from `lima' (Espacos Metricos), same author.
 (cite-book! 'hoffman-kunze "Hoffman-Kunze" "Linear Algebra" "2nd ed." "/home/ubuntu/docs/HoffmanKunze-ocr.pdf")
 (cite-book! 'lima-la "Lima" "Algebra Linear (IMPA)" "" "/home/ubuntu/docs/LimaAlgebraLinear.pdf")
+;; Axler, Linear Algebra Done Right, 4th ed.  BORN-DIGITAL (LuaTeX), 404 pp:
+;; clean text INCLUDING the mathematics, so a quotation can be taken from the
+;; text layer without opening the page image.  pdf = printed + 14 (verified at
+;; printed 6/86/186).  An OCR'd copy was made and deleted 2026-07-24 -- it added
+;; nothing to a file that already had a vector text layer.
+(cite-book! 'axler "Axler" "Linear Algebra Done Right" "4th ed." "/home/ubuntu/docs/LinearAlgebraDoneRight.pdf")
 ;; Reed & Simon, Methods of Modern Mathematical Physics I: Functional Analysis.
 ;; OCR'd scan, pdf = printed + 7 (verified printed 53/153/253/293/303).  Prose
 ;; clean; a `zyxwv...' watermark artifact (as in Dieudonne) eats the running head
@@ -102,3 +129,14 @@
 ;; theorems for B-complete domains.  Not on this box -- no pdf-path, so the page
 ;; anchors are human citations only.
 (cite-book! 'schaefer "Schaefer" "Topological Vector Spaces" "2nd ed. (GTM 3)" "")
+;; Rudin, Real and Complex Analysis -- the standard measure-theory reference.
+;; Def. 1.3 (sigma-algebra) is printed p. 8 = pdf p. 23: pdf = printed + 15
+;; (verified printed 8 and 100).  The OCR is rough on symbols -- "9J1"/"IDl" is
+;; the fraktur M, "a-algebra" is sigma-algebra -- so read the page IMAGE to
+;; quote a formula; the prose and the numbered-definition headers are reliable.
+(cite-book! 'rudin-rca "Rudin" "Real and Complex Analysis" "" "/home/ubuntu/docs/BigRudin.pdf")
+;; The user's measure-theory notes.  Ch. 1 is algebras of sets (Def. 1.1, p. 1),
+;; sigma-algebras (Def. 1.7, p. 2), monotone classes (Def. 1.12) and the monotone
+;; class theorem (Thm. 1.13, p. 3) -- the last is the intended tfi target.
+;; Born-digital, clean text layer; pdf = printed + 6 (verified printed 2/30/60).
+(cite-book! 'thayer-measures "Thayer" "Construction of Measures (notes)" "" "/home/ubuntu/docs/construction-of-measures.pdf")

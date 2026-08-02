@@ -5,13 +5,31 @@
 \usepackage{textcomp}
 \usepackage{fancyvrb}
 \usepackage{upquote}
+%% ---- Kindle build, part 1 of 2: page geometry -----------------------------
+%% manual-kindle.tex defines \VNBkindle and then \input's this file, so both
+%% kindle blocks are inert in the ordinary build.  geometry goes here, BEFORE
+%% hyperref, which is the supported order.  Part 2 (the code font) is below,
+%% after the verbatim environments it overrides.
+\ifdefined\VNBkindle
+  \usepackage[paperwidth=105mm,paperheight=140mm,
+              top=5mm,bottom=5mm,left=4mm,right=4mm]{geometry}
+\fi
 \usepackage{hyperref}
 \usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{array}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{enumitem}
-\setlist[itemize]{itemsep=2mm}
+%% List style, set ONCE here rather than per-list.  The manual had accumulated
+%% six different labels for the same thing -- $\circ$ (36 lists, in three
+%% spellings), $-$ (13), \textendash (4), $\ast$ (3), $\checkmark$ (1) -- each
+%% carrying its own bracketed option block, plus two bare lists that fell back
+%% to the amsbook bullet.  Levels are now distinguished by INDENTATION, with a
+%% dash rather than a bullet at both: \textendash and not $-$, because $-$ is a
+%% math minus, set in math italic at math spacing.
+\setlist[itemize,1]{label=\textendash, leftmargin=0.85cm, itemsep=2mm}
+\setlist[itemize,2]{label=\textendash, leftmargin=0.85cm, itemsep=1mm,
+                    topsep=1mm}
 \newtheorem{thm}{Theorem}[chapter]
 \newtheorem{prop}[thm]{Proposition}
 \newtheorem{cor}[thm]{Corollary}
@@ -27,8 +45,59 @@
 \pdfglyphtounicode{visiblespace}{0020}
 \pdfgentounicode=1
 
-\DefineVerbatimEnvironment{VNBcode}{Verbatim}{frame=single,framesep=4pt,xleftmargin=8pt,fontsize=\footnotesize}
-\DefineVerbatimEnvironment{VNBsnip}{Verbatim}{fontsize=\footnotesize}
+%% Code blocks are set off by INDENTATION, not by a frame.  VNBcode used to be
+%% Verbatim with frame=single (91 boxes) and VNBsnip the identical environment
+%% without the frame (49 uses); nothing in the text distinguished them, so the
+%% choice between box and no-box across 140 blocks was editorial noise.  They
+%% are now one style.  The indent matches the lists' leftmargin (0.85cm), so
+%% code and list items hang on the same left edge.
+\DefineVerbatimEnvironment{VNBcode}{Verbatim}{xleftmargin=0.85cm,fontsize=\footnotesize}
+\DefineVerbatimEnvironment{VNBsnip}{Verbatim}{xleftmargin=0.85cm,fontsize=\footnotesize}
+
+%% ---- Kindle build, part 2 of 2: the code font -----------------------------
+%% The widest verbatim line in the manual is 87 columns, and a code block is
+%% precisely what a reflow tool (k2pdfopt and friends) mangles.  So the code
+%% font is shrunk until 87 columns fit the text block instead; \VNBkindlecode
+%% is set in manual-kindle.tex, where it can be retuned without touching this
+%% file.  Prose keeps the ordinary body size.
+\ifdefined\VNBkindle
+  %% Same unframed style as the ordinary build, at the Kindle code size and a
+  %% narrower indent -- 0.85cm of a 97 mm measure is a lot to give away.
+  \DefineVerbatimEnvironment{VNBcode}{Verbatim}
+    {xleftmargin=3mm,fontsize=\VNBkindlecode}
+  \DefineVerbatimEnvironment{VNBsnip}{Verbatim}
+    {xleftmargin=3mm,fontsize=\VNBkindlecode}
+  \setlist[itemize,1]{label=\textendash, leftmargin=5mm, itemsep=1mm}
+  \setlist[itemize,2]{label=\textendash, leftmargin=5mm, itemsep=0.5mm,
+                      topsep=0.5mm}
+  %% A 97 mm measure is narrower than any identifier this manual likes to name.
+  %% `hyphenat[htt]' lets a long \texttt token break; the emergency stretch lets
+  %% TeX buy a loose line rather than run into the margin; and the tables, which
+  %% were laid out for a 345 pt measure, are set at \VNBkindletab.
+  \usepackage[htt]{hyphenat}
+  \usepackage{etoolbox}
+  \setlength{\emergencystretch}{3em}
+  \AtBeginEnvironment{tabular}{\VNBkindletab}
+  %% BEFORE, not AtBegin, so the size covers the table's header rows too.
+  \BeforeBeginEnvironment{longtable}{\VNBkindletab}
+  \setlength{\tabcolsep}{2pt}
+  %% Displayed formulas: the manual's are long enough that a dozen of them run
+  %% clean off a 105 mm page -- not merely into the margin, off the paper, with
+  %% the right-hand side of the equation gone.  So \[ ... \] is boxed, measured,
+  %% and scaled down only when it does not fit.  A display that fits is centred
+  %% and untouched, so nothing changes but the offenders.
+  \usepackage{graphicx}
+  \newsavebox{\VNBdispbox}
+  \renewcommand{\[}{\par\smallskip\begin{lrbox}{\VNBdispbox}$\displaystyle}
+  \renewcommand{\]}{$\end{lrbox}%
+    \noindent
+    \ifdim\wd\VNBdispbox>\linewidth
+      \resizebox{\linewidth}{!}{\usebox{\VNBdispbox}}%
+    \else
+      \hbox to \linewidth{\hfil\usebox{\VNBdispbox}\hfil}%
+    \fi
+    \par\smallskip}
+\fi
 
 \title{\textbf{VNB Proof Checker}\\[4pt]
        \large User Manual}

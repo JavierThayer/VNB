@@ -343,7 +343,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <h4 id="TACTICS__arith">arith</h4>
 <pre>(arith)</pre>
 <p>Discharge a ground arithmetic goal by evaluation.</p>
-<p><em>Kind:</em> <code>oracle</code> (emits <code>arith-eval</code>)</p>
+<p><em>Kind:</em> <code>oracle</code> (emits <code>(arith-ground arith-forsome arith-simplify)</code>)</p>
 <p><em>When useful:</em> the goal is ground arithmetic -- no variables</p>
 <p>Close a goal that is a concrete numerical fact with no variables -- e.g. 2 + 3 = 5, or 7 in NN -- by just computing it.  (Technically: decision by ground arithmetic evaluation.)</p>
 <h4 id="TACTICS__rs">rs</h4>

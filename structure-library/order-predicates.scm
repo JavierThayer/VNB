@@ -23,16 +23,45 @@
   '(AND (<= x y) (NOT (= x y))))
 
 (def-predicate 'POS-RR '(r)
-  '(AND (IN r RR) (<= 0 r) (NOT (= 0 r))))
+  '(AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r)))))
 
 ;;; --------------------------------------------------------------------
 ;;; The "eps can shrink" facts of the real line.  The static order axioms
 ;;; (rr-leq-reflexive/antisym/transitive/total/add-compat/mul-nonneg in
 ;;; number-systems.scm) say nothing about positive reals having no floor --
 ;;; yet every eps-argument in analysis (uniqueness of limits, convergent =>
-;;; Cauchy, limit arithmetic) bottoms out on exactly that.  These two are the
-;;; order-density / archimedean face of completeness; accepted as warranted
-;;; PSS supports rather than asserted from a deeper RR axiomatisation.
+;;; Cauchy, limit arithmetic) bottoms out on exactly that.  The first three
+;;; below are the order-density face of that gap; the last two (added
+;;; 2026-08-01) are the archimedean face proper.  All five are accepted as
+;;; warranted PSS supports rather than asserted from a deeper RR
+;;; axiomatisation.
+;;;
+;;; WHY THEY ARE ASSERTED, and what changed the same day.  When these five were
+;;; written, number-systems.scm axiomatised RR as an ORDERED FIELD and stopped:
+;;; no least-upper-bound axiom, no nested intervals, no completeness of any kind,
+;;; despite the section header calling RR a "complete ordered field".  Every
+;;; ordered field satisfied those axioms, including non-archimedean ones (the
+;;; rational functions ordered at infinity), so the archimedean property was
+;;; INDEPENDENT of what was written down.
+;;;
+;;; Later on 2026-08-01 that gap was closed: number-systems.scm now carries
+;;; rr-sup-in / rr-sup-upper / rr-sup-least (order completeness, SUP).  So all
+;;; five facts below are now DERIVABLE, and each is a theorem waiting for a
+;;; driver rather than a permanent assertion:
+;;;
+;;;   nn-unbounded-in-rr   if NN were bounded above, s = SUP(NN) exists; s - 1 is
+;;;                        not an upper bound, so n > s - 1 for some n, so
+;;;                        n + 1 > s with n + 1 in NN.  Contradiction.
+;;;   nn-recip-succ-*      the reciprocal reading of that, see their warrants.
+;;;   rr-le-all-pos-nonpos ) consequences of archimedean plus the ordered-field
+;;;   rr-pos-halvable      ) axioms; halvable and shrink need only the field
+;;;   rr-pos-shrink        ) axioms (eps * recip(1+1)), not completeness at all.
+;;;
+;;; Only `nn-unbounded-in-rr' has had its tier moved to `informal' to match (a
+;;; rigorous paper proof now exists from the axioms present, which is what
+;;; `informal' means).  The other four are left at `well-known' deliberately:
+;;; re-tiering a fact moves the reported trust of every bill that cites it, and
+;;; that is a ledger decision, not a drive-by edit.
 
 ;;; A real below EVERY positive real is non-positive (no smallest positive
 ;;; real).  The enabler: combined with metric-pos + rr-leq-antisymmetric it
@@ -64,6 +93,119 @@
      (FORSOME d (AND (POS-RR d) (< d eps))))))
 (warrant! 'rr-pos-shrink 'well-known
   "Every positive real eps has a smaller positive real below it (e.g. eps/2 < eps).  Order density of the reals at 0; standard.")
+
+;;; --------------------------------------------------------------------
+;;; The archimedean property (added 2026-08-01).
+;;;
+;;; WHY IT IS HERE.  `compact-metric-is-separable' (separable.scm) is a
+;;; warranted support whose route is "for each n take a finite 1/(n+1)-net; the
+;;; union is dense".  Density needs, for a given eps > 0, an n with
+;;; 1/(n+1) < eps.  Nothing in the tree said that: the three facts above are
+;;; RR-only and never mention NN, and nothing else relates the two sets by
+;;; SIZE (nn-in-rr, order-lemmas.scm:39, embeds NN in RR and says nothing
+;;; about magnitude).  The only thing that came close was
+;;; `null-rr-seq-exists' (cauchy-subsequence.scm:127), which asserts a
+;;; positive null SEQUENCE exists -- serviceable, but it hides the
+;;; archimedean content inside an existential over sequences instead of
+;;; naming it, and it cannot be used to talk about 1/(n+1) specifically.
+;;;
+;;; SPELLING.  The radius is written `(recip (+ n 1))', NOT `(/ 1 (+ n 1))'.
+;;; `/' is SURFACE SYNTAX ONLY: parser.scm:278-293 desugars the infix x / y to
+;;; (* x (recip y)), and `recip' is what number-systems.scm axiomatises
+;;; (rr-recip-closed :273, rr-recip-inverse :278) and what arith-eval.scm:53
+;;; evaluates.  A quoted s-expression `(/ a b)' written directly in Scheme
+;;; source bypasses the parser and leaves the head `/', which no axiom and no
+;;; evaluator rule mentions.  (Several existing supports do exactly that --
+;;; bdd-fn-nonneg/lt-one/le-arg in scalar-inequalities.scm, the weights in
+;;; product-metric.scm:61,145, young-inequality in real-powers.scm:180 -- so
+;;; they are about an uninterpreted binary operator.  Not unsound, but no
+;;; proof can connect them to recip.  Recorded, not fixed here.)
+(support 'nn-unbounded-in-rr
+  (forall-guarded 'x '(IN x RR)
+    (forsome-guarded 'n_ '(IN n_ NN)
+      '(< x n_))))
+(warrant! 'nn-unbounded-in-rr 'informal
+  "NN is unbounded in RR: no real number is an upper bound for the naturals.
+   The archimedean property, in its primary form.  Rigorous from the axioms
+   present since order completeness landed (rr-sup-in / rr-sup-upper /
+   rr-sup-least, number-systems.scm): if NN had an upper bound it would have a
+   least one, s = SUP(NN); s - 1 is then not an upper bound, so s - 1 < n for
+   some natural n, so s < n + 1, and n + 1 is a natural.  Not mechanised --
+   that is the driver this warrant is standing in for.")
+(category! 'nn-unbounded-in-rr 'inequalities)
+
+;;; The reciprocal reading, in the two pieces a net argument consumes.  Kept
+;;; SEPARATE because the consumer uses them at different moments: positivity is
+;;; needed to instantiate TOTALLY-BOUNDED at scale n (its radius condition is
+;;; "r in RR, 0 <= r, r /= 0" -- compactness.scm:113 -- i.e. POS-RR unfolded),
+;;; and that happens for EVERY n, before any eps is in play; smallness is needed
+;;; later, once eps is given.  Folding them into one conjunction would force the
+;;; driver to produce an eps it does not yet have.
+(support 'nn-recip-succ-pos
+  (forall-guarded 'n_ '(IN n_ NN)
+    '(POS-RR (recip (+ n_ 1)))))
+(warrant! 'nn-recip-succ-pos 'informal
+  "1/(n+1) is a positive real for every natural n.  Rigorous from the axioms
+   present, hence `informal' rather than `well-known': n + 1 >= 1 > 0 in RR
+   (nn-in-rr and the order axioms), recip of a nonzero real is real
+   (rr-recip-closed), and it is positive because a positive reciprocal is
+   forced by a * recip a = 1 (rr-recip-inverse) together with
+   rr-leq-mul-nonneg.  Not mechanised: it needs recip-order lemmas the tree
+   does not have yet.")
+(category! 'nn-recip-succ-pos 'inequalities)
+
+(support 'nn-recip-succ-small
+  (forall-guarded 'eps '(POS-RR eps)
+    (forsome-guarded 'n_ '(IN n_ NN)
+      '(< (recip (+ n_ 1)) eps))))
+(warrant! 'nn-recip-succ-small 'informal
+  "For every eps > 0 there is a natural n with 1/(n+1) < eps.  The corollary of
+   nn-unbounded-in-rr that eps-arguments actually consume: apply unboundedness
+   to x = 1/eps to get n > 1/eps, hence n + 1 > 1/eps > 0, hence
+   1/(n+1) < eps by antitonicity of recip on the positives.  A rigorous paper
+   proof exists from nn-unbounded-in-rr plus the ordered-field axioms, hence
+   `informal'; mechanising it needs the recip-monotonicity lemmas (0 < a =>
+   0 < recip a; 0 < a < b => recip b < recip a), which the tree does not have.
+   Adding those two and proving this would trade one assertion for two, so it
+   was deliberately not done -- see the note in separable.scm.")
+(category! 'nn-recip-succ-small 'inequalities)
+(rests-on 'nn-recip-succ-small '(nn-unbounded-in-rr))
+
+;;; --------------------------------------------------------------------
+;;; QQ is dense in RR (item (c) of the 2026-08-01 arithmetic-base cleanup).
+;;;
+;;; SITED HERE, not in number-systems.scm with the other base axioms, for one
+;;; reason: it is naturally stated with STRICT inequalities and a positive eps,
+;;; and neither `<' nor `POS-RR' exists until this file defines them at the top.
+;;; number-systems.scm is load.scm:110, this file is :124.  The alternative --
+;;; spelling both out as (AND (<= u v) (NOT (= u v))) up there -- would state the
+;;; axiom in a form no consumer writes, and every citation would need a macete
+;;; step to reach it.  The head comment of number-systems.scm's completeness
+;;; block records that this axiom lives here.
+;;;
+;;; Approximation form, per the user's spelling: every real is caught within any
+;;; positive tolerance by a rational.  Equivalent to the between-two-reals form
+;;; given archimedean, and equivalent to a nested-rational-interval form given a
+;;; null sequence of tolerances (nn-recip-succ-small supplies one).
+;;;
+;;; DERIVABLE, like everything else in this file: with order completeness
+;;; (rr-sup-in/upper/least), qq-is-fraction and zz-generated-by-nn it is the
+;;; standard argument -- take n with 1/n < eps (archimedean), then the least
+;;; integer m with m/n > x - eps.  Asserted because that argument is not
+;;; mechanised, not because it is unavailable.
+(theory-add-axiom! *current-theory* 'qq-dense-in-rr
+  (forall-guarded '(eps x)
+    (list '(POS-RR eps) '(IN x RR))
+    (forsome-guarded 'a '(IN a QQ)
+      (conjuncts->and
+        (list '(< (- a eps) x)
+              '(< x (+ a eps)))))))
+(warrant! 'qq-dense-in-rr 'reference
+  "QQ is dense in RR: for every real x and every positive eps there is a
+   rational a with a - eps < x < a + eps.  Standard; derivable from order
+   completeness plus the fraction and generation axioms, not yet mechanised.")
+(category! 'qq-dense-in-rr 'inequalities)
+(rests-on 'qq-dense-in-rr '(nn-unbounded-in-rr))
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'POS-RR                'kind 'predicate 'arity 1 'noun "positive real" 'article "a")

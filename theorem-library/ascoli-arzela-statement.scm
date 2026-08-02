@@ -31,30 +31,48 @@
 ;;; metric-continuity (IS-CONTINUOUS), compactness (IS-COMPACT).
 ;;; ====================================================================
 
-;;; Paren-safe quantifier builders (file-local, aa- prefix).  The definition
-;;; bodies below are exactly the deep mixed-quantifier pyramids the formula-
-;;; builders note warns NOT to hand-nest; each helper closes its own form, so
-;;; balance is structural rather than eyeball-counted.
-(define (aa-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))   ; forall v. cond => body
-(define (aa-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))   ; exists v. cond & body
+;;; The definition bodies below are exactly the deep mixed-quantifier pyramids
+;;; the formula-builders note warns NOT to hand-nest, so they are written with
+;;; `forall-guarded' / `forsome-guarded' (structures.scm) in their SINGULAR
+;;; spelling: each call closes its own form, and balance is structural rather
+;;; than eyeball-counted.  This file used to keep its own aa- copies of that
+;;; pair; six other files kept theirs; all fourteen were collapsed 2026-07-30.
 
 ;;; ---- vocabulary --------------------------------------------------------
 
-;;; IS-EQUICONTINUOUS(s, fam): the sequence fam : NN -> (PTS s -> RR) is
+;;; IS-EQUICONTINUOUS(s, t, fam): the sequence fam : NN -> (PTS s -> PTS t) is
 ;;; equicontinuous -- for each point x and tolerance eps there is one delta that
 ;;; works for EVERY member fam(k) at once (delta depends on x, eps, NOT on k).
-(def-predicate 'IS-EQUICONTINUOUS '(s fam)
+;;;
+;;; BETWEEN METRIC SPACES, generalised from the RR-valued (s fam) form on
+;;; 2026-07-29 at the user's direction.  Uniform structures would be the general
+;;; setting; metric spaces are the right one here, since the interesting cases
+;;; are metrisable anyway (a first-countable Hausdorff topological group carries
+;;; a left-invariant metric).  The RR-valued original is the instance t := RR-MS,
+;;; which is how the three statements below now read.
+;;;
+;;; The consequent is `d_t(fam(k)(x), fam(k)(y)) < eps' where it used to be
+;;; `|fam(k)(x) - fam(k)(y)| < eps'.  At t = RR-MS the two agree -- RR-MS's
+;;; distance IS (VNB-LAMBDA (LIST x y) (abs (- x y))), numeric-instances.scm --
+;;; but they are not the same FORMULA, so a proof that unfolds this predicate at
+;;; RR-MS must reduce the accessor first (nth-reduce on the 2-tuple, then
+;;; apply-tupling + lambda-beta).  A named `rr-ms-dist' equation would spare
+;;; every such proof that detour; it is PROVABLE, not to be asserted.
+(def-predicate 'IS-EQUICONTINUOUS '(s t fam)
   (conjuncts->and
     (list
       '(IS-METRIC-SPACE s)
-      '(IN fam (FUN NN (FUN (PTS s) RR)))
-      (aa-all 'x '(IN x (PTS s))
-        (aa-all 'eps '(POS-RR eps)
-          (aa-some 'del '(POS-RR del)
-            (aa-all 'k '(IN k NN)
-              (aa-all 'y '(IN y (PTS s))
+      '(IS-METRIC-SPACE t)
+      '(IN fam (FUN NN (FUN (PTS s) (PTS t))))
+      (forall-guarded 'x '(IN x (PTS s))
+        (forall-guarded 'eps '(POS-RR eps)
+          (forsome-guarded 'del '(POS-RR del)
+            (forall-guarded 'k '(IN k NN)
+              (forall-guarded 'y '(IN y (PTS s))
                 '(IMPLIES (< ((DIST s) x y) del)
-                   (< (abs (- ((fam k) x) ((fam k) y))) eps))))))))))
+                   (< ((DIST t) ((fam k) x) ((fam k) y)) eps))))))))))
+(notation! 'IS-EQUICONTINUOUS 'kind 'predicate 'arity 3
+           'english "$3 is equicontinuous from $1 to $2")
 
 ;;; POINTWISE-BOUNDED(s, fam): at each point x the values { fam(k)(x) : k in NN }
 ;;; are bounded in RR (a bound bd that may depend on x).
@@ -63,10 +81,12 @@
     (list
       '(IS-METRIC-SPACE s)
       '(IN fam (FUN NN (FUN (PTS s) RR)))
-      (aa-all 'x '(IN x (PTS s))
-        (aa-some 'bd '(IN bd RR)
-          (aa-all 'k '(IN k NN)
+      (forall-guarded 'x '(IN x (PTS s))
+        (forsome-guarded 'bd '(IN bd RR)
+          (forall-guarded 'k '(IN k NN)
             '(<= (abs ((fam k) x)) bd)))))))
+(notation! 'POINTWISE-BOUNDED 'kind 'predicate 'arity 2
+           'english "$2 is pointwise bounded on $1")
 
 ;;; CONVERGES-UNIFORMLY(s, seq, g): the sequence of functions seq : NN ->
 ;;; (PTS s -> RR) converges uniformly on PTS(s) to g -- one threshold cap works
@@ -77,11 +97,13 @@
       '(IS-METRIC-SPACE s)
       '(IN seq (FUN NN (FUN (PTS s) RR)))
       '(IN g (FUN (PTS s) RR))
-      (aa-all 'eps '(POS-RR eps)
-        (aa-some 'cap '(IN cap NN)
-          (aa-all 'k '(AND (IN k NN) (<= cap k))
-            (aa-all 'x '(IN x (PTS s))
+      (forall-guarded 'eps '(POS-RR eps)
+        (forsome-guarded 'cap '(IN cap NN)
+          (forall-guarded 'k '(AND (IN k NN) (<= cap k))
+            (forall-guarded 'x '(IN x (PTS s))
               '(< (abs (- ((seq k) x) (g x))) eps))))))))
+(notation! 'CONVERGES-UNIFORMLY 'kind 'predicate 'arity 3
+           'english "$2 converges uniformly to $3 on $1")
 
 ;;; ---- the statement -----------------------------------------------------
 
@@ -95,10 +117,10 @@
       '(IS-COMPACT s)
       '(IN fam (FUN NN (FUN (PTS s) RR)))
       '(FORALL k (IMPLIES (IN k NN) (IS-CONTINUOUS s RR-MS (fam k))))
-      '(IS-EQUICONTINUOUS s fam)
+      '(IS-EQUICONTINUOUS s RR-MS fam)
       '(POINTWISE-BOUNDED s fam))
-    (aa-some 'del '(STRICTLY-MONO-NN del)
-      (aa-some 'g '(IN g (FUN (PTS s) RR))
+    (forsome-guarded 'del '(STRICTLY-MONO-NN del)
+      (forsome-guarded 'g '(IN g (FUN (PTS s) RR))
         '(AND (IS-CONTINUOUS s RR-MS g)
               (CONVERGES-UNIFORMLY s (SUBSEQ fam del) g))))))
 

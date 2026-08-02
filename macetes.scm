@@ -352,15 +352,56 @@
 ;;; -----------------------------------------------------------------------
 ;;; Condition satisfaction check
 ;;;
-;;; A condition is "held" in a local context if it is TRUTH or is
-;;; alpha-equivalent to some formula already in the context.
+;;; A condition is "held" in a local context if it is TRUTH, is
+;;; alpha-equivalent to some formula already in the context, or is a true
+;;; closed arithmetic sentence.  Numerals and succ-towers are compared in one
+;;; canonical form.
+;;;
+;;; The last two clauses exist because the numeral<->succ bridge in match-expr
+;;; is ONE-DIRECTIONAL.  It lets a pattern (DET R (succ n) A) match the goal
+;;; DET(r,1,a) with n:=0 -- and then the instantiated conditions come back as
+;;; (IN 0 NN), which no one put in the context, and
+;;; (IN A (MAT (succ 0) (succ 0) (CARR R))), while the context holds
+;;; (IN a (MAT 1 1 (CARR r))).  Alpha-equivalence alone says no to both, so a
+;;; definitional recursion axiom keyed on (succ n) was unusable at EVERY
+;;; literal size: `mac det-cofactor' on DET(r,1,a) reported "not applicable"
+;;; even with both typing hypotheses in context (probed 2026-07-24).
+;;;
+;;; Neither clause widens what may be believed.  numeral-collapse rewrites
+;;; (succ k) to k+1 for a literal k, which is sound for the same reason the
+;;; match-expr bridge is -- succ(k) IS k+1 on a numeral -- and succ_ORD
+;;; collapses with it, exactly as arith-eval-term already treats the two as one
+;;; on ground naturals.  The arithmetic clause defers to arith-eval-formula,
+;;; the decision procedure the trusted `arith' rule itself runs, and accepts
+;;; only a verdict of #t (never 'UNDEF).
+
+;;; Fold (succ k) / (succ_ORD k) over a literal k to k+1, bottom up.
+;;; Non-pairs -- symbols, numbers, functoid records -- are returned as they are.
+(define (numeral-collapse e)
+  (if (not (pair? e))
+      e
+      (let ((parts (map numeral-collapse e)))
+        (if (and (memq (car parts) '(succ succ_ORD))
+                 (pair? (cdr parts))
+                 (null? (cddr parts))
+                 (exact-nonnegative-integer? (cadr parts)))
+            (+ (cadr parts) 1)
+            parts))))
 
 (define (condition-holds? formula local-ctx)
   (or (equal? formula 'TRUTH)
       (let loop ((ctx local-ctx))
         (cond ((null? ctx) #f)
               ((alpha-equiv? formula (car ctx)) #t)
-              (else (loop (cdr ctx)))))))
+              (else (loop (cdr ctx)))))
+      ;; Slow path: same search, both sides in numeral-collapsed form.
+      (let ((f (numeral-collapse formula)))
+        (let loop ((ctx local-ctx))
+          (cond ((null? ctx) #f)
+                ((alpha-equiv? f (numeral-collapse (car ctx))) #t)
+                (else (loop (cdr ctx))))))
+      ;; Ground arithmetic: (IN 0 NN), (<= 1 2), ... need no hypothesis.
+      (eq? #t (arith-eval-formula (numeral-collapse formula)))))
 
 (define (all-conditions-hold? cond-instances local-ctx)
   (let loop ((cs cond-instances))
@@ -592,6 +633,40 @@
 ;;; to enumerate.
 (define *inert-macetes* '())
 
+;;; DELIBERATELY named-only.  A different failure from S-10, and the difference
+;;; matters: S-10 catches a rewrite that would be UNSOUND, this catches one that
+;;; is perfectly sound and ruinous to fire AUTOMATICALLY.
+;;;
+;;; The motivating case is `app-graph' (theory.scm), which defines application as
+;;; the description over the graph.  Its left-hand side is a bare application
+;;; `(f x)' with both f and x schema variables, so as a live macete it matches
+;;; EVERY application in EVERY goal and rewrites each into an IOTA -- every
+;;; `mac' anywhere would detonate.  The theorem is wanted; the automatic rewrite
+;;; is not.
+;;;
+;;; Declare BEFORE the theorem is installed.  A named-only theorem stays fully
+;;; usable by name: `ta', `fact', backchain, manual instantiation.
+(define *named-only-macetes* '())
+
+(define (declare-named-only! name reason)
+  (set! *named-only-macetes* (cons (cons name reason) *named-only-macetes*))
+  ;; the -rev companion (install-theorem! mints one for a symmetric core) must
+  ;; be suppressed too, or the reverse direction fires on every IOTA instead.
+  (let ((rev (string->symbol (string-append (symbol->string name) "-rev"))))
+    (set! *named-only-macetes* (cons (cons rev reason) *named-only-macetes*)))
+  name)
+
+(define (named-only-macete? name)
+  (and (symbol? name) (assq name *named-only-macetes*)))
+
+(define (display-named-only-macetes)
+  (if (null? *named-only-macetes*)
+      (display "No named-only macetes.\n")
+      (for-each (lambda (e)
+                  (display "  ") (display (car e))
+                  (display " -- ") (display (cdr e)) (newline))
+                (reverse *named-only-macetes*))))
+
 ;;; Prenex normalization for macete generation.
 ;;;
 ;;; strip-foralls peels only LEADING quantifiers.  A theorem whose
@@ -655,6 +730,8 @@
       (let ((rogue (theorem-rogue-schema-vars schema-vars conditions
                                               source replacement)))
         (cond
+          ((and (not (default-object? name)) (named-only-macete? name))
+           (inert-macete))               ; sound, but must not fire on its own
           ((not (null? rogue))
            ;; rogue-var check runs on the original names for a readable report
            (set! *inert-macetes*
@@ -1127,6 +1204,34 @@
               (hash-table-keys *theorem-table*))
     (reverse bad)))
 
+;;; -----------------------------------------------------------------------
+;;; FUNCTOID-BODY binder audit.  case-fold-audit and constant-binder-audit walk
+;;; *theorem-table* only.  A def-functoid's body lives in *functoid-registry*
+;;; and is NEVER checked -- so a lambda/SEP binder INSIDE the body that
+;;; case-folds onto a PARAMETER captures it silently: MONALG-MUL '(A M f g) with
+;;; body binder `m' made (OPR M) read as OPR-of-the-summation-point (m===M under
+;;; the reader's fold), and the wrong term shipped with a completely clean load
+;;; (2026-07-25).  A functoid's parameters scope over its body exactly like outer
+;;; FORALL binders, so wrapping the body in a FORALL per parameter turns the
+;;; param-vs-body-binder collision into an ordinary in-scope rebinding that
+;;; wff-shadowing-binders already detects -- and catches body-binder-over-body-
+;;; binder collisions for free.  Returns (name . shadows) per offending functoid;
+;;; empty => every functoid body is collision-free.
+(define (functoid-binder-audit)
+  (let ((bad '()))
+    (for-each
+     (lambda (name)
+       (let ((reg (hash-table-ref/default *functoid-registry* name #f)))
+         (when reg
+           (let* ((pvars   (car reg))
+                  (body    (cadr reg))
+                  ;; params as nested outer FORALLs over the body
+                  (wrapped (fold-right (lambda (p b) (list 'FORALL p b)) body pvars))
+                  (sh      (wff-shadowing-binders wrapped)))
+             (when (pair? sh) (set! bad (cons (cons name sh) bad)))))))
+     (hash-table-keys *functoid-registry*))
+    (reverse bad)))
+
 ;;; LOUD, deliberately unpleasant report.  A binder that collides with a
 ;;; registered constant is a silent soundness hazard; make it impossible to
 ;;; ignore and unpleasant enough that nobody does it twice.
@@ -1190,7 +1295,11 @@
 (define (aliases-of name) (hash-table-ref/default *theorem-aliases* name '()))
 
 (define (find-theorem pattern)
-  (let* ((pat   (string-downcase pattern))
+  ;; Accept a SYMBOL too -- every other proof-surface command takes a quoted
+  ;; symbol ((mac 'poly), (fact 'thm)), so (find-theorem 'foo) is the natural
+  ;; call; string-downcase on a symbol used to type-crash the REPL rudely.
+  (let* ((pattern (if (symbol? pattern) (symbol->string pattern) pattern))
+         (pat   (string-downcase pattern))
          (names (sort (hash-table-keys *theorem-table*)
                       (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
          (hit?  (lambda (n)
@@ -1375,7 +1484,7 @@
                          formula-or-wff)))
         (hash-table-set! *theorem-table* name formula)
         (hash-table-delete! *lemma-fingerprint-memo* name)   ; stale on reinstall
-        (let ((src (current-load-pathname)))
+        (let ((src (safe-load-pathname)))   ; #f at the REPL; qed installs interactively
           (when src (hash-table-set! *theorem-source* name src)))
         (register-provenance! name *current-provenance*)
         (install-macete! name (theorem->elementary-macete formula name))

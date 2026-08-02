@@ -11,6 +11,26 @@
 ;;;   (ORD-SEGMENT alpha)      the set {beta : beta <_ORD alpha}
 ;;;   (SUP-ORD A)              least upper bound of a set A of ordinals
 
+;;; =======================================================================
+;;; THE ORDINAL AXIOMS ARE FOUNDATIONAL, and are installed as such.
+;;;
+;;; Everything from here to the end of the transfinite-induction schema is
+;;; wrapped in `primitive' provenance.  proof-debt.scm:12 reads that tier as
+;;; TRUSTED BASE -- it contributes {} to every bill -- which is the same shelf
+;;; theory.scm:613 puts the base set theory on.  Without the wrapper these 28
+;;; calls took `theory-add-axiom!'s default, `asserted' (macetes.scm:1405), so
+;;; every theorem that so much as compared two ordinals reported `trust: none'
+;;; and named half this file in its bill.  That was an accident of an absent
+;;; fluid-let, not a judgement that ordinals owe anyone an argument.
+;;;
+;;; Note this is NOT a `warrant!'.  A warrant would move them from `none' to
+;;; `well-known' -- a better tier of DEBT.  Foundational means they are not debt.
+;;;
+;;; The forms below are left at their original indentation; the wrapper is
+;;; deliberately the only edit, so the axioms themselves diff clean.
+;;; =======================================================================
+(fluid-let ((*current-provenance* 'primitive))
+
 ;;; -----------------------------------------------------------------------
 ;;; Burali-Forti: ORD is a proper class
 
@@ -213,6 +233,8 @@
         (FORALL alpha
           (IMPLIES (IN alpha ORD) (IN alpha C))))))
 
+)   ; end (fluid-let ((*current-provenance* 'primitive)) ... ) -- 28 axioms
+
 ;;; -----------------------------------------------------------------------
 ;;; Well-ordering of ORD.  Every nonempty subclass A of ORD has a <=_ORD-
 ;;; least element.  This is the order-theoretic face of transfinite-induction
@@ -293,10 +315,16 @@
                        (IMPLIES (LIMIT-ORD ,lam)
                                 (= (,f-name ,@params ,lam) ,lim-expr))))
          (wrap      (lambda (f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))))
-    (theory-add-definition! *current-theory* f-name
-      (list (cons zero-name (wrap zero-core))
-            (cons succ-name (wrap succ-core))
-            (cons lim-name  (wrap lim-core))))))
+    ;; The three recursion equations ARE the definition of f-name -- exactly
+    ;; what `def-constant' installs, and stamped the same way.  Without this
+    ;; fluid-let they inherited the ambient 'asserted provenance and every qed
+    ;; that unfolded a transfinitely-defined constant paid debt for its own
+    ;; defining equations (e.g. zkept-succ / zkept-limit).
+    (fluid-let ((*current-provenance* 'definitional))
+      (theory-add-definition! *current-theory* f-name
+        (list (cons zero-name (wrap zero-core))
+              (cons succ-name (wrap succ-core))
+              (cons lim-name  (wrap lim-core)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Primitive recursion on NN  (NN = {0, 1, 2, ...})
@@ -330,6 +358,7 @@
                        (IMPLIES (IN ,n NN)
                                 (== (,f-name ,@params (succ ,n)) ,succ-body))))
          (wrap      (lambda (f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))))
-    (theory-add-definition! *current-theory* f-name
-      (list (cons zero-name (wrap zero-core))
-            (cons succ-name (wrap succ-core))))))
+    (fluid-let ((*current-provenance* 'definitional))   ; as in def-by-ord-recursion
+      (theory-add-definition! *current-theory* f-name
+        (list (cons zero-name (wrap zero-core))
+              (cons succ-name (wrap succ-core)))))))

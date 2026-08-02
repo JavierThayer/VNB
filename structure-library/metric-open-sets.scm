@@ -80,7 +80,7 @@
 (support 'ball-is-open
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
      (FORALL x (IMPLIES (IN x (PTS s))
-       (FORALL r (IMPLIES (AND (IN r RR) (<= 0 r) (NOT (= 0 r)))
+       (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
          (IS-OPEN s (BALL s x r)))))))))
 (warrant! 'ball-is-open 'proof
   "For y in BALL(s,x,r) the slack t = r - DIST(s)(x,y) is > 0 (ball-membership); the triangle inequality (metric-triangle) gives BALL(s,y,t) subset BALL(s,x,r), so y is interior. Hence BALL(s,x,r) is open.")

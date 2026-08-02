@@ -326,6 +326,88 @@
     ;; When A is a set, members of FUN(A) and FUN(A,B) are sets.
     ;; (CARTESIAN A B) is a set iff both factors are.
 
+    ;; -------------------------------------------------------------------
+    ;; APPLICATION IS THE DESCRIPTION OVER THE GRAPH.
+    ;;
+    ;;    app-graph:  forall f, x.  (f x)  ==  IOTA y. (LIST x y) in f
+    ;;
+    ;; A FUNCTOID IS A CLASS, and a function is a functoid that happens to be a
+    ;; set.  `(x a)' is well formed for any class x -- it always was, since
+    ;; validate-wff! reads any compound with an unrecognised head as an
+    ;; application -- and this axiom says what it MEANS.  `(NN 3)' is a term
+    ;; which is simply undefined: no member of NN is a pair with first
+    ;; coordinate 3.  Foundational decision, 2026-07-28; see
+    ;; docs/functoids-and-functions.md for the argument.
+    ;;
+    ;; `==', not `=': both sides may be undefined and `=' is strict.
+    ;;
+    ;; UNGUARDED, and that is the point.  Guarding on IS-FUN(f) would restrict
+    ;; the axiom to f in FUN(A) for a SET A (is-fun-def, below) -- exactly the
+    ;; restriction it exists to remove.  It is safe unguarded because `f' is a
+    ;; VARIABLE and an axiom is instantiated only at TERMS: the operators of the
+    ;; language -- UNION, POWER, FUN, SEP, CHOICE, the structure accessors, every
+    ;; def-functoid head -- are constant heads in *constant-registry*, and `CARR'
+    ;; alone is not a term, only `(CARR s)' is.  So the axiom cannot be
+    ;; instantiated at an operator and makes no claim about one.  Operators are
+    ;; syntax; they are not objects, for the same reason POWER is not a set.
+    ;;
+    ;; n-ary application reduces to this by the existing tupling convention,
+    ;; (f a_1 ... a_n) = (f (LIST a_1 ... a_n)) -- the apply-tupling-N axioms
+    ;; (theorem-library/axioms.scm, described at structures.scm:620) -- so the
+    ;; graph of a binary operation is a class of pairs ((a,b),c).
+    ;;
+    ;; NAMED-ONLY, and it must be: its left-hand side is a bare application with
+    ;; both sides schema variables, so as a live macete it would rewrite EVERY
+    ;; application in every goal into an IOTA.  Cite it by name.
+    ;;
+    ;; CONSEQUENCES not yet harvested: fun-domain-extensionality (below) follows
+    ;; from class-extensionality once a function IS its graph, and res-typing /
+    ;; res-apply become theorems about { z in f : NTH(1,z) in B }.  All three are
+    ;; still stated as axioms here; demoting them is open work.
+    (declare-named-only! 'app-graph
+      "left-hand side is a bare application: as a live rewrite it fires on every application in every goal")
+    (theory-add-axiom! th 'app-graph
+      '(FORALL fn_ (FORALL arg_
+          (== (fn_ arg_) (IOTA val_ (IN (LIST arg_ val_) fn_))))))
+
+    ;; -------------------------------------------------------------------
+    ;; A FUNCTION IS EXACTLY ITS GRAPH -- the "no junk" half.
+    ;;
+    ;;   fun-no-junk:  f in FUN(A)  =>
+    ;;                 forall z. (z in f  <=>  exists x,y. z = LIST(x,y)
+    ;;                                          and x in A and (f x) = y)
+    ;;
+    ;; app-graph (above) constrains APPLICATION in terms of membership; it says
+    ;; nothing about members of f that are NOT pairs.  Without this axiom,
+    ;; f and f union {c} (c not a pair) have the same pairs, hence the same
+    ;; application everywhere, yet are distinct by class-extensionality -- so
+    ;; fun-domain-extensionality is INDEPENDENT of app-graph.  This is the
+    ;; missing half.  Foundational decision, 2026-07-28.
+    ;;
+    ;; GUARDED, and unlike app-graph it MUST be.  Unguarded it would read "every
+    ;; class is a set of ordered pairs", which is false of NN, of ORD, of every
+    ;; ordinary set.  It can only be asserted of something already known to be a
+    ;; function.
+    ;;
+    ;; The guard is `IN f (FUN A)', NOT `IS-FUN f'.  is-fun-def (below) requires
+    ;; a SET domain, so an IS-FUN guard would deliver only the set-domain half
+    ;; and would not cover a function whose domain is a proper class -- nor match
+    ;; the hypothesis of fun-domain-extensionality, which carries no sethood.
+    ;;
+    ;; NAMED-ONLY: the left-hand side of the IFF is `(IN z f)' with both sides
+    ;; schema variables, so as a live macete it would rewrite every membership
+    ;; formula in every goal about a function into an existential.
+    (declare-named-only! 'fun-no-junk
+      "left-hand side is a bare membership: as a live rewrite it fires on every IN in any goal about a function")
+    (theory-add-axiom! th 'fun-no-junk
+      '(FORALL A (FORALL f
+          (IMPLIES (IN f (FUN A))
+            (FORALL z
+              (IFF (IN z f)
+                   (FORSOME x (FORSOME y
+                     (AND (= z (LIST x y))
+                          (AND (IN x A) (= (f x) y)))))))))))
+
     ;; FUN(A,B) sethood
     (theory-add-axiom! th 'fun-set-iff
       '(FORALL A (FORALL B
@@ -356,11 +438,22 @@
                         (IN x A)))))))
 
     ;; Extensionality: functions in FUN(A) are equal iff they agree on all of A
+    ;; CHAINED implications, not a conjunction.  Until 2026-07-28 the antecedent
+    ;; was a FLAT three-conjunct AND -- (AND a b c), length four.  make-wff
+    ;; rejects that ("connective arity"), but theory-add-axiom! installs without
+    ;; validating, so it sat in the theorem table looking healthy while the
+    ;; kernel read it with binary-left/right and saw only the first two
+    ;; conjuncts.  The dropped one was the agreement hypothesis, leaving the
+    ;; axiom reading "any two functions with the same domain are equal".
+    ;; `connective-arity-audit' (audit.scm) is now a hard gate against the class.
+    ;; Chained antecedents are also what `fact' wants: it detaches them one at a
+    ;; time and will not split a conjunction.
     (theory-add-axiom! th 'fun-domain-extensionality
       '(FORALL A (FORALL f (FORALL g
-          (IMPLIES (AND (IN f (FUN A)) (IN g (FUN A))
-                        (FORALL x (IMPLIES (IN x A) (= (f x) (g x)))))
-                   (= f g))))))
+          (IMPLIES (IN f (FUN A))
+            (IMPLIES (IN g (FUN A))
+              (IMPLIES (FORALL x (IMPLIES (IN x A) (= (f x) (g x))))
+                       (= f g))))))))
 
     ;; FUN(A,B) is exactly those functions in FUN(A) whose values lie in B
     (theory-add-axiom! th 'fun-codomain-iff
@@ -433,7 +526,7 @@
           (FORALL B
               (FORALL f
                   (FORALL x
-                      (IMPLIES (AND (IN f (FUN A)) (SUBSET B A) (IN x B))
+                      (IMPLIES (AND (IN f (FUN A)) (AND (SUBSET B A) (IN x B)))
                                (= ((RES f B) x) (f x))))))))
 
     ;; DERIVED (from res-typing + res-apply + fun-codomain-iff):
@@ -531,7 +624,7 @@
 
     (theory-add-axiom! th 'nth-in-range
       '(FORALL A (FORALL i (FORALL L
-          (IMPLIES (AND (IN i NN) (IN L (TUPLES A)) (<= 1 i) (<= i (LENGTH L)))
+          (IMPLIES (AND (IN i NN) (AND (IN L (TUPLES A)) (AND (<= 1 i) (<= i (LENGTH L)))))
                    (IN (NTH i L) A))))))
 
     ;; -------------------------------------------------------------------
@@ -642,6 +735,10 @@
       ((not (pair? expr)) expr)
       (else
        (case (car expr)
+         ;; NB this is a `case' DATUM LIST -- four symbols compared by eqv? --
+         ;; not a formula.  Binarising it to (AND OR (AND IMPLIES IFF)) buries
+         ;; IMPLIES and IFF inside a sublist that no symbol can ever match, and
+         ;; the walker silently stops descending through them.  Fixed 2026-07-29.
          ((AND OR IMPLIES IFF)
           (let ((l (rewrite-by-proc/bv proc (cadr  expr) bvars))
                 (r (rewrite-by-proc/bv proc (caddr expr) bvars)))
@@ -757,6 +854,11 @@
     ((null? as)        'TRUTH)
     ((null? (cdr as))  `(= ,(car as) ,(car bs)))
     (else
+     ;; NB the recursive tail is already a well-formed formula -- a single
+     ;; conjunct at the base case, a binary AND above it.  Wrapping it in a
+     ;; further (AND ...) makes a UNARY AND, which the kernel, reading AND
+     ;; binarily, has no right operand for.  Collateral from the
+     ;; connective-arity binarisation pass; fixed 2026-07-29.
      `(AND (= ,(car as) ,(car bs))
            ,(build-tuple-equality (cdr as) (cdr bs))))))
 

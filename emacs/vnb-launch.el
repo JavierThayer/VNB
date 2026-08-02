@@ -25,6 +25,14 @@ resources (structure-notes, examples, user-additions, file-picker defaults).")
   (file-name-as-directory (expand-file-name "reference" vnb-launch--dir))
   "Generated-index directory (THEOREMS.md, STRUCTURE-INDEX.md, ...).")
 
+(defconst vnb-launch--docs-dir
+  (file-name-as-directory (expand-file-name "docs" vnb-launch--dir))
+  "Hand-written prose: design notes and working notes (docs/NAME.md).
+
+Distinct from `vnb-launch--ref-dir', which the prover REGENERATES on every
+load.  Nothing in docs/ is generated, so nothing in it is refreshed for you;
+`vnb-view-note' reads whatever is on disk.")
+
 (load (expand-file-name "vnb.el" vnb-launch--el-dir) nil t)
 
 ;; Auto-derived interactive commands for the no-argument tactics, read from the
@@ -175,6 +183,7 @@ comment text, so the semicolons no longer clash at line starts."
     (define-key m "d" 'vnb-describe-structure)
     (define-key m "D" 'vnb-ws-show-definitions)
     (define-key m "m" 'vnb-structure-manual)
+    (define-key m "n" 'vnb-view-note)
     (define-key m "G" 'vnb-structure-graph-html)
     (define-key m "R" 'vnb-reference-html)
     (define-key m "H" 'vnb-home-html)
@@ -313,6 +322,12 @@ comment text, so the semicolons no longer clash at line starts."
     (insert (propertize " all structures, one rendered reference\n\n"
                         'face 'vnb-body))
     (insert "  ")
+    (vnb-launch--insert-button "Notes"
+                               'vnb-view-note
+                               "Read a hand-written note from docs/ (design notes, working notes)")
+    (insert (propertize "             hand-written notes in docs/, not generated\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
     (vnb-launch--insert-button "Structure Graph"
                                'vnb-structure-graph-html
                                "Open the clickable structure graph (refines + view-as) in a browser")
@@ -363,7 +378,7 @@ comment text, so the semicolons no longer clash at line starts."
                      "        p show PSS  |  l browse library  |  "
                      "F fingerprint index\n"
                      "        d describe structure  |  D definitions  |  "
-                     "m manual\n"
+                     "m manual  |  n notes\n"
                      "        G structure graph  |  e examples  |  "
                      "S scratch workspace\n"
                      "        W save session  |  g refresh  |  q quit\n")
@@ -792,6 +807,54 @@ way as Browse Library."
       (goto-char (point-min))
       (setq-local default-directory vnb-launch--dir)
       (vnb-library-mode)
+      (vnb-library--decorate-buffer))
+    (switch-to-buffer buf)))
+
+;;; -----------------------------------------------------------------------
+;;; Read a hand-written note (docs/NAME.md).
+;;;
+;;; The reference viewers above each ask the prover to regenerate their .md
+;;; first.  This one does not, and must not: docs/ is prose, not output, and
+;;; there is nothing to regenerate.  So `vnb-view-note' works with no prover
+;;; running.
+
+(defvar-local vnb-view-note--path nil
+  "Absolute path of the note file shown in this buffer.")
+
+(defun vnb-view-note--names ()
+  "Basenames of the markdown notes in `vnb-launch--docs-dir', sorted."
+  (sort (mapcar #'file-name-nondirectory
+                (file-expand-wildcards
+                 (expand-file-name "*.md" vnb-launch--docs-dir)))
+        #'string<))
+
+(defun vnb-view-note (&optional name)
+  "Read the hand-written note docs/NAME.md in a `vnb-library-mode' buffer.
+
+Prompts with completion over the notes on disk.  The buffer is a VIEWER, not
+a visit: to edit the note, open the file itself -- its path is in the buffer
+local `vnb-view-note--path'.
+
+Needs no prover, because docs/ is prose and not generated (unlike
+reference/, which every other viewer here regenerates first)."
+  (interactive
+   (list (let ((names (vnb-view-note--names)))
+           (unless names
+             (user-error "No .md notes in %s" vnb-launch--docs-dir))
+           (completing-read "VNB note: " names nil t))))
+  (let* ((path (expand-file-name name vnb-launch--docs-dir))
+         (buf  (get-buffer-create
+                (format "*VNB Note: %s*" (file-name-sans-extension name)))))
+    (unless (file-exists-p path)
+      (user-error "No such note: %s" path))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))       ; already in library-mode on a re-open
+        (erase-buffer)
+        (insert-file-contents path))
+      (goto-char (point-min))
+      (setq-local default-directory vnb-launch--dir)
+      (vnb-library-mode)                 ; kills buffer-locals: set ours AFTER
+      (setq-local vnb-view-note--path path)
       (vnb-library--decorate-buffer))
     (switch-to-buffer buf)))
 
@@ -2424,6 +2487,7 @@ monospace font is installed.")
     ["Describe Structure..." vnb-describe-structure t]
     ["Definitions"        vnb-ws-show-definitions t]
     ["Structure Manual"   vnb-structure-manual  t]
+    ["Read Note..."       vnb-view-note         t]
     ["Structure Graph"    vnb-structure-graph-html   t]
     ["Library (HTML)"     vnb-reference-html         t]
     ["Browser Home"       vnb-home-html              t]

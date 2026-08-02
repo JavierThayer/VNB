@@ -5,9 +5,13 @@
 #   prover              -- interactive REPL
 #   prover file.scm     -- load and run a proof script, then exit
 #   prover -i file.scm  -- load a proof script, then drop into REPL
+#   prover --build-band -- load the library once and save a heap image
+#   prover -b file.scm  -- run a script against that image (SECONDS, not minutes)
+#   prover -b           -- interactive REPL from that image
 
 PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOAD="$PROVER_DIR/load.scm"
+BAND="$PROVER_DIR/vnb.band"
 
 # Heap size (in 1024-word blocks).  The library proofs run at load time;
 # the larger ones (sum-ag-splice-out, sum-ag-permutation-invariance) build
@@ -16,7 +20,48 @@ LOAD="$PROVER_DIR/load.scm"
 # leaves headroom for the current library.  Bump again if the load aborts.
 HEAP=120000
 
+# THE BAND (added 2026-08-01).  `disk-save' writes the whole heap -- library,
+# tactics, theorem table and all -- to a file MIT can restart from with --band.
+# Measured on this box: the band is ~56 MB, a bare restart takes 0.06 s, and a
+# 13-step driver ran in 0.4 s against it, byte-identical to the ~10 minute load
+# it replaces (same eigenvariables: the counter is part of the saved image).
+#
+# It exists because writing a proof driver means asking the prover a great many
+# small questions -- what did that tactic land, what arity does this one take,
+# what shape is that hypothesis -- and paying a full library load per question
+# makes the answer cost ten minutes.  Nine of the first ten iterations of the
+# rr-complete driver went on exactly that.
+#
+# THE CAVEAT, and it is the whole risk: the band is a SNAPSHOT.  It freezes the
+# library as it was when saved, so a driver run against a stale band reasons
+# about stale theorems and nothing says so.  REBUILD AFTER ANY CHANGE TO THE
+# TREE.  The check below compares the band's mtime against every .scm and warns;
+# it does not refuse, because running against an older library is occasionally
+# what you want -- but you should be told.
+#
+# It is a build artifact: .gitignore'd, and excluded from the tarball.
 case "$1" in
+  --build-band)
+    echo "Building $BAND (one full library load, ~10 min) ..."
+    exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" \
+         --eval "(begin (disk-save \"$BAND\") (exit))"
+    ;;
+  -b)
+    if [ ! -f "$BAND" ]; then
+      echo "prover -b: no band at $BAND -- run './prover --build-band' first." >&2
+      exit 1
+    fi
+    NEWER=$(find "$PROVER_DIR" -name '*.scm' -newer "$BAND" -print -quit 2>/dev/null)
+    if [ -n "$NEWER" ]; then
+      echo "prover -b: WARNING -- the band is OLDER than $NEWER" >&2
+      echo "           it does not reflect that edit; './prover --build-band' refreshes it." >&2
+    fi
+    if [ -z "$2" ]; then
+      exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
+    else
+      exec mit-scheme --quiet --band "$BAND" --load "$2" --eval "(exit)"
+    fi
+    ;;
   "")
     # Interactive mode.  Unset INSIDE_EMACS so MIT Scheme runs its normal
     # interactive REPL regardless of whether GNU Emacs or XEmacs launched us

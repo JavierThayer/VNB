@@ -9,6 +9,26 @@
 ;;; -----------------------------------------------------------------------
 ;;; Basic ordinal value
 
+;;; =======================================================================
+;;; CARD IS A PRIMITIVE NOTION, and its axioms are installed as such
+;;; (2026-07-27, by the user's decision).  Everything from here to the end of
+;;; this file is wrapped in `primitive' provenance: proof-debt.scm:12 reads that
+;;; tier as trusted base, contributing {} to every bill, the same shelf
+;;; theory.scm:613 puts the base set theory on and ordinals.scm now puts the 28
+;;; ordinal axioms on.
+;;;
+;;; The alternative was to DEFINE CARD -- "the least ordinal alpha with a
+;;; bijection ORD-SEGMENT(alpha) <-> A", which the header above already names as
+;;; the intended meaning -- and derive these.  That is a real project, not a
+;;; rewrite: `well-ordering-principle' is itself stated USING CARD (circular, so
+;;; a CARD-free form must come first), and once CARD is pinned down these axioms
+;;; stop being a joint implicit definition and become claims that must be
+;;; discharged -- `card-segment' and `card-insert' by a pigeonhole argument for
+;;; ordinal segments, which is a theorem and not bookkeeping.  Declaring CARD
+;;; primitive is the honest reading of what the file has always done.
+;;; =======================================================================
+(fluid-let ((*current-provenance* 'primitive))
+
 ;;; CARD(A) ∈ ORD for every set A
 (theory-add-axiom! *current-theory* 'card-in-ord
   '(FORALL A
@@ -68,8 +88,7 @@
   '(FORALL A
       (IMPLIES (AND (IN A SET) (IN (CARD A) NN))
                (FORALL B
-                 (IMPLIES (AND (IN B SET) (IN (CARD B) NN)
-                               (= (INTERSECTION A B) EMPTY-SET))
+                 (IMPLIES (AND (IN B SET) (AND (IN (CARD B) NN) (= (INTERSECTION A B) EMPTY-SET)))
                           (= (CARD (UNION A B))
                              (+ (CARD A) (CARD B))))))))
 
@@ -90,10 +109,12 @@
   '(FORALL C
       (IMPLIES (AND (IN EMPTY-SET C)
                     (FORALL S
-                      (IMPLIES (AND (IN S SET) (IN (CARD S) NN) (IN S C))
+                      (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (IN S C)))
                                (FORALL x
                                  (IMPLIES (AND (IN x SET) (NOT (IN x S)))
                                           (IN (UNION S (PAIR x x)) C))))))
                (FORALL S
                  (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
                           (IN S C))))))
+
+)   ; end (fluid-let ((*current-provenance* 'primitive)) ... ) -- the CARD axioms

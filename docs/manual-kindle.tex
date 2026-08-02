@@ -1,0 +1,28 @@
+%% manual-kindle.tex -- the same manual, at Kindle screen geometry.
+%%
+%% Build with `make kindle'; the result is manual-kindle.pdf, which is copied
+%% to the device as-is.  There is no second copy of the text: this file sets
+%% three switches and then reads manual.tex, which carries two \ifdefined
+%% \VNBkindle blocks (page geometry, and the verbatim font) and is otherwise
+%% shared with the ordinary build.
+%%
+%% Why not post-process manual.pdf with k2pdfopt or a crop-and-scale script:
+%% those reflow the page, and the manual is full of verbatim S-expressions
+%% whose line breaks and indentation carry the meaning.  Re-typesetting at the
+%% target size keeps them intact, and keeps the text as vector glyphs.
+%%
+%% Page: 105 x 140 mm is the 3:4 of a Paperwhite-class screen (1236 x 1648 px),
+%% so the device scales it without letterboxing.  For a different device, edit
+%% the geometry in manual.tex part 1 and \VNBkindlecode below.
+%%
+%% \VNBkindlecode is sized so that the manual's widest verbatim line -- 87
+%% columns, in ch-proofs -- still fits the 97 mm text block.  Raise it and the
+%% code blocks start running into the margin; the LaTeX log reports each one as
+%% an Overfull \hbox, so the check is mechanical.
+
+\PassOptionsToClass{9pt,oneside,openany}{amsbook}
+\def\VNBkindle{}
+\def\VNBkindlecode{\fontsize{5.3pt}{6.4pt}\selectfont}
+\def\VNBkindletab{\fontsize{5.3pt}{6.4pt}\selectfont}
+
+\input{manual.tex}

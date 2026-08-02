@@ -17,9 +17,6 @@
 ;;; (CONVERGES, rr-complete).  Binders: dseq (dense seq), cap (threshold, NOT N).
 ;;; ====================================================================
 
-(define (bb-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))
-(define (bb-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))
-
 ;;; ---- vocabulary --------------------------------------------------------
 
 ;;; IS-DENSE-SEQ(s, dseq): dseq : NN -> PTS(s) has dense range (every ball meets
@@ -29,10 +26,12 @@
     (list
       '(IS-METRIC-SPACE s)
       '(IN dseq (FUN NN (PTS s)))
-      (bb-all 'x '(IN x (PTS s))
-        (bb-all 'eps '(POS-RR eps)
-          (bb-some 'm '(IN m NN)
+      (forall-guarded 'x '(IN x (PTS s))
+        (forall-guarded 'eps '(POS-RR eps)
+          (forsome-guarded 'm '(IN m NN)
             '(< ((DIST s) x (dseq m)) eps)))))))
+(notation! 'IS-DENSE-SEQ 'kind 'predicate 'arity 2
+           'english "$2 is a dense sequence in $1")
 
 ;;; CONVERGES-ON(s, fam, dseq): at every point of dseq the real sequence
 ;;; k |-> fam(k)(dseq(m)) converges.
@@ -42,8 +41,10 @@
       '(IS-METRIC-SPACE s)
       '(IN fam (FUN NN (FUN (PTS s) RR)))
       '(IN dseq (FUN NN (PTS s)))
-      (bb-all 'm '(IN m NN)
+      (forall-guarded 'm '(IN m NN)
         '(CONVERGES RR-MS (VNB-LAMBDA k ((fam k) (dseq m))))))))
+(notation! 'CONVERGES-ON 'kind 'predicate 'arity 3
+           'english "$2 converges at every point of the sequence $3 in $1")
 
 ;;; IS-UNIF-CAUCHY(s, fam): fam is uniformly Cauchy -- one threshold cap serves
 ;;; every point x at once.  (Carries IS-METRIC-SPACE s, so downstream lemmas need
@@ -53,12 +54,14 @@
     (list
       '(IS-METRIC-SPACE s)
       '(IN fam (FUN NN (FUN (PTS s) RR)))
-      (bb-all 'eps '(POS-RR eps)
-        (bb-some 'cap '(IN cap NN)
-          (bb-all 'k '(AND (IN k NN) (<= cap k))
-            (bb-all 'l '(AND (IN l NN) (<= cap l))
-              (bb-all 'x '(IN x (PTS s))
+      (forall-guarded 'eps '(POS-RR eps)
+        (forsome-guarded 'cap '(IN cap NN)
+          (forall-guarded 'k '(AND (IN k NN) (<= cap k))
+            (forall-guarded 'l '(AND (IN l NN) (<= cap l))
+              (forall-guarded 'x '(IN x (PTS s))
                 '(< (abs (- ((fam k) x) ((fam l) x))) eps)))))))))
+(notation! 'IS-UNIF-CAUCHY 'kind 'predicate 'arity 2
+           'english "$2 is uniformly Cauchy on $1")
 
 ;;; ---- analytic cores (WARRANTED) ----------------------------------------
 
@@ -69,8 +72,8 @@
     (list
       '(IS-COMPACT s)
       '(IN fam (FUN NN (FUN (PTS s) RR)))
-      '(IS-EQUICONTINUOUS s fam)
-      (bb-some 'dseq '(IS-DENSE-SEQ s dseq) '(CONVERGES-ON s fam dseq)))
+      '(IS-EQUICONTINUOUS s RR-MS fam)
+      (forsome-guarded 'dseq '(IS-DENSE-SEQ s dseq) '(CONVERGES-ON s fam dseq)))
     '(IS-UNIF-CAUCHY s fam)))
 (warrant! 'equicont-dense-conv-implies-unif-cauchy 'reference
   '(thayer-calc "equicontinuous + Cauchy on a dense set => uniformly Cauchy"))
@@ -96,7 +99,7 @@
       '(IN fam (FUN NN (FUN (PTS s) RR)))
       '(FORALL k (IMPLIES (IN k NN) (IS-CONTINUOUS s RR-MS (fam k))))
       '(IS-UNIF-CAUCHY s fam))
-    (bb-some 'g '(IN g (FUN (PTS s) RR))
+    (forsome-guarded 'g '(IN g (FUN (PTS s) RR))
       '(AND (IS-CONTINUOUS s RR-MS g)
             (CONVERGES-UNIFORMLY s fam g)))))
 (warrant! 'unif-cauchy-cont-implies-uniform-limit 'reference
@@ -123,9 +126,9 @@
       '(IS-COMPACT s)
       '(IN fam (FUN NN (FUN (PTS s) RR)))
       '(FORALL k (IMPLIES (IN k NN) (IS-CONTINUOUS s RR-MS (fam k))))
-      '(IS-EQUICONTINUOUS s fam)
-      (bb-some 'dseq '(IS-DENSE-SEQ s dseq) '(CONVERGES-ON s fam dseq)))
-    (bb-some 'g '(IN g (FUN (PTS s) RR))
+      '(IS-EQUICONTINUOUS s RR-MS fam)
+      (forsome-guarded 'dseq '(IS-DENSE-SEQ s dseq) '(CONVERGES-ON s fam dseq)))
+    (forsome-guarded 'g '(IN g (FUN (PTS s) RR))
       '(AND (IS-CONTINUOUS s RR-MS g)
             (CONVERGES-UNIFORMLY s fam g))))))
 (di)(di)(di)(di)(di)(di)(di)                                  ; s, fam, + 5 antecedents

@@ -60,7 +60,7 @@ In the following table, the symbols $p$, $q$ are not variables that
 range over formulas, but rather placeholders that can instantiated
 with well-formed formulas.
 
-\begin{itemize}[label=\textendash, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{truth} propositional truth $\top$
 \item \texttt{falsity} propositional falsity $\bot$
 \item \texttt{not($p$)} negation $\lnot p$
@@ -87,7 +87,7 @@ classes} (the system is single-sorted).  There is no restriction to sets.
 Both \texttt{forall} and \texttt{forsome} require a bracket-enclosed
 \emph{binding list}, even for a single variable:
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{forall([binding, ...], body)}
 
 \item \texttt{forsome([binding, ...], body)}
@@ -100,7 +100,7 @@ Both \texttt{forall} and \texttt{forsome} require a bracket-enclosed
 \noindent
 Each \emph{binding} in the string syntax is one of:
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{$x$} unrestricted variable ranging over all classes
 \item \texttt{$x$ in $A$} variable $x$ restricted to class $A$
 \item \texttt{[$n_1$, \ldots, $n_k$] in $A$} tuple destructuring: fresh $t \in A$, components bound to \texttt{nth(1,~$t$)}, \ldots, \texttt{nth($k$,~$t$)}
@@ -112,18 +112,74 @@ several unrestricted variables into a single spec:
 \[
   \texttt{(FORALL ((}x_1\ x_2\ \ldots\ x_n\texttt{) ...) body)}
 \]
+\begin{sloppypar}
 The grouped binding \texttt{($x_1$ $x_2$ \ldots\ $x_n$)} is exactly
 equivalent to the sequence of single-variable bindings
-\texttt{($x_1$) ($x_2$) \ldots\ ($x_n$)}.
-The utility functions \texttt{vnb-unwind} and \texttt{vnb-wind}
-convert between the two forms:
+\texttt{($x_1$) ($x_2$) \ldots\ ($x_n$)}.  The expander
+\texttt{expand-\allowbreak destructuring-\allowbreak quantifiers}
+of \texttt{wff.scm} nests one
+quantifier per variable of the spec, in place, so that the two surface
+forms yield \emph{identical} internal expressions---equal, not merely
+alpha-equivalent.  The same holds for a grouped spec occurring in a
+longer binding list alongside restricted specs.
+\end{sloppypar}
+
+Three forms of the same formula are therefore in circulation:
+
+\begin{enumerate}[label=(\arabic*),leftmargin=1.2cm]
+\item the \emph{grouped} binding list,\\
+      \texttt{(FORALL ((x y z)) body)};
+\item the \emph{flat} binding list,\\
+      \texttt{(FORALL ((x) (y) (z)) body)};
+\item the \emph{fully nested} form,\\
+      \texttt{(FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))}.
+\end{enumerate}
+
+\noindent
+The utility functions \texttt{vnb-unwind} and \texttt{vnb-wind} relate
+form~(3) to the other two.  \texttt{vnb-unwind} rewrites any binding
+list, grouped or not, into the fully nested form; \texttt{vnb-wind}
+collapses a run of nested quantifiers \emph{of the same kind} into a
+single binding list of single-variable specs.
 
 \begin{VNBsnip}
 (vnb-unwind '(FORALL ((x y z)) body))
 ;=> (FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))
 
+(vnb-unwind '(FORALL ((x) (y) (z)) body))
+;=> (FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))
+
 (vnb-wind '(FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body))))
 ;=> (FORALL ((x) (y) (z)) body)
+\end{VNBsnip}
+
+\noindent
+The two are not mutually inverse.  \texttt{vnb-wind} never regroups a
+spec, and never splits one, so it leaves a grouped binding list
+untouched and the round trip normalizes form~(1) to form~(2):
+
+\begin{VNBsnip}
+(vnb-wind '(FORALL ((x y z)) body))
+;=> (FORALL ((x y z)) body)
+
+(vnb-wind (vnb-unwind '(FORALL ((x y z)) body)))
+;=> (FORALL ((x) (y) (z)) body)
+\end{VNBsnip}
+
+\noindent
+Two further properties are worth recording.  First, neither function
+expands the binding sugar to primitive form---that is the office of
+\texttt{make-wff}---so a restricted spec survives unwinding as a spec,
+with no \texttt{IMPLIES} introduced.  Second, \texttt{vnb-wind} merges
+only runs of the same quantifier; a \texttt{FORALL} over a
+\texttt{FORSOME} is returned unchanged.
+
+\begin{VNBsnip}
+(vnb-unwind '(FORALL ((x) (IN z NN)) body))
+;=> (FORALL ((x)) (FORALL ((IN z NN)) body))
+
+(vnb-wind '(FORALL ((x)) (FORSOME ((y)) body)))
+;=> (FORALL ((x)) (FORSOME ((y)) body))
 \end{VNBsnip}
 
 \noindent
@@ -162,7 +218,7 @@ provides two equality predicates:
 \paragraph{Strict equality \texttt{$a$ = $b$}.}
 True iff both \texttt{a} and \texttt{b} are defined and equal.
 False if either is undefined.  In particular:
-\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{george(s) = 75} is \emph{false} when \texttt{george}
   is not a function.
 \item \texttt{george(s) = george(s)} is \emph{false} for the same
@@ -174,7 +230,7 @@ False if either is undefined.  In particular:
 \paragraph{Quasi-equality \texttt{$a$ == $b$}.}
 True iff both \texttt{a} and \texttt{b} are defined and equal, \emph{or}
 both are undefined.  Key properties:
-\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{t == t} is \emph{always true}, for any term $t$,
   defined or not.
 \item \texttt{george(s) == george(s)} is \emph{true}.
@@ -291,7 +347,7 @@ $p$, each taking $0$ arguments.
 Totality is the VNB tradition: \texttt{fun($X$, $Y$)} denotes a
 well-defined class for \emph{any} classes $X, Y$.  Three properties
 must be kept separate:
-\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\begin{itemize}
 \item \emph{Definability} --- always.
 \item \emph{Non-emptiness} --- only when $X \in \mathit{SET}$.
   Functions in VNB are sets of ordered pairs, so a proper-class
@@ -340,7 +396,7 @@ below.  Each entry states the defining membership property and points to
 the corresponding proof commands in
 Section~\ref{sec:nary-proof-commands}.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 
 \item \texttt{union($A_1$,\ldots,$A_n$)}
   $x \in C$ iff $x \in A_i$ for some $i$.
@@ -423,7 +479,7 @@ Section~\ref{sec:nary-proof-commands}.
   The \emph{restriction} of $f$ to $B$.  Semantically
   $\mathit{RES}(f, B) = \lambda x \in B.\;f(x)$.  Total as a constructor
   (defined for all $f$ and $B$ -- bongo-style); typed by:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \texttt{res-typing}:
     $f \in \mathit{FUN}(A) \land B \subseteq A
     \Rightarrow \mathit{RES}(f, B) \in \mathit{FUN}(B)$.
@@ -528,13 +584,13 @@ above: the binder form makes the family structure explicit.
 \emph{Term constructors} build syntactic objects whose intended
 representation are objects in the VNB universe.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{[$e_1$, \ldots, $e_n$]} ordered $n$-tuple $(e_1, \ldots, e_n)$; always a set
 \item \texttt{nth($k$, $e$)} $k$-th component of tuple $e$ (1-indexed); $k$ may be any term;
   \texttt{nth($k$, [$e_1$,\ldots,$e_n$])} reduces to $e_k$ via
   \texttt{cmd-nth-reduce} (Section~\ref{sec:commands})
 \item \texttt{length($L$)} number of elements in tuple $L$; a natural number:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \texttt{length-of-empty}: $\texttt{length}([\,]) = 0$
   \item \texttt{length-in-nn}: $L \in \mathit{TUPLES}(\mathit{SET}) \Rightarrow
     \texttt{length}(L) \in \mathit{NN}$
@@ -548,7 +604,7 @@ representation are objects in the VNB universe.
 \item \texttt{\{$a$\}} singleton $\{a\}$; always a set; $= \texttt{make-set}([$a$])$
 \item \texttt{make-set($L$)} unordered finite set from tuple $L \in \mathit{TUPLES}(A)$,
   $A \in \mathit{SET}$; always a set:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \texttt{make-set-membership}: $x \in \texttt{make-set}(L)
     \Longleftrightarrow \exists\,i \in \mathit{NN}.\;
     1 \le i \le \texttt{length}(L) \land \texttt{nth}(i,L) = x$
@@ -591,7 +647,7 @@ representation are objects in the VNB universe.
   Each variable has its own independent domain, exactly as in quantification.
   All domains $A_i$ must belong to \texttt{SET}; the result is an element
   of $\mathit{FUN}$.  Two underlying representations:
-  \begin{itemize}[label = $-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \emph{record form} (\texttt{<functoid>}): produced by the parser
     when the lambda is given explicit binder domains
     \texttt{lambda([x in A], body)}.  Reduced by
@@ -600,7 +656,7 @@ representation are objects in the VNB universe.
     binder \texttt{(VNB-LAMBDA $x$ $\mathit{body}$)} or
     \texttt{(VNB-LAMBDA (LIST $x_1\,\ldots\,x_n$) $\mathit{body}$)}.
     Used in axioms written directly as S-expressions
-    (e.g.\ \texttt{RING-PROD}, \texttt{CC-RING}, \texttt{sum}).
+    (e.g.\ \texttt{RING-PROD}, \texttt{CC-NORMED-FIELD}, \texttt{sum}).
     Typing rule \texttt{pi-lambda-type!} (single-binder shape):
     goal $\mathit{VNB\text{-}LAMBDA}(x, \mathit{body}) \in
     \mathit{FUN}(A, B)$ reduces to the subgoal
@@ -790,7 +846,7 @@ The base theory installs the following axioms.  The primary form of
 domain is $A$, with no codomain restriction; the binary $\mathit{FUN}(A,B)$
 is the derived form $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{fun-domain-apply-def}
   $f \in \mathit{FUN}(A) \land x \in A \;\Rightarrow\; f(x) = f(x)$
 \item \texttt{fun-domain-extensionality}
@@ -850,7 +906,7 @@ $h$ is.
 The \emph{constant-head registry} supplies the missing information.
 Every constant head is registered with a kind tag; any head absent from
 the registry is treated as a variable.  The kinds are:
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{operator} -- a kernel term- or formula-forming head
   (\texttt{+}, \texttt{IN}, \texttt{FORALL}, \ldots), seeded at load
   time by \texttt{wff.scm};
@@ -1056,7 +1112,7 @@ The bracket syntax after the function name distinguishes quantifiers
 from ordinary function calls.
 
 \paragraph{Display conventions (\texttt{wff->string} / \texttt{pp}).}
-\begin{itemize}[label=\textendash, leftmargin=0.85cm]
+\begin{itemize}
 \item \begin{sloppypar}\textbf{Quantifiers} print in binding-list form:
   the primitive expanded form is reverse-engineered.
   \texttt{forall([x in nn, y], p(x, y))}\end{sloppypar}
@@ -1140,7 +1196,7 @@ below it:
 \noindent
 The complete set of tags follows.
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{truth}, \texttt{falsity} --- the logical constants.
 \item \texttt{atom} --- a bare symbol; \texttt{number} --- a numeric literal.
 \item \texttt{implication} (\texttt{implies}), \texttt{biconditional}

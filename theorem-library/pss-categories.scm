@@ -46,7 +46,7 @@
 (category! 'centre-set-contains-choice 'plumbing)
 (category! 'centre-set-finite 'plumbing)
 (category! 'open-cover-covers-point 'plumbing)
-(category! 'subset-mem-fwd 'plumbing)
+;; subset-mem-fwd is PROVEN now; it is filed beside its proof in subset-lemmas.scm
 (category! 'ball-point-le 'plumbing)
 (category! 'ball-point-ne 'plumbing)
 (category! 'range-membership 'plumbing)

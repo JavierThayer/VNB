@@ -40,19 +40,13 @@
   '(FORALL eps
      (IMPLIES (POS-RR eps)
        (FORSOME fin
-         (AND (IN fin SET)
-              (IN (CARD fin) NN)
-              (SUBSET fin (DOM f))
-              (FORALL ext
-                (IMPLIES (AND (IN ext SET)
-                              (IN (CARD ext) NN)
-                              (SUBSET fin ext)
-                              (SUBSET ext (DOM f)))
+         (AND (IN fin SET) (AND (IN (CARD fin) NN) (AND (SUBSET fin (DOM f)) (FORALL ext
+                (IMPLIES (AND (IN ext SET) (AND (IN (CARD ext) NN) (AND (SUBSET fin ext) (SUBSET ext (DOM f)))))
                   (< ((NRM grp)
                         ((OPR grp) r
                            ((INV grp)
                               (FINSUM (NORMED-AG-AS-ABELIAN-GROUP grp) f ext))))
-                     eps))))))))
+                     eps))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-SUMMABLE: f is summable in grp iff it sums to some r in the carrier.

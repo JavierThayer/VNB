@@ -8,7 +8,7 @@ theory.  All declarations take effect at load time.
 
 \subsection{The standard number domains}
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{NN} ($\mathbb{N}$) Non-negative integers $\{0, 1, 2, \ldots\}$
 \item \texttt{ZZ} ($\mathbb{Z}$) Integers
 \item \texttt{QQ} ($\mathbb{Q}$) Rationals
@@ -118,7 +118,7 @@ Each number system comes with: a sethood axiom, inclusion from the
 previous system, closure of each operation, and algebraic identities
 appropriate to its structure.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{NN}: closed under \texttt{+} and \texttt{*}; constants
   \texttt{0} (additive unit) and \texttt{1} (multiplicative unit);
   commutativity, associativity, and distributivity for \texttt{+} and
@@ -187,7 +187,7 @@ corresponding membership fact.
 \texttt{NN}, \texttt{RR}, and \texttt{CC}: no explicit construction of
 ordinals is needed.  The class is characterised entirely by its axioms.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{ORD} the class of all ordinals (a proper class)
 \item \texttt{$\alpha$ in ORD} $\alpha$ is an ordinal
 \end{itemize}
@@ -198,7 +198,7 @@ Ordinals are equipped with a primitive ordering predicate \texttt{<=\_ORD}
 (and its strict companion \texttt{<\_ORD}) that is independent of set
 membership.  The ordering has no required connection to $\in$.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{<=\_ORD($\alpha$, $\beta$)} \quad $\alpha \leq \beta$ in the ordinal ordering
 \item \texttt{<\_ORD($\alpha$, $\beta$)} \quad $\alpha < \beta$ (strict)
 \item \texttt{succ\_ORD($\alpha$)} \quad successor ordinal of $\alpha$
@@ -208,7 +208,7 @@ membership.  The ordering has no required connection to $\in$.
 
 The following axioms are installed in \texttt{ordinals.scm}.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{burali-forti}
   $\mathit{ORD} \notin \mathit{SET}$: \texttt{ORD} is a proper class.
   Every \emph{set} of ordinals has a supremum in \texttt{ORD}
@@ -376,7 +376,7 @@ The base theory \texttt{vnb-set-theory} is loaded automatically and
 provides the following named axioms (all usable via
 \texttt{cmd-theorem-assumption}):
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{membership-implies-sethood}
   $\forall a\,\forall b.\;(a \in b) \Rightarrow a \in \mathit{SET}$
 \item \texttt{extensionality}
@@ -421,7 +421,7 @@ The following were previously pending but are now installed.
 They are straightforward first-order statements requiring no new
 expression primitives.
 
-\begin{itemize}[label = $\checkmark$, leftmargin=0.85cm]
+\begin{itemize}
 
 \item \texttt{equality-symmetry}
   $a = b \Rightarrow b = a$.
@@ -457,20 +457,25 @@ expression primitives.
 
 \end{itemize}
 
-The following were already installed in \texttt{theory.scm} (noted here
-for completeness): \texttt{fun-domain-apply-def},
-\texttt{fun-domain-extensionality}, \texttt{fun-codomain-iff},
-\texttt{choice-axiom}, \texttt{nn-subset-ord}, and all \texttt{ord-*}
-axioms (see Section~\ref{sec:ordinals}).
+The following were already installed (noted here for completeness):
+\texttt{fun-domain-apply-def}, \texttt{fun-domain-extensionality},
+\texttt{fun-codomain-iff} and \texttt{choice-axiom} in \texttt{theory.scm};
+\texttt{nn-subset-ord} and all \texttt{ord-*} axioms in
+\texttt{structure-library/ordinals.scm}, not in \texttt{theory.scm}
+(see Section~\ref{sec:ordinals}).  The ordinal axioms carry
+\texttt{primitive} provenance and so contribute nothing to any proof's bill.
 
 \subsection*{Still pending}
 
-The remaining items require either new expression primitives
-(\texttt{SEPARATION}, \texttt{UNION-SET}, \texttt{COMP}, \texttt{PREPEND})
-or schema-level infrastructure (a primitive inference rather than a
-first-order axiom).
+The remaining items require schema-level infrastructure --- a primitive
+inference rather than a first-order axiom.  (An earlier edition also listed
+\texttt{SEPARATION}, \texttt{UNION-SET}, \texttt{COMP} and \texttt{PREPEND}
+as missing expression primitives.  They are not missing: \texttt{SEP},
+\texttt{COMP} and \texttt{BIG-UNION} are registered term-forming heads
+(\texttt{wff.scm}) with intro/elim rules in \texttt{primitive-inferences.scm},
+and they are documented in \texttt{reference/KERNEL-RULES.md}.)
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 
 \item \texttt{equality-substitution}
   $a = b \land P(a) \Rightarrow P(b)$ (for any formula $P$).

@@ -103,12 +103,18 @@
 ;;; MATOF(m, n, g) -- the m-by-n matrix whose (i, j) entry is g(i, j).
 ;;; g is applied as a function of the index pair: g(i, j) = g([i, j]).
 ;;;
-;;; NOW DEFINITIONAL (was 3 asserted axioms): MATOF is the UNIQUE matrix of shape
-;;; [m, n] whose (i, j) entry is g(i, j).  Its codomain is IMAGE(g, index-box) so
-;;; the description is well-posed among matrices (uniqueness = matrix-entry-
-;;; extensionality).  The ONLY residual assumption is matof-exists (the tabulation
-;;; EXISTS); entry-of-matof and matof-in-mat are then DERIVED via iota-def
-;;; (theorem-library/matof-def-proof.scm).  matof-exists is dischargeable once a
+;;; MATOF is the UNIQUE matrix of shape [m, n] whose (i, j) entry is g(i, j).  Its
+;;; codomain is IMAGE(g, index-box) so the description is well-posed among matrices
+;;; (uniqueness = matrix-entry-extensionality).
+;;;
+;;; NOT YET DONE, and this comment claimed otherwise until 2026-07-28: matof-exists,
+;;; entry-of-matof and matof-in-mat are ALL THREE still `support' below, each
+;;; warranted `well-known' and each billed separately to any qed that cites it.  The
+;;; plan is that matof-exists (the tabulation EXISTS) is the only residual
+;;; assumption and the other two follow from it by iota-def -- but that derivation
+;;; has not been carried out, and the file this comment used to name for it,
+;;; theorem-library/matof-def-proof.scm, has never existed.  Doing it would drop two
+;;; of the three from the layer's debt.  matof-exists itself is dischargeable once a
 ;;; general list-tabulation / 2-index recursion primitive is built.
 (def-functoid 'MATOF '(m n g)
   '(IOTA P

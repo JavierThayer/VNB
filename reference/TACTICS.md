@@ -546,7 +546,7 @@ Close `t = t' under the partial-equality reading, where asserting t = t also ass
 
 Discharge a ground arithmetic goal by evaluation.
 
-*Kind:* `oracle` (emits `arith-eval`)
+*Kind:* `oracle` (emits `(arith-ground arith-forsome arith-simplify)`)
 
 *When useful:* the goal is ground arithmetic -- no variables
 

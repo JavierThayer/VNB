@@ -190,11 +190,9 @@
   "An open cover has union PTS(s) (IS-OPEN-COVER's third conjunct), so every point
    p in PTS(s) lies in some member U of the cover (BIG-UNION membership).")
 
-;;; Forward direction of subset-def.
-(support 'subset-mem-fwd
-  '(FORALL A (FORALL B (FORALL x
-     (IMPLIES (SUBSET A B) (IMPLIES (IN x A) (IN x B)))))))
-(warrant! 'subset-mem-fwd 'well-known "Forward direction of subset-def (definitional).")
+;;; subset-mem-fwd MOVED and PROVEN, 2026-07-27: theorem-library/subset-lemmas.scm.
+;;; It was asserted here (`well-known', "Forward direction of subset-def
+;;; (definitional)") only because this file loads long before `sp'/`qed' exist.
 
 ;;; Ball membership in terms of the defining ball: if p in U and U = B(s,c,r)
 ;;; then d(c,p) < r  (= the two conjuncts <= and /=).  Curried for forward use.

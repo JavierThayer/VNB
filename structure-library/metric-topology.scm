@@ -138,7 +138,7 @@
        (FORALL x
          (IMPLIES (IN x (PTS s))
            (FORALL r
-             (IMPLIES (AND (IN r RR) (<= 0 r) (NOT (= 0 r)))
+             (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
                (IN x (BALL s x r)))))))))
 (warrant! 'ball-center-in 'proof
   "metric-self-zero gives d(s)(x,x)=0, so 0<=r and 0!=r (r>0) put x into the SEP; ball-membership then gives x in BALL(s,x,r).")
@@ -156,7 +156,7 @@
        (FORALL x
          (IMPLIES (IN x (PTS s))
            (FORALL r
-             (IMPLIES (AND (IN r RR) (<= 0 r) (NOT (= 0 r)))
+             (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
                (FORALL y
                  (IMPLIES (IN y (BALL s x r))
                    (FORALL z

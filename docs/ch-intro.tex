@@ -43,7 +43,7 @@ are taken as \emph{primitive constants} and \emph{primitive
 constructors}, governed by axioms rather than by explicit
 set-theoretic construction:
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Number systems} \texttt{NN}, \texttt{ZZ}, \texttt{QQ},
   \texttt{RR}, \texttt{CC} are primitive constants denoting sets.  Their
   elements and operations are characterised by ring, field, and order
@@ -131,7 +131,7 @@ mathematics.
 
 \subsection{Design goals}
 
-\begin{itemize}[ label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Enriched set-theoretic foundation.}  VNB set theory with
   primitive constants for standard mathematical objects; no type
   hierarchy; partial function application with undefinedness.
@@ -211,7 +211,7 @@ you do inside it affects your usual Emacs setup.
 
 The first workspace you see.  It offers four buttons:
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Start Proof} --- enter a formula in string syntax; the
   workspace switches to the Focus Workspace and the prover begins.
 \item \textbf{Build Formula} --- parse and validate a formula
@@ -231,7 +231,7 @@ The working surface.  After \textbf{Start Proof} the workspace shows
 the goal you are currently focused on, with its assumptions and the
 goal itself, and a row of tactic buttons:
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Direct Inference} --- decompose the goal by its top
   connective.
 \item \textbf{Assume} --- close the goal if it matches one of the
@@ -281,7 +281,7 @@ Home, \texttt{n}/\texttt{p} to jump between goals, and
 When the prover rejects something --- a malformed formula, a tactic
 that does not apply --- the error appears in two places at once:
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item the echo area at the bottom of the frame flashes the message
   immediately;
 \item a red \texttt{! Error:} panel appears at the top of the
@@ -395,7 +395,7 @@ the Focus Workspace appears; \textbf{Theorem}~``\texttt{all-men-mortal}'';
 
 \paragraph{What each command does.}
 \begin{sloppypar}
-\begin{itemize}[label=$\ast$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{(sp w)} starts a new proof with goal \texttt{w}.
 \item \texttt{(ta 'name)} pulls a named axiom or theorem into the
   current sequent's context.
@@ -442,7 +442,7 @@ form is available for scripting.
 performs a position-typed walk of its argument and signals an error
 rather than wrap a malformed expression.  The checks are:
 \begin{sloppypar}
-\begin{itemize}[label=$\ast$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Numbers in wff positions} are rejected:
   \texttt{(make-wff-from-string "1 and 35")} $\Rightarrow$ ``number in wff
   position 1''.

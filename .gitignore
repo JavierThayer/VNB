@@ -4,6 +4,10 @@
 *.bci
 *.ext
 
+# Saved heap image (./prover --build-band); ~56 MB, rebuildable, snapshot of the
+# library at save time -- see the band comment in ./prover
+*.band
+
 # Backup / editor swap files
 *~
 *.swp

@@ -13,9 +13,6 @@
 ;;; EXTENDS-ON) and order-zorn (zorn-lemma).
 ;;; ====================================================================
 
-(define (sn-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))
-(define (sn-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))
-
 ;;; ---- vocabulary --------------------------------------------------------
 
 ;;; IS-SEMINORM(m, p): p : VEC(m) -> RR is nonnegative, subadditive and
@@ -27,13 +24,15 @@
       '(IS-MODULE m)
       '(IS-NORMED-FIELD (SCAL m))
       '(IN p (FUN (VEC m) RR))
-      (sn-all 'x '(IN x (VEC m)) '(<= 0 (p x)))
-      (sn-all 'x '(IN x (VEC m))
-        (sn-all 'y '(IN y (VEC m))
+      (forall-guarded 'x '(IN x (VEC m)) '(<= 0 (p x)))
+      (forall-guarded 'x '(IN x (VEC m))
+        (forall-guarded 'y '(IN y (VEC m))
           '(<= (p ((VADD m) x y)) (+ (p x) (p y)))))
-      (sn-all 'lam '(IN lam (CARR (SCAL m)))
-        (sn-all 'x '(IN x (VEC m))
+      (forall-guarded 'lam '(IN lam (CARR (SCAL m)))
+        (forall-guarded 'x '(IN x (VEC m))
           '(= (p ((ACT m) lam x)) (* ((FNRM (SCAL m)) lam) (p x))))))))
+(notation! 'IS-SEMINORM 'kind 'predicate 'arity 2
+           'english "$2 is a seminorm on $1")
 
 ;;; IS-K-LINEAR-ON(m, s, f): f : s -> CARR(SCAL m) is K-linear on the submodule s.
 (def-predicate 'IS-K-LINEAR-ON '(m s f)
@@ -42,12 +41,14 @@
       '(IS-MODULE m)
       '(IS-SUBMODULE m s)
       '(IN f (FUN s (CARR (SCAL m))))
-      (sn-all 'x '(IN x s)
-        (sn-all 'y '(IN y s)
+      (forall-guarded 'x '(IN x s)
+        (forall-guarded 'y '(IN y s)
           '(= (f ((VADD m) x y)) ((ADD (SCAL m)) (f x) (f y)))))
-      (sn-all 'lam '(IN lam (CARR (SCAL m)))
-        (sn-all 'x '(IN x s)
+      (forall-guarded 'lam '(IN lam (CARR (SCAL m)))
+        (forall-guarded 'x '(IN x s)
           '(= (f ((ACT m) lam x)) ((MUL (SCAL m)) lam (f x))))))))
+(notation! 'IS-K-LINEAR-ON 'kind 'predicate 'arity 3
+           'english "$3 is a K-linear functional on the submodule $2 of $1")
 
 ;;; IS-K-LINEAR(m, f): f : VEC(m) -> CARR(SCAL m) is K-linear on the whole space.
 (def-predicate 'IS-K-LINEAR '(m f)
@@ -55,12 +56,14 @@
     (list
       '(IS-MODULE m)
       '(IN f (FUN (VEC m) (CARR (SCAL m))))
-      (sn-all 'x '(IN x (VEC m))
-        (sn-all 'y '(IN y (VEC m))
+      (forall-guarded 'x '(IN x (VEC m))
+        (forall-guarded 'y '(IN y (VEC m))
           '(= (f ((VADD m) x y)) ((ADD (SCAL m)) (f x) (f y)))))
-      (sn-all 'lam '(IN lam (CARR (SCAL m)))
-        (sn-all 'x '(IN x (VEC m))
+      (forall-guarded 'lam '(IN lam (CARR (SCAL m)))
+        (forall-guarded 'x '(IN x (VEC m))
           '(= (f ((ACT m) lam x)) ((MUL (SCAL m)) lam (f x))))))))
+(notation! 'IS-K-LINEAR 'kind 'predicate 'arity 2
+           'english "$2 is a K-linear functional on $1")
 
 ;;; ---- Hahn-Banach dominated by a seminorm --------------------------------
 
@@ -76,7 +79,7 @@
       '(IS-SUBMODULE m s)
       '(IS-K-LINEAR-ON m s f)
       '(FORALL x (IMPLIES (IN x s) (<= ((FNRM (SCAL m)) (f x)) (p x)))))
-    (sn-some 'ff '(IS-K-LINEAR m ff)
+    (forsome-guarded 'ff '(IS-K-LINEAR m ff)
       (conjuncts->and
         (list
           '(EXTENDS-ON s ff f)

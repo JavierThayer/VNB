@@ -49,7 +49,14 @@
 (category! 'minor-type 'algebra)
 
 ;;; ---- DET: the recursive definition ------------------------------------
-(notation! 'DET 'arity 3 'english (lambda (r n a) (string-append "det(" a ")")))
+;; english is a $N TEMPLATE STRING, not a lambda: operator-render-english calls
+;; a procedure english as (proc arglist) -- the arg LIST as ONE argument
+;; (operators.scm) -- so a multi-formal (lambda (r n a) ...) crashes if ever
+;; reached.  DET's was latent (DET has no registered params, so the census
+;; renders it argless and never invoked the lambda), but it is the same defect
+;; my FINSUPP/MONALG lambdas hit; a string can never mis-arity.  "det($3)" reads
+;; the matrix (3rd arg), hiding the ring and size, as the lambda intended.
+(notation! 'DET 'arity 3 'english "det($3)")
 
 (define det--cofactor-rhs
   '(FINSUM (RING-ADDITIVE-AG R)

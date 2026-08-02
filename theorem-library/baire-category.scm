@@ -4,9 +4,6 @@
 ;;; terminology is bad").  Builds on metric-open-sets (IS-OPEN, IS-CLOSED).
 ;;; ====================================================================
 
-(define (ba-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))
-(define (ba-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))
-
 ;;; ---- interior / closure of a set --------------------------------------
 
 ;;; INTERIOR(s, A): the points with an open neighbourhood contained in A.
@@ -29,6 +26,8 @@
       '(IS-METRIC-SPACE s)
       '(SUBSET A (PTS s))
       '(= (INTERIOR s (CLOSURE s A)) EMPTY-SET))))
+(notation! 'IS-NOWHERE-DENSE 'kind 'predicate 'arity 2
+           'english "$2 is nowhere dense in $1")
 
 ;;; IS-MEAGER(s, A): A is contained in a countable union of nowhere-dense sets
 ;;; (a countable family ee : NN -> POWER(PTS s), each ee(n) nowhere dense).
@@ -37,11 +36,13 @@
     (list
       '(IS-METRIC-SPACE s)
       '(SUBSET A (PTS s))
-      (ba-some 'ee '(IN ee (FUN NN (POWER (PTS s))))
+      (forsome-guarded 'ee '(IN ee (FUN NN (POWER (PTS s))))
         (conjuncts->and
           (list
-            (ba-all 'n '(IN n NN) '(IS-NOWHERE-DENSE s (ee n)))
+            (forall-guarded 'n '(IN n NN) '(IS-NOWHERE-DENSE s (ee n)))
             '(SUBSET A (BIG-UNION n NN (ee n)))))))))
+(notation! 'IS-MEAGER 'kind 'predicate 'arity 2
+           'english "$2 is meager in $1")
 
 ;;; IS-NONMEAGER(s, A): A is not meager.
 (def-predicate 'IS-NONMEAGER '(s A)
@@ -50,6 +51,8 @@
       '(IS-METRIC-SPACE s)
       '(SUBSET A (PTS s))
       '(NOT (IS-MEAGER s A)))))
+(notation! 'IS-NONMEAGER 'kind 'predicate 'arity 2
+           'english "$2 is nonmeager in $1")
 
 ;;; ---- the Baire category theorem ---------------------------------------
 

@@ -5,7 +5,7 @@ Every named result in the current theory carries a \emph{classification}.
 It answers two independent questions, and keeping them apart is the whole
 point of this chapter:
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{What justifies the statement?} --- is it a primitive
   assumed as a base, a definition true by construction, a theorem with a
   machine proof, or a result trusted on a stated warrant without proof?
@@ -23,7 +23,7 @@ conflates them, and most of what follows is aimed at pulling them apart.
 \section{The four kinds}
 \label{sec:four-kinds}
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Axiom.} A primitive of VNB --- the base we build on.  The
   axiom set is small and essentially fixed; see
   Section~\ref{sec:primitives}.  The only reason to add one is the
@@ -130,7 +130,7 @@ A warrant is attached with
 where \texttt{kind} is one of the recognised grades of justification (the
 set \texttt{*warrant-kinds*}), weakest to strongest:
 
-\begin{itemize}[label=$\ast$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{hand-wave} --- a heuristic or plausibility argument;
   convincing, not rigorous.
 \item \texttt{well-known} --- a standard textbook fact, asserted without
@@ -170,7 +170,7 @@ axiom or a \emph{definition} contributes nothing (it is trusted base); an
 The bill is printed inline at \texttt{QED} and collected in the ledger
 \texttt{reference/PROOF-DEBT.md}:
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{proven modulo 0} --- the \emph{empty bill}.  The proof rests
   only on the trusted base: the fixed primitive axioms, the kernel
   inference rules, and definitions.  Nothing asserted stands between the
@@ -232,7 +232,7 @@ Two kinds of citation edge are deliberately \emph{not} dependencies, and are
 excluded when the graph is recorded.  Without the exclusion an ordinary
 well-founded induction would read as a cycle:
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{A proof's citation of its own name.}  A proof by induction applies
   its induction hypothesis --- the theorem's own statement at a smaller
   instance --- as a rewrite; likewise a structure predicate is unfolded by a
@@ -289,7 +289,7 @@ system must.  Keep both: they answer different questions.
 
 Three commands expose the classification at the REPL.
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{(status 'name)} prints, on one screen, a result's
   provenance, whether it is a PSS member, any warrant it carries, and its
   certification state (``certified by the VNB test on \textit{date}'' or

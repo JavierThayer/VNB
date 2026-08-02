@@ -2,7 +2,9 @@
 #
 #   make          regenerate the generated sections and (re)build manual.pdf
 #   make gen      regenerate only the generated reference sections
-#   make clean    remove LaTeX build intermediates (keeps manual.pdf)
+#   make kindle   build manual-kindle.pdf, the same manual at 105x140 mm
+#   make both     manual.pdf and manual-kindle.pdf, one `gen' between them
+#   make clean    remove LaTeX build intermediates (keeps both PDFs)
 #
 # `make` always rebuilds, on purpose.  The generated sections are emitted from
 # the LIVE system -- the source tree and reference/TACTICS.md -- and those inputs
@@ -14,11 +16,22 @@
 
 LATEX := pdflatex -interaction=nonstopmode -halt-on-error
 
-.PHONY: all gen clean check-fresh
+.PHONY: all gen kindle both clean check-fresh
 
 all: gen
 	$(LATEX) manual.tex
 	$(LATEX) manual.tex
+
+# The Kindle edition.  Same sources, same generated sections: manual-kindle.tex
+# sets the page size and the code font, then \input's manual.tex.  Twice, for
+# the table of contents and the cross-references, exactly like the print build.
+kindle: gen
+	$(LATEX) manual-kindle.tex
+	$(LATEX) manual-kindle.tex
+
+both: all
+	$(LATEX) manual-kindle.tex
+	$(LATEX) manual-kindle.tex
 
 gen: check-fresh
 	python3 gen-source-appendix.py
@@ -42,3 +55,4 @@ check-fresh:
 
 clean:
 	rm -f manual.aux manual.log manual.out manual.toc
+	rm -f manual-kindle.aux manual-kindle.log manual-kindle.out manual-kindle.toc

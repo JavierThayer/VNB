@@ -12,12 +12,14 @@
   (root  proof-state-root)
   (focus proof-state-focus set-proof-state-focus!))
 
+;;; The root sequent has NO assumptions.  It used to inherit one per active
+;;; local context (contexts.scm); that facility was removed on 2026-07-29, so
+;;; a proof now begins from the bare goal and every hypothesis arrives through
+;;; an inference.  cmd-qed's discharge loop over root assumptions is kept: it
+;;; is now vacuous, and it is the guard REVIEW.md S-2 asked for.
 (define (start-proof wic)
   (let* ((theory  (wff-theory wic))
-         (ctxs    (wff-contexts wic))
-         (asms    (map (lambda (ctx)
-                         (wff-in-theory (local-context-binding ctx) theory))
-                       ctxs))
+         (asms    '())
          (assert  (wff-in-theory (wff-formula wic) theory))
          (dg      (make-deduction-graph))
          (sqn     (dg-post! dg (make-sequent asms assert))))
@@ -269,9 +271,35 @@
                           (loop p2 (binary-right body))))))
               ps)))))
 
+;; Resolve the name the user typed to a macete that actually exists.  A
+;; def-FUNCTOID installs its unfold under its plain name (so `mac poly' works),
+;; but declare-structure / def-predicate install a predicate's unfold under
+;; NAME-def -- so a user who types `(mac 'is-commutative-ring)' hit an
+;; "unknown macete" and, in Emacs, a bare #f.  Fall back to NAME-def when the
+;; plain name has no macete but NAME-def does; the unfold is exactly what was
+;; meant.  Returns the resolved name, or #f if neither exists.
+(define (resolve-macete-name name)
+  (cond ((hash-table-ref/default *macete-table* name #f) name)
+        (else
+         (let ((def (string->symbol (string-append (symbol->string name) "-def"))))
+           (and (hash-table-ref/default *macete-table* def #f) def)))))
+
 (define (cmd-apply-macete ps macete-name)
-  (let* ((sqn (proof-state-focus ps))
-         (r   (apply-macete! macete-name sqn)))
+  (let* ((sqn      (proof-state-focus ps))
+         (resolved (resolve-macete-name macete-name)))
+    (when (and resolved (not (eq? resolved macete-name)))
+      (vnb--warn (string-append "apply-macete: no macete `"
+                                (symbol->string macete-name) "'; using `"
+                                (symbol->string resolved) "' (the definitional unfold)")
+                 (symbol->string resolved)))
+    (if (not resolved)
+        (vnb--warn (string-append "apply-macete: no macete named `"
+                                  (symbol->string macete-name)
+                                  "' (nor `" (symbol->string macete-name)
+                                  "-def').  (find-theorem '" (symbol->string macete-name)
+                                  ") to search.")
+                   (symbol->string macete-name))
+    (let ((r (apply-macete! resolved sqn)))
     (cond
       (r (focus-after-rule ps r))
       ;; An AMBIGUOUS accessor has no reduction, on purpose: its name sits at a
@@ -287,7 +315,7 @@
          (symbol->string macete-name)))
       (else
        (vnb--warn "apply-macete: macete not applicable"
-                  (symbol->string macete-name))))))
+                  (symbol->string macete-name))))))))
 
 (define (cmd-apply-macete-to-assumption ps macete-name hyp-formula)
   (let ((sqn (proof-state-focus ps)))

@@ -13,9 +13,51 @@
 ;;; Returns a Scheme number, or #f if unevaluable (free variable,
 ;;; unknown operator, division by zero, etc.).
 
+;;; SOUND-ARITH GATE.  arith-eval-term must NEVER hand back an INEXACT flonum.
+;;; Every downstream decision -- `=' / `<=' comparison, membership, the
+;;; forsome-witness search, and the term simplifier -- is sound only over EXACT
+;;; values.  An inexact result is either a decimal literal (2.5) or a
+;;; transcendental rounding (exp/sin/cos/magnitude), and treating it as a decided
+;;; value forges false facts: `(exp 1) = 2.718...' (e is irrational), a natural
+;;; number `= 2.5', membership of a rounded double.  The recent membership fix
+;;; hardened only the IN branch and, by returning a truthy 'UNDEF, actually
+;;; RE-OPENED the forsome path (arith-forsome-witness's `(and ... 'UNDEF v)').
+;;; Rejecting inexact at this one choke point closes all of it, and -- since the
+;;; recursive descent goes through this wrapper -- at every subterm too.
+;;; REVISED 2026-08-01.  The parenthesis that used to close this comment read
+;;; "decimal literals become UNEVALUABLE, not unsound; parsing them as exact
+;;; rationals is a separate, larger change in parser.scm" -- that change has now
+;;; been made (parser.scm's `p--exact-num' reads every literal with the "#e"
+;;; prefix, so 0.1 enters the theory as 1/10).  What remains of the gate is its
+;;; other and permanent job: rejecting inexactness that arithmetic PRODUCED
+;;; rather than read -- exp, sin, cos, magnitude below all return flonums, and
+;;; `(exp 1) = 2.718...' is a false fact about an irrational number.  So the
+;;; gate stays exactly as it was; only its input changed.
+;;;
+;;; A stray flonum can still reach the LEAF case -- a wff built in Scheme source
+;;; rather than parsed, e.g. '(<= 2.5 x).  `arith--exactify' converts it there,
+;;; so the descent stays exact.  Note the two conversions are NOT the same and
+;;; must not be confused: the parser exactifies the DECIMAL AS WRITTEN (0.1 ->
+;;; 1/10), while `inexact->exact' on an existing double gives that double's
+;;; dyadic value (0.1 -> 3602879701896397/36028797018963968).  The parser's
+;;; reading is what a reader means; this one is the honest value of an object
+;;; that is already a double, and it is a fallback, not the intended path.
+(define (arith--exactify v)
+  (cond ((exact? v) v)
+        ((and (real? v) (rational? v)) (inexact->exact v))
+        ;; Complex flonum: exactify both parts, or give up (inf/nan in either).
+        ((and (rational? (real-part v)) (rational? (imag-part v)))
+         (make-rectangular (inexact->exact (real-part v))
+                           (inexact->exact (imag-part v))))
+        (else #f)))                   ; +inf.0, -inf.0, nan -- no exact value
+
 (define (arith-eval-term e)
+  (let ((v (arith-eval-term--core e)))
+    (if (and (number? v) (inexact? v)) #f v)))
+
+(define (arith-eval-term--core e)
   (cond
-    ((number? e) e)
+    ((number? e) (arith--exactify e))
     ((functoid? e) #f)            ; functoids are not ground arithmetic values
     ((pair? e)
      (case (car e)
@@ -93,16 +135,39 @@
 ;;; -----------------------------------------------------------------------
 ;;; Membership check for number system classes
 
+;;; Decide t in {NN,ZZ,QQ,RR,CC} ONLY when the decision is sound.  A boolean
+;;; result is a decided membership; 'UNDEF means "cannot decide" and MUST be
+;;; returned whenever the term does not reduce to an exact value -- otherwise a
+;;; non-reducing term (sqrt(5)) reads as "not exact-rational" = #f, and NOT
+;;; flips it to a bogus `modulo 0' proof of `not(sqrt(5) in qq)' (and, worse,
+;;; of the FALSE `not(sqrt(4) in qq)').  Negation-as-failure is unsound here.
+;;;   * term does not reduce to a number  -> UNDEF (e.g. sqrt, a free var)
+;;;   * reduces to an INEXACT float        -> UNDEF for NN/ZZ/QQ (a float cannot
+;;;     witness exact-rationality: 2.0 might be 2 or a rounding), sound only for
+;;;     RR/CC.
+;;;   * reduces to an EXACT number         -> fully decidable, both directions
+;;;     (exact & real => rational, so QQ is #t; 1/2 is provably not in ZZ => #f).
 (define (arith-membership-check val-expr class)
   (let ((v (arith-eval-term val-expr)))
-    (and v
-         (case class
-           ((NN)     (and (exact? v) (integer? v) (>= v 0)))
-           ((ZZ)     (and (exact? v) (integer? v)))
-           ((QQ)     (and (exact? v) (rational? v)))
-           ((RR)     (real? v))
-           ((CC)     (number? v))
-           (else #f)))))
+    (cond
+      ((not (number? v)) 'UNDEF)                 ; term did not reduce -> undecidable
+      ;; There is no inexact case.  arith-eval-term exactifies literals and
+      ;; rejects computed flonums outright (the sound-arith gate at the head of
+      ;; this file), so a value reaching here is exact or is not a number at all.
+      ;; The branch that used to sit here -- admitting an inexact v to RR and CC
+      ;; and answering 'UNDEF elsewhere -- had been unreachable since that gate
+      ;; was installed, and it encoded the OLD reading of a decimal literal, in
+      ;; which 2.5 was a real but not a rational.  Under exact parsing 2.5 is
+      ;; 5/2 and lands in QQ, which is the user's 2026-08-01 decision: a literal
+      ;; the reader accepts denotes the exact rational it names.
+      (else                                      ; exact: decidable both ways
+       (case class
+         ((NN)     (and (real? v) (integer? v) (>= v 0)))
+         ((ZZ)     (and (real? v) (integer? v)))
+         ((QQ)     (real? v))                    ; every exact real is rational
+         ((RR)     (real? v))
+         ((CC)     #t)
+         (else     'UNDEF))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Formula evaluator

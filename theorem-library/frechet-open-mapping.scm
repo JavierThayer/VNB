@@ -72,8 +72,6 @@
 ;;; Binders: fam/fam1/fam2 families, tt/gg linear maps, seq sequences, lim limits.
 ;;; ====================================================================
 
-(define (fr-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))
-(define (fr-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))
 ;; x (-)_m y  in module m
 (define (fr-sub m a b) `((VADD ,m) ,a ((VNEG ,m) ,b)))
 
@@ -87,27 +85,33 @@
       '(IS-MODULE m)
       '(IS-NORMED-FIELD (SCAL m))
       '(IN fam (FUN NN (FUN (VEC m) RR)))
-      (fr-all 'k '(IN k NN) '(IS-SEMINORM m (fam k)))
-      (fr-all 'x '(IN x (VEC m))
+      (forall-guarded 'k '(IN k NN) '(IS-SEMINORM m (fam k)))
+      (forall-guarded 'x '(IN x (VEC m))
         '(IMPLIES (NOT (= x (VZERO m)))
            (FORSOME k (AND (IN k NN) (NOT (= ((fam k) x) 0)))))))))
+(notation! 'IS-SEMINORM-FAMILY 'kind 'predicate 'arity 2
+           'english "$2 is a separating countable family of seminorms on $1")
 
 ;;; FR-CONV(m, fam, seq, lim): seq -> lim in every seminorm of the family.
 (def-predicate 'FR-CONV '(m fam seq lim)
-  (fr-all 'k '(IN k NN)
-    (fr-all 'eps '(POS-RR eps)
-      (fr-some 'cap '(IN cap NN)
-        (fr-all 'i '(AND (IN i NN) (<= cap i))
+  (forall-guarded 'k '(IN k NN)
+    (forall-guarded 'eps '(POS-RR eps)
+      (forsome-guarded 'cap '(IN cap NN)
+        (forall-guarded 'i '(AND (IN i NN) (<= cap i))
           `(< ((fam k) ,(fr-sub 'm '(seq i) 'lim)) eps))))))
+(notation! 'FR-CONV 'kind 'predicate 'arity 4
+           'english "$3 converges to $4 in ($1, $2)")
 
 ;;; FR-CAUCHY(m, fam, seq): seq is Cauchy in every seminorm of the family.
 (def-predicate 'FR-CAUCHY '(m fam seq)
-  (fr-all 'k '(IN k NN)
-    (fr-all 'eps '(POS-RR eps)
-      (fr-some 'cap '(IN cap NN)
-        (fr-all 'i '(AND (IN i NN) (<= cap i))
-          (fr-all 'j '(AND (IN j NN) (<= cap j))
+  (forall-guarded 'k '(IN k NN)
+    (forall-guarded 'eps '(POS-RR eps)
+      (forsome-guarded 'cap '(IN cap NN)
+        (forall-guarded 'i '(AND (IN i NN) (<= cap i))
+          (forall-guarded 'j '(AND (IN j NN) (<= cap j))
             `(< ((fam k) ,(fr-sub 'm '(seq i) '(seq j))) eps)))))))
+(notation! 'FR-CAUCHY 'kind 'predicate 'arity 3
+           'english "$3 is Cauchy in ($1, $2)")
 
 ;;; ---- Frechet space (concrete: family + sequential completeness) --------
 
@@ -117,9 +121,11 @@
   (conjuncts->and
     (list
       '(IS-SEMINORM-FAMILY m fam)
-      (fr-all 'seq '(IN seq (FUN NN (VEC m)))
+      (forall-guarded 'seq '(IN seq (FUN NN (VEC m)))
         '(IMPLIES (FR-CAUCHY m fam seq)
            (FORSOME lim (AND (IN lim (VEC m)) (FR-CONV m fam seq lim))))))))
+(notation! 'IS-FRECHET-STRUCTURE 'kind 'predicate 'arity 2
+           'english "($1, $2) is a Frechet space")
 
 ;;; ---- linear and continuous-linear maps ---------------------------------
 
@@ -132,12 +138,14 @@
       '(IS-MODULE m2)
       '(= (SCAL m1) (SCAL m2))
       '(IN tt (FUN (VEC m1) (VEC m2)))
-      (fr-all 'x '(IN x (VEC m1))
-        (fr-all 'y '(IN y (VEC m1))
+      (forall-guarded 'x '(IN x (VEC m1))
+        (forall-guarded 'y '(IN y (VEC m1))
           '(= (tt ((VADD m1) x y)) ((VADD m2) (tt x) (tt y)))))
-      (fr-all 'lam '(IN lam (CARR (SCAL m1)))
-        (fr-all 'x '(IN x (VEC m1))
+      (forall-guarded 'lam '(IN lam (CARR (SCAL m1)))
+        (forall-guarded 'x '(IN x (VEC m1))
           '(= (tt ((ACT m1) lam x)) ((ACT m2) lam (tt x))))))))
+(notation! 'IS-LINEAR-MAP 'kind 'predicate 'arity 3
+           'english "$3 is a linear map from $1 to $2")
 
 ;;; IS-CONT-LIN(m1, fam1, m2, fam2, tt): tt is linear and sequentially continuous
 ;;; (fam1-convergent sequences map to fam2-convergent sequences, to the image).
@@ -145,10 +153,12 @@
   (conjuncts->and
     (list
       '(IS-LINEAR-MAP m1 m2 tt)
-      (fr-all 'seq '(IN seq (FUN NN (VEC m1)))
-        (fr-all 'lim '(IN lim (VEC m1))
+      (forall-guarded 'seq '(IN seq (FUN NN (VEC m1)))
+        (forall-guarded 'lim '(IN lim (VEC m1))
           '(IMPLIES (FR-CONV m1 fam1 seq lim)
              (FR-CONV m2 fam2 (VNB-LAMBDA i (tt (seq i))) (tt lim))))))))
+(notation! 'IS-CONT-LIN 'kind 'predicate 'arity 5
+           'english "$5 is a continuous linear map from ($1, $2) to ($3, $4)")
 
 ;;; HAS-CLOSED-GRAPH(m1, fam1, m2, fam2, tt): whenever seq -> p1 and tt(seq) -> p2,
 ;;; the limit is consistent (p2 = tt(p1)).
@@ -156,12 +166,14 @@
   (conjuncts->and
     (list
       '(IS-LINEAR-MAP m1 m2 tt)
-      (fr-all 'seq '(IN seq (FUN NN (VEC m1)))
-        (fr-all 'p1 '(IN p1 (VEC m1))
-          (fr-all 'p2 '(IN p2 (VEC m2))
+      (forall-guarded 'seq '(IN seq (FUN NN (VEC m1)))
+        (forall-guarded 'p1 '(IN p1 (VEC m1))
+          (forall-guarded 'p2 '(IN p2 (VEC m2))
             '(IMPLIES (AND (FR-CONV m1 fam1 seq p1)
                            (FR-CONV m2 fam2 (VNB-LAMBDA i (tt (seq i))) p2))
                (= p2 (tt p1)))))))))
+(notation! 'HAS-CLOSED-GRAPH 'kind 'predicate 'arity 5
+           'english "$5 has a closed graph from ($1, $2) to ($3, $4)")
 
 ;;; ---- basic neighbourhoods of 0, and openness of a linear map -----------
 
@@ -180,12 +192,14 @@
   (conjuncts->and
     (list
       '(IS-LINEAR-MAP m1 m2 tt)
-      (fr-all 'n '(IN n NN)
-        (fr-all 'eps '(POS-RR eps)
-          (fr-some 'n_ '(IN n_ NN)
-            (fr-some 'eps_ '(POS-RR eps_)
+      (forall-guarded 'n '(IN n NN)
+        (forall-guarded 'eps '(POS-RR eps)
+          (forsome-guarded 'n_ '(IN n_ NN)
+            (forsome-guarded 'eps_ '(POS-RR eps_)
               '(SUBSET (FR-BALL m2 fam2 n_ eps_)
                        (IMAGE tt (FR-BALL m1 fam1 n eps))))))))))
+(notation! 'IS-OPEN-LIN-MAP 'kind 'predicate 'arity 5
+           'english "$5 is an open linear map from ($1, $2) to ($3, $4)")
 
 ;;; ---- the theorems ------------------------------------------------------
 

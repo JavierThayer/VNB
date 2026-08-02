@@ -108,11 +108,8 @@
   '(FORALL coef
      (IMPLIES (IN coef (FUN NN RR))
        (FORALL L
-         (IMPLIES (AND (IN L RR)
-                       (<= 0 L)
-                       (FORALL n
-                         (IMPLIES (IN n NN) (NOT (= (coef n) 0))))
-                       (PS-RATIO-LIMIT coef L))
+         (IMPLIES (AND (IN L RR) (AND (<= 0 L) (AND (FORALL n
+                         (IMPLIES (IN n NN) (NOT (= (coef n) 0)))) (PS-RATIO-LIMIT coef L))))
            (FORALL x
              (IMPLIES (AND (IN x RR) (< (* (abs x) L) 1))
                (PS-CONVERGES-AT coef x))))))))

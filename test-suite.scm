@@ -640,21 +640,15 @@
     (beta)
     (rfl)))
 
-;;; 6m. cmd-qed must discharge root context assumptions (REVIEW.md S-2).
-;;; A theorem proved as Gamma |- phi must be installed as the universally
-;;; closed implication, NOT as the bare phi.  Without discharge, the
-;;; installed theorem would be unsoundly usable in any context.
-(check "qed: discharges root context (theorem is universal closure)"
-  (lambda ()
-    (declare-local-context '(IN x_qedctx NN) 'qedctx-test)
-    (sp (make-wff-from-string "x_qedctx in nn"))
-    (ass)
-    (qed 'qedctx-discharge-test)
-    (undeclare-local-context 'qedctx-test)
-    (let ((thm (theory-get-theorem *current-theory* 'qedctx-discharge-test)))
-      ;; Expect the universal closure, not the bare formula.
-      (equal? thm '(FORALL x_qedctx (IMPLIES (IN x_qedctx NN) (IN x_qedctx NN))))))
-  #t)
+;;; 6m. REVIEW.md S-2 -- cmd-qed must discharge root context assumptions, so a
+;;; theorem proved as Gamma |- phi installs as the universal closure and not as
+;;; the bare phi.  The test that exercised it is GONE, because the only way to
+;;; put an assumption in a ROOT sequent was declare-local-context, removed on
+;;; 2026-07-29 (contexts.scm).  start-proof now always begins from '(), so the
+;;; property is vacuously true and cannot be tested from outside the kernel.
+;;; cmd-qed's discharge loop is deliberately KEPT: it costs nothing and it is
+;;; what makes the invariant hold if a root assumption ever becomes possible
+;;; again.  The verbatim-install case below still tests the ordinary path.
 
 (check "qed: no contexts -> formula installed verbatim"
   (lambda ()
@@ -935,11 +929,12 @@
 
 (check-proof "pi-sep-mem-elim: assumption (IN 0 (SEP x NN p)) splits ctx"
   (lambda ()
-    (declare-local-context '(IN 0 (SEP x NN (= x 0))) 'sep-mem-elim-ctx)
-    (sp (make-wff 'TRUTH))
+    ;; Plant the assumption by di on an implication -- the local-context
+    ;; facility that used to do this was removed on 2026-07-29.
+    (sp (make-wff '(IMPLIES (IN 0 (SEP x NN (= x 0))) TRUTH)))
+    (di)
     (let ((sqn (proof-state-focus *ps*)))
       (let ((r (pi-sep-mem-elim! sqn '(IN 0 (SEP x NN (= x 0))))))
-        (undeclare-local-context 'sep-mem-elim-ctx)
         (or r (error "pi-sep-mem-elim! failed"))))))
 
 ;; pi-sep-sethood does NOT fire on a non-SEP goal
@@ -959,11 +954,12 @@
 
 (check-proof "pi-comp-mem-elim: assumption (IN 0 (COMP x p)) splits ctx"
   (lambda ()
-    (declare-local-context '(IN 0 (COMP x (IN x NN))) 'comp-mem-elim-ctx)
-    (sp (make-wff 'TRUTH))
+    ;; Plant the assumption by di on an implication -- the local-context
+    ;; facility that used to do this was removed on 2026-07-29.
+    (sp (make-wff '(IMPLIES (IN 0 (COMP x (IN x NN))) TRUTH)))
+    (di)
     (let ((sqn (proof-state-focus *ps*)))
       (let ((r (pi-comp-mem-elim! sqn '(IN 0 (COMP x (IN x NN))))))
-        (undeclare-local-context 'comp-mem-elim-ctx)
         (or r (error "pi-comp-mem-elim! failed"))))))
 
 ;; --- IOTA ---
@@ -1780,11 +1776,12 @@
 
 (check-proof "pi-big-union-mem-elim: eigenvariable gains two new assumptions"
   (lambda ()
-    (declare-local-context '(IN 0 (BIG-UNION z NN NN)) 'big-union-mem-elim-ctx)
-    (sp (make-wff 'TRUTH))
+    ;; Plant the assumption by di on an implication -- the local-context
+    ;; facility that used to do this was removed on 2026-07-29.
+    (sp (make-wff '(IMPLIES (IN 0 (BIG-UNION z NN NN)) TRUTH)))
+    (di)
     (let ((sqn (proof-state-focus *ps*)))
       (let ((r (pi-big-union-mem-elim! sqn '(IN 0 (BIG-UNION z NN NN)))))
-        (undeclare-local-context 'big-union-mem-elim-ctx)
         (or r (error "pi-big-union-mem-elim! failed"))))))
 
 (check "pi-big-union-sethood: refuses non-BIG-UNION goal"

@@ -368,7 +368,8 @@
     (oi-l rule or-intro-left) (oi-r rule or-intro-right)
     (ew rule forsome-intro) (ci rule cartesian-intro) (ti rule tuples-intro)
     (ii rule intersection-intro) (ui rule union-intro)
-    (ni rule nn-induction) (tfi rule transfinite-induction) (tfi3 rule transfinite-induction)
+    (ni rule nn-induction) (tfi rule transfinite-induction)
+    (tfi3 rule transfinite-induction-3cases)
     (ass rule assumption) (ta rule theorem-assumption)
     (inst rule forall-elim) (detach! rule detach) (bc rule backchain)
     (cut rule cut) (wk rule weakening)
@@ -382,7 +383,7 @@
     (sep-set rule sep-sethood) (sep-mi rule sep-mem-intro) (sep-me rule sep-mem-elim)
     (comp-mi rule comp-mem-intro) (comp-me rule comp-mem-elim) (iota-d rule iota-def)
     (bu-set rule big-union-sethood) (bu-mi rule big-union-mem-intro) (bu-me rule big-union-mem-elim)
-    (arith oracle arith-eval) (rs oracle ring-simplify) (crs oracle comm-ring-simplify)
+    (arith oracle (arith-ground arith-forsome arith-simplify)) (rs oracle ring-simplify) (crs oracle comm-ring-simplify)
     (simp oracle ring-simplify) (ineq oracle ineq) (sos oracle sos)
     (inst+ composite (forall-elim detach))
     (fact composite (theorem-assumption forall-elim detach))
@@ -680,3 +681,99 @@
           (vnb-cmd--all-commands))
         (display ")\n")))
     path))
+
+;;; --------------------------------------------------------------------
+;;; *kernel-rule-tags* -- the trusted base, by `dg-apply-rule!' TAG.
+;;;
+;;; This is the list reference/KERNEL-RULES.md documents, and the list
+;;; `kernel-rules-audit' checks against what the library actually stamped.
+;;; The two directions it catches are different failures:
+;;;
+;;;   used but not listed  -- a trusted rule nobody wrote down.  This is how the
+;;;                           four ORACLE tags, both `macete' tags and the three
+;;;                           `arith-' tags went undocumented until 2026-07-28.
+;;;   listed but not used  -- either a rule no proof in the library exercises, or
+;;;                           a rule no tactic can reach at all.  `contraposition'
+;;;                           and `truth-intro' are the second kind: pi-contraposit!
+;;;                           and pi-truth! are implemented and called from nowhere.
+;;;
+;;; Entry: (tag kind "gloss").  KIND is `schema' (carries set-existence content),
+;;; `logic' (ordinary natural deduction, equality, structure eliminators),
+;;; `rewrite' (a macete application) or `oracle' (a trusted decision procedure).
+(define *kernel-rule-tags*
+  '((sep-sethood           schema "SEP over a set is a set")
+    (sep-mem-intro         schema "y in SEP(x,A,p) from y in A and p[x:=y]")
+    (sep-mem-elim          schema "consume y in SEP(x,A,p) into y in A and p[x:=y]")
+    (comp-mem-intro        schema "y in COMP(x,p) from y in SET and p[x:=y]")
+    (comp-mem-elim         schema "consume y in COMP(x,p)")
+    (big-union-sethood     schema "set-indexed union of sets is a set")
+    (big-union-mem-intro   schema "membership in an indexed union, at a witness")
+    (big-union-mem-elim    schema "consume it, at a fresh eigenvariable")
+    (iota-def              schema "the defining property of IOTA(x,p), under uniqueness")
+    (lambda-type           schema "VNB-LAMBDA typing into FUN")
+    (lambda-beta           schema "beta-reduce an applied VNB-LAMBDA in the GOAL")
+    (lambda-beta-hyp       schema "beta-reduce an applied VNB-LAMBDA in an ASSUMPTION")
+    (and-intro             logic  "goal AND: prove both (di)")
+    (or-intro-left         logic  "goal OR: prove the left disjunct (oi-l)")
+    (or-intro-right        logic  "goal OR: prove the right disjunct (oi-r)")
+    (implies-intro         logic  "goal IMPLIES: assume the antecedent (di)")
+    (not-intro             logic  "goal NOT: assume it, prove FALSITY (di)")
+    (iff-intro             logic  "goal IFF: prove both directions (di)")
+    (forall-intro          logic  "goal FORALL: introduce an eigenvariable (di)")
+    (forsome-intro         logic  "goal FORSOME: supply a witness (ew)")
+    (truth-intro           logic  "goal TRUTH.  UNREACHABLE: no tactic calls pi-truth!")
+    (and-elim              logic  "split a conjunctive assumption (ai)")
+    (or-elim               logic  "case-split on a disjunctive assumption (ai)")
+    (not-elim              logic  "assumption NOT p with p in context closes the goal (ai)")
+    (iff-elim              logic  "an IFF assumption becomes its two implications (ai)")
+    (forsome-elim          logic  "open an existential assumption at a fresh eigenvariable (ai)")
+    (forall-elim           logic  "instantiate a universal (inst, inst+, fact)")
+    (assumption            logic  "the goal is in the context (ass)")
+    (theorem-assumption    logic  "cite an installed theorem (ta, fact)")
+    (cut                   logic  "introduce a lemma (cut, have!)")
+    (weakening             logic  "drop an assumption (wk)")
+    (detach                logic  "modus ponens on a context implication (detach!)")
+    (backchain             logic  "reduce the goal to an implication's antecedent (bc, bc*)")
+    (proof-by-contradiction logic "assume the negation, prove FALSITY (pbc)")
+    (contraposition        logic  "UNREACHABLE: pi-contraposit! is called from nowhere")
+    (eq-subst              logic  "Leibniz rewriting by a context equation (subst)")
+    (reflexivity           logic  "t = t, requiring t to be DEFINED (rfl)")
+    (quasi-reflexivity     logic  "t == t, unconditionally (qrfl)")
+    (if-true               logic  "IF-term, true branch")
+    (if-false              logic  "IF-term, false branch")
+    (cartesian-intro       logic  "membership in a CARTESIAN product (ci)")
+    (cartesian-elim        logic  "consume one, componentwise (ce)")
+    (tuples-intro          logic  "membership in TUPLES (ti)")
+    (tuples-elim           logic  "consume one (te)")
+    (union-intro           logic  "membership in a UNION, at a chosen side (ui)")
+    (union-elim            logic  "case-split a UNION membership (ue)")
+    (intersection-intro    logic  "membership in an INTERSECTION (ii)")
+    (intersection-elim     logic  "project one component (ie)")
+    (nth-reduce            logic  "NTH of a literal LIST (nth-r)")
+    (length-reduce         logic  "LENGTH of a literal LIST (len-r)")
+    (functoid-beta         logic  "beta-reduce a functoid application (beta)")
+    (nn-induction          logic  "induction on NN (ni)")
+    (transfinite-induction logic  "STRONG transfinite induction on ORD (tfi)")
+    (transfinite-induction-3cases logic "base/successor/limit transfinite induction (tfi3)")
+    (macete                rewrite "rewrite the GOAL by an installed macete (mac, macm)")
+    (macete-hyp            rewrite "rewrite an ASSUMPTION by one (mac-h, mac-h*)")
+    (cartesian-decompose   rewrite "IN x (CARTESIAN ...) to its existential chain (theory.scm)")
+    (tuple-equality-decompose rewrite "LIST = LIST to the conjunction of components (theory.scm)")
+    (arith-ground          oracle "decide a closed arithmetic sentence (arith)")
+    (arith-forsome         oracle "witness a ground existential (arith)")
+    (arith-simplify        oracle "rewrite by ground context equations, then decide (arith)")
+    (ring-simplify         oracle "normalise a ring identity (rs, simp)")
+    (comm-ring-simplify    oracle "normalise a commutative-ring identity (crs)")
+    (ineq                  oracle "the RR order calculus (ineq)")
+    (sos                   oracle "sum-of-squares nonnegativity (sos)")))
+
+(define (kernel-rules-documented)
+  (map car *kernel-rule-tags*))
+
+;;; Compare the documented trusted base against what the load actually stamped.
+;;; Returns (undocumented unexercised); both empty is the good case.
+(define (kernel-rules-audit)
+  (let* ((doc  (kernel-rules-documented))
+         (used (rules-applied)))
+    (list (filter (lambda (t) (not (memq t doc))) used)
+          (filter (lambda (t) (not (memq t used))) doc))))

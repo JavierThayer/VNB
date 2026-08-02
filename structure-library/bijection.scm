@@ -70,8 +70,12 @@
 ;;; pre-image and the choice is canonical (in the sense that any two
 ;;; choices would agree -- provable from injectivity).
 
+;; Binders are y_ / x_ (trailing underscore): plain y/x case-fold onto the
+;; parameters Y/X (functoid-binder-audit flags the shadow).  Here it happens to
+;; be harmless -- the SEP domain X resolves in the outer scope before x binds --
+;; but the convention keeps every functoid body collision-free.
 (def-functoid 'INVERSE-BIJ '(phi X Y)
-  '(VNB-LAMBDA y (CHOICE (SEP x X (= (phi x) y)))))
+  '(VNB-LAMBDA y_ (CHOICE (SEP x_ X (= (phi x_) y_)))))
 
 ;;; Typing: when phi is a bijection X -> Y, INVERSE-BIJ(phi, X, Y) is in
 ;;; FUN(Y, X).  Derivable from CHOICE + surjectivity.

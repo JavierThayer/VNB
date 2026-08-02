@@ -1244,7 +1244,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `normed-field-additive-ag-is-abelian-group` — forall([r], is-normed-field(r) implies is-abelian-group(normed-field-additive-ag(r)))
 - `normed-field-as-commutative-ring-is-commutative-ring` — forall([r], is-normed-field(r) implies is-commutative-ring(normed-field-as-commutative-ring(r)))
 - `normed-field-as-integral-domain-is-integral-domain` — forall([r], is-normed-field(r) implies is-integral-domain(normed-field-as-integral-domain(r)))
-- `normed-field-mul-inverses` — forall([s], is-normed-field(s) implies forall([a], a in carr(s) and not(a = zero(s)) implies forsome([b], b in carr(s) and not(b = zero(s)) and (mul(s))(a, b) = one(s))))
+- `normed-field-mul-inverses` — forall([s], is-normed-field(s) implies forall([a], a in carr(s) and not(a = zero(s)) implies forsome([b in carr(s)], not(b = zero(s)) and (mul(s))(a, b) = one(s))))
 - `normed-field-zero-not-one` — forall([s], is-normed-field(s) implies not(zero(s) = one(s)))
 
 *Views from `normed-field`.*
@@ -1859,6 +1859,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `mpow-one-rev-abelian-group-as-monoid-ring-additive-ag` — forall([r], is-ring(r) implies forall([x in carr(r)], x = mpow(abelian-group-as-monoid(ring-additive-ag(r)), x, 1)))
 - `mpow-one-rev-abelian-group-as-monoid-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([x in carr(r)], mpow(abelian-group-as-monoid(ring-additive-ag(r)), x, 1) = x))
 - `mpow-type-abelian-group-as-monoid-ring-additive-ag` — forall([r], is-ring(r) implies forall([x in carr(r), n in nn], mpow(abelian-group-as-monoid(ring-additive-ag(r)), x, n) in carr(r)))
+- `poly-is-ring` — forall([a], is-ring(a) implies is-ring(poly(a)))
 - `product-of-invertibles-is-invertible` — forall([a], is-ring(a) implies forall([n, u1, u2], is-invertible-mat(a, n, u1) implies is-invertible-mat(a, n, u2) implies is-invertible-mat(a, n, matmul(a, u1, u2))))
 - `ring-add-assoc` — forall([s], is-ring(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (add(s))((add(s))(a, b), c) = (add(s))(a, (add(s))(b, c))))
 - `ring-add-assoc-rev` — forall([s], is-ring(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (add(s))(a, (add(s))(b, c)) = (add(s))((add(s))(a, b), c)))
@@ -2104,7 +2105,6 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Member of:*
 
-- `is-complete` (via `rr-complete`)
 - `is-metric-space` (via `rr-is-metric-space`)
 
 *Components* (mapped to inherited `metric-space` slots):

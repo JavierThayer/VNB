@@ -99,9 +99,11 @@
                     (OR (= n (* 3 k))
                         (OR (= n (succ (* 3 k)))
                             (= n (succ (succ (* 3 k)))))))))) ))
-(define t3-branches (dk-opened (lambda () (ni))))
-(define t3-step (or (n3-any (n3-binder-is? 'n) t3-branches) (error "trich: no step")))
-(define t3-base (or (n3-any (lambda (s) (not (eq? s t3-step))) t3-branches) (error "trich: no base")))
+;; via `use-induction' (driver-kit): runs ni, labels base/step by the binder, and
+;; peels the step (introduces n, lands IN n NN and the IH).
+(define t3-IND  (use-induction))
+(define t3-base (cdr (assq 'base t3-IND)))
+(define t3-ih   (cdr (assq 'ih   t3-IND)))
 
 ;; base: 0 = 3*0.
 (dk-focus! t3-base)
@@ -110,10 +112,8 @@
             (if (eq? (car (n3-goal)) 'OR) (begin (oi-l) (arith)) (arith)))
           (dk-opened (lambda () (di))))
 
-;; step.
-(dk-focus! t3-step)
-(di)                                       ; n ; IN n NN
-(define t3-ih (dk-landed-1 (lambda () (di))))
+;; step (use-induction already introduced n, IN n NN, and landed the IH).
+(dk-focus! (cdr (assq 'step t3-IND)))
 (ai t3-ih)
 (define t3-conj (or (n3-any (lambda (f) (and (pair? f) (eq? (car f) 'AND) (pair? (caddr f))
                               (eq? (car (caddr f)) 'OR))) (n3-asms))
@@ -312,56 +312,47 @@
 (n3-cut! (list 'AND '(IN 3 NN) (list 'IN (list '* ds-w ds-w) 'NN)) (lambda () (n3-from-context!)))
 (fact 'nn-mul-closed 3 (list '* ds-w ds-w))                               ; 3*w*w in NN
 
-;; three cases from (OR (=p 3w) (OR (=p succ3w) (=p succ^2 3w))).
-(define ds-c1 (dk-opened (lambda () (ai ds-or))))
-(define ds-cA (or (n3-any (lambda (s) (n3-any (lambda (w) (equal? (wff-formula w) (list '= 'p (list '* 3 ds-w))))
-                                              (sequent-node-assumptions s))) ds-c1) (error "divsq: no p=3w")))
-(define ds-cB (or (n3-any (lambda (s) (not (eq? s ds-cA))) ds-c1) (error "divsq: no inner")))
-
-;; case A: p = 3w -- witness w.
-(dk-focus! ds-cA)
-(ew ds-w)
-(for-each (lambda (leaf) (dk-focus! leaf)
-            (if (eq? (car (n3-goal)) 'IN) (n3-from-context!) (ass)))
-          (dk-opened (lambda () (di))))
-
-;; case B: split inner OR.
-(dk-focus! ds-cB)
-(define ds-innor (or (n3-any (lambda (f) (and (pair? f) (eq? (car f) 'OR))) (n3-asms)) (error "divsq: no inner OR")))
-(define ds-c2 (dk-opened (lambda () (ai ds-innor))))
-(define ds-cB1 (or (n3-any (lambda (s) (n3-any (lambda (w) (equal? (wff-formula w) (list '= 'p (list 'succ (list '* 3 ds-w)))))
-                                               (sequent-node-assumptions s))) ds-c2) (error "divsq: no p=succ3w")))
-(define ds-cB2 (or (n3-any (lambda (s) (not (eq? s ds-cB1))) ds-c2) (error "divsq: no p=succ^2 3w")))
-
-;; case B1: p = succ(3w) = 3w+1.  J = 3*w*w + 2*w.
-(dk-focus! ds-cB1)
-(n3-cut! (list 'AND '(IN 2 NN) (list 'IN ds-w 'NN)) (lambda () (n3-from-context!)))
-(fact 'nn-mul-closed 2 ds-w)                                              ; 2*w in NN
-(n3-cut! (list 'AND (list 'IN (list '* 3 (list '* ds-w ds-w)) 'NN) (list 'IN (list '* 2 ds-w) 'NN))
-         (lambda () (n3-from-context!)))
-(fact 'nn-add-closed (list '* 3 (list '* ds-w ds-w)) (list '* 2 ds-w))    ; J = 3ww+2w in NN
-(ds-contra!
-  (list '= 'p (list 'succ (list '* 3 ds-w)))
-  (list '+ (list '* 3 (list '* ds-w ds-w)) (list '* 2 ds-w))
-  (lambda ()
-    (fact 'nn-succ-plus-one (list '* 3 ds-w))                              ; succ(3w) = 3w+1
-    (subst (list '= (list 'succ (list '* 3 ds-w)) (list '+ (list '* 3 ds-w) 1)))))
-
-;; case B2: p = succ(succ(3w)) = 3w+2.  J = 3*w*w + 4*w + 1.
-(dk-focus! ds-cB2)
-(n3-cut! (list 'AND '(IN 4 NN) (list 'IN ds-w 'NN)) (lambda () (n3-from-context!)))
-(fact 'nn-mul-closed 4 ds-w)                                              ; 4*w in NN
-(n3-cut! (list 'AND (list 'IN (list '* 4 ds-w) 'NN) '(IN 1 NN)) (lambda () (n3-from-context!)))
-(fact 'nn-add-closed (list '* 4 ds-w) 1)                                  ; 4w+1 in NN
-(n3-cut! (list 'AND (list 'IN (list '* 3 (list '* ds-w ds-w)) 'NN) (list 'IN (list '+ (list '* 4 ds-w) 1) 'NN))
-         (lambda () (n3-from-context!)))
-(fact 'nn-add-closed (list '* 3 (list '* ds-w ds-w)) (list '+ (list '* 4 ds-w) 1))  ; J in NN
-(ds-contra!
-  (list '= 'p (list 'succ (list 'succ (list '* 3 ds-w))))
-  (list '+ (list '* 3 (list '* ds-w ds-w)) (list '+ (list '* 4 ds-w) 1))
-  (lambda ()
-    (fact 'nn-plus-two (list '* 3 ds-w))                                   ; 3w+2 = succ(succ(3w))
-    (subst (list '= (list 'succ (list 'succ (list '* 3 ds-w))) (list '+ (list '* 3 ds-w) 2)))))
+;; three cases from (OR (=p 3w) (OR (=p succ3w) (=p succ^2 3w))) -- now via
+;; `use-cases' (driver-kit): it opens + FLATTENS the nested OR and labels each
+;; branch by the residue equality it landed, so we dispatch on the marker rather
+;; than re-finding branches by landed-equality by hand.
+(for-each-case (use-cases ds-or)
+  (lambda (marker)
+    (cond
+      ;; case A: p = 3w -- witness w.
+      ((equal? marker (list '= 'p (list '* 3 ds-w)))
+       (ew ds-w)
+       (for-each (lambda (leaf) (dk-focus! leaf)
+                   (if (eq? (car (n3-goal)) 'IN) (n3-from-context!) (ass)))
+                 (dk-opened (lambda () (di)))))
+      ;; case B1: p = succ(3w) = 3w+1.  J = 3*w*w + 2*w.
+      ((equal? marker (list '= 'p (list 'succ (list '* 3 ds-w))))
+       (n3-cut! (list 'AND '(IN 2 NN) (list 'IN ds-w 'NN)) (lambda () (n3-from-context!)))
+       (fact 'nn-mul-closed 2 ds-w)                                              ; 2*w in NN
+       (n3-cut! (list 'AND (list 'IN (list '* 3 (list '* ds-w ds-w)) 'NN) (list 'IN (list '* 2 ds-w) 'NN))
+                (lambda () (n3-from-context!)))
+       (fact 'nn-add-closed (list '* 3 (list '* ds-w ds-w)) (list '* 2 ds-w))    ; J = 3ww+2w in NN
+       (ds-contra!
+         (list '= 'p (list 'succ (list '* 3 ds-w)))
+         (list '+ (list '* 3 (list '* ds-w ds-w)) (list '* 2 ds-w))
+         (lambda ()
+           (fact 'nn-succ-plus-one (list '* 3 ds-w))                             ; succ(3w) = 3w+1
+           (subst (list '= (list 'succ (list '* 3 ds-w)) (list '+ (list '* 3 ds-w) 1))))))
+      ;; case B2: p = succ(succ(3w)) = 3w+2.  J = 3*w*w + 4*w + 1.
+      (else
+       (n3-cut! (list 'AND '(IN 4 NN) (list 'IN ds-w 'NN)) (lambda () (n3-from-context!)))
+       (fact 'nn-mul-closed 4 ds-w)                                             ; 4*w in NN
+       (n3-cut! (list 'AND (list 'IN (list '* 4 ds-w) 'NN) '(IN 1 NN)) (lambda () (n3-from-context!)))
+       (fact 'nn-add-closed (list '* 4 ds-w) 1)                                 ; 4w+1 in NN
+       (n3-cut! (list 'AND (list 'IN (list '* 3 (list '* ds-w ds-w)) 'NN) (list 'IN (list '+ (list '* 4 ds-w) 1) 'NN))
+                (lambda () (n3-from-context!)))
+       (fact 'nn-add-closed (list '* 3 (list '* ds-w ds-w)) (list '+ (list '* 4 ds-w) 1))  ; J in NN
+       (ds-contra!
+         (list '= 'p (list 'succ (list 'succ (list '* 3 ds-w))))
+         (list '+ (list '* 3 (list '* ds-w ds-w)) (list '+ (list '* 4 ds-w) 1))
+         (lambda ()
+           (fact 'nn-plus-two (list '* 3 ds-w))                                  ; 3w+2 = succ(succ(3w))
+           (subst (list '= (list 'succ (list 'succ (list '* 3 ds-w))) (list '+ (list '* 3 ds-w) 2)))))))))
 (n3-qed! 'nn-3-div-square)
 
 ;;; =======================================================================

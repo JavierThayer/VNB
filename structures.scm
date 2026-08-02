@@ -506,9 +506,35 @@
 ;;; lists, so a deep formula is written as data rather than a hand-counted paren
 ;;; pyramid.  (The recurring miscount is always the same: a right-nested AND/IMPLIES
 ;;; chain loses its last close.  There is no last close to lose here.)
+;;;
+;;; Each takes a SINGULAR spelling as well: a bare symbol for BINDERS means one
+;;; binder, and then the second argument is one FORMULA rather than a list of
+;;; them --
+;;;   (forall-guarded  'x '(IN x A) body)  =  (FORALL  x (IMPLIES (IN x A) body))
+;;;   (forsome-guarded 'x '(IN x A) body)  =  (FORSOME x (AND     (IN x A) body))
+;;; The singular spelling is what a deep ALTERNATING pyramid wants: it peels one
+;;; binder at a time, so FORALL and FORSOME layers interleave in the order
+;;; written.  The plural spelling puts all n binders outermost and so cannot
+;;; express an alternation at all.
+;;;
+;;; Seven files -- ascoli-arzela-statement, ascoli-bridge, baire-category,
+;;; frechet-open-mapping, order-zorn, seminorm-hahn-banach, separable -- each
+;;; carried a private copy of this pair under its own prefix (aa- bb- ba- fr- oz-
+;;; sn- sep-): fourteen byte-identical defines, because the FORSOME half was
+;;; missing here and nobody writes half a pair.  Collapsed 2026-07-30.
 (define (forall-guarded binders antecedents consequent)
-  (nest-quantifiers 'FORALL binders
-    (fold-right (lambda (a acc) `(IMPLIES ,a ,acc)) consequent antecedents)))
+  (if (symbol? binders)
+      (forall-guarded (list binders) (list antecedents) consequent)
+      (nest-quantifiers 'FORALL binders
+        (fold-right (lambda (a acc) `(IMPLIES ,a ,acc)) consequent antecedents))))
+
+;;; The existential mirror: the guards are CONJOINED with the body, where
+;;; forall-guarded implies them.
+(define (forsome-guarded binders guards body)
+  (if (symbol? binders)
+      (forsome-guarded (list binders) (list guards) body)
+      (nest-quantifiers 'FORSOME binders
+        (conjuncts->and (append guards (list body))))))
 
 (define (forall-iff binders lhs conjuncts)
   (nest-quantifiers 'FORALL binders `(IFF ,lhs ,(conjuncts->and conjuncts))))
@@ -553,7 +579,7 @@
 
 (define (def-structure name slots axiom-names #!optional laws ivar0)
   (fluid-let ((*current-provenance* 'definitional))
-   (let* ((source (current-load-pathname))   ; #f when not in a load context
+   (let* ((source (safe-load-pathname))   ; #f when not in a load context (also at the REPL)
          (sd (%make-structure-def name slots axiom-names source)))
     (hash-table-set! *structure-table* name sd)
     ;; Walk slots in declaration order: each slot's position is its accessor
@@ -867,7 +893,7 @@
       (register-constant! name 'functoid)
       (register-operator! name 'functoid pvars)     ; the ONE table (operators.scm)
       (hash-table-set! *functoid-registry* name
-        (list pvars body (current-load-pathname)))
+        (list pvars body (safe-load-pathname)))
       name)))
 
 ;;; -----------------------------------------------------------------------
@@ -1103,7 +1129,7 @@
   ;; Record the view.
   (hash-table-set! *view-as-table* name
     (%make-view-as name source-struct source-comps target-struct target-comps
-                   (current-load-pathname)))
+                   (safe-load-pathname)))
   ;; Functoid: (NAME r) = (LIST (c1 r) ... (cn r)).
   (def-functoid name '(r)
     `(LIST ,@(map (lambda (c) `(,c r)) source-comps)))
@@ -1159,7 +1185,7 @@
 
 (define (register-definitional-structure! name parent)
   (hash-table-set! *definitional-structure-table* name
-    (%make-definitional-structure name parent (current-load-pathname)))
+    (%make-definitional-structure name parent (safe-load-pathname)))
   name)
 
 (define (specialize-structure instance-name struct-name is-thm-name)

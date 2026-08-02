@@ -56,6 +56,31 @@
                              (IMPLIES (= (phi a) (phi b)) (= a b)))))))))))))
 
 ;;; -----------------------------------------------------------------------
+;;; INJECTIVE* -- injectivity for things that are NOT set-functions.
+;;;
+;;; `INJECTION(X, Y)' asks its member to BE an object: injection-membership-iff
+;;; requires (IN f (FUN X Y)), membership-implies-sethood then forces f to be a
+;;; set, and is-fun-def (theory.scm:388) says being a function at all means
+;;; having a SET domain.  So nothing whose domain is a proper class -- a lambdoid
+;;; on ORD, a def-by-ord-recursion constant -- can ever be said to be in it.
+;;;
+;;; INJECTIVE* says the same thing about the APPLICATION instead, so F occupies
+;;; the juxtaposition slot and may be a lambdoid, a VNB-LAMBDA, or a plain
+;;; function variable.
+;;;
+;;; NO DOMAIN ARGUMENT IS NEEDED, and that is the point.  VNB equality is
+;;; PARTIAL: a strict (= s t) asserts BOTH sides defined (primitive-inferences.scm
+;;; :588, "a strict (= t _)/(= _ t) asserts t defined too").  So off F's domain of
+;;; definition the antecedent (F u) = (F v) is simply FALSE and the implication is
+;;; vacuous.  The unguarded form therefore says exactly "F is injective on its
+;;; domain of definition" -- which for a lambdoid on ORD is all of ORD -- without
+;;; anyone having to name that domain as a term.
+(def-predicate 'INJECTIVE* '(F)
+  '(FORALL u_ (FORALL v_ (IMPLIES (= (F u_) (F v_)) (= u_ v_)))))
+
+(notation! 'INJECTIVE* 'kind 'predicate 'arity 1 'english "$1 is injective")
+
+;;; -----------------------------------------------------------------------
 ;;; Projection lemmas (each derivable from injection-membership-iff).
 
 (theory-add-axiom! *current-theory* 'injection-in-fun
@@ -95,11 +120,28 @@
       (IFF (IN w (IMAGE phi S))
            (FORSOME x (AND (IN x S) (= (phi x) w))))))))
 
-;;; IMAGE(phi, S) is a set when S is a set (replacement).
-(theory-add-axiom! *current-theory* 'image-set
-  '(FORALL phi (FORALL S
-      (IMPLIES (IN S SET)
-               (IN (IMAGE phi S) SET)))))
+;;; IMAGE(phi, S) is a set when S is a set.
+;;;
+;;; THIS IS REPLACEMENT, AND IT IS INSTALLED AS FOUNDATIONAL.  The image of a
+;;; set under a class function is a set: one of the axioms of the set theory,
+;;; not a fact the library owes an argument for.  Wrapped in `primitive'
+;;; provenance (proof-debt.scm:12), which is the trusted-base tier -- it
+;;; contributes {} to every bill, exactly like the base theory of theory.scm:613
+;;; and the ordinal axioms of ordinals.scm.  User's decision, 2026-07-28.
+;;;
+;;; It is NOT a `warrant!'.  A warrant would move it from `none' to
+;;; `well-known' -- a better tier of DEBT.  `primitive' says it is not debt.
+;;; The test CLAUDE.md sets for the shelf is whether a mathematician would
+;;; answer "because that is what sets are"; for replacement, they would.
+;;;
+;;; What it buys: `ord-no-injection-into-set' and, through it, ZORN'S LEMMA
+;;; (theorem-library/zorn-route-two.scm) had this as the SOLE entry in their
+;;; bills.  Both now read `modulo 0'.
+(fluid-let ((*current-provenance* 'primitive))
+  (theory-add-axiom! *current-theory* 'image-set
+    '(FORALL phi (FORALL S
+        (IMPLIES (IN S SET)
+                 (IN (IMAGE phi S) SET))))))
 
 ;;; The image of phi : dm -> cod lands in cod.
 (theory-add-axiom! *current-theory* 'image-subset-codomain
@@ -110,12 +152,12 @@
 
 ;;; An injection preserves cardinality on its image: |IMAGE(phi, dm)| = |dm|.
 ;;; (phi restricted to dm is a bijection dm -> IMAGE(phi, dm).)
+;; A CARD axiom, so `primitive' like the rest of them (cardinality.scm).
+(fluid-let ((*current-provenance* 'primitive))
 (theory-add-axiom! *current-theory* 'card-image-injection
   '(FORALL dm (FORALL cod (FORALL phi
-      (IMPLIES (AND (IN phi (INJECTION dm cod))
-                    (IN dm SET)
-                    (IN (CARD dm) NN))
-               (= (CARD (IMAGE phi dm)) (CARD dm)))))))
+      (IMPLIES (AND (IN phi (INJECTION dm cod)) (AND (IN dm SET) (IN (CARD dm) NN)))
+               (= (CARD (IMAGE phi dm)) (CARD dm))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Base case: the empty function is the unique injection out of {}.
@@ -143,12 +185,7 @@
 ;;; catalog.
 (support 'injection-extension-recurrence
   '(FORALL A (FORALL C (FORALL b (FORALL m
-      (IMPLIES (AND (NOT (IN b A))
-                    (IN A SET)
-                    (IN C SET)
-                    (IN (CARD A) NN)
-                    (IN m NN)
-                    (= (CARD C) (+ (CARD A) m)))
+      (IMPLIES (AND (NOT (IN b A)) (AND (IN A SET) (AND (IN C SET) (AND (IN (CARD A) NN) (AND (IN m NN) (= (CARD C) (+ (CARD A) m)))))))
                (= (CARD (INJECTION (UNION A (PAIR b b)) C))
                   (* m (CARD (INJECTION A C))))))))))
 

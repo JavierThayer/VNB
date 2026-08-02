@@ -7,6 +7,20 @@
 (define *prover-dir*
   (directory-namestring (current-load-pathname)))
 
+;; MIT's `current-load-pathname' SIGNALS "No file being loaded." at the REPL --
+;; it does NOT return #f, as several call sites (install-theorem!, register-
+;; operator!, def-functoid, ...) assume with a `(when src ...)' guard.  So a
+;; theorem installed INTERACTIVELY -- the `qed' of a proof typed at the prompt --
+;; threw before the guard.  The throw is NOT a normal condition (neither
+;; ignore-errors nor bind-condition-handler on condition-type/error catches it),
+;; so we cannot catch it -- we GATE on *vnb-loading* (held #t across the whole
+;; library load below, #f at the REPL) and only call it when a load is active.
+;; Ad-hoc `./prover file.scm' scripts also read #f here, so their theorems record
+;; no source pathname -- harmless (source is used for the browser's library
+;; links).  (2026-07-27; the user hit it doing (qed 'scratch) after a live proof.)
+(define (safe-load-pathname)
+  (and *vnb-loading* (current-load-pathname)))
+
 ;; Held #t for the whole load.  Several entries in *vnb-files* (the
 ;; theorem-library / calculus proof scripts) run real interactive
 ;; (sp ...) ... (qed ...) sequences, and every tactic ends in (show).  With
@@ -150,6 +164,10 @@
     ;; IS-COMPLETE (metric-completeness).
     "structure-library/compactness"
     "structure-library/separable"
+    ;; Algebras and sigma-algebras of sets (measure-theory vocabulary).  Needs
+    ;; POWER / COMPLEMENT-IN / BIG-UNION (theory.scm) and NN (number-systems);
+    ;; independent of the metric cluster it is filed after.
+    "structure-library/sigma-algebra"
     ;; Restrictive ring/field structures (genuine IS-X predicates; need NN/RR
     ;; from number-systems, used by numeric-instances below).
     "structure-library/commutative-ring"
@@ -197,6 +215,11 @@
     ;; sequences (sum-ag-as-reduce); kernel-only deps (LIST/NTH/LENGTH/NN).
     "structure-library/reduce"
     "structure-library/numeric-instances"
+    ;; Divisibility / Bezout combinations / gcd / coprimality on ZZ.  Vocabulary
+    ;; only; needs ZZ + the surface arithmetic, and is stated at ZZ rather than
+    ;; over a general Euclidean ring because `crs' decides the surface identities
+    ;; the ideal proofs need and does not reach an abstract (ADD s).
+    "structure-library/zz-divisibility"
     ;; The bounded metric d/(1+d) of a metric space + its topological
     ;; equivalence to d (identity bicontinuous); the RR-BOUNDED-MS instance.
     ;; Needs IS-CONTINUOUS (metric-continuity), RR-MS (numeric-instances above)
@@ -280,6 +303,11 @@
     ;; MINOR + DET's two definitional recursion axioms + the first theorem menu
     ;; (computational checks det-1x1/2x2, det-identity, alternating, product).
     "structure-library/determinant"
+    ;; The monoid algebra A[M] (Bourbaki III.2): finitely-supported functions
+    ;; M -> A, pointwise sum, convolution product, as a RING tuple.  POLY(A) =
+    ;; A[NN-ADD-MONOID] is one-variable polynomials.  Ring laws seeded; the
+    ;; convolution-associativity proof is deferred, poly-is-ring is derived.
+    "structure-library/polynomial"
     ;; Phase C: a matrix of scalars acting on a matrix (column sequence) of
     ;; module elements -- MATACT, the book's A . u_col (eq. 82).
     "structure-library/mod-seq"
@@ -389,6 +417,24 @@
     ;; nn-least-element, resolved by NAME at call time, so it may load here,
     ;; long before theorem-library/nn-least-element.
     "minimize"
+    ;; binary-minus-laws -- what follows from number-systems.scm's binary-minus-def
+    ;; (2026-08-01).  Proves rr-sub-in-rr, which was a `well-known' support in
+    ;; order-lemmas until the defining equation for (- a b) existed.  Needs
+    ;; interactive + proof-debt (above); must precede theorem-library/
+    ;; differentiation, its one consumer.
+    "theorem-library/binary-minus-laws"
+    ;; fun-apply-type-proof -- f:A->B, x in A |- f(x) in B, PROVEN modulo 0 from
+    ;; the base axiom fun-codomain-iff.  Was a support claiming the `proof'
+    ;; warrant tier with no machine proof.  Needs only base axioms + driver-kit,
+    ;; so it sits here; must precede theorem-library/cancellation, the earliest
+    ;; file that cites it in an actual proof.
+    "theorem-library/fun-apply-type-proof"
+    ;; nn-order-basics -- nn-le-refl, nn-le-add-right (m <= m+n by induction on
+    ;; n) and nn-pair-upper-bound, PROVEN.  The first and third were supports in
+    ;; order-lemmas claiming the `proof' warrant tier with no machine proof.
+    ;; Needs interactive + driver-kit (use-induction); must precede
+    ;; theorem-library/nn-order-proof and coord-block-estimate-proof.
+    "theorem-library/nn-order-basics"
     ;; calc -- the directive/chain checker (notes-27): ground a goal (REL L0 Ln)
     ;; by a chain of intermediaries, proving each link (crs / ineq+bridge / cited)
     ;; and composing them (cong / iff / order composers).  A composite over the
@@ -413,6 +459,13 @@
     ;; NN facts got re-proved by hand.  Needs the tactics (it PROVES what it
     ;; installs), so it loads here.
     "transport"
+    ;; The four inclusion facts, PROVEN rather than asserted: subset-mem-fwd /
+    ;; subset-mem / subset-trans off subset-def, and subclass-of-set-is-set off
+    ;; class-extensionality + separation.  They sat asserted in set-basics (70)
+    ;; and compactness (165) purely because `sp'/`qed' do not exist that early;
+    ;; here is the first point at which they can be proved, and it precedes all
+    ;; twelve call sites (earliest: theorem-library/diagonalization).
+    "theorem-library/subset-lemmas"
     ;; Snapshot every procedure binding, then let prover-load check after each
     ;; later file that none was rebound to a non-procedure -- the case-fold trap
     ;; ((define BC ...) clobbering the `bc' tactic) that no other gate catches.
@@ -451,6 +504,17 @@
     ;; linchpin nn-3-div-square (3|p*p => 3|p) -- plus nn-3-cancel / nn-lt-triple.
     ;; Feeds sqrt3-proof.  Needs nn-parity-proof + nn-integral (nn-mul-cancel).
     "theorem-library/nn-mod3-proof"
+    ;; <= versus + on NN: a <= 0 => a = 0, a <= a+b, and additive monotonicity.
+    ;; order-lemmas.scm relates <= to succ and never to +; the pairing is what
+    ;; exposed the gap.  Own file, not the pairing file, so the next user can
+    ;; find them.  Needs nn-parity-proof (nn-zero-or-succ).
+    "theorem-library/nn-order-proof"
+    ;; The Cantor pairing NN x NN -> NN (TRINUM by recursion, NNPAIR(i,j) =
+    ;; TRINUM(i+j)+j) and its surjectivity, plus nn-succ-add (succ(a)+b) which
+    ;; the base lacked.  The re-indexing mechanism that compact-metric-is-
+    ;; separable, the Ascoli diagonal and countable unions are all blocked on.
+    ;; Needs nn-parity-proof (nn-zero-or-succ) and ordinals (def-by-nn-recursion).
+    "theorem-library/nn-pairing"
     ;; The three BIJECTION projection lemmas (in-fun / injective / surjective),
     ;; PROVEN modulo 0 from bijection-membership-iff -- formerly asserted in
     ;; bijection.scm "for direct use" (phantom debt).
@@ -475,11 +539,42 @@
     ;; countable Tychonoff headline, PROVEN to QED modulo the diagonalization
     ;; keystone.  Needs seq-compact-product's supports + interactive/proof-debt.
     "theorem-library/tychonoff-proof"
+    ;; ((DIST RR-MS) u v) == abs(u - v): the RR-MS distance on the surface.
+    ;; Proved, modulo 0.  Needs RR-MS (numeric-instances) and the slot equation
+    ;; RR-MS@DIST that declare-instance! mints with it.  Loads BEFORE the ascoli
+    ;; files because generalising IS-EQUICONTINUOUS to (s t fam) put the accessor
+    ;; detour -- d_t(...) where the RR-valued form had abs(...) -- on the path of
+    ;; every proof in that arc.
+    "theorem-library/rr-ms-dist"
+    ;; rr-complete-proof -- IS-COMPLETE(RR-MS): RR is a complete metric space,
+    ;; PROVEN from order completeness via SUP of the eventual lower bounds.
+    ;; Retires the axiom that stood asserted in numeric-instances.
+    ;;
+    ;; PLACEMENT, the hard-won part.  It needs, all together: interactive/
+    ;; proof-debt (sp/qed), driver-kit, `obtain' (sketch.scm, 449), and the
+    ;; theorem `rr-ms-dist' (immediately above) -- the last is why it sits this
+    ;; far down rather than beside the other elementary proofs.  It does NOT
+    ;; need to precede ascoli-bridge's (rests-on ... '(rr-complete)): rests-on
+    ;; only registers metadata, and the "dependencies name installed theorems"
+    ;; audit runs at the END of the load.
+    "theorem-library/rr-complete-proof"
     "theorem-library/ascoli-arzela-statement"
     "theorem-library/ascoli-bridge"
     ;; Functional-analysis statement seeds (stated 2026-07-22; proofs deferred).
     "theorem-library/order-zorn"
+    ;; INJECTION(X,Y) => INJECTIVE*(f): the bridge between the set-function and
+    ;; class-function spellings of injectivity.  Needs injection.scm (both) and
+    ;; fun-domain-apply-def (theory).
+    "theorem-library/injective-star"
+    ;; No SET receives an injective class function from ORD -- the Burali-Forti
+    ;; endgame, factored out.  Needs image-set/image-membership-iff (injection),
+    ;; subclass-of-set-is-set (set-basics), burali-forti (ordinals), choice.
+    "theorem-library/ord-no-injection"
     "theorem-library/zorn-proof"
+    ;; ZORN'S LEMMA, proved: the strictly increasing transfinite tower ZUP and the
+    ;; Burali-Forti contradiction.  Must come after ord-no-injection (its endgame)
+    ;; and before seminorm-hahn-banach, whose `rests-on' names zorn-lemma.
+    "theorem-library/zorn-route-two"
     "theorem-library/seminorm-hahn-banach"
     "theorem-library/baire-category"
     "theorem-library/frechet-open-mapping"
@@ -518,6 +613,11 @@
     ;; "every Euclidean ring is a PID".  Needs nn-least-element (for minimize!),
     ;; ideal.scm, euclidean-ring.scm, mat-equiv.scm (nn-succ-le-antisym).
     "theorem-library/euclidean-ideal-generator-proof"
+    ;; Bezout on ZZ: { x*a + y*b } is an ideal of ZZ-RING (surface-goal! puts the
+    ;; ideal conditions in ZZ arithmetic, `crs' decides them), so the Euclidean
+    ;; generator above is a common divisor that IS a combination.  Needs
+    ;; euclidean-ideal-generator-proof, zz-divisibility, transport.
+    "theorem-library/zz-bezout-proof"
     ;; Pointwise continuity algebra on RR (const/identity continuous; sum/product
     ;; of continuous-at-a is continuous-at-a) -- the supporting machinery the
     ;; differentiation rules are proved on top of.  Needs IS-CONTINUOUS-AT
@@ -686,6 +786,10 @@
     ;; recursive coefficient COMB-KK.  Needs binomial.scm (COMB-KK + bricks) +
     ;; sequences.scm (SUM).
     "theorem-library/binomial-proof"
+    ;; POLY(A) is a ring when A is -- the monoid-algebra construction's first real
+    ;; proof (one instantiation of monalg-is-ring at NN-ADD-MONOID).  Needs
+    ;; polynomial.scm + monoid.scm (comm-monoid-is-monoid) + numeric-instances.
+    "theorem-library/poly-is-ring-proof"
     ;; Calculus Ch 2.5: closed interval CCINT(a,b) + Extreme Value Theorem
     ;; (continuous on [a,b] attains max/min) -- the base of the MVT arc.  Needs
     ;; IS-CONTINUOUS-AT + RR order.
@@ -830,8 +934,32 @@
 ;;; definitional sugar, not asserted math).  Their loads run with
 ;;; *current-provenance* = 'primitive so install-theorem! stamps them.
 ;;; The make-vnb-base-theory core is marked primitive at its build site
-;;; (theory.scm); this list covers the remaining foundational axiom file.
-(define *primitive-files* '("theorem-library/axioms"))
+;;; (theory.scm); this list covers the remaining foundational axiom files.
+;;;
+;;; `number-systems' JOINED THE LIST 2026-08-01, by the user's decision, as the
+;;; last step of the arithmetic-base cleanup that gave NN/ZZ/QQ/RR/CC their
+;;; generation axioms.  Until then its ~107 axioms -- Peano closure, the field
+;;; and order axioms, abs -- were installed by bare `theory-add-axiom!', which
+;;; defaults to `asserted' (macetes.scm:1441), and carried no `warrant!'.  A
+;;; fact that is asserted with nothing claimed to justify it is exactly what
+;;; `trust: none' means, so every arithmetic proof in the library billed the
+;;; axioms of arithmetic as unjustified assumptions:
+;;;
+;;;   ;; qed diagonalization: proven modulo {nn-zero-in, nn-succ-closed, ...}
+;;;                                                            [trust: none]
+;;;
+;;; Measured on the load immediately before the change: of 238 bills, 96 read
+;;; `trust: none', and 81 of those 96 cited a number-systems axiom -- ALL 81.
+;;; Five bills were nothing BUT number-systems axioms and now read `modulo 0'.
+;;;
+;;; This is the same move as the 28 ordinal axioms (2026-07-27) and `image-set'
+;;; (07-28), and it is a foundational decision, not a bookkeeping one: it says
+;;; these axioms are not debt at all, because they are what the number systems
+;;; ARE.  Note what it does NOT cover -- `qq-dense-in-rr' lives in
+;;; structure-library/order-predicates.scm (it needs `<' and `POS-RR', which do
+;;; not exist this early) and so stays `asserted'.  That asymmetry is honest:
+;;; density is a THEOREM of the base, not part of it.
+(define *primitive-files* '("theorem-library/axioms" "number-systems"))
 
 ;; In recompile mode (VNB_RECOMPILE=1, set by the VNB-with-compile script) the
 ;; compile path loads the tree ONCE (this --load) instead of twice.  It is also
@@ -1129,6 +1257,24 @@
                     (display ";;   ") (display (car e)) (display ": ") (write (cdr e)) (newline))
                   bad))))
 
+;; Same collision class, one level deeper: case-fold-audit walks *theorem-table*
+;; only, so a def-functoid BODY -- which lives in *functoid-registry* -- was never
+;; checked.  A body binder that case-folds onto a PARAMETER captures it silently
+;; (MONALG-MUL's `m' vs param M turned (OPR M) into OPR-of-the-point, clean load
+;; and all; 2026-07-25).  functoid-binder-audit wraps each body in a FORALL per
+;; parameter and reuses the shadowing walk.  HARD gate: the library is clean, so
+;; a hit is a real capture (or a needless shadow -- rename the binder x_/y_).
+(let ((bad (functoid-binder-audit)))
+  (if (null? bad)
+      (display ";; functoid-binder-audit: ok (no functoid body binder shadows a parameter)\n")
+      (begin
+        (display "\n;; functoid-binder-audit: ") (display (length bad))
+        (display " functoid(s) have a body binder shadowing a parameter (case-fold capture):\n")
+        (for-each (lambda (e)
+                    (display ";;   ") (display (car e)) (display ": ") (write (cdr e)) (newline))
+                  bad)
+        (error "functoid-binder-audit: functoid body binder(s) collide with a parameter -- see above"))))
+
 ;; Soundness gate: a bound variable named like a registered constant (accessor /
 ;; operator / functoid / predicate / defined fn) is read as that CONSTANT in head
 ;; position, scope-blind, silently changing the formula's meaning.  This is the
@@ -1152,6 +1298,48 @@
 ;; HARD gate, as of the 2026-07-12 renames: the three legacy ambiguities are
 ;; gone (the group family's operation is OPR, the field's inverse RECIP, the
 ;; normed field's norm FNRM), so an ambiguity is now unambiguously a bug.
+(let* ((audit (kernel-rules-audit))
+       (undoc (car audit))
+       (unused (cadr audit)))
+  (if (and (null? undoc) (null? unused))
+      (display ";; kernel-rules-audit: ok (documented trusted base = rules actually stamped)\n")
+      (begin
+        (if (pair? undoc)
+            (begin
+              (display "\n;; kernel-rules-audit: ") (display (length undoc))
+              (display " TRUSTED RULE TAG(S) STAMPED BUT NOT DOCUMENTED --\n")
+              (display ";; add them to *kernel-rule-tags* (tactics-help.scm) and to\n")
+              (display ";; reference/KERNEL-RULES.md; an undocumented tag is trusted surface\n")
+              (display ";; nobody can audit:\n")
+              (display ";;   ") (display undoc) (newline)))
+        (if (pair? unused)
+            (begin
+              (display ";; kernel-rules-audit: ") (display (length unused))
+              (display " documented tag(s) not exercised by this load")
+              (display " (a rule no proof uses,\n")
+              (display ";; or one no tactic can reach): ")
+              (display unused) (newline))))))
+
+(let ((bad (connective-arity-audit)))
+  (if (null? bad)
+      (display ";; connective-arity-audit: ok (every installed formula's connectives are binary)\n")
+      (begin
+        (display "\n;; connective-arity-audit: ") (display (length bad))
+        (display " INSTALLED FORMULA(S) WITH A MALFORMED CONNECTIVE --\n")
+        (display ";; make-wff rejects these; theory-add-axiom!/support install without\n")
+        (display ";; validating, and the kernel reads AND/OR/IMPLIES/IFF with\n")
+        (display ";; binary-left/right, so extra conjuncts are SILENTLY DROPPED and the\n")
+        (display ";; formula does not say what it appears to say.  Restate with nested\n")
+        (display ";; binary connectives, or as chained implications:\n")
+        (for-each (lambda (e)
+                    (display ";;   ") (display (car e))
+                    (display "  ") (write (cdr e)) (newline))
+                  bad)
+        ;; FATAL since 2026-07-28, when the pre-existing backlog reached zero.  A
+        ;; malformed connective means the trusted base does not say what it
+        ;; appears to say; there is no safe way to carry one.
+        (error "connective-arity-audit: installed formula(s) with a malformed connective -- see above"))))
+
 (let ((amb (accessor-index-audit)))
   (if (null? amb)
       (display ";; accessor-index-audit: ok (every accessor name denotes one slot)\n")

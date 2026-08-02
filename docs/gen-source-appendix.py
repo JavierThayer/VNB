@@ -119,7 +119,9 @@ def main():
         o.write('\\section{Emacs interface (\\texttt{emacs/}) and generated docs}\n')
         o.write('\\label{sec:src-emacs}\n')
         o.write('The workspace front end lives in \\texttt{emacs/}:\n')
-        o.write('\\begin{itemize}[label=$\\circ$, leftmargin=0.85cm]\n')
+        # Bare: the label and margin are set once, for every list in the
+        # manual, by \setlist[itemize,...] in manual.tex's preamble.
+        o.write('\\begin{itemize}\n')
         for p in emacs:
             base = os.path.basename(p)
             o.write('\\item \\texttt{%s}\n' % latex_escape(base))

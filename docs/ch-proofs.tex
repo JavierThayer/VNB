@@ -58,9 +58,8 @@ worked on).  Every proof command returns a new proof state with an
 updated focus.
 
 \texttt{start-proof} takes a \texttt{wff} (produced by \texttt{make-wff} or \texttt{make-wff-from-string}).
-Any local contexts attached to the \texttt{wff} are unrolled into initial
-sequent assumptions, so that subsequent inference rules see them as
-ordinary hypotheses.  All sequent assumptions and assertions are
+The root sequent has no assumptions: a proof begins from the bare goal,
+and every hypothesis arrives through an inference.  All sequent assumptions and assertions are
 \texttt{wff} objects throughout the proof; the theory name propagates
 automatically to every subformula produced by inference rules.
 
@@ -77,11 +76,11 @@ advances the focus to the first new ungrounded subgoal.
 
 \subsection{Logical connectives}
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 
 \item \texttt{(cmd-direct-inference ps)}
   Decompose the goal by its top-level connective:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \texttt{p and q} $\to$ two subgoals $p$, $q$.
   \item \texttt{p implies q} $\to$ assume $p$, prove $q$.
   \item \texttt{p iff q} $\to$ two subgoals (each direction).
@@ -98,7 +97,7 @@ advances the focus to the first new ungrounded subgoal.
 
 \item \texttt{(cmd-antecedent-inference ps $f$)}
   Decompose assumption $f$ by its top-level connective:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \texttt{p and q} $\to$ replace with $p$ and $q$ separately.
   \item \texttt{p or q} $\to$ case split: branch on $p$, branch on $q$.
   \item \texttt{not(p)} $\to$ derive \texttt{falsity} if $p$ also in context.
@@ -132,7 +131,7 @@ advances the focus to the first new ungrounded subgoal.
   not examined.
 
   The goal may be in either of two forms:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item \textbf{Bare equality} \texttt{$e_1$ = $e_2$}: generators are
     certified by \texttt{(IN $v$ $D$)} assumptions already in the sequent
     context.  Typically reached after \texttt{(di)} peels the leading
@@ -276,7 +275,7 @@ advances the focus to the first new ungrounded subgoal.
 \subsection{N-ary constructors}
 \label{sec:nary-proof-commands}
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 
 \item \begin{sloppypar}\texttt{(cmd-cartesian-intro ps)}
   To prove \texttt{[$a_1$,\ldots,$a_n$] in cartesian($A_1$,\ldots,$A_n$)},
@@ -370,7 +369,7 @@ re-runs it (Section~\ref{sec:replay}).
 A short form takes one of a few kinds of argument, and each kind is
 collected the same way wherever it appears.
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Nothing.}  The structural steps --- \texttt{di}, \texttt{ass},
   \texttt{pbc}, \texttt{rs}, \texttt{rfl}, \texttt{ci}, \texttt{ni},
   \ldots\ --- read the focus goal and need no argument.
@@ -378,7 +377,7 @@ collected the same way wherever it appears.
 \item \textbf{A formula} (\texttt{ai}, \texttt{bc}, \texttt{wk},
   \texttt{cut}, \texttt{ue}, the assumption cited by \texttt{inst} and
   \texttt{mac-h}).  It may be supplied three interchangeable ways:
-  \begin{itemize}[label=$-$, leftmargin=0.85cm]
+  \begin{itemize}
   \item a \textbf{surface string}, parsed for you ---
     \texttt{"n in NN and m in NN"};
   \item a \textbf{raw S-expression} ---
@@ -543,7 +542,7 @@ To install a custom macete:
 \begin{sloppypar}The function \texttt{apply-macete} applies a named macete directly to a
 \texttt{wff} without creating a proof state:\end{sloppypar}
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{(apply-macete \textit{name} \textit{w})} --- rewrites \textit{w};
   returns a new \texttt{wff} if any rewrite fires, or \texttt{\#f} if the
   pattern matches nowhere in \textit{w}.
@@ -693,7 +692,7 @@ Accessor indices are assigned sequentially: carriers first (starting
 at~1), then operations in declaration order.\end{sloppypar}
 
 A \texttt{declare-structure} call installs two things automatically:
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \emph{Accessor macetes}: \texttt{CARR}$(s)$ rewrites to
   \texttt{nth(1,$s$)}, \texttt{OPR}$(s)$ to \texttt{nth(2,$s$)}, etc.
 \item \emph{Definitional biconditional} \texttt{IS-NAME}: the axiom
@@ -752,8 +751,18 @@ file per structure) and loaded automatically.
 \end{center}
 
 \begin{remark}
-Characteristic axioms are ordinary theorems; use \texttt{(ta 'name)} to
-transport one into the current proof.  For example, to apply
+Each entry above is citable by name with \texttt{(ta 'name)}, which transports
+it into the current proof.  They do \emph{not} all have the same standing,
+however, and the column heading is a convenience rather than a claim: the
+\textsc{Ring}, \textsc{Group} and \textsc{Abelian-Group} laws really are
+installed by \texttt{theory-add-axiom!} (fifteen of them in
+\texttt{structure-library/ring.scm} alone) and are charged to the bill of any
+\texttt{qed} that cites them, whereas the \textsc{Metric-Space} laws --
+\texttt{metric-pos}, \texttt{metric-self-zero}, \texttt{metric-zero-eq},
+\texttt{metric-sym}, \texttt{metric-triangle} -- are \emph{proved}, by
+\texttt{prove-metric-law!} in \texttt{structure-library/metric-laws.scm}, and
+cost nothing.  \texttt{reference/PROOF-DEBT.md} is the authority on which is
+which; this table is not.  For example, to apply
 \texttt{group-left-inv} (which asserts
 $\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{CARR}(s)
  \Rightarrow \texttt{OPR}(s)(\texttt{INV}(s)(a),a)=\texttt{IDEN}(s)$),

@@ -129,10 +129,19 @@
   (let ((lane (and (pair? opt) (car opt))))
     (sk--discharge (proof-state-focus *ps*) lane)
     (sk--sweep!)
-    (let ((gaps (reverse *sk-gaps*)) (open (proof-leaves)))
+    ;; Completeness is `proof-done?' -- the SAME test qed applies -- and NOT
+    ;; (null? (proof-leaves)).  proof-leaves returns ungrounded nodes with NO
+    ;; IN-ARROWS, and every rule application gives its node an in-arrow, so a
+    ;; goal the auto lane fired on and failed to close vanishes from that list.
+    ;; qed-sketch used to read the empty list as victory and print OUTCOME 1
+    ;; over a proof that was not done -- the qed inside then errored, so nothing
+    ;; unsound was ever installed, but the report lied.  Fixed 2026-07-29.
+    (let ((gaps (reverse *sk-gaps*))
+          (done (proof-done? *ps*))
+          (open (proof-open-goals *ps*)))
       (newline)
       (cond
-        ((and (null? gaps) (null? open))
+        ((and (null? gaps) done)
          (display ";; ================ OUTCOME 1: the sketch CLOSES ================\n")
          (display ";; Viewer discretion advised: the kernel trace is the gory version.\n")
          (display ";;   (write-proof-reader '") (display name)
@@ -146,5 +155,5 @@
                (display ";; (give a lane), or they are false:\n")
                (for-each (lambda (g) (display ";;   FUBA> ") (write g) (newline)) gaps))
              (display ";; The goal itself did not follow from the steps as given.\n"))
-         (display ";; open leaves remaining: ") (display (length open)) (newline)
+         (display ";; open goals remaining: ") (display (length open)) (newline)
          #f)))))

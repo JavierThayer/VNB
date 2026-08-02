@@ -267,8 +267,10 @@
 (theory-add-axiom! *current-theory* 'rr-is-metric-space
   '(IS-METRIC-SPACE RR-MS))
 
-(theory-add-axiom! *current-theory* 'rr-complete
-  '(IS-COMPLETE RR-MS))
+;; rr-complete MOVED 2026-08-02 to theorem-library/rr-complete-proof.scm, where
+;; IS-COMPLETE(RR-MS) is PROVEN.  It was asserted here for as long as RR had no
+;; completeness axiom to prove it from; rr-sup-in/-upper/-least (number-systems,
+;; 2026-08-01) changed that, and this is their first real consumer.
 
 ;;; -----------------------------------------------------------------------
 ;;; NN as a commutative monoid under addition

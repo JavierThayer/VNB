@@ -1062,6 +1062,318 @@
 
 (define (tt) (things-to-try))
 
+;;; (proof-rules) -- CERTIFY the current completed proof by reading its DEDUCTION
+;;; GRAPH directly, not the tactic trace.  Walk the grounded derivation from the
+;;; root and tally every kernel inference by its rule.  Every rule is one of the
+;;; FIXED trusted-base tags (dg-apply-rule!), so a proof driven by the composite
+;;; tactics (proceed / use / use-properties / use-relevant-properties) is hereby
+;;; shown to rest on NOTHING but those rules -- independent of what proof-tex's
+;;; (lossy) trace capture renders.  It also prints the macete rewrites (each
+;;; unfold's source -> replacement).  The lemma NAMES the proof cites are the
+;;; `qed' bill's `modulo {...}' (theorem-assumption / backchain rules do not carry
+;;; the name; the proof-debt ledger is the authority there).
+(define (proof-rules--grounding-arrow sqn)
+  (let loop ((as (sequent-node-in-arrows sqn)))
+    (cond ((null? as) #f)
+          ((every sequent-node-grounded? (inference-node-hypotheses (car as))) (car as))
+          (else (loop (cdr as))))))
+(define (proof-rules--walk sqn seen)
+  (if (memq sqn seen) '()
+      (let ((a (proof-rules--grounding-arrow sqn)))
+        (if (not a) '()
+            (cons (inference-node-rule a)
+                  (apply append (map (lambda (h) (proof-rules--walk h (cons sqn seen)))
+                                     (inference-node-hypotheses a))))))))
+(define (proof-rules)
+  (vnb--require-proof!)
+  (if (not (proof-done? *ps*))
+      (begin (display ";; proof-rules: NOT complete -- ")
+             (display (length (proof-leaves))) (display " open leaf/leaves\n") #f)
+      (let* ((rules (proof-rules--walk (proof-state-root *ps*) '()))
+             (heads (map (lambda (r) (if (pair? r) (car r) r)) rules)))
+        (display ";; proof-rules: root grounded; ") (display (length rules))
+        (display " kernel inference(s), each a trusted-base rule:\n;;   ")
+        (let dedup ((hs heads) (seen '()))
+          (cond ((null? hs) 'done)
+                ((member (car hs) seen) (dedup (cdr hs) seen))
+                (else (display (car hs)) (display " x")
+                      (display (length (filter (lambda (x) (equal? x (car hs))) heads)))
+                      (display "   ") (dedup (cdr hs) (cons (car hs) seen)))))
+        (newline)
+        (let ((macs (let dd ((rs (filter (lambda (r) (and (pair? r) (eq? (car r) 'macete))) rules)) (s '()))
+                      (cond ((null? rs) (reverse s)) ((member (car rs) s) (dd (cdr rs) s)) (else (dd (cdr rs) (cons (car rs) s)))))))
+          (when (pair? macs)
+            (display ";;   macete rewrites (source -> replacement):\n")
+            (for-each (lambda (r) (display ";;     ") (write (cadr r)) (display "  ->  ") (write (caddr r)) (newline)) macs)))
+        (display ";;   lemma names it cites: the (qed ...) bill's `modulo {...}'.\n")
+        rules)))
+
+;;; -----------------------------------------------------------------------
+;;; (use 'NAME) -- one command, the SYSTEM picks the inference mode.
+;;;
+;;; The routine bookkeeping a user should never have to carry, absorbed:
+;;;   * the -def suffix: a def-predicate's unfold is NAME-def, a def-functoid's
+;;;     is NAME.  `use' resolves either (via resolve-macete-name).
+;;;   * mac vs bc*: an equation / iff / definitional unfold REWRITES (mac the
+;;;     goal, or the one hypothesis it fits); any other conclusion BACKCHAINS
+;;;     (bc*).  `use' classifies NAME's conclusion and picks.
+;;;   * which hypothesis for mac-h, which open leaf: it scans them.
+;;;   * the trivial spawned subgoals: after the step it sweeps the NO-CHOICE
+;;;     closers (an in-context hypothesis -> ass, x=x -> rfl, a ground numeric
+;;;     fact -> arith), so they close themselves.
+;;; It PRINTS the mode it chose + how many leaves remain; a wrong guess is
+;;; visible and the primitive tactics (mac / bc* / fact / mac-h) are still there.
+;;;
+;;; FORWARD application (fact) is NOT a fallback: fact never fails (it always
+;;; lands its instantiation), so auto-guessing it would misattribute an unrelated
+;;; closure.  A `use' that cannot fit the goal says so and points at (fact ...).
+
+(define (use--goal-of L) (wff-formula (sequent-node-assertion L)))
+(define (use--asms-of L) (map wff-formula (sequent-node-assumptions L)))
+
+;;; A genuine rewrite lemma (mac-able): a functoid/def unfold, or a =/==/IFF
+;;; theorem.  Anything else is a predicate-conclusion lemma -> backchain.
+(define (use--rewrite? name)
+  (or (hash-table-ref/default *functoid-registry* name #f)
+      (let ((thm (hash-table-ref/default *theorem-table* name #f)))
+        (and thm (flip-symmetric-core-in-formula thm) #t))
+      (let ((s (symbol->string name)))
+        (and (> (string-length s) 4)
+             (string=? "-def" (substring s (- (string-length s) 4) (string-length s)))))))
+
+;;; Does NAME's conclusion match leaf L's goal (so bc* would fire)?  A cheap
+;;; pre-check that lets `use' skip -- silently -- the leaves bc* cannot close.
+(define (use--bc-matches? name L)
+  (let ((thm (hash-table-ref/default *theorem-table* name #f)))
+    (and thm
+         (call-with-values (lambda () (bc*--peel thm))
+           (lambda (svars concl)
+             (fluid-let ((*match-var-head* #t))
+               (and (match-expr concl (use--goal-of L) svars) #t)))))))
+
+;;; Run THUNK (quietly) on the first open leaf satisfying WHEN?; #t if that leaf
+;;; then changed.  Restores the original focus when nothing fired.
+(define (use--on-leaf when? thunk)
+  (let ((orig (proof-state-focus *ps*)))
+    (let loop ((ls (proof-leaves)))
+      (cond
+        ((null? ls) (set-proof-state-focus! *ps* orig) #f)
+        ((not (when? (car ls))) (loop (cdr ls)))
+        (else
+         (set-proof-state-focus! *ps* (car ls))
+         (fluid-let ((*vnb-quiet* #t)) (thunk))
+         (if (not (memq (car ls) (proof-leaves))) #t (loop (cdr ls))))))))
+
+;;; Close leaf L by a no-choice closer -- but only when its guard says it fires,
+;;; so there is no "not applicable" spam.  #t if closed.
+(define (use--try-close! L)
+  (let ((g (use--goal-of L)))
+    (cond
+      ((any (lambda (a) (alpha-equiv? g a)) (use--asms-of L))
+       (set-proof-state-focus! *ps* L) (fluid-let ((*vnb-quiet* #t)) (ass)) #t)
+      ((and (pair? g) (memq (car g) '(= ==)) (= (length g) 3) (alpha-equiv? (cadr g) (caddr g)))
+       (set-proof-state-focus! *ps* L) (fluid-let ((*vnb-quiet* #t)) (rfl)) #t)
+      ((eq? #t (arith-eval-formula g))
+       (set-proof-state-focus! *ps* L) (fluid-let ((*vnb-quiet* #t)) (arith)) #t)
+      (else #f))))
+;;; Forward-detach every context implication of L whose antecedent is present
+;;; and whose consequent is not yet present -- forced modus ponens, no choice.
+;;; This is how the sweep USES THE STUFF IN THE CONTEXT: it saturates the
+;;; consequences the hypotheses force, so a hypothesis-driven goal closes itself.
+(define (use--detach-forced! L)
+  (set-proof-state-focus! *ps* L)
+  (let ((asms (use--asms-of L)) (fired #f))
+    (for-each
+      (lambda (h)
+        (when (and (pair? h) (eq? (car h) 'IMPLIES))
+          (let ((ant (binary-left h)) (con (binary-right h)))
+            (when (and (any (lambda (a) (alpha-equiv? a ant)) asms)
+                       (not (any (lambda (a) (alpha-equiv? a con)) asms)))
+              (fluid-let ((*vnb-quiet* #t)) (detach! h))  ; wrapped: captures into the trace
+              (set! fired #t)))))
+      asms)
+    fired))
+
+;;; Saturate the no-choice moves over every open leaf: forced forward-detachment
+;;; from the context, then the closers (ass / rfl / arith).  Both bounded (detach
+;;; only lands an absent consequent; closers remove leaves), so this terminates.
+(define (use--sweep!)
+  (let sw ((k 0))
+    (let ((leaves (proof-leaves)) (progress #f))
+      (for-each (lambda (L)
+                  (when (memq L (proof-leaves))
+                    (when (use--detach-forced! L) (set! progress #t))
+                    (when (and (memq L (proof-leaves)) (use--try-close! L)) (set! progress #t))))
+                leaves)
+      (when (and progress (< k 100)) (sw (+ k 1))))))
+
+(define (use name)
+  (vnb--require-proof!)
+  (let ((resolved (resolve-macete-name name)))
+    (define (done m) (use--sweep!)
+      (display ";; use ") (display name) (display ": ") (display m)
+      (display " -- ") (display (length (proof-leaves))) (display " leaf/leaves left") (newline) name)
+    (cond
+      ;; REWRITE lane: functoid/def unfold or =/==/IFF theorem.
+      ((and resolved (or (use--rewrite? name) (use--rewrite? resolved))
+            ;; Go through the WRAPPED tactics (mac / mac-h), not raw cmd-*, so the
+            ;; step lands in *live-trace* (record-cmd! + vnb--capture-step!) and
+            ;; proof-tex / proof-reader render it.  Already under *vnb-quiet* (via
+            ;; use--on-leaf), so `show' stays silent.
+            (or (use--on-leaf (lambda (L) #t) (lambda () (mac resolved)))
+                (use--on-leaf (lambda (L) #t)
+                  (lambda () (for-each (lambda (f) (mac-h resolved f))
+                                       (use--asms-of (proof-state-focus *ps*)))))))
+       (done (string-append "rewrote via `" (symbol->string resolved) "'")))
+      ;; BACKCHAIN lane: predicate-conclusion lemma matching some open goal.
+      ((and (hash-table-ref/default *theorem-table* name #f)
+            (use--on-leaf (lambda (L) (use--bc-matches? name L))
+                          (lambda () (bc*--attempt name '()))))
+       (done "backchained (bc*)"))
+      ((not (hash-table-ref/default *theorem-table* name #f))
+       (display ";; use ") (display name)
+       (display ": no such result -- (find-theorem '") (display name) (display ") to search\n") name)
+      (else
+       (display ";; use ") (display name)
+       (display ": doesn't fit any open goal.  For a FORWARD step use (fact '")
+       (display name) (display " ...).\n") name))))
+
+;;; (proceed) -- the whole "(di)(di)(di)..." opening, one word: saturate direct-
+;;; inference over EVERY open leaf, peeling FORALL/IMPLIES/AND/IFF/NOT until no
+;;; goal is a connective.  No lemma or witness choice -- purely structural, so it
+;;; is always safe to lead with.  (di's cousin grind also unfolds hypotheses via
+;;; mac-h*; proceed is di-only, the pure goal-opening.)
+(define (proceed)
+  (vnb--require-proof!)
+  (let loop ((k 0))
+    (let ((fired #f))
+      (for-each (lambda (L)
+                  (set-proof-state-focus! *ps* L)
+                  (let ((g (use--goal-of L)))
+                    (when (and (pair? g) (memq (car g) '(FORALL IMPLIES AND IFF NOT)))
+                      (fluid-let ((*vnb-quiet* #t)) (di)) (set! fired #t))))
+                (proof-leaves))
+      (when (and fired (< k 200)) (loop (+ k 1)))))
+  (use--sweep!)                        ; saturate forced context consequences + closers
+  (display ";; proceed: ") (display (length (proof-leaves))) (display " leaf/leaves open\n"))
+
+;;; ---- name globs, for use-properties -----------------------------------
+(define (use--prefix? pre s)
+  (and (<= (string-length pre) (string-length s))
+       (string=? pre (substring s 0 (string-length pre)))))
+(define (use--suffix? suf s)
+  (and (<= (string-length suf) (string-length s))
+       (string=? suf (substring s (- (string-length s) (string-length suf)) (string-length s)))))
+;;; `poly*' (prefix), `*comm' (suffix), `*ring*' (substring), or an exact name.
+(define (use--name-matches? pat name)
+  (let* ((p (if (symbol? pat) (symbol->string pat) pat))
+         (s (symbol->string name)) (n (string-length p))
+         (beg (and (> n 0) (char=? #\* (string-ref p 0))))
+         (end (and (> n 0) (char=? #\* (string-ref p (- n 1))))))
+    (cond ((and beg end) (substring? (substring p 1 (max 1 (- n 1))) s))
+          (end (use--prefix? (substring p 0 (- n 1)) s))
+          (beg (use--suffix? (substring p 1 n) s))
+          (else (string=? p s)))))
+
+;;; A def-functoid safe to UNFOLD in use-properties: its body is headed by a
+;;; REGISTERED operator, not a raw LIST/tuple.  poly -> MONALG(...) lands on a
+;;; term lemmas are keyed on (monalg-comm); monalg -> LIST(...) and an instance's
+;;; tuple land on nothing -- the derail.  This static head test separates them.
+(define (use--safe-unfold? name)
+  (let ((reg (hash-table-ref/default *functoid-registry* name #f)))
+    (and reg (let ((body (cadr reg)))
+               (and (pair? body) (symbol? (car body))
+                    (not (eq? (car body) 'LIST))
+                    (constant-head? (car body)))))))
+
+;;; (use-properties 'PAT) -- indeterminate `use': discharge open goals with the
+;;; family of results whose name matches the glob PAT (poly* / *comm / *ring* /
+;;; exact), round by round + sweep, until nothing new fires or the proof closes.
+;;; Two lanes: BACKCHAIN every matching THEOREM whose conclusion fits a leaf, and
+;;; UNFOLD every matching def-functoid that is safe (use--safe-unfold? -- lands on
+;;; a named operator, not a tuple).  A blind rewrite of every match would derail
+;;; (the `nn-add-monoid-def' -> tuple trap, 2026-07-26); the safe-unfold guard +
+;;; skipping `-def'/`-rev' names is what makes `poly*' do the POLY unfold without
+;;; the `nn'/`monalg' tuple unfolds coming along.  Prints what it fired.
+;;; QUIET core: one round of the matching family over the open leaves -- backchain
+;;; the fitting theorems, unfold the safe functoids, sweep -- returning the names
+;;; that fired.  No printing.  Both use-properties (below) and use-relevant-
+;;; properties drive this.
+(define (use--properties-round pat)
+  (let ((bc (filter (lambda (n)
+                      (and (use--name-matches? pat n)
+                           (let ((s (symbol->string n)))
+                             (not (or (use--suffix? "-def" s) (use--suffix? "-rev" s))))))
+                    (hash-table-keys *theorem-table*)))
+        (uf (filter (lambda (n) (and (use--name-matches? pat n) (use--safe-unfold? n)))
+                    (hash-table-keys *functoid-registry*)))
+        (fired '()))
+    (for-each (lambda (nm) (when (use--on-leaf (lambda (L) (use--bc-matches? nm L))
+                                               (lambda () (bc*--attempt nm '())))
+                             (set! fired (cons nm fired)))) bc)
+    (for-each (lambda (nm) (when (use--on-leaf (lambda (L) #t) (lambda () (mac nm)))  ; wrapped: captures
+                             (set! fired (cons nm fired)))) uf)
+    (use--sweep!)
+    (reverse fired)))
+
+(define (use-properties pat)
+  (vnb--require-proof!)
+  (let loop ((k 0) (log '()))
+    (let ((round (use--properties-round pat)))
+      (cond
+        ((proof-done? *ps*)
+         (display ";; use-properties ") (write pat) (display ": ")
+         (write (append round log)) (display " -- proof DONE\n"))
+        ((and (pair? round) (< k 30)) (loop (+ k 1) (append round log)))
+        (else
+         (display ";; use-properties ") (write pat) (display ": ")
+         (if (null? log) (display "nothing fit") (write log))
+         (display " -- ") (display (length (proof-leaves))) (display " leaf/leaves left\n"))))))
+
+;;; ---- (use-relevant-properties): let the SEQUENT choose the families --------
+(define (use--dedup xs)
+  (let loop ((xs xs) (seen '()))
+    (cond ((null? xs) (reverse seen)) ((memq (car xs) seen) (loop (cdr xs) seen))
+          (else (loop (cdr xs) (cons (car xs) seen))))))
+
+;;; Every registered-operator head (functoid / instance / predicate) occurring
+;;; anywhere in an open leaf's goal or context -- the constructions the sequent
+;;; is actually about (poly, monalg, nn-add-monoid, ...).  Collects atoms in
+;;; ARGUMENT position too (nn-add-monoid rides as an argument of monalg).
+(define (use--sequent-heads)
+  (let ((heads '()))
+    (define (walk e) (cond ((symbol? e) (when (constant-head? e) (set! heads (cons e heads))))
+                           ((pair? e) (for-each walk e))))
+    (for-each (lambda (L) (walk (use--goal-of L)) (for-each walk (use--asms-of L))) (proof-leaves))
+    (use--dedup heads)))
+
+(define (use--leaf-sig)
+  (sort (map (lambda (L) (expression->string (use--goal-of L))) (proof-leaves)) string<?))
+
+;;; (use-relevant-properties) -- no argument: read the construction heads off the
+;;; sequent and run use-properties on each family (head*), re-reading after every
+;;; round (an unfold introduces new heads: poly -> monalg -> nn-add-monoid) until
+;;; the open-leaf set stops changing or the proof closes.  Keys on the
+;;; CONSTRUCTIONS present, not on conclusion-matching, so it never conjures an
+;;; unrelated family.  The specific `use-properties 'pat*' forms stay for when you
+;;; want to name the family yourself.
+(define (use-relevant-properties)
+  (vnb--require-proof!)
+  (let loop ((k 0) (fired-all '()))
+    (let ((before (use--leaf-sig)) (round '()))
+      (for-each (lambda (h)
+                  (set! round (append round
+                    (use--properties-round (string->symbol (string-append (symbol->string h) "*"))))))
+                (use--sequent-heads))
+      (cond
+        ((proof-done? *ps*)
+         (display ";; use-relevant-properties fired ") (write (append fired-all round))
+         (display " -- proof DONE\n"))
+        ((and (< k 20) (not (equal? before (use--leaf-sig)))) (loop (+ k 1) (append fired-all round)))
+        (else
+         (display ";; use-relevant-properties fired ") (write (append fired-all round))
+         (display " -- ") (display (length (proof-leaves))) (display " leaf/leaves left\n"))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; (scout d b) -- the speculative, backtracking proof search.
 ;;;

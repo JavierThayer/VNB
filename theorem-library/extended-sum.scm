@@ -49,9 +49,7 @@
 ;;; Upper bound: every finite partial sum is <= ESUM(f).
 (theory-add-axiom! *current-theory* 'esum-upper
   '(FORALL f (IMPLIES (IN f (FUN (DOM f) RR+*))
-     (FORALL S (IMPLIES (AND (IN S SET)
-                             (IN (CARD S) NN)
-                             (SUBSET S (DOM f)))
+     (FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (SUBSET S (DOM f))))
        (<= (FINSUM RR+*-ADD-MONOID f S) (ESUM f)))))))
 
 (warrant! 'esum-upper 'informal
@@ -64,9 +62,7 @@
 (theory-add-axiom! *current-theory* 'esum-least
   '(FORALL f (IMPLIES (IN f (FUN (DOM f) RR+*))
      (FORALL b (IMPLIES (AND (IN b RR+*)
-                  (FORALL S (IMPLIES (AND (IN S SET)
-                                          (IN (CARD S) NN)
-                                          (SUBSET S (DOM f)))
+                  (FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (SUBSET S (DOM f))))
                     (<= (FINSUM RR+*-ADD-MONOID f S) b))))
        (<= (ESUM f) b))))))
 
@@ -84,9 +80,7 @@
   '(FORALL f (IMPLIES (IN f (FUN (DOM f) RR+*))
      (IFF (IN (ESUM f) RR)
           (FORSOME M (AND (IN M RR)
-            (FORALL S (IMPLIES (AND (IN S SET)
-                                    (IN (CARD S) NN)
-                                    (SUBSET S (DOM f)))
+            (FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (SUBSET S (DOM f))))
               (<= (FINSUM RR+*-ADD-MONOID f S) M)))))))))
 
 (warrant! 'esum-finite-iff-bounded 'informal

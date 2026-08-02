@@ -129,22 +129,73 @@
     ("Well-ordering of NN"
      well-ordering-principle nn-least-element)))
 
-;;; ---- Linear algebra (matrices over a ring; elementary column operations) ----
+;;; ---- Linear algebra (matrices over a ring; elementary operations; determinants) ----
 ;;; The algebraic-numbers.pdf ch.3 arc: the matrix ring, the matrix unit and its
 ;;; column-shift lemma (the engine), and the elementary column matrices F/G/H with
 ;;; their Prop 3.5 actions and Cor 3.6 inverses -- all machine-checked (trust:none).
+;;;
+;;; The page used to list six of the ~137 installed matrix results, which made the
+;;; whole matrix layer invisible to a reader browsing by subject -- and with it the
+;;; determinants, whose only trace anywhere in the docs was one generated row in the
+;;; manual's source appendix.  The layer is laid out in reading order below: what a
+;;; matrix IS, the arithmetic, the ring, the constructions that cut and extend one,
+;;; then the elementary operations built on them, and finally DET.
 (define *linear-algebra-sections*
   '(("Vocabulary"
-     MAT ENTRY MATOF MATMUL IDENTMAT ZEROMAT MATADD MATNEG MAT-RING
-     MATUNIT ELEM-F ELEM-G ELEM-H INTERVAL)
+     MAT ENTRY MATOF MATMUL MATADD MATNEG MATSCALE IDENTMAT ZEROMAT MAT-RING
+     SUBMAT BLOCK SNOC-COL SNOC-ROW MATUNIT ELEM-F ELEM-G ELEM-H MAT-EQUIV
+     MATACT MINOR DET INTERVAL)
+    ("Matrices as a set, and their entries"
+     mat-is-set matrix-sethood matrix-membership matrix-entry-extensionality
+     entry-in-carrier matof-exists matof-in-mat entry-of-matof
+     mat-0-1-nonempty mat-1-0-nonempty)
+    ("Addition, negation, scaling"
+     matadd-type matadd-entry matadd-assoc matadd-comm
+     matadd-zero-left matadd-zero-right matadd-neg-left matadd-neg-right
+     matneg-type matscale-type matscale-entry)
+    ("Multiplication"
+     matmul-type matmul-entry matmul-assoc matmul-left-dist matmul-right-dist
+     matprod-summand-type matmul-assoc-summand-type)
+    ("The identity and zero matrices"
+     identmat-type identmat-entry-diag identmat-entry-off
+     entry-of-identmat entry-of-zeromat
+     identmat-left-identity identmat-right-identity identmat-invertible)
     ("The matrix ring"
-     matmul-assoc mat-ring-is-ring)
+     mat-ring-is-ring mat-ring-carr mat-ring-add mat-ring-mul
+     mat-ring-zero mat-ring-one mat-ring-neg mat-ring-add-fun mat-ring-mul-fun)
+    ("Cutting and extending: submatrices, blocks, bordered matrices"
+     submat-type entry-of-submat entry-of-block
+     snoc-col-type snoc-col-last entry-of-snoc-col
+     snoc-row-type snoc-row-last entry-of-snoc-row)
     ("The matrix unit and its column shift (Lemma 3.3)"
-     matunit-col-shift)
+     matunit-type matunit-entry-k-row matunit-entry-off-row
+     entry-of-matunit matunit-summand-type matunit-col-shift)
     ("Elementary column operations (Prop 3.5)"
-     elem-f-action elem-g-action elem-h-action)
+     elem-f-type elem-g-type elem-h-type
+     elem-f-action elem-g-action elem-h-action
+     entry-of-elem-f entry-of-elem-g entry-of-elem-h)
+    ("Elementary row operations"
+     elem-f-row-action elem-g-row-action elem-h-row-action)
     ("Elementary inverses (Cor 3.6)"
-     elem-f-inverse elem-g-inverse elem-h-inverse)
+     elem-f-inverse elem-g-inverse elem-h-inverse
+     elem-f-invertible elem-g-invertible)
+    ("Matrix equivalence"
+     mat-equiv mat-equiv-refl mat-equiv-trans
+     mat-equiv-left-mult mat-equiv-right-mult
+     mat-equiv-target-is-mat mat-equiv-cod-is-mat)
+    ("Matrices acting on sequences of module elements"
+     matact-type matact-entry matact-identmat matact-assoc
+     matact-row-add matact-row-scale matact-row-peel matact-snoc
+     matact-unitrow matact-zerorow matact-empty-vzero
+     matact-triple-left matact-triple-right)
+    ;; Determinants.  DEFINED, not proved: det-zero and det-cofactor are the two
+    ;; definitional recursion axioms (no warrant, no debt), and every property
+    ;; below it is an ASSERTED seed carrying a Hoffman-Kunze citation.  The page
+    ;; prints each one's warrant, so the reader can see that for himself.
+    ("Determinants: minors and cofactor expansion"
+     MINOR DET minor-type det-zero det-cofactor
+     det-in-carrier det-1x1 det-2x2
+     det-identity det-alternating-rows det-multiplicative)
     ("The binomial theorem"
      sum-expansion binomial-theorem)))
 

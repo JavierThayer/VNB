@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-299 operators: 15 functions, 181 functoids, 103 predicates, 0 undeclared.
+323 operators: 15 functions, 196 functoids, 112 predicates, 0 undeclared.
 
 ## Functions  (15)
 
@@ -33,7 +33,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (181)
+## Functoids  (196)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -245,6 +245,12 @@ Declared by: `fam-of-list-apply`
 
     finsum(ag, f, s) := sum-ag(ag, enum-fam(ag, f, fin-enum(s), card(s)), card(s))
 
+### `finsupp`  — def-functoid · set-valued
+
+> _Reads as:_  the finitely-supported functions m -> a
+
+    finsupp(a, m) := {f in fun(carr(m), carr(a)): card(supp(a, m, f)) in nn}
+
 ### `fnrm`  — structure accessor · element (slot value)
 
 ### `fr-ball`  — def-functoid · set-valued
@@ -297,7 +303,7 @@ Declared by: `fam-of-list-apply`
 
 ### `inverse-bij`  — def-functoid · function-valued
 
-    inverse-bij(phi, x, y) := vnb-lambda(y, choice({x in x: phi(x) = y}))
+    inverse-bij(phi, x, y) := vnb-lambda(y_, choice({x_ in x: phi(x_) = y_}))
 
 ### `iota`  — kernel term-former
 
@@ -373,6 +379,32 @@ Declared by: `matrix-membership` `matrix-sethood`
 
     minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 
+### `monalg`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the monoid algebra a[m]
+
+    monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], monalg-add(a, f, g)), vnb-lambda([f, g], monalg-mul(a, m, f, g)), vnb-lambda(f, monalg-neg(a, f)), monalg-zero(a), monalg-one(a, m)]
+
+### `monalg-add`  — def-functoid · function-valued
+
+    monalg-add(a, f, g) := vnb-lambda(x_, (add(a))(f(x_), g(x_)))
+
+### `monalg-mul`  — def-functoid · function-valued
+
+    monalg-mul(a, m, f, g) := vnb-lambda(x_, finsum(ring-additive-ag(a), vnb-lambda(p, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
+
+### `monalg-neg`  — def-functoid · function-valued
+
+    monalg-neg(a, f) := vnb-lambda(x_, (neg(a))(f(x_)))
+
+### `monalg-one`  — def-functoid · function-valued
+
+    monalg-one(a, m) := vnb-lambda(x_, if(x_ = iden(m), one(a), zero(a)))
+
+### `monalg-zero`  — def-functoid · function-valued
+
+    monalg-zero(a) := vnb-lambda(x_, zero(a))
+
 ### `mpow`  — recursively defined (def-by-nn-recursion)
 
 Declared by: `mpow-zero` `mpow-succ` 
@@ -400,6 +432,24 @@ Declared by: `nn-add-monoid-def`
 ### `nn-minus`  — characterized by axioms (def-constant)
 
 Declared by: `nn-minus-def` 
+
+### `nnfst`  — def-functoid · element/number-valued
+
+> _Reads as:_  the first component of n_
+
+    nnfst(n_) := iota(a_, a_ in nn and forsome([b_ in nn], nnpair(a_, b_) = n_))
+
+### `nnpair`  — def-functoid · element/number-valued
+
+> _Reads as:_  the Cantor code of (i_, j_)
+
+    nnpair(i_, j_) := trinum(i_ + j_) + j_
+
+### `nnsnd`  — def-functoid · element/number-valued
+
+> _Reads as:_  the second component of n_
+
+    nnsnd(n_) := iota(b_, b_ in nn and forsome([a_ in nn], nnpair(a_, b_) = n_))
 
 ### `non-zero`  — structure accessor · element (slot value)
 
@@ -436,6 +486,12 @@ Declared by: `ord-segment-insert` `ord-segment-is-set` `ord-segment-membership` 
 ### `permutations`  — def-functoid · set-valued
 
     permutations(n) := injection(ord-segment(n), ord-segment(n))
+
+### `poly`  — def-functoid · element/number-valued
+
+> _Reads as:_  a[x]
+
+    poly(a) := monalg(a, nn-add-monoid)
 
 ### `power`  — kernel term-former
 
@@ -607,7 +663,7 @@ Declared by: `rr-normed-field-def`
 
 ### `succ_ord`  — characterized by axiom(s)
 
-Declared by: `card-insert` `limit-ord-iff` `ord-segment-succ` `ord-succ-above` `ord-succ-immediate` `ord-succ-in` `ord-succ-nn` `succ-nn-ord` 
+Declared by: `card-insert` `limit-ord-iff` `ord-segment-succ` `ord-succ-above` `ord-succ-immediate` `ord-succ-in` `ord-succ-lt-limit` `ord-succ-nn` 
 
 ### `sum`  — recursively defined (def-by-nn-recursion)
 
@@ -625,6 +681,12 @@ Declared by: `sum-set-disjoint-union` `sum-set-empty` `sum-set-left-scalar` `sum
 
 Declared by: `sup-ord-empty` `sup-ord-in` `sup-ord-least` `sup-ord-succ-segment` `sup-ord-upper` `limit-ord-is-sup` 
 
+### `supp`  — def-functoid · set-valued
+
+> _Reads as:_  the support of f
+
+    supp(a, m, f) := {x_ in carr(m): not(f(x_) = zero(a))}
+
 ### `taylor-poly`  — def-functoid · element/number-valued
 
     taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
@@ -632,6 +694,12 @@ Declared by: `sup-ord-empty` `sup-ord-in` `sup-ord-least` `sup-ord-succ-segment`
 ### `taylor-poly-v`  — recursively defined (def-by-nn-recursion)
 
 Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ` 
+
+### `trinum`  — recursively defined (def-by-nn-recursion)
+
+> _Reads as:_  trinum
+
+Declared by: `trinum-zero` `trinum-succ` 
 
 ### `tuples`  — kernel term-former
 
@@ -665,15 +733,23 @@ Declared by: `zero-ring-def`
 
 Declared by: `zkept-zero` `zkept-succ` `zkept-limit` 
 
+### `zup`  — recursively defined (def-by-nn-recursion)
+
+Declared by: `zup-zero` `zup-succ` `zup-limit` 
+
 ### `zz-act`  — characterized by axioms (def-constant)
 
 Declared by: `zz-act-nonneg` `zz-act-neg` 
+
+### `zz-bezout-set`  — def-functoid · set-valued
+
+    zz-bezout-set(a, b) := {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}
 
 ### `zz-ring`  — characterized by axioms (def-constant)
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (103)
+## Predicates  (112)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -695,11 +771,15 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `converges-on`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  fam converges at every point of the sequence dseq in s
+
 ### `converges-to`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f converges to l in s
 
 ### `converges-uniformly`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  seq converges uniformly to g on s
 
 ### `cseq-equiv`  — def-predicate · proposition (arity 3)
 
@@ -711,7 +791,11 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `fr-cauchy`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  seq is Cauchy in (m, fam)
+
 ### `fr-conv`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  seq converges to lim in (m, fam)
 
 ### `generates`  — def-predicate · proposition (arity 3)
 
@@ -722,6 +806,8 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 > _Reads as:_  f has a norm-preserving extension from s to t, in m
 
 ### `has-closed-graph`  — def-predicate · proposition (arity 5)
+
+> _Reads as:_  tt has a closed graph from (m1, fam1) to (m2, fam2)
 
 ### `has-div-remainder`  — def-predicate · proposition (arity 2)
 
@@ -735,9 +821,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  every element of crr has an inverse under op, given by invop, with unit unit
 
+### `injective*`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  f is injective
+
 ### `is-absolutely-summable`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  f is absolutely summable in grp
+
+### `is-algebra-of-sets`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ca is an algebra of subsets of omega
 
 ### `is-associative`  — def-predicate · proposition (arity 2)
 
@@ -761,6 +855,8 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-chain`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  ch is a chain in grd under porel
+
 ### `is-closed`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  a is closed in s
@@ -779,6 +875,8 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-cont-lin`  — def-predicate · proposition (arity 5)
 
+> _Reads as:_  tt is a continuous linear map from (m1, fam1) to (m2, fam2)
+
 ### `is-continuous`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is continuous from s to t
@@ -792,6 +890,8 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 > _Reads as:_  fam is a countable family of pseudometrics on ground
 
 ### `is-dense-seq`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  dseq is a dense sequence in s
 
 ### `is-diagonal`  — def-predicate · proposition (arity 4)
 
@@ -813,7 +913,9 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  y is eps-Cauchy in s
 
-### `is-equicontinuous`  — def-predicate · proposition (arity 2)
+### `is-equicontinuous`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  fam is equicontinuous from s to t
 
 ### `is-equivalence`  — def-predicate · proposition (arity 2)
 
@@ -828,6 +930,8 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 > _Reads as:_  m is finite dimensional
 
 ### `is-frechet-structure`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  (m, fam) is a Frechet space
 
 ### `is-gauge-countable`  — def-predicate · proposition (arity 1)
 
@@ -863,7 +967,11 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-k-linear`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  f is a K-linear functional on m
+
 ### `is-k-linear-on`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a K-linear functional on the submodule s of m
 
 ### `is-linear-functional`  — def-predicate · proposition (arity 2)
 
@@ -875,9 +983,15 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-linear-map`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  tt is a linear map from m1 to m2
+
 ### `is-maximal`  — def-predicate · proposition (arity 3)
 
+> _Reads as:_  mx is maximal in grd under porel
+
 ### `is-meager`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a is meager in s
 
 ### `is-metric`  — def-predicate · proposition (arity 2)
 
@@ -893,11 +1007,15 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-nonmeager`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  a is nonmeager in s
+
 ### `is-norm`  — def-predicate · proposition (arity 5)
 
 > _Reads as:_  nm is a norm on crr
 
 ### `is-nowhere-dense`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a is nowhere dense in s
 
 ### `is-open`  — def-predicate · proposition (arity 2)
 
@@ -913,7 +1031,11 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-open-lin-map`  — def-predicate · proposition (arity 5)
 
+> _Reads as:_  tt is an open linear map from (m1, fam1) to (m2, fam2)
+
 ### `is-partial-order`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  porel partially orders grd
 
 ### `is-pseudometric`  — def-predicate · proposition (arity 2)
 
@@ -925,9 +1047,23 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-seminorm`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  p is a seminorm on m
+
 ### `is-seminorm-family`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  fam is a separating countable family of seminorms on m
+
 ### `is-separable`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is separable
+
+### `is-sigma-algebra`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  ca is a sigma-algebra of subsets of omega
+
+### `is-strictly-below`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  x is strictly below y under porel
 
 ### `is-submodule`  — def-predicate · proposition (arity 2)
 
@@ -947,11 +1083,15 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-unif-cauchy`  — def-predicate · proposition (arity 2)
 
+> _Reads as:_  fam is uniformly Cauchy on s
+
 ### `is-uniformly-continuous`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is uniformly continuous from s to t
 
 ### `is-upper-bound`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  b is an upper bound of ch in grd under porel
 
 ### `little-o-at`  — def-predicate · proposition (arity 2)
 
@@ -970,6 +1110,8 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 > _Reads as:_  rad is a sequence of positive reals tending to zero
 
 ### `pointwise-bounded`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  fam is pointwise bounded on s
 
 ### `pos-rr`  — def-predicate · proposition (arity 1)
 
@@ -994,6 +1136,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `rel-free`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  the n vectors u are linearly independent in md
+
+### `rr-bounded-above`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is bounded above
+
+### `rr-upper-bound`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  b is an upper bound of s
 
 ### `seq-compact`  — def-predicate · proposition (arity 1)
 
@@ -1038,4 +1188,16 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `totally-bounded`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is totally bounded
+
+### `zz-coprime`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a and b are coprime
+
+### `zz-divides`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  a divides b
+
+### `zz-is-gcd`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  d is a greatest common divisor of a and b
 

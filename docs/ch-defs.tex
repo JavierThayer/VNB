@@ -224,7 +224,7 @@ $\mathrm{SUM}(f, n) = \sum_{k=0}^{n} f(k)$:\end{sloppypar}
 
 For functions on all ordinals, use the three-clause schema
 (Proposition~\ref{prop:tfrec-class}, Section~\ref{sec:ord-recursion}):
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Base} ($\xi = 0$):\quad $F(0) = b$
 \item \textbf{Successor} ($\xi = \mathrm{succ\_ORD}(\alpha)$):\quad
       $F(\mathrm{succ\_ORD}(\alpha)) = s(\alpha,\, F(\alpha))$
@@ -298,7 +298,7 @@ components and the role each plays.  The \texttt{property} clause is different i
 kind: it names a \emph{characteristic law} the components must satisfy.  The
 distinction is developed in the remark on shape versus properties below.
 
-\begin{itemize}[label = $\circ$, leftmargin=0.85cm]
+\begin{itemize}
 
 \item \texttt{(carriers C1 C2 ...)}
   Names the carrier sets.  A structure with $m$ carriers has its $i$-th
@@ -693,7 +693,7 @@ catalogue in one call:
 The arguments are the instance name, the species it instantiates, the name to
 give its defining equation, and the tuple of slot values in declared slot order.
 The call:
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{checks the tuple against the shape} --- a tuple of the wrong length
   for \texttt{RING} fails the load rather than silently asserting a false
   \texttt{IS-RING};
@@ -736,7 +736,7 @@ followed by modus ponens, yielding the concrete statement $P[h]$.
 The interactive short form is \texttt{(spec instance struct is-thm)}.
 
 \paragraph{Arguments.}
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textit{instance-name} --- symbol naming the specific structure, e.g.\
   \texttt{HARP}.
 \item \textit{struct-name} --- the structure class, e.g.\ \texttt{RING}.
@@ -781,7 +781,7 @@ and call \texttt{spec} again for the \texttt{GROUP} class.
 The constant \texttt{ZZ-RING} is defined in \texttt{numeric-instances.scm} as
 the 6-tuple $[\mathit{ZZ},\,+,\,\times,\,-,\,0,\,1]$.  The axiom
 \texttt{zz-is-ring} asserts $\mathit{IS\text{-}RING}(\mathit{ZZ\text{-}RING})$.
-(We use $\mathbb{Z}$, not $\mathbb{C}$: \texttt{CC-RING} is a 7-tuple normed
+(We use $\mathbb{Z}$, not $\mathbb{C}$: \texttt{CC-NORMED-FIELD} is a 7-tuple normed
 field, so it cannot witness the length-6 \texttt{IS-RING} on the same tuple;
 it reaches the ring world through the \texttt{NORMED-FIELD-AS-*} views.)
 
@@ -900,7 +900,7 @@ The recognised keys are
 \texttt{tex}, \texttt{english}, \texttt{noun}, \texttt{article},
 \texttt{prec}, \texttt{infix?}, \texttt{arity}, and \texttt{kind}.
 
-\begin{itemize}[label=$\circ$, leftmargin=0.85cm]
+\begin{itemize}
 \item \texttt{tex} and \texttt{english} are \emph{templates} --- strings with
   placeholders \texttt{\$1}\ldots\texttt{\$9} for the rendered arguments.  A
   binary operator combining both with \texttt{prec} (a precedence for
@@ -963,7 +963,7 @@ class you have proven to be a set.
 
 \item[\texttt{card-insert}]
   $A \in \mathit{SET} \wedge x \notin A \;\Rightarrow\;
-   \mathit{CARD}(CARR \cup \{x\}) = \mathit{succ_{ORD}}(\mathit{CARD}(A))$.\\
+   \mathit{CARD}(A \cup \{x\}) = \mathit{succ_{ORD}}(\mathit{CARD}(A))$.\\
   Here $\{x\} = \mathit{PAIR}(x,x)$ (by the pairing axiom with $a = b = x$).
 
 \item[\texttt{card-segment}]
@@ -980,7 +980,7 @@ class you have proven to be a set.
   $A, B \in \mathit{SET},\;
    \mathit{CARD}(A), \mathit{CARD}(B) \in \mathit{NN},\;
    A \cap B = \emptyset \;\Rightarrow\;
-   \mathit{CARD}(CARR \cup B) = \mathit{CARD}(A) + \mathit{CARD}(B)$.\\
+   \mathit{CARD}(A \cup B) = \mathit{CARD}(A) + \mathit{CARD}(B)$.\\
   Finite additivity; the $+$ on the right is $\mathit{NN}$ addition.
 \end{description}
 
@@ -1005,7 +1005,7 @@ Declaring a structure declares its morphisms too.  From the slot list alone,
 typed between the corresponding carriers, and every operation and constant is
 preserved.
 
-\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{carrier} $c$: a map \texttt{$f$ in fun($c(a)$, $c(b)$)}.
 \item \textbf{operation} \texttt{OP}: preservation ---
   \texttt{$f$(OP($a$)($x_1,\ldots$)) = OP($b$)($f(x_1),\ldots$)} for all
@@ -1085,9 +1085,9 @@ forgetful functor does exactly one or both of two things (recall
 \S\ref{sec:shape-vs-property}: a structure is a \emph{shape} plus
 \emph{properties}):
 
-\begin{itemize}[label=$-$, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{forget shape} --- the source list keeps only a sub-list of the
-  source's slots; the rest drop.  (CARR ring's additive group forgets
+  source's slots; the rest drop.  (A ring's additive group forgets
   \texttt{MUL}/\texttt{ONE}; a field's multiplicative group keeps the
   \texttt{NON-ZERO} carrier slot and forgets the additive ones.)
 \item \textbf{forget properties} --- \texttt{IS-TARGET} folds fewer laws than
@@ -1314,7 +1314,8 @@ The unordered finite sum $\sum_{x \in S} f(x)$ over an arbitrary finite
 set $S$ (not indexed by $\mathit{NN}$) requires commutativity of
 addition and a well-definedness proof (independence of the enumeration
 bijection from \texttt{card-finite-bij}).  This more general
-$\mathit{SUM\text{-}SET}$ operation is planned but not yet implemented.
+$\mathit{SUM\text{-}SET}$ operation is implemented (\texttt{sequences.scm}); see
+Section~\ref{sec:sum-set} below.
 \end{remark}
 
 \begin{remark}
@@ -1350,6 +1351,7 @@ is commutative, the value depends only on the \emph{set} of indices.
 \texttt{SUM-SET} and \texttt{PROD-SET} package this directly.
 
 \subsection{\texttt{SUM-SET}: ring sum over a finite set}
+\label{sec:sum-set}
 
 \[
    \mathit{SUM\text{-}SET}(r,\, S,\, f) \;=\; \sum_{x \in S} f(x)
@@ -1635,7 +1637,7 @@ Each domain pairs with the binary operators above to form a
      \mathtt{binneg},\; 0,\; 1\,]
 \]
 with definitional axiom \texttt{zz-ring-def}, and analogously
-\texttt{qq-ring-def} (also a 6-tuple).  \texttt{RR-RING} and \texttt{CC-RING}
+\texttt{qq-ring-def} (also a 6-tuple).  \texttt{RR-NORMED-FIELD} and \texttt{CC-NORMED-FIELD}
 are 7-tuples in the \texttt{NORMED-FIELD} shape (norm at slot~7).
 
 A structure predicate pins \texttt{length(s) = n}, so a tuple witnesses only
@@ -1815,3 +1817,310 @@ $\mathit{RR}^{*}$ does not need them.  $\mathit{RR}^{*}$ here is purely
 an \emph{ordered carrier}: a place to put limits and bounds that may
 fail to be finite.
 \end{remark}
+
+%% =========================================================
+\section{Matrices over a ring}
+\label{sec:matrices}
+
+Matrices are built in three layers, and the middle one is the point of
+the design.  A matrix is first a \emph{set-theoretic} object: a list of
+rows, of a pinned size.  Nothing is proved at that level.  All matrix
+algebra then goes through a \emph{tabulation bridge}---construct a
+matrix by giving its entry function, prove two matrices equal by
+comparing entries---so that no proof performs list surgery.  The ring
+operations are defined on top of the bridge.
+
+\subsection{What a matrix is: \texttt{MAT} and \texttt{ENTRY}}
+
+\paragraph{Signature.}
+$\mathit{MAT}(m, n, X)$ is the class of $m \times n$ matrices with
+entries in $X$; $\mathit{ENTRY}(M, i, j)$ is the $(i,j)$ entry.
+
+\begin{align*}
+\mathit{MAT}(m, n, X) &\;=\; \mathit{SEP}\, P \in \mathit{MATRIX}(X).\;
+   \mathit{SIZE}(P) = [m, n] \\
+\mathit{ENTRY}(M, i, j) &\;=\; \mathit{NTH}(j,\, \mathit{NTH}(i, M))
+\end{align*}
+
+Indices are \emph{1-based}, matching the library's $\mathit{NTH}$
+convention: row $i$ is $\mathit{NTH}(i, M)$, and the index range of a
+row or column is $\mathit{INTERVAL}(1, n)$.  Because
+$\mathit{MAT}(m,n,X)$ is a $\mathit{SEP}$ over $\mathit{MATRIX}(X)$ it
+inherits sethood and the $\mathit{SEP}$ membership characterisation for
+free (\texttt{mat-is-set}, \texttt{matrix-membership},
+\texttt{matrix-sethood}), and $\mathit{MAT}(m,n,X)$ really is a subclass
+of $\mathit{MATRIX}(X)$.
+
+\subsection{The tabulation bridge: \texttt{MATOF}}
+
+$\mathit{MATOF}(m, n, g)$ is the $m \times n$ matrix whose $(i,j)$ entry
+is $g(i,j)$, defined as the $\mathit{IOTA}$ of the obvious description.
+Two facts make it usable, and they are of different kinds:
+
+\begin{description}
+\item[\texttt{matrix-entry-extensionality}]
+  two matrices of the same size with equal entries throughout are equal.
+  This is \emph{uniqueness} for the description.
+
+\item[\texttt{matof-exists}]
+  the tabulation of $g$ over the index box exists.  It is dischargeable
+  once a general list-tabulation primitive is built.
+\end{description}
+
+\noindent
+Together with \texttt{matof-exists}, uniqueness pins $\mathit{MATOF}$
+down, so \texttt{entry-of-matof} and \texttt{matof-in-mat} \emph{could}
+be derived from the two by \texttt{iota-def}.  They have not been: all
+three are \texttt{support} in \texttt{structure-library/matrix.scm},
+warranted \texttt{well-known}, and each is charged separately to any
+\texttt{qed} that cites it.  Carrying out that derivation is an open
+item, and it would remove two of the three from the layer's debt.
+
+Every construction below is a $\mathit{MATOF}$, so each carries its
+typing lemma and its entry lemma, and proofs about it reduce to
+arithmetic on entries.
+
+\subsection{Arithmetic}
+
+Writing $P_{ij}$ for $\mathit{ENTRY}(P,i,j)$---an abbreviation of the
+argument, the operators stay prefix:
+
+\begin{align*}
+\mathit{MATADD}(A, P, Q) &\;=\;
+  \mathit{MATOF}(m, n,\; \lambda i\, j.\;
+     \mathit{ADD}(A)(P_{ij},\, Q_{ij})) \\
+\mathit{MATMUL}(A, P, Q) &\;=\;
+  \mathit{MATOF}(m, k,\; \lambda i\, k.\; \mu(i,k)),
+  \quad\text{where} \\
+ &\qquad \mu(i,k) \;=\;
+     \textstyle\mathit{FINSUM}_{j \in \mathit{INTERVAL}(1,n)}\;
+     \mathit{MUL}(A)(P_{ij},\, Q_{jk}) \\
+\mathit{ZEROMAT}(A, m, n) &\;=\;
+  \mathit{MATOF}(m, n,\; \lambda i\, j.\; \mathit{ZERO}(A)) \\
+\mathit{IDENTMAT}(A, n) &\;=\;
+  \mathit{MATOF}(n, n,\; \lambda i\, j.\; \delta(i,j)),
+  \quad\text{where} \\
+ &\qquad \delta(i,j) \;=\;
+     \mathbf{if}\; i = j \;\mathbf{then}\; \mathit{ONE}(A)
+     \;\mathbf{else}\; \mathit{ZERO}(A)
+\end{align*}
+
+\noindent
+with $\mathit{MATNEG}(A,P)$ and $\mathit{MATSCALE}(A,r,P)$ the same
+shape.  The dimensions are read off $\mathit{SIZE}(P)$ and
+$\mathit{SIZE}(Q)$ rather than passed: multiplication is
+\emph{total}, garbage-in/garbage-out off its typed domain, and all the
+content lives in \texttt{matmul-type} and \texttt{matmul-entry}.
+
+The laws are \emph{not} axioms of the theory; they are members of the
+Proof Support Set, installed by \texttt{support} in
+\texttt{structure-library/matrix.scm} and warranted there.  One of the
+eleven is a machine-checked theorem.  A proof that cites any of the
+other ten pays for it in its \texttt{qed} bill, so the distinction is
+not bookkeeping:
+
+\begin{itemize}
+\item \emph{proved}: \texttt{matmul-assoc}
+      (\texttt{theorem-library/matmul-assoc-proof.scm});
+\item \emph{asserted, warrant \texttt{reference}}: \texttt{matadd-assoc},
+      \texttt{matadd-comm}, \texttt{matadd-zero-left},
+      \texttt{matadd-zero-right}, \texttt{matadd-neg-left},
+      \texttt{matadd-neg-right}, \texttt{matmul-left-dist},
+      \texttt{matmul-right-dist};
+\item \emph{asserted, warrant \texttt{proof}} (a rigorous paper argument
+      exists; it has not been mechanised):
+      \texttt{identmat-left-identity}, \texttt{identmat-right-identity}.
+\end{itemize}
+
+\noindent
+The live status of each is what \texttt{reference/PROOF-DEBT.md} and the
+browser reference report; this list is a snapshot and the generated
+pages are the authority.
+
+\subsection{The matrix ring: \texttt{MAT-RING}}
+
+$\mathit{MAT\text{-}RING}(A, n)$ packages the $n \times n$ matrices as a
+\textsc{Ring} 6-tuple, currying each operation into a map on the carrier
+so it fits the ring shape:
+\begin{align*}
+  [\;&\mathit{MAT}(n,n,\mathit{CARR}(A)),\;
+     \lambda P\,Q.\,\mathit{MATADD}(A,P,Q),\;
+     \lambda P\,Q.\,\mathit{MATMUL}(A,P,Q),\\
+    &\lambda P.\,\mathit{MATNEG}(A,P),\;
+     \mathit{ZEROMAT}(A,n,n),\;
+     \mathit{IDENTMAT}(A,n)\;]
+\end{align*}
+\texttt{mat-ring-is-ring} proves it satisfies $\mathit{IS\text{-}RING}$,
+and the read-offs \texttt{mat-ring-carr}, \texttt{-add}, \texttt{-mul},
+\texttt{-zero}, \texttt{-one}, \texttt{-neg} let a proof move between
+the packaged ring and the bare operations.
+
+\subsection{Cutting and extending}
+
+\begin{align*}
+\mathit{SUBMAT}(S, p, q) &\;=\;
+  \mathit{MATOF}(p, q,\; \lambda i\, j.\;
+    \mathit{ENTRY}(S, \mathit{succ}(i), \mathit{succ}(j)))
+\end{align*}
+
+\noindent
+deletes the first row and the first column (the shape the Smith-normal-form
+recursion wants), while $\mathit{BLOCK}$, $\mathit{SNOC\text{-}COL}$ and
+$\mathit{SNOC\text{-}ROW}$ extend a matrix by a column or a row.  Each has a
+typing lemma and an entry lemma (\texttt{submat-type},
+\texttt{entry-of-submat}, \texttt{snoc-col-type}, \texttt{snoc-col-last},
+\dots).  Deleting an \emph{arbitrary} row and column is a different
+operation, $\mathit{MINOR}$, defined with the determinant in
+Section~\ref{sec:determinant}.
+
+\subsection{Elementary matrices}
+
+$\mathit{MATUNIT}(A, n, k, l)$ is the matrix unit---$\mathit{ONE}$ at
+$(k,l)$, $\mathit{ZERO}$ elsewhere---and its column-shift lemma
+\texttt{matunit-col-shift} is the engine of the elementary-operation
+arc.  On top of it sit the three elementary matrices
+$\mathit{ELEM\text{-}F}(A,n,k,l)$ (exchange), $\mathit{ELEM\text{-}G}(A,n,r,k,l)$
+(add a multiple), and $\mathit{ELEM\text{-}H}(A,n,r,k)$ (scale), each with
+its column action (\texttt{elem-*-action}, Prop.~3.5 of
+\texttt{algebraic-numbers.pdf}), its row action, and its inverse
+(\texttt{elem-*-inverse}, Cor.~3.6).  $\mathit{MAT\text{-}EQUIV}$ is the
+equivalence relation they generate; it is reflexive and transitive
+(\texttt{mat-equiv-refl}, \texttt{mat-equiv-trans}) and stable under
+multiplication on either side.
+
+\begin{remark}
+The browser reference groups this whole layer under \textsc{Linear
+algebra} in \texttt{reference/BY-TOPIC.md}, in the same reading order,
+each entry linking to the file that proves it.
+\end{remark}
+
+%% =========================================================
+\section{Determinants}
+\label{sec:determinant}
+
+The determinant is defined by \emph{recursive cofactor expansion along
+the first row}---deliberately the pedestrian route.  There is no
+exterior algebra here, no symmetric group and no sign of a permutation:
+the Leibniz sum would have required $\mathit{SGN}$ and a well-definedness
+proof that the library does not have, whereas cofactor expansion needs
+only the recursion on size, minors, and $\mathit{FINSUM}$.
+
+\subsection{\texttt{MINOR}: deleting a row and a column}
+
+\begin{align*}
+  \mathit{MINOR}(S, r, c, n) &\;=\;
+  \mathit{MATOF}(n, n,\; \lambda i\, j.\;
+    \mathit{ENTRY}(S,\, \mathit{skip}(i,r),\, \mathit{skip}(j,c)))
+  \quad\text{where}\\
+  \mathit{skip}(i, r) &\;=\;
+    \mathbf{if}\; i < r \;\mathbf{then}\; i \;\mathbf{else}\; \mathit{succ}(i)
+\end{align*}
+
+\noindent
+($\mathit{skip}$ is not an operator of the library; the source writes the
+conditional inline with \texttt{IF}.)  This is
+the $n \times n$ matrix obtained from a
+$\mathit{succ}(n) \times \mathit{succ}(n)$ matrix $S$ by deleting row $r$
+and column $c$.  \texttt{minor-type} states that it lands in
+$\mathit{MAT}(n, n, \mathit{CARR}(R))$.
+
+\subsection{\texttt{DET}: the defining recursion}
+
+Two axioms, installed as \emph{definitional}
+(\texttt{theory-add-definition!} under provenance \texttt{definitional}),
+so they carry no warrant and owe no proof debt:
+
+\begin{align*}
+\mathtt{det\text{-}zero}: &\quad \mathit{DET}(R, 0, A) \simeq \mathit{ONE}(R) \\
+\mathtt{det\text{-}cofactor}: &\quad
+  \mathit{DET}(R, \mathit{succ}(n), A) \;\simeq\; {} \\
+ &\qquad \textstyle\mathit{FINSUM}_{j \in \mathit{INTERVAL}(1,\,\mathit{succ}(n))}\;
+   \sigma_j \\
+ &\qquad\text{where }\;
+   \sigma_j = (-1)^{1+j}_{R} \cdot \mathit{ENTRY}(A, 1, j) \cdot
+   \mathit{DET}(R, n, M_j) \\
+ &\qquad\text{and }\; M_j = \mathit{MINOR}(A, 1, j, n)
+\end{align*}
+
+\noindent
+where the sum is $\mathit{FINSUM}$ over $\mathit{RING\text{-}ADDITIVE\text{-}AG}(R)$
+and the sign $(-1)^{1+j}$ is taken \emph{in the ring}, as
+$\mathit{MPOW}$ of $R$'s multiplicative monoid applied to
+$\mathit{NEG}(R)(\mathit{ONE}(R))$.  The $0 \times 0$ case is the empty
+product, $\mathit{ONE}(R)$, and the $1 \times 1$ case falls out of the
+recursion: $\mathit{DET}(R,1,A) = \mathit{ENTRY}(A,1,1)$.
+
+The axioms are hand-stated rather than emitted by
+\texttt{def-by-nn-recursion} because the matrix \emph{shrinks} in the
+recursive call---to its own minor---so the size is not a fixed recursion
+parameter.  Their consistency rests on $\mathit{DET}$ being well defined
+by this recursion, which is the projection of the legitimate
+size-indexed recursion $\mathit{MAT}(n,n) \to \mathit{CARR}$.
+
+\subsection{Properties}
+
+\begin{remark}
+Every statement in this subsection is \textbf{asserted, not proved}.
+Each carries a \texttt{reference} warrant citing Hoffman \&
+Kunze~Ch.~5, so a \texttt{qed} that leans on one bills
+\texttt{[trust: reference]}.  They are the first menu of determinant
+facts, stated so that proofs can be written against them; discharging
+them is open work.
+\end{remark}
+
+\begin{description}
+\item[\texttt{det-in-carrier}]
+  for $A \in \mathit{MAT}(n,n,\mathit{CARR}(r))$ over a ring $r$,
+  $\mathit{DET}(r,n,A) \in \mathit{CARR}(r)$.
+
+\item[\texttt{det-1x1}]
+  $\mathit{DET}(r,1,A) = \mathit{ENTRY}(A,1,1)$.
+
+\item[\texttt{det-2x2}]
+  $\mathit{DET}(r,2,A) = A_{11}A_{22} - A_{12}A_{21}$.
+
+\item[\texttt{det-identity}]
+  $\mathit{DET}(r, n, \mathit{ONE}(\mathit{MAT\text{-}RING}(r,n)))
+   = \mathit{ONE}(r)$.
+
+\item[\texttt{det-alternating-rows}]
+  two equal rows force $\mathit{DET}(r,n,A) = \mathit{ZERO}(r)$.
+
+\item[\texttt{det-multiplicative}]
+  over a \emph{commutative} ring,
+  \[
+    \mathit{DET}(r,n,\mathit{MATMUL}(r,P,Q)) \;=\;
+    \mathit{MUL}(r)(\mathit{DET}(r,n,P),\, \mathit{DET}(r,n,Q)).
+  \]
+\end{description}
+
+\begin{remark}
+Four further facts are not even stated, for want of machinery:
+$\det(A^{T}) = \det(A)$ needs a $\mathit{TRANSPOSE}$ functoid, which the
+tree does not have; expansion along an arbitrary row or column---the
+fact that would justify the asymmetric row-1 definition---needs the
+permutation bookkeeping the pedestrian route was chosen to avoid; and
+Cramer's rule, the adjugate, and
+$\det(A) \ne 0 \Leftrightarrow A$ invertible follow those.
+\end{remark}
+
+\paragraph{Computing with the recursion.}
+The axiom is keyed on the pattern
+$\mathit{DET}(R, \mathit{succ}(n), A)$, while a concrete goal names a
+literal size, $\mathit{DET}(r, 1, A)$.  The rewriter bridges the two in
+both directions.  Matching is handled by \texttt{match-expr}, which
+matches $\mathit{succ}(n)$ against the numeral $1$ with $n := 0$.  The
+macete's conditions are handled by \texttt{condition-holds?}, which
+compares them to the context with numerals and $\mathit{succ}$-towers
+collapsed to one form, and discharges a ground arithmetic side condition
+such as $0 \in \mathit{NN}$ outright.  So the plain \texttt{mac} fires
+on a literal size:
+
+\begin{VNBcode}
+(sp (make-wff '(FORALL (r a)
+     (IMPLIES (IS-RING r)
+       (IMPLIES (IN a (MAT 1 1 (CARR r)))
+         (= (DET r 1 a) (ENTRY a 1 1)))))))
+(di)(di)(di)
+(mac 'det-cofactor)   ; goal becomes the FINSUM over INTERVAL(1, succ 0)
+\end{VNBcode}

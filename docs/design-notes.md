@@ -314,8 +314,8 @@ branch is a genuine proof (up to eigenvariable renaming) when adopted.  The
 wise — it brute-forces a small tree and you eyeball the survivors; soundness is
 recovered because the survivors actually closed through the kernel.
 
-Bounds, all reported when hit (no silent truncation): depth `d` (default 4),
-per-node fan-out `b` (default 3), total nodes (default 300).
+Bounds, all reported when hit (no silent truncation): depth `d` (default 6),
+per-node fan-out `b` (default 3), total nodes (default 600).
 
 `(scout …)` **returns data, does not print** — a nested list
 

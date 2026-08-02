@@ -22,6 +22,38 @@
 ;;; -----------------------------------------------------------------------
 ;;; Chaining: mixed strict / non-strict transitivity, and weakening.
 
+;;; nn-le-trans -- RESTORED unguarded 2026-08-02, deliberately and temporarily.
+;;;
+;;; It is stated with NO guards, which is stronger than the axioms license:
+;;; nothing constrains `<=' off the numeric chain, so this asserts transitivity
+;;; of the order relation on arbitrary objects.  It is consistent (read `<=' as
+;;; the real order and nothing else and it holds vacuously off RR) but
+;;; unlicensed, and it contradicts how the library's own trusted oracle behaves
+;;; -- `ineq' refuses to certify an atom without a literal (IN t RR).  The name
+;;; compounds it: despite the `nn-' prefix the statement mentions NN nowhere.
+;;;
+;;; The guarded replacement IS PROVEN, `modulo 0', as `nn-le-trans-guarded' in
+;;; theorem-library/nn-order-basics.scm.  Swapping it in is a MIGRATION, not a
+;;; rename: guarding it broke four proofs that were chaining transitivity
+;;; through terms they had never typed -- always a succ(...) or a sum of things
+;;; already in hand.  Three are now fixed (nn-order-basics' nn-le-add-right,
+;;; nn-order-proof's nn-le-add, two sites in nn-pairing); what remains is
+;;; nn-pairing's nn-add-le-mono / nnpair-diag-bound / nnpair-cross.  Finish
+;;; those, point the callers at nn-le-trans-guarded, and delete this.
+(support 'nn-le-trans
+  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
+(warrant! 'nn-le-trans 'well-known "<= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.")
+(category! 'nn-le-trans 'inequalities)
+
+;;; rr-le-trans and rr-le-trans-c MOVED 2026-08-02 to
+;;; theorem-library/nn-order-basics.scm, where all three are PROVEN from the
+;;; primitive rr-leq-transitive.  rr-le-trans-c was a fourth support claiming the
+;;; `proof' warrant tier with no machine proof.  nn-le-trans CHANGED CONTENT: it
+;;; was stated with NO guards, which is stronger than the axioms license (nothing
+;;; constrains `<=' off the numeric chain) and inconsistent with how `ineq'
+;;; treats order atoms; it is now guarded on NN, which is what its name always
+;;; implied and its formula never said.
+
 (support 'rr-lt-implies-le
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
      (IMPLIES (< x y) (<= x y)))))))
@@ -36,46 +68,31 @@
   "Strict order is transitive: from x<y<z, x<=z by rr-leq-transitive and x=/=z
    (else y would be both > and < x).")
 
-(support 'nn-in-rr
-  '(FORALL k (IMPLIES (IN k NN) (IN k RR))))
-(warrant! 'nn-in-rr 'proof
-  "The inclusion chain NN subset ZZ subset QQ subset RR (nn-subset-zz,
-   zz-subset-qq, qq-subset-rr) composed: a natural number is a real.")
+;;; nn-in-rr MOVED 2026-08-02 to theorem-library/nn-order-basics.scm, where it is
+;;; PROVEN.  Its warrant here claimed the top tier `proof' and then described the
+;;; derivation -- the inclusion chain composed -- which nobody had run.  Third of
+;;; that kind found in this file, after nn-le-refl and nn-pair-upper-bound.
 
-(support 'nn-le-refl
-  '(FORALL k (IMPLIES (IN k NN) (<= k k))))
-(warrant! 'nn-le-refl 'proof
-  "k in NN gives k in RR (nn-in-rr); rr-leq-reflexive then gives k <= k.")
+;;; nn-le-refl and nn-pair-upper-bound MOVED 2026-08-02 to
+;;; theorem-library/nn-order-basics.scm, where they are PROVEN.  Both were
+;;; supports here carrying the top warrant tier `proof' while naming no machine
+;;; proof -- nn-le-refl's warrant WAS its derivation (nn-in-rr, then
+;;; rr-leq-reflexive) and nn-pair-upper-bound's was "take c = a + b"; neither
+;;; had been run.  nn-le-add-right (m <= m + n, by induction on n) is proved
+;;; there too and is what the pair bound now rests on.
 
-(support 'nn-pair-upper-bound
-  '(FORALL a (IMPLIES (IN a NN)
-     (FORALL b (IMPLIES (IN b NN)
-       (FORSOME c (AND (IN c NN) (AND (<= a c) (<= b c)))))))))
-(warrant! 'nn-pair-upper-bound 'proof
-  "NN is directed: any two naturals a, b have a common upper bound c (take
-   c = a + b, or max(a,b)).  Lets a proof pick one threshold dominating two.")
 
-(support 'rr-le-trans
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL z (IMPLIES (IN z RR)
-       (IMPLIES (AND (<= x y) (<= y z)) (<= x z)))))))))
-(warrant! 'rr-le-trans 'well-known
-  "Non-strict order is transitive: x <= y <= z gives x <= z (rr-leq-transitive).")
+
 
 ;; Curried siblings (no AND antecedent) so a forward `fact' discharges each
 ;; guard from context without a cut -- the shape interactive assembly wants.
-(support 'rr-le-trans-c
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL z (IMPLIES (IN z RR)
-       (IMPLIES (<= x y) (IMPLIES (<= y z) (<= x z))))))))))
-(warrant! 'rr-le-trans-c 'proof
-  "Curried rr-le-trans: x<=y then y<=z gives x<=z.  Same fact, no AND antecedent.")
 
-(support 'fun-apply-type-c
-  '(FORALL f (FORALL A (FORALL B (FORALL x
-     (IMPLIES (IN f (FUN A B)) (IMPLIES (IN x A) (IN (f x) B))))))))
-(warrant! 'fun-apply-type-c 'proof
-  "Curried fun-apply-type: f:A->B and x in A give f(x) in B.  No AND antecedent.")
+;;; fun-apply-type-c MOVED 2026-08-02 to theorem-library/fun-apply-type-proof.scm,
+;;; where it is PROVEN `modulo 0' from the base axiom fun-codomain-iff.  It was a
+;;; support here claiming the top warrant tier `proof' while naming no machine
+;;; proof.  Kept CURRIED there for the same reason it was curried here: `fact'
+;;; peels and detaches both hypotheses in one call, where a conjunctive
+;;; antecedent would make every caller assemble the AND by hand.
 
 (support 'rr-lt-le-trans
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
@@ -296,10 +313,12 @@
    rr-cancel-mul-left (taylor-proof.scm).")
 (category! 'rr-cancel-mul-right 'algebra)
 
-(support 'rr-sub-in-rr
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IN (- u v) RR))))))
-(warrant! 'rr-sub-in-rr 'well-known "RR is closed under subtraction.")
-(category! 'rr-sub-in-rr 'plumbing)
+;;; rr-sub-in-rr MOVED 2026-08-01 to theorem-library/binary-minus-laws.scm, where
+;;; it is PROVEN rather than asserted.  It was a `well-known' support here, and
+;;; looked like a triviality restating rr-add-closed; it was in fact the only
+;;; constraint in the tree on the binary `(- u v)', which had no defining axiom
+;;; until number-systems.scm gained `binary-minus-def' the same day.  Its one
+;;; consumer (theorem-library/differentiation.scm) loads after the proof.
 
 (support 'rr-sub-ne-zero
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IMPLIES (NOT (= u v)) (NOT (= (- u v) 0))))))))
@@ -322,10 +341,6 @@
   "1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).")
 (category! 'nn-not-le-zero-pos 'inequalities)
 
-(support 'nn-le-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
-(warrant! 'nn-le-trans 'well-known "<= is transitive (a<=b, b<=c => a<=c).")
-(category! 'nn-le-trans 'inequalities)
 
 (support 'nn-pos-is-succ
   '(FORALL n (IMPLIES (IN n NN) (IMPLIES (<= 1 n)
@@ -479,3 +494,27 @@
      (IMPLIES (<= (succ a) (succ b)) (<= a b)))))))
 (warrant! 'nn-succ-le-cancel 'well-known "succ a <= succ b => a <= b.")
 (category! 'nn-succ-le-cancel 'inequalities)
+
+;;; --- reverse-direction DEFINEDNESS facts (added 2026-07-27) ------------------
+;;; The forward recip/mul axioms (rr-recip-closed, rr-recip-inverse) only run
+;;; q/=0 => ...; these run the other way, RECOVERING q/=0 from the fact that a term
+;;; mentioning recip(q) is defined.  Stated on the definedness predicate (= t t)
+;;; (primitive-inferences.scm: "(= t t) IS the definedness predicate"), NOT on
+;;; membership -- the membership form is UNSOUND (i*(-i)=1 in RR yet i not in RR).
+
+;; recip is partial on the nonzero reals (RECIP : NON-ZERO -> NON-ZERO, field.scm),
+;; so recip(0) is undefined; a DEFINED recip(q) therefore forces q /= 0.
+(support 'recip-defined-nonzero
+  '(FORALL q (IMPLIES (= (recip q) (recip q)) (NOT (= q 0)))))
+(warrant! 'recip-defined-nonzero 'informal
+  "recip is defined only off zero (RECIP : NON-ZERO -> NON-ZERO); a defined recip(q) forces q /= 0.")
+(category! 'recip-defined-nonzero 'inequalities)
+
+;; Multiplication is STRICT: a defined product has both factors defined.  Only
+;; DEFINEDNESS propagates to the factors -- membership does not (i*(-i)=1 in RR,
+;; i not in RR) -- so the conclusion is (= a a) AND (= b b), never (IN a RR) etc.
+(support 'mul-defined-factors
+  '(FORALL a (FORALL b (IMPLIES (= (* a b) (* a b)) (AND (= a a) (= b b))))))
+(warrant! 'mul-defined-factors 'informal
+  "Multiplication is strict: a defined product a*b has both factors defined.  Definedness (= t t) propagates, NOT membership.")
+(category! 'mul-defined-factors 'algebra)

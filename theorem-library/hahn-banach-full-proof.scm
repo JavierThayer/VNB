@@ -96,19 +96,11 @@
   "A submodule is by definition a subset of the vectors.")
 (category! 'submodule-subset 'analysis)
 
-(add-to-pss 'subset-mem
-  '(FORALL a (FORALL b (FORALL x_
-     (IMPLIES (SUBSET a b) (IMPLIES (IN x_ a) (IN x_ b)))))))
-(warrant! 'subset-mem 'well-known
-  "subset-def forward: a subset b and x in a give x in b.")
-(category! 'subset-mem 'analysis)
-
-(add-to-pss 'subset-trans
-  '(FORALL a (FORALL b (FORALL c
-     (IMPLIES (SUBSET a b) (IMPLIES (SUBSET b c) (SUBSET a c)))))))
-(warrant! 'subset-trans 'well-known
-  "Inclusion is transitive (subset-def chase).")
-(category! 'subset-trans 'analysis)
+;;; subset-mem and subset-trans MOVED and PROVEN, 2026-07-27:
+;;; theorem-library/subset-lemmas.scm, which loads long before this file.  Both
+;;; were asserted here `well-known'; both are three tactic steps off subset-def.
+;;; The citations at :227 and :242 below are unchanged and now resolve to the
+;;; proven theorems.
 
 (add-to-pss 'proper-subset-witness
   '(FORALL a (FORALL b

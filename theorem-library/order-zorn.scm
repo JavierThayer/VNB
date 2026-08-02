@@ -7,9 +7,6 @@
 ;;; registered accessor and the load-time constant-binder audit rejects it.)
 ;;; ====================================================================
 
-(define (oz-all  v cond body) `(FORALL  ,v (IMPLIES ,cond ,body)))
-(define (oz-some v cond body) `(FORSOME ,v (AND     ,cond ,body)))
-
 ;;; IS-PARTIAL-ORDER(grd, porel): porel is a reflexive, antisymmetric, transitive
 ;;; relation on the ground set grd.
 (def-predicate 'IS-PARTIAL-ORDER '(grd porel)
@@ -17,13 +14,13 @@
     (list
       '(IN grd SET)
       '(IN porel SET)
-      (oz-all 'x '(IN x grd) '(IN (LIST x x) porel))                       ; reflexive
-      (oz-all 'x '(IN x grd)
-        (oz-all 'y '(IN y grd)
+      (forall-guarded 'x '(IN x grd) '(IN (LIST x x) porel))                       ; reflexive
+      (forall-guarded 'x '(IN x grd)
+        (forall-guarded 'y '(IN y grd)
           '(IMPLIES (AND (IN (LIST x y) porel) (IN (LIST y x) porel)) (= x y))))
-      (oz-all 'x '(IN x grd)
-        (oz-all 'y '(IN y grd)
-          (oz-all 'z '(IN z grd)
+      (forall-guarded 'x '(IN x grd)
+        (forall-guarded 'y '(IN y grd)
+          (forall-guarded 'z '(IN z grd)
             '(IMPLIES (AND (IN (LIST x y) porel) (IN (LIST y z) porel))
                       (IN (LIST x z) porel))))))))
 
@@ -32,8 +29,8 @@
   (conjuncts->and
     (list
       '(SUBSET ch grd)
-      (oz-all 'x '(IN x ch)
-        (oz-all 'y '(IN y ch)
+      (forall-guarded 'x '(IN x ch)
+        (forall-guarded 'y '(IN y ch)
           '(OR (IN (LIST x y) porel) (IN (LIST y x) porel)))))))
 
 ;;; IS-UPPER-BOUND(grd, porel, ch, b): b in grd dominates every element of ch.
@@ -41,33 +38,33 @@
   (conjuncts->and
     (list
       '(IN b grd)
-      (oz-all 'x '(IN x ch) '(IN (LIST x b) porel)))))
+      (forall-guarded 'x '(IN x ch) '(IN (LIST x b) porel)))))
 
 ;;; IS-MAXIMAL(grd, porel, mx): nothing in grd lies strictly above mx.
 (def-predicate 'IS-MAXIMAL '(grd porel mx)
   (conjuncts->and
     (list
       '(IN mx grd)
-      (oz-all 'y '(IN y grd)
+      (forall-guarded 'y '(IN y grd)
         '(IMPLIES (IN (LIST mx y) porel) (IN (LIST y mx) porel))))))
 
-;;; ZORN'S LEMMA: a nonempty partial order in which every chain has an upper
-;;; bound has a maximal element.
-(support 'zorn-lemma
-  (forall-guarded '(grd porel)
-    (list
-      '(IS-PARTIAL-ORDER grd porel)
-      '(FORSOME w (IN w grd))
-      '(FORALL ch (IMPLIES (IS-CHAIN grd porel ch)
-         (FORSOME b (IS-UPPER-BOUND grd porel ch b)))))
-    '(FORSOME mx (IS-MAXIMAL grd porel mx))))
-(warrant! 'zorn-lemma 'reference '(yosida "Zorn's Lemma, Ch. 0.1" 20))
-(gloss! 'zorn-lemma
-  "Zorn's lemma: if (grd, porel) is a partially ordered set that is nonempty and in
-   which every chain (totally ordered subset) has an upper bound in grd, then grd
-   has a maximal element.  Equivalent to the axiom of choice; the intended proof
-   here is from the already-installed well-ordering-principle (well-order grd,
-   transfinite-recursively build a chain, its sup is maximal), hence the rests-on.")
-(category! 'zorn-lemma 'set-quotient)
-;; Intended proof: from well-ordering-principle (every set can be well-ordered).
-(rests-on 'zorn-lemma '(well-ordering-principle))
+;;; ZORN'S LEMMA is no longer stated here.  It was an asserted support warranted
+;;; to Yosida, with a `rests-on' naming well-ordering-principle as the intended
+;;; route.  It is now PROVEN, in theorem-library/zorn-route-two.scm, and by a
+;;; different route: a strictly increasing transfinite tower ORD -> grd, which
+;;; contradicts Burali-Forti.  Nothing well-orders grd, so the old rests-on was
+;;; wrong as well as unnecessary.  The statement is the same formula, with the
+;;; binders spelled w_ / ch_ / u_ / mx_ there.
+
+;;; English readings.  A def-predicate cannot derive one (noun vs adjective), so
+;;; the load-time gate ("every predicate in the library has an English reading",
+;;; test-suite.scm:3211) counts a predicate without `notation!' as vocabulary rot.
+;;; These four were on that list.
+(notation! 'IS-PARTIAL-ORDER 'kind 'predicate 'arity 2
+           'english "$2 partially orders $1")
+(notation! 'IS-CHAIN         'kind 'predicate 'arity 3
+           'english "$3 is a chain in $1 under $2")
+(notation! 'IS-UPPER-BOUND   'kind 'predicate 'arity 4
+           'english "$4 is an upper bound of $3 in $1 under $2")
+(notation! 'IS-MAXIMAL       'kind 'predicate 'arity 3
+           'english "$3 is maximal in $1 under $2")

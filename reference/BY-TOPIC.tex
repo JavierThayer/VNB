@@ -55,7 +55,7 @@
 \forall f.\; \forall a.\; \forall l.\; \forall m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(f, a, m)) \Rightarrow (l = m))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). Skolemize the two Caratheodory factors phi, psi from the two differentiability hypotheses; off the point they agree by cancelling (x-a) =/= 0, and continuity at a forces phi(a)=psi(a), i.e. L=M.
-\par\smallskip\noindent\emph{Rests on 7 facts:} \texttt{eq-sym, eq-trans, fun-apply-type-c, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt}.
+\par\smallskip\noindent\emph{Rests on 5 facts:} \texttt{eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt}.
 
 \subsubsection*{\texttt{diff-implies-continuous}}
 \emph{for every f, a, l, if f is differentiable at a, with derivative l, then f is continuous at a}
@@ -63,23 +63,23 @@
 \forall f.\; \forall a.\; \forall l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Rightarrow \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, a))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). f coincides pointwise with the map x |-> f(a) + phi(x)*(x-a), which the continuity algebra makes continuous at a (a constant plus phi times x-a); continuity then transfers to f.
-\par\smallskip\noindent\emph{Rests on 8 facts:} \texttt{fun-apply-type-c, const-continuous-at, identity-continuous-at, sub-continuous-at, product-continuous-at, sum-continuous-at, eq-sym, cont-transfer-ptwise-eq}.
+\par\smallskip\noindent\emph{Rests on 7 facts:} \texttt{const-continuous-at, identity-continuous-at, sub-continuous-at, product-continuous-at, sum-continuous-at, eq-sym, cont-transfer-ptwise-eq}.
 
 \subsubsection*{\texttt{deriv-const}}
 \emph{for every c, a, if c is in rr and a is in rr, then vnb-lambda(x, c) is differentiable at a, with derivative 0}
 {\small\[
 \forall c.\; \forall a.\; (((c \in \mathbb{R}) \wedge (a \in \mathbb{R})) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x.\; c), a, 0))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Witness phi := 0: the difference f(x)-f(a) = 0 = 0*(x-a), and the zero map is continuous with value 0.
-\par\smallskip\noindent\emph{Rests on 2 facts:} \texttt{rr-zero-in, const-continuous-at}.
+\noindent\textbf{Machine-checked} (trust: well-known). Witness phi := 0: the difference f(x)-f(a) = 0 = 0*(x-a), and the zero map is continuous with value 0.
+\par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{const-continuous-at}.
 
 \subsubsection*{\texttt{deriv-identity}}
 \emph{for every a in rr, vnb-lambda(x, x) is differentiable at a, with derivative 1}
 {\small\[
 \forall a \in \mathbb{R}.\; \operatorname{is\text{-}diff\text{-}at}((\lambda x.\; x), a, 1)
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Witness phi := 1: x-a = 1*(x-a), and the constant map 1 is continuous.
-\par\smallskip\noindent\emph{Rests on 2 facts:} \texttt{rr-one-in, const-continuous-at}.
+\noindent\textbf{Machine-checked} (trust: well-known). Witness phi := 1: x-a = 1*(x-a), and the constant map 1 is continuous.
+\par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{const-continuous-at}.
 
 \subsubsection*{\texttt{deriv-sum}}
 \emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, f(x) + g(x)) is differentiable at a, with derivative l + m}
@@ -119,8 +119,7 @@
 {\small\[
 \forall f.\; \operatorname{==}(\operatorname{nth\text{-}deriv}(f, 1), (\lambda x.\; \operatorname{deriv}(f, x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 3 facts:} \texttt{nn-zero-in, nth-deriv-succ, nth-deriv-zero}.
+\noindent\textbf{Machine-checked} (trust: proof).
 
 \subsection{Little-o calculus}
 
@@ -175,7 +174,7 @@
 \forall f.\; \forall a.\; \forall b.\; \forall \theta.\; \forall l.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((\theta \in \mathbb{R}) \wedge ((a < \theta) \wedge (\theta < b)))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; (f(x) \leq f(\theta)) \Rightarrow (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \Rightarrow (l = 0))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 16 facts:} \texttt{fun-apply-type-c, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, rr-lt-trans, rr-lt-implies-le, rr-lt-diff-pos, ccint-membership, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric}.
+\par\smallskip\noindent\emph{Rests on 13 facts:} \texttt{nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, rr-lt-trans, rr-lt-implies-le, rr-lt-diff-pos, ccint-membership, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left}.
 
 \subsubsection*{\texttt{interior-min-deriv-zero}}
 \emph{for every f, a, b, theta, l, if f is in fun(rr, rr) and a is in rr and b is in rr and theta is in rr and a is less than theta and theta is less than b, then if for every x in ccint(a, b), f(theta) is at most f(x), then if f is differentiable at theta, with derivative l, then l equals 0}
@@ -183,7 +182,7 @@
 \forall f.\; \forall a.\; \forall b.\; \forall \theta.\; \forall l.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((\theta \in \mathbb{R}) \wedge ((a < \theta) \wedge (\theta < b)))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; (f(\theta) \leq f(x)) \Rightarrow (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \Rightarrow (l = 0))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 20 facts:} \texttt{deriv-neg, nary-neg-1, fun-apply-type-c, binneg-in-fun-rr, ccint-membership, rr-le-neg, nary-minus-2, binplus-in-fun-rr, rr-lt-trans, rr-lt-implies-le, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, rr-neg-eq-zero}.
+\par\smallskip\noindent\emph{Rests on 17 facts:} \texttt{deriv-neg, nary-neg-1, binneg-in-fun-rr, ccint-membership, rr-le-neg, nary-minus-2, binplus-in-fun-rr, rr-lt-trans, rr-lt-implies-le, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, rr-neg-eq-zero}.
 
 \subsection{Mean value theorems}
 
@@ -193,7 +192,7 @@
 \forall h.\; \forall a.\; \forall b.\; (((h \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, h, x) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \exists l.\; \operatorname{is\text{-}diff\text{-}at}(h, x, l)) \Rightarrow ((h(a) = h(b)) \Rightarrow \exists \theta.\; ((a < \theta) \wedge ((\theta < b) \wedge \operatorname{is\text{-}diff\text{-}at}(h, \theta, 0)))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). The extreme value theorem gives an interior maximum or minimum; Fermat's lemma kills the derivative there.  A three-way case split handles the degenerate case where both extrema sit at the (equal) endpoints.
-\par\smallskip\noindent\emph{Rests on 27 facts:} \texttt{rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, fun-apply-type-c, rr-le-cases, max-val-strict-interior, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between}.
+\par\smallskip\noindent\emph{Rests on 23 facts:} \texttt{rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between}.
 
 \subsubsection*{\texttt{mvt}}
 \emph{for every f, a, b, if f is in fun(rr, rr) and a is in rr and b is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l, then there is some theta such that a is less than theta and theta is less than b and there is some l such that f is differentiable at theta, with derivative l and l * (b - a) equals f(b) - f(a)}
@@ -201,7 +200,7 @@
 \forall f.\; \forall a.\; \forall b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \exists l.\; \operatorname{is\text{-}diff\text{-}at}(f, x, l)) \Rightarrow \exists \theta.\; ((a < \theta) \wedge ((\theta < b) \wedge \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \wedge ((l \cdot \operatorname{\text{-}}(b, a)) = \operatorname{\text{-}}(f(b), f(a)))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). Apply Rolle to the tilted auxiliary g(x) = f(x) - L(x), where L is the secant line through the two endpoints.
-\par\smallskip\noindent\emph{Rests on 39 facts:} \texttt{nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq}.
+\par\smallskip\noindent\emph{Rests on 34 facts:} \texttt{nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq}.
 
 \subsubsection*{\texttt{generalized-mvt}}
 \emph{for every f, g, a, b, if f is in fun(rr, rr) and g is in fun(rr, rr) and a is in rr and b is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x and g is continuous at x, then if for every x, if a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and there is some m such that g is differentiable at x, with derivative m, then there is some theta such that a is less than theta and theta is less than b and there is some l, m such that f is differentiable at theta, with derivative l and g is differentiable at theta, with derivative m and l * (g(b) - g(a)) equals m * (f(b) - f(a))}
@@ -209,7 +208,7 @@
 \forall f.\; \forall g.\; \forall a.\; \forall b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((g \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; (\operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \wedge \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, g, x)) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow (\exists l.\; \operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge \exists m.\; \operatorname{is\text{-}diff\text{-}at}(g, x, m))) \Rightarrow \exists \theta.\; ((a < \theta) \wedge ((\theta < b) \wedge \exists l.\; \exists m.\; (\operatorname{is\text{-}diff\text{-}at}(f, \theta, l) \wedge (\operatorname{is\text{-}diff\text{-}at}(g, \theta, m) \wedge ((l \cdot \operatorname{\text{-}}(g(b), g(a))) = (m \cdot \operatorname{\text{-}}(f(b), f(a)))))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). Rolle applied to a two-function auxiliary -- the Cauchy mean value theorem.
-\par\smallskip\noindent\emph{Rests on 39 facts:} \texttt{nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, gmvt-aux-cont, gmvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq}.
+\par\smallskip\noindent\emph{Rests on 34 facts:} \texttt{nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, gmvt-aux-cont, gmvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq}.
 
 \subsection{Consequences of the mean value theorem}
 
@@ -219,7 +218,7 @@
 \forall f.\; \forall a.\; \forall b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}(f, x, 0)) \Rightarrow \forall u.\; \forall v.\; (((u \in \operatorname{ccint}(a, b)) \wedge (v \in \operatorname{ccint}(a, b))) \Rightarrow (f(u) = f(v))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). For any two points the mean value theorem on the subinterval gives f(y)-f(x) = f'(c)*(y-x) = 0.
-\par\smallskip\noindent\emph{Rests on 44 facts:} \texttt{ccint-membership, rr-lt-trichotomy, rr-le-trans-c, rr-strict-between-real, rr-le-lt-trans, rr-lt-le-trans, nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq}.
+\par\smallskip\noindent\emph{Rests on 38 facts:} \texttt{ccint-membership, rr-lt-trichotomy, rr-strict-between-real, rr-le-lt-trans, rr-lt-le-trans, nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq}.
 
 \subsubsection*{\texttt{mvt-upper-bound}}
 \emph{for every f, a, b, m, if f is in fun(rr, rr) and a is in rr and b is in rr and m is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and l is at most m, then f(b) - f(a) is at most m * (b - a)}
@@ -227,7 +226,7 @@
 \forall f.\; \forall a.\; \forall b.\; \forall m.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((m \in \mathbb{R}) \wedge (a < b))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge (l \leq m))) \Rightarrow (\operatorname{\text{-}}(f(b), f(a)) \leq (m \cdot \operatorname{\text{-}}(b, a))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 40 facts:} \texttt{nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-le-scale-nonneg-right}.
+\par\smallskip\noindent\emph{Rests on 35 facts:} \texttt{nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-le-scale-nonneg-right}.
 
 \subsubsection*{\texttt{mvt-lower-bound}}
 \emph{for every f, a, b, m, if f is in fun(rr, rr) and a is in rr and b is in rr and m is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and m is at most l, then m * (b - a) is at most f(b) - f(a)}
@@ -235,7 +234,7 @@
 \forall f.\; \forall a.\; \forall b.\; \forall m.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge ((m \in \mathbb{R}) \wedge (a < b))))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge (m \leq l))) \Rightarrow ((m \cdot \operatorname{\text{-}}(b, a)) \leq \operatorname{\text{-}}(f(b), f(a))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 40 facts:} \texttt{nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-le-scale-nonneg-right}.
+\par\smallskip\noindent\emph{Rests on 35 facts:} \texttt{nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-le-scale-nonneg-right}.
 
 \subsubsection*{\texttt{deriv-pos-strictly-increasing}}
 \emph{for every f, a, b, if f is in fun(rr, rr) and a is in rr and b is in rr and a is less than b, then if for every x in ccint(a, b), f is continuous at x, then if for every x, if a is less than x and x is less than b, then there is some l such that f is differentiable at x, with derivative l and 0 is less than l, then for every u, v, if u is in ccint(a, b) and v is in ccint(a, b) and u is less than v, then f(u) is less than f(v)}
@@ -243,7 +242,7 @@
 \forall f.\; \forall a.\; \forall b.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((b \in \mathbb{R}) \wedge (a < b)))) \Rightarrow (\forall x \in \operatorname{ccint}(a, b).\; \operatorname{is\text{-}continuous\text{-}at}(\operatorname{rr\text{-}ms}, \operatorname{rr\text{-}ms}, f, x) \Rightarrow (\forall x.\; (((a < x) \wedge (x < b)) \Rightarrow \exists l.\; (\operatorname{is\text{-}diff\text{-}at}(f, x, l) \wedge (0 < l))) \Rightarrow \forall u.\; \forall v.\; (((u \in \operatorname{ccint}(a, b)) \wedge ((v \in \operatorname{ccint}(a, b)) \wedge (u < v))) \Rightarrow (f(u) < f(v))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). The mean value theorem gives f(y)-f(x) = f'(c)*(y-x) > 0 whenever x < y.
-\par\smallskip\noindent\emph{Rests on 45 facts:} \texttt{ccint-membership, rr-le-trans-c, rr-strict-between-real, rr-le-lt-trans, rr-lt-le-trans, nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-prod-pos, rr-lt-from-diff-pos}.
+\par\smallskip\noindent\emph{Rests on 39 facts:} \texttt{ccint-membership, rr-strict-between-real, rr-le-lt-trans, rr-lt-le-trans, nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, mvt-aux-cont, mvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-prod-pos, rr-lt-from-diff-pos}.
 
 \subsection{Taylor's theorem}
 
@@ -266,7 +265,7 @@
 \forall f.\; \forall a.\; \forall x.\; \forall n.\; (((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((x \in \mathbb{R}) \wedge ((n \in \mathbb{N}) \wedge (a < x))))) \Rightarrow (\operatorname{taylor\text{-}differentiable}(f, a, x, n) \Rightarrow \exists \theta.\; ((a < \theta) \wedge ((\theta < x) \wedge ((\operatorname{factorial}((n + 1)) \cdot \operatorname{\text{-}}(f(x), \operatorname{taylor\text{-}poly}(f, a, n, x))) = (\operatorname{nth\text{-}deriv}(f, (n + 1))(\theta) \cdot \operatorname{power}(\operatorname{\text{-}}(x, a), (n + 1))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). The Cauchy mean value theorem (generalized-mvt) applied to the Taylor remainder against (x-a)\textasciicircum{}(n+1).
-\par\smallskip\noindent\emph{Rests on 57 facts:} \texttt{taylor-g-in-fun, taylor-h-in-fun, taylor-gmvt-cont, taylor-gmvt-diff, nary-times-2, nary-minus-2, fun-apply-type-c, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, gmvt-aux-cont, gmvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-strict-between-real, taylor-g-diff, taylor-h-diff, taylor-g-at-x, taylor-g-at-a, taylor-h-at-x, taylor-h-at-a, rr-power-pos, rr-pos-ne-zero, taylor-deriv-real, power-in-rr, nn-succ-closed, taylor-poly-in-rr, taylor-clear}.
+\par\smallskip\noindent\emph{Rests on 51 facts:} \texttt{taylor-g-in-fun, taylor-h-in-fun, taylor-gmvt-cont, taylor-gmvt-diff, nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, gmvt-aux-cont, gmvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-strict-between-real, taylor-g-diff, taylor-h-diff, taylor-g-at-x, taylor-g-at-a, taylor-h-at-x, taylor-h-at-a, rr-power-pos, rr-pos-ne-zero, taylor-deriv-real, power-in-rr, taylor-poly-in-rr, taylor-clear}.
 
 \section{Vector calculus}
 
@@ -404,16 +403,16 @@
 {\small\[
 \forall m.\; (\operatorname{is\text{-}noetherian}(m) \Rightarrow \forall \mathit{sig} \in \mathbf{Set}.\; ((\mathit{sig} \subseteq \operatorname{power}(\operatorname{vec}(m))) \Rightarrow (\forall t \in \mathit{sig}.\; \operatorname{is\text{-}submodule}(m, t) \Rightarrow (\exists \mathit{t0}.\; (\mathit{t0} \in \mathit{sig}) \Rightarrow \exists t \in \mathit{sig}.\; \forall u.\; (((u \in \mathit{sig}) \wedge (t \subseteq u)) \Rightarrow (t = u))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). The ascending chain condition: a strictly increasing infinite chain of subspaces would, via dependent choice, exceed every finite dimension.
-\par\smallskip\noindent\emph{Rests on 6 facts:} \texttt{neq-sym, dc-on-nn-pred, fun-codomain-superset, fun-apply-type-c, nn-succ-closed, nn-le-succ}.
+\noindent\textbf{Machine-checked} (trust: well-known). The ascending chain condition: a strictly increasing infinite chain of subspaces would, via dependent choice, exceed every finite dimension.
+\par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{neq-sym, dc-on-nn-pred, fun-codomain-superset, nn-le-succ}.
 
 \subsubsection*{\texttt{hb-good-has-maximal}}
 \emph{for every m, s, f, if m is finite dimensional, then if s is a submodule of m, then if f is a bounded linear functional on the subspace s of m, then there is some t such that f has a norm-preserving extension from s to t, in m and for every u, if f has a norm-preserving extension from s to u, in m and t is a subset of u, then t equals u}
 {\small\[
 \forall m.\; \forall s.\; \forall f.\; (\operatorname{is\text{-}finite\text{-}dimensional}(m) \Rightarrow (\operatorname{is\text{-}submodule}(m, s) \Rightarrow (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f) \Rightarrow \exists t.\; (\operatorname{good\text{-}sub}(m, s, f, t) \wedge \forall u.\; ((\operatorname{good\text{-}sub}(m, s, f, u) \wedge (t \subseteq u)) \Rightarrow (t = u))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 10 facts:} \texttt{vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, fun-apply-type-c, nn-succ-closed, nn-le-succ}.
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 8 facts:} \texttt{vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, nn-le-succ}.
 
 \subsection{Hahn-Banach extension}
 
@@ -431,15 +430,15 @@
 \forall m.\; \forall s.\; \forall f.\; \forall t.\; \forall x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f) \wedge (\operatorname{good\text{-}sub}(m, s, f, t) \wedge ((x \in \operatorname{vec}(m)) \wedge \neg (x \in t))))) \Rightarrow \operatorname{good\text{-}sub}(m, s, f, \operatorname{span\text{-}add\text{-}one}(m, t, x)))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
-\par\smallskip\noindent\emph{Rests on 15 facts:} \texttt{dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, subset-trans, extends-on-trans, submodule-subset, subset-mem, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono}.
+\par\smallskip\noindent\emph{Rests on 13 facts:} \texttt{dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, extends-on-trans, submodule-subset, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono}.
 
 \subsubsection*{\texttt{hahn-banach}}
 \emph{for every m, s, f, if m is a normed vector space and m is finite dimensional and s is a submodule of m and f is a bounded linear functional on the subspace s of m, then there is some g\_ such that g\_ is a linear functional on the subspace vec(m) of m and g\_ agrees with f on s and for every w\_ in vec(m), abs(g\_(w\_)) is at most dual-norm-on(m, s, f) * (vnrm(m))(w\_)}
 {\small\[
 \forall m.\; \forall s.\; \forall f.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(m) \wedge (\operatorname{is\text{-}submodule}(m, s) \wedge \operatorname{is\text{-}bounded\text{-}linear\text{-}functional\text{-}on}(m, s, f)))) \Rightarrow \exists \operatorname{g\_}.\; (\operatorname{is\text{-}linear\text{-}functional\text{-}on}(m, \operatorname{vec}(m), \operatorname{g\_}) \wedge (\operatorname{extends\text{-}on}(s, \operatorname{g\_}, f) \wedge \forall \operatorname{w\_} \in \operatorname{vec}(m).\; (\operatorname{abs}(\operatorname{g\_}(\operatorname{w\_})) \leq (\operatorname{dual\text{-}norm\text{-}on}(m, s, f) \cdot \operatorname{vnrm}(m)(\operatorname{w\_}))))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). A maximal norm-preserving extension exists by the ascending chain condition on the finite-dimensional space (via dependent choice on NN); were it proper, the one-step extension lemma would extend it further -- a contradiction.
-\par\smallskip\noindent\emph{Rests on 28 facts:} \texttt{vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, fun-apply-type-c, nn-succ-closed, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, subset-trans, extends-on-trans, subset-mem, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono, span-add-one-has-v, vec-is-set}.
+\noindent\textbf{Machine-checked} (trust: well-known). A maximal norm-preserving extension exists by the ascending chain condition on the finite-dimensional space (via dependent choice on NN); were it proper, the one-step extension lemma would extend it further -- a contradiction.
+\par\smallskip\noindent\emph{Rests on 24 facts:} \texttt{vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, extends-on-trans, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono, span-add-one-has-v, vec-is-set}.
 
 \subsection{The norm as a supremum of functionals}
 
@@ -448,24 +447,24 @@
 {\small\[
 \forall m.\; \forall f.\; \forall x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, f) \wedge ((x \in \operatorname{vec}(m)) \wedge (\operatorname{dual\text{-}norm}(m, f) \leq 1)))) \Rightarrow (\operatorname{abs}(f(x)) \leq \operatorname{vnrm}(m)(x)))
 \]}
-\noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 7 facts:} \texttt{dual-norm-is-bound, vnrm-nonneg, vnrm-real, bdd-linfun-abs-real, dual-norm-nonneg, rr-one-in, le-bound-mono}.
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 6 facts:} \texttt{dual-norm-is-bound, vnrm-nonneg, vnrm-real, bdd-linfun-abs-real, dual-norm-nonneg, le-bound-mono}.
 
 \subsubsection*{\texttt{norm-attained-by-functional}}
 \emph{for every m, x, if m is a normed vector space and m is finite dimensional and x is in vec(m), then there is some g such that g is a bounded linear functional on m and dual-norm(m, g) is at most 1 and g(x) equals (vnrm(m))(x)}
 {\small\[
 \forall m.\; \forall x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(m) \wedge (x \in \operatorname{vec}(m)))) \Rightarrow \exists g.\; (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, g) \wedge ((\operatorname{dual\text{-}norm}(m, g) \leq 1) \wedge (g(x) = \operatorname{vnrm}(m)(x)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 36 facts:} \texttt{line-functional-exists, line-is-submodule, vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, fun-apply-type-c, nn-succ-closed, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, subset-trans, extends-on-trans, subset-mem, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono, span-add-one-has-v, vec-is-set, linfun-on-vec-is-linfun, dual-norm-le-bound, dual-norm-nonneg, rr-one-in, rr-le-trans-c, line-has-v}.
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 30 facts:} \texttt{line-functional-exists, line-is-submodule, vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, extends-on-trans, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono, span-add-one-has-v, vec-is-set, linfun-on-vec-is-linfun, dual-norm-le-bound, dual-norm-nonneg, line-has-v}.
 
 \subsubsection*{\texttt{norm-as-sup}}
 \emph{for every m, x, if m is a normed vector space and m is finite dimensional and x is in vec(m), then for every f, if f is a bounded linear functional on m, then if dual-norm(m, f) is at most 1, then abs(f(x)) is at most (vnrm(m))(x) and for every d, if d is in rr and for every f, if f is a bounded linear functional on m, then if dual-norm(m, f) is at most 1, then abs(f(x)) is at most d, then (vnrm(m))(x) is at most d}
 {\small\[
 \forall m.\; \forall x.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(m) \wedge (x \in \operatorname{vec}(m)))) \Rightarrow (\forall f.\; (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, f) \Rightarrow ((\operatorname{dual\text{-}norm}(m, f) \leq 1) \Rightarrow (\operatorname{abs}(f(x)) \leq \operatorname{vnrm}(m)(x)))) \wedge \forall d.\; (((d \in \mathbb{R}) \wedge \forall f.\; (\operatorname{is\text{-}bounded\text{-}linear\text{-}functional}(m, f) \Rightarrow ((\operatorname{dual\text{-}norm}(m, f) \leq 1) \Rightarrow (\operatorname{abs}(f(x)) \leq d)))) \Rightarrow (\operatorname{vnrm}(m)(x) \leq d))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). The Hahn-Banach payoff: on the line RR*x a norming functional attains ||x||, while every bounded functional is dominated by the norm, so ||x|| is exactly the supremum of the functional values.
-\par\smallskip\noindent\emph{Rests on 40 facts:} \texttt{dual-norm-is-bound, vnrm-nonneg, vnrm-real, bdd-linfun-abs-real, dual-norm-nonneg, rr-one-in, le-bound-mono, line-functional-exists, line-is-submodule, vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, fun-apply-type-c, nn-succ-closed, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, subset-trans, extends-on-trans, subset-mem, linfun-app-abs-real, dual-norm-on-le-bound, span-add-one-has-v, vec-is-set, linfun-on-vec-is-linfun, dual-norm-le-bound, rr-le-trans-c, line-has-v, eq-sym, abs-nonneg-le}.
+\noindent\textbf{Machine-checked} (trust: well-known). The Hahn-Banach payoff: on the line RR*x a norming functional attains ||x||, while every bounded functional is dominated by the norm, so ||x|| is exactly the supremum of the functional values.
+\par\smallskip\noindent\emph{Rests on 34 facts:} \texttt{dual-norm-is-bound, vnrm-nonneg, vnrm-real, bdd-linfun-abs-real, dual-norm-nonneg, le-bound-mono, line-functional-exists, line-is-submodule, vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, extends-on-trans, linfun-app-abs-real, dual-norm-on-le-bound, span-add-one-has-v, vec-is-set, linfun-on-vec-is-linfun, dual-norm-le-bound, line-has-v, eq-sym, abs-nonneg-le}.
 
 \subsection{Vector-valued Taylor (remainder-norm bound, reduced to scalar)}
 
@@ -475,7 +474,7 @@
 \forall m.\; \forall f.\; \forall a.\; \forall x.\; \forall n.\; ((\operatorname{is\text{-}normed\text{-}vector\text{-}space}(m) \wedge (\operatorname{is\text{-}finite\text{-}dimensional}(m) \wedge ((f \in (\mathbb{R} \to \operatorname{vec}(m))) \wedge ((a \in \mathbb{R}) \wedge ((x \in \mathbb{R}) \wedge ((n \in \mathbb{N}) \wedge (a < x))))))) \Rightarrow (\operatorname{taylor\text{-}differentiable\text{-}v}(m, f, a, x, n) \Rightarrow \exists \theta.\; ((a < \theta) \wedge ((\theta < x) \wedge ((\operatorname{factorial}((n + 1)) \cdot \operatorname{vnrm}(m)(\operatorname{vadd}(m)(f(x), \operatorname{vneg}(m)(\operatorname{taylor\text{-}poly\text{-}v}(m, f, a, x, n))))) \leq (\operatorname{vnrm}(m)(\operatorname{nth\text{-}deriv\text{-}v}(m, f, (n + 1))(\theta)) \cdot \operatorname{power}(\operatorname{\text{-}}(x, a), (n + 1))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). Reduce the vector remainder to a scalar: a norming functional g (Hahn-Banach) turns ||remainder|| into g(remainder); scalar Taylor on g o f, then bound g(f\textasciicircum{}(n+1)) by ||f\textasciicircum{}(n+1)||.
-\par\smallskip\noindent\emph{Rests on 102 facts:} \texttt{vtaylor-remainder-in-vec, line-functional-exists, line-is-submodule, vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, fun-apply-type-c, nn-succ-closed, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, subset-trans, extends-on-trans, subset-mem, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono, span-add-one-has-v, vec-is-set, linfun-on-vec-is-linfun, dual-norm-le-bound, dual-norm-nonneg, rr-one-in, rr-le-trans-c, line-has-v, gof-in-fun, gof-taylor-diff, taylor-g-in-fun, taylor-h-in-fun, taylor-gmvt-cont, taylor-gmvt-diff, nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, gmvt-aux-cont, gmvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-leq-reflexive, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, rr-zero-in, continuous-nonpos-right, continuous-nonneg-left, rr-leq-antisymmetric, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-in-rr, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-strict-between-real, taylor-g-diff, taylor-h-diff, taylor-g-at-x, taylor-g-at-a, taylor-h-at-x, taylor-h-at-a, rr-power-pos, rr-pos-ne-zero, taylor-deriv-real, power-in-rr, taylor-poly-in-rr, taylor-clear, g-of-remainder, gof-nth-deriv, nth-deriv-v-in-vec, blf-app-real, dual-norm-is-bound, bdd-linfun-abs-real, rr-le-abs-self, rr-mul-le-right}.
+\par\smallskip\noindent\emph{Rests on 92 facts:} \texttt{vtaylor-remainder-in-vec, line-functional-exists, line-is-submodule, vspace-vec-is-set, good-sub-submodule, good-sub-self, good-sub-in-power, neq-sym, dc-on-nn-pred, fun-codomain-superset, nn-le-succ, submodule-subset, proper-subset-witness, dual-norm-on-nonneg, hb-gap, hb-extend-construct, span-add-one-membership, span-add-one-submodule, span-add-one-superset, extends-on-trans, vnrm-real, vnrm-nonneg, linfun-app-abs-real, dual-norm-on-le-bound, le-bound-mono, span-add-one-has-v, vec-is-set, linfun-on-vec-is-linfun, dual-norm-le-bound, dual-norm-nonneg, line-has-v, gof-in-fun, gof-taylor-diff, taylor-g-in-fun, taylor-h-in-fun, taylor-gmvt-cont, taylor-gmvt-diff, nary-times-2, nary-minus-2, binneg-in-fun-rr, binplus-in-fun-rr, bintimes-in-fun-rr, gmvt-aux-cont, gmvt-aux-diff, rr-lt-implies-le, extreme-value-max, extreme-value-min, ccint-membership, rr-le-cases, max-val-strict-interior, rr-lt-trans, rr-lt-diff-pos, rr-le-diff-nonpos, rr-prod-nonpos-pos, rr-lt-diff-neg, rr-prod-nonpos-neg, continuous-nonpos-right, continuous-nonneg-left, min-val-strict-interior, deriv-neg, nary-neg-1, rr-le-neg, rr-neg-eq-zero, rr-midpoint-between, diff-value-real, eq-sym, eq-trans, rr-sub-ne-zero, rr-cancel-mul-right, cont-agree-off-pt, rr-diff-zero-eq, rr-strict-between-real, taylor-g-diff, taylor-h-diff, taylor-g-at-x, taylor-g-at-a, taylor-h-at-x, taylor-h-at-a, rr-power-pos, rr-pos-ne-zero, taylor-deriv-real, power-in-rr, taylor-poly-in-rr, taylor-clear, g-of-remainder, gof-nth-deriv, nth-deriv-v-in-vec, blf-app-real, dual-norm-is-bound, bdd-linfun-abs-real, rr-le-abs-self, rr-mul-le-right}.
 
 \section{Linear algebra}
 
@@ -493,19 +492,34 @@
 \subsubsection*{\texttt{matmul}}
 \emph{Definition / vocabulary.}
 
-\subsubsection*{\texttt{identmat}}
-\emph{Definition / vocabulary.}
-
-\subsubsection*{\texttt{zeromat}}
-\emph{Definition / vocabulary.}
-
 \subsubsection*{\texttt{matadd}}
 \emph{Definition / vocabulary.}
 
 \subsubsection*{\texttt{matneg}}
 \emph{Definition / vocabulary.}
 
+\subsubsection*{\texttt{matscale}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{identmat}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{zeromat}}
+\emph{Definition / vocabulary.}
+
 \subsubsection*{\texttt{mat-ring}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{submat}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{block}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{snoc-col}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{snoc-row}}
 \emph{Definition / vocabulary.}
 
 \subsubsection*{\texttt{matunit}}
@@ -520,10 +534,202 @@
 \subsubsection*{\texttt{elem-h}}
 \emph{Definition / vocabulary.}
 
+\subsubsection*{\texttt{mat-equiv}}
+\emph{for every a, m, n, c, d, c and d are equivalent m-by-n matrices over a if and only if there is some u such that u is an invertible m-by-m matrix over a and there is some v such that v is an invertible n-by-n matrix over a and d equals matmul(a, matmul(a, u, c), v)}
+{\small\[
+\forall a.\; \forall m.\; \forall n.\; \forall c.\; \forall d.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Leftrightarrow \exists u.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, m, u) \wedge \exists v.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, n, v) \wedge (d = \operatorname{matmul}(a, \operatorname{matmul}(a, u, c), v)))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{matact}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{minor}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{det}}
+\emph{Definition / vocabulary.}
+
 \subsubsection*{\texttt{interval}}
 \emph{Definition / vocabulary.}
 
-\subsection{The matrix ring}
+\subsection{Matrices as a set, and their entries}
+
+\subsubsection*{\texttt{mat-is-set}}
+\emph{for every x in set, m, n, mat(m, n, x) is in set}
+{\small\[
+\forall x \in \mathbf{Set}.\; \forall m.\; \forall n.\; (\operatorname{mat}(m, n, x) \in \mathbf{Set})
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.
+
+\subsubsection*{\texttt{matrix-sethood}}
+\emph{for every s in set, matrix(s) is in set}
+{\small\[
+\forall s \in \mathbf{Set}.\; (\operatorname{matrix}(s) \in \mathbf{Set})
+\]}
+\noindent\textbf{Asserted}
+
+\subsubsection*{\texttt{matrix-membership}}
+\emph{for every s, m, m is in matrix(s) if and only if m is in tuples(tuples(s)) and for every i, if i is in nn and 1 is at most i and i is at most length(m), then for every j, if j is in nn and 1 is at most j and j is at most length(m), then length(nth(i, m)) equals length(nth(j, m))}
+{\small\[
+\forall s.\; \forall m.\; ((m \in \operatorname{matrix}(s)) \Leftrightarrow ((m \in \operatorname{tuples}(\operatorname{tuples}(s))) \wedge \forall i.\; (((i \in \mathbb{N}) \wedge ((1 \leq i) \wedge (i \leq \operatorname{length}(m)))) \Rightarrow \forall j.\; (((j \in \mathbb{N}) \wedge ((1 \leq j) \wedge (j \leq \operatorname{length}(m)))) \Rightarrow (\operatorname{length}(\operatorname{nth}(i, m)) = \operatorname{length}(\operatorname{nth}(j, m)))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{matrix-entry-extensionality}}
+\emph{for every m, n, x, p, q, if p is in mat(m, n, x), then if q is in mat(m, n, x), then if for every i in interval(1, m), j in interval(1, n), entry(p, i, j) equals entry(q, i, j), then p equals q}
+{\small\[
+\forall m.\; \forall n.\; \forall x.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, x)) \Rightarrow ((q \in \operatorname{mat}(m, n, x)) \Rightarrow (\forall i \in \operatorname{interval}(1, m).\; \forall j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) = \operatorname{entry}(q, i, j)) \Rightarrow (p = q))))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. Two m-by-n matrices over X with equal entries are equal (tuple/list
+   extensionality applied row- and entry-wise).
+
+\subsubsection*{\texttt{entry-in-carrier}}
+\emph{for every m, n, x, p, i, j, if p is in mat(m, n, x), then if i is in interval(1, m), then if j is in interval(1, n), then entry(p, i, j) is in x}
+{\small\[
+\forall m.\; \forall n.\; \forall x.\; \forall p.\; \forall i.\; \forall j.\; ((p \in \operatorname{mat}(m, n, x)) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(p, i, j) \in x))))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. The (i,j) entry of an m-by-n matrix over X lies in X.
+
+\subsubsection*{\texttt{matof-exists}}
+\emph{for every m, n, g, there is some p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) such that for every i in interval(1, m), j in interval(1, n), entry(p, i, j) equals g(i, j)}
+{\small\[
+\forall m.\; \forall n.\; \forall g.\; \exists p \in \operatorname{mat}(m, n, \operatorname{image}(g, (\operatorname{interval}(1, m) \times \operatorname{interval}(1, n)))).\; \forall i \in \operatorname{interval}(1, m).\; \forall j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(p, i, j) = g(i, j))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. A matrix of shape [m,n] whose (i,j) entry is g(i,j) exists (tabulation of g over
+   the index box).  The single assumption behind MATOF; dischargeable via a general
+   list-tabulation primitive.
+
+\subsubsection*{\texttt{matof-in-mat}}
+\emph{for every m, n, x, g, if for every i in interval(1, m), j in interval(1, n), g(i, j) is in x, then matof(m, n, g) is in mat(m, n, x)}
+{\small\[
+\forall m.\; \forall n.\; \forall x.\; \forall g.\; (\forall i \in \operatorname{interval}(1, m).\; \forall j \in \operatorname{interval}(1, n).\; (g(i, j) \in x) \Rightarrow (\operatorname{matof}(m, n, g) \in \operatorname{mat}(m, n, x)))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. The tabulated matrix MATOF(m,n,g) is an m-by-n matrix over X when every
+   value g(i,j) (1<=i<=m, 1<=j<=n) lies in X.
+
+\subsubsection*{\texttt{entry-of-matof}}
+\emph{for every m, n, g, i, j, if i is in interval(1, m), then if j is in interval(1, n), then entry(matof(m, n, g), i, j) equals g(i, j)}
+{\small\[
+\forall m.\; \forall n.\; \forall g.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, m)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matof}(m, n, g), i, j) = g(i, j))))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. The (i,j) entry of the tabulated matrix MATOF(m,n,g) is g(i,j).
+
+\subsubsection*{\texttt{mat-0-1-nonempty}}
+\emph{for every x, there is some p such that p is in mat(0, 1, x)}
+{\small\[
+\forall x.\; \exists p.\; (p \in \operatorname{mat}(0, 1, x))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 5 facts:} \texttt{matof-in-mat, interval-lo, interval-hi, interval-elt-in-nn, nn-not-le-zero-pos}.
+
+\subsubsection*{\texttt{mat-1-0-nonempty}}
+\emph{for every x, there is some p such that p is in mat(1, 0, x)}
+{\small\[
+\forall x.\; \exists p.\; (p \in \operatorname{mat}(1, 0, x))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 5 facts:} \texttt{matof-in-mat, interval-lo, interval-hi, interval-elt-in-nn, nn-not-le-zero-pos}.
+
+\subsection{Addition, negation, scaling}
+
+\subsubsection*{\texttt{matadd-type}}
+\emph{for every ring a, for every m, n, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then matadd(a, p, q) is in mat(m, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{matadd}(a, p, q) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. entrywise sum of m-by-n matrices is m-by-n.
+
+\subsubsection*{\texttt{matadd-entry}}
+\emph{for every a, m, n, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then for every i in interval(1, m), j in interval(1, n), entry(matadd(a, p, q), i, j) equals (add(a))(entry(p, i, j), entry(q, i, j))}
+{\small\[
+\forall a.\; \forall m.\; \forall n.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matadd}(a, p, q), i, j) = \operatorname{add}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, i, j)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (P+Q)\_\{ij\} = P\_\{ij\} + Q\_\{ij\}: the read-off of MATADD's MATOF tabulation via
+   entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
+
+\subsubsection*{\texttt{matadd-assoc}}
+\emph{for every ring a, for every m, n, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then if r is in mat(m, n, carr(a)), then matadd(a, matadd(a, p, q), r) equals matadd(a, p, matadd(a, q, r))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall q.\; \forall r.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{matadd}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, p, \operatorname{matadd}(a, q, r)))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. matrix addition is associative (entrywise, ring-add-assoc).
+
+\subsubsection*{\texttt{matadd-comm}}
+\emph{for every ring a, for every m, n, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then matadd(a, p, q) equals matadd(a, q, p)}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{matadd}(a, p, q) = \operatorname{matadd}(a, q, p)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. matrix addition is commutative (entrywise, ring-add-comm).
+
+\subsubsection*{\texttt{matadd-zero-left}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, zeromat(a, m, n), p) equals p}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{zeromat}(a, m, n), p) = p))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. ZEROMAT is a left identity for MATADD (entrywise 0+x=x).
+
+\subsubsection*{\texttt{matadd-zero-right}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, p, zeromat(a, m, n)) equals p}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{zeromat}(a, m, n)) = p))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. ZEROMAT is a right identity for MATADD (matadd-comm + zero-left).
+
+\subsubsection*{\texttt{matadd-neg-left}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, matneg(a, p), p) equals zeromat(a, m, n)}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, \operatorname{matneg}(a, p), p) = \operatorname{zeromat}(a, m, n)))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. MATNEG is a left inverse for MATADD (entrywise (-x)+x=0).
+
+\subsubsection*{\texttt{matadd-neg-right}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matadd(a, p, matneg(a, p)) equals zeromat(a, m, n)}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matadd}(a, p, \operatorname{matneg}(a, p)) = \operatorname{zeromat}(a, m, n)))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. MATNEG is a right inverse for MATADD (matadd-comm + neg-left).
+
+\subsubsection*{\texttt{matneg-type}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matneg(a, p) is in mat(m, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matneg}(a, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. entrywise negation of an m-by-n matrix is m-by-n.
+
+\subsubsection*{\texttt{matscale-type}}
+\emph{for every ring a, for every m, n, r, p, if r is in carr(a), then if p is in mat(m, n, carr(a)), then matscale(a, r, p) is in mat(m, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall r.\; \forall p.\; ((r \in \operatorname{carr}(a)) \Rightarrow ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{matscale}(a, r, p) \in \operatorname{mat}(m, n, \operatorname{carr}(a))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).
+
+\subsubsection*{\texttt{matscale-entry}}
+\emph{for every a, m, n, r, p, if r is in carr(a), then if p is in mat(m, n, carr(a)), then for every i in interval(1, m), j in interval(1, n), entry(matscale(a, r, p), i, j) equals (mul(a))(r, entry(p, i, j))}
+{\small\[
+\forall a.\; \forall m.\; \forall n.\; \forall r.\; \forall p.\; ((r \in \operatorname{carr}(a)) \Rightarrow ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matscale}(a, r, p), i, j) = \operatorname{mul}(a)(r, \operatorname{entry}(p, i, j)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (r*P)\_\{ij\} = r * P\_\{ij\}: the read-off of MATSCALE's MATOF tabulation via
+   entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).
+
+\subsection{Multiplication}
+
+\subsubsection*{\texttt{matmul-type}}
+\emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then matmul(a, p, q) is in mat(m, k, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow (\operatorname{matmul}(a, p, q) \in \operatorname{mat}(m, k, \operatorname{carr}(a))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. MAT(m,n,CARR A) x MAT(n,k,CARR A) -> MAT(m,k,CARR A): the tabulated product
+   is a matrix whose entries are FINSUMs in the carrier (matof-in-mat +
+   finsum-type).
+
+\subsubsection*{\texttt{matmul-entry}}
+\emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then for every i in interval(1, m), c in interval(1, k), entry(matmul(a, p, q), i, c) equals finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, k).\; (\operatorname{entry}(\operatorname{matmul}(a, p, q), i, c) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(a), (\lambda j.\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))), \operatorname{interval}(1, n))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (P Q)\_\{ic\} = sum\_\{j=1\}\textasciicircum{}\{n\} P\_\{ij\}*Q\_\{jc\}, the product summed in A's additive
+   group over j in 1..n (entry-of-matof on the MATMUL tabulation).
 
 \subsubsection*{\texttt{matmul-assoc}}
 \emph{for every ring a, for every m, n, k, l, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then matmul(a, matmul(a, p, q), r) equals matmul(a, p, matmul(a, q, r))}
@@ -533,6 +739,99 @@
 \noindent\textbf{Machine-checked} (trust: well-known). Both (PQ)R and P(QR) expand, via matmul-entry twice, to the same canonical double sum; finsum-fubini interchanges the two summation orders.
 \par\smallskip\noindent\emph{Rests on 22 facts:} \texttt{matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality}.
 
+\subsubsection*{\texttt{matmul-left-dist}}
+\emph{for every ring a, for every m, n, k, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(n, k, carr(a)), then matmul(a, p, matadd(a, q, r)) equals matadd(a, matmul(a, p, q), matmul(a, p, r))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall p.\; \forall q.\; \forall r.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow (\operatorname{matmul}(a, p, \operatorname{matadd}(a, q, r)) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, q), \operatorname{matmul}(a, p, r)))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. P(Q+R) = PQ + PR: distribute inside the sum termwise (finsum-additive + ring-left-dist).
+
+\subsubsection*{\texttt{matmul-right-dist}}
+\emph{for every ring a, for every m, n, k, p, q, r, if p is in mat(m, n, carr(a)), then if q is in mat(m, n, carr(a)), then if r is in mat(n, k, carr(a)), then matmul(a, matadd(a, p, q), r) equals matadd(a, matmul(a, p, r), matmul(a, q, r))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall p.\; \forall q.\; \forall r.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow (\operatorname{matmul}(a, \operatorname{matadd}(a, p, q), r) = \operatorname{matadd}(a, \operatorname{matmul}(a, p, r), \operatorname{matmul}(a, q, r)))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (P+Q)R = PR + QR (finsum-additive + ring-right-dist).
+
+\subsubsection*{\texttt{matprod-summand-type}}
+\emph{for every ring a, for every m, n, nn, p, q, i, c, if p is in mat(m, n, carr(a)), then if q is in mat(n, nn, carr(a)), then if i is in interval(1, m), then if c is in interval(1, nn), then vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall \mathbb{N}.\; \forall p.\; \forall q.\; \forall i.\; \forall c.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, \mathbb{N}, \operatorname{carr}(a))) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((c \in \operatorname{interval}(1, \mathbb{N})) \Rightarrow ((\lambda j.\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))))))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. j |-> P\_\{ij\}.Q\_\{jc\} is a function [1,n] -> CARR A for P:MAT(m,n), Q:MAT(n,nn)
+   (entry-in-carrier gives both factors in CARR A; MUL closes; CARR(RAG)=CARR A).
+
+\subsubsection*{\texttt{matmul-assoc-summand-type}}
+\emph{for every ring a, for every m, n, k, l, p, q, r, row, col, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if row is in interval(1, m), then if col is in interval(1, l), then vnb-lambda(z, (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) is in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall r.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(k, l, \operatorname{carr}(a))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow ((\lambda z.\; \operatorname{mul}(a)(\operatorname{mul}(a)(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(r, \operatorname{nth}(1, z), \mathit{col}))) \in ((\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a))))))))))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. the triple-product summand (c,j) |-> (P\_\{row,j\} Q\_\{j,c\}) R\_\{c,col\} is a function INTERVAL(1,k) x INTERVAL(1,n) -> CARR A: the entries lie in CARR A (entry-in-carrier) and MUL closes on CARR A.
+
+\subsection{The identity and zero matrices}
+
+\subsubsection*{\texttt{identmat-type}}
+\emph{for every ring a, for every n, identmat(a, n) is in mat(n, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; (\operatorname{identmat}(a, n) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).
+
+\subsubsection*{\texttt{identmat-entry-diag}}
+\emph{for every a, n, i in interval(1, n), entry(identmat(a, n), i, i) equals one(a)}
+{\small\[
+\forall a.\; \forall n.\; \forall i \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{identmat}(a, n), i, i) = \operatorname{one}(a))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (IDENTMAT A n)\_\{ii\} = 1 (entry-of-identmat with the IF condition true).
+
+\subsubsection*{\texttt{identmat-entry-off}}
+\emph{for every a, n, i, j, if i is in interval(1, n), then if j is in interval(1, n), then if i is not equal to j, then entry(identmat(a, n), i, j) equals zero(a)}
+{\small\[
+\forall a.\; \forall n.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\neg (i = j) \Rightarrow (\operatorname{entry}(\operatorname{identmat}(a, n), i, j) = \operatorname{zero}(a)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (IDENTMAT A n)\_\{ij\} = 0 for i /= j (entry-of-identmat with the IF condition false).
+
+\subsubsection*{\texttt{entry-of-identmat}}
+\emph{for every a, n, i, j, if i is in interval(1, n), then if j is in interval(1, n), then entry(identmat(a, n), i, j) equals if(i = j, one(a), zero(a))}
+{\small\[
+\forall a.\; \forall n.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{identmat}(a, n), i, j) = \left(\text{if }(i = j)\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (IDENTMAT A n)\_\{ij\} = 1 if i=j else 0 (entry-of-matof on the Kronecker delta).
+
+\subsubsection*{\texttt{entry-of-zeromat}}
+\emph{for every a, m, n, i, j, if i is in interval(1, m), then if j is in interval(1, n), then entry(zeromat(a, m, n), i, j) equals zero(a)}
+{\small\[
+\forall a.\; \forall m.\; \forall n.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, m)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{zeromat}(a, m, n), i, j) = \operatorname{zero}(a))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (ZEROMAT A m n)\_\{ij\} = 0 (entry-of-matof on the constant tabulation).
+
+\subsubsection*{\texttt{identmat-left-identity}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matmul(a, identmat(a, m), p) equals p}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, \operatorname{identmat}(a, m), p) = p))
+\]}
+\noindent\textbf{Asserted} [warrant: proof]. I\_m P = P: the (i,c) entry is sum\_j delta\_ij P\_jc, whose only surviving term
+   (j=i) is 1*P\_ic = P\_ic (matmul-entry + entry-of-identmat + finsum-single-
+   support + ring-mul-left-id).  Proof structure worked out in identmat-build.scm.
+
+\subsubsection*{\texttt{identmat-right-identity}}
+\emph{for every ring a, for every m, n, p in mat(m, n, carr(a)), matmul(a, p, identmat(a, n)) equals p}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; (\operatorname{matmul}(a, p, \operatorname{identmat}(a, n)) = p))
+\]}
+\noindent\textbf{Asserted} [warrant: proof]. P I\_n = P, the right-handed mirror of identmat-left-identity (only the c=j
+   term of sum\_j P\_ij delta\_jc survives).
+
+\subsubsection*{\texttt{identmat-invertible}}
+\emph{for every ring a, for every n, identmat(a, n) is an invertible n-by-n matrix over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \operatorname{is\text{-}invertible\text{-}mat}(a, n, \operatorname{identmat}(a, n)))
+\]}
+\noindent\textbf{Machine-checked} (trust: reference).
+\par\smallskip\noindent\emph{Rests on 2 facts:} \texttt{identmat-type, identmat-left-identity}.
+
+\subsection{The matrix ring}
+
 \subsubsection*{\texttt{mat-ring-is-ring}}
 \emph{for every ring a, for every n in nn, mat-ring(a, n) is a ring}
 {\small\[
@@ -541,7 +840,171 @@
 \noindent\textbf{Machine-checked} (trust: well-known). Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.
 \par\smallskip\noindent\emph{Rests on 45 facts:} \texttt{mat-ring-carr, ring-carr-in-set, mat-is-set, mat-ring-add, mat-ring-add-fun, mat-ring-mul, mat-ring-mul-fun, mat-ring-neg, matneg-type, mat-ring-zero, zeromat-type, mat-ring-one, identmat-type, matadd-assoc, matadd-comm, matadd-zero-left, matadd-zero-right, matadd-neg-left, matadd-neg-right, matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality, identmat-left-identity, identmat-right-identity, matmul-left-dist, matmul-right-dist}.
 
+\subsubsection*{\texttt{mat-ring-carr}}
+\emph{for every a, n, carr(mat-ring(a, n)) equals mat(n, n, carr(a))}
+{\small\[
+\forall a.\; \forall n.\; (\operatorname{carr}(\operatorname{mat\text{-}ring}(a, n)) = \operatorname{mat}(n, n, \operatorname{carr}(a)))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. slot 1 of the MAT-RING tuple.
+
+\subsubsection*{\texttt{mat-ring-add}}
+\emph{for every a, n, add(mat-ring(a, n)) equals vnb-lambda([p, q], matadd(a, p, q))}
+{\small\[
+\forall a.\; \forall n.\; (\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. slot 2 of the MAT-RING tuple (entrywise sum).
+
+\subsubsection*{\texttt{mat-ring-mul}}
+\emph{for every a, n, mul(mat-ring(a, n)) equals vnb-lambda([p, q], matmul(a, p, q))}
+{\small\[
+\forall a.\; \forall n.\; (\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. slot 3 of the MAT-RING tuple (matrix product).
+
+\subsubsection*{\texttt{mat-ring-zero}}
+\emph{for every a, n, zero(mat-ring(a, n)) equals zeromat(a, n, n)}
+{\small\[
+\forall a.\; \forall n.\; (\operatorname{zero}(\operatorname{mat\text{-}ring}(a, n)) = \operatorname{zeromat}(a, n, n))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. slot 5 of the MAT-RING tuple (all-zero matrix).
+
+\subsubsection*{\texttt{mat-ring-one}}
+\emph{for every a, n, one(mat-ring(a, n)) equals identmat(a, n)}
+{\small\[
+\forall a.\; \forall n.\; (\operatorname{one}(\operatorname{mat\text{-}ring}(a, n)) = \operatorname{identmat}(a, n))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. slot 6 of the MAT-RING tuple (identity matrix).
+
+\subsubsection*{\texttt{mat-ring-neg}}
+\emph{for every a, n, neg(mat-ring(a, n)) equals vnb-lambda(p, matneg(a, p))}
+{\small\[
+\forall a.\; \forall n.\; (\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda p.\; \operatorname{matneg}(a, p)))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. slot 4 of the MAT-RING tuple (entrywise negation).
+
+\subsubsection*{\texttt{mat-ring-add-fun}}
+\emph{for every ring a, for every n in nn, vnb-lambda([p, q], matadd(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. curried entrywise sum is a function MAT x MAT -> MAT (2-binder).
+
+\subsubsection*{\texttt{mat-ring-mul-fun}}
+\emph{for every ring a, for every n in nn, vnb-lambda([p, q], matmul(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. curried product is a function MAT x MAT -> MAT (2-binder).
+
+\subsection{Cutting and extending: submatrices, blocks, bordered matrices}
+
+\subsubsection*{\texttt{submat-type}}
+\emph{for every a, p, q, s, if p is in nn, then if q is in nn, then if s is in mat(succ(p), succ(q), carr(a)), then submat(s, p, q) is in mat(p, q, carr(a))}
+{\small\[
+\forall a.\; \forall p.\; \forall q.\; \forall s.\; ((p \in \mathbb{N}) \Rightarrow ((q \in \mathbb{N}) \Rightarrow ((s \in \operatorname{mat}((p + 1), (q + 1), \operatorname{carr}(a))) \Rightarrow (\operatorname{submat}(s, p, q) \in \operatorname{mat}(p, q, \operatorname{carr}(a))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. SUBMAT(P,p,q) in MAT(p,q,CARR A) for P in MAT(succ p, succ q, CARR A): each
+   block entry is P\_\{succ i, succ j\} in CARR A (entry-in-carrier; succ i in
+   [1,succ p] for i in [1,p]), so matof-in-mat applies.
+
+\subsubsection*{\texttt{entry-of-submat}}
+\emph{for every s, p, q, i, j, if i is in interval(1, p), then if j is in interval(1, q), then entry(submat(s, p, q), i, j) equals entry(s, succ(i), succ(j))}
+{\small\[
+\forall s.\; \forall p.\; \forall q.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, p)) \Rightarrow ((j \in \operatorname{interval}(1, q)) \Rightarrow (\operatorname{entry}(\operatorname{submat}(s, p, q), i, j) = \operatorname{entry}(s, (i + 1), (j + 1)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. SUBMAT(P,p,q)\_\{ij\} = P\_\{succ i, succ j\} for i in [1,p], j in [1,q]
+   (entry-of-matof on the block tabulator, beta-reduced).
+
+\subsubsection*{\texttt{entry-of-block}}
+\emph{for every p, k, l, i, j, if i is in interval(1, k), then if j is in interval(1, l), then entry(block(p, k, l), i, j) equals entry(p, i, j)}
+{\small\[
+\forall p.\; \forall k.\; \forall l.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, k)) \Rightarrow ((j \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{block}(p, k, l), i, j) = \operatorname{entry}(p, i, j))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. BLOCK(P,k,l)\_\{ij\} = P\_\{ij\} for i in [1,k], j in [1,l] (entry-of-matof).
+
+\subsubsection*{\texttt{snoc-col-type}}
+\emph{for every x, n, w, v, if n is in nn, then if w is in mat(n, 1, x), then if v is in x, then snoc-col(w, n, v) is in mat(succ(n), 1, x)}
+{\small\[
+\forall x.\; \forall n.\; \forall w.\; \forall v.\; ((n \in \mathbb{N}) \Rightarrow ((w \in \operatorname{mat}(n, 1, x)) \Rightarrow ((v \in x) \Rightarrow (\operatorname{snoc\text{-}col}(w, n, v) \in \operatorname{mat}((n + 1), 1, x)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. [w\_1..w\_n, x] is a (succ n)-by-1 matrix over X: matof-in-mat, each value being
+   x in X (row succ n) or ENTRY w i 1 in X for i in [1,n] (entry-in-carrier).
+
+\subsubsection*{\texttt{snoc-col-last}}
+\emph{for every w, n, x, if n is in nn, then entry(snoc-col(w, n, x), succ(n), 1) equals x}
+{\small\[
+\forall w.\; \forall n.\; \forall x.\; ((n \in \mathbb{N}) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, x), (n + 1), 1) = x))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. SNOC-COL(w,n,x)\_\{succ n,1\} = x: entry-of-matof (succ n in [1,succ n]), IF true.
+
+\subsubsection*{\texttt{entry-of-snoc-col}}
+\emph{for every w, n, x, i in interval(1, n), entry(snoc-col(w, n, x), i, 1) equals entry(w, i, 1)}
+{\small\[
+\forall w.\; \forall n.\; \forall x.\; \forall i \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{snoc\text{-}col}(w, n, x), i, 1) = \operatorname{entry}(w, i, 1))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. SNOC-COL(w,n,x)\_\{i,1\} = w\_\{i,1\} for i in [1,n]: entry-of-matof (i in [1,succ n]
+   since i<=n<=succ n, and 1 in [1,1]), then the IF is false since i<=n<succ n.
+
+\subsubsection*{\texttt{snoc-row-type}}
+\emph{for every x, n, c, r, if n is in nn, then if c is in mat(1, n, x), then if r is in x, then snoc-row(c, n, r) is in mat(1, succ(n), x)}
+{\small\[
+\forall x.\; \forall n.\; \forall c.\; \forall r.\; ((n \in \mathbb{N}) \Rightarrow ((c \in \operatorname{mat}(1, n, x)) \Rightarrow ((r \in x) \Rightarrow (\operatorname{snoc\text{-}row}(c, n, r) \in \operatorname{mat}(1, (n + 1), x)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. [c\_1..c\_n, r] is a 1-by-(succ n) matrix over X (matof-in-mat, as snoc-col-type).
+
+\subsubsection*{\texttt{snoc-row-last}}
+\emph{for every c, n, r, if n is in nn, then entry(snoc-row(c, n, r), 1, succ(n)) equals r}
+{\small\[
+\forall c.\; \forall n.\; \forall r.\; ((n \in \mathbb{N}) \Rightarrow (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, (n + 1)) = r))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. SNOC-ROW(c,n,r)\_\{1,succ n\} = r (entry-of-matof, IF true).
+
+\subsubsection*{\texttt{entry-of-snoc-row}}
+\emph{for every c, n, r, j in interval(1, n), entry(snoc-row(c, n, r), 1, j) equals entry(c, 1, j)}
+{\small\[
+\forall c.\; \forall n.\; \forall r.\; \forall j \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{snoc\text{-}row}(c, n, r), 1, j) = \operatorname{entry}(c, 1, j))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. SNOC-ROW(c,n,r)\_\{1,j\} = c\_\{1,j\} for j in [1,n] (entry-of-matof, IF false as j<=n<succ n).
+
 \subsection{The matrix unit and its column shift (Lemma 3.3)}
+
+\subsubsection*{\texttt{matunit-type}}
+\emph{for every ring a, for every n, k, l, matunit(a, n, k, l) is in mat(n, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall k.\; \forall l.\; (\operatorname{matunit}(a, n, k, l) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. MATUNIT(A,n,k,l) is an n-by-n matrix over CARR A: its entries are ONE/ZERO of
+   A (matof-in-mat on the unit-entry function).
+
+\subsubsection*{\texttt{matunit-entry-k-row}}
+\emph{for every a, n, k, l, c, if k is in interval(1, n), then if c is in interval(1, n), then entry(matunit(a, n, k, l), k, c) equals if(c = l, one(a), zero(a))}
+{\small\[
+\forall a.\; \forall n.\; \forall k.\; \forall l.\; \forall c.\; ((k \in \operatorname{interval}(1, n)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matunit}(a, n, k, l), k, c) = \left(\text{if }(c = l)\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. E[k,l]\_\{kc\} = 1 if c=l else 0 (entry-of-matunit with the (k=k) conjunct true).
+
+\subsubsection*{\texttt{matunit-entry-off-row}}
+\emph{for every a, n, k, l, j, c, if j is in interval(1, n), then if c is in interval(1, n), then if j is not equal to k, then entry(matunit(a, n, k, l), j, c) equals zero(a)}
+{\small\[
+\forall a.\; \forall n.\; \forall k.\; \forall l.\; \forall j.\; \forall c.\; ((j \in \operatorname{interval}(1, n)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow (\neg (j = k) \Rightarrow (\operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c) = \operatorname{zero}(a)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. E[k,l]\_\{jc\} = 0 when j /= k (entry-of-matunit: the (j=k) conjunct is false).
+
+\subsubsection*{\texttt{entry-of-matunit}}
+\emph{for every a, n, k, l, i, j, if i is in interval(1, n), then if j is in interval(1, n), then entry(matunit(a, n, k, l), i, j) equals if(i = k and j = l, one(a), zero(a))}
+{\small\[
+\forall a.\; \forall n.\; \forall k.\; \forall l.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matunit}(a, n, k, l), i, j) = \left(\text{if }((i = k) \wedge (j = l))\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (MATUNIT A n k l)\_\{ij\} = 1 if (i=k and j=l) else 0 (entry-of-matof on the
+   (k,l) unit-entry function).
+
+\subsubsection*{\texttt{matunit-summand-type}}
+\emph{for every ring a, for every m, n, p, k, l, i, c, if p is in mat(m, n, carr(a)), then if i is in interval(1, m), then if c is in interval(1, n), then vnb-lambda(j, (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall k.\; \forall l.\; \forall i.\; \forall c.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow ((\lambda j.\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a))))))))
+\]}
+\noindent\textbf{Asserted} [warrant: well-known]. j |-> P\_\{ij\}.E[k,l]\_\{jc\} is a function INTERVAL(1,n) -> CARR A (entry-in-carrier
+   + matunit-type give both factors in CARR A; MUL closes on CARR A).
 
 \subsubsection*{\texttt{matunit-col-shift}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, n), then if l is in interval(1, n), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, matunit(a, n, k, l)), i, c) equals if(c = l, entry(p, i, k), zero(a))}
@@ -552,6 +1015,30 @@
 \par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{matunit-type, matmul-entry, interval-in-set, interval-card-in-nn, matunit-summand-type, matunit-entry-off-row, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, matunit-entry-k-row}.
 
 \subsection{Elementary column operations (Prop 3.5)}
+
+\subsubsection*{\texttt{elem-f-type}}
+\emph{for every ring a, for every n, k, l, elem-f(a, n, k, l) is in mat(n, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall k.\; \forall l.\; (\operatorname{elem\text{-}f}(a, n, k, l) \in \operatorname{mat}(n, n, \operatorname{carr}(a))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. ELEM-F(A,n,k,l) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A;
+   matof-in-mat on the swap entry function).
+
+\subsubsection*{\texttt{elem-g-type}}
+\emph{for every ring a, for every n, r, k, l, if r is in carr(a), then elem-g(a, n, r, k, l) is in mat(n, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall r.\; \forall k.\; \forall l.\; ((r \in \operatorname{carr}(a)) \Rightarrow (\operatorname{elem\text{-}g}(a, n, r, k, l) \in \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. ELEM-G(A,n,r,k,l) is an n-by-n matrix over CARR A when r in CARR A (entries are
+   ONE/ZERO/r, all in CARR A; matof-in-mat).
+
+\subsubsection*{\texttt{elem-h-type}}
+\emph{for every ring a, for every n, r, k, if r is in carr(a), then elem-h(a, n, r, k) is in mat(n, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall r.\; \forall k.\; ((r \in \operatorname{carr}(a)) \Rightarrow (\operatorname{elem\text{-}h}(a, n, r, k) \in \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. ELEM-H(A,n,r,k) is an n-by-n matrix over CARR A when r in CARR A (entries are
+   ONE/ZERO/r, all in CARR A; matof-in-mat).
 
 \subsubsection*{\texttt{elem-f-action}}
 \emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, p, elem-f(a, n, k, l)), i, c) equals if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c)))}
@@ -576,6 +1063,56 @@
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). H[r,k] scales column k by r: a single-support finsum collapse at the diagonal, then a case split on c=k.
 \par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{elem-h-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-entry-off-diag, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-h-entry-diag}.
+
+\subsubsection*{\texttt{entry-of-elem-f}}
+\emph{for every a, n, k, l, i, j, if i is in interval(1, n), then if j is in interval(1, n), then entry(elem-f(a, n, k, l), i, j) equals if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))}
+{\small\[
+\forall a.\; \forall n.\; \forall k.\; \forall l.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{elem\text{-}f}(a, n, k, l), i, j) = \left(\text{if }(((i = k) \wedge (j = l)) \vee (((i = l) \wedge (j = k)) \vee ((i = j) \wedge (\neg (i = k) \wedge \neg (i = l)))))\text{ then }\operatorname{one}(a)\text{ else }\operatorname{zero}(a)\right))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (ELEM-F A n k l)\_\{ij\} = 1 on the swap graph \{(k,l),(l,k)\} and on the diagonal
+   off k,l; else 0 (entry-of-matof on the transposition-(k l) entry function).
+
+\subsubsection*{\texttt{entry-of-elem-g}}
+\emph{for every a, n, r, k, l, i, j, if i is in interval(1, n), then if j is in interval(1, n), then entry(elem-g(a, n, r, k, l), i, j) equals if(i = j, one(a), if(i = k and j = l, r, zero(a)))}
+{\small\[
+\forall a.\; \forall n.\; \forall r.\; \forall k.\; \forall l.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{elem\text{-}g}(a, n, r, k, l), i, j) = \left(\text{if }(i = j)\text{ then }\operatorname{one}(a)\text{ else }\left(\text{if }((i = k) \wedge (j = l))\text{ then }r\text{ else }\operatorname{zero}(a)\right)\right))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (ELEM-G A n r k l)\_\{ij\} = 1 if i=j, r if (i,j)=(k,l), else 0 (entry-of-matof on
+   the I + r.E[k,l] entry function; disjoint since k /= l).
+
+\subsubsection*{\texttt{entry-of-elem-h}}
+\emph{for every a, n, r, k, i, j, if i is in interval(1, n), then if j is in interval(1, n), then entry(elem-h(a, n, r, k), i, j) equals if(i = j, if(i = k, r, one(a)), zero(a))}
+{\small\[
+\forall a.\; \forall n.\; \forall r.\; \forall k.\; \forall i.\; \forall j.\; ((i \in \operatorname{interval}(1, n)) \Rightarrow ((j \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{elem\text{-}h}(a, n, r, k), i, j) = \left(\text{if }(i = j)\text{ then }\left(\text{if }(i = k)\text{ then }r\text{ else }\operatorname{one}(a)\right)\text{ else }\operatorname{zero}(a)\right))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (ELEM-H A n r k)\_\{ij\} = 0 off the diagonal, r at (k,k), 1 on the rest of the
+   diagonal (entry-of-matof on the I + (r-1).E[k,k] entry function).
+
+\subsection{Elementary row operations}
+
+\subsubsection*{\texttt{elem-f-row-action}}
+\emph{for every ring a, for every m, n, p, k, l, if p is in mat(m, n, carr(a)), then if k is in interval(1, m), then if l is in interval(1, m), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-f(a, m, k, l), p), i, c) equals if(i = k, entry(p, l, c), if(i = l, entry(p, k, c), entry(p, i, c)))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall k.\; \forall l.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((k \in \operatorname{interval}(1, m)) \Rightarrow ((l \in \operatorname{interval}(1, m)) \Rightarrow (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}f}(a, m, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{entry}(p, l, c)\text{ else }\left(\text{if }(i = l)\text{ then }\operatorname{entry}(p, k, c)\text{ else }\operatorname{entry}(p, i, c)\right)\right)))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 15 facts:} \texttt{elem-f-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-f-rk-off, entry-in-carrier, ring-mul-zero-left, ras-id, finsum-single-support, elem-f-rk-at, elem-f-rl-off, elem-f-rl-at, elem-f-ro-off, elem-f-ro-at}.
+
+\subsubsection*{\texttt{elem-g-row-action}}
+\emph{for every ring a, for every m, n, p, r, k, l, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, m), then if l is in interval(1, m), then if k is not equal to l, then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-g(a, m, r, k, l), p), i, c) equals if(i = k, (add(a))(entry(p, k, c), (mul(a))(r, entry(p, l, c))), entry(p, i, c))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall r.\; \forall k.\; \forall l.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((k \in \operatorname{interval}(1, m)) \Rightarrow ((l \in \operatorname{interval}(1, m)) \Rightarrow (\neg (k = l) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}g}(a, m, r, k, l), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{add}(a)(\operatorname{entry}(p, k, c), \operatorname{mul}(a)(r, \operatorname{entry}(p, l, c)))\text{ else }\operatorname{entry}(p, i, c)\right))))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 16 facts:} \texttt{elem-g-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-g-rk-vanish, entry-in-carrier, ring-mul-zero-left, ras-id, finsum-two-support, elem-g-rk-at-k, elem-g-rk-at-l, ras-op, elem-g-ro-off, finsum-single-support, elem-g-ro-at}.
+
+\subsubsection*{\texttt{elem-h-row-action}}
+\emph{for every ring a, for every m, n, p, r, k, if p is in mat(m, n, carr(a)), then if r is in carr(a), then if k is in interval(1, m), then for every i in interval(1, m), c in interval(1, n), entry(matmul(a, elem-h(a, m, r, k), p), i, c) equals if(i = k, (mul(a))(r, entry(p, k, c)), entry(p, i, c))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall r.\; \forall k.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{carr}(a)) \Rightarrow ((k \in \operatorname{interval}(1, m)) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, n).\; (\operatorname{entry}(\operatorname{matmul}(a, \operatorname{elem\text{-}h}(a, m, r, k), p), i, c) = \left(\text{if }(i = k)\text{ then }\operatorname{mul}(a)(r, \operatorname{entry}(p, k, c))\text{ else }\operatorname{entry}(p, i, c)\right))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{elem-h-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-ro-off, entry-in-carrier, ring-mul-zero-left, ras-id, finsum-single-support, elem-h-ro-at}.
 
 \subsection{Elementary inverses (Cor 3.6)}
 
@@ -603,6 +1140,258 @@
 \noindent\textbf{Machine-checked} (trust: well-known). H[r,k]\textasciicircum{}\{-1\} = H[r\textasciicircum{}\{-1\},k]: the (k,k) diagonal entry becomes r.s = 1 by the unit hypothesis; the rest of the diagonal stays 1 and off-diagonal 0.
 \par\smallskip\noindent\emph{Rests on 16 facts:} \texttt{elem-h-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-h-entry-off-diag, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-h-entry-diag, entry-of-identmat, ring-mul-zero-left, matrix-entry-extensionality}.
 
+\subsubsection*{\texttt{elem-f-invertible}}
+\emph{for every ring a, for every n, k, l, if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then elem-f(a, n, k, l) is an invertible n-by-n matrix over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall k.\; \forall l.\; ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow (\neg (k = l) \Rightarrow \operatorname{is\text{-}invertible\text{-}mat}(a, n, \operatorname{elem\text{-}f}(a, n, k, l))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 23 facts:} \texttt{elem-f-type, eq-sym, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, elem-f-ck-off, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-single-support, elem-f-ck-at, elem-f-cl-off, elem-f-cl-at, elem-f-co-off, elem-f-co-at, entry-of-identmat, elem-f-col-k, elem-f-col-l, elem-f-col-other, matrix-entry-extensionality}.
+
+\subsubsection*{\texttt{elem-g-invertible}}
+\emph{for every ring a, for every n, r, k, l, if r is in carr(a), then if k is in interval(1, n), then if l is in interval(1, n), then if k is not equal to l, then elem-g(a, n, r, k, l) is an invertible n-by-n matrix over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n.\; \forall r.\; \forall k.\; \forall l.\; ((r \in \operatorname{carr}(a)) \Rightarrow ((k \in \operatorname{interval}(1, n)) \Rightarrow ((l \in \operatorname{interval}(1, n)) \Rightarrow (\neg (k = l) \Rightarrow \operatorname{is\text{-}invertible\text{-}mat}(a, n, \operatorname{elem\text{-}g}(a, n, r, k, l)))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 30 facts:} \texttt{ring-neg-in-carr, elem-g-type, matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, matprod-summand-type, eq-sym, elem-g-entry-l-vanish, entry-in-carrier, ring-mul-zero-right, ras-id, finsum-two-support, elem-g-entry-l-at-l, elem-g-entry-l-at-k, ras-op, elem-g-entry-off-l-off-diag, finsum-single-support, elem-g-entry-off-l-diag, entry-of-identmat, elem-g-col-l, elem-g-col-k, ring-mul-zero-left, ring-one-in, ring-add-right-id, ring-add-right-inv, elem-g-col-other, matrix-entry-extensionality, ring-neg-neg}.
+
+\subsection{Matrix equivalence}
+
+\subsubsection*{\texttt{mat-equiv}}
+\emph{for every a, m, n, c, d, c and d are equivalent m-by-n matrices over a if and only if there is some u such that u is an invertible m-by-m matrix over a and there is some v such that v is an invertible n-by-n matrix over a and d equals matmul(a, matmul(a, u, c), v)}
+{\small\[
+\forall a.\; \forall m.\; \forall n.\; \forall c.\; \forall d.\; (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Leftrightarrow \exists u.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, m, u) \wedge \exists v.\; (\operatorname{is\text{-}invertible\text{-}mat}(a, n, v) \wedge (d = \operatorname{matmul}(a, \operatorname{matmul}(a, u, c), v)))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{mat-equiv-refl}}
+\emph{for every ring a, for every m, n, c in mat(m, n, carr(a)), c and c are equivalent m-by-n matrices over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall c \in \operatorname{mat}(m, n, \operatorname{carr}(a)).\; \operatorname{mat\text{-}equiv}(a, m, n, c, c))
+\]}
+\noindent\textbf{Machine-checked} (trust: reference).
+\par\smallskip\noindent\emph{Rests on 3 facts:} \texttt{identmat-left-identity, identmat-right-identity, identmat-type}.
+
+\subsubsection*{\texttt{mat-equiv-trans}}
+\emph{for every ring a, for every m, n, c, d, e, if c is in mat(m, n, carr(a)), then if c and d are equivalent m-by-n matrices over a, then if d and e are equivalent m-by-n matrices over a, then c and e are equivalent m-by-n matrices over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall c.\; \forall d.\; \forall e.\; ((c \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, d, e) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, e)))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 24 facts:} \texttt{matmul-type, identmat-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality, identmat-right-identity}.
+
+\subsubsection*{\texttt{mat-equiv-left-mult}}
+\emph{for every ring a, for every m, n, c, u, if c is in mat(m, n, carr(a)), then if u is an invertible m-by-m matrix over a, then c and matmul(a, u, c) are equivalent m-by-n matrices over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall c.\; \forall u.\; ((c \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{is\text{-}invertible\text{-}mat}(a, m, u) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, u, c)))))
+\]}
+\noindent\textbf{Machine-checked} (trust: reference).
+\par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{matmul-type, identmat-right-identity, identmat-type, identmat-left-identity}.
+
+\subsubsection*{\texttt{mat-equiv-right-mult}}
+\emph{for every ring a, for every m, n, c, v, if c is in mat(m, n, carr(a)), then if v is an invertible n-by-n matrix over a, then c and matmul(a, c, v) are equivalent m-by-n matrices over a}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall c.\; \forall v.\; ((c \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{is\text{-}invertible\text{-}mat}(a, n, v) \Rightarrow \operatorname{mat\text{-}equiv}(a, m, n, c, \operatorname{matmul}(a, c, v)))))
+\]}
+\noindent\textbf{Machine-checked} (trust: reference).
+\par\smallskip\noindent\emph{Rests on 3 facts:} \texttt{identmat-left-identity, identmat-type, matmul-type}.
+
+\subsubsection*{\texttt{mat-equiv-target-is-mat}}
+\emph{for every ring a, for every m, n, c, d, if c is in mat(m, n, carr(a)), then if c and d are equivalent m-by-n matrices over a, then d is in mat(m, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall c.\; \forall d.\; ((c \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, c, d) \Rightarrow (d \in \operatorname{mat}(m, n, \operatorname{carr}(a))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: reference).
+\par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{matmul-type}.
+
+\subsubsection*{\texttt{mat-equiv-cod-is-mat}}
+\emph{for every ring a, for every m, n, x, y, if x is in mat(m, n, carr(a)), then if x and y are equivalent m-by-n matrices over a, then y is in mat(m, n, carr(a))}
+{\small\[
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall x.\; \forall y.\; ((x \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow (\operatorname{mat\text{-}equiv}(a, m, n, x, y) \Rightarrow (y \in \operatorname{mat}(m, n, \operatorname{carr}(a))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: reference).
+\par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{matmul-type}.
+
+\subsection{Matrices acting on sequences of module elements}
+
+\subsubsection*{\texttt{matact-type}}
+\emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then matact(md, p, u) is in mat(m, q, vec(md))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall q.\; \forall p.\; \forall u.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md}))) \Rightarrow (\operatorname{matact}(\mathit{md}, p, u) \in \operatorname{mat}(m, q, \operatorname{vec}(\mathit{md}))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. P.u is an m-by-q matrix of vectors for P an m-by-n scalar matrix and u an
+   n-by-q matrix of vectors: matof-in-mat, whose values are FINSUMs in the
+   vector abelian group, typed by finsum-type + mvag-carr.
+
+\subsubsection*{\texttt{matact-entry}}
+\emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then for every i in interval(1, m), c in interval(1, q), entry(matact(md, p, u), i, c) equals finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall q.\; \forall p.\; \forall u.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md}))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, q).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, u), i, c) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j.\; \operatorname{act}(\mathit{md})(\operatorname{entry}(p, i, j), \operatorname{entry}(u, j, c))), \operatorname{interval}(1, n))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. (P.u)\_\{ic\} = sum\_\{j=1\}\textasciicircum{}\{n\} P\_\{ij\} . u\_\{jc\}, summed in the module's vector
+   abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
+   (dimensions m, n, q recovered from SIZE P, SIZE u).
+
+\subsubsection*{\texttt{matact-identmat}}
+\emph{for every module md, for every n, q, u in mat(n, q, vec(md)), matact(md, identmat(scal(md), n), u) equals u}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.\; \forall q.\; \forall u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md})).\; (\operatorname{matact}(\mathit{md}, \operatorname{identmat}(\operatorname{scal}(\mathit{md}), n), u) = u))
+\]}
+\noindent\textbf{Machine-checked} (trust: none).
+\par\smallskip\noindent\emph{Rests on 14 facts:} \texttt{identmat-type, matact-type, interval-in-set, interval-card-in-nn, matact-entry, matact-summand-type, neq-sym, identmat-entry-off, entry-in-carrier, abelian-group-idempotent-is-id, mvag-id, finsum-single-support, identmat-entry-diag, matrix-entry-extensionality}.
+
+\subsubsection*{\texttt{matact-assoc}}
+\emph{for every module md, for every m, n, k, l, p, q, u, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then matact(md, matmul(scal(md), p, q), u) equals matact(md, p, matact(md, q, u))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow (\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u) = \operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 24 facts:} \texttt{matmul-type, matact-type, matact-entry, interval-in-set, interval-card-in-nn, mal-outf-type, mal-tout-type, matmul-entry, mal-inf-type, entry-in-carrier, finsum-act-collect-gen, mal-dist-type, mal-red-type, ring-carrier-closed-mul, finsum-congruence, mar-outf-type, mar-tout-type, mar-gj-type, finsum-act-distrib-gen, mar-dist-type, mar-red-type, matact-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality}.
+
+\subsubsection*{\texttt{matact-row-add}}
+\emph{for every module md, for every n, c1, c2, u, if c1 is in mat(1, n, carr(scal(md))), then if c2 is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then entry(matact(md, matadd(scal(md), c1, c2), u), 1, 1) equals (vadd(md))(entry(matact(md, c1, u), 1, 1), entry(matact(md, c2, u), 1, 1))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.\; \forall \mathit{c1}.\; \forall \mathit{c2}.\; \forall u.\; ((\mathit{c1} \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((\mathit{c2} \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md}))) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matadd}(\operatorname{scal}(\mathit{md}), \mathit{c1}, \mathit{c2}), u), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, \mathit{c1}, u), 1, 1), \operatorname{entry}(\operatorname{matact}(\mathit{md}, \mathit{c2}, u), 1, 1)))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{matadd-type, one-in-interval-1, interval-in-set, interval-card-in-nn, mra-combined-summand-type, matact-summand-type, matact-entry, entry-in-carrier, matadd-entry, mvag-op, finsum-congruence, finsum-add-ag}.
+
+\subsubsection*{\texttt{matact-row-scale}}
+\emph{for every module md, for every n, r, c, u, if r is in carr(scal(md)), then if c is in mat(1, n, carr(scal(md))), then if u is in mat(n, 1, vec(md)), then entry(matact(md, matscale(scal(md), r, c), u), 1, 1) equals (act(md))(r, entry(matact(md, c, u), 1, 1))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.\; \forall r.\; \forall c.\; \forall u.\; ((r \in \operatorname{carr}(\operatorname{scal}(\mathit{md}))) \Rightarrow ((c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md}))) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matscale}(\operatorname{scal}(\mathit{md}), r, c), u), 1, 1) = \operatorname{act}(\mathit{md})(r, \operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1)))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{matscale-type, one-in-interval-1, interval-in-set, interval-card-in-nn, matact-summand-type, mrs-scaled-summand-type, matact-entry, finsum-act-distrib-gen, entry-in-carrier, matscale-entry, finsum-congruence}.
+
+\subsubsection*{\texttt{matact-row-peel}}
+\emph{for every module md, for every n in nn, c in mat(1, succ(n), carr(scal(md))), u in mat(succ(n), 1, vec(md)), entry(matact(md, c, u), 1, 1) equals (vadd(md))(entry(matact(md, block(c, 1, n), block(u, n, 1)), 1, 1), (act(md))(entry(c, 1, succ(n)), entry(u, succ(n), 1)))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}.\; \forall c \in \operatorname{mat}(1, (n + 1), \operatorname{carr}(\operatorname{scal}(\mathit{md}))).\; \forall u \in \operatorname{mat}((n + 1), 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{block}(c, 1, n), \operatorname{block}(u, n, 1)), 1, 1), \operatorname{act}(\mathit{md})(\operatorname{entry}(c, 1, (n + 1)), \operatorname{entry}(u, (n + 1), 1)))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 19 facts:} \texttt{nn-one-in, nn-le-succ, one-in-interval-1, interval-in-set, interval-card-in-nn, block-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, entry-of-block, eq-sym, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr, nn-one-le-succ, interval-mem-intro}.
+
+\subsubsection*{\texttt{matact-snoc}}
+\emph{for every module md, for every n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md), entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1) equals (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}.\; \forall c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))).\; \forall u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; \forall r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})).\; \forall x \in \operatorname{vec}(\mathit{md}).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{snoc\text{-}row}(c, n, r), \operatorname{snoc\text{-}col}(u, n, x)), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1), \operatorname{act}(\mathit{md})(r, x))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 19 facts:} \texttt{nn-le-succ, one-in-interval-1, interval-in-set, interval-card-in-nn, snoc-row-type, snoc-col-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, snoc-row-last, snoc-col-last, entry-of-snoc-row, entry-of-snoc-col, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
+
+\subsubsection*{\texttt{matact-unitrow}}
+\emph{for every module md, for every n, i, u in mat(n, 1, vec(md)), if i is in interval(1, n), then entry(matact(md, unitrow(scal(md), n, i), u), 1, 1) equals entry(u, i, 1)}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.\; \forall i.\; \forall u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; ((i \in \operatorname{interval}(1, n)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{unitrow}(\operatorname{scal}(\mathit{md}), n, i), u), 1, 1) = \operatorname{entry}(u, i, 1))))
+\]}
+\noindent\textbf{Machine-checked} (trust: none).
+\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{unitrow-type, one-in-interval-1, interval-in-set, interval-card-in-nn, entry-in-carrier, matact-summand-type, matact-entry, mvag-id, unitrow-entry-off, abelian-group-idempotent-is-id, finsum-single-support, unitrow-entry-at}.
+
+\subsubsection*{\texttt{matact-zerorow}}
+\emph{for every module md, for every n, u in mat(n, 1, vec(md)), entry(matact(md, zeromat(scal(md), 1, n), u), 1, 1) equals vzero(md)}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n.\; \forall u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{zeromat}(\operatorname{scal}(\mathit{md}), 1, n), u), 1, 1) = \operatorname{vzero}(\mathit{md})))
+\]}
+\noindent\textbf{Machine-checked} (trust: none).
+\par\smallskip\noindent\emph{Rests on 11 facts:} \texttt{zeromat-type, one-in-interval-1, interval-in-set, interval-card-in-nn, matact-summand-type, matact-entry, mvag-id, entry-of-zeromat, entry-in-carrier, abelian-group-idempotent-is-id, finsum-all-id}.
+
+\subsubsection*{\texttt{matact-empty-vzero}}
+\emph{for every module md, for every c, u, if c is in mat(1, 0, carr(scal(md))), then if u is in mat(0, 1, vec(md)), then entry(matact(md, c, u), 1, 1) equals vzero(md)}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall c.\; \forall u.\; ((c \in \operatorname{mat}(1, 0, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(0, 1, \operatorname{vec}(\mathit{md}))) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{vzero}(\mathit{md})))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 5 facts:} \texttt{one-in-interval-1, matact-entry, interval-1-0-empty, finsum-empty, mvag-id}.
+
+\subsubsection*{\texttt{matact-triple-left}}
+\emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, matmul(scal(md), p, q), u), row, col) equals finsum(module-vector-ag(md), vnb-lambda(c, finsum(module-vector-ag(md), vnb-lambda(j, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c.\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j.\; (\lambda z.\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, n))), \operatorname{interval}(1, k)))))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 14 facts:} \texttt{matmul-type, matact-entry, interval-in-set, interval-card-in-nn, mal-outf-type, mal-tout-type, matmul-entry, mal-inf-type, entry-in-carrier, finsum-act-collect-gen, mal-dist-type, mal-red-type, ring-carrier-closed-mul, finsum-congruence}.
+
+\subsubsection*{\texttt{matact-triple-right}}
+\emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, p, matact(md, q, u)), row, col) equals finsum(module-vector-ag(md), vnb-lambda(j, finsum(module-vector-ag(md), vnb-lambda(c, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))}
+{\small\[
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j.\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c.\; (\lambda z.\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, k))), \operatorname{interval}(1, n)))))))))
+\]}
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 13 facts:} \texttt{matact-type, matact-entry, interval-in-set, interval-card-in-nn, mar-outf-type, mar-tout-type, mar-gj-type, entry-in-carrier, finsum-act-distrib-gen, mar-dist-type, mar-red-type, ring-carrier-closed-mul, finsum-congruence}.
+
+\subsection{Determinants: minors and cofactor expansion}
+
+\subsubsection*{\texttt{minor}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{det}}
+\emph{Definition / vocabulary.}
+
+\subsubsection*{\texttt{minor-type}}
+\emph{for every r, s, p, q, n, if r is a ring, then if p is in nn, then if q is in nn, then if n is in nn, then if s is in mat(succ(n), succ(n), carr(r)), then minor(s, p, q, n) is in mat(n, n, carr(r))}
+{\small\[
+\forall r.\; \forall s.\; \forall p.\; \forall q.\; \forall n.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((p \in \mathbb{N}) \Rightarrow ((q \in \mathbb{N}) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((s \in \operatorname{mat}((n + 1), (n + 1), \operatorname{carr}(r))) \Rightarrow (\operatorname{minor}(s, p, q, n) \in \operatorname{mat}(n, n, \operatorname{carr}(r))))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
+\subsubsection*{\texttt{det-zero}}
+\emph{for every r, a, det(r, 0, a) is identical to one(r)}
+{\small\[
+\forall r.\; \forall a.\; \operatorname{==}(\operatorname{det}(r, 0, a), \operatorname{one}(r))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{det-cofactor}}
+\emph{for every r, n, a, if r is a ring, then if n is in nn, then if a is in mat(succ(n), succ(n), carr(r)), then det(r, succ(n), a) is identical to finsum(ring-additive-ag(r), vnb-lambda(j, (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n)))}
+{\small\[
+\forall r.\; \forall n.\; \forall a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}((n + 1), (n + 1), \operatorname{carr}(r))) \Rightarrow \operatorname{==}(\operatorname{det}(r, (n + 1), a), \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(r), (\lambda j.\; \operatorname{mul}(r)(\operatorname{mpow}(\operatorname{ring\text{-}multiplicative\text{-}monoid}(r), \operatorname{neg}(r)(\operatorname{one}(r)), (j + 1)), \operatorname{mul}(r)(\operatorname{entry}(a, 1, j), \operatorname{det}(r, n, \operatorname{minor}(a, 1, j, n))))), \operatorname{interval}(1, (n + 1)))))))
+\]}
+\noindent\textbf{Definition.}
+
+\subsubsection*{\texttt{det-in-carrier}}
+\emph{for every r, n, a, if r is a ring, then if n is in nn, then if a is in mat(n, n, carr(r)), then det(r, n, a) is in carr(r)}
+{\small\[
+\forall r.\; \forall n.\; \forall a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, n, a) \in \operatorname{carr}(r)))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
+\subsubsection*{\texttt{det-1x1}}
+\emph{for every r, a, if r is a ring, then if a is in mat(1, 1, carr(r)), then det(r, 1, a) equals entry(a, 1, 1)}
+{\small\[
+\forall r.\; \forall a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((a \in \operatorname{mat}(1, 1, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, 1, a) = \operatorname{entry}(a, 1, 1))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
+\subsubsection*{\texttt{det-2x2}}
+\emph{for every r, a, if r is a ring, then if a is in mat(2, 2, carr(r)), then det(r, 2, a) equals (add(r))((mul(r))(entry(a, 1, 1), entry(a, 2, 2)), (neg(r))((mul(r))(entry(a, 1, 2), entry(a, 2, 1))))}
+{\small\[
+\forall r.\; \forall a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((a \in \operatorname{mat}(2, 2, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, 2, a) = \operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{entry}(a, 1, 1), \operatorname{entry}(a, 2, 2)), \operatorname{neg}(r)(\operatorname{mul}(r)(\operatorname{entry}(a, 1, 2), \operatorname{entry}(a, 2, 1)))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
+\subsubsection*{\texttt{det-identity}}
+\emph{for every r, n, if r is a ring, then if n is in nn, then det(r, n, one(mat-ring(r, n))) equals one(r)}
+{\small\[
+\forall r.\; \forall n.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow (\operatorname{det}(r, n, \operatorname{one}(\operatorname{mat\text{-}ring}(r, n))) = \operatorname{one}(r))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
+\subsubsection*{\texttt{det-alternating-rows}}
+\emph{for every r, n, a, p, q, if r is a ring, then if n is in nn, then if a is in mat(n, n, carr(r)), then if p is in interval(1, n), then if q is in interval(1, n), then if p is not equal to q, then if for every k in interval(1, n), entry(a, p, k) equals entry(a, q, k), then det(r, n, a) equals zero(r)}
+{\small\[
+\forall r.\; \forall n.\; \forall a.\; \forall p.\; \forall q.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((p \in \operatorname{interval}(1, n)) \Rightarrow ((q \in \operatorname{interval}(1, n)) \Rightarrow (\neg (p = q) \Rightarrow (\forall k \in \operatorname{interval}(1, n).\; (\operatorname{entry}(a, p, k) = \operatorname{entry}(a, q, k)) \Rightarrow (\operatorname{det}(r, n, a) = \operatorname{zero}(r)))))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
+\subsubsection*{\texttt{det-multiplicative}}
+\emph{for every r, n, p, q, if r is a commutative ring, then if n is in nn, then if p is in mat(n, n, carr(r)), then if q is in mat(n, n, carr(r)), then det(r, n, matmul(r, p, q)) equals (mul(r))(det(r, n, p), det(r, n, q))}
+{\small\[
+\forall r.\; \forall n.\; \forall p.\; \forall q.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((p \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow ((q \in \operatorname{mat}(n, n, \operatorname{carr}(r))) \Rightarrow (\operatorname{det}(r, n, \operatorname{matmul}(r, p, q)) = \operatorname{mul}(r)(\operatorname{det}(r, n, p), \operatorname{det}(r, n, q)))))))
+\]}
+\noindent\textbf{Asserted} [warrant: reference]. Hoffman-Kunze, Linear Algebra, Ch. 5
+
 \subsection{The binomial theorem}
 
 \subsubsection*{\texttt{sum-expansion}}
@@ -610,16 +1399,16 @@
 {\small\[
 \forall n \in \mathbb{N}.\; \forall r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x \in \operatorname{carr}(r).\; \forall y \in \operatorname{carr}(r).\; \forall g \in (\mathbb{Z} \to \operatorname{carr}(r)).\; (\operatorname{sum}(r, (\lambda k.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, g(\operatorname{\text{-}}(k, 1))), \operatorname{mul}(r)(y, g(k)))), (n + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, g, n)), \operatorname{mul}(r)(x, g(\operatorname{\text{-}}(0, 1)))), \operatorname{mul}(r)(y, g(n)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 8 facts:} \texttt{nn-zero-in, zz-zero-in, bt-neg1-in-zz, fun-apply-type-c, sum-zero, bt-nn-in-zz, bt-succ-in-nn, bt-sum-in-carr-zz}.
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{bt-neg1-in-zz, bt-nn-in-zz, bt-succ-in-nn, bt-sum-in-carr-zz}.
 
 \subsubsection*{\texttt{binomial-theorem}}
 \emph{for every n in nn, r, if r is a commutative ring, then for every x in carr(r), y in carr(r), ring-power(r, (add(r))(x, y), n) equals sum(r, comb-kk(r, x, y, n), succ(n))}
 {\small\[
 \forall n \in \mathbb{N}.\; \forall r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x \in \operatorname{carr}(r).\; \forall y \in \operatorname{carr}(r).\; (\operatorname{ring\text{-}power}(r, \operatorname{add}(r)(x, y), n) = \operatorname{sum}(r, \operatorname{comb\text{-}kk}(r, x, y, n), (n + 1))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Induction on n via a multiply-and-shift sum expansion and Pascal's recurrence on the binomial coefficients, in integer-range SUM form (no bijections).
-\par\smallskip\noindent\emph{Rests on 17 facts:} \texttt{nn-zero-in, bt-one-in-carr, sum-zero, comb-kk-0-0, comb-kk-in-fun, bt-succ-in-nn, bt-neg1-in-zz, bt-nn-in-zz, bt-add-in-carr, bt-sum-in-carr-zz, bt-neg1-neg, bt-lt-succ, comb-kk-succ, zz-zero-in, fun-apply-type-c, comb-kk-null, comb-kk-above}.
+\noindent\textbf{Machine-checked} (trust: well-known). Induction on n via a multiply-and-shift sum expansion and Pascal's recurrence on the binomial coefficients, in integer-range SUM form (no bijections).
+\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{bt-one-in-carr, comb-kk-0-0, comb-kk-in-fun, bt-succ-in-nn, bt-neg1-in-zz, bt-nn-in-zz, bt-add-in-carr, bt-sum-in-carr-zz, bt-neg1-neg, bt-lt-succ, comb-kk-null, comb-kk-above}.
 
 \section{Combinatorial}
 
@@ -691,7 +1480,7 @@
 \forall v \in \mathbf{Set}.\; \forall f \in (\mathbb{N} \to v).\; \forall \mathit{cov}.\; (\forall k \in \mathbb{N}.\; \operatorname{is\text{-}finite\text{-}cover}(\operatorname{cov}(k), v) \Rightarrow \exists \mathit{blk} \in (\mathbb{N} \to \mathrm{Inf}(\mathbb{N})).\; (\forall k \in \mathbb{N}.\; (\operatorname{blk}((k + 1)) \subseteq \operatorname{blk}(k)) \wedge \forall k \in \mathbb{N}.\; \exists u \in \operatorname{cov}(k).\; \forall i \in \operatorname{blk}(k).\; (f(i) \in u)))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). Dependent choice on NN whose step is one infinite-pigeonhole refinement (cover-block-step): each block is an infinite monochromatic sub-block of the previous one for the next cover.  The index shift blk(k)=aux(succ k) aligns capture with level.
-\par\smallskip\noindent\emph{Rests on 7 facts:} \texttt{cover-block-step, nn-is-set, inf-subsets-is-set, nn-in-inf-subsets, dc-on-nn-pred, nn-succ-closed, fun-apply-type-c}.
+\par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{cover-block-step, inf-subsets-is-set, nn-in-inf-subsets, dc-on-nn-pred}.
 
 \subsection{Diagonalization}
 
@@ -700,8 +1489,8 @@
 {\small\[
 \forall s \in (\mathbb{N} \to \mathrm{Inf}(\mathbb{N})).\; (\forall k \in \mathbb{N}.\; (s((k + 1)) \subseteq s(k)) \Rightarrow \exists f.\; (\operatorname{strictly\text{-}mono\text{-}nn}(f) \wedge \forall k \in \mathbb{N}.\; \forall j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (f(j) \in s(k)))))
 \]}
-\noindent\textbf{Machine-checked} (trust: none). Dependent choice on NN (dc-on-nn-pred) builds a strictly increasing sequence, each term hopping into the next nested set; the nested chain then puts the whole tail inside every member.
-\par\smallskip\noindent\emph{Rests on 9 facts:} \texttt{nn-zero-in, fun-apply-type-c, inf-subset-nn-unbounded, nn-succ-closed, nn-is-set, dc-on-nn-pred, nn-step-strictly-mono, nn-nested-subset-chain, subset-mem-fwd}.
+\noindent\textbf{Machine-checked} (trust: well-known). Dependent choice on NN (dc-on-nn-pred) builds a strictly increasing sequence, each term hopping into the next nested set; the nested chain then puts the whole tail inside every member.
+\par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{inf-subset-nn-unbounded, dc-on-nn-pred, nn-step-strictly-mono, nn-nested-subset-chain}.
 
 \subsubsection*{\texttt{nn-step-strictly-mono}}
 \emph{for every g in fun(nn, nn), if for every k in nn, g(k) is less than g(succ(k)), then g is a strictly increasing sequence of naturals}
@@ -753,8 +1542,8 @@
 {\small\[
 \forall t.\; (((t \subseteq \mathbb{N}) \wedge \exists n.\; (n \in t)) \Rightarrow \exists m \in t.\; \forall k \in t.\; (m \leq k))
 \]}
-\noindent\textbf{Machine-checked} (trust: none).
-\par\smallskip\noindent\emph{Rests on 3 facts:} \texttt{nn-subset-ord, ord-well-ordered, ord-le-nn-compat}.
+\noindent\textbf{Machine-checked} (trust: proof).
+\par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{ord-well-ordered}.
 
 \section{Metric spaces}
 
@@ -867,7 +1656,7 @@
 \subsubsection*{\texttt{ball-is-open}}
 \emph{for every metric space s, for every x in pts(s), r, if r is in rr and 0 is at most r and 0 is not equal to r, then ball(s, x, r) is open in s}
 {\small\[
-\forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall x \in \operatorname{pts}(s).\; \forall r.\; (((r \in \mathbb{R}) \wedge (0 \leq r) \wedge \neg (0 = r)) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{ball}(s, x, r))))
+\forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall x \in \operatorname{pts}(s).\; \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow \operatorname{is\text{-}open}(s, \operatorname{ball}(s, x, r))))
 \]}
 \noindent\textbf{Asserted} [warrant: proof]. For y in BALL(s,x,r) the slack t = r - DIST(s)(x,y) is > 0 (ball-membership); the triangle inequality (metric-triangle) gives BALL(s,y,t) subset BALL(s,x,r), so y is interior. Hence BALL(s,x,r) is open.
 
@@ -881,7 +1670,7 @@
 \subsubsection*{\texttt{ball-center-in}}
 \emph{for every metric space s, for every x in pts(s), r, if r is in rr and 0 is at most r and 0 is not equal to r, then x is in ball(s, x, r)}
 {\small\[
-\forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall x \in \operatorname{pts}(s).\; \forall r.\; (((r \in \mathbb{R}) \wedge (0 \leq r) \wedge \neg (0 = r)) \Rightarrow (x \in \operatorname{ball}(s, x, r))))
+\forall s.\; (\operatorname{is\text{-}metric\text{-}space}(s) \Rightarrow \forall x \in \operatorname{pts}(s).\; \forall r.\; (((r \in \mathbb{R}) \wedge ((0 \leq r) \wedge \neg (0 = r))) \Rightarrow (x \in \operatorname{ball}(s, x, r))))
 \]}
 \noindent\textbf{Asserted} [warrant: proof]. metric-self-zero gives d(s)(x,x)=0, so 0<=r and 0!=r (r>0) put x into the SEP; ball-membership then gives x in BALL(s,x,r).
 
@@ -992,7 +1781,7 @@
 \forall s.\; (\operatorname{totally\text{-}bounded}(s) \Rightarrow \forall f \in (\mathbb{N} \to \operatorname{pts}(s)).\; \exists \varphi.\; (\operatorname{strictly\text{-}mono\text{-}nn}(\varphi) \wedge \operatorname{is\text{-}cauchy\text{-}seq}(s, \operatorname{subseq}(f, \varphi))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). Total boundedness supplies a finite eps-net cover at each level; block-family-combinatorial builds nested infinite blocks pinned into shrinking balls; diagonalization extracts one subsequence, and the 2r triangle estimate makes it Cauchy.
-\par\smallskip\noindent\emph{Rests on 18 facts:} \texttt{null-rr-seq-exists, tb-rad-ball-cover, cover-block-step, nn-is-set, inf-subsets-is-set, nn-in-inf-subsets, dc-on-nn-pred, nn-succ-closed, fun-apply-type-c, nn-zero-in, inf-subset-nn-unbounded, nn-step-strictly-mono, nn-nested-subset-chain, subset-mem-fwd, subseq-is-fun, rr-pos-halvable, nn-le-refl, cauchy-block-estimate}.
+\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{null-rr-seq-exists, tb-rad-ball-cover, cover-block-step, inf-subsets-is-set, nn-in-inf-subsets, dc-on-nn-pred, inf-subset-nn-unbounded, nn-step-strictly-mono, nn-nested-subset-chain, subseq-is-fun, rr-pos-halvable, cauchy-block-estimate}.
 
 \subsubsection*{\texttt{cauchy-rapid-subsequence}}
 \emph{for every s, f, rad, if is-cauchy-seq(s, f) and rad is in fun(nn, rr) and for every k in nn, rad(k) is a positive real, then there is some phi in fun(nn, nn) such that for every m in nn, n\_ in nn, if m is less than n\_, then phi(m) is less than phi(n\_) and for every k in nn, (dist(s))(f(phi(k)), f(phi(succ(k)))) is at most rad(k)}

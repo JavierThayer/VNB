@@ -319,7 +319,102 @@
 (define (di)    (vnb--run! 'di    '()    (lambda () (cmd-direct-inference *ps*))))
 (define (pbc)   (vnb--run! 'pbc   '()    (lambda () (cmd-proof-by-contradiction *ps*))))
 (define (ass)   (vnb--run! 'ass   '()    (lambda () (cmd-assumption *ps*))))
-(define (arith) (vnb--run! 'arith '()    (lambda () (cmd-arith *ps*))))
+;;; -----------------------------------------------------------------------
+;;; arith -- the ground-arithmetic closer.
+;;;
+;;; `pi-arith!' decides a CLOSED sentence and reads nothing but the goal.  Two
+;;; things that cost nothing therefore used to defeat it:
+;;;
+;;;   (a) a ground equation sitting in the CONTEXT.  After a case split the
+;;;       branch has `x = 0' as a hypothesis and the goal still says `x'; arith
+;;;       looked at the goal, saw a free variable, and refused -- so every
+;;;       branch needed a hand-written `subst' to push the equation in.
+;;;   (b) `<'.  It is a def-predicate (order-predicates.scm), so a goal
+;;;       `0^2 < 26' is not in arith-eval-formula's vocabulary at all, even
+;;;       though `power' and `<=' both are.
+;;;
+;;; Both are fixed WITHOUT touching the kernel.  The extra moves are `eq-subst'
+;;; (an existing kernel rule, driven through the ordinary `subst' tactic) and the
+;;; DEFINITIONAL unfold of `<' (an existing macete, through `mac'), and the
+;;; decision procedure pi-arith! is unchanged -- it still only ever sees a goal
+;;; it can already decide.  Nothing new is trusted.
+;;;
+;;; The rewrites are PREDICTED PURELY FIRST -- same discipline as transport.scm:
+;;; compute the rewritten goal with the same rewriter, check that it decides
+;;; TRUE, and only then let the kernel redo it.  So a goal arith cannot close
+;;; leaves the deduction graph exactly as it found it, and the failure message
+;;; is the one it always was.
+
+;; The rewrite rule of the `<' definition, read out of the theory (never
+;; hard-coded: if the definition changes, this follows it).
+(define (arith--lt-rule)
+  (let ((f (lookup-theorem '<)))
+    (and f
+         (call-with-values (lambda () (strip-foralls (prenex-positive f)))
+           (lambda (schema-vars core)
+             (call-with-values (lambda () (extract-rewrite-patterns core))
+               (lambda (conditions source replacement)
+                 (list schema-vars conditions source replacement))))))))
+
+(define (arith--mentions-lt? f)
+  (cond ((and (pair? f) (eq? (car f) '<)) #t)
+        ((pair? f) (or (arith--mentions-lt? (car f)) (arith--mentions-lt? (cdr f))))
+        (else #f)))
+
+;; Saturate that rule on F, purely.  `mac '<' produces the same formula.
+(define (arith--expand-lt f)
+  (let ((rule (arith--lt-rule)))
+    (if (not rule)
+        f
+        (let loop ((g f) (fuel 20))
+          (let* ((res (rewrite-expr (caddr rule) (cadddr rule)
+                                    (car rule) (cadr rule) g '()))
+                 (g*  (car res)))
+            (if (or (= fuel 0) (alpha-equiv? g* g)) g (loop g* (- fuel 1))))))))
+
+;; A context equation is USABLE when exactly one side evaluates to a number:
+;; then it rewrites the other side away.  Returned oriented (non-ground . ground).
+(define (arith--usable-eq f)
+  (and (pair? f) (eq? (car f) '=) (= (length f) 3)
+       (let ((a (arith-eval-term (cadr f)))
+             (b (arith-eval-term (caddr f))))
+         (cond ((and (number? b) (not (number? a))) (cons (cadr f) (caddr f)))
+               ((and (number? a) (not (number? b))) (cons (caddr f) (cadr f)))
+               (else #f)))))
+
+;; Plan the rewrites: the ground equations that actually FIRE on the goal, in
+;; order, plus whether a `<' unfold is needed.  #f if the result still does not
+;; decide TRUE -- in which case nothing is done to the graph.
+(define (arith--plan goal asms)
+  (let loop ((cands (filter (lambda (x) x) (map arith--usable-eq asms)))
+             (g goal)
+             (used '()))
+    (if (pair? cands)
+        (let ((g* (replace-term (caar cands) (cdar cands) g)))
+          (if (alpha-equiv? g* g)
+              (loop (cdr cands) g used)
+              (loop (cdr cands) g* (cons (car cands) used))))
+        (let* ((lt? (arith--mentions-lt? g))
+               (g*  (if lt? (arith--expand-lt g) g)))
+          (and (eq? (arith-eval-formula g*) #t)
+               (cons (reverse used) lt?))))))
+
+(define (arith--decide) (vnb--run! 'arith '() (lambda () (cmd-arith *ps*))))
+
+(define (arith)
+  (vnb--require-proof!)
+  (let* ((sqn  (proof-state-focus *ps*))
+         (goal (wff-formula (sequent-node-assertion sqn)))
+         (asms (map wff-formula (sequent-node-assumptions sqn))))
+    (if (eq? (arith-eval-formula goal) #t)
+        (arith--decide)                       ; already closed-and-true: unchanged
+        (let ((plan (arith--plan goal asms)))
+          (if (not plan)
+              (arith--decide)                 ; unchanged, warning and all
+              (begin
+                (for-each (lambda (p) (subst (list '= (car p) (cdr p)))) (car plan))
+                (if (cdr plan) (mac '<))
+                (arith--decide)))))))
 (define (rs)    (vnb--run! 'rs    '()    (lambda () (cmd-ring-simplify *ps*))))
 (define (crs)   (vnb--run! 'crs   '()    (lambda () (cmd-comm-ring-simplify *ps*))))
 (define (ineq . idxs) (vnb--run! 'ineq idxs (lambda () (cmd-ineq *ps* idxs))))
@@ -918,6 +1013,13 @@
                   ;; ONE entry: (bc* name bindings . forms).  forms is '() for the
                   ;; bc*-apply path, so this stays (bc* name bindings) there.
                   (record-cmd! 'bc* (cons name (cons bindings *bc*-handler-forms*)))
+                  ;; Also push a live-trace step so proof-tex / proof-reader see
+                  ;; this backchain: bc* does its own record-cmd! and focus-move
+                  ;; rather than going through vnb--run!, so without this the
+                  ;; live trace (which the readers PREFER) silently drops every
+                  ;; bc* -- the same lossy-capture that hid composite tactics'
+                  ;; steps.  No-ops under *replaying?* (guarded in the callee).
+                  (vnb--capture-step! (cons 'bc* (cons name (cons bindings *bc*-handler-forms*))))
                   gs))))))))))
 
 ;; Run bc* for `name` with `bindings` (alist).  On success returns the list

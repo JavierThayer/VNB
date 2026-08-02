@@ -10,11 +10,8 @@
 ;;; and its absence is exactly the kind of triviality that has no business being
 ;;; an obstacle.
 
-;;; subclass-of-set-is-set: A subset B, B a set => A a set.
-(support 'subclass-of-set-is-set
-  '(FORALL A (FORALL B
-     (IMPLIES (IN B SET)
-       (IMPLIES (SUBSET A B)
-         (IN A SET))))))
-(warrant! 'subclass-of-set-is-set 'proof
-  "NBG: A is included in the set B, so A = {z in B : z in A} -- the two classes have the same members, and class-extensionality identifies them.  The right-hand side is a set by separation (pi-sep-sethood!, B being a set).  Stated rather than derived only because the SEP-then-extensionality step is pure bookkeeping.")
+;;; subclass-of-set-is-set MOVED and PROVEN, 2026-07-27.  It was asserted here
+;;; with a `proof' warrant whose text WAS the derivation; the derivation is now
+;;; run, in theorem-library/subset-lemmas.scm.  The statement could not live here
+;;; and be proved here: `sp'/`qed' arrive at load.scm:388 and this file loads at
+;;; 70.  Nothing else in this file needs it, so the file is now empty of claims.

@@ -1,18 +1,19 @@
 ;;; wff.scm -- the <wff> record type (well-formed formula in a theory)
 ;;;
-;;; A <wff> carries its raw S-expression formula, the name of its base
-;;; theory, and (optionally) a snapshot of the active local-context stack.
+;;; A <wff> carries its raw S-expression formula and the name of its base
+;;; theory.
 ;;;
-;;; Inside sequents the contexts list is always empty -- it has been
-;;; dissolved into sequent assumptions by start-proof.  The contexts
-;;; field is only populated by make-wff at the interactive entry point.
+;;; It used to carry a third field, a snapshot of the active local-context
+;;; stack, which start-proof dissolved into root sequent assumptions.  The
+;;; local-context facility was removed on 2026-07-29 (see contexts.scm) and
+;;; the field went with it: nothing had populated it but make-wff, and
+;;; nothing outside start-proof read it.
 
 (define-record-type <wff>
-  (%make-concrete-wff formula theory contexts)
+  (%make-concrete-wff formula theory)
   concrete-wff?
   (formula   concrete-wff-formula)
-  (theory    concrete-wff-theory)
-  (contexts  concrete-wff-contexts))
+  (theory    concrete-wff-theory))
 
 (define wff? concrete-wff?)
 
@@ -26,20 +27,15 @@
       (concrete-wff-theory w)
       (error "wff-theory: not a wff" w)))
 
-(define (wff-contexts w)
-  (if (concrete-wff? w)
-      (concrete-wff-contexts w)
-      (error "wff-contexts: not a wff" w)))
-
-;;; Create a wff directly in a named theory with no active contexts.
+;;; Create a wff directly in a named theory.
 ;;; Used by start-proof and primitive inferences.
 (define (wff-in-theory raw-formula theory-name)
-  (%make-concrete-wff raw-formula theory-name '()))
+  (%make-concrete-wff raw-formula theory-name))
 
-;;; Create a derived wff inheriting theory from a parent, with no contexts.
+;;; Create a derived wff inheriting its theory from a parent.
 ;;; Used inside primitive inferences to wrap subformulas.
 (define (wff-child parent raw-formula)
-  (%make-concrete-wff raw-formula (wff-theory parent) '()))
+  (%make-concrete-wff raw-formula (wff-theory parent)))
 
 ;;; Two wffs are equivalent when they share the same theory and their
 ;;; formulas are alpha-equivalent.  (Kind is implied by the formula
@@ -223,7 +219,7 @@
     LIST NTH MAKE-SET LENGTH CHOICE IOTA IF TUPLES
     DOM RES PARTIAL-FUN
     apply-functoid VNB-LAMBDA
-    succ_ORD LIMIT-ORD ORD-SEGMENT SUP-ORD ESUP ESUM
+    succ_ORD ORD-SEGMENT SUP-ORD ESUP ESUM
     CARD PROD-ORD SUM SUM-SET PROD-SET RING-PROD RING-PROD-N ZERO-RING
     MATRIX SIZE MAT ENTRY INTERVAL MATOF MATMUL
     MATADD MATNEG MATSCALE ZEROMAT IDENTMAT MAT-RING MATUNIT
@@ -240,6 +236,18 @@
 ;;; are registered later, by def-structure and theory-add-definition!.
 (for-each (lambda (h) (register-constant! h 'operator))
           *wff-term-form-heads*)
+
+;;; LIMIT-ORD is a PREDICATE constant, not a term-forming one: `limit-ord-iff'
+;;; (structure-library/ordinals.scm) states (IFF (LIMIT-ORD lambda) ...), the
+;;; tfi3 rule builds (AND (LIMIT-ORD var) ...) as a wff, and def-by-ord-recursion
+;;; guards its limit equation with it.  It nevertheless sat in
+;;; *wff-term-form-heads* -- pasted in with succ_ORD / ORD-SEGMENT / SUP-ORD,
+;;; which are terms -- so `make-wff' rejected EVERY goal mentioning it
+;;; ("term-forming operator in wff position").  A statement about limit ordinals
+;;; could be installed with `support' (which does not validate) but could never
+;;; be the subject of a proof.  It still needs the CONSTANT registration below,
+;;; so free-vars / subst-free do not mistake its head for a function variable.
+(register-constant! 'LIMIT-ORD 'operator)
 
 ;;; Warn when a binder's variable has the name of a registered operator,
 ;;; defined function, or functoid: an application (v ...) in the body then

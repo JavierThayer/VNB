@@ -113,37 +113,172 @@ The library grouped by subject, like a textbook table of contents.  Each entry g
 - `entry` — _(definition / vocabulary)_
 - `matof` — _(definition / vocabulary)_
 - `matmul` — _(definition / vocabulary)_
-- `identmat` — _(definition / vocabulary)_
-- `zeromat` — _(definition / vocabulary)_
 - `matadd` — _(definition / vocabulary)_
 - `matneg` — _(definition / vocabulary)_
+- `matscale` — _(definition / vocabulary)_
+- `identmat` — _(definition / vocabulary)_
+- `zeromat` — _(definition / vocabulary)_
 - `mat-ring` — _(definition / vocabulary)_
+- `submat` — _(definition / vocabulary)_
+- `block` — _(definition / vocabulary)_
+- `snoc-col` — _(definition / vocabulary)_
+- `snoc-row` — _(definition / vocabulary)_
 - `matunit` — _(definition / vocabulary)_
 - `elem-f` — _(definition / vocabulary)_
 - `elem-g` — _(definition / vocabulary)_
 - `elem-h` — _(definition / vocabulary)_
+- `mat-equiv` — forall([a, m, n, c, d], mat-equiv(a, m, n, c, d) iff forsome([u], is-invertible-mat(a, m, u) and forsome([v], is-invertible-mat(a, n, v) and d = matmul(a, matmul(a, u, c), v))))  see [~/prover/structure-library/mat-equiv.scm](../structure-library/mat-equiv.scm)
+- `matact` — _(definition / vocabulary)_
+- `minor` — _(definition / vocabulary)_
+- `det` — _(definition / vocabulary)_
 - `interval` — _(definition / vocabulary)_
+
+### Matrices as a set, and their entries
+
+- `mat-is-set` — forall([x in set, m, n], mat(m, n, x) in set)  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matrix-sethood` — forall([s in set], matrix(s) in set)  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matrix-membership` — forall([s, m], m in matrix(s) iff m in tuples(tuples(s)) and forall([i], i in nn and 1 <= i and i <= length(m) implies forall([j], j in nn and 1 <= j and j <= length(m) implies length(nth(i, m)) = length(nth(j, m)))))  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matrix-entry-extensionality` — forall([m, n, x, p, q], p in mat(m, n, x) implies q in mat(m, n, x) implies forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = entry(q, i, j)) implies p = q)  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `entry-in-carrier` — forall([m, n, x, p, i, j], p in mat(m, n, x) implies i in interval(1, m) implies j in interval(1, n) implies entry(p, i, j) in x)  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matof-exists` — forall([m, n, g], forsome([p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n))))], forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = g(i, j))))  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matof-in-mat` — forall([m, n, x, g], forall([i in interval(1, m), j in interval(1, n)], g(i, j) in x) implies matof(m, n, g) in mat(m, n, x))  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `entry-of-matof` — forall([m, n, g, i, j], i in interval(1, m) implies j in interval(1, n) implies entry(matof(m, n, g), i, j) = g(i, j))  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-0-1-nonempty` — forall([x], forsome([p], p in mat(0, 1, x)))  see [~/prover/theorem-library/span-bricks2-proof.scm](../theorem-library/span-bricks2-proof.scm)
+- `mat-1-0-nonempty` — forall([x], forsome([p], p in mat(1, 0, x)))  see [~/prover/theorem-library/span-bricks2-proof.scm](../theorem-library/span-bricks2-proof.scm)
+
+### Addition, negation, scaling
+
+- `matadd-type` — forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies matadd(a, p, q) in mat(m, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-entry` — forall([a, m, n, p, q], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies forall([i in interval(1, m), j in interval(1, n)], entry(matadd(a, p, q), i, j) = (add(a))(entry(p, i, j), entry(q, i, j))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-assoc` — forall([a], is-ring(a) implies forall([m, n, p, q, r], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies r in mat(m, n, carr(a)) implies matadd(a, matadd(a, p, q), r) = matadd(a, p, matadd(a, q, r))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-comm` — forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies matadd(a, p, q) = matadd(a, q, p)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-zero-left` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matadd(a, zeromat(a, m, n), p) = p))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-zero-right` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matadd(a, p, zeromat(a, m, n)) = p))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-neg-left` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matadd(a, matneg(a, p), p) = zeromat(a, m, n)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matadd-neg-right` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matadd(a, p, matneg(a, p)) = zeromat(a, m, n)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matneg-type` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matneg(a, p) in mat(m, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matscale-type` — forall([a], is-ring(a) implies forall([m, n, r, p], r in carr(a) implies p in mat(m, n, carr(a)) implies matscale(a, r, p) in mat(m, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matscale-entry` — forall([a, m, n, r, p], r in carr(a) implies p in mat(m, n, carr(a)) implies forall([i in interval(1, m), j in interval(1, n)], entry(matscale(a, r, p), i, j) = (mul(a))(r, entry(p, i, j))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+
+### Multiplication
+
+- `matmul-type` — forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies matmul(a, p, q) in mat(m, k, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matmul-entry` — forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies forall([i in interval(1, m), c in interval(1, k)], entry(matmul(a, p, q), i, c) = finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n)))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matmul-assoc` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies matmul(a, matmul(a, p, q), r) = matmul(a, p, matmul(a, q, r))))  see [~/prover/theorem-library/matmul-assoc-proof.scm](../theorem-library/matmul-assoc-proof.scm)
+- `matmul-left-dist` — forall([a], is-ring(a) implies forall([m, n, k, p, q, r], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(n, k, carr(a)) implies matmul(a, p, matadd(a, q, r)) = matadd(a, matmul(a, p, q), matmul(a, p, r))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matmul-right-dist` — forall([a], is-ring(a) implies forall([m, n, k, p, q, r], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies r in mat(n, k, carr(a)) implies matmul(a, matadd(a, p, q), r) = matadd(a, matmul(a, p, r), matmul(a, q, r))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matprod-summand-type` — forall([a], is-ring(a) implies forall([m, n, nn, p, q, i, c], p in mat(m, n, carr(a)) implies q in mat(n, nn, carr(a)) implies i in interval(1, m) implies c in interval(1, nn) implies vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))) in fun(interval(1, n), carr(ring-additive-ag(a)))))  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `matmul-assoc-summand-type` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(z, (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))))  _[warrant: well-known]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+
+### The identity and zero matrices
+
+- `identmat-type` — forall([a], is-ring(a) implies forall([n], identmat(a, n) in mat(n, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `identmat-entry-diag` — forall([a, n, i in interval(1, n)], entry(identmat(a, n), i, i) = one(a))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `identmat-entry-off` — forall([a, n, i, j], i in interval(1, n) implies j in interval(1, n) implies not(i = j) implies entry(identmat(a, n), i, j) = zero(a))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `entry-of-identmat` — forall([a, n, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(identmat(a, n), i, j) = if(i = j, one(a), zero(a)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `entry-of-zeromat` — forall([a, m, n, i, j], i in interval(1, m) implies j in interval(1, n) implies entry(zeromat(a, m, n), i, j) = zero(a))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `identmat-left-identity` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matmul(a, identmat(a, m), p) = p))  _[warrant: proof]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `identmat-right-identity` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matmul(a, p, identmat(a, n)) = p))  _[warrant: proof]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `identmat-invertible` — forall([a], is-ring(a) implies forall([n], is-invertible-mat(a, n, identmat(a, n))))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
 
 ### The matrix ring
 
-- `matmul-assoc` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies matmul(a, matmul(a, p, q), r) = matmul(a, p, matmul(a, q, r))))  see [~/prover/theorem-library/matmul-assoc-proof.scm](../theorem-library/matmul-assoc-proof.scm)
 - `mat-ring-is-ring` — forall([a], is-ring(a) implies forall([n in nn], is-ring(mat-ring(a, n))))  see [~/prover/theorem-library/mat-ring-proof.scm](../theorem-library/mat-ring-proof.scm)
+- `mat-ring-carr` — forall([a, n], carr(mat-ring(a, n)) = mat(n, n, carr(a)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-add` — forall([a, n], add(mat-ring(a, n)) = vnb-lambda([p, q], matadd(a, p, q)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-mul` — forall([a, n], mul(mat-ring(a, n)) = vnb-lambda([p, q], matmul(a, p, q)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-zero` — forall([a, n], zero(mat-ring(a, n)) = zeromat(a, n, n))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-one` — forall([a, n], one(mat-ring(a, n)) = identmat(a, n))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-neg` — forall([a, n], neg(mat-ring(a, n)) = vnb-lambda(p, matneg(a, p)))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-add-fun` — forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], matadd(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `mat-ring-mul-fun` — forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], matmul(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+
+### Cutting and extending: submatrices, blocks, bordered matrices
+
+- `submat-type` — forall([a, p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))  _[warrant: reference]_  see [~/prover/structure-library/mat-equiv.scm](../structure-library/mat-equiv.scm)
+- `entry-of-submat` — forall([s, p, q, i, j], i in interval(1, p) implies j in interval(1, q) implies entry(submat(s, p, q), i, j) = entry(s, succ(i), succ(j)))  _[warrant: reference]_  see [~/prover/structure-library/mat-equiv.scm](../structure-library/mat-equiv.scm)
+- `entry-of-block` — forall([p, k, l, i, j], i in interval(1, k) implies j in interval(1, l) implies entry(block(p, k, l), i, j) = entry(p, i, j))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `snoc-col-type` — forall([x, n, w, v], n in nn implies w in mat(n, 1, x) implies v in x implies snoc-col(w, n, v) in mat(succ(n), 1, x))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `snoc-col-last` — forall([w, n, x], n in nn implies entry(snoc-col(w, n, x), succ(n), 1) = x)  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `entry-of-snoc-col` — forall([w, n, x, i in interval(1, n)], entry(snoc-col(w, n, x), i, 1) = entry(w, i, 1))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `snoc-row-type` — forall([x, n, c, r], n in nn implies c in mat(1, n, x) implies r in x implies snoc-row(c, n, r) in mat(1, succ(n), x))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `snoc-row-last` — forall([c, n, r], n in nn implies entry(snoc-row(c, n, r), 1, succ(n)) = r)  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
+- `entry-of-snoc-row` — forall([c, n, r, j in interval(1, n)], entry(snoc-row(c, n, r), 1, j) = entry(c, 1, j))  _[warrant: reference]_  see [~/prover/structure-library/matrix.scm](../structure-library/matrix.scm)
 
 ### The matrix unit and its column shift (Lemma 3.3)
 
+- `matunit-type` — forall([a], is-ring(a) implies forall([n, k, l], matunit(a, n, k, l) in mat(n, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `matunit-entry-k-row` — forall([a, n, k, l, c], k in interval(1, n) implies c in interval(1, n) implies entry(matunit(a, n, k, l), k, c) = if(c = l, one(a), zero(a)))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `matunit-entry-off-row` — forall([a, n, k, l, j, c], j in interval(1, n) implies c in interval(1, n) implies not(j = k) implies entry(matunit(a, n, k, l), j, c) = zero(a))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `entry-of-matunit` — forall([a, n, k, l, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(matunit(a, n, k, l), i, j) = if(i = k and j = l, one(a), zero(a)))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `matunit-summand-type` — forall([a], is-ring(a) implies forall([m, n, p, k, l, i, c], p in mat(m, n, carr(a)) implies i in interval(1, m) implies c in interval(1, n) implies vnb-lambda(j, (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) in fun(interval(1, n), carr(ring-additive-ag(a)))))  _[warrant: well-known]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
 - `matunit-col-shift` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))  see [~/prover/theorem-library/matunit-shift-proof.scm](../theorem-library/matunit-shift-proof.scm)
 
 ### Elementary column operations (Prop 3.5)
 
+- `elem-f-type` — forall([a], is-ring(a) implies forall([n, k, l], elem-f(a, n, k, l) in mat(n, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `elem-g-type` — forall([a], is-ring(a) implies forall([n, r, k, l], r in carr(a) implies elem-g(a, n, r, k, l) in mat(n, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `elem-h-type` — forall([a], is-ring(a) implies forall([n, r, k], r in carr(a) implies elem-h(a, n, r, k) in mat(n, n, carr(a))))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
 - `elem-f-action` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-f(a, n, k, l)), i, c) = if(c = k, entry(p, i, l), if(c = l, entry(p, i, k), entry(p, i, c))))))  see [~/prover/theorem-library/elem-actions-proof.scm](../theorem-library/elem-actions-proof.scm)
 - `elem-g-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k, l], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-g(a, n, r, k, l)), i, c) = if(c = l, (add(a))(entry(p, i, l), (mul(a))(entry(p, i, k), r)), entry(p, i, c)))))  see [~/prover/theorem-library/elem-actions-proof.scm](../theorem-library/elem-actions-proof.scm)
 - `elem-h-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, elem-h(a, n, r, k)), i, c) = if(c = k, (mul(a))(entry(p, i, k), r), entry(p, i, c)))))  see [~/prover/theorem-library/elem-actions-proof.scm](../theorem-library/elem-actions-proof.scm)
+- `entry-of-elem-f` — forall([a, n, k, l, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(elem-f(a, n, k, l), i, j) = if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a)))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `entry-of-elem-g` — forall([a, n, r, k, l, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(elem-g(a, n, r, k, l), i, j) = if(i = j, one(a), if(i = k and j = l, r, zero(a))))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+- `entry-of-elem-h` — forall([a, n, r, k, i, j], i in interval(1, n) implies j in interval(1, n) implies entry(elem-h(a, n, r, k), i, j) = if(i = j, if(i = k, r, one(a)), zero(a)))  _[warrant: reference]_  see [~/prover/structure-library/elementary-matrix.scm](../structure-library/elementary-matrix.scm)
+
+### Elementary row operations
+
+- `elem-f-row-action` — forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, m) implies l in interval(1, m) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, elem-f(a, m, k, l), p), i, c) = if(i = k, entry(p, l, c), if(i = l, entry(p, k, c), entry(p, i, c))))))  see [~/prover/theorem-library/elem-row-actions-proof.scm](../theorem-library/elem-row-actions-proof.scm)
+- `elem-g-row-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k, l], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, m) implies l in interval(1, m) implies not(k = l) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, elem-g(a, m, r, k, l), p), i, c) = if(i = k, (add(a))(entry(p, k, c), (mul(a))(r, entry(p, l, c))), entry(p, i, c)))))  see [~/prover/theorem-library/elem-row-actions-proof.scm](../theorem-library/elem-row-actions-proof.scm)
+- `elem-h-row-action` — forall([a], is-ring(a) implies forall([m, n, p, r, k], p in mat(m, n, carr(a)) implies r in carr(a) implies k in interval(1, m) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, elem-h(a, m, r, k), p), i, c) = if(i = k, (mul(a))(r, entry(p, k, c)), entry(p, i, c)))))  see [~/prover/theorem-library/elem-row-actions-proof.scm](../theorem-library/elem-row-actions-proof.scm)
 
 ### Elementary inverses (Cor 3.6)
 
 - `elem-f-inverse` — forall([a], is-ring(a) implies forall([n, k, l], k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies matmul(a, elem-f(a, n, k, l), elem-f(a, n, l, k)) = identmat(a, n)))  see [~/prover/theorem-library/elem-inverses-proof.scm](../theorem-library/elem-inverses-proof.scm)
 - `elem-g-inverse` — forall([a], is-ring(a) implies forall([n, r, k, l], r in carr(a) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies matmul(a, elem-g(a, n, r, k, l), elem-g(a, n, (neg(a))(r), k, l)) = identmat(a, n)))  see [~/prover/theorem-library/elem-inverses-proof.scm](../theorem-library/elem-inverses-proof.scm)
 - `elem-h-inverse` — forall([a], is-ring(a) implies forall([n, r, s, k], r in carr(a) implies s in carr(a) implies (mul(a))(r, s) = one(a) implies k in interval(1, n) implies matmul(a, elem-h(a, n, r, k), elem-h(a, n, s, k)) = identmat(a, n)))  see [~/prover/theorem-library/elem-inverses-proof.scm](../theorem-library/elem-inverses-proof.scm)
+- `elem-f-invertible` — forall([a], is-ring(a) implies forall([n, k, l], k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies is-invertible-mat(a, n, elem-f(a, n, k, l))))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
+- `elem-g-invertible` — forall([a], is-ring(a) implies forall([n, r, k, l], r in carr(a) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies is-invertible-mat(a, n, elem-g(a, n, r, k, l))))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
+
+### Matrix equivalence
+
+- `mat-equiv` — forall([a, m, n, c, d], mat-equiv(a, m, n, c, d) iff forsome([u], is-invertible-mat(a, m, u) and forsome([v], is-invertible-mat(a, n, v) and d = matmul(a, matmul(a, u, c), v))))  see [~/prover/structure-library/mat-equiv.scm](../structure-library/mat-equiv.scm)
+- `mat-equiv-refl` — forall([a], is-ring(a) implies forall([m, n, c in mat(m, n, carr(a))], mat-equiv(a, m, n, c, c)))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
+- `mat-equiv-trans` — forall([a], is-ring(a) implies forall([m, n, c, d, e], c in mat(m, n, carr(a)) implies mat-equiv(a, m, n, c, d) implies mat-equiv(a, m, n, d, e) implies mat-equiv(a, m, n, c, e)))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
+- `mat-equiv-left-mult` — forall([a], is-ring(a) implies forall([m, n, c, u], c in mat(m, n, carr(a)) implies is-invertible-mat(a, m, u) implies mat-equiv(a, m, n, c, matmul(a, u, c))))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
+- `mat-equiv-right-mult` — forall([a], is-ring(a) implies forall([m, n, c, v], c in mat(m, n, carr(a)) implies is-invertible-mat(a, n, v) implies mat-equiv(a, m, n, c, matmul(a, c, v))))  see [~/prover/theorem-library/mat-equiv-proof.scm](../theorem-library/mat-equiv-proof.scm)
+- `mat-equiv-target-is-mat` — forall([a], is-ring(a) implies forall([m, n, c, d], c in mat(m, n, carr(a)) implies mat-equiv(a, m, n, c, d) implies d in mat(m, n, carr(a))))  see [~/prover/theorem-library/class-min-pivot-proof.scm](../theorem-library/class-min-pivot-proof.scm)
+- `mat-equiv-cod-is-mat` — forall([a], is-ring(a) implies forall([m, n, x, y], x in mat(m, n, carr(a)) implies mat-equiv(a, m, n, x, y) implies y in mat(m, n, carr(a))))  see [~/prover/theorem-library/clear-first-row-proof.scm](../theorem-library/clear-first-row-proof.scm)
+
+### Matrices acting on sequences of module elements
+
+- `matact-type` — forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies matact(md, p, u) in mat(m, q, vec(md))))  _[warrant: reference]_  see [~/prover/structure-library/mod-seq.scm](../structure-library/mod-seq.scm)
+- `matact-entry` — forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies forall([i in interval(1, m), c in interval(1, q)], entry(matact(md, p, u), i, c) = finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n)))))  _[warrant: reference]_  see [~/prover/structure-library/mod-seq.scm](../structure-library/mod-seq.scm)
+- `matact-identmat` — forall([md], is-module(md) implies forall([n, q, u in mat(n, q, vec(md))], matact(md, identmat(scal(md), n), u) = u))  see [~/prover/theorem-library/mod-basis-proof.scm](../theorem-library/mod-basis-proof.scm)
+- `matact-assoc` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies matact(md, matmul(scal(md), p, q), u) = matact(md, p, matact(md, q, u))))  see [~/prover/theorem-library/matact-assoc-proof.scm](../theorem-library/matact-assoc-proof.scm)
+- `matact-row-add` — forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies entry(matact(md, matadd(scal(md), c1, c2), u), 1, 1) = (vadd(md))(entry(matact(md, c1, u), 1, 1), entry(matact(md, c2, u), 1, 1))))  see [~/prover/theorem-library/matact-row-linear-proof.scm](../theorem-library/matact-row-linear-proof.scm)
+- `matact-row-scale` — forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies entry(matact(md, matscale(scal(md), r, c), u), 1, 1) = (act(md))(r, entry(matact(md, c, u), 1, 1))))  see [~/prover/theorem-library/matact-row-linear-proof.scm](../theorem-library/matact-row-linear-proof.scm)
+- `matact-row-peel` — forall([md], is-module(md) implies forall([n in nn, c in mat(1, succ(n), carr(scal(md))), u in mat(succ(n), 1, vec(md))], entry(matact(md, c, u), 1, 1) = (vadd(md))(entry(matact(md, block(c, 1, n), block(u, n, 1)), 1, 1), (act(md))(entry(c, 1, succ(n)), entry(u, succ(n), 1)))))  see [~/prover/theorem-library/span-bricks2-proof.scm](../theorem-library/span-bricks2-proof.scm)
+- `matact-snoc` — forall([md], is-module(md) implies forall([n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md)], entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1) = (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x))))  see [~/prover/theorem-library/span-bricks2-proof.scm](../theorem-library/span-bricks2-proof.scm)
+- `matact-unitrow` — forall([md], is-module(md) implies forall([n, i, u in mat(n, 1, vec(md))], i in interval(1, n) implies entry(matact(md, unitrow(scal(md), n, i), u), 1, 1) = entry(u, i, 1)))  see [~/prover/theorem-library/span-bricks-proof.scm](../theorem-library/span-bricks-proof.scm)
+- `matact-zerorow` — forall([md], is-module(md) implies forall([n, u in mat(n, 1, vec(md))], entry(matact(md, zeromat(scal(md), 1, n), u), 1, 1) = vzero(md)))  see [~/prover/theorem-library/span-bricks-proof.scm](../theorem-library/span-bricks-proof.scm)
+- `matact-empty-vzero` — forall([md], is-module(md) implies forall([c, u], c in mat(1, 0, carr(scal(md))) implies u in mat(0, 1, vec(md)) implies entry(matact(md, c, u), 1, 1) = vzero(md)))  see [~/prover/theorem-library/span-bricks-proof.scm](../theorem-library/span-bricks-proof.scm)
+- `matact-triple-left` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies entry(matact(md, matmul(scal(md), p, q), u), row, col) = finsum(module-vector-ag(md), vnb-lambda(c, finsum(module-vector-ag(md), vnb-lambda(j, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))))  see [~/prover/theorem-library/matact-assoc-proof.scm](../theorem-library/matact-assoc-proof.scm)
+- `matact-triple-right` — forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies entry(matact(md, p, matact(md, q, u)), row, col) = finsum(module-vector-ag(md), vnb-lambda(j, finsum(module-vector-ag(md), vnb-lambda(c, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))))  see [~/prover/theorem-library/matact-assoc-proof.scm](../theorem-library/matact-assoc-proof.scm)
+
+### Determinants: minors and cofactor expansion
+
+- `minor` — _(definition / vocabulary)_
+- `det` — _(definition / vocabulary)_
+- `minor-type` — forall([r, s, p, q, n], is-ring(r) implies p in nn implies q in nn implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies minor(s, p, q, n) in mat(n, n, carr(r)))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-zero` — forall([r, a], det(r, 0, a) == one(r))  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-cofactor` — forall([r, n, a], is-ring(r) implies n in nn implies a in mat(succ(n), succ(n), carr(r)) implies det(r, succ(n), a) == finsum(ring-additive-ag(r), vnb-lambda(j, (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n))))  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-in-carrier` — forall([r, n, a], is-ring(r) implies n in nn implies a in mat(n, n, carr(r)) implies det(r, n, a) in carr(r))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-1x1` — forall([r, a], is-ring(r) implies a in mat(1, 1, carr(r)) implies det(r, 1, a) = entry(a, 1, 1))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-2x2` — forall([r, a], is-ring(r) implies a in mat(2, 2, carr(r)) implies det(r, 2, a) = (add(r))((mul(r))(entry(a, 1, 1), entry(a, 2, 2)), (neg(r))((mul(r))(entry(a, 1, 2), entry(a, 2, 1)))))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-identity` — forall([r, n], is-ring(r) implies n in nn implies det(r, n, one(mat-ring(r, n))) = one(r))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-alternating-rows` — forall([r, n, a, p, q], is-ring(r) implies n in nn implies a in mat(n, n, carr(r)) implies p in interval(1, n) implies q in interval(1, n) implies not(p = q) implies forall([k in interval(1, n)], entry(a, p, k) = entry(a, q, k)) implies det(r, n, a) = zero(r))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
+- `det-multiplicative` — forall([r, n, p, q], is-commutative-ring(r) implies n in nn implies p in mat(n, n, carr(r)) implies q in mat(n, n, carr(r)) implies det(r, n, matmul(r, p, q)) = (mul(r))(det(r, n, p), det(r, n, q)))  _[warrant: reference]_  see [~/prover/structure-library/determinant.scm](../structure-library/determinant.scm)
 
 ### The binomial theorem
 

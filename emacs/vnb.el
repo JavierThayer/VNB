@@ -505,23 +505,14 @@ buffer, which comint updates regardless of how accept-process-output works."
     (fa '((IN x RR) (IN y RR)) '(= (+ x y) (+ y x)))")
     ("fs"      "(fs BINDINGS BODY)"
      "Build nested FORSOME formula from BINDINGS list.  See fa.")
-    ;; ---- Context machinery ----
+    ;; ---- Formula objects ----
+    ;; The local-context facility that used to live here (declare-local-context,
+    ;; undeclare-local-context, get-context, unravel, print-wff-in-context,
+    ;; wff-free-vars) was removed from contexts.scm on 2026-07-29; make-wff is
+    ;; what survives, and it never consulted a context stack.
     ("make-wff"               "(make-wff FORMULA)"
-     "Wrap FORMULA in a wff-in-context tagged with the current context stack.")
-    ("wff-free-vars"          "(wff-free-vars WIC)"
-     "Free variables of WIC respecting bound names from active local contexts.")
-    ("declare-local-context"  "(declare-local-context BINDING NAME)"
-     "Declare a named local context.  BINDING is (IN (LIST n1...nk) A).
-  Names n1...nk become bound in subsequent make-wff calls.")
-    ("undeclare-local-context" "(undeclare-local-context NAME)"
-     "Exit the named local context (does not destroy it; get-context still works).")
-    ("get-context"            "(get-context NAME)"
-     "Return the binding of the named local context.")
-    ("unravel"                "(unravel WIC)"
-     "Wrap WIC's formula with explicit FORALL quantifiers for each context layer,
-  producing a self-contained statement in the base theory.")
-    ("print-wff-in-context"   "(print-wff-in-context WIC)"
-     "Display WIC as (wff-in-context FORMULA IN CONTEXT-NAME).")
+     "Wrap FORMULA (sexpr or string) in a wff tagged with the current theory.
+  Expands destructuring quantifiers and validates the result.")
     ;; ---- Arithmetic oracle ----
     ("vnb-do-arith"           "(vnb-do-arith FORMULA)"
      "Evaluate a closed arithmetic FORMULA; returns #t or #f.

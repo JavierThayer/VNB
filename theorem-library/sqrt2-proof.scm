@@ -36,25 +36,20 @@
 (di) (di) (di) (di) (di)                 ; p ; INp ; q ; INq ; q/=0
 (di)                                     ; assume p*p = 2*(q*q) ; goal FALSITY
 
-(define s2-R    (minimize! '(pv) (s2-guard 'pv) 'pv))
-(define s2-w    (car (car s2-R)))        ; the minimal numerator, an eigenconstant
-(define s2-T    (cadr s2-R))             ; TYPE obligation node (or #f)
-(define s2-N    (caddr s2-R))            ; NONEMPTY obligation node (or #f)
-(define s2-main (proof-state-focus *ps*))
-(define s2-minf (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'FORALL)))
-                          (dk-asms-of s2-main)))
-
-;; TYPE: forall pv. GUARD(pv) => pv in NN.  Split GUARD; the conjunct is there.
-(when s2-T (dk-focus! s2-T) (di) (di) (sk--split!) (ass))
-;; NONEMPTY: forsome pv,q_. ...  Witness (p,q), all conjuncts in context.
-(when s2-N
-  (dk-focus! s2-N) (ew 'p)
-  (for-each (lambda (leaf)
-              (dk-focus! leaf)
-              (let ((g (dk-goal-of leaf)))
-                (if (and (pair? g) (eq? (car g) 'IN)) (ass) (begin (ew 'q) (from-context!)))))
-            (dk-opened (lambda () (di)))))
-(dk-focus! s2-main)
+;; The least-counterexample FRAME via `use-infinite-descent' (driver-kit): it runs
+;; minimize! on the numerator, discharges the TYPE obligation generically, and the
+;; NONEMPTY obligation via the thunk below (witness (p,q) from context), then hands
+;; back the minimal numerator and the minimality hypothesis.
+(define s2-D (use-infinite-descent 'pv (s2-guard 'pv) 'pv
+              (lambda ()                         ; NONEMPTY: forsome pv. GUARD(pv), witness p (companion q)
+                (ew 'p)
+                (for-each (lambda (leaf)
+                            (dk-focus! leaf)
+                            (let ((g (dk-goal-of leaf)))
+                              (if (and (pair? g) (eq? (car g) 'IN)) (ass) (begin (ew 'q) (from-context!)))))
+                          (dk-opened (lambda () (di)))))))
+(define s2-w    (cdr (assq 'witness s2-D)))   ; the minimal numerator, an eigenconstant
+(define s2-minf (cdr (assq 'minimal s2-D)))   ; minimality: forall pv. GUARD(pv) => s2-w <= pv
 
 ;; ---- descent ----------------------------------------------------------
 (define s2-q0  (obtain (lambda () (ai (s2-guard s2-w)))))         ; companion denominator

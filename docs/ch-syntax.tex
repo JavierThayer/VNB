@@ -1,34 +1,31 @@
-\chapter{Syntax and local contexts}
+\chapter{Syntax: formulas as objects}
 \label{chap:syntax-contexts}
 
 \section{Formulas as typed objects: \texttt{wff}}
 
 A \emph{well-formed formula} in this system is not a bare S-expression
-but a typed object that records the theory and context in which it was
-formed.  In the REPL it prints as:
+but a typed object that records the theory in which it was formed.  In the REPL it prints as:
 \begin{VNBsnip}
 #[wff N "formula string"]
 \end{VNBsnip}
 where \texttt{N} is an internal identifier and the quoted string is the
 pretty-printed formula.  Every formula in the system is a \texttt{wff},
-and its context (theory name) travels with it invisibly.
+and its theory travels with it invisibly.
 
 \texttt{(make-wff expr)} constructs such an object in the current
-context.  \texttt{(free-vars p)} returns the variables that are free
-\emph{given} that context --- names bound by the current local context
-do not count as free.
+theory.  \texttt{(free-vars p)} returns the variables that are free in
+it.
 
 Two procedures expose the internals of a \texttt{wff}:
 \begin{VNBsnip}
 (wff->sexp p)        ; => raw S-expression (no output)
-(display-contents p) ; prints kind, theory, formula (and context if any)
+(display-contents p) ; prints kind, theory, formula
 \end{VNBsnip}
 \texttt{wff->sexp} is defined in \texttt{wff.scm};
 \texttt{display-contents} is defined in \texttt{contexts.scm}.
 Both are available in interactive sessions.
 
-Example (assuming the current theory is \texttt{normal-math}, no local
-context active):
+Example (the base theory is \texttt{VNB-SET-THEORY}):
 \begin{VNBsnip}
 (define p (make-wff "forall([x in A], 0 <= funny-name)"))
 ; => #[wff 12 "forall([x in a], 0 <= funny-name)"]
@@ -37,89 +34,13 @@ context active):
 ; => (a funny-name)   ; x is bound by the forall
 \end{VNBsnip}
 
-\section{Local context declarations}
-
-\texttt{declare-local-context} conjures a named instance of a class or
-structure into the current session.  The binding
-\texttt{[[$n_1,\ldots,n_k$] in $A$]} is given a name and installed
-as an extension of the current theory:
-
-\begin{VNBsnip}
-(declare-local-context (IN (LIST A + * f) NORMEDSPACE) bongo)
-; => (CONTEXT bongo)
-\end{VNBsnip}
-
-Within the scope of \texttt{bongo}, \texttt{A}, \texttt{+}, \texttt{*},
-\texttt{f} are no longer free: they are bound to the components of the
-anonymous normed space asserted by \texttt{bongo}.  Any formula
-subsequently formed with \texttt{make-wff} carries the extended context:
-
-\begin{VNBsnip}
-(define p (make-wff "forall([x in A], 0 <= funny-name)"))
-; => #[wff 12 "forall([x in a], 0 <= funny-name)"]   ; tagged with context bongo
-
-(free-vars p)
-; => ()    ; A and funny-name now bound by bongo
-\end{VNBsnip}
-
-\texttt{(get-context bongo)} returns the full context name
-\texttt{(normal-math bongo)}.
-
-\texttt{(undeclare-local-context bongo)} leaves the interactive scope of
-\texttt{bongo} but does \emph{not} destroy it.  A formula \texttt{p}
-formed inside \texttt{bongo} retains its context tag indefinitely;
-the context \texttt{bongo} is still a valid named object that can be
-inspected or re-entered.
-
-\section{Local contexts as theory extensions}
-
-A local context declaration is syntactic sugar for
-\texttt{extend-theory}.  Declaring
-
-\begin{VNBsnip}
-(declare-local-context (IN (LIST A + * f) NORMEDSPACE) bongo)
-\end{VNBsnip}
-
-is equivalent to creating a new theory \texttt{bongo} that extends
-\texttt{normal-math} with the single axiom:
-\[
-  \texttt{[[A, +, *, f] in normedspace]}
-\]
-This axiom asserts the existence of a normed space whose components are
-exactly \texttt{A}, \texttt{+}, \texttt{*}, \texttt{f}.  The names
-cease to be free variables because the theory now witnesses them.
-\texttt{undeclare-local-context} simply records that the interactive
-session is no longer inside that theory extension; it does not retract
-the axiom or invalidate any work done under it.
-
-\section{The \texttt{unravel} operation}
-
-A formula tagged with a local context can be \emph{unravelled}: the
-context binding is absorbed into the formula itself as an explicit
-destructuring quantifier, producing a self-contained statement that no
-longer depends on the named context.
-
-\begin{VNBsnip}
-; p = #[wff 12 "forall([x in a], 0 <= funny-name)"]   ; tagged with context bongo
-; bongo binds: [A, +, *, f] in NORMEDSPACE
-
-(unravel p)
-; => #[wff 13 "forall([a, +, *, f in normedspace], forall([x in a], 0 <= funny-name))"]
-\end{VNBsnip}
-
-Each local context layer is peeled off in order, outermost first, and
-replaced by the corresponding destructuring \texttt{forall}.  The result
-lives in the base theory (\texttt{normal-math}) with no remaining
-context dependency.
-
 \section{The syntax context}
 
-Both the destructuring quantifier and the local context declaration
-operate through a \emph{syntax context}: a table mapping user-facing
-names to \texttt{nth($k$, $t_0$)} projections of the implicit tuple
-instance.  The syntax context is consulted at two points:
+The destructuring quantifier operates through a \emph{syntax context}:
+a table mapping user-facing names to \texttt{nth($k$, $t_0$)}
+projections of the implicit tuple instance.  The syntax context is consulted at two points:
 
-\begin{itemize}[label=\textendash, leftmargin=0.85cm]
+\begin{itemize}
 \item \textbf{Parser (input):} names in the syntax context are expanded
   to their \texttt{nth} forms before a formula enters the proof state.
 \item \textbf{Printer (output):} \texttt{nth} projections of a known
@@ -132,21 +53,11 @@ The syntax context must travel with the proof state and with
 time, the user would see anonymous \texttt{nth} projections instead of
 the declared names, defeating the purpose of the mechanism.
 
-The two scoping disciplines share the same underlying syntax context
-machinery:
-
-\begin{center}
-\begin{tabular}{@{}lll@{}}
-\toprule
-Form & Scope & Basis \\
-\midrule
-Destructuring quantifier &
-  Lexical: quantifier body &
-  Formula structure \\
-\texttt{declare-local-context} &
-  Dynamic: until \texttt{undeclare} &
-  Named theory extension \\
-\bottomrule
-\end{tabular}
-\end{center}
+The scope of a destructuring quantifier is lexical --- the quantifier
+body --- and its basis is the structure of the formula itself.  A second,
+\emph{dynamic} discipline once shared this machinery:
+\texttt{declare-local-context} conjured a named instance of a structure
+into the session until it was undeclared.  It was removed in July 2026,
+having acquired no users outside the test suite; see the note at the head
+of \texttt{contexts.scm}.
 

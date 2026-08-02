@@ -64,6 +64,19 @@
             (lp (cons (adv-ch) acc))
             (cons 'sym (string->symbol (list->string (reverse acc)))))))
 
+    ;; Numeric literals are read EXACTLY (2026-08-01, the user's call).  The "#e"
+    ;; prefix makes MIT parse the literal AS WRITTEN and then exactify the
+    ;; decimal: "0.1" is 1/10, not the flonum nearest 1/10.  That distinction is
+    ;; the whole point -- (inexact->exact .1) is 3602879701896397/36028797018963968,
+    ;; the dyadic value of the double, which is not what anyone typing 0.1 means.
+    ;; Integers and complex literals are unaffected ("#e3" is 3, "#e2+3.5i" is
+    ;; 2+7/2i).  Before this, decimals entered the theory as flonums and
+    ;; arith-eval.scm's sound-arith gate then refused to decide anything about
+    ;; them, so 2.5 was not unsound but simply inert; its header called exact
+    ;; parsing "a separate, larger change in parser.scm", and this is it.
+    (define (p--exact-num str)
+      (and str (string->number (string-append "#e" str))))
+
     (define (read-num first-ch)
       ;; Read digits/decimal, then try to extend to a complex literal.
       ;; Handles: 3i, 2+3i, 2-3i, 1.5+2.3i, 0+i (pure imaginary), etc.
@@ -89,21 +102,21 @@
                       (adv-ch)
                       (if (ident-cont? (peek-ch))
                           ;; 'i' continues an identifier -- back out entirely
-                          (begin (set! pos saved) (cons 'num (string->number base-str)))
+                          (begin (set! pos saved) (cons 'num (p--exact-num base-str)))
                           ;; Build complex string and parse.
                           ;; R7RS grammar has no bare "3i"; pure imaginary needs "+3i".
                           (let* ((imag-str (list->string imag))
                                  (full (if sign
                                            (string-append base-str (string sign) imag-str "i")
                                            (string-append "+" base-str imag-str "i")))
-                                 (n    (string->number full)))
+                                 (n    (p--exact-num full)))
                             (if n
                                 (cons 'num n)
                                 (begin (set! pos saved)
-                                       (cons 'num (string->number base-str)))))))
+                                       (cons 'num (p--exact-num base-str)))))))
                     ;; No 'i' found -- restore and return plain number
                     (begin (set! pos saved)
-                           (cons 'num (string->number base-str)))))))))
+                           (cons 'num (p--exact-num base-str)))))))))
 
     (let collect ()
       (skip-ws)
@@ -532,7 +545,15 @@
 ;;; Public interface
 
 (define (parse-string str)
-  (vnb-guard (lambda () (vnb-parse-tokens (vnb-tokenize str)))))
+  ;; Desugar destructuring / multi-binder quantifiers HERE, so the raw form the
+  ;; TACTIC path (->raw-formula -> parse-string, used by cut/mac/subst/have!/...)
+  ;; matches what make-wff produces.  Without this, `(cut "forall([p in NN, q in
+  ;; NN], ...)")' handed the un-desugared sugar `(forall ((in p nn)(in q nn)) ...)'
+  ;; to validate-wff!, which rejects the binder-list -- while `(make-wff "<same
+  ;; string>")' worked, because make-wff runs expand-destructuring-quantifiers and
+  ;; the tactic path did not.  One parser, one canonical output.  The expansion is
+  ;; idempotent on already-nested quantifiers and a no-op on terms.
+  (vnb-guard (lambda () (expand-destructuring-quantifiers (vnb-parse-tokens (vnb-tokenize str))))))
 
 (define (make-wff-from-string str)
   (vnb-guard (lambda () (make-wff (vnb-parse-tokens (vnb-tokenize str))))))

@@ -313,3 +313,61 @@
       (hash-table-keys *theorem-table*))
     (sort bad (lambda (a b) (string<? (symbol->string (car a))
                                       (symbol->string (car b)))))))
+
+;;; -----------------------------------------------------------------------
+;;; connective-arity-audit -- every installed formula's AND / OR / IMPLIES /
+;;; IFF is BINARY, and every quantifier binds exactly one variable.
+;;;
+;;; `make-wff' already rejects a flat `(AND a b c)' -- "make-wff: connective
+;;; arity" -- but `theory-add-axiom!' and `support' install a raw S-expression
+;;; WITHOUT validating it (theory.scm: the body is `install-theorem!' and
+;;; nothing else).  So a malformed formula can sit in *theorem-table* looking
+;;; perfectly healthy.
+;;;
+;;; That is not a cosmetic problem.  The kernel reads a connective with
+;;; `binary-left' / `binary-right' (cadr / caddr), so the THIRD conjunct of a
+;;; flat AND is silently dropped: `pi-direct-inference!' proves `(AND a b c)'
+;;; from a and b alone, and `pi-antecedent-inference!' splits it into a and b.
+;;; The formula the checker uses is then not the formula the author wrote, and
+;;; nothing anywhere says so.
+;;;
+;;; `fun-domain-extensionality' (theory.scm) carried exactly this bug: its
+;;; antecedent was a flat three-conjunct AND whose third conjunct was the
+;;; agreement hypothesis "f and g agree on A".  Dropped, the axiom reads "any
+;;; two functions with the same domain are equal".  Found 2026-07-28.
+;;;
+;;; This audit is a HARD gate in load.scm -- unlike the nudges, a hit here means
+;;; the trusted base does not say what it appears to say.
+
+(define *arity-2-connectives* '(AND OR IMPLIES IFF))
+(define *arity-2-predicates*  '(= == IN <= SUBSET subset))
+
+;;; ((head . arity) ...) for every malformed node in E.
+(define (formula-bad-arities e0)
+  (let ((bad '()))
+    (let scan ((e (if (wff? e0) (wff-formula e0) e0)))
+      (when (and (pair? e) (symbol? (car e)))
+        (let ((h (car e)) (n (length e)))
+          (cond
+            ((and (memq h *arity-2-connectives*) (not (= n 3)))
+             (set! bad (cons (cons h n) bad)))
+            ((and (memq h *arity-2-predicates*) (not (= n 3)))
+             (set! bad (cons (cons h n) bad)))
+            ((and (memq h '(NOT)) (not (= n 2)))
+             (set! bad (cons (cons h n) bad)))
+            ((and (memq h '(FORALL FORSOME)) (not (= n 3)))
+             (set! bad (cons (cons h n) bad)))))
+        (for-each (lambda (x) (scan x)) (cdr e))))
+    (reverse bad)))
+
+;;; ((theorem (head . arity) ...) ...) -- empty is the good case.
+(define (connective-arity-audit)
+  (let ((bad '()))
+    (for-each
+      (lambda (name)
+        (let* ((f    (hash-table-ref/default *theorem-table* name #f))
+               (hits (and f (formula-bad-arities f))))
+          (if (pair? hits) (set! bad (cons (cons name hits) bad)))))
+      (hash-table-keys *theorem-table*))
+    (sort bad (lambda (a b) (string<? (symbol->string (car a))
+                                      (symbol->string (car b)))))))

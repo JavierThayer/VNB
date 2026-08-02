@@ -61,9 +61,7 @@
   '(FORALL s (IMPLIES (IS-NORMED-FIELD s)
      (FORALL a (IMPLIES (AND (IN a (CARR s)) (NOT (= a (ZERO s))))
        (FORSOME b
-         (AND (IN b (CARR s))
-              (NOT (= b (ZERO s)))
-              (= ((MUL s) a b) (ONE s)))))))))
+         (AND (IN b (CARR s)) (AND (NOT (= b (ZERO s))) (= ((MUL s) a b) (ONE s))))))))))
 
 ;;; A normed-field has at least two elements.
 (theory-add-axiom! *current-theory* 'normed-field-zero-not-one

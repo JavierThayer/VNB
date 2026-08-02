@@ -127,7 +127,29 @@
 ;;;
 ;;; Returns the list of hypothesis sequent nodes (new or existing).
 
+;;; Every rule tag this procedure ever stamps, recorded as it is stamped.
+;;;
+;;; The trusted base is exactly the set of these tags (tactics-help.scm's
+;;; *tactic-kind* says so, and reference/KERNEL-RULES.md documents them), but
+;;; nothing used to observe the set, so the prose drifted from the code -- by
+;;; 2026-07-28 the file was missing the four ORACLE tags, both `macete' tags and
+;;; the three `arith-' tags, and glossed transfinite induction as "tuple-function
+;;; image".  `kernel-rules-audit' (tactics-help.scm) compares this table against
+;;; the documented list at the end of every load.
+;;;
+;;; A computed tag -- `(macete <source> <replacement>)', `(union-intro k)' -- is
+;;; recorded under its HEAD symbol only; the arguments are per-application data,
+;;; not part of the trusted surface.
+(define *rules-applied* (make-equal-hash-table))
+
+(define (rule-tag-head rule) (if (pair? rule) (car rule) rule))
+
+(define (rules-applied)
+  (sort (hash-table-keys *rules-applied*)
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
 (define (dg-apply-rule! dg rule hyp-sequents conclusion-sqn)
+  (hash-table-set! *rules-applied* (rule-tag-head rule) #t)
   (let ((hyp-nodes (map (lambda (s) (dg-post! dg s)) hyp-sequents)))
     (let ((infn (make-inference-node rule hyp-nodes conclusion-sqn)))
       (dg-add-inference-node! dg infn)
