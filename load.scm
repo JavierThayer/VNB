@@ -523,9 +523,14 @@
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
     "structure-library/metric-laws"
+    ;; A descending NN-indexed family is a chain -- was L2 of
+    ;; diagonalization-lemmas, asserted well-known; proven 2026-08-03 by
+    ;; NN-induction on j.  Needs nn-order-proof (nn-le-zero-is-zero) and
+    ;; subset-lemmas (subset-trans), both above, and must precede its consumer.
+    "theorem-library/nn-nested-subset-chain-proof"
     ;; Diagonalization: nested infinite subsets of NN -> a single strictly-
     ;; monotone sequence with tail in every member.  PROVEN to QED via
-    ;; dc-on-nn-pred + diagonalization-lemmas' three generic supports.  Runs
+    ;; dc-on-nn-pred + diagonalization-lemmas' two remaining generic supports.  Runs
     ;; here (needs the interactive engine + proof-debt) and BEFORE
     ;; cauchy-subseq-proof, which cites it.
     "theorem-library/diagonalization"

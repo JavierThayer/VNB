@@ -38,24 +38,14 @@
    supplied as the hypothesis.  Textbook.")
 
 ;;; -----------------------------------------------------------------------
-;;; L2.  nn-nested-subset-chain -- a descending family is a chain.
+;;; L2.  nn-nested-subset-chain -- PROVEN 2026-08-03, and no longer here.
 ;;;
-;;; If T(succ k) subset T(k) at every step, then T(j) subset T(k) whenever
-;;; k <= j.  Pure SUBSET-transitivity walked along NN; NN-induction on j
-;;; with the same m <= succ n case-split.  Generic over T (any NN-indexed
-;;; family of classes -- T need not land in any particular codomain).
-(support 'nn-nested-subset-chain
-  '(FORALL T
-     (IMPLIES
-       (FORALL k (IMPLIES (IN k NN) (SUBSET (T (succ k)) (T k))))
-       (FORALL k (IMPLIES (IN k NN)
-         (FORALL j (IMPLIES (IN j NN)
-           (IMPLIES (<= k j) (SUBSET (T j) (T k))))))))))
-(warrant! 'nn-nested-subset-chain 'well-known
-  "A descending family T(0) ⊇ T(1) ⊇ ... satisfies T(j) subset T(k) for every
-   k <= j.  NN-induction on j: j=k gives T(k) subset T(k) (reflexivity); the
-   step composes T(succ j) subset T(j) (hypothesis) with T(j) subset T(k) (IH)
-   by transitivity of subset.  Pure order bookkeeping; generic over T.")
+;;; It was asserted at this point, `well-known', with the note that its
+;;; mechanical proof was "a routine NN-induction with no library payoff to grind
+;;; out".  The shape was right and the cost estimate was wrong: it is forty
+;;; lines.  See theorem-library/nn-nested-subset-chain-proof.scm, which loads
+;;; before diagonalization.scm and installs the same name, so citations here and
+;;; downstream are unchanged.
 
 ;;; -----------------------------------------------------------------------
 ;;; L3.  inf-subset-nn-unbounded -- an infinite subset of NN is unbounded.

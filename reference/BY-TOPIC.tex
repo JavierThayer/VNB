@@ -1490,7 +1490,7 @@
 \forall s \in (\mathbb{N} \to \mathrm{Inf}(\mathbb{N})).\; (\forall k \in \mathbb{N}.\; (s((k + 1)) \subseteq s(k)) \Rightarrow \exists f.\; (\operatorname{strictly\text{-}mono\text{-}nn}(f) \wedge \forall k \in \mathbb{N}.\; \forall j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (f(j) \in s(k)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). Dependent choice on NN (dc-on-nn-pred) builds a strictly increasing sequence, each term hopping into the next nested set; the nested chain then puts the whole tail inside every member.
-\par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{inf-subset-nn-unbounded, dc-on-nn-pred, nn-step-strictly-mono, nn-nested-subset-chain}.
+\par\smallskip\noindent\emph{Rests on 6 facts:} \texttt{inf-subset-nn-unbounded, dc-on-nn-pred, nn-step-strictly-mono, nn-one-le-succ, nn-not-le-zero-pos, nn-le-succ-cases}.
 
 \subsubsection*{\texttt{nn-step-strictly-mono}}
 \emph{for every g in fun(nn, nn), if for every k in nn, g(k) is less than g(succ(k)), then g is a strictly increasing sequence of naturals}
@@ -1508,10 +1508,8 @@
 {\small\[
 \forall t.\; (\forall k \in \mathbb{N}.\; (t((k + 1)) \subseteq t(k)) \Rightarrow \forall k \in \mathbb{N}.\; \forall j \in \mathbb{N}.\; ((k \leq j) \Rightarrow (t(j) \subseteq t(k))))
 \]}
-\noindent\textbf{Asserted} [warrant: well-known]. A descending family T(0) $\supseteq$ T(1) $\supseteq$ ... satisfies T(j) subset T(k) for every
-   k <= j.  NN-induction on j: j=k gives T(k) subset T(k) (reflexivity); the
-   step composes T(succ j) subset T(j) (hypothesis) with T(j) subset T(k) (IH)
-   by transitivity of subset.  Pure order bookkeeping; generic over T.
+\noindent\textbf{Machine-checked} (trust: well-known).
+\par\smallskip\noindent\emph{Rests on 3 facts:} \texttt{nn-one-le-succ, nn-not-le-zero-pos, nn-le-succ-cases}.
 
 \subsubsection*{\texttt{inf-subset-nn-unbounded}}
 \emph{for every t in inf-subsets(nn), u in nn, there is some y in nn such that y is in t and u is less than y}
@@ -1781,7 +1779,7 @@
 \forall s.\; (\operatorname{totally\text{-}bounded}(s) \Rightarrow \forall f \in (\mathbb{N} \to \operatorname{pts}(s)).\; \exists \varphi.\; (\operatorname{strictly\text{-}mono\text{-}nn}(\varphi) \wedge \operatorname{is\text{-}cauchy\text{-}seq}(s, \operatorname{subseq}(f, \varphi))))
 \]}
 \noindent\textbf{Machine-checked} (trust: none). Total boundedness supplies a finite eps-net cover at each level; block-family-combinatorial builds nested infinite blocks pinned into shrinking balls; diagonalization extracts one subsequence, and the 2r triangle estimate makes it Cauchy.
-\par\smallskip\noindent\emph{Rests on 12 facts:} \texttt{null-rr-seq-exists, tb-rad-ball-cover, cover-block-step, inf-subsets-is-set, nn-in-inf-subsets, dc-on-nn-pred, inf-subset-nn-unbounded, nn-step-strictly-mono, nn-nested-subset-chain, subseq-is-fun, rr-pos-halvable, cauchy-block-estimate}.
+\par\smallskip\noindent\emph{Rests on 14 facts:} \texttt{null-rr-seq-exists, tb-rad-ball-cover, cover-block-step, inf-subsets-is-set, nn-in-inf-subsets, dc-on-nn-pred, inf-subset-nn-unbounded, nn-step-strictly-mono, nn-one-le-succ, nn-not-le-zero-pos, nn-le-succ-cases, subseq-is-fun, rr-pos-halvable, cauchy-block-estimate}.
 
 \subsubsection*{\texttt{cauchy-rapid-subsequence}}
 \emph{for every s, f, rad, if is-cauchy-seq(s, f) and rad is in fun(nn, rr) and for every k in nn, rad(k) is a positive real, then there is some phi in fun(nn, nn) such that for every m in nn, n\_ in nn, if m is less than n\_, then phi(m) is less than phi(n\_) and for every k in nn, (dist(s))(f(phi(k)), f(phi(succ(k)))) is at most rad(k)}

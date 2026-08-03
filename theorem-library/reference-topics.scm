@@ -30,7 +30,18 @@
           ;; href is "../<rel>": the HTML pages live in reference/, the sources
           ;; one level up at the prover root, so a browser viewing
           ;; reference/BY-TOPIC.html resolves ../theorem-library/X.scm correctly.
-          (string-append "  see [~/prover/" rel "](../" rel ")")))))
+          ;;
+          ;; SAY WHICH KIND OF FILE IT IS.  This link is *theorem-source* -- where
+          ;; the fact was INSTALLED -- which for a proven theorem is its proof and
+          ;; for an asserted one is the file that asserts it.  Rendering both as
+          ;; "see <file>" made an assertion look like it had a proof behind the
+          ;; link: structure-library/product-metric.scm, for instance, is 160
+          ;; lines of support + warrant! and contains no proof at all.  The
+          ;; warrant tag was the only signal, and it is easy to read past.
+          (string-append "  " (if (eq? (provenance-of name) 'proven)
+                                  "proved in"
+                                  "declared in")
+                         " [~/prover/" rel "](../" rel ")")))))
 
 ;;; textbook entry: name -- statement -- [warrant] -- link to its proof file.
 ;;; (Vocabulary names that are not installed results list as plain pointers.)
@@ -217,7 +228,11 @@
         (display "# Theorems by topic\n\n")
         (display "The library grouped by subject, like a textbook table of ")
         (display "contents.  Each entry gives its statement and a link to the ")
-        (display ".scm file with its proof.  (The flat catalog is `THEOREMS.md`.)\n\n")
+        (display ".scm file it comes from -- **proved in** for a machine-checked ")
+        (display "theorem, **declared in** for one that is asserted, in which ")
+        (display "case the entry also carries its `[warrant: ...]` tag and the ")
+        (display "linked file holds the statement and the grounds, not a proof.")
+        (display "  (The flat catalog is `THEOREMS.md`.)\n\n")
         (for-each
           (lambda (topic)
             (display "## ") (display (car topic)) (newline) (newline)
