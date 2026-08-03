@@ -688,45 +688,45 @@
 ;;; Live axioms in algebraic.scm, complex.scm, sequences.scm use the raw
 ;;; (VNB-LAMBDA <bind> body) form.  Without binder treatment, free-vars
 ;;; reports the bound variables as free and subst-free corrupts the binder.
-(check "free-vars: (VNB-LAMBDA i (g i)) hides i, exposes function variable g"
+(check "free-vars: (VNB-LAMBDA i NN (g i)) hides i; exposes g and the domain NN"
   ;; `i` is bound; `g` is an unregistered symbol head -- an applied function
   ;; variable -- so it is free (constant-head registry: g is not a constant).
-  (lambda () (free-vars '(VNB-LAMBDA i (g i))))
-  '(g))
+  (lambda () (free-vars '(VNB-LAMBDA i NN (g i))))
+  '(nn g))
 
-(check "free-vars: (VNB-LAMBDA (LIST p q) ((ADD X) p q)) hides p,q; exposes X via compound head"
+(check "free-vars: (VNB-LAMBDA (LIST p q) A ((ADD X) p q)) hides p,q; exposes X and the domain"
   ;; ADD is a symbol head -> treated as constant.  X is INSIDE the
   ;; compound head (ADD X) -> exposed via compound-head recursion.
-  (lambda () (free-vars '(VNB-LAMBDA (LIST p q) ((ADD PTS) p q))))
-  '(PTS))
+  (lambda () (free-vars '(VNB-LAMBDA (LIST p q) (CARTESIAN NN NN) ((ADD PTS) p q))))
+  '(nn pts))
 
 (check "subst-free: i -> 99 in (VNB-LAMBDA i (+ i 1)) leaves binder intact"
-  (lambda () (subst-free 'i 99 '(VNB-LAMBDA i (+ i 1))))
-  '(VNB-LAMBDA i (+ i 1)))
+  (lambda () (subst-free 'i 99 '(VNB-LAMBDA i NN (+ i 1))))
+  '(VNB-LAMBDA i NN (+ i 1)))
 
 (check "subst-free: r -> s in (VNB-LAMBDA i ((MUL r) a (f i))) -- compound head"
   ;; `r` inside the compound head (MUL r) gets substituted; the bound `i`
   ;; and the symbol head `f` are untouched.
-  (lambda () (subst-free 'r 's '(VNB-LAMBDA i ((MUL r) a (f i)))))
-  '(VNB-LAMBDA i ((MUL s) a (f i))))
+  (lambda () (subst-free 'r 's '(VNB-LAMBDA i NN ((MUL r) a (f i)))))
+  '(VNB-LAMBDA i NN ((MUL s) a (f i))))
 
 (check "alpha-equiv: (VNB-LAMBDA x x) ~ (VNB-LAMBDA y y)"
-  (lambda () (alpha-equiv? '(VNB-LAMBDA x x) '(VNB-LAMBDA y y)))
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN x) '(VNB-LAMBDA y NN y)))
   #t)
 
 (check "alpha-equiv: (VNB-LAMBDA (LIST p q) (f p q)) ~ (VNB-LAMBDA (LIST u v) (f u v))"
-  (lambda () (alpha-equiv? '(VNB-LAMBDA (LIST p q) (f p q))
-                           '(VNB-LAMBDA (LIST u v) (f u v))))
+  (lambda () (alpha-equiv? '(VNB-LAMBDA (LIST p q) (CARTESIAN NN NN) (f p q))
+                           '(VNB-LAMBDA (LIST u v) (CARTESIAN NN NN) (f u v))))
   #t)
 
 (check "alpha-equiv: (VNB-LAMBDA x (f x)) ~ (VNB-LAMBDA (LIST y) (f y)) -- cross-shape"
-  (lambda () (alpha-equiv? '(VNB-LAMBDA x (f x))
-                           '(VNB-LAMBDA (LIST y) (f y))))
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN (f x))
+                           '(VNB-LAMBDA (LIST y) NN (f y))))
   #t)
 
 (check "subst-free: capture avoidance — y -> y_replacement in (VNB-LAMBDA y body) leaves bound"
-  (lambda () (subst-free 'y 'foo '(VNB-LAMBDA y (+ y x))))
-  '(VNB-LAMBDA y (+ y x)))
+  (lambda () (subst-free 'y 'foo '(VNB-LAMBDA y NN (+ y x))))
+  '(VNB-LAMBDA y NN (+ y x)))
 
 ;;; 6p. REVIEW.md S-6 — fresh-var must avoid free vars of the substitution's
 ;;; replacement (otherwise the renamed binder can recapture a free var the
@@ -979,18 +979,57 @@
 ;; --- VNB-LAMBDA: typing ---
 (check-proof "pi-lambda-type: (IN (VNB-LAMBDA x x) (FUN NN NN)) reduces"
   (lambda ()
-    (sp (make-wff '(IN (VNB-LAMBDA x x) (FUN NN NN))))
+    (sp (make-wff '(IN (VNB-LAMBDA x NN x) (FUN NN NN))))
     (let ((sqn (proof-state-focus *ps*)))
       (let ((r (pi-lambda-type! sqn)))
         (or r (error "pi-lambda-type! failed"))))))
 
+;; --- VNB-LAMBDA carries its DOMAIN (2026-08-02 soundness repair) ---
+;; The rule used to type ONE domainless term into FUN(A,B) for EVERY A; with
+;; fun-domain-apply-def ("defined exactly on A") that proved (IN 0 EMPTY-SET)
+;; modulo 0.  These five pin the repair.  See docs/lambda-domain.md.
+
+(check "VNB-LAMBDA: same body, DIFFERENT domain -> DISTINCT terms [soundness]"
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN x) '(VNB-LAMBDA x EMPTY-SET x)))
+  #f)
+
+(check "VNB-LAMBDA: the domain is OUTSIDE the binder -- its variables stay free"
+  (lambda () (and (memq 'n (free-vars '(VNB-LAMBDA j (INTERVAL 1 n) (f j)))) #t))
+  #t)
+
+(check "VNB-LAMBDA: subst-free reaches into the domain"
+  (lambda () (subst-free 'n 7 '(VNB-LAMBDA j (INTERVAL 1 n) (f j))))
+  '(VNB-LAMBDA j (INTERVAL 1 7) (f j)))
+
+(check "make-wff: a DOMAINLESS VNB-LAMBDA (arity 3) is rejected"
+  (lambda () (condition? (ignore-errors
+                          (make-wff '(IN (VNB-LAMBDA x x) (FUN NN NN))))))
+  #t)
+
+(check "pi-lambda-type: REFUSES when the declared domain is not the FUN's domain"
+  (lambda ()
+    (sp (make-wff '(IN (VNB-LAMBDA x EMPTY-SET x) (FUN NN NN))))
+    (not (pi-lambda-type! (proof-state-focus *ps*))))
+  #t)
+
+(check "pi-lambda-type: also emits the (IN A SET) obligation"
+  (lambda ()
+    (sp (make-wff '(IN (VNB-LAMBDA x NN x) (FUN NN NN))))
+    (pi-lambda-type! (proof-state-focus *ps*))
+    (if (pair? (filter (lambda (l)
+                         (equal? (wff-formula (sequent-node-assertion l))
+                                 '(IN NN SET)))
+                       (proof-leaves)))
+        'emitted 'missing))
+  'emitted)
+
 ;; --- VNB-LAMBDA: beta reduction ---
 (check "reduce-lambda-in-expr: ((VNB-LAMBDA x (+ x 1)) 5) -> (+ 5 1)"
-  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA x (+ x 1)) 5)))
+  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA x NN (+ x 1)) 5)))
   '(+ 5 1))
 
 (check "reduce-lambda-in-expr: ((VNB-LAMBDA (LIST x y) (+ x y)) 3 4) -> (+ 3 4)"
-  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA (LIST x y) (+ x y)) 3 4)))
+  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA (LIST x y) (CARTESIAN NN NN) (+ x y)) 3 4)))
   '(+ 3 4))
 
 ;; Parallel substitution (analogous to S-8 for functoid-beta):
@@ -998,12 +1037,12 @@
 ;; sequential x:=y -> (LIST y y), then y:=0 -> (LIST 0 0)        WRONG
 ;; parallel: (LIST y 0)                                          CORRECT
 (check "reduce-lambda-in-expr: parallel substitution"
-  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA (LIST x y) (LIST x y)) y 0)))
+  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA (LIST x y) (CARTESIAN NN NN) (LIST x y)) y 0)))
   '(LIST y 0))
 
 ;; reduce-lambda-in-expr recurses into subterms
 (check "reduce-lambda-in-expr: nested in IN"
-  (lambda () (reduce-lambda-in-expr '(IN ((VNB-LAMBDA x x) 7) NN)))
+  (lambda () (reduce-lambda-in-expr '(IN ((VNB-LAMBDA x NN x) 7) NN)))
   '(IN 7 NN))
 
 ;; --- POWER (2-arg) ---
@@ -2578,14 +2617,22 @@
     (and (string-search-forward "(compose(f, g))(x) = f(g(x))"
            (expression->string (lookup-theorem 'compose-apply)) 0)
          #t)))
-;; COMPOSE is DEFINITIONAL (VNB-LAMBDA z. f(g z)), so the apply law is a real
-;; proof -- unfold then beta-reduce then reflexivity -- not an asserted axiom.
-;; Untyped beta identity: off-domain both sides are undefined, so it is a
-;; QUASI-equality (==), closed by quasi-reflexivity.  (The installed, TYPED
+;; COMPOSE is DEFINITIONAL (VNB-LAMBDA z in DOM g. f(g z)), so the apply law is
+;; a real proof -- unfold then beta-reduce then reflexivity -- not an asserted
+;; axiom.  Quasi-equality (==), closed by quasi-reflexivity, since the two sides
+;; are equal-if-defined rather than defined.  (The installed, TYPED
 ;; compose-apply uses strict = -- both sides are defined points of C there.)
+;;
+;; GUARDED on (IN x (DOM g)) since 2026-08-03: the beta guard now enforces, and
+;; the reduction is licensed only on the lambda's own domain.  The unguarded
+;; version this replaces was defended as "off-domain both sides are undefined",
+;; which is an argument about g and f that the KERNEL cannot see -- the same
+;; argument the unguarded rr-ms-dist was making, and it has to be a hypothesis
+;; rather than a remark.
 (check-proof "compose-apply proves: unfold COMPOSE, lambda-beta, quasi-reflexivity"
   (lambda ()
-    (sp (make-wff '(== ((COMPOSE f g) x) (f (g x)))))
+    (sp (make-wff '(IMPLIES (IN x (DOM g)) (== ((COMPOSE f g) x) (f (g x))))))
+    (di)
     (mac 'COMPOSE) (lam-b) (qrfl)
     (unless (proof-done? *ps*) (error "compose-apply did not close via beta"))))
 
@@ -3127,9 +3174,13 @@
 
 (check-true "lam-b-h beta-reduces an applied lambda inside an assumption"
   (lambda ()
-    (sp (make-wff '(IMPLIES (IN ((VNB-LAMBDA x_ x_) a) NN) (IN a NN))))
-    (di)
-    (lam-b-h '(IN ((VNB-LAMBDA x_ x_) a) NN))   ; the hypothesis becomes (IN a NN)
+    ;; (IN a NN) is a hypothesis rather than the goal because the beta guard
+    ;; enforces: reducing the identity on NN at a needs a's membership, and if
+    ;; the membership IS the goal the reduction owes exactly what it is being
+    ;; used to prove.  So type a, reduce, and land somewhere else -- ZZ.
+    (sp (make-wff '(IMPLIES (IN a NN) (IMPLIES (IN ((VNB-LAMBDA x_ NN x_) a) ZZ) (IN a ZZ)))))
+    (di) (di)                                      ; one di per IMPLIES
+    (lam-b-h '(IN ((VNB-LAMBDA x_ NN x_) a) ZZ))   ; the hypothesis becomes (IN a ZZ)
     (ass)
     (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
 
@@ -4102,7 +4153,7 @@
     (and (pair? (wff-shadowing-binders '(FORALL n (FORSOME n (<= n n)))))
          (null? (wff-shadowing-binders '(FORALL m (FORSOME n (<= m n)))))
          ;; multi-binder lambda: the source scanner's blind spot
-         (pair? (wff-shadowing-binders '(FORALL x (= x (VNB-LAMBDA (LIST y x) y))))))))
+         (pair? (wff-shadowing-binders '(FORALL x (= x (VNB-LAMBDA (LIST y x) (CARTESIAN NN NN) y))))))))
 
 ;; constant-binder-audit: no installed binder is named like a registered
 ;; constant (accessor/operator/functoid/predicate).  The accessor/variable

@@ -75,7 +75,7 @@
 ;; be harmless -- the SEP domain X resolves in the outer scope before x binds --
 ;; but the convention keeps every functoid body collision-free.
 (def-functoid 'INVERSE-BIJ '(phi X Y)
-  '(VNB-LAMBDA y_ (CHOICE (SEP x_ X (= (phi x_) y_)))))
+  '(VNB-LAMBDA y_ Y (CHOICE (SEP x_ X (= (phi x_) y_)))))
 
 ;;; Typing: when phi is a bijection X -> Y, INVERSE-BIJ(phi, X, Y) is in
 ;;; FUN(Y, X).  Derivable from CHOICE + surjectivity.
@@ -124,7 +124,7 @@
   '(FORALL X (FORALL Y (FORALL Z (FORALL phi (FORALL psi
       (IMPLIES (AND (IN phi (BIJECTION X Y))
                     (IN psi (BIJECTION Y Z)))
-               (IN (VNB-LAMBDA x_ (psi (phi x_)))
+               (IN (VNB-LAMBDA x_ X (psi (phi x_)))
                    (BIJECTION X Z)))))))))
 (warrant! 'bijection-compose 'informal
   "Derivable from bijection-membership-iff in both directions plus lambda-beta:
@@ -136,7 +136,7 @@
 ;;; Derivable trivially; useful base case in induction proofs.
 (theory-add-axiom! *current-theory* 'bijection-identity
   '(FORALL X
-     (IN (VNB-LAMBDA x_ x_) (BIJECTION X X))))
+     (IN (VNB-LAMBDA x_ X x_) (BIJECTION X X))))
 (warrant! 'bijection-identity 'informal
   "Backward direction of bijection-membership-iff: the identity lambda is in
    FUN(X,X), injective (lambda(a)=lambda(b) beta-reduces to a=b) and surjective

@@ -415,7 +415,7 @@ which it is worth keeping clearly separated.
       \mathtt{magnitude}(\mathtt{x}-\mathtt{y}))\,]
   \]
   is a 2-element VNB list.  Internally it is \texttt{(LIST CC (VNB-LAMBDA
-  (LIST x y) (magnitude (- x y))))}.  The accessors \texttt{PTS(s)} and
+  (LIST x y) (CARTESIAN CC CC) (magnitude (- x y))))}.  The accessors \texttt{PTS(s)} and
   \texttt{DIST(s)} are \texttt{nth(1,~s)} and \texttt{nth(2,~s)}.
 \item \textbf{The associated class} --- the collection
   $\{\,s : \mathit{IS\text{-}NAME}(s)\,\}$ of \emph{all} VNB lists
@@ -823,7 +823,7 @@ cannot express this mapping and a functoid is required:
 \begin{VNBcode}
 (def-functoid 'NormedToMetric '(S)
   '(LIST (VECTORS S)
-         (VNB-LAMBDA (LIST x y) ((NORM S) ((MINUS S) x y)))))
+         (VNB-LAMBDA (LIST x y) (CARTESIAN (CARR S) (CARR S)) ((NORM S) ((MINUS S) x y)))))
 \end{VNBcode}
 
 The result is a tuple \texttt{[VECTORS(S), D]} matching the
@@ -1182,7 +1182,7 @@ the object map is an arbitrary term, and the form is
 ;;; A normed field is a metric space, with d(x, y) = norm(x - y).
 (def-constructed-functor 'NF-METRIC-SPACE 'NORMED-FIELD 'METRIC-SPACE '(nf)
   '(LIST (CARR nf)
-         (VNB-LAMBDA (LIST x y) ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
+         (VNB-LAMBDA (LIST x y) (CARTESIAN (CARR nf) (CARR nf)) ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
 \end{VNBcode}
 
 The arguments are the functor name, its source and target species, the

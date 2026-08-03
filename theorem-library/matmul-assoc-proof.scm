@@ -25,7 +25,7 @@
 (define MA-AG  '(RING-ADDITIVE-AG A))
 (define MA-LHS '(MATMUL A (MATMUL A P Q) R))
 (define MA-RHS '(MATMUL A P (MATMUL A Q R)))
-(define MA-FF  '(VNB-LAMBDA z ((MUL A) ((MUL A) (ENTRY P row (NTH 2 z)) (ENTRY Q (NTH 2 z) (NTH 1 z))) (ENTRY R (NTH 1 z) col))))
+(define MA-FF  '(VNB-LAMBDA z (CARTESIAN (INTERVAL 1 k) (INTERVAL 1 n)) ((MUL A) ((MUL A) (ENTRY P row (NTH 2 z)) (ENTRY Q (NTH 2 z) (NTH 1 z))) (ENTRY R (NTH 1 z) col))))
 (define MA-PREMS '((IN P (MAT m n (CARR A))) (IN Q (MAT n k (CARR A))) (IN R (MAT k l (CARR A)))))
 
 (sp (ma-wf '(A) (ma-wi '((IS-RING A))

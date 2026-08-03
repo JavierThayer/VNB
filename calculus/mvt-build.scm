@@ -43,7 +43,7 @@
 (qed 'rolle-neutral)
 
 ;;; the auxiliary h(z) = f(z)*(b-a) - z*(f(b)-f(a))
-(define AUX '(VNB-LAMBDA z (- (* (f z) (- b a)) (* z (- (f b) (f a))))))
+(define AUX '(VNB-LAMBDA z RR (- (* (f z) (- b a)) (* z (- (f b) (f a))))))
 
 ;;; auxiliary calc-101 properties (warranted; follow from the asserted
 ;;; deriv-product/sum/const/identity and sum/product-continuous algebra)
@@ -80,7 +80,7 @@
 ;;; AUX in FUN RR RR
 (cut (list 'IN AUX '(FUN RR RR)))
 (mv-focus! (list 'IN AUX '(FUN RR RR)))
-(lam-t)
+(dk-lam-t!)
 (quietly (lambda () (di) (di) (in-rr)))
 (mv-focus! GOAL)
 

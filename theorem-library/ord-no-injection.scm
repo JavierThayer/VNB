@@ -54,7 +54,7 @@
 ;;; SEP inside H may range over the proper class ORD.  Nothing new is asserted.
 
 (define oni-R '(SEP y_ grd (FORSOME b_ (AND (IN b_ ORD) (= (phi b_) y_)))))
-(define oni-H '(VNB-LAMBDA w_ (CHOICE (SEP c_ ORD (= (phi c_) w_)))))
+(define oni-H '(VNB-LAMBDA w_ grd (CHOICE (SEP c_ ORD (= (phi c_) w_)))))
 (define (oni-fibre x) `(SEP c_ ORD (= (phi c_) (phi ,x))))   ; the fibre over phi(x)
 (define (oni-inv   x) `(CHOICE ,(oni-fibre x)))              ; H(phi(x)), beta-reduced
 
@@ -112,6 +112,10 @@
 (have! `(SUBSET ORD (IMAGE ,oni-H ,oni-R))
   (lambda ()
     (let ((x (subset-by-element!)))
+      ;; H has domain grd, and it is applied at phi(x) below; oni-typ at x is
+      ;; what says phi(x) IS in grd, so land it before the reduction rather
+      ;; than reducing first and typing afterwards.
+      (inst*! oni-typ x)
       (mac 'image-membership-iff)
       (witness! `(phi ,x)
         (lambda ()

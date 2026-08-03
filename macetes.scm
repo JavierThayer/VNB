@@ -572,17 +572,23 @@
           ;; var coincides with a schema-var (would capture); otherwise recurse
           ;; into the body, dropping ctx assumptions shadowed by the bvars.
           (let* ((bind-spec (cadr expr))
-                 (body      (caddr expr))
+                 (dom       (caddr expr))
+                 (body      (cadddr expr))
                  (bvars     (vnb-lambda-bvars bind-spec)))
             (if (let loop ((bs bvars))
                   (cond ((null? bs) #f)
                         ((member (car bs) schema-vars) #t)
                         (else (loop (cdr bs)))))
                 (cons expr '())
-                (let ((r (rewrite-expr pattern replacement schema-vars conditions
-                                       body
-                                       (lc-drop-shadowed bvars local-ctx))))
-                  (cons (list 'VNB-LAMBDA bind-spec (car r)) (cdr r))))))
+                ;; The DOMAIN is outside the binder, so it is rewritten in the
+                ;; ambient local-ctx, like SEP's and BIG-UNION's A.
+                (let* ((rd (rewrite-expr pattern replacement schema-vars conditions
+                                         dom local-ctx))
+                       (r  (rewrite-expr pattern replacement schema-vars conditions
+                                         body
+                                         (lc-drop-shadowed bvars local-ctx))))
+                  (cons (list 'VNB-LAMBDA bind-spec (car rd) (car r))
+                        (append (cdr rd) (cdr r)))))))
 
          (else
           ;; General compound.  Head may itself be a pair (e.g. ((MUL m) a b))
@@ -1137,8 +1143,9 @@
            ((BIG-UNION)                           ; (BIG-UNION var A body)
             (walk (caddr e) scope)
             (walk (cadddr e) (bind (cadr e) scope 'BIG-UNION)))
-           ((VNB-LAMBDA)                          ; (VNB-LAMBDA bspec body)
-            (walk (caddr e)
+           ((VNB-LAMBDA)                          ; (VNB-LAMBDA bspec A body)
+            (walk (caddr e) scope)
+            (walk (cadddr e)
                   (fold-left (lambda (s v) (bind v s 'VNB-LAMBDA))
                              scope (vnb-lambda-bvars (cadr e)))))
            (else (for-each (lambda (c) (walk c scope)) (cdr e)))))))
@@ -1189,8 +1196,9 @@
            ((SEP)       (walk (caddr e)) (chk (cadr e) 'SEP) (walk (cadddr e)))
            ((BIG-UNION) (walk (caddr e)) (chk (cadr e) 'BIG-UNION) (walk (cadddr e)))
            ((VNB-LAMBDA)
+            (walk (caddr e))                     ; the domain, outside the binder
             (for-each (lambda (v) (chk v 'VNB-LAMBDA)) (vnb-lambda-bvars (cadr e)))
-            (walk (caddr e)))
+            (walk (cadddr e)))
            (else (for-each walk (cdr e)))))))
     (walk e)
     (reverse hits)))
@@ -1368,6 +1376,50 @@
     ;; in interactive.scm, but this runs at load-end when it is present).
     (sort (collapse-rev-names bad)
           (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+
+;;; -----------------------------------------------------------------------
+;;; UNVERIFIED `proof' WARRANTS.
+;;;
+;;; The kind `proof' asserts that "a machine-checked VNB proof exists" (see
+;;; *warrant-kinds* above).  On a fact whose provenance is `proven' that is
+;;; redundant but true.  On an ASSERTED fact it is a claim about something
+;;; outside the loaded library, and nothing checks it.
+;;;
+;;; `warrant-invariant' (load.scm) asks this question already but excludes
+;;; *support-theorem-names*, i.e. the PSS -- and the PSS is where every such
+;;; entry actually lives.  This is the complement, so between them the two
+;;; cover the warrant table.
+;;;
+;;; Two returns, because the two populations are not equally bad:
+;;;   named   -- the text names a .scm file, so the claim is at least AUDITABLE:
+;;;              load that file and see whether it still reaches its qed.
+;;;   unnamed -- the text is the derivation written out in prose.  There is no
+;;;              file to check, so `proof' here means "somebody believed this
+;;;              would go through", which is what `informal' is for.
+;;;
+;;; Measured 2026-08-02: 49 entries, 5 named / 44 unnamed; of the 5 named, two
+;;; (continuous-implies-open-preimage, gauge-is-degree) no longer reached their
+;;; qed -- both drivers still search for the pre-rename accessors `x(s)'/`a(s)'.
+;;; Soft-nudged (count only) in load.scm; never a gate.
+(define (proof-warrants-unproven)
+  (define (names-a-file? text)
+    (and (string? text)
+         (or (string-search-forward ".scm" text 0)
+             (string-search-forward "theorem-library" text 0)
+             (string-search-forward "calculus/" text 0))))
+  (let ((named '()) (unnamed '()))
+    (hash-table-walk *warrants*
+      (lambda (name w)
+        (when (and (eq? (car w) 'proof)
+                   (not (eq? (provenance-of name) 'proven)))
+          (if (names-a-file? (cdr w))
+              (set! named (cons name named))
+              (set! unnamed (cons name unnamed))))))
+    (let ((srt (lambda (l)
+                 (sort (collapse-rev-names l)
+                       (lambda (a b) (string<? (symbol->string a)
+                                               (symbol->string b)))))))
+      (list (srt named) (srt unnamed)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Categories: which KIND of PSS fact this is -- and, as an intake

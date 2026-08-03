@@ -42,7 +42,7 @@
       '(IN fam (FUN NN (FUN (PTS s) RR)))
       '(IN dseq (FUN NN (PTS s)))
       (forall-guarded 'm '(IN m NN)
-        '(CONVERGES RR-MS (VNB-LAMBDA k ((fam k) (dseq m))))))))
+        '(CONVERGES RR-MS (VNB-LAMBDA k NN ((fam k) (dseq m))))))))
 (notation! 'CONVERGES-ON 'kind 'predicate 'arity 3
            'english "$2 converges at every point of the sequence $3 in $1")
 

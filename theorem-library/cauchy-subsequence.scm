@@ -66,7 +66,7 @@
 
 ;;; SUBSEQ(f, phi) -- the reindexed sequence  k |-> f(phi k)  (= f o phi).
 (def-functoid 'SUBSEQ '(f phi)
-  '(VNB-LAMBDA k (f (phi k))))
+  '(VNB-LAMBDA k NN (f (phi k))))
 
 ;;; IS-SUBSEQUENCE(s, y, f) -- y is a subsequence of the PTS(s)-sequence f:
 ;;; y = f o phi for some strictly monotone reindexing phi.

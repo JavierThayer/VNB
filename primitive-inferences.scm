@@ -467,9 +467,11 @@
                     e
                     (list (car e) (cadr e) (walk (caddr e)) (walk (cadddr e)))))
                ((VNB-LAMBDA)
+                ;; (VNB-LAMBDA bspec A body): A is outside the binder, so it is
+                ;; walked even when the bound vars capture -- mirrors SEP/BIG-UNION.
                 (if (captures? (vnb-lambda-bvars (cadr e)))
-                    e
-                    (list 'VNB-LAMBDA (cadr e) (walk (caddr e)))))
+                    (list 'VNB-LAMBDA (cadr e) (walk (caddr e)) (cadddr e))
+                    (list 'VNB-LAMBDA (cadr e) (walk (caddr e)) (walk (cadddr e)))))
                ((NTH)
                 (list 'NTH (cadr e) (walk (caddr e))))
                (else
@@ -1284,12 +1286,39 @@
 ;;; -----------------------------------------------------------------------
 ;;; VNB-LAMBDA: typing and beta reduction (symbolic form).
 ;;;
-;;; pi-lambda-type!: goal (IN (VNB-LAMBDA <bind-spec> body) (FUN A B))
-;;;                  =>  subgoal asserting body has type B for each bvar in A.
-;;;   Single-binder shape: (FORALL x (IMPLIES (IN x A) (IN body B)))
-;;;   Multi-binder shape (VNB-LAMBDA (LIST x1 ... xn) body):
-;;;     codomain is (FUN (CARTESIAN A1 ... An) B); not handled here — for now
-;;;     only single-binder lambdas use this rule.
+;;; pi-lambda-type!: goal (IN (VNB-LAMBDA <bind-spec> A body) (FUN A B))
+;;;                  =>  TWO subgoals:
+;;;                        (IN A SET)
+;;;                        (FORALL x (IMPLIES (IN x A) (IN body B)))
+;;;
+;;; UNSOUND UNTIL 2026-08-02, in two independent ways, both now closed.
+;;;
+;;; (1) The lambda did not carry a domain, so the rule's A was free to vary over
+;;;     one and the same term: the subgoal `forall x in A. body in B' is a
+;;;     tautology for the identity, so (VNB-LAMBDA x x) was certified into
+;;;     FUN(A,A) for EVERY A.  fun-domain-apply-def says a member of FUN(A) is
+;;;     defined EXACTLY on A, so two domains for one term is a contradiction:
+;;;     taking A = NN and A = EMPTY-SET proved (IN 0 EMPTY-SET) modulo 0.
+;;;     Closed by requiring the term to DECLARE its domain and matching it
+;;;     against the FUN's -- the same discipline SEP and BIG-UNION already had.
+;;;
+;;; (2) Membership in FUN(A,B) implies sethood (membership-implies-sethood), and
+;;;     a class function on a proper-class domain is a proper class.  The rule
+;;;     had no sethood obligation, so it certified (VNB-LAMBDA x ORD x) into
+;;;     FUN(ORD,ORD) with ORD a proper class (burali-forti).  Closed by the
+;;;     (IN A SET) subgoal.  NOTE this half is NOT fixed by (1): the domain
+;;;     being declared says nothing about its being a set.
+;;;
+;;; The typing subgoal comes FIRST so the focus lands where the pre-existing
+;;; drivers expect it; the sethood subgoal is the one they must now also close
+;;; (rr-is-set / nn-is-set are primitive, interval-in-set is a PSS support).
+;;; See docs/lambda-domain.md.
+;;;
+;;;   Multi-binder shape (VNB-LAMBDA (LIST x1 ... xn) A body):
+;;;     A is then the CARTESIAN product and B the codomain; still not handled
+;;;     here.  Carrying the domain is what makes that case tractable at all --
+;;;     it is the blocker on IS-METRIC-SPACE(RR-MS), whose DIST is a two-binder
+;;;     lambda -- but it is deliberately left for a separate change.
 ;;;
 ;;; pi-lambda-beta!: rewrite ((VNB-LAMBDA <bind-spec> body) arg ...) anywhere
 ;;;                  in the goal to body[bvars := args] (parallel substitution).
@@ -1301,21 +1330,27 @@
          (dg   (sqn-dg sqn)))
     (and (pair? g) (eq? (car g) 'IN)
          (let ((subj (cadr g)) (cls (caddr g)))
-           (and (pair? subj) (eq? (car subj) 'VNB-LAMBDA) (= (length subj) 3)
+           (and (pair? subj) (eq? (car subj) 'VNB-LAMBDA) (= (length subj) 4)
                 (symbol? (cadr subj))
                 (pair? cls) (eq? (car cls) 'FUN) (= (length cls) 3)
+                ;; THE SOUNDNESS CONDITION: the domain the term declares must be
+                ;; the domain the FUN claims.  Without it one term types into
+                ;; FUN(A,B) for every A -- see the header.
+                (alpha-equiv? (caddr subj) (cadr cls))
                 (let* ((x    (cadr subj))
-                       (body (caddr subj))
                        (A    (cadr cls))
+                       (body (cadddr subj))
                        (B    (caddr cls))
                        ;; Rename x to a fresh name to avoid clashing with
                        ;; anything in A, B, asms, or the goal.
                        (avoids (cons body (cons A (cons B (map wff-formula asms)))))
                        (x*   (apply fresh-var x avoids))
                        (body*(subst-free x x* body))
-                       (sub-goal `(FORALL ,x* (IMPLIES (IN ,x* ,A) (IN ,body* ,B)))))
+                       (sub-goal `(FORALL ,x* (IMPLIES (IN ,x* ,A) (IN ,body* ,B))))
+                       (set-goal `(IN ,A SET)))
                   (dg-apply-rule! dg 'lambda-type
-                    (list (make-sequent asms (wff-child goal sub-goal)))
+                    (list (make-sequent asms (wff-child goal sub-goal))
+                          (make-sequent asms (wff-child goal set-goal)))
                     sqn)))))))
 
 (define (pi-lambda-beta! sqn)
@@ -1323,11 +1358,25 @@
          (goal (sequent-node-assertion   sqn))
          (g    (wff-formula goal))
          (dg   (sqn-dg sqn)))
-    (let ((new-g (reduce-lambda-in-expr g)))
+    (let* ((owed '())
+           (new-g (reduce-lambda-in-expr/guard
+                    g (lambda (args A scope)
+                        (or (pi--beta-licensed? (append scope asms) args A)
+                            (begin
+                              (if *lambda-beta-emit-obligations?*
+                                  (set! owed (cons (pi--beta-obligation args A) owed))
+                                  (begin
+                                    (display ";VNB BETA-GUARD (not enforced): args=")
+                                    (write args) (display " A=") (write A) (newline)))
+                              #t))))))
       (if (alpha-equiv? new-g g)
           #f
+          ;; Main subgoal plus one (IN u A) obligation per redex whose licence
+          ;; was not evident -- sep-mem-intro's discipline, not a refusal.
           (dg-apply-rule! dg 'lambda-beta
-            (list (make-sequent asms (wff-child goal new-g)))
+            (cons (make-sequent asms (wff-child goal new-g))
+                  (map (lambda (o) (make-sequent asms (wff-child goal o)))
+                       (reverse owed)))
             sqn)))))
 
 ;;; pi-lambda-beta-hyp!: the same reduction, on a cited ASSUMPTION.
@@ -1350,41 +1399,194 @@
          (f    (asms-find asms hyp-formula)))
     (and f
          (let* ((h     (wff-formula f))
-                (new-h (reduce-lambda-in-expr h)))
+                (owed '())
+                (new-h (reduce-lambda-in-expr/guard
+                         h (lambda (args A scope)
+                             (or (pi--beta-licensed? (append scope asms) args A)
+                                 (begin
+                                   (if *lambda-beta-emit-obligations?*
+                                       (set! owed (cons (pi--beta-obligation args A) owed))
+                                       (begin
+                                         (display ";VNB BETA-GUARD (not enforced): args=")
+                                         (write args) (display " A=") (write A) (newline)))
+                                   #t))))))
            (and (not (alpha-equiv? new-h h))
                 (dg-apply-rule! dg 'lambda-beta-hyp
-                  (list (make-sequent
+                  (cons (make-sequent
                           (context-add-assumption
                             (context-remove-assumption asms f)
                             (wff-child f new-h))
-                          goal))
+                          goal)
+                        (map (lambda (o) (make-sequent asms (wff-child f o)))
+                             (reverse owed)))
                   sqn))))))
 
+;;; pi--beta-licensed?: may this redex fire?
+;;;
+;;; (VNB-LAMBDA x A b) is the function with domain A, so (lam u) is DEFINED only
+;;; for u in A -- fun-domain-apply-def says exactly that once the lambda is typed.
+;;; Reducing off-domain therefore proves defined a term the theory calls
+;;; undefined: with A = EMPTY-SET it gives (= ((VNB-LAMBDA x EMPTY-SET 0) 0) 0)
+;;; modulo 0, against empty-set-has-no-members.  That is the 2026-08-02 lambda
+;;; unsoundness surviving in the APPLICATION rule after it was closed in the
+;;; TYPING rule.  So beta must see the membership.  (scratchpad/lambda-beta-guard.scm)
+;;;
+;;; A licence is EVIDENT when the membership is in the context or in the scope
+;;; the walker threaded down (enclosing guarded universals, and the domain of
+;;; any enclosing VNB-LAMBDA / SEP / BIG-UNION binder).  Evident licences leave
+;;; the leaf structure exactly as it was, so a licensed reduction costs nothing.
+;;;
+;;; ENFORCING since 2026-08-03.  When the licence is not evident the redex still
+;;; FIRES -- refusing is a dead end for a driver, an obligation is a path -- but
+;;; it OWES (IN u A) as an extra subgoal, sep-mem-intro's discipline.  So an
+;;; off-domain reduction no longer proves anything: the exploit shape
+;;;   (= ((VNB-LAMBDA x EMPTY-SET 0) 0) 0)     [the 2026-08-02 unsoundness,
+;;;                                             surviving in the APPLICATION
+;;;                                             rule after the TYPING rule was
+;;;                                             closed by carrying the domain]
+;;; now owes (IN 0 EMPTY-SET), which is the false thing itself, and the leaf
+;;; stays open.  Control: scratchpad/beta-guard-control.scm, three cases --
+;;; unlicensed owes, licensed does not, exploit owes.  Run it after touching
+;;; this code: a guard that never fires is indistinguishable from a clean tree.
+;;;
+;;; #f restores the old REPORT mode -- fires and merely prints the redex.  It is
+;;; unsound, and it exists only because it was how the worklist was collected:
+;;; a whole load yields the whole list, where an enforcing guard yields the
+;;; first entry and a broken proof.  Use it to survey, never to ship.  The
+;;; survey it produced ran 39 -> 0 on 2026-08-03; the "it stalls the load"
+;;; note that stood here was a symptom of those 39, not a property of
+;;; enforcement -- with nothing unlicensed, nothing is emitted and the load is
+;;; the same 47 s it always was.
+(define *lambda-beta-emit-obligations?* #t)   ; sound; see the note above
+
+;;; The obligation a redex owes when its licence is not evident: (IN u A), or
+;;; (IN (LIST u1..un) A) for the multi-binder form.
+(define (pi--beta-obligation args A)
+  (if (= (length args) 1)
+      (list 'IN (car args) A)
+      (list 'IN (cons 'LIST args) A)))
+
+(define (pi--beta-licensed? asms args A)
+  (define (mem? a dom)
+    (let ((want (list 'IN a dom)))
+      (let loop ((w asms))
+        (cond ((null? w) #f)
+              ;; asms are wff objects; scope entries are raw formulas
+              ((alpha-equiv? (let ((e (car w))) (if (wff? e) (wff-formula e) e))
+                             want) #t)
+              (else (loop (cdr w)))))))
+  ;; componentwise against a CARTESIAN domain: (IN a_i d_i) for every factor.
+  (define (componentwise as ds)
+    (let loop ((as as) (ds ds))
+      (or (null? as)
+          (and (mem? (car as) (car ds)) (loop (cdr as) (cdr ds))))))
+  (define (cartesian-of? A n)
+    (and (pair? A) (eq? (car A) 'CARTESIAN) (= (length (cdr A)) n)))
+  (cond ((= (length args) 1)
+         (or (mem? (car args) A)
+             ;; The TUPLED spelling: one argument that is itself a (LIST a b),
+             ;; which is how a fubini-style summand applies a 2-binder lambda
+             ;; -- (FF (LIST c j)), triple-entry-proof.scm:55.  Licensed by the
+             ;; same componentwise membership as the multi-argument spelling;
+             ;; refusing it here while accepting `(FF c j)' would be a
+             ;; distinction in the SYNTAX of the application, not in what is
+             ;; being reduced.
+             (let ((u (car args)))
+               (and (pair? u) (eq? (car u) 'LIST)
+                    (cartesian-of? A (length (cdr u)))
+                    (componentwise (cdr u) (cdr A))))))
+        ;; multi-binder: the domain is the CARTESIAN of the factor domains, so
+        ;; componentwise membership licenses the tuple.
+        ((cartesian-of? A (length args)) (componentwise args (cdr A)))
+        (else (mem? (cons 'LIST args) A))))
+
 ;;; reduce-lambda-in-expr: parallel beta reduction of any
-;;; ((VNB-LAMBDA <bind-spec> body) arg ...) anywhere in expr.
+;;; ((VNB-LAMBDA <bind-spec> A body) arg ...) anywhere in expr.
 ;;; Single- and multi-binder forms both supported.  Recurses into all subterms.
+;;;
+;;; `ok?' decides per redex whether it may fire, as (ok? args A).  The bare
+;;; one-argument entry point keeps the unguarded behaviour and is for pure TERM
+;;; manipulation (the test suite); the kernel rules below always pass a guard.
 (define (reduce-lambda-in-expr expr)
+  (reduce-lambda-in-expr/guard expr (lambda (args A scope) #t)))
+
+(define (reduce-lambda-in-expr/guard expr ok?)
+  (reduce-lambda-in-expr/scope expr ok? '()))
+
+;;; `scope' carries the memberships that hold WHERE THE REDEX SITS, gathered from
+;;; enclosing guarded universals.  Without this the guard sees only the context
+;;; and refuses redexes under `forall u in A. ... (lam u) ...' -- where u's
+;;; membership is a guard IN THE GOAL, not an assumption.  That shape is the
+;;; normal one: a driver that unfolds a law and beta-reduces before introducing
+;;; the binders (mat-ring-proof's mr-rops does exactly this) has every membership
+;;; available and none of them in the context.
+;;; The memberships a lambda BINDER contributes inside its own body.  Inside
+;;; (VNB-LAMBDA x A body) the variable x ranges over A -- that is what carrying
+;;; the domain MEANS, and it is the reading pi-lambda-type! already takes when it
+;;; reduces (IN lam (FUN A B)) to (FORALL x (IMPLIES (IN x A) (IN body B))).
+;;; Multi-binder: the domain is a CARTESIAN, so componentwise.
+;;;
+;;; What this licenses is reduction UNDER a binder, which needs congruence:
+;;; (VNB-LAMBDA x A b1) and (VNB-LAMBDA x A b2) are the same term when b1 = b2
+;;; for every x in A.  Under the graph reading of the lambda -- the reading the
+;;; domain-carrying repair is built on, and the one lam-t enforces -- that is
+;;; immediate, since the two terms then have the same graph.  It is NOT an extra
+;;; axiom about arbitrary function equality: the domains must be the same term,
+;;; because `mem?' below matches the membership formula up to alpha only.
+(define (pi--binder-scope bind-spec A)
+  (cond ((symbol? bind-spec) (list (list 'IN bind-spec A)))
+        ((and (pair? bind-spec) (eq? (car bind-spec) 'LIST)
+              (pair? A) (eq? (car A) 'CARTESIAN)
+              (= (length (cdr bind-spec)) (length (cdr A))))
+         (map (lambda (v d) (list 'IN v d)) (cdr bind-spec) (cdr A)))
+        (else '())))
+
+(define (reduce-lambda-in-expr/scope expr ok? scope)
+  (define (reduce-lambda-in-expr e) (reduce-lambda-in-expr/scope e ok? scope))
+  ;; the body of (VNB-LAMBDA bs A .) is walked with bs's memberships added
+  (define (reduce-in-body bs A e)
+    (reduce-lambda-in-expr/scope e ok? (append (pi--binder-scope bs A) scope)))
+  (define (ok?* args A) (ok? args A scope))
   (cond
+    ;; (FORALL v (IMPLIES (IN v A) body)) -- v's membership holds inside body.
+    ((and (pair? expr) (eq? (car expr) 'FORALL) (= (length expr) 3)
+          (pair? (caddr expr)) (eq? (car (caddr expr)) 'IMPLIES)
+          (= (length (caddr expr)) 3)
+          (let ((h (cadr (caddr expr))))
+            (and (pair? h) (eq? (car h) 'IN) (eq? (cadr h) (cadr expr)))))
+     (let* ((v    (cadr expr))
+            (imp  (caddr expr))
+            (hyp  (cadr imp))
+            (body (caddr imp)))
+       (list 'FORALL v
+             (list 'IMPLIES (reduce-lambda-in-expr hyp)
+                   (reduce-lambda-in-expr/scope body ok? (cons hyp scope))))))
     ((not (pair? expr)) expr)
     ;; ((VNB-LAMBDA x body) arg)  — single-binder, single-arg.
     ((and (pair? (car expr))
           (eq? (caar expr) 'VNB-LAMBDA)
-          (= (length (car expr)) 3)
+          (= (length (car expr)) 4)
           (symbol? (cadar expr))
           (= (length expr) 2))
-     (let ((x    (cadar expr))
-           (body (caddar expr))
-           (arg  (reduce-lambda-in-expr (cadr expr))))
-       (subst-free x arg (reduce-lambda-in-expr body))))
+     (let* ((x    (cadar expr))
+            (A    (caddr (car expr)))
+            (body (reduce-in-body (cadar expr) (caddr (car expr))
+                                  (cadddr (car expr))))
+            (arg  (reduce-lambda-in-expr (cadr expr))))
+       (if (ok?* (list arg) A)
+           (subst-free x arg body)
+           ;; not licensed: leave the redex alone, but still normalise inside it
+           (list (list 'VNB-LAMBDA x A body) arg))))
     ;; ((VNB-LAMBDA (LIST x1 ... xn) body) arg1 ... argn)  — multi-binder, parallel.
     ((and (pair? (car expr))
           (eq? (caar expr) 'VNB-LAMBDA)
-          (= (length (car expr)) 3)
+          (= (length (car expr)) 4)
           (pair? (cadar expr))
           (eq? (car (cadar expr)) 'LIST)
           (= (length (cdr (cadar expr))) (length (cdr expr))))
      (let* ((bvars  (cdr (cadar expr)))
-            (body   (reduce-lambda-in-expr (caddar expr)))
+            (body   (reduce-in-body (cadar expr) (caddr (car expr))
+                                    (cadddr (car expr))))
             (args   (map reduce-lambda-in-expr (cdr expr)))
             (avoids (cons body args))
             (fresh  (map (lambda (bv) (apply fresh-var bv avoids)) bvars))
@@ -1398,7 +1600,22 @@
                                   (subst-free (car pair) (cdr pair) b))
                                 renamed
                                 (map cons fresh args))))
-       final))
+       (if (ok?* args (caddr (car expr)))
+           final
+           (cons (list 'VNB-LAMBDA (cadar expr) (caddr (car expr)) body) args))))
+    ;; The three domain-carrying binders, all of shape (H v A body) with A
+    ;; OUTSIDE the binder's scope (expressions.scm: SEP, BIG-UNION, VNB-LAMBDA):
+    ;; a lambda sitting in the goal as a term rather than in operator position,
+    ;; a separation, an indexed union.  Inside the body the bound variable is in
+    ;; A, so a redex there is licensed by that.  Each is extensional over its
+    ;; domain -- {v in A : p}, UNION_{v in A} b and the lambda's graph all depend
+    ;; on the body only through its values on A -- so reducing under the binder
+    ;; leaves the same term.  Without this case the walker descends through the
+    ;; generic branch below and drops the membership on the floor.
+    ((and (memq (car expr) '(VNB-LAMBDA SEP BIG-UNION)) (= (length expr) 4))
+     (list (car expr) (cadr expr)
+           (reduce-lambda-in-expr (caddr expr))
+           (reduce-in-body (cadr expr) (caddr expr) (cadddr expr))))
     (else
      (cons (reduce-lambda-in-expr (car expr))
            (map reduce-lambda-in-expr (cdr expr))))))

@@ -735,3 +735,50 @@
 (set! *contain-proof-files?* #t)
 (display ";; driver-kit: proof files from here on load in private environments")
 (newline)
+
+;;; -----------------------------------------------------------------------
+;;; dk-lam-t! -- lam-t, with its SETHOOD obligation discharged.
+;;;
+;;; The 2026-08-02 soundness repair gave (VNB-LAMBDA bspec A body) its domain
+;;; and gave `lambda-type' a SECOND subgoal, (IN A SET): membership in FUN(A,B)
+;;; implies sethood (membership-implies-sethood), and a class function on a
+;;; proper-class domain is a proper class, so the rule owes it.  For every
+;;; domain the library actually uses that obligation is a one-liner, and paying
+;;; it by hand at each of the lam-t sites would be N patches for one fact.
+;;;
+;;; Closes the (IN A SET) leaf, leaves focus on the TYPING leaf, and returns it
+;;; -- so `(dk-lam-t!)' is a drop-in for `(lam-t)' in an existing driver.
+(define (dk-set-close! A)
+  (cond ((symbol? A)
+         (case A
+           ((NN) (fact 'nn-is-set)) ((RR) (fact 'rr-is-set))
+           ((ZZ) (fact 'zz-is-set)) ((QQ) (fact 'qq-is-set))
+           ((CC) (fact 'cc-is-set)) ((SET) #f)
+           ((EMPTY-SET) (fact 'empty-set-is-set))
+           ((ORD) #f)                      ; ORD is a PROPER class -- burali-forti
+           (else #f)))
+        ((and (pair? A) (eq? (car A) 'INTERVAL))
+         (fact 'interval-in-set (cadr A) (caddr A)))
+        ((and (pair? A) (eq? (car A) 'CARTESIAN))
+         (dk-set-close! (cadr A))
+         (dk-set-close! (caddr A))
+         (fact 'cartesian-set-iff (cadr A) (caddr A)))
+        (else #f))
+  (ass))
+
+(define (dk-lam-t!)
+  (let* ((before (proof-leaves)))
+    (lam-t)
+    (let* ((new  (filter (lambda (l) (not (memq l before))) (proof-leaves)))
+           (sets (filter (lambda (l)
+                           (let ((g (dk-goal-of l)))
+                             (and (pair? g) (eq? (car g) 'IN) (eq? (caddr g) 'SET))))
+                         new))
+           (typ  (filter (lambda (l) (not (memq l sets))) new)))
+      (for-each (lambda (l)
+                  (set-proof-state-focus! *ps* l)
+                  (dk-set-close! (cadr (dk-goal-of l))))
+                sets)
+      (if (pair? typ)
+          (begin (set-proof-state-focus! *ps* (car typ)) (car typ))
+          (error "dk-lam-t!: lam-t left no typing goal")))))

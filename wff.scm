@@ -423,7 +423,16 @@
             (walk-term (caddr e)  bound-env)
             (walk-term (cadddr e) bound-env))
            ((VNB-LAMBDA)
-            (or (= (length e) 3) (error "make-wff: VNB-LAMBDA arity" e))
+            ;; (VNB-LAMBDA bind-spec A body) -- A is the DOMAIN, and it is
+            ;; required.  A lambda without one does not determine a function:
+            ;; the kernel's lambda-type rule was free to certify one and the
+            ;; same domainless term into FUN(A,B) for every A, which with
+            ;; fun-domain-apply-def ("defined exactly on A") proves FALSITY.
+            ;; See docs/lambda-domain.md.  A is walked in the OUTER env; only
+            ;; the body sees the bound variables.
+            (or (= (length e) 4)
+                (error "make-wff: VNB-LAMBDA arity -- expected (VNB-LAMBDA bind-spec DOMAIN body)" e))
+            (walk-term (caddr e) bound-env)
             (let ((bvars (vnb-lambda-bvars (cadr e))))
               (for-each (lambda (bv)
                           (or (symbol? bv)
@@ -432,7 +441,7 @@
                         bvars)
               (let ((env* (fold-left (lambda (env bv) (cons (cons bv 'term) env))
                                      bound-env bvars)))
-                (walk-term (caddr e) env*))))
+                (walk-term (cadddr e) env*))))
            ((apply-functoid)
             ;; (apply-functoid f arg ...) — f is a functoid or term; all are terms
             (or (>= (length e) 3) (error "make-wff: apply-functoid arity" e))

@@ -262,7 +262,7 @@
 ;; and downgrades a definition to a phantom debt leaf.  rr-ms-def had this right
 ;; before the other instances did; declare-instance! now does it for all of them.
 (declare-instance! 'RR-MS 'METRIC-SPACE 'rr-ms-def
-  '(RR (VNB-LAMBDA (LIST x y) (abs (- x y)))))
+  '(RR (VNB-LAMBDA (LIST x y) (CARTESIAN RR RR) (abs (- x y)))))
 
 (theory-add-axiom! *current-theory* 'rr-is-metric-space
   '(IS-METRIC-SPACE RR-MS))

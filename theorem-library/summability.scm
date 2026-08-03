@@ -66,7 +66,7 @@
 ;;; lambda (VNB-LAMBDA i ((NRM grp) (f i))), typed into FUN(DOM f, RR+*) by
 ;;; pi-lambda-type! + norm-nonnegativity when a proof needs it.
 (def-predicate 'IS-ABSOLUTELY-SUMMABLE '(grp f)
-  '(IN (ESUM (VNB-LAMBDA i ((NRM grp) (f i)))) RR))
+  '(IN (ESUM (VNB-LAMBDA i (DOM f) ((NRM grp) (f i)))) RR))
 
 ;;; -----------------------------------------------------------------------
 ;;; Uniqueness: f sums to at most one r.

@@ -20,7 +20,7 @@
 (def-by-nn-recursion 'NTH-DERIV '(f)
   'f                                    ; NTH-DERIV(f, 0) = f
   '(n val)                              ; step vars: n in NN, val = NTH-DERIV(f, n)
-  '(VNB-LAMBDA x (DERIV val x)))        ; NTH-DERIV(f, succ n) = x |-> DERIV(val, x)
+  '(VNB-LAMBDA x RR (DERIV val x)))        ; NTH-DERIV(f, succ n) = x |-> DERIV(val, x)
 
 ;;; f^(1) = the derivative function  x |-> f'(x)  (PROVEN).  The recursion axiom
 ;;; nth-deriv-succ now fires on the literal numeral 1 directly, thanks to the
@@ -28,7 +28,7 @@
 ;;; positive integer m via n:=m-1).  So concrete orders need only the NN-guard
 ;;; (nn-zero-in) + the two recursion rewrites -- no cut/subst/arith dance.  This
 ;;; is dumb-assemblable: scout closes it unaided (see [[automatable-assembly]]).
-(sp '(FORALL f (== (NTH-DERIV f 1) (VNB-LAMBDA x (DERIV f x)))))
+(sp '(FORALL f (== (NTH-DERIV f 1) (VNB-LAMBDA x RR (DERIV f x)))))
 (grind)
 (fact 'nn-zero-in)
 (mac 'nth-deriv-succ) (mac 'nth-deriv-zero) (qrfl)

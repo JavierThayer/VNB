@@ -57,7 +57,7 @@
 ;;; (power x n)).
 (def-functoid 'PS-PARTIAL-SUM '(coef x k)
   '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-NORMED-FIELD)
-           (VNB-LAMBDA n (* (coef n) (power x n)))
+           (VNB-LAMBDA n NN (* (coef n) (power x n)))
            k))
 
 ;;; -----------------------------------------------------------------------
@@ -65,12 +65,12 @@
 ;;; meaning the SEQUENCE of partial sums k |-> PS-PARTIAL-SUM(coef,x,k)
 ;;; converges to L in RR-MS.  This is the ordered (Abel) sum.
 (def-predicate 'PS-CONVERGES-TO-AT '(coef x L)
-  '(CONVERGES-TO RR-MS (VNB-LAMBDA k (PS-PARTIAL-SUM coef x k)) L))
+  '(CONVERGES-TO RR-MS (VNB-LAMBDA k NN (PS-PARTIAL-SUM coef x k)) L))
 
 ;;; -----------------------------------------------------------------------
 ;;; PS-CONVERGES-AT(coef, x): the series converges at x (to some real limit).
 (def-predicate 'PS-CONVERGES-AT '(coef x)
-  '(CONVERGES RR-MS (VNB-LAMBDA k (PS-PARTIAL-SUM coef x k))))
+  '(CONVERGES RR-MS (VNB-LAMBDA k NN (PS-PARTIAL-SUM coef x k))))
 
 ;;; =======================================================================
 ;;; Brick 2 -- the ratio (d'Alembert) test.
@@ -91,7 +91,7 @@
 ;;; below carries that hypothesis explicitly.)
 (def-predicate 'PS-RATIO-LIMIT '(coef L)
   '(CONVERGES-TO RR-MS
-     (VNB-LAMBDA n (abs (* (coef (succ n)) (recip (coef n)))))
+     (VNB-LAMBDA n NN (abs (* (coef (succ n)) (recip (coef n)))))
      L))
 
 ;;; -----------------------------------------------------------------------
@@ -164,7 +164,7 @@
 ;;; i.e. Sum |coef(n)| |x|^n converges -- which by ps-abs-term is Sum |term(n)|.
 ;;; Defined as ordinary convergence of the abs'd power series at |x|.
 (def-predicate 'PS-ABSOLUTELY-CONVERGES-AT '(coef x)
-  '(PS-CONVERGES-AT (VNB-LAMBDA n (abs (coef n))) (abs x)))
+  '(PS-CONVERGES-AT (VNB-LAMBDA n NN (abs (coef n))) (abs x)))
 
 ;;; -----------------------------------------------------------------------
 ;;; ps-absolute-implies-convergent: absolute convergence implies convergence,
@@ -211,10 +211,10 @@
   '(SUM-AG (NORMED-FIELD-ADDITIVE-AG RR-NORMED-FIELD) f k))
 
 (def-predicate 'SERIES-CONVERGES-TO '(f L)
-  '(CONVERGES-TO RR-MS (VNB-LAMBDA k (SERIES-PARTIAL-SUM f k)) L))
+  '(CONVERGES-TO RR-MS (VNB-LAMBDA k NN (SERIES-PARTIAL-SUM f k)) L))
 
 (def-predicate 'SERIES-CONVERGES '(f)
-  '(CONVERGES RR-MS (VNB-LAMBDA k (SERIES-PARTIAL-SUM f k))))
+  '(CONVERGES RR-MS (VNB-LAMBDA k NN (SERIES-PARTIAL-SUM f k))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Bridge: a power series IS the bare series of its term sequence.
@@ -228,7 +228,7 @@
            (FORALL k
              (IMPLIES (IN k NN)
                (= (PS-PARTIAL-SUM coef x k)
-                  (SERIES-PARTIAL-SUM (VNB-LAMBDA n (* (coef n) (power x n))) k)))))))))
+                  (SERIES-PARTIAL-SUM (VNB-LAMBDA n NN (* (coef n) (power x n))) k)))))))))
 
 (warrant! 'ps-partial-sum-as-series 'well-known
   "Both sides unfold to SUM-AG(RR-additive-AG, n |-> coef(n) x^n, k) -- the
@@ -241,7 +241,7 @@
        (FORALL x
          (IMPLIES (IN x RR)
            (IFF (PS-CONVERGES-AT coef x)
-                (SERIES-CONVERGES (VNB-LAMBDA n (* (coef n) (power x n))))))))))
+                (SERIES-CONVERGES (VNB-LAMBDA n NN (* (coef n) (power x n))))))))))
 
 (warrant! 'ps-converges-as-series 'well-known
   "Immediate from ps-partial-sum-as-series: the two partial-sum sequences are
@@ -255,7 +255,7 @@
      (IMPLIES (AND (IN r RR) (NOT (= r 1)))
        (FORALL k
          (IMPLIES (IN k NN)
-           (= (SERIES-PARTIAL-SUM (VNB-LAMBDA n (power r n)) k)
+           (= (SERIES-PARTIAL-SUM (VNB-LAMBDA n NN (power r n)) k)
               (* (- 1 (power r k)) (recip (- 1 r)))))))))
 
 (warrant! 'geometric-partial-sum 'well-known
@@ -266,7 +266,7 @@
 (support 'geometric-series-converges-to
   '(FORALL r
      (IMPLIES (AND (IN r RR) (< (abs r) 1))
-       (SERIES-CONVERGES-TO (VNB-LAMBDA n (power r n)) (recip (- 1 r))))))
+       (SERIES-CONVERGES-TO (VNB-LAMBDA n NN (power r n)) (recip (- 1 r))))))
 
 (warrant! 'geometric-series-converges-to 'informal
   "For |r|<1, r^k -> 0, so the closed-form partial sum (1 - r^k)/(1-r)

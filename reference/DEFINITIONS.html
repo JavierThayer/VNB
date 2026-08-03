@@ -76,7 +76,7 @@
 <h4 id="d-converges-along">converges-along</h4>
 <pre>forall([s, g, b, p], converges-along(s, g, b, p) iff is-metric-space(s) and g in fun(nn, pts(s)) and p in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([i in nn], i in b implies n &lt;= i implies (dist(s))(g(i), p) &lt;= eps))))</pre>
 <h4 id="d-converges-on">converges-on</h4>
-<pre>forall([s, fam, dseq], converges-on(s, fam, dseq) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and dseq in fun(nn, pts(s)) and forall([m in nn], converges(rr-ms, vnb-lambda(k, (fam(k))(dseq(m))))))</pre>
+<pre>forall([s, fam, dseq], converges-on(s, fam, dseq) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and dseq in fun(nn, pts(s)) and forall([m in nn], converges(rr-ms, vnb-lambda(k, nn, (fam(k))(dseq(m))))))</pre>
 <h4 id="d-converges-to">converges-to</h4>
 <pre>forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n_ in nn], n &lt;= n_ implies (dist(s))(f(n_), l) &lt;= eps))))</pre>
 <h4 id="d-converges-uniformly">converges-uniformly</h4>
@@ -94,7 +94,7 @@
 <h4 id="d-good-sub">good-sub</h4>
 <pre>forall([m, s, f, t], good-sub(m, s, f, t) iff forsome([g_], npe(m, s, f, t, g_)))</pre>
 <h4 id="d-has-closed-graph">has-closed-graph</h4>
-<pre>forall([m1, fam1, m2, fam2, tt], has-closed-graph(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), p1 in vec(m1), p2 in vec(m2)], fr-conv(m1, fam1, seq, p1) and fr-conv(m2, fam2, vnb-lambda(i, tt(seq(i))), p2) implies p2 = tt(p1)))</pre>
+<pre>forall([m1, fam1, m2, fam2, tt], has-closed-graph(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), p1 in vec(m1), p2 in vec(m2)], fr-conv(m1, fam1, seq, p1) and fr-conv(m2, fam2, vnb-lambda(i, nn, tt(seq(i))), p2) implies p2 = tt(p1)))</pre>
 <h4 id="d-has-div-remainder">has-div-remainder</h4>
 <pre>forall([s, deg], has-div-remainder(s, deg) iff forall([a_ in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a_ = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) &lt;= deg(b)))))</pre>
 <h4 id="d-has-fip">has-fip</h4>
@@ -104,7 +104,7 @@
 <h4 id="d-injective*">injective*</h4>
 <pre>forall([f], injective*(f) iff forall([u_, v_], f(u_) = f(v_) implies u_ = v_))</pre>
 <h4 id="d-is-absolutely-summable">is-absolutely-summable</h4>
-<pre>forall([grp, f], is-absolutely-summable(grp, f) iff esum(vnb-lambda(i, (nrm(grp))(f(i)))) in rr)</pre>
+<pre>forall([grp, f], is-absolutely-summable(grp, f) iff esum(vnb-lambda(i, dom(f), (nrm(grp))(f(i)))) in rr)</pre>
 <h4 id="d-is-algebra-of-sets">is-algebra-of-sets</h4>
 <pre>forall([omega, ca], is-algebra-of-sets(omega, ca) iff omega in set and ca subset power(omega) and forsome([a_], a_ in ca) and forall([a_ in ca], complement-in(omega, a_) in ca) and forall([a_ in ca, b_ in ca], union(a_, b_) in ca) and forall([a_ in ca, b_ in ca], intersection(a_, b_) in ca))</pre>
 <h4 id="d-is-associative">is-associative</h4>
@@ -128,7 +128,7 @@
 <h4 id="d-is-complete">is-complete</h4>
 <pre>forall([s], is-complete(s) iff is-metric-space(s) and forall([f], is-cauchy-seq(s, f) implies converges(s, f)))</pre>
 <h4 id="d-is-cont-lin">is-cont-lin</h4>
-<pre>forall([m1, fam1, m2, fam2, tt], is-cont-lin(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), lim in vec(m1)], fr-conv(m1, fam1, seq, lim) implies fr-conv(m2, fam2, vnb-lambda(i, tt(seq(i))), tt(lim))))</pre>
+<pre>forall([m1, fam1, m2, fam2, tt], is-cont-lin(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), lim in vec(m1)], fr-conv(m1, fam1, seq, lim) implies fr-conv(m2, fam2, vnb-lambda(i, nn, tt(seq(i))), tt(lim))))</pre>
 <h4 id="d-is-continuous">is-continuous</h4>
 <pre>forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))</pre>
 <h4 id="d-is-continuous-at">is-continuous-at</h4>
@@ -250,13 +250,13 @@
 <h4 id="d-pos-rr">pos-rr</h4>
 <pre>forall([r], pos-rr(r) iff r in rr and 0 &lt;= r and not(0 = r))</pre>
 <h4 id="d-ps-absolutely-converges-at">ps-absolutely-converges-at</h4>
-<pre>forall([coef, x], ps-absolutely-converges-at(coef, x) iff ps-converges-at(vnb-lambda(n, abs(coef(n))), abs(x)))</pre>
+<pre>forall([coef, x], ps-absolutely-converges-at(coef, x) iff ps-converges-at(vnb-lambda(n, nn, abs(coef(n))), abs(x)))</pre>
 <h4 id="d-ps-converges-at">ps-converges-at</h4>
-<pre>forall([coef, x], ps-converges-at(coef, x) iff converges(rr-ms, vnb-lambda(k, ps-partial-sum(coef, x, k))))</pre>
+<pre>forall([coef, x], ps-converges-at(coef, x) iff converges(rr-ms, vnb-lambda(k, nn, ps-partial-sum(coef, x, k))))</pre>
 <h4 id="d-ps-converges-to-at">ps-converges-to-at</h4>
-<pre>forall([coef, x, l], ps-converges-to-at(coef, x, l) iff converges-to(rr-ms, vnb-lambda(k, ps-partial-sum(coef, x, k)), l))</pre>
+<pre>forall([coef, x, l], ps-converges-to-at(coef, x, l) iff converges-to(rr-ms, vnb-lambda(k, nn, ps-partial-sum(coef, x, k)), l))</pre>
 <h4 id="d-ps-ratio-limit">ps-ratio-limit</h4>
-<pre>forall([coef, l], ps-ratio-limit(coef, l) iff converges-to(rr-ms, vnb-lambda(n, abs(coef(succ(n)) * recip(coef(n)))), l))</pre>
+<pre>forall([coef, l], ps-ratio-limit(coef, l) iff converges-to(rr-ms, vnb-lambda(n, nn, abs(coef(succ(n)) * recip(coef(n)))), l))</pre>
 <h4 id="d-rel-free">rel-free</h4>
 <pre>forall([md, n, u], rel-free(md, n, u) iff forall([c_ in mat(1, n, carr(scal(md)))], entry(matact(md, c_, u), 1, 1) = vzero(md) implies forall([j_ in interval(1, n)], entry(c_, 1, j_) = zero(scal(md)))))</pre>
 <h4 id="d-rr-bounded-above">rr-bounded-above</h4>
@@ -266,9 +266,9 @@
 <h4 id="d-seq-compact">seq-compact</h4>
 <pre>forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, pts(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in pts(s)], converges-to(s, subseq(f, phi), l)))))</pre>
 <h4 id="d-series-converges">series-converges</h4>
-<pre>forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, series-partial-sum(f, k))))</pre>
+<pre>forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k))))</pre>
 <h4 id="d-series-converges-to">series-converges-to</h4>
-<pre>forall([f, l], series-converges-to(f, l) iff converges-to(rr-ms, vnb-lambda(k, series-partial-sum(f, k)), l))</pre>
+<pre>forall([f, l], series-converges-to(f, l) iff converges-to(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k)), l))</pre>
 <h4 id="d-smith-staircase">smith-staircase</h4>
 <pre>forall([a, m, n, d, k], smith-staircase(a, m, n, d, k) iff is-diagonal(a, m, n, d) and k &lt;= m and k &lt;= n and forall([i_ in interval(1, k)], not(entry(d, i_, i_) = zero(a))) and forall([i_ in interval(1, m)], not(i_ &lt;= k) implies forall([j_ in interval(1, n)], entry(d, i_, j_) = zero(a))))</pre>
 <h4 id="d-spans">spans</h4>
@@ -294,13 +294,13 @@
 <h3 id="DEFINITIONS__recursively-defined-functoids">Recursively-defined functoids</h3>
 <p>Defined by primitive recursion on <code>NN</code> (<code>def-by-nn-recursion</code>): a <code>name-zero</code> base and a <code>name-succ</code> step.  The extra parameters range over a class (a ring, a monoid, ...), so each is a <strong>functoid</strong>, not a function.</p>
 <h4 id="d-comb-kk">comb-kk</h4>
-<pre>forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, if(k = 0, one(r), zero(r))))
+<pre>forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, nn, if(k = 0, one(r), zero(r))))
 
-forall([r, x, y, m in nn], comb-kk(r, x, y, succ(m)) == vnb-lambda(k, (add(r))((mul(r))(x, (comb-kk(r, x, y, m))(k - 1)), (mul(r))(y, (comb-kk(r, x, y, m))(k)))))</pre>
+forall([r, x, y, m in nn], comb-kk(r, x, y, succ(m)) == vnb-lambda(k, nn, (add(r))((mul(r))(x, (comb-kk(r, x, y, m))(k - 1)), (mul(r))(y, (comb-kk(r, x, y, m))(k)))))</pre>
 <h4 id="d-det">det</h4>
 <pre>forall([r, a], det(r, 0, a) == one(r))
 
-forall([r, n, a], is-ring(r) implies n in nn implies a in mat(succ(n), succ(n), carr(r)) implies det(r, succ(n), a) == finsum(ring-additive-ag(r), vnb-lambda(j, (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n))))</pre>
+forall([r, n, a], is-ring(r) implies n in nn implies a in mat(succ(n), succ(n), carr(r)) implies det(r, succ(n), a) == finsum(ring-additive-ag(r), vnb-lambda(j, interval(1, succ(n)), (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n))))</pre>
 <h4 id="d-factorial">factorial</h4>
 <pre>factorial(0) = succ(0)
 
@@ -316,11 +316,11 @@ forall([m, x, n in nn], mpow(m, x, succ(n)) == (opr(m))(x, mpow(m, x, n)))</pre>
 <h4 id="d-nth-deriv">nth-deriv</h4>
 <pre>forall([f], nth-deriv(f, 0) == f)
 
-forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, deriv(nth-deriv(f, n), x)))</pre>
+forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, rr, deriv(nth-deriv(f, n), x)))</pre>
 <h4 id="d-nth-deriv-v">nth-deriv-v</h4>
 <pre>forall([m, f], nth-deriv-v(m, f, 0) == f)
 
-forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, deriv-v(m, nth-deriv-v(m, f, n), x)))</pre>
+forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, rr, deriv-v(m, nth-deriv-v(m, f, n), x)))</pre>
 <h4 id="d-prod-ord">prod-ord</h4>
 <pre>forall([m, f], prod-ord(m, f, 0) == iden(m))
 
@@ -364,7 +364,7 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h3 id="DEFINITIONS__constants-other-defined-terms">Constants &amp; other defined terms</h3>
 <p><code>def-constant</code> terms fixed by characterizing axioms.</p>
 <h4 id="cc-ms">cc-ms</h4>
-<pre>cc-ms = [cc, vnb-lambda([x, y], magnitude(x - y))]</pre>
+<pre>cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]</pre>
 <h4 id="cc-normed-field">cc-normed-field</h4>
 <pre>cc-normed-field = [cc, binplus, bintimes, binneg, 0, 1, magnitude]</pre>
 <h4 id="d-fam-of-list">fam-of-list</h4>
@@ -378,11 +378,11 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h4 id="qq-ring">qq-ring</h4>
 <pre>qq-ring = [qq, binplus, bintimes, binneg, 0, 1]</pre>
 <h4 id="rr-ms">rr-ms</h4>
-<pre>rr-ms = [rr, vnb-lambda([x, y], abs(x - y))]</pre>
+<pre>rr-ms = [rr, vnb-lambda([x, y], cartesian(rr, rr), abs(x - y))]</pre>
 <h4 id="rr-normed-field">rr-normed-field</h4>
 <pre>rr-normed-field = [rr, binplus, bintimes, binneg, 0, 1, abs]</pre>
 <h4 id="d-zero-ring">zero-ring</h4>
-<pre>zero-ring = [{0}, vnb-lambda([p, q], 0), vnb-lambda([p, q], 0), vnb-lambda([p], 0), 0, 0]</pre>
+<pre>zero-ring = [{0}, vnb-lambda([p, q], cartesian({0}, {0}), 0), vnb-lambda([p, q], cartesian({0}, {0}), 0), vnb-lambda([p], {0}, 0), 0, 0]</pre>
 <h4 id="d-zz-act">zz-act</h4>
 <pre>forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g, k, a) = mpow(abelian-group-as-monoid(g), a, k)))
 
@@ -404,7 +404,7 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-bintimes-apply">bintimes-apply</h4>
 <pre>forall([x, y], bintimes(x, y) == x * y)</pre>
 <h4 id="d-cc-ms@dist">cc-ms@dist</h4>
-<pre>dist(cc-ms) == vnb-lambda([x, y], magnitude(x - y))</pre>
+<pre>dist(cc-ms) == vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))</pre>
 <h4 id="d-cc-ms@pts">cc-ms@pts</h4>
 <pre>pts(cc-ms) == cc</pre>
 <h4 id="d-cc-normed-field@add">cc-normed-field@add</h4>
@@ -422,7 +422,7 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-cc-normed-field@zero">cc-normed-field@zero</h4>
 <pre>zero(cc-normed-field) == 0</pre>
 <h4 id="d-comb-kk-zero">comb-kk-zero</h4>
-<pre>forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, if(k = 0, one(r), zero(r))))</pre>
+<pre>forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, nn, if(k = 0, one(r), zero(r))))</pre>
 <h4 id="d-det-zero">det-zero</h4>
 <pre>forall([r, a], det(r, 0, a) == one(r))</pre>
 <h4 id="d-falling-zero">falling-zero</h4>
@@ -546,19 +546,19 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-ringoid-setoid-pts">ringoid-setoid-pts</h4>
 <pre>forall([r], pts(ringoid-setoid(r)) == carr(r))</pre>
 <h4 id="d-rq-add">rq-add</h4>
-<pre>forall([r], add(ringoid-quotient-ring(r)) == descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (add(r))(a, b)))))</pre>
+<pre>forall([r], add(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))))</pre>
 <h4 id="d-rq-carr">rq-carr</h4>
 <pre>forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))</pre>
 <h4 id="d-rq-mul">rq-mul</h4>
-<pre>forall([r], mul(ringoid-quotient-ring(r)) == descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (mul(r))(a, b)))))</pre>
+<pre>forall([r], mul(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))))</pre>
 <h4 id="d-rq-neg">rq-neg</h4>
-<pre>forall([r], neg(ringoid-quotient-ring(r)) == descend(vnb-lambda(a, class(ringoid-setoid(r), (neg(r))(a)))))</pre>
+<pre>forall([r], neg(ringoid-quotient-ring(r)) == descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))))</pre>
 <h4 id="d-rq-one">rq-one</h4>
 <pre>forall([r], one(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), one(r)))</pre>
 <h4 id="d-rq-zero">rq-zero</h4>
 <pre>forall([r], zero(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), zero(r)))</pre>
 <h4 id="d-rr-ms@dist">rr-ms@dist</h4>
-<pre>dist(rr-ms) == vnb-lambda([x, y], abs(x - y))</pre>
+<pre>dist(rr-ms) == vnb-lambda([x, y], cartesian(rr, rr), abs(x - y))</pre>
 <h4 id="d-rr-ms@pts">rr-ms@pts</h4>
 <pre>pts(rr-ms) == rr</pre>
 <h4 id="d-rr-normed-field@add">rr-normed-field@add</h4>

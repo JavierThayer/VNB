@@ -24,9 +24,9 @@
 ;;;   succ m:    k |-> x * COMB-KK(.,m)(k-1) + y * COMB-KK(.,m)(k)     [Pascal, ZZ index]
 ;;; Installs comb-kk-zero and comb-kk-succ (definitional == equations).
 (def-by-nn-recursion 'COMB-KK '(R x y)
-  '(VNB-LAMBDA k (IF (= k 0) (ONE R) (ZERO R)))
+  '(VNB-LAMBDA k NN (IF (= k 0) (ONE R) (ZERO R)))
   '(m val)
-  '(VNB-LAMBDA k ((ADD R) ((MUL R) x (val (- k 1))) ((MUL R) y (val k)))))
+  '(VNB-LAMBDA k NN ((ADD R) ((MUL R) x (val (- k 1))) ((MUL R) y (val k)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; COMB-KK facts (warranted PSS supports; each is a one-step induction on m

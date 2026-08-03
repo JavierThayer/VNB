@@ -30,7 +30,7 @@
   (map (lambda (n) (let ((a (wff-formula (sequent-node-assertion n)))) (if (pair? a)(car a) a)))
        (leaf-goals)))
 
-(define wdef '(VNB-LAMBDA n (/ 1 (power 2 (+ n 1)))))   ; the default summable weight
+(define wdef '(VNB-LAMBDA n NN (/ 1 (power 2 (+ n 1)))))   ; the default summable weight
 
 ;;; ---------- the goal ----------
 (sp (make-wff

@@ -20,8 +20,8 @@
      (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
      (FORALL Y (IMPLIES (AND (IN Y SET) (IN (CARD Y) NN))
      (FORALL f (IMPLIES (IN f (FUN (CARTESIAN X Y) (CARR ag)))
-       (= (FINSUM ag (VNB-LAMBDA i (FINSUM ag (VNB-LAMBDA j (f (LIST i j))) Y)) X)
-          (FINSUM ag (VNB-LAMBDA j (FINSUM ag (VNB-LAMBDA i (f (LIST i j))) X)) Y)))))))))))
+       (= (FINSUM ag (VNB-LAMBDA i X (FINSUM ag (VNB-LAMBDA j Y (f (LIST i j))) Y)) X)
+          (FINSUM ag (VNB-LAMBDA j Y (FINSUM ag (VNB-LAMBDA i X (f (LIST i j))) X)) Y)))))))))))
 
 ;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
 (gloss! 'finsum-fubini
@@ -36,7 +36,7 @@
      (FORALL X (IMPLIES (IN X SET) (IMPLIES (IN (CARD X) NN)
      (FORALL Y (IMPLIES (IN Y SET) (IMPLIES (IN (CARD Y) NN)
      (FORALL f (IMPLIES (IN f (FUN (CARTESIAN X Y) (CARR ag)))
-       (= (FINSUM ag (VNB-LAMBDA i (FINSUM ag (VNB-LAMBDA j (f (LIST i j))) Y)) X)
-          (FINSUM ag (VNB-LAMBDA j (FINSUM ag (VNB-LAMBDA i (f (LIST i j))) X)) Y)))))))))))))
+       (= (FINSUM ag (VNB-LAMBDA i X (FINSUM ag (VNB-LAMBDA j Y (f (LIST i j))) Y)) X)
+          (FINSUM ag (VNB-LAMBDA j Y (FINSUM ag (VNB-LAMBDA i X (f (LIST i j))) X)) Y)))))))))))))
 (warrant! 'finsum-fubini-c 'well-known
   "finsum-fubini with curried set/finiteness premises (AND-packaged), for fact-friendly forward use.")

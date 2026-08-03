@@ -28,7 +28,7 @@
 
 ;;; ===================== elem-h-action ============================
 ;;; (P . H[r,k])_{ic} = P_{ik}.r  if c=k,  else P_{ic}.
-(define EA-HFF '(VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY (ELEM-H A n r k) j c))))
+(define EA-HFF '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY (ELEM-H A n r k) j c))))
 (sp (make-wff
   '(FORALL A (IMPLIES (IS-RING A)
      (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k
@@ -95,7 +95,7 @@
 ;;; (P . G[r,k,l])_{ic} = P_{il} + P_{ik}.r  if c=l,  else P_{ic}.  Case-split on
 ;;; (c=l): the l-column has TWO supports (diagonal l, value 1; unit's k, value r,
 ;;; k/=l) -> finsum-two-support; off l it is a single-support identity column.
-(define EA-GFF '(VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY (ELEM-G A n r k l) j c))))
+(define EA-GFF '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY (ELEM-G A n r k l) j c))))
 (sp (make-wff
   '(FORALL A (IMPLIES (IS-RING A)
      (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k (FORALL l
@@ -191,7 +191,7 @@
 ;;; transposition permutation matrix, so each column is a single unit vector:
 ;;; column k supported at row l, column l at row k, any other column c at row c.
 ;;; Three-way case split on (c=k) then (c=l); each branch a single-support collapse.
-(define EA-FFF '(VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY (ELEM-F A n k l) j c))))
+(define EA-FFF '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY (ELEM-F A n k l) j c))))
 ;; collapse a single-support column at row ROW: goal (= (FINSUM..) (ENTRY P i ROW));
 ;; offpss/atpss are the off-support / at-support entry read-offs for that column.
 (define (ea-collapse ROW offpss atpss)

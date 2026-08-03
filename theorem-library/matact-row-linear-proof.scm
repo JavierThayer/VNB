@@ -61,11 +61,11 @@
 (define mra-sc  '(CARR (SCAL md)))
 (define mra-ivl '(INTERVAL 1 n))
 (define mra-cs  '(MATADD (SCAL md) c1 c2))          ; the summed row
-(define (mra-row c) (list 'VNB-LAMBDA 'j (list '(ACT md) (list 'ENTRY c 1 'j) '(ENTRY u j 1))))
+(define (mra-row c) (list 'VNB-LAMBDA 'j mra-ivl (list '(ACT md) (list 'ENTRY c 1 'j) '(ENTRY u j 1))))
 (define mra-f (mra-row 'c1))                        ; j |-> c1_{1j} . u_{j1}
 (define mra-h (mra-row 'c2))                        ; j |-> c2_{1j} . u_{j1}
 (define mra-l (mra-row mra-cs))                     ; j |-> (c1+c2)_{1j} . u_{j1}
-(define mra-g (list 'VNB-LAMBDA 'z                  ; j |-> f(j) (+) h(j)
+(define mra-g (list 'VNB-LAMBDA 'z mra-ivl                  ; j |-> f(j) (+) h(j)
                     (list '(OPR (MODULE-VECTOR-AG md))
                           (list mra-f 'z) (list mra-h 'z))))
 (define (mra-sum f) (list 'FINSUM mra-vag f mra-ivl))
@@ -216,7 +216,7 @@
 (define mrs-as  '(MATSCALE (SCAL md) r c))          ; the scaled row  r*c
 (define mrs-l   (mra-row mrs-as))                   ; j |-> (r*c)_{1j} . u_{j1}
 (define mrs-f   (mra-row 'c))                       ; j |-> c_{1j} . u_{j1}
-(define mrs-g   (list 'VNB-LAMBDA 'z                ; z |-> r . (F z)
+(define mrs-g   (list 'VNB-LAMBDA 'z mra-ivl                ; z |-> r . (F z)
                       (list '(ACT md) 'r (list mrs-f 'z))))
 (define mrs-prems
   '((IN r (CARR (SCAL md))) (IN c (MAT 1 n (CARR (SCAL md))))

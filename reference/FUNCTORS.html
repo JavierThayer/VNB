@@ -70,15 +70,15 @@
 <h4 id="FUNCTORS__ball">ball</h4>
 <pre>ball(s, c, r) := {y in pts(s): (dist(s))(c, y) &lt;= r and not((dist(s))(c, y) = r)}</pre>
 <h4 id="FUNCTORS__ball-cover">ball-cover</h4>
-<pre>ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), pts(s))</pre>
+<pre>ball-cover(s, r) := image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))</pre>
 <h4 id="FUNCTORS__bdd-metric">bdd-metric</h4>
-<pre>bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]</pre>
+<pre>bdd-metric(s) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), /((dist(s))(u, v), 1 + (dist(s))(u, v)))]</pre>
 <h4 id="FUNCTORS__cauchy-setoid">cauchy-setoid</h4>
 <pre>cauchy-setoid(m) := [cseq(m), crel(m)]</pre>
 <h4 id="FUNCTORS__ccint">ccint</h4>
 <pre>ccint(a, b) := {x in rr: a &lt;= x and x &lt;= b}</pre>
 <h4 id="FUNCTORS__centre-set">centre-set</h4>
-<pre>centre-set(s, r, f) := image(vnb-lambda(b, choice(centres(s, b, r))), f)</pre>
+<pre>centre-set(s, r, f) := image(vnb-lambda(b, f, choice(centres(s, b, r))), f)</pre>
 <h4 id="FUNCTORS__centres">centres</h4>
 <pre>centres(s, b, r) := {c in pts(s): ball(s, c, r) = b}</pre>
 <h4 id="FUNCTORS__choose-set">choose-set</h4>
@@ -114,17 +114,17 @@
 <h4 id="FUNCTORS__mat">mat</h4>
 <pre>mat(m, n, x) := {p in matrix(x): size(p) = [m, n]}</pre>
 <h4 id="FUNCTORS__mat-ring">mat-ring</h4>
-<pre>mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], matadd(a, p, q)), vnb-lambda([p, q], matmul(a, p, q)), vnb-lambda(p, matneg(a, p)), zeromat(a, n, n), identmat(a, n)]</pre>
+<pre>mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)), vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)), zeromat(a, n, n), identmat(a, n)]</pre>
 <h4 id="FUNCTORS__metric-top">metric-top</h4>
 <pre>metric-top(md) := [pts(md), {u in power(pts(md)): is-open(md, u)}]</pre>
 <h4 id="FUNCTORS__monalg">monalg</h4>
-<pre>monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], monalg-add(a, f, g)), vnb-lambda([f, g], monalg-mul(a, m, f, g)), vnb-lambda(f, monalg-neg(a, f)), monalg-zero(a), monalg-one(a, m)]</pre>
+<pre>monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]</pre>
 <h4 id="FUNCTORS__nag-metric-space">nag-metric-space</h4>
-<pre>nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]</pre>
+<pre>nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]</pre>
 <h4 id="FUNCTORS__nf-metric-space">nf-metric-space</h4>
-<pre>nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]</pre>
+<pre>nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]</pre>
 <h4 id="FUNCTORS__nvs-metric-space">nvs-metric-space</h4>
-<pre>nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]</pre>
+<pre>nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], cartesian(vec(m), vec(m)), (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]</pre>
 <h4 id="FUNCTORS__permutations">permutations</h4>
 <pre>permutations(n) := injection(ord-segment(n), ord-segment(n))</pre>
 <h4 id="FUNCTORS__poly">poly</h4>
@@ -136,9 +136,9 @@
 <h4 id="FUNCTORS__product-carrier">product-carrier</h4>
 <pre>product-carrier(ms) := {x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))}</pre>
 <h4 id="FUNCTORS__product-metric">product-metric</h4>
-<pre>product-metric(ms) := product-metric-w(ms, vnb-lambda(n, /(1, 2 ^ (n + 1))))</pre>
+<pre>product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))</pre>
 <h4 id="FUNCTORS__product-metric-w">product-metric-w</h4>
-<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
+<pre>product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]</pre>
 <h4 id="FUNCTORS__pseudo-gauge-top">pseudo-gauge-top</h4>
 <pre>pseudo-gauge-top(fam, ground) := [ground, {u in power(ground): is-open-gauge(fam, ground, u)}]</pre>
 <h4 id="FUNCTORS__quotient">quotient</h4>
@@ -146,11 +146,11 @@
 <h4 id="FUNCTORS__ran">ran</h4>
 <pre>ran(f) := image(f, dom(f))</pre>
 <h4 id="FUNCTORS__ring-prod">ring-prod</h4>
-<pre>ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]</pre>
+<pre>ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]</pre>
 <h4 id="FUNCTORS__ringoid-quotient">ringoid-quotient</h4>
 <pre>ringoid-quotient(r) := quotient(ringoid-setoid(r))</pre>
 <h4 id="FUNCTORS__ringoid-quotient-ring">ringoid-quotient-ring</h4>
-<pre>ringoid-quotient-ring(r) := [quotient(ringoid-setoid(r)), descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (add(r))(a, b)))), descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (mul(r))(a, b)))), descend(vnb-lambda(a, class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]</pre>
+<pre>ringoid-quotient-ring(r) := [quotient(ringoid-setoid(r)), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))), descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]</pre>
 <h4 id="FUNCTORS__ringoid-rel">ringoid-rel</h4>
 <pre>ringoid-rel(r) := {p in cartesian(carr(r), carr(r)): (add(r))(nth(1, p), (neg(r))(nth(2, p))) in idl(r)}</pre>
 <h4 id="FUNCTORS__ringoid-setoid">ringoid-setoid</h4>
@@ -170,43 +170,43 @@
 <h3 id="FUNCTORS__value-functoids">Value functoids</h3>
 <p>Body is a <strong>term</strong>, not a set/tuple: a function (<code>vnb-lambda</code>), an element, or a number — distance sequences, embeddings, ring powers, counts.  A functoid is <em>never</em> proposition-valued (that would be a predicate, see <code>DEFINITIONS.md</code>); when the body is a <code>vnb-lambda</code> the functoid is <strong>function-valued</strong> but is itself still a functoid (its argument ranges over a class).  For the full operator taxonomy see <code>OPERATORS.md</code>.</p>
 <h4 id="FUNCTORS__block">block</h4>
-<pre>block(p, k, l) := matof(k, l, vnb-lambda([i, j], entry(p, i, j)))</pre>
+<pre>block(p, k, l) := matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))</pre>
 <h4 id="FUNCTORS__border">border</h4>
-<pre>border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))</pre>
+<pre>border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))</pre>
 <h4 id="FUNCTORS__choose">choose</h4>
 <pre>choose(n, m) := card(choose-set(n, m))</pre>
 <h4 id="FUNCTORS__completion-dist">completion-dist</h4>
-<pre>completion-dist(m) := vnb-lambda(p, iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
+<pre>completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))</pre>
 <h4 id="FUNCTORS__compose">compose</h4>
-<pre>compose(f, g) := vnb-lambda(z_, f(g(z_)))</pre>
+<pre>compose(f, g) := vnb-lambda(z_, dom(g), f(g(z_)))</pre>
 <h4 id="FUNCTORS__deriv">deriv</h4>
 <pre>deriv(f, a) := iota(l, is-diff-at(f, a, l))</pre>
 <h4 id="FUNCTORS__deriv-v">deriv-v</h4>
 <pre>deriv-v(m, f, a) := iota(l, is-diff-at-v(m, f, a, l))</pre>
 <h4 id="FUNCTORS__descend">descend</h4>
-<pre>descend(f) := vnb-lambda(c, iota(z, forsome([a in c], z = f(a))))</pre>
+<pre>descend(s, f) := vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))</pre>
 <h4 id="FUNCTORS__descend2">descend2</h4>
-<pre>descend2(f) := vnb-lambda([c, d], iota(z, forsome([a in c, b in d], z = f(a, b))))</pre>
+<pre>descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))</pre>
 <h4 id="FUNCTORS__dist-seq">dist-seq</h4>
-<pre>dist-seq(m, f, g) := vnb-lambda(n, (dist(m))(f(n), g(n)))</pre>
+<pre>dist-seq(m, f, g) := vnb-lambda(n, nn, (dist(m))(f(n), g(n)))</pre>
 <h4 id="FUNCTORS__dual-norm">dual-norm</h4>
 <pre>dual-norm(m, f) := iota(c_, c_ in rr and 0 &lt;= c_ and forall([x_ in vec(m)], abs(f(x_)) &lt;= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 &lt;= d_ and forall([x_ in vec(m)], abs(f(x_)) &lt;= d_ * (vnrm(m))(x_)) implies c_ &lt;= d_))</pre>
 <h4 id="FUNCTORS__dual-norm-on">dual-norm-on</h4>
 <pre>dual-norm-on(m, s, f) := iota(c_, c_ in rr and 0 &lt;= c_ and forall([x_ in s], abs(f(x_)) &lt;= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 &lt;= d_ and forall([x_ in s], abs(f(x_)) &lt;= d_ * (vnrm(m))(x_)) implies c_ &lt;= d_))</pre>
 <h4 id="FUNCTORS__elem-f">elem-f</h4>
-<pre>elem-f(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))</pre>
+<pre>elem-f(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))</pre>
 <h4 id="FUNCTORS__elem-g">elem-g</h4>
-<pre>elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), if(i = k and j = l, r, zero(a)))))</pre>
+<pre>elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))</pre>
 <h4 id="FUNCTORS__elem-h">elem-h</h4>
-<pre>elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], if(i = j, if(i = k, r, one(a)), zero(a))))</pre>
+<pre>elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))</pre>
 <h4 id="FUNCTORS__embed">embed</h4>
-<pre>embed(m) := vnb-lambda(u, class(cauchy-setoid(m), embed-seq(m, u)))</pre>
+<pre>embed(m) := vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))</pre>
 <h4 id="FUNCTORS__embed-seq">embed-seq</h4>
-<pre>embed-seq(m, u) := vnb-lambda(n, u)</pre>
+<pre>embed-seq(m, u) := vnb-lambda(n, nn, u)</pre>
 <h4 id="FUNCTORS__entry">entry</h4>
 <pre>entry(m, i, j) := nth(j, nth(i, m))</pre>
 <h4 id="FUNCTORS__enum-fam">enum-fam</h4>
-<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))</pre>
+<pre>enum-fam(ag, f, phi, n) := vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))</pre>
 <h4 id="FUNCTORS__fin-enum">fin-enum</h4>
 <pre>fin-enum(s) := choice(bijection(ord-segment(card(s)), s))</pre>
 <h4 id="FUNCTORS__finprod">finprod</h4>
@@ -218,37 +218,37 @@
 <h4 id="FUNCTORS__greedy-chain">greedy-chain</h4>
 <pre>greedy-chain(phi, grd, porel) := zkept(phi, grd, porel, card(grd))</pre>
 <h4 id="FUNCTORS__identmat">identmat</h4>
-<pre>identmat(a, n) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), zero(a))))</pre>
+<pre>identmat(a, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))</pre>
 <h4 id="FUNCTORS__insert-last">insert-last</h4>
-<pre>insert-last(phi, x, n) := vnb-lambda(i, if(i in ord-segment(n), phi(i), x))</pre>
+<pre>insert-last(phi, x, n) := vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))</pre>
 <h4 id="FUNCTORS__inverse-bij">inverse-bij</h4>
-<pre>inverse-bij(phi, x, y) := vnb-lambda(y_, choice({x_ in x: phi(x_) = y_}))</pre>
+<pre>inverse-bij(phi, x, y) := vnb-lambda(y_, y, choice({x_ in x: phi(x_) = y_}))</pre>
 <h4 id="FUNCTORS__matact">matact</h4>
-<pre>matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))</pre>
+<pre>matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(u)))), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, nth(2, size(p))), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))</pre>
 <h4 id="FUNCTORS__matadd">matadd</h4>
-<pre>matadd(a, p, q) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (add(a))(entry(p, i, j), entry(q, i, j))))</pre>
+<pre>matadd(a, p, q) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (add(a))(entry(p, i, j), entry(q, i, j))))</pre>
 <h4 id="FUNCTORS__matmul">matmul</h4>
-<pre>matmul(a, p, q) := matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))</pre>
+<pre>matmul(a, p, q) := matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(q)))), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, nth(2, size(p))), (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))</pre>
 <h4 id="FUNCTORS__matneg">matneg</h4>
-<pre>matneg(a, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (neg(a))(entry(p, i, j))))</pre>
+<pre>matneg(a, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (neg(a))(entry(p, i, j))))</pre>
 <h4 id="FUNCTORS__matof">matof</h4>
 <pre>matof(m, n, g) := iota(p, p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) and forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = g(i, j)))</pre>
 <h4 id="FUNCTORS__matscale">matscale</h4>
-<pre>matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (mul(a))(r, entry(p, i, j))))</pre>
+<pre>matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (mul(a))(r, entry(p, i, j))))</pre>
 <h4 id="FUNCTORS__matunit">matunit</h4>
-<pre>matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l, one(a), zero(a))))</pre>
+<pre>matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))</pre>
 <h4 id="FUNCTORS__minor">minor</h4>
-<pre>minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], entry(s, if(i &lt; r, i, succ(i)), if(j &lt; c, j, succ(j)))))</pre>
+<pre>minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i &lt; r, i, succ(i)), if(j &lt; c, j, succ(j)))))</pre>
 <h4 id="FUNCTORS__monalg-add">monalg-add</h4>
-<pre>monalg-add(a, f, g) := vnb-lambda(x_, (add(a))(f(x_), g(x_)))</pre>
+<pre>monalg-add(a, m, f, g) := vnb-lambda(x_, carr(m), (add(a))(f(x_), g(x_)))</pre>
 <h4 id="FUNCTORS__monalg-mul">monalg-mul</h4>
-<pre>monalg-mul(a, m, f, g) := vnb-lambda(x_, finsum(ring-additive-ag(a), vnb-lambda(p, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))</pre>
+<pre>monalg-mul(a, m, f, g) := vnb-lambda(x_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))</pre>
 <h4 id="FUNCTORS__monalg-neg">monalg-neg</h4>
-<pre>monalg-neg(a, f) := vnb-lambda(x_, (neg(a))(f(x_)))</pre>
+<pre>monalg-neg(a, m, f) := vnb-lambda(x_, carr(m), (neg(a))(f(x_)))</pre>
 <h4 id="FUNCTORS__monalg-one">monalg-one</h4>
-<pre>monalg-one(a, m) := vnb-lambda(x_, if(x_ = iden(m), one(a), zero(a)))</pre>
+<pre>monalg-one(a, m) := vnb-lambda(x_, carr(m), if(x_ = iden(m), one(a), zero(a)))</pre>
 <h4 id="FUNCTORS__monalg-zero">monalg-zero</h4>
-<pre>monalg-zero(a) := vnb-lambda(x_, zero(a))</pre>
+<pre>monalg-zero(a, m) := vnb-lambda(x_, carr(m), zero(a))</pre>
 <h4 id="FUNCTORS__nn-enum">nn-enum</h4>
 <pre>nn-enum(s) := choice({f in fun(nn, s): forall([m in nn, n in nn], m &lt; n implies f(m) &lt; f(n))})</pre>
 <h4 id="FUNCTORS__nnfst">nnfst</h4>
@@ -260,11 +260,11 @@
 <h4 id="FUNCTORS__prod-ring">prod-ring</h4>
 <pre>prod-ring(r, f, s) := finprod(commutative-ring-multiplicative-cm(r), f, s)</pre>
 <h4 id="FUNCTORS__product-proj">product-proj</h4>
-<pre>product-proj(ms, n) := vnb-lambda(x, x(n))</pre>
+<pre>product-proj(ms, n) := vnb-lambda(x, product-carrier(ms), x(n))</pre>
 <h4 id="FUNCTORS__proj">proj</h4>
-<pre>proj(s) := vnb-lambda(a, class(s, a))</pre>
+<pre>proj(s) := vnb-lambda(a, pts(s), class(s, a))</pre>
 <h4 id="FUNCTORS__ps-partial-sum">ps-partial-sum</h4>
-<pre>ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, coef(n) * x ^ n), k)</pre>
+<pre>ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x ^ n), k)</pre>
 <h4 id="FUNCTORS__related">related</h4>
 <pre>related(s, a, b) := [a, b] in rel(s)</pre>
 <h4 id="FUNCTORS__respects">respects</h4>
@@ -276,17 +276,17 @@
 <h4 id="FUNCTORS__series-partial-sum">series-partial-sum</h4>
 <pre>series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)</pre>
 <h4 id="FUNCTORS__snoc-col">snoc-col</h4>
-<pre>snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], if(i_ = succ(n), x, entry(w, i_, 1))))</pre>
+<pre>snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i_ = succ(n), x, entry(w, i_, 1))))</pre>
 <h4 id="FUNCTORS__snoc-row">snoc-row</h4>
-<pre>snoc-row(c, n, r) := matof(1, succ(n), vnb-lambda([i_, j_], if(j_ = succ(n), r, entry(c, 1, j_))))</pre>
+<pre>snoc-row(c, n, r) := matof(1, succ(n), vnb-lambda([i_, j_], cartesian(interval(1, 1), interval(1, succ(n))), if(j_ = succ(n), r, entry(c, 1, j_))))</pre>
 <h4 id="FUNCTORS__submat">submat</h4>
-<pre>submat(s, p, q) := matof(p, q, vnb-lambda([i, j], entry(s, succ(i), succ(j))))</pre>
+<pre>submat(s, p, q) := matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))</pre>
 <h4 id="FUNCTORS__subseq">subseq</h4>
-<pre>subseq(f, phi) := vnb-lambda(k, f(phi(k)))</pre>
+<pre>subseq(f, phi) := vnb-lambda(k, nn, f(phi(k)))</pre>
 <h4 id="FUNCTORS__taylor-poly">taylor-poly</h4>
-<pre>taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))</pre>
+<pre>taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, nn, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))</pre>
 <h4 id="FUNCTORS__unitrow">unitrow</h4>
-<pre>unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], if(cl = i, one(a), zero(a))))</pre>
+<pre>unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))</pre>
 <h4 id="FUNCTORS__zeromat">zeromat</h4>
-<pre>zeromat(a, m, n) := matof(m, n, vnb-lambda([i, j], zero(a)))</pre></main>
+<pre>zeromat(a, m, n) := matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))</pre></main>
 </div></body></html>

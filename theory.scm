@@ -769,12 +769,18 @@
                  (rp (rewrite-by-proc/bv proc p (cons bv bvars))))
             (if (eq? rp p) expr `(COMP ,bv ,rp))))
          ((VNB-LAMBDA)
-          (let* ((bind-spec (cadr  expr))
-                 (body      (caddr expr))
+          ;; (VNB-LAMBDA bind-spec A body): A is OUTSIDE the binder, so it is
+          ;; rewritten with the ambient bvars, the body with the extended set.
+          (let* ((bind-spec (cadr   expr))
+                 (dom       (caddr  expr))
+                 (body      (cadddr expr))
                  (new-bvars (vnb-lambda-bvars bind-spec))
+                 (rd        (rewrite-by-proc/bv proc dom bvars))
                  (r         (rewrite-by-proc/bv proc body
                                                 (append new-bvars bvars))))
-            (if (eq? r body) expr `(VNB-LAMBDA ,bind-spec ,r))))
+            (if (and (eq? r body) (eq? rd dom))
+                expr
+                `(VNB-LAMBDA ,bind-spec ,rd ,r))))
          (else expr))))))
 
 ;;; -----------------------------------------------------------------------

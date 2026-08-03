@@ -653,8 +653,13 @@ representation are objects in the VNB universe.
     \texttt{lambda([x in A], body)}.  Reduced by
     \texttt{cmd-functoid-beta} (short form \texttt{(beta)}).
   \item \emph{symbolic form} (\texttt{VNB-LAMBDA}): a raw S-expression
-    binder \texttt{(VNB-LAMBDA $x$ $\mathit{body}$)} or
-    \texttt{(VNB-LAMBDA (LIST $x_1\,\ldots\,x_n$) $\mathit{body}$)}.
+    binder \texttt{(VNB-LAMBDA $x$ $A$ $\mathit{body}$)} or
+    \texttt{(VNB-LAMBDA (LIST $x_1\,\ldots\,x_n$) $A$ $\mathit{body}$)},
+    where $A$ is the \emph{domain} and lies outside the binder's scope
+    (as in \texttt{SEP} and \texttt{BIG-UNION}).  The domain is
+    \emph{required}: a lambda that does not carry one does not determine
+    a function, and the typing rule was free to certify one and the same
+    domainless term into $\mathrm{FUN}(A,B)$ for every $A$ at once.
     Used in axioms written directly as S-expressions
     (e.g.\ \texttt{RING-PROD}, \texttt{CC-NORMED-FIELD}, \texttt{sum}).
     Typing rule \texttt{pi-lambda-type!} (single-binder shape):

@@ -16,7 +16,7 @@
 ;;; with inline bc* handlers; see differentiation.scm.)
 (support 'const-continuous-at
   '(FORALL c (IMPLIES (IN c RR) (FORALL a (IMPLIES (IN a RR)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x c) a))))))
+     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR c) a))))))
 (warrant! 'const-continuous-at 'well-known
   "Constant map: for any eps>0 any delta>0 works, since d(c,c)=0<=eps.")
 (category! 'const-continuous-at 'analysis)
@@ -24,7 +24,7 @@
 ;;; Identity map x|->x is continuous at every a.
 (support 'identity-continuous-at
   '(FORALL a (IMPLIES (IN a RR)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x x) a))))
+     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR x) a))))
 (warrant! 'identity-continuous-at 'well-known
   "Identity map: delta=eps works, since d(x,a)=|x-a|<=eps whenever |x-a|<=eps.")
 (category! 'identity-continuous-at 'analysis)
@@ -34,7 +34,7 @@
   '(FORALL g (FORALL h (FORALL a (IMPLIES
      (IS-CONTINUOUS-AT RR-MS RR-MS g a)
      (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x (+ (g x) (h x))) a)))))))
+     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR (+ (g x) (h x))) a)))))))
 (warrant! 'sum-continuous-at 'well-known
   "Sum of continuous: given eps, take delta = min of the eps/2-deltas for g and
    h; the triangle inequality gives |(g+h)(x)-(g+h)(a)| <= eps.")
@@ -45,7 +45,7 @@
   '(FORALL g (FORALL h (FORALL a (IMPLIES
      (IS-CONTINUOUS-AT RR-MS RR-MS g a)
      (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x (* (g x) (h x))) a)))))))
+     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR (* (g x) (h x))) a)))))))
 (warrant! 'product-continuous-at 'well-known
   "Product of continuous: g is bounded near a (continuity), and
    |gh(x)-gh(a)| <= |g(x)||h(x)-h(a)| + |h(a)||g(x)-g(a)|; choose deltas making
@@ -70,7 +70,7 @@
   '(FORALL g (FORALL h (FORALL a (IMPLIES
      (IS-CONTINUOUS-AT RR-MS RR-MS g a)
      (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x (- (g x) (h x))) a)))))))
+     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR (- (g x) (h x))) a)))))))
 (warrant! 'sub-continuous-at 'well-known
   "Difference of continuous is continuous: (g-h)(x) = g(x) + (-1)*h(x); the eps/2
    split for sum-continuous-at, negation being an isometry of RR.")

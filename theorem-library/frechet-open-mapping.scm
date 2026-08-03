@@ -156,7 +156,7 @@
       (forall-guarded 'seq '(IN seq (FUN NN (VEC m1)))
         (forall-guarded 'lim '(IN lim (VEC m1))
           '(IMPLIES (FR-CONV m1 fam1 seq lim)
-             (FR-CONV m2 fam2 (VNB-LAMBDA i (tt (seq i))) (tt lim))))))))
+             (FR-CONV m2 fam2 (VNB-LAMBDA i NN (tt (seq i))) (tt lim))))))))
 (notation! 'IS-CONT-LIN 'kind 'predicate 'arity 5
            'english "$5 is a continuous linear map from ($1, $2) to ($3, $4)")
 
@@ -170,7 +170,7 @@
         (forall-guarded 'p1 '(IN p1 (VEC m1))
           (forall-guarded 'p2 '(IN p2 (VEC m2))
             '(IMPLIES (AND (FR-CONV m1 fam1 seq p1)
-                           (FR-CONV m2 fam2 (VNB-LAMBDA i (tt (seq i))) p2))
+                           (FR-CONV m2 fam2 (VNB-LAMBDA i NN (tt (seq i))) p2))
                (= p2 (tt p1)))))))))
 (notation! 'HAS-CLOSED-GRAPH 'kind 'predicate 'arity 5
            'english "$5 has a closed graph from ($1, $2) to ($3, $4)")

@@ -88,7 +88,7 @@
 
 ;;; ---- step set NXT and its per-(k,u) SEP form ----
 (define bfc-NXT
-  `(VNB-LAMBDA (LIST kx ux)
+  `(VNB-LAMBDA (LIST kx ux) (CARTESIAN NN (INF-SUBSETS NN))
      (SEP jx (INF-SUBSETS NN)
        (AND (SUBSET jx ux)
             (FORSOME um (AND (IN um (,bfc-COV kx))
@@ -163,7 +163,11 @@
 (define bfc-NXTk (bfc-app bfc-kp (list bfc-aux bfc-kp)))
 (define bfc-SEPk (bfc-sep bfc-kp (list bfc-aux bfc-kp)))
 (cut `(== ,bfc-NXTk ,bfc-SEPk))
-(bfc-focus! `(== ,bfc-NXTk ,bfc-SEPk)) (lam-b) (qrfl)
+(bfc-focus! `(== ,bfc-NXTk ,bfc-SEPk))
+;; NXT's domain is NN x INF-SUBSETS(NN); kp is typed by the di, aux(kp) is typed
+;; by aux being a function into INF-SUBSETS(NN) -- which dc-on-nn-pred returned.
+(fact 'fun-apply-type-c bfc-aux 'NN '(INF-SUBSETS NN) bfc-kp)
+(lam-b) (qrfl)
 (bfc-focus! bfc-pg)
 (cut `(IN (,bfc-aux (succ ,bfc-kp)) ,bfc-SEPk))
 (bfc-focus! `(IN (,bfc-aux (succ ,bfc-kp)) ,bfc-SEPk)) (subst `(== ,bfc-SEPk ,bfc-NXTk)) (ass)
@@ -173,7 +177,7 @@
 
 ;;; ---- Phase D: witness blk := lambda k. aux(succ k); typing; split conjunction ----
 (bfc-focus! bfc-main)
-(define bfc-blk `(VNB-LAMBDA k (,bfc-aux (succ k))))
+(define bfc-blk `(VNB-LAMBDA k NN (,bfc-aux (succ k))))
 (define bfc-Gnest `(FORALL k (IMPLIES (IN k NN) (SUBSET (,bfc-blk (succ k)) (,bfc-blk k)))))
 (define bfc-Gcap `(FORALL k (IMPLIES (IN k NN)
                    (FORSOME U (AND (IN U (,bfc-COV k))
@@ -181,7 +185,7 @@
 (ew bfc-blk)
 (di)                                        ; (IN blk (FUN..)) ; (AND Gnest Gcap)
 (bfc-focus! `(IN ,bfc-blk (FUN NN (INF-SUBSETS NN))))
-(lam-t)
+(dk-lam-t!)
 (bfc-di*)                                   ; eigen kt ; goal (IN (aux(succ kt)) (INF-SUBSETS NN))
 (define bfc-tg (bfc-goal))
 (define bfc-kt (cadr (cadr (cadr bfc-tg))))

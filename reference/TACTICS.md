@@ -753,7 +753,7 @@ VNB-LAMBDA beta: reduce an applied lambda to its substituted body.
 
 *When useful:* the goal has a VNB-LAMBDA applied to an argument
 
-Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)
+Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  A lambda carries its DOMAIN, and it is only defined on that domain, so the reduction is licensed only where a is known to be in it: if the membership is neither in the context nor supplied by an enclosing binder, the step still fires but leaves (IN a A) as an extra subgoal.  Land the typing fact BEFORE the lam-b and no subgoal appears.  (Technically: VNB-LAMBDA beta-reduction.)
 
 ### lam-b-h
 

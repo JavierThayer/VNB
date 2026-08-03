@@ -68,7 +68,14 @@
 
 (define mt-ims  '(IS-METRIC-SPACE md))
 (define mt-sep  '(SEP u (POWER (PTS md)) (IS-OPEN md u)))
-(define mt-id   '(VNB-LAMBDA j_ j_))    ; the identity family
+;; The identity family, indexed BY fam -- not by the SEP of all opens.  fam is
+;; the domain the family is actually used at (union-of-opens-open puts no typing
+;; hypothesis on g at all; it applies it at every i in the index class), and it
+;; is the domain that makes the two beta steps below licensed: inside
+;; BIG-UNION i fam ((j_ |-> j_) i) the binder i is in fam on the nose, whereas
+;; membership in the SEP is only reachable through subset-mem-fwd, which no
+;; reduction under a binder can perform.
+(define mt-id   '(VNB-LAMBDA j_ fam j_))
 
 ;;; --- the typing facts, landed ONCE at the top so every branch inherits them.
 ;;;
@@ -296,7 +303,7 @@
 (cut `(FORALL i_ (IMPLIES (IN i_ fam) (IS-OPEN md (,mt-id i_)))))
 (mt-focus! "forall([i_ in fam]")
 (di) (di)
-(lam-b)
+(lam-b)                                      ; licensed: (IN i_ fam) is in context
 (fact 'subset-mem-fwd 'fam mt-sep 'i_)
 (sep-me `(IN i_ ,mt-sep))
 (ass)

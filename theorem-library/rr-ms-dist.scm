@@ -20,14 +20,29 @@
 ;;;                    apply-tupling-2 detour; pi-lambda-beta! takes it as is.
 ;;;   qrfl             t == t, unconditionally.
 ;;;
-;;; Stated with `==' and UNGUARDED on purpose.  `=' is strict, so an `=' form
-;;; would need a definedness witness for abs(u-v) at every use and would carry
-;;; (IN u RR) guards a rewrite does not want.  `==' holds for all u, v and makes
-;;; the equation usable as a macete with no side conditions.
+;;; Stated with `==', and GUARDED on (IN u_ RR), (IN v_ RR).
+;;;
+;;; It was unguarded until 2026-08-03, on the argument that `==' holds for all
+;;; u, v and so makes the equation a macete with no side conditions.  The beta
+;;; guard withdrew that argument.  RR-MS@DIST's lambda has domain
+;;; CARTESIAN(RR,RR), so off RR the left side is an application outside its
+;;; domain -- undefined -- while NOTHING in the theory says abs(u-v) is
+;;; undefined there.  `==' is quasi-equality, both-undefined-or-both-equal, and
+;;; the unguarded statement claimed the first disjunct at arguments where the
+;;; theory declines to say so.  The guards are not a tax on the rewrite; they
+;;; are the hypothesis under which the equation was ever true.
+;;;
+;;; `=' would still be wrong: it is strict, and would additionally assert both
+;;; sides defined at every use.  Guarded `==' says exactly what holds.
 
-(sp (make-wff '(FORALL u_ (FORALL v_
-      (== ((DIST RR-MS) u_ v_) (abs (- u_ v_)))))))
-(di)
+(define (rmd-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+(define (rmd-di*)                         ; peel binders AND the two guards
+  (let lp () (let* ((g (rmd-goal)) (h (and (pair? g) (car g))))
+               (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
+
+(sp (make-wff (forall-guarded '(u_ v_) '((IN u_ RR) (IN v_ RR))
+      '(== ((DIST RR-MS) u_ v_) (abs (- u_ v_))))))
+(rmd-di*)
 (mac 'RR-MS@DIST)
 (lam-b)
 (qrfl)

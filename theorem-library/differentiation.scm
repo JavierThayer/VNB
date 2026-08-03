@@ -120,12 +120,12 @@
 (dfp--split-asms!)
 (let* ((PHI (dfp--cont-skolem (lambda (s) #t)))
        (DID (dfp--diffid PHI))
-       (CFA '(VNB-LAMBDA x (f a)))
-       (IDf '(VNB-LAMBDA x x))
-       (CA  '(VNB-LAMBDA x a))
-       (SUB `(VNB-LAMBDA x (- (,IDf x) (,CA x))))
-       (PROD `(VNB-LAMBDA x (* (,PHI x) (,SUB x))))
-       (G   `(VNB-LAMBDA x (+ (,CFA x) (,PROD x)))))
+       (CFA '(VNB-LAMBDA x RR (f a)))
+       (IDf '(VNB-LAMBDA x RR x))
+       (CA  '(VNB-LAMBDA x RR a))
+       (SUB `(VNB-LAMBDA x RR (- (,IDf x) (,CA x))))
+       (PROD `(VNB-LAMBDA x RR (* (,PHI x) (,SUB x))))
+       (G   `(VNB-LAMBDA x RR (+ (,CFA x) (,PROD x)))))
   (fact 'fun-apply-type-c 'f 'RR 'RR 'a)          ; IN (f a) RR
   (fact 'const-continuous-at '(f a) 'a)           ; cont const f(a)
   (fact 'identity-continuous-at 'a)               ; cont identity
@@ -189,13 +189,13 @@
 ;;; c-c = 0 = 0*(x-a), and phi = const 0 is continuous at a with phi(a)=0.
 (sp '(FORALL c (FORALL a
        (IMPLIES (AND (IN c RR) (IN a RR))
-                (IS-DIFF-AT (VNB-LAMBDA x c) a 0)))))
+                (IS-DIFF-AT (VNB-LAMBDA x RR c) a 0)))))
 (grind) (mac 'IS-DIFF-AT) (fact 'rr-zero-in)
-(di) (lam-t) (grind) (ass)                       ; lambda(x,c) : RR -> RR
+(di) (dk-lam-t!) (grind) (ass)                       ; lambda(x,c) : RR -> RR
 (di) (ass)                                       ; a in RR
 (di) (ass)                                       ; 0 in RR
-(ew '(VNB-LAMBDA x 0))                             ; phi := const 0
-(di) (lam-t) (grind) (ass)                       ; lambda(x,0) : RR -> RR
+(ew '(VNB-LAMBDA x RR 0))                             ; phi := const 0
+(di) (dk-lam-t!) (grind) (ass)                       ; lambda(x,0) : RR -> RR
 (di) (bc* 'const-continuous-at () (ass) (ass))    ; phi continuous at a
 (di) (lam-b) (rfl)                               ; phi(a) = 0
 (grind) (lam-b) (crs)                            ; c-c = 0*(x-a)
@@ -205,13 +205,13 @@
 ;;; x-a = 1*(x-a), and phi = const 1 is continuous at a with phi(a)=1.
 (sp '(FORALL a
        (IMPLIES (IN a RR)
-                (IS-DIFF-AT (VNB-LAMBDA x x) a 1))))
+                (IS-DIFF-AT (VNB-LAMBDA x RR x) a 1))))
 (grind) (mac 'IS-DIFF-AT) (fact 'rr-one-in)
-(di) (lam-t) (grind) (ass)                       ; lambda(x,x) : RR -> RR
+(di) (dk-lam-t!) (grind) (ass)                       ; lambda(x,x) : RR -> RR
 (di) (ass)                                       ; a in RR
 (di) (ass)                                       ; 1 in RR
-(ew '(VNB-LAMBDA x 1))                             ; phi := const 1
-(di) (lam-t) (grind) (ass)                       ; lambda(x,1) : RR -> RR
+(ew '(VNB-LAMBDA x RR 1))                             ; phi := const 1
+(di) (dk-lam-t!) (grind) (ass)                       ; lambda(x,1) : RR -> RR
 (di) (bc* 'const-continuous-at () (ass) (ass))    ; phi continuous at a
 (di) (lam-b) (rfl)                               ; phi(a) = 1
 (grind) (lam-b) (crs)                            ; x-a = 1*(x-a)
@@ -221,7 +221,7 @@
 (support 'deriv-sum
   '(FORALL f (FORALL g (FORALL a (FORALL L (FORALL M
      (IMPLIES (AND (IS-DIFF-AT f a L) (IS-DIFF-AT g a M))
-              (IS-DIFF-AT (VNB-LAMBDA x (+ (f x) (g x))) a (+ L M)))))))))
+              (IS-DIFF-AT (VNB-LAMBDA x RR (+ (f x) (g x))) a (+ L M)))))))))
 (warrant! 'deriv-sum 'reference
   "calculus.pdf Prop 2.5.  (f+g)(x)-(f+g)(a) = (phi_f(x)+phi_g(x))(x-a); the
    witness phi_f+phi_g is continuous at a (sum of continuous), value L+M.")
@@ -231,7 +231,7 @@
 (support 'deriv-product
   '(FORALL f (FORALL g (FORALL a (FORALL L (FORALL M
      (IMPLIES (AND (IS-DIFF-AT f a L) (IS-DIFF-AT g a M))
-              (IS-DIFF-AT (VNB-LAMBDA x (* (f x) (g x))) a
+              (IS-DIFF-AT (VNB-LAMBDA x RR (* (f x) (g x))) a
                           (+ (* L (g a)) (* (f a) M))))))))))
 (warrant! 'deriv-product 'reference
   "calculus.pdf Prop 2.6.  (fg)(x)-(fg)(a) = [phi_f(x)g(x) + f(a)phi_g(x)](x-a)
@@ -262,7 +262,7 @@
 (support 'deriv-neg
   '(FORALL f (FORALL a (FORALL L
      (IMPLIES (IS-DIFF-AT f a L)
-       (IS-DIFF-AT (VNB-LAMBDA z (- (f z))) a (- L)))))))
+       (IS-DIFF-AT (VNB-LAMBDA z RR (- (f z))) a (- L)))))))
 (warrant! 'deriv-neg 'reference
   "Derivative of -f is -f': f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a) =
    (-phi)(x)(x-a), with -phi continuous at a and value -L.")

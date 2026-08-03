@@ -711,6 +711,11 @@
     ;; Linear algebra Phase B: clear the whole first column -- the row-op mirror
     ;; of clear-first-row (pivot-clears-row + clear-col-upto at k=m).
     "theorem-library/clear-first-col-proof"
+    ;; i in [a,b], b <= c  =>  i in [a,c].  Wanted wherever a summand lambda of
+    ;; domain [1,succ n] is applied at an index introduced from [1,n]; the beta
+    ;; guard refuses that reduction until the index has been carried across.
+    ;; Needs only order-lemmas' interval read-offs.
+    "theorem-library/interval-widen"
     ;; Linear algebra Phase B: block-matrix multiplication BORDER(a,X).BORDER(c,Y)
     ;; = BORDER(ac, X.Y) -- the direct-sum law the Smith bordering rests on.
     "theorem-library/border-mult-proof"
@@ -1200,6 +1205,26 @@
         (display (length bad))
         (display " asserted/non-PSS fact(s) carry a 'proof warrant -- prove or PSS-promote:\n   ")
         (write bad) (newline))))
+
+;; The COMPLEMENT of the guard above: the same anomaly INSIDE the PSS, which
+;; the guard deliberately excludes.  That exclusion is why nobody had counted
+;; these -- a `proof' warrant on an asserted PSS support claims a machine proof
+;; that no load re-checks.  Soft nudge (count only); (proof-warrants-unproven)
+;; returns (named unnamed).  See macetes.scm for what the split means.
+(let* ((pw (proof-warrants-unproven))
+       (named (car pw)) (unnamed (cadr pw)))
+  (if (and (null? named) (null? unnamed))
+      (display ";; proof-warrant-audit: ok (every 'proof warrant sits on a proven fact)\n")
+      (begin
+        (display ";; proof-warrant-audit: ")
+        (display (+ (length named) (length unnamed)))
+        (display " asserted PSS fact(s) claim a machine proof -- ")
+        (display (length named)) (display " name a file, ")
+        (display (length unnamed))
+        (display " recite the derivation instead.\n")
+        (display ";;   file-named (auditable -- load the file and see if it still qeds): ")
+        (write named) (newline)
+        (display ";;   (proof-warrants-unproven) for the rest\n"))))
 
 ;; Soundness gate: a proven theorem must not depend -- transitively, through the
 ;; proof citation graph -- on ITSELF.  That is a circular proof with no real

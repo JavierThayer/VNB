@@ -79,9 +79,9 @@
 
 (def-functoid 'MATACT '(md P u)
   '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE u))
-     (VNB-LAMBDA (LIST i c)
+     (VNB-LAMBDA (LIST i c) (CARTESIAN (INTERVAL 1 (NTH 1 (SIZE P))) (INTERVAL 1 (NTH 2 (SIZE u))))
        (FINSUM (MODULE-VECTOR-AG md)
-               (VNB-LAMBDA j ((ACT md) (ENTRY P i j) (ENTRY u j c)))
+               (VNB-LAMBDA j (INTERVAL 1 (NTH 2 (SIZE P))) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
                (INTERVAL 1 (NTH 2 (SIZE P)))))))
 
 ;;; Typing: scalars (m*n) acting on vectors (n*q) gives vectors (m*q).
@@ -107,7 +107,7 @@
        (FORALL c (IMPLIES (IN c (INTERVAL 1 q))
          (= (ENTRY (MATACT md P u) i c)
             (FINSUM (MODULE-VECTOR-AG md)
-                    (VNB-LAMBDA j ((ACT md) (ENTRY P i j) (ENTRY u j c)))
+                    (VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
                     (INTERVAL 1 n)))))))))))))))))
 (warrant! 'matact-entry 'reference
   "(P.u)_{ic} = sum_{j=1}^{n} P_{ij} . u_{jc}, summed in the module's vector
@@ -125,7 +125,7 @@
        (IMPLIES (IN u (MAT n q (VEC md)))
        (IMPLIES (IN i (INTERVAL 1 m))
        (IMPLIES (IN c (INTERVAL 1 q))
-         (IN (VNB-LAMBDA j ((ACT md) (ENTRY P i j) (ENTRY u j c)))
+         (IN (VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
              (FUN (INTERVAL 1 n) (CARR (MODULE-VECTOR-AG md))))))))))))))))))
 (warrant! 'matact-summand-type 'well-known
   "j |-> P_{ij} . u_{jc} is a function [1,n] -> VEC md for P:MAT(m,n,CARR(SCAL md))
@@ -146,7 +146,7 @@
        (IMPLIES (IN i (INTERVAL 1 m))
        (IMPLIES (IN c (INTERVAL 1 q))
        (IMPLIES (<= k n)
-         (IN (VNB-LAMBDA j ((ACT md) (ENTRY P i j) (ENTRY u j c)))
+         (IN (VNB-LAMBDA j (INTERVAL 1 k) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
              (FUN (INTERVAL 1 k) (CARR (MODULE-VECTOR-AG md))))))))))))))))))))
 (warrant! 'matact-summand-type-le 'well-known
   "j |-> P_{ij} . u_{jc} is a function [1,k] -> VEC md for k <= n: matact-summand-
@@ -177,7 +177,7 @@
      (FORALL f (IMPLIES (IN f (FUN S (CARR (MODULE-VECTOR-AG md))))
        (= ((ACT md) r (FINSUM (MODULE-VECTOR-AG md) f S))
           (FINSUM (MODULE-VECTOR-AG md)
-                  (VNB-LAMBDA z ((ACT md) r (f z)))
+                  (VNB-LAMBDA z S ((ACT md) r (f z)))
                   S))))))))))))
 (warrant! 'finsum-act-distrib-gen 'well-known
   "r.(SUM_z f z) = SUM_z (r . f z) in a module: x |-> r.x is an endomorphism of
@@ -193,7 +193,7 @@
      (FORALL c (IMPLIES (IN c (FUN S (CARR (SCAL md))))
        (= ((ACT md) (FINSUM (RING-ADDITIVE-AG (SCAL md)) c S) x)
           (FINSUM (MODULE-VECTOR-AG md)
-                  (VNB-LAMBDA z ((ACT md) (c z) x))
+                  (VNB-LAMBDA z S ((ACT md) (c z) x))
                   S))))))))))))
 (warrant! 'finsum-act-collect-gen 'well-known
   "(SUM_z c z).x = SUM_z ((c z).x) in a module: r |-> r.x is a homomorphism from

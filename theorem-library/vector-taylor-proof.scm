@@ -26,7 +26,7 @@
 ;;; (Mirrors NF-METRIC-SPACE for a normed field.)
 (def-functoid 'NVS-METRIC-SPACE '(m)
   '(LIST (VEC m)
-         (VNB-LAMBDA (LIST x y) ((VNRM m) ((VADD m) x ((VNEG m) y))))))
+         (VNB-LAMBDA (LIST x y) (CARTESIAN (VEC m) (VEC m)) ((VNRM m) ((VADD m) x ((VNEG m) y))))))
 
 ;;; Vector Caratheodory derivative: f'(a) = L, witnessed by phi : RR -> VEC(m)
 ;;; continuous at a (in the norm metric) with phi(a)=L and
@@ -52,7 +52,7 @@
 (def-by-nn-recursion 'NTH-DERIV-V '(m f)
   'f
   '(n val)
-  '(VNB-LAMBDA x (DERIV-V m val x)))
+  '(VNB-LAMBDA x RR (DERIV-V m val x)))
 
 ;;; Vector Taylor polynomial  Sum_{k=0}^{n} ((x-a)^k / k!) . f^(k)(a), by
 ;;; recursion on n (vector addition VADD, scalar action ACT -- no AG-tuple needed).

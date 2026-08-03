@@ -66,33 +66,33 @@
 \par\smallskip\noindent\emph{Rests on 7 facts:} \texttt{const-continuous-at, identity-continuous-at, sub-continuous-at, product-continuous-at, sum-continuous-at, eq-sym, cont-transfer-ptwise-eq}.
 
 \subsubsection*{\texttt{deriv-const}}
-\emph{for every c, a, if c is in rr and a is in rr, then vnb-lambda(x, c) is differentiable at a, with derivative 0}
+\emph{for every c, a, if c is in rr and a is in rr, then vnb-lambda(x, rr, c) is differentiable at a, with derivative 0}
 {\small\[
-\forall c.\; \forall a.\; (((c \in \mathbb{R}) \wedge (a \in \mathbb{R})) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x.\; c), a, 0))
+\forall c.\; \forall a.\; (((c \in \mathbb{R}) \wedge (a \in \mathbb{R})) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; c), a, 0))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). Witness phi := 0: the difference f(x)-f(a) = 0 = 0*(x-a), and the zero map is continuous with value 0.
 \par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{const-continuous-at}.
 
 \subsubsection*{\texttt{deriv-identity}}
-\emph{for every a in rr, vnb-lambda(x, x) is differentiable at a, with derivative 1}
+\emph{for every a in rr, vnb-lambda(x, rr, x) is differentiable at a, with derivative 1}
 {\small\[
-\forall a \in \mathbb{R}.\; \operatorname{is\text{-}diff\text{-}at}((\lambda x.\; x), a, 1)
+\forall a \in \mathbb{R}.\; \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; x), a, 1)
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). Witness phi := 1: x-a = 1*(x-a), and the constant map 1 is continuous.
 \par\smallskip\noindent\emph{Rests on 1 fact:} \texttt{const-continuous-at}.
 
 \subsubsection*{\texttt{deriv-sum}}
-\emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, f(x) + g(x)) is differentiable at a, with derivative l + m}
+\emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, rr, f(x) + g(x)) is differentiable at a, with derivative l + m}
 {\small\[
-\forall f.\; \forall g.\; \forall a.\; \forall l.\; \forall m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(g, a, m)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x.\; (f(x) + g(x))), a, (l + m)))
+\forall f.\; \forall g.\; \forall a.\; \forall l.\; \forall m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(g, a, m)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; (f(x) + g(x))), a, (l + m)))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. calculus.pdf Prop 2.5.  (f+g)(x)-(f+g)(a) = (phi\_f(x)+phi\_g(x))(x-a); the
    witness phi\_f+phi\_g is continuous at a (sum of continuous), value L+M.
 
 \subsubsection*{\texttt{deriv-product}}
-\emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, f(x) * g(x)) is differentiable at a, with derivative l * g(a) + f(a) * m}
+\emph{for every f, g, a, l, m, if f is differentiable at a, with derivative l and g is differentiable at a, with derivative m, then vnb-lambda(x, rr, f(x) * g(x)) is differentiable at a, with derivative l * g(a) + f(a) * m}
 {\small\[
-\forall f.\; \forall g.\; \forall a.\; \forall l.\; \forall m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(g, a, m)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x.\; (f(x) \cdot g(x))), a, ((l \cdot g(a)) + (f(a) \cdot m))))
+\forall f.\; \forall g.\; \forall a.\; \forall l.\; \forall m.\; ((\operatorname{is\text{-}diff\text{-}at}(f, a, l) \wedge \operatorname{is\text{-}diff\text{-}at}(g, a, m)) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda x \in \mathbb{R}.\; (f(x) \cdot g(x))), a, ((l \cdot g(a)) + (f(a) \cdot m))))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. calculus.pdf Prop 2.6.  (fg)(x)-(fg)(a) = [phi\_f(x)g(x) + f(a)phi\_g(x)](x-a)
    by adding and subtracting f(a)g(x); the bracket is continuous at a with
@@ -107,43 +107,43 @@
    (phi\_g o f)*phi\_f, continuous at a with value g'(f(a))*f'(a) = M*L.
 
 \subsubsection*{\texttt{deriv-neg}}
-\emph{for every f, a, l, if f is differentiable at a, with derivative l, then vnb-lambda(z, -f(z)) is differentiable at a, with derivative -l}
+\emph{for every f, a, l, if f is differentiable at a, with derivative l, then vnb-lambda(z, rr, -f(z)) is differentiable at a, with derivative -l}
 {\small\[
-\forall f.\; \forall a.\; \forall l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda z.\; \operatorname{\text{-}}(f(z))), a, \operatorname{\text{-}}(l)))
+\forall f.\; \forall a.\; \forall l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Rightarrow \operatorname{is\text{-}diff\text{-}at}((\lambda z \in \mathbb{R}.\; \operatorname{\text{-}}(f(z))), a, \operatorname{\text{-}}(l)))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. Derivative of -f is -f': f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a) =
    (-phi)(x)(x-a), with -phi continuous at a and value -L.
 
 \subsubsection*{\texttt{nth-deriv-one}}
-\emph{for every f, nth-deriv(f, 1) is identical to vnb-lambda(x, deriv(f, x))}
+\emph{for every f, nth-deriv(f, 1) is identical to vnb-lambda(x, rr, deriv(f, x))}
 {\small\[
-\forall f.\; \operatorname{==}(\operatorname{nth\text{-}deriv}(f, 1), (\lambda x.\; \operatorname{deriv}(f, x)))
+\forall f.\; \operatorname{==}(\operatorname{nth\text{-}deriv}(f, 1), (\lambda x \in \mathbb{R}.\; \operatorname{deriv}(f, x)))
 \]}
 \noindent\textbf{Machine-checked} (trust: proof).
 
 \subsection{Little-o calculus}
 
 \subsubsection*{\texttt{diff-iff-little-o}}
-\emph{for every f, a, l, f is differentiable at a, with derivative l if and only if f is in fun(rr, rr) and a is in rr and l is in rr and vnb-lambda(x, f(x) - f(a) - l * (x - a)) is little-o at a}
+\emph{for every f, a, l, f is differentiable at a, with derivative l if and only if f is in fun(rr, rr) and a is in rr and l is in rr and vnb-lambda(x, rr, f(x) - f(a) - l * (x - a)) is little-o at a}
 {\small\[
-\forall f.\; \forall a.\; \forall l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Leftrightarrow ((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((l \in \mathbb{R}) \wedge \operatorname{little\text{-}o\text{-}at}((\lambda x.\; \operatorname{\text{-}}(\operatorname{\text{-}}(f(x), f(a)), (l \cdot \operatorname{\text{-}}(x, a)))), a)))))
+\forall f.\; \forall a.\; \forall l.\; (\operatorname{is\text{-}diff\text{-}at}(f, a, l) \Leftrightarrow ((f \in (\mathbb{R} \to \mathbb{R})) \wedge ((a \in \mathbb{R}) \wedge ((l \in \mathbb{R}) \wedge \operatorname{little\text{-}o\text{-}at}((\lambda x \in \mathbb{R}.\; \operatorname{\text{-}}(\operatorname{\text{-}}(f(x), f(a)), (l \cdot \operatorname{\text{-}}(x, a)))), a)))))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. calculus.pdf eq (12): f differentiable at a with derivative L iff the
    increment x|->f(x)-f(a)-L(x-a) is o(x-a) at a.  Forward: eps = phi-L for phi
    the Caratheodory factor; backward: phi = eps+L.
 
 \subsubsection*{\texttt{little-o-sum}}
-\emph{for every g, h, a, if g is little-o at a, then if h is little-o at a, then vnb-lambda(x, g(x) + h(x)) is little-o at a}
+\emph{for every g, h, a, if g is little-o at a, then if h is little-o at a, then vnb-lambda(x, rr, g(x) + h(x)) is little-o at a}
 {\small\[
-\forall g.\; \forall h.\; \forall a.\; (\operatorname{little\text{-}o\text{-}at}(g, a) \Rightarrow (\operatorname{little\text{-}o\text{-}at}(h, a) \Rightarrow \operatorname{little\text{-}o\text{-}at}((\lambda x.\; (g(x) + h(x))), a)))
+\forall g.\; \forall h.\; \forall a.\; (\operatorname{little\text{-}o\text{-}at}(g, a) \Rightarrow (\operatorname{little\text{-}o\text{-}at}(h, a) \Rightarrow \operatorname{little\text{-}o\text{-}at}((\lambda x \in \mathbb{R}.\; (g(x) + h(x))), a)))
 \]}
 \noindent\textbf{Asserted} [warrant: well-known]. Sum of two o(x-a) is o(x-a): add the witnesses eps\_g + eps\_h (continuous at
    a, value 0), and (g+h)(x) = (eps\_g(x)+eps\_h(x))(x-a).
 
 \subsubsection*{\texttt{little-o-scalar}}
-\emph{for every c, g, a, if c is in rr, then if g is little-o at a, then vnb-lambda(x, c * g(x)) is little-o at a}
+\emph{for every c, g, a, if c is in rr, then if g is little-o at a, then vnb-lambda(x, rr, c * g(x)) is little-o at a}
 {\small\[
-\forall c.\; \forall g.\; \forall a.\; ((c \in \mathbb{R}) \Rightarrow (\operatorname{little\text{-}o\text{-}at}(g, a) \Rightarrow \operatorname{little\text{-}o\text{-}at}((\lambda x.\; (c \cdot g(x))), a)))
+\forall c.\; \forall g.\; \forall a.\; ((c \in \mathbb{R}) \Rightarrow (\operatorname{little\text{-}o\text{-}at}(g, a) \Rightarrow \operatorname{little\text{-}o\text{-}at}((\lambda x \in \mathbb{R}.\; (c \cdot g(x))), a)))
 \]}
 \noindent\textbf{Asserted} [warrant: well-known]. A constant multiple of o(x-a) is o(x-a): witness c*eps\_g (continuous at a,
    value 0), and (c g)(x) = (c eps\_g(x))(x-a).
@@ -724,9 +724,9 @@
    finsum-type).
 
 \subsubsection*{\texttt{matmul-entry}}
-\emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then for every i in interval(1, m), c in interval(1, k), entry(matmul(a, p, q), i, c) equals finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n))}
+\emph{for every ring a, for every m, n, k, p, q, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then for every i in interval(1, m), c in interval(1, k), entry(matmul(a, p, q), i, c) equals finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, k).\; (\operatorname{entry}(\operatorname{matmul}(a, p, q), i, c) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(a), (\lambda j.\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))), \operatorname{interval}(1, n))))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall p.\; \forall q.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, k).\; (\operatorname{entry}(\operatorname{matmul}(a, p, q), i, c) = \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(a), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))), \operatorname{interval}(1, n))))))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. (P Q)\_\{ic\} = sum\_\{j=1\}\textasciicircum{}\{n\} P\_\{ij\}*Q\_\{jc\}, the product summed in A's additive
    group over j in 1..n (entry-of-matof on the MATMUL tabulation).
@@ -754,17 +754,17 @@
 \noindent\textbf{Asserted} [warrant: reference]. (P+Q)R = PR + QR (finsum-additive + ring-right-dist).
 
 \subsubsection*{\texttt{matprod-summand-type}}
-\emph{for every ring a, for every m, n, nn, p, q, i, c, if p is in mat(m, n, carr(a)), then if q is in mat(n, nn, carr(a)), then if i is in interval(1, m), then if c is in interval(1, nn), then vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
+\emph{for every ring a, for every m, n, nn, p, q, i, c, if p is in mat(m, n, carr(a)), then if q is in mat(n, nn, carr(a)), then if i is in interval(1, m), then if c is in interval(1, nn), then vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall \mathbb{N}.\; \forall p.\; \forall q.\; \forall i.\; \forall c.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, \mathbb{N}, \operatorname{carr}(a))) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((c \in \operatorname{interval}(1, \mathbb{N})) \Rightarrow ((\lambda j.\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall \mathbb{N}.\; \forall p.\; \forall q.\; \forall i.\; \forall c.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, \mathbb{N}, \operatorname{carr}(a))) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((c \in \operatorname{interval}(1, \mathbb{N})) \Rightarrow ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(q, j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a)))))))))
 \]}
 \noindent\textbf{Asserted} [warrant: well-known]. j |-> P\_\{ij\}.Q\_\{jc\} is a function [1,n] -> CARR A for P:MAT(m,n), Q:MAT(n,nn)
    (entry-in-carrier gives both factors in CARR A; MUL closes; CARR(RAG)=CARR A).
 
 \subsubsection*{\texttt{matmul-assoc-summand-type}}
-\emph{for every ring a, for every m, n, k, l, p, q, r, row, col, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if row is in interval(1, m), then if col is in interval(1, l), then vnb-lambda(z, (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) is in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))}
+\emph{for every ring a, for every m, n, k, l, p, q, r, row, col, if p is in mat(m, n, carr(a)), then if q is in mat(n, k, carr(a)), then if r is in mat(k, l, carr(a)), then if row is in interval(1, m), then if col is in interval(1, l), then vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) is in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall r.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(k, l, \operatorname{carr}(a))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow ((\lambda z.\; \operatorname{mul}(a)(\operatorname{mul}(a)(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(r, \operatorname{nth}(1, z), \mathit{col}))) \in ((\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a))))))))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall r.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(a))) \Rightarrow ((r \in \operatorname{mat}(k, l, \operatorname{carr}(a))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow ((\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{mul}(a)(\operatorname{mul}(a)(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(r, \operatorname{nth}(1, z), \mathit{col}))) \in ((\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a))))))))))
 \]}
 \noindent\textbf{Asserted} [warrant: well-known]. the triple-product summand (c,j) |-> (P\_\{row,j\} Q\_\{j,c\}) R\_\{c,col\} is a function INTERVAL(1,k) x INTERVAL(1,n) -> CARR A: the entries lie in CARR A (entry-in-carrier) and MUL closes on CARR A.
 
@@ -838,7 +838,7 @@
 \forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; \operatorname{is\text{-}ring}(\operatorname{mat\text{-}ring}(a, n)))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known). Each of the 14 ring axioms is reduced by matrix-entry-extensionality to an entry identity, then discharged against the entrywise ring axioms and the FINSUM distribution / Fubini lemmas.
-\par\smallskip\noindent\emph{Rests on 45 facts:} \texttt{mat-ring-carr, ring-carr-in-set, mat-is-set, mat-ring-add, mat-ring-add-fun, mat-ring-mul, mat-ring-mul-fun, mat-ring-neg, matneg-type, mat-ring-zero, zeromat-type, mat-ring-one, identmat-type, matadd-assoc, matadd-comm, matadd-zero-left, matadd-zero-right, matadd-neg-left, matadd-neg-right, matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality, identmat-left-identity, identmat-right-identity, matmul-left-dist, matmul-right-dist}.
+\par\smallskip\noindent\emph{Rests on 46 facts:} \texttt{mat-ring-carr, ring-carr-in-set, mat-is-set, mat-ring-add, mat-ring-add-fun, mat-ring-mul, mat-ring-mul-fun, mat-ring-neg, matneg-type, mat-ring-zero, zeromat-type, mat-ring-one, identmat-type, matadd-type, matadd-assoc, matadd-comm, matadd-zero-left, matadd-zero-right, matadd-neg-left, matadd-neg-right, matmul-type, matmul-entry, interval-in-set, interval-card-in-nn, tel-outf-type, tel-tout-type, tel-inf-type, entry-in-carrier, finsum-ring-distrib-right-gen, tel-dist-type, tel-red-type, ring-carrier-closed-mul, finsum-congruence, ter-outf-type, ter-tout-type, ter-gj-type, finsum-ring-distrib-left-gen, ter-dist-type, ter-red-type, matmul-assoc-summand-type, finsum-fubini-c, matrix-entry-extensionality, identmat-left-identity, identmat-right-identity, matmul-left-dist, matmul-right-dist}.
 
 \subsubsection*{\texttt{mat-ring-carr}}
 \emph{for every a, n, carr(mat-ring(a, n)) equals mat(n, n, carr(a))}
@@ -848,16 +848,16 @@
 \noindent\textbf{Asserted} [warrant: reference]. slot 1 of the MAT-RING tuple.
 
 \subsubsection*{\texttt{mat-ring-add}}
-\emph{for every a, n, add(mat-ring(a, n)) equals vnb-lambda([p, q], matadd(a, p, q))}
+\emph{for every a, n, add(mat-ring(a, n)) equals vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q))}
 {\small\[
-\forall a.\; \forall n.\; (\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)))
+\forall a.\; \forall n.\; (\operatorname{add}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. slot 2 of the MAT-RING tuple (entrywise sum).
 
 \subsubsection*{\texttt{mat-ring-mul}}
-\emph{for every a, n, mul(mat-ring(a, n)) equals vnb-lambda([p, q], matmul(a, p, q))}
+\emph{for every a, n, mul(mat-ring(a, n)) equals vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q))}
 {\small\[
-\forall a.\; \forall n.\; (\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)))
+\forall a.\; \forall n.\; (\operatorname{mul}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. slot 3 of the MAT-RING tuple (matrix product).
 
@@ -876,23 +876,23 @@
 \noindent\textbf{Asserted} [warrant: reference]. slot 6 of the MAT-RING tuple (identity matrix).
 
 \subsubsection*{\texttt{mat-ring-neg}}
-\emph{for every a, n, neg(mat-ring(a, n)) equals vnb-lambda(p, matneg(a, p))}
+\emph{for every a, n, neg(mat-ring(a, n)) equals vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p))}
 {\small\[
-\forall a.\; \forall n.\; (\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda p.\; \operatorname{matneg}(a, p)))
+\forall a.\; \forall n.\; (\operatorname{neg}(\operatorname{mat\text{-}ring}(a, n)) = (\lambda p \in \operatorname{mat}(n, n, \operatorname{carr}(a)).\; \operatorname{matneg}(a, p)))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. slot 4 of the MAT-RING tuple (entrywise negation).
 
 \subsubsection*{\texttt{mat-ring-add-fun}}
-\emph{for every ring a, for every n in nn, vnb-lambda([p, q], matadd(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
+\emph{for every ring a, for every n in nn, vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle.\; \operatorname{matadd}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matadd}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. curried entrywise sum is a function MAT x MAT -> MAT (2-binder).
 
 \subsubsection*{\texttt{mat-ring-mul-fun}}
-\emph{for every ring a, for every n in nn, vnb-lambda([p, q], matmul(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
+\emph{for every ring a, for every n in nn, vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)) is in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle.\; \operatorname{matmul}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall n \in \mathbb{N}.\; ((\lambda \langle p, q \rangle \in (\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))).\; \operatorname{matmul}(a, p, q)) \in ((\operatorname{mat}(n, n, \operatorname{carr}(a)) \times \operatorname{mat}(n, n, \operatorname{carr}(a))) \to \operatorname{mat}(n, n, \operatorname{carr}(a)))))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. curried product is a function MAT x MAT -> MAT (2-binder).
 
@@ -999,9 +999,9 @@
    (k,l) unit-entry function).
 
 \subsubsection*{\texttt{matunit-summand-type}}
-\emph{for every ring a, for every m, n, p, k, l, i, c, if p is in mat(m, n, carr(a)), then if i is in interval(1, m), then if c is in interval(1, n), then vnb-lambda(j, (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
+\emph{for every ring a, for every m, n, p, k, l, i, c, if p is in mat(m, n, carr(a)), then if i is in interval(1, m), then if c is in interval(1, n), then vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) is in fun(interval(1, n), carr(ring-additive-ag(a)))}
 {\small\[
-\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall k.\; \forall l.\; \forall i.\; \forall c.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow ((\lambda j.\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a))))))))
+\forall a.\; (\operatorname{is\text{-}ring}(a) \Rightarrow \forall m.\; \forall n.\; \forall p.\; \forall k.\; \forall l.\; \forall i.\; \forall c.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(a))) \Rightarrow ((i \in \operatorname{interval}(1, m)) \Rightarrow ((c \in \operatorname{interval}(1, n)) \Rightarrow ((\lambda j \in \operatorname{interval}(1, n).\; \operatorname{mul}(a)(\operatorname{entry}(p, i, j), \operatorname{entry}(\operatorname{matunit}(a, n, k, l), j, c))) \in (\operatorname{interval}(1, n) \to \operatorname{carr}(\operatorname{ring\text{-}additive\text{-}ag}(a))))))))
 \]}
 \noindent\textbf{Asserted} [warrant: well-known]. j |-> P\_\{ij\}.E[k,l]\_\{jc\} is a function INTERVAL(1,n) -> CARR A (entry-in-carrier
    + matunit-type give both factors in CARR A; MUL closes on CARR A).
@@ -1225,9 +1225,9 @@
    vector abelian group, typed by finsum-type + mvag-carr.
 
 \subsubsection*{\texttt{matact-entry}}
-\emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then for every i in interval(1, m), c in interval(1, q), entry(matact(md, p, u), i, c) equals finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n))}
+\emph{for every module md, for every m, n, q, p, u, if p is in mat(m, n, carr(scal(md))), then if u is in mat(n, q, vec(md)), then for every i in interval(1, m), c in interval(1, q), entry(matact(md, p, u), i, c) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall q.\; \forall p.\; \forall u.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md}))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, q).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, u), i, c) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j.\; \operatorname{act}(\mathit{md})(\operatorname{entry}(p, i, j), \operatorname{entry}(u, j, c))), \operatorname{interval}(1, n))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall q.\; \forall p.\; \forall u.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(n, q, \operatorname{vec}(\mathit{md}))) \Rightarrow \forall i \in \operatorname{interval}(1, m).\; \forall c \in \operatorname{interval}(1, q).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, u), i, c) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{act}(\mathit{md})(\operatorname{entry}(p, i, j), \operatorname{entry}(u, j, c))), \operatorname{interval}(1, n))))))
 \]}
 \noindent\textbf{Asserted} [warrant: reference]. (P.u)\_\{ic\} = sum\_\{j=1\}\textasciicircum{}\{n\} P\_\{ij\} . u\_\{jc\}, summed in the module's vector
    abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
@@ -1271,7 +1271,7 @@
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}.\; \forall c \in \operatorname{mat}(1, (n + 1), \operatorname{carr}(\operatorname{scal}(\mathit{md}))).\; \forall u \in \operatorname{mat}((n + 1), 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{block}(c, 1, n), \operatorname{block}(u, n, 1)), 1, 1), \operatorname{act}(\mathit{md})(\operatorname{entry}(c, 1, (n + 1)), \operatorname{entry}(u, (n + 1), 1)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
-\par\smallskip\noindent\emph{Rests on 19 facts:} \texttt{nn-one-in, nn-le-succ, one-in-interval-1, interval-in-set, interval-card-in-nn, block-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, entry-of-block, eq-sym, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr, nn-one-le-succ, interval-mem-intro}.
+\par\smallskip\noindent\emph{Rests on 23 facts:} \texttt{nn-one-in, nn-le-succ, one-in-interval-1, interval-in-set, interval-card-in-nn, block-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, nn-one-le-succ, interval-mem-intro, interval-elt-in-nn, interval-lo, interval-hi, nn-le-trans, entry-of-block, eq-sym, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
 
 \subsubsection*{\texttt{matact-snoc}}
 \emph{for every module md, for every n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md), entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1) equals (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x))}
@@ -1279,7 +1279,7 @@
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}.\; \forall c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))).\; \forall u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; \forall r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})).\; \forall x \in \operatorname{vec}(\mathit{md}).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{snoc\text{-}row}(c, n, r), \operatorname{snoc\text{-}col}(u, n, x)), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1), \operatorname{act}(\mathit{md})(r, x))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
-\par\smallskip\noindent\emph{Rests on 19 facts:} \texttt{nn-le-succ, one-in-interval-1, interval-in-set, interval-card-in-nn, snoc-row-type, snoc-col-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, snoc-row-last, snoc-col-last, entry-of-snoc-row, entry-of-snoc-col, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
+\par\smallskip\noindent\emph{Rests on 25 facts:} \texttt{nn-le-succ, one-in-interval-1, interval-in-set, interval-card-in-nn, snoc-row-type, snoc-col-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, nn-one-le-succ, interval-mem-intro, snoc-row-last, snoc-col-last, interval-elt-in-nn, interval-lo, interval-hi, nn-le-trans, entry-of-snoc-row, entry-of-snoc-col, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
 
 \subsubsection*{\texttt{matact-unitrow}}
 \emph{for every module md, for every n, i, u in mat(n, 1, vec(md)), if i is in interval(1, n), then entry(matact(md, unitrow(scal(md), n, i), u), 1, 1) equals entry(u, i, 1)}
@@ -1306,17 +1306,17 @@
 \par\smallskip\noindent\emph{Rests on 5 facts:} \texttt{one-in-interval-1, matact-entry, interval-1-0-empty, finsum-empty, mvag-id}.
 
 \subsubsection*{\texttt{matact-triple-left}}
-\emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, matmul(scal(md), p, q), u), row, col) equals finsum(module-vector-ag(md), vnb-lambda(c, finsum(module-vector-ag(md), vnb-lambda(j, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))}
+\emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, matmul(scal(md), p, q), u), row, col) equals finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))), interval(1, k))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c.\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j.\; (\lambda z.\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, n))), \operatorname{interval}(1, k)))))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{matmul}(\operatorname{scal}(\mathit{md}), p, q), u), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, n))), \operatorname{interval}(1, k)))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
 \par\smallskip\noindent\emph{Rests on 14 facts:} \texttt{matmul-type, matact-entry, interval-in-set, interval-card-in-nn, mal-outf-type, mal-tout-type, matmul-entry, mal-inf-type, entry-in-carrier, finsum-act-collect-gen, mal-dist-type, mal-red-type, ring-carrier-closed-mul, finsum-congruence}.
 
 \subsubsection*{\texttt{matact-triple-right}}
-\emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, p, matact(md, q, u)), row, col) equals finsum(module-vector-ag(md), vnb-lambda(j, finsum(module-vector-ag(md), vnb-lambda(c, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))}
+\emph{for every module md, for every m, n, k, l, p, q, u, row, col, if p is in mat(m, n, carr(scal(md))), then if q is in mat(n, k, carr(scal(md))), then if u is in mat(k, l, vec(md)), then if row is in interval(1, m), then if col is in interval(1, l), then entry(matact(md, p, matact(md, q, u)), row, col) equals finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))), interval(1, n))}
 {\small\[
-\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j.\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c.\; (\lambda z.\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, k))), \operatorname{interval}(1, n)))))))))
+\forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall m.\; \forall n.\; \forall k.\; \forall l.\; \forall p.\; \forall q.\; \forall u.\; \forall \mathit{row}.\; \forall \mathit{col}.\; ((p \in \operatorname{mat}(m, n, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((q \in \operatorname{mat}(n, k, \operatorname{carr}(\operatorname{scal}(\mathit{md})))) \Rightarrow ((u \in \operatorname{mat}(k, l, \operatorname{vec}(\mathit{md}))) \Rightarrow ((\mathit{row} \in \operatorname{interval}(1, m)) \Rightarrow ((\mathit{col} \in \operatorname{interval}(1, l)) \Rightarrow (\operatorname{entry}(\operatorname{matact}(\mathit{md}, p, \operatorname{matact}(\mathit{md}, q, u)), \mathit{row}, \mathit{col}) = \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda j \in \operatorname{interval}(1, n).\; \operatorname{finsum}(\operatorname{module\text{-}vector\text{-}ag}(\mathit{md}), (\lambda c \in \operatorname{interval}(1, k).\; (\lambda z \in (\operatorname{interval}(1, k) \times \operatorname{interval}(1, n)).\; \operatorname{act}(\mathit{md})(\operatorname{mul}(\operatorname{scal}(\mathit{md}))(\operatorname{entry}(p, \mathit{row}, \operatorname{nth}(2, z)), \operatorname{entry}(q, \operatorname{nth}(2, z), \operatorname{nth}(1, z))), \operatorname{entry}(u, \operatorname{nth}(1, z), \mathit{col})))(\langle c, j \rangle)), \operatorname{interval}(1, k))), \operatorname{interval}(1, n)))))))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
 \par\smallskip\noindent\emph{Rests on 13 facts:} \texttt{matact-type, matact-entry, interval-in-set, interval-card-in-nn, mar-outf-type, mar-tout-type, mar-gj-type, entry-in-carrier, finsum-act-distrib-gen, mar-dist-type, mar-red-type, ring-carrier-closed-mul, finsum-congruence}.
@@ -1344,9 +1344,9 @@
 \noindent\textbf{Definition.}
 
 \subsubsection*{\texttt{det-cofactor}}
-\emph{for every r, n, a, if r is a ring, then if n is in nn, then if a is in mat(succ(n), succ(n), carr(r)), then det(r, succ(n), a) is identical to finsum(ring-additive-ag(r), vnb-lambda(j, (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n)))}
+\emph{for every r, n, a, if r is a ring, then if n is in nn, then if a is in mat(succ(n), succ(n), carr(r)), then det(r, succ(n), a) is identical to finsum(ring-additive-ag(r), vnb-lambda(j, interval(1, succ(n)), (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n)))}
 {\small\[
-\forall r.\; \forall n.\; \forall a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}((n + 1), (n + 1), \operatorname{carr}(r))) \Rightarrow \operatorname{==}(\operatorname{det}(r, (n + 1), a), \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(r), (\lambda j.\; \operatorname{mul}(r)(\operatorname{mpow}(\operatorname{ring\text{-}multiplicative\text{-}monoid}(r), \operatorname{neg}(r)(\operatorname{one}(r)), (j + 1)), \operatorname{mul}(r)(\operatorname{entry}(a, 1, j), \operatorname{det}(r, n, \operatorname{minor}(a, 1, j, n))))), \operatorname{interval}(1, (n + 1)))))))
+\forall r.\; \forall n.\; \forall a.\; (\operatorname{is\text{-}ring}(r) \Rightarrow ((n \in \mathbb{N}) \Rightarrow ((a \in \operatorname{mat}((n + 1), (n + 1), \operatorname{carr}(r))) \Rightarrow \operatorname{==}(\operatorname{det}(r, (n + 1), a), \operatorname{finsum}(\operatorname{ring\text{-}additive\text{-}ag}(r), (\lambda j \in \operatorname{interval}(1, (n + 1)).\; \operatorname{mul}(r)(\operatorname{mpow}(\operatorname{ring\text{-}multiplicative\text{-}monoid}(r), \operatorname{neg}(r)(\operatorname{one}(r)), (j + 1)), \operatorname{mul}(r)(\operatorname{entry}(a, 1, j), \operatorname{det}(r, n, \operatorname{minor}(a, 1, j, n))))), \operatorname{interval}(1, (n + 1)))))))
 \]}
 \noindent\textbf{Definition.}
 
@@ -1395,9 +1395,9 @@
 \subsection{The binomial theorem}
 
 \subsubsection*{\texttt{sum-expansion}}
-\emph{for every n in nn, r, if r is a commutative ring, then for every x in carr(r), y in carr(r), g in fun(zz, carr(r)), sum(r, vnb-lambda(k, (add(r))((mul(r))(x, g(k - 1)), (mul(r))(y, g(k)))), succ(n)) equals (add(r))((add(r))((mul(r))((add(r))(x, y), sum(r, g, n)), (mul(r))(x, g(0 - 1))), (mul(r))(y, g(n)))}
+\emph{for every n in nn, r, if r is a commutative ring, then for every x in carr(r), y in carr(r), g in fun(zz, carr(r)), sum(r, vnb-lambda(k, nn, (add(r))((mul(r))(x, g(k - 1)), (mul(r))(y, g(k)))), succ(n)) equals (add(r))((add(r))((mul(r))((add(r))(x, y), sum(r, g, n)), (mul(r))(x, g(0 - 1))), (mul(r))(y, g(n)))}
 {\small\[
-\forall n \in \mathbb{N}.\; \forall r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x \in \operatorname{carr}(r).\; \forall y \in \operatorname{carr}(r).\; \forall g \in (\mathbb{Z} \to \operatorname{carr}(r)).\; (\operatorname{sum}(r, (\lambda k.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, g(\operatorname{\text{-}}(k, 1))), \operatorname{mul}(r)(y, g(k)))), (n + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, g, n)), \operatorname{mul}(r)(x, g(\operatorname{\text{-}}(0, 1)))), \operatorname{mul}(r)(y, g(n)))))
+\forall n \in \mathbb{N}.\; \forall r.\; (\operatorname{is\text{-}commutative\text{-}ring}(r) \Rightarrow \forall x \in \operatorname{carr}(r).\; \forall y \in \operatorname{carr}(r).\; \forall g \in (\mathbb{Z} \to \operatorname{carr}(r)).\; (\operatorname{sum}(r, (\lambda k \in \mathbb{N}.\; \operatorname{add}(r)(\operatorname{mul}(r)(x, g(\operatorname{\text{-}}(k, 1))), \operatorname{mul}(r)(y, g(k)))), (n + 1)) = \operatorname{add}(r)(\operatorname{add}(r)(\operatorname{mul}(r)(\operatorname{add}(r)(x, y), \operatorname{sum}(r, g, n)), \operatorname{mul}(r)(x, g(\operatorname{\text{-}}(0, 1)))), \operatorname{mul}(r)(y, g(n)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
 \par\smallskip\noindent\emph{Rests on 4 facts:} \texttt{bt-neg1-in-zz, bt-nn-in-zz, bt-succ-in-nn, bt-sum-in-carr-zz}.
@@ -1820,9 +1820,9 @@
    distance forces small d\_n-distance in coordinate n.
 
 \subsubsection*{\texttt{product-convergence-coordinatewise}}
-\emph{for every ms, if ms is a sequence of metric spaces, then for every w, if w is a summable sequence of positive weights, then for every seq in fun(nn, product-carrier(ms)), l in product-carrier(ms), seq converges to l in product-metric-w(ms, w) if and only if for every n in nn, vnb-lambda(k, (seq(k))(n)) converges to l(n) in ms(n)}
+\emph{for every ms, if ms is a sequence of metric spaces, then for every w, if w is a summable sequence of positive weights, then for every seq in fun(nn, product-carrier(ms)), l in product-carrier(ms), seq converges to l in product-metric-w(ms, w) if and only if for every n in nn, vnb-lambda(k, nn, (seq(k))(n)) converges to l(n) in ms(n)}
 {\small\[
-\forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow \forall w.\; (\operatorname{summable\text{-}weight}(w) \Rightarrow \forall \mathit{seq} \in (\mathbb{N} \to \operatorname{product\text{-}carrier}(\mathit{ms})).\; \forall l \in \operatorname{product\text{-}carrier}(\mathit{ms}).\; (\operatorname{converges\text{-}to}(\operatorname{product\text{-}metric\text{-}w}(\mathit{ms}, w), \mathit{seq}, l) \Leftrightarrow \forall n \in \mathbb{N}.\; \operatorname{converges\text{-}to}(\operatorname{ms}(n), (\lambda k.\; \operatorname{seq}(k)(n)), l(n)))))
+\forall \mathit{ms}.\; (\operatorname{is\text{-}ms\text{-}sequence}(\mathit{ms}) \Rightarrow \forall w.\; (\operatorname{summable\text{-}weight}(w) \Rightarrow \forall \mathit{seq} \in (\mathbb{N} \to \operatorname{product\text{-}carrier}(\mathit{ms})).\; \forall l \in \operatorname{product\text{-}carrier}(\mathit{ms}).\; (\operatorname{converges\text{-}to}(\operatorname{product\text{-}metric\text{-}w}(\mathit{ms}, w), \mathit{seq}, l) \Leftrightarrow \forall n \in \mathbb{N}.\; \operatorname{converges\text{-}to}(\operatorname{ms}(n), (\lambda k \in \mathbb{N}.\; \operatorname{seq}(k)(n)), l(n)))))
 \]}
 \noindent\textbf{Asserted} [warrant: well-known]. A sequence converges in PRODUCT-METRIC-W iff it converges in every
    coordinate -- the defining property of the PRODUCT TOPOLOGY.  Forward:

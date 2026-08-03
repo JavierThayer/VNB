@@ -72,7 +72,7 @@
 
 ;; PROJ(s) = a |-> [a] -- the canonical projection PTS(s) -> PTS(s)/REL.
 (def-functoid 'PROJ '(s)
-  '(VNB-LAMBDA a (CLASS s a)))
+  '(VNB-LAMBDA a (PTS s) (CLASS s a)))
 
 ;; QUOTIENT(s) = PTS(s)/REL = the IMAGE of the class map = { [a] : a in PTS(s) }.
 ;; The indexed/binder form (feedback_family_operations), not a loose POWER(X)
@@ -190,8 +190,10 @@
 ;; unique z that is f of some member of c -- IOTA, NOT a chosen representative.
 ;; When f RESPECTS the relation, { f(a) : a in c } is a singleton, so the
 ;; description is well-defined and INDEPENDENT of representative.
-(def-functoid 'DESCEND '(f)
-  '(VNB-LAMBDA c (IOTA z (FORSOME a (AND (IN a c) (= z (f a)))))))
+;; s is a parameter because DESCEND(f)'s DOMAIN is QUOTIENT(s) (descend-in-fun),
+;; and a lambda now carries its domain (2026-08-02).
+(def-functoid 'DESCEND '(s f)
+  '(VNB-LAMBDA c (QUOTIENT s) (IOTA z (FORSOME a (AND (IN a c) (= z (f a)))))))
 
 ;; descend-computes: the descent equation  DESCEND(f)([a]) = f(a)  -- i.e.
 ;; DESCEND(f) o PROJ(s) = f, the factorization, stated pointwise.
@@ -200,7 +202,7 @@
      (FORALL Z (FORALL f
        (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
          (FORALL a (IMPLIES (IN a (PTS s))
-           (= ((DESCEND f) (CLASS s a)) (f a))))))))))
+           (= ((DESCEND s f) (CLASS s a)) (f a))))))))))
 (warrant! 'descend-computes 'well-known
   "Lambda-beta: DESCEND(f)([a]) = IOTA z. exists a' in [a]. z = f(a').  Since
    a in [a] (class-self), f(a) satisfies the body.  For uniqueness: any a' in
@@ -213,7 +215,7 @@
   '(FORALL s (IMPLIES (IS-SETOID s)
      (FORALL Z (FORALL f
        (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
-         (IN (DESCEND f) (FUN (QUOTIENT s) Z))))))))
+         (IN (DESCEND s f) (FUN (QUOTIENT s) Z))))))))
 (warrant! 'descend-in-fun 'well-known
   "Every element of QUOTIENT(s) is some [a] with a in PTS(s) (it is the image of
    PROJ); on it DESCEND(f) returns f(a) in Z (descend-computes), well-defined
@@ -274,8 +276,8 @@
 ;; classes (c,d) it returns the unique z that is f of some members -- IOTA, not
 ;; chosen representatives.  When f RESPECTS2 the relation the value set is a
 ;; singleton, so the description is well-defined and representative-independent.
-(def-functoid 'DESCEND2 '(f)
-  '(VNB-LAMBDA (LIST c d)
+(def-functoid 'DESCEND2 '(s f)
+  '(VNB-LAMBDA (LIST c d) (CARTESIAN (QUOTIENT s) (QUOTIENT s))
      (IOTA z (FORSOME a (AND (IN a c)
                 (FORSOME b (AND (IN b d) (= z (f a b)))))))))
 
@@ -285,7 +287,7 @@
     (forall-guarded '(Z f)
         '((IN f (FUN (CARTESIAN (PTS s) (PTS s)) Z)) (RESPECTS2 s f))
       (forall-guarded '(a b) '((IN a (PTS s)) (IN b (PTS s)))
-        '(= ((DESCEND2 f) (CLASS s a) (CLASS s b)) (f a b))))))
+        '(= ((DESCEND2 s f) (CLASS s a) (CLASS s b)) (f a b))))))
 (warrant! 'descend2-computes 'well-known
   "Tuple-beta then the unary argument: DESCEND2(f)([a],[b]) = IOTA z. exists
    a' in [a], b' in [b]. z = f(a',b').  Since a in [a] and b in [b] (class-self),
@@ -298,7 +300,7 @@
   (forall-guarded '(s) '((IS-SETOID s))
     (forall-guarded '(Z f)
         '((IN f (FUN (CARTESIAN (PTS s) (PTS s)) Z)) (RESPECTS2 s f))
-      '(IN (DESCEND2 f) (FUN (CARTESIAN (QUOTIENT s) (QUOTIENT s)) Z)))))
+      '(IN (DESCEND2 s f) (FUN (CARTESIAN (QUOTIENT s) (QUOTIENT s)) Z)))))
 (warrant! 'descend2-in-fun 'well-known
   "Every element of QUOTIENT(s) is some [a] with a in PTS(s) (image of PROJ), so
    every pair in QUOTIENT(s) x QUOTIENT(s) is ([a],[b]); on it DESCEND2(f) returns

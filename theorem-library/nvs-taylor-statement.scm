@@ -25,7 +25,7 @@
 
 ;;; The directional curve  phi(t) = f(a (+) t.h)  in the DOMAIN's module ops,
 ;;; valued in VEC(cm).  Spliced (three occurrences) rather than repeated.
-(define nt-phi '(VNB-LAMBDA t (f ((VADD dm) a ((ACT dm) t h)))))
+(define nt-phi '(VNB-LAMBDA t RR (f ((VADD dm) a ((ACT dm) t h)))))
 
 ;;; The remainder vector  R = f(a (+) h) (-) TAYLOR-POLY-V(cm, phi, 0, 1, n).
 ;;; We write f(a(+)h) for phi(1) = f(a (+) 1.h); the two are equal by the module

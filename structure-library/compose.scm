@@ -24,7 +24,7 @@
 ;;; with the foundations so every later library can use it.
 
 (def-functoid 'COMPOSE '(f g)
-  '(VNB-LAMBDA z_ (f (g z_))))
+  '(VNB-LAMBDA z_ (DOM g) (f (g z_))))
 
 ;;; compose-apply: (COMPOSE f g)(x) = f(g(x)).  Stated against the typed form
 ;;; g : A -> B, f : B -> C (so both sides denote a defined point of C); the

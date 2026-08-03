@@ -43,7 +43,8 @@
 
 (def-functoid 'NAG-METRIC-SPACE '(nag)
   '(LIST (CARR nag)
-         (VNB-LAMBDA (LIST u v) ((NRM nag) ((OPR nag) u ((INV nag) v))))))
+         (VNB-LAMBDA (LIST u v) (CARTESIAN (CARR nag) (CARR nag))
+                    ((NRM nag) ((OPR nag) u ((INV nag) v))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Distance = norm of the (group) difference, on the carrier.

@@ -645,13 +645,13 @@
      ,(forall-guarded '(i_ j_) (list '(IN i_ NN) '(IN j_ NN))
         '(FORSOME m_ (AND (IN m_ NN) (= (e_ m_) ((h_ i_) j_))))))))))
 (np2-peel!)
-(ew '(VNB-LAMBDA n_ ((h_ (NNFST n_)) (NNSND n_))))
+(ew '(VNB-LAMBDA n_ NN ((h_ (NNFST n_)) (NNSND n_))))
 (for-each
   (lambda (n)
     (dk-focus! n)
     (if (eq? (car (dk-goal)) 'IN)
         (begin                                   ; e is a function NN -> aa_
-          (lam-t)
+          (dk-lam-t!)
           (let ((v (cadr (dk-goal))))            ; lam-t renames the binder
             (np2-peel!)
             (fact 'nnfst-type v)
@@ -668,6 +668,10 @@
               (if (eq? (car (dk-goal)) 'IN)
                   (begin (fact 'nnpair-type 'i_ 'j_) (ass))
                   (begin
+                    ;; e_ has domain NN and is applied at the CODE, so the code's
+                    ;; typing licenses the reduction.  The sibling branch cites
+                    ;; the same fact for its (IN (NNPAIR i_ j_) NN) goal.
+                    (fact 'nnpair-type 'i_ 'j_)
                     (lam-b)
                     (mac 'nnfst-nnpair)
                     (mac 'nnsnd-nnpair)

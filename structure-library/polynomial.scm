@@ -58,30 +58,34 @@
 ;;; OPERATORS.md unfold reading `opr(m)' on 2026-07-24.)
 
 ;;; pointwise sum: (f + g)(x) = f(x) + g(x) in A.
-(def-functoid 'MONALG-ADD '(A f g)
-  '(VNB-LAMBDA x_ ((ADD A) (f x_) (g x_))))
+;;; M is a parameter because the pointwise sum's DOMAIN is M's carrier, and a
+;;; lambda now carries its domain (2026-08-02).  Without M this functoid could
+;;; not say what set its value is a function on.
+(def-functoid 'MONALG-ADD '(A M f g)
+  '(VNB-LAMBDA x_ (CARR M) ((ADD A) (f x_) (g x_))))
 
 ;;; pointwise negation.
-(def-functoid 'MONALG-NEG '(A f)
-  '(VNB-LAMBDA x_ ((NEG A) (f x_))))
+(def-functoid 'MONALG-NEG '(A M f)
+  '(VNB-LAMBDA x_ (CARR M) ((NEG A) (f x_))))
 
 ;;; the zero of A[M]: the constant zero function.
-(def-functoid 'MONALG-ZERO '(A)
-  '(VNB-LAMBDA x_ (ZERO A)))
+(def-functoid 'MONALG-ZERO '(A M)
+  '(VNB-LAMBDA x_ (CARR M) (ZERO A)))
 
 ;;; the one of A[M]: the indicator of IDEN(M) (value ONE(A) there, ZERO else) --
 ;;; the constant polynomial 1.
 (def-functoid 'MONALG-ONE '(A M)
-  '(VNB-LAMBDA x_ (IF (= x_ (IDEN M)) (ONE A) (ZERO A))))
+  '(VNB-LAMBDA x_ (CARR M) (IF (= x_ (IDEN M)) (ONE A) (ZERO A))))
 
 ;;; convolution: (f * g)(x) = SUM_{ p.q = x, p in supp f, q in supp g } f(p).g(q).
 ;;; The index set is a SEP of pairs over supp(f) x supp(g) (the ringoid.scm
 ;;; CARTESIAN-SEP idiom); FINSUM sums the pair-summand over it in A's additive AG.
 ;;; Finite because supp(f) x supp(g) is a product of finite sets.
 (def-functoid 'MONALG-MUL '(A M f g)
-  '(VNB-LAMBDA x_
+  '(VNB-LAMBDA x_ (CARR M)
      (FINSUM (RING-ADDITIVE-AG A)
-             (VNB-LAMBDA p ((MUL A) (f (NTH 1 p)) (g (NTH 2 p))))
+             (VNB-LAMBDA p (SEP p (CARTESIAN (SUPP A M f) (SUPP A M g))
+                  (= ((OPR M) (NTH 1 p) (NTH 2 p)) x_)) ((MUL A) (f (NTH 1 p)) (g (NTH 2 p))))
              (SEP p (CARTESIAN (SUPP A M f) (SUPP A M g))
                   (= ((OPR M) (NTH 1 p) (NTH 2 p)) x_)))))
 
@@ -90,10 +94,10 @@
 ;;; as MAT-RING packages the matrix ring.
 (def-functoid 'MONALG '(A M)
   '(LIST (FINSUPP A M)
-         (VNB-LAMBDA (LIST f g) (MONALG-ADD A f g))
-         (VNB-LAMBDA (LIST f g) (MONALG-MUL A M f g))
-         (VNB-LAMBDA f (MONALG-NEG A f))
-         (MONALG-ZERO A)
+         (VNB-LAMBDA (LIST f g) (CARTESIAN (FINSUPP A M) (FINSUPP A M)) (MONALG-ADD A M f g))
+         (VNB-LAMBDA (LIST f g) (CARTESIAN (FINSUPP A M) (FINSUPP A M)) (MONALG-MUL A M f g))
+         (VNB-LAMBDA f (FINSUPP A M) (MONALG-NEG A M f))
+         (MONALG-ZERO A M)
          (MONALG-ONE A M)))
 (notation! 'MONALG 'arity 2 'english "the monoid algebra $1[$2]")
 (gloss! 'MONALG
@@ -151,7 +155,7 @@
   (forall-guarded '(A M f g)
     (list '(IS-RING A) '(IS-MONOID M)
           '(IN f (FINSUPP A M)) '(IN g (FINSUPP A M)))
-    '(IN (MONALG-ADD A f g) (FINSUPP A M))))
+    '(IN (MONALG-ADD A M f g) (FINSUPP A M))))
 (warrant! 'monalg-add-fun 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-add-fun
   "The pointwise sum of two finitely-supported functions is finitely supported.")
@@ -178,8 +182,8 @@
   (forall-guarded '(A M f g h)
     (list '(IS-RING A) '(IS-MONOID M)
           '(IN f (FINSUPP A M)) '(IN g (FINSUPP A M)) '(IN h (FINSUPP A M)))
-    '(= (MONALG-MUL A M f (MONALG-ADD A g h))
-        (MONALG-ADD A (MONALG-MUL A M f g) (MONALG-MUL A M f h)))))
+    '(= (MONALG-MUL A M f (MONALG-ADD A M g h))
+        (MONALG-ADD A M (MONALG-MUL A M f g) (MONALG-MUL A M f h)))))
 (warrant! 'monalg-distrib-left 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-distrib-left
   "Convolution distributes over pointwise addition on the left; the right law is

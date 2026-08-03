@@ -37,7 +37,7 @@
 
 ;; DIST-SEQ(M,f,g) = the real sequence  n |-> d(f_n, g_n)  in RR.
 (def-functoid 'DIST-SEQ '(M f g)
-  '(VNB-LAMBDA n ((DIST M) (f n) (g n))))
+  '(VNB-LAMBDA n NN ((DIST M) (f n) (g n))))
 
 ;; CSEQ-EQUIV(M,f,g): f ~ g, i.e. d(f_n,g_n) -> 0.  This is the equivalence
 ;; relation underlying the completion -- null distance.  Stated as convergence
@@ -91,7 +91,7 @@
 ;; distance, so any other representatives give the same limit.  IOTA (definite
 ;; description), not a chosen representative.
 (def-functoid 'COMPLETION-DIST '(M)
-  '(VNB-LAMBDA p
+  '(VNB-LAMBDA p (CARTESIAN (QUOTIENT (CAUCHY-SETOID M)) (QUOTIENT (CAUCHY-SETOID M)))
      (IOTA dval
        (FORSOME f (FORSOME g
          (AND (IN f (CSEQ M))
@@ -137,11 +137,11 @@
 
 ;; EMBED-SEQ(M,u) = the constant sequence  n |-> u  -- trivially Cauchy.
 (def-functoid 'EMBED-SEQ '(M u)
-  '(VNB-LAMBDA n u))
+  '(VNB-LAMBDA n NN u))
 
 ;; EMBED(M) = u |-> [constant sequence u] : PTS(M) -> PTS(COMPLETION(M)).
 (def-functoid 'EMBED '(M)
-  '(VNB-LAMBDA u (CLASS (CAUCHY-SETOID M) (EMBED-SEQ M u))))
+  '(VNB-LAMBDA u (PTS M) (CLASS (CAUCHY-SETOID M) (EMBED-SEQ M u))))
 
 ;; embed-in-fun: EMBED(M) maps PTS(M) into the completion's carrier.
 (support 'embed-in-fun

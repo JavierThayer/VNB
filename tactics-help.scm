@@ -153,7 +153,7 @@
      (lam-t  "(lam-t)" "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation."
        "Show that a function defined by a formula (`x |-> ...') maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B.  (Technically: VNB-LAMBDA typing into FUN A B.)")
      (lam-b  "(lam-b)" "VNB-LAMBDA beta: reduce an applied lambda to its substituted body."
-       "Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)")
+       "Simplify a function `x |-> e(x)' applied to an argument a to e(a) -- the body with the argument substituted in.  A lambda carries its DOMAIN, and it is only defined on that domain, so the reduction is licensed only where a is known to be in it: if the membership is neither in the context nor supplied by an enclosing binder, the step still fires but leaves (IN a A) as an extra subgoal.  Land the typing fact BEFORE the lam-b and no subgoal appears.  (Technically: VNB-LAMBDA beta-reduction.)")
      (lam-b-h "(lam-b-h hyp)" "VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac."
        "Beta-reduce an applied lambda inside a hypothesis, in place.  Needed because a `fact' that instantiates a theorem's function variable at a lambda lands the APPLIED lambda in the CONTEXT, where the goal-side `lam-b' cannot reach it: union-of-opens-open at the identity family g := x |-> x lands is-open(md, big-union(i, fam, (x |-> x)(i))).  Without this the proof must detour through a cut beta-equation and a subst.  Cites nothing, so it adds no debt.")
      (sep-set "(sep-set)" "Separation sethood: the separation set {x in A | p} is a set."

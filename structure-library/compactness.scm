@@ -104,7 +104,7 @@
 ;;; is `PTS' now) and folds to x, and the cover's domain (PTS s) sits next to the
 ;;; lambda -- keeping them disjoint avoided the accessor/point name clash.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BALL-COVER '(s r)
-  '(IMAGE (VNB-LAMBDA c (BALL s c r)) (PTS s)))
+  '(IMAGE (VNB-LAMBDA c (PTS s) (BALL s c r)) (PTS s)))
 
 ;;; Lemma A: for r > 0 the r-ball cover is an open cover of s.
 ;;; (r-condition matches the TOTALLY-BOUNDED def verbatim: r in RR, 0 <= r, r /= 0.)
@@ -137,7 +137,7 @@
 ;;; CENTRE-SET(s,r,F): the chosen centres of the balls in F -- the image of F
 ;;; under the choice function  B |-> CHOICE(CENTRES s B r).
 (def-functoid 'CENTRE-SET '(s r F)
-  '(IMAGE (VNB-LAMBDA B (CHOICE (CENTRES s B r))) F))
+  '(IMAGE (VNB-LAMBDA B F (CHOICE (CENTRES s B r))) F))
 
 ;;; Directional slices of the CENTRES SEP-membership equivalence (definitional:
 ;;; c in {c in PTS(s) : B(c,r)=B} iff c in PTS(s) and B(c,r)=B).

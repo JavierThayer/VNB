@@ -10,7 +10,7 @@
 ;;; ====================================================================
 
 ;;; the auxiliary h(z) = f(z)*(g(b)-g(a)) - g(z)*(f(b)-f(a))
-(define GAUX '(VNB-LAMBDA z (- (* (f z) (- (g b) (g a))) (* (g z) (- (f b) (f a))))))
+(define GAUX '(VNB-LAMBDA z RR (- (* (f z) (- (g b) (g a))) (* (g z) (- (f b) (f a))))))
 
 ;;; --- warranted calc-101 supports for GAUX (curried; linear combo of f,g) ---
 (add-to-pss 'gmvt-aux-cont
@@ -53,7 +53,7 @@
 
 ;;; GAUX in FUN RR RR
 (cut (list 'IN GAUX '(FUN RR RR)))
-(lam-t)
+(dk-lam-t!)
 (quietly (lambda () (di) (di) (in-rr)))
 (dc-focus! GOAL)
 

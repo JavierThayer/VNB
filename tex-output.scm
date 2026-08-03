@@ -312,9 +312,12 @@
                    "\\right)")))
 
 (tex--register-special! 'vnb-lambda
+  ;; (VNB-LAMBDA bspec A body) -- the domain is part of the term, so it is part
+  ;; of the rendering: \lambda v \in A.\; body.
   (lambda (args)
-    (string-append "(\\lambda " (expr->tex (car args)) ".\\; "
-                   (expr->tex (cadr args)) ")")))
+    (string-append "(\\lambda " (expr->tex (car args))
+                   " \\in " (expr->tex (cadr args)) ".\\; "
+                   (expr->tex (caddr args)) ")")))
 
 (tex--register-special! 'sep
   (lambda (args)
@@ -503,10 +506,11 @@
                (tex--rel-rows (string-trim (cdr (assq (car e) *tex-binop-table*)))
                               (caddr e) ind)))
       ;; long lambda: "(\lambda v.\;" on this row, body indented, ')' trailing.
-      ((and (pair? e) (eq? (car e) 'vnb-lambda) (= (length e) 3)
+      ((and (pair? e) (eq? (car e) 'vnb-lambda) (= (length e) 4)
             (> (string-length (expr->tex e)) tex--inline-threshold))
-       (cons (string-append (tex--ind ind) "(\\lambda " (expr->tex (cadr e)) ".\\;")
-             (tex--suffix-last (tex--lines (caddr e) (+ ind 1)) ")")))
+       (cons (string-append (tex--ind ind) "(\\lambda " (expr->tex (cadr e))
+                            " \\in " (expr->tex (caddr e)) ".\\;")
+             (tex--suffix-last (tex--lines (cadddr e) (+ ind 1)) ")")))
       ;; long application: "head(" merged onto the first argument row (so a short
       ;; leading arg like sum(r, ... stays with the head), remaining args packed.
       ((and (tex--breakable-app? e)

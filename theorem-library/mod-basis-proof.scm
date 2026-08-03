@@ -85,7 +85,7 @@
 ;; matact-identmat :  I_n . u = u
 ;; =====================================================================
 (define MI-LHS '(MATACT md (IDENTMAT (SCAL md) n) u))
-(define MI-FF  '(VNB-LAMBDA j ((ACT md) (ENTRY (IDENTMAT (SCAL md) n) row j) (ENTRY u j col))))
+(define MI-FF  '(VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY (IDENTMAT (SCAL md) n) row j) (ENTRY u j col))))
 (define MI-INT '(INTERVAL 1 n))
 
 (sp (make-wff
@@ -220,7 +220,7 @@
     (let* ((FT-J  (cadr (mb-find (lambda (f) (and (pair? f) (eq? (car f) 'IN)
                                                   (equal? (caddr f) '(INTERVAL 1 m)))))))
            (FT-ZH (mb-find (guarded-forall? '(INTERVAL 1 m))))
-           (FS `(VNB-LAMBDA j ((MUL (SCAL md)) (ENTRY ,FT-D 1 j) (ENTRY ,FT-W j ,FT-J)))))
+           (FS `(VNB-LAMBDA j (INTERVAL 1 m) ((MUL (SCAL md)) (ENTRY ,FT-D 1 j) (ENTRY ,FT-W j ,FT-J)))))
       ;; c = (c qm) qm^-1
       (mb-with-cut `(= ,(mm FT-D FT-W) ,FT-C)
         (lambda ()

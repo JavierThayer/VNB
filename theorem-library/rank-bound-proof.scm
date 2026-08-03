@@ -201,7 +201,7 @@
 (fact 'interval-mem-intro 1 'm '(succ n))          ; succ n is a legal row index
 
 ;; ---- row succ n of D is zero, so v'_{succ n} = 0 -------------------------
-(define RB-FD `(VNB-LAMBDA j ((ACT md) (ENTRY ,RB-D (succ n) j) (ENTRY ,RB-UU j 1))))
+(define RB-FD `(VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY ,RB-D (succ n) j) (ENTRY ,RB-UU j 1))))
 (cut `(= (ENTRY ,RB-VP (succ n) 1) (VZERO md)))
 (define RB-MAIN3 (rb-last))
   (fact 'matact-entry 'md 'm 'n 1 RB-D RB-UU '(succ n) 1)
@@ -239,7 +239,7 @@
 
 ;; ---- test relation-freeness of v' against the unit row e_{succ n} --------
 (define RB-ER `(UNITROW (SCAL md) m (succ n)))
-(define RB-FE `(VNB-LAMBDA j ((ACT md) (ENTRY ,RB-ER 1 j) (ENTRY ,RB-VV j 1))))
+(define RB-FE `(VNB-LAMBDA j (INTERVAL 1 m) ((ACT md) (ENTRY ,RB-ER 1 j) (ENTRY ,RB-VV j 1))))
 (fact 'unitrow-type '(SCAL md) 'm '(succ n))
 
 (cut `(= (ENTRY ,(ma RB-ER RB-VV) 1 1) (VZERO md)))

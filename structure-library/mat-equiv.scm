@@ -38,7 +38,7 @@
 ;;; recursion (Prop 3.36) applies to this block after the pivot clears row 1
 ;;; and column 1.  Entry (i,j) = P_{i+1, j+1}.
 (def-functoid 'SUBMAT '(S p q)
-  '(MATOF p q (VNB-LAMBDA (LIST i j) (ENTRY S (succ i) (succ j)))))
+  '(MATOF p q (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 p) (INTERVAL 1 q)) (ENTRY S (succ i) (succ j)))))
 
 ;;; submat-type: SUBMAT(P,p,q) is a p-by-q matrix over A when P is
 ;;; (succ p)-by-(succ q) (each block entry P_{i+1,j+1} lies in CARR A).
@@ -75,7 +75,7 @@
 ;;; else M_{i-1,j-1} (NN-MINUS = monus, valid since i,j >= 2 there).
 (def-functoid 'BORDER '(A b M p q)
   '(MATOF (succ p) (succ q)
-     (VNB-LAMBDA (LIST i j)
+     (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 (succ p)) (INTERVAL 1 (succ q)))
        (IF (= i 1)
            (IF (= j 1) b (ZERO A))
            (IF (= j 1) (ZERO A) (ENTRY M (NN-MINUS i 1) (NN-MINUS j 1)))))))

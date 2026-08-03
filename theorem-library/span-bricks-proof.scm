@@ -65,7 +65,7 @@
 (define sb-one '(ONE (SCAL md)))
 (define sb-neg1 '((NEG (SCAL md)) (ONE (SCAL md))))
 ;; j |-> c_{1j} . u_{j1}, for a coefficient row c
-(define (sb-row c) (list 'VNB-LAMBDA 'j (list '(ACT md) (list 'ENTRY c 1 'j) '(ENTRY u j 1))))
+(define (sb-row c ivl) (list 'VNB-LAMBDA 'j ivl (list '(ACT md) (list 'ENTRY c 1 'j) '(ENTRY u j 1))))
 (define (sb-sum f ivl) (list 'FINSUM sb-vag f ivl))
 
 
@@ -126,7 +126,7 @@
 ;;; Every summand is 0 . u_{j1} = 0_V, so finsum-all-id collapses the sum.
 ;;; ===================================================================
 (define sb-zm '(ZEROMAT (SCAL md) 1 n))
-(define sb-zl (sb-row sb-zm))
+(define sb-zl (sb-row sb-zm sb-ivl))
 
 (sp (make-wff
   (sb-wf '(md) (sb-wi '((IS-MODULE md))
@@ -175,7 +175,7 @@
 ;;; 1 . u_{i1} = u_{i1}.
 ;;; ===================================================================
 (define sb-ur '(UNITROW (SCAL md) n i))
-(define sb-ul (sb-row sb-ur))
+(define sb-ul (sb-row sb-ur sb-ivl))
 
 (sp (make-wff
   (sb-wf '(md) (sb-wi '((IS-MODULE md))
@@ -239,7 +239,7 @@
 (fact 'one-in-interval-1)
 (fact 'matact-entry 'md 1 0 1 'c 'u 1 1)
 (subst (list '= '(ENTRY (MATACT md c u) 1 1)
-             (sb-sum (sb-row 'c) '(INTERVAL 1 0))))
+             (sb-sum (sb-row 'c '(INTERVAL 1 0)) '(INTERVAL 1 0))))
 (fact 'interval-1-0-empty)
 (subst '(= (INTERVAL 1 0) EMPTY-SET))
 (mac 'finsum-empty)                                  ; FINSUM(ag,f,{}) -> IDEN ag

@@ -41,7 +41,7 @@
   '(FORALL f (FORALL a (FORALL L
      (IFF (IS-DIFF-AT f a L)
           (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN L RR)
-               (LITTLE-O-AT (VNB-LAMBDA x (- (- (f x) (f a)) (* L (- x a)))) a)))))))))
+               (LITTLE-O-AT (VNB-LAMBDA x RR (- (- (f x) (f a)) (* L (- x a)))) a)))))))))
 (warrant! 'diff-iff-little-o 'reference
   "calculus.pdf eq (12): f differentiable at a with derivative L iff the
    increment x|->f(x)-f(a)-L(x-a) is o(x-a) at a.  Forward: eps = phi-L for phi
@@ -57,7 +57,7 @@
   '(FORALL g (FORALL h (FORALL a
      (IMPLIES (LITTLE-O-AT g a)
      (IMPLIES (LITTLE-O-AT h a)
-       (LITTLE-O-AT (VNB-LAMBDA x (+ (g x) (h x))) a)))))))
+       (LITTLE-O-AT (VNB-LAMBDA x RR (+ (g x) (h x))) a)))))))
 (warrant! 'little-o-sum 'well-known
   "Sum of two o(x-a) is o(x-a): add the witnesses eps_g + eps_h (continuous at
    a, value 0), and (g+h)(x) = (eps_g(x)+eps_h(x))(x-a).")
@@ -68,7 +68,7 @@
   '(FORALL c (FORALL g (FORALL a
      (IMPLIES (IN c RR)
      (IMPLIES (LITTLE-O-AT g a)
-       (LITTLE-O-AT (VNB-LAMBDA x (* c (g x))) a)))))))
+       (LITTLE-O-AT (VNB-LAMBDA x RR (* c (g x))) a)))))))
 (warrant! 'little-o-scalar 'well-known
   "A constant multiple of o(x-a) is o(x-a): witness c*eps_g (continuous at a,
    value 0), and (c g)(x) = (c eps_g(x))(x-a).")

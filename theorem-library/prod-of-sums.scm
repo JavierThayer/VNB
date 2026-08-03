@@ -96,7 +96,7 @@
       (FORALL k (IMPLIES (AND (IN k SET) (NOT (IN k X)))
         (= (POWER (UNION X (PAIR k k)))
            (UNION (POWER X)
-                  (IMAGE (VNB-LAMBDA S (UNION S (PAIR k k))) (POWER X)))))))))
+                  (IMAGE (VNB-LAMBDA S (POWER X) (UNION S (PAIR k k))) (POWER X)))))))))
 
 (warrant! 'power-insert-cover 'well-known
   "A subset of X u {k} contains k or not; dropping k gives a subset of X, and
@@ -110,7 +110,7 @@
   '(FORALL X (IMPLIES (IN X SET)
       (FORALL k (IMPLIES (AND (IN k SET) (NOT (IN k X)))
         (= (INTERSECTION (POWER X)
-                         (IMAGE (VNB-LAMBDA S (UNION S (PAIR k k))) (POWER X)))
+                         (IMAGE (VNB-LAMBDA S (POWER X) (UNION S (PAIR k k))) (POWER X)))
            EMPTY-SET))))))
 
 (warrant! 'power-insert-disjoint 'well-known
@@ -213,9 +213,9 @@
       (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
       (FORALL a (IMPLIES (IN a (FUN X (CARR R)))
       (FORALL b (IMPLIES (IN b (FUN X (CARR R)))
-        (= (PROD-RING R (VNB-LAMBDA k ((ADD R) (a k) (b k))) X)
+        (= (PROD-RING R (VNB-LAMBDA k X ((ADD R) (a k) (b k))) X)
            (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG R)
-                   (VNB-LAMBDA S ((MUL R) (PROD-RING R a S)
+                   (VNB-LAMBDA S (POWER X) ((MUL R) (PROD-RING R a S)
                                           (PROD-RING R b (DIFFERENCE X S))))
                    (POWER X))))))))))))
 

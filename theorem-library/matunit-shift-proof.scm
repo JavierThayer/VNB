@@ -46,7 +46,7 @@
 
 ;; term abbreviations
 (define MU-RAG '(RING-ADDITIVE-AG A))
-(define MU-FF  '(VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY (MATUNIT A n k l) j c))))
+(define MU-FF  '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY (MATUNIT A n k l) j c))))
 (define MU-INT '(INTERVAL 1 n))
 
 (sp (make-wff

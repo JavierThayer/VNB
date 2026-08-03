@@ -92,7 +92,7 @@
 (ai `(AND (IN ,dia-a (,dia-s 0)) (< 0 ,dia-a)))
 
 ;; Phase 2 -- the step set NXT and the dc-on-nn-pred totality hypothesis.
-(define dia-NXT (subst-free 's dia-s '(VNB-LAMBDA (LIST kx ux) (SEP xx (s (succ kx)) (< ux xx)))))
+(define dia-NXT (subst-free 's dia-s '(VNB-LAMBDA (LIST kx ux) (CARTESIAN NN NN) (SEP xx (s (succ kx)) (< ux xx)))))
 (define (dia-app k u) (list dia-NXT k u))
 (define dia-TOT
   `(FORALL k (IMPLIES (IN k NN)
@@ -154,7 +154,11 @@
 (define dia-NXTk (list dia-LAM dia-kp (list dia-f dia-kp)))
 (define dia-SEPk `(SEP xx (,dia-s (succ ,dia-kp)) (< (,dia-f ,dia-kp) xx)))
 (cut `(== ,dia-NXTk ,dia-SEPk))
-(dia-focus! `(== ,dia-NXTk ,dia-SEPk)) (lam-b) (qrfl)
+(dia-focus! `(== ,dia-NXTk ,dia-SEPk))
+;; NXT has domain NN x NN and is applied at (kp, f(kp)); kp's membership is in
+;; context from the di, f(kp)'s is not -- it comes from f being a function NN->NN.
+(fact 'fun-apply-type-c dia-f 'NN 'NN dia-kp)
+(lam-b) (qrfl)
 (dia-focus! dia-agoal)
 (cut `(IN (,dia-f (succ ,dia-kp)) ,dia-SEPk))
 (dia-focus! `(IN (,dia-f (succ ,dia-kp)) ,dia-SEPk)) (subst `(== ,dia-SEPk ,dia-NXTk)) (ass)

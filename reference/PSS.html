@@ -343,11 +343,11 @@
 <pre>forall([x], x in rr and 0 &lt; 1 + x implies forall([b], b in qq and 1 &lt;= b implies 1 + b * x &lt;= rpow(1 + x, b)))</pre>
 <p><em>Warrant (well-known):</em> Bernoulli with real exponent:  (1+x)^b &gt;= 1 + b*x  for 1+x &gt; 0 and rational b &gt;= 1 (convexity of t |-&gt; (1+x)^t, or t^b).  For 0 &lt;= b &lt;= 1 the inequality reverses; stated here for the b &gt;= 1 branch.</p>
 <h4 id="p-cauchy-schwarz-finite">cauchy-schwarz-finite</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * b(i)), s) * finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * b(i)), s) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s) * finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, b(i) * b(i)), s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * b(i)), s) * finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * b(i)), s) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * a(i)), s) * finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, b(i) * b(i)), s)))</pre>
 <p><em>In words:</em> For any finite index set S and real vectors a, b on S: the square of the dot product SUM a(i)<em>b(i) is at most the product of the two squared norms, (SUM a(i)^2)</em>(SUM b(i)^2).  Cauchy-Schwarz for finite sums, square form.</p>
 <p><em>Warrant (well-known):</em> Cauchy-Schwarz for finite sums:  (SUM a_i b_i)^2 &lt;= (SUM a_i^2)(SUM b_i^2). The difference is the Lagrange identity SUM_{i&lt;j} (a_i b_j - a_j b_i)^2 &gt;= 0 (a finite sum of squares).  Square form -- the root form is cauchy-schwarz-sqrt below (now that SQRT exists, real-powers.scm).</p>
 <h4 id="p-cauchy-schwarz-sqrt">cauchy-schwarz-sqrt</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * b(i)), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s)) * sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, b(i) * b(i)), s))))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * b(i)), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * a(i)), s)) * sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, b(i) * b(i)), s))))</pre>
 <p><em>Warrant (well-known):</em> Cauchy-Schwarz, root form:  |SUM a_i b_i| &lt;= sqrt(SUM a_i^2) * sqrt(SUM b_i^2). Take square roots in cauchy-schwarz-finite (both sides nonnegative); the left side is bounded using |SUM| &lt;= sqrt((SUM)^2).</p>
 <h4 id="p-co-eq-le-trans">co-eq-le-trans</h4>
 <pre>forall([a, b, c], a = b implies b &lt;= c implies a &lt;= c)</pre>
@@ -374,16 +374,16 @@
 <pre>forall([a, b, c], a &lt; b implies b &lt; c implies a &lt; c)</pre>
 <p><em>Warrant (well-known):</em> a&lt;b then b&lt;c gives a&lt;c.</p>
 <h4 id="p-finsum-abs-triangle">finsum-abs-triangle</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-normed-field), a, s)) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, abs(a(i))), s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], abs(finsum(commutative-ring-additive-ag(rr-normed-field), a, s)) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, abs(a(i))), s)))</pre>
 <p><em>Warrant (well-known):</em> |SUM_i a(i)| &lt;= SUM_i |a(i)|: the triangle inequality for finite sums, by induction over S from the two-term rr-abs-triangle.</p>
 <h4 id="p-finsum-le-termwise">finsum-le-termwise</h4>
 <pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], forall([i in s], a(i) &lt;= b(i)) implies finsum(commutative-ring-additive-ag(rr-normed-field), a, s) &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), b, s)))</pre>
 <p><em>Warrant (well-known):</em> Monotonicity of the finite sum: if a(i) &lt;= b(i) for every index i in S then SUM_i a(i) &lt;= SUM_i b(i).  Termwise application of rr-le-add over S.</p>
 <h4 id="p-finsum-sq-nonneg">finsum-sq-nonneg</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], 0 &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s)))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], 0 &lt;= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * a(i)), s)))</pre>
 <p><em>Warrant (well-known):</em> 0 &lt;= SUM_i a(i)^2: a finite sum of squares is nonnegative, each term being a square (rr-sq-nonneg) and finite sums of nonnegatives nonnegative.</p>
 <h4 id="p-holder-finite">holder-finite</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr), p], p in qq and 1 &lt; p implies forall([q], q in qq and 1 &lt; q implies /(1, p) + /(1, q) = 1 implies finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, abs(a(i) * b(i))), s) &lt;= rpow(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, rpow(abs(a(i)), p)), s), /(1, p)) * rpow(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, rpow(abs(b(i)), q)), s), /(1, q)))))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr), p], p in qq and 1 &lt; p implies forall([q], q in qq and 1 &lt; q implies /(1, p) + /(1, q) = 1 implies finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, abs(a(i) * b(i))), s) &lt;= rpow(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, rpow(abs(a(i)), p)), s), /(1, p)) * rpow(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, rpow(abs(b(i)), q)), s), /(1, q)))))</pre>
 <p><em>In words:</em> For any finite index set S, real vectors a, b on S, and conjugate exponents p,q&gt;1 (rational, 1/p+1/q=1): the sum of |a(i)*b(i)| over S is at most the product of the p-norm of a and the q-norm of b -- (SUM |a_i|^p)^(1/p) times (SUM |b_i|^q)^(1/q).  Holder&#x27;s inequality for finite sums.</p>
 <p><em>Warrant (well-known):</em> Hoelder&#x27;s inequality:  SUM |a_i b_i| &lt;= (SUM |a_i|^p)^(1/p) (SUM |b_i|^q)^(1/q) for conjugate exponents 1/p+1/q=1 (p,q&gt;1).  Termwise Young (young-inequality) on the normalised vectors, summed.  Cauchy-Schwarz is the p=q=2 case.  Zero entries are handled by the 0^p=0 convention (rpow-zero-base).</p>
 <h4 id="p-interval-hi">interval-hi</h4>
@@ -399,7 +399,7 @@
 <pre>forall([h, a, b, c in ccint(a, b)], h(a) = h(b) implies h(c) &lt; h(a) implies a &lt; c and c &lt; b)</pre>
 <p><em>Warrant (well-known):</em> c in [a,b], h(a)=h(b), h(c)&lt;h(a) =&gt; a&lt;c&lt;b.</p>
 <h4 id="p-minkowski-l2">minkowski-l2</h4>
-<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, (a(i) + b(i)) * (a(i) + b(i))), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, a(i) * a(i)), s)) + sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, b(i) * b(i)), s))))</pre>
+<pre>forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr), b in fun(s, rr)], sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, (a(i) + b(i)) * (a(i) + b(i))), s)) &lt;= sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * a(i)), s)) + sqrt(finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, b(i) * b(i)), s))))</pre>
 <p><em>In words:</em> For any finite index set S and real vectors a, b on S: the Euclidean norm of the coordinatewise sum, sqrt(SUM (a_i+b_i)^2), is at most the sum of the Euclidean norms sqrt(SUM a_i^2) + sqrt(SUM b_i^2).  The l^2 triangle inequality.</p>
 <p><em>Warrant (well-known):</em> Minkowski (l^2 triangle inequality):  the Euclidean norm sqrt(SUM (a_i+b_i)^2) &lt;= sqrt(SUM a_i^2) + sqrt(SUM b_i^2).  Square and apply cauchy-schwarz-sqrt to the cross term.  This is the triangle inequality for the Euclidean metric on R^n.</p>
 <h4 id="p-nn-le-imp-neq-succ">nn-le-imp-neq-succ</h4>
@@ -608,11 +608,11 @@
 <pre>forall([s, r, u in ball-cover(s, r)], choice(centres(s, u, r)) in pts(s) and ball(s, choice(centres(s, u, r)), r) = u)</pre>
 <p><em>Warrant (proof):</em> CHOICE(CENTRES s U r) in PTS(s) and B(CHOICE(CENTRES s U r),r) = U: U in the ball cover makes CENTRES(s,U,r) inhabited, so the epsilon choice lands in it (choice-axiom) and CENTRES-membership gives both conjuncts.  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm.</p>
 <h4 id="p-convergence-block-tower">convergence-block-tower</h4>
-<pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies forall([seq in fun(nn, product-carrier(ms))], forsome([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) and forsome([l in product-carrier(ms)], forall([n in nn], converges-along(ms(n), vnb-lambda(i, (seq(i))(n)), s(n), l(n)))))))</pre>
+<pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies forall([seq in fun(nn, product-carrier(ms))], forsome([s in fun(nn, inf-subsets(nn))], forall([k in nn], s(succ(k)) subset s(k)) and forsome([l in product-carrier(ms)], forall([n in nn], converges-along(ms(n), vnb-lambda(i, nn, (seq(i))(n)), s(n), l(n)))))))</pre>
 <p><em>In words:</em> For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a nested tower of infinite index blocks S(0) &gt;= S(1) &gt;= ... and a product point L such that, in each coordinate n, the n-th coordinates of seq converge to L(n) ALONG the block S(n) (i.e. once restricted to indices in S(n)).  The coordinatewise refinement underlying the diagonal argument.</p>
 <p><em>Warrant (informal):</em> Coordinatewise refinement by dependent choice (calculus.pdf Remark 3.30). S(0): SEQ-COMPACT(ms 0) on i|-&gt;(seq i)(0) gives a convergent subsequence; its index set is an infinite block with coordinate 0 convergent along it.  Given S(n), restrict to it and apply SEQ-COMPACT(ms (n+1)) to the (n+1)-coordinate sequence to get S(n+1) subset S(n), still convergent in coordinates &lt;= n+1. dc-on-nn laces the choices into S:NN-&gt;INF-SUBSETS(NN); L(n) is the coordinate-n limit, L in PRODUCT-CARRIER.  The block-family analogue for convergence; asserted in the library-build phase, the diagonal extraction on top is machine-proven.</p>
 <h4 id="p-coordinatewise-diagonal-subseq">coordinatewise-diagonal-subseq</h4>
-<pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies forall([seq in fun(nn, product-carrier(ms))], forsome([delta], strictly-mono-nn(delta) and forsome([l in product-carrier(ms)], forall([n in nn], converges-to(ms(n), vnb-lambda(k, ((subseq(seq, delta))(k))(n)), l(n)))))))</pre>
+<pre>forall([ms], is-ms-sequence(ms) implies forall([n in nn], seq-compact(ms(n))) implies forall([seq in fun(nn, product-carrier(ms))], forsome([delta], strictly-mono-nn(delta) and forsome([l in product-carrier(ms)], forall([n in nn], converges-to(ms(n), vnb-lambda(k, nn, ((subseq(seq, delta))(k))(n)), l(n)))))))</pre>
 <p><em>In words:</em> For a sequence ms of sequentially compact metric spaces and any sequence seq of points of their product: there is a single strictly increasing reindexing delta and a product point L such that the subsequence seq o delta converges to L in EVERY coordinate at once.  The diagonal argument extracting one subsequence convergent in all coordinates.</p>
 <p><em>Warrant (informal):</em> The diagonal argument (calculus.pdf Remark 3.30 applied across coordinates). Build reindexings by dependent choice on the coordinate index (dc-on-nn over X = strictly-mono maps NN-&gt;NN): phi_0 strictly monotone with coordinate 0 of seq o phi_0 convergent -- SEQ-COMPACT(ms 0) on k|-&gt;(seq k)(0); given the cumulative psi_n = phi_0 o ... o phi_n, choose phi_{n+1} so coordinate n+1 of seq o psi_n o phi_{n+1} converges -- SEQ-COMPACT(ms (n+1)); a subsequence of a convergent sequence still converges, so coordinates &lt;= n stay convergent.  The DIAGONAL delta(k) := psi_k(k) is strictly monotone and, for each n, its tail { delta(k) : k &gt;= n } is a subsequence of psi_n, hence seq o delta converges in coordinate n.  L(n) := that coordinate-n limit; L lies in PRODUCT-CARRIER (each L(n) in PTS(ms n)).  The per-coordinate convergent subsequence is exactly SEQ-COMPACT of each factor; the lacing-together is dc-on-nn + the diagonal.</p>
 <h4 id="p-cover-block-step">cover-block-step</h4>
@@ -636,23 +636,23 @@
 <pre>forall([s in set], card(s) in nn implies forall([m], is-comm-monoid(m) implies forall([f in fun(s, carr(m)), enm in bijection(ord-segment(card(s)), s)], finsum(m, f, s) = sum-ag(m, enum-fam(m, f, enm, card(s)), card(s)))))</pre>
 <p><em>Warrant (informal):</em> Identical to finsum-well-defined: any two enumerations of S differ by a bijection of ORD-SEGMENT(|S|), so finsum-comm-monoid-permutation-invariance equates their folds.  The derivation uses no inverses, hence holds over a commutative monoid.</p>
 <h4 id="p-finsum-fubini">finsum-fubini</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([x], x in set and card(x) in nn implies forall([y], y in set and card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([x], x in set and card(x) in nn implies forall([y], y in set and card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, x, finsum(ag, vnb-lambda(j, y, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, y, finsum(ag, vnb-lambda(i, x, f([i, j])), x)), y)))))</pre>
 <p><em>In words:</em> For an abelian group ag, finite index sets X and Y, and a function f on the product X*Y valued in ag: summing f over Y inside and X outside gives the same result as summing over X inside and Y outside.  Fubini / order-of-summation for finite double sums.</p>
 <p><em>Warrant (informal):</em> Interchanging the order of a finite double sum.  Standard finite Fubini: induction on card(X), the step distributing the inner sum across the newly added outer summand via finsum additivity (finsum-add) and commutativity. Both sums are finite, so no convergence hypothesis is needed; holds over any abelian group.</p>
 <h4 id="p-finsum-interval-peel">finsum-interval-peel</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(finsum(ag, f, interval(1, n)), f(succ(n)))))</pre>
 <p><em>Warrant (well-known):</em> FINSUM over [1,succ n] = (FINSUM over [1,n]) . f(succ n): finsum-insert-ag at X = [1,n], k = succ n, using [1,succ n] = [1,n] u {succ n} (interval-mem-intro / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would give succ n &lt;= n).  Standard finite-sum back-peel, the twin of finsum-interval-shift.</p>
 <h4 id="p-finsum-interval-shift">finsum-interval-shift</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(f(1), finsum(ag, vnb-lambda(z, f(succ(z))), interval(1, n)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(ag))], finsum(ag, f, interval(1, succ(n))) = (opr(ag))(f(1), finsum(ag, vnb-lambda(z, interval(1, n), f(succ(z))), interval(1, n)))))</pre>
 <p><em>Warrant (well-known):</em> FINSUM over [1,succ n] = f(1) . FINSUM over [1,n] of (z|-&gt;f(succ z)): peel the first term (finsum-insert-ag at k=1, X=[2,succ n]) then reindex the tail by the succ bijection [1,n]-&gt;[2,succ n] (finsum-reindex-ag).  Standard finite-sum front-peel, same status as finsum-ord-peel.</p>
 <h4 id="p-finsum-reindex">finsum-reindex</h4>
-<pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, f, s) = finsum(m, vnb-lambda(z, f(phi(z))), t)))))</pre>
+<pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, f, s) = finsum(m, vnb-lambda(z, t, f(phi(z))), t)))))</pre>
 <p><em>Warrant (well-known):</em> Compose the chosen enumeration of T with phi to get an enumeration of S; SUM-AG along it is the same fold.  Independence of enumeration is finsum-comm-monoid-permutation-invariance.  Holds for any comm-monoid sum.</p>
 <h4 id="p-finsum-well-defined">finsum-well-defined</h4>
 <pre>forall([s in set], card(s) in nn implies forall([ag], is-abelian-group(ag) implies forall([f in fun(s, carr(ag)), enm in bijection(ord-segment(card(s)), s)], finsum(ag, f, s) = sum-ag(ag, enum-fam(ag, f, enm, card(s)), card(s)))))</pre>
 <p><em>Warrant (informal):</em> FINSUM is DEFINED by picking some enumeration of S and folding; this says the value does not depend on WHICH enumeration.  Any two bijections from ord-segment(card S) onto S differ by a permutation of the index segment, so the claim is exactly the permutation-invariance of the abelian-group sum -- sum-ag-permutation-invariance, whose (archived) proof is an NN induction splicing one summand out and reordering the rest, using only associativity and commutativity.</p>
 <h4 id="p-funcomp-succ-type">funcomp-succ-type</h4>
-<pre>forall([x, q, f in fun(interval(1, succ(q)), x)], vnb-lambda(z, f(succ(z))) in fun(interval(1, q), x))</pre>
+<pre>forall([x, q, f in fun(interval(1, succ(q)), x)], vnb-lambda(z, interval(1, q), f(succ(z))) in fun(interval(1, q), x))</pre>
 <p><em>Warrant (well-known):</em> z |-&gt; f(succ z) : [1,q] -&gt; X when f : [1,succ q] -&gt; X (succ z in [1,succ q]).</p>
 <h4 id="p-inf-subset-nn-unbounded">inf-subset-nn-unbounded</h4>
 <pre>forall([t in inf-subsets(nn), u in nn], forsome([y in nn], y in t and u &lt; y))</pre>
@@ -688,13 +688,13 @@
 <pre>forall([s], s in set and not(card(s) in nn) implies forall([f], f in set and card(f) in nn implies forall([pi in fun(s, f)], forsome([c in f], not(card({x in s: pi(x) = c}) in nn)))))</pre>
 <p><em>Warrant (informal):</em> Infinite pigeonhole: an infinite set mapped to finitely many boxes fills some box infinitely.  Contrapositive: if every fiber pi^{-1}(c) were finite, s would be a union of card(f)-many finite sets, hence finite -- contra card(s) not in NN.  So some fiber has card not in NN.</p>
 <h4 id="p-power-insert-cover">power-insert-cover</h4>
-<pre>forall([x in set, k], k in set and not(k in x) implies power(union(x, {k})) = union(power(x), image(vnb-lambda(s, union(s, {k})), power(x))))</pre>
+<pre>forall([x in set, k], k in set and not(k in x) implies power(union(x, {k})) = union(power(x), image(vnb-lambda(s, power(x), union(s, {k})), power(x))))</pre>
 <p><em>Warrant (well-known):</em> A subset of X u {k} contains k or not; dropping k gives a subset of X, and the two cases are the two halves of the union.  Standard bijection underlying the binomial recursion; here as a set equation.</p>
 <h4 id="p-power-insert-disjoint">power-insert-disjoint</h4>
-<pre>forall([x in set, k], k in set and not(k in x) implies intersection(power(x), image(vnb-lambda(s, union(s, {k})), power(x))) = empty-set)</pre>
+<pre>forall([x in set, k], k in set and not(k in x) implies intersection(power(x), image(vnb-lambda(s, power(x), union(s, {k})), power(x))) = empty-set)</pre>
 <p><em>Warrant (well-known):</em> Every member of POWER(X) omits k (k not in X); every member of the image contains k.  Hence the two halves of power-insert-cover are disjoint.</p>
 <h4 id="p-prod-of-sums-expansion">prod-of-sums-expansion</h4>
-<pre>forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([a in fun(x, carr(r)), b in fun(x, carr(r))], prod-ring(r, vnb-lambda(k, (add(r))(a(k), b(k))), x) = finsum(commutative-ring-additive-ag(r), vnb-lambda(s, (mul(r))(prod-ring(r, a, s), prod-ring(r, b, difference(x, s)))), power(x)))))</pre>
+<pre>forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([a in fun(x, carr(r)), b in fun(x, carr(r))], prod-ring(r, vnb-lambda(k, x, (add(r))(a(k), b(k))), x) = finsum(commutative-ring-additive-ag(r), vnb-lambda(s, power(x), (mul(r))(prod-ring(r, a, s), prod-ring(r, b, difference(x, s)))), power(x)))))</pre>
 <p><em>Warrant (well-known):</em> Expand each binomial factor and collect: choosing a(k) or b(k) at each k in X corresponds to a subset S (the k&#x27;s where a was chosen), contributing prod_S a * prod_{X\S} b; summing over all 2^|X| choices gives the result (commutativity makes the regrouping valid).  Formal route: induction on |X| via finite-set-induction.  Base |X|=0: prod-ring-empty gives 1, and POWER (EMPTY-SET)={EMPTY-SET} contributes ONE*ONE=1.  Step X u {k0}: prod-ring- insert factors out (a(k0)+b(k0)), ring-left-dist splits it, and power- insert-cover / power-insert-disjoint reindex POWER(PTS u {k0}) into the subsets containing vs avoiding k0 -- matching the two distributed sums.</p>
 <h4 id="p-strictly-mono-ge-id">strictly-mono-ge-id</h4>
 <pre>forall([phi], strictly-mono-nn(phi) implies forall([k in nn], k &lt;= phi(k)))</pre>
@@ -746,7 +746,7 @@
 <pre>forall([f in fun(nn, rr), g in fun(nn, rr)], forall([n in nn], 0 &lt;= f(n) and f(n) &lt;= g(n)) and series-converges(g) implies series-converges(f))</pre>
 <p><em>Warrant (informal):</em> The partial sums F_k = Sum_{n&lt;k} f(n) are nondecreasing (f &gt;= 0) and bounded above by the limit of G_k = Sum_{n&lt;k} g(n) (since f &lt;= g termwise gives F_k &lt;= G_k &lt;= lim G, by series-partial-sum-le-termwise).  A nondecreasing (series-partial-sum-monotone-nonneg) sequence bounded above converges in RR by monotone-convergence-rr (order-completeness), so Sum f converges.  All three ingredients are now in the library (series-order-lemmas.scm), so this is a PSS-&gt;proven candidate -- the chain is assembled, not missing.</p>
 <h4 id="p-const-continuous-at">const-continuous-at</h4>
-<pre>forall([c in rr, a in rr], is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, c), a))</pre>
+<pre>forall([c in rr, a in rr], is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, rr, c), a))</pre>
 <p><em>Warrant (well-known):</em> Constant map: for any eps&gt;0 any delta&gt;0 works, since d(c,c)=0&lt;=eps.</p>
 <h4 id="p-cont-agree-off-pt">cont-agree-off-pt</h4>
 <pre>forall([fa, fb, pt in rr], is-continuous-at(rr-ms, rr-ms, fa, pt) implies is-continuous-at(rr-ms, rr-ms, fb, pt) implies forall([x in rr], not(x = pt) implies fa(x) = fb(x)) implies fa(pt) = fb(pt))</pre>
@@ -764,16 +764,16 @@
 <pre>forall([f, g, a, l, m], is-diff-at(f, a, l) implies is-diff-at(g, f(a), m) implies is-diff-at(compose(g, f), a, m * l))</pre>
 <p><em>Warrant (reference):</em> calculus.pdf Prop 2.8 (chain rule), Caratheodory form: the factor of g o f is (phi_g o f)<em>phi_f, continuous at a with value g&#x27;(f(a))</em>f&#x27;(a) = M*L.</p>
 <h4 id="p-deriv-neg">deriv-neg</h4>
-<pre>forall([f, a, l], is-diff-at(f, a, l) implies is-diff-at(vnb-lambda(z, -f(z)), a, -l))</pre>
+<pre>forall([f, a, l], is-diff-at(f, a, l) implies is-diff-at(vnb-lambda(z, rr, -f(z)), a, -l))</pre>
 <p><em>Warrant (reference):</em> Derivative of -f is -f&#x27;: f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a) = (-phi)(x)(x-a), with -phi continuous at a and value -L.</p>
 <h4 id="p-deriv-product">deriv-product</h4>
-<pre>forall([f, g, a, l, m], is-diff-at(f, a, l) and is-diff-at(g, a, m) implies is-diff-at(vnb-lambda(x, f(x) * g(x)), a, l * g(a) + f(a) * m))</pre>
+<pre>forall([f, g, a, l, m], is-diff-at(f, a, l) and is-diff-at(g, a, m) implies is-diff-at(vnb-lambda(x, rr, f(x) * g(x)), a, l * g(a) + f(a) * m))</pre>
 <p><em>Warrant (reference):</em> calculus.pdf Prop 2.6.  (fg)(x)-(fg)(a) = <a class="x" href="x-a">phi_f(x)g(x) + f(a)phi_g(x)</a> by adding and subtracting f(a)g(x); the bracket is continuous at a with value L<em>g(a)+f(a)</em>M.</p>
 <h4 id="p-deriv-sum">deriv-sum</h4>
-<pre>forall([f, g, a, l, m], is-diff-at(f, a, l) and is-diff-at(g, a, m) implies is-diff-at(vnb-lambda(x, f(x) + g(x)), a, l + m))</pre>
+<pre>forall([f, g, a, l, m], is-diff-at(f, a, l) and is-diff-at(g, a, m) implies is-diff-at(vnb-lambda(x, rr, f(x) + g(x)), a, l + m))</pre>
 <p><em>Warrant (reference):</em> calculus.pdf Prop 2.5.  (f+g)(x)-(f+g)(a) = (phi_f(x)+phi_g(x))(x-a); the witness phi_f+phi_g is continuous at a (sum of continuous), value L+M.</p>
 <h4 id="p-diff-iff-little-o">diff-iff-little-o</h4>
-<pre>forall([f, a, l], is-diff-at(f, a, l) iff f in fun(rr, rr) and a in rr and l in rr and little-o-at(vnb-lambda(x, f(x) - f(a) - l * (x - a)), a))</pre>
+<pre>forall([f, a, l], is-diff-at(f, a, l) iff f in fun(rr, rr) and a in rr and l in rr and little-o-at(vnb-lambda(x, rr, f(x) - f(a) - l * (x - a)), a))</pre>
 <p><em>Warrant (reference):</em> calculus.pdf eq (12): f differentiable at a with derivative L iff the increment x|-&gt;f(x)-f(a)-L(x-a) is o(x-a) at a.  Forward: eps = phi-L for phi the Caratheodory factor; backward: phi = eps+L.</p>
 <h4 id="p-diff-value-real">diff-value-real</h4>
 <pre>forall([f, a, l], is-diff-at(f, a, l) implies l in rr)</pre>
@@ -813,16 +813,16 @@
 <pre>forall([m, f, g, a, x, n], is-bounded-linear-functional(m, g) implies f in fun(rr, vec(m)) implies a in rr implies x in rr implies n in nn implies g((vadd(m))(f(x), (vneg(m))(taylor-poly-v(m, f, a, x, n)))) = (compose(g, f))(x) - taylor-poly(compose(g, f), a, n, x))</pre>
 <p><em>Warrant (reference):</em> g linear: g(f(x) (-) p) = g(f(x)) - g(p) = (g o f)(x) - g(TAYLOR-POLY-V).  g commutes with the finite VADD/ACT sum and with f^(k)(a), so g(TAYLOR-POLY-V(f,a,x,n)) = Sum ((x-a)^k/k!) g(f^(k)(a)) = Sum ((x-a)^k/k!) (g o f)^(k)(a) = TAYLOR-POLY(g o f, a, n, x).</p>
 <h4 id="p-geometric-partial-sum">geometric-partial-sum</h4>
-<pre>forall([r], r in rr and not(r = 1) implies forall([k in nn], series-partial-sum(vnb-lambda(n, r ^ n), k) = (1 - r ^ k) * recip(1 - r)))</pre>
+<pre>forall([r], r in rr and not(r = 1) implies forall([k in nn], series-partial-sum(vnb-lambda(n, nn, r ^ n), k) = (1 - r ^ k) * recip(1 - r)))</pre>
 <p><em>Warrant (well-known):</em> Telescoping: (1-r) Sum_{n&lt;k} r^n = Sum_{n&lt;k}(r^n - r^{n+1}) = 1 - r^k, then divide by 1-r (/= 0).  Induction on k from power-zero/power-succ.</p>
 <h4 id="p-geometric-series-converges-to">geometric-series-converges-to</h4>
-<pre>forall([r], r in rr and abs(r) &lt; 1 implies series-converges-to(vnb-lambda(n, r ^ n), recip(1 - r)))</pre>
+<pre>forall([r], r in rr and abs(r) &lt; 1 implies series-converges-to(vnb-lambda(n, nn, r ^ n), recip(1 - r)))</pre>
 <p><em>Warrant (informal):</em> For |r|&lt;1, r^k -&gt; 0, so the closed-form partial sum (1 - r^k)/(1-r) (geometric-partial-sum) -&gt; 1/(1-r) in RR-MS.  Needs r^k -&gt; 0 (a separate `power tends to 0 when |base|&lt;1&#x27; fact, not yet in the library).</p>
 <h4 id="p-gmvt-aux-cont">gmvt-aux-cont</h4>
-<pre>forall([f, g, a, b, x], is-continuous-at(rr-ms, rr-ms, f, x) implies is-continuous-at(rr-ms, rr-ms, g, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, f(z) * (g(b) - g(a)) - g(z) * (f(b) - f(a))), x))</pre>
+<pre>forall([f, g, a, b, x], is-continuous-at(rr-ms, rr-ms, f, x) implies is-continuous-at(rr-ms, rr-ms, g, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(z) * (g(b) - g(a)) - g(z) * (f(b) - f(a))), x))</pre>
 <p><em>Warrant (reference):</em> h = (g(b)-g(a))f - (f(b)-f(a))g is a linear combination of f and g, hence continuous wherever both f and g are (calculus.pdf Thm 2.11).</p>
 <h4 id="p-gmvt-aux-diff">gmvt-aux-diff</h4>
-<pre>forall([f, g, a, b, x, l, m], is-diff-at(f, x, l) implies is-diff-at(g, x, m) implies is-diff-at(vnb-lambda(z, f(z) * (g(b) - g(a)) - g(z) * (f(b) - f(a))), x, l * (g(b) - g(a)) - m * (f(b) - f(a))))</pre>
+<pre>forall([f, g, a, b, x, l, m], is-diff-at(f, x, l) implies is-diff-at(g, x, m) implies is-diff-at(vnb-lambda(z, rr, f(z) * (g(b) - g(a)) - g(z) * (f(b) - f(a))), x, l * (g(b) - g(a)) - m * (f(b) - f(a))))</pre>
 <p><em>Warrant (reference):</em> h&#x27;(x) = (g(b)-g(a))f&#x27;(x) - (f(b)-f(a))g&#x27;(x), from deriv-sum/scalar-mult on the linear combination h = (g(b)-g(a))f - (f(b)-f(a))g (calculus.pdf Thm 2.11).</p>
 <h4 id="p-gof-in-fun">gof-in-fun</h4>
 <pre>forall([m, f, g], is-bounded-linear-functional(m, g) implies f in fun(rr, vec(m)) implies compose(g, f) in fun(rr, rr))</pre>
@@ -853,7 +853,7 @@
 <pre>forall([m, s, f, v], is-normed-vector-space(m) and is-submodule(m, s) and is-bounded-linear-functional-on(m, s, f) and v in vec(m) and not(v in s) implies forsome([a_ in rr], forall([y_ in s, r_ in rr], abs(f(y_) + r_ * a_) &lt;= dual-norm-on(m, s, f) * (vnrm(m))((vadd(m))(y_, (act(m))(r_, v))))))</pre>
 <p><em>Warrant (reference):</em> Hahn-Banach gap (real, one dimension): with M = ||f||_s, for z,w in s f(w-z) &lt;= M||w-z|| &lt;= M(||z+v||+||w+v||), so sup_z(-f(z)-M||z+v||) &lt;= inf_w(-f(w)+M||w+v||); RR order-completeness gives a separating alpha, whence |f(y)+r.alpha| &lt;= M||y+r.v|| for all y in s, r in RR.</p>
 <h4 id="p-identity-continuous-at">identity-continuous-at</h4>
-<pre>forall([a in rr], is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, x), a))</pre>
+<pre>forall([a in rr], is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, rr, x), a))</pre>
 <p><em>Warrant (well-known):</em> Identity map: delta=eps works, since d(x,a)=|x-a|&lt;=eps whenever |x-a|&lt;=eps.</p>
 <h4 id="p-le-bound-mono">le-bound-mono</h4>
 <pre>forall([p, a, b, n], p in rr implies a in rr implies b in rr implies n in rr implies 0 &lt;= n implies p &lt;= a * n implies a &lt;= b implies p &lt;= b * n)</pre>
@@ -874,19 +874,19 @@
 <pre>forall([m, f], is-linear-functional-on(m, vec(m), f) implies is-linear-functional(m, f))</pre>
 <p><em>Warrant (reference):</em> IS-LINEAR-FUNCTIONAL-ON m (VEC m) f and IS-LINEAR-FUNCTIONAL m f unfold to the same conjunction (f in FUN(VEC m,RR), additive, homogeneous over VEC m).</p>
 <h4 id="p-little-o-scalar">little-o-scalar</h4>
-<pre>forall([c, g, a], c in rr implies little-o-at(g, a) implies little-o-at(vnb-lambda(x, c * g(x)), a))</pre>
+<pre>forall([c, g, a], c in rr implies little-o-at(g, a) implies little-o-at(vnb-lambda(x, rr, c * g(x)), a))</pre>
 <p><em>Warrant (well-known):</em> A constant multiple of o(x-a) is o(x-a): witness c*eps_g (continuous at a, value 0), and (c g)(x) = (c eps_g(x))(x-a).</p>
 <h4 id="p-little-o-sum">little-o-sum</h4>
-<pre>forall([g, h, a], little-o-at(g, a) implies little-o-at(h, a) implies little-o-at(vnb-lambda(x, g(x) + h(x)), a))</pre>
+<pre>forall([g, h, a], little-o-at(g, a) implies little-o-at(h, a) implies little-o-at(vnb-lambda(x, rr, g(x) + h(x)), a))</pre>
 <p><em>Warrant (well-known):</em> Sum of two o(x-a) is o(x-a): add the witnesses eps_g + eps_h (continuous at a, value 0), and (g+h)(x) = (eps_g(x)+eps_h(x))(x-a).</p>
 <h4 id="p-monotone-convergence-rr">monotone-convergence-rr</h4>
 <pre>forall([f in fun(nn, rr)], forall([k in nn], f(k) &lt;= f(succ(k))) and forsome([bnd in rr], forall([k in nn], f(k) &lt;= bnd)) implies converges(rr-ms, f))</pre>
 <p><em>Warrant (well-known):</em> A nondecreasing sequence bounded above converges to its supremum -- the order-completeness of RR (least-upper-bound property).  The eps-N witness: for eps&gt;0 the sup minus eps is not an upper bound, so some f(N) exceeds it, and monotonicity keeps every later term within eps of the sup.  Standard; the named lemma comparison-test was waiting on.</p>
 <h4 id="p-mvt-aux-cont">mvt-aux-cont</h4>
-<pre>forall([f, a, b, x], is-continuous-at(rr-ms, rr-ms, f, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, f(z) * (b - a) - z * (f(b) - f(a))), x))</pre>
+<pre>forall([f, a, b, x], is-continuous-at(rr-ms, rr-ms, f, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(z) * (b - a) - z * (f(b) - f(a))), x))</pre>
 <p><em>Warrant (reference):</em> h is a sum/product of f, constants and the identity, hence continuous where f is.</p>
 <h4 id="p-mvt-aux-diff">mvt-aux-diff</h4>
-<pre>forall([f, a, b, x, l], is-diff-at(f, x, l) implies is-diff-at(vnb-lambda(z, f(z) * (b - a) - z * (f(b) - f(a))), x, l * (b - a) - (f(b) - f(a))))</pre>
+<pre>forall([f, a, b, x, l], is-diff-at(f, x, l) implies is-diff-at(vnb-lambda(z, rr, f(z) * (b - a) - z * (f(b) - f(a))), x, l * (b - a) - (f(b) - f(a))))</pre>
 <p><em>Warrant (reference):</em> h=(b-a)f-(f(b)-f(a))id is a linear combination of f and identity; its derivative (b-a)L-(f(b)-f(a)) follows from deriv-product/sum/const/identity.</p>
 <h4 id="p-nth-deriv-v-in-vec">nth-deriv-v-in-vec</h4>
 <pre>forall([m, f, k, t], is-normed-vector-space(m) implies f in fun(rr, vec(m)) implies k in nn implies t in rr implies (nth-deriv-v(m, f, k))(t) in vec(m))</pre>
@@ -895,7 +895,7 @@
 <pre>forall([m], is-normed-vector-space(m) implies is-metric-space(nvs-metric-space(m)))</pre>
 <p><em>Warrant (reference):</em> d(x,y)=||x-y|| is a metric: nonneg + definite from the norm&#x27;s definiteness, symmetry from ||-(x-y)||=||x-y||, triangle from the norm triangle inequality.</p>
 <h4 id="p-nvs-taylor-remainder-bound">nvs-taylor-remainder-bound</h4>
-<pre>forall([dm, cm, f, a, h, n], is-normed-vector-space(dm) implies is-finite-dimensional(dm) implies is-normed-vector-space(cm) implies is-finite-dimensional(cm) implies f in fun(vec(dm), vec(cm)) implies a in vec(dm) implies h in vec(dm) implies n in nn implies taylor-differentiable-v(cm, vnb-lambda(t, f((vadd(dm))(a, (act(dm))(t, h)))), 0, 1, n) implies forsome([theta], 0 &lt; theta and theta &lt; 1 and factorial(succ(n)) * (vnrm(cm))((vadd(cm))(f((vadd(dm))(a, h)), (vneg(cm))(taylor-poly-v(cm, vnb-lambda(t, f((vadd(dm))(a, (act(dm))(t, h)))), 0, 1, n)))) &lt;= (vnrm(cm))((nth-deriv-v(cm, vnb-lambda(t, f((vadd(dm))(a, (act(dm))(t, h)))), succ(n)))(theta))))</pre>
+<pre>forall([dm, cm, f, a, h, n], is-normed-vector-space(dm) implies is-finite-dimensional(dm) implies is-normed-vector-space(cm) implies is-finite-dimensional(cm) implies f in fun(vec(dm), vec(cm)) implies a in vec(dm) implies h in vec(dm) implies n in nn implies taylor-differentiable-v(cm, vnb-lambda(t, rr, f((vadd(dm))(a, (act(dm))(t, h)))), 0, 1, n) implies forsome([theta], 0 &lt; theta and theta &lt; 1 and factorial(succ(n)) * (vnrm(cm))((vadd(cm))(f((vadd(dm))(a, h)), (vneg(cm))(taylor-poly-v(cm, vnb-lambda(t, rr, f((vadd(dm))(a, (act(dm))(t, h)))), 0, 1, n)))) &lt;= (vnrm(cm))((nth-deriv-v(cm, vnb-lambda(t, rr, f((vadd(dm))(a, (act(dm))(t, h)))), succ(n)))(theta))))</pre>
 <p><em>In words:</em> Taylor&#x27;s theorem with remainder bound for a map f between two finite-dimensional real normed vector spaces dm (domain) and cm (codomain).  For a base point a and an increment h in VEC(dm), let phi(t) = f(a (+) t.h) be the restriction of f to the segment from a to a (+) h -- a curve RR -&gt; VEC(cm).  Hypothesis: phi is (n+1)-times differentiable on [0,1] in the curve sense (TAYLOR-DIFFERENTIABLE-V: each phi^(k), k&lt;=n, norm-continuous on [0,1] and vector-differentiable on (0,1) with derivative phi^(k+1)).  Conclusion: there is a mean-value point theta in (0,1) with (n+1)! * ||R|| &lt;= ||phi^(n+1)(theta)||, where the remainder R = f(a (+) h) (-) TAYLOR-POLY-V(cm, phi, 0, 1, n) and the polynomial is sum_{k=0}^{n} (1/k!) phi^(k)(0) = sum_{k=0}^{n} (1/k!) D^k f(a).h^k -- the genuine multivariable Taylor polynomial, phi^(k)(0) being the k-th directional derivative. Dieudonné (Foundations of Modern Analysis, Taylor&#x27;s formula 8.14.3) proves the Banach-space version WITHOUT Hahn-Banach, via the mean-value inequality.  Our intended (finite-dimensional, non-constructive) proof instead reduces to the curve theorem vector-taylor-remainder-bound applied to phi -- the norm-attaining- functional / Hahn-Banach route already in the library -- hence the rests-on below.</p>
 <p><em>Warrant (reference):</em> Dieudonné, Foundations of Modern Analysis, Taylor&#x27;s formula, 8.14.3</p>
 <h4 id="p-open-mapping-bounded-inverse">open-mapping-bounded-inverse</h4>
@@ -913,7 +913,7 @@
 <pre>forall([n in nn], 0 ^ succ(n) = 0)</pre>
 <p><em>Warrant (well-known):</em> 0^(n+1) = 0 (power-succ: 0^(n+1) = 0 * 0^n = 0).</p>
 <h4 id="p-product-continuous-at">product-continuous-at</h4>
-<pre>forall([g, h, a], is-continuous-at(rr-ms, rr-ms, g, a) implies is-continuous-at(rr-ms, rr-ms, h, a) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, g(x) * h(x)), a))</pre>
+<pre>forall([g, h, a], is-continuous-at(rr-ms, rr-ms, g, a) implies is-continuous-at(rr-ms, rr-ms, h, a) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, rr, g(x) * h(x)), a))</pre>
 <p><em>Warrant (well-known):</em> Product of continuous: g is bounded near a (continuity), and |gh(x)-gh(a)| &lt;= |g(x)||h(x)-h(a)| + |h(a)||g(x)-g(a)|; choose deltas making each summand &lt; eps/2.</p>
 <h4 id="p-proper-subset-witness">proper-subset-witness</h4>
 <pre>forall([a, b], a subset b implies not(a = b) implies forsome([x_ in b], not(x_ in a)))</pre>
@@ -925,10 +925,10 @@
 <pre>forall([coef in fun(nn, rr), x], x in rr and ps-absolutely-converges-at(coef, x) implies ps-converges-at(coef, x))</pre>
 <p><em>Warrant (informal):</em> Absolute convergence gives that the partial sums A_k = Sum_{n&lt;k} |coef(n)||x|^n converge, hence are Cauchy: for eps&gt;0 there is N with A_m - A_k = Sum_{k&lt;=n&lt;m} |coef(n)||x|^n &lt; eps  for m &gt;= k &gt;= N.  By the triangle inequality the ordinary partial sums S_k = Sum_{n&lt;k} coef(n)x^n satisfy |S_m - S_k| &lt;= Sum_{k&lt;=n&lt;m} |coef(n) x^n| = Sum_{k&lt;=n&lt;m} |coef(n)||x|^n &lt; eps (ps-abs-term), so (S_k) is Cauchy in RR-MS.  RR is complete (rr-complete), so (S_k) converges -- PS-CONVERGES-AT(coef, x).  A candidate to discharge into a formal `proof&#x27; later (it needs a finite triangle-inequality / abs-of-finsum bound not yet in the library).</p>
 <h4 id="p-ps-converges-as-series">ps-converges-as-series</h4>
-<pre>forall([coef in fun(nn, rr), x in rr], ps-converges-at(coef, x) iff series-converges(vnb-lambda(n, coef(n) * x ^ n)))</pre>
+<pre>forall([coef in fun(nn, rr), x in rr], ps-converges-at(coef, x) iff series-converges(vnb-lambda(n, nn, coef(n) * x ^ n)))</pre>
 <p><em>Warrant (well-known):</em> Immediate from ps-partial-sum-as-series: the two partial-sum sequences are equal, so one converges in RR-MS iff the other does.</p>
 <h4 id="p-ps-partial-sum-as-series">ps-partial-sum-as-series</h4>
-<pre>forall([coef in fun(nn, rr), x in rr, k in nn], ps-partial-sum(coef, x, k) = series-partial-sum(vnb-lambda(n, coef(n) * x ^ n), k))</pre>
+<pre>forall([coef in fun(nn, rr), x in rr, k in nn], ps-partial-sum(coef, x, k) = series-partial-sum(vnb-lambda(n, nn, coef(n) * x ^ n), k))</pre>
 <p><em>Warrant (well-known):</em> Both sides unfold to SUM-AG(RR-additive-AG, n |-&gt; coef(n) x^n, k) -- the PS-PARTIAL-SUM functoid is SERIES-PARTIAL-SUM of the term sequence.  Provable by unfolding the two def-functoids; asserted for now.</p>
 <h4 id="p-ratio-test-converges">ratio-test-converges</h4>
 <pre>forall([coef in fun(nn, rr), l], l in rr and 0 &lt;= l and forall([n in nn], not(coef(n) = 0)) and ps-ratio-limit(coef, l) implies forall([x], x in rr and abs(x) * l &lt; 1 implies ps-converges-at(coef, x)))</pre>
@@ -976,7 +976,7 @@
 <pre>forall([f in fun(nn, rr)], series-converges(f) implies forall([eps], pos-rr(eps) implies forsome([bnd in nn], forall([m in nn, n_ in nn], bnd &lt;= m and m &lt;= n_ implies abs(series-partial-sum(f, n_) - series-partial-sum(f, m)) &lt;= eps))))</pre>
 <p><em>Warrant (well-known):</em> SERIES-CONVERGES f means the partial-sum sequence converges in RR-MS, hence is Cauchy: the block sum sum_{m&lt;=i&lt;n} f(i) = P(n)-P(m) is within eps once m,n are large.  The finite-block form of the tail going to 0.</p>
 <h4 id="p-series-partial-sum-abs-le">series-partial-sum-abs-le</h4>
-<pre>forall([f in fun(nn, rr), k in nn], abs(series-partial-sum(f, k)) &lt;= series-partial-sum(vnb-lambda(n_, abs(f(n_))), k))</pre>
+<pre>forall([f in fun(nn, rr), k in nn], abs(series-partial-sum(f, k)) &lt;= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k))</pre>
 <p><em>Warrant (well-known):</em> |sum_{n&lt;k} f(n)| &lt;= sum_{n&lt;k} |f(n)|: induction on k via the SUM-AG recurrence and rr-abs-triangle at each step.</p>
 <h4 id="p-series-partial-sum-le-termwise">series-partial-sum-le-termwise</h4>
 <pre>forall([f in fun(nn, rr), g in fun(nn, rr)], forall([n_ in nn], f(n_) &lt;= g(n_)) implies forall([k in nn], series-partial-sum(f, k) &lt;= series-partial-sum(g, k)))</pre>
@@ -997,13 +997,13 @@
 <pre>forall([m, t, v], is-submodule(m, t) implies v in vec(m) implies t subset span-add-one(m, t, v))</pre>
 <p><em>Warrant (reference):</em> Every y in t equals y + 0.v, so t is contained in t + RR.v.</p>
 <h4 id="p-sub-continuous-at">sub-continuous-at</h4>
-<pre>forall([g, h, a], is-continuous-at(rr-ms, rr-ms, g, a) implies is-continuous-at(rr-ms, rr-ms, h, a) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, g(x) - h(x)), a))</pre>
+<pre>forall([g, h, a], is-continuous-at(rr-ms, rr-ms, g, a) implies is-continuous-at(rr-ms, rr-ms, h, a) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, rr, g(x) - h(x)), a))</pre>
 <p><em>Warrant (well-known):</em> Difference of continuous is continuous: (g-h)(x) = g(x) + (-1)*h(x); the eps/2 split for sum-continuous-at, negation being an isometry of RR.</p>
 <h4 id="p-submodule-subset">submodule-subset</h4>
 <pre>forall([m, t], is-submodule(m, t) implies t subset vec(m))</pre>
 <p><em>Warrant (reference):</em> A submodule is by definition a subset of the vectors.</p>
 <h4 id="p-sum-continuous-at">sum-continuous-at</h4>
-<pre>forall([g, h, a], is-continuous-at(rr-ms, rr-ms, g, a) implies is-continuous-at(rr-ms, rr-ms, h, a) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, g(x) + h(x)), a))</pre>
+<pre>forall([g, h, a], is-continuous-at(rr-ms, rr-ms, g, a) implies is-continuous-at(rr-ms, rr-ms, h, a) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(x, rr, g(x) + h(x)), a))</pre>
 <p><em>Warrant (well-known):</em> Sum of continuous: given eps, take delta = min of the eps/2-deltas for g and h; the triangle inequality gives |(g+h)(x)-(g+h)(a)| &lt;= eps.</p>
 <h4 id="p-summable-bound-converges">summable-bound-converges</h4>
 <pre>forall([s, f, rad], is-complete(s) and f in fun(nn, pts(s)) and rad in fun(nn, rr) and series-converges(rad) and forall([k in nn], (dist(s))(f(k), f(succ(k))) &lt;= rad(k)) implies converges(s, f))</pre>
@@ -1018,40 +1018,40 @@
 <pre>forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies a &lt; t implies t &lt; x implies (nth-deriv(f, succ(n)))(t) in rr)</pre>
 <p><em>Warrant (reference):</em> f^(n+1)(t) is the derivative value of the differentiable f^(n) at t, hence real (IS-DIFF-AT carries its value in RR).</p>
 <h4 id="p-taylor-g-at-a">taylor-g-at-a</h4>
-<pre>forall([f, a, x, n], (vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)))(a) = f(x) - taylor-poly(f, a, n, x))</pre>
+<pre>forall([f, a, x, n], (vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)))(a) = f(x) - taylor-poly(f, a, n, x))</pre>
 <p><em>Warrant (reference):</em> G(a) = f(x) - TAYLOR-POLY(f,a,n,x) (beta).</p>
 <h4 id="p-taylor-g-at-x">taylor-g-at-x</h4>
-<pre>forall([f, x, n in nn], (vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)))(x) = 0)</pre>
+<pre>forall([f, x, n in nn], (vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)))(x) = 0)</pre>
 <p><em>Warrant (reference):</em> G(x) = f(x) - TAYLOR-POLY(f,x,n,x) = f(x) - f(x) = 0 (taylor-poly-at-center).</p>
 <h4 id="p-taylor-g-cont">taylor-g-cont</h4>
-<pre>forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies t in ccint(a, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)), t))</pre>
+<pre>forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies t in ccint(a, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t))</pre>
 <p><em>Warrant (reference):</em> G(t)=f(x)-TAYLOR-POLY(f,t,n,x) is a sum of products of the continuous derivatives f^(k) and polynomials in t, hence continuous on [a,x].</p>
 <h4 id="p-taylor-g-diff">taylor-g-diff</h4>
-<pre>forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies a &lt; t and t &lt; x implies is-diff-at(vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)), t, 0 - recip(factorial(n)) * (nth-deriv(f, succ(n)))(t) * (x - t) ^ n))</pre>
+<pre>forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies a &lt; t and t &lt; x implies is-diff-at(vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t, 0 - recip(factorial(n)) * (nth-deriv(f, succ(n)))(t) * (x - t) ^ n))</pre>
 <p><em>Warrant (reference):</em> Telescoping: d/dt[f(x)-Sum_{k&lt;=n} f^(k)(t)(x-t)^k/k!] = -(f^(n+1)(t)/n!)(x-t)^n. Differentiate term k by the product rule: the f^(k+1)(t)(x-t)^k/k! piece of term k cancels the -f^(k+1)(t)(x-t)^k/k! piece of term k+1, leaving only the last -(f^(n+1)(t)/n!)(x-t)^n.  Standard (calculus.pdf Taylor section).</p>
 <h4 id="p-taylor-g-in-fun">taylor-g-in-fun</h4>
-<pre>forall([f in fun(rr, rr), x in rr], vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)) in fun(rr, rr))</pre>
+<pre>forall([f in fun(rr, rr), x in rr], vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)) in fun(rr, rr))</pre>
 <p><em>Warrant (reference):</em> G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of reals).</p>
 <h4 id="p-taylor-gmvt-cont">taylor-gmvt-cont</h4>
-<pre>forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies x in rr implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)), t) and is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, (x - z) ^ succ(n)), t)))</pre>
+<pre>forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies x in rr implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t) and is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, (x - z) ^ succ(n)), t)))</pre>
 <p><em>Warrant (reference):</em> G and H are continuous on [a,x]: H is a polynomial, G a finite sum of products of the continuous derivatives f^(k) with polynomials (taylor-G-cont/H-cont).</p>
 <h4 id="p-taylor-gmvt-diff">taylor-gmvt-diff</h4>
-<pre>forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies forall([t], a &lt; t and t &lt; x implies forsome([l], is-diff-at(vnb-lambda(z, f(x) - taylor-poly(f, z, n, x)), t, l)) and forsome([m], is-diff-at(vnb-lambda(z, (x - z) ^ succ(n)), t, m))))</pre>
+<pre>forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies forall([t], a &lt; t and t &lt; x implies forsome([l], is-diff-at(vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t, l)) and forsome([m], is-diff-at(vnb-lambda(z, rr, (x - z) ^ succ(n)), t, m))))</pre>
 <p><em>Warrant (reference):</em> G and H are differentiable on (a,x) (taylor-G-diff/H-diff give the explicit derivatives), so each has SOME derivative there.</p>
 <h4 id="p-taylor-h-at-a">taylor-h-at-a</h4>
-<pre>forall([a, x, n], (vnb-lambda(z, (x - z) ^ succ(n)))(a) = (x - a) ^ succ(n))</pre>
+<pre>forall([a, x, n], (vnb-lambda(z, rr, (x - z) ^ succ(n)))(a) = (x - a) ^ succ(n))</pre>
 <p><em>Warrant (reference):</em> H(a) = (x-a)^(n+1) (beta).</p>
 <h4 id="p-taylor-h-at-x">taylor-h-at-x</h4>
-<pre>forall([x, n in nn], (vnb-lambda(z, (x - z) ^ succ(n)))(x) = 0)</pre>
+<pre>forall([x, n in nn], (vnb-lambda(z, rr, (x - z) ^ succ(n)))(x) = 0)</pre>
 <p><em>Warrant (reference):</em> H(x) = (x-x)^(n+1) = 0^(n+1) = 0.</p>
 <h4 id="p-taylor-h-cont">taylor-h-cont</h4>
-<pre>forall([x, n, t], x in rr implies t in rr implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, (x - z) ^ succ(n)), t))</pre>
+<pre>forall([x, n, t], x in rr implies t in rr implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, (x - z) ^ succ(n)), t))</pre>
 <p><em>Warrant (reference):</em> H(t)=(x-t)^(n+1) is a polynomial in t, continuous everywhere.</p>
 <h4 id="p-taylor-h-diff">taylor-h-diff</h4>
-<pre>forall([x, n, t], x in rr implies t in rr implies is-diff-at(vnb-lambda(z, (x - z) ^ succ(n)), t, 0 - succ(n) * (x - t) ^ n))</pre>
+<pre>forall([x, n, t], x in rr implies t in rr implies is-diff-at(vnb-lambda(z, rr, (x - z) ^ succ(n)), t, 0 - succ(n) * (x - t) ^ n))</pre>
 <p><em>Warrant (reference):</em> d/dt[(x-t)^(n+1)] = -(n+1)(x-t)^n (chain rule on the polynomial).</p>
 <h4 id="p-taylor-h-in-fun">taylor-h-in-fun</h4>
-<pre>forall([x in rr], vnb-lambda(z, (x - z) ^ succ(n)) in fun(rr, rr))</pre>
+<pre>forall([x in rr], vnb-lambda(z, rr, (x - z) ^ succ(n)) in fun(rr, rr))</pre>
 <p><em>Warrant (reference):</em> H(t)=(x-t)^(n+1) maps RR to RR.</p>
 <h4 id="p-taylor-poly-at-center">taylor-poly-at-center</h4>
 <pre>forall([f, x, n], x in rr implies n in nn implies forall([k], k in nn and k &lt;= n implies (nth-deriv(f, k))(x) in rr) implies taylor-poly(f, x, n, x) = f(x))</pre>
@@ -1164,16 +1164,16 @@
 <pre>forall([s], is-euclidean-ring(s) implies forsome([deg in fun(carr(s), nn)], has-div-remainder(s, deg)))</pre>
 <p><em>Warrant (well-known):</em> The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a degree function deg : CARR(s) -&gt; NN with division-with-remainder (HAS-DIV- REMAINDER s deg).  Definitional once HAS-DIV-REMAINDER names the clause.</p>
 <h4 id="p-finsum-act-collect-gen">finsum-act-collect-gen</h4>
-<pre>forall([md], is-module(md) implies forall([x in vec(md), s in set], card(s) in nn implies forall([c in fun(s, carr(scal(md)))], (act(md))(finsum(ring-additive-ag(scal(md)), c, s), x) = finsum(module-vector-ag(md), vnb-lambda(z, (act(md))(c(z), x)), s))))</pre>
+<pre>forall([md], is-module(md) implies forall([x in vec(md), s in set], card(s) in nn implies forall([c in fun(s, carr(scal(md)))], (act(md))(finsum(ring-additive-ag(scal(md)), c, s), x) = finsum(module-vector-ag(md), vnb-lambda(z, s, (act(md))(c(z), x)), s))))</pre>
 <p><em>Warrant (well-known):</em> (SUM_z c z).x = SUM_z ((c z).x) in a module: r |-&gt; r.x is a homomorphism from the scalar ring&#x27;s additive group to the vector abelian group.  Induction on |S| via finsum-insert: (SUM_X c + c z0).x = (SUM_X c).x + (c z0).x by module-act-distrib-scalar, and the empty case is 0.x = 0 (module-zero-act).</p>
 <h4 id="p-finsum-act-distrib-gen">finsum-act-distrib-gen</h4>
-<pre>forall([md], is-module(md) implies forall([r in carr(scal(md)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], (act(md))(r, finsum(module-vector-ag(md), f, s)) = finsum(module-vector-ag(md), vnb-lambda(z, (act(md))(r, f(z))), s))))</pre>
+<pre>forall([md], is-module(md) implies forall([r in carr(scal(md)), s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], (act(md))(r, finsum(module-vector-ag(md), f, s)) = finsum(module-vector-ag(md), vnb-lambda(z, s, (act(md))(r, f(z))), s))))</pre>
 <p><em>Warrant (well-known):</em> r.(SUM_z f z) = SUM_z (r . f z) in a module: x |-&gt; r.x is an endomorphism of the vector abelian group.  Induction on |S| via finsum-insert: r.(SUM_X f + f z0) = r.SUM_X f + r.(f z0) by module-act-distrib-vec, and the empty case is r.0 = 0, itself r.(0+0) = r.0 + r.0 killed by abelian-group-idempotent-is-id on the vector group (the module-zero-act route).</p>
 <h4 id="p-finsum-add">finsum-add</h4>
-<pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, (opr(m))(f(z), h(z))), s) = (opr(m))(finsum(m, f, s), finsum(m, h, s)))))</pre>
+<pre>forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(m)), h in fun(s, carr(m))], finsum(m, vnb-lambda(z, s, (opr(m))(f(z), h(z))), s) = (opr(m))(finsum(m, f, s), finsum(m, h, s)))))</pre>
 <p><em>Warrant (well-known):</em> Induction on |S| via finsum-insert: base is (IDEN m)<em>(IDEN m)=(IDEN m) (finsum-empty); step folds in one z0, regrouping (a</em>b)<em>(c</em>d)=(a<em>c)</em>(b*d) by the commutativity and associativity of (OPR m) -- which is exactly what IS-COMM-MONOID supplies (no inverses used).  Holds for every commutative-monoid-valued finite sum.</p>
 <h4 id="p-finsum-add-ag">finsum-add-ag</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, (opr(ag))(f(z), h(z))), s) = (opr(ag))(finsum(ag, f, s), finsum(ag, h, s)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), h in fun(s, carr(ag))], finsum(ag, vnb-lambda(z, s, (opr(ag))(f(z), h(z))), s) = (opr(ag))(finsum(ag, f, s), finsum(ag, h, s)))))</pre>
 <p><em>Warrant (well-known):</em> finsum-add at m = ag as a commutative monoid: induction on |S| via finsum-insert-ag, regrouping (a+b)+(c+d)=(a+c)+(b+d) by commutativity and associativity of (OPR ag).  No inverses used.</p>
 <h4 id="p-finsum-all-id">finsum-all-id</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], forall([z in s], f(z) = iden(ag)) implies finsum(ag, f, s) = iden(ag))))</pre>
@@ -1191,13 +1191,13 @@
 <pre>forall([ag], is-abelian-group(ag) implies forall([n in nn, f in fun(ord-segment(succ(n)), carr(ag))], finsum(ag, f, ord-segment(succ(n))) = (opr(ag))(finsum(ag, f, ord-segment(n)), f(n))))</pre>
 <p><em>Warrant (well-known):</em> finsum-insert-ag at X=ORD-SEGMENT(n), k=n: ORD-SEGMENT(succ n)=ORD-SEGMENT(n) u {n} (ord-segment-insert), ORD-SEGMENT(n) is a set (ord-segment-is-set) of card n in NN, and n not in ORD-SEGMENT(n) (ord-segment-self).  So the sum splits as the sum over ORD-SEGMENT(n) plus the peeled top term f(n).</p>
 <h4 id="p-finsum-reindex-ag">finsum-reindex-ag</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(ag))], finsum(ag, f, s) = finsum(ag, vnb-lambda(z, f(phi(z))), t)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(ag))], finsum(ag, f, s) = finsum(ag, vnb-lambda(z, t, f(phi(z))), t)))))</pre>
 <p><em>Warrant (well-known):</em> finsum-reindex at m = ag as a commutative monoid: compose the chosen enumeration of T with phi to enumerate S; the fold is the same.  Holds for any abelian-group-valued finite sum.</p>
 <h4 id="p-finsum-ring-distrib-left">finsum-ring-distrib-left</h4>
-<pre>forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(r, finsum(commutative-ring-additive-ag(rng), f, s)) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(r, f(z))), s))))</pre>
+<pre>forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(r, finsum(commutative-ring-additive-ag(rng), f, s)) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, s, (mul(rng))(r, f(z))), s))))</pre>
 <p><em>Warrant (well-known):</em> Induction on |S| via finsum-insert: r<em>(SUM_X f + f z0) = r</em>SUM_X f + r<em>f z0 by ring-left-dist, then the IH.  a |-&gt; r</em>a is an endomorphism of (R,+), and FINSUM commutes with an AG-endomorphism.</p>
 <h4 id="p-finsum-ring-distrib-right">finsum-ring-distrib-right</h4>
-<pre>forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(commutative-ring-additive-ag(rng), f, s), r) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(f(z), r)), s))))</pre>
+<pre>forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(commutative-ring-additive-ag(rng), f, s), r) = finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, s, (mul(rng))(f(z), r)), s))))</pre>
 <p><em>Warrant (well-known):</em> Right-handed finsum-ring-distrib-left: (SUM_X f + f z0)<em>r = SUM_X f</em>r + f z0<em>r by ring-right-dist, then the IH.  a |-&gt; a</em>r is an endomorphism of (R,+).</p>
 <h4 id="p-finsum-ring-scalar-zz">finsum-ring-scalar-zz</h4>
 <pre>forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), c in zz, a in carr(rng)], (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a)) = zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a))))</pre>
@@ -1230,46 +1230,46 @@
 <pre>forall([a], is-ring(a) implies forall([n], identmat(a, n) in mat(n, n, carr(a))))</pre>
 <p><em>Warrant (reference):</em> IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).</p>
 <h4 id="p-mal-dist-type">mal-dist-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, (act(md))((vnb-lambda(j, (mul(scal(md)))(entry(p, row, j), entry(q, j, x))))(z), entry(u, x, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, interval(1, n), (act(md))((vnb-lambda(j, interval(1, n), (mul(scal(md)))(entry(p, row, j), entry(q, j, x))))(z), entry(u, x, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mal-inf-type">mal-inf-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, (mul(scal(md)))(entry(p, row, j), entry(q, j, x))) in fun(interval(1, n), carr(scal(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, interval(1, n), (mul(scal(md)))(entry(p, row, j), entry(q, j, x))) in fun(interval(1, n), carr(scal(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mal-outf-type">mal-outf-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, (act(md))(entry(matmul(scal(md), p, q), row, j), entry(u, j, col))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, k), (act(md))(entry(matmul(scal(md), p, q), row, j), entry(u, j, col))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mal-red-type">mal-red-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, (act(md))((mul(scal(md)))(entry(p, row, j), entry(q, j, x)), entry(u, x, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, interval(1, n), (act(md))((mul(scal(md)))(entry(p, row, j), entry(q, j, x)), entry(u, x, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mal-tout-type">mal-tout-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(c, finsum(module-vector-ag(md), vnb-lambda(j, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(c, interval(1, k), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, n))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mar-dist-type">mar-dist-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(z, (act(md))(entry(p, row, x), (vnb-lambda(j, (act(md))(entry(q, x, j), entry(u, j, col))))(z))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(z, interval(1, k), (act(md))(entry(p, row, x), (vnb-lambda(j, interval(1, k), (act(md))(entry(q, x, j), entry(u, j, col))))(z))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mar-gj-type">mar-gj-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(j, (act(md))(entry(q, x, j), entry(u, j, col))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(j, interval(1, k), (act(md))(entry(q, x, j), entry(u, j, col))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mar-outf-type">mar-outf-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, (act(md))(entry(p, row, j), entry(matact(md, q, u), j, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, n), (act(md))(entry(p, row, j), entry(matact(md, q, u), j, col))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mar-red-type">mar-red-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(c, (act(md))((mul(scal(md)))(entry(p, row, x), entry(q, x, c)), entry(u, c, col))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col, x], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(c, interval(1, k), (act(md))((mul(scal(md)))(entry(p, row, x), entry(q, x, c)), entry(u, c, col))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-mar-tout-type">mar-tout-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, finsum(module-vector-ag(md), vnb-lambda(c, (vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, n), finsum(module-vector-ag(md), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))))([c, j])), interval(1, k))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into the scalar ring&#x27;s carrier / the vector abelian group&#x27;s carrier (entry-in-carrier + MUL closure + module-act-type; mvag-carr identifies CARR(MODULE-VECTOR-AG md) with VEC md).</p>
 <h4 id="p-matact-assoc-summand-type">matact-assoc-summand-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(z, (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))) in fun(cartesian(interval(1, k), interval(1, n)), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, k, l, p, q, u, row, col], p in mat(m, n, carr(scal(md))) implies q in mat(n, k, carr(scal(md))) implies u in mat(k, l, vec(md)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (act(md))((mul(scal(md)))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(u, nth(1, z), col))) in fun(cartesian(interval(1, k), interval(1, n)), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> (c,j) |-&gt; (P_{row,j} * Q_{j,c}) . u_{c,col} is a function on [1,k] x [1,n] into the vector abelian group&#x27;s carrier (entry-in-carrier, ring MUL closure, module-act-type, mvag-carr).</p>
 <h4 id="p-matact-entry">matact-entry</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies forall([i in interval(1, m), c in interval(1, q)], entry(matact(md, p, u), i, c) = finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies forall([i in interval(1, m), c in interval(1, q)], entry(matact(md, p, u), i, c) = finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n)))))</pre>
 <p><em>Warrant (reference):</em> (P.u)_{ic} = sum_{j=1}^{n} P_{ij} . u_{jc}, summed in the module&#x27;s vector abelian group; the read-off of MATACT&#x27;s MATOF tabulation via entry-of-matof (dimensions m, n, q recovered from SIZE P, SIZE u).</p>
 <h4 id="p-matact-summand-type">matact-summand-type</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, q, p, u, i, c], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies i in interval(1, m) implies c in interval(1, q) implies vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, q, p, u, i, c], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies i in interval(1, m) implies c in interval(1, q) implies vnb-lambda(j, interval(1, n), (act(md))(entry(p, i, j), entry(u, j, c))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> j |-&gt; P_{ij} . u_{jc} is a function [1,n] -&gt; VEC md for P:MAT(m,n,CARR(SCAL md)) and u:MAT(n,q,VEC md): entry-in-carrier types both arguments, module-act-type closes the action, and mvag-carr identifies CARR(MODULE-VECTOR-AG md) = VEC md.</p>
 <h4 id="p-matact-summand-type-le">matact-summand-type-le</h4>
-<pre>forall([md], is-module(md) implies forall([m, n, q, p, u, i, c, k], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies i in interval(1, m) implies c in interval(1, q) implies k &lt;= n implies vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([m, n, q, p, u, i, c, k], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies i in interval(1, m) implies c in interval(1, q) implies k &lt;= n implies vnb-lambda(j, interval(1, k), (act(md))(entry(p, i, j), entry(u, j, c))) in fun(interval(1, k), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> j |-&gt; P_{ij} . u_{jc} is a function [1,k] -&gt; VEC md for k &lt;= n: matact-summand- type&#x27;s argument, restricted -- entry-in-carrier still types both arguments for j in [1,k] subset [1,n] (interval [1,k] subset [1,n] since k &lt;= n).</p>
 <h4 id="p-matact-type">matact-type</h4>
 <pre>forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies matact(md, p, u) in mat(m, q, vec(md))))</pre>
@@ -1293,7 +1293,7 @@
 <pre>forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matadd(a, zeromat(a, m, n), p) = p))</pre>
 <p><em>Warrant (reference):</em> ZEROMAT is a left identity for MATADD (entrywise 0+x=x).</p>
 <h4 id="p-matmul-entry">matmul-entry</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies forall([i in interval(1, m), c in interval(1, k)], entry(matmul(a, p, q), i, c) = finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies forall([i in interval(1, m), c in interval(1, k)], entry(matmul(a, p, q), i, c) = finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))), interval(1, n)))))</pre>
 <p><em>Warrant (reference):</em> (P Q)_{ic} = sum_{j=1}^{n} P_{ij}*Q_{jc}, the product summed in A&#x27;s additive group over j in 1..n (entry-of-matof on the MATMUL tabulation).</p>
 <h4 id="p-matmul-left-dist">matmul-left-dist</h4>
 <pre>forall([a], is-ring(a) implies forall([m, n, k, p, q, r], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(n, k, carr(a)) implies matmul(a, p, matadd(a, q, r)) = matadd(a, matmul(a, p, q), matmul(a, p, r))))</pre>
@@ -1321,7 +1321,7 @@
 <p><em>In words:</em> MINOR(S,r,c,n) -- S with row r, column c deleted -- is an n-by-n matrix over R when S is (succ n)-by-(succ n): each surviving entry is an entry of S.</p>
 <p><em>Warrant (reference):</em> Hoffman-Kunze, Linear Algebra, Ch. 5</p>
 <h4 id="p-monalg-add-fun">monalg-add-fun</h4>
-<pre>forall([a, m, f, g], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies g in finsupp(a, m) implies monalg-add(a, f, g) in finsupp(a, m))</pre>
+<pre>forall([a, m, f, g], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies g in finsupp(a, m) implies monalg-add(a, m, f, g) in finsupp(a, m))</pre>
 <p><em>In words:</em> The pointwise sum of two finitely-supported functions is finitely supported.</p>
 <p><em>Warrant (reference):</em> Bourbaki, Algebra I (Chapters 1-3), Algebra I, Ch. III, sec. 2</p>
 <h4 id="p-monalg-comm">monalg-comm</h4>
@@ -1329,7 +1329,7 @@
 <p><em>In words:</em> A[M] is a commutative ring when A is a commutative ring and M a commutative monoid.  In particular A[x] is commutative for commutative A.</p>
 <p><em>Warrant (reference):</em> Bourbaki, Algebra I (Chapters 1-3), Algebra I, Ch. III, sec. 2</p>
 <h4 id="p-monalg-distrib-left">monalg-distrib-left</h4>
-<pre>forall([a, m, f, g, h], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies g in finsupp(a, m) implies h in finsupp(a, m) implies monalg-mul(a, m, f, monalg-add(a, g, h)) = monalg-add(a, monalg-mul(a, m, f, g), monalg-mul(a, m, f, h)))</pre>
+<pre>forall([a, m, f, g, h], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies g in finsupp(a, m) implies h in finsupp(a, m) implies monalg-mul(a, m, f, monalg-add(a, m, g, h)) = monalg-add(a, m, monalg-mul(a, m, f, g), monalg-mul(a, m, f, h)))</pre>
 <p><em>In words:</em> Convolution distributes over pointwise addition on the left; the right law is the mirror image.</p>
 <p><em>Warrant (reference):</em> Bourbaki, Algebra I (Chapters 1-3), Algebra I, Ch. III, sec. 2</p>
 <h4 id="p-monalg-is-ring">monalg-is-ring</h4>
@@ -1349,10 +1349,10 @@
 <p><em>In words:</em> The indicator of IDEN(M) is a left identity for convolution -- the constant polynomial 1.  Stated pointwise: ((ONE * f) m) = (f m).  The monoid identity of M is exactly what makes this hold.</p>
 <p><em>Warrant (reference):</em> Bourbaki, Algebra I (Chapters 1-3), Algebra I, Ch. III, sec. 2</p>
 <h4 id="p-mra-combined-summand-type">mra-combined-summand-type</h4>
-<pre>forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (opr(module-vector-ag(md)))((vnb-lambda(j, (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([n, c1, c2, u], c1 in mat(1, n, carr(scal(md))) implies c2 in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, interval(1, n), (opr(module-vector-ag(md)))((vnb-lambda(j, interval(1, n), (act(md))(entry(c1, 1, j), entry(u, j, 1))))(z), (vnb-lambda(j, interval(1, n), (act(md))(entry(c2, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> j |-&gt; (c1_{1j}.u_{j1}) (+) (c2_{1j}.u_{j1}) is a function [1,n] -&gt; VEC md: each summand is (matact-summand-type), and the vector abelian group&#x27;s operation closes on its carrier (mvag-carr, mvag-op, module-vadd-type).</p>
 <h4 id="p-mrs-scaled-summand-type">mrs-scaled-summand-type</h4>
-<pre>forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, (act(md))(r, (vnb-lambda(j, (act(md))(entry(c, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
+<pre>forall([md], is-module(md) implies forall([n, r, c, u], r in carr(scal(md)) implies c in mat(1, n, carr(scal(md))) implies u in mat(n, 1, vec(md)) implies vnb-lambda(z, interval(1, n), (act(md))(r, (vnb-lambda(j, interval(1, n), (act(md))(entry(c, 1, j), entry(u, j, 1))))(z))) in fun(interval(1, n), carr(module-vector-ag(md)))))</pre>
 <p><em>Warrant (well-known):</em> z |-&gt; r . (c_{1z} . u_{z1}) is a function [1,n] -&gt; VEC md: the inner action is (matact-summand-type), module-act-type closes the outer action, and mvag-carr identifies CARR(MODULE-VECTOR-AG md) = VEC md.</p>
 <h4 id="p-mul-defined-factors">mul-defined-factors</h4>
 <pre>forall([a, b], a * b = a * b implies a = a and b = b)</pre>
@@ -1442,10 +1442,10 @@
 <pre>forall([md], is-module(md) implies forall([sm], is-submodule(md, sm) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(module-vector-ag(md)))], forall([z in s], f(z) in sm) implies finsum(module-vector-ag(md), f, s) in sm))))</pre>
 <p><em>Warrant (well-known):</em> A submodule contains every finite sum of its elements: induction on |S| via finsum-insert (the peeled term and the rest are both in sm, and IS-SUBMODULE is closed under VADD); the base case is finsum-empty and VZERO in sm.</p>
 <h4 id="p-sum-set-left-scalar">sum-set-left-scalar</h4>
-<pre>forall([s], is-ring(s) implies forall([a in carr(s), x], x in set and card(x) in nn implies forall([f in fun(x, carr(s))], (mul(s))(a, sum-set(s, x, f)) = sum-set(s, x, vnb-lambda(z, (mul(s))(a, f(z)))))))</pre>
+<pre>forall([s], is-ring(s) implies forall([a in carr(s), x], x in set and card(x) in nn implies forall([f in fun(x, carr(s))], (mul(s))(a, sum-set(s, x, f)) = sum-set(s, x, vnb-lambda(z, x, (mul(s))(a, f(z)))))))</pre>
 <p><em>Warrant (informal):</em> Left distributivity of a ring element across a finite sum.  Induction on card(x): the step applies the ring&#x27;s left-distributive law a<em>(u + v) = a</em>u + a*v over finsum-insert.  Mirror: sum-set-right-scalar.</p>
 <h4 id="p-sum-set-right-scalar">sum-set-right-scalar</h4>
-<pre>forall([s], is-ring(s) implies forall([b in carr(s), x], x in set and card(x) in nn implies forall([f in fun(x, carr(s))], (mul(s))(sum-set(s, x, f), b) = sum-set(s, x, vnb-lambda(z, (mul(s))(f(z), b))))))</pre>
+<pre>forall([s], is-ring(s) implies forall([b in carr(s), x], x in set and card(x) in nn implies forall([f in fun(x, carr(s))], (mul(s))(sum-set(s, x, f), b) = sum-set(s, x, vnb-lambda(z, x, (mul(s))(f(z), b))))))</pre>
 <p><em>Warrant (informal):</em> Right distributivity across a finite sum, the mirror of sum-set-left-scalar: induction on card(x) using (u + v)<em>b = u</em>b + v*b.</p>
 <h4 id="p-unitrow-entry-at">unitrow-entry-at</h4>
 <pre>forall([a, n, i in interval(1, n)], entry(unitrow(a, n, i), 1, i) = one(a))</pre>
@@ -1549,7 +1549,7 @@
 <pre>forall([s], is-metric-space(s) implies forall([x in pts(s), y in pts(s)], (dist(bdd-metric(s)))(x, y) = /((dist(s))(x, y), 1 + (dist(s))(x, y))))</pre>
 <p><em>Warrant (well-known):</em> Beta-reduction of the BDD-METRIC distance lambda:  rho(x,y) = d(x,y)/(1+d(x,y)).</p>
 <h4 id="p-bdd-metric-id-bicontinuous">bdd-metric-id-bicontinuous</h4>
-<pre>forall([s], is-metric-space(s) implies is-continuous(s, bdd-metric(s), vnb-lambda(x, x)) and is-continuous(bdd-metric(s), s, vnb-lambda(x, x)))</pre>
+<pre>forall([s], is-metric-space(s) implies is-continuous(s, bdd-metric(s), vnb-lambda(x, pts(s), x)) and is-continuous(bdd-metric(s), s, vnb-lambda(x, pts(bdd-metric(s)), x)))</pre>
 <p><em>Warrant (well-known):</em> The identity (X,d) &lt;-&gt; (X, d/(1+d)) is bicontinuous, so the two metrics are topologically equivalent.  Forward: rho &lt;= d (bdd-fn-le-arg), so id is 1-Lipschitz, hence continuous.  Backward: rho(x,y) &lt; eps/(1+eps) forces d(x,y) &lt; eps (f is an increasing bijection [0,oo)-&gt;[0,1) with continuous inverse t/(1-t)), so id is continuous the other way too.</p>
 <h4 id="p-bdd-metric-is-metric-space">bdd-metric-is-metric-space</h4>
 <pre>forall([s], is-metric-space(s) implies is-metric-space(bdd-metric(s)))</pre>
@@ -1576,25 +1576,25 @@
 <pre>forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))</pre>
 <p><em>Warrant (informal):</em> The norm-induced distance d(x,y) = |x - y| on a normed field satisfies the metric axioms, so NF-METRIC-SPACE lands in METRIC-SPACE.  Discharge the is-metric clauses: non-negativity and (d = 0 iff x = y) from norm positive-definiteness, symmetry from |-(u)| = |u|, the triangle inequality from subadditivity of the norm applied to (x - y) + (y - z).  A real theorem about the construction, not a slot-read -- hence warranted here rather than reclassified definitional.</p>
 <h4 id="p-product-convergence-coordinatewise">product-convergence-coordinatewise</h4>
-<pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([seq in fun(nn, product-carrier(ms)), l in product-carrier(ms)], converges-to(product-metric-w(ms, w), seq, l) iff forall([n in nn], converges-to(ms(n), vnb-lambda(k, (seq(k))(n)), l(n))))))</pre>
+<pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([seq in fun(nn, product-carrier(ms)), l in product-carrier(ms)], converges-to(product-metric-w(ms, w), seq, l) iff forall([n in nn], converges-to(ms(n), vnb-lambda(k, nn, (seq(k))(n)), l(n))))))</pre>
 <p><em>Warrant (well-known):</em> A sequence converges in PRODUCT-METRIC-W iff it converges in every coordinate -- the defining property of the PRODUCT TOPOLOGY.  Forward: projections are continuous (product-projection-continuous).  Backward: given eps, choose N with the weight tail SUM_{n&gt;=N} w(n) &lt; eps/2 (w summable), then make the first N coordinates within eps/2 of L (finite intersection of coordinate conditions).  Independent of which summable w is used.</p>
 <h4 id="p-product-is-metric-space">product-is-metric-space</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies is-metric-space(product-metric-w(ms, w))))</pre>
 <p><em>Warrant (well-known):</em> PRODUCT-METRIC-W(ms,w) is a metric space.  Nonnegativity, symmetry and the zero law are termwise (D_w(x,y)=0 iff every weighted term is 0 iff rho_n=0 iff x(n)=y(n) for all n iff x=y, as w(n)&gt;0).  The triangle inequality is the sum over n of the per-factor bounded triangle inequalities (each rho_n is a metric, bdd-metric-is-metric-space), the sums converging by product-weighted-summable.</p>
 <h4 id="p-product-metric-default-summable">product-metric-default-summable</h4>
-<pre>summable-weight(vnb-lambda(n, /(1, 2 ^ (n + 1))))</pre>
+<pre>summable-weight(vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))</pre>
 <p><em>Warrant (well-known):</em> The default weights w(n)=2^-(n+1) are a summable positive sequence (geometric, SUM = 1), so PRODUCT-METRIC(ms)=PRODUCT-METRIC-W(ms,2^-(n+1)) is a bounded metric (diameter &lt;= 1) realising the product topology.</p>
 <h4 id="p-product-projection-continuous">product-projection-continuous</h4>
 <pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([n in nn], is-continuous(product-metric-w(ms, w), ms(n), product-proj(ms, n)))))</pre>
 <p><em>Warrant (well-known):</em> Each projection pi_n(x)=x(n) is continuous P -&gt; PTS(ms n): w(n)*rho_n(x(n),y(n)) &lt;= D_w(x,y), and rho_n is topologically equivalent to d_n, so small product distance forces small d_n-distance in coordinate n.</p>
 <h4 id="p-product-weighted-summable">product-weighted-summable</h4>
-<pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([x in product-carrier(ms), y in product-carrier(ms)], series-converges(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n)))))))</pre>
+<pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([x in product-carrier(ms), y in product-carrier(ms)], series-converges(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n)))))))</pre>
 <p><em>Warrant (well-known):</em> The series defining D_w converges: 0 &lt;= w(n)*rho_n &lt; w(n) since the bounded metric rho_n &lt; 1 (bdd-metric-bounded), so termwise it is dominated by the summable weight series SUM w(n); comparison test gives convergence.  Hence the IOTA limit in PRODUCT-METRIC-W is well-defined.</p>
 <h4 id="p-product-weights-equivalent">product-weights-equivalent</h4>
-<pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([w2], summable-weight(w2) implies is-continuous(product-metric-w(ms, w), product-metric-w(ms, w2), vnb-lambda(x, x)) and is-continuous(product-metric-w(ms, w2), product-metric-w(ms, w), vnb-lambda(x, x)))))</pre>
+<pre>forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([w2], summable-weight(w2) implies is-continuous(product-metric-w(ms, w), product-metric-w(ms, w2), vnb-lambda(x, pts(product-metric-w(ms, w)), x)) and is-continuous(product-metric-w(ms, w2), product-metric-w(ms, w), vnb-lambda(x, pts(product-metric-w(ms, w2)), x)))))</pre>
 <p><em>Warrant (well-known):</em> Any two summable positive weight sequences give TOPOLOGICALLY EQUIVALENT product metrics: the identity between PRODUCT-METRIC-W(ms,w) and PRODUCT-METRIC-W(ms,w2) is bicontinuous, since both induce coordinatewise convergence (product-convergence-coordinatewise).  Hence the countable product carries one canonical topology realised by INFINITELY many distinct but equivalent metrics (vary w, or the bounded function rho).</p>
 <h4 id="p-rr-bounded-equivalent">rr-bounded-equivalent</h4>
-<pre>is-continuous(rr-ms, rr-bounded-ms, vnb-lambda(x, x)) and is-continuous(rr-bounded-ms, rr-ms, vnb-lambda(x, x))</pre>
+<pre>is-continuous(rr-ms, rr-bounded-ms, vnb-lambda(x, rr, x)) and is-continuous(rr-bounded-ms, rr-ms, vnb-lambda(x, rr, x))</pre>
 <p><em>Warrant (well-known):</em> RR has a BOUNDED metric topologically equivalent to the usual one: the identity map between RR-MS (distance |x-y|) and RR-BOUNDED-MS (distance |x-y|/(1+|x-y|)) is continuous in both directions, so the two metrics define the same topology on RR while the latter is bounded.  Instance of bdd-metric-id-bicontinuous at s = RR-MS.</p>
 <h4 id="p-rr-bounded-ms-bounded">rr-bounded-ms-bounded</h4>
 <pre>forall([x in rr, y in rr], (dist(rr-bounded-ms))(x, y) &lt; 1)</pre>
@@ -1613,10 +1613,10 @@
 <pre>forall([s], is-setoid(s) implies forall([a in pts(s), b in pts(s)], class(s, a) = class(s, b) iff related(s, a, b)))</pre>
 <p><em>Warrant (well-known):</em> (&lt;=) a~b: for any c, b~c iff a~c by transitivity+symmetry, so the two separations have the same members; set-extensionality gives [a]=[b]. (=&gt;) [a]=[b]: a in [a]=[b] (class-self) means a~b.  Uses exactly the three equivalence laws folded into IS-SETOID.</p>
 <h4 id="p-descend-computes">descend-computes</h4>
-<pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forall([a in pts(s)], (descend(f))(class(s, a)) = f(a))))</pre>
+<pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forall([a in pts(s)], (descend(s, f))(class(s, a)) = f(a))))</pre>
 <p><em>Warrant (well-known):</em> Lambda-beta: DESCEND(f)([a]) = IOTA z. exists a&#x27; in [a]. z = f(a&#x27;).  Since a in [a] (class-self), f(a) satisfies the body.  For uniqueness: any a&#x27; in [a] has a~a&#x27;, so f(a&#x27;)=f(a) by RESPECTS; the body pins z = f(a) uniquely, and IOTA returns it.  Representation-independent -- the value never depends on which member is named.</p>
 <h4 id="p-descend-in-fun">descend-in-fun</h4>
-<pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(f) in fun(quotient(s), z)))</pre>
+<pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(s, f) in fun(quotient(s), z)))</pre>
 <p><em>Warrant (well-known):</em> Every element of QUOTIENT(s) is some [a] with a in PTS(s) (it is the image of PROJ); on it DESCEND(f) returns f(a) in Z (descend-computes), well-defined by RESPECTS.  So DESCEND(f) is total QUOTIENT(s) -&gt; Z.</p>
 <h4 id="p-quotient-universal">quotient-universal</h4>
 <pre>forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies forsome([g in fun(quotient(s), z)], forall([a in pts(s)], g(class(s, a)) = f(a)) and forall([g_], g_ in fun(quotient(s), z) and forall([a in pts(s)], g_(class(s, a)) = f(a)) implies g_ = g))))</pre>
@@ -1664,10 +1664,10 @@
 <pre>forall([r], is-commutative-ring(r) implies forall([g in fun(zz, carr(r)), n in nn], sum(r, g, n) in carr(r)))</pre>
 <p><em>Warrant (well-known):</em> SUM over the NN indices of a ZZ-fn lands in CARR.</p>
 <h4 id="p-descend2-computes">descend2-computes</h4>
-<pre>forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies (descend2(f))(class(s, a), class(s, b)) = f(a, b))))</pre>
+<pre>forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies (descend2(s, f))(class(s, a), class(s, b)) = f(a, b))))</pre>
 <p><em>Warrant (well-known):</em> Tuple-beta then the unary argument: DESCEND2(f)([a],[b]) = IOTA z. exists a&#x27; in [a], b&#x27; in [b]. z = f(a&#x27;,b&#x27;).  Since a in [a] and b in [b] (class-self), f(a,b) satisfies the body; and any a&#x27;~a, b&#x27;~b give f(a&#x27;,b&#x27;)=f(a,b) by RESPECTS2, so the body pins z = f(a,b) uniquely and IOTA returns it.  The two-slot twin of descend-computes; representative-independent in both arguments.</p>
 <h4 id="p-descend2-in-fun">descend2-in-fun</h4>
-<pre>forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(f) in fun(cartesian(quotient(s), quotient(s)), z)))</pre>
+<pre>forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))</pre>
 <p><em>Warrant (well-known):</em> Every element of QUOTIENT(s) is some [a] with a in PTS(s) (image of PROJ), so every pair in QUOTIENT(s) x QUOTIENT(s) is ([a],[b]); on it DESCEND2(f) returns f(a,b) in Z (descend2-computes), well-defined by RESPECTS2.  So DESCEND2(f) is total QUOTIENT(s) x QUOTIENT(s) -&gt; Z.  The two-slot twin of descend-in-fun.</p>
 <h4 id="p-elem-f-ck-at">elem-f-ck-at</h4>
 <pre>forall([a, n, k, l, c in interval(1, n)], c = k implies entry(elem-f(a, n, k, l), l, c) = one(a))</pre>
@@ -1799,16 +1799,16 @@
 <pre>forall([s, p, q, i, j], i in interval(1, p) implies j in interval(1, q) implies entry(submat(s, p, q), i, j) = entry(s, succ(i), succ(j)))</pre>
 <p><em>Warrant (reference):</em> SUBMAT(P,p,q)_{ij} = P_{succ i, succ j} for i in [1,p], j in [1,q] (entry-of-matof on the block tabulator, beta-reduced).</p>
 <h4 id="p-finsum-congruence">finsum-congruence</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), g in fun(s, carr(ag))], forall([z in s], f(z) = g(z)) implies finsum(ag, f, s) = finsum(ag, g, s))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f, g], forall([z in s], f(z) = g(z)) implies finsum(ag, f, s) = finsum(ag, g, s))))</pre>
 <p><em>Warrant (well-known):</em> If f(z)=g(z) for every z in the finite index set S, then FINSUM(ag,f,S)= FINSUM(ag,g,S).  Induction on |S| via finsum-insert: the peeled term agrees (f z0 = g z0) and the rest by the IH.  Equivalently, FINSUM depends only on the restriction of the summand to S, so it factors through pointwise equality.</p>
 <h4 id="p-finsum-fubini-c">finsum-fubini-c</h4>
-<pre>forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([y in set], card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, finsum(ag, vnb-lambda(j, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, finsum(ag, vnb-lambda(i, f([i, j])), x)), y)))))</pre>
+<pre>forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([y in set], card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, x, finsum(ag, vnb-lambda(j, y, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, y, finsum(ag, vnb-lambda(i, x, f([i, j])), x)), y)))))</pre>
 <p><em>Warrant (well-known):</em> finsum-fubini with curried set/finiteness premises (AND-packaged), for fact-friendly forward use.</p>
 <h4 id="p-finsum-ring-distrib-left-gen">finsum-ring-distrib-left-gen</h4>
-<pre>forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(r, finsum(ring-additive-ag(rng), f, s)) = finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(r, f(z))), s))))</pre>
+<pre>forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(r, finsum(ring-additive-ag(rng), f, s)) = finsum(ring-additive-ag(rng), vnb-lambda(z, s, (mul(rng))(r, f(z))), s))))</pre>
 <p><em>Warrant (well-known):</em> r*(SUM_z f z) = SUM_z (r * f z) in an arbitrary ring: induction on |S| via finsum-insert, r<em>(SUM_X f + f z0) = r</em>SUM_X f + r<em>f z0 by ring-left-dist, then the IH.  No commutativity used (a |-&gt; r</em>a is an additive-group endomorphism).</p>
 <h4 id="p-finsum-ring-distrib-right-gen">finsum-ring-distrib-right-gen</h4>
-<pre>forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(ring-additive-ag(rng), f, s), r) = finsum(ring-additive-ag(rng), vnb-lambda(z, (mul(rng))(f(z), r)), s))))</pre>
+<pre>forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(ring-additive-ag(rng), f, s), r) = finsum(ring-additive-ag(rng), vnb-lambda(z, s, (mul(rng))(f(z), r)), s))))</pre>
 <p><em>Warrant (well-known):</em> (SUM_z f z) * r = SUM_z (f z * r) in an arbitrary ring: induction on |S| via finsum-insert with ring-right-dist; a |-&gt; a*r is an additive-group endomorphism.</p>
 <h4 id="p-finsum-two-support">finsum-two-support</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (opr(ag))(f(i0), f(i1)))))</pre>
@@ -1823,22 +1823,22 @@
 <pre>forall([x in set, m, n], mat(m, n, x) in set)</pre>
 <p><em>Warrant (reference):</em> MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.</p>
 <h4 id="p-mat-ring-add">mat-ring-add</h4>
-<pre>forall([a, n], add(mat-ring(a, n)) = vnb-lambda([p, q], matadd(a, p, q)))</pre>
+<pre>forall([a, n], add(mat-ring(a, n)) = vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)))</pre>
 <p><em>Warrant (reference):</em> slot 2 of the MAT-RING tuple (entrywise sum).</p>
 <h4 id="p-mat-ring-add-fun">mat-ring-add-fun</h4>
-<pre>forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], matadd(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))</pre>
 <p><em>Warrant (reference):</em> curried entrywise sum is a function MAT x MAT -&gt; MAT (2-binder).</p>
 <h4 id="p-mat-ring-carr">mat-ring-carr</h4>
 <pre>forall([a, n], carr(mat-ring(a, n)) = mat(n, n, carr(a)))</pre>
 <p><em>Warrant (reference):</em> slot 1 of the MAT-RING tuple.</p>
 <h4 id="p-mat-ring-mul">mat-ring-mul</h4>
-<pre>forall([a, n], mul(mat-ring(a, n)) = vnb-lambda([p, q], matmul(a, p, q)))</pre>
+<pre>forall([a, n], mul(mat-ring(a, n)) = vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)))</pre>
 <p><em>Warrant (reference):</em> slot 3 of the MAT-RING tuple (matrix product).</p>
 <h4 id="p-mat-ring-mul-fun">mat-ring-mul-fun</h4>
-<pre>forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], matmul(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([n in nn], vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)) in fun(cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), mat(n, n, carr(a)))))</pre>
 <p><em>Warrant (reference):</em> curried product is a function MAT x MAT -&gt; MAT (2-binder).</p>
 <h4 id="p-mat-ring-neg">mat-ring-neg</h4>
-<pre>forall([a, n], neg(mat-ring(a, n)) = vnb-lambda(p, matneg(a, p)))</pre>
+<pre>forall([a, n], neg(mat-ring(a, n)) = vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)))</pre>
 <p><em>Warrant (reference):</em> slot 4 of the MAT-RING tuple (entrywise negation).</p>
 <h4 id="p-mat-ring-one">mat-ring-one</h4>
 <pre>forall([a, n], one(mat-ring(a, n)) = identmat(a, n))</pre>
@@ -1853,13 +1853,13 @@
 <pre>forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matadd(a, p, zeromat(a, m, n)) = p))</pre>
 <p><em>Warrant (reference):</em> ZEROMAT is a right identity for MATADD (matadd-comm + zero-left).</p>
 <h4 id="p-matmul-assoc-summand-type">matmul-assoc-summand-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(z, (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))) in fun(cartesian(interval(1, k), interval(1, n)), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the triple-product summand (c,j) |-&gt; (P_{row,j} Q_{j,c}) R_{c,col} is a function INTERVAL(1,k) x INTERVAL(1,n) -&gt; CARR A: the entries lie in CARR A (entry-in-carrier) and MUL closes on CARR A.</p>
 <h4 id="p-matof-exists">matof-exists</h4>
 <pre>forall([m, n, g], forsome([p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n))))], forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = g(i, j))))</pre>
 <p><em>Warrant (well-known):</em> A matrix of shape [m,n] whose (i,j) entry is g(i,j) exists (tabulation of g over the index box).  The single assumption behind MATOF; dischargeable via a general list-tabulation primitive.</p>
 <h4 id="p-matprod-summand-type">matprod-summand-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, nn, p, q, i, c], p in mat(m, n, carr(a)) implies q in mat(n, nn, carr(a)) implies i in interval(1, m) implies c in interval(1, nn) implies vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, c))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, nn, p, q, i, c], p in mat(m, n, carr(a)) implies q in mat(n, nn, carr(a)) implies i in interval(1, m) implies c in interval(1, nn) implies vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(q, j, c))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> j |-&gt; P_{ij}.Q_{jc} is a function [1,n] -&gt; CARR A for P:MAT(m,n), Q:MAT(n,nn) (entry-in-carrier gives both factors in CARR A; MUL closes; CARR(RAG)=CARR A).</p>
 <h4 id="p-matunit-entry-k-row">matunit-entry-k-row</h4>
 <pre>forall([a, n, k, l, c], k in interval(1, n) implies c in interval(1, n) implies entry(matunit(a, n, k, l), k, c) = if(c = l, one(a), zero(a)))</pre>
@@ -1868,7 +1868,7 @@
 <pre>forall([a, n, k, l, j, c], j in interval(1, n) implies c in interval(1, n) implies not(j = k) implies entry(matunit(a, n, k, l), j, c) = zero(a))</pre>
 <p><em>Warrant (reference):</em> E[k,l]_{jc} = 0 when j /= k (entry-of-matunit: the (j=k) conjunct is false).</p>
 <h4 id="p-matunit-summand-type">matunit-summand-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, p, k, l, i, c], p in mat(m, n, carr(a)) implies i in interval(1, m) implies c in interval(1, n) implies vnb-lambda(j, (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, p, k, l, i, c], p in mat(m, n, carr(a)) implies i in interval(1, m) implies c in interval(1, n) implies vnb-lambda(j, interval(1, n), (mul(a))(entry(p, i, j), entry(matunit(a, n, k, l), j, c))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> j |-&gt; P_{ij}.E[k,l]_{jc} is a function INTERVAL(1,n) -&gt; CARR A (entry-in-carrier + matunit-type give both factors in CARR A; MUL closes on CARR A).</p>
 <h4 id="p-matunit-type">matunit-type</h4>
 <pre>forall([a], is-ring(a) implies forall([n, k, l], matunit(a, n, k, l) in mat(n, n, carr(a))))</pre>
@@ -1947,33 +1947,33 @@
 <pre>forall([md], is-module(md) and is-euclidean-ring(scal(md)) implies forall([n in nn, u in mat(n, 1, vec(md))], generates(md, n, u) and rel-free(md, n, u) implies forall([sm], is-submodule(md, sm) implies forsome([k], k in nn and k &lt;= n and forsome([w in mat(k, 1, vec(md))], spans(md, k, w, sm) and rel-free(md, k, w))))))</pre>
 <p><em>Warrant (reference):</em> linear-algebra.tex cor:22195-45888-207248.  submodule-fg gives generators v_1..v_m of sm with m &lt;= n; generates-coeff-matrix writes v = A.u for an m-by-n coefficient matrix A.  smith-staircase supplies invertible V, U with B = V A U^-1 diagonal and its NONZERO diagonal entries b_1..b_k an initial segment (k &lt;= min(m,n) &lt;= n).  free-transport: e = U.u still freely generates md.  generates-transport: V.v still generates sm.  But V.v = B.e, whose i-th entry is b_i.e_i -- so b_1.e_1 .. b_k.e_k generate sm (rows past k are 0). They are REL-FREE: if sum c_i.(b_i.e_i) = 0 then sum (c_i b_i).e_i = 0, so each c_i b_i = 0 by REL-FREE of e, and b_i /= 0 forces c_i = 0 (integral-domain-cancel-zero; a euclidean ring is an integral domain). Hence sm is free of rank k &lt;= n.  ASSEMBLY IS THE PROOF TARGET: every cited piece is installed, and the only asserted input is submodule-fg. No divisibility chain b_i | b_{i+1} is used -- that is needed only for uniqueness of the invariant factors (tex prop:22194-20879-92458).</p>
 <h4 id="p-tel-dist-type">tel-dist-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, (mul(a))((vnb-lambda(j, (mul(a))(entry(p, row, j), entry(q, j, x))))(z), entry(r, x, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(z, interval(1, n), (mul(a))((vnb-lambda(j, interval(1, n), (mul(a))(entry(p, row, j), entry(q, j, x))))(z), entry(r, x, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-tel-inf-type">tel-inf-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, (mul(a))(entry(p, row, j), entry(q, j, x))) in fun(interval(1, n), carr(a))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, interval(1, n), (mul(a))(entry(p, row, j), entry(q, j, x))) in fun(interval(1, n), carr(a))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-tel-outf-type">tel-outf-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, (mul(a))(entry(matmul(a, p, q), row, j), entry(r, j, col))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, k), (mul(a))(entry(matmul(a, p, q), row, j), entry(r, j, col))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-tel-red-type">tel-red-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, (mul(a))((mul(a))(entry(p, row, j), entry(q, j, x)), entry(r, x, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, k) implies vnb-lambda(j, interval(1, n), (mul(a))((mul(a))(entry(p, row, j), entry(q, j, x)), entry(r, x, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-tel-tout-type">tel-tout-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(c, finsum(ring-additive-ag(a), vnb-lambda(j, (vnb-lambda(z, (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))))([c, j])), interval(1, n))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(c, interval(1, k), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, n), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))))([c, j])), interval(1, n))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-ter-dist-type">ter-dist-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(z, (mul(a))(entry(p, row, x), (vnb-lambda(j, (mul(a))(entry(q, x, j), entry(r, j, col))))(z))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(z, interval(1, k), (mul(a))(entry(p, row, x), (vnb-lambda(j, interval(1, k), (mul(a))(entry(q, x, j), entry(r, j, col))))(z))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-ter-gj-type">ter-gj-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(j, (mul(a))(entry(q, x, j), entry(r, j, col))) in fun(interval(1, k), carr(a))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(j, interval(1, k), (mul(a))(entry(q, x, j), entry(r, j, col))) in fun(interval(1, k), carr(a))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-ter-outf-type">ter-outf-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, (mul(a))(entry(p, row, j), entry(matmul(a, q, r), j, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, n), (mul(a))(entry(p, row, j), entry(matmul(a, q, r), j, col))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-ter-red-type">ter-red-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(c, (mul(a))((mul(a))(entry(p, row, x), entry(q, x, c)), entry(r, c, col))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col, x], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies x in interval(1, n) implies vnb-lambda(c, interval(1, k), (mul(a))((mul(a))(entry(p, row, x), entry(q, x, c)), entry(r, c, col))) in fun(interval(1, k), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p>
 <h4 id="p-ter-tout-type">ter-tout-type</h4>
-<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, finsum(ring-additive-ag(a), vnb-lambda(c, (vnb-lambda(z, (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))))([c, j])), interval(1, k))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
+<pre>forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, n), finsum(ring-additive-ag(a), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))))([c, j])), interval(1, k))) in fun(interval(1, n), carr(ring-additive-ag(a)))))</pre>
 <p><em>Warrant (well-known):</em> the summand lambda is a function into CARR A / the additive AG&#x27;s carrier (entry-in-carrier + MUL closure).</p></main>
 </div></body></html>

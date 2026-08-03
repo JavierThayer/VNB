@@ -14,11 +14,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ball-cover
 
-    ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), pts(s))
+    ball-cover(s, r) := image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))
 
 ### bdd-metric
 
-    bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
+    bdd-metric(s) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 
 ### cauchy-setoid
 
@@ -30,7 +30,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### centre-set
 
-    centre-set(s, r, f) := image(vnb-lambda(b, choice(centres(s, b, r))), f)
+    centre-set(s, r, f) := image(vnb-lambda(b, f, choice(centres(s, b, r))), f)
 
 ### centres
 
@@ -102,7 +102,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### mat-ring
 
-    mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], matadd(a, p, q)), vnb-lambda([p, q], matmul(a, p, q)), vnb-lambda(p, matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
+    mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)), vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
 
 ### metric-top
 
@@ -110,19 +110,19 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### monalg
 
-    monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], monalg-add(a, f, g)), vnb-lambda([f, g], monalg-mul(a, m, f, g)), vnb-lambda(f, monalg-neg(a, f)), monalg-zero(a), monalg-one(a, m)]
+    monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]
 
 ### nag-metric-space
 
-    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
+    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 
 ### nf-metric-space
 
-    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
+    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 
 ### nvs-metric-space
 
-    nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
+    nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], cartesian(vec(m), vec(m)), (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
 
 ### permutations
 
@@ -146,11 +146,11 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### product-metric
 
-    product-metric(ms) := product-metric-w(ms, vnb-lambda(n, /(1, 2 ^ (n + 1))))
+    product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))
 
 ### product-metric-w
 
-    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
+    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
 
 ### pseudo-gauge-top
 
@@ -166,7 +166,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ring-prod
 
-    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
+    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
 
 ### ringoid-quotient
 
@@ -174,7 +174,7 @@ Body builds a tuple (`list`) or a set (`sep`, `image`, …).  A few are the obje
 
 ### ringoid-quotient-ring
 
-    ringoid-quotient-ring(r) := [quotient(ringoid-setoid(r)), descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (add(r))(a, b)))), descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (mul(r))(a, b)))), descend(vnb-lambda(a, class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]
+    ringoid-quotient-ring(r) := [quotient(ringoid-setoid(r)), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))), descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]
 
 ### ringoid-rel
 
@@ -215,11 +215,11 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### block
 
-    block(p, k, l) := matof(k, l, vnb-lambda([i, j], entry(p, i, j)))
+    block(p, k, l) := matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
 
 ### border
 
-    border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
+    border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
 
 ### choose
 
@@ -227,11 +227,11 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### completion-dist
 
-    completion-dist(m) := vnb-lambda(p, iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
+    completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 
 ### compose
 
-    compose(f, g) := vnb-lambda(z_, f(g(z_)))
+    compose(f, g) := vnb-lambda(z_, dom(g), f(g(z_)))
 
 ### deriv
 
@@ -243,15 +243,15 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### descend
 
-    descend(f) := vnb-lambda(c, iota(z, forsome([a in c], z = f(a))))
+    descend(s, f) := vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
 
 ### descend2
 
-    descend2(f) := vnb-lambda([c, d], iota(z, forsome([a in c, b in d], z = f(a, b))))
+    descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
 
 ### dist-seq
 
-    dist-seq(m, f, g) := vnb-lambda(n, (dist(m))(f(n), g(n)))
+    dist-seq(m, f, g) := vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
 
 ### dual-norm
 
@@ -263,23 +263,23 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### elem-f
 
-    elem-f(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
+    elem-f(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
 
 ### elem-g
 
-    elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
+    elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
 
 ### elem-h
 
-    elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], if(i = j, if(i = k, r, one(a)), zero(a))))
+    elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))
 
 ### embed
 
-    embed(m) := vnb-lambda(u, class(cauchy-setoid(m), embed-seq(m, u)))
+    embed(m) := vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))
 
 ### embed-seq
 
-    embed-seq(m, u) := vnb-lambda(n, u)
+    embed-seq(m, u) := vnb-lambda(n, nn, u)
 
 ### entry
 
@@ -287,7 +287,7 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### enum-fam
 
-    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))
+    enum-fam(ag, f, phi, n) := vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))
 
 ### fin-enum
 
@@ -311,31 +311,31 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### identmat
 
-    identmat(a, n) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), zero(a))))
+    identmat(a, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))
 
 ### insert-last
 
-    insert-last(phi, x, n) := vnb-lambda(i, if(i in ord-segment(n), phi(i), x))
+    insert-last(phi, x, n) := vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))
 
 ### inverse-bij
 
-    inverse-bij(phi, x, y) := vnb-lambda(y_, choice({x_ in x: phi(x_) = y_}))
+    inverse-bij(phi, x, y) := vnb-lambda(y_, y, choice({x_ in x: phi(x_) = y_}))
 
 ### matact
 
-    matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
+    matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(u)))), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, nth(2, size(p))), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
 
 ### matadd
 
-    matadd(a, p, q) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (add(a))(entry(p, i, j), entry(q, i, j))))
+    matadd(a, p, q) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (add(a))(entry(p, i, j), entry(q, i, j))))
 
 ### matmul
 
-    matmul(a, p, q) := matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
+    matmul(a, p, q) := matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(q)))), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, nth(2, size(p))), (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
 
 ### matneg
 
-    matneg(a, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (neg(a))(entry(p, i, j))))
+    matneg(a, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (neg(a))(entry(p, i, j))))
 
 ### matof
 
@@ -343,35 +343,35 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### matscale
 
-    matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (mul(a))(r, entry(p, i, j))))
+    matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (mul(a))(r, entry(p, i, j))))
 
 ### matunit
 
-    matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l, one(a), zero(a))))
+    matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))
 
 ### minor
 
-    minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
+    minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 
 ### monalg-add
 
-    monalg-add(a, f, g) := vnb-lambda(x_, (add(a))(f(x_), g(x_)))
+    monalg-add(a, m, f, g) := vnb-lambda(x_, carr(m), (add(a))(f(x_), g(x_)))
 
 ### monalg-mul
 
-    monalg-mul(a, m, f, g) := vnb-lambda(x_, finsum(ring-additive-ag(a), vnb-lambda(p, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
+    monalg-mul(a, m, f, g) := vnb-lambda(x_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
 
 ### monalg-neg
 
-    monalg-neg(a, f) := vnb-lambda(x_, (neg(a))(f(x_)))
+    monalg-neg(a, m, f) := vnb-lambda(x_, carr(m), (neg(a))(f(x_)))
 
 ### monalg-one
 
-    monalg-one(a, m) := vnb-lambda(x_, if(x_ = iden(m), one(a), zero(a)))
+    monalg-one(a, m) := vnb-lambda(x_, carr(m), if(x_ = iden(m), one(a), zero(a)))
 
 ### monalg-zero
 
-    monalg-zero(a) := vnb-lambda(x_, zero(a))
+    monalg-zero(a, m) := vnb-lambda(x_, carr(m), zero(a))
 
 ### nn-enum
 
@@ -395,15 +395,15 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### product-proj
 
-    product-proj(ms, n) := vnb-lambda(x, x(n))
+    product-proj(ms, n) := vnb-lambda(x, product-carrier(ms), x(n))
 
 ### proj
 
-    proj(s) := vnb-lambda(a, class(s, a))
+    proj(s) := vnb-lambda(a, pts(s), class(s, a))
 
 ### ps-partial-sum
 
-    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, coef(n) * x ^ n), k)
+    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x ^ n), k)
 
 ### related
 
@@ -427,29 +427,29 @@ Body is a **term**, not a set/tuple: a function (`vnb-lambda`), an element, or a
 
 ### snoc-col
 
-    snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], if(i_ = succ(n), x, entry(w, i_, 1))))
+    snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i_ = succ(n), x, entry(w, i_, 1))))
 
 ### snoc-row
 
-    snoc-row(c, n, r) := matof(1, succ(n), vnb-lambda([i_, j_], if(j_ = succ(n), r, entry(c, 1, j_))))
+    snoc-row(c, n, r) := matof(1, succ(n), vnb-lambda([i_, j_], cartesian(interval(1, 1), interval(1, succ(n))), if(j_ = succ(n), r, entry(c, 1, j_))))
 
 ### submat
 
-    submat(s, p, q) := matof(p, q, vnb-lambda([i, j], entry(s, succ(i), succ(j))))
+    submat(s, p, q) := matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
 
 ### subseq
 
-    subseq(f, phi) := vnb-lambda(k, f(phi(k)))
+    subseq(f, phi) := vnb-lambda(k, nn, f(phi(k)))
 
 ### taylor-poly
 
-    taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
+    taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, nn, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
 
 ### unitrow
 
-    unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], if(cl = i, one(a), zero(a))))
+    unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
 
 ### zeromat
 
-    zeromat(a, m, n) := matof(m, n, vnb-lambda([i, j], zero(a)))
+    zeromat(a, m, n) := matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))
 

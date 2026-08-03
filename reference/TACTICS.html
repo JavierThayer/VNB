@@ -441,7 +441,7 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <p>VNB-LAMBDA beta: reduce an applied lambda to its substituted body.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>lambda-beta</code>)</p>
 <p><em>When useful:</em> the goal has a VNB-LAMBDA applied to an argument</p>
-<p>Simplify a function `x |-&gt; e(x)&#x27; applied to an argument a to e(a) -- the body with the argument substituted in.  (Technically: VNB-LAMBDA beta-reduction.)</p>
+<p>Simplify a function `x |-&gt; e(x)&#x27; applied to an argument a to e(a) -- the body with the argument substituted in.  A lambda carries its DOMAIN, and it is only defined on that domain, so the reduction is licensed only where a is known to be in it: if the membership is neither in the context nor supplied by an enclosing binder, the step still fires but leaves (IN a A) as an extra subgoal.  Land the typing fact BEFORE the lam-b and no subgoal appears.  (Technically: VNB-LAMBDA beta-reduction.)</p>
 <h4 id="TACTICS__lam-b-h">lam-b-h</h4>
 <pre>(lam-b-h hyp)</pre>
 <p>VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.</p>

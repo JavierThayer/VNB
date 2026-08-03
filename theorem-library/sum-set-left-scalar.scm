@@ -19,4 +19,4 @@
      (FORALL X (IMPLIES (AND (IN X SET) (IN (CARD X) NN))
      (FORALL f (IMPLIES (IN f (FUN X (CARR s)))
        (= ((MUL s) a (SUM-SET s X f))
-          (SUM-SET s X (VNB-LAMBDA z ((MUL s) a (f z))))))))))))))
+          (SUM-SET s X (VNB-LAMBDA z X ((MUL s) a (f z))))))))))))))

@@ -122,7 +122,7 @@
     (tf 'f '(IN f (FUN S (CARR m)))
      (tf 'h '(IN h (FUN S (CARR m)))
       (list '=
-        (list 'FINSUM 'm (list 'VNB-LAMBDA 'z (list '(OPR m) '(f z) '(h z))) 'S)
+        (list 'FINSUM 'm (list 'VNB-LAMBDA 'z 'S (list '(OPR m) '(f z) '(h z))) 'S)
         (list '(OPR m)
               (list 'FINSUM 'm 'f 'S)
               (list 'FINSUM 'm 'h 'S))))))))
@@ -140,7 +140,7 @@
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) 'r (list 'FINSUM cra 'f 'S))
-        (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(MUL rng) 'r '(f z))) 'S)))))))
+        (list 'FINSUM cra (list 'VNB-LAMBDA 'z 'S (list '(MUL rng) 'r '(f z))) 'S)))))))
 (warrant! 'finsum-ring-distrib-left 'well-known
   "Induction on |S| via finsum-insert: r*(SUM_X f + f z0) = r*SUM_X f + r*f z0
    by ring-left-dist, then the IH.  a |-> r*a is an endomorphism of (R,+), and
@@ -161,7 +161,7 @@
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) (list 'FINSUM cra 'f 'S) 'r)
-        (list 'FINSUM cra (list 'VNB-LAMBDA 'z (list '(MUL rng) '(f z) 'r)) 'S)))))))
+        (list 'FINSUM cra (list 'VNB-LAMBDA 'z 'S (list '(MUL rng) '(f z) 'r)) 'S)))))))
 (warrant! 'finsum-ring-distrib-right 'well-known
   "Right-handed finsum-ring-distrib-left: (SUM_X f + f z0)*r = SUM_X f*r + f z0*r
    by ring-right-dist, then the IH.  a |-> a*r is an endomorphism of (R,+).")
@@ -187,8 +187,17 @@
 (support 'finsum-congruence
   (tf 'ag '(IS-ABELIAN-GROUP ag)
    (tfin 'S
-    (tf 'f '(IN f (FUN S (CARR ag)))
-     (tf 'g '(IN g (FUN S (CARR ag)))
+    ;; NO typing hypothesis on f or g, and none is needed.  FINSUM(ag,h,S)
+    ;; unfolds to SUM-AG(ag, ENUM-FAM(ag,h,FIN-ENUM S,CARD S), CARD S), and
+    ;; ENUM-FAM applies h ONLY at members of S (returning IDEN(ag) elsewhere).
+    ;; So f = g on S makes the two enumerated families equal as functions, hence
+    ;; the sums equal -- whatever the values are, and whatever f's and g's own
+    ;; domains are.  Requiring `f in FUN(S, CARR ag)' was strictly more than the
+    ;; equation uses, and it is what broke once a lambda carried its domain: a
+    ;; back-peeled summand is typed on [1,succ n] and summed over [1,n], so it
+    ;; could never satisfy a FUN([1,n],..) hypothesis.  (2026-08-02)
+    (list 'FORALL 'f
+     (list 'FORALL 'g
       (list 'IMPLIES
         '(FORALL z (IMPLIES (IN z S) (= (f z) (g z))))
         '(= (FINSUM ag f S) (FINSUM ag g S))))))))
@@ -223,7 +232,7 @@
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) 'r (list 'FINSUM rag 'f 'S))
-        (list 'FINSUM rag (list 'VNB-LAMBDA 'z (list '(MUL rng) 'r '(f z))) 'S)))))))
+        (list 'FINSUM rag (list 'VNB-LAMBDA 'z 'S (list '(MUL rng) 'r '(f z))) 'S)))))))
 (warrant! 'finsum-ring-distrib-left-gen 'well-known
   "r*(SUM_z f z) = SUM_z (r * f z) in an arbitrary ring: induction on |S| via
    finsum-insert, r*(SUM_X f + f z0) = r*SUM_X f + r*f z0 by ring-left-dist, then
@@ -239,7 +248,7 @@
      (tf 'f '(IN f (FUN S (CARR rng)))
       (list '=
         (list '(MUL rng) (list 'FINSUM rag 'f 'S) 'r)
-        (list 'FINSUM rag (list 'VNB-LAMBDA 'z (list '(MUL rng) '(f z) 'r)) 'S)))))))
+        (list 'FINSUM rag (list 'VNB-LAMBDA 'z 'S (list '(MUL rng) '(f z) 'r)) 'S)))))))
 (warrant! 'finsum-ring-distrib-right-gen 'well-known
   "(SUM_z f z) * r = SUM_z (f z * r) in an arbitrary ring: induction on |S| via
    finsum-insert with ring-right-dist; a |-> a*r is an additive-group endomorphism.")
@@ -270,7 +279,7 @@
       (tf 'f '(IN f (FUN S (CARR m)))
        (list '=
          (list 'FINSUM 'm 'f 'S)
-         (list 'FINSUM 'm (list 'VNB-LAMBDA 'z '(f (phi z))) 'T))))))))
+         (list 'FINSUM 'm (list 'VNB-LAMBDA 'z 'T '(f (phi z))) 'T))))))))
 (warrant! 'finsum-reindex 'well-known
   "Compose the chosen enumeration of T with phi to get an enumeration of S;
    SUM-AG along it is the same fold.  Independence of enumeration is
@@ -318,7 +327,7 @@
     (tf 'f '(IN f (FUN S (CARR ag)))
      (tf 'h '(IN h (FUN S (CARR ag)))
       (list '=
-        (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z (list '(OPR ag) '(f z) '(h z))) 'S)
+        (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z 'S (list '(OPR ag) '(f z) '(h z))) 'S)
         (list '(OPR ag)
               (list 'FINSUM 'ag 'f 'S)
               (list 'FINSUM 'ag 'h 'S))))))))
@@ -337,7 +346,7 @@
       (tf 'f '(IN f (FUN S (CARR ag)))
        (list '=
          (list 'FINSUM 'ag 'f 'S)
-         (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z '(f (phi z))) 'T))))))))
+         (list 'FINSUM 'ag (list 'VNB-LAMBDA 'z 'T '(f (phi z))) 'T))))))))
 (warrant! 'finsum-reindex-ag 'well-known
   "finsum-reindex at m = ag as a commutative monoid: compose the chosen
    enumeration of T with phi to enumerate S; the fold is the same.  Holds for
@@ -405,7 +414,7 @@
      (FORALL n (IMPLIES (IN n NN)
        (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ n)) (CARR ag)))
          (= (FINSUM ag f (INTERVAL 1 (succ n)))
-            ((OPR ag) (f 1) (FINSUM ag (VNB-LAMBDA z (f (succ z))) (INTERVAL 1 n)))))))))))
+            ((OPR ag) (f 1) (FINSUM ag (VNB-LAMBDA z (INTERVAL 1 n) (f (succ z))) (INTERVAL 1 n)))))))))))
 (warrant! 'finsum-interval-shift 'well-known
   "FINSUM over [1,succ n] = f(1) . FINSUM over [1,n] of (z|->f(succ z)): peel the
    first term (finsum-insert-ag at k=1, X=[2,succ n]) then reindex the tail by the
@@ -442,7 +451,7 @@
 ;;; maps [1,q] into X whenever f maps [1,succ q] into X (succ z in [1,succ q]).
 (support 'funcomp-succ-type
   '(FORALL X (FORALL q (FORALL f (IMPLIES (IN f (FUN (INTERVAL 1 (succ q)) X))
-     (IN (VNB-LAMBDA z (f (succ z))) (FUN (INTERVAL 1 q) X)))))))
+     (IN (VNB-LAMBDA z (INTERVAL 1 q) (f (succ z))) (FUN (INTERVAL 1 q) X)))))))
 (warrant! 'funcomp-succ-type 'well-known
   "z |-> f(succ z) : [1,q] -> X when f : [1,succ q] -> X (succ z in [1,succ q]).")
 (category! 'funcomp-succ-type 'combinatorial)

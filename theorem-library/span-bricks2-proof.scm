@@ -58,7 +58,7 @@
 (define p2-vc  '(CARR (MODULE-VECTOR-AG md)))
 (define p2-sc  '(CARR (SCAL md)))
 ;; the (i=1,c=1) matact summand of a scalar matrix P acting on a sequence u
-(define (p2-summ P u) (list 'VNB-LAMBDA 'j (list '(ACT md) (list 'ENTRY P 1 'j) (list 'ENTRY u 'j 1))))
+(define (p2-summ P u ivl) (list 'VNB-LAMBDA 'j ivl (list '(ACT md) (list 'ENTRY P 1 'j) (list 'ENTRY u 'j 1))))
 (define (p2-sum f ivl) (list 'FINSUM p2-vag f ivl))
 
 
@@ -67,8 +67,8 @@
 ;;; ===================================================================
 (define p2-Bc '(BLOCK c 1 n))
 (define p2-Bu '(BLOCK u n 1))
-(define p2-Fs (p2-summ 'c 'u))                 ; full summand, on [1,succ n] and [1,n]
-(define p2-G  (p2-summ p2-Bc p2-Bu))           ; block summand, on [1,n]
+(define p2-Fs (p2-summ 'c 'u '(INTERVAL 1 (succ n))))                 ; full summand, on [1,succ n] and [1,n]
+(define p2-G  (p2-summ p2-Bc p2-Bu '(INTERVAL 1 n)))           ; block summand, on [1,n]
 
 (sp (make-wff
   (p2-wf '(md) (p2-wi '((IS-MODULE md))
@@ -99,6 +99,11 @@
 (subst (list '= (p2-sum p2-Fs '(INTERVAL 1 (succ n)))
              (list '(OPR (MODULE-VECTOR-AG md)) (p2-sum p2-Fs '(INTERVAL 1 n)) (list p2-Fs '(succ n)))))
 (mac 'mvag-op)                                        ; (OPR VAG) -> (VADD md)
+;; (p2-Fs (succ n)) reduces only where succ n is in p2-Fs's domain [1,succ n].
+;; These three lines used to sit in the continuation branch below, where they
+;; were wanted for the final rfl; the beta needs them HERE, before the redex.
+(fact 'nn-le-refl '(succ n)) (fact 'nn-one-le-succ 'n)
+(fact 'interval-mem-intro 1 '(succ n) '(succ n))       ; succ n in [1,succ n]
 (lam-b) (lam-b) (lam-b)                                ; reduce (p2-Fs (succ n)) -> the last action
 
 ;; rewrite the RHS block action to its FINSUM over [1,n]
@@ -112,6 +117,10 @@
   (lambda ()
     (di)
     (let ((wv (cadr (cadr (p2-goal)))))               ; the eigenvar w, BEFORE lam-b
+      ;; w comes from [1,n], but p2-Fs is the FULL summand, of domain
+      ;; [1,succ n].  Carry w across before reducing (p2-Fs w) -- the same
+      ;; widening matact-summand-type-le performs for the TYPING at line 92.
+      (fact 'interval-widen 1 'n '(succ n) wv)
       (lam-b) (lam-b)
       ;; rewrite the c/u entries to BLOCK entries (typed at [1,n]); c is width
       ;; succ n, so entry(c,1,w) itself is only typable at [1,succ n].
@@ -153,8 +162,8 @@
 ;;; ===================================================================
 (define p2-SR '(SNOC-ROW c n r))
 (define p2-SU '(SNOC-COL u n x))
-(define p2-Fss (p2-summ p2-SR p2-SU))           ; snoc summand, on [1,succ n] and [1,n]
-(define p2-Fc  (p2-summ 'c 'u))                  ; c,u summand, on [1,n]
+(define p2-Fss (p2-summ p2-SR p2-SU '(INTERVAL 1 (succ n))))           ; snoc summand, on [1,succ n] and [1,n]
+(define p2-Fc  (p2-summ 'c 'u '(INTERVAL 1 n)))                  ; c,u summand, on [1,n]
 
 (sp (make-wff
   (p2-wf '(md) (p2-wi '((IS-MODULE md))
@@ -185,6 +194,8 @@
 (subst (list '= (p2-sum p2-Fss '(INTERVAL 1 (succ n)))
              (list '(OPR (MODULE-VECTOR-AG md)) (p2-sum p2-Fss '(INTERVAL 1 n)) (list p2-Fss '(succ n)))))
 (mac 'mvag-op)
+(fact 'nn-le-refl '(succ n)) (fact 'nn-one-le-succ 'n)
+(fact 'interval-mem-intro 1 '(succ n) '(succ n))       ; succ n in [1,succ n]
 (lam-b) (lam-b) (lam-b)                                ; reduce (Fss (succ n))
 
 ;; the last term = r . x
@@ -204,6 +215,7 @@
   (lambda ()
     (di)
     (let ((wv (cadr (cadr (p2-goal)))))               ; the eigenvar w, BEFORE lam-b
+      (fact 'interval-widen 1 'n '(succ n) wv)        ; w in [1,n] c [1,succ n]
       (lam-b) (lam-b)
       (fact 'entry-of-snoc-row 'c 'n 'r wv)           ; (SR)_{1w} = c_{1w}
       (fact 'entry-of-snoc-col 'u 'n 'x wv)           ; (SU)_{w1} = u_{w1}
@@ -319,7 +331,7 @@
 
 (sp (make-wff '(FORALL X (FORSOME P (IN P (MAT 1 0 X))))))
 (di)
-(ew '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) i_)))
+(ew '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 0)) i_)))
 (bc* 'matof-in-mat)
 (di) (di)                                              ; i (in [1,1]); j (in [1,0])
 (p2-empty-close! 'j)
@@ -328,7 +340,7 @@
 
 (sp (make-wff '(FORALL X (FORSOME P (IN P (MAT 0 1 X))))))
 (di)
-(ew '(MATOF 0 1 (VNB-LAMBDA (LIST i_ j_) i_)))
+(ew '(MATOF 0 1 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 0) (INTERVAL 1 1)) i_)))
 (bc* 'matof-in-mat)
 (di)                                                   ; i (in [1,0])
 (p2-empty-close! 'i)

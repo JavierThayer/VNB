@@ -33,7 +33,7 @@
 ;;; MINOR(S,r,c,n): the n-by-n matrix from a (succ n)-by-(succ n) S with row r
 ;;; and column c removed.  skip(i,r) = i if i<r else succ i.
 (def-functoid 'MINOR '(S r c n)
-  '(MATOF n n (VNB-LAMBDA (LIST i j)
+  '(MATOF n n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 n) (INTERVAL 1 n))
      (ENTRY S (IF (< i r) i (succ i)) (IF (< j c) j (succ j))))))
 
 ;; Row/col deleted are p, q (NOT r/c: `r' case-folds onto the ring R).
@@ -60,7 +60,7 @@
 
 (define det--cofactor-rhs
   '(FINSUM (RING-ADDITIVE-AG R)
-     (VNB-LAMBDA j
+     (VNB-LAMBDA j (INTERVAL 1 (succ n))
        ((MUL R)
          (MPOW (RING-MULTIPLICATIVE-MONOID R) ((NEG R) (ONE R)) (succ j))
          ((MUL R) (ENTRY A 1 j) (DET R n (MINOR A 1 j n)))))

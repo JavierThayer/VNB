@@ -29,7 +29,7 @@
 (add-to-pss 'deriv-neg
   '(FORALL f (FORALL a (FORALL L
      (IMPLIES (IS-DIFF-AT f a L)
-       (IS-DIFF-AT (VNB-LAMBDA z (- (f z))) a (- L)))))))
+       (IS-DIFF-AT (VNB-LAMBDA z RR (- (f z))) a (- L)))))))
 (warrant! 'deriv-neg 'reference
   "Derivative of -f is -f': f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a)=(-phi)(x)(x-a), -phi continuous at a, value -L.")
 (add-to-pss 'rr-le-neg
@@ -50,7 +50,7 @@
 (quietly (lambda () (di)(di)(di)(di)(di)))
 (mz-split)
 (quietly (lambda () (di)(di)))        ; MIN cond, IS-DIFF-AT
-(define G (list 'VNB-LAMBDA 'z (list '- (list 'f 'z))))
+(define G (list 'VNB-LAMBDA 'z 'RR (list '- (list 'f 'z))))
 (define MIN (mz-find (lambda (a) (and ((mz-head? 'FORALL) a)
                                       (let ((s (expression->string a))) (substring? "ccint" s))))))
 (mz-dump "after strip")
@@ -65,7 +65,7 @@
 ;; (2) IN G (FUN RR RR)
 (cut (list 'IN G '(FUN RR RR)))
 (mz-focus! (list 'IN G '(FUN RR RR)))
-(lam-t)
+(dk-lam-t!)
 (quietly (lambda () (di) (di) (in-rr)))
 (mz-dump "after typing G")
 

@@ -31,7 +31,7 @@
 ;;; is `PTS' now; the names are kept.  [[feedback_no_case_variant_binders]]
 (def-functoid 'BDD-METRIC '(s)
   '(LIST (PTS s)
-         (VNB-LAMBDA (LIST u v)
+         (VNB-LAMBDA (LIST u v) (CARTESIAN (PTS s) (PTS s))
            (/ ((DIST s) u v) (+ 1 ((DIST s) u v))))))
 
 ;;; Carrier is unchanged.
@@ -77,8 +77,8 @@
 ;;; same open sets.  This is the precise sense of "topologically equivalent".
 (support 'bdd-metric-id-bicontinuous
   '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (AND (IS-CONTINUOUS s (BDD-METRIC s) (VNB-LAMBDA x x))
-          (IS-CONTINUOUS (BDD-METRIC s) s (VNB-LAMBDA x x))))))
+     (AND (IS-CONTINUOUS s (BDD-METRIC s) (VNB-LAMBDA x (PTS s) x))
+          (IS-CONTINUOUS (BDD-METRIC s) s (VNB-LAMBDA x (PTS (BDD-METRIC s)) x))))))
 (warrant! 'bdd-metric-id-bicontinuous 'well-known
   "The identity (X,d) <-> (X, d/(1+d)) is bicontinuous, so the two metrics are
    topologically equivalent.  Forward: rho <= d (bdd-fn-le-arg), so id is
@@ -137,8 +137,8 @@
 ;;; THE answer to (b): RR has a bounded metric topologically equivalent to the
 ;;; usual metric -- the identity map RR-MS <-> RR-BOUNDED-MS is bicontinuous.
 (support 'rr-bounded-equivalent
-  '(AND (IS-CONTINUOUS RR-MS RR-BOUNDED-MS (VNB-LAMBDA x x))
-        (IS-CONTINUOUS RR-BOUNDED-MS RR-MS (VNB-LAMBDA x x))))
+  '(AND (IS-CONTINUOUS RR-MS RR-BOUNDED-MS (VNB-LAMBDA x RR x))
+        (IS-CONTINUOUS RR-BOUNDED-MS RR-MS (VNB-LAMBDA x RR x))))
 (warrant! 'rr-bounded-equivalent 'well-known
   "RR has a BOUNDED metric topologically equivalent to the usual one: the
    identity map between RR-MS (distance |x-y|) and RR-BOUNDED-MS (distance

@@ -222,11 +222,15 @@
         (union-vars (free-vars (caddr expr))
                     (remove (cadr expr) (free-vars (cadddr expr)))))
        ((VNB-LAMBDA)
-        ;; (VNB-LAMBDA bind-spec body) — bind-spec hides its names in body.
+        ;; (VNB-LAMBDA bind-spec A body) — bind-spec hides its names in body,
+        ;; but NOT in the domain A, which lies outside the binder's scope.
+        ;; Exactly SEP's and BIG-UNION's shape, and for the same reason: the
+        ;; term must DETERMINE its domain.  See docs/lambda-domain.md.
         (let ((bvars (vnb-lambda-bvars (cadr expr))))
-          (fold-left (lambda (vs bv) (remove bv vs))
-                     (free-vars (caddr expr))
-                     bvars)))
+          (union-vars (free-vars (caddr expr))
+                      (fold-left (lambda (vs bv) (remove bv vs))
+                                 (free-vars (cadddr expr))
+                                 bvars))))
        ;; N-ary: CARTESIAN, LIST, UNION, INTERSECTION — union over all arguments
        ((CARTESIAN LIST UNION INTERSECTION)
         (fold-vars (map free-vars (cdr expr))))
@@ -434,12 +438,17 @@
                          ,(subst-free x replacement a)
                          ,(subst-free x replacement body))))))
        ((VNB-LAMBDA)
-        ;; (VNB-LAMBDA bind-spec body); rename clashing bvars to avoid capture.
+        ;; (VNB-LAMBDA bind-spec A body); rename clashing bvars to avoid
+        ;; capture in the BODY.  The domain A is outside the binder's scope, so
+        ;; x is substituted there unconditionally -- including when x is one of
+        ;; the bound variables, exactly as SEP and BIG-UNION do for their A.
         (let* ((bind-spec (cadr expr))
-               (body      (caddr expr))
+               (dom       (caddr expr))
+               (body      (cadddr expr))
                (bvars     (vnb-lambda-bvars bind-spec)))
           (cond
-            ((member x bvars) expr)            ; x is bound — leave alone
+            ((member x bvars)                  ; bound in body, still free in A
+             (list 'VNB-LAMBDA bind-spec (subst-free x replacement dom) body))
             (else
              (let* ((repl-fvs  (free-vars replacement))
                     (clashing  (filter (lambda (bv) (member bv repl-fvs)) bvars))
@@ -456,6 +465,7 @@
                                    (car new-bvars)
                                    (cons 'LIST new-bvars))))
                (list 'VNB-LAMBDA new-bind
+                     (subst-free x replacement dom)
                      (subst-free x replacement body*)))))))
        ;; N-ary: recurse into every argument
        ((CARTESIAN LIST UNION INTERSECTION)
@@ -583,10 +593,14 @@
                                  (cons (cons (cadr e1) (cadr e2)) env))))
        ((VNB-LAMBDA)
         ;; Multi-var binder; allow cross-shape comparison via vnb-lambda-bvars.
+        ;; The DOMAIN is compared outside the binder (like SEP's and BIG-UNION's
+        ;; A).  This is what makes two lambdas with the same body and different
+        ;; domains DISTINCT terms -- the whole point of carrying the domain.
         (let ((bv1 (vnb-lambda-bvars (cadr e1)))
               (bv2 (vnb-lambda-bvars (cadr e2))))
           (and (= (length bv1) (length bv2))
-               (alpha-equiv-under? (caddr e1) (caddr e2)
+               (alpha-equiv-under? (caddr e1) (caddr e2) env)
+               (alpha-equiv-under? (cadddr e1) (cadddr e2)
                                    (append (map cons bv1 bv2) env)))))
        ;; N-ary: componentwise, same length required
        ((CARTESIAN LIST UNION INTERSECTION)

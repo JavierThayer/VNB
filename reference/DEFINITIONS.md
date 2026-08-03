@@ -28,7 +28,7 @@ Proposition-valued: `name(args) <=> body`.
 
 ### converges-on
 
-    forall([s, fam, dseq], converges-on(s, fam, dseq) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and dseq in fun(nn, pts(s)) and forall([m in nn], converges(rr-ms, vnb-lambda(k, (fam(k))(dseq(m))))))
+    forall([s, fam, dseq], converges-on(s, fam, dseq) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and dseq in fun(nn, pts(s)) and forall([m in nn], converges(rr-ms, vnb-lambda(k, nn, (fam(k))(dseq(m))))))
 
 ### converges-to
 
@@ -64,7 +64,7 @@ Proposition-valued: `name(args) <=> body`.
 
 ### has-closed-graph
 
-    forall([m1, fam1, m2, fam2, tt], has-closed-graph(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), p1 in vec(m1), p2 in vec(m2)], fr-conv(m1, fam1, seq, p1) and fr-conv(m2, fam2, vnb-lambda(i, tt(seq(i))), p2) implies p2 = tt(p1)))
+    forall([m1, fam1, m2, fam2, tt], has-closed-graph(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), p1 in vec(m1), p2 in vec(m2)], fr-conv(m1, fam1, seq, p1) and fr-conv(m2, fam2, vnb-lambda(i, nn, tt(seq(i))), p2) implies p2 = tt(p1)))
 
 ### has-div-remainder
 
@@ -84,7 +84,7 @@ Proposition-valued: `name(args) <=> body`.
 
 ### is-absolutely-summable
 
-    forall([grp, f], is-absolutely-summable(grp, f) iff esum(vnb-lambda(i, (nrm(grp))(f(i)))) in rr)
+    forall([grp, f], is-absolutely-summable(grp, f) iff esum(vnb-lambda(i, dom(f), (nrm(grp))(f(i)))) in rr)
 
 ### is-algebra-of-sets
 
@@ -132,7 +132,7 @@ Proposition-valued: `name(args) <=> body`.
 
 ### is-cont-lin
 
-    forall([m1, fam1, m2, fam2, tt], is-cont-lin(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), lim in vec(m1)], fr-conv(m1, fam1, seq, lim) implies fr-conv(m2, fam2, vnb-lambda(i, tt(seq(i))), tt(lim))))
+    forall([m1, fam1, m2, fam2, tt], is-cont-lin(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), lim in vec(m1)], fr-conv(m1, fam1, seq, lim) implies fr-conv(m2, fam2, vnb-lambda(i, nn, tt(seq(i))), tt(lim))))
 
 ### is-continuous
 
@@ -376,19 +376,19 @@ Proposition-valued: `name(args) <=> body`.
 
 ### ps-absolutely-converges-at
 
-    forall([coef, x], ps-absolutely-converges-at(coef, x) iff ps-converges-at(vnb-lambda(n, abs(coef(n))), abs(x)))
+    forall([coef, x], ps-absolutely-converges-at(coef, x) iff ps-converges-at(vnb-lambda(n, nn, abs(coef(n))), abs(x)))
 
 ### ps-converges-at
 
-    forall([coef, x], ps-converges-at(coef, x) iff converges(rr-ms, vnb-lambda(k, ps-partial-sum(coef, x, k))))
+    forall([coef, x], ps-converges-at(coef, x) iff converges(rr-ms, vnb-lambda(k, nn, ps-partial-sum(coef, x, k))))
 
 ### ps-converges-to-at
 
-    forall([coef, x, l], ps-converges-to-at(coef, x, l) iff converges-to(rr-ms, vnb-lambda(k, ps-partial-sum(coef, x, k)), l))
+    forall([coef, x, l], ps-converges-to-at(coef, x, l) iff converges-to(rr-ms, vnb-lambda(k, nn, ps-partial-sum(coef, x, k)), l))
 
 ### ps-ratio-limit
 
-    forall([coef, l], ps-ratio-limit(coef, l) iff converges-to(rr-ms, vnb-lambda(n, abs(coef(succ(n)) * recip(coef(n)))), l))
+    forall([coef, l], ps-ratio-limit(coef, l) iff converges-to(rr-ms, vnb-lambda(n, nn, abs(coef(succ(n)) * recip(coef(n)))), l))
 
 ### rel-free
 
@@ -408,11 +408,11 @@ Proposition-valued: `name(args) <=> body`.
 
 ### series-converges
 
-    forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, series-partial-sum(f, k))))
+    forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k))))
 
 ### series-converges-to
 
-    forall([f, l], series-converges-to(f, l) iff converges-to(rr-ms, vnb-lambda(k, series-partial-sum(f, k)), l))
+    forall([f, l], series-converges-to(f, l) iff converges-to(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k)), l))
 
 ### smith-staircase
 
@@ -464,15 +464,15 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### comb-kk
 
-    forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, if(k = 0, one(r), zero(r))))
+    forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, nn, if(k = 0, one(r), zero(r))))
 
-    forall([r, x, y, m in nn], comb-kk(r, x, y, succ(m)) == vnb-lambda(k, (add(r))((mul(r))(x, (comb-kk(r, x, y, m))(k - 1)), (mul(r))(y, (comb-kk(r, x, y, m))(k)))))
+    forall([r, x, y, m in nn], comb-kk(r, x, y, succ(m)) == vnb-lambda(k, nn, (add(r))((mul(r))(x, (comb-kk(r, x, y, m))(k - 1)), (mul(r))(y, (comb-kk(r, x, y, m))(k)))))
 
 ### det
 
     forall([r, a], det(r, 0, a) == one(r))
 
-    forall([r, n, a], is-ring(r) implies n in nn implies a in mat(succ(n), succ(n), carr(r)) implies det(r, succ(n), a) == finsum(ring-additive-ag(r), vnb-lambda(j, (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n))))
+    forall([r, n, a], is-ring(r) implies n in nn implies a in mat(succ(n), succ(n), carr(r)) implies det(r, succ(n), a) == finsum(ring-additive-ag(r), vnb-lambda(j, interval(1, succ(n)), (mul(r))(mpow(ring-multiplicative-monoid(r), (neg(r))(one(r)), succ(j)), (mul(r))(entry(a, 1, j), det(r, n, minor(a, 1, j, n))))), interval(1, succ(n))))
 
 ### factorial
 
@@ -496,13 +496,13 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
     forall([f], nth-deriv(f, 0) == f)
 
-    forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, deriv(nth-deriv(f, n), x)))
+    forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, rr, deriv(nth-deriv(f, n), x)))
 
 ### nth-deriv-v
 
     forall([m, f], nth-deriv-v(m, f, 0) == f)
 
-    forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, deriv-v(m, nth-deriv-v(m, f, n), x)))
+    forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, rr, deriv-v(m, nth-deriv-v(m, f, n), x)))
 
 ### prod-ord
 
@@ -568,7 +568,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### cc-ms
 
-    cc-ms = [cc, vnb-lambda([x, y], magnitude(x - y))]
+    cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
 
 ### cc-normed-field
 
@@ -596,7 +596,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### rr-ms
 
-    rr-ms = [rr, vnb-lambda([x, y], abs(x - y))]
+    rr-ms = [rr, vnb-lambda([x, y], cartesian(rr, rr), abs(x - y))]
 
 ### rr-normed-field
 
@@ -604,7 +604,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### zero-ring
 
-    zero-ring = [{0}, vnb-lambda([p, q], 0), vnb-lambda([p, q], 0), vnb-lambda([p], 0), 0, 0]
+    zero-ring = [{0}, vnb-lambda([p, q], cartesian({0}, {0}), 0), vnb-lambda([p, q], cartesian({0}, {0}), 0), vnb-lambda([p], {0}, 0), 0, 0]
 
 ### zz-act
 
@@ -646,7 +646,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### cc-ms@dist
 
-    dist(cc-ms) == vnb-lambda([x, y], magnitude(x - y))
+    dist(cc-ms) == vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))
 
 ### cc-ms@pts
 
@@ -682,7 +682,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### comb-kk-zero
 
-    forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, if(k = 0, one(r), zero(r))))
+    forall([r, x, y], comb-kk(r, x, y, 0) == vnb-lambda(k, nn, if(k = 0, one(r), zero(r))))
 
 ### det-zero
 
@@ -930,7 +930,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### rq-add
 
-    forall([r], add(ringoid-quotient-ring(r)) == descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (add(r))(a, b)))))
+    forall([r], add(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))))
 
 ### rq-carr
 
@@ -938,11 +938,11 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### rq-mul
 
-    forall([r], mul(ringoid-quotient-ring(r)) == descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (mul(r))(a, b)))))
+    forall([r], mul(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))))
 
 ### rq-neg
 
-    forall([r], neg(ringoid-quotient-ring(r)) == descend(vnb-lambda(a, class(ringoid-setoid(r), (neg(r))(a)))))
+    forall([r], neg(ringoid-quotient-ring(r)) == descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))))
 
 ### rq-one
 
@@ -954,7 +954,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### rr-ms@dist
 
-    dist(rr-ms) == vnb-lambda([x, y], abs(x - y))
+    dist(rr-ms) == vnb-lambda([x, y], cartesian(rr, rr), abs(x - y))
 
 ### rr-ms@pts
 

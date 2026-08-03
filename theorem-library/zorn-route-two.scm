@@ -615,7 +615,7 @@
 (qed 'zup-injective)
 
 ;;; --- Zorn's lemma --------------------------------------------------------
-(define z2f-phi '(VNB-LAMBDA a_ (ZUP grd porel a_)))
+(define z2f-phi '(VNB-LAMBDA a_ ORD (ZUP grd porel a_)))
 
 (sp (make-wff (forall-guarded '(grd porel)
     (list '(IS-PARTIAL-ORDER grd porel)

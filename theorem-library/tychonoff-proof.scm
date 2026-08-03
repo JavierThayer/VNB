@@ -38,7 +38,7 @@
           (else (loop (cdr gs))))))
 (define (ty--focus-head h) (ty--focus-pred (lambda (a) (and (pair? a) (eq? (car a) h)))))
 
-(define ty--wdef '(VNB-LAMBDA n (/ 1 (power 2 (+ n 1)))))
+(define ty--wdef '(VNB-LAMBDA n NN (/ 1 (power 2 (+ n 1)))))
 
 ;;; ---- the goal ----
 (sp (make-wff

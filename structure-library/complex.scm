@@ -25,7 +25,7 @@
 ;;; only RE-installs it with default `asserted' provenance -- downgrading a
 ;;; definition to a phantom debt leaf.  One registration, kept definitional.
 (declare-instance! 'CC-MS 'METRIC-SPACE 'cc-ms-def
-  '(CC (VNB-LAMBDA (LIST x y) (magnitude (- x y)))))
+  '(CC (VNB-LAMBDA (LIST x y) (CARTESIAN CC CC) (magnitude (- x y)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; CC-MS is a metric space

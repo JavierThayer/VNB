@@ -40,28 +40,54 @@
                 (pair? (caddr f)) (eq? (car (caddr f)) 'MAT) (cadr f))) (mr-asms)))
 ;; rewrite CARR(MAT-RING a n) -> MAT(n,n,CARR a) via the read-off macete
 (define (mr-rcarr) (mac 'mat-ring-carr))
-;; reduce op accessors on MAT-RING to the matrix ops via the slot read-offs,
-;; then beta-reduce the exposed lambda applications
+;; reduce op accessors on MAT-RING to the matrix ops via the slot read-offs.
+;;
+;; The beta that USED to happen here is now in mr-close-conj, and the move is
+;; the point rather than a tidy-up.  ADD(MAT-RING a n) reads off as a lambda
+;; with domain CARTESIAN(MAT n n (CARR a), MAT n n (CARR a)), and a nested
+;; equation applies it at COMPOUND arguments -- (MATADD a u v), (ZEROMAT a n n),
+;; (IDENTMAT a n).  Reducing there is licensed only once those arguments are
+;; known to be matrices, and at THIS point the binders u, v, w do not exist yet,
+;; so the typing facts cannot even be stated.  Hence: read off here, introduce
+;; the binders, land the typings, and beta afterwards.
 (define (mr-rops . readoffs)
-  (for-each (lambda (r) (mac r)) readoffs) (lam-b))
+  (for-each (lambda (r) (mac r)) readoffs))
 (define (mr-decomposable? l)
   (let ((g (mr-goal-of l))) (and (pair? g) (memq (car g) '(FORALL IMPLIES AND)))))
 ;; Fully discharge a property conjunct: decompose it into its atomic equation
 ;; leaves (intro every binder, split every AND -- no hand-counted di's), then
 ;; close each leaf by facting all candidate lemmas (parameterised by that leaf's
 ;; own captured binders) and ass.  facters: list of (vs -> fact ...) procedures.
-(define (mr-close-conj facters)
+;;
+;; `typers' are the same thing one step earlier: facts landed BEFORE the beta.
+;; The read-off lambdas have domain CARTESIAN(MAT.., MAT..) and the equations
+;; apply them at compound arguments, so beta is licensed only once each such
+;; argument is known to be a matrix -- (IN (MATADD a u v) (MAT n n (CARR a)))
+;; and its siblings.  Those facts mention the leaf's own binders, so they can
+;; only be stated here, after di.  Hence the fixed order per leaf:
+;;   type the compound arguments -> lam-b -> cite the algebra law -> ass.
+(define (mr-close-conj facters #!optional typers)
   (let* ((focus  (proof-state-focus *ps*))
          (before (filter (lambda (l) (not (eq? l focus))) (mr-leaves)))
-         (mine   (lambda () (filter (lambda (l) (not (memq l before))) (mr-leaves)))))
+         (mine   (lambda () (filter (lambda (l) (not (memq l before))) (mr-leaves))))
+         (typers (if (default-object? typers) '() typers)))
     (let loop ()
       (let ((ds (filter mr-decomposable? (mine))))
         (when (pair? ds) (set-proof-state-focus! *ps* (car ds)) (di) (loop))))
     (for-each (lambda (lf)
                 (set-proof-state-focus! *ps* lf)
-                (let ((vs (mr-vbind))) (for-each (lambda (f) (f vs)) facters))
+                (let ((vs (mr-vbind)))
+                  (for-each (lambda (t) (t vs)) typers)
+                  (lam-b)
+                  (for-each (lambda (f) (f vs)) facters))
                 (ass))
               (mine))))
+;; the five matrix-typing citations, as typers
+(define (mr-t-add p q) (lambda (v) (fact 'matadd-type 'a 'n 'n (p v) (q v))))
+(define (mr-t-mul p q) (lambda (v) (fact 'matmul-type 'a 'n 'n 'n (p v) (q v))))
+(define (mr-t-neg p)   (lambda (v) (fact 'matneg-type 'a 'n 'n (p v))))
+(define (mr-t-zero)    (lambda (v) (fact 'zeromat-type 'a 'n 'n)))
+(define (mr-t-one)     (lambda (v) (fact 'identmat-type 'a 'n)))
 (define (mr-disch pred thunk) (mr-focus! pred) (thunk))
 
 ;; ========================================================================
@@ -96,7 +122,7 @@
 
 ;; ---- 5. neg(mat-ring) in FUN  (single-binder: genuine via lam-t) ----
 (mr-disch (mr-is? 'IN 'NEG) (lambda ()
-  (mr-rcarr)(mac 'mat-ring-neg)(lam-t)(di)
+  (mr-rcarr)(mac 'mat-ring-neg)(dk-lam-t!)(di)
   (let ((v (list-ref (cadr (mr-pg)) 2))) (fact 'matneg-type 'a 'n 'n v))(ass)))
 
 ;; ---- 6. zero(mat-ring) in carr(mat-ring) ----
@@ -110,7 +136,8 @@
 ;; ---- 8. is-associative(add) ----
 (mr-disch (mr-is? 'is-associative 'ADD) (lambda ()
   (mac 'is-associative)(mr-rcarr)(mr-rops 'mat-ring-add)
-  (mr-close-conj (list (lambda (v) (fact 'matadd-assoc 'a 'n 'n (car v) (cadr v) (caddr v)))))))
+  (mr-close-conj (list (lambda (v) (fact 'matadd-assoc 'a 'n 'n (car v) (cadr v) (caddr v))))
+                 (list (mr-t-add car cadr) (mr-t-add cadr caddr)))))
 
 ;; ---- 9. is-commutative(add) ----
 (mr-disch (mr-is? 'is-commutative 'ADD) (lambda ()
@@ -121,30 +148,36 @@
 (mr-disch (mr-is? 'is-identity 'ADD) (lambda ()
   (mac 'is-identity)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-zero)
   (mr-close-conj (list (lambda (v) (fact 'matadd-zero-left  'a 'n 'n (car v)))    ; 0+u=u
-                       (lambda (v) (fact 'matadd-zero-right 'a 'n 'n (car v))))))) ; u+0=u
+                       (lambda (v) (fact 'matadd-zero-right 'a 'n 'n (car v))))  ; u+0=u
+                 (list (mr-t-zero)))))
 
 ;; ---- 11. has-inverses(add, zero, neg) ----
 (mr-disch (mr-is? 'has-inverses 'ADD) (lambda ()
   (mac 'has-inverses)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-neg 'mat-ring-zero)
   (mr-close-conj (list (lambda (v) (fact 'matadd-neg-left  'a 'n 'n (car v)))     ; (-u)+u=0
-                       (lambda (v) (fact 'matadd-neg-right 'a 'n 'n (car v))))))) ; u+(-u)=0
+                       (lambda (v) (fact 'matadd-neg-right 'a 'n 'n (car v))))   ; u+(-u)=0
+                 (list (mr-t-neg car) (mr-t-zero)))))
 
 ;; ---- 12. is-associative(mul) ----
 (mr-disch (mr-is? 'is-associative 'MUL) (lambda ()
   (mac 'is-associative)(mr-rcarr)(mr-rops 'mat-ring-mul)
-  (mr-close-conj (list (lambda (v) (fact 'matmul-assoc 'a 'n 'n 'n 'n (car v) (cadr v) (caddr v)))))))
+  (mr-close-conj (list (lambda (v) (fact 'matmul-assoc 'a 'n 'n 'n 'n (car v) (cadr v) (caddr v))))
+                 (list (mr-t-mul car cadr) (mr-t-mul cadr caddr)))))
 
 ;; ---- 13. is-identity(mul, one) ----
 (mr-disch (mr-is? 'is-identity 'MUL) (lambda ()
   (mac 'is-identity)(mr-rcarr)(mr-rops 'mat-ring-mul 'mat-ring-one)
   (mr-close-conj (list (lambda (v) (fact 'identmat-left-identity  'a 'n 'n (car v)))   ; I u = u
-                       (lambda (v) (fact 'identmat-right-identity 'a 'n 'n (car v))))))) ; u I = u
+                       (lambda (v) (fact 'identmat-right-identity 'a 'n 'n (car v))))  ; u I = u
+                 (list (mr-t-one)))))
 
 ;; ---- 14. is-distributive(add, mul) ----
 (mr-disch (mr-is? 'is-distributive 'ADD) (lambda ()
   (mac 'is-distributive)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-mul)
   (mr-close-conj (list (lambda (v) (fact 'matmul-left-dist  'a 'n 'n 'n (car v) (cadr v) (caddr v)))  ; u(v+w)
-                       (lambda (v) (fact 'matmul-right-dist 'a 'n 'n 'n (car v) (cadr v) (caddr v))))))) ; (u+v)w
+                       (lambda (v) (fact 'matmul-right-dist 'a 'n 'n 'n (car v) (cadr v) (caddr v)))) ; (u+v)w
+                 (list (mr-t-add car cadr) (mr-t-add cadr caddr)
+                       (mr-t-mul car cadr) (mr-t-mul car caddr) (mr-t-mul cadr caddr)))))
 
 (qed 'mat-ring-is-ring)
 (category! 'mat-ring-is-ring 'algebra)

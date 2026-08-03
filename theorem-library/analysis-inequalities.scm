@@ -21,7 +21,7 @@
   '(FORALL S (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
      (FORALL a (IMPLIES (IN a (FUN S RR))
        (<= 0 (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                     (VNB-LAMBDA i (* (a i) (a i))) S)))))))
+                     (VNB-LAMBDA i S (* (a i) (a i))) S)))))))
 (warrant! 'finsum-sq-nonneg 'well-known
   "0 <= SUM_i a(i)^2: a finite sum of squares is nonnegative, each term being
    a square (rr-sq-nonneg) and finite sums of nonnegatives nonnegative.")
@@ -43,7 +43,7 @@
      (FORALL a (IMPLIES (IN a (FUN S RR))
        (<= (abs (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD) a S))
            (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                   (VNB-LAMBDA i (abs (a i))) S)))))))
+                   (VNB-LAMBDA i S (abs (a i))) S)))))))
 (warrant! 'finsum-abs-triangle 'well-known
   "|SUM_i a(i)| <= SUM_i |a(i)|: the triangle inequality for finite sums,
    by induction over S from the two-term rr-abs-triangle.")
@@ -55,13 +55,13 @@
      (FORALL a (IMPLIES (IN a (FUN S RR))
        (FORALL b (IMPLIES (IN b (FUN S RR))
          (<= (* (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                        (VNB-LAMBDA i (* (a i) (b i))) S)
+                        (VNB-LAMBDA i S (* (a i) (b i))) S)
                 (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                        (VNB-LAMBDA i (* (a i) (b i))) S))
+                        (VNB-LAMBDA i S (* (a i) (b i))) S))
              (* (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                        (VNB-LAMBDA i (* (a i) (a i))) S)
+                        (VNB-LAMBDA i S (* (a i) (a i))) S)
                 (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                        (VNB-LAMBDA i (* (b i) (b i))) S))))))))))
+                        (VNB-LAMBDA i S (* (b i) (b i))) S))))))))))
 (warrant! 'cauchy-schwarz-finite 'well-known
   "Cauchy-Schwarz for finite sums:  (SUM a_i b_i)^2 <= (SUM a_i^2)(SUM b_i^2).
    The difference is the Lagrange identity SUM_{i<j} (a_i b_j - a_j b_i)^2 >= 0
@@ -75,11 +75,11 @@
   '(FORALL S (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
      (FORALL a (IMPLIES (IN a (FUN S RR)) (FORALL b (IMPLIES (IN b (FUN S RR))
        (<= (abs (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                        (VNB-LAMBDA i (* (a i) (b i))) S))
+                        (VNB-LAMBDA i S (* (a i) (b i))) S))
            (* (SQRT (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                            (VNB-LAMBDA i (* (a i) (a i))) S))
+                            (VNB-LAMBDA i S (* (a i) (a i))) S))
               (SQRT (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                            (VNB-LAMBDA i (* (b i) (b i))) S)))))))))))
+                            (VNB-LAMBDA i S (* (b i) (b i))) S)))))))))))
 (warrant! 'cauchy-schwarz-sqrt 'well-known
   "Cauchy-Schwarz, root form:  |SUM a_i b_i| <= sqrt(SUM a_i^2) * sqrt(SUM b_i^2).
    Take square roots in cauchy-schwarz-finite (both sides nonnegative); the
@@ -91,11 +91,11 @@
   '(FORALL S (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
      (FORALL a (IMPLIES (IN a (FUN S RR)) (FORALL b (IMPLIES (IN b (FUN S RR))
        (<= (SQRT (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                         (VNB-LAMBDA i (* (+ (a i) (b i)) (+ (a i) (b i)))) S))
+                         (VNB-LAMBDA i S (* (+ (a i) (b i)) (+ (a i) (b i)))) S))
            (+ (SQRT (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                            (VNB-LAMBDA i (* (a i) (a i))) S))
+                            (VNB-LAMBDA i S (* (a i) (a i))) S))
               (SQRT (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                            (VNB-LAMBDA i (* (b i) (b i))) S)))))))))))
+                            (VNB-LAMBDA i S (* (b i) (b i))) S)))))))))))
 (warrant! 'minkowski-l2 'well-known
   "Minkowski (l^2 triangle inequality):  the Euclidean norm
    sqrt(SUM (a_i+b_i)^2) <= sqrt(SUM a_i^2) + sqrt(SUM b_i^2).  Square and apply
@@ -110,11 +110,11 @@
        (FORALL p (IMPLIES (AND (IN p QQ) (< 1 p)) (FORALL q (IMPLIES (AND (IN q QQ) (< 1 q))
          (IMPLIES (= (+ (/ 1 p) (/ 1 q)) 1)
            (<= (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                       (VNB-LAMBDA i (abs (* (a i) (b i)))) S)
+                       (VNB-LAMBDA i S (abs (* (a i) (b i)))) S)
                (* (RPOW (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                                (VNB-LAMBDA i (RPOW (abs (a i)) p)) S) (/ 1 p))
+                                (VNB-LAMBDA i S (RPOW (abs (a i)) p)) S) (/ 1 p))
                   (RPOW (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                                (VNB-LAMBDA i (RPOW (abs (b i)) q)) S) (/ 1 q))))))))))))))))
+                                (VNB-LAMBDA i S (RPOW (abs (b i)) q)) S) (/ 1 q))))))))))))))))
 (warrant! 'holder-finite 'well-known
   "Hoelder's inequality:  SUM |a_i b_i| <= (SUM |a_i|^p)^(1/p) (SUM |b_i|^q)^(1/q)
    for conjugate exponents 1/p+1/q=1 (p,q>1).  Termwise Young (young-inequality)

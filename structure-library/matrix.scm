@@ -193,9 +193,9 @@
 ;;; content lives in matmul-type / matmul-entry and the ring theorems below.
 (def-functoid 'MATMUL '(A P Q)
   '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE Q))
-     (VNB-LAMBDA (LIST i k)
+     (VNB-LAMBDA (LIST i k) (CARTESIAN (INTERVAL 1 (NTH 1 (SIZE P))) (INTERVAL 1 (NTH 2 (SIZE Q))))
        (FINSUM (RING-ADDITIVE-AG A)
-               (VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY Q j k)))
+               (VNB-LAMBDA j (INTERVAL 1 (NTH 2 (SIZE P))) ((MUL A) (ENTRY P i j) (ENTRY Q j k)))
                (INTERVAL 1 (NTH 2 (SIZE P)))))))
 
 ;;; Typing: an (m x n) times (n x k) product over a ring A is an (m x k) matrix
@@ -222,7 +222,7 @@
        (FORALL c (IMPLIES (IN c (INTERVAL 1 k))
          (= (ENTRY (MATMUL A P Q) i c)
             (FINSUM (RING-ADDITIVE-AG A)
-                    (VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
+                    (VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
                     (INTERVAL 1 n)))))))))))))))))
 (warrant! 'matmul-entry 'reference
   "(P Q)_{ic} = sum_{j=1}^{n} P_{ij}*Q_{jc}, the product summed in A's additive
@@ -239,7 +239,7 @@
        (IMPLIES (IN Q (MAT n nn (CARR A)))
        (IMPLIES (IN i (INTERVAL 1 m))
        (IMPLIES (IN c (INTERVAL 1 nn))
-         (IN (VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
+         (IN (VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
              (FUN (INTERVAL 1 n) (CARR (RING-ADDITIVE-AG A))))))))))))))))))
 (warrant! 'matprod-summand-type 'well-known
   "j |-> P_{ij}.Q_{jc} is a function [1,n] -> CARR A for P:MAT(m,n), Q:MAT(n,nn)
@@ -259,12 +259,12 @@
 ;;; entrywise sum  (P + Q)_{ij} = P_{ij} + Q_{ij}
 (def-functoid 'MATADD '(A P Q)
   '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE P))
-     (VNB-LAMBDA (LIST i j) ((ADD A) (ENTRY P i j) (ENTRY Q i j)))))
+     (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 (NTH 1 (SIZE P))) (INTERVAL 1 (NTH 2 (SIZE P)))) ((ADD A) (ENTRY P i j) (ENTRY Q i j)))))
 
 ;;; entrywise negation  (-P)_{ij} = -(P_{ij})
 (def-functoid 'MATNEG '(A P)
   '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE P))
-     (VNB-LAMBDA (LIST i j) ((NEG A) (ENTRY P i j)))))
+     (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 (NTH 1 (SIZE P))) (INTERVAL 1 (NTH 2 (SIZE P)))) ((NEG A) (ENTRY P i j)))))
 
 ;;; entrywise scalar multiple  (r*P)_{ij} = r * P_{ij}.  Not a MAT-RING slot:
 ;;; it is the scalar action on matrices, used by the coefficient-row linearity
@@ -272,24 +272,24 @@
 ;;; `a' folds onto the ring argument `A'.
 (def-functoid 'MATSCALE '(A r P)
   '(MATOF (NTH 1 (SIZE P)) (NTH 2 (SIZE P))
-     (VNB-LAMBDA (LIST i j) ((MUL A) r (ENTRY P i j)))))
+     (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 (NTH 1 (SIZE P))) (INTERVAL 1 (NTH 2 (SIZE P)))) ((MUL A) r (ENTRY P i j)))))
 
 ;;; the all-zero m-by-n matrix over A
 (def-functoid 'ZEROMAT '(A m n)
-  '(MATOF m n (VNB-LAMBDA (LIST i j) (ZERO A))))
+  '(MATOF m n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 m) (INTERVAL 1 n)) (ZERO A))))
 
 ;;; the n-by-n identity matrix: ONE on the diagonal, ZERO off it (Kronecker delta)
 (def-functoid 'IDENTMAT '(A n)
-  '(MATOF n n (VNB-LAMBDA (LIST i j) (IF (= i j) (ONE A) (ZERO A)))))
+  '(MATOF n n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 n) (INTERVAL 1 n)) (IF (= i j) (ONE A) (ZERO A)))))
 
 ;;; MAT-RING(A, n): the ring of n-by-n matrices over A, as a RING 6-tuple
 ;;; (CARR ADD MUL NEG ZERO ONE).  The ops are curried into binary/unary maps on
 ;;; the carrier so they fit the RING structure shape.
 (def-functoid 'MAT-RING '(A n)
   '(LIST (MAT n n (CARR A))
-         (VNB-LAMBDA (LIST P Q) (MATADD A P Q))
-         (VNB-LAMBDA (LIST P Q) (MATMUL A P Q))
-         (VNB-LAMBDA P (MATNEG A P))
+         (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR A)) (MAT n n (CARR A))) (MATADD A P Q))
+         (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR A)) (MAT n n (CARR A))) (MATMUL A P Q))
+         (VNB-LAMBDA P (MAT n n (CARR A)) (MATNEG A P))
          (ZEROMAT A n n)
          (IDENTMAT A n)))
 
@@ -334,7 +334,7 @@
 ;;; elsewhere.  The coefficient row that reads off the i-th member of a
 ;;; sequence; used to test relation-freeness one coordinate at a time.
 (def-functoid 'UNITROW '(A n i)
-  '(MATOF 1 n (VNB-LAMBDA (LIST rw cl) (IF (= cl i) (ONE A) (ZERO A)))))
+  '(MATOF 1 n (VNB-LAMBDA (LIST rw cl) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 n)) (IF (= cl i) (ONE A) (ZERO A)))))
 
 (support 'unitrow-type
   '(FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL i
@@ -362,7 +362,7 @@
 ;;; BLOCK keeps an initial segment of both.  Used to cut a matrix down to the
 ;;; rows carrying the nonzero part of a Smith staircase.
 (def-functoid 'BLOCK '(P k l)
-  '(MATOF k l (VNB-LAMBDA (LIST i j) (ENTRY P i j))))
+  '(MATOF k l (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 k) (INTERVAL 1 l)) (ENTRY P i j))))
 
 (support 'block-type
   '(FORALL m (FORALL n (FORALL X (FORALL P (FORALL k (FORALL l (IMPLIES (IN k NN) (IMPLIES (IN l NN) (IMPLIES (IN P (MAT m n X)) (IMPLIES (<= k m) (IMPLIES (<= l n) (IN (BLOCK P k l) (MAT k l X))))))))))))))
@@ -383,9 +383,9 @@
 ;;; the spans-submodule-fg induction step builds its longer spanning sequence
 ;;; (w', x0) and its longer coefficient row (d, q) with.
 (def-functoid 'SNOC-COL '(w n x)
-  '(MATOF (succ n) 1 (VNB-LAMBDA (LIST i_ j_) (IF (= i_ (succ n)) x (ENTRY w i_ 1)))))
+  '(MATOF (succ n) 1 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 (succ n)) (INTERVAL 1 1)) (IF (= i_ (succ n)) x (ENTRY w i_ 1)))))
 (def-functoid 'SNOC-ROW '(c n r)
-  '(MATOF 1 (succ n) (VNB-LAMBDA (LIST i_ j_) (IF (= j_ (succ n)) r (ENTRY c 1 j_)))))
+  '(MATOF 1 (succ n) (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 (succ n))) (IF (= j_ (succ n)) r (ENTRY c 1 j_)))))
 
 ;; the appended element is `v', NOT `x': the set param `X' folds to `x' (MIT
 ;; case-fold), so an element `x' would collide with the set -- the trap that
@@ -627,7 +627,7 @@
 ;; (finsum-congruence + general-ring finsum-distrib-left/right-gen) -- formerly
 ;; warranted here.  matmul-assoc-summand-type (the fubini f-typing) stays warranted.
 (support 'matmul-assoc-summand-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (IN (VNB-LAMBDA Z ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (FUN (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) (CARR (RING-ADDITIVE-AG A)))))))))))))))))))))
+  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (IN (VNB-LAMBDA Z (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (FUN (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) (CARR (RING-ADDITIVE-AG A)))))))))))))))))))))
 (warrant! 'matmul-assoc-summand-type 'well-known
   "the triple-product summand (c,j) |-> (P_{row,j} Q_{j,c}) R_{c,col} is a function INTERVAL(1,k) x INTERVAL(1,n) -> CARR A: the entries lie in CARR A (entry-in-carrier) and MUL closes on CARR A.")
 (support 'identmat-left-identity
@@ -700,13 +700,13 @@
   '(FORALL a (FORALL n (= (CARR (MAT-RING a n)) (MAT n n (CARR a))))))
 (warrant! 'mat-ring-carr 'reference "slot 1 of the MAT-RING tuple.")
 (support 'mat-ring-add
-  '(FORALL a (FORALL n (= (ADD (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (MATADD a P Q))))))
+  '(FORALL a (FORALL n (= (ADD (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATADD a P Q))))))
 (warrant! 'mat-ring-add 'reference "slot 2 of the MAT-RING tuple (entrywise sum).")
 (support 'mat-ring-mul
-  '(FORALL a (FORALL n (= (MUL (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (MATMUL a P Q))))))
+  '(FORALL a (FORALL n (= (MUL (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATMUL a P Q))))))
 (warrant! 'mat-ring-mul 'reference "slot 3 of the MAT-RING tuple (matrix product).")
 (support 'mat-ring-neg
-  '(FORALL a (FORALL n (= (NEG (MAT-RING a n)) (VNB-LAMBDA P (MATNEG a P))))))
+  '(FORALL a (FORALL n (= (NEG (MAT-RING a n)) (VNB-LAMBDA P (MAT n n (CARR a)) (MATNEG a P))))))
 (warrant! 'mat-ring-neg 'reference "slot 4 of the MAT-RING tuple (entrywise negation).")
 (support 'mat-ring-zero
   '(FORALL a (FORALL n (= (ZERO (MAT-RING a n)) (ZEROMAT a n n)))))
@@ -716,12 +716,12 @@
 (warrant! 'mat-ring-one 'reference "slot 6 of the MAT-RING tuple (identity matrix).")
 (support 'mat-ring-add-fun
   '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
-     (IN (VNB-LAMBDA (LIST P Q) (MATADD a P Q))
+     (IN (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATADD a P Q))
          (FUN (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MAT n n (CARR a)))))))))
 (warrant! 'mat-ring-add-fun 'reference "curried entrywise sum is a function MAT x MAT -> MAT (2-binder).")
 (support 'mat-ring-mul-fun
   '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
-     (IN (VNB-LAMBDA (LIST P Q) (MATMUL a P Q))
+     (IN (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATMUL a P Q))
          (FUN (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MAT n n (CARR a)))))))))
 (warrant! 'mat-ring-mul-fun 'reference "curried product is a function MAT x MAT -> MAT (2-binder).")
 

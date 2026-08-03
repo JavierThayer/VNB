@@ -49,21 +49,21 @@ Term-valued operators that do NOT denote an element of `SET` — the big amorpho
 
 ### `ball-cover`  — def-functoid · set-valued
 
-    ball-cover(s, r) := image(vnb-lambda(c, ball(s, c, r)), pts(s))
+    ball-cover(s, r) := image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))
 
 ### `bdd-metric`  — def-functoid · tuple/structure-valued
 
-    bdd-metric(s) := [pts(s), vnb-lambda([u, v], /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
+    bdd-metric(s) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
 
 ### `big-union`  — kernel term-former
 
 ### `block`  — def-functoid · element/number-valued
 
-    block(p, k, l) := matof(k, l, vnb-lambda([i, j], entry(p, i, j)))
+    block(p, k, l) := matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
 
 ### `border`  — def-functoid · element/number-valued
 
-    border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
+    border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
 
 ### `card`  — characterized by axiom(s)
 
@@ -91,7 +91,7 @@ Declared by: `cc-normed-field-def`
 
 ### `centre-set`  — def-functoid · set-valued
 
-    centre-set(s, r, f) := image(vnb-lambda(b, choice(centres(s, b, r))), f)
+    centre-set(s, r, f) := image(vnb-lambda(b, f, choice(centres(s, b, r))), f)
 
 ### `centres`  — def-functoid · set-valued
 
@@ -129,11 +129,11 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 
 ### `completion-dist`  — def-functoid · function-valued
 
-    completion-dist(m) := vnb-lambda(p, iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
+    completion-dist(m) := vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 
 ### `compose`  — def-functoid · function-valued
 
-    compose(f, g) := vnb-lambda(z_, f(g(z_)))
+    compose(f, g) := vnb-lambda(z_, dom(g), f(g(z_)))
 
 ### `crel`  — def-functoid · set-valued
 
@@ -153,11 +153,11 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 
 ### `descend`  — def-functoid · function-valued
 
-    descend(f) := vnb-lambda(c, iota(z, forsome([a in c], z = f(a))))
+    descend(s, f) := vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
 
 ### `descend2`  — def-functoid · function-valued
 
-    descend2(f) := vnb-lambda([c, d], iota(z, forsome([a in c, b in d], z = f(a, b))))
+    descend2(s, f) := vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
 
 ### `det`  — recursively defined (def-by-nn-recursion)
 
@@ -169,7 +169,7 @@ Declared by: `det-zero` `det-cofactor`
 
 ### `dist-seq`  — def-functoid · function-valued
 
-    dist-seq(m, f, g) := vnb-lambda(n, (dist(m))(f(n), g(n)))
+    dist-seq(m, f, g) := vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
 
 ### `dom`  — kernel term-former
 
@@ -183,23 +183,23 @@ Declared by: `det-zero` `det-cofactor`
 
 ### `elem-f`  — def-functoid · element/number-valued
 
-    elem-f(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
+    elem-f(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
 
 ### `elem-g`  — def-functoid · element/number-valued
 
-    elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
+    elem-g(a, n, r, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
 
 ### `elem-h`  — def-functoid · element/number-valued
 
-    elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], if(i = j, if(i = k, r, one(a)), zero(a))))
+    elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))
 
 ### `embed`  — def-functoid · function-valued
 
-    embed(m) := vnb-lambda(u, class(cauchy-setoid(m), embed-seq(m, u)))
+    embed(m) := vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))
 
 ### `embed-seq`  — def-functoid · function-valued
 
-    embed-seq(m, u) := vnb-lambda(n, u)
+    embed-seq(m, u) := vnb-lambda(n, nn, u)
 
 ### `entry`  — def-functoid · element/number-valued
 
@@ -207,7 +207,7 @@ Declared by: `det-zero` `det-cofactor`
 
 ### `enum-fam`  — def-functoid · function-valued
 
-    enum-fam(ag, f, phi, n) := vnb-lambda(i, if(i in ord-segment(n), f(phi(i)), iden(ag)))
+    enum-fam(ag, f, phi, n) := vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))
 
 ### `esum`  — characterized by axiom(s)
 
@@ -271,7 +271,7 @@ Declared by: `fam-of-list-apply`
 
 ### `identmat`  — def-functoid · element/number-valued
 
-    identmat(a, n) := matof(n, n, vnb-lambda([i, j], if(i = j, one(a), zero(a))))
+    identmat(a, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))
 
 ### `idl`  — structure accessor · element (slot value)
 
@@ -287,7 +287,7 @@ Declared by: `fam-of-list-apply`
 
 ### `insert-last`  — def-functoid · function-valued
 
-    insert-last(phi, x, n) := vnb-lambda(i, if(i in ord-segment(n), phi(i), x))
+    insert-last(phi, x, n) := vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))
 
 ### `interior`  — def-functoid · set-valued
 
@@ -303,7 +303,7 @@ Declared by: `fam-of-list-apply`
 
 ### `inverse-bij`  — def-functoid · function-valued
 
-    inverse-bij(phi, x, y) := vnb-lambda(y_, choice({x_ in x: phi(x_) = y_}))
+    inverse-bij(phi, x, y) := vnb-lambda(y_, y, choice({x_ in x: phi(x_) = y_}))
 
 ### `iota`  — kernel term-former
 
@@ -335,23 +335,23 @@ Declared by: `limit-ord-iff`
 
 ### `mat-ring`  — def-functoid · tuple/structure-valued
 
-    mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], matadd(a, p, q)), vnb-lambda([p, q], matmul(a, p, q)), vnb-lambda(p, matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
+    mat-ring(a, n) := [mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)), vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
 
 ### `matact`  — def-functoid · element/number-valued
 
-    matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], finsum(module-vector-ag(md), vnb-lambda(j, (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
+    matact(md, p, u) := matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(u)))), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, nth(2, size(p))), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
 
 ### `matadd`  — def-functoid · element/number-valued
 
-    matadd(a, p, q) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (add(a))(entry(p, i, j), entry(q, i, j))))
+    matadd(a, p, q) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (add(a))(entry(p, i, j), entry(q, i, j))))
 
 ### `matmul`  — def-functoid · element/number-valued
 
-    matmul(a, p, q) := matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], finsum(ring-additive-ag(a), vnb-lambda(j, (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
+    matmul(a, p, q) := matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(q)))), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, nth(2, size(p))), (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
 
 ### `matneg`  — def-functoid · element/number-valued
 
-    matneg(a, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (neg(a))(entry(p, i, j))))
+    matneg(a, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (neg(a))(entry(p, i, j))))
 
 ### `matof`  — def-functoid · element/number-valued
 
@@ -363,11 +363,11 @@ Declared by: `matrix-membership` `matrix-sethood`
 
 ### `matscale`  — def-functoid · element/number-valued
 
-    matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], (mul(a))(r, entry(p, i, j))))
+    matscale(a, r, p) := matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (mul(a))(r, entry(p, i, j))))
 
 ### `matunit`  — def-functoid · element/number-valued
 
-    matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], if(i = k and j = l, one(a), zero(a))))
+    matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))
 
 ### `metric-top`  — def-functoid · tuple/structure-valued
 
@@ -377,33 +377,33 @@ Declared by: `matrix-membership` `matrix-sethood`
 
 ### `minor`  — def-functoid · element/number-valued
 
-    minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
+    minor(s, r, c, n) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
 
 ### `monalg`  — def-functoid · tuple/structure-valued
 
 > _Reads as:_  the monoid algebra a[m]
 
-    monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], monalg-add(a, f, g)), vnb-lambda([f, g], monalg-mul(a, m, f, g)), vnb-lambda(f, monalg-neg(a, f)), monalg-zero(a), monalg-one(a, m)]
+    monalg(a, m) := [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]
 
 ### `monalg-add`  — def-functoid · function-valued
 
-    monalg-add(a, f, g) := vnb-lambda(x_, (add(a))(f(x_), g(x_)))
+    monalg-add(a, m, f, g) := vnb-lambda(x_, carr(m), (add(a))(f(x_), g(x_)))
 
 ### `monalg-mul`  — def-functoid · function-valued
 
-    monalg-mul(a, m, f, g) := vnb-lambda(x_, finsum(ring-additive-ag(a), vnb-lambda(p, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
+    monalg-mul(a, m, f, g) := vnb-lambda(x_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
 
 ### `monalg-neg`  — def-functoid · function-valued
 
-    monalg-neg(a, f) := vnb-lambda(x_, (neg(a))(f(x_)))
+    monalg-neg(a, m, f) := vnb-lambda(x_, carr(m), (neg(a))(f(x_)))
 
 ### `monalg-one`  — def-functoid · function-valued
 
-    monalg-one(a, m) := vnb-lambda(x_, if(x_ = iden(m), one(a), zero(a)))
+    monalg-one(a, m) := vnb-lambda(x_, carr(m), if(x_ = iden(m), one(a), zero(a)))
 
 ### `monalg-zero`  — def-functoid · function-valued
 
-    monalg-zero(a) := vnb-lambda(x_, zero(a))
+    monalg-zero(a, m) := vnb-lambda(x_, carr(m), zero(a))
 
 ### `mpow`  — recursively defined (def-by-nn-recursion)
 
@@ -413,13 +413,13 @@ Declared by: `mpow-zero` `mpow-succ`
 
 ### `nag-metric-space`  — def-functoid · tuple/structure-valued
 
-    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
+    nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
 
 ### `neg`  — structure accessor · element (slot value)
 
 ### `nf-metric-space`  — def-functoid · tuple/structure-valued
 
-    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
+    nf-metric-space(nf) := [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
 
 ### `nn-add-monoid`  — characterized by axioms (def-constant)
 
@@ -467,7 +467,7 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
 
 ### `nvs-metric-space`  — def-functoid · tuple/structure-valued
 
-    nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
+    nvs-metric-space(m) := [vec(m), vnb-lambda([x, y], cartesian(vec(m), vec(m)), (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
 
 ### `one`  — structure accessor · element (slot value)
 
@@ -521,23 +521,23 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
 
 ### `product-metric`  — def-functoid · element/number-valued
 
-    product-metric(ms) := product-metric-w(ms, vnb-lambda(n, /(1, 2 ^ (n + 1))))
+    product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))
 
 ### `product-metric-w`  — def-functoid · tuple/structure-valued
 
-    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], iota(l, series-converges-to(vnb-lambda(n, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
+    product-metric-w(ms, w) := [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
 
 ### `product-proj`  — def-functoid · function-valued
 
-    product-proj(ms, n) := vnb-lambda(x, x(n))
+    product-proj(ms, n) := vnb-lambda(x, product-carrier(ms), x(n))
 
 ### `proj`  — def-functoid · function-valued
 
-    proj(s) := vnb-lambda(a, class(s, a))
+    proj(s) := vnb-lambda(a, pts(s), class(s, a))
 
 ### `ps-partial-sum`  — def-functoid · element/number-valued
 
-    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, coef(n) * x ^ n), k)
+    ps-partial-sum(coef, x, k) := sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x ^ n), k)
 
 ### `pseudo-gauge-top`  — def-functoid · tuple/structure-valued
 
@@ -591,7 +591,7 @@ Declared by: `reduce-one` `reduce-succ`
 
 ### `ring-prod`  — def-functoid · tuple/structure-valued
 
-    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
+    ring-prod(x, y) := [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
 
 ### `ring-prod-n`  — recursively defined (def-by-nn-recursion)
 
@@ -603,7 +603,7 @@ Declared by: `ring-prod-n-zero` `ring-prod-n-succ`
 
 ### `ringoid-quotient-ring`  — def-functoid · tuple/structure-valued
 
-    ringoid-quotient-ring(r) := [quotient(ringoid-setoid(r)), descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (add(r))(a, b)))), descend2(vnb-lambda([a, b], class(ringoid-setoid(r), (mul(r))(a, b)))), descend(vnb-lambda(a, class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]
+    ringoid-quotient-ring(r) := [quotient(ringoid-setoid(r)), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))), descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]
 
 ### `ringoid-rel`  — def-functoid · set-valued
 
@@ -639,11 +639,11 @@ Declared by: `rr-normed-field-def`
 
 ### `snoc-col`  — def-functoid · element/number-valued
 
-    snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], if(i_ = succ(n), x, entry(w, i_, 1))))
+    snoc-col(w, n, x) := matof(succ(n), 1, vnb-lambda([i_, j_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i_ = succ(n), x, entry(w, i_, 1))))
 
 ### `snoc-row`  — def-functoid · element/number-valued
 
-    snoc-row(c, n, r) := matof(1, succ(n), vnb-lambda([i_, j_], if(j_ = succ(n), r, entry(c, 1, j_))))
+    snoc-row(c, n, r) := matof(1, succ(n), vnb-lambda([i_, j_], cartesian(interval(1, 1), interval(1, succ(n))), if(j_ = succ(n), r, entry(c, 1, j_))))
 
 ### `span`  — def-functoid · set-valued
 
@@ -655,11 +655,11 @@ Declared by: `rr-normed-field-def`
 
 ### `submat`  — def-functoid · element/number-valued
 
-    submat(s, p, q) := matof(p, q, vnb-lambda([i, j], entry(s, succ(i), succ(j))))
+    submat(s, p, q) := matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
 
 ### `subseq`  — def-functoid · function-valued
 
-    subseq(f, phi) := vnb-lambda(k, f(phi(k)))
+    subseq(f, phi) := vnb-lambda(k, nn, f(phi(k)))
 
 ### `succ_ord`  — characterized by axiom(s)
 
@@ -689,7 +689,7 @@ Declared by: `sup-ord-empty` `sup-ord-in` `sup-ord-least` `sup-ord-succ-segment`
 
 ### `taylor-poly`  — def-functoid · element/number-valued
 
-    taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
+    taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, nn, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
 
 ### `taylor-poly-v`  — recursively defined (def-by-nn-recursion)
 
@@ -707,7 +707,7 @@ Declared by: `trinum-zero` `trinum-succ`
 
 ### `unitrow`  — def-functoid · element/number-valued
 
-    unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], if(cl = i, one(a), zero(a))))
+    unitrow(a, n, i) := matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
 
 ### `vadd`  — structure accessor · element (slot value)
 
@@ -727,7 +727,7 @@ Declared by: `zero-ring-def`
 
 ### `zeromat`  — def-functoid · element/number-valued
 
-    zeromat(a, m, n) := matof(m, n, vnb-lambda([i, j], zero(a)))
+    zeromat(a, m, n) := matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))
 
 ### `zkept`  — recursively defined (def-by-nn-recursion)
 

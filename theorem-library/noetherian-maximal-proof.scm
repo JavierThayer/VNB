@@ -60,7 +60,7 @@
 (define FALS (dc-gf))
 
 ;;; the step set and the dc-on-nn-pred totality hypothesis
-(define NXT (list 'VNB-LAMBDA '(LIST kx ux)
+(define NXT (list 'VNB-LAMBDA '(LIST kx ux) (list 'CARTESIAN 'NN nm-sig)
                   (list 'SEP 'zz nm-sig '(AND (SUBSET ux zz) (NOT (= zz ux))))))
 (define (NXTapp k u) (list NXT k u))
 (define (SEPof u) (list 'SEP 'zz nm-sig (list 'AND (list 'SUBSET u 'zz) (list 'NOT (list '= 'zz u)))))
@@ -148,7 +148,11 @@
 (quietly (lambda () (inst+ FSTEP NN2)))
 (hb-detach-opt! (list 'IN NN2 'NN))                   ; (IN (FF(succ n))(NXT n (FF n)))
 (cut (list '== (NXTapp NN2 (list FF NN2)) (SEPof (list FF NN2))))
-(dc-focus! (list '== (NXTapp NN2 (list FF NN2)) (SEPof (list FF NN2)))) (lam-b) (qrfl)
+(dc-focus! (list '== (NXTapp NN2 (list FF NN2)) (SEPof (list FF NN2))))
+;; NXT's domain is NN x sig: n_ is typed by the di, (FF n_) is not -- same
+;; citation as CH1 above, one line earlier than it was needed there.
+(quietly (lambda () (fact 'fun-apply-type-c FF 'NN nm-sig NN2)))
+(lam-b) (qrfl)
 (dc-focus! CH2GOAL)
 (cut (list 'IN (list FF (list 'succ NN2)) (SEPof (list FF NN2))))
 (subst (list '== (SEPof (list FF NN2)) (NXTapp NN2 (list FF NN2))))
@@ -187,7 +191,9 @@
 (quietly (lambda () (inst+ FSTEP KSTAB)))
 (hb-detach-opt! (list 'IN KSTAB 'NN))
 (cut (list '== (NXTapp KSTAB FFk) (SEPof FFk)))
-(dc-focus! (list '== (NXTapp KSTAB FFk) (SEPof FFk))) (lam-b) (qrfl)
+(dc-focus! (list '== (NXTapp KSTAB FFk) (SEPof FFk)))
+(quietly (lambda () (fact 'fun-apply-type-c FF 'NN nm-sig KSTAB)))   ; (IN (FF k) sig)
+(lam-b) (qrfl)
 (dc-focus-case! Hmax)
 (cut (list 'IN FFsucc (SEPof FFk)))
 (subst (list '== (SEPof FFk) (NXTapp KSTAB FFk)))

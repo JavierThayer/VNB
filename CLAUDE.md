@@ -229,6 +229,16 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   conjunctions only; for a single landed atom keep `dk-landed-1`.
 * `detach!` takes the **IMPLIES** formula, not its antecedent. `(detach! <antecedent>)`
   is a silent no-op.
+* **`lam-b` needs the argument TYPED, and needs it BEFORE the reduction.** A lambda
+  carries its domain and is defined only there, so `((VNB-LAMBDA x A b) u)` reduces
+  cleanly only when `(IN u A)` is evident -- in the context, or supplied by an
+  enclosing guarded universal or by an enclosing `VNB-LAMBDA`/`SEP`/`BIG-UNION`
+  binder (the walker threads all three). Otherwise the step still fires but **owes
+  `(IN u A)` as an extra leaf**, and a driver that was not expecting it wanders.
+  The fix is always the same and always one line: land the typing fact *above* the
+  `lam-b`, not below it. `mat-ring-proof`'s `mr-close-conj` is the worked example
+  (type -> `lam-b` -> cite -> `ass`), and it is why `mr-rops` no longer betas: at the
+  point it used to, the binders whose typings were needed did not exist yet.
 * `mac-h` **replaces** the assumption it unfolds. Unfolding `(IS-IDEAL s I)` to reach its
   closure conjuncts therefore deletes the hypothesis that `ideal-elt-in-carrier` (and
   every other `fact` guarded on `IS-IDEAL`) needs. Get the projection another way, or

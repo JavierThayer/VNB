@@ -99,7 +99,7 @@
                   (AND (IN L (PRODUCT-CARRIER ms))
                        (FORALL n (IMPLIES (IN n NN)
                          (CONVERGES-ALONG (ms n)
-                           (VNB-LAMBDA i ((seq i) n))
+                           (VNB-LAMBDA i NN ((seq i) n))
                            (S n)
                            (L n)))))))))))))))
 (warrant! 'convergence-block-tower 'informal
@@ -149,7 +149,7 @@
                   (AND (IN L (PRODUCT-CARRIER ms))
                        (FORALL n (IMPLIES (IN n NN)
                          (CONVERGES-TO (ms n)
-                           (VNB-LAMBDA k (((SUBSEQ seq delta) k) n))
+                           (VNB-LAMBDA k NN (((SUBSEQ seq delta) k) n))
                            (L n))))))))))))))
 (warrant! 'coordinatewise-diagonal-subseq 'informal
   "The diagonal argument (calculus.pdf Remark 3.30 applied across coordinates).

@@ -39,7 +39,7 @@
           (else (lp (cdr as))))))
 (define (bnm-gmem i) (fact 'fun-apply-type-c 'g 'ZZ '(CARR r) i))
 
-(define bnm-dffg '(VNB-LAMBDA k ((ADD R)((MUL R) x (g (- k 1)))((MUL R) y (g k)))))
+(define bnm-dffg '(VNB-LAMBDA k NN ((ADD R)((MUL R) x (g (- k 1)))((MUL R) y (g k)))))
 (define (bnm-rhs nn)
   (list '(ADD R)(list '(ADD R)(list '(MUL R) '((ADD R) x y)(list 'SUM 'R 'g nn))
                                     (list '(MUL R) 'x '(g (- 0 1))))
@@ -97,7 +97,7 @@
                   (list '(MUL r) '((ADD r) x y) '(SUM r (COMB-KK r x y n)(succ n)))))
   (mac 'comb-kk-succ)
   (fact 'sum-expansion '(succ n) 'r 'x 'y '(COMB-KK r x y n))
-  (subst (list '= (list 'SUM 'r '(VNB-LAMBDA k ((ADD r)((MUL r) x ((COMB-KK r x y n)(- k 1)))((MUL r) y ((COMB-KK r x y n) k)))) '(succ (succ n)))
+  (subst (list '= (list 'SUM 'r '(VNB-LAMBDA k NN ((ADD r)((MUL r) x ((COMB-KK r x y n)(- k 1)))((MUL r) y ((COMB-KK r x y n) k)))) '(succ (succ n)))
                (list '(ADD r)(list '(ADD r)(list '(MUL r) '((ADD r) x y)(list 'SUM 'r '(COMB-KK r x y n) '(succ n)))(list '(MUL r) 'x '((COMB-KK r x y n)(- 0 1))))(list '(MUL r) 'y '((COMB-KK r x y n)(succ n))))))
   (fact 'comb-kk-null 'r 'x 'y 'n '(- 0 1))(subst (list '= '((COMB-KK r x y n)(- 0 1)) '(ZERO r)))
   (fact 'comb-kk-above 'r 'x 'y 'n '(succ n))(subst (list '= '((COMB-KK r x y n)(succ n)) '(ZERO r)))

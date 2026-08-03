@@ -103,9 +103,9 @@
 ;; ring accessors reduce.  IS-RING(RINGOID-QUOTIENT-RING r) is the goal.
 (def-functoid 'RINGOID-QUOTIENT-RING '(r)
   '(LIST (QUOTIENT (RINGOID-SETOID r))
-         (DESCEND2 (VNB-LAMBDA (LIST a b) (CLASS (RINGOID-SETOID r) ((ADD r) a b))))
-         (DESCEND2 (VNB-LAMBDA (LIST a b) (CLASS (RINGOID-SETOID r) ((MUL r) a b))))
-         (DESCEND  (VNB-LAMBDA a         (CLASS (RINGOID-SETOID r) ((NEG r) a))))
+         (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((ADD r) a b))))
+         (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((MUL r) a b))))
+         (DESCEND  (RINGOID-SETOID r) (VNB-LAMBDA a (CARR r)         (CLASS (RINGOID-SETOID r) ((NEG r) a))))
          (CLASS (RINGOID-SETOID r) (ZERO r))
          (CLASS (RINGOID-SETOID r) (ONE r))))
 
@@ -116,13 +116,13 @@
     '(FORALL r (== (CARR (RINGOID-QUOTIENT-RING r)) (QUOTIENT (RINGOID-SETOID r)))))
   (theory-add-axiom! *current-theory* 'rq-add
     '(FORALL r (== (ADD (RINGOID-QUOTIENT-RING r))
-                   (DESCEND2 (VNB-LAMBDA (LIST a b) (CLASS (RINGOID-SETOID r) ((ADD r) a b)))))))
+                   (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((ADD r) a b)))))))
   (theory-add-axiom! *current-theory* 'rq-mul
     '(FORALL r (== (MUL (RINGOID-QUOTIENT-RING r))
-                   (DESCEND2 (VNB-LAMBDA (LIST a b) (CLASS (RINGOID-SETOID r) ((MUL r) a b)))))))
+                   (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((MUL r) a b)))))))
   (theory-add-axiom! *current-theory* 'rq-neg
     '(FORALL r (== (NEG (RINGOID-QUOTIENT-RING r))
-                   (DESCEND (VNB-LAMBDA a (CLASS (RINGOID-SETOID r) ((NEG r) a)))))))
+                   (DESCEND (RINGOID-SETOID r) (VNB-LAMBDA a (CARR r) (CLASS (RINGOID-SETOID r) ((NEG r) a)))))))
   (theory-add-axiom! *current-theory* 'rq-zero
     '(FORALL r (== (ZERO (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ZERO r)))))
   (theory-add-axiom! *current-theory* 'rq-one

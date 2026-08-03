@@ -18,7 +18,7 @@
 ;;; TAYLOR-POLY(f,a,n,x) = Sum_{k=0}^{n} f^(k)(a) (x-a)^k / k!
 (def-functoid 'TAYLOR-POLY '(f a n x)
   '(SERIES-PARTIAL-SUM
-     (VNB-LAMBDA k (* (* ((NTH-DERIV f k) a) (power (- x a) k)) (recip (FACTORIAL k))))
+     (VNB-LAMBDA k NN (* (* ((NTH-DERIV f k) a) (power (- x a) k)) (recip (FACTORIAL k))))
      (succ n)))
 
 ;;; TAYLOR-DIFFERENTIABLE(f,a,x,n): f^(k) (k<=n) continuous on [a,x] and
@@ -34,8 +34,8 @@
 
 ;;; file-local auxiliary functions (free f,x,n; bind z -- NOT the point var, to
 ;;; avoid capture-rename when instantiating a support at point t)
-(define GT '(VNB-LAMBDA z (- (f x) (TAYLOR-POLY f z n x))))
-(define HT '(VNB-LAMBDA z (power (- x z) (succ n))))
+(define GT '(VNB-LAMBDA z RR (- (f x) (TAYLOR-POLY f z n x))))
+(define HT '(VNB-LAMBDA z RR (power (- x z) (succ n))))
 ;;; their warranted derivative values at t
 (define (GVAL t) (list '- 0 (list '* (list '* '(recip (FACTORIAL n)) (list (list 'NTH-DERIV 'f '(succ n)) t)) (list 'power (list '- 'x t) 'n))))
 (define (HVAL t) (list '- 0 (list '* '(succ n) (list 'power (list '- 'x t) 'n))))

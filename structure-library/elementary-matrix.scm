@@ -15,7 +15,7 @@
 ;;; (k,l), ZERO everywhere else (the book's E_n[k,l]).  A MATOF over the
 ;;; ring's ONE/ZERO, in the same style as IDENTMAT.
 (def-functoid 'MATUNIT '(A n k l)
-  '(MATOF n n (VNB-LAMBDA (LIST i j)
+  '(MATOF n n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 n) (INTERVAL 1 n))
      (IF (AND (= i k) (= j l)) (ONE A) (ZERO A)))))
 
 ;;; entries of a matrix unit: ONE iff (i,j) = (k,l), else ZERO.
@@ -66,7 +66,7 @@
        (IMPLIES (IN P (MAT m n (CARR A)))
        (IMPLIES (IN i (INTERVAL 1 m))
        (IMPLIES (IN c (INTERVAL 1 n))
-         (IN (VNB-LAMBDA j ((MUL A) (ENTRY P i j) (ENTRY (MATUNIT A n k l) j c)))
+         (IN (VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY (MATUNIT A n k l) j c)))
              (FUN (INTERVAL 1 n) (CARR (RING-ADDITIVE-AG A)))))))))))))))))
 (warrant! 'matunit-summand-type 'well-known
   "j |-> P_{ij}.E[k,l]_{jc} is a function INTERVAL(1,n) -> CARR A (entry-in-carrier
@@ -113,7 +113,7 @@
 ;;; cases are disjoint, so the book's E[k,l]+E[l,k]+SUM E[i,i] is just their
 ;;; union of ONE-entries.
 (def-functoid 'ELEM-F '(A n k l)
-  '(MATOF n n (VNB-LAMBDA (LIST i j)
+  '(MATOF n n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 n) (INTERVAL 1 n))
      (IF (OR (AND (= i k) (= j l))
              (OR (AND (= i l) (= j k))
                  (AND (= i j) (AND (NOT (= i k)) (NOT (= i l))))))
@@ -146,7 +146,7 @@
 ;;; For k /= l the (k,l) slot is off the diagonal, so the two nonzero cases never
 ;;; collide and the identity's ONE is undisturbed there.
 (def-functoid 'ELEM-G '(A n r k l)
-  '(MATOF n n (VNB-LAMBDA (LIST i j)
+  '(MATOF n n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 n) (INTERVAL 1 n))
      (IF (= i j) (ONE A)
          (IF (AND (= i k) (= j l)) r (ZERO A))))))
 
@@ -312,7 +312,7 @@
 ;;; on the diagonal it is r at (k,k) and ONE elsewhere -- the book's 1+(r-1) = r
 ;;; at (k,k) collapsed by hand.
 (def-functoid 'ELEM-H '(A n r k)
-  '(MATOF n n (VNB-LAMBDA (LIST i j)
+  '(MATOF n n (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 n) (INTERVAL 1 n))
      (IF (= i j) (IF (= i k) r (ONE A)) (ZERO A)))))
 
 (support 'entry-of-elem-h

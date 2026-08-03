@@ -32,7 +32,7 @@
 ;;; ===================== elem-h-row-action ============================
 ;;; (H[r,k] . P)_{ic} = r.P_{kc} if i=k, else P_{ic}.  H is diagonal: row i has a
 ;;; single support at column i.  Case-split on (i=k).
-(define EA-HFF '(VNB-LAMBDA j ((MUL A) (ENTRY (ELEM-H A m r k) i j) (ENTRY P j c))))
+(define EA-HFF '(VNB-LAMBDA j (INTERVAL 1 m) ((MUL A) (ENTRY (ELEM-H A m r k) i j) (ENTRY P j c))))
 (sp (make-wff
   '(FORALL A (IMPLIES (IS-RING A)
      (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k
@@ -100,7 +100,7 @@
 ;;; ===================== elem-g-row-action ============================
 ;;; (G[r,k,l] . P)_{ic} = P_{kc} + r.P_{lc} if i=k, else P_{ic}.  Row k has two
 ;;; supports (col k val 1, col l val r); split on (i=k).
-(define EA-GFF '(VNB-LAMBDA j ((MUL A) (ENTRY (ELEM-G A m r k l) i j) (ENTRY P j c))))
+(define EA-GFF '(VNB-LAMBDA j (INTERVAL 1 m) ((MUL A) (ENTRY (ELEM-G A m r k l) i j) (ENTRY P j c))))
 (sp (make-wff
   '(FORALL A (IMPLIES (IS-RING A)
      (FORALL m (FORALL n (FORALL P (FORALL r (FORALL k (FORALL l
@@ -190,7 +190,7 @@
 ;;; ===================== elem-f-row-action ============================
 ;;; (F[k,l] . P)_{ic} = P_{lc} (i=k), P_{kc} (i=l), P_{ic} (else).  Each row of F
 ;;; is a unit vector; three-way split on (i=k) then (i=l).
-(define EA-FFF '(VNB-LAMBDA j ((MUL A) (ENTRY (ELEM-F A m k l) i j) (ENTRY P j c))))
+(define EA-FFF '(VNB-LAMBDA j (INTERVAL 1 m) ((MUL A) (ENTRY (ELEM-F A m k l) i j) (ENTRY P j c))))
 (define (ea-collapse-row SUPP offpss atpss)
   (cut `(FORALL jz (IMPLIES (IN jz ,EA-INT)
           (IMPLIES (NOT (= jz ,SUPP)) (= (,EA-FFF jz) (IDEN ,EA-RAG))))))

@@ -119,7 +119,7 @@
 (di) (di)                                        ; i_, IN i_ [1,n]
 (define ST-I (cadr (st-find (lambda (f) (and (pair? f) (eq? (car f) 'IN)
                                              (equal? (caddr f) '(INTERVAL 1 n)))))))
-(define ST-FS `(VNB-LAMBDA j ((ACT md) (ENTRY pm ,ST-I j) (ENTRY u j 1))))
+(define ST-FS `(VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY pm ,ST-I j) (ENTRY u j 1))))
 (fact 'matact-entry 'md 'n 'n 1 'pm 'u ST-I 1)
 (subst `(= (ENTRY ,(st-ma 'pm 'u) ,ST-I 1) (FINSUM ,ST-VAG ,ST-FS (INTERVAL 1 n))))
 (fact 'matact-summand-type 'md 'n 'n 1 'pm 'u ST-I 1)

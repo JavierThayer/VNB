@@ -184,7 +184,7 @@
 (quietly (lambda () (di)(di)(di)(di)(di)))
 (iez-split-ands)
 (quietly (lambda () (di)(di)))           ; MNCOND condition, IS-DIFF-AT
-(define MING (list 'VNB-LAMBDA 'z (list '- (list 'f 'z))))   ; g = -f
+(define MING (list 'VNB-LAMBDA 'z 'RR (list '- (list 'f 'z))))   ; g = -f
 (define MNCOND (iez-find-asm (lambda (a) (and ((iez-head? 'FORALL) a)
                                            (iez-mentions? 'CCINT a)))))
 ;; (1) IS-DIFF-AT g theta (-l), and expose (IN l RR) from the consumed IS-DIFF-AT
@@ -193,7 +193,7 @@
 ;; (2) g in FUN RR RR
 (cut (list 'IN MING '(FUN RR RR)))
 (iez-focus! (list 'IN MING '(FUN RR RR)))
-(lam-t)
+(dk-lam-t!)
 (quietly (lambda () (di) (di) (in-rr)))
 ;; (3) max condition for g: forall x in CCINT(a,b). (g x) <= (g theta)
 (define MAXG (list 'FORALL 'x (list 'IMPLIES '(IN x (CCINT a b))

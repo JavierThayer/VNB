@@ -62,7 +62,7 @@
   '(FORALL f (IMPLIES (IN f (FUN NN RR))
      (FORALL k (IMPLIES (IN k NN)
        (<= (abs (SERIES-PARTIAL-SUM f k))
-           (SERIES-PARTIAL-SUM (VNB-LAMBDA n_ (abs (f n_))) k)))))))
+           (SERIES-PARTIAL-SUM (VNB-LAMBDA n_ NN (abs (f n_))) k)))))))
 (warrant! 'series-partial-sum-abs-le 'well-known
   "|sum_{n<k} f(n)| <= sum_{n<k} |f(n)|: induction on k via the SUM-AG
    recurrence and rr-abs-triangle at each step.")

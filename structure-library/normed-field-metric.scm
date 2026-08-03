@@ -53,7 +53,8 @@
 ;;; the carrier-closure of x - y, so it is a proof, not a rewrite.
 (def-constructed-functor 'NF-METRIC-SPACE 'NORMED-FIELD 'METRIC-SPACE '(nf)
   '(LIST (CARR nf)
-         (VNB-LAMBDA (LIST x y) ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
+         (VNB-LAMBDA (LIST x y) (CARTESIAN (CARR nf) (CARR nf))
+                    ((FNRM nf) ((ADD nf) x ((NEG nf) y))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Distance = norm of the difference, on the carrier.

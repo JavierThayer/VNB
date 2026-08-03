@@ -23,7 +23,7 @@
 (define (lheads) (map (lambda (n) (let ((a (wff-formula (sequent-node-assertion n)))) (if (pair? a)(car a) a))) (leaves)))
 (define (split-ands) (let loop ((n 0)) (let ((a (find-asm (head? 'AND))))
   (cond ((and a (< n 10)) (ai a) (loop (+ n 1))) (else n)))))
-(define wdef '(VNB-LAMBDA n (/ 1 (power 2 (+ n 1)))))
+(define wdef '(VNB-LAMBDA n NN (/ 1 (power 2 (+ n 1)))))
 
 (sp (make-wff
      '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)

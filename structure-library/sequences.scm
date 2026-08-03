@@ -198,7 +198,7 @@
                             (IMPLIES (IN f (FUN NN (CARR r)))
                                      (FORALL n
                                        (IMPLIES (IN n NN)
-                                         (= (SUM r (VNB-LAMBDA i ((MUL r) a (f i))) n)
+                                         (= (SUM r (VNB-LAMBDA i NN ((MUL r) a (f i))) n)
                                             ((MUL r) a (SUM r f n))))))))))))
 
 ;;; -----------------------------------------------------------------------

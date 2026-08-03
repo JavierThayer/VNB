@@ -48,7 +48,7 @@
 ;;; ORD-SEGMENT(n), where the IF reduces to its then-branch.
 
 (def-functoid 'ENUM-FAM '(ag f phi n)
-  '(VNB-LAMBDA i (IF (IN i (ORD-SEGMENT n))
+  '(VNB-LAMBDA i NN (IF (IN i (ORD-SEGMENT n))
                      (f (phi i))
                      (IDEN ag))))
 
@@ -81,6 +81,6 @@
 ;;; equations are recovered by  mac INSERT-LAST + lam-b + if-true/if-false.
 
 (def-functoid 'INSERT-LAST '(phi x n)
-  '(VNB-LAMBDA i (IF (IN i (ORD-SEGMENT n))
+  '(VNB-LAMBDA i NN (IF (IN i (ORD-SEGMENT n))
                      (phi i)
                      x)))

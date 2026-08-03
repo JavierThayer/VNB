@@ -180,13 +180,13 @@
 (def-functoid 'RING-PROD '(X Y)
   '(LIST
      (CARTESIAN (CARR X) (CARR Y))
-     (VNB-LAMBDA (LIST p q)
+     (VNB-LAMBDA (LIST p q) (CARTESIAN (CARTESIAN (CARR X) (CARR Y)) (CARTESIAN (CARR X) (CARR Y)))
        (LIST ((ADD X) (NTH 1 p) (NTH 1 q))
              ((ADD Y) (NTH 2 p) (NTH 2 q))))
-     (VNB-LAMBDA (LIST p q)
+     (VNB-LAMBDA (LIST p q) (CARTESIAN (CARTESIAN (CARR X) (CARR Y)) (CARTESIAN (CARR X) (CARR Y)))
        (LIST ((MUL X) (NTH 1 p) (NTH 1 q))
              ((MUL Y) (NTH 2 p) (NTH 2 q))))
-     (VNB-LAMBDA (LIST p)
+     (VNB-LAMBDA (LIST p) (CARTESIAN (CARR X) (CARR Y))
        (LIST ((NEG X) (NTH 1 p))
              ((NEG Y) (NTH 2 p))))
      (LIST (ZERO X) (ZERO Y))
@@ -204,9 +204,9 @@
   (list 'zero-ring-def
         '(= ZERO-RING
             (LIST (MAKE-SET (LIST 0))
-                  (VNB-LAMBDA (LIST p q) 0)
-                  (VNB-LAMBDA (LIST p q) 0)
-                  (VNB-LAMBDA (LIST p) 0)
+                  (VNB-LAMBDA (LIST p q) (CARTESIAN (MAKE-SET (LIST 0)) (MAKE-SET (LIST 0))) 0)
+                  (VNB-LAMBDA (LIST p q) (CARTESIAN (MAKE-SET (LIST 0)) (MAKE-SET (LIST 0))) 0)
+                  (VNB-LAMBDA (LIST p) (MAKE-SET (LIST 0)) 0)
                   0
                   0))))
 

@@ -61,8 +61,8 @@
         (FORSOME k (AND (AND (IN k NN) (<= k ,ntm))
          (FORSOME w (AND (IN w (MAT k 1 (VEC md)))
                          (SPANS md k w sm))))))))))))))
-(define sd-w0  '(MATOF 0 1 (VNB-LAMBDA (LIST i_ j_) (VZERO md))))       ; empty column seq
-(define sd-ce0 '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) (ZERO (SCAL md))))) ; empty coeff row
+(define sd-w0  '(MATOF 0 1 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 0) (INTERVAL 1 1)) (VZERO md))))       ; empty column seq
+(define sd-ce0 '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 0)) (ZERO (SCAL md))))) ; empty coeff row
 (define (sd-empty-in! typ)   ; prove (IN (MATOF m n g) typ) with a 0 dimension, via bc*
   (bc* 'matof-in-mat) (sd-di*)
   (sd-empty-close! (cadr (sd-find (lambda (f) (and (pair? f) (eq? (car f) 'IN)
