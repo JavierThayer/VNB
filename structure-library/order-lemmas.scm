@@ -82,8 +82,6 @@
 ;;; there too and is what the pair bound now rests on.
 
 
-
-
 ;; Curried siblings (no AND antecedent) so a forward `fact' discharges each
 ;; guard from context without a cut -- the shape interactive assembly wants.
 
@@ -248,16 +246,6 @@
 ;;; subtraction closure + its nonzero-difference companion).  All one-liners of
 ;;; the field axioms; named so a forward `fact' chains them (uniqueness of the
 ;;; Caratheodory derivative factor, differentiation.scm, is the first customer).
-(support 'eq-sym
-  '(FORALL a (FORALL b (IMPLIES (= a b) (= b a)))))
-(warrant! 'eq-sym 'well-known "Symmetry of (partial) equality.")
-(category! 'eq-sym 'plumbing)
-
-(support 'eq-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (= b c) (= a c)))))))
-(warrant! 'eq-trans 'well-known "Transitivity of (partial) equality.")
-(category! 'eq-trans 'plumbing)
-
 ;;; -----------------------------------------------------------------------
 ;;; calc-chain composition lemmas: UNTYPED CURRIED transitivity for every
 ;;; (relation, relation) combination the `calc' order composer folds through.
@@ -357,27 +345,9 @@
 
 ;;; Interval read-offs (forward direction of interval-membership), warranted
 ;;; well-known -- used to pull IN i NN / the bounds out of IN i (INTERVAL a b).
-(support 'interval-elt-in-nn
-  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i (INTERVAL a b)) (IN i NN)))))) 
-(warrant! 'interval-elt-in-nn 'well-known "i in INTERVAL(a,b) => i in NN (interval-membership).")
-(category! 'interval-elt-in-nn 'plumbing)
-
-(support 'interval-lo
-  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i (INTERVAL a b)) (<= a i))))))
-(warrant! 'interval-lo 'well-known "i in INTERVAL(a,b) => a <= i (interval-membership).")
-(category! 'interval-lo 'inequalities)
-
-(support 'interval-hi
-  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i (INTERVAL a b)) (<= i b))))))
-(warrant! 'interval-hi 'well-known "i in INTERVAL(a,b) => i <= b (interval-membership).")
-(category! 'interval-hi 'inequalities)
-
+ 
 ;;; Symmetry of disequality -- fact-able, needed early (Smith clearing uses it
 ;;; well before noetherian-maximal-proof, its former home).
-(support 'neq-sym '(FORALL a (FORALL b (IMPLIES (NOT (= a b)) (NOT (= b a))))))
-(warrant! 'neq-sym 'well-known "Symmetry of disequality.")
-(category! 'neq-sym 'plumbing)
-
 ;;; NN-MINUS(succ z, 1) = z -- the monus predecessor of a successor.  Used by
 ;;; border-mult to reduce a shifted block index.
 (support 'nn-minus-succ-1

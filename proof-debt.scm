@@ -345,6 +345,53 @@
                  (display "NOT since last VNB test run -- proof unverified"))
         (newline)))))
 
+;;; --- keystones: the ranking, as a VALUE ---------------------------------
+;;;
+;;; The reverse index below has always computed this and always buried it -- at
+;;; line ~6000 of a 559 KB PROOF-DEBT.md that nobody opens.  The ranking IS the
+;;; worklist: an asserted leaf cited by 63 bills is worth sixty-three times what
+;;; a leaf cited by one is, and discharging `ord-well-ordered' (2026-08-03) moved
+;;; 16 bills for an afternoon's work on exactly that basis.  So compute it
+;;; separately and let the load print the head of it.
+;;;
+;;; Returns ((leaf count warrant-kind) ...), most-cited first.
+(define (debt-keystones)
+  (let ((rev (make-equal-hash-table)))
+    (hash-table-walk *proof-debt*
+      (lambda (p bill)
+        (for-each (lambda (leaf)
+                    (hash-table-set! rev leaf
+                      (cons p (hash-table-ref/default rev leaf '()))))
+                  bill)))
+    (sort (map (lambda (leaf)
+                 (let ((w (warrant-of leaf)))
+                   (list leaf
+                         (length (hash-table-ref/default rev leaf '()))
+                         (if w (car w) 'NONE))))
+               (hash-table-keys rev))
+          (lambda (a b)
+            (if (= (cadr a) (cadr b))
+                (string<? (symbol->string (car a)) (symbol->string (car b)))
+                (> (cadr a) (cadr b)))))))
+
+;;; Print the head of the ranking.  Wired into load.scm beside the other
+;;; end-of-load reports; (debt-keystones) at the REPL gives the whole list.
+(define (report-keystones #!optional n)
+  (let ((n (if (default-object? n) 15 n))
+        (ks (debt-keystones)))
+    (display ";; debt keystones -- the asserted facts the most proofs lean on\n")
+    (display ";;   (discharge one and every bill below it improves; full list in\n")
+    (display ";;    reference/PROOF-DEBT.md, or (debt-keystones) for the data)\n")
+    (let loop ((ks ks) (i 0))
+      (when (and (pair? ks) (< i n))
+        (let ((e (car ks)))
+          (display ";;   ") (display (cadr e))
+          (display (if (< (cadr e) 10) "   " "  "))
+          (display (car e))
+          (display "  [warrant: ") (display (caddr e)) (display "]")
+          (newline))
+        (loop (cdr ks) (+ i 1))))))
+
 ;;; (3) PROOF-DEBT.md: forward map (each proven theorem -> outstanding base)
 ;;;     AND reverse keystone index (each asserted leaf -> proven dependents,
 ;;;     "discharge X -> unlocks N").

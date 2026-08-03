@@ -423,6 +423,15 @@
     ;; all directly above, and must precede nn-least-element and every use of
     ;; minimize!, which appeal to it.
     "theorem-library/ord-well-ordered-proof"
+    ;; eq-sym / eq-trans / neq-sym, PROVEN.  eq-sym was an asserted DUPLICATE of
+    ;; the primitive `equality-symmetry' and was cited by 52 bills; eq-trans is
+    ;; the curried form of the primitive `equality-transitivity', which `fact'
+    ;; needs because it will not split an AND antecedent.  Was in order-lemmas.
+    "theorem-library/equality-basics"
+    ;; INTERVAL's read-offs, PROVEN by separation from its def-functoid:
+    ;; interval-in-set (60 bills), interval-elt-in-nn, interval-lo, interval-hi,
+    ;; plus the citable unfolding equation.  Were in order-lemmas / matrix.
+    "theorem-library/interval-basics"
     ;; binary-minus-laws -- what follows from number-systems.scm's binary-minus-def
     ;; (2026-08-01).  Proves rr-sub-in-rr, which was a `well-known' support in
     ;; order-lemmas until the defining equation for (- a b) existed.  Needs
@@ -1190,6 +1199,7 @@
 ;; PSS.md suffered above.  Must run after (catalog), which needs no debt data,
 ;; and after every theorem-library file has reached its qed.
 (proof-debt-ledger)
+(report-keystones)
 
 ;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
 (write-tactics-md)

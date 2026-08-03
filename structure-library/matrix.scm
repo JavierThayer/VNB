@@ -74,11 +74,6 @@
 (warrant! 'interval-membership 'proof
   "i in INTERVAL(a,b) iff i in NN and a<=i<=b (SEP membership over NN).")
 
-(support 'interval-in-set
-  '(FORALL a (FORALL b (IN (INTERVAL a b) SET))))
-(warrant! 'interval-in-set 'proof
-  "INTERVAL(a,b) is a subclass of NN (a set), hence a set by separation.")
-
 ;;; The empty index interval.  Needed wherever a construction degenerates at
 ;;; n = 0: the length-0 coefficient row, the empty MATACT, the base case of the
 ;;; spans-submodule-fg induction.  Stated as an EQUATION (not `no member of
