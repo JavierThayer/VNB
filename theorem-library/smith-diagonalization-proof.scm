@@ -82,7 +82,8 @@
 (mac 'IS-DIAGONAL) (cc-di*)
 (define SBj (cadddr (cadr (cc-goal))))
 (fact 'interval-lo 1 'n SBj) (fact 'interval-hi 1 'n SBj)
-(fact 'nn-le-trans 1 SBj 'n)                 ; 1<=j, j<=n => 1<=n, contradicts NOT(1<=n)
+(fact 'nn-one-in) (fact 'interval-elt-in-nn 1 'n SBj)
+(fact 'nn-le-trans-guarded 1 SBj 'n)                 ; 1<=j, j<=n => 1<=n, contradicts NOT(1<=n)
 (ai '(NOT (<= 1 n)))
 
 ;; --- 1<=n branch: n = succ q, then the pivot dance ---

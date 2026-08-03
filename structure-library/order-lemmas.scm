@@ -22,40 +22,31 @@
 ;;; -----------------------------------------------------------------------
 ;;; Chaining: mixed strict / non-strict transitivity, and weakening.
 
-;;; nn-le-trans -- RESTORED unguarded 2026-08-02, deliberately and temporarily.
+;;; nn-le-trans -- GONE 2026-08-03, migration complete.
 ;;;
-;;; MIGRATION STATUS 2026-08-03: the callers in nn-pairing (three sites),
-;;; nn-order-proof (two), nn-order-basics (one) and interval-widen (one) now cite
-;;; the PROVEN `nn-le-trans-guarded'.  What is left is the SMITH arc --
-;;; smith-staircase-proof (four sites) and smith-diagonalization-proof (one).
-;;; Migrating those two files was attempted and reverted: they break the same way
-;;; the others did, by chaining through terms they never typed, and each needs
-;;; its typings landed before the citation.  nn-add-le-mono (nn-order-proof) was
-;;; fixed that way this session, and so was interval-widen -- which had been
-;;; written the same morning and was chaining through BOTH b and c untyped.
-;;; That is the argument for finishing this: every site it breaks is a site that
-;;; was relying on an unlicensed statement.
+;;; It was stated with NO guards, which is stronger than the axioms license:
+;;; nothing constrains `<=' off the numeric chain, so it asserted transitivity of
+;;; the order on arbitrary objects, and the library's own trusted `ineq' oracle
+;;; refuses to certify an atom without a literal (IN t RR).  The name compounded
+;;; it -- despite the `nn-' prefix the statement mentioned NN nowhere.
 ;;;
-;;; It is stated with NO guards, which is stronger than the axioms license:
-;;; nothing constrains `<=' off the numeric chain, so this asserts transitivity
-;;; of the order relation on arbitrary objects.  It is consistent (read `<=' as
-;;; the real order and nothing else and it holds vacuously off RR) but
-;;; unlicensed, and it contradicts how the library's own trusted oracle behaves
-;;; -- `ineq' refuses to certify an atom without a literal (IN t RR).  The name
-;;; compounds it: despite the `nn-' prefix the statement mentions NN nowhere.
+;;; The guarded replacement `nn-le-trans-guarded' is PROVEN `modulo 0'
+;;; (theorem-library/nn-order-basics.scm) and all twelve callers now cite it:
+;;; nn-pairing (3), nn-order-proof (2), nn-order-basics (1), interval-widen (1),
+;;; smith-staircase-proof (4), smith-diagonalization-proof (1).
 ;;;
-;;; The guarded replacement IS PROVEN, `modulo 0', as `nn-le-trans-guarded' in
-;;; theorem-library/nn-order-basics.scm.  Swapping it in is a MIGRATION, not a
-;;; rename: guarding it broke four proofs that were chaining transitivity
-;;; through terms they had never typed -- always a succ(...) or a sum of things
-;;; already in hand.  Three are now fixed (nn-order-basics' nn-le-add-right,
-;;; nn-order-proof's nn-le-add, two sites in nn-pairing); what remains is
-;;; nn-pairing's nn-add-le-mono / nnpair-diag-bound / nnpair-cross.  Finish
-;;; those, point the callers at nn-le-trans-guarded, and delete this.
-(support 'nn-le-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
-(warrant! 'nn-le-trans 'well-known "<= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.")
-(category! 'nn-le-trans 'inequalities)
+;;; THE MIGRATION WAS THE POINT.  Guarding transitivity is what exposed the
+;;; proofs that were chaining through terms they had never typed, and every
+;;; single site it broke was such a proof:
+;;;   nn-add-le-mono      chained through a_+b_ and succ(a_+c_) untyped; fixing
+;;;                       it also brought back nnpair-diag-bound and
+;;;                       nnpair-cross, which had cascaded from it.
+;;;   interval-widen      chained through BOTH b and c untyped -- nothing in its
+;;;                       statement typed either; now guarded on both.
+;;;   smith-staircase     succ kp / succ p / succ q, and the interval indices,
+;;;   smith-diagonalization  never named as naturals.
+;;; Each repair is one or two `fact' lines landing the typing before the
+;;; citation.  Nothing needed new mathematics.
 
 ;;; rr-le-trans and rr-le-trans-c MOVED 2026-08-02 to
 ;;; theorem-library/nn-order-basics.scm, where all three are PROVEN from the

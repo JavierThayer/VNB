@@ -135,8 +135,11 @@
 (fact 'interval-lo 1 '(succ kp) 'i_)
 (fact 'interval-hi 1 '(succ kp) 'i_)
 (fact 'nn-succ-mono 'kp 'p) (fact 'nn-succ-mono 'kp 'q)
-(fact 'nn-le-trans 'i_ '(succ kp) '(succ p))
-(fact 'nn-le-trans 'i_ '(succ kp) '(succ q))
+;; nn-le-trans-guarded types every term of the chain; succ kp / succ p / succ q
+;; were never named as naturals here.  (i_ is typed by interval-elt-in-nn above.)
+(fact 'nn-succ-closed 'kp) (fact 'nn-succ-closed 'p) (fact 'nn-succ-closed 'q)
+(fact 'nn-le-trans-guarded 'i_ '(succ kp) '(succ p))
+(fact 'nn-le-trans-guarded 'i_ '(succ kp) '(succ q))
 (fact 'interval-mem-intro 1 '(succ p) 'i_)
 (fact 'interval-mem-intro 1 '(succ q) 'i_)
 ;; NOTE: the two (di)s above ALREADY landed on `falsity'.  VNB's di on
@@ -290,12 +293,14 @@
 (mac 'IS-DIAGONAL) (ss-di*)
 (define SS-SBj (cadddr (cadr (ss-goal))))
 (fact 'interval-lo 1 'n SS-SBj) (fact 'interval-hi 1 'n SS-SBj)
-(fact 'nn-le-trans 1 SS-SBj 'n)
+(fact 'nn-one-in) (fact 'interval-elt-in-nn 1 'n SS-SBj)
+(fact 'nn-le-trans-guarded 1 SS-SBj 'n)
 (ai '(NOT (<= 1 n)))
 (ss-foc-goal! ss-row-goal?)
 (di)(di)(di)(di)(di)                     ; i_, IN i_, NOT(i_<=0), j_, IN j_ [1,n]
 (fact 'interval-lo 1 'n 'j_) (fact 'interval-hi 1 'n 'j_)
-(fact 'nn-le-trans 1 'j_ 'n)
+(fact 'nn-one-in) (fact 'interval-elt-in-nn 1 'n 'j_)
+(fact 'nn-le-trans-guarded 1 'j_ 'n)
 (ai '(NOT (<= 1 n)))
 
 ;; --- 1<=n : n = succ q, then the pivot dance ---

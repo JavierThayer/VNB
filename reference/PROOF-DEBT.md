@@ -273,7 +273,6 @@ proven modulo:
    lands in the block range.
 - `nn-minus-1-inj` -- *warrant well-known:* i /= j and 1 <= i,j => i-1 /= j-1 (monus by 1 is injective on [1,inf)).
 - `nn-succ-mono` -- *warrant well-known:* a <= b => succ a <= succ b.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `interval-mem-intro` -- *warrant proof:* Converse of interval-lo/interval-hi: i in NN with a<=i<=b lies in INTERVAL(a,b)
    (the right-to-left direction of interval-membership's SEP iff).
 - `border-entry-11` -- *warrant reference:* BORDER(A,b,M,p,q)_{1,1} = b (i=j=1 branch).
@@ -1712,7 +1711,7 @@ proven modulo:
    term of sum_j P_ij delta_jc survives).
 - `identmat-type` -- *warrant reference:* IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
+- `nn-one-in` -- *warrant well-known:* 1 = succ 0 in NN.
 - `nn-pos-is-succ` -- *warrant well-known:* a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).
 - `one-in-interval` -- *warrant well-known:* 1 in [1, succ n] (1 <= 1 <= succ n).
 - `entry-in-carrier` -- *warrant well-known:* The (i,j) entry of an m-by-n matrix over X lies in X.
@@ -4355,7 +4354,7 @@ proven modulo:
    term of sum_j P_ij delta_jc survives).
 - `identmat-type` -- *warrant reference:* IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
+- `nn-one-in` -- *warrant well-known:* 1 = succ 0 in NN.
 - `nn-pos-is-succ` -- *warrant well-known:* a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).
 - `one-in-interval` -- *warrant well-known:* 1 in [1, succ n] (1 <= 1 <= succ n).
 - `entry-in-carrier` -- *warrant well-known:* The (i,j) entry of an m-by-n matrix over X lies in X.
@@ -4489,7 +4488,7 @@ proven modulo:
 - `identmat-type` -- *warrant reference:* IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).
 - `nn-zero-le` -- *warrant well-known:* 0 is the least natural number.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
+- `nn-one-in` -- *warrant well-known:* 1 = succ 0 in NN.
 - `nn-pos-is-succ` -- *warrant well-known:* a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).
 - `one-in-interval` -- *warrant well-known:* 1 in [1, succ n] (1 <= 1 <= succ n).
 - `entry-in-carrier` -- *warrant well-known:* The (i,j) entry of an m-by-n matrix over X lies in X.
@@ -5924,6 +5923,7 @@ Discharging a high-count leaf to a real proof unlocks the most.
 - `elem-g-rk-vanish` (9) [warrant: reference] -> clear-col-upto, clear-first-col, clear-pivot-cross, elem-g-row-action, free-length-le-generators, pivot-clears-row, pivot-row-reduce, smith-diagonalization, smith-staircase
 - `elem-g-ro-at` (9) [warrant: reference] -> clear-col-upto, clear-first-col, clear-pivot-cross, elem-g-row-action, free-length-le-generators, pivot-clears-row, pivot-row-reduce, smith-diagonalization, smith-staircase
 - `elem-g-ro-off` (9) [warrant: reference] -> clear-col-upto, clear-first-col, clear-pivot-cross, elem-g-row-action, free-length-le-generators, pivot-clears-row, pivot-row-reduce, smith-diagonalization, smith-staircase
+- `nn-one-in` (9) [warrant: well-known] -> descent-remainder, free-length-le-generators, lastcoeff-zero-in-span, matact-row-peel, smith-diagonalization, smith-staircase, spans-fg-step, spans-submodule-fg, submodule-fg
 - `rr-diff-zero-eq` (9) [warrant: well-known] -> deriv-pos-strictly-increasing, deriv-zero-const-up, deriv-zero-implies-constant, generalized-mvt, mvt, mvt-lower-bound, mvt-upper-bound, taylor-lagrange, vector-taylor-remainder-bound
 - `finsum-all-id` (8) [warrant: well-known] -> free-length-le-generators, free-transport, lastcoeff-set-is-ideal, matact-zerorow, span-is-submodule, spans-fg-step, spans-submodule-fg, submodule-fg
 - `matadd-type` (8) [warrant: reference] -> descent-remainder, lastcoeff-set-is-ideal, mat-ring-is-ring, matact-row-add, span-is-submodule, spans-fg-step, spans-submodule-fg, submodule-fg
@@ -5965,7 +5965,6 @@ Discharging a high-count leaf to a real proof unlocks the most.
 - `mvt-aux-cont` (6) [warrant: reference] -> deriv-pos-strictly-increasing, deriv-zero-const-up, deriv-zero-implies-constant, mvt, mvt-lower-bound, mvt-upper-bound
 - `mvt-aux-diff` (6) [warrant: reference] -> deriv-pos-strictly-increasing, deriv-zero-const-up, deriv-zero-implies-constant, mvt, mvt-lower-bound, mvt-upper-bound
 - `nn-minus-succ-1` (6) [warrant: well-known] -> border-invertible, border-mult, bordering, free-length-le-generators, smith-diagonalization, smith-staircase
-- `nn-one-in` (6) [warrant: well-known] -> descent-remainder, lastcoeff-zero-in-span, matact-row-peel, spans-fg-step, spans-submodule-fg, submodule-fg
 - `ras-carr` (6) [warrant: proof] -> border-invertible, border-mult, bordering, free-length-le-generators, smith-diagonalization, smith-staircase
 - `span-add-one-membership` (6) [warrant: proof] -> good-step, hahn-banach, hahn-banach-extend-one, norm-as-sup, norm-attained-by-functional, vector-taylor-remainder-bound
 - `succ-in-interval` (6) [warrant: well-known] -> border-invertible, border-mult, bordering, free-length-le-generators, smith-diagonalization, smith-staircase
@@ -6008,7 +6007,6 @@ Discharging a high-count leaf to a real proof unlocks the most.
 - `finsum-empty` (4) [warrant: well-known] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
 - `inter-of-opens-open` (4) [warrant: proof] -> metric-top-functorial, metric-top-is-metrizable-top-space, metric-top-is-top-space, metrizable-iff-bounded-metrizable
 - `interval-1-0-empty` (4) [warrant: well-known] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
-- `nn-le-trans` (4) [warrant: well-known] -> border-staircase, free-length-le-generators, smith-diagonalization, smith-staircase
 - `nn-pos-of-nonzero` (4) [warrant: well-known] -> nn-lt-double, nn-lt-triple, sqrt2-irrational, sqrt3-irrational
 - `proper-subset-witness` (4) [warrant: well-known] -> hahn-banach, norm-as-sup, norm-attained-by-functional, vector-taylor-remainder-bound
 - `ring-add-closed` (4) [warrant: well-known] -> lastcoeff-set-is-ideal, spans-fg-step, spans-submodule-fg, submodule-fg
