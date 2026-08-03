@@ -417,6 +417,12 @@
     ;; nn-least-element, resolved by NAME at call time, so it may load here,
     ;; long before theorem-library/nn-least-element.
     "minimize"
+    ;; The well-ordering of ORD, PROVEN from the transfinite-induction axiom and
+    ;; nothing else (modulo 0).  It was asserted in ordinals.scm with a `proof'
+    ;; warrant that named no file.  Needs interactive + driver-kit + proof-debt,
+    ;; all directly above, and must precede nn-least-element and every use of
+    ;; minimize!, which appeal to it.
+    "theorem-library/ord-well-ordered-proof"
     ;; binary-minus-laws -- what follows from number-systems.scm's binary-minus-def
     ;; (2026-08-01).  Proves rr-sub-in-rr, which was a `well-known' support in
     ;; order-lemmas until the defining equation for (- a b) existed.  Needs
