@@ -24,6 +24,18 @@
 
 ;;; nn-le-trans -- RESTORED unguarded 2026-08-02, deliberately and temporarily.
 ;;;
+;;; MIGRATION STATUS 2026-08-03: the callers in nn-pairing (three sites),
+;;; nn-order-proof (two), nn-order-basics (one) and interval-widen (one) now cite
+;;; the PROVEN `nn-le-trans-guarded'.  What is left is the SMITH arc --
+;;; smith-staircase-proof (four sites) and smith-diagonalization-proof (one).
+;;; Migrating those two files was attempted and reverted: they break the same way
+;;; the others did, by chaining through terms they never typed, and each needs
+;;; its typings landed before the citation.  nn-add-le-mono (nn-order-proof) was
+;;; fixed that way this session, and so was interval-widen -- which had been
+;;; written the same morning and was chaining through BOTH b and c untyped.
+;;; That is the argument for finishing this: every site it breaks is a site that
+;;; was relying on an unlicensed statement.
+;;;
 ;;; It is stated with NO guards, which is stronger than the axioms license:
 ;;; nothing constrains `<=' off the numeric chain, so this asserts transitivity
 ;;; of the order relation on arbitrary objects.  It is consistent (read `<=' as

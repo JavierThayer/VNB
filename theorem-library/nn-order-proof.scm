@@ -78,7 +78,7 @@
   ;; chain passes through and it was never typed; nn-add-closed above types
   ;; a_+b_, so one nn-succ-closed finishes the job.
   (fact 'nn-succ-closed '(+ a_ b_))
-  (fact 'nn-le-trans 'a_ '(+ a_ b_) '(succ (+ a_ b_)))
+  (fact 'nn-le-trans-guarded 'a_ '(+ a_ b_) '(succ (+ a_ b_)))
   (ass))
 (qed 'nn-le-add)
 
@@ -121,7 +121,14 @@
             (have! '(AND (IN a_ NN) (IN c_ NN)))
             (fact 'nn-add-closed 'a_ 'c_)
             (fact 'nn-le-succ '(+ a_ c_))
-            (fact 'nn-le-trans '(+ a_ b_) '(+ a_ c_) '(succ (+ a_ c_)))
+            ;; nn-le-trans-guarded needs EVERY term of the chain typed, and this
+            ;; site chained through two it never named: a_+b_ at the left end and
+            ;; succ(a_+c_) at the right.  That is precisely what the unguarded
+            ;; nn-le-trans let it get away with.
+            (have! '(AND (IN a_ NN) (IN b_ NN)))
+            (fact 'nn-add-closed 'a_ 'b_)
+            (fact 'nn-succ-closed '(+ a_ c_))
+            (fact 'nn-le-trans-guarded '(+ a_ b_) '(+ a_ c_) '(succ (+ a_ c_)))
             (ass))
           (begin
             (subst '(= b_ (succ c_)))

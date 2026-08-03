@@ -120,7 +120,7 @@
       ;; w comes from [1,n], but p2-Fs is the FULL summand, of domain
       ;; [1,succ n].  Carry w across before reducing (p2-Fs w) -- the same
       ;; widening matact-summand-type-le performs for the TYPING at line 92.
-      (fact 'interval-widen 1 'n '(succ n) wv)
+      (fact 'interval-widen 'n '(succ n) 1 wv)
       (lam-b) (lam-b)
       ;; rewrite the c/u entries to BLOCK entries (typed at [1,n]); c is width
       ;; succ n, so entry(c,1,w) itself is only typable at [1,succ n].
@@ -215,7 +215,7 @@
   (lambda ()
     (di)
     (let ((wv (cadr (cadr (p2-goal)))))               ; the eigenvar w, BEFORE lam-b
-      (fact 'interval-widen 1 'n '(succ n) wv)        ; w in [1,n] c [1,succ n]
+      (fact 'interval-widen 'n '(succ n) 1 wv)        ; w in [1,n] c [1,succ n]
       (lam-b) (lam-b)
       (fact 'entry-of-snoc-row 'c 'n 'r wv)           ; (SR)_{1w} = c_{1w}
       (fact 'entry-of-snoc-col 'u 'n 'x wv)           ; (SU)_{w1} = u_{w1}

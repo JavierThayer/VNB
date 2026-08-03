@@ -170,7 +170,7 @@
 ;; this proof used to chain through it without ever saying it was a natural,
 ;; which is precisely the unlicensed strength the old unguarded statement gave.
 (fact 'nn-succ-closed '(+ m n))
-(fact 'nn-le-trans 'm '(+ m n) '(succ (+ m n)))
+(fact 'nn-le-trans-guarded 'm '(+ m n) '(succ (+ m n)))
 (ass)
 (qed 'nn-le-add-right)
 (category! 'nn-le-add-right 'inequalities)

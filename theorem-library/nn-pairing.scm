@@ -135,7 +135,7 @@
             ;; TRINUM(b_) + succ(b_) without ever saying it was a natural.
             (fact 'trinum-type 'a_)
             (np2-sum-type! '(TRINUM b_) '(succ b_))
-            (fact 'nn-le-trans '(TRINUM a_) '(TRINUM b_) '(+ (TRINUM b_) (succ b_)))
+            (fact 'nn-le-trans-guarded '(TRINUM a_) '(TRINUM b_) '(+ (TRINUM b_) (succ b_)))
             (ass))
           (begin
             (subst '(= a_ (succ b_)))
@@ -359,8 +359,8 @@
 (np2-sum-type! '(TRINUM s_) 'j_)
 (fact 'nn-succ-closed '(+ (TRINUM s_) j_))
 (np2-sum-type! '(TRINUM t_) 'k_)
-(fact 'nn-le-trans '(succ (+ (TRINUM s_) j_)) '(TRINUM (succ s_)) '(TRINUM t_))
-(fact 'nn-le-trans '(succ (+ (TRINUM s_) j_)) '(TRINUM t_) '(+ (TRINUM t_) k_))
+(fact 'nn-le-trans-guarded '(succ (+ (TRINUM s_) j_)) '(TRINUM (succ s_)) '(TRINUM t_))
+(fact 'nn-le-trans-guarded '(succ (+ (TRINUM s_) j_)) '(TRINUM t_) '(+ (TRINUM t_) k_))
 (ass)
 (qed 'nnpair-cross)
 

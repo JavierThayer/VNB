@@ -1271,7 +1271,7 @@
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}.\; \forall c \in \operatorname{mat}(1, (n + 1), \operatorname{carr}(\operatorname{scal}(\mathit{md}))).\; \forall u \in \operatorname{mat}((n + 1), 1, \operatorname{vec}(\mathit{md})).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{block}(c, 1, n), \operatorname{block}(u, n, 1)), 1, 1), \operatorname{act}(\mathit{md})(\operatorname{entry}(c, 1, (n + 1)), \operatorname{entry}(u, (n + 1), 1)))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
-\par\smallskip\noindent\emph{Rests on 18 facts:} \texttt{nn-one-in, nn-le-succ, one-in-interval-1, interval-card-in-nn, block-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, nn-one-le-succ, interval-mem-intro, nn-le-trans, entry-of-block, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
+\par\smallskip\noindent\emph{Rests on 17 facts:} \texttt{nn-one-in, nn-le-succ, one-in-interval-1, interval-card-in-nn, block-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, nn-one-le-succ, interval-mem-intro, entry-of-block, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
 
 \subsubsection*{\texttt{matact-snoc}}
 \emph{for every module md, for every n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md), entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1) equals (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x))}
@@ -1279,7 +1279,7 @@
 \forall \mathit{md}.\; (\operatorname{is\text{-}module}(\mathit{md}) \Rightarrow \forall n \in \mathbb{N}.\; \forall c \in \operatorname{mat}(1, n, \operatorname{carr}(\operatorname{scal}(\mathit{md}))).\; \forall u \in \operatorname{mat}(n, 1, \operatorname{vec}(\mathit{md})).\; \forall r \in \operatorname{carr}(\operatorname{scal}(\mathit{md})).\; \forall x \in \operatorname{vec}(\mathit{md}).\; (\operatorname{entry}(\operatorname{matact}(\mathit{md}, \operatorname{snoc\text{-}row}(c, n, r), \operatorname{snoc\text{-}col}(u, n, x)), 1, 1) = \operatorname{vadd}(\mathit{md})(\operatorname{entry}(\operatorname{matact}(\mathit{md}, c, u), 1, 1), \operatorname{act}(\mathit{md})(r, x))))
 \]}
 \noindent\textbf{Machine-checked} (trust: well-known).
-\par\smallskip\noindent\emph{Rests on 21 facts:} \texttt{nn-le-succ, one-in-interval-1, interval-card-in-nn, snoc-row-type, snoc-col-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, nn-one-le-succ, interval-mem-intro, snoc-row-last, snoc-col-last, nn-le-trans, entry-of-snoc-row, entry-of-snoc-col, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
+\par\smallskip\noindent\emph{Rests on 20 facts:} \texttt{nn-le-succ, one-in-interval-1, interval-card-in-nn, snoc-row-type, snoc-col-type, matact-summand-type, matact-summand-type-le, matact-entry, finsum-interval-peel, mvag-op, nn-one-le-succ, interval-mem-intro, snoc-row-last, snoc-col-last, entry-of-snoc-row, entry-of-snoc-col, entry-in-carrier, finsum-congruence, finsum-type, mvag-carr}.
 
 \subsubsection*{\texttt{matact-unitrow}}
 \emph{for every module md, for every n, i, u in mat(n, 1, vec(md)), if i is in interval(1, n), then entry(matact(md, unitrow(scal(md), n, i), u), 1, 1) equals entry(u, i, 1)}

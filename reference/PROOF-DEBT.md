@@ -969,7 +969,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `strictly-mono-ge-id` -- *warrant proof:* NN-induction on k.  k=0: 0 <= phi(0) (NN is nonnegative).  k -> succ k:
    phi(k) >= k (IH) and phi(succ k) > phi(k) (strict monotonicity at k < succ k),
    so phi(succ k) > k, i.e. phi(succ k) >= succ k on NN.  Standard.
@@ -1225,7 +1224,6 @@ proven modulo:
    / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would
    give succ n <= n).  Standard finite-sum back-peel, the twin of
    finsum-interval-shift.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
@@ -2290,11 +2288,10 @@ proven **modulo 0** -- unconditional.
 
 proven **modulo 0** -- unconditional.
 
-### interval-widen  *(trust: well-known)*
+### interval-widen  *(trust: proof)*
 
 proven modulo:
 
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `interval-mem-intro` -- *warrant proof:* Converse of interval-lo/interval-hi: i in NN with a<=i<=b lies in INTERVAL(a,b)
    (the right-to-left direction of interval-membership's SEP iff).
 
@@ -2390,7 +2387,6 @@ proven modulo:
    give succ n <= n).  Standard finite-sum back-peel, the twin of
    finsum-interval-shift.
 - `mvag-op` -- *warrant proof:* operation of a module's vector abelian group is the module's vector addition.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-congruence` -- *warrant well-known:* If f(z)=g(z) for every z in the finite index set S, then FINSUM(ag,f,S)=
    FINSUM(ag,g,S).  Induction on |S| via finsum-insert: the peeled term agrees
@@ -2721,7 +2717,6 @@ proven modulo:
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `interval-mem-intro` -- *warrant proof:* Converse of interval-lo/interval-hi: i in NN with a<=i<=b lies in INTERVAL(a,b)
    (the right-to-left direction of interval-membership's SEP iff).
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `entry-in-carrier` -- *warrant well-known:* The (i,j) entry of an m-by-n matrix over X lies in X.
 - `finsum-congruence` -- *warrant well-known:* If f(z)=g(z) for every z in the finite index set S, then FINSUM(ag,f,S)=
@@ -2793,7 +2788,6 @@ proven modulo:
    (the right-to-left direction of interval-membership's SEP iff).
 - `snoc-row-last` -- *warrant reference:* SNOC-ROW(c,n,r)_{1,succ n} = r (entry-of-matof, IF true).
 - `snoc-col-last` -- *warrant reference:* SNOC-COL(w,n,x)_{succ n,1} = x: entry-of-matof (succ n in [1,succ n]), IF true.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-snoc-row` -- *warrant reference:* SNOC-ROW(c,n,r)_{1,j} = c_{1,j} for j in [1,n] (entry-of-matof, IF false as j<=n<succ n).
 - `entry-of-snoc-col` -- *warrant reference:* SNOC-COL(w,n,x)_{i,1} = w_{i,1} for i in [1,n]: entry-of-matof (i in [1,succ n]
    since i<=n<=succ n, and 1 in [1,1]), then the IF is false since i<=n<succ n.
@@ -3291,7 +3285,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 
 ### nn-even-square  *(trust: well-known)*
 
@@ -3316,7 +3309,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-not-le-succ-le` -- *warrant well-known:* NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
@@ -3344,7 +3336,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 
 ### nn-le-add-left  *(trust: well-known)*
 
@@ -3355,7 +3346,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 
 ### nn-le-add-right  *(trust: well-known)*
 
@@ -3366,7 +3356,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 
 ### nn-le-antisym  *(trust: proof)*
 
@@ -3454,7 +3443,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 
 ### nn-parity  *(trust: reference)*
 
@@ -3586,7 +3574,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-not-le-succ-le` -- *warrant well-known:* NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
@@ -3610,7 +3597,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-not-le-succ-le` -- *warrant well-known:* NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
@@ -3637,7 +3623,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-succ-mono` -- *warrant well-known:* a <= b => succ a <= succ b.
 
 ### nnpair-diag-bound  *(trust: well-known)*
@@ -3652,7 +3637,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-succ-mono` -- *warrant well-known:* a <= b => succ a <= succ b.
 
 ### nnpair-inj  *(trust: none)*
@@ -3664,7 +3648,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-not-le-succ-le` -- *warrant well-known:* NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
@@ -3701,7 +3684,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-not-le-succ-le` -- *warrant well-known:* NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
@@ -3725,7 +3707,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `nn-not-le-succ-le` -- *warrant well-known:* NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
 - `nn-not-le-zero-pos` -- *warrant well-known:* 1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).
@@ -4345,7 +4326,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `rr-pos-halvable` -- *warrant well-known:* Every positive real eps can be halved: there is a positive d with d + d = eps.  Standard (d = eps/2).
 
 ### rr-le-trans  *(trust: proof)*
@@ -4801,7 +4781,6 @@ proven modulo:
    / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would
    give succ n <= n).  Standard finite-sum back-peel, the twin of
    finsum-interval-shift.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
@@ -4938,7 +4917,6 @@ proven modulo:
    / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would
    give succ n <= n).  Standard finite-sum back-peel, the twin of
    finsum-interval-shift.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
@@ -5184,7 +5162,6 @@ proven modulo:
    / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would
    give succ n <= n).  Standard finite-sum back-peel, the twin of
    finsum-interval-shift.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 - `entry-of-block` -- *warrant reference:* BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).
 - `finsum-type` -- *warrant informal:* Closure of the finite sum on the carrier.  Induction on card(S): the fold
    seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies
@@ -5508,7 +5485,6 @@ proven modulo:
    (comm/assoc/distrib/zero) and never relates it to succ, leaving the two
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
-- `nn-le-trans` -- *warrant well-known:* <= is transitive (a<=b, b<=c => a<=c).  UNGUARDED -- see the note above; superseded by the proven nn-le-trans-guarded once its callers are migrated.
 
 ### trinum-type  *(trust: proof)*
 
@@ -5832,7 +5808,6 @@ Discharging a high-count leaf to a real proof unlocks the most.
 - `nn-add-succ` (31) [warrant: reference] -> coord-block-estimate, nn-3-div-square, nn-3-not-succ, nn-add-le-mono, nn-even-square, nn-flatten, nn-le-add, nn-le-add-left, nn-le-add-right, nn-pair-upper-bound, nn-parity, nn-parity-exclusive, nn-plus-three, nn-plus-two, nn-succ-add, nn-succ-plus-one, nn-three-mul-succ, nn-trichotomy-3, nn-two-mul-succ, nnfst-nnpair, nnfst-type, nnpair-cross, nnpair-diag-bound, nnpair-inj, nnpair-onto, nnsnd-nnpair, nnsnd-type, rr-complete, sqrt2-irrational, sqrt3-irrational, trinum-mono
 - `ring-mul-zero-left` (30) [warrant: well-known] -> border-invertible, border-mult, bordering, class-min-pivot, clear-col-upto, clear-first-col, clear-first-row, clear-pivot-cross, clear-row-upto, elem-f-row-action, elem-g-inverse, elem-g-invertible, elem-g-row-action, elem-h-inverse, elem-h-row-action, euclidean-ideal-has-generator, free-length-le-generators, free-transport, pivot-clears-col, pivot-clears-row, pivot-row-reduce, place-min-pivot, smith-diagonalization, smith-staircase, spans-fg-step, spans-submodule-fg, submodule-fg, swap-to-corner, swap-to-corner-gen, zz-bezout
 - `nn-le-succ` (29) [warrant: well-known] -> coord-block-estimate, descent-remainder, hahn-banach, hb-good-has-maximal, lastcoeff-zero-in-span, matact-row-peel, matact-snoc, nn-add-le-mono, nn-flatten, nn-le-add, nn-le-add-left, nn-le-add-right, nn-pair-upper-bound, nnfst-nnpair, nnfst-type, nnpair-cross, nnpair-diag-bound, nnpair-inj, nnsnd-nnpair, nnsnd-type, noetherian-set-has-maximal, norm-as-sup, norm-attained-by-functional, rr-complete, spans-fg-step, spans-submodule-fg, submodule-fg, trinum-mono, vector-taylor-remainder-bound
-- `nn-le-trans` (28) [warrant: well-known] -> border-staircase, coord-block-estimate, descent-remainder, free-length-le-generators, interval-widen, lastcoeff-zero-in-span, matact-row-peel, matact-snoc, nn-add-le-mono, nn-flatten, nn-le-add, nn-le-add-left, nn-le-add-right, nn-pair-upper-bound, nnfst-nnpair, nnfst-type, nnpair-cross, nnpair-diag-bound, nnpair-inj, nnsnd-nnpair, nnsnd-type, rr-complete, smith-diagonalization, smith-staircase, spans-fg-step, spans-submodule-fg, submodule-fg, trinum-mono
 - `nn-not-le-zero-pos` (28) [warrant: well-known] -> clear-col-upto, clear-first-col, clear-first-row, clear-pivot-cross, clear-row-upto, diagonalization, free-length-le-generators, mat-0-1-nonempty, mat-1-0-nonempty, nn-add-le-mono, nn-flatten, nn-le-zero-is-zero, nn-nested-subset-chain, nn-nested-subset-chain-j, nnfst-nnpair, nnfst-type, nnpair-cross, nnpair-diag-bound, nnpair-inj, nnsnd-nnpair, nnsnd-type, smith-diagonalization, smith-staircase, spans-fg-base, spans-submodule-fg, submodule-fg, totally-bounded-has-cauchy-subsequence, trinum-mono
 - `ring-mul-zero-right` (27) [warrant: well-known] -> border-invertible, border-mult, bordering, class-min-pivot, clear-col-upto, clear-first-col, clear-first-row, clear-pivot-cross, clear-row-upto, elem-f-action, elem-f-inverse, elem-f-invertible, elem-g-action, elem-g-inverse, elem-g-invertible, elem-h-action, elem-h-inverse, free-length-le-generators, matunit-col-shift, pivot-clears-col, pivot-clears-row, pivot-col-reduce, place-min-pivot, smith-diagonalization, smith-staircase, swap-to-corner, swap-to-corner-gen
 - `nn-one-le-succ` (26) [warrant: well-known] -> border-staircase, descent-remainder, diagonalization, free-length-le-generators, lastcoeff-set-is-ideal, lastcoeff-zero-in-span, matact-row-peel, matact-snoc, nn-add-le-mono, nn-flatten, nn-le-zero-is-zero, nn-nested-subset-chain, nn-nested-subset-chain-j, nnfst-nnpair, nnfst-type, nnpair-cross, nnpair-diag-bound, nnpair-inj, nnsnd-nnpair, nnsnd-type, smith-staircase, spans-fg-step, spans-submodule-fg, submodule-fg, totally-bounded-has-cauchy-subsequence, trinum-mono
@@ -6033,6 +6008,7 @@ Discharging a high-count leaf to a real proof unlocks the most.
 - `finsum-empty` (4) [warrant: well-known] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
 - `inter-of-opens-open` (4) [warrant: proof] -> metric-top-functorial, metric-top-is-metrizable-top-space, metric-top-is-top-space, metrizable-iff-bounded-metrizable
 - `interval-1-0-empty` (4) [warrant: well-known] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
+- `nn-le-trans` (4) [warrant: well-known] -> border-staircase, free-length-le-generators, smith-diagonalization, smith-staircase
 - `nn-pos-of-nonzero` (4) [warrant: well-known] -> nn-lt-double, nn-lt-triple, sqrt2-irrational, sqrt3-irrational
 - `proper-subset-witness` (4) [warrant: well-known] -> hahn-banach, norm-as-sup, norm-attained-by-functional, vector-taylor-remainder-bound
 - `ring-add-closed` (4) [warrant: well-known] -> lastcoeff-set-is-ideal, spans-fg-step, spans-submodule-fg, submodule-fg
