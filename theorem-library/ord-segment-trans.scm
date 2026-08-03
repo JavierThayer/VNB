@@ -11,3 +11,10 @@
      (FORALL k (FORALL i
        (IMPLIES (AND (IN i (ORD-SEGMENT k)) (IN k (ORD-SEGMENT m)))
                 (IN i (ORD-SEGMENT m))))))))
+
+(warrant! 'ord-segment-trans 'informal
+  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'ord-segment-trans).
+   Transitivity of segment membership is transitivity of the ordinal order,
+   read through ORD-SEGMENT.  Archive predates the E -> IDEN rename and the
+   ==-sweep.")

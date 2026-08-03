@@ -8,3 +8,10 @@
 
 (support 'ord-segment-self
   '(FORALL n (IMPLIES (IN n NN) (NOT (IN n (ORD-SEGMENT n))))))
+
+(warrant! 'ord-segment-self 'informal
+  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'ord-segment-self).
+   Anti-reflexivity: n in ORD-SEGMENT(n) would make the ordinal n a member of
+   itself, against foundation.  Archive predates the E -> IDEN rename and the
+   ==-sweep.")

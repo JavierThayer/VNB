@@ -54,3 +54,16 @@
                     (IMPLIES (< m n)
                              (< ((NN-ENUM S) m)
                                 ((NN-ENUM S) n)))))))))))
+
+(warrant! 'subsequence-capture 'well-known
+  "Asserted from the argument this file states: NN-recursion with
+   f(0) := MIN-NN(S) and f(succ n) := MIN-NN { x in S : f n < x }, which is
+   well-defined because NN is well-founded and an infinite subset of NN is
+   unbounded.  Strict monotonicity is immediate from the construction.  Never
+   mechanised; no script in archive/proven-theorems-archive.scm.")
+
+(warrant! 'nn-enum-spec 'well-known
+  "NN-ENUM(S) is CHOICE over the SEP of strictly monotone f in FUN(NN,S), so the
+   specification is subsequence-capture (same file, which makes the SEP
+   non-empty) plus the CHOICE axiom of the base theory in one step.  Never
+   mechanised; no script in archive/proven-theorems-archive.scm.")

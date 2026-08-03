@@ -9,3 +9,10 @@
 
 (support 'succ-nn-ord
   '(FORALL n (IMPLIES (IN n NN) (= (succ n) (succ_ORD n)))))
+
+(warrant! 'succ-nn-ord 'informal
+  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'succ-nn-ord).  The
+   NN successor and the ordinal successor agree on NN -- the bridge that lets a
+   macete fire on either spelling.  Archive predates the E -> IDEN rename and
+   the ==-sweep.")

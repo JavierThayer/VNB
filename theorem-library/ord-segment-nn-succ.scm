@@ -10,3 +10,10 @@
   '(FORALL n (FORALL k (IMPLIES (IN n NN)
        (IFF (IN k (ORD-SEGMENT (succ n)))
             (OR (IN k (ORD-SEGMENT n)) (= k n)))))))
+
+(warrant! 'ord-segment-nn-succ 'informal
+  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'ord-segment-nn-succ).
+   The NN-flavoured successor characterisation: ORD-SEGMENT(succ n) is
+   ORD-SEGMENT(n) with n adjoined, which is the ordinal successor read at NN.
+   Archive predates the E -> IDEN rename and the ==-sweep.")

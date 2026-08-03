@@ -10,3 +10,10 @@
 (support 'card-singleton
   '(FORALL x (IMPLIES (IN x SET)
      (= (CARD (PAIR x x)) (succ 0)))))
+
+(warrant! 'card-singleton 'informal
+  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'card-singleton).
+   In VNB the singleton {x} is (PAIR x x) -- the Kuratowski convention
+   degenerates to {{x}} -- and its cardinality is succ 0.  Archive predates the
+   E -> IDEN rename and the ==-sweep, so it records the argument only.")

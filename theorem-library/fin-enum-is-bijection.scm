@@ -12,3 +12,11 @@
      (IMPLIES (IN S SET)
      (IMPLIES (IN (CARD S) NN)
        (IN (FIN-ENUM S) (BIJECTION (ORD-SEGMENT (CARD S)) S))))))
+
+(warrant! 'fin-enum-is-bijection 'informal
+  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'fin-enum-is-bijection).
+   FIN-ENUM(S) is the chosen enumeration of a finite S, and the choice is made
+   from the bijections ORD-SEGMENT(|S|) -> S, which card-finite-bij
+   (cardinality.scm) makes non-empty.  Foundational for the whole finsum layer.
+   Archive predates the E -> IDEN rename and the ==-sweep.")

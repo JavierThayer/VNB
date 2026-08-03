@@ -20,3 +20,11 @@
      (FORALL f (IMPLIES (IN f (FUN X (CARR s)))
        (= ((MUL s) a (SUM-SET s X f))
           (SUM-SET s X (VNB-LAMBDA z X ((MUL s) a (f z))))))))))))))
+
+(warrant! 'sum-set-left-scalar 'well-known
+  "Left distributivity pulled through a finite-set sum, by finite-set-induction
+   (cardinality.scm): sum-set-empty and ring-mul-zero-left at the base,
+   sum-set-singleton at a point, and sum-set-disjoint-union with ring-left-dist
+   at the step.  Asserted from that route rather than proven; it was a kernel
+   axiom in structure-library/sequences.scm until the 2026-05-27 promotion, and
+   there is no script for it in archive/proven-theorems-archive.scm.")

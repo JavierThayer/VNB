@@ -31,3 +31,15 @@
                (FORSOME c
                  (AND (IN c F)
                       (NOT (IN (CARD (SEP x S (= (pi x) c))) NN)))))))))))
+
+(warrant! 'pigeonhole-infinite 'well-known
+  "Infinite pigeonhole, standard and asserted here from the argument this file
+   already states: contrapositive.  If every fiber SEP x S (pi(x) = c) were
+   finite, S would be a finite union of finite sets -- NN-induction on |F| using
+   card-union-disjoint -- hence finite, contradicting (NOT (IN (CARD S) NN)).
+   Never mechanised: there is NO script for it in
+   archive/proven-theorems-archive.scm, despite the promoted-batch wording used
+   by its neighbours.  Workhorse of the nested-pigeonhole and diagonalisation
+   arguments (totally-bounded => has-Cauchy-subsequence uses it at every
+   recursion step), so it is the highest-value target in this batch for an
+   actual proof.")

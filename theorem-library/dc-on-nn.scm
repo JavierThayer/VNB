@@ -108,3 +108,13 @@
    nxt(k,u) is the successor SET, supplied as a VNB-LAMBDA, so callers avoid
    the (LIST k u y)-in-R comprehension/sethood/NTH plumbing (O1 of
    archive/calculus-pre-rename/block-family-rederive.scm).  Accepted asserted during library-build.")
+
+(warrant! 'dc-on-nn 'reference
+  "Derivable in VNB from primitive recursion on NN plus the global Hilbert
+   choice of the base theory, exactly as this file's header states: put
+   g(k,u) := CHOICE { y in X : (LIST k u y) in R }, which the totality
+   hypothesis makes defined, then recurse f(0) := a, f(succ k) := g(k, f k) and
+   get f in FUN(NN,X) by induction.  Same warrant, and the same derivation, as
+   its set-valued-step sibling dc-on-nn-pred below, which has carried a
+   `reference' warrant since it was added.  Never mechanised: no script in
+   archive/proven-theorems-archive.scm.")

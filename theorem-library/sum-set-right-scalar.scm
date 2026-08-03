@@ -19,3 +19,10 @@
      (FORALL f (IMPLIES (IN f (FUN X (CARR s)))
        (= ((MUL s) (SUM-SET s X f) b)
           (SUM-SET s X (VNB-LAMBDA z X ((MUL s) (f z) b)))))))))))))
+
+(warrant! 'sum-set-right-scalar 'well-known
+  "The mirror of sum-set-left-scalar (same directory): finite-set-induction with
+   ring-right-dist in place of ring-left-dist, ring-mul-zero-right at the base.
+   Asserted from that route; was a kernel axiom in
+   structure-library/sequences.scm until the 2026-05-27 promotion, and has no
+   script in archive/proven-theorems-archive.scm.")
