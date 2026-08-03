@@ -1365,6 +1365,28 @@
         ;; appears to say; there is no safe way to carry one.
         (error "connective-arity-audit: installed formula(s) with a malformed connective -- see above"))))
 
+;; Same door as the audit above -- support / theory-add-axiom! install a raw
+;; S-expression without validating it -- but a different defect: a variable the
+;; author forgot to bind.  The kernel reads a free name literally, so such a
+;; fact means whatever that name denotes WHERE IT IS CITED, and it looks like it
+;; works for exactly as long as the citing proof spells its own eigenvariable
+;; the same way.  WARN-ONLY: unlike a dropped conjunct, a free variable is not
+;; automatically wrong (see the whitelisted splice metavariables), so this
+;; reports and lets the author judge.
+(let ((fv (free-variable-audit)))
+  (if (null? fv)
+      (display ";; free-variable-audit: ok (no installed formula has a free variable)\n")
+      (begin
+        (display "\n;; free-variable-audit: ") (display (length fv))
+        (display " installed formula(s) with a FREE VARIABLE --\n")
+        (display ";; each means whatever that name denotes at the point of citation, so it\n")
+        (display ";; changes meaning silently when a caller renames a binder.  Bind it\n")
+        (display ";; (with a typing guard where there is one to give):\n")
+        (for-each (lambda (e)
+                    (display ";;   ") (display (car e))
+                    (display "  free=") (write (cdr e)) (newline))
+                  fv))))
+
 (let ((amb (accessor-index-audit)))
   (if (null? amb)
       (display ";; accessor-index-audit: ok (every accessor name denotes one slot)\n")

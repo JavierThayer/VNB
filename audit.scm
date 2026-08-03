@@ -371,3 +371,52 @@
       (hash-table-keys *theorem-table*))
     (sort bad (lambda (a b) (string<? (symbol->string (car a))
                                       (symbol->string (car b)))))))
+
+;;; -----------------------------------------------------------------------
+;;; free-variable-audit -- no installed formula should have a FREE VARIABLE.
+;;;
+;;; `support' and `theory-add-axiom!' install a raw S-expression with no
+;;; validation (this is the same door connective-arity-audit watches).  A
+;;; formula that forgot to bind one of its variables is not a schema: the
+;;; kernel reads the free name literally, so the fact means whatever that name
+;;; denotes AT THE POINT OF CITATION.  It therefore appears to work exactly
+;;; when the citing proof happens to have chosen the same spelling for its own
+;;; eigenvariable, and changes meaning silently when someone renames it.
+;;;
+;;; Found by this audit when it was written (2026-08-03): taylor-G-in-fun and
+;;; taylor-H-in-fun left the Taylor DEGREE `n' free, alone among the taylor-*
+;;; supports, and were cited by taylor-lagrange -- whose fourth eigenvariable
+;;; is spelled `n'.  Both now bind it.  That is the case-fold disease one level
+;;; down: not two spellings colliding, but a fact whose content depends on the
+;;; caller's choice of names.
+;;;
+;;; WHAT IS NOT A HIT.  free-vars reports a bare class constant (NN, RR, SET)
+;;; and an un-applied predicate name as free, because the constant registry
+;;; keys on APPLIED heads.  Those are noise here, so the audit reports a free
+;;; variable only when it is not a registered constant head and does not look
+;;; like a class or predicate name.  The four n-ary decompose axioms
+;;; (union-decompose, intersection-decompose and their -rev) legitimately carry
+;;; the splice metavariables `e' and `or', and are whitelisted by name.
+(define *free-var-audit-exempt*
+  '(union-decompose union-decompose-rev
+    intersection-decompose intersection-decompose-rev))
+
+(define (audit--free-var-suspicious? v)
+  (and (symbol? v)
+       (not (constant-head? v))
+       (let ((s (symbol->string v)))
+         (and (<= (string-length s) 2)
+              (not (memq v '(nn zz qq rr cc <= >= < > = ==)))))))
+
+;;; ((theorem free-var ...) ...) -- empty is the good case.
+(define (free-variable-audit)
+  (let ((bad '()))
+    (for-each
+      (lambda (name)
+        (unless (memq name *free-var-audit-exempt*)
+          (let* ((f  (hash-table-ref/default *theorem-table* name #f))
+                 (fv (and f (filter audit--free-var-suspicious? (free-vars f)))))
+            (if (pair? fv) (set! bad (cons (cons name fv) bad))))))
+      (hash-table-keys *theorem-table*))
+    (sort bad (lambda (a b) (string<? (symbol->string (car a))
+                                      (symbol->string (car b)))))))

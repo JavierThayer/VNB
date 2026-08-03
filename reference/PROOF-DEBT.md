@@ -5548,8 +5548,8 @@ proven modulo:
 proven modulo:
 
 - `taylor-g-in-fun` -- *warrant reference:* G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of
-   reals).
-- `taylor-h-in-fun` -- *warrant reference:* H(t)=(x-t)^(n+1) maps RR to RR.
+   reals), for each degree n in NN.
+- `taylor-h-in-fun` -- *warrant reference:* H(t)=(x-t)^(n+1) maps RR to RR, for each degree n in NN.
 - `taylor-gmvt-cont` -- *warrant reference:* G and H are continuous on [a,x]: H is a polynomial, G a finite sum of products
    of the continuous derivatives f^(k) with polynomials (taylor-G-cont/H-cont).
 - `taylor-gmvt-diff` -- *warrant reference:* G and H are differentiable on (a,x) (taylor-G-diff/H-diff give the explicit
@@ -5812,8 +5812,8 @@ proven modulo:
    with factor phi, then (g o f)^(k) = g o f^(k) is continuous / differentiable
    with factor g o phi.  Hence g o f is scalar-Taylor-differentiable to order n.
 - `taylor-g-in-fun` -- *warrant reference:* G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of
-   reals).
-- `taylor-h-in-fun` -- *warrant reference:* H(t)=(x-t)^(n+1) maps RR to RR.
+   reals), for each degree n in NN.
+- `taylor-h-in-fun` -- *warrant reference:* H(t)=(x-t)^(n+1) maps RR to RR, for each degree n in NN.
 - `taylor-gmvt-cont` -- *warrant reference:* G and H are continuous on [a,x]: H is a polynomial, G a finite sum of products
    of the continuous derivatives f^(k) with polynomials (taylor-G-cont/H-cont).
 - `taylor-gmvt-diff` -- *warrant reference:* G and H are differentiable on (a,x) (taylor-G-diff/H-diff give the explicit

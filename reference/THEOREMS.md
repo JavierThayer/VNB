@@ -849,14 +849,14 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `taylor-g-at-x` — forall([f, x, n in nn], (vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)))(x) = 0)  _[warrant: reference]_
 - `taylor-g-cont` — forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies t in ccint(a, x) implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t))  _[warrant: reference]_
 - `taylor-g-diff` — forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies a < t and t < x implies is-diff-at(vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t, 0 - recip(factorial(n)) * (nth-deriv(f, succ(n)))(t) * (x - t) ^ n))  _[warrant: reference]_
-- `taylor-g-in-fun` — forall([f in fun(rr, rr), x in rr], vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)) in fun(rr, rr))  _[warrant: reference]_
+- `taylor-g-in-fun` — forall([n in nn, f in fun(rr, rr), x in rr], vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)) in fun(rr, rr))  _[warrant: reference]_
 - `taylor-gmvt-cont` — forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies x in rr implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t) and is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, (x - z) ^ succ(n)), t)))  _[warrant: reference]_
 - `taylor-gmvt-diff` — forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies forall([t], a < t and t < x implies forsome([l], is-diff-at(vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t, l)) and forsome([m], is-diff-at(vnb-lambda(z, rr, (x - z) ^ succ(n)), t, m))))  _[warrant: reference]_
 - `taylor-h-at-a` — forall([a, x, n], (vnb-lambda(z, rr, (x - z) ^ succ(n)))(a) = (x - a) ^ succ(n))  _[warrant: reference]_
 - `taylor-h-at-x` — forall([x, n in nn], (vnb-lambda(z, rr, (x - z) ^ succ(n)))(x) = 0)  _[warrant: reference]_
 - `taylor-h-cont` — forall([x, n, t], x in rr implies t in rr implies is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, (x - z) ^ succ(n)), t))  _[warrant: reference]_
 - `taylor-h-diff` — forall([x, n, t], x in rr implies t in rr implies is-diff-at(vnb-lambda(z, rr, (x - z) ^ succ(n)), t, 0 - succ(n) * (x - t) ^ n))  _[warrant: reference]_
-- `taylor-h-in-fun` — forall([x in rr], vnb-lambda(z, rr, (x - z) ^ succ(n)) in fun(rr, rr))  _[warrant: reference]_
+- `taylor-h-in-fun` — forall([n in nn, x in rr], vnb-lambda(z, rr, (x - z) ^ succ(n)) in fun(rr, rr))  _[warrant: reference]_
 - `taylor-poly-at-center` — forall([f, x, n], x in rr implies n in nn implies forall([k], k in nn and k <= n implies (nth-deriv(f, k))(x) in rr) implies taylor-poly(f, x, n, x) = f(x))  _[warrant: reference]_
 - `taylor-poly-in-rr` — forall([f in fun(rr, rr), a in rr, n in nn, x in rr], taylor-poly(f, a, n, x) in rr)  _[warrant: reference]_
 - `tb-block-step` — forall([s], totally-bounded(s) implies forall([f in fun(nn, pts(s)), r], pos-rr(r) implies forall([j in inf-subsets(nn)], forsome([j_ in inf-subsets(nn)], j_ subset j and forsome([c in pts(s)], forall([i in j_], f(i) in ball(s, c, r)))))))  _[warrant: reference]_

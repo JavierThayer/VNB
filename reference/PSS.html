@@ -1030,8 +1030,8 @@
 <pre>forall([f, a, x, n, t], taylor-differentiable(f, a, x, n) implies a &lt; t and t &lt; x implies is-diff-at(vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t, 0 - recip(factorial(n)) * (nth-deriv(f, succ(n)))(t) * (x - t) ^ n))</pre>
 <p><em>Warrant (reference):</em> Telescoping: d/dt[f(x)-Sum_{k&lt;=n} f^(k)(t)(x-t)^k/k!] = -(f^(n+1)(t)/n!)(x-t)^n. Differentiate term k by the product rule: the f^(k+1)(t)(x-t)^k/k! piece of term k cancels the -f^(k+1)(t)(x-t)^k/k! piece of term k+1, leaving only the last -(f^(n+1)(t)/n!)(x-t)^n.  Standard (calculus.pdf Taylor section).</p>
 <h4 id="p-taylor-g-in-fun">taylor-g-in-fun</h4>
-<pre>forall([f in fun(rr, rr), x in rr], vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)) in fun(rr, rr))</pre>
-<p><em>Warrant (reference):</em> G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of reals).</p>
+<pre>forall([n in nn, f in fun(rr, rr), x in rr], vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)) in fun(rr, rr))</pre>
+<p><em>Warrant (reference):</em> G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of reals), for each degree n in NN.</p>
 <h4 id="p-taylor-gmvt-cont">taylor-gmvt-cont</h4>
 <pre>forall([f, a, x, n], taylor-differentiable(f, a, x, n) implies x in rr implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, f(x) - taylor-poly(f, z, n, x)), t) and is-continuous-at(rr-ms, rr-ms, vnb-lambda(z, rr, (x - z) ^ succ(n)), t)))</pre>
 <p><em>Warrant (reference):</em> G and H are continuous on [a,x]: H is a polynomial, G a finite sum of products of the continuous derivatives f^(k) with polynomials (taylor-G-cont/H-cont).</p>
@@ -1051,8 +1051,8 @@
 <pre>forall([x, n, t], x in rr implies t in rr implies is-diff-at(vnb-lambda(z, rr, (x - z) ^ succ(n)), t, 0 - succ(n) * (x - t) ^ n))</pre>
 <p><em>Warrant (reference):</em> d/dt[(x-t)^(n+1)] = -(n+1)(x-t)^n (chain rule on the polynomial).</p>
 <h4 id="p-taylor-h-in-fun">taylor-h-in-fun</h4>
-<pre>forall([x in rr], vnb-lambda(z, rr, (x - z) ^ succ(n)) in fun(rr, rr))</pre>
-<p><em>Warrant (reference):</em> H(t)=(x-t)^(n+1) maps RR to RR.</p>
+<pre>forall([n in nn, x in rr], vnb-lambda(z, rr, (x - z) ^ succ(n)) in fun(rr, rr))</pre>
+<p><em>Warrant (reference):</em> H(t)=(x-t)^(n+1) maps RR to RR, for each degree n in NN.</p>
 <h4 id="p-taylor-poly-at-center">taylor-poly-at-center</h4>
 <pre>forall([f, x, n], x in rr implies n in nn implies forall([k], k in nn and k &lt;= n implies (nth-deriv(f, k))(x) in rr) implies taylor-poly(f, x, n, x) = f(x))</pre>
 <p><em>Warrant (reference):</em> Given x in RR and f^(k)(x) in RR for every k &lt;= n (all derivatives up to order n exist at the centre x), TAYLOR-POLY(f,x,n,x) is defined and collapses: each term k&gt;=1 carries (x-x)^k = 0, killed by mul-zero (valid since f^(k)(x) is a real), and term 0 is f^(0)(x)(x-x)^0/0! = f(x).  So the Taylor polynomial at its own centre equals f(x).  The derivative-existence guard is what makes both sides defined; the consumer taylor-lagrange supplies it via TAYLOR-DIFFERENTIABLE (f^(k) continuous on [a,x], so f^(k)(x) exists).</p>

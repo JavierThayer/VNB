@@ -1496,6 +1496,22 @@
 
 (define (register-provenance! name kind)
   (hash-table-set! *provenance* name kind)
+  ;; Propagate to the auto-generated -rev companion -- the SAME FACT flipped,
+  ;; installed by install-theorem! rather than written by an author, so it has
+  ;; no provenance of its own to defend.  This mirrors register-warrant!, which
+  ;; has propagated for exactly this reason.
+  ;;
+  ;; Without it, a RE-STAMP BY NAME silently moves only the forward direction.
+  ;; install-theorem! stamps both from *current-provenance* at install time, so
+  ;; a file that installs its facts and re-stamps them afterwards -- ring.scm
+  ;; does precisely that for the eleven IS-RING projections (ring.scm:139) --
+  ;; left nine companions behind: ring-mul-assoc `definitional', and
+  ;; ring-mul-assoc-rev `asserted' with no warrant, i.e. trust: none.  A proof
+  ;; that happened to rewrite right-to-left then paid debt the left-to-right
+  ;; direction did not, for the same fact.
+  (let ((rev (rev-name-of name)))
+    (when (hash-table-ref/default *theorem-table* rev #f)
+      (hash-table-set! *provenance* rev kind)))
   name)
 
 (define (provenance-of name)

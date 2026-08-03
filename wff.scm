@@ -224,7 +224,7 @@
     MATRIX SIZE MAT ENTRY INTERVAL MATOF MATMUL
     MATADD MATNEG MATSCALE ZEROMAT IDENTMAT MAT-RING MATUNIT
     ELEM-F ELEM-G ELEM-H SUBMAT BORDER MATACT UNITROW BLOCK SPAN SNOC-COL SNOC-ROW LASTCOEFF-SET
-    + - * recip abs conjugate succ exp sin cos
+    + - * / recip abs conjugate succ exp sin cos
     real-part imag-part magnitude))
 
 (define *wff-only-heads*

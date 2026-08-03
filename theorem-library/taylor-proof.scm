@@ -102,19 +102,30 @@
    derivatives), so each has SOME derivative there.")
 (category! 'taylor-gmvt-diff 'analysis)
 
-;;; function-typing of the auxiliaries
+;;; function-typing of the auxiliaries.
+;;;
+;;; BOTH BIND n, and did not until 2026-08-03.  GT and HT mention the degree n,
+;;; and these two statements left it FREE -- alone among the taylor-* supports,
+;;; whose siblings above all quantify it.  A free variable in an installed
+;;; formula is not a schema: it means whatever `n' denotes where the fact is
+;;; cited, so these worked only because taylor-lagrange's own eigenvariable
+;;; happens to be spelled `n' too.  Rename that binder and the citation quietly
+;;; becomes a statement about a different, unrelated n.  It is the case-fold
+;;; disease one level down -- a name collision that happened to be benign.
 (add-to-pss 'taylor-G-in-fun
-  `(FORALL f (IMPLIES (IN f (FUN RR RR)) (FORALL x (IMPLIES (IN x RR)
-       (IN ,GT (FUN RR RR)))))))
+  `(FORALL n (IMPLIES (IN n NN)
+     (FORALL f (IMPLIES (IN f (FUN RR RR)) (FORALL x (IMPLIES (IN x RR)
+       (IN ,GT (FUN RR RR)))))))))
 (warrant! 'taylor-G-in-fun 'reference
   "G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of
-   reals).")
+   reals), for each degree n in NN.")
 (category! 'taylor-G-in-fun 'analysis)
 
 (add-to-pss 'taylor-H-in-fun
-  `(FORALL x (IMPLIES (IN x RR) (IN ,HT (FUN RR RR)))))
+  `(FORALL n (IMPLIES (IN n NN)
+     (FORALL x (IMPLIES (IN x RR) (IN ,HT (FUN RR RR)))))))
 (warrant! 'taylor-H-in-fun 'reference
-  "H(t)=(x-t)^(n+1) maps RR to RR.")
+  "H(t)=(x-t)^(n+1) maps RR to RR, for each degree n in NN.")
 (category! 'taylor-H-in-fun 'analysis)
 
 ;;; endpoint computations
@@ -257,8 +268,8 @@
 (define GOAL (dc-gf))
 
 ;;; ---- gMVT typing: GT, HT in FUN RR RR (forward facts, land in ctx) ----
-(quietly (lambda () (fact 'taylor-G-in-fun 'f 'x)))
-(quietly (lambda () (fact 'taylor-H-in-fun 'x)))
+(quietly (lambda () (fact 'taylor-G-in-fun 'n 'f 'x)))   ; n now BOUND in the support
+(quietly (lambda () (fact 'taylor-H-in-fun 'n 'x)))
 
 ;;; ---- gMVT continuity + differentiability hyps (warranted, land in ctx) ----
 (quietly (lambda () (fact 'taylor-gmvt-cont 'f 'a 'x 'n)))   ; -> GHCONT
