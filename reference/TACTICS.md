@@ -735,13 +735,13 @@ Apply a known theorem to your goal.  If you have a theorem `if A and B then C' a
 
     (lam-t)
 
-VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.
+VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to TWO obligations -- the body, and that the domain is a set.
 
 *Kind:* `rule` (emits `lambda-type`)
 
 *When useful:* the goal types a VNB-LAMBDA into FUN(A,B)
 
-Show that a function defined by a formula (`x |-> ...') maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B.  (Technically: VNB-LAMBDA typing into FUN A B.)
+Show that a function defined by a formula (`x |-> ...') maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B, AND that A is a set.  The second is not a formality: carrying the domain in the term stops one lambda from typing into FUN(A,B) for every A, but says nothing about A being a set, and a lambda over a proper class is not a function.  The lambda's declared domain must also be the FUN's, or the rule does not apply at all.  (Technically: VNB-LAMBDA typing into FUN A B.)
 
 ### lam-b
 

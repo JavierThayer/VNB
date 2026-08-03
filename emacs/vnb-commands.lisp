@@ -62,7 +62,7 @@
 (wbc (name) "Witness-shape backchain: on an `exists v. ...' goal, cite a PSS lemma that MANUFACTURES a witness of that shape, so you can finish with inst+/grind/ew.")
 (bc (impl) "Backchain the goal through an (IMPLIES A B) already in context: if the goal matches B, the new goal is A.")
 (bc* (thm formula h1 h2) "Matching backchain: unify the theorem's conclusion against the goal, then leave its (instantiated) antecedents as subgoals -- optional handlers hk run on the k-th subgoal.")
-(lam-t () "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.")
+(lam-t () "VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to TWO obligations -- the body, and that the domain is a set.")
 (lam-b () "VNB-LAMBDA beta: reduce an applied lambda to its substituted body.")
 (lam-b-h (hyp) "VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.")
 (sep-set () "Separation sethood: the separation set {x in A | p} is a set.")

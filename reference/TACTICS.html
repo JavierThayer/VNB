@@ -432,10 +432,10 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <h3 id="TACTICS__lambda-comprehension-description">Lambda, comprehension &amp; description</h3>
 <h4 id="TACTICS__lam-t">lam-t</h4>
 <pre>(lam-t)</pre>
-<p>VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to its body obligation.</p>
+<p>VNB-LAMBDA typing: reduce (IN (VNB-LAMBDA ...) (FUN A B)) to TWO obligations -- the body, and that the domain is a set.</p>
 <p><em>Kind:</em> <code>rule</code> (emits <code>lambda-type</code>)</p>
 <p><em>When useful:</em> the goal types a VNB-LAMBDA into FUN(A,B)</p>
-<p>Show that a function defined by a formula (`x |-&gt; ...&#x27;) maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B.  (Technically: VNB-LAMBDA typing into FUN A B.)</p>
+<p>Show that a function defined by a formula (`x |-&gt; ...&#x27;) maps A into B -- reduces to showing that, for an arbitrary input in A, the value lies in B, AND that A is a set.  The second is not a formality: carrying the domain in the term stops one lambda from typing into FUN(A,B) for every A, but says nothing about A being a set, and a lambda over a proper class is not a function.  The lambda&#x27;s declared domain must also be the FUN&#x27;s, or the rule does not apply at all.  (Technically: VNB-LAMBDA typing into FUN A B.)</p>
 <h4 id="TACTICS__lam-b">lam-b</h4>
 <pre>(lam-b)</pre>
 <p>VNB-LAMBDA beta: reduce an applied lambda to its substituted body.</p>
