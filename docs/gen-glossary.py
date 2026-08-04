@@ -74,7 +74,7 @@ def parse(md):
             cur = (m.group(1), m.group(2), [])
             continue
         if cur is not None and line.strip():
-            cur[2].append(line.strip())
+            cur[2].append(line.rstrip())
     flush_section()
     return sections
 
@@ -120,12 +120,36 @@ def main():
             for name, kind, detail in entries:
                 f.write("\\noindent\\textbf{\\texttt{%s}}\\quad\\textit{%s}\\\\\n"
                         % (esc(name), esc(kind)))
-                body = []
+                # Emit the entry's lines IN ORDER, switching to a verbatim quote
+                # for the fenced blocks (the characterizing axiom's statement).
+                chunk, in_code = [], False
+                def flush_prose():
+                    if chunk:
+                        f.write(" \\\\\n".join(chunk) + "\n")
+                        chunk.clear()
                 for d in detail:
-                    # drop the browser cross-reference tail, keep the count
-                    d = re.sub(r'\s*--\s*see `BY-OPERATOR\.md`\s*$', '', d)
-                    body.append(code_spans(d))
-                f.write((" \\\\\n".join(body) if body else "") + "\n\n\\smallskip\n\n")
+                    if d.strip().startswith("```"):
+                        if not in_code:
+                            flush_prose()
+                            f.write("\\begin{quote}\\ttfamily\\footnotesize\\noindent\n")
+                        else:
+                            f.write("\\end{quote}\n")
+                        in_code = not in_code
+                        continue
+                    if in_code:
+                        f.write(esc(d) + "\n")
+                        continue
+                    # a browser cross-reference becomes plain prose in print
+                    d = re.sub(r"\[mentioned by (\d+) result\(s\)\]\([^)]*\)",
+                               r"mentioned by \1 result(s)", d)
+                    # markdown *(kind)* -> italics.  AFTER code_spans, whose
+                    # esc() would otherwise escape the backslash we insert.
+                    chunk.append(re.sub(r"\*\(([^)]*)\)\*",
+                                        r"\\textit{(\1)}", code_spans(d)))
+                if in_code:
+                    f.write("\\end{quote}\n")
+                flush_prose()
+                f.write("\n\\smallskip\n\n")
         f.write(TAIL)
     n = sum(len(e) for _, e in sections)
     print("gen-glossary: %d names, %d sections -> %s"

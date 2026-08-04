@@ -33,27 +33,35 @@ glossary reader's question.  At the REPL: `(glossary 'NAME)`, or
 
 ### `*`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 241 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 241 result(s)](BY-OPERATOR.md#*)
 
 ### `+`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 190 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 190 result(s)](BY-OPERATOR.md#+)
 
 ### `-`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 131 result(s) -- see `BY-OPERATOR.md`
+characterized by `cc-ms-def`  *(definitional)*:
+
+```
+cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
+```
+
+also: `rr-ms-def` `cc-ms@dist` `is-diff-at` `rr-ms@dist` `little-o-at` `binneg-apply` `comb-kk-succ` `falling-succ` ... (80 in all)
+
+[mentioned by 131 result(s)](BY-OPERATOR.md#-)
 
 ### `/`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 16 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 16 result(s)](BY-OPERATOR.md#/)
 
 ### `<(x, y)`  *(predicate)*
 
@@ -61,7 +69,13 @@ reads: $1 is less than $2
 
 defined by `<` 
 
-mentioned by 132 result(s) -- see `BY-OPERATOR.md`
+characterized by `<`  *(definitional)*:
+
+```
+forall([x, y], x < y iff x <= y and not(x = y))
+```
+
+[mentioned by 132 result(s)](BY-OPERATOR.md#<)
 
 ### `<=`  *(primitive)*
 
@@ -69,19 +83,19 @@ reads: $1 is at most $2
 
 a kernel relation
 
-mentioned by 300 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 300 result(s)](BY-OPERATOR.md#<=)
 
 ### `<=_ord`  *(predicate)*
 
 a predicate
 
-mentioned by 16 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 16 result(s)](BY-OPERATOR.md#<=_ord)
 
 ### `<_ord`  *(predicate)*
 
 a predicate
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 13 result(s)](BY-OPERATOR.md#<_ord)
 
 ### `=`  *(primitive)*
 
@@ -118,25 +132,57 @@ predicate `is-abelian-group`; slots: carr opr iden inv
 
 an abelian-group viewed as a monoid
 
-mentioned by 49 result(s) -- see `BY-OPERATOR.md`
+characterized by `mpow-add-abelian-group-as-monoid`  *(definitional)*:
+
+```
+forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
+```
+
+also: `mpow-one-abelian-group-as-monoid` `abelian-group-as-monoid-is-monoid` `mpow-type-abelian-group-as-monoid` `mpow-add-abelian-group-as-monoid-ring-additive-ag` `mpow-one-abelian-group-as-monoid-ring-additive-ag` `abelian-group-as-monoid-is-monoid-module-vector-ag` `abelian-group-as-monoid-is-monoid-ring-additive-ag` `mpow-type-abelian-group-as-monoid-ring-additive-ag` ... (16 in all)
+
+[mentioned by 49 result(s)](BY-OPERATOR.md#abelian-group-as-monoid)
 
 ### `abs`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 60 result(s) -- see `BY-OPERATOR.md`
+characterized by `ps-absolutely-converges-at`  *(definitional)*:
+
+```
+forall([coef, x], ps-absolutely-converges-at(coef, x) iff ps-converges-at(vnb-lambda(n, nn, abs(coef(n))), abs(x)))
+```
+
+also: `rr-abs-mult` `rr-abs-zero` `rr-abs-closed` `rr-abs-nonneg` `rr-abs-triangle` `rr-magnitude-is-abs` `rr-le-abs` `ps-abs-term` ... (15 in all)
+
+[mentioned by 60 result(s)](BY-OPERATOR.md#abs)
 
 ### `act(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 95 result(s) -- see `BY-OPERATOR.md`
+characterized by `module-act-type`  *(definitional)*:
+
+```
+forall([m], is-module(m) implies forall([r_ in carr(scal(m)), x_ in vec(m)], (act(m))(r_, x_) in vec(m)))
+```
+
+also: `module-act-unital` `submodule-act-closed` `module-act-mul-compat` `module-act-distrib-vec` `module-act-distrib-scalar` `module-act-type-normed-vector-space-as-module` `module-act-unital-normed-vector-space-as-module` `module-act-mul-compat-normed-vector-space-as-module` ... (23 in all)
+
+[mentioned by 95 result(s)](BY-OPERATOR.md#act)
 
 ### `add(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 420 result(s) -- see `BY-OPERATOR.md`
+characterized by `rq-add`  *(definitional)*:
+
+```
+forall([r], add(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))))
+```
+
+also: `qq-ring@add` `zz-ring@add` `qq-field@add` `ring-add-comm` `ring-add-assoc` `ring-add-left-id` `ring-add-left-inv` `ringoid-ideal-add` ... (71 in all)
+
+[mentioned by 420 result(s)](BY-OPERATOR.md#add)
 
 ### `ai`  *(tactic)*
 
@@ -146,7 +192,7 @@ declared in `tactics-help.scm`
 
 ### `apply-functoid`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `arith`  *(tactic)*
 
@@ -171,15 +217,39 @@ declared in `tactics-help.scm`
 
 ### `ball(s, c, r)`  *(functoid)*
 
-= {y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)}
+definition:
 
-mentioned by 20 result(s) -- see `BY-OPERATOR.md`
+```
+{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)}
+```
+
+characterized by `ball-is-set`  *(asserted)*:
+
+```
+forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
+```
+
+also: `ball-is-open` `ball-point-le` `ball-point-ne` `ball-center-in` `ball-membership` `centres-ball-eq` `ball-2r-triangle` `ball-mem-from-le` ... (10 in all)
+
+[mentioned by 20 result(s)](BY-OPERATOR.md#ball)
 
 ### `ball-cover(s, r)`  *(functoid)*
 
-= image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))
+definition:
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+```
+image(vnb-lambda(c, pts(s), ball(s, c, r)), pts(s))
+```
+
+characterized by `ball-cover-mem-fwd`  *(asserted)*:
+
+```
+forall([s, r, u in ball-cover(s, r)], forsome([c in pts(s)], ball(s, c, r) = u))
+```
+
+also: `ball-cover-is-open-cover` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#ball-cover)
 
 ### `bc`  *(tactic)*
 
@@ -195,9 +265,21 @@ declared in `tactics-help.scm`
 
 ### `bdd-metric(s)`  *(functoid)*
 
-= [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
+definition:
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+```
+[pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
+```
+
+characterized by `bdd-metric-bounded`  *(asserted)*:
+
+```
+forall([s], is-metric-space(s) implies forall([x in pts(s), y in pts(s)], (dist(bdd-metric(s)))(x, y) < 1))
+```
+
+also: `bdd-metric-carrier` `bdd-metric-distance` `bdd-metric-id-bicontinuous` `bdd-metric-is-metric-space` `bdd-metric-preserves-metric-top` `bdd-metric-is-bounded-metric-space` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#bdd-metric)
 
 ### `beta`  *(tactic)*
 
@@ -207,45 +289,95 @@ declared in `tactics-help.scm`
 
 ### `big-union`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 14 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 14 result(s)](BY-OPERATOR.md#big-union)
 
 ### `bijection`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 36 result(s) -- see `BY-OPERATOR.md`
+characterized by `bijection-membership-iff`  *(definitional)*:
+
+```
+forall([x, y, phi], phi in bijection(x, y) iff phi in fun(x, y) and forall([a in x, b in x], phi(a) = phi(b) implies a = b) and forall([w in y], forsome([z in x], phi(z) = w)))
+```
+
+also: `bijection-in-fun` `bijection-compose` `bijection-set-iff` `bijection-identity` `bijection-injective` `bijection-surjective` `fin-enum-is-bijection` `bijection-is-injection` ... (10 in all)
+
+[mentioned by 36 result(s)](BY-OPERATOR.md#bijection)
 
 ### `binneg`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `binneg-apply`  *(definitional)*:
+
+```
+forall([x], binneg(x) == -x)
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#binneg)
 
 ### `binplus`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 14 result(s) -- see `BY-OPERATOR.md`
+characterized by `binplus-apply`  *(definitional)*:
+
+```
+forall([x, y], binplus(x, y) == x + y)
+```
+
+[mentioned by 14 result(s)](BY-OPERATOR.md#binplus)
 
 ### `bintimes`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 10 result(s) -- see `BY-OPERATOR.md`
+characterized by `bintimes-apply`  *(definitional)*:
+
+```
+forall([x, y], bintimes(x, y) == x * y)
+```
+
+[mentioned by 10 result(s)](BY-OPERATOR.md#bintimes)
 
 ### `block(p, k, l)`  *(functoid)*
 
-= matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+matof(k, l, vnb-lambda([i, j], cartesian(interval(1, k), interval(1, l)), entry(p, i, j)))
+```
+
+characterized by `block-type`  *(asserted)*:
+
+```
+forall([m, n, x, p, k, l], k in nn implies l in nn implies p in mat(m, n, x) implies k <= m implies l <= n implies block(p, k, l) in mat(k, l, x))
+```
+
+also: `entry-of-block` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#block)
 
 ### `border(a, b, m, p, q)`  *(functoid)*
 
-= matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if ...
+definition:
 
-mentioned by 22 result(s) -- see `BY-OPERATOR.md`
+```
+matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
+```
+
+characterized by `bordering`  *(proven)*:
+
+```
+forall([a], is-ring(a) implies forall([p, q, b, w, g, e], p in nn implies q in nn implies b in carr(a) implies w in mat(p, q, carr(a)) implies g in mat(succ(p), succ(q), carr(a)) implies g = border(a, b, w, p, q) implies mat-equiv(a, p, q, w, e) implies mat-equiv(a, succ(p), succ(q), g, border(a, b, e, p, q))))
+```
+
+also: `border-mult` `border-type` `border-entry-11` `border-entry-1j` `border-entry-i1` `border-identity` `border-staircase` `border-invertible` ... (12 in all)
+
+[mentioned by 22 result(s)](BY-OPERATOR.md#border)
 
 ### `bu-me`  *(tactic)*
 
@@ -276,27 +408,59 @@ declared in `tactics-help.scm`
 
 ### `card`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 153 result(s) -- see `BY-OPERATOR.md`
+characterized by `card-empty`  *(primitive)*:
+
+```
+card(empty-set) = 0
+```
+
+also: `card-in-ord` `card-insert` `card-segment` `card-finite-bij` `card-union-disjoint` `card-image-injection` `card-power-nn` `interval-card` ... (11 in all)
+
+[mentioned by 153 result(s)](BY-OPERATOR.md#card)
 
 ### `carr(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 1072 result(s) -- see `BY-OPERATOR.md`
+characterized by `rq-carr`  *(definitional)*:
+
+```
+forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))
+```
+
+also: `qq-ring@carr` `zz-ring@carr` `qq-field@carr` `nf-metric-carrier` `nn-add-monoid@carr` `ringoid-carr-in-set` `cc-normed-field@carr` `rr-normed-field@carr` ... (25 in all)
+
+[mentioned by 1072 result(s)](BY-OPERATOR.md#carr)
 
 ### `cartesian`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 95 result(s) -- see `BY-OPERATOR.md`
+characterized by `cartesian-set-iff`  *(primitive)*:
+
+```
+forall([a, b], cartesian(a, b) in set iff a in set and b in set)
+```
+
+[mentioned by 95 result(s)](BY-OPERATOR.md#cartesian)
 
 ### `cauchy-setoid(m)`  *(functoid)*
 
-= [cseq(m), crel(m)]
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+[cseq(m), crel(m)]
+```
+
+characterized by `cauchy-setoid-is-setoid`  *(asserted)*:
+
+```
+forall([m], is-metric-space(m) implies is-setoid(cauchy-setoid(m)))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#cauchy-setoid)
 
 ### `cc-ms`  *(instance)*
 
@@ -308,9 +472,19 @@ an instance of normed-field; predicate `is-cc-normed-field`; same shape as norme
 
 ### `ccint(a, b)`  *(functoid)*
 
-= {x in rr: a <= x and x <= b}
+definition:
 
-mentioned by 27 result(s) -- see `BY-OPERATOR.md`
+```
+{x in rr: a <= x and x <= b}
+```
+
+characterized by `ccint-membership`  *(asserted)*:
+
+```
+forall([a, b, x], x in ccint(a, b) iff x in rr and a <= x and x <= b)
+```
+
+[mentioned by 27 result(s)](BY-OPERATOR.md#ccint)
 
 ### `ce`  *(tactic)*
 
@@ -320,31 +494,79 @@ declared in `tactics-help.scm`
 
 ### `centre-set(s, r, f)`  *(functoid)*
 
-= image(vnb-lambda(b, f, choice(centres(s, b, r))), f)
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+image(vnb-lambda(b, f, choice(centres(s, b, r))), f)
+```
+
+characterized by `centre-set-finite`  *(asserted)*:
+
+```
+forall([s, r, f], card(f) in nn implies card(centre-set(s, r, f)) in nn)
+```
+
+also: `centre-set-contains-choice` 
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#centre-set)
 
 ### `centres(s, b, r)`  *(functoid)*
 
-= {c in pts(s): ball(s, c, r) = b}
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+{c in pts(s): ball(s, c, r) = b}
+```
+
+characterized by `centres-ball-eq`  *(asserted)*:
+
+```
+forall([s, b, r, c in centres(s, b, r)], ball(s, c, r) = b)
+```
+
+also: `centres-mem-build` `centres-in-carrier` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#centres)
 
 ### `choice`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `choice-axiom`  *(primitive)*:
+
+```
+forall([a], forsome([x], x in a) implies choice(a) in a)
+```
+
+also: `centre-set-contains-choice` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#choice)
 
 ### `choose(n, m)`  *(functoid)*
 
-= card(choose-set(n, m))
+definition:
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+```
+card(choose-set(n, m))
+```
+
+characterized by `choose-n-0`  *(asserted)*:
+
+```
+forall([n in nn], choose(n, 0) = succ(0))
+```
+
+also: `choose-succ` `choose-in-nn` `choose-0-succ` `choose-times-factorial` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#choose)
 
 ### `choose-set(n, m)`  *(functoid)*
 
-= {a in power(ord-segment(n)): card(a) = m}
+definition:
+
+```
+{a in power(ord-segment(n)): card(a) = m}
+```
 
 ### `ci`  *(tactic)*
 
@@ -354,15 +576,31 @@ declared in `tactics-help.scm`
 
 ### `class(s, a)`  *(functoid)*
 
-= {b in pts(s): related(s, a, b)}
+definition:
 
-mentioned by 25 result(s) -- see `BY-OPERATOR.md`
+```
+{b in pts(s): related(s, a, b)}
+```
+
+characterized by `class-self`  *(asserted)*:
+
+```
+forall([s], is-setoid(s) implies forall([a in pts(s)], a in class(s, a)))
+```
+
+also: `class-eq-iff` `class-is-set` `class-disjoint` `class-in-quotient` `class-subset-carrier` 
+
+[mentioned by 25 result(s)](BY-OPERATOR.md#class)
 
 ### `closure(s, a)`  *(functoid)*
 
-= {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+{x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#closure)
 
 ### `cluster-point(s, f, x)`  *(predicate)*
 
@@ -370,13 +608,29 @@ reads: $3 is a cluster point of the sequence $2 in $1
 
 defined by `cluster-point` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `cluster-point`  *(definitional)*:
+
+```
+forall([s, f, x], cluster-point(s, f, x) iff is-metric-space(s) and f in fun(nn, pts(s)) and x in pts(s) and forall([eps], pos-rr(eps) implies forall([m in nn], forsome([n in nn], m <= n and (dist(s))(f(n), x) < eps))))
+```
+
+also: `compact-iff-cluster-point` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#cluster-point)
 
 ### `comb-kk`  *(defined-fn)*
 
 defined by `comb-kk-zero` `comb-kk-succ` 
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `comb-kk-succ`  *(definitional)*:
+
+```
+forall([r, x, y, m in nn], comb-kk(r, x, y, succ(m)) == vnb-lambda(k, nn, (add(r))((mul(r))(x, (comb-kk(r, x, y, m))(k - 1)), (mul(r))(y, (comb-kk(r, x, y, m))(k)))))
+```
+
+also: `comb-kk-zero` `comb-kk-0-0` `comb-kk-null` `comb-kk-above` `comb-kk-in-fun` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#comb-kk)
 
 ### `comm-monoid`  *(structure)*
 
@@ -390,17 +644,33 @@ predicate `is-commutative-ring`; same shape as ring
 
 a commutative-ring viewed as an abelian-group
 
-mentioned by 20 result(s) -- see `BY-OPERATOR.md`
+characterized by `commutative-ring-additive-ag-is-abelian-group`  *(definitional)*:
+
+```
+forall([r], is-commutative-ring(r) implies is-abelian-group(commutative-ring-additive-ag(r)))
+```
+
+also: `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag` `commutative-ring-additive-ag-is-abelian-group-normed-field-as-commutative-ring` `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` `commutative-ring-additive-ag-functorial` 
+
+[mentioned by 20 result(s)](BY-OPERATOR.md#commutative-ring-additive-ag)
 
 ### `commutative-ring-multiplicative-cm(s)`  *(view)*
 
 a commutative-ring viewed as a comm-monoid
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `commutative-ring-multiplicative-cm-is-comm-monoid`  *(definitional)*:
+
+```
+forall([r], is-commutative-ring(r) implies is-comm-monoid(commutative-ring-multiplicative-cm(r)))
+```
+
+also: `comm-monoid-is-monoid-commutative-ring-multiplicative-cm` `commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring` `comm-monoid-is-monoid-commutative-ring-multiplicative-cm-normed-field-as-commutative-ring` `commutative-ring-multiplicative-cm-functorial` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#commutative-ring-multiplicative-cm)
 
 ### `comp`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `comp-me`  *(tactic)*
 
@@ -416,31 +686,75 @@ declared in `tactics-help.scm`
 
 ### `complement-in`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `complement-in-membership`  *(primitive)*:
+
+```
+forall([a, b, x], x in complement-in(a, b) iff x in a and not(x in b))
+```
+
+also: `complement-in-set-closure` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#complement-in)
 
 ### `completion(m)`  *(functoid)*
 
-= [quotient(cauchy-setoid(m)), completion-dist(m)]
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+[quotient(cauchy-setoid(m)), completion-dist(m)]
+```
+
+characterized by `completion-is-complete`  *(asserted)*:
+
+```
+forall([m], is-metric-space(m) implies is-complete(completion(m)))
+```
+
+also: `completion-is-metric-space` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#completion)
 
 ### `completion-dist(m)`  *(functoid)*
 
-= vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f  ...
+definition:
+
+```
+vnb-lambda(p, cartesian(quotient(cauchy-setoid(m)), quotient(cauchy-setoid(m))), iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and nth(1, p) = class(cauchy-setoid(m), f) and nth(2, p) = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
+```
 
 ### `compose(f, g)`  *(functoid)*
 
-= vnb-lambda(z_, dom(g), f(g(z_)))
+definition:
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(z_, dom(g), f(g(z_)))
+```
+
+characterized by `compose-type`  *(asserted)*:
+
+```
+forall([a, b, c, f, g], g in fun(a, b) and f in fun(b, c) implies compose(f, g) in fun(a, c))
+```
+
+also: `compose-apply` `compose-continuous-at` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#compose)
 
 ### `conjugate`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `cc-conjugate-i`  *(primitive)*:
+
+```
+conjugate(i) = -i
+```
+
+also: `cc-conjugate-add` `cc-conjugate-mul` `cc-conjugate-closed` `cc-conjugate-fixes-rr` `cc-conjugate-involution` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#conjugate)
 
 ### `converges(s, f)`  *(predicate)*
 
@@ -448,7 +762,15 @@ reads: $2 converges in $1
 
 defined by `converges` 
 
-mentioned by 14 result(s) -- see `BY-OPERATOR.md`
+characterized by `converges`  *(definitional)*:
+
+```
+forall([s, f], converges(s, f) iff forsome([l], converges-to(s, f, l)))
+```
+
+also: `converges-on` `ps-converges-at` `series-converges` `complete-cauchy-converges` `cauchy-cluster-converges` `summable-bound-converges` 
+
+[mentioned by 14 result(s)](BY-OPERATOR.md#converges)
 
 ### `converges-along(s, g, b, p)`  *(predicate)*
 
@@ -456,7 +778,13 @@ reads: $2 converges to $4 along $3 in $1
 
 defined by `converges-along` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `converges-along`  *(definitional)*:
+
+```
+forall([s, g, b, p], converges-along(s, g, b, p) iff is-metric-space(s) and g in fun(nn, pts(s)) and p in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([i in nn], i in b implies n <= i implies (dist(s))(g(i), p) <= eps))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#converges-along)
 
 ### `converges-on(s, fam, dseq)`  *(predicate)*
 
@@ -464,7 +792,13 @@ reads: $2 converges at every point of the sequence $3 in $1
 
 defined by `converges-on` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `converges-on`  *(definitional)*:
+
+```
+forall([s, fam, dseq], converges-on(s, fam, dseq) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and dseq in fun(nn, pts(s)) and forall([m in nn], converges(rr-ms, vnb-lambda(k, nn, (fam(k))(dseq(m))))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#converges-on)
 
 ### `converges-to(s, f, l)`  *(predicate)*
 
@@ -472,7 +806,15 @@ reads: $2 converges to $3 in $1
 
 defined by `converges-to` 
 
-mentioned by 19 result(s) -- see `BY-OPERATOR.md`
+characterized by `converges-to`  *(definitional)*:
+
+```
+forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n_ in nn], n <= n_ implies (dist(s))(f(n_), l) <= eps))))
+```
+
+also: `ps-converges-to-at` `series-converges-to` 
+
+[mentioned by 19 result(s)](BY-OPERATOR.md#converges-to)
 
 ### `converges-uniformly(s, seq, g)`  *(predicate)*
 
@@ -480,15 +822,25 @@ reads: $2 converges uniformly to $3 on $1
 
 defined by `converges-uniformly` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `converges-uniformly`  *(definitional)*:
+
+```
+forall([s, seq, g], converges-uniformly(s, seq, g) iff is-metric-space(s) and seq in fun(nn, fun(pts(s), rr)) and g in fun(pts(s), rr) and forall([eps], pos-rr(eps) implies forsome([cap in nn], forall([k], k in nn and cap <= k implies forall([x in pts(s)], abs((seq(k))(x) - g(x)) < eps)))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#converges-uniformly)
 
 ### `cos`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `crel(m)`  *(functoid)*
 
-= {p in cartesian(cseq(m), cseq(m)): cseq-equiv(m, nth(1, p), nth(2, p))}
+definition:
+
+```
+{p in cartesian(cseq(m), cseq(m)): cseq-equiv(m, nth(1, p), nth(2, p))}
+```
 
 ### `crs`  *(tactic)*
 
@@ -498,7 +850,11 @@ declared in `tactics-help.scm`
 
 ### `cseq(m)`  *(functoid)*
 
-= {f in fun(nn, pts(m)): is-cauchy-seq(m, f)}
+definition:
+
+```
+{f in fun(nn, pts(m)): is-cauchy-seq(m, f)}
+```
 
 ### `cseq-equiv(m, f, g)`  *(predicate)*
 
@@ -506,7 +862,13 @@ reads: $2 and $3 are equivalent Cauchy sequences in $1
 
 defined by `cseq-equiv` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `cseq-equiv`  *(definitional)*:
+
+```
+forall([m, f, g], cseq-equiv(m, f, g) iff converges-to(rr-ms, dist-seq(m, f, g), 0))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#cseq-equiv)
 
 ### `cut`  *(tactic)*
 
@@ -525,33 +887,87 @@ declared in `tactics-help.scm`
 
 ### `delete-at`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `delete-at-in-fun`  *(asserted)*:
+
+```
+forall([b, h, k], h in fun(nn, b) implies delete-at(h, k) in fun(nn, b))
+```
+
+also: `delete-at-above-k` `delete-at-below-k` `delete-at-is-bijection` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#delete-at)
 
 ### `deriv(f, a)`  *(functoid)*
 
-= iota(l, is-diff-at(f, a, l))
+definition:
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+```
+iota(l, is-diff-at(f, a, l))
+```
+
+characterized by `nth-deriv-succ`  *(definitional)*:
+
+```
+forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, rr, deriv(nth-deriv(f, n), x)))
+```
+
+also: `nth-deriv-one` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#deriv)
 
 ### `deriv-v(m, f, a)`  *(functoid)*
 
-= iota(l, is-diff-at-v(m, f, a, l))
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+iota(l, is-diff-at-v(m, f, a, l))
+```
+
+characterized by `nth-deriv-v-succ`  *(definitional)*:
+
+```
+forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, rr, deriv-v(m, nth-deriv-v(m, f, n), x)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#deriv-v)
 
 ### `descend(s, f)`  *(functoid)*
 
-= vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(c, quotient(s), iota(z, forsome([a in c], z = f(a))))
+```
+
+characterized by `descend-in-fun`  *(asserted)*:
+
+```
+forall([s], is-setoid(s) implies forall([z, f], f in fun(pts(s), z) and respects(s, f) implies descend(s, f) in fun(quotient(s), z)))
+```
+
+also: `descend-computes` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#descend)
 
 ### `descend2(s, f)`  *(functoid)*
 
-= vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda([c, d], cartesian(quotient(s), quotient(s)), iota(z, forsome([a in c, b in d], z = f(a, b))))
+```
+
+characterized by `descend2-in-fun`  *(asserted)*:
+
+```
+forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))
+```
+
+also: `descend2-computes` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#descend2)
 
 ### `det`  *(primitive)*
 
@@ -559,7 +975,15 @@ reads: det($3)
 
 defined by `det-zero` `det-cofactor` 
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `det-zero`  *(definitional)*:
+
+```
+forall([r, a], det(r, 0, a) == one(r))
+```
+
+also: `det-cofactor` `det-1x1` `det-2x2` `det-identity` `det-in-carrier` `det-multiplicative` `det-alternating-rows` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#det)
 
 ### `detach!`  *(tactic)*
 
@@ -575,106 +999,260 @@ declared in `tactics-help.scm`
 
 ### `difference`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `difference-set`  *(asserted)*:
+
+```
+forall([x in set, b], difference(x, b) in set)
+```
+
+also: `difference-membership` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#difference)
 
 ### `dist(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 76 result(s) -- see `BY-OPERATOR.md`
+characterized by `cc-ms@dist`  *(definitional)*:
+
+```
+dist(cc-ms) == vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))
+```
+
+also: `rr-ms@dist` `nf-metric-distance` `nag-metric-distance-normed-vector-space-as-normed-ag` `rr-ms-dist` `metric-dist-real` `bdd-metric-distance` `nag-metric-distance` 
+
+[mentioned by 76 result(s)](BY-OPERATOR.md#dist)
 
 ### `dist-seq(m, f, g)`  *(functoid)*
 
-= vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#dist-seq)
 
 ### `dom`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 18 result(s) -- see `BY-OPERATOR.md`
+characterized by `dom-of-fun`  *(primitive)*:
+
+```
+forall([a, f], f in fun(a) and a in set implies dom(f) in set and dom(f) = a)
+```
+
+also: `dom-membership` `dom-fun-membership` 
+
+[mentioned by 18 result(s)](BY-OPERATOR.md#dom)
 
 ### `dual-norm(m, f)`  *(functoid)*
 
-= iota(c_, c_ in rr and 0 <= c_ and forall([x_ in vec(m)], abs(f(x_)) <= c_ * (vnrm(m))(x_)) and forall([d_], d_ ...
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+iota(c_, c_ in rr and 0 <= c_ and forall([x_ in vec(m)], abs(f(x_)) <= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 <= d_ and forall([x_ in vec(m)], abs(f(x_)) <= d_ * (vnrm(m))(x_)) implies c_ <= d_))
+```
+
+characterized by `dual-norm-nonneg`  *(asserted)*:
+
+```
+forall([m, f], is-bounded-linear-functional(m, f) implies dual-norm(m, f) in rr and 0 <= dual-norm(m, f))
+```
+
+also: `dual-norm-is-bound` `dual-norm-le-bound` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#dual-norm)
 
 ### `dual-norm-on(m, s, f)`  *(functoid)*
 
-= iota(c_, c_ in rr and 0 <= c_ and forall([x_ in s], abs(f(x_)) <= c_ * (vnrm(m))(x_)) and forall([d_], d_ in r ...
+definition:
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+```
+iota(c_, c_ in rr and 0 <= c_ and forall([x_ in s], abs(f(x_)) <= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 <= d_ and forall([x_ in s], abs(f(x_)) <= d_ * (vnrm(m))(x_)) implies c_ <= d_))
+```
+
+characterized by `dual-norm-on-nonneg`  *(asserted)*:
+
+```
+forall([m, s, f], is-bounded-linear-functional-on(m, s, f) implies dual-norm-on(m, s, f) in rr and 0 <= dual-norm-on(m, s, f))
+```
+
+also: `dual-norm-on-le-bound` 
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#dual-norm-on)
 
 
 ## E
 
 ### `elem-f(a, n, k, l)`  *(functoid)*
 
-= matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j =  ...
+definition:
 
-mentioned by 42 result(s) -- see `BY-OPERATOR.md`
+```
+matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l or i = l and j = k or i = j and not(i = k) and not(i = l), one(a), zero(a))))
+```
+
+characterized by `elem-f-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([n, k, l], elem-f(a, n, k, l) in mat(n, n, carr(a))))
+```
+
+also: `elem-f-ck-at` `elem-f-cl-at` `elem-f-co-at` `elem-f-col-k` `elem-f-col-l` `elem-f-rk-at` `elem-f-rl-at` `elem-f-ro-at` ... (21 in all)
+
+[mentioned by 42 result(s)](BY-OPERATOR.md#elem-f)
 
 ### `elem-g(a, n, r, k, l)`  *(functoid)*
 
-= matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l ...
+definition:
 
-mentioned by 40 result(s) -- see `BY-OPERATOR.md`
+```
+matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), if(i = k and j = l, r, zero(a)))))
+```
+
+characterized by `elem-g-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([n, r, k, l], r in carr(a) implies elem-g(a, n, r, k, l) in mat(n, n, carr(a))))
+```
+
+also: `elem-g-col-k` `elem-g-col-l` `elem-g-ro-at` `elem-g-action` `elem-g-ro-off` `elem-g-inverse` `elem-g-rk-at-k` `elem-g-rk-at-l` ... (19 in all)
+
+[mentioned by 40 result(s)](BY-OPERATOR.md#elem-g)
 
 ### `elem-h(a, n, r, k)`  *(functoid)*
 
-= matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero ...
+definition:
 
-mentioned by 17 result(s) -- see `BY-OPERATOR.md`
+```
+matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))
+```
+
+characterized by `elem-h-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([n, r, k], r in carr(a) implies elem-h(a, n, r, k) in mat(n, n, carr(a))))
+```
+
+also: `elem-h-ro-at` `elem-h-action` `elem-h-ro-off` `elem-h-inverse` `entry-of-elem-h` `elem-h-entry-diag` `elem-h-row-action` `elem-h-entry-off-diag` 
+
+[mentioned by 17 result(s)](BY-OPERATOR.md#elem-h)
 
 ### `embed(m)`  *(functoid)*
 
-= vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(u, pts(m), class(cauchy-setoid(m), embed-seq(m, u)))
+```
+
+characterized by `embed-in-fun`  *(asserted)*:
+
+```
+forall([m], is-metric-space(m) implies embed(m) in fun(pts(m), pts(completion(m))))
+```
+
+also: `embed-isometry` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#embed)
 
 ### `embed-seq(m, u)`  *(functoid)*
 
-= vnb-lambda(n, nn, u)
+definition:
+
+```
+vnb-lambda(n, nn, u)
+```
 
 ### `entry(m, i, j)`  *(functoid)*
 
-= nth(j, nth(i, m))
+definition:
 
-mentioned by 230 result(s) -- see `BY-OPERATOR.md`
+```
+nth(j, nth(i, m))
+```
+
+characterized by `matact-entry`  *(asserted)*:
+
+```
+forall([md], is-module(md) implies forall([m, n, q, p, u], p in mat(m, n, carr(scal(md))) implies u in mat(n, q, vec(md)) implies forall([i in interval(1, m), c in interval(1, q)], entry(matact(md, p, u), i, c) = finsum(module-vector-ag(md), vnb-lambda(j, interval(1, n), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, n)))))
+```
+
+also: `matadd-entry` `matmul-entry` `entry-of-block` `entry-of-matof` `matscale-entry` `border-entry-11` `border-entry-1j` `border-entry-i1` ... (38 in all)
+
+[mentioned by 230 result(s)](BY-OPERATOR.md#entry)
 
 ### `enum-fam(ag, f, phi, n)`  *(functoid)*
 
-= vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(i, nn, if(i in ord-segment(n), f(phi(i)), iden(ag)))
+```
+
+characterized by `enum-fam-in-fun`  *(asserted)*:
+
+```
+forall([n in nn, ag], is-group(ag) implies forall([s, phi in fun(ord-segment(n), s), f in fun(s, carr(ag))], enum-fam(ag, f, phi, n) in fun(nn, carr(ag))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#enum-fam)
 
 ### `eplus`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `eplus-real`  *(asserted)*:
+
+```
+forall([x, y], x in rr and y in rr implies eplus(x, y) = binplus(x, y))
+```
+
+also: `eplus-pos-inf-left` `eplus-pos-inf-right` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#eplus)
 
 ### `esum`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `esum-in`  *(asserted)*:
+
+```
+forall([f in fun(dom(f), rr+*)], esum(f) in rr+*)
+```
+
+also: `esum-least` `esum-upper` `esum-finite-iff-bounded` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#esum)
 
 ### `esup`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `esup-in`  *(asserted)*:
+
+```
+forall([s], s subset rr+* implies esup(s) in rr+*)
+```
+
+also: `esup-empty` `esup-least` `esup-upper` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#esup)
 
 ### `euclidean-gauges(s)`  *(functoid)*
 
-= {dg in fun(carr(s), nn): has-div-remainder(s, dg)}
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+{dg in fun(carr(s), nn): has-div-remainder(s, dg)}
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#euclidean-gauges)
 
 ### `euclidean-ring`  *(refinement)*
 
@@ -688,7 +1266,7 @@ declared in `tactics-help.scm`
 
 ### `exp`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `extends-on(s, g, f)`  *(predicate)*
 
@@ -696,7 +1274,15 @@ reads: $2 agrees with $3 on $1
 
 defined by `extends-on` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `extends-on`  *(definitional)*:
+
+```
+forall([s, g, f], extends-on(s, g, f) iff forall([x_ in s], g(x_) = f(x_)))
+```
+
+also: `extends-on-trans` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#extends-on)
 
 
 ## F
@@ -711,19 +1297,41 @@ declared in `tactics-help.scm`
 
 defined by `factorial-zero` `factorial-succ` 
 
-mentioned by 20 result(s) -- see `BY-OPERATOR.md`
+characterized by `factorial-succ`  *(definitional)*:
+
+```
+forall([k in nn], factorial(succ(k)) = succ(k) * factorial(k))
+```
+
+also: `factorial-zero` `factorial-in-nn` `rr-recip-factorial` `choose-times-factorial` 
+
+[mentioned by 20 result(s)](BY-OPERATOR.md#factorial)
 
 ### `falling`  *(defined-fn)*
 
 defined by `falling-zero` `falling-succ` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `falling-succ`  *(definitional)*:
+
+```
+forall([n, k in nn], falling(n, succ(k)) == (n - k) * falling(n, k))
+```
+
+also: `falling-zero` `falling-in-nn` `injection-count-falling` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#falling)
 
 ### `fam-of-list`  *(defined-fn)*
 
 defined by `fam-of-list-apply` 
 
-mentioned by 18 result(s) -- see `BY-OPERATOR.md`
+characterized by `fam-of-list-apply`  *(definitional)*:
+
+```
+forall([l, i], i in nn and succ(i) <= length(l) implies (fam-of-list(l))(i) = nth(succ(i), l))
+```
+
+[mentioned by 18 result(s)](BY-OPERATOR.md#fam-of-list)
 
 ### `field`  *(structure)*
 
@@ -733,55 +1341,123 @@ predicate `is-field`; slots: carr add mul neg zero one non-zero recip
 
 a field viewed as an abelian-group
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `field-additive-ag-is-abelian-group`  *(definitional)*:
+
+```
+forall([r], is-field(r) implies is-abelian-group(field-additive-ag(r)))
+```
+
+also: `abelian-group-as-monoid-is-monoid-field-additive-ag` `field-additive-ag-functorial` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#field-additive-ag)
 
 ### `field-as-euclidean-ring(s)`  *(view)*
 
 a field viewed as an euclidean-ring
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `gauge-is-degree-field-as-euclidean-ring`  *(definitional)*:
+
+```
+forall([r], is-field(r) implies gauge(field-as-euclidean-ring(r)) in fun(carr(r), nn) and has-div-remainder(field-as-euclidean-ring(r), gauge(field-as-euclidean-ring(r))))
+```
+
+also: `field-as-euclidean-ring-is-euclidean-ring` `euclidean-ring-has-gauge-field-as-euclidean-ring` `field-as-euclidean-ring-functorial` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#field-as-euclidean-ring)
 
 ### `field-as-integral-domain(s)`  *(view)*
 
 a field viewed as an integral-domain
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `field-as-integral-domain-is-integral-domain`  *(definitional)*:
+
+```
+forall([r], is-field(r) implies is-integral-domain(field-as-integral-domain(r)))
+```
+
+also: `field-as-integral-domain-functorial` 
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#field-as-integral-domain)
 
 ### `field-multiplicative-group(s)`  *(view)*
 
 a field viewed as a group
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+characterized by `field-multiplicative-group-is-group`  *(definitional)*:
+
+```
+forall([r], is-field(r) implies is-group(field-multiplicative-group(r)))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#field-multiplicative-group)
 
 ### `fin-enum(s)`  *(functoid)*
 
-= choice(bijection(ord-segment(card(s)), s))
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+choice(bijection(ord-segment(card(s)), s))
+```
+
+characterized by `fin-enum-is-bijection`  *(asserted)*:
+
+```
+forall([s in set], card(s) in nn implies fin-enum(s) in bijection(ord-segment(card(s)), s))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#fin-enum)
 
 ### `finprod(m, f, s)`  *(functoid)*
 
-= finsum(m, f, s)
+definition:
+
+```
+finsum(m, f, s)
+```
 
 ### `finsum(ag, f, s)`  *(functoid)*
 
-= sum-ag(ag, enum-fam(ag, f, fin-enum(s), card(s)), card(s))
+definition:
 
-mentioned by 145 result(s) -- see `BY-OPERATOR.md`
+```
+sum-ag(ag, enum-fam(ag, f, fin-enum(s), card(s)), card(s))
+```
+
+characterized by `finsum-type-ring-additive-ag`  *(definitional)*:
+
+```
+forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r))], finsum(ring-additive-ag(r), f, s) in carr(r))))
+```
+
+also: `finsum-embed-ring-additive-ag` `finsum-add-ag-ring-additive-ag` `finsum-all-id-ring-additive-ag` `finsum-fubini-ring-additive-ag` `finsum-fubini-c-ring-additive-ag` `finsum-ord-peel-ring-additive-ag` `finsum-insert-ag-ring-additive-ag` `finsum-singleton-ring-additive-ag` ... (46 in all)
+
+[mentioned by 145 result(s)](BY-OPERATOR.md#finsum)
 
 ### `finsupp(a, m)`  *(functoid)*
 
 reads: the finitely-supported functions $2 -> $1
 
-= {f in fun(carr(m), carr(a)): card(supp(a, m, f)) in nn}
+definition:
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+```
+{f in fun(carr(m), carr(a)): card(supp(a, m, f)) in nn}
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#finsupp)
 
 ### `fnrm(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `cc-normed-field@fnrm`  *(definitional)*:
+
+```
+fnrm(cc-normed-field) == magnitude
+```
+
+also: `rr-normed-field@fnrm` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#fnrm)
 
 ### `focus`  *(tactic)*
 
@@ -797,9 +1473,13 @@ declared in `tactics-help.scm`
 
 ### `fr-ball(m, fam, n, eps)`  *(functoid)*
 
-= {x in vec(m): forall([k], k in nn and k <= n implies (fam(k))(x) < eps)}
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+{x in vec(m): forall([k], k in nn and k <= n implies (fam(k))(x) < eps)}
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#fr-ball)
 
 ### `fr-cauchy(m, fam, seq)`  *(predicate)*
 
@@ -807,7 +1487,13 @@ reads: $3 is Cauchy in ($1, $2)
 
 defined by `fr-cauchy` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `fr-cauchy`  *(definitional)*:
+
+```
+forall([m, fam, seq], fr-cauchy(m, fam, seq) iff forall([k in nn, eps], pos-rr(eps) implies forsome([cap in nn], forall([i], i in nn and cap <= i implies forall([j], j in nn and cap <= j implies (fam(k))((vadd(m))(seq(i), (vneg(m))(seq(j)))) < eps)))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#fr-cauchy)
 
 ### `fr-conv(m, fam, seq, lim)`  *(predicate)*
 
@@ -815,22 +1501,48 @@ reads: $3 converges to $4 in ($1, $2)
 
 defined by `fr-conv` 
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `fr-conv`  *(definitional)*:
+
+```
+forall([m, fam, seq, lim], fr-conv(m, fam, seq, lim) iff forall([k in nn, eps], pos-rr(eps) implies forsome([cap in nn], forall([i], i in nn and cap <= i implies (fam(k))((vadd(m))(seq(i), (vneg(m))(lim))) < eps))))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#fr-conv)
 
 ### `fun`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 506 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-linear-functional`  *(definitional)*:
+
+```
+forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x_ in vec(m), y_ in vec(m)], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in vec(m)], f((act(m))(r_, x_)) = r_ * f(x_)))
+```
+
+also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (51 in all)
+
+[mentioned by 506 result(s)](BY-OPERATOR.md#fun)
 
 
 ## G
 
 ### `gauge(s)`  *(functoid)*
 
-= choice(euclidean-gauges(s))
+definition:
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+```
+choice(euclidean-gauges(s))
+```
+
+characterized by `gauge-is-degree-field-as-euclidean-ring`  *(definitional)*:
+
+```
+forall([r], is-field(r) implies gauge(field-as-euclidean-ring(r)) in fun(carr(r), nn) and has-div-remainder(field-as-euclidean-ring(r), gauge(field-as-euclidean-ring(r))))
+```
+
+also: `gauge-is-degree` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#gauge)
 
 ### `generates(md, n, u)`  *(predicate)*
 
@@ -838,7 +1550,15 @@ reads: the $2 vectors $3 generate $1
 
 defined by `generates` 
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `generates`  *(definitional)*:
+
+```
+forall([md, n, u], generates(md, n, u) iff forall([x_ in vec(md)], forsome([c_ in mat(1, n, carr(scal(md)))], x_ = entry(matact(md, c_, u), 1, 1))))
+```
+
+also: `generates-transport` `generates-coeff-matrix` `generates-implies-spans-vec` 
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#generates)
 
 ### `goal-status`  *(tactic)*
 
@@ -852,13 +1572,31 @@ reads: $3 has a norm-preserving extension from $2 to $4, in $1
 
 defined by `good-sub` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `good-sub`  *(definitional)*:
+
+```
+forall([m, s, f, t], good-sub(m, s, f, t) iff forsome([g_], npe(m, s, f, t, g_)))
+```
+
+also: `good-sub-self` `good-sub-in-power` `good-sub-submodule` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#good-sub)
 
 ### `greedy-chain(phi, grd, porel)`  *(functoid)*
 
-= zkept(phi, grd, porel, card(grd))
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+zkept(phi, grd, porel, card(grd))
+```
+
+characterized by `greedy-chain-is-chain`  *(proven)*:
+
+```
+forall([phi, grd, porel], is-partial-order(grd, porel) implies is-chain(grd, porel, greedy-chain(phi, grd, porel)))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#greedy-chain)
 
 ### `grind`  *(tactic)*
 
@@ -879,7 +1617,13 @@ reads: $5 has a closed graph from ($1, $2) to ($3, $4)
 
 defined by `has-closed-graph` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `has-closed-graph`  *(definitional)*:
+
+```
+forall([m1, fam1, m2, fam2, tt], has-closed-graph(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), p1 in vec(m1), p2 in vec(m2)], fr-conv(m1, fam1, seq, p1) and fr-conv(m2, fam2, vnb-lambda(i, nn, tt(seq(i))), p2) implies p2 = tt(p1)))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#has-closed-graph)
 
 ### `has-div-remainder(s, deg)`  *(predicate)*
 
@@ -887,7 +1631,13 @@ reads: $1 has division with remainder for the degree function $2
 
 defined by `has-div-remainder` 
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `has-div-remainder`  *(definitional)*:
+
+```
+forall([s, deg], has-div-remainder(s, deg) iff forall([a_ in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a_ = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) <= deg(b)))))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#has-div-remainder)
 
 ### `has-fip(s, c)`  *(predicate)*
 
@@ -895,7 +1645,13 @@ reads: $2 has the finite intersection property in $1
 
 defined by `has-fip` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `has-fip`  *(definitional)*:
+
+```
+forall([s, c], has-fip(s, c) iff is-metric-space(s) and forall([a in c], is-closed(s, a)) and forall([f], f subset c and card(f) in nn implies forsome([p], p in big-intersection(carr, f, carr))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#has-fip)
 
 ### `has-inverses(op, unit, invop, crr)`  *(predicate)*
 
@@ -903,7 +1659,13 @@ reads: every element of $4 has an inverse under $1, given by $3, with unit $2
 
 defined by `has-inverses` 
 
-mentioned by 20 result(s) -- see `BY-OPERATOR.md`
+characterized by `has-inverses`  *(definitional)*:
+
+```
+forall([op, unit, invop, crr], has-inverses(op, unit, invop, crr) iff forall([u in crr], op(invop(u), u) = unit and op(u, invop(u)) = unit))
+```
+
+[mentioned by 20 result(s)](BY-OPERATOR.md#has-inverses)
 
 ### `have!`  *(tactic)*
 
@@ -918,19 +1680,39 @@ declared in `tactics-help.scm`
 
 a structure slot
 
-mentioned by 102 result(s) -- see `BY-OPERATOR.md`
+characterized by `nn-add-monoid@iden`  *(definitional)*:
+
+```
+iden(nn-add-monoid) == 0
+```
+
+also: `monoid-identity-in-abelian-group-as-monoid` `monoid-identity-in-abelian-group-as-monoid-normed-ag-as-abelian-group` `group-identity-in` `monoid-identity-in` 
+
+[mentioned by 102 result(s)](BY-OPERATOR.md#iden)
 
 ### `identmat(a, n)`  *(functoid)*
 
-= matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))
+definition:
 
-mentioned by 27 result(s) -- see `BY-OPERATOR.md`
+```
+matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, one(a), zero(a))))
+```
+
+characterized by `identmat-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([n], identmat(a, n) in mat(n, n, carr(a))))
+```
+
+also: `matact-identmat` `entry-of-identmat` `identmat-entry-off` `identmat-entry-diag` `identmat-invertible` `identmat-left-identity` `identmat-right-identity` 
+
+[mentioned by 27 result(s)](BY-OPERATOR.md#identmat)
 
 ### `idl(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 12 result(s)](BY-OPERATOR.md#idl)
 
 ### `ie`  *(tactic)*
 
@@ -940,9 +1722,15 @@ declared in `tactics-help.scm`
 
 ### `if`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 46 result(s) -- see `BY-OPERATOR.md`
+characterized by `matunit-col-shift`  *(proven)*:
+
+```
+forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))
+```
+
+[mentioned by 46 result(s)](BY-OPERATOR.md#if)
 
 ### `if-false`  *(tactic)*
 
@@ -964,13 +1752,21 @@ declared in `tactics-help.scm`
 
 ### `imag-part`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `image`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `image-membership-iff`  *(definitional)*:
+
+```
+forall([phi, s, w], w in image(phi, s) iff forsome([x in s], phi(x) = w))
+```
+
+also: `image-set` `card-image-injection` `image-subset-codomain` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#image)
 
 ### `in`  *(primitive)*
 
@@ -978,7 +1774,15 @@ reads: $1 is in $2
 
 a kernel relation
 
-mentioned by 2580 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ring`  *(definitional)*:
+
+```
+forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
+```
+
+also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (474 in all)
+
+[mentioned by 2580 result(s)](BY-OPERATOR.md#in)
 
 ### `ineq`  *(tactic)*
 
@@ -988,15 +1792,35 @@ declared in `tactics-help.scm`
 
 ### `inf-subsets(a)`  *(functoid)*
 
-= {s in power(a): not(card(s) in nn)}
+definition:
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+```
+{s in power(a): not(card(s) in nn)}
+```
+
+characterized by `inf-subsets-membership`  *(definitional)*:
+
+```
+forall([a, s], s in inf-subsets(a) iff s subset a and not(card(s) in nn))
+```
+
+also: `nn-in-inf-subsets` `inf-subsets-is-set` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#inf-subsets)
 
 ### `injection`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 16 result(s) -- see `BY-OPERATOR.md`
+characterized by `injection-membership-iff`  *(definitional)*:
+
+```
+forall([x, y, phi], phi in injection(x, y) iff phi in fun(x, y) and forall([a in x, b in x], phi(a) = phi(b) implies a = b))
+```
+
+also: `card-image-injection` `injection-in-fun` `injection-set-iff` `injection-injective` `injection-from-empty` `bijection-is-injection` `injection-count-falling` `injection-is-injective*` ... (9 in all)
+
+[mentioned by 16 result(s)](BY-OPERATOR.md#injection)
 
 ### `injective*(f)`  *(predicate)*
 
@@ -1004,11 +1828,23 @@ reads: $1 is injective
 
 defined by `injective*` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `injective*`  *(definitional)*:
+
+```
+forall([f], injective*(f) iff forall([u_, v_], f(u_) = f(v_) implies u_ = v_))
+```
+
+also: `injection-is-injective*` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#injective*)
 
 ### `insert-last(phi, x, n)`  *(functoid)*
 
-= vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))
+definition:
+
+```
+vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))
+```
 
 ### `inst`  *(tactic)*
 
@@ -1028,39 +1864,83 @@ predicate `is-integral-domain`; same shape as commutative-ring
 
 ### `interior(s, a)`  *(functoid)*
 
-= {x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+{x in pts(s): forsome([u], is-open(s, u) and x in u and u subset a)}
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#interior)
 
 ### `intersection`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 22 result(s) -- see `BY-OPERATOR.md`
+characterized by `intersection-decompose`  *(primitive)*:
+
+```
+forall([x, as], x in intersection(restvar(as)) iff splice(and, e, as, x in e))
+```
+
+also: `intersection-membership` `intersection-set-closure` `submodule-intersection` 
+
+[mentioned by 22 result(s)](BY-OPERATOR.md#intersection)
 
 ### `interval(a, b)`  *(functoid)*
 
-= {i in nn: a <= i and i <= b}
+definition:
 
-mentioned by 218 result(s) -- see `BY-OPERATOR.md`
+```
+{i in nn: a <= i and i <= b}
+```
+
+characterized by `finsum-interval-peel-ring-additive-ag`  *(definitional)*:
+
+```
+forall([r], is-ring(r) implies forall([n in nn, f in fun(interval(1, succ(n)), carr(r))], finsum(ring-additive-ag(r), f, interval(1, succ(n))) = (add(r))(finsum(ring-additive-ag(r), f, interval(1, n)), f(succ(n)))))
+```
+
+also: `finsum-interval-shift-ring-additive-ag` `interval-hi` `interval-lo` `interval-card` `interval-widen` `interval-in-set` `interval-unfold` `one-in-interval` ... (18 in all)
+
+[mentioned by 218 result(s)](BY-OPERATOR.md#interval)
 
 ### `inv(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 29 result(s) -- see `BY-OPERATOR.md`
+characterized by `abelian-group-inverse-unique-normed-ag-as-abelian-group`  *(definitional)*:
+
+```
+forall([r], is-normed-ag(r) implies forall([a in carr(r), b in carr(r)], (opr(r))(a, b) = iden(r) implies b = (inv(r))(a)))
+```
+
+also: `group-inv-in` `group-left-inv` `abelian-group-inverse-unique` 
+
+[mentioned by 29 result(s)](BY-OPERATOR.md#inv)
 
 ### `inverse-bij(phi, x, y)`  *(functoid)*
 
-= vnb-lambda(y_, y, choice({x_ in x: phi(x_) = y_}))
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(y_, y, choice({x_ in x: phi(x_) = y_}))
+```
+
+characterized by `inverse-bij-left`  *(asserted)*:
+
+```
+forall([dm, cod, phi in bijection(dm, cod), x in dm], (inverse-bij(phi, dm, cod))(phi(x)) = x)
+```
+
+also: `inverse-bij-right` `inverse-bij-in-fun` `inverse-bij-is-bijection` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#inverse-bij)
 
 ### `iota`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 2 result(s)](BY-OPERATOR.md#iota)
 
 ### `iota-d`  *(tactic)*
 
@@ -1074,7 +1954,15 @@ reads: an abelian group
 
 a predicate
 
-mentioned by 106 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-abelian-group`  *(definitional)*:
+
+```
+forall([s], is-abelian-group(s) iff length(s) = 4 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)) and is-commutative(opr(s), carr(s)))
+```
+
+also: `module-vector-ag-is-abelian-group` `ring-additive-ag-is-abelian-group` `field-additive-ag-is-abelian-group` `normed-field-additive-ag-is-abelian-group` `normed-ag-as-abelian-group-is-abelian-group` `commutative-ring-additive-ag-is-abelian-group` `module-vector-ag-is-abelian-group-normed-vector-space-as-module` `normed-ag-as-abelian-group-is-abelian-group-normed-vector-space-as-normed-ag` ... (9 in all)
+
+[mentioned by 106 result(s)](BY-OPERATOR.md#is-abelian-group)
 
 ### `is-absolutely-summable(grp, f)`  *(predicate)*
 
@@ -1082,7 +1970,13 @@ reads: $2 is absolutely summable in $1
 
 defined by `is-absolutely-summable` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-absolutely-summable`  *(definitional)*:
+
+```
+forall([grp, f], is-absolutely-summable(grp, f) iff esum(vnb-lambda(i, dom(f), (nrm(grp))(f(i)))) in rr)
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-absolutely-summable)
 
 ### `is-algebra-of-sets(omega, ca)`  *(predicate)*
 
@@ -1090,7 +1984,13 @@ reads: $2 is an algebra of subsets of $1
 
 defined by `is-algebra-of-sets` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-algebra-of-sets`  *(definitional)*:
+
+```
+forall([omega, ca], is-algebra-of-sets(omega, ca) iff omega in set and ca subset power(omega) and forsome([a_], a_ in ca) and forall([a_ in ca], complement-in(omega, a_) in ca) and forall([a_ in ca, b_ in ca], union(a_, b_) in ca) and forall([a_ in ca, b_ in ca], intersection(a_, b_) in ca))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-algebra-of-sets)
 
 ### `is-associative(op, crr)`  *(predicate)*
 
@@ -1098,7 +1998,13 @@ reads: $1 is associative on $2
 
 defined by `is-associative` 
 
-mentioned by 26 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-associative`  *(definitional)*:
+
+```
+forall([op, crr], is-associative(op, crr) iff forall([u in crr, v in crr, w in crr], op(op(u, v), w) = op(u, op(v, w))))
+```
+
+[mentioned by 26 result(s)](BY-OPERATOR.md#is-associative)
 
 ### `is-bounded-linear-functional(m, f)`  *(predicate)*
 
@@ -1106,7 +2012,13 @@ reads: $2 is a bounded linear functional on $1
 
 defined by `is-bounded-linear-functional` 
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-bounded-linear-functional`  *(definitional)*:
+
+```
+forall([m, f], is-bounded-linear-functional(m, f) iff is-linear-functional(m, f) and forsome([c_ in rr], 0 <= c_ and forall([x_ in vec(m)], abs(f(x_)) <= c_ * (vnrm(m))(x_))))
+```
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#is-bounded-linear-functional)
 
 ### `is-bounded-linear-functional-on(m, s, f)`  *(predicate)*
 
@@ -1114,7 +2026,13 @@ reads: $3 is a bounded linear functional on the subspace $2 of $1
 
 defined by `is-bounded-linear-functional-on` 
 
-mentioned by 10 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-bounded-linear-functional-on`  *(definitional)*:
+
+```
+forall([m, s, f], is-bounded-linear-functional-on(m, s, f) iff is-linear-functional-on(m, s, f) and forsome([c_ in rr], 0 <= c_ and forall([x_ in s], abs(f(x_)) <= c_ * (vnrm(m))(x_))))
+```
+
+[mentioned by 10 result(s)](BY-OPERATOR.md#is-bounded-linear-functional-on)
 
 ### `is-bounded-metric-space(s)`  *(predicate)*
 
@@ -1122,7 +2040,15 @@ reads: a bounded metric space
 
 defined by `is-bounded-metric-space` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-bounded-metric-space`  *(definitional)*:
+
+```
+forall([s], is-bounded-metric-space(s) iff is-metric-space(s) and forsome([b in rr], forall([x, y], x in pts(s) implies y in pts(s) implies (dist(s))(x, y) <= b)))
+```
+
+also: `bdd-metric-is-bounded-metric-space` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#is-bounded-metric-space)
 
 ### `is-cauchy-seq(s, f)`  *(predicate)*
 
@@ -1130,7 +2056,13 @@ reads: Cauchy
 
 defined by `is-cauchy-seq` 
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-cauchy-seq`  *(definitional)*:
+
+```
+forall([s, f], is-cauchy-seq(s, f) iff is-metric-space(s) and f in fun(nn, pts(s)) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([m in nn, n_ in nn], n <= m and n <= n_ implies (dist(s))(f(m), f(n_)) <= eps))))
+```
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#is-cauchy-seq)
 
 ### `is-chain(grd, porel, ch)`  *(predicate)*
 
@@ -1138,7 +2070,15 @@ reads: $3 is a chain in $1 under $2
 
 defined by `is-chain` 
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-chain`  *(definitional)*:
+
+```
+forall([grd, porel, ch], is-chain(grd, porel, ch) iff ch subset grd and forall([x in ch, y in ch], [x, y] in porel or [y, x] in porel))
+```
+
+also: `zorn-empty-is-chain` `zorn-zkept-is-chain` `greedy-chain-is-chain` `zorn-zkept-limit-is-chain` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#is-chain)
 
 ### `is-closed(s, a)`  *(predicate)*
 
@@ -1146,7 +2086,13 @@ reads: $2 is closed in $1
 
 defined by `is-closed` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-closed`  *(definitional)*:
+
+```
+forall([s, a], is-closed(s, a) iff is-metric-space(s) and a subset pts(s) and is-open(s, complement-in(pts(s), a)))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#is-closed)
 
 ### `is-comm-monoid(s)`  *(predicate)*
 
@@ -1154,7 +2100,15 @@ reads: a comm monoid
 
 a predicate
 
-mentioned by 32 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-comm-monoid`  *(definitional)*:
+
+```
+forall([s], is-comm-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and is-commutative(opr(s), carr(s)))
+```
+
+also: `commutative-ring-multiplicative-cm-is-comm-monoid` `commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring` `rr-pos-star-is-comm-monoid` `nn-add-monoid-is-comm-monoid` 
+
+[mentioned by 32 result(s)](BY-OPERATOR.md#is-comm-monoid)
 
 ### `is-commutative(op, crr)`  *(predicate)*
 
@@ -1162,7 +2116,13 @@ reads: $1 is commutative on $2
 
 defined by `is-commutative` 
 
-mentioned by 20 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-commutative`  *(definitional)*:
+
+```
+forall([op, crr], is-commutative(op, crr) iff forall([u in crr, v in crr], op(u, v) = op(v, u)))
+```
+
+[mentioned by 20 result(s)](BY-OPERATOR.md#is-commutative)
 
 ### `is-commutative-ring(s)`  *(predicate)*
 
@@ -1170,7 +2130,15 @@ reads: a commutative ring
 
 a predicate
 
-mentioned by 108 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-commutative-ring-def`  *(definitional)*:
+
+```
+forall([s], is-commutative-ring(s) iff is-ring(s) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = (mul(s))(b, a)))
+```
+
+also: `normed-field-as-commutative-ring-is-commutative-ring` `qq-is-commutative-ring` `zz-is-commutative-ring` `integral-domain-is-commutative-ring` 
+
+[mentioned by 108 result(s)](BY-OPERATOR.md#is-commutative-ring)
 
 ### `is-compact(s)`  *(predicate)*
 
@@ -1178,7 +2146,13 @@ reads: $1 is compact
 
 defined by `is-compact` 
 
-mentioned by 18 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-compact`  *(definitional)*:
+
+```
+forall([s], is-compact(s) iff is-metric-space(s) and forall([c], is-open-cover(s, c) implies forsome([f], f subset c and card(f) in nn and is-open-cover(s, f))))
+```
+
+[mentioned by 18 result(s)](BY-OPERATOR.md#is-compact)
 
 ### `is-complete(s)`  *(predicate)*
 
@@ -1186,7 +2160,15 @@ reads: complete
 
 defined by `is-complete` 
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-complete`  *(definitional)*:
+
+```
+forall([s], is-complete(s) iff is-metric-space(s) and forall([f], is-cauchy-seq(s, f) implies converges(s, f)))
+```
+
+also: `completion-is-complete` 
+
+[mentioned by 12 result(s)](BY-OPERATOR.md#is-complete)
 
 ### `is-cont-lin(m1, fam1, m2, fam2, tt)`  *(predicate)*
 
@@ -1194,7 +2176,13 @@ reads: $5 is a continuous linear map from ($1, $2) to ($3, $4)
 
 defined by `is-cont-lin` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-cont-lin`  *(definitional)*:
+
+```
+forall([m1, fam1, m2, fam2, tt], is-cont-lin(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([seq in fun(nn, vec(m1)), lim in vec(m1)], fr-conv(m1, fam1, seq, lim) implies fr-conv(m2, fam2, vnb-lambda(i, nn, tt(seq(i))), tt(lim))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-cont-lin)
 
 ### `is-continuous(s, t, f)`  *(predicate)*
 
@@ -1202,7 +2190,15 @@ reads: $3 is continuous from $1 to $2
 
 defined by `is-continuous` 
 
-mentioned by 16 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-continuous`  *(definitional)*:
+
+```
+forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))
+```
+
+also: `metric-hom-is-continuous` `continuous-is-continuous-at` `uniformly-continuous-is-continuous` 
+
+[mentioned by 16 result(s)](BY-OPERATOR.md#is-continuous)
 
 ### `is-continuous-at(s, t, f, a)`  *(predicate)*
 
@@ -1210,7 +2206,15 @@ reads: $3 is continuous at $4
 
 defined by `is-continuous-at` 
 
-mentioned by 45 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-continuous-at`  *(definitional)*:
+
+```
+forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and a in pts(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
+```
+
+also: `continuous-is-continuous-at` 
+
+[mentioned by 45 result(s)](BY-OPERATOR.md#is-continuous-at)
 
 ### `is-countable-pseudometric-family(fam, ground)`  *(predicate)*
 
@@ -1218,7 +2222,13 @@ reads: $1 is a countable family of pseudometrics on $2
 
 defined by `is-countable-pseudometric-family` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-countable-pseudometric-family`  *(definitional)*:
+
+```
+forall([fam, ground], is-countable-pseudometric-family(fam, ground) iff forall([n_ in nn], is-pseudometric-space(fam(n_)) and pts(fam(n_)) == ground))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-countable-pseudometric-family)
 
 ### `is-dense-seq(s, dseq)`  *(predicate)*
 
@@ -1226,7 +2236,13 @@ reads: $2 is a dense sequence in $1
 
 defined by `is-dense-seq` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-dense-seq`  *(definitional)*:
+
+```
+forall([s, dseq], is-dense-seq(s, dseq) iff is-metric-space(s) and dseq in fun(nn, pts(s)) and forall([x in pts(s), eps], pos-rr(eps) implies forsome([m in nn], (dist(s))(x, dseq(m)) < eps)))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-dense-seq)
 
 ### `is-diagonal(a, m, n, d)`  *(predicate)*
 
@@ -1234,7 +2250,15 @@ reads: $4 is a diagonal $2-by-$3 matrix over $1
 
 defined by `is-diagonal` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-diagonal`  *(definitional)*:
+
+```
+forall([a, m, n, d], is-diagonal(a, m, n, d) iff forall([i, j], i in interval(1, m) implies j in interval(1, n) implies not(i = j) implies entry(d, i, j) = zero(a)))
+```
+
+also: `border-is-diagonal` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#is-diagonal)
 
 ### `is-diff-at(f, a, l)`  *(predicate)*
 
@@ -1242,7 +2266,13 @@ reads: $1 is differentiable at $2, with derivative $3
 
 defined by `is-diff-at` 
 
-mentioned by 36 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-diff-at`  *(definitional)*:
+
+```
+forall([f, a, l], is-diff-at(f, a, l) iff f in fun(rr, rr) and a in rr and l in rr and forsome([phi in fun(rr, rr)], is-continuous-at(rr-ms, rr-ms, phi, a) and phi(a) = l and forall([x in rr], f(x) - f(a) = phi(x) * (x - a))))
+```
+
+[mentioned by 36 result(s)](BY-OPERATOR.md#is-diff-at)
 
 ### `is-diff-at-v(m, f, a, l)`  *(predicate)*
 
@@ -1250,7 +2280,13 @@ reads: $2 is differentiable at $3 with derivative $4, as a curve in $1
 
 defined by `is-diff-at-v` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-diff-at-v`  *(definitional)*:
+
+```
+forall([m, f, a, l], is-diff-at-v(m, f, a, l) iff is-normed-vector-space(m) and f in fun(rr, vec(m)) and a in rr and l in vec(m) and forsome([phi in fun(rr, vec(m))], is-continuous-at(rr-ms, nvs-metric-space(m), phi, a) and phi(a) = l and forall([x_ in rr], (vadd(m))(f(x_), (vneg(m))(f(a))) = (act(m))(x_ - a, phi(x_)))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-diff-at-v)
 
 ### `is-distributive(addop, mulop, crr)`  *(predicate)*
 
@@ -1258,7 +2294,13 @@ reads: $2 distributes over $1 on $3
 
 defined by `is-distributive` 
 
-mentioned by 10 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-distributive`  *(definitional)*:
+
+```
+forall([addop, mulop, crr], is-distributive(addop, mulop, crr) iff forall([u in crr, v in crr, w in crr], mulop(u, addop(v, w)) = addop(mulop(u, v), mulop(u, w)) and mulop(addop(u, v), w) = addop(mulop(u, w), mulop(v, w))))
+```
+
+[mentioned by 10 result(s)](BY-OPERATOR.md#is-distributive)
 
 ### `is-eps-cauchy-seq(s, eps, y)`  *(predicate)*
 
@@ -1266,7 +2308,13 @@ reads: $3 is $2-Cauchy in $1
 
 defined by `is-eps-cauchy-seq` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-eps-cauchy-seq`  *(definitional)*:
+
+```
+forall([s, eps, y], is-eps-cauchy-seq(s, eps, y) iff is-metric-space(s) and y in fun(nn, pts(s)) and forall([m in nn, n_ in nn], (dist(s))(y(m), y(n_)) <= eps))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-eps-cauchy-seq)
 
 ### `is-equicontinuous(s, t, fam)`  *(predicate)*
 
@@ -1274,7 +2322,13 @@ reads: $3 is equicontinuous from $1 to $2
 
 defined by `is-equicontinuous` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-equicontinuous`  *(definitional)*:
+
+```
+forall([s, t, fam], is-equicontinuous(s, t, fam) iff is-metric-space(s) and is-metric-space(t) and fam in fun(nn, fun(pts(s), pts(t))) and forall([x in pts(s), eps], pos-rr(eps) implies forsome([del], pos-rr(del) and forall([k in nn, y in pts(s)], (dist(s))(x, y) < del implies (dist(t))((fam(k))(x), (fam(k))(y)) < eps))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-equicontinuous)
 
 ### `is-equivalence(rho, crr)`  *(predicate)*
 
@@ -1282,7 +2336,15 @@ reads: $1 is an equivalence relation on $2
 
 defined by `is-equivalence` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-equivalence`  *(definitional)*:
+
+```
+forall([rho, crr], is-equivalence(rho, crr) iff rho in power(cartesian(crr, crr)) and forall([u in crr], [u, u] in rho) and forall([u in crr, v in crr], [u, v] in rho implies [v, u] in rho) and forall([u in crr, v in crr, w in crr], [u, v] in rho and [v, w] in rho implies [u, w] in rho))
+```
+
+also: `ringoid-rel-is-equivalence` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-equivalence)
 
 ### `is-euclidean-ring(s)`  *(predicate)*
 
@@ -1290,7 +2352,15 @@ reads: a Euclidean ring
 
 a predicate
 
-mentioned by 33 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-euclidean-ring-def`  *(definitional)*:
+
+```
+forall([s], is-euclidean-ring(s) iff is-integral-domain(s) and forsome([deg in fun(carr(s), nn)], forall([a in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(deg(r)) <= deg(b))))))
+```
+
+also: `field-as-euclidean-ring-is-euclidean-ring` `zz-is-euclidean-ring` 
+
+[mentioned by 33 result(s)](BY-OPERATOR.md#is-euclidean-ring)
 
 ### `is-field(s)`  *(predicate)*
 
@@ -1298,7 +2368,15 @@ reads: a field
 
 a predicate
 
-mentioned by 80 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-field`  *(definitional)*:
+
+```
+forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and non-zero(s) = difference(carr(s), singleton(zero(s))) and recip(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
+```
+
+also: `qq-field-is-field` 
+
+[mentioned by 80 result(s)](BY-OPERATOR.md#is-field)
 
 ### `is-finite-cover(c, a)`  *(predicate)*
 
@@ -1306,7 +2384,13 @@ reads: $1 is a finite cover of $2
 
 defined by `is-finite-cover` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-finite-cover`  *(definitional)*:
+
+```
+forall([c, a], is-finite-cover(c, a) iff c in set and card(c) in nn and a subset big-union(u, c, u))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-finite-cover)
 
 ### `is-finite-dimensional(m)`  *(predicate)*
 
@@ -1314,7 +2398,13 @@ reads: $1 is finite dimensional
 
 defined by `is-finite-dimensional` 
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-finite-dimensional`  *(definitional)*:
+
+```
+forall([m], is-finite-dimensional(m) iff is-vector-space(m) and is-noetherian(m))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#is-finite-dimensional)
 
 ### `is-frechet-structure(m, fam)`  *(predicate)*
 
@@ -1322,13 +2412,25 @@ reads: ($1, $2) is a Frechet space
 
 defined by `is-frechet-structure` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-frechet-structure`  *(definitional)*:
+
+```
+forall([m, fam], is-frechet-structure(m, fam) iff is-seminorm-family(m, fam) and forall([seq in fun(nn, vec(m))], fr-cauchy(m, fam, seq) implies forsome([lim in vec(m)], fr-conv(m, fam, seq, lim))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-frechet-structure)
 
 ### `is-fun`  *(predicate)*
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-fun-def`  *(primitive)*:
+
+```
+forall([f], is-fun(f) iff forsome([a in set], f in fun(a)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-fun)
 
 ### `is-gauge-countable(s)`  *(predicate)*
 
@@ -1336,7 +2438,13 @@ reads: $1 has a countable pseudometric gauge
 
 defined by `is-gauge-countable` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-gauge-countable`  *(definitional)*:
+
+```
+forall([s], is-gauge-countable(s) iff is-top-space(s) and forsome([fam], is-countable-pseudometric-family(fam, pts(s)) and pseudo-gauge-top(fam, pts(s)) == s))
+```
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#is-gauge-countable)
 
 ### `is-group(s)`  *(predicate)*
 
@@ -1344,7 +2452,15 @@ reads: a group
 
 a predicate
 
-mentioned by 20 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-group`  *(definitional)*:
+
+```
+forall([s], is-group(s) iff length(s) = 4 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)))
+```
+
+also: `field-multiplicative-group-is-group` `abelian-group-is-group-ring-additive-ag` `abelian-group-is-group` 
+
+[mentioned by 20 result(s)](BY-OPERATOR.md#is-group)
 
 ### `is-group-norm(nm, op, invop, unit, crr)`  *(predicate)*
 
@@ -1352,7 +2468,13 @@ reads: $1 is a group norm for $2 on $5
 
 defined by `is-group-norm` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-group-norm`  *(definitional)*:
+
+```
+forall([nm, op, invop, unit, crr], is-group-norm(nm, op, invop, unit, crr) iff nm in fun(crr, rr) and forall([u in crr], 0 <= nm(u) and (nm(u) = 0 iff u = unit) and nm(invop(u)) = nm(u) and forall([v in crr], nm(op(u, v)) <= nm(u) + nm(v))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-group-norm)
 
 ### `is-hausdorff(s)`  *(predicate)*
 
@@ -1360,7 +2482,13 @@ reads: $1 is Hausdorff
 
 defined by `is-hausdorff` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hausdorff`  *(definitional)*:
+
+```
+forall([s], is-hausdorff(s) iff is-top-space(s) and forall([a, b], a in pts(s) implies b in pts(s) implies not(a == b) implies forsome([u, v], u in opens(s) and v in opens(s) and a in u and b in v and intersection(u, v) == empty-set)))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#is-hausdorff)
 
 ### `is-hom-abelian-group(a, b, f)`  *(predicate)*
 
@@ -1368,7 +2496,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-abelian-group-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-abelian-group(a, b, f) iff is-abelian-group(a) and is-abelian-group(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))))
+```
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#is-hom-abelian-group)
 
 ### `is-hom-comm-monoid(a, b, f)`  *(predicate)*
 
@@ -1376,7 +2510,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-comm-monoid-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-comm-monoid(a, b, f) iff is-comm-monoid(a) and is-comm-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-hom-comm-monoid)
 
 ### `is-hom-commutative-ring(a, b, f)`  *(predicate)*
 
@@ -1384,7 +2524,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-commutative-ring-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-commutative-ring(a, b, f) iff is-commutative-ring(a) and is-commutative-ring(b) and is-hom-ring(a, b, f))
+```
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#is-hom-commutative-ring)
 
 ### `is-hom-euclidean-ring(a, b, f)`  *(predicate)*
 
@@ -1392,7 +2538,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-euclidean-ring-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-euclidean-ring(a, b, f) iff is-euclidean-ring(a) and is-euclidean-ring(b) and is-hom-integral-domain(a, b, f))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-hom-euclidean-ring)
 
 ### `is-hom-field(a, b, f)`  *(predicate)*
 
@@ -1400,7 +2552,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-field-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((recip(a))(x1_)) = (recip(b))(f(x1_))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-hom-field)
 
 ### `is-hom-group(a, b, f)`  *(predicate)*
 
@@ -1408,7 +2566,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-group-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-group(a, b, f) iff is-group(a) and is-group(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-group)
 
 ### `is-hom-integral-domain(a, b, f)`  *(predicate)*
 
@@ -1416,7 +2580,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-integral-domain-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-integral-domain(a, b, f) iff is-integral-domain(a) and is-integral-domain(b) and is-hom-commutative-ring(a, b, f))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#is-hom-integral-domain)
 
 ### `is-hom-metric-space(a, b, f)`  *(predicate)*
 
@@ -1424,7 +2594,13 @@ reads: $3 is an isometry from $1 to $2
 
 a predicate
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-metric-space-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-metric-space(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], (dist(a))(x1_, x2_) = (dist(b))(f(x1_), f(x2_))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-hom-metric-space)
 
 ### `is-hom-metrizable-top-space(s, t, f)`  *(predicate)*
 
@@ -1432,7 +2608,13 @@ reads: $3 is continuous from $1 to $2
 
 a predicate
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-metrizable-top-space-def`  *(definitional)*:
+
+```
+forall([s, t, f], is-hom-metrizable-top-space(s, t, f) iff is-metrizable-top-space(s) and is-metrizable-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-hom-metrizable-top-space)
 
 ### `is-hom-module(a, b, f)`  *(predicate)*
 
@@ -1440,7 +2622,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-module-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-module(a, b, f) iff is-module(a) and is-module(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#is-hom-module)
 
 ### `is-hom-monoid(a, b, f)`  *(predicate)*
 
@@ -1448,7 +2636,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-monoid-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-monoid(a, b, f) iff is-monoid(a) and is-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-hom-monoid)
 
 ### `is-hom-normed-ag(a, b, f)`  *(predicate)*
 
@@ -1456,7 +2650,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-normed-ag-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-normed-ag(a, b, f) iff is-normed-ag(a) and is-normed-ag(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))) and f(iden(a)) = iden(b) and forall([x1_ in carr(a)], f((inv(a))(x1_)) = (inv(b))(f(x1_))) and forall([x1_ in carr(a)], (nrm(a))(x1_) = (nrm(b))(f(x1_))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-hom-normed-ag)
 
 ### `is-hom-normed-field(a, b, f)`  *(predicate)*
 
@@ -1464,7 +2664,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-normed-field-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-normed-field(a, b, f) iff is-normed-field(a) and is-normed-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in carr(a)], (fnrm(a))(x1_) = (fnrm(b))(f(x1_))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-hom-normed-field)
 
 ### `is-hom-normed-vector-space(a, b, f)`  *(predicate)*
 
@@ -1472,7 +2678,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-normed-vector-space-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-normed-vector-space(a, b, f) iff is-normed-vector-space(a) and is-normed-vector-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1_ in vec(a), x2_ in vec(a)], f((vadd(a))(x1_, x2_)) = (vadd(b))(f(x1_), f(x2_))) and f(vzero(a)) = vzero(b) and forall([x1_ in vec(a)], f((vneg(a))(x1_)) = (vneg(b))(f(x1_))) and forall([x1_ in carr(scal(a)), x2_ in vec(a)], f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))) and forall([x1_ in vec(a)], (vnrm(a))(x1_) = (vnrm(b))(f(x1_))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-hom-normed-vector-space)
 
 ### `is-hom-pid(a, b, f)`  *(predicate)*
 
@@ -1480,7 +2692,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-pid-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-pid(a, b, f) iff is-pid(a) and is-pid(b) and is-hom-integral-domain(a, b, f))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-pid)
 
 ### `is-hom-pseudometric-space(a, b, f)`  *(predicate)*
 
@@ -1488,7 +2706,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-pseudometric-space-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-pseudometric-space(a, b, f) iff is-pseudometric-space(a) and is-pseudometric-space(b) and f in fun(pts(a), pts(b)) and forall([x1_ in pts(a), x2_ in pts(a)], (dist(a))(x1_, x2_) = (dist(b))(f(x1_), f(x2_))))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-pseudometric-space)
 
 ### `is-hom-ring(a, b, f)`  *(predicate)*
 
@@ -1496,7 +2720,15 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-ring-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-ring(a, b, f) iff is-ring(a) and is-ring(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b))
+```
+
+also: `is-hom-ringoid-def` 
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#is-hom-ring)
 
 ### `is-hom-ringoid(a, b, f)`  *(predicate)*
 
@@ -1504,7 +2736,13 @@ reads: $3 is a ringoid homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-ringoid-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-ringoid(a, b, f) iff is-ringoid(a) and is-ringoid(b) and f in fun(carr(a), carr(b)) and is-hom-ring(ringoid-as-ring(a), ringoid-as-ring(b), f) and forall([x_ in idl(a)], f(x_) in idl(b)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-ringoid)
 
 ### `is-hom-semigroup(a, b, f)`  *(predicate)*
 
@@ -1512,7 +2750,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-semigroup-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-semigroup)
 
 ### `is-hom-setoid(a, b, f1, f2)`  *(predicate)*
 
@@ -1520,7 +2764,13 @@ reads: $3 is a setoid homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-setoid-def`  *(definitional)*:
+
+```
+forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-setoid)
 
 ### `is-hom-top-space(s, t, f)`  *(predicate)*
 
@@ -1528,7 +2778,13 @@ reads: $3 is continuous from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-top-space-def`  *(definitional)*:
+
+```
+forall([s, t, f], is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-top-space)
 
 ### `is-hom-vector-space(a, b, f)`  *(predicate)*
 
@@ -1536,7 +2792,13 @@ reads: $3 is a homomorphism from $1 to $2
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-hom-vector-space-def`  *(definitional)*:
+
+```
+forall([a, b, f], is-hom-vector-space(a, b, f) iff is-vector-space(a) and is-vector-space(b) and is-hom-module(a, b, f))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-hom-vector-space)
 
 ### `is-ideal(s, i)`  *(predicate)*
 
@@ -1544,7 +2806,15 @@ reads: $2 is an ideal of $1
 
 defined by `is-ideal` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ideal`  *(definitional)*:
+
+```
+forall([s, i], is-ideal(s, i) iff is-commutative-ring(s) and i subset carr(s) and zero(s) in i and forall([a in i, b in i], (add(s))(a, b) in i) and forall([a in i], (neg(s))(a) in i) and forall([r in carr(s), a in i], (mul(s))(r, a) in i))
+```
+
+also: `lastcoeff-set-is-ideal` `zz-bezout-set-is-ideal` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#is-ideal)
 
 ### `is-ideal-in(i_, carr_, add_, mul_, neg_, zero_)`  *(predicate)*
 
@@ -1552,7 +2822,13 @@ reads: $1 is a two-sided ideal of the ring with carrier $2
 
 defined by `is-ideal-in` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ideal-in`  *(definitional)*:
+
+```
+forall([i_, carr_, add_, mul_, neg_, zero_], is-ideal-in(i_, carr_, add_, mul_, neg_, zero_) iff i_ subset carr_ and zero_ in i_ and forall([a, b], a in i_ implies b in i_ implies add_(a, b) in i_) and forall([a in i_], neg_(a) in i_) and forall([x_, a], x_ in carr_ implies a in i_ implies mul_(x_, a) in i_) and forall([x_, a], x_ in carr_ implies a in i_ implies mul_(a, x_) in i_))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-ideal-in)
 
 ### `is-identity(op, unit, crr)`  *(predicate)*
 
@@ -1560,7 +2836,13 @@ reads: $2 is an identity for $1 on $3
 
 defined by `is-identity` 
 
-mentioned by 24 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-identity`  *(definitional)*:
+
+```
+forall([op, unit, crr], is-identity(op, unit, crr) iff forall([u in crr], op(unit, u) = u and op(u, unit) = u))
+```
+
+[mentioned by 24 result(s)](BY-OPERATOR.md#is-identity)
 
 ### `is-integral-domain(s)`  *(predicate)*
 
@@ -1568,7 +2850,15 @@ reads: an integral domain
 
 a predicate
 
-mentioned by 19 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-integral-domain-def`  *(definitional)*:
+
+```
+forall([s], is-integral-domain(s) iff is-commutative-ring(s) and not(one(s) = zero(s)) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies a = zero(s) or b = zero(s)))
+```
+
+also: `field-as-integral-domain-is-integral-domain` `normed-field-as-integral-domain-is-integral-domain` `qq-is-integral-domain` `zz-is-integral-domain` `euclidean-ring-is-integral-domain` 
+
+[mentioned by 19 result(s)](BY-OPERATOR.md#is-integral-domain)
 
 ### `is-invertible-mat(a, n, u)`  *(predicate)*
 
@@ -1576,7 +2866,13 @@ reads: $3 is an invertible $2-by-$2 matrix over $1
 
 defined by `is-invertible-mat` 
 
-mentioned by 17 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-invertible-mat`  *(definitional)*:
+
+```
+forall([a, n, u], is-invertible-mat(a, n, u) iff u in mat(n, n, carr(a)) and forsome([v in mat(n, n, carr(a))], matmul(a, u, v) = identmat(a, n) and matmul(a, v, u) = identmat(a, n)))
+```
+
+[mentioned by 17 result(s)](BY-OPERATOR.md#is-invertible-mat)
 
 ### `is-isometry(s, t, f)`  *(predicate)*
 
@@ -1584,7 +2880,13 @@ reads: $3 is an isometry from $1 to $2
 
 defined by `is-isometry` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-isometry`  *(definitional)*:
+
+```
+forall([s, t, f], is-isometry(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([x in pts(s), y in pts(s)], (dist(t))(f(x), f(y)) = (dist(s))(x, y)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-isometry)
 
 ### `is-k-linear(m, f)`  *(predicate)*
 
@@ -1592,7 +2894,13 @@ reads: $2 is a K-linear functional on $1
 
 defined by `is-k-linear` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-k-linear`  *(definitional)*:
+
+```
+forall([m, f], is-k-linear(m, f) iff is-module(m) and f in fun(vec(m), carr(scal(m))) and forall([x in vec(m), y in vec(m)], f((vadd(m))(x, y)) = (add(scal(m)))(f(x), f(y))) and forall([lam in carr(scal(m)), x in vec(m)], f((act(m))(lam, x)) = (mul(scal(m)))(lam, f(x))))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-k-linear)
 
 ### `is-k-linear-on(m, s, f)`  *(predicate)*
 
@@ -1600,7 +2908,13 @@ reads: $3 is a K-linear functional on the submodule $2 of $1
 
 defined by `is-k-linear-on` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-k-linear-on`  *(definitional)*:
+
+```
+forall([m, s, f], is-k-linear-on(m, s, f) iff is-module(m) and is-submodule(m, s) and f in fun(s, carr(scal(m))) and forall([x in s, y in s], f((vadd(m))(x, y)) = (add(scal(m)))(f(x), f(y))) and forall([lam in carr(scal(m)), x in s], f((act(m))(lam, x)) = (mul(scal(m)))(lam, f(x))))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-k-linear-on)
 
 ### `is-linear-functional(m, f)`  *(predicate)*
 
@@ -1608,7 +2922,13 @@ reads: $2 is a linear functional on $1
 
 defined by `is-linear-functional` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-linear-functional`  *(definitional)*:
+
+```
+forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x_ in vec(m), y_ in vec(m)], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in vec(m)], f((act(m))(r_, x_)) = r_ * f(x_)))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#is-linear-functional)
 
 ### `is-linear-functional-on(m, s, f)`  *(predicate)*
 
@@ -1616,7 +2936,13 @@ reads: $3 is a linear functional on the subspace $2 of $1
 
 defined by `is-linear-functional-on` 
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-linear-functional-on`  *(definitional)*:
+
+```
+forall([m, s, f], is-linear-functional-on(m, s, f) iff f in fun(s, rr) and forall([x_ in s, y_ in s], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in s], f((act(m))(r_, x_)) = r_ * f(x_)))
+```
+
+[mentioned by 12 result(s)](BY-OPERATOR.md#is-linear-functional-on)
 
 ### `is-linear-map(m1, m2, tt)`  *(predicate)*
 
@@ -1624,7 +2950,13 @@ reads: $3 is a linear map from $1 to $2
 
 defined by `is-linear-map` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-linear-map`  *(definitional)*:
+
+```
+forall([m1, m2, tt], is-linear-map(m1, m2, tt) iff is-module(m1) and is-module(m2) and scal(m1) = scal(m2) and tt in fun(vec(m1), vec(m2)) and forall([x in vec(m1), y in vec(m1)], tt((vadd(m1))(x, y)) = (vadd(m2))(tt(x), tt(y))) and forall([lam in carr(scal(m1)), x in vec(m1)], tt((act(m1))(lam, x)) = (act(m2))(lam, tt(x))))
+```
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#is-linear-map)
 
 ### `is-maximal(grd, porel, mx)`  *(predicate)*
 
@@ -1632,7 +2964,13 @@ reads: $3 is maximal in $1 under $2
 
 defined by `is-maximal` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-maximal`  *(definitional)*:
+
+```
+forall([grd, porel, mx], is-maximal(grd, porel, mx) iff mx in grd and forall([y in grd], [mx, y] in porel implies [y, mx] in porel))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-maximal)
 
 ### `is-meager(s, a)`  *(predicate)*
 
@@ -1640,7 +2978,13 @@ reads: $2 is meager in $1
 
 defined by `is-meager` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-meager`  *(definitional)*:
+
+```
+forall([s, a], is-meager(s, a) iff is-metric-space(s) and a subset pts(s) and forsome([ee in fun(nn, power(pts(s)))], forall([n in nn], is-nowhere-dense(s, ee(n))) and a subset big-union(n, nn, ee(n))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-meager)
 
 ### `is-metric(dst, crr)`  *(predicate)*
 
@@ -1648,7 +2992,15 @@ reads: $1 is a metric on $2
 
 defined by `is-metric` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-metric`  *(definitional)*:
+
+```
+forall([dst, crr], is-metric(dst, crr) iff forall([u in crr], dst(u, u) = 0 and forall([v in crr], 0 <= dst(u, v) and (dst(u, v) = 0 implies u = v) and dst(u, v) = dst(v, u) and forall([w in crr], dst(u, w) <= dst(u, v) + dst(v, w)))))
+```
+
+also: `is-metric-space` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-metric)
 
 ### `is-metric-space(s)`  *(predicate)*
 
@@ -1656,7 +3008,15 @@ reads: a metric space
 
 a predicate
 
-mentioned by 125 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-metric-space`  *(definitional)*:
+
+```
+forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
+```
+
+also: `nag-metric-space-is-metric-space-normed-vector-space-as-normed-ag` `cc-is-metric-space` `rr-is-metric-space` `product-is-metric-space` `bdd-metric-is-metric-space` `completion-is-metric-space` `rr-bounded-ms-is-metric-space` `nf-metric-space-is-metric-space` ... (9 in all)
+
+[mentioned by 125 result(s)](BY-OPERATOR.md#is-metric-space)
 
 ### `is-metrizable-top-space(s)`  *(predicate)*
 
@@ -1664,7 +3024,15 @@ reads: $1 is a metrizable topological space
 
 a predicate
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-metrizable-top-space-def`  *(definitional)*:
+
+```
+forall([s], is-metrizable-top-space(s) iff is-top-space(s) and forsome([md], is-metric-space(md) and s == [pts(md), {u in power(pts(md)): is-open(md, u)}]))
+```
+
+also: `metric-top-is-metrizable-top-space` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#is-metrizable-top-space)
 
 ### `is-module(s)`  *(predicate)*
 
@@ -1672,7 +3040,15 @@ reads: a module
 
 a predicate
 
-mentioned by 146 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-module`  *(definitional)*:
+
+```
+forall([s], is-module(s) iff length(s) = 6 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_))
+```
+
+also: `normed-vector-space-as-module-is-module` 
+
+[mentioned by 146 result(s)](BY-OPERATOR.md#is-module)
 
 ### `is-monoid(s)`  *(predicate)*
 
@@ -1680,7 +3056,15 @@ reads: a monoid
 
 a predicate
 
-mentioned by 45 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-monoid`  *(definitional)*:
+
+```
+forall([s], is-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)))
+```
+
+also: `abelian-group-as-monoid-is-monoid` `ring-multiplicative-monoid-is-monoid` `abelian-group-as-monoid-is-monoid-module-vector-ag` `abelian-group-as-monoid-is-monoid-ring-additive-ag` `abelian-group-as-monoid-is-monoid-field-additive-ag` `comm-monoid-is-monoid-commutative-ring-multiplicative-cm` `abelian-group-as-monoid-is-monoid-normed-field-additive-ag` `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group` ... (14 in all)
+
+[mentioned by 45 result(s)](BY-OPERATOR.md#is-monoid)
 
 ### `is-ms-sequence(ms)`  *(predicate)*
 
@@ -1688,7 +3072,13 @@ reads: $1 is a sequence of metric spaces
 
 defined by `is-ms-sequence` 
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ms-sequence`  *(definitional)*:
+
+```
+forall([ms], is-ms-sequence(ms) iff forall([n in nn], is-metric-space(ms(n))))
+```
+
+[mentioned by 12 result(s)](BY-OPERATOR.md#is-ms-sequence)
 
 ### `is-noetherian(m)`  *(predicate)*
 
@@ -1696,7 +3086,13 @@ reads: $1 is Noetherian
 
 defined by `is-noetherian` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-noetherian`  *(definitional)*:
+
+```
+forall([m], is-noetherian(m) iff is-module(m) and forall([f_ in fun(nn, power(vec(m)))], forall([n_ in nn], is-submodule(m, f_(n_))) and forall([n_ in nn], f_(n_) subset f_(succ(n_))) implies forsome([k_ in nn], forall([n_], n_ in nn and k_ <= n_ implies f_(n_) = f_(k_)))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-noetherian)
 
 ### `is-nonmeager(s, a)`  *(predicate)*
 
@@ -1704,7 +3100,13 @@ reads: $2 is nonmeager in $1
 
 defined by `is-nonmeager` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-nonmeager`  *(definitional)*:
+
+```
+forall([s, a], is-nonmeager(s, a) iff is-metric-space(s) and a subset pts(s) and not(is-meager(s, a)))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-nonmeager)
 
 ### `is-norm(nm, addop, mulop, zr, crr)`  *(predicate)*
 
@@ -1712,7 +3114,15 @@ reads: $1 is a norm on $5
 
 defined by `is-norm` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-norm`  *(definitional)*:
+
+```
+forall([nm, addop, mulop, zr, crr], is-norm(nm, addop, mulop, zr, crr) iff nm in fun(crr, rr) and forall([a in crr], 0 <= nm(a) and (nm(a) = 0 iff a = zr) and forall([b in crr], nm(mulop(a, b)) = nm(a) * nm(b) and nm(addop(a, b)) <= nm(a) + nm(b))))
+```
+
+also: `is-normed-field` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-norm)
 
 ### `is-normed-ag(s)`  *(predicate)*
 
@@ -1720,7 +3130,15 @@ reads: a normed ag
 
 a predicate
 
-mentioned by 61 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-normed-ag`  *(definitional)*:
+
+```
+forall([s], is-normed-ag(s) iff length(s) = 5 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and nrm(s) in fun(carr(s), rr) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)) and is-commutative(opr(s), carr(s)) and is-group-norm(nrm(s), opr(s), inv(s), iden(s), carr(s)))
+```
+
+also: `normed-vector-space-as-normed-ag-is-normed-ag` 
+
+[mentioned by 61 result(s)](BY-OPERATOR.md#is-normed-ag)
 
 ### `is-normed-field(s)`  *(predicate)*
 
@@ -1728,7 +3146,15 @@ reads: a normed field
 
 a predicate
 
-mentioned by 161 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-normed-field`  *(definitional)*:
+
+```
+forall([s], is-normed-field(s) iff length(s) = 7 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and fnrm(s) in fun(carr(s), rr) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and is-norm(fnrm(s), add(s), mul(s), zero(s), carr(s)))
+```
+
+also: `cc-is-normed-field` `rr-is-normed-field` 
+
+[mentioned by 161 result(s)](BY-OPERATOR.md#is-normed-field)
 
 ### `is-normed-vector-space(s)`  *(predicate)*
 
@@ -1736,7 +3162,13 @@ reads: a normed vector space
 
 a predicate
 
-mentioned by 231 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-normed-vector-space`  *(definitional)*:
+
+```
+forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and vnrm(s) in fun(vec(s), rr) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = rr-normed-field and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_) and forall([x_ in vec(s)], 0 <= (vnrm(s))(x_)) and forall([x_ in vec(s)], (vnrm(s))(x_) = 0 iff x_ = vzero(s)) and forall([r_ in carr(scal(s)), x_ in vec(s)], (vnrm(s))((act(s))(r_, x_)) = abs(r_) * (vnrm(s))(x_)) and forall([x_ in vec(s), y_ in vec(s)], (vnrm(s))((vadd(s))(x_, y_)) <= (vnrm(s))(x_) + (vnrm(s))(y_)))
+```
+
+[mentioned by 231 result(s)](BY-OPERATOR.md#is-normed-vector-space)
 
 ### `is-nowhere-dense(s, a)`  *(predicate)*
 
@@ -1744,7 +3176,13 @@ reads: $2 is nowhere dense in $1
 
 defined by `is-nowhere-dense` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-nowhere-dense`  *(definitional)*:
+
+```
+forall([s, a], is-nowhere-dense(s, a) iff is-metric-space(s) and a subset pts(s) and interior(s, closure(s, a)) = empty-set)
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-nowhere-dense)
 
 ### `is-open(s, u)`  *(predicate)*
 
@@ -1752,7 +3190,15 @@ reads: $2 is open in $1
 
 defined by `is-open` 
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-open`  *(definitional)*:
+
+```
+forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
+```
+
+also: `is-open-cover` `ball-is-open` `empty-is-open` `carrier-is-open` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#is-open)
 
 ### `is-open-cover(s, c)`  *(predicate)*
 
@@ -1760,7 +3206,15 @@ reads: $2 is an open cover of $1
 
 defined by `is-open-cover` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-open-cover`  *(definitional)*:
+
+```
+forall([s, c], is-open-cover(s, c) iff is-metric-space(s) and forall([u in c], is-open(s, u)) and big-union(u, c, u) == pts(s))
+```
+
+also: `ball-cover-is-open-cover` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#is-open-cover)
 
 ### `is-open-gauge(fam, ground, u)`  *(predicate)*
 
@@ -1768,7 +3222,13 @@ reads: $3 is open in the gauge topology of the family $1 on $2
 
 defined by `is-open-gauge` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-open-gauge`  *(definitional)*:
+
+```
+forall([fam, ground, u], is-open-gauge(fam, ground, u) iff u subset ground and forall([y in u], forsome([k_ in nn, r], pos-rr(r) and forall([x in ground], forall([n_ in nn], n_ <= k_ implies (dist(fam(n_)))(y, x) < r) implies x in u))))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-open-gauge)
 
 ### `is-open-lin-map(m1, fam1, m2, fam2, tt)`  *(predicate)*
 
@@ -1776,7 +3236,13 @@ reads: $5 is an open linear map from ($1, $2) to ($3, $4)
 
 defined by `is-open-lin-map` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-open-lin-map`  *(definitional)*:
+
+```
+forall([m1, fam1, m2, fam2, tt], is-open-lin-map(m1, fam1, m2, fam2, tt) iff is-linear-map(m1, m2, tt) and forall([n in nn, eps], pos-rr(eps) implies forsome([n_ in nn, eps_], pos-rr(eps_) and fr-ball(m2, fam2, n_, eps_) subset image(tt, fr-ball(m1, fam1, n, eps)))))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-open-lin-map)
 
 ### `is-ord(x)`  *(predicate)*
 
@@ -1784,7 +3250,13 @@ reads: $1 is an ordinal
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ord`  *(definitional)*:
+
+```
+forall([x], is-ord(x) iff x in ord)
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-ord)
 
 ### `is-partial-order(grd, porel)`  *(predicate)*
 
@@ -1792,7 +3264,13 @@ reads: $2 partially orders $1
 
 defined by `is-partial-order` 
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-partial-order`  *(definitional)*:
+
+```
+forall([grd, porel], is-partial-order(grd, porel) iff grd in set and porel in set and forall([x in grd], [x, x] in porel) and forall([x in grd, y in grd], [x, y] in porel and [y, x] in porel implies x = y) and forall([x in grd, y in grd, z in grd], [x, y] in porel and [y, z] in porel implies [x, z] in porel))
+```
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#is-partial-order)
 
 ### `is-pid(s)`  *(predicate)*
 
@@ -1800,7 +3278,13 @@ reads: a pid
 
 a predicate
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-pid-def`  *(definitional)*:
+
+```
+forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in carr(s)], i = principal-ideal(s, a))))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#is-pid)
 
 ### `is-pseudometric(dst, crr)`  *(predicate)*
 
@@ -1808,7 +3292,15 @@ reads: $1 is a pseudometric on $2
 
 defined by `is-pseudometric` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-pseudometric`  *(definitional)*:
+
+```
+forall([dst, crr], is-pseudometric(dst, crr) iff forall([u in crr], dst(u, u) = 0 and forall([v in crr], 0 <= dst(u, v) and dst(u, v) = dst(v, u) and forall([w in crr], dst(u, w) <= dst(u, v) + dst(v, w)))))
+```
+
+also: `is-pseudometric-space` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-pseudometric)
 
 ### `is-pseudometric-space(s)`  *(predicate)*
 
@@ -1816,7 +3308,13 @@ reads: a pseudometric space
 
 a predicate
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-pseudometric-space`  *(definitional)*:
+
+```
+forall([s], is-pseudometric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-pseudometric(dist(s), pts(s)))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#is-pseudometric-space)
 
 ### `is-r-net(s, f, a, r)`  *(predicate)*
 
@@ -1824,7 +3322,13 @@ reads: $2 is an $4-net for $3 in $1
 
 defined by `is-r-net` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-r-net`  *(definitional)*:
+
+```
+forall([s, f, a, r], is-r-net(s, f, a, r) iff forall([p in a], forsome([c in f], (dist(s))(c, p) <= r and not((dist(s))(c, p) = r))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-r-net)
 
 ### `is-ring(s)`  *(predicate)*
 
@@ -1832,7 +3336,15 @@ reads: a ring
 
 a predicate
 
-mentioned by 387 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ring`  *(definitional)*:
+
+```
+forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
+```
+
+also: `ringoid-as-ring-is-ring` `ring-prod-is-ring-ringoid-as-ring` `qq-is-ring` `zz-is-ring` `poly-is-ring` `monalg-is-ring` `mat-ring-is-ring` `ring-prod-is-ring` ... (12 in all)
+
+[mentioned by 387 result(s)](BY-OPERATOR.md#is-ring)
 
 ### `is-ringoid(s)`  *(predicate)*
 
@@ -1840,7 +3352,13 @@ reads: a ringoid
 
 a predicate
 
-mentioned by 78 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-ringoid`  *(definitional)*:
+
+```
+forall([s], is-ringoid(s) iff length(s) = 7 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and idl(s) in power(carr(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and is-ideal-in(idl(s), carr(s), add(s), mul(s), neg(s), zero(s)))
+```
+
+[mentioned by 78 result(s)](BY-OPERATOR.md#is-ringoid)
 
 ### `is-semigroup(s)`  *(predicate)*
 
@@ -1848,7 +3366,13 @@ reads: a semigroup
 
 a predicate
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-semigroup`  *(definitional)*:
+
+```
+forall([s], is-semigroup(s) iff length(s) = 2 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and is-associative(opr(s), carr(s)))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#is-semigroup)
 
 ### `is-seminorm(m, p)`  *(predicate)*
 
@@ -1856,7 +3380,15 @@ reads: $2 is a seminorm on $1
 
 defined by `is-seminorm` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-seminorm`  *(definitional)*:
+
+```
+forall([m, p], is-seminorm(m, p) iff is-module(m) and is-normed-field(scal(m)) and p in fun(vec(m), rr) and forall([x in vec(m)], 0 <= p(x)) and forall([x in vec(m), y in vec(m)], p((vadd(m))(x, y)) <= p(x) + p(y)) and forall([lam in carr(scal(m)), x in vec(m)], p((act(m))(lam, x)) = (fnrm(scal(m)))(lam) * p(x)))
+```
+
+also: `is-seminorm-family` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#is-seminorm)
 
 ### `is-seminorm-family(m, fam)`  *(predicate)*
 
@@ -1864,7 +3396,13 @@ reads: $2 is a separating countable family of seminorms on $1
 
 defined by `is-seminorm-family` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-seminorm-family`  *(definitional)*:
+
+```
+forall([m, fam], is-seminorm-family(m, fam) iff is-module(m) and is-normed-field(scal(m)) and fam in fun(nn, fun(vec(m), rr)) and forall([k in nn], is-seminorm(m, fam(k))) and forall([x in vec(m)], not(x = vzero(m)) implies forsome([k in nn], not((fam(k))(x) = 0))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-seminorm-family)
 
 ### `is-separable(s)`  *(predicate)*
 
@@ -1872,7 +3410,15 @@ reads: $1 is separable
 
 defined by `is-separable` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-separable`  *(definitional)*:
+
+```
+forall([s], is-separable(s) iff is-metric-space(s) and forsome([dseq in fun(nn, pts(s))], forall([x in pts(s), eps], pos-rr(eps) implies forsome([n in nn], (dist(s))(x, dseq(n)) < eps))))
+```
+
+also: `compact-metric-is-separable` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-separable)
 
 ### `is-set(x)`  *(predicate)*
 
@@ -1880,7 +3426,13 @@ reads: $1 is a set
 
 a predicate
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-set`  *(definitional)*:
+
+```
+forall([x], is-set(x) iff x in set)
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-set)
 
 ### `is-setoid(s)`  *(predicate)*
 
@@ -1888,7 +3440,15 @@ reads: a setoid
 
 a predicate
 
-mentioned by 25 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-setoid`  *(definitional)*:
+
+```
+forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))
+```
+
+also: `cauchy-setoid-is-setoid` `ringoid-setoid-is-setoid` 
+
+[mentioned by 25 result(s)](BY-OPERATOR.md#is-setoid)
 
 ### `is-sigma-algebra(omega, ca)`  *(predicate)*
 
@@ -1896,7 +3456,13 @@ reads: $2 is a sigma-algebra of subsets of $1
 
 defined by `is-sigma-algebra` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-sigma-algebra`  *(definitional)*:
+
+```
+forall([omega, ca], is-sigma-algebra(omega, ca) iff omega in set and ca subset power(omega) and omega in ca and forall([a_ in ca], complement-in(omega, a_) in ca) and forall([f_ in fun(nn, ca)], big-union(n_, nn, f_(n_)) in ca))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-sigma-algebra)
 
 ### `is-strictly-below(porel, x, y)`  *(predicate)*
 
@@ -1904,7 +3470,13 @@ reads: $2 is strictly below $3 under $1
 
 defined by `is-strictly-below` 
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-strictly-below`  *(definitional)*:
+
+```
+forall([porel, x, y], is-strictly-below(porel, x, y) iff [x, y] in porel and not([y, x] in porel))
+```
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#is-strictly-below)
 
 ### `is-submodule(m, s)`  *(predicate)*
 
@@ -1912,7 +3484,15 @@ reads: $2 is a submodule of $1
 
 defined by `is-submodule` 
 
-mentioned by 39 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-submodule`  *(definitional)*:
+
+```
+forall([m, s], is-submodule(m, s) iff s subset vec(m) and vzero(m) in s and forall([x_ in s, y_ in s], (vadd(m))(x_, y_) in s) and forall([x_ in s], (vneg(m))(x_) in s) and forall([r_ in carr(scal(m)), x_ in s], (act(m))(r_, x_) in s))
+```
+
+also: `line-is-submodule` `span-is-submodule` `whole-module-is-submodule` 
+
+[mentioned by 39 result(s)](BY-OPERATOR.md#is-submodule)
 
 ### `is-subsequence(s, y, f)`  *(predicate)*
 
@@ -1920,7 +3500,13 @@ reads: $2 is a subsequence of $3 in $1
 
 defined by `is-subsequence` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-subsequence`  *(definitional)*:
+
+```
+forall([s, y, f], is-subsequence(s, y, f) iff f in fun(nn, pts(s)) and forsome([phi], strictly-mono-nn(phi) and y = subseq(f, phi)))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-subsequence)
 
 ### `is-subspace(m, s)`  *(predicate)*
 
@@ -1928,7 +3514,13 @@ reads: $2 is a subspace of $1
 
 defined by `is-subspace` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-subspace`  *(definitional)*:
+
+```
+forall([m, s], is-subspace(m, s) iff is-submodule(m, s))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#is-subspace)
 
 ### `is-summable(grp, f)`  *(predicate)*
 
@@ -1936,7 +3528,13 @@ reads: $2 is summable in $1
 
 defined by `is-summable` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-summable`  *(definitional)*:
+
+```
+forall([grp, f], is-summable(grp, f) iff forsome([r in carr(grp)], sums-to(grp, f, r)))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-summable)
 
 ### `is-top-space(s)`  *(predicate)*
 
@@ -1944,7 +3542,15 @@ reads: $1 is a topological space
 
 a predicate
 
-mentioned by 19 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-top-space`  *(definitional)*:
+
+```
+forall([s], is-top-space(s) iff length(s) = 2 and pts(s) in set and opens(s) in power(power(pts(s))) and empty-set in opens(s) and pts(s) in opens(s) and forall([u in opens(s), v in opens(s)], intersection(u, v) in opens(s)) and forall([fam], fam subset opens(s) implies big-union(u, fam, u) in opens(s)))
+```
+
+also: `metric-top-is-top-space` 
+
+[mentioned by 19 result(s)](BY-OPERATOR.md#is-top-space)
 
 ### `is-unif-cauchy(s, fam)`  *(predicate)*
 
@@ -1952,7 +3558,13 @@ reads: $2 is uniformly Cauchy on $1
 
 defined by `is-unif-cauchy` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-unif-cauchy`  *(definitional)*:
+
+```
+forall([s, fam], is-unif-cauchy(s, fam) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and forall([eps], pos-rr(eps) implies forsome([cap in nn], forall([k], k in nn and cap <= k implies forall([l], l in nn and cap <= l implies forall([x in pts(s)], abs((fam(k))(x) - (fam(l))(x)) < eps))))))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#is-unif-cauchy)
 
 ### `is-uniformly-continuous(s, t, f)`  *(predicate)*
 
@@ -1960,7 +3572,13 @@ reads: $3 is uniformly continuous from $1 to $2
 
 defined by `is-uniformly-continuous` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-uniformly-continuous`  *(definitional)*:
+
+```
+forall([s, t, f], is-uniformly-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([a in pts(s), b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#is-uniformly-continuous)
 
 ### `is-upper-bound(grd, porel, ch, b)`  *(predicate)*
 
@@ -1968,7 +3586,13 @@ reads: $4 is an upper bound of $3 in $1 under $2
 
 defined by `is-upper-bound` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-upper-bound`  *(definitional)*:
+
+```
+forall([grd, porel, ch, b], is-upper-bound(grd, porel, ch, b) iff b in grd and forall([x in ch], [x, b] in porel))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#is-upper-bound)
 
 ### `is-vector-space(s)`  *(predicate)*
 
@@ -1976,16 +3600,32 @@ reads: a vector space
 
 a predicate
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-vector-space-def`  *(definitional)*:
+
+```
+forall([s], is-vector-space(s) iff is-module(s) and is-field(scal(s)))
+```
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#is-vector-space)
 
 
 ## K
 
 ### `keep-set(phi, grd, porel, kset, alpha)`  *(functoid)*
 
-= {y in grd: y = phi(alpha) and forall([z in kset], [z, y] in porel)}
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+{y in grd: y = phi(alpha) and forall([z in kset], [z, y] in porel)}
+```
+
+characterized by `keep-set-membership`  *(definitional)*:
+
+```
+forall([phi, grd, porel, kset, alpha, y_], y_ in keep-set(phi, grd, porel, kset, alpha) iff y_ in grd and y_ = phi(alpha) and forall([z in kset], [z, y_] in porel))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#keep-set)
 
 
 ## L
@@ -2010,9 +3650,21 @@ declared in `tactics-help.scm`
 
 ### `lastcoeff-set(md, p, u, sm)`  *(functoid)*
 
-= {r_ in carr(scal(md)): forsome([c_ in mat(1, succ(p), carr(scal(md)))], entry(c_, 1, succ(p)) = r_ and entry(m ...
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+{r_ in carr(scal(md)): forsome([c_ in mat(1, succ(p), carr(scal(md)))], entry(c_, 1, succ(p)) = r_ and entry(matact(md, c_, u), 1, 1) in sm)}
+```
+
+characterized by `lastcoeff-set-membership`  *(definitional)*:
+
+```
+forall([md, p, u, sm, r_], r_ in lastcoeff-set(md, p, u, sm) iff r_ in carr(scal(md)) and forsome([c_ in mat(1, succ(p), carr(scal(md)))], entry(c_, 1, succ(p)) = r_ and entry(matact(md, c_, u), 1, 1) in sm))
+```
+
+also: `lastcoeff-set-is-ideal` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#lastcoeff-set)
 
 ### `len-r`  *(tactic)*
 
@@ -2022,27 +3674,63 @@ declared in `tactics-help.scm`
 
 ### `length`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 42 result(s) -- see `BY-OPERATOR.md`
+characterized by `length-in-nn`  *(primitive)*:
+
+```
+forall([l in tuples(set)], length(l) in nn)
+```
+
+also: `length-of-empty` 
+
+[mentioned by 42 result(s)](BY-OPERATOR.md#length)
 
 ### `limit-ord`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `limit-ord-iff`  *(definitional)*:
+
+```
+forall([lambda], limit-ord(lambda) iff lambda in ord and not(lambda = 0) and not(forsome([alpha in ord], lambda = succ_ord(alpha))))
+```
+
+also: `limit-ord-is-sup` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#limit-ord)
 
 ### `line(m, v)`  *(functoid)*
 
-= {y_ in vec(m): forsome([r_ in rr], y_ = (act(m))(r_, v))}
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+{y_ in vec(m): forsome([r_ in rr], y_ = (act(m))(r_, v))}
+```
+
+characterized by `line-has-v`  *(asserted)*:
+
+```
+forall([m, v], is-normed-vector-space(m) implies v in vec(m) implies v in line(m, v))
+```
+
+also: `line-is-submodule` `line-functional-exists` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#line)
 
 ### `list`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 111 result(s) -- see `BY-OPERATOR.md`
+characterized by `nary-plus-2-list`  *(asserted)*:
+
+```
+forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))
+```
+
+also: `nary-plus-3-list` `nary-plus-4-list` `nary-plus-5-list` `nary-times-2-list` `nary-times-3-list` `nary-times-4-list` `nary-times-5-list` 
+
+[mentioned by 111 result(s)](BY-OPERATOR.md#list)
 
 ### `little-o-at(g, a)`  *(predicate)*
 
@@ -2050,7 +3738,13 @@ reads: $1 is little-o at $2
 
 defined by `little-o-at` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `little-o-at`  *(definitional)*:
+
+```
+forall([g, a], little-o-at(g, a) iff g in fun(rr, rr) and a in rr and forsome([eps in fun(rr, rr)], is-continuous-at(rr-ms, rr-ms, eps, a) and eps(a) = 0 and forall([x in rr], g(x) = eps(x) * (x - a))))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#little-o-at)
 
 
 ## M
@@ -2081,21 +3775,49 @@ declared in `tactics-help.scm`
 
 ### `magnitude`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `cc-magnitude-mul`  *(primitive)*:
+
+```
+forall([a, b], a in cc and b in cc implies magnitude(a * b) = magnitude(a) * magnitude(b))
+```
+
+also: `cc-magnitude-neg` `cc-magnitude-closed` `cc-magnitude-nonneg` `rr-magnitude-is-abs` `cc-magnitude-triangle` `cc-magnitude-zero-iff` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#magnitude)
 
 ### `make-set`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `make-set-empty`  *(primitive)*:
+
+```
+{} = empty-set
+```
+
+also: `make-set-sethood` `make-set-membership` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#make-set)
 
 ### `mat(m, n, x)`  *(functoid)*
 
-= {p in matrix(x): size(p) = [m, n]}
+definition:
 
-mentioned by 204 result(s) -- see `BY-OPERATOR.md`
+```
+{p in matrix(x): size(p) = [m, n]}
+```
+
+characterized by `is-invertible-mat`  *(definitional)*:
+
+```
+forall([a, n, u], is-invertible-mat(a, n, u) iff u in mat(n, n, carr(a)) and forsome([v in mat(n, n, carr(a))], matmul(a, u, v) = identmat(a, n) and matmul(a, v, u) = identmat(a, n)))
+```
+
+also: `mat-is-set` `matact-snoc` `matact-type` `matadd-comm` `matadd-type` `matmul-type` `matneg-type` `submat-type` ... (62 in all)
+
+[mentioned by 204 result(s)](BY-OPERATOR.md#mat)
 
 ### `mat-equiv(a, m, n, c, d)`  *(predicate)*
 
@@ -2103,61 +3825,171 @@ reads: $4 and $5 are equivalent $2-by-$3 matrices over $1
 
 defined by `mat-equiv` 
 
-mentioned by 24 result(s) -- see `BY-OPERATOR.md`
+characterized by `mat-equiv`  *(definitional)*:
+
+```
+forall([a, m, n, c, d], mat-equiv(a, m, n, c, d) iff forsome([u], is-invertible-mat(a, m, u) and forsome([v], is-invertible-mat(a, n, v) and d = matmul(a, matmul(a, u, c), v))))
+```
+
+also: `mat-equiv-refl` `mat-equiv-trans` `mat-equiv-left-mult` `mat-equiv-cod-is-mat` `mat-equiv-right-mult` `mat-equiv-target-is-mat` 
+
+[mentioned by 24 result(s)](BY-OPERATOR.md#mat-equiv)
 
 ### `mat-ring(a, n)`  *(functoid)*
 
-= [mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), v ...
+definition:
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+```
+[mat(n, n, carr(a)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)), vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matmul(a, p, q)), vnb-lambda(p, mat(n, n, carr(a)), matneg(a, p)), zeromat(a, n, n), identmat(a, n)]
+```
+
+characterized by `mat-ring-add`  *(asserted)*:
+
+```
+forall([a, n], add(mat-ring(a, n)) = vnb-lambda([p, q], cartesian(mat(n, n, carr(a)), mat(n, n, carr(a))), matadd(a, p, q)))
+```
+
+also: `mat-ring-mul` `mat-ring-neg` `mat-ring-one` `mat-ring-carr` `mat-ring-zero` `mat-ring-is-ring` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#mat-ring)
 
 ### `matact(md, p, u)`  *(functoid)*
 
-= matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, ...
+definition:
 
-mentioned by 42 result(s) -- see `BY-OPERATOR.md`
+```
+matof(nth(1, size(p)), nth(2, size(u)), vnb-lambda([i, c], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(u)))), finsum(module-vector-ag(md), vnb-lambda(j, interval(1, nth(2, size(p))), (act(md))(entry(p, i, j), entry(u, j, c))), interval(1, nth(2, size(p))))))
+```
+
+characterized by `matact-snoc`  *(proven)*:
+
+```
+forall([md], is-module(md) implies forall([n in nn, c in mat(1, n, carr(scal(md))), u in mat(n, 1, vec(md)), r in carr(scal(md)), x in vec(md)], entry(matact(md, snoc-row(c, n, r), snoc-col(u, n, x)), 1, 1) = (vadd(md))(entry(matact(md, c, u), 1, 1), (act(md))(r, x))))
+```
+
+also: `matact-type` `matact-assoc` `matact-entry` `matact-row-add` `matact-unitrow` `matact-zerorow` `matact-identmat` `matact-row-peel` ... (12 in all)
+
+[mentioned by 42 result(s)](BY-OPERATOR.md#matact)
 
 ### `matadd(a, p, q)`  *(functoid)*
 
-= matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, ...
+definition:
 
-mentioned by 24 result(s) -- see `BY-OPERATOR.md`
+```
+matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (add(a))(entry(p, i, j), entry(q, i, j))))
+```
+
+characterized by `matadd-comm`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([m, n, p, q], p in mat(m, n, carr(a)) implies q in mat(m, n, carr(a)) implies matadd(a, p, q) = matadd(a, q, p)))
+```
+
+also: `matadd-type` `matadd-assoc` `matadd-entry` `matadd-neg-left` `matadd-neg-right` `matadd-zero-left` `matadd-zero-right` 
+
+[mentioned by 24 result(s)](BY-OPERATOR.md#matadd)
 
 ### `matmul(a, p, q)`  *(functoid)*
 
-= matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, ...
+definition:
 
-mentioned by 62 result(s) -- see `BY-OPERATOR.md`
+```
+matof(nth(1, size(p)), nth(2, size(q)), vnb-lambda([i, k], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(q)))), finsum(ring-additive-ag(a), vnb-lambda(j, interval(1, nth(2, size(p))), (mul(a))(entry(p, i, j), entry(q, j, k))), interval(1, nth(2, size(p))))))
+```
+
+characterized by `matmul-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies matmul(a, p, q) in mat(m, k, carr(a))))
+```
+
+also: `matmul-assoc` `matmul-entry` `matmul-left-dist` `matmul-right-dist` 
+
+[mentioned by 62 result(s)](BY-OPERATOR.md#matmul)
 
 ### `matneg(a, p)`  *(functoid)*
 
-= matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, ...
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (neg(a))(entry(p, i, j))))
+```
+
+characterized by `matneg-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matneg(a, p) in mat(m, n, carr(a))))
+```
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#matneg)
 
 ### `matof(m, n, g)`  *(functoid)*
 
-= iota(p, p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) and forall([i in interval(1, m), j ...
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+iota(p, p in mat(m, n, image(g, cartesian(interval(1, m), interval(1, n)))) and forall([i in interval(1, m), j in interval(1, n)], entry(p, i, j) = g(i, j)))
+```
+
+characterized by `matof-in-mat`  *(asserted)*:
+
+```
+forall([m, n, x, g], forall([i in interval(1, m), j in interval(1, n)], g(i, j) in x) implies matof(m, n, g) in mat(m, n, x))
+```
+
+also: `entry-of-matof` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#matof)
 
 ### `matrix`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `matrix-membership`  *(definitional)*:
+
+```
+forall([s, m], m in matrix(s) iff m in tuples(tuples(s)) and forall([i], i in nn and 1 <= i and i <= length(m) implies forall([j], j in nn and 1 <= j and j <= length(m) implies length(nth(i, m)) = length(nth(j, m)))))
+```
+
+also: `matrix-sethood` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#matrix)
 
 ### `matscale(a, r, p)`  *(functoid)*
 
-= matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, ...
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+matof(nth(1, size(p)), nth(2, size(p)), vnb-lambda([i, j], cartesian(interval(1, nth(1, size(p))), interval(1, nth(2, size(p)))), (mul(a))(r, entry(p, i, j))))
+```
+
+characterized by `matscale-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([m, n, r, p], r in carr(a) implies p in mat(m, n, carr(a)) implies matscale(a, r, p) in mat(m, n, carr(a))))
+```
+
+also: `matscale-entry` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#matscale)
 
 ### `matunit(a, n, k, l)`  *(functoid)*
 
-= matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a)) ...
+definition:
 
-mentioned by 10 result(s) -- see `BY-OPERATOR.md`
+```
+matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))
+```
+
+characterized by `matunit-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([n, k, l], matunit(a, n, k, l) in mat(n, n, carr(a))))
+```
+
+also: `entry-of-matunit` `matunit-col-shift` `matunit-entry-k-row` `matunit-summand-type` `matunit-entry-off-row` 
+
+[mentioned by 10 result(s)](BY-OPERATOR.md#matunit)
 
 ### `metric-space`  *(structure)*
 
@@ -2173,9 +4005,21 @@ declared in `tactics-help.scm`
 
 reads: the metric topology of $1
 
-= [pts(md), {u in power(pts(md)): is-open(md, u)}]
+definition:
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+```
+[pts(md), {u in power(pts(md)): is-open(md, u)}]
+```
+
+characterized by `metric-top@preimage`  *(proven)*:
+
+```
+forall([s, f, v], preimage(metric-top(s), f, v) == preimage(s, f, v))
+```
+
+also: `metric-top-functorial` `metric-top-is-top-space` `metrizable-has-metric-top` `bdd-metric-preserves-metric-top` `metric-top-is-metrizable-top-space` 
+
+[mentioned by 12 result(s)](BY-OPERATOR.md#metric-top)
 
 ### `metrizable-top-space`  *(refinement)*
 
@@ -2189,9 +4033,19 @@ declared in `tactics-help.scm`
 
 ### `minor(s, r, c, n)`  *(functoid)*
 
-= matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j ...
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), entry(s, if(i < r, i, succ(i)), if(j < c, j, succ(j)))))
+```
+
+characterized by `minor-type`  *(asserted)*:
+
+```
+forall([r, s, p, q, n], is-ring(r) implies p in nn implies q in nn implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies minor(s, p, q, n) in mat(n, n, carr(r)))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#minor)
 
 ### `module`  *(structure)*
 
@@ -2201,41 +4055,101 @@ predicate `is-module`; slots: scal vec vadd vzero vneg act
 
 a module viewed as an abelian-group
 
-mentioned by 36 result(s) -- see `BY-OPERATOR.md`
+characterized by `module-vector-ag-is-abelian-group`  *(definitional)*:
+
+```
+forall([r], is-module(r) implies is-abelian-group(module-vector-ag(r)))
+```
+
+also: `abelian-group-as-monoid-is-monoid-module-vector-ag` `module-vector-ag-is-abelian-group-normed-vector-space-as-module` `abelian-group-as-monoid-is-monoid-module-vector-ag-normed-vector-space-as-module` `module-vector-ag-functorial` 
+
+[mentioned by 36 result(s)](BY-OPERATOR.md#module-vector-ag)
 
 ### `monalg(a, m)`  *(functoid)*
 
 reads: the monoid algebra $1[$2]
 
-= [finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambd ...
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+[finsupp(a, m), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-add(a, m, f, g)), vnb-lambda([f, g], cartesian(finsupp(a, m), finsupp(a, m)), monalg-mul(a, m, f, g)), vnb-lambda(f, finsupp(a, m), monalg-neg(a, m, f)), monalg-zero(a, m), monalg-one(a, m)]
+```
+
+characterized by `monalg-comm`  *(asserted)*:
+
+```
+forall([a, m], is-commutative-ring(a) implies is-comm-monoid(m) implies is-commutative-ring(monalg(a, m)))
+```
+
+also: `monalg-is-ring` 
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#monalg)
 
 ### `monalg-add(a, m, f, g)`  *(functoid)*
 
-= vnb-lambda(x_, carr(m), (add(a))(f(x_), g(x_)))
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(x_, carr(m), (add(a))(f(x_), g(x_)))
+```
+
+characterized by `monalg-add-fun`  *(asserted)*:
+
+```
+forall([a, m, f, g], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies g in finsupp(a, m) implies monalg-add(a, m, f, g) in finsupp(a, m))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#monalg-add)
 
 ### `monalg-mul(a, m, f, g)`  *(functoid)*
 
-= vnb-lambda(x_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, {p in cartesian(supp(a, m, f), supp(a, m, g) ...
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(x_, carr(m), finsum(ring-additive-ag(a), vnb-lambda(p, {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}, (mul(a))(f(nth(1, p)), g(nth(2, p)))), {p in cartesian(supp(a, m, f), supp(a, m, g)): (opr(m))(nth(1, p), nth(2, p)) = x_}))
+```
+
+characterized by `monalg-mul-fun`  *(asserted)*:
+
+```
+forall([a, m, f, g], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies g in finsupp(a, m) implies monalg-mul(a, m, f, g) in finsupp(a, m))
+```
+
+also: `monalg-mul-assoc` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#monalg-mul)
 
 ### `monalg-neg(a, m, f)`  *(functoid)*
 
-= vnb-lambda(x_, carr(m), (neg(a))(f(x_)))
+definition:
+
+```
+vnb-lambda(x_, carr(m), (neg(a))(f(x_)))
+```
 
 ### `monalg-one(a, m)`  *(functoid)*
 
-= vnb-lambda(x_, carr(m), if(x_ = iden(m), one(a), zero(a)))
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(x_, carr(m), if(x_ = iden(m), one(a), zero(a)))
+```
+
+characterized by `monalg-one-left`  *(asserted)*:
+
+```
+forall([a, m, f, x_], is-ring(a) implies is-monoid(m) implies f in finsupp(a, m) implies x_ in carr(m) implies (monalg-mul(a, m, monalg-one(a, m), f))(x_) = f(x_))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#monalg-one)
 
 ### `monalg-zero(a, m)`  *(functoid)*
 
-= vnb-lambda(x_, carr(m), zero(a))
+definition:
+
+```
+vnb-lambda(x_, carr(m), zero(a))
+```
 
 ### `monoid`  *(structure)*
 
@@ -2245,28 +4159,64 @@ predicate `is-monoid`; slots: carr opr iden
 
 defined by `mpow-zero` `mpow-succ` 
 
-mentioned by 51 result(s) -- see `BY-OPERATOR.md`
+characterized by `mpow-succ`  *(definitional)*:
+
+```
+forall([m, x, n in nn], mpow(m, x, succ(n)) == (opr(m))(x, mpow(m, x, n)))
+```
+
+also: `mpow-zero` `mpow-add-abelian-group-as-monoid` `mpow-one-abelian-group-as-monoid` `mpow-type-abelian-group-as-monoid` `mpow-add-abelian-group-as-monoid-ring-additive-ag` `mpow-one-abelian-group-as-monoid-ring-additive-ag` `mpow-type-abelian-group-as-monoid-ring-additive-ag` `mpow-add` ... (11 in all)
+
+[mentioned by 51 result(s)](BY-OPERATOR.md#mpow)
 
 ### `mul(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 239 result(s) -- see `BY-OPERATOR.md`
+characterized by `rq-mul`  *(definitional)*:
+
+```
+forall([r], mul(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))))
+```
+
+also: `qq-ring@mul` `zz-ring@mul` `qq-field@mul` `ring-mul-assoc` `ring-mul-left-id` `ring-mul-right-id` `cc-normed-field@mul` `rr-normed-field@mul` ... (40 in all)
+
+[mentioned by 239 result(s)](BY-OPERATOR.md#mul)
 
 
 ## N
 
 ### `nag-metric-space(nag)`  *(functoid)*
 
-= [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
+definition:
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+```
+[carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
+```
+
+characterized by `nag-metric-space-is-metric-space-normed-vector-space-as-normed-ag`  *(definitional)*:
+
+```
+forall([r], is-normed-vector-space(r) implies is-metric-space(nag-metric-space(normed-vector-space-as-normed-ag(r))))
+```
+
+also: `nag-metric-space-is-metric-space` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#nag-metric-space)
 
 ### `neg(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 101 result(s) -- see `BY-OPERATOR.md`
+characterized by `rq-neg`  *(definitional)*:
+
+```
+forall([r], neg(ringoid-quotient-ring(r)) == descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))))
+```
+
+also: `qq-ring@neg` `zz-ring@neg` `qq-field@neg` `ringoid-ideal-neg` `cc-normed-field@neg` `rr-normed-field@neg` `zz-act-neg-ring-additive-ag` `zz-act-neg-sign-ring-additive-ag` ... (15 in all)
+
+[mentioned by 101 result(s)](BY-OPERATOR.md#neg)
 
 ### `neg-rr`  *(predicate)*
 
@@ -2276,9 +4226,19 @@ a predicate
 
 ### `nf-metric-space(nf)`  *(functoid)*
 
-= [carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+[carr(nf), vnb-lambda([x, y], cartesian(carr(nf), carr(nf)), (fnrm(nf))((add(nf))(x, (neg(nf))(y))))]
+```
+
+characterized by `nf-metric-space-is-metric-space`  *(asserted)*:
+
+```
+forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#nf-metric-space)
 
 ### `ni`  *(tactic)*
 
@@ -2292,45 +4252,107 @@ an instance of comm-monoid; predicate `is-nn-add-monoid`; same shape as comm-mon
 
 ### `nn-enum(s)`  *(functoid)*
 
-= choice({f in fun(nn, s): forall([m in nn, n in nn], m < n implies f(m) < f(n))})
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+choice({f in fun(nn, s): forall([m in nn, n in nn], m < n implies f(m) < f(n))})
+```
+
+characterized by `nn-enum-spec`  *(asserted)*:
+
+```
+forall([s in inf-subsets(nn)], nn-enum(s) in fun(nn, s) and forall([m in nn, n in nn], m < n implies (nn-enum(s))(m) < (nn-enum(s))(n)))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#nn-enum)
 
 ### `nn-minus`  *(defined-fn)*
 
 defined by `nn-minus-def` 
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `nn-minus-def`  *(definitional)*:
+
+```
+forall([k in nn, l in nn], nn-minus(k, l) = if(l <= k, k - l, 0))
+```
+
+also: `nn-minus-1-inj` `nn-minus-in-nn` `nn-minus-succ-1` `succ-nn-minus-1` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#nn-minus)
 
 ### `nnfst(n_)`  *(functoid)*
 
 reads: the first component of $1
 
-= iota(a_, a_ in nn and forsome([b_ in nn], nnpair(a_, b_) = n_))
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+iota(a_, a_ in nn and forsome([b_ in nn], nnpair(a_, b_) = n_))
+```
+
+characterized by `nnfst-type`  *(proven)*:
+
+```
+forall([n_ in nn], nnfst(n_) in nn)
+```
+
+also: `nnfst-nnpair` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#nnfst)
 
 ### `nnpair(i_, j_)`  *(functoid)*
 
 reads: the Cantor code of ($1, $2)
 
-= trinum(i_ + j_) + j_
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+trinum(i_ + j_) + j_
+```
+
+characterized by `nnpair-inj`  *(proven)*:
+
+```
+forall([i_, j_, ii_, jj_], i_ in nn implies j_ in nn implies ii_ in nn implies jj_ in nn implies nnpair(i_, j_) = nnpair(ii_, jj_) implies i_ = ii_ and j_ = jj_)
+```
+
+also: `nnpair-onto` `nnpair-type` `nnfst-nnpair` `nnsnd-nnpair` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#nnpair)
 
 ### `nnsnd(n_)`  *(functoid)*
 
 reads: the second component of $1
 
-= iota(b_, b_ in nn and forsome([a_ in nn], nnpair(a_, b_) = n_))
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+iota(b_, b_ in nn and forsome([a_ in nn], nnpair(a_, b_) = n_))
+```
+
+characterized by `nnsnd-type`  *(proven)*:
+
+```
+forall([n_ in nn], nnsnd(n_) in nn)
+```
+
+also: `nnsnd-nnpair` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#nnsnd)
 
 ### `non-zero(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 23 result(s) -- see `BY-OPERATOR.md`
+characterized by `qq-field@non-zero`  *(definitional)*:
+
+```
+non-zero(qq-field) == difference(qq, singleton(0))
+```
+
+also: `field-non-zero-carrier` 
+
+[mentioned by 23 result(s)](BY-OPERATOR.md#non-zero)
 
 ### `nonneg-rr`  *(predicate)*
 
@@ -2346,7 +4368,15 @@ predicate `is-normed-ag`; slots: carr opr iden inv nrm
 
 a normed-ag viewed as an abelian-group
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-ag-as-abelian-group-is-abelian-group`  *(definitional)*:
+
+```
+forall([r], is-normed-ag(r) implies is-abelian-group(normed-ag-as-abelian-group(r)))
+```
+
+also: `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group` `normed-ag-as-abelian-group-is-abelian-group-normed-vector-space-as-normed-ag` `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group-normed-vector-space-as-normed-ag` `normed-ag-as-abelian-group-functorial` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#normed-ag-as-abelian-group)
 
 ### `normed-field`  *(structure)*
 
@@ -2356,19 +4386,43 @@ predicate `is-normed-field`; slots: carr add mul neg zero one fnrm
 
 a normed-field viewed as an abelian-group
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-field-additive-ag-is-abelian-group`  *(definitional)*:
+
+```
+forall([r], is-normed-field(r) implies is-abelian-group(normed-field-additive-ag(r)))
+```
+
+also: `abelian-group-as-monoid-is-monoid-normed-field-additive-ag` `normed-field-additive-ag-functorial` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#normed-field-additive-ag)
 
 ### `normed-field-as-commutative-ring(s)`  *(view)*
 
 a normed-field viewed as a commutative-ring
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-field-as-commutative-ring-is-commutative-ring`  *(definitional)*:
+
+```
+forall([r], is-normed-field(r) implies is-commutative-ring(normed-field-as-commutative-ring(r)))
+```
+
+also: `commutative-ring-additive-ag-is-abelian-group-normed-field-as-commutative-ring` `commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring` `comm-monoid-is-monoid-commutative-ring-multiplicative-cm-normed-field-as-commutative-ring` `abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag-normed-field-as-commutative-ring` `normed-field-as-commutative-ring-functorial` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#normed-field-as-commutative-ring)
 
 ### `normed-field-as-integral-domain(s)`  *(view)*
 
 a normed-field viewed as an integral-domain
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-field-as-integral-domain-is-integral-domain`  *(definitional)*:
+
+```
+forall([r], is-normed-field(r) implies is-integral-domain(normed-field-as-integral-domain(r)))
+```
+
+also: `normed-field-as-integral-domain-functorial` 
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#normed-field-as-integral-domain)
 
 ### `normed-vector-space`  *(structure)*
 
@@ -2378,13 +4432,29 @@ predicate `is-normed-vector-space`; slots: scal vec vadd vzero vneg act vnrm
 
 a normed-vector-space viewed as a module
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-vector-space-as-module-is-module`  *(definitional)*:
+
+```
+forall([r], is-normed-vector-space(r) implies is-module(normed-vector-space-as-module(r)))
+```
+
+also: `module-vector-ag-is-abelian-group-normed-vector-space-as-module` `abelian-group-as-monoid-is-monoid-module-vector-ag-normed-vector-space-as-module` `normed-vector-space-as-module-functorial` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#normed-vector-space-as-module)
 
 ### `normed-vector-space-as-normed-ag(s)`  *(view)*
 
 a normed-vector-space viewed as a normed-ag
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-vector-space-as-normed-ag-is-normed-ag`  *(definitional)*:
+
+```
+forall([r], is-normed-vector-space(r) implies is-normed-ag(normed-vector-space-as-normed-ag(r)))
+```
+
+also: `nag-metric-distance-normed-vector-space-as-normed-ag` `nag-metric-space-is-metric-space-normed-vector-space-as-normed-ag` `normed-ag-as-abelian-group-is-abelian-group-normed-vector-space-as-normed-ag` `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group-normed-vector-space-as-normed-ag` `normed-vector-space-as-normed-ag-functorial` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#normed-vector-space-as-normed-ag)
 
 ### `npe(m, s, f, t, g)`  *(predicate)*
 
@@ -2392,31 +4462,67 @@ reads: $5 is a norm-preserving extension of $3 from $2 to $4, in $1
 
 defined by `npe` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `npe`  *(definitional)*:
+
+```
+forall([m, s, f, t, g], npe(m, s, f, t, g) iff is-submodule(m, t) and s subset t and is-linear-functional-on(m, t, g) and extends-on(s, g, f) and forall([w_ in t], abs(g(w_)) <= dual-norm-on(m, s, f) * (vnrm(m))(w_)))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#npe)
 
 ### `nrm(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `normed-ag-nrm-type`  *(asserted)*:
+
+```
+forall([s], is-normed-ag(s) implies nrm(s) in fun(carr(s), rr))
+```
+
+also: `normed-ag-nrm-nonneg` `normed-ag-nrm-definite` `normed-ag-nrm-subadditive` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#nrm)
 
 ### `nth`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 21 result(s) -- see `BY-OPERATOR.md`
+characterized by `nth-in-range`  *(primitive)*:
+
+```
+forall([a, i, l], i in nn and l in tuples(a) and 1 <= i and i <= length(l) implies nth(i, l) in a)
+```
+
+[mentioned by 21 result(s)](BY-OPERATOR.md#nth)
 
 ### `nth-deriv`  *(defined-fn)*
 
 defined by `nth-deriv-zero` `nth-deriv-succ` 
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `nth-deriv-succ`  *(definitional)*:
+
+```
+forall([f, n in nn], nth-deriv(f, succ(n)) == vnb-lambda(x, rr, deriv(nth-deriv(f, n), x)))
+```
+
+also: `nth-deriv-zero` `gof-nth-deriv` `nth-deriv-one` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#nth-deriv)
 
 ### `nth-deriv-v`  *(defined-fn)*
 
 defined by `nth-deriv-v-zero` `nth-deriv-v-succ` 
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+characterized by `nth-deriv-v-succ`  *(definitional)*:
+
+```
+forall([m, f, n in nn], nth-deriv-v(m, f, succ(n)) == vnb-lambda(x, rr, deriv-v(m, nth-deriv-v(m, f, n), x)))
+```
+
+also: `nth-deriv-v-zero` `nth-deriv-v-in-vec` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#nth-deriv-v)
 
 ### `nth-r`  *(tactic)*
 
@@ -2430,13 +4536,25 @@ reads: $1 is a sequence of positive reals tending to zero
 
 defined by `null-rr-seq` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `null-rr-seq`  *(definitional)*:
+
+```
+forall([rad], null-rr-seq(rad) iff rad in fun(nn, rr) and forall([k in nn], pos-rr(rad(k))) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([k], k in nn and n <= k implies rad(k) <= eps))))
+```
+
+also: `null-rr-seq-exists` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#null-rr-seq)
 
 ### `nvs-metric-space(m)`  *(functoid)*
 
-= [vec(m), vnb-lambda([x, y], cartesian(vec(m), vec(m)), (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
+definition:
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+```
+[vec(m), vnb-lambda([x, y], cartesian(vec(m), vec(m)), (vnrm(m))((vadd(m))(x, (vneg(m))(y))))]
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#nvs-metric-space)
 
 
 ## O
@@ -2463,7 +4581,15 @@ declared in `tactics-help.scm`
 
 a structure slot
 
-mentioned by 153 result(s) -- see `BY-OPERATOR.md`
+characterized by `rq-one`  *(definitional)*:
+
+```
+forall([r], one(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), one(r)))
+```
+
+also: `qq-ring@one` `zz-ring@one` `qq-field@one` `cc-normed-field@one` `rr-normed-field@one` `ring-one-in` `mat-ring-one` `bt-one-in-carr` ... (11 in all)
+
+[mentioned by 153 result(s)](BY-OPERATOR.md#one)
 
 ### `opens(s)`  *(accessor)*
 
@@ -2471,19 +4597,35 @@ reads: the topology of $1
 
 a structure slot
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 8 result(s)](BY-OPERATOR.md#opens)
 
 ### `opr(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 157 result(s) -- see `BY-OPERATOR.md`
+characterized by `nn-add-monoid@opr`  *(definitional)*:
+
+```
+opr(nn-add-monoid) == binplus
+```
+
+also: `comm-monoid-opr-comm` `abelian-group-opr-comm` `monoid-carrier-closed-opr` 
+
+[mentioned by 157 result(s)](BY-OPERATOR.md#opr)
 
 ### `ord-segment`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 49 result(s) -- see `BY-OPERATOR.md`
+characterized by `ord-segment-succ`  *(primitive)*:
+
+```
+forall([alpha in ord, x], x in ord-segment(succ_ord(alpha)) iff x in ord-segment(alpha) or x = alpha)
+```
+
+also: `ord-segment-zero` `ord-segment-is-set` `ord-segment-membership` `ord-segment-self` `ord-segment-trans` `ord-segment-insert` `ord-segment-nn-succ` `ord-segment-nn-subset` ... (9 in all)
+
+[mentioned by 49 result(s)](BY-OPERATOR.md#ord-segment)
 
 ### `orelse`  *(tactic)*
 
@@ -2496,15 +4638,31 @@ declared in `tactics-help.scm`
 
 ### `pair`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 38 result(s) -- see `BY-OPERATOR.md`
+characterized by `pairing`  *(primitive)*:
+
+```
+forall([a, b], a in set and b in set implies {a, b} in set)
+```
+
+also: `pairing-membership` 
+
+[mentioned by 38 result(s)](BY-OPERATOR.md#pair)
 
 ### `partial-fun`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `partial-fun-membership`  *(primitive)*:
+
+```
+forall([a, f], f in partial-fun(a) iff forsome([b in power(a)], f in fun(b)))
+```
+
+also: `partial-fun-binary-sethood` `partial-fun-binary-membership` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#partial-fun)
 
 ### `pbc`  *(tactic)*
 
@@ -2514,9 +4672,19 @@ declared in `tactics-help.scm`
 
 ### `permutations(n)`  *(functoid)*
 
-= injection(ord-segment(n), ord-segment(n))
+definition:
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+```
+injection(ord-segment(n), ord-segment(n))
+```
+
+characterized by `permutations-zero`  *(asserted)*:
+
+```
+card(permutations(0)) = succ(0)
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#permutations)
 
 ### `pid`  *(refinement)*
 
@@ -2528,15 +4696,31 @@ reads: $2 is pointwise bounded on $1
 
 defined by `pointwise-bounded` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `pointwise-bounded`  *(definitional)*:
+
+```
+forall([s, fam], pointwise-bounded(s, fam) iff is-metric-space(s) and fam in fun(nn, fun(pts(s), rr)) and forall([x in pts(s)], forsome([bd in rr], forall([k in nn], abs((fam(k))(x)) <= bd))))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#pointwise-bounded)
 
 ### `poly(a)`  *(functoid)*
 
 reads: $1[x]
 
-= monalg(a, nn-add-monoid)
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+monalg(a, nn-add-monoid)
+```
+
+characterized by `poly-is-ring`  *(proven)*:
+
+```
+forall([a], is-ring(a) implies is-ring(poly(a)))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#poly)
 
 ### `pos-rr(r)`  *(predicate)*
 
@@ -2544,19 +4728,45 @@ reads: a positive real
 
 defined by `pos-rr` 
 
-mentioned by 50 result(s) -- see `BY-OPERATOR.md`
+characterized by `pos-rr`  *(definitional)*:
+
+```
+forall([r], pos-rr(r) iff r in rr and 0 <= r and not(0 = r))
+```
+
+[mentioned by 50 result(s)](BY-OPERATOR.md#pos-rr)
 
 ### `power`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 75 result(s) -- see `BY-OPERATOR.md`
+characterized by `power-exp`  *(primitive)*:
+
+```
+forall([a, b], a ^ b == fun(b, a))
+```
+
+also: `power-neg` `power-set` `power-succ` `power-zero` `power-typing-nonneg` `power-set-membership` `power-in-rr` `rr-power-pos` ... (14 in all)
+
+[mentioned by 75 result(s)](BY-OPERATOR.md#power)
 
 ### `preimage(s, f, v)`  *(functoid)*
 
-= {a in pts(s): f(a) in v}
+definition:
 
-mentioned by 14 result(s) -- see `BY-OPERATOR.md`
+```
+{a in pts(s): f(a) in v}
+```
+
+characterized by `preimage-membership`  *(definitional)*:
+
+```
+forall([s, f, v, a], a in preimage(s, f, v) iff a in pts(s) and f(a) in v)
+```
+
+also: `metric-top@preimage` `preimage-complement` `continuous-implies-open-preimage` `open-preimage-implies-continuous` `closed-preimage-implies-continuous` `continuous-implies-closed-preimage` 
+
+[mentioned by 14 result(s)](BY-OPERATOR.md#preimage)
 
 ### `prep`  *(tactic)*
 
@@ -2566,57 +4776,129 @@ declared in `tactics-help.scm`
 
 ### `principal-ideal(s, a)`  *(functoid)*
 
-= {x in carr(s): forsome([r in carr(s)], x = (mul(s))(r, a))}
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+{x in carr(s): forsome([r in carr(s)], x = (mul(s))(r, a))}
+```
+
+characterized by `principal-ideal-in-ideal`  *(asserted)*:
+
+```
+forall([s, i, b], is-ideal(s, i) implies b in i implies forall([x in principal-ideal(s, b)], x in i))
+```
+
+also: `principal-ideal-membership` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#principal-ideal)
 
 ### `prod-ord`  *(defined-fn)*
 
 defined by `prod-ord-zero` `prod-ord-succ` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `prod-ord-succ`  *(definitional)*:
+
+```
+forall([m, f, n in nn], prod-ord(m, f, succ(n)) == (opr(m))(prod-ord(m, f, n), f(n)))
+```
+
+also: `prod-ord-zero` `prod-ord-type` `prod-ord-singleton` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#prod-ord)
 
 ### `prod-ring(r, f, s)`  *(functoid)*
 
-= finprod(commutative-ring-multiplicative-cm(r), f, s)
+definition:
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+```
+finprod(commutative-ring-multiplicative-cm(r), f, s)
+```
+
+characterized by `prod-ring-type`  *(asserted)*:
+
+```
+forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([f in fun(x, carr(r))], prod-ring(r, f, x) in carr(r))))
+```
+
+also: `prod-ring-empty` `prod-ring-insert` `prod-ring-singleton` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#prod-ring)
 
 ### `prod-set`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `prod-set-type`  *(asserted)*:
+
+```
+forall([cm, x, s, f], is-comm-monoid(cm) and x in set and s subset x and f in fun(x, carr(cm)) implies prod-set(cm, s, f) in carr(cm))
+```
+
+also: `prod-set-empty` `prod-set-singleton` `prod-set-disjoint-union` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#prod-set)
 
 ### `product-carrier(ms)`  *(functoid)*
 
-= {x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))}
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+{x in fun(nn, big-union(n, nn, pts(ms(n)))): forall([n in nn], x(n) in pts(ms(n)))}
+```
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#product-carrier)
 
 ### `product-metric(ms)`  *(functoid)*
 
-= product-metric-w(ms, vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+product-metric-w(ms, vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#product-metric)
 
 ### `product-metric-w(ms, w)`  *(functoid)*
 
-= [product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-c ...
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+[product-carrier(ms), vnb-lambda([x, y], cartesian(product-carrier(ms), product-carrier(ms)), iota(l, series-converges-to(vnb-lambda(n, nn, w(n) * (dist(bdd-metric(ms(n))))(x(n), y(n))), l)))]
+```
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#product-metric-w)
 
 ### `product-proj(ms, n)`  *(functoid)*
 
-= vnb-lambda(x, product-carrier(ms), x(n))
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(x, product-carrier(ms), x(n))
+```
+
+characterized by `product-projection-continuous`  *(asserted)*:
+
+```
+forall([ms], is-ms-sequence(ms) implies forall([w], summable-weight(w) implies forall([n in nn], is-continuous(product-metric-w(ms, w), ms(n), product-proj(ms, n)))))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#product-proj)
 
 ### `proj(s)`  *(functoid)*
 
-= vnb-lambda(a, pts(s), class(s, a))
+definition:
 
-mentioned by 1 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(a, pts(s), class(s, a))
+```
+
+characterized by `proj-in-fun`  *(asserted)*:
+
+```
+forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))
+```
+
+[mentioned by 1 result(s)](BY-OPERATOR.md#proj)
 
 ### `ps-absolutely-converges-at(coef, x)`  *(predicate)*
 
@@ -2624,7 +4906,13 @@ reads: the power series with coefficients $1 converges absolutely at $2
 
 defined by `ps-absolutely-converges-at` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `ps-absolutely-converges-at`  *(definitional)*:
+
+```
+forall([coef, x], ps-absolutely-converges-at(coef, x) iff ps-converges-at(vnb-lambda(n, nn, abs(coef(n))), abs(x)))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#ps-absolutely-converges-at)
 
 ### `ps-converges-at(coef, x)`  *(predicate)*
 
@@ -2632,7 +4920,13 @@ reads: the power series with coefficients $1 converges at $2
 
 defined by `ps-converges-at` 
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `ps-converges-at`  *(definitional)*:
+
+```
+forall([coef, x], ps-converges-at(coef, x) iff converges(rr-ms, vnb-lambda(k, nn, ps-partial-sum(coef, x, k))))
+```
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#ps-converges-at)
 
 ### `ps-converges-to-at(coef, x, l)`  *(predicate)*
 
@@ -2640,13 +4934,29 @@ reads: the power series with coefficients $1 converges to $3 at $2
 
 defined by `ps-converges-to-at` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `ps-converges-to-at`  *(definitional)*:
+
+```
+forall([coef, x, l], ps-converges-to-at(coef, x, l) iff converges-to(rr-ms, vnb-lambda(k, nn, ps-partial-sum(coef, x, k)), l))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#ps-converges-to-at)
 
 ### `ps-partial-sum(coef, x, k)`  *(functoid)*
 
-= sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x ^ n), k)
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+sum-ag(normed-field-additive-ag(rr-normed-field), vnb-lambda(n, nn, coef(n) * x ^ n), k)
+```
+
+characterized by `ps-partial-sum-as-series`  *(asserted)*:
+
+```
+forall([coef in fun(nn, rr), x in rr, k in nn], ps-partial-sum(coef, x, k) = series-partial-sum(vnb-lambda(n, nn, coef(n) * x ^ n), k))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#ps-partial-sum)
 
 ### `ps-ratio-limit(coef, l)`  *(predicate)*
 
@@ -2654,15 +4964,25 @@ reads: the coefficients $1 have ratio limit $2
 
 defined by `ps-ratio-limit` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `ps-ratio-limit`  *(definitional)*:
+
+```
+forall([coef, l], ps-ratio-limit(coef, l) iff converges-to(rr-ms, vnb-lambda(n, nn, abs(coef(succ(n)) * recip(coef(n)))), l))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#ps-ratio-limit)
 
 ### `pseudo-gauge-top(fam, ground)`  *(functoid)*
 
 reads: the topology generated by the pseudometric family $1 on $2
 
-= [ground, {u in power(ground): is-open-gauge(fam, ground, u)}]
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+[ground, {u in power(ground): is-open-gauge(fam, ground, u)}]
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#pseudo-gauge-top)
 
 ### `pseudometric-space`  *(structure)*
 
@@ -2672,7 +4992,15 @@ predicate `is-pseudometric-space`; slots: pts dist
 
 a structure slot
 
-mentioned by 165 result(s) -- see `BY-OPERATOR.md`
+characterized by `cc-ms@pts`  *(definitional)*:
+
+```
+pts(cc-ms) == cc
+```
+
+also: `rr-ms@pts` `ringoid-setoid-pts` 
+
+[mentioned by 165 result(s)](BY-OPERATOR.md#pts)
 
 
 ## Q
@@ -2705,40 +5033,80 @@ declared in `tactics-help.scm`
 
 ### `quotient(s)`  *(functoid)*
 
-= image(proj(s), pts(s))
+definition:
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+```
+image(proj(s), pts(s))
+```
+
+characterized by `quotient-rep`  *(asserted)*:
+
+```
+forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))
+```
+
+also: `quotient-is-set` `class-in-quotient` `quotient-universal` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#quotient)
 
 
 ## R
 
 ### `ran(f)`  *(functoid)*
 
-= image(f, dom(f))
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+image(f, dom(f))
+```
+
+characterized by `range-membership`  *(asserted)*:
+
+```
+forall([f, a in dom(f)], f(a) in ran(f))
+```
+
+also: `ran-subset-codomain` `fun-range-membership` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#ran)
 
 ### `real-part`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `recip(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 46 result(s) -- see `BY-OPERATOR.md`
+characterized by `qq-field@recip`  *(definitional)*:
+
+```
+recip(qq-field) == recip
+```
+
+also: `cc-recip-closed` `qq-recip-closed` `rr-recip-closed` `cc-recip-inverse` `qq-recip-inverse` `rr-recip-inverse` `rr-recip-pos` `nn-recip-succ-pos` ... (11 in all)
+
+[mentioned by 46 result(s)](BY-OPERATOR.md#recip)
 
 ### `reduce`  *(defined-fn)*
 
 defined by `reduce-one` `reduce-succ` 
 
-mentioned by 26 result(s) -- see `BY-OPERATOR.md`
+characterized by `reduce-one`  *(definitional)*:
+
+```
+forall([op, f], reduce(op, f, 1) == f(0))
+```
+
+also: `reduce-succ` `sum-ag-as-reduce-ring-additive-ag` `sum-ag-as-reduce` 
+
+[mentioned by 26 result(s)](BY-OPERATOR.md#reduce)
 
 ### `rel(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 4 result(s)](BY-OPERATOR.md#rel)
 
 ### `rel-free(md, n, u)`  *(predicate)*
 
@@ -2746,13 +5114,23 @@ reads: the $2 vectors $3 are linearly independent in $1
 
 defined by `rel-free` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `rel-free`  *(definitional)*:
+
+```
+forall([md, n, u], rel-free(md, n, u) iff forall([c_ in mat(1, n, carr(scal(md)))], entry(matact(md, c_, u), 1, 1) = vzero(md) implies forall([j_ in interval(1, n)], entry(c_, 1, j_) = zero(scal(md)))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#rel-free)
 
 ### `related(s, a, b)`  *(functoid)*
 
-= [a, b] in rel(s)
+definition:
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+```
+[a, b] in rel(s)
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#related)
 
 ### `repeat`  *(tactic)*
 
@@ -2768,27 +5146,43 @@ declared in `tactics-help.scm`
 
 ### `res`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `res-apply`  *(primitive)*:
+
+```
+forall([a, b, f, x], f in fun(a) and b subset a and x in b implies (res(f, b))(x) = f(x))
+```
+
+also: `res-typing` `res-codomain` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#res)
 
 ### `respects(s, f)`  *(functoid)*
 
-= forall([a in pts(s), b in pts(s)], related(s, a, b) implies f(a) = f(b))
+definition:
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+```
+forall([a in pts(s), b in pts(s)], related(s, a, b) implies f(a) = f(b))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#respects)
 
 ### `respects2(s, f)`  *(functoid)*
 
-= forall([a, b, a_, b_], a in pts(s) implies b in pts(s) implies a_ in pts(s) implies b_ in pts(s) implies relat ...
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+forall([a, b, a_, b_], a in pts(s) implies b in pts(s) implies a_ in pts(s) implies b_ in pts(s) implies related(s, a, a_) and related(s, b, b_) implies f(a, b) = f(a_, b_))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#respects2)
 
 ### `restvar`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 4 result(s)](BY-OPERATOR.md#restvar)
 
 ### `rfl`  *(tactic)*
 
@@ -2804,31 +5198,79 @@ predicate `is-ring`; slots: carr add mul neg zero one
 
 a ring viewed as an abelian-group
 
-mentioned by 151 result(s) -- see `BY-OPERATOR.md`
+characterized by `zz-act-add-ring-additive-ag`  *(definitional)*:
+
+```
+forall([r], is-ring(r) implies forall([j in zz, k in zz, a in carr(r)], zz-act(ring-additive-ag(r), j + k, a) = (add(r))(zz-act(ring-additive-ag(r), j, a), zz-act(ring-additive-ag(r), k, a))))
+```
+
+also: `zz-act-neg-ring-additive-ag` `zz-act-one-ring-additive-ag` `finsum-type-ring-additive-ag` `sum-ag-type-ring-additive-ag` `zz-act-type-ring-additive-ag` `zz-act-zero-ring-additive-ag` `finsum-embed-ring-additive-ag` `zz-act-assoc-ring-additive-ag` ... (33 in all)
+
+[mentioned by 151 result(s)](BY-OPERATOR.md#ring-additive-ag)
 
 ### `ring-multiplicative-monoid(s)`  *(view)*
 
 a ring viewed as a monoid
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `ring-multiplicative-monoid-is-monoid`  *(definitional)*:
+
+```
+forall([r], is-ring(r) implies is-monoid(ring-multiplicative-monoid(r)))
+```
+
+also: `ring-multiplicative-monoid-functorial` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#ring-multiplicative-monoid)
 
 ### `ring-power(r, x, n)`  *(functoid)*
 
-= mpow(commutative-ring-multiplicative-cm(r), x, n)
+definition:
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+```
+mpow(commutative-ring-multiplicative-cm(r), x, n)
+```
+
+characterized by `ring-power-add`  *(asserted)*:
+
+```
+forall([r], is-commutative-ring(r) implies forall([x in carr(r), j in nn, k in nn], ring-power(r, x, j + k) = (mul(r))(ring-power(r, x, j), ring-power(r, x, k))))
+```
+
+also: `ring-power-one` `ring-power-mult` `ring-power-succ` `ring-power-type` `ring-power-zero` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#ring-power)
 
 ### `ring-prod(x, y)`  *(functoid)*
 
-= [cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), car ...
+definition:
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+```
+[cartesian(carr(x), carr(y)), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(add(x))(nth(1, p), nth(1, q)), (add(y))(nth(2, p), nth(2, q))]), vnb-lambda([p, q], cartesian(cartesian(carr(x), carr(y)), cartesian(carr(x), carr(y))), [(mul(x))(nth(1, p), nth(1, q)), (mul(y))(nth(2, p), nth(2, q))]), vnb-lambda([p], cartesian(carr(x), carr(y)), [(neg(x))(nth(1, p)), (neg(y))(nth(2, p))]), [zero(x), zero(y)], [one(x), one(y)]]
+```
+
+characterized by `ring-prod-n-succ`  *(definitional)*:
+
+```
+forall([f, n in nn], ring-prod-n(f, succ(n)) == ring-prod(ring-prod-n(f, n), f(n)))
+```
+
+also: `ring-prod-is-ring-ringoid-as-ring` `ring-prod-is-ring` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#ring-prod)
 
 ### `ring-prod-n`  *(defined-fn)*
 
 defined by `ring-prod-n-zero` `ring-prod-n-succ` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `ring-prod-n-succ`  *(definitional)*:
+
+```
+forall([f, n in nn], ring-prod-n(f, succ(n)) == ring-prod(ring-prod-n(f, n), f(n)))
+```
+
+also: `ring-prod-n-zero` `ring-prod-n-is-ring` 
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#ring-prod-n)
 
 ### `ringoid`  *(structure)*
 
@@ -2838,35 +5280,83 @@ predicate `is-ringoid`; slots: carr add mul neg zero one idl
 
 a ringoid viewed as a ring
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `ringoid-as-ring-is-ring`  *(definitional)*:
+
+```
+forall([r], is-ringoid(r) implies is-ring(ringoid-as-ring(r)))
+```
+
+also: `ring-prod-is-ring-ringoid-as-ring` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#ringoid-as-ring)
 
 ### `ringoid-quotient(r)`  *(functoid)*
 
-= quotient(ringoid-setoid(r))
+definition:
+
+```
+quotient(ringoid-setoid(r))
+```
 
 ### `ringoid-quotient-ring(r)`  *(functoid)*
 
-= [quotient(ringoid-setoid(r)), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), clas ...
+definition:
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+```
+[quotient(ringoid-setoid(r)), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))), descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))), descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))), class(ringoid-setoid(r), zero(r)), class(ringoid-setoid(r), one(r))]
+```
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#ringoid-quotient-ring)
 
 ### `ringoid-rel(r)`  *(functoid)*
 
-= {p in cartesian(carr(r), carr(r)): (add(r))(nth(1, p), (neg(r))(nth(2, p))) in idl(r)}
+definition:
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+```
+{p in cartesian(carr(r), carr(r)): (add(r))(nth(1, p), (neg(r))(nth(2, p))) in idl(r)}
+```
+
+characterized by `ringoid-rel-mem`  *(definitional)*:
+
+```
+forall([r, a, b], [a, b] in ringoid-rel(r) iff [a, b] in cartesian(carr(r), carr(r)) and (add(r))(a, (neg(r))(b)) in idl(r))
+```
+
+also: `ringoid-rel-is-equivalence` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#ringoid-rel)
 
 ### `ringoid-setoid(r)`  *(functoid)*
 
-= [carr(r), ringoid-rel(r)]
+definition:
 
-mentioned by 17 result(s) -- see `BY-OPERATOR.md`
+```
+[carr(r), ringoid-rel(r)]
+```
+
+characterized by `ringoid-setoid-pts`  *(definitional)*:
+
+```
+forall([r], pts(ringoid-setoid(r)) == carr(r))
+```
+
+also: `ringoid-setoid-is-setoid` 
+
+[mentioned by 17 result(s)](BY-OPERATOR.md#ringoid-setoid)
 
 ### `rpow`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 27 result(s) -- see `BY-OPERATOR.md`
+characterized by `rpow-add`  *(asserted)*:
+
+```
+forall([a], a in rr and 0 < a implies forall([b in qq, d in qq], rpow(a, b + d) = rpow(a, b) * rpow(a, d)))
+```
+
+also: `rpow-nat` `rpow-neg` `rpow-one` `rpow-pos` `rpow-pow` `rpow-zero` `sqrt-rpow` `rpow-mul-base` ... (14 in all)
+
+[mentioned by 27 result(s)](BY-OPERATOR.md#rpow)
 
 ### `rr+*-add-monoid`  *(refinement)*
 
@@ -2878,11 +5368,21 @@ reads: $1 is bounded above
 
 defined by `rr-bounded-above` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `rr-bounded-above`  *(definitional)*:
+
+```
+forall([s], rr-bounded-above(s) iff forsome([b], rr-upper-bound(s, b)))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#rr-bounded-above)
 
 ### `rr-bounded-ms(())`  *(functoid)*
 
-= bdd-metric(rr-ms)
+definition:
+
+```
+bdd-metric(rr-ms)
+```
 
 ### `rr-ms`  *(instance)*
 
@@ -2898,7 +5398,13 @@ reads: $2 is an upper bound of $1
 
 defined by `rr-upper-bound` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `rr-upper-bound`  *(definitional)*:
+
+```
+forall([s, b], rr-upper-bound(s, b) iff b in rr and forall([x in s], x <= b))
+```
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#rr-upper-bound)
 
 ### `rs`  *(tactic)*
 
@@ -2919,7 +5425,15 @@ declared in `tactics-help.scm`
 
 a structure slot
 
-mentioned by 125 result(s) -- see `BY-OPERATOR.md`
+characterized by `module-scalar-ring`  *(definitional)*:
+
+```
+forall([m], is-module(m) implies is-ring(scal(m)))
+```
+
+also: `module-scalar-zero-in` `module-act-distrib-scalar` `module-scalar-ring-normed-vector-space-as-module` `module-scalar-zero-in-normed-vector-space-as-module` `module-act-distrib-scalar-normed-vector-space-as-module` `matact-row-scale` `mrs-scaled-summand-type` 
+
+[mentioned by 125 result(s)](BY-OPERATOR.md#scal)
 
 ### `scout`  *(tactic)*
 
@@ -2945,9 +5459,9 @@ predicate `is-semigroup`; slots: carr opr
 
 ### `sep`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 9 result(s)](BY-OPERATOR.md#sep)
 
 ### `sep-me`  *(tactic)*
 
@@ -2973,7 +5487,15 @@ reads: $1 is sequentially compact
 
 defined by `seq-compact` 
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `seq-compact`  *(definitional)*:
+
+```
+forall([s], seq-compact(s) iff is-metric-space(s) and forall([f in fun(nn, pts(s))], forsome([phi], strictly-mono-nn(phi) and forsome([l in pts(s)], converges-to(s, subseq(f, phi), l)))))
+```
+
+also: `compact-iff-seq-compact` `seq-compact-countable-product` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#seq-compact)
 
 ### `series-converges(f)`  *(predicate)*
 
@@ -2981,7 +5503,13 @@ reads: the series $1 converges
 
 defined by `series-converges` 
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `series-converges`  *(definitional)*:
+
+```
+forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k))))
+```
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#series-converges)
 
 ### `series-converges-to(f, l)`  *(predicate)*
 
@@ -2989,13 +5517,33 @@ reads: the series $1 converges to $2
 
 defined by `series-converges-to` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `series-converges-to`  *(definitional)*:
+
+```
+forall([f, l], series-converges-to(f, l) iff converges-to(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k)), l))
+```
+
+also: `geometric-series-converges-to` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#series-converges-to)
 
 ### `series-partial-sum(f, k)`  *(functoid)*
 
-= sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
+definition:
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+```
+sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
+```
+
+characterized by `series-partial-sum-abs-le`  *(asserted)*:
+
+```
+forall([f in fun(nn, rr), k in nn], abs(series-partial-sum(f, k)) <= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k))
+```
+
+also: `series-partial-sum-le-termwise` `series-partial-sum-monotone-nonneg` 
+
+[mentioned by 12 result(s)](BY-OPERATOR.md#series-partial-sum)
 
 ### `setoid`  *(structure)*
 
@@ -3015,17 +5563,21 @@ declared in `tactics-help.scm`
 
 ### `sin`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
 ### `singleton`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 8 result(s)](BY-OPERATOR.md#singleton)
 
 ### `size(m)`  *(functoid)*
 
-= [length(m), length(nth(1, m))]
+definition:
+
+```
+[length(m), length(nth(1, m))]
+```
 
 ### `slot`  *(tactic)*
 
@@ -3045,19 +5597,49 @@ reads: $4 is in Smith staircase form of rank $5, as an $2-by-$3 matrix over $1
 
 defined by `smith-staircase` 
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `smith-staircase`  *(proven)*:
+
+```
+forall([a], is-euclidean-ring(a) implies forall([k in nn, n, p], n in nn implies p in mat(k, n, carr(a)) implies forsome([d, kk in nn], mat-equiv(a, k, n, p, d) and smith-staircase(a, k, n, d, kk))))
+```
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#smith-staircase)
 
 ### `snoc-col(w, n, x)`  *(functoid)*
 
-= matof(succ(n), 1, vnb-lambda([i_, j_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i_ = succ(n), x, en ...
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+matof(succ(n), 1, vnb-lambda([i_, j_], cartesian(interval(1, succ(n)), interval(1, 1)), if(i_ = succ(n), x, entry(w, i_, 1))))
+```
+
+characterized by `snoc-col-last`  *(asserted)*:
+
+```
+forall([w, n, x], n in nn implies entry(snoc-col(w, n, x), succ(n), 1) = x)
+```
+
+also: `snoc-col-type` `entry-of-snoc-col` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#snoc-col)
 
 ### `snoc-row(c, n, r)`  *(functoid)*
 
-= matof(1, succ(n), vnb-lambda([i_, j_], cartesian(interval(1, 1), interval(1, succ(n))), if(j_ = succ(n), r, en ...
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+matof(1, succ(n), vnb-lambda([i_, j_], cartesian(interval(1, 1), interval(1, succ(n))), if(j_ = succ(n), r, entry(c, 1, j_))))
+```
+
+characterized by `snoc-row-last`  *(asserted)*:
+
+```
+forall([c, n, r], n in nn implies entry(snoc-row(c, n, r), 1, succ(n)) = r)
+```
+
+also: `snoc-row-type` `entry-of-snoc-row` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#snoc-row)
 
 ### `sos`  *(tactic)*
 
@@ -3073,15 +5655,39 @@ declared in `tactics-help.scm`
 
 ### `span(md, n, u)`  *(functoid)*
 
-= {x_ in vec(md): forsome([c_ in mat(1, n, carr(scal(md)))], x_ = entry(matact(md, c_, u), 1, 1))}
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+{x_ in vec(md): forsome([c_ in mat(1, n, carr(scal(md)))], x_ = entry(matact(md, c_, u), 1, 1))}
+```
+
+characterized by `span-membership`  *(definitional)*:
+
+```
+forall([md, n, u, x_], x_ in span(md, n, u) iff x_ in vec(md) and forsome([c_ in mat(1, n, carr(scal(md)))], x_ = entry(matact(md, c_, u), 1, 1)))
+```
+
+also: `spans-span` `span-is-submodule` `lastcoeff-zero-in-span` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#span)
 
 ### `span-add-one(m, s, v)`  *(functoid)*
 
-= {y_ in vec(m): forsome([x_ in s, r_ in rr], y_ = (vadd(m))(x_, (act(m))(r_, v)))}
+definition:
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+```
+{y_ in vec(m): forsome([x_ in s, r_ in rr], y_ = (vadd(m))(x_, (act(m))(r_, v)))}
+```
+
+characterized by `span-add-one-has-v`  *(asserted)*:
+
+```
+forall([m, t, v], is-submodule(m, t) implies v in vec(m) implies v in span-add-one(m, t, v))
+```
+
+also: `span-add-one-superset` `span-add-one-submodule` `span-add-one-membership` 
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#span-add-one)
 
 ### `spans(md, n, u, sm)`  *(predicate)*
 
@@ -3089,13 +5695,21 @@ reads: the $2 vectors $3 span $4 in $1
 
 defined by `spans` 
 
-mentioned by 10 result(s) -- see `BY-OPERATOR.md`
+characterized by `spans`  *(definitional)*:
+
+```
+forall([md, n, u, sm], spans(md, n, u, sm) iff forall([j_ in interval(1, n)], entry(u, j_, 1) in sm) and forall([x_ in sm], forsome([c_ in mat(1, n, carr(scal(md)))], x_ = entry(matact(md, c_, u), 1, 1))))
+```
+
+also: `spans-span` `spans-fg-base` `spans-fg-step` `spans-transport` `spans-submodule-fg` `generates-implies-spans-vec` 
+
+[mentioned by 10 result(s)](BY-OPERATOR.md#spans)
 
 ### `splice`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 4 result(s)](BY-OPERATOR.md#splice)
 
 ### `split-ands!`  *(tactic)*
 
@@ -3105,9 +5719,17 @@ declared in `tactics-help.scm`
 
 ### `sqrt`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 13 result(s) -- see `BY-OPERATOR.md`
+characterized by `sqrt-sq`  *(asserted)*:
+
+```
+forall([a], a in rr and 0 <= a implies sqrt(a) * sqrt(a) = a)
+```
+
+also: `sqrt-mul` `sqrt-mono` `sqrt-rpow` `sqrt-of-sq` `amgm-2-sqrt` `sqrt-nonneg` `cauchy-schwarz-sqrt` 
+
+[mentioned by 13 result(s)](BY-OPERATOR.md#sqrt)
 
 ### `strictly-mono-nn(phi)`  *(predicate)*
 
@@ -3115,19 +5737,49 @@ reads: $1 is a strictly increasing sequence of naturals
 
 defined by `strictly-mono-nn` 
 
-mentioned by 17 result(s) -- see `BY-OPERATOR.md`
+characterized by `strictly-mono-nn`  *(definitional)*:
+
+```
+forall([phi], strictly-mono-nn(phi) iff phi in fun(nn, nn) and forall([m in nn, n_ in nn], m < n_ implies phi(m) < phi(n_)))
+```
+
+[mentioned by 17 result(s)](BY-OPERATOR.md#strictly-mono-nn)
 
 ### `submat(s, p, q)`  *(functoid)*
 
-= matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
+definition:
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+```
+matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
+```
+
+characterized by `submat-type`  *(asserted)*:
+
+```
+forall([a, p, q, s], p in nn implies q in nn implies s in mat(succ(p), succ(q), carr(a)) implies submat(s, p, q) in mat(p, q, carr(a)))
+```
+
+also: `entry-of-submat` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#submat)
 
 ### `subseq(f, phi)`  *(functoid)*
 
-= vnb-lambda(k, nn, f(phi(k)))
+definition:
 
-mentioned by 12 result(s) -- see `BY-OPERATOR.md`
+```
+vnb-lambda(k, nn, f(phi(k)))
+```
+
+characterized by `is-subsequence`  *(definitional)*:
+
+```
+forall([s, y, f], is-subsequence(s, y, f) iff f in fun(nn, pts(s)) and forsome([phi], strictly-mono-nn(phi) and y = subseq(f, phi)))
+```
+
+also: `subseq-is-fun` `subseq-of-convergent` `tb-has-eps-cauchy-subseq` `coordinatewise-diagonal-subseq` `totally-bounded-has-cauchy-subseq-rad` `totally-bounded-has-cauchy-subsequence` 
+
+[mentioned by 12 result(s)](BY-OPERATOR.md#subseq)
 
 ### `subset`  *(primitive)*
 
@@ -3135,7 +5787,15 @@ reads: $1 is a subset of $2
 
 a kernel relation
 
-mentioned by 97 result(s) -- see `BY-OPERATOR.md`
+characterized by `ringoid-ideal-subset`  *(definitional)*:
+
+```
+forall([r], is-ringoid(r) implies idl(r) subset carr(r))
+```
+
+also: `inf-subsets-membership` `subset-def` `subset-set` `subset-mem` `subset-trans` `subset-mem-fwd` `submodule-subset` `rr-subset-rr-star` ... (14 in all)
+
+[mentioned by 97 result(s)](BY-OPERATOR.md#subset)
 
 ### `subst`  *(tactic)*
 
@@ -3145,33 +5805,65 @@ declared in `tactics-help.scm`
 
 ### `succ`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 228 result(s) -- see `BY-OPERATOR.md`
+characterized by `sum-succ`  *(definitional)*:
+
+```
+forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
+```
+
+also: `mpow-succ` `reduce-succ` `sum-ag-succ` `trinum-succ` `comb-kk-succ` `falling-succ` `prod-ord-succ` `factorial-succ` ... (51 in all)
+
+[mentioned by 228 result(s)](BY-OPERATOR.md#succ)
 
 ### `succ_ord`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 23 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 23 result(s)](BY-OPERATOR.md#succ_ord)
 
 ### `sum`  *(defined-fn)*
 
 defined by `sum-zero` `sum-succ` 
 
-mentioned by 14 result(s) -- see `BY-OPERATOR.md`
+characterized by `sum-succ`  *(definitional)*:
+
+```
+forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
+```
+
+also: `sum-zero` `sum-type` `sum-expansion` `sum-singleton` `sum-left-scalar` `bt-sum-in-carr-zz` 
+
+[mentioned by 14 result(s)](BY-OPERATOR.md#sum)
 
 ### `sum-ag`  *(defined-fn)*
 
 defined by `sum-ag-zero` `sum-ag-succ` 
 
-mentioned by 26 result(s) -- see `BY-OPERATOR.md`
+characterized by `sum-ag-succ`  *(definitional)*:
+
+```
+forall([ag, f, n in nn], sum-ag(ag, f, succ(n)) == (opr(ag))(sum-ag(ag, f, n), f(n)))
+```
+
+also: `sum-ag-zero` `sum-ag-type-ring-additive-ag` `sum-ag-as-reduce-ring-additive-ag` `sum-ag-singleton-ring-additive-ag` `sum-ag-type` `sum-ag-as-reduce` `sum-ag-singleton` `sum-ag-permutation-invariance` 
+
+[mentioned by 26 result(s)](BY-OPERATOR.md#sum-ag)
 
 ### `sum-set`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `sum-set-type`  *(asserted)*:
+
+```
+forall([r, x, s, f], is-ring(r) and x in set and s subset x and f in fun(x, carr(r)) implies sum-set(r, s, f) in carr(r))
+```
+
+also: `sum-set-empty` `sum-set-singleton` `sum-set-left-scalar` `sum-set-right-scalar` `sum-set-disjoint-union` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#sum-set)
 
 ### `summable-weight(w)`  *(predicate)*
 
@@ -3179,7 +5871,13 @@ reads: $1 is a summable sequence of positive weights
 
 defined by `summable-weight` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `summable-weight`  *(definitional)*:
+
+```
+forall([w], summable-weight(w) iff w in fun(nn, rr) and forall([n in nn], 0 < w(n)) and series-converges(w))
+```
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#summable-weight)
 
 ### `sums-to(grp, f, r)`  *(predicate)*
 
@@ -3187,25 +5885,53 @@ reads: $2 sums to $3 in $1
 
 defined by `sums-to` 
 
-mentioned by 6 result(s) -- see `BY-OPERATOR.md`
+characterized by `sums-to`  *(definitional)*:
+
+```
+forall([grp, f, r], sums-to(grp, f, r) iff forall([eps], pos-rr(eps) implies forsome([fin in set], card(fin) in nn and fin subset dom(f) and forall([ext], ext in set and card(ext) in nn and fin subset ext and ext subset dom(f) implies (nrm(grp))((opr(grp))(r, (inv(grp))(finsum(normed-ag-as-abelian-group(grp), f, ext)))) < eps))))
+```
+
+also: `sums-to-unique` 
+
+[mentioned by 6 result(s)](BY-OPERATOR.md#sums-to)
 
 ### `sup`  *(functoid)*
 
 reads: the least upper bound of $1
 
-mentioned by 3 result(s) -- see `BY-OPERATOR.md`
+characterized by `rr-sup-in`  *(primitive)*:
+
+```
+forall([s], s subset rr implies forsome([x], x in s) implies rr-bounded-above(s) implies sup(s) in rr)
+```
+
+also: `rr-sup-least` `rr-sup-upper` 
+
+[mentioned by 3 result(s)](BY-OPERATOR.md#sup)
 
 ### `sup-ord`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `sup-ord-in`  *(primitive)*:
+
+```
+forall([a], a in set and forall([x in a], x in ord) implies sup-ord(a) in ord)
+```
+
+also: `sup-ord-empty` `sup-ord-least` `sup-ord-upper` `sup-ord-succ-segment` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#sup-ord)
 
 ### `supp(a, m, f)`  *(functoid)*
 
 reads: the support of $3
 
-= {x_ in carr(m): not(f(x_) = zero(a))}
+definition:
+
+```
+{x_ in carr(m): not(f(x_) = zero(a))}
+```
 
 
 ## T
@@ -3222,7 +5948,13 @@ reads: $1 is $4 times differentiable from $2 to $3
 
 defined by `taylor-differentiable` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `taylor-differentiable`  *(definitional)*:
+
+```
+forall([f, a, x, n], taylor-differentiable(f, a, x, n) iff forall([k], k in nn and k <= n implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, rr-ms, nth-deriv(f, k), t))) and forall([k], k in nn and k <= n implies forall([t], a < t and t < x implies is-diff-at(nth-deriv(f, k), t, (nth-deriv(f, succ(k)))(t)))))
+```
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#taylor-differentiable)
 
 ### `taylor-differentiable-v(m, f, a, x, n)`  *(predicate)*
 
@@ -3230,19 +5962,45 @@ reads: $2 is $5 times differentiable from $3 to $4, as a curve in $1
 
 defined by `taylor-differentiable-v` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `taylor-differentiable-v`  *(definitional)*:
+
+```
+forall([m, f, a, x, n], taylor-differentiable-v(m, f, a, x, n) iff forall([k], k in nn and k <= n implies forall([t in ccint(a, x)], is-continuous-at(rr-ms, nvs-metric-space(m), nth-deriv-v(m, f, k), t))) and forall([k], k in nn and k <= n implies forall([t], a < t and t < x implies is-diff-at-v(m, nth-deriv-v(m, f, k), t, (nth-deriv-v(m, f, succ(k)))(t)))))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#taylor-differentiable-v)
 
 ### `taylor-poly(f, a, n, x)`  *(functoid)*
 
-= series-partial-sum(vnb-lambda(k, nn, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
+definition:
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+```
+series-partial-sum(vnb-lambda(k, nn, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
+```
+
+characterized by `taylor-poly-in-rr`  *(asserted)*:
+
+```
+forall([f in fun(rr, rr), a in rr, n in nn, x in rr], taylor-poly(f, a, n, x) in rr)
+```
+
+also: `taylor-poly-at-center` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#taylor-poly)
 
 ### `taylor-poly-v`  *(defined-fn)*
 
 defined by `taylor-poly-v-zero` `taylor-poly-v-succ` 
 
-mentioned by 10 result(s) -- see `BY-OPERATOR.md`
+characterized by `taylor-poly-v-succ`  *(definitional)*:
+
+```
+forall([m, f, a, x, n in nn], taylor-poly-v(m, f, a, x, succ(n)) == (vadd(m))(taylor-poly-v(m, f, a, x, n), (act(m))((x - a) ^ succ(n) * recip(factorial(succ(n))), (nth-deriv-v(m, f, succ(n)))(a))))
+```
+
+also: `taylor-poly-v-zero` 
+
+[mentioned by 10 result(s)](BY-OPERATOR.md#taylor-poly-v)
 
 ### `te`  *(tactic)*
 
@@ -3266,7 +6024,15 @@ reads: $1 is totally bounded
 
 defined by `totally-bounded` 
 
-mentioned by 11 result(s) -- see `BY-OPERATOR.md`
+characterized by `totally-bounded`  *(definitional)*:
+
+```
+forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], card(f) in nn and is-r-net(s, f, pts(s), r))))
+```
+
+also: `compact-implies-totally-bounded` `totally-bounded-has-cauchy-subseq-rad` `totally-bounded-has-cauchy-subsequence` 
+
+[mentioned by 11 result(s)](BY-OPERATOR.md#totally-bounded)
 
 ### `trinum`  *(functoid)*
 
@@ -3274,13 +6040,27 @@ reads: the $1-th triangular number
 
 defined by `trinum-zero` `trinum-succ` 
 
-mentioned by 8 result(s) -- see `BY-OPERATOR.md`
+characterized by `trinum-succ`  *(definitional)*:
+
+```
+forall([n_ in nn], trinum(succ(n_)) == trinum(n_) + succ(n_))
+```
+
+also: `trinum-zero` `trinum-mono` `trinum-type` 
+
+[mentioned by 8 result(s)](BY-OPERATOR.md#trinum)
 
 ### `tuples`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+characterized by `tuples-sethood`  *(primitive)*:
+
+```
+forall([a in set], tuples(a) in set)
+```
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#tuples)
 
 
 ## U
@@ -3299,15 +6079,35 @@ declared in `tactics-help.scm`
 
 ### `union`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 39 result(s) -- see `BY-OPERATOR.md`
+characterized by `union-decompose`  *(primitive)*:
+
+```
+forall([x, as], x in union(restvar(as)) iff splice(or, e, as, x in e))
+```
+
+also: `union-membership` `union-set-closure` `card-union-disjoint` `union-empty-left` `sum-set-disjoint-union` `prod-set-disjoint-union` 
+
+[mentioned by 39 result(s)](BY-OPERATOR.md#union)
 
 ### `unitrow(a, n, i)`  *(functoid)*
 
-= matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
+definition:
 
-mentioned by 7 result(s) -- see `BY-OPERATOR.md`
+```
+matof(1, n, vnb-lambda([rw, cl], cartesian(interval(1, 1), interval(1, n)), if(cl = i, one(a), zero(a))))
+```
+
+characterized by `unitrow-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([n, i], unitrow(a, n, i) in mat(1, n, carr(a))))
+```
+
+also: `matact-unitrow` `unitrow-entry-at` `unitrow-entry-off` 
+
+[mentioned by 7 result(s)](BY-OPERATOR.md#unitrow)
 
 
 ## V
@@ -3316,13 +6116,29 @@ mentioned by 7 result(s) -- see `BY-OPERATOR.md`
 
 a structure slot
 
-mentioned by 268 result(s) -- see `BY-OPERATOR.md`
+characterized by `module-vadd-type`  *(definitional)*:
+
+```
+forall([m], is-module(m) implies forall([x_ in vec(m), y_ in vec(m)], (vadd(m))(x_, y_) in vec(m)))
+```
+
+also: `submodule-vadd-closed` `module-vadd-type-normed-vector-space-as-module` 
+
+[mentioned by 268 result(s)](BY-OPERATOR.md#vadd)
 
 ### `vec(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 389 result(s) -- see `BY-OPERATOR.md`
+characterized by `is-normed-vector-space`  *(definitional)*:
+
+```
+forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and vnrm(s) in fun(vec(s), rr) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = rr-normed-field and forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)], (act(s))(r_, (vadd(s))(x_, y_)) = (vadd(s))((act(s))(r_, x_), (act(s))(r_, y_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((add(scal(s)))(r_, s_), x_) = (vadd(s))((act(s))(r_, x_), (act(s))(s_, x_))) and forall([r_ in carr(scal(s)), s_ in carr(scal(s)), x_ in vec(s)], (act(s))((mul(scal(s)))(r_, s_), x_) = (act(s))(r_, (act(s))(s_, x_))) and forall([x_ in vec(s)], (act(s))(one(scal(s)), x_) = x_) and forall([x_ in vec(s)], 0 <= (vnrm(s))(x_)) and forall([x_ in vec(s)], (vnrm(s))(x_) = 0 iff x_ = vzero(s)) and forall([r_ in carr(scal(s)), x_ in vec(s)], (vnrm(s))((act(s))(r_, x_)) = abs(r_) * (vnrm(s))(x_)) and forall([x_ in vec(s), y_ in vec(s)], (vnrm(s))((vadd(s))(x_, y_)) <= (vnrm(s))(x_) + (vnrm(s))(y_)))
+```
+
+also: `module-act-distrib-vec` `is-hom-normed-vector-space-def` `abelian-group-assoc-module-vector-ag` `abelian-group-right-id-module-vector-ag` `abelian-group-inverse-unique-module-vector-ag` `module-act-type-normed-vector-space-as-module` `module-vzero-in-normed-vector-space-as-module` `module-vadd-type-normed-vector-space-as-module` ... (47 in all)
+
+[mentioned by 389 result(s)](BY-OPERATOR.md#vec)
 
 ### `vector-space`  *(refinement)*
 
@@ -3336,27 +6152,51 @@ declared in `tactics-help.scm`
 
 ### `vnb-lambda`  *(operator)*
 
-a kernel term-former
+a term-forming head
 
-mentioned by 217 result(s) -- see `BY-OPERATOR.md`
+[mentioned by 217 result(s)](BY-OPERATOR.md#vnb-lambda)
 
 ### `vneg(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 50 result(s) -- see `BY-OPERATOR.md`
+characterized by `module-vneg-type`  *(definitional)*:
+
+```
+forall([m], is-module(m) implies forall([x_ in vec(m)], (vneg(m))(x_) in vec(m)))
+```
+
+also: `submodule-vneg-closed` `module-vneg-type-normed-vector-space-as-module` 
+
+[mentioned by 50 result(s)](BY-OPERATOR.md#vneg)
 
 ### `vnrm(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 35 result(s) -- see `BY-OPERATOR.md`
+characterized by `vnrm-real`  *(asserted)*:
+
+```
+forall([m, w_], is-normed-vector-space(m) implies w_ in vec(m) implies (vnrm(m))(w_) in rr)
+```
+
+also: `vnrm-nonneg` 
+
+[mentioned by 35 result(s)](BY-OPERATOR.md#vnrm)
 
 ### `vzero(s)`  *(accessor)*
 
 a structure slot
 
-mentioned by 172 result(s) -- see `BY-OPERATOR.md`
+characterized by `module-vzero-in`  *(definitional)*:
+
+```
+forall([m], is-module(m) implies vzero(m) in vec(m))
+```
+
+also: `submodule-vzero-in` `module-vzero-in-normed-vector-space-as-module` `matact-empty-vzero` 
+
+[mentioned by 172 result(s)](BY-OPERATOR.md#vzero)
 
 
 ## W
@@ -3380,7 +6220,15 @@ declared in `tactics-help.scm`
 
 a structure slot
 
-mentioned by 385 result(s) -- see `BY-OPERATOR.md`
+characterized by `rq-zero`  *(definitional)*:
+
+```
+forall([r], zero(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), zero(r)))
+```
+
+also: `sum-zero` `comb-kk-zero` `qq-ring@zero` `ring-zero-in` `zz-ring@zero` `qq-field@zero` `ringoid-ideal-zero` `cc-normed-field@zero` ... (27 in all)
+
+[mentioned by 385 result(s)](BY-OPERATOR.md#zero)
 
 ### `zero-ring`  *(defined-fn)*
 
@@ -3388,33 +6236,81 @@ defined by `zero-ring-def`
 
 ### `zeromat(a, m, n)`  *(functoid)*
 
-= matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))
+definition:
 
-mentioned by 15 result(s) -- see `BY-OPERATOR.md`
+```
+matof(m, n, vnb-lambda([i, j], cartesian(interval(1, m), interval(1, n)), zero(a)))
+```
+
+characterized by `zeromat-type`  *(asserted)*:
+
+```
+forall([a], is-ring(a) implies forall([m, n], zeromat(a, m, n) in mat(m, n, carr(a))))
+```
+
+also: `entry-of-zeromat` 
+
+[mentioned by 15 result(s)](BY-OPERATOR.md#zeromat)
 
 ### `zkept`  *(defined-fn)*
 
 defined by `zkept-zero` `zkept-succ` `zkept-limit` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `zkept-succ`  *(definitional)*:
+
+```
+forall([phi, grd, porel, alpha in ord], zkept(phi, grd, porel, succ_ord(alpha)) = union(zkept(phi, grd, porel, alpha), keep-set(phi, grd, porel, zkept(phi, grd, porel, alpha), alpha)))
+```
+
+also: `zkept-zero` `zkept-limit` `zorn-zkept-is-chain` `zorn-zkept-monotone` `zorn-zkept-limit-is-chain` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#zkept)
 
 ### `zup`  *(defined-fn)*
 
 defined by `zup-zero` `zup-succ` `zup-limit` 
 
-mentioned by 9 result(s) -- see `BY-OPERATOR.md`
+characterized by `zup-succ`  *(definitional)*:
+
+```
+forall([grd, porel, alpha in ord], zup(grd, porel, succ_ord(alpha)) = choice({y_ in grd: is-strictly-below(porel, zup(grd, porel, alpha), y_)}))
+```
+
+also: `zup-zero` `zup-limit` `zup-tower` `zup-injective` 
+
+[mentioned by 9 result(s)](BY-OPERATOR.md#zup)
 
 ### `zz-act`  *(defined-fn)*
 
 defined by `zz-act-nonneg` `zz-act-neg` 
 
-mentioned by 52 result(s) -- see `BY-OPERATOR.md`
+characterized by `zz-act-add-ring-additive-ag`  *(definitional)*:
+
+```
+forall([r], is-ring(r) implies forall([j in zz, k in zz, a in carr(r)], zz-act(ring-additive-ag(r), j + k, a) = (add(r))(zz-act(ring-additive-ag(r), j, a), zz-act(ring-additive-ag(r), k, a))))
+```
+
+also: `zz-act-neg-ring-additive-ag` `zz-act-one-ring-additive-ag` `zz-act-type-ring-additive-ag` `zz-act-zero-ring-additive-ag` `zz-act-assoc-ring-additive-ag` `zz-act-nonneg-ring-additive-ag` `zz-act-distrib-ring-additive-ag` `zz-act-neg-sign-ring-additive-ag` ... (17 in all)
+
+[mentioned by 52 result(s)](BY-OPERATOR.md#zz-act)
 
 ### `zz-bezout-set(a, b)`  *(functoid)*
 
-= {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}
+definition:
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+```
+{z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}
+```
+
+characterized by `zz-bezout-set-membership`  *(definitional)*:
+
+```
+forall([a, b, z_], z_ in zz-bezout-set(a, b) iff z_ in zz and forsome([x_ in zz, y_ in zz], z_ = x_ * a + y_ * b))
+```
+
+also: `zz-bezout-set-is-ideal` 
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#zz-bezout-set)
 
 ### `zz-coprime(a, b)`  *(predicate)*
 
@@ -3422,7 +6318,13 @@ reads: $1 and $2 are coprime
 
 defined by `zz-coprime` 
 
-mentioned by 2 result(s) -- see `BY-OPERATOR.md`
+characterized by `zz-coprime`  *(definitional)*:
+
+```
+forall([a, b], zz-coprime(a, b) iff zz-is-gcd(a, b, 1))
+```
+
+[mentioned by 2 result(s)](BY-OPERATOR.md#zz-coprime)
 
 ### `zz-divides(a, b)`  *(predicate)*
 
@@ -3430,7 +6332,13 @@ reads: $1 divides $2
 
 defined by `zz-divides` 
 
-mentioned by 5 result(s) -- see `BY-OPERATOR.md`
+characterized by `zz-divides`  *(definitional)*:
+
+```
+forall([a, b], zz-divides(a, b) iff a in zz and b in zz and forsome([c_ in zz], b = a * c_))
+```
+
+[mentioned by 5 result(s)](BY-OPERATOR.md#zz-divides)
 
 ### `zz-is-gcd(a, b, d)`  *(predicate)*
 
@@ -3438,7 +6346,13 @@ reads: $3 is a greatest common divisor of $1 and $2
 
 defined by `zz-is-gcd` 
 
-mentioned by 4 result(s) -- see `BY-OPERATOR.md`
+characterized by `zz-is-gcd`  *(definitional)*:
+
+```
+forall([a, b, d], zz-is-gcd(a, b, d) iff zz-divides(d, a) and zz-divides(d, b) and forall([e_ in zz], zz-divides(e_, a) implies zz-divides(e_, b) implies zz-divides(e_, d)))
+```
+
+[mentioned by 4 result(s)](BY-OPERATOR.md#zz-is-gcd)
 
 ### `zz-ring`  *(instance)*
 

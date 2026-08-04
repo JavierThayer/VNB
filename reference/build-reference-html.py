@@ -99,6 +99,67 @@ def target_for(name):
     if name in PSS:     return (page_of("PSS"),             "p-" + name)
     return None
 
+# In-document anchor resolution.  A .md file that links to its own headings
+# ([A](#a), the glossary's letter index) or to a heading of another generated
+# doc ([results](BY-OPERATOR.md#bijection)) must land on the id THIS builder
+# emitted for that heading -- `GLOSSARY__a', `BY-OPERATOR__bijection' -- not on
+# the raw markdown anchor, which exists nowhere in the output.  Before this,
+# every such link was silently dead.  Filled in per document by render_doc.
+CURRENT_DOCID = None
+
+# docid -> {key: heading-id}, filled by prescan_anchors before any rendering.
+# A link cannot be resolved by GUESSING the target doc's slug: BY-OPERATOR's
+# headings carry a count ("### bijection  (36)" -> id BY-OPERATOR__bijection-36)
+# and the glossary's carry a kind, so the id is never just the name.  Index each
+# heading under BOTH its full slug and its NAME slug -- the first backticked
+# token, else the first word -- and a link may use either.
+DOC_ANCHORS = {}
+
+def heading_id_static(level, raw, docid):
+    """heading_id without the uniquifying claim(): the first occurrence, which
+    is the one a cross-reference means."""
+    name = raw.strip().strip("`").strip()
+    if name in STRUCTS:                       return name
+    if docid == "DEFINITIONS" and level == 3: return "d-" + name
+    if docid == "PSS"         and level == 3: return "p-" + name
+    return f"{docid}__{slug(raw)}"
+
+def prescan_anchors(docid, text):
+    m = {}
+    for line in text.split("\n"):
+        mm = re.match(r"(#{1,6})\s+(.*)$", line)
+        if not mm:
+            continue
+        raw = mm.group(2).strip()
+        hid = heading_id_static(len(mm.group(1)), raw, docid)
+        m.setdefault(slug(raw), hid)
+        nm = re.match(r"`([^`]+)`", raw)
+        name = nm.group(1) if nm else (raw.split()[0] if raw.split() else raw)
+        m.setdefault(slug(name), hid)
+    return m
+
+def resolve_href(href):
+    """Rewrite a markdown link target onto the ids this builder emits."""
+    # same-document: #anchor
+    if href.startswith("#") and CURRENT_DOCID:
+        key = slug(href[1:])
+        hid = DOC_ANCHORS.get(CURRENT_DOCID, {}).get(key)
+        return f"#{hid}" if hid else f"#{CURRENT_DOCID}__{key}"
+    # another generated doc: FILE.md or FILE.md#anchor
+    m = re.fullmatch(r"([A-Za-z0-9._-]+)\.md(?:#(.*))?", href)
+    if m:
+        doc, anchor = m.group(1), m.group(2)
+        if not anchor:
+            return f"{doc}.html"
+        hid = DOC_ANCHORS.get(doc, {}).get(slug(anchor))
+        if hid:
+            return f"{doc}.html#{hid}"
+        t = target_for(anchor)                      # a canonical name wins
+        if t and t[0] == f"{doc}.html":
+            return f"{doc}.html#{t[1]}"
+        return f"{doc}.html#{doc}__{slug(anchor)}"
+    return href
+
 # The page currently being rendered -- so a same-page link stays a bare #anchor
 # (no reload) while cross-page links carry the file.
 CURRENT_PAGE = None
@@ -141,7 +202,7 @@ def inline(text):
             label = f"<code>{esc(code_at[int(mm.group(1))])}</code>"
         else:
             label = esc(label)
-        return stash(f'<a class="x" href="{esc(href)}">{label}</a>')
+        return stash(f'<a class="x" href="{esc(resolve_href(href))}">{label}</a>')
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", linksub, text)
     # 3. escape everything else
     text = esc(text)
@@ -427,6 +488,12 @@ def build():
     global CURRENT_PAGE
     written = []
 
+    # anchors first: a link may point FORWARD, to a doc not yet rendered.
+    for _t, _f, _b in DOCS:
+        _text = read(_f)
+        if _text:
+            DOC_ANCHORS[_f[:-3]] = prescan_anchors(_f[:-3], _text)
+
     # one standalone page per doc
     for title, fname, blurb in DOCS:
         text = read(fname)
@@ -443,6 +510,7 @@ def build():
             body.append('<p class="lead">See the clickable '
                         '<a href="structure-graph.html">structure graph</a> '
                         '&mdash; refines &amp; view-as relations, with every node a link.</p>')
+        globals()["CURRENT_DOCID"] = secid
         body.append(md_to_html(text, secid, used_ids))
         with open(os.path.join(HERE, page), "w", encoding="utf-8") as f:
             f.write(page_html(title, blurb, secid, "\n".join(body)))

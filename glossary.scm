@@ -197,6 +197,46 @@
   (let ((e (assq h (theory-definitions *current-theory*))))
     (and e (pair? (cdr e)) (map car (cdr e)))))
 
+;;; -----------------------------------------------------------------------
+;;; WHAT CHARACTERIZES A NAME.
+;;;
+;;; A glossary entry that says only "a kernel term-former" is not a glossary
+;;; entry: `BIJECTION' is a class constructor whose whole content is the
+;;; biconditional `phi in BIJECTION(X,Y) iff phi in FUN(X,Y) and phi is
+;;; injective and onto', and that is what a reader looking it up wants to see.
+;;;
+;;; Not every head is introduced by a def-*, so `theory-definitions' answers for
+;;; only some of them.  For the rest, take the results that MENTION the head
+;;; (the one-pass usage index) and keep those whose NAME contains it --
+;;; bijection-membership, bijection-set-iff, bijection-compose -- which is the
+;;; library's own naming convention doing the work.  Rank the DEFINING ones
+;;; first: `definitional' provenance means the fact was installed as a
+;;; conservative definition, so it IS the characterization; then `primitive'
+;;; (a kernel axiom); then by length, shortest name first, which puts
+;;; `bijection-membership' ahead of `bijection-compose-is-bijection'.
+(define (gl--rank-of name)
+  (case (provenance-of name)
+    ((definitional) 0)
+    ((primitive)    1)
+    (else           2)))
+
+(define (gl--char-axioms h mentions)
+  (let* ((hs   (string-downcase (symbol->string h)))
+         (cand (filter (lambda (n)
+                         (and (substring? hs (string-downcase (symbol->string n)))
+                              ;; a -rev companion says nothing new
+                              (not (substring? "-rev" (symbol->string n)))))
+                       mentions)))
+    (sort cand
+          (lambda (a b)
+            (let ((ra (gl--rank-of a)) (rb (gl--rank-of b)))
+              (cond ((not (= ra rb)) (< ra rb))
+                    ((not (= (string-length (symbol->string a))
+                             (string-length (symbol->string b))))
+                     (< (string-length (symbol->string a))
+                        (string-length (symbol->string b))))
+                    (else (gl--sym<? a b))))))))
+
 (define (gl--head-entries)
   (map (lambda (h)
          (let* ((op   (operator-ref h))
@@ -217,8 +257,10 @@
             (or (and freg (gl--basename (caddr freg)))
                 (and op (gl--basename (operator-file op))))
             (cond
-              (freg (string-append "= " (gl--truncate
-                                         (expression->string (cadr freg)) 110)))
+              ;; the functoid's BODY is its definition -- kept whole; the writer
+              ;; puts it in a display block.  Truncating a definition to fit a
+              ;; line is how a glossary entry stops being one.
+              (freg (string-append "def: " (expression->string (cadr freg))))
               (axs  (string-append
                      "defined by "
                      (apply string-append
@@ -228,7 +270,10 @@
               ((eq? kind 'accessor) "a structure slot")
               ((eq? kind 'predicate) "a predicate")
               ((eq? kind 'primitive) "a kernel relation")
-              ((eq? kind 'operator)  "a kernel term-former")
+              ;; NOT "a kernel term-former": most term-forming heads are library
+              ;; vocabulary (BIJECTION is declared in structure-library), and the
+              ;; characterizing axiom printed below says what it actually is.
+              ((eq? kind 'operator)  "a term-forming head")
               (else #f)))))
        (sort (hash-table-keys *constant-registry*) gl--sym<?)))
 
@@ -265,6 +310,7 @@
 ;;; Returns the entries it printed, so it is usable as data.
 (define (glossary #!optional pat)
   (let* ((all (glossary-entries))
+         (usage (operator-usage-index))
          (sel (cond
                 ((default-object? pat) all)
                 ((symbol? pat) (filter (lambda (e) (eq? (gloss-name e) pat)) all))
@@ -284,11 +330,38 @@
         (if (gloss-reads e)
             (begin (display "    reads: ") (display (gloss-reads e)) (newline)))
         (if (gloss-detail e)
-            (begin (display "    ") (display (gloss-detail e)) (newline))))
+            (begin (display "    ") (display (gloss-detail e)) (newline)))
+        ;; the characterizing axiom -- the answer to "what IS this?"
+        (let* ((mentions (hash-table-ref/default usage (gloss-name e) '()))
+               (axs      (gl--char-axioms (gloss-name e) mentions)))
+          (when (pair? axs)
+            (display "    characterized by ") (display (car axs))
+            (display " (") (display (provenance-of (car axs))) (display "):\n      ")
+            (display (expression->string (lookup-theorem (car axs))))
+            (newline))
+          (when (pair? mentions)
+            (display "    mentioned by ") (display (length mentions))
+            (display " result(s) -- (glossary-uses '")
+            (display (gloss-name e)) (display ") lists them\n"))))
       sel)
     (display ";; ") (display (length sel)) (display " of ")
     (display (length all)) (display " glossary entries\n")
     sel))
+
+;;; (glossary-uses 'NAME) -- the results that mention NAME, sorted.  The
+;;; companion of the "mentioned by N result(s)" line: the count is useless
+;;; without a way to see WHICH.  Same index BY-OPERATOR.md is built from.
+(define (glossary-uses name)
+  (let ((ns (sort (hash-table-ref/default (operator-usage-index) name '())
+                  gl--sym<?)))
+    (for-each (lambda (n)
+                (display "  ") (display n)
+                (display "  [") (display (provenance-of n)) (display "]")
+                (newline))
+              ns)
+    (display ";; ") (display (length ns)) (display " result(s) mention ")
+    (display name) (newline)
+    ns))
 
 ;;; -----------------------------------------------------------------------
 ;;; GLOSSARY.md
@@ -369,11 +442,38 @@
               (if (gloss-reads e)
                   (begin (display "reads: ") (display (gloss-reads e)) (display "\n\n")))
               (if (gloss-detail e)
-                  (begin (display (gloss-detail e)) (display "\n\n")))
-              (let ((n (length (hash-table-ref/default usage (gloss-name e) '()))))
-                (when (> n 0)
-                  (display "mentioned by ") (display n)
-                  (display " result(s) -- see `BY-OPERATOR.md`\n\n")))
+                  (let ((d (gloss-detail e)))
+                    (if (and (> (string-length d) 5)
+                             (string=? (substring d 0 5) "def: "))
+                        (begin (display "definition:\n\n```\n")
+                               (display (substring d 5 (string-length d)))
+                               (display "\n```\n\n"))
+                        (begin (display d) (display "\n\n")))))
+              ;; WHAT CHARACTERIZES IT.  The defining axiom, in full, is the
+              ;; thing a reader looking a name up came for.
+              (let* ((mentions (hash-table-ref/default usage (gloss-name e) '()))
+                     (axs      (gl--char-axioms (gloss-name e) mentions)))
+                (when (pair? axs)
+                  (display "characterized by `") (display (car axs))
+                  (display "`  *(") (display (provenance-of (car axs))) (display ")*:\n\n")
+                  (display "```\n")
+                  (display (expression->string (lookup-theorem (car axs))))
+                  (display "\n```\n\n")
+                  (when (pair? (cdr axs))
+                    (display "also: ")
+                    (let lp ((ns (cdr axs)) (i 0))
+                      (when (and (pair? ns) (< i 8))
+                        (display "`") (display (car ns)) (display "` ")
+                        (lp (cdr ns) (+ i 1))))
+                    (when (> (length (cdr axs)) 8)
+                      (display "... (") (display (length (cdr axs)))
+                      (display " in all)"))
+                    (display "\n\n")))
+                (when (pair? mentions)
+                  (display "[mentioned by ") (display (length mentions))
+                  (display " result(s)](BY-OPERATOR.md#")
+                  (display (gl--anchor (gloss-name e)))
+                  (display ")\n\n")))
               (if (gloss-file e)
                   (begin (display "declared in `") (display (gloss-file e))
                          (display "`\n\n")))
