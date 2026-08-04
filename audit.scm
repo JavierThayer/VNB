@@ -408,6 +408,125 @@
          (and (<= (string-length s) 2)
               (not (memq v '(nn zz qq rr cc <= >= < > = ==)))))))
 
+;;; -----------------------------------------------------------------------
+;;; head-registry-sweep -- every applied head in the library, checked against
+;;; the ONE table the walkers consult.
+;;;
+;;; `unknown-head-audit' above answers a DOCUMENTATION question: did somebody
+;;; declare this head?  It accepts a head that is in `*operators*' (operators.scm)
+;;; or in `*audit-known-unregistered-heads*'.  Neither buys anything at proof
+;;; time: `free-vars' and `subst-free' (expressions.scm) consult
+;;; `*constant-registry*' and nothing else, and an unregistered symbol at the
+;;; head of a compound is treated as an applied FUNCTION VARIABLE -- free, and
+;;; substitutable.  `register-operator!' does NOT call `register-constant!', so
+;;; the two tables drift apart silently.
+;;;
+;;; What that costs, twice on 2026-08-04 alone: `BIJECTION' is registered as an
+;;; operator but not as a constant, so
+;;;     (free-vars '(IN phi (BIJECTION X Y)))  =>  (phi bijection x y)
+;;; -- `bijection' reported as a free variable of `fin-enum-is-bijection',
+;;; `well-ordering-principle', `delete-at-is-bijection' and the `inverse-bij'
+;;; family; `/' was the same omission found the same morning.  Both were invisible
+;;; to `unknown-head-audit' (the first is allowlisted, the second is in its kernel
+;;; list) which reported 0.
+;;;
+;;; So this sweep asks the walkers' question and only theirs: is the head in
+;;; `*constant-registry*'?  A head BOUND by an enclosing binder is a legitimate
+;;; function variable and is skipped; everything else that is unregistered is a
+;;; constant the walkers cannot see.
+;;;
+;;; Returns ((head n-formulas (theorem ...)) ...), most-cited first -- data, so a
+;;; caller can rank or filter; `report-head-registry' prints it.
+
+;;; The heads every walker in expressions.scm handles with an EXPLICIT case
+;;; branch -- so the registry is never consulted for them and their absence from
+;;; it costs nothing.  Keep this list in step with the case branches of
+;;; free-vars / subst-free / alpha-equiv-under?; everything else those walkers
+;;; name (LIST, NTH, SEP, POWER, ...) is in *wff-term-form-heads* and therefore
+;;; registered anyway.  NOTE what is NOT here: <= and SUBSET are in
+;;; *wff-only-heads* but in no walker's case list, which is exactly how they
+;;; leaked.
+(define *audit-structural-heads*
+  '(NOT AND OR IMPLIES IFF FORALL FORSOME = == IN))
+
+;;; Every applied SYMBOL head in E that is not bound by an enclosing binder and
+;;; not a registered constant head.  Walks functoid records too.
+(define (formula-unregistered-applied-heads e0)
+  (let ((hits '()))
+    (let scan ((e (if (wff? e0) (wff-formula e0) e0)) (bound '()))
+      (cond
+        ((functoid? e)
+         (let ((bvars (map car (functoid-bindings e))))
+           (for-each (lambda (b) (scan (cdr b) bound)) (functoid-bindings e))
+           (scan (functoid-body e) (append bvars bound))))
+        ((pair? e)
+         (if (audit--binder-head? (car e))
+             (let* ((bv     (cadr e))
+                    (bound* (cond ((symbol? bv) (cons bv bound))
+                                  ((pair? bv)   (append (filter symbol? (cdr bv)) bound))
+                                  (else bound))))
+               (for-each (lambda (x) (scan x bound*)) (cddr e)))
+             (let ((h (car e)))
+               (when (and (symbol? h)
+                          (not (memq h bound))
+                          (not (memq h *audit-structural-heads*))
+                          (not (constant-head? h)))
+                 (if (not (memq h hits)) (set! hits (cons h hits))))
+               (if (pair? h) (scan h bound))
+               (for-each (lambda (x) (scan x bound)) (cdr e)))))))
+    (reverse hits)))
+
+;;; ((head count (theorem ...)) ...) -- empty means every applied head in every
+;;; installed formula is one the walkers can see.
+(define (head-registry-sweep)
+  (let ((tbl (make-equal-hash-table)))
+    (for-each
+      (lambda (name)
+        (let ((f (hash-table-ref/default *theorem-table* name #f)))
+          (if f
+              (for-each (lambda (h)
+                          (hash-table-set! tbl h
+                            (cons name (hash-table-ref/default tbl h '()))))
+                        (formula-unregistered-applied-heads f)))))
+      (hash-table-keys *theorem-table*))
+    (sort (map (lambda (h)
+                 (let ((names (sort (hash-table-ref/default tbl h '())
+                                    (lambda (a b) (string<? (symbol->string a)
+                                                            (symbol->string b))))))
+                   (list h (length names) names)))
+               (hash-table-keys tbl))
+          (lambda (a b)
+            (if (= (cadr a) (cadr b))
+                (string<? (symbol->string (car a)) (symbol->string (car b)))
+                (> (cadr a) (cadr b)))))))
+
+;;; Printer for the load-time report.  N caps the theorem names shown per head.
+(define (report-head-registry #!optional n)
+  (let ((n  (if (default-object? n) 4 n))
+        (sw (head-registry-sweep)))
+    (if (null? sw)
+        (display ";; head-registry-sweep: ok (every applied head is a registered constant)\n")
+        (begin
+          (display "\n;; head-registry-sweep: ") (display (length sw))
+          (display " applied head(s) NOT in the constant registry --\n")
+          (display ";; free-vars / subst-free read each as an applied function VARIABLE:\n")
+          (display ";; free, substitutable, and alpha-renamable.  Register the constant\n")
+          (display ";; ones (*wff-term-form-heads* in wff.scm, or the def-* that should\n")
+          (display ";; have introduced them):\n")
+          (for-each
+            (lambda (e)
+              (display ";;   ") (display (cadr e))
+              (display (if (< (cadr e) 10) "   " "  "))
+              (display (car e)) (display "   e.g. ")
+              (let loop ((ns (caddr e)) (i 0))
+                (when (and (pair? ns) (< i n))
+                  (display (car ns))
+                  (if (and (pair? (cdr ns)) (< (+ i 1) n)) (display " "))
+                  (loop (cdr ns) (+ i 1))))
+              (if (> (cadr e) n) (display " ..."))
+              (newline))
+            sw)))))
+
 ;;; ((theorem free-var ...) ...) -- empty is the good case.
 (define (free-variable-audit)
   (let ((bad '()))

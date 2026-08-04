@@ -68,6 +68,19 @@
 ;;; Called BY THE DEFINITION POINT (def-predicate, def-functoid, ...).  Records
 ;;; what it knows; leaves the notation slots empty for `notation!'.  Re-declaring
 ;;; a head updates the structural slots and KEEPS any notation already declared.
+;;;
+;;; It ALSO registers the head in the constant registry (expressions.scm).  The
+;;; two tables answer different questions -- this one "how does this head read?",
+;;; the registry "is this symbol a constant or an applied function variable?" --
+;;; but a head declared to one and not the other is a defect every time, and
+;;; before 2026-08-04 they drifted apart in silence: 56 declared operators,
+;;; including EVERY def-predicate name (IS-RING, IS-METRIC-SPACE, ...) and the
+;;; kernel relations <=, subset, =, in, were absent from the registry, so
+;;; free-vars reported the head itself as a FREE VARIABLE:
+;;;     (free-vars '(IN phi (BIJECTION X Y)))  =>  (phi bijection x y)
+;;; and subst-free would rewrite that head for a caller who happened to bind a
+;;; variable of the same (case-folded) name.  `head-registry-sweep' (audit.scm)
+;;; enumerates the leaks; this line is what keeps the count at what it is.
 (define (register-operator! name kind params)
   (let* ((k   (or (op-key name) (error "register-operator!: not a symbol" name)))
          (ps  (cond ((not params) '()) ((pair? params) params) (else (list params))))
@@ -79,6 +92,7 @@
                (if (not (operator-file old)) (set-operator-file! old (safe-load-pathname))))
         (hash-table-set! *operators* k
           (make-operator kind (length ps) ps #f #f #f #f #f #f (safe-load-pathname))))
+    (register-constant! k kind)
     name))
 
 ;;; Declare the NOTATION of a head.  Keyword-style, so a call names only what it

@@ -1408,6 +1408,31 @@
                     (display "  free=") (write (cdr e)) (newline))
                   fv))))
 
+;; Third gate on the same door, and the one that enumerates instead of waiting:
+;; every applied head in every installed formula, checked against the constant
+;; registry -- the table free-vars / subst-free actually consult.  An
+;; unregistered head is read as an applied function VARIABLE, which is how
+;; `bijection' came to be a free variable of well-ordering-principle and of the
+;; whole inverse-bij family.  WARN-ONLY: a new head is a declaration that has
+;; not been written yet, not a formula that says the wrong thing.
+(report-head-registry)
+
+;; ... and the gate on the door itself: every formula is graded by make-wff's
+;; validator AS install-theorem! installs it (macetes.scm), instead of by an
+;; audit written after the next defect.  Each failure already warned, in place,
+;; naming the file; this is the count.
+(let ((iv (install-validation-failures)))
+  (if (null? iv)
+      (display ";; install-grading: ok (every installed formula passes make-wff's grading)\n")
+      (begin
+        (display "\n;; install-grading: ") (display (length iv))
+        (display " installed formula(s) MALFORMED (warned above, in place):\n")
+        (for-each (lambda (e)
+                    (display ";;   ") (display (car e))
+                    (display "  [") (display (caddr e)) (display "]\n")
+                    (display ";;     ") (display (cadr e)) (newline))
+                  iv))))
+
 (let ((amb (accessor-index-audit)))
   (if (null? amb)
       (display ";; accessor-index-audit: ok (every accessor name denotes one slot)\n")

@@ -1342,7 +1342,14 @@
 ;;; ARGUMENT position too (nn-add-monoid rides as an argument of monalg).
 (define (use--sequent-heads)
   (let ((heads '()))
-    (define (walk e) (cond ((symbol? e) (when (constant-head? e) (set! heads (cons e heads))))
+    ;; NOT the `primitive' kind: =, ==, IN, <=, SUBSET are in the constant
+    ;; registry (since 2026-08-04, when register-operator! started feeding it)
+    ;; but they are logic, not a CONSTRUCTION the sequent is about -- globbing
+    ;; `in*' would fire every interval-* property in the library.
+    (define (walk e) (cond ((symbol? e)
+                            (let ((k (constant-head? e)))
+                              (when (and k (not (eq? k 'primitive)))
+                                (set! heads (cons e heads)))))
                            ((pair? e) (for-each walk e))))
     (for-each (lambda (L) (walk (use--goal-of L)) (for-each walk (use--asms-of L))) (proof-leaves))
     (use--dedup heads)))

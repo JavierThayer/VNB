@@ -225,7 +225,17 @@
     MATADD MATNEG MATSCALE ZEROMAT IDENTMAT MAT-RING MATUNIT
     ELEM-F ELEM-G ELEM-H SUBMAT BORDER MATACT UNITROW BLOCK SPAN SNOC-COL SNOC-ROW LASTCOEFF-SET
     + - * / recip abs conjugate succ exp sin cos
-    real-part imag-part magnitude))
+    real-part imag-part magnitude
+    ;; Added 2026-08-04 by head-registry-sweep (audit.scm), which enumerates
+    ;; every applied head in the library against the constant registry instead
+    ;; of waiting for the next accident.  Each of these is a TERM constructor
+    ;; that no def-* introduced, so free-vars reported the head itself as a free
+    ;; variable of every fact about it: `bijection' in the whole inverse-bij
+    ;; family and in well-ordering-principle, `pair' in the card-* axioms,
+    ;; `difference'/`singleton' in is-field.  `/' was the same omission, found
+    ;; the same morning and already fixed above.
+    PAIR SINGLETON DIFFERENCE BIJECTION DELETE-AT EPLUS
+    binplus bintimes binneg))
 
 (define *wff-only-heads*
   '(NOT AND OR IMPLIES IFF FORALL FORSOME = == IN <= SUBSET subset))
@@ -249,6 +259,23 @@
 ;;; so free-vars / subst-free do not mistake its head for a function variable.
 (register-constant! 'LIMIT-ORD 'operator)
 
+;;; Same treatment, same reason, for the three PREDICATE heads the sweep found
+;;; unregistered (2026-08-04): the ordinal order relations and IS-FUN.  They must
+;;; NOT go in *wff-term-form-heads* -- that is the LIMIT-ORD mistake above, and
+;;; it would make make-wff reject every goal that mentions them -- but they are
+;;; constants, and free-vars must not read `<=_ord' as a function variable.
+(for-each (lambda (h) (register-constant! h 'predicate))
+          '(<=_ord <_ord is-fun))
+
+;;; RESTVAR and SPLICE are the macete engine's variadic syntax (macetes.scm:42),
+;;; not mathematical vocabulary: they occur in exactly four installed formulas
+;;; (union-decompose, intersection-decompose and their -rev companions).  The
+;;; engine recognises them by an eq? test long before any registry lookup, so
+;;; registering them is inert there -- but it is what the walkers need, and it
+;;; takes head-registry-sweep to zero, which is the only count a gate can use.
+(for-each (lambda (h) (register-constant! h 'operator))
+          '(RESTVAR SPLICE))
+
 ;;; Warn when a binder's variable has the name of a registered operator,
 ;;; defined function, or functoid: an application (v ...) in the body then
 ;;; refers to that constant, not the bound variable -- almost always a
@@ -267,7 +294,10 @@
 ;;; load.  Keep this one aligned with them rather than exempting anything.
 (define (warn-binder-shadowing v)
   (let ((kind (constant-head? v)))
-    (if (memq kind '(operator defined-fn functoid accessor predicate))
+    ;; `primitive' is the kind `notation!' gives a head no def-* introduced --
+    ;; the kernel relations =, ==, IN, <=, >, >=, SUBSET.  A binder named for one
+    ;; of those is the same hazard as a binder named for an accessor.
+    (if (memq kind '(operator defined-fn functoid accessor predicate primitive))
         (begin
           (display ";VNB warning: binder variable ")
           (display v)

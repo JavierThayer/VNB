@@ -156,9 +156,10 @@
         (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))
        ((CARTESIAN LIST UNION INTERSECTION)
         (match-list-with-rest (cdr pattern) (cdr expr) schema-vars))
-       ((NTH)
-        (and (equal? (cadr pattern) (cadr expr))
-             (match-expr (caddr pattern) (caddr expr) schema-vars)))
+       ;; NTH: no special case.  The old one demanded the two indices be
+       ;; equal?, so a schema variable in index position could never bind and
+       ;; no macete about a general index could ever fire.  See free-vars
+       ;; (expressions.scm) for the whole defect.  (2026-08-04)
        ((SEP)
         (and (equal? (cadr pattern) (cadr expr))
              (let ((ma (match-expr (caddr pattern)  (caddr expr)  schema-vars))
@@ -537,10 +538,9 @@
                         (cons (car r) new)
                         (append minors (cdr r)))))))
 
-         ((NTH)
-          (let ((r (rewrite-expr pattern replacement schema-vars conditions
-                                 (caddr expr) local-ctx)))
-            (cons `(NTH ,(cadr expr) ,(car r)) (cdr r))))
+         ;; NTH: no special case -- an occurrence inside the INDEX is rewritten
+         ;; like any other argument, by the general compound branch below.
+         ;; See free-vars (expressions.scm).  (2026-08-04)
 
          ((SEP)
           ;; (SEP x A p) — A is outer scope; p has x bound.  Drop ctx
@@ -1544,12 +1544,64 @@
      `(,(car f) ,(caddr f) ,(cadr f)))
     (else #f)))
 
+;;; -----------------------------------------------------------------------
+;;; THE INSTALL-TIME GRADING GATE  (2026-08-04)
+;;;
+;;; `support' and `theory-add-axiom!' install a raw S-expression: they never run
+;;; it past `make-wff', which is the only thing in the tree that grades a formula.
+;;; That door produced the flat-conjunction defect (2026-07-28) -- a `(AND a b c)'
+;;; the kernel reads with binary-left/right, silently DROPPING the third conjunct,
+;;; so the installed fact did not say what it appeared to say -- and it is the
+;;; same door behind the free-variable and unregistered-head defects.  Rather
+;;; than a fourth after-the-fact audit, grade every formula AS IT IS INSTALLED.
+;;;
+;;; WARN-ONLY, and it records: a failure names a fact that is already in the
+;;; library, so raising here would strand every later file.  `connective-arity-audit'
+;;; (load.scm) remains the fatal gate for the one defect known to be always wrong.
+;;;
+;;; WHAT IT DOES NOT CATCH, so nobody reads more into a clean line than it says:
+;;; `validate-wff!' grades SHAPE -- arity, and wff-vs-term position.  A free
+;;; variable is well-formed (that is `free-variable-audit'), and so is an applied
+;;; head nobody registered (that is `head-registry-sweep').  Three gates, three
+;;; defects, one door.
+;;;
+;;; The four variadic macete schemas (union-decompose, intersection-decompose and
+;;; their -rev) are exempt BY SHAPE, not by name: `(UNION (RESTVAR AS))' and
+;;; `(SPLICE OR e AS ...)' are the engine's variadic syntax (macetes.scm:42), not
+;;; first-order wffs, and make-wff rightly refuses them.
+(define *install-validation-failures* '())   ; ((name message file) ...)
+
+(define (install--variadic-schema? e)
+  (cond ((pair? e) (or (memq (car e) '(RESTVAR SPLICE))
+                       (any install--variadic-schema? e)))
+        (else #f)))
+
+(define (install--grade! name formula)
+  (unless (install--variadic-schema? formula)
+    (let ((why (call-with-current-continuation
+                 (lambda (k)
+                   (bind-condition-handler (list condition-type:error)
+                     (lambda (c) (k (condition/report-string c)))
+                     (lambda () (validate-wff! formula) #f))))))
+      (when why
+        (set! *install-validation-failures*
+              (cons (list name why (safe-load-pathname))
+                    *install-validation-failures*))
+        (display ";VNB warning: install-theorem! -- ") (display name)
+        (display " does not pass make-wff's grading:\n;              ")
+        (display why) (newline)))))
+
+;;; ((name message file) ...), install order.  Empty is the good case.
+(define (install-validation-failures)
+  (reverse *install-validation-failures*))
+
 (define (install-theorem! name formula-or-wff)
   (vnb-guard
     (lambda ()
       (let ((formula (if (wff? formula-or-wff)
                          (wff-formula formula-or-wff)
                          formula-or-wff)))
+        (install--grade! name formula)
         (hash-table-set! *theorem-table* name formula)
         (hash-table-delete! *lemma-fingerprint-memo* name)   ; stale on reinstall
         (let ((src (safe-load-pathname)))   ; #f at the REPL; qed installs interactively

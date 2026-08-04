@@ -234,9 +234,15 @@
        ;; N-ary: CARTESIAN, LIST, UNION, INTERSECTION — union over all arguments
        ((CARTESIAN LIST UNION INTERSECTION)
         (fold-vars (map free-vars (cdr expr))))
-       ;; NTH: (NTH k e) — k is a number (no vars), recurse into e
-       ((NTH)
-        (free-vars (caddr expr)))
+       ;; NTH has NO special case, and the one it used to have was a kernel
+       ;; defect.  It read "k is a number (no vars), recurse into e" and so
+       ;; never visited the index -- but ENTRY(M,i,j) is literally
+       ;; (NTH j (NTH i M)) with VARIABLE indices, and the primitive axiom
+       ;; nth-in-range quantifies over the index it then places there.  The
+       ;; index is an ordinary term position; NTH is a registered operator
+       ;; head, so the general branch below does exactly the right thing.
+       ;; Same repair in subst-free, alpha-equiv-under?, match-expr,
+       ;; rewrite-subexpressions and replace-term.  (2026-08-04)
        (else
         ;; General compound (h arg ...).  A compound head is collected.
         ;; A symbol head is free iff it is NOT a registered constant: an
@@ -471,9 +477,8 @@
        ((CARTESIAN LIST UNION INTERSECTION)
         (cons (car expr)
               (map (lambda (arg) (subst-free x replacement arg)) (cdr expr))))
-       ;; NTH: (NTH k e) — leave k alone, recurse into e
-       ((NTH)
-        `(NTH ,(cadr expr) ,(subst-free x replacement (caddr expr))))
+       ;; NTH: no special case -- the index is substituted into like any other
+       ;; argument.  See the comment at free-vars.
        (else
         ;; General compound (h arg ...).  A compound head is substituted
         ;; into so ((MUL m) a b) instantiates `m`.  A symbol head is
@@ -609,10 +614,10 @@
                (or (null? a1)
                    (and (alpha-equiv-under? (car a1) (car a2) env)
                         (loop (cdr a1) (cdr a2)))))))
-       ;; NTH: index must match, recurse into expression
-       ((NTH)
-        (and (equal? (cadr e1) (cadr e2))
-             (alpha-equiv-under? (caddr e1) (caddr e2) env)))
+       ;; NTH: no special case.  The old one compared indices with equal?,
+       ;; which made (FORALL i ... (NTH i L)) and (FORALL k ... (NTH i L))
+       ;; alpha-EQUAL -- a false positive, and `ass' closes on alpha-equality.
+       ;; See the comment at free-vars.
        (else
         ;; apply-functoid and general compound: pairwise alpha-equiv args
         ;; For apply-functoid, cadr is a <functoid>; handled by functoid? branch above

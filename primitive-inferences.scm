@@ -472,8 +472,9 @@
                 (if (captures? (vnb-lambda-bvars (cadr e)))
                     (list 'VNB-LAMBDA (cadr e) (walk (caddr e)) (cadddr e))
                     (list 'VNB-LAMBDA (cadr e) (walk (caddr e)) (walk (cadddr e)))))
-               ((NTH)
-                (list 'NTH (cadr e) (walk (caddr e))))
+               ;; NTH: no special case -- the index is walked like any other
+               ;; argument, so eq-subst can rewrite a term occurring there.
+               ;; See free-vars (expressions.scm).  (2026-08-04)
                (else
                 (cons (car e) (map walk (cdr e)))))))))))
 

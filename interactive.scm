@@ -1655,6 +1655,13 @@
                   (string-append "proposition (arity "
                                  (number->string (or (operator-arity e) 0)) ")")
                   '()))))
+    ;; `primitive' -- the kind notation! gives a head no def-* introduced.  In
+    ;; practice these are the kernel relations (=, ==, IN, <=, >, >=, SUBSET);
+    ;; they read as propositions, not terms.
+    ((eq? kind 'primitive)
+     (list name (if (memq name *wff-only-heads*) 'predicate 'functoid)
+           "kernel primitive (notation-declared, no def-*)"
+           (if (memq name *wff-only-heads*) "proposition" "term") '()))
     ((eq? kind 'accessor)
      (list name 'functoid "structure accessor" "element (slot value)" '()))
     ((eq? kind 'functoid)

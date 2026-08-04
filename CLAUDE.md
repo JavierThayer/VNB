@@ -463,6 +463,33 @@ turned `min-degree-entry` and `class-min-pivot` from `'well-known` warrants into
 theorems. It uses no choice: well-ordering returns a *member* of the value set, which is
 a `SEP` set, so `sep-me` recovers the witness.
 
+## The gates on the install door
+
+`support` and `theory-add-axiom!` install a raw S-expression. Four load-time gates now
+grade what comes through, and they are complementary -- each catches a defect the others
+call well-formed:
+
+* `connective-arity-audit` (audit.scm) -- FATAL. A flat `(AND a b c)` is read with
+  binary-left/right, so extra conjuncts are silently dropped.
+* `free-variable-audit` -- warn-only. A free name means whatever the CALLER spells it.
+* `head-registry-sweep` (audit.scm, added 2026-08-04) -- warn-only. Every applied head in
+  every installed formula, checked against `*constant-registry*` (expressions.scm) --
+  the table `free-vars` / `subst-free` actually consult. An unregistered head is read as
+  an applied function VARIABLE. `unknown-head-audit` does NOT do this job: it accepts a
+  head that is in `*operators*` or on its own allowlist, and reported 0 while 71 heads
+  leaked. `register-operator!` now feeds the registry, so the two tables cannot drift.
+  Register a new head in `*wff-term-form-heads*` (wff.scm) if it is a TERM constructor;
+  a PREDICATE gets a bare `register-constant!` beside `LIMIT-ORD`, because a predicate in
+  the term-form list makes `make-wff` reject every goal that mentions it.
+* `install-grading` (`install--grade!`, macetes.scm) -- warn-only, and it fires at
+  install time, naming the file. It runs `validate-wff!` -- the grading `make-wff`
+  applies -- over every installed formula. It grades SHAPE only: arity, and
+  wff-vs-term position. The four variadic macete schemas (RESTVAR/SPLICE) are exempt
+  by shape.
+
+Controls for the last two: `scratchpad/gate-control.scm`. A gate that passes everything
+reads exactly like a clean library, so make it fail on purpose before believing it.
+
 ## Shipping
 
 `~/prover-src.tar.gz` is rebuilt by a Stop hook (`~/.claude/settings.json`): gzipped tar
