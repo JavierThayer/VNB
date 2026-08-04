@@ -13,6 +13,7 @@
 # every build is what keeps the manual from drifting:
 #   app-source-generated.tex   <- source tree (each file's `;;; name -- desc' header)
 #   app-tactics-generated.tex  <- reference/TACTICS.md (the *tactic-help* registry)
+#   app-glossary-generated.tex <- reference/GLOSSARY.md (every name, from the registries)
 
 LATEX := pdflatex -interaction=nonstopmode -halt-on-error
 
@@ -37,6 +38,7 @@ gen: check-fresh
 	python3 gen-source-appendix.py
 	python3 gen-tactics-ref.py
 	python3 gen-structures.py
+	python3 gen-glossary.py
 
 # TACTICS.md and STRUCTURE-INDEX.md are rewritten ONLY by a prover load (load.scm
 # runs (write-tactics-md) etc.), never by make.  So if their source registries were
@@ -47,6 +49,10 @@ check-fresh:
 	  echo "*** WARNING: tactics-help.scm is newer than reference/TACTICS.md."; \
 	  echo "***   The tactic chapter may be STALE.  Reload the prover (./prover or"; \
 	  echo "***   ./VNB) to rewrite TACTICS.md, then re-run make."; \
+	fi
+	@if [ ../glossary.scm -nt ../reference/GLOSSARY.md ]; then \
+	  echo "*** WARNING: glossary.scm is newer than reference/GLOSSARY.md."; \
+	  echo "***   The glossary appendix may be STALE.  Reload the prover, then make."; \
 	fi
 	@if [ ../structures.scm -nt ../reference/STRUCTURE-INDEX.md ]; then \
 	  echo "*** WARNING: structures.scm is newer than reference/STRUCTURE-INDEX.md."; \

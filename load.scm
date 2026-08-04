@@ -450,6 +450,11 @@
     ;; Needs interactive + driver-kit (use-induction); must precede
     ;; theorem-library/nn-order-proof and coord-block-estimate-proof.
     "theorem-library/nn-order-basics"
+    ;; rr-recip-order -- the L1 rung of the loose-ends ladder: a * 0 = 0,
+    ;; 0 < 1, the product of positives is positive, and the one everything
+    ;; analytic waits on, 0 < a => 0 < recip a.  Needs order-predicates (`<'),
+    ;; order-lemmas (the rr-lt-* family), the ineq oracle and driver-kit.
+    "theorem-library/rr-recip-order"
     ;; calc -- the directive/chain checker (notes-27): ground a goal (REL L0 Ln)
     ;; by a chain of intermediaries, proving each link (crs / ineq+bridge / cited)
     ;; and composing them (cong / iff / order composers).  A composite over the

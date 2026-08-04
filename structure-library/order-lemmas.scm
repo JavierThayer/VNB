@@ -57,6 +57,17 @@
 ;;; treats order atoms; it is now guarded on NN, which is what its name always
 ;;; implied and its formula never said.
 
+;;; Trichotomy of the strict order.  MOVED HERE 2026-08-04 from
+;;; theorem-library/deriv-constant-proof.scm, where it had been declared inside
+;;; a calculus proof: everything elementary loads before that file and so could
+;;; not cite it.  Same statement, same warrant.
+(support 'rr-lt-trichotomy
+  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+     (OR (< u v) (OR (= u v) (< v u))))))))
+(warrant! 'rr-lt-trichotomy 'well-known
+  "RR is totally ordered: for u,v in RR exactly one of u<v, u=v, v<u holds.")
+(category! 'rr-lt-trichotomy 'analysis)
+
 (support 'rr-lt-implies-le
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
      (IMPLIES (< x y) (<= x y)))))))

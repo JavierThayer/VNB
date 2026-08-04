@@ -18,13 +18,13 @@
 ;;; driver-kit.scm.  dc-rr-of! and dc-up-eq!, below, stay here: they close over
 ;;; this proof's own a, b, MGOAL and TYPAND.
 
-;;; --- warranted support: trichotomy of the strict order on RR ---
-(add-to-pss 'rr-lt-trichotomy
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (OR (< u v) (OR (= u v) (< v u))))))))
-(warrant! 'rr-lt-trichotomy 'well-known
-  "RR is totally ordered: for u,v in RR exactly one of u<v, u=v, v<u holds.")
-(category! 'rr-lt-trichotomy 'analysis)
+;;; rr-lt-trichotomy USED TO BE DECLARED HERE, in the middle of a calculus
+;;; proof, and that is why nothing earlier could cite it: theorem-library files
+;;; load in dependency order, so an elementary order fact declared at the
+;;; differentiation arc is invisible to every elementary file above it
+;;; (rr-recip-order's third case died on `fact: unknown theorem').  It now lives
+;;; with the rest of the rr-lt-* family, in structure-library/order-lemmas.scm.
+;;; (2026-08-04)
 
 ;;; --- warranted support: a point strictly between two reals is real ---
 ;;; (Curried, so forward `fact' detaches each premise -- no AND antecedent.)

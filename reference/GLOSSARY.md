@@ -35,7 +35,7 @@ glossary reader's question.  At the REPL: `(glossary 'NAME)`, or
 
 a kernel term-former
 
-mentioned by 238 result(s) -- see `BY-OPERATOR.md`
+mentioned by 241 result(s) -- see `BY-OPERATOR.md`
 
 ### `+`  *(operator)*
 
@@ -61,7 +61,7 @@ reads: $1 is less than $2
 
 defined by `<` 
 
-mentioned by 129 result(s) -- see `BY-OPERATOR.md`
+mentioned by 132 result(s) -- see `BY-OPERATOR.md`
 
 ### `<=`  *(primitive)*
 
@@ -978,7 +978,7 @@ reads: $1 is in $2
 
 a kernel relation
 
-mentioned by 2576 result(s) -- see `BY-OPERATOR.md`
+mentioned by 2580 result(s) -- see `BY-OPERATOR.md`
 
 ### `ineq`  *(tactic)*
 
@@ -2726,7 +2726,7 @@ a kernel term-former
 
 a structure slot
 
-mentioned by 45 result(s) -- see `BY-OPERATOR.md`
+mentioned by 46 result(s) -- see `BY-OPERATOR.md`
 
 ### `reduce`  *(defined-fn)*
 
