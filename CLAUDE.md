@@ -401,8 +401,15 @@ number-systems.scm now carries `binary-minus-def` (`(- a b) == a + (- b)`), stam
 difference in the library. `rr-sub-in-rr` is now PROVEN `modulo 0` in
 theorem-library/binary-minus-laws.scm, and that alone shrank **ten** bills (the whole
 differentiation/MVT/Taylor arc), because every one of them differences two reals.
-The same question is still open for `/`, which is parser sugar for `(* x (recip y))`
-while several quoted supports carry a literal `/` head with no axiom.
+The same question was open for `/` and is now CLOSED the same way (verified
+2026-08-04): number-systems.scm:107 carries `binary-divide-def`,
+`(/ a b) == a * recip(b)`, stamped `definitional` and `declare-named-only!`
+(its left side matches every quotient in the library, so firing it live would
+rewrite all arithmetic into recip form). The 14 quoted supports that carry a
+literal `/` head -- `bdd-fn-*`, the `product-metric` weights, `young-inequality`,
+`holder-finite`, `amgm-2-sqrt`, `sqrt-rpow` -- are therefore about the real
+quotient now, not an uninterpreted binary operator. Writing `recip` directly is
+still the better habit in new statements.
 
 Two consequences worth keeping in view. **The archimedean property is now derivable**
 (`nn-unbounded-in-rr` in order-predicates.scm was re-tiered `well-known` -> `informal`
