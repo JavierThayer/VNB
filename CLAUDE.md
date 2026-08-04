@@ -309,7 +309,7 @@ belongs in `driver-kit.scm`.
                          `calculus/finite-ball-subcover-proof` IS loaded (load.scm:787),
                          and load.scm's per-file environment containment covers
                          `calculus/` exactly because such files can be loaded
-    reference/           GENERATED (PSS.md, THEOREMS.md, ...) -- never hand-edit
+    reference/           GENERATED (PSS.md, THEOREMS.md, GLOSSARY.md, ...) -- never hand-edit
     scratchpad/          throwaway drivers (untracked)
 
 Also on disk, not described above: `prove-scripts/`, `stress-tests/`, `examples/`,

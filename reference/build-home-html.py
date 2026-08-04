@@ -33,6 +33,7 @@ REF_LINKS = [
     ("Proof Support Set", "PSS.html",                "theorems excused from the VNB test, accepted on a warrant"),
     ("Fingerprint Index", "FINGERPRINT-INDEX.html",  "results bucketed by conclusion skeleton"),
     ("Tactics",           "TACTICS.html",            "interactive proof commands, each with a one-line gloss"),
+    ("Glossary",          "GLOSSARY.html",           "every name in VNB, A to Z -- what it is, how it reads, where it is declared"),
     ("Structure Graph",   "structure-graph.html",    "refines & view-as relations, clickable"),
 ]
 # Workbench: (heading, [(label, fn-name, blurb), ...]).  Emacs is ONLY for work

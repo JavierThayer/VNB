@@ -35,6 +35,7 @@ DOCS = [
     ("Theorems & axioms",  "THEOREMS.md",         "the full installed catalog"),
     ("Definitions",        "DEFINITIONS.md",      "term & predicate definitions"),
     ("Operators",          "OPERATORS.md",        "the operator census: every head as function / functoid / predicate / primitive"),
+    ("Glossary",           "GLOSSARY.md",         "every name in VNB -- structures, predicates, functoids, accessors, tactics -- in one alphabetical list"),
     ("Functoids",          "FUNCTORS.md",         "structure-to-structure constructions"),
     ("Proof Support Set",  "PSS.md",              "theorems excused from the VNB test, accepted on a warrant"),
     ("By operator",        "BY-OPERATOR.md",      "results indexed by the operator they mention"),

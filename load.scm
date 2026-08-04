@@ -949,6 +949,11 @@
     ;; every result it lists is installed; emits reference/<TOPIC>.md, which the
     ;; end-of-load build-reference-html.py turns into hub cards.
     "theorem-library/reference-topics"
+    ;; The alphabetical glossary: (glossary), (glossary 'NAME), GLOSSARY.md.
+    ;; Reads the constant registry, the operator table, the functoid registry,
+    ;; the structure/instance/view tables, the theorem table and the tactic
+    ;; registry, so it must load after all of them.
+    "glossary"
     ;; LAST: every view is a functor, and this proves it.  It needs every view
     ;; declared (views.scm, normed-vector-space.scm) and the tactic layer, so it
     ;; goes at the end.  It asserts nothing -- each functoriality theorem is
@@ -1203,6 +1208,12 @@
 
 ;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
 (write-tactics-md)
+
+;; Regenerate GLOSSARY.md: every NAME in the system -- structures, instances,
+;; views, predicates, functoids, accessors, defined constants, kernel heads and
+;; tactics -- in one alphabetical list.  Runs after every registry is populated
+;; and after (catalog), whose *theorem-table* the usage counts read.
+(write-glossary-md)
 
 ;; Regenerate emacs/vnb-commands.lisp (the command-completion catalog) from the
 ;; same registry, so the M-x/button surface can never drift from (tactics).
