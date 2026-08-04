@@ -53,6 +53,45 @@
 ;;; definitional citations resolves to nothing, so only asserted leaves count.
 (define *pd-citing-verbs* '(mac mac-h ta bc* fact))
 
+;;; -----------------------------------------------------------------------
+;;; THE ORACLE INVENTORY  (2026-08-04)
+;;;
+;;; A bill answers "which ASSERTED FACTS does this proof rest on".  It says
+;;; nothing about the other half of the trust surface: the DECISION PROCEDURES.
+;;; `ineq' (Fourier-Motzkin/Farkas), `arith', `crs'/`rs'/`simp' (ring
+;;; normalisation) and `sos' are trusted CODE -- sound on their domain, but
+;;; believed rather than checked, and they leave no leaf.  So
+;;;
+;;;     ;; qed rr-zero-lt-one: proven modulo 0
+;;;
+;;; read "unconditional", when what it means is "unconditional given that the
+;;; Farkas engine is right" -- that proof IS one `ineq' call and nothing else.
+;;; The bill now carries the oracles too, transitively, exactly as the debt is
+;;; carried: a proof that cites a theorem closed by `ineq' inherits `ineq'.
+;;;
+;;; The verbs are listed HERE rather than read from *tactic-kind* (tactics-help)
+;;; because that file loads near the END of *vnb-files*, long after the first
+;;; theorem-library proof calls record-proof-debt!.  load.scm compares the two
+;;; lists at the end of the load and complains if they have drifted -- the same
+;;; arrangement as kernel-rules-audit.
+(define *pd-oracle-verbs* '(arith rs crs simp ineq sos))
+
+(define *proof-oracles* (make-equal-hash-table))   ; proven name -> (verb ...)
+
+;;; The oracles a script invokes DIRECTLY.
+(define (script-oracles script)
+  (pd-uniq (filter (lambda (v) (memq v *pd-oracle-verbs*)) (map car script))))
+
+;;; The oracles NAME rests on, transitively.  Mirrors debt-of: an asserted or
+;;; primitive leaf invokes nothing, a proven citation contributes its own set.
+(define (oracles-of name)
+  (let ((src (view-specialized-source name)))
+    (if src
+        (oracles-of src)
+        (if (eq? (provenance-of name) 'proven)
+            (hash-table-ref/default *proof-oracles* name '())
+            '()))))
+
 ;;; The set of names a proof script directly cites.  A compound-macete arg
 ;;; (e.g. (mac '(series m1 m2))) is NOT a bare name; we log it as an
 ;;; uncredited citation rather than silently dropping or mis-crediting it.
@@ -119,6 +158,12 @@
                 (and (not (eq? c name))
                      (not (eq? (provenance-of c) 'definitional))))
               cits))
+    ;; the ORACLE inventory, transitively -- own calls plus every citation's
+    (hash-table-set! *proof-oracles* name
+      (let loop ((cs cits) (ors (script-oracles *proof-script*)))
+        (if (null? cs)
+            ors
+            (loop (cdr cs) (pd-union ors (oracles-of (car cs)))))))
     (let loop ((cs cits) (bill '()))
       (if (null? cs)
           (begin (hash-table-set! *proof-debt* name bill) bill)
@@ -254,6 +299,16 @@
   (if (null? bill) (display "0") (pd-display-set bill))
   (unless (null? bill)
     (display "  [trust: ") (display (debt-trust-level bill)) (display "]"))
+  ;; ... and the trusted CODE it leans on, which leaves no leaf in the bill.
+  (let ((ors (hash-table-ref/default *proof-oracles* name '())))
+    (unless (null? ors)
+      (display "  [oracles: ")
+      (let loop ((o ors) (first #t))
+        (unless (null? o)
+          (unless first (display " "))
+          (display (car o))
+          (loop (cdr o) #f)))
+      (display "]")))
   (newline))
 
 ;;; (2) REPL query.
@@ -272,6 +327,12 @@
        (display "asserted leaf -- rests on itself")
        (let ((w (warrant-of name)))
          (display "  [warrant: ") (display (if w (car w) 'NONE)) (display "]"))))
+    (let ((ors (oracles-of name)))
+      (unless (null? ors)
+        (display "\n  trusted code: ") (write ors)
+        (display "  -- decision procedures the proof leans on; they leave no")
+        (display "\n                leaf in the bill, so `modulo 0' means")
+        (display " `modulo 0 AND these'")))
     (newline)
     bill))
 
@@ -428,6 +489,16 @@
                   (display "### ") (display p)
                   (display "  *(trust: ") (display (debt-trust-level bill))
                   (display ")*\n\n")
+                  (let ((ors (hash-table-ref/default *proof-oracles* p '())))
+                    (unless (null? ors)
+                      (display "*trusted code: ")
+                      (let lp ((o ors) (first #t))
+                        (unless (null? o)
+                          (unless first (display ", "))
+                          (display "`") (display (car o)) (display "`")
+                          (lp (cdr o) #f)))
+                      (display "* -- decision procedures, sound on their domain")
+                      (display " but believed rather than checked; they leave no leaf below.\n\n")))
                   (if (null? bill)
                       (display "proven **modulo 0** -- unconditional.\n\n")
                       (begin

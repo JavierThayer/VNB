@@ -421,8 +421,23 @@ reads every literal with the `#e` prefix, so `0.1` is `1/10` -- NOT
 gate stays; its remaining job is rejecting inexactness arithmetic PRODUCED
 (exp/sin/cos/magnitude), which is a different thing from a literal that was read.
 
-Still `asserted` and arguably in the same class, awaiting the same call: the `card-*`
-axioms (cardinality.scm).
+The `card-*` axioms (cardinality.scm) were listed here as "still asserted, awaiting the
+same call". That is STALE, and the truth is worse than either state: **the shelf is
+SPLIT** (measured 2026-08-04). `primitive` -- so contributing {} to every bill --
+are `card-empty`, `card-finite-bij`, `card-image-injection`, `card-in-ord`,
+`card-insert`, `card-segment`, `card-union-disjoint`. Still `asserted/well-known`
+are `card-singleton`, `card-subset-nn`, `card-power-nn`, `interval-card`,
+`interval-card-in-nn`. So `card-insert` (add an element, the cardinal goes up) is
+trusted base while `card-singleton` (a one-element set has cardinal 1) is debt.
+No decision produced that split; it is the residue of two sessions.
+
+It matters more than the tidiness suggests, and the reason is in cardinality.scm's
+own header: **CARD is AXIOMATISED, not defined.** The intended meaning -- the least
+ordinal in bijection with X -- is stated there in prose and declined in the code. So
+`primitive` here does not say "this is what cardinality IS" the way it does for the
+ordinals; it says "we are assuming the theory of cardinals", and no bill records it.
+Either define CARD (the L1/L2 route in the Zermelo ladder makes that possible) or
+demote the seven back to `asserted` + `warrant!` so the assumption is visible.
 
 **`trust: none` is the WEAKEST tier.** `*pd-trust-order*` (proof-debt.scm) is
 `(none hand-wave well-known reference informal proof)`, worst to best, and

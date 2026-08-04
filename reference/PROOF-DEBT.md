@@ -84,6 +84,8 @@ proven **modulo 0** -- unconditional.
 
 ### binomial-theorem  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `bt-one-in-carr` -- *warrant well-known:* ring ONE lies in CARR.
@@ -481,6 +483,8 @@ proven modulo:
 
 ### clear-col-upto  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `identmat-left-identity` -- *warrant proof:* I_m P = P: the (i,c) entry is sum_j delta_ij P_jc, whose only surviving term
@@ -562,6 +566,8 @@ proven modulo:
 - `nn-le-imp-neq-succ` -- *warrant well-known:* j <= k => j /= succ k for j,k in NN (succ k > k >= j).
 
 ### clear-first-col  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -645,6 +651,8 @@ proven modulo:
 
 ### clear-first-row  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `identmat-left-identity` -- *warrant proof:* I_m P = P: the (i,c) entry is sum_j delta_ij P_jc, whose only surviving term
@@ -721,6 +729,8 @@ proven modulo:
 - `nn-le-imp-neq-succ` -- *warrant well-known:* j <= k => j /= succ k for j,k in NN (succ k > k >= j).
 
 ### clear-pivot-cross  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -837,6 +847,8 @@ proven modulo:
 - `succ-nn-minus-1` -- *warrant well-known:* succ(i-1) = i for i >= 1 (monus by 1 then succ is the identity on [1,inf)).
 
 ### clear-row-upto  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -974,17 +986,23 @@ proven modulo:
 
 ### deriv-const  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `const-continuous-at` -- *warrant well-known:* Constant map: for any eps>0 any delta>0 works, since d(c,c)=0<=eps.
 
 ### deriv-identity  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `const-continuous-at` -- *warrant well-known:* Constant map: for any eps>0 any delta>0 works, since d(c,c)=0<=eps.
 
 ### deriv-pos-strictly-increasing  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -1044,6 +1062,8 @@ proven modulo:
 
 ### deriv-zero-const-up  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `ccint-membership` -- *warrant proof:* Separation: x in CCINT(a,b) = SEP(x in RR | a<=x and x<=b) iff x in RR and
@@ -1097,6 +1117,8 @@ proven modulo:
 - `rr-diff-zero-eq` -- *warrant well-known:* 0=u-v => u=v.
 
 ### deriv-zero-implies-constant  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -1236,6 +1258,8 @@ proven modulo:
 
 ### diagonalization  *(trust: well-known)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `inf-subset-nn-unbounded` -- *warrant well-known:* An infinite subset T of NN is unbounded: if every y in T satisfied y <= u,
@@ -1260,6 +1284,8 @@ proven modulo:
 - `nn-le-succ-cases` -- *warrant well-known:* j <= succ k => j <= k or j = succ k, for j,k in NN (discreteness of NN).
 
 ### diff-implies-continuous  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -1642,6 +1668,8 @@ proven modulo:
 
 ### euclidean-ideal-has-generator  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `gauge-is-degree` -- *warrant proof:* GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(CARR s, NN) and has division-
@@ -1691,6 +1719,8 @@ proven modulo:
 - `ball-point-ne` -- *warrant well-known:* If p in W and W = B(s,c,r) then d(c,p) /= r (ball-membership, modulo the eq).
 
 ### free-length-le-generators  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -1955,6 +1985,8 @@ proven modulo:
 proven **modulo 0** -- unconditional.
 
 ### generalized-mvt  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3063,6 +3095,8 @@ proven modulo:
 
 ### mvt  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nary-times-2` -- **NO WARRANT**
@@ -3112,6 +3146,8 @@ proven modulo:
 - `rr-diff-zero-eq` -- *warrant well-known:* 0=u-v => u=v.
 
 ### mvt-lower-bound  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3164,6 +3200,8 @@ proven modulo:
    a nonnegative factor; the right-multiply form of rr-le-scale-nonneg).
 
 ### mvt-upper-bound  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3221,6 +3259,8 @@ proven **modulo 0** -- unconditional.
 
 ### nn-2-cancel  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `zz-is-integral-domain` -- **NO WARRANT**
@@ -3228,12 +3268,16 @@ proven modulo:
 
 ### nn-3-cancel  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `zz-is-integral-domain` -- **NO WARRANT**
 - `integral-domain-cancel-zero` -- **NO WARRANT**
 
 ### nn-3-div-square  *(trust: well-known)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3249,6 +3293,8 @@ proven modulo:
 
 ### nn-3-not-succ  *(trust: well-known)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-zero-le` -- *warrant well-known:* 0 is the least natural number.
@@ -3263,6 +3309,8 @@ proven modulo:
 
 ### nn-add-cancel  *(trust: none)*
 
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `binplus-in-fun-zz` -- *warrant well-known:* Closure of a primitive numeric domain under its arithmetic operation; standard.
@@ -3273,6 +3321,8 @@ proven modulo:
 - `group-assoc` -- **NO WARRANT**
 
 ### nn-add-le-mono  *(trust: well-known)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3287,6 +3337,8 @@ proven modulo:
 
 ### nn-even-square  *(trust: well-known)*
 
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-mul-succ` -- *warrant reference:* The recursion equation defining * on NN: a * succ(b) = a*b + a.  Peano.
@@ -3300,6 +3352,8 @@ proven modulo:
 - `nn-le-imp-neq-succ` -- *warrant well-known:* j <= k => j /= succ k for j,k in NN (succ k > k >= j).
 
 ### nn-flatten  *(trust: none)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3370,6 +3424,8 @@ proven **modulo 0** -- unconditional.
 
 ### nn-le-zero-is-zero  *(trust: well-known)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
@@ -3381,6 +3437,8 @@ proven **modulo 0** -- unconditional.
 
 ### nn-lt-double  *(trust: well-known)*
 
+*trusted code: `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-pos-of-nonzero` -- *warrant well-known:* k in NN, k/=0 => 0<k: 0<=k (nn-zero-le) and 0/=k give the strict inequality.
@@ -3389,6 +3447,8 @@ proven modulo:
 
 ### nn-lt-triple  *(trust: well-known)*
 
+*trusted code: `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-pos-of-nonzero` -- *warrant well-known:* k in NN, k/=0 => 0<k: 0<=k (nn-zero-le) and 0/=k give the strict inequality.
@@ -3396,6 +3456,8 @@ proven modulo:
 - `co-lt-eq-trans` -- *warrant well-known:* a<b then b=c gives a<c.
 
 ### nn-mul-cancel  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3411,6 +3473,8 @@ proven modulo:
 
 ### nn-nested-subset-chain  *(trust: well-known)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
@@ -3418,6 +3482,8 @@ proven modulo:
 - `nn-le-succ-cases` -- *warrant well-known:* j <= succ k => j <= k or j = succ k, for j,k in NN (discreteness of NN).
 
 ### nn-nested-subset-chain-j  *(trust: well-known)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3427,9 +3493,13 @@ proven modulo:
 
 ### nn-nonzero-is-succ  *(trust: proof)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven **modulo 0** -- unconditional.
 
 ### nn-one-is-succ-zero  *(trust: proof)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven **modulo 0** -- unconditional.
 
@@ -3445,6 +3515,8 @@ proven modulo:
 
 ### nn-parity  *(trust: reference)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-mul-succ` -- *warrant reference:* The recursion equation defining * on NN: a * succ(b) = a*b + a.  Peano.
@@ -3456,6 +3528,8 @@ proven modulo:
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 
 ### nn-parity-exclusive  *(trust: well-known)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3471,6 +3545,8 @@ proven modulo:
 
 ### nn-plus-three  *(trust: reference)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-add-succ` -- *warrant reference:* The recursion equation defining + on NN: a + succ(b) = succ(a + b).  Peano.
@@ -3479,6 +3555,8 @@ proven modulo:
    symbols unconnected.  Retire it by constructing + as the recursion it is.
 
 ### nn-plus-two  *(trust: reference)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3509,6 +3587,8 @@ proven modulo:
 
 ### nn-succ-plus-one  *(trust: reference)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-add-succ` -- *warrant reference:* The recursion equation defining + on NN: a + succ(b) = succ(a + b).  Peano.
@@ -3518,9 +3598,13 @@ proven modulo:
 
 ### nn-three-is-succ3-zero  *(trust: proof)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven **modulo 0** -- unconditional.
 
 ### nn-three-mul-succ  *(trust: reference)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3534,6 +3618,8 @@ proven modulo:
 
 ### nn-trichotomy-3  *(trust: reference)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-mul-succ` -- *warrant reference:* The recursion equation defining * on NN: a * succ(b) = a*b + a.  Peano.
@@ -3546,9 +3632,13 @@ proven modulo:
 
 ### nn-two-is-succ-succ-zero  *(trust: proof)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven **modulo 0** -- unconditional.
 
 ### nn-two-mul-succ  *(trust: reference)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3562,9 +3652,13 @@ proven modulo:
 
 ### nn-zero-or-succ  *(trust: proof)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven **modulo 0** -- unconditional.
 
 ### nnfst-nnpair  *(trust: none)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3589,6 +3683,8 @@ proven modulo:
 
 ### nnfst-type  *(trust: none)*
 
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-add-succ` -- *warrant reference:* The recursion equation defining + on NN: a + succ(b) = succ(a + b).  Peano.
@@ -3612,6 +3708,8 @@ proven modulo:
 
 ### nnpair-cross  *(trust: well-known)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
@@ -3626,6 +3724,8 @@ proven modulo:
 
 ### nnpair-diag-bound  *(trust: well-known)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-one-le-succ` -- *warrant well-known:* 1 <= succ n for every n in NN.
@@ -3639,6 +3739,8 @@ proven modulo:
 - `nn-succ-mono` -- *warrant well-known:* a <= b => succ a <= succ b.
 
 ### nnpair-inj  *(trust: none)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3663,6 +3765,8 @@ proven modulo:
 
 ### nnpair-onto  *(trust: reference)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-add-succ` -- *warrant reference:* The recursion equation defining + on NN: a + succ(b) = succ(a + b).  Peano.
@@ -3675,6 +3779,8 @@ proven modulo:
 proven **modulo 0** -- unconditional.
 
 ### nnsnd-nnpair  *(trust: none)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3698,6 +3804,8 @@ proven modulo:
 - `group-assoc` -- **NO WARRANT**
 
 ### nnsnd-type  *(trust: none)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3739,6 +3847,8 @@ proven modulo:
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
 
 ### norm-as-sup  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -3858,6 +3968,8 @@ proven modulo:
 
 ### norm-bounded-by-functionals  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `dual-norm-is-bound` -- *warrant reference:* The operator norm DUAL-NORM(m,f) satisfies |f(x)| <= ||f|| ||x|| for every x
@@ -3916,6 +4028,8 @@ proven **modulo 0** -- unconditional.
 
 ### pivot-clears-col  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `entry-in-carrier` -- *warrant well-known:* The (i,j) entry of an m-by-n matrix over X lies in X.
@@ -3965,6 +4079,8 @@ proven modulo:
    would give a < a.  Elementary order on NN.
 
 ### pivot-clears-row  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -4023,6 +4139,8 @@ proven modulo:
 
 ### pivot-col-reduce  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `entry-in-carrier` -- *warrant well-known:* The (i,j) entry of an m-by-n matrix over X lies in X.
@@ -4052,6 +4170,8 @@ proven modulo:
 - `elem-g-entry-off-l-diag` -- *warrant reference:* G[r,k,l]_{cc} = 1 when c/=l (the diagonal, r-slot inactive).
 
 ### pivot-row-reduce  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -4314,6 +4434,8 @@ proven modulo:
 
 ### rr-complete  *(trust: none)*
 
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `rr-is-metric-space` -- **NO WARRANT**
@@ -4341,6 +4463,8 @@ proven **modulo 0** -- unconditional.
 
 ### rr-mul-pos  *(trust: well-known)*
 
+*trusted code: `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `rr-lt-scale-pos` -- *warrant well-known:* Multiplying a strict inequality by a strictly positive c keeps it strict
@@ -4348,9 +4472,13 @@ proven modulo:
 
 ### rr-mul-zero  *(trust: proof)*
 
+*trusted code: `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven **modulo 0** -- unconditional.
 
 ### rr-recip-pos  *(trust: well-known)*
+
+*trusted code: `arith`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -4364,9 +4492,13 @@ proven **modulo 0** -- unconditional.
 
 ### rr-zero-lt-one  *(trust: proof)*
 
+*trusted code: `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven **modulo 0** -- unconditional.
 
 ### smith-diagonalization  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -4500,6 +4632,8 @@ proven modulo:
 - `nn-minus-1-inj` -- *warrant well-known:* i /= j and 1 <= i,j => i-1 /= j-1 (monus by 1 is injective on [1,inf)).
 
 ### smith-staircase  *(trust: well-known)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -4710,6 +4844,8 @@ proven modulo:
 
 ### spans-fg-step  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-one-in` -- *warrant well-known:* 1 = succ 0 in NN.
@@ -4837,6 +4973,8 @@ proven modulo:
 - `unitrow-entry-at` -- *warrant reference:* UNITROW(A,n,i)_{1,i} = 1 (entry-of-matof with the IF condition true).
 
 ### spans-submodule-fg  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -5027,6 +5165,8 @@ proven modulo:
 
 ### sqrt2-irrational  *(trust: none)*
 
+*trusted code: `arith`, `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `nn-mul-succ` -- *warrant reference:* The recursion equation defining * on NN: a * succ(b) = a*b + a.  Peano.
@@ -5046,6 +5186,8 @@ proven modulo:
 - `rr-lt-le-trans` -- *warrant well-known:* x < y <= z gives x < z (transitivity; x=z would force y=x against x<y).
 
 ### sqrt3-irrational  *(trust: none)*
+
+*trusted code: `arith`, `crs`, `ineq`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -5082,6 +5224,8 @@ proven **modulo 0** -- unconditional.
 proven **modulo 0** -- unconditional.
 
 ### submodule-fg  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -5225,6 +5369,8 @@ proven **modulo 0** -- unconditional.
 
 ### sum-expansion  *(trust: well-known)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `bt-neg1-in-zz` -- *warrant well-known:* -1 in ZZ.
@@ -5366,6 +5512,8 @@ proven modulo:
 
 ### taylor-lagrange  *(trust: none)*
 
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `taylor-g-in-fun` -- *warrant reference:* G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of
@@ -5445,6 +5593,8 @@ proven modulo:
 
 ### totally-bounded-has-cauchy-subsequence  *(trust: none)*
 
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `null-rr-seq-exists` -- *warrant well-known:* k |-> 2^-k is in FUN(NN,RR), is positive, and 2^-k -> 0 (Archimedean / geometric
@@ -5496,6 +5646,8 @@ proven modulo:
    discharges every premise by in-context `fact' auto-detach.
 
 ### trinum-mono  *(trust: well-known)*
+
+*trusted code: `arith`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -5562,6 +5714,8 @@ proven modulo:
    the restriction of the summand to S, so it factors through pointwise equality.
 
 ### vector-taylor-remainder-bound  *(trust: none)*
+
+*trusted code: `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -5752,6 +5906,8 @@ proven **modulo 0** -- unconditional.
 
 ### zz-add-cancel  *(trust: none)*
 
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `binplus-in-fun-zz` -- *warrant well-known:* Closure of a primitive numeric domain under its arithmetic operation; standard.
@@ -5762,6 +5918,8 @@ proven modulo:
 - `group-assoc` -- **NO WARRANT**
 
 ### zz-bezout  *(trust: none)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 
@@ -5787,6 +5945,8 @@ proven modulo:
 
 ### zz-bezout-set-is-ideal  *(trust: none)*
 
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
+
 proven modulo:
 
 - `zz-is-commutative-ring` -- **NO WARRANT**
@@ -5798,6 +5958,8 @@ proven modulo:
 - `bintimes-in-fun-zz` -- *warrant well-known:* Closure of a primitive numeric domain under its arithmetic operation; standard.
 
 ### zz-is-ring  *(trust: well-known)*
+
+*trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 
 proven modulo:
 

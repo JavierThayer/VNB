@@ -1449,6 +1449,20 @@
                     (display ";;     ") (display (cadr e)) (newline))
                   iv))))
 
+;; The oracle list in proof-debt.scm must stay in step with the trust taxonomy
+;; in tactics-help.scm, which loads far too late for proof-debt to read it.
+;; Same arrangement as kernel-rules-audit: keep two lists, and compare them here.
+(let* ((declared (sort *pd-oracle-verbs* (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+       (tagged   (sort (tactics--of-kind 'oracle) (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
+  (if (equal? declared tagged)
+      (display ";; oracle-inventory: ok (proof-debt's oracle list = the `oracle' tactic kind)\n")
+      (begin
+        (display "\n;; ORACLE-INVENTORY DRIFT: *pd-oracle-verbs* (proof-debt.scm) and the\n")
+        (display ";; `oracle' entries of *tactic-kind* (tactics-help.scm) disagree.  A bill\n")
+        (display ";; can then under-report the trusted code a proof leans on.\n")
+        (display ";;   proof-debt says: ") (write declared) (newline)
+        (display ";;   tactic-kind says: ") (write tagged) (newline))))
+
 (let ((amb (accessor-index-audit)))
   (if (null? amb)
       (display ";; accessor-index-audit: ok (every accessor name denotes one slot)\n")
