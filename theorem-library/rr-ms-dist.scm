@@ -43,7 +43,7 @@
 (sp (make-wff (forall-guarded '(u_ v_) '((IN u_ RR) (IN v_ RR))
       '(== ((DIST RR-MS) u_ v_) (abs (- u_ v_))))))
 (rmd-di*)
-(mac 'RR-MS@DIST)
+(slot 'DIST)
 (lam-b)
 (qrfl)
 (qed 'rr-ms-dist)

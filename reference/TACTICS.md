@@ -374,6 +374,14 @@ Reduce a structure ACCESSOR to its projection: (CARR s) becomes (NTH 1 s).  The 
 
 Replace an accessor by the tuple position it stands for: (CARR s) is slot 1, so it becomes (NTH 1 s).  Pair it with nth-r to compute on a concrete structure -- (MUL ZZ-RING) reduces to bintimes.  It refuses anything that is not an accessor.  (Technically: fires the accessor's macete, which def-structure installs at declaration.  It exists so that ALL accessor reductions go through ONE procedure: the reduction is currently global and unconditional -- index k for every argument -- and making it structure-relative later, guarded by IS-X(s), should change this door and not its callers.  accessor-callsite-audit fails the suite if any file fires an accessor macete by name.)
 
+### slot-h
+
+    (slot-h 'acc hyp)
+
+Reduce a structure ACCESSOR to its projection inside a cited HYPOTHESIS -- `slot', hypothesis-side.
+
+The hypothesis-side door of slot: replace (PTS RR-MS) by the tuple position it stands for inside an assumption you cite, instead of in the goal.  Before it existed, a proof needing that reduction in a hypothesis reached for mac-h with the accessor macete's own name (rr-ms@pts) -- firing an accessor macete BY NAME, which is what the accessor pin (accessor-callsite-audit) exists to prevent, and which kept the suite red.  It refuses anything that is not an accessor, and it ERRORS rather than guess when the hypothesis mentions two different instances of the same accessor: after the first rewrite the assumption is a different formula, so a silent half-rewrite would be the failure mode.  (Technically: slot's projection-macete lookup run over the cited assumption, then cmd-apply-macete-to-assumption.)
+
 ### macm
 
     (macm 'name)

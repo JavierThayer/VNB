@@ -819,9 +819,10 @@
             (functor-projection-macete (car arg) acc))
            (else #f)))))
 
-(define (slot--instance-macetes acc)
+;;; The instance/functor projection macetes for ACC occurring anywhere in E.
+(define (slot--instance-macetes-of e0 acc)
   (let ((seen '()))
-    (let walk ((e (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))))
+    (let walk ((e e0))
       (when (pair? e)
         (let ((m (slot--projection-macete e acc)))
           (if m
@@ -829,6 +830,11 @@
               (for-each walk (cdr e))))
         (if (pair? (car e)) (walk (car e)))))
     (reverse seen)))
+
+(define (slot--instance-macetes acc)
+  (slot--instance-macetes-of
+   (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+   acc))
 
 (define (slot acc)
   (vnb-guard
@@ -847,6 +853,38 @@
                         (if (or (vnb-warning? p) (vnb-error? p))
                             p
                             (loop (cdr ms) p))))))))))))
+
+;; slot-h -- `slot' for a HYPOTHESIS: the same one door, hypothesis-side.
+;;
+;; `slot' walks the GOAL for (ACC INSTANCE) occurrences and fires their
+;; projection macetes; a proof that needs the same reduction inside a cited
+;; assumption had no door at all and reached for `mac-h 'rr-ms@pts' -- the very
+;; by-name firing the accessor pin (test-suite: "no file fires an accessor
+;; macete by name") exists to prevent, and the reason that pin was failing.
+;;
+;; ERRORS rather than guessing when the hypothesis mentions two different
+;; instances of the same accessor: after the first rewrite the assumption is a
+;; different formula, so the second macete would have to be re-located, and a
+;; silent half-rewrite is exactly the failure mode the `dk-' rule forbids.  Name
+;; the macetes with mac-h in that case, deliberately.
+(define (slot-h acc f)
+  (vnb-guard
+    (lambda ()
+      (unless (eq? (constant-head? acc) 'accessor)
+        (error "slot-h: not a registered accessor -- use `mac-h' for anything else" acc))
+      (vnb--run! 'slot-h (list acc f)
+        (lambda ()
+          (let ((raw (->raw-formula/idx f)))
+            (if (vnb-warning? raw)
+                raw
+                (let ((ms (slot--instance-macetes-of raw acc)))
+                  (cond
+                    ((null? ms) (cmd-apply-macete-to-assumption *ps* acc raw))
+                    ((null? (cdr ms))
+                     (cmd-apply-macete-to-assumption *ps* (car ms) raw))
+                    (else
+                     (error "slot-h: the hypothesis mentions two instances of"
+                            acc ms)))))))))))
 
 ;; macm -- goal-side `mac' that SPAWNS a conditional macete's unmet side
 ;; conditions as minor-premise subgoals (the IMPS apply-macete-with-minor-
