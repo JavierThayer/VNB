@@ -91,7 +91,7 @@
 <p><em>Warrant (well-known):</em> A finite set has 2^|X| subsets -- finitely many.  This is what makes the sum over POWER(X) on the right of the expansion a genuine FINSUM.  (The exact count |POWER(X)| = 2^|X| is deliberately NOT stated: the 2-arg `power&#x27; head is overloaded -- power-exp reads (power 2 n) as the function space FUN(n,2), not the number -- so the exact-value support would be ambiguous.  Finiteness is all the induction needs.)</p>
 <h4 id="p-card-singleton">card-singleton</h4>
 <pre>forall([x in set], card({x}) = succ(0))</pre>
-<p><em>Warrant (well-known):</em> A singleton has cardinality one.  {x} is in bijection with ord-segment(1) = {0} via 0 |-&gt; x, and card is read off that bijection: card({x}) = succ(0).</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;card-singleton). In VNB the singleton {x} is (PAIR x x) -- the Kuratowski convention degenerates to {{x}} -- and its cardinality is succ 0.  Archive predates the E -&gt; IDEN rename and the ==-sweep, so it records the argument only.</p>
 <h4 id="p-card-subset-nn">card-subset-nn</h4>
 <pre>forall([x], x in set and card(x) in nn implies forall([s], s in set and forall([z in s], z in x) implies card(s) in nn))</pre>
 <p><em>Warrant (well-known):</em> A subset of a finite set is finite (its cardinality is bounded by the superset&#x27;s).  Standard; the RHS terms PROD-RING(R,a,S) and PROD-RING(R,b,X\S) need S and X\S finite to be well-defined.</p>
@@ -172,10 +172,10 @@
 <p><em>Warrant (informal):</em> Same induction as finsum-type: SUM-AG seeds at (IDEN m) -- in the carrier by the identity law -- and folds with (OPR m), which closes on the carrier by the binary-operation typing.  Neither step uses inverses, so the abelian-group proof carries over to a bare commutative monoid unchanged.</p>
 <h4 id="p-finsum-empty">finsum-empty</h4>
 <pre>forall([ag, f], finsum(ag, f, empty-set) == iden(ag))</pre>
-<p><em>Warrant (well-known):</em> The empty sum is the group identity.  FINSUM is the SUM-AG fold over an enumeration of S; at cardinality 0 there are no summands and the fold returns its seed (IDEN ag).  Definitional in all but name.</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion: mac FINSUM exposes SUM-AG over CARD(EMPTY-SET), card-empty rewrites that to 0, and sum-ag-zero collapses the empty sum to the identity.  Script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;finsum-empty).  The archive predates the E -&gt; IDEN accessor rename and the ==-sweep, so it is a record of the argument rather than a runnable script -- which is why this is <code>informal&#x27; and not </code>proof&#x27;.</p>
 <h4 id="p-finsum-singleton">finsum-singleton</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], finsum(ag, f, {x}) = f(x)))</pre>
-<p><em>Warrant (well-known):</em> A one-element sum is its single term.  FINSUM enumerates {x} as a length-1 sequence and folds (IDEN ag) with f(x); the identity law collapses (IDEN ag) MUL f(x) to f(x).</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;finsum-singleton). FINSUM over {x} = (PAIR x x) unfolds through card-singleton (|{x}| = 1) to a one-term SUM-AG, which is f(x).  Archive predates the E -&gt; IDEN rename and the ==-sweep, so it records the argument and does not run as-is.</p>
 <h4 id="p-finsum-type">finsum-type</h4>
 <pre>forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], finsum(ag, f, s) in carr(ag))))</pre>
 <p><em>Warrant (informal):</em> Closure of the finite sum on the carrier.  Induction on card(S): the fold seeds at (IDEN ag), in (CARR ag) by the identity law, and each step applies (OPR ag), which closes on (CARR ag) by the group&#x27;s binary-operation typing. No inverses used -- the same argument as finsum-comm-monoid-type.</p>
@@ -241,19 +241,19 @@
 <p><em>Warrant (well-known):</em> Set-extensionality on ord-segment-nn-succ: k in ORD-SEGMENT(succ n) iff k in ORD-SEGMENT(n) or k = n; the RHS is membership in the union with the singleton {n} = (PAIR n n).</p>
 <h4 id="p-ord-segment-nn-subset">ord-segment-nn-subset</h4>
 <pre>forall([m in nn, k in ord-segment(m)], k in nn)</pre>
-<p><em>Warrant (well-known):</em> Members of a finite ordinal segment are naturals.  ord-segment(m) = {k : k &lt; m}; NN is an initial segment of the ordinals, closed downward, so every k below m in NN is itself in NN.</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;ord-segment-nn-subset). A member of ORD-SEGMENT(m) for m in NN is an ordinal below a natural, hence itself a natural, by NN-induction on m.  Archive predates the E -&gt; IDEN rename and the ==-sweep, so it records the argument rather than running.</p>
 <h4 id="p-ord-segment-nn-succ">ord-segment-nn-succ</h4>
 <pre>forall([n, k], n in nn implies k in ord-segment(succ(n)) iff k in ord-segment(n) or k = n)</pre>
-<p><em>Warrant (well-known):</em> The successor segment adds exactly its top point: ord-segment(succ n) = ord-segment(n) union {n}.  Immediate from succ(n) = n union {n} on the ordinals, so k &lt; succ(n) iff k &lt; n or k = n.</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;ord-segment-nn-succ). The NN-flavoured successor characterisation: ORD-SEGMENT(succ n) is ORD-SEGMENT(n) with n adjoined, which is the ordinal successor read at NN. Archive predates the E -&gt; IDEN rename and the ==-sweep.</p>
 <h4 id="p-ord-segment-self">ord-segment-self</h4>
 <pre>forall([n in nn], not(n in ord-segment(n)))</pre>
-<p><em>Warrant (well-known):</em> No ordinal lies below itself.  ord-segment(n) = {k : k &lt; n}, and k &lt; n is irreflexive (the strict order is well-founded), so n is not among its own predecessors.</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;ord-segment-self). Anti-reflexivity: n in ORD-SEGMENT(n) would make the ordinal n a member of itself, against foundation.  Archive predates the E -&gt; IDEN rename and the ==-sweep.</p>
 <h4 id="p-ord-segment-trans">ord-segment-trans</h4>
 <pre>forall([m in nn, k, i], i in ord-segment(k) and k in ord-segment(m) implies i in ord-segment(m))</pre>
-<p><em>Warrant (well-known):</em> Transitivity of the segment order: i in ord-segment(k) and k in ord-segment(m) mean i &lt; k and k &lt; m, hence i &lt; m, i.e. i in ord-segment(m). This is transitivity of the strict ordinal order (membership on the von Neumann ordinals).</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;ord-segment-trans). Transitivity of segment membership is transitivity of the ordinal order, read through ORD-SEGMENT.  Archive predates the E -&gt; IDEN rename and the ==-sweep.</p>
 <h4 id="p-ord-segment-zero-no-members">ord-segment-zero-no-members</h4>
 <pre>forall([k], not(k in ord-segment(0)))</pre>
-<p><em>Warrant (well-known):</em> ord-segment(0) is empty.  ord-segment(n) = {k : k &lt; n}; nothing lies below 0, the least ordinal, so it has no members.</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;ord-segment-zero-no-members).  ORD-SEGMENT(0) is the set of ordinals below 0, which is empty.  Base case for the NN inductions above.  Archive predates the E -&gt; IDEN rename and the ==-sweep.</p>
 <h4 id="p-power-real-closed">power-real-closed</h4>
 <pre>forall([x in rr, n in nn], x ^ n in rr)</pre>
 <p><em>Warrant (well-known):</em> Induction on n: x^0 = 1 in RR (power-zero); x^{n+1} = x * x^n stays in RR since RR is closed under multiplication (power-succ).  A candidate to discharge into a formal `proof&#x27; later.</p>
@@ -304,7 +304,7 @@
 <p><em>Warrant (informal):</em> On the naturals the arithmetic successor and the ordinal successor agree. NN is constructed as the ordinals below omega; for n in NN the arithmetic succ(n) and the ordinal succ_ord(n) = n union {n} name the same element. Equality by the coherence of the NN construction with the ordinals.</p>
 <h4 id="p-union-empty-left">union-empty-left</h4>
 <pre>forall([a in set], union(empty-set, a) = a)</pre>
-<p><em>Warrant (well-known):</em> Unioning with the empty set changes nothing.  By extensionality: y is in (empty-set union a) iff y is in empty-set or y is in a iff y is in a, since nothing is in empty-set.</p>
+<p><em>Warrant (informal):</em> Mechanically proven before the 2026-05-27 PSS promotion; script archived at archive/proven-theorems-archive.scm (prove-and-install! &#x27;union-empty-left). Extensionality: nothing is in EMPTY-SET, so membership in the union is membership in A.  Archive predates the E -&gt; IDEN rename and the ==-sweep.</p>
 <h3 id="PSS__inequalities-order-83">Inequalities &amp; order  (83)</h3>
 <h4 id="p-amgm-2-sqrt">amgm-2-sqrt</h4>
 <pre>forall([a], a in rr and 0 &lt;= a implies forall([b], b in rr and 0 &lt;= b implies sqrt(a * b) &lt;= /(a + b, 2)))</pre>

@@ -2663,9 +2663,13 @@ proven modulo:
    abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
    (dimensions m, n, q recovered from SIZE P, SIZE u).
 - `interval-1-0-empty` -- *warrant well-known:* [1,0] is empty: i in [1,0] gives 1 <= i and i <= 0, hence 1 <= 0, false in NN.
-- `finsum-empty` -- *warrant well-known:* The empty sum is the group identity.  FINSUM is the SUM-AG fold over an
-   enumeration of S; at cardinality 0 there are no summands and the fold
-   returns its seed (IDEN ag).  Definitional in all but name.
+- `finsum-empty` -- *warrant informal:* Mechanically proven before the 2026-05-27 PSS promotion: mac FINSUM exposes
+   SUM-AG over CARD(EMPTY-SET), card-empty rewrites that to 0, and sum-ag-zero
+   collapses the empty sum to the identity.  Script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'finsum-empty).  The
+   archive predates the E -> IDEN accessor rename and the ==-sweep, so it is a
+   record of the argument rather than a runnable script -- which is why this is
+   `informal' and not `proof'.
 - `mvag-id` -- *warrant proof:* identity of a module's vector abelian group is the module's zero vector.
 
 ### matact-identmat  *(trust: none)*
@@ -4837,9 +4841,13 @@ proven modulo:
    abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
    (dimensions m, n, q recovered from SIZE P, SIZE u).
 - `interval-1-0-empty` -- *warrant well-known:* [1,0] is empty: i in [1,0] gives 1 <= i and i <= 0, hence 1 <= 0, false in NN.
-- `finsum-empty` -- *warrant well-known:* The empty sum is the group identity.  FINSUM is the SUM-AG fold over an
-   enumeration of S; at cardinality 0 there are no summands and the fold
-   returns its seed (IDEN ag).  Definitional in all but name.
+- `finsum-empty` -- *warrant informal:* Mechanically proven before the 2026-05-27 PSS promotion: mac FINSUM exposes
+   SUM-AG over CARD(EMPTY-SET), card-empty rewrites that to 0, and sum-ag-zero
+   collapses the empty sum to the identity.  Script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'finsum-empty).  The
+   archive predates the E -> IDEN accessor rename and the ==-sweep, so it is a
+   record of the argument rather than a runnable script -- which is why this is
+   `informal' and not `proof'.
 - `mvag-id` -- *warrant proof:* identity of a module's vector abelian group is the module's zero vector.
 
 ### spans-fg-step  *(trust: none)*
@@ -4987,9 +4995,13 @@ proven modulo:
    abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
    (dimensions m, n, q recovered from SIZE P, SIZE u).
 - `interval-1-0-empty` -- *warrant well-known:* [1,0] is empty: i in [1,0] gives 1 <= i and i <= 0, hence 1 <= 0, false in NN.
-- `finsum-empty` -- *warrant well-known:* The empty sum is the group identity.  FINSUM is the SUM-AG fold over an
-   enumeration of S; at cardinality 0 there are no summands and the fold
-   returns its seed (IDEN ag).  Definitional in all but name.
+- `finsum-empty` -- *warrant informal:* Mechanically proven before the 2026-05-27 PSS promotion: mac FINSUM exposes
+   SUM-AG over CARD(EMPTY-SET), card-empty rewrites that to 0, and sum-ag-zero
+   collapses the empty sum to the identity.  Script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'finsum-empty).  The
+   archive predates the E -> IDEN accessor rename and the ==-sweep, so it is a
+   record of the argument rather than a runnable script -- which is why this is
+   `informal' and not `proof'.
 - `mvag-id` -- *warrant proof:* identity of a module's vector abelian group is the module's zero vector.
 - `nn-one-in` -- *warrant well-known:* 1 = succ 0 in NN.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
@@ -5239,9 +5251,13 @@ proven modulo:
    abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
    (dimensions m, n, q recovered from SIZE P, SIZE u).
 - `interval-1-0-empty` -- *warrant well-known:* [1,0] is empty: i in [1,0] gives 1 <= i and i <= 0, hence 1 <= 0, false in NN.
-- `finsum-empty` -- *warrant well-known:* The empty sum is the group identity.  FINSUM is the SUM-AG fold over an
-   enumeration of S; at cardinality 0 there are no summands and the fold
-   returns its seed (IDEN ag).  Definitional in all but name.
+- `finsum-empty` -- *warrant informal:* Mechanically proven before the 2026-05-27 PSS promotion: mac FINSUM exposes
+   SUM-AG over CARD(EMPTY-SET), card-empty rewrites that to 0, and sum-ag-zero
+   collapses the empty sum to the identity.  Script archived at
+   archive/proven-theorems-archive.scm (prove-and-install! 'finsum-empty).  The
+   archive predates the E -> IDEN accessor rename and the ==-sweep, so it is a
+   record of the argument rather than a runnable script -- which is why this is
+   `informal' and not `proof'.
 - `mvag-id` -- *warrant proof:* identity of a module's vector abelian group is the module's zero vector.
 - `nn-one-in` -- *warrant well-known:* 1 = succ 0 in NN.
 - `nn-le-succ` -- *warrant well-known:* k <= succ k on NN.
@@ -6189,7 +6205,7 @@ Discharging a high-count leaf to a real proof unlocks the most.
 - `empty-is-open` (4) [warrant: proof] -> metric-top-functorial, metric-top-is-metrizable-top-space, metric-top-is-top-space, metrizable-iff-bounded-metrizable
 - `entry-of-snoc-col` (4) [warrant: reference] -> matact-snoc, spans-fg-step, spans-submodule-fg, submodule-fg
 - `entry-of-snoc-row` (4) [warrant: reference] -> matact-snoc, spans-fg-step, spans-submodule-fg, submodule-fg
-- `finsum-empty` (4) [warrant: well-known] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
+- `finsum-empty` (4) [warrant: informal] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
 - `inter-of-opens-open` (4) [warrant: proof] -> metric-top-functorial, metric-top-is-metrizable-top-space, metric-top-is-top-space, metrizable-iff-bounded-metrizable
 - `interval-1-0-empty` (4) [warrant: well-known] -> matact-empty-vzero, spans-fg-base, spans-submodule-fg, submodule-fg
 - `nn-pos-of-nonzero` (4) [warrant: well-known] -> nn-lt-double, nn-lt-triple, sqrt2-irrational, sqrt3-irrational

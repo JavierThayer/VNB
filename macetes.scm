@@ -1090,11 +1090,47 @@
   ;; it to the human citation stored/rendered as before, and stash any machine
   ;; anchor separately.  A bare string passes through untouched (legacy form),
   ;; so every existing warrant and every renderer is unaffected.
+  ;; A SECOND warrant for the same name must not silently DOWNGRADE it.
+  ;; Nine facts were downgraded exactly that way (found 2026-08-05):
+  ;; card-singleton, finsum-empty, finsum-singleton, union-empty-left and the
+  ;; five ord-segment-* each carry an `informal' warrant in their own file --
+  ;; several naming an archived MACHINE PROOF -- and theorem-library/
+  ;; founder-warrants.scm, which loads later, re-warranted them `well-known'.
+  ;; Since `informal' OUTRANKS `well-known' (a rigorous paper proof beats a
+  ;; textbook fact asserted with no argument -- the order is
+  ;; (cons 'none *warrant-kinds*), which is what proof-debt's *pd-trust-order*
+  ;; is defined as), every bill
+  ;; citing them reported a WORSE tier than the library can justify.
+  ;; So: keep the better warrant, and say so.  A deliberate downgrade is still
+  ;; possible -- it just has to be visible.
+  (let* ((old (hash-table-ref/default *warrants* name #f))
+         (rank (lambda (k) (let loop ((ks (cons 'none *warrant-kinds*)) (i 0))
+                             (cond ((null? ks) 0)
+                                   ((eq? (car ks) k) i)
+                                   (else (loop (cdr ks) (+ i 1)))))))
+         (downgrade? (and old (memq kind *warrant-kinds*)
+                          (memq (car old) *warrant-kinds*)
+                          (< (rank kind) (rank (car old))))))
+    (when downgrade?
+      (display ";VNB warning: warrant! would DOWNGRADE ") (display name)
+      (display " from ") (display (car old)) (display " to ") (display kind)
+      (display " -- keeping ") (display (car old))
+      (display " (a later warrant may only improve a fact's standing;")
+      (display " to lower it, remove the better one).\n")))
   (let ((text* text) (anchor #f))
     (when (eq? kind 'reference)
       (call-with-values (lambda () (reference-parse text))
         (lambda (human a) (set! text* human) (set! anchor a))))
-    (hash-table-set! *warrants* name (cons kind text*))
+    (let* ((old (hash-table-ref/default *warrants* name #f))
+           (rank (lambda (k) (let loop ((ks (cons 'none *warrant-kinds*)) (i 0))
+                               (cond ((null? ks) 0)
+                                     ((eq? (car ks) k) i)
+                                     (else (loop (cdr ks) (+ i 1)))))))
+           (keep-old? (and old (memq kind *warrant-kinds*)
+                           (memq (car old) *warrant-kinds*)
+                           (< (rank kind) (rank (car old))))))
+      (unless keep-old?
+        (hash-table-set! *warrants* name (cons kind text*))))
     (if anchor
         (hash-table-set! *reference-anchors* name anchor)
         (hash-table-delete! *reference-anchors* name))

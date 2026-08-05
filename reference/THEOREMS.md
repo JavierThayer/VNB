@@ -336,7 +336,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `bt-succ-minus-1` — forall([n in zz], succ(n) - 1 = n)  _[warrant: well-known]_
 - `bt-sum-in-carr-zz` — forall([r], is-commutative-ring(r) implies forall([g in fun(zz, carr(r)), n in nn], sum(r, g, n) in carr(r)))  _[warrant: well-known]_
 - `card-power-nn` — forall([x], x in set and card(x) in nn implies card(power(x)) in nn)  _[warrant: well-known]_
-- `card-singleton` — forall([x in set], card({x}) = succ(0))  _[warrant: well-known]_
+- `card-singleton` — forall([x in set], card({x}) = succ(0))  _[warrant: informal]_
 - `card-subset-nn` — forall([x], x in set and card(x) in nn implies forall([s], s in set and forall([z in s], z in x) implies card(s) in nn))  _[warrant: well-known]_
 - `carrier-is-open` — forall([s], is-metric-space(s) implies is-open(s, pts(s)))  _[warrant: proof]_
 - `cauchy-block-estimate` — forall([s], is-metric-space(s) implies forall([c in pts(s), r], pos-rr(r) implies forall([u], u = ball(s, c, r) implies forall([y in u, z in u, d], pos-rr(d) implies forall([eps in rr], r <= d implies d + d = eps implies (dist(s))(y, z) <= eps)))))  _[warrant: proof]_
@@ -502,7 +502,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `finsum-comm-monoid-well-defined` — forall([s in set], card(s) in nn implies forall([m], is-comm-monoid(m) implies forall([f in fun(s, carr(m)), enm in bijection(ord-segment(card(s)), s)], finsum(m, f, s) = sum-ag(m, enum-fam(m, f, enm, card(s)), card(s)))))  _[warrant: informal]_
 - `finsum-congruence` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f, g], forall([z in s], f(z) = g(z)) implies finsum(ag, f, s) = finsum(ag, g, s))))  _[warrant: well-known]_
 - `finsum-embed` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([s2 in set], card(s2) in nn implies forall([f in fun(s2, carr(ag))], s subset s2 implies forall([z], z in s2 and not(z in s) implies f(z) = iden(ag)) implies finsum(ag, f, s2) = finsum(ag, f, s)))))  _[warrant: well-known]_
-- `finsum-empty` — forall([ag, f], finsum(ag, f, empty-set) == iden(ag))  _[warrant: well-known]_
+- `finsum-empty` — forall([ag, f], finsum(ag, f, empty-set) == iden(ag))  _[warrant: informal]_
 - `finsum-fubini` — forall([ag], is-abelian-group(ag) implies forall([x], x in set and card(x) in nn implies forall([y], y in set and card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, x, finsum(ag, vnb-lambda(j, y, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, y, finsum(ag, vnb-lambda(i, x, f([i, j])), x)), y)))))  _[warrant: informal]_
 - `finsum-fubini-c` — forall([ag], is-abelian-group(ag) implies forall([x in set], card(x) in nn implies forall([y in set], card(y) in nn implies forall([f in fun(cartesian(x, y), carr(ag))], finsum(ag, vnb-lambda(i, x, finsum(ag, vnb-lambda(j, y, f([i, j])), y)), x) = finsum(ag, vnb-lambda(j, y, finsum(ag, vnb-lambda(i, x, f([i, j])), x)), y)))))  _[warrant: well-known]_
 - `finsum-insert` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, {k}), carr(m))], finsum(m, f, union(x, {k})) = (opr(m))(finsum(m, f, x), f(k))))))  _[warrant: well-known]_
@@ -519,7 +519,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `finsum-ring-distrib-right-gen` — forall([rng], is-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], (mul(rng))(finsum(ring-additive-ag(rng), f, s), r) = finsum(ring-additive-ag(rng), vnb-lambda(z, s, (mul(rng))(f(z), r)), s))))  _[warrant: well-known]_
 - `finsum-ring-scalar-zz` — forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), c in zz, a in carr(rng)], (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a)) = zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a))))  _[warrant: well-known]_
 - `finsum-single-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s], forall([j in s], not(j = i0) implies f(j) = iden(ag)) implies finsum(ag, f, s) = f(i0))))  _[warrant: well-known]_
-- `finsum-singleton` — forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], finsum(ag, f, {x}) = f(x)))  _[warrant: well-known]_
+- `finsum-singleton` — forall([ag], is-abelian-group(ag) implies forall([x in set, f in fun({x}, carr(ag))], finsum(ag, f, {x}) = f(x)))  _[warrant: informal]_
 - `finsum-sq-nonneg` — forall([s], s in set and card(s) in nn implies forall([a in fun(s, rr)], 0 <= finsum(commutative-ring-additive-ag(rr-normed-field), vnb-lambda(i, s, a(i) * a(i)), s)))  _[warrant: well-known]_
 - `finsum-two-support` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag)), i0 in s, i1 in s], not(i0 = i1) implies forall([j in s], not(j = i0) implies not(j = i1) implies f(j) = iden(ag)) implies finsum(ag, f, s) = (opr(ag))(f(i0), f(i1)))))  _[warrant: well-known]_
 - `finsum-type` — forall([ag], is-abelian-group(ag) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(ag))], finsum(ag, f, s) in carr(ag))))  _[warrant: informal]_
@@ -683,11 +683,11 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `open-mapping-theorem` — forall([m1, fam1, m2, fam2, tt], is-frechet-structure(m1, fam1) implies is-frechet-structure(m2, fam2) implies is-cont-lin(m1, fam1, m2, fam2, tt) implies forall([y in vec(m2)], forsome([x in vec(m1)], y = tt(x))) implies is-open-lin-map(m1, fam1, m2, fam2, tt))  _[warrant: reference]_
 - `open-preimage-implies-continuous` — forall([s, t, f], is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) implies forall([v], is-open(t, v) implies is-open(s, preimage(s, f, v))) implies is-continuous(s, t, f))  _[warrant: proof]_
 - `ord-segment-insert` — forall([n in nn], ord-segment(succ(n)) = union(ord-segment(n), {n}))  _[warrant: well-known]_
-- `ord-segment-nn-subset` — forall([m in nn, k in ord-segment(m)], k in nn)  _[warrant: well-known]_
-- `ord-segment-nn-succ` — forall([n, k], n in nn implies k in ord-segment(succ(n)) iff k in ord-segment(n) or k = n)  _[warrant: well-known]_
-- `ord-segment-self` — forall([n in nn], not(n in ord-segment(n)))  _[warrant: well-known]_
-- `ord-segment-trans` — forall([m in nn, k, i], i in ord-segment(k) and k in ord-segment(m) implies i in ord-segment(m))  _[warrant: well-known]_
-- `ord-segment-zero-no-members` — forall([k], not(k in ord-segment(0)))  _[warrant: well-known]_
+- `ord-segment-nn-subset` — forall([m in nn, k in ord-segment(m)], k in nn)  _[warrant: informal]_
+- `ord-segment-nn-succ` — forall([n, k], n in nn implies k in ord-segment(succ(n)) iff k in ord-segment(n) or k = n)  _[warrant: informal]_
+- `ord-segment-self` — forall([n in nn], not(n in ord-segment(n)))  _[warrant: informal]_
+- `ord-segment-trans` — forall([m in nn, k, i], i in ord-segment(k) and k in ord-segment(m) implies i in ord-segment(m))  _[warrant: informal]_
+- `ord-segment-zero-no-members` — forall([k], not(k in ord-segment(0)))  _[warrant: informal]_
 - `permutation-recurrence` — forall([n in nn], card(permutations(succ(n))) = succ(n) * card(permutations(n)))  _[warrant: informal]_
 - `permutations-zero` — card(permutations(0)) = succ(0)  _[warrant: well-known]_
 - `pigeonhole-infinite` — forall([s], s in set and not(card(s) in nn) implies forall([f], f in set and card(f) in nn implies forall([pi in fun(s, f)], forsome([c in f], not(card({x in s: pi(x) = c}) in nn)))))  _[warrant: informal]_
@@ -879,7 +879,7 @@ Results we accept without a machine proof in VNB.  Logically treated as theorems
 - `ter-tout-type` — forall([a], is-ring(a) implies forall([m, n, k, l, p, q, r, row, col], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies r in mat(k, l, carr(a)) implies row in interval(1, m) implies col in interval(1, l) implies vnb-lambda(j, interval(1, n), finsum(ring-additive-ag(a), vnb-lambda(c, interval(1, k), (vnb-lambda(z, cartesian(interval(1, k), interval(1, n)), (mul(a))((mul(a))(entry(p, row, nth(2, z)), entry(q, nth(2, z), nth(1, z))), entry(r, nth(1, z), col))))([c, j])), interval(1, k))) in fun(interval(1, n), carr(ring-additive-ag(a)))))  _[warrant: well-known]_
 - `unif-cauchy-cont-implies-uniform-limit` — forall([s, fam in fun(nn, fun(pts(s), rr))], forall([k in nn], is-continuous(s, rr-ms, fam(k))) implies is-unif-cauchy(s, fam) implies forsome([g in fun(pts(s), rr)], is-continuous(s, rr-ms, g) and converges-uniformly(s, fam, g)))  _[warrant: reference]_
 - `uniformly-continuous-is-continuous` — forall([s, t, f], is-uniformly-continuous(s, t, f) implies is-continuous(s, t, f))  _[warrant: informal]_
-- `union-empty-left` — forall([a in set], union(empty-set, a) = a)  _[warrant: well-known]_
+- `union-empty-left` — forall([a in set], union(empty-set, a) = a)  _[warrant: informal]_
 - `union-of-opens-open` — forall([s], is-metric-space(s) implies forall([a, g], forall([i in a], is-open(s, g(i))) implies is-open(s, big-union(i, a, g(i)))))  _[warrant: proof]_
 - `unitrow-entry-at` — forall([a, n, i in interval(1, n)], entry(unitrow(a, n, i), 1, i) = one(a))  _[warrant: reference]_
 - `unitrow-entry-off` — forall([a, n, i, j], i in interval(1, n) implies j in interval(1, n) implies not(j = i) implies entry(unitrow(a, n, i), 1, j) = zero(a))  _[warrant: reference]_
