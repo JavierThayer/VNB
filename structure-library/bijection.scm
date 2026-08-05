@@ -134,12 +134,25 @@
 
 ;;; The identity on X is a bijection X -> X.
 ;;; Derivable trivially; useful base case in induction proofs.
+;;;
+;;; GUARDED ON SETHOOD, 2026-08-05, and it must be.  Unguarded, at X := ORD this
+;;; asserted that the identity LAMBDOID on a proper class is in BIJECTION(ORD,ORD)
+;;; -- hence, by bijection-in-fun, in FUN(ORD,ORD).  That is exactly what
+;;; pi-lambda-type!'s (IN A SET) obligation exists to prevent (the second half of
+;;; the 2026-08-02 soundness repair, primitive-inferences.scm:1305): an AXIOM
+;;; route around a repaired RULE.  No FALSITY was derivable from it -- the
+;;; library has no unguarded "the domain of a set function is a set", `dom-of-fun'
+;;; (theory.scm:499) being itself guarded on (IN A SET) -- so this was an unsound
+;;; ASSERTION rather than a demonstrated inconsistency.  Nothing in the tree cited
+;;; it, so the guard costs no call site.
 (theory-add-axiom! *current-theory* 'bijection-identity
   '(FORALL X
-     (IN (VNB-LAMBDA x_ X x_) (BIJECTION X X))))
+     (IMPLIES (IN X SET)
+              (IN (VNB-LAMBDA x_ X x_) (BIJECTION X X)))))
 (warrant! 'bijection-identity 'informal
-  "Backward direction of bijection-membership-iff: the identity lambda is in
-   FUN(X,X), injective (lambda(a)=lambda(b) beta-reduces to a=b) and surjective
+  "Backward direction of bijection-membership-iff: for a SET X the identity
+   lambda is in FUN(X,X) (lambda-type: X is a set and x in X gives x in X),
+   injective (lambda(a)=lambda(b) beta-reduces to a=b) and surjective
    (witness z:=w).  Mechanization needs VNB-LAMBDA typing + beta + exists-intro;
    deferred.")
 

@@ -564,6 +564,13 @@
     ;; PROVEN modulo 0 from bijection-membership-iff -- formerly asserted in
     ;; bijection.scm "for direct use" (phantom debt).
     "structure-library/bijection-derived"
+    ;; CARD*, cardinality DEFINED (an IOTA over "least ordinal whose segment A
+    ;; bijects onto") rather than axiomatised, with card*-segment PROVEN from
+    ;; pigeonhole.  A COMPANION name on purpose: CARD cannot be both axiomatised
+    ;; and defined, so the defined constant is built here and the swap is made
+    ;; name by name as each theorem lands.  Needs pigeonhole-segments-gen, the
+    ;; segment bridges, bijection-derived (just above) and bijection-identity.
+    "theorem-library/card-defined"
     ;; The five metric laws (pos/self-zero/zero-eq/sym/triangle), PROVEN by
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).

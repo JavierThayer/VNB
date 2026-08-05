@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-396 operators: 15 functions, 216 functoids, 165 predicates, 0 undeclared.
+397 operators: 15 functions, 217 functoids, 165 predicates, 0 undeclared.
 
 ## Functions  (15)
 
@@ -33,7 +33,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (216)
+## Functoids  (217)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -98,6 +98,12 @@ Declared by: `bintimes-apply` `bintimes-in-fun-cc` `bintimes-in-fun-nn` `bintime
 ### `card`  — characterized by axiom(s)
 
 Declared by: `card-empty` `card-finite-bij` `card-image-injection` `card-in-ord` `card-insert` `card-power-nn` `card-segment` `card-singleton` 
+
+### `card*`  — def-functoid · element/number-valued
+
+> _Reads as:_  the cardinal of a_
+
+    card*(a_) := iota(alpha, alpha in ord and forsome([phi], phi in bijection(a_, ord-segment(alpha))) and forall([beta], <_ord(beta, alpha) implies not(forsome([psi], psi in bijection(a_, ord-segment(beta))))))
 
 ### `carr`  — structure accessor · element (slot value)
 
