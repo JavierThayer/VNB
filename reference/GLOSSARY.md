@@ -75,7 +75,7 @@ characterized by `<`  *(definitional)*:
 forall([x, y], x < y iff x <= y and not(x = y))
 ```
 
-[mentioned by 141 result(s)](BY-OPERATOR.md#<)
+[mentioned by 142 result(s)](BY-OPERATOR.md#<)
 
 ### `<=`  *(primitive)*
 
@@ -1802,7 +1802,7 @@ forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(ca
 
 also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (480 in all)
 
-[mentioned by 2605 result(s)](BY-OPERATOR.md#in)
+[mentioned by 2606 result(s)](BY-OPERATOR.md#in)
 
 ### `ineq`  *(tactic)*
 
@@ -1840,7 +1840,7 @@ forall([x, y, phi], phi in injection(x, y) iff phi in fun(x, y) and forall([a in
 
 also: `card-image-injection` `injection-in-fun` `injection-set-iff` `injection-injective` `injection-from-empty` `bijection-is-injection` `injection-count-falling` `injection-is-injective*` ... (10 in all)
 
-[mentioned by 19 result(s)](BY-OPERATOR.md#injection)
+[mentioned by 20 result(s)](BY-OPERATOR.md#injection)
 
 ### `injective*(f)`  *(predicate)*
 
@@ -4645,7 +4645,7 @@ forall([alpha in ord, x], x in ord-segment(succ_ord(alpha)) iff x in ord-segment
 
 also: `ord-segment-zero` `ord-segment-is-set` `ord-segment-membership` `ord-segment-self` `ord-segment-trans` `ord-segment-insert` `ord-segment-nn-succ` `ord-segment-nn-subset` ... (9 in all)
 
-[mentioned by 58 result(s)](BY-OPERATOR.md#ord-segment)
+[mentioned by 59 result(s)](BY-OPERATOR.md#ord-segment)
 
 ### `orelse`  *(tactic)*
 

@@ -20,8 +20,8 @@
 ;;; point of the DOMAIN of a function, and is stated only for a PERMUTATION of
 ;;; S(succ n) that sends the removed index to n.
 ;;;
-;;; STILL OPEN, and what card-segment will want: the general form, "no injection
-;;; S(m) -> S(n) for n < m", which is another induction over the gap.
+;;; The general form -- no injection S(m) -> S(n) for n < m -- is at the end,
+;;; and is a restriction of the theorem above rather than a second induction.
 
 ;;; --------------------------------------------------------------------
 ;;; ORD-SEGMENT(0) is empty.
@@ -244,3 +244,89 @@
   (ass))
 (qed 'pigeonhole-segments)
 (category! 'pigeonhole-segments 'combinatorial)
+
+;;; --------------------------------------------------------------------
+;;; PIGEONHOLE, general form:  n < m  =>  nothing injects S(m) into S(n).
+;;;
+;;; NOT a second induction -- a RESTRICTION.  n < m gives succ n <= m
+;;; (nn-lt-succ-le, finite-surgery.scm), so every index of S(succ n) is an index
+;;; of S(m); restricting a would-be injection f to S(succ n) -- the composite
+;;; lambda again -- gives an injection S(succ n) -> S(n), which the theorem above
+;;; forbids.  This is the form `card-segment' consumes: for A = S(n) and a
+;;; candidate cardinal beta < n, a bijection A -> S(beta) is in particular an
+;;; injection S(n) -> S(beta), and this kills it.  (Which is why the CARD
+;;; description is written A -> SEGMENT and not the other way round: segment-first
+;;; would need the bijection INVERTED, and INVERSE-BIJ is defined via CHOICE.)
+(sp (make-wff (forall-guarded '(m_ n_) (list '(IN m_ NN) '(IN n_ NN))
+                '(IMPLIES (< n_ m_)
+                   (FORALL f_ (NOT (IN f_ (INJECTION (ORD-SEGMENT m_)
+                                                     (ORD-SEGMENT n_)))))))))
+
+(define pg-Sm '(ORD-SEGMENT m_))
+(define pg-S1 '(ORD-SEGMENT (succ n_)))
+(define pg-S0 '(ORD-SEGMENT n_))
+(define pg-h  (list 'VNB-LAMBDA 'i_ pg-S1 '(f_ i_)))
+
+(define (pg-peel!)
+  (let loop ()
+    (let ((g (dk-goal)))
+      (if (and (pair? g) (memq (car g) '(FORALL IMPLIES NOT)))
+          (begin (di) (loop))))))
+(define (pg-first h)
+  (let ((fs (filter (dk-head? h) (dk-asms))))
+    (if (null? fs) (error "pg-first: nothing with head" h) (car fs))))
+(define (pg-eigen)
+  (let ((fs (filter (lambda (f) (and (pair? f) (eq? (car f) 'IN)
+                                     (symbol? (cadr f)) (equal? (caddr f) pg-S1)))
+                    (dk-asms))))
+    (if (null? fs) (error "pg-eigen: no peeled index in context") (cadr (car fs)))))
+(define (pg-beta!)
+  (let loop ()
+    (let ((eq (pg-first '=)))
+      (if (dk-contains? eq 'VNB-LAMBDA) (begin (lam-b-h eq) (loop))))))
+
+(pg-peel!)
+(fact 'nn-succ-closed 'n_)
+(fact 'nn-subset-ord '(succ n_))
+(mac-h 'injection-membership-iff (list 'IN 'f_ (list 'INJECTION pg-Sm pg-S0)))
+(define pg-cs (dk-split! (pg-first 'AND)))
+(define pg-finj (car (filter (dk-head? 'FORALL) pg-cs)))
+
+;;; an index of S(succ n) is an index of S(m), and f sends it into S(n)
+(define (pg-index! v)
+  (fact 'ord-segment-nn-subset '(succ n_) v)
+  (have! (list '<= v 'n_)
+         (lambda () (mac-h 'seg-mem-succ-le (list 'IN v pg-S1)) (ass)))
+  (have! (list 'IN v pg-Sm)
+         (lambda () (mac 'seg-mem-lt) (fact 'co-le-lt-trans v 'n_ 'm_) (ass)))
+  (fact 'fun-apply-type-c 'f_ pg-Sm pg-S0 v))
+
+(have! (list 'IN pg-h (list 'INJECTION pg-S1 pg-S0))
+       (lambda ()
+         (mac 'injection-membership-iff)
+         (for-each
+          (lambda (l)
+            (dk-focus! l)
+            (if (eq? (car (dk-goal)) 'IN)
+                (for-each
+                 (lambda (mm)
+                   (dk-focus! mm)
+                   (if (eq? (car (dk-goal)) 'FORALL)
+                       (begin (pg-peel!) (pg-index! (pg-eigen)) (ass))
+                       (begin (fact 'ord-segment-is-set '(succ n_)) (ass))))
+                 (dk-opened (lambda () (lam-t))))
+                (begin
+                  (pg-peel!)
+                  (let* ((g (dk-goal)) (va (cadr g)) (vb (caddr g)))
+                    (pg-index! va)
+                    (pg-index! vb)
+                    (pg-beta!)
+                    (let ((t1 (dk-deepest (lambda () (inst+ pg-finj va)))))
+                      (dk-deepest (lambda () (inst+ t1 vb)))
+                      (ass))))))
+          (dk-opened (lambda () (di))))))
+
+(dk-fact! 'pigeonhole-segments 'n_ pg-h)
+(ai (list 'NOT (list 'IN pg-h (list 'INJECTION pg-S1 pg-S0))))
+(qed 'pigeonhole-segments-gen)
+(category! 'pigeonhole-segments-gen 'combinatorial)
