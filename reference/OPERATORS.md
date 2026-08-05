@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-394 operators: 15 functions, 214 functoids, 165 predicates, 0 undeclared.
+396 operators: 15 functions, 216 functoids, 165 predicates, 0 undeclared.
 
 ## Functions  (15)
 
@@ -33,7 +33,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (214)
+## Functoids  (216)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -144,6 +144,12 @@ Declared by: `cc-normed-field-def`
 ### `closure`  — def-functoid · set-valued
 
     closure(s, a) := {x in pts(s): forall([u], is-open(s, u) and x in u implies forsome([y in u], y in a))}
+
+### `collapse-at`  — def-functoid · function-valued
+
+> _Reads as:_  the collapse of NN at k_
+
+    collapse-at(k_) := vnb-lambda(z_, nn, if(k_ < z_, pred(z_), z_))
 
 ### `comb-kk`  — recursively defined (def-by-nn-recursion)
 
@@ -540,6 +546,12 @@ Declared by: `ord-segment-insert` `ord-segment-is-set` `ord-segment-membership` 
     poly(a) := monalg(a, nn-add-monoid)
 
 ### `power`  — kernel term-former
+
+### `pred`  — def-functoid · element/number-valued
+
+> _Reads as:_  the predecessor of n_
+
+    pred(n_) := iota(m_, m_ in nn and succ(m_) = n_)
 
 ### `preimage`  — def-functoid · set-valued
 
