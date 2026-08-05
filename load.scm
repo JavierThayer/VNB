@@ -455,6 +455,11 @@
     ;; analytic waits on, 0 < a => 0 < recip a.  Needs order-predicates (`<'),
     ;; order-lemmas (the rr-lt-* family), the ineq oracle and driver-kit.
     "theorem-library/rr-recip-order"
+    ;; pigeonhole-segments -- Track A of the CARD plan: the finite pigeonhole
+    ;; the definition of CARD needs.  Base case proven; the induction step
+    ;; wants a collapse map the library does not have (see the file).  Needs
+    ;; bijection/injection (structure-library) and driver-kit.
+    "theorem-library/pigeonhole-segments"
     ;; calc -- the directive/chain checker (notes-27): ground a goal (REL L0 Ln)
     ;; by a chain of intermediaries, proving each link (crs / ineq+bridge / cited)
     ;; and composing them (cong / iff / order composers).  A composite over the

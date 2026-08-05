@@ -1519,9 +1519,9 @@ characterized by `is-linear-functional`  *(definitional)*:
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x_ in vec(m), y_ in vec(m)], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in vec(m)], f((act(m))(r_, x_)) = r_ * f(x_)))
 ```
 
-also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (51 in all)
+also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (52 in all)
 
-[mentioned by 506 result(s)](BY-OPERATOR.md#fun)
+[mentioned by 507 result(s)](BY-OPERATOR.md#fun)
 
 
 ## G
@@ -1780,9 +1780,9 @@ characterized by `is-ring`  *(definitional)*:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 ```
 
-also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (474 in all)
+also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (476 in all)
 
-[mentioned by 2580 result(s)](BY-OPERATOR.md#in)
+[mentioned by 2582 result(s)](BY-OPERATOR.md#in)
 
 ### `ineq`  *(tactic)*
 
@@ -1818,9 +1818,9 @@ characterized by `injection-membership-iff`  *(definitional)*:
 forall([x, y, phi], phi in injection(x, y) iff phi in fun(x, y) and forall([a in x, b in x], phi(a) = phi(b) implies a = b))
 ```
 
-also: `card-image-injection` `injection-in-fun` `injection-set-iff` `injection-injective` `injection-from-empty` `bijection-is-injection` `injection-count-falling` `injection-is-injective*` ... (9 in all)
+also: `card-image-injection` `injection-in-fun` `injection-set-iff` `injection-injective` `injection-from-empty` `bijection-is-injection` `injection-count-falling` `injection-is-injective*` ... (10 in all)
 
-[mentioned by 16 result(s)](BY-OPERATOR.md#injection)
+[mentioned by 17 result(s)](BY-OPERATOR.md#injection)
 
 ### `injective*(f)`  *(predicate)*
 
@@ -4625,7 +4625,7 @@ forall([alpha in ord, x], x in ord-segment(succ_ord(alpha)) iff x in ord-segment
 
 also: `ord-segment-zero` `ord-segment-is-set` `ord-segment-membership` `ord-segment-self` `ord-segment-trans` `ord-segment-insert` `ord-segment-nn-succ` `ord-segment-nn-subset` ... (9 in all)
 
-[mentioned by 49 result(s)](BY-OPERATOR.md#ord-segment)
+[mentioned by 51 result(s)](BY-OPERATOR.md#ord-segment)
 
 ### `orelse`  *(tactic)*
 
@@ -5815,7 +5815,7 @@ forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
 
 also: `mpow-succ` `reduce-succ` `sum-ag-succ` `trinum-succ` `comb-kk-succ` `falling-succ` `prod-ord-succ` `factorial-succ` ... (51 in all)
 
-[mentioned by 228 result(s)](BY-OPERATOR.md#succ)
+[mentioned by 229 result(s)](BY-OPERATOR.md#succ)
 
 ### `succ_ord`  *(operator)*
 
