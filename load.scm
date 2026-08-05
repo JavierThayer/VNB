@@ -455,11 +455,6 @@
     ;; analytic waits on, 0 < a => 0 < recip a.  Needs order-predicates (`<'),
     ;; order-lemmas (the rr-lt-* family), the ineq oracle and driver-kit.
     "theorem-library/rr-recip-order"
-    ;; pigeonhole-segments -- Track A of the CARD plan: the finite pigeonhole
-    ;; the definition of CARD needs.  Base case proven; the induction step
-    ;; wants a collapse map the library does not have (see the file).  Needs
-    ;; bijection/injection (structure-library) and driver-kit.
-    "theorem-library/pigeonhole-segments"
     ;; calc -- the directive/chain checker (notes-27): ground a goal (REL L0 Ln)
     ;; by a chain of intermediaries, proving each link (crs / ineq+bridge / cited)
     ;; and composing them (cong / iff / order composers).  A composite over the
@@ -531,6 +526,24 @@
     ;; two obligations are theorems -- nn-nonzero-is-succ and nn-succ-inj, both
     ;; directly above.  Needs nn-parity-proof and equality-basics.
     "theorem-library/nn-pred"
+    ;; The segment/arithmetic bridges: j in S(n) iff j < n, and j in S(succ n)
+    ;; iff j <= n.  Both IFFs, hence live macetes, and they are what lets a
+    ;; finite-segment argument be argued in inequalities instead of chaining
+    ;; three ordinal axioms by hand at every step.  Needs ordinals (primitive)
+    ;; and order-lemmas (the NN discreteness supports).
+    "theorem-library/ord-segment-arith"
+    ;; finite-surgery -- the surgery kit's first member, COLLAPSE-AT(k): the
+    ;; map that deletes k from NN, identity below it and predecessor above.
+    ;; DEFINITIONAL (a def-functoid), so the construction costs no debt; what
+    ;; the bills carry is the NN order supports its arithmetic cites.  Plus the
+    ;; two discreteness read-offs nn-not-lt-le / nn-lt-succ-le.  Needs nn-pred
+    ;; (PRED), ord-segment-arith (the bridges) and nn-order-basics (nn-in-rr).
+    "theorem-library/finite-surgery"
+    ;; pigeonhole-segments -- Track A of the CARD plan: the finite pigeonhole
+    ;; the definition of CARD needs.  Base case proven; the induction step is
+    ;; the consumer of COLLAPSE-AT above.  Needs bijection/injection
+    ;; (structure-library), the surgery kit and driver-kit.
+    "theorem-library/pigeonhole-segments"
     ;; mod-3 arithmetic on NN, the mirror of nn-parity-proof: the trichotomy
     ;; (n = 3k / succ 3k / succ^2 3k), residue-exclusivity (3x /= succ 3y), and the
     ;; linchpin nn-3-div-square (3|p*p => 3|p) -- plus nn-3-cancel / nn-lt-triple.
