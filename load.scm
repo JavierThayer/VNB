@@ -524,6 +524,13 @@
     ;; (2x is never succ(2y)) -- the two halves of "even iff not odd", and the
     ;; engine for parity on ZZ.  Needs nn-arith, order-lemmas, driver-kit.
     "theorem-library/nn-parity-proof"
+    ;; PRED, the predecessor on NN, DEFINED by definite description (IOTA) and
+    ;; undefined at 0.  The finite-surgery kit's collapse map needs it and the
+    ;; tree had no predecessor: NN-MINUS(n,1) is the total monus through ZZ,
+    ;; whose laws are asserted (hand-wave / well-known), while the description's
+    ;; two obligations are theorems -- nn-nonzero-is-succ and nn-succ-inj, both
+    ;; directly above.  Needs nn-parity-proof and equality-basics.
+    "theorem-library/nn-pred"
     ;; mod-3 arithmetic on NN, the mirror of nn-parity-proof: the trichotomy
     ;; (n = 3k / succ 3k / succ^2 3k), residue-exclusivity (3x /= succ 3y), and the
     ;; linchpin nn-3-div-square (3|p*p => 3|p) -- plus nn-3-cancel / nn-lt-triple.
