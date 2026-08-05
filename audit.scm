@@ -539,3 +539,119 @@
       (hash-table-keys *theorem-table*))
     (sort bad (lambda (a b) (string<? (symbol->string (car a))
                                       (symbol->string (car b)))))))
+
+;;; -----------------------------------------------------------------------
+;;; SETHOOD AUDIT (2026-08-05) -- the axiom routes around pi-lambda-type!'s
+;;; (IN A SET) obligation.
+;;;
+;;; WHY IT EXISTS.  The 2026-08-02 soundness repair made the KERNEL refuse to
+;;; certify a VNB-LAMBDA on a proper-class domain into FUN.  It did not, and
+;;; could not, touch the AXIOMS: `bijection-identity' was stated
+;;; `forall X. (VNB-LAMBDA x_ X x_) in BIJECTION(X, X)' with no guard, so at
+;;; X := ORD it asserted -- through bijection-in-fun -- exactly the membership
+;;; the rule refuses.  Repairing a rule does not repair the assertions that
+;;; claim what the rule declines to derive.  This audit enumerates that class of
+;;; defect instead of waiting for the next one.
+;;;
+;;; WHAT IT FLAGS: a universally quantified CLASS parameter, with no (IN X SET)
+;;; guard, standing in a SETHOOD-CARRYING position of a function membership the
+;;; formula ASSERTS.
+;;;
+;;;   positions      FUN(A,B) / INJECTION(A,B): the DOMAIN A only -- a function
+;;;                  with a proper-class domain is a proper class and can be a
+;;;                  member of nothing, while FUN(a, C) for a proper class C is
+;;;                  a perfectly good class of set functions.
+;;;                  BIJECTION / SURJECTION: BOTH, the codomain being the image
+;;;                  of a set.
+;;;   asserted       antecedent occurrences are skipped: a formula that merely
+;;;                  says "if f is in FUN(A,B) then ..." is vacuous, not false,
+;;;                  when A is a proper class.  So are IFF characterisations,
+;;;                  where each direction has the membership as a hypothesis,
+;;;                  and formulas whose guards already mention the variable in
+;;;                  a class position (they PROPAGATE a membership handed to
+;;;                  them rather than manufacture one).
+;;;   bare variable  a compound class term -- (PTS m), (CARR r) -- carries its
+;;;                  own typing and is not flagged.
+;;;
+;;; WHAT IT DOES NOT CHECK, so the gap is visible: IS-FUN / POWER / CARTESIAN
+;;; positions, class parameters bound by FORSOME, and constant classes written
+;;; literally into an axiom.
+;;;
+;;; WARN-ONLY.  The two standing entries are exempt below, with the argument.
+
+(define *sethood-audit-exempt*
+  ;; res-codomain / res-typing (theory.scm): RES(f,b) in FUN(b,...) with b only
+  ;; SUBSET a.  Safe by vacuity of the antecedent -- (IN f (FUN a c)) can hold
+  ;; only for a set a (a function with a proper-class domain is a proper class,
+  ;; hence a member of nothing), and then b subset a is a set by separation.
+  ;; The library cannot DERIVE that step (it has no unguarded "the domain of a
+  ;; set function is a set"; dom-of-fun is itself guarded), which is why the
+  ;; audit cannot see it and the exemption is recorded here instead.
+  '(res-codomain res-typing))
+
+(define *sethood-classes* '(FUN BIJECTION INJECTION SURJECTION))
+
+(define (audit--sethood-args app)
+  (case (car app)
+    ((FUN INJECTION) (list (cadr app)))
+    ((BIJECTION SURJECTION) (cdr app))
+    (else '())))
+
+(define (audit--flatten-and f)
+  (if (and (pair? f) (eq? (car f) 'AND) (= (length f) 3))
+      (append (audit--flatten-and (cadr f)) (audit--flatten-and (caddr f)))
+      (list f)))
+
+(define (audit--split-guards f vars guards)
+  (cond ((and (pair? f) (eq? (car f) 'FORALL) (= (length f) 3))
+         (audit--split-guards (caddr f) (cons (cadr f) vars) guards))
+        ((and (pair? f) (eq? (car f) 'IMPLIES) (= (length f) 3))
+         (audit--split-guards (caddr f) vars
+                              (append (audit--flatten-and (cadr f)) guards)))
+        (else (list vars guards f))))
+
+(define (audit--class-apps f)
+  (cond ((not (pair? f)) '())
+        ((memq (car f) *sethood-classes*)
+         (cons f (apply append (map audit--class-apps (cdr f)))))
+        (else (apply append (map audit--class-apps f)))))
+
+(define (audit--membership-apps f)
+  (cond ((not (pair? f)) '())
+        ((and (eq? (car f) 'IN) (= (length f) 3)
+              (pair? (caddr f)) (memq (car (caddr f)) *sethood-classes*))
+         (cons (caddr f) (apply append (map audit--membership-apps (cdr f)))))
+        (else (apply append (map audit--membership-apps f)))))
+
+;;; ((theorem var class-application) ...) -- empty is the good case.
+(define (sethood-audit)
+  (let ((bad '()))
+    (for-each
+      (lambda (name)
+        (unless (memq name *sethood-audit-exempt*)
+          (let ((f (hash-table-ref/default *theorem-table* name #f)))
+            (if f
+                (let* ((parts  (audit--split-guards f '() '()))
+                       (vars   (car parts))
+                       (guards (cadr parts))
+                       (conseq (caddr parts))
+                       (apps   (if (and (pair? conseq) (eq? (car conseq) 'IFF))
+                                   '()
+                                   (audit--membership-apps conseq))))
+                  (for-each
+                    (lambda (app)
+                      (for-each
+                        (lambda (a)
+                          (if (and (symbol? a)
+                                   (memq a vars)
+                                   (not (member (list 'IN a 'SET) guards))
+                                   (not (there-exists? guards
+                                          (lambda (g)
+                                            (there-exists? (audit--class-apps g)
+                                              (lambda (ap) (memq a (cdr ap))))))))
+                              (set! bad (cons (list name a app) bad))))
+                        (audit--sethood-args app)))
+                    apps))))))
+      (hash-table-keys *theorem-table*))
+    (sort bad (lambda (a b) (string<? (symbol->string (car a))
+                                      (symbol->string (car b)))))))

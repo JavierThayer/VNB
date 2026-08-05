@@ -1481,6 +1481,25 @@
                     (display ";;     ") (display (cadr e)) (newline))
                   iv))))
 
+;; Fifth gate, and the one bijection-identity taught (2026-08-05): a repaired
+;; RULE does not repair the AXIOMS that assert what the rule refuses.  Every
+;; installed formula is checked for a universally quantified class parameter
+;; standing, unguarded, in a sethood-carrying position of a function membership
+;; it ASSERTS.  WARN-ONLY; the exemptions and the coverage gaps are in audit.scm.
+(let ((sh (sethood-audit)))
+  (if (null? sh)
+      (display ";; sethood-audit: ok (no asserted function membership over an unguarded class)\n")
+      (begin
+        (display "\n;; sethood-audit: ") (display (length sh))
+        (display " asserted function membership(s) over an UNGUARDED class parameter --\n")
+        (display ";; at X := ORD each claims a proper-class-domain function exists, which is\n")
+        (display ";; what pi-lambda-type!'s (IN A SET) obligation refuses.  Guard the axiom:\n")
+        (for-each (lambda (e)
+                    (display ";;   ") (display (car e))
+                    (display "  var=") (display (cadr e))
+                    (display "  in=") (write (caddr e)) (newline))
+                  sh))))
+
 ;; The oracle list in proof-debt.scm must stay in step with the trust taxonomy
 ;; in tactics-help.scm, which loads far too late for proof-debt to read it.
 ;; Same arrangement as kernel-rules-audit: keep two lists, and compare them here.
