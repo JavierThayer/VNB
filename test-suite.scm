@@ -4359,9 +4359,19 @@
 ;;; substituted in.  The live case was unfolding SPANS, whose definition has
 ;;; parameters (md n u sm), at an argument mentioning the caller's own `n' / `u'
 ;;; (see subst-free*, expressions.scm).
+;;;
+;;; THE BINDING ORDER BELOW IS LOAD-BEARING, and was wrong until 2026-08-06.
+;;; Both SPANS checks used to list `sm' LAST.  With that order the naive fold --
+;;; the very bug they were written against -- consumes `n' and `u' BEFORE `sm'
+;;; introduces the term containing them, and so returns the identical answer:
+;;; measured, on both fixtures, fold and subst-free* agreed exactly.  Two checks
+;;; that could not fail.  Listing `sm' FIRST is what makes the distinction
+;;; observable; the expected values are unchanged, because a simultaneous
+;;; substitution does not care about the order.  test-suite-negative.scm's
+;;; section 7 pins the fold's wrong answer as a companion control.
 
 (check "subst-free*: a substituted term is not rewritten by a later binding"
-  (lambda () (subst-free* '((n . k) (u . w) (sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
+  (lambda () (subst-free* '((sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1)))) (n . k) (u . w))
                           '(SPANS md n u sm)))
   '(SPANS md k w (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
 
@@ -4373,12 +4383,24 @@
   ;; mac-h 'SPANS on SPANS(md, k, w, sm') must leave sm' alone: its `n' and `u'
   ;; are the CALLER's, not SPANS' parameters.
   (lambda ()
-    (let ((got (apply-subst '((md . md) (n . k) (u . w)
-                              (sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
+    (let ((got (apply-subst '((sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1))))
+                              (md . md) (n . k) (u . w))
                             '(FORALL x_ (IMPLIES (IN x_ sm) (IN (ENTRY u 1 1) sm))))))
       (equal? got '(FORALL x_ (IMPLIES (IN x_ (INTERSECTION sm (SPAN md n (BLOCK u n 1))))
                                        (IN (ENTRY w 1 1)
                                            (INTERSECTION sm (SPAN md n (BLOCK u n 1))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; The must-not-prove corpus.
+;;;
+;;; Everything above asks "does this still work?".  test-suite-negative.scm asks
+;;; the opposite -- "is this still REFUSED?" -- pushing known-false statements
+;;; through the real tactic layer with the whole library loaded and requiring
+;;; the proof state to stay open.  It is loaded LAST because it wants every
+;;; theorem, macete and oracle in place before it attacks.  Its checks use the
+;;; helpers defined at the top of this file and count into the SUMMARY below.
+
+(load "test-suite-negative.scm")
 
 ;;; -----------------------------------------------------------------------
 ;;; Summary
