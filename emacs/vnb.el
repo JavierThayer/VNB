@@ -326,6 +326,28 @@ text after \";Value: \" or \"No return value\" for void results."
      "No return value")
     (t raw)))
 
+(defun vnb--wait-until (proc seconds test)
+  "Block until TEST returns non-nil, for at most SECONDS of REAL time.
+Returns TEST's value, or nil if the time ran out.
+
+Use this rather than counting iterations of `accept-process-output': that
+call returns as soon as output ARRIVES, not after its timeout argument, so
+a loop of the form
+
+    (while (and (< n 180) (not done)) (accept-process-output proc 1) ...)
+
+measures OUTPUT CHUNKS, not seconds.  During the prover's load phase -- a
+steady stream of `;Loading ...' lines -- 180 chunks go by in about a second
+and a half.  That is exactly how `vnb-launch--ensure-prover' used to return
+in the middle of a cold load, after which every caller read load noise where
+it expected a value."
+  (let ((deadline (+ (float-time) seconds))
+        (result nil))
+    (while (and (not (setq result (funcall test)))
+                (< (float-time) deadline))
+      (accept-process-output proc 0.2))
+    result))
+
 (defun vnb--prompt-past-p (pos)
   "Return the prompt kind for the first Scheme REPL prompt after POS, or nil.
 The value is `ok' for a normal `N ]=> ' top-level prompt or `error' for a
@@ -352,11 +374,9 @@ brick the rest of the session."
   (with-current-buffer (process-buffer proc)
     (let ((tries 0))
       (while (and (< tries 6) (eq (vnb--last-prompt-type) 'error))
-        (let ((mark (point-max)) (n 0))
+        (let ((mark (point-max)))
           (process-send-string proc "(restart 1)\n")
-          (while (and (< n 20) (not (vnb--prompt-past-p mark)))
-            (accept-process-output proc 0.5)
-            (setq n (1+ n))))
+          (vnb--wait-until proc 10 (lambda () (vnb--prompt-past-p mark))))
         (setq tries (1+ tries))))))
 
 (defun vnb--extract-error (raw)
@@ -381,13 +401,17 @@ buffer, which comint updates regardless of how accept-process-output works."
       (error "VNB prover is not running.  Use M-x vnb to start it."))
     (with-current-buffer buf
       (let ((start (point-max))
-            (n 0)
             (kind nil))
         (process-send-string proc (concat str "\n"))
-        (while (and (< n (* 2 timeout))
-                    (not (setq kind (vnb--prompt-past-p start))))
-          (accept-process-output proc 0.5)
-          (setq n (1+ n)))
+        (setq kind (vnb--wait-until proc timeout
+                                    (lambda () (vnb--prompt-past-p start))))
+        ;; No prompt inside TIMEOUT: the prover is busy (a cold load, a long
+        ;; tactic).  The buffer text at this point is that work's output, NOT
+        ;; a value -- returning it hands the caller plausible-looking garbage
+        ;; to parse.  Say so instead.
+        (unless kind
+          (error "VNB prover did not answer within %d s (still busy?): %s"
+                 timeout str))
         (let ((raw (buffer-substring-no-properties start (point-max))))
           (if (eq kind 'error)
               ;; The form errored and dropped the prover into a nested error

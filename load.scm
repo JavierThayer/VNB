@@ -560,6 +560,13 @@
     ;; separable, the Ascoli diagonal and countable unions are all blocked on.
     ;; Needs nn-parity-proof (nn-zero-or-succ) and ordinals (def-by-nn-recursion).
     "theorem-library/nn-pairing"
+    ;; compact-metric-is-separable, PROVEN (was a `reference' support in
+    ;; structure-library/separable.scm, retired there).  The gate on the Ascoli
+    ;; arc.  Needs nn-pairing (nn-flatten, immediately above) plus dc-on-nn
+    ;; (dc-on-nn-pred), separable (IS-SEPARABLE, tb-scale-dense-seq),
+    ;; compactness, order-predicates (nn-recip-succ-*), order-lemmas
+    ;; (rr-lt-trans) and fun-apply-type-proof -- all earlier.
+    "theorem-library/compact-separable-proof"
     ;; The three BIJECTION projection lemmas (in-fun / injective / surjective),
     ;; PROVEN modulo 0 from bijection-membership-iff -- formerly asserted in
     ;; bijection.scm "for direct use" (phantom debt).

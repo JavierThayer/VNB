@@ -2836,6 +2836,19 @@
              (or (null? (cdr f))
                  (and (<= (car f) (cadr f)) (loop (cdr f)))))))))
 
+;; The auto-installed `-rev' companions are half the pool (1166 of the 3194
+;; names in (theorem-names) end in `-rev'), so a search that lists them buries
+;; its own answer: (find-thm "-rev") printed 1411 lines.  find--name-search
+;; folds them into their base, as the catalog and the fingerprint index do --
+;; unless the needle mentions rev, when the companions ARE the query.
+(check-true "find-thm folds -rev companions unless the needle asks for them"
+  (lambda ()
+    (let ((folded (find-thm "compact-iff"))
+          (asked  (find-thm "compact-iff-seq-compact-rev")))
+      (and (pair? folded)
+           (not (any suppressed-rev? folded))
+           (equal? asked '(compact-iff-seq-compact-rev))))))
+
 ;;; -----------------------------------------------------------------------
 ;;; describe-structure cards: instances vs refinement classes
 

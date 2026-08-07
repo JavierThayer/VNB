@@ -875,11 +875,30 @@
 ;;; tagged `*' and floated to the top, so the same ranking the buttons use
 ;;; shows up here too.  Returns the matching names, relevant ones first.
 
+;;; The auto-installed `-rev' companions are HALF the pool -- 1166 of the 3194
+;;; names in (theorem-names) end in `-rev', 1411 contain it -- and they are
+;;; derived flips, not independent results.  A search that lists them buries
+;;; its answer: `(find-thm "-rev")' printed 1411 lines.  So collapse them here
+;;; the way every other human-facing listing does (catalog, PSS, DEFINITIONS,
+;;; fingerprint index; interactive.scm's `collapse-rev-names'), tagging each
+;;; surviving base `(+/-)' to say a reverse direction exists.
+;;;
+;;; UNLESS the needle itself mentions "rev", in which case the companions are
+;;; precisely what was asked for and nothing is hidden.
+;;; How many hits to PRINT.  The value returned is always the whole list; this
+;;; caps the wall of names a two-letter needle throws at the REPL ("ab" matches
+;;; 644 of them).  Relevant hits sort first, so the cap keeps the useful end.
+(define *find-show* 40)
+
 (define (find--name-search needle pool relevant)
   (let* ((s      (if (symbol? needle) (symbol->string needle) needle))
-         (hits   (filter (lambda (n)
+         (raw    (filter (lambda (n)
                            (string-search-forward s (symbol->string n) 0))
                          pool))
+         (revs?  (and (string-search-forward "rev" s 0) #t))
+         (hits   (if revs? raw (collapse-rev-names raw)))
+         (folded (- (length raw) (length hits)))
+         (tagged (if revs? (make-equal-hash-table) (rev-companion-base-set raw)))
          (ranked (sort hits
                        (lambda (a b)
                          (let ((ra (if (memq a relevant) 0 1))
@@ -895,8 +914,22 @@
     (newline)
     (for-each (lambda (n)
                 (display ";;   ") (display (if (memq n relevant) "* " "  "))
-                (display n) (newline))
-              ranked)
+                (display n)
+                (when (hash-table-ref/default tagged n #f) (display " (+/-)"))
+                (newline))
+              (if (> (length ranked) *find-show*)
+                  (list-head ranked *find-show*)
+                  ranked))
+    (when (> (length ranked) *find-show*)
+      (display ";;   ... ") (display (- (length ranked) *find-show*))
+      (display " more (the full list is the RETURN value; ")
+      (display "raise *find-show* or narrow the search)")
+      (newline))
+    (when (> folded 0)
+      (display ";;   [") (display folded)
+      (display " `-rev' companion(s) folded into the base above")
+      (display " -- search \"rev\" to list them]")
+      (newline))
     ranked))
 
 (define (find-mac substr)

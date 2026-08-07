@@ -75,7 +75,7 @@ characterized by `<`  *(definitional)*:
 forall([x, y], x < y iff x <= y and not(x = y))
 ```
 
-[mentioned by 142 result(s)](BY-OPERATOR.md#<)
+[mentioned by 143 result(s)](BY-OPERATOR.md#<)
 
 ### `<=`  *(primitive)*
 
@@ -1061,7 +1061,7 @@ dist(cc-ms) == vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))
 
 also: `rr-ms@dist` `nf-metric-distance` `nag-metric-distance-normed-vector-space-as-normed-ag` `rr-ms-dist` `metric-dist-real` `bdd-metric-distance` `nag-metric-distance` 
 
-[mentioned by 76 result(s)](BY-OPERATOR.md#dist)
+[mentioned by 77 result(s)](BY-OPERATOR.md#dist)
 
 ### `dist-seq(m, f, g)`  *(functoid)*
 
@@ -1559,7 +1559,7 @@ forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x
 
 also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (52 in all)
 
-[mentioned by 507 result(s)](BY-OPERATOR.md#fun)
+[mentioned by 508 result(s)](BY-OPERATOR.md#fun)
 
 
 ## G
@@ -1820,7 +1820,7 @@ forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(ca
 
 also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (480 in all)
 
-[mentioned by 2611 result(s)](BY-OPERATOR.md#in)
+[mentioned by 2612 result(s)](BY-OPERATOR.md#in)
 
 ### `ineq`  *(tactic)*
 
@@ -4772,7 +4772,7 @@ characterized by `pos-rr`  *(definitional)*:
 forall([r], pos-rr(r) iff r in rr and 0 <= r and not(0 = r))
 ```
 
-[mentioned by 50 result(s)](BY-OPERATOR.md#pos-rr)
+[mentioned by 51 result(s)](BY-OPERATOR.md#pos-rr)
 
 ### `power`  *(operator)*
 
@@ -5058,7 +5058,7 @@ pts(cc-ms) == cc
 
 also: `rr-ms@pts` `ringoid-setoid-pts` 
 
-[mentioned by 165 result(s)](BY-OPERATOR.md#pts)
+[mentioned by 166 result(s)](BY-OPERATOR.md#pts)
 
 
 ## Q
@@ -6090,7 +6090,7 @@ forall([s], totally-bounded(s) iff is-metric-space(s) and forall([r], r in rr an
 
 also: `compact-implies-totally-bounded` `totally-bounded-has-cauchy-subseq-rad` `totally-bounded-has-cauchy-subsequence` 
 
-[mentioned by 11 result(s)](BY-OPERATOR.md#totally-bounded)
+[mentioned by 12 result(s)](BY-OPERATOR.md#totally-bounded)
 
 ### `trinum`  *(functoid)*
 

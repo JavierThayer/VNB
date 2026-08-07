@@ -49,8 +49,12 @@
 ;;;   credulous-arith    arith-eval-formula := true           0=1, 2+2=5, pred(0)
 ;;;   credulous-ineq     fm-prove := always-infeasible        the false ineq goal
 ;;;
-;;; The runner is scratchpad-local (mnp-mutate.scm); redo it by hand after any
-;;; change to the guards it names.  Two of the five mutations found real defects
+;;; The runner is `./mutation-check' (mutation-check.scm), which installs each
+;;; mutant in a fresh image, re-runs this file, and FAILS if a predicted entry
+;;; stays green -- so the table above is a command, not a comment.  It costs
+;;; about a second and wants a current band.
+;;;
+;;; Two of the five mutations found real defects
 ;;; in the corpus itself on the first pass, which is the whole argument for
 ;;; doing this: `no-domain-match' turned NOTHING red, because the entry attacked
 ;;; only the focus leaf and then because the attack could not prove even
@@ -240,6 +244,36 @@
 (mnp-refuses "0 <= a  |-  0 <= a*a   [TRUE but nonlinear: ineq must decline]"
   '(FORALL a_ (IMPLIES (IN a_ RR) (IMPLIES (<= 0 a_) (<= 0 (* a_ a_)))))
   (lambda () (di) (di) (ignore-errors (ineq (mnp-idx '(<= 0 a_))))))
+
+;;; The STRICT/NON-STRICT boundary of the refutation test, which the entry above
+;;; does not reach.  Found 2026-08-06 by a SUBTLE mutation (worklist item 4 of
+;;; docs/notes-mutation-testing-2026-08-06.md): `con-contradictory?'
+;;; (linear-arith.scm:80) calls a constant constraint k <= 0 contradictory when
+;;; k > 0, and changing that one test to k >= 0 is unsound -- yet it turned
+;;; NOTHING in this corpus red.  The reason is that `a <= b |- b < a' produces
+;;; two constraints that are both positive on `a', so elimination drops them
+;;; one-sided and no constant constraint is ever formed: the boundary was
+;;; untested, not merely untested-by-that-mutant.
+;;;
+;;; This goal does form one.  From a <= b and b <= a, eliminating `a' combines
+;;; them into 0 <= 0, which is satisfiable (a = b) and which the off-by-one
+;;; reads as a contradiction -- and a contradiction closes anything, here the
+;;; false a < b.  Verified both ways: open at baseline, CLOSED under the mutant.
+(mnp-refuses "a <= b, b <= a  |-  a < b   [false: 0 <= 0 is not a contradiction]"
+  '(FORALL a_ (IMPLIES (IN a_ RR) (FORALL b_ (IMPLIES (IN b_ RR)
+     (IMPLIES (<= a_ b_) (IMPLIES (<= b_ a_) (< a_ b_)))))))
+  (lambda () (di) (di) (di)
+    (ignore-errors (ineq (mnp-idx '(<= a_ b_)) (mnp-idx '(<= b_ a_))))
+    (mnp-attack!)))
+
+;;; ... with the same two premises and the same two indices closing a TRUE goal,
+;;; so the refusal above is about the strict conclusion and not about `ineq'
+;;; being inert on this context.
+(mnp-control "a <= b, b <= a  |-  a <= b   [same premises, same indices]"
+  '(FORALL a_ (IMPLIES (IN a_ RR) (FORALL b_ (IMPLIES (IN b_ RR)
+     (IMPLIES (<= a_ b_) (IMPLIES (<= b_ a_) (<= a_ b_)))))))
+  (lambda () (di) (di) (di)
+    (ineq (mnp-idx '(<= a_ b_)) (mnp-idx '(<= b_ a_)))))
 
 (mnp-control "a <= b, b <= c  |-  a <= c   [ineq's own job]"
   '(FORALL a_ (IMPLIES (IN a_ RR) (FORALL b_ (IMPLIES (IN b_ RR)

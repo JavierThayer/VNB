@@ -686,6 +686,10 @@
 ;;; ---- WHAT REMAINS ------------------------------------------------------
 ;;; Nothing in this file.  The re-indexing mechanism is complete: NNPAIR is a
 ;;; bijection NN x NN -> NN (nnpair-onto, nnpair-inj), NNFST/NNSND invert it,
-;;; and nn-flatten delivers the single sequence.  What remains is DOWNSTREAM --
-;;; `compact-metric-is-separable' (structure-library/separable.scm) is still a
-;;; warranted support, and nn-flatten is the fact its proof was missing.
+;;; and nn-flatten delivers the single sequence.  Its first consumer landed on
+;;; 2026-08-07: `compact-metric-is-separable' is PROVEN in
+;;; theorem-library/compact-separable-proof.scm (loaded immediately after this
+;;; file), with nn-flatten collapsing the scale-indexed family of nets into the
+;;; single dense sequence IS-SEPARABLE asks for.  Still downstream and still
+;;; asserted: `coordinatewise-diagonal-subseq' and the countable unions of
+;;; sigma-algebra.scm.

@@ -74,6 +74,20 @@ mkdir -p "$DEST"
 echo "pull-vnb: syncing into $DEST ..."
 rsync -a --delete "${KEEP[@]}" "$STAGE/tree/prover/" "$DEST/"
 
+# ---- 3a. rebuild the ~/vnb navigation view --------------------------------
+# The tarball DOES carry vnb/ -- ~140 relative symlinks -- but the rsync above
+# takes prover/ only, so before this the view arrived in the staging area and
+# went no further, and ~/vnb on a synced box was empty of links.  Generating it
+# beats copying it: build-vnb-view.sh writes links relative to the $HOME it is
+# run under, so a locally built view is correct on a box whose home is not
+# /home/ubuntu.  It touches nothing but symlinks and empty directories, builds
+# in a temp tree and swaps, so a failure here leaves the previous view alone --
+# hence `|| true': a broken view must not abort a good sync.
+if [ -x "$DEST/build-vnb-view.sh" ]; then
+    echo "pull-vnb: rebuilding the ~/vnb view ..."
+    VNB_VIEW_HOME="$HOME" sh "$DEST/build-vnb-view.sh" || true
+fi
+
 # ---- 4. compiled artifacts ------------------------------------------------
 # The tarball ships no .com/.bin, so the tree is INTERPRETED as it stands: 11
 # minute loads, and nothing tells you (CLAUDE.md, "COMPILE THE TREE FIRST").

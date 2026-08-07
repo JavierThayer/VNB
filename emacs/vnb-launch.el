@@ -441,38 +441,45 @@ comment text, so the semicolons no longer clash at line starts."
 
 (defun vnb-launch--wait-for-prompt (&optional timeout)
   "Block until the *VNB* buffer shows a Scheme REPL prompt.
-TIMEOUT is seconds to wait (default 180 -- cold load is ~5s with
-VNB_SKIP_PROOFS=1, ~160s with full verification).  Returns non-nil if a
-prompt appeared, nil on timeout.  Without this, callers race the
-load.scm phase and their input either disappears or gets buried under
-the load output."
-  (let* ((timeout (or timeout 180))
+TIMEOUT is seconds of REAL time to wait (default 900).  A cold load is ~55 s
+with the tree compiled and ~11 min interpreted, so the default has to cover
+the interpreted case; C-g interrupts the wait.  Returns non-nil if a prompt
+appeared, nil on timeout.  Without this, callers race the load.scm phase and
+their input either disappears or gets buried under the load output.
+
+The wait itself is `vnb--wait-until' (vnb.el), which measures TIME.  This
+loop used to count calls to `accept-process-output' instead, and the load's
+own output made those calls return instantly: the 180-\"second\" wait expired
+after 1.5 s, mid-load, and returned nil -- which the caller ignored."
+  (let* ((timeout (or timeout 900))
          (buf     (get-buffer vnb-buffer-name))
          (proc    (and buf (get-buffer-process buf))))
     (when (and buf proc (eq (process-status proc) 'run))
       (with-current-buffer buf
-        (let ((n 0)
-              (seen nil))
-          (while (and (< n timeout)
-                      (not (setq seen
-                                 (save-excursion
-                                   (goto-char (point-max))
-                                   (forward-line -1)
-                                   (re-search-forward "[0-9]+ \\]=> "
-                                                      nil t)))))
-            (accept-process-output proc 1)
-            (setq n (1+ n)))
-          seen)))))
+        (vnb--wait-until
+         proc timeout
+         (lambda ()
+           (save-excursion
+             (goto-char (point-max))
+             (forward-line -1)
+             (re-search-forward "[0-9]+ \\]=> " nil t))))))))
 
 (defun vnb-launch--ensure-prover ()
   "Start the prover subprocess if not already running, WITHOUT changing the
 window layout (use `vnb' or the explicit show-* helpers to make the REPL
 visible).  On cold start, block until the prover's first REPL prompt appears
-so callers can safely send input without racing the load.scm phase."
+so callers can safely send input without racing the load.scm phase.
+
+Signals if the prompt never arrives.  Returning quietly is worse than an
+error: every caller downstream then sends its forms into the middle of the
+load, where they queue behind it and read its output as their answer."
   (let ((cold-start (not (vnb-launch--prover-running-p))))
     (when cold-start
       (vnb--ensure-process)
-      (vnb-launch--wait-for-prompt))))
+      (message "VNB: waiting for the prover to finish loading...")
+      (unless (vnb-launch--wait-for-prompt)
+        (error "VNB prover is still loading -- no REPL prompt yet"))
+      (message "VNB: prover ready."))))
 
 (defun vnb-launch--send (str)
   "Send STR followed by a newline to the prover REPL."
@@ -3541,12 +3548,25 @@ in which case it is sent as a bare index, e.g. (bc 2)."
   "Eval FORM in the prover; parse its `(a b c)' result into a list of strings.
 Splits on whitespace -- robust for the flat symbol lists `theorem-names' /
 `suggest-backchain-names' return (names carry no internal spaces).  nil on a
-missing/garbled response."
-  (let ((raw (ignore-errors (vnb-eval-string form))))
-    (when (and raw (string-match "(\\(.*\\))" raw))
-      (split-string (match-string 1 raw) "[ \t\n]+" t))))
+missing/garbled response.
 
-(defun vnb-pf--read-name (suggest-form pool-form label)
+The match is ANCHORED to the whole trimmed value, and every token must look
+like a name.  An unanchored \"(\\(.*\\))\" accepted the first parenthesised
+fragment of ANY text: fed the prover's load output it returned things like
+\(\"(h3\" \".\" \"1)\"), which then showed up in the prompt as a ranked
+suggestion (\"[4 match; top: +]\") and, on RET, as the string searched for.
+Garbage in the response must read as NO names, not as names."
+  (let* ((raw  (ignore-errors (vnb-eval-string form)))
+         (raw  (and (stringp raw) (string-trim raw))))
+    (when (and raw (string-match "\\`(\\(.*\\))\\'" raw))
+      (let ((names (split-string (match-string 1 raw) "[ \t\n]+" t)))
+        (and (cl-every (lambda (n)
+                         (and (not (equal n "."))
+                              (string-match-p "\\`[^()\";' \t\n]+\\'" n)))
+                       names)
+             names)))))
+
+(defun vnb-pf--read-name (suggest-form pool-form label &optional substring-p)
   "Read a name argument with index-driven completion.  Shared by every Focus
 command whose argument is the NAME of a stored result -- Cite-Lemma (`bc*'),
 Rewrite (`mac'/`mac-h'), Add-Theorem (`ta').
@@ -3559,7 +3579,13 @@ the RET default.  POOL-FORM returns the full fallback pool (e.g.
 LABEL is the prompt noun (e.g. \"Cite lemma\").  Both forms are evaluated in
 the prover via `vnb-pf--name-list'; this is the elisp counterpart of the
 Scheme-side index facility, so the two surfaces complete from the same ranking.
-TAB lists the ranked matches; empty input cancels."
+TAB lists the ranked matches; empty input cancels.
+
+With SUBSTRING-P (the two `find-thm'/`find-mac' searches, whose argument is a
+FRAGMENT and not a name), completion matches anywhere in the name rather than
+at its front.  Otherwise the reader contradicts its own prompt: typing `ab'
+at \"Find theorem containing\" answered `[No match]' while 644 theorem names
+contain `ab' -- the default styles were completing a PREFIX."
   (vnb-launch--ensure-prover)
   (let* ((sugg    (vnb-pf--name-list suggest-form))
          (all     (vnb-pf--name-list pool-form))
@@ -3571,14 +3597,74 @@ TAB lists the ranked matches; empty input cancels."
                         '(metadata (display-sort-function . identity)
                                    (cycle-sort-function . identity))
                       (complete-with-action action ordered string pred))))
-         (prompt  (if sugg
-                      (format "%s [%d match; top: %s] (RET=top): "
-                              label (length sugg) (car sugg))
-                    (format "%s -- name (empty cancels): " label)))
+         (prompt  (cond (sugg
+                         (format "%s [%d match; top: %s] (RET=top): "
+                                 label (length sugg) (car sugg)))
+                        (substring-p
+                         (format "%s (substring; empty cancels): " label))
+                        (t
+                         (format "%s -- name (empty cancels): " label))))
+         (completion-styles (if substring-p
+                                '(substring basic)
+                              completion-styles))
          (input   (completing-read prompt table nil nil nil nil (car sugg))))
     (if (and (stringp input) (string-match-p "\\`[ \t]*\\'" input))
         (user-error "Cancelled")
       input)))
+
+;;; The two grep-style pool searches, `(find-thm substr)' and `(find-mac substr)'.
+;;;
+;;; These are NOT in `vnb-cmd--delegate-map' until the entries below, so the
+;;; generated `vnb-cmd-find-thm' fell through to `vnb-cmd--send-raw' -- a bare
+;;; `read-string' asking you to type the arguments, with no completion of any
+;;; kind, on a command whose whole job is finding a name you cannot remember.
+;;;
+;;; They take a SUBSTRING, not a name, so completion cannot require a match:
+;;; `vnb-pf--read-name' calls `completing-read' with REQUIRE-MATCH nil, so typing
+;;; a fragment still works and the pool is merely offered.  The argument is
+;;; quoted as a Scheme string -- these two are the only name-ish commands that
+;;; take a string rather than a quoted symbol.
+;;; A QUERY is not a tactic, and `vnb-launch--send-tactic' is wrong for one.
+;;; It writes to the comint buffer and shows nothing -- correct for a tactic,
+;;; whose effect is a proof state the Focus workspace repaints from, and useless
+;;; for a search, whose entire value is text printed to the REPL and never
+;;; displayed.  Sending is also ASYNCHRONOUS, so popping the buffer straight
+;;; afterwards would show the output not yet arrived.  `vnb-eval-string'
+;;; (vnb.el) blocks until the next prompt, which fixes both: send through it,
+;;; discard the return value (the hits are the printed side effect, not the
+;;; value), then display the buffer scrolled to the end.
+(defun vnb-pf--send-query (form)
+  "Send FORM to the prover, wait for it to finish, and show the REPL output.
+For commands whose result is PRINTED rather than a change of proof state."
+  (vnb-launch--ensure-prover)
+  (vnb-eval-string form)
+  (let ((buf (get-buffer vnb-buffer-name)))
+    (when buf
+      (let ((win (display-buffer buf)))
+        (when (window-live-p win)
+          (with-selected-window win
+            (goto-char (point-max))
+            (recenter -1)))))))
+
+(defun vnb-pf-find-theorem (substr)
+  "Search the theorem pool for names containing SUBSTR.  Wraps (find-thm \"..\").
+Completion offers the goal-matched lemmas first (`suggest-backchain-names'),
+then the full `(theorem-names)' pool; any fragment can still be typed, since
+the argument is a substring and not a name.  The hits are printed in the REPL
+window, which this pops up."
+  (interactive
+   (list (vnb-pf--read-name "(suggest-backchain-names)" "(theorem-names)"
+                            "Find theorem containing" t)))
+  (vnb-pf--send-query (format "(find-thm %S)" (vnb-launch--dequote substr))))
+
+(defun vnb-pf-find-macete (substr)
+  "Search the rewrite-rule pool for names containing SUBSTR.  Wraps (find-mac \"..\").
+Completion offers the rules that fire on the current goal first
+(`suggest-rewrite-names'), then the full `(rewrite-names)' pool."
+  (interactive
+   (list (vnb-pf--read-name "(suggest-rewrite-names)" "(rewrite-names)"
+                            "Find macete containing" t)))
+  (vnb-pf--send-query (format "(find-mac %S)" (vnb-launch--dequote substr))))
 
 (defun vnb-pf--read-lemma-name ()
   "Read a Cite-Lemma name, offering goal-matched suggestions first.
@@ -4307,6 +4393,24 @@ Graphical, `vnb-lobby-first' nil: keep the old in-Emacs landing page."
 ;; setq wins (no `with-eval-after-load' needed) and takes effect before the
 ;; workspace opens any browser below.  Example ~/.vnb.el:
 ;;     (setq vnb-graph-browser "epiphany")   ; "epiphany-browser" on Debian/Ubuntu
+;;
+;; A conventional browser -- note that the DEFAULT `vnb-graph-browser-args' is
+;; ("--incognito-mode"), which is epiphany's spelling; Firefox would read it as a
+;; URL to open, so override it too:
+;;     (setq vnb-graph-browser "firefox")
+;;     (setq vnb-graph-browser-args '("--new-window"))  ; or '("--private-window"), or nil
+;;
+;; Emacs' own browser.  `vnb-graph-browser' may be a FUNCTION, used as
+;; `browse-url-browser-function':
+;;     (setq vnb-graph-browser #'eww-browse-url)
+;;     (setq vnb-lobby-first nil)
+;; The second line is not optional in practice: eww runs no JavaScript, and the
+;; lobby's Workbench buttons are fetch() pokes at the localhost listener, so in
+;; eww they do nothing.  Reference links are plain hrefs and read fine; the
+;; structure graph's click-to-scroll does not work either.  With `vnb-lobby-first'
+;; nil the Emacs landing page is the front door and eww is just the reader --
+;; which is the division of labour the launcher was built around.
+;;
 ;; Override the path with the VNB_CONFIG environment variable if you like.
 (let ((user-cfg (or (getenv "VNB_CONFIG") (expand-file-name "~/.vnb.el"))))
   (when (file-readable-p user-cfg)

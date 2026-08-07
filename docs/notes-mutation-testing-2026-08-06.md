@@ -51,9 +51,15 @@ Two facts make the loop seconds rather than minutes.
   the compiled `cmd-lambda-type` that calls it.  No recompilation, no rebuild.
 
 So one mutation run is: restart the band, `set!` one procedure, load the corpus, compare
-the PASS/FAIL lines against the prediction.  The runner is
-`scratchpad/mnp-mutate.scm`, selecting the mutant from the environment variable
-`MNP_MUT`.
+the PASS/FAIL lines against the prediction.  The runner is `mutation-check.scm`,
+selecting the mutant from the environment variable `MNP_MUT`; `./mutation-check` drives
+the baseline and all five, one process each, in about a second.
+
+The comparison against the prediction is done by the runner rather than by eye: each
+mutant carries the labels it must redden, a predicted entry that stays green fails the
+run, and a key that no longer matches exactly one entry is a hard error, since a
+prediction the corpus has drifted out from under is worse than no prediction.  An
+unpredicted red is reported and does not fail.
 
 ## 4. The five mutations
 
@@ -143,15 +149,23 @@ Not licensed, and each of these is a way the sentence could be over-read:
   `fun-domain-apply-def`, which the blunt attack does not construct) and
   `f in INJECTION(S(1), S(0))` (paired with the theorem that nothing is; if both ever
   pass, the library is inconsistent, which is what they are watching for).
-* **Not a standing guarantee.**  `mnp-mutate.scm` lives in the scratchpad: it is not in
-  the tree, not in the suite, and not re-run by anything.  The table in section 4 is a
-  measurement taken once, and it decays the moment any of the five guards is edited.
+* **Not a standing guarantee, though it is now at least reproducible.**  The runner is in
+  the tree and the table is a command (`./mutation-check`, exit status 0 only if the
+  baseline is green and every mutant is detected), but nothing runs it: it is not part of
+  `test-suite.scm`, deliberately, since it needs a current band rather than a source
+  load.  Two mutants also work by installing a *copy* of `pi-lambda-type!` with one piece
+  removed, and a copy rots when the original is edited; both check the real defining form
+  against a recorded hash and fail the run when it moves, which converts silent decay
+  into a message but still leaves re-authoring to a person.
 
 ## 7. Consequent worklist
 
-1. **Move the mutation runner into the tree** and give it a target, so "the corpus still
-   detects these five faults" is reproducible by a command rather than by trusting a
-   comment.  This is the difference between a record and a check.
+1. ~~Move the mutation runner into the tree and give it a target.~~  **DONE 2026-08-06**:
+   `mutation-check.scm` and `./mutation-check`.  Its own controls were run before it was
+   believed -- a mutant that installs nothing reports SURVIVED, a prediction key that
+   matches no entry reports KEYERROR, a stale recorded hash reports DRIFT, and each fails
+   the run.  What remains of this item is deciding whether anything should run it
+   automatically; it needs a current band, so it does not belong in `test-suite.scm`.
 2. **Mutate the remaining entries' guards**, and where no mutation can be written, say so
    in the entry -- an entry no mutation reddens is an entry whose attack may be too weak.
 3. **Replace the blunt attacker with a `scout` search**, so an entry means "no route the

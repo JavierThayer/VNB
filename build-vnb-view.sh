@@ -81,11 +81,11 @@ group scm-dir/surface    interactive proof-commands parser input-context \
                          tactics-help driver-kit
 group scm-dir/tactics    calc prep minimize sketch vlet transport suggest \
                          parts arith-eval
-group scm-dir/vocabulary structures operators number-systems
+group scm-dir/vocabulary structures operators number-systems glossary
 group scm-dir/output     proof-tex tex-output wff-english proof-reader \
                          proven-theorems
 group scm-dir/ledger     proof-debt audit clobber-guard
-group scm-dir/build      load test-suite
+group scm-dir/build      load test-suite test-suite-negative mutation-check
 
 # ------------------------------------------ whole directories, linked once
 # A directory link never goes stale when files are added inside it, which is
@@ -147,8 +147,24 @@ for d in docs reference; do link_into . "$d"; done
 
 # ------------------------------------------------------ top-level entries
 for f in CLAUDE.md; do link_into . "$f"; done
-for f in VNB VNB-nw VNB-with-compile prover pull-vnb.sh scan-case-fold.py \
-         build-vnb-view.sh; do link_into run "$f"; done
+for f in VNB VNB-nw VNB-with-compile prover mutation-check pull-vnb.sh \
+         scan-case-fold.py build-vnb-view.sh; do link_into run "$f"; done
+
+# ------------------------------------------------ did we link every root .scm?
+# The groups above are a HAND-MAINTAINED list, and a root .scm missing from it
+# is simply absent from the view -- which looks exactly like a view that is
+# complete.  That is how `glossary.scm', `test-suite-negative.scm' and
+# `mutation-check.scm' stayed invisible until someone went looking for one of
+# them by name.  Report the gap on stderr (the Stop hook discards stdout only)
+# and name the fix, but do not fail: an unlinked file is a defect in the VIEW,
+# and refusing to swap in an otherwise good tree would be the worse outcome.
+for f in "$src"/*.scm; do
+  name=$(basename "$f")
+  if [ -z "$(find "$build/scm-dir" -name "$name" -print -quit 2>/dev/null)" ]; then
+    echo "build-vnb-view: $name is at the prover root but in no group -- it is" >&2
+    echo "                MISSING from ~/vnb.  Add it to a \`group' line." >&2
+  fi
+done
 
 # ---------------------------------------------------------------- README
 cat > "$build/README.md" <<'EOF'

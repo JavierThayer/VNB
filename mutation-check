@@ -1,0 +1,81 @@
+#!/bin/bash
+# mutation-check -- break five guards on purpose and require the must-not-prove
+# corpus to notice.
+#
+# A green run of test-suite-negative.scm says only that nothing closed a list of
+# false goals while a fixed script was running.  That is what a sound prover
+# looks like, and it is also what a broken test looks like.  This distinguishes
+# them: each mutant below is the un-repair of one guard, paired with a written
+# prediction of which entry must go red, and the run FAILS if a predicted entry
+# stays green.
+#
+# Usage:
+#   ./mutation-check            baseline + all five mutants, one line each
+#   ./mutation-check -v         also print each run's full output
+#   ./mutation-check no-sethood  ... one named mutant (plus the baseline)
+#
+# Costs about a second: each run is 0.16 s against the band.  It therefore
+# inherits the band's caveat -- the band is a SNAPSHOT, so rebuild it after any
+# change to the tree (./prover --build-band) or these mutations are applied to a
+# library that no longer exists.
+#
+# Exit status is 0 only if the baseline is green AND every mutant is detected.
+
+PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$PROVER_DIR" || exit 2
+
+ALL="no-sethood no-domain-match no-definedness credulous-arith credulous-ineq"
+
+VERBOSE=0
+SELECT=""
+for arg in "$@"; do
+  case "$arg" in
+    -v|--verbose) VERBOSE=1 ;;
+    *) SELECT="$SELECT $arg" ;;
+  esac
+done
+[ -n "$SELECT" ] && ALL="$SELECT"
+
+if [ ! -f "$PROVER_DIR/vnb.band" ]; then
+  echo "mutation-check: no band at $PROVER_DIR/vnb.band -- './prover --build-band' first." >&2
+  exit 2
+fi
+
+run() {   # run <mutant-name>; echoes the verdict line, returns its status
+  local out rc
+  out=$(MNP_MUT="$1" ./prover -b mutation-check.scm 2>&1)
+  rc=$?
+  [ "$VERBOSE" = 1 ] && echo "$out"
+  echo "$out" | grep -E '^(DRIFT|KEYERROR|SURVIVED|KILLED|EXTRA-RED|VERDICT|RED )' \
+              | sed "s/^/  /"
+  return $rc
+}
+
+echo "=== mutation check: does the must-not-prove corpus detect these faults? ==="
+echo
+echo "baseline"
+run baseline
+BASE=$?
+echo
+
+if [ "$BASE" != 0 ]; then
+  echo "=== ABORTED: the corpus is not green without any mutation. ==="
+  echo "    Nothing a mutant does is interpretable until that is fixed."
+  exit 1
+fi
+
+FAILED=""
+for m in $ALL; do
+  echo "$m"
+  run "$m" || FAILED="$FAILED $m"
+  echo
+done
+
+if [ -n "$FAILED" ]; then
+  echo "=== UNDETECTED:$FAILED ==="
+  echo "    An entry named after a guard did not notice the guard being deleted."
+  exit 1
+fi
+
+echo "=== all mutants detected ==="
+exit 0

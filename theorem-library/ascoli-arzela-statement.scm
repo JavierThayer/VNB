@@ -139,9 +139,14 @@
    a compact interval, so k |-> (fam(k)(x))_{x in D} is a sequence in the countable
    product Prod_{x in D} K_x; coordinatewise-diagonal-subseq extracts a subsequence
    convergent at every x in D; equicontinuity upgrades pointwise-convergence-on-D to
-   uniform convergence on all of s.  STILL TO BUILD as warranted supports before a
-   machine proof: compact-metric-is-separable (countable dense D) and the bridge
-   'equicontinuous + convergent on a dense set => uniformly convergent'.")
+   uniform convergence on all of s.  Two of the three rungs now exist as machine
+   proofs rather than assertions: compact-metric-is-separable (the countable
+   dense D) is PROVEN in theorem-library/compact-separable-proof.scm, and the
+   dense-to-uniform bridge is ascoli-dense-bridge (proven modulo its two
+   analytic cores, equicont-dense-conv-implies-unif-cauchy and
+   unif-cauchy-cont-implies-uniform-limit).  What is still missing for a machine
+   proof of the theorem itself is the DIAGONAL rung,
+   coordinatewise-diagonal-subseq.")
 
 (category! 'ascoli-arzela-sequential 'topology)
 

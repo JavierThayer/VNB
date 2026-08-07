@@ -88,7 +88,13 @@ Catalog order is preserved, which keeps the registry's logical grouping."
     (bc      . vnb-pf-backchain)
     (bc*     . vnb-pf-backchain-star)
     (focus   . vnb-pf-focus)
-    (qed     . vnb-pf-qed))
+    (qed     . vnb-pf-qed)
+    ;; The two pool searches.  Without these they fall to `vnb-cmd--send-raw',
+    ;; i.e. a bare read-string with no completion -- on the commands whose whole
+    ;; job is finding a name you cannot remember.  Their argument is a SUBSTRING,
+    ;; so the front-ends complete without requiring a match.
+    (find-thm . vnb-pf-find-theorem)
+    (find-mac . vnb-pf-find-macete))
   "Tactics whose argument-gathering already has a curated `vnb-pf-*' front-end.
 For these, vnb-cmd-NAME is made an ALIAS of that front-end, so the M-x
 `vnb-cmd-' namespace covers them WITH the rich prompts intact (name-index

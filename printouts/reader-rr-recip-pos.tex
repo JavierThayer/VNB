@@ -1,0 +1,103 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[rr-recip-pos]
+Suppose $a \in \mathbb{R}$. If $(0 < a)$, then 
+\begin{equation*}
+(0 < \operatorname{recip}(a))
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{3}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(0 \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{4}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{5--6}] By $\operatorname{neq\text{-}sym}$:
+\begin{equation*}
+\neg (a = 0)
+\end{equation*}
+
+  \item[\textbf{7--10}] Introduce the auxiliary claim
+\begin{equation*}
+((a \in \mathbb{R}) \wedge \neg (a = 0))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{11}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{recip}(a) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{12}] By $\operatorname{rr\text{-}recip\text{-}inverse}$:
+\begin{equation*}
+((a \cdot \operatorname{recip}(a)) = 1)
+\end{equation*}
+
+  \item[\textbf{13--16}] Introduce the auxiliary claim
+\begin{equation*}
+((a \in \mathbb{R}) \wedge (\operatorname{recip}(a) \in \mathbb{R}))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{17}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((a \cdot \operatorname{recip}(a)) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{18--21}] Introduce the auxiliary claim
+\begin{equation*}
+((0 \in \mathbb{R}) \wedge (\operatorname{recip}(a) \in \mathbb{R}))
+\end{equation*}
+  \emph{(side goal discharged)}
+  \item[\textbf{22--25}] By $\operatorname{rr\text{-}lt\text{-}trichotomy}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} (0 < \operatorname{recip}(a)) \vee \\ (0 = \operatorname{recip}(a)) \vee \\ (\operatorname{recip}(a) < 0) \end{array}
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{26}] Introduce the auxiliary claim
+\begin{equation*}
+((a \cdot 0) = 1)
+\end{equation*}
+
+  \item[\textbf{27--29}] Substitute the established equation.  \emph{(holds by assumption)}
+  \item[\textbf{30}] Introduce the auxiliary claim
+\begin{equation*}
+(0 < a)
+\end{equation*}
+
+  \item[\textbf{31--34}] By $\operatorname{<}$, reduce to
+\begin{equation*}
+((0 \leq a) \wedge \neg (0 = a))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{35--38}] Introduce the auxiliary claim
+\begin{equation*}
+((0 < a) \wedge (\operatorname{recip}(a) < 0))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{39--40}] By $\operatorname{rr\text{-}lt\text{-}scale\text{-}pos}$:
+\begin{equation*}
+((a \cdot \operatorname{recip}(a)) < (a \cdot 0))
+\end{equation*}
+  \emph{(closes)}
+\end{itemize}
+\end{proof}
+\end{document}
