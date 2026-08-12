@@ -122,7 +122,7 @@
         (have! '(<_ORD be al) (lambda () (mac 'ord-lt-iff) (from-context!)))
         (ai '(NOT (<_ORD be al)))))))
 (qed 'cd-body-unique)
-(category! 'cd-body-unique 'set-theory)
+(topic! 'cd-body-unique 'set-theory)
 
 ;;; --------------------------------------------------------------------
 ;;; cd-seg-body: n satisfies the description at A = S(n).
@@ -183,7 +183,7 @@
 (fact 'ord-segment-is-set 'n_)
 (cd-close-body!)
 (qed 'cd-seg-body)
-(category! 'cd-seg-body 'set-theory)
+(topic! 'cd-seg-body 'set-theory)
 
 ;;; --------------------------------------------------------------------
 ;;; card*-segment:  CARD*(S(n)) = n.
@@ -224,4 +224,4 @@
          (ass))))
  (dk-opened (lambda () (iota-d cd-io))))
 (qed 'card*-segment)
-(category! 'card*-segment 'set-theory)
+(topic! 'card*-segment 'set-theory)

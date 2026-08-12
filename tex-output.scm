@@ -209,6 +209,22 @@
          ((and *tex-arith-prefix?* (assq op *tex-arith-prefix-head*))
           (string-append (cdr (assq op *tex-arith-prefix-head*)) "("
                          (tex--string-join (map expr->tex args) ", ") ")"))
+         ;; A TeX template declared with `notation!' beside the definition
+         ;; (operators.scm).  It sits ABOVE the two built-in tables, so a head
+         ;; that declares its own reading is authoritative -- that is what "the
+         ;; ONE table, keyed by head symbol" is supposed to mean, and until
+         ;; 2026-08-10 this branch sat below them and no head declared a `tex'
+         ;; template at all, so it never fired.  It stays BELOW the
+         ;; arithmetic-prefix branch on purpose: that is a MODE (a fluid scoped
+         ;; to a proposition statement), not a per-head rule, and a mode
+         ;; overrides a declaration.  Prefix application is still the default,
+         ;; so this fires only where a head asked for something else.  Tested by
+         ;; LOOKING UP the template rather than by calling operator-render-tex:
+         ;; that renders the arguments to decide whether it applies, and from
+         ;; above the binop table it would do so at every level of every formula
+         ;; -- rendering each subterm twice per level, i.e. 2^depth.
+         ((let ((e (operator-ref op))) (and e (operator-tex e)))
+          => (lambda (tmpl) (op--fill tmpl (map expr->tex args))))
          ;; binary infix (parenthesised; over-paren is acceptable in MVP)
          ((assq op *tex-binop-table*)
           (let ((sep (cdr (assq op *tex-binop-table*))))
@@ -217,10 +233,6 @@
          ;; specially-rendered operators (NOT, CARD, PAIR, FUN, ...)
          ((assq op *tex-special-table*)
           ((cdr (assq op *tex-special-table*)) args))
-         ;; a TeX template declared with `notation!' beside the definition
-         ;; (operators.scm).  Prefix application stays the default -- see the
-         ;; house LaTeX style -- so this fires only where a head asked for it.
-         ((operator-render-tex op (map expr->tex args)))
          ;; default: application  (f a b c) -> f(a, b, c)
          (else
           (string-append (tex--head->tex op) "("
@@ -238,6 +250,12 @@
 
 (tex--register-special! 'card
   (lambda (args) (string-append "|" (expr->tex (car args)) "|")))
+
+;; abs is a primitive head (number-systems.scm) and had no rule, so it rendered
+;; \operatorname{abs}(x) -- the second defect on the rr-ms-dist slide.  Same
+;; bars as CARD, which is the same idea one sort down.
+(tex--register-special! 'abs
+  (lambda (args) (string-append "\\lvert " (expr->tex (car args)) " \\rvert")))
 
 (tex--register-special! 'ord-segment
   (lambda (args)
@@ -397,15 +415,27 @@
 (define *tex-relation-ops* '(= < <= > >= in subset))
 
 ;;; A plain function application (f a b c) -- NOT a quantifier, connective,
-;;; relation, infix binop, or specially-rendered operator.  These are the
-;;; terms whose argument list we wrap across rows when they are too wide.
+;;; relation, infix binop, specially-rendered operator, or a head that declared
+;;; its own TeX template.  These are the terms whose argument list we wrap
+;;; across rows when they are too wide.
+;;;
+;;; That last exclusion is easy to forget and was missing until 2026-08-10: this
+;;; predicate is the gate on the "long application" branch of tex--lines, which
+;;; renders `head(' ITSELF and so never reaches expr->tex's head dispatch.  A
+;;; declared head therefore rendered correctly everywhere EXCEPT at the top of a
+;;; formula too wide to sit on one line -- which is exactly where a proposition
+;;; statement is.  `==' was the specimen: (== a b) gave `(a \simeq b)', while
+;;; rr-ms-dist's statement, the same head over wider arguments, still gave
+;;; \operatorname{==}(...).  Any table this predicate does not consult is a
+;;; rendering rule with a hole in it at full width.
 (define (tex--breakable-app? e)
   (and (pair? e)
        (not (tex--quant-step e))
        (not (memq (car e) '(implies and or)))
        (not (memq (car e) *tex-relation-ops*))
        (not (assq (car e) *tex-binop-table*))
-       (not (assq (car e) *tex-special-table*))))
+       (not (assq (car e) *tex-special-table*))
+       (not (let ((entry (operator-ref (car e)))) (and entry (operator-tex entry))))))
 
 ;;; Drop the leading indent (tex--ind ind) known to prefix ROW.
 (define (tex--drop-ind row ind)

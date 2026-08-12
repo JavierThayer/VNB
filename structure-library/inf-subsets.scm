@@ -34,4 +34,4 @@
 (support 'nn-in-inf-subsets '(IN NN (INF-SUBSETS NN)))
 (warrant! 'nn-in-inf-subsets 'well-known
   "NN is an infinite subset of NN: NN subset NN and CARD(NN) not in NN.")
-(category! 'nn-in-inf-subsets 'plumbing)
+(topic! 'nn-in-inf-subsets 'plumbing)

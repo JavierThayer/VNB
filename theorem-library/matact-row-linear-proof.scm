@@ -87,7 +87,7 @@
   "j |-> (c1_{1j}.u_{j1}) (+) (c2_{1j}.u_{j1}) is a function [1,n] -> VEC md:
    each summand is (matact-summand-type), and the vector abelian group's
    operation closes on its carrier (mvag-carr, mvag-op, module-vadd-type).")
-(category! 'mra-combined-summand-type 'algebra)
+(topic! 'mra-combined-summand-type 'algebra)
 
 ;;; (No support is needed for the summand j |-> (c1+c2)_{1j} . u_{j1}: it is
 ;;; matact-summand-type at P := MATADD(SCAL md, c1, c2), whose MAT-typing
@@ -110,6 +110,8 @@
 (fact 'matadd-type '(SCAL md) 1 'n 'c1 'c2)          ; c1+c2 is a 1-by-n row
 (fact 'one-in-interval-1)                            ; 1 in [1,1]
 (fact 'interval-in-set 1 'n)
+;; interval-card-in-nn's guard: n is the row count of the column u : MAT n 1.
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-card-in-nn 1 'n)
 (fact 'mra-combined-summand-type 'md 'n 'c1 'c2 'u)
 (fact 'matact-summand-type 'md 1 'n 1 mra-cs 'u 1 1) ; L is a function
@@ -187,8 +189,8 @@
     (ass)))
 
 (qed 'matact-row-add)
-(category! 'matact-row-add 'algebra)
-(category! 'matadd-entry 'algebra)       ; matrix.scm loads before the PSS layer
+(topic! 'matact-row-add 'algebra)
+(topic! 'matadd-entry 'algebra)       ; matrix.scm loads before the PSS layer
 
 
 ;;; ===================================================================
@@ -233,7 +235,7 @@
   "z |-> r . (c_{1z} . u_{z1}) is a function [1,n] -> VEC md: the inner action is
    (matact-summand-type), module-act-type closes the outer action, and mvag-carr
    identifies CARR(MODULE-VECTOR-AG md) = VEC md.")
-(category! 'mrs-scaled-summand-type 'algebra)
+(topic! 'mrs-scaled-summand-type 'algebra)
 
 ;;; ===================================================================
 (sp (make-wff
@@ -249,6 +251,7 @@
 (fact 'matscale-type '(SCAL md) 1 'n 'r 'c)          ; r*c is a 1-by-n row
 (fact 'one-in-interval-1)                            ; 1 in [1,1]
 (fact 'interval-in-set 1 'n)
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matact-summand-type 'md 1 'n 1 'c 'u 1 1)     ; F is a function
 (fact 'matact-summand-type 'md 1 'n 1 mrs-as 'u 1 1) ; L is a function
@@ -294,6 +297,6 @@
     (ass)))
 
 (qed 'matact-row-scale)
-(category! 'matact-row-scale 'algebra)
-(category! 'matscale-type 'algebra)      ; matrix.scm loads before the PSS layer
-(category! 'matscale-entry 'algebra)
+(topic! 'matact-row-scale 'algebra)
+(topic! 'matscale-type 'algebra)      ; matrix.scm loads before the PSS layer
+(topic! 'matscale-entry 'algebra)

@@ -320,4 +320,4 @@
 (rfl)
 
 (qed 'euclidean-ideal-has-generator)
-(category! 'euclidean-ideal-has-generator 'algebra)
+(topic! 'euclidean-ideal-has-generator 'algebra)

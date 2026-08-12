@@ -70,4 +70,4 @@
    countable family of nowhere-dense sets can cover s.  Terminology per the user:
    meager = first category, nonmeager = second category.  Sources: Yosida 0.2; the
    user's notes (exercise).")
-(category! 'baire-category 'topology)
+(topic! 'baire-category 'topology)

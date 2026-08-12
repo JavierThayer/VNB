@@ -175,9 +175,9 @@
 (rfl)
 (qed 'border-invertible)
 
-(category! 'border-identity 'algebra)
-(category! 'border-is-diagonal 'algebra)
-(category! 'border-invertible 'algebra)
+(topic! 'border-identity 'algebra)
+(topic! 'border-is-diagonal 'algebra)
+(topic! 'border-invertible 'algebra)
 
 
 ;; ===================== bordering =====================
@@ -233,4 +233,4 @@
 (fact 'border-type 'A 'b (list 'MATMUL 'A (list 'MATMUL 'A UP 'W) VP) 'p 'q)
 (rfl)
 (qed 'bordering)
-(category! 'bordering 'algebra)
+(topic! 'bordering 'algebra)

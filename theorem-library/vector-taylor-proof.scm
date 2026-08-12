@@ -87,7 +87,7 @@
 (warrant! 'nvs-metric-is-ms 'reference
   "d(x,y)=||x-y|| is a metric: nonneg + definite from the norm's definiteness,
    symmetry from ||-(x-y)||=||x-y||, triangle from the norm triangle inequality.")
-(category! 'nvs-metric-is-ms 'analysis)
+(topic! 'nvs-metric-is-ms 'analysis)
 
 ;;; the vector Taylor polynomial is a vector.
 (add-to-pss 'vtaylor-poly-in-vec
@@ -99,7 +99,7 @@
 (warrant! 'vtaylor-poly-in-vec 'reference
   "TAYLOR-POLY-V is a finite VADD-sum of scalar actions ACT(.,f^(k)(a)) of vectors,
    closed in VEC(m) (VADD, ACT land in VEC(m); f^(k)(a) in VEC(m)).")
-(category! 'vtaylor-poly-in-vec 'analysis)
+(topic! 'vtaylor-poly-in-vec 'analysis)
 
 ;;; f^(k)(t) is a vector.
 (add-to-pss 'nth-deriv-v-in-vec
@@ -111,7 +111,7 @@
 (warrant! 'nth-deriv-v-in-vec 'reference
   "Each vector derivative f^(k) maps RR into VEC(m) (IS-DIFF-AT-V pins the value
    in VEC(m)); so f^(k)(t) is a vector.")
-(category! 'nth-deriv-v-in-vec 'analysis)
+(topic! 'nth-deriv-v-in-vec 'analysis)
 
 ;;; the remainder is a vector.
 (add-to-pss 'vtaylor-remainder-in-vec
@@ -123,7 +123,7 @@
 (warrant! 'vtaylor-remainder-in-vec 'reference
   "R = f(x) (-) TAYLOR-POLY-V(...) is a difference of vectors (VADD of f(x) and the
    VNEG of the polynomial), hence in VEC(m).")
-(category! 'vtaylor-remainder-in-vec 'analysis)
+(topic! 'vtaylor-remainder-in-vec 'analysis)
 
 ;;; g o f is a real function when g is a bounded linear functional on m.
 (add-to-pss 'gof-in-fun
@@ -134,7 +134,7 @@
 (warrant! 'gof-in-fun 'reference
   "g : VEC(m) -> RR (bounded linear functional) composed with f : RR -> VEC(m)
    is g o f : RR -> RR.")
-(category! 'gof-in-fun 'analysis)
+(topic! 'gof-in-fun 'analysis)
 
 ;;; KEY commutation 1: g o f inherits the scalar Taylor-differentiability.
 (add-to-pss 'gof-taylor-diff
@@ -148,7 +148,7 @@
    Caratheodory derivative: if f^(k) is norm-continuous / vector-differentiable
    with factor phi, then (g o f)^(k) = g o f^(k) is continuous / differentiable
    with factor g o phi.  Hence g o f is scalar-Taylor-differentiable to order n.")
-(category! 'gof-taylor-diff 'analysis)
+(topic! 'gof-taylor-diff 'analysis)
 
 ;;; KEY commutation 2: g of the remainder = the scalar remainder of g o f.
 (add-to-pss 'g-of-remainder
@@ -163,7 +163,7 @@
    commutes with the finite VADD/ACT sum and with f^(k)(a), so
    g(TAYLOR-POLY-V(f,a,x,n)) = Sum ((x-a)^k/k!) g(f^(k)(a))
    = Sum ((x-a)^k/k!) (g o f)^(k)(a) = TAYLOR-POLY(g o f, a, n, x).")
-(category! 'g-of-remainder 'analysis)
+(topic! 'g-of-remainder 'analysis)
 
 ;;; KEY commutation 3: the (n+1)-st derivative of g o f is g of f^(n+1).
 (add-to-pss 'gof-nth-deriv
@@ -176,13 +176,13 @@
 (warrant! 'gof-nth-deriv 'reference
   "By induction on k using commutation 1's factor identity, (g o f)^(k) = g o f^(k)
    as functions; evaluating the (n+1)-st at t gives (g o f)^(n+1)(t) = g(f^(n+1)(t)).")
-(category! 'gof-nth-deriv 'analysis)
+(topic! 'gof-nth-deriv 'analysis)
 
 ;;; g(v) <= |g(v)| (a real inequality; g(v) is real).
 (add-to-pss 'rr-le-abs-self
   '(FORALL c (IMPLIES (IN c RR) (<= c (abs c)))))
 (warrant! 'rr-le-abs-self 'well-known "c <= |c| for real c.")
-(category! 'rr-le-abs-self 'analysis)
+(topic! 'rr-le-abs-self 'analysis)
 
 ;;; the elementary clearing step: from an equality and a monotone bound with a
 ;;; nonnegative multiplier, get the remainder-norm inequality.
@@ -200,7 +200,7 @@
 (warrant! 'vtaylor-clear 'well-known
   "(n+1)! rR = gv*pw and gv<=nv with pw>=0 give gv*pw <= nv*pw, so
    (n+1)! rR <= nv*pw.  Pure real arithmetic (monotonicity of *pw for pw>=0).")
-(category! 'vtaylor-clear 'analysis)
+(topic! 'vtaylor-clear 'analysis)
 
 ;;; g(v) is a real for a bounded linear functional g and a vector v.
 (add-to-pss 'blf-app-real
@@ -209,14 +209,14 @@
         (IN (g v) RR)))))))
 (warrant! 'blf-app-real 'reference
   "A bounded linear functional g maps VEC(m) into RR, so g(v) is a real.")
-(category! 'blf-app-real 'analysis)
+(topic! 'blf-app-real 'analysis)
 
 ;;; right-monotonicity of multiplication by a nonnegative factor.
 (add-to-pss 'rr-mul-le-right
   '(FORALL a (IMPLIES (IN a RR) (FORALL b (IMPLIES (IN b RR) (FORALL c (IMPLIES (IN c RR)
      (IMPLIES (<= a b) (IMPLIES (<= 0 c) (<= (* a c) (* b c)))))))))))
 (warrant! 'rr-mul-le-right 'well-known "a<=b and 0<=c give a*c <= b*c.")
-(category! 'rr-mul-le-right 'analysis)
+(topic! 'rr-mul-le-right 'analysis)
 
 ;;; ====================================================================
 ;;; THEOREM: vector-taylor-remainder-bound
@@ -332,7 +332,7 @@
 (ew THETA)
 (quietly (lambda () (dc-grind!) (ass-all)))
 (qed 'vector-taylor-remainder-bound)
-(category! 'vector-taylor-remainder-bound 'analysis)
+(topic! 'vector-taylor-remainder-bound 'analysis)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

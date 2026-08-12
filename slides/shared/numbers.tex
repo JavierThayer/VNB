@@ -1,0 +1,74 @@
+%% shared/numbers.tex -- every quoted figure in either deck, in ONE place.
+%%
+%% A talk about a project in progress quotes numbers that move weekly.  They
+%% are defined here, once, with the date and the command that produced them, so
+%% that refreshing them before a talk is a single edit and so that the English
+%% and Spanish decks cannot quote different figures.
+%%
+%% AS OF 2026-08-10.  Sources:
+%%   \Nproven, \Nsupport, \Nstated, \Naxioms, \Ndefs, \Nassert, \Ncatalog
+%%       -- reference/THEOREMS.md header, produced by (catalog)
+%%   \Nmodzero, \Ntrustnone, \Nbills
+%%       -- reference/PROOF-DEBT.md, produced by (proof-debt-ledger)
+%%   \Nkernel   -- grep -c "define (pi-" primitive-inferences.scm
+%%   \Nunexer   -- kernel-rules-audit, printed at the end of a library load
+%%   \Nsuite    -- timeout 900 mit-scheme --quiet --load test-suite.scm
+%%                 RUN IT ALONE.  Sharing the box with a ./prover process makes
+%%                 it die partway through the library load having run no checks,
+%%                 printing no SUMMARY and exiting 0 (seen 2026-08-10).  If the
+%%                 SUMMARY line is absent, the number below is not a number.
+%%   \Nmnp, \Nmnpctl, \Nmut -- test-suite-negative.scm
+%%   \Nload     -- ./VNB cold boot, compiled tree
+
+\newcommand{\Ncatalog}{1769}
+\newcommand{\Nproven}{301}
+\newcommand{\Nsupport}{610}
+\newcommand{\Nstated}{860}
+\newcommand{\Naxioms}{212}
+\newcommand{\Ndefs}{510}
+\newcommand{\Nassert}{138}
+
+%% Counted at the end of 2026-08-10:
+%%   grep -c "proven \*\*modulo 0\*\*" reference/PROOF-DEBT.md  -> 109
+%%   grep -c "^### "                                    -> 301  (every proven theorem)
+%%
+%% \Ntrustnone is NOT a grep.  The legend at the head of PROOF-DEBT.md contains
+%% the string "trust: none" itself, so grep -c reports one more than the truth.
+%% The figure is the tally over *proof-debt* of bills whose
+%% (debt-trust-level bill) is `none'.
+%%
+%% Its day, in nine steps: 54 -> 32 (five asserted structure laws PROVEN)
+%% -> 32 again (three nary bridge converses stamped definitional -- correct,
+%% and worth nothing alone, because a fourth axiom shadowed them in every bill)
+%% -> 19 (that fourth) -> 19 again (integral-domain-cancel-zero PROVEN --
+%% shadowed in turn by zz-is-integral-domain) -> 11 (zz-is-integral-domain)
+%% -> 10 (integral-domain-nontrivial) -> 10 again (comm-monoid-is-monoid --
+%% shadowed by its partner in the one bill they share) -> 9 (qq-is-ring)
+%% -> 8 (nn-add-monoid-is-comm-monoid, that partner)
+%% -> 4 (principal-ideal-membership stamped definitional).
+%%
+%% THREE of the ten steps moved nothing on their own.  The tier is the WORST
+%% leaf, so discharging one pays only when it is the LAST unwarranted leaf of
+%% the bills that name it -- and all three were nonetheless necessary, since
+%% the leaf shadowing them had to go too.  Predict with the what-if
+%% (scratchpad/nary-what-if.scm, scratchpad/cheap-whatif.scm) BEFORE spending
+%% the effort: it was right every time today.
+%%
+%% The 4 that remain have NO shadowing left -- each is the sole unwarranted
+%% leaf of its bill: zz-is-euclidean-ring (zz-bezout), rr-is-metric-space
+%% (rr-complete), inf-subsets-is-set (two bills).
+\newcommand{\Nmodzero}{109}     % unconditional bills -- the strongest report
+\newcommand{\Ntrustnone}{4}     % bills whose weakest leaf has no warrant at all
+\newcommand{\Nbills}{192}       % proofs carrying any debt at all (301 - 109)
+
+\newcommand{\Nkernel}{50}
+\newcommand{\Nunexer}{14}
+
+\newcommand{\Nsuite}{791}       % passed; full run 2026-08-10, alone on the box
+\newcommand{\Nsuitefail}{0}
+
+\newcommand{\Nmnp}{12}          % false statements the corpus requires to stay open
+\newcommand{\Nmnpctl}{7}        % paired controls that must close
+\newcommand{\Nmut}{5}           % guards deleted on purpose, with predicted red entries
+
+\newcommand{\Nload}{24}         % seconds, cold boot, compiled

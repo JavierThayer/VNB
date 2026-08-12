@@ -179,9 +179,9 @@
 (rfl)
 
 (qed 'pivot-clears-col)
-(category! 'pivot-clears-col 'algebra)
-;; categorize the support introduced for this brick (category! is unavailable
+(topic! 'pivot-clears-col 'algebra)
+;; categorize the support introduced for this brick (topic! is unavailable
 ;; in structure-library/mat-equiv.scm, which loads before the PSS layer).
 ;; class-min-pivot categorizes itself now that it is proven, in
 ;; theorem-library/class-min-pivot-proof.scm.
-(category! 'nn-succ-le-antisym 'inequalities)
+(topic! 'nn-succ-le-antisym 'inequalities)

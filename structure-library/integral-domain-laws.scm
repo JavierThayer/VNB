@@ -90,8 +90,31 @@
 
 (if (proof-done? *ps*)
     (begin (qed 'integral-domain-cancel-zero)
-           (category! 'integral-domain-cancel-zero 'algebra))
+           (topic! 'integral-domain-cancel-zero 'algebra))
     (begin (display "@@@ INCOMPLETE -- open leaves:") (newline)
            (for-each (lambda (l) (display "@@@   ") (write (idl-goalof l)) (newline))
                      (idl-leaves))
            (error "integral-domain-laws: proof did not complete")))
+
+;;; =======================================================================
+;;; integral-domain-nontrivial : ONE(s) /= ZERO(s).
+;;;
+;;; The sibling oversight, and a shorter one: this is not an instance of a
+;;; conjunct of is-integral-domain-def, it IS one, verbatim.  It was asserted in
+;;; integral-domain.scm with the comment "a conjunct of is-integral-domain-def,
+;;; surfaced as a citable theorem" -- which is the proof, written out in prose
+;;; and then not run.  Unfold the hypothesis, split, and it is in the context.
+(sp (make-wff '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s)
+                 (NOT (= (ONE s) (ZERO s)))))))
+(idl-di*)                                ; peels FORALL/IMPLIES, stops at the NOT
+(mac-h 'is-integral-domain-def '(IS-INTEGRAL-DOMAIN s))
+(idl-split-ands!)
+(ass)
+
+(if (proof-done? *ps*)
+    (begin (qed 'integral-domain-nontrivial)
+           (topic! 'integral-domain-nontrivial 'algebra))
+    (begin (display "@@@ INCOMPLETE (nontrivial) -- open leaves:") (newline)
+           (for-each (lambda (l) (display "@@@   ") (write (idl-goalof l)) (newline))
+                     (idl-leaves))
+           (error "integral-domain-laws: integral-domain-nontrivial did not complete")))

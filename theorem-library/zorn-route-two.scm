@@ -657,4 +657,4 @@
    a maximal element.  Proved here from the transfinite tower ZUP rather than from the
    well-ordering principle: the tower is strictly increasing, hence injective on ORD,
    and no set receives an injection from ORD.")
-(category! 'zorn-lemma 'set-quotient)
+(topic! 'zorn-lemma 'set-quotient)

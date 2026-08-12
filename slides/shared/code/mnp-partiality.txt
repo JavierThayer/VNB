@@ -1,0 +1,11 @@
+(mnp-refuses "(pred 0) = (pred 0) -- pred is undefined at 0"
+  '(= (PRED 0) (PRED 0))
+  (lambda () (ignore-errors (fact 'pred-in-nn 0)) (mnp-attack!)))
+
+(mnp-control "pred(n) = pred(n) WITH the definedness witness"
+  '(FORALL n_ (IMPLIES (IN n_ NN) (IMPLIES (NOT (= n_ 0)) (= (PRED n_) (PRED n_)))))
+  (lambda () (di) (di) (fact 'pred-in-nn 'n_) (rfl)))
+
+(mnp-refuses "(recip 0) = (recip 0) -- the reciprocal is undefined at 0"
+  '(= (recip 0) (recip 0))
+  (lambda () (mnp-attack!)))

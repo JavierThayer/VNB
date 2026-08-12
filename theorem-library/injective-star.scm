@@ -59,4 +59,4 @@
 (inst*! isb-injx 'u_ 'v_)
 (ass)
 (qed 'injection-is-injective*)
-(category! 'injection-is-injective* 'plumbing)
+(topic! 'injection-is-injective* 'plumbing)

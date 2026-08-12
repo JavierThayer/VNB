@@ -518,4 +518,4 @@
 (newline)
 (newline)
 (qed 'rr-complete)
-(category! 'rr-complete 'analysis)
+(topic! 'rr-complete 'analysis)

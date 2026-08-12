@@ -213,7 +213,7 @@
        '(NN-MINUS j_ 1))
 (ass)
 (qed 'border-staircase)
-(category! 'border-staircase 'algebra)
+(topic! 'border-staircase 'algebra)
 
 ;; =====================================================================
 ;; smith-staircase
@@ -415,10 +415,10 @@
 (ai (list 'NOT SS-NZk))
 
 (qed 'smith-staircase)
-(category! 'smith-staircase 'algebra)
-(category! 'nn-zero-le 'inequalities)
-(category! 'nn-succ-mono 'inequalities)
-(category! 'nn-succ-le-cancel 'inequalities)
-(category! 'block-type 'algebra)
-(category! 'entry-of-block 'algebra)
-(category! 'submodule-finsum-closed 'algebra)
+(topic! 'smith-staircase 'algebra)
+(topic! 'nn-zero-le 'inequalities)
+(topic! 'nn-succ-mono 'inequalities)
+(topic! 'nn-succ-le-cancel 'inequalities)
+(topic! 'block-type 'algebra)
+(topic! 'entry-of-block 'algebra)
+(topic! 'submodule-finsum-closed 'algebra)

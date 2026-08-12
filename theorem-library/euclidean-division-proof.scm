@@ -17,4 +17,4 @@
 (inst+ '(FORALL b (IMPLIES (IN b (CARR s)) (IMPLIES (NOT (= b (ZERO s))) (FORSOME q (AND (IN q (CARR s)) (FORSOME r (AND (IN r (CARR s)) (AND (= a ((ADD s) ((MUL s) q b) r)) (OR (= r (ZERO s)) (<= (succ ((GAUGE s) r)) ((GAUGE s) b))))))))))) 'b)
 (ass)
 (qed 'euclidean-division)
-(category! 'euclidean-division 'algebra)
+(topic! 'euclidean-division 'algebra)

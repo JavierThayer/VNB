@@ -524,35 +524,49 @@
                                    " $" (proof-tex--join (cdr (car cs)) ", ") "$")
                     out)))))
 
+;; render clauses in a NESTED position.  "Suppose"/"Let" are imperative: they
+;; instruct the reader to fix something before the claim is made, and only the
+;; LEADING run of a proposition is in that position.  A universal reached after
+;; "such that" or "if ... then" is part of the claim itself and has to read as a
+;; quantifier -- "There is m in T such that Let k in T, m <= k" (nn-least-element,
+;; found 2026-08-09) is not English.  No alternation here, hence no `depth'.
+(define (proof-reader--render-clauses-nested clauses)
+  (proof-tex--join
+   (map (lambda (c)
+          (string-append (if (= (length (cdr c)) 1) "for every $" "for all $")
+                         (proof-tex--join (cdr c) ", ") "$"))
+        clauses)
+   ", "))
+
 ;; a NESTED statement (after "if ... then" / "such that"): no leading "Then".
-(define (proof-reader--stmt-tail e depth)
+(define (proof-reader--stmt-tail e)
   (let* ((cb (proof-reader--peel-univs e)) (clauses (car cb)) (body (cdr cb))
          (head (if (pair? clauses)
-                   (string-append (proof-reader--render-clauses clauses depth) ", ") "")))
+                   (string-append (proof-reader--render-clauses-nested clauses) ", ") "")))
     (string-append head
       (cond
         ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
          (string-append "if $" (expr->tex (cadr body)) "$ then "
-                        (proof-reader--stmt-tail (caddr body) (+ depth (length clauses)))))
+                        (proof-reader--stmt-tail (caddr body))))
         (else (proof-reader--display body))))))
 
-(define (proof-reader--stmt-body body depth)
+(define (proof-reader--stmt-body body)
   (cond
     ((proof-reader--exists-step body)
      => (lambda (step)
           (string-append "There is $" (car step) "$ such that "
-                         (proof-reader--stmt-tail (cadr step) depth))))
+                         (proof-reader--stmt-tail (cadr step)))))
     ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
      (string-append "If $" (expr->tex (cadr body)) "$, then "
-                    (proof-reader--stmt-tail (caddr body) depth)))
+                    (proof-reader--stmt-tail (caddr body))))
     (else (string-append "Then" (proof-reader--display body)))))
 
 (define (proof-reader--stmt e depth)
   (let* ((cb (proof-reader--peel-univs e)) (clauses (car cb)) (body (cdr cb)))
     (if (pair? clauses)
         (string-append (proof-reader--render-clauses clauses depth) ". "
-                       (proof-reader--stmt-body body (+ depth (length clauses))))
-        (proof-reader--stmt-body body depth))))
+                       (proof-reader--stmt-body body))
+        (proof-reader--stmt-body body))))
 
 ;; first subterm whose head is OP (for the internal-representation note).
 (define (proof-reader--first-app e op)

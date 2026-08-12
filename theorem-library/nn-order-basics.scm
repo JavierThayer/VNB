@@ -52,7 +52,7 @@
 (fact 'qq-subset-rr 'k)
 (ass)
 (qed 'nn-in-rr)
-(category! 'nn-in-rr 'plumbing)
+(topic! 'nn-in-rr 'plumbing)
 
 
 ;;; ----------------------------------------------------------------------
@@ -90,7 +90,7 @@
 (fact 'rr-leq-transitive 'x 'y 'z)
 (ass)
 (qed 'rr-le-trans)
-(category! 'rr-le-trans 'inequalities)
+(topic! 'rr-le-trans 'inequalities)
 
 ;; rr-le-trans-c -- curried, so `fact' discharges each guard from context
 (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
@@ -102,7 +102,7 @@
 (fact 'rr-leq-transitive 'x 'y 'z)
 (ass)
 (qed 'rr-le-trans-c)
-(category! 'rr-le-trans-c 'inequalities)
+(topic! 'rr-le-trans-c 'inequalities)
 
 ;; nn-le-trans-guarded -- transitivity GUARDED on NN.  This is what nn-le-trans
 ;; SHOULD be; it is parked under its own name because the migration is
@@ -119,7 +119,7 @@
 (fact 'rr-leq-transitive 'a_ 'b_ 'c_)
 (ass)
 (qed 'nn-le-trans-guarded)
-(category! 'nn-le-trans-guarded 'inequalities)
+(topic! 'nn-le-trans-guarded 'inequalities)
 
 ;;; ----------------------------------------------------------------------
 ;;; nn-le-refl:  k <= k on NN.
@@ -131,7 +131,7 @@
 (fact 'rr-leq-reflexive 'k)
 (ass)
 (qed 'nn-le-refl)
-(category! 'nn-le-refl 'inequalities)
+(topic! 'nn-le-refl 'inequalities)
 
 ;;; ----------------------------------------------------------------------
 ;;; nn-le-add-right:  m <= m + n.
@@ -173,7 +173,7 @@
 (fact 'nn-le-trans-guarded 'm '(+ m n) '(succ (+ m n)))
 (ass)
 (qed 'nn-le-add-right)
-(category! 'nn-le-add-right 'inequalities)
+(topic! 'nn-le-add-right 'inequalities)
 
 ;;; ----------------------------------------------------------------------
 ;;; nn-pair-upper-bound:  NN is directed -- any two naturals have a common
@@ -201,4 +201,4 @@
 (fact 'nn-le-add-right 'a 'b)
 (ass)
 (qed 'nn-pair-upper-bound)
-(category! 'nn-pair-upper-bound 'inequalities)
+(topic! 'nn-pair-upper-bound 'inequalities)

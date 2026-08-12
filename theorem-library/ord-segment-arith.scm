@@ -42,7 +42,7 @@
              (dk-opened (lambda () (di)))))
  (dk-opened (lambda () (di))))
 (qed 'seg-mem-lt)
-(category! 'seg-mem-lt 'set-theory)
+(topic! 'seg-mem-lt 'set-theory)
 
 ;;; --------------------------------------------------------------------
 ;;; j in S(succ n) iff j <= n -- the discrete form, and the one a finite
@@ -76,4 +76,4 @@
                  (dk-opened (lambda () (di))))))
  (dk-opened (lambda () (di))))
 (qed 'seg-mem-succ-le)
-(category! 'seg-mem-succ-le 'set-theory)
+(topic! 'seg-mem-succ-le 'set-theory)

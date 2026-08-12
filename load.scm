@@ -432,6 +432,12 @@
     ;; interval-in-set (60 bills), interval-elt-in-nn, interval-lo, interval-hi,
     ;; plus the citable unfolding equation.  Were in order-lemmas / matrix.
     "theorem-library/interval-basics"
+    ;; MAT's read-offs, PROVEN the same way interval-basics proves INTERVAL's:
+    ;; the unfolding equation as a citable `==', then subst the goal back into
+    ;; the separation.  `mat-rows-in-nn' is step one of defining CARD -- guarding
+    ;; interval-card-in-nn needs the matrix dimensions typed NN, and the theorem
+    ;; statements that cite it do not type them.
+    "theorem-library/mat-basics"
     ;; binary-minus-laws -- what follows from number-systems.scm's binary-minus-def
     ;; (2026-08-01).  Proves rr-sub-in-rr, which was a `well-known' support in
     ;; order-lemmas until the defining equation for (- a b) existed.  Needs
@@ -444,6 +450,14 @@
     ;; so it sits here; must precede theorem-library/cancellation, the earliest
     ;; file that cites it in an actual proof.
     "theorem-library/fun-apply-type-proof"
+    ;; pair-tuple-sethood -- pair-in-cartesian and pair-tuple-is-set, PROVEN
+    ;; modulo 0.  Nothing in the library concluded sethood of a TUPLE: TUPLES
+    ;; has no membership IFF, so `list-sethood' wants `L in TUPLES(A)' as a
+    ;; hypothesis and a literal pair cannot supply it.  The route goes through
+    ;; CARTESIAN (`ci' carries no sethood guard on the components) and back via
+    ;; membership-implies-sethood.  See structure-notes/tuples-rung.md.  Needs
+    ;; only base axioms + driver-kit, so it sits with the other plumbing.
+    "theorem-library/pair-tuple-sethood"
     ;; nn-order-basics -- nn-le-refl, nn-le-add-right (m <= m+n by induction on
     ;; n) and nn-pair-upper-bound, PROVEN.  The first and third were supports in
     ;; order-lemmas claiming the `proof' warrant tier with no machine proof.
@@ -494,12 +508,35 @@
     ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
     ;; interactive tactics + qed/proof-debt, so loads here.
     "structure-library/subtype-laws"
+    ;; integral-domain-cancel-zero, PROVEN by unfolding is-integral-domain-def
+    ;; (the no-zero-divisor conjunct, instantiated and OR-eliminated against
+    ;; b /= 0).  The file was WRITTEN and never wired in -- it sat on disk,
+    ;; unloaded and therefore unrun, while integral-domain.scm went on asserting
+    ;; the same fact unwarranted into seven bills; found 2026-08-10.  Same
+    ;; position and the same reasons as subtype-laws above: needs the
+    ;; interactive tactics + qed/proof-debt, and must precede its consumers
+    ;; (nn-integral, submodule-free).
+    "structure-library/integral-domain-laws"
     ;; IS-RING(ZZ-RING), PROVED -- formerly the asserted axiom `zz-is-ring', which
     ;; every theorem reaching the integers through their ring structure was billed
     ;; for.  Unfold the IFF, push the accessors to the surface (surface-goal!),
     ;; and the conjuncts are the arithmetic axioms.  Must load BEFORE cancellation
     ;; (which transports through it).  Needs transport + crs + numeric-instances.
     "theorem-library/zz-ring-is-ring"
+    ;; IS-COMMUTATIVE-RING(ZZ-RING) and IS-INTEGRAL-DOMAIN(ZZ-RING), PROVED --
+    ;; the storey above zz-ring-is-ring, and formerly two more asserted axioms of
+    ;; numeric-instances.  The content is that ZZ has no zero divisors, which
+    ;; nothing in number-systems states: it comes from QQ being a FIELD
+    ;; (qq-recip-inverse) plus zz-subset-qq.  Needs zz-ring-is-ring above,
+    ;; driver-kit (have!/use-em) and surface-goal!; must precede
+    ;; theorem-library/nn-integral, which transports through it.
+    "theorem-library/zz-integral-domain"
+    ;; IS-COMM-MONOID(NN-ADD-MONOID), PROVED -- the last numeric-instance
+    ;; assertion with a dependent.  Same shape as zz-ring-is-ring, except the
+    ;; three law conjuncts are closed by CITING the NN axioms rather than by
+    ;; `crs': NN is not a ring, and a commutative-ring oracle would have closed
+    ;; them anyway.  Must precede theorem-library/poly-is-ring-proof.
+    "theorem-library/nn-add-monoid"
     ;; Cancellation, proved ONCE in GROUP and then carried: -> ABELIAN-GROUP ->
     ;; [RING-ADDITIVE-AG view] -> RING -> [transport!] -> ZZ/QQ in the SURFACE
     ;; language -> NN by restriction.  The worked example of the transport chain,
@@ -578,6 +615,11 @@
     ;; name by name as each theorem lands.  Needs pigeonhole-segments-gen, the
     ;; segment bridges, bijection-derived (just above) and bijection-identity.
     "theorem-library/card-defined"
+    ;; The finite layer of CARD*: the CARD* form of each `primitive' axiom
+    ;; cardinality.scm asserts about the axiomatised CARD, proven from
+    ;; card*-segment.  Starts with card*-empty (needs only extensionality and
+    ;; ord-segment-zero-no-members); see structure-notes/card-basics-worklist.md.
+    "theorem-library/card-finite"
     ;; The five metric laws (pos/self-zero/zero-eq/sym/triangle), PROVEN by
     ;; projecting the is-metric property folded into IS-METRIC-SPACE -- they
     ;; were redundant asserted axioms (a definition oversight).
@@ -634,6 +676,16 @@
     ;; endgame, factored out.  Needs image-set/image-membership-iff (injection),
     ;; subclass-of-set-is-set (set-basics), burali-forti (ordinals), choice.
     "theorem-library/ord-no-injection"
+    ;; ZEN, the choice-enumeration of a set: its UNIFORM step law (the three
+    ;; equations def-by-ord-recursion installs -- zero / successor / limit --
+    ;; proven to be ONE equation holding at every ordinal, so nothing downstream
+    ;; case-splits), and the EXHAUSTION rung: the enumeration runs out, because
+    ;; otherwise it injects ORD into a set.  Rungs 1 and 2 of Zermelo L1, i.e.
+    ;; Track B of the CARD plan -- the half that card-in-ord and card-finite-bij
+    ;; need.  Also proves ord-lt-succ-iff-le and zen-hits.  Needs ordinals
+    ;; (def-by-ord-recursion, tfi3) and ord-no-injection (just above), which is
+    ;; why it sits here rather than beside card-defined.
+    "theorem-library/zen-step"
     "theorem-library/zorn-proof"
     ;; ZORN'S LEMMA, proved: the strictly increasing transfinite tower ZUP and the
     ;; Burali-Forti contradiction.  Must come after ord-no-injection (its endgame)
@@ -983,7 +1035,7 @@
     "wff-english"
     ;; PSS partition: files every support under a category bucket (after all
     ;; supports + their -rev companions are installed).  Soft-nudge in load.scm.
-    "theorem-library/pss-categories"
+    "theorem-library/pss-topics"
     ;; Self-describing registry of the interactive tactics: (tactics) prints
     ;; the menu, (write-tactics-md) emits reference/TACTICS.md for the browser
     ;; reference.  Pure display/string; no dependencies beyond *reference-dir*.
@@ -1153,10 +1205,26 @@
 ;;; anyone.  So the scan is per-MACRO, not per-file, and adding a macro to the
 ;;; list is the whole fix.  Over-detection (a file merely mentioning the form in
 ;;; quoted data) is harmless: it just loads as source.
+;;;
+;;; EXCEPT IN A COMMENT, where it was not harmless at all (found 2026-08-12).
+;;; The scan used to read raw LINES, so a file that only DISCUSSES one of these
+;;; macros was skipped: `macetes.scm' mentions "(bc* " at :134 and
+;;; `interactive.scm' shows "(declare-structure " in a docstring at :2619, so
+;;; compile-vnb! silently declined to compile TWO OF THE LARGEST CORE FILES.
+;;; Nothing said so; the .com files in the tree were old ones, and the first
+;;; time they were deleted the library load went from 50 s to over ten minutes
+;;; with no diagnostic.  The scan now strips each line's comment first.  It
+;;; still errs toward skipping -- a real use anywhere in the file, at top level
+;;; or nested inside a lambda, must be caught, because compile-file cannot see a
+;;; syntactic keyword at any depth -- but a mention in prose no longer counts.
 (define *vnb-top-level-macros*
   '(("(bc* "               . "interactive")     ; macro . its definition site
     ("(declare-structure " . "structures")
     ("(vlet "              . "vlet")))
+
+(define (vnb--code-part line)                   ; the line with its comment cut off
+  (let ((i (string-search-forward ";" line 0)))
+    (if i (string-head line i) line)))
 
 (define (vnb-file-uses-bc*-macro? f)
   (find-first
@@ -1167,7 +1235,7 @@
                (let loop ()
                  (let ((line (read-line port)))
                    (cond ((eof-object? line) #f)
-                         ((substring? (car entry) line) #t)
+                         ((substring? (car entry) (vnb--code-part line)) #t)
                          (else (loop)))))))))
     *vnb-top-level-macros*))
 
@@ -1580,14 +1648,14 @@
                   owed))))
 
 ;; Categorisation nudge (soft -- a discipline, not a soundness gate): every PSS
-;; support should be filed under a *pss-category-order* bucket via category!.
+;; support should be filed under a *pss-topic-order* bucket via topic!.
 ;; Report how many are not yet filed; never fails the build.
-(let ((un (uncategorized-pss-names)))
+(let ((un (pss-names-without-topic)))
   (if (null? un)
-      (display ";; pss-categories: ok (all support entries filed)\n")
+      (display ";; pss-topics: ok (all support entries filed)\n")
       (begin
-        (display ";; pss-categories: ") (display (length un))
-        (display " uncategorized PSS entr(y/ies) -- file with (category! 'name 'cat):\n   ")
+        (display ";; pss-topics: ") (display (length un))
+        (display " PSS entr(y/ies) -- file with (topic! 'name 'cat):\n   ")
         (write un) (newline))))
 
 ;; Gloss nudge (soft, count only -- a discipline going forward, not a gate and

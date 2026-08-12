@@ -1,0 +1,15 @@
+(define (pi-reflexivity! sqn)
+  (let* ((goal (sequent-node-assertion sqn))
+         (g    (wff-formula goal))
+         (dg   (sqn-dg sqn)))
+    (if (or (eq? g 'TRUTH)
+            (and (pair? g) (eq? (car g) '=)
+                 (alpha-equiv? (cadr g) (caddr g))
+                 ;; definedness guard: t = t only when t is defined -- either
+                 ;; SYNTACTICALLY (variable/ground/total-op tree) or witnessed
+                 ;; by a context assumption (IN t _)/(= t _).
+                 (or (term-self-defined? (cadr g))
+                     (asm-establishes-defined?
+                       (sequent-node-assumptions sqn) (cadr g)))))
+        (dg-apply-rule! dg 'reflexivity '() sqn)
+        #f)))

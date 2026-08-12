@@ -4,7 +4,7 @@
 ;;;   ./prover -i stress-tests/compact-tb-stress.scm
 ;;;
 ;;; KIND: machinery-gap probe (names the missing reusable lemmas).
-;;; PSS SUPPORTS LEANED ON (see theorem-library/pss-categories.scm):
+;;; PSS SUPPORTS LEANED ON (see theorem-library/pss-topics.scm):
 ;;;   compactness vocab    IS-COMPACT, IS-OPEN-COVER, TOTALLY-BOUNDED, IS-R-NET
 ;;;                        (topology bucket; def-predicates, metric-topology.scm)
 ;;;   ball-cover-is-open-cover    the ball family is an open cover  (topology)

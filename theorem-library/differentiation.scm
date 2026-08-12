@@ -225,7 +225,7 @@
 (warrant! 'deriv-sum 'reference
   "calculus.pdf Prop 2.5.  (f+g)(x)-(f+g)(a) = (phi_f(x)+phi_g(x))(x-a); the
    witness phi_f+phi_g is continuous at a (sum of continuous), value L+M.")
-(category! 'deriv-sum 'analysis)
+(topic! 'deriv-sum 'analysis)
 
 ;;; Prop 2.6: product rule.  phi_{fg}(x) = phi_f(x) g(x) + f(a) phi_g(x).
 (support 'deriv-product
@@ -237,7 +237,7 @@
   "calculus.pdf Prop 2.6.  (fg)(x)-(fg)(a) = [phi_f(x)g(x) + f(a)phi_g(x)](x-a)
    by adding and subtracting f(a)g(x); the bracket is continuous at a with
    value L*g(a)+f(a)*M.")
-(category! 'deriv-product 'analysis)
+(topic! 'deriv-product 'analysis)
 
 ;;; Prop 2.8: the CHAIN RULE.  COMPOSE(g,f)(x) = g(f(x)); (g o f)'(a)=g'(f(a))f'(a).
 ;;; Caratheodory form (limit-free, no o/O algebra): with f(x)-f(a)=phi_f(x)(x-a)
@@ -254,7 +254,7 @@
 (warrant! 'deriv-chain 'reference
   "calculus.pdf Prop 2.8 (chain rule), Caratheodory form: the factor of g o f is
    (phi_g o f)*phi_f, continuous at a with value g'(f(a))*f'(a) = M*L.")
-(category! 'deriv-chain 'analysis)
+(topic! 'deriv-chain 'analysis)
 
 ;;; Negation rule: derivative of -f is -f'.  Special case of the scalar rule
 ;;; (c = -1); witness -phi (continuous at a, value -L).  Used by
@@ -266,7 +266,7 @@
 (warrant! 'deriv-neg 'reference
   "Derivative of -f is -f': f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a) =
    (-phi)(x)(x-a), with -phi continuous at a and value -L.")
-(category! 'deriv-neg 'analysis)
+(topic! 'deriv-neg 'analysis)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

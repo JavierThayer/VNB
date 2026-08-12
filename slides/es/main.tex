@@ -1,0 +1,471 @@
+%% slides/es/main.tex -- charla general en espanol.  Primera version, 2026-08-11.
+%%
+%% NO es una traduccion de en/main.tex.  Es una charla distinta, para un publico
+%% general que ha oido hablar de la IA y poco mas, y CON LIMITE DE TIEMPO:
+%% 45 minutos como maximo.  Ver es/README.md.
+%%
+%% Registro: expositivo y positivo.  El mazo tecnico en ingles hace autocritica
+%% deliberada (los dos fallos de correccion encontrados, el corpus de mutaciones);
+%% AQUI NO.  Esto es un relato de por que el proyecto tiene sentido, no una
+%% auditoria de sus defectos.  Honesto, pero no flagelante.
+%%
+%% Construir:  make es      (desde slides/)
+%%
+%% Las cifras vienen de ../shared/numbers.tex, igual que en el mazo ingles, para
+%% que una cifra corregida no pueda pudrirse en uno de los dos.
+%%
+%% Sin marcadores \fid{}: `make parity' compara el esqueleto de frames de los dos
+%% mazos y aqui no aplica -- esta charla no se corresponde frame a frame con
+%% ninguna otra.
+
+\documentclass[11pt,aspectratio=169]{beamer}
+%% SIN babel.  Esta instalacion de TeX no tiene `texlive-lang-spanish': no hay
+%% spanish.ldf y language.dat solo trae patrones ingleses, de modo que
+%% \usepackage[spanish]{babel} aborta la compilacion.  El texto espanol se
+%% compone igual de bien (utf8 + T1); lo unico que se pierde es la particion
+%% de palabras a final de linea, que en ingles seria INCORRECTA.  Asi que se
+%% desactiva la particion por completo: mejor una linea algo mas suelta que un
+%% guion mal puesto.  Si se construye en una maquina con el paquete instalado,
+%% reponer la linea de babel y quitar el bloque de penalizaciones.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\tolerance=2000
+\emergencystretch=3em
+\input{../shared/preamble.tex}
+\input{../shared/numbers.tex}
+
+\title[Modelos de lenguaje y matemáticas]%
+      {Modelos de lenguaje y matemáticas}
+\subtitle{Por qué hace falta un verificador, y en qué he empleado el tiempo}
+\author{Javier Thayer}
+\date{agosto de 2026}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{De qué voy a hablar}
+  Tres preguntas, en este orden:
+  \begin{enumerate}
+    \item \textbf{¿Qué es} un modelo de lenguaje? Lo suficiente para entender
+          en qué es bueno y en qué falla.
+    \item \textbf{¿Por qué} han empezado a aparecer en la matemática?
+    \item \textbf{¿Qué les falta}, y por qué lo que les falta tiene un nombre
+          antiguo y preciso: una \emph{demostración formal}.
+  \end{enumerate}
+  \vfill
+  Y al final, brevemente, en qué he empleado yo el tiempo.
+  \vfill
+  {\small No hace falta saber nada de informática. Ni de matemática, más allá
+   de haber visto alguna demostración alguna vez.}
+\end{frame}
+
+\section{Qué es un modelo de lenguaje}
+
+\begin{frame}{El problema que resuelve}
+  Un modelo de lenguaje hace una sola cosa:
+  \begin{quote}
+    dado un texto, decir \textbf{cómo podría continuar}.
+  \end{quote}
+  \vfill
+  \begin{center}
+    \large
+    ``El teorema de Pitágoras relaciona los lados de un \underline{\hspace{3em}}''
+  \end{center}
+  \vfill
+  No responde ``triángulo'' porque lo tenga apuntado en algún sitio. Responde
+  que, entre todas las continuaciones posibles, esa es con mucho la más
+  probable \emph{en los textos que ha visto}.
+  \vfill
+  Todo lo demás --- contestar preguntas, escribir código, traducir --- es esa
+  operación repetida.
+\end{frame}
+
+\begin{frame}{Primero: el texto se corta en piezas}
+  El modelo no ve letras ni palabras, sino \textbf{tokens}: piezas de palabra,
+  del tamaño que resulte más económico.
+  \vfill
+  \begin{center}
+    \large
+    \texttt{in\,|\,cre\,|\,íble\,|\,mente} \qquad
+    \texttt{Pi\,|\,tá\,|\,goras} \qquad
+    \texttt{el\,|\,teorema}
+  \end{center}
+  \vfill
+  Las palabras frecuentes son un token; las raras se parten. Un texto español
+  típico gasta algo más de un token por palabra.
+  \vfill
+  Esto no es un detalle de implementación inocente: el modelo razona sobre
+  \emph{esas} piezas. Contar letras, por ejemplo, le resulta antinatural, porque
+  las letras no son las unidades que ve.
+\end{frame}
+
+\begin{frame}{Segundo: predecir la pieza siguiente}
+  Para cada posición, el modelo produce una \textbf{probabilidad para cada
+  token posible} del vocabulario:
+  \vfill
+  \begin{center}
+    \begin{tabular}{lr}
+      \toprule
+      \multicolumn{2}{c}{``\dots los lados de un ''}\\
+      \midrule
+      \texttt{triángulo}   & 0.94 \\
+      \texttt{polígono}    & 0.02 \\
+      \texttt{cuadrado}    & 0.01 \\
+      \dots                & \dots \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  Se elige uno, se añade al texto, y se vuelve a empezar. Un párrafo son
+  cientos de repeticiones de este paso.
+  \vfill
+  {\small La elección no siempre es la más probable: se muestrea. Por eso el
+   mismo prompt da respuestas distintas.}
+\end{frame}
+
+\begin{frame}{El entrenamiento, en una frase}
+  El modelo tiene un número enorme de parámetros ajustables. Entrenarlo es:
+  \begin{quote}
+    recorrer una cantidad enorme de texto, y ajustar los parámetros para que
+    las continuaciones que \emph{de hecho} ocurrieron resulten más probables.
+  \end{quote}
+  \vfill
+  Nada más. No se le enseña gramática, ni aritmética, ni lógica; no hay
+  reglas escritas por nadie. Todo lo que parece saber es un efecto lateral de
+  hacer bien esa predicción.
+  \vfill
+  \begin{block}{Lo sorprendente, y conviene decirlo}
+    Que de un objetivo tan pobre salga algo que sostiene una conversación
+    técnica no estaba previsto por nadie. Es un hecho empírico, no una teoría.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Lo que un modelo de lenguaje NO es}
+  \begin{itemize}
+    \item \textbf{No es una base de datos.} No hay una tabla de hechos que
+          consultar, ni un sitio donde esté escrito lo que responde.
+    \item \textbf{No comprueba nada.} Nada en su funcionamiento distingue una
+          continuación verdadera de una meramente verosímil.
+    \item \textbf{No sabe lo que no sabe.} No hay una señal interna que diga
+          ``de esto no tengo ni idea''.
+  \end{itemize}
+  \vfill
+  De ahí el fallo característico, y no es un defecto que se vaya a arreglar
+  puliendo: \textbf{produce texto bien formado, fluido y convincente, que puede
+  ser falso}. Está optimizado para la fluidez. La corrección no aparece en
+  ninguna parte del objetivo.
+\end{frame}
+
+\section{Por qué en matemáticas}
+
+\begin{frame}{Lo que estas herramientas hacen bien}
+  Y que resulta que el matemático usa todo el rato:
+  \begin{itemize}
+    \item \textbf{Lenguaje técnico.} Leen y escriben con soltura la prosa
+          peculiar en que está escrita la matemática.
+    \item \textbf{Analogía.} ``Esto se parece a aquello'' es su operación
+          nativa, y es también como se buscan las demostraciones.
+    \item \textbf{Recuperación.} Traen a la mano el lema que uno sabe que
+          existe pero no recuerda dónde.
+    \item \textbf{Código.} Escriben programas razonablemente bien, lo que
+          convierte lo experimental en barato.
+  \end{itemize}
+  \vfill
+  Ninguna de estas cosas es demostrar. Todas son parte del trabajo.
+\end{frame}
+
+\begin{frame}{Dónde se están usando ya}
+  Sin entrar en detalles, el patrón se repite:
+  \begin{itemize}
+    \item redactar y reescribir: pasar de la idea al texto publicable;
+    \item buscar en la literatura, que hace tiempo dejó de ser abarcable;
+    \item sugerir conjeturas y contraejemplos a partir de casos calculados;
+    \item automatizar los pasos rutinarios de una demostración larga ---
+          los que todo el mundo dice ``análogamente'' para no escribir;
+    \item ayudar a \emph{formalizar}: pasar una demostración de papel a un
+          sistema que la comprueba. De esto hablo en un momento.
+  \end{itemize}
+  \vfill
+  Lo que casi nunca se afirma, y conviene notarlo, es que hayan
+  \emph{demostrado} algo por su cuenta.
+\end{frame}
+
+\begin{frame}{Por qué es atractivo}
+  Buena parte del tiempo de quien hace matemáticas no se va en tener ideas.
+  Se va en:
+  \vfill
+  \begin{center}
+    comprobar los casos pequeños \quad$\cdot$\quad
+    arrastrar hipótesis por doce páginas \quad$\cdot$\quad
+    verificar que el lema citado dice de verdad lo que hace falta \quad$\cdot$\quad
+    rehacer la cuenta con el signo corregido
+  \end{center}
+  \vfill
+  Es trabajo mecánico que exige atención sostenida, y el error se cuela
+  justamente ahí, no en la idea central.
+  \vfill
+  Un ayudante incansable para esa parte sería valioso aunque no tuviera una
+  sola idea propia.
+\end{frame}
+
+\section{Lo plausible y lo correcto}
+
+\begin{frame}{El problema, en una línea}
+  \begin{center}
+    \Large
+    Una demostración que \emph{parece} correcta\\[0.5ex]
+    y una demostración correcta\\[0.5ex]
+    son objetos distintos.
+  \end{center}
+  \vfill
+  Y un modelo de lenguaje está construido, literalmente, para producir el
+  primero.
+  \vfill
+  Esto no es una objeción moral contra la herramienta. Es una descripción de
+  qué es: la fluidez es el objetivo; la corrección no está en el objetivo.
+\end{frame}
+
+\begin{frame}{Un ejemplo que no necesita ordenadores}
+  Considérese
+  \begin{center}
+    \Large $\; p(n) = n^{2} + n + 41 \;$
+  \end{center}
+  \vfill
+  \begin{center}
+    \begin{tabular}{lllll}
+      \toprule
+      $p(0)=41$ & $p(1)=43$ & $p(2)=47$ & $p(3)=53$ & $p(4)=61$ \\
+      \multicolumn{5}{c}{\dots\ y así hasta $n=39$: \textbf{todos primos}} \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  Cuarenta casos seguidos. Cualquiera apostaría.
+  \vfill
+  \begin{center}
+    \large
+    $p(40) = 40^{2} + 40 + 41 = 41 \cdot 41$
+  \end{center}
+  \vfill
+  La evidencia era abrumadora y la conclusión, falsa. ``Se ve que sí'' no es un
+  argumento --- y ``se ve que sí'' es exactamente lo que sabe hacer un modelo
+  entrenado en parecerse a lo que ha visto.
+\end{frame}
+
+\begin{frame}{Por qué esto pesa más en matemáticas}
+  En casi cualquier otro uso, un error se diluye: el resumen queda algo peor,
+  la traducción algo torpe, y sigue sirviendo.
+  \vfill
+  En una demostración no. Un paso malo entre doscientos buenos no deja una
+  demostración un poco peor: deja \textbf{ninguna demostración}.
+  \vfill
+  Y el paso malo es justamente el que nadie mira: el que parece rutina.
+  \vfill
+  \begin{block}{La pregunta operativa}
+    No es ``¿me fío de esta herramienta?''. Es:\\
+    \textbf{¿puedo comprobar lo que produce, sin fiarme de ella?}
+  \end{block}
+\end{frame}
+
+\section{Rigor: los modelos formales}
+
+\begin{frame}{Qué es una demostración formal}
+  Una demostración ordinaria está escrita para convencer a una persona: dice
+  ``análogamente'', ``es claro que'', ``sin pérdida de generalidad''.
+  \vfill
+  Una demostración \textbf{formal} no tiene ninguna de esas palabras. Es una
+  sucesión de pasos en la que \emph{cada} paso está justificado por una regla
+  fijada de antemano, de una lista corta.
+  \vfill
+  La consecuencia es la interesante:
+  \begin{center}
+    \large
+    una máquina puede comprobarla, sin entender nada.
+  \end{center}
+  \vfill
+  Comprobar es aplicar la lista de reglas y ver si encaja. Es aburrido,
+  mecánico, y no admite opinión.
+\end{frame}
+
+\begin{frame}{La asimetría de la que vive todo esto}
+  \begin{center}
+    \Large
+    Encontrar una demostración es difícil.\\[1ex]
+    \emph{Comprobarla} es fácil.
+  \end{center}
+  \vfill
+  Nadie sabe hacer lo primero de forma automática, en general. Lo segundo es
+  un programa modesto, que además puede escribirse una vez y revisarse con
+  cuidado.
+  \vfill
+  Esa asimetría es la que hace que la combinación tenga sentido. Si comprobar
+  fuera tan difícil como descubrir, no habría nada que hacer aquí.
+\end{frame}
+
+\begin{frame}{La consecuencia: proponer y disponer}
+  \begin{center}
+    \large
+    El modelo \textbf{propone}. \qquad El verificador \textbf{dispone}.
+  \end{center}
+  \vfill
+  \begin{itemize}
+    \item El modelo puede equivocarse cuanto quiera: sus propuestas no entran
+          en la biblioteca hasta que pasan.
+    \item Lo que hay que revisar deja de ser ``¿es de fiar el modelo?'' ---
+          pregunta a la que nadie sabe responder --- y pasa a ser
+          ``¿es correcto el verificador?'', que es un programa concreto y
+          pequeño.
+    \item Y el resultado es comprobable \emph{por terceros}, sin confiar ni en
+          el modelo ni en quien lo usó.
+  \end{itemize}
+  \vfill
+  La confianza se traslada de algo opaco y enorme a algo transparente y
+  pequeño. Eso es todo lo que se pide.
+\end{frame}
+
+\begin{frame}{Qué se le pide entonces al verificador}
+  Si va a ser la pieza en la que se confía, tiene que cumplir tres cosas:
+  \vfill
+  \begin{enumerate}
+    \item \textbf{Núcleo pequeño.} Las reglas de inferencia de las que depende
+          todo deben caber en una tarde de lectura.
+    \item \textbf{Lenguaje escribible.} El modelo tiene que poder producir
+          algo en ese lenguaje. Un formalismo que sólo un experto sabe teclear
+          no sirve de nada aquí.
+    \item \textbf{Cuentas claras.} Debe decir de qué depende cada teorema: qué
+          se ha demostrado y qué se ha supuesto. Un sistema que no distingue
+          las dos cosas no da rigor, lo simula.
+  \end{enumerate}
+  \vfill
+  Las tres son exigencias de \emph{ingeniería}, no de lógica. Y son la razón
+  de que me pusiera a construir uno.
+\end{frame}
+
+\section{VNB}
+
+\begin{frame}{Qué he estado construyendo}
+  \textbf{\vnb{}}: un verificador de demostraciones, y algo más que eso --- un
+  asistente para \emph{encontrarlas}.
+  \vfill
+  \begin{itemize}
+    \item Sobre teoría de conjuntos (von Neumann--Bernays), que es el lenguaje
+          en el que ya está escrita la matemática ordinaria.
+    \item Con las estructuras habituales --- un grupo, un anillo, un espacio
+          métrico --- como lo que son: tuplas con propiedades.
+    \item Y con una interfaz pensada para que escribir una demostración se
+          parezca a hacer matemáticas, no a programar.
+  \end{itemize}
+  \vfill
+  \begin{block}{El dato que más dice sobre el proyecto}
+    Está escrito casi por completo \emph{por} un modelo de lenguaje, bajo mi
+    dirección. Es a la vez la herramienta y el experimento.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Cada teorema viene con su factura}
+  Cuando una demostración se cierra, el sistema no dice sólo ``correcto''.
+  Dice \emph{de qué depende}:
+  \vfill
+  \begin{center}
+    \code{demostrado módulo 0} \\[0.5ex]
+    {\small nada supuesto: sólo las reglas del núcleo y las definiciones}
+  \end{center}
+  \vfill
+  \begin{center}
+    \code{demostrado módulo \{a, b\}} \\[0.5ex]
+    {\small correcto \emph{si} se conceden $a$ y $b$, que nadie ha demostrado}
+  \end{center}
+  \vfill
+  Parece un detalle contable y es lo contrario: es la diferencia entre un
+  sistema que da rigor y uno que lo aparenta. De \Nproven{} teoremas de la
+  biblioteca, \Nmodzero{} no suponen absolutamente nada.
+\end{frame}
+
+\begin{frame}{El estado, en tres cifras}
+  \begin{center}
+    \begin{tabular}{rl}
+      \toprule
+      \Nproven{} & teoremas demostrados y comprobados \\
+      \Nmodzero{} & de ellos sin suponer nada en absoluto \\
+      \Nload{} s & tarda la biblioteca entera en \emph{re}-demostrarse \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+  \vfill
+  Esa última cifra es la que importa para el uso diario: nada se da por bueno
+  porque ayer funcionara. Cada arranque vuelve a comprobarlo todo desde las
+  reglas.
+  \vfill
+  {\small Análisis, álgebra, topología: continuidad y compacidad, el lema de
+   Zorn, la irracionalidad de $\sqrt{2}$, el teorema del valor medio, la forma
+   normal de Smith.}
+\end{frame}
+
+\begin{frame}{Lo que quiero averiguar}
+  Lo interesante no es la biblioteca. Es esta pregunta:
+  \vfill
+  \begin{quote}
+    \large
+    ¿Basta con que uno escriba el \textbf{preámbulo} --- las definiciones, el
+    enunciado, las ideas de la demostración en prosa --- para que la máquina
+    cierre el resto?
+  \end{quote}
+  \vfill
+  Sería la forma útil de todo esto: el matemático hace lo que sabe hacer
+  --- tener la idea --- y no hace lo que hace mal --- la contabilidad de los
+  detalles.
+  \vfill
+  \begin{block}{Qué contaría como respuesta}
+    Un preámbulo para un teorema que yo \emph{no} haya demostrado a mano, y del
+    que salga una demostración comprobada. Todavía no está.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Dónde creo que esto sirve antes}
+  No en la investigación de frontera, sino donde el rigor es el contenido:
+  \vfill
+  \begin{itemize}
+    \item \textbf{Enseñanza.} Un estudiante escribe un argumento y recibe, no
+          una nota, sino el paso exacto que no se sostiene.
+    \item \textbf{Cualquier razonamiento que convenga fijar} --- una
+          especificación, un protocolo, un argumento que se va a repetir ---
+          donde un modelo formal obliga a decir lo que se estaba suponiendo.
+  \end{itemize}
+  \vfill
+  En ambos casos el valor no es que la máquina sea lista. Es que no deja pasar
+  lo que no se ha dicho.
+\end{frame}
+
+\begin{frame}{En resumen}
+  \begin{itemize}
+    \item Un modelo de lenguaje predice la continuación de un texto. Todo lo
+          que hace sale de ahí, incluidas sus virtudes y su fallo.
+    \item Su fallo --- ser convincente sin ser correcto --- es tolerable en
+          casi todo, y no lo es en una demostración.
+    \item Existe desde hace mucho la noción que arregla eso: la demostración
+          formal, comprobable por una máquina que no entiende nada.
+    \item Y existe la asimetría que lo hace práctico: descubrir es difícil,
+          comprobar es fácil.
+  \end{itemize}
+  \vfill
+  \begin{center}
+    \large
+    En eso he empleado el tiempo: en construir la parte que comprueba,\\
+    para poder usar sin miedo la parte que propone.
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \begin{center}
+    \Huge Gracias
+  \end{center}
+  \vfill
+  \begin{center}
+    Preguntas
+  \end{center}
+\end{frame}
+
+\end{document}

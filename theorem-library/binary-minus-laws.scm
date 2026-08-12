@@ -59,4 +59,4 @@
 (detach! '(IMPLIES (AND (IN u RR) (IN (- v) RR)) (IN (+ u (- v)) RR)))
 (ass)
 (qed 'rr-sub-in-rr)
-(category! 'rr-sub-in-rr 'plumbing)
+(topic! 'rr-sub-in-rr 'plumbing)

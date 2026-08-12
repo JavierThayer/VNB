@@ -266,8 +266,16 @@
     ;; main with CLAIM assumed but its proof left as a dangling open leaf -- not
     ;; unsound (qed still refuses) but the failure surfaces far away, at qed.  Fail
     ;; loudly AT the offending have! instead (the `dk-' kit's "make it error" rule).
+    ;; Name the path that actually ran.  This message used to say "THUNK left
+    ;; the side goal open" even when no THUNK was passed, sending the caller to
+    ;; look for a bug in a thunk they never wrote; the real cause in that case is
+    ;; that the DEFAULT is `from-context!', which is not a prover -- it closes a
+    ;; claim already in context (plus two arithmetic shapes) and nothing else.
     (if (not (sequent-node-grounded? side))
-        (error "have!: THUNK left the side goal open (claim not established)" form))
+        (error (if thunk
+                   "have!: THUNK left the side goal open (claim not established)"
+                   "have!: from-context! could not establish the claim -- no THUNK given, and the default only closes a claim already in context up to alpha (or an AND of such, or ground arithmetic).  Supply a THUNK, or use `cut' if you mean to discharge the obligation later")
+               form))
     (dk-focus! main) main))
 
 ;;; -----------------------------------------------------------------------

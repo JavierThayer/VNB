@@ -72,7 +72,7 @@
 (subst YEQ)
 (ass)
 (qed 'mat-equiv-cod-is-mat)
-(category! 'mat-equiv-cod-is-mat 'plumbing)
+(topic! 'mat-equiv-cod-is-mat 'plumbing)
 
 ;; ===================== classmin-transport =====================
 (sp (make-wff
@@ -99,7 +99,7 @@
 (subst '(= (ENTRY Q 1 1) (ENTRY P 1 1)))
 (ass)
 (qed 'classmin-transport)
-(category! 'classmin-transport 'algebra)
+(topic! 'classmin-transport 'algebra)
 
 ;; ===================== clear-row-upto (ni on k) =====================
 (define (RU-CLEARED Q kk)
@@ -219,7 +219,7 @@
 (cc-foc! RU-FVCONT)
 (ai (list 'NOT RU-VALID))
 (qed 'clear-row-upto)
-(category! 'clear-row-upto 'algebra)
+(topic! 'clear-row-upto 'algebra)
 
 ;; ===================== clear-first-row (clear-row-upto at k = n) =====================
 (sp (make-wff
@@ -254,4 +254,4 @@
 (inst+ FR-CLK FR-J)
 (ass)
 (qed 'clear-first-row)
-(category! 'clear-first-row 'algebra)
+(topic! 'clear-first-row 'algebra)

@@ -51,6 +51,10 @@
 (subst (ma-eqasm 'ENTRY))         ; RHS entry -> canonical double sum (j outer)
 ;; interchange the summation order (finsum-fubini) -- the crux
 (fact 'ring-additive-ag-is-abelian-group 'A)
+;; the dimensions are untyped in the statement, so interval-card-in-nn's guard
+;; comes off the matrices: k is R's row count, n is Q's.
+(fact 'mat-rows-in-nn 'k 'l '(CARR A) 'R)
+(fact 'mat-rows-in-nn 'n 'k '(CARR A) 'Q)
 (fact 'interval-in-set 1 'k)(fact 'interval-card-in-nn 1 'k)
 (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
 (fact 'matmul-assoc-summand-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
@@ -63,4 +67,4 @@
 (ass)
 
 (qed 'matmul-assoc)
-(category! 'matmul-assoc 'algebra)
+(topic! 'matmul-assoc 'algebra)

@@ -87,13 +87,26 @@
 (support 'interval-card
   '(FORALL n (IMPLIES (IN n NN) (= (CARD (INTERVAL 1 n)) n))))
 (warrant! 'interval-card 'well-known "|{1,...,n}| = n; INTERVAL(1,n) is finite.")
-;; CARD of any interval is a natural number (intervals are finite) -- needed
-;; unconditionally (the matmul-assoc dims are not typed NN), where interval-card
-;; would require IN n NN.
+;; CARD of an interval with a NATURAL upper bound is a natural number: the
+;; interval is finite.  The guard is on the UPPER bound alone -- INTERVAL is a
+;; separation over NN, so any natural upper bound makes it finite whatever the
+;; lower bound is -- and it is not decoration.  Stated unguarded, as it was
+;; until 2026-08-12, this is FALSE under a DEFINED CARD (the least ordinal in
+;; bijection with the set): INTERVAL(1, b) for a non-natural b is all of NN,
+;; whose cardinal is omega, not a natural.  So the unguarded form blocked
+;; defining CARD at all, which is what it now stops doing.
+;;
+;; The citing sites are matrix proofs whose theorem statements do NOT type
+;; their dimensions (matmul-assoc quantifies `m n k l' with premises only
+;; `IN P (MAT m n (CARR A))'), so the obligation comes off the MATRIX:
+;; `mat-rows-in-nn' (theorem-library/mat-basics.scm) reads `IN m NN' out of
+;; `IN Q (MAT m n X)'.  Every site here passes 1 below and a dimension above,
+;; and at every one of them that dimension is the ROW dimension of some matrix
+;; in context.
 (support 'interval-card-in-nn
-  '(FORALL a (FORALL b (IN (CARD (INTERVAL a b)) NN))))
+  '(FORALL a (FORALL b (IMPLIES (IN b NN) (IN (CARD (INTERVAL a b)) NN)))))
 (warrant! 'interval-card-in-nn 'well-known
-  "INTERVAL(a,b) is finite, so its cardinality is a natural number.")
+  "INTERVAL(a,b) with b in NN is finite, so its cardinality is a natural number.")
 
 ;;; MATOF(m, n, g) -- the m-by-n matrix whose (i, j) entry is g(i, j).
 ;;; g is applied as a function of the index pair: g(i, j) = g([i, j]).
@@ -536,7 +549,7 @@
 (warrant! 'matadd-entry 'reference
   "(P+Q)_{ij} = P_{ij} + Q_{ij}: the read-off of MATADD's MATOF tabulation via
    entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).")
-;; (no category! here: matrix.scm loads before the PSS layer.  It is categorized
+;; (no topic! here: matrix.scm loads before the PSS layer.  It is categorized
 ;; in theorem-library/matact-row-linear-proof.scm, its first consumer.)
 
 ;;; MATSCALE typing and its entry read-off.  Same shape, same reasons, same

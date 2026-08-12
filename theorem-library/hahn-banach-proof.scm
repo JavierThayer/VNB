@@ -29,7 +29,7 @@
 (warrant! 'span-add-one-membership 'proof
   "Separation membership: SPAN-ADD-ONE(m,s,v) = SEP(w in VEC(m) | exists y in s,
    r in RR. w = y + r.v); a member iff in VEC(m) and it so decomposes.")
-(category! 'span-add-one-membership 'analysis)
+(topic! 'span-add-one-membership 'analysis)
 
 (add-to-pss 'hb-gap
   `(FORALL m (FORALL s (FORALL f (FORALL v
@@ -49,7 +49,7 @@
    f(w-z) <= M||w-z|| <= M(||z+v||+||w+v||), so sup_z(-f(z)-M||z+v||) <=
    inf_w(-f(w)+M||w+v||); RR order-completeness gives a separating alpha, whence
    |f(y)+r.alpha| <= M||y+r.v|| for all y in s, r in RR.")
-(category! 'hb-gap 'analysis)
+(topic! 'hb-gap 'analysis)
 
 (add-to-pss 'hb-extend-construct
   `(FORALL m (FORALL s (FORALL f (FORALL v (FORALL a_
@@ -72,7 +72,7 @@
    s + RR.v is uniquely y + r.v, so g(y+r.v) = f(y) + r.alpha is a well-defined
    linear functional on s + RR.v extending f, for any scalar alpha.  Standard
    linear algebra; alpha is fixed only by the bound (hb-gap).")
-(category! 'hb-extend-construct 'analysis)
+(topic! 'hb-extend-construct 'analysis)
 
 ;;; ---- the theorem: norm-preserving one-dimension extension ----
 (sp `(FORALL m (FORALL s (FORALL f (FORALL v
@@ -171,4 +171,4 @@
 (hb-detach-opt! (list 'IN RV 'RR))
 (quietly (lambda () (ass-all)))
 (qed 'hahn-banach-extend-one)
-(category! 'hahn-banach-extend-one 'analysis)
+(topic! 'hahn-banach-extend-one 'analysis)

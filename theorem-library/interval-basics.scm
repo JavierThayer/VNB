@@ -34,7 +34,7 @@
 (mac 'INTERVAL)
 (qrfl)
 (qed 'interval-unfold)
-(category! 'interval-unfold 'plumbing)
+(topic! 'interval-unfold 'plumbing)
 
 ;;; ---- sethood: a subclass of NN ----------------------------------------
 (sp (make-wff '(FORALL a (FORALL b (IN (INTERVAL a b) SET)))))
@@ -44,7 +44,7 @@
 (ta 'nn-is-set)
 (ass)
 (qed 'interval-in-set)
-(category! 'interval-in-set 'plumbing)
+(topic! 'interval-in-set 'plumbing)
 
 ;;; ---- the read-offs ----------------------------------------------------
 ;;; Each: pull the hypothesis across the unfolding equation into the separation,
@@ -65,7 +65,7 @@
 (ivl-read-off!)
 (ass)
 (qed 'interval-elt-in-nn)
-(category! 'interval-elt-in-nn 'plumbing)
+(topic! 'interval-elt-in-nn 'plumbing)
 
 (sp (make-wff '(FORALL a (FORALL b (FORALL i
    (IMPLIES (IN i (INTERVAL a b)) (<= a i)))))))
@@ -74,7 +74,7 @@
 (dk-split! '(AND (<= a i) (<= i b)))
 (ass)
 (qed 'interval-lo)
-(category! 'interval-lo 'inequalities)
+(topic! 'interval-lo 'inequalities)
 
 (sp (make-wff '(FORALL a (FORALL b (FORALL i
    (IMPLIES (IN i (INTERVAL a b)) (<= i b)))))))
@@ -83,7 +83,7 @@
 (dk-split! '(AND (<= a i) (<= i b)))
 (ass)
 (qed 'interval-hi)
-(category! 'interval-hi 'inequalities)
+(topic! 'interval-hi 'inequalities)
 
 ;;; NOT PROVEN HERE: interval-card-in-nn (60 bills).  |INTERVAL(a,b)| in NN is
 ;;; the FINITENESS of an interval -- a cardinality fact, not a separation

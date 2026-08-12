@@ -117,8 +117,8 @@
     (ass)))
 
 (qed 'module-act-neg-one)
-(category! 'module-act-neg-one 'algebra)
-(category! 'abelian-group-inverse-unique 'algebra)
+(topic! 'module-act-neg-one 'algebra)
+(topic! 'abelian-group-inverse-unique 'algebra)
 
 
 ;;; ===================================================================
@@ -139,6 +139,8 @@
 (fact 'zeromat-type '(SCAL md) 1 'n)
 (fact 'one-in-interval-1)
 (fact 'interval-in-set 1 'n)
+;; interval-card-in-nn's guard: n is the row count of the column u.
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matact-summand-type 'md 1 'n 1 sb-zm 'u 1 1)
 (fact 'matact-entry 'md 1 'n 1 sb-zm 'u 1 1)
@@ -164,8 +166,8 @@
     (ass)))
 
 (qed 'matact-zerorow)
-(category! 'matact-zerorow 'algebra)
-(category! 'entry-of-zeromat 'algebra)
+(topic! 'matact-zerorow 'algebra)
+(topic! 'entry-of-zeromat 'algebra)
 
 
 ;;; ===================================================================
@@ -188,6 +190,7 @@
 (fact 'unitrow-type '(SCAL md) 'n 'i)
 (fact 'one-in-interval-1)
 (fact 'interval-in-set 1 'n)
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-card-in-nn 1 'n)
 (fact 'entry-in-carrier 'n 1 '(VEC md) 'u 'i 1)
 (fact 'matact-summand-type 'md 1 'n 1 sb-ur 'u 1 1)
@@ -218,7 +221,7 @@
     (ass)))
 
 (qed 'matact-unitrow)
-(category! 'matact-unitrow 'algebra)
+(topic! 'matact-unitrow 'algebra)
 
 
 ;;; ===================================================================
@@ -247,8 +250,8 @@
 (rfl)
 
 (qed 'matact-empty-vzero)
-(category! 'matact-empty-vzero 'algebra)
-(category! 'interval-1-0-empty 'plumbing)
+(topic! 'matact-empty-vzero 'algebra)
+(topic! 'interval-1-0-empty 'plumbing)
 
 
 ;;; ===================================================================
@@ -443,7 +446,7 @@
           (rfl))))))
 
 (qed 'span-is-submodule)
-(category! 'span-is-submodule 'algebra)
+(topic! 'span-is-submodule 'algebra)
 
 
 ;;; ===================================================================
@@ -493,4 +496,4 @@
   (ass))
 
 (qed 'spans-span)
-(category! 'spans-span 'algebra)
+(topic! 'spans-span 'algebra)

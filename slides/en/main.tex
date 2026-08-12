@@ -1,0 +1,1062 @@
+%% slides/en/main.tex -- VNB technical talk, ENGLISH.  First pass, 2026-08-09.
+%%
+%% The Spanish deck (es/main.tex) is an IDIOMATIC translation of this one and
+%% shares its frame skeleton: same \fid ids, in the same order (`make parity').
+%% Everything language-neutral -- formulas, listings, the generated proofs --
+%% lives in ../shared and is \input by both.
+%%
+%% Build:  make en      (from slides/)
+%%
+%% LENGTH IS NOT A CONSTRAINT (user, 2026-08-09), and for the moment the deck is
+%% DISTRIBUTED BY EMAIL rather than presented -- so it is read without a
+%% speaker.  Two consequences for anything added here: a frame must stand on its
+%% own text (no line that only works when spoken over), and no frame may depend
+%% on the reader having seen every preceding one, since a live outing would skip
+%% some.  A frame earns its place by carrying something, never by fitting a slot.
+%%
+%% The forthcoming GENERAL talk in Spanish is a different object and IS time
+%% limited; nothing here should be recycled into it without cutting.
+
+\documentclass[11pt,aspectratio=169]{beamer}
+\usepackage[english]{babel}
+\input{../shared/preamble.tex}
+\input{../shared/numbers.tex}
+
+\title[VNB]{VNB: a proof checker, written by a language model}
+\subtitle{A report on work in progress}
+\author{Javier Thayer}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan}
+  \fid{plan}
+  \tableofcontents
+\end{frame}
+
+%% =======================================================================
+\section{Two disclosures}
+
+\begin{frame}{Who wrote these slides}
+  \fid{disclosure-authorship}
+  \begin{itemize}
+    \item The Beamer source of this talk was written by a language model
+          (throughout: \emph{the Assistant}).
+    \item So was every line of the system it describes --- the checker, the
+          library, the documentation generators, the test suite.
+    \item Not ``assisted by''. Written by. The git history is the receipt:
+          every commit is co-authored, and the record of the bugs is in it too.
+  \end{itemize}
+  \vfill
+  \begin{block}{Why this belongs on the first slide}
+    It is the experimental condition, not a disclaimer. A talk that reported
+    the result while hiding the method would be reporting nothing.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Who is responsible for them}
+  \fid{disclosure-control}
+  \begin{itemize}
+    \item Direction, tone, mathematical content and editorial control are the
+          speaker's.
+    \item The Assistant proposes; the speaker disposes. Every design decision
+          in what follows was ratified or rejected by hand.
+    \item Where the Assistant was wrong, it was wrong in writing, and the
+          corrections are in the same history.
+  \end{itemize}
+  \vfill
+  A deck about an experiment in machine authorship, written by anything other
+  than the machine, would be a worse deck and a dishonest one.
+\end{frame}
+
+%% =======================================================================
+\section{The experiment}
+
+\begin{frame}{This is a project in progress}
+  \fid{in-progress}
+  \begin{itemize}
+    \item Not a released system. No users besides the speaker.
+    \item The talk reports a \emph{state}: what is proven, what is asserted
+          without proof, what is broken, and what was found broken last month.
+    \item Every number quoted is dated. Today's are as of \today.
+  \end{itemize}
+  \vfill
+  \begin{block}{The unit of progress}
+    Not ``one more theorem''. The deliverable of a proof attempt here is
+    usually the obstacle it exposes --- and twice this summer the obstacle was
+    a soundness bug in the checker.
+  \end{block}
+  \vfill
+  And when a proof turned into a \emph{grind} for the model, that was a finding
+  too: it pointed at a missing tactic, or at foundational work not yet done ---
+  not at a missing lemma. One general mechanism that dissolves a class of
+  obligations beats $N$ lemmas that discharge them one at a time.
+\end{frame}
+
+\begin{frame}{What language models are currently claimed to do in mathematics}
+  \fid{llm-claims}
+  A partial list of the claims, in the claimants' own framing:
+  \vspace{1ex}
+  \begin{itemize}
+    \item \textbf{Competition problems.} AlphaGeometry (2024) on olympiad
+          geometry; AlphaProof (2024) reported at IMO silver-medal level,
+          producing Lean proofs; in 2025, gold-medal-level scores reported for
+          general models reasoning in natural language.
+    \item \textbf{Assistance inside a proof assistant.} Premise selection,
+          tactic suggestion and autoformalisation for Lean/mathlib
+          (LeanCopilot, LLMStep, draft-sketch-prove pipelines).
+    \item \textbf{Large collaborative formalisation.} The Equational Theories
+          Project and similar efforts, where models handle routine cases at
+          scale under human direction.
+    \item \textbf{Search and discovery.} LLM-guided evolutionary search
+          (AlphaEvolve, 2025) reported to improve constructions and bounds on
+          open combinatorial problems; assisted literature search closing
+          problems listed as open.
+    \item \textbf{Benchmarks.} FrontierMath, PutnamBench and the like, with
+          scores climbing.
+  \end{itemize}
+\end{frame}
+
+%% This frame replaces the placeholder box of the first pass.  The speaker's
+%% settled framing (notes-31, item 2) is a DISTINCTION rather than a verdict:
+%% those projects attack hard problems; they are not a general formalisation
+%% tool that works without a model in the loop.
+\begin{frame}{What those projects are, and what they are not}
+  \fid{llm-assessment}
+  \begin{itemize}
+    \item Every project on the previous slide uses a language model to
+          \emph{tackle challenging mathematical problems}.
+    \item None of them is a general tool for formalising proofs --- possibly
+          interactively --- that works \emph{independently of a language
+          model}.
+    \item That is a different object, and it is the one this project is
+          building.
+  \end{itemize}
+  \vfill
+  \begin{block}{The distinction, in one line}
+    Their subject is what the model can solve. Ours is what the tool can
+    check, and who or what can drive it.
+  \end{block}
+\end{frame}
+
+\begin{frame}{A goal: proof construction with minimal intervention}
+  \fid{minimal-intervention}
+  \begin{itemize}
+    \item[(a)] \textbf{Speculatively, without a model at all.} A user supplies
+          a \emph{preamble} --- the definitions, the statement, the facts to be
+          used --- and a formal proof is constructed from it without any
+          intervention by a language model.
+    \item[(b)] \textbf{By a language model} that drives the existing tactics to
+          construct a formal proof.
+  \end{itemize}
+  \vfill
+  Both are open, and \textbf{(a) is the major line of subsequent work} --- it
+  asks how much of a proof is already determined by a well-stated preamble.
+  \vfill
+  \begin{block}{Where that would be worth having}
+    Mathematics education, and other settings where a formal model is wanted
+    to pin down reasoning that prose leaves loose.
+  \end{block}
+\end{frame}
+
+\begin{frame}{What a preamble would have to contain}
+  \fid{preamble-programme}
+  Speculative, and stated so --- but this is where the project goes next, so it
+  is worth being precise about what is being claimed.
+  \begin{itemize}
+    \item \textbf{The claim.} For a large class of ordinary results, the proof
+          is nearly determined once the statement, the definitions it unfolds,
+          and the facts a mathematician would cite are all written down. The
+          search that remains is small enough for a machine without a model in
+          the loop.
+    \item \textbf{Why it is not absurd here.} The pieces exist already: named
+          facts that transport as rewrites; a hierarchy that discharges
+          subsumption without being asked; oracles that end arithmetic and
+          order goals outright; a library of statements-without-proofs to draw
+          citations from; and tactics that are ordinary programs, so a search
+          composes them rather than generating text.
+    \item \textbf{What would count as evidence.} A preamble written for a
+          theorem the author has \emph{not} proved by hand, from which the
+          machine closes it. Not yet attempted.
+    \item \textbf{What would count against it.} Preambles that turn out to be
+          proofs in disguise --- if writing one costs what writing the proof
+          costs, the claim is empty.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A different question}
+  \fid{the-question}
+  \begin{center}
+    \Large
+    Not: \emph{can a language model do mathematics?}\\[2ex]
+    But: \emph{can a language model build the instrument?}
+  \end{center}
+  \vfill
+  \begin{itemize}
+    \item The instrument here is a proof checker with a small trusted kernel,
+          a structure library, a tactic layer and its own documentation.
+    \item The experiment ran for months of daily sessions, and the artifact is
+          on disk.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why a proof checker is the right test object}
+  \fid{why-a-checker}
+  \begin{itemize}
+    \item Its output is checkable \emph{without trusting the author's
+          fluency}. A proof passes the kernel or it does not.
+    \item Failure is visible and diagnosable: an open leaf, a rejected rule
+          application, a bill that names an assumption nobody justified.
+    \item Contrast: a convincing English proof produced by a model is exactly
+          as convincing when it is wrong.
+    \item The bet is on the artifact being inspectable --- not on the model
+          being right.
+  \end{itemize}
+  \vfill
+  \small
+  \emph{The honest counterweight, and it is the subject of the last part of
+  this talk: the kernel that does the checking was written by the same model.}
+\end{frame}
+
+\begin{frame}{Lineage: IMPS}
+  \fid{imps-lineage}
+  \begin{itemize}
+    \item Not built from nothing. The design descends from \imps{}, by
+          William Farmer, Joshua Guttman and Javier Thayer --- the speaker's
+          own prior work, so: framed here, not explained.
+    \item Carried over: \emph{macetes} (named rewriting/transportation of
+          facts), the deduction graph, and partial equality with explicit
+          definedness.
+    \item \emph{Macete} is Portuguese: a clever trick, very nearly a sleight of
+          hand. The word is doing real work --- it names a fact repackaged as a
+          move, rather than a fact.
+    \item Not carried over: the LUTINS type system and the little-theories
+          machinery with its interpretations; \vnb{} is one theory over
+          von Neumann--Bernays set theory, with structures as tuples.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Scheme}
+  \fid{why-scheme}
+  \begin{itemize}
+    \item A formula \emph{is} the host language's own data type. No parser
+          between the checker and its subject matter, and a tactic that builds
+          a formula is ordinary code --- which is the point of the syntax
+          slides later on.
+    \item Macros let the surface grow: \code{declare-structure} and the
+          backward-chaining form are notation, not library calls.
+    \item The read-eval-print loop \emph{is} the programmatic surface. There
+          was no interface to design before there was one to use.
+    \item MIT Scheme compiles to native code, and it matters more than it
+          should: the library re-proves itself in \Nload{} seconds compiled and
+          about eleven minutes interpreted.
+  \end{itemize}
+  \vfill
+  \begin{block}{The lineage, and the caution}
+    \imps{} was written in T --- a Scheme dialect, and now defunct. Choosing a
+    small language with one good implementation is a bet on that
+    implementation; the previous bet lost. Nothing here defends against that
+    except keeping the trusted part small enough to move.
+  \end{block}
+\end{frame}
+
+%% =======================================================================
+\section{The logic}
+
+\begin{frame}{Why von Neumann--Bernays}
+  \fid{why-nbg}
+  \begin{itemize}
+    \item Classes are objects of the language. ``The class of all groups'' is
+          sayable without a metalanguage and without universe levels.
+    \item Sets are exactly the classes that can be members. The distinction is
+          a predicate, $x \in \Set$, not a syntactic layer.
+    \item In practice, for a structure library: a structure is a tuple, a
+          carrier is a set, and a construction that would leave the universe
+          (the class of all ordinals, a function space over a proper class)
+          fails by owing a \emph{sethood obligation} rather than by being
+          unsayable.
+  \end{itemize}
+  \vfill
+  \small The price: sethood obligations are real proof work, and one of the
+  soundness bugs on a later slide is exactly a rule that forgot to demand one.
+\end{frame}
+
+\begin{frame}{Equality is partial}
+  \fid{partial-equality}
+  This is the single largest departure from what an audience expecting HOL will
+  assume.
+  \begin{itemize}
+    \item Terms may be undefined: $\operatorname{pred}(0)$,
+          $\operatorname{recip}(0)$, a $\lambda$ applied outside its domain.
+    \item $t = t$ is therefore \emph{not} a tautology: it asserts that $t$ is
+          defined.
+    \item $s == t$ (quasi-equality) is the weaker statement: both undefined,
+          or both defined and equal.
+  \end{itemize}
+  \vfill
+  \begin{block}{Consequence in the kernel}
+    Reflexivity carries a definedness guard. Deleting that guard is one of the
+    five mutations in the last part of this talk --- and it makes
+    $\operatorname{pred}(0) = \operatorname{pred}(0)$ provable.
+  \end{block}
+\end{frame}
+
+\begin{frame}{The language}
+  \fid{the-language}
+  \begin{itemize}
+    \item Terms and formulas, first order, with class terms.
+    \item Guarded quantification is primitive notation:
+          \code{forall([x in A], p)} for
+          $\forall x.\, x \in A \Rightarrow p$, and dually for
+          \code{forsome}.
+    \item Definite description \code{IOTA}: \code{iota(y, p)} is the unique
+          $y$ satisfying $p$, undefined when there is none or many. This is how
+          \code{pred} is defined, and why it is undefined at $0$.
+    \item $\lambda$ carries its domain: \code{VNB-LAMBDA(x, A, b)} is defined
+          on $A$ only. Applying it elsewhere is undefined, not an error.
+    \item Application is defined by the graph:
+          $f(x) == \operatorname{iota} y.\ \langle x,y\rangle \in f$.
+  \end{itemize}
+  \vfill
+  \small A formula is an s-expression, and that is not an implementation
+  detail: it is the next three slides.
+\end{frame}
+
+\begin{frame}[fragile]{Formulas are data, and are built by program}
+  \fid{formulas-are-data}
+  \code{IS-DENSE-SEQ}, as it is actually defined --- note the alternation
+  $\forall x\, \forall \varepsilon\, \exists m$:
+  \codefile{dense-seq.txt}
+  \begin{itemize}\small
+    \item No nested \code{AND}/\code{IMPLIES} pyramid is written by hand. The
+          guards are a flat list; the constructor does the nesting.
+    \item The reason is empirical: a hand-counted pyramid loses its last close
+          paren, and the whole library load dies. Three times in one session.
+    \item A \emph{formula} proper is a record wrapping one of these s-expressions
+          thinly --- the expression plus the theory it was formed in.
+          \code{(wff-formula w)} extracts the s-expression; everything that
+          walks or rewrites a formula works on that.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The constructor, and where it came from}
+  \fid{forall-guarded}
+  \codefile{forall-guarded.txt}
+  \begin{itemize}\small
+    \item \code{(forall-guarded '(u\_ v\_) '((IN u\_ RR) (IN v\_ RR)) body)}
+          $\;=\;$ $\forall u,v.\ u \in \mathbb{R} \Rightarrow v \in \mathbb{R}
+          \Rightarrow \textit{body}$ --- the shape almost every lemma has.
+    \item A bare symbol instead of a list means one binder, which is what an
+          \emph{alternating} pyramid needs: peel one at a time and the
+          quantifiers interleave in the order written.
+    \item \textbf{This constructor was the Assistant's own proposal}, not the
+          speaker's --- a response to a failure it kept causing. Seven files
+          had independently grown private copies of the same two one-liners;
+          they are now one pair, in one place.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{A proof pattern, parameterised by a formula}
+  \fid{quasiquote}
+  Excluded middle on an arbitrary $P$, as a reusable move --- the backquote
+  builds the formula, the comma drops $P$ into it:
+  \codefile[\tiny]{em-pattern.txt}
+  \begin{itemize}\small
+    \item \code{bm-cases} then takes any $P$ and hands back the case split.
+    \item This is the point of the syntax being data: a search for a proof does
+          not write formulas, it writes \emph{programs that write formulas},
+          and Scheme's quasiquote is already the right notation for that.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The kernel}
+  \fid{the-kernel}
+  \begin{itemize}
+    \item \Nkernel{} primitive inference procedures
+          (\code{primitive-inferences.scm}). Nothing else in the system may
+          assert anything.
+    \item Everything above them --- tactics, macetes, drivers, the oracles ---
+          is \emph{untrusted}, and works only by reducing to those \Nkernel.
+    \item Some principles are rules rather than axioms because they carry a
+          schema over formulas: separation, comprehension, indexed union.
+    \item \Nunexer{} documented rule tags are not exercised by any proof in the
+          current load. An unexercised rule is where unsoundness hides; that
+          list is a worklist.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Eigenvariables}
+  \fid{eigenvariables}
+  The one piece of proof-theoretic vocabulary the rest of this talk assumes.
+  \begin{itemize}
+    \item To prove $\forall x.\, P(x)$, introduce a fresh name $a$ and prove
+          $P(a)$. To use a hypothesis $\exists x.\, P(x)$, introduce a fresh
+          name $a$ and assume $P(a)$.
+    \item That fresh name is the \emph{eigenvariable}. It stands for an
+          arbitrary object in the first case and for an unknown witness in the
+          second, and in both it is opaque: nothing may be assumed about it
+          beyond what was written down.
+    \item The rule's \emph{side condition} is what makes this sound: the
+          eigenvariable must not already occur free --- not in the goal, not in
+          any hypothesis. The kernel checks that; it is the reason these rules
+          are procedures and not axioms.
+    \item So the machine must invent names, and they reach the page: the
+          \code{u\_}, \code{v\_}, \code{n\_} in the proofs shown on later
+          slides are eigenvariables, carrying the trailing underscore of the
+          naming rule on the case-folding slide.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Caveat: the system is non-constructive}
+  \fid{non-constructive}
+  \begin{itemize}
+    \item The logic is classical. Excluded middle is available for any
+          formula, and proof by contradiction is a primitive move.
+    \item Choice is available and used: Zorn's lemma is proven in the library,
+          unconditionally relative to the kernel.
+    \item Definite description (\code{IOTA}) names an object by a property it
+          uniquely satisfies. That is a description, not a construction.
+    \item Consequence, stated plainly: a proof that something \emph{exists}
+          here need not hand you the thing. No extraction, no programs from
+          proofs.
+  \end{itemize}
+  \vfill
+  \small This is a deliberate choice --- the target is ordinary classical
+  mathematics as it is written --- but it rules out a family of applications,
+  and an audience that expects a constructive system should be told at the
+  start.
+\end{frame}
+
+\begin{frame}[fragile]{One kernel rule, in full}
+  \fid{kernel-rule-source}
+  \codefile[\tiny]{pi-reflexivity.txt}
+  \vspace{-0.5ex}
+  \begin{itemize}\footnotesize
+    \item \textbf{What it does:} it closes the leaf \code{sqn} when the goal is
+          \code{TRUTH}, or is $s = t$ with $s$ and $t$ alpha-equivalent
+          \emph{and} that term known to be defined --- defined syntactically
+          (a variable, a ground term, a tree of total operations), or witnessed
+          by an assumption in the context.
+    \item The \code{if} is the whole rule: either the side condition holds and
+          the graph gets an edge, or the rule returns \code{\#f} and nothing
+          happened --- no error, no half-applied step.
+    \item That definedness conjunct is the partiality of $=$ made operational.
+          Delete it and $\operatorname{pred}(0) = \operatorname{pred}(0)$
+          becomes provable, which is one of the five planted mutations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The deduction graph}
+  \fid{deduction-graph}
+  \begin{itemize}
+    \item A proof is not a term; it is a \emph{graph of sequent nodes}, built
+          by navigation. Open leaves are the outstanding obligations.
+    \item A tactic moves focus and posts nodes; \code{qed} is legal exactly
+          when no leaf is open.
+    \item Nodes are hash-consed up to alpha-equivalence of the assertion, so
+          the same obligation reached twice is the same node --- which is
+          efficient, and which is also the source of a real trap (cutting a
+          formula already in context yields a self-loop, not two leaves).
+    \item This graph is what the whole user interface is about: the Emacs
+          surface, the proof printer, and the natural-language reader all
+          render it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Two surfaces for composing a proof}
+  \fid{two-surfaces}
+  A proof is not a term, so it has to be \emph{navigated}. There are two ways
+  to do that, logically equivalent and differing only in how arguments arrive.
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{(a) Interactive.} The Focus Workspace in Emacs: single-key
+      commands, menus, arguments typed \emph{bare} at a prompt --- a lemma's
+      name with no quote --- and the command assembles the call.
+      \vspace{1ex}\\
+      Influenced directly by the \imps{} user interface.
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{(b) Programmatic.} The REPL and saved proof scripts: the tactic
+      is written as a Scheme expression with the quoting explicit ---
+      \code{(fact 'metric-sym)}, \code{(ai '(FORSOME rad \dots))}.
+      \vspace{1ex}\\
+      This is the surface an automated search wants, and the one a proof file
+      is made of.
+    \end{column}
+  \end{columns}
+  \vfill
+  \begin{itemize}
+    \item Everything the library contains was built on (b) --- a proof is a
+          file, and re-running it is how the library is re-proved at every
+          boot.
+    \item The speaker nonetheless works through (a) on purpose, to keep the
+          interactive surface honest. Most of its rough edges were found that
+          way.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{When a proof grinds, build the mechanism}
+  \fid{minimize-example}
+  A worked instance of the previous claim --- that a grind names a missing
+  tactic.
+  \begin{itemize}
+    \item Two proofs needed ``choose the entry of least degree'', ``choose the
+          pivot with the smallest value''. Both were stalling, and both were
+          about to be asserted as textbook facts.
+    \item Instead: one tactic. \code{(minimize! vars GUARD MEASURE)} ---
+          \emph{choose \code{vars} satisfying GUARD with MEASURE as small as
+          possible} --- leaving only the two obligations any minimisation owes:
+          that MEASURE lands in $\mathbb{N}$, and that GUARD is satisfiable at
+          all.
+    \item Both stalled facts became theorems, and the next proof that needs a
+          minimal anything pays nothing.
+    \item It uses no choice: well-ordering returns a \emph{member} of the value
+          set, and the value set is a separation set, so the witness is
+          recoverable.
+  \end{itemize}
+\end{frame}
+
+%% =======================================================================
+\section{Structures}
+
+\begin{frame}{A structure is a tuple}
+  \fid{structure-what}
+  This is the standard idiom, not an invention of the system. A measure space
+  is a triple $(X, \mathcal{A}, \mu)$ with $\mathcal{A}$ a $\sigma$-algebra on
+  $X$ and $\mu$ a countably additive measure on $\mathcal{A}$; a ring is
+  $(A, +, \cdot, -, 0, 1)$. The idiom has minor variations, and it is widely
+  accepted and understood.
+  \begin{itemize}
+    \item So: a structure is a \emph{tuple}, plus a predicate saying which
+          tuples qualify. No new logical machinery --- rings are objects of the
+          theory, and everything true of sets is available about them.
+    \item \code{declare-structure} names the slots and generates one accessor
+          per slot (\code{CARR}, \code{ADD}, \code{MUL}, \dots), each denoting
+          exactly one position.
+    \item \code{IS-RING(s)} is then a defined predicate: the right length, the
+          carrier a set, each operation in the right function space, and the
+          laws.
+  \end{itemize}
+  \vfill
+  \small The variation the system does \emph{not} support is the one that
+  leaves the tuple: no bundled proofs, no dependent record. What is bundled is
+  data; what qualifies it is a formula.
+\end{frame}
+
+\begin{frame}{An aside: case folding}
+  \fid{case-folding}
+  A minor inconvenience, mentioned because its fingerprints are on the slides.
+  \begin{itemize}
+    \item Both the \vnb{} reader and the host Scheme fold symbols to lower
+          case. \code{X} \emph{is} \code{x}; \code{SP} is \code{sp}.
+    \item Consequence 1 --- accessors avoid single letters. The carrier was
+          \code{X} and is \code{CARR}; a metric space has \code{PTS} and
+          \code{DIST}, not \code{X} and \code{D}.
+    \item Consequence 2 --- an inner binder that would collide takes a trailing
+          underscore: \code{i\_}, \code{n\_}, and the \code{u\_}, \code{v\_}
+          in the proofs on later slides.
+    \item Consequence 3 --- a definition in a proof script can silently rebind
+          a tactic (\code{(define BC \dots)} kills the \code{bc} tactic). Two
+          load-time audits and a per-file environment now catch that.
+  \end{itemize}
+  \vfill
+  \small Cost: three naming rules and three audits. Not deep --- but it is the
+  kind of thing an honest report of a working system includes.
+\end{frame}
+
+\begin{frame}[fragile]{Ring, as actual source (1/2)}
+  \fid{ring-declare}
+  \codefile{ring-declare.txt}
+  \vspace{-0.5ex}
+  \small
+  One declaration produces the accessors, the sethood and function-space
+  conjuncts, and the definition of \code{IS-RING} as an
+  \emph{if and only if} --- which is why its projections cost nothing in the
+  trust ledger, a later slide.
+\end{frame}
+
+\begin{frame}[fragile]{Ring, as actual source (2/2)}
+  \fid{ring-axiom}
+  \codefile{ring-axiom.txt}
+  \vspace{-0.5ex}
+  \small
+  \begin{itemize}
+    \item Note the shape: guarded on \code{IS-RING}, then on membership in the
+          carrier. Every fact about rings has this prefix, and peeling it is
+          what the tactic layer spends its time on.
+    \item Note also the honest defect: this one is installed as
+          \code{asserted} with no warrant, though it is a projection of the
+          definition above. See the trust-ledger slide.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The hierarchy}
+  \fid{hierarchy}
+  \begin{itemize}
+    \item ``A Euclidean ring is a ring'' is \emph{recorded}, not re-proved at
+          each use: each definitional structure registers its parent chain.
+    \item The checker uses it to discharge subsumption steps automatically, and
+          the documentation generator uses the same table to draw the structure
+          graph.
+    \item The cost: a proof that used three such steps prints three lemma
+          citations where a human would write one clause. That gap is the
+          subject of a later part.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The hierarchy, as it actually stands}
+  \fid{structure-graph}
+  \begin{center}
+    \includegraphics[width=\linewidth,height=0.74\textheight,keepaspectratio]%
+      {../shared/figures/structure-graph.pdf}
+  \end{center}
+  \vspace{-1.5ex}
+  {\scriptsize
+   Solid: \emph{refines}, a specialisation. Dashed: \emph{view-as}, a
+   forgetful map --- a ring seen as its additive abelian group. Dotted:
+   \emph{bridges}, structure-valued constructions --- a normed space giving
+   rise to a metric space. Generated from the registry the checker itself
+   uses, so it cannot draw a hierarchy the system does not have.\par}
+\end{frame}
+
+\begin{frame}{A hard edge: abstract categories}
+  \fid{categories}
+  \begin{itemize}
+    \item The idiom on the previous slides wants a structure to be a
+          \emph{tuple of sets}. An abstract category --- the objects being all
+          groups, all spaces --- has no such carrier: it is a proper class.
+    \item In NBG that class is perfectly sayable. What it cannot be is a
+          \emph{member}, and so it cannot sit in a slot of a tuple. The
+          machinery for structures does not reach it.
+    \item \textbf{Small categories are fine}, and take the existing machinery
+          unchanged: objects a set, arrows a set, composition an operation on
+          them. Most of what one wants to prove --- functors, limits,
+          adjunctions in a fixed small setting --- lives there.
+    \item Large categories would need a second mechanism (a
+          class-indexed structure, or a universe convention). Not built, and
+          not currently planned.
+  \end{itemize}
+  %% ------------------------------------------------------------------
+  %% BACK POCKET -- not for projection, for the question from the floor.
+  %% "So you cannot do category theory."  Answer: given an ordinal, any
+  %% structure relativises to the structures lying in V of that ordinal.  Pick
+  %% it large enough to be closed under the constructions in play and the
+  %% category of those groups/spaces is set-carried, taking the existing
+  %% machinery unchanged; every concrete theorem one wants holds there.  So the
+  %% small-category restriction is sometimes AWKWARD -- the ordinal is a
+  %% parameter, it appears in the statements, and relating two choices of it is
+  %% an argument nobody wants to write twice -- but it is not disastrous.
+  %% Check before claiming it as available TODAY: the library has the ordinals
+  %% and transfinite induction; whether the rank hierarchy V_alpha is actually
+  %% defined has not been verified.  Until it is, the honest form is "the
+  %% standard move is available in the logic", not "we do this".
+  %% ------------------------------------------------------------------
+\end{frame}
+
+\begin{frame}[fragile]{Notation is declared once, next to the definition}
+  \fid{operator-table}
+  \codefile[\footnotesize]{notation.txt}
+  \vspace{0.5ex}
+  \begin{itemize}
+    \item One table keyed by head symbol, populated at definition time.
+    \item Read by the English verbaliser, the glossary, the structure
+          documentation and the proof reader. Notation is not re-implemented
+          per output format.
+    \item The same table is now the registry the substitution walker consults,
+          which is how 71 unregistered heads were found and fixed.
+  \end{itemize}
+  \vfill
+  \small\emph{Honest footnote: the \TeX{} renderer does \emph{not} read it yet.
+  It keeps its own per-operator rules, so \TeX{} and English can disagree ---
+  and on the slides that follow, they do.}
+\end{frame}
+
+\begin{frame}{Design in progress: \code{FUBA-CLASS}}
+  \fid{fuba-class}
+  Candidate, not committed --- included because ``in progress'' should be
+  shown, not asserted.
+  \begin{itemize}
+    \item Today each structure \code{FUBA} comes with a predicate
+          \code{IS-FUBA}.
+    \item Proposal: also a class \code{FUBA-CLASS}, so that
+          \[
+            \forall x.\ \operatorname{IS-FUBA}(x) \Rightarrow \textsc{blah}
+            \qquad\text{may be written}\qquad
+            \forall x \in \operatorname{FUBA-CLASS}.\ \textsc{blah}
+          \]
+    \item Nothing already written changes; the two forms coexist.
+    \item The one condition to state: in NBG only \emph{sets} are members, so
+          the equivalence needs \code{IS-FUBA(x)} to imply that $x$ is a set.
+          Free here --- structures are tuples.
+  \end{itemize}
+\end{frame}
+
+%% =======================================================================
+\section{Proofs, as they read today}
+
+\begin{frame}[fragile]{A proof script}
+  \fid{proof-script}
+  \code{rr-ms-dist}: the distance function of the reals as a metric space,
+  brought to the surface.
+  \codefile{rr-ms-dist-script.txt}
+  \begin{itemize}\small
+    \item \code{slot} rewrites the accessor in \emph{operator} position ---
+          which the Leibniz substitution rule cannot reach.
+    \item \code{lam-b} beta-reduces; \code{qrfl} closes with quasi-reflexivity.
+    \item The statement is \emph{guarded}: off the reals the left side is
+          undefined and the right side is not, so the unguarded version claimed
+          something the theory declines to say.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The same proof, as the reader renders it}
+  \fid{reader-short}
+  \begin{center}
+    \scriptsize
+    \input{../shared/proofs/rr-ms-dist.tex}
+  \end{center}
+  \vfill
+  \footnotesize
+  Emitted by the tool, unedited. Two defects are still visible: the binary
+  $-$ is printed in prefix position, because it has no \TeX{} rule anywhere ---
+  not in the renderer's own tables and not in the operator table; and the
+  eigenvariable names \code{u\_}, \code{v\_} --- an artifact of the
+  case-folding discipline --- reach the page. A third was here yesterday:
+  \code{==} printed as an operator name, because the operator table's \TeX{}
+  column, though read by the renderer, had never been filled in for any head
+  at all.
+\end{frame}
+
+\begin{frame}[shrink=10]{A proof with some content: cancellation in an abelian group}
+  \fid{reader-substantive}
+  \begin{center}
+    \scriptsize
+    \input{../shared/proofs/ag-cancel-right.tex}
+  \end{center}
+  \vfill
+  \footnotesize
+  Also unedited, and this one is recognisably the argument a person would give:
+  commute on both sides, so the two products agree with $c$ on the left, then
+  cite left cancellation. Note what the reader does \emph{not} do --- it names
+  \code{abelian-group-opr-comm} twice rather than saying ``by commutativity''.
+  That is the official level; the content level is what is missing.
+\end{frame}
+
+\begin{frame}{\dots and what that proof owed}
+  \fid{reader-substantive-bill}
+  The same theorem's ledger entry, as it read on 2026-08-09:
+  \begin{center}
+    \code{\#\#\# ag-cancel-right \ \emph{(trust: none)}}\\[1ex]
+    \code{proven modulo:}\\[0.5ex]
+    \code{group-left-inv \ -- NO WARRANT}\\
+    \code{group-left-id \ \ -- NO WARRANT}\\
+    \code{group-assoc \ \ \ -- NO WARRANT}
+  \end{center}
+  \vfill
+  \begin{itemize}
+    \item Machine-checked, and resting on three group laws the library
+          \emph{asserted} and never justified. \code{trust: none} is the
+          weakest report there is.
+    \item They were not deep: each is a conjunct of the definition of a group,
+          unfolded. Another file stamps its projections \code{definitional} and
+          pays nothing for them; nobody had written the equivalent line here.
+    \item Today the entry reads \code{ag-cancel-right: proven modulo 0} ---
+          the three were proved, from the same definition, the day after this
+          slide was made. The ledger's job is not to make the system look
+          good. It is to make an item like this impossible to forget.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A proof by projecting a definition}
+  \fid{reader-projection}
+  \begin{center}
+    \tiny
+    \input{../shared/proofs/abelian-group-is-group.tex}
+  \end{center}
+  \vfill
+  \footnotesize
+  Faithful and useless in equal measure: the content is ``unfold both
+  definitions and compare'', and the reader shows the entire unfolded
+  conjunction because that is literally what the machine had in front of it.
+\end{frame}
+
+%% [shrink] deliberately, not [allowframebreaks]: the whole proof belongs on ONE
+%% slide.  Nobody is meant to read every symbol -- the shape of it is the point.
+\begin{frame}[shrink=25]{A longer one: symmetry of a metric}
+  \fid{reader-long}
+  \tiny
+  \input{../shared/proofs/metric-sym.tex}
+  \vfill
+  {\scriptsize Twenty-one steps to say ``it is a conjunct of the definition''.
+  Every hypothesis is re-displayed in full because the reader has no way to
+  refer back to one it has already shown.}
+\end{frame}
+
+\begin{frame}{What is missing, stated precisely}
+  \fid{presentation-ladder}
+  Four rungs, of which the system has climbed two and a half:
+  \begin{enumerate}
+    \item \textbf{Trace} --- every tactic as a numbered sequent. Done, faithful,
+          unreadable.
+    \item \textbf{Official} --- the content-bearing steps, with citations by
+          lemma name. Done: that is the previous three slides.
+    \item \textbf{Content} --- ``since $a$ is a Euclidean ring, $a$ is a
+          ring''. Partly done: the table that holds those readings exists and
+          the English verbaliser uses it; the \TeX{} path does not.
+    \item \textbf{English} --- prose a mathematician would have written.
+          Not attempted, and not obviously the right goal.
+  \end{enumerate}
+  \vfill
+  \small Known first items: collapse a run of subsumption citations into one
+  clause; capture the goal \emph{before} each step so an existential's witness
+  can be named; teach the \TeX{} renderer the operator table.
+\end{frame}
+
+%% =======================================================================
+\section{What may honestly be claimed}
+
+\begin{frame}{The claim, and its limits}
+  \fid{soundness-claim}
+  \begin{block}{Not claimable}
+    ``The system is sound.'' The kernel is unverified Scheme, written by the
+    same model, and it has been unsound twice in the last month.
+  \end{block}
+  \begin{block}{Claimable, and checkable}
+    \vnb{} does not ask you to trust its proofs. It asks you to trust a small
+    kernel --- and it tells you, per theorem, what \emph{else} it is trusting.
+  \end{block}
+  \vfill
+  The slides that follow are that ledger, those bugs, and the apparatus that
+  found them.
+\end{frame}
+
+\begin{frame}{Warrants: saying why an unproved fact is believed}
+  \fid{warrants}
+  A library fact that is asserted rather than proved is \emph{debt}. A
+  \code{warrant!} is the note attached to that debt saying what backs it.
+  \vspace{1ex}
+  \begin{center}\small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    tier & the fact is backed by\dots \\
+    \midrule
+    \code{none}       & \textbf{nothing at all} --- asserted, never justified \\
+    \code{hand-wave}  & a plausibility argument, not a rigorous one \\
+    \code{well-known} & a standard textbook fact, asserted without argument \\
+    \code{reference}  & a specific named source, cited \\
+    \code{informal}   & a rigorous paper proof exists, just not mechanised \\
+    \code{proof}      & a machine-checked \vnb{} proof exists \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \vspace{1ex}
+  \begin{itemize}\small
+    \item Weakest to strongest, in that order. \code{informal} outranks
+          \code{reference}: a real proof nobody mechanised beats a citation
+          nobody checked.
+    \item A warrant is a \emph{claim}, not a proof. Its value is that it is
+          written down, attached to the fact, and shows up in every bill that
+          leans on it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Every theorem carries a bill}
+  \fid{bills}
+  \codefile[\tiny]{bills.txt}
+  \vspace{-0.5ex}
+  \begin{itemize}\small
+    \item An empty bill prints \code{proven modulo 0}: nothing asserted stands
+          between the theorem and the kernel. That is the strongest report.
+    \item A non-empty bill carries the warrant of its \emph{weakest} leaf.
+          \code{trust: none} means some leaf justifies nothing at all.
+    \item Of \Nproven{} proven theorems, \Nmodzero{} are unconditional;
+          \Nbills{} carry debt, and \Ntrustnone{} of those are
+          \code{trust: none} --- 54 the day before this deck was assembled.
+    \item The tier is the \emph{weakest} leaf, which makes progress lumpy and
+          citation counts misleading. Of the ten repairs that took it from 54
+          to \Ntrustnone{}, \emph{three moved nothing at all}: each discharged
+          a leaf that a second unwarranted leaf was shadowing in every bill
+          naming it --- and each was still necessary, since that second leaf
+          had to go too. Discharging a leaf pays only when it is the
+          \emph{last} one.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Oracles: the other half of the trust surface}
+  \fid{oracles}
+  A warrant is debt the bill can name. An \emph{oracle} leaves nothing to name
+  --- and that is the problem it took until 2026-08-05 to fix.
+  \begin{itemize}
+    \item Six verbs close goals by \textbf{computation} rather than by kernel
+          rules: \code{ineq} (Fourier--Motzkin/Farkas over linear order),
+          \code{arith} (ground arithmetic), \code{rs} / \code{crs} /
+          \code{simp} (ring normalisation), \code{sos} (sums of squares).
+    \item Each is trusted \emph{code} --- sound on its domain, but believed
+          rather than checked --- and each closes its leaf outright. So
+    \begin{center}\code{;; qed rr-zero-lt-one: proven modulo 0}\end{center}
+          read ``unconditional'' when the proof was one \code{ineq} call and
+          nothing else.
+    \item Now a bill carries them, transitively, exactly as it carries debt:
+          \code{[oracles: arith ineq]}. A theorem citing an oracle-closed lemma
+          inherits the oracle.
+    \item Disclosed, not repaired. The repair for the largest one is known:
+          \code{ineq} \emph{is} Farkas, so it already computes a certificate ---
+          emit it, check it, and the oracle becomes checked computation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Three real soundness bugs, all found this summer}
+  \fid{soundness-bugs}
+  \begin{itemize}
+    \item \textbf{The $\lambda$-domain hole.} A typing rule certified
+          \code{VNB-LAMBDA(x, x)} into $A \to A$ for \emph{every} $A$; with
+          $A = \emptyset$ that proves $0 \in \emptyset$ --- \emph{modulo 0}, a
+          false theorem with a clean bill. Fixed 2026-08-02.
+    \item \textbf{Simultaneous substitution.} The rewriter folded a
+          multi-variable substitution into iterated single substitutions, so
+          one binding could rewrite inside the term another had just placed. No
+          error, no warning: a different theorem. Fixed 2026-07-11.
+    \item \textbf{Unregistered heads.} 71 applied operator heads were not in
+          the registry the substitution walker consults, so they were read as
+          applied \emph{variables}. Found by a new load-time sweep, 2026-08-04.
+  \end{itemize}
+  \vfill
+  \small Each was found by strengthening the apparatus, not by a proof looking
+  wrong.
+\end{frame}
+
+\begin{frame}[fragile]{The must-not-prove corpus}
+  \fid{must-not-prove}
+  Every other test asks ``does this still work?''. These ask the opposite.
+  \codefile[\scriptsize]{mnp-partiality.txt}
+  \begin{itemize}\small
+    \item \Nmnp{} false statements, pushed through the real tactic layer with
+          the whole library loaded; each must leave the proof \emph{open}.
+    \item \Nmnpctl{} \emph{paired controls}: the same machinery on a true
+          statement must close. A control that stops closing means the attack
+          went dead and the refusal was worthless.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{A negative claim needs a control}
+  \fid{mutation}
+  A list of statements the system fails to prove is worthless alone: a broken
+  test looks exactly like a sound refusal. So each entry names the guard it
+  watches, and we delete that guard on purpose.
+  \codefile[\tiny]{mutation-table.txt}
+  \begin{itemize}\small
+    \item \Nmut{} guards, \Nmut{} predictions, checked by a command
+          (\code{./mutation-check}) in about a second per mutant.
+    \item It also demonstrates live, if the occasion allows: break a guard, one
+          line goes red, put it back.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The best thing in the file}
+  \fid{mutation-anecdote}
+  \begin{itemize}
+    \item Changing \code{k > 0} to \code{k >= 0} in the linear-arithmetic
+          contradiction test --- \emph{one character} --- left all entries
+          green, and proves
+          \[ a \le b,\ b \le a \ \vdash\ a < b. \]
+    \item No entry could see it, because no entry's query ever formed a
+          constant constraint.
+    \item Two of the five mutations found the tests themselves to be vacuous on
+          the first run.
+  \end{itemize}
+  \vfill
+  \begin{center}
+    \emph{The instrument for measuring whether we would notice a bug is how we
+    found the bug we would not have noticed.}
+  \end{center}
+  \vfill
+  \small Caveats to keep in the mouth: this covers the \Nmut{} guards mutated,
+  not ``soundness bugs''; and the mutants replace whole procedures.
+\end{frame}
+
+\begin{frame}{What would let more be claimed}
+  \fid{soundness-roadmap}
+  In increasing order of cost:
+  \begin{enumerate}
+    \item \textbf{Certificate-producing oracles.} \code{ineq} already computes
+          a Farkas certificate; emit it and check it.
+    \item \textbf{A replay checker} (the de Bruijn criterion): a second, much
+          smaller program that re-checks every stored derivation against the
+          rule schemas alone --- no tactics, no macetes, no oracles. First
+          question to settle: is the deduction graph retained after
+          \code{qed}?
+    \item \textbf{A kernel walkthrough document}: \Nkernel{} rules, each with
+          the side condition it enforces. Writing it is how rule 51 gets found,
+          and the \Nunexer{} unexercised rules are the place to start.
+  \end{enumerate}
+\end{frame}
+
+%% =======================================================================
+\section{State and next steps}
+
+\begin{frame}{Where it stands today}
+  \fid{status}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \Nproven{} proven theorems
+        \item \Nsupport{} library supports (stated, warranted)
+        \item \Naxioms{} axioms, \Ndefs{} definitions
+        \item \Nassert{} assertions still owed an argument
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \Nkernel{} kernel rules
+        \item \Nsuite{} checks passing, \Nsuitefail{} failing
+        \item cold boot re-proves the library in \Nload{} s
+        \item Emacs surface, web reference, a manual
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vfill
+  \small Contents span metric spaces and completeness, modules over a
+  Euclidean ring, Zorn's lemma (\code{modulo 0}), differentiation through
+  Taylor, and an Ascoli--Arzel\`a arc that is not finished.
+\end{frame}
+
+\begin{frame}{Next}
+  \fid{next}
+  \begin{itemize}
+    \item \textbf{Proofs from preambles} --- the speculative line above, and
+          the major one. Everything below feeds it.
+    \item \textbf{Read proofs.} Climb rung 3: the content level, in both output
+          formats, from the one operator table.
+    \item \textbf{A large database of statements without proofs}, indexed and
+          searchable --- raw material for new work, and the citation pool a
+          preamble would draw on.
+    \item \textbf{Discharge the mechanical debt}: the definitional projections
+          that bill as assertions, and \code{CARD}, which is axiomatised where
+          it could be defined.
+    \item \textbf{Say more about soundness}: certificates, then the replay
+          checker.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Closing}
+  \fid{closing}
+  \begin{itemize}
+    \item The instrument was built by a language model, over months, under
+          human editorial control, and it is inspectable.
+    \item It reports its own debts per theorem, and it keeps a list of things
+          it must fail to prove --- with a check that the list is not vacuous.
+    \item The soundness bugs of the last month were found by that apparatus,
+          which is the argument for building the apparatus.
+  \end{itemize}
+  \vfill
+  \begin{center}
+    \emph{Questions --- including whether the claimed applications listed
+    early on are read the right way here.}
+  \end{center}
+\end{frame}
+
+\end{document}

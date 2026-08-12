@@ -133,7 +133,7 @@
 (gloss! 'monalg-is-ring
   "A[M] is a ring when A is a ring and M a monoid (Bourbaki, Algebra I, III.2).
    The hard part behind it is monalg-mul-assoc.")
-(category! 'monalg-is-ring 'algebra)
+(topic! 'monalg-is-ring 'algebra)
 
 ;;; The convolution is finitely supported -- supp(f*g) is contained in the finite
 ;;; set supp(f).supp(g), so the product lands back in the carrier.  This is the
@@ -147,7 +147,7 @@
 (gloss! 'monalg-mul-fun
   "The convolution of two finitely-supported functions is finitely supported:
    supp(f*g) is contained in supp(f).supp(g), a product of finite sets.")
-(category! 'monalg-mul-fun 'algebra)
+(topic! 'monalg-mul-fun 'algebra)
 
 ;;; Pointwise sum stays finitely supported (supp(f+g) is contained in
 ;;; supp(f) u supp(g)).
@@ -159,7 +159,7 @@
 (warrant! 'monalg-add-fun 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-add-fun
   "The pointwise sum of two finitely-supported functions is finitely supported.")
-(category! 'monalg-add-fun 'algebra)
+(topic! 'monalg-add-fun 'algebra)
 
 ;;; Associativity of convolution -- THE key obstacle.  (f*g)*h = f*(g*h) unfolds
 ;;; to a triple sum over { (p,q,r) : p.q.r = m } grouped two ways; equality is a
@@ -175,7 +175,7 @@
 (gloss! 'monalg-mul-assoc
   "Convolution is associative -- the triple-sum reindexing that rests on M's
    associativity and the ring distributive law.  The main deferred proof.")
-(category! 'monalg-mul-assoc 'algebra)
+(topic! 'monalg-mul-assoc 'algebra)
 
 ;;; Left distributivity of convolution over pointwise sum.  (Right is the mirror.)
 (support 'monalg-distrib-left
@@ -188,7 +188,7 @@
 (gloss! 'monalg-distrib-left
   "Convolution distributes over pointwise addition on the left; the right law is
    the mirror image.")
-(category! 'monalg-distrib-left 'algebra)
+(topic! 'monalg-distrib-left 'algebra)
 
 ;;; The unit law: the indicator of IDEN(M) is a left identity for convolution.
 ;;; (Right identity is the mirror.)  This is where the MONOID identity is used.
@@ -210,7 +210,7 @@
   "The indicator of IDEN(M) is a left identity for convolution -- the constant
    polynomial 1.  Stated pointwise: ((ONE * f) m) = (f m).  The monoid identity
    of M is exactly what makes this hold.")
-(category! 'monalg-one-left 'algebra)
+(topic! 'monalg-one-left 'algebra)
 
 ;;; A[M] is commutative when both A and M are.  (Convolution is commutative iff
 ;;; M is; the coefficient products commute iff A is.)
@@ -222,4 +222,4 @@
 (gloss! 'monalg-comm
   "A[M] is a commutative ring when A is a commutative ring and M a commutative
    monoid.  In particular A[x] is commutative for commutative A.")
-(category! 'monalg-comm 'algebra)
+(topic! 'monalg-comm 'algebra)

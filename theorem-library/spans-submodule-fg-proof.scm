@@ -125,7 +125,7 @@
                                 (fact 'module-vzero-in 'md)
                                 (rfl)))))))))))))))
 (qed 'spans-fg-base)
-(category! 'spans-fg-base 'algebra)
+(topic! 'spans-fg-base 'algebra)
 
 
 
@@ -359,7 +359,7 @@
                                   (subst (list '= cpw yy))      ; c'.w' -> y
                                   (ass))))))))))))))))))
 (qed 'spans-fg-step)
-(category! 'spans-fg-step 'algebra)
+(topic! 'spans-fg-step 'algebra)
 
 
 ;;; ================= assembly =================
@@ -376,6 +376,6 @@
                   (begin (fact 'spans-fg-base 'md) (ass)))))
           (proof-leaves))
 (qed 'spans-submodule-fg)
-(category! 'spans-submodule-fg 'algebra)
+(topic! 'spans-submodule-fg 'algebra)
 
 

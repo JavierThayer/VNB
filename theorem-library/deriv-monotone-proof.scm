@@ -14,7 +14,7 @@
 (warrant! 'rr-prod-pos 'well-known
   "0<x and 0<y give 0<x*y (the product of two strictly positive reals is
    strictly positive).")
-(category! 'rr-prod-pos 'analysis)
+(topic! 'rr-prod-pos 'analysis)
 
 (add-to-pss 'rr-lt-from-diff-pos
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
@@ -22,7 +22,7 @@
 (warrant! 'rr-lt-from-diff-pos 'well-known
   "0 < y-x gives x < y (strict sibling of rr-le-from-diff-nonneg; add x to both
    sides of 0<y-x).")
-(category! 'rr-lt-from-diff-pos 'analysis)
+(topic! 'rr-lt-from-diff-pos 'analysis)
 
 ;;; ====================================================================
 ;;; deriv-pos-strictly-increasing:  u<v in [a,b]  =>  f(u) < f(v).
@@ -142,4 +142,4 @@
 ;;; Classic textbook name, for (find-theorem "...") lookup.
 (alias! 'deriv-pos-strictly-increasing
   "increasing function theorem" "positive derivative implies strictly increasing")
-(category! 'deriv-pos-strictly-increasing 'analysis)
+(topic! 'deriv-pos-strictly-increasing 'analysis)

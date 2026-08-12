@@ -1,0 +1,2 @@
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-EUCLIDEAN-RING     'kind 'predicate 'arity 1 'noun "Euclidean ring" 'article "a")

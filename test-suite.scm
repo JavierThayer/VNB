@@ -684,6 +684,38 @@
   (lambda () (alpha-equiv? '((MUL m) a b) '((MUL m) a b)))
   #t)
 
+;;; alpha-equiv? takes RAW FORMULAS.  Handed <wff> records it used to answer #f
+;;; -- a wrong answer rather than a refusal, and invisible: two wffs made from
+;;; the same text compared unequal.  It now errors and names wff-equiv?.
+;;; (2026-08-09, reported from the REPL.)
+;; alpha-equiv? is kernel-internal and NOT vnb-guard'ed (like wff-formula), so
+;; it signals a plain Scheme error.  `ignore-errors' does NOT catch that in this
+;; MIT build -- an entry written with it aborts the whole suite at that line --
+;; so wrap the call in vnb-guard, which is the tree's own boundary and hands
+;; back the <vnb-error> that check-error looks for.
+(check-error "alpha-equiv? REFUSES a <wff> (left)"
+  (lambda () (vnb-guard
+              (lambda ()
+                (alpha-equiv? (make-wff "forall([x in rr], x = x)")
+                              '(FORALL x (IMPLIES (IN x RR) (= x x))))))))
+
+(check-error "alpha-equiv? REFUSES a <wff> (right)"
+  (lambda () (vnb-guard
+              (lambda ()
+                (alpha-equiv? '(FORALL x (IMPLIES (IN x RR) (= x x)))
+                              (make-wff "forall([x in rr], x = x)"))))))
+
+(check-error "alpha-equiv? REFUSES two <wff>s -- the reported case"
+  (lambda () (vnb-guard
+              (lambda ()
+                (alpha-equiv? (make-wff "forall([x in rr], x = x)")
+                              (make-wff "forall([x in rr], x = x)"))))))
+
+;;; ... and the procedure that DOES take wffs still says yes to that pair.
+(check-true "wff-equiv? on two wffs built from the same text"
+  (lambda () (wff-equiv? (make-wff "forall([x in rr], x = x)")
+                         (make-wff "forall([x in rr], x = x)"))))
+
 ;;; 6o. REVIEW.md S-4 / S-13 — symbolic VNB-LAMBDA must be a binder.
 ;;; Live axioms in algebraic.scm, complex.scm, sequences.scm use the raw
 ;;; (VNB-LAMBDA <bind> body) form.  Without binder treatment, free-vars
@@ -3294,6 +3326,33 @@
            (not (string-search-forward "(closes)" s 0))
            #t))))
 
+;; A universal in a NESTED position is part of the CLAIM, so it must read as a
+;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
+;; something before the claim is made -- and only the LEADING run of a
+;; proposition is in that position.  nn-least-element rendered its own statement
+;; as "There is m in T such that Let k in T, m <= k" (found 2026-08-09 while
+;; picking slide candidates); the tail after "if ... then" had the same defect.
+(check-true "a nested universal reads as a quantifier, not as Suppose/Let"
+  (lambda ()
+    (let ((nle (proof-reader--stmt
+                (proof-reader--norm
+                 '(FORALL T (IMPLIES (AND (SUBSET T NN) (FORSOME n (IN n T)))
+                    (FORSOME m (AND (IN m T)
+                      (FORALL k (IMPLIES (IN k T) (<= m k)))))))) 0))
+          (tail (proof-reader--stmt
+                 (proof-reader--norm
+                  '(IMPLIES (IN x NN) (FORALL k (IMPLIES (IN k NN) (<= x k))))) 0))
+          (top (proof-reader--stmt
+                (proof-reader--norm
+                 '(FORALL a (IMPLIES (IN a NN)
+                    (FORALL b (IMPLIES (IN b NN) (<= a b)))))) 0)))
+      (and (string-search-forward "such that for every $k \\in t$" nle 0)
+           (not (string-search-forward "such that Let" nle 0))
+           (string-search-forward "then for every $k \\in \\mathbb{N}$" tail 0)
+           ;; the LEADING run is unchanged -- it still reads Suppose/Let
+           (string-search-forward "Suppose $a \\in \\mathbb{N}" top 0)
+           #t))))
+
 ;; spot-check the readings that are easy to get BACKWARDS -- the argument order is
 ;; the thing a name cannot tell you.
 (check-true "the argument order is right where it is easy to invert"
@@ -3733,6 +3792,46 @@
   (lambda () (what-is--split-dash "metric-space")) '("metric" "space"))
 (check "what-is: alias complex -> cc-normed-field"
   (lambda () (cdr (assoc "complex" *what-is-aliases*))) '(cc-normed-field))
+
+;;; what-is tactic/procedure lane.  The index is harvested from source, so
+;;; these guard the SCAN, not a table: if the parse breaks, or a surface file
+;;; is renamed out of *what-is-surface-files*, the counts collapse and these
+;;; fail.  `scout' is the case the lane was built for.
+(check-true "what-is lane: harvest finds a useful number of entries"
+  (lambda () (> (length (what-is--procs)) 200)))
+(check-true "what-is lane: at least 40 of them classify as tactics"
+  (lambda ()
+    (> (length (filter (lambda (e) (eq? (what-is--proc-kind e) 'tactic))
+                       (what-is--procs)))
+       40)))
+(check-true "what-is lane: scout is found, with its rest-arg arity"
+  (lambda ()
+    (let ((e (find-first (lambda (x) (string=? (what-is--proc-name x) "scout"))
+                         (what-is--procs))))
+      (and e
+           (eq? (what-is--proc-kind e) 'procedure)
+           (string=? (what-is--proc-file e) "suggest")
+           (string=? (what-is--arity-string (what-is--proc-formals e))
+                     "0 or more")))))
+(check-true "what-is lane: ci classifies as a tactic (it calls vnb--run!)"
+  (lambda ()
+    (let ((e (find-first (lambda (x) (string=? (what-is--proc-name x) "ci"))
+                         (what-is--procs))))
+      (and e (eq? (what-is--proc-kind e) 'tactic)
+             (string=? (what-is--proc-cmd e) "cmd-cartesian-intro")))))
+(check "what-is lane: arity of a fixed-arity form"
+  (lambda () (what-is--arity-string "subst eqn")) "1")
+(check "what-is lane: arity of a rest form"
+  (lambda () (what-is--arity-string "fact thm . args")) "1 or more")
+(check-true "what-is lane: internal `--' names are skipped"
+  (lambda ()
+    (not (find-first (lambda (x)
+                       (string-search-forward "--" (what-is--proc-name x) 0))
+                     (what-is--procs)))))
+(check-true "what-is lane: scout's siblings include scout-show"
+  (lambda ()
+    (there-exists? (map what-is--proc-name (what-is--proc-siblings "scout"))
+                   (lambda (n) (string=? n "scout-show")))))
 
 ;;; -----------------------------------------------------------------------
 ;;; proof-tex / replay: assumption-by-INDEX args must be resolved on replay

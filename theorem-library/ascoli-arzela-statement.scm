@@ -148,7 +148,7 @@
    proof of the theorem itself is the DIAGONAL rung,
    coordinatewise-diagonal-subseq.")
 
-(category! 'ascoli-arzela-sequential 'topology)
+(topic! 'ascoli-arzela-sequential 'topology)
 
 ;; The route's declared dependencies: the Tychonoff/diagonal engine and the
 ;; separability bridge (compact => a countable dense set to diagonalise over).

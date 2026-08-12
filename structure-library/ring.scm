@@ -164,14 +164,14 @@
        (IN ((MUL r) a b) (CARR r)))))))))
 (warrant! 'ring-carrier-closed-mul 'proof
   "MUL closes on CARR: (op MUL) has type CARR x CARR -> CARR (fun-apply-type).")
-(category! 'ring-carrier-closed-mul 'algebra)
+(topic! 'ring-carrier-closed-mul 'algebra)
 
 ;;; The carrier of a ring is a set (the CARR-in-SET typing conjunct of the
 ;;; auto-generated IS-RING definition).  Named for citation.
 (support 'ring-carr-in-set
   '(FORALL r (IMPLIES (IS-RING r) (IN (CARR r) SET))))
 (warrant! 'ring-carr-in-set 'proof "carrier of a ring is a set (IS-RING typing conjunct).")
-(category! 'ring-carr-in-set 'algebra)
+(topic! 'ring-carr-in-set 'algebra)
 
 ;;; -----------------------------------------------------------------------
 ;;; RING-PROD: product of two rings.  Total: defined for any X, Y;

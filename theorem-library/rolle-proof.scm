@@ -250,4 +250,4 @@
 (rl-wit MM MIIB 'max)
 
 (qed 'rolle)
-(category! 'rolle 'analysis)
+(topic! 'rolle 'analysis)

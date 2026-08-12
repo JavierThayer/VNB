@@ -180,4 +180,4 @@
                        (mr-t-mul car cadr) (mr-t-mul car caddr) (mr-t-mul cadr caddr)))))
 
 (qed 'mat-ring-is-ring)
-(category! 'mat-ring-is-ring 'algebra)
+(topic! 'mat-ring-is-ring 'algebra)

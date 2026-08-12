@@ -18,14 +18,14 @@
 (sp (make-wff '(FORALL A (FORALL n (FORALL U (IMPLIES (IS-INVERTIBLE-MAT A n U) (IN U (MAT n n (CARR A)))))))))
 (mq-di*) (mac-h 'IS-INVERTIBLE-MAT '(IS-INVERTIBLE-MAT A n U)) (ai 1) (ass)
 (qed 'invertible-mat-is-mat)
-(category! 'invertible-mat-is-mat 'algebra)
+(topic! 'invertible-mat-is-mat 'algebra)
 
 ;; identmat-invertible
 (sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL n (IS-INVERTIBLE-MAT A n (IDENTMAT A n)))))))
 (mq-di*) (fact 'identmat-type 'A 'n) (fact 'identmat-left-identity 'A 'n 'n '(IDENTMAT A n))
 (mac 'IS-INVERTIBLE-MAT) (di) (mq-foc! (H? 'FORSOME)) (ew '(IDENTMAT A n)) (di) (mq-foc! (H? 'AND)) (di) (ass-all)
 (qed 'identmat-invertible)
-(category! 'identmat-invertible 'algebra)
+(topic! 'identmat-invertible 'algebra)
 
 ;; mat-equiv-refl
 (sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL C
@@ -35,7 +35,7 @@
 (mac 'MAT-EQUIV) (ew '(IDENTMAT A m)) (di) (mq-foc! (H? 'FORSOME)) (ew '(IDENTMAT A n)) (di)
 (mq-foc! (H? '=)) (subst '(= (MATMUL A (IDENTMAT A m) C) C)) (subst '(= (MATMUL A C (IDENTMAT A n)) C)) (rfl) (ass-all)
 (qed 'mat-equiv-refl)
-(category! 'mat-equiv-refl 'algebra)
+(topic! 'mat-equiv-refl 'algebra)
 
 ;; mat-equiv-right-mult
 (sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL C (FORALL V
@@ -47,7 +47,7 @@
 (mac 'MAT-EQUIV) (ew '(IDENTMAT A m)) (di) (mq-foc! (H? 'FORSOME)) (ew 'V) (di)
 (mq-foc! (H? '=)) (subst '(= (MATMUL A (IDENTMAT A m) C) C)) (rfl) (ass-all)
 (qed 'mat-equiv-right-mult)
-(category! 'mat-equiv-right-mult 'algebra)
+(topic! 'mat-equiv-right-mult 'algebra)
 
 ;; mat-equiv-left-mult
 (sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL C (FORALL U
@@ -60,7 +60,7 @@
 (mac 'MAT-EQUIV) (ew 'U) (di) (mq-foc! (H? 'FORSOME)) (ew '(IDENTMAT A n)) (di)
 (mq-foc! (H? '=)) (subst '(= (MATMUL A (MATMUL A U C) (IDENTMAT A n)) (MATMUL A U C))) (rfl) (ass-all)
 (qed 'mat-equiv-left-mult)
-(category! 'mat-equiv-left-mult 'algebra)
+(topic! 'mat-equiv-left-mult 'algebra)
 
 ;; elem-f-invertible
 (sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL k (FORALL l
@@ -72,13 +72,13 @@
 (fact 'elem-f-inverse 'A 'n 'l 'k)
 (mac 'IS-INVERTIBLE-MAT) (di) (mq-foc! (H? 'FORSOME)) (ew '(ELEM-F A n l k)) (di) (mq-foc! (H? 'AND)) (di) (ass-all)
 (qed 'elem-f-invertible)
-(category! 'elem-f-invertible 'algebra)
+(topic! 'elem-f-invertible 'algebra)
 
 ;;; --- elem-g-invertible (via the param-congruence trick for -(-r)=r) ---
 (sp (make-wff (quote (FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL r (FORALL s (FORALL k (FORALL l (IMPLIES (IN s (CARR A)) (IMPLIES (= r s) (= (ELEM-G A n r k l) (ELEM-G A n s k l))))))))))))))
 (mq-di*) (subst '(= r s)) (fact 'elem-g-type 'A 'n 's 'k 'l) (rfl)
  (qed 'elem-g-param-cong)
-(category! 'elem-g-param-cong 'algebra)
+(topic! 'elem-g-param-cong 'algebra)
 (sp (make-wff (quote (FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL r (FORALL k (FORALL l (IMPLIES (IN r (CARR A)) (IMPLIES (IN k (INTERVAL 1 n)) (IMPLIES (IN l (INTERVAL 1 n)) (IMPLIES (NOT (= k l)) (IS-INVERTIBLE-MAT A n (ELEM-G A n r k l)))))))))))))))
 (mq-di*)
 (fact 'ring-neg-in-carr 'A 'r) (fact 'ring-neg-in-carr 'A '((NEG A) r))
@@ -92,7 +92,7 @@
 (subst '(= (ELEM-G A n r k l) (ELEM-G A n ((NEG A) ((NEG A) r)) k l)))
 (ass-all)
 (qed 'elem-g-invertible)
-(category! 'elem-g-invertible 'algebra)
+(topic! 'elem-g-invertible 'algebra)
 
 ;;; --- transitivity of ~ (product of invertibles is invertible + matmul-assoc) ---
 ;; ME-IDMAT: a file-local alias for IDENTMAT.  It was called `ID', which
@@ -154,7 +154,7 @@
 (rfl)
 (ass-all)
 (qed 'product-of-invertibles-is-invertible)
-(category! 'product-of-invertibles-is-invertible 'algebra)
+(topic! 'product-of-invertibles-is-invertible 'algebra)
 
 ;; ---- mat-equiv-trans ----
 (define (mm a b) (list 'MATMUL 'A a b))
@@ -194,4 +194,4 @@
 (rfl)
 (ass-all)
 (qed 'mat-equiv-trans)
-(category! 'mat-equiv-trans 'algebra)
+(topic! 'mat-equiv-trans 'algebra)

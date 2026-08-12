@@ -273,10 +273,10 @@
          (lambda () (dk-ew-split! `(succ ,np2-j) (lambda () (ass)) np2-case-succ!)))
 (qed 'nnpair-onto)
 
-(category! 'trinum-type  'inequalities)
-(category! 'trinum-mono  'inequalities)
-(category! 'nn-succ-add  'inequalities)
-(category! 'nnpair-onto  'inequalities)
+(topic! 'trinum-type  'inequalities)
+(topic! 'trinum-mono  'inequalities)
+(topic! 'nn-succ-add  'inequalities)
+(topic! 'nnpair-onto  'inequalities)
 
 ;;; ---- injectivity -------------------------------------------------------
 ;;; Three rungs and the theorem.  The argument is the one sketched in the note
@@ -445,9 +445,9 @@
 (for-each (lambda (n) (dk-focus! n) (ass)) (dk-opened (lambda () (di))))
 (qed 'nnpair-inj)
 
-(category! 'nnpair-diag-bound 'inequalities)
-(category! 'nnpair-cross      'inequalities)
-(category! 'nnpair-inj        'combinatorial)
+(topic! 'nnpair-diag-bound 'inequalities)
+(topic! 'nnpair-cross      'inequalities)
+(topic! 'nnpair-inj        'combinatorial)
 
 ;;; ---- the projections ---------------------------------------------------
 ;;; NNFST(n) / NNSND(n) are definite descriptions: THE i (resp. j) such that
@@ -616,11 +616,11 @@
 (np2-projtype! 'nnsnd (lambda (p q) q))
 (qed 'nnsnd-type)
 
-(category! 'nnpair-type  'plumbing)
-(category! 'nnfst-type   'plumbing)
-(category! 'nnsnd-type   'plumbing)
-(category! 'nnfst-nnpair 'combinatorial)
-(category! 'nnsnd-nnpair 'combinatorial)
+(topic! 'nnpair-type  'plumbing)
+(topic! 'nnfst-type   'plumbing)
+(topic! 'nnsnd-type   'plumbing)
+(topic! 'nnfst-nnpair 'combinatorial)
+(topic! 'nnsnd-nnpair 'combinatorial)
 
 ;;; ---- the flattening ----------------------------------------------------
 ;;; nn-flatten: for h : NN -> (NN -> A) there is e : NN -> A whose range
@@ -681,7 +681,7 @@
             (dk-opened (lambda () (di)))))))
   (dk-opened (lambda () (di))))
 (qed 'nn-flatten)
-(category! 'nn-flatten 'combinatorial)
+(topic! 'nn-flatten 'combinatorial)
 
 ;;; ---- WHAT REMAINS ------------------------------------------------------
 ;;; Nothing in this file.  The re-indexing mechanism is complete: NNPAIR is a

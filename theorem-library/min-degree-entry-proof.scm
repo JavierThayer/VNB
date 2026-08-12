@@ -150,4 +150,4 @@
     (ass)))
 
 (qed 'min-degree-entry)
-(category! 'min-degree-entry 'algebra)
+(topic! 'min-degree-entry 'algebra)

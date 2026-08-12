@@ -16,7 +16,7 @@
 (warrant! 'rr-le-scale-nonneg-right 'well-known
   "x<=y and 0<=c give x*c<=y*c (multiply a non-strict inequality on the right by
    a nonnegative factor; the right-multiply form of rr-le-scale-nonneg).")
-(category! 'rr-le-scale-nonneg-right 'analysis)
+(topic! 'rr-le-scale-nonneg-right 'analysis)
 
 ;;; ====================================================================
 ;;; mvt-upper-bound

@@ -165,7 +165,7 @@
 (warrant! 'finsum-ring-distrib-right 'well-known
   "Right-handed finsum-ring-distrib-left: (SUM_X f + f z0)*r = SUM_X f*r + f z0*r
    by ring-right-dist, then the IH.  a |-> a*r is an endomorphism of (R,+).")
-(category! 'finsum-ring-distrib-right 'algebra)
+(topic! 'finsum-ring-distrib-right 'algebra)
 
 ;;; =======================================================================
 ;;; General-ring finite-sum infrastructure (the (B) bricks): pointwise
@@ -397,11 +397,11 @@
    contributes f = IDEN(ag), absorbed by the group unit law.  So the sum over S2
    collapses to the sum over its support S.")
 
-(category! 'finsum-ord-peel 'algebra)
-(category! 'finsum-insert-ag 'algebra)
-(category! 'finsum-add-ag 'algebra)
-(category! 'finsum-reindex-ag 'algebra)
-(category! 'finsum-embed 'algebra)
+(topic! 'finsum-ord-peel 'algebra)
+(topic! 'finsum-insert-ag 'algebra)
+(topic! 'finsum-add-ag 'algebra)
+(topic! 'finsum-reindex-ag 'algebra)
+(topic! 'finsum-embed 'algebra)
 
 ;;; finsum-interval-shift: front-peel of a FINSUM over [1, succ n] -- pull off the
 ;;; first term f(1) and reindex the tail [2,succ n] to [1,n] by z |-> succ z.  The
@@ -420,7 +420,7 @@
    first term (finsum-insert-ag at k=1, X=[2,succ n]) then reindex the tail by the
    succ bijection [1,n]->[2,succ n] (finsum-reindex-ag).  Standard finite-sum
    front-peel, same status as finsum-ord-peel.")
-(category! 'finsum-interval-shift 'combinatorial)
+(topic! 'finsum-interval-shift 'combinatorial)
 
 ;;; finsum-interval-peel: BACK-peel of a FINSUM over [1, succ n] -- pull off the
 ;;; LAST term f(succ n), leaving the sum over [1,n] with no reindexing at all.
@@ -445,7 +445,7 @@
    / interval-hi + nn-le-succ-cases) and succ n not in [1,n] (interval-hi would
    give succ n <= n).  Standard finite-sum back-peel, the twin of
    finsum-interval-shift.")
-(category! 'finsum-interval-peel 'combinatorial)
+(topic! 'finsum-interval-peel 'combinatorial)
 
 ;;; funcomp-succ-type: the typing companion of finsum-interval-shift -- z |-> f(succ z)
 ;;; maps [1,q] into X whenever f maps [1,succ q] into X (succ z in [1,succ q]).
@@ -454,4 +454,4 @@
      (IN (VNB-LAMBDA z (INTERVAL 1 q) (f (succ z))) (FUN (INTERVAL 1 q) X)))))))
 (warrant! 'funcomp-succ-type 'well-known
   "z |-> f(succ z) : [1,q] -> X when f : [1,succ q] -> X (succ z in [1,succ q]).")
-(category! 'funcomp-succ-type 'combinatorial)
+(topic! 'funcomp-succ-type 'combinatorial)

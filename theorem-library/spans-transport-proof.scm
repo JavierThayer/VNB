@@ -98,6 +98,8 @@
 (st-di*)
 (fact 'module-scalar-ring 'md)
 (fact 'one-in-interval-1)
+;; interval-card-in-nn's guard: n is u's row count.
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-in-set 1 'n) (fact 'interval-card-in-nn 1 'n)
 (mac-h 'IS-INVERTIBLE-MAT '(IS-INVERTIBLE-MAT (SCAL md) n pm))
 (st-crack-inverse! 'pm)
@@ -174,7 +176,7 @@
 
 (if (proof-done? *ps*)
     (begin (qed 'spans-transport)
-           (category! 'spans-transport 'algebra))
+           (topic! 'spans-transport 'algebra))
     (begin (display "@@@ INCOMPLETE -- open leaves:")(newline)
            (for-each (lambda (l) (display "@@@   ")(write (st-goalof l))(newline))
                      (st-leaves))

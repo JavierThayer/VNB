@@ -42,7 +42,7 @@
 (warrant! 'dual-norm-on-nonneg 'reference
   "DUAL-NORM-ON is defined by IOTA over c in RR with 0<=c, so for a bounded
    functional it is a nonnegative real.")
-(category! 'dual-norm-on-nonneg 'analysis)
+(topic! 'dual-norm-on-nonneg 'analysis)
 
 ;;; the operator norm is the LEAST nonnegative bound: <= any bound c.
 (add-to-pss 'dual-norm-on-le-bound
@@ -56,7 +56,7 @@
 (warrant! 'dual-norm-on-le-bound 'reference
   "DUAL-NORM-ON(m,s,g) is the least c>=0 bounding |g(w)| by c*||w|| on s
    (IOTA least-upper-bound), hence <= any such bound c.")
-(category! 'dual-norm-on-le-bound 'analysis)
+(topic! 'dual-norm-on-le-bound 'analysis)
 
 ;;; structure of SPAN-ADD-ONE(m,t,v) = t + RR.v.
 (add-to-pss 'span-add-one-superset
@@ -65,7 +65,7 @@
         (SUBSET t (SPAN-ADD-ONE m t v))))))))
 (warrant! 'span-add-one-superset 'reference
   "Every y in t equals y + 0.v, so t is contained in t + RR.v.")
-(category! 'span-add-one-superset 'analysis)
+(topic! 'span-add-one-superset 'analysis)
 
 (add-to-pss 'span-add-one-has-v
   '(FORALL m (FORALL t (FORALL v
@@ -73,7 +73,7 @@
         (IN v (SPAN-ADD-ONE m t v))))))))
 (warrant! 'span-add-one-has-v 'reference
   "v = 0 + 1.v with 0 in t, so v is in t + RR.v.")
-(category! 'span-add-one-has-v 'analysis)
+(topic! 'span-add-one-has-v 'analysis)
 
 (add-to-pss 'span-add-one-submodule
   '(FORALL m (FORALL t (FORALL v
@@ -82,19 +82,19 @@
 (warrant! 'span-add-one-submodule 'reference
   "t + RR.v is closed under addition, negation and the scalar action and
    contains 0, so it is a submodule.")
-(category! 'span-add-one-submodule 'analysis)
+(topic! 'span-add-one-submodule 'analysis)
 
 (add-to-pss 'vec-is-set
   '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IN (VEC m) SET))))
 (warrant! 'vec-is-set 'reference
   "VEC(m) in SET, a defining clause of IS-NORMED-VECTOR-SPACE (definedness).")
-(category! 'vec-is-set 'analysis)
+(topic! 'vec-is-set 'analysis)
 
 (add-to-pss 'submodule-subset
   '(FORALL m (FORALL t (IMPLIES (IS-SUBMODULE m t) (SUBSET t (VEC m))))))
 (warrant! 'submodule-subset 'reference
   "A submodule is by definition a subset of the vectors.")
-(category! 'submodule-subset 'analysis)
+(topic! 'submodule-subset 'analysis)
 
 ;;; subset-mem and subset-trans MOVED and PROVEN, 2026-07-27:
 ;;; theorem-library/subset-lemmas.scm, which loads long before this file.  Both
@@ -108,7 +108,7 @@
         (FORSOME x_ (AND (IN x_ b) (NOT (IN x_ a)))))))))
 (warrant! 'proper-subset-witness 'well-known
   "If a subset b but a != b then by extensionality some x in b is not in a.")
-(category! 'proper-subset-witness 'analysis)
+(topic! 'proper-subset-witness 'analysis)
 
 (add-to-pss 'extends-on-trans
   '(FORALL s (FORALL t (FORALL g2 (FORALL g1 (FORALL f
@@ -116,7 +116,7 @@
         (EXTENDS-ON s g2 f))))))))))
 (warrant! 'extends-on-trans 'reference
   "If g2=g1 on t, g1=f on s, and s subset t, then g2=f on s.")
-(category! 'extends-on-trans 'analysis)
+(topic! 'extends-on-trans 'analysis)
 
 (add-to-pss 'vnrm-nonneg
   '(FORALL m (FORALL w_
@@ -124,7 +124,7 @@
         (<= 0 ((VNRM m) w_)))))))
 (warrant! 'vnrm-nonneg 'reference
   "Norm nonnegativity, a defining law of IS-NORMED-VECTOR-SPACE.")
-(category! 'vnrm-nonneg 'analysis)
+(topic! 'vnrm-nonneg 'analysis)
 
 ;;; typing: the norm of a vector, and |g(w)| for a functional, are reals.
 (add-to-pss 'vnrm-real
@@ -133,7 +133,7 @@
         (IN ((VNRM m) w_) RR))))))
 (warrant! 'vnrm-real 'reference
   "VNRM(m) : VEC(m) -> RR, so the norm of a vector is a real.")
-(category! 'vnrm-real 'analysis)
+(topic! 'vnrm-real 'analysis)
 
 (add-to-pss 'linfun-app-abs-real
   '(FORALL m (FORALL t (FORALL g (FORALL w_
@@ -141,7 +141,7 @@
         (IN (abs (g w_)) RR))))))))
 (warrant! 'linfun-app-abs-real 'reference
   "A linear functional on t maps into RR, so |g(w)| is a real for w in t.")
-(category! 'linfun-app-abs-real 'analysis)
+(topic! 'linfun-app-abs-real 'analysis)
 
 ;;; pure-RR monotone compose: p <= a*n, a <= b, 0 <= n  =>  p <= b*n.
 (add-to-pss 'le-bound-mono
@@ -152,7 +152,7 @@
 (warrant! 'le-bound-mono 'well-known
   "Reals: from p<=a*n, a<=b and 0<=n, scale a<=b by n>=0 to a*n<=b*n, then
    transitivity gives p<=b*n.")
-(category! 'le-bound-mono 'analysis)
+(topic! 'le-bound-mono 'analysis)
 
 ;;; ====================================================================
 ;;; PROVEN  good-step:  t reachable and x notin t  =>  t + RR.x reachable.
@@ -249,7 +249,7 @@
                       (list (list 'VNRM 'm) WW))))
 (quietly (lambda () (ass-all)))
 (qed 'good-step)
-(category! 'good-step 'analysis)
+(topic! 'good-step 'analysis)
 
 ;;; ====================================================================
 ;;; PROVEN  hahn-banach (finite-dimensional real NVS):  a bounded linear
@@ -337,4 +337,4 @@
 (subst FLIP)                                      ; rewrite (VEC m) -> T in the goal
 (quietly (lambda () (dc-grind!)))                 ; linear/extends/bound all match the T-facts
 (qed 'hahn-banach)
-(category! 'hahn-banach 'analysis)
+(topic! 'hahn-banach 'analysis)

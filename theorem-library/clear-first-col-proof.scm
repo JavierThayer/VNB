@@ -152,7 +152,7 @@
 (fact 'entry-in-carrier 'm 'n '(CARR A) 'P PR-ROW PR-COL)
 (rfl)
 (qed 'pivot-clears-row)
-(category! 'pivot-clears-row 'algebra)
+(topic! 'pivot-clears-row 'algebra)
 
 ;; ===================== clear-col-upto (ni on k) =====================
 
@@ -298,7 +298,7 @@
 (define CU-FC (list-ref (cadr (cc-goal)) 3))
 (inst+ CU-IHR1 CU-FC) (ass)
 (qed 'clear-col-upto)
-(category! 'clear-col-upto 'algebra)
+(topic! 'clear-col-upto 'algebra)
 
 ;; ===================== clear-first-col (clear-col-upto at k = m) =====================
 ;; Exposes: MAT-EQUIV, pivot, column 1 cleared, AND row 1 unchanged.
@@ -344,4 +344,4 @@
 (define FC-C (list-ref (cadr (cc-goal)) 3))
 (inst+ FC-R1 FC-C) (ass)
 (qed 'clear-first-col)
-(category! 'clear-first-col 'algebra)
+(topic! 'clear-first-col 'algebra)

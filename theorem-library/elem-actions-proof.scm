@@ -45,6 +45,9 @@
 (subst `(= (ENTRY (MATMUL A P (ELEM-H A n r k)) i c) (FINSUM ,EA-RAG ,EA-HFF ,EA-INT)))
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'n)
+;; interval-card-in-nn's guard: n is the row count of the n-by-n elementary
+;; matrix typed above -- the statement types no dimension.
+(fact 'mat-rows-in-nn 'n 'n '(CARR A) '(ELEM-H A n r k))
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matprod-summand-type 'A 'm 'n 'n 'P '(ELEM-H A n r k) 'i 'c)
 (cut `(FORALL jz (IMPLIES (IN jz ,EA-INT)
@@ -89,7 +92,7 @@
 (subst '(= ((MUL A) (ENTRY P i c) (ONE A)) (ENTRY P i c)))
 (rfl)
 (qed 'elem-h-action)
-(category! 'elem-h-action 'algebra)
+(topic! 'elem-h-action 'algebra)
 
 ;;; ===================== elem-g-action ============================
 ;;; (P . G[r,k,l])_{ic} = P_{il} + P_{ik}.r  if c=l,  else P_{ic}.  Case-split on
@@ -116,6 +119,7 @@
 (subst `(= (ENTRY (MATMUL A P (ELEM-G A n r k l)) i c) (FINSUM ,EA-RAG ,EA-GFF ,EA-INT)))
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'n)
+(fact 'mat-rows-in-nn 'n 'n '(CARR A) '(ELEM-G A n r k l))
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matprod-summand-type 'A 'm 'n 'n 'P '(ELEM-G A n r k l) 'i 'c)
 (define ea-g-not (ea-cases '(= c l)))
@@ -184,7 +188,7 @@
 (subst `(= ((MUL A) (ENTRY P i c) (ONE A)) (ENTRY P i c)))
 (rfl)
 (qed 'elem-g-action)
-(category! 'elem-g-action 'algebra)
+(topic! 'elem-g-action 'algebra)
 
 ;;; ===================== elem-f-action ============================
 ;;; (P . F[k,l])_{ic} = P_{il} (c=k), P_{ik} (c=l), P_{ic} (else).  F[k,l] is the
@@ -236,6 +240,7 @@
 (subst `(= (ENTRY (MATMUL A P (ELEM-F A n k l)) i c) (FINSUM ,EA-RAG ,EA-FFF ,EA-INT)))
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'n)
+(fact 'mat-rows-in-nn 'n 'n '(CARR A) '(ELEM-F A n k l))
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matprod-summand-type 'A 'm 'n 'n 'P '(ELEM-F A n k l) 'i 'c)
 (define ea-f-notk (ea-cases '(= c k)))
@@ -263,4 +268,4 @@
 (subst '(= (IF (= c l) (ENTRY P i k) (ENTRY P i c)) (ENTRY P i c)))
 (ea-collapse 'c 'elem-f-co-off 'elem-f-co-at)
 (qed 'elem-f-action)
-(category! 'elem-f-action 'algebra)
+(topic! 'elem-f-action 'algebra)

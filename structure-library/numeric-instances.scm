@@ -14,8 +14,11 @@
 ;;;
 ;;; The instances ZZ-RING, QQ-RING, RR-NORMED-FIELD, CC-NORMED-FIELD are 6-element VNB
 ;;; lists [D, binplus, bintimes, binneg, 0, 1] -- the standard ring shape.
-;;; IS-RING(*-RING) is taken as an axiom (proof would unfold IS-RING via
-;;; the def-structure IFF and discharge each conjunct from typing axioms).
+;;; IS-RING(ZZ-RING) and IS-RING(QQ-RING) used to be taken as axioms here, on
+;;; the grounds that "proof would unfold IS-RING via the def-structure IFF and
+;;; discharge each conjunct from typing axioms".  That is exactly what
+;;; theorem-library/zz-ring-is-ring.scm now does, for both, from one
+;;; parameterised driver -- so they are PROVEN and are not asserted below.
 ;;;
 ;;; NN-ADD-MONOID = [NN, binplus, 0] gives NN its commutative-monoid status
 ;;; under addition.  NN as a multiplicative comm-monoid is left for later.
@@ -120,10 +123,36 @@
 ;;; Arity 2 is just binplus-apply / bintimes-apply reversed, listed for
 ;;; uniformity.  Arities 3..5 cover the kid-friendly cases (granddaughters
 ;;; doing arithmetic).  Add higher arities when needed.
+;;;
+;;; PROVENANCE (2026-08-10, the user's call).  The three arity-2/arity-1 forms
+;;; -- nary-plus-2, nary-times-2, nary-neg-1 -- are `definitional', and each is
+;;; wrapped individually below rather than as a block, because they are not
+;;; contiguous and reordering the file to make them so would cost more than it
+;;; saves.  The reason they are definitional is exactly the comment above: each
+;;; is the CONVERSE, written out, of binplus-apply / bintimes-apply /
+;;; binneg-apply, which sit forty lines above stamped `definitional' as the
+;;; defining equations of the bridge symbols.  `==' is quasi-equality, which is
+;;; symmetric, so the converse of a conservative definition introduces nothing
+;;; and owes nothing.  Until now they were `asserted' with no `warrant!', i.e.
+;;; `trust: none' -- and being cited by the arithmetic layer they were, between
+;;; them, the largest remaining source of that tier in the library.
+;;;
+;;; The wrap is what makes install-theorem! stamp the auto-generated `-rev'
+;;; companion too, which a later register-provenance! would miss.
+;;;
+;;; nary-minus-2 is also `definitional' as of the same day, but on a DIFFERENT
+;;; argument -- composition rather than symmetry -- so it carries its own note
+;;; at its own definition below.
+;;;
+;;; NOT covered by any of this, and deliberately left `asserted': the arity 3-5
+;;; forms, which are not converses of anything -- they FIX the reading of the
+;;; parser's flat n-ary node as a left fold, and nothing else in the theory
+;;; states it.  They have no dependents, so nothing is waiting on them.
 
-(theory-add-axiom! *current-theory* 'nary-plus-2
-  '(FORALL x (FORALL y
-      (== (+ x y) (binplus x y)))))
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'nary-plus-2
+    '(FORALL x (FORALL y
+        (== (+ x y) (binplus x y))))))
 
 (theory-add-axiom! *current-theory* 'nary-plus-3
   '(FORALL x (FORALL y (FORALL z
@@ -138,9 +167,11 @@
       (== (+ v w x y z)
          (binplus (binplus (binplus (binplus v w) x) y) z))))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-2
-  '(FORALL x (FORALL y
-      (== (* x y) (bintimes x y)))))
+;; definitional: the converse of bintimes-apply (see the block comment above).
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'nary-times-2
+    '(FORALL x (FORALL y
+        (== (* x y) (bintimes x y))))))
 
 (theory-add-axiom! *current-theory* 'nary-times-3
   '(FORALL x (FORALL y (FORALL z
@@ -160,13 +191,27 @@
 ;;; subtraction like x - y - z left-associates to (- (- x y) z), so a single
 ;;; binary axiom handles it after iterated rewriting.
 
-(theory-add-axiom! *current-theory* 'nary-neg-1
-  '(FORALL x
-      (== (- x) (binneg x))))
+;; definitional: the converse of binneg-apply (see the block comment above).
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'nary-neg-1
+    '(FORALL x
+        (== (- x) (binneg x)))))
 
-(theory-add-axiom! *current-theory* 'nary-minus-2
-  '(FORALL x (FORALL y
-      (== (- x y) (binplus x (binneg y))))))
+;; definitional, but NOT as a converse -- as a COMPOSITION of three definitions:
+;;   (- x y)  ==  x + (- y)          binary-minus-def   (number-systems.scm)
+;;            ==  binplus x (- y)    nary-plus-2        (above)
+;;            ==  binplus x (binneg y)   nary-neg-1     (above)
+;; `==' is a congruence, so the chain substitutes; each step is definitional, so
+;; the composite introduces nothing.  Recorded separately because the argument is
+;; a different one and was taken as a separate decision (2026-08-10, the user's
+;; call): a converse is free by symmetry alone, whereas this one leans on
+;; binary-minus-def actually BEING the definition of binary minus -- which it is,
+;; and which nothing else in the theory states (see CLAUDE.md on binary minus
+;; having had no axiom at all until 2026-08-01).
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'nary-minus-2
+    '(FORALL x (FORALL y
+        (== (- x y) (binplus x (binneg y)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Ring instances: ZZ, QQ, RR, CC as RING
@@ -222,10 +267,19 @@
 ;;; operation typings and the arithmetic laws below -- which is what it always
 ;;; was, mathematically.  As an assertion it was billed against every theorem
 ;;; that reached the integers through their ring structure.
-(theory-add-axiom! *current-theory* 'qq-is-ring '(IS-RING QQ-RING))
+;;; qq-is-ring is NOT asserted here.  PROVEN, alongside zz-is-ring and by the
+;;; same parameterised driver, in theorem-library/zz-ring-is-ring.scm: QQ-RING
+;;; is the same tuple over a different carrier, so the instance data (carrier,
+;;; defining equation, set-hood fact, three typing axioms) is all that differs.
 
-(theory-add-axiom! *current-theory* 'zz-is-commutative-ring '(IS-COMMUTATIVE-RING ZZ-RING))
-(theory-add-axiom! *current-theory* 'zz-is-integral-domain  '(IS-INTEGRAL-DOMAIN ZZ-RING))
+;;; zz-is-commutative-ring and zz-is-integral-domain are NOT asserted here.
+;;; Both are PROVEN in theorem-library/zz-integral-domain.scm, which unfolds the
+;;; defining IFF, drops to the surface language, and gets ZZ's lack of zero
+;;; divisors from QQ having inverses.  They were asserted and unwarranted until
+;;; 2026-08-10, and zz-is-integral-domain was then the largest single source of
+;;; `trust: none' in the library (seven bills, shadowing every other leaf in
+;;; them).  zz-is-euclidean-ring is still asserted: it needs the DIVISION
+;;; algorithm on ZZ, which is a different piece of work.
 (theory-add-axiom! *current-theory* 'zz-is-euclidean-ring   '(IS-EUCLIDEAN-RING ZZ-RING))
 
 (theory-add-axiom! *current-theory* 'qq-is-commutative-ring '(IS-COMMUTATIVE-RING QQ-RING))
@@ -278,14 +332,15 @@
 ;;; NN-ADD-MONOID = [NN, binplus, 0]
 ;;;
 ;;; NN is not a ring (no negation), but it is a commutative monoid under
-;;; +, with identity 0.  IS-COMM-MONOID is taken as axiom by the same
-;;; rationale as the ring instances above.
+;;; +, with identity 0.
 
 (declare-instance! 'NN-ADD-MONOID 'COMM-MONOID 'nn-add-monoid-def
   '(NN binplus 0))
 
-(theory-add-axiom! *current-theory* 'nn-add-monoid-is-comm-monoid
-  '(IS-COMM-MONOID NN-ADD-MONOID))
+;;; nn-add-monoid-is-comm-monoid is NOT asserted here: PROVEN in
+;;; theorem-library/nn-add-monoid.scm, by citing the NN axioms rather than by
+;;; running a commutative-RING oracle over a carrier that is not a ring.
+;;; Asserted and unwarranted until 2026-08-10.
 
 ;;; -----------------------------------------------------------------------
 ;;; Register the numeric instances as definitional structures so they

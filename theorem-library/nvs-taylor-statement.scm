@@ -76,7 +76,7 @@
    theorem vector-taylor-remainder-bound applied to phi -- the norm-attaining-
    functional / Hahn-Banach route already in the library -- hence the rests-on below.")
 
-(category! 'nvs-taylor-remainder-bound 'analysis)
+(topic! 'nvs-taylor-remainder-bound 'analysis)
 
 ;; The intended proof rests on the curve theorem (apply it to phi): declared so
 ;; the cycle checker keeps the reference base acyclic.  vector-taylor-remainder-

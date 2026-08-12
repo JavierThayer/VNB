@@ -29,16 +29,15 @@
 ;;; IS-ABELIAN-GROUP.  PROVEN modulo 0 in structure-library/subtype-laws.scm
 ;;; (the metric-sym pattern); no longer asserted here.
 
-;;; Idempotent => identity: in a group a*a = a forces a = E (from a*a=a,
-;;; left-multiply by a^{-1}).  Standard; asserted in the library phase.  It
-;;; specializes through every additive view-as -- crucially MODULE-VECTOR-AG
-;;; (views.scm) -- delivering the cancellation endgame  a +_V a = a => a = 0_V
-;;; on a module's vectors without re-deriving it from the raw property predicates.
-(theory-add-axiom! *current-theory* 'abelian-group-idempotent-is-id
-  '(FORALL s
-     (IMPLIES (IS-ABELIAN-GROUP s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (IMPLIES (= ((OPR s) a a) a) (= a (IDEN s))))))))
+;;; Idempotent => identity: in a group a*a = a forces a = E.  Asserted here, and
+;;; never warranted, until 2026-08-10; with 14 dependent proofs it was the
+;;; most-cited unjustified fact in the library.  Now PROVEN modulo 0 in
+;;; theorem-library/cancellation.scm, from group-cancel-left plus the right
+;;; identity (one commutation away in an abelian group).  It still specializes
+;;; through every additive view-as -- crucially MODULE-VECTOR-AG (views.scm) --
+;;; delivering the cancellation endgame  a +_V a = a => a = 0_V  on a module's
+;;; vectors; because it is now proved AFTER views.scm loads, cancellation.scm
+;;; re-runs the specializer for that view.
 
 ;;; Inverses are unique: a*b = e forces b = a^{-1}.  The sibling of
 ;;; idempotent-is-id, and it specializes through the same additive view-as

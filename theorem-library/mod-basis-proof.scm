@@ -97,6 +97,9 @@
 (fact 'matact-type 'md 'n 'n 'q '(IDENTMAT (SCAL md) n) 'u)
 (fact 'module-vector-ag-is-abelian-group 'md)
 (fact 'module-vzero-in 'md)
+;; interval-card-in-nn's guard: n is u's row count (the statement types no
+;; dimension).
+(fact 'mat-rows-in-nn 'n 'q '(VEC md) 'u)
 (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
 
 (mb-with-cut
@@ -137,7 +140,7 @@
     (fact 'matrix-entry-extensionality 'n 'q '(VEC md) MI-LHS 'u)
     (ass)))
 (qed 'matact-identmat)
-(category! 'matact-identmat 'algebra)
+(topic! 'matact-identmat 'algebra)
 
 ;; =====================================================================
 ;; generates-transport :  pm invertible, u generates  =>  pm.u generates
@@ -182,7 +185,7 @@
 (subst `(= ,(mm GT-C '(IDENTMAT (SCAL md) n)) ,GT-C))
 (ass)
 (qed 'generates-transport)
-(category! 'generates-transport 'algebra)
+(topic! 'generates-transport 'algebra)
 
 ;; =====================================================================
 ;; free-transport :  qm invertible, v rel-free  =>  qm.v rel-free
@@ -197,6 +200,7 @@
 (fact 'module-scalar-ring 'md)
 (fact 'ring-additive-ag-is-abelian-group '(SCAL md))
 (fact 'one-in-interval-1)
+(fact 'mat-rows-in-nn 'm 1 '(VEC md) 'v)
 (fact 'interval-in-set 1 'm)(fact 'interval-card-in-nn 1 'm)
 (mac-h 'IS-INVERTIBLE-MAT '(IS-INVERTIBLE-MAT (SCAL md) m qm))
 (mb-crack-inverse! 'qm)
@@ -253,14 +257,14 @@
               (fact 'ras-id '(SCAL md))
               (ass))))))))
 (qed 'free-transport)
-(category! 'free-transport 'algebra)
+(topic! 'free-transport 'algebra)
 
 ;; ----- categorize the PSS bricks these proofs introduced -----
-(category! 'identmat-entry-diag 'algebra)
-(category! 'identmat-entry-off 'algebra)
-(category! 'unitrow-type 'algebra)
-(category! 'unitrow-entry-at 'algebra)
-(category! 'unitrow-entry-off 'algebra)
-(category! 'finsum-all-id 'algebra)
-(category! 'diagonal-off-entry 'algebra)
-(category! 'generates-coeff-matrix 'algebra)
+(topic! 'identmat-entry-diag 'algebra)
+(topic! 'identmat-entry-off 'algebra)
+(topic! 'unitrow-type 'algebra)
+(topic! 'unitrow-entry-at 'algebra)
+(topic! 'unitrow-entry-off 'algebra)
+(topic! 'finsum-all-id 'algebra)
+(topic! 'diagonal-off-entry 'algebra)
+(topic! 'generates-coeff-matrix 'algebra)

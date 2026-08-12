@@ -43,4 +43,4 @@
 (fact 'interval-mem-intro 'a 'c 'i)
 (ass)
 (qed 'interval-widen)
-(category! 'interval-widen 'inequalities)
+(topic! 'interval-widen 'inequalities)

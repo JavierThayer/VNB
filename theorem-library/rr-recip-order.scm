@@ -53,7 +53,7 @@
 (di)
 (ineq)
 (qed 'rr-mul-zero)
-(category! 'rr-mul-zero 'inequalities)
+(topic! 'rr-mul-zero 'inequalities)
 
 ;;; 0 < 1.  Named because it is cited by hand constantly and because, until this
 ;;; file, NOTHING in the tree stated it -- the ordered-field axioms give
@@ -62,7 +62,7 @@
 (sp (make-wff '(< 0 1)))
 (ineq)
 (qed 'rr-zero-lt-one)
-(category! 'rr-zero-lt-one 'inequalities)
+(topic! 'rr-zero-lt-one 'inequalities)
 
 ;;; --------------------------------------------------------------------
 ;;; The product of two positive reals is positive.
@@ -83,7 +83,7 @@
 (fact 'rr-mul-zero 'a)
 (ineq (rro-at '(< (* a 0) (* a b))) (rro-at '(= (* a 0) 0)))
 (qed 'rr-mul-pos)
-(category! 'rr-mul-pos 'inequalities)
+(topic! 'rr-mul-pos 'inequalities)
 
 ;;; --------------------------------------------------------------------
 ;;; 0 < a  =>  0 < recip a.
@@ -125,4 +125,4 @@
     (ineq (rro-at '(< (* a (recip a)) (* a 0)))
           (rro-at '(= (* a (recip a)) 1)))))
 (qed 'rr-recip-pos)
-(category! 'rr-recip-pos 'inequalities)
+(topic! 'rr-recip-pos 'inequalities)

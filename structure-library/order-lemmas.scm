@@ -66,7 +66,7 @@
      (OR (< u v) (OR (= u v) (< v u))))))))
 (warrant! 'rr-lt-trichotomy 'well-known
   "RR is totally ordered: for u,v in RR exactly one of u<v, u=v, v<u holds.")
-(category! 'rr-lt-trichotomy 'analysis)
+(topic! 'rr-lt-trichotomy 'analysis)
 
 (support 'rr-lt-implies-le
   '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
@@ -269,35 +269,35 @@
 (support 'co-le-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
 (warrant! 'co-le-trans 'well-known "a<=b then b<=c gives a<=c.")
-(category! 'co-le-trans 'inequalities)
+(topic! 'co-le-trans 'inequalities)
 (support 'co-lt-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (< b c) (< a c)))))))
 (warrant! 'co-lt-trans 'well-known "a<b then b<c gives a<c.")
-(category! 'co-lt-trans 'inequalities)
+(topic! 'co-lt-trans 'inequalities)
 (support 'co-le-lt-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (< b c) (< a c)))))))
 (warrant! 'co-le-lt-trans 'well-known "a<=b then b<c gives a<c.")
-(category! 'co-le-lt-trans 'inequalities)
+(topic! 'co-le-lt-trans 'inequalities)
 (support 'co-lt-le-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (<= b c) (< a c)))))))
 (warrant! 'co-lt-le-trans 'well-known "a<b then b<=c gives a<c.")
-(category! 'co-lt-le-trans 'inequalities)
+(topic! 'co-lt-le-trans 'inequalities)
 (support 'co-le-eq-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (= b c) (<= a c)))))))
 (warrant! 'co-le-eq-trans 'well-known "a<=b then b=c gives a<=c.")
-(category! 'co-le-eq-trans 'inequalities)
+(topic! 'co-le-eq-trans 'inequalities)
 (support 'co-lt-eq-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (= b c) (< a c)))))))
 (warrant! 'co-lt-eq-trans 'well-known "a<b then b=c gives a<c.")
-(category! 'co-lt-eq-trans 'inequalities)
+(topic! 'co-lt-eq-trans 'inequalities)
 (support 'co-eq-le-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (<= b c) (<= a c)))))))
 (warrant! 'co-eq-le-trans 'well-known "a=b then b<=c gives a<=c.")
-(category! 'co-eq-le-trans 'inequalities)
+(topic! 'co-eq-le-trans 'inequalities)
 (support 'co-eq-lt-trans
   '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (< b c) (< a c)))))))
 (warrant! 'co-eq-lt-trans 'well-known "a=b then b<c gives a<c.")
-(category! 'co-eq-lt-trans 'inequalities)
+(topic! 'co-eq-lt-trans 'inequalities)
 
 ;;; Discreteness of NN: a nonzero natural is strictly positive.  0<=k (nn-zero-le)
 ;;; and k/=0 give 0<k.  This is the single fact that made sqrt2 ASSERT nn-lt-double
@@ -306,14 +306,14 @@
   '(FORALL k (IMPLIES (IN k NN) (IMPLIES (NOT (= k 0)) (< 0 k)))))
 (warrant! 'nn-pos-of-nonzero 'well-known
   "k in NN, k/=0 => 0<k: 0<=k (nn-zero-le) and 0/=k give the strict inequality.")
-(category! 'nn-pos-of-nonzero 'inequalities)
+(topic! 'nn-pos-of-nonzero 'inequalities)
 
 (support 'rr-cancel-mul-right
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (FORALL c (IMPLIES (IN c RR) (IMPLIES (NOT (= c 0)) (IMPLIES (= (* u c) (* v c)) (= u v))))))))))
 (warrant! 'rr-cancel-mul-right 'well-known
   "u*c=v*c with c/=0 gives u=v (multiply by 1/c).  The right-factor companion of
    rr-cancel-mul-left (taylor-proof.scm).")
-(category! 'rr-cancel-mul-right 'algebra)
+(topic! 'rr-cancel-mul-right 'algebra)
 
 ;;; rr-sub-in-rr MOVED 2026-08-01 to theorem-library/binary-minus-laws.scm, where
 ;;; it is PROVEN rather than asserted.  It was a `well-known' support here, and
@@ -325,7 +325,7 @@
 (support 'rr-sub-ne-zero
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IMPLIES (NOT (= u v)) (NOT (= (- u v) 0))))))))
 (warrant! 'rr-sub-ne-zero 'well-known "u/=v => u-v/=0.")
-(category! 'rr-sub-ne-zero 'inequalities)
+(topic! 'rr-sub-ne-zero 'inequalities)
 
 ;;; -----------------------------------------------------------------------
 ;;; NN order facts for the Smith row/column clearing induction (clear-first-row).
@@ -335,27 +335,27 @@
      (IMPLIES (<= j (succ k)) (OR (<= j k) (= j (succ k)))))))))
 (warrant! 'nn-le-succ-cases 'well-known
   "j <= succ k => j <= k or j = succ k, for j,k in NN (discreteness of NN).")
-(category! 'nn-le-succ-cases 'inequalities)
+(topic! 'nn-le-succ-cases 'inequalities)
 
 (support 'nn-not-le-zero-pos
   '(FORALL j (IMPLIES (IN j NN) (IMPLIES (<= 1 j) (NOT (<= j 0))))))
 (warrant! 'nn-not-le-zero-pos 'well-known
   "1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).")
-(category! 'nn-not-le-zero-pos 'inequalities)
+(topic! 'nn-not-le-zero-pos 'inequalities)
 
 
 (support 'nn-pos-is-succ
   '(FORALL n (IMPLIES (IN n NN) (IMPLIES (<= 1 n)
      (FORSOME q (AND (IN q NN) (= n (succ q))))))))
 (warrant! 'nn-pos-is-succ 'well-known "a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).")
-(category! 'nn-pos-is-succ 'inequalities)
+(topic! 'nn-pos-is-succ 'inequalities)
 
 (support 'nn-le-imp-neq-succ
   '(FORALL k (IMPLIES (IN k NN) (FORALL j (IMPLIES (IN j NN)
      (IMPLIES (<= j k) (NOT (= j (succ k)))))))))
 (warrant! 'nn-le-imp-neq-succ 'well-known
   "j <= k => j /= succ k for j,k in NN (succ k > k >= j).")
-(category! 'nn-le-imp-neq-succ 'inequalities)
+(topic! 'nn-le-imp-neq-succ 'inequalities)
 
 ;;; Interval read-offs (forward direction of interval-membership), warranted
 ;;; well-known -- used to pull IN i NN / the bounds out of IN i (INTERVAL a b).
@@ -369,13 +369,13 @@
 (warrant! 'nn-minus-succ-1 'well-known
   "NN-MINUS(succ z, 1) = z: 1 <= succ z, so the monus is (succ z) - 1 = z
    (nn-minus-def + bt-succ-minus-1).")
-(category! 'nn-minus-succ-1 'plumbing)
+(topic! 'nn-minus-succ-1 'plumbing)
 
 ;;; Interval membership helpers for border-mult's block indexing.
 (support 'one-in-interval
   '(FORALL n (IMPLIES (IN n NN) (IN 1 (INTERVAL 1 (succ n))))))
 (warrant! 'one-in-interval 'well-known "1 in [1, succ n] (1 <= 1 <= succ n).")
-(category! 'one-in-interval 'inequalities)
+(topic! 'one-in-interval 'inequalities)
 
 (support 'pred-in-interval
   '(FORALL p (FORALL i (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
@@ -383,19 +383,19 @@
 (warrant! 'pred-in-interval 'well-known
   "i in [2, succ p] => i-1 in [1, p]: the monus predecessor of an index past 1
    lands in the block range.")
-(category! 'pred-in-interval 'inequalities)
+(topic! 'pred-in-interval 'inequalities)
 
 ;;; succ of an index: stays in the shifted interval, and is never 1 (>= 2).
 (support 'succ-in-interval
   '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (IN (succ z) (INTERVAL 1 (succ q)))))))
 (warrant! 'succ-in-interval 'well-known
   "z in [1,q] => succ z in [1, succ q] (2 <= succ z <= succ q).")
-(category! 'succ-in-interval 'inequalities)
+(topic! 'succ-in-interval 'inequalities)
 
 (support 'succ-not-one
   '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (NOT (= (succ z) 1))))))
 (warrant! 'succ-not-one 'well-known "z in [1,q] => succ z >= 2, so succ z /= 1.")
-(category! 'succ-not-one 'inequalities)
+(topic! 'succ-not-one 'inequalities)
 
 ;;; monus-by-1 is injective on indices >= 1 (needed to compare BORDER's block to
 ;;; IDENTMAT's Kronecker delta in border-identity).
@@ -405,7 +405,7 @@
        (IMPLIES (NOT (= i j)) (NOT (= (NN-MINUS i 1) (NN-MINUS j 1)))))))))))
 (warrant! 'nn-minus-1-inj 'well-known
   "i /= j and 1 <= i,j => i-1 /= j-1 (monus by 1 is injective on [1,inf)).")
-(category! 'nn-minus-1-inj 'inequalities)
+(topic! 'nn-minus-1-inj 'inequalities)
 
 ;;; succ(i-1) = i for i >= 1 -- the inverse of monus-by-1 on positive indices;
 ;;; used to see that BORDER(b, SUBMAT(C)) restores C's lower-right block.
@@ -413,7 +413,7 @@
   '(FORALL i (IMPLIES (IN i NN) (IMPLIES (<= 1 i) (= (succ (NN-MINUS i 1)) i)))))
 (warrant! 'succ-nn-minus-1 'well-known
   "succ(i-1) = i for i >= 1 (monus by 1 then succ is the identity on [1,inf)).")
-(category! 'succ-nn-minus-1 'inequalities)
+(topic! 'succ-nn-minus-1 'inequalities)
 
 ;;; -----------------------------------------------------------------------
 ;;; Interval membership introduction + the NN trichotomy step the rank bound
@@ -425,19 +425,19 @@
 (warrant! 'interval-mem-intro 'proof
   "Converse of interval-lo/interval-hi: i in NN with a<=i<=b lies in INTERVAL(a,b)
    (the right-to-left direction of interval-membership's SEP iff).")
-(category! 'interval-mem-intro 'plumbing)
+(topic! 'interval-mem-intro 'plumbing)
 
 (support 'nn-not-le-succ-le
   '(FORALL m (IMPLIES (IN m NN) (FORALL n (IMPLIES (IN n NN)
      (IMPLIES (NOT (<= m n)) (<= (succ n) m)))))))
 (warrant! 'nn-not-le-succ-le 'well-known
   "NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.")
-(category! 'nn-not-le-succ-le 'inequalities)
+(topic! 'nn-not-le-succ-le 'inequalities)
 
 (support 'nn-one-le-succ
   '(FORALL n (IMPLIES (IN n NN) (<= 1 (succ n)))))
 (warrant! 'nn-one-le-succ 'well-known "1 <= succ n for every n in NN.")
-(category! 'nn-one-le-succ 'inequalities)
+(topic! 'nn-one-le-succ 'inequalities)
 
 ;; n <= succ n.  Was declared inside theorem-library/noetherian-maximal-proof.scm
 ;; (via add-to-pss) -- a plumbing fact hiding in a proof file, and unavailable to
@@ -445,17 +445,17 @@
 (support 'nn-le-succ
   '(FORALL k (IMPLIES (IN k NN) (<= k (succ k)))))
 (warrant! 'nn-le-succ 'well-known "k <= succ k on NN.")
-(category! 'nn-le-succ 'plumbing)
+(topic! 'nn-le-succ 'plumbing)
 
 ;; 1 in NN.  Needed for nn-le-refl at 1 (the <= 1 1 that BLOCK/SNOC typings owe).
 (support 'nn-one-in '(IN 1 NN))
 (warrant! 'nn-one-in 'well-known "1 = succ 0 in NN.")
-(category! 'nn-one-in 'plumbing)
+(topic! 'nn-one-in 'plumbing)
 
 (support 'one-in-interval-1 '(IN 1 (INTERVAL 1 1)))
 (warrant! 'one-in-interval-1 'proof
   "1 in INTERVAL(1,1): 1 in NN and 1<=1<=1.  The column index of a column vector.")
-(category! 'one-in-interval-1 'plumbing)
+(topic! 'one-in-interval-1 'plumbing)
 
 ;;; -----------------------------------------------------------------------
 ;;; succ is monotone and reflects <= ; 0 is least.  The Smith staircase
@@ -465,19 +465,19 @@
 (support 'nn-zero-le
   '(FORALL n (IMPLIES (IN n NN) (<= 0 n))))
 (warrant! 'nn-zero-le 'well-known "0 is the least natural number.")
-(category! 'nn-zero-le 'inequalities)
+(topic! 'nn-zero-le 'inequalities)
 
 (support 'nn-succ-mono
   '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
      (IMPLIES (<= a b) (<= (succ a) (succ b))))))))
 (warrant! 'nn-succ-mono 'well-known "a <= b => succ a <= succ b.")
-(category! 'nn-succ-mono 'inequalities)
+(topic! 'nn-succ-mono 'inequalities)
 
 (support 'nn-succ-le-cancel
   '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
      (IMPLIES (<= (succ a) (succ b)) (<= a b)))))))
 (warrant! 'nn-succ-le-cancel 'well-known "succ a <= succ b => a <= b.")
-(category! 'nn-succ-le-cancel 'inequalities)
+(topic! 'nn-succ-le-cancel 'inequalities)
 
 ;;; --- reverse-direction DEFINEDNESS facts (added 2026-07-27) ------------------
 ;;; The forward recip/mul axioms (rr-recip-closed, rr-recip-inverse) only run
@@ -492,7 +492,7 @@
   '(FORALL q (IMPLIES (= (recip q) (recip q)) (NOT (= q 0)))))
 (warrant! 'recip-defined-nonzero 'informal
   "recip is defined only off zero (RECIP : NON-ZERO -> NON-ZERO); a defined recip(q) forces q /= 0.")
-(category! 'recip-defined-nonzero 'inequalities)
+(topic! 'recip-defined-nonzero 'inequalities)
 
 ;; Multiplication is STRICT: a defined product has both factors defined.  Only
 ;; DEFINEDNESS propagates to the factors -- membership does not (i*(-i)=1 in RR,
@@ -501,4 +501,4 @@
   '(FORALL a (FORALL b (IMPLIES (= (* a b) (* a b)) (AND (= a a) (= b b))))))
 (warrant! 'mul-defined-factors 'informal
   "Multiplication is strict: a defined product a*b has both factors defined.  Definedness (= t t) propagates, NOT membership.")
-(category! 'mul-defined-factors 'algebra)
+(topic! 'mul-defined-factors 'algebra)

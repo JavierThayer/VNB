@@ -73,5 +73,5 @@
 
 (if (proof-done? *ps*)
     (begin (qed 'inverse-is-invertible)
-           (category! 'inverse-is-invertible 'algebra))
+           (topic! 'inverse-is-invertible 'algebra))
     (error "inverse-invertible-proof: proof did not complete"))

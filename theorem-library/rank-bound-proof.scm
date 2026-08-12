@@ -294,8 +294,8 @@
 (ai '(NOT (= (ONE (SCAL md)) (ZERO (SCAL md)))))
 
 (qed 'free-length-le-generators)
-(category! 'free-length-le-generators 'algebra)
-(category! 'integral-domain-nontrivial 'algebra)
-(category! 'interval-mem-intro 'plumbing)
-(category! 'nn-not-le-succ-le 'inequalities)
-(category! 'nn-one-le-succ 'inequalities)
+(topic! 'free-length-le-generators 'algebra)
+(topic! 'integral-domain-nontrivial 'algebra)
+(topic! 'interval-mem-intro 'plumbing)
+(topic! 'nn-not-le-succ-le 'inequalities)
+(topic! 'nn-one-le-succ 'inequalities)

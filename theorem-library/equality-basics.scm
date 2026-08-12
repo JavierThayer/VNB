@@ -29,7 +29,7 @@
 (fact 'equality-symmetry 'a 'b)
 (ass)
 (qed 'eq-sym)
-(category! 'eq-sym 'plumbing)
+(topic! 'eq-sym 'plumbing)
 
 ;;; ---- eq-trans: the curried form of the primitive ----------------------
 (sp (make-wff '(FORALL a (FORALL b (FORALL c
@@ -39,7 +39,7 @@
 (fact 'equality-transitivity 'a 'b 'c)
 (ass)
 (qed 'eq-trans)
-(category! 'eq-trans 'plumbing)
+(topic! 'eq-trans 'plumbing)
 
 ;;; ---- neq-sym: symmetry of disequality, by contradiction ---------------
 (sp (make-wff '(FORALL a (FORALL b (IMPLIES (NOT (= a b)) (NOT (= b a)))))))
@@ -48,4 +48,4 @@
 (fact 'equality-symmetry 'b 'a)         ; -> (= a b)
 (ai '(NOT (= a b)))
 (qed 'neq-sym)
-(category! 'neq-sym 'plumbing)
+(topic! 'neq-sym 'plumbing)

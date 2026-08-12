@@ -1,0 +1,10 @@
+;;;   mutation           what was deleted                    entries turned red
+;;;   ----------------   ---------------------------------   ------------------
+;;;   no-sethood         pi-lambda-type!'s (IN A SET) goal    the ORD entry
+;;;   no-domain-match    pi-lambda-type!'s alpha-equiv? on    the FUN(EMPTY-SET,
+;;;                        the declared domain                  EMPTY-SET) entry
+;;;   no-definedness     pi-reflexivity!'s definedness        pred(0), recip(0)
+;;;                        guard (term-self-defined? := #t)
+;;;   credulous-arith    arith-eval-formula := true           0=1, 2+2=5, pred(0)
+;;;   credulous-ineq     fm-prove := always-infeasible        the false ineq goal
+;;;

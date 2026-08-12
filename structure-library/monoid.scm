@@ -59,8 +59,10 @@
   (property is-identity OPR IDEN CARR)
   (property is-commutative OPR CARR))
 
-(theory-add-axiom! *current-theory* 'comm-monoid-is-monoid
-  '(FORALL s (IMPLIES (IS-COMM-MONOID s) (IS-MONOID s))))
+;;; Every commutative monoid is a monoid.  PROVEN modulo 0 in
+;;; structure-library/subtype-laws.scm (the abelian-group-is-group shape: unfold
+;;; IS-COMM-MONOID, and IS-MONOID's conjuncts are a subset of what falls out);
+;;; asserted here, unwarranted, until 2026-08-10.
 
 (theory-add-axiom! *current-theory* 'comm-monoid-opr-comm
   '(FORALL s

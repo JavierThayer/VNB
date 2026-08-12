@@ -1035,13 +1035,23 @@
 ;;; via the view, installing  (FORALL r (IMPLIES (IS-SOURCE r) P[(NAME r)]))
 ;;; with accessor reduction.  Called once at def-functor time; can be re-run
 ;;; manually after adding new TARGET theorems via (view-as-auto-specialize! 'NAME).
+;;;
+;;; The optional second argument restricts the walk to ONE theorem, and exists
+;;; because the unrestricted re-run is not a cheap thing to reach for: moving a
+;;; single fact off the axiom shelf and proving it late in the load put it past
+;;; the specializer, and re-running MODULE-VECTOR-AG to recover its one companion
+;;; installed 67 -- every abelian-group theorem proved since views.scm loaded.
+;;; They are sound (definitional transports of proved facts, no debt), but 67
+;;; new names to deliver 1 is a side effect, not a decision.  Name the theorem
+;;; and get exactly its companion.  Errors on an unknown name rather than
+;;; quietly specializing nothing.
 ;;; companion name -> the TARGET-structure theorem it was specialized from.
 ;;; Read by debt-of (proof-debt.scm): a companion's bill is its source's bill.
 (define *view-specialized-source* (make-equal-hash-table))
 (define (view-specialized-source name)
   (hash-table-ref/default *view-specialized-source* name #f))
 
-(define (view-as-auto-specialize! view-name)
+(define (view-as-auto-specialize! view-name #!optional only-name)
   (fluid-let ((*current-provenance* 'definitional))
    (let* ((v          (or (lookup-view-as view-name)
                          (error "view-as-auto-specialize!: unknown view"
@@ -1056,7 +1066,14 @@
                        (string-downcase (symbol->string view-name)))))
          (r-sym      'r)
          (count      0)
-         (all        (hash-table->alist *theorem-table*)))
+         (all        (if (default-object? only-name)
+                         (hash-table->alist *theorem-table*)
+                         (let ((f (hash-table-ref/default *theorem-table*
+                                                          only-name #f)))
+                           (if f
+                               (list (cons only-name f))
+                               (error "view-as-auto-specialize!: unknown theorem"
+                                      only-name))))))
     (for-each
       (lambda (entry)
         (let* ((thm-name (car entry))
@@ -1086,7 +1103,11 @@
     (display ";; def-functor ") (display view-name) (display ": ")
     (display count) (display " ")
     (display (view-as-target-struct v))
-    (display " theorems specialized.") (newline)
+    (display " theorems specialized")
+    (if (default-object? only-name)
+        (display ".")
+        (begin (display " (restricted to ") (display only-name) (display ").")))
+    (newline)
     count)))
 
 ;;; Walk up the definitional-structure parent chain to find the underlying

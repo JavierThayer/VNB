@@ -166,7 +166,7 @@
 (subst (list '= 'l (list iez-phi 'theta)))
 (quietly (lambda () (ass-all)))
 (qed 'interior-max-deriv-zero)
-(category! 'interior-max-deriv-zero 'analysis)
+(topic! 'interior-max-deriv-zero 'analysis)
 
 ;;; ====================================================================
 ;;; Prop 2.10 (interior min): interior-min-deriv-zero, proven FROM
@@ -221,4 +221,4 @@
 (iez-focus! '(= l 0))
 (quietly (lambda () (fact 'rr-neg-eq-zero 'l) (ass-all)))
 (qed 'interior-min-deriv-zero)
-(category! 'interior-min-deriv-zero 'analysis)
+(topic! 'interior-min-deriv-zero 'analysis)

@@ -82,6 +82,15 @@
 (stl--prove-pred! 'euclidean-ring-is-integral-domain
                   'IS-EUCLIDEAN-RING 'IS-INTEGRAL-DOMAIN 'is-euclidean-ring-def "euclidean-ring")
 
+;; COMM-MONOID is a def-structure shape with MONOID's accessors plus
+;; is-commutative, so it is the abelian-group-is-group case exactly: unfold via
+;; its own name, and IS-MONOID unfolds to a conjunct subset.  Asserted in
+;; monoid.scm and unwarranted until 2026-08-10.  NOTE it moves no bill by
+;; itself: the one bill it appears in (poly-is-ring) also names
+;; nn-add-monoid-is-comm-monoid, which shadows it.
+(stl--prove-pred! 'comm-monoid-is-monoid
+                  'IS-COMM-MONOID 'IS-MONOID 'IS-COMM-MONOID "comm-monoid")
+
 ;; Membership subsumption: phi in BIJECTION(X,Y) => phi in INJECTION(X,Y).
 ;; Unfold both class memberships via their -membership-iff axioms; the FUN +
 ;; injective conjuncts coincide.
@@ -110,3 +119,72 @@
 (ass)
 (if (proof-done? *ps*) (qed 'abelian-group-opr-comm)
     (error "subtype-laws: failed to prove abelian-group-opr-comm"))
+
+;;; --- the GROUP shape projections ----------------------------------------
+;;;
+;;; group-assoc / group-left-id / group-left-inv / group-identity-in were
+;;; `theory-add-axiom!' in group.scm, unwarranted -- so every proof that used a
+;;; group law billed `trust: none', the weakest report there is, for facts that
+;;; are literally conjuncts of the IS-GROUP definition.  (ag-cancel-right's whole
+;;; bill was these three.)  The alternative was to stamp them `definitional', as
+;;; module.scm does with its projections; proving them is the same work and says
+;;; something stronger, since the unfold is then CHECKED rather than asserted to
+;;; exist.  Same shape as abelian-group-opr-comm above.
+;;;
+;;; Two cases.  A law that IS a whole operation-property (assoc) closes by `ass'
+;;; the moment the property is unfolded -- the unfolding is the goal up to alpha.
+;;; A law that is ONE SIDE of a two-sided property (left-id out of is-identity,
+;;; left-inv out of has-inverses) needs the element binder peeled first, the
+;;; unfolded property instantiated at the eigenvariable, its typing guard
+;;; detached, and the conjunction split.  `stl--project!' does both: pass #f for
+;;; SIDED? in the first case.  Every landed formula is taken by DIFF (dk-landed-1),
+;;; never named by shape -- the eigenvariable is whatever `di' chose.
+
+(define (stl--project! name goal propname propkey sided?)
+  (sp (make-wff goal))
+  (di) (di)
+  (mac-h 'IS-GROUP (stl--hyp-sub "is-group"))
+  (stl--split-ands!)
+  (let ((unfolded (dk-landed-1 (lambda () (mac-h propname (stl--hyp-sub propkey))))))
+    (if sided?
+        (let* ((typing (dk-landed-1 (lambda () (di))))       ; (IN a (CARR s))
+               (elt    (cadr typing))
+               (inst-d (dk-landed-1 (lambda () (inst unfolded elt))))
+               (both   (dk-landed-1 (lambda () (detach! inst-d)))))
+          (dk-split! both))))
+  (ass)
+  (if (proof-done? *ps*)
+      (qed name)
+      (error "subtype-laws: failed to prove" name)))
+
+(stl--project! 'group-assoc
+  '(FORALL s (IMPLIES (IS-GROUP s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (FORALL b (IMPLIES (IN b (CARR s))
+         (FORALL c (IMPLIES (IN c (CARR s))
+           (= ((OPR s) ((OPR s) a b) c)
+              ((OPR s) a ((OPR s) b c)))))))))))
+  'is-associative "is-associative" #f)
+
+(stl--project! 'group-left-id
+  '(FORALL s (IMPLIES (IS-GROUP s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (= ((OPR s) (IDEN s) a) a)))))
+  'is-identity "is-identity" #t)
+
+(stl--project! 'group-left-inv
+  '(FORALL s (IMPLIES (IS-GROUP s)
+     (FORALL a (IMPLIES (IN a (CARR s))
+       (= ((OPR s) ((INV s) a) a) (IDEN s))))))
+  'has-inverses "has-inverses" #t)
+
+;; group-identity-in: the `constant IDEN CARR' slot's own membership conjunct.
+;; No property to unfold -- splitting the IS-GROUP conjunction puts it in the
+;; context verbatim.
+(sp (make-wff '(FORALL s (IMPLIES (IS-GROUP s) (IN (IDEN s) (CARR s))))))
+(di) (di)
+(mac-h 'IS-GROUP (stl--hyp-sub "is-group"))
+(stl--split-ands!)
+(ass)
+(if (proof-done? *ps*) (qed 'group-identity-in)
+    (error "subtype-laws: failed to prove group-identity-in"))

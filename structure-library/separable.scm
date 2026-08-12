@@ -104,7 +104,7 @@
    tolerance r there is a SEQUENCE whose terms come within r of every point of
    the space.  The sequence form of `there is a finite r-net': a finite net
    enumerated and padded out to all of NN.")
-(category! 'tb-scale-dense-seq 'topology)
+(topic! 'tb-scale-dense-seq 'topology)
 
 ;;; -----------------------------------------------------------------------
 ;;; compact-metric-is-separable: a compact metric space is separable.  (IS-COMPACT

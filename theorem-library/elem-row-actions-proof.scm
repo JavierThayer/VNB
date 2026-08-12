@@ -49,6 +49,9 @@
 (subst `(= (ENTRY (MATMUL A (ELEM-H A m r k) P) i c) (FINSUM ,EA-RAG ,EA-HFF ,EA-INT)))
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'm)
+;; interval-card-in-nn's guard: m is P's row count (the statement types no
+;; dimension), read off by mat-rows-in-nn.
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)
 (fact 'interval-card-in-nn 1 'm)
 (fact 'matprod-summand-type 'A 'm 'm 'n '(ELEM-H A m r k) 'P 'i 'c)
 ;; VANISH: off the support column i, the summand is the group identity.
@@ -95,7 +98,7 @@
 (subst '(= ((MUL A) (ONE A) (ENTRY P i c)) (ENTRY P i c)))
 (rfl)
 (qed 'elem-h-row-action)
-(category! 'elem-h-row-action 'algebra)
+(topic! 'elem-h-row-action 'algebra)
 
 ;;; ===================== elem-g-row-action ============================
 ;;; (G[r,k,l] . P)_{ic} = P_{kc} + r.P_{lc} if i=k, else P_{ic}.  Row k has two
@@ -121,6 +124,7 @@
 (subst `(= (ENTRY (MATMUL A (ELEM-G A m r k l) P) i c) (FINSUM ,EA-RAG ,EA-GFF ,EA-INT)))
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'm)
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)
 (fact 'interval-card-in-nn 1 'm)
 (fact 'matprod-summand-type 'A 'm 'm 'n '(ELEM-G A m r k l) 'P 'i 'c)
 (define rg-not (ea-cases '(= i k)))
@@ -185,7 +189,7 @@
 (subst `(= ((MUL A) (ONE A) (ENTRY P i c)) (ENTRY P i c)))
 (rfl)
 (qed 'elem-g-row-action)
-(category! 'elem-g-row-action 'algebra)
+(topic! 'elem-g-row-action 'algebra)
 
 ;;; ===================== elem-f-row-action ============================
 ;;; (F[k,l] . P)_{ic} = P_{lc} (i=k), P_{kc} (i=l), P_{ic} (else).  Each row of F
@@ -233,6 +237,7 @@
 (subst `(= (ENTRY (MATMUL A (ELEM-F A m k l) P) i c) (FINSUM ,EA-RAG ,EA-FFF ,EA-INT)))
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'm)
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)
 (fact 'interval-card-in-nn 1 'm)
 (fact 'matprod-summand-type 'A 'm 'm 'n '(ELEM-F A m k l) 'P 'i 'c)
 (define rf-notk (ea-cases '(= i k)))
@@ -260,4 +265,4 @@
 (subst '(= (IF (= i l) (ENTRY P k c) (ENTRY P i c)) (ENTRY P i c)))
 (ea-collapse-row 'i 'elem-f-ro-off 'elem-f-ro-at)
 (qed 'elem-f-row-action)
-(category! 'elem-f-row-action 'algebra)
+(topic! 'elem-f-row-action 'algebra)

@@ -88,7 +88,7 @@
    eps/3+eps/3+eps/3 = eps for k,l >= cap.  Needs, for a machine proof, uniform
    equicontinuity from compactness and a finite-max over the net -- neither yet in
    the base.  Source: the user's calculus notes; cf. Dieudonné 7.5.")
-(category! 'equicont-dense-conv-implies-unif-cauchy 'analysis)
+(topic! 'equicont-dense-conv-implies-unif-cauchy 'analysis)
 (rests-on 'equicont-dense-conv-implies-unif-cauchy '(compact-iff-tb-complete))
 
 ;;; CORE B: a uniformly Cauchy sequence of continuous functions converges
@@ -112,7 +112,7 @@
    uniform limit of continuous functions is continuous, so g is continuous.  Needs,
    for a machine proof, the pointwise-limit functoid and uniform-limit-continuous.
    Source: the user's calculus notes; cf. Dieudonné 7.5, 7.1.")
-(category! 'unif-cauchy-cont-implies-uniform-limit 'analysis)
+(topic! 'unif-cauchy-cont-implies-uniform-limit 'analysis)
 (rests-on 'unif-cauchy-cont-implies-uniform-limit '(rr-complete))
 
 ;;; ---- the bridge (PROVEN assembly) --------------------------------------

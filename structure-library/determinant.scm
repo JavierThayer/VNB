@@ -46,7 +46,7 @@
 (gloss! 'minor-type
   "MINOR(S,r,c,n) -- S with row r, column c deleted -- is an n-by-n matrix over R
    when S is (succ n)-by-(succ n): each surviving entry is an entry of S.")
-(category! 'minor-type 'algebra)
+(topic! 'minor-type 'algebra)
 
 ;;; ---- DET: the recursive definition ------------------------------------
 ;; english is a $N TEMPLATE STRING, not a lambda: operator-render-english calls
@@ -91,7 +91,7 @@
     '(IN (DET R n A) (CARR R))))
 (warrant! 'det-in-carrier 'reference '(hoffman-kunze "Ch. 5"))
 (gloss! 'det-in-carrier "The determinant of an n-by-n matrix over R is an element of R.")
-(category! 'det-in-carrier 'algebra)
+(topic! 'det-in-carrier 'algebra)
 
 ;;; 1x1: det = the sole entry.
 (support 'det-1x1
@@ -100,7 +100,7 @@
     '(= (DET R 1 A) (ENTRY A 1 1))))
 (warrant! 'det-1x1 'reference '(hoffman-kunze "Ch. 5"))
 (gloss! 'det-1x1 "det of a 1-by-1 matrix is its single entry (the base of the recursion).")
-(category! 'det-1x1 'algebra)
+(topic! 'det-1x1 'algebra)
 
 ;;; 2x2: det = A11 A22 - A12 A21.
 (support 'det-2x2
@@ -111,7 +111,7 @@
                  ((NEG R) ((MUL R) (ENTRY A 1 2) (ENTRY A 2 1)))))))
 (warrant! 'det-2x2 'reference '(hoffman-kunze "Ch. 5"))
 (gloss! 'det-2x2 "det[[a,b],[c,d]] = ad - bc, over any ring.")
-(category! 'det-2x2 'algebra)
+(topic! 'det-2x2 'algebra)
 
 ;;; det of the identity matrix is 1.
 (support 'det-identity
@@ -120,7 +120,7 @@
     '(= (DET R n (ONE (MAT-RING R n))) (ONE R))))
 (warrant! 'det-identity 'reference '(hoffman-kunze "Ch. 5"))
 (gloss! 'det-identity "det(I_n) = 1_R: the determinant of the identity matrix is the ring unit.")
-(category! 'det-identity 'algebra)
+(topic! 'det-identity 'algebra)
 
 ;;; a matrix with two equal rows has determinant 0 (alternating in the rows).
 (support 'det-alternating-rows
@@ -133,7 +133,7 @@
 (warrant! 'det-alternating-rows 'reference '(hoffman-kunze "Ch. 5"))
 (gloss! 'det-alternating-rows
   "Two equal rows force det = 0 (the alternating property).")
-(category! 'det-alternating-rows 'algebra)
+(topic! 'det-alternating-rows 'algebra)
 
 ;;; multiplicativity: det(PQ) = det(P) det(Q), over a COMMUTATIVE ring.
 (support 'det-multiplicative
@@ -144,7 +144,7 @@
 (warrant! 'det-multiplicative 'reference '(hoffman-kunze "Ch. 5"))
 (gloss! 'det-multiplicative
   "det(PQ) = det(P) det(Q) over a commutative ring -- the product theorem.")
-(category! 'det-multiplicative 'algebra)
+(topic! 'det-multiplicative 'algebra)
 
 ;;; DEFERRED seeds (need machinery not yet in the tree):
 ;;;   det-transpose  det(A^T) = det(A)         -- needs a TRANSPOSE functoid.

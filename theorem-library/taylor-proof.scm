@@ -56,7 +56,7 @@
 (warrant! 'taylor-G-cont 'reference
   "G(t)=f(x)-TAYLOR-POLY(f,t,n,x) is a sum of products of the continuous
    derivatives f^(k) and polynomials in t, hence continuous on [a,x].")
-(category! 'taylor-G-cont 'analysis)
+(topic! 'taylor-G-cont 'analysis)
 
 (add-to-pss 'taylor-G-diff
   `(FORALL f (FORALL a (FORALL x (FORALL n (FORALL t
@@ -68,21 +68,21 @@
    Differentiate term k by the product rule: the f^(k+1)(t)(x-t)^k/k! piece of
    term k cancels the -f^(k+1)(t)(x-t)^k/k! piece of term k+1, leaving only the
    last -(f^(n+1)(t)/n!)(x-t)^n.  Standard (calculus.pdf Taylor section).")
-(category! 'taylor-G-diff 'analysis)
+(topic! 'taylor-G-diff 'analysis)
 
 (add-to-pss 'taylor-H-cont
   `(FORALL x (FORALL n (FORALL t (IMPLIES (IN x RR) (IMPLIES (IN t RR)
        (IS-CONTINUOUS-AT RR-MS RR-MS ,HT t)))))))
 (warrant! 'taylor-H-cont 'reference
   "H(t)=(x-t)^(n+1) is a polynomial in t, continuous everywhere.")
-(category! 'taylor-H-cont 'analysis)
+(topic! 'taylor-H-cont 'analysis)
 
 (add-to-pss 'taylor-H-diff
   `(FORALL x (FORALL n (FORALL t (IMPLIES (IN x RR) (IMPLIES (IN t RR)
        (IS-DIFF-AT ,HT t ,(HVAL 't))))))))
 (warrant! 'taylor-H-diff 'reference
   "d/dt[(x-t)^(n+1)] = -(n+1)(x-t)^n (chain rule on the polynomial).")
-(category! 'taylor-H-diff 'analysis)
+(topic! 'taylor-H-diff 'analysis)
 
 ;;; gMVT-shaped hypotheses, warranted directly (G,H continuous on [a,x] and
 ;;; differentiable on (a,x)) -- assembled from the per-function facts above.
@@ -92,7 +92,7 @@
 (warrant! 'taylor-gmvt-cont 'reference
   "G and H are continuous on [a,x]: H is a polynomial, G a finite sum of products
    of the continuous derivatives f^(k) with polynomials (taylor-G-cont/H-cont).")
-(category! 'taylor-gmvt-cont 'analysis)
+(topic! 'taylor-gmvt-cont 'analysis)
 
 (add-to-pss 'taylor-gmvt-diff
   `(FORALL f (FORALL a (FORALL x (FORALL n
@@ -100,7 +100,7 @@
 (warrant! 'taylor-gmvt-diff 'reference
   "G and H are differentiable on (a,x) (taylor-G-diff/H-diff give the explicit
    derivatives), so each has SOME derivative there.")
-(category! 'taylor-gmvt-diff 'analysis)
+(topic! 'taylor-gmvt-diff 'analysis)
 
 ;;; function-typing of the auxiliaries.
 ;;;
@@ -119,14 +119,14 @@
 (warrant! 'taylor-G-in-fun 'reference
   "G(t)=f(x)-TAYLOR-POLY(f,t,n,x) maps RR to RR (finite sum of products of
    reals), for each degree n in NN.")
-(category! 'taylor-G-in-fun 'analysis)
+(topic! 'taylor-G-in-fun 'analysis)
 
 (add-to-pss 'taylor-H-in-fun
   `(FORALL n (IMPLIES (IN n NN)
      (FORALL x (IMPLIES (IN x RR) (IN ,HT (FUN RR RR)))))))
 (warrant! 'taylor-H-in-fun 'reference
   "H(t)=(x-t)^(n+1) maps RR to RR, for each degree n in NN.")
-(category! 'taylor-H-in-fun 'analysis)
+(topic! 'taylor-H-in-fun 'analysis)
 
 ;;; endpoint computations
 ;; Guarded 2026-07-23.  TAYLOR-POLY(f,x,n,x) mentions the higher derivatives
@@ -149,36 +149,36 @@
    equals f(x).  The derivative-existence guard is what makes both sides defined; the
    consumer taylor-lagrange supplies it via TAYLOR-DIFFERENTIABLE (f^(k) continuous on
    [a,x], so f^(k)(x) exists).")
-(category! 'taylor-poly-at-center 'analysis)
+(topic! 'taylor-poly-at-center 'analysis)
 
 (add-to-pss 'power-zero-base
   '(FORALL n (IMPLIES (IN n NN) (= (power 0 (succ n)) 0))))
 (warrant! 'power-zero-base 'well-known
   "0^(n+1) = 0 (power-succ: 0^(n+1) = 0 * 0^n = 0).")
-(category! 'power-zero-base 'analysis)
+(topic! 'power-zero-base 'analysis)
 
 ;;; endpoint VALUES of the auxiliaries (beta + the two facts above)
 (add-to-pss 'taylor-G-at-x
   `(FORALL f (FORALL x (FORALL n (IMPLIES (IN n NN) (= (,GT x) 0))))))
 (warrant! 'taylor-G-at-x 'reference
   "G(x) = f(x) - TAYLOR-POLY(f,x,n,x) = f(x) - f(x) = 0 (taylor-poly-at-center).")
-(category! 'taylor-G-at-x 'analysis)
+(topic! 'taylor-G-at-x 'analysis)
 
 (add-to-pss 'taylor-G-at-a
   `(FORALL f (FORALL a (FORALL x (FORALL n
      (= (,GT a) (- (f x) (TAYLOR-POLY f a n x))))))))
 (warrant! 'taylor-G-at-a 'reference "G(a) = f(x) - TAYLOR-POLY(f,a,n,x) (beta).")
-(category! 'taylor-G-at-a 'analysis)
+(topic! 'taylor-G-at-a 'analysis)
 
 (add-to-pss 'taylor-H-at-x
   `(FORALL x (FORALL n (IMPLIES (IN n NN) (= (,HT x) 0)))))
 (warrant! 'taylor-H-at-x 'reference "H(x) = (x-x)^(n+1) = 0^(n+1) = 0.")
-(category! 'taylor-H-at-x 'analysis)
+(topic! 'taylor-H-at-x 'analysis)
 
 (add-to-pss 'taylor-H-at-a
   `(FORALL a (FORALL x (FORALL n (= (,HT a) (power (- x a) (succ n)))))))
 (warrant! 'taylor-H-at-a 'reference "H(a) = (x-a)^(n+1) (beta).")
-(category! 'taylor-H-at-a 'analysis)
+(topic! 'taylor-H-at-a 'analysis)
 
 ;;; --- elementary RR algebra micro-lemmas for the clearing step ---
 (add-to-pss 'rr-power-pos
@@ -187,37 +187,37 @@
 (warrant! 'rr-power-pos 'well-known
   "0<d gives 0<d^n for every n (induction: d^0=1>0; d^(n+1)=d*d^n, product of
    positives).")
-(category! 'rr-power-pos 'analysis)
+(topic! 'rr-power-pos 'analysis)
 
 (add-to-pss 'rr-cancel-mul-left
   '(FORALL c (IMPLIES (IN c RR) (FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
      (IMPLIES (NOT (= c 0)) (IMPLIES (= (* c u) (* c v)) (= u v))))))))))
 (warrant! 'rr-cancel-mul-left 'well-known
   "c*u=c*v with c/=0 gives u=v (multiply by 1/c).")
-(category! 'rr-cancel-mul-left 'analysis)
+(topic! 'rr-cancel-mul-left 'analysis)
 
 (add-to-pss 'rr-recip-factorial
   '(FORALL n (IMPLIES (IN n NN) (= (* (FACTORIAL n) (recip (FACTORIAL n))) 1))))
 (warrant! 'rr-recip-factorial 'well-known
   "n! /= 0 (it is a positive integer), so n! * (1/n!) = 1.")
-(category! 'rr-recip-factorial 'analysis)
+(topic! 'rr-recip-factorial 'analysis)
 
 (add-to-pss 'rr-pos-ne-zero
   '(FORALL c (IMPLIES (IN c RR) (IMPLIES (< 0 c) (NOT (= c 0))))))
 (warrant! 'rr-pos-ne-zero 'well-known "0<c gives c/=0.")
-(category! 'rr-pos-ne-zero 'analysis)
+(topic! 'rr-pos-ne-zero 'analysis)
 
 (add-to-pss 'power-in-rr
   '(FORALL b (IMPLIES (IN b RR) (FORALL n (IMPLIES (IN n NN) (IN (power b n) RR))))))
 (warrant! 'power-in-rr 'well-known "b^n in RR for b real, n in NN (RR closed under *).")
-(category! 'power-in-rr 'analysis)
+(topic! 'power-in-rr 'analysis)
 
 (add-to-pss 'taylor-poly-in-rr
   '(FORALL f (IMPLIES (IN f (FUN RR RR)) (FORALL a (IMPLIES (IN a RR) (FORALL n (IMPLIES (IN n NN)
      (FORALL x (IMPLIES (IN x RR) (IN (TAYLOR-POLY f a n x) RR))))))))))
 (warrant! 'taylor-poly-in-rr 'reference
   "TAYLOR-POLY is a finite sum of products of reals, hence real.")
-(category! 'taylor-poly-in-rr 'analysis)
+(topic! 'taylor-poly-in-rr 'analysis)
 
 (add-to-pss 'taylor-deriv-real
   '(FORALL f (FORALL a (FORALL x (FORALL n (FORALL t
@@ -227,7 +227,7 @@
 (warrant! 'taylor-deriv-real 'reference
   "f^(n+1)(t) is the derivative value of the differentiable f^(n) at t, hence
    real (IS-DIFF-AT carries its value in RR).")
-(category! 'taylor-deriv-real 'analysis)
+(topic! 'taylor-deriv-real 'analysis)
 
 ;;; the elementary clearing identity (pure RR algebra: cancel pw/=0, clear n!):
 ;;;   (-(fn1/n!)pw)(hx-ha) = (-(n+1)pw)(gx-ga),  gx=hx=0, ha=d, ga=r
@@ -251,7 +251,7 @@
   "Substitute gx=hx=0, ha=d, ga=r: (-(fn1/n!)pw)(-d) = (-(n+1)pw)(-r), i.e.
    (fn1/n!)pw*d = (n+1)pw*r; cancel pw/=0 and multiply by n! (using
    (n+1)*n! = (n+1)!) to get (n+1)! r = fn1 d.  Pure real arithmetic.")
-(category! 'taylor-clear 'analysis)
+(topic! 'taylor-clear 'analysis)
 
 ;;; ====================================================================
 ;;; taylor-lagrange (cleared form)
@@ -348,7 +348,7 @@
 
 ;;; Classic textbook name, for (find-theorem "...") lookup.
 (alias! 'taylor-lagrange "Taylor's theorem" "Taylor's theorem with Lagrange remainder")
-(category! 'taylor-lagrange 'analysis)
+(topic! 'taylor-lagrange 'analysis)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

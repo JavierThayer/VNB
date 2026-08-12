@@ -56,4 +56,4 @@
 (inst+ (fat-first-forall) 'x_)
 (ass)
 (qed 'fun-apply-type-c)
-(category! 'fun-apply-type-c 'plumbing)
+(topic! 'fun-apply-type-c 'plumbing)

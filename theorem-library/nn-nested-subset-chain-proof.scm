@@ -62,7 +62,7 @@
     (mac 'subset-def) (di) (ass)))
 
 (qed 'nn-nested-subset-chain-j)
-(category! 'nn-nested-subset-chain-j 'combinatorial)
+(topic! 'nn-nested-subset-chain-j 'combinatorial)
 
 ;;; ---- the original binder order, k before j ----
 (sp (make-wff
@@ -76,4 +76,4 @@
 (fact 'nn-nested-subset-chain-j 'T 'j 'k)   ; fam, then j, then k -- `fact' peels
 (ass)                                       ; only the universals it is given
 (qed 'nn-nested-subset-chain)
-(category! 'nn-nested-subset-chain 'combinatorial)
+(topic! 'nn-nested-subset-chain 'combinatorial)

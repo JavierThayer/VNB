@@ -1,0 +1,9 @@
+(theory-add-axiom! *current-theory* 'ring-add-assoc
+  '(FORALL s
+     (IMPLIES (IS-RING s)
+       (FORALL a (IMPLIES (IN a (CARR s))
+         (FORALL b (IMPLIES (IN b (CARR s))
+           (FORALL c (IMPLIES (IN c (CARR s))
+             (= ((ADD s) ((ADD s) a b) c)
+                ((ADD s) a ((ADD s) b c))))))))))))
+

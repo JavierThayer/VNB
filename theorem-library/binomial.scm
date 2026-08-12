@@ -91,7 +91,7 @@
 (support 'bt-one-in-carr (tf 'R '(IS-RING R) '(IN (ONE R)(CARR R))))
 (warrant! 'bt-one-in-carr 'well-known "ring ONE lies in CARR.")
 
-(category! 'comb-kk-in-fun 'algebra)
-(category! 'comb-kk-null 'algebra)
-(category! 'comb-kk-above 'algebra)
-(category! 'comb-kk-0-0 'algebra)
+(topic! 'comb-kk-in-fun 'algebra)
+(topic! 'comb-kk-null 'algebra)
+(topic! 'comb-kk-above 'algebra)
+(topic! 'comb-kk-0-0 'algebra)

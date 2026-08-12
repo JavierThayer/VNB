@@ -79,6 +79,13 @@ Catalog order is preserved, which keeps the registry's logical grouping."
   '((mac     . vnb-pf-rewrite)
     (mac-h   . vnb-pf-rewrite-hyp)
     (ta      . vnb-pf-theorem)
+    ;; `fact' is variadic -- (fact 'thm term ...) -- and its front-end reads the
+    ;; instantiation terms one at a time until an empty RET.  Without this entry
+    ;; it fell to `vnb-cmd--send-raw', which splices what you type straight into
+    ;; (fact %s): the theorem name then had to carry its own quote, since
+    ;; cmd-fact (proof-commands.scm) looks it up by `symbol?' and an unquoted
+    ;; name is evaluated by the Scheme reader instead.
+    (fact    . vnb-pf-fact)
     (inst    . vnb-pf-instantiate)
     (ai      . vnb-pf-antecedent-inference)
     (sep-me  . vnb-pf-sep-elim)

@@ -43,13 +43,31 @@
   '(SEP x (CARR s) (FORSOME r (AND (IN r (CARR s)) (= x ((MUL s) r a))))))
 
 ;;; principal-ideal-membership: x in (a) iff x in CARR(s) and x = r.a for some
-;;; r in CARR(s).  Direct from SEP membership (cf. preimage-membership); recorded
-;;; so proofs can rewrite by name rather than unfolding the SEP each time.
-(theory-add-axiom! *current-theory* 'principal-ideal-membership
-  '(FORALL s (FORALL a (FORALL x
-     (IFF (IN x (PRINCIPAL-IDEAL s a))
-          (AND (IN x (CARR s))
-               (FORSOME r (AND (IN r (CARR s)) (= x ((MUL s) r a))))))))))
+;;; r in CARR(s).
+;;;
+;;; It is not a convenience.  `def-functoid' installs only a rewrite MACETE, not
+;;; a theorem, so `mac-h' cannot unfold PRINCIPAL-IDEAL in an ASSUMPTION -- it
+;;; warns "unknown theorem/macete" and the driver sails on with the hypothesis
+;;; untouched.  This IFF is the only way to read a member of (a) out of the
+;;; context, which is exactly what zz-bezout-proof and spans-submodule-fg-proof
+;;; do with it.
+;;;
+;;; DEFINITIONAL (stamped 2026-08-10; it had been a bare `theory-add-axiom!' and
+;;; so an unwarranted leaf in five bills -- the largest single source of
+;;; `trust: none' left in the library).  Legitimately definitional: it is the
+;;; functoid unfold composed with the SEP separation schema, both trusted base,
+;;; and exactly the IFF `def-predicate' would have generated had PRINCIPAL-IDEAL
+;;; been a predicate.  Same treatment, and the same reasoning, as
+;;; `span-membership' (mod-seq.scm) and the five constructor membership
+;;; characterisations in definitional-reclass.scm; this one was missed by that
+;;; sweep.  The `fluid-let' wrap -- rather than a later register-provenance! --
+;;; is what also stamps the auto-generated `-rev' companion.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'principal-ideal-membership
+    '(FORALL s (FORALL a (FORALL x
+       (IFF (IN x (PRINCIPAL-IDEAL s a))
+            (AND (IN x (CARR s))
+                 (FORSOME r (AND (IN r (CARR s)) (= x ((MUL s) r a)))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-PID(s): s is a principal-ideal domain -- an integral domain in which

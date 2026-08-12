@@ -1,0 +1,65 @@
+%% shared/preamble.tex -- packages, theme and macros common to EN and ES.
+%%
+%% LANGUAGE-NEUTRAL ONLY.  Nothing here may contain prose in either language:
+%% the whole point of the shared/ directory is that a formula or a listing
+%% corrected in the English deck cannot rot in the Spanish one.  Babel is
+%% loaded by each main.tex, BEFORE this file, with its own language option.
+
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+\setbeamerfont{frametitle}{size=\large}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{footline}[frame number]
+
+%% lmodern before fontenc: with T1 and plain Computer Modern, pdflatex falls
+%% back to bitmap (Type 3) fonts and the deck looks blurred on a projector.
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{fancyvrb}
+\usepackage{upquote}
+\usepackage{booktabs}
+%% NOT enumitem.  It and beamer fight over \labelenumi and the loser is the
+%% build ("TeX capacity exceeded, grouping levels=255" on the first enumerate).
+%% The proof-reader emits `\begin{itemize}[leftmargin=...]', which needs it --
+%% so `make proofs' strips that optional argument when it cuts the fragment.
+%% Mechanical, and recorded here because the fragment then differs from the
+%% document the reader wrote.
+\usepackage{array}
+\usepackage{graphicx}
+
+%% amsbook's `proposition' is not among beamer's theorem environments, and the
+%% proof-reader emits one.  Declare it here so shared/proofs/*.tex compiles.
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+%% The proof-reader's own helper: shrink an over-wide display to \linewidth.
+\providecommand{\fit}[1]{%
+  \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+
+%% --- the EN/ES parity marker -------------------------------------------
+%% Every frame opens with \fid{<stable-id>}.  It typesets nothing; `make
+%% parity' extracts the ids from both decks and diffs them, so a frame added,
+%% dropped or reordered in one language is a build-time failure rather than a
+%% discovery on stage.  See project_slides_beamer: the predictable failure of a
+%% two-language deck is silent divergence.
+\newcommand{\fid}[1]{}
+
+%% --- code listings ------------------------------------------------------
+%% Sources are plain .txt under shared/code/, extracted from the tree by
+%% `make code' (shared/code/MANIFEST names file, source and line range), so a
+%% listing on a slide is the source as it stands, not a transcription of it.
+\DefineVerbatimEnvironment{vnbcode}{Verbatim}%
+  {fontsize=\scriptsize,xleftmargin=1em,commandchars=\\\{\}}
+\newcommand{\codefile}[2][\scriptsize]{%
+  \VerbatimInput[fontsize=#1,xleftmargin=0.5em]{../shared/code/#2}}
+
+%% --- small semantic macros ---------------------------------------------
+\newcommand{\vnb}{\textsc{vnb}}
+\newcommand{\imps}{\textsc{imps}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\qeds}[1]{\texttt{\small #1}}
+\newcommand{\Set}{\mathbf{Set}}

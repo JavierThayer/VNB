@@ -21,7 +21,7 @@
 (warrant! 'gmvt-aux-cont 'reference
   "h = (g(b)-g(a))f - (f(b)-f(a))g is a linear combination of f and g, hence
    continuous wherever both f and g are (calculus.pdf Thm 2.11).")
-(category! 'gmvt-aux-cont 'analysis)
+(topic! 'gmvt-aux-cont 'analysis)
 
 (add-to-pss 'gmvt-aux-diff
   `(FORALL f (FORALL g (FORALL a (FORALL b (FORALL x (FORALL L (FORALL M
@@ -31,7 +31,7 @@
 (warrant! 'gmvt-aux-diff 'reference
   "h'(x) = (g(b)-g(a))f'(x) - (f(b)-f(a))g'(x), from deriv-sum/scalar-mult on the
    linear combination h = (g(b)-g(a))f - (f(b)-f(a))g (calculus.pdf Thm 2.11).")
-(category! 'gmvt-aux-diff 'analysis)
+(topic! 'gmvt-aux-diff 'analysis)
 
 ;;; ====================================================================
 (sp '(FORALL f (FORALL g (FORALL a (FORALL b

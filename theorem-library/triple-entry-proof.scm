@@ -66,6 +66,9 @@
 (fact 'matmul-entry 'A 'm 'k 'l '(MATMUL A P Q) 'R 'row 'col)
 (subst `(= (ENTRY ,TEL-LHSM row col) (FINSUM ,TE-RAG ,TEL-OUTF (INTERVAL 1 k))))
 (fact 'ring-additive-ag-is-abelian-group 'A)
+;; interval-card-in-nn is guarded on its upper bound and the statement does not
+;; type the dimensions: k is R's row count (mat-rows-in-nn), n is Q's.
+(fact 'mat-rows-in-nn 'k 'l '(CARR A) 'R)
 (fact 'interval-in-set 1 'k)(fact 'interval-card-in-nn 1 'k)
 (fact 'tel-outf-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
 (fact 'tel-tout-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
@@ -76,6 +79,7 @@
       (lam-b)(nth-r)
       (fact 'matmul-entry 'A 'm 'n 'k 'P 'Q 'row xv)
       (subst `(= (ENTRY (MATMUL A P Q) row ,xv) (FINSUM ,TE-RAG (VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P row j) (ENTRY Q j ,xv))) (INTERVAL 1 n))))
+      (fact 'mat-rows-in-nn 'n 'k '(CARR A) 'Q)
       (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
       (fact 'tel-inf-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col xv)
       (fact 'entry-in-carrier 'k 'l '(CARR A) 'R xv 'col)
@@ -104,7 +108,7 @@
     (fact 'finsum-congruence TE-RAG '(INTERVAL 1 k) TEL-OUTF TEL-TOUT)
     (ass)))
 (qed 'triple-entry-left)
-(category! 'triple-entry-left 'algebra)
+(topic! 'triple-entry-left 'algebra)
 
 ;; =====================================================================
 ;; triple-entry-right : (P(QR))_{row,col} = sum_{j in [1,n]} sum_{c in [1,k]} FF(c,j)
@@ -125,6 +129,7 @@
 (fact 'matmul-entry 'A 'm 'n 'l 'P '(MATMUL A Q R) 'row 'col)
 (subst `(= (ENTRY ,TER-LHSM row col) (FINSUM ,TE-RAG ,TER-OUTF (INTERVAL 1 n))))
 (fact 'ring-additive-ag-is-abelian-group 'A)
+(fact 'mat-rows-in-nn 'n 'k '(CARR A) 'Q)
 (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
 (fact 'ter-outf-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
 (fact 'ter-tout-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
@@ -135,6 +140,7 @@
       (lam-b)(nth-r)
       (fact 'matmul-entry 'A 'n 'k 'l 'Q 'R xv 'col)
       (subst `(= (ENTRY (MATMUL A Q R) ,xv col) (FINSUM ,TE-RAG (VNB-LAMBDA j (INTERVAL 1 k) ((MUL A) (ENTRY Q ,xv j) (ENTRY R j col))) (INTERVAL 1 k))))
+      (fact 'mat-rows-in-nn 'k 'l '(CARR A) 'R)
       (fact 'interval-in-set 1 'k)(fact 'interval-card-in-nn 1 'k)
       (fact 'ter-gj-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col xv)
       (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'row xv)
@@ -165,4 +171,4 @@
     (fact 'finsum-congruence TE-RAG '(INTERVAL 1 n) TER-OUTF TER-TOUT)
     (ass)))
 (qed 'triple-entry-right)
-(category! 'triple-entry-right 'algebra)
+(topic! 'triple-entry-right 'algebra)

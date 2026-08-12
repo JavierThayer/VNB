@@ -129,4 +129,4 @@
 (ta 'burali-forti)
 (ai '(NOT (IN ORD SET)))
 (qed 'ord-no-injection-into-set)
-(category! 'ord-no-injection-into-set 'set-quotient)
+(topic! 'ord-no-injection-into-set 'set-quotient)

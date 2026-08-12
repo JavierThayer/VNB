@@ -92,14 +92,14 @@
 (define (rests-on name deps)
   (register-rests-on! name deps))
 
-;;; User-facing: (category! 'NAME 'category) files NAME under one of the PSS
-;;; categories (*pss-category-order* in macetes.scm).  The category is also the
+;;; User-facing: (topic! 'NAME 'category) files NAME under one of the PSS
+;;; categories (*pss-topic-order* in macetes.scm).  The category is also the
 ;;; INTAKE DISCIPLINE for new entries: when a proof is blocked and you assert a
 ;;; fact instead of grinding, the category says WHAT KIND of fact it is and why
 ;;; grinding is not worth it.  Place right after the statement, like warrant!;
 ;;; new supports SHOULD carry one (load.scm soft-nudges the uncategorised count).
-(define (category! name cat)
-  (register-category! name cat))
+(define (topic! name cat)
+  (register-topic! name cat))
 
 (define (theory-get-theorem th name)
   (hash-table-ref/default (theory-theorems th) name #f))
@@ -611,7 +611,7 @@
     ;; -------------------------------------------------------------------
     ;; LENGTH: the number of elements in a tuple.
     ;;   length-of-empty: length([]) = 0
-    ;;   length-in-nn:    L ∈ TUPLES(SET) → length(L) ∈ NN
+    ;;   length-in-nn:    L ∈ TUPLES(A) → length(L) ∈ NN
     ;;   nth-in-range:    L ∈ TUPLES(A) ∧ 1 ≤ i ≤ length(L) → nth(i,L) ∈ A
     ;; (Recursive characterization of length requires a CONS/PREPEND constructor
     ;;  and a TUPLES induction principle, both pending.)
@@ -619,8 +619,19 @@
     (theory-add-axiom! th 'length-of-empty
       '(= (LENGTH (LIST)) 0))
 
+    ;; GENERALISED 2026-08-11 (the user's call), from `L ∈ TUPLES(SET)' to
+    ;; `L ∈ TUPLES(A)' for any A.  A tuple is a finite sequence and its length is
+    ;; a natural number whatever it is a sequence of; the SET guard bound nothing
+    ;; and cost a bridge nobody could build -- from `Q ∈ TUPLES(TUPLES X)', which
+    ;; is what matrix-membership gives, reaching TUPLES(SET) needs both
+    ;; "every member of a class is a set" and monotonicity of TUPLES, and the
+    ;; library has neither as a citable fact.  Note `nth-in-range' immediately
+    ;; below was ALREADY stated over TUPLES(A): the old guard here was an
+    ;; inconsistency between two neighbouring axioms about the same constructor,
+    ;; not a considered restriction.  No axiom is added -- one is weakened --
+    ;; and nothing in the tree cited the old form, so no call site moved.
     (theory-add-axiom! th 'length-in-nn
-      '(FORALL L (IMPLIES (IN L (TUPLES SET)) (IN (LENGTH L) NN))))
+      '(FORALL A (FORALL L (IMPLIES (IN L (TUPLES A)) (IN (LENGTH L) NN)))))
 
     (theory-add-axiom! th 'nth-in-range
       '(FORALL A (FORALL i (FORALL L

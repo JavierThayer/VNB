@@ -1,0 +1,44 @@
+\begin{proposition}[metric-sym]
+Suppose $s \text{ s.t. } \operatorname{is\text{-}metric\text{-}space}(s)$. Let $x \in \operatorname{pts}(s), y \in \operatorname{pts}(s)$. Then
+\begin{equation*}
+(\operatorname{dist}(s)(x, y) = \operatorname{dist}(s)(y, x))
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}
+  \item[\textbf{3}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{4--7}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{8--9}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} (x \in \operatorname{pts}(s)) \Rightarrow  \\ \quad (\operatorname{dist}(s)(x, x) = 0) \wedge \\ \quad \forall v \in \operatorname{pts}(s). \\ \quad \quad (0 \leq \operatorname{dist}(s)(x, v)) \wedge \\ \quad \quad (\operatorname{dist}(s)(x, v) = 0) \Rightarrow  \\ \quad \quad \quad (x = v) \wedge \\ \quad \quad (\operatorname{dist}(s)(x, v) = \operatorname{dist}(s)(v, x)) \wedge \\ \quad \quad \forall w \in \operatorname{pts}(s). \\ \quad \quad \quad (\operatorname{dist}(s)(x, w) \leq (\operatorname{dist}(s)(x, v) + \operatorname{dist}(s)(v, w))) \end{array}
+\end{equation*}
+
+  \item[\textbf{10}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{dist}(s)(x, x) = 0) \wedge \\ \forall v \in \operatorname{pts}(s). \\ \quad (0 \leq \operatorname{dist}(s)(x, v)) \wedge \\ \quad (\operatorname{dist}(s)(x, v) = 0) \Rightarrow  \\ \quad \quad (x = v) \wedge \\ \quad (\operatorname{dist}(s)(x, v) = \operatorname{dist}(s)(v, x)) \wedge \\ \quad \forall w \in \operatorname{pts}(s). \\ \quad \quad (\operatorname{dist}(s)(x, w) \leq (\operatorname{dist}(s)(x, v) + \operatorname{dist}(s)(v, w))) \end{array}
+\end{equation*}
+
+  \item[\textbf{11--12}] Backchain through the hypothesis; it remains to show
+\begin{equation*}
+(x \in \operatorname{pts}(s))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{13--14}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} (y \in \operatorname{pts}(s)) \Rightarrow  \\ \quad (0 \leq \operatorname{dist}(s)(x, y)) \wedge \\ \quad (\operatorname{dist}(s)(x, y) = 0) \Rightarrow  \\ \quad \quad (x = y) \wedge \\ \quad (\operatorname{dist}(s)(x, y) = \operatorname{dist}(s)(y, x)) \wedge \\ \quad \forall w \in \operatorname{pts}(s). \\ \quad \quad (\operatorname{dist}(s)(x, w) \leq (\operatorname{dist}(s)(x, y) + \operatorname{dist}(s)(y, w))) \end{array}
+\end{equation*}
+
+  \item[\textbf{15}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} (0 \leq \operatorname{dist}(s)(x, y)) \wedge \\ (\operatorname{dist}(s)(x, y) = 0) \Rightarrow  \\ \quad (x = y) \wedge \\ (\operatorname{dist}(s)(x, y) = \operatorname{dist}(s)(y, x)) \wedge \\ \forall w \in \operatorname{pts}(s). \\ \quad (\operatorname{dist}(s)(x, w) \leq (\operatorname{dist}(s)(x, y) + \operatorname{dist}(s)(y, w))) \end{array}
+\end{equation*}
+
+  \item[\textbf{16--21}] Backchain through the hypothesis; it remains to show
+\begin{equation*}
+(y \in \operatorname{pts}(s))
+\end{equation*}
+  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}

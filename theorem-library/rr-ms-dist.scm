@@ -47,4 +47,4 @@
 (lam-b)
 (qrfl)
 (qed 'rr-ms-dist)
-(category! 'rr-ms-dist 'analysis)
+(topic! 'rr-ms-dist 'analysis)

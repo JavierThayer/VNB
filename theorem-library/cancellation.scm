@@ -117,6 +117,44 @@
 (cn-qed! 'ag-cancel-right)
 
 ;;; =======================================================================
+;;; abelian-group-idempotent-is-id :  a*a = a  =>  a = e.
+;;;
+;;; Was asserted in abelian-group.scm and never warranted -- with 14 dependent
+;;; proofs, the most-cited unjustified fact left in the library.  It is not deep:
+;;; a*a = a and a*e = a give a*a = a*e, and cancelling a on the left leaves a = e.
+;;; What it needs beyond group-cancel-left is the RIGHT identity, which is not a
+;;; group axiom here (group.scm states only left-id) but in an ABELIAN group is
+;;; one commutation away -- and IDEN(s) is in the carrier by group-identity-in.
+;;; Both of those are now theorems (subtype-laws.scm), so this closes modulo 0.
+;;;
+;;; The prefix is peeled by a loop, not by a counted run of `di': how many `di'
+;;; a shape takes is not a fact anyone should have to know (CLAUDE.md), and no
+;;; intermediate goal here has `=' at its head, so the test is unambiguous.
+(sp (make-wff '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s)
+                 (FORALL a (IMPLIES (IN a (CARR s))
+                   (IMPLIES (= ((OPR s) a a) a)
+                            (= a (IDEN s)))))))))
+(let peel ((fuel 12))
+  (when (and (> fuel 0)
+             (not (and (pair? (cn-goal)) (eq? (car (cn-goal)) '=))))
+    (di)
+    (peel (- fuel 1))))
+(fact 'abelian-group-is-group 's)
+(fact 'group-identity-in 's)                            ; e in CARR(s)
+(fact 'abelian-group-opr-comm 's 'a '(IDEN s))          ; a*e = e*a
+(fact 'group-left-id 's 'a)                             ; e*a = a
+;; a*a = a*e, by rewriting each side down to a.
+(cut '(= ((OPR s) a a) ((OPR s) a (IDEN s))))
+(subst '(= ((OPR s) a a) a))                            ; the hypothesis
+(subst '(= ((OPR s) a (IDEN s)) ((OPR s) (IDEN s) a)))  ; commute
+(subst '(= ((OPR s) (IDEN s) a) a))                     ; left identity
+(rfl)
+;; cancel a on the left:  a*a = a*e  =>  a = e.
+(fact 'group-cancel-left 's 'a '(IDEN s) 'a)
+(ass)
+(cn-qed! 'abelian-group-idempotent-is-id)
+
+;;; =======================================================================
 ;;; Carry it to the rings, and then to the numbers.
 ;;;
 ;;; view-as-auto-specialize! runs inside def-functor, i.e. when views.scm loads
@@ -130,6 +168,22 @@
 ;;;
 ;;; under the name ag-cancel-right-ring-additive-ag.
 (view-as-auto-specialize! 'RING-ADDITIVE-AG)
+
+;;; The module view needs the same treatment, for a sharper reason and in a
+;;; narrower form.  abelian-group-idempotent-is-id used to be an AXIOM in
+;;; abelian-group.scm, so views.scm saw it at def-functor time and built
+;;; abelian-group-idempotent-is-id-module-vector-ag for free.  Now that it is
+;;; PROVED above -- three hundred files later in the load -- that companion has
+;;; to be built here, or theorem-library/module-zero-act, which cites it by
+;;; name, loses it.  Moving a fact from the axiom shelf to the theorem shelf
+;;; moves it past the specializer.
+;;;
+;;; RESTRICTED to that one theorem on purpose: the unrestricted re-run installs
+;;; 67 companions here (every abelian-group theorem proved since views.scm), all
+;;; sound and all but one unasked for.  The line above it is unrestricted for
+;;; the historical reason that its whole point is to carry ag-cancel-right and
+;;; whatever else the ring view has been missing.
+(view-as-auto-specialize! 'MODULE-VECTOR-AG 'abelian-group-idempotent-is-id)
 
 ;;; ... and transport! takes THAT to the integers, in the surface language:
 ;;;     forall a,b,c in ZZ. a + c = b + c => a = b

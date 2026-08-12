@@ -45,7 +45,7 @@
 (inst*! (dk-landed-1 (lambda () (mac-h 'subset-def '(SUBSET A B)))) 'x)
 (ass)
 (qed 'subset-mem-fwd)
-(category! 'subset-mem-fwd 'plumbing)
+(topic! 'subset-mem-fwd 'plumbing)
 
 ;;; -----------------------------------------------------------------------
 ;;; (2) subset-mem -- the SAME statement, under the name hahn-banach-full-proof
@@ -58,7 +58,7 @@
 (fact 'subset-mem-fwd 'a 'b 'x_)
 (ass)
 (qed 'subset-mem)
-(category! 'subset-mem 'plumbing)
+(topic! 'subset-mem 'plumbing)
 
 ;;; -----------------------------------------------------------------------
 ;;; (3) subset-trans -- chase an element through both inclusions.
@@ -72,7 +72,7 @@
 (fact 'subset-mem-fwd 'b 'c 'x)
 (ass)
 (qed 'subset-trans)
-(category! 'subset-trans 'plumbing)
+(topic! 'subset-trans 'plumbing)
 
 ;;; -----------------------------------------------------------------------
 ;;; (4) subclass-of-set-is-set -- A is included in the set B, so A has exactly
@@ -111,4 +111,4 @@
 (subst `(= A ,sl-sep))
 (ass)
 (qed 'subclass-of-set-is-set)
-(category! 'subclass-of-set-is-set 'plumbing)
+(topic! 'subclass-of-set-is-set 'plumbing)

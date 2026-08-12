@@ -34,7 +34,7 @@
 (warrant! 'rr-strict-between-real 'well-known
   "If u<x<v with u,v real then x is real: the strict order on RR only relates
    reals, so an interior point of [u,v] lies in RR.")
-(category! 'rr-strict-between-real 'analysis)
+(topic! 'rr-strict-between-real 'analysis)
 
 ;;; ====================================================================
 ;;; Lemma deriv-zero-const-up:  u<v in [a,b]  =>  f(u)=f(v).

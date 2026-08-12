@@ -23,7 +23,7 @@
 ;;; is checked by being RUN on a clone before it is shown.
 ;;;
 ;;; THE TABLE.  *prep-methods* keys a tactic name to its diagnosis procedure --
-;;; the house pattern (*pss-categories*, *tactic-help*, operators.scm): one table,
+;;; the house pattern (*pss-topics*, *tactic-help*, operators.scm): one table,
 ;;; not a method per tactic scattered about.  A tactic joins by registering one,
 ;;;     (prep-method! 'FUBA (lambda (sqn) -> diagnosis))
 ;;; which returns a record per obligation.  `ineq' is the only entry so far; `crs'

@@ -530,8 +530,29 @@
 ;;; -----------------------------------------------------------------------
 ;;; Alpha-equivalence
 
+;;; alpha-equiv? compares RAW S-EXPRESSIONS.  A <wff> is a record wrapping one
+;;; (wff.scm), and a record reaches no branch of alpha-equiv-under? -- so
+;;; before 2026-08-09 two wffs built from the same text compared #f, silently:
+;;;
+;;;   (alpha-equiv? (make-wff "forall([x in rr], x = x)")
+;;;                 (make-wff "forall([x in rr], x = x)"))   =>  #f
+;;;
+;;; which is the wrong answer, not a refusal.  Nothing in the library was
+;;; affected -- every call site unwraps first (wff-formula, dk-goal-of,
+;;; mz--asms, calc--in-ctx?, macetes' local-ctx) -- but a driver author who
+;;; passes the wff, and a REPL user checking a hunch, both get a false negative
+;;; with no complaint.  So: reject it, and name the procedure that does want
+;;; wffs.  Cost is one predicate call per top-level comparison; the recursion
+;;; below is untouched.
+;;;
+;;; `wff?' lives in wff.scm, which loads AFTER this file.  That is fine: the
+;;; reference is inside a procedure body and so resolves at call time, and no
+;;; alpha-equiv? call can happen before wff.scm is loaded.
 (define (alpha-equiv? e1 e2)
-  (alpha-equiv-under? e1 e2 '()))
+  (if (or (wff? e1) (wff? e2))
+      (error "alpha-equiv?: expects raw formulas, not <wff> records -- use wff-equiv?, or unwrap with wff-formula"
+             e1 e2)
+      (alpha-equiv-under? e1 e2 '())))
 
 (define (alpha-equiv-under? e1 e2 env)
   (cond

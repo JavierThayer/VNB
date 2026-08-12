@@ -1590,7 +1590,7 @@
 <p><em>In words:</em> For a setoid s and a function f from its carrier to Z that respects the equivalence (equivalent inputs give equal outputs): there is exactly one function g on the quotient PTS(s)/~ with g([a]) = f(a) for every a.  The universal property of the quotient -- f factors uniquely through the projection.</p>
 <p><em>Warrant (well-known):</em> EXISTENCE: take g = DESCEND(f); descend-in-fun types it and descend-computes gives the factorization g([a])=f(a).  UNIQUENESS: any g&#x27; factoring f agrees with g on every [a] (both equal f(a)); every element of QUOTIENT(s) is such an [a] (image of PROJ), so g&#x27; and g agree everywhere on QUOTIENT(s) and are equal by function extensionality.  This is what makes X |-&gt; X/REL a functor: the concrete quotient has the defining mapping property.  Capstone asserted with a faithful sketch over the installed CLASS/QUOTIENT/PROJ/DESCEND supports, in the prod-of-sums-expansion / binomial-theorem library style -- the machinery is the deliverable, the QED induction-free factorization argument is the deferred tactic grind, with no missing primitive.</p>
 <h3 id="PSS__uncategorized-117">Uncategorized  (117)</h3>
-<p>Not yet filed under a PSS category -- see <code>category!</code>.</p>
+<p>Not yet filed under a PSS topic -- see <code>topic!</code>.</p>
 <h4 id="p-bdd-metric-is-bounded-metric-space">bdd-metric-is-bounded-metric-space</h4>
 <pre>forall([s], is-metric-space(s) implies is-bounded-metric-space(bdd-metric(s)))</pre>
 <p><em>Warrant (well-known):</em> BDD-METRIC(s) is a bounded metric space: a metric space by bdd-metric-is-metric-space, and 1 in RR bounds every distance since d/(1+d) &lt; 1 &lt;= 1 (bdd-metric-bounded).</p>
@@ -1784,8 +1784,8 @@
 <pre>forsome([s], is-gauge-countable(s) and not(is-metrizable-top-space(s)))</pre>
 <p><em>Warrant (well-known):</em> There is a gauge-countable space that is not metrizable, so IS-GAUGE-COUNTABLE without IS-HAUSDORFF does not imply IS-METRIZABLE-TOP-SPACE.  Concrete witness: the single pseudometric d == 0 on any carrier with at least two points is a countable (singleton) pseudometric family whose gauge topology is the indiscrete topology {EMPTY-SET, PTS} -- non-Hausdorff, hence non-metrizable.  The substantive instances are non-Hausdorff spectra (e.g. the primitive-ideal / hull-kernel space of a C*-algebra).  Certifies the Hausdorff hypothesis of the gauge characterization (T2) is essential.</p>
 <h4 id="p-interval-card-in-nn">interval-card-in-nn</h4>
-<pre>forall([a, b], card(interval(a, b)) in nn)</pre>
-<p><em>Warrant (well-known):</em> INTERVAL(a,b) is finite, so its cardinality is a natural number.</p>
+<pre>forall([a, b in nn], card(interval(a, b)) in nn)</pre>
+<p><em>Warrant (well-known):</em> INTERVAL(a,b) with b in NN is finite, so its cardinality is a natural number.</p>
 <h4 id="p-mat-is-set">mat-is-set</h4>
 <pre>forall([x in set, m, n], mat(m, n, x) in set)</pre>
 <p><em>Warrant (reference):</em> MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.</p>

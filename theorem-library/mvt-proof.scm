@@ -55,24 +55,24 @@
 (warrant! 'mvt-aux-diff 'reference
   "h=(b-a)f-(f(b)-f(a))id is a linear combination of f and identity; its
    derivative (b-a)L-(f(b)-f(a)) follows from deriv-product/sum/const/identity.")
-(category! 'mvt-aux-diff 'analysis)
+(topic! 'mvt-aux-diff 'analysis)
 (add-to-pss 'mvt-aux-cont
   (list 'FORALL 'f (list 'FORALL 'a (list 'FORALL 'b (list 'FORALL 'x
     (list 'IMPLIES '(IS-CONTINUOUS-AT RR-MS RR-MS f x)
       (list 'IS-CONTINUOUS-AT 'RR-MS 'RR-MS AUX 'x)))))))
 (warrant! 'mvt-aux-cont 'reference
   "h is a sum/product of f, constants and the identity, hence continuous where f is.")
-(category! 'mvt-aux-cont 'analysis)
+(topic! 'mvt-aux-cont 'analysis)
 (add-to-pss 'rr-diff-zero-eq
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
      (IMPLIES (= 0 (- u v)) (= u v)))))))
 (warrant! 'rr-diff-zero-eq 'well-known "0=u-v => u=v.")
-(category! 'rr-diff-zero-eq 'analysis)
+(topic! 'rr-diff-zero-eq 'analysis)
 (add-to-pss 'diff-value-real
   '(FORALL f (FORALL a (FORALL L (IMPLIES (IS-DIFF-AT f a L) (IN L RR))))))
 (warrant! 'diff-value-real 'informal
   "IS-DIFF-AT's definition includes (IN L RR) as a conjunct.")
-(category! 'diff-value-real 'analysis)
+(topic! 'diff-value-real 'analysis)
 
 ;;; --- pose MVT ---
 (sp '(FORALL f (FORALL a (FORALL b

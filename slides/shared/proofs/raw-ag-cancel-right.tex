@@ -1,0 +1,52 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[ag-cancel-right]
+Suppose $s \text{ s.t. } \operatorname{is\text{-}abelian\text{-}group}(s)$. Let $a \in \operatorname{carr}(s), b \in \operatorname{carr}(s), c \in \operatorname{carr}(s)$. If $(\operatorname{opr}(s)(a, c) = \operatorname{opr}(s)(b, c))$, then 
+\begin{equation*}
+(a = b)
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{5}] By $\operatorname{abelian\text{-}group\text{-}is\text{-}group}$:
+\begin{equation*}
+\operatorname{is\text{-}group}(s)
+\end{equation*}
+
+  \item[\textbf{6}] By $\operatorname{abelian\text{-}group\text{-}opr\text{-}comm}$:
+\begin{equation*}
+(\operatorname{opr}(s)(a, c) = \operatorname{opr}(s)(c, a))
+\end{equation*}
+
+  \item[\textbf{7}] By $\operatorname{abelian\text{-}group\text{-}opr\text{-}comm}$:
+\begin{equation*}
+(\operatorname{opr}(s)(b, c) = \operatorname{opr}(s)(c, b))
+\end{equation*}
+
+  \item[\textbf{8}] Introduce the auxiliary claim
+\begin{equation*}
+(\operatorname{opr}(s)(c, a) = \operatorname{opr}(s)(c, b))
+\end{equation*}
+
+  \item[\textbf{9}] Substitute the established equation.
+  \item[\textbf{10--11}] Substitute the established equation.  \emph{(holds by assumption)}
+  \item[\textbf{12--13}] By $\operatorname{group\text{-}cancel\text{-}left}$:
+\begin{equation*}
+(a = b)
+\end{equation*}
+  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+\end{document}

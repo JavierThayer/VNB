@@ -31,7 +31,7 @@
      (IMPLIES (IN f (FUN A B)) (IMPLIES (SUBSET B C) (IN f (FUN A C)))))))))
 (warrant! 'fun-codomain-superset 'well-known
   "A function into B is a function into any superset C (fun-codomain-iff + subset-mem).")
-(category! 'fun-codomain-superset 'plumbing)
+(topic! 'fun-codomain-superset 'plumbing)
 
 ;; nn-le-succ (k <= succ k) was declared here; moved to order-lemmas.scm
 ;; 2026-07-10 (a plumbing fact belongs there, not in a proof file, and the
@@ -204,7 +204,7 @@
 (dc-focus-case! Hmax)
 (ai (dc-find (lambda (z) (and ((dc-head? 'NOT) z) (dc-ment? FF z) (dc-ment? 'succ z)))))
 (qed (quote noetherian-set-has-maximal))
-(category! 'noetherian-set-has-maximal 'analysis)
+(topic! 'noetherian-set-has-maximal 'analysis)
 
 ;;; ====================================================================
 ;;; vocabulary for the Hahn-Banach reachable family (used by hahn-banach-full)
@@ -230,7 +230,7 @@
      (IMPLIES (GOOD-SUB m s f t) (IS-SUBMODULE m t)))))))
 (warrant! 'good-sub-submodule 'reference
   "GOOD-SUB unfolds to NPE, whose first conjunct is IS-SUBMODULE m t.")
-(category! 'good-sub-submodule 'analysis)
+(topic! 'good-sub-submodule 'analysis)
 
 ;;; ====================================================================
 ;;; bridge warrants + hb-good-has-maximal (specialise nsm to good subspaces)
@@ -241,20 +241,20 @@
        (GOOD-SUB m s f s)))))))
 (warrant! 'good-sub-self 'reference
   "f is a norm-preserving extension of itself to s (bound = ||f||_s), so s is reachable.")
-(category! 'good-sub-self 'analysis)
+(topic! 'good-sub-self 'analysis)
 
 (add-to-pss 'vspace-vec-is-set
   '(FORALL m (IMPLIES (IS-VECTOR-SPACE m) (IN (VEC m) SET))))
 (warrant! 'vspace-vec-is-set 'reference
   "The carrier VEC(m) of a vector space (module) is a set.")
-(category! 'vspace-vec-is-set 'analysis)
+(topic! 'vspace-vec-is-set 'analysis)
 
 (add-to-pss 'good-sub-in-power
   '(FORALL m (FORALL s (FORALL f (FORALL t
      (IMPLIES (GOOD-SUB m s f t) (IN t (POWER (VEC m)))))))))
 (warrant! 'good-sub-in-power 'reference
   "A reachable t is a submodule, hence a subset of VEC(m), hence in its powerset.")
-(category! 'good-sub-in-power 'analysis)
+(topic! 'good-sub-in-power 'analysis)
 
 (sp '(FORALL m (FORALL s (FORALL f
      (IMPLIES (IS-FINITE-DIMENSIONAL m)
@@ -334,7 +334,7 @@
 (dc-detach-impl! (list 'AND (list 'IN Uu SIG) (list 'SUBSET TT2 Uu)))   ; (= TT2 u)
 (quietly (lambda () (ass-all)))
 (qed (quote hb-good-has-maximal))
-(category! 'hb-good-has-maximal 'analysis)
+(topic! 'hb-good-has-maximal 'analysis)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

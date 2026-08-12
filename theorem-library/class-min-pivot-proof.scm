@@ -79,7 +79,7 @@
   (subst eqd)
   (ass))
 (qed 'mat-equiv-target-is-mat)
-(category! 'mat-equiv-target-is-mat 'algebra)
+(topic! 'mat-equiv-target-is-mat 'algebra)
 
 ;;; ===================================================================
 ;;; class-min-pivot
@@ -271,4 +271,4 @@
       (ass))))
 
 (qed 'class-min-pivot)
-(category! 'class-min-pivot 'algebra)
+(topic! 'class-min-pivot 'algebra)

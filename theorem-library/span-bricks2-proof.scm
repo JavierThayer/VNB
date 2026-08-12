@@ -151,10 +151,10 @@
     (rfl)))
 
 (qed 'matact-row-peel)
-(category! 'matact-row-peel 'algebra)
-(category! 'matact-summand-type-le 'algebra)
-(category! 'nn-le-succ 'plumbing)
-(category! 'nn-one-in 'plumbing)
+(topic! 'matact-row-peel 'algebra)
+(topic! 'matact-summand-type-le 'algebra)
+(topic! 'nn-le-succ 'plumbing)
+(topic! 'nn-one-in 'plumbing)
 
 
 ;;; ===================================================================
@@ -237,7 +237,7 @@
     (rfl)))
 
 (qed 'matact-snoc)
-(category! 'matact-snoc 'algebra)
+(topic! 'matact-snoc 'algebra)
 
 
 ;;; ===================================================================
@@ -314,11 +314,11 @@
     (lambda () (ass)) (lambda () (ass))))
 
 (qed 'submodule-intersection)
-(category! 'submodule-intersection 'algebra)
-(category! 'submodule-vzero-in 'algebra)
-(category! 'submodule-vadd-closed 'algebra)
-(category! 'submodule-vneg-closed 'algebra)
-(category! 'submodule-act-closed 'algebra)
+(topic! 'submodule-intersection 'algebra)
+(topic! 'submodule-vzero-in 'algebra)
+(topic! 'submodule-vadd-closed 'algebra)
+(topic! 'submodule-vneg-closed 'algebra)
+(topic! 'submodule-act-closed 'algebra)
 
 
 ;;; ===================================================================
@@ -336,7 +336,7 @@
 (di) (di)                                              ; i (in [1,1]); j (in [1,0])
 (p2-empty-close! 'j)
 (qed 'mat-1-0-nonempty)
-(category! 'mat-1-0-nonempty 'plumbing)
+(topic! 'mat-1-0-nonempty 'plumbing)
 
 (sp (make-wff '(FORALL X (FORSOME P (IN P (MAT 0 1 X))))))
 (di)
@@ -345,4 +345,4 @@
 (di)                                                   ; i (in [1,0])
 (p2-empty-close! 'i)
 (qed 'mat-0-1-nonempty)
-(category! 'mat-0-1-nonempty 'plumbing)
+(topic! 'mat-0-1-nonempty 'plumbing)

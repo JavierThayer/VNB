@@ -287,5 +287,5 @@
    scale; nn-flatten re-indexes the resulting double sequence by a single
    natural; and given eps, a scale below eps (nn-recip-succ-small) puts one of
    its terms within eps of any given point.")
-(category! 'compact-metric-is-separable 'topology)
+(topic! 'compact-metric-is-separable 'topology)
 (rests-on 'compact-metric-is-separable '(tb-scale-dense-seq dc-on-nn-pred nn-flatten))

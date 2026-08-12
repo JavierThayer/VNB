@@ -46,7 +46,7 @@
   "calculus.pdf eq (12): f differentiable at a with derivative L iff the
    increment x|->f(x)-f(a)-L(x-a) is o(x-a) at a.  Forward: eps = phi-L for phi
    the Caratheodory factor; backward: phi = eps+L.")
-(category! 'diff-iff-little-o 'analysis)
+(topic! 'diff-iff-little-o 'analysis)
 
 ;;; ===================================================================
 ;;; o-algebra blocks (curried antecedents for inline bc* handlers).
@@ -61,7 +61,7 @@
 (warrant! 'little-o-sum 'well-known
   "Sum of two o(x-a) is o(x-a): add the witnesses eps_g + eps_h (continuous at
    a, value 0), and (g+h)(x) = (eps_g(x)+eps_h(x))(x-a).")
-(category! 'little-o-sum 'analysis)
+(topic! 'little-o-sum 'analysis)
 
 ;;; Scalar: c * o(x-a) = o(x-a).  Witness eps_{c g} = c * eps_g.
 (support 'little-o-scalar
@@ -72,7 +72,7 @@
 (warrant! 'little-o-scalar 'well-known
   "A constant multiple of o(x-a) is o(x-a): witness c*eps_g (continuous at a,
    value 0), and (c g)(x) = (c eps_g(x))(x-a).")
-(category! 'little-o-scalar 'analysis)
+(topic! 'little-o-scalar 'analysis)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

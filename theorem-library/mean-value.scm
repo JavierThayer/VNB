@@ -32,7 +32,7 @@
 (warrant! 'continuous-nonpos-right 'well-known
   "A function continuous at th that is <=0 on a right-neighborhood (th,bb) is
    <=0 at th (sign preservation under continuity / one-sided limit).")
-(category! 'continuous-nonpos-right 'analysis)
+(topic! 'continuous-nonpos-right 'analysis)
 
 (add-to-pss 'continuous-nonneg-left
   '(FORALL g (FORALL aa (FORALL th
@@ -43,7 +43,7 @@
 (warrant! 'continuous-nonneg-left 'well-known
   "A function continuous at th that is >=0 on a left-neighborhood (aa,th) is
    >=0 at th.")
-(category! 'continuous-nonneg-left 'analysis)
+(topic! 'continuous-nonneg-left 'analysis)
 
 ;; interior-min-deriv-zero is MACHINE-PROVEN from interior-max-deriv-zero applied
 ;; to g = -f (deriv-neg + rr-le-neg + rr-neg-eq-zero) -- see

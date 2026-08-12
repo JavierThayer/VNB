@@ -95,6 +95,6 @@
    everywhere.  The proof is the classic transfinite/Zorn extension (one dimension
    at a time, dominated bound preserved); over CC it is the Bohnenblust-Sobczyk
    reduction to the real part.  Sources: Yosida IV.1; the user's notes (exercise).")
-(category! 'hahn-banach-seminorm 'analysis)
+(topic! 'hahn-banach-seminorm 'analysis)
 ;; Intended proof leans on Zorn (maximal dominated extension).
 (rests-on 'hahn-banach-seminorm '(zorn-lemma))

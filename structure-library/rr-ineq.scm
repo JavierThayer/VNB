@@ -5,7 +5,7 @@
 ;;; and warranted, across order-lemmas.scm (transitivity / adding / scaling /
 ;;; abs / sign-of-a-product) and scalar-inequalities.scm (Young, AM-GM, QM-AM,
 ;;; Cauchy-Schwarz, the t/(1+t) family), all filed under `inequalities' in
-;;; pss-categories.scm.  And the LINEAR decision lane -- plan item 3 -- already
+;;; pss-topics.scm.  And the LINEAR decision lane -- plan item 3 -- already
 ;;; exists as the (ineq) oracle (ineq-oracle.scm + linear-arith.scm), which
 ;;; closes any linear <=/</= goal from named premises with a Farkas certificate.
 ;;;

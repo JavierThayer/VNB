@@ -181,8 +181,8 @@
 (ass)
 (qed 'nn-le-antisym)
 
-(category! 'nn-le-zero-is-zero 'inequalities)
-(category! 'nn-le-add          'inequalities)
-(category! 'nn-add-le-mono     'inequalities)
-(category! 'nn-le-antisym      'inequalities)
-(category! 'nn-le-add-left     'inequalities)
+(topic! 'nn-le-zero-is-zero 'inequalities)
+(topic! 'nn-le-add          'inequalities)
+(topic! 'nn-add-le-mono     'inequalities)
+(topic! 'nn-le-antisym      'inequalities)
+(topic! 'nn-le-add-left     'inequalities)

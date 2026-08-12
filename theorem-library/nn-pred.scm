@@ -89,7 +89,7 @@
        (ass)))
  (dk-opened (lambda () (iota-d np-io))))
 (qed 'pred-property)
-(category! 'pred-property 'arithmetic)
+(topic! 'pred-property 'arithmetic)
 
 ;;; --------------------------------------------------------------------
 ;;; The two halves separately, which is how consumers want them.
@@ -99,7 +99,7 @@
 (dk-split! (dk-fact! 'pred-property 'n_))
 (ass)
 (qed 'pred-in-nn)
-(category! 'pred-in-nn 'arithmetic)
+(topic! 'pred-in-nn 'arithmetic)
 
 (sp (make-wff '(FORALL n_ (IMPLIES (IN n_ NN)
                  (IMPLIES (NOT (= n_ 0)) (= (succ (PRED n_)) n_))))))
@@ -107,7 +107,7 @@
 (dk-split! (dk-fact! 'pred-property 'n_))
 (ass)
 (qed 'pred-succ)
-(category! 'pred-succ 'arithmetic)
+(topic! 'pred-succ 'arithmetic)
 
 ;;; --------------------------------------------------------------------
 ;;; pred(succ m) = m -- the computation rule, and the one every use of the
@@ -122,4 +122,4 @@
 (fact 'nn-succ-inj '(PRED (succ m_)) 'm_)
 (ass)
 (qed 'pred-of-succ)
-(category! 'pred-of-succ 'arithmetic)
+(topic! 'pred-of-succ 'arithmetic)

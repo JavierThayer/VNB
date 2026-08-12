@@ -159,4 +159,4 @@
 (ai (list 'NOT NZk))                          ; NZk + NOT(NZk) contradiction
 
 (qed 'smith-diagonalization)
-(category! 'smith-diagonalization 'algebra)
+(topic! 'smith-diagonalization 'algebra)

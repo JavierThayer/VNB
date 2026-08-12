@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-397 operators: 15 functions, 217 functoids, 165 predicates, 0 undeclared.
+398 operators: 15 functions, 218 functoids, 165 predicates, 0 undeclared.
 
 ## Functions  (15)
 
@@ -33,7 +33,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (217)
+## Functoids  (218)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -415,7 +415,7 @@ Declared by: `limit-ord-iff`
 
 ### `matrix`  — characterized by axiom(s)
 
-Declared by: `matrix-membership` `matrix-sethood` 
+Declared by: `matrix-membership` `matrix-sethood` `mat-unfold` 
 
 ### `matscale`  — def-functoid · element/number-valued
 
@@ -739,7 +739,7 @@ Declared by: `intersection-decompose` `union-decompose`
 
 ### `succ_ord`  — characterized by axiom(s)
 
-Declared by: `card-insert` `limit-ord-iff` `ord-segment-succ` `ord-succ-above` `ord-succ-immediate` `ord-succ-in` `ord-succ-lt-limit` `ord-succ-nn` 
+Declared by: `card-insert` `limit-ord-iff` `ord-lt-succ-iff-le` `ord-segment-succ` `ord-succ-above` `ord-succ-immediate` `ord-succ-in` `ord-succ-lt-limit` 
 
 ### `sum`  — recursively defined (def-by-nn-recursion)
 
@@ -796,6 +796,10 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 ### `vnrm`  — structure accessor · element (slot value)
 
 ### `vzero`  — structure accessor · element (slot value)
+
+### `zen`  — recursively defined (def-by-nn-recursion)
+
+Declared by: `zen-zero` `zen-succ` `zen-limit` 
 
 ### `zero`  — structure accessor · element (slot value)
 

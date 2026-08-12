@@ -102,4 +102,4 @@
 (inst+ OWO-NONE WV)
 (ai (list 'NOT (list 'IN WV 'cl)))
 (qed 'ord-well-ordered)
-(category! 'ord-well-ordered 'combinatorial)
+(topic! 'ord-well-ordered 'combinatorial)

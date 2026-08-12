@@ -57,4 +57,4 @@
 (pc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) R)))) (ass)
 (pc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'OR)))) (ass)
 (qed 'pivot-row-reduce)
-(category! 'pivot-row-reduce 'algebra)
+(topic! 'pivot-row-reduce 'algebra)

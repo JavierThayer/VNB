@@ -101,9 +101,9 @@
           (lambda () (ass)))))))                            ; = x bcbu (lz-eq)
 
 (qed 'lastcoeff-zero-in-span)
-(category! 'lastcoeff-zero-in-span 'algebra)
-(category! 'abelian-group-right-id 'algebra)
-(category! 'ring-neg-mul-left 'algebra)
+(topic! 'lastcoeff-zero-in-span 'algebra)
+(topic! 'abelian-group-right-id 'algebra)
+(topic! 'ring-neg-mul-left 'algebra)
 
 
 ;;; ===================================================================
@@ -303,7 +303,7 @@
         (fact 'submodule-act-closed 'md 'sm rr (lc-cu ca)) (ass)))))
 
 (qed 'lastcoeff-set-is-ideal)
-(category! 'lastcoeff-set-is-ideal 'algebra)
+(topic! 'lastcoeff-set-is-ideal 'algebra)
 
 
 ;;; ===================================================================
@@ -424,5 +424,5 @@
 (lc-foc-goal! (lambda (g) (equal? g l3-fact3))) (ass)
 
 (qed 'descent-remainder)
-(category! 'descent-remainder 'algebra)
-(category! 'abelian-group-assoc 'algebra)
+(topic! 'descent-remainder 'algebra)
+(topic! 'abelian-group-assoc 'algebra)

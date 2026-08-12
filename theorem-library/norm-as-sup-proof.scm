@@ -35,7 +35,7 @@
 (warrant! 'line-is-submodule 'reference
   "RR.v is the image of the scalar action, closed under addition, negation and
    the action, and contains 0 = 0.v; so it is a submodule.")
-(category! 'line-is-submodule 'analysis)
+(topic! 'line-is-submodule 'analysis)
 
 ;;; v itself lies on its line (v = 1.v).
 (add-to-pss 'line-has-v
@@ -44,7 +44,7 @@
         (IN v (LINE m v)))))))
 (warrant! 'line-has-v 'reference
   "v = 1.v, so v is in RR.v = LINE(m,v).")
-(category! 'line-has-v 'analysis)
+(topic! 'line-has-v 'analysis)
 
 ;;; The seed functional exists: a norm-<=1 bounded linear functional on the line
 ;;; RR.v that hits ||v|| at v.  (On a one-dimensional space r.v |-> r.||v|| is
@@ -60,7 +60,7 @@
   "On the one-dimensional subspace RR.v the map r.v |-> r.||v|| is a bounded
    linear functional of operator norm <= 1 (=1 for v/=0) taking the value ||v||
    at v; for v=0 the zero functional serves.")
-(category! 'line-functional-exists 'analysis)
+(topic! 'line-functional-exists 'analysis)
 
 ;;; DUAL-NORM is a genuine bound: |f(x)| <= ||f|| ||x|| on all of VEC(m).
 (add-to-pss 'dual-norm-is-bound
@@ -70,7 +70,7 @@
 (warrant! 'dual-norm-is-bound 'reference
   "The operator norm DUAL-NORM(m,f) satisfies |f(x)| <= ||f|| ||x|| for every x
    (it is defined as the least such bound; in particular it IS a bound).")
-(category! 'dual-norm-is-bound 'analysis)
+(topic! 'dual-norm-is-bound 'analysis)
 
 ;;; DUAL-NORM is a nonnegative real (whole-space companion of dual-norm-on-nonneg).
 (add-to-pss 'dual-norm-nonneg
@@ -80,7 +80,7 @@
 (warrant! 'dual-norm-nonneg 'reference
   "DUAL-NORM is defined by IOTA over c in RR with 0<=c, so for a bounded f it is
    a nonnegative real.")
-(category! 'dual-norm-nonneg 'analysis)
+(topic! 'dual-norm-nonneg 'analysis)
 
 ;;; |f(x)| is a real for a bounded functional (whole-space typing helper).
 (add-to-pss 'bdd-linfun-abs-real
@@ -89,7 +89,7 @@
         (IN (abs (f x)) RR)))))))
 (warrant! 'bdd-linfun-abs-real 'reference
   "A bounded linear functional maps VEC(m) into RR, so |f(x)| is a real.")
-(category! 'bdd-linfun-abs-real 'analysis)
+(topic! 'bdd-linfun-abs-real 'analysis)
 
 ;;; A linear functional ON the whole carrier IS a linear functional (the two
 ;;; predicates have identical bodies when the subspace s is VEC(m)).
@@ -99,7 +99,7 @@
 (warrant! 'linfun-on-vec-is-linfun 'reference
   "IS-LINEAR-FUNCTIONAL-ON m (VEC m) f and IS-LINEAR-FUNCTIONAL m f unfold to the
    same conjunction (f in FUN(VEC m,RR), additive, homogeneous over VEC m).")
-(category! 'linfun-on-vec-is-linfun 'analysis)
+(topic! 'linfun-on-vec-is-linfun 'analysis)
 
 ;;; Whole-space companion of dual-norm-on-le-bound: the operator norm is <= any
 ;;; nonnegative bound c that dominates |f| on all of VEC(m).
@@ -114,7 +114,7 @@
 (warrant! 'dual-norm-le-bound 'reference
   "DUAL-NORM(m,f) is the least c>=0 bounding |f(w)| by c*||w|| on VEC(m) (IOTA
    least-upper-bound), hence <= any such bound c.")
-(category! 'dual-norm-le-bound 'analysis)
+(topic! 'dual-norm-le-bound 'analysis)
 
 ;;; ====================================================================
 ;;; THEOREM 1: norm-bounded-by-functionals -- |f(x)| <= ||x|| when ||f|| <= 1.
@@ -143,7 +143,7 @@
 (subst (list '= (list (list 'VNRM 'm) 'x) (list '* 1 (list (list 'VNRM 'm) 'x))))
 (quietly (lambda () (ass-all)))
 (qed 'norm-bounded-by-functionals)
-(category! 'norm-bounded-by-functionals 'analysis)
+(topic! 'norm-bounded-by-functionals 'analysis)
 
 ;;; ====================================================================
 ;;; THEOREM 2: norm-attained-by-functional -- some bounded g with ||g|| <= 1
@@ -221,7 +221,7 @@
 (quietly (lambda () (ass-all)))
 (quietly (lambda () (dc-grind!)))
 (qed 'norm-attained-by-functional)
-(category! 'norm-attained-by-functional 'analysis)
+(topic! 'norm-attained-by-functional 'analysis)
 
 ;;; ====================================================================
 ;;; THEOREM 3: norm-as-sup -- ||x|| is the least upper bound of
@@ -234,7 +234,7 @@
 (add-to-pss 'abs-nonneg-le
   '(FORALL a (FORALL c (IMPLIES (IN a RR) (IMPLIES (<= 0 a) (IMPLIES (<= (abs a) c) (<= a c)))))))
 (warrant! 'abs-nonneg-le 'well-known "For a real a >= 0, |a| = a, so |a| <= c gives a <= c.")
-(category! 'abs-nonneg-le 'analysis)
+(topic! 'abs-nonneg-le 'analysis)
 
 ;; The functional-bound antecedents are CURRIED (BLF => ||f||<=1 => ...) so intros
 ;; and detaches are single-premise: no AND to build, hence no dc-grind!/ass-all
@@ -297,4 +297,4 @@
 (quietly (lambda () (fact 'abs-nonneg-le VNRMx 'd)))   ; (<= ||x|| d) = goal
 (quietly (lambda () (ass)))
 (qed 'norm-as-sup)
-(category! 'norm-as-sup 'analysis)
+(topic! 'norm-as-sup 'analysis)

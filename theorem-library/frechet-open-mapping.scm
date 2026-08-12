@@ -220,7 +220,7 @@
    the graph G is a closed subspace of the product, projG->E is a continuous linear
    bijection, so its inverse is continuous and tt = projG->F o (projG->E)^-1.
    Sources: the user's TVS notes Thm 4.9; Yosida II.6.  Uses Baire.")
-(category! 'closed-graph-theorem 'analysis)
+(topic! 'closed-graph-theorem 'analysis)
 (rests-on 'closed-graph-theorem '(open-mapping-theorem))
 
 ;;; OPEN MAPPING THEOREM: a continuous linear SURJECTION between Frechet spaces
@@ -248,7 +248,7 @@
    non-meager, whence tt is surjective and the codomain complete metrizable.  Here
    surjectivity is assumed and the codomain is assumed Frechet -- meagerness
    relative to a seminorm family is not in the base.  Uses Baire.")
-(category! 'open-mapping-theorem 'analysis)
+(topic! 'open-mapping-theorem 'analysis)
 (rests-on 'open-mapping-theorem '(baire-category))
 
 ;;; OPEN MAPPING THEOREM (bounded-inverse form): a continuous linear bijection
@@ -271,5 +271,5 @@
    between Frechet spaces (with linear two-sided inverse gg) has continuous inverse
    gg.  A corollary of `open-mapping-theorem': openness of tt is continuity of gg.
    Sources: Yosida II.5; the user's TVS notes, Thm 4.7.  Uses Baire.")
-(category! 'open-mapping-bounded-inverse 'analysis)
+(topic! 'open-mapping-bounded-inverse 'analysis)
 (rests-on 'open-mapping-bounded-inverse '(open-mapping-theorem))

@@ -1,0 +1,10 @@
+### ag-cancel-right  *(trust: proof)*
+
+proven **modulo 0** -- unconditional.
+
+### ascoli-dense-bridge  *(trust: reference)*
+
+proven modulo:
+
+- `equicont-dense-conv-implies-unif-cauchy` -- *warrant reference:* Thayer, Calculus (notes), equicontinuous + Cauchy on a dense set => uniformly Cauchy
+- `unif-cauchy-cont-implies-uniform-limit` -- *warrant reference:* Thayer, Calculus (notes), uniformly Cauchy + continuous => uniform limit exists and is continuous

@@ -1462,8 +1462,8 @@
 ;;; discipline, WHY it is asserted rather than proven (see each title's
 ;;; "why not grind" rationale in PSS.md).  Orthogonal to warrant (why we
 ;;; accept it) and gloss (what it says).  The canonical ordered list drives
-;;; both the category! validity check and the section order in write-pss-md.
-(define *pss-category-order*
+;;; both the topic! validity check and the section order in write-pss-md.
+(define *pss-topic-order*
   '((plumbing      . "Plumbing & typing")
     (inequalities  . "Inequalities & order")
     (combinatorial . "Combinatorial constructions")
@@ -1473,33 +1473,33 @@
     (constructions . "Metric-space constructions")
     (set-quotient  . "Set & quotient constructions")))
 
-(define (pss-category-title cat)
-  (cond ((assq cat *pss-category-order*) => cdr) (else #f)))
+(define (pss-topic-title cat)
+  (cond ((assq cat *pss-topic-order*) => cdr) (else #f)))
 
-(define *pss-categories* (make-equal-hash-table))   ; name -> category symbol
+(define *pss-topics* (make-equal-hash-table))   ; name -> category symbol
 
-(define (register-category! name cat)
-  (if (not (pss-category-title cat))
+(define (register-topic! name cat)
+  (if (not (pss-topic-title cat))
       (begin
-        (display ";; WARNING: unknown PSS category ") (write cat)
+        (display ";; WARNING: unknown PSS topic ") (write cat)
         (display " for ") (write name) (display " -- expected one of ")
-        (write (map car *pss-category-order*)) (newline))
+        (write (map car *pss-topic-order*)) (newline))
       (begin
-        (hash-table-set! *pss-categories* name cat)
+        (hash-table-set! *pss-topics* name cat)
         ;; Propagate to the -rev companion, like warrants/glosses.
         (let ((rev (rev-name-of name)))
           (when (hash-table-ref/default *theorem-table* rev #f)
-            (hash-table-set! *pss-categories* rev cat)))))
+            (hash-table-set! *pss-topics* rev cat)))))
   name)
 
-(define (category-of name)
-  (hash-table-ref/default *pss-categories* name #f))
+(define (topic-of name)
+  (hash-table-ref/default *pss-topics* name #f))
 
 ;;; Soft-nudge support: the PSS support names (collapsed of -rev) with no
 ;;; category yet.  load.scm reports the count; categorisation is a discipline,
 ;;; not a soundness gate, so this never fails the build.
-(define (uncategorized-pss-names)
-  (filter (lambda (n) (not (category-of n)))
+(define (pss-names-without-topic)
+  (filter (lambda (n) (not (topic-of n)))
           (collapse-rev-names
            (filter (lambda (n) (memq n *support-theorem-names*))
                    (hash-table-keys *theorem-table*)))))

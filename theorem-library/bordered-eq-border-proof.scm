@@ -96,4 +96,4 @@
 (ass)
 
 (qed 'bordered-eq-border)
-(category! 'bordered-eq-border 'algebra)
+(topic! 'bordered-eq-border 'algebra)

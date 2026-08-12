@@ -89,6 +89,9 @@
 (fact 'matact-entry 'md 'm 'k 'l '(MATMUL (SCAL md) P Q) 'u 'row 'col)
 (subst `(= (ENTRY ,MAL-LHSM row col) (FINSUM ,MS-VAG ,MAL-OUTF (INTERVAL 1 k))))
 (fact 'module-vector-ag-is-abelian-group 'md)
+;; interval-card-in-nn's guard: the dimensions are untyped in the statement, so
+;; k comes off u : MAT k l and n off Q : MAT n k (mat-rows-in-nn).
+(fact 'mat-rows-in-nn 'k 'l '(VEC md) 'u)
 (fact 'interval-in-set 1 'k)(fact 'interval-card-in-nn 1 'k)
 (fact 'mal-outf-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col)
 (fact 'mal-tout-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col)
@@ -100,6 +103,7 @@
       (fact 'matmul-entry '(SCAL md) 'm 'n 'k 'P 'Q 'row xv)
       (subst `(= (ENTRY (MATMUL (SCAL md) P Q) row ,xv)
                  (FINSUM ,MS-RAG (VNB-LAMBDA j (INTERVAL 1 n) ((MUL (SCAL md)) (ENTRY P row j) (ENTRY Q j ,xv))) (INTERVAL 1 n))))
+      (fact 'mat-rows-in-nn 'n 'k MS-SC 'Q)
       (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
       (fact 'mal-inf-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col xv)
       (fact 'entry-in-carrier 'k 'l '(VEC md) 'u xv 'col)
@@ -130,7 +134,7 @@
     (fact 'finsum-congruence MS-VAG '(INTERVAL 1 k) MAL-OUTF MAL-TOUT)
     (ass)))
 (qed 'matact-triple-left)
-(category! 'matact-triple-left 'algebra)
+(topic! 'matact-triple-left 'algebra)
 
 ;; =====================================================================
 ;; matact-triple-right : (P.(Q.u))_{row,col} = sum_{j in [1,n]} sum_{c in [1,k]} FF(c,j)
@@ -152,6 +156,7 @@
 (fact 'matact-entry 'md 'm 'n 'l 'P '(MATACT md Q u) 'row 'col)
 (subst `(= (ENTRY ,MAR-RHSM row col) (FINSUM ,MS-VAG ,MAR-OUTF (INTERVAL 1 n))))
 (fact 'module-vector-ag-is-abelian-group 'md)
+(fact 'mat-rows-in-nn 'n 'k MS-SC 'Q)
 (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
 (fact 'mar-outf-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col)
 (fact 'mar-tout-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col)
@@ -163,6 +168,7 @@
       (fact 'matact-entry 'md 'n 'k 'l 'Q 'u xv 'col)
       (subst `(= (ENTRY (MATACT md Q u) ,xv col)
                  (FINSUM ,MS-VAG (VNB-LAMBDA j (INTERVAL 1 k) ((ACT md) (ENTRY Q ,xv j) (ENTRY u j col))) (INTERVAL 1 k))))
+      (fact 'mat-rows-in-nn 'k 'l '(VEC md) 'u)
       (fact 'interval-in-set 1 'k)(fact 'interval-card-in-nn 1 'k)
       (fact 'mar-gj-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col xv)
       (fact 'entry-in-carrier 'm 'n MS-SC 'P 'row xv)
@@ -198,7 +204,7 @@
     (fact 'finsum-congruence MS-VAG '(INTERVAL 1 n) MAR-OUTF MAR-TOUT)
     (ass)))
 (qed 'matact-triple-right)
-(category! 'matact-triple-right 'algebra)
+(topic! 'matact-triple-right 'algebra)
 
 ;; =====================================================================
 ;; matact-assoc (Remark 3.39):  (P Q) . u  =  P . (Q . u)
@@ -232,6 +238,8 @@
 (subst `(= (ENTRY ,MAR-RHSM row col) ,MAR-TSUM))
 ;; interchange the summation order -- the crux
 (fact 'module-vector-ag-is-abelian-group 'md)
+(fact 'mat-rows-in-nn 'k 'l '(VEC md) 'u)
+(fact 'mat-rows-in-nn 'n 'k MS-SC 'Q)
 (fact 'interval-in-set 1 'k)(fact 'interval-card-in-nn 1 'k)
 (fact 'interval-in-set 1 'n)(fact 'interval-card-in-nn 1 'n)
 (fact 'matact-assoc-summand-type 'md 'm 'n 'k 'l 'P 'Q 'u 'row 'col)
@@ -244,19 +252,19 @@
 (ass)
 
 (qed 'matact-assoc)
-(category! 'matact-assoc 'algebra)
+(topic! 'matact-assoc 'algebra)
 
 ;; ----- categorize the Phase C PSS bricks declared in mod-seq.scm -----
-;; (structure-library loads before the PSS layer, so category! must run here.)
-(category! 'mvag-carr 'algebra)
-(category! 'mvag-op 'algebra)
-(category! 'mvag-id 'algebra)
-(category! 'matact-type 'algebra)
-(category! 'matact-entry 'algebra)
-(category! 'matact-summand-type 'algebra)
-(category! 'finsum-act-distrib-gen 'algebra)
-(category! 'finsum-act-collect-gen 'algebra)
-(category! 'matact-assoc-summand-type 'algebra)
-(for-each (lambda (n) (category! n 'algebra))
+;; (structure-library loads before the PSS layer, so topic! must run here.)
+(topic! 'mvag-carr 'algebra)
+(topic! 'mvag-op 'algebra)
+(topic! 'mvag-id 'algebra)
+(topic! 'matact-type 'algebra)
+(topic! 'matact-entry 'algebra)
+(topic! 'matact-summand-type 'algebra)
+(topic! 'finsum-act-distrib-gen 'algebra)
+(topic! 'finsum-act-collect-gen 'algebra)
+(topic! 'matact-assoc-summand-type 'algebra)
+(for-each (lambda (n) (topic! n 'algebra))
           '(mal-outf-type mal-tout-type mal-inf-type mal-dist-type mal-red-type
             mar-outf-type mar-tout-type mar-gj-type mar-dist-type mar-red-type))

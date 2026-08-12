@@ -70,6 +70,9 @@
 ;; the four non-VANISH antecedents of finsum-single-support
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 'n)
+;; interval-card-in-nn's guard: n is the row count of the n-by-n unit matrix
+;; just typed (the statement types no dimension).
+(fact 'mat-rows-in-nn 'n 'n '(CARR A) '(MATUNIT A n k l))
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matunit-summand-type 'A 'm 'n 'P 'k 'l 'i 'c)
 
@@ -125,4 +128,4 @@
 (rfl)
 
 (qed 'matunit-col-shift)
-(category! 'matunit-col-shift 'algebra)
+(topic! 'matunit-col-shift 'algebra)

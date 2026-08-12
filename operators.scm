@@ -31,7 +31,7 @@
 ;;; `structures' and the structure library, which populate it.
 
 ;;; -----------------------------------------------------------------------
-;;; The table.  Like *pss-categories* and *tactic-help*: a hash table, keyed by
+;;; The table.  Like *pss-topics* and *tactic-help*: a hash table, keyed by
 ;;; the LOWERCASE symbol (the reader and MIT Scheme both fold -- see CLAUDE.md).
 
 (define *operators* (make-equal-hash-table))
@@ -346,7 +346,14 @@
 (notation! 'in       'kind 'primitive 'arity 2 'english "$1 is in $2")
 (notation! 'subset   'kind 'primitive 'arity 2 'english "$1 is a subset of $2")
 (notation! '=        'kind 'primitive 'arity 2 'english "$1 equals $2")
-(notation! '==       'kind 'primitive 'arity 2 'english "$1 is identical to $2")
+;; `==' is the only one of these with no built-in TeX rule in tex-output.scm, so
+;; it used to fall all the way through to prefix application -- \operatorname{==}
+;; (visible on the rr-ms-dist slide).  \simeq is the manual's own reading of
+;; quasi-equality (docs/ch-defs.tex).  This is the first head to use the `tex'
+;; key at all: the hook has been in expr->tex since the table was built, and
+;; nothing had declared a template for it to find.
+(notation! '==       'kind 'primitive 'arity 2 'english "$1 is identical to $2"
+                                               'tex     "($1 \\simeq $2)")
 (notation! '<=       'kind 'primitive 'arity 2 'english "$1 is at most $2")
 (notation! '<        'kind 'primitive 'arity 2 'english "$1 is less than $2")
 (notation! '>=       'kind 'primitive 'arity 2 'english "$1 is at least $2")

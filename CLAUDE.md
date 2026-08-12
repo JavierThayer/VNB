@@ -25,12 +25,44 @@ Then the project **refocuses**, onto three things:
    `def-predicate` / `def-functoid` at definition time via `register-operator!`, and the
    reading declared next to the definition with `notation!`). It is read by `wff-english`
    (`operator-ref` / `operator-english`), `describe-structure` and `OPERATORS.md`.
-   STILL OUTSTANDING: `expr->tex` does NOT read it -- tex-output.scm keeps its own
-   per-operator render rules, so TeX and English can disagree. Known first entries: collapse a run of subtype-subsumption
+   `expr->tex` reads it too, and the old entry here -- "expr->tex does NOT read it" --
+   was half wrong: the hook (`operator-render-tex`, tex-output.scm) had been in the
+   `expr->tex` cond all along, but BELOW tex-output's own binop/special tables and,
+   more to the point, **no head in the tree declared a `tex` template** (195 `notation!`
+   calls, 0 with a `'tex` key), so it never fired. Fixed 2026-08-10: the branch now sits
+   ABOVE the two built-in tables (a declaration beats a default) and BELOW the
+   arithmetic-prefix branch (a fluid MODE beats a declaration), and `==` declares
+   `($1 \simeq $2)` -- the manual's own reading -- instead of falling through to
+   `\operatorname{==}(...)`. `abs` got the CARD treatment (`\lvert x \rvert`) in
+   tex-output's special table, where it belongs: it is a primitive with no operator entry.
+   STILL OUTSTANDING on the reader: collapse a run of subtype-subsumption
    citations (`register-definitional-structure!` already records the parent chain); capture
    the goal BEFORE each step, not only after, so the reader can always name an existential's
    bound variable (see the `proof-reader--goal-before` comment); render `IS-EUCLIDEAN-RING(a)`
    as "a is a Euclidean ring".
+
+**Where a definition lives, and the trap under it.** `def-predicate` / `def-constant`
+install a THEOREM (the defining iff), so they land in `theory-definitions` and hence in
+`reference/DEFINITIONS.md`. `def-functoid` installs only a rewrite MACETE -- no theorem --
+so a functoid is in neither that registry nor `*theorem-table*`. Two consequences, and they
+are the same fact seen from two sides:
+
+* `mac` unfolds a functoid in a GOAL; **`mac-h` cannot unfold one in an ASSUMPTION.** It
+  warns `unknown theorem/macete` and the driver continues with the hypothesis untouched.
+  A constructor whose members get read out of the context therefore needs a membership
+  `iff` stated beside it and wrapped `definitional` (`span-membership`,
+  `principal-ideal-membership`, `zz-bezout-set-membership`, ...). That iff is a
+  CONSEQUENCE of the definition -- the functoid unfold composed with the SEP separation
+  schema -- not the definition.
+* Until 2026-08-10 **DEFINITIONS.md carried no functoid at all**; all 113 were only in
+  `FUNCTORS.md`. Looking up `zz-bezout-set` there found only its membership law, which
+  reads exactly like a definition and is not one. `write-definitions-md` now emits an
+  "Unfold-only constructors (functoids)" section from `*functoid-registry*`, filtered by
+  `lookup-view-as` as FUNCTORS.md filters it, so the counts cannot drift (113 in both).
+
+And a name-shape trap worth stating once: `zz-bezout` is a THEOREM; the thing defined is
+`ZZ-BEZOUT-SET`. Searching the definition index for a theorem's name lands you on whatever
+shares its prefix.
 
 2. **A large database of theorems without proofs**, suitable as raw material for building new
    proofs. Statements, indexed and searchable; the PSS is the seed.
@@ -53,6 +85,15 @@ Full check suite (distinct from the launcher):
     timeout 900 mit-scheme --quiet --load test-suite.scm < /dev/null
 
 It prints `=== SUMMARY: N passed, M failed ===`.
+
+**RUN IT ALONE, and check for that line -- exit 0 does not mean it ran.** Note there is
+no `--heap` here: the suite takes MIT's default heap, not the ~1 GB `./prover` asks for.
+Started alongside a `./prover` process (2026-08-10) it died partway through the library
+load, ran zero checks, printed no `SUMMARY`, no `;Aborting!`, nothing on stderr, and
+**exited 0** -- indistinguishable from a clean run except that the log stops early and
+always at the same place. A `./prover script.scm` sharing the box failed the same silent
+way. Under contention it also gets much slower (>20 min against the usual ~6) before it
+dies, so a suite that is dragging is already the warning.
 
 ## COMPILE THE TREE FIRST -- everything below depends on it
 
@@ -89,6 +130,15 @@ edited files back is a couple of seconds and needs no loaded library:
 
 `compile-vnb!` does the whole tree incrementally but wants a loaded REPL -- which is
 the very load you just made slow. Compile first, load second.
+
+**And check WHICH files it actually compiled.** `vnb-file-uses-bc*-macro?` (load.scm)
+decides what to skip by scanning each line for `(bc* ` / `(declare-structure ` / `(vlet `.
+Until 2026-08-12 it scanned raw lines, COMMENTS INCLUDED -- so `macetes.scm` (which
+mentions `(bc* ` at :134) and `interactive.scm` (which shows `(declare-structure ` in a
+docstring at :2619) were silently never compiled. The `.com` files in the tree were old
+ones; the first time they were deleted, a 46 s library load became a >10 minute one with
+no diagnostic. The scan now strips comments first. If a load is inexplicably slow, the
+question is not "is the tree compiled" but "is THIS file compiled": `ls -la <file>.com`.
 
 **But never compile a file that USES a top-level macro that way.** `compile-file` from a
 bare REPL cannot see `bc*` (interactive.scm), `declare-structure` (structures.scm) or
@@ -439,6 +489,24 @@ ordinals; it says "we are assuming the theory of cardinals", and no bill records
 Either define CARD (the L1/L2 route in the Zermelo ladder makes that possible) or
 demote the seven back to `asserted` + `warrant!` so the assumption is visible.
 
+**One obstacle to defining CARD is now gone (2026-08-12): `interval-card-in-nn` is
+GUARDED.** It read `forall a, b. CARD(INTERVAL(a,b)) in NN`, which a defined CARD makes
+FALSE -- INTERVAL(1, b) for a non-natural b is all of NN, whose cardinal is omega -- so
+the unguarded form blocked the definition outright. It now carries `(IN b NN)` on the
+UPPER bound alone (matrix.scm), and the guard is not free: 34 `fact` citations across 13
+proof files. 7 already had the typing from their own premises; 26 now land it with
+`mat-rows-in-nn` (theorem-library/mat-basics.scm -- `IN Q (MAT m n X) => IN m NN`, which
+is why that file exists) off a matrix already in context, and border-mult's `[1, succ q]`
+citation lands it with `nn-succ-closed`. The matrix statements type no dimension
+(matmul-assoc quantifies `m n k l` with premises only `IN P (MAT m n (CARR A))`), so the
+typing has to come off the MATRIX; where the dimension is a data matrix's COLUMN count
+the square elementary/unit matrix typed one line earlier (ELEM-F/G/H, MATUNIT: n-by-n)
+supplies it, which is how the sites are reached without the column read-off mat-basics
+deliberately declines to prove. Library after: 307 proven, every bill byte-identical,
+suite 799/0. The failure mode here is LOUD, and that was checked rather than assumed:
+delete the two `mat-rows-in-nn` lines from matmul-assoc-proof.scm and the load reports
+`qed: proof is not complete; cannot install matmul-assoc` plus its cascade.
+
 **`trust: none` is the WEAKEST tier.** `*pd-trust-order*` (proof-debt.scm) is
 `(none hand-wave well-known reference informal proof)`, worst to best, and
 `debt-trust-level` reports the worst leaf. It is literally
@@ -455,24 +523,176 @@ proof-debt.scm and the ledger's design notes always had it right. (The brief als
 had `informal` and `well-known` swapped until 2026-07-23 -- the same swap that was
 fixed in proof-debt.scm on 2026-07-10 and never propagated here.)
 
-What drives the `trust: none` bills -- 51 of the 171 bills that carry any debt, out of
-238 proven theorems, 67 of which are unconditional (`modulo 0`); recounted 2026-08-01,
-after the arithmetic base went `primitive`, which is what took this from 96 to 51 --
-is that **ring.scm / group.scm / abelian-group.scm stamp their projected laws
-`asserted` and never warrant them** (`ring-mul-assoc`, `ring-add-left-id`,
-`group-assoc`, `group-left-inv`, `abelian-group-idempotent-is-id`, ...), whereas
-module.scm wraps the same kind of projection in
-`(fluid-let ((*current-provenance* 'definitional)) ...)` (module.scm:64) and so pays
-nothing. Re-verified 2026-08-01: those three files contain no provenance wrap at all,
-and each name above carries no `warrant!` -- except `ring-mul-zero-left`, which this
-list used to include and which IS warranted `well-known`. (The companion figure "438 of
-1325 asserted facts carry no warrant" was measured 2026-07-23 and is stale: 117 facts
-left the asserted column on 2026-08-01. It wants re-measuring, not adjusting.)
-Open triage: the shape projections are projections of the
-`def-structure-from-clauses` IFF, exactly like `module-act-unital`, and want
-`definitional`; the genuinely derived ones (`abelian-group-idempotent-is-id`) want to
-become warranted supports. With arithmetic out of the picture, this is now the largest
-single source of `trust: none` in the library.
+**The shape projections.** A structure declaration generates an IS-X IFF; each
+operation-property conjunct of it, unfolded, IS one of the structure's laws. Stating
+those laws separately as `theory-add-axiom!` and never warranting them is what used to
+drag every algebra proof to `trust: none` -- the weakest report there is, for facts that
+are literally part of the definition. Three different resolutions are now in the tree,
+and the difference between them matters:
+
+* module.scm wraps its projections in `(fluid-let ((*current-provenance* 'definitional))
+  ...)` (module.scm:64) and pays nothing.
+* ring.scm does the same thing by a different door: a `register-provenance! ...
+  'definitional` sweep over the eleven names (ring.scm:139, with the reasoning in the
+  comment above it). This brief said until 2026-08-10 that ring.scm "contains no
+  provenance wrap at all" -- that check looked for `fluid-let` and missed the sweep.
+* group.scm's four (`group-assoc`, `group-left-id`, `group-left-inv`,
+  `group-identity-in`) are, since 2026-08-10, **PROVEN** `modulo 0` in
+  structure-library/subtype-laws.scm (`stl--project!`), beside `abelian-group-opr-comm`,
+  which was already done that way. Same work as a provenance stamp and it says more: the
+  unfold is CHECKED, not asserted to exist. `ag-cancel-right` -- whose entire bill was
+  those three, and which is the deck's worked example of a proof that still owes
+  something -- now reports `modulo 0`.
+
+`abelian-group-idempotent-is-id` was the fourth case and the different one: not a
+projection but a genuinely DERIVED fact, and with 14 dependents the most-cited
+unwarranted leaf in the library. It is **PROVEN** `modulo 0` (2026-08-10) in
+theorem-library/cancellation.scm beside `group-cancel-left`, whose shape it borrows --
+`a*a = a` and `a*e = a` give `a*a = a*e`, cancel `a` on the left. It became reachable the
+same day *because* of the projections above: it needs the right identity (not a group
+axiom -- group.scm states only left-id -- but one commutation away in an abelian group)
+and `IDEN(s)` in the carrier, i.e. `group-identity-in`.
+
+Measured after all five (2026-08-10): **293 proven, 105 `modulo 0`, 32 `trust: none`**
+(was 288 / 97 / 54). Note `\Ntrustnone` is a TALLY, not a grep: PROOF-DEBT.md's own legend
+contains the string `trust: none`, so `grep -c` reports one more than the truth.
+
+**The `nary-*` bridge, and what "the weakest leaf" costs you.** `nary-plus-2`,
+`nary-times-2` and `nary-neg-1` (numeric-instances.scm) are the CONVERSE, written out, of
+`binplus-apply` / `bintimes-apply` / `binneg-apply`, which sit forty lines above them in
+the same file stamped `definitional` as the defining equations of the bridge symbols; the
+file's own comment says so ("Arity 2 is just binplus-apply / bintimes-apply reversed").
+`==` is quasi-equality, hence symmetric, so the converse of a conservative definition
+introduces nothing. On the user's call (2026-08-10) all three are now wrapped
+`definitional` -- individually, since they are not contiguous, and as a WRAP rather than a
+later `register-provenance!` so that `install-theorem!` stamps the auto-generated `-rev`
+companion too.
+
+**Stamping those three moved 27 leaf citations and ZERO bills.** The tier of a bill is its
+WORST leaf, and every proof citing those three also cites `nary-minus-2`, which was left
+`asserted` in the first pass. `trust: none` stayed at 32. `nary-minus-2` was then stamped
+too, on a SEPARATE decision because the argument is a different one -- it is not a converse
+but a COMPOSITION: `(- x y) == x + (- y)` is `binary-minus-def` (number-systems.scm), and
+the two converses rewrite the right-hand side to `binplus x (binneg y)`. `==` is a
+congruence, so the chain substitutes, and every step is definitional. That single stamp
+took `trust: none` **32 -> 19** and left `modulo 0` at 105 -- so `nary-minus-2` was never
+any bill's ONLY leaf, it was merely the worst one in thirteen of them.
+
+The lesson outlives the arithmetic: **reclassifying or proving a leaf buys nothing until it
+is the LAST unwarranted leaf of the bills that name it.** Triage by BILL, not by citation
+count -- `debt-keystones` ranks by citations and misled exactly here, putting `nary-neg-1`
+(14 dependents) at the top of the list when it was worth nothing on its own. The
+measurement to run first is the what-if: drop a candidate leaf from every bill and recount
+the tiers (`scratchpad/nary-what-if.scm`). It has been right every time.
+
+It happened TWICE in one day. `integral-domain-cancel-zero` was then PROVEN
+(below) -- and `trust: none` again did not move, because all seven of its bills also cited
+`zz-is-integral-domain`. Proving THAT took 19 -> **11**. Two of the day's five repairs
+moved nothing on their own; both were nonetheless necessary, because the shadowing leaf had
+to go too.
+
+**`integral-domain-cancel-zero` was already proved -- in a file nobody loaded.**
+structure-library/integral-domain-laws.scm unfolds the no-zero-divisor conjunct of
+`is-integral-domain-def` and closes it, and it had sat on disk for weeks WITHOUT AN ENTRY IN
+`load.scm`, so the proof never ran while integral-domain.scm went on asserting the same fact
+unwarranted into seven bills. Nothing catches this: a `.scm` in structure-library/ that
+load.scm does not name is simply invisible, and no gate counts files. If you write a proof
+file, the entry in load.scm is half the work.
+
+**`zz-is-integral-domain` (7 bills, the last big one) is PROVEN**, in
+theorem-library/zz-integral-domain.scm, together with `zz-is-commutative-ring`. Pattern:
+zz-ring-is-ring.scm's, one storey up -- unfold the defining IFF, `surface-goal!` the
+accessors down to integer arithmetic, and the conjuncts fall to `crs` / `arith` / a
+citation. The one piece of real content is that **ZZ has no zero divisors**, which nothing
+in number-systems.scm states (there is no ZZ zero-divisor axiom and no sign or trichotomy
+machinery for the integers). It is proved where the fact comes from, one system up: QQ is a
+FIELD, so `qq-recip-closed` / `qq-recip-inverse` invert any b /= 0, `zz-subset-qq`
+(primitive) carries the integers in, and
+
+    a = a.1 = a.(b.b^-1) = (a.b).b^-1 = 0.b^-1 = 0
+
+is four rewrites. `zz-no-zero-divisors` bills `modulo 0`. No induction, no order, no
+descent: the integers have no zero divisors because the rationals have inverses.
+
+`integral-domain-nontrivial` went the same way (five lines beside its sibling): it is not
+an INSTANCE of a conjunct of `is-integral-domain-def`, it IS one, verbatim. The axiom it
+replaced carried the comment "a conjunct of is-integral-domain-def, surfaced as a citable
+theorem" -- the proof, written in prose and then not run. Watch for that species of
+comment; it is the same failure as the unloaded proof file, one line long.
+
+Three more went the same afternoon, and the pair among them is the cleanest illustration
+of the shadowing rule anywhere in the tree, because the what-if PREDICTED it:
+
+* `qq-is-ring` -- PROVEN. `theorem-library/zz-ring-is-ring.scm` is now PARAMETERISED over
+  the instance (carrier, defining equation, set-hood fact, three typing axioms) and called
+  for ZZ-RING and QQ-RING, rather than copied. The file's name is historical; a third
+  numeric ring is one more line of instance data.
+* `comm-monoid-is-monoid` -- PROVEN, one line in subtype-laws.scm (`stl--prove-pred!`, the
+  abelian-group-is-group shape).
+* `nn-add-monoid-is-comm-monoid` -- PROVEN, theorem-library/nn-add-monoid.scm. Those two
+  were the ONLY unwarranted leaves of ONE bill (`poly-is-ring`) and shadowed each other:
+  measured in advance, either alone moved nothing and the two together moved one.
+
+**`nn-add-monoid` is where NOT to use `crs`.** Its three law conjuncts are closed by
+citing `nn-add-assoc` / `nn-add-comm` / `nn-add-zero`, not by the ring simplifier: `crs`
+decides commutative-RING identities and **NN is not a ring** -- it has no negation. All
+three identities are true of NN, so `crs` would have closed them and nothing would have
+looked wrong, but the justification would have been "this holds in any commutative ring",
+which is not a statement about NN. An oracle is sound where it applies; knowing that it
+applies is the caller's job.
+
+Two driver lessons from that file, both of which cost a run: read the eigenvariables off
+the GOAL, never off the context (`dk-asms` order is not the peel order -- taking the
+NN-typed hypotheses in context order gives `(w v u)` where the goal wants `(u v w)`, and
+`fact` then builds an instance `ass` quietly refuses); and run probe scripts with
+`< /dev/null`, because an `error` inside one drops into the `2 error>` REPL and waits on
+stdin forever, which looks exactly like an infinite loop.
+
+**`principal-ideal-membership` (5 bills, the largest single one left) is `definitional`**,
+stamped at source in ideal.scm -- and it is the case where a PROOF is not available and
+the stamp is the settled answer. `def-functoid` installs only a rewrite MACETE, not a
+theorem, so `mac-h` cannot unfold `PRINCIPAL-IDEAL` in an ASSUMPTION: it warns "unknown
+theorem/macete" and the driver sails on with the hypothesis untouched. That is why the
+axiom exists at all -- it is the only way to read a member of (a) out of the context,
+which is exactly what zz-bezout-proof and spans-submodule-fg-proof do with it. And it is
+legitimately definitional: the functoid unfold composed with the SEP separation schema,
+both trusted base, i.e. exactly the IFF `def-predicate' would have generated had
+PRINCIPAL-IDEAL been a predicate. Same treatment and reasoning as `span-membership`
+(mod-seq.scm, 2026-07-10) and the five constructor membership characterisations in
+definitional-reclass.scm; this one had simply been missed. Any `SEP`-bodied `def-functoid`
+whose members get read out of the context wants the same one-line wrap.
+
+End of 2026-08-10: **301 proven, 109 `modulo 0`, 4 `trust: none`**, in ten repairs, THREE
+of which moved nothing on their own. The four that remain have NO shadowing left -- each
+is the SOLE unwarranted leaf of its bill, so each is worth its full count:
+`zz-is-euclidean-ring` (zz-bezout; needs the division algorithm on ZZ, a different piece
+of work), `rr-is-metric-space` (rr-complete), and `inf-subsets-is-set` (two bills:
+totally-bounded-has-cauchy-subsequence, block-family-combinatorial).
+
+Also deliberately left `asserted`: the arity 3-5 forms (`nary-plus-3`, ...), which are not
+converses of anything -- they FIX the reading of the parser's flat n-ary node as a left
+fold, and nothing else in the theory states it. They have no dependents.
+
+**Proving a fact that used to be an axiom moves it past the view specializer.**
+`view-as-auto-specialize!` runs inside `def-functor`, i.e. when views.scm loads
+(load.scm:195) -- long before the interactive tactics exist, so a theorem proved in
+theorem-library/ (load.scm 500+) is invisible to it and its view companions are never
+built. `abelian-group-idempotent-is-id-module-vector-ag` is cited BY NAME in
+theorem-library/module-zero-act, so the move would have silently deleted it.
+cancellation.scm already re-ran the specializer for RING-ADDITIVE-AG for this exact
+reason. The trap: the unrestricted re-run installed **67** companions -- every
+abelian-group theorem proved since views.scm -- to deliver the one that was needed. So
+`view-as-auto-specialize!` now takes an optional SECOND argument naming a single theorem
+(structures.scm), and errors on an unknown name:
+
+    (view-as-auto-specialize! 'MODULE-VECTOR-AG 'abelian-group-idempotent-is-id)   ; 1, not 67
+
+Reach for the unrestricted form only when carrying a whole backlog across a view is what
+you mean, as the RING-ADDITIVE-AG line does.
+
+(The companion figure "438 of 1325 asserted facts carry no warrant" was measured
+2026-07-23 and is stale: 117 facts left the asserted column on 2026-08-01. It wants
+re-measuring, not adjusting.)
 
 When a proof turns into a grind, that is a finding, not a failure: add the obvious
 lemma to the PSS and record the obstacle. Do not slog.

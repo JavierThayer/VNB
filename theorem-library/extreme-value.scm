@@ -22,7 +22,7 @@
 (warrant! 'ccint-membership 'proof
   "Separation: x in CCINT(a,b) = SEP(x in RR | a<=x and x<=b) iff x in RR and
    a<=x and x<=b, by the SEP membership kernel rule.")
-(category! 'ccint-membership 'topology)
+(topic! 'ccint-membership 'topology)
 
 ;;; EVT (max): a continuous function on [a,b] (a<=b) attains its maximum.
 (add-to-pss 'extreme-value-max
@@ -38,7 +38,7 @@
    continuous f on the compact [a,b] attains its supremum.  Sequentially: a
    maximizing sequence in [a,b] has a convergent subsequence (seq-compactness of
    [a,b]); its limit c is in [a,b] and f(c) is the max by sequential continuity.")
-(category! 'extreme-value-max 'analysis)
+(topic! 'extreme-value-max 'analysis)
 
 ;;; EVT (min): a continuous function on [a,b] (a<=b) attains its minimum.
 (add-to-pss 'extreme-value-min
@@ -52,7 +52,7 @@
 (warrant! 'extreme-value-min 'reference
   "EVT (min form): apply extreme-value-max to -f; the argmax of -f is the argmin
    of f.")
-(category! 'extreme-value-min 'analysis)
+(topic! 'extreme-value-min 'analysis)
 
 ;;; Classic textbook names, for (find-theorem "...") lookup.
 (alias! 'extreme-value-max "Extreme Value Theorem" "EVT" "Weierstrass extreme value theorem")

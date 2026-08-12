@@ -1,0 +1,9 @@
+(def-predicate 'IS-DENSE-SEQ '(s dseq)
+  (conjuncts->and
+    (list
+      '(IS-METRIC-SPACE s)
+      '(IN dseq (FUN NN (PTS s)))
+      (forall-guarded 'x '(IN x (PTS s))
+        (forall-guarded 'eps '(POS-RR eps)
+          (forsome-guarded 'm '(IN m NN)
+            '(< ((DIST s) x (dseq m)) eps)))))))

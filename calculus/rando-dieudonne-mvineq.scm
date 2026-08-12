@@ -50,7 +50,7 @@
    RANDO's asserted primitive for the differential calculus -- Dieudonne's
    l.u.b./connectedness proof attains no maximum, so a development on this base
    never touches the extreme value theorem.")
-(category! 'mvineq-dieudonne 'analysis)
+(topic! 'mvineq-dieudonne 'analysis)
 
 ;;; (2) RANDO's corollary, proved ON the inequality: the M=0 increment bound
 ;;; f' <= 0 on (a,b)  =>  f(b) - f(a) <= 0*(b-a)   (f does not increase across [a,b]).

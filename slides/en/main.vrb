@@ -1,0 +1,12 @@
+\frametitle{A negative claim needs a control}
+\fid{mutation}
+  A list of statements the system fails to prove is worthless alone: a broken
+  test looks exactly like a sound refusal. So each entry names the guard it
+  watches, and we delete that guard on purpose.
+  \codefile[\tiny]{mutation-table.txt}
+  \begin{itemize}\small
+    \item \Nmut{} guards, \Nmut{} predictions, checked by a command
+          (\code{./mutation-check}) in about a second per mutant.
+    \item It also demonstrates live, if the occasion allows: break a guard, one
+          line goes red, put it back.
+  \end{itemize}

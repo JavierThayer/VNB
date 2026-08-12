@@ -67,7 +67,7 @@
   (subst (list '= (list 'SUM 'r bnm-dffg '(succ n)) (bnm-rhs 'n)))
   (lam-b)(macm 'bt-succ-minus-1)(macm 'sum-succ)(crs)))
 (qed 'sum-expansion)
-(category! 'sum-expansion 'algebra)
+(topic! 'sum-expansion 'algebra)
 
 ;; ==== binomial-theorem (induction on n, via sum-expansion + Pascal) ====
 (sp (make-wff (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
@@ -103,4 +103,4 @@
   (fact 'comb-kk-above 'r 'x 'y 'n '(succ n))(subst (list '= '((COMB-KK r x y n)(succ n)) '(ZERO r)))
   (crs)))
 (qed 'binomial-theorem)
-(category! 'binomial-theorem 'algebra)
+(topic! 'binomial-theorem 'algebra)

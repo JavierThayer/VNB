@@ -117,7 +117,7 @@
   (ass))
 
 (qed 'whole-module-is-submodule)
-(category! 'whole-module-is-submodule 'algebra)
+(topic! 'whole-module-is-submodule 'algebra)
 
 ;;; ===================================================================
 ;;; generates-implies-spans-vec -- GENERATES is the sm = VEC md case of SPANS.
@@ -150,7 +150,7 @@
 (ass)
 
 (qed 'generates-implies-spans-vec)
-(category! 'generates-implies-spans-vec 'algebra)
+(topic! 'generates-implies-spans-vec 'algebra)
 
 ;;; ===================================================================
 ;;; submodule-fg -- the bm := VEC md case of spans-submodule-fg.
@@ -183,4 +183,4 @@
 (ass)
 
 (qed 'submodule-fg)
-(category! 'submodule-fg 'algebra)
+(topic! 'submodule-fg 'algebra)

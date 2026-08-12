@@ -62,6 +62,9 @@
 (fact 'border-type 'A BD XY 'p 'r)
 (fact 'ring-additive-ag-is-abelian-group 'A)
 (fact 'interval-in-set 1 '(succ q))
+;; interval-card-in-nn is guarded on its upper bound; here that bound is succ q,
+;; and q is typed by the statement's own premise.
+(fact 'nn-succ-closed 'q)
 (fact 'interval-card-in-nn 1 '(succ q))
 (fact 'one-in-interval 'q)
 
@@ -201,11 +204,11 @@
 (ass)
 
 (qed 'border-mult)
-(category! 'border-mult 'algebra)
+(topic! 'border-mult 'algebra)
 ;; categorize the BORDER read-offs (mat-equiv.scm loads before the PSS layer)
-(category! 'border-type 'plumbing)
-(category! 'border-entry-11 'algebra)
-(category! 'border-entry-1j 'algebra)
-(category! 'border-entry-i1 'algebra)
-(category! 'border-entry-block 'algebra)
-(category! 'border-entry-block2 'algebra)
+(topic! 'border-type 'plumbing)
+(topic! 'border-entry-11 'algebra)
+(topic! 'border-entry-1j 'algebra)
+(topic! 'border-entry-i1 'algebra)
+(topic! 'border-entry-block 'algebra)
+(topic! 'border-entry-block2 'algebra)

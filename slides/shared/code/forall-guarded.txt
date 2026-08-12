@@ -1,0 +1,5 @@
+(define (forall-guarded binders antecedents consequent)
+  (if (symbol? binders)
+      (forall-guarded (list binders) (list antecedents) consequent)
+      (nest-quantifiers 'FORALL binders
+        (fold-right (lambda (a acc) `(IMPLIES ,a ,acc)) consequent antecedents))))

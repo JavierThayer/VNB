@@ -26,7 +26,7 @@
 (fact 'mat-equiv-trans 'R 'm 'n 'A '(MATMUL R U A) '(MATMUL R (MATMUL R U A) V))
 (ass)
  (qed 'equiv-mul-both)
-(category! 'equiv-mul-both 'algebra)
+(topic! 'equiv-mul-both 'algebra)
 
 ;; ---- swap-to-corner ----
 (define Fm '(ELEM-F R m 1 i0))
@@ -59,7 +59,7 @@
 (subst (list '= IFr '(ENTRY A i0 j0)))
 (rfl)
 (qed 'swap-to-corner)
-(category! 'swap-to-corner 'algebra)
+(topic! 'swap-to-corner 'algebra)
 
 ;;; --- swap-to-corner-gen: bring ANY entry to (1,1) (4 cases: pivot in
 ;;; row 1 and/or col 1 need only a half-swap or none; interior cites swap-to-corner) ---
@@ -135,7 +135,7 @@
     (foc-meq! B0) (ass)
     (foc-val! B0) (ass)
 (qed 'swap-to-corner-gen)
-(category! 'swap-to-corner-gen 'algebra)
+(topic! 'swap-to-corner-gen 'algebra)
 
 ;;; --- place-min-pivot: B ~ P with a minimal-degree nonzero pivot at (1,1)
 ;;; (min-degree-entry picks the minimal entry, swap-to-corner-gen brings it to (1,1);
@@ -176,4 +176,4 @@
 (inst+ MINj 'j)
 (ass)
 (qed 'place-min-pivot)
-(category! 'place-min-pivot 'algebra)
+(topic! 'place-min-pivot 'algebra)

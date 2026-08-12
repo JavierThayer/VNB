@@ -167,4 +167,4 @@
 (cc-foc-goal! (H? 'NOT)) (ass)
 
 (qed 'clear-pivot-cross)
-(category! 'clear-pivot-cross 'algebra)
+(topic! 'clear-pivot-cross 'algebra)

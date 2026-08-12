@@ -59,7 +59,7 @@
     (fact 'co-le-trans 'j_ '(succ j_) 'k_)
     (ass)))
 (qed 'nn-not-lt-le)
-(category! 'nn-not-lt-le 'inequalities)
+(topic! 'nn-not-lt-le 'inequalities)
 
 ;;; k < j  =>  succ k <= j.  Discreteness; the strict order has no room.
 (sp (make-wff '(FORALL k_ (IMPLIES (IN k_ NN)
@@ -80,7 +80,7 @@
 (fact 'nn-not-le-succ-le 'j_ 'k_)
 (ass)
 (qed 'nn-lt-succ-le)
-(category! 'nn-lt-succ-le 'inequalities)
+(topic! 'nn-lt-succ-le 'inequalities)
 
 ;;; --------------------------------------------------------------------
 ;;; The map.
@@ -111,7 +111,7 @@
                 (begin (subst (list '= co-if 'j_)) (rfl))))
           (dk-opened (lambda () (if-false co-if))))
 (qed 'collapse-at-lo)
-(category! 'collapse-at-lo 'combinatorial)
+(topic! 'collapse-at-lo 'combinatorial)
 
 (sp (make-wff '(FORALL k_ (IMPLIES (IN k_ NN)
                  (FORALL j_ (IMPLIES (IN j_ NN)
@@ -128,7 +128,7 @@
                 (begin (subst (list '= co-if '(PRED j_))) (rfl))))
           (dk-opened (lambda () (if-true co-if))))
 (qed 'collapse-at-hi)
-(category! 'collapse-at-hi 'combinatorial)
+(topic! 'collapse-at-hi 'combinatorial)
 
 ;;; the value is a natural, at every k and every j -- including j = k, where it
 ;;; is k.  Above the cut this needs j /= 0, which k < j supplies.
@@ -152,7 +152,7 @@
     (subst '(= ((COLLAPSE-AT k_) j_) j_))
     (ass)))
 (qed 'collapse-at-in-nn)
-(category! 'collapse-at-in-nn 'combinatorial)
+(topic! 'collapse-at-in-nn 'combinatorial)
 
 ;;; --------------------------------------------------------------------
 ;;; What the surgery is FOR: it drops the bound by one, and it is injective
@@ -206,7 +206,7 @@
     (mac-h 'nn-succ-plus-one '(<= (succ j_) k_))
     (co-ineq! '(<= (+ j_ 1) k_) '(<= k_ n_))))
 (qed 'collapse-at-lt)
-(category! 'collapse-at-lt 'combinatorial)
+(topic! 'collapse-at-lt 'combinatorial)
 
 ;;; injectivity away from k.  Four cases; the two mixed ones close because
 ;;; k < a and b < k and pred(a) = b cannot hold together.
@@ -274,7 +274,7 @@
         (subst (list '= 'b_ (co-val 'b_)))
         (ass)))))
 (qed 'collapse-at-inj)
-(category! 'collapse-at-inj 'combinatorial)
+(topic! 'collapse-at-inj 'combinatorial)
 
 ;;; --------------------------------------------------------------------
 ;;; The segment face, which is the form the pigeonhole step consumes:
@@ -295,4 +295,4 @@
 (fact 'collapse-at-lt 'n_ 'k_ 'j_)
 (ass)
 (qed 'collapse-at-in-seg)
-(category! 'collapse-at-in-seg 'combinatorial)
+(topic! 'collapse-at-in-seg 'combinatorial)

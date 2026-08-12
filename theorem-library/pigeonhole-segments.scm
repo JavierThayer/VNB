@@ -51,7 +51,7 @@
 (fact 'ord-le-antisymm 'k 0)
 (ai '(NOT (= k 0)))
 (qed 'ord-segment-zero-no-members)
-(category! 'ord-segment-zero-no-members 'set-theory)
+(topic! 'ord-segment-zero-no-members 'set-theory)
 
 ;;; --------------------------------------------------------------------
 ;;; Nothing maps into the empty segment.
@@ -68,7 +68,7 @@
 (fact 'ord-segment-zero-no-members '(f x))
 (ai '(NOT (IN (f x) (ORD-SEGMENT 0))))
 (qed 'fun-into-seg-zero-absurd)
-(category! 'fun-into-seg-zero-absurd 'set-theory)
+(topic! 'fun-into-seg-zero-absurd 'set-theory)
 
 ;;; --------------------------------------------------------------------
 ;;; PIGEONHOLE, base case: no injection from S(1) into S(0).
@@ -94,7 +94,7 @@
 (fact 'fun-into-seg-zero-absurd '(ORD-SEGMENT (succ 0)) 'f 0)
 (ass)
 (qed 'no-injection-seg-1-into-seg-0)
-(category! 'no-injection-seg-1-into-seg-0 'set-theory)
+(topic! 'no-injection-seg-1-into-seg-0 'set-theory)
 
 ;;; --------------------------------------------------------------------
 ;;; PIGEONHOLE, the induction step.
@@ -222,7 +222,7 @@
 (dk-deepest (lambda () (inst+ ph-IH ph-h)))
 (ai (list 'NOT (list 'IN ph-h (list 'INJECTION ph-S1 ph-S0))))
 (qed 'pigeonhole-step)
-(category! 'pigeonhole-step 'combinatorial)
+(topic! 'pigeonhole-step 'combinatorial)
 
 ;;; --------------------------------------------------------------------
 ;;; PIGEONHOLE for segments: nothing injects S(succ n) into S(n), for any n.
@@ -243,7 +243,7 @@
   (fact 'pigeonhole-step 'n_)
   (ass))
 (qed 'pigeonhole-segments)
-(category! 'pigeonhole-segments 'combinatorial)
+(topic! 'pigeonhole-segments 'combinatorial)
 
 ;;; --------------------------------------------------------------------
 ;;; PIGEONHOLE, general form:  n < m  =>  nothing injects S(m) into S(n).
@@ -329,4 +329,4 @@
 (dk-fact! 'pigeonhole-segments 'n_ pg-h)
 (ai (list 'NOT (list 'IN pg-h (list 'INJECTION pg-S1 pg-S0))))
 (qed 'pigeonhole-segments-gen)
-(category! 'pigeonhole-segments-gen 'combinatorial)
+(topic! 'pigeonhole-segments-gen 'combinatorial)

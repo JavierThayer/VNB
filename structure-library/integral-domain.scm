@@ -26,19 +26,17 @@
 ;;; no zero divisors.
 
 ;;; Projection: an integral domain is nontrivial (1 /= 0).  A conjunct of
-;;; is-integral-domain-def, surfaced as a citable theorem.
-(theory-add-axiom! *current-theory* 'integral-domain-nontrivial
-  '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s) (NOT (= (ONE s) (ZERO s))))))
+;;; is-integral-domain-def, surfaced as a citable theorem -- and since
+;;; 2026-08-10 PROVEN as one, in structure-library/integral-domain-laws.scm,
+;;; rather than asserted here.  The old comment on the axiom said "a conjunct of
+;;; is-integral-domain-def", which is the proof written in prose and not run.
 
-;;; The cancellation form of "no zero divisors", shaped for a forward `fact':
-;;; a*b = 0 with b /= 0 forces a = 0.
-(theory-add-axiom! *current-theory* 'integral-domain-cancel-zero
-  '(FORALL s (IMPLIES (IS-INTEGRAL-DOMAIN s)
-     (FORALL a (IMPLIES (IN a (CARR s))
-     (FORALL b (IMPLIES (IN b (CARR s))
-       (IMPLIES (= ((MUL s) a b) (ZERO s))
-       (IMPLIES (NOT (= b (ZERO s)))
-         (= a (ZERO s)))))))))))
+;;; The cancellation form of "no zero divisors" (a*b = 0 with b /= 0 forces
+;;; a = 0), shaped for a forward `fact', is NOT asserted here.  It is PROVEN in
+;;; structure-library/integral-domain-laws.scm, which unfolds the
+;;; is-integral-domain-def conjunct it is an instance of.  That file had existed
+;;; for weeks without being listed in load.scm, so the proof never ran and this
+;;; axiom stood in its place, unwarranted, in seven bills (found 2026-08-10).
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-INTEGRAL-DOMAIN    'kind 'predicate 'arity 1 'noun "integral domain" 'article "an")

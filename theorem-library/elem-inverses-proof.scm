@@ -112,7 +112,7 @@
 (fact 'matrix-entry-extensionality 'n 'n '(CARR A) EI-HPROD '(IDENTMAT A n))
 (ass)
 (qed 'elem-h-inverse)
-(category! 'elem-h-inverse 'algebra)
+(topic! 'elem-h-inverse 'algebra)
 
 ;;; ===================== elem-g-inverse ============================
 (define EI-NEGr '((NEG A) r))
@@ -227,7 +227,7 @@
 (fact 'matrix-entry-extensionality 'n 'n '(CARR A) EI-GPROD '(IDENTMAT A n))
 (ass)
 (qed 'elem-g-inverse)
-(category! 'elem-g-inverse 'algebra)
+(topic! 'elem-g-inverse 'algebra)
 
 ;;; ===================== elem-f-inverse ============================
 (define EI-FKL '(ELEM-F A n k l))
@@ -293,4 +293,4 @@
 (fact 'matrix-entry-extensionality 'n 'n '(CARR A) EI-FPROD '(IDENTMAT A n))
 (ass)
 (qed 'elem-f-inverse)
-(category! 'elem-f-inverse 'algebra)
+(topic! 'elem-f-inverse 'algebra)

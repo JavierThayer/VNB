@@ -132,7 +132,7 @@
    least one, s = SUP(NN); s - 1 is then not an upper bound, so s - 1 < n for
    some natural n, so s < n + 1, and n + 1 is a natural.  Not mechanised --
    that is the driver this warrant is standing in for.")
-(category! 'nn-unbounded-in-rr 'inequalities)
+(topic! 'nn-unbounded-in-rr 'inequalities)
 
 ;;; The reciprocal reading, in the two pieces a net argument consumes.  Kept
 ;;; SEPARATE because the consumer uses them at different moments: positivity is
@@ -152,7 +152,7 @@
    forced by a * recip a = 1 (rr-recip-inverse) together with
    rr-leq-mul-nonneg.  Not mechanised: it needs recip-order lemmas the tree
    does not have yet.")
-(category! 'nn-recip-succ-pos 'inequalities)
+(topic! 'nn-recip-succ-pos 'inequalities)
 
 (support 'nn-recip-succ-small
   (forall-guarded 'eps '(POS-RR eps)
@@ -168,7 +168,7 @@
    0 < recip a; 0 < a < b => recip b < recip a), which the tree does not have.
    Adding those two and proving this would trade one assertion for two, so it
    was deliberately not done -- see the note in separable.scm.")
-(category! 'nn-recip-succ-small 'inequalities)
+(topic! 'nn-recip-succ-small 'inequalities)
 (rests-on 'nn-recip-succ-small '(nn-unbounded-in-rr))
 
 ;;; --------------------------------------------------------------------
@@ -204,7 +204,7 @@
   "QQ is dense in RR: for every real x and every positive eps there is a
    rational a with a - eps < x < a + eps.  Standard; derivable from order
    completeness plus the fraction and generation axioms, not yet mechanised.")
-(category! 'qq-dense-in-rr 'inequalities)
+(topic! 'qq-dense-in-rr 'inequalities)
 (rests-on 'qq-dense-in-rr '(nn-unbounded-in-rr))
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
