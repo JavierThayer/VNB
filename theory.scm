@@ -585,20 +585,41 @@
     ;; -------------------------------------------------------------------
     ;; MAKE-SET: the set of elements of a tuple.
     ;;   make-set-membership:
-    ;;     x ∈ make-set(L) ↔ ∃ i ∈ NN. 1 ≤ i ∧ i ≤ length(L) ∧ nth(i, L) = x
+    ;;     x ∈ make-set(L) ↔ x ∈ SET ∧ ∃ i ∈ NN. 1 ≤ i ∧ i ≤ length(L) ∧ nth(i, L) = x
     ;;   The 1 ≤ i ≤ length(L) bounds are essential.  nth out-of-range is
     ;;   unspecified in the intended model; without the bounds, an
     ;;   unspecified value would be a member of every make-set.
     ;;   make-set-sethood:    L ∈ TUPLES(A) ∧ A ∈ SET → make-set(L) ∈ SET
     ;;   make-set-empty:      make-set([]) = EMPTY-SET
+    ;;
+    ;; THE (IN x SET) CONJUNCT IS A SOUNDNESS REPAIR, 2026-08-13, and it is the
+    ;; same one `pairing-membership' (above) carries and for the same reason --
+    ;; MAKE-SET had simply been missed.  {a,b} is surface sugar for
+    ;; (MAKE-SET (LIST a b)), so this is the form a USER writes, and without the
+    ;; conjunct the theory was INCONSISTENT, in eight lines and with no asserted
+    ;; step: instantiate the iff at x := ORD, L := (LIST ORD ORD), take i := 1,
+    ;; reduce (NTH 1 (LIST ORD ORD)) to ORD (nth-r, sound and unguarded -- a
+    ;; literal LIST is a total spine), close (= ORD ORD) by `rfl' (ORD is a
+    ;; symbol, hence term-self-defined?), and read off ORD ∈ make-set(...);
+    ;; then `membership-implies-sethood' gives ORD ∈ SET against burali-forti.
+    ;; The corpus entry is in test-suite-negative.scm; the probe that found it
+    ;; is scratchpad/makeset-class-probe.scm.
+    ;;
+    ;; The conjunct, rather than a guard on L, keeps MAKE-SET TOTAL over classes
+    ;; (the policy stated for UNION/INTERSECTION below) and gives the standard
+    ;; NBG reading: a proper class is a member of nothing, so {ORD, ORD} is
+    ;; EMPTY-SET rather than an uninterpreted term.  It is also literally the
+    ;; shape of `power-set-membership', six lines down.  Nothing in the tree
+    ;; cites this axiom, so the repair moved no call site.
 
     (theory-add-axiom! th 'make-set-membership
       '(FORALL x (FORALL L
           (IFF (IN x (MAKE-SET L))
-               (FORSOME i (AND (IN i NN)
-                          (AND (<= 1 i)
-                          (AND (<= i (LENGTH L))
-                               (= (NTH i L) x)))))))))
+               (AND (IN x SET)
+                    (FORSOME i (AND (IN i NN)
+                               (AND (<= 1 i)
+                               (AND (<= i (LENGTH L))
+                                    (= (NTH i L) x))))))))))
 
     (theory-add-axiom! th 'make-set-sethood
       '(FORALL A (FORALL L

@@ -1033,7 +1033,7 @@ The foundational axioms of VNB set theory (make-vnb-base-theory core + theorem-l
 - `limit-ord-is-sup` — forall([lambda], limit-ord(lambda) implies sup-ord(ord-segment(lambda)) = lambda)
 - `list-sethood` — forall([a, l], a in set and l in tuples(a) implies l in set)
 - `make-set-empty` — {} = empty-set
-- `make-set-membership` — forall([x, l], x in make-set(l) iff forsome([i in nn], 1 <= i and i <= length(l) and nth(i, l) = x))
+- `make-set-membership` — forall([x, l], x in make-set(l) iff x in set and forsome([i in nn], 1 <= i and i <= length(l) and nth(i, l) = x))
 - `make-set-sethood` — forall([a, l], l in tuples(a) and a in set implies make-set(l) in set)
 - `membership-implies-sethood` — forall([a, b], a in b implies a in set)
 - `nn-add-assoc` — forall([a, b, c], a in nn and b in nn and c in nn implies a + b + c = a + b + c)

@@ -37,7 +37,11 @@
 ;;;
 ;;; THE MUTATION RECORD.  Five guards were deleted on purpose, one at a time, in
 ;;; a live image (band restart + `set!' of the procedure), and the corpus re-run.
-;;; Each turned exactly the entries below red and nothing else:
+;;; Each turned exactly the entries below red and nothing else.  A SIXTH was added
+;;; 2026-08-13 -- the (IN x SET) conjunct of make-set-membership -- and that one
+;;; was not a drill: the axiom really was unguarded, and section 2b's two entries
+;;; both close against it (mutation run: scratchpad/mnp-makeset-entry-probe.scm,
+;;; #t #t against the mutant, #f #f against the repair, control green both ways).
 ;;;
 ;;;   mutation           what was deleted                    entries turned red
 ;;;   ----------------   ---------------------------------   ------------------
@@ -219,6 +223,83 @@
                     (begin (fact 'nn-is-set) (ass))
                     (begin (di) (ass))))
               (proof-leaves))))
+
+;;; -----------------------------------------------------------------------
+;;; 2b.  THE MAKE-SET CLASS LEAK (unsound until 2026-08-13).
+;;;
+;;; `{a, b}' is surface sugar for (MAKE-SET (LIST a b)), and make-set-membership
+;;; was stated as an UNCONDITIONAL iff -- unlike its neighbours pairing-membership
+;;; and power-set-membership, both of which carry a sethood conjunct precisely so
+;;; that the iff plus membership-implies-sethood cannot force a class into SET.
+;;; MAKE-SET had been missed.  The attack is eight lines and bills nothing:
+;;;
+;;;   x := ORD, L := (LIST ORD ORD), witness i := 1
+;;;   len-r / nth-r reduce the literal spine     (sound, and unguarded)
+;;;   (= ORD ORD) closes by rfl                  (ORD is term-self-defined?)
+;;;   => ORD in make-set(...)  => (membership-implies-sethood)  ORD in SET
+;;;
+;;; against burali-forti.  MUTATION-CHECKED 2026-08-13 BY CONSTRUCTION: this
+;;; entry is red on the axiom as it stood -- the probe that proved it is
+;;; scratchpad/makeset-class-probe.scm -- and green with the (IN x SET)
+;;; conjunct in place.  The control below shows the attack is still live: the
+;;; same route on a genuine set must CLOSE.
+;;; -----------------------------------------------------------------------
+
+(define (mnp-makeset-route!)
+  (mac 'make-set-membership)
+  (mnp-attack-leaves!)
+  (ignore-errors
+   (begin
+     (ew 1)
+     (len-r)
+     (nth-r)
+     (mnp-attack-leaves!))))
+
+(mnp-refuses "ORD in {ORD, ORD} -- a proper class is a member of nothing"
+  '(IN ORD (MAKE-SET (LIST ORD ORD)))
+  (lambda () (mnp-makeset-route!)))
+
+;;; The payoff, driven leaf by leaf.  NOT written with `have!': it ERRORS when
+;;; its side goal stays open, and MIT's `ignore-errors' does not trap a plain
+;;; (error ...) -- the entry aborted the whole suite run before this was
+;;; rewritten.  Every command below WARNS on failure instead.  The route is the
+;;; probe's, step for step: cut the membership, drive the make-set iff on the
+;;; side goal, then membership-implies-sethood on the main branch.
+(mnp-refuses "ORD in SET, by way of {ORD, ORD}"
+  '(IN ORD SET)
+  (lambda ()
+    (cut '(IN ORD (MAKE-SET (LIST ORD ORD))))
+    (for-each (lambda (l)
+                (dk-focus! l)
+                (if (equal? (dk-goal) '(IN ORD (MAKE-SET (LIST ORD ORD))))
+                    (mnp-makeset-route!)))
+              (proof-leaves))
+    (for-each (lambda (l)
+                (dk-focus! l)
+                (if (equal? (dk-goal) '(IN ORD SET))
+                    (begin
+                      (fact 'membership-implies-sethood 'ORD '(MAKE-SET (LIST ORD ORD)))
+                      (ass))))
+              (proof-leaves))
+    (mnp-attack-leaves!)))
+
+;;; The control has to close under the MUTATION too, or a mutation run cannot
+;;; tell "the guard is gone" from "the attack went dead".  Under the mutation
+;;; the iff's RHS has no (IN x SET) conjunct, so the `di' split yields nothing
+;;; and the single leaf IS the existential -- hence the fallback to
+;;; (proof-leaves) rather than a fixed two-branch shape.
+(mnp-control "0 IS in {0, 1} -- the same route, on a set"
+  '(IN 0 (MAKE-SET (LIST 0 1)))
+  (lambda ()
+    (mac 'make-set-membership)
+    (let ((opened (dk-opened (lambda () (di)))))
+      (for-each
+       (lambda (l)
+         (dk-focus! l)
+         (if (equal? (dk-goal) '(IN 0 SET))
+             (begin (fact 'nn-zero-in) (fact 'membership-implies-sethood 0 'NN) (ass))
+             (begin (ew 1) (len-r) (nth-r) (mnp-attack-leaves!))))
+       (if (null? opened) (proof-leaves) opened)))))
 
 ;;; -----------------------------------------------------------------------
 ;;; 3.  GROUND ARITHMETIC.  `arith' is a trusted ORACLE: it closes by
