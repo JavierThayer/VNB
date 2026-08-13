@@ -83,7 +83,7 @@ reads: $1 is at most $2
 
 a kernel relation
 
-[mentioned by 305 result(s)](BY-OPERATOR.md#<=)
+[mentioned by 307 result(s)](BY-OPERATOR.md#<=)
 
 ### `<=_ord`  *(predicate)*
 
@@ -416,9 +416,9 @@ characterized by `card-empty`  *(primitive)*:
 card(empty-set) = 0
 ```
 
-also: `card-in-ord` `card-insert` `card-segment` `card-finite-bij` `card-union-disjoint` `card-image-injection` `card-power-nn` `interval-card` ... (11 in all)
+also: `card-in-ord` `card-insert` `card-segment` `card-finite-bij` `card-union-disjoint` `card-image-injection` `card-pair` `card-power-nn` ... (12 in all)
 
-[mentioned by 153 result(s)](BY-OPERATOR.md#card)
+[mentioned by 155 result(s)](BY-OPERATOR.md#card)
 
 ### `card*(a_)`  *(functoid)*
 
@@ -1822,9 +1822,9 @@ characterized by `is-ring`  *(definitional)*:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 ```
 
-also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (476 in all)
+also: `is-chain` `is-ringoid` `ring-class` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` `trinum-succ` ... (477 in all)
 
-[mentioned by 2565 result(s)](BY-OPERATOR.md#in)
+[mentioned by 2573 result(s)](BY-OPERATOR.md#in)
 
 ### `ineq`  *(tactic)*
 
@@ -3772,7 +3772,7 @@ forall([x, y], x + y == reduce(binplus, fam-of-list([x, y]), 2))
 
 also: `nary-plus-3-list` `nary-plus-4-list` `nary-plus-5-list` `nary-times-2-list` `nary-times-3-list` `nary-times-4-list` `nary-times-5-list` 
 
-[mentioned by 119 result(s)](BY-OPERATOR.md#list)
+[mentioned by 126 result(s)](BY-OPERATOR.md#list)
 
 ### `little-o-at(g, a)`  *(predicate)*
 
@@ -3841,7 +3841,7 @@ characterized by `make-set-empty`  *(primitive)*:
 
 also: `make-set-sethood` `make-set-membership` 
 
-[mentioned by 7 result(s)](BY-OPERATOR.md#make-set)
+[mentioned by 13 result(s)](BY-OPERATOR.md#make-set)
 
 ### `mat(m, n, x)`  *(functoid)*
 
@@ -4536,9 +4536,9 @@ characterized by `nth-in-range`  *(primitive)*:
 forall([a, i, l], i in nn and l in tuples(a) and 1 <= i and i <= length(l) implies nth(i, l) in a)
 ```
 
-also: `nth1-pair` 
+also: `ms-nth-2` `nth1-pair` 
 
-[mentioned by 25 result(s)](BY-OPERATOR.md#nth)
+[mentioned by 26 result(s)](BY-OPERATOR.md#nth)
 
 ### `nth-deriv`  *(defined-fn)*
 
@@ -4692,7 +4692,7 @@ forall([a, b], a in set and b in set implies {a, b} in set)
 
 also: `pairing-membership` 
 
-[mentioned by 38 result(s)](BY-OPERATOR.md#pair)
+[mentioned by 40 result(s)](BY-OPERATOR.md#pair)
 
 ### `partial-fun`  *(operator)*
 
@@ -6161,7 +6161,7 @@ forall([x, as], x in union(restvar(as)) iff splice(or, e, as, x in e))
 
 also: `union-membership` `union-set-closure` `card-union-disjoint` `union-empty-left` `sum-set-disjoint-union` `prod-set-disjoint-union` 
 
-[mentioned by 39 result(s)](BY-OPERATOR.md#union)
+[mentioned by 41 result(s)](BY-OPERATOR.md#union)
 
 ### `unitrow(a, n, i)`  *(functoid)*
 

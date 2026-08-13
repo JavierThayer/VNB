@@ -97,7 +97,7 @@ Declared by: `bintimes-apply` `bintimes-in-fun-cc` `bintimes-in-fun-nn` `bintime
 
 ### `card`  — characterized by axiom(s)
 
-Declared by: `card-empty` `card-finite-bij` `card-image-injection` `card-in-ord` `card-insert` `card-power-nn` `card-segment` `card-singleton` 
+Declared by: `card-empty` `card-finite-bij` `card-image-injection` `card-in-ord` `card-insert` `card-pair` `card-power-nn` `card-segment` 
 
 ### `card*`  — def-functoid · element/number-valued
 

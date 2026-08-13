@@ -591,6 +591,11 @@
     ;; exposed the gap.  Own file, not the pairing file, so the next user can
     ;; find them.  Needs nn-parity-proof (nn-zero-or-succ).
     "theorem-library/nn-order-proof"
+    ;; Reading membership out of a literal brace set: {a,b} is sugar for
+    ;; MAKE-SET(LIST a b), whose membership law is an existential over INDICES.
+    ;; makeset2-membership turns it into a disjunction, once.  Needs
+    ;; nn-order-proof (nn-le-antisym), just above.
+    "theorem-library/makeset-basics"
     ;; The Cantor pairing NN x NN -> NN (TRINUM by recursion, NNPAIR(i,j) =
     ;; TRINUM(i+j)+j) and its surjectivity, plus nn-succ-add (succ(a)+b) which
     ;; the base lacked.  The re-indexing mechanism that compact-metric-is-
