@@ -18,7 +18,24 @@
 # Use --full after editing a cross-file macro (define-syntax), which the mtime
 # check cannot detect as invalidating dependents' baked-in expansions.
 
-PROVER_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Resolve $0 through any symlinks FIRST.  `dirname "$0"' alone gives the
+# directory of the SYMLINK, not of the real tree, so a launcher symlinked into
+# a ~/bin or a curated run/ directory looked for emacs/vnb-launch.el beside the
+# symlink and died with "cannot find .../emacs/vnb-launch.el" (reported
+# 2026-08-13).  readlink -f is GNU/Linux; the loop is the portable fallback.
+VNB_SELF="$0"
+if command -v readlink >/dev/null 2>&1 && readlink -f "$VNB_SELF" >/dev/null 2>&1; then
+    VNB_SELF="$(readlink -f "$VNB_SELF")"
+else
+    while [ -L "$VNB_SELF" ]; do
+        VNB_LINK="$(ls -ld "$VNB_SELF" | sed "s/.*-> //")"
+        case "$VNB_LINK" in
+            /*) VNB_SELF="$VNB_LINK" ;;
+            *)  VNB_SELF="$(dirname "$VNB_SELF")/$VNB_LINK" ;;
+        esac
+    done
+fi
+PROVER_DIR="$(cd "$(dirname "$VNB_SELF")" && pwd)"
 LOAD="$PROVER_DIR/load.scm"
 # Match prover's HEAP; library proofs OOM at the old default.
 HEAP=120000
