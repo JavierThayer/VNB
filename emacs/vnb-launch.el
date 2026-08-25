@@ -66,6 +66,11 @@ frame background -- controls every background, REPL and workspace alike."
   "Workspace title."
   :group 'vnb-faces)
 
+(defface vnb-move
+  '((t :inherit vnb-default :foreground "#a6e22e"))
+  "A runnable tactic form in the What-Now workspace; RET sends it."
+  :group 'vnb-faces)
+
 (defface vnb-heading
   '((t :inherit vnb-default :foreground "#66ccff" :weight bold :height 1.1))
   "Section headings inside a workspace."
@@ -450,19 +455,34 @@ their input either disappears or gets buried under the load output.
 The wait itself is `vnb--wait-until' (vnb.el), which measures TIME.  This
 loop used to count calls to `accept-process-output' instead, and the load's
 own output made those calls return instantly: the 180-\"second\" wait expired
-after 1.5 s, mid-load, and returned nil -- which the caller ignored."
+after 1.5 s, mid-load, and returned nil -- which the caller ignored.
+
+Returns `ok' for a normal prompt, `error' if the load DIED into MIT's nested
+error REPL, or nil on timeout.
+
+RECOGNISING THE ERROR PROMPT IS THE WHOLE POINT (2026-08-15).  This loop used
+to search for \"[0-9]+ \\]=> \" only.  A load that errors leaves the prover
+sitting at `2 error> ', which never matches -- so Emacs blocked here for the
+full 900 seconds, unresponsive to everything but C-g, and the user reported it
+as \"Emacs started but froze completely\".  It was not frozen; it was waiting
+for a prompt that was never going to arrive.  `vnb--last-prompt-type' (vnb.el)
+has recognised both kinds all along, for exactly this reason, in
+`vnb-eval-string' -- the launcher simply was not using it."
   (let* ((timeout (or timeout 900))
          (buf     (get-buffer vnb-buffer-name))
          (proc    (and buf (get-buffer-process buf))))
     (when (and buf proc (eq (process-status proc) 'run))
       (with-current-buffer buf
-        (vnb--wait-until
-         proc timeout
-         (lambda ()
-           (save-excursion
-             (goto-char (point-max))
-             (forward-line -1)
-             (re-search-forward "[0-9]+ \\]=> " nil t))))))))
+        (vnb--wait-until proc timeout (lambda () (vnb--last-prompt-type)))))))
+
+(defun vnb-launch--load-failure-text ()
+  "The tail of the *VNB* buffer, for reporting a load that died at an error."
+  (let ((buf (get-buffer vnb-buffer-name)))
+    (when buf
+      (with-current-buffer buf
+        (let ((end (point-max)))
+          (buffer-substring-no-properties
+           (max (point-min) (- end 1200)) end))))))
 
 (defun vnb-launch--ensure-prover ()
   "Start the prover subprocess if not already running, WITHOUT changing the
@@ -685,7 +705,7 @@ to work it out in place; \\[vnb-calc-cancel] closes the sheet."
 
 (defun vnb-calc-eval-line ()
   "Work out the arithmetic expression on the current line, in place.
-Sends it to the prover's vnb-guarded (calc ...) evaluator and appends
+Sends it to the prover's vnb-guarded (calc-eval ...) evaluator and appends
 `=  answer' to the line, then opens a fresh line below.  Blank, comment
 (`;'), and already-evaluated (`=') lines just get a newline."
   (interactive)
@@ -698,7 +718,11 @@ Sends it to the prover's vnb-guarded (calc ...) evaluator and appends
         (progn (end-of-line) (insert "\n"))
       (vnb-launch--ensure-prover)
       (let* ((e   (vnb-launch--dequote expr))
-             (rawv (vnb-eval-string (format "(calc %S)" e)))
+             ;; `calc-eval', not `calc': calc.scm:209 owns the name `calc' for
+             ;; the proof-chain checker and loads after interactive.scm, so
+             ;; sending (calc "...") reached the wrong procedure and this sheet
+             ;; did nothing but print a type error.  Renamed 2026-08-13.
+             (rawv (vnb-eval-string (format "(calc-eval %S)" e)))
              (ans (and rawv (string-trim rawv))))
         ;; A symbolic answer comes back as a quoted Scheme string
         ;; ("x ^ 2 + x * y + y ^ 2"); peel the quotes for display.
@@ -1314,6 +1338,7 @@ what a structure is called and what its accessors are, then write the term."
 (defvar vnb-what-now-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m "g" 'vnb-what-now)       ; re-run on the current goal
+    (define-key m (kbd "RET") 'vnb-what-now-send)   ; send the move on this line
     (define-key m "q" 'quit-window)
     (define-key m "?" 'describe-mode)
     m)
@@ -1323,6 +1348,249 @@ what a structure is called and what its accessors are, then write the term."
   "Major mode for the What-Now proof-advice workspace.
 \\{vnb-what-now-mode-map}"
   (setq buffer-read-only t truncate-lines nil))
+
+(defun vnb-what-now--read (path)
+  "Read the what-now VALUE written to PATH, or nil.
+The prover writes a Scheme s-expression with `#f'/`#t' already mapped to
+`nil'/`t' (Emacs's reader rejects `#f'), so it reads as ordinary Lisp data."
+  (when (file-readable-p path)
+    (condition-case nil
+        (with-temp-buffer
+          (insert-file-contents path)
+          (goto-char (point-min))
+          (read (current-buffer)))
+      (error nil))))
+
+(defun vnb-what-now--get (alist key)
+  "Value of KEY in the dotted ALIST the prover sends, or nil."
+  (cdr (assq key alist)))
+
+(defun vnb-what-now--effect-string (effect)
+  "Render a measured EFFECT: `CLOSED', a subgoal count, or nil."
+  (cond ((null effect) nil)
+        ;; MIT Scheme FOLDS symbols to lower case, so `CLOSED' crosses the
+        ;; wire as `closed' and the upper-case test never matched -- the panel
+        ;; fell through to the generic branch and printed "=> closed".
+        ((memq effect '(CLOSED closed)) "CLOSES the goal")
+        ((and (integerp effect) (= effect 1)) "1 subgoal")
+        ((integerp effect) (format "%d subgoals" effect))
+        (t (format "%s" effect))))
+
+(defconst vnb-what-now-do-column 58
+  "Column at which the [do this] button is placed on a move line.
+Fixed rather than trailing, so the buttons form a column the eye can run
+down instead of a ragged edge that tracks how long each form happens to be.
+58 clears the widest effect string the panel prints -- an effect starts at
+column 38 and `=> CLOSES the goal' is eighteen characters wide.  A form
+longer than the effect column still pushes its own button right; the
+alternative is truncating the move, and a move you cannot read is worse
+than a button that does not line up.")
+
+(defun vnb-what-now--insert-do-button (text)
+  "Insert the clickable [do this] that sends move TEXT to the prover.
+The mouse twin of \\[vnb-what-now-send]: same string, same send path, so a
+click and a RET on the same line cannot come to mean different things.  The
+button carries the move as a `vnb-move' property too, so RET works when
+point happens to land on the button itself."
+  (insert-text-button
+   "[do this]"
+   'face 'vnb-button
+   'mouse-face 'vnb-button-mouse
+   'follow-link t
+   'vnb-move text
+   'help-echo (format "Run %s on the focused goal (g re-runs what-now afterwards)"
+                      text)
+   'action (lambda (_)
+             (vnb-launch--send-tactic text)
+             ;; SHOW THE CONSEQUENCE.  The move really is sent and really does
+             ;; advance the proof, but `vnb-what-now' runs `delete-other-windows'
+             ;; and the Focus buffer refreshes off-screen -- so from the reader's
+             ;; side clicking [do this] did nothing at all.  Put the Focus panel
+             ;; in a window below WITHOUT stealing focus, so `g' (re-run
+             ;; what-now on the goal you landed on) and `q' still act here.
+             (let ((buf (get-buffer vnb-proof-buffer-name)))
+               (when buf
+                 (display-buffer buf '(display-buffer-below-selected
+                                       (window-height . 14)))))
+             (message "sent %s -- new focus below; g re-runs what-now there"
+                      text))))
+
+(defun vnb-what-now--explain-lines (e)
+  "Format the `what-now-explain' alist E as a list of display lines.
+The elisp twin of `what-now-explain-show' (suggest.scm), which renders the
+same alist for the REPL.  Kept parallel to it deliberately: the DATA is what
+crosses the wire, and each surface formats it -- so this panel can put the
+answer inline under the move instead of scraping prose out of *VNB*."
+  (let ((doc    (vnb-what-now--get e 'doc))
+        (fires  (vnb-what-now--get e 'fires))
+        (closes (vnb-what-now--get e 'closes))
+        ;; prefer the RENDERED text the prover ships; fall back to the raw
+        ;; formulas if an older prover is on the other end of the wire.
+        (after  (or (vnb-what-now--get e 'after-text)
+                    (vnb-what-now--get e 'after)))
+        (landed (or (vnb-what-now--get e 'landed-text)
+                    (vnb-what-now--get e 'landed)))
+        (lines  '()))
+    (when doc (push (format "        %s" doc) lines))
+    (cond
+     (closes (push "        CLOSES this goal outright." lines))
+     ((null fires) (push "        does nothing here (it would not fire)." lines))
+     (t
+      (when landed
+        (push "        LANDS in the context:" lines)
+        (dolist (f landed) (push (format "          %s" f) lines)))
+      (push (format "        leaves you with %d %s"
+                    (length after)
+                    (if (= (length after) 1) "goal:" "goals:"))
+            lines)
+      (dolist (g after) (push (format "          %s" g) lines))))
+    (nreverse lines)))
+
+(defun vnb-what-now--insert-explain-button (text)
+  "Insert the clickable [what does this do?] for the move TEXT.
+Asks the prover what running TEXT would CHANGE -- the goal it would leave,
+the facts it would land, or that it would not fire at all -- WITHOUT running
+it.  The prover side is `what-now-explain' (suggest.scm), which probes on a
+scratch clone and returns a value; `what-now-explain-show' is the renderer
+whose output lands in the *VNB* buffer, the same place `cheap-mac' reports to.
+
+It is a query rather than something the panel precomputes: working out the
+after-state of every candidate would probe dozens of moves on every
+`what-now', while a button probes exactly the one the reader asked about."
+  (insert-text-button
+   "[what does this do?]"
+   'face 'vnb-button
+   'mouse-face 'vnb-button-mouse
+   'follow-link t
+   'help-echo (format "Say what %s would change, without running it" text)
+   'action
+   (lambda (btn)
+     ;; DATA, not prose.  `write-what-now-explain' writes the alist;
+     ;; `vnb-eval-string' blocks until the prover's prompt returns, so the file
+     ;; is there when we read it.  The answer then goes INLINE under the move
+     ;; -- no second window, and no scraping of the *VNB* transcript, which
+     ;; `vnb-what-now' hides behind a full-screen workspace anyway.
+     (let ((path (expand-file-name "what-now-explain.txt" vnb-tex-cache-dir)))
+       (when (file-exists-p path) (delete-file path))
+       (condition-case err
+           (progn
+             (vnb-eval-string
+              (format "(write-what-now-explain \"%s\" '%s)" path text))
+             (let ((e (vnb-what-now--read path)))
+               (if (null e)
+                   (message "what-now: no answer from the prover for %s" text)
+                 (let ((inhibit-read-only t))
+                   (save-excursion
+                     (goto-char (button-end btn))
+                     (end-of-line)
+                     (dolist (l (vnb-what-now--explain-lines e))
+                       (insert "\n" (propertize l 'face 'vnb-dim))))
+                   (message "%s: see below the move" text)))))
+         (error (message "what-now explain failed: %s"
+                         (error-message-string err))))))))
+
+(defun vnb-what-now--insert-move (move)
+  "Insert one runnable MOVE, tagged so \\[vnb-what-now-send] can send it.
+MOVE is the record the prover sends -- ((form . FORM) (effect . EFFECT)) --
+or, from a lane that predates the measured effect, a bare FORM.  EFFECT is
+what the move did when fired on a throwaway copy: `CLOSED', or the number of
+subgoals it leaves; nil means the lane proposed it without probing.
+Each line ends in a clickable [do this]; see `vnb-what-now--insert-do-button'."
+  (let* ((record (and (consp move) (consp (car move)) (assq 'form move)))
+         (form   (if record (cdr (assq 'form move)) move))
+         (effect (and record (cdr (assq 'effect move))))
+         (text   (format "%S" form)))
+    ;; a Scheme form printed by elisp: (quote x) reads better as 'x
+    (setq text (replace-regexp-in-string "(quote \\([^)]*\\))" "'\\1" text))
+    (insert "    ")
+    (insert (propertize text 'face 'vnb-move 'vnb-move text))
+    (let ((es (vnb-what-now--effect-string effect)))
+      (when es
+        (insert (make-string (max 1 (- 34 (length text))) ?\s))
+        (insert (propertize (concat "=> " es) 'face 'vnb-dim))))
+    (insert (make-string (max 2 (- vnb-what-now-do-column (current-column))) ?\s))
+    (vnb-what-now--insert-do-button text)
+    (insert " ")
+    (vnb-what-now--insert-explain-button text)
+    (insert "\n")))
+
+(defun vnb-what-now--render (data)
+  "Render the what-now value DATA into the current buffer."
+  (let* ((subject (vnb-what-now--get data 'subject))
+         (heads   (vnb-what-now--get subject 'heads))
+         (topics  (vnb-what-now--get subject 'topics))
+         (related (vnb-what-now--get subject 'related-all))
+         (lanes   (vnb-what-now--get data 'lanes)))
+    (insert (propertize "  Goal\n" 'face 'vnb-heading))
+    (insert (format "    %s\n\n" (or (vnb-what-now--get data 'goal-text)
+                                      (vnb-what-now--get data 'goal))))
+    ;; --- the preamble: what this goal is ABOUT
+    (when heads
+      (insert (propertize "  About\n" 'face 'vnb-heading))
+      (dolist (h heads)
+        (let ((name (vnb-what-now--get h 'head))
+              (kind (vnb-what-now--get h 'kind))
+              (eng  (vnb-what-now--get h 'english))
+              (file (vnb-what-now--get h 'file)))
+          (insert (format "    %-18s %-12s %s%s\n"
+                          name
+                          (if kind (format "[%s]" kind) "[no entry]")
+                          (or eng "")
+                          (if file (format "   — %s" file) "")))))
+      ;; say zero out loud: an empty section reads as "nothing to report" when
+      ;; it actually means "no library fact mentions these heads together",
+      ;; which is itself worth knowing about a goal.
+      (if (null related)
+          (insert "    no library fact mentions all of these heads together\n")
+        (insert (format "    %d fact(s) mention all of these" (length related)))
+        (when topics
+          (insert (format "; topics: %s"
+                          (mapconcat (lambda (p) (format "%s (%d)" (car p) (cdr p)))
+                                     (seq-take topics 3) ", "))))
+        (insert "\n")
+        (dolist (n (seq-take related 4))
+          (insert (format "      %s\n" n))))
+      (insert "\n"))
+    ;; --- the moves, lane by lane
+    (if (null lanes)
+        (insert "  No move proposed.  (cheap-mac) for the speculative rewrite probe.\n")
+      (dolist (lane lanes)
+        (insert (propertize (format "  %s\n" (vnb-what-now--get lane 'title))
+                            'face 'vnb-heading))
+        (dolist (m (vnb-what-now--get lane 'moves))
+          (vnb-what-now--insert-move m))
+        (insert "\n"))
+      ;; Say what the buttons are for.  A [do this] that nobody knows runs in
+      ;; the LIVE proof is a worse affordance than no button at all.
+      ;; ONE string.  `propertize' is (propertize STRING &rest PROPERTIES) and
+      ;; the properties are PAIRS: passing two strings before 'face made the
+      ;; second string a property NAME, 'face its value, and left 'vnb-dim
+      ;; dangling -- an odd count, so every render of a goal WITH lanes died
+      ;; with "Wrong number of arguments".  The byte compiler cannot see it:
+      ;; `propertize' is &rest, so the arity is fine and only the pairing is
+      ;; wrong, which is checked at run time.
+      (insert (propertize
+               (concat
+                "  [do this] runs the move in the live proof (RET on the line does the same);\n"
+                "  [what does this do?] says what it would change, without running it.\n")
+               'face 'vnb-dim))
+      (insert (propertize
+               "  g re-runs what-now on the goal you land on; q returns to the proof.\n"
+               'face 'vnb-dim)))))
+
+(defun vnb-what-now-send ()
+  "Send the move on the current line to the prover.
+The workspace lists runnable forms; this is why what-now hands Emacs DATA
+rather than prose -- each line still knows exactly which form it is."
+  (interactive)
+  (let ((form (get-text-property (point) 'vnb-move)))
+    (unless form
+      (let ((eol (line-end-position)))
+        (setq form (get-text-property (max (point-min) (1- eol)) 'vnb-move))))
+    (if (not form)
+        (user-error "No move on this line")
+      (vnb-launch--send-tactic form)
+      (message "sent %s" form))))
 
 (defun vnb-what-now ()
   "Proof copilot: ask what to try on the current open subgoal.
@@ -1337,7 +1605,11 @@ Run during a live proof; with none in progress it just says so."
   (let ((path (expand-file-name "what-now.txt" vnb-tex-cache-dir))
         (buf  (get-buffer-create "*VNB: What Now*")))
     (when (file-exists-p path) (delete-file path))    ; never show stale advice
-    (vnb-eval-string (format "(write-what-now \"%s\")" path))
+    ;; Ask for the VALUE, not the report.  Scheme used to build prose here and
+    ;; this function stripped the `;;' margins back off it -- elisp parsing text
+    ;; that Scheme had rendered from data it already had.  Now the data crosses
+    ;; and the presentation is done here, where it belongs.
+    (vnb-eval-string (format "(write-what-now-data \"%s\")" path))
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (vnb-what-now-mode)
@@ -1347,12 +1619,10 @@ Run during a live proof; with none in progress it just says so."
         (insert (propertize "  What Now — what to try on the focused goal\n" 'face 'vnb-title))
         (vnb-launch--insert-rule)
         (insert "\n")
-        (if (file-exists-p path)
-            (insert-file-contents path)
-          (insert "what-now: no response from the prover.\n"))
-        ;; drop the `;;' REPL comment margins -- the red rules fence the region now
-        (goto-char (point-min))
-        (while (re-search-forward "^;; ?" nil t) (replace-match ""))
+        (let ((data (vnb-what-now--read path)))
+          (if data
+              (vnb-what-now--render data)
+            (insert "what-now: no response from the prover.\n")))
         (goto-char (point-min))))
     (switch-to-buffer buf)
     (delete-other-windows)))
@@ -2935,6 +3205,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "B" 'vnb-pf-backchain-star)
     (define-key m "c" 'vnb-pf-arith)
     (define-key m "s" 'vnb-pf-ring-simplify)
+    (define-key m "p" 'vnb-pf-prop)                 ; propositional closer
     (define-key m "f" 'vnb-pf-focus)
     (define-key m "q" 'vnb-pf-qed)
     (define-key m "h" 'vnb-launch-workspace)
@@ -2944,6 +3215,8 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "W" 'vnb-pf-save-proof-script)
     (define-key m "T" 'vnb-pf-toggle-tex)
     (define-key m "g" 'vnb-pf-refresh)
+    (define-key m "n" 'vnb-what-now)                ; the [What now?] button
+    (define-key m "I" 'vnb-what-is)                 ; the [What is...?] button
     m)
   "Keymap for the Focus Workspace buffer.")
 
@@ -2967,9 +3240,20 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert "\n\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
-    (insert (propertize "  ▸  M-x what-now" 'face 'vnb-accent))
-    (insert (propertize "   — ask the copilot what to try on this goal\n" 'face 'vnb-body))
-    (insert (propertize "  ▸  M-x what-is " 'face 'vnb-accent))
+    ;; The two questions a stuck user actually asks, as buttons rather than as
+    ;; the names of commands they must retype.  Both are also on single keys
+    ;; (n / I) and still on M-x, so nothing that worked before stops working.
+    (insert "  ")
+    (vnb-launch--insert-button "What now?" 'vnb-what-now
+                               "Ask the copilot what to try on the focused goal (n)")
+    (insert "  ")
+    (vnb-launch--insert-button "What is…?" 'vnb-what-is
+                               "Look up a structure, number, or constant (I)")
+    (insert "\n")
+    (insert (propertize "     what-now" 'face 'vnb-accent))
+    (insert (propertize "  — what to try on this goal, each move runnable from there\n"
+                        'face 'vnb-body))
+    (insert (propertize "     what-is " 'face 'vnb-accent))
     (insert (propertize "  — look up a structure, number, or constant\n" 'face 'vnb-body))
     (insert (propertize
              "     (tactics run from the single-key shortcuts below, or the Scratch Workspace)\n"
@@ -3008,7 +3292,8 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
                      "+ B+auto-close  = close(a=a)  "
                      "m rewrite  M rewrite-hyp  e sep-elim  "
                      "t theorem  F fact  i univ-inst  w witness  "
-                     "b bc  B cite-lemma  f focus  q qed  o overview  "
+                     "b bc  B cite-lemma  p prop  f focus  q qed  o overview  "
+                     "n what-now  I what-is  "
                      "h home  r scratch-pad  S scratch-workspace  "
                      "T tex-toggle  W save-script  g refresh\n")
              'face 'vnb-dim))
@@ -3127,6 +3412,7 @@ A fresh proof-state means the last action succeeded, so any cached
 error from a prior failed attempt is also cleared here."
   (setq vnb-proof--last-state text)
   (setq vnb--last-error nil)
+  (setq vnb--last-note nil)
   (let ((fb (get-buffer vnb-proof-buffer-name))
         (ob (get-buffer vnb-overview-buffer-name)))
     (when fb (with-current-buffer fb (vnb-launch--paint-proof)))
@@ -3148,12 +3434,27 @@ filter before this hook fires."
     (when ob (with-current-buffer ob (vnb-launch--paint-overview)))))
 
 (defun vnb-launch--insert-error-panel ()
-  "If `vnb--last-error' is set, insert a styled error block at point."
-  (when vnb--last-error
-    (insert "  ")
-    (insert (propertize (format "! Error: %s" vnb--last-error)
-                        'face 'vnb-error))
-    (insert "\n\n")
+  "If `vnb--last-error' or `vnb--last-note' is set, insert a styled block.
+The NOTE half is what a workspace user needs most and had no way to see:
+a tactic that DECLINES -- `ass' with no matching hypothesis, `prop' on a
+goal that does not follow -- changes nothing, and a panel that repaints
+identically is indistinguishable from a key that is not bound.  The
+prover said why, on its `;VNB warning:' channel; until 2026-08-15 only
+the REPL heard it."
+  (when (or vnb--last-error vnb--last-note)
+    (when vnb--last-error
+      (insert "  ")
+      (insert (propertize (format "! Error: %s" vnb--last-error)
+                          'face 'vnb-error))
+      (insert "\n"))
+    (when vnb--last-note
+      (insert "  ")
+      (insert (propertize (format "· %s" vnb--last-note) 'face 'vnb-dim))
+      (insert "\n")
+      (insert (propertize
+               "    (nothing changed -- the tactic declined; the REPL has the detail)\n"
+               'face 'vnb-dim)))
+    (insert "\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")))
 
@@ -3423,6 +3724,17 @@ context.  Goals not assumption-closable are left untouched."
   "Close an equality goal by ring normalization (handles variables).  Wraps (rs)."
   (interactive)
   (vnb-launch--send-tactic "(rs)"))
+
+(defun vnb-pf-prop ()
+  "Close the goal if it follows from the hypotheses by PROPOSITIONAL logic.
+Wraps (prop).  Every non-connective formula -- a membership, an equation, a
+whole `forall(...)' -- is one opaque atom, so this reasons about AND / OR /
+NOT / IMPLIES / IFF and nothing else: it will not instantiate a quantifier.
+When the goal does not follow it prints a falsifying assignment in the REPL
+and leaves the proof untouched.  Adds no trust -- it discharges through the
+ordinary rules, so the qed bill is unchanged."
+  (interactive)
+  (vnb-launch--send-tactic "(prop)"))
 
 (defun vnb-pf-theorem (name)
   "Add the named theorem NAME to the current context.  Wraps (ta 'NAME).
@@ -3914,6 +4226,7 @@ next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
 ;;; Subscribe to state updates and to error events from the prover.
 (add-hook 'vnb-state-update-hook 'vnb-launch--on-state-update)
 (add-hook 'vnb-error-hook        'vnb-launch--on-vnb-error)
+(add-hook 'vnb-note-hook         'vnb-launch--on-vnb-error)  ; same repaint
 
 ;;; -----------------------------------------------------------------------
 ;;; Start Proof Workspace: edit the goal formula in a real buffer, then begin
@@ -3934,7 +4247,7 @@ next line.  Distinct from the raw Scratch Pad REPL (which just scrolls)."
 ;;   forall([x in nn], x in zz)
 ;;
 ;;   forall([R], is-commutative-ring(R) implies
-;;     forall([a in a(R), b in a(R)], (mul(R))(a, b) = (mul(R))(b, a)))
+;;     forall([a in carr(R), b in carr(R)], (mul(R))(a, b) = (mul(R))(b, a)))
 ;;
 ;; Multiple lines are fine -- they are joined into one formula; comment
 ;; lines (starting with ';') are ignored.  C-c C-c parses the goal, starts
@@ -4082,14 +4395,24 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
 ;;
 ;; Clauses:
 ;;   (carriers C1 C2 ...)        one or more carrier set names
-;;   (op   OP   (D1 D2 ...) R)   operation OP : D1 x ... x Dn -> R
+;;   (op   OP   DOMAIN R)        operation OP : DOMAIN -> R
 ;;   (constant CONST DOMAIN)     distinguished element
+;;
+;; DOMAIN is ONE class expression, not a list of argument domains: every
+;; VNB function is unary on its domain, so an n-argument operation names
+;; the Cartesian product explicitly --  (CARTESIAN C1 ... Cn),  at any
+;; arity  --  never the bare list  (C1 ... Cn).  A bare list is read as an
+;; APPLICATION of the first to the rest and is accepted in silence, giving
+;; an IS-NAME predicate that types PLUS in FUN((ELEMENTS s)(ELEMENTS s),
+;; ELEMENTS s) -- the carrier applied to itself, which is not what you
+;; meant.  (The product's own arity is unrestricted: a ternary op writes
+;; (CARTESIAN C C C), and its argument is one triple.)
 ;; ────────────────────────────────────────────────────────────
 
 (declare-structure NAME
   (carriers ELEMENTS)
-  (op PLUS  (ELEMENTS ELEMENTS) ELEMENTS)
-  (op TIMES (ELEMENTS ELEMENTS) ELEMENTS))
+  (op PLUS  (CARTESIAN ELEMENTS ELEMENTS) ELEMENTS)
+  (op TIMES (CARTESIAN ELEMENTS ELEMENTS) ELEMENTS))
 
 ;; --- characterising axioms ---
 ;; After saving, type axioms in the *VNB Commands* scratch sheet

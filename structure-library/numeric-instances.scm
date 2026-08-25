@@ -247,6 +247,18 @@
 ;;; reach the ring world via the NORMED-FIELD-AS-{COMMUTATIVE-RING,INTEGRAL-
 ;;; DOMAIN} view-as projections (views.scm), which build a fresh 6-tuple from
 ;;; slots 1..6 -- exactly how FIELD reaches it (FIELD-AS-INTEGRAL-DOMAIN).
+;;;
+;;; THE SAME MISTAKE CAME BACK SOMEWHERE ELSE, and stood for months: fixing it
+;;; HERE fixed only the axioms stated here.  normed-vector-space.scm declared
+;;; `(substructure SCAL RING)' -- which puts (IS-RING (SCAL s)) in the generated
+;;; IFF, pinning length(SCAL s) = 6 -- and then pinned `scal(s) = rr-normed-field'
+;;; by law, i.e. asserted 6 = 7 about a 7-tuple declared right here.  The
+;;; predicate was UNSATISFIABLE and every theorem over it vacuous, from 2026-05-30
+;;; until 2026-08-23.  Nothing caught it: the two halves are in another file and
+;;; fourteen lines apart, and a vacuous hypothesis looks exactly like a good one.
+;;; The standing check is now a must-not-prove entry (test-suite-negative.scm,
+;;; section 2c): `IS-NORMED-VECTOR-SPACE(s) |- falsity' must be REFUSED.  Any
+;;; future structure whose slot holds one of these 7-tuples wants the same entry.
 (declare-instance! 'RR-NORMED-FIELD 'NORMED-FIELD 'rr-normed-field-def
   '(RR binplus bintimes binneg 0 1 abs))
 
@@ -288,6 +300,42 @@
 (theory-add-axiom! *current-theory* 'rr-is-normed-field     '(IS-NORMED-FIELD RR-NORMED-FIELD))
 (theory-add-axiom! *current-theory* 'cc-is-normed-field     '(IS-NORMED-FIELD CC-NORMED-FIELD))
 
+;;; WARRANTED 2026-08-24, not stamped.  `rr-is-normed-field' is the ONLY door
+;;; to IS-COMMUTATIVE-RING at the reals -- RR reaches the ring world solely
+;;; through NORMED-FIELD-AS-COMMUTATIVE-RING -- so every RR-as-a-ring statement
+;;; in the library inherited it, and with NO warrant at all that meant every
+;;; such bill read `trust: none': the weakest report there is, for what is
+;;; simply the statement that the reals are a normed field.  Eleven bills, all
+;;; of them, on the measurement of 2026-08-24.
+;;;
+;;; It is NOT stamped `definitional' or `primitive'.  Those say "this is not
+;;; debt"; this IS debt -- a fact with a derivation nobody has run -- and the
+;;; shelf is the user's decision, not a driver's.  `warrant!' says what the
+;;; derivation is and leaves the obligation visible.
+(warrant! 'rr-is-normed-field 'well-known
+  "RR is a normed field under abs.  Eight of the nine conjuncts of the
+   IS-NORMED-FIELD IFF are the field and order axioms of number-systems.scm,
+   discharged exactly as theorem-library/zz-ring-is-ring.scm discharges the
+   six-slot IS-RING for ZZ-RING and QQ-RING: unfold the defining IFF, drop the
+   accessors to the surface operations (binplus/bintimes/binneg/0/1), and cite
+   rr-add-assoc / rr-add-comm / rr-add-zero / rr-neg-inverse / rr-mul-assoc /
+   rr-mul-comm / rr-one-mul / rr-distributive.  The ninth is is-norm(abs, ...),
+   whose four value clauses are PROVEN, in theorem-library/rr-abs-basics.scm:
+   rr-abs-nonneg (0 <= |a|), rr-abs-zero (|a| = 0 iff a = 0), rr-abs-mult
+   (|ab| = |a||b|) and rr-abs-triangle (|a+b| <= |a| + |b|).
+
+   TWO THINGS BLOCK THE MECHANIZATION, and neither is the mathematics.  (1)
+   is-norm's FIRST conjunct is `abs in FUN(CARR, RR)' -- membership in a
+   function SPACE, not the pointwise typing rr-abs-closed gives.  `abs' is a
+   primitive operator, i.e. a class function; that its restriction to RR is a
+   SET is a replacement/sethood obligation, and nothing in the tree states it
+   for abs (nor for `magnitude', which puts cc-is-normed-field in exactly the
+   same position).  (2) LOAD ORDER: rr-abs-basics.scm is a theorem-library file
+   and loads some 900 entries after this one, so the proof cannot live where
+   the axiom is cited from; retiring the axiom means moving the citation site,
+   the way zz-is-integral-domain was moved.")
+(topic! 'rr-is-normed-field 'algebra)
+
 ;;; -----------------------------------------------------------------------
 ;;; QQ as a field: the 8-tuple QQ-FIELD.
 ;;;
@@ -308,8 +356,6 @@
 ;;; Mirrors CC-MS (complex.scm).  Completeness is asserted through the
 ;;; generic IS-COMPLETE predicate (metric-completeness.scm); the bespoke
 ;;; "rr-complete" the earlier design deferred is exactly IS-COMPLETE(RR-MS).
-;;; IS-METRIC-SPACE(RR-MS) is an axiom (provable from the abs axioms in
-;;; number-systems.scm once FUN-typing of the lambda is in place).
 
 ;; The tuple equation is a DEFINITION (def-constant, definitional, citable), not
 ;; an axiom: a theory-add-axiom! of it takes the default `asserted' provenance
@@ -318,8 +364,15 @@
 (declare-instance! 'RR-MS 'METRIC-SPACE 'rr-ms-def
   '(RR (VNB-LAMBDA (LIST x y) (CARTESIAN RR RR) (abs (- x y)))))
 
-(theory-add-axiom! *current-theory* 'rr-is-metric-space
-  '(IS-METRIC-SPACE RR-MS))
+;; rr-is-metric-space MOVED 2026-08-16 to theorem-library/rr-metric-space-proof.scm,
+;; where IS-METRIC-SPACE(RR-MS) is PROVEN `modulo 0'.  It was a bare
+;; theory-add-axiom! here with NO warrant! at all -- so it billed `trust: none',
+;; the weakest report there is, and it was the sole unwarranted leaf of
+;; rr-complete.  The comment above used to end "...is an axiom (provable from the
+;; abs axioms in number-systems.scm once FUN-typing of the lambda is in place)":
+;; that typing is the MULTI-BINDER case of pi-lambda-type!, added 2026-08-14.
+;; The one law the abs axioms do NOT give is symmetry, |u-v| = |v-u| -- see
+;; rr-abs-neg in theorem-library/rr-order-basics.scm.
 
 ;; rr-complete MOVED 2026-08-02 to theorem-library/rr-complete-proof.scm, where
 ;; IS-COMPLETE(RR-MS) is PROVEN.  It was asserted here for as long as RR had no

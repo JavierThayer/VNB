@@ -67,7 +67,6 @@
     (rr-prod-nonpos-neg   . back)   ; u*v<=0 & v<0 => 0<=u
     ;; --- abs ---
     (rr-le-abs            . back)   ; x <= |x|
-    (rr-le-abs-self       . back)   ; c <= |c|                    [vector-taylor]
     (rr-abs-reverse-triangle . back); ||x|-|y|| <= |x-y|
     ;; --- sum-of-squares polynomial estimates ---
     (rr-young-2           . back)   ; a*b <= (a^2+b^2)/2

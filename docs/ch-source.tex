@@ -15,8 +15,14 @@ place.  The layout is:
   at startup.
 \item \textbf{\texttt{theorem-library/}} --- proofs that reach \texttt{(qed
   \ldots)}, loaded, gated, and counted.
-\item \textbf{\texttt{calculus/}} --- probes and stress tests, \emph{not} in the
-  load path.
+\item \textbf{\texttt{calculus/}} --- probes and stress tests.  \emph{Mostly}
+  outside the load path, but not wholly: \texttt{load.scm} names
+  \texttt{calculus/compact-tb-proof},
+  \texttt{calculus/compact-complete-proof} and
+  \texttt{calculus/finite-ball-subcover-proof}, and it gives every
+  \texttt{calculus/} file the same fresh-environment containment it gives
+  \texttt{theorem-library/} precisely because such a file can be loaded.  An
+  edit here is therefore not automatically inert.
 \item \textbf{\texttt{reference/}} --- generated documentation (see below); never
   hand-edited.
 \end{itemize}

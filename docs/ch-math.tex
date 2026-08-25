@@ -108,9 +108,14 @@ Integer literals must be in canonical decimal form: no leading zeros
 (other than \texttt{0} itself), so \texttt{007} and \texttt{000075} are
 rejected by the parser.  \texttt{-0} normalises to \texttt{0}.
 
-The ordinal operators \texttt{<=\_ORD}, \texttt{<\_ORD}, and
-\texttt{succ\_ORD} retain their subscripts to distinguish them from the
-numeric \texttt{<=} and \texttt{succ}.
+The ordinal operators \texttt{ORD-LE}, \texttt{ORD-LT}, and
+\texttt{succ\_ORD} are named apart from the numeric \texttt{<=} and
+\texttt{succ}.  The first two were written \texttt{<=\_ORD} and
+\texttt{<\_ORD} until 2026-08-24; those spellings could not be tokenized
+(\texttt{read-op} consumes the \texttt{<} and stops, and \texttt{\_}
+cannot begin a token), so no formula mentioning them could be retyped
+from its own printed form.  \texttt{succ\_ORD} keeps its subscript: it
+begins with a letter and reads back.
 
 \subsection{Axioms installed}
 
@@ -194,13 +199,13 @@ ordinals is needed.  The class is characterised entirely by its axioms.
 
 \subsection{The ordering predicate}
 
-Ordinals are equipped with a primitive ordering predicate \texttt{<=\_ORD}
-(and its strict companion \texttt{<\_ORD}) that is independent of set
+Ordinals are equipped with a primitive ordering predicate \texttt{ORD-LE}
+(and its strict companion \texttt{ORD-LT}) that is independent of set
 membership.  The ordering has no required connection to $\in$.
 
 \begin{itemize}
-\item \texttt{<=\_ORD($\alpha$, $\beta$)} \quad $\alpha \leq \beta$ in the ordinal ordering
-\item \texttt{<\_ORD($\alpha$, $\beta$)} \quad $\alpha < \beta$ (strict)
+\item \texttt{ORD-LE($\alpha$, $\beta$)} \quad $\alpha \leq \beta$ in the ordinal ordering
+\item \texttt{ORD-LT($\alpha$, $\beta$)} \quad $\alpha < \beta$ (strict)
 \item \texttt{succ\_ORD($\alpha$)} \quad successor ordinal of $\alpha$
 \end{itemize}
 
@@ -262,7 +267,7 @@ The following axioms are installed in \texttt{ordinals.scm}.
   see \S\ref{sec:ord-induction}
 \end{itemize}
 
-Here $\leq_O$ and $<_O$ abbreviate \texttt{<=\_ORD} and \texttt{<\_ORD}.
+Here $\leq_O$ and $<_O$ abbreviate \texttt{ORD-LE} and \texttt{ORD-LT}.
 
 \subsection{Relationship to number systems}
 
@@ -273,7 +278,7 @@ Here $\leq_O$ and $<_O$ abbreviate \texttt{<=\_ORD} and \texttt{<\_ORD}.
 Consequently $0 \in \mathit{ORD}$ (from \texttt{nn-zero-in} and
 \texttt{nn-subset-ord}).  The ordinal successor agrees with the numeric
 successor on $\mathit{NN}$ (axiom \texttt{ord-succ-nn}), and
-\texttt{<=\_ORD} restricted to $\mathit{NN}$ coincides with the numeric
+\texttt{ORD-LE} restricted to $\mathit{NN}$ coincides with the numeric
 \texttt{<=} (axiom \texttt{ord-le-nn-compat}).  The number systems
 \texttt{ZZ}, \texttt{QQ}, \texttt{RR}, \texttt{CC} are not subsets of
 \texttt{ORD}.
@@ -465,6 +470,47 @@ The following were already installed (noted here for completeness):
 (see Section~\ref{sec:ordinals}).  The ordinal axioms carry
 \texttt{primitive} provenance and so contribute nothing to any proof's bill.
 
+\subsection*{List recursion and list induction}
+\label{sec:list-recursion}
+
+Both were listed as pending in earlier editions of this manual, and both are
+now installed.  \texttt{structure-library/list-recursion.scm} adds the
+constructor \texttt{CONS}$(x, L)$ --- the name is \texttt{CONS}, not
+\texttt{prepend} --- with four defining equations, stamped
+\texttt{definitional} because they constrain a new head and so add no
+consequence about the old vocabulary:
+\[
+  \texttt{length}(\texttt{cons}(x,L)) = \texttt{succ}(\texttt{length}(L)),
+  \qquad
+  \texttt{nth}(1, \texttt{cons}(x,L)) = x,
+\]
+with \texttt{nth-cons-succ} shifting the remaining indices and
+\texttt{makeset-cons} relating \texttt{make-set} to a union with a singleton.
+Alongside them are two \emph{generation} axioms, which are claims about
+\texttt{TUPLES} rather than about \texttt{CONS} and are therefore asserted and
+warranted: \texttt{tuple-length-zero} (a tuple of length $0$ is the empty
+tuple) and \texttt{tuple-cons-decompose} (a tuple of length $\texttt{succ}(n)$
+is $x$ prepended to a tuple of length $n$).
+
+The induction principle is then a \emph{theorem}, not a schema-level primitive
+inference: \texttt{theorem-library/tuples-induction.scm} proves
+\[
+  \forall A, C.\;
+  [\,]\in C \;\wedge\;
+  (\forall x, M.\; x \in A \wedge M \in \mathit{TUPLES}(A) \wedge M \in C
+     \Rightarrow \texttt{cons}(x,M) \in C)
+  \;\Rightarrow\;
+  \forall L \in \mathit{TUPLES}(A).\; L \in C
+\]
+by induction on the \emph{length}, using \texttt{nn-induction} and the two
+generation axioms.  It is stated in class form, quantifying over a class $C$
+with membership in it as the conclusion, exactly as \texttt{nn-induction} and
+\texttt{finite-set-induction} are; VNB quantifies over classes, so one theorem
+does the work a schema would do in a first-order presentation.  Its bill reads
+\texttt{modulo \{tuple-length-zero, tuple-cons-decompose\}}, which is the honest
+report: the induction is derived, and what it rests on is the statement that
+tuples are finite.
+
 \subsection*{Still pending}
 
 The remaining items require schema-level infrastructure --- a primitive
@@ -496,18 +542,6 @@ and they are documented in \texttt{reference/KERNEL-RULES.md}.)
   All $A_i \in \mathit{SET} \Rightarrow A_1 \times \cdots \times A_n \in \mathit{SET}$.
   The binary case is installed (\texttt{cartesian-set-iff}); the $n$-ary
   case reduces to binary by associativity but requires explicit axioms.
-
-\item \texttt{tuples-induction}
-  To prove $P(s)$ for all $s \in \mathit{TUPLES}(A)$, prove $P([\,])$
-  and prove $P([a, s'])$ assuming $a \in A$ and $P(s')$.
-  Requires a schema-level primitive inference.
-
-\item \texttt{prepend} and \texttt{length-recursive}
-  A \texttt{prepend}$(x, L)$ constructor is needed for the recursive
-  length characterisation
-  $\texttt{length}(\texttt{prepend}(x,L)) = \texttt{length}(L)+1$.
-  The base axioms (\texttt{length-of-empty}, \texttt{length-in-nn},
-  \texttt{nth-in-range}) are already installed.
 
 \item \texttt{comp-membership}
   $x \in \{y \mid p\} \Leftrightarrow p[y \mapsto x]$.

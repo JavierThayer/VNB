@@ -9,7 +9,7 @@
 ;;; at EVERY ordinal:
 ;;;
 ;;;   forall alpha in ORD, X.
-;;;     ZEN(X,alpha) = CHOICE { y in X : forall c <_ORD alpha. ZEN(X,c) /= y }
+;;;     ZEN(X,alpha) = CHOICE { y in X : forall c ORD-LT alpha. ZEN(X,c) /= y }
 ;;;
 ;;; Alpha is quantified OUTERMOST so that (tfi3) applies to the goal as stated:
 ;;; `di' peels the whole leading FORALL prefix in one step, so a statement
@@ -38,7 +38,7 @@
 ;;;
 ;;; The base case is the awkward one, exactly as predicted: ZEN-zero says
 ;;; `ZEN(X,0) = CHOICE X' while the uniform form says CHOICE of a separation
-;;; whose condition is vacuous, so it needs (a) nothing is <_ORD 0 -- from
+;;; whose condition is vacuous, so it needs (a) nothing is ORD-LT 0 -- from
 ;;; ord-zero-least and antisymmetry -- and (b) class-extensionality to identify
 ;;; that vacuous separation with X.  Writing the zero case in SEP shape to dodge
 ;;; this would make the base equation refer to ZEN below 0 and turn
@@ -58,73 +58,73 @@
 (define (zs-goal-is g) (lambda (h) (equal? h g)))
 
 ;;; =====================================================================
-;;; the bridge:  c <_ORD succ(al)  <->  c <=_ORD al
+;;; the bridge:  c ORD-LT succ(al)  <->  c ORD-LE al
 ;;; =====================================================================
 (define ZS-SA '(succ_ORD al))
 
 (sp (make-wff '(FORALL al (IMPLIES (IN al ORD)
                  (FORALL cc (IMPLIES (IN cc ORD)
-                   (IFF (<_ORD cc (succ_ORD al)) (<=_ORD cc al))))))))
+                   (IFF (ORD-LT cc (succ_ORD al)) (ORD-LE cc al))))))))
 (zs-peel!)
 (define zs-two (dk-opened (lambda () (di))))
 
 ;;; (=>)  cc < succ al  |-  cc <= al
-(zs-pick! zs-two (zs-goal-is '(<=_ORD cc al)) "bridge =>")
+(zs-pick! zs-two (zs-goal-is '(ORD-LE cc al)) "bridge =>")
 (fact 'ord-lt-iff 'cc ZS-SA)
-(ai (list 'IFF (list '<_ORD 'cc ZS-SA)
-          (list 'AND (list '<=_ORD 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))))
-(detach! (list 'IMPLIES (list '<_ORD 'cc ZS-SA)
-               (list 'AND (list '<=_ORD 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))))
-(dk-split! (list 'AND (list '<=_ORD 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA))))
+(ai (list 'IFF (list 'ORD-LT 'cc ZS-SA)
+          (list 'AND (list 'ORD-LE 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))))
+(detach! (list 'IMPLIES (list 'ORD-LT 'cc ZS-SA)
+               (list 'AND (list 'ORD-LE 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))))
+(dk-split! (list 'AND (list 'ORD-LE 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA))))
 (have! '(AND (IN al ORD) (IN cc ORD)))
 (fact 'ord-le-total 'al 'cc)
-(use-cases '(OR (<=_ORD al cc) (<=_ORD cc al))
+(use-cases '(OR (ORD-LE al cc) (ORD-LE cc al))
   (lambda ()
     (pbc)                                             ; assume NOT (cc <= al)
     (have! '(NOT (= al cc))                           ; else reflexivity gives it
       (lambda ()
         (di)
-        (have! '(<=_ORD cc al)
+        (have! '(ORD-LE cc al)
           (lambda () (fact 'ord-le-refl 'cc) (subst '(= al cc)) (ass)))
-        (ai '(NOT (<=_ORD cc al)))))
-    (have! '(AND (<=_ORD al cc) (NOT (= al cc))))
+        (ai '(NOT (ORD-LE cc al)))))
+    (have! '(AND (ORD-LE al cc) (NOT (= al cc))))
     (fact 'ord-lt-iff 'al 'cc)
-    (ai '(IFF (<_ORD al cc) (AND (<=_ORD al cc) (NOT (= al cc)))))
-    (detach! '(IMPLIES (AND (<=_ORD al cc) (NOT (= al cc))) (<_ORD al cc)))
-    (have! '(AND (IN al ORD) (AND (IN cc ORD) (<_ORD al cc))))
+    (ai '(IFF (ORD-LT al cc) (AND (ORD-LE al cc) (NOT (= al cc)))))
+    (detach! '(IMPLIES (AND (ORD-LE al cc) (NOT (= al cc))) (ORD-LT al cc)))
+    (have! '(AND (IN al ORD) (AND (IN cc ORD) (ORD-LT al cc))))
     (fact 'ord-succ-immediate 'al 'cc)                ; succ al <= cc
-    (have! (list 'AND (list '<=_ORD ZS-SA 'cc) (list '<=_ORD 'cc ZS-SA)))
+    (have! (list 'AND (list 'ORD-LE ZS-SA 'cc) (list 'ORD-LE 'cc ZS-SA)))
     (fact 'ord-le-antisymm ZS-SA 'cc)                 ; succ al = cc
     (have! (list '= 'cc ZS-SA) (lambda () (fact 'eq-sym ZS-SA 'cc) (ass)))
     (ai (list 'NOT (list '= 'cc ZS-SA))))
   (lambda () (ass)))
 
 ;;; (<=)  cc <= al  |-  cc < succ al
-(zs-pick! zs-two (zs-goal-is (list '<_ORD 'cc ZS-SA)) "bridge <=")
+(zs-pick! zs-two (zs-goal-is (list 'ORD-LT 'cc ZS-SA)) "bridge <=")
 (fact 'ord-succ-above 'al)
 (fact 'ord-lt-iff 'al ZS-SA)
-(ai (list 'IFF (list '<_ORD 'al ZS-SA)
-          (list 'AND (list '<=_ORD 'al ZS-SA) (list 'NOT (list '= 'al ZS-SA)))))
-(detach! (list 'IMPLIES (list '<_ORD 'al ZS-SA)
-               (list 'AND (list '<=_ORD 'al ZS-SA) (list 'NOT (list '= 'al ZS-SA)))))
-(dk-split! (list 'AND (list '<=_ORD 'al ZS-SA) (list 'NOT (list '= 'al ZS-SA))))
-(have! (list 'AND '(<=_ORD cc al) (list '<=_ORD 'al ZS-SA)))
+(ai (list 'IFF (list 'ORD-LT 'al ZS-SA)
+          (list 'AND (list 'ORD-LE 'al ZS-SA) (list 'NOT (list '= 'al ZS-SA)))))
+(detach! (list 'IMPLIES (list 'ORD-LT 'al ZS-SA)
+               (list 'AND (list 'ORD-LE 'al ZS-SA) (list 'NOT (list '= 'al ZS-SA)))))
+(dk-split! (list 'AND (list 'ORD-LE 'al ZS-SA) (list 'NOT (list '= 'al ZS-SA))))
+(have! (list 'AND '(ORD-LE cc al) (list 'ORD-LE 'al ZS-SA)))
 (fact 'ord-le-trans 'cc 'al ZS-SA)
 (have! (list 'NOT (list '= 'cc ZS-SA))
   (lambda ()
     (di)
-    (have! (list '<=_ORD ZS-SA 'al)
+    (have! (list 'ORD-LE ZS-SA 'al)
       (lambda () (fact 'eq-sym 'cc ZS-SA) (subst (list '= ZS-SA 'cc)) (ass)))
-    (have! (list 'AND (list '<=_ORD ZS-SA 'al) (list '<=_ORD 'al ZS-SA)))
+    (have! (list 'AND (list 'ORD-LE ZS-SA 'al) (list 'ORD-LE 'al ZS-SA)))
     (fact 'ord-le-antisymm ZS-SA 'al)
     (have! (list '= 'al ZS-SA) (lambda () (fact 'eq-sym ZS-SA 'al) (ass)))
     (ai (list 'NOT (list '= 'al ZS-SA)))))
-(have! (list 'AND (list '<=_ORD 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA))))
+(have! (list 'AND (list 'ORD-LE 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA))))
 (fact 'ord-lt-iff 'cc ZS-SA)
-(ai (list 'IFF (list '<_ORD 'cc ZS-SA)
-          (list 'AND (list '<=_ORD 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))))
-(detach! (list 'IMPLIES (list 'AND (list '<=_ORD 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))
-               (list '<_ORD 'cc ZS-SA)))
+(ai (list 'IFF (list 'ORD-LT 'cc ZS-SA)
+          (list 'AND (list 'ORD-LE 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))))
+(detach! (list 'IMPLIES (list 'AND (list 'ORD-LE 'cc ZS-SA) (list 'NOT (list '= 'cc ZS-SA)))
+               (list 'ORD-LT 'cc ZS-SA)))
 (ass)
 
 (qed 'ord-lt-succ-iff-le)
@@ -137,16 +137,16 @@
 (def-by-ord-recursion 'ZEN '(X)
   '(CHOICE X)
   '(alpha val)
-  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (<=_ORD c_ alpha) (NOT (= (ZEN X c_) y_))))))
+  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (ORD-LE c_ alpha) (NOT (= (ZEN X c_) y_))))))
   '(lam)
-  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (<_ORD c_ lam) (NOT (= (ZEN X c_) y_)))))))
+  '(CHOICE (SEP y_ X (FORALL c_ (IMPLIES (ORD-LT c_ lam) (NOT (= (ZEN X c_) y_)))))))
 
 ;; the avoid-set at BOUND, over carrier XV; BOUND is a formula in c_
 (define (zs-sep xv bound)
   (list 'SEP 'y_ xv (list 'FORALL 'c_ (list 'IMPLIES bound
                                             (list 'NOT (list '= (list 'ZEN xv 'c_) 'y_))))))
-(define (zs-lt a) (list '<_ORD 'c_ a))
-(define (zs-le a) (list '<=_ORD 'c_ a))
+(define (zs-lt a) (list 'ORD-LT 'c_ a))
+(define (zs-le a) (list 'ORD-LE 'c_ a))
 
 ;; the body of that SEP, at element YV -- what sep-me lands and sep-mi owes
 (define (zs-body xv yv bound)
@@ -155,15 +155,15 @@
 ;; c_v < 0 is impossible: 0 is least, and antisymmetry then says c_v IS 0.
 (define (zs-nothing-below-zero! cv)
   (fact 'ord-lt-iff cv 0)
-  (ai (list 'IFF (list '<_ORD cv 0)
-            (list 'AND (list '<=_ORD cv 0) (list 'NOT (list '= cv 0)))))
-  (detach! (list 'IMPLIES (list '<_ORD cv 0)
-                 (list 'AND (list '<=_ORD cv 0) (list 'NOT (list '= cv 0)))))
-  (dk-split! (list 'AND (list '<=_ORD cv 0) (list 'NOT (list '= cv 0))))
+  (ai (list 'IFF (list 'ORD-LT cv 0)
+            (list 'AND (list 'ORD-LE cv 0) (list 'NOT (list '= cv 0)))))
+  (detach! (list 'IMPLIES (list 'ORD-LT cv 0)
+                 (list 'AND (list 'ORD-LE cv 0) (list 'NOT (list '= cv 0)))))
+  (dk-split! (list 'AND (list 'ORD-LE cv 0) (list 'NOT (list '= cv 0))))
   (fact 'ord-le-closure cv 0)
   (dk-split! (list 'AND (list 'IN cv 'ORD) '(IN 0 ORD)))
   (fact 'ord-zero-least cv)
-  (have! (list 'AND (list '<=_ORD cv 0) (list '<=_ORD 0 cv)))
+  (have! (list 'AND (list 'ORD-LE cv 0) (list 'ORD-LE 0 cv)))
   (fact 'ord-le-antisymm cv 0)
   (ai (list 'NOT (list '= cv 0))))
 
@@ -258,17 +258,17 @@
   (dk-split! (list 'AND (list 'IN cv 'ORD) (list 'IN zs-al 'ORD))))
 (define (zs-ord-from-lt! cv)
   (fact 'ord-lt-iff cv ZS-SAL)
-  (ai (list 'IFF (list '<_ORD cv ZS-SAL)
-            (list 'AND (list '<=_ORD cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL)))))
-  (detach! (list 'IMPLIES (list '<_ORD cv ZS-SAL)
-                 (list 'AND (list '<=_ORD cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL)))))
-  (dk-split! (list 'AND (list '<=_ORD cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL))))
+  (ai (list 'IFF (list 'ORD-LT cv ZS-SAL)
+            (list 'AND (list 'ORD-LE cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL)))))
+  (detach! (list 'IMPLIES (list 'ORD-LT cv ZS-SAL)
+                 (list 'AND (list 'ORD-LE cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL)))))
+  (dk-split! (list 'AND (list 'ORD-LE cv ZS-SAL) (list 'NOT (list '= cv ZS-SAL))))
   (fact 'ord-le-closure cv ZS-SAL)
   (dk-split! (list 'AND (list 'IN cv 'ORD) (list 'IN ZS-SAL 'ORD))))
 ;; land the bridge at cv, in the direction asked for
 (define (zs-bridge! cv want)
   (fact 'ord-lt-succ-iff-le zs-al cv)
-  (ai (list 'IFF (list '<_ORD cv ZS-SAL) (list '<=_ORD cv zs-al)))
+  (ai (list 'IFF (list 'ORD-LT cv ZS-SAL) (list 'ORD-LE cv zs-al)))
   (detach! want))
 
 (fact 'ZEN-succ zs-Xs zs-al)
@@ -288,7 +288,7 @@
             (zs-peel!)
             (let ((cv (caddr (cadr (cadr (zs-goal))))))
               (zs-ord-from-le! cv)
-              (zs-bridge! cv (list 'IMPLIES (list '<=_ORD cv zs-al) (list '<_ORD cv ZS-SAL)))
+              (zs-bridge! cv (list 'IMPLIES (list 'ORD-LE cv zs-al) (list 'ORD-LT cv ZS-SAL)))
               (inst+ body-lt cv)
               (ass)))))
       ;; ... and conversely
@@ -300,7 +300,7 @@
             (zs-peel!)
             (let ((cv (caddr (cadr (cadr (zs-goal))))))
               (zs-ord-from-lt! cv)
-              (zs-bridge! cv (list 'IMPLIES (list '<_ORD cv ZS-SAL) (list '<=_ORD cv zs-al)))
+              (zs-bridge! cv (list 'IMPLIES (list 'ORD-LT cv ZS-SAL) (list 'ORD-LE cv zs-al)))
               (inst+ body-le cv)
               (ass))))))))
 
@@ -375,7 +375,7 @@
 ;;;
 ;;; The injectivity argument is where zen-hits earns its keep: at the LATER of
 ;;; two stages the chosen element avoids every earlier one, so two stages cannot
-;;; agree.  Totality of <=_ORD gives the two cases, and the second needs both
+;;; agree.  Totality of ORD-LE gives the two cases, and the second needs both
 ;;; the disequality and the equation reversed -- `subst' rewrites every
 ;;; occurrence, so each reversal is its own cut (the lesson zorn-route-two's
 ;;; z2-neq-sym! records).
@@ -431,12 +431,12 @@
   (if flip?
       (have! (list 'NOT (list '= lo hi))
         (lambda () (di) (fact 'eq-sym lo hi) (ai (list 'NOT (list '= hi lo))))))
-  (have! (list 'AND (list '<=_ORD lo hi) (list 'NOT (list '= lo hi))))
+  (have! (list 'AND (list 'ORD-LE lo hi) (list 'NOT (list '= lo hi))))
   (fact 'ord-lt-iff lo hi)
-  (ai (list 'IFF (list '<_ORD lo hi)
-            (list 'AND (list '<=_ORD lo hi) (list 'NOT (list '= lo hi)))))
-  (detach! (list 'IMPLIES (list 'AND (list '<=_ORD lo hi) (list 'NOT (list '= lo hi)))
-                 (list '<_ORD lo hi)))
+  (ai (list 'IFF (list 'ORD-LT lo hi)
+            (list 'AND (list 'ORD-LE lo hi) (list 'NOT (list '= lo hi)))))
+  (detach! (list 'IMPLIES (list 'AND (list 'ORD-LE lo hi) (list 'NOT (list '= lo hi)))
+                 (list 'ORD-LT lo hi)))
   (inst+ ZE-ALL hi)
   (fact 'zen-hits hi ze-X)
   (let ((body (dk-landed-find (lambda () (sep-me (list 'IN (list 'ZEN ze-X hi)
@@ -459,7 +459,7 @@
       (pbc)
       (have! (list 'AND (list 'IN u 'ORD) (list 'IN v 'ORD)))
       (fact 'ord-le-total u v)
-      (use-cases (list 'OR (list '<=_ORD u v) (list '<=_ORD v u))
+      (use-cases (list 'OR (list 'ORD-LE u v) (list 'ORD-LE v u))
         (lambda () (ze-clash! u v #f))
         (lambda () (ze-clash! v u #t))))))
 

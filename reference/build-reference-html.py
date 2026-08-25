@@ -229,7 +229,7 @@ def inline_stmt(text):
     """Render a formal statement verbatim: escape only, plus the trailing
     warrant tag and explicit [text](href) links (e.g. the 'proof:' source
     link on the topic pages).  NO emphasis -- statements legitimately contain
-    bare `*` (e.g. the structure `rr+*`), which star-emphasis would mangle."""
+    bare `*` (e.g. the structure `rr-pos-star`), which star-emphasis would mangle."""
     spans = []
     def stash(html):
         spans.append(html)

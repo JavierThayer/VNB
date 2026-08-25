@@ -57,30 +57,45 @@
 ;;; treats order atoms; it is now guarded on NN, which is what its name always
 ;;; implied and its formula never said.
 
-;;; Trichotomy of the strict order.  MOVED HERE 2026-08-04 from
-;;; theorem-library/deriv-constant-proof.scm, where it had been declared inside
-;;; a calculus proof: everything elementary loads before that file and so could
-;;; not cite it.  Same statement, same warrant.
-(support 'rr-lt-trichotomy
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (OR (< u v) (OR (= u v) (< v u))))))))
-(warrant! 'rr-lt-trichotomy 'well-known
-  "RR is totally ordered: for u,v in RR exactly one of u<v, u=v, v<u holds.")
-(topic! 'rr-lt-trichotomy 'analysis)
-
-(support 'rr-lt-implies-le
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (IMPLIES (< x y) (<= x y)))))))
-(warrant! 'rr-lt-implies-le 'well-known
-  "x < y is (x <= y and x =/= y) by definition, so in particular x <= y.")
-
-(support 'rr-lt-trans
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL z (IMPLIES (IN z RR)
-       (IMPLIES (AND (< x y) (< y z)) (< x z)))))))))
-(warrant! 'rr-lt-trans 'well-known
-  "Strict order is transitive: from x<y<z, x<=z by rr-leq-transitive and x=/=z
-   (else y would be both > and < x).")
+;;; NINETEEN SUPPORTS MOVED 2026-08-16 to theorem-library/rr-order-basics.scm,
+;;; where every one of them is PROVEN `modulo 0':
+;;;   chaining      rr-lt-trans  rr-lt-le-trans  rr-le-lt-trans  rr-lt-implies-le
+;;;   trichotomy    rr-lt-trichotomy
+;;;   differences   rr-le-diff-nonpos  rr-lt-diff-pos  rr-lt-diff-neg
+;;;                 rr-le-neg  rr-neg-eq-zero  rr-sub-ne-zero
+;;;   sums          rr-le-add  rr-lt-add  rr-add-nonneg
+;;;                 rr-le-from-diff-nonneg  rr-double-nonneg
+;;;   products      rr-le-scale-nonneg  rr-lt-scale-pos  rr-sq-nonneg
+;;;                 rr-cancel-mul-right
+;;; (Trichotomy had itself been moved HERE on 2026-08-04 out of
+;;; theorem-library/deriv-constant-proof.scm, for the same reason: a fact
+;;; declared inside a calculus proof is invisible to everything above it.)
+;;;
+;;; They were `well-known' supports, and this file's header called them the
+;;; specification of "the future inequality decision procedure".  That procedure
+;;; now exists (structure-library/ineq-oracle.scm) and reads `<' natively, and
+;;; number-systems.scm has been `primitive' since 2026-08-01 -- so most of them
+;;; are ONE `ineq' call after the binders are peeled, and the spec has become the
+;;; output.  The four that are NOT linear (the scaling laws, the square, the
+;;; cancellation) go through `rr-no-zero-divisors', proved there from
+;;; rr-recip-closed / rr-recip-inverse: what they need is not the order axioms
+;;; but the fact that RR is a FIELD.
+;;;
+;;; THE THREE ABS SUPPORTS ARE GONE TOO (2026-08-17), and the paragraph that
+;;; stood here explaining why they could not go is the point.  It read: `rr-le-abs'
+;;; (x <= |x|), `rr-abs-bound' (|x| <= c iff -c <= x <= c) and
+;;; `rr-abs-reverse-triangle' "are NOT derivable from the abs axioms in
+;;; number-systems.scm and are not oversights: those five axioms (closed /
+;;; nonneg / zero-iff / triangle / multiplicative) do not determine abs.
+;;; x |-> sqrt(|x|) satisfies all five, and falsifies rr-le-abs and rr-abs-bound
+;;; at x = 2.  Pinning |x| to one of x, -x needs an axiom the theory does not
+;;; state."  That diagnosis was right, and the cure was not another axiom: the
+;;; missing statement is the DEFINITION of abs, which number-systems.scm now
+;;; carries as `rr-abs-def' (definition by cases on the sign).  All three are
+;;; PROVEN `modulo 0' in theorem-library/rr-abs-basics.scm, along with the five
+;;; axioms themselves, which are deleted from number-systems.scm.
+;;; The product-SIGN facts (rr-prod-nonpos-pos / -neg) are derivable and simply
+;;; not done yet.
 
 ;;; nn-in-rr MOVED 2026-08-02 to theorem-library/nn-order-basics.scm, where it is
 ;;; PROVEN.  Its warrant here claimed the top tier `proof' and then described the
@@ -106,87 +121,24 @@
 ;;; peels and detaches both hypotheses in one call, where a conjunctive
 ;;; antecedent would make every caller assemble the AND by hand.
 
-(support 'rr-lt-le-trans
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL z (IMPLIES (IN z RR)
-       (IMPLIES (AND (< x y) (<= y z)) (< x z)))))))))
-(warrant! 'rr-lt-le-trans 'well-known
-  "x < y <= z gives x < z (transitivity; x=z would force y=x against x<y).")
 
-(support 'rr-le-lt-trans
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL z (IMPLIES (IN z RR)
-       (IMPLIES (AND (<= x y) (< y z)) (< x z)))))))))
-(warrant! 'rr-le-lt-trans 'well-known
-  "x <= y < z gives x < z (symmetric to rr-lt-le-trans).")
 
 ;;; -----------------------------------------------------------------------
 ;;; Adding inequalities -- the central epsilon-argument move.
 
-(support 'rr-le-add
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-       (IMPLIES (AND (<= x y) (<= u v)) (<= (+ x u) (+ y v))))))))))))
-(warrant! 'rr-le-add 'well-known
-  "Add two inequalities: x<=y gives x+u<=y+u (rr-leq-add-compatible), u<=v gives
-   y+u<=y+v, then transitivity.  The workhorse behind every triangle-sum and
-   eps/2+eps/2 bound.")
 
-(support 'rr-add-nonneg
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (IMPLIES (AND (<= 0 x) (<= 0 y)) (<= 0 (+ x y))))))) )
-(warrant! 'rr-add-nonneg 'well-known
-  "0<=x and 0<=y give 0 = 0+0 <= x+y by rr-le-add.")
 
-(support 'rr-lt-add
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-       (IMPLIES (AND (< x y) (<= u v)) (< (+ x u) (+ y v))))))))))))
-(warrant! 'rr-lt-add 'well-known
-  "A strict and a non-strict inequality add to a strict one: x+u < y+u <= y+v.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Scaling by a nonnegative / positive factor.
 
-(support 'rr-le-scale-nonneg
-  '(FORALL c (IMPLIES (IN c RR) (FORALL x (IMPLIES (IN x RR)
-     (FORALL y (IMPLIES (IN y RR)
-       (IMPLIES (AND (<= 0 c) (<= x y)) (<= (* c x) (* c y))))))))))
-(warrant! 'rr-le-scale-nonneg 'well-known
-  "x<=y means 0<=y-x; with 0<=c, mul-nonneg gives 0<=c*(y-x)=c*y-c*x, i.e.
-   c*x<=c*y.")
 
-(support 'rr-lt-scale-pos
-  '(FORALL c (IMPLIES (IN c RR) (FORALL x (IMPLIES (IN x RR)
-     (FORALL y (IMPLIES (IN y RR)
-       (IMPLIES (AND (< 0 c) (< x y)) (< (* c x) (* c y))))))))))
-(warrant! 'rr-lt-scale-pos 'well-known
-  "Multiplying a strict inequality by a strictly positive c keeps it strict
-   (c*(y-x) > 0 since both factors are > 0).")
 
 ;;; -----------------------------------------------------------------------
-;;; Absolute value beyond the number-systems axioms.
-
-(support 'rr-le-abs
-  '(FORALL x (IMPLIES (IN x RR) (<= x (abs x)))))
-(warrant! 'rr-le-abs 'well-known
-  "x <= |x| for every real (equality if x>=0; if x<0 then x<0<=|x|).")
-
-(support 'rr-abs-bound
-  '(FORALL x (IMPLIES (IN x RR) (FORALL c (IMPLIES (IN c RR)
-     (IFF (<= (abs x) c)
-          (AND (<= (- c) x) (<= x c))))))))
-(warrant! 'rr-abs-bound 'well-known
-  "|x| <= c  iff  -c <= x <= c.  The standard two-sided unpacking of an absolute-
-   value bound; the form continuity/limit arguments use to turn |x| <= c into a
-   pair of linear bounds.")
-
-(support 'rr-abs-reverse-triangle
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (<= (abs (- (abs x) (abs y))) (abs (- x y))))))))
-(warrant! 'rr-abs-reverse-triangle 'well-known
-  "||x|-|y|| <= |x-y|.  From the triangle inequality applied to x=(x-y)+y and
-   y=(y-x)+x; standard.")
+;;; Absolute value: NOTHING remains here.  rr-le-abs, rr-abs-bound and
+;;; rr-abs-reverse-triangle were the three supports of this section; all three
+;;; are PROVEN in theorem-library/rr-abs-basics.scm (see the note in this file's
+;;; header).
 
 ;;; -----------------------------------------------------------------------
 ;;; Squares are nonnegative, and the two order/arithmetic glue moves that
@@ -196,45 +148,13 @@
 ;;;   x*y <= x^2 + y^2   via   2*(x^2+y^2-x*y) = (x-y)^2 + x^2 + y^2.
 ;;; The missing real-line counterpart of cc-self-conj-nonneg (0 <= a*conj a).
 
-(support 'rr-sq-nonneg
-  '(FORALL x (IMPLIES (IN x RR) (<= 0 (* x x)))))
-(warrant! 'rr-sq-nonneg 'well-known
-  "0 <= x*x for every real.  If 0<=x, mul-nonneg gives 0<=x*x; if x<=0 then
-   0<=(-x) and 0<=(-x)*(-x)=x*x.  The base square-positivity fact; the seed of
-   every sum-of-squares inequality (Cauchy-Schwarz, AM-GM, x*y<=x^2+y^2).")
 
-(support 'rr-le-from-diff-nonneg
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (IMPLIES (<= 0 (- y x)) (<= x y)))))))
-(warrant! 'rr-le-from-diff-nonneg 'well-known
-  "0 <= y-x gives x <= y.  Add x to both sides of 0<=y-x (rr-leq-add-compatible)
-   and simplify y-x+x=y.  The standard `move everything to one side' step that
-   reduces an inequality goal to a nonnegativity goal.")
 
-(support 'rr-double-nonneg
-  '(FORALL x (IMPLIES (IN x RR)
-     (IMPLIES (<= 0 (+ x x)) (<= 0 x)))))
-(warrant! 'rr-double-nonneg 'well-known
-  "0 <= x+x gives 0 <= x.  Contrapositive: x<0 adds to x+x<0 (rr-leq-add-compat).
-   Lets a doubled sum-of-squares certificate (which avoids fractional 1/2
-   coefficients) discharge the undoubled goal.")
 
 ;;; --------------------------------------------------------------------
 ;;; Sign of a difference, and sign of a product from the sign of a factor.
 ;;; The nonlinear product-sign facts (Farkas cannot see them) plus the
 ;;; difference<->order glue that the Caratheodory mean-value arc needs.
-(support 'rr-le-diff-nonpos
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (<= u v) (<= (- u v) 0)))))))
-(warrant! 'rr-le-diff-nonpos 'well-known "u<=v => u-v<=0.")
-(support 'rr-lt-diff-pos
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (< u v) (< 0 (- v u))))))))
-(warrant! 'rr-lt-diff-pos 'well-known "u<v => 0<v-u.")
-(support 'rr-lt-diff-neg
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (< u v) (< (- u v) 0)))))))
-(warrant! 'rr-lt-diff-neg 'well-known "u<v => u-v<0.")
 (support 'rr-prod-nonpos-pos
   '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
      (IMPLIES (AND (< 0 v) (<= (* u v) 0)) (<= u 0)))))))
@@ -246,13 +166,6 @@
 
 ;;; Negation and order: flips <=, and -u=0 forces u=0 (used by interior-min via
 ;;; the reduction to interior-max applied to -f).
-(support 'rr-le-neg
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (<= u v) (<= (- v) (- u))))))))
-(warrant! 'rr-le-neg 'well-known "u<=v => -v<=-u.")
-(support 'rr-neg-eq-zero
-  '(FORALL u (IMPLIES (IN u RR) (IMPLIES (= (- u) 0) (= u 0)))))
-(warrant! 'rr-neg-eq-zero 'well-known "-u=0 => u=0.")
 
 ;;; --------------------------------------------------------------------
 ;;; Equality glue (symmetry / transitivity of the partial =) and the two RR
@@ -308,12 +221,11 @@
   "k in NN, k/=0 => 0<k: 0<=k (nn-zero-le) and 0/=k give the strict inequality.")
 (topic! 'nn-pos-of-nonzero 'inequalities)
 
-(support 'rr-cancel-mul-right
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (FORALL c (IMPLIES (IN c RR) (IMPLIES (NOT (= c 0)) (IMPLIES (= (* u c) (* v c)) (= u v))))))))))
-(warrant! 'rr-cancel-mul-right 'well-known
-  "u*c=v*c with c/=0 gives u=v (multiply by 1/c).  The right-factor companion of
-   rr-cancel-mul-left (taylor-proof.scm).")
-(topic! 'rr-cancel-mul-right 'algebra)
+;;; rr-cancel-mul-right MOVED 2026-08-16 to theorem-library/rr-order-basics.scm,
+;;; where it is PROVEN `modulo 0' from rr-no-zero-divisors.  Its warrant here was
+;;; "multiply by 1/c" -- the derivation, written down and never run.  (Its
+;;; left-factor twin rr-cancel-mul-left is still asserted, inside
+;;; theorem-library/taylor-proof.scm; the same four lines would do it.)
 
 ;;; rr-sub-in-rr MOVED 2026-08-01 to theorem-library/binary-minus-laws.scm, where
 ;;; it is PROVEN rather than asserted.  It was a `well-known' support here, and
@@ -322,20 +234,14 @@
 ;;; until number-systems.scm gained `binary-minus-def' the same day.  Its one
 ;;; consumer (theorem-library/differentiation.scm) loads after the proof.
 
-(support 'rr-sub-ne-zero
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR) (IMPLIES (NOT (= u v)) (NOT (= (- u v) 0))))))))
-(warrant! 'rr-sub-ne-zero 'well-known "u/=v => u-v/=0.")
-(topic! 'rr-sub-ne-zero 'inequalities)
 
 ;;; -----------------------------------------------------------------------
 ;;; NN order facts for the Smith row/column clearing induction (clear-first-row).
 ;;; Elementary discreteness/positivity of NN; warranted well-known.
-(support 'nn-le-succ-cases
-  '(FORALL k (IMPLIES (IN k NN) (FORALL j (IMPLIES (IN j NN)
-     (IMPLIES (<= j (succ k)) (OR (<= j k) (= j (succ k)))))))))
-(warrant! 'nn-le-succ-cases 'well-known
-  "j <= succ k => j <= k or j = succ k, for j,k in NN (discreteness of NN).")
-(topic! 'nn-le-succ-cases 'inequalities)
+;;; nn-le-succ-cases MOVED 2026-08-24 to theorem-library/nn-order-ord.scm, where
+;;; it is PROVEN `modulo 0'.  Its warrant here read "discreteness of NN", which
+;;; is true and is not an NN axiom: NN's base (nn-zero-in, nn-succ-closed,
+;;; nn-induction) does not state it and cannot prove it.  The ordinals do.
 
 (support 'nn-not-le-zero-pos
   '(FORALL j (IMPLIES (IN j NN) (IMPLIES (<= 1 j) (NOT (<= j 0))))))
@@ -350,12 +256,8 @@
 (warrant! 'nn-pos-is-succ 'well-known "a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).")
 (topic! 'nn-pos-is-succ 'inequalities)
 
-(support 'nn-le-imp-neq-succ
-  '(FORALL k (IMPLIES (IN k NN) (FORALL j (IMPLIES (IN j NN)
-     (IMPLIES (<= j k) (NOT (= j (succ k)))))))))
-(warrant! 'nn-le-imp-neq-succ 'well-known
-  "j <= k => j /= succ k for j,k in NN (succ k > k >= j).")
-(topic! 'nn-le-imp-neq-succ 'inequalities)
+;;; nn-le-imp-neq-succ MOVED 2026-08-24 to theorem-library/nn-order-ord.scm,
+;;; where it is PROVEN `modulo 0'.  It is the fact under `nn-succ-nonzero'.
 
 ;;; Interval read-offs (forward direction of interval-membership), warranted
 ;;; well-known -- used to pull IN i NN / the bounds out of IN i (INTERVAL a b).
@@ -434,23 +336,19 @@
   "NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.")
 (topic! 'nn-not-le-succ-le 'inequalities)
 
-(support 'nn-one-le-succ
-  '(FORALL n (IMPLIES (IN n NN) (<= 1 (succ n)))))
-(warrant! 'nn-one-le-succ 'well-known "1 <= succ n for every n in NN.")
-(topic! 'nn-one-le-succ 'inequalities)
+;;; nn-one-le-succ MOVED 2026-08-24 to theorem-library/nn-order-ord.scm, where
+;;; it is PROVEN `modulo 0' (nn-succ-mono at 0 <= n, then 1 = succ 0).
 
 ;; n <= succ n.  Was declared inside theorem-library/noetherian-maximal-proof.scm
 ;; (via add-to-pss) -- a plumbing fact hiding in a proof file, and unavailable to
-;; anything that loads before it (e.g. the span-bricks).  Moved here 2026-07-10.
-(support 'nn-le-succ
-  '(FORALL k (IMPLIES (IN k NN) (<= k (succ k)))))
-(warrant! 'nn-le-succ 'well-known "k <= succ k on NN.")
-(topic! 'nn-le-succ 'plumbing)
+;; anything that loads before it (e.g. the span-bricks).  Moved here 2026-07-10,
+;; and MOVED AGAIN 2026-08-24 to theorem-library/nn-order-ord.scm, where it is
+;; PROVEN `modulo 0' from ord-succ-above.  It was the most-cited support of the
+;; NN order block (27 citations).
 
-;; 1 in NN.  Needed for nn-le-refl at 1 (the <= 1 1 that BLOCK/SNOC typings owe).
-(support 'nn-one-in '(IN 1 NN))
-(warrant! 'nn-one-in 'well-known "1 = succ 0 in NN.")
-(topic! 'nn-one-in 'plumbing)
+;; nn-one-in (1 in NN) MOVED 2026-08-24 to theorem-library/nn-order-ord.scm.
+;; Its warrant WAS the derivation -- "1 = succ 0 in NN" -- i.e. nn-zero-in,
+;; nn-succ-closed and one ground `arith' step, written down and never run.
 
 (support 'one-in-interval-1 '(IN 1 (INTERVAL 1 1)))
 (warrant! 'one-in-interval-1 'proof
@@ -462,16 +360,25 @@
 ;;; induction needs all three to carry its index bound k <= m across a
 ;;; BORDER step (k' <= k  <=>  succ k' <= succ k).
 
-(support 'nn-zero-le
-  '(FORALL n (IMPLIES (IN n NN) (<= 0 n))))
-(warrant! 'nn-zero-le 'well-known "0 is the least natural number.")
-(topic! 'nn-zero-le 'inequalities)
-
-(support 'nn-succ-mono
-  '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
-     (IMPLIES (<= a b) (<= (succ a) (succ b))))))))
-(warrant! 'nn-succ-mono 'well-known "a <= b => succ a <= succ b.")
-(topic! 'nn-succ-mono 'inequalities)
+;;; nn-zero-le and nn-succ-mono MOVED 2026-08-24 to
+;;; theorem-library/nn-order-ord.scm, both PROVEN `modulo 0'.  nn-zero-le is
+;;; ord-zero-least read through ord-le-nn-compat; nn-succ-mono is
+;;; ord-succ-immediate with nn-le-imp-neq-succ supplying its disequality.
+;;;
+;;; nn-succ-le-cancel below did NOT move, and the reason is a measurement, not
+;;; an obstacle: no bill in the library names it (its one citation,
+;;; smith-staircase-proof, is not itself proven), so proving it would move
+;;; nothing.  The neighbours that WOULD pay, measured 2026-08-24 over the 702
+;;; bills, are
+;;;
+;;;   nn-not-le-zero-pos   named in 30 bills, SOLE unwarranted leaf of 3
+;;;   nn-not-le-succ-le    named in 24, sole leaf of 1
+;;;   nn-succ-le-antisym   named in 22, sole leaf of 0 (shadowed everywhere)
+;;;
+;;; and the first of those is driven in
+;;; prove-scripts/drives/nn-not-le-zero-pos-drive.scm.  The ordinal route
+;;; reaches all three; `nn-pos-of-nonzero' (4 bills, sole leaf of 0) is cheaper
+;;; still, being nothing but the `<' unfold over the now-proven nn-zero-le.
 
 (support 'nn-succ-le-cancel
   '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)

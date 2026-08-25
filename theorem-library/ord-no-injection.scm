@@ -20,7 +20,7 @@
 ;;; INCREASING F : ORD -> grd:
 ;;;     F(0)        = some element of grd                     (grd nonempty)
 ;;;     F(succ a)   = some element strictly above F(a)         (a is not maximal)
-;;;     F(lim)      = an upper bound of { F(b) : b <_ORD lim }  (INDUCTIVITY)
+;;;     F(lim)      = an upper bound of { F(b) : b ORD-LT lim }  (INDUCTIVITY)
 ;;; Inductivity is used at the LIMIT stages only -- and there it is enough on its
 ;;; own: an upper bound u of a strictly increasing family is automatically
 ;;; STRICTLY above every member (if u = F(b) then F(succ b) > F(b) = u >= F(succ b),

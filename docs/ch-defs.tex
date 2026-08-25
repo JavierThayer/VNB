@@ -411,7 +411,7 @@ which it is worth keeping clearly separated.
   For example,
   \[
     \mathtt{CC\text{-}MS} \;=\;
-      [\,\mathtt{CC},\;\lambda([\mathtt{x},\mathtt{y}],\,
+      [\,\mathtt{CC},\;\mathtt{vnb\text{-}lambda}([\mathtt{x},\mathtt{y}],\,
       \mathtt{magnitude}(\mathtt{x}-\mathtt{y}))\,]
   \]
   is a 2-element VNB list.  Internally it is \texttt{(LIST CC (VNB-LAMBDA
@@ -1758,10 +1758,12 @@ file \texttt{extended-reals.scm} (loaded after \texttt{numeric-instances.scm})
 installs the carrier class and the ordering.
 
 \begin{remark}
-The symbol \texttt{RR*} contains an asterisk; MIT Scheme accepts it as
-a single symbol, but the infix string parser will not parse it from a
-string.  Build wffs over $\mathit{RR}^{*}$ via the raw S-expression
-form, e.g.\ \texttt{(make-wff '(IN POS-INF RR*))}.
+The class is spelled \texttt{RR-STAR}.  It was written \texttt{RR*}
+until 2026-08-24, and that spelling could not be tokenized: the
+\texttt{*} lexes as an operator, so \texttt{x in rr*} parsed as a
+product rather than as a membership.  \texttt{RR-STAR} is the spelling
+the axioms below already use, and it parses from a string like any
+other name.
 \end{remark}
 
 \subsection{Membership}

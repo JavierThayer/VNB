@@ -5,17 +5,46 @@
 ;;; rational-power map) -- would delay every root-form inequality behind a
 ;;; substantial development; positing the power laws now puts Young, AM-GM,
 ;;; Hoelder, Minkowski and the l^2 triangle inequality into the PSS today.
-;;; (CARR later IVT construction can DISCHARGE these axioms; until then they are
-;;; warranted 'well-known.)
+;;; (A later IVT construction can DISCHARGE these axioms; until then they are
+;;; warranted 'well-known.)  For SQRT that construction has now HAPPENED --
+;;; see below; for RPOW it has not.
 ;;;
 ;;; Operators:
-;;;   RPOW(a, b)  = a^b   for a > 0 (real), b in QQ.   Always > 0.
-;;;   SQRT(a)     = a^(1/2) for a >= 0.                Always >= 0.
+;;;   RPOW(a, b)  = a^b   for a > 0 (real), b in QQ.   Always > 0.  Axiomatic.
+;;;   SQRT(a)     = a^(1/2) for a >= 0.                Always >= 0.  DEFINED.
 ;;;
 ;;; Loads after number-systems (RR/QQ, the NN-power `power', recip, abs).
 
 (register-constant! 'RPOW 'operator)
-(register-constant! 'SQRT 'operator)
+
+;;; =======================================================================
+;;; SQUARE ROOT, DEFINED (2026-08-17).
+;;;
+;;;     SQRT(a)  ==  IOTA x.  x in RR  and  0 <= x  and  x*x = a
+;;;
+;;; "the unique nonnegative real whose square is a".  Until today SQRT was a
+;;; bare `register-constant!' pinned by five `well-known' supports -- sqrt-nonneg,
+;;; sqrt-sq, sqrt-of-sq, sqrt-mono, sqrt-mul -- and those five were the ENTIRE
+;;; bill of cc-is-metric-space and of the whole cc-magnitude-* family.  All five
+;;; are now THEOREMS, in theorem-library/sqrt-defined.scm, off the description
+;;; above: existence is the intermediate value theorem applied to z |-> z*z on
+;;; [0, 1+a] (theorem-library/ivt-proof.scm, `modulo 0'; continuity of the
+;;; square is theorem-library/sq-continuous.scm), and uniqueness is the
+;;; difference of squares against rr-no-zero-divisors.
+;;;
+;;; THE TYPING `x in RR' INSIDE THE DESCRIPTION IS LOAD-BEARING.  `<=' is
+;;; primitive and unguarded: the RR order axioms constrain it on reals without
+;;; forbidding it to relate a real to a non-real (the same point ivt-proof.scm's
+;;; header makes about its witness).  Drop the typing and uniqueness is not
+;;; provable, so the description would not describe.
+;;;
+;;; `sqrt-rpow' below is deliberately NOT retired: it ties this defined SQRT to
+;;; a still-axiomatic RPOW, and is a claim about RPOW, not about SQRT.
+(def-functoid 'SQRT '(a_)
+  '(IOTA x_ (AND (IN x_ RR) (AND (<= 0 x_) (= (* x_ x_) a_)))))
+(notation! 'SQRT 'kind 'functoid 'arity 1
+           'english "the square root of $1"
+           'tex "\\sqrt{$1}")
 
 ;;; =======================================================================
 ;;; The power laws for  a^b,  a > 0, b in QQ.
@@ -134,32 +163,16 @@
 
 ;;; =======================================================================
 ;;; Square root  SQRT(a) = a^(1/2),  a >= 0.
-
-(support 'sqrt-nonneg
-  '(FORALL a (IMPLIES (AND (IN a RR) (<= 0 a)) (AND (IN (SQRT a) RR) (<= 0 (SQRT a))))))
-(warrant! 'sqrt-nonneg 'well-known "sqrt(a) is a nonnegative real for a >= 0.")
-
-(support 'sqrt-sq
-  '(FORALL a (IMPLIES (AND (IN a RR) (<= 0 a)) (= (* (SQRT a) (SQRT a)) a))))
-(warrant! 'sqrt-sq 'well-known "sqrt(a)^2 = a for a >= 0 (the defining property).")
-
-(support 'sqrt-of-sq
-  '(FORALL a (IMPLIES (IN a RR) (= (SQRT (* a a)) (abs a)))))
-(warrant! 'sqrt-of-sq 'well-known "sqrt(a^2) = |a| for every real a.")
+;;;
+;;; sqrt-nonneg, sqrt-sq, sqrt-of-sq, sqrt-mono and sqrt-mul stood HERE as
+;;; `well-known' supports until 2026-08-17.  They are now PROVEN, from the
+;;; definition at the head of this file, in theorem-library/sqrt-defined.scm.
+;;; Their statements are unchanged, so every citation of them still reads the
+;;; same; only the bills moved.
 
 (support 'sqrt-rpow
   '(FORALL a (IMPLIES (AND (IN a RR) (< 0 a)) (= (SQRT a) (RPOW a (/ 1 2))))))
 (warrant! 'sqrt-rpow 'well-known "sqrt(a) = a^(1/2) for a > 0 (SQRT is the 1/2 power).")
-
-(support 'sqrt-mono
-  '(FORALL a (IMPLIES (AND (IN a RR) (<= 0 a)) (FORALL b (IMPLIES (AND (IN b RR) (<= a b))
-     (<= (SQRT a) (SQRT b)))))))
-(warrant! 'sqrt-mono 'well-known "sqrt is nondecreasing: 0 <= a <= b gives sqrt(a) <= sqrt(b).")
-
-(support 'sqrt-mul
-  '(FORALL a (IMPLIES (AND (IN a RR) (<= 0 a)) (FORALL b (IMPLIES (AND (IN b RR) (<= 0 b))
-     (= (SQRT (* a b)) (* (SQRT a) (SQRT b))))))))
-(warrant! 'sqrt-mul 'well-known "sqrt(a*b) = sqrt(a)*sqrt(b) for a,b >= 0.")
 
 ;;; =======================================================================
 ;;; Scalar inequalities unlocked by powers/roots (warranted PSS supports).

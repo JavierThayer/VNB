@@ -52,10 +52,10 @@ The transfinite backbone underneath sequences, cardinality, finsum.
 
 - `ORD` — the proper class of ordinals (Burali-Forti axiomatised).
   `structure-library/ordinals.scm`.
-- `<=_ORD, <_ORD` — total preorder on ORD.
+- `ORD-LE, ORD-LT` — total preorder on ORD.
 - `succ_ORD α` — ordinal successor (extends `succ` on NN).
 - `LIMIT-ORD λ` — limit-ordinal predicate.
-- `ORD-SEGMENT α` — the set `{β : β <_ORD α}`. Used everywhere as
+- `ORD-SEGMENT α` — the set `{β : ORD-LT(β, α)}`. Used everywhere as
   the "first α ordinals" indexing set.
 - `SUP-ORD A` — least upper bound of a set of ordinals.
 - `transfinite-induction` — induction schema on ORD.
@@ -244,7 +244,7 @@ machinery is in place; the matrix-as-algebra is a future extension.)
   inside `IS-NORMED-FIELD` and the per-instance witnesses
   (`rr-abs-*`, `cc-magnitude-*` in `number-systems.scm`).
 
-**Extended reals.** `structure-library/extended-reals.scm`: `RR*`,
+**Extended reals.** `structure-library/extended-reals.scm`: `RR-STAR`,
 `POS-INF`, `NEG-INF` with ordering only; no extended arithmetic.
 
 ## 10. Tactics — kernel inference rules

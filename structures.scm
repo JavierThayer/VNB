@@ -102,6 +102,16 @@
 ;;; Carriers, INCLUDING the derived ones (NON-ZERO is a carrier -- it is just
 ;;; not an independent one).  The hom generator wants the independent ones only,
 ;;; and asks for kind `carrier' directly.
+;;; Tell wff.scm's destructuring-binder expander what a declared structure's
+;;; slots are called, so `forall([[x,d] in metric-space], ...)' projects with
+;;; PTS and DIST rather than NTH 1 and NTH 2.  See the long note at
+;;; `*structure-slot-names-hook*' (wff.scm) for why this is a hook and not a
+;;; forward reference.  Set here, beside the table it reads.
+(set! *structure-slot-names-hook*
+  (lambda (name)
+    (let ((sd (hash-table-ref/default *structure-table* name #f)))
+      (and sd (map car (structure-def-slots sd))))))
+
 (define (structure-def-carriers sd)
   (let loop ((rest (structure-def-slots sd)) (acc '()))
     (cond
@@ -1664,7 +1674,7 @@
 
 ;;; (def-constructed-functor NAME SRC TGT (r) TERM)
 ;;;   -- the object map is the FUNCTOID (NAME r) = TERM, an arbitrary construction
-;;;      (NF-METRIC-SPACE(nf) = [CARR(nf), lambda([x,y], FNRM(nf)(x - y))]);
+;;;      (NF-METRIC-SPACE(nf) = [CARR(nf), vnb-lambda([x,y], FNRM(nf)(x - y))]);
 ;;;   -- the morphism action is the identity on the underlying maps, which is
 ;;;      what every construction of this kind does (it re-tops the same carrier).
 ;;; It installs the functoid and OWES two theorems.  Neither is asserted:

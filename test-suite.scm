@@ -24,6 +24,7 @@
                (display " -- expected ") (write expected)
                (display " got ") (write got) (newline)))))
 
+(define *tc-chain* #f)
 (define (check-true  label thunk) (check label thunk #t))
 (define (check-false label thunk) (check label thunk #f))
 
@@ -243,6 +244,34 @@
 (check-true "forall multi-var"
             (lambda () (wff? (make-wff-from-string "forall([x in nn, y in nn], x + y = y + x)"))))
 
+;;; VNB-LAMBDA binder-list sugar.  A lambda may carry its domains per-binder,
+;;; the way a quantifier does -- `vnb-lambda([a in nn, x in cc], body)' -- and it
+;;; must desugar to EXACTLY the tree the explicit spelling gives, since that is
+;;; the only tree anything downstream (lam-t, lam-b, the printer) knows about.
+(check-true "vnb-lambda: per-binder domains = the explicit domain, same tree"
+  (lambda ()
+    (equal? (parse-string "vnb-lambda([a in nn, x in cc, w in cc], a*(x + w)+35)")
+            (parse-string "vnb-lambda([a,x,w], cartesian(nn,cc,cc), a*(x + w)+35)"))))
+
+(check-true "vnb-lambda: one typed binder collapses to the bare-symbol form"
+  ;; NOT a one-element LIST over a one-factor CARTESIAN
+  (lambda ()
+    (equal? (parse-string "vnb-lambda([a in nn], a+35)")
+            '(VNB-LAMBDA a nn (+ a 35)))))
+
+(check-true "vnb-lambda: a PARTLY typed binder list is left alone"
+  ;; there is no honest reading of `[a in nn, x]' as a domain, so it must stay
+  ;; the error it always was rather than acquire a guessed one
+  (lambda ()
+    (vnb-error? (make-wff-from-string
+                 "vnb-lambda([a in nn, x], cartesian(nn,cc), a+35) in fun(cartesian(nn,cc), nn)"))))
+
+(check-true "vnb-lambda: a domainless lambda is still rejected"
+  ;; the sugar must not become a back door to the unsound domainless form
+  (lambda ()
+    (vnb-error? (make-wff-from-string
+                 "vnb-lambda([a, x], a+x) in fun(cartesian(nn,nn), nn)"))))
+
 ;;; Functional notation for terms
 (check-true "succ(n)"     (lambda () (wff? (make-wff-from-string "succ(0) in nn"))))
 (check-true "power(x,n)"  (lambda () (wff? (make-wff-from-string "power(2, 3) = 8"))))
@@ -253,6 +282,658 @@
             (lambda () (wff? (make-wff-from-string "x in {a, b}"))))
 (check-true "sep {x in A: p}"
             (lambda () (wff? (make-wff-from-string "z in {x in a | x in nn}"))))
+
+;;; Binder-list scope (2026-08-15).  A binding list scopes LEFT TO RIGHT, so a
+;;; guard may only mention binders to its LEFT: `forall([s in CARR(r), r], ...)'
+;;; expands to (FORALL s (IMPLIES (IN s (CARR r)) (FORALL r ...))), where the
+;;; guard's `r' is FREE and the later binder binds a different variable of the
+;;; same name.  `validate-wff!' warned generically ("symbol r is both bound and
+;;; free"); this fires at binding-list expansion and names both positions.
+
+(check-true "binder scope: guard mentioning a LATER binder is caught"
+  (lambda ()
+    (equal? (binding-list-forward-refs '((IN s (CARR r)) (r)))
+            '((s 1 r 2)))))
+
+(check-true "binder scope: two binders away, position reported correctly"
+  (lambda ()
+    (equal? (binding-list-forward-refs '((IN s (CARR r)) (IN t NN) (r)))
+            '((s 1 r 3)))))
+
+(check-true "binder scope: a guard mentioning an EARLIER binder is fine"
+  (lambda ()
+    (null? (binding-list-forward-refs '((r) (IN s (CARR r)))))))
+
+(check-true "binder scope: a chain of leftward guards is fine"
+  (lambda ()
+    (null? (binding-list-forward-refs
+            '((a) (IN b (CARR a)) (IN c (CARR b)))))))
+
+(check-true "binder scope: a guard that BINDS the name itself is not a finding"
+  ;; {r | p(r)} binds r INSIDE the guard, so the later binder is unrelated.
+  ;; This is why the scan is free-vars and not a symbol sweep -- and it was a
+  ;; false positive until COMP was added to free-vars (expressions.scm).
+  (lambda ()
+    (null? (binding-list-forward-refs '((IN s (COMP r (p r))) (r))))))
+
+;;; COMP in the expression walkers (2026-08-15).  `{x | p}' binds x in p and has
+;;; the FORALL/FORSOME/IOTA shape, but the string `COMP' occurred nowhere in
+;;; expressions.scm: free-vars called the bound variable free, subst-free
+;;; rewrote it and captured into it, and alpha-equiv? said two alpha-variants
+;;; differed.  Latent -- no installed formula contains a COMP -- but reachable
+;;; by anyone who types `{x | p}', which the parser has always accepted.
+
+(check-true "COMP binds: free-vars does not report the bound variable"
+  (lambda () (equal? (free-vars '(COMP r (IN r a))) '(a))))
+
+(check-true "COMP binds: subst-free leaves the bound variable alone"
+  (lambda ()
+    (equal? (subst-free 'r 'zz '(COMP r (IN r a))) '(COMP r (IN r a)))))
+
+(check-true "COMP binds: subst-free renames rather than capturing"
+  ;; a := f(r) must not let the binder capture the replacement's r
+  (lambda ()
+    (let ((got (subst-free 'a '(f r) '(COMP r (IN r a)))))
+      (and (pair? got) (eq? (car got) 'COMP)
+           (not (eq? (cadr got) 'r))                  ; renamed
+           (equal? (caddr got) `(IN ,(cadr got) (f r)))))))
+
+(check-true "COMP binds: alpha-equivalent comprehensions compare equal"
+  (lambda () (alpha-equiv? '(COMP r (IN r a)) '(COMP s (IN s a)))))
+
+(check-true "COMP binds: distinct comprehensions still compare unequal"
+  (lambda () (not (alpha-equiv? '(COMP r (IN r a)) '(COMP s (IN s b))))))
+
+;;; Nullary application (2026-08-15).  `h()' is legal only for the constructors
+;;; with a defined nullary value: list() = [] (the empty tuple, which
+;;; `empty-in-tuples' and `length-of-empty' are about) and set_of() = {}.
+;;; Everything else is rejected at BOTH doors -- the parser, for what a user
+;;; types, and validate-wff!, for the raw S-expressions `support' and
+;;; `theory-add-axiom!' install without going through the parser.
+;;;
+;;; What made this worth a rule rather than a shrug: (f) used to print as `f',
+;;; so `(= (f) f)' displayed as `f = f' while `rfl' refused it, the two sides
+;;; being different S-expressions.  The printer now writes `f()'.  Note
+;;; `union()' was already rejected before the rule existed, but only by the
+;;; `>= 2 args' floor the binary case wanted -- not by any decision about arity 0.
+
+(check-true "nullary: list() is []"
+            (lambda () (equal? (parse-string "list()") '(list))))
+(check-true "nullary: set_of() is {}"
+            (lambda () (equal? (parse-string "set_of()") '(make-set (list)))))
+(check-true "nullary: length([]) = 0 still parses"
+            (lambda () (wff? (make-wff-from-string "length([]) = 0"))))
+
+(check-true "nullary: f() rejected"
+            (lambda () (vnb-error? (parse-string "f()"))))
+(check-true "nullary: cartesian() rejected"
+            (lambda () (vnb-error? (parse-string "cartesian()"))))
+(check-true "nullary: power() rejected"
+            (lambda () (vnb-error? (parse-string "power()"))))
+(check-true "nullary: chained f(x)() rejected"
+            (lambda () (vnb-error? (parse-string "f(x)()"))))
+(check-true "nullary: lambdoid([x in A], x)() rejected"
+            (lambda () (vnb-error? (parse-string "lambdoid([x in a], x)()"))))
+
+;;; Surface `lambda' was REMOVED 2026-08-18: it built a functoid RECORD, which
+;;; is not the `vnb-lambda' every proof in the library uses, and the unadorned
+;;; word beside the hyphenated one was pure confusion.  The error must NAME both
+;;; replacements -- a bare "unexpected token" would send the reader hunting.
+(check-true "removed: surface lambda([x in A], x) is rejected"
+            (lambda () (vnb-error? (parse-string "lambda([x in a], x)"))))
+(check-true "removed: the lambda error names vnb-lambda and lambdoid"
+  ;; The message must name BOTH replacements.  A bare "unexpected token" would
+  ;; send a reader hunting, and the whole point of the removal is that the two
+  ;; constructs were being confused for each other.
+  (lambda ()
+    (let ((e (parse-string "lambda([x in a], x)")))
+      (and (vnb-error? e)
+           (let ((m (vnb-error-message e)))
+             (and (string-search-forward "vnb-lambda" m 0)
+                  (string-search-forward "lambdoid" m 0)
+                  #t))))))
+(check-true "kept: vnb-lambda is still the set-function binder, not a functoid"
+  (lambda ()
+    (and (equal? (parse-string "vnb-lambda([a in nn], a+35)") '(VNB-LAMBDA a nn (+ a 35)))
+         (not (functoid? (parse-string "vnb-lambda([a in nn], a+35)"))))))
+(check-true "kept: lambdoid still builds a functoid record"
+            (lambda () (functoid? (parse-string "lambdoid([x in ord], x)"))))
+
+;;; what-now must not offer a goal-ENLARGING rewrite as though it were progress
+;;; (2026-08-18).  A user on  |- forall([a in pts(t)], (dist(t))(a,a) = 0)  was
+;;; offered `(mac 'bdd-metric-carrier-rev)', which rewrites pts(t) into
+;;; pts(BDD-METRIC t) -- bigger, and about a bounded metric the goal had nothing
+;;; to do with.  Having taken it, the citation lane filled with BDD-METRIC facts
+;;; and the rewrite lane offered the forward direction to undo it.
+(check-true "what-now: form-size sees that a -rev orientation grows the goal"
+  (lambda ()
+    (< (what-now--form-size '(PTS m))
+       (what-now--form-size '(PTS (BDD-METRIC m))))))
+
+;;; The USER FILTER.  No syntactic measure of relevance is ever going to be
+;;; right on every goal -- an unfold enlarges, and an unfold is usually what you
+;;; want -- so the panel takes instructions as well as guessing.
+(check-true "what-now filter: a STRING suppresses a whole family by substring"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! "bdd-metric")
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (what-now--suppressed? 'bdd-metric-is-metric-space)
+                  (not (what-now--suppressed? 'metric-self-zero)))))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: a SYMBOL suppresses exactly one name"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! 'bdd-metric-carrier-rev)
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (not (what-now--suppressed? 'bdd-metric-carrier)))))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: a PIN floats a move to the front"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-pin! 'metric-self-zero)
+    (let* ((a (wn--move '(mac 'bdd-metric-carrier)))
+           (b (wn--move '(mac 'metric-self-zero)))
+           (out (quietly (lambda () (what-now--apply-filter (list a b)))))
+           (r (eq? (what-now--move-name (car out)) 'metric-self-zero)))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: cleared by default, so it changes nothing unasked"
+  (lambda ()
+    (what-now-filter-clear!)
+    (and (null? *what-now-suppress*) (null? *what-now-pin*))))
+
+(check-true "what-now filter: a LIST is an MIT regsexp, anchored where you say"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! '(seq (* (any-char)) "-rev" (line-end)))
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (not (what-now--suppressed? 'bdd-metric-carrier))
+                  (not (what-now--suppressed? 'reverse-something)))))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: a PROCEDURE is called on the name"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! (lambda (n) (> (string-length (symbol->string n)) 20)))
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (not (what-now--suppressed? 'rfl)))))
+      (what-now-filter-clear!)
+      r)))
+
+;;; SEQUENT VOCABULARY: "if there is no function in the sequent then don't tell
+;;; me what to do about functions."  A forward citation whose LANDED formula
+;;; introduces a head occurring nowhere in the sequent is demoted, with the
+;;; vocabulary named.
+(check-true "have! accepts a STRING claim, not only a raw S-expression"
+  ;; `cut' coerces internally, but have!'s own side-goal search compared the
+  ;; UNCOERCED argument, so a string always died with "no side goal for ..." --
+  ;; which reads as though the cut failed when it had succeeded.  The surface
+  ;; string is the natural thing to type.
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (<= x x)))))
+    (di)
+    (quietly (lambda () (have! "0 <= 0" (lambda () (arith)))))
+    (equal? (car (dk-asms)) '(<= 0 0))))
+
+(check-true "hyp lane: a structure-CLASS membership is offered for unfolding"
+  ;; `ms in metric-space' has head IN, so a lane keying on the head never saw
+  ;; it -- and it is the move that unblocks the goal, because the library is
+  ;; stated with IS-METRIC-SPACE(s) hypotheses and the forward lane matches
+  ;; antecedents syntactically.
+  (lambda ()
+    (sp (make-wff '(FORALL m (IMPLIES (IN m METRIC-SPACE) (= (PTS m) (PTS m))))))
+    (di)
+    (let ((us (quietly (lambda () (suggest-hyp-unfolds)))))
+      (and (pair? us)
+           (eq? (cadr (car us)) 'metric-space-class)))))
+
+(check-true "hyp lane: the class unfold really does unlock the forward lane"
+  ;; the measurement that motivated it: 4 citations before, many more after
+  (lambda ()
+    (sp (make-wff '(FORALL m (IMPLIES (IN m METRIC-SPACE)
+                     (FORALL a (IMPLIES (IN a (PTS m)) (= ((DIST m) a a) 0))))))) 
+    (di) (di)
+    (let* ((before (length (what-now--forward-citations
+                            (dk-goal)
+                            (map wff-formula
+                                 (sequent-node-assumptions (proof-state-focus *ps*))))))
+           (ignore (quietly (lambda () (mac-h 'metric-space-class '(IN m METRIC-SPACE)))))
+           (after  (length (what-now--forward-citations
+                            (dk-goal)
+                            (map wff-formula
+                                 (sequent-node-assumptions (proof-state-focus *ps*)))))))
+      (> after before))))
+
+(check-true "heads: a COMPOUND operator is walked, not skipped"
+  ;; ((dist s) x y) -- structure operations put the accessor in OPERATOR
+  ;; position, and both head collectors used to descend only into the
+  ;; arguments.  The panel was therefore blind to `dist' on a metric goal:
+  ;; ABOUT omitted it, and metric-triangle ranked 2 ("mentions nothing the goal
+  ;; is about") because rank 1 wants a shared content head and the shared head
+  ;; IS dist.
+  (lambda ()
+    (and (memq 'dist (what-now--heads-of '(<= ((dist s) a c) ((dist s) a b))))
+         (memq 'dist (what-now--all-heads '(<= ((dist s) a c) ((dist s) a b))))
+         #t)))
+
+(check-true "heads: the triangle inequality outranks a typing fact on a dist goal"
+  (lambda ()
+    (let* ((goal  '(<= ((dist ms) a c) (* 2 (max ((dist ms) a b) ((dist ms) b c)))))
+           (gh    (what-now--content-heads goal))
+           (tri   '(<= ((dist ms) a c) (+ ((dist ms) a b) ((dist ms) b c))))
+           (typ   '(IN (pair-tuple a a) SET)))
+      (and (= 1 (what-now--forward-rank tri goal gh))
+           (= 2 (what-now--forward-rank typ goal gh))))))
+
+(check-true "vocab: the ARITHMETIC is never foreign"
+  ;; metric-triangle lands a bound by a SUM, and the sum is exactly what is not
+  ;; yet in the goal -- calling `+' foreign hid the triangle inequality on a
+  ;; metric-space goal.
+  (lambda ()
+    (null? (what-now--foreign-vocab
+             '(<= ((dist ms) a c) (+ ((dist ms) a b) ((dist ms) b c)))
+             '(dist ms a b c max)))))
+
+(check-true "vocab: a head absent from the sequent counts as foreign"
+  (lambda ()
+    (let ((seq '(is-metric-space pts dist)))
+      (and (equal? (what-now--foreign-vocab '(IS-COMPACT s) seq) '(IS-COMPACT))
+           (null? (what-now--foreign-vocab '((DIST m) a a) seq))))))
+
+(check-true "vocab: the number systems and tuple plumbing are never foreign"
+  ;; every sequent may mention NN/RR/SET/LIST without meaning anything by it
+  (lambda ()
+    (null? (what-now--foreign-vocab '(IN (NTH 1 t) SET) '(t)))))
+
+(check-true "filter file: template is created, evaluated, and takes effect"
+  ;; The edit cycle runs file -> prover ONLY.  A filter entry may be a
+  ;; PROCEDURE, which has no readable printed form, so dumping the live object
+  ;; back to the file would silently lose exactly the interesting entries.
+  ;; Uses a scratch path so a developer's own filter is never touched.
+  (lambda ()
+    (fluid-let ((*what-now-filter-file* "/tmp/vnb-filter-suite-check.scm"))
+      (if (file-exists? (what-now--filter-path)) (delete-file (what-now--filter-path)))
+      (let ((path (what-now-filter-file)))            ; creates from template
+        (and (file-exists? path)
+             (begin
+               (call-with-output-file path
+                 (lambda (port)
+                   (write-string
+                    "(what-now-filter! (list \"bdd-metric\") (list 'metric-self-zero))"
+                    port)))
+               (quietly (lambda () (what-now-filter-load!)))
+               (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                             (what-now--pinned? 'metric-self-zero)
+                             (not (what-now--suppressed? 'metric-self-zero)))))
+                 (delete-file path)
+                 (what-now-filter-clear!)
+                 r)))))))
+
+(check-true "vocab: the sequent head set used for filtering is UNCAPPED"
+  ;; what-now--sequent-heads is capped for DISPLAY; filtering on the capped list
+  ;; would start calling a sequent's own ninth head foreign
+  (lambda ()
+    (sp (make-wff '(FORALL m (IMPLIES (IN m METRIC-SPACE)
+                     (= ((DIST m) (PTS m) (PTS m)) 0)))))
+    (>= (length (what-now--sequent-heads-all (dk-goal))) 1)))
+
+;;; A destructuring binder over a DECLARED STRUCTURE projects with the slot
+;;; ACCESSORS, not with NTH (2026-08-18).  It projected with NTH until then,
+;;; which is correct -- accessors are literally those projections -- and
+;;; unusable: every library theorem is stated with the accessor names, the
+;;; accessor macete only rewrites accessor -> NTH, and there is deliberately no
+;;; reverse (a bare `NTH 2 s' could be DIST of a metric space or OPR of a
+;;; group).  So the binder produced a goal no theorem matched and no tactic
+;;; could bridge.  The binder NAMES the class, so the expander can supply the
+;;; accessor names the reader should not have to memorise.
+(check-true "destructuring over a structure projects with slot accessors"
+  (lambda ()
+    ;; ALPHA-equivalent, not equal: the destructured form introduces a FRESH
+    ;; bound variable (t_NNNN), so the two differ in the binder's name and in
+    ;; nothing else -- which is exactly the claim.
+    (alpha-equiv? (wff-formula (make-wff-from-string
+                    "forall([[x,d] in metric-space, a in x], d(a, a) = 0)"))
+                  (wff-formula (make-wff-from-string
+                    "forall([m in metric-space, a in pts(m)], (dist(m))(a, a) = 0)")))))
+
+(check-proof "destructuring: and the result actually drives"
+  (lambda ()
+    (sp (make-wff-from-string "forall([[x,d] in metric-space, a in x], d(a, a) = 0)"))
+    (di) (di)
+    (let ((tv (cadr (car (dk-asms)))))
+      (mac-h 'metric-space-class (list 'IN tv 'METRIC-SPACE))
+      (fact 'metric-self-zero tv 'a)
+      (ass))))
+
+(check-true "destructuring: arity mismatch ERRORS and names the slots"
+  ;; silently handing back (NTH 3 t) of a two-slot tuple buries a reader's
+  ;; mistake about the structure; the message doubles as the accessor list
+  (lambda ()
+    (let ((e (make-wff-from-string "forall([[x,d,e] in metric-space], x = x)")))
+      (and (vnb-error? e)
+           (let ((m (vnb-error-message e)))
+             (and (string-search-forward "2 component" m 0)
+                  (string-search-forward "pts" m 0)
+                  #t))))))
+
+(check-true "destructuring: the fresh variable is NAMED, not numbered"
+  ;; `t_1368' is correct and unreadable.  The binder names the class, so the
+  ;; initials are free: METRIC-SPACE -> ms, TOP-SPACE -> ts.
+  (lambda ()
+    (let ((f (wff-formula (make-wff-from-string
+               "forall([[x,d] in metric-space, a in x], d(a,a) = 0)"))))
+      (and (memq 'ms (free-vars (list 'dummy f))) #f  ; ms is BOUND, not free
+           #t)
+      (eq? (cadr f) 'ms))))
+
+(check-true "destructuring: *destructuring-hint* overrides the name"
+  ;; the manual control -- a plain global so it can be set! mid-proof
+  (lambda ()
+    (fluid-let ((*destructuring-hint* 'm))
+      (eq? (cadr (wff-formula (make-wff-from-string
+             "forall([[x,d] in metric-space], x = x)"))) 'm))))
+
+(check-true "destructuring: a name already in use falls back to numbering"
+  (lambda ()
+    (let ((f (wff-formula (make-wff-from-string
+               "forall([ms in nn], forall([[x,d] in metric-space], ms = ms))"))))
+      (not (eq? (cadr (caddr (caddr f))) 'ms)))))
+
+(check-true "fresh-var/bare refuses a registered constant as a bare name"
+  ;; a binder named like an accessor reads as the CONSTANT in head position
+  (lambda ()
+    (not (eq? (fresh-var/bare 'pts '(dummy)) 'pts))))
+
+(check-true "destructuring: a non-structure class still falls back to NTH"
+  (lambda ()
+    (alpha-equiv? (wff-formula (make-wff-from-string
+                    "forall([[u,v] in cartesian(nn,nn)], u = u)"))
+                  (wff-formula (make-wff '(FORALL t (IMPLIES (IN t (CARTESIAN NN NN))
+                                             (= (NTH 1 t) (NTH 1 t)))))))))
+
+;;; MEASURABLE-SPACE / MEASURE-SPACE are STRUCTURES, not predicate argument
+;;; lists (2026-08-18).  The whole design rests on ONE claim: because each law
+;;; clause CITES the existing predicate, the component-level vocabulary of
+;;; measure.scm applies at (PTS m, SIGMA m, MEAS m) by an UNFOLD, with no
+;;; bridging lemma.  If that ever stops being true the addition has silently
+;;; become a migration, so it is checked rather than asserted.
+(check-proof "measure-space: the unfold reaches IS-MEASURE, no bridge lemma"
+  (lambda ()
+    (sp (make-wff-from-string
+         "forall([m in measure-space], is-measure(pts(m), sigma(m), meas(m)))"))
+    (di)
+    (mac-h 'measure-space-class '(IN m MEASURE-SPACE))
+    (mac-h 'IS-MEASURE-SPACE '(IS-MEASURE-SPACE m))
+    (let loop ((l (dk-asms)) (n 0))
+      (cond ((or (null? l) (> n 12)) #t)
+            ((and (pair? (car l)) (eq? (caar l) 'AND)) (ai (car l)) (loop (dk-asms) (+ n 1)))
+            (else (loop (cdr l) n))))
+    (ass)))
+
+(check-true "measure-space: the class supports bounded quantification"
+  ;; Built from the S-EXPRESSION because of the ((MEAS m) a) juxtaposition,
+  ;; not because of the codomain: `RR-POS-STAR' (RR+* until 2026-08-24) is now
+  ;; an ordinary readable name.  The bounded quantification is what is under
+  ;; test here.
+  (lambda () (wff? (make-wff
+    '(FORALL m (IMPLIES (IN m MEASURE-SPACE)
+       (FORALL a (IMPLIES (IN a (SIGMA m)) (IN ((MEAS m) a) RR-POS-STAR)))))))))
+
+(check-true "measurable-space: PTS is shared with TOP-SPACE, so Borel is writable"
+  ;; SIGMA-GENERATED(PTS(t), OPENS(t)) -- the point of reusing the accessor
+  (lambda () (wff? (make-wff-from-string
+    "forall([t in top-space], is-sigma-algebra(pts(t), sigma-generated(pts(t), opens(t))))"))))
+
+;;; find-theorem must report whether a hit is PROVED.  Until 2026-08-18 the
+;;; record carried name/aliases/warrant/statement and the printed line showed
+;;; the warrant KIND -- so a proven theorem, which needs no warrant and
+;;; therefore has none, printed exactly like an assertion nobody justified.
+;;; Reading `(warrant . #f)' off `diagonalization' and concluding it was
+;;; unproved is the reasonable inference, and it is wrong: that is what being
+;;; proved looks like.
+(check-true "find-theorem: the record carries provenance and bill"
+  (lambda ()
+    (let ((keys (map car (car (quietly (lambda () (find-theorem 'diagonalization)))))))
+      (and (memq 'provenance keys) (memq 'bill keys) #t))))
+
+(check-true "find-theorem: provenance agrees with proof-debt"
+  (lambda ()
+    (let ((r (car (quietly (lambda () (find-theorem 'cont-transfer-ptwise-eq))))))
+      (eq? (cdr (assq 'provenance r)) (provenance-of 'cont-transfer-ptwise-eq)))))
+
+(check-true "find-theorem: a proven theorem is not tagged as asserted"
+  ;; the whole point: warrant #f + proven must NOT read like warrant #f + asserted
+  (lambda ()
+    (let ((tag (ft--status-tag 'cont-transfer-ptwise-eq
+                               (warrant-of 'cont-transfer-ptwise-eq))))
+      (and (not (warrant-of 'cont-transfer-ptwise-eq))
+           (string-search-forward "PROVEN" tag 0)
+           (not (string-search-forward "asserted" tag 0))
+           #t))))
+
+;; The SIZE is read off the bill rather than written in: this check is about
+;; the FORMATTING -- that the tag says "modulo N" and not just "proven" -- and a
+;; literal N pins it to the debt ledger, so every repair anywhere in the library
+;; fails a formatting test.  It did: proving the NN order block (2026-08-24)
+;; took diagonalization's bill from 6 leaves to 4 and this check went red for a
+;; reason that had nothing to do with find-theorem.  `modulo 0' stays literal --
+;; there the string is the point, not the count.
+(check-true "find-theorem: modulo 0 is spelled out, a bill shows its size"
+  (lambda ()
+    (and (string-search-forward "modulo 0"
+           (ft--status-tag 'cont-transfer-ptwise-eq #f) 0)
+         (positive? (length (debt-of 'diagonalization)))
+         (string-search-forward
+           (string-append "modulo "
+                          (number->string (length (debt-of 'diagonalization))))
+           (ft--status-tag 'diagonalization #f) 0)
+         #t)))
+
+(check-true "find-theorem: an unwarranted ASSERTION says so in as many words"
+  (lambda ()
+    (and (string-search-forward "NO WARRANT" (ft--status-tag 'nary-plus-3 #f) 0) #t)))
+
+(check-true "find-theorem: primitive and definitional are distinguished"
+  (lambda ()
+    (and (string=? (ft--status-tag 'app-graph #f) "[primitive]")
+         (string=? (ft--status-tag 'is-continuous-at #f) "[definitional]"))))
+
+;; make-wff on a RAW S-expression raises rather than returning a <vnb-error>
+;; (only the parse-string / make-wff-from-string entry points go through
+;; vnb-guard), so these three wrap it themselves.
+(check-error "nullary: raw (f) rejected by validate-wff!"
+             (lambda () (vnb-guard (lambda () (make-wff '(= (f) (f)))))))
+(check-error "nullary: raw (CARTESIAN) rejected by validate-wff!"
+             (lambda () (vnb-guard (lambda () (make-wff '(= (CARTESIAN) a))))))
+(check-error "nullary: raw predicate (p) rejected by validate-wff!"
+             (lambda () (vnb-guard (lambda () (make-wff '(p))))))
+(check-true "nullary: raw (LIST) still accepted"
+            (lambda () (wff? (make-wff '(= (LIST) (LIST))))))
+
+(check "nullary: printer writes f(), not f"
+       (lambda () (expression->string '(f))) "f()")
+(check "nullary: a bare symbol still prints bare"
+       (lambda () (expression->string 'f)) "f")
+(check "nullary: [] still prints as []"
+       (lambda () (expression->string '(LIST))) "[]")
+
+;;; -----------------------------------------------------------------------
+;;; PRINT/PARSE ROUND TRIP for the associative operators.
+;;;
+;;; The parser reads a chain of + or * into ONE FLAT n-ary node and a chain of
+;;; and/or/iff RIGHT-associatively.  Until 2026-08-24 expr->str printed every
+;;; same-head child unparenthesised, so a NESTED (* (* a b) c) printed as
+;;; `a * b * c' and re-parsed to the FLAT (* a b c) -- a different S-expression,
+;;; so not `equal?', so not matched by `ass'.  The mirror half was in the reader:
+;;; p-parse-mul tested the SHAPE of its left operand rather than whether it had
+;;; accumulated it, so an explicitly grouped `(a * b) * c' was spliced flat and
+;;; the nested term was UNWRITABLE on the surface.
+;;;
+;;; These checks test the STORED FORM, not the printed string: a string check
+;;; alone cannot tell the flat node from the left-nested one, which is the whole
+;;; defect.  The two string checks below are the other half -- they pin that the
+;;; FLAT node still prints without parentheses, so a future "fix" that simply
+;;; parenthesises every operand fails here.
+
+(define (rt-form e) (parse-string (expression->string e)))
+(define (rt-ok? e)  (equal? (rt-form e) e))
+
+(check-true "round trip: flat (* a b c)"        (lambda () (rt-ok? '(* a b c))))
+(check-true "round trip: flat (* a b c d)"      (lambda () (rt-ok? '(* a b c d))))
+(check-true "round trip: left-nested (* (* a b) c)"
+            (lambda () (rt-ok? '(* (* a b) c))))
+(check-true "round trip: right-nested (* a (* b c))"
+            (lambda () (rt-ok? '(* a (* b c)))))
+(check-true "round trip: left-nested 4-factor (* (* (* a b) c) d)"
+            (lambda () (rt-ok? '(* (* (* a b) c) d))))
+(check-true "round trip: flat (+ a b c)"        (lambda () (rt-ok? '(+ a b c))))
+(check-true "round trip: left-nested (+ (+ a b) c)"
+            (lambda () (rt-ok? '(+ (+ a b) c))))
+(check-true "round trip: right-nested (+ a (+ b c))"
+            (lambda () (rt-ok? '(+ a (+ b c)))))
+(check-true "round trip: left-nested AND"
+            (lambda () (rt-ok? '(and (and (in a nn) (in b nn)) (in c nn)))))
+(check-true "round trip: right-nested AND"
+            (lambda () (rt-ok? '(and (in a nn) (and (in b nn) (in c nn))))))
+(check-true "round trip: left-nested OR"
+            (lambda () (rt-ok? '(or (or (in a nn) (in b nn)) (in c nn)))))
+;; The term that found this: succ(m) * (recip(succ(m)) * c) * v, stored nested.
+(check-true "round trip: the nested product from Example 4.7"
+            (lambda () (rt-ok? '(* (* (succ m) (* (recip (succ m)) c)) v))))
+
+;; The flat node must NOT gain parentheses -- the printer parenthesises exactly
+;; the same-head children, and nothing else.
+(check "round trip: the FLAT product still prints unparenthesised"
+       (lambda () (expression->string '(* a b c))) "a * b * c")
+(check "round trip: the FLAT sum still prints unparenthesised"
+       (lambda () (expression->string '(+ a b c))) "a + b + c")
+(check "round trip: a nested product IS parenthesised"
+       (lambda () (expression->string '(* (* a b) c))) "(a * b) * c")
+
+;; Reader: an explicitly grouped left operand is no longer absorbed, while
+;; unparenthesised input reads exactly as before -- the flat n-ary node that
+;; nary-plus-3 / nary-times-3 fix the meaning of.
+(check "reader: a * b * c is still the FLAT node"
+       (lambda () (parse-string "a * b * c")) '(* a b c))
+(check "reader: (a * b) * c is the nested node"
+       (lambda () (parse-string "(a * b) * c")) '(* (* a b) c))
+(check "reader: a * (b * c) is the nested node"
+       (lambda () (parse-string "a * (b * c)")) '(* a (* b c)))
+(check "reader: a + b + c is still the FLAT node"
+       (lambda () (parse-string "a + b + c")) '(+ a b c))
+(check "reader: (a + b) + c is the nested node"
+       (lambda () (parse-string "(a + b) + c")) '(+ (+ a b) c))
+;; The `/' sugar branch is untouched: every mixed */ reading is what it was.
+(check "reader: a * b / c reads as before"
+       (lambda () (parse-string "a * b / c")) '(* (* a b) (recip c)))
+(check "reader: a / b * c reads as before"
+       (lambda () (parse-string "a / b * c")) '(* a (recip b) c))
+
+;;; -----------------------------------------------------------------------
+;;; PRINT/PARSE ROUND TRIP: four printer arms that emitted a string the reader
+;;; refuses, or -- worse -- accepts as a DIFFERENT term (2026-08-24).
+;;;
+;;; All four are checked on the STORED FORM.  A string check cannot see the
+;;; defect in three of them: `{a, b}', `i in cc' and `card-star(a)' are all
+;;; perfectly good strings; what was wrong is the S-expression they read back
+;;; as.  The string checks beside them pin the chosen spelling, so a later
+;;; change of spelling has to be deliberate.
+
+;; (a) PAIR is not MAKE-SET.  (PAIR a b) printed `{a, b}' -- the surface syntax
+;; of MAKE-SET, a different primitive -- so 48 installed formulas printed as a
+;; term they were not, and re-reading one gave (MAKE-SET (LIST a b)).
+(check-true "round trip: (PAIR a b) survives print -> parse"
+            (lambda () (rt-ok? '(pair a b))))
+(check-true "round trip: the PAIR singleton (PAIR a a) survives"
+            (lambda () (rt-ok? '(pair a a))))
+(check "round trip: PAIR prints as an application, not as a set literal"
+       (lambda () (expression->string '(pair a b))) "pair(a, b)")
+(check "round trip: {a, b} still READS as MAKE-SET"
+       (lambda () (parse-string "{a, b}")) '(make-set (list a b)))
+(check "round trip: MAKE-SET still PRINTS as a set literal"
+       (lambda () (expression->string '(make-set (list a b)))) "{a, b}")
+
+;; (b) The `/' head.  `/(t, 1 + t)' died in the parser: read-op makes `/' an
+;; operator token, and only a funsym can head an application.  The
+;; parenthesised head is readable and is what is printed.  The pretty
+;; alternative is NOT taken: `t / (1 + t)' is sugar for (* t (RECIP ...)) and
+;; would read back as a different term.
+(check-true "round trip: the / head survives print -> parse"
+            (lambda () (rt-ok? '(/ t (+ 1 t)))))
+(check "round trip: / prints with a parenthesised head"
+       (lambda () (expression->string '(/ t (+ 1 t)))) "(/)(t, 1 + t)")
+(check "reader: (/)(t, 1 + t) is the / node"
+       (lambda () (parse-string "(/)(t, 1 + t)")) '(/ t (+ 1 t)))
+(check "reader: infix / is still SUGAR, and is NOT the / node"
+       (lambda () (parse-string "t / (1 + t)")) '(* t (recip (+ 1 t))))
+
+;; (c) Complex literals.  read-num begins on a DIGIT, so `i' is an identifier
+;; and `-i' is unary minus applied to one: (IN +i CC) printed `i in cc' and
+;; read back as a statement about a free variable named i.
+(check-true "round trip: the imaginary unit survives print -> parse"
+            (lambda () (rt-ok? '(in +i cc))))
+(check-true "round trip: a product of imaginary units survives"
+            (lambda () (rt-ok? '(* +i +i))))
+(check-true "round trip: -i survives"      (lambda () (rt-ok? '(= x -i))))
+(check-true "round trip: -3i survives"     (lambda () (rt-ok? '(= x -3i))))
+(check-true "round trip: 3i survives"      (lambda () (rt-ok? '(= x +3i))))
+(check-true "round trip: 2-i survives"     (lambda () (rt-ok? '(= x 2-i))))
+(check-true "round trip: 2+3i survives"    (lambda () (rt-ok? '(= x 2+3i))))
+(check "round trip: the imaginary unit prints as 1i, not i"
+       (lambda () (expression->string '+i)) "1i")
+(check "round trip: -i prints as 0-i, not -i"
+       (lambda () (expression->string '-i)) "0-i")
+(check "round trip: a real literal is untouched"
+       (lambda () (expression->string '(+ 2 3))) "2 + 3")
+
+;; (d) `^' with a unary-minus exponent.  Unary `-' and `power' share
+;; precedence 7, so `x ^ -n' printed unparenthesised -- but p-parse-pow reads
+;; its right operand as a PRIMARY, not as a unary.
+(check-true "round trip: x ^ (-n) survives print -> parse"
+            (lambda () (rt-ok? '(power x (- n)))))
+(check "round trip: a unary-minus exponent is parenthesised"
+       (lambda () (expression->string '(power x (- n)))) "x ^ (-n)")
+(check-true "round trip: right-nested power still survives"
+            (lambda () (rt-ok? '(power x (power y z)))))
+(check "round trip: right-assoc ^ keeps printing unparenthesised"
+       (lambda () (expression->string '(power x (power y z)))) "x ^ y ^ z")
+
+;; (e) SEVEN NAMES THAT CONTAINED OPERATOR CHARACTERS (renamed 2026-08-24).
+;; `<=_ORD' `<_ORD' `RR*' `RR+*' `RR+*-ADD-MONOID' `CARD*' `INJECTIVE*' were
+;; each unreadable, and one of them SILENTLY so: read-ident stops at the `*'
+;; and read-op takes it, so `card*(a)' parsed as the PRODUCT (* card a) --
+;; a different term, with no error.  The other six were tokenize or parse
+;; errors.  105 installed formulas could not be retyped from their own printed
+;; form because of them.  The replacements are the spellings the surrounding
+;; axiom names already used (ord-le-refl, rr-star-membership,
+;; rr-pos-star-membership) plus the -STAR reading of the companion convention
+;; that injection.scm documents.
+(check-true "round trip: ORD-LE survives print -> parse"
+            (lambda () (rt-ok? '(ord-le alpha beta))))
+(check-true "round trip: ORD-LT survives print -> parse"
+            (lambda () (rt-ok? '(ord-lt alpha beta))))
+(check-true "round trip: RR-STAR survives print -> parse"
+            (lambda () (rt-ok? '(in pos-inf rr-star))))
+(check-true "round trip: RR-POS-STAR survives print -> parse"
+            (lambda () (rt-ok? '(in 0 rr-pos-star))))
+(check-true "round trip: RR-POS-STAR-ADD-MONOID survives print -> parse"
+            (lambda () (rt-ok? '(is-comm-monoid rr-pos-star-add-monoid))))
+(check-true "round trip: CARD-STAR survives print -> parse"
+            (lambda () (rt-ok? '(= (card-star a_) n))))
+(check-true "round trip: INJECTIVE-STAR survives print -> parse"
+            (lambda () (rt-ok? '(injective-star f))))
+;; The silent one, pinned as a STRING check: this is what used to happen.
+(check "reader: card-star(a) is an application, not a product"
+       (lambda () (parse-string "card-star(a)")) '(card-star a))
+(check "reader: the old card*(a) still reads as a PRODUCT -- why it was renamed"
+       (lambda () (parse-string "card*(a)")) '(* card a))
 
 ;;; -----------------------------------------------------------------------
 ;;; 4. Wff validation
@@ -634,9 +1315,9 @@
       (rfl))))
 
 ;;; 6l. Functoid beta reduction (beta)
-(check-proof "beta: lambda([x in nn], x+1)(3) = 3+1"
+(check-proof "beta: lambdoid([x in nn], x+1)(3) = 3+1"
   (lambda ()
-    (sp (make-wff-from-string "lambda([x in nn], x + 1)(3) = 3 + 1"))
+    (sp (make-wff-from-string "lambdoid([x in nn], x + 1)(3) = 3 + 1"))
     (beta)
     (rfl)))
 
@@ -809,7 +1490,7 @@
 ;;;   parallel: result is (LIST y 0)                          -- CORRECT
 (check "pi-functoid-beta!: parallel substitution"
   (lambda ()
-    (let* ((ftd  (make-functoid 'lambda
+    (let* ((ftd  (make-functoid 'lambdoid
                                 (list (cons 'x 'NN) (cons 'y 'NN))
                                 '(LIST x y)))
            (expr `(apply-functoid ,ftd y 0)))
@@ -2175,9 +2856,9 @@
     (and (lookup-theorem 'ring-add-comm-zz-ring) #t)))
 
 ;;; -----------------------------------------------------------------------
-;;; Extended reals RR* (notes-16 step 6)
+;;; Extended reals RR-STAR (notes-16 step 6)
 
-(display "\n=== Extended reals RR* (notes-16 step 6) ===\n")
+(display "\n=== Extended reals RR-STAR (notes-16 step 6) ===\n")
 
 (check-true "rr-star-membership installed"
   (lambda () (and (lookup-theorem 'rr-star-membership) #t)))
@@ -2198,11 +2879,11 @@
 (check-true "neg-inf-lower-bound installed"
   (lambda () (and (lookup-theorem 'neg-inf-lower-bound) #t)))
 
-;; --- Wff validation: RR*, POS-INF, NEG-INF accepted as terms/constants ---
-(check-true "(IN POS-INF RR*) accepted as wff"
-  (lambda () (and (make-wff '(IN POS-INF RR*)) #t)))
-(check-true "(IN NEG-INF RR*) accepted as wff"
-  (lambda () (and (make-wff '(IN NEG-INF RR*)) #t)))
+;; --- Wff validation: RR-STAR, POS-INF, NEG-INF accepted as terms/constants ---
+(check-true "(IN POS-INF RR-STAR) accepted as wff"
+  (lambda () (and (make-wff '(IN POS-INF RR-STAR)) #t)))
+(check-true "(IN NEG-INF RR-STAR) accepted as wff"
+  (lambda () (and (make-wff '(IN NEG-INF RR-STAR)) #t)))
 (check-true "(<= NEG-INF POS-INF) accepted as wff"
   (lambda () (and (make-wff '(<= NEG-INF POS-INF)) #t)))
 
@@ -2225,6 +2906,18 @@
   (lambda () (and (lookup-theorem 'rr-complete) #t)))
 (check-true "cc-complete = IS-COMPLETE(CC-MS) installed"
   (lambda () (and (lookup-theorem 'cc-complete) #t)))
+;; ... and PROVEN, not asserted (theorem-library/cc-complete-proof.scm,
+;; 2026-08-24).  It was a bare theory-add-axiom! with no warrant -- `trust: none'
+;; -- until then.  The three coordinate facts its proof had to add first are
+;; pinned beside it: none of them was in the tree.
+(check "cc-complete is PROVEN, not asserted"
+  (lambda () (provenance-of 'cc-complete)) 'proven)
+(check-true "cc-abs-re-le-magnitude installed (|Re z| <= |z|)"
+  (lambda () (and (lookup-theorem 'cc-abs-re-le-magnitude) #t)))
+(check-true "cc-magnitude-le-re-im installed (|z| <= |Re z| + |Im z|)"
+  (lambda () (and (lookup-theorem 'cc-magnitude-le-re-im) #t)))
+(check-true "cc-re-sub installed (Re(z-w) = Re z - Re w)"
+  (lambda () (and (lookup-theorem 'cc-re-sub) #t)))
 (check-true "nf-metric-space-is-metric-space installed"
   (lambda () (and (lookup-theorem 'nf-metric-space-is-metric-space) #t)))
 
@@ -2634,8 +3327,20 @@
 
 (check-true "compose-apply support installed"
   (lambda () (and (lookup-theorem 'compose-apply) #t)))
-(check-true "compose-type support installed"
+(check-true "compose-type theorem installed"
   (lambda () (and (lookup-theorem 'compose-type) #t)))
+;; compose-type is PROVEN (theorem-library/compose-apply-proof.scm), not asserted:
+;; the guard (IN A SET) is what makes it provable -- `lam-t' types the unfolded
+;; lambda over DOM(g), and `dom-of-fun' needs A's sethood to identify DOM(g) with A.
+(check-true "compose-type is proven, not an asserted leaf"
+  (lambda () (eq? (provenance-of 'compose-type) 'proven)))
+(check-true "compose-type carries the (IN A SET) guard, outermost"
+  (lambda ()
+    (let loop ((f (lookup-theorem 'compose-type)))
+      (cond ((and (pair? f) (eq? (car f) 'FORALL)) (loop (caddr f)))
+            ((and (pair? f) (eq? (car f) 'IMPLIES))
+             (equal? (cadr f) (list 'IN (cadr (lookup-theorem 'compose-type)) 'SET)))
+            (else #f)))))
 ;; COMPOSE makes f o g a denotable term: typing and the native (un-Skolemised)
 ;; statement of sequential continuity (Prop 3.14) both parse.
 (check-true "(COMPOSE f g) is a well-formed function term"
@@ -3556,15 +4261,27 @@
 
 ;; GATE 1.  The printed predicate PARSES BACK to the formula it claims to be.
 ;; The destructured render failed this: it was not re-readable at all.
+;; THE ONE EXEMPTION IS GONE (2026-08-24), and its removal is the measurement.
+;; IS-MEASURE-SPACE was exempted on 2026-08-18 because its slot MEAS has
+;; codomain RR+*, which the lexer split into `rr', `+', `*' -- so the printed
+;; predicate was not a parseable string and the fault was in the NAME, not in
+;; the structure.  The comment then said the fix was to "give RR+* a parseable
+;; spelling, or teach the lexer to read it as one token".  The first was done:
+;; the class is now RR-POS-STAR.  The list below is empty, so IS-MEASURE-SPACE
+;; is held to the same gate as every other structure; if the rename had been
+;; cosmetic rather than real, this check would fail.
+(define *doc-roundtrip-exempt* '())
+
 (check-true "every structure's printed defining predicate re-parses to itself"
   (lambda ()
     (let ((bad (filter (lambda (p)
-                         (let* ((f   (cdr p))
-                                (str (expression->string f)))
-                           (not (alpha-equiv?
-                                  f
-                                  (expand-destructuring-quantifiers
-                                    (parse-string str))))))
+                         (and (not (memq (car p) *doc-roundtrip-exempt*))
+                              (let* ((f   (cdr p))
+                                     (str (expression->string f)))
+                                (not (alpha-equiv?
+                                       f
+                                       (expand-destructuring-quantifiers
+                                         (parse-string str)))))))
                        (doc-structure-axioms))))
       (when (pair? bad)
         (display "  round-trip FAILED for: ") (display (map car bad)) (newline))
@@ -3609,7 +4326,32 @@
   (lambda ()
     (equal? (structure-slot-names (lookup-structure 'normed-vector-space))
             '(scal vec vadd vzero vneg act vnrm))))
-(check-true "normed-vector-space still pins its scalars to rr-normed-field"
+
+;; ... and its scalars are pinned through the RING VIEW of the normed field,
+;; NEVER the raw 7-tuple.  This check read the other way round until 2026-08-23
+;; ("still pins its scalars to rr-normed-field") and was pinning a DEFECT:
+;; `(substructure SCAL RING)' makes (IS-RING (SCAL s)) a conjunct of the IFF and
+;; IS-RING pins length(scal(s)) = 6, while RR-NORMED-FIELD is the SEVEN-tuple
+;; [RR binplus bintimes binneg 0 1 abs] (numeric-instances.scm:250).  Six
+;; against seven made IS-NORMED-VECTOR-SPACE UNSATISFIABLE, hence every theorem
+;; carrying it VACUOUSLY true -- hahn-banach, norm-as-sup, vector-taylor,
+;; dual-space, directional-derivative.  NORMED-FIELD-AS-COMMUTATIVE-RING
+;; (views.scm:167) projects slots 1..6 into a fresh 6-tuple, which is what a
+;; scalar slot must hold; complex-inner-product.scm always did it this way.
+;; The derivation of falsity is a must-not-prove entry (test-suite-negative,
+;; section 2c), with the old pinning as its anti-vacuity control.
+(check-true "normed-vector-space pins its scalars through the RING VIEW"
+  (lambda ()
+    (and (string-search-forward
+           "scal(s) = normed-field-as-commutative-ring(rr-normed-field)"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'is-normed-vector-space #f))
+           0)
+         #t)))
+
+;; The same fact stated as the refusal, so a re-introduction of the raw 7-tuple
+;; fails here even if the view form is added beside it rather than instead of it.
+(check-false "normed-vector-space does NOT pin the raw 7-tuple"
   (lambda ()
     (and (string-search-forward
            "scal(s) = rr-normed-field"
@@ -3617,6 +4359,24 @@
              (hash-table-ref/default *theorem-table* 'is-normed-vector-space #f))
            0)
          #t)))
+
+;; THE SCALAR BRIDGE (theorem-library/normed-field-ring-view.scm).  A scalar slot
+;; holding the projection is only usable if something says what its slots ARE:
+;; `def-functor' installs a functoid and a typing axiom and no read-off at all.
+;; Twelve theorems, all `proven modulo 0' -- six generic in the normed field,
+;; six at RR-NORMED-FIELD, which is where a real normed vector space's laws land.
+(check-true "the scalar bridge is installed, all twelve read-offs"
+  (lambda ()
+    (null? (filter (lambda (n) (not (hash-table-ref/default *theorem-table* n #f)))
+                   '(normed-field-ring-view-carr normed-field-ring-view-add
+                     normed-field-ring-view-mul  normed-field-ring-view-neg
+                     normed-field-ring-view-zero normed-field-ring-view-one
+                     rr-scalar-ring-carr rr-scalar-ring-add rr-scalar-ring-mul
+                     rr-scalar-ring-neg  rr-scalar-ring-zero rr-scalar-ring-one)))))
+
+(check "the scalar carrier is RR, through the view"
+  (lambda () (hash-table-ref/default *theorem-table* 'rr-scalar-ring-carr #f))
+  '(== (CARR (NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)) RR))
 
 ;;; -----------------------------------------------------------------------
 ;;; IF -- conditional term former and its two kernel reduction rules
@@ -3973,19 +4733,38 @@
     (scout-run 1)
     (proof-done? *ps*)))
 
-;; The single-move copilot grows the same inst lane: what-now now names the
+;; The single-move copilot grows the same inst lane: what-now names the
 ;; (inst+ assumption-# term) universals worth instantiating -- the same ranked
-;; candidates scout tries -- so on a witness-needing goal it no longer points
+;; candidates scout tries -- so on a witness-needing goal it does not point
 ;; only at backchain/closers and miss the witness.
-(check-true "what-now: inst lane suggests (inst+ k term) on a witness-needing goal"
+;;
+;; BEHIND THE HINT 2026-08-13 to 2026-08-21.  Unhinted, the lane printed the
+;; cross product of the context's universals with its terms, which is a search
+;; space rather than advice, so it was gated on `(what-now "inst")'.
+;;
+;; UNGATED 2026-08-21, on the user's report that the panel was "totally
+;; oblivious" to exactly this move.  The remedy for a noisy lane is now to PROBE
+;; it, not to hide it: unhinted, the same ranked candidates are run on a
+;; throwaway clone and only the ones that LAND something survive
+;; (`what-now--show-inst-fired').  Under the hint the unfiltered search space is
+;; still what you get, because asking for it explicitly means wanting it.
+;;
+;; So the contract this pins has flipped: the lane must fire in BOTH modes.  The
+;; hinted half is unchanged; the unhinted half is the new behaviour, and a lane
+;; that silently stopped firing would look exactly like a lane deliberately
+;; gated -- which is why the original check asserted both halves and this one
+;; still does.
+(check-true "what-now: inst lane suggests (inst+ k term) hinted AND unhinted"
   (lambda ()
     (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
                      (FORALL x (IMPLIES (IN x (PTS s))
                        (FORALL y (IMPLIES (IN y (PTS s))
                          (= ((DIST s) x y) ((DIST s) y x))))))))))
     (grind)
-    (let ((moves (what-now)))
-      (any (lambda (m) (and (pair? m) (eq? (car m) 'inst+))) moves))))
+    (let ((inst? (lambda (v) (any (lambda (m) (and (pair? m) (eq? (car m) 'inst+)))
+                                  (what-now-moves v)))))
+      (and (inst? (what-now "inst"))
+           (inst? (what-now))))))
 
 ;; The ew lane -- existential-GOAL introduction, the dual of the inst lane.
 ;; Goal `exists x. x in SS' with `a in SS' in context: scout supplies the typed
@@ -4018,7 +4797,7 @@
   (lambda ()
     (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
     (di)
-    (let ((moves (what-now)))
+    (let ((moves (what-now-moves (what-now))))
       (any (lambda (m) (and (pair? m) (eq? (car m) 'ew))) moves))))
 
 ;; Skolemize folded into grind.  Goal `(exists v. g(v) in SS) => (exists w. w in
@@ -4059,7 +4838,7 @@
   (lambda ()
     (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
     (di)
-    (let ((moves (what-now)))
+    (let ((moves (what-now-moves (what-now))))
       (any (lambda (m) (and (pair? m) (eq? (car m) 'ai))) moves))))
 
 ;; QUANTIFIER-ALTERNATION SWAP (the analysis pattern): scout closes
@@ -4253,6 +5032,62 @@
       (hash-table-delete! *provenance* 'gralone)
       (and (memq 'gribble cyc) (memq 'grobble cyc) (not clean)))))
 
+;; ---------------------------------------------------------------------
+;; The auto -rev companion carries its FORWARD's debt.
+;;
+;; install-theorem! mints X-rev for a symmetric-core theorem and stamps it with
+;; X's provenance.  Until 2026-08-24 nothing ever wrote a *proof-debt* entry
+;; under the companion's name, so debt-of took the `proven' branch, found no
+;; entry and returned the EMPTY bill: a proof that rewrote with `X-rev' billed
+;; less than the identical proof rewriting with `X'.  Measured on
+;; `binomial-theorem', whose forward bill is twelve leaves and whose companion
+;; billed nothing.  The repair is *rev-companion-source*, written at mint time.
+;;
+;; Tested on the VALUE, not on any printed line.
+(check-true "-rev companion: debt equals its forward's (binomial-theorem)"
+  (lambda ()
+    (and (eq? (rev-companion-source 'binomial-theorem-rev) 'binomial-theorem)
+         (not (rev-companion-source 'binomial-theorem))   ; a forward is nobody's companion
+         (eq? (provenance-of 'binomial-theorem-rev) 'proven)
+         ;; the forward's bill is non-empty, so the equality below is not vacuous
+         (pair? (debt-of 'binomial-theorem))
+         (equal? (debt-of 'binomial-theorem-rev) (debt-of 'binomial-theorem))
+         (equal? (oracles-of 'binomial-theorem-rev) (oracles-of 'binomial-theorem))
+         ;; and the cycle graph resolves through the forward too
+         (equal? (proof-citations-of 'binomial-theorem-rev)
+                 (proof-citations-of 'binomial-theorem)))))
+
+;; The same three redirections, on a synthetic pair, so the check keeps its
+;; teeth if binomial-theorem's own bill is ever discharged to modulo 0.  This
+;; one exercises the MINT: install-theorem! must write *rev-companion-source*
+;; itself -- nothing here sets that table by hand.
+(check-true "-rev companion: install-theorem! records the parentage at mint time"
+  (lambda ()
+    (fluid-let ((*current-provenance* 'proven))
+      (install-theorem! 'bongo-sym-law '(= bongo-lhs bongo-rhs)))
+    (hash-table-set! *proof-debt* 'bongo-sym-law '(bongo-leaf))
+    (hash-table-set! *proof-oracles* 'bongo-sym-law '(ineq))
+    (hash-table-set! *proof-citation-graph* 'bongo-sym-law '(bongo-leaf))
+    (let ((ok (and (hash-table-ref/default *theorem-table* 'bongo-sym-law-rev #f)
+                   (eq? (rev-companion-source 'bongo-sym-law-rev) 'bongo-sym-law)
+                   (equal? (debt-of 'bongo-sym-law-rev) '(bongo-leaf))
+                   (equal? (oracles-of 'bongo-sym-law-rev) '(ineq))
+                   (equal? (proof-citations-of 'bongo-sym-law-rev) '(bongo-leaf))
+                   ;; the companion inherits the forward's out-edges; it does NOT
+                   ;; gain an edge INTO the forward, so no self-loop appears
+                   (not (memq 'bongo-sym-law (proof-citations-of 'bongo-sym-law-rev)))
+                   (not (proof-cycle-from 'bongo-sym-law)))))
+      (for-each (lambda (n)
+                  (hash-table-delete! *theorem-table* n)
+                  (hash-table-delete! *macete-table* n)
+                  (hash-table-delete! *provenance* n)
+                  (hash-table-delete! *proof-debt* n)
+                  (hash-table-delete! *proof-oracles* n)
+                  (hash-table-delete! *proof-citation-graph* n)
+                  (hash-table-delete! *rev-companion-source* n))
+                '(bongo-sym-law bongo-sym-law-rev))
+      ok)))
+
 ;; case-fold-audit: the whole installed library must be free of binders that
 ;; shadow an in-scope variable -- the post-read signature of a case-fold
 ;; collision (FORALL N .. FORSOME n).  This is a HARD soundness gate: any new
@@ -4366,6 +5201,968 @@
         reached))))
 
 ;;; -----------------------------------------------------------------------
+;;; use-em must refuse a proposition the context already DECIDES (driver-kit.scm),
+;;; and what-now's disjunction lane must not propose the split there (suggest.scm).
+;;;
+;;; Splitting on an assumption is not a case split: the branch assuming it is
+;;; hash-consed back onto the node it came from (context-add-assumption is
+;;; alpha-idempotent), and the branch assuming its negation has a contradictory
+;;; context.  The user is left with a leaf that reads like an obligation, and no
+;;; undo.  Both checks run on the same shape the copilot's own comment uses:
+;;; `u in a or u in complement-in(a, b)'.
+
+;; Build a focus whose goal is that disjunction, over an antecedent chosen by
+;; DECIDES: 'p lands the left disjunct in context, 'not-p lands its negation,
+;; 'neither lands a membership that settles neither.  `di' peels the FORALLs on
+;; the first call and the IMPLIES on the second.  Restores *ps*, so the checks
+;; leave no proof state behind.
+(define (em-guard--with-focus decides thunk)
+  (let ((saved *ps*)
+        (ante  (case decides
+                 ((p)       '(IN u a))
+                 ((not-p)   '(NOT (IN u a)))
+                 (else      '(IN u (UNION a b))))))
+    (quietly
+     (lambda ()
+       (sp (list 'FORALL 'u (list 'FORALL 'a (list 'FORALL 'b
+             (list 'IMPLIES ante '(OR (IN u a) (IN u (COMPLEMENT-IN a b))))))))
+       (di) (di)))
+    (let ((r (thunk)))
+      (set! *ps* saved)
+      r)))
+
+(define (em-guard--errors? thunk)
+  (call-with-current-continuation
+    (lambda (k)
+      (bind-condition-handler (list condition-type:error)
+        (lambda (c) c (k #t))                         ; it errored: correct
+        (lambda () (thunk) #f)))))                    ; it went ahead: wrong
+
+(check-true "use-em: refuses to split on a proposition already in context"
+  (lambda ()
+    (em-guard--with-focus 'p
+      (lambda () (em-guard--errors? (lambda () (use-em '(IN u a))))))))
+
+(check-true "use-em: refuses when the context holds the NEGATION"
+  ;; the same defect mirrored -- there it is the NOT-P branch that is vacuous
+  (lambda ()
+    (em-guard--with-focus 'not-p
+      (lambda () (em-guard--errors? (lambda () (use-em '(IN u a))))))))
+
+(check-true "use-em: still splits when the context decides neither disjunct"
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda ()
+        (quietly
+         (lambda () (= (length (cdr (assq 'cases (use-em '(IN u a))))) 2)))))))
+
+(check-true "what-now: the disjunction lane sees a disjunct already assumed"
+  ;; the decision procedure behind the lane -- (TACTIC . ASSUMPTION-INDEX)
+  (lambda ()
+    (em-guard--with-focus 'p
+      (lambda ()
+        (equal? (what-now--disjunct-in-context (dk-goal)) '(oi-l . 1))))))
+
+(check-false "what-now: ... and does not see one that is merely related"
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda () (what-now--disjunct-in-context (dk-goal))))))
+
+;;; A PROBE MUST NOT WRITE INTO THE REAL PROOF.  what-now's probes run the
+;;; genuine interactive tactic (that is the point -- the panel reports what the
+;;; tactic does, not what a re-implementation would do), and the tactic goes
+;;; through `vnb--run!', which records to `*proof-script*' and `*live-trace*'.
+;;; Those are globals; the fluid-let of *ps* does not protect them.  Until
+;;; 2026-08-15 every firing probe therefore appended a step nobody took -- to
+;;; the script the emitter writes and to the trace proof-tex prints from.
+;;; `vnb--probing' now binds `*replaying?*', the existing switch for exactly
+;;; this.  Checked on the two counters, since the symptom was silent.
+(check-true "what-now: a probe leaves *proof-script* and *live-trace* alone"
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda ()
+        (let ((script (length *proof-script*))
+              (trace  (length *live-trace*)))
+          (quietly (lambda () (what-now)))
+          (and (= script (length *proof-script*))
+               (= trace  (length *live-trace*))))))))
+
+(check-true "vnb-apply? does not record the tactic it probes"
+  ;; the narrower statement, on the probe that evals a tactic BY NAME
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda ()
+        (let* ((sqn    (proof-state-focus *ps*))
+               (seq    (make-sequent (sequent-node-assumptions sqn)
+                                     (sequent-node-assertion sqn)))
+               (script (length *proof-script*))
+               (trace  (length *live-trace*))
+               (fired  (quietly (lambda () (vnb-apply? 'oi-l seq)))))
+          (and fired                               ; it really did fire
+               (= script (length *proof-script*))
+               (= trace  (length *live-trace*))))))))
+
+;;; -----------------------------------------------------------------------
+;;; (prop) -- the propositional decision procedure (prop.scm).
+;;;
+;;; Two obligations, and the second matters more: it must CLOSE what follows
+;;; propositionally, and it must DECLINE what does not.  A closer that quietly
+;;; accepts a non-entailment would be unsound in the only way that counts, so
+;;; the invalid cases are checked as carefully as the valid ones.  `prop' adds
+;;; no trust -- it replays through the kernel rules -- which is why these are
+;;; ordinary checks and not a warrant.
+
+(define (prop--check form expect-closed)
+  (let ((saved *ps*))
+    (quietly
+     (lambda ()
+       (sp (make-wff form))
+       (let loop ((n 0))                     ; peel to the propositional leaf
+         (let ((g (dk-goal)))
+           (if (and (< n 12) (pair? g) (memq (car g) '(FORALL IMPLIES)))
+               (begin (di) (loop (+ n 1))))))
+       (prop)))
+    (let ((closed (proof-done? *ps*)))
+      (set! *ps* saved)
+      (eq? closed expect-closed))))
+
+(check-true "prop: closes a disjunct already in the context"
+  (lambda () (prop--check '(FORALL x (IMPLIES (IN x a) (IMPLIES (IN x b)
+                             (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))) #t)))
+
+(check-true "prop: closes one needing the case split"
+  ;; the leaf this tactic was built for: neither disjunct holds outright
+  (lambda () (prop--check '(FORALL x (IMPLIES (IN x b)
+                             (OR (IN x a) (AND (IN x b) (NOT (IN x a)))))) #t)))
+
+(check-true "prop: closes from a contradictory context"
+  (lambda () (prop--check '(FORALL x (IMPLIES (IN x b) (IMPLIES (NOT (IN x b))
+                             (IN x (UNION a b))))) #t)))
+
+(check-true "prop: closes excluded middle (no split -- em-prove!)"
+  ;; splitting here would cut the goal itself and the cut would self-loop
+  (lambda () (prop--check '(OR (IN x a) (NOT (IN x a))) #t)))
+
+(check-true "prop: closes Peirce's law"
+  (lambda () (prop--check '(IMPLIES (IMPLIES (IMPLIES (IN x a) (IN x b)) (IN x a))
+                                    (IN x a)) #t)))
+
+(check-true "prop: closes de Morgan"
+  (lambda () (prop--check '(IMPLIES (NOT (AND (IN x a) (IN x b)))
+                                    (OR (NOT (IN x a)) (NOT (IN x b)))) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; The complement-union case study (examples/complement-union-case-study.scm).
+;;; Eleven lines, and it exercises most of today's repairs at once: grind,
+;;; class-extensionality on a quantified goal, two membership unfolds, and two
+;;; `prop' calls with a subset instantiation between them.  Kept as a check so
+;;; that if any of those regress, a proof a user actually drove breaks loudly.
+;;; No `qed' here -- the suite must not install a theorem into the library.
+(check-true "case study: b = a u (b \\ a) closes in eleven lines"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(forall a (implies (in a set) (forall b (implies (in b set)
+              (implies (subset a b) (= b (union a (complement-in b a))))))))))
+         (grind)
+         (bc* 'class-extensionality)
+         (di)
+         (mac 'union-membership)
+         (mac 'complement-in-membership)
+         (di)
+         (prop)
+         (mac-h 'subset-def '(subset a b))
+         (inst+ '(forall x (implies (in x a) (in x b))) 'x)
+         (prop)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+;;; A COMPLETE PROOF MUST EMIT A SCRIPT THAT REPLAYS.  Composites drive branches
+;;; with `dk-focus!', which moved the focus without recording a command; the
+;;; emitted script then ran the right steps against engine-chosen leaves and
+;;; died at `qed: proof is not complete'.  Two repairs, checked on the two
+;;; properties that make replay work -- the actual replay needs a subprocess,
+;;; which is what examples/ and the emit-then-replay probes are for.
+
+(check-true "dk-focus! records the focus move"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (IN x b)
+                          (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))))
+         (di) (di)
+         (use-em '(IN x a)
+                 (lambda () (oi-l) (ass))
+                 (lambda () (oi-r) (from-context!)))))
+      (let ((focused (any-pred (lambda (c) (eq? (car c) 'focus)) *proof-script*))
+            (done    (proof-done? *ps*)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and done focused #t)))))
+
+(check-true "minimize! records itself, not its expansion"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(IMPLIES TRUTH TRUTH)))
+         (minimize! '(n) '(AND (IN n NN) (<= 4 (* n n))) 'n)))
+      (let* ((script *proof-script*)
+             (self (any-pred (lambda (c) (eq? (car c) 'minimize!)) script))
+             (guts (any-pred (lambda (c) (memq (car c) '(cut sep-me ni))) script)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and self (not guts))))))
+
+;;; "This session" must mean the user's work, not the library load.  `qed'
+;;; appends to *session-log*, and loading the library is ~300 qeds, so
+;;; `dump-session' opened with the entire library and buried the user's own
+;;; proof at the end of it.  load.scm resets the log where it already resets
+;;; *ps* / *proof-script* / *current-goal*, for the same reason.
+(check-true "session log: the library's own proofs are not 'this session'"
+  (lambda ()
+    ;; the suite runs right after the load, so anything here is the library's
+    (null? (filter (lambda (rec)
+                     (memq (car rec) '(union-membership subset-def zz-bezout)))
+                   *session-log*))))
+
+(check-true "prop: records ITSELF, so the emitted script replays"
+  ;; prop drives branches with dk-focus!, which moves the focus without
+  ;; recording a command -- so a script of its EXPANSION replays the right
+  ;; steps against the wrong leaves and dies at `qed: proof is not complete'.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (IN x b)
+                          (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))))
+         (di) (di)
+         (prop)))
+      (let* ((script *proof-script*)
+             (has-prop (any-pred (lambda (c) (eq? (car c) 'prop)) script))
+             (has-guts (any-pred (lambda (c) (memq (car c) '(cut pbc oi-l oi-r))) script)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and has-prop (not has-guts))))))
+
+(check-true "prop: must NOT prove the converse of an implication"
+  (lambda () (prop--check '(IMPLIES (IMPLIES (IN x a) (IN x b))
+                                    (IMPLIES (IN x b) (IN x a))) #f)))
+
+(check-true "prop: must NOT prove affirming the consequent"
+  (lambda () (prop--check '(IMPLIES (AND (IMPLIES (IN x a) (IN x b)) (IN x b))
+                                    (IN x a)) #f)))
+
+(check-true "prop: must NOT prove a quantified goal (opaque atom)"
+  ;; the boundary of the procedure: a FORALL is one black box, not something to
+  ;; instantiate, so this has to be declined rather than guessed at
+  (lambda () (prop--check '(IMPLIES (IN x a) (FORALL y (IN y a))) #f)))
+
+;;; -----------------------------------------------------------------------
+;;; The backchain lane must not offer an INDUCTION SCHEMA on a point goal, and
+;;; the hypothesis lanes must name the moves that ARE available.  All from one
+;;; leaf: `x in union(a, complement-in(b,a)), a subset b |- x in b', where the
+;;; lane offered nn- / finite-set- / transfinite-induction (each concludes
+;;; `... in c' for a class variable, so each fingerprints against every
+;;; membership goal) and said nothing about the union hypothesis, which is the
+;;; only move there is.
+
+(define (bc-lane--focus form peels)
+  (quietly
+   (lambda ()
+     (sp (make-wff form))
+     (let loop ((k 0)) (when (< k peels) (di) (loop (+ k 1)))))))
+
+(define bc-lane--goal
+  '(FORALL x (IMPLIES (IN x (UNION a (COMPLEMENT-IN b a)))
+      (IMPLIES (SUBSET a b) (IMPLIES (IN a SET) (IMPLIES (IN b SET) (IN x b)))))))
+
+(check-true "what-now: an induction schema is recognised by its class variable"
+  (lambda ()
+    (and (what-now--induction-schema? 'nn-induction)
+         (what-now--induction-schema? 'finite-set-induction)
+         (what-now--induction-schema? 'transfinite-induction)
+         (not (what-now--induction-schema? 'union-membership))
+         (not (what-now--induction-schema? 'subset-def)))))
+
+(check-true "what-now: schemas are noise on a POINT goal, not on a FORALL one"
+  (lambda ()
+    (and (what-now--schema-noise? 'nn-induction '(IN x b))
+         (not (what-now--schema-noise?
+               'nn-induction '(FORALL n (IMPLIES (IN n NN) (IN n c))))))))
+
+(check-false "what-now: the backchain lane offers no schema on `x in b'"
+  (lambda ()
+    (let ((saved *ps*))
+      (bc-lane--focus bc-lane--goal 6)
+      (let* ((moves (quietly (lambda () (what-now--backchain-moves #f (dk-goal) '()))))
+             (bad   (any-pred (lambda (m)
+                                (let ((nm (what-now--move-name m)))
+                                  (and nm (what-now--induction-schema? nm))))
+                              moves)))
+        (set! *ps* saved)
+        bad))))
+
+(check-true "what-now: a membership HYPOTHESIS gets its unfold named"
+  ;; head IN, so suggest-hyp-unfolds (which keys on the head) cannot see it
+  (lambda ()
+    (let ((saved *ps*))
+      (bc-lane--focus bc-lane--goal 6)
+      (let* ((moves (quietly (lambda () (what-now--show-hyp-membership))))
+             (forms (map wn--move-form moves))
+             (ok (any-pred (lambda (f)
+                             (and (pair? f) (eq? (car f) 'mac-h)
+                                  (equal? (cadr f) '(quote union-membership))))
+                           forms)))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now: a disjunctive hypothesis is offered as a case split"
+  ;; mac-h* skips OR by design (it branches), so the lane must name (ai k)
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (OR (IN x a) (IN x b)) (IN x b)))))
+         (di) (di)))
+      (let* ((moves (quietly (lambda () (what-now--show-hyp-unfolds))))
+             (forms (map wn--move-form moves))
+             (ok (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'ai))) forms)))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+;;; (contra) and the ineq premise-list repair (2026-08-15).
+;;;
+;;; A branch left by a case split or a membership unfold is often impossible,
+;;; and the reason is arithmetic the copilot could not reach: `prop' sees opaque
+;;; atoms, and `ineq' needed hand-picked premise indices AND an `IN _ RR'
+;;; certificate for every atom, which a combinatorial context (typed in NN)
+;;; never has.  `contra' certifies the inconsistency with `ineq' -- after
+;;; discharging its precondition rather than weakening it -- and closes through
+;;; have!/ai, so it adds no trust beyond ineq's.
+
+(define (contra--setup-inconsistent)
+  ;; the motivating leaf: 1 <= i <= length(l) = 0
+  (sp '(FORALL i_ (FORALL x_ (FORALL l_ (FORALL a_
+         (IMPLIES (= (NTH i_ l_) x_)
+         (IMPLIES (<= i_ (LENGTH l_))
+         (IMPLIES (<= 1 i_)
+         (IMPLIES (IN i_ NN)
+         (IMPLIES (IN x_ SET)
+         (IMPLIES (= (LENGTH l_) 0)
+         (IMPLIES (IN l_ (TUPLES a_))
+                  (IN x_ EMPTY-SET)))))))))))))
+  (let peel ((k 0)) (when (< k 9) (di) (peel (+ k 1)))))
+
+(check-true "ineq: a non-arithmetic named premise is skipped, not fatal"
+  ;; (ineq 1 2) with 2 = `u_ in rr' used to refuse outright, blaming the goal
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL u_ (IMPLIES (IN u_ RR) (IMPLIES (<= u_ 0) (<= u_ 1)))))
+         (di) (di)
+         (ineq 1 2)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+(check-true "contra: closes a branch whose context is arithmetically inconsistent"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly (lambda () (contra--setup-inconsistent) (contra)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+(check-true "contra: declines on a CONSISTENT context, leaving the goal untouched"
+  ;; there is no undo in the graph, so a composite that cut first and checked
+  ;; afterwards would strand two unprovable leaves
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL u_ (IMPLIES (IN u_ NN) (IMPLIES (<= 1 u_) (IN u_ EMPTY-SET)))))
+         (di) (di)
+         (contra)))
+      (let ((ok (and (not (proof-done? *ps*))
+                     (equal? (wff-formula (sequent-node-assertion
+                                           (proof-state-focus *ps*)))
+                             '(IN u_ EMPTY-SET)))))
+        (set! *ps* saved)
+        ok))))
+
+(check-true "contra: names only premises whose atoms are RR-certifiable"
+  ;; `nth(i_,l_) = x_' is arithmetic in SHAPE, so naming it hands ineq the atoms
+  ;; x_ and nth(i_,l_), which can never be certified -- and that killed the call
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly (lambda () (contra--setup-inconsistent)))
+      (let* ((idxs (contra--usable-indices))
+             (asms (sequent-node-assumptions (proof-state-focus *ps*)))
+             (named (map (lambda (i) (wff-formula (list-ref asms (- i 1)))) idxs))
+             (ok (not (any-pred (lambda (f)
+                                  (and (pair? f) (eq? (car f) '=)
+                                       (pair? (cadr f))
+                                       (eq? (car (cadr f)) 'NTH)))
+                                named))))
+        (set! *ps* saved)
+        ok))))
+
+;;; The FORWARD-CITATION lane (2026-08-15).  Every other lane reasons from the
+;;; GOAL; this one asks which library facts the CONTEXT already fires.  On
+;;;   length(l) = 0, l in tuples(a)  |-  card(make-set(l)) <= 0
+;;; the move is `tuple-length-zero', whose two antecedents are assumptions 1
+;;; and 2 -- and no goal-directed lane could see it.  Two things it must get
+;;; right: rank the citation that hands the goal a usable rewrite FIRST, and
+;;; prefix the `have!' when the antecedent is a conjunction, since `fact' will
+;;; not split one and silently lands the implication instead.
+
+(define (fwd-lane--hits setup)
+  (let ((saved *ps*))
+    (quietly setup)
+    (let ((hits (quietly
+                 (lambda ()
+                   (let ((sqn (proof-state-focus *ps*)))
+                     (what-now--forward-citations
+                      (wff-formula (sequent-node-assertion sqn))
+                      (map wff-formula (sequent-node-assumptions sqn))))))))
+      (set! *ps* saved)
+      hits)))
+
+(define (fwd-lane--setup-base)
+  (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+  (ni)
+  (let loop ((ls (proof-open-leaves *ps*)))
+    (cond ((null? ls) (error "fwd-lane: no base leaf"))
+          ((let ((g (wff-formula (sequent-node-assertion (car ls)))))
+             (and (pair? g) (eq? (car g) 'FORALL)
+                  (not (what-now--occurs-in? '(succ n) g))))
+           (set-proof-state-focus! *ps* (car ls)))
+          (else (loop (cdr ls)))))
+  (di) (di))
+
+(check-true "forward lane: tuple-length-zero is found and ranked first"
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (and (pair? hits) (eq? (car (car hits)) 'tuple-length-zero)))))
+
+(check-true "forward lane: it reports the formula the citation LANDS"
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (equal? (caddr (car hits)) '(= l (LIST))))))
+
+(check-true "forward lane: a conjunctive antecedent is flagged as needing have!"
+  ;; tuple-length-zero's antecedent is (AND (IN L (TUPLES A)) (= (LENGTH L) 0))
+  ;; and `fact' does not split it -- without the have! the citation lands the
+  ;; IMPLICATION and looks like it worked.
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (eq? (list-ref (car hits) 4) #t))))
+
+(check-true "forward lane: the -rev companion is suppressed"
+  ;; tuple-length-zero-rev fires identically and lands [] = l, which is churn
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (not (any-pred (lambda (h) (eq? (car h) 'tuple-length-zero-rev)) hits)))))
+
+(check-true "forward lane: a mere reorientation of an assumption is dropped"
+  ;; eq-sym / equality-symmetry fire on every equation in every context and land
+  ;; it backwards; leading with them made the lane useless
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (not (any-pred (lambda (h) (memq (car h) '(eq-sym equality-symmetry)))
+                     hits)))))
+
+(check-true "forward lane: silent when the context is empty"
+  (lambda ()
+    (null? (fwd-lane--hits (lambda () (sp "forall([x], x = x)"))))))
+
+;;; The INDUCTION lane (2026-08-15).  `ni' tests the goal's SHAPE -- literally
+;;; (FORALL n (IMPLIES (IN n NN) body)) at the top -- so it misses two situations
+;;; in which the mathematics plainly admits induction: an NN-guarded binder that
+;;; is not outermost, and an NN-typed EIGENVARIABLE left by a greedy `di'.  The
+;;; lane must speak in exactly those two and stay silent otherwise, and the
+;;; (cut "...") it prints must PARSE and put the NN variable outermost -- the
+;;; whole point being that (ni) then fires on it.
+
+(define (ind-lane--moves setup)
+  (let ((saved *ps*))
+    (quietly setup)
+    (let ((moves (quietly (lambda () (what-now--show-induction
+                                      (suggest--current-goal))))))
+      (set! *ps* saved)
+      moves)))
+
+;;; Does the cut the lane emitted parse, with VAR guarded `in nn' outermost?
+(define (ind-lane--cut-inducts? moves var)
+  (and (pair? moves)
+       (let* ((form (wn--move-form (car moves))))
+         (and (pair? form) (eq? (car form) 'cut)
+              (let ((f (parse-string (cadr form))))
+                (and (pair? f) (eq? (car f) 'FORALL)
+                     (eq? (quantifier-var f) var)
+                     (let ((b (quantifier-body f)))
+                       (and (pair? b) (eq? (car b) 'IMPLIES)
+                            (equal? (binary-left b) `(IN ,var NN))))))))))
+
+(check-true "what-now induction: an NN binder that is not outermost is reported"
+  (lambda ()
+    (ind-lane--cut-inducts?
+     (ind-lane--moves
+      (lambda () (sp "forall([a, n in nn, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")))
+     'n)))
+
+(check-true "what-now induction: silent when (ni) already fires"
+  ;; the live-fire lane reports it; two lanes naming the same move is noise
+  (lambda ()
+    (null? (ind-lane--moves
+            (lambda () (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)"))))))
+
+(check-true "what-now induction: an NN EIGENVARIABLE in the context is reported"
+  ;; two greedy di's and the binder is gone -- this is the case that prompted
+  ;; the lane, and the generalization has to come out of the CONTEXT
+  (lambda ()
+    (ind-lane--cut-inducts?
+     (ind-lane--moves
+      (lambda ()
+        (sp "forall([a, n in nn, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+        (di) (di)))
+     'n)))
+
+;;; The three guards on the induction lane's eigenvariable branch (2026-08-16).
+;;; Without them the lane fired for the whole rest of a proof -- its trigger,
+;;; "an nn-typed eigenvariable is in the context", stays true forever -- and
+;;; printed a runnable `cut' that had swallowed the context, re-generalized the
+;;; induction variable in a body containing the IH, and quantified over skolem
+;;; constants.  At a leaf where there is no undo.
+
+;;; clobber-guard now watches MIT Scheme's own procedures (2026-08-16).
+;;;
+;;; `environment-bound-names' reports the OWN FRAME ONLY, so `append', `list',
+;;; `cons' and `length' -- each simultaneously a live Scheme procedure and a VNB
+;;; head symbol -- were never in the watch set, at any snapshot point.  A proof
+;;; file's `(define APPEND '(...))' therefore clobbered a procedure the prover
+;;; itself calls, silently.  The snapshot now seeds from system-global-environment
+;;; as well, and the guard loads FIRST so all 244 library files are checked
+;;; (it used to load half way down, leaving 126 of them unguarded).
+;;;
+;;; This checks the SEED.  The fail-on-purpose control -- clobbering `append'
+;;; and `di' for real and confirming the error fires -- is
+;;; scratchpad/guard-control.scm, kept out of the suite because it destroys the
+;;; bindings it tests.
+
+(check-true "clobber-guard: MIT's own procedures are watched"
+  (lambda ()
+    (and *clobber-guard-procs*
+         (every (lambda (n) (hash-table-ref/default *clobber-guard-procs* n #f))
+                '(append list cons length))
+         #t)))
+
+(check-true "clobber-guard: VNB tactics are watched too"
+  (lambda ()
+    (and *clobber-guard-procs*
+         (every (lambda (n) (hash-table-ref/default *clobber-guard-procs* n #f))
+                '(di ass bc*-apply prop contra))
+         #t)))
+
+;;; (proof-map) (2026-08-16) -- the only view of a proof that shows CLOSED
+;;; branches.  Every other one -- (proof-leaves), the Focus panel, (show) --
+;;; lists open leaves, so a branch that closes disappears and "is the base case
+;;; actually finished?" has no direct answer.  Read-only: it must never mutate
+;;; the state it prints.
+
+(check-true "proof-map: reports a closed branch and an open one, and mutates nothing"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+         (ni)
+         (let loop ((ls (proof-open-leaves *ps*)))
+           (cond ((null? ls) (error "proof-map test: no base leaf"))
+                 ((not (what-now--occurs-in?
+                        '(succ n) (wff-formula (sequent-node-assertion (car ls)))))
+                  (set-proof-state-focus! *ps* (car ls)))
+                 (else (loop (cdr ls)))))
+         (di) (di)
+         (have! '(AND (IN l (TUPLES a)) (= (LENGTH l) 0)))
+         (fact 'tuple-length-zero 'a 'l)
+         (bc* 'card-empty-le)
+         (bc* 'makeset-of-empty-tuple)
+         (ass)))
+      (let* ((before (length (proof-open-leaves *ps*)))
+             (root   (proof-state-root *ps*))
+             (kids   (pm--children root))
+             ;; base closed, step open
+             (ok (and (= before 1)
+                      (= (length kids) 2)
+                      (any-pred (lambda (k) (string=? (pm--status k) "+")) kids)
+                      (any-pred (lambda (k) (string=? (pm--status k) "o")) kids)))
+             (dummy  (quietly (lambda () (proof-map))))
+             (after  (length (proof-open-leaves *ps*))))
+        (set! *ps* saved)
+        (and ok (= before after) #t)))))
+
+;;; (what-now-explain FORM) (2026-08-16) -- the "what does this do?" query
+;;; behind the button beside each [do this].  Returns a VALUE and prints
+;;; nothing; `what-now-explain-show' is one renderer over it.  It must probe on
+;;; a scratch clone and leave the live proof byte-identical -- an inspector that
+;;; perturbs what it inspects is worse than none.
+
+(define (wne--setup)
+  (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+  (ni) (di) (di))
+
+(check-true "what-now-explain: reports the goal a backchain would leave"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((e (quietly (lambda () (what-now-explain '(bc* 'card-empty-le)))))
+             (ok (and e
+                      (cdr (assq 'fires e))
+                      (not (cdr (assq 'closes e)))
+                      (equal? (cdr (assq 'after e)) '((= (MAKE-SET l) EMPTY-SET))))))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now-explain: a forward citation reports what it LANDS"
+  ;; it changes no goal, so `landed' is the entire answer
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((e (quietly (lambda () (what-now-explain '(fact 'length-in-nn 'a 'l)))))
+             (ok (and e (pair? (cdr (assq 'landed e)))
+                      (any-pred (lambda (f) (equal? f '(IN (LENGTH l) NN)))
+                                (cdr (assq 'landed e))))))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now-explain: says so when a move would not fire"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((e (quietly (lambda () (what-now-explain '(rfl)))))
+             (ok (and e (not (cdr (assq 'fires e))))))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now-explain: leaves the live proof untouched"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((before-goal (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+             (before-n    (length (proof-open-leaves *ps*)))
+             (ignored (quietly (lambda () (what-now-explain '(bc* 'card-empty-le)))))
+             (after-goal  (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+             (after-n     (length (proof-open-leaves *ps*))))
+        (set! *ps* saved)
+        (and (equal? before-goal after-goal) (= before-n after-n))))))
+
+;;; The INSTANCE lane (2026-08-16).  A universal in the CONTEXT -- a lemma you
+;;; cut, or an induction hypothesis -- whose conclusion matches the goal, with
+;;; its antecedents already assumptions.  No other lane looks there: forward
+;;; asks what the context FIRES from the library, backchain asks what the
+;;; LIBRARY concludes.  The motivating leaf had the goal sitting as a plain
+;;; instance of assumption 4 and the panel offered everything except that.
+;;;
+;;; Note the binder the CONCLUSION does not mention: `a' appears only in the
+;;; antecedent `l in tuples(a)', so matching the conclusion alone leaves it
+;;; undetermined; it is pinned by discharging the antecedents against context.
+
+;; Built by FOLDING over flat lists, never hand-nested -- a hand-written nest of
+;; this depth cost three separate unbalanced-paren runs while this lane was
+;; being written.
+(define (inst-lane--chain hyps concl)
+  (if (null? hyps) concl
+      (make-implies (car hyps) (inst-lane--chain (cdr hyps) concl))))
+(define (inst-lane--foralls vars body)
+  (if (null? vars) body
+      (make-forall (car vars) (inst-lane--foralls (cdr vars) body))))
+
+(define inst-lane--nfirst
+  (inst-lane--foralls
+   '(n_)
+   (inst-lane--chain
+    '((IN n_ NN))
+    (inst-lane--foralls
+     '(a_ l_)
+     (inst-lane--chain '((IN l_ (TUPLES a_)) (= (LENGTH l_) n_))
+                       '(<= (CARD (MAKE-SET l_)) n_))))))
+
+(define (inst-lane--setup)
+  (sp (inst-lane--foralls
+       '(a n l)
+       (inst-lane--chain
+        (list inst-lane--nfirst '(IN n NN) '(IN l (TUPLES a)) '(= (LENGTH l) n))
+        '(<= (CARD (MAKE-SET l)) n))))
+  (let peel ((k 0)) (when (< k 6) (di) (peel (+ k 1)))))
+
+(check-true "instance lane: finds the context universal the goal instantiates"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly inst-lane--setup)
+      (let* ((sqn  (proof-state-focus *ps*))
+             (hits (what-now--instances-in-context
+                    (wff-formula (sequent-node-assertion sqn))
+                    (sequent-node-assumptions sqn))))
+        (set! *ps* saved)
+        (and (pair? hits) (= (length (cadr (car hits))) 3) #t)))))
+
+(check-true "instance lane: pins a binder the conclusion never mentions"
+  ;; `a' occurs only in the antecedent `l in tuples(a)'
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly inst-lane--setup)
+      (let* ((sqn  (proof-state-focus *ps*))
+             (hits (what-now--instances-in-context
+                    (wff-formula (sequent-node-assertion sqn))
+                    (sequent-node-assumptions sqn)))
+             (terms (and (pair? hits) (cadr (car hits)))))
+        (set! *ps* saved)
+        (and terms (memq 'a terms) #t)))))
+
+(check-true "instance lane: silent when no context universal matches"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly (lambda () (sp "forall([x], x = x)") (di)))
+      (let* ((sqn  (proof-state-focus *ps*))
+             (hits (what-now--instances-in-context
+                    (wff-formula (sequent-node-assertion sqn))
+                    (sequent-node-assumptions sqn))))
+        (set! *ps* saved)
+        (null? hits)))))
+
+(check-true "induction lane: never proposes cutting what is already an assumption"
+  ;; The generalization already in context means the induction is DONE and the
+  ;; goal is a reordering of it.  Cutting it is a silent self-loop -- dg-post!
+  ;; hash-conses by alpha-equivalence, so the cut's main branch IS this node,
+  ;; one leaf opens instead of two, and there is no undo.  The lane shipped
+  ;; this as `[do this]' on 2026-08-16 before the guard existed.
+  (lambda ()
+    (let* ((moves (ind-lane--moves
+                   (lambda ()
+                     (sp '(IMPLIES
+                            (FORALL n_ (IMPLIES (IN n_ NN)
+                              (FORALL a_ (FORALL l_ (IMPLIES (IN l_ (TUPLES a_))
+                                (IMPLIES (= (LENGTH l_) n_)
+                                         (<= (CARD (MAKE-SET l_)) n_)))))))
+                            (FORALL a_ (FORALL n_ (IMPLIES (IN n_ NN)
+                              (FORALL l_ (IMPLIES (IN l_ (TUPLES a_))
+                                (IMPLIES (= (LENGTH l_) n_)
+                                         (<= (CARD (MAKE-SET l_)) n_)))))))))
+                     (di))))
+           (forms (map wn--move-form moves)))
+      (and (not (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'cut))) forms))
+           (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'inst+))) forms)
+           #t))))
+
+(check-true "induction lane: skolem names are recognised"
+  (lambda () (and (what-now--skolem-name? 'x_1092)
+                  (what-now--skolem-name? 'm_1093)
+                  (not (what-now--skolem-name? 'i_))     ; binder convention
+                  (not (what-now--skolem-name? 'n)))))
+
+(check-true "induction lane: silent once the IH is in context"
+  ;; inside the induction STEP, proposing to induct again is a loop
+  (lambda ()
+    (null? (ind-lane--moves
+            (lambda ()
+              (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+              (ni)
+              (let loop ((ls (proof-open-leaves *ps*)))
+                (cond ((null? ls) (error "no step leaf"))
+                      ((what-now--occurs-in?
+                        '(succ n) (wff-formula (sequent-node-assertion (car ls))))
+                       (set-proof-state-focus! *ps* (car ls)))
+                      (else (loop (cdr ls)))))
+              (di) (di) (di) (di))))))
+
+(check-true "forward lane: a hint NARROWS the lane, it does not delete it"
+  ;; (what-now "tuples") printed nothing: the filter matched only NAMES, and the
+  ;; move worth surfacing is called tuple-cons-decompose -- "tuples" is not a
+  ;; substring of it, while the formula it LANDS says tuples plainly
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly fwd-lane--setup-base)
+      (let* ((hinted (fluid-let ((*what-now-hint* '("tuples")))
+                       (quietly (lambda ()
+                                  (what-now--show-forward-citations
+                                   (suggest--current-goal)))))))
+        (set! *ps* saved)
+        (pair? hinted)))))
+
+(check-true "what-now induction: silent when no NN variable is in sight"
+  (lambda ()
+    (null? (ind-lane--moves
+            (lambda () (sp "forall([a, b], a = b implies b = a)"))))))
+
+;;; The extensionality lane names a move that must actually apply.  It reads the
+;;; goal's prenex-normalised CONCLUSION, so on a quantified goal it fired while
+;;; `bc* class-extensionality' -- which matches the bare equation -- could not.
+;;; It now probes, and prefixes the (di) when one is needed.
+(define (ext-lane--moves form peels)
+  (let ((saved *ps*))
+    (quietly
+     (lambda ()
+       (sp (make-wff form))
+       (let loop ((k 0)) (when (< k peels) (di) (loop (+ k 1))))))
+    (let ((moves (quietly (lambda ()
+                            (what-now--show-extensionality
+                             (what-now--conclusion (dk-goal)))))))
+      (set! *ps* saved)
+      (map wn--move-form moves))))
+
+(define ext-lane--goal
+  '(FORALL a (IMPLIES (IN a SET) (FORALL b (IMPLIES (IN b SET)
+     (IMPLIES (SUBSET a b) (= b (UNION a (COMPLEMENT-IN b a)))))))))
+
+(check-true "what-now: extensionality on a QUANTIFIED goal asks for (di) first"
+  (lambda ()
+    (equal? (ext-lane--moves ext-lane--goal 0)
+            '((di) (bc* (quote class-extensionality))))))
+
+(check-true "what-now: ... and names bc* alone once the equation is bare"
+  (lambda ()
+    (equal? (ext-lane--moves ext-lane--goal 3)
+            '((bc* (quote class-extensionality))))))
+
+;;; The rewrite lane's triage, on the goal that prompted it:
+;;;   forall([a in set, b in set], a subset b implies b = union(a, complement-in(b, a)))
+;;; `subset-def' is the move; `ms-eq-symm' and its -rev only reorient the
+;;; equation (nested three binders down, where the top-level reorientation check
+;;; could not see it, and both give the SAME result); `is-set-rev' renames
+;;; `a in set' to `is-set(a)' and exposes nothing.
+
+(check-true "what-now: flip-only? sees a reorientation nested under binders"
+  (lambda ()
+    (and (what-now--flip-only?
+          '(FORALL a (IMPLIES (IN a SET) (= b (UNION a c))))
+          '(FORALL a (IMPLIES (IN a SET) (= (UNION a c) b))))
+         ;; and does NOT call a real rewrite a flip
+         (not (what-now--flip-only?
+               '(FORALL a (IMPLIES (IN a SET) (= b (UNION a c))))
+               '(FORALL a (IMPLIES (IS-SET a) (= b (UNION a c)))))))))
+
+(check-true "what-now: an iff between two ATOMS is notational, an unfold is not"
+  (lambda ()
+    (and (what-now--notational-macete? 'is-set-rev)        ; x in set iff is-set(x)
+         (not (what-now--notational-macete? 'subset-def))))) ; ... iff forall(...)
+
+;; REGRESSION, 2026-08-23/24.  The goal-side rewrite lane offers `def-functoid'
+;; unfolds since the same day (`suggest--functoid-unfolds'), and a functoid has
+;; a MACETE and NO entry in *theorem-table*.  `what-now--notational-macete?'
+;; asked `lookup-theorem', which ERRORS on a miss rather than returning #f, and
+;; its `vnb-guard' did not contain it -- so `what-now' DIED on any goal where a
+;; functoid unfold was a live candidate, losing every lane after the rewrite
+;; lane.  Both halves are checked: the classifier answers #f rather than
+;; raising, AND the whole panel completes.
+(check-true "what-now: a FUNCTOID candidate is not a theorem -- classifier says #f, does not raise"
+  (lambda ()
+    (let ((r (vnb-guard (lambda () (what-now--notational-macete? 'field-as-integral-domain)))))
+      (and (not (vnb-error? r)) (not r)))))
+
+(check-true "what-now SURVIVES a goal whose rewrite candidate is a functoid unfold"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL f (IMPLIES (IS-FIELD f)
+                       (IS-INTEGRAL-DOMAIN (FIELD-AS-INTEGRAL-DOMAIN f))))))
+      (quietly (lambda () (di)))
+      (let ((r (vnb-guard (lambda () (quietly (lambda () (what-now)))))))
+        (not (vnb-error? r))))))
+
+(check-true "what-now: the rewrite lane offers the unfold, not the reorientations"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL a (IMPLIES (IN a SET) (FORALL b (IMPLIES (IN b SET)
+                          (IMPLIES (SUBSET a b)
+                                   (= b (UNION a (COMPLEMENT-IN b a))))))))))))
+      (let* ((moves (quietly (lambda () (what-now--show-rewrite (dk-goal) '()))))
+             (forms (map wn--move-form moves))
+             (has?  (lambda (nm) (any-pred (lambda (f) (equal? f (list 'mac (list 'quote nm))))
+                                           forms))))
+        (set! *ps* saved)
+        (and (has? 'subset-def)          ; the real move survives
+             (has? 'is-set-rev)          ; demoted, but still offered
+             (not (has? 'ms-eq-symm))    ; pure reorientation, dropped
+             (not (has? 'ms-eq-symm-rev)))))))
+
+;;; Walking back into your own footprints is not always ONE step back: the
+;;; reverse of an unfold stays available for the rest of the proof, and it was
+;;; offered three steps after the unfold it reverses.  And a rewrite that folds
+;;; logical structure back inside a term (`x in b and not(x in a)' becoming
+;;; `x in difference(b, a)') matches no earlier goal at all, since the fold uses
+;;; a different constructor -- that one is demoted rather than dropped.
+
+(check-true "what-now: a revisited goal is found further back than one step"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (SUBSET a b)
+                          (IFF (IN x b) (IN x (UNION a (COMPLEMENT-IN b a))))))))
+         (di) (di)
+         (mac 'union-membership)            ; goal A
+         (mac 'complement-in-membership)    ; goal B
+         (mac 'is-set-rev)))                ; an unrelated step in between
+      (let* ((a-again '(IFF (IN x b) (OR (IN x a) (IN x (COMPLEMENT-IN b a)))))
+             (d (what-now--revisit-distance a-again)))
+        (set! *ps* saved)
+        (and d (> d 1))))))
+
+(check-true "what-now: folding structure into a term is demoted, not offered first"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (SUBSET a b)
+                          (IFF (IN x b) (IN x (UNION a (COMPLEMENT-IN b a))))))))
+         (di) (di)
+         (mac 'union-membership)
+         (mac 'complement-in-membership)))
+      (let* ((runner (lambda (f) (cmd-apply-macete *ps* (cadr (cadr f)))))
+             (m      (wn--move '(mac (quote difference-membership-rev))))
+             (buckets (quietly (lambda ()
+                        (what-now--triage-rewrites (list m) (dk-goal) runner))))
+             (fold   (cdr (assq 'fold buckets)))
+             (keep   (cdr (assq 'keep buckets))))
+        (set! *ps* saved)
+        (and (= (length fold) 1) (null? keep))))))
+
+(check-true "what-now: connective count -- unfolding raises it, folding lowers it"
+  (lambda ()
+    (and (> (what-now--connective-count
+             '(IFF (IN x b) (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))
+            (what-now--connective-count
+             '(IFF (IN x b) (OR (IN x a) (IN x (DIFFERENCE b a))))))
+         (= 0 (what-now--connective-count '(IN x (UNION a b)))))))
+
+;;; The undo lane: a rewrite that returns the goal you had one step ago is
+;;; reported but not offered, so no [do this] button proposes a round trip.
+(check-true "what-now: the rewrite that undoes the last step is not offered"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (IN x b)
+                                           (IN x (UNION a (COMPLEMENT-IN b a)))))))
+         (di) (di)
+         (mac 'union-membership)))
+      (let* ((moves (quietly
+                     (lambda () (what-now--show-rewrite (dk-goal) '()))))
+             (offered? (any-pred (lambda (m)
+                                   (equal? (wn--move-form m)
+                                           '(mac (quote union-membership-rev))))
+                                 moves)))
+        (set! *ps* saved)
+        (not offered?)))))
+
+;;; -----------------------------------------------------------------------
 ;;; (same-shape-as PARENT) -- def-substructure.  A same-shape refinement must
 ;;; INHERIT the shape by naming its parent, never assert one of its own: a
 ;;; shape-only IS-COMMUTATIVE-RING would be equivalent to IS-RING (same six
@@ -4465,6 +6262,29 @@
   (lambda () (wff->english '(SPANS md n u sm)))
   "the n vectors u span sm in md")
 
+;;; C-INT (theorem-library/c-int.scm) is the definite integral, and the first
+;;; head whose `tex' template has to place its arguments in three different
+;;; positions -- the integrand after the sign, the two bounds on it.  The third
+;;; check is the one that matters: it goes through `expr->tex', which reads the
+;;; operator table only because that branch was moved ABOVE tex-output's own
+;;; binop/special tables (2026-08-10).  Before that no head in the tree declared
+;;; a `tex' template at all, so the branch had never fired.
+(check-true "operator table: C-INT is a functoid of arity 3 with both readings"
+  (lambda () (let ((e (operator-ref 'C-INT)))
+               (and e (eq? (operator-kind e) 'functoid) (= (operator-arity e) 3)
+                    (string? (operator-english e)) (string? (operator-tex e))
+                    ;; NOT a noun: `noun' is the unary-sort slot, and C-INT is
+                    ;; a 3-ary term constructor.
+                    (not (operator-noun e))))))
+
+(check "operator table: C-INT's tex template places the bounds"
+  (lambda () (operator-render-tex 'C-INT '("\\phi" "a" "b")))
+  "\\int_{a}^{b} \\phi")
+
+(check "operator table: expr->tex renders C-INT from the declared template"
+  (lambda () (expr->tex '(C-INT phi a b)))
+  "\\int_{a}^{b} \\varphi")
+
 ;;; -----------------------------------------------------------------------
 ;;; Simultaneous substitution.  A multi-variable substitution must NOT be a fold
 ;;; of subst-free: each binding would then rewrite what the previous one
@@ -4511,6 +6331,1644 @@
 ;;; the proof state to stay open.  It is loaded LAST because it wants every
 ;;; theorem, macete and oracle in place before it attacks.  Its checks use the
 ;;; helpers defined at the top of this file and count into the SUMMARY below.
+
+;;; =====================================================================
+;;; The EXTREME VALUE THEOREM, and the creeping principle under it
+;;; (2026-08-17).  Both forms of EVT were asserted supports carrying
+;;; `reference' warrants, and were the only asserted MATHEMATICS in the
+;;; Fermat -> Rolle -> MVT -> Taylor tower.  The proofs run at LOAD time, so a
+;;; regression there stops the library outright; what these checks pin is the
+;;; part a load cannot report -- that the theorems are PROVEN rather than
+;;; re-asserted, that each bills `modulo 0', and that neither name is left in
+;;; any bill of the tower it used to cap.
+
+(display "\n=== what-now measured effects ===\n")
+
+;;; The panel annotates each move with what it DID on a throwaway clone.  Two
+;;; lanes were not supplying it: the live-fire lane probed and then threw the
+;;; answer away, and the closer lane never probed.  The result was actively
+;;; misleading -- on `forall([x in rr], x ^ 2 = x * x)' the closer lane offered
+;;; `(crs)', which CLOSES the goal, with no annotation, while three rewrites
+;;; that do not finish each carried "=> 1 subgoal".
+;;;
+;;; `wn--effect-of' is the mapping from a `vnb-apply?' answer to the wire form.
+;;; Note the symbol travels as lower-case `closed' -- MIT folds symbols -- which
+;;; is why the elisp side matches both spellings.
+
+(check-true "wn--effect-of: CLOSED, a subgoal list, and a non-firing #f"
+  (lambda ()
+    (and (eq? (wn--effect-of 'CLOSED) 'CLOSED)
+         (= (wn--effect-of '(g1 g2)) 2)
+         (= (wn--effect-of '(g1)) 1)
+         (not (wn--effect-of #f)))))
+
+(check-true "what-now: POWER(A) is a class term, power(x,2) is NOT"
+  (lambda ()
+    ;; `power' is the power SET (unary) and exponentiation (binary) under one
+    ;; folded symbol.  Without the arity test, `x ^ 2 = x * x' read as an
+    ;; equation between classes and the extensionality lane proposed
+    ;; (bc* 'class-extensionality) in the panel's top lane.
+    (and (what-now--class-term? '(power a))
+         (not (what-now--class-term? '(power x 2)))
+         (what-now--class-term? 'RR))))
+
+(check-true "what-now: a move another lane proposes is dropped from the fires lane"
+  (lambda ()
+    (let* ((lanes (list (list (cons 'kind 'fires) (cons 'title "fires")
+                              (cons 'moves (list (list (cons 'form '(di)) (cons 'effect 1))
+                                                 (list (cons 'form '(grind)) (cons 'effect 1)))))
+                        (list (cons 'kind 'closer) (cons 'title "closer")
+                              (cons 'moves (list (list (cons 'form '(di)) (cons 'effect 1)))))))
+           (out   (wn--dedupe-lanes lanes))
+           (fires (find-first (lambda (l) (eq? (cdr (assq 'kind l)) 'fires)) out)))
+      (and fires
+           (= 1 (length (cdr (assq 'moves fires))))
+           (equal? '(grind) (wn--move-form (car (cdr (assq 'moves fires)))))
+           ;; the closer lane keeps its (di) -- it is the specific lane
+           (= 2 (length out))))))
+
+(display "\n=== what-now argument handling ===\n")
+
+;;; `(what-now 'abs)' CRASHED until 2026-08-17: `what-now--args-depth' was
+;;; "everything that is not a string", so a symbol went down as a fingerprint
+;;; depth and died in the backchain ranking with an `integer-less?' type error.
+;;; A symbol is the form a user reaches for first -- every other copilot entry
+;;; point takes a quoted name -- and an internal type error out of the panel is
+;;; indistinguishable, from the user's side, from a broken proof.
+
+(check-true "what-now: a SYMBOL argument is a hint, exactly as a string is"
+  (lambda ()
+    (equal? (what-now--args-hint '(abs)) (what-now--args-hint '("abs")))))
+
+(check-true "what-now: a symbol is NOT passed down as a fingerprint depth"
+  (lambda ()
+    (and (null? (what-now--args-depth '(abs)))
+         (equal? (what-now--args-depth '(2)) '(2))
+         (null? (what-now--args-depth '("abs"))))))
+
+(display "\n=== extreme value theorem ===\n")
+
+(check-true "the EVT chain is PROVEN and each link bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (hash-table-ref/default *theorem-table* nm #f)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(rr-sup-approx ccint-creep continuous-bounded-above-on-ccint
+             neg-fun-in-fun neg-continuous-at
+             extreme-value-max extreme-value-min))))
+
+(check-true "no bill in the library still cites either form of EVT"
+  (lambda ()
+    (every (lambda (nm)
+             (let ((b (debt-of-proof nm)))
+               (and (not (memq 'extreme-value-max b))
+                    (not (memq 'extreme-value-min b)))))
+           *proven-theorem-names*)))
+
+;; ccint-creep collects its conclusion at the RIGHT-HAND END: the local step is
+;; stated "every y in [a,b] with y <= t+d", not "t+d itself", precisely so that
+;; the b <= s+d branch has b to hand.  A statement that named only t+d would be
+;; unprovable at b, and the difference is one subterm.
+(check-true "ccint-creep's local step quantifies y up to t+d, not t+d itself"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'ccint-creep #f)))
+      (and f
+           (string-search-forward "y_" (expression->string f) 0)
+           #t))))
+
+
+;;; -----------------------------------------------------------------------
+;;; BABY HEINE-BOREL (2026-08-17).  The proof runs at LOAD time, so a
+;;; regression there stops the library outright; what these pin is the part a
+;;; load cannot report -- that the theorem is PROVEN rather than asserted, that
+;;; it and each of its six lemmas bills `modulo 0', and that the STATEMENT was
+;;; not quietly weakened into something easier.
+
+(display "\n=== baby Heine-Borel ===\n")
+
+(check-true "heine-borel-baby and its six lemmas are PROVEN and each bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (hash-table-ref/default *theorem-table* nm #f)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(empty-subset-any union-singleton-mem union-right-subset
+             union-singleton-subset big-union-mono card-union-singleton-nn
+             heine-borel-baby))))
+
+;; The subcover is asserted to be a SET as well as finite.  CARD is total on
+;; classes but every axiom of cardinality.scm is guarded on `IN A SET', so
+;; dropping that conjunct would leave "CARD(G) in NN" saying nothing about G,
+;; and the creep could not carry it.
+(check-true "heine-borel-baby's subcover is a subset of F, a SET, and finite"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'heine-borel-baby #f)))
+      (and f
+           (let ((s (expression->string f)))
+             (and (string-search-forward "g_ subset f_"   s 0)
+                  (string-search-forward "g_ in set"      s 0)
+                  (string-search-forward "card(g_) in nn" s 0)
+                  #t))))))
+
+;; It is stated on the INTERVAL, not on a metric subspace.  IS-OPEN-COVER(s,C)
+;; demands the union of C be all of PTS(s), so "the interval is compact" needs
+;; a metric SUBSPACE constructor the tree does not have; naming either
+;; predicate here would mean the statement had drifted back to that question.
+(check-true "heine-borel-baby names neither IS-COMPACT nor IS-OPEN-COVER"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'heine-borel-baby #f)))
+      (and f
+           (let ((s (expression->string f)))
+             (and (not (string-search-forward "is-compact"    s 0))
+                  (not (string-search-forward "is-open-cover" s 0))))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE FORWARD LANE: anchoring, and the measured citation index (2026-08-19).
+;;;
+;;; `harvest-diagnose!' (harvest.scm) put a number on the lane: over 274 `fact'
+;;; steps recorded in the library's own scripts, the citation the author took
+;;; sat at median rank 15 of the ~50 the lane keeps, because the sort key was
+;;; three buckets and MIT's stable sort left the order inside a bucket as
+;;; `hash-table-keys' returned it.  These checks pin the two repairs and the
+;;; crash the first of them exposed.
+
+;;; A term pool holds TERMS.  It walks into a formula to reach the terms
+;;; inside, but the formula itself is not one -- see the apply-tupling-2 crash
+;;; below, which is what happens when it is.
+(check-true "anchor pool: subterms keep terms and drop the formulas around them"
+  (lambda ()
+    (let ((ts (what-now--subterms
+               '(IMPLIES (IN a (CARR s)) (= ((OPR s) a b) c)))))
+      (and (member '(CARR s) ts)
+           (member '((OPR s) a b) ts)
+           (member 'a ts)
+           (not (any-pred (lambda (t) (and (pair? t) (eq? (car t) 'IMPLIES))) ts))))))
+
+;;; The point of the whole exercise: an antecedent-free theorem is offered when
+;;; the sequent already contains the term it is about, with the schema
+;;; variables read off that term.
+(check-true "anchoring: INTERVAL(a,b) in SET anchors on the sequent's INTERVAL"
+  (lambda ()
+    (let* ((pool (what-now--term-pool '(IN x (INTERVAL lo hi)) '()))
+           (sub  (what-now--anchor-svars '(IN (INTERVAL a b) SET) '(a b) '() pool)))
+      (and sub
+           (equal? (cdr (assq 'a sub)) 'lo)
+           (equal? (cdr (assq 'b sub)) 'hi)))))
+
+(check-false "anchoring: it fails rather than guessing when nothing matches"
+  (lambda ()
+    (let ((pool (what-now--term-pool '(IN x nn) '())))
+      (what-now--anchor-svars '(IN (INTERVAL a b) SET) '(a b) '() pool))))
+
+;;; THE CRASH, and it took the whole FORWARD lane down on 3% of the library's
+;;; `fact' steps.  `apply-tupling-2' is  (f a b) == (f (LIST a b))  with f, a, b
+;;; all schema variables.  Matched with `*match-var-head*' against the sequent's
+;;; own IMPLICATION it bound f := implies, a := the antecedent, b := the
+;;; consequent, and `bc*--apply-subst' died on the result.  A schema variable in
+;;; term position ranges over TERMS, and the head of an application is syntax.
+(check-true "anchoring: no pattern whose HEAD is an open schema variable"
+  ;; (LIST a b) is a fine anchor -- its head is a constructor.  (f a b) is not,
+  ;; and it is the one that crashed the lane.
+  (lambda ()
+    (let ((pats (what-now--anchor-patterns '(== (f a b) (f (LIST a b))) '(f a b))))
+      (and (pair? pats)
+           (every-pred (lambda (p) (not (memq (car p) '(f a b)))) pats)))))
+
+;;; An IFF between two alpha-equal sides is a tautology: it lands nothing.
+(check-true "forward lane: a vacuous IFF is not a citation"
+  (lambda ()
+    (and (what-now--vacuous-iff? '(IFF (= x x) (= x x)))
+         (not (what-now--vacuous-iff? '(IFF (= x x) (= y y))))
+         ;; NOT extended to t = t, which is definedness in a partial logic
+         (not (what-now--vacuous-iff? '(= x x))))))
+
+;;; A citation must be about something PRESENT, not merely about the exempt
+;;; classes.  `rr-is-set' lands `RR in SET' -- both arguments exempt -- and so
+;;; grounded on any goal at all until this clause.
+(check-true "anchoring: groundedness needs one argument actually in the pool"
+  (lambda ()
+    (let ((pool (what-now--term-pool '(IN 0 nn) '())))
+      (and (what-now--grounded-in? '(IN 0 nn) pool)
+           (what-now--grounded-in? '(IN nn set) pool)
+           (not (what-now--grounded-in? '(IN rr set) pool))))))
+
+(check-false "anchoring: apply-tupling-2 anchors on nothing (it used to crash)"
+  (lambda ()
+    (let ((pool (what-now--term-pool
+                 '(IMPLIES (IS-ABELIAN-GROUP s) (= ((OPR s) a b) ((OPR s) b a))) '())))
+      (what-now--anchor-svars '(== (f a b) (f (LIST a b))) '(f a b) '() pool))))
+
+;;; The citation index is a ratio over the library's own scripts, and 1 means
+;;; NO EVIDENCE -- a lemma nobody has had occasion to cite is not punished for
+;;; it, it falls back on the syntactic rank.
+(check-true "cite-index: an unknown theorem scores neutral, not zero"
+  (lambda () (= 1 (cite-lift 'dist 'no-such-theorem-anywhere))))
+
+(check-true "cite-index: a head nothing is filed under scores neutral"
+  (lambda () (= 1 (cite-score 'nn-succ-closed '(no-such-head-at-all)))))
+
+;;; LEAVE-ONE-OUT.  Excluding a script must remove that script's whole
+;;; contribution, or a measurement against the library is the index reading its
+;;; own notes back.
+(check-true "cite-index: excluding a script lowers its own citations' counts"
+  (lambda ()
+    (cite--ready!)
+    (let* ((name (let loop ((ns (hash-table-keys *proof-script-table*)))
+                   (cond ((null? ns) #f)
+                         ((let ((p (cite--script-parts (car ns))))
+                            (and p (pair? (cdr p)) (car ns))))
+                         (else (loop (cdr ns))))))
+           (cited (and name (car (cdr (cite--script-parts name)))))
+           (before (and cited (cite-uses cited)))
+           (after  (and cited (fluid-let ((*cite-exclude-script* name))
+                                (cite-uses cited)))))
+      (and before (= after (- before 1))))))
+
+(check-true "cite-index: excluding a script the panel is not measuring changes nothing"
+  (lambda ()
+    (cite--ready!)
+    (= (cite-uses 'nn-succ-closed)
+       (fluid-let ((*cite-exclude-script* 'no-such-script))
+         (cite-uses 'nn-succ-closed)))))
+
+;;; Both switches default ON, and both exist so that a change to a lane can be
+;;; measured against the library rather than asserted.
+;;; The lane prints moves to be RUN.  `fact' evaluates its arguments, so a
+;;; compound term is a quoted S-expression, not a quoted surface string.
+(check-true "forward lane: a compound term prints as fact takes it"
+  (lambda ()
+    (and (string=? (what-now--term-arg '(CARR a)) "'(carr a)")
+         (string=? (what-now--term-arg 'u) "'u")
+         (string=? (what-now--term-arg 1) "1"))))
+
+(check-true "what-now: anchoring and the cite index are both on by default"
+  (lambda () (and *what-now-anchor* *what-now-use-cite-index*)))
+
+;;; -----------------------------------------------------------------------
+;;; THE SUPPLY-THE-ORACLE LANE (ineq-supply.scm, 2026-08-19, the user's design).
+;;; `ineq' linearizes over + - * and reads max(a,b) and (dist(s))(x,y) as opaque
+;;; ATOMS, so it cannot know `a <= max(a,b)' or the triangle inequality.  The
+;;; lane names the citations that land them, with the `in rr' certificate each
+;;; atom needs and the class bridge the metric ones need, then calls `ineq' with
+;;; its premises NAMED.
+
+;;; The table must name lemmas that EXIST -- a table entry that outruns the
+;;; library emits a move that cannot run.
+(check-true "ineq-supply: every table lemma is in the library"
+  (lambda ()
+    (let ((r (quietly (lambda () (ineq-supply-audit)))))
+      (null? (cdr (assq 'missing r))))))
+
+;;; The recorded shape of `fact' is (thm ARGLIST) -- the terms as ONE argument
+;;; (interactive.scm, apply-recorded-cmd!).  Spread flat, cmd-fact instantiates
+;;; nothing and lands the raw universal, silently, and the lane's own probe then
+;;; reports "does not close" on a goal that closes by hand.
+(check-true "ineq-supply: fact is executed as (thm (args)), not spread"
+  (lambda ()
+    (equal? (ineq-supply--exec '(fact (quote rr-max-closed) (quote a) (quote b)))
+            '(fact rr-max-closed (a b)))))
+
+(check-true "ineq-supply: mac-h keeps its flat (name idx) shape"
+  (lambda ()
+    (equal? (ineq-supply--exec '(mac-h (quote metric-space-class) 2))
+            '(mac-h metric-space-class 2))))
+
+;;; The class bridge is GENERIC -- `declare-structure' generates <name>-class
+;;; for every structure, so this is not a metric-space special case.
+(check-true "ineq-supply: an `x in <structure>' assumption gets its class bridge"
+  (lambda ()
+    (equal? (ineq-supply--bridges '((IN m METRIC-SPACE) (IN x RR)))
+            '((mac-h (quote metric-space-class) 1)))))
+
+(check-true "ineq-supply: an ordinary typing gets no bridge"
+  (lambda () (null? (ineq-supply--bridges '((IN x RR) (IN n NN))))))
+
+;;; The atoms are found by the table, and nothing else is.
+(check-true "ineq-supply: max and abs are found, a bare variable is not"
+  (lambda ()
+    (let ((as (ineq-supply--atoms '(<= (max a b) c) '((IN (abs x) rr)))))
+      (and (= 2 (length as))
+           (if (member '(max a b) (map cdr as)) #t #f)
+           (if (member '(abs x) (map cdr as)) #t #f)))))
+
+;;; The lane is silent on a goal with none of its heads -- a lane that speaks
+;;; on every order goal is noise, and the whole point is that it is a lookup.
+(check-true "ineq-supply: silent when the sequent has none of the table heads"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([a in rr, b in rr], a <= b implies a <= b)"))
+      (di) (di)
+      (null? (what-now--show-ineq-supply
+              (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))))))
+
+;;; ...and it does not speak on a non-order goal at all.
+(check-false "ineq-supply: the goal must be an order or equality atom"
+  (lambda () (ineq-supply--goal-shape? '(IN x rr))))
+
+;;; -----------------------------------------------------------------------
+;;; (push-not-h k) -- pushing a NOT inward, 2026-08-20.  The move every
+;;; "suppose it does NOT converge" argument opens with, and the one VNB had no
+;;; tactic for: `prop' treats a quantifier as an opaque atom, `contra' is
+;;; arithmetic, and there is no NNF in the tree.
+
+;;; THE GUARDED SURFACE IS A FIXED POINT.  This is the property that makes the
+;;; output readable, and it is checked rather than assumed: pushing through the
+;;; quantifier AND its guard lands exactly what the surface form parses to.
+(check-true "push-not: not forall([x in s], B) gives forsome([x in s], not B)"
+  (lambda ()
+    (equal? (push-not--step (parse-string "forall([x in s], x in t)"))
+            (parse-string "forsome([x in s], not(x in t))"))))
+
+(check-true "push-not: not forsome([x in s], B) gives forall([x in s], not B)"
+  (lambda ()
+    (equal? (push-not--step (parse-string "forsome([x in s], x in t)"))
+            (parse-string "forall([x in s], not(x in t))"))))
+
+(check-true "push-not: the unguarded quantifier keeps its shape"
+  (lambda ()
+    (equal? (push-not--step (parse-string "forall([x], x in t)"))
+            (parse-string "forsome([x], not(x in t))"))))
+
+(check-true "push-not: not(A implies B) gives A and not B"
+  (lambda ()
+    (equal? (push-not--step (parse-string "a in b implies b in a"))
+            (parse-string "a in b and not(b in a)"))))
+
+;;; It STOPS at the first head that is neither a quantifier nor an implication
+;;; -- the user's rule.  Going further would mean rewriting `implies' into `or'
+;;; and turning readable guarded statements into disjunctions.
+(check-false "push-not: nothing to push through an AND"
+  (lambda () (push-not--step (parse-string "a in b and b in a"))))
+
+(check-false "push-not: nothing to push through an atom"
+  (lambda () (push-not--step (parse-string "a in b"))))
+
+;;; `free-vars' of the FALSITY goal reports `falsity', and the goal after a
+;;; `pbc' or a NOT-peel IS falsity -- so the eigenvariable scan picked it up and
+;;; `(ew (quote falsity))' died inside the lane.
+(check-true "push-not: truth/falsity are not eigenvariable candidates"
+  (lambda () (equal? (push-not--vars-only '(x falsity y truth)) '(x y))))
+
+;;; End to end, through the kernel: the tactic must actually close the goal.
+(check-true "push-not-h closes the guarded-universal case"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([s, t], not(forall([x in s], x in t)) implies forsome([x in s], not(x in t)))"))
+      (di) (di) (push-not-h 1) (ass)
+      (proof-done? *ps*)))))
+
+(check-true "push-not-h closes the guarded-existential case"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([s, t], not(forsome([x in s], x in t)) implies forall([x in s], not(x in t)))"))
+      (di) (di) (push-not-h 1) (ass)
+      (proof-done? *ps*)))))
+
+;;; And it REFUSES rather than stranding a leaf -- there is no undo.
+;;; It used to REFUSE on an AND; De Morgan went in on 2026-08-20 and it now
+;;; pushes.  The refusal that remains is the one that matters: a NOT already on
+;;; an atom has nowhere to go, and refusing beats stranding a leaf.
+(check-error "push-not-h refuses a NOT already on an atom"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([a, b], not(a in b) implies a = a)"))
+      (di) (di)
+      (vnb-guard (lambda () (push-not-h 1)))))))
+
+(check-true "push-not-h closes the De Morgan case end to end"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([a, b], not(a in b and b in a) implies (not(a in b) or not(b in a)))"))
+      (di) (di) (push-not-h 1) (ass)
+      (proof-done? *ps*)))))
+
+;;; DE MORGAN, with the useful case first.  `NOT (AND P Q)' in general only
+;;; yields a disjunction, which forces a case split -- but when one conjunct is
+;;; already in the context (and it always is: it is the typing hypothesis the
+;;; definition was unfolded with) the negation of the other follows outright.
+(check-true "push-not: NOT(P and Q) with P known lands NOT Q, no split"
+  (lambda ()
+    (equal? (push-not--target (parse-string "a in b and b in a")
+                              (list (parse-string "a in b")))
+            (parse-string "not(b in a)"))))
+
+(check-true "push-not: NOT(P and Q) with nothing known lands the disjunction"
+  (lambda ()
+    (equal? (push-not--target (parse-string "a in b and b in a") '())
+            (parse-string "not(a in b) or not(b in a)"))))
+
+(check-true "push-not: NOT(P or Q) lands the conjunction"
+  (lambda ()
+    (equal? (push-not--target (parse-string "a in b or b in a") '())
+            (parse-string "not(a in b) and not(b in a)"))))
+
+;;; The panel lane and the tactic share `push-not--target', so the panel can
+;;; never offer a push the tactic would refuse.
+(check-true "what-now push-not lane offers exactly the pushable assumptions"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([s, t], not(forall([x in s], x in t)) implies s = s)"))
+      (di) (di)
+      (equal? (map wn--move-form (what-now--show-push-not))
+              '((push-not-h 1)))))))
+
+(check-true "what-now push-not lane is silent with no NOT-headed assumption"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([s, t], s in t implies s = s)"))
+      (di) (di)
+      (null? (what-now--show-push-not))))))
+
+;;; -----------------------------------------------------------------------
+;;; USER RULES (suggest.scm, `what-now--show-user-rules') -- the generative
+;;; counterpart of the filter.  A rule returns a move form, a list of them, or
+;;; #f; or calls (wn-add! ...).  Both spellings must work.
+(check-true "what-now user rule: a returned form becomes a move"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (what-now-rules! '() (list (lambda (g) '(crs))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((crs))))))))
+
+(check-true "what-now user rule: (wn-add! ...) is the imperative spelling"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (what-now-rules! '() (list (lambda (g) (wn-add! '(crs)) #f)))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((crs))))))))
+
+;;; THE USER'S OWN SHAPE, which is why `what-now--rule-forms' filters:
+;;;
+;;;     (map (lambda (x) (if (proc x) (suggestion x))) (wn-assumptions))
+;;;
+;;; A ONE-ARMED `if' returns MIT's unspecified object when the test fails, so
+;;; the `map' hands back a list peppered with non-forms.  Before the filter,
+;;; `(pair? (car r))' was false on such a list and the WHOLE LIST was taken for
+;;; a single move.
+(check-true "what-now user rule: a map with a one-armed if drops the non-forms"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (what-now-rules!
+       '()
+       (list (lambda (g)
+               (map (lambda (x)
+                      (if (and (pair? x) (eq? (car x) 'IN)
+                               (eq? (caddr x) 'NN))
+                          (list 'ass (wn-index x))))
+                    (wn-assumptions)))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((ass 1))))))))
+
+;;; And the same rule written with a two-armed if must give the same answer.
+(check-true "what-now user rule: one-armed and two-armed if agree"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (what-now-rules!
+       '()
+       (list (lambda (g)
+               (map (lambda (x)
+                      (if (and (pair? x) (eq? (car x) 'IN)
+                               (eq? (caddr x) 'NN))
+                          (list 'ass (wn-index x))
+                          #f))
+                    (wn-assumptions)))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((ass 1))))))))
+
+;;; An assumption rule sees every assumption, and `wn-index' gives the 1-based
+;;; index that inst+ / mac-h / ai / ineq all take.
+(check-true "what-now user rule: assumption rule sees each assumption by index"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (what-now-rules! (list (lambda (a) (and (pair? a) (eq? (car a) 'IN)
+                                              (list 'ass (wn-index a)))))
+                       '())
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((ass 1) (ass 2))))))))
+
+;;; A rule that RAISES is reported, not swallowed, and must not take the lane
+;;; (or the panel) with it.
+(check-true "what-now user rule: a raising rule does not kill the lane"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (what-now-rules! '() (list (lambda (g) (error "deliberate"))
+                                 (lambda (g) '(crs))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((crs))))))))
+
+;;; Silent with no rules installed -- the lane must cost nothing on the ordinary
+;;; panel.
+(check-true "what-now user-rules lane is silent with no rules installed"
+  (lambda ()
+    (quietly (lambda ()
+      (what-now-rules-clear!)
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (null? (what-now--show-user-rules (dk-goal)))))))
+
+;;; A forward move that lands an ASSUMPTION and leaves the goal alone must be
+;;; reported as firing.  `what-now--probe' measures the goal only, so using it
+;;; here reported the template's own (inst+ 1 'k) as "does not fire" while it
+;;; was landing a hypothesis -- caught the first time the lane was run.
+(check-true "what-now user rule: a move landing an assumption counts as firing"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (let ((r (what-now--probe-user-move '(fact 'nn-in-rr 'k))))
+        ;; (effect text landed) -- the probe grew a third element when the inst
+        ;; lane needed the landed FORMULAS to filter on, not just their rendering.
+        (and (car r) (string-search-forward "lands" (cadr r) 0) #t))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE INST LANE, UNHINTED AND PROBED (suggest.scm,
+;;; `what-now--show-inst-fired').
+;;;
+;;; The user, 2026-08-21: the panel is "totally oblivious" to universals that
+;;; could be instantiated by terms already in the sequent.  It was -- the lane
+;;; had been behind `*what-now-hint*' since 2026-08-13 for printing the cross
+;;; product of universals with terms.  It is now shown unhinted, with every
+;;; candidate PROBED and only the ones that land something kept.
+(check-true "what-now inst lane offers an instantiation that lands"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([a, w in a], forall([x in a], x in a and x = x) implies w = w)"))
+      (di) (di) (di)
+      (equal? (map wn--move-form (what-now--show-inst-fired)) '((inst+ 1 'w)))))))
+
+;;; The discriminator, unit-tested.  `inst+' forward-detaches every guard it
+;;; can, so an instance that arrives STILL AN IMPLICATION is one whose guard it
+;;; could not discharge -- i.e. the term was of the wrong sort.  Measured on the
+;;; user's leaf: (inst+ 4 'f) on forall([k in nn, f in fun(nn,rr)], ...) landed
+;;; `f in nn implies ...', a FUNCTION in the natural-number slot, and a bare
+;;; did-it-fire test kept it.  That is the type-confused noise which got the
+;;; lane hidden in the first place.
+(check-true "inst landing filter rejects an instance that is still an implication"
+  (lambda ()
+    (not (what-now--inst-landing-useful?
+          (list (parse-string "f in nn implies f = f"))))))
+
+(check-true "inst landing filter accepts a genuine landing"
+  (lambda ()
+    (and (what-now--inst-landing-useful?
+          (list (parse-string "w in a") (parse-string "f in nn implies f = f"))))))
+
+(check-true "inst landing filter rejects an empty landing"
+  (lambda ()
+    (not (what-now--inst-landing-useful? '()))))
+
+;;; -----------------------------------------------------------------------
+;;; REWRITE FROM A CONTEXT UNIVERSAL (suggest.scm,
+;;; `what-now--show-rewrite-from-context').
+;;;
+;;; The kernel fact the lane rests on, pinned FIRST because the user's stated
+;;; principle assumed the opposite: `==' licenses `subst' with NO definedness
+;;; certificate.  `pi-eq-subst!' (primitive-inferences.scm:481) accepts `=' and
+;;; `==' alike -- quasi-equal terms are a congruence.  If this check ever fails,
+;;; the lane's advice becomes unsound and its comment is wrong.
+(check-true "subst rewrites from a quasi-equation with no definedness in context"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u (IMPLIES (== u 0) (<= (abs u) 0)))))
+      (di) (di)
+      (subst '(== u 0))
+      (equal? (dk-goal) '(<= (abs 0) 0))))))
+
+;;; The lane itself: a context universal that is a (quasi-)equation whose left
+;;; side occurs in the goal determines its own instantiation.
+(check-true "what-now rewrite-from-context offers inst+ then subst"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL f (IMPLIES (IN f (FUN NN RR))
+                       (IMPLIES (FORALL g (== (SERIES-PARTIAL-SUM g 0) 0))
+                         (<= (abs (SERIES-PARTIAL-SUM f 0)) 0))))))
+      (di) (di) (di)
+      (let ((ms (map wn--move-form
+                     (what-now--show-rewrite-from-context (dk-goal)))))
+        (and (member '(inst+ 1 'f) ms)
+             (member '(subst '(== (SERIES-PARTIAL-SUM f 0) 0)) ms)
+             #t))))))
+
+;;; EVERY matching subterm, not the first.  The motivating goal needs the same
+;;; universal at two different terms; stopping at the first match offered one of
+;;; the two moves the leaf wants.
+(check-true "what-now rewrite-from-context offers every matching subterm"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL a (IMPLIES (IN a RR)
+                       (IMPLIES (FORALL u (== (abs u) u))
+                         (<= (+ (abs a) (abs 0)) 0))))))
+      (di) (di) (di)
+      (let* ((ms (map wn--move-form
+                      (what-now--show-rewrite-from-context (dk-goal))))
+             (insts (filter (lambda (m) (eq? (car m) 'inst+)) ms)))
+        (>= (length insts) 2))))))
+
+;;; Silent when no context universal is an equation -- the lane must cost
+;;; nothing on an ordinary panel.
+(check-true "what-now rewrite-from-context is silent with no equational universal"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (null? (what-now--show-rewrite-from-context (dk-goal)))))))
+
+;;; -----------------------------------------------------------------------
+;;; The TYPING-CHAIN lane (suggest.scm, `what-now--show-typing-chain').
+;;;
+;;; "To show f(FUBA) in GUBA, look for FUBA in RUBA."  Both halves of this were
+;;; already on the panel and twenty lines apart -- (bc* 'rr-abs-closed) at rank 1
+;;; of backchain, (fact 'series-partial-sum-in-rr 'k 'f) at rank 1 of forward --
+;;; and nothing said they compose.  The lane CHECKS the chain on a scratch clone
+;;; rather than inferring it, so a hit cannot be wrong about closing.
+(check-true "what-now typing lane composes backchain + forward and closes"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (fact 'series-partial-sum-in-rr)
+      (have! '(IN (abs (SERIES-PARTIAL-SUM f k)) RR)
+        (lambda ()
+          (let ((chain (map wn--move-form (what-now--show-typing-chain (dk-goal)))))
+            (set! *tc-chain* chain))
+          (bc* 'rr-abs-closed) (fact 'series-partial-sum-in-rr 'k 'f) (ass)))
+      (equal? *tc-chain*
+              '((bc* 'rr-abs-closed)
+                (fact 'series-partial-sum-in-rr 'k 'f)
+                (ass)))))))
+
+;;; Gated on the goal SHAPE: a membership whose subject is a compound term.  A
+;;; bare variable typing has no closure law to backchain and the lane must not
+;;; probe the whole backchain list looking for one.
+(check-true "what-now typing lane is silent on a non-compound membership goal"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k in nn)"))
+      (di)
+      (null? (what-now--show-typing-chain (dk-goal)))))))
+
+;;; And silent when the argument's own typing is genuinely unavailable.
+;;;
+;;; The first draft of this check was ILL-POSED and the suite caught it: it
+;;; omitted the typing from the CONTEXT and concluded it was missing, but
+;;; `series-partial-sum-in-rr' is a LIBRARY theorem whose antecedents
+;;; `k in nn' / `f in fun(nn, rr)' the context already satisfies, so the forward
+;;; lane supplied it anyway and the chain legitimately closed.  "Not in the
+;;; context" is not "not available": the forward lane's whole job is to reach
+;;; past the context into the library.  So the unavailable case needs a term
+;;; nothing can type -- an unconstrained variable.
+(check-true "what-now typing lane is silent when the argument typing is unavailable"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([u], abs(u) in rr)"))
+      (di)
+      (null? (what-now--show-typing-chain (dk-goal)))))))
+
+;;; -----------------------------------------------------------------------
+;;; The `ineq' lane of what-now (suggest.scm, `what-now--show-ineq').
+;;;
+;;; Before 2026-08-20 the comparison branch printed a static "(ineq i1 i2 ...)"
+;;; header and computed NOTHING, so on a leaf whose whole content is one linear
+;;; step the panel showed a header with nothing under it and fell through to
+;;; backchain -- whose top offers on a REAL comparison are routinely NN lemmas
+;;; that fire and strand the proof.  Measured on the two partial-sum order
+;;; lemmas in theorem-library/comparison-test-proof.scm, both of which close on
+;;; exactly the move the panel did not name.
+(check-true "what-now ineq lane names the indices and says it closes"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([x in rr, y in rr], 0 <= y implies x <= x + y)"))
+      (di) (di)
+      (equal? (map wn--move-form (what-now--show-ineq)) '((ineq 1)))))))
+
+;;; It offers ONLY when the call closes: `ineq' does not partly succeed, so a
+;;; non-closing call is not a move and printing it would be noise on every
+;;; comparison goal in the tree.  Here the premise points the wrong way.
+(check-true "what-now ineq lane is silent when the call does not close"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([x in rr, y in rr], 0 <= y implies x + y <= x)"))
+      (di) (di)
+      (null? (what-now--show-ineq))))))
+
+;;; And silent with no usable ordering premise at all -- `contra--usable-indices'
+;;; returns the empty list, and the lane must not then call `(ineq)' with no
+;;; arguments, which proves nothing.
+(check-true "what-now ineq lane is silent with no ordering premise in context"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([x in rr], x <= x + x)"))
+      (di)
+      (null? (what-now--show-ineq))))))
+
+(check-error "push-not-h refuses an assumption that is not a NOT"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([a, b], a in b implies a = a)"))
+      (di) (di)
+      (vnb-guard (lambda () (push-not-h 1)))))))
+
+;;; -----------------------------------------------------------------------
+;;; SUBSQN(y,f) -- "y is a subsequence of f", 2026-08-20 (the user's proposal).
+;;; IS-SUBSEQUENCE conflates a TYPING with a RELATION and carries a metric space
+;;; through a statement that is about two sequences and nothing else.  It also
+;;; had ZERO citations, while five theorems in the same arc wrote its body out
+;;; longhand.  SUBSQN is that body, named; these pin the split.
+
+(check-true "subsqn is space-free -- two arguments, no structure"
+  (lambda ()
+    (let ((f (lookup-theorem 'subsqn)))
+      (and (pair? f)
+           (let ((s (expression->string f)))
+             (and (string-search-forward "subsqn(y, f)" s 0)
+                  (not (string-search-forward "pts(" s 0))
+                  #t))))))
+
+;;; THE CLOSURE PROPERTY, and it is not a consequence of the definition alone:
+;;; SUBSEQ(f,phi) is a VNB-LAMBDA, and a VNB-LAMBDA is a function only by
+;;; `lam-t', which owes the domain's sethood and the body's pointwise typing.
+;;; `subseq-is-fun' states this for PTS(s) only, and asserts it.
+(check-true "subsqn-preserves-sqn holds for a GENERAL class, proven modulo 0"
+  (lambda ()
+    (and (pair? (lookup-theorem 'subsqn-preserves-sqn))
+         (null? (debt-of 'subsqn-preserves-sqn)))))
+
+;;; A probe that RAISES must not kill the panel -- `contra' does exactly that on
+;;; a goal with arithmetic atoms it cannot certify, and took all of `what-now'
+;;; with it (reported 2026-08-20 on
+;;; vnb-lambda(x, nn, 1 * recip(0)) = vnb-lambda(x, nn, 1 * recip(0))).
+(check-true "what-now survives a probe that raises, and names it"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "vnb-lambda(x, nn, 1 * recip(0)) = vnb-lambda(x, nn, 1 * recip(0))"))
+      (let ((r (vnb-guard (lambda () (what-now-data)))))
+        (and (not (vnb-error? r))
+             (pair? *what-now-probe-errors*)))))))
+
+(check-true "is-subsequence = the typing AND subsqn, proven modulo 0"
+  (lambda ()
+    (and (pair? (lookup-theorem 'is-subsequence-iff-typed-subsqn))
+         (null? (debt-of 'is-subsequence-iff-typed-subsqn)))))
+
+;;; -----------------------------------------------------------------------
+;;; Alpha-equivalence is an EQUIVALENCE, and the formula digest respects it
+;;; (2026-08-21).  alpha-equiv-under? carried a one-directional renaming map
+;;; with no injectivity check, so a shadowing binder on the RIGHT collapsed two
+;;; distinct left-hand variables onto one name: the first two checks below
+;;; answered #t and #f respectively, for the same pair of formulas.  `ass'
+;;; closes on alpha-equality and `dg-post!' hash-conses on it, so the direction
+;;; the caller happened to pass decided the answer.
+
+(check-false "alpha-equiv?: a shadowing binder on the right is not a renaming"
+  (lambda ()
+    (alpha-equiv? '(FORALL x (FORALL y (P x y)))
+                  '(FORALL a (FORALL a (P a a))))))
+
+(check-false "alpha-equiv?: ... and not in the other direction either (symmetry)"
+  (lambda ()
+    (alpha-equiv? '(FORALL a (FORALL a (P a a)))
+                  '(FORALL x (FORALL y (P x y))))))
+
+(check-false "alpha-equiv?: a free name captured on the right is a different variable"
+  (lambda ()
+    (alpha-equiv? '(FORALL x (P x y)) '(FORALL y (P y y)))))
+
+(check-true "alpha-equiv?: a genuine renaming still passes"
+  (lambda ()
+    (and (alpha-equiv? '(FORALL x (FORALL y (P x y)))
+                       '(FORALL u (FORALL v (P u v))))
+         (alpha-equiv? '(FORALL f (f x)) '(FORALL g (g x))))))
+
+(check-false "alpha-equiv?: swapping the binders is not a renaming"
+  (lambda ()
+    (alpha-equiv? '(FORALL x (FORALL y (P x y)))
+                  '(FORALL y (FORALL x (P x y))))))
+
+(check-true "formula-hash: alpha-invariant, and separates the shadowing pair"
+  (lambda ()
+    (and (= (formula-hash '(FORALL x (FORALL y (P x y))))
+            (formula-hash '(FORALL u (FORALL v (P u v)))))
+         (not (= (formula-hash '(FORALL x (FORALL y (P x y))))
+                 (formula-hash '(FORALL a (FORALL a (P a a)))))))))
+
+(check-true "formula-hash: COMP, SEP and BIG-UNION bind (the 2026-08-15 walker gap)"
+  (lambda ()
+    (and (= (formula-hash '(COMP r (IN r a)))      (formula-hash '(COMP z (IN z a))))
+         (= (formula-hash '(SEP x A (P x)))        (formula-hash '(SEP w A (P w))))
+         (= (formula-hash '(BIG-UNION x A (P x)))  (formula-hash '(BIG-UNION w A (P w))))
+         ;; ... and a free name in the same position is NOT absorbed
+         (not (= (formula-hash '(COMP r (IN r a))) (formula-hash '(COMP r (IN r b)))))
+         ;; ... and the domain is outside the binder
+         (not (= (formula-hash '(SEP x A (P x)))   (formula-hash '(SEP x B (P x))))))))
+
+(check-true "formula-hash: the two spellings of a one-variable VNB-LAMBDA agree"
+  (lambda ()
+    (= (formula-hash '(VNB-LAMBDA n NN (f n)))
+       (formula-hash '(VNB-LAMBDA (LIST m) NN (f m))))))
+
+(check-true "formula-canon: alpha-equivalent formulas have equal canonical forms"
+  (lambda ()
+    (and (equal? (formula-canon '(FORALL x (FORALL y (P x y))))
+                 (formula-canon '(FORALL u (FORALL v (P u v)))))
+         (not (equal? (formula-canon '(FORALL x (FORALL y (P x y))))
+                      (formula-canon '(FORALL a (FORALL a (P a a)))))))))
+
+(check-true "wff digest: two builds of one text, and an alpha-variant, agree"
+  (lambda ()
+    (let ((w1 (make-wff "forall([k in nn], k = k)"))
+          (w2 (make-wff "forall([k in nn], k = k)"))
+          (w3 (make-wff "forall([j in nn], j = j)"))
+          (w4 (make-wff "forall([k in nn], k in nn)")))
+      (and (= (wff-hash w1) (wff-hash w2))
+           (= (wff-hash w1) (wff-hash w3))
+           (not (= (wff-hash w1) (wff-hash w4)))
+           (wff-equiv? w1 w3)
+           (not (wff-equiv? w1 w4))))))
+
+;;; The contract the deduction-graph index relies on, checked over the whole
+;;; installed library rather than on hand-picked cases: alpha-equivalent
+;;; formulas MUST hash equal, or dg-find-sequent-node looks in the wrong bucket
+;;; and hash-consing silently stops.
+(check-true "formula-hash: alpha-equiv? implies equal digests, over the theorem table"
+  (lambda ()
+    (let ((fs (map lookup-theorem (list-head (theorem-names) 150))))
+      (let loop ((a fs))
+        (cond ((null? a) #t)
+              (else
+               (let inner ((b fs))
+                 (cond ((null? b) (loop (cdr a)))
+                       ((and (alpha-equiv? (car a) (car b))
+                             (not (= (formula-hash (car a)) (formula-hash (car b)))))
+                        #f)
+                       (else (inner (cdr b)))))))))))
+
+;;; dg-post! still hash-conses: an alpha-variant of a posted sequent must come
+;;; back as the SAME node, now that the lookup goes through the digest index.
+(check-true "dg-post!: an alpha-variant sequent returns the existing node"
+  (lambda ()
+    (let* ((dg (make-deduction-graph))
+           (s1 (make-sequent '() (make-wff "forall([k in nn], k = k)")))
+           (s2 (make-sequent '() (make-wff "forall([j in nn], j = j)")))
+           (s3 (make-sequent '() (make-wff "forall([k in nn], k in nn)")))
+           (n1 (dg-post! dg s1))
+           (n2 (dg-post! dg s2))
+           (n3 (dg-post! dg s3)))
+      (and (eq? n1 n2) (not (eq? n1 n3))
+           (= 2 (length (dg-sequent-nodes dg)))))))
+
+(check-true "binder-walker-audit: every walker agrees with *binder-shapes*"
+  (lambda () (null? (binder-walker-audit))))
+
+;;; Gate control: the audit above passes on a clean tree, which is exactly what
+;;; a broken audit also does.  Declare a head that binds nothing and it must
+;;; name it.
+(check-true "binder-walker-audit: fails on a head declared to bind that does not"
+  (lambda ()
+    (let ((saved *binder-shapes*))
+      (set! *binder-shapes* (cons (cons 'FUBA-BINDS-NOTHING 'simple) *binder-shapes*))
+      (let ((bad (binder-walker-audit)))
+        (set! *binder-shapes* saved)
+        (and (pair? bad)
+             (eq? 'fuba-binds-nothing (car (car bad))))))))
+
+(check-true "register-constant!: warns when the name is already an installed binder"
+  (lambda ()
+    ;; `dg' is the Euclidean degree function's bound variable in
+    ;; is-euclidean-ring-def -- renamed there on 2026-08-21 precisely because
+    ;; registering DEG collided with its old spelling.
+    (and (eq? 'is-euclidean-ring-def
+              (hash-table-ref/default *installed-binder-names* 'dg #f))
+         ;; ... and a name nothing binds is not in the table at all
+         (not (hash-table-ref/default *installed-binder-names*
+                                      'zzz-not-a-binder-anywhere #f)))))
+
+(check-true "formula-binder-names: reports every binder head in *binder-shapes*"
+  (lambda ()
+    (let ((got (map cdr (formula-binder-names
+                         '(AND (FORALL a (FORSOME b (IN a b)))
+                               (AND (IN (SEP c d (IN c d)) (COMP e (IN e e)))
+                                    (IN (BIG-UNION g h (IN g h))
+                                        (VNB-LAMBDA i NN (IOTA j (IN i j))))))))))
+      (and (= (length got) 7)
+           (let loop ((hs (map car *binder-shapes*)))
+             (or (null? hs)
+                 (and (memq (car hs) got) (loop (cdr hs)))))))))
+
+(check-true "supply: closes the series-triangle induction step, redex and all"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([f in fun(nn, rr), k in nn],
+             abs(series-partial-sum(f, k)) <= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k)
+             implies
+             abs(series-partial-sum(f, k) + f(k))
+               <= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k)
+                  + (vnb-lambda(n_, nn, abs(f(n_))))(k))"))
+      (quietly (lambda () (di) (di) (supply)))
+      (proof-done? *ps*))))
+
+;;; The half that matters more: a composite with no undo must not spend a move
+;;; it cannot finish.  On a goal it cannot close, `supply' must leave the leaf
+;;; byte-identical -- in particular it must NOT have beta-reduced anything.
+(check-true "supply: refuses a goal it cannot close, and changes nothing"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([a in rr, b in rr], a <= b)"))
+      (quietly (lambda () (di) (supply)))
+      (and (not (proof-done? *ps*))
+           (= 1 (length (proof-leaves)))
+           (equal? '(<= a b)
+                   (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))))))
+
+(check-true "min: the head parses as a term, not an applied function variable"
+  (lambda ()
+    (let ((f (wff-formula (make-wff "forall([x in rr, y in rr], min(x,y) <= x)"))))
+      ;; registered => the head is the CONSTANT min, and free-vars does not
+      ;; report it as a variable the caller supplied
+      (and (constant-head? 'min)
+           (not (memq 'min (free-vars f)))))))
+
+(check-true "min: the five RR laws and both NN closures are proven, modulo 0"
+  (lambda ()
+    (let loop ((ns '(rr-min-closed rr-min-cases rr-min-le-left rr-min-le-right
+                     rr-le-min nn-max-closed nn-min-closed)))
+      (or (null? ns)
+          (and (pair? (lookup-theorem (car ns)))
+               (null? (debt-of (car ns)))
+               (loop (cdr ns)))))))
+
+;;; MIN and MAX must agree at x = y about WHICH argument they return -- both
+;;; guards split on `<=' so both first branches cover equality and return the
+;;; first argument.  A driver handling the pair side by side depends on it.
+(check-true "min/max: the definitions meet the same branch order at x = y"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([x in rr], min(x,x) = x and max(x,x) = x)"))
+      (quietly
+       (lambda ()
+         (di)
+         (fact 'rr-min-def 'x 'x)
+         (fact 'rr-max-def 'x 'x)
+         (prop)))
+      (proof-done? *ps*))))
+
+;;; NN needs no operator of its own: the RR maximum of two naturals IS the
+;;; natural maximum, and the only thing owed is that it stays in NN.
+(check-true "nn-max-closed: proven with no NN order theory, from rr-max-cases"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([x in nn, y in nn], max(x,y) in nn)"))
+      (quietly
+       (lambda ()
+         (di)
+         (fact 'nn-in-rr 'x) (fact 'nn-in-rr 'y)
+         (fact 'rr-max-cases 'x 'y)
+         (use-cases '((= (max x y) x) (= (max x y) y))
+           (lambda () (subst '(= (max x y) x)) (ass))
+           (lambda () (subst '(= (max x y) y)) (ass)))))
+      (proof-done? *ps*))))
+
+;;; The supply table's one recorded gap is closed; the list is empty now.
+(check-true "ineq-supply: nothing is on the WANTED list any more"
+  (lambda () (null? *ineq-supply-wanted*)))
+
+(check-true "duplicate-define-audit: no core file defines a name twice"
+  (lambda () (null? (duplicate-define-audit))))
+
+;;; Gate control.  An audit that passes reads exactly like a clean tree, so the
+;;; DETECTION is exercised on a list it must flag.
+(check-true "duplicate-define-audit: flags a repeat, passes a clean list"
+  (lambda ()
+    (and (equal? '((b 2)) (duplicate--repeats '(a b c b)))
+         (null? (duplicate--repeats '(a b c)))
+         ;; and the reader really is reading definitions out of a real file
+         (memq 'duplicate-define-audit
+               (duplicate--defined-names "/home/ubuntu/prover/audit.scm"))
+         #t)))
+
+;;; CONSTANT DENOMINATORS in the ineq linearizer (2026-08-22).  `recip(2)' and
+;;; `x / 2' are folded to the rational 1/2, so the commonest step in analysis --
+;;; halve the epsilon -- is inside the oracle instead of an opaque atom.
+
+(define (ineq--closes? wff-str)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-str))
+    (quietly
+     (lambda ()
+       (let loop ((n 0))
+         (if (and (< n 12) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES)))
+             (begin (di) (loop (+ n 1)))))
+       (let* ((k (length (dk-asms)))
+              (idxs (let lp ((i k) (a '())) (if (= i 0) a (lp (- i 1) (cons i a))))))
+         (vnb-guard (lambda () (apply ineq idxs))))))
+    (proof-done? *ps*)))
+
+(check-true "ineq: recip of a nonzero literal is a constant, not an atom"
+  (lambda ()
+    (ineq--closes?
+     "forall([eps in rr], 0 <= eps implies eps * recip(2) + eps * recip(2) <= eps)")))
+
+(check-true "ineq: division by a nonzero literal likewise"
+  (lambda ()
+    (ineq--closes?
+     "forall([eps in rr], 0 <= eps implies (eps / 2) + (eps / 2) <= eps)")))
+
+;;; The shape that matters: an eps/2 argument with the quantities OPAQUE.
+(check-true "ineq: the eps/2 argument closes with opaque atoms"
+  (lambda ()
+    (ineq--closes?
+     "forall([e in rr, a in rr, b in rr, c in rr],
+        a <= e * recip(2) implies b <= e * recip(2) implies c <= a + b implies c <= e)")))
+
+;;; NEGATIVE CONTROLS -- the guards.  A fold that fired on either of these would
+;;; be unsound, and an oracle that closes everything reads exactly like one that
+;;; works.
+(check-false "ineq: recip of a VARIABLE stays an opaque atom"
+  (lambda ()
+    ;; false at x = 1, so closing it would be a soundness bug
+    (ineq--closes?
+     "forall([x in rr, e in rr], 0 <= e implies e * recip(x) + e * recip(x) <= e)")))
+
+(check-false "ineq: recip(0) is not folded"
+  (lambda ()
+    (ineq--closes?
+     "forall([e in rr], 0 <= e implies e * recip(0) <= e)")))
+
+(check-false "ineq: division by a VARIABLE stays an opaque atom"
+  (lambda ()
+    (ineq--closes?
+     "forall([x in rr, e in rr], 0 <= e implies (e / x) + (e / x) <= e)")))
+
+;;; CLASS BRIDGE lane (2026-08-22).  `forall([s in metric-space], ...)' puts
+;;; `s in metric-space' in the context while every theorem is guarded on
+;;; `is-metric-space(s)', so `fact' lands the implication silently.  The repair
+;;; was computed by ineq-supply--bridges since 2026-08-19 but only reachable on
+;;; an order goal; it is now a lane of its own.
+
+(define (class-bridge--moves wff-str)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-str))
+    (quietly (lambda () (di)))
+    (quietly (lambda () (what-now--show-class-bridge)))))
+
+(check-true "class bridge: fires on a class membership, naming the mac-h"
+  (lambda ()
+    (let ((ms (class-bridge--moves
+               "forall([s in metric-space, a in pts(s)], (dist(s))(a, a) = 0)")))
+      (and (pair? ms)
+           (equal? (car ms) '(mac-h (quote metric-space-class) 1))))))
+
+;;; SELF-GATING, both ways -- a lane that fires on every panel is noise, and one
+;;; that fires after the bridge has been taken is worse.
+(check-true "class bridge: SILENT once the predicate form is in context"
+  (lambda ()
+    (null? (class-bridge--moves
+            "forall([s], is-metric-space(s) implies s in metric-space implies
+                         forall([a in pts(s)], (dist(s))(a, a) = 0))"))))
+
+(check-true "class bridge: SILENT when no assumption is a class membership"
+  (lambda ()
+    (null? (class-bridge--moves
+            "forall([s], is-metric-space(s) implies
+                         forall([a in pts(s)], (dist(s))(a, a) = 0))"))))
+
+;;; The predicate is read off the class LAW, not by turning "metric-space" into
+;;; "is-metric-space" with string surgery -- so a structure whose predicate is
+;;; spelled otherwise still works, and a class with no law is skipped.
+(check-true "class bridge: the target comes from the class law itself"
+  (lambda ()
+    (and (equal? '(IS-METRIC-SPACE s)
+                 (what-now--class-law-target 'metric-space 's))
+         (not (what-now--class-law-target 'no-such-class-at-all 's)))))
+
+;;; -----------------------------------------------------------------------
+;;; LEGIBILITY lane (suggest.scm, `what-now--show-legibility', 2026-08-24).
+;;;
+;;; The user's leaf of 2026-08-23 read, in part,
+;;;
+;;;   (opr([carr(rr-normed-field), binplus, 0, neg(rr-normed-field)]))(
+;;;      sum-ag(...), recip(succ(0)) * cf(0) * x ^ succ(0))
+;;;
+;;; -- "one could do obvious things like replacing succ(0) by 1".  Every move
+;;; that does so was in the tree; no lane named any of them.
+;;;
+;;; THE MOVES ARE REWRITES.  A printer that normalised `succ(0)' to `1' would
+;;; recreate the nullary-application trap: `(f)' printed as `f', so `(= (f) f)'
+;;; displayed as `f = f' while `rfl' refused it.  The first check below pins
+;;; that decision -- it fails the moment `expr->str' starts normalising.
+(check-true "legibility: the PRINTER still does not normalise (succ / accessor)"
+  (lambda ()
+    (and (string=? (expression->string '(succ 0)) "succ(0)")
+         (string=? (expression->string '(OPR (LIST RR binplus 0 binneg)))
+                   "opr([rr, binplus, 0, binneg])"))))
+
+(define (legibility--moves wff-str . opt)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-str))
+    (for-each (lambda (m) (quietly (lambda () (vnb-guard m)))) opt)
+    (let ((out '()))
+      (with-output-to-string
+        (lambda () (set! out (what-now--show-legibility (dk-goal)))))
+      out)))
+
+;;; 1. an accessor applied to a literal tuple -- the user's `opr([...])'.
+(check-true "legibility: accessor on a literal tuple offers (slot ACC) then (nth-r)"
+  (lambda ()
+    (equal? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus")
+            '((slot (quote opr)) (nth-r)))))
+
+;;; 2. a succ tower over a literal.  MAXIMAL only: collapsing succ(succ(0))
+;;; takes the inner succ(0) with it, so offering both would be two moves for
+;;; one.  There is no ONE-step move -- `numeral-collapse' is a Scheme procedure
+;;; called only from `condition-holds?' -- so the offer is the two steps the
+;;; library already writes by hand (makeset-basics.scm:299).
+(check-true "legibility: succ tower over a literal offers have!+subst, MAXIMAL tower"
+  (lambda ()
+    (equal? (legibility--moves "forall([a in rr], a ^ succ(succ(0)) = a * a)"
+                               (lambda () (di)))
+            '((have! (quote (= (succ (succ 0)) 2)) (lambda () (arith)))
+              (subst (quote (= (succ (succ 0)) 2)))))))
+
+;;; 3. an accessor applied to a declared INSTANCE -- one move for the whole
+;;; goal, and the door `accessor-callsite-audit' permits (the rewrite lane's
+;;; alternative is `(mac 'rr-ms@pts)', firing an accessor macete by name).
+(check-true "legibility: accessor on a declared instance offers (surface-goal! INST)"
+  (lambda ()
+    (equal? (legibility--moves "forall([u in pts(rr-ms)], (dist(rr-ms))(u, u) = 0)")
+            '((surface-goal! (quote rr-ms))))))
+
+;;; SILENCE IS NOT OPTIONAL: a lane that offers something on every goal is as
+;;; useless as one that offers nothing.  Three shapes it must stay quiet on --
+;;; no accessor and no numeral tower; a succ over a VARIABLE (nothing to
+;;; collapse); and a goal with no terms of its kind at all.
+(check-true "legibility: SILENT on a clean arithmetic goal"
+  (lambda () (null? (legibility--moves "forall([a in rr], a + 0 = a)"))))
+
+(check-true "legibility: SILENT on succ of a VARIABLE"
+  (lambda () (null? (legibility--moves "forall([n in nn], succ(n) in nn)"
+                                       (lambda () (di))))))
+
+(check-true "legibility: SILENT on a clean set goal"
+  (lambda () (null? (legibility--moves "forall([a in set], a subset a)"))))
+
+;;; The lane respects the filter, like every other lane.
+(check-true "legibility: *what-now-suppress* hides a legibility move"
+  (lambda ()
+    (dynamic-wind
+     (lambda () (what-now-suppress! 'OPR))
+     (lambda () (null? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus")))
+     (lambda () (what-now-filter-clear!)))))
+
+;;; THE PANEL COMPLETES, on an ugly goal and on a clean one -- the failure this
+;;; lane must not repeat is `what-now--notational-macete?' calling
+;;; `lookup-theorem' (which ERRORS on a miss) and killing the whole panel.
+;;; A lane raise is caught and NAMED in *what-now-probe-errors*, never fatal.
+(define (legibility--panel wff-str)
+  (fluid-let ((*ps* #f) (*what-now-probe-errors* '()))
+    (sp (make-wff wff-str))
+    (let ((v '()))
+      (with-output-to-string (lambda () (set! v (what-now))))
+      (list (and (pair? (assq 'moves v)) #t)
+            (map (lambda (l) (cdr (assq 'kind l))) (cdr (assq 'lanes v)))))))
+
+(check-true "legibility: the panel completes on the ugly goal, with the lane in it"
+  (lambda ()
+    (let ((r (legibility--panel "opr([rr, binplus, 0, binneg]) == binplus")))
+      (and (car r) (memq 'legibility (cadr r)) #t))))
+
+(check-true "legibility: the panel completes on a clean goal, WITHOUT the lane"
+  (lambda ()
+    (let ((r (legibility--panel "forall([a in rr], a + 0 = a)")))
+      (and (car r) (not (memq 'legibility (cadr r)))))))
+
+;;; prop's ATOM CAP counts the whole context, and `push-not-h' discharges its
+;;; FORALL case through prop -- so in exactly the situation push-not exists for
+;;; (a definition just unfolded, hence a large context) the push failed.  Since
+;;; 2026-08-22 an over-cap run retries on the GOAL-CONNECTED assumptions.
+
+(define (prop--cap-fixture)
+  (sp (make-wff "forall([x, b, a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad, ae, af],
+     (x in b implies x in a1) implies x in b implies
+     x in a2 implies x in a3 implies x in a4 implies x in a5 implies x in a6 implies
+     x in a7 implies x in a8 implies x in a9 implies x in aa implies x in ab implies
+     x in ac implies x in ad implies x in ae implies x in af implies x in a1)"))
+  (quietly (lambda ()
+    (let loop ((n 0))
+      (if (and (< n 24) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES)))
+          (begin (di) (loop (+ n 1))))))))
+
+(check-true "prop: an over-cap context is retried on the goal-connected part"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (prop--cap-fixture)
+      (and (> (length (prop--atoms (cons (dk-goal) (dk-asms)))) *prop-atom-cap*)
+           (begin (quietly (lambda () (prop))) (proof-done? *ps*))))))
+
+(check-true "prop--relevant: keeps only the assumptions connected to the goal"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (prop--cap-fixture)
+      (= 2 (length (prop--relevant (dk-asms) (dk-goal)))))))
+
+;;; The fallback must not become a licence: when even the connected part is over
+;;; the cap, prop still declines rather than running 2^n.
+(check-false "prop: still declines when the CONNECTED part is over the cap"
+  (lambda ()
+    ;; the connected part has exactly 2 atoms, so the cap must be BELOW 2 for
+    ;; this to be a real control -- at 2 the fallback legitimately proceeds
+    (fluid-let ((*ps* #f) (*prop-atom-cap* 1))
+      (prop--cap-fixture)
+      (quietly (lambda () (prop)))
+      (proof-done? *ps*))))
+
+
+;;; -----------------------------------------------------------------------
+;;; NN's ADDITION RECURSION IS `definitional' (2026-08-24, the user's call).
+;;;
+;;; `nn-add-succ' (a + succ b = succ(a + b), structure-library/nn-arith.scm) is
+;;; the recursion equation defining + on NN; number-systems.scm states +'s
+;;; algebraic laws and never its recursion, and nothing else in the tree implies
+;;; it (`nn-succ-plus-one' is proved FROM it).  It was named in 54 bills and was
+;;; the SOLE unwarranted leaf of 19 of them, so the stamp is what took the whole
+;;; differentiation arc -- deriv-power, deriv-coef-monomial, deriv-polynomial and
+;;; now poly-antiderivative -- to `modulo 0'.
+;;;
+;;; THE PAIR IS THE POINT.  The install is wrapped in a `fluid-let' of
+;;; *current-provenance*, and that wrap is what also stamps the AUTO-GENERATED
+;;; `-rev' companion; a later refactor to a `register-provenance!' call after the
+;;; fact would stamp the forward direction, leave the companion `asserted', and
+;;; every bill that happens to rewrite right-to-left would quietly regrow a leaf.
+(check-true "nn-add-succ and its -rev companion are BOTH stamped definitional"
+  (lambda ()
+    (and (eq? (provenance-of 'nn-add-succ)     'definitional)
+         (eq? (provenance-of 'nn-add-succ-rev) 'definitional))))
+
+;;; -----------------------------------------------------------------------
+;;; EXAMPLE 4.7 -- every polynomial function is antiderivable
+;;; (theorem-library/poly-antiderivative.scm, 2026-08-24).
+;;;
+;;; The rung the integration arc consumes: Cor 4.17 plus Theorem 5.2 turn it into
+;;; "every continuous function has an antiderivative", which DEFINES the integral.
+;;; The proof runs at load time, so a regression stops the library outright; what
+;;; these pin is what a load cannot report -- that it is PROVEN rather than
+;;; asserted, and that every link of it bills `modulo 0'.
+(check-true "Example 4.7 and its six lemmas are PROVEN and each bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (hash-table-ref/default *theorem-table* nm #f)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(anti-term-in-rr anti-term-lam-in-fun anti-lam-in-fun
+             rr-zero-plus recip-succ-cancel deriv-anti-monomial
+             poly-antiderivative))))
+
+;; The coefficient cancellation is stated over VARIABLES and ORIENTED so that
+;; its left-hand side is the shape the GOAL carries: `subst' rewrites the goal,
+;; not the assumption, so the readable orientation would be unusable.
+;; Checked on the STORED FORM, not on the printed one: `expr->str' flattens a
+;; chain of `*', so the right-hand side prints as "succ(m) * recip(succ(m)) * c
+;; * v" and a string check could not tell the intended nesting from the
+;; left-associated one that string re-parses to.
+(check-true "recip-succ-cancel is oriented c v = ((m+1)(c/(m+1))) v"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'recip-succ-cancel #f)))
+      (and f
+           (let loop ((g f))
+             (cond ((and (pair? g) (memq (car g) '(FORALL IMPLIES))) (loop (caddr g)))
+                   (else
+                    (and (pair? g) (eq? (car g) '=)
+                         (equal? (cadr g) '(* c v))
+                         (equal? (caddr g)
+                                 '(* (* (succ m) (* (recip (succ m)) c)) v))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; A COMMAND THAT CHANGES NOTHING MUST SAY SO -- and must not be recorded.
+;;;
+;;; vnb--run! used to have three outcomes (error / soft warning / success) and
+;;; a fourth hiding inside the third: a tactic that raised nothing, declined
+;;; nothing, and handed back the state it was given.  That fell to the success
+;;; branch, was appended to *proof-script* and to the *live-trace* proof-tex
+;;; prints from, and `show' redisplayed the unchanged goal as though the move
+;;; had landed.  The discriminator is the deduction GRAPH plus the focus: a
+;;; real move posts a node, records an inference, writes an arrow or grounds
+;;; something -- or moves the focus, which is a real move that changes no goal.
+;;;
+;;; The SILENCE half of this is not optional: a notice that fires on every
+;;; command is as useless as none.  Four of the six checks below are controls.
+
+(check-true "inert: the whole library load reports no inert step"
+  ;; the SILENCE check at library scale -- 700+ proofs, tens of thousands of
+  ;; tactic calls, and the notice must fire on NONE of them.  A notice that
+  ;; fires on every command is as useless as none.
+  ;;
+  ;; It reads the tally FROZEN AT THE END OF THE LOAD, not the live counter --
+  ;; the live one goes on rising through the suite's own deliberate no-ops
+  ;; below.  The tally counts notices ISSUED, so it is exactly
+  ;; `grep -c "nothing changed"' over the load log; if this ever fails, that
+  ;; grep names the offending step.
+  (lambda () (= 0 *vnb-inert-at-load*)))
+
+;; Run THUNK through the real boundary and return (notice-text . script-delta).
+(define (inert--probe sym thunk)
+  (let ((s0 (length *proof-script*)) (t0 (length *live-trace*)) (text #f))
+    (set! text
+      (with-output-to-string
+        (lambda ()
+          ;; *vnb-loading* silences (show) but NOT vnb--print-warning, which is
+          ;; the wire the notice goes out on; *vnb-quiet* would silence both.
+          (fluid-let ((*vnb-loading* #t))
+            (vnb--run! sym '() thunk)))))
+    (list text (- (length *proof-script*) s0) (- (length *live-trace*) t0))))
+
+(define (inert--fixture)
+  ;; x_ in nn |- x_ in nn, one open leaf, one di already taken
+  (quietly
+   (lambda ()
+     (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))
+     (di))))
+
+(check-true "inert: a command that changes nothing is REPORTED"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (inert--fixture)
+      (let ((r (inert--probe 'probe-inert (lambda () *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (substring? "probe-inert" (car r))
+             (substring? "nothing changed" (car r))
+             #t)))))
+
+(check-true "inert: the unrecorded step reaches NEITHER the script NOR the trace"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (inert--fixture)
+      (let ((r (inert--probe 'probe-inert (lambda () *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (= 0 (cadr r)) (= 0 (caddr r)))))))
+
+(check-true "inert: focus moved and back again is still inert"
+  ;; the discriminator is the focus NODE, not a focus command having been typed
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (inert--fixture)
+      (let* ((here (proof-state-focus *ps*))
+             (r (inert--probe 'probe-wander
+                  (lambda () (focus-on *ps* here) *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (substring? "nothing changed" (car r)) (= 0 (cadr r)))))))
+
+;;; --- CONTROLS: a real move must NOT be reported inert ---
+
+(check-true "inert: a REAL surface tactic with nothing to do reports it -- (to-nary)"
+  ;; to-nary saturates the arity-bridge macetes by driving `mac' in a loop; it
+  ;; does not go through vnb--run!, and the inner mac warnings are swallowed by
+  ;; `quietly', so before 2026-08-24 a saturation with nothing to saturate was
+  ;; completely silent.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly (lambda () (sp (make-wff '(IN x_ NN)))))
+      (let* ((s0 (length *proof-script*))
+             (text (with-output-to-string
+                     (lambda () (fluid-let ((*vnb-loading* #t)) (to-nary)))))
+             (delta (- (length *proof-script*) s0)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (substring? "to-nary" text)
+             (substring? "nothing changed" text)
+             (= 0 delta))))))
+
+(check-true "inert control: a real move (di) is silent and IS recorded"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly (lambda () (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let ((r (inert--probe 'di (lambda () (cmd-direct-inference *ps*)))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (not (substring? "nothing changed" (car r))) (= 1 (cadr r)))))))
+
+(check-true "inert control: a move that changes only the CONTEXT is not inert"
+  ;; `ai' splits a conjunctive hypothesis and leaves the GOAL untouched.  A test
+  ;; that compared goal formulas would call this a no-op; the graph knows better.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (AND (IN x_ NN) (IN x_ ZZ))
+                                            (IN x_ NN)))))
+         ;; TWO di's: an UNGUARDED universal whose antecedent is a conjunction
+         ;; peels the QUANTIFIER on the first call and lands nothing; the
+         ;; antecedent comes on the second (CLAUDE.md, "Writing proof drivers")
+         (di) (di)))
+      (let* ((goal-before (dk-goal))
+             ;; take the conjunction OFF THE CONTEXT, never rebuild it: `di'
+             ;; renames the eigenvariable and a reconstructed formula matches
+             ;; nothing (which is itself a silent no-op -- see CLAUDE.md)
+             (r (inert--probe 'ai
+                  (lambda () (cmd-antecedent-inference *ps* (car (dk-asms))))))
+             (goal-after (dk-goal)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (equal? goal-before goal-after)            ; goal genuinely unchanged
+             (not (substring? "nothing changed" (car r)))
+             (= 1 (cadr r)))))))
+
+(check-true "inert control: a pure FOCUS move is not inert"
+  ;; nothing is written into the graph, but the focus node changes: a real move
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                          (FORALL y_ (IMPLIES (IN y_ ZZ)
+                            (AND (IN x_ NN) (IN y_ ZZ)))))))) 
+         (di) (di)))
+      (let* ((leaves (proof-open-leaves *ps*))
+             (mark   (vnb--take-mark '(probe)))
+             (other  (cadr leaves))
+             (inert  (begin (focus-on *ps* other) (vnb--inert? mark *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (= 2 (length leaves)) (not inert))))))
+
+;;; -----------------------------------------------------------------------
+;;; backup-one -- the one undo.
+;;;
+;;; The design question was whether a STATE STACK suffices, and it does not:
+;;; there is exactly one <proof-state> object per proof (start-proof is its only
+;;; constructor), every cmd-* mutates it through set-proof-state-focus! and
+;;; returns THAT SAME OBJECT, so pushing the old *ps* pushes the object about to
+;;; be mutated.  The state lives in the deduction graph, so the rollback is
+;;; there: journalled arrow and grounding writes undone newest-first, then the
+;;; two node lists and the node counter restored -- which DROPS the nodes posted
+;;; since the mark rather than orphaning them.  The orphan check is the third
+;;; and fourth below: after backing up over a branching tactic the leaf count is
+;;; the pre-branch count, and the finished proof still reaches qed.
+
+(define (backup--st)
+  (list (length (proof-open-leaves *ps*))
+        (length (dg-sequent-nodes   (proof-state-dg *ps*)))
+        (length (dg-inference-nodes (proof-state-dg *ps*)))
+        (length *proof-script*)))
+
+(check-true "backup-one: restores goal, graph and script exactly"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let* ((before-goal (dk-goal))
+             (before      (backup--st))
+             (_    (quietly (lambda () (di))))
+             (mid  (backup--st))
+             (__   (quietly (lambda () (backup-one))))
+             (after (backup--st))
+             (after-goal (dk-goal)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (not (equal? before mid))
+             (equal? before after)
+             (equal? before-goal after-goal))))))
+
+(check-true "backup-one: the undone step leaves the script and trace behind"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let* ((s0 (length *proof-script*)) (t0 (length *live-trace*)))
+        (quietly (lambda () (di) (backup-one)))
+        (let ((ok (and (= s0 (length *proof-script*))
+                       (= t0 (length *live-trace*)))))
+          (set! *ps* saved) (set! *proof-script* saved-script)
+          (set! *live-trace* saved-trace)
+          ok)))))
+
+(check-true "backup-one: over a BRANCHING tactic, the leaf count is restored"
+  ;; the orphan test.  A rollback that restored only the focus would leave the
+  ;; two branch nodes in the graph, ungrounded and unjustified, and
+  ;; proof-open-leaves would go on counting them.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                          (FORALL y_ (IMPLIES (IN y_ ZZ)
+                            (AND (IN x_ NN) (IN y_ ZZ))))))))
+         (di)))
+      (let* ((before (backup--st))
+             (_    (quietly (lambda () (di))))
+             (split (backup--st))
+             (__   (quietly (lambda () (backup-one))))
+             (after (backup--st)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (= 1 (car before)) (= 2 (car split)) (equal? before after))))))
+
+(check-true "backup-one: a proof finished after a backup still reaches qed"
+  ;; the failure being guarded against is a phantom obligation at qed: nodes of
+  ;; an abandoned branch left in the graph are ungrounded and unjustified, the
+  ;; root never grounds, and qed refuses a proof that is in fact complete.
+  (lambda ()
+    (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                     (FORALL y_ (IMPLIES (IN y_ ZZ)
+                       (AND (IN x_ NN) (IN y_ ZZ)))))))) 
+    (quietly
+     (lambda ()
+       (di) (di) (ass)
+       (backup-one) (backup-one)        ; back over `ass' and over the split
+       (di) (ass) (focus 1) (ass)))
+    (and (proof-done? *ps*)
+         (= 0 (length (proof-open-leaves *ps*)))
+         (eq? 'backup-one-suite-witness
+              (qed 'backup-one-suite-witness)))))
+
+(check-true "backup-one: repeated -- walks back over ass, then over the branch"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                          (FORALL y_ (IMPLIES (IN y_ ZZ)
+                            (AND (IN x_ NN) (IN y_ ZZ))))))))
+         (di)))
+      (let* ((before (backup--st))
+             (_  (quietly (lambda () (di))))
+             (split (backup--st))
+             (__ (quietly (lambda () (ass))))
+             (closed (backup--st))
+             (___ (quietly (lambda () (backup-one))))
+             (b1 (backup--st))
+             (____ (quietly (lambda () (backup-one))))
+             (b2 (backup--st))
+             ;; and it must still close afterwards
+             (_____ (quietly (lambda () (di) (ass) (focus 1) (ass))))
+             (done (proof-done? *ps*))
+             (leaves (length (proof-open-leaves *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (equal? split b1)          ; backing up over `ass' restores grounding
+             (equal? before b2)         ; backing up over the split drops its nodes
+             done (= 0 leaves))))))
+
+(check-true "backup-one: declines on an empty stack instead of corrupting"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda () (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let* ((before (backup--st))
+             (text (with-output-to-string
+                     (lambda ()
+                       (fluid-let ((*vnb-loading* #t)) (backup-one)))))
+             (after (backup--st)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (equal? before after) (substring? "nothing to back up" text))))))
+
+(check-true "backup-one: (sp) clears the stack -- no backing up into a dead proof"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))
+         (di)
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let ((empty (null? *vnb-undo-stack*)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        empty))))
+
+(check-true "backup-one: registered in the tactics menu with its neighbours"
+  (lambda () (and (tactics--find 'backup-one) (tactics--find 'undo)
+                  (eq? 'meta (tactic-kind-of 'backup-one))
+                  (tactic-when-of 'backup-one) #t)))
 
 (load "test-suite-negative.scm")
 

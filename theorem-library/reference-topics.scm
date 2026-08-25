@@ -63,7 +63,8 @@
      IS-DIFF-AT DERIV NTH-DERIV LITTLE-O-AT TAYLOR-POLY TAYLOR-DIFFERENTIABLE)
     ("Differentiation rules"
      derivative-unique diff-implies-continuous deriv-const deriv-identity
-     deriv-sum deriv-product deriv-chain deriv-neg nth-deriv-one)
+     deriv-sum deriv-product deriv-chain deriv-chain-value deriv-of-is-diff-at
+     deriv-neg nth-deriv-one)
     ("Little-o calculus"
      diff-iff-little-o little-o-sum little-o-scalar)
     ("Extreme & interior values (Fermat)"

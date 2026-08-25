@@ -272,7 +272,21 @@
 
 (define (minimize! vars guard measure)
   (vnb--require-proof!)
-  (mz--quietly (lambda () (mz--run! vars guard measure))))
+  ;; RECORD ITSELF, not its expansion -- same reason as `prop' (prop.scm) and the
+  ;; other half of the `dk-focus!' repair.  minimize! drives its own branches, so
+  ;; a script of its internals replays them against engine-chosen leaves; and its
+  ;; three arguments are DATA (a variable list, a guard formula, a measure term),
+  ;; so the call re-emits exactly.  One line in a script instead of forty, and it
+  ;; runs.
+  (let* ((mark (vnb--take-mark (cons 'minimize! (list vars guard measure))))
+         (r (fluid-let ((*replaying?* #t))
+              (mz--quietly (lambda () (mz--run! vars guard measure))))))
+    ;; Mark taken OUTSIDE the fluid-let, beside the record-cmd! and for the same
+    ;; reason: minimize! records itself, so backup-one takes back the whole
+    ;; minimisation rather than its last internal step.
+    (vnb--undo-push! mark)
+    (record-cmd! 'minimize! (list vars guard measure))
+    r))
 
 (define (mz--run! vars guard measure)
   (let* ((k        (length vars))

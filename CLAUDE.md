@@ -47,13 +47,33 @@ install a THEOREM (the defining iff), so they land in `theory-definitions` and h
 so a functoid is in neither that registry nor `*theorem-table*`. Two consequences, and they
 are the same fact seen from two sides:
 
-* `mac` unfolds a functoid in a GOAL; **`mac-h` cannot unfold one in an ASSUMPTION.** It
-  warns `unknown theorem/macete` and the driver continues with the hypothesis untouched.
-  A constructor whose members get read out of the context therefore needs a membership
-  `iff` stated beside it and wrapped `definitional` (`span-membership`,
+* `mac` unfolds a functoid in a GOAL; **`mac-h` cannot unfold one in an ASSUMPTION by the
+  functoid's own name.** It warns `unknown theorem/macete` and the driver continues with
+  the hypothesis untouched. A constructor whose members get read out of the context
+  therefore needs a membership `iff` beside it (`span-membership`,
   `principal-ideal-membership`, `zz-bezout-set-membership`, ...). That iff is a
   CONSEQUENCE of the definition -- the functoid unfold composed with the SEP separation
   schema -- not the definition.
+
+  **But it does NOT have to be ASSERTED, and this entry said for weeks that it did.**
+  The unfold equation is PROVABLE, one line per functoid, and the proof is `modulo 0`:
+
+      (sp (make-wff '(FORALL a_ (FORALL m_ (== (FINSUPP a_ m_) (SEP f_ ...))))))
+      (di) (mac 'FINSUPP) (qrfl)
+
+  `mac` unfolds the functoid in the GOAL -- which is the half that works -- and `qrfl`
+  closes the resulting `X == X`. The result is a THEOREM, and `mac-h` rebuilds its rule
+  from the theorem table, so `(mac-h 'finsupp-unfold h)` rewrites the hypothesis into a
+  literal SEP membership that `sep-me` reads apart. Demonstrated side by side in
+  `scratchpad/pl-probe2.scm` (2026-08-20): `(mac-h 'FINSUPP 1)` warns and no-ops;
+  `(mac-h 'finsupp-unfold 1)` rewrites, then `(sep-me)` `(ass)` closes. Seven such
+  theorems for SUPP/FINSUPP/POLY are in `theorem-library/poly-membership.scm`, all
+  `modulo 0`. `interval-basics.scm` and `mat-basics.scm` already did this the long way,
+  via `have!` + `subst`; the `mac-h` route is one step and works in place.
+
+  So every `definitional`-stamped constructor membership law in the tree is a candidate
+  for PROOF instead of a stamp. NOT DONE for the existing ones: re-tiering moves every
+  citing bill, so it is a separate measurement (triage by BILL).
 * Until 2026-08-10 **DEFINITIONS.md carried no functoid at all**; all 113 were only in
   `FUNCTORS.md`. Looking up `zz-bezout-set` there found only its membership law, which
   reads exactly like a definition and is not one. `write-definitions-md` now emits an
@@ -95,6 +115,13 @@ always at the same place. A `./prover script.scm` sharing the box failed the sam
 way. Under contention it also gets much slower (>20 min against the usual ~6) before it
 dies, so a suite that is dragging is already the warning.
 
+**It is not only contention** (2026-08-18). The same silent death -- 786 lines, stopping
+mid-library-load, no `SUMMARY`, no `;Aborting!`, nothing on stderr, exit 0 -- happened
+with `pgrep -x mit-scheme` reporting ZERO other processes beforehand. The one difference
+from the clean run was the launch: `nohup ... &` in the background rather than in the
+foreground. Re-run in the FOREGROUND, alone, it was 905/0 in 5m14s. So the rule stands
+and gets one clause: run it alone, in the FOREGROUND, and check for the SUMMARY line.
+
 ## COMPILE THE TREE FIRST -- everything below depends on it
 
 `.com`/`.bin` are in `.gitignore` AND excluded from the tarball, so a fresh clone or
@@ -132,17 +159,45 @@ edited files back is a couple of seconds and needs no loaded library:
 the very load you just made slow. Compile first, load second.
 
 **And check WHICH files it actually compiled.** `vnb-file-uses-bc*-macro?` (load.scm)
-decides what to skip by scanning each line for `(bc* ` / `(declare-structure ` / `(vlet `.
-Until 2026-08-12 it scanned raw lines, COMMENTS INCLUDED -- so `macetes.scm` (which
-mentions `(bc* ` at :134) and `interactive.scm` (which shows `(declare-structure ` in a
-docstring at :2619) were silently never compiled. The `.com` files in the tree were old
-ones; the first time they were deleted, a 46 s library load became a >10 minute one with
-no diagnostic. The scan now strips comments first. If a load is inexplicably slow, the
-question is not "is the tree compiled" but "is THIS file compiled": `ls -la <file>.com`.
+decides what `compile-vnb!` skips. It is now done **with the READER** (2026-08-15), and
+the two failed textual attempts before it are the argument for that:
+
+* It began as a raw per-line `substring?` for `(bc* ` / `(declare-structure ` / `(vlet `,
+  which matched COMMENTS -- so `macetes.scm` (`(bc* ` at :134) and `interactive.scm` (a
+  docstring at :2619) were silently never compiled. Fixed 2026-08-12 by cutting each line
+  at its first `;`.
+* Cutting at `;` does not help when the mention is DATA: a string (`suggest.scm:2733`,
+  `(string-append "(bc* '" ...)`), a quoted list (`suggest.scm:3851`,
+  `(memq (car step) '(bc* fact ta))`), or an alist key (`tactics-help.scm`,
+  `(bc* . "a library theorem's ...")` and `(bc* composite (backchain))`). So **`suggest`
+  and `tactics-help` -- the two copilot files, and the ones most likely to be edited --
+  were skipped forever**, along with `proof-tex`. A line scan cannot fix the last two at
+  all: the quote making them data is on an enclosing line.
+
+The check now `read`s the file and looks for the macro applied in CODE position
+(`vnb--form-uses-macro?`, which returns #f under `quote`). The reader knows what a
+string, a comment and a quote are; a textual scan can only guess at all three. After the
+change the skip list is 31 files, every one a genuine `declare-structure` structure or
+`bc*` driver, and `*vnb-top-level-macros*` keys are SYMBOLS now, not strings.
+
+**How it was found, and why it matters:** the user unpacked the tarball fresh, ran
+`./VNB-with-compile --full`, and had **31** root `.com` files where this box had 33. The
+one-liner that names the difference is worth keeping:
+
+    cd ~/prover; for f in *.scm; do b="${f%.scm}"; [ -f "$b.com" ] || echo "  $b"; done
+
+The legitimately-uncompiled root set is 8: `clobber-guard driver-kit load mutation-check
+proof-tex proven-theorems test-suite-negative test-suite` -- and `proof-tex` left that
+list with this fix, so it is 7. Anything else in that output is a file the scan is
+wrongly skipping. Compiling the three recovered files took the **full suite from ~6
+minutes to 3m12s**. The failure mode is silent and it compounds: an uncompiled core file
+costs the whole library load (an interpreted `wff.scm` once took a 24 s load to over 14
+minutes) and nothing reports it. If a load is inexplicably slow, the question is not
+"is the tree compiled" but "is THIS file compiled": `ls -la <file>.com`.
 
 **But never compile a file that USES a top-level macro that way.** `compile-file` from a
 bare REPL cannot see `bc*` (interactive.scm), `declare-structure` (structures.scm) or
-`vlet` (vlet.scm) -- the three entries of `*vnb-top-level-macros*` (load.scm:950) -- so
+`vlet` (vlet.scm) -- the three entries of `*vnb-top-level-macros*` (load.scm:1236) -- so
 it compiles the form as an APPLICATION: a fresh `structure-library/ring.com` then dies on
 load with `;Unbound variable: carr`, stranding every file after it. `compile-vnb!` knows
 this (`*vnb-top-level-macros*` in load.scm) and SKIPS such files -- they load from source,
@@ -195,6 +250,62 @@ Three consequences, each of which has cost a debugging session:
    In general avoid single letters -- not a hard and fast rule.
 
 3. Inner binders that would collide take a trailing underscore: `i_`, `j_`, `n_`, `r_`.
+   The same fold makes **`bd-K` and `bd-k` ONE variable**, so a driver holding two
+   eigenvariables apart by capitalisation holds one (found 2026-08-17 in
+   ccint-bounded.scm: the merged bound overwrote the inherited one, and the finder for
+   the inherited one's bounding universal then matched nothing, several steps later).
+   `clobber-guard` cannot see this -- both bindings are non-procedures in the file's own
+   frame -- so the rule is simply never to distinguish two names by case. They are now
+   `bd-k` and `bd-merged`.
+
+4. **A binder list scopes LEFT TO RIGHT, so a guard may mention only binders to its
+   LEFT.** `forall([s in CARR(r), r], FUBA(s))` expands to
+   `(FORALL s (IMPLIES (IN s (CARR r)) (FORALL r (FUBA s))))`: the guard's `r` is
+   OUTSIDE the scope of the `forall r`, hence FREE, and the later binder binds a
+   different variable of the same name. With a body that mentions `r` too, one formula
+   carries two distinct variables both spelled `r`, and the printer round-trips it
+   faithfully -- nothing on screen shows it. `validate-wff!` warned generically
+   ("symbol r is both bound (in some binder) and free"); since 2026-08-15
+   `warn-forward-guard-reference!` (wff.scm) fires at binding-list expansion -- so on
+   TYPED input, not only on install -- and names both positions. It returns its findings
+   (`binding-list-forward-refs`) as well as printing them. Warn-only: the form has a
+   meaning, it is simply almost never the intended one. Nothing in the library trips it.
+
+**`lambda` is gone; the binders are `vnb-lambda` and `lambdoid`** (2026-08-18, the user's
+call). Surface `lambda([x in A], body)` built a functoid RECORD -- the set-domain sibling of
+`lambdoid` -- and so was NOT `VNB-LAMBDA`, which builds a set of ordered pairs, an element
+of `FUN(A,B)`. They carry different obligations and different rules: `vnb-lambda` is typed
+by `lam-t` (which opens the `A in SET` leaf) and reduced by `lam-b`; a functoid has no
+typing rule and reduces by `beta`. One unadorned word standing for the construct no library
+proof uses, beside a hyphenated one standing for the construct every proof uses, is a
+confusion with no upside. `parser.scm` now ERRORS on `lambda`, naming both replacements.
+
+Three things were checked before removing it, and they are the reason it was safe:
+
+* **Zero installed formulas contain a functoid record** (measured over `*theorem-table*`),
+  and `functoid-beta` is in `kernel-rules-audit`'s "not exercised by this load" list. The
+  whole functoid-record machinery is reachable only from a hand-typed `lambdoid`.
+* **The `'lambda` functoid KIND was dead.** Every reader of `functoid-kind` either
+  preserves it, compares two for equality, or prints it -- nothing branches on it, so the
+  documented "domain must be a SET" was enforced nowhere. `make-functoid` now REFUSES
+  `'lambda`: `expr->str` prints the kind verbatim, so such a record would have printed as
+  `lambda(...)`, which no longer parses, and a round-trip that silently stops round-tripping
+  is worse than an error.
+* **`vnb-lambda` was never "waved through by the parser"**, which is what it looks like:
+  `VNB-LAMBDA` appears nowhere in parser.scm, and `vnb-lambda(...)` reaches the generic
+  application branch. The binder is built by `expand-destructuring-quantifiers`
+  (wff.scm:306-338) -- the same desugarer that handles `forall([x in A], ...)` -- which
+  collapses the single-binder case to the bare-symbol form, REJECTS a partly-typed binder
+  list, and REJECTS the domainless form. Plus a dedicated `make-wff` branch and five suite
+  checks. It is a design, not an accident.
+
+Only two suite checks used the surface `lambda` (both converted to `lambdoid`); four new
+checks pin the removal and the error text. Suite 909/0.
+
+A related naming question is still OPEN and is the same species: `def-functoid` installs a
+macete and nothing else, and `docs/functoids-and-functions.md` section 8 (adopted
+2026-07-28) says its borrowing of the word "is what makes the manual's account of functoids
+read as false". That rename has not been done.
 
 ## Vocabulary
 
@@ -270,10 +381,59 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   two leaves. Counting `di`s is therefore not a way to land on a chosen goal -- write a
   peel-until-the-head-changes helper and guard it on progress (`zb-peel!` in
   zz-bezout-proof.scm, `z2-peel!` in zorn-route-two.scm).
+  **Greediness costs you INDUCTION, and there is no undo.** `ni`
+  (`pi-nn-induction!`) tests the goal's SHAPE -- literally `(FORALL n (IMPLIES (IN n NN)
+  body))` at the top -- so it also misses `forall([a, n in nn, ...], ...)`, where the
+  mathematics is the same and only the binder ORDER differs. State an induction variable
+  FIRST. If the `di` already happened, the induction is still recoverable without a
+  restart: `cut` the generalization with the NN variable outermost, `ni` that, and close
+  the leaf from it by instantiation. `what-now`'s **induction lane** (suggest.scm,
+  2026-08-15) reports both cases and prints the `(cut "...")` built from the goal and the
+  CONTEXT's typings; it stays silent when `ni` already fires, since the live-fire lane has
+  that. It quantifies only eigenvariables that carry a typing assumption -- an untyped one
+  (from an unrestricted `forall([a], ...)`) stays free, which is sound because it is fixed.
+  Four suite checks, including that the emitted cut parses with the variable outermost.
+* **A GUARDED universal goes whole under one `di`; an UNGUARDED one does not.**
+  `(FORALL t (IMPLIES (IN t S) body))` -- what the surface writes `forall([t in S], ...)`
+  -- lands `(IN t S)` in a single call. `(FORALL y (IMPLIES (AND ...) ...))`, the shape a
+  hand-built hypothesis takes when its antecedent is a conjunction rather than a typing,
+  peels the QUANTIFIER and lands NOTHING; the antecedent comes on the next call. A
+  `dk-landed-1` around one `di` therefore errors on the second shape and succeeds on the
+  first, which is indistinguishable from a driver bug until you print the goal. Loop on
+  the LANDING, not on a `di` count: `bd-di-landed!` (ccint-bounded.scm) calls
+  `dk-landed*` until something lands and errors if nothing ever does.
 * `ai` on a `NOT` assumption is NOT-ELIM, not "reduce the goal to the positive": it fires
   only when the positive is ALREADY in context. Every contradiction is therefore
   `have!` the positive, then `ai` the negation -- never an `ai` you expect to leave the
   positive as your new goal.
+* **`obtain` cannot skolemize an existential that is ALREADY in the context**, and it
+  does not say so. It diffs the context around its own LANE (sketch.scm), so a `FORSOME`
+  that `di` landed a moment earlier is invisible to it -- `(obtain (lambda () #t))`
+  reports "no existential landed". Write the three-line local skolemizer instead:
+  `ai` the formula, `dk-split!` whatever lands, and read the eigenvariable off by
+  free-variable set difference (`bd-skolem!` in ccint-bounded.scm, `ev-skolem!` in
+  evt-proof.scm). Worse, `obtain` runs its lane under `vnb-guard`, so an ERROR raised
+  inside the lane -- a finder that matched nothing, say -- is swallowed and reported as
+  "nothing obtained": the `quietly`-hides-errors trap, one level in.
+* **Discriminate a hypothesis on its CONSEQUENT, not on a symbol it contains.** A finder
+  reading "the FORALL that mentions `IS-CONTINUOUS-AT`" picks
+  `continuous-bounded-above-on-ccint` once that theorem has been cited, because the
+  continuity universal is its own ANTECEDENT and `fact` lands the whole instantiation
+  chain nearer the top of the context than the hypothesis sits. The instantiation then
+  goes to the wrong theorem, at the wrong argument, and lands something unusable rather
+  than nothing. Both EVT drivers now test `(car (caddr body))`.
+* **A GUARDED macete: `mac` refuses, `mac-h` spawns.** `rr-ms-dist` is
+  `forall u,v in RR. (DIST RR-MS)(u,v) == abs(u-v)`. On an ASSUMPTION, `mac-h` applies it
+  and posts the typing as a side-condition subgoal ("1 side-condition(s) spawned"). On a
+  GOAL whose arguments are not already typed in context, `mac` does not apply it at all --
+  it warns `apply-macete: macete not applicable` and leaves the goal untouched, and the
+  driver sails on rewriting a formula that never changed. So type the arguments BEFORE the
+  `mac`. (Corollary for the operator, not the tree: `;VNB warning:` lines carry this
+  information and are easy to filter out of a log grep. Grep for them.)
+* **`lam-t` opens TWO leaves, not one:** the pointwise typing of the body, and the
+  SETHOOD of the domain. A `VNB-LAMBDA` is a set of pairs, so `(IN RR SET)` has to be
+  discharged (`rr-is-set`) before the lambda is a function at all. A driver that expects
+  one leaf leaves the other open and finds out at `qed`.
 * `dk-split!` begins by `ai`-ing the formula you hand it, so handing it an ATOM is an
   error (`dk-landed: the tactic landed no assumption`), not a no-op. It is for
   conjunctions only; for a single landed atom keep `dk-landed-1`.
@@ -285,6 +445,14 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   enclosing guarded universal or by an enclosing `VNB-LAMBDA`/`SEP`/`BIG-UNION`
   binder (the walker threads all three). Otherwise the step still fires but **owes
   `(IN u A)` as an extra leaf**, and a driver that was not expecting it wanders.
+  **And the owed leaf can be UNPROVABLE, not merely extra** (2026-08-17, the SQRT work).
+  `pi-lambda-beta!` (primitive-inferences.scm:1404) licenses a redex against
+  `(append scope asms)` -- it threads the enclosing binders -- but posts the obligation as
+  `(make-sequent asms ...)`, the OUTER context alone. So a `lam-b` fired on a goal that is
+  still `forall y in PTS(RR-MS). ... ((VNB-LAMBDA z RR ...) y) ...`, where the walker
+  cannot see `PTS(RR-MS)` as `RR`, owes `(IN y RR)` at a node whose context predates `y`
+  entirely: `y` is FREE there and nothing constrains it. That leaf cannot be closed by any
+  later step, and nothing says so until `qed`. PEEL AND TYPE FIRST, THEN BETA.
   The fix is always the same and always one line: land the typing fact *above* the
   `lam-b`, not below it. `mat-ring-proof`'s `mr-close-conj` is the worked example
   (type -> `lam-b` -> cite -> `ass`), and it is why `mr-rops` no longer betas: at the
@@ -323,11 +491,116 @@ Proof scripts navigate a deduction graph by moving focus between open leaves.
   gains a cycle, and the failure surfaces branches later as a missing leaf. Guard with
   `alpha-equiv?` before cutting anything you did not just construct fresh. (This is what
   `minimize!` does; see `mz--cut!` in minimize.scm.)
+* **`use-em` on a proposition the context already DECIDES is not a case split**, and
+  since 2026-08-15 it ERRORS rather than doing it. If `P` is an assumption, the P-branch
+  is hash-consed straight back onto the node it was split from (`context-add-assumption`
+  is alpha-idempotent, sequents.scm:51) and the NOT-P branch has a contradictory context;
+  the caller sees one new leaf that reads like a real obligation, is closable only by
+  NOT-elim, and -- there being no undo in the tree -- cannot be taken back. The same holds
+  mirrored when `NOT P` is the assumption. On a disjunctive goal whose disjunct is already
+  in context the move is `(oi-l)` / `(oi-r)` then `(ass)`, and the error says so.
+  `what-now`'s disjunction lane proposed the split unconditionally from the day it was
+  written (2026-08-14) until the same date; it now checks both disjuncts against the
+  context (`what-now--disjunct-in-context`, suggest.scm) and names the two-move close
+  instead. Suite checks: five, beside the driver-kit containment block.
+* **A PROBE MUST BIND `*replaying?*`, not just `*ps*`.** `what-now` / `scout` probe by
+  running the REAL interactive tactic on a scratch state (`vnb-apply?` evals it by name),
+  and every interactive tactic goes through `vnb--run!`, which calls `record-cmd!` and
+  `vnb--capture-step!`. Those write to the GLOBAL `*proof-script*` and `*live-trace*` --
+  which a `fluid-let` of `*ps*` does not protect. Until 2026-08-15 every FIRING probe
+  therefore appended a step nobody took: to the script the emitter writes out and to the
+  trace `proof-tex` prints from. Measured: one probed `(oi-l)` = +1 to each; a whole
+  `what-now` = one per firing candidate. `*replaying?*` is the existing switch for exactly
+  this (interactive.scm:25) and `vnb--scout-replay` already bound it; the what-now probes
+  did not. All three now go through `vnb--probing` (suggest.scm), which binds `*ps*`,
+  `*replaying?*` and `quietly` together. Library proofs were never affected -- they run
+  from files and never call the copilot -- so this was an interactive-session defect only.
+  Suite: two counter checks, plus `scratchpad/probe-pollution-demo.scm`, which fires the
+  same tactic through the old and new wrappers and prints both deltas.
 * `quietly` silences `vnb-guard` as well as `show`, so a tactic that *errors* inside it
   becomes a silent no-op and every later command runs in the wrong branch. A composite
   tactic wants `show` quiet and the guard loud (`mz--quietly`), plus a per-step
   "did this rule fire?" check -- every primitive inference gives its focus node an
   in-arrow, so `(null? (sequent-node-in-arrows n))` afterwards means it did not.
+* **A command that changes nothing now SAYS so, and is not recorded** (2026-08-24).
+  `vnb--run!` (interactive.scm) had three outcomes -- error, soft warning, success -- and
+  a fourth hiding inside the third: a tactic that raised nothing, declined nothing, and
+  returned the state it was handed fell to the success branch, was appended to
+  `*proof-script*` and to the `*live-trace*` `proof-tex` prints from, and `show`ed the
+  unchanged goal as though it had landed. The boundary now tests for it and prints
+  `;VNB warning: <cmd>: nothing changed -- no rule fired and the focus did not move.
+  The step was NOT recorded.`
+  **What discriminates a real move is the deduction GRAPH plus the focus NODE** --
+  a node posted, an inference recorded, an arrow written, something grounded; or else
+  the focus moved. Not the goal formula (a `mac-h` lands a hypothesis and leaves the goal
+  alone; a branching tactic can leave it alone too), not the assumption list (mirror
+  image), not the open-leaf count (`ass` closes one and hands focus to another; a
+  one-premise rule leaves the count put). And a pure focus move -- `focus`, `focus-id`,
+  `dk-focus!` -- writes nothing into the graph and is nonetheless a real step, which is
+  why the focus half is there.
+  This is STRONGER than the in-arrow test this file names two bullets up
+  (`(null? (sequent-node-in-arrows n))`): that one is right about one primitive on the
+  focus node and wrong about everything else -- it calls a hypothesis-side rewrite inert
+  (the rule fired on a node the focus is not) and calls a re-visited node a firing (the
+  in-arrow was already there). Keep the in-arrow test for a per-step "did THIS rule fire"
+  check inside a composite; the boundary uses the graph.
+  **One surface tactic BYPASSES the boundary and had to be wired by hand**, and it is the
+  one that found the only real instance in the tree. `to-binary` / `to-nary` drive `mac`
+  in a saturation loop inside `quietly`, so the inner `mac` warnings are swallowed: a
+  saturation with nothing to saturate was completely silent -- no warning, nothing
+  recorded, an unchanged goal redisplayed. They now take the same mark and report through
+  the same notice, and on the first run that reported **32 declines per library load, all
+  of them from `in-rr`**, which opens with an unconditional `(to-binary)` as a speculative
+  "push the arithmetic onto the structure surface first" step that most typing goals have
+  no arithmetic for. That call is now `quietly`, which is what a speculative pre-step
+  inside a composite should always have been: the notice is a soft warning, so `quietly`
+  suppresses it exactly as it suppresses every other.
+  **After that fix: zero inert notices over the whole library load**, so no script, no
+  `*live-trace*` and no `qed` bill moved. `*vnb-inert-count*` is the tally and
+  `*vnb-inert-at-load*` is it frozen at the end of load.scm -- the suite asserts THAT one,
+  since the live counter goes on rising through the suite's own deliberate no-ops. It
+  counts notices ISSUED, not inert calls detected, so it equals
+  `grep -c "nothing changed"` over the log: a speculative pre-step that declines under
+  `quietly` is not a dead step anyone took, and counting it would make the tally disagree
+  with what the log shows. This is the SILENCE half, and it is not optional -- a notice
+  that fires on every command is as useless as none.
+  Note what the notice does NOT catch, because those cases are already loud: the dozen
+  silent no-ops this file lists are all soft WARNINGS at the `cmd-*` layer (`subst` in
+  operator position returns #f from `pi-eq-subst!`, `mac-h` on a functoid name warns
+  `unknown theorem/macete`, `detach!` on an antecedent warns). The tree had been guarding
+  its known no-ops one tactic at a time -- `cmd-mac-h*` returns a warning rather than
+  `ps0` "so the surface wrapper records no no-op", in its own words. What the boundary
+  closes is the residual FOURTH outcome, which nothing else was watching and which every
+  tactic written from here on gets for free.
+* **`backup-one` (alias `undo`) is the undo, and a STATE STACK is not what it is.**
+  There is exactly one `<proof-state>` object per proof: `start-proof` (proof-commands.scm)
+  is its only constructor, every `cmd-*` mutates it through `set-proof-state-focus!` and
+  returns THAT SAME OBJECT, and `vnb--run!`'s `(set! *ps* result)` therefore assigns `*ps*`
+  the value it already had. Pushing the old `*ps*` on a stack pushes the object about to be
+  mutated and restores nothing. (interactive.scm's own `to-binary--saturate` comment had
+  half of this: "`(eq? *ps* ...)` never changes because tactics mutate `*ps*` in place --
+  repeat/orelse rely on that identity and so silently run once, a separate latent bug".)
+  The state lives in the deduction graph, so the rollback is there. `deduction-graphs.scm`
+  now journals the only four writes there are -- `dg-add-sequent-node!`,
+  `dg-add-inference-node!`, `dg-apply-rule!` (arrows), `dg-propagate-grounding!` -- and
+  `dg-rollback!` undoes the journalled per-node writes newest-first, then restores the two
+  node lists and the node counter. **That is what settles the orphan-leaf question**: the
+  nodes posted since the mark are DROPPED from the graph, not orphaned, so
+  `proof-open-leaves` cannot count a node from an abandoned branch and `qed` cannot be
+  handed a phantom obligation. Checked both ways in the suite: after backing up over a
+  branching `di` the leaf count is the pre-branch count, and a proof finished after two
+  backups still `qed`s `modulo 0`.
+  Cost: an A/B over a full library load, same binary, machinery off vs on, was
+  1m52.868s vs 1m52.518s -- nothing. The mark holds the inference list (cons-built, a
+  shared tail) and the node COUNTER rather than the node list (`append`-built, so a held
+  pointer would pin a whole copy); `list-head` rebuilds the prefix at rollback time.
+  Two things it does NOT do. It does not restore `*fresh-counter*`, so backing up over an
+  `ai`/`ew` that minted `u_4` and re-running it mints `u_5`. And it is gated on
+  `*replaying?*`: no mark is taken during a replay or a copilot probe, since a probe runs
+  the real tactic on a SCRATCH proof state and a mark naming that state on the live stack
+  would make the next `backup-one` set `*ps*` to it. The composites that record THEMSELVES
+  rather than their expansion -- `prop`, `minimize!`, `bc*`, `dk-focus!` -- take their own
+  mark outside their `fluid-let`, so one script entry is one undo.
 * Debugging recipe that works: `head -N` the proof file into scratchpad, append a dump of
   `(proof-leaves)` with each leaf's goal head and a distinguishing context formula, run it.
 
@@ -649,8 +922,12 @@ NN-typed hypotheses in context order gives `(w v u)` where the goal wants `(u v 
 stdin forever, which looks exactly like an infinite loop.
 
 **`principal-ideal-membership` (5 bills, the largest single one left) is `definitional`**,
-stamped at source in ideal.scm -- and it is the case where a PROOF is not available and
-the stamp is the settled answer. `def-functoid` installs only a rewrite MACETE, not a
+stamped at source in ideal.scm. This entry used to end "-- and it is the case where a
+PROOF is not available and the stamp is the settled answer". **That was wrong**, and the
+counter-example is above: the functoid's unfold equation is provable `modulo 0` by
+`(di) (mac 'THE-FUNCTOID) (qrfl)`, and the resulting THEOREM is what `mac-h` needs. The
+stamp is still what is IN the tree, and re-tiering moves every citing bill, so it stays
+until that measurement is made -- but it is a stamp of convenience, not of necessity. `def-functoid` installs only a rewrite MACETE, not a
 theorem, so `mac-h` cannot unfold `PRINCIPAL-IDEAL` in an ASSUMPTION: it warns "unknown
 theorem/macete" and the driver sails on with the hypothesis untouched. That is why the
 axiom exists at all -- it is the only way to read a member of (a) out of the context,
@@ -673,6 +950,43 @@ Also deliberately left `asserted`: the arity 3-5 forms (`nary-plus-3`, ...), whi
 converses of anything -- they FIX the reading of the parser's flat n-ary node as a left
 fold, and nothing else in the theory states it. They have no dependents.
 
+**The shelf grew a FIFTH time on 2026-08-24: `nn-add-succ`** (`a + succ b = succ(a+b)`,
+structure-library/nn-arith.scm), stamped `definitional` by the user's decision that Peano
+recursion for `+` is part of what NN IS. It was the largest single leaf left, and by the
+ranking that matters rather than the obvious one: by CITATIONS it was only third (55,
+behind `entry-in-carrier` 63 and `interval-card-in-nn` 60), but by SOLE-leaf count it was
+first by half again -- **20**, against 13 for `rr-le-all-pos-nonpos` and 8 for
+`metric-dist-real`, and neither of the two more-cited leaves is EVER a bill's only one.
+Triage by BILL, again. Measured before/after over 719 proven results: `modulo 0`
+**448 -> 468**, 35 further bills shortened, NO bill grew, `trust: none` unmoved at **3**
+(block-family-combinatorial, totally-bounded-has-cauchy-subsequence, zz-bezout).
+`cc-complete` and `rr-complete` clear together, being the same bill; every fact Example 4.7
+(`prove-scripts/drives/poly-antiderivative-drive.scm`) must cite is now debt-free, so that
+drive can reach `modulo 0`. The sole-leaf ranking is now headed by `rr-le-all-pos-nonpos`
+at 13. Wrapped as a `fluid-let` at the axiom site, not a later `register-provenance!` --
+which is what stamped the auto-generated `nn-add-succ-rev` companion too (the load's
+`classification:` line went 17 -> **19** de-supported, two names not one).
+
+**And the stamp is NOT free, which is why the site carries a comment saying so.**
+`definitional` contributes {} to every bill, so a stamp does not merely re-tier a fact --
+it makes the fact invisible to the debt ledger. number-systems.scm axiomatises `+` by its
+ALGEBRAIC laws (closure, assoc, comm, `a+0 = a`) and never by its recursion, so calling
+the recursion equation "definitional" ALSO asserts that the algebraically-axiomatised `+`
+SATISFIES Peano recursion. That is a claim, not a definition, and it is established
+nowhere in this tree. The block above the axiom states it plainly and names the exit:
+construct NN's `+` by recursion, derive the algebraic laws from it, prove the constructed
+operation agrees with the posited one. **Standing rule, confirmed by the user the same
+day: a stamp must record its claim.** The `warrant! 'reference` was removed rather than
+reworded, on the ordinals precedent -- a warrant is a better tier of DEBT, and
+`definitional` says there is no debt.
+
+**`nn-mul-succ` was measured and deliberately NOT stamped.** Its argument is identical.
+Measured BEFORE the `nn-add-succ` stamp it clears **nothing** -- all 10 of its bills also
+named `nn-add-succ`, the shadowing rule again -- and only afterwards is it worth its own
+count: **8** bills (the parity / trichotomy / sqrt-3 block). One explicit decision per
+fact; growing the shelf by analogy with a neighbouring decision is exactly how it stops
+being explicit.
+
 **Proving a fact that used to be an axiom moves it past the view specializer.**
 `view-as-auto-specialize!` runs inside `def-functor`, i.e. when views.scm loads
 (load.scm:195) -- long before the interactive tactics exist, so a theorem proved in
@@ -694,8 +1008,95 @@ you mean, as the RING-ADDITIVE-AG line does.
 2026-07-23 and is stale: 117 facts left the asserted column on 2026-08-01. It wants
 re-measuring, not adjusting.)
 
+**The continuity algebra is six-sevenths proven, and the last two cost no estimate**
+(2026-08-18). `cont-transfer-ptwise-eq` (theorem-library/continuity-transfer.scm) and
+`sub-continuous-at` (theorem-library/continuity-sub.scm) are PROVEN `modulo 0`, and with
+them **`diff-implies-continuous` bills `modulo 0`**. Only `compose-continuous-at` and
+`cont-agree-off-pt` are still asserted in continuity-algebra.scm.
+
+Neither needed an eps/delta argument, and that is the transferable part:
+
+* The TRANSFER is what the algebra was missing. `sum-continuous-at` concludes about the
+  LITERAL term it builds, not about "any map that happens to be the sum" -- so without a
+  transfer the algebra can only ever conclude about lambdas it built itself. The proof is
+  two instances of the pointwise hypothesis and two `subst`; the distance is never opened
+  into `abs`, so nothing in it is about RR. (It is stated at RR-MS only because that is
+  where continuity-algebra states it.)
+* Given the transfer, the DIFFERENCE is a composition of three theorems already in the
+  tree -- `neg-continuous-at`, `sum-continuous-at`, `cont-transfer-ptwise-eq` -- plus one
+  `crs` to bridge `(- (g w) (h w))` and `(+ (g w) (- (h w)))`. The retired warrant
+  proposed the eps/2 route ("a difference is the sum estimate with `-' throughout"), which
+  is a second copy of continuity-sum's driver. It was not needed. `neg-continuous.scm`
+  moved earlier in load.scm to make this available.
+
+Two mechanics worth keeping. **`mac-h` is destructive, so read a typing off a hypothesis
+inside a `have!` LANE**: `(have! '(IN g (FUN RR RR)) (lambda () (mac-h 'is-continuous-at ...)
+(split) (slot-h 'PTS ...) (ass)))` unfolds on the side branch only, and the main branch
+keeps `IS-CONTINUOUS-AT` intact for the next `fact`. Done in the main branch instead, the
+following `fact` silently lands an implication. And `slot-h` is destructive the same way:
+in continuity-transfer.scm `(IN b (PTS RR-MS))` is needed as itself (to detach g's
+delta-universal) AND as `(IN b RR)` (to detach the pointwise hypothesis), so the `inst+`
+must come BEFORE the `slot-h`. continuity-sum.scm meets the same trap and solves it the
+other way, with a `have!` that puts the PTS form back.
+
 When a proof turns into a grind, that is a finding, not a failure: add the obvious
 lemma to the PSS and record the obstacle. Do not slog.
+
+**`prop` (prop.scm, 2026-08-15) is the second worked example** of that principle, and the
+cheapest one to reach for: it decides whether the focus goal follows from the context by
+PROPOSITIONAL logic and closes it if so. It dissolves a whole class of leaves that were
+each obvious and each wanted a different hand-picked dance -- `(oi-l)(ass)` when a disjunct
+is in context, `(oi-r)` plus a conjunction split when it is not, `(ai)` on a negation when
+the context is contradictory, `use-em` plus two bodies when the goal needs a case. Atoms
+are opaque: `x in a`, an equation, a whole `forall(...)` -- so it will NOT instantiate a
+quantifier or reason about equality, and it declines with a COUNTERMODEL naming which atom
+must be true and which false, which is usually the missing hypothesis. It **adds no
+trust**: it decides semantically (three-valued evaluation, pruned search), then discharges
+through `di`/`ai`/`oi-l`/`oi-r`/`ass`/`use-em`/`have!`/`detach!`, so a `qed` over a
+`prop`-closed proof bills `modulo 0` and the recorded script is the ordinary step-by-step
+proof (verified: `scratchpad/prop-debt-probe.scm`). It is in `*what-now-fire-probes*`, so
+the copilot now prints `(prop) => CLOSES the goal` on such a leaf.
+
+Two traps it hit, both the alpha-self-loop above, reached through helpers: an opening
+`pbc` put `not G` in the context and then `use-em`'s own `em-prove!` re-assumed it (fixed
+by checking the GOAL against the assignment instead -- no pbc at all); and splitting on the
+atom of a goal that IS `(OR p (not p))` cuts the goal itself (fixed by routing that shape
+to `em-prove!`). Battery: `scratchpad/prop-battery.scm`, 19 cases including five that must
+NOT close.
+
+**`contra` (contra.scm, 2026-08-15) is the third**, and it came out of a leaf the user
+was driving: unfolding `make-set-membership` in a list-induction base case leaves
+
+    nth(i,l) = x,  i <= length(l),  1 <= i,  i in nn,
+    x in set,  length(l) = 0,  l in tuples(a)   |-   x in empty-set
+
+which is closable only because `1 <= i <= length(l) = 0` is absurd. The copilot said
+nothing, and the reason was worth more than the leaf. `prop` cannot see it -- the three
+order facts are opaque atoms to it, and it correctly reports a countermodel. `ineq` can
+do the arithmetic, but **two input-handling traps kept it out of reach**, and both are
+now fixed:
+
+* A named premise that is NOT arithmetic used to make the whole call fail. `(ineq 1)`
+  closed a goal that `(ineq 1 2)` refused, where 2 was a harmless `u in rr` typing -- and
+  the message said "goal not a linear-RR consequence", blaming the goal. Such a premise
+  is now SKIPPED; dropping a premise can only make Fourier-Motzkin prove less, so this is
+  soundness-preserving by construction.
+* `ineq-atom-rr-ok?` demands an `IN _ RR` certificate for every atom of every accepted
+  premise. A combinatorial context types its terms in NN, so the oracle refuses. **The
+  fix is NOT to weaken the oracle** -- it is trusted, and widening what it accepts widens
+  the trusted surface. `contra` DISCHARGES the precondition instead: land the `IN t NN`
+  facts the context already fires (found generically by the forward-citation scan, e.g.
+  `length(l) in nn` from `l in tuples(a)`), then lift each to RR by `nn-in-rr` (proven,
+  `modulo 0`).
+
+The remaining trap is the sharp one: an `=` is arithmetic in SHAPE, so `nth(i,l) = x`
+gets accepted and contributes the atoms `x` and `nth(i,l)`, which can never be certified
+-- one irrelevant equation in the context poisons a call whose real premises were fine.
+`contra--usable-indices` therefore filters premises by the oracle's own test before
+naming any. It **probes on a scratch state before committing** (there is no undo: a
+composite that cut first would strand two unprovable leaves), adds no trust beyond
+`ineq`'s, and is in `*what-now-fire-probes*`, so the panel prints `(contra) => CLOSES the
+goal`. Four suite checks; suite 880/0.
 
 Before adding a support, ask whether it is an *instance* of something a tactic could do.
 `minimize!` (minimize.scm) is the worked example: `(minimize! '(v ...) GUARD MEASURE)` =
@@ -731,6 +1132,129 @@ call well-formed:
 
 Controls for the last two: `scratchpad/gate-control.scm`. A gate that passes everything
 reads exactly like a clean library, so make it fail on purpose before believing it.
+
+**`COMP` was in none of the expression walkers** (found and fixed 2026-08-15, while
+testing the binder-scope diagnostic above -- its one false positive WAS this bug). The
+string `COMP` did not occur in expressions.scm at all. `{x | p}` is `(COMP x p)`, which
+binds `x` in `p` and has exactly the `FORALL`/`FORSOME`/`IOTA` shape, but it fell through
+to the general compound branch, so `free-vars` called the bound variable FREE,
+`subst-free` rewrote it (`r := zz` turned `{r | r in a}` into `{zz | zz in a}`) and
+captured into it (`a := f(r)` gave `{r | r in f(r)}`, no rename), and `alpha-equiv?` said
+two alpha-variants differed. The repair is one symbol at six case labels, all of shape
+`(HEAD var body)`: `free-vars`, `subst-free`, `alpha-equiv-under?` (expressions.scm),
+`match-expr`, `rewrite-expr` (macetes.scm), `replace-term` (primitive-inferences.scm),
+plus `COMP` in the `term?` head list.
+
+It was LATENT, and that is why it survived: **no installed formula in the tree contains a
+COMP** (measured -- 0 of the theorem table), so nothing the library does was ever walked
+wrong. It was reachable only by a user who TYPED `{x | p}`, which the parser has always
+accepted and the manual documents. `validate-wff!` knew COMP was a binder the whole time
+(wff.scm, "COMP bound var not symbol"), so the form graded clean -- a gate that checks
+shape cannot see a walker that does not know the shape binds. 10 suite checks over the
+two repairs; suite 870/0.
+
+**Nullary application is an error except for `list()` and `set_of()`** (2026-08-15, the
+user's call). `h()` used to be accepted everywhere: `p-parse-arglist` returns `'()` on an
+immediate `)`, `p-maybe-apply` built `(h)`, `validate-wff!`'s generic application branch
+had no arity floor, and `(f)` **printed as `f`** -- so `(= (f) f)` displayed as `f = f`
+while `rfl` refused it, the two sides being different S-expressions. `cartesian()` and
+`power()` went the same way; `union()` was rejected, but only by the `>= 2 args` floor the
+binary case wanted, not by any decision about arity 0.
+
+The rule is enforced at BOTH doors, because `support` / `theory-add-axiom!` install a raw
+S-expression that never meets the parser: `p-check-nullary!` (parser.scm, list
+`*p-nullary-ok*`) and an arity floor in `validate-wff!`'s generic term-application,
+predicate-application and `CARTESIAN` branches (wff.scm). `LIST` keeps its own branch with
+no floor -- `(LIST)` is `[]`, the empty TUPLE, which `empty-in-tuples` and `length-of-empty`
+are about; `set_of()` is `{}` and never reaches the check, its branch in `p-parse-primary`
+calling `expand-set-of` directly. The conventional nullary readings of the other
+constructors (empty product, empty union, empty intersection) are deliberately declined:
+nothing needs them and the last is a proper class. `expr->str` (sequents.scm) now prints a
+nullary application as `f()`, so the arm can no longer hide one. 17 suite checks; the whole
+suite is 856/0 and `install-grading` still reports ok, which is the evidence that no
+installed formula in the tree ever had a nullary application but `(LIST)`.
+
+Related, and the reason the question came up: `length([]) = 0` is the axiom
+`length-of-empty` (theory.scm:648), inside `make-vnb-base-theory` and so `primitive`. It is
+not derivable -- `length-cons` characterises `length` only on a `CONS`, and
+`tuple-length-zero` runs the other way -- and it carries definedness for free, `=` being
+partial. Note also that `set_of(l)` is NOT the set of entries of the tuple `l`:
+`expand-set-of` wraps its arguments in a LIST literal, so `set_of(l)` is `{l}`, the
+singleton. The set of entries is `make-set(l)`, which is writable on the surface like any
+other registered head.
+
+**A printed term must re-parse to the term that was printed** (2026-08-24, found while
+proving Example 4.7). `expr->str` printed every same-head child of `+ * and or iff`
+without parentheses, on the theory that those operators are associative. They are
+associative in RR; they are not associative in the KERNEL, which holds S-expressions.
+So the stored `(* (* (succ m) (* (recip (succ m)) c)) v)` -- the shape a chain of
+`nary-times-2` rewrites leaves behind -- printed as `succ(m) * recip(succ(m)) * c * v`,
+which the reader returns as the FLAT `(* (succ m) (recip (succ m)) c v)`: a different
+S-expression, so not `equal?`, so `ass` declines a goal retyped from its own printed
+form. Same species as `(f)` printing as `f`, and repaired the same way -- the PRINTER
+was made honest, never the comparison lenient. Widening `alpha-equiv?`/`ass` to absorb
+the difference was rejected outright: it enlarges what the kernel calls the same term.
+
+The READER held the mirror half, and it is why parenthesising alone would have fixed
+nothing. `p-parse-mul` / `p-parse-add` tested the SHAPE of the left operand
+(`(eq? (car left) '*)`) instead of whether this loop had accumulated it, so `(a * b) * c`
+was spliced into the flat `(* a b c)` -- the left-nested term was UNWRITABLE on the
+surface -- while the mirror-image `a * (b * c)` built the nested node, the right operand
+never being spliced. Both loops now carry a `mine?` flag. **Unparenthesised input reads
+exactly as before**: `a + b + c` is still the flat node `nary-plus-3` fixes the meaning
+of, and the `/` sugar branch is untouched, so every mixed `*` `/` chain reads as it did.
+Making the parser LEFT-FOLD instead -- the other way to reconcile the two -- would have
+retired the flat n-ary node the `nary-*-3/4/5` axioms exist to interpret, and rewritten
+the statement of every arithmetic theorem in the tree. Not that.
+
+The only two strings in the tree whose reading changed are in `theorem-library/ell-two.scm`
+(`rr-sq-add-le`, `cc-magnitude-sq-add-le`), which write
+`((u * u) + (u * u)) + ((v * v) + (v * v))` and MEANT the grouping: the `have!` three lines
+below each writes that nested S-expression by hand, so author and parser now agree where
+they used not to. Both still `qed`, no leaves. Blast radius of the defect: 48 installed
+formulas held a nested `+`/`*` and 8 a left-nested `and`/`or`; 55 of them stopped
+round-tripping, and now do. The 24 with a genuinely FLAT 3-or-more-ary node still print
+unparenthesised -- a suite check pins that, so a later repair cannot buy honesty by
+bracketing everything. The checks test the STORED FORM, print-then-parse-then-`equal?`;
+a string check cannot tell the flat node from the left-nested one, which is the defect.
+
+**The name half of that is now REPAIRED (2026-08-24): 108 of 3891 -> 3.** Seven constants
+were spelled with characters the tokenizer reads as operators, and between them they cost
+105 of the 108 remaining round-trip failures. They are gone, renamed to the spellings the
+surrounding axiom names already used:
+
+    <=_ORD -> ORD-LE            (ord-le-refl, ord-le-trans, ... already said so)
+    <_ORD  -> ORD-LT            (ord-lt-iff)
+    RR*    -> RR-STAR           (rr-star-membership, pos-inf-in-rr-star)
+    RR+*   -> RR-POS-STAR       (rr-pos-star-membership); the monoid is
+                                RR-POS-STAR-ADD-MONOID
+    CARD*  -> CARD-STAR         the DEFINED cardinal, companion to axiomatised CARD
+    INJECTIVE* -> INJECTIVE-STAR  the class-level injectivity, companion to INJECTION
+
+Six of the seven errored out, which is annoying but honest. **`card*` did not**:
+`read-ident` stops at the `*`, `read-op` takes it, and `card*(a)` parsed as the PRODUCT
+`(* card a)` -- a different term, no error, no warning. That is the case that made this
+worth doing. A suite check now pins BOTH readings (`card-star(a)` is an application;
+`card*(a)` is still a product) so the reason cannot be forgotten. `succ_ORD` was NOT
+renamed and does not need to be: a leading letter makes `_` an ordinary identifier
+character, which is why the project's own `i_`/`r_` convention works.
+
+No old spelling survives as an alias. `alias!` (macetes.scm:1354) records human search
+names for THEOREMS -- it cannot give a constant a second spelling at all -- and an alias
+that could would reinstate the one thing the rename removes, `card*` included.
+
+The rename moved NO bill (732 proven, every debt set and trust tier byte-identical; five
+proven theorem NAMES changed, `card*-segment` -> `card-star-segment` and siblings, and
+none of them is any bill's leaf). It also let the doc round-trip gate drop its one
+exemption: `IS-MEASURE-SPACE` was exempt because its MEAS slot's codomain was `RR+*`, and
+`*doc-roundtrip-exempt*` is now `'()`.
+
+**The 3 that remain are ONE defect, and it is not a name**: `cc-i-squared` (with its
+`-rev`) and `rr-bernoulli` all hold the negative integer LITERAL `-1`, which prints as
+`-1` and reads back as the unary application `(- 1)`. Same species as the `(f)`-prints-as-
+`f` arm: a printed form that re-reads as a different S-expression. It wants its own
+decision (print `0-1`, as the imaginary unit prints `0-i`, or make the reader fold a unary
+minus over a literal), and it is the whole residue.
 
 ## Shipping
 

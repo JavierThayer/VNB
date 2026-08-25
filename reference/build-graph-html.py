@@ -33,7 +33,7 @@ OUT  = os.path.join(HERE, "structure-graph.html")
 
 # A node is a concrete INSTANCE (a number-system model, hidden by default)
 # when its name starts with a number-system token: zz/qq/rr/cc/nn (incl. the
-# rr+* sup).  Everything else is an abstract structure.  No abstract structure
+# rr-pos-star sup).  Everything else is an abstract structure.  No abstract structure
 # name begins with a doubled number letter, so this is unambiguous.
 INSTANCE_RE = re.compile(r'(zz|qq|rr|cc|nn)([-+]|$)')
 

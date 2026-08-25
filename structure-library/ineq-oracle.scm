@@ -44,6 +44,45 @@
 (define la-minus-ops '(- binneg))
 (define la-times-ops '(* bintimes))
 
+;;; CONSTANT DENOMINATORS, 2026-08-22, on the user's call.
+;;;
+;;; `recip(2)' and `eps / 2' used to become opaque ATOMS, so the commonest step
+;;; in analysis -- halve the epsilon -- fell outside the oracle.  Measured, same
+;;; goal three ways:
+;;;
+;;;     0.5*eps + 0.5*eps <= eps                 CLOSES
+;;;     eps*recip(2) + eps*recip(2) <= eps       open
+;;;     (eps/2) + (eps/2) <= eps                 open
+;;;
+;;; and with opaque atoms, which is the real shape of an eps/2 argument:
+;;;
+;;;     a <= 0.5*e, b <= 0.5*e, c <= a+b  |-  c <= e     CLOSES, Farkas 1/2 each
+;;;     ... the same with e*recip(2)                     open
+;;;
+;;; So the whole obstacle was that the coefficient was SPELLED `recip(2)' rather
+;;; than `0.5'.  Folding it is not a widening of what the oracle ACCEPTS -- no
+;;; new premise shape is admitted, no atom goes uncertified -- it is evaluation
+;;; of a closed arithmetic term, which `arith' already does.
+;;;
+;;; SOUNDNESS, and why the guards are exactly these.  For a nonzero exact
+;;; rational literal c, `recip(c)' denotes 1/c in RR: `rr-recip-inverse' gives
+;;; c * recip(c) = 1, and an inverse in a field is unique.  So replacing the
+;;; term by the constant preserves the denotation.  The guards:
+;;;
+;;;   NONZERO   -- recip(0) is undefined; folding it would invent a value.
+;;;   EXACT     -- an inexact literal is not a rational the theory names, and
+;;;                arith-eval.scm's sound-arith gate rejects inexactness for the
+;;;                same reason.  Since parser.scm reads every literal with #e,
+;;;                anything inexact here was hand-built and is refused.
+;;;   LITERAL   -- `recip(x)' for a variable or compound x stays an ATOM exactly
+;;;                as before.  Nothing is assumed about its sign or definedness.
+;;;
+;;; `/' gets the same treatment for its DENOMINATOR only: (/ a c) is a * recip(c)
+;;; (binary-divide-def), so a constant c scales a's linear form and a
+;;; non-constant one leaves the whole quotient an atom.
+(define (la-const-denominator? c)
+  (and (number? c) (exact? c) (rational? c) (not (= c 0))))
+
 ;; vnb->linear : VNB term -> linear form.  Non-arithmetic subterms become atoms.
 (define (vnb->linear t)
   (cond
@@ -63,6 +102,13 @@
             (cond ((not acc) (lin-atom t))         ; nonlinear product => atom
                   ((null? as) acc)
                   (else (loop (cdr as) (lin-mul acc (vnb->linear (car as))))))))
+         ;; recip / divide by a CONSTANT -- see the note above la-const-denominator?
+         ((and (eq? op 'recip) (= (length args) 1)
+               (la-const-denominator? (car args)))
+          (lin-const (/ 1 (car args))))
+         ((and (eq? op '/) (= (length args) 2)
+               (la-const-denominator? (cadr args)))
+          (lin-scale (vnb->linear (car args)) (/ 1 (cadr args))))
          (else (lin-atom t)))))))                  ; any other head => maximal atom
 
 ;;; -----------------------------------------------------------------------
@@ -136,6 +182,24 @@
          (gpr   (formula->lin+rel goal)))
     (and gpr
          (let ((hyp-cons '()) (ok #t))
+           ;; A named assumption that is NOT arithmetic is SKIPPED, not fatal
+           ;; (2026-08-15).  It used to set ok := #f and abandon the call, so
+           ;; naming one harmless extra premise killed the whole thing:
+           ;;
+           ;;   (ineq 1)    with  1. u <= 0,  2. u in rr   |-  u <= 1   CLOSES
+           ;;   (ineq 1 2)  -- same premises plus the RR typing --       REFUSES
+           ;;
+           ;; and the message said "goal not a linear-RR consequence", pointing
+           ;; at the goal when the fault was in the premise list.  In practice
+           ;; every real context mixes typings and memberships with the order
+           ;; facts, so a caller could not simply name everything; and an
+           ;; AUTOMATIC caller -- the copilot probing "is this context
+           ;; inconsistent?" -- has no way to know which subset to name.
+           ;;
+           ;; Skipping is soundness-preserving BY CONSTRUCTION: dropping a
+           ;; premise can only make Fourier-Motzkin prove less, never more.  An
+           ;; out-of-range index is still fatal -- that is a caller error, not a
+           ;; premise the procedure has an opinion about.
            (for-each
              (lambda (i)
                (if (and (integer? i) (>= i 1) (<= i nasm))
@@ -144,7 +208,7 @@
                          (set! hyp-cons
                            (append hyp-cons
                              (ineq-hyp-constraints i (car hpr) (cdr hpr))))
-                         (set! ok #f)))
+                         #f))                    ; not arithmetic -- ignore it
                    (set! ok #f)))
              idxs)
            (and ok

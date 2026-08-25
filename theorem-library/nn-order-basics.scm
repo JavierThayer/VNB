@@ -202,3 +202,17 @@
 (ass)
 (qed 'nn-pair-upper-bound)
 (topic! 'nn-pair-upper-bound 'inequalities)
+
+;;; ----------------------------------------------------------------------
+;;; zz-in-rr: an integer is a real.  The sibling of nn-in-rr above, two
+;;; citations instead of three; it was missing, so every proof needing an
+;;; integer index as a real had to route through NN.  The Bernstein basis is
+;;; indexed by ZZ (COMB-KK, so that k-1 is total at k = 0), which is what
+;;; turned it up.
+(sp (make-wff '(FORALL k_ (IMPLIES (IN k_ ZZ) (IN k_ RR)))))
+(di)
+(fact 'zz-subset-qq 'k_)
+(fact 'qq-subset-rr 'k_)
+(ass)
+(qed 'zz-in-rr)
+(topic! 'zz-in-rr 'plumbing)

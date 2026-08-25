@@ -56,7 +56,7 @@
                              (IMPLIES (= (phi a) (phi b)) (= a b)))))))))))))
 
 ;;; -----------------------------------------------------------------------
-;;; INJECTIVE* -- injectivity for things that are NOT set-functions.
+;;; INJECTIVE-STAR -- injectivity for things that are NOT set-functions.
 ;;;
 ;;; `INJECTION(X, Y)' asks its member to BE an object: injection-membership-iff
 ;;; requires (IN f (FUN X Y)), membership-implies-sethood then forces f to be a
@@ -64,7 +64,7 @@
 ;;; having a SET domain.  So nothing whose domain is a proper class -- a lambdoid
 ;;; on ORD, a def-by-ord-recursion constant -- can ever be said to be in it.
 ;;;
-;;; INJECTIVE* says the same thing about the APPLICATION instead, so F occupies
+;;; INJECTIVE-STAR says the same thing about the APPLICATION instead, so F occupies
 ;;; the juxtaposition slot and may be a lambdoid, a VNB-LAMBDA, or a plain
 ;;; function variable.
 ;;;
@@ -75,10 +75,10 @@
 ;;; vacuous.  The unguarded form therefore says exactly "F is injective on its
 ;;; domain of definition" -- which for a lambdoid on ORD is all of ORD -- without
 ;;; anyone having to name that domain as a term.
-(def-predicate 'INJECTIVE* '(F)
+(def-predicate 'INJECTIVE-STAR '(F)
   '(FORALL u_ (FORALL v_ (IMPLIES (= (F u_) (F v_)) (= u_ v_)))))
 
-(notation! 'INJECTIVE* 'kind 'predicate 'arity 1 'english "$1 is injective")
+(notation! 'INJECTIVE-STAR 'kind 'predicate 'arity 1 'english "$1 is injective")
 
 ;;; -----------------------------------------------------------------------
 ;;; Projection lemmas (each derivable from injection-membership-iff).

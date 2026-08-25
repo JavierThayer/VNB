@@ -10,10 +10,10 @@
 ;;; entries later.  So the support declaration that used to stand here is gone,
 ;;; and the file survives as the signpost.
 ;;;
-;;; The argument, for the record: k in ORD-SEGMENT(0) gives <_ORD k 0
+;;; The argument, for the record: k in ORD-SEGMENT(0) gives ORD-LT k 0
 ;;; (ord-segment-membership, once 0 is typed in ORD via nn-subset-ord), which is
-;;; <=_ORD k 0 together with k /= 0 (ord-lt-iff); ord-zero-least gives
-;;; <=_ORD 0 k, and ord-le-antisymm then gives k = 0.  Contradiction.
+;;; ORD-LE k 0 together with k /= 0 (ord-lt-iff); ord-zero-least gives
+;;; ORD-LE 0 k, and ord-le-antisymm then gives k = 0.  Contradiction.
 ;;;
 ;;; It had been a warranted support since the 2026-05-27 PSS promotion, with the
 ;;; original machine proof archived at archive/proven-theorems-archive.scm.

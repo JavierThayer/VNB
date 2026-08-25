@@ -18,12 +18,12 @@
 (refocus! use-ord)
 (display "--- n in ORD established ---\n") (show)
 
-(mac 'ord-segment-membership)   ; (IN n os(n)) -> (<_ORD n n) ?
+(mac 'ord-segment-membership)   ; (IN n os(n)) -> (ORD-LT n n) ?
 (display "--- after mac ord-segment-membership ---\n") (show)
-(mac 'ord-lt-iff)               ; (<_ORD n n) -> (AND (<=_ORD n n) (NOT (= n n))) ?
+(mac 'ord-lt-iff)               ; (ORD-LT n n) -> (AND (ORD-LE n n) (NOT (= n n))) ?
 (display "--- after mac ord-lt-iff ---\n") (show)
 (di)                            ; assume the AND, goal FALSITY
-(ai `(AND (<=_ORD ,nv ,nv) (NOT (= ,nv ,nv))))
+(ai `(AND (ORD-LE ,nv ,nv) (NOT (= ,nv ,nv))))
 (cut `(= ,nv ,nv))
 (define use-eq (last-node))
   (rfl)

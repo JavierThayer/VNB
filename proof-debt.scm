@@ -76,6 +76,21 @@
 ;;; arrangement as kernel-rules-audit.
 (define *pd-oracle-verbs* '(arith rs crs simp ineq sos))
 
+;;; --- names that are not facts of their own ---------------------------
+;;;
+;;; Two kinds of name in the theorem table stand for a fact stated ELSEWHERE:
+;;;   * a view-specialized companion (X-module-vector-ag, def-functor), whose
+;;;     transport is definitional but whose content is X's;
+;;;   * an auto-minted -rev companion (X-rev, install-theorem!), which is X
+;;;     with a symmetric core flipped -- the same fact, backwards.
+;;; Neither carries its own proof, so neither carries its own debt, its own
+;;; oracles or its own citations: all three resolve to the source.  Both tables
+;;; are written where the companion's NAME is chosen, so nothing here keys on a
+;;; name SHAPE.
+(define (pd-source-of name)
+  (or (view-specialized-source name)
+      (rev-companion-source name)))
+
 (define *proof-oracles* (make-equal-hash-table))   ; proven name -> (verb ...)
 
 ;;; The oracles a script invokes DIRECTLY.
@@ -85,7 +100,7 @@
 ;;; The oracles NAME rests on, transitively.  Mirrors debt-of: an asserted or
 ;;; primitive leaf invokes nothing, a proven citation contributes its own set.
 (define (oracles-of name)
-  (let ((src (view-specialized-source name)))
+  (let ((src (pd-source-of name)))
     (if src
         (oracles-of src)
         (if (eq? (provenance-of name) 'proven)
@@ -125,7 +140,7 @@
 ;;; `module-act-neg-one' would read trust:none while resting on the asserted
 ;;; abelian-group-inverse-unique.  (71 companions had an asserted source.)
 (define (debt-of name)
-  (let ((src (view-specialized-source name)))
+  (let ((src (pd-source-of name)))
     (if src
         (debt-of src)
         (case (provenance-of name)
@@ -175,12 +190,19 @@
 ;;; reveal a cycle.  This walks the LIVE citation graph instead.  Only proven
 ;;; theorems have outgoing edges; asserted / primitive / definitional are leaves.
 (define (proof-citations-of name)
-  (if (eq? (provenance-of name) 'proven)
+  (let ((src (pd-source-of name)))
+   (if src
+      ;; A companion has no proof of its own; its dependencies are its source's.
+      ;; Note this adds no edge INTO the source, so a proof that cites both a
+      ;; theorem and its own -rev companion gains no self-loop -- the companion
+      ;; simply inherits the same out-edges the forward already has.
+      (proof-citations-of src)
+   (if (eq? (provenance-of name) 'proven)
       (hash-table-ref/default *proof-citation-graph* name '())
       ;; A non-proven node is a leaf UNLESS it declared (rests-on ...): those
       ;; edges make the asserted reference base a checkable DAG.  A proven node
       ;; ignores any rests-on -- its real proof citations are the truth.
-      (rests-on-of name)))
+      (rests-on-of name)))))
 
 ;;; A path START -> ... -> START through proven-node citations, or #f.  `seen'
 ;;; is the current path's ancestors, so the walk always terminates.

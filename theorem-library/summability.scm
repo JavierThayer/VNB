@@ -57,13 +57,13 @@
 ;;; -----------------------------------------------------------------------
 ;;; IS-ABSOLUTELY-SUMMABLE: the sum of the norms is finite.
 ;;;
-;;; The pointwise-norm function  i |-> NRM_grp(f(i))  carries DOM(f) into RR+*
+;;; The pointwise-norm function  i |-> NRM_grp(f(i))  carries DOM(f) into RR-POS-STAR
 ;;; (each norm is a nonnegative real, so it lands in [0,+inf]).  Its unordered
-;;; RR+* sum is exactly the norm series  sum_i ||f(i)||  in [0,+inf].  f is
+;;; RR-POS-STAR sum is exactly the norm series  sum_i ||f(i)||  in [0,+inf].  f is
 ;;; absolutely summable iff that sum is a real -- i.e. NOT +inf -- which by
 ;;; esum-finite-iff-bounded means the finite partial norm-sums are bounded
 ;;; above by some real M.  The inner function gets no name: it is just the
-;;; lambda (VNB-LAMBDA i ((NRM grp) (f i))), typed into FUN(DOM f, RR+*) by
+;;; lambda (VNB-LAMBDA i ((NRM grp) (f i))), typed into FUN(DOM f, RR-POS-STAR) by
 ;;; pi-lambda-type! + norm-nonnegativity when a proof needs it.
 (def-predicate 'IS-ABSOLUTELY-SUMMABLE '(grp f)
   '(IN (ESUM (VNB-LAMBDA i (DOM f) ((NRM grp) (f i)))) RR))

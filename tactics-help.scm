@@ -118,6 +118,12 @@
      (qrfl  "(qrfl)"  "Quasi-reflexivity: close t = t under the partial-equality definedness reading."
        "Close `t = t' under the partial-equality reading, where asserting t = t also asserts that t is DEFINED.  Use this rather than rfl when t might be undefined.  (Technically: quasi-reflexivity; see the partial-equality convention, where `t = t' is the definedness predicate.)"))
 
+    ("Propositional logic"
+     (prop  "(prop)"  "Decide the goal by PROPOSITIONAL logic from the context, and close it if it follows.  Every non-connective formula -- `x in a', an equation, a whole `forall(...)' -- is one opaque atom; AND/OR/NOT/IMPLIES/IFF are read.  On a goal that does NOT follow it prints the countermodel (which atom must be true, which false) and leaves the proof untouched.  Adds no trust: it decides semantically, then discharges through di/ai/oi/ass/use-em/have!/detach!, so the bill is unchanged and the recorded script is the ordinary step-by-step proof."
+       "Close a goal that follows from the hypotheses by pure propositional reasoning -- the leaves where you can SEE the answer and still have to pick between (oi-l)(ass), (oi-r) plus a conjunction split, and (ai) on a negation.  It treats each atomic statement as a black box, so it will not instantiate a quantifier or reason about equality: if the goal needs an instance, land the instance first (fact / inst+) and run it again.  When it declines it names a falsifying assignment, which usually tells you exactly which hypothesis is missing.  (Technically: three-valued evaluation over the atoms decides the entailment; the proof is then replayed through the kernel rules, case-splitting with excluded middle where a disjunctive goal needs it.)")
+
+     )
+
     ("Arithmetic & ring oracles"
      (arith "(arith)" "Discharge a ground arithmetic goal by evaluation."
        "Close a goal that is a concrete numerical fact with no variables -- e.g. 2 + 3 = 5, or 7 in NN -- by just computing it.  (Technically: decision by ground arithmetic evaluation.)")
@@ -126,6 +132,8 @@
      (crs   "(crs)"   "Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly."
        "Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)")
      (simp  "(simp [target])" "Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (CARR s)).  No arg = outermost ring subterm; \"term\" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.")
+     (supply "(supply)" "Close an inequality goal the way a hand proof would: beta-reduce any applied lambda, land the typing certificates and the standard bounds the linear oracle cannot see -- including the TRIANGLE inequality at the summands of an abs of a sum -- then call ineq over every premise.  Rehearses the whole sequence on a throwaway copy and does NOTHING unless it closes; on a miss it prints the sequence it tried.  Adds no trust: it drives lam-b, fact and ineq, each of which records itself."
+       "The committing form of what-now's SUPPLY THE ORACLE lane.  `ineq' reads abs(...), max(...) and (dist(s))(x,y) as opaque atoms and refuses any premise whose atoms are not certified real, so an inequality that is obviously true can fail for want of a typing nobody mentioned.  This lands them.  The one real idea is subadditivity: where the goal bounds abs(u + v), the useful intermediate term is abs(u) + abs(v), and the decomposition is in the term itself -- nothing is searched for.  Because a lambda reduction cannot be undone and can owe an unprovable leaf, the whole sequence is rehearsed before any of it is run.  (Technically: certificate closure to depth 2 over the forward-citation lane, plus the curated bound table, then Fourier-Motzkin.)")
      (ineq  "(ineq i1 i2 ...)" "Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)"
        "Close a LINEAR inequality over the reals that follows from inequalities you cite (by their hypothesis numbers) -- by chaining them, adding them, and scaling by positive constants.  Anything that is not built from + - and multiplication-by-constants is treated as an opaque quantity, so it handles e.g. the triangle inequality where the distances are unknowns.  For NONLINEAR (polynomial) inequalities use sos instead.  (Technically: Fourier-Motzkin / Farkas over the ordered field RR; every atom must be certified real.)")
      (sos   "(sos \"c1\" \"c2\" ...)"
@@ -185,20 +193,29 @@
 
     ("Navigation, display & tacticals"
      (focus  "(focus n)"  "Switch the focus to the n-th open goal (1-based).")
+     (backup-one "(backup-one)"
+       "Take back the last recorded command: restore the goal, the deduction graph and the proof script to the state before it.  Repeat to walk further back; (sp) clears the stack.  `undo' is an alias."
+       "The one undo in VNB.  It restores the deduction graph -- not merely the focus -- by rolling back the journalled arrow and grounding writes and DROPPING every sequent and inference node posted since, so no node from the abandoned branch survives to be counted as an open leaf and `qed' cannot be handed a phantom obligation.  *proof-script* and the live trace are rewound with it, so the saved script and the printed proof are the proof you actually kept.  It backs up over the LAST RECORDED command: a command that changed nothing was never recorded and is not a step to back up over.  One thing is deliberately not restored -- *fresh-counter*, the eigenvariable source -- so backing up over an `ai' or `ew' that minted `u_4' and re-running it mints `u_5'; the proof is the same, the witness has a different name.  Depth is capped at *vnb-undo-depth* (64).")
+     (undo   "(undo)"     "Alias for (backup-one).")
      (show   "(show)"     "Redisplay the current proof state.")
      (goal-status "(goal-status)" "One-line summary: done / N open goals.")
      (repeat "(repeat thunk [cap])" "Run thunk until it stops changing the proof state (LCF REPEAT).")
      (orelse "(orelse t1 t2 ...)" "Run thunks in order, stop at the first that makes progress (LCF ORELSE).")
      (quietly "(quietly thunk)" "Run thunk with state-dump output suppressed; returns its value."))
 
-    ("Forward-reasoning idioms  [proof-local -- NOT yet surface tactics]"
-     ;; detach! was promoted to a real surface tactic (see "Using a hypothesis"),
-     ;; backed by the kernel rule pi-detach!; `fact' is built on it.
-     (cut-mem!        "(cut-mem! mem A)" "Prove a membership (IN (f x) B) by fun-apply-type with domain A, leaving it in context.  [proof-local]")
-     (metric-sym-eq!  "(metric-sym-eq! S P Q)" "Add (= ((DIST S) P Q) ((DIST S) Q P)) to context via the metric-sym axiom.  [proof-local]")
-     (focus-leaf!     "(focus-leaf! substr)" "Focus the frontier leaf whose goal contains substr (never trust auto-advance).  [proof-local]")
-     (split-ands!     "(split-ands!)" "Flatten every AND assumption of the focus into separate assumptions.  [proof-local]")
-     (ass-all-frontier! "(ass-all-frontier!)" "Close every frontier leaf whose goal is already among its assumptions.  [proof-local]"))
+    ;; The "Forward-reasoning idioms [proof-local]" group was DELETED on
+    ;; 2026-08-14.  Its five entries -- cut-mem!, metric-sym-eq!, focus-leaf!,
+    ;; split-ands!, ass-all-frontier! -- named nothing that exists in the loaded
+    ;; tree: three are defined nowhere, `focus-leaf!' only in a calculus/ file
+    ;; load.scm does not name, `split-ands!' only inside a proof file whose
+    ;; environment load.scm deliberately contains.  The group TITLE said they
+    ;; were not surface tactics, but `tactics--all-entries' flattens groups and
+    ;; throws titles away, so every generator downstream -- M-x completion, the
+    ;; no-arg palette, TACTICS.md, GLOSSARY.md, two manual appendices -- listed
+    ;; them as commands, and invoking one gave `Unbound variable'.  A registry
+    ;; three generators read as a command list cannot carry documentation of
+    ;; things that are not commands; `vnb-cmd--live?' now enforces that.
+    ;; The idioms themselves live in the proof files that use them.
 
     ("Choosing and naming witnesses"
      (minimize! "(minimize! '(v1 ... vk) GUARD MEASURE)"
@@ -283,6 +300,7 @@
     (ni        . "the goal is `forall n in NN, P(n)'")
     (ai        . "a hypothesis is an AND / OR / FORSOME to break apart")
     (ass       . "the goal already appears (up to bound-var renaming) among the hypotheses")
+    (prop      . "the goal follows from the hypotheses by AND/OR/NOT/IMPLIES/IFF alone -- no quantifier or equality reasoning needed")
     (inst      . "you have a forall-hypothesis and a specific value to use it at")
     (inst+     . "a GUARDED forall-hyp whose guards are dischargeable from context (e.g. the metric laws post-grind)")
     (detach!   . "you have both P and (P => Q) in context and want Q")
@@ -336,7 +354,9 @@
     (minimize! . "the goal falls to a `least such' / minimal-counterexample argument -- descent proofs (sqrt 2, sqrt 3 irrational), least-degree or least-pivot witnesses")
     (obtain    . "a forward step yields `there exists ...' and you want to name the witness for later use, without guessing the engine's eigenvariable")
     (have!     . "you want to state an intermediate fact that follows immediately from context and continue with it -- the `we have X' step")
-    (vlet      . "you need to NAME a witness or a matched subterm from the proof state, rather than navigate to it by shape")))
+    (vlet      . "you need to NAME a witness or a matched subterm from the proof state, rather than navigate to it by shape")
+    (backup-one . "the last command was a mistake -- a greedy `di' that ate the induction, a `cut' you did not mean, a branch you want back")
+    (undo       . "the last command was a mistake -- alias for backup-one")))
 
 (define (tactic-when-of name)
   (cond ((assq name *tactic-when*) => cdr) (else #f)))
@@ -397,6 +417,9 @@
     ;; lane at it, and folds the links with the co-*-trans / eq-trans supports.
     (calc composite (cut))
     (scout meta #f) (scout-show meta #f) (scout-run composite #f)
+    ;; backup-one REMOVES inferences from the graph; it emits none, and it
+    ;; cannot make an unsound proof sound -- what it drops was already there.
+    (backup-one meta #f) (undo meta #f)
     (minimize! composite (cut forall-intro forsome-elim))
     (obtain composite (forsome-elim))
     (have! composite cut)
@@ -565,11 +588,46 @@
     (pp   "(pp wff)"      "Pretty-print a wff / term in surface syntax.")
     (make-wff-from-string "(make-wff-from-string str)" "Parse a surface-syntax string into a <wff> object.")
     (parse-string "(parse-string str)" "Parse a surface-syntax string into a raw S-expression.")
+    ;; --- the FRAME tactics (driver-kit.scm) ---
+    ;; Added 2026-08-14.  These were built, working, documented in CLAUDE.md and
+    ;; unreachable from M-x: the catalog is generated from the TACTIC registry,
+    ;; and a kit procedure is not a tactic.  The asymmetry that gave it away:
+    ;; `use-em' was catalogued and its own gloss describes it as "use-cases with
+    ;; the obligation discharged", while `use-cases' itself was not there.
+    (use-cases "(use-cases '(d1 d2 ...) body1 body2 ...)" "Case split on a DISJUNCTION: give the disjuncts and one body thunk per case.  The disjunction is cut if it is not already in context (alpha-checked, so cutting one that IS in context cannot self-loop), then eliminated, and each body runs on its own branch with its disjunct assumed.  Returns an alist: the branch nodes, and the exhaustiveness obligation if one was opened.  With no bodies it returns that alist and leaves the branches for you to focus.  `use-em' is this with P / NOT P and the obligation discharged for you.")
+    (use-induction "(use-induction)" "NN induction with the bookkeeping done: runs `ni' on a goal (forall v. v in NN => P), labels the two branches -- the STEP is discriminated by its BINDER, never by shape -- and PEELS the step so v and (in v NN) are introduced and the induction hypothesis is landed and captured.  Returns an alist naming base, step and the IH, so a driver never has to guess which leaf is which.")
+    (use-infinite-descent "(use-infinite-descent var guard measure thunk)" "Infinite descent / least counterexample: to prove no VAR satisfies GUARD, take one with MEASURE least (well-ordering on NN) and derive a smaller one.  THUNK proves the guard is satisfiable.  The two obligations any descent owes -- MEASURE lands in NN, GUARD is inhabited -- are the only leaves it leaves open.")
+    (from-context! "(from-context!)" "Close the focus goal from the context alone: it is already an assumption up to alpha, or an AND of such, or ground arithmetic.  The default discharge `have!' uses when you give it no thunk.")
+    (witness! "(witness! term thunk)" "\"Exhibit TERM\" on an existential goal: `ew' at TERM, then THUNK proves the body at it.  Names the move -- a bare `ew' reads as though the witness were arbitrary.")
+    (choose! "(choose! set term thunk)" "\"Pick an element of SET\": lands (IN (CHOICE set) set) in context, discharging the one obligation choice owes -- that SET is inhabited -- with TERM as the exhibited member and THUNK the proof that it belongs.  When SET is a SEP the membership is split into its two halves as well.  Uses GLOBAL choice, so SET may be a proper class.")
+    (subset-by-element! "(subset-by-element!)" "Goal (SUBSET A B): unfold to the elementwise form and introduce the element.  Returns the eigenvariable, so a driver can name it -- \"let x be an element of A\".")
+    (inst*! "(inst*! formula term ...)" "Instantiate an IN-CONTEXT universal at each TERM in turn, detaching each guard already in context, and return the formula that finally landed.  `inst+' does ONE binder and stops at the next FORALL; `fact' takes a theorem NAME and warns \"not a symbol\" on a formula, silently doing nothing.  This is the one for a universal you already have as a hypothesis.")
+    ;; --- other live tactics the catalog never listed ---
+    (ass-all "(ass-all)" "Close every open leaf whose goal is already among its own assumptions.  The frontier-wide form of `ass'.")
+    (in-rr "(in-rr)" "Close a real-membership goal (IN t RR) by walking the term: each arithmetic operator's typing rule, each variable from the context.  The workhorse behind the analysis proofs, where every subterm owes a typing.")
+    (surface-goal! "(surface-goal! instance)" "Transport the goal onto a concrete INSTANCE: rewrite the structure accessors of an abstract statement down to the instance's own operations, so (ADD ZZ-RING) becomes +.  How zz-ring-is-ring and its siblings reduce a structure axiom to arithmetic.")
+    (apply-thm "(apply-thm 'name term ...)" "Specialize the named theorem at the given TERMS and land it in context -- the positional counterpart of `fact', which instead detaches guards it finds.  NOTE: it raises if given more terms than the theorem has leading universals, where `fact' silently drops the extras.")
+    ;; --- advice and lookup ---
+    (tt "(tt)" "Alias of (things-to-try): the wider \"what can I do here\" menu.  (what-now) is the ranked, measured one; this is the shape-based checklist.")
+    (suggest-rewrite "(suggest-rewrite)" "The rewrite candidates for the focus goal -- rules whose LHS pattern fingerprints to some subterm -- most specific first, WITHOUT firing them.  (cheap-mac) is this list actually fired on a throwaway copy, and (what-now)'s rewrite lane is that ranked by what each one did.")
+    (suggest-backchain "(suggest-backchain)" "The backchain candidates for the focus goal -- lemmas whose CONCLUSION fingerprints to it -- most specific first, with their fingerprints exposed.  The full list behind what-now's backchain lane, which caps and fires them.")
+    (glossary "(glossary)" "The A-Z of every name in the tree: theorems, structures, tactics, operators.  With an optional pattern -- (glossary \"metric\") -- restricts to names containing it.  Prints AND returns the entries.")
+    (what-is "(what-is term)" "What is this name?  Resolves a theorem, structure, operator, tactic or Scheme procedure and prints what it is, where it is defined and how it reads, with a fuzzy fallback when the name is misspelled.")
+    ;; --- driver-kit helpers worth having on the M-x surface ---
+    ;; The kit (driver-kit.scm) is REPL-only by default: this catalog is built
+    ;; from the TACTIC registry, and a kit helper is a procedure, not a tactic.
+    ;; These two are listed because a user meets excluded middle interactively
+    ;; and there is nothing in the theory to cite for it.
+    (em-prove! "(em-prove!)" "Close a goal that IS (OR P (NOT P)) -- excluded middle -- by pbc: assume the disjunction false, then P alone re-derives it and NOT P alone re-derives it, so either way the negated disjunction gives FALSITY.  VNB states no excluded-middle lemma, so there is nothing to cite and no candidate list to search; this is the move.  Errors if the goal is not of that shape.  Derived: cut/pbc/oi/ai only, no kernel rule, no debt.")
+    (use-em "(use-em)" "The excluded-middle CASE SPLIT: use-cases on (P, NOT P) with the exhaustiveness obligation discharged for you (by em-prove!).  WITH NO ARGUMENT it splits on the LEFT DISJUNCT of a disjunctive goal -- the only split such a goal offers -- so from M-x it is one keystroke and asks nothing; at the REPL, (use-em P body-true body-false) names the proposition and the two branch thunks explicitly.  BODY-TRUE runs on the branch assuming P, BODY-FALSE on the branch assuming NOT P.  With no bodies it returns use-cases' alist, its obligation already closed, and you focus the branches yourself.  PREFER THIS to cutting (OR P (NOT P)) by hand: cutting leaves you owing a goal that nothing in the library proves.")
+    (cheap-mac "(cheap-mac)" "Speculative GOAL-rewrite preview: fire every fingerprint-candidate macete on a THROWAWAY copy of the focus (the live *ps* is never touched) and show the ones that actually change the goal, with the result of each.  It uses the real, sound `mac', so every move shown is runnable verbatim; returns them as (mac 'name) forms.  The deeper companion of (suggest-rewrite), which only fingerprints and does not fire.  Advice only -- nothing is applied.")
+    (cheap-mac-h "(cheap-mac-h sel)" "The hypothesis side of (cheap-mac): speculatively fire every candidate rewrite on the cited ASSUMPTION -- SEL is its index or its formula -- and show what each turns it into, or whether it discharges it.  Returns runnable (mac-h 'name sel) forms.  With NO argument, previews the (mac-h*) saturation instead: the hypotheses it would fold.  Advice only.")
+    (what-now-about "(what-now-about hint)" "(what-now) with a HINT: narrow every candidate list -- backchain lemmas, hypothesis unfolds, witness producers, inst/ew/ai moves, firing tactics -- to the items whose printed form mentions one of the hint's whitespace-separated tokens, matched as a lowercase substring exactly as (find-thm) matches a name.  Several tokens are an OR.  E.g. (what-now-about \"extensionality\").  The goal-kind classifier is never filtered, and a hint that matches nothing prints a notice and then the UNFILTERED answer.  A hint narrows what the copilot suggests; it cannot make it suggest a move no lane knows.")
     (find-mac "(find-mac substr)" "Search the rewrite-rule pool for names containing SUBSTR; tags the rules that fire on the current goal. The s-expr-surface counterpart to `mac' name completion.")
     (find-thm "(find-thm substr)" "Search the full theorem pool for names containing SUBSTR; tags the lemmas that backchain the current goal. Counterpart to `bc*'/`ta' name completion.")
     (audit-unbounded "(audit-unbounded)" "Library-hygiene scan: list every installed theorem/axiom whose statement has an UNBOUNDED universal variable (never typed by an (IN v D)) feeding a PARTIAL term under a strict `=' in assertion position -- i.e. it quietly asserts `undefined = undefined' off-domain (VNB `=' is partial).  Category A = arithmetic partial ops; B = function application / structure ops.  Predicate (`iff') definitions are excluded.")
     (things-to-try "(things-to-try)" "Alias (tt).  Unified \"what can I do here?\" menu for the current focus: aggregates the shape-based tactic checks (closers ass/rfl/crs/rs/arith/ineq, decomposition di, simplifiers simp, the to-binary/to-nary surface bridges) with the index-driven rewrite-macete and backchain-lemma suggesters and the forward-move scan. Advice only -- nothing is applied.")
-    (what-now "(what-now)" "Proof copilot, first pass: for the OPEN SUBGOAL, classify the goal kind and name the right LANE -- (rfl)/(arith)/(crs) for an equality, the (bc* 'name) backchain lemmas whose CONCLUSION fingerprints to the goal otherwise (most-specific first, each shown with the conclusion it applies and a hint when bc* needs bindings), the hypotheses (mac-h*) would crack open, and the (inst+ assumption-# term) universals worth instantiating at a context-typed witness (the same ranked candidates scout's inst lane tries -- so the single-move and search copilots agree). A clean surface over (suggest-backchain). ALSO RETURNS the moves as a list of runnable tactic forms (e.g. ((di) (crs) (rs)), ((bc* 'n) ...), ((inst+ 3 'x) ...)) for an automated try-each tactic. No rewrite (mac) lane, no AC yet.")
+    (what-now "(what-now)" "Proof copilot, first pass: for the OPEN SUBGOAL, classify the goal kind and name the right LANE -- (rfl)/(arith)/(crs) for an equality, the (bc* 'name) backchain lemmas whose CONCLUSION fingerprints to the goal otherwise (most-specific first, each shown with the conclusion it applies and a hint when bc* needs bindings), the hypotheses (mac-h*) would crack open, and the (inst+ assumption-# term) universals worth instantiating at a context-typed witness (the same ranked candidates scout's inst lane tries -- so the single-move and search copilots agree). A clean surface over (suggest-backchain). Takes an optional HINT string -- (what-now \"extensionality\"), or (what-now-about \"extensionality\") from M-x -- which narrows every candidate list to the items mentioning one of its tokens. ALSO RETURNS the moves as a list of runnable tactic forms (e.g. ((di) (crs) (rs)), ((bc* 'n) ...), ((inst+ 3 'x) ...)) for an automated try-each tactic. No rewrite (mac) lane, no AC yet.")
     (vnb-apply? "(vnb-apply? 'name goal . args)" "Applicability PROBE for a tactic.  Does surface tactic `name' (given any extra `args' it takes) FIRE on `goal' -- a \"string\" / S-expr / wff (the assertion), or a full sequent to supply assumptions?  Runs the REAL tactic on a throwaway scratch deduction graph (the live *ps* is NEVER touched) and returns 'CLOSED (closes outright), a list of the new open subgoal formulas (fires, leaving these), or #f (does not apply).  The executable form of each tactic's `when:' note; (what-now) uses it to list which parameterless tactics fire on the live goal.  E.g. (vnb-apply? 'sos \"forall([x in rr,y in rr], x*y <= x*x+y*y)\" \"x - y\" \"x\" \"y\") => CLOSED.")
     (to-binary "(to-binary)" "Saturating one-shot rewrite of the goal's kiddie n-ary +/*/- onto the binary structure operators binplus/bintimes/binneg (= the (ADD s)/(MUL s)/(NEG s) slots of ZZ/QQ-RING and RR/CC-NORMED-FIELD), so a structure-level theorem can match. Unconditional (definitional bridge). Arities 2..5.")
     (to-nary "(to-nary)" "Inverse of to-binary: rewrite binplus/bintimes/binneg back to everyday +/*/-.")))
@@ -658,14 +716,54 @@
         '()
         (vnb-cmd--keep (map vnb-cmd--norm-arg (cdr toks))))))
 
+;;; Is NAME bound in the REPL environment?
+;;;
+;;; `environment-bound?' and NOT `(procedure? (environment-lookup ...))': a
+;;; lookup on a syntactic keyword ERRORS -- "Variable reference to a syntactic
+;;; keyword: bc*" -- and this runs during the load, so the naive test would
+;;; strand every file after this one.  environment-bound? answers correctly for
+;;; procedures and macros alike, which is also why no exemption list of macro
+;;; names is needed; such a list is itself a thing that rots.
+;;;
+;;; `*driver-kit-env*' (driver-kit.scm) is the environment the library loads
+;;; into.  Note it is NOT `system-global-environment': checking there reports
+;;; every command as dead.
+(define (vnb-cmd--live? name)
+  (environment-bound? *driver-kit-env* name))
+
 ;;; Flat list of (name (arg ...) "gloss") from menu registry ++ aux.
+;;;
+;;; GATED since 2026-08-14: an entry naming something that does not exist is
+;;; dropped, with a warning naming it.  Five did -- `cut-mem!', `metric-sym-eq!'
+;;; and `ass-all-frontier!' are defined nowhere in the loaded tree, `focus-leaf!'
+;;; only in a calculus/ file that load.scm does not name, and `split-ands!' only
+;;; inside a theorem-library proof file, whose environment load.scm deliberately
+;;; contains (the suite asserts that containment).  They reached M-x completion,
+;;; the no-arg palette, TACTICS.md, GLOSSARY.md and two manual appendices, and
+;;; invoking one gave `Unbound variable'.  Warn-and-drop rather than fatal, the
+;;; same posture as `head-registry-sweep' and `install-grading'.
 (define (vnb-cmd--all-commands)
-  (map (lambda (e)
-         (list (car e) (vnb-cmd--sig->arglist (cadr e)) (tactics--gloss e)))
-       (append (tactics--all-entries) *command-aux*)))
+  (let* ((all  (map (lambda (e)
+                      (list (car e) (vnb-cmd--sig->arglist (cadr e)) (tactics--gloss e)))
+                    (append (tactics--all-entries) *command-aux*)))
+         (dead (filter (lambda (c) (not (vnb-cmd--live? (car c)))) all)))
+    (for-each (lambda (c)
+                (display ";; WARNING command-catalog: `")
+                (display (car c))
+                (display "' is registered in tactics-help.scm but is not bound -- NOT emitted")
+                (newline))
+              dead)
+    (filter (lambda (c) (vnb-cmd--live? (car c))) all)))
 
 (define (write-vnb-commands)
-  (let ((path (string-append *reference-dir* "../emacs/vnb-commands.lisp")))
+  ;; Build the list -- and let the liveness gate print its warnings -- BEFORE
+  ;; the output file is opened.  `with-output-to-file' rebinds the current
+  ;; output port, so a warning emitted inside it lands IN vnb-commands.lisp,
+  ;; corrupting the very catalog the gate exists to protect.  Found by making
+  ;; the gate fail on purpose, which is the only way this was ever going to
+  ;; surface: with no ghost registered, both versions behave identically.
+  (let ((cmds (vnb-cmd--all-commands))
+        (path (string-append *reference-dir* "../emacs/vnb-commands.lisp")))
     (with-output-to-file path
       (lambda ()
         (display ";;; vnb-commands.lisp -- machine-readable VNB command registry\n")
@@ -680,7 +778,7 @@
         (for-each
           (lambda (c)
             (write c) (newline))
-          (vnb-cmd--all-commands))
+          cmds)
         (display ")\n")))
     path))
 

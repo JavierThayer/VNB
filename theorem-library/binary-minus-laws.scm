@@ -60,3 +60,57 @@
 (ass)
 (qed 'rr-sub-in-rr)
 (topic! 'rr-sub-in-rr 'plumbing)
+
+;;; zz-sub-in-zz: ZZ is closed under binary subtraction.
+;;;
+;;; The exact sibling of rr-sub-in-rr above, and it was missing for the same
+;;; reason: every ZZ minus axiom in number-systems.scm is UNARY (zz-neg-closed,
+;;; zz-neg-inverse), while the parser emits the binary `(- u v)'.  Nothing said
+;;; a difference of integers is an integer.  Added 2026-08-24 for the Bernstein
+;;; moments, whose COMB-KK index runs over ZZ precisely so that k-1 is total at
+;;; k = 0 -- so `(- k 1) in ZZ' is what every pointwise typing of the basis
+;;; family at a shifted index needs.
+;;;
+;;; Same shape as rr-sub-in-rr: binary-minus-def is `declare-named-only!' and
+;;; must be cited by name; zz-add-closed states its hypotheses as an AND, which
+;;; neither `fact' nor `inst+' will split, hence the have!/detach! pair.
+(sp (make-wff (forall-guarded '(u_ v_) (list '(IN u_ ZZ) '(IN v_ ZZ))
+                              '(IN (- u_ v_) ZZ))))
+(di) (di) (di)
+(mac 'binary-minus-def)
+(fact 'zz-neg-closed 'v_)
+(fact 'zz-add-closed 'u_ '(- v_))
+(have! '(AND (IN u_ ZZ) (IN (- v_) ZZ)))
+(detach! '(IMPLIES (AND (IN u_ ZZ) (IN (- v_) ZZ)) (IN (+ u_ (- v_)) ZZ)))
+(ass)
+(qed 'zz-sub-in-zz)
+(topic! 'zz-sub-in-zz 'plumbing)
+
+;;; rr-add-in-rr / rr-mul-in-rr: the CURRIED closure laws.
+;;;
+;;; `rr-add-closed' and `rr-mul-closed' (number-systems.scm) state their
+;;; hypotheses as an AND, which neither `fact' nor `inst+' will split, so every
+;;; citation must be preceded by a `have!' of the conjunction.  That is merely
+;;; tedious until the two arguments are the SAME term, at which point the
+;;; `have!' of `(AND P P)' is refused as an alpha self-loop -- the claim counts
+;;; as already in context -- and a driver needing `t * t in RR' has no move.
+;;; These are the same facts with the antecedents curried, so `fact' detaches
+;;; each guard on its own and the AND never appears.  (`bt-add-in-carr'
+;;; binomial.scm does exactly this for a general ring, and says so.)
+(sp (make-wff (forall-guarded '(a_ b_) (list '(IN a_ RR) '(IN b_ RR))
+                              '(IN (+ a_ b_) RR))))
+(di) (di) (di)
+(have! '(AND (IN a_ RR) (IN b_ RR)))
+(fact 'rr-add-closed 'a_ 'b_)
+(ass)
+(qed 'rr-add-in-rr)
+(topic! 'rr-add-in-rr 'plumbing)
+
+(sp (make-wff (forall-guarded '(a_ b_) (list '(IN a_ RR) '(IN b_ RR))
+                              '(IN (* a_ b_) RR))))
+(di) (di) (di)
+(have! '(AND (IN a_ RR) (IN b_ RR)))
+(fact 'rr-mul-closed 'a_ 'b_)
+(ass)
+(qed 'rr-mul-in-rr)
+(topic! 'rr-mul-in-rr 'plumbing)

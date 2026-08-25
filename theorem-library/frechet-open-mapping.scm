@@ -69,7 +69,18 @@
 ;;; graph in the product.
 ;;;
 ;;; Loads after seminorm-hahn-banach (IS-SEMINORM) and baire-category.
-;;; Binders: fam/fam1/fam2 families, tt/gg linear maps, seq sequences, lim limits.
+;;; Binders: fam/fam1/fam2 families, tt/gg linear maps, seq sequences, lim limits,
+;;; fld the scalar normed field.
+;;;
+;;; SCALARS.  IS-SEMINORM-FAMILY below used to assert (IS-MODULE m) -- which pins
+;;; length(scal(m)) = 6 through MODULE's (substructure SCAL RING) -- beside
+;;; (IS-NORMED-FIELD (SCAL m)), which pins the same term to 7, NORMED-FIELD being
+;;; a seven-slot shape.  Six against seven, so IS-SEMINORM-FAMILY was EMPTY, and
+;;; with it IS-FRECHET-STRUCTURE and all three theorems in this file.  The scalars
+;;; are now stated the way seminorm-hahn-banach.scm states them: the field is
+;;; named, and scal(m) holds its six-slot RING VIEW.  See THE SCALAR SLOT there
+;;; for the full argument, scratchpad/sn-falsity-probe.scm for the derivation of
+;;; falsity, and test-suite-negative.scm section 2f for the standing check.
 ;;; ====================================================================
 
 ;; x (-)_m y  in module m
@@ -83,7 +94,15 @@
   (conjuncts->and
     (list
       '(IS-MODULE m)
-      '(IS-NORMED-FIELD (SCAL m))
+      ;; The scalars are a normed field, NAMED -- see THE SCALAR SLOT in
+      ;; seminorm-hahn-banach.scm.  Writing (IS-NORMED-FIELD (SCAL m)) here
+      ;; pinned length(scal(m)) to 7 beside IS-MODULE's 6 and made this
+      ;; predicate, IS-FRECHET-STRUCTURE and the three supports below EMPTY.
+      ;; No FNRM is read in this file, so the existential carries only the two
+      ;; guards; the norm is reached through IS-SEMINORM's own binder.
+      (forsome-guarded '(fld)
+        (list '(IS-NORMED-FIELD fld))
+        '(= (SCAL m) (NORMED-FIELD-AS-COMMUTATIVE-RING fld)))
       '(IN fam (FUN NN (FUN (VEC m) RR)))
       (forall-guarded 'k '(IN k NN) '(IS-SEMINORM m (fam k)))
       (forall-guarded 'x '(IN x (VEC m))
@@ -117,6 +136,11 @@
 
 ;;; IS-FRECHET-STRUCTURE(m, fam): m with the separating seminorm family fam is a
 ;;; Frechet space -- every fam-Cauchy sequence fam-converges to a point of m.
+;;; Its scalar clause is IS-SEMINORM-FAMILY's and nothing else, so the 6-against-7
+;;; clash repaired there (2026-08-24) was INHERITED here, and repairing it there
+;;; repairs this: `statement-satisfiability-audit' reported both of this
+;;; predicate's pins "through is-seminorm-family".  Nothing in this definition
+;;; changes.
 (def-predicate 'IS-FRECHET-STRUCTURE '(m fam)
   (conjuncts->and
     (list

@@ -1,97 +1,95 @@
 ;;; continuity-algebra.scm -- pointwise continuity is an algebra on RR.
 ;;;
 ;;; The supporting machinery for differentiation (theorem-library/
-;;; differentiation.scm): the constant and identity maps are continuous at every
-;;; point, and IS-CONTINUOUS-AT(RR-MS,RR-MS,-,a) is closed under pointwise sum
-;;; and product.  These are the standard eps-delta facts (constant: any delta;
-;;; identity: delta=eps; sum: eps/2 split + triangle; product: bound one factor
-;;; near a, then |gh - g(a)h(a)| <= |g||h-h(a)| + |h(a)||g-g(a)|).  Asserted as
-;;; warranted supports (well-known) -- the eps-delta drudgery is exactly the
-;;; "boring minutiae" the PSS is meant to absorb; the INTERESTING content is the
-;;; differentiation rules proved on top of these (where the algebraic phi does
-;;; the work).  Reusable well beyond differentiation.
+;;; differentiation.scm): IS-CONTINUOUS-AT(RR-MS,RR-MS,-,a) holds of the
+;;; constant and identity maps and is closed under pointwise sum, product,
+;;; difference and composition.
+;;;
+;;; SIX OF THE SEVEN ARE NOW PROVEN, and have left this file.  On 2026-08-17:
+;;; const- and identity-continuous-at to theorem-library/continuity-basics.scm,
+;;; sum-continuous-at to theorem-library/continuity-sum.scm and
+;;; product-continuous-at to theorem-library/continuity-product.scm.  On
+;;; 2026-08-18: cont-transfer-ptwise-eq to
+;;; theorem-library/continuity-transfer.scm and sub-continuous-at to
+;;; theorem-library/continuity-sub.scm.  Each is `modulo 0' and each carries the
+;;; FUN typing of its lambda.  Every one of them had stood here as a `support'
+;;; warranted `well-known' whose warrant TEXT was the proof -- the eps-delta
+;;; drudgery the PSS was meant to absorb turned out to be a handful of citations
+;;; of general lemmas (rr-abs-sum-bound, rr-abs-prod-bound, rr-min-pos,
+;;; rr-pos-halvable) and, for the last two, no estimate at all.
+;;;
+;;; With them, `diff-implies-continuous' (theorem-library/differentiation.scm)
+;;; bills `modulo 0'.
+;;;
+;;; SEVEN OF THE SEVEN algebra facts are now proven: composition left on
+;;; 2026-08-23 for theorem-library/continuity-compose.scm, by exactly the route
+;;; its warrant proposed (feed the g-at-f(a) delta into the f-at-a delta, no
+;;; eps/2 split needed).  ONE support remains below, `cont-agree-off-pt', and it
+;;; is the different one -- not an algebra fact at all but the statement that RR
+;;; has no isolated points.
 
-;;; Constant map x|->c is continuous at every a.  (Antecedents curried, not
-;;; AND'd, so a backchain spawns them as separate subgoals -- closes cleanly
-;;; with inline bc* handlers; see differentiation.scm.)
-(support 'const-continuous-at
-  '(FORALL c (IMPLIES (IN c RR) (FORALL a (IMPLIES (IN a RR)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR c) a))))))
-(warrant! 'const-continuous-at 'well-known
-  "Constant map: for any eps>0 any delta>0 works, since d(c,c)=0<=eps.")
-(topic! 'const-continuous-at 'analysis)
+;;; const-continuous-at and identity-continuous-at MOVED 2026-08-17 to
+;;; theorem-library/continuity-basics.scm, where both are PROVEN `modulo 0'
+;;; (with their FUN typings, const-lam-in-fun / ident-lam-in-fun).  They stood
+;;; here as `well-known' supports whose warrant text WAS the proof -- "for any
+;;; eps>0 any delta>0 works, since d(c,c)=0<=eps" and "delta=eps works" -- i.e.
+;;; a derivation written in prose and then not run, the species of comment that
+;;; also hid integral-domain-cancel-zero.  Statements reproduced verbatim there,
+;;; so differentiation.scm's five citations are unaffected.
 
-;;; Identity map x|->x is continuous at every a.
-(support 'identity-continuous-at
-  '(FORALL a (IMPLIES (IN a RR)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR x) a))))
-(warrant! 'identity-continuous-at 'well-known
-  "Identity map: delta=eps works, since d(x,a)=|x-a|<=eps whenever |x-a|<=eps.")
-(topic! 'identity-continuous-at 'analysis)
+;;; sum-continuous-at MOVED 2026-08-17 to theorem-library/continuity-sum.scm,
+;;; where it is PROVEN `modulo 0' (with its FUN typing, sum-lam-in-fun).  Its
+;;; warrant here read "given eps, take delta = min of the eps/2-deltas for g and
+;;; h" -- again the derivation written in prose and not run.  The eps/2 estimate
+;;; it turns on is `rr-abs-sum-bound' (theorem-library/rr-abs-basics.scm) and the
+;;; "min of the two deltas" is `rr-min-pos' (theorem-library/rr-order-basics.scm),
+;;; both proven; the statement is reproduced verbatim there, so
+;;; differentiation.scm's citations are unaffected.
 
-;;; Pointwise sum of two maps continuous at a is continuous at a.
-(support 'sum-continuous-at
-  '(FORALL g (FORALL h (FORALL a (IMPLIES
-     (IS-CONTINUOUS-AT RR-MS RR-MS g a)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR (+ (g x) (h x))) a)))))))
-(warrant! 'sum-continuous-at 'well-known
-  "Sum of continuous: given eps, take delta = min of the eps/2-deltas for g and
-   h; the triangle inequality gives |(g+h)(x)-(g+h)(a)| <= eps.")
-(topic! 'sum-continuous-at 'analysis)
+;;; product-continuous-at MOVED 2026-08-17 to
+;;; theorem-library/continuity-product.scm, where it is PROVEN `modulo 0' (with
+;;; its FUN typing, prod-lam-in-fun).  Its warrant here -- "g is bounded near a
+;;; (continuity), and |gh(x)-gh(a)| <= |g(x)||h(x)-h(a)| + |h(a)||g(x)-g(a)|" --
+;;; is that proof, written in prose and not run; the estimate is
+;;; `rr-abs-prod-bound' (theorem-library/rr-abs-basics.scm) and the bound near a
+;;; is one preliminary delta at eps = 1.  Statement reproduced verbatim there.
 
-;;; Pointwise product of two maps continuous at a is continuous at a.
-(support 'product-continuous-at
-  '(FORALL g (FORALL h (FORALL a (IMPLIES
-     (IS-CONTINUOUS-AT RR-MS RR-MS g a)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR (* (g x) (h x))) a)))))))
-(warrant! 'product-continuous-at 'well-known
-  "Product of continuous: g is bounded near a (continuity), and
-   |gh(x)-gh(a)| <= |g(x)||h(x)-h(a)| + |h(a)||g(x)-g(a)|; choose deltas making
-   each summand < eps/2.")
-(topic! 'product-continuous-at 'analysis)
+;;; compose-continuous-at MOVED 2026-08-23 to
+;;; theorem-library/continuity-compose.scm, where it is PROVEN.  It stood here
+;;; as a `well-known' support whose warrant text WAS the proof -- "given eps,
+;;; the g-at-f(a) delta feeds the f-at-a delta" -- i.e. the derivation written
+;;; in prose and then not run, the species of comment that also hid
+;;; integral-domain-cancel-zero.  It is the block the Caratheodory CHAIN RULE
+;;; needs (theorem-library/chain-rule.scm): the factor of g o f is
+;;; (phi_g o f)*phi_f, whose first half is continuous at a only by this fact.
+;;; The statement is reproduced VERBATIM there.  Its bill is
+;;; {compose-type, compose-apply} -- the two COMPOSE laws of
+;;; structure-library/compose.scm, both `warrant: proof' -- and NOT zero; see
+;;; that file's header for why the sequential route (continuous-at-iff-
+;;; sequential) was not taken.
 
-;;; Composition of continuous: f continuous at a and g continuous at f(a) give
-;;; g o f = COMPOSE(g,f) continuous at a.  (The block the Caratheodory chain
-;;; rule needs: phi_g o f is continuous at a.)
-(support 'compose-continuous-at
-  '(FORALL g (FORALL f (FORALL a (IMPLIES
-     (IS-CONTINUOUS-AT RR-MS RR-MS f a)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g (f a))
-     (IS-CONTINUOUS-AT RR-MS RR-MS (COMPOSE g f) a)))))))
-(warrant! 'compose-continuous-at 'well-known
-  "Composition of continuous: given eps, the g-at-f(a) delta feeds the f-at-a
-   delta; (g o f)(x) = g(f(x)) stays within eps of g(f(a)).")
-(topic! 'compose-continuous-at 'topology)
+;;; sub-continuous-at MOVED 2026-08-18 to theorem-library/continuity-sub.scm,
+;;; where it is PROVEN `modulo 0' (with its FUN typing, sub-lam-in-fun).  Its
+;;; warrant here proposed the eps/2 route -- "(g-h)(x) = g(x) + (-1)*h(x); the
+;;; eps/2 split for sum-continuous-at, negation being an isometry of RR" -- and
+;;; that turned out to be more than the fact costs: neg-continuous-at,
+;;; sum-continuous-at and cont-transfer-ptwise-eq compose, and no estimate is
+;;; done in the new file at all.  It was, after cont-transfer-ptwise-eq below,
+;;; the SOLE unwarranted leaf of `diff-implies-continuous', which now bills
+;;; `modulo 0'.  Statement reproduced verbatim there, so differentiation.scm's
+;;; citation is unaffected.
 
-;;; Difference of two maps continuous at a is continuous at a (sum with -h).
-(support 'sub-continuous-at
-  '(FORALL g (FORALL h (FORALL a (IMPLIES
-     (IS-CONTINUOUS-AT RR-MS RR-MS g a)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS h a)
-     (IS-CONTINUOUS-AT RR-MS RR-MS (VNB-LAMBDA x RR (- (g x) (h x))) a)))))))
-(warrant! 'sub-continuous-at 'well-known
-  "Difference of continuous is continuous: (g-h)(x) = g(x) + (-1)*h(x); the eps/2
-   split for sum-continuous-at, negation being an isometry of RR.")
-(topic! 'sub-continuous-at 'analysis)
-
-;;; Continuity is a property of the point-values: if f agrees with a map g that
-;;; is continuous at a, at every point, then f is continuous at a.  (The transfer
-;;; that lets a proof establish continuity of the tidy algebraic representative
-;;; and carry it back to the function actually in hand -- e.g. diff-implies-
-;;; continuous, where f equals f(a)+phi(x)(x-a) pointwise.)
-(support 'cont-transfer-ptwise-eq
-  '(FORALL f (FORALL g (FORALL a (IMPLIES
-     (IN f (FUN RR RR))
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g a)
-     (IMPLIES (FORALL x (IMPLIES (IN x RR) (= (f x) (g x))))
-              (IS-CONTINUOUS-AT RR-MS RR-MS f a))))))))
-(warrant! 'cont-transfer-ptwise-eq 'well-known
-  "f = g pointwise and g continuous at a => f continuous at a: continuity reads
-   only the values, and d(f(x),f(a)) = d(g(x),g(a)) at every x, so the same delta
-   works.")
-(topic! 'cont-transfer-ptwise-eq 'analysis)
+;;; cont-transfer-ptwise-eq MOVED 2026-08-18 to
+;;; theorem-library/continuity-transfer.scm, where it is PROVEN `modulo 0'.  It
+;;; stood here as a `well-known' support whose warrant text WAS the proof --
+;;; "continuity reads only the values, and d(f(x),f(a)) = d(g(x),g(a)) at every
+;;; x, so the same delta works" -- i.e. the derivation written in prose and then
+;;; not run, the species of comment that also hid integral-domain-cancel-zero.
+;;; It is the transfer that carries a conclusion from the tidy algebraic
+;;; representative back to the function actually in hand, and it was the ONE
+;;; unwarranted leaf of `diff-implies-continuous', which now bills `modulo 0'.
+;;; Statement reproduced verbatim there, so differentiation.scm's citation is
+;;; unaffected.
 
 ;;; Two maps continuous at a that agree at every OTHER point agree at a as well.
 ;;; (a is a limit point of RR, so the value at a is forced by the punctured

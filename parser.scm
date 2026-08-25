@@ -271,39 +271,52 @@
           left))))
 
 ;; ADD — n-ary +, binary -
+;;
+;; MINE? records whether LEFT was accumulated by THIS loop (so splicing another
+;; operand onto it is what the surface `a + b + c' means) or came in from a
+;; primary -- in practice, from parentheses.  Testing the SHAPE of LEFT instead,
+;; as this loop did until 2026-08-24, cannot tell the two apart: `(a + b) + c'
+;; was spliced into the flat (+ a b c), so an explicitly grouped left operand
+;; was UNWRITABLE on the surface while the mirror-image `a + (b + c)' built the
+;; nested node -- and expr->str, printing a nested node flat, produced a string
+;; that re-parsed to a different term.  Unparenthesised input reads exactly as
+;; before: `a + b + c' is still the flat node nary-plus-3 speaks about.
 (define (p-parse-add)
-  (let loop ((left (p-parse-mul)))
+  (let loop ((left (p-parse-mul)) (mine? #f))
     (let ((t (p-peek)))
       (cond
         ((and (pair? t) (eq? (car t) 'sym) (eq? (cdr t) '+))
          (p-adv)
          (let* ((right (p-parse-mul))
-                (node  (if (and (pair? left) (eq? (car left) '+))
+                (node  (if (and mine? (pair? left) (eq? (car left) '+))
                            (append left (list right))
                            (list '+ left right))))
-           (loop node)))
+           (loop node #t)))
         ((and (pair? t) (eq? (car t) 'sym) (eq? (cdr t) '-))
          (p-adv)
          (let* ((right (p-parse-mul)))
-           (loop (list '- left right))))
+           (loop (list '- left right) #t)))
         (else left)))))
 
 ;; MUL — n-ary *, division sugar x/y -> (* x (recip y))
+;; MINE? as in p-parse-add: `(a * b) * c' is the nested (* (* a b) c), while the
+;; unparenthesised `a * b * c' remains the flat (* a b c).  The `/' branch is
+;; unchanged, so every existing reading of a mixed */ chain is preserved.
 (define (p-parse-mul)
-  (let loop ((left (p-parse-unary)))
+  (let loop ((left (p-parse-unary)) (mine? #f))
     (let ((t (p-peek)))
       (cond
         ((and (pair? t) (eq? (car t) 'sym) (eq? (cdr t) '*))
          (p-adv)
          (let* ((right (p-parse-unary))
-                (node  (if (and (pair? left) (eq? (car left) '*))
+                (node  (if (and mine? (pair? left) (eq? (car left) '*))
                            (append left (list right))
                            (list '* left right))))
-           (loop node)))
+           (loop node #t)))
         ((and (pair? t) (eq? (car t) 'sym) (eq? (cdr t) '/))
          (p-adv)
          (let* ((right (p-parse-unary)))
-           (loop (list '* left (list 'recip right)))))
+           (loop (list '* left (list 'recip right)) #t)))
         (else left)))))
 
 ;; UNARY — prefix -  (lower precedence than pow: -x^2 = -(x^2))
@@ -418,7 +431,10 @@
       (p-expect! 'rparen)
       (list q bindings body))))
 
-;; FUNCTOID — lambda or lambdoid; parse ([bindings], body) -> <functoid> record
+;; FUNCTOID — `lambdoid'; parse ([bindings], body) -> <functoid> record.
+;; (`lambda' was the set-domain spelling of the same thing and was removed
+;; 2026-08-18; see the dispatch in p-parse-primary.  KIND is still threaded so
+;; make-functoid keeps its two-kind shape.)
 (define (p-parse-functoid kind)
   (p-expect! 'lparen)
   (p-expect! 'lbracket)
@@ -431,7 +447,7 @@
                            (if (and (pair? spec) (eq? (car spec) 'in)
                                     (symbol? (cadr spec)))
                                (cons (cadr spec) (caddr spec))
-                               (error "vnb-parse: lambda binding must be 'x in A'" spec)))
+                               (error "vnb-parse: lambdoid binding must be 'x in A'" spec)))
                          bindings)))
         (make-functoid kind bpairs body)))))
 
@@ -476,6 +492,31 @@
                                          (p-peek)))))))
              (expand-set-of (cons first rest))))))))
 
+;; NULLARY APPLICATION — `h()' is an error, except for the constructors that
+;; have a defined nullary value.  (2026-08-15, the user's call.)
+;;
+;; Until this check existed an empty arglist was accepted everywhere: `f()'
+;; parsed to (f), passed make-wff, and PRINTED as `f' — indistinguishable from
+;; the head itself, so `f() = f' displayed as `f = f' while the two sides were
+;; different S-expressions and `rfl' refused the goal.  `cartesian()' and
+;; `power()' went the same way.  `union()' was caught, but only by accident:
+;; by the `>= 2 args' floor that the binary case wanted anyway (wff.scm).
+;;
+;; The one nullary-legal head that reaches HERE is `list': `list()' is `[]',
+;; the empty tuple, which `empty-in-tuples' and `length-of-empty' are about.
+;; `set_of()' is `{}' and is equally legal, but never reaches this path — its
+;; own branch in p-parse-primary calls expand-set-of directly.  The conventional
+;; nullary readings of the other constructors (empty product, empty union, empty
+;; intersection) are deliberately NOT taken: nothing in the tree needs them and
+;; the last of them is a proper class.
+(define *p-nullary-ok* '(list))
+
+(define (p-check-nullary! head args)
+  (when (and (null? args)
+             (not (and (symbol? head) (memq head *p-nullary-ok*))))
+    (error "vnb-parse: application with no arguments (only list() and set_of() are nullary)"
+           head)))
+
 ;; POSTFIX-APPLY — if the next token is '(' after a primary, parse application.
 ;; A <functoid> primary becomes (apply-functoid <ftd> arg...).
 (define (p-maybe-apply primary)
@@ -484,6 +525,9 @@
         (p-adv)
         (let* ((args (p-parse-arglist)))
           (p-expect! 'rparen)
+          ;; A functoid or a compound head is never a symbol, so this rejects
+          ;; `lambdoid([x in A], b)()' and `f(x)()' as well.
+          (p-check-nullary! primary args)
           (let ((result (if (functoid? primary)
                             (apply make-apply-functoid primary args)
                             (cons primary args))))
@@ -512,7 +556,26 @@
          (cond
            ((or (eq? sym 'forall) (eq? sym 'forsome))
             (p-parse-quantifier sym))
-           ((or (eq? sym 'lambda) (eq? sym 'lambdoid))
+           ;; `lambda' as a surface binder was REMOVED 2026-08-18.  It built a
+           ;; functoid RECORD -- the set-domain sibling of `lambdoid' -- and so
+           ;; was NOT the `vnb-lambda' that every proof in the library uses:
+           ;; that one builds a set of ordered pairs, an element of some
+           ;; FUN(A,B), typed by `lam-t' and reduced by `lam-b', where a
+           ;; functoid record is reduced by `functoid-beta'.  One unadorned word
+           ;; standing for the one a reader will never meet, beside a
+           ;; hyphenated one standing for the one they meet immediately, is a
+           ;; confusion with no upside.  The binders are now `vnb-lambda' (the
+           ;; set-function, desugared in expand-destructuring-quantifiers) and
+           ;; `lambdoid' (the functoid), which is the pair interactive.scm's own
+           ;; help text has described all along.
+           ((eq? sym 'lambda)
+            (error (string-append
+                    "vnb-parse: `lambda' is not a VNB binder.  Write "
+                    "`vnb-lambda([x in A], body)' for a set-function (an "
+                    "element of FUN(A,B), typed by lam-t and reduced by "
+                    "lam-b), or `lambdoid([x in A], body)' for a functoid, "
+                    "whose domain may be a proper class.")))
+           ((eq? sym 'lambdoid)
             (p-maybe-apply (p-parse-functoid sym)))
            ((eq? sym 'set_of)
             (p-expect! 'lparen)
@@ -523,6 +586,7 @@
             (p-expect! 'lparen)
             (let* ((args (p-parse-arglist)))
               (p-expect! 'rparen)
+              (p-check-nullary! sym args)
               (p-maybe-apply (cons sym args)))))))
       ((and (pair? t) (eq? (car t) 'sym))
        (p-adv) (cdr t))

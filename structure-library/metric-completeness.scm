@@ -18,7 +18,7 @@
 ;;; Scheme both case-fold, so `N' and `n' would be the same identifier --
 ;;; see [[feedback-mit-case-fold]], [[feedback-no-case-variant-binders]].
 ;;;
-;;; Dependencies: metric-space.scm (IS-METRIC-SPACE, D, X), number-systems.scm
+;;; Dependencies: metric-space.scm (IS-METRIC-SPACE, DIST, PTS), number-systems.scm
 ;;; (NN, RR, <=), order-predicates.scm (POS-RR).  Loaded after order-predicates
 ;;; and before complex.scm so cc-complete can be stated as IS-COMPLETE(CC-MS).
 

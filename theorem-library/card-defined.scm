@@ -1,8 +1,8 @@
-;;; card-defined.scm -- CARD*, cardinality DEFINED rather than axiomatised.
+;;; card-defined.scm -- CARD-STAR, cardinality DEFINED rather than axiomatised.
 ;;;
-;;;     CARD*(A)  ==  IOTA alpha.  alpha in ORD
+;;;     CARD-STAR(A)  ==  IOTA alpha.  alpha in ORD
 ;;;                     and  forsome phi. phi in BIJECTION(A, S(alpha))
-;;;                     and  forall beta <_ORD alpha.
+;;;                     and  forall beta with ORD-LT(beta, alpha).
 ;;;                            not forsome psi. psi in BIJECTION(A, S(beta))
 ;;;
 ;;; "the least ordinal whose segment A bijects onto" -- the meaning
@@ -13,7 +13,7 @@
 ;;; being a joint implicit definition and become claims that could be FALSE.  So
 ;;; the defined constant is built here under a distinct name, its facts are
 ;;; proven, and only then is the swap made -- name by name, deleting each axiom
-;;; as its theorem lands.  The `*' follows INJECTIVE* (injection.scm), the same
+;;; as its theorem lands.  The `*' follows INJECTIVE-STAR (injection.scm), the same
 ;;; "companion of the axiomatised notion" convention.
 ;;;
 ;;; THE DIRECTION OF THE BIJECTION IS A -> SEGMENT, and that is a decision, not
@@ -30,9 +30,9 @@
 ;;;   cd-seg-body      n itself satisfies the description at A = S(n)
 ;;;                    (identity bijection for existence, pigeonhole for
 ;;;                    leastness) -- this is where the mathematics is
-;;;   card*-segment    CARD*(S(n)) = n
+;;;   card-star-segment    CARD-STAR(S(n)) = n
 ;;;
-;;; card*-segment is the keystone: it is card-segment with the axiom removed,
+;;; card-star-segment is the keystone: it is card-segment with the axiom removed,
 ;;; and proving it is what checks that the description says what it should.
 ;;;
 ;;; Needs pigeonhole-segments-gen, the segment/arithmetic bridges, bijection-
@@ -43,14 +43,14 @@
 ;;; The definition.
 ;;; --------------------------------------------------------------------
 
-(def-functoid 'CARD* '(a_)
+(def-functoid 'CARD-STAR '(a_)
   '(IOTA alpha
      (AND (IN alpha ORD)
           (AND (FORSOME phi (IN phi (BIJECTION a_ (ORD-SEGMENT alpha))))
                (FORALL beta
-                 (IMPLIES (<_ORD beta alpha)
+                 (IMPLIES (ORD-LT beta alpha)
                    (NOT (FORSOME psi (IN psi (BIJECTION a_ (ORD-SEGMENT beta)))))))))))
-(notation! 'CARD* 'kind 'functoid 'arity 1
+(notation! 'CARD-STAR 'kind 'functoid 'arity 1
            'english "the cardinal of $1")
 
 ;;; the description's body, at an arbitrary class and ordinal -- written once,
@@ -59,7 +59,7 @@
   (list 'AND (list 'IN al 'ORD)
     (list 'AND (list 'FORSOME 'phi (list 'IN 'phi (list 'BIJECTION A (list 'ORD-SEGMENT al))))
       (list 'FORALL 'beta
-        (list 'IMPLIES (list '<_ORD 'beta al)
+        (list 'IMPLIES (list 'ORD-LT 'beta al)
           (list 'NOT (list 'FORSOME 'psi
                        (list 'IN 'psi (list 'BIJECTION A (list 'ORD-SEGMENT 'beta))))))))))
 
@@ -96,7 +96,7 @@
 ;;; at LOW, is the negation of LOW's own existence clause.  The clauses are
 ;;; taken from what dk-split! returned, not searched for by shape.
 (define (cd-not-below! low high least-of-high)
-  (have! (list 'NOT (list '<_ORD low high))
+  (have! (list 'NOT (list 'ORD-LT low high))
          (lambda ()
            (di)
            (ai (dk-deepest (lambda () (inst+ least-of-high low)))))))
@@ -104,23 +104,23 @@
 (cd-not-below! 'al 'be cd-be-least)
 
 ;;; ... so they are equal: totality gives one of the two <=, and each of them
-;;; with the corresponding NOT (<_ORD ...) forces equality through ord-lt-iff.
+;;; with the corresponding NOT (ORD-LT ...) forces equality through ord-lt-iff.
 (have! '(AND (IN al ORD) (IN be ORD)))
 (fact 'ord-le-total 'al 'be)
-(use-cases (list '(<=_ORD al be) '(<=_ORD be al))
+(use-cases (list '(ORD-LE al be) '(ORD-LE be al))
   (lambda ()
     (use-em '(= al be)
       (lambda () (ass))
       (lambda ()
-        (have! '(<_ORD al be) (lambda () (mac 'ord-lt-iff) (from-context!)))
-        (ai '(NOT (<_ORD al be))))))
+        (have! '(ORD-LT al be) (lambda () (mac 'ord-lt-iff) (from-context!)))
+        (ai '(NOT (ORD-LT al be))))))
   (lambda ()
     (use-em '(= al be)
       (lambda () (ass))
       (lambda ()
         (fact 'neq-sym 'al 'be)
-        (have! '(<_ORD be al) (lambda () (mac 'ord-lt-iff) (from-context!)))
-        (ai '(NOT (<_ORD be al)))))))
+        (have! '(ORD-LT be al) (lambda () (mac 'ord-lt-iff) (from-context!)))
+        (ai '(NOT (ORD-LT be al)))))))
 (qed 'cd-body-unique)
 (topic! 'cd-body-unique 'set-theory)
 
@@ -150,7 +150,7 @@
       ;; leastness: a bijection S(n) -> S(beta) with beta < n is an INJECTION,
       ;; and pigeonhole-segments-gen forbids exactly that
       (else
-       (cd-peel!)                        ; beta, beta <_ORD n_, and the FORSOME
+       (cd-peel!)                        ; beta, beta ORD-LT n_, and the FORSOME
        (ai (cd-first 'FORSOME))          ; ... opened: psi0 in BIJECTION(S n, S beta)
        (let* ((bij (car (filter (lambda (f)
                                   (and (pair? f) (eq? (car f) 'IN)
@@ -186,7 +186,7 @@
 (topic! 'cd-seg-body 'set-theory)
 
 ;;; --------------------------------------------------------------------
-;;; card*-segment:  CARD*(S(n)) = n.
+;;; card-star-segment:  CARD-STAR(S(n)) = n.
 ;;;
 ;;; `iota-d' posts existence-and-uniqueness (n is the witness, cd-body-unique
 ;;; the uniqueness) and hands back the defining property; cd-body-unique then
@@ -194,9 +194,9 @@
 ;;; --------------------------------------------------------------------
 
 (sp (make-wff '(FORALL n_ (IMPLIES (IN n_ NN)
-                 (= (CARD* (ORD-SEGMENT n_)) n_)))))
+                 (= (CARD-STAR (ORD-SEGMENT n_)) n_)))))
 (di)
-(mac 'card*)
+(mac 'card-star)
 (define cd-io (cadr (dk-goal)))          ; the IOTA term, as the engine built it
 (for-each
  (lambda (l)
@@ -223,5 +223,5 @@
          (fact 'cd-body-unique '(ORD-SEGMENT n_) cd-io 'n_)
          (ass))))
  (dk-opened (lambda () (iota-d cd-io))))
-(qed 'card*-segment)
-(topic! 'card*-segment 'set-theory)
+(qed 'card-star-segment)
+(topic! 'card-star-segment 'set-theory)

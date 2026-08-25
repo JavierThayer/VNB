@@ -11,7 +11,7 @@
 ;;; restates the three that downstream summation needs -- closure,
 ;;; permutation invariance, enumeration-independence -- under IS-COMM-MONOID.
 ;;;
-;;; This is exactly what the unordered RR+* sum needs: RR+*-ADD-MONOID
+;;; This is exactly what the unordered RR-POS-STAR sum needs: RR-POS-STAR-ADD-MONOID
 ;;; (extended-reals-pos.scm) is a commutative monoid with NO inverses, so the
 ;;; abelian-group versions do not apply to it, but these do.
 ;;;

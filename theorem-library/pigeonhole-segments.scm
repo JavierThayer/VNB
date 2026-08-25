@@ -29,9 +29,9 @@
 ;;; Was a warranted support (theorem-library/ord-segment-zero-no-members.scm,
 ;;; PSS-promoted 2026-05-27 with its machine proof archived).  It is the leaf
 ;;; both lemmas below would otherwise bill, and it is four citations deep:
-;;; k in S(0) gives <_ORD k 0 -- ord-segment-membership, once 0 is typed in ORD
-;;; -- which is <=_ORD k 0 plus k /= 0 (ord-lt-iff); ord-zero-least supplies
-;;; <=_ORD 0 k; ord-le-antisymm closes it to k = 0, against k /= 0.
+;;; k in S(0) gives ORD-LT k 0 -- ord-segment-membership, once 0 is typed in ORD
+;;; -- which is ORD-LE k 0 plus k /= 0 (ord-lt-iff); ord-zero-least supplies
+;;; ORD-LE 0 k; ord-le-antisymm closes it to k = 0, against k /= 0.
 ;;;
 ;;; It is proven HERE rather than in its own file because that file loads inside
 ;;; the block of pure `support' declarations, eighty entries before the tactic
@@ -42,12 +42,12 @@
 (fact 'nn-zero-in)
 (fact 'nn-subset-ord 0)       ; 0 in ORD, which ord-segment-membership wants
 (mac-h 'ord-segment-membership '(IN k (ORD-SEGMENT 0)))
-(mac-h 'ord-lt-iff '(<_ORD k 0))
-(dk-split! '(AND (<=_ORD k 0) (NOT (= k 0))))
+(mac-h 'ord-lt-iff '(ORD-LT k 0))
+(dk-split! '(AND (ORD-LE k 0) (NOT (= k 0))))
 (fact 'ord-le-closure 'k 0)
 (dk-split! '(AND (IN k ORD) (IN 0 ORD)))
 (fact 'ord-zero-least 'k)
-(have! '(AND (<=_ORD k 0) (<=_ORD 0 k)))
+(have! '(AND (ORD-LE k 0) (ORD-LE 0 k)))
 (fact 'ord-le-antisymm 'k 0)
 (ai '(NOT (= k 0)))
 (qed 'ord-segment-zero-no-members)

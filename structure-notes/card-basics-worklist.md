@@ -1,19 +1,19 @@
 # Putting the CARD layer on a firm basis
 
-State on 2026-08-12.  `CARD` is AXIOMATISED; `CARD*` is DEFINED
+State on 2026-08-12.  `CARD` is AXIOMATISED; `CARD-STAR` is DEFINED
 (`theorem-library/card-defined.scm`) as
 
-    CARD*(A)  ==  IOTA alpha.  alpha in ORD
+    CARD-STAR(A)  ==  IOTA alpha.  alpha in ORD
                     and  forsome phi. phi in BIJECTION(A, ORD-SEGMENT alpha)
-                    and  forall beta <_ORD alpha.
+                    and  forall beta with ORD-LT(beta, alpha).
                            not forsome psi. psi in BIJECTION(A, ORD-SEGMENT beta)
 
-and the migration is: prove the fact about `CARD*`, delete the `CARD` axiom,
+and the migration is: prove the fact about `CARD-STAR`, delete the `CARD` axiom,
 rename -- one name at a time.
 
 ## What exists
 
-Proven: `cd-body-unique`, `cd-seg-body`, `card*-segment` (= `CARD*(S(n)) = n`),
+Proven: `cd-body-unique`, `cd-seg-body`, `card-star-segment` (= `CARD-STAR(S(n)) = n`),
 `pigeonhole-segments`, `pigeonhole-segments-gen`, `ord-segment-zero-no-members`,
 `ord-well-ordered`.
 
@@ -28,15 +28,15 @@ anywhere records that cardinality is being assumed.**
 
 ## The mechanism to build first, before any individual fact
 
-`card*-segment`'s proof is an `iota-d` over the description, and its script is
+`card-star-segment`'s proof is an `iota-d` over the description, and its script is
 already generic in the class: replacing `(ORD-SEGMENT n_)` by a variable gives
 
-    card*-from-body :  cd-body(A, al)  =>  CARD*(A) = al
+    card-star-from-body :  cd-body(A, al)  =>  CARD-STAR(A) = al
 
 i.e. "anything satisfying the description IS the cardinal".  Under it, one
 transport lemma does the rest of the finite layer:
 
-    card*-transport :  phi in BIJECTION(A, B)  =>  ( cd-body(B, al) => cd-body(A, al) )
+    card-star-transport :  phi in BIJECTION(A, B)  =>  ( cd-body(B, al) => cd-body(A, al) )
 
 **and it needs no inverse**, which is what keeps the track choice-free.  Both
 clauses of the body compose with `phi` on the RIGHT: the existence clause turns
@@ -46,10 +46,10 @@ would be needed only for the converse implication, which nothing wants.)
 
 The two compose into the workhorse:
 
-    card*-bij :  n in NN,  phi in BIJECTION(A, ORD-SEGMENT n)  =>  CARD*(A) = n
+    card-star-bij :  n in NN,  phi in BIJECTION(A, ORD-SEGMENT n)  =>  CARD-STAR(A) = n
 
 "to compute a cardinal, exhibit a bijection to a segment."  Every finite fact
-below is then an instance -- exhibit the bijection, cite `card*-bij`.
+below is then an instance -- exhibit the bijection, cite `card-star-bij`.
 
 ## Ordered worklist
 
@@ -57,15 +57,15 @@ below is then an instance -- exhibit the bijection, cite `card*-bij`.
    flagged in `bijection.scm` as "derivable, mechanization deferred".
    `bijection-identity` is already the worst leaf of `cd-seg-body`, so the whole
    CARD arc reads `[trust: informal]` until it is proven; `bijection-compose` is
-   what `card*-transport` will cite.  Home: `structure-library/bijection-derived.scm`,
+   what `card-star-transport` will cite.  Home: `structure-library/bijection-derived.scm`,
    which already proves the three projections `modulo 0`.
-2. **`card*-from-body`** -- generalize `card*-segment`'s `iota-d` script off the
-   segment.  `card*-segment` then becomes its corollary.
-3. **`card*-transport`**, then **`card*-bij`**.
-4. **`card*-empty`** -- `EMPTY-SET = ORD-SEGMENT(0)` by `class-extensionality`
-   (`ord-segment-zero-no-members` is proven), then `card*-segment` at `n := 0`.
+2. **`card-star-from-body`** -- generalize `card-star-segment`'s `iota-d` script off the
+   segment.  `card-star-segment` then becomes its corollary.
+3. **`card-star-transport`**, then **`card-star-bij`**.
+4. **`card-star-empty`** -- `EMPTY-SET = ORD-SEGMENT(0)` by `class-extensionality`
+   (`ord-segment-zero-no-members` is proven), then `card-star-segment` at `n := 0`.
    This one needs neither (1) nor (3).
-5. **`card*-singleton`** -- the bijection `{x} -> ORD-SEGMENT(1)` sending `x` to `0`.
+5. **`card-star-singleton`** -- the bijection `{x} -> ORD-SEGMENT(1)` sending `x` to `0`.
 6. **`interval-card` / `interval-card-in-nn`** -- the bijection
    `INTERVAL(1,n) -> ORD-SEGMENT(n)`, `j |-> PRED(j)`.  `PRED` and the segment
    bridges exist (`theorem-library/finite-surgery.scm`,
@@ -73,17 +73,17 @@ below is then an instance -- exhibit the bijection, cite `card*-bij`.
 
 ## Blocked, and on what
 
-* **`card*-insert`** -- needs `EXTEND-BY` (the finite-surgery kit's second member,
+* **`card-star-insert`** -- needs `EXTEND-BY` (the finite-surgery kit's second member,
   unbuilt): a bijection `A -> S(n)` extends to `A + {x} -> S(succ n)`.
-* **`card*-union-disjoint`** -- needs `EXTEND-BY` and a concatenation map.
+* **`card-star-union-disjoint`** -- needs `EXTEND-BY` and a concatenation map.
 * **`card-subset-nn`**, **`card-power-nn`** -- a subset of a finite set is finite;
   the power set of a finite set is finite.  Both want `finite-set-induction`,
   which is itself one of the axioms to retire.
 * **`card-image-injection`** -- an injection `A -> B` restricted to its image is a
-  bijection; then `card*-bij`.  Needs the image machinery, not `EXTEND-BY`.
+  bijection; then `card-star-bij`.  Needs the image machinery, not `EXTEND-BY`.
 * **`card-in-ord`** and **`card-finite-bij`** -- **Track B (Zermelo)**.  These two
   are the only ones that need well-ordering of an arbitrary set.  Without them
-  `CARD*` is simply PARTIAL -- defined on well-orderable sets, undefined
+  `CARD-STAR` is simply PARTIAL -- defined on well-orderable sets, undefined
   elsewhere -- and the finite layer above does not care.
 
 ## Track B status

@@ -57,18 +57,51 @@ HEAP=120000
 # what you want -- but you should be told.
 #
 # It is a build artifact: .gitignore'd, and excluded from the tarball.
+# Is any LIBRARY .scm newer than the band?  Prints the first one found, or
+# nothing.
+#
+# scratchpad/, scratch/ and prove-scripts/ are EXCLUDED, and that is the whole
+# point of having a function rather than an inline find: they hold throwaway
+# drivers (CLAUDE.md calls them exactly that) and hand-off drive scripts,
+# nothing in them is in load.scm, and nothing in them is in the band.  With
+# them counted, writing a single probe file -- which is what one does all day
+# -- marked the band stale and cost a 55 s reload on the next start, for a file
+# the band could not possibly have to reflect.  prove-scripts/ was added on
+# 2026-08-23: drive scripts handed to the user live there (scratchpad/ is
+# excluded from his rsync, so he cannot see files there), and each one dropped
+# in was marking the band stale for exactly the same non-reason.
+band_newer_scm() {
+  find "$PROVER_DIR" -name '*.scm' \
+       -not -path '*/scratchpad/*' -not -path '*/scratch/*' \
+       -not -path '*/prove-scripts/*' \
+       -newer "$BAND" -print -quit 2>/dev/null
+}
+
 case "$1" in
   --build-band)
     echo "Building $BAND (one full library load, ~10 min) ..."
     exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" \
          --eval "(begin (disk-save \"$BAND\") (exit))"
     ;;
+  --band-if-fresh)
+    # What the EMACS launcher wants: the band's speed when it is trustworthy,
+    # and an ordinary load when it is not.  Never runs against a stale band --
+    # that is the one thing `-b' permits (with a warning) and this must not,
+    # because nobody reads a warning that scrolls past during startup.
+    #
+    # Fresh means: the band exists and NO .scm under the tree is newer than it.
+    # Same test as `-b' uses to warn; the difference is the consequence.
+    if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
+      exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
+    fi
+    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD"
+    ;;
   -b)
     if [ ! -f "$BAND" ]; then
       echo "prover -b: no band at $BAND -- run './prover --build-band' first." >&2
       exit 1
     fi
-    NEWER=$(find "$PROVER_DIR" -name '*.scm' -newer "$BAND" -print -quit 2>/dev/null)
+    NEWER=$(band_newer_scm)
     if [ -n "$NEWER" ]; then
       echo "prover -b: WARNING -- the band is OLDER than $NEWER" >&2
       echo "           it does not reflect that edit; './prover --build-band' refreshes it." >&2

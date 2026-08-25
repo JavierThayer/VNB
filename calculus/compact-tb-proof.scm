@@ -44,4 +44,4 @@
                              (AND (IN (CARD f) NN) (IS-OPEN-COVER s f))))))
     (bc* 'ball-cover-is-open-cover () (ass) (ass))))
 
-(qed 'compact-tb)
+(qed 'compact-implies-totally-bounded)

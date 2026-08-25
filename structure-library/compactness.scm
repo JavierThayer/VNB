@@ -242,26 +242,14 @@
 
 ;;; ----- the directions used most often, stated directly -----
 
-(support 'compact-implies-totally-bounded
-  '(FORALL s (IMPLIES (IS-COMPACT s) (TOTALLY-BOUNDED s))))
-(warrant! 'compact-implies-totally-bounded 'proof
-  "Compact => totally bounded (calculus.pdf Prop 3.12).  For eps > 0 the open
-   balls {B(x,eps) : x in X} cover X; a finite subcover's centres form a finite
-   eps-net.  Half of (1)=>(4).  MACHINE-PROVEN in calculus/compact-tb-proof.scm
-   (installed there as `compact-tb', modulo the asserted ball-cover lemmas
-   ball-cover-is-open-cover + finite-ball-subcover-r-net); kept here as an
-   asserted PSS citation, the proof run offline.")
-
-(support 'compact-implies-complete
-  '(FORALL s (IMPLIES (IS-COMPACT s) (IS-COMPLETE s))))
-(warrant! 'compact-implies-complete 'proof
-  "Compact => complete (calculus.pdf Prop 3.12).  A Cauchy sequence in a compact
-   space has a cluster point (condition (3)); a Cauchy sequence with a cluster
-   point converges to it.  Half of (1)=>(4).  MACHINE-PROVEN in
-   calculus/compact-complete-proof.scm (installed there as `compact-complete',
-   modulo the three asserted lemmas compact-seq-has-cluster +
-   cauchy-cluster-converges + cauchy-seq-is-fun); kept here as an asserted PSS
-   citation, the proof run offline.")
+;;; compact-implies-totally-bounded and compact-implies-complete (the two
+;;; halves of calculus.pdf Prop 3.12 (1)=>(4)) were ASSERTED here until
+;;; 2026-08-17, each warranted `proof' on the strength of a machine proof in
+;;; calculus/ that no load.scm entry ever ran.  Both proof files are now loaded
+;;; (calculus/compact-tb-proof.scm, calculus/compact-complete-proof.scm) and
+;;; install the theorems under these names, so the supports are gone: the
+;;; citation in theorem-library/compact-separable-proof.scm now names a
+;;; theorem, not an assertion.
 
 ;;; ----- the two lemmas that close compact => complete -----
 

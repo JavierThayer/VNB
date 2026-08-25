@@ -235,6 +235,10 @@
 ;;; ====================================================================
 ;;; bridge warrants + hb-good-has-maximal (specialise nsm to good subspaces)
 ;;; ====================================================================
+
+;;; The six-slot module view of the normed vector space m -- see the note on
+;;; the statement below.  The file's `nm-' prefix: a file-local Scheme name.
+(define nm-mod '(NORMED-VECTOR-SPACE-AS-MODULE m))
 (add-to-pss 'good-sub-self
   '(FORALL m (FORALL s (FORALL f
      (IMPLIES (IS-SUBMODULE m s) (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
@@ -256,28 +260,50 @@
   "A reachable t is a submodule, hence a subset of VEC(m), hence in its powerset.")
 (topic! 'good-sub-in-power 'analysis)
 
-(sp '(FORALL m (FORALL s (FORALL f
-     (IMPLIES (IS-FINITE-DIMENSIONAL m)
+
+;;; THE HYPOTHESIS IS FINITE-DIMENSIONALITY OF THE MODULE VIEW, NOT OF m, AND
+;;; THE DIFFERENCE IS THE 2026-08-23 REPAIR.  Its one consumer, hahn-banach
+;;; (hahn-banach-full-proof.scm), carries IS-NORMED-VECTOR-SPACE(m) beside this
+;;; -- and that pins length(m) = 7 while IS-FINITE-DIMENSIONAL(m) pins it to 6
+;;; through IS-VECTOR-SPACE and MODULE's shape.  Writing both of one m makes the
+;;; hypothesis unsatisfiable and the theorem VACUOUS; so the module half is said
+;;; of NORMED-VECTOR-SPACE-AS-MODULE(m), the six-slot projection
+;;; (normed-vector-space.scm:136).  This theorem is not itself vacuous either
+;;; way (nothing here pins m to 7), but it cannot be CITED by a proof about a
+;;; normed vector space unless it is stated this way, which is what forced the
+;;; change: `fact' detaches an antecedent only if the context holds it.
+;;;
+;;; What that costs inside: three citations move to the view, and the two facts
+;;; the argument needs about m itself come back through the read-offs of
+;;; theorem-library/nvs-module-view.scm (all `modulo 0') -- `vec' off the view
+;;; is `vec(m)', and a submodule of m is a submodule of the view.
+(sp `(FORALL m (FORALL s (FORALL f
+     (IMPLIES (IS-FINITE-DIMENSIONAL ,nm-mod)
       (IMPLIES (IS-SUBMODULE m s)
        (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
          (FORSOME t (AND (GOOD-SUB m s f t)
            (FORALL u (IMPLIES (AND (GOOD-SUB m s f u) (SUBSET t u)) (= t u))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)))   ; m,s,f,FINDIM,SUBMODULE,BOUNDED
 (define HDgoal (dc-gf))
-(mac-h 'IS-FINITE-DIMENSIONAL '(IS-FINITE-DIMENSIONAL m))
-(dc-split)                                        ; IS-VECTOR-SPACE m, IS-NOETHERIAN m
+(mac-h 'IS-FINITE-DIMENSIONAL (list 'IS-FINITE-DIMENSIONAL nm-mod))
+(dc-split)                    ; IS-VECTOR-SPACE (view m), IS-NOETHERIAN (view m)
 (define SIG (list 'SEP 'w_ '(POWER (VEC m)) '(GOOD-SUB m s f w_)))
 
 ;; IN SIG SET
 (cut (list 'IN SIG 'SET))
 (sep-set)                                         ; subgoal (IN (POWER (VEC m)) SET)
-(quietly (lambda () (fact 'vspace-vec-is-set 'm)))
+(quietly (lambda () (fact 'vspace-vec-is-set nm-mod)))
+;; the view's carrier IS m's carrier -- rewrite the landed typing in place
+;; (mac-h is destructive; the original form is not wanted again).
+(mac-h 'nvs-module-view-vec (list 'IN (list 'VEC nm-mod) 'SET))
 (quietly (lambda () (fact 'power-set '(VEC m))))
 (quietly (lambda () (ass-all)))
 (dc-focus! HDgoal)
 
-;; SUBSET SIG (POWER (VEC m))
-(cut (list 'SUBSET SIG '(POWER (VEC m))))
+;; SUBSET SIG (POWER (VEC (view m))) -- which nsm wants at the view; the read-off
+;; normalises it back to (POWER (VEC m)), where SIG's own separation lives.
+(cut (list 'SUBSET SIG (list 'POWER (list 'VEC nm-mod))))
+(mac 'nvs-module-view-vec)
 (mac 'subset-def)
 (quietly (lambda () (di)(di)))
 (define Xm (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) SIG))))))
@@ -285,8 +311,8 @@
 (quietly (lambda () (ass-all)))
 (dc-focus! HDgoal)
 
-;; forall t in SIG, IS-SUBMODULE m t
-(cut (list 'FORALL 't_ (list 'IMPLIES (list 'IN 't_ SIG) (list 'IS-SUBMODULE 'm 't_))))
+;; forall t in SIG, IS-SUBMODULE (view m) t
+(cut (list 'FORALL 't_ (list 'IMPLIES (list 'IN 't_ SIG) (list 'IS-SUBMODULE nm-mod 't_))))
 (quietly (lambda () (di)(di)))
 ;; `Tm' case-folds to `tm', which is the term-with-holes surface helper
 ;; (input-context.scm:411).  A top-level (define Tm ...) here silently rebound
@@ -294,6 +320,7 @@
 (define dc-tm (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) SIG))))))
 (sep-me (list 'IN dc-tm SIG))
 (quietly (lambda () (fact 'good-sub-submodule 'm 's 'f dc-tm)))
+(quietly (lambda () (fact 'submodule-nvs-module-view 'm dc-tm)))
 (quietly (lambda () (ass-all)))
 (dc-focus! HDgoal)
 
@@ -307,7 +334,7 @@
 (dc-focus! HDgoal)
 
 ;; apply nsm; get a maximal T in SIG
-(quietly (lambda () (fact 'noetherian-set-has-maximal 'm SIG)))
+(quietly (lambda () (fact 'noetherian-set-has-maximal nm-mod SIG)))
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'sep z) (dc-ment? 'subset z)))))
 (dc-split)                                        ; (IN TT2 SIG), MAXSIG
 (define TT2 (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) SIG))))))

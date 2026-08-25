@@ -71,6 +71,8 @@
 ;;;   - (binary)      ->  left-assoc infix
 ;;;   - (unary)       ->  prefix, tight
 ;;;   power ^         ->  right-assoc infix, tight
+;;;   (PAIR a b)      ->  pair(a, b)   -- NOT {a, b}, which is MAKE-SET
+;;;   a head spelled from operator characters (/) -> (/)(a, b)
 ;;;   not(P) and everything else -> f(x, y, z) functional notation
 ;;;
 ;;; Parentheses are added only when needed by precedence:
@@ -157,7 +159,15 @@
                         (else (w m))))
              (imag (string-append mag "i")))
         (if (zero? r)
-            imag                                       ; pure imaginary: i, -i, 3i, -3i
+            ;; A PURE imaginary must still begin with something the tokenizer
+            ;; will start a NUMBER on.  `i' and `-i' do not: read-num begins on
+            ;; a digit, so `i' is an IDENTIFIER and `-i' is unary minus applied
+            ;; to one.  (IN +i CC) therefore printed `i in cc' and read back as
+            ;; (IN i CC) -- a statement about a free variable, silently.  `1i'
+            ;; and `0-i' are numeric literals and read back as themselves.
+            (if (> m 0)
+                (string-append (if (= m 1) "1" (w m)) "i")   ; 1i, 3i
+                (string-append "0" imag))                    ; 0-i, 0-3i
             (if (> m 0)
                 (string-append (w r) "+" imag)         ; r+i, r+3i
                 (string-append (w r) imag))))))        ; mag carries the sign: r-i, r-3i
@@ -182,13 +192,25 @@
   (or (hash-table-ref/default *accessor-display* s #f)
       (sym->display-leaf s)))
 
+;;; A symbol spelled ENTIRELY from the tokenizer's operator characters
+;;; (parser.scm's op-ch?).  read-op consumes such a run into a single `sym'
+;;; token and never into the `funsym' that a bare `head(' produces, so such a
+;;; head cannot be printed in the ordinary application syntax `head(a, b)'.
+(define (op-spelled-symbol? s)
+  (let* ((n (symbol->string s)) (len (string-length n)))
+    (and (> len 0)
+         (let loop ((i 0))
+           (or (= i len)
+               (and (memv (string-ref n i) '(#\+ #\- #\* #\/ #\^ #\< #\= #\!))
+                    (loop (+ i 1))))))))
+
 ;;; min-prec: the minimum precedence this expression must have to avoid
 ;;; being wrapped in an extra pair of parens by the caller.
 (define (expr->str e min-prec)
   (cond
     ((symbol? e) (sym->display-leaf e))
     ((number? e) (num-leaf->string e))
-    ;; Functoid record: lambda([x in A, y in B], body)
+    ;; Functoid record: lambdoid([x in A, y in B], body)
     ((functoid? e)
      (let* ((bindings (functoid-bindings e))
             (bstrs    (map (lambda (b)
@@ -215,11 +237,37 @@
          ;; (LIST a b c) -> [a, b, c] — self-delimiting
          ((eq? head 'list)
           (string-append "[" (str-join (map (lambda (a) (expr->str a 0)) args) ", ") "]"))
-         ;; N-ary: and or iff + *  (associative; each arg at same prec)
-         ((and (memq head '(and or iff + *)) (>= (length e) 3))
+         ;; and or iff -- the parser reads these RIGHT-associatively (p-parse-and
+         ;; and friends), so only the RIGHT operand may be spliced without
+         ;; parentheses.  A LEFT-nested (and (and A B) C) printed flat would
+         ;; re-parse as (and A (and B C)) -- a different S-expression, hence
+         ;; not `equal?', hence not matched by `ass'.  Left args therefore go at
+         ;; p+1 and take parens when their own head is at p.
+         ((and (memq head '(and or iff)) (>= (length e) 3))
+          (let* ((p    (op-prec head))
+                 (sep  (string-append " " (symbol->string head) " "))
+                 (last (- (length args) 1))
+                 (s    (str-join
+                        (map (lambda (a i) (expr->str a (if (= i last) p (+ p 1))))
+                             args (iota (length args)))
+                        sep)))
+            (paren-if s p min-prec)))
+         ;; + and * -- the parser reads a chain of these into ONE FLAT n-ary node
+         ;; (p-parse-add / p-parse-mul), so a flat node of any arity splices with
+         ;; no parentheses, but a nested SAME-HEAD child is a distinct term and
+         ;; must be parenthesised or the printed form re-parses to the flat node.
+         ;; This is display honesty, not prettiness: the extra parens are exactly
+         ;; the places where the stored term is not the flat one.
+         ((and (memq head '(+ *)) (>= (length e) 3))
           (let* ((p   (op-prec head))
                  (sep (string-append " " (symbol->string head) " "))
-                 (s   (str-join (map (lambda (a) (expr->str a p)) args) sep)))
+                 (s   (str-join
+                       (map (lambda (a)
+                              (expr->str a (if (and (pair? a) (eq? (car a) head))
+                                               (+ p 1)
+                                               p)))
+                            args)
+                       sep)))
             (paren-if s p min-prec)))
          ;; implies: right-associative; left arg needs p+1, right needs p
          ((and (eq? head 'implies) (= (length e) 3))
@@ -248,11 +296,22 @@
                  (s (string-append "-" (expr->str (cadr e) p))))
             (paren-if s p min-prec)))
          ;; power: right-associative; left at p+1, right at p
+         ;;
+         ;; The RIGHT operand goes at p only when it is itself a `power' (that
+         ;; is the right-associativity).  Everything else goes at p+1, and the
+         ;; one term that difference catches is a unary minus, whose precedence
+         ;; is also 7: `x ^ -n' printed without parentheses, and p-parse-pow
+         ;; parses its right operand as a PRIMARY, not as a unary -- so the
+         ;; string died with "trailing tokens after (power x -)".  `x ^ (-n)'
+         ;; reads back as (POWER x (- n)).
          ((and (eq? head 'power) (= (length e) 3))
           (let* ((p 7)
+                 (rt (caddr e))
                  (s (string-append (expr->str (cadr e) (+ p 1))
                                    " ^ "
-                                   (expr->str (caddr e) p))))
+                                   (expr->str rt (if (and (pair? rt) (eq? (car rt) 'power))
+                                                     p
+                                                     (+ p 1))))))
             (paren-if s p min-prec)))
          ;; (MAKE-SET (list a b c)) -> {a, b, c}
          ((and (eq? head 'MAKE-SET) (= (length e) 2)
@@ -261,11 +320,14 @@
             (string-append "{"
                            (str-join (map (lambda (a) (expr->str a 0)) elems) ", ")
                            "}")))
-         ;; (PAIR a a) -> {a}  /  (PAIR a b) -> {a, b}
-         ((and (eq? head 'PAIR) (= (length e) 3))
-          (if (equal? (cadr e) (caddr e))
-              (string-append "{" (expr->str (cadr e) 0) "}")
-              (string-append "{" (expr->str (cadr e) 0) ", " (expr->str (caddr e) 0) "}")))
+         ;; PAIR has NO branch here, and that is the fix (2026-08-24).  It used
+         ;; to print (PAIR a b) as `{a, b}' and (PAIR a a) as `{a}' -- the
+         ;; surface syntax of MAKE-SET, a DIFFERENT primitive (`{a, b}' reads
+         ;; back as (MAKE-SET (LIST a b)), theory.scm's make-set-membership,
+         ;; not the pairing axiom).  48 installed formulas printed as a term
+         ;; they were not, and a user retyping one got a formula `ass' would
+         ;; not match.  PAIR now falls through to the generic application arm
+         ;; and prints `pair(a, b)', which reads back as itself.
          ;; (SEP x A p) -> {x in A: p}
          ((and (eq? head 'SEP) (= (length e) 4))
           (string-append "{" (sym->display-leaf (cadr e))
@@ -275,29 +337,54 @@
          ((and (eq? head 'COMP) (= (length e) 3))
           (string-append "{" (sym->display-leaf (cadr e))
                          " | " (expr->str (caddr e) 0) "}"))
-         ;; (apply-functoid <ftd> arg ...) -> lambda([...], body)(arg, ...)
+         ;; (apply-functoid <ftd> arg ...) -> lambdoid([...], body)(arg, ...)
          ((eq? head 'apply-functoid)
           (string-append (expr->str (car args) 0)
                          "("
                          (str-join (map (lambda (a) (expr->str a 0)) (cdr args)) ", ")
                          ")"))
+         ;; A head spelled from operator characters -- `/' is the only one in
+         ;; the tree -- prints with its head PARENTHESISED: `(/)(t, 1 + t)'.
+         ;; That is not decoration.  `/(t, 1 + t)', which the generic arm below
+         ;; produced, dies in the parser ("trailing tokens after / lparen"),
+         ;; because read-op makes `/' an operator token and only a funsym can
+         ;; head an application.  The parenthesised form IS readable:
+         ;; p-parse-primary's lparen branch hands the bare symbol to
+         ;; p-maybe-apply, so `(/)(t, 1 + t)' is (/ t (+ 1 t)) exactly.
+         ;;
+         ;; The pretty alternative is deliberately NOT taken.  `t / (1 + t)'
+         ;; parses -- to (* t (RECIP (+ 1 t))), because infix `/' is SUGAR in
+         ;; p-parse-mul and builds no `/' node at all.  Printing the sugar
+         ;; would hand the user a string that reads back as a different
+         ;; S-expression, silently, `ass' and `rfl' being syntactic.  The ugly
+         ;; form is the honest one, and its ugliness is information: a `/' head
+         ;; has no ordinary surface spelling.
+         ((and (symbol? head) (op-spelled-symbol? head))
+          (string-append "(" (symbol->string head) ")("
+                         (str-join (map (lambda (a) (expr->str a 0)) args) ", ")
+                         ")"))
          ;; Compound head: ((f x) a b) -> (f(x))(a, b) — self-delimiting
+         ;;
+         ;; A NULLARY application prints with its parentheses: (f) is `f()',
+         ;; NOT `f'.  It used to print as the bare head, which made the term
+         ;; (f) and the symbol f indistinguishable on the surface -- so
+         ;; `(= (f) f)' displayed as `f = f' while `rfl' refused it, the two
+         ;; sides being different S-expressions.  The parser and validate-wff!
+         ;; now reject nullary applications outright, so this arm should be
+         ;; unreachable for anything a user typed; it stays honest for a raw
+         ;; S-expression handed straight to the printer.
          ((pair? head)
           (let ((head-str (string-append "(" (expr->str head 0) ")")))
-            (if (null? args)
-                head-str
-                (string-append head-str
-                               "("
-                               (str-join (map (lambda (a) (expr->str a 0)) args) ", ")
-                               ")"))))
+            (string-append head-str
+                           "("
+                           (str-join (map (lambda (a) (expr->str a 0)) args) ", ")
+                           ")")))
          ;; Everything else: f(x, y, z) — self-delimiting
          (else
-          (if (null? args)
-              (sym->display-head head)
-              (string-append (sym->display-head head)
-                             "("
-                             (str-join (map (lambda (a) (expr->str a 0)) args) ", ")
-                             ")"))))))
+          (string-append (sym->display-head head)
+                         "("
+                         (str-join (map (lambda (a) (expr->str a 0)) args) ", ")
+                         ")")))))
     (else (with-output-to-string (lambda () (write e))))))
 
 (define (print-binding spec)
@@ -328,9 +415,23 @@
 ;;; Install custom REPL printers.
 ;;; simple-unparser-method calls write on each list element, so a plain string
 ;;; gets the "..." delimiters for free — signalling "formula text, not Scheme data".
+;;; The number MIT prints in #[wff 16 ...] is its OBJECT hash -- per-object
+;;; identity, handed out by the printer on demand.  Two wffs built from the same
+;;; text always get different ones, which makes the printed form useless for the
+;;; question a reader actually asks of two formulas on screen: are these the same
+;;; thing?  So the wff's own digest is printed beside it (`h' + hex).  Equal
+;;; digests mean alpha-equivalent up to a collision -- `wff-equiv?' is the exact
+;;; test -- and DIFFERENT digests mean genuinely different formulas.
+(define *wff-print-digest?* #t)
+
 (set-record-type-unparser-method! <wff>
   (simple-unparser-method 'wff
-    (lambda (w) (list (expression->string (wff-formula w))))))
+    (lambda (w)
+      (if *wff-print-digest?*
+          (list (string->symbol
+                 (string-append "h" (number->string (wff-hash w) 16)))
+                (expression->string (wff-formula w)))
+          (list (expression->string (wff-formula w)))))))
 
 (set-record-type-unparser-method! <sequent>
   (simple-unparser-method 'sequent

@@ -1,11 +1,16 @@
 ;;; series-order-lemmas.scm -- order facts about real partial sums and limits.
 ;;;
 ;;; These are the infinite-sum half of the inequality suite -- needed regardless
-;;; of the linear-arithmetic oracle (which is finite/linear).  The keystone is
-;;; monotone-convergence on RR, which comparison-test (power-series.scm) already
-;;; cites by name as "not yet in the library"; the rest are the monotonicity and
-;;; Cauchy-criterion facts that back comparison-test, summable-cauchy, and the
-;;; absolute => convergent bridges.
+;;; of the linear-arithmetic oracle (which is finite/linear).  Its keystone was
+;;; monotone-convergence on RR, which comparison-test (power-series.scm) cites
+;;; by name; that one is now PROVEN and lives in
+;;; theorem-library/monotone-convergence-proof.scm (see the note below), and so
+;;; are the two partial-sum ORDER facts this file used to assert -- they moved
+;;; to theorem-library/comparison-test-proof.scm with comparison-test itself.
+;;; NOTHING REMAINS.  The last entry, the Cauchy criterion, was proven and
+;;; moved on 2026-08-22 (see the end of this file); every note below records
+;;; where a retired support went and why it could not stay.  The file installs
+;;; nothing and is kept for that record.
 ;;;
 ;;; Real sequence vars are f, g (NOT `a' -> the carrier accessor, `A' when this
 ;;; was written, `CARR' now); index n_ / m (NOT `n'
@@ -18,67 +23,66 @@
 ;;; order-predicates.scm (POS-RR, <), number-systems.scm (RR, <=, abs).
 
 ;;; -----------------------------------------------------------------------
-;;; Monotone convergence on RR -- the keystone comparison-test depends on.
-;;; A nondecreasing real sequence bounded above converges (to its sup).
-(support 'monotone-convergence-rr
-  '(FORALL f (IMPLIES (IN f (FUN NN RR))
-     (IMPLIES (AND (FORALL k (IMPLIES (IN k NN) (<= (f k) (f (succ k)))))
-                   (FORSOME bnd (AND (IN bnd RR)
-                     (FORALL k (IMPLIES (IN k NN) (<= (f k) bnd))))))
-       (CONVERGES RR-MS f)))))
-(warrant! 'monotone-convergence-rr 'well-known
-  "A nondecreasing sequence bounded above converges to its supremum -- the
-   order-completeness of RR (least-upper-bound property).  The eps-N witness:
-   for eps>0 the sup minus eps is not an upper bound, so some f(N) exceeds it,
-   and monotonicity keeps every later term within eps of the sup.  Standard;
-   the named lemma comparison-test was waiting on.")
+;; monotone-convergence-rr MOVED 2026-08-20 to
+;; theorem-library/monotone-convergence-proof.scm, where it is PROVEN -- along
+;; with the monotone lift `nn-monotone-step-implies-le' it needs -- billing
+;; `modulo {nn-zero-le, nn-le-succ-cases}' [trust: well-known], i.e. resting on
+;; nothing but the two NN-order supports of structure-library/order-lemmas.scm.
+;; It was a `well-known' support here, and the warrant's eps-N sketch is exactly
+;; the route the proof takes (sup of the range, then rr-sup-approx).  The proof
+;; loads LATE -- after theorem-library/rr-sup-approx, which did not exist when
+;; this file was written -- and nothing in the tree cites the name in between.
 
 ;;; -----------------------------------------------------------------------
 ;;; Partial-sum monotonicity.
-
-;; Nonnegative terms => partial sums nondecreasing.
-(support 'series-partial-sum-monotone-nonneg
-  '(FORALL f (IMPLIES (IN f (FUN NN RR))
-     (IMPLIES (FORALL n_ (IMPLIES (IN n_ NN) (<= 0 (f n_))))
-       (FORALL k (IMPLIES (IN k NN)
-         (<= (SERIES-PARTIAL-SUM f k) (SERIES-PARTIAL-SUM f (succ k)))))))))
-(warrant! 'series-partial-sum-monotone-nonneg 'well-known
-  "SERIES-PARTIAL-SUM f (succ k) = SERIES-PARTIAL-SUM f k + f(k) (the SUM-AG
-   recurrence), and f(k) >= 0, so the partial sums are nondecreasing.")
-
-;; Termwise <= => partial sums <= termwise.
-(support 'series-partial-sum-le-termwise
-  '(FORALL f (IMPLIES (IN f (FUN NN RR)) (FORALL g (IMPLIES (IN g (FUN NN RR))
-     (IMPLIES (FORALL n_ (IMPLIES (IN n_ NN) (<= (f n_) (g n_))))
-       (FORALL k (IMPLIES (IN k NN)
-         (<= (SERIES-PARTIAL-SUM f k) (SERIES-PARTIAL-SUM g k))))))))))
-(warrant! 'series-partial-sum-le-termwise 'well-known
-  "Induction on k via the SUM-AG recurrence and rr-le-add: each added term
-   f(k) <= g(k), so the running sums stay ordered.")
+;;
+;; series-partial-sum-monotone-nonneg and series-partial-sum-le-termwise MOVED
+;; 2026-08-20 to theorem-library/comparison-test-proof.scm, where both are
+;; PROVEN `modulo 0' -- along with comparison-test itself (power-series.scm),
+;; which named all three as the ingredients it was waiting on.  Both were
+;; `well-known' supports here and both warrants named the SUM-AG recurrence as
+;; the route; that recurrence is now on the surface as `series-partial-sum-succ'
+;; (SERIES-PARTIAL-SUM(f,succ k) == SERIES-PARTIAL-SUM(f,k) + f(k)), after which
+;; each is one `ineq' -- the first with no induction at all, the second with one.
+;; The proofs load LATE, after theorem-library/monotone-convergence-proof, which
+;; did not exist when this file was written; nothing in the tree cites either
+;; name in between.
 
 ;;; -----------------------------------------------------------------------
 ;;; Series triangle inequality: |sum| <= sum of |.|.
-(support 'series-partial-sum-abs-le
-  '(FORALL f (IMPLIES (IN f (FUN NN RR))
-     (FORALL k (IMPLIES (IN k NN)
-       (<= (abs (SERIES-PARTIAL-SUM f k))
-           (SERIES-PARTIAL-SUM (VNB-LAMBDA n_ NN (abs (f n_))) k)))))))
-(warrant! 'series-partial-sum-abs-le 'well-known
-  "|sum_{n<k} f(n)| <= sum_{n<k} |f(n)|: induction on k via the SUM-AG
-   recurrence and rr-abs-triangle at each step.")
+;;;
+;;; RETIRED as a support 2026-08-21 and PROVEN, at the end of
+;;; theorem-library/comparison-test-proof.scm.  It cannot live here: the proof
+;;; needs `rr-abs-triangle-c' (rr-abs-basics, load.scm:583), the partial-sum
+;;; recurrence and `abs-seq-in-fun' (comparison-test-proof, load.scm:1392), all
+;;; of which load after this file.  Nothing cited it in between -- checked --
+;;; so the move costs no bill.
+;;;
+;;; The statement changed in ONE respect: `k' is quantified FIRST, ahead of `f'.
+;;; `ni' tests the goal's SHAPE, literally (FORALL n (IMPLIES (IN n NN) body)),
+;;; so the induction variable has to be outermost or the induction cannot be
+;;; started at all (CLAUDE.md's induction lane).  A citation therefore takes its
+;;; arguments as (fact 'series-partial-sum-abs-le k f), not the other way round.
 
 ;;; -----------------------------------------------------------------------
 ;;; Cauchy criterion for real series: convergence => tails vanish.
-(support 'series-cauchy-criterion
-  '(FORALL f (IMPLIES (IN f (FUN NN RR))
-     (IMPLIES (SERIES-CONVERGES f)
-       (FORALL eps (IMPLIES (POS-RR eps)
-         (FORSOME bnd (AND (IN bnd NN)
-           (FORALL m (IMPLIES (IN m NN) (FORALL n_ (IMPLIES (IN n_ NN)
-             (IMPLIES (AND (<= bnd m) (<= m n_))
-               (<= (abs (- (SERIES-PARTIAL-SUM f n_)
-                           (SERIES-PARTIAL-SUM f m))) eps))))))))))))))
-(warrant! 'series-cauchy-criterion 'well-known
-  "SERIES-CONVERGES f means the partial-sum sequence converges in RR-MS, hence
-   is Cauchy: the block sum sum_{m<=i<n} f(i) = P(n)-P(m) is within eps once
-   m,n are large.  The finite-block form of the tail going to 0.")
+;;;
+;;; RETIRED as a support 2026-08-22 and PROVEN, in
+;;; theorem-library/series-cauchy-proof.scm, `modulo 0'.  It was the LAST live
+;;; entry of this file, which is now history only and installs nothing.
+;;;
+;;; It cannot live here.  The proof unfolds SERIES-CONVERGES to a named limit
+;;; and then needs `rr-pos-halvable' (rr-halving, load.scm:624), `rr-abs-bound'
+;;; / `rr-le-abs' / `rr-neg-abs-le' (rr-abs-basics, load.scm:583), `rr-ms-dist'
+;;; (load.scm:886) and `series-partial-sum-in-rr' /
+;;; `series-partial-sum-seq-apply' (comparison-test-proof, load.scm:1392) --
+;;; every one of them BELOW this file.  The proof therefore sits immediately
+;;; after comparison-test-proof and immediately BEFORE
+;;; theorem-library/dominated-convergence, which is the only file in the tree
+;;; that cites the name (`series-tail-small'); nothing between this file and
+;;; that one cites it, so the move costs no bill.
+;;;
+;;; The statement was carried over BYTE-IDENTICAL -- checked, not assumed:
+;;; installing the proof under the old name reports "re-installing the same
+;;; statement", which is the warning install-theorem! prints when the two agree,
+;;; rather than the "already installed with a DIFFERENT statement" one.

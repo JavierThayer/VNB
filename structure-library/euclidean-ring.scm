@@ -1,10 +1,10 @@
 ;;; euclidean-ring.scm -- EUCLIDEAN-RING: an integral domain admitting a
 ;;; Euclidean (degree) function with division-with-remainder.
 ;;;
-;;; The degree function deg : CARR -> NN is asserted to EXIST (FORSOME deg);
+;;; The degree function dg : CARR -> NN is asserted to EXIST (FORSOME dg);
 ;;; it is not carried as structure data.  Division-with-remainder: for every
 ;;; a and every nonzero b there are q, r with  a = q*b + r  and either
-;;; r = ZERO or deg(r) < deg(b).  "<" on NN is written  succ(deg r) <= deg b.
+;;; r = ZERO or dg(r) < dg(b).  "<" on NN is written  succ(dg r) <= dg b.
 ;;;
 ;;; See commutative-ring.scm for the IS-X-as-predicate rationale.
 ;;; Dependencies: ring.scm, commutative-ring.scm, integral-domain.scm,
@@ -16,12 +16,18 @@
 (declare-structure EUCLIDEAN-RING
   (instance-var s)
   (same-shape-as INTEGRAL-DOMAIN)
-  (law "forsome([deg in fun(carr(s), nn)],
+  ;; The degree function's binder is `dg', NOT `deg': `DEG' is a registered
+  ;; functoid (the polynomial degree, structure-library/poly-degree.scm), and
+  ;; the head registry is scope-blind -- a bound `deg' appearing APPLIED reads
+  ;; as that constant, so the quantifier would bind a name the body never uses.
+  ;; `constant-binder-audit' makes this FATAL.  `dg' is this file's own choice
+  ;; everywhere else (EUCLIDEAN-GAUGES, gauges-mem-build, gauges-spec).
+  (law "forsome([dg in fun(carr(s), nn)],
           forall([a in carr(s), b in carr(s)],
             not(b = zero(s)) implies
               forsome([q in carr(s), r in carr(s)],
                 a = add(s)(mul(s)(q, b), r)
-                and (r = zero(s) or succ(deg(r)) <= deg(b)))))"))
+                and (r = zero(s) or succ(dg(r)) <= dg(b)))))"))
 
 ;;; Relation: every Euclidean ring is an integral domain.
 ;;; PROVEN modulo 0 via mac-h in structure-library/subtype-laws.scm (unfold
@@ -40,7 +46,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; The Euclidean gauge as a NAMED function, via the global epsilon.
 ;;;
-;;; is-euclidean-ring-def asserts a degree function EXISTS (FORSOME deg) but
+;;; is-euclidean-ring-def asserts a degree function EXISTS (FORSOME dg) but
 ;;; leaves it un-named, forcing existential-elimination into a throwaway
 ;;; eigenconstant every time it is used.  Following the centre-extraction
 ;;; pattern (compactness.scm: CENTRES/CENTRE-SET), we NAME it with the global
@@ -49,11 +55,11 @@
 ;;; Euclidean ring.  gauge-is-degree (proven, archive/calculus-pre-rename/gauge-proof.scm) is the
 ;;; soundness fact: GAUGE(s) really is a degree function.
 
-;;; HAS-DIV-REMAINDER(s, deg): deg gives division-with-remainder on s.  The body
+;;; HAS-DIV-REMAINDER(s, dg): dg gives division-with-remainder on s.  The body
 ;;; is the division-with-remainder clause of is-euclidean-ring-def, named once.
 ;;; (Inner element var a_ avoids the case-fold clash with the carrier accessor,
 ;;; named `A' when this was written and `CARR' now; the name is kept.)
-(def-predicate 'HAS-DIV-REMAINDER '(s deg)
+(def-predicate 'HAS-DIV-REMAINDER '(s dg)
   '(FORALL a_ (IMPLIES (IN a_ (CARR s))
      (FORALL b (IMPLIES (IN b (CARR s))
        (IMPLIES (NOT (= b (ZERO s)))
@@ -61,7 +67,7 @@
            (FORSOME r (AND (IN r (CARR s))
              (AND (= a_ ((ADD s) ((MUL s) q b) r))
                   (OR (= r (ZERO s))
-                      (<= (succ (deg r)) (deg b))))))))))))))
+                      (<= (succ (dg r)) (dg b))))))))))))))
 
 ;;; EUCLIDEAN-GAUGES(s): the set of valid degree functions on s.
 (def-functoid 'EUCLIDEAN-GAUGES '(s)
@@ -74,11 +80,11 @@
 ;;; is-euclidean-ring-def (its division clause, named HAS-DIV-REMAINDER).
 (support 'euclidean-ring-has-gauge
   '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
-     (FORSOME deg (AND (IN deg (FUN (CARR s) NN)) (HAS-DIV-REMAINDER s deg))))))
+     (FORSOME dg (AND (IN dg (FUN (CARR s) NN)) (HAS-DIV-REMAINDER s dg))))))
 (warrant! 'euclidean-ring-has-gauge 'well-known
   "The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a
-   degree function deg : CARR(s) -> NN with division-with-remainder (HAS-DIV-
-   REMAINDER s deg).  Definitional once HAS-DIV-REMAINDER names the clause.")
+   degree function dg : CARR(s) -> NN with division-with-remainder (HAS-DIV-
+   REMAINDER s dg).  Definitional once HAS-DIV-REMAINDER names the clause.")
 
 ;;; SEP-membership slices of EUCLIDEAN-GAUGES (definitional).
 (support 'gauges-mem-build

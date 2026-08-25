@@ -43,7 +43,7 @@
 (define GHCONT (list 'FORALL 't (list 'IMPLIES '(IN t (CCINT a x))
                  (list 'AND (list 'IS-CONTINUOUS-AT 'RR-MS 'RR-MS GT 't)
                             (list 'IS-CONTINUOUS-AT 'RR-MS 'RR-MS HT 't)))))
-(define GHDIFF (list 'FORALL 't (list 'IMPLIES '(AND (< a t) (< t x))
+(define GHDIFF (list 'FORALL 't (list 'IMPLIES '(AND (IN t RR) (AND (< a t) (< t x)))
                  (list 'AND (list 'FORSOME 'L (list 'IS-DIFF-AT GT 't 'L))
                             (list 'FORSOME 'M (list 'IS-DIFF-AT HT 't 'M))))))
 
@@ -98,8 +98,8 @@
   `(FORALL f (FORALL a (FORALL x (FORALL n
      (IMPLIES (TAYLOR-DIFFERENTIABLE f a x n) ,GHDIFF))))))
 (warrant! 'taylor-gmvt-diff 'reference
-  "G and H are differentiable on (a,x) (taylor-G-diff/H-diff give the explicit
-   derivatives), so each has SOME derivative there.")
+  "G and H are differentiable at every real point of (a,x) (taylor-G-diff/H-diff
+   give the explicit derivatives), so each has SOME derivative there.")
 (topic! 'taylor-gmvt-diff 'analysis)
 
 ;;; function-typing of the auxiliaries.
@@ -202,14 +202,23 @@
   "n! /= 0 (it is a positive integer), so n! * (1/n!) = 1.")
 (topic! 'rr-recip-factorial 'analysis)
 
-(add-to-pss 'rr-pos-ne-zero
-  '(FORALL c (IMPLIES (IN c RR) (IMPLIES (< 0 c) (NOT (= c 0))))))
-(warrant! 'rr-pos-ne-zero 'well-known "0<c gives c/=0.")
-(topic! 'rr-pos-ne-zero 'analysis)
 
-(add-to-pss 'power-in-rr
-  '(FORALL b (IMPLIES (IN b RR) (FORALL n (IMPLIES (IN n NN) (IN (power b n) RR))))))
-(warrant! 'power-in-rr 'well-known "b^n in RR for b real, n in NN (RR closed under *).")
+;;; power-in-rr -- PROVEN 2026-08-23, not asserted.  It was an `add-to-pss' +
+;;; `warrant! 'well-known' saying exactly what `power-closed-at' PROVES
+;;; (theorem-library/dyadic-weights.scm:156, `modulo 0'), with the two binders
+;;; in the other order -- the same statement twice, once checked and once not.
+;;; dyadic-weights loads well before this file, so the recovery is three lines.
+;;; MEASURED: it retires a leaf of exactly two bills (taylor-lagrange and
+;;; vector-taylor-remainder-bound), and moves NEITHER of their tiers -- both
+;;; carry two dozen other `reference'/`well-known' leaves, so this is the
+;;; shadowing case: worth doing because the duplicate was misleading, not
+;;; because any bill improves.
+(sp (make-wff '(FORALL b (IMPLIES (IN b RR)
+   (FORALL n (IMPLIES (IN n NN) (IN (power b n) RR)))))))
+(dk-peel-to! 'IN)
+(fact 'power-closed-at (caddr (cadr (dk-goal))) (cadr (cadr (dk-goal))))
+(ass)
+(qed 'power-in-rr)
 (topic! 'power-in-rr 'analysis)
 
 (add-to-pss 'taylor-poly-in-rr
@@ -259,9 +268,9 @@
 (sp `(FORALL f (FORALL a (FORALL x (FORALL n
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN x RR) (AND (IN n NN) (< a x)))))
      (IMPLIES (TAYLOR-DIFFERENTIABLE f a x n)
-       (FORSOME theta (AND (< a theta) (AND (< theta x)
+       (FORSOME theta (AND (IN theta RR) (AND (< a theta) (AND (< theta x)
          (= (* (FACTORIAL (succ n)) (- (f x) (TAYLOR-POLY f a n x)))
-            (* ((NTH-DERIV f (succ n)) theta) (power (- x a) (succ n))))))))))))))
+            (* ((NTH-DERIV f (succ n)) theta) (power (- x a) (succ n)))))))))))))))
 (quietly (lambda () (di)(di)(di)(di)))     ; f,a,x,n
 (dc-split)                                  ; typing AND
 (quietly (lambda () (di)))                 ; TAYLOR-DIFFERENTIABLE hyp
@@ -295,7 +304,7 @@
 (define MW (cadddr (dc-find (lambda (z) (and ((dc-head? 'IS-DIFF-AT) z) (equal? (caddr z) THETA) (dc-ment? 'power z) (not (dc-ment? 'taylor-poly z)))))))
 
 ;;; ---- endgame: pin L,M; endpoint values; elementary clearing ----
-(quietly (lambda () (fact 'rr-strict-between-real 'a 'x THETA)))   ; IN theta RR
+;; (IN theta RR) came out of the generalized-mvt existential with the rest of its body.
 (dc-have! (list 'IN (list '- 'x THETA) 'RR) GOAL)                 ; IN (x-theta) RR
 (dc-have! '(IN (- x a) RR) GOAL)                                  ; IN (x-a) RR
 (cut (list 'AND (list '< 'a THETA) (list '< THETA 'x))) (dc-grind!) (dc-focus! GOAL)

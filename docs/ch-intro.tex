@@ -49,7 +49,7 @@ set-theoretic construction:
   elements and operations are characterised by ring, field, and order
   axioms, not by Dedekind cuts, Cauchy sequences, or ordinal arithmetic.
 \item \textbf{Ordinals} \texttt{ORD} form a primitive proper class with
-  its own ordering predicate \texttt{<=\_ORD}, independent of the
+  its own ordering predicate \texttt{ORD-LE}, independent of the
   set-membership relation.
 \item \textbf{Function spaces} \texttt{fun($A$, $B$)} are primitive
   set constructors.  Functions are not encoded as sets of ordered
@@ -175,6 +175,41 @@ The prover lives in \texttt{\textasciitilde/prover/}: the executable
 script \texttt{prover} and the loader \texttt{load.scm} are the only
 two files you need to know about to get started.  See
 Appendix~\ref{app:source} for a per-file overview.
+
+\subsubsection{Compile the tree first}
+\label{sec:compile-first}
+
+Compiled binaries (\texttt{.com}, \texttt{.bin}) are excluded from both the
+repository and the distributed archive, so a freshly cloned or unpacked tree is
+\emph{interpreted}.  It will run correctly, and nothing in its output will say
+that it is doing so; only the clock will.  On a modest machine the difference is
+between a library load of some twenty seconds and one of roughly eleven minutes,
+and between a full test suite of a few minutes and one of roughly forty.
+
+Compile once, after obtaining the tree.  This takes about ten minutes and
+includes one load from source:
+
+\begin{VNBsnip}
+~/prover/VNB-with-compile    # compile every source file, then launch
+\end{VNBsnip}
+
+Thereafter recompile only what has changed.  From a session that has already
+loaded \texttt{load.scm}:
+
+\begin{VNBsnip}
+(compile-vnb!)               # incremental: skips files whose .com is current
+\end{VNBsnip}
+
+After editing a source file, delete both its \texttt{.com} and its \texttt{.bin}
+and recompile it \emph{before} running anything: the loader prefers the compiled
+form and will otherwise use a stale binary.  Editing a core file and leaving it
+to load from source is the usual explanation for a session that has become
+inexplicably slow --- so the question to ask is not whether the tree is
+compiled but whether \emph{that file} is.  A small number of files are compiled
+by nobody, deliberately: those that use a top-level macro, which
+\texttt{compile-vnb!} lists in \texttt{*vnb-no-compile-files*} and skips.  They
+load from source at no measurable cost, their work being done in the compiled
+procedures they call.
 
 \subsection{Starting the checker}
 

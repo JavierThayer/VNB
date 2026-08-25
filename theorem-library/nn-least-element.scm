@@ -8,11 +8,11 @@
 ;;; Was an ad-hoc asserted support in structure-library/ideal.scm; now a
 ;;; theorem resting on ord-well-ordered (ordinals.scm), the canonical home
 ;;; of the well-ordering principle.  The proof:
-;;;   * T subset NN subset ORD, so ord-well-ordered gives a <=_ORD-least m;
-;;;   * <=_ORD and numeric <= coincide on NN (ord-le-nn-compat), so m is
+;;;   * T subset NN subset ORD, so ord-well-ordered gives a ORD-LE-least m;
+;;;   * ORD-LE and numeric <= coincide on NN (ord-le-nn-compat), so m is
 ;;;     <=-least too.
 ;;;
-;;; The <=_ORD <-> <= bridge is a CONDITIONAL biconditional, so it cannot be
+;;; The ORD-LE <-> <= bridge is a CONDITIONAL biconditional, so it cannot be
 ;;; used as a rewrite macete; it is landed by `fact' and then consumed by the
 ;;; new iff-elim case of `ai' (primitive-inferences.scm) -- the machinery gap
 ;;; this proof exposed.
@@ -90,13 +90,13 @@
   (ew wn))
 (ass)
 
-;; ---- ord-well-ordered now applies: least m under <=_ORD ----
+;; ---- ord-well-ordered now applies: least m under ORD-LE ----
 (focus-leaf-goal! MAINGOAL)
-(fact 'ord-well-ordered NLE-TT)               ; detaches WO-ANTE -> FORSOME m (AND (IN m T)(FORALL k. k in T => m <=_ORD k))
+(fact 'ord-well-ordered NLE-TT)               ; detaches WO-ANTE -> FORSOME m (AND (IN m T)(FORALL k. k in T => m ORD-LE k))
 (define GENEX (asm-find-pred (lambda (w) (and (pair? w) (eq? (car w) 'FORSOME)))))
 (define BODY  (ai-body GENEX))
 (define MM    (cadr (cadr BODY)))         ; the least element
-(define HMLE  (caddr BODY))               ; FORALL k. k in T => MM <=_ORD k
+(define HMLE  (caddr BODY))               ; FORALL k. k in T => MM ORD-LE k
 (split-ands!)                             ; H_mT: IN MM NLE-TT ; H_mle: HMLE
 
 ;; ---- witness m := MM ----
@@ -109,11 +109,11 @@
 (di)                                      ; bounded-forall peel: asm (IN KK NLE-TT) ; goal (<= MM KK)
 (define KK (caddr (cur-goal-raw)))        ; (<= MM KK) -> KK
 
-;; MM <=_ORD KK from the least-element property
+;; MM ORD-LE KK from the least-element property
 (inst HMLE KK)
-(detach! `(IMPLIES (IN ,KK ,NLE-TT) (<=_ORD ,MM ,KK)))
+(detach! `(IMPLIES (IN ,KK ,NLE-TT) (ORD-LE ,MM ,KK)))
 
-;; MM, KK in NN (via subset-def), then their <=_ORD/<= coincide
+;; MM, KK in NN (via subset-def), then their ORD-LE/<= coincide
 (mac-h 'subset-def `(SUBSET ,NLE-TT NN))
 (define HSUBF (forall-asm-into "nn"))
 (inst HSUBF MM) (detach! `(IMPLIES (IN ,MM ,NLE-TT) (IN ,MM NN)))
@@ -123,9 +123,9 @@
 (focus-leaf-goal! `(IN ,MM NN)) (ass)
 (focus-leaf-goal! `(IN ,KK NN)) (ass)
 (focus-leaf-goal! `(<= ,MM ,KK))
-(fact 'ord-le-nn-compat MM KK)            ; lands (IFF (<=_ORD MM KK) (<= MM KK))
-(ai `(IFF (<=_ORD ,MM ,KK) (<= ,MM ,KK)))  ; iff-elim -> both implications
-(detach! `(IMPLIES (<=_ORD ,MM ,KK) (<= ,MM ,KK)))
+(fact 'ord-le-nn-compat MM KK)            ; lands (IFF (ORD-LE MM KK) (<= MM KK))
+(ai `(IFF (ORD-LE ,MM ,KK) (<= ,MM ,KK)))  ; iff-elim -> both implications
+(detach! `(IMPLIES (ORD-LE ,MM ,KK) (<= ,MM ,KK)))
 (ass)
 
 ;;; ===================================================================

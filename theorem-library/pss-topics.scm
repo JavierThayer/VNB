@@ -78,7 +78,6 @@
 (topic! 'ring-power-type 'plumbing)
 (topic! 'prod-ring-type 'plumbing)
 (topic! 'rpow-pos 'plumbing)
-(topic! 'sqrt-nonneg 'plumbing)
 (topic! 'power-real-closed 'plumbing)
 (topic! 'nn-minus-in-nn 'plumbing)
 (topic! 'ord-segment-insert 'plumbing)
@@ -143,7 +142,6 @@
 (topic! 'rpow-mono-base 'inequalities)
 (topic! 'rpow-mono-exp-ge1 'inequalities)
 (topic! 'rpow-mono-exp-le1 'inequalities)
-(topic! 'sqrt-mono 'inequalities)
 (topic! 'amgm-2-sqrt 'inequalities)
 (topic! 'young-inequality 'inequalities)
 (topic! 'bernoulli-rpow 'inequalities)
@@ -222,10 +220,6 @@
 (topic! 'ps-converges-as-series 'analysis)
 (topic! 'geometric-partial-sum 'analysis)
 (topic! 'geometric-series-converges-to 'analysis)
-(topic! 'comparison-test 'analysis)
-(topic! 'monotone-convergence-rr 'analysis)
-(topic! 'series-partial-sum-monotone-nonneg 'analysis)
-(topic! 'series-partial-sum-le-termwise 'analysis)
 (topic! 'series-partial-sum-abs-le 'analysis)
 (topic! 'series-cauchy-criterion 'analysis)
 (topic! 'absolute-summable-implies-summable 'analysis)
@@ -251,10 +245,11 @@
 (topic! 'rpow-nat 'algebra)
 (topic! 'rpow-zero-base 'algebra)
 (topic! 'rpow-zero-zero 'algebra)
-(topic! 'sqrt-sq 'algebra)
-(topic! 'sqrt-of-sq 'algebra)
+;; sqrt-nonneg / sqrt-sq / sqrt-of-sq / sqrt-mono / sqrt-mul left this file on
+;; 2026-08-17: they stopped being supports of real-powers.scm and became
+;; theorems of theorem-library/sqrt-defined.scm, which files its own topics.
+;; sqrt-rpow stays -- it is still a support, being a claim about RPOW.
 (topic! 'sqrt-rpow 'algebra)
-(topic! 'sqrt-mul 'algebra)
 (topic! 'finsum-add 'algebra)
 (topic! 'finsum-ring-distrib-left 'algebra)
 (topic! 'finsum-ring-scalar-zz 'algebra)

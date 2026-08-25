@@ -753,16 +753,41 @@ file per structure) and loaded automatically.
 \begin{remark}
 Each entry above is citable by name with \texttt{(ta 'name)}, which transports
 it into the current proof.  They do \emph{not} all have the same standing,
-however, and the column heading is a convenience rather than a claim: the
-\textsc{Ring}, \textsc{Group} and \textsc{Abelian-Group} laws really are
-installed by \texttt{theory-add-axiom!} (fifteen of them in
-\texttt{structure-library/ring.scm} alone) and are charged to the bill of any
-\texttt{qed} that cites them, whereas the \textsc{Metric-Space} laws --
-\texttt{metric-pos}, \texttt{metric-self-zero}, \texttt{metric-zero-eq},
-\texttt{metric-sym}, \texttt{metric-triangle} -- are \emph{proved}, by
-\texttt{prove-metric-law!} in \texttt{structure-library/metric-laws.scm}, and
-cost nothing.  \texttt{reference/PROOF-DEBT.md} is the authority on which is
-which; this table is not.  For example, to apply
+however, and the column heading is a convenience rather than a claim.
+
+A structure declaration generates an \texttt{IS-X} defining biconditional, and
+each operation-property conjunct of it, unfolded, \emph{is} one of the
+structure's laws.  Stating such a law separately therefore adds no mathematical
+content, and the question is only how the system records that fact.  Three
+answers are in use, and they cost a citing \texttt{qed} the same --- nothing ---
+by three different routes:
+
+\begin{itemize}
+\item \emph{Proved.}  The \textsc{Metric-Space} laws (\texttt{metric-pos},
+  \texttt{metric-self-zero}, \texttt{metric-zero-eq}, \texttt{metric-sym},
+  \texttt{metric-triangle}) are established by \texttt{prove-metric-law!} in
+  \texttt{structure-library/metric-laws.scm}; the \textsc{Group} laws
+  (\texttt{group-assoc}, \texttt{group-left-id}, \texttt{group-left-inv},
+  \texttt{group-identity-in}) and \texttt{abelian-group-opr-comm} by
+  \texttt{stl--project!} in \texttt{structure-library/subtype-laws.scm}.  The
+  unfold is \emph{checked}, not asserted to exist.
+\item \emph{Installed and stamped \texttt{definitional}.}  The \textsc{Ring}
+  laws are installed by \texttt{theory-add-axiom!} in
+  \texttt{structure-library/ring.scm} and then swept with
+  \texttt{register-provenance!\ \ldots\ 'definitional} in the same file.  A
+  \texttt{definitional} fact contributes the empty set to every bill, exactly as
+  a \texttt{primitive} one does.
+\item \emph{Wrapped at installation.}  \texttt{structure-library/module.scm}
+  reaches the same place by the other door, installing its projections inside
+  \texttt{(fluid-let ((*current-provenance* 'definitional)) \ldots)}.
+\end{itemize}
+
+Two laws in the table are genuinely \emph{derived} rather than projected, and
+they do carry a warrant: \texttt{ring-mul-zero-left} and
+\texttt{ring-mul-zero-right} ($0\cdot a = 0$, which needs distributivity and
+cancellation, not merely the definition of a ring).
+\texttt{reference/PROOF-DEBT.md} is the authority on which is which; this table
+is not.  For example, to apply
 \texttt{group-left-inv} (which asserts
 $\forall s,a.\;\texttt{IS-GROUP}(s)\Rightarrow a\in\texttt{CARR}(s)
  \Rightarrow \texttt{OPR}(s)(\texttt{INV}(s)(a),a)=\texttt{IDEN}(s)$),

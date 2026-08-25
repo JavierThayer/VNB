@@ -26,15 +26,21 @@
 ;;; with the rest of the rr-lt-* family, in structure-library/order-lemmas.scm.
 ;;; (2026-08-04)
 
-;;; --- warranted support: a point strictly between two reals is real ---
-;;; (Curried, so forward `fact' detaches each premise -- no AND antecedent.)
-(add-to-pss 'rr-strict-between-real
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (FORALL x (IMPLIES (< u x) (IMPLIES (< x v) (IN x RR)))))))))
-(warrant! 'rr-strict-between-real 'well-known
-  "If u<x<v with u,v real then x is real: the strict order on RR only relates
-   reals, so an interior point of [u,v] lies in RR.")
-(topic! 'rr-strict-between-real 'analysis)
+;;; `rr-strict-between-real' USED TO BE DECLARED HERE -- "u,v in RR, u<x<v =>
+;;; x in RR", warranted well-known with the gloss "the strict order on RR only
+;;; relates reals".  That gloss asserted something the theory never states: `<'
+;;; is `<=' and not `=' (order-predicates.scm) over the PRIMITIVE relation `<=',
+;;; and the RR order axioms constrain `<=' on reals without forbidding it to
+;;; relate a real to a non-real.  So it was an extra axiom about the primitive
+;;; relation, not a consequence of one; and guarding it on (IN x RR) would have
+;;; made it vacuous, since concluding (IN x RR) was its whole purpose.
+;;;
+;;; The need for it came from the statements upstream, not from the mathematics.
+;;; rolle / mvt / generalized-mvt produced an interior witness and DROPPED ITS
+;;; TYPING, and their differentiability hypothesis quantified an untyped point.
+;;; Both are fixed at the source: the conclusions now carry (IN theta RR) and the
+;;; hypotheses read `forall x. x in RR and a<x<b => ...'.  Each use below reads
+;;; the typing off the context instead.  (2026-08-16)
 
 ;;; ====================================================================
 ;;; Lemma deriv-zero-const-up:  u<v in [a,b]  =>  f(u)=f(v).
@@ -42,7 +48,7 @@
 (sp '(FORALL f (FORALL a (FORALL b
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b)) (IS-DIFF-AT f x 0)))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b))) (IS-DIFF-AT f x 0)))
        (FORALL u (FORALL v (IMPLIES (AND (IN u (CCINT a b)) (AND (IN v (CCINT a b)) (< u v)))
          (= (f u) (f v))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)(di)(di)))   ; f,a,b,TYP,CONT,DZ,u,v,bodyAND
@@ -78,17 +84,16 @@
 (dc-focus! GOAL)
 
 ;;; H3: f differentiable on (u,v)
-(define H3 '(FORALL x (IMPLIES (AND (< u x) (< x v)) (FORSOME L (IS-DIFF-AT f x L)))))
+(define H3 '(FORALL x (IMPLIES (AND (IN x RR) (AND (< u x) (< x v))) (FORSOME L (IS-DIFF-AT f x L)))))
 (cut H3)
-(di) (di)                                 ; x ; (AND (< u x)(< x v)) -> goal FORSOME L ...
-(dc-split)                                ; < u x, < x v
+(di) (di)                                 ; x ; (AND (IN x RR)(AND (< u x)(< x v)))
+(dc-split)                                ; IN x RR, < u x, < x v
 (define H3GOAL (dc-gf))
-(quietly (lambda () (fact 'rr-strict-between-real 'u 'v 'x)))   ; -> (IN x RR)
 (cut '(AND (<= a u) (< u x))) (dc-grind!) (dc-focus! H3GOAL)
 (quietly (lambda () (fact 'rr-le-lt-trans 'a 'u 'x)))   ; -> < a x
 (cut '(AND (< x v) (<= v b))) (dc-grind!) (dc-focus! H3GOAL)
 (quietly (lambda () (fact 'rr-lt-le-trans 'x 'v 'b)))   ; -> < x b
-(cut '(AND (< a x) (< x b))) (dc-grind!) (dc-focus! H3GOAL)
+(cut '(AND (IN x RR) (AND (< a x) (< x b)))) (dc-grind!) (dc-focus! H3GOAL)
 (quietly (lambda () (inst+ DZHYP 'x)))    ; AND in ctx -> detaches -> (IS-DIFF-AT f x 0)
 (ew 0)                                     ; FORSOME L (IS-DIFF-AT f x L)
 (quietly (lambda () (ass-all)))
@@ -109,14 +114,14 @@
 (dc-split)
 (define LW (cadddr (dc-find (lambda (z) (and ((dc-head? 'IS-DIFF-AT) z) (eq? (cadr z) 'f) (equal? (caddr z) THETA))))))
 (define EQ1 (list '= (list '* LW '(- v u)) '(- (f v) (f u))))
-(quietly (lambda () (fact 'rr-strict-between-real 'u 'v THETA)))   ; -> (IN theta RR)
+;; (IN theta RR) came out of the MVT existential with the rest of its body.
 
 ;;; theta in (a,b)
 (cut (list 'AND '(<= a u) (list '< 'u THETA))) (dc-grind!) (dc-focus! GOAL)
 (quietly (lambda () (fact 'rr-le-lt-trans 'a 'u THETA)))      ; < a theta
 (cut (list 'AND (list '< THETA 'v) '(<= v b))) (dc-grind!) (dc-focus! GOAL)
 (quietly (lambda () (fact 'rr-lt-le-trans THETA 'v 'b)))      ; < theta b
-(cut (list 'AND (list '< 'a THETA) (list '< THETA 'b))) (dc-grind!) (dc-focus! GOAL)
+(cut (list 'AND (list 'IN THETA 'RR) (list 'AND (list '< 'a THETA) (list '< THETA 'b)))) (dc-grind!) (dc-focus! GOAL)
 (quietly (lambda () (inst+ DZHYP THETA)))                     ; -> (IS-DIFF-AT f theta 0)
 
 ;;; derivative-unique:  IS-DIFF-AT f theta LW and IS-DIFF-AT f theta 0  =>  LW = 0
@@ -153,7 +158,7 @@
 (sp '(FORALL f (FORALL a (FORALL b
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b)) (IS-DIFF-AT f x 0)))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b))) (IS-DIFF-AT f x 0)))
        (FORALL u (FORALL v (IMPLIES (AND (IN u (CCINT a b)) (IN v (CCINT a b)))
          (= (f u) (f v))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)(di)(di)))   ; f,a,b,TYP,CONT,DZ,u,v,bodyAND

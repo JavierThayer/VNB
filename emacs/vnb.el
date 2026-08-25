@@ -73,6 +73,21 @@ prefix), or nil if none current.  Set by the preoutput filter when
 an error line streams in from the prover; cleared by the state-update
 handler on the next successful proof-state update.")
 
+(defvar vnb-note-hook nil
+  "Hook run when a `;VNB warning: MSG' line is detected in prover output.
+Each hook function is called with one string argument: MSG.  Distinct
+from `vnb-error-hook': a WARNING is a tactic DECLINING -- `ass' with no
+matching hypothesis, `prop' on a goal that does not follow -- which leaves
+the proof untouched and is not an error.  It still has to reach the eye:
+in a workspace the only visible consequence of a declined tactic is that
+nothing changed, which reads exactly like a key that does not work.")
+
+(defvar vnb--last-note nil
+  "Most recent VNB warning text (without the `;VNB warning: ' prefix), or
+nil.  Same lifecycle as `vnb--last-error': set by the preoutput filter,
+cleared when a fresh proof state arrives, since a state update means the
+next thing the user did worked.")
+
 ;;; -----------------------------------------------------------------------
 ;;; Compatibility shims
 
@@ -120,7 +135,13 @@ chunks is still recognised once the trailing newline arrives."
         (let ((msg (match-string 1 line)))
           (setq vnb--last-error msg)
           (message "VNB error: %s" msg)
-          (run-hook-with-args 'vnb-error-hook msg))))))
+          (run-hook-with-args 'vnb-error-hook msg)))
+      ;; ONE semicolon: the wire format vnb--run! uses for a soft warning.
+      (when (string-match "\\`;VNB warning: \\(.*\\)\\'" line)
+        (let ((msg (match-string 1 line)))
+          (setq vnb--last-note msg)
+          (message "VNB: %s" msg)
+          (run-hook-with-args 'vnb-note-hook msg))))))
 
 (defun vnb--preoutput-filter (string)
   "Strip VNB sentinel lines; extract state content for the display buffer.
@@ -224,6 +245,7 @@ Runs the prover as a subprocess via comint."
 
 (define-key vnb-mode-map "\C-c\C-s" 'vnb-show-state)
 (define-key vnb-mode-map "\C-c\C-p" 'vnb-goto-state)
+(define-key vnb-mode-map "\C-c\C-f" 'vnb-edit-filter)
 
 (define-key vnb-state-mode-map "q" 'vnb-goto-repl)
 (define-key vnb-state-mode-map "\C-c\C-s" 'vnb-show-state)
@@ -274,7 +296,15 @@ prover never rearranges the user's frame."
     (with-current-buffer repl-buf
       (unless (vnb--process-live-p repl-buf)
         (vnb-mode)
-        (comint-exec repl-buf "VNB" vnb-program nil nil)
+        (comint-exec repl-buf "VNB" vnb-program nil
+                     ;; Start from the heap band when it is CURRENT (0.1 s
+                     ;; instead of a 55 s library load).  `--band-if-fresh'
+                     ;; falls back to an ordinary load whenever any .scm is
+                     ;; newer than the band, so a session can never reason
+                     ;; against a frozen library -- the one risk the band
+                     ;; carries.  Behaviour with a stale or absent band is
+                     ;; exactly what it was before.
+                     (list "--band-if-fresh"))
         (vnb--install-process-filter)))
     repl-buf))
 
@@ -547,17 +577,23 @@ buffer, which comint updates regardless of how accept-process-output works."
     ("proof-open-goals"       "(proof-open-goals PS)"
      "Return the list of ungrounded (open) goal nodes in PS.")
     ;; ---- Theory / structure ----
-    ("def-structure"          "(def-structure NAME CARRIERS OP-SPECS AXIOM-NAMES)"
-     "Declare a mathematical structure; installs NTH accessor macetes and
-  the IS-NAME predicate axiom.")
-    ("declare-structure"      "(declare-structure NAME (carriers C1 ...) (op OP (D1 ...) RANGE) ...)"
+    ("def-structure"          "(def-structure NAME SLOTS PROPERTIES [LAWS IVAR])"
+     "Machinery behind declare-structure; call the macro instead.  SLOTS is
+  ONE list of carrier/op/constant slots in declaration order (their
+  positions are the accessor indices), PROPERTIES the (property ...)
+  clauses -- not separate CARRIERS and OP-SPECS arguments.")
+    ("declare-structure"      "(declare-structure NAME (carriers C1 ...) (op OP DOMAIN RANGE) ...)"
      "User-facing syntax for def-structure; no quoting required.
-  Clause kinds: (carriers C1 C2 ...), (op OPNAME (D1 D2 ...) RANGE),
-  (constant CNAME SET).  Example:
+  Clause kinds: (carriers C1 C2 ...), (op OPNAME DOMAIN RANGE),
+  (constant CNAME SET).  DOMAIN is one class expression, NOT a list of
+  argument domains: an n-argument operation writes (CARTESIAN C1 ... Cn)
+  at any arity, since every VNB function is unary on its domain -- it
+  takes one tuple.  A bare (C1 ... Cn) is read as an application and
+  accepted in silence.  Example:
     (declare-structure RING
       (carriers ELEMENTS)
-      (op PLUS  (ELEMENTS ELEMENTS) ELEMENTS)
-      (op TIMES (ELEMENTS ELEMENTS) ELEMENTS))")
+      (op PLUS  (CARTESIAN ELEMENTS ELEMENTS) ELEMENTS)
+      (op TIMES (CARTESIAN ELEMENTS ELEMENTS) ELEMENTS))")
     ("specialize-structure"   "(specialize-structure INSTANCE STRUCT IS-THM)"
      "Transport all generic STRUCT theorems to the certified instance INSTANCE.
   IS-THM must be a proved theorem of the form (IS-STRUCT INSTANCE).
@@ -583,6 +619,67 @@ buffer, which comint updates regardless of how accept-process-output works."
     (if entry
         (message "%s\n%s" (cadr entry) (caddr entry))
       (message "Unknown VNB command: %s" name))))
+
+;;; -----------------------------------------------------------------------
+;;; vnb-filter-mode -- edit the What Now filter the way you edit a kbd macro
+;;;
+;;; The What Now panel guesses at relevance by measuring shape -- fingerprint
+;;; specificity, connective count, term size, sequent vocabulary.  Every such
+;;; measure has a counterexample, because a reader driving a proof knows things
+;;; about relevance that no syntactic measure can reconstruct ("I am not doing
+;;; anything with bounded metrics today" is not derivable from the goal).  So
+;;; the panel takes instructions as well as guessing, and this is where you
+;;; write them.
+;;;
+;;; The file is ordinary Scheme and is EVALUATED, not read -- which is what lets
+;;; a filter entry be a `(lambda (n) ...)'.  Live procedure entries have no
+;;; readable printed form, so the edit cycle deliberately runs one way only:
+;;; file -> prover.  Nothing here changes what is provable; a suppressed move
+;;; is still typeable by hand.
+
+(defvar vnb-filter-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") 'vnb-filter-apply)
+    (define-key map (kbd "C-c C-k") 'vnb-filter-revert)
+    map)
+  "Keymap for `vnb-filter-mode'.")
+
+(define-derived-mode vnb-filter-mode scheme-mode "VNB-Filter"
+  "Major mode for editing the VNB What Now filter.
+\\<vnb-filter-mode-map>
+\\[vnb-filter-apply] saves the buffer and loads it into the running prover.
+\\[vnb-filter-revert] discards your edits and re-reads the file from disk."
+  (setq-local header-line-format
+              "VNB What Now filter -- C-c C-c apply, C-c C-k revert"))
+
+(defun vnb-edit-filter ()
+  "Open the What Now filter for editing.
+Asks the running prover where the file lives, creating it from a commented
+template on first use, so a first-time reader gets a worked example rather
+than an empty buffer."
+  (interactive)
+  (let ((path (vnb--unquote (vnb--trim (vnb-eval-string "(what-now-filter-file)")))))
+    (when (or (null path) (string= path ""))
+      (error "VNB: could not determine the filter file path"))
+    (find-file path)
+    (vnb-filter-mode)
+    (message "Edit, then C-c C-c to apply.")))
+
+(defun vnb-filter-apply ()
+  "Save the filter buffer and load it into the running prover."
+  (interactive)
+  (save-buffer)
+  ;; Report what the prover ended up with, not merely that we sent something --
+  ;; a filter that silently failed to apply is the whole class of bug this
+  ;; session spent the day on.
+  (let ((res (vnb-eval-string "(what-now-filter-load!)")))
+    (message "VNB filter applied: %s" (vnb--trim (or res "")))))
+
+(defun vnb-filter-revert ()
+  "Discard edits and re-read the filter file from disk."
+  (interactive)
+  (revert-buffer t t)
+  (message "VNB filter reverted (prover unchanged)."))
 
 ;;; -----------------------------------------------------------------------
 ;;; vnb-command-mode

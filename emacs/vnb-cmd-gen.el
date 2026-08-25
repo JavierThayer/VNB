@@ -24,7 +24,10 @@
 ;;     undetermined-var handling) are preserved -- see `vnb-cmd--delegate-map';
 ;;   * any other arg-taking tactic (cut, wk, ui, ce, iota-d, if-true, the
 ;;     tacticals, ...) -> prompts for its arguments in surface syntax and sends
-;;     the form (`vnb-cmd--send-raw').
+;;     the form (`vnb-cmd--send-raw').  When the tactic's first argument is a
+;;     FORMULA or a TERM, it is read on its own prompt and quoted on the way
+;;     out -- see `vnb-cmd--formula-arg-names' for why an unquoted answer is
+;;     not merely unparsed but misread, by MIT Scheme's reader.
 ;;
 ;; The command's docstring is the catalog gloss, so C-h f vnb-cmd-NAME explains
 ;; the tactic.  A "No-arg Tactics" menu of the no-arg commands is also built
@@ -113,18 +116,70 @@ completion, #N assumption picking, bc*'s undetermined-var handling, ...).")
       (format "(%s %s)" name (mapconcat #'symbol-name args " "))
     (format "(%s)" name)))
 
-(defun vnb-cmd--send-raw (name sig)
+(defvar vnb-cmd--formula-arg-names
+  '(goal formula claim impl term mem target w t c1 l0 hint)
+  "Catalog argument names denoting a piece of SURFACE SYNTAX -- a formula or
+a term -- as opposed to a theorem name, an assumption index or a thunk.
+When the FIRST argument of a tactic is one of these, it is read on a prompt of
+its own and QUOTED on the way out (`vnb-cmd--send-quoted'): the user types the
+surface text bare and never has to think about the quotes at all.
+
+Unquoted surface text does not reach VNB's parser at all: the argument
+string is spliced into `(NAME ...)' and read by MIT Scheme first, where a
+`,' is unquote and a `'' is quote.  So `cut b = union(a, complement-in(b,a))'
+failed with \";Special keyword can't be expanded: (unquote complement-in)\"
+-- a message that names a symbol the user did type and blames a reader they
+did not know was involved.  Quoting is what `->raw-formula' (interactive.scm)
+dispatches on: a string is handed to `parse-string', anything else is taken
+as a raw S-expression.
+
+Deliberately EXCLUDED: `hyp' (ce, te, ie, ue, wk, lam-b-h -- these accept a
+bare assumption index `#N' as well as a formula, so a quote is as often
+wrong as right); `ineq' (the argument of `prep' is a TACTIC name, not an
+inequality); `name' / `thm' / `acc' (symbols); `k' / `n' / `i1' (indices).")
+
+(defun vnb-cmd--send-quoted (name sig args)
+  "Prompt for a tactic whose FIRST argument is surface syntax, and QUOTE it.
+The user types the formula or term bare; elisp adds the double quotes on the
+way out, with `%S', which also escapes any quote inside the text.  Quotes the
+user typed anyway are stripped first by `vnb-launch--dequote', so typing them
+is harmless rather than doubled.
+
+Any REMAINING arguments are read separately and spliced raw: they are indices,
+thunks or names, for which a quote would be wrong.  This is why the first
+argument gets its own prompt instead of the whole line being wrapped -- a
+tactic like `have!' takes a formula AND a thunk, and one pair of quotes round
+the pair of them would be nonsense."
+  (let* ((a1   (vnb-launch--dequote
+                (vnb-launch--read-required
+                 (format "%s  --  %s, surface syntax, no quotes needed (empty cancels): "
+                         sig (car args)))))
+         (rest (if (cdr args)
+                   (read-string
+                    (format "%s  --  %s (empty = none): " sig
+                            (mapconcat #'symbol-name (cdr args) " ")))
+                 "")))
+    (vnb-launch--send-tactic
+     (if (string-match-p "\\`[ \t]*\\'" rest)
+         (format "(%s %S)" name a1)
+       (format "(%s %S %s)" name a1 rest)))))
+
+(defun vnb-cmd--send-raw (name sig &optional args)
   "Prompt for the arguments of arg-taking tactic NAME and send the form.
-The user types the arguments in Scheme surface syntax -- a term as a
-\"string\", an assumption number bare, a tactic thunk like `di' for a
-tactical -- exactly what would go after the head in the Scratch Workspace.
+The user types the arguments in Scheme surface syntax -- an assumption number
+bare, a tactic thunk like `di' for a tactical -- exactly what would go after
+the head in the Scratch Workspace.  ARGS is the tactic's catalog argument
+list; when its first element is in `vnb-cmd--formula-arg-names', that argument
+is read on its own and QUOTED by `vnb-cmd--send-quoted'.
 The universal fallback for tactics without a curated `vnb-pf-*' front-end."
   (unless (fboundp 'vnb-launch--send-tactic)
     (user-error "VNB launcher not loaded"))
-  (let ((argstr (vnb-launch--read-required
-                 (format "%s  --  arguments after `%s' (empty cancels): "
-                         sig name))))
-    (vnb-launch--send-tactic (format "(%s %s)" name argstr))))
+  (if (and (consp args) (memq (car args) vnb-cmd--formula-arg-names))
+      (vnb-cmd--send-quoted name sig args)
+    (let ((argstr (vnb-launch--read-required
+                   (format "%s  --  arguments after `%s' (empty cancels): "
+                           sig name))))
+      (vnb-launch--send-tactic (format "(%s %s)" name argstr)))))
 
 ;;;###autoload
 (defun vnb-cmdgen-rebuild ()
@@ -165,7 +220,7 @@ Auto-generated by vnb-cmd-gen.el from the command registry." doc sexp))))
             (defalias sym
               (lambda ()
                 (interactive)
-                (vnb-cmd--send-raw name sig))
+                (vnb-cmd--send-raw name sig args))
               (format "%s\n\nVNB tactic `%s'; prompts for its arguments and \
 sends the form.\nAuto-generated by vnb-cmd-gen.el from the command registry."
                       doc sig)))))

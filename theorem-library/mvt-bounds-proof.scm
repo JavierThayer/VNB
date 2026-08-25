@@ -24,7 +24,7 @@
 (sp '(FORALL f (FORALL a (FORALL b (FORALL M
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (AND (IN M RR) (< a b)))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b)))
                  (FORSOME L (AND (IS-DIFF-AT f x L) (<= L M)))))
        (<= (- (f b) (f a)) (* M (- b a)))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))   ; f,a,b,M,TYP,CONT,DIFFM
@@ -38,7 +38,7 @@
 (cut UH1) (dc-grind!) (dc-focus! UGOAL)
 
 ;;; H3: f differentiable on (a,b) -- weaken DIFFM (drop the <=M conjunct)
-(define UH3 '(FORALL x (IMPLIES (AND (< a x) (< x b)) (FORSOME L (IS-DIFF-AT f x L)))))
+(define UH3 '(FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b))) (FORSOME L (IS-DIFF-AT f x L)))))
 (cut UH3)
 (di) (di)                                 ; x ; (AND (< a x)(< x b))
 (define UH3G (dc-gf))
@@ -66,7 +66,7 @@
 (define UEQ1 (list '= (list '* ULW '(- b a)) '(- (f b) (f a))))
 
 ;;; bound on f' at theta: DIFFM at theta -> L' with (<= L' M); unique -> L=L'
-(cut (list 'AND (list '< 'a UTH) (list '< UTH 'b))) (dc-grind!) (dc-focus! UGOAL)
+(cut (list 'AND (list 'IN UTH 'RR) (list 'AND (list '< 'a UTH) (list '< UTH 'b)))) (dc-grind!) (dc-focus! UGOAL)
 (quietly (lambda () (inst+ UDIFF UTH)))   ; -> FORSOME L' (AND (IS-DIFF-AT f theta L')(<= L' M))
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'is-diff-at z)))))
 (dc-split)
@@ -99,7 +99,7 @@
 (sp '(FORALL f (FORALL a (FORALL b (FORALL m
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (AND (IN m RR) (< a b)))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b)))
                  (FORSOME L (AND (IS-DIFF-AT f x L) (<= m L)))))
        (<= (* m (- b a)) (- (f b) (f a)))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))
@@ -111,7 +111,7 @@
 (define LH1 '(AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b)))))
 (cut LH1) (dc-grind!) (dc-focus! LGOAL)
 
-(define LH3 '(FORALL x (IMPLIES (AND (< a x) (< x b)) (FORSOME L (IS-DIFF-AT f x L)))))
+(define LH3 '(FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b))) (FORSOME L (IS-DIFF-AT f x L)))))
 (cut LH3)
 (di) (di)
 (quietly (lambda () (inst+ LDIFF 'x)))
@@ -135,7 +135,7 @@
 (define LLW (cadddr (dc-find (lambda (z) (and ((dc-head? 'IS-DIFF-AT) z) (eq? (cadr z) 'f) (equal? (caddr z) LTH))))))
 (define LEQ1 (list '= (list '* LLW '(- b a)) '(- (f b) (f a))))
 
-(cut (list 'AND (list '< 'a LTH) (list '< LTH 'b))) (dc-grind!) (dc-focus! LGOAL)
+(cut (list 'AND (list 'IN LTH 'RR) (list 'AND (list '< 'a LTH) (list '< LTH 'b)))) (dc-grind!) (dc-focus! LGOAL)
 (quietly (lambda () (inst+ LDIFF LTH)))
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'is-diff-at z)))))
 (dc-split)

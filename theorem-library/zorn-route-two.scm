@@ -53,7 +53,7 @@
   '(CHOICE (SEP y_ grd (IS-STRICTLY-BELOW porel val y_)))
   '(lam)
   '(CHOICE (SEP y_ grd
-             (FORALL c_ (IMPLIES (<_ORD c_ lam)
+             (FORALL c_ (IMPLIES (ORD-LT c_ lam)
                                  (IN (LIST (ZUP grd porel c_) y_) porel))))))
 
 ;;; The four standing hypotheses: a partial order, nonempty, every chain bounded,
@@ -76,7 +76,7 @@
   `(FORALL grd (FORALL porel
      (IMPLIES ,(z2-hyp)
         (AND (IN (ZUP grd porel ,a) grd)
-             (FORALL b_ (IMPLIES (<_ORD b_ ,a)
+             (FORALL b_ (IMPLIES (ORD-LT b_ ,a)
                 (AND (IN (ZUP grd porel b_) grd)
                      (IS-STRICTLY-BELOW porel
                         (ZUP grd porel b_) (ZUP grd porel ,a))))))))))
@@ -266,8 +266,8 @@
 (qed 'po-transitive)
 
 (sp (make-wff (forall-guarded '(a_ b_)
-                '((IN a_ ORD) (IN b_ ORD) (<_ORD b_ (succ_ORD a_)))
-                '(OR (<_ORD b_ a_) (= b_ a_)))))
+                '((IN a_ ORD) (IN b_ ORD) (ORD-LT b_ (succ_ORD a_)))
+                '(OR (ORD-LT b_ a_) (= b_ a_)))))
 (z2-peel!)
 (fact 'ord-succ-in 'a_)
 (have! '(IN b_ (ORD-SEGMENT (succ_ORD a_)))
@@ -285,8 +285,8 @@
 ;;; b < beta < lam, ord-succ-immediate pushes succ b under beta, and succ b
 ;;; cannot BE lam because a limit is not a successor.
 (sp (make-wff (forall-guarded '(lam b_)
-                '((LIMIT-ORD lam) (IN b_ ORD) (<_ORD b_ lam))
-                '(<_ORD (succ_ORD b_) lam))))
+                '((LIMIT-ORD lam) (IN b_ ORD) (ORD-LT b_ lam))
+                '(ORD-LT (succ_ORD b_) lam))))
 (z2-peel!)
 ;; Do the ord-segment-limit citation BEFORE unfolding LIMIT-ORD: mac-h REPLACES
 ;; the assumption it unfolds, and this citation is guarded on it.
@@ -294,18 +294,18 @@
 (define z2b-parts (dk-split! (dk-landed-1 (lambda () (ai z2b-ex)))))
 (define z2b-beta
   (caddr (z2-find z2b-parts
-           (lambda (f) (and (pair? f) (eq? (car f) '<_ORD) (eq? (cadr f) 'b_))))))
+           (lambda (f) (and (pair? f) (eq? (car f) 'ORD-LT) (eq? (cadr f) 'b_))))))
 (define z2b-lim (dk-split! (dk-landed-1
                   (lambda () (mac-h 'limit-ord-iff '(LIMIT-ORD lam))))))
 (define z2b-nosucc (z2-find z2b-lim (lambda (f) (and (pair? f) (eq? (car f) 'NOT)
                                                      (z2-mentions? 'succ_ORD f)))))
 ;; beta is an ordinal, and beta <= lam
-(dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(<_ORD ,z2b-beta lam)))))
+(dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(ORD-LT ,z2b-beta lam)))))
 (dk-split! (dk-fact! 'ord-le-closure z2b-beta 'lam))
 ;; succ b <= beta <= lam
-(have! `(AND (IN b_ ORD) (AND (IN ,z2b-beta ORD) (<_ORD b_ ,z2b-beta))))
+(have! `(AND (IN b_ ORD) (AND (IN ,z2b-beta ORD) (ORD-LT b_ ,z2b-beta))))
 (dk-fact! 'ord-succ-immediate 'b_ z2b-beta)
-(have! `(AND (<=_ORD (succ_ORD b_) ,z2b-beta) (<=_ORD ,z2b-beta lam)))
+(have! `(AND (ORD-LE (succ_ORD b_) ,z2b-beta) (ORD-LE ,z2b-beta lam)))
 (dk-fact! 'ord-le-trans `(succ_ORD b_) z2b-beta 'lam)
 ;; ... and succ b /= lam, else lam is a successor
 (mac 'ord-lt-iff)
@@ -339,10 +339,10 @@
   (lambda ()
     (z2-peel!)
     (pbc)
-    (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff '(<_ORD b_ 0)))))
+    (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff '(ORD-LT b_ 0)))))
     (dk-split! (dk-fact! 'ord-le-closure 'b_ 0))
     (fact 'ord-zero-least 'b_)
-    (have! '(AND (<=_ORD b_ 0) (<=_ORD 0 b_)))
+    (have! '(AND (ORD-LE b_ 0) (ORD-LE 0 b_)))
     (dk-fact! 'ord-le-antisymm 'b_ 0)
     (ai '(NOT (= b_ 0)))))
 
@@ -385,15 +385,15 @@
   (lambda ()
     (z2-peel!)
     ;; (IN b_ ORD): unfold the strict order in a SIDE branch, so the main branch
-    ;; keeps (<_ORD b_ (succ a)) for ord-lt-succ-cases.  mac-h REPLACES.
+    ;; keeps (ORD-LT b_ (succ a)) for ord-lt-succ-cases.  mac-h REPLACES.
     (have! '(IN b_ ORD)
       (lambda ()
         (dk-split! (dk-landed-1
-          (lambda () (mac-h 'ord-lt-iff `(<_ORD b_ (succ_ORD ,z2s-a))))))
+          (lambda () (mac-h 'ord-lt-iff `(ORD-LT b_ (succ_ORD ,z2s-a))))))
         (dk-split! (dk-fact! 'ord-le-closure 'b_ `(succ_ORD ,z2s-a)))
         (ass)))
     (fact 'ord-lt-succ-cases z2s-a 'b_)
-    (use-cases (list `(<_ORD b_ ,z2s-a) `(= b_ ,z2s-a))
+    (use-cases (list `(ORD-LT b_ ,z2s-a) `(= b_ ,z2s-a))
       (lambda ()
         (dk-split! (inst*! z2s-ibelow 'b_))
         (both! (lambda () (ass))
@@ -432,7 +432,7 @@
   ;; peel below introduces is called c_, and reusing it here makes one name both
   ;; bound and free in the same formula (make-wff warns, and it is the capture
   ;; hazard the case-fold convention exists to avoid).
-  `(SEP y_ grd (FORSOME d_ (AND (<_ORD d_ ,z2l-a) (= y_ (ZUP grd porel d_))))))
+  `(SEP y_ grd (FORSOME d_ (AND (ORD-LT d_ ,z2l-a) (= y_ (ZUP grd porel d_))))))
 
 ;; the induction hypothesis at a stage below lam, as (typing below-clause)
 (define (z2l-ih-at b)
@@ -440,7 +440,7 @@
     (list (z2-find parts (z2-head? 'IN)) (z2-find parts (z2-head? 'FORALL)))))
 
 ;; open (IN v z2l-img); returns the stage it came from, leaving (IN v grd),
-;; (<_ORD stage lam) and (= v (ZUP stage)) in context.
+;; (ORD-LT stage lam) and (= v (ZUP stage)) in context.
 ;; `sep-me' lands BOTH halves of a SEP membership, so dk-landed, not dk-landed-1.
 (define (z2l-sep-open! v)
   (dk-landed (lambda () (sep-me `(IN ,v ,z2l-img)))))
@@ -449,14 +449,14 @@
   (let* ((parts (z2l-sep-open! v))
          (ex    (z2-find parts (z2-head? 'FORSOME)))
          (inner (dk-split! (dk-landed-1 (lambda () (ai ex))))))
-    (cadr (z2-find inner (z2-head? '<_ORD)))))
+    (cadr (z2-find inner (z2-head? 'ORD-LT)))))
 
-;; (IN b ORD) from (<_ORD b lam), unfolding in a side branch so the main branch
+;; (IN b ORD) from (ORD-LT b lam), unfolding in a side branch so the main branch
 ;; keeps the strict inequality the induction hypothesis is guarded on.
 (define (z2l-typ! b)
   (have! `(IN ,b ORD)
     (lambda ()
-      (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(<_ORD ,b ,z2l-a)))))
+      (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(ORD-LT ,b ,z2l-a)))))
       (dk-split! (dk-fact! 'ord-le-closure b z2l-a))
       (ass))))
 
@@ -493,9 +493,9 @@
               ;; disjunction never reaches the context.
               (have! `(AND (IN ,b1 ORD) (IN ,b2 ORD)))
               (fact 'ord-le-total b1 b2)
-              (use-cases (list `(<=_ORD ,b1 ,b2) `(<=_ORD ,b2 ,b1))
+              (use-cases (list `(ORD-LE ,b1 ,b2) `(ORD-LE ,b2 ,b1))
                 (lambda ()
-                  (have! `(<_ORD ,b1 ,b2)
+                  (have! `(ORD-LT ,b1 ,b2)
                     (lambda () (mac 'ord-lt-iff)
                                (both! (lambda () (ass)) (lambda () (ass)))))
                   (dk-split! (inst*! (cadr (z2l-ih-at b2)) b1))
@@ -503,7 +503,7 @@
                   (oi-l) (ass))
                 (lambda ()
                   (z2-neq-sym! b1 b2)
-                  (have! `(<_ORD ,b2 ,b1)
+                  (have! `(ORD-LT ,b2 ,b1)
                     (lambda () (mac 'ord-lt-iff)
                                (both! (lambda () (ass)) (lambda () (ass)))))
                   (dk-split! (inst*! (cadr (z2l-ih-at b1)) b2))
@@ -523,7 +523,7 @@
 (define z2l-dom (z2-find z2l-ubp (z2-head? 'FORALL)))
 
 (define z2l-set
-  `(SEP y_ grd (FORALL c_ (IMPLIES (<_ORD c_ ,z2l-a)
+  `(SEP y_ grd (FORALL c_ (IMPLIES (ORD-LT c_ ,z2l-a)
                                    (IN (LIST (ZUP grd porel c_) y_) porel)))))
 (define z2l-c `(CHOICE ,z2l-set))
 
@@ -595,12 +595,12 @@
 (fact 'ord-le-total 'a1_ 'a2_)
 ;; lo < hi, so ZUP(lo) is strictly below ZUP(hi) -- and they are equal.
 (define (z2i-close! lo hi eqn)
-  (have! `(<_ORD ,lo ,hi)
+  (have! `(ORD-LT ,lo ,hi)
     (lambda () (mac 'ord-lt-iff) (both! (lambda () (ass)) (lambda () (ass)))))
   (dk-split! (inst*! (cadr (z2i-tower-at hi)) lo))
   (fact 'strictly-below-not-equal 'porel `(ZUP grd porel ,lo) `(ZUP grd porel ,hi))
   (ai `(NOT (IS-STRICTLY-BELOW porel (ZUP grd porel ,lo) (ZUP grd porel ,hi)))))
-(use-cases (list '(<=_ORD a1_ a2_) '(<=_ORD a2_ a1_))
+(use-cases (list '(ORD-LE a1_ a2_) '(ORD-LE a2_ a1_))
   (lambda () (z2i-close! 'a1_ 'a2_ '(= (ZUP grd porel a1_) (ZUP grd porel a2_))))
   (lambda ()
     ;; the other direction needs both the inequality and the equation reversed;

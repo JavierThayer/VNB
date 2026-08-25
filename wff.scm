@@ -9,13 +9,37 @@
 ;;; the field went with it: nothing had populated it but make-wff, and
 ;;; nothing outside start-proof read it.
 
+;;; The third field is a CACHE, not data: the alpha-invariant digest of the
+;;; formula (expressions.scm), filled on first demand and never again.  A <wff>
+;;; is immutable in its other two fields, so the digest cannot go stale.
+;;;
+;;; It exists because `wff-equiv?' is the hottest comparison in the prover --
+;;; `context-add-assumption' calls it once per assumption on every assumption
+;;; added, and `dg-find-sequent-node' called it once per node in the graph on
+;;; every sequent posted -- and almost every one of those calls is a MISMATCH
+;;; that alpha-equiv? has to walk into before it can say so.  Comparing two
+;;; cached fixnums first rejects a mismatch in one machine word.
 (define-record-type <wff>
-  (%make-concrete-wff formula theory)
+  (%%make-concrete-wff formula theory digest)
   concrete-wff?
   (formula   concrete-wff-formula)
-  (theory    concrete-wff-theory))
+  (theory    concrete-wff-theory)
+  (digest    concrete-wff-digest set-concrete-wff-digest!))
+
+;;; The two-argument constructor every caller uses; the digest starts unfilled.
+(define (%make-concrete-wff formula theory)
+  (%%make-concrete-wff formula theory #f))
 
 (define wff? concrete-wff?)
+
+;;; The wff's alpha-invariant digest, computed once.
+;;; (alpha-equiv? f1 f2) => equal digests; equal digests mean "now compare
+;;; properly", never "equal".  See formula-hash in expressions.scm.
+(define (wff-hash w)
+  (or (concrete-wff-digest w)
+      (let ((h (formula-hash (concrete-wff-formula w))))
+        (set-concrete-wff-digest! w h)
+        h)))
 
 (define (wff-formula w)
   (if (concrete-wff? w)
@@ -40,9 +64,17 @@
 ;;; Two wffs are equivalent when they share the same theory and their
 ;;; formulas are alpha-equivalent.  (Kind is implied by the formula
 ;;; structure, so a kind check would be redundant.)
+;;; NOTE the digest is deliberately NOT consulted here.  A `(= (wff-hash w1)
+;;; (wff-hash w2))' prefilter ahead of the alpha-equivalence test was built and
+;;; removed on 2026-08-21: it made a wrong digest able to turn a #t into a #f,
+;;; which is a silent wrong answer in the prover's hottest comparison, in
+;;; exchange for a few percent.  `alpha-equiv?' stays the only thing that
+;;; decides.  See dg-find-sequent-node (deduction-graphs.scm) for the
+;;; measurements and the argument.
 (define (wff-equiv? w1 w2)
-  (and (equal? (wff-theory w1) (wff-theory w2))
-       (alpha-equiv? (wff-formula w1) (wff-formula w2))))
+  (or (eq? w1 w2)
+      (and (equal? (wff-theory w1) (wff-theory w2))
+           (alpha-equiv? (wff-formula w1) (wff-formula w2)))))
 
 ;;; wff->sexp: extract the raw S-expression from a wff.
 ;;; Synonym for wff-formula, provided as a user-facing name.
@@ -61,6 +93,14 @@
 ;;; Bare-symbol quantifiers are left unchanged.  Called from make-wff
 ;;; before validate-wff!, so the rest of the system only ever sees the
 ;;; single-variable form.
+;;;
+;;; ... and the one non-quantifier rewrite, which is here because it is the
+;;; same sugar (a binder list carrying its own domains) one head over:
+;;;   (VNB-LAMBDA ((IN v1 A1) ... (IN vn An)) body)
+;;;                                   =>  (VNB-LAMBDA (LIST v1 ... vn)
+;;;                                                   (CARTESIAN A1 ... An) body)
+;;;   (VNB-LAMBDA ((IN v A)) body)    =>  (VNB-LAMBDA v A body)
+;;; See the clause itself for why this cannot change an accepted formula.
 
 (define (all-symbols? lst)
   (or (null? lst)
@@ -86,6 +126,22 @@
     ;; are handled above, so a leading 'in here would be a parse error.
     (else (and (not (null? b)) (not (eq? (car b) 'in)) (all-symbols? b)))))
 
+;;; Every element is a TYPED single-variable binding (IN var A).  This is the
+;;; strict half of `binding-spec?': no bare variables, no tuple destructuring.
+;;; It decides whether a VNB-LAMBDA binder list carries its domains with it (see
+;;; the VNB-LAMBDA clause of expand-destructuring-quantifiers) -- a list that is
+;;; only PARTLY typed is left alone, because there is no honest reading of
+;;; `[a in nn, x]' as a domain.
+(define (all-typed-binder-specs? lst)
+  (and (pair? lst)
+       (let loop ((l lst))
+         (or (null? l)
+             (and (pair? (car l))
+                  (eq? (car (car l)) 'IN)
+                  (= (length (car l)) 3)
+                  (symbol? (cadr (car l)))
+                  (loop (cdr l)))))))
+
 (define (all-binding-specs? lst)
   (and (pair? lst)
        (let loop ((l lst))
@@ -96,6 +152,170 @@
   (if (null? vars)
       body
       `(,q ,(car vars) ,(nest-quantifiers q (cdr vars) body))))
+
+;;; -----------------------------------------------------------------------
+;;; Binder lists scope LEFT TO RIGHT, and a guard may only mention binders to
+;;; its LEFT.  `forall([s in CARR(r), r], FUBA(s))' expands to
+;;;
+;;;     (FORALL s (IMPLIES (IN s (CARR r)) (FORALL r (FUBA s))))
+;;;
+;;; so the `r' in the guard sits OUTSIDE the scope of the `forall r' that
+;;; follows it: that `r' is FREE, and the later binder binds a different
+;;; variable of the same name.  When the body mentions `r' too, one formula
+;;; ends up carrying two distinct variables both spelled `r', and the printer
+;;; round-trips the whole thing faithfully, so nothing on screen shows it.
+;;;
+;;; Nothing here is ill-formed, and `validate-wff!' already warns -- "symbol r
+;;; is both bound (in some binder) and free in this formula", at the foot of
+;;; this file.  But that warning names no binder, gives no reason, and fires on
+;;; the ASSEMBLED formula, by which point the shape that caused it is gone.
+;;; This one fires at binding-list expansion -- so on typed input as well as on
+;;; installed forms -- and names both positions.  Warn-only, deliberately: the
+;;; form has a meaning, it is simply almost never the intended one.
+;;;
+;;; `free-vars' rather than a symbol scan, so a guard that binds the name
+;;; itself -- `s in {r | p(r)}' -- is not a false positive.
+
+(define (binding-spec-vars b)
+  (cond ((and (pair? b) (not (null? b)) (all-symbols? b) (not (eq? (car b) 'in)))
+         b)                                            ; (v) or (v1 v2 ...)
+        ((and (pair? b) (= (length b) 3) (eq? (car b) 'IN) (symbol? (cadr b)))
+         (list (cadr b)))                              ; (IN v A)
+        ((and (pair? b) (= (length b) 3) (eq? (car b) 'IN)
+              (pair? (cadr b)) (eq? (car (cadr b)) 'LIST))
+         (cdr (cadr b)))                               ; (IN (LIST v1 ...) A)
+        (else '())))
+
+(define (binding-spec-guard b)
+  (and (pair? b) (= (length b) 3) (eq? (car b) 'IN) (caddr b)))
+
+;;; The findings, as DATA: a list of (guarded-var guarded-pos offending-var
+;;; binding-pos).  Returned rather than only printed, so the check is testable
+;;; and callable -- `warn-forward-guard-reference!' is just its renderer.
+(define (binding-list-forward-refs specs)
+  (let loop ((ss specs) (i 1) (acc '()))
+    (if (null? ss)
+        (reverse acc)
+        (let ((guard (binding-spec-guard (car ss)))
+              (mine  (binding-spec-vars  (car ss))))
+          (loop (cdr ss) (+ i 1)
+                (if (not guard)
+                    acc
+                    (let per-var ((vs (free-vars guard)) (a acc))
+                      (if (null? vs)
+                          a
+                          (per-var
+                           (cdr vs)
+                           ;; where, if anywhere, is this var bound LATER?
+                           (let scan ((rest (cdr ss)) (j (+ i 1)))
+                             (cond
+                               ((null? rest) a)
+                               ((memq (car vs) (binding-spec-vars (car rest)))
+                                (cons (list (if (null? mine) '? (car mine))
+                                            i (car vs) j)
+                                      a))
+                               (else (scan (cdr rest) (+ j 1))))))))))))))
+
+(define (warn-forward-guard-reference! specs)
+  (for-each
+   (lambda (r)
+     (let ((guarded (car r)) (i (cadr r)) (v (caddr r)) (j (cadddr r)))
+       (display ";; warning: binder-list scope: the guard of ")
+       (write guarded) (display " (binder ") (display i)
+       (display ") mentions ") (write v) (newline)
+       (display ";;   which is bound LATER, at binder ") (display j)
+       (display ".  Binder lists scope left to right, so")  (newline)
+       (display ";;   THIS ") (write v)
+       (display " is FREE and binder ") (display j)
+       (display " binds a different variable of the") (newline)
+       (display ";;   same name.  Move ") (write v)
+       (display " left of ") (write guarded)
+       (display " if they were meant to be the same.") (newline)))
+   (binding-list-forward-refs specs)))
+
+
+;;; The NAME a destructuring binder's fresh variable gets.
+;;;
+;;; Default: the initials of the class name -- METRIC-SPACE gives `ms',
+;;; TOP-SPACE gives `ts', MEASURE-SPACE gives `ms' too (and the collision is
+;;; handled, since `fresh-var/bare' falls back to numbering).  A non-symbol
+;;; class -- `cartesian(nn,nn)' -- has no name to work from and keeps `t'.
+;;;
+;;; Override: set `*destructuring-hint*' to a symbol and that is used instead,
+;;; for every destructuring binder until it is set back to #f.  This is the
+;;; manual control the user asked for; it is deliberately a plain global so it
+;;; can be `set!' from the REPL or from Emacs mid-proof.
+(define *destructuring-hint* #f)
+
+(define (destructuring--hint class)
+  (cond
+    (*destructuring-hint* *destructuring-hint*)
+    ((not (symbol? class)) 't)
+    (else
+     (let loop ((cs (string->list (symbol->string class))) (take #t) (acc '()))
+       (cond ((null? cs)
+              (if (null? acc) 't (string->symbol (list->string (reverse acc)))))
+             ((char=? (car cs) #\-) (loop (cdr cs) #t acc))
+             (take (loop (cdr cs) #f (cons (car cs) acc)))
+             (else (loop (cdr cs) #f acc)))))))
+
+;;; -----------------------------------------------------------------------
+;;; WHAT A DESTRUCTURING BINDER PROJECTS WITH, and why it is not always NTH.
+;;;
+;;; `forall([[x,d] in metric-space], ...)' binds a fresh t ranging over the
+;;; class and replaces x and d by the projections of t.  Until 2026-08-18 those
+;;; projections were always `(NTH 1 t)' and `(NTH 2 t)', which is CORRECT --
+;;; accessors are literally those projections -- and almost unusable, because
+;;; every theorem in the library is stated with the accessor names.  The user
+;;; who hit it put the objection exactly:
+;;;
+;;;     "no normal person will remember that the accessors for a metric space
+;;;      are PTS and DIST."
+;;;
+;;; And the mismatch is a ONE-WAY street: the accessor macete rewrites
+;;; `(DIST s)' to `(NTH 2 s)' and there is deliberately no reverse (a bare
+;;; `NTH 2 s' could be a metric space's DIST or a group's OPR -- firing it back
+;;; automatically would be a guess).  `slot-h' resolves instance macetes for a
+;;; CONCRETE structure and finds none for a variable, so a destructured
+;;; hypothesis could not be rewritten into accessor form at all.  The binder
+;;; produced a goal that no library theorem could match and no tactic could
+;;; bridge.
+;;;
+;;; The fix belongs here rather than in a tactic: the binder already NAMES the
+;;; class, so when the class is a declared structure the expander can use its
+;;; declared slot accessors and produce the shape the library is stated in.  A
+;;; reader gets to write the destructuring form -- which is the notation they
+;;; actually want -- and the machine supplies the accessor names they should not
+;;; have to memorise.
+;;;
+;;; `*structure-slot-names-hook*' is set by structures.scm, which loads ~120
+;;; files after this one.  A HOOK rather than a forward reference because the
+;;; expander runs during that load too, so the lookup has to degrade cleanly to
+;;; NTH rather than fail; and because an `environment-bound?' guard is not
+;;; available -- the prover does not load into `system-global-environment', so
+;;; asking that environment reports #f and silently disables the feature.
+(define *structure-slot-names-hook* #f)
+
+;;; The projections for a destructuring binder over CLASS with N variables,
+;;; bound to the fresh variable T.  Slot accessors when CLASS is a declared
+;;; structure of matching arity, positional NTH otherwise.
+;;;
+;;; An ARITY MISMATCH is an ERROR, not a silent fall-back to NTH: `[x,d,e] in
+;;; metric-space' is a reader's mistake about the structure, and quietly giving
+;;; them (NTH 3 t) of a two-slot tuple buries it.
+(define (destructuring-projections class n t)
+  (let ((slots (and *structure-slot-names-hook*
+                    (symbol? class)
+                    (*structure-slot-names-hook* class))))
+    (cond
+      ((not slots) (let loop ((i 1)) (if (> i n) '() (cons `(NTH ,i ,t) (loop (+ i 1))))))
+      ((= (length slots) n) (map (lambda (a) `(,a ,t)) slots))
+      (else
+       (error (string-append
+               "expand-binding-list: destructuring `" (symbol->string class)
+               "' expects " (number->string (length slots)) " component(s), given "
+               (number->string n))
+              slots)))))
 
 (define (expand-destructuring-quantifiers expr)
   (cond
@@ -151,6 +371,7 @@
           (let* ((q     (car mapped))
                  (specs (cadr mapped))
                  (body  (caddr mapped)))
+            (warn-forward-guard-reference! specs)
             (let loop ((ss (reverse specs)) (acc body))
               (if (null? ss)
                   acc
@@ -172,13 +393,15 @@
                                   (pair? (cadr b)) (eq? (car (cadr b)) 'LIST))
                              (let* ((vars  (cdr (cadr b)))
                                     (class (caddr b))
-                                    (t     (fresh-var 't `(dummy ,class ,acc ,@vars)))
+                                    (t     (fresh-var/bare (destructuring--hint class)
+                                                           `(dummy ,class ,acc ,@vars)))
+                                    (projs (destructuring-projections class (length vars) t))
                                     (subst-acc
-                                     (let sub ((vs vars) (i 1) (a acc))
+                                     (let sub ((vs vars) (ps projs) (a acc))
                                        (if (null? vs)
                                            a
-                                           (sub (cdr vs) (+ i 1)
-                                                (subst-free (car vs) `(NTH ,i ,t) a))))))
+                                           (sub (cdr vs) (cdr ps)
+                                                (subst-free (car vs) (car ps) a))))))
                                (case q
                                  ((FORALL)  `(FORALL  ,t (IMPLIES (IN ,t ,class) ,subst-acc)))
                                  ((FORSOME) `(FORSOME ,t (AND     (IN ,t ,class) ,subst-acc))))))
@@ -198,6 +421,39 @@
                  (vars  (reverse (cdr (reverse args))))
                  (body  (car (reverse args))))
             (nest-quantifiers (car mapped) vars body)))
+         ;; (VNB-LAMBDA ((IN v1 A1) ... (IN vn An)) body) -- the binder list
+         ;; carries its own domains and there is no separate DOMAIN argument.
+         ;; This is the quantifiers' `forall([p in NN, q in NN], ...)' spelling
+         ;; applied to a lambda, and a user who has just written the one will
+         ;; write the other.  It desugars to the canonical form:
+         ;;
+         ;;   n > 1  ->  (VNB-LAMBDA (LIST v1 ... vn) (CARTESIAN A1 ... An) body)
+         ;;   n = 1  ->  (VNB-LAMBDA v1 A1 body)
+         ;;
+         ;; -- the SAME S-expression the explicit spelling produces, so nothing
+         ;; downstream (lam-t's componentwise typing, lam-b, the printer) needs
+         ;; to know this syntax exists.  The single-binder case collapses to the
+         ;; bare-symbol binder rather than a one-element LIST over a one-factor
+         ;; CARTESIAN: that is the form the rest of the machinery expects, and a
+         ;; 1-ary product is an object nobody wants to meet.
+         ;;
+         ;; Adding this could not change any accepted formula: validate-wff!
+         ;; requires a VNB-LAMBDA to have a DOMAIN (a domainless lambda does not
+         ;; determine a function -- see the VNB-LAMBDA case below and
+         ;; docs/lambda-domain.md), so every input matching this pattern was an
+         ;; ERROR before, in every path.  A list only PARTLY typed still is.
+         ((and (eq? (car mapped) 'VNB-LAMBDA)
+               (= (length mapped) 3)
+               (pair? (cadr mapped))
+               (eq? (car (cadr mapped)) 'LIST)
+               (all-typed-binder-specs? (cdr (cadr mapped))))
+          (let* ((specs (cdr (cadr mapped)))
+                 (vars  (map cadr  specs))
+                 (doms  (map caddr specs))
+                 (body  (caddr mapped)))
+            (if (null? (cdr vars))
+                `(VNB-LAMBDA ,(car vars) ,(car doms) ,body)
+                `(VNB-LAMBDA (LIST ,@vars) (CARTESIAN ,@doms) ,body))))
          (else mapped))))))
 
 ;;; -----------------------------------------------------------------------
@@ -216,15 +472,38 @@
 ;;; head, must be rejected ("term-forming operator in wff position" error).
 (define *wff-term-form-heads*
   '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN FUN INJECTION IMAGE SEP COMP BIG-UNION POWER
-    LIST NTH MAKE-SET LENGTH CHOICE IOTA IF TUPLES
+    LIST NTH MAKE-SET LENGTH CHOICE IOTA IF TUPLES SQN
     DOM RES PARTIAL-FUN
     apply-functoid VNB-LAMBDA
     succ_ORD ORD-SEGMENT SUP-ORD ESUP ESUM
+    ;; The measure-theory arc (structure-library/extended-arith.scm,
+    ;; measure.scm, integral.scm).  Only the two heads that no def-* introduces
+    ;; belong here: ETIMES is extended multiplication on [0,+inf], pinned by
+    ;; the axioms of extended-arith.scm exactly as EPLUS is by
+    ;; extended-reals-pos.scm, and INTEGRAL is the [0,+inf]-valued integral,
+    ;; characterised by the supports of integral.scm exactly as ESUM/ESUP are
+    ;; by theirs.  Everything else in that arc is a def-functoid or a
+    ;; def-predicate and registers itself.
+    ETIMES INTEGRAL
     CARD PROD-ORD SUM SUM-SET PROD-SET RING-PROD RING-PROD-N ZERO-RING
     MATRIX SIZE MAT ENTRY INTERVAL MATOF MATMUL
     MATADD MATNEG MATSCALE ZEROMAT IDENTMAT MAT-RING MATUNIT
     ELEM-F ELEM-G ELEM-H SUBMAT BORDER MATACT UNITROW BLOCK SPAN SNOC-COL SNOC-ROW LASTCOEFF-SET
     + - * / recip abs conjugate succ exp sin cos
+    ;; MAX, 2026-08-19 -- a TERM constructor (RR x RR -> RR), defined by cases in
+    ;; number-systems.scm as `rr-max-def'.  Unregistered it parsed as an applied
+    ;; FUNCTION VARIABLE -- `max(a,b)' meaning whatever the caller spelled it --
+    ;; which is the silent-application trap, and there is no gate on a goal a
+    ;; user types, only on one that gets installed.
+    ;;
+    ;; MIN, 2026-08-21 -- the same, and added at the same time as its laws.  It
+    ;; was WANTED for a year and deliberately not added while it had no
+    ;; definition: `*ineq-supply-wanted*' (ineq-supply.scm) recorded "no min
+    ;; bounds in the tree ... and `min' has no registered head", and
+    ;; `rr-min-pos' sidesteps a minimum with an existential witness.  That is
+    ;; the right shape when a proof needs only the bounding property and the
+    ;; wrong one when the minimum is a TERM the statement is about.
+    max min
     real-part imag-part magnitude
     ;; Added 2026-08-04 by head-registry-sweep (audit.scm), which enumerates
     ;; every applied head in the library against the constant registry instead
@@ -235,7 +514,12 @@
     ;; `difference'/`singleton' in is-field.  `/' was the same omission, found
     ;; the same morning and already fixed above.
     PAIR SINGLETON DIFFERENCE BIJECTION DELETE-AT EPLUS
-    binplus bintimes binneg))
+    binplus bintimes binneg
+    ;; CONS (structure-library/list-recursion.scm): the tuple constructor the
+    ;; recursive characterization of LENGTH needs, which theory.scm:637 recorded
+    ;; as pending.  A TERM former, so it belongs here rather than in a bare
+    ;; register-constant! -- see the LIMIT-ORD note below for the difference.
+    CONS))
 
 (define *wff-only-heads*
   '(NOT AND OR IMPLIES IFF FORALL FORSOME = == IN <= SUBSET subset))
@@ -263,9 +547,9 @@
 ;;; unregistered (2026-08-04): the ordinal order relations and IS-FUN.  They must
 ;;; NOT go in *wff-term-form-heads* -- that is the LIMIT-ORD mistake above, and
 ;;; it would make make-wff reject every goal that mentions them -- but they are
-;;; constants, and free-vars must not read `<=_ord' as a function variable.
+;;; constants, and free-vars must not read `ord-le' as a function variable.
 (for-each (lambda (h) (register-constant! h 'predicate))
-          '(<=_ord <_ord is-fun))
+          '(ord-le ord-lt is-fun))
 
 ;;; RESTVAR and SPLICE are the macete engine's variadic syntax (macetes.scm:42),
 ;;; not mathematical vocabulary: they occur in exactly four installed formulas
@@ -356,7 +640,11 @@
               ((memq (car e) *wff-term-form-heads*)
                (error "make-wff: term-forming operator in wff position" e))
               (else
-               ;; Predicate application (P arg ...): args are terms.
+               ;; Predicate application (P arg ...): args are terms.  A nullary
+               ;; one is rejected for the reason a nullary TERM application is:
+               ;; (P) prints as `P', so it cannot be told from the head itself.
+               (or (>= (length e) 2)
+                   (error "make-wff: predicate application with no arguments" e))
                (for-each (lambda (a) (walk-term a bound-env)) (cdr e)))))))
         (else
          (error "make-wff: unrecognized expression in wff position" e))))
@@ -414,7 +702,18 @@
                (walk-term (cadr e) bound-env)
                (walk-term (caddr e) bound-env))
               (else (error "make-wff: POWER arity (1 = power set, 2 = exponent)" e))))
-           ((CARTESIAN LIST)
+           ;; LIST is the ONE nullary-legal term constructor: (LIST) is [], the
+           ;; empty tuple, which `empty-in-tuples' and `length-of-empty' are
+           ;; about.  Every other head needs at least one argument -- see the
+           ;; nullary-application note in parser.scm.  This check is here as
+           ;; well as there because `support' and `theory-add-axiom!' install a
+           ;; raw S-expression that never meets the parser; install-grading runs
+           ;; validate-wff! over all of them.
+           ((LIST)
+            (for-each (lambda (a) (walk-term a bound-env)) (cdr e)))
+           ((CARTESIAN)
+            (or (>= (length e) 2)
+                (error "make-wff: CARTESIAN with no arguments" e))
             (for-each (lambda (a) (walk-term a bound-env)) (cdr e)))
            ((NTH)
             (or (= (length e) 3) (error "make-wff: NTH arity" e))
@@ -485,6 +784,8 @@
             ;; Function application (f arg ...).  If the head is itself a
             ;; pair (e.g. ((MUL m) a b)) it is also a term and must be
             ;; walked, so any free symbol in head position is detected.
+            (or (>= (length e) 2)
+                (error "make-wff: application with no arguments" e))
             (let ((h (car e)))
               (when (pair? h) (walk-term h bound-env)))
             (for-each (lambda (a) (walk-term a bound-env)) (cdr e)))))

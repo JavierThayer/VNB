@@ -25,7 +25,11 @@
 ;;; these accessors, so you may still WRITE R, V at the surface.
 ;;;
 ;;; Vector space = a module whose SCAL is a field (a later subtype:
-;;; IS-VECTOR-SPACE(m) <=> IS-MODULE(m) AND IS-FIELD(SCAL m)).
+;;; IS-VECTOR-SPACE(m) <=> IS-MODULE(m) AND IS-FIELD-RING(SCAL m)).  IS-FIELD-RING,
+;;; not IS-FIELD: the substructure slot above already pins length(SCAL m) = 6 and
+;;; FIELD is an 8-slot shape, so the law had to be fieldhood stated OF A RING.
+;;; Writing IS-FIELD there made IS-VECTOR-SPACE unsatisfiable (finite-dimensional.scm,
+;;; repaired 2026-08-23).
 ;;;
 ;;; Dependencies: ring.scm (RING, IS-RING, A, ADD, MUL, ONE),
 ;;;               operation-properties.scm (is-associative/commutative/...).

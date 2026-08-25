@@ -18,9 +18,9 @@
 ;;; supports it cites.
 
 ;;; --------------------------------------------------------------------
-;;; j in S(n) iff j < n.  ord-segment-membership reads membership as <_ORD,
-;;; ord-lt-iff splits that into <=_ORD with a disequality, and ord-le-nn-compat
-;;; brings <=_ORD down to numeric <=; the goal is then A iff A, since `<' is by
+;;; j in S(n) iff j < n.  ord-segment-membership reads membership as ORD-LT,
+;;; ord-lt-iff splits that into ORD-LE with a disequality, and ord-le-nn-compat
+;;; brings ORD-LE down to numeric <=; the goal is then A iff A, since `<' is by
 ;;; definition <= with a disequality.
 (sp (make-wff '(FORALL n_ (IMPLIES (IN n_ NN)
                  (FORALL j_ (IMPLIES (IN j_ NN)

@@ -11,9 +11,9 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-398 operators: 15 functions, 218 functoids, 165 predicates, 0 undeclared.
+469 operators: 14 functions, 265 functoids, 190 predicates, 0 undeclared.
 
-## Functions  (15)
+## Functions  (14)
 
 Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets — with the standard domain shown.
 
@@ -29,29 +29,24 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `real-part` denotes a function `CC -> RR`.
 - `rpow` denotes a function `RR x RR -> RR`.
 - `sin` denotes a function `RR -> RR`.
-- `sqrt` denotes a function `RR -> RR`.
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (218)
+## Functoids  (265)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
 ### `/`  — characterized by axiom(s)
 
-Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn-nonneg` `bdd-fn-subadd` `bdd-metric-distance` `binary-divide-def` 
-
-### `<=_ord`  — unknown registry kind
-
-### `<_ord`  — unknown registry kind
+Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn-nonneg` `bdd-fn-subadd` `bdd-metric-distance` `bernstein-term-bound` 
 
 ### `>`  — kernel primitive (notation-declared, no def-*)
 
-> _Reads as:_  >
+> _Reads as:_  >()
 
 ### `>=`  — kernel primitive (notation-declared, no def-*)
 
-> _Reads as:_  >=
+> _Reads as:_  >=()
 
 ### `act`  — structure accessor · element (slot value)
 
@@ -69,7 +64,19 @@ Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn
 
 ### `bdd-metric`  — def-functoid · tuple/structure-valued
 
-    bdd-metric(s) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), /((dist(s))(u, v), 1 + (dist(s))(u, v)))]
+    bdd-metric(s) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), (/)((dist(s))(u, v), 1 + (dist(s))(u, v)))]
+
+### `bernstein-basis`  — def-functoid · element/number-valued
+
+> _Reads as:_  the Bernstein basis family of degree n at x
+
+    bernstein-basis(n, x) := comb-kk(normed-field-as-commutative-ring(rr-normed-field), x, 1 - x, n)
+
+### `bernstein-poly`  — def-functoid · element/number-valued
+
+> _Reads as:_  the degree-n Bernstein polynomial of f at x
+
+    bernstein-poly(f, n, x) := series-partial-sum(vnb-lambda(l_, nn, f((/)(l_, n)) * (bernstein-basis(n, x))(l_)), succ(n))
 
 ### `big-union`  — kernel term-former
 
@@ -95,15 +102,45 @@ Declared by: `bintimes-apply` `bintimes-in-fun-cc` `bintimes-in-fun-nn` `bintime
 
     border(a, b, m, p, q) := matof(succ(p), succ(q), vnb-lambda([i, j], cartesian(interval(1, succ(p)), interval(1, succ(q))), if(i = 1, if(j = 1, b, zero(a)), if(j = 1, zero(a), entry(m, nn-minus(i, 1), nn-minus(j, 1))))))
 
+### `c-int`  — def-functoid · element/number-valued
+
+> _Reads as:_  the integral of phi from a to b
+
+    c-int(phi, a, b) := iota(v_, v_ in rr and forsome([f_], is-antiderivative(f_, phi, a, b) and v_ = f_(b) - f_(a)))
+
+### `c-metric`  — def-functoid · element/number-valued
+
+> _Reads as:_  the canonical metric space of s
+
+    c-metric(s) := c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))
+
+### `c-metric-w`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the canonical metric of s with weights w
+
+    c-metric-w(s, w) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), iota(l, series-converges-to(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u, v))), l)))]
+
+### `c-pseudo-family`  — def-functoid · function-valued
+
+> _Reads as:_  the family of pseudometric spaces of s
+
+    c-pseudo-family(s) := vnb-lambda(k, nn, [pts(s), (dists(s))(k)])
+
+### `caratheodory-sets`  — def-functoid · set-valued
+
+> _Reads as:_  the mu-measurable subsets of omega
+
+    caratheodory-sets(omega, mu) := {es_ in power(omega): is-caratheodory-measurable(omega, mu, es_)}
+
 ### `card`  — characterized by axiom(s)
 
-Declared by: `card-empty` `card-finite-bij` `card-image-injection` `card-in-ord` `card-insert` `card-pair` `card-power-nn` `card-segment` 
+Declared by: `card-empty` `card-empty-le` `card-finite-bij` `card-image-injection` `card-in-ord` `card-insert` `card-pair` `card-power-nn` 
 
-### `card*`  — def-functoid · element/number-valued
+### `card-star`  — def-functoid · element/number-valued
 
 > _Reads as:_  the cardinal of a_
 
-    card*(a_) := iota(alpha, alpha in ord and forsome([phi], phi in bijection(a_, ord-segment(alpha))) and forall([beta], <_ord(beta, alpha) implies not(forsome([psi], psi in bijection(a_, ord-segment(beta))))))
+    card-star(a_) := iota(alpha, alpha in ord and forsome([phi], phi in bijection(a_, ord-segment(alpha))) and forall([beta], ord-lt(beta, alpha) implies not(forsome([psi], psi in bijection(a_, ord-segment(beta))))))
 
 ### `carr`  — structure accessor · element (slot value)
 
@@ -143,6 +180,12 @@ Declared by: `cc-normed-field-def`
 
     choose-set(n, m) := {a in power(ord-segment(n)): card(a) = m}
 
+### `clamp`  — def-functoid · element/number-valued
+
+> _Reads as:_  x clamped to [a, b]
+
+    clamp(a, b, x) := min(max(x, a), b)
+
 ### `class`  — def-functoid · set-valued
 
     class(s, a) := {b in pts(s): related(s, a, b)}
@@ -177,6 +220,10 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 
     compose(f, g) := vnb-lambda(z_, dom(g), f(g(z_)))
 
+### `cons`  — characterized by axiom(s)
+
+Declared by: `cons-in-tuples` `length-cons` `makeset-cons` `nth-cons-1` `nth-cons-succ` `tuple-cons-decompose` 
+
 ### `crel`  — def-functoid · set-valued
 
     crel(m) := {p in cartesian(cseq(m), cseq(m)): cseq-equiv(m, nth(1, p), nth(2, p))}
@@ -184,6 +231,12 @@ Declared by: `comb-kk-zero` `comb-kk-succ`
 ### `cseq`  — def-functoid · set-valued
 
     cseq(m) := {f in fun(nn, pts(m)): is-cauchy-seq(m, f)}
+
+### `deg`  — def-functoid · element/number-valued
+
+> _Reads as:_  the degree of p
+
+    deg(a, p) := iota(n_, n_ in nn and deg-bound(a, p, n_) and forall([j_ in nn], deg-bound(a, p, j_) implies n_ <= j_))
 
 ### `delete-at`  — characterized by axiom(s)
 
@@ -207,13 +260,17 @@ Declared by: `delete-at-above-k` `delete-at-below-k` `delete-at-in-fun` `delete-
 
 ### `det`  — recursively defined (def-by-nn-recursion)
 
-> _Reads as:_  det
+> _Reads as:_  det()
 
 Declared by: `det-zero` `det-cofactor` 
 
 ### `difference`  — characterized by axiom(s)
 
-Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `is-field` `prod-of-sums-expansion` `qq-field-def` `qq-field@non-zero` 
+Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `is-caratheodory-measurable` `is-field` `prod-of-sums-expansion` `qq-field-def` `qq-field@non-zero` 
+
+### `dir-deriv`  — def-functoid · element/number-valued
+
+    dir-deriv(m, f, a, eta) := deriv(seg-curve(m, f, a, eta), 0)
 
 ### `dist`  — structure accessor · element (slot value)
 
@@ -221,7 +278,17 @@ Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `
 
     dist-seq(m, f, g) := vnb-lambda(n, nn, (dist(m))(f(n), g(n)))
 
+### `dists`  — structure accessor · element (slot value)
+
+> _Reads as:_  the pseudometric family of s
+
 ### `dom`  — kernel term-former
+
+### `dual`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the dual space of m
+
+    dual(m) := [rr-normed-field, dual-vec(m), vnb-lambda([f_, g_], cartesian(dual-vec(m), dual-vec(m)), vnb-lambda(x_, vec(m), f_(x_) + g_(x_))), vnb-lambda(x_, vec(m), 0), vnb-lambda(f_, dual-vec(m), vnb-lambda(x_, vec(m), -f_(x_))), vnb-lambda([r_, f_], cartesian(rr, dual-vec(m)), vnb-lambda(x_, vec(m), r_ * f_(x_))), vnb-lambda(f_, dual-vec(m), dual-norm(m, f_))]
 
 ### `dual-norm`  — def-functoid · element/number-valued
 
@@ -230,6 +297,18 @@ Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `
 ### `dual-norm-on`  — def-functoid · element/number-valued
 
     dual-norm-on(m, s, f) := iota(c_, c_ in rr and 0 <= c_ and forall([x_ in s], abs(f(x_)) <= c_ * (vnrm(m))(x_)) and forall([d_], d_ in rr and 0 <= d_ and forall([x_ in s], abs(f(x_)) <= d_ * (vnrm(m))(x_)) implies c_ <= d_))
+
+### `dual-vec`  — def-functoid · set-valued
+
+> _Reads as:_  the bounded linear functionals on m
+
+    dual-vec(m) := {f_ in fun(vec(m), rr): is-bounded-linear-functional(m, f_)}
+
+### `einf`  — def-functoid · element/number-valued
+
+> _Reads as:_  the infimum of s in the extended reals
+
+    einf(s) := esup(elower-bounds(s))
 
 ### `elem-f`  — def-functoid · element/number-valued
 
@@ -242,6 +321,32 @@ Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `
 ### `elem-h`  — def-functoid · element/number-valued
 
     elem-h(a, n, r, k) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = j, if(i = k, r, one(a)), zero(a))))
+
+### `eliminf`  — def-functoid · element/number-valued
+
+> _Reads as:_  the lower limit of the sequence f
+
+    eliminf(f) := esup(image(vnb-lambda(n_, nn, einf(etail(f, n_))), nn))
+
+### `elimsup`  — def-functoid · element/number-valued
+
+> _Reads as:_  the upper limit of the sequence f
+
+    elimsup(f) := einf(image(vnb-lambda(n_, nn, esup(etail(f, n_))), nn))
+
+### `ell-one`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  the absolutely summable complex sequences
+
+### `ell-two`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  the square-summable complex sequences
+
+### `elower-bounds`  — def-functoid · set-valued
+
+> _Reads as:_  the set of lower bounds of s in the extended reals
+
+    elower-bounds(s) := {b_ in rr-pos-star: forall([x_ in s], b_ <= x_)}
 
 ### `embed`  — def-functoid · function-valued
 
@@ -261,15 +366,27 @@ Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `
 
 ### `eplus`  — characterized by axiom(s)
 
-Declared by: `eplus-in-fun` `eplus-pos-inf-left` `eplus-pos-inf-right` `eplus-real` `rr-pos-star-add-monoid-def` 
+Declared by: `eplus-in-fun` `eplus-pos-inf-left` `eplus-pos-inf-right` `eplus-real` `integral-additive` `is-caratheodory-measurable` `measure-finitely-additive` `outer-measure-binary-subadditive` 
 
 ### `esum`  — characterized by axiom(s)
 
-Declared by: `esum-finite-iff-bounded` `esum-in` `esum-least` `esum-upper` `is-absolutely-summable` 
+Declared by: `esum-finite-iff-bounded` `esum-in` `esum-least` `esum-upper` `is-absolutely-summable` `is-measure` `is-outer-measure` `measure-countably-subadditive` 
 
 ### `esup`  — characterized by axiom(s)
 
-Declared by: `esup-empty` `esup-in` `esup-least` `esup-upper` 
+Declared by: `esup-empty` `esup-in` `esup-least` `esup-upper` `integral-sup-of-simple` `measure-continuity-from-below` `monotone-convergence` 
+
+### `etail`  — def-functoid · set-valued
+
+> _Reads as:_  the set of values of the sequence f from index n on
+
+    etail(f, n) := image(f, {p_ in nn: n <= p_})
+
+### `etimes`  — characterized by axiom(s)
+
+> _Reads as:_  x times y in the extended reals
+
+Declared by: `etimes-in-fun` `etimes-pos-inf-left` `etimes-pos-inf-right` `etimes-pos-inf-zero` `etimes-real` `etimes-zero-pos-inf` `integral-homogeneous` 
 
 ### `euclidean-gauges`  — def-functoid · set-valued
 
@@ -290,6 +407,18 @@ Declared by: `fam-of-list-apply`
 ### `fin-enum`  — def-functoid · element/number-valued
 
     fin-enum(s) := choice(bijection(ord-segment(card(s)), s))
+
+### `fin-subset-monoid`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the monoid of finite subsets of a_ under union
+
+    fin-subset-monoid(a_) := [fin-subsets(a_), vnb-lambda([x_, y_], cartesian(fin-subsets(a_), fin-subsets(a_)), union(x_, y_)), empty-set]
+
+### `fin-subsets`  — def-functoid · set-valued
+
+> _Reads as:_  the finite subsets of a_
+
+    fin-subsets(a_) := {t_ in power(a_): card(t_) in nn}
 
 ### `finprod`  — def-functoid · element/number-valued
 
@@ -333,6 +462,12 @@ Declared by: `fam-of-list-apply`
 
 ### `image`  — kernel term-former
 
+### `indicator`  — def-functoid · function-valued
+
+> _Reads as:_  the indicator function of a in omega
+
+    indicator(omega, a) := vnb-lambda(x_, omega, if(x_ in a, 1, 0))
+
 ### `inf-subsets`  — def-functoid · set-valued
 
     inf-subsets(a) := {s in power(a): not(card(s) in nn)}
@@ -342,6 +477,12 @@ Declared by: `fam-of-list-apply`
 ### `insert-last`  — def-functoid · function-valued
 
     insert-last(phi, x, n) := vnb-lambda(i, nn, if(i in ord-segment(n), phi(i), x))
+
+### `integral`  — characterized by axiom(s)
+
+> _Reads as:_  the integral of f over omega with respect to the measure mu
+
+Declared by: `integral-additive` `integral-homogeneous` `integral-in` `integral-indicator` `integral-infinite-on-null` `integral-monotone` `integral-sup-of-simple` `dominated-convergence` 
 
 ### `interior`  — def-functoid · set-valued
 
@@ -361,6 +502,22 @@ Declared by: `fam-of-list-apply`
 
 ### `iota`  — kernel term-former
 
+### `ip`  — structure accessor · element (slot value)
+
+> _Reads as:_  the inner product of s
+
+### `ip-norm`  — def-functoid · element/number-valued
+
+> _Reads as:_  the induced norm of x in v
+
+    ip-norm(v, x) := sqrt((ip(v))(x, x))
+
+### `ip-normed-ag`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the additive group of v under the induced norm
+
+    ip-normed-ag(v) := [vec(v), vadd(v), vzero(v), vneg(v), vnb-lambda(x_, vec(v), ip-norm(v, x_))]
+
 ### `is-fun`  — unknown registry kind
 
 ### `keep-set`  — def-functoid · set-valued
@@ -370,6 +527,12 @@ Declared by: `fam-of-list-apply`
 ### `lastcoeff-set`  — def-functoid · set-valued
 
     lastcoeff-set(md, p, u, sm) := {r_ in carr(scal(md)): forsome([c_ in mat(1, succ(p), carr(scal(md)))], entry(c_, 1, succ(p)) = r_ and entry(matact(md, c_, u), 1, 1) in sm)}
+
+### `leadcoef`  — def-functoid · element/number-valued
+
+> _Reads as:_  the leading coefficient of p
+
+    leadcoef(a, p) := p(deg(a, p))
 
 ### `length`  — kernel term-former
 
@@ -425,11 +588,23 @@ Declared by: `matrix-membership` `matrix-sethood` `mat-unfold`
 
     matunit(a, n, k, l) := matof(n, n, vnb-lambda([i, j], cartesian(interval(1, n), interval(1, n)), if(i = k and j = l, one(a), zero(a))))
 
+### `max`  — characterized by axiom(s)
+
+Declared by: `nn-max-closed` `rr-le-max-left` `rr-le-max-right` `rr-max-cases` `rr-max-closed` `rr-max-def` `rr-max-le` `rr-max-lipschitz` 
+
+### `meas`  — structure accessor · element (slot value)
+
+> _Reads as:_  the measure of s
+
 ### `metric-top`  — def-functoid · tuple/structure-valued
 
 > _Reads as:_  the metric topology of md
 
     metric-top(md) := [pts(md), {u in power(pts(md)): is-open(md, u)}]
+
+### `min`  — characterized by axiom(s)
+
+Declared by: `nn-min-closed` `rr-le-min` `rr-min-cases` `rr-min-closed` `rr-min-def` `rr-min-le-left` `rr-min-le-right` `rr-min-lipschitz` 
 
 ### `minor`  — def-functoid · element/number-valued
 
@@ -460,6 +635,12 @@ Declared by: `matrix-membership` `matrix-sethood` `mat-unfold`
 ### `monalg-zero`  — def-functoid · function-valued
 
     monalg-zero(a, m) := vnb-lambda(x_, carr(m), zero(a))
+
+### `monomial`  — def-functoid · function-valued
+
+> _Reads as:_  the monomial c x^n over a
+
+    monomial(a, c, n) := vnb-lambda(x_, nn, if(x_ = n, c, zero(a)))
 
 ### `mpow`  — recursively defined (def-by-nn-recursion)
 
@@ -533,6 +714,10 @@ Declared by: `nth-deriv-v-zero` `nth-deriv-v-succ`
 
 ### `opr`  — structure accessor · element (slot value)
 
+### `ord-le`  — unknown registry kind
+
+### `ord-lt`  — unknown registry kind
+
 ### `ord-segment`  — characterized by axiom(s)
 
 Declared by: `ord-segment-insert` `ord-segment-is-set` `ord-segment-membership` `ord-segment-nn-succ` `ord-segment-self` `ord-segment-succ` `ord-segment-trans` `ord-segment-zero` 
@@ -585,7 +770,7 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
 
 ### `product-metric`  — def-functoid · element/number-valued
 
-    product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, /(1, 2 ^ (n + 1))))
+    product-metric(ms) := product-metric-w(ms, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))
 
 ### `product-metric-w`  — def-functoid · tuple/structure-valued
 
@@ -610,6 +795,36 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
     pseudo-gauge-top(fam, ground) := [ground, {u in power(ground): is-open-gauge(fam, ground, u)}]
 
 ### `pts`  — structure accessor · element (slot value)
+
+### `ptwise-eplus`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise sum of f and g on omega
+
+    ptwise-eplus(omega, f, g) := vnb-lambda(x_, omega, eplus(f(x_), g(x_)))
+
+### `ptwise-etimes`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise product of f and g on omega
+
+    ptwise-etimes(omega, f, g) := vnb-lambda(x_, omega, etimes(f(x_), g(x_)))
+
+### `ptwise-liminf`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise lower limit on omega of the sequence cf
+
+    ptwise-liminf(omega, cf) := vnb-lambda(x_, omega, eliminf(vnb-lambda(n_, nn, (cf(n_))(x_))))
+
+### `ptwise-scale`  — def-functoid · function-valued
+
+> _Reads as:_  the function f scaled by c on omega
+
+    ptwise-scale(omega, c, f) := vnb-lambda(x_, omega, etimes(c, f(x_)))
+
+### `ptwise-sup`  — def-functoid · function-valued
+
+> _Reads as:_  the pointwise supremum on omega of the sequence cf
+
+    ptwise-sup(omega, cf) := vnb-lambda(x_, omega, esup(image(vnb-lambda(n_, nn, (cf(n_))(x_)), nn)))
 
 ### `qq-field`  — characterized by axioms (def-constant)
 
@@ -695,11 +910,37 @@ Declared by: `rr-normed-field-def`
 
 ### `scal`  — structure accessor · element (slot value)
 
+### `seg-curve`  — def-functoid · function-valued
+
+    seg-curve(m, f, a, eta) := vnb-lambda(u_, rr, f((vadd(m))(a, (act(m))(u_, eta))))
+
 ### `sep`  — kernel term-former
+
+### `seq-limit`  — def-functoid · element/number-valued
+
+> _Reads as:_  the limit of the sequence f
+
+    seq-limit(f) := if(converges(rr-ms, f), iota(lm_, converges-to(rr-ms, f, lm_)), 0)
+
+### `series-limit`  — def-functoid · element/number-valued
+
+> _Reads as:_  the sum of the series f
+
+    series-limit(f) := iota(lm_, series-converges-to(f, lm_))
 
 ### `series-partial-sum`  — def-functoid · element/number-valued
 
     series-partial-sum(f, k) := sum-ag(normed-field-additive-ag(rr-normed-field), f, k)
+
+### `sigma`  — structure accessor · element (slot value)
+
+> _Reads as:_  the sigma-algebra of s
+
+### `sigma-generated`  — def-functoid · set-valued
+
+> _Reads as:_  the sigma-algebra of subsets of omega generated by ce
+
+    sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}
 
 ### `singleton`  — characterized by axiom(s)
 
@@ -729,6 +970,18 @@ Declared by: `field-non-zero-carrier` `is-field` `qq-field-def` `qq-field@non-ze
 
 Declared by: `intersection-decompose` `union-decompose` 
 
+### `sqn`  — def-functoid · set-valued
+
+> _Reads as:_  the sequences in a
+
+    sqn(a) := fun(nn, a)
+
+### `sqrt`  — def-functoid · element/number-valued
+
+> _Reads as:_  the square root of a_
+
+    sqrt(a_) := iota(x_, x_ in rr and 0 <= x_ and x_ * x_ = a_)
+
 ### `submat`  — def-functoid · element/number-valued
 
     submat(s, p, q) := matof(p, q, vnb-lambda([i, j], cartesian(interval(1, p), interval(1, q)), entry(s, succ(i), succ(j))))
@@ -755,7 +1008,7 @@ Declared by: `sum-set-disjoint-union` `sum-set-empty` `sum-set-left-scalar` `sum
 
 ### `sup`  — kernel primitive (notation-declared, no def-*)
 
-> _Reads as:_  sup
+> _Reads as:_  sup()
 
 ### `sup-ord`  — characterized by axiom(s)
 
@@ -769,7 +1022,7 @@ Declared by: `sup-ord-empty` `sup-ord-in` `sup-ord-least` `sup-ord-succ-segment`
 
 ### `taylor-poly`  — def-functoid · element/number-valued
 
-    taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, nn, (nth-deriv(f, k))(a) * (x - a) ^ k * recip(factorial(k))), succ(n))
+    taylor-poly(f, a, n, x) := series-partial-sum(vnb-lambda(k, nn, ((nth-deriv(f, k))(a) * (x - a) ^ k) * recip(factorial(k))), succ(n))
 
 ### `taylor-poly-v`  — recursively defined (def-by-nn-recursion)
 
@@ -777,7 +1030,13 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 
 ### `trinum`  — kernel primitive (notation-declared, no def-*)
 
-> _Reads as:_  trinum
+> _Reads as:_  trinum()
+
+### `trunc-metric`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the truncated metric space of s
+
+    trunc-metric(s) := [pts(s), vnb-lambda([u, v], cartesian(pts(s), pts(s)), min(1, (dist(s))(u, v)))]
 
 ### `tuples`  — kernel term-former
 
@@ -831,7 +1090,7 @@ Declared by: `zz-act-nonneg` `zz-act-neg`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (165)
+## Predicates  (190)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -841,15 +1100,15 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `<=`  — kernel primitive (notation-declared, no def-*) · proposition
 
-> _Reads as:_  <=
+> _Reads as:_  (<=)()
 
 ### `=`  — kernel primitive (notation-declared, no def-*) · proposition
 
-> _Reads as:_  =
+> _Reads as:_  (=)()
 
 ### `==`  — kernel primitive (notation-declared, no def-*) · proposition
 
-> _Reads as:_  ==
+> _Reads as:_  (==)()
 
 ### `cluster-point`  — def-predicate · proposition (arity 3)
 
@@ -879,6 +1138,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f and g are equivalent Cauchy sequences in m
 
+### `deg-bound`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  n bounds the support of p
+
+### `econverges-to`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  the sequence f converges to l in the extended reals
+
 ### `extends-on`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  g agrees with f on s
@@ -905,7 +1172,7 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `has-div-remainder`  — def-predicate · proposition (arity 2)
 
-> _Reads as:_  s has division with remainder for the degree function deg
+> _Reads as:_  s has division with remainder for the degree function dg
 
 ### `has-fip`  — def-predicate · proposition (arity 2)
 
@@ -917,9 +1184,9 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `in`  — kernel primitive (notation-declared, no def-*) · proposition
 
-> _Reads as:_  in
+> _Reads as:_  in()
 
-### `injective*`  — def-predicate · proposition (arity 1)
+### `injective-star`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  f is injective
 
@@ -934,6 +1201,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-algebra-of-sets`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  ca is an algebra of subsets of omega
+
+### `is-antiderivable`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  phi is antiderivable on the interval [a, b]
+
+### `is-antiderivative`  — def-predicate · proposition (arity 4)
+
+> _Reads as:_  f is an antiderivative of phi on the interval [a, b]
 
 ### `is-associative`  — def-predicate · proposition (arity 2)
 
@@ -950,6 +1225,14 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-bounded-metric-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a bounded metric space
+
+### `is-c-metric-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a countably-metrised space
+
+### `is-caratheodory-measurable`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  es is Caratheodory measurable for the outer measure mu on omega
 
 ### `is-cauchy-seq`  — def-predicate · proposition (arity 2)
 
@@ -983,6 +1266,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  s is complete
 
+### `is-complex-inner-product-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a complex inner product space
+
 ### `is-cont-lin`  — def-predicate · proposition (arity 5)
 
 > _Reads as:_  tt is a continuous linear map from (m1, fam1) to (m2, fam2)
@@ -1015,6 +1302,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is differentiable at a with derivative l, as a curve in m
 
+### `is-dir-diff-at`  — def-predicate · proposition (arity 5)
+
+> _Reads as:_  f has directional derivative dl at a in the direction eta, in m
+
 ### `is-distributive`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  mulop distributes over addop on crr
@@ -1036,6 +1327,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 > _Reads as:_  s is a Euclidean ring
 
 ### `is-field`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a field
+
+### `is-field-ring`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a field
 
@@ -1071,11 +1366,19 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a homomorphism from a to b
 
+### `is-hom-c-metric-space`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a homomorphism from a to b
+
 ### `is-hom-comm-monoid`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
 
 ### `is-hom-commutative-ring`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a homomorphism from a to b
+
+### `is-hom-complex-inner-product-space`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
 
@@ -1087,11 +1390,23 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  f is a homomorphism from a to b
 
+### `is-hom-field-ring`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a homomorphism from a to b
+
 ### `is-hom-group`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
 
 ### `is-hom-integral-domain`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a homomorphism from a to b
+
+### `is-hom-measurable-space`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a homomorphism from a to b
+
+### `is-hom-measure-space`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is a homomorphism from a to b
 
@@ -1207,6 +1522,26 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  a is meager in s
 
+### `is-measurable-fn`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a measurable [0,+inf]-valued function on omega with ca
+
+### `is-measurable-map`  — def-predicate · proposition (arity 5)
+
+> _Reads as:_  f is a measurable map from omega with ca to omega2 with cb
+
+### `is-measurable-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a measurable space
+
+### `is-measure`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  mu is a countably additive measure on the sigma-algebra ca of subsets of omega
+
+### `is-measure-space`  — def-predicate · proposition (arity 1)
+
+> _Reads as:_  s is a measure space
+
 ### `is-metric`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  dst is a metric on crr
@@ -1279,6 +1614,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  x is an ordinal
 
+### `is-outer-measure`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  mu is an outer measure on omega
+
 ### `is-partial-order`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  porel partially orders grd
@@ -1294,6 +1633,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-pseudometric-space`  — def-predicate · proposition (arity 1)
 
 > _Reads as:_  s is a pseudometric space
+
+### `is-ptwise-cauchy`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  fam is pointwise Cauchy on s
 
 ### `is-r-net`  — def-predicate · proposition (arity 4)
 
@@ -1335,9 +1678,17 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  ca is a sigma-algebra of subsets of omega
 
+### `is-simple-fn`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a simple measurable function on omega with ca
+
 ### `is-strictly-below`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  x is strictly below y under porel
+
+### `is-strictly-increasing-on`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  f is strictly increasing on s
 
 ### `is-submodule`  — def-predicate · proposition (arity 2)
 
@@ -1385,11 +1736,11 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `neg-rr`  — def-predicate · proposition (arity 1)
 
-> _Reads as:_  neg-rr
+> _Reads as:_  neg-rr()
 
 ### `nonneg-rr`  — def-predicate · proposition (arity 1)
 
-> _Reads as:_  nonneg-rr
+> _Reads as:_  nonneg-rr()
 
 ### `npe`  — def-predicate · proposition (arity 5)
 
@@ -1422,6 +1773,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `ps-ratio-limit`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  the coefficients coef have ratio limit l
+
+### `ptwise-le`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is pointwise at most g on omega
 
 ### `rel-free`  — def-predicate · proposition (arity 3)
 
@@ -1461,7 +1816,11 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `subset`  — kernel primitive (notation-declared, no def-*) · proposition
 
-> _Reads as:_  subset
+> _Reads as:_  subset()
+
+### `subsqn`  — def-predicate · proposition (arity 2)
+
+> _Reads as:_  y is a subsequence of f
 
 ### `summable-weight`  — def-predicate · proposition (arity 1)
 

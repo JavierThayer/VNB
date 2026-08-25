@@ -76,9 +76,15 @@ in `z`. A big-union of a set-indexed family of sets is a set.
   tactic `iota-d`). Characterised by its defining property under a uniqueness
   side condition.
 - **`VNB-LAMBDA([x…], body)`** — the function-builder (`pi-lambda-type!` /
-  `pi-lambda-beta!`, tactics `lam-t` / `lam-b`): typing into `FUN` and
-  β-reduction `(VNB-LAMBDA([x], body))(a) = body[x:=a]`. The carrier of every
-  `def-functoid` whose body is a `VNB-LAMBDA` (e.g. `BDD-METRIC`).
+  `pi-lambda-beta!` / `pi-lambda-beta-hyp!`, tactics `lam-t` / `lam-b` /
+  `lam-b-h`): typing into `FUN` and β-reduction
+  `(VNB-LAMBDA([x], body))(a) = body[x:=a]`, in the goal (`lambda-beta`) or in
+  an assumption (`lambda-beta-hyp`, primitive-inferences.scm:1415, driven from
+  interactive.scm). The carrier of every `def-functoid` whose body is a
+  `VNB-LAMBDA` (e.g. `BDD-METRIC`).
+  *`lambda-beta-hyp` was absent from this file until 2026-08-13 — a trusted
+  primitive that the audit surface did not list, which is the one failure this
+  document exists to prevent.*
 
 ---
 

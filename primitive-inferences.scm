@@ -458,7 +458,7 @@
             ((not (pair? e)) e)
             (else
              (case (car e)
-               ((FORALL FORSOME IOTA)
+               ((FORALL FORSOME IOTA COMP)
                 (if (memq (cadr e) danger)
                     e
                     (list (car e) (cadr e) (walk (caddr e)))))
@@ -924,7 +924,7 @@
 ;;; Strong (complete) induction form.
 ;;; Goal:    (FORALL var (IMPLIES (IN var ORD) P))
 ;;; Subgoal: (FORALL var (IMPLIES (AND (IN var ORD)
-;;;                                    (FORALL beta (IMPLIES (<_ORD beta var) P[var:=beta])))
+;;;                                    (FORALL beta (IMPLIES (ORD-LT beta var) P[var:=beta])))
 ;;;                                P))
 
 (define (pi-tfi! sqn)
@@ -947,7 +947,7 @@
                                                       (map wff-formula asms))))
                               (beta   (apply fresh-var 'beta P avoids))
                               (P-beta (subst-free var beta P))
-                              (IH     `(FORALL ,beta (IMPLIES (<_ORD ,beta ,var) ,P-beta)))
+                              (IH     `(FORALL ,beta (IMPLIES (ORD-LT ,beta ,var) ,P-beta)))
                               (new-g  `(FORALL ,var (IMPLIES (AND (IN ,var ORD) ,IH) ,P))))
                          (dg-apply-rule! dg 'transfinite-induction
                            (list (make-sequent asms (wff-child goal new-g)))
@@ -959,7 +959,7 @@
 ;;;   (1) P[var := 0]                                                (base)
 ;;;   (2) (FORALL var (IMPLIES (AND (IN var ORD) P) P[var := (succ_ORD var)]))  (successor)
 ;;;   (3) (FORALL var (IMPLIES (AND (LIMIT-ORD var)                  (limit)
-;;;                                 (FORALL beta (IMPLIES (<_ORD beta var) P[var:=beta])))
+;;;                                 (FORALL beta (IMPLIES (ORD-LT beta var) P[var:=beta])))
 ;;;                             P))
 
 (define (pi-tfi3! sqn)
@@ -984,7 +984,7 @@
                               (P-zero    (subst-free var 0 P))
                               (P-succ    (subst-free var `(succ_ORD ,var) P))
                               (P-beta    (subst-free var beta P))
-                              (IH-limit  `(FORALL ,beta (IMPLIES (<_ORD ,beta ,var) ,P-beta)))
+                              (IH-limit  `(FORALL ,beta (IMPLIES (ORD-LT ,beta ,var) ,P-beta)))
                               (base-goal P-zero)
                               (succ-goal `(FORALL ,var (IMPLIES (AND (IN ,var ORD) ,P) ,P-succ)))
                               (lim-goal  `(FORALL ,var (IMPLIES
@@ -1324,6 +1324,58 @@
 ;;; pi-lambda-beta!: rewrite ((VNB-LAMBDA <bind-spec> body) arg ...) anywhere
 ;;;                  in the goal to body[bvars := args] (parallel substitution).
 
+;;; The pointwise typing subgoal for a binder spec.  ONE subgoal either way:
+;;;
+;;;   single binder   forall x. x in A => body in B
+;;;   binder LIST     forall x_1 ... x_n. x_1 in A_1 => ... => x_n in A_n
+;;;                                       => body in B
+;;;
+;;; MULTI-BINDER, added 2026-08-14.  The rule required `(symbol? (cadr subj))',
+;;; so a lambda of two variables could be written and could not be typed --
+;;; while `pi--binder-scope' in this same file already reads a binder list
+;;; componentwise against a CARTESIAN domain, and `reduce-lambda-in-expr' already
+;;; beta-reduces such a lambda applied to n arguments.  The reading was decided;
+;;; only the typing rule had not been told.  So this is not a new commitment:
+;;; it makes lambda-type agree with lambda-beta, which is the condition under
+;;; which the two rules are about the same object.
+;;;
+;;; The domain must be CARTESIAN of exactly n factors.  That is what makes the
+;;; componentwise quantification equivalent to quantifying over the product: an
+;;; element of CARTESIAN(A_1..A_n) IS a tuple of members (cartesian-decompose),
+;;; and `apply-tupling-n' (axioms.scm) equates (f a_1 .. a_n) with (f [a_1..a_n]),
+;;; so the function this term denotes on the product is exactly the one whose
+;;; value at a tuple is the body.  A binder list against a non-CARTESIAN domain,
+;;; or a length mismatch, is REFUSED rather than guessed at.
+(define (pi--lambda-type-subgoal bind-spec A body B avoid-base)
+  (cond
+    ((symbol? bind-spec)
+     (let* ((x*    (apply fresh-var bind-spec avoid-base))
+            (body* (subst-free bind-spec x* body)))
+       `(FORALL ,x* (IMPLIES (IN ,x* ,A) (IN ,body* ,B)))))
+    ((and (pair? bind-spec) (eq? (car bind-spec) 'LIST)
+          (pair? A) (eq? (car A) 'CARTESIAN)
+          (= (length (cdr bind-spec)) (length (cdr A)))
+          (pair? (cdr bind-spec)))
+     (let ((doms (cdr A)))
+       ;; freshen the binders left to right, substituting as we go, then wrap
+       ;; the typed body in one guarded FORALL per component
+       ;; NB `bod', not `b': MIT folds symbols, so a loop variable named `b'
+       ;; IS the parameter `B' -- the codomain -- and the innermost subgoal came
+       ;; out as (IN body body).  The case-fold trap, inside a patch to the file
+       ;; whose header warns about it.
+       (let loop ((vs (cdr bind-spec)) (fresh '()) (bod body))
+         (if (null? vs)
+             (let build ((fs (reverse fresh)) (ds doms))
+               (if (null? fs)
+                   `(IN ,bod ,B)
+                   `(FORALL ,(car fs)
+                      (IMPLIES (IN ,(car fs) ,(car ds))
+                               ,(build (cdr fs) (cdr ds))))))
+             (let* ((v*   (apply fresh-var (car vs) (append fresh avoid-base)))
+                    (bod* (subst-free (car vs) v* bod)))
+               (loop (cdr vs) (cons v* fresh) bod*))))))
+    (else #f)))
+
 (define (pi-lambda-type! sqn)
   (let* ((asms (sequent-node-assumptions sqn))
          (goal (sequent-node-assertion   sqn))
@@ -1332,27 +1384,22 @@
     (and (pair? g) (eq? (car g) 'IN)
          (let ((subj (cadr g)) (cls (caddr g)))
            (and (pair? subj) (eq? (car subj) 'VNB-LAMBDA) (= (length subj) 4)
-                (symbol? (cadr subj))
                 (pair? cls) (eq? (car cls) 'FUN) (= (length cls) 3)
                 ;; THE SOUNDNESS CONDITION: the domain the term declares must be
                 ;; the domain the FUN claims.  Without it one term types into
                 ;; FUN(A,B) for every A -- see the header.
                 (alpha-equiv? (caddr subj) (cadr cls))
-                (let* ((x    (cadr subj))
-                       (A    (cadr cls))
+                (let* ((A    (cadr cls))
                        (body (cadddr subj))
                        (B    (caddr cls))
-                       ;; Rename x to a fresh name to avoid clashing with
-                       ;; anything in A, B, asms, or the goal.
                        (avoids (cons body (cons A (cons B (map wff-formula asms)))))
-                       (x*   (apply fresh-var x avoids))
-                       (body*(subst-free x x* body))
-                       (sub-goal `(FORALL ,x* (IMPLIES (IN ,x* ,A) (IN ,body* ,B))))
+                       (sub-goal (pi--lambda-type-subgoal (cadr subj) A body B avoids))
                        (set-goal `(IN ,A SET)))
-                  (dg-apply-rule! dg 'lambda-type
-                    (list (make-sequent asms (wff-child goal sub-goal))
-                          (make-sequent asms (wff-child goal set-goal)))
-                    sqn)))))))
+                  (and sub-goal
+                       (dg-apply-rule! dg 'lambda-type
+                         (list (make-sequent asms (wff-child goal sub-goal))
+                               (make-sequent asms (wff-child goal set-goal)))
+                         sqn))))))))
 
 (define (pi-lambda-beta! sqn)
   (let* ((asms (sequent-node-assumptions sqn))

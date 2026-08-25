@@ -52,4 +52,4 @@
 (bc* 'cauchy-seq-is-fun)        ; f:NN->X -> IS-CAUCHY-SEQ(s,f)
 (ass)                           ;   in context
 
-(qed 'compact-complete)
+(qed 'compact-implies-complete)

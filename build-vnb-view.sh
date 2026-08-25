@@ -73,17 +73,18 @@ group() {
 }
 
 # ------------------------------------------------- the flat root, grouped
-# The 37 .scm files at the root of ~/prover are the only ones that need
-# per-file links; every subdirectory below is linked whole.
+# The 42 .scm files at the root of ~/prover are the only ones that need
+# per-file links; every subdirectory below is linked whole.  The count is prose,
+# not a check -- the stderr report below is what actually catches an omission.
 group scm-dir/kernel     wff expressions sequents deduction-graphs \
                          primitive-inferences theory macetes errors contexts
 group scm-dir/surface    interactive proof-commands parser input-context \
                          tactics-help driver-kit
 group scm-dir/tactics    calc prep minimize sketch vlet transport suggest \
-                         parts arith-eval
+                         parts arith-eval prop contra
 group scm-dir/vocabulary structures operators number-systems glossary
 group scm-dir/output     proof-tex tex-output wff-english proof-reader \
-                         proven-theorems
+                         proven-theorems proof-map
 group scm-dir/ledger     proof-debt audit clobber-guard
 group scm-dir/build      load test-suite test-suite-negative mutation-check
 
@@ -116,12 +117,12 @@ sl metric     "metric-space metric-laws metric-completeness metric-completion \
                bounded-metric product-metric compactness separable inf-subsets top-space"
 sl normed     "normed-ag normed-ag-metric normed-field normed-field-metric \
                normed-vector-space"
-sl numbers    "complex extended-reals extended-reals-pos nn-arith zz-arith \
+sl numbers    "complex extended-reals extended-reals-pos extended-arith nn-arith zz-arith \
                zz-divisibility qq-fractions real-powers numeric-instances \
                order-predicates order-lemmas rr-ineq scalar-inequalities linear-arith \
                sequences reduce mod-seq"
 sl sets       "set-basics cardinality ordinals injection bijection bijection-derived \
-               compose compose-typing sigma-algebra"
+               compose compose-typing sigma-algebra list-recursion measure integral"
 sl oracles    "ring-simplify comm-ring-simplify ineq-oracle sos-oracle sos-arith"
 sl functorial "views functoriality functor-invariance definitional-reclass"
 sl misc       "references user-additions"
@@ -216,18 +217,18 @@ matches the script rather than the history of what was extracted there.  Note
 this fixes the view only: a `.scm` deleted upstream still survives an overlay of
 `prover/`, and `load.scm` may still load it.
 
-    scm-dir/    the 37 .scm files at the prover root, grouped
+    scm-dir/    the 42 .scm files at the prover root, grouped
       kernel/       wff, expressions, sequents, deduction-graphs,
                     primitive-inferences, theory, macetes, errors, contexts
       surface/      interactive, proof-commands, parser, input-context,
                     tactics-help, driver-kit
       tactics/      calc, prep, minimize, sketch, vlet, transport, suggest,
-                    parts, arith-eval
-      vocabulary/   structures, operators, number-systems
+                    parts, arith-eval, prop, contra
+      vocabulary/   structures, operators, number-systems, glossary
       output/       proof-tex, tex-output, wff-english, proof-reader,
                     proven-theorems
       ledger/       proof-debt, audit, clobber-guard
-      build/        load, test-suite
+      build/        load, test-suite, test-suite-negative, mutation-check
     el-dir      -> prover/emacs
     library/
       structure-library/   split BY THEORY, on the IMPS model -- a theory is the
@@ -239,7 +240,8 @@ this fixes the view only: a `.scm` deleted upstream still survives an overlay of
         metric/       metric spaces, completeness, continuity, topology, compactness
         normed/       the bridge: normed groups, fields, vector spaces
         numbers/      NN/ZZ/QQ/RR/CC and their arithmetic, order, sequences
-        sets/         set basics, cardinality, ordinals, injections, sigma-algebras
+        sets/         set basics, cardinality, ordinals, injections, sigma-algebras,
+                      the CONS/TUPLES generation principle (list-recursion)
         oracles/      the trusted decision procedures
         functorial/   views, functoriality, invariance -- the theory INTERPRETATIONS
         misc/         references, user-additions

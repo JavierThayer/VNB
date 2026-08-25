@@ -31,15 +31,40 @@
 (define (proof-open-goals ps)
   (dg-ungrounded-nodes (proof-state-dg ps)))
 
+;;; The nodes you can actually WORK ON: ungrounded AND with no in-arrow, i.e.
+;;; no rule has fired on them yet.
+;;;
+;;; `proof-open-goals' is every ungrounded node, which INCLUDES each justified
+;;; ancestor still waiting on its children.  Reporting that as the open-goal
+;;; count is why the Focus panel says "13 open goals" over a proof with one
+;;; real leaf: the other twelve are the cut/backchain/di scaffolding, several
+;;; of them printing the same assertion, and a user reasonably reads the list
+;;; as twelve things left to prove.  Worse, `focus' indexed that list, so
+;;; (focus n) could select an already-justified node and a following tactic
+;;; would build a SECOND justification for it.
+;;;
+;;; Both notions are needed -- the trace and the TeX output want every
+;;; ungrounded node -- so this is a second accessor rather than a change to the
+;;; first.  driver-kit's `proof-leaves' is this function on *ps*; several proof
+;;; files had already hand-written the filter, which is what a missing accessor
+;;; looks like.
+(define (proof-open-leaves ps)
+  (filter (lambda (sqn) (null? (sequent-node-in-arrows sqn)))
+          (dg-ungrounded-nodes (proof-state-dg ps))))
+
 (define (focus-on ps sqn)
   (set-proof-state-focus! ps sqn)
   ps)
 
+;;; Prefer a real LEAF: after a rule fires, the node it fired on is ungrounded
+;;; but justified, and landing focus there is how a driver ends up "working on"
+;;; a node whose children are the actual obligations.  Falls back to the old
+;;; behaviour if there is no leaf, so nothing loses its focus entirely.
 (define (focus-on-first-open ps)
-  (let ((open (proof-open-goals ps)))
-    (if (null? open)
-        ps
-        (focus-on ps (car open)))))
+  (let ((leaves (proof-open-leaves ps)))
+    (cond ((pair? leaves) (focus-on ps (car leaves)))
+          (else (let ((open (proof-open-goals ps)))
+                  (if (null? open) ps (focus-on ps (car open))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Soft-failure warning type.
@@ -467,7 +492,7 @@
   (if (proof-done? ps)
       (display "Proof complete.\n")
       (begin
-        (let ((open (proof-open-goals ps)))
+        (let ((open (proof-open-leaves ps)))
           (display (string-append
                     (number->string (length open))
                     " open goal(s).\n"))

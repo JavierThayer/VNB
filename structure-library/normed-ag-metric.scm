@@ -7,7 +7,7 @@
 ;;; normed AG -- it is the *constructed* function d(u,v) = NRM(u - v).  So the
 ;;; bridge is a constructor functoid plus its laws.
 ;;;
-;;;   NAG-METRIC-SPACE(nag) = [ CARR(nag),  lambda([u,v], NRM(nag)(u . INV(v))) ]
+;;;   NAG-METRIC-SPACE(nag) = [ CARR(nag),  vnb-lambda([u,v], NRM(nag)(u . INV(v))) ]
 ;;;
 ;;; The group is written multiplicatively, so the "difference" u - v is the
 ;;; group element  OPR(nag)(u, INV(nag)(v)) = u . v^-1.  Then
@@ -58,7 +58,7 @@
               ((NRM nag) ((OPR nag) u ((INV nag) v)))))))))))
 
 (warrant! 'nag-metric-distance 'informal
-  "By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), lambda([u,v],
+  "By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), vnb-lambda([u,v],
    NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce)
    and lambda-beta evaluates it at (u,v), giving NRM(nag)(OPR(nag)(u, INV(nag)
    v)) = ||u . v^-1||.")

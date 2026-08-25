@@ -38,9 +38,9 @@
   (forall-guarded '(dm cm f a h n)
     (list
       '(IS-NORMED-VECTOR-SPACE dm)
-      '(IS-FINITE-DIMENSIONAL dm)
+      '(IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE dm))
       '(IS-NORMED-VECTOR-SPACE cm)
-      '(IS-FINITE-DIMENSIONAL cm)
+      '(IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE cm))
       '(IN f (FUN (VEC dm) (VEC cm)))
       '(IN a (VEC dm))
       '(IN h (VEC dm))

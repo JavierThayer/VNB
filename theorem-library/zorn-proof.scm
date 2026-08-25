@@ -218,7 +218,7 @@
 (sp (make-wff
       (forall-guarded '(b) '((IN b ORD))
         (nest-quantifiers 'FORALL '(phi grd porel)
-          (forall-guarded '(a) '((IN a ORD) (<=_ORD a b))
+          (forall-guarded '(a) '((IN a ORD) (ORD-LE a b))
             '(SUBSET (ZKEPT phi grd porel a) (ZKEPT phi grd porel b)))))))
 (define zp-mono-cases (dk-opened (lambda () (tfi3))))
 
@@ -226,7 +226,7 @@
 (dk-focus! (car zp-mono-cases))
 (di) (di)
 (fact 'ord-zero-least 'a)
-(have! '(AND (<=_ORD a 0) (<=_ORD 0 a)))
+(have! '(AND (ORD-LE a 0) (ORD-LE 0 a)))
 (fact 'ord-le-antisymm 'a 0)
 (subst '(= a 0))
 (zp-refl!)
@@ -252,19 +252,19 @@
   (ui 1)
   (ass))
 
-(use-cases (list '(<=_ORD a b) '(<=_ORD b a))
+(use-cases (list '(ORD-LE a b) '(ORD-LE b a))
   zp-succ-below!
   (lambda ()
     (use-em '(= b a)
       (lambda ()                        ; b = a: then a <= b by reflexivity
-        (have! '(<=_ORD a b)
+        (have! '(ORD-LE a b)
                (lambda () (subst '(= b a)) (fact 'ord-le-refl 'a) (ass)))
         (zp-succ-below!))
       (lambda ()                        ; b < a with a <= succ b: a IS succ b
-        (have! '(<_ORD b a) (lambda () (mac 'ord-lt-iff) (from-context!)))
-        (have! '(AND (IN b ORD) (AND (IN a ORD) (<_ORD b a))))
+        (have! '(ORD-LT b a) (lambda () (mac 'ord-lt-iff) (from-context!)))
+        (have! '(AND (IN b ORD) (AND (IN a ORD) (ORD-LT b a))))
         (fact 'ord-succ-immediate 'b 'a)
-        (have! '(AND (<=_ORD a (succ_ORD b)) (<=_ORD (succ_ORD b) a)))
+        (have! '(AND (ORD-LE a (succ_ORD b)) (ORD-LE (succ_ORD b) a)))
         (fact 'ord-le-antisymm 'a '(succ_ORD b))
         (subst '(= (succ_ORD b) a))
         (ass)))))
@@ -281,7 +281,7 @@
 (use-em '(= a b)
   (lambda () (subst '(= b a)) (ass))
   (lambda ()
-    (have! '(<_ORD a b) (lambda () (mac 'ord-lt-iff) (from-context!)))
+    (have! '(ORD-LT a b) (lambda () (mac 'ord-lt-iff) (from-context!)))
     (mac 'zkept-limit)
     (let ((ls (dk-opened (lambda () (bu-mi 'a)))))   ; witness index a
       (for-each (lambda (l)
@@ -322,10 +322,10 @@
 ;; hypothesis is consumed only INSIDE the side branch (mac-h replaces), so the
 ;; main branch keeps it for the family hypothesis.
 (define (zp-in-ord! e)
-  (have! `(<=_ORD ,e lam)
+  (have! `(ORD-LE ,e lam)
          (lambda ()
            (mac-h 'ord-segment-membership `(IN ,e (ORD-SEGMENT lam)))
-           (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(<_ORD ,e lam)))))
+           (dk-split! (dk-landed-1 (lambda () (mac-h 'ord-lt-iff `(ORD-LT ,e lam)))))
            (ass)))
   (dk-split! (dk-fact! 'ord-le-closure e 'lam)))
 
@@ -377,7 +377,7 @@
   (zp-in-ord! e2)
   (have! `(AND (IN ,e1 ORD) (IN ,e2 ORD)))
   (fact 'ord-le-total e1 e2)
-  (use-cases (list `(<=_ORD ,e1 ,e2) `(<=_ORD ,e2 ,e1))
+  (use-cases (list `(ORD-LE ,e1 ,e2) `(ORD-LE ,e2 ,e1))
     (lambda () (zp-lift! e1 e2 'x))
     (lambda () (zp-lift! e2 e1 'y))))
 (qed 'zorn-zkept-limit-is-chain)
@@ -415,7 +415,7 @@
 (ass)
 
 ;;; LIMIT: ZKEPT(...,lambda) is the union of the tower below lambda.  The tfi3
-;;; hypothesis is indexed by (<_ORD beta alpha) and the limit lemma wants it
+;;; hypothesis is indexed by (ORD-LT beta alpha) and the limit lemma wants it
 ;;; indexed by (IN beta (ORD-SEGMENT alpha)); ord-segment-membership converts.
 (dk-focus! (caddr zp-inv-cases))
 (di)

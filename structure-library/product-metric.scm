@@ -48,7 +48,8 @@
 
 ;;; The weighted product metric.  The distance is the sum of the series of
 ;;; weighted per-factor bounded distances, named by IOTA (its limit, which
-;;; exists by product-weighted-summable below).
+;;; exists by product-weighted-summable, PROVEN in
+;;; theorem-library/product-summable.scm).
 (def-functoid 'PRODUCT-METRIC-W '(ms w)
   '(LIST (PRODUCT-CARRIER ms)
          (VNB-LAMBDA (LIST x y) (CARTESIAN (PRODUCT-CARRIER ms) (PRODUCT-CARRIER ms))
@@ -61,25 +62,18 @@
   '(PRODUCT-METRIC-W ms (VNB-LAMBDA n NN (/ 1 (power 2 (+ n 1))))))
 
 ;;; ----- carrier readout -----
-(support 'product-metric-carrier
-  '(FORALL ms (FORALL w (== (PTS (PRODUCT-METRIC-W ms w)) (PRODUCT-CARRIER ms)))))
-(warrant! 'product-metric-carrier 'well-known
-  "PTS(PRODUCT-METRIC-W(ms,w)) = PRODUCT-CARRIER(ms), the set of sequences x with
-   x(n) in PTS(ms n) for all n.  Read off the functoid carrier slot.")
+;;; `product-metric-carrier' was asserted here until 2026-08-22, with the
+;;; warrant "read off the functoid carrier slot".  Reading it off IS the proof:
+;;; unfold the functoid, project with `slot', reduce the nth, and close by
+;;; quasi-reflexivity.  PROVEN, `modulo 0', in theorem-library/
+;;; product-summable.scm, which is where the rest of the product plumbing lives.
 
 ;;; ----- the defining series converges, so the distance is well-defined -----
-(support 'product-weighted-summable
-  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
-     (FORALL w (IMPLIES (SUMMABLE-WEIGHT w)
-       (FORALL x (IMPLIES (IN x (PRODUCT-CARRIER ms))
-         (FORALL y (IMPLIES (IN y (PRODUCT-CARRIER ms))
-           (SERIES-CONVERGES
-             (VNB-LAMBDA n NN (* (w n) ((DIST (BDD-METRIC (ms n))) (x n) (y n))))))))))))))
-(warrant! 'product-weighted-summable 'well-known
-  "The series defining D_w converges: 0 <= w(n)*rho_n < w(n) since the bounded
-   metric rho_n < 1 (bdd-metric-bounded), so termwise it is dominated by the
-   summable weight series SUM w(n); comparison test gives convergence.  Hence
-   the IOTA limit in PRODUCT-METRIC-W is well-defined.")
+;;; `product-weighted-summable' was asserted here until 2026-08-22.  It is now
+;;; PROVEN, in theorem-library/product-summable.scm, from bdd-metric-bounded and
+;;; the comparison test -- the proof has to live after theorem-library/
+;;; comparison-test-proof, which is far below this file in load order.  Read the
+;;; statement there; the argument is the one this warrant used to describe.
 
 ;;; ----- the product is a bounded metric space -----
 (support 'product-is-metric-space
@@ -106,47 +100,40 @@
    distance forces small d_n-distance in coordinate n.")
 
 ;;; ----- THE product topology: convergence is exactly coordinatewise -----
-(support 'product-convergence-coordinatewise
-  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
-     (FORALL w (IMPLIES (SUMMABLE-WEIGHT w)
-       (FORALL seq (IMPLIES (IN seq (FUN NN (PRODUCT-CARRIER ms)))
-         (FORALL L (IMPLIES (IN L (PRODUCT-CARRIER ms))
-           (IFF (CONVERGES-TO (PRODUCT-METRIC-W ms w) seq L)
-                (FORALL n (IMPLIES (IN n NN)
-                  (CONVERGES-TO (ms n)
-                    (VNB-LAMBDA k NN ((seq k) n)) (L n))))))))))))))
-(warrant! 'product-convergence-coordinatewise 'well-known
-  "A sequence converges in PRODUCT-METRIC-W iff it converges in every
-   coordinate -- the defining property of the PRODUCT TOPOLOGY.  Forward:
-   projections are continuous (product-projection-continuous).  Backward: given
-   eps, choose N with the weight tail SUM_{n>=N} w(n) < eps/2 (w summable), then
-   make the first N coordinates within eps/2 of L (finite intersection of
-   coordinate conditions).  Independent of which summable w is used.")
+;;; `product-convergence-coordinatewise' was asserted here until 2026-08-23.  It
+;;; is now PROVEN, in theorem-library/product-convergence.scm, and the proof has
+;;; to live far below this file: it needs `dominated-null-series'
+;;; (dominated-convergence.scm), `series-term-le-sum' (mono-le-limit.scm) and
+;;; `converges-iff-dist-null' (converges-dist-null.scm), none of which exists at
+;;; this point in the load.  Read the statement there; it is verbatim the one
+;;; this support carried.  The retired warrant described the backward half as
+;;; "choose N with the weight tail SUM_{n>=N} w(n) < eps/2, then make the first
+;;; N coordinates within eps/2" -- that argument is not run here, because
+;;; `dominated-null-series' IS it, once and for any dominated family.
 
 ;;; ----- infinitely many topologically equivalent metrics -----
-(support 'product-weights-equivalent
-  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
-     (FORALL w (IMPLIES (SUMMABLE-WEIGHT w)
-       (FORALL w2 (IMPLIES (SUMMABLE-WEIGHT w2)
-         (AND (IS-CONTINUOUS (PRODUCT-METRIC-W ms w) (PRODUCT-METRIC-W ms w2)
-                             (VNB-LAMBDA x (PTS (PRODUCT-METRIC-W ms w)) x))
-              (IS-CONTINUOUS (PRODUCT-METRIC-W ms w2) (PRODUCT-METRIC-W ms w)
-                             (VNB-LAMBDA x (PTS (PRODUCT-METRIC-W ms w2)) x))))))))))
-(warrant! 'product-weights-equivalent 'well-known
-  "Any two summable positive weight sequences give TOPOLOGICALLY EQUIVALENT
-   product metrics: the identity between PRODUCT-METRIC-W(ms,w) and
-   PRODUCT-METRIC-W(ms,w2) is bicontinuous, since both induce coordinatewise
-   convergence (product-convergence-coordinatewise).  Hence the countable
-   product carries one canonical topology realised by INFINITELY many distinct
-   but equivalent metrics (vary w, or the bounded function rho).")
+;;; `product-weights-equivalent' was asserted here until 2026-08-23.  It is now
+;;; PROVEN, in theorem-library/product-weights.scm.  The retired warrant had the
+;;; argument exactly right -- "the identity is bicontinuous, since both induce
+;;; coordinatewise convergence" -- and could not be run here for two reasons,
+;;; both since removed: `product-convergence-coordinatewise' was itself asserted,
+;;; and the tree had no bridge from CONVERGENCE to CONTINUITY.  That bridge is
+;;; `continuous-at-iff-sequential' (theorem-library/sequential-continuity.scm).
+;;; Read the statement there; it is verbatim the one this support carried.
 
 ;;; ----- the canonical instance -----
-(support 'product-metric-default-summable
-  '(SUMMABLE-WEIGHT (VNB-LAMBDA n NN (/ 1 (power 2 (+ n 1))))))
-(warrant! 'product-metric-default-summable 'well-known
-  "The default weights w(n)=2^-(n+1) are a summable positive sequence
-   (geometric, SUM = 1), so PRODUCT-METRIC(ms)=PRODUCT-METRIC-W(ms,2^-(n+1)) is
-   a bounded metric (diameter <= 1) realising the product topology.")
+;;; `product-metric-default-summable' was asserted here until 2026-08-22.  It is
+;;; now PROVEN, `modulo {nn-add-succ, nn-zero-le, nn-le-succ-cases}'
+;;; [trust: well-known], in theorem-library/dyadic-weights.scm -- which has to
+;;; live below comparison-test-proof (the partial-sum recurrence) and
+;;; monotone-convergence-proof, both far below this file in load order.  The
+;;; retired warrant read "geometric, SUM = 1", and the geometric series is
+;;; exactly what the proof does NOT use: `geometric-series-converges-to' is
+;;; itself asserted, it sums r^n rather than 2^-(n+1), and bridging the two
+;;; wants a scalar multiple of a convergent series that the tree does not have.
+;;; The proof is the closed form SERIES-PARTIAL-SUM(w,k) = 1 - 2^-k, by
+;;; induction on k, which delivers both hypotheses of monotone convergence at
+;;; once.  Read the statement there.
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

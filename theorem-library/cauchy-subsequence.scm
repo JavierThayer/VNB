@@ -76,6 +76,36 @@
           (AND (STRICTLY-MONO-NN phi)
                (= y (SUBSEQ f phi))))))
 
+;;; SUBSQN(y, f) -- "y is a subsequence of f", the SPACE-FREE relation (the
+;;; user's proposal, 2026-08-20).
+;;;
+;;; IS-SUBSEQUENCE above conflates two different things: a TYPING
+;;; (f : NN -> PTS(s)) and a RELATION (y reindexes f).  The relation needs no
+;;; space at all -- "y = f o phi for a strictly monotone phi" is a statement
+;;; about two sequences and nothing else -- and carrying `s' through it is what
+;;; makes the predicate awkward to use.  Measured: IS-SUBSEQUENCE has ZERO
+;;; citations in the whole tree.  Every theorem in the arc
+;;; (totally-bounded-has-cauchy-subsequence, tb-has-eps-cauchy-subseq,
+;;; cauchy-rapid-subsequence, coordinatewise-diagonal-subseq,
+;;; subsequence-principle) writes `forsome([phi], strictly-mono-nn(phi) and ...)'
+;;; out longhand instead, which is the predicate's own body with the typing
+;;; dropped.  SUBSQN is that body, named.
+;;;
+;;; A `def-predicate', so it installs a citable defining IFF -- unlike a
+;;; `def-functoid', which installs only a rewrite macete and cannot be unfolded
+;;; in an ASSUMPTION by `mac-h'.
+(def-predicate 'SUBSQN '(y f)
+  '(FORSOME phi
+     (AND (STRICTLY-MONO-NN phi)
+          (= y (SUBSEQ f phi)))))
+
+(notation! 'SUBSQN 'kind 'predicate 'arity 2
+           'english "$1 is a subsequence of $2")
+
+;;; The bridge -- IS-SUBSEQUENCE is the typing and SUBSQN together -- is PROVEN
+;;; in theorem-library/subsqn-basics.scm, not here: this file loads at
+;;; load.scm:314, long before `interactive' (465), so it has no `sp' / `qed'.
+
 ;;; subseq-is-fun: a subsequence of an PTS(s)-sequence is again an PTS(s)-sequence.
 ;;; phi : NN -> NN and f : NN -> PTS(s), so f o phi : NN -> PTS(s).  Typing slice,
 ;;; directly backchainable (VNB macetes rewrite goals not hyps).

@@ -14,7 +14,7 @@
 ;;;       = IF X subset wo-picks(X, alpha)
 ;;;            then wo-picks(X, alpha)
 ;;;            else wo-picks(X, alpha) UNION { CHOICE(X \ wo-picks(X, alpha)) }
-;;;   wo-picks(X, lam)        = UNION_{beta <_ORD lam} wo-picks(X, beta)
+;;;   wo-picks(X, lam)        = UNION_{beta ORD-LT lam} wo-picks(X, beta)
 ;;;
 ;;; The IF guard is essential: it keeps wo-picks(X, alpha) subset X for all
 ;;; alpha, which the step-2 induction below needs.  Without the guard, once
@@ -400,7 +400,7 @@
 ;;;
 ;;; Focus is on the tfi3 limit subgoal:
 ;;;   (FORALL alpha (IMPLIES (AND (LIMIT-ORD alpha) IH-limit) P(alpha)))
-;;; where IH-limit = (FORALL beta (IMPLIES (<_ORD beta alpha) P(beta)))
+;;; where IH-limit = (FORALL beta (IMPLIES (ORD-LT beta alpha) P(beta)))
 ;;; and P(alpha) = (FORALL X (IMPLIES (IN X SET)
 ;;;                   (FORALL z (IMPLIES (IN z (wo-picks X alpha)) (IN z X))))).
 ;;;
@@ -408,14 +408,14 @@
 ;;; alpha) via the auto-installed limit-ord-iff-rev macete, then mac
 ;;; wo-picks-limit to rewrite into a BIG-UNION.  big-union-mem-elim yields
 ;;; a witness beta with z in wo-picks(X, beta); ord-segment-membership gives
-;;; (<_ORD beta alpha); IH-limit then yields (IN z X).
+;;; (ORD-LT beta alpha); IH-limit then yields (IN z X).
 
 (let* ((nL0    *fresh-counter*)
        (alphav (eigen-name 'alpha nL0)))
   (di)                                  ; intro alpha
   (di)                                  ; assume (AND (LIMIT-ORD alpha) IH-limit)
 
-  (let* ((IH-limit `(FORALL beta (IMPLIES (<_ORD beta ,alphav)
+  (let* ((IH-limit `(FORALL beta (IMPLIES (ORD-LT beta ,alphav)
                        (FORALL X (IMPLIES (IN X SET)
                           (FORALL z (IMPLIES (IN z (wo-picks X beta)) (IN z X))))))))
          (LIM-AND  `(AND (IN ,alphav ORD)
@@ -448,10 +448,10 @@
              (betaw (eigen-name 'beta nL2)))
         (bu-me `(IN ,zv (BIG-UNION beta (ORD-SEGMENT ,alphav) (wo-picks ,Xv beta))))
 
-        ;; Derive (<_ORD betaw alphav) via ord-segment-membership-rev macete.
-        (cut `(<_ORD ,betaw ,alphav))
+        ;; Derive (ORD-LT betaw alphav) via ord-segment-membership-rev macete.
+        (cut `(ORD-LT ,betaw ,alphav))
         (let ((useLT (last-node)))
-          (mac 'ord-segment-membership-rev)  ; goal (<_ORD x alpha) -> (IN x (ORD-SEGMENT alpha))
+          (mac 'ord-segment-membership-rev)  ; goal (ORD-LT x alpha) -> (IN x (ORD-SEGMENT alpha))
           (ass)
           (refocus! useLT))
 
@@ -460,7 +460,7 @@
         (cut `(FORALL X (IMPLIES (IN X SET)
                   (FORALL z (IMPLIES (IN z (wo-picks X ,betaw)) (IN z X))))))
         (let ((useP-b (last-node)))
-          (bc `(IMPLIES (<_ORD ,betaw ,alphav)
+          (bc `(IMPLIES (ORD-LT ,betaw ,alphav)
                         (FORALL X (IMPLIES (IN X SET)
                             (FORALL z (IMPLIES (IN z (wo-picks X ,betaw)) (IN z X)))))))
           (ass)
@@ -490,7 +490,7 @@
 ;;; HELPER LEMMA: ord-lt-succ-le
 ;;;
 ;;;   forall alpha beta in ORD,
-;;;       (<_ORD alpha (succ_ORD beta))  =>  (<=_ORD alpha beta).
+;;;       (ORD-LT alpha (succ_ORD beta))  =>  (ORD-LE alpha beta).
 ;;;
 ;;; Standard ordinal fact -- alpha strictly below succ beta means alpha is at
 ;;; most beta.  Not present in the codebase; proven here for use in the
@@ -499,87 +499,87 @@
 
 (sp (make-wff
      '(FORALL alpha (FORALL beta
-         (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (<_ORD alpha (succ_ORD beta))))
-                  (<=_ORD alpha beta))))))
+         (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (ORD-LT alpha (succ_ORD beta))))
+                  (ORD-LE alpha beta))))))
 
 (let* ((nLS0   *fresh-counter*)
        (alphav (eigen-name 'alpha nLS0))
        (betav  (eigen-name 'beta  (+ nLS0 1))))
   (di)                                  ; peels FORALL alpha FORALL beta
   (di)                                  ; peels IMPLIES
-  (ai `(AND (IN ,alphav ORD) (AND (IN ,betav ORD) (<_ORD ,alphav (succ_ORD ,betav)))))
-  (ai `(AND (IN ,betav  ORD) (<_ORD ,alphav (succ_ORD ,betav))))
-  ;; asms: (IN alpha ORD), (IN beta ORD), (<_ORD alpha (succ beta));  goal: (<=_ORD alpha beta)
+  (ai `(AND (IN ,alphav ORD) (AND (IN ,betav ORD) (ORD-LT ,alphav (succ_ORD ,betav)))))
+  (ai `(AND (IN ,betav  ORD) (ORD-LT ,alphav (succ_ORD ,betav))))
+  ;; asms: (IN alpha ORD), (IN beta ORD), (ORD-LT alpha (succ beta));  goal: (ORD-LE alpha beta)
 
-  ;; Derive (<=_ORD alpha (succ beta)) and (NOT (= alpha (succ beta))) up front.
-  (cut `(AND (<=_ORD ,alphav (succ_ORD ,betav)) (NOT (= ,alphav (succ_ORD ,betav)))))
+  ;; Derive (ORD-LE alpha (succ beta)) and (NOT (= alpha (succ beta))) up front.
+  (cut `(AND (ORD-LE ,alphav (succ_ORD ,betav)) (NOT (= ,alphav (succ_ORD ,betav)))))
   (let ((u-and-lt (last-node)))
-    (mac 'ord-lt-iff-rev)               ; (AND ...) <- (<_ORD ...) ; rewrites goal back
+    (mac 'ord-lt-iff-rev)               ; (AND ...) <- (ORD-LT ...) ; rewrites goal back
     (ass)
     (refocus! u-and-lt))
-  (ai `(AND (<=_ORD ,alphav (succ_ORD ,betav)) (NOT (= ,alphav (succ_ORD ,betav)))))
+  (ai `(AND (ORD-LE ,alphav (succ_ORD ,betav)) (NOT (= ,alphav (succ_ORD ,betav)))))
 
-  ;; (pbc): assume (NOT (<=_ORD alpha beta)); goal FALSITY.
+  ;; (pbc): assume (NOT (ORD-LE alpha beta)); goal FALSITY.
   (pbc)
 
   ;; From ord-le-total derive the OR.
-  (cut `(OR (<=_ORD ,alphav ,betav) (<=_ORD ,betav ,alphav)))
+  (cut `(OR (ORD-LE ,alphav ,betav) (ORD-LE ,betav ,alphav)))
   (let ((useOR (last-node)))
     (ta 'ord-le-total)
     (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (IN alpha ORD) (IN beta ORD))
-                                                (OR (<=_ORD alpha beta) (<=_ORD beta alpha)))))
+                                                (OR (ORD-LE alpha beta) (ORD-LE beta alpha)))))
           alphav)
     (inst `(FORALL beta (IMPLIES (AND (IN ,alphav ORD) (IN beta ORD))
-                                  (OR (<=_ORD ,alphav beta) (<=_ORD beta ,alphav))))
+                                  (OR (ORD-LE ,alphav beta) (ORD-LE beta ,alphav))))
           betav)
     (bc `(IMPLIES (AND (IN ,alphav ORD) (IN ,betav ORD))
-                  (OR (<=_ORD ,alphav ,betav) (<=_ORD ,betav ,alphav))))
+                  (OR (ORD-LE ,alphav ,betav) (ORD-LE ,betav ,alphav))))
     (di)
     (let ((u-and (last-node)))
       (ass) (refocus! u-and) (ass))
     (refocus! useOR))
 
-  (ai `(OR (<=_ORD ,alphav ,betav) (<=_ORD ,betav ,alphav)))
+  (ai `(OR (ORD-LE ,alphav ,betav) (ORD-LE ,betav ,alphav)))
   (let ((u-or2 (last-node)))
-    ;; Case 1: (<=_ORD alpha beta) -- contradicts (NOT (<=_ORD alpha beta))
-    (ai `(NOT (<=_ORD ,alphav ,betav)))
+    ;; Case 1: (ORD-LE alpha beta) -- contradicts (NOT (ORD-LE alpha beta))
+    (ai `(NOT (ORD-LE ,alphav ,betav)))
     (refocus! u-or2)
 
-    ;; Case 2: (<=_ORD beta alpha).  Sub-case on (= beta alpha).
+    ;; Case 2: (ORD-LE beta alpha).  Sub-case on (= beta alpha).
     (let ((u-case-eq (cases `(= ,betav ,alphav))))
-      ;; Sub-case (= beta alpha): derive (<=_ORD alpha beta) via refl + subst
-      (cut `(<=_ORD ,alphav ,betav))
+      ;; Sub-case (= beta alpha): derive (ORD-LE alpha beta) via refl + subst
+      (cut `(ORD-LE ,alphav ,betav))
       (let ((u-le (last-node)))
         (subst `(= ,betav ,alphav))
         (ta 'ord-le-refl)
-        (inst '(FORALL alpha (IMPLIES (IN alpha ORD) (<=_ORD alpha alpha))) alphav)
-        (bc `(IMPLIES (IN ,alphav ORD) (<=_ORD ,alphav ,alphav)))
+        (inst '(FORALL alpha (IMPLIES (IN alpha ORD) (ORD-LE alpha alpha))) alphav)
+        (bc `(IMPLIES (IN ,alphav ORD) (ORD-LE ,alphav ,alphav)))
         (ass)
         (refocus! u-le))
-      (ai `(NOT (<=_ORD ,alphav ,betav)))
+      (ai `(NOT (ORD-LE ,alphav ,betav)))
       (refocus! u-case-eq)
 
-      ;; Sub-case (NOT (= beta alpha)): derive (<_ORD beta alpha) via ord-lt-iff (forward).
-      (cut `(<_ORD ,betav ,alphav))
+      ;; Sub-case (NOT (= beta alpha)): derive (ORD-LT beta alpha) via ord-lt-iff (forward).
+      (cut `(ORD-LT ,betav ,alphav))
       (let ((u-lt (last-node)))
-        (mac 'ord-lt-iff)               ; (<_ORD beta alpha) -> (AND (<=_ORD beta alpha) (NOT (= beta alpha)))
+        (mac 'ord-lt-iff)               ; (ORD-LT beta alpha) -> (AND (ORD-LE beta alpha) (NOT (= beta alpha)))
         (di)
         (let ((u-and2 (last-node)))
           (ass) (refocus! u-and2) (ass))
         (refocus! u-lt))
 
-      ;; By ord-succ-immediate: (<=_ORD (succ beta) alpha).
-      (cut `(<=_ORD (succ_ORD ,betav) ,alphav))
+      ;; By ord-succ-immediate: (ORD-LE (succ beta) alpha).
+      (cut `(ORD-LE (succ_ORD ,betav) ,alphav))
       (let ((u-le2 (last-node)))
         (ta 'ord-succ-immediate)
-        (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (<_ORD alpha beta)))
-                                                    (<=_ORD (succ_ORD alpha) beta))))
+        (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (ORD-LT alpha beta)))
+                                                    (ORD-LE (succ_ORD alpha) beta))))
               betav)
-        (inst `(FORALL beta (IMPLIES (AND (IN ,betav ORD) (AND (IN beta ORD) (<_ORD ,betav beta)))
-                                      (<=_ORD (succ_ORD ,betav) beta)))
+        (inst `(FORALL beta (IMPLIES (AND (IN ,betav ORD) (AND (IN beta ORD) (ORD-LT ,betav beta)))
+                                      (ORD-LE (succ_ORD ,betav) beta)))
               alphav)
-        (bc `(IMPLIES (AND (IN ,betav ORD) (AND (IN ,alphav ORD) (<_ORD ,betav ,alphav)))
-                      (<=_ORD (succ_ORD ,betav) ,alphav)))
+        (bc `(IMPLIES (AND (IN ,betav ORD) (AND (IN ,alphav ORD) (ORD-LT ,betav ,alphav)))
+                      (ORD-LE (succ_ORD ,betav) ,alphav)))
         (di)
         (let ((u-3 (last-node)))
           (ass)                         ; (IN beta ORD)
@@ -588,20 +588,20 @@
           (let ((u-3b (last-node)))
             (ass)                       ; (IN alpha ORD)
             (refocus! u-3b)
-            (ass)))                     ; (<_ORD beta alpha)
+            (ass)))                     ; (ORD-LT beta alpha)
         (refocus! u-le2))
 
-      ;; (<=_ORD (succ beta) alpha) and (<=_ORD alpha (succ beta)) in asms -> antisymm.
+      ;; (ORD-LE (succ beta) alpha) and (ORD-LE alpha (succ beta)) in asms -> antisymm.
       (cut `(= (succ_ORD ,betav) ,alphav))
       (let ((u-eq (last-node)))
         (ta 'ord-le-antisymm)
-        (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (<=_ORD alpha beta) (<=_ORD beta alpha))
+        (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (ORD-LE alpha beta) (ORD-LE beta alpha))
                                                     (= alpha beta))))
               `(succ_ORD ,betav))
-        (inst `(FORALL beta (IMPLIES (AND (<=_ORD (succ_ORD ,betav) beta) (<=_ORD beta (succ_ORD ,betav)))
+        (inst `(FORALL beta (IMPLIES (AND (ORD-LE (succ_ORD ,betav) beta) (ORD-LE beta (succ_ORD ,betav)))
                                       (= (succ_ORD ,betav) beta)))
               alphav)
-        (bc `(IMPLIES (AND (<=_ORD (succ_ORD ,betav) ,alphav) (<=_ORD ,alphav (succ_ORD ,betav)))
+        (bc `(IMPLIES (AND (ORD-LE (succ_ORD ,betav) ,alphav) (ORD-LE ,alphav (succ_ORD ,betav)))
                       (= (succ_ORD ,betav) ,alphav)))
         (di)
         (let ((u-and4 (last-node)))
@@ -622,7 +622,7 @@
 ;;; =======================================================================
 ;;; LEMMA: monotonicity of wo-picks.
 ;;;   forall X in SET, forall alpha beta in ORD,
-;;;       alpha <=_ORD beta  =>
+;;;       alpha ORD-LE beta  =>
 ;;;         forall z, z in wo-picks(X, alpha) -> z in wo-picks(X, beta).
 ;;;
 ;;; Three-case transfinite induction on beta (outermost so tfi3 applies).
@@ -633,7 +633,7 @@
 (sp (make-wff
      '(FORALL beta (IMPLIES (IN beta ORD)
         (FORALL X (IMPLIES (IN X SET)
-            (FORALL alpha (IMPLIES (AND (IN alpha ORD) (<=_ORD alpha beta))
+            (FORALL alpha (IMPLIES (AND (IN alpha ORD) (ORD-LE alpha beta))
                 (FORALL z (IMPLIES (IN z (wo-picks X alpha))
                                    (IN z (wo-picks X beta))))))))))))
 
@@ -645,29 +645,29 @@
        (alpha0  (eigen-name 'alpha (+ nMB 1))))
   (di)                                  ; peels FORALL X (with IN X SET), FORALL alpha (no bound, AND in body)
   (di)                                  ; peels IMPLIES
-  (ai `(AND (IN ,alpha0 ORD) (<=_ORD ,alpha0 0)))
+  (ai `(AND (IN ,alpha0 ORD) (ORD-LE ,alpha0 0)))
   (let* ((nMB2 *fresh-counter*)
          (zv0 (eigen-name 'z nMB2)))
     (di)                                ; peels FORALL z (IN z (wo-picks X alpha) bound)
     ;; goal: (IN zv0 (wo-picks Xv0 0))
 
-    ;; Derive (= alpha0 0) via antisymm of <=_ORD with (<=_ORD 0 alpha0).
+    ;; Derive (= alpha0 0) via antisymm of ORD-LE with (ORD-LE 0 alpha0).
     (cut `(= ,alpha0 0))
     (let ((u-eq (last-node)))
       (ta 'ord-le-antisymm)
-      (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (<=_ORD alpha beta) (<=_ORD beta alpha))
+      (inst '(FORALL alpha (FORALL beta (IMPLIES (AND (ORD-LE alpha beta) (ORD-LE beta alpha))
                                                   (= alpha beta))))
             alpha0)
-      (inst `(FORALL beta (IMPLIES (AND (<=_ORD ,alpha0 beta) (<=_ORD beta ,alpha0))
+      (inst `(FORALL beta (IMPLIES (AND (ORD-LE ,alpha0 beta) (ORD-LE beta ,alpha0))
                                     (= ,alpha0 beta))) 0)
-      (bc `(IMPLIES (AND (<=_ORD ,alpha0 0) (<=_ORD 0 ,alpha0)) (= ,alpha0 0)))
+      (bc `(IMPLIES (AND (ORD-LE ,alpha0 0) (ORD-LE 0 ,alpha0)) (= ,alpha0 0)))
       (di)
       (let ((u-le (last-node)))
         (ass)
         (refocus! u-le)
         (ta 'ord-zero-least)
-        (inst '(FORALL alpha (IMPLIES (IN alpha ORD) (<=_ORD 0 alpha))) alpha0)
-        (bc `(IMPLIES (IN ,alpha0 ORD) (<=_ORD 0 ,alpha0)))
+        (inst '(FORALL alpha (IMPLIES (IN alpha ORD) (ORD-LE 0 alpha))) alpha0)
+        (bc `(IMPLIES (IN ,alpha0 ORD) (ORD-LE 0 ,alpha0)))
         (ass))
       (refocus! u-eq))
     (subst `(= 0 ,alpha0))
@@ -683,7 +683,7 @@
   (di)                                  ; peels FORALL beta'
   (di)                                  ; peels IMPLIES
   (let ((IH-P `(FORALL X (IMPLIES (IN X SET)
-                  (FORALL alpha (IMPLIES (AND (IN alpha ORD) (<=_ORD alpha ,betap))
+                  (FORALL alpha (IMPLIES (AND (IN alpha ORD) (ORD-LE alpha ,betap))
                       (FORALL z (IMPLIES (IN z (wo-picks X alpha))
                                          (IN z (wo-picks X ,betap))))))))))
     (ai `(AND (IN ,betap ORD) ,IH-P))
@@ -693,12 +693,12 @@
            (alphav (eigen-name 'alpha (+ nMS1 1))))
       (di)                              ; peels FORALL X (IN X SET), FORALL alpha
       (di)                              ; peels IMPLIES
-      (ai `(AND (IN ,alphav ORD) (<=_ORD ,alphav (succ_ORD ,betap))))
+      (ai `(AND (IN ,alphav ORD) (ORD-LE ,alphav (succ_ORD ,betap))))
       (let* ((nMS2 *fresh-counter*)
              (zvs (eigen-name 'z nMS2)))
         (di)                            ; peels FORALL z (IN z (wo-picks X alpha) bound)
         ;; goal: (IN zvs (wo-picks Xvs (succ_ORD betap)))
-        ;; asms include: (IN alphav ORD), (<=_ORD alphav (succ_ORD betap)), (IN zvs (wo-picks Xvs alphav))
+        ;; asms include: (IN alphav ORD), (ORD-LE alphav (succ_ORD betap)), (IN zvs (wo-picks Xvs alphav))
 
         ;; Case-split on (= alphav (succ_ORD betap)).
         (let ((u-case-ne (cases `(= ,alphav (succ_ORD ,betap)))))
@@ -707,31 +707,31 @@
           (ass)
           (refocus! u-case-ne))
 
-        ;; NOT (= alpha (succ beta')): get alpha <_ORD succ beta', then alpha <=_ORD beta' via ord-lt-succ-le,
+        ;; NOT (= alpha (succ beta')): get alpha ORD-LT succ beta', then alpha ORD-LE beta' via ord-lt-succ-le,
         ;; then IH gives z in wo-picks(X, beta'), then single-step gives wo-picks(X, succ beta').
 
-        ;; Step S1: (<_ORD alpha (succ beta')).
-        (cut `(<_ORD ,alphav (succ_ORD ,betap)))
+        ;; Step S1: (ORD-LT alpha (succ beta')).
+        (cut `(ORD-LT ,alphav (succ_ORD ,betap)))
         (let ((u-lt (last-node)))
-          (mac 'ord-lt-iff)             ; (<_ORD a b) -> (AND (<=_ORD a b) (NOT (= a b)))
+          (mac 'ord-lt-iff)             ; (ORD-LT a b) -> (AND (ORD-LE a b) (NOT (= a b)))
           (di)
           (let ((u-and (last-node)))
             (ass) (refocus! u-and) (ass))
           (refocus! u-lt))
 
-        ;; Step S2: (<=_ORD alpha beta') via ord-lt-succ-le.
-        (cut `(<=_ORD ,alphav ,betap))
+        ;; Step S2: (ORD-LE alpha beta') via ord-lt-succ-le.
+        (cut `(ORD-LE ,alphav ,betap))
         (let ((u-le-ab (last-node)))
           (ta 'ord-lt-succ-le)
           (inst '(FORALL alpha (FORALL beta
-                    (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (<_ORD alpha (succ_ORD beta))))
-                             (<=_ORD alpha beta))))
+                    (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (ORD-LT alpha (succ_ORD beta))))
+                             (ORD-LE alpha beta))))
                 alphav)
-          (inst `(FORALL beta (IMPLIES (AND (IN ,alphav ORD) (AND (IN beta ORD) (<_ORD ,alphav (succ_ORD beta))))
-                                        (<=_ORD ,alphav beta)))
+          (inst `(FORALL beta (IMPLIES (AND (IN ,alphav ORD) (AND (IN beta ORD) (ORD-LT ,alphav (succ_ORD beta))))
+                                        (ORD-LE ,alphav beta)))
                 betap)
-          (bc `(IMPLIES (AND (IN ,alphav ORD) (AND (IN ,betap ORD) (<_ORD ,alphav (succ_ORD ,betap))))
-                        (<=_ORD ,alphav ,betap)))
+          (bc `(IMPLIES (AND (IN ,alphav ORD) (AND (IN ,betap ORD) (ORD-LT ,alphav (succ_ORD ,betap))))
+                        (ORD-LE ,alphav ,betap)))
           (di)
           (let ((u-3 (last-node)))
             (ass)
@@ -745,25 +745,25 @@
         (cut `(IN ,zvs (wo-picks ,Xvs ,betap)))
         (let ((u-in-beta (last-node)))
           (inst IH-P Xvs)
-          (cut `(FORALL alpha (IMPLIES (AND (IN alpha ORD) (<=_ORD alpha ,betap))
+          (cut `(FORALL alpha (IMPLIES (AND (IN alpha ORD) (ORD-LE alpha ,betap))
                     (FORALL z (IMPLIES (IN z (wo-picks ,Xvs alpha))
                                        (IN z (wo-picks ,Xvs ,betap))))))
             )
           (let ((u-IH-X (last-node)))
             (bc `(IMPLIES (IN ,Xvs SET)
-                          (FORALL alpha (IMPLIES (AND (IN alpha ORD) (<=_ORD alpha ,betap))
+                          (FORALL alpha (IMPLIES (AND (IN alpha ORD) (ORD-LE alpha ,betap))
                               (FORALL z (IMPLIES (IN z (wo-picks ,Xvs alpha))
                                                  (IN z (wo-picks ,Xvs ,betap))))))))
             (ass)
             (refocus! u-IH-X))
-          (inst `(FORALL alpha (IMPLIES (AND (IN alpha ORD) (<=_ORD alpha ,betap))
+          (inst `(FORALL alpha (IMPLIES (AND (IN alpha ORD) (ORD-LE alpha ,betap))
                     (FORALL z (IMPLIES (IN z (wo-picks ,Xvs alpha))
                                        (IN z (wo-picks ,Xvs ,betap))))))
                 alphav)
           (cut `(FORALL z (IMPLIES (IN z (wo-picks ,Xvs ,alphav)) (IN z (wo-picks ,Xvs ,betap))))
             )
           (let ((u-IH-z (last-node)))
-            (bc `(IMPLIES (AND (IN ,alphav ORD) (<=_ORD ,alphav ,betap))
+            (bc `(IMPLIES (AND (IN ,alphav ORD) (ORD-LE ,alphav ,betap))
                           (FORALL z (IMPLIES (IN z (wo-picks ,Xvs ,alphav))
                                              (IN z (wo-picks ,Xvs ,betap))))))
             (di)
@@ -815,9 +815,9 @@
        (lambv (eigen-name 'beta nML0)))
   (di)                                  ; peels FORALL beta (outer)
   (di)                                  ; peels IMPLIES
-  (let ((IH-L `(FORALL b (IMPLIES (<_ORD b ,lambv)
+  (let ((IH-L `(FORALL b (IMPLIES (ORD-LT b ,lambv)
                   (FORALL X (IMPLIES (IN X SET)
-                      (FORALL alpha (IMPLIES (AND (IN alpha ORD) (<=_ORD alpha b))
+                      (FORALL alpha (IMPLIES (AND (IN alpha ORD) (ORD-LE alpha b))
                           (FORALL z (IMPLIES (IN z (wo-picks X alpha))
                                              (IN z (wo-picks X b))))))))))))
     (ai `(AND (LIMIT-ORD ,lambv) ,IH-L))
@@ -839,11 +839,11 @@
            (alphal (eigen-name 'alpha (+ nML1 1))))
       (di)
       (di)
-      (ai `(AND (IN ,alphal ORD) (<=_ORD ,alphal ,lambv)))
+      (ai `(AND (IN ,alphal ORD) (ORD-LE ,alphal ,lambv)))
       (let* ((nML2 *fresh-counter*)
              (zvl (eigen-name 'z nML2)))
         (di)
-        ;; asms: (IN alphal ORD), (<=_ORD alphal lambv), (IN zvl (wo-picks Xvl alphal))
+        ;; asms: (IN alphal ORD), (ORD-LE alphal lambv), (IN zvl (wo-picks Xvl alphal))
         ;; goal: (IN zvl (wo-picks Xvl lambv))
 
         (let ((u-case-eq (cases `(= ,alphal ,lambv))))
@@ -852,8 +852,8 @@
           (ass)
           (refocus! u-case-eq))
 
-        ;; NOT (= alpha lambda): derive (<_ORD alpha lambda) and use IH-L.
-        (cut `(<_ORD ,alphal ,lambv))
+        ;; NOT (= alpha lambda): derive (ORD-LT alpha lambda) and use IH-L.
+        (cut `(ORD-LT ,alphal ,lambv))
         (let ((u-lt (last-node)))
           (mac 'ord-lt-iff)
           (di)
@@ -869,7 +869,7 @@
         ;; Two subgoals from bu-mi:
         ;;   (IN alphal (ORD-SEGMENT lambv))   and   (IN zvl (wo-picks Xvl alphal))
         (let ((u-snd (last-node)))
-          ;; First subgoal: rewrite (IN alphal (ORD-SEGMENT lambv)) to (<_ORD alphal lambv) which is in asms.
+          ;; First subgoal: rewrite (IN alphal (ORD-SEGMENT lambv)) to (ORD-LT alphal lambv) which is in asms.
           (mac 'ord-segment-membership)
           (ass)
           (refocus! u-snd))

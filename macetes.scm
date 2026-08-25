@@ -165,7 +165,7 @@
              (let ((ma (match-expr (caddr pattern)  (caddr expr)  schema-vars))
                    (mp (match-expr (cadddr pattern) (cadddr expr) schema-vars)))
                (and ma mp (merge-subst ma mp)))))
-       ((FORALL FORSOME IOTA)
+       ((FORALL FORSOME IOTA COMP)
         ;; Alpha-aware: the bound variables need not be the SAME name, only
         ;; alpha-equivalent.  When they differ, rename BOTH to a fresh var
         ;; (avoiding capture of any schema var or free var) and match the
@@ -556,7 +556,7 @@
             (cons `(SEP ,bv ,(car ra) ,(car rp))
                   (append (cdr ra) (cdr rp)))))
 
-         ((FORALL FORSOME IOTA)
+         ((FORALL FORSOME IOTA COMP)
           ;; Drop ctx assumptions shadowed by bv before descending into body.
           (let ((bv   (cadr expr))
                 (body (caddr expr)))
@@ -922,6 +922,24 @@
 
 (define (rev-name-of name)
   (string->symbol (string-append (symbol->string name) "-rev")))
+
+;;; -rev companion -> the forward theorem install-theorem! minted it from.
+;;; Written at MINT TIME (install-theorem!, below), beside the code that chose
+;;; the name, so it cannot drift from the naming convention the way a
+;;; `-rev'-suffix fallback in debt-of would.
+;;;
+;;; Read by debt-of / oracles-of / proof-citations-of (proof-debt.scm), which is
+;;; the whole reason it exists.  A companion is stamped with its forward's
+;;; PROVENANCE (register-provenance!, above) but was given no bill of its own, so
+;;; debt-of took the `proven' branch, found no *proof-debt* entry and returned
+;;; the empty bill: `(mac 'binomial-theorem-rev)' cost NOTHING where
+;;; `(mac 'binomial-theorem)' cost twelve leaves, for the same fact spelled
+;;; backwards.  The companion is not a separate theorem; its debt IS the
+;;; forward's, exactly as *view-specialized-source* says of a view companion.
+(define *rev-companion-source* (make-equal-hash-table))
+
+(define (rev-companion-source name)
+  (hash-table-ref/default *rev-companion-source* name #f))
 
 (define (register-support-theorem! name)
   (unless (memq name *support-theorem-names*)
@@ -1338,6 +1356,60 @@
                    (append (hash-table-ref/default *theorem-aliases* name '()) strs)))
 (define (aliases-of name) (hash-table-ref/default *theorem-aliases* name '()))
 
+;;; WHAT `find-theorem' MUST SAY, and did not until 2026-08-18: whether the hit
+;;; is PROVED.  The record used to carry name/aliases/warrant/statement, and the
+;;; printed line showed the warrant KIND when there was one -- so a proven
+;;; theorem, which needs no warrant and therefore has none, printed exactly like
+;;; an assertion nobody ever justified.  A user reading
+;;;
+;;;     (warrant . #f)
+;;;
+;;; off `diagonalization' concluded, reasonably, that it was unproved.  It is
+;;; proved (theorem-library/diagonalization.scm), and `warrant . #f' is what
+;;; being proved LOOKS like.  The warrant field cannot be read as a status; the
+;;; status has to be its own field.
+;;;
+;;; `provenance-of' and `debt-of' live in proof-debt.scm, which loads ~380 files
+;;; AFTER this one.  These are therefore FORWARD references, and they are
+;;; legitimate: a Scheme body resolves its free variables at CALL time, and no
+;;; file loaded before proof-debt ever CALLS find-theorem (the earlier
+;;; mentions, in suggest.scm and proof-commands.scm, are inside strings telling
+;;; a user to run it).
+;;;
+;;; A first attempt guarded them with
+;;; `(environment-bound? system-global-environment 'provenance-of)', which
+;;; reported #f and silently degraded every hit to `unknown' -- the prover does
+;;; not load into `system-global-environment', so that is the wrong environment
+;;; to ask.  A guard that answers the wrong question is worse than no guard: it
+;;; turns a loud unbound-variable error into a quietly wrong status, which is
+;;; precisely the defect this whole change exists to remove.
+(define (ft--provenance n) (provenance-of n))
+
+;;; `debt-of' answers for EVERY provenance: '() for primitive/definitional, the
+;;; recorded bill for proven, and (list name) -- itself as its own leaf -- for
+;;; asserted.  So the empty list means `modulo 0' only when read together with
+;;; the provenance, which is why the tag below dispatches on provenance first.
+(define (ft--bill n) (debt-of n))
+
+;;; The one-line tag.  Terse on purpose: this prints once per hit and a search
+;;; can return forty.  `modulo 0' is the strongest thing a proof can say, so it
+;;; is spelled out; a non-empty bill shows its SIZE, and `(status 'name)' or
+;;; `(debt-of 'name)' gives the leaves.
+(define (ft--status-tag n w)
+  (let ((prov (ft--provenance n)))
+    (case prov
+      ((primitive)    "[primitive]")
+      ((definitional) "[definitional]")
+      ((proven)
+       (let ((bill (ft--bill n)))
+         (cond ((not (list? bill)) "[proven]")
+               ((null? bill)       "[PROVEN -- modulo 0]")
+               (else (string-append "[PROVEN -- modulo " (number->string (length bill)) "]")))))
+      (else
+       (if w
+           (string-append "[asserted: " (symbol->string (car w)) "]")
+           "[asserted: NO WARRANT]")))))
+
 (define (find-theorem pattern)
   ;; Accept a SYMBOL too -- every other proof-surface command takes a quoted
   ;; symbol ((mac 'poly), (fact 'thm)), so (find-theorem 'foo) is the natural
@@ -1358,10 +1430,12 @@
          ;; one record per hit: an alist carrying EVERYTHING printed, so a
          ;; caller can consume the result, not just read the side-effect.
          (records (map (lambda (n)
-                         (list (cons 'name      n)
-                               (cons 'aliases   (aliases-of n))
-                               (cons 'warrant   (warrant-of n))      ; (kind . text) or #f
-                               (cons 'statement (lookup-theorem n))))
+                         (list (cons 'name       n)
+                               (cons 'aliases    (aliases-of n))
+                               (cons 'warrant    (warrant-of n))     ; (kind . text) or #f
+                               (cons 'provenance (ft--provenance n)) ; proven/asserted/...
+                               (cons 'bill       (ft--bill n))       ; leaf list, or #f
+                               (cons 'statement  (lookup-theorem n))))
                        (filter hit? names))))
     (if (null? records)
         (begin (display ";; find-theorem: no match for \"") (display pattern) (display "\"")
@@ -1371,7 +1445,7 @@
            (let ((n (cdr (assq 'name r))) (al (cdr (assq 'aliases r))) (w (cdr (assq 'warrant r))))
              (display ";; ") (display n)
              (when (pair? al) (display "  (") (display (car al)) (display ")"))
-             (when w (display "  [") (display (car w)) (display "]"))
+             (display "  ") (display (ft--status-tag n w))
              (newline)
              (display ";;     ") (display (expression->string (cdr (assq 'statement r)))) (newline)))
          records))
@@ -1613,6 +1687,10 @@
         (else #f)))
 
 (define (install--grade! name formula)
+  ;; Record this formula's bound names, so that a constant registered LATER
+  ;; whose spelling collides is reported when it is registered rather than by
+  ;; the end-of-load sweep.  See register-constant! (expressions.scm).
+  (note-installed-binders! name formula)
   (unless (install--variadic-schema? formula)
     (let ((why (call-with-current-continuation
                  (lambda (k)
@@ -1631,6 +1709,73 @@
 (define (install-validation-failures)
   (reverse *install-validation-failures*))
 
+;;; A NAME ALREADY IN THE TABLE is silently overwritten, and always was.
+;;;
+;;; Demonstrated 2026-08-22 on a scratch copy: prove `forall zq in nn. zq <= zq',
+;;; type `(qed 'series-cauchy-criterion)' -- a name the library already holds as
+;;; an asserted support -- and it is ACCEPTED.  The theorem table then says the
+;;; triviality IS series-cauchy-criterion, every citation follows the new
+;;; statement, and nothing is printed.
+;;;
+;;; That is the exact shape of the workflow a user is in when RETIRING a
+;;; support: prove the statement, `qed' it under the support's own name, delete
+;;; the `support' from its file.  Get the statement subtly wrong -- one binder,
+;;; one argument order -- and the library silently acquires a different theorem
+;;; under a name a dozen proofs cite.
+;;;
+;;; WARN-ONLY, deliberately.  Re-installing the SAME statement is legitimate and
+;;; routine (a file re-loaded in one session), so this cannot be fatal without
+;;; measuring first; the two cases are reported differently, and a DIFFERING
+;;; statement is called out as a probable bug rather than a note.  If a full
+;;; library load turns out to produce no differing-statement warnings, the
+;;; differing case is a candidate to promote to an error.
+;;; Names a file DELIBERATELY redefines.  All four are `is-hom-<S>-def':
+;;; `declare-structure' generates a homomorphism definition mechanically from
+;;; the slot shape, and for these four the generated one is not merely weaker
+;;; but WRONG -- it reads off slot equality, giving `opens(a) = opens(b)' for a
+;;; map between topological spaces and `idl(a) = idl(b)' between two ringoids --
+;;; so the file states the real definition afterwards and the override is the
+;;; point.  Measured 2026-08-22: these are the only differing redefinitions in a
+;;; full library load, so anything else the warning names is unplanned.
+;;; Measured 2026-08-22 over a full load: exactly THREE, all of this shape.  A
+;;; fourth differing redefinition showed up in the same measurement and was NOT
+;;; deliberate -- `smith-staircase', where the existence theorem was installed
+;;; under the PREDICATE's own name and destroyed its defining iff; that one was
+;;; repaired by renaming the theorem to `smith-normal-form'
+;;; (theorem-library/smith-staircase-proof.scm), not by adding it here.  This
+;;; list is for redefinitions that are the point, not for ones nobody noticed.
+(define *install-intentional-redefinitions*
+  '(is-hom-ringoid-def
+    is-hom-top-space-def
+    is-hom-metrizable-top-space-def
+    ;; the SUITE's own toy structure (test-suite.scm), same shape: the generated
+    ;; hom definition reads `topens(a) = topens(b)' and the fixture states the
+    ;; real preimage condition.  Listed so that the baseline is ZERO warnings in
+    ;; both the library load and the suite, which is what makes a future warning
+    ;; mean something.
+    is-hom-toy-top-def))
+
+(define (install--warn-overwrite! name formula)
+  (let ((old (hash-table-ref/default *theorem-table* name #f)))
+    (when (and old (not (memq name *install-intentional-redefinitions*)))
+      (if (alpha-equiv? old formula)
+          (begin
+            (display ";VNB warning: install-theorem!: ") (display name)
+            (display " is already installed; re-installing the same statement.")
+            (newline))
+          (begin
+            (display ";VNB warning: install-theorem!: ") (display name)
+            (display " is already installed with a DIFFERENT statement --")
+            (newline)
+            (display ";              was: ") (display (expression->string old)) (newline)
+            (display ";              now: ") (display (expression->string formula)) (newline)
+            (display ";              The old one is being REPLACED and every citation")
+            (newline)
+            (display ";              will follow the new statement.  This is almost")
+            (newline)
+            (display ";              always a name collision, not an intended update.")
+            (newline))))))
+
 (define (install-theorem! name formula-or-wff)
   (vnb-guard
     (lambda ()
@@ -1638,8 +1783,13 @@
                          (wff-formula formula-or-wff)
                          formula-or-wff)))
         (install--grade! name formula)
+        (install--warn-overwrite! name formula)
         (hash-table-set! *theorem-table* name formula)
         (hash-table-delete! *lemma-fingerprint-memo* name)   ; stale on reinstall
+        ;; NAME is being installed as a theorem in its own right, so it is not
+        ;; (any longer) somebody's auto-minted companion.  Matters only for a
+        ;; hand-written theorem whose name happens to end in -rev.
+        (hash-table-delete! *rev-companion-source* name)
         (let ((src (safe-load-pathname)))   ; #f at the REPL; qed installs interactively
           (when src (hash-table-set! *theorem-source* name src)))
         (register-provenance! name *current-provenance*)
@@ -1651,6 +1801,9 @@
                              (string-append (symbol->string name) "-rev"))))
               (hash-table-set! *theorem-table* rev-name flipped)
               (hash-table-delete! *lemma-fingerprint-memo* rev-name)
+              ;; Record the parentage HERE, where the name is chosen, so the
+              ;; ledger reads a companion's debt off its forward.
+              (hash-table-set! *rev-companion-source* rev-name name)
               (register-provenance! rev-name *current-provenance*)
               (install-macete! rev-name
                 (theorem->elementary-macete flipped rev-name)))))

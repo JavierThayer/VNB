@@ -149,17 +149,16 @@
    supp(f*g) is contained in supp(f).supp(g), a product of finite sets.")
 (topic! 'monalg-mul-fun 'algebra)
 
-;;; Pointwise sum stays finitely supported (supp(f+g) is contained in
-;;; supp(f) u supp(g)).
-(support 'monalg-add-fun
-  (forall-guarded '(A M f g)
-    (list '(IS-RING A) '(IS-MONOID M)
-          '(IN f (FINSUPP A M)) '(IN g (FINSUPP A M)))
-    '(IN (MONALG-ADD A M f g) (FINSUPP A M))))
-(warrant! 'monalg-add-fun 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
-(gloss! 'monalg-add-fun
-  "The pointwise sum of two finitely-supported functions is finitely supported.")
-(topic! 'monalg-add-fun 'algebra)
+;;; MOVED 2026-08-20 to theorem-library/monalg-laws.scm, where it is PROVEN:
+;;; `monalg-add-fun' -- the pointwise sum stays finitely supported, because
+;;; supp(f+g) is contained in supp(f) u supp(g).  It was asserted here with a
+;;; Bourbaki reference warrant; it is now a theorem, billing
+;;; {ring-add-closed, card-subset-nn}.  Nothing cited it at the time of the
+;;; move, so no bill changed.  The file also proves the two bricks the argument
+;;; needed and nothing in the tree had: `monoid-carrier-is-set' (the sethood
+;;; conjunct of the IS-MONOID definition, which every `lam-t' over a structure
+;;; carrier asks for) and `monalg-add-apply' (the pointwise value of the
+;;; pointwise sum), and it surveys what the remaining five laws are missing.
 
 ;;; Associativity of convolution -- THE key obstacle.  (f*g)*h = f*(g*h) unfolds
 ;;; to a triple sum over { (p,q,r) : p.q.r = m } grouped two ways; equality is a

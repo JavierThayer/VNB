@@ -24,14 +24,15 @@
 ;;; That is exactly the bug: `bc' was a procedure, `(define BC '(...))' makes it
 ;;; a list.  Redefining a procedure with another procedure stays legal, which
 ;;; matters -- several drivers re-define the shared `proof-leaves' / `any-pred'
-;;; helpers, and that is (for now) load-bearing.
+;;; helpers, and that is (for now) load-bearing.  It is also the one gap:
+;;; `(define (append a b) ...)' -- procedure over procedure -- is NOT caught.
 ;;;
-;;; The check is a lookup per guarded name per file: a few thousand times a
-;;; hundred files, which is nothing next to one `di'.
-;;;
-;;; Loads after `minimize' and before the first proof file; `prover-load'
-;;; (load.scm) calls clobber-guard-check! after each subsequent file.  Files
-;;; loaded before the snapshot are unguarded (the guard is #f and does nothing).
+;;; Loads FIRST, before any other VNB file (load.scm); `prover-load' calls
+;;; clobber-guard-check! after each subsequent file.  It used to load at
+;;; load.scm:518, and its own header admitted the consequence -- "files loaded
+;;; before the snapshot are unguarded".  Measured 2026-08-16: **126 library
+;;; files loaded before it, 118 after**, so more than half the library --
+;;; including all of `structure-library/' -- was outside the alarm.
 
 ;;; The environment proof files are loaded into.  MIT's `load' with no
 ;;; environment argument uses the CALLER's environment, and load.scm's caller is
@@ -55,24 +56,61 @@
   (and (environment-bound? *clobber-guard-env* n)
        (procedure? (clobber-guard--value n))))
 
+;;; SEED FROM THE GLOBAL ENVIRONMENT TOO (2026-08-16), and this is the point.
+;;; `environment-bound-names' reports the OWN FRAME ONLY -- the comment above
+;;; says so -- and at the head of the load that frame holds nine names.  MIT's
+;;; own procedures live in the PARENT, so `append', `list', `cons', `length'
+;;; were never in the watch set at all, at any snapshot point, early or late.
+;;;
+;;; They are exactly the names that matter.  Each is simultaneously a live
+;;; Scheme procedure and a VNB head symbol, so a proof file's
+;;; `(define APPEND '(...))' shadows a procedure the prover itself calls with a
+;;; list.  `environment-bound?' DOES search the parent chain, so a shadow in the
+;;; top frame is caught by the ordinary check once the name is in the set.
 (define (clobber-guard-snapshot!)
   (let ((h (make-strong-eqv-hash-table)))
     (for-each (lambda (n) (if (clobber-guard--procedure? n) (hash-table-set! h n #t)))
-              (environment-bound-names *clobber-guard-env*))
+              (append (environment-bound-names *clobber-guard-env*)
+                      (environment-bound-names system-global-environment)))
     (set! *clobber-guard-procs* h)
     (display ";; clobber-guard: watching ")
     (display (length (hash-table-keys h)))
     (display " procedure bindings")
     (newline)))
 
+;;; ONE PASS OVER THE OWN FRAME does both jobs -- detect casualties, and absorb
+;;; what the file newly defined -- and it is what makes watching MIT's ~3900
+;;; globals affordable.
+;;;
+;;; The obvious implementation walks the WATCH SET after every file, re-looking
+;;; up each member.  That is 3975 names x ~250 files, each a `bound?' plus a
+;;; lookup inside a continuation and an exception handler, and it cost 23 s on
+;;; top of a 48 s cold load -- measured, not guessed.
+;;;
+;;; The direction was simply wrong.  A file can only turn a procedure into a
+;;; non-procedure by DEFINING that name, and a definition lands in the top
+;;; frame.  So the names that can possibly have changed are exactly the own
+;;; frame's -- whether the victim was a VNB tactic or a shadowed MIT global.
+;;; Walking the own frame is therefore COMPLETE for the invariant and costs in
+;;; proportion to what the file did rather than to how much is being watched.
+;;;
+;;; The same pass grows the set: a name in the own frame that is a procedure and
+;;; not yet watched becomes watched, so VNB's own tactics join as they appear
+;;; and the early snapshot loses nothing.
+;;;
 ;;; Report EVERY casualty, not just the first: one bad `define' usually comes
 ;;; with siblings, and a second 11-minute load to find the next one is a waste.
 (define (clobber-guard-check! file)
   (if *clobber-guard-procs*
       (let ((bad '()))
-        (hash-table-walk *clobber-guard-procs*
-          (lambda (n ignored)
-            (if (not (clobber-guard--procedure? n)) (set! bad (cons n bad)))))
+        (for-each
+         (lambda (n)
+           (let ((watched (hash-table-ref/default *clobber-guard-procs* n #f))
+                 (proc?   (clobber-guard--procedure? n)))
+             (cond ((and watched (not proc?)) (set! bad (cons n bad)))
+                   ((and (not watched) proc?)
+                    (hash-table-set! *clobber-guard-procs* n #t)))))
+         (environment-bound-names *clobber-guard-env*))
         (if (not (null? bad))
             (begin
               ;; drop them from the watch set: the damage is already reported,
@@ -82,8 +120,9 @@
                (string-append
                 "clobber-guard: " file
                 " rebound a procedure to a non-procedure -- almost certainly a"
-                " top-level (define X ...) whose name case-folds onto a tactic."
-                " Use the file's helper prefix instead.  Casualties:")
+                " top-level (define X ...) whose name case-folds onto a tactic"
+                " or onto one of MIT Scheme's own procedures."
+                "  Use the file's helper prefix instead.  Casualties:")
                (sort bad (lambda (a b) (string<? (symbol->string a)
                                                  (symbol->string b))))))))))
 

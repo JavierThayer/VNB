@@ -73,14 +73,15 @@
 (warrant! 'rr-le-all-pos-nonpos 'well-known
   "A real number that is <= every positive real is <= 0 -- the real line has no smallest positive element.  The order-density / archimedean face of completeness; standard.")
 
-;;; Every positive real splits into two equal positive halves.  Lets the two
-;;; eps/2 convergence bounds sum back to eps (existential form avoids naming a
-;;; division operator: eps = d + d with d > 0).
-(support 'rr-pos-halvable
-  '(FORALL eps (IMPLIES (POS-RR eps)
-     (FORSOME d (AND (POS-RR d) (= (+ d d) eps))))))
-(warrant! 'rr-pos-halvable 'well-known
-  "Every positive real eps can be halved: there is a positive d with d + d = eps.  Standard (d = eps/2).")
+;;; rr-pos-halvable MOVED 2026-08-17 to theorem-library/rr-halving.scm, where it
+;;; is PROVEN `modulo 0' -- every positive real splits into two equal positive
+;;; halves, witness eps * recip(1+1).  It stood here as a `well-known' support,
+;;; and the list above already said it was derivable ("halvable and shrink need
+;;; only the field axioms (eps * recip(1+1)), not completeness at all").  What
+;;; it was waiting for was not an axiom but rr-mul-pos / rr-recip-pos
+;;; (theorem-library/rr-recip-order.scm, 2026-08-04): nothing in the tree said a
+;;; reciprocal of a positive is positive.  The statement it had is reproduced
+;;; verbatim there, so every citer is unaffected.
 
 ;;; Below every positive real sits a smaller positive real.  The form the
 ;;; continuity / open-preimage argument actually wants: openness of V gives a

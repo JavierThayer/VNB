@@ -1,9 +1,10 @@
 ;;; normed-vector-space.scm -- NORMED-VECTOR-SPACE: a real normed vector space.
 ;;; Vocabulary only (no proofs).  Three decisions, as agreed:
 ;;;
-;;;  (1) SCALARS ARE THE REALS.  The scalar ring is pinned to RR-NORMED-FIELD, so the
+;;;  (1) SCALARS ARE THE REALS.  The scalar ring is pinned to the reals, so the
 ;;;      homogeneity law can use the real absolute value |r| = abs(r).  The
-;;;      general "module over a normed field" case is left for later.
+;;;      general "module over a normed field" case is left for later.  HOW it is
+;;;      pinned is not a detail; see THE SCALAR SLOT below.
 ;;;
 ;;;  (2) HOMOGENEITY IS THE NEW LAW.  A NORMED-AG already supplies nonnegativity,
 ;;;      definiteness, inverse-invariance and the triangle inequality for an
@@ -37,8 +38,60 @@
 ;;; the hand-written version had to remember (and the declaration the browser and
 ;;; describe-structure now show, which a hand-built structure-def cannot supply).
 ;;;
+;;; ====================================================================
+;;; THE SCALAR SLOT -- and the inconsistency that lived in it for months
+;;; ====================================================================
+;;;
+;;; The scalars are pinned by
+;;;     scal(s) = normed-field-as-commutative-ring(rr-normed-field)
+;;; and NOT by `scal(s) = rr-normed-field'.  The difference is the whole of a
+;;; defect this file carried until 2026-08-23.
+;;;
+;;; `(substructure SCAL RING)' below becomes the conjunct (IS-RING (SCAL s))
+;;; (build-is-axiom, structures.scm:484), and IS-RING pins
+;;; (= (LENGTH (SCAL s)) 6).  RR-NORMED-FIELD is the SEVEN-tuple
+;;; [RR binplus bintimes binneg 0 1 abs] (numeric-instances.scm:250) -- NORMED-
+;;; FIELD carries its norm in slot 7.  Pinning the raw instance therefore made
+;;; IS-NORMED-VECTOR-SPACE assert 6 = 7: the predicate was UNSATISFIABLE, and
+;;; every theorem carrying it as a hypothesis was VACUOUSLY true.  That is the
+;;; quietest defect there is -- a vacuous hypothesis and a satisfiable one are
+;;; indistinguishable from inside a proof, the library loads, and every bill
+;;; reads the same.  hahn-banach-proof, hahn-banach-full-proof, norm-as-sup-proof,
+;;; vector-taylor-proof, nvs-taylor-statement, dual-space and
+;;; directional-derivative were all vacuous on it.
+;;;
+;;; It is exactly the inconsistency numeric-instances.scm:243-249 describes and
+;;; fixed for ITSELF on 2026-05-30 ("a 7-tuple does NOT satisfy the length-6
+;;; predicates IS-RING ...; asserting those here was a flat inconsistency"); it
+;;; came straight back in through the substructure slot, where nothing was
+;;; looking.  NORMED-FIELD-AS-COMMUTATIVE-RING (views.scm:167) exists precisely
+;;; to project slots 1..6 into a fresh 6-tuple, and that projection is what a
+;;; scalar slot must hold.  complex-inner-product.scm pinned its scalars this
+;;; way from the day it was written; dual-space.scm:42-58 recorded the repair
+;;; for this file and declined to make it, the blast radius being every
+;;; IS-NORMED-VECTOR-SPACE bill.  Measured when it was finally made: ZERO bills
+;;; moved, every one byte-identical, because no proof in the library ever
+;;; unfolds IS-NORMED-VECTOR-SPACE -- each carries it as an opaque hypothesis
+;;; and reaches the vectors through separately asserted supports.
+;;;
+;;; WHAT THE LAWS BELOW THEREFORE READ.  `carr(scal(s))', `add(scal(s))',
+;;; `mul(scal(s))' and `one(scal(s))' now denote slots of the PROJECTED 6-tuple,
+;;; not of RR-NORMED-FIELD.  The bridge from there to the surface language --
+;;; carr = RR, add = binplus, mul = bintimes, one = 1, ... -- is PROVEN, twelve
+;;; theorems, all `modulo 0', in theorem-library/normed-field-ring-view.scm.
+;;; `def-functor' installs a functoid and a typing axiom and no read-off at all,
+;;; so before that file nothing in the tree said what those slots were.
+;;;
+;;; The HOMOGENEITY law is unaffected and it is worth saying why, since it is
+;;; the one law that reaches outside the structure: it uses the real `abs'
+;;; DIRECTLY rather than the norm slot NRM of the scalar field, and its binder
+;;; ranges over `carr(scal(s))', which is RR before the repair and RR after it
+;;; (the projection keeps slot 1).  The norm slot is the only slot the
+;;; projection drops, and no law of this structure reads it.
+;;;
 ;;; Dependencies: module.scm (MODULE accessors SCAL..ACT, A/ADD/MUL/ONE),
-;;; normed-ag.scm (NORMED-AG, for the view), numeric-instances.scm (RR-NORMED-FIELD),
+;;; normed-ag.scm (NORMED-AG, for the view), views.scm
+;;; (NORMED-FIELD-AS-COMMUTATIVE-RING), numeric-instances.scm (RR-NORMED-FIELD),
 ;;; field/abs.
 
 ;;; The vector part and the four action laws are MODULE's, verbatim; the norm
@@ -46,7 +99,7 @@
 ;;; by a law (decision (1)); the substructure slot separately types it a RING.
 (declare-structure NORMED-VECTOR-SPACE
   (instance-var s)
-  (substructure SCAL RING)                  ; the scalars -- pinned to RR-NORMED-FIELD below
+  (substructure SCAL RING)                  ; the scalars -- pinned below, through the RING VIEW
   (carriers VEC)
   (op VADD (CARTESIAN VEC VEC) VEC)
   (constant VZERO VEC)
@@ -59,8 +112,9 @@
   (property is-identity VADD VZERO VEC)
   (property has-inverses VADD VZERO VNEG VEC)
   ;; SCALARS ARE THE REALS (decision (1)): the homogeneity law below needs the
-  ;; real absolute value.
-  (law "scal(s) = rr-normed-field")
+  ;; real absolute value.  Pinned through the RING VIEW of the normed field,
+  ;; never the raw 7-tuple -- see THE SCALAR SLOT in the header.
+  (law "scal(s) = normed-field-as-commutative-ring(rr-normed-field)")
   ;; the four action axioms -- MODULE's, with `s' for the structure
   (law "forall([r_ in carr(scal(s)), x_ in vec(s), y_ in vec(s)],
           act(s)(r_, vadd(s)(x_, y_)) = vadd(s)(act(s)(r_, x_), act(s)(r_, y_)))")

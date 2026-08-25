@@ -4,7 +4,7 @@
 
 \section{Kernel and subsystems (\texttt{\textasciitilde/prover/})}
 \label{sec:src-root}
-The 38 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
+The 48 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -14,34 +14,44 @@ The 38 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{arith-eval.scm} & ground arithmetic decision procedure \\
 \texttt{audit.scm} & library hygiene diagnostics \\
 \texttt{calc.scm} & the ``directive chain checker'' (notes-27): ground a goal by a \\
+\texttt{cite-index.scm} & MEASURED citation affinity: P(theorem cited | head in goal) \\
 \texttt{clobber-guard.scm} & the gate CLAUDE.md says does not exist \\
 \texttt{contexts.scm} & make-wff, the interactive entry point for building a <wff> \\
+\texttt{contra.scm} & (contra): close a branch whose CONTEXT is arithmetically \\
 \texttt{deduction-graphs.scm} & deduction graph: sequent nodes and inference nodes \\
 \texttt{driver-kit.scm} & the proof-driving helpers that more than one file needs \\
 \texttt{errors.scm} & VNB error value and guard wrapper \\
 \texttt{expressions.scm} & FOL expressions over VNB-style set theory \\
 \texttt{glossary.scm} & THE ALPHABETICAL GLOSSARY: every name in VNB, in one list \\
+\texttt{harvest.scm} & MEASURE the What Now panel against the library's own proofs \\
+\texttt{ineq-supply.scm} & the What Now lane that SUPPLIES the inequalities the \\
 \texttt{input-context.scm} & generalized context-discharge + operator-remap engine \\
 \texttt{interactive.scm} & short-form commands for interactive proof sessions \\
 \texttt{load.scm} & load the proof checker in dependency order \\
 \texttt{macetes.scm} & macete mechanism \\
 \texttt{minimize.scm} & `minimize!', the least-measure tactic \\
+\texttt{mutation-check.scm} & IS THE MUST-NOT-PROVE CORPUS ACTUALLY DETECTING ANYTHING? \\
 \texttt{number-systems.scm} & number system constants and axioms \\
 \texttt{operators.scm} & ONE table, keyed by head symbol \\
 \texttt{parser.scm} & VNB string expression parser \\
 \texttt{parts.scm} & accessing the PARTS of a formula by SURFACE syntax \\
+\texttt{preamble.scm} & a STRATEGY, executed \\
 \texttt{prep.scm} & (prep 'FUBA): why will FUBA not fire here, and what must be done \\
 \texttt{primitive-inferences.scm} & the primitive inference kernel \\
 \texttt{proof-commands.scm} & higher-level proof commands (tactics) \\
 \texttt{proof-debt.scm} & the warrant / proof-debt ledger \\
+\texttt{proof-map.scm} & (proof-map): see the WHOLE proof tree, closed branches \\
 \texttt{proof-reader.scm} & the HUMAN-READABLE proof sketch (``reader mode''), the \\
 \texttt{proof-tex.scm} & render a completed proof as a LaTeX step-trace \\
+\texttt{prop.scm} & `prop': decide a propositional entailment, then PROVE it \\
 \texttt{proven-theorems.scm} & TOMBSTONE (2026-05-27) \\
+\texttt{push-not.scm} & (push-not-h k): push a NOT inward through one quantifier or \\
 \texttt{sequents.scm} & sequents over <wff> objects \\
 \texttt{sketch.scm} & the structured-proof surface (sketch/step/obtain/qed-sketch), \\
 \texttt{structures.scm} & mathematical structure definitions \\
 \texttt{suggest.scm} & assumption-pattern scanner for forward-move discovery \\
 \texttt{tactics-help.scm} & a self-describing registry of the interactive tactics \\
+\texttt{test-suite-negative.scm} & the MUST-NOT-PROVE corpus \\
 \texttt{test-suite.scm} & VNB system regression and demonstration tests \\
 \texttt{tex-output.scm} & render VNB s-expression formulas as LaTeX math \\
 \texttt{theory.scm} & theory management \\
@@ -54,7 +64,7 @@ The 38 Scheme files at the root of the tree: the proof kernel, the reader, the t
 
 \section{\texttt{structure-library/}}
 \label{sec:src-structure-library}
-The 84 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
+The 95 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -65,19 +75,23 @@ The 84 files that install definitions, structures, vocabulary, and warranted sup
 \texttt{bijection-derived.scm} & the three BIJECTION projection lemmas, PROVEN \\
 \texttt{bijection.scm} & bijections between classes, and INVERSE-BIJ via CHOICE \\
 \texttt{bounded-metric.scm} & the bounded metric  rho = d/(1+d)  of a metric space, \\
+\texttt{c-metric-space.scm} & C-METRIC-SPACE, a set carrying a COUNTABLE FAMILY OF \\
 \texttt{cardinality.scm} & CARD functoid: cardinality of sets \\
 \texttt{comm-ring-simplify.scm} & commutative-ring identity decision procedure \\
 \texttt{commutative-ring.scm} & COMMUTATIVE-RING: a ring whose MUL is commutative \\
 \texttt{compactness.scm} & compactness of a metric space and the four-way \\
+\texttt{complex-inner-product.scm} & COMPLEX-INNER-PRODUCT-SPACE: a vector space over \\
 \texttt{complex.scm} & CC as a metric space \\
 \texttt{compose-typing.scm} & RAN (range) + mindless type-closure lemmas for \\
 \texttt{compose.scm} & COMPOSE: composition of functions, f o g \\
 \texttt{definitional-reclass.scm} & reclassify hand-written DEFINING iffs \\
 \texttt{determinant.scm} & the determinant of a square matrix over a ring, by \\
+\texttt{dual-space.scm} & THE DUAL of a real normed vector space, as an OBJECT \\
 \texttt{elementary-matrix.scm} & matrix units and elementary column operations \\
 \texttt{euclidean-ring.scm} & EUCLIDEAN-RING: an integral domain admitting a \\
-\texttt{extended-reals-pos.scm} & RR+* = [0, +inf], the nonnegative extended reals \\
-\texttt{extended-reals.scm} & the extended real line RR* = [-inf, +inf] \\
+\texttt{extended-arith.scm} & the rest of the arithmetic and order vocabulary of \\
+\texttt{extended-reals-pos.scm} & RR-POS-STAR = [0, +inf], the nonnegative extended reals \\
+\texttt{extended-reals.scm} & the extended real line RR-STAR = [-inf, +inf] \\
 \texttt{field.scm} & FIELD: a commutative ring in which every nonzero element \\
 \texttt{finite-dimensional.scm} & finite-dimensional vector spaces, Zorn-free \\
 \texttt{finprod.scm} & FINPROD / PROD-RING: finite PRODUCT of a function over a \\
@@ -91,10 +105,14 @@ The 84 files that install definitions, structures, vocabulary, and warranted sup
 \texttt{injection.scm} & INJECTION class, IMAGE operator, and the \\
 \texttt{integral-domain-laws.scm} & integral-domain-cancel-zero, PROVEN from the \\
 \texttt{integral-domain.scm} & INTEGRAL-DOMAIN: a commutative ring with ONE /= ZERO \\
+\texttt{integral.scm} & MEASURABLE FUNCTIONS, SIMPLE FUNCTIONS and the INTEGRAL of \\
 \texttt{linear-arith.scm} & standalone linear-arithmetic decision core \\
 \texttt{linear-functional.scm} & bounded linear functionals and the dual norm on a \\
+\texttt{list-recursion.scm} & CONS, and the recursive characterization of LENGTH \\
 \texttt{mat-equiv.scm} & the matrix EQUIVALENCE relation \textasciitilde{} (algebraic-numbers.pdf \\
 \texttt{matrix.scm} & MATRIX(S): matrices over a set S \\
+\texttt{measurable-space.scm} & MEASURABLE-SPACE and MEASURE-SPACE as declared \\
+\texttt{measure.scm} & OUTER MEASURES, CARATHEODORY MEASURABILITY, MEASURES \\
 \texttt{metric-completeness.scm} & Cauchy sequences, convergence, completeness \\
 \texttt{metric-completion.scm} & the completion of a metric space, CONCRETELY, as \\
 \texttt{metric-continuity.scm} & continuous maps between metric spaces \\
@@ -117,6 +135,7 @@ The 84 files that install definitions, structures, vocabulary, and warranted sup
 \texttt{order-lemmas.scm} & the finite order calculus of RR \\
 \texttt{order-predicates.scm} & derived order predicates on the kernel <= \\
 \texttt{ordinals.scm} & ordinal numbers: axioms, ordering, induction, recursion \\
+\texttt{poly-degree.scm} & DEG, LEADCOEF and MONOMIAL for the monoid algebra's \\
 \texttt{polynomial.scm} & the monoid-algebra construction A[M], and polynomials as \\
 \texttt{product-metric.scm} & the countable product of metric spaces, as a metric \\
 \texttt{pseudometric.scm} & PSEUDOMETRIC-SPACE, the topology GENERATED by a countable \\
@@ -131,15 +150,17 @@ The 84 files that install definitions, structures, vocabulary, and warranted sup
 \texttt{rr-ineq.scm} & PROTOTYPE of the rr-ineq applier (plan item 2, the "dumb \\
 \texttt{scalar-inequalities.scm} & a library of important elementary inequalities \\
 \texttt{semigroup.scm} & SEMIGROUP structure \\
-\texttt{separable.scm} & separability of a metric space (a dense sequence) and the \\
+\texttt{separable.scm} & separability of a metric space (a dense sequence), the \\
 \texttt{sequences.scm} & PROD-ORD, SUM, SUM-AG: products and sums over initial NN-segments \\
 \texttt{set-basics.scm} & the NBG facts about SET that the kernel rules do not give \\
 \texttt{setoid.scm} & SETOID = (X, REL): a set with an equivalence relation, \\
 \texttt{sigma-algebra.scm} & ALGEBRAS and SIGMA-ALGEBRAS of sets \\
 \texttt{sos-arith.scm} & exact-rational LP feasibility with witness extraction \\
 \texttt{sos-oracle.scm} & the (sos) sum-of-squares oracle: close a nonstrict \\
+\texttt{sqn.scm} & SQN(a): the sequences in a, i.e. FUN(NN, a) \\
 \texttt{subtype-laws.scm} & the trivial subtype-subsumption laws, PROVEN \\
 \texttt{top-space.scm} & TOPOLOGICAL SPACES, and the functor Met -> Top \\
+\texttt{trunc-metric.scm} & the TRUNCATED METRIC  d'(x,y) = min(1, d(x,y))  of a \\
 \texttt{user-additions.scm} & structures saved via Build Structure \\
 \texttt{views.scm} & view-as declarations between structures \\
 \texttt{zz-action.scm} & ZZ-ACT: the integer action on an abelian group \\
@@ -150,7 +171,7 @@ The 84 files that install definitions, structures, vocabulary, and warranted sup
 
 \section{\texttt{theorem-library/} and \texttt{calculus/}}
 \label{sec:src-libraries}
-\texttt{theorem-library/} holds 145 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
+\texttt{theorem-library/} holds 235 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
 
 \section{Emacs interface (\texttt{emacs/}) and generated docs}
 \label{sec:src-emacs}

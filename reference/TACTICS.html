@@ -87,7 +87,7 @@ a hypothesis arg additionally accepts its display number.  A &#x27;name never
 takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <h3 id="TACTICS__tactic-kinds-trust-taxonomy">Tactic kinds (trust taxonomy)</h3>
 <p>Every tactic is tagged with a <strong>kind</strong>, grounded in the <code>dg-apply-rule!</code> tag it emits (not editorial), so the trusted base is legible at a glance:</p>
-<ul><li><strong>rule</strong> -- a single primitive KERNEL inference rule (the fixed trusted base): <code>di</code> <code>ai</code> <code>pbc</code> <code>oi-l</code> <code>oi-r</code> <code>ew</code> <code>ci</code> <code>ti</code> <code>ii</code> <code>ui</code> <code>ni</code> <code>tfi</code> <code>tfi3</code> <code>ass</code> <code>ta</code> <code>inst</code> <code>detach!</code> <code>bc</code> <code>cut</code> <code>wk</code> <code>ce</code> <code>te</code> <code>ie</code> <code>ue</code> <code>mac</code> <code>macm</code> <code>mac-h</code> <code>subst</code> <code>rfl</code> <code>qrfl</code> <code>beta</code> <code>lam-b</code> <code>lam-b-h</code> <code>lam-t</code> <code>nth-r</code> <code>len-r</code> <code>if-true</code> <code>if-false</code> <code>sep-set</code> <code>sep-mi</code> <code>sep-me</code> <code>comp-mi</code> <code>comp-me</code> <code>iota-d</code> <code>bu-set</code> <code>bu-mi</code> <code>bu-me</code> </li><li><strong>oracle</strong> -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: <code>arith</code> <code>rs</code> <code>crs</code> <code>simp</code> <code>ineq</code> <code>sos</code> </li><li><strong>composite</strong> -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: <code>inst+</code> <code>fact</code> <code>bc*</code> <code>mac-h*</code> <code>grind</code> <code>wbc</code> <code>calc</code> <code>scout-run</code> <code>minimize!</code> <code>obtain</code> <code>have!</code> <code>vlet</code> </li><li><strong>meta</strong> -- no deduction: session / search / navigation: <code>sp</code> <code>qed</code> <code>save-proof</code> <code>replay-proof</code> <code>scout</code> <code>scout-show</code> </li></ul>
+<ul><li><strong>rule</strong> -- a single primitive KERNEL inference rule (the fixed trusted base): <code>di</code> <code>ai</code> <code>pbc</code> <code>oi-l</code> <code>oi-r</code> <code>ew</code> <code>ci</code> <code>ti</code> <code>ii</code> <code>ui</code> <code>ni</code> <code>tfi</code> <code>tfi3</code> <code>ass</code> <code>ta</code> <code>inst</code> <code>detach!</code> <code>bc</code> <code>cut</code> <code>wk</code> <code>ce</code> <code>te</code> <code>ie</code> <code>ue</code> <code>mac</code> <code>macm</code> <code>mac-h</code> <code>subst</code> <code>rfl</code> <code>qrfl</code> <code>beta</code> <code>lam-b</code> <code>lam-b-h</code> <code>lam-t</code> <code>nth-r</code> <code>len-r</code> <code>if-true</code> <code>if-false</code> <code>sep-set</code> <code>sep-mi</code> <code>sep-me</code> <code>comp-mi</code> <code>comp-me</code> <code>iota-d</code> <code>bu-set</code> <code>bu-mi</code> <code>bu-me</code> </li><li><strong>oracle</strong> -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: <code>arith</code> <code>rs</code> <code>crs</code> <code>simp</code> <code>ineq</code> <code>sos</code> </li><li><strong>composite</strong> -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: <code>inst+</code> <code>fact</code> <code>bc*</code> <code>mac-h*</code> <code>grind</code> <code>wbc</code> <code>calc</code> <code>scout-run</code> <code>minimize!</code> <code>obtain</code> <code>have!</code> <code>vlet</code> </li><li><strong>meta</strong> -- no deduction: session / search / navigation: <code>sp</code> <code>qed</code> <code>save-proof</code> <code>replay-proof</code> <code>scout</code> <code>scout-show</code> <code>backup-one</code> <code>undo</code> </li></ul>
 <p>The <code>rule</code> set is the fixed kernel; a proof&#x27;s trust surface is exactly its <code>rule</code> steps plus whichever <code>oracle</code>s and asserted premises it cites.  You can read any finished proof&#x27;s actual rule inventory off its deduction graph (each node records its justifying rule).</p>
 <h3 id="TACTICS__starting-finishing-a-proof">Starting &amp; finishing a proof</h3>
 <h4 id="TACTICS__sp">sp</h4>
@@ -343,6 +343,12 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <p><em>Kind:</em> <code>rule</code> (emits <code>quasi-reflexivity</code>)</p>
 <p><em>When useful:</em> the goal is `t = t&#x27; but t might be UNDEFINED (partial =)</p>
 <p>Close <code>t = t&#x27; under the partial-equality reading, where asserting t = t also asserts that t is DEFINED.  Use this rather than rfl when t might be undefined.  (Technically: quasi-reflexivity; see the partial-equality convention, where </code>t = t&#x27; is the definedness predicate.)</p>
+<h3 id="TACTICS__propositional-logic">Propositional logic</h3>
+<h4 id="TACTICS__prop">prop</h4>
+<pre>(prop)</pre>
+<p>Decide the goal by PROPOSITIONAL logic from the context, and close it if it follows.  Every non-connective formula -- <code>x in a&#x27;, an equation, a whole </code>forall(...)&#x27; -- is one opaque atom; AND/OR/NOT/IMPLIES/IFF are read.  On a goal that does NOT follow it prints the countermodel (which atom must be true, which false) and leaves the proof untouched.  Adds no trust: it decides semantically, then discharges through di/ai/oi/ass/use-em/have!/detach!, so the bill is unchanged and the recorded script is the ordinary step-by-step proof.</p>
+<p><em>When useful:</em> the goal follows from the hypotheses by AND/OR/NOT/IMPLIES/IFF alone -- no quantifier or equality reasoning needed</p>
+<p>Close a goal that follows from the hypotheses by pure propositional reasoning -- the leaves where you can SEE the answer and still have to pick between (oi-l)(ass), (oi-r) plus a conjunction split, and (ai) on a negation.  It treats each atomic statement as a black box, so it will not instantiate a quantifier or reason about equality: if the goal needs an instance, land the instance first (fact / inst+) and run it again.  When it declines it names a falsifying assignment, which usually tells you exactly which hypothesis is missing.  (Technically: three-valued evaluation over the atoms decides the entailment; the proof is then replayed through the kernel rules, case-splitting with excluded middle where a disjunctive goal needs it.)</p>
 <h3 id="TACTICS__arithmetic-ring-oracles">Arithmetic &amp; ring oracles</h3>
 <h4 id="TACTICS__arith">arith</h4>
 <pre>(arith)</pre>
@@ -367,6 +373,10 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <p>Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2<em>x</em>y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (CARR s)).  No arg = outermost ring subterm; &quot;term&quot; targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm&#x27;s generators typed in context (true post-di), else refuses and names them.</p>
 <p><em>Kind:</em> <code>oracle</code> (emits <code>ring-simplify</code>)</p>
 <p><em>When useful:</em> a ring SUBTERM of a larger goal should be put in normal form in place</p>
+<h4 id="TACTICS__supply">supply</h4>
+<pre>(supply)</pre>
+<p>Close an inequality goal the way a hand proof would: beta-reduce any applied lambda, land the typing certificates and the standard bounds the linear oracle cannot see -- including the TRIANGLE inequality at the summands of an abs of a sum -- then call ineq over every premise.  Rehearses the whole sequence on a throwaway copy and does NOTHING unless it closes; on a miss it prints the sequence it tried.  Adds no trust: it drives lam-b, fact and ineq, each of which records itself.</p>
+<p>The committing form of what-now&#x27;s SUPPLY THE ORACLE lane.  `ineq&#x27; reads abs(...), max(...) and (dist(s))(x,y) as opaque atoms and refuses any premise whose atoms are not certified real, so an inequality that is obviously true can fail for want of a typing nobody mentioned.  This lands them.  The one real idea is subadditivity: where the goal bounds abs(u + v), the useful intermediate term is abs(u) + abs(v), and the decomposition is in the term itself -- nothing is searched for.  Because a lambda reduction cannot be undone and can owe an unprovable leaf, the whole sequence is rehearsed before any of it is run.  (Technically: certificate closure to depth 2 over the forward-citation lane, plus the curated bound table, then Fourier-Motzkin.)</p>
 <h4 id="TACTICS__ineq">ineq</h4>
 <pre>(ineq i1 i2 ...)</pre>
 <p>Close a linear-inequality goal over RR (&lt;= &lt; &gt; &gt;= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring&#x27;s (ADD s)/(MUL s) -- those become opaque atoms.)</p>
@@ -522,6 +532,17 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <h4 id="TACTICS__focus">focus</h4>
 <pre>(focus n)</pre>
 <p>Switch the focus to the n-th open goal (1-based).</p>
+<h4 id="TACTICS__backup-one">backup-one</h4>
+<pre>(backup-one)</pre>
+<p>Take back the last recorded command: restore the goal, the deduction graph and the proof script to the state before it.  Repeat to walk further back; (sp) clears the stack.  `undo&#x27; is an alias.</p>
+<p><em>Kind:</em> <code>meta</code></p>
+<p><em>When useful:</em> the last command was a mistake -- a greedy <code>di&#x27; that ate the induction, a </code>cut&#x27; you did not mean, a branch you want back</p>
+<p>The one undo in VNB.  It restores the deduction graph -- not merely the focus -- by rolling back the journalled arrow and grounding writes and DROPPING every sequent and inference node posted since, so no node from the abandoned branch survives to be counted as an open leaf and <code>qed&#x27; cannot be handed a phantom obligation.  *proof-script* and the live trace are rewound with it, so the saved script and the printed proof are the proof you actually kept.  It backs up over the LAST RECORDED command: a command that changed nothing was never recorded and is not a step to back up over.  One thing is deliberately not restored -- *fresh-counter*, the eigenvariable source -- so backing up over an </code>ai&#x27; or <code>ew&#x27; that minted </code>u_4&#x27; and re-running it mints `u_5&#x27;; the proof is the same, the witness has a different name.  Depth is capped at <em>vnb-undo-depth</em> (64).</p>
+<h4 id="TACTICS__undo">undo</h4>
+<pre>(undo)</pre>
+<p>Alias for (backup-one).</p>
+<p><em>Kind:</em> <code>meta</code></p>
+<p><em>When useful:</em> the last command was a mistake -- alias for backup-one</p>
 <h4 id="TACTICS__show">show</h4>
 <pre>(show)</pre>
 <p>Redisplay the current proof state.</p>
@@ -537,22 +558,6 @@ takes a string.  Interactively, drop the quote/quotes and just type it.</pre>
 <h4 id="TACTICS__quietly">quietly</h4>
 <pre>(quietly thunk)</pre>
 <p>Run thunk with state-dump output suppressed; returns its value.</p>
-<h3 id="TACTICS__forward-reasoning-idioms-proof-local----not-yet-surface-tactics">Forward-reasoning idioms  [proof-local -- NOT yet surface tactics]</h3>
-<h4 id="TACTICS__cut-mem">cut-mem!</h4>
-<pre>(cut-mem! mem A)</pre>
-<p>Prove a membership (IN (f x) B) by fun-apply-type with domain A, leaving it in context.  [proof-local]</p>
-<h4 id="TACTICS__metric-sym-eq">metric-sym-eq!</h4>
-<pre>(metric-sym-eq! S P Q)</pre>
-<p>Add (= ((DIST S) P Q) ((DIST S) Q P)) to context via the metric-sym axiom.  [proof-local]</p>
-<h4 id="TACTICS__focus-leaf">focus-leaf!</h4>
-<pre>(focus-leaf! substr)</pre>
-<p>Focus the frontier leaf whose goal contains substr (never trust auto-advance).  [proof-local]</p>
-<h4 id="TACTICS__split-ands">split-ands!</h4>
-<pre>(split-ands!)</pre>
-<p>Flatten every AND assumption of the focus into separate assumptions.  [proof-local]</p>
-<h4 id="TACTICS__ass-all-frontier">ass-all-frontier!</h4>
-<pre>(ass-all-frontier!)</pre>
-<p>Close every frontier leaf whose goal is already among its assumptions.  [proof-local]</p>
 <h3 id="TACTICS__choosing-and-naming-witnesses">Choosing and naming witnesses</h3>
 <h4 id="TACTICS__minimize">minimize!</h4>
 <pre>(minimize! &#x27;(v1 ... vk) GUARD MEASURE)</pre>

@@ -38,12 +38,12 @@
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN g (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b)))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b))
                  (AND (IS-CONTINUOUS-AT RR-MS RR-MS f x) (IS-CONTINUOUS-AT RR-MS RR-MS g x))))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b)))
                  (AND (FORSOME L (IS-DIFF-AT f x L)) (FORSOME M (IS-DIFF-AT g x M)))))
-       (FORSOME theta (AND (< a theta) (AND (< theta b)
+       (FORSOME theta (AND (IN theta RR) (AND (< a theta) (AND (< theta b)
          (FORSOME L (FORSOME M (AND (IS-DIFF-AT f theta L)
                                 (AND (IS-DIFF-AT g theta M)
-           (= (* L (- (g b) (g a))) (* M (- (f b) (f a)))))))))))))))))))
+           (= (* L (- (g b) (g a))) (* M (- (f b) (f a))))))))))))))))))))
 (quietly (lambda () (di)(di)(di)(di)))     ; f,g,a,b
 (dc-split)                                  ; typing AND
 (quietly (lambda () (di)(di)))             ; cont hyp, diff hyp
@@ -68,7 +68,7 @@
 (dc-focus! GOAL)
 
 ;;; (2) GAUX differentiable on (a,b)
-(define GDIFF (list 'FORALL 'x (list 'IMPLIES '(AND (< a x) (< x b))
+(define GDIFF (list 'FORALL 'x (list 'IMPLIES '(AND (IN x RR) (AND (< a x) (< x b)))
                 (list 'FORSOME 'L (list 'IS-DIFF-AT GAUX 'x 'L)))))
 (cut GDIFF)
 (di) (di)
@@ -107,7 +107,7 @@
 
 ;;; (5) extract: f'(theta)=L, g'(theta)=M; gmvt-aux-diff gives GAUX'(theta)=MEXPR;
 ;;;     derivative-unique vs the Rolle 0 gives 0=MEXPR; rr-diff-zero-eq finishes.
-(cut (list 'AND (list '< 'a TH) (list '< TH 'b))) (dc-grind!) (dc-focus! GOAL)
+(cut (list 'AND (list 'IN TH 'RR) (list 'AND (list '< 'a TH) (list '< TH 'b)))) (dc-grind!) (dc-focus! GOAL)
 (quietly (lambda () (inst+ DIFFHYP TH)))   ; -> (AND (FORSOME L diff-f)(FORSOME M diff-g))
 (dc-split)
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'is-diff-at z) (eq? (cadr (caddr z)) 'f)))))

@@ -39,10 +39,10 @@
 
 (define (any-pred pred lst) (find-first pred lst))
 
-(define (proof-leaves)
-  (filter (lambda (sqn) (and (not (sequent-node-grounded? sqn))
-                             (null? (sequent-node-in-arrows sqn))))
-          (dg-ungrounded-nodes (proof-state-dg *ps*))))
+;;; The kit's name for `proof-open-leaves' (proof-commands.scm) on the live
+;;; proof.  It used to spell the filter out again here; one predicate, one
+;;; definition, so the panel and the drivers cannot drift on what "open" means.
+(define (proof-leaves) (proof-open-leaves *ps*))
 
 ;;; -----------------------------------------------------------------------
 ;;; The dc- kit, hoisted out of theorem-library/deriv-constant-proof.scm.
@@ -143,7 +143,32 @@
 ;;; "may land nothing" variant.)
 
 (define (dk-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
-(define (dk-focus! node) (set-proof-state-focus! *ps* node) node)
+
+;;; RECORD THE FOCUS MOVE.  A composite that drives branches -- use-cases /
+;;; use-em with bodies, have!, from-context!, use-induction -- moves focus with
+;;; this, and until 2026-08-15 that move went unrecorded.  The emitted script
+;;; then listed the composite's steps with no indication of WHICH leaf each ran
+;;; on, and replaying it applied them to whatever leaf the engine had focused:
+;;; a COMPLETE proof emitting a script that dies at `qed: proof is not
+;;; complete'.  `focus' numbers `proof-open-leaves', so recording this node's
+;;; index in that same list makes the emitted script reproduce the move --
+;;; `focus-on' is literally `set-proof-state-focus!', so the replayed command
+;;; does exactly what this did.  Suppressed under *replaying?*, hence silent in
+;;; every copilot probe.
+(define (dk--leaf-index node)
+  (let loop ((ls (proof-open-leaves *ps*)) (k 1))
+    (cond ((null? ls) #f)
+          ((eq? (car ls) node) k)
+          (else (loop (cdr ls) (+ k 1))))))
+
+(define (dk-focus! node)
+  (let ((k (dk--leaf-index node)))
+    ;; The mark is taken BEFORE the focus moves, and pushed only when the move
+    ;; is recorded -- so backup-one and the script agree on what a step is.
+    (let ((mark (and k (vnb--take-mark (list 'focus k)))))
+      (set-proof-state-focus! *ps* node)
+      (when k (vnb--undo-push! mark) (record-cmd! 'focus (list k))))
+    node))
 (define (dk-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (dk-head? h) (lambda (f) (and (pair? f) (eq? (car f) h))))
 
@@ -254,8 +279,21 @@
 ;; Leaves focus on the MAIN branch (CLAIM now a context assumption).  Errors --
 ;; never silently no-ops -- if CLAIM is already in context up to alpha (the cut
 ;; self-loops: one child, no main branch).
-(define (have! form . opt)
-  (let* ((thunk (and (pair? opt) (car opt)))
+(define (have! form0 . opt)
+  ;; COERCE FIRST.  `cut' accepts a raw S-expression, a string in the concrete
+  ;; syntax or a <wff>, and coerces internally -- but the side-goal search below
+  ;; compares the ARGUMENT against the goals `cut' produced, so an uncoerced
+  ;; string or wff never matches anything and the call dies with
+  ;;
+  ;;   have!: no side goal for "forall([u in pts(ms)], ...)"
+  ;;
+  ;; which reads as though the cut failed when it in fact succeeded.  Found
+  ;; 2026-08-19 walking a user's own route through the ultrametric goal: the
+  ;; natural thing to type is the surface string, and the natural thing to type
+  ;; was the one form that could not work.  `use-cases' coerces its disjuncts
+  ;; for exactly this reason (see the note at use-cases); this did not.
+  (let* ((form  (->raw-formula form0))
+         (thunk (and (pair? opt) (car opt)))
          (new  (dk-opened (lambda () (cut form))))
          (side (or (any-pred (lambda (s) (alpha-equiv? (dk-goal-of s) form)) new)
                    (error "have!: no side goal for" form)))
@@ -393,6 +431,9 @@
 ;;;       (obligation . NODE) is already closed.
 ;;; Nothing is cut when (OR P (NOT P)) is already a hypothesis -- use-cases'
 ;;; alpha-self-loop guard covers that case too.
+;;;
+;;; It REFUSES to split on a proposition the context already decides: see
+;;; `use-em--decided' below for why that is an error and not a warning.
 
 ;; close a goal that IS (OR P (NOT P)).  Errors if it is not.
 (define (em-prove!)
@@ -410,8 +451,88 @@
       (have! g (lambda () (oi-r) (ass)))        ; ... now the other disjunct
       (ai notg))))
 
-(define (use-em P0 . bodies)
+;;; The proposition to split on, when the caller does not name one: the LEFT
+;;; DISJUNCT of a disjunctive goal.  On `x in a or x in complement-in(b,a)' the
+;;; split that helps is on `x in a' -- the right disjunct is the one whose proof
+;;; needs the negation -- and that is not a guess, it is the only case split the
+;;; goal's shape offers.  Errors elsewhere rather than inventing one.
+(define (use-em--default-p)
+  (let ((g (dk-goal)))
+    (if (and (pair? g) (memq (car g) '(OR or)) (= (length g) 3))
+        (cadr g)
+        (error "use-em: no proposition given, and the goal is not a disjunction" g))))
+
+;;; (use-em P body-true body-false)  -- split on P
+;;; (use-em P)                       -- split, return the branches as data
+;;; (use-em body-true body-false)    -- split on the goal's LEFT DISJUNCT
+;;; (use-em)                         -- ... and return the branches as data
+;;;
+;;; The last two exist because the argument was compulsory and on a disjunctive
+;;; goal it is deducible: a user staring at `x in a or x in ...' should not have
+;;; to retype `x in a' to ask for the only split available.  A first argument
+;;; that is a PROCEDURE is a body, not a proposition, which is what makes the
+;;; two forms distinguishable.
+(define (use-em . args)
+  (let* ((named  (and (pair? args) (not (procedure? (car args)))))
+         (P0     (if named (car args) (use-em--default-p)))
+         (bodies (if named (cdr args) args)))
+    (apply use-em--on P0 bodies)))
+
+;;; A split on a proposition the context ALREADY DECIDES is not a case split.
+;;; Say P is an assumption.  Then the P-branch adds nothing --
+;;; `context-add-assumption' is alpha-idempotent (sequents.scm:51), so that
+;;; branch is hash-consed back onto the node it was split from -- and the NOT-P
+;;; branch has a contradictory context, closable only by NOT-elim off the pair.
+;;; The caller has spent a split, gained nothing, and is left looking at a leaf
+;;; that reads like an obligation and is not one.  If NOT P is the assumption,
+;;; the same holds mirrored.  There is no undo in the tree, so this ERRORS
+;;; rather than warning: an unwanted branch cannot be taken back, and a warning
+;;; on a REPL that has already scrolled is a warning nobody reads.
+;;;
+;;; Returns (SIDE . INDEX): SIDE is 'P when the assumption IS the proposition
+;;; and 'NOT when it is its negation; INDEX is the 1-based assumption number, so
+;;; the message can name the thing the caller is looking at.  `alpha-equiv?' can
+;;; error on a malformed formula, hence `(eq? #t (vnb-guard ...))' -- vnb-guard
+;;; returns a warning RECORD on failure, and a record is true.
+(define (use-em--decided P)
+  (let loop ((as (dk-asms)) (i 1))
+    (cond ((null? as) #f)
+          ((eq? #t (vnb-guard (lambda () (alpha-equiv? (car as) P)))) (cons 'P i))
+          ((and (pair? (car as)) (eq? (caar as) 'NOT)
+                (eq? #t (vnb-guard (lambda () (alpha-equiv? (cadr (car as)) P)))))
+           (cons 'NOT i))
+          (else (loop (cdr as) (+ i 1))))))
+
+;;; The move the caller wanted, when the decided proposition is also a disjunct
+;;; of the goal: or-introduction on that side, then `ass'.  Only offered when
+;;; the ASSUMPTION is P itself -- if the context holds NOT P then P is not what
+;;; closes the goal and naming an `oi' would send the caller down a dead branch.
+(define (use-em--decided-advice P side)
+  (let ((g (dk-goal)))
+    (and (eq? side 'P)
+         (pair? g) (memq (car g) '(OR or)) (= (length g) 3)
+         (cond ((eq? #t (vnb-guard (lambda () (alpha-equiv? (cadr g) P)))) "oi-l")
+               ((eq? #t (vnb-guard (lambda () (alpha-equiv? (caddr g) P)))) "oi-r")
+               (else #f)))))
+
+(define (use-em--decided-error P dec)
+  (let* ((side (car dec))
+         (i    (number->string (cdr dec)))
+         (adv  (use-em--decided-advice P side)))
+    (error (string-append
+            "use-em: the context already decides this proposition -- assumption "
+            i (if (eq? side 'P) " IS it" " is its negation")
+            " -- so the split is vacuous on one branch and contradictory on the other"
+            (if adv
+                (string-append ", and it is a disjunct of the goal: use ("
+                               adv ") then (ass)")
+                ""))
+           P)))
+
+(define (use-em--on P0 . bodies)
   (let* ((P      (use-cases--raw P0))        ; raw / string / wff, like use-cases
+         (dec    (use-em--decided P))
+         (ignore (if dec (use-em--decided-error P dec)))
          (result (use-cases (list P (list 'NOT P))))
          (oblig  (cases-obligation result))
          (cases  (cdr (assq 'cases result))))
@@ -620,10 +741,54 @@
 ;;; to work only because Scheme resolves free variables at call time.  The index
 ;;; logic below is calc's, copied deliberately rather than depended upon.
 
-(define (eps-chain--order-premises)      ; 1-based indices of the order assumptions
+;;; The premises handed to `ineq'.  NOT simply "every order assumption": an
+;;; order fact whose atoms the oracle cannot certify in RR POISONS the call.
+;;; `ineq-atom-rr-ok?' (structure-library/ineq-oracle.scm) runs over the union
+;;; of the atoms of every ACCEPTED premise, and a premise that is arithmetic in
+;;; SHAPE is accepted -- so one `cap <= n_' over NN-typed indices, which every
+;;; eps-argument's context carries by construction, makes the whole call refuse
+;;; with "goal not a linear-RR consequence".
+;;;
+;;; Measured 2026-08-23, and it is why this engine had never closed anything:
+;;; on `d(f m, f n_) <= eps' from `d(f m, L) <= h', `d(f n_, L) <= h', `h+h=eps'
+;;; -- the leaf of converges-implies-cauchy -- the unfiltered version failed and
+;;; the SAME context with the five relevant premises named by hand closed at
+;;; once.  The two NN threshold facts `cap <= m', `cap <= n_' were the whole
+;;; difference.  `contra--usable-indices' (contra.scm) filters for exactly this
+;;; reason; contra.scm loads at load.scm:1814 and driver-kit at :499, so the
+;;; test is re-implemented here rather than borrowed -- as this file's header
+;;; says of calc's index logic.
+(define *eps-chain-arith-heads* '(+ - * recip abs succ binplus binneg bintimes))
+
+(define (eps-chain--atoms-of term acc)
+  (cond ((number? term) acc)
+        ((symbol? term) (if (member term acc) acc (cons term acc)))
+        ((pair? term)
+         (if (memq (car term) *eps-chain-arith-heads*)
+             (let lp ((l (cdr term)) (a acc))
+               (if (null? l) a (lp (cdr l) (eps-chain--atoms-of (car l) a))))
+             (if (member term acc) acc (cons term acc))))
+        (else acc)))
+
+(define (eps-chain--rr-ok? t)
+  (or (and (pair? t) (eq? (car t) 'abs))          ; rr-abs-closed
+      (let loop ((as (dk-asms)))
+        (and (pair? as)
+             (or (let ((f (car as)))
+                   (and (pair? f) (eq? (car f) 'IN) (= (length f) 3)
+                        (equal? (cadr f) t) (eq? (caddr f) 'RR)))
+                 (loop (cdr as)))))))
+
+(define (eps-chain--order-premises)      ; 1-based indices of the USABLE order assumptions
   (let loop ((as (dk-asms)) (i 1) (acc '()))
     (cond ((null? as) (reverse acc))
-          ((and (pair? (car as)) (memq (caar as) '(< <= = ==)))
+          ((and (pair? (car as)) (memq (caar as) '(< <= = ==))
+                (= (length (car as)) 3)
+                (let ((ats (eps-chain--atoms-of (caddr (car as))
+                             (eps-chain--atoms-of (cadr (car as)) '()))))
+                  (let allok ((vs ats))
+                    (or (null? vs)
+                        (and (eps-chain--rr-ok? (car vs)) (allok (cdr vs)))))))
            (loop (cdr as) (+ i 1) (cons i acc)))
           (else (loop (cdr as) (+ i 1) acc)))))
 

@@ -9,8 +9,11 @@
 ;;;   COMPOSE(f, g) := VNB-LAMBDA z. f(g(z))
 ;;;
 ;;; so both characteristic laws are DERIVED, not asserted:
-;;;   - compose-apply  is unfold-COMPOSE then lambda-beta (lam-b);
-;;;   - compose-type   is lambda-type (lam-t) then fun-codomain-iff twice.
+;;;   - compose-apply  is unfold-COMPOSE then lambda-beta (lam-b), and is now
+;;;     PROVEN, in theorem-library/compose-apply-proof.scm;
+;;;   - compose-type   is lambda-type (lam-t) then dom-of-fun, and is now
+;;;     PROVEN too, in the same file -- GUARDED on (IN A SET), which is the
+;;;     one thing the prose derivation had skipped: see the note there.
 ;;; (Compare RING-POWER, which wraps MPOW.)
 ;;;
 ;;; Argument order follows the mathematical o: COMPOSE(f, g) = f o g means g
@@ -28,19 +31,24 @@
 
 ;;; compose-apply: (COMPOSE f g)(x) = f(g(x)).  Stated against the typed form
 ;;; g : A -> B, f : B -> C (so both sides denote a defined point of C); the
-;;; reduction itself is the unconditional beta step.
-(support 'compose-apply
-  '(FORALL A (FORALL B (FORALL C (FORALL f (FORALL g
-     (IMPLIES (AND (IN g (FUN A B)) (IN f (FUN B C)))
-       (FORALL x (IMPLIES (IN x A)
-         (= ((COMPOSE f g) x) (f (g x))))))))))))
-(warrant! 'compose-apply 'proof
-  "Unfold COMPOSE to VNB-LAMBDA z. f(g(z)), then lambda-beta (lam-b): ((VNB-LAMBDA z. f(g(z))) x) reduces to f(g(x)), and reflexivity closes it.  The beta step needs no hypotheses; the typing is carried only so both sides are defined points of C.")
+;;; reduction itself is the beta step, on the lambda's own domain DOM(g).
+;;;
+;;; PROVEN modulo 0 (2026-08-23) in theorem-library/compose-apply-proof.scm --
+;;; it cannot be proved HERE, `sp'/`qed' not existing this early in load.scm.
+;;; It was a `support' warranted `proof' whose warrant text WAS the derivation
+;;; and had never been run; the text also asserted "the beta step needs no
+;;; hypotheses", which the beta guard (2026-08-03) made false: the lambda's
+;;; domain is DOM(g), not A, so (IN x (DOM g)) has to be landed FIRST, off
+;;; fun-codomain-iff + dom-fun-membership.  See that file's header.
 
 ;;; compose-type: g : A -> B and f : B -> C give f o g : A -> C.
-(support 'compose-type
-  '(FORALL A (FORALL B (FORALL C (FORALL f (FORALL g
-     (IMPLIES (AND (IN g (FUN A B)) (IN f (FUN B C)))
-       (IN (COMPOSE f g) (FUN A C)))))))))
-(warrant! 'compose-type 'proof
-  "Unfold COMPOSE, then lambda-type (lam-t): the goal becomes `for z in A, f(g(z)) in C'.  g(z) in B by fun-codomain-iff on g (z in A), then f(g(z)) in C by fun-codomain-iff on f.")
+;;;
+;;; PROVEN modulo 0 (2026-08-23) in theorem-library/compose-apply-proof.scm,
+;;; beside compose-apply -- it cannot be proved HERE, `sp'/`qed' not existing
+;;; this early in load.scm.  Like its sibling it was a `support' warranted
+;;; `proof' whose warrant text WAS the derivation and had never been run, and
+;;; running it showed the text incomplete: `lam-t' types the unfolded lambda
+;;; over DOM(g), and reaching FUN(A,C) needs `dom-of-fun', hence (IN A SET),
+;;; which nothing in the tree derives from (IN g (FUN A B)).  The installed
+;;; theorem therefore carries (IN A SET) as its OUTERMOST antecedent; the five
+;;; citation sites were migrated the same day.  See that file's header.

@@ -12,7 +12,7 @@
 ;;; The five metric laws -- non-negativity, the two identity-of-indiscernibles
 ;;; halves, SYMMETRY, and the triangle inequality -- are NOT separate axioms.
 ;;; They are constitutive of the definition of a metric and are already folded
-;;; into IS-METRIC-SPACE via the (property is-metric DIST X) clause above:
+;;; into IS-METRIC-SPACE via the (property is-metric DIST PTS) clause above:
 ;;; `is-metric' (operation-properties.scm) is the IFF that states all five.
 ;;; So metric-pos / metric-self-zero / metric-zero-eq / metric-sym /
 ;;; metric-triangle are PROVEN modulo 0 by projecting that property

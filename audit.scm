@@ -265,7 +265,7 @@
   '(binplus bintimes binneg          ; the polymorphic binary numeric ops
     bijection delete-at splice restvar ; combinatorics + list surgery
     eplus                            ; extended-real addition
-    <=_ord <_ord                     ; the ordinal order
+    ord-le ord-lt                     ; the ordinal order
     is-fun))                         ; the function predicate
 
 (define *audit-kernel-heads*
@@ -655,3 +655,575 @@
       (hash-table-keys *theorem-table*))
     (sort bad (lambda (a b) (string<? (symbol->string (car a))
                                       (symbol->string (car b)))))))
+
+;;; -----------------------------------------------------------------------
+;;; binder-walker-audit -- every walker agrees with *binder-shapes*
+;;;
+;;; Four separate traversals have to know which heads bind a variable and over
+;;; what: `free-vars', `subst-free', `alpha-equiv-under?' and `formula-hash'
+;;; (plus `match-expr', `rewrite-expr' and `replace-term', which are the same
+;;; knowledge again).  Until 2026-08-15 each knew it privately, and `COMP' --
+;;; the set-comprehension binder, on the surface since the beginning -- was
+;;; missing from ALL of them: free-vars called its bound variable free,
+;;; subst-free rewrote it and captured into it, alpha-equiv? said two
+;;; alpha-variants differed.  The defect was invisible because no INSTALLED
+;;; formula in the tree contains a COMP; only a user who typed `{x | p}' could
+;;; reach it.
+;;;
+;;; *binder-shapes* (expressions.scm) is now the one declaration.  This audit
+;;; builds a throwaway formula per head and asks each walker what it thinks,
+;;; so a head that is declared there and forgotten in a traversal is named at
+;;; the next load rather than found by a user months later.
+;;;
+;;; FATAL, on the connective-arity-audit precedent: a walker that does not know
+;;; a binder binds gives WRONG ANSWERS silently -- a captured substitution is a
+;;; different theorem, not a failure -- and there is no safe way to carry one.
+(define (binder-walker-audit)
+  (let ((bad '()))
+    (define (note! head why) (set! bad (cons (cons head why) bad)))
+    (for-each
+     (lambda (entry)
+       (let* ((head  (car entry))
+              (shape (cdr entry))
+              (body  (list 'FUBA 'bv_ 'gv_))
+              (body2 (list 'FUBA 'ww_ 'gv_))
+              (build (lambda (v dom bd)
+                       (case shape
+                         ((simple) (list head v bd))
+                         ((domain) (list head v dom bd))
+                         ((lambda) (list head v dom bd))
+                         (else #f))))
+              (e  (build 'bv_ 'guba_ body))
+              (e2 (build 'ww_ 'guba_ body2)))
+         (if (not e)
+             (note! head "unknown shape in *binder-shapes*")
+             (begin
+               (let ((fv (free-vars e)))
+                 (if (memq 'bv_ fv)
+                     (note! head "free-vars calls the bound variable free"))
+                 (if (not (memq 'gv_ fv))
+                     (note! head "free-vars loses a genuinely free variable")))
+               (if (not (equal? (subst-free 'bv_ 'zz_ e) e))
+                   (note! head "subst-free rewrites the bound variable"))
+               (if (not (memq 'bv_ (free-vars (subst-free 'gv_ (list 'f_ 'bv_) e))))
+                   (note! head "subst-free captures into the binder"))
+               (if (not (alpha-equiv? e e2))
+                   (note! head "alpha-equiv? does not see the binder"))
+               ;; Reported only when the two DIRECTIONS disagree; a head the
+               ;; walker misses answers #f both ways and is the line above.
+               (if (not (eq? (alpha-equiv? e e2) (alpha-equiv? e2 e)))
+                   (note! head "alpha-equiv? is not symmetric here"))
+               (if (not (= (formula-hash e) (formula-hash e2)))
+                   (note! head "formula-hash is not alpha-invariant here"))
+               (if (not (equal? (formula-canon e) (formula-canon e2)))
+                   (note! head "formula-canon is not alpha-invariant here"))
+               ;; The DOMAIN of a domain/lambda binder is outside the binder's
+               ;; scope, so an occurrence of the bound name there is FREE.
+               (if (memq shape '(domain lambda))
+                   (if (not (memq 'bv_ (free-vars (build 'bv_ 'bv_ body))))
+                       (note! head "the binder wrongly scopes over its own domain")))))))
+     *binder-shapes*)
+    (reverse bad)))
+
+;;; -----------------------------------------------------------------------
+;;; duplicate-define-audit -- one file, one definition per name
+;;;
+;;; A second `(define (f ...))' for a name the same file already defines is
+;;; always a bug, and it is INVISIBLE to every gate here.  `clobber-guard'
+;;; watches for a procedure rebound to a NON-procedure, so a
+;;; procedure-over-procedure redefinition sails past it -- CLAUDE.md records
+;;; that exact escape once already (`what-now--show-forward' silently redefined
+;;; an existing lane of that name and the panel died with an arity error), and
+;;; it happened again on 2026-08-21: a second `dk-focus-goal!' appended to
+;;; driver-kit.scm shadowed the real one at :805 and broke
+;;; theorem-library/nn-pairing.scm, which had been using it for months.
+;;;
+;;; It uses the READER, so a name inside a quote or a string is not a
+;;; definition -- which a line scan cannot tell.  Returns ((file name count)
+;;; ...); empty is the good case.  NOT wired into the load: it reads every file,
+;;; which a load should not pay for.  The suite runs it.
+
+(define (duplicate--defined-names path)
+  (let ((acc '()))
+    (call-with-input-file path
+      (lambda (port)
+        (let loop ()
+          (let ((form (read port)))
+            (if (not (eof-object? form))
+                (begin
+                  (if (and (pair? form) (eq? (car form) 'define) (pair? (cdr form)))
+                      (let ((target (cadr form)))
+                        (set! acc (cons (if (pair? target) (car target) target) acc))))
+                  (loop)))))))
+    (reverse acc)))
+
+(define *duplicate-define-files*
+  '("driver-kit.scm" "suggest.scm" "interactive.scm" "macetes.scm"
+    "expressions.scm" "wff.scm" "sequents.scm" "audit.scm" "preamble.scm"
+    "ineq-supply.scm" "contra.scm" "prop.scm" "deduction-graphs.scm"
+    "primitive-inferences.scm" "minimize.scm" "tactics-help.scm"))
+
+;;; The names appearing more than once in NAMES, as ((name count) ...).
+;;; Factored out so the suite can control the DETECTION without writing a file
+;;; with a deliberate duplicate in it.
+(define (duplicate--repeats names)
+  (let ((seen (make-strong-eqv-hash-table)) (out '()))
+    (for-each (lambda (n)
+                (hash-table-set! seen n (+ 1 (hash-table-ref/default seen n 0))))
+              names)
+    (hash-table-walk seen
+      (lambda (n c) (if (> c 1) (set! out (cons (list n c) out)))))
+    (reverse out)))
+
+(define (duplicate-define-audit)
+  (let ((bad '()))
+    (for-each
+     (lambda (f)
+       (for-each (lambda (r) (set! bad (cons (cons f r) bad)))
+                 (duplicate--repeats
+                  (duplicate--defined-names
+                   (string-append "/home/ubuntu/prover/" f)))))
+     *duplicate-define-files*)
+    (reverse bad)))
+
+
+;;; -----------------------------------------------------------------------
+;;; structure-satisfiability-audit -- does a structure predicate have a MODEL?
+;;;
+;;; The five install gates (connective-arity-audit, free-variable-audit,
+;;; head-registry-sweep, install-grading, sethood-audit) all grade a formula's
+;;; SHAPE.  None of them asks whether the formula can be satisfied, and on
+;;; 2026-08-23 that was found to cost two structures.
+;;;
+;;; `build-is-axiom' (structures.scm) puts (= (LENGTH s) n) at the head of every
+;;; shape structure's defining IFF: a tuple of the wrong length is not of that
+;;; shape.  That conjunct is therefore a LENGTH PIN, and a declaration may
+;;; acquire a second pin on the same term without saying so, by three doors:
+;;;
+;;;   * a (substructure SLOT TYPE) clause, whose conjunct (IS-TYPE (SLOT s))
+;;;     pins length(SLOT s) to TYPE's arity;
+;;;   * a (law "is-other(slot(s))") clause -- or, for a (same-shape-as PARENT)
+;;;     refinement, a law inherited from the parent -- pinning the same term to
+;;;     a DIFFERENT structure's arity;
+;;;   * a law pinning a slot to a CLOSED tuple whose length a declaration
+;;;     already fixes: a LIST literal, a declare-instance! name, or a
+;;;     def-functor view (whose target shape gives the arity).
+;;;
+;;; Two pins with different numbers make IS-X unsatisfiable, and a theorem whose
+;;; hypothesis is unsatisfiable is VACUOUSLY true: it proves, and it says
+;;; nothing.  Both known cases had exactly this form -- NORMED-VECTOR-SPACE,
+;;; whose SCAL slot was a RING by substructure (6) and the 7-tuple
+;;; RR-NORMED-FIELD by law, and VECTOR-SPACE, whose SCAL slot is a RING through
+;;; MODULE (6) and a FIELD (8) by law.  scratchpad/sat-audit-control.scm
+;;; declares a decoy of each form, plus the repaired form, and checks that this
+;;; reports two and not three: a gate that passes everything reads exactly like
+;;; a clean library.
+;;;
+;;; The check is SYNTACTIC and needs no proof search: unfold the installed
+;;; defining IFF by substitution, recursing through every nested structure
+;;; predicate, and collect the pins.  It DECIDES this class of defect; it says
+;;; nothing about any other reason a predicate might be empty.  Two known blind
+;;; spots, both deliberate: a pin buried under a quantifier is not seen (the
+;;; conjunct walk does not descend into a FORSOME, which is where
+;;; METRIZABLE-TOP-SPACE's `s == LIST(...)' law lives -- consistent, checked by
+;;; hand), and only `declare-structure' predicates are scanned, so a
+;;; `def-predicate' that conjoins one (IS-FINITE-DIMENSIONAL = IS-VECTOR-SPACE
+;;; and IS-NOETHERIAN) inherits the defect without being named here.
+;;;
+;;; WARN-ONLY.  A clash is a mathematical defect in a declaration, and the
+;;; repair -- which structure the slot is supposed to hold -- is a decision, not
+;;; a mechanical fix.
+
+;;; The defining IFF of IS-NAME, as (INSTANCE-VAR . BODY), under either naming
+;;; convention: def-structure names the axiom IS-NAME, def-substructure names it
+;;; is-name-def.
+(define (structure--def-body name)
+  (let* ((is-nm (symbol-append 'IS- name))
+         (raw   (or (hash-table-ref/default *theorem-table* is-nm #f)
+                    (hash-table-ref/default *theorem-table*
+                                            (symbol-append is-nm '-def) #f)))
+         (f     (and raw (if (wff? raw) (wff-formula raw) raw))))
+    (and (pair? f) (eq? (car f) 'FORALL)
+         (let ((v (cadr f)) (b (caddr f)))
+           (and (pair? b) (eq? (car b) 'IFF) (cons v (caddr b)))))))
+
+;;; NAME, if SYM is IS-NAME for a declared structure; else #f.
+(define (structure--of-is-predicate sym)
+  (and (symbol? sym)
+       (let ((s (symbol->string sym)))
+         (and (> (string-length s) 3)
+              (string=? (substring s 0 3) "is-")
+              (let ((n (string->symbol (substring s 3 (string-length s)))))
+                (and (structure-declaration n) n))))))
+
+(define (structure--conjuncts f)
+  (if (and (pair? f) (eq? (car f) 'AND))
+      (append (structure--conjuncts (cadr f)) (structure--conjuncts (caddr f)))
+      (list f)))
+
+;;; The length of a CLOSED tuple term, when a declaration says what it is:
+;;;   (LIST a b ...)                  -- the components are right there;
+;;;   a name declared by declare-instance!  -- the length of its tuple;
+;;;   (VIEW arg) for a def-functor VIEW     -- the arity of its target shape.
+;;; #f when nothing in the tree pins it.  This is the half of the check that
+;;; catches a slot pinned to a NAMED INSTANCE of the wrong arity, which is the
+;;; form the NORMED-VECTOR-SPACE defect took (SCAL a RING by substructure, and
+;;; the 7-tuple RR-NORMED-FIELD by law).
+(define (structure--closed-term-length t)
+  (cond ((and (pair? t) (eq? (car t) 'LIST)) (length (cdr t)))
+        ((symbol? t)
+         (let ((tup (instance-tuple t))) (and tup (length tup))))
+        ((and (pair? t) (symbol? (car t)) (lookup-view-as (car t)))
+         (let ((accs (structure-accessor-names
+                      (view-as-target-struct (lookup-view-as (car t))))))
+           (and accs (length accs))))
+        (else #f)))
+
+;;; ((TERM LENGTH REASON) ...) -- every length pin IS-NAME(TERM) forces, with a
+;;; printable reason.  DEPTH bounds the recursion through nested structure
+;;; predicates (no declaration nests 12 deep).
+(define (structure-length-pins name term #!optional depth0)
+  (let ((depth (if (default-object? depth0) 12 depth0)))
+    (if (<= depth 0)
+        '()
+        (let ((d (structure--def-body name)))
+          (if (not d)
+              '()
+              (append-map
+               (lambda (c)
+                 (cond
+                   ;; the shape conjunct build-is-axiom emits: (= (LENGTH t) n)
+                   ((and (pair? c) (memq (car c) '(= ==))
+                         (pair? (cadr c)) (eq? (car (cadr c)) 'LENGTH)
+                         (number? (caddr c)))
+                    (list (list (cadr (cadr c)) (caddr c)
+                                (string-append "is-" (symbol->string name)))))
+                   ;; a slot typed by another structure predicate
+                   ((and (pair? c) (= (length c) 2)
+                         (structure--of-is-predicate (car c)))
+                    (structure-length-pins (structure--of-is-predicate (car c))
+                                           (cadr c) (- depth 1)))
+                   ;; a law pinning a slot to a closed tuple of known length
+                   ((and (pair? c) (memq (car c) '(= ==))
+                         (structure--closed-term-length (caddr c)))
+                    (list (list (cadr c) (structure--closed-term-length (caddr c))
+                                (string-append "the law pinning it to "
+                                               (expression->string (caddr c))))))
+                   (else '())))
+               (structure--conjuncts
+                (subst-free (car d) term (cdr d)))))))))
+
+;;; ((STRUCT TERM (k1 . REASON1) (k2 . REASON2)) ...) -- every declared
+;;; structure whose IS-X pins one term's length to two different numbers.
+;;; Empty means no structure predicate in the tree is unsatisfiable this way.
+(define (structure-satisfiability-audit)
+  (let ((out '()))
+    (for-each
+     (lambda (nm)
+       (let ((pins (structure-length-pins nm 's)))
+         (let loop ((ps pins))
+           (if (pair? ps)
+               (let ((other (let scan ((l (cdr ps)))
+                              (cond ((null? l) #f)
+                                    ((and (equal? (caar l) (caar ps))
+                                          (not (= (cadr (car l)) (cadr (car ps)))))
+                                     (car l))
+                                    (else (scan (cdr l)))))))
+                 (if (and other
+                          (not (there-exists? out
+                                 (lambda (e) (and (eq? (car e) nm)
+                                                  (equal? (cadr e) (caar ps)))))))
+                     (set! out (cons (list nm (caar ps)
+                                           (cons (cadr (car ps)) (caddr (car ps)))
+                                           (cons (cadr other) (caddr other)))
+                                     out)))
+                 (loop (cdr ps)))))))
+     (sort (hash-table-keys *structure-decl-table*)
+           (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+    (reverse out)))
+
+;;; -----------------------------------------------------------------------
+;;; statement-satisfiability-audit -- the SAME question one level up: can a
+;;; theorem's HYPOTHESIS be met?
+;;;
+;;; `structure-satisfiability-audit' above scans one DECLARATION at a time, and
+;;; that is a structural blind spot, not an omission: a clash can be assembled
+;;; out of two predicates that are individually satisfiable, by a THEOREM that
+;;; conjoins them on the same term.  It cost five results, found by eye on
+;;; 2026-08-23 and invisible to the gate written that morning:
+;;;
+;;;     IS-NORMED-VECTOR-SPACE(m)   pins length(m) = 7   (SCAL..ACT + VNRM)
+;;;     IS-FINITE-DIMENSIONAL(m)    pins length(m) = 6   (IS-VECTOR-SPACE,
+;;;                                                       hence MODULE's shape)
+;;;
+;;; -- each satisfiable alone, together unsatisfiable, and `hahn-banach',
+;;; `norm-as-sup', `norm-attained-by-functional', `vector-taylor-remainder-bound'
+;;; and `nvs-taylor-remainder-bound' all wrote them of ONE m.  A theorem whose
+;;; hypothesis has no model is VACUOUSLY true: it proves, its bill reads like any
+;;; other, and it says nothing.  The repair is to say which STRUCTURE each half
+;;; is about -- IS-FINITE-DIMENSIONAL(NORMED-VECTOR-SPACE-AS-MODULE(m)) -- which
+;;; is a decision about what the statement means, so this is WARN-ONLY too.
+;;;
+;;; Two things this does that the per-declaration walk does not:
+;;;
+;;;   * it follows a `def-predicate' into its defining IFF, which is how
+;;;     IS-FINITE-DIMENSIONAL's pin is reached at all (it is not a declared
+;;;     structure -- it is (AND (IS-VECTOR-SPACE m) (IS-NOETHERIAN m)));
+;;;   * it collects the pins of a whole ASSUMPTION SET -- everything assumed
+;;;     simultaneously at some node of the formula -- rather than of one IFF.
+;;;
+;;; Everything else is the machinery above, unchanged: `structure-length-pins'
+;;; does the structure recursion, `structure--closed-term-length' recognises a
+;;; term whose length a declaration fixes, and `structure--conjuncts' flattens.
+;;;
+;;; SCOPE, stated so a clean report is not over-read.  It is syntactic and
+;;; decides exactly this class: two length pins on one term.  It says nothing
+;;; about any other reason a hypothesis might be unsatisfiable, it inherits the
+;;; per-declaration walk's blind spot under a FORSOME, and it reads HYPOTHESES
+;;; -- a clash among positively asserted conjuncts of a CONCLUSION makes the
+;;; theorem unprovable, which is loud, where a vacuous hypothesis is silent.
+;;; The control is scratchpad/stmt-audit-control.scm: decoy statements, one of
+;;; each defect form plus two that must NOT be reported.
+
+;;; The defining IFF of a def-predicate (structures.scm:924 installs
+;;; `forall p1..pn. P(p1..pn) <=> BODY' under the name P; some files spell the
+;;; installed name P-def), as (VARS . BODY).  #f for anything that is not one.
+(define (predicate--def-body sym)
+  (and (symbol? sym)
+       (let* ((raw (or (hash-table-ref/default *theorem-table* sym #f)
+                       (hash-table-ref/default *theorem-table*
+                                               (symbol-append sym '-def) #f)))
+              (f   (and raw (if (wff? raw) (wff-formula raw) raw))))
+         (and (pair? f)
+              (let peel ((g f) (vs '()))
+                (if (and (pair? g) (eq? (car g) 'FORALL))
+                    (peel (caddr g) (cons (cadr g) vs))
+                    (let ((params (reverse vs)))
+                      (and (pair? g) (eq? (car g) 'IFF)
+                           (pair? (cadr g)) (eq? (car (cadr g)) sym)
+                           (equal? (cdr (cadr g)) params)
+                           (cons params (caddr g))))))))))
+
+;;; ((TERM LENGTH REASON) ...) -- every length pin the truth of the FORMULA F
+;;; forces.  DEPTH bounds the recursion through nested predicates.
+(define (formula-length-pins f #!optional depth0)
+  (let ((depth (if (default-object? depth0) 12 depth0)))
+    (if (<= depth 0)
+        '()
+        (append-map
+         (lambda (c)
+           (cond
+             ;; a declared structure's predicate -- the declaration walk knows it
+             ((and (pair? c) (= (length c) 2) (structure--of-is-predicate (car c)))
+              (structure-length-pins (structure--of-is-predicate (car c))
+                                     (cadr c) (- depth 1)))
+             ;; a length equation stated outright: (= (LENGTH t) n)
+             ((and (pair? c) (memq (car c) '(= ==))
+                   (pair? (cadr c)) (eq? (car (cadr c)) 'LENGTH)
+                   (number? (caddr c)))
+              (list (list (cadr (cadr c)) (caddr c) "a stated length equation")))
+             ;; an equation pinning a term to a closed tuple of known length
+             ((and (pair? c) (memq (car c) '(= ==))
+                   (structure--closed-term-length (caddr c)))
+              (list (list (cadr c) (structure--closed-term-length (caddr c))
+                          (string-append "the equation pinning it to "
+                                         (expression->string (caddr c))))))
+             ;; a def-predicate: unfold its defining IFF and go on.  The
+             ;; substitution is SIMULTANEOUS (subst-free*): a fold of
+             ;; subst-free would expose each argument to every later binding.
+             ((and (pair? c) (symbol? (car c))
+                   (let ((d (predicate--def-body (car c))))
+                     (and d (= (length (car d)) (length (cdr c))) d)))
+              => (lambda (d)
+                   (map (lambda (p)
+                          (list (car p) (cadr p)
+                                (string-append (caddr p) ", through "
+                                               (symbol->string (car c)))))
+                        (formula-length-pins
+                         (subst-free* (map cons (car d) (cdr c)) (cdr d))
+                         (- depth 1)))))
+             (else '())))
+         (structure--conjuncts f)))))
+
+;;; ((TERM (k1 . REASON1) (k2 . REASON2)) ...) -- one entry per term PINS pins
+;;; to two different lengths.  Shared by both audits.
+(define (pins--clashes pins)
+  (let ((out '()))
+    (let loop ((ps pins))
+      (if (pair? ps)
+          (let ((other (let scan ((l (cdr ps)))
+                         (cond ((null? l) #f)
+                               ((and (equal? (caar l) (caar ps))
+                                     (not (= (cadr (car l)) (cadr (car ps)))))
+                                (car l))
+                               (else (scan (cdr l)))))))
+            (if (and other
+                     (not (there-exists? out
+                            (lambda (e) (equal? (car e) (caar ps))))))
+                (set! out (cons (list (caar ps)
+                                      (cons (cadr (car ps)) (caddr (car ps)))
+                                      (cons (cadr other) (caddr other)))
+                                out)))
+            (loop (cdr ps)))))
+    (reverse out)))
+
+;;; Every set of formulas F assumes SIMULTANEOUSLY at some node: the antecedents
+;;; accumulated down each FORALL/IMPLIES spine.  A conjunctive antecedent stays
+;;; one element and is flattened inside the pin walk, so (IMPLIES (AND A B) C)
+;;; and (IMPLIES A (IMPLIES B C)) are read alike.
+;;;
+;;; A DEFINING IFF COUNTS TOO, and it is not a technicality: `def-predicate'
+;;; installs `forall p... . P(p...) <=> BODY', so an unsatisfiable BODY makes P
+;;; itself empty and every theorem assuming P vacuous.  That is the state of
+;;; IS-SEMINORM / IS-SEMINORM-FAMILY / IS-FRECHET-STRUCTURE, each of which
+;;; asserts IS-MODULE(m) -- hence IS-RING(scal(m)), pinning 6 -- beside
+;;; IS-NORMED-FIELD(scal(m)), pinning 7.  Reporting only their consumers names
+;;; four supports and hides the three definitions that are the cause.  The
+;;; right-hand side is emitted as an assumption set of its own; the left is a
+;;; bare application and pins nothing that the right does not.
+(define (statement--assumption-sets f)
+  (let walk ((f f) (asms '()) (out '()))
+    (cond ((not (pair? f)) out)
+          ((eq? (car f) 'FORALL) (walk (caddr f) asms out))
+          ((eq? (car f) 'IMPLIES)
+           (let ((a (cons (cadr f) asms)))
+             (walk (caddr f) a (cons a out))))
+          ((eq? (car f) 'IFF)
+           (walk (caddr f) asms
+                 (walk (cadr f) asms (cons (cons (caddr f) asms) out))))
+          ((eq? (car f) 'AND)
+           (walk (caddr f) asms (walk (cadr f) asms out)))
+          (else out))))
+
+;;; ((THEOREM TERM (k1 . REASON1) (k2 . REASON2)) ...) -- every installed
+;;; formula (theorems, axioms and PSS supports alike: `support' goes through
+;;; install-theorem!) with an unsatisfiable hypothesis of this kind.  Empty
+;;; means no statement in the tree conjoins two clashing length pins.
+(define (statement-satisfiability-audit)
+  (let ((out '()))
+    (for-each
+     (lambda (nm)
+       (let* ((raw (hash-table-ref/default *theorem-table* nm #f))
+              (f   (and raw (if (wff? raw) (wff-formula raw) raw))))
+         (if (pair? f)
+             (for-each
+              (lambda (asms)
+                (for-each
+                 (lambda (cl)
+                   (if (not (there-exists? out
+                              (lambda (e) (and (eq? (car e) nm)
+                                               (equal? (cadr e) (car cl))))))
+                       (set! out (cons (cons nm cl) out))))
+                 (pins--clashes (append-map formula-length-pins asms))))
+              (statement--assumption-sets f)))))
+     ;; A `-rev' companion is generated from its base (install-theorem!), so its
+     ;; clash is never independent information -- it would double every finding
+     ;; that comes from an equation or a defining IFF.
+     (filter (lambda (nm)
+               (let ((s (symbol->string nm)))
+                 (not (and (> (string-length s) 4)
+                           (string=? (substring s (- (string-length s) 4)
+                                                (string-length s))
+                                     "-rev")))))
+             (sort (hash-table-keys *theorem-table*)
+                   (lambda (a b) (string<? (symbol->string a)
+                                           (symbol->string b))))))
+    (reverse out)))
+
+;;; Print one report line per finding, the way load.scm does.
+(define (report-statement-satisfiability findings)
+  (for-each (lambda (e)
+              (display ";;   ") (display (car e))
+              (display ": length(") (display (expression->string (cadr e)))
+              (display ") is pinned to ") (display (car (caddr e)))
+              (display " (by ") (display (cdr (caddr e)))
+              (display ") and to ") (display (car (cadddr e)))
+              (display " (by ") (display (cdr (cadddr e)))
+              (display ")\n"))
+            findings))
+
+;;; -----------------------------------------------------------------------
+;;; structure-exemplification-audit -- which structure predicates has anything
+;;; ever been shown to satisfy?
+;;;
+;;; A structure nothing instantiates has never had its satisfiability tested by
+;;; anything: `declare-instance!' checks the tuple's length against the shape
+;;; (structures.scm), and that check is what caught the RR-NORMED-FIELD/IS-RING
+;;; inconsistency in May 2026.  A predicate with no witness at all never meets
+;;; it.
+;;;
+;;; UNEXEMPLIFIED IS NOT UNSATISFIABLE.  A structure with no witness is an
+;;; ordinary missing construction (nobody has built R^n as a NORMED-VECTOR-SPACE
+;;; yet), not a defect.  This is a QUERY, not a gate, and it is deliberately not
+;;; run at load time; `structure-satisfiability-audit' above is the gate.
+;;;
+;;; Returns (SEEDED REACHABLE UNWITNESSED), three name lists:
+;;;   SEEDED     -- a declared instance, or a witness theorem with no structure
+;;;                 hypothesis: the predicate is inhabited outright.
+;;;   REACHABLE  -- inhabited by a construction all of whose structure
+;;;                 hypotheses are themselves reachable from the seeds.
+;;;   UNWITNESSED-- neither: nothing in the tree exhibits an X.
+
+;;; The structure predicates appearing in F's hypotheses.
+(define (structure--hypothesis-predicates f)
+  (let outer ((f f) (acc '()))
+    (cond ((not (pair? f)) acc)
+          ((eq? (car f) 'FORALL) (outer (caddr f) acc))
+          ((eq? (car f) 'IMPLIES)
+           (outer (caddr f)
+                  (let scan ((g (cadr f)) (a acc))
+                    (cond ((not (pair? g)) a)
+                          ((and (= (length g) 2)
+                                (structure--of-is-predicate (car g)))
+                           (cons (structure--of-is-predicate (car g)) a))
+                          ((memq (car g) '(AND OR IMPLIES))
+                           (scan (cadr g) (scan (caddr g) a)))
+                          (else a)))))
+          (else acc))))
+
+;;; The structure F concludes something is, or #f.  An IFF is a DEFINITION and
+;;; witnesses nothing, so the walk stops at one.
+(define (structure--conclusion-predicate f)
+  (let loop ((f f))
+    (cond ((not (pair? f)) #f)
+          ((memq (car f) '(FORALL IMPLIES)) (loop (caddr f)))
+          ((eq? (car f) 'IFF) #f)
+          ((and (= (length f) 2) (structure--of-is-predicate (car f)))
+           (structure--of-is-predicate (car f)))
+          (else #f))))
+
+(define (structure-exemplification-audit)
+  (let* ((names (sort (hash-table-keys *structure-decl-table*)
+                      (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+         (rules '())          ; (TARGET (SOURCE ...)) per witness theorem
+         (seeded '()))
+    (for-each
+     (lambda (nm)
+       (let* ((raw (hash-table-ref/default *theorem-table* nm #f))
+              (f   (and raw (if (wff? raw) (wff-formula raw) raw)))
+              (t   (and f (structure--conclusion-predicate f))))
+         (if t (set! rules (cons (list t (structure--hypothesis-predicates f)) rules)))))
+     (hash-table-keys *theorem-table*))
+    (for-each (lambda (i)
+                (let ((s (instance-structure i)))
+                  (if (and (memq s names) (not (memq s seeded)))
+                      (set! seeded (cons s seeded)))))
+              (hash-table-keys *structure-instances*))
+    (for-each (lambda (r)
+                (if (and (null? (cadr r)) (not (memq (car r) seeded)))
+                    (set! seeded (cons (car r) seeded))))
+              rules)
+    (let ((reach seeded))
+      (let loop ()
+        (let ((before (length reach)))
+          (for-each (lambda (r)
+                      (if (and (not (memq (car r) reach))
+                               (let all ((h (cadr r)))
+                                 (or (null? h)
+                                     (and (memq (car h) reach) (all (cdr h))))))
+                          (set! reach (cons (car r) reach))))
+                    rules)
+          (if (> (length reach) before) (loop))))
+      (list (filter (lambda (n) (memq n seeded)) names)
+            (filter (lambda (n) (and (memq n reach) (not (memq n seeded)))) names)
+            (filter (lambda (n) (not (memq n reach))) names)))))

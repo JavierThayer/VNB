@@ -151,7 +151,7 @@
 ;;; ====================================================================
 (sp `(FORALL m (FORALL x
      (IMPLIES (AND (IS-NORMED-VECTOR-SPACE m)
-               (AND (IS-FINITE-DIMENSIONAL m) (IN x (VEC m))))
+               (AND (IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m)) (IN x (VEC m))))
        (FORSOME g (AND (IS-BOUNDED-LINEAR-FUNCTIONAL m g)
                   (AND (<= (DUAL-NORM m g) 1)
                        (= (g x) ((VNRM m) x)))))))))
@@ -171,7 +171,7 @@
 ;; apply hahn-banach: extend F0 to g on all of VEC(m)
 (quietly (lambda () (fact 'line-is-submodule 'm 'x)))
 (define HBANT (conjuncts->and (list '(IS-NORMED-VECTOR-SPACE m)
-                                    '(IS-FINITE-DIMENSIONAL m)
+                                    '(IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m))
                                     (list 'IS-SUBMODULE 'm LINEx)
                                     (list 'IS-BOUNDED-LINEAR-FUNCTIONAL-ON 'm LINEx F0))))
 (cut HBANT) (dc-grind!) (dc-focus! NAGOAL)
@@ -249,7 +249,9 @@
      (<= ((VNRM m) x) d))))
 
 (sp (list 'FORALL 'm (list 'FORALL 'x
-     (list 'IMPLIES (conjuncts->and '((IS-NORMED-VECTOR-SPACE m) (IS-FINITE-DIMENSIONAL m) (IN x (VEC m))))
+     (list 'IMPLIES (conjuncts->and '((IS-NORMED-VECTOR-SPACE m)
+                                      (IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m))
+                                      (IN x (VEC m))))
        (list 'AND UB-CLAUSE LEAST-CLAUSE)))))
 (quietly (lambda () (di)(di)(di)))
 (dc-split)                    ; splits antecedent (NVS,FINDIM,INx) AND the goal (UB | LEAST)
@@ -274,7 +276,9 @@
 (define LEASTBODY (dc-gf))                    ; (<= ((VNRM m) x) d)
 (define UBd (dc-find (lambda (z) (and ((dc-head? 'FORALL) z) (dc-ment? 'is-bounded-linear-functional z) (not (dc-ment? 'vnrm z))))))
 ;; obtain the norm-attaining functional g
-(define NAANT (conjuncts->and '((IS-NORMED-VECTOR-SPACE m) (IS-FINITE-DIMENSIONAL m) (IN x (VEC m)))))
+(define NAANT (conjuncts->and '((IS-NORMED-VECTOR-SPACE m)
+                                (IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m))
+                                (IN x (VEC m)))))
 (cut NAANT) (dc-grind!) (dc-focus! LEASTBODY)
 (quietly (lambda () (fact 'norm-attained-by-functional 'm 'x)))
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? 'is-bounded-linear-functional z) (dc-ment? 'vnrm z)))))

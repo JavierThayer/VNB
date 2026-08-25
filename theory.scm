@@ -634,8 +634,16 @@
     ;;   length-of-empty: length([]) = 0
     ;;   length-in-nn:    L ∈ TUPLES(A) → length(L) ∈ NN
     ;;   nth-in-range:    L ∈ TUPLES(A) ∧ 1 ≤ i ≤ length(L) → nth(i,L) ∈ A
-    ;; (Recursive characterization of length requires a CONS/PREPEND constructor
-    ;;  and a TUPLES induction principle, both pending.)
+    ;; The recursive characterization of length is NO LONGER PENDING (2026-08-13):
+    ;; structure-library/list-recursion.scm supplies the CONS constructor and
+    ;; `length-cons' (length(cons(x,L)) = succ(length(L))), together with the two
+    ;; GENERATION axioms -- a tuple of length 0 is [], a tuple of length succ n is
+    ;; a CONS -- and theorem-library/tuples-induction.scm PROVES list induction
+    ;; from them by induction on the length.  So the induction principle is a
+    ;; theorem in class form, like `nn-induction', not a schema-level primitive.
+    ;; These three axioms stay: they are what the constructor is characterised
+    ;; against, and length-in-nn / nth-in-range guard TUPLES(A) membership, which
+    ;; the recursion does not replace.
 
     (theory-add-axiom! th 'length-of-empty
       '(= (LENGTH (LIST)) 0))

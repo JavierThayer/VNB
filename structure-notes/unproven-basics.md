@@ -112,7 +112,7 @@ next.
 | `image-subset-codomain`, `delete-at-*` | **none** | uncited today |
 
 `bijection-identity` is the worst leaf of `cd-seg-body` and hence of
-`card*-segment`, so proving it is the difference between `[trust: informal]` and
+`card-star-segment`, so proving it is the difference between `[trust: informal]` and
 `modulo 0` for the whole CARD arc.  It and `bijection-compose` are the two that
 matter.
 

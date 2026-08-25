@@ -414,8 +414,24 @@
 (ss-foc-goal! (lambda (g) (equal? g '(= (ENTRY P i_ j_) (ZERO A)))))
 (ai (list 'NOT SS-NZk))
 
-(qed 'smith-staircase)
-(topic! 'smith-staircase 'algebra)
+;;; RENAMED 2026-08-22, from `smith-staircase' to `smith-normal-form'.
+;;;
+;;; `SMITH-STAIRCASE' is a PREDICATE (def-predicate, structure-library/
+;;; mat-equiv.scm:164) and its defining IFF is installed under that bare name.
+;;; This is the EXISTENCE theorem -- every matrix over a Euclidean ring is
+;;; equivalent to one in staircase form -- and installing it under the
+;;; predicate's own name OVERWROTE the definition: `install-theorem!' replaces
+;;; silently, there is no `smith-staircase-def' to fall back on, and after any
+;;; load the defining iff was simply absent from the theorem table, so nothing
+;;; could ever unfold the predicate again.  Found by the overwrite warning added
+;;; to install-theorem! the same day.
+;;;
+;;; The repair is free because NOTHING cited the name -- the only other mention
+;;; was the topic! on the next line.
+(qed 'smith-normal-form)
+(topic! 'smith-normal-form 'algebra)
+(alias! 'smith-normal-form
+        "every matrix over a Euclidean ring is equivalent to one in staircase form")
 (topic! 'nn-zero-le 'inequalities)
 (topic! 'nn-succ-mono 'inequalities)
 (topic! 'nn-succ-le-cancel 'inequalities)

@@ -142,11 +142,21 @@
    uniform convergence on all of s.  Two of the three rungs now exist as machine
    proofs rather than assertions: compact-metric-is-separable (the countable
    dense D) is PROVEN in theorem-library/compact-separable-proof.scm, and the
-   dense-to-uniform bridge is ascoli-dense-bridge (proven modulo its two
-   analytic cores, equicont-dense-conv-implies-unif-cauchy and
-   unif-cauchy-cont-implies-uniform-limit).  What is still missing for a machine
-   proof of the theorem itself is the DIAGONAL rung,
-   coordinatewise-diagonal-subseq.")
+   dense-to-uniform bridge is ascoli-dense-bridge, whose two analytic cores are
+   themselves PROVEN as of 2026-08-23 (theorem-library/ascoli-analytic-cores.scm)
+   down to two named non-analytic rungs: ptwise-cauchy-compact-equicont-unif
+   (finite subcover + finite max) and unif-cauchy-has-uniform-limit (the
+   pointwise-limit construction).
+   WHAT STILL BLOCKS THE HEADLINE, as measured 2026-08-23, is neither of those
+   and is not the diagonal argument either -- coordinatewise-diagonal-subseq is
+   in the tree (theorem-library/seq-compact-product.scm), asserted `informal'.
+   It is the FACTOR SPACES.  The diagonal runs over Prod_m K_m with K_m a closed
+   bounded real interval, and this tree has no METRIC SUBSPACE structure, so a
+   closed bounded interval is not a metric space at all and cannot be a factor:
+   IS-MS-SEQUENCE (product-metric.scm) demands IS-METRIC-SPACE of each.  That is
+   the same missing structure heine-borel-baby.scm, monotone-inverse.scm and
+   inverse-function.scm each record; it is the gate, and it gates Heine-Borel
+   and Ascoli together.")
 
 (topic! 'ascoli-arzela-sequential 'topology)
 

@@ -34,7 +34,7 @@ Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` tag it 
 - **rule** -- a single primitive KERNEL inference rule (the fixed trusted base): `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-b` `lam-b-h` `lam-t` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `bu-set` `bu-mi` `bu-me` 
 - **oracle** -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: `arith` `rs` `crs` `simp` `ineq` `sos` 
 - **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `inst+` `fact` `bc*` `mac-h*` `grind` `wbc` `calc` `scout-run` `minimize!` `obtain` `have!` `vlet` 
-- **meta** -- no deduction: session / search / navigation: `sp` `qed` `save-proof` `replay-proof` `scout` `scout-show` 
+- **meta** -- no deduction: session / search / navigation: `sp` `qed` `save-proof` `replay-proof` `scout` `scout-show` `backup-one` `undo` 
 
 The `rule` set is the fixed kernel; a proof's trust surface is exactly its `rule` steps plus whichever `oracle`s and asserted premises it cites.  You can read any finished proof's actual rule inventory off its deduction graph (each node records its justifying rule).
 
@@ -546,6 +546,18 @@ Quasi-reflexivity: close t = t under the partial-equality definedness reading.
 
 Close `t = t' under the partial-equality reading, where asserting t = t also asserts that t is DEFINED.  Use this rather than rfl when t might be undefined.  (Technically: quasi-reflexivity; see the partial-equality convention, where `t = t' is the definedness predicate.)
 
+## Propositional logic
+
+### prop
+
+    (prop)
+
+Decide the goal by PROPOSITIONAL logic from the context, and close it if it follows.  Every non-connective formula -- `x in a', an equation, a whole `forall(...)' -- is one opaque atom; AND/OR/NOT/IMPLIES/IFF are read.  On a goal that does NOT follow it prints the countermodel (which atom must be true, which false) and leaves the proof untouched.  Adds no trust: it decides semantically, then discharges through di/ai/oi/ass/use-em/have!/detach!, so the bill is unchanged and the recorded script is the ordinary step-by-step proof.
+
+*When useful:* the goal follows from the hypotheses by AND/OR/NOT/IMPLIES/IFF alone -- no quantifier or equality reasoning needed
+
+Close a goal that follows from the hypotheses by pure propositional reasoning -- the leaves where you can SEE the answer and still have to pick between (oi-l)(ass), (oi-r) plus a conjunction split, and (ai) on a negation.  It treats each atomic statement as a black box, so it will not instantiate a quantifier or reason about equality: if the goal needs an instance, land the instance first (fact / inst+) and run it again.  When it declines it names a falsifying assignment, which usually tells you exactly which hypothesis is missing.  (Technically: three-valued evaluation over the atoms decides the entailment; the proof is then replayed through the kernel rules, case-splitting with excluded middle where a disjunctive goal needs it.)
+
 ## Arithmetic & ring oracles
 
 ### arith
@@ -593,6 +605,14 @@ Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g.
 *Kind:* `oracle` (emits `ring-simplify`)
 
 *When useful:* a ring SUBTERM of a larger goal should be put in normal form in place
+
+### supply
+
+    (supply)
+
+Close an inequality goal the way a hand proof would: beta-reduce any applied lambda, land the typing certificates and the standard bounds the linear oracle cannot see -- including the TRIANGLE inequality at the summands of an abs of a sum -- then call ineq over every premise.  Rehearses the whole sequence on a throwaway copy and does NOTHING unless it closes; on a miss it prints the sequence it tried.  Adds no trust: it drives lam-b, fact and ineq, each of which records itself.
+
+The committing form of what-now's SUPPLY THE ORACLE lane.  `ineq' reads abs(...), max(...) and (dist(s))(x,y) as opaque atoms and refuses any premise whose atoms are not certified real, so an inequality that is obviously true can fail for want of a typing nobody mentioned.  This lands them.  The one real idea is subadditivity: where the goal bounds abs(u + v), the useful intermediate term is abs(u) + abs(v), and the decomposition is in the term itself -- nothing is searched for.  Because a lambda reduction cannot be undone and can owe an unprovable leaf, the whole sequence is rehearsed before any of it is run.  (Technically: certificate closure to depth 2 over the forward-citation lane, plus the curated bound table, then Fourier-Motzkin.)
 
 ### ineq
 
@@ -915,6 +935,28 @@ Evaluate a conditional term `if p then a else b' on the assumption that p fails:
 
 Switch the focus to the n-th open goal (1-based).
 
+### backup-one
+
+    (backup-one)
+
+Take back the last recorded command: restore the goal, the deduction graph and the proof script to the state before it.  Repeat to walk further back; (sp) clears the stack.  `undo' is an alias.
+
+*Kind:* `meta`
+
+*When useful:* the last command was a mistake -- a greedy `di' that ate the induction, a `cut' you did not mean, a branch you want back
+
+The one undo in VNB.  It restores the deduction graph -- not merely the focus -- by rolling back the journalled arrow and grounding writes and DROPPING every sequent and inference node posted since, so no node from the abandoned branch survives to be counted as an open leaf and `qed' cannot be handed a phantom obligation.  *proof-script* and the live trace are rewound with it, so the saved script and the printed proof are the proof you actually kept.  It backs up over the LAST RECORDED command: a command that changed nothing was never recorded and is not a step to back up over.  One thing is deliberately not restored -- *fresh-counter*, the eigenvariable source -- so backing up over an `ai' or `ew' that minted `u_4' and re-running it mints `u_5'; the proof is the same, the witness has a different name.  Depth is capped at *vnb-undo-depth* (64).
+
+### undo
+
+    (undo)
+
+Alias for (backup-one).
+
+*Kind:* `meta`
+
+*When useful:* the last command was a mistake -- alias for backup-one
+
 ### show
 
     (show)
@@ -944,38 +986,6 @@ Run thunks in order, stop at the first that makes progress (LCF ORELSE).
     (quietly thunk)
 
 Run thunk with state-dump output suppressed; returns its value.
-
-## Forward-reasoning idioms  [proof-local -- NOT yet surface tactics]
-
-### cut-mem!
-
-    (cut-mem! mem A)
-
-Prove a membership (IN (f x) B) by fun-apply-type with domain A, leaving it in context.  [proof-local]
-
-### metric-sym-eq!
-
-    (metric-sym-eq! S P Q)
-
-Add (= ((DIST S) P Q) ((DIST S) Q P)) to context via the metric-sym axiom.  [proof-local]
-
-### focus-leaf!
-
-    (focus-leaf! substr)
-
-Focus the frontier leaf whose goal contains substr (never trust auto-advance).  [proof-local]
-
-### split-ands!
-
-    (split-ands!)
-
-Flatten every AND assumption of the focus into separate assumptions.  [proof-local]
-
-### ass-all-frontier!
-
-    (ass-all-frontier!)
-
-Close every frontier leaf whose goal is already among its assumptions.  [proof-local]
 
 ## Choosing and naming witnesses
 

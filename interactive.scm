@@ -125,13 +125,25 @@
 
 ;;; Evaluate a ground arithmetic term and display the result.
 ;;; Accepts a string ("2^10") or a raw S-expression ('(POWER 2 10)).
-;;; (calc t) -- the calculator tape's evaluator.  Two modes, tried in order:
+;;; (calc-eval t) -- the calculator tape's evaluator.  Two modes, tried in order:
 ;;;  (1) GROUND arithmetic: if every symbol reduces, print the number (2+3*5 -> 17).
 ;;;  (2) SYMBOLIC: otherwise normalise t as a free commutative-ring expression
 ;;;      and print its canonical sum-of-monomials form ((x+y)*(x+y) - x*y ->
 ;;;      x^2 + x*y + y^2).  Bare identifiers are generators; remember VNB reads
 ;;;      `xy' as ONE symbol, so multiplication must be written x*y (or x y).
-(define (calc t)
+;;;
+;;; RENAMED FROM `calc' ON 2026-08-13, and the rename is a bug fix, not tidying.
+;;; calc.scm:209 defines a DIFFERENT `calc' -- the chain checker, (calc L0 (rel1
+;;; L1) ...) -- and calc.scm loads second (load.scm:482 against interactive at
+;;; :402), so this definition was simply gone.  The Calculator sheet's C-j sends
+;;; (calc "<line>") and got the chain checker, which died on the string with
+;;; `The object #f ... is not the correct type': the whole sheet was dead, with
+;;; no diagnostic naming either procedure.  `clobber-guard' cannot see this --
+;;; it fires when a procedure is rebound to a NON-procedure, and here a
+;;; procedure was rebound to another procedure.  The chain checker keeps the
+;;; name `calc' because that is what the catalog, TACTICS.md, the glossary and
+;;; two manual appendices document; this one moves.
+(define (calc-eval t)
   (vnb-guard
     (lambda ()
       (let* ((raw (if (string? t) (parse-string t) t))
@@ -212,6 +224,7 @@
       (set! *current-goal* (wff-formula wic))
       (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
       (set! *ps* (start-proof wic))
+      (vnb--undo-reset!)                             ; no backing up past (sp)
       (set! *live-trace* '())                        ; begin a fresh live capture
       (vnb--capture-step! (cons 'sp '()))            ; seed it with the initial goal
       (show))))
@@ -301,16 +314,219 @@
 ;;; vnb--run! executes a cmd-* thunk, records and updates *ps* on success,
 ;;; or displays the warning message and leaves *ps* unchanged on soft failure.
 
+;;; -----------------------------------------------------------------------
+;;; THE ONE BOUNDARY: inert-command detection, and `backup-one'.
+;;;
+;;; vnb--run! had three outcomes: an ERROR (vnb-guard displayed it, *ps*
+;;; untouched), a soft WARNING (a cmd-* declined and said why), and success.
+;;; The case that bit was a FOURTH one hiding inside the third: a tactic that
+;;; raised nothing, declined nothing, and returned a proof state IDENTICAL to
+;;; the one it was handed.  That fell to the success branch, was appended to
+;;; *proof-script* and to the *live-trace* proof-tex prints from, and `show'
+;;; redisplayed the unchanged goal as though the move had landed.  A driver
+;;; then ran every later command in the wrong branch, and the failure surfaced
+;;; steps away.  CLAUDE.md lists a dozen instances of the species.
+;;;
+;;; WHAT DISCRIMINATES A REAL MOVE.  Not the goal formula: a branching tactic
+;;; can leave the focus assertion alone while opening two leaves, and a rewrite
+;;; can land a hypothesis without touching the goal.  Not the assumption list,
+;;; for the same reason in mirror.  Not the open-leaf COUNT: `ass' closes a leaf
+;;; and hands focus to another, and a rule with exactly one premise leaves the
+;;; count where it found it.  What is both necessary and sufficient is that the
+;;; command left a TRACE IN THE DEDUCTION GRAPH -- a node posted, an inference
+;;; recorded, an arrow written, a node grounded -- or else moved the FOCUS.
+;;; `dg-mark-unchanged?' (deduction-graphs.scm) tests the first, off the same
+;;; journal `backup-one' rolls back; the focus test is the second.
+;;;
+;;; The focus half is what keeps the notice honest about the moves that
+;;; legitimately change no goal.  `focus' and `focus-id' write nothing into the
+;;; graph at all -- they are a set-proof-state-focus! and nothing else -- and a
+;;; branching tactic whose rule fires and then re-aims at a sibling leaf is a
+;;; real move by both halves.  Only a command that wrote nothing AND left focus
+;;; where it found it is reported.
+;;;
+;;; The graph test is stronger than the in-arrow test CLAUDE.md names ("every
+;;; primitive inference gives its focus node an in-arrow, so
+;;; (null? (sequent-node-in-arrows n)) afterwards means it did not fire").
+;;; That one is right about a single primitive on the focus node and wrong
+;;; about everything else: it reports a hypothesis-side rewrite as inert (the
+;;; rule fires on a node the focus is not), and it reports a re-visited node as
+;;; a firing (the in-arrow was already there from an earlier branch).
+
+;;; The undo stack.  Cleared by (sp); capped, so a long proof does not retain
+;;; every state it ever passed through.
+(define *vnb-undo-stack* '())
+(define *vnb-undo-depth* 64)
+
+;; #f suppresses the inert notice and restores the pre-2026-08-24 behaviour of
+;; recording the step anyway.  For measurement, not for use.
+(define *vnb-report-inert?* #t)
+
+(define-record-type <vnb-undo-mark>
+  (%make-vnb-undo-mark entry ps dg-mark focus script trace)
+  vnb-undo-mark?
+  (entry   vnb-undo-mark-entry)      ; the (sym . args) this mark precedes
+  (ps      vnb-undo-mark-ps)
+  (dg-mark vnb-undo-mark-dg-mark)
+  (focus   vnb-undo-mark-focus)
+  (script  vnb-undo-mark-script)     ; *proof-script* is rebuilt by append,
+  (trace   vnb-undo-mark-trace))     ; *live-trace* by cons: pointers suffice
+
+;;; #f -- no mark, hence nothing pushed and nothing reported inert -- while
+;;; *replaying?* is bound.  That flag is the tree's existing "this is not the
+;;; user's move" switch: `replay-proof' binds it, `vnb--probing' (suggest.scm)
+;;; binds it around every copilot probe, and `prop' / `minimize!' bind it around
+;;; their own expansion.  Without the gate a probe running the REAL tactic on a
+;;; SCRATCH proof state would push a mark naming that scratch state onto the live
+;;; undo stack, and the next (backup-one) would set *ps* to it.  The composites
+;;; that record THEMSELVES take their own mark outside the fluid-let.
+(define (vnb--take-mark entry)
+  (and *ps* (not *replaying?*)
+       (%make-vnb-undo-mark entry *ps*
+                            (dg-take-mark (proof-state-dg *ps*))
+                            (proof-state-focus *ps*)
+                            *proof-script*
+                            *live-trace*)))
+
+(define (vnb--undo-push! mark)
+  (when mark
+    (set! *vnb-undo-stack*
+          (let loop ((s (cons mark *vnb-undo-stack*)) (n *vnb-undo-depth*))
+            (cond ((null? s) '())
+                  ((<= n 0) '())
+                  (else (cons (car s) (loop (cdr s) (- n 1)))))))))
+
+(define (vnb--undo-reset!)
+  (set! *vnb-undo-stack* '())
+  (dg-journal-reset!))
+
+;;; #t exactly when RESULT is the state the mark was taken from, unmoved.
+(define (vnb--inert? mark result)
+  (and mark
+       *vnb-report-inert?*
+       (proof-state? result)
+       (eq? (proof-state-dg result) (dg-mark-dg (vnb-undo-mark-dg-mark mark)))
+       (dg-mark-unchanged? (vnb-undo-mark-dg-mark mark))
+       (eq? (proof-state-focus result) (vnb-undo-mark-focus mark))))
+
+;;; Counters, so the SILENCE half is measurable: a notice that fires on every
+;;; command is as useless as none.
+;;;
+;;; They count NOTICES ISSUED, not inert calls detected, and the difference is
+;;; deliberate.  The notice is a soft warning, so `quietly' suppresses it -- and
+;;; a composite's SPECULATIVE pre-step (in-rr's opening `to-binary', say) is
+;;; quiet precisely because its declining is not a dead step the user took.
+;;; Counting those would make the tally disagree with what the log shows, so the
+;;; count lives inside the same guard as the print: the tally is exactly
+;;; `grep -c "nothing changed"' over the session's output, which is the number
+;;; anyone would check by hand.
+;;;
+;;; `*vnb-inert-at-load*' is the live counter frozen at the end of load.scm --
+;;; the number that means "the library proved 700-odd theorems and issued not one
+;;; inert-command notice".  The live counter goes on rising afterwards, so it is
+;;; the frozen one the suite asserts on.
+(define *vnb-inert-count* 0)
+(define *vnb-inert-at-load* 0)
+
+;;; The notice.  Goes out on the same wire as a soft warning (vnb--print-warning
+;;; below), so Emacs shows it in the workspace note panel and `quietly' -- hence
+;;; every copilot probe -- suppresses it.
+(define (vnb--report-inert! sym args)
+  (unless *vnb-quiet* (set! *vnb-inert-count* (+ 1 *vnb-inert-count*)))
+  (vnb--print-warning
+   (string-append
+    (symbol->string sym)
+    (if (null? args) "" (string-append " " (vnb--entry-args-str args)))
+    ": nothing changed -- no rule fired and the focus did not move."
+    "  The step was NOT recorded.")))
+
+(define (vnb--entry-args-str args)
+  (call-with-output-string
+   (lambda (port)
+     (let loop ((as args) (first #t))
+       (if (pair? as)
+           (begin (if (not first) (write-char #\space port))
+                  (write (car as) port)
+                  (loop (cdr as) #f)))))))
+
+;;; (backup-one) -- take back the last recorded command.  `undo' is an alias.
+;;;
+;;; WHY A GRAPH ROLLBACK AND NOT A STATE STACK.  There is exactly one
+;;; <proof-state> object per proof: start-proof is its only constructor, every
+;;; cmd-* mutates it through set-proof-state-focus! and returns THAT SAME
+;;; OBJECT, and vnb--run!'s (set! *ps* result) therefore assigns *ps* the value
+;;; it already had.  Pushing the old *ps* on a stack would push the object about
+;;; to be mutated and restore nothing.  The state that has to be put back lives
+;;; in the deduction graph, and it is put back there: dg-rollback! undoes the
+;;; journalled arrow and grounding writes newest-first, then restores the two
+;;; node lists and the node counter -- which DROPS every node and inference
+;;; posted since the mark rather than orphaning them, so proof-leaves cannot
+;;; count a node from an abandoned branch and `qed' cannot be handed a phantom
+;;; obligation.
+;;;
+;;; One thing is deliberately NOT restored: *fresh-counter* (expressions.scm),
+;;; the eigenvariable source.  It is monotonic on purpose, so backing up over an
+;;; `ai' or `ew' that minted `u_4' and re-running it mints `u_5'.  The proof is
+;;; the same proof; the witness has a different name.
+(define (backup-one)
+  (vnb-guard
+   (lambda ()
+     (cond
+       ((null? *vnb-undo-stack*)
+        (vnb--print-warning
+         "backup-one: nothing to back up -- the undo stack is empty ((sp) clears it)"))
+       ;; A mark names the proof state it was taken in.  If *ps* has been
+       ;; changed out from under the stack -- load.scm ends with (set! *ps* #f),
+       ;; and a driver may swap it -- the marks are about a proof that is no
+       ;; longer the current one, and restoring one would resurrect it.
+       ((not (eq? *ps* (vnb-undo-mark-ps (car *vnb-undo-stack*))))
+        (vnb--undo-reset!)
+        (vnb--print-warning
+         "backup-one: the undo stack belongs to a different proof -- discarded"))
+       (else
+        (let ((m (car *vnb-undo-stack*)))
+          (set! *vnb-undo-stack* (cdr *vnb-undo-stack*))
+          (dg-rollback! (vnb-undo-mark-dg-mark m))
+          (set-proof-state-focus! (vnb-undo-mark-ps m) (vnb-undo-mark-focus m))
+          (set! *ps*            (vnb-undo-mark-ps m))
+          (set! *proof-script*  (vnb-undo-mark-script m))
+          (set! *live-trace*    (vnb-undo-mark-trace m))
+          (unless *vnb-quiet*
+            (display ";; backed up over ")
+            (write (vnb-undo-mark-entry m))
+            (display "  (")
+            (display (length *vnb-undo-stack*))
+            (display " more step(s) can be backed up)")
+            (newline))
+          (show)))))))
+
+(define (undo) (backup-one))
+
+;;; The soft-warning WIRE FORMAT, in one place.  Emacs scans process output for
+;;; this exact prefix (`vnb--scan-for-errors', vnb.el) and shows the text in the
+;;; workspace note panel, so a tactic that DECLINES is visible to someone who is
+;;; not reading the REPL.  Any composite tactic that declines without going
+;;; through vnb--run! -- `prop' is the first -- must report through here rather
+;;; than with its own `display', or it is silent in every workspace.
+;;; `quietly' suppresses it, which is what keeps the copilot probes quiet.
+(define (vnb--print-warning msg)
+  (unless *vnb-quiet*
+    (display ";VNB warning: ")
+    (display msg)
+    (newline)))
+
 (define (vnb--run! sym args thunk)
-  (let ((result (vnb-guard (lambda () (vnb--require-proof!) (thunk)))))
+  (let* ((mark   (vnb--take-mark (cons sym args)))
+         (result (vnb-guard (lambda () (vnb--require-proof!) (thunk)))))
     (cond
       ((vnb-error? result) #f)          ; already displayed by vnb-guard
       ((vnb-warning? result)
-       (unless *vnb-quiet*               ; quietly suppresses soft warnings too
-         (display ";VNB warning: ")
-         (display (vnb-warning-message result))
-         (newline)))
+       (vnb--print-warning (vnb-warning-message result)))
+      ((vnb--inert? mark result)        ; succeeded and did NOTHING: say so
+       (vnb--report-inert! sym args)
+       #f)
       (else
+       (vnb--undo-push! mark)
        (record-cmd! sym args)
        (set! *ps* result)
        (vnb--capture-step! (cons sym args))   ; live trace for proof-tex
@@ -444,7 +660,7 @@
     ((not *ps*)          "not applicable")
     ((proof-done? *ps*)  "done")
     (else
-     (let ((n (length (proof-open-goals *ps*))))
+     (let ((n (length (proof-open-leaves *ps*))))
        (string-append (number->string n)
                       (if (= n 1) " open goal" " open goals"))))))
 
@@ -637,19 +853,27 @@
 ;; macetes); we loop on the GOAL FORMULA changing -- NOT (eq? *ps* ...), which
 ;; never changes because tactics mutate *ps* in place (repeat/orelse rely on
 ;; that identity and so silently run once -- a separate latent bug).
-(define (to-binary--saturate macetes)
+(define (to-binary--saturate who macetes)
   (vnb--require-proof!)
-  (quietly
-    (lambda ()
-      (let loop ((guard 0))
-        (let ((before (to-binary--focus-formula)))
-          (for-each mac macetes)
-          (when (and (< guard 200)
-                     (not (equal? (to-binary--focus-formula) before)))
-            (loop (+ guard 1)))))))
-  (show))
-(define (to-binary) (to-binary--saturate *to-binary-macetes*))
-(define (to-nary)   (to-binary--saturate *to-nary-macetes*))
+  ;; This one does NOT go through vnb--run! -- it drives `mac' in a loop and
+  ;; each firing records itself -- so the inert notice is taken here by hand,
+  ;; off the same mark.  Without it a saturation with nothing to saturate is
+  ;; completely silent: no warning (the inner `mac' warnings are swallowed by
+  ;; `quietly'), nothing recorded, and a redisplayed unchanged goal.
+  (let ((mark (vnb--take-mark (list who))))
+    (quietly
+      (lambda ()
+        (let loop ((guard 0))
+          (let ((before (to-binary--focus-formula)))
+            (for-each mac macetes)
+            (when (and (< guard 200)
+                       (not (equal? (to-binary--focus-formula) before)))
+              (loop (+ guard 1)))))))
+    (if (vnb--inert? mark *ps*)
+        (vnb--report-inert! who '())
+        (show))))
+(define (to-binary) (to-binary--saturate 'to-binary *to-binary-macetes*))
+(define (to-nary)   (to-binary--saturate 'to-nary   *to-nary-macetes*))
 
 ;; (in-rr) -- discharge a goal (IN <arith-term> D) for a ring domain D in
 ;; {RR,ZZ,QQ,CC}, by structural recursion: to-binary normalizes the n-ary
@@ -732,7 +956,13 @@
              (ass)))))))
 (define (in-rr)
   (vnb--require-proof!)
-  (to-binary)
+  ;; SPECULATIVE pre-step: push any n-ary arithmetic onto the structure surface
+  ;; so the typing lemmas match.  Most typing goals have none, so this declines
+  ;; -- 32 times over a library load, every one of them from here, as the new
+  ;; inert-command notice reported the day it was written (2026-08-24).  A
+  ;; speculative step that declines is not a no-op the user typed, so it is
+  ;; `quietly': the notice, like every soft warning, is suppressed under it.
+  (quietly (lambda () (to-binary)))
   (in-rr--close!)
   (quietly (lambda () (ass-all)))
   (proof-done? *ps*))
@@ -995,16 +1225,36 @@
 
 ;; Replay ta + inst/cut/bc down the theorem structure.
 ;; Returns the list of antecedent subgoal nodes, in tree order.
-(define (bc*--drive! name thm subst)
+;;
+;; SVARS is the theorem's FORALL binders in `bc*--peel' order -- and the lookup
+;; key must be that ORIGINAL name, never the binder as it reads in the
+;; partly-instantiated formula.  The two differ exactly when a value being
+;; substituted in mentions a variable that a LATER binder of the theorem also
+;; names, because `subst-free' then renames that binder out of the way:
+;;
+;;   (subst-free 'a 'b '(FORALL b (IFF (IN x a) (IN x b))))
+;;     =>  (forall b_1090 (iff (in x b) (in x b_1090)))
+;;
+;; -- correct capture avoidance, but the next binder now reads `b_1090' while
+;; `subst' is keyed `b'.  Re-reading the name off the formula therefore looked
+;; up a variable that was not there and died in `cdr' on the #f, which is how
+;; (bc* 'class-extensionality) -- binders `a', `b' -- failed on any goal whose
+;; own variables were named a and b, the commonest names in a set-theory proof.
+;; Walking SVARS in step with the formula is immune: it is the same walk order
+;; `bc*--peel' used to collect them.
+(define (bc*--drive! name thm subst svars)
   (bc*--commit! (cmd-theorem-assumption *ps* name) "ta")
-  (let loop ((f thm) (goals '()))
+  (let loop ((f thm) (vs svars) (goals '()))
     (cond
       ((and (pair? f) (eq? (car f) 'FORALL))
-       (let* ((v (cadr f))
-              (t (cdr (assoc v subst)))
-              (nf (subst-free v t (caddr f))))
-         (bc*--commit! (cmd-instantiate *ps* f t) "inst")
-         (loop nf goals)))
+       (let* ((v    (cadr f))                   ; the binder as it now reads
+              (cell (and (pair? vs) (assoc (car vs) subst))))
+         (if (not cell)
+             (error "bc*: no value for the theorem's binder" (if (pair? vs) (car vs) v)))
+         (let* ((t  (cdr cell))
+                (nf (subst-free v t (caddr f))))
+           (bc*--commit! (cmd-instantiate *ps* f t) "inst")
+           (loop nf (cdr vs) goals))))
       ((and (pair? f) (eq? (car f) 'IMPLIES))
        (let ((rest (caddr f)))
          (bc*--commit! (cmd-cut *ps* rest) "cut")
@@ -1012,7 +1262,7 @@
            (bc*--commit! (cmd-backchain *ps* f) "bc")
            (let ((ant (proof-state-focus *ps*)))   ; the antecedent subgoal
              (set-proof-state-focus! *ps* b2)
-             (loop rest (cons ant goals))))))
+             (loop rest vs (cons ant goals))))))
       (else
        (bc*--commit! (cmd-assumption *ps*) "assumption")
        (reverse goals)))))
@@ -1046,7 +1296,13 @@
                 (display " -- supply as ((v val) ...)\n")
                 #f)
                (else
-                (let ((gs (bc*--drive! name thm subst)))
+                (let* ((mark (vnb--take-mark
+                              (cons 'bc* (cons name (list bindings)))))
+                       (gs (bc*--drive! name thm subst svars)))
+                  ;; bc* drives cmd-* directly and records ITSELF, so it takes
+                  ;; its own undo mark: backup-one takes back the whole
+                  ;; backchain, matching the one script entry it wrote.
+                  (vnb--undo-push! mark)
                   ;; Record name + bindings + any hyp-discharge handler forms as
                   ;; ONE entry: (bc* name bindings . forms).  forms is '() for the
                   ;; bc*-apply path, so this stays (bc* name bindings) there.
@@ -1363,6 +1619,39 @@
 ;;; Structure predicates (is-ring, ring-class, ...) are excluded: they live in
 ;;; STRUCTURE-INDEX.md with their full law bundles, keyed off the structure
 ;;; registries below, and `-rev' companions are dropped as derived duplicates.
+
+;;; Does this body READ as a definition?  `provenance-of' is the authority on
+;;; whether a fact IS one; this is only a shape sanity check, and until
+;;; 2026-08-19 it demanded that the head be IFF or == outright.  That silently
+;;; excluded every GUARDED definition -- including `rr-abs-def', which is the
+;;; defining equation of `abs' and strips to
+;;;
+;;;     (IMPLIES (IN x RR) (AND (IMPLIES (<= 0 x) (= (abs x) x))
+;;;                             (IMPLIES (NOT (<= 0 x)) (= (abs x) (- x)))))
+;;;
+;;; whose head is IMPLIES.  So DEFINITIONS.md listed the unconditional
+;;; definitions (binary-minus-def, binary-divide-def) and omitted the by-cases
+;;; ones, which is the shape a definition by cases MUST take.  A reader looking
+;;; up "where is abs defined" found only its consequences.
+;;;
+;;; The rule now: walk through guards (IMPLIES antecedents) and conjunctions,
+;;; and accept if what is left anywhere is an IFF, == or =.
+(define (definitions--defining-shape? m)
+  (cond ((not (pair? m)) #f)
+        ((memq (car m) '(IFF == =)) #t)
+        ;; ... and through an INNER quantifier.  `definitions--strip-foralls'
+        ;; strips only the LEADING run, so a two-variable guarded definition --
+        ;; (FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR) ...)))),
+        ;; which is what rr-max-def is -- still has a FORALL under its guard.
+        ((and (memq (car m) '(FORALL FORSOME)) (= (length m) 3))
+         (definitions--defining-shape? (caddr m)))
+        ((and (eq? (car m) 'IMPLIES) (= (length m) 3))
+         (definitions--defining-shape? (caddr m)))
+        ((and (eq? (car m) 'AND) (= (length m) 3))
+         (or (definitions--defining-shape? (cadr m))
+             (definitions--defining-shape? (caddr m))))
+        (else #f)))
+
 (define (definitions--extra)
   (let* ((registered (map car (theory-definitions *current-theory*)))
          (snames     (append (hash-table-keys *structure-table*)
@@ -1382,9 +1671,8 @@
              (not (definitions--rev-name? n))
              (not (memq n registered))
              (not (memq n struct-excl))
-             (let* ((m    (definitions--strip-foralls (lookup-theorem n)))
-                    (conn (and (pair? m) (car m))))
-               (memq conn '(IFF ==)))))
+             (definitions--defining-shape?
+               (definitions--strip-foralls (lookup-theorem n)))))
       (hash-table-keys *theorem-table*))
      (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
 
@@ -2050,9 +2338,13 @@
     ;; rebuilt their HTML from the stale markdown -- pages carrying today's
     ;; timestamp and last month's content, which is the rot you cannot see.
     ;; Everything reference/ generates is now generated HERE, on every load.
-    ;; (The .dot only: rendering it wants graphviz + python3, which a headless
-    ;; library load must not depend on.  `G' in Emacs runs build-graph-html.py
-    ;; over whatever .dot is on disk -- and that is now always current.)
+    ;; The .dot is written HERE; the RENDER of it (structure-graph.html and the
+    ;; standalone .svg) is a detached, guarded child at the end of load.scm --
+    ;; see the comment there.  It used to be omitted, on the grounds that a
+    ;; headless load must not depend on graphviz + python3, and that left the
+    ;; rendered graph refreshed only by `./VNB-with-compile' and by `G' in
+    ;; Emacs.  Which is this same rot one file over: on 2026-08-19 the .dot was
+    ;; that morning's and the .html was 2026-07-23's, three structures behind.
     (macete-index)
     (operator-index)
     (structure-graph-dot-file)))
@@ -3615,18 +3907,40 @@
                     (pair? (caddr f)) (eq? (car (caddr f)) 'list)
                     (cdr (caddr f))))))))
 
-;;; All installed membership witnesses for the instance NAME: axioms of the
-;;; form (IS-X NAME).  Returns a list of (is-pred . axiom-name).
+;;; All installed membership witnesses for the instance NAME: facts of the form
+;;; (IS-X NAME).  Returns a list of (is-pred . fact-name).
+;;;
+;;; PROVEN theorems count, not only axioms -- the same blindness the comment
+;;; above `definitional-instance-tuple' describes, one line down.  This scanned
+;;; `theory-axioms' alone until 2026-08-16, so the moment `rr-is-metric-space'
+;;; stopped being an asserted axiom and became a theorem
+;;; (theorem-library/rr-metric-space-proof.scm) the RR-MS card lost its witness
+;;; and printed "(no membership witness installed)" about a fact the library now
+;;; PROVES.  Proving something must never make it less visible.
 (define (definitional-instance-memberships name)
-  (let loop ((axs (theory-axioms *current-theory*)) (acc '()))
-    (if (null? axs)
-        (reverse acc)
-        (let* ((entry (car axs)) (axname (car entry)) (f (cdr entry)))
-          (if (and (pair? f) (= (length f) 2) (symbol? (car f)) (eq? (cadr f) name)
-                   (let ((s (symbol->string (car f))))
-                     (and (>= (string-length s) 3) (string=? (substring s 0 3) "is-"))))
-              (loop (cdr axs) (cons (cons (car f) axname) acc))
-              (loop (cdr axs) acc))))))
+  (let* ((is-membership?
+          (lambda (f)
+            (and (pair? f) (= (length f) 2) (symbol? (car f)) (eq? (cadr f) name)
+                 (let ((s (symbol->string (car f))))
+                   (and (>= (string-length s) 3) (string=? (substring s 0 3) "is-"))))))
+         (from-axioms
+          (let loop ((axs (theory-axioms *current-theory*)) (acc '()))
+            (if (null? axs)
+                (reverse acc)
+                (let* ((entry (car axs)) (axname (car entry)) (f (cdr entry)))
+                  (if (is-membership? f)
+                      (loop (cdr axs) (cons (cons (car f) axname) acc))
+                      (loop (cdr axs) acc))))))
+         (from-proven
+          (let loop ((ns (reverse *proven-theorem-names*)) (acc '()))
+            (if (null? ns)
+                (reverse acc)
+                (let ((f (hash-table-ref/default *theorem-table* (car ns) #f)))
+                  (if (and f (is-membership? f)
+                           (not (assq (car f) from-axioms)))
+                      (loop (cdr ns) (cons (cons (car f) (car ns)) acc))
+                      (loop (cdr ns) acc)))))))
+    (append from-axioms from-proven)))
 
 (define (structure-card-md name)
   (let ((sd  (lookup-structure name))
@@ -4094,9 +4408,16 @@
   (vnb-guard
     (lambda ()
       (vnb--require-proof!)
-      (let ((goals (proof-open-goals *ps*)))
+      ;; LEAVES, not every ungrounded node: (focus n) used to be able to select
+      ;; an already-justified ancestor, after which the next tactic built a
+      ;; second justification for it.  The panel numbers the same list.
+      (let ((goals (proof-open-leaves *ps*)))
         (if (and (integer? n) (>= n 1) (<= n (length goals)))
             (begin
+              ;; A focus move writes nothing into the graph, so it is not an
+              ;; inert command -- but it IS a step, and backup-one has to be
+              ;; able to take it back.
+              (vnb--undo-push! (vnb--take-mark (list 'focus n)))
               (record-cmd! 'focus (list n))
               (set! *ps* (focus-on *ps* (list-ref goals (- n 1))))
               (show))
@@ -4120,6 +4441,7 @@
                        (else (loop (cdr gs)))))))
         (if g
             (begin
+              (vnb--undo-push! (vnb--take-mark (list 'focus-id k)))
               (record-cmd! 'focus-id (list k))
               (set! *ps* (focus-on *ps* g))
               (show))
@@ -4242,8 +4564,9 @@
       ((bu-set)  (cmd-big-union-sethood  *ps*))
       ((bu-mi)   (cmd-big-union-mem-intro *ps* (car args)))
       ((bu-me)   (cmd-big-union-mem-elim  *ps* (->raw-formula/idx (car args))))
+      ;; the same list `focus' indexes, or replay would land elsewhere
       ((focus)  (focus-on *ps*
-                          (list-ref (proof-open-goals *ps*)
+                          (list-ref (proof-open-leaves *ps*)
                                     (- (car args) 1))))
       ;; bc* re-derives by re-matching the conclusion (and any recorded
       ;; bindings) against the current goal, mutating *ps* in place; return
@@ -4352,6 +4675,21 @@
         (display ";; VNB proof script -- auto-emitted.  Re-load to replay.\n" port)
         (script--write-block port nm *current-goal* *proof-script*))))
   filename)
+
+;; Print the CURRENT proof's script to the REPL, as the same standalone,
+;; re-loadable block `write-proof-script' puts in a file.  The copy-and-paste
+;; path: `W' in the Focus Workspace writes a file, `dump-session' prints every
+;; proof that reached `qed', and between them sat the commonest need -- "show me
+;; the proof I just finished", by someone who wants to paste it into a mail, a
+;; bug report, or a conversation.  Works mid-proof too; the script persists
+;; until the next `sp'.  NAME, if given, adds the trailing (qed 'NAME).
+(define (show-proof-script #!optional name)
+  (let ((nm (if (default-object? name) #f name)))
+    (if (null? *proof-script*)
+        (begin
+          (display ";; (no proof script recorded -- nothing has run since the last (sp))")
+          (newline))
+        (script--write-block (current-output-port) nm *current-goal* *proof-script*))))
 
 ;; Print every proof completed this session (since load) as a sequence of
 ;; (sp ...) ... (qed 'name) blocks -- the whole session as one big script.

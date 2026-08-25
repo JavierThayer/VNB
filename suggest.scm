@@ -254,7 +254,103 @@
 ;;; -- so it can feed an automated "throw everything at the wall, keep what
 ;;; sticks" tactic (try each on a saved state; keep the ones that close/reduce).
 
-(define *what-now-limit* 15)
+;;; How many backchain candidates to print.  Was 15; lowered to 5 on 2026-08-13,
+;;; with the lane suppressed outright when a structural lane fires.  The tail of
+;;; a specificity ranking on a common goal shape is noise, and the pointer to
+;;; (suggest-backchain) below the cut costs one word to follow.
+(define *what-now-limit* 5)
+
+;;; -----------------------------------------------------------------------
+;;; The hint (the "preamble").  (what-now "extensionality") narrows every
+;;; CANDIDATE LIST -- backchain lemmas, hypothesis unfolds, witness producers,
+;;; the inst/ew/ai moves, the firing tactics -- to the items whose printed form
+;;; mentions one of the hint's whitespace-separated tokens, matched as a
+;;; lowercase SUBSTRING, exactly as `find-thm' matches a name.  Several tokens
+;;; are an OR: "extensionality union" keeps an item mentioning either.
+;;;
+;;; Two deliberate exemptions.  The goal-kind CLASSIFIER is never filtered:
+;;; naming the lane the goal belongs to is worth saying whatever was asked.
+;;; And a hint matching NOTHING prints a notice and then the unfiltered answer
+;;; -- a filter that silently hides the answer is worse than a long list.
+;;;
+;;; What it does not do: a hint narrows what the copilot SUGGESTS, it does not
+;;; make the copilot suggest something it does not know.  A move no lane
+;;; proposes (the `have!' of an elementwise IFF, say) stays unproposed.
+
+(define *what-now-hint* #f)             ; #f, or a list of lowercase tokens
+(define *what-now-hint-hits* 0)         ; items KEPT by the filter this run
+
+;;; Whitespace-split S into lowercase tokens.
+(define (what-now--hint-tokens s)
+  (let loop ((i 0) (start #f) (acc '()))
+    (define (flush) (if start (cons (string-downcase (substring s start i)) acc) acc))
+    (cond ((>= i (string-length s)) (reverse (flush)))
+          ((char-whitespace? (string-ref s i)) (loop (+ i 1) #f (flush)))
+          (else (loop (+ i 1) (or start i) acc)))))
+
+;;; Flatten X -- a symbol, number, string or whole form -- to one searchable
+;;; string.  Handles improper pairs, so a quoted name renders with its quote.
+(define (what-now--text x)
+  (cond ((string? x) x)
+        ((symbol? x) (symbol->string x))
+        ((number? x) (number->string x))
+        ((pair? x)   (string-append (what-now--text (car x)) " "
+                                    (what-now--text (cdr x))))
+        (else "")))
+
+;;; Does X's text mention a hint token?  True whenever there is no hint.
+(define (what-now--matches-hint? x)
+  (or (not *what-now-hint*)
+      (let ((s (string-downcase (what-now--text x))))
+        (let loop ((ts *what-now-hint*))
+          (cond ((null? ts) #f)
+                ((string-search-forward (car ts) s 0) #t)
+                (else (loop (cdr ts))))))))
+
+;;; Keep the items of XS whose (KEY item) mentions a hint token, counting the
+;;; survivors in *what-now-hint-hits* -- which is what drives the fallback.
+(define (what-now--hint-filter xs key)
+  (if (not *what-now-hint*)
+      xs
+      (let loop ((xs xs) (acc '()))
+        (cond ((null? xs) (reverse acc))
+              ((what-now--matches-hint? (key (car xs)))
+               (set! *what-now-hint-hits* (+ *what-now-hint-hits* 1))
+               (loop (cdr xs) (cons (car xs) acc)))
+              (else (loop (cdr xs) acc))))))
+
+;;; A STRING or SYMBOL argument is the hint (several are joined); a NUMBER is
+;;; the fingerprint depth `suggest-backchain-candidates' takes.
+;;;
+;;; THE SYMBOL CASE WAS A CRASH until 2026-08-17.  `what-now--args-depth' was
+;;; "everything that is not a string", so `(what-now 'abs)' -- the form a user
+;;; reaches for first, every other copilot entry point taking a quoted name --
+;;; sent the symbol down as a depth and died in the backchain ranking with
+;;; "The object abs, passed as the second argument to integer-less?, is not the
+;;; correct type".  An internal type error out of the panel whose entire job is
+;;; to say what to do next, and the user cannot tell it from a broken proof.
+;;; A symbol is now a hint, and anything that is neither hint nor number is
+;;; NAMED and skipped rather than passed down to crash something.
+(define (what-now--hint-arg? a) (or (string? a) (symbol? a)))
+
+(define (what-now--args-hint args)
+  (let ((ss (map (lambda (a) (if (symbol? a) (symbol->string a) a))
+                 (filter what-now--hint-arg? args))))
+    (if (null? ss)
+        #f
+        (what-now--hint-tokens
+         (apply string-append (map (lambda (s) (string-append s " ")) ss))))))
+
+(define (what-now--args-depth args)
+  (let ((rest (filter (lambda (a) (not (what-now--hint-arg? a))) args)))
+    (for-each
+     (lambda (a)
+       (if (not (number? a))
+           (begin (display ";; what-now: ignoring argument ") (write a)
+                  (display " -- a hint is a string or a symbol, a depth is a number.")
+                  (newline))))
+     rest)
+    (filter number? rest)))
 
 ;;; -----------------------------------------------------------------------
 ;;; El-cheapo hypothesis lane.  "Today's motto: el cheapo, 'mano."
@@ -274,7 +370,42 @@
         (if (null? as)
             (reverse acc)
             (let* ((f   (wff-formula (car as)))
+                   ;; OR is here and NOT in cmd-mac-h*: that saturating tactic
+                   ;; deliberately skips disjunctions because eliminating one
+                   ;; BRANCHES, which is a choice and not a normalization.  It
+                   ;; still has to be NAMED -- after `mac-h union-membership'
+                   ;; the hypothesis is a disjunction and, until 2026-08-15, no
+                   ;; lane said so, leaving the panel silent one step after it
+                   ;; had given good advice.
+                   ;; A STRUCTURE-CLASS MEMBERSHIP, added 2026-08-19, and it is
+                   ;; the one that matters most now that structures have
+                   ;; classes.  `ms in metric-space' has head IN, so keying on
+                   ;; the head -- which is what everything below does -- never
+                   ;; recognised it, and the panel said nothing about the single
+                   ;; move that unblocks the goal.
+                   ;;
+                   ;; It blocks a LOT.  The library is stated with
+                   ;; IS-METRIC-SPACE(s) hypotheses and the forward lane matches
+                   ;; antecedents syntactically, so on
+                   ;;
+                   ;;   ms in metric-space, a,b,c in pts(ms)
+                   ;;      |- d(a,c) <= 2 * max(d(a,b), d(b,c))
+                   ;;
+                   ;; there are FOUR forward citations; after
+                   ;; (mac-h 'metric-space-class ...) there are TWENTY-EIGHT,
+                   ;; including `metric-triangle'.  Measured on that goal.
+                   ;;
+                   ;; The class axiom is named CLASS-class and is installed by
+                   ;; declare-structure for every structure, so the test is a
+                   ;; lookup, in keeping with this lane's el-cheapo rule: name
+                   ;; the move, let the kernel judge it.
                    (tag (cond ((and (pair? f) (eq? (car f) 'AND)) 'AND)
+                              ((and (pair? f) (eq? (car f) 'OR))  'OR)
+                              ((and (pair? f) (eq? (car f) 'IN) (= (length f) 3)
+                                    (symbol? (caddr f))
+                                    (let ((cn (symbol-append (caddr f) '-class)))
+                                      (and (hash-table-ref/default *theorem-table* cn #f)
+                                           cn))))
                               ((vnb--hyp-unfold-name f))
                               (else #f))))
               (loop (cdr as) (+ i 1)
@@ -284,24 +415,36 @@
 ;;; (mac-h*) is the one-shot; the per-assumption (mac-h 'name k) lines show what
 ;;; it will touch so the user can do it surgically instead.
 (define (what-now--show-hyp-unfolds)
-  (let ((us (suggest-hyp-unfolds)))
+  (let ((us (what-now--hint-filter (suggest-hyp-unfolds) cadr)))   ; key = the unfold name
     (if (null? us)
         '()
         (begin
-          (display ";; hypotheses you can break open -- (mac-h*) does all of these at once:")
+          (display ";; hypotheses you can break open -- (mac-h*) does the conjunctions and")
+          (newline)
+          (display ";; unfolds at once; a DISJUNCTION is a case split and needs its own (ai):")
           (newline)
           (for-each
             (lambda (u)
               (let ((i (car u)) (tag (cadr u)))
                 (display ";;   A") (display i) (display ": ")
-                (if (eq? tag 'AND)
-                    (display (string-append "split the conjunction  (ai " (number->string i) ")"))
-                    (begin (display "unfold ") (display tag)
-                           (display (string-append "  (mac-h '" (symbol->string tag)
-                                                    " " (number->string i) ")"))))
+                (cond
+                  ((eq? tag 'AND)
+                   (display (string-append "split the conjunction  (ai " (number->string i) ")")))
+                  ((eq? tag 'OR)
+                   (display (string-append "CASE SPLIT on the disjunction  (ai "
+                                           (number->string i) ")  -- two branches")))
+                  (else (display "unfold ") (display tag)
+                        (display (string-append "  (mac-h '" (symbol->string tag)
+                                                 " " (number->string i) ")"))))
                 (newline)))
             us)
-          '((mac-h*))))))
+          ;; mac-h* covers everything but the disjunctions; those are offered
+          ;; individually, since each one branches.
+          (append (if (any-pred (lambda (u) (not (eq? (cadr u) 'OR))) us)
+                      '((mac-h*))
+                      '())
+                  (map (lambda (u) (list 'ai (car u)))
+                       (filter (lambda (u) (eq? (cadr u) 'OR)) us)))))))
 
 ;;; 1-based index of FORMULA in the assumption list (equal? on the raw wff), or
 ;;; #f.  Lets the inst lane suggest the compact (inst+ k 'term) -- k an
@@ -327,20 +470,117 @@
     (if (or (not cands) (null? cands))
         '()
         (let* ((asms  (sequent-node-assumptions (proof-state-focus *ps*)))
-               (forms (map (lambda (c)            ; c = (inst+ <forall> <term>)
-                             (list 'inst+
-                                   (or (vnb--asm-index asms (cadr c))
-                                       (script--emit-arg (cadr c)))
-                                   (script--emit-arg (caddr c))))
-                           cands)))
-          (display ";; universals you can instantiate at a context-typed term")
-          (newline)
-          (display ";; -- scout's inst lane tries these first (inst+ assumption-# term):")
-          (newline)
-          (for-each (lambda (form)
-                      (display ";;   ") (vnb--write-form form) (newline))
-                    forms)
-          forms))))
+               (forms (what-now--hint-filter
+                       (map (lambda (c)            ; c = (inst+ <forall> <term>)
+                              (list 'inst+
+                                    (or (vnb--asm-index asms (cadr c))
+                                        (script--emit-arg (cadr c)))
+                                    (script--emit-arg (caddr c))))
+                            cands)
+                       (lambda (f) f))))
+          (if (null? forms)
+              '()
+              (begin
+                (display ";; universals you can instantiate at a context-typed term")
+                (newline)
+                (display ";; -- scout's inst lane tries these first (inst+ assumption-# term):")
+                (newline)
+                (for-each (lambda (form)
+                            (display ";;   ") (vnb--write-form form) (newline))
+                          forms)
+                forms))))))
+
+;;; The INST lane, PROBED -- shown unhinted.
+;;;
+;;; The user, 2026-08-21: "there are steps (you might call them forward steps)
+;;; which are obvious and about which the What-now is totally oblivious.  For
+;;; example universal quantifications which could be instantiated by terms
+;;; present in the context and the goal."
+;;;
+;;; He is right, and the panel was oblivious BY CONSTRUCTION: the inst lane
+;;; above has been behind `*what-now-hint*' since 2026-08-13, because unhinted
+;;; it printed the cross product of the context's universals with its terms --
+;;;     (inst+ 4 'a) (inst+ 3 'a) (inst+ 4 'x) (inst+ 3 'b) (inst+ 3 'x)
+;;; -- "a search space, not advice".  That diagnosis was right and the remedy
+;;; was wrong: hiding an unranked lane hides its obvious cases along with its
+;;; noise, and the obvious case here is the commonest forward step there is.
+;;;
+;;; What has changed is that the panel now PROBES.  A cross product collapses to
+;;; a handful the moment each element is run on a throwaway clone and the ones
+;;; that land nothing are dropped: `inst+' either lands an instance (and
+;;; forward-detaches any guard it can) or does nothing, and "does nothing" is
+;;; exactly what made the unhinted list unreadable.  So the fix is not to
+;;; re-rank the search space but to EXECUTE it and report only what fired --
+;;; the same move that turned the `ineq' lane from a header with nothing under
+;;; it into `(ineq 1) => CLOSES the goal'.
+;;;
+;;; Uses the same generator (`vnb--scout-inst-candidates'), so what-now, scout
+;;; and this lane still cannot diverge on which witnesses are worth a look.  The
+;;; hinted lane above is kept as-is: under an explicit `(what-now "inst")' the
+;;; reader is asking for the search space, and should get it unfiltered.
+;;; A landing that is STILL AN IMPLICATION is not a forward step.
+;;;
+;;; `inst+' instantiates and then forward-detaches every guard it can, so an
+;;; instance that arrives as `P implies Q' is one whose guard it COULD NOT
+;;; discharge -- which, for a guarded universal, means the term was of the wrong
+;;; sort.  Measured on the user's own leaf 14 the first version of this lane
+;;; offered
+;;;
+;;;   (inst+ 4 'f)  => lands  f in nn implies forall([f_1424 in fun(nn,rr)], ...)
+;;;
+;;; instantiating `forall([k in nn, f in fun(nn,rr)], ...)' at `f' -- a FUNCTION
+;;; put in the natural-number slot.  It "landed something", so a bare did-it-fire
+;;; test kept it, and it is exactly the type-confused noise that got the lane
+;;; hidden in the first place.  CLAUDE.md already names this shape as a known
+;;; failure ("without it the citation lands the IMPLICATION, silently"); here it
+;;; is the discriminator.
+;;; Returns a BOOLEAN, not the matching formula: `any-pred' hands back the
+;;; element it matched, and a procedure whose name ends in `?' returning
+;;; `(in w a)' is a trap for the next caller who tests it with `eq? #t'.  The
+;;; suite caught this one on its first run.
+(define (what-now--inst-landing-useful? landed)
+  (and (pair? landed)
+       (any-pred (lambda (f) (not (and (pair? f) (memq (car f) '(IMPLIES implies)))))
+                 landed)
+       #t))
+
+(define (what-now--show-inst-fired)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let ((cands (vnb--scout-inst-candidates *ps*)))
+        (if (or (not cands) (null? cands))
+            '()
+            (let* ((asms  (sequent-node-assumptions (proof-state-focus *ps*)))
+                   (forms (map (lambda (c)
+                                 (list 'inst+
+                                       (or (vnb--asm-index asms (cadr c))
+                                           (script--emit-arg (cadr c)))
+                                       (script--emit-arg (caddr c))))
+                               cands))
+                   (hits '()))
+              ;; Probe a bounded prefix.  The generator is already ranked and
+              ;; capped; this bounds the COST, which the candidate cap does not
+              ;; -- see the non-termination note on large contexts.
+              (let loop ((fs forms) (k 0))
+                (when (and (pair? fs) (< k 8) (< (length hits) 4))
+                  (let ((r (what-now--probe-user-move (car fs))))
+                    (when (and (car r) (what-now--inst-landing-useful? (caddr r)))
+                      (set! hits (append hits (list (cons (car fs) (cadr r)))))))
+                  (loop (cdr fs) (+ k 1))))
+              (if (null? hits)
+                  '()
+                  (begin
+                    (display ";; UNIVERSALS YOU CAN INSTANTIATE -- one of your own hypotheses,")
+                    (newline)
+                    (display ";;   at a term already in the sequent.  Probed on a throwaway copy;")
+                    (newline)
+                    (display ";;   only the ones that actually LAND something are listed.")
+                    (newline)
+                    (for-each (lambda (h)
+                                (display ";;   ") (vnb--write-form (car h))
+                                (display "   ") (display (cdr h)) (newline))
+                              hits)
+                    (map car hits))))))))
 
 ;;; The ew lane for the single-move copilot: name the (ew term) witnesses
 ;;; scout's ew lane would try on an existential goal -- the dual of
@@ -352,15 +592,20 @@
   (let ((cands (and *ps* (vnb--scout-ew-candidates *ps*))))
     (if (or (not cands) (null? cands))
         '()
-        (let ((forms (map (lambda (c)             ; c = (ew <term>)
-                            (list 'ew (script--emit-arg (cadr c))))
-                          cands)))
-          (display ";; existential goal -- supply a witness from the typed context") (newline)
-          (display ";; -- scout's ew lane tries these first (ew term):") (newline)
-          (for-each (lambda (form)
-                      (display ";;   ") (vnb--write-form form) (newline))
-                    forms)
-          forms))))
+        (let ((forms (what-now--hint-filter
+                      (map (lambda (c)            ; c = (ew <term>)
+                             (list 'ew (script--emit-arg (cadr c))))
+                           cands)
+                      (lambda (f) f))))
+          (if (null? forms)
+              '()
+              (begin
+                (display ";; existential goal -- supply a witness from the typed context") (newline)
+                (display ";; -- scout's ew lane tries these first (ew term):") (newline)
+                (for-each (lambda (form)
+                            (display ";;   ") (vnb--write-form form) (newline))
+                          forms)
+                forms))))))
 
 ;;; The ai lane for the single-move copilot: name the (ai k) skolemizations
 ;;; scout's ai lane would try on existential HYPOTHESES -- the hypothesis-side
@@ -372,17 +617,889 @@
     (if (or (not cands) (null? cands))
         '()
         (let* ((asms  (sequent-node-assumptions (proof-state-focus *ps*)))
-               (forms (map (lambda (c)             ; c = (ai <forsome>)
-                             (list 'ai
-                                   (or (vnb--asm-index asms (cadr c))
-                                       (script--emit-arg (cadr c)))))
-                           cands)))
-          (display ";; existential hypotheses you can skolemize (open with a fresh witness)") (newline)
-          (display ";; -- scout's ai lane tries these (ai assumption-#):") (newline)
-          (for-each (lambda (form)
-                      (display ";;   ") (vnb--write-form form) (newline))
-                    forms)
+               (forms (what-now--hint-filter
+                       (map (lambda (c)            ; c = (ai <forsome>)
+                              (list 'ai
+                                    (or (vnb--asm-index asms (cadr c))
+                                        (script--emit-arg (cadr c)))))
+                            cands)
+                       (lambda (f) f))))
+          (if (null? forms)
+              '()
+              (begin
+                (display ";; existential hypotheses you can skolemize (open with a fresh witness)") (newline)
+                (display ";; -- scout's ai lane tries these (ai assumption-#):") (newline)
+                (for-each (lambda (form)
+                            (display ";;   ") (vnb--write-form form) (newline))
+                          forms)
+                forms))))))
+
+;;; -----------------------------------------------------------------------
+;;; The extensionality lane -- and it goes FIRST.
+;;;
+;;; An equality whose either side is a CLASS CONSTRUCTOR -- union, intersection,
+;;; complement-in, sep, make-set, power, ... -- is proved by extensionality:
+;;; show the two sides have the same members.  That is the no-brainer move on
+;;; such a goal, and until this lane existed the copilot buried it.  The
+;;; backchain lane ranks by fingerprint specificity, and `class-extensionality'
+;;; concludes a bare (= a b), which is the LEAST specific equality shape there
+;;; is -- so on `b = union(a, complement-in(b, a))' it came eleventh of 76,
+;;; below six spellings of ag-cancel-right, and off the end of the 15-line cap
+;;; on any goal with a few more equality lemmas in range.  Specificity is the
+;;; wrong ranking for a structural principle: extensionality is not a lemma
+;;; that happens to match, it is what an equation between classes MEANS.
+;;;
+;;; The trigger is the tree's existing `*structure-valued-heads*' (interactive.scm)
+;;; -- heads whose application yields a set/space -- plus the three set builders
+;;; that table omits.  Named as a delta rather than copied, so the two cannot
+;;; drift.  Arithmetic equalities are untouched: `+' is not a class constructor.
+(define *what-now-class-heads*
+  (append '(PAIR SINGLETON DIFFERENCE) *structure-valued-heads*))
+
+;;; `power' is TWO OPERATORS sharing one folded symbol, and the class test has
+;;; to read the ARITY or it confuses them:
+;;;
+;;;     POWER(A)      the power SET of A -- a genuine class constructor, which
+;;;                   is why `power' is in *structure-valued-heads*     (unary)
+;;;     power(x, 2)   x^2, arithmetic exponentiation                    (binary)
+;;;
+;;; Without the arity check, `forall([x in rr], x ^ 2 = x * x)' reads as an
+;;; equation between CLASSES and the extensionality lane proposes
+;;; `(bc* 'class-extensionality)' on it -- in the panel's top lane, above
+;;; everything that actually helps.  The applicability probe does not save us:
+;;; class-extensionality concludes `a = b' with both sides schema variables, so
+;;; `bc*' matches ANY equation and the probe honestly reports that it fires.
+;;; Firing is not the same as being useful, and only the arity distinguishes the
+;;; two readings.
+(define (what-now--class-term? e)
+  (cond ((and (pair? e) (eq? (car e) 'power)) (= (length e) 2))   ; POWER(A) only
+        ((pair? e) (and (symbol? (car e)) (memq (car e) *what-now-class-heads*) #t))
+        (else (and (memq e '(EMPTY-SET SET ORD NN ZZ QQ RR CC)) #t))))
+
+;;; A variable name not free in E, for the elementwise goal's binder.
+(define (what-now--fresh-elt e)
+  (let ((used (vnb-guard (lambda () (free-vars e)))))
+    (let loop ((cands '(x x_ y_ z_ u_ w_)))
+      (cond ((null? cands) 'x_1)
+            ((and (list? used) (memq (car cands) used)) (loop (cdr cands)))
+            (else (car cands))))))
+
+;;; Print the lane and return its move, or '() when the goal is not an equality
+;;; between classes.  CORE is the prenex-normalised conclusion.
+;;; Does `bc* class-extensionality' actually fire on the focus -- and if not,
+;;; does it fire once the goal's binders come off?  Returns 'now, 'after-di or
+;;; #f.  This lane reads the goal's prenex-normalised CONCLUSION, so it fires on
+;;; `forall([a in set, b in set], ... implies b = union(...))' -- where the move
+;;; it names cannot match, the goal being a FORALL and not the equation.  The
+;;; advice was right about the mathematics and useless as an instruction.
+;;; `bc*' is a macro; `bc*-dispatch' is the procedure under it.  N peels because
+;;; `di' is greedy over a FORALL prefix but takes an IMPLIES one step at a time.
+(define (what-now--ext-applicability)
+  (define (fires-after n)
+    (let ((scratch (vnb--scratch-state)))
+      (and scratch
+           (vnb--probing scratch
+             (lambda ()
+               (eq? #t
+                    (vnb-guard
+                     (lambda ()
+                       (let loop ((k 0)) (when (< k n) (di) (loop (+ k 1))))
+                       (let ((node (proof-state-focus *ps*)))
+                         (bc*-dispatch 'class-extensionality '())
+                         (dk-fired? node))))))))))
+  (cond ((fires-after 0) 'now)
+        ((or (fires-after 1) (fires-after 2) (fires-after 3)) 'after-di)
+        (else #f)))
+
+(define (what-now--show-extensionality core)
+  (if (not (and (pair? core) (eq? (car core) '=) (= (length core) 3)
+                (or (what-now--class-term? (cadr core))
+                    (what-now--class-term? (caddr core)))))
+      '()
+      (let ((when? (what-now--ext-applicability)))
+        (if (not when?)
+            '()
+            (let ((forms (what-now--hint-filter
+                          (if (eq? when? 'now)
+                              (list (list 'bc* (list 'quote 'class-extensionality)))
+                              (list (list 'di)
+                                    (list 'bc* (list 'quote 'class-extensionality))))
+                          (lambda (f) (list f 'extensionality)))))
+              (if (null? forms)
+                  '()
+                  (let* ((v   (what-now--fresh-elt core))
+                         (sub (list 'FORALL v (list 'IFF (list 'IN v (cadr core))
+                                                    (list 'IN v (caddr core))))))
+                    (display ";; EXTENSIONALITY -- both sides are classes, so this is a question")
+                    (newline)
+                    (display ";; about MEMBERS.  Prove they have the same ones:") (newline)
+                    (when (not (eq? when? 'now))
+                      (display ";;   (di)     FIRST -- the goal is still quantified, and")
+                      (newline)
+                      (display ";;            class-extensionality matches the bare equation")
+                      (newline)
+                      (display ";;            only.  ((grind) does this too, and more.)")
+                      (newline))
+                    (display ";;   (bc* 'class-extensionality)   leaves") (newline)
+                    (display ";;     ") (display (expression->string sub)) (newline)
+                    (display ";;   then (di) to introduce ") (display v)
+                    (display ", (di) again to split the iff into the two directions.")
+                    (newline)
+                    forms)))))))
+
+;;; -----------------------------------------------------------------------
+;;; FIRE-FIRST -- rank by what a move DOES, not by what it looks like.
+;;;
+;;; The backchain lane ranks candidates by fingerprint specificity: a syntactic
+;;; score for whether a lemma MIGHT match.  That score cannot tell a structural
+;;; principle from an accident -- `class-extensionality' and `ag-cancel-right'
+;;; both conclude a bare (= a b) -- which is why extensionality came eleventh of
+;;; seventy-six on a goal it settles in one step.
+;;;
+;;; So the fingerprints keep their job, which is choosing WHICH candidates are
+;;; worth trying, and lose the one they were bad at: the ORDER.  Each survivor
+;;; is FIRED on a throwaway copy of the focus -- the real, kernel-checked tactic,
+;;; the live *ps* untouched -- and ranked by the result:
+;;;
+;;;     CLOSED         closes the goal outright
+;;;     n subgoals     fires, leaving n open leaves (fewer first)
+;;;     dropped        does not apply, or makes no progress
+;;;
+;;; That is measurement rather than a guess, and it is the same engine
+;;; `cheap-mac' has used all along -- which is the point: the mechanism was in
+;;; the tree, and what-now was not using it.
+;;;
+;;; THE CAP bounds how many are fired, in fingerprint order: the cheap ranking
+;;; chooses the shortlist, the expensive one orders it.  Set it to 0 to go back
+;;; to pure fingerprint order.  Whatever is NOT probed is still listed, below
+;;; the fired moves and plainly marked, because a silent truncation reads as
+;;; "this is everything" when it is not.
+;;;
+;;; MEASURED on the card-mono goal (26 candidates), 2026-08-14:
+;;;
+;;;     first call   2.17 s   -- builds the head and membership indexes, once
+;;;     cap 6        0.06 s
+;;;     cap 12       0.07 s
+;;;     cap 30       0.07 s   -- i.e. probing all 26
+;;;
+;;; A probe averages under 3 ms: most candidates fail their match immediately,
+;;; and a scratch state is one node.  The session cost is the lazy INDEX BUILD,
+;;; not the probing -- which is why the default is 25 rather than the dozen I
+;;; first guessed.  If a goal ever draws hundreds of candidates the cap still
+;;; earns its keep; measure before raising it further rather than assuming.
+
+(define *what-now-probe-cap* 25)
+
+;;; Is AFTER just BEFORE with the two sides of a symmetric relation swapped?
+;;; `ms-eq-symm' turns `b = union(...)' into `union(...) = b' -- a change, so a
+;;; naive probe scores it, and on an equality goal the flip and its -rev
+;;; companion then outrank the move that settles the goal.  A reorientation is
+;;; never progress, and this is an exact test, not a heuristic: same head, sides
+;;; exchanged.
+(define (what-now--reorientation? before after)
+  (and (pair? before) (pair? after)
+       (= (length before) 3) (= (length after) 3)
+       (eq? (car before) (car after))
+       (memq (car before) '(= == iff IFF))
+       (equal? (cadr before) (caddr after))
+       (equal? (caddr before) (cadr after))))
+
+;;; Run THUNK against SCRATCH as a PROBE: *ps* rebound, output quiet, and --
+;;; the part that is easy to forget -- RECORDING OFF.
+;;;
+;;; A probe runs the real interactive tactic (that is the point: `vnb-apply?'
+;;; evals the tactic by name, so the panel reports what the tactic actually
+;;; does, not what a re-implementation of it would do).  The tactic goes through
+;;; `vnb--run!', which calls `record-cmd!' and `vnb--capture-step!' -- and those
+;;; write to the REAL `*proof-script*' and `*live-trace*', not to anything the
+;;; fluid-let of *ps* protects.  So every firing probe used to append a step
+;;; nobody took: to the script the emitter writes out, and to the trace
+;;; `proof-tex' prints from.  `*replaying?*' is the existing switch for exactly
+;;; this ("suppresses recording so re-execution does not corrupt
+;;; *proof-script*", interactive.scm:25) and `vnb--scout-replay' below already
+;;; binds it; the what-now probes never did.
+;;; ... and it must not write on the SCREEN either.  `quietly' silences `show'
+;;; and the soft-warning path, but a tactic that reports with a bare `display'
+;;; -- `bc*-dispatch' does, e.g. "conclusion of class-extensionality does not
+;;; match the goal" -- prints from inside the probe into the middle of the
+;;; panel, describing a proof state the user cannot see and never asked about.
+;;; Discarding the port covers every such tactic at once, present and future.
+(define (vnb--probing scratch thunk)
+  (fluid-let ((*ps* scratch) (*replaying?* #t))
+    (quietly
+     (lambda ()
+       (let ((result #f))
+         (with-output-to-string (lambda () (set! result (thunk))))
+         result)))))
+
+;;; Run THUNK on a scratch copy of the focus; report what it did.
+;;;   'CLOSED | <n open leaves> | #f (no fire, or no progress)
+(define (what-now--probe thunk)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (let ((before (vnb--ps-goal scratch)))
+           (vnb--probing scratch
+              (lambda ()
+                (let ((r (vnb-guard thunk)))
+                  (cond
+                    ((or (vnb-error? r) (vnb-warning? r)) #f)
+                    ((proof-done? scratch) 'CLOSED)
+                    (else
+                     (let* ((leaves (proof-leaves))
+                            (n      (length leaves))
+                            (after  (vnb--ps-goal scratch)))
+                       ;; one leaf whose goal did not move = the tactic no-oped;
+                       ;; one leaf that merely flipped an equation = churn
+                       (and (or (> n 1)
+                                (and after
+                                     (not (equal? after before))
+                                     (not (what-now--reorientation? before after))))
+                            n)))))))))))
+
+;;; A move record: the runnable form, and the measured effect (or #f).
+(define (wn--move form #!optional effect)
+  (list (cons 'form form)
+        (cons 'effect (if (default-object? effect) #f effect))))
+
+(define (wn--move-form m)
+  (if (and (pair? m) (pair? (car m)) (assq 'form m)) (cdr (assq 'form m)) m))
+
+(define (wn--effect-string e)
+  (cond ((eq? e 'CLOSED) "CLOSES the goal")
+        ((and (integer? e) (= e 1)) "1 subgoal")
+        ((integer? e) (string-append (number->string e) " subgoals"))
+        (else #f)))
+
+;;; Fire each of FORMS (runnable tactic forms, fingerprint order) up to the cap,
+;;; via RUNNER, and return (values fired unprobed) with fired ranked by effect.
+(define (what-now--fire-rank forms runner)
+  (let loop ((fs forms) (k 0) (fired '()))
+    (cond
+      ((or (null? fs) (>= k *what-now-probe-cap*))
+       (values (sort (reverse fired)
+                     (lambda (a b)
+                       (let ((ea (cdr (assq 'effect a))) (eb (cdr (assq 'effect b))))
+                         (cond ((eq? ea 'CLOSED) (not (eq? eb 'CLOSED)))
+                               ((eq? eb 'CLOSED) #f)
+                               ((and (integer? ea) (integer? eb)) (< ea eb))
+                               (else #f)))))
+               fs))
+      (else
+       (let ((eff (what-now--probe (lambda () (runner (car fs))))))
+         (loop (cdr fs) (+ k 1)
+               (if eff (cons (wn--move (car fs) eff) fired) fired)))))))
+
+;;; Print a fired block; returns the move records (already ranked).
+(define (what-now--show-fired title fired unprobed total)
+  (if (null? fired)
+      '()
+      (begin
+        (display ";; ") (display title) (display " -- FIRED on a throwaway copy (")
+        (display (min total *what-now-probe-cap*)) (display " of ") (display total)
+        (display " probed):") (newline)
+        (for-each
+         (lambda (m)
+           (display ";;   ") (vnb--write-form (cdr (assq 'form m)))
+           (let ((es (wn--effect-string (cdr (assq 'effect m)))))
+             (if es (begin (display "   => ") (display es))))
+           (newline))
+         fired)
+        (if (pair? unprobed)
+            (begin
+              (display ";;   (") (display (length unprobed))
+              (display " further candidate(s) NOT probed -- raise *what-now-probe-cap*)")
+              (newline)))
+        fired)))
+
+;;; -----------------------------------------------------------------------
+;;; The ABOUT lane -- what is this goal about, and where does that live?
+;;;
+;;; Every other lane answers "what move fires here".  This one answers the
+;;; question a mathematician asks first and the copilot never did: what is the
+;;; SUBJECT.  It reads the goal's heads out of three tables the tree already
+;;; maintains and nothing had ever joined:
+;;;
+;;;   operators.scm   -- per head: its KIND (predicate / functoid / primitive),
+;;;                      its English reading, and the FILE it is defined in.
+;;;   topic-of        -- the topic tag carried by each theorem (macetes.scm).
+;;;   *theorem-table* -- which facts mention which heads, so "what else is known
+;;;                      about these operators together" is a set intersection.
+;;;
+;;; It proposes no move, and that is deliberate: it is the preamble, the thing
+;;; you read before the move list to know which body of mathematics you are in.
+;;; Logic connectives and the kernel relations are dropped -- every goal is
+;;; "about" IMPLIES, which tells nobody anything.
+
+(define *what-now-logic-heads*
+  '(and or implies iff not forall forsome truth falsity))
+
+;;; head -> the theorem names whose statement mentions it.  Built once.
+(define *what-now-head-index* #f)
+
+(define (what-now--mentions? head form)
+  (cond ((eq? form head) #t)
+        ((pair? form) (or (what-now--mentions? head (car form))
+                          (what-now--mentions? head (cdr form))))
+        (else #f)))
+
+;;; WALK THE OPERATOR TOO, not only the arguments.
+;;;
+;;; Both collectors here descended into `(cdr f)' and never into `(car f)', so a
+;;; COMPOUND head was never visited.  Structure operations are written exactly
+;;; that way -- `((dist s) x y)', `((mul r) a b)', `((vadd m) x y)' -- the
+;;; accessor sits in operator position, which CLAUDE.md notes for `subst' and
+;;; which is just as true here.  The consequence, found by the user on
+;;;
+;;;     |- (dist(ms))(a,c) <= 2 * max((dist(ms))(a,b), (dist(ms))(b,c))
+;;;
+;;; was that the ABOUT lane listed `<=', `*', `max', `in', `pts' and NOT `dist',
+;;; from a goal that is three `dist' applications; said "no library fact mentions
+;;; all of these heads together"; and ranked `metric-triangle' at 2 -- "mentions
+;;; nothing the goal is about" -- because rank 1 asks for a shared content head
+;;; and the shared head IS `dist', invisible to both sides.  The triangle
+;;; inequality was then suppressed along with 27 typing facts.
+;;;
+;;; So the panel was blind to the operator of every structure operation, which
+;;; is most of the algebra and all of the metric geometry.
+(define (what-now--heads-of form)
+  (let ((acc '()))
+    (let walk ((f form))
+      (when (pair? f)
+        (if (and (symbol? (car f)) (not (memq (car f) *what-now-logic-heads*)))
+            (if (not (memq (car f) acc)) (set! acc (cons (car f) acc)))
+            (walk (car f)))                 ; compound head: (dist s) etc.
+        (for-each walk (cdr f))))
+    (reverse acc)))
+
+(define (what-now--head-index)
+  (or *what-now-head-index*
+      (let ((tbl (make-strong-eqv-hash-table)))
+        (for-each
+         (lambda (name)
+           (let ((stmt (vnb-guard (lambda () (lookup-theorem name)))))
+             (if (pair? stmt)
+                 (for-each
+                  (lambda (h)
+                    (hash-table-set! tbl h (cons name (hash-table-ref/default tbl h '()))))
+                  (what-now--heads-of stmt)))))
+         (hash-table-keys *theorem-table*))
+        (set! *what-now-head-index* tbl)
+        tbl)))
+
+;;; The topics of NAMES, as (topic . count), commonest first.
+(define (what-now--topic-histogram names)
+  (let ((tbl (make-strong-eqv-hash-table)))
+    (for-each (lambda (n)
+                (let ((c (vnb-guard (lambda () (topic-of n)))))
+                  (if (symbol? c)
+                      (hash-table-set! tbl c (+ 1 (hash-table-ref/default tbl c 0))))))
+              names)
+    (sort (hash-table->alist tbl) (lambda (a b) (> (cdr a) (cdr b))))))
+
+;;; operator-file holds a pathname object; print the base name, not #[pathname 14 ...].
+(define (what-now--file-name f)
+  (cond ((string? f) f)
+        ((not f) #f)
+        (else (vnb-guard (lambda () (->namestring (pathname-name f)))))))
+
+;;; The subject, as DATA: the goal's heads with what the operator table knows
+;;; about each, and the library facts that mention them together.  `what-now'
+;;; returns this under 'subject; `what-now--show-about' is only its renderer.
+;;; The vocabulary of the SEQUENT: the goal's heads first, then any the context
+;;; adds.  Taking the goal alone is what made the ABOUT lane useless on a leaf
+;;; like `x in b': one head, `IN', whose fact list is most of the library, and a
+;;; "topics" tally over 2581 facts that reported algebra and analysis for a goal
+;;; about set membership.  The context is where such a goal says what it is
+;;; about -- union, complement-in, subset -- so it is read too.  Capped, goal
+;;; heads first, because the list is printed one head per line.
+(define *what-now-about-heads-cap* 8)
+
+(define (what-now--sequent-heads goal)
+  (let* ((gh (what-now--heads-of goal))
+         (ch (if (not *ps*)
+                 '()
+                 (let loop ((as (map wff-formula
+                                     (sequent-node-assumptions (proof-state-focus *ps*))))
+                            (acc '()))
+                   (if (null? as)
+                       acc
+                       (loop (cdr as)
+                             (append acc (what-now--heads-of (car as))))))))
+         (all (let loop ((hs (append gh ch)) (acc '()))
+                (cond ((null? hs) (reverse acc))
+                      ((memq (car hs) acc) (loop (cdr hs) acc))
+                      (else (loop (cdr hs) (cons (car hs) acc)))))))
+    (if (> (length all) *what-now-about-heads-cap*)
+        (list-head all *what-now-about-heads-cap*)
+        all)))
+
+;;; The pool of facts to name: those mentioning ALL the heads if there are any,
+;;; else the RAREST head's list -- the discriminating one.  This used to take the
+;;; COMMONEST head's list ("sort by length, descending, take the first"), which
+;;; is the one guaranteed to say nothing: on `x in b' it offered 2581 facts and
+;;; named normed-vector-space-class.  Returns (POOL . HEAD-OR-#F).
+(define (what-now--about-pool heads idx)
+  (let* ((lists  (map (lambda (h) (cons h (hash-table-ref/default idx h '()))) heads))
+         (nonempty (filter (lambda (p) (pair? (cdr p))) lists))
+         (common (if (null? nonempty)
+                     '()
+                     (fold-left (lambda (acc p) (filter (lambda (n) (memq n (cdr p))) acc))
+                                (cdr (car nonempty)) (cdr nonempty)))))
+    (cond ((pair? common) (cons common #f))
+          ((null? nonempty) (cons '() #f))
+          (else
+           (let ((rarest (car (sort nonempty (lambda (a b)
+                                               (< (length (cdr a)) (length (cdr b))))))))
+             (cons (cdr rarest) (car rarest)))))))
+
+(define (what-now--subject-data goal)
+  (let* ((heads (what-now--sequent-heads goal))
+         (idx   (and (pair? heads) (what-now--head-index)))
+         (lists (map (lambda (h) (hash-table-ref/default idx h '())) heads))
+         (common (if (null? lists)
+                     '()
+                     (fold-left (lambda (acc l) (filter (lambda (n) (memq n l)) acc))
+                                (car lists) (cdr lists)))))
+    (list
+     (cons 'heads
+           (map (lambda (h)
+                  (let ((e (operator-ref h)))
+                    (list (cons 'head h)
+                          (cons 'kind    (and e (operator-kind e)))
+                          (cons 'english (and e (let ((t (operator-english e)))
+                                                  (and (string? t) t))))
+                          (cons 'noun    (and e (operator-noun e)))
+                          (cons 'file    (and e (what-now--file-name (operator-file e))))
+                          (cons 'mentions (length (hash-table-ref/default idx h '()))))))
+                heads))
+     (cons 'related-all common)
+     (cons 'topics (what-now--topic-histogram common)))))
+
+(define (what-now--show-about goal)
+  (let* ((heads (what-now--sequent-heads goal))
+         (idx   (and (pair? heads) (what-now--head-index))))
+    (if (null? heads)
+        '()
+        (begin
+          (display ";; ABOUT -- the vocabulary of this goal and its context:") (newline)
+          (for-each
+           (lambda (h)
+             (let* ((e    (operator-ref h))
+                    (kind (and e (operator-kind e)))
+                    (file (and e (what-now--file-name (operator-file e))))
+                    (eng  (and e
+                               (or (and (operator-noun e)
+                                        (string-append "\"x is "
+                                                       (or (operator-article e) "a") " "
+                                                       (operator-noun e) "\""))
+                                   (let ((t (operator-english e)))
+                                     (and (string? t) (string-append "\"" t "\"")))))))
+               (display ";;   ") (display h)
+               (display "  [")
+               (display (if e (or kind 'head) "no operator entry -- no English reading"))
+               (display "]")
+               (if eng (begin (display "  ") (display eng)))
+               (if file (begin (display "   -- ") (display file)))
+               (newline)))
+           heads)
+          ;; what else is known about these heads TOGETHER
+          (let* ((pr   (what-now--about-pool heads idx))
+                 (pool (car pr))
+                 (rare (cdr pr)))
+            (display ";;   ")
+            (display (length pool))
+            (if rare
+                (begin (display " library fact(s) mention ")
+                       (display rare)
+                       (display ", the rarest of these heads"))
+                (display " library fact(s) mention ALL of these heads"))
+            (let ((hist (what-now--topic-histogram pool)))
+              (if (pair? hist)
+                  (begin
+                    (display "; topics: ")
+                    (let loop ((hs hist) (k 0))
+                      (when (and (pair? hs) (< k 3))
+                        (if (> k 0) (display ", "))
+                        (display (caar hs)) (display " (") (display (cdar hs)) (display ")")
+                        (loop (cdr hs) (+ k 1)))))))
+            (newline)
+            ;; name a few, then point at the RAREST head -- the one whose
+            ;; find-thm answer is short enough to read.
+            (let loop ((ns pool) (k 0))
+              (when (and (pair? ns) (< k 4))
+                (display ";;     ") (display (car ns))
+                (let ((c (vnb-guard (lambda () (topic-of (car ns))))))
+                  (if (symbol? c) (begin (display "   [") (display c) (display "]"))))
+                (newline)
+                (loop (cdr ns) (+ k 1))))
+            (let ((rarest (car (sort heads
+                                     (lambda (a b)
+                                       (< (length (hash-table-ref/default idx a '()))
+                                          (length (hash-table-ref/default idx b '()))))))))
+              (display ";;   (find-thm \"") (display rarest)
+              (display "\") for the rest.")
+              (newline)))
+          '()))))            ; the preamble proposes no move
+
+;;; -----------------------------------------------------------------------
+;;; The excluded-middle lane.
+;;;
+;;; A goal (OR P (NOT P)) is excluded middle, and there is nothing to search
+;;; for: VNB has no lemma concluding it, so every candidate list is empty or
+;;; wrong, and the move is `(em!)' from driver-kit, which discharges it by pbc.
+;;; This is the shape that most deserves instant recognition and, until
+;;; 2026-08-13, got the same fingerprint-ranked lemma flood as everything else.
+(define (what-now--em-instance core)
+  (and (pair? core) (eq? (car core) 'OR) (= (length core) 3)
+       (let ((l (cadr core)) (r (caddr core)))
+         (and (pair? r) (eq? (car r) 'NOT)
+              (vnb-guard (lambda () (alpha-equiv? (cadr r) l)))
+              l))))
+
+;;; 1-based index of the first assumption ALPHA-equivalent to FORMULA, or #f.
+;;; Distinct from `vnb--asm-index', which is `equal?' on the raw wff: that one
+;;; exists to render a suggestion compactly, so an exact match is all it needs,
+;;; whereas this one decides whether a move is available at all and must see
+;;; through a renamed bound variable.  `alpha-equiv?' takes raw formulas and can
+;;; error on a malformed one, so the guard's value is compared to #t rather than
+;;; used as a boolean -- vnb-guard returns a warning RECORD on failure, which is
+;;; itself true.
+(define (what-now--asm-alpha-index formula)
+  (if (not *ps*)
+      #f
+      (let loop ((as (sequent-node-assumptions (proof-state-focus *ps*))) (i 1))
+        (cond ((null? as) #f)
+              ((eq? #t (vnb-guard (lambda () (alpha-equiv? (wff-formula (car as)) formula)))) i)
+              (else (loop (cdr as) (+ i 1)))))))
+
+;;; Is one of the goal's two disjuncts already an assumption?  Returns
+;;; (TACTIC . INDEX) -- the or-introduction that selects it and the assumption
+;;; number that then closes it -- or #f.  The left disjunct is tested first, so
+;;; a goal whose two disjuncts are both in context reports the left one; either
+;;; answer closes the goal.
+(define (what-now--disjunct-in-context core)
+  (let ((l (what-now--asm-alpha-index (cadr core))))
+    (if l
+        (cons 'oi-l l)
+        (let ((r (what-now--asm-alpha-index (caddr core))))
+          (and r (cons 'oi-r r))))))
+
+;;; A DISJUNCTION goal that is not excluded middle itself.  Two cases, and the
+;;; lane got the second one wrong from the day it was written (2026-08-14) until
+;;; 2026-08-15: it suggested the case split unconditionally.
+;;;
+;;; If one disjunct IS an assumption, the goal is finished -- `(oi-l)' or
+;;; `(oi-r)' selects it and `(ass)' closes it -- and a case split on it is not
+;;; merely superfluous but harmful: `context-add-assumption' is alpha-idempotent
+;;; (sequents.scm:51), so the branch assuming the disjunct adds nothing and is
+;;; hash-consed back onto the node it came from, while the branch assuming its
+;;; negation has a contradictory context and can be closed only by NOT-elim.
+;;; The user is then staring at a leaf that looks like a real obligation and is
+;;; not, with no undo in the tree.  `use-em' now refuses this outright
+;;; (driver-kit.scm), and this lane must not propose it either.
+;;;
+;;; Otherwise the case split is the move.  `oi-l' / `oi-r' do fire on any
+;;; disjunctive goal -- the live-fire lane says so -- but they reduce it to one
+;;; disjunct with NOTHING added, which only helps if that disjunct holds
+;;; outright: on `x in a or x in complement-in(b,a)' the right disjunct unfolds
+;;; to `x in b and not (x in a)', unprovable without the case assumption.  So
+;;; the move is the classical one, `use-em', splitting on the LEFT disjunct and
+;;; handing the second branch `not P'.
+(define (what-now--show-disjunction core)
+  (if (not (and (pair? core) (memq (car core) '(OR or)) (= (length core) 3)))
+      '()
+      (let ((hit (what-now--disjunct-in-context core)))
+        (if hit
+            (what-now--show-disjunct-in-context core hit)
+            (what-now--show-disjunction-split core)))))
+
+;;; The disjunct is in context: name the two-move close, and say why the split
+;;; the other branch of this lane would have offered is the wrong move here.
+(define (what-now--show-disjunct-in-context core hit)
+  (let* ((tac   (car hit))
+         (i     (cdr hit))
+         (side  (if (eq? tac 'oi-l) "LEFT" "RIGHT"))
+         (dtext (expression->string (if (eq? tac 'oi-l) (cadr core) (caddr core))))
+         (forms (what-now--hint-filter
+                 (list (list tac) (list 'ass))
+                 (lambda (f) (list f 'disjunction 'or 'assumption 'close)))))
+    (if (null? forms)
+        '()
+        (begin
+          (display ";; DISJUNCTIVE GOAL -- its ") (display side)
+          (display " disjunct is already assumption ") (display i)
+          (display ", so the goal") (newline)
+          (display ";; is finished.  In this order:") (newline)
+          (display ";;   (") (display tac) (display ")     -- goal becomes  ")
+          (display dtext) (newline)
+          (display ";;   (ass)      -- which is assumption ") (display i) (newline)
+          (display ";; NOT a case split: (use-em \"") (display dtext)
+          (display "\") would add nothing on the") (newline)
+          (display ";; branch assuming it and hand you a contradictory context on the other.")
+          (newline)
           forms))))
+
+(define (what-now--show-disjunction-split core)
+  (let* ((p     (cadr core))
+         (ptext (expression->string p))
+         (forms (what-now--hint-filter
+                 (list (list 'use-em ptext))
+                 (lambda (f) (list f 'case 'split 'excluded 'middle 'disjunction)))))
+    (if (null? forms)
+        '()
+        (begin
+          (display ";; DISJUNCTIVE GOAL -- (oi-l) / (oi-r) reduce it to one disjunct and add")
+          (newline)
+          (display ";; NOTHING, so they only help if that disjunct holds outright.  To use the")
+          (newline)
+          (display ";; failure of the other one, split on it:") (newline)
+          (display ";;   (use-em \"") (display ptext)
+          (display "\" body-true body-false)") (newline)
+          (display ";;   -- the second branch gets  not (") (display ptext)
+          (display ")  in its context, and the")
+          (newline)
+          (display ";;   exhaustiveness obligation is discharged for you.")
+          (newline)
+          forms))))
+
+(define (what-now--show-em core)
+  (let ((p (what-now--em-instance core)))
+    (if (not p)
+        (what-now--show-disjunction core)
+        (let ((forms (what-now--hint-filter (list (list 'em-prove!))
+                                            (lambda (f) (list f 'excluded 'middle)))))
+          (if (null? forms)
+              '()
+              (begin
+                (display ";; EXCLUDED MIDDLE -- this goal is P or not P.  There is no lemma to")
+                (newline)
+                (display ";; find: VNB does not state one.  Discharge it:") (newline)
+                (display ";;   (em-prove!)   -- closes exactly this goal, by pbc (driver-kit)")
+                (newline)
+                (display ";; And do not cut it next time: (use-em \"")
+                (display (expression->string p))
+                (display "\" body-true body-false)")
+                (newline)
+                (display ";; runs the whole case split AND discharges this obligation itself.")
+                (newline)
+                forms))))))
+
+;;; -----------------------------------------------------------------------
+;;; The membership lane -- the extensionality lane's sibling, one shape over.
+;;;
+;;; A goal `x in <class constructor>' is answered by that constructor's
+;;; membership law, applied as a REWRITE.  what-now has no rewrite lane at all
+;;; (its registry gloss says so), so until this existed the copilot answered
+;;; `x in union(a, complement-in(b,a))' with nine backchain candidates --
+;;; nn-induction, transfinite-induction, finite-set-induction, tuples-induction
+;;; -- every one of them junk, because every induction principle concludes a
+;;; bare membership and a bare membership is the least specific shape there is.
+;;;
+;;; A LOOKUP, not a heuristic -- and a DERIVED one.  The lane was born with a
+;;; hand-written six-entry table (union, intersection, complement-in, difference,
+;;; pair, make-set) and that table was wrong the day it was written: the theory
+;;; states membership laws for TWENTY-SEVEN heads, and 35 of the library's 40
+;;; goal-side membership unfolds name one the table did not have --
+;;; `power-set-membership', `ccint-membership', `ord-segment-membership',
+;;; `injection-membership-iff', `span-membership', `principal-ideal-membership',
+;;; ...  A hand list of a growing table drifts on contact, so the table is now
+;;; BUILT: scan `*theorem-table*' once for cores of the shape
+;;; (IFF (IN v (HEAD ...)) _) and index them by HEAD.  The `-rev' companions
+;;; fall out for free -- their core has the membership on the RIGHT -- which is
+;;; what we want, since a -rev rewrites the wrong way for this purpose.
+;;; Heads with no law (SEP, COMP) are absent because their move is the intro
+;;; TACTIC -- `sep-mi', `comp-mi' -- which the live-fire lane probes and reports.
+;;; BIG-UNION is absent for a WEAKER reason, and the distinction was stated
+;;; wrongly here when this lane was written: `bu-mi' takes an index witness, so
+;;; it cannot be a parameterless probe, and `*what-now-fire-probes*' carries
+;;; `bu-set', not `bu-mi'.  Nothing therefore names `bu-mi' on a BIG-UNION goal.
+;;; Naming it with an empty witness slot is the fix, and it is not done here.
+;;; head symbol -> list of law names, built on first use.  #f until then.
+(define *what-now-membership-index* #f)
+
+;;; The membership head of FORMULA's left side, if its core is an IFF whose
+;;; left side is (IN <var> (HEAD ...)).  The binder must be a VARIABLE: a law
+;;; about (IN 0 NN) characterises one element, not the constructor.
+(define (what-now--membership-head stmt)
+  (call-with-current-continuation
+   (lambda (k)
+     (let walk ((f stmt))
+       (cond
+         ((not (pair? f)) (k #f))
+         ((memq (car f) '(FORALL forall)) (walk (caddr f)))
+         ((memq (car f) '(IMPLIES implies)) (walk (caddr f)))
+         ((and (memq (car f) '(IFF iff)) (= (length f) 3))
+          (let ((l (cadr f)))
+            (k (and (pair? l) (memq (car l) '(IN in)) (= (length l) 3)
+                    (symbol? (cadr l))
+                    (pair? (caddr l)) (symbol? (car (caddr l)))
+                    (car (caddr l))))))
+         (else (k #f)))))))
+
+(define (what-now--membership-index)
+  (or *what-now-membership-index*
+      (let ((tbl (make-strong-eqv-hash-table)))
+        (for-each
+         (lambda (name)
+           (let* ((stmt (vnb-guard (lambda () (lookup-theorem name))))
+                  (head (and (pair? stmt) (what-now--membership-head stmt))))
+             (if head
+                 (hash-table-set! tbl head
+                                  (cons name (hash-table-ref/default tbl head '()))))))
+         (hash-table-keys *theorem-table*))
+        (set! *what-now-membership-index* tbl)
+        tbl)))
+
+;;; The law names for the goal's constructor, most recently installed first.
+(define (what-now--membership-laws core)
+  (and (pair? core) (memq (car core) '(IN in)) (= (length core) 3)
+       (pair? (caddr core)) (symbol? (car (caddr core)))
+       (let ((ns (hash-table-ref/default (what-now--membership-index)
+                                         (car (caddr core)) '())))
+         (and (pair? ns) ns))))
+
+;;; The HYPOTHESIS-side twin of the membership lane.  `suggest-hyp-unfolds' keys
+;;; on an assumption's HEAD symbol, so `x in union(a, complement-in(b,a))' --
+;;; head IN, which is no macete -- is invisible to it, while the very same
+;;; formula in the GOAL gets a lane to itself.  That gap showed on the leaf
+;;; `x in union(a, complement-in(b,a)) |- x in b': every lane declined and the
+;;; panel had nothing to say, when the one move available is to unfold the union
+;;; in hypothesis 1 and split the disjunction it yields.  Same index as the goal
+;;; side, so the two cannot drift on which law belongs to which constructor.
+(define (what-now--show-hyp-membership)
+  (if (not *ps*)
+      '()
+      (let ((asms (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
+        (let loop ((as asms) (i 1) (acc '()))
+          (if (pair? as)
+              (let ((laws (what-now--membership-laws (car as))))
+                (loop (cdr as) (+ i 1)
+                      (if laws
+                          (append acc (map (lambda (n)
+                                             (list 'mac-h (list 'quote n) i))
+                                           laws))
+                          acc)))
+              (let ((forms (what-now--hint-filter
+                            acc (lambda (f) (list f 'membership 'hypothesis)))))
+                (if (null? forms)
+                    '()
+                    (begin
+                      (display ";; MEMBERSHIP IN A HYPOTHESIS -- an assumption says a thing is IN a")
+                      (newline)
+                      (display ";; constructed class.  Unfold it where it sits (mac-h, not mac):")
+                      (newline)
+                      (for-each (lambda (f)
+                                  (display ";;   ") (vnb--write-form f) (newline))
+                              forms)
+                      forms))))))))
+
+(define (what-now--show-membership core)
+  (let ((laws (what-now--membership-laws core)))
+    (if (not laws)
+        '()
+        (let ((forms (what-now--hint-filter
+                      (map (lambda (n) (list 'mac (list 'quote n))) laws)
+                      (lambda (f) (list f 'membership)))))
+          (if (null? forms)
+              '()
+              (begin
+                (display ";; MEMBERSHIP -- the goal asks whether a thing is IN a constructed")
+                (newline)
+                (display ";; class.  Unfold the constructor's membership law, as a REWRITE:")
+                (newline)
+                (for-each (lambda (f)
+                            (display ";;   ") (vnb--write-form f) (newline))
+                          forms)
+                (if (any-pred (lambda (f) (eq? (cadr (cadr f)) 'make-set-membership)) forms)
+                    (begin
+                      (display ";;   -- make-set-membership's right side is an existential over")
+                      (newline)
+                      (display ";;      INDICES; for a literal {a,b} prefer makeset2-membership.")
+                      (newline)))
+                forms))))))
+
+;;; -----------------------------------------------------------------------
+;;; The FORWARD lane: moves already sitting in the context.
+;;;
+;;; Two of them, and both were invisible although the code to find them was in
+;;; this file already:
+;;;
+;;;   subst    -- an (= s t) / (== s t) assumption whose left side occurs in the
+;;;               goal.  `subst' is the SECOND most-used tactic in the tree (752
+;;;               calls) and no lane looked at context equalities at all.
+;;;   detach!  -- an (IMPLIES A B) assumption whose A is also in the context and
+;;;               whose B is not.  `use--detach-forced!' (below) has run exactly
+;;;               this test since the `use' dispatcher was built; what-now never
+;;;               printed it.
+;;;
+;;; The subst entries carry the operator-position warning, because that trap is
+;;; silent: `subst's Leibniz walk reaches ARGUMENT positions only, so an equation
+;;; whose left side occurs solely as a HEAD -- structure accessors, almost always
+;;; -- rewrites nothing and reports nothing.  Where that is the case the lane
+;;; says so and names the macete route instead of proposing a no-op.
+
+;;; Does TERM occur in E in a position `subst' can reach (i.e. not as a head)?
+(define (what-now--occurs-as-arg? term e)
+  (and (pair? e)
+       (let loop ((args (cdr e)))
+         (cond ((null? args) #f)
+               ((equal? (car args) term) #t)
+               ((what-now--occurs-as-arg? term (car args)) #t)
+               (else (loop (cdr args)))))))
+
+;;; ... and anywhere at all, head position included.
+(define (what-now--occurs? term e)
+  (or (equal? term e)
+      (and (pair? e) (any-pred (lambda (x) (what-now--occurs? term x)) e))))
+
+(define (what-now--show-forward)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let* ((goal (suggest--current-goal))
+             (asms (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
+             (subs '())          ; (form . note)
+             (dets '()))
+        ;; equations whose left side the goal mentions
+        (for-each
+         (lambda (h)
+           (when (and (pair? h) (memq (car h) '(= ==)) (= (length h) 3))
+             (let ((s (cadr h)))
+               (cond
+                 ((what-now--occurs-as-arg? s goal)
+                  (set! subs (cons (cons (list 'subst (list 'quote h)) #f) subs)))
+                 ((what-now--occurs? s goal)
+                  (set! subs (cons (cons (list 'subst (list 'quote h))
+                                         "occurs only in OPERATOR position -- subst is a silent no-op there; use it as a macete: (mac ...) on the goal, (mac-h ...) on a hypothesis")
+                                   subs)))))))
+         asms)
+        ;; implications whose antecedent is present and whose consequent is not
+        (for-each
+         (lambda (h)
+           (when (and (pair? h) (memq (car h) '(IMPLIES implies)) (= (length h) 3))
+             (let ((ant (cadr h)) (con (caddr h)))
+               (if (and (any-pred (lambda (a) (alpha-equiv? a ant)) asms)
+                        (not (any-pred (lambda (a) (alpha-equiv? a con)) asms)))
+                   (set! dets (cons (list 'detach! (list 'quote h)) dets))))))
+         asms)
+        (let ((subs (what-now--hint-filter (reverse subs) car))
+              (dets (what-now--hint-filter (reverse dets) (lambda (f) f))))
+          (if (and (null? subs) (null? dets))
+              '()
+              (begin
+                (display ";; FORWARD -- moves already in the context:") (newline)
+                (for-each
+                 (lambda (p)
+                   (display ";;   ") (vnb--write-form (car p)) (newline)
+                   (if (cdr p)
+                       (begin (display ";;      -- ") (display (cdr p)) (newline))))
+                 subs)
+                (for-each
+                 (lambda (f)
+                   (display ";;   ") (vnb--write-form f)
+                   (display "   -- its antecedent is in context; forced modus ponens")
+                   (newline))
+                 dets)
+                (append (map car subs) dets)))))))
 
 ;;; The lemma's conclusion (foralls stripped, hypotheses peeled) -- the part
 ;;; that fingerprinted to the goal -- for a compact display, not the whole stmt.
@@ -428,10 +1545,14 @@
 ;;; RETURN the candidate names (most-specific first) so the caller can turn
 ;;; them into (bc* 'name) moves.
 (define (what-now--show-backchain goal opt-depth)
-  (let* ((cands (apply suggest-backchain-candidates goal opt-depth))
+  (let* ((all   (apply suggest-backchain-candidates goal opt-depth))
+         (cands (what-now--hint-filter all car))
          (names (map car cands))
          (n     (length cands)))
     (cond
+      ((and (null? cands) *what-now-hint* (pair? all))
+       (display ";; backchain lane: none of the ") (display (length all))
+       (display " candidate(s) matches the hint.") (newline))
       ((null? cands)
        (display ";; backchain lane: no lemma conclusion fingerprints to this goal.") (newline)
        (display ";; try (suggest-rewrite) for rewrites, or (tt) for the full menu.") (newline))
@@ -464,14 +1585,3117 @@
          (display " more -- (suggest-backchain) for the full ranking.") (newline))))
     names))
 
+;;; The backchain lane, SUPPRESSED when a structural lane has already answered.
+;;;
+;;; On `b = union(a, complement-in(b,a))' it offered 76 candidates and on
+;;; `x in union(a, complement-in(b,a))' nine, and on both goals every one of
+;;; them was junk: the lane ranks by fingerprint specificity, and `a = b' and
+;;; `x in S' -- exactly the goals a structural lane answers -- are the least
+;;; specific shapes in the library, so a structural principle and an accident
+;;; fingerprint alike.  Where the shape ALREADY determines the move, the ranking
+;;; has nothing to add and forty lines in which to say it.  (suggest-backchain)
+;;; is one word away for when this judgement is wrong.
+;;; Does C occur in FORM only as the CLASS of a membership -- `(IN _ C)' -- and
+;;; never as an element, an argument, or a head?  That is a class variable being
+;;; used as a PREDICATE, which is what an induction principle is: `nn-induction'
+;;; is `0 in c and (forall n. n in nn and n in c => succ(n) in c) => forall n in
+;;; nn. n in c', and c is the induction predicate wearing a set's clothes.
+(define (what-now--only-as-class? c form)
+  (cond ((eq? form c) #f)
+        ((not (pair? form)) #t)
+        ((eq? (car form) c) #f)                    ; applied as a head
+        ((and (eq? (car form) 'IN) (= (length form) 3))
+         (and (what-now--only-as-class? c (cadr form))
+              (or (eq? (caddr form) c)
+                  (what-now--only-as-class? c (caddr form)))))
+        (else (let loop ((l (cdr form)))
+                (cond ((null? l) #t)
+                      ((what-now--only-as-class? c (car l)) (loop (cdr l)))
+                      (else #f))))))
+
+(define (what-now--mentions-sym? c form)
+  (cond ((eq? form c) #t)
+        ((pair? form) (or (what-now--mentions-sym? c (car form))
+                          (what-now--mentions-sym? c (cdr form))))
+        (else #f)))
+
+;;; An INDUCTION SCHEMA: a theorem whose leading universal is such a class
+;;; variable.  Three of them (nn-, finite-set-, transfinite-induction) conclude
+;;; `... in c', so they fingerprint against EVERY membership goal and fire on
+;;; every one -- on `x in b' the backchain lane offered all three, each of which
+;;; replaces one point membership with a base case and an induction step about
+;;; ALL members.  That is not a harder route to the same place, it is a
+;;; different and much stronger claim.
+(define (what-now--induction-schema? name)
+  (let ((f (vnb-guard (lambda () (lookup-theorem name)))))
+    (and (pair? f) (eq? (car f) 'FORALL)
+         (let ((c (quantifier-var f)) (body (quantifier-body f)))
+           (and (what-now--mentions-sym? c body)
+                (what-now--only-as-class? c body))))))
+
+;;; ... and it is only NOISE on a goal that is not itself universally
+;;; quantified.  On `forall([n in nn], P(n))' induction is the move -- but there
+;;; it arrives through `ni' / `use-induction', which do the frame bookkeeping;
+;;; the schemas are reported with that pointer rather than silently dropped.
+(define (what-now--schema-noise? name goal)
+  (and (not (and (pair? goal) (memq (car goal) '(FORALL forall))))
+       (what-now--induction-schema? name)))
+
+(define (what-now--show-schemas schemas)
+  (when (pair? schemas)
+    (display ";; NOT offered -- INDUCTION SCHEMAS.  Each concludes `... in c' for a")
+    (newline)
+    (display ";; class variable c, so it fingerprints against any membership goal and")
+    (newline)
+    (display ";; fires here; but backchaining one replaces this single membership with")
+    (newline)
+    (display ";; a base case and a step about ALL members -- a stronger claim, not a")
+    (newline)
+    (display ";; smaller one.  For a goal that really is inductive -- one shaped")
+    (newline)
+    (display ";; `forall([n in nn], ...)' -- use (ni) or (use-induction), which set the")
+    (newline)
+    (display ";; frame up for you:") (newline)
+    (for-each (lambda (m)
+                (display ";;   ") (vnb--write-form (wn--move-form m)) (newline))
+              schemas)))
+
+(define (what-now--backchain-moves structural? goal opt-depth)
+  (cond
+    (structural?
+     (display ";; (backchain lane suppressed: the goal's SHAPE settles the move above.")
+     (newline)
+     (display ";;  (suggest-backchain) for the fingerprint-ranked lemma list anyway.)")
+     (newline)
+     '())
+    ((<= *what-now-probe-cap* 0)                 ; cap 0 = the old pure ranking
+     (map (lambda (nm) (list 'bc* (list 'quote nm)))
+          (what-now--show-backchain goal opt-depth)))
+    (else
+     (let* ((names (map car (apply suggest-backchain-candidates goal opt-depth)))
+            (forms (map (lambda (nm) (list 'bc* (list 'quote nm))) names)))
+       (if (null? forms)
+           (begin
+             (display ";; backchain lane: no lemma conclusion fingerprints to this goal.")
+             (newline)
+             '())
+           (call-with-values
+             (lambda ()
+               (what-now--fire-rank
+                forms
+                (lambda (form) (bc*--attempt (cadr (cadr form)) '()))))
+             (lambda (fired unprobed)
+               ;; Drop the induction schemas before ranking is shown: they fire
+               ;; on every membership goal and would otherwise crowd out the
+               ;; lemma that is actually about this goal.
+               (let* ((schema? (lambda (m)
+                                 (let ((nm (what-now--move-name m)))
+                                   (and nm (what-now--schema-noise? nm goal)))))
+                      (schemas (filter schema? fired))
+                      (real    (filter (lambda (m) (not (schema? m))) fired))
+                      (shown   (what-now--show-fired "backchain" real unprobed
+                                                     (length forms))))
+                 (what-now--show-schemas schemas)
+                 (if (and (null? shown) (null? schemas))
+                     (begin
+                       (display ";; backchain lane: ") (display (length forms))
+                       (display " candidate(s) fingerprint to this goal, none of the ")
+                       (display (min (length forms) *what-now-probe-cap*))
+                       (display " probed actually fires.") (newline)
+                       '())
+                     shown)))))))))
+
+;;; The REWRITE lane -- cheap-mac's engine, inside what-now at last.  Same
+;;; fire-first discipline: the rewrite index chooses the shortlist, firing on a
+;;; scratch copy decides the order and drops the ones that change nothing.
+;;; The focus goal as it stood BEFORE the last recorded step.  `*live-trace*'
+;;; (interactive.scm) is newest-first and each record is
+;;; (ENTRY GOAL ASMS NODE OPEN), the GOAL being the focus AFTER that step -- so
+;;; the SECOND record's goal is what the last step was applied to.  #f when the
+;;; proof is one step old or younger.
+(define (what-now--previous-goal)
+  (and (pair? *live-trace*) (pair? (cdr *live-trace*))
+       (cadr (cadr *live-trace*))))
+
+(define (what-now--previous-step)
+  (and (pair? *live-trace*) (car (car *live-trace*))))
+
+;;; How far back a rewrite counts as WALKING INTO YOUR OWN FOOTPRINTS.  Bounded
+;;; because the check is an alpha-comparison per candidate per remembered goal,
+;;; and because a goal forty steps and several branches ago is no longer a place
+;;; you are "returning to".
+(define *what-now-revisit-window* 40)
+
+;;; The goals this proof has already stood on, newest first, within the window.
+(define (what-now--visited-goals)
+  (let loop ((tr *live-trace*) (k 0) (acc '()))
+    (if (or (null? tr) (>= k *what-now-revisit-window*))
+        (reverse acc)
+        (loop (cdr tr) (+ k 1)
+              (if (cadr (car tr)) (cons (cadr (car tr)) acc) acc)))))
+
+;;; 1-based distance back to the visited goal G matches, or #f.  Index 1 is the
+;;; goal one step ago, which is the plain UNDO; anything beyond is a longer walk
+;;; back to the same place -- `complement-in-membership-rev' offered three steps
+;;; after the unfold it reverses.
+(define (what-now--revisit-distance g)
+  (let loop ((gs (what-now--visited-goals)) (k 1))
+    (cond ((null? gs) #f)
+          ((eq? #t (vnb-guard (lambda () (alpha-equiv? g (car gs))))) k)
+          (else (loop (cdr gs) (+ k 1))))))
+
+;;; Propositional connectives in a formula.  A rewrite that LOWERS this count
+;;; has folded logical structure back inside a term -- `x in b and not(x in a)'
+;;; becoming `x in difference(b, a)' -- which is the opposite of the unfolding
+;;; that makes a goal workable.  Demoted rather than dropped: folding is the
+;;; move when the lemma you are heading for is stated in the folded form.
+(define (what-now--connective-count f)
+  (cond ((not (pair? f)) 0)
+        (else (+ (if (memq (car f) '(AND OR NOT IMPLIES IFF)) 1 0)
+                 (let loop ((l (cdr f)) (n 0))
+                   (if (null? l) n
+                       (loop (cdr l) (+ n (what-now--connective-count (car l))))))))))
+
+;;; Fire FORM on a throwaway copy and return the GOAL it leaves, or #f if it did
+;;; not fire (or closed the proof, which is not something to suppress).
+;;; `what-now--probe' answers "how many leaves"; this answers "which goal", and
+;;; the two are wanted for different questions.
+(define (what-now--result-goal form runner)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (vnb--probing scratch
+           (lambda ()
+             (let ((r (vnb-guard (lambda () (runner form)))))
+               (and (not (vnb-error? r)) (not (vnb-warning? r))
+                    (vnb--ps-goal scratch))))))))
+
+;;; THE RULES THE REWRITE LANE APPLIES, and why each is a rule about the
+;;; RESULT rather than about the macete's name:
+;;;
+;;;   UNDO   -- the result is the goal you had one step ago.  Every iff/equation
+;;;             installs a `-rev' companion, so the lane would offer
+;;;             `union-membership-rev' to someone who just ran
+;;;             `union-membership': a round trip dressed as progress.  Compared
+;;;             up to ALPHA, since a round trip through a binder-renaming
+;;;             rewrite returns alpha-equal rather than equal.
+;;;   FLIP   -- the result is the goal with equations reoriented and nothing
+;;;             else (see what-now--flip-only? below).
+;;;   DUP    -- the result is one another candidate already produced; on the
+;;;             goal that prompted this, `ms-eq-symm' and `ms-eq-symm-rev' are
+;;;             the same rewrite twice, symmetry being its own converse.
+;;;   NOTATIONAL -- the macete is an iff between two atoms: a renaming.
+;;;
+;;; The first three are reported and dropped from the lane's MOVES, so nothing
+;;; OFFERS to run them; the fourth is demoted but still offered.  None of them
+;;; is refused: typing the form still works, and going back is occasionally what
+;;; you meant.  Testing the RESULT rather than the name is what makes these
+;;; catch inverse pairs and duplicates that are not named as such.
+
+;;; Does B differ from A only by REORIENTED equations?  `what-now--reorientation?'
+;;; asks this of the goal's top level and is used by the probe to call a bare
+;;; flip "no progress".  The same policy has to reach INSIDE: on
+;;; `forall([a in set, b in set], a subset b implies b = union(...))' the
+;;; equation sits three binders down, so `ms-eq-symm' -- literally
+;;; `x = y iff y = x' -- read as a change and was offered as a move.
+(define (what-now--flip-only? a b)
+  (cond
+    ((equal? a b) #t)
+    ((and (pair? a) (pair? b) (eq? (car a) (car b)) (= (length a) (length b)))
+     (or (and (= (length a) 3)
+              (memq (car a) '(= == IFF))
+              (equal? (cadr a) (caddr b))
+              (equal? (caddr a) (cadr b)))
+         (let loop ((x (cdr a)) (y (cdr b)))
+           (cond ((null? x) #t)
+                 ((what-now--flip-only? (car x) (car y)) (loop (cdr x) (cdr y)))
+                 (else #f)))))
+    (else #f)))
+
+(define (what-now--atomic-formula? f)
+  (not (and (pair? f) (memq (car f) '(AND OR NOT IMPLIES IFF FORALL FORSOME)))))
+
+;;; A NOTATIONAL macete: an unconditional iff between two ATOMS, e.g.
+;;; `x in set iff is-set(x)'.  Applying one renames a formula and exposes no
+;;; structure, so it can never be the step that advances a proof -- as against
+;;; `subset-def' (`a subset b iff forall([x in a], x in b)'), whose right side
+;;; carries a quantifier and is the reason to run it.  Demoted rather than
+;;; suppressed: an atom-to-atom rewrite is sometimes the one that lets the NEXT
+;;; lemma match (`x in POWER(y) iff x subset y' is the standing example), so it
+;;; stays listed, and clickable, under its own heading.
+;;; A FUNCTOID IS NOT A THEOREM, and this is where that bites.  Since
+;;; 2026-08-23 the goal-side rewrite lane offers `def-functoid' unfolds
+;;; (`suggest--functoid-unfolds'), and a functoid has a MACETE and no entry in
+;;; `*theorem-table*'.  `lookup-theorem' ERRORS on a miss rather than returning
+;;; #f, and the `vnb-guard' below does NOT contain it -- so the panel died with
+;;; `lookup-theorem: unknown theorem field-as-integral-domain', losing every
+;;; lane AFTER the rewrite lane: backchain, forward-moves, hypothesis-unfold,
+;;; membership and existential.  Reproduced on the bare goal
+;;; `is-integral-domain(field-as-integral-domain(f))'.
+;;;
+;;; The guard is the theorem-table probe, the idiom this file already uses
+;;; where it says "a real theorem (lookup-theorem ERRORS on unknown)".  A
+;;; functoid answers #f -- correctly: "is this an atom-to-atom renaming?" is
+;;; not a meaningful question about a definitional unfold, and the unfold
+;;; belongs in the offered bucket, which is where #f puts it.
+(define (what-now--notational-macete? name)
+  (let ((f (and (hash-table-ref/default *theorem-table* name #f)
+                (vnb-guard (lambda () (lookup-theorem name))))))
+    (and (pair? f)
+         (let strip ((g f))
+           (cond ((and (pair? g) (eq? (car g) 'FORALL)) (strip (quantifier-body g)))
+                 ((and (pair? g) (eq? (car g) 'IFF) (= (length g) 3))
+                  (and (what-now--atomic-formula? (cadr g))
+                       (what-now--atomic-formula? (caddr g))))
+                 (else #f))))))
+
+(define (what-now--move-name m)
+  (let ((f (wn--move-form m)))                 ; (mac (quote NAME))
+    (and (pair? f) (pair? (cdr f)) (pair? (cadr f)) (cadr (cadr f)))))
+
+;;; Sort the fired rewrites into what to offer, what to demote, and what to
+;;; report as not worth running.  Returns an alist of buckets.  One pass, and
+;;; each candidate is probed for its RESULT once.
+(define (what-now--triage-rewrites fired goal runner)
+  (let ((gc (what-now--connective-count goal)))
+    (let loop ((ms fired) (keep '()) (notn '()) (fold '()) (undo '()) (flip '())
+               (dup '()) (seen '()))
+      (if (null? ms)
+          (list (cons 'keep (reverse keep)) (cons 'notational (reverse notn))
+                (cons 'fold (reverse fold)) (cons 'undo (reverse undo))
+                (cons 'flip (reverse flip)) (cons 'dup (reverse dup)))
+          (let* ((m  (car ms))
+                 (g  (what-now--result-goal (wn--move-form m) runner))
+                 (nm (what-now--move-name m))
+                 (back (and g (what-now--revisit-distance g))))
+            (cond
+              (back
+               (loop (cdr ms) keep notn fold (cons (cons m back) undo) flip dup seen))
+              ((and g (what-now--flip-only? goal g))
+               (loop (cdr ms) keep notn fold undo (cons m flip) dup seen))
+              ((and g (any-pred (lambda (s) (equal? (car s) g)) seen))
+               (loop (cdr ms) keep notn fold undo flip
+                     (cons (cons m (cdr (any-pred (lambda (s) (equal? (car s) g)) seen)))
+                           dup)
+                     seen))
+              ((and nm (what-now--notational-macete? nm))
+               (loop (cdr ms) keep (cons m notn) fold undo flip dup
+                     (if g (cons (cons g nm) seen) seen)))
+              ((and g (< (what-now--connective-count g) gc))
+               (loop (cdr ms) keep notn (cons m fold) undo flip dup
+                     (cons (cons g nm) seen)))
+              (else
+               (loop (cdr ms) (cons m keep) notn fold undo flip dup
+                     (if g (cons (cons g nm) seen) seen)))))))))
+
+(define (what-now--show-notational notn)
+  (if (null? notn)
+      '()
+      (begin
+        (display ";; notational only -- these RENAME a formula (an iff between two")
+        (newline)
+        (display ";; atoms) and expose no structure; useful only to make the NEXT")
+        (newline)
+        (display ";; lemma match:") (newline)
+        (for-each (lambda (m)
+                    (display ";;   ") (vnb--write-form (wn--move-form m)) (newline))
+                  notn)
+        notn)))
+
+(define (what-now--show-flips flip)
+  (when (pair? flip)
+    (display ";; NOT offered -- these only REORIENT an equation, leaving the goal")
+    (newline)
+    (display ";; otherwise identical:") (newline)
+    (for-each (lambda (m)
+                (display ";;   ") (vnb--write-form (wn--move-form m)) (newline))
+              flip)))
+
+(define (what-now--show-dups dup)
+  (when (pair? dup)
+    (display ";; NOT offered -- these give a goal already offered above:") (newline)
+    (for-each (lambda (p)
+                (display ";;   ") (vnb--write-form (wn--move-form (car p)))
+                (display "   (same result as ") (display (cdr p)) (display ")")
+                (newline))
+              dup)))
+
+(define (what-now--show-undone undo)
+  (when (pair? undo)
+    (display ";; NOT offered -- each of these returns a goal you have ALREADY been")
+    (newline)
+    (display ";; on in this proof.  Type one anyway if going back is what you meant:")
+    (newline)
+    (for-each (lambda (p)
+                (display ";;   ") (vnb--write-form (wn--move-form (car p)))
+                (display "   (the goal from ")
+                (if (= (cdr p) 1)
+                    (begin (display "one step back")
+                           (let ((step (what-now--previous-step)))
+                             (when step (display " -- ") (vnb--write-form step))))
+                    (begin (display (cdr p)) (display " steps back")))
+                (display ")")
+                (newline))
+              undo)))
+
+(define (what-now--show-folds fold)
+  (if (null? fold)
+      '()
+      (begin
+        (display ";; abstracting -- these FOLD logical structure back inside a term")
+        (newline)
+        (display ";; (`x in b and not(x in a)' becoming `x in difference(b, a)'), which is")
+        (newline)
+        (display ";; the reverse of making a goal workable; useful only when the lemma you")
+        (newline)
+        (display ";; are heading for is stated in the folded form:") (newline)
+        (for-each (lambda (m)
+                    (display ";;   ") (vnb--write-form (wn--move-form m)) (newline))
+                  fold)
+        fold)))
+
+
+;;; -----------------------------------------------------------------------
+;;; MUTUALLY INVERSE REWRITES -- the fourth demotion (2026-08-18).
+;;;
+;;; An unconditional symmetric core installs a `-rev' companion, so X rewrites
+;;; L->R and X-rev rewrites R->L.  The policy note at suggest-rewrite-candidates
+;;; says both are legitimate `mac' targets and must not be COLLAPSED, and that
+;;; is right -- either orientation can be the move you want.  But offering both
+;;; SIDE BY SIDE, unlabelled, in one list is a trap, and a user walked into it:
+;;;
+;;;     |- forall([a in pts(t)], (dist(t))(a,a) = 0)
+;;;
+;;; The panel offered `(mac 'bdd-metric-carrier-rev)', which rewrites pts(t)
+;;; into pts(BDD-METRIC t) -- strictly bigger, and about a bounded metric the
+;;; goal had nothing to do with.  Having taken it, the goal now mentioned
+;;; BDD-METRIC, so the forward-citation lane filled with five BDD-METRIC facts
+;;; and the rewrite lane dutifully offered `(mac 'bdd-metric-carrier)' to undo
+;;; it.  The panel handed over the shovel and the ladder in the same list.
+;;;
+;;; The existing three demotions do not catch this.  `flip' is REORIENTATION
+;;; (same goal, sides swapped); `dup' is two moves with the SAME result; `undo'
+;;; is a goal already visited IN THIS PROOF.  X and X-rev give DIFFERENT results,
+;;; neither seen before -- the only thing wrong with one of them is that it is
+;;; BIGGER.
+;;;
+;;; So: when both orientations fire, keep the one whose result is smaller and
+;;; demote the other, naming it as the same equation backwards.  Not withheld --
+;;; expanding IS occasionally right (to make a later lemma match) -- but no
+;;; longer indistinguishable from the move that makes progress.
+(define (what-now--form-size e)
+  (cond ((pair? e) (+ 1 (what-now--form-size (car e)) (what-now--form-size (cdr e))))
+        ((null? e) 0)
+        (else 1)))
+
+(define (what-now--rev-partner nm)
+  (and (symbol? nm)
+       (let ((s (symbol->string nm)))
+         (if (and (> (string-length s) 4)
+                  (string=? (substring s (- (string-length s) 4) (string-length s)) "-rev"))
+             (string->symbol (substring s 0 (- (string-length s) 4)))
+             (string->symbol (string-append s "-rev"))))))
+
+;;; PAIRING IS NOT ENOUGH, and the user's own case is the proof.  On the goal
+;;; that started the trouble only the `-rev' orientation fired -- the forward one
+;;; had nothing to match -- so a partner test demotes nothing and the trap is
+;;; still set.  The rule that would have saved them is simpler and does not
+;;; mention `-rev' at all: DEMOTE A REWRITE WHOSE RESULT IS STRICTLY BIGGER THAN
+;;; THE GOAL.  A rewrite that enlarges the goal is occasionally right, but it is
+;;; never the obvious move, and printing it beside the shrinking ones as
+;;; `=> 1 subgoal' makes it look like progress.  When a partner DOES fire, name
+;;; it, since "the same equation the other way" is the most useful thing to say.
+;;;
+;;; Returns (KEPT . DEMOTED), DEMOTED being ((move . partner-name-or-#f) ...).
+(define (what-now--split-inverses keep runner goal)
+  (let ((named (map (lambda (m) (cons (what-now--move-name m) m)) keep)))
+    (let loop ((ms keep) (kept '()) (dem '()))
+      (if (null? ms)
+          (cons (reverse kept) (reverse dem))
+          (let* ((m       (car ms))
+                 (nm      (what-now--move-name m))
+                 (partner (and nm (what-now--rev-partner nm)))
+                 (other   (and partner (assq partner named)))
+                 (g       (what-now--result-goal (wn--move-form m) runner)))
+            ;; ONLY when the opposite orientation also fires.  An earlier
+            ;; version demoted ANY goal-enlarging rewrite, which is wrong: a
+            ;; definitional UNFOLD enlarges too, and an unfold is usually the
+            ;; move you want.  The suite caught it ("the rewrite lane offers the
+            ;; unfold, not the reorientations").  Judging relevance by shape is
+            ;; a heuristic that will always have such a counterexample, which is
+            ;; why the USER FILTER below exists beside it.
+            (if (and other g
+                     (let ((g2 (what-now--result-goal (wn--move-form (cdr other)) runner)))
+                       (and g2 (> (what-now--form-size g) (what-now--form-size g2)))))
+                (loop (cdr ms) kept (cons (cons m partner) dem))
+                (loop (cdr ms) (cons m kept) dem)))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE USER FILTER (2026-08-18, the user's design).
+;;;
+;;; Every lane above ranks by some measure of shape -- fingerprint specificity,
+;;; connective count, term size.  Each such measure has a counterexample, and
+;;; the counterexamples are not a bug to be fixed one at a time: a reader
+;;; driving a proof knows things about relevance that no syntactic measure can
+;;; reconstruct.  "I am not doing anything with bounded metrics today" is not
+;;; derivable from the goal.
+;;;
+;;; So the panel takes instructions.  Two lists, both ordinary Scheme values,
+;;; both settable from the REPL or from Emacs:
+;;;
+;;;   *what-now-suppress*  names never offered, in any lane.
+;;;   *what-now-pin*       names always offered when they fire, ahead of
+;;;                        everything else, exempt from every demotion.
+;;;
+;;; A PATTERN in either list is one of four things, and the kinds are told apart
+;;; by their Scheme type, so no tagging is needed:
+;;;
+;;;   SYMBOL      matches that name exactly.        'bdd-metric-carrier-rev
+;;;   STRING      matches any name containing it.   "bdd-metric"
+;;;   LIST        an MIT REGSEXP, compiled with `compile-regsexp'.  MIT's
+;;;               regexps are S-EXPRESSIONS rather than string syntax, which
+;;;               suits a filter you edit as a Scheme object:
+;;;                 (seq (line-start) "bdd")            -- name starts with bdd
+;;;                 (seq (* (any-char)) "-rev" (line-end))  -- name ends in -rev
+;;;   PROCEDURE   called on the name symbol; true means match.
+;;;                 (lambda (n) (> (string-length (symbol->string n)) 30))
+;;;
+;;; `(what-now-filter)' prints them; `(what-now-suppress! ...)' and
+;;; `(what-now-pin! ...)' add; `(what-now-filter-clear!)' resets.  Nothing here
+;;; touches soundness -- it changes what is DISPLAYED, never what is provable,
+;;; and a suppressed move is still typeable by hand.
+(define *what-now-suppress* '())
+(define *what-now-pin*      '())
+
+;;; Compiled regsexps are memoised: `what-now--apply-filter' runs over every
+;;; move of every lane, and compile-regsexp on each would be paid per move.
+(define *what-now-regsexp-cache* (make-equal-hash-table))
+
+(define (what-now--regsexp-of pat)
+  (or (hash-table-ref/default *what-now-regsexp-cache* pat #f)
+      (let ((rx (compile-regsexp pat)))
+        (hash-table-set! *what-now-regsexp-cache* pat rx)
+        rx)))
+
+(define (what-now--filter-match? pat nm)
+  (let ((s (symbol->string nm)))
+    (cond ((symbol? pat)    (eq? pat nm))
+          ((string? pat)    (and (substring? pat s) #t))
+          ((procedure? pat) (and (pat nm) #t))
+          ((pair? pat)      (and (regsexp-match-string (what-now--regsexp-of pat) s) #t))
+          (else #f))))
+
+(define (what-now--suppressed? nm)
+  (and nm (any-pred (lambda (p) (what-now--filter-match? p nm)) *what-now-suppress*) #t))
+
+(define (what-now--pinned? nm)
+  (and nm (any-pred (lambda (p) (what-now--filter-match? p nm)) *what-now-pin*) #t))
+
+;;; Drop suppressed moves, float pinned ones to the front.  Applied to a lane's
+;;; move list just before it is shown.
+(define (what-now--apply-filter moves)
+  (let loop ((ms moves) (pin '()) (rest '()) (hid 0))
+    (if (null? ms)
+        (begin
+          (when (> hid 0)
+            (display ";; (") (display hid)
+            (display " move(s) hidden by *what-now-suppress* -- (what-now-filter) to see it)")
+            (newline))
+          (append (reverse pin) (reverse rest)))
+        (let ((nm (what-now--move-name (car ms))))
+          (cond ((what-now--suppressed? nm) (loop (cdr ms) pin rest (+ hid 1)))
+                ((what-now--pinned? nm)     (loop (cdr ms) (cons (car ms) pin) rest hid))
+                (else                       (loop (cdr ms) pin (cons (car ms) rest) hid)))))))
+
+(define (what-now-suppress! . pats)
+  (set! *what-now-suppress* (append *what-now-suppress* pats))
+  *what-now-suppress*)
+
+(define (what-now-pin! . pats)
+  (set! *what-now-pin* (append *what-now-pin* pats))
+  *what-now-pin*)
+
+(define (what-now-filter-clear!)
+  (set! *what-now-suppress* '()) (set! *what-now-pin* '()) 'cleared)
+
+
+;;; -----------------------------------------------------------------------
+;;; THE FILTER AS AN EDITABLE DEFINITION (2026-08-19, the user's ask).
+;;;
+;;;     "something like (like, not identical to) keyboard macros in Emacs"
+;;;
+;;; The point of `edit-kbd-macro' is not that a macro is a Lisp value -- it is
+;;; that you can OPEN it, read it, change it, and have the change take effect.
+;;; So the filter's source of truth is a FILE of ordinary Scheme, and the edit
+;;; cycle runs file -> prover, never the other way.
+;;;
+;;; That direction is deliberate.  A filter entry may be a PROCEDURE, and a
+;;; procedure has no readable printed form -- dumping the live object back out
+;;; would silently lose exactly the most interesting entries.  Editing the
+;;; DEFINITION sidesteps that: the file is EVALUATED, so a `(lambda (n) ...)'
+;;; written there arrives as a procedure, and `procedure?' is tested before
+;;; `pair?' in `what-now--filter-match?', so a lambda form is never mistaken
+;;; for a regsexp.
+(define *what-now-filter-file* "~/.vnb-what-now-filter.scm")
+
+;;; Set both lists at once -- this is what the file calls.
+(define (what-now-filter! suppress pin)
+  (set! *what-now-suppress* suppress)
+  (set! *what-now-pin* pin)
+  (hash-table-clear! *what-now-regsexp-cache*)
+  (list (length suppress) (length pin)))
+
+;;; -----------------------------------------------------------------------
+;;; USER RULES -- the GENERATIVE counterpart of the filter.
+;;;
+;;; The filter says which of the panel's own suggestions to drop or float.  A
+;;; rule says what to suggest in the first place.  It exists for the same reason
+;;; the filter does: a reader driving a proof knows things about relevance that
+;;; no syntactic measure can reconstruct, and some of that knowledge is positive
+;;; ("whenever a guarded universal is in the context and I have something of
+;;; that type, offer me the instantiation") rather than negative.
+;;;
+;;; The user's sketch, and the shape this implements:
+;;;
+;;;     (map (lambda (x) (if (BLAH x) (add FUBA))) (assumps))
+;;;
+;;; Two lists of ordinary procedures:
+;;;
+;;;   *what-now-assumption-rules*   each called ONCE PER ASSUMPTION formula
+;;;   *what-now-goal-rules*         each called ONCE on the goal formula
+;;;
+;;; A rule may either RETURN what it suggests -- one move form, or a list of
+;;; them, or #f for nothing -- or call `(wn-add! form ...)', which is the
+;;; imperative spelling of the same thing.  Both work; returning is the shorter
+;;; one and `wn-add!' is there because a rule that walks a structure and
+;;; accumulates reads better that way.
+;;;
+;;; Inside a rule these are bound:
+;;;
+;;;   (wn-goal)          the goal formula
+;;;   (wn-assumptions)   the assumption formulas, in context order
+;;;   (wn-index a)       the 1-based index of assumption A -- what `inst+',
+;;;                      `mac-h', `ai' and `ineq' all take
+;;;   (wn-add! f ...)    contribute a move
+;;;
+;;; A move form is exactly what you would type: `(mac 'foo)', `(inst+ 3 'x)',
+;;; `(fact 'bar 'x 'y)'.  Every one is PROBED on a throwaway clone and annotated
+;;; with what it does, so a rule that suggests something inapplicable says so
+;;; rather than misleading you.  Unlike the machine's own lanes, a non-firing
+;;; user move is still SHOWN: you asked for it, and silently dropping it would
+;;; look like the rule never ran.
+;;;
+;;; A rule that RAISES is reported and named, not swallowed -- the same policy as
+;;; the tactic probes, and for the same reason: an error in a rule is a defect in
+;;; that rule, and hiding it is how it would stay.
+;;;
+;;; Rules live in the same file as the filter (`M-x vnb-edit-filter'), because
+;;; that file is EVALUATED rather than read, which is exactly what a list of
+;;; procedures needs.
+
+(define *what-now-assumption-rules* '())
+(define *what-now-goal-rules*       '())
+
+;;; Bound while a rule runs, so a rule can consult the whole sequent and not
+;;; only the formula it was handed.
+(define *wn-rule-goal*  #f)
+(define *wn-rule-asms*  '())
+(define *wn-rule-added* '())
+
+(define (wn-goal)        *wn-rule-goal*)
+(define (wn-assumptions) *wn-rule-asms*)
+
+(define (wn-index a)
+  (let loop ((l *wn-rule-asms*) (i 1))
+    (cond ((null? l) #f)
+          ((equal? (car l) a) i)
+          (else (loop (cdr l) (+ i 1))))))
+
+(define (wn-add! . forms)
+  (set! *wn-rule-added* (append *wn-rule-added* forms))
+  #t)
+
+(define (what-now-rules! asm-rules goal-rules)
+  (set! *what-now-assumption-rules* asm-rules)
+  (set! *what-now-goal-rules*       goal-rules)
+  (list (length asm-rules) (length goal-rules)))
+
+(define (what-now-rules-clear!)
+  (set! *what-now-assumption-rules* '())
+  (set! *what-now-goal-rules*       '())
+  'cleared)
+
+;;; Self-describing, for the same reason `what-now-filter' is: through the Emacs
+;;; bridge the VALUE is all you see, and a procedure has no readable printed
+;;; form, so counts and the file path are the informative part.
+(define (what-now-rules)
+  (display ";; *what-now-assumption-rules*: ")
+  (display (length *what-now-assumption-rules*))
+  (display "  (called once per assumption)") (newline)
+  (display ";; *what-now-goal-rules*:       ")
+  (display (length *what-now-goal-rules*))
+  (display "  (called once on the goal)") (newline)
+  (display ";; a rule returns a move form, a list of them, or #f; or calls (wn-add! ...).")
+  (newline)
+  (display ";; inside a rule: (wn-goal) (wn-assumptions) (wn-index a) (wn-add! f ...)")
+  (newline)
+  (display ";; edit them as a file:  M-x vnb-edit-filter   (")
+  (display (what-now--filter-path)) (display ")") (newline)
+  (list (cons 'assumption-rules (length *what-now-assumption-rules*))
+        (cons 'goal-rules       (length *what-now-goal-rules*))
+        (cons 'file             (what-now--filter-path))))
+
+;;; Run one rule; return the forms it contributed.  NAMES an error rather than
+;;; hiding it.
+(define (what-now--run-rule rule arg where)
+  (fluid-let ((*wn-rule-added* '()))
+    (let ((r (vnb-guard (lambda () (rule arg)))))
+      (cond
+        ((or (vnb-error? r) (vnb-warning? r))
+         (display ";;   (a ") (display where)
+         (display " rule RAISED -- reported, not hidden; fix the rule:") (newline)
+         (display ";;    on  ") (display (expression->string arg)) (display ")") (newline)
+         *wn-rule-added*)
+        (else
+         (append *wn-rule-added* (what-now--rule-forms r)))))))
+
+;;; Normalise a rule's return value into a list of move forms.
+;;;
+;;; A move form always has a SYMBOL head -- `(mac 'foo)', `(inst+ 3 'x)' -- so a
+;;; symbol in car means ONE form and anything else means a list of them.
+;;;
+;;; The filter is not defensive padding, it is required by the shape the user
+;;; asked for:
+;;;
+;;;     (map (lambda (x) (if (proc x) (suggestion x))) (wn-assumptions))
+;;;
+;;; A ONE-ARMED `if' returns MIT Scheme's unspecified object when the test
+;;; fails, so that `map' hands back a list peppered with non-forms -- and
+;;; without this, `(pair? (car r))' was false on such a list and the whole list
+;;; was taken for a single move.  Writing the two-armed `(if p x #f)' would
+;;; avoid it, but a rule file is user code in a hurry and the one-armed spelling
+;;; is the natural one; the lane should accept what a reader will actually type.
+(define (what-now--rule-forms r)
+  (cond ((not (pair? r)) '())
+        ((symbol? (car r)) (list r))
+        (else (filter (lambda (f) (and (pair? f) (symbol? (car f)))) r))))
+
+;;; Effect of ONE user move, described.
+;;;
+;;; NOT `what-now--probe': that one measures the GOAL only, so a forward move --
+;;; `inst+', `fact', `mac-h', the whole class of moves that land an ASSUMPTION
+;;; and leave the goal alone -- comes back as "did not fire", which is exactly
+;;; backwards for the rules a reader is most likely to write.  (Caught the first
+;;; time this lane was run: the template's own `(inst+ 1 'k)' reported "does not
+;;; fire here" while landing a hypothesis.)  Returns (EFFECT . TEXT).
+(define (what-now--probe-user-move form)
+  (let ((scratch (vnb--scratch-state)))
+    (if (not scratch)
+        (cons #f "-- no proof in progress")
+        (let* ((sqn0  (proof-state-focus scratch))
+               (before (wff-formula (sequent-node-assertion sqn0)))
+               (asms0  (map wff-formula (sequent-node-assumptions sqn0))))
+          (vnb--probing scratch
+            (lambda ()
+              (let ((r (vnb-guard (lambda () (eval form user-initial-environment)))))
+                (cond
+                  ((or (vnb-error? r) (vnb-warning? r)) (list #f "-- does not apply here" '()))
+                  ((proof-done? scratch) (list 'CLOSED "=> CLOSES the goal" '()))
+                  (else
+                   (let* ((leaves (proof-open-leaves scratch))
+                          (n      (length leaves))
+                          (foc    (proof-state-focus scratch))
+                          (after  (wff-formula (sequent-node-assertion foc)))
+                          (gained (filter
+                                   (lambda (f)
+                                     (not (any-pred (lambda (g) (alpha-equiv? f g)) asms0)))
+                                   (map wff-formula (sequent-node-assumptions foc)))))
+                     (cond
+                       ((pair? gained)
+                        (list (length gained)
+                              (string-append "=> lands  "
+                                             (expression->string (car gained))
+                                             (if (pair? (cdr gained))
+                                                 (string-append "  (+"
+                                                   (number->string (length (cdr gained)))
+                                                   " more)")
+                                                 ""))
+                              gained))
+                       ((not (equal? after before))
+                        (list n (string-append "=> goal becomes  "
+                                               (expression->string after))
+                              '()))
+                       ((> n 1) (list n (string-append "=> " (number->string n)
+                                                       " subgoal(s)")
+                                      '()))
+                       (else (list #f "-- does not fire here" '())))))))))))))
+
+(define (what-now--show-user-rules goal)
+  (if (or (not *ps*) (proof-done? *ps*)
+          (and (null? *what-now-assumption-rules*)
+               (null? *what-now-goal-rules*)))
+      '()
+      (let* ((sqn   (proof-state-focus *ps*))
+             (asms  (map wff-formula (sequent-node-assumptions sqn)))
+             (forms '()))
+        (fluid-let ((*wn-rule-goal* goal) (*wn-rule-asms* asms))
+          (for-each
+           (lambda (rule)
+             (set! forms (append forms (what-now--run-rule rule goal 'goal))))
+           *what-now-goal-rules*)
+          (for-each
+           (lambda (rule)
+             (for-each
+              (lambda (a)
+                (set! forms (append forms (what-now--run-rule rule a 'assumption))))
+              asms))
+           *what-now-assumption-rules*))
+        ;; de-duplicate, keeping order, and cap the probing: a rule is user code
+        ;; and may suggest a great many moves.
+        (let* ((uniq (let loop ((fs forms) (acc '()))
+                       (cond ((null? fs) (reverse acc))
+                             ((member (car fs) acc) (loop (cdr fs) acc))
+                             (else (loop (cdr fs) (cons (car fs) acc))))))
+               (shown (list-head uniq (min 12 (length uniq)))))
+          (if (null? shown)
+              '()
+              (begin
+                (display ";; YOUR RULES -- suggested by your own what-now rules, probed on a")
+                (newline)
+                (display ";;   throwaway copy.  (what-now-rules) to see them; M-x vnb-edit-filter")
+                (newline)
+                (display ";;   to edit.") (newline)
+                (let ((moves
+                       (map (lambda (form)
+                              (let ((r (what-now--probe-user-move form)))
+                                (display ";;   ") (vnb--write-form form)
+                                (display "   ") (display (cadr r)) (newline)
+                                (wn--move form (car r))))
+                            shown)))
+                  (when (> (length uniq) 12)
+                    (display ";;   ... ") (display (- (length uniq) 12))
+                    (display " more suggested by your rules, not probed.") (newline))
+                  moves)))))))
+
+;;; -----------------------------------------------------------------------
+;;; Two worked example rules -- the TEMPLATE.  Both are real moves the panel
+;;; does not otherwise offer; copy one and mutate it.
+
+;;; ASSUMPTION RULE.  A guarded universal `forall([v in C], ...)' sitting in the
+;;; context, and a term the context types in that same C: instantiating the one
+;;; at the other is a move no lane proposes, because the panel's forward lane
+;;; reaches into the LIBRARY and this is a fact you already have.  It is the
+;;; context-side twin of "to show f(FUBA) in GUBA, look for FUBA in RUBA".
+(define (wn-rule-instantiate-guarded a)
+  (and (pair? a) (eq? (car a) 'FORALL) (= (length a) 3)
+       (let ((body (caddr a)))
+         (and (pair? body) (eq? (car body) 'IMPLIES) (= (length body) 3)
+              (let ((guard (cadr body)))
+                (and (pair? guard) (eq? (car guard) 'IN) (= (length guard) 3)
+                     (let ((cls (caddr guard))
+                           (k   (wn-index a)))
+                       (and k
+                            (let loop ((l (wn-assumptions)) (acc '()))
+                              (cond
+                                ((null? l) (reverse acc))
+                                ((and (pair? (car l)) (eq? (caar l) 'IN)
+                                      (= (length (car l)) 3)
+                                      (equal? (caddr (car l)) cls))
+                                 (loop (cdr l)
+                                       (cons (list 'inst+ k
+                                                   (list 'quote (cadr (car l))))
+                                             acc)))
+                                (else (loop (cdr l) acc))))))))))))
+
+;;; GOAL RULE.  The goal is headed by a registered predicate or functoid, so it
+;;; has a definition to unfold; offer the unfold as a rewrite.
+(define (wn-rule-unfold-goal-head g)
+  (and (pair? g) (symbol? (car g))
+       (not (memq (car g) *what-now-logic-heads*))
+       (not (memq (car g) '(IN in = == <= < >= >)))
+       (let ((e (vnb-guard (lambda () (operator-ref (car g))))))
+         (and (not (vnb-error? e)) (not (vnb-warning? e)) e
+              (list 'mac (list 'quote (car g)))))))
+
+(define (what-now--filter-path)
+  (->namestring (merge-pathnames *what-now-filter-file*)))
+
+;;; Create the file from a commented template if it is not there, and return its
+;;; path.  The Emacs command opens whatever this returns, so a first-time reader
+;;; gets a worked example rather than an empty buffer.
+(define (what-now-filter-file)
+  (let ((path (what-now--filter-path)))
+    (if (not (file-exists? path))
+        (call-with-output-file path
+          (lambda (port)
+            (for-each
+             (lambda (line) (write-string line port) (newline port))
+             (list
+              ";;; VNB what-now filter and rules -- ordinary Scheme, evaluated when loaded."
+              ";;;"
+              ";;; Edit, then C-c C-c in this buffer (or (what-now-filter-load!) at"
+              ";;; the REPL).  Nothing here affects what is PROVABLE -- only what the"
+              ";;; What Now panel offers -- and a suppressed move is still typeable."
+              ";;;"
+              ";;; Each pattern is one of four things, told apart by its type:"
+              ";;;"
+              ";;;   SYMBOL     'bdd-metric-carrier-rev        that exact name"
+              ";;;   STRING     \"bdd-metric\"                   any name containing it"
+              ";;;   LIST       '(seq (* (any-char)) \"-rev\" (line-end))"
+              ";;;                                             an MIT regsexp"
+              ";;;   PROCEDURE  (lambda (n) (> (string-length (symbol->string n)) 30))"
+              ";;;"
+              ";;; SUPPRESS = never offered, in any lane.  PIN = always offered first,"
+              ";;; ahead of everything and exempt from every demotion."
+              ""
+              "(what-now-filter!"
+              "  (list                     ; ---- suppress ----"
+              "    ;; \"bdd-metric\""
+              "    ;; '(seq (* (any-char)) \"-rev\" (line-end))"
+              "    )"
+              "  (list                     ; ---- pin ----"
+              "    ;; 'metric-self-zero"
+              "    ))"
+              ""
+              ";;; ------------------------------------------------------------------"
+              ";;; RULES -- what to SUGGEST, as opposed to what to drop."
+              ";;;"
+              ";;; Two lists of ordinary procedures.  An assumption rule is called"
+              ";;; once per assumption formula; a goal rule once on the goal.  Each"
+              ";;; returns a move form, a list of them, or #f -- or calls (wn-add! f)."
+              ";;; Every suggestion is PROBED and annotated, and a non-firing one is"
+              ";;; still shown, because you asked for it."
+              ";;;"
+              ";;; Inside a rule:"
+              ";;;   (wn-goal)         the goal formula"
+              ";;;   (wn-assumptions)  the assumptions, in context order"
+              ";;;   (wn-index a)      1-based index of A -- what inst+/mac-h/ineq take"
+              ";;;   (wn-add! f ...)   contribute a move"
+              ";;;"
+              ";;; Two worked rules ship with the prover; uncomment to switch on."
+              ";;;   wn-rule-instantiate-guarded  a guarded universal in the context,"
+              ";;;                                and a term the context types in that"
+              ";;;                                class => offer the instantiation."
+              ";;;   wn-rule-unfold-goal-head     goal headed by a registered operator"
+              ";;;                                => offer its unfold as a rewrite."
+              ";;;"
+              ";;; Your own, in the user's shape:"
+              ";;;"
+              ";;;   (define (my-rule a)                    ; one assumption"
+              ";;;     (if (and (pair? a) (eq? (car a) 'FORSOME))"
+              ";;;         (list 'ai (wn-index a))"
+              ";;;         #f))"
+              ""
+              "(what-now-rules!"
+              "  (list                     ; ---- assumption rules ----"
+              "    ;; wn-rule-instantiate-guarded"
+              "    )"
+              "  (list                     ; ---- goal rules ----"
+              "    ;; wn-rule-unfold-goal-head"
+              "    ))")))))
+    path))
+
+(define (what-now-filter-load!)
+  (let ((path (what-now-filter-file)))
+    (load path)
+    (display ";; what-now filter loaded from ") (display path) (newline)
+    (what-now-filter)))
+
+(define (what-now-filter)
+  (display ";; *what-now-suppress* (never offered): ") (write *what-now-suppress*) (newline)
+  (display ";; *what-now-pin*      (always first):  ") (write *what-now-pin*) (newline)
+  (display ";; pattern kinds: SYMBOL = exact name; STRING = substring;")
+  (newline)
+  (display ";;   LIST = MIT regsexp, e.g. (seq (* (any-char)) \"-rev\" (line-end));")
+  (newline)
+  (display ";;   PROCEDURE = called on the name symbol.")
+  (newline)
+  (display ";; e.g. (what-now-suppress! \"bdd-metric\" '(seq (* (any-char)) \"-rev\" (line-end)))")
+  (newline)
+  (display ";; edit it as a file:  M-x vnb-edit-filter   (")
+  (display (what-now--filter-path)) (display ")")
+  (newline)
+  ;; SELF-DESCRIBING VALUE.  This used to be `(cons suppress pin)', which on an
+  ;; empty filter prints as `(())' -- a value that tells the reader nothing at
+  ;; all, and is the ONLY thing they see when the call comes through the Emacs
+  ;; bridge, which returns the value and not the `display' output above.  A
+  ;; facility whose whole job is to SHOW you the filter must not answer `(())'.
+  ;; The file path rides along because the empty case's next question is always
+  ;; "where do I write one".  Nothing consumed the cons: the single internal
+  ;; caller (`what-now-filter-load!') uses it for effect.
+  (list (cons 'suppress *what-now-suppress*)
+        (cons 'pin      *what-now-pin*)
+        (cons 'file     (what-now--filter-path))
+        (cons 'file-exists? (file-exists? (what-now--filter-path)))))
+
+(define (what-now--show-inverses dem)
+  (when (pair? dem)
+    (display ";; NOT offered -- each of these makes the goal BIGGER.  Expanding is")
+    (newline)
+    (display ";; occasionally right -- to make a later lemma match -- but it is never")
+    (newline)
+    (display ";; the obvious move, and it is how you end up rewriting a goal into")
+    (newline)
+    (display ";; vocabulary it had nothing to do with:") (newline)
+    (for-each (lambda (p)
+                (display ";;   ") (vnb--write-form (wn--move-form (car p)))
+                (when (cdr p)
+                  (display "   (the same equation as ") (display (cdr p))
+                  (display ", backwards)"))
+                (newline))
+              dem)))
+
+(define (what-now--show-rewrite goal opt-depth)
+  (if (<= *what-now-probe-cap* 0)
+      '()
+      (let* ((names  (suggest--goal-rewrite-names goal opt-depth))
+             (forms  (map (lambda (nm) (list 'mac (list 'quote nm))) names))
+             (runner (lambda (form) (cmd-apply-macete *ps* (cadr (cadr form))))))
+        (if (null? forms)
+            '()
+            (call-with-values
+              (lambda () (what-now--fire-rank forms runner))
+              (lambda (fired unprobed)
+                (let* ((buckets (what-now--triage-rewrites fired goal runner))
+                       (bucket  (lambda (k) (cdr (assq k buckets))))
+                       (split   (what-now--split-inverses (bucket 'keep) runner goal))
+                       (shown   (what-now--show-fired "rewrites"
+                                                      (what-now--apply-filter (car split))
+                                                      unprobed (length forms)))
+                       (notn    (what-now--show-notational (bucket 'notational)))
+                       (folds   (what-now--show-folds (bucket 'fold))))
+                  (what-now--show-undone (bucket 'undo))
+                  (what-now--show-flips  (bucket 'flip))
+                  (what-now--show-dups   (bucket 'dup))
+                  (what-now--show-inverses (cdr split))
+                  ;; notational and folding ones ARE offered -- demoted, not withheld
+                  (append shown notn folds))))))))
+
+;;; -----------------------------------------------------------------------
+;;; The FORWARD lane -- which library facts does my CONTEXT already fire?
+;;;
+;;; Every other lane reasons from the GOAL.  The backchain lane ranks lemmas
+;;; whose CONCLUSION matches it; the rewrite lane asks what rewrites it; the
+;;; live-fire lane asks which parameterless tactic moves it.  None of them can
+;;; see a move whose relevance comes from the HYPOTHESES, and that is a whole
+;;; class of first moves -- typically the one that produces the equation the
+;;; rest of the proof rewrites with.
+;;;
+;;; The case that prompted this (2026-08-15).  On
+;;;
+;;;     length(l) = 0, l in tuples(a)  |-  card(make-set(l)) <= 0
+;;;
+;;; the answer is `(fact 'tuple-length-zero 'a 'l)': its two antecedents ARE
+;;; assumptions 1 and 2, and its conclusion `l = []' is the equation the whole
+;;; base case turns on.  what-now said nothing about it -- the backchain lane
+;;; offered six lemmas concluding a bare `_ <= _', the rewrite lane found
+;;; nothing (make-set(l) does not match make-set([]) until the substitution has
+;;; happened), and the fire probes had nothing.  Every lane was looking the
+;;; wrong way down the implication.
+;;;
+;;; This lane is the dual: peel a theorem's leading FORALL/IMPLIES prefix, match
+;;; each antecedent against a context assumption, and if they ALL match under
+;;; one consistent instantiation -- and every schema variable is thereby
+;;; determined -- report the runnable `(fact 'name t1 ... tk)' together with the
+;;; conclusion it lands.  Same peel and same greedy hypothesis pairing as
+;;; `bc*-can-close?' (interactive.scm), minus the conclusion-matches-the-goal
+;;; requirement, which is exactly the requirement that made it goal-directed.
+;;;
+;;; It reports what the citation LANDS, not a subgoal count: a forward move does
+;;; not change the goal, so a count would say nothing.  Candidates whose
+;;; conclusion is already in context (up to alpha) are dropped -- that citation
+;;; is a no-op, and `fact' would land nothing new.
+
+;;; The conjuncts of F, flattened.  A theorem's antecedent is routinely an AND
+;;; (`ord-le-total', `tuple-length-zero', ...) while the context holds the two
+;;; conjuncts SEPARATELY, so matching the conjunction whole finds nothing.
+(define (what-now--conjuncts f)
+  (if (and (pair? f) (memq (car f) '(AND and)) (= (length f) 3))
+      (append (what-now--conjuncts (cadr f)) (what-now--conjuncts (caddr f)))
+      (list f)))
+
+;;; -----------------------------------------------------------------------
+;;; ANCHORING -- determining a citation's remaining schema variables from the
+;;; TERMS THE SEQUENT ALREADY CONTAINS.
+;;;
+;;; Two of the forward lane's miss buckets are one defect seen twice.  Measured
+;;; over 274 recorded `fact' steps (harvest.scm, `harvest-diagnose!'):
+;;;
+;;;   svars-open     9%   every antecedent matched, but the instantiation left
+;;;                       a schema variable undetermined
+;;;   no-antecedent  7%   the theorem has no hypothesis at all, so the lane
+;;;                       skipped it -- `interval-in-set', `nn-zero-in',
+;;;                       `complement-in-subset'
+;;;
+;;; In both the author simply NAMED the terms: `(fact 'interval-in-set lo hi)'.
+;;; The lane could not, because it looked for its instantiation in the
+;;; ANTECEDENTS only, and an antecedent-free theorem has nowhere to look.
+;;;
+;;; The mechanism is one idea rather than two patches: a citation is worth
+;;; offering when the thing it is ABOUT is already in front of you.  So take the
+;;; conclusion's compound subterms that still carry an open variable, largest
+;;; first (most constraining), and match them against the subterms actually
+;;; occurring in the sequent.  `INTERVAL(a,b) in SET' anchors on the sequent's
+;;; own `INTERVAL(lo,hi)' and yields `(fact 'interval-in-set lo hi)'.
+;;;
+;;; This is not a new kind of search: it is `match-expr' against the ambient
+;;; term set, the same one-sided match `bc*' does against the goal, with the
+;;; ambient terms rigid.  Nothing is guessed -- an anchor that matches no
+;;; present term simply fails and the citation is not offered.
+
+;;; Every subterm of FORM, atoms included, deduplicated -- but NOT the
+;;; FORMULAS along the way.  Atoms are in because the groundedness test below
+;;; asks whether `0' occurs, not only whether `INTERVAL(lo,hi)' does.
+;;;
+;;; The exclusion is the fix for a real crash, and the reason is not tidiness.
+;;; `apply-tupling-2' is `(f a b) == (f (LIST a b))' with f, a, b all schema
+;;; variables, so its anchor pattern `(f a b)' is three open variables; matched
+;;; against the sequent's own IMPLICATION it bound f := implies, a := the
+;;; antecedent, b := the consequent, and the substitution that came back could
+;;; not be applied at all (`bc*--apply-subst' died on it, and the whole FORWARD
+;;; lane with it -- 3% of the library's `fact' steps).  A schema variable in
+;;; term position ranges over TERMS; a connective is syntax, not an object, and
+;;; the sequent's formulas have no business in a term pool.  We still walk INTO
+;;; a formula, because that is where its terms are.
+(define (what-now--subterms form)
+  ;; Dedup through a hash table, not `member'.  The list version compares each
+  ;; new subterm against every one already collected with `equal?', i.e. a deep
+  ;; structural walk per pair, and this runs once per candidate theorem -- some
+  ;; hundreds of times per panel.
+  (let ((acc '()) (seen (make-equal-hash-table)))
+    (let walk ((e form))
+      (if (not (and (pair? e) (symbol? (car e))
+                    (memq (car e) *what-now-logic-heads*)))
+          (unless (hash-table-ref/default seen e #f)
+            (hash-table-set! seen e #t)
+            (set! acc (cons e acc))))
+      (when (pair? e)
+        (if (pair? (car e)) (walk (car e)))
+        (for-each walk (cdr e))))
+    acc))
+
+;;; The sequent's term pool: every subterm of every assumption and of the goal,
+;;; INDEXED BY HEAD, plus a membership set and the flat list.
+;;;
+;;; The index is not tidiness.  Anchoring runs per candidate theorem, and with
+;;; antecedent-free theorems now admitted there are some hundreds of candidates
+;;; per call; a pattern `INTERVAL(a,b)' scanned against every one of a few
+;;; hundred sequent subterms would be a hundred thousand `match-expr' calls on a
+;;; panel measured at 70 ms.  Keyed by head it looks at the handful of terms
+;;; that could possibly match.  `*atom*' and `*compound*' are the two keys no
+;;; head can collide with: a symbol-headed application is filed under its head,
+;;; anything else under one of those two.
+(define (what-now--pool-key t)
+  (cond ((not (pair? t)) '*atom*)
+        ((symbol? (car t)) (car t))
+        (else '*compound*)))
+
+(define (what-now--term-pool goal asms)
+  (let ((byhead (make-strong-eqv-hash-table))
+        (seen   (make-equal-hash-table))
+        (flat   '()))
+    (for-each
+     (lambda (f)
+       (for-each
+        (lambda (t)
+          (unless (hash-table-ref/default seen t #f)
+            (hash-table-set! seen t #t)
+            (set! flat (cons t flat))
+            (let ((k (what-now--pool-key t)))
+              (hash-table-set! byhead k
+                (cons t (hash-table-ref/default byhead k '()))))))
+        (what-now--subterms f)))
+     (cons goal asms))
+    (list byhead seen flat)))
+
+(define (what-now--pool-has? pool t)
+  (hash-table-ref/default (cadr pool) t #f))
+
+;;; The terms a PATTERN could match: its head's bucket.  Patterns with an open
+;;; head are not generated (see `what-now--anchor-patterns'), and a pattern
+;;; headed by a compound operator -- ((DIST s) x y) -- is filed under the one
+;;; key that collects those.
+(define (what-now--pool-for pool pat)
+  (hash-table-ref/default (car pool) (what-now--pool-key pat) '()))
+
+;;; The compound subterms of CONCL that still carry an open schema variable,
+;;; largest first.  Size is the node count: a bigger pattern constrains more,
+;;; so trying it first keeps a one-node pattern from binding a variable that a
+;;; three-node one would have pinned correctly.
+(define (what-now--anchor-patterns concl open)
+  (let ((pats (filter (lambda (t)
+                        (and (pair? t)
+                             ;; NOT a pattern whose HEAD is still open.  Binding
+                             ;; a schema variable to an operator is the same
+                             ;; category error as matching against a formula:
+                             ;; the head of an application is syntax, and the
+                             ;; substitution that results cannot be applied
+                             ;; (`subst' reaches argument positions only).
+                             (not (and (symbol? (car t)) (memq (car t) open)))
+                             ;; NOT the conclusion itself.  Anchor on the TERMS
+                             ;; the citation is about, never on the claim it
+                             ;; makes: matching the whole conclusion against the
+                             ;; sequent finds the instance that is ALREADY in
+                             ;; context, which is the one instance the citation
+                             ;; cannot usefully land -- and being the largest
+                             ;; pattern it would be tried first every time.
+                             (not (equal? t concl))
+                             (any-pred (lambda (v) (what-now--occurs-in? v t)) open)))
+                      (what-now--subterms concl))))
+    (sort pats (lambda (a b) (> (what-now--size a) (what-now--size b))))))
+
+(define (what-now--size e)
+  (if (not (pair? e)) 1 (fold-left + 1 (map what-now--size (cdr e)))))
+
+;;; Extend SUBST until every variable in SVARS is determined, by matching
+;;; CONCL's open subterms against POOL.  Returns the extended substitution, or
+;;; #f if some variable cannot be anchored on anything present.
+;;;
+;;; THE PATTERN LIST IS BUILT ONCE.  The obvious recursion -- rebind a variable,
+;;; then recompute the patterns from the substituted conclusion -- is correct
+;;; and was measured at 4227 pattern generations for 522 candidates on one leaf,
+;;; eight walks of the conclusion per candidate, and it was the whole of the
+;;; lane's added cost (2.0 s of a 2.0 s call; the matching itself was 2920
+;;; `match-expr' calls against a pool of eleven terms).  Ordering the patterns
+;;; once, largest first, and substituting into each as it comes up is the same
+;;; search with the walk hoisted out.
+;;; Could ANY pattern from CONCL match anything at all?  A pattern is filed
+;;; under its head, so if no head of the conclusion has a bucket in the pool
+;;; there is nothing to try, and building and sorting the pattern list is pure
+;;; waste.  Some hundreds of candidates per panel take this exit.
+(define (what-now--anchorable? concl pool)
+  (or
+   ;; a COMPOUND-headed pattern -- ((DIST s) x y) -- is filed under `*compound*'
+   ;; and not under any head `what-now--all-heads' reports, so it has to be
+   ;; asked for separately or the filter silently drops every structure-operation
+   ;; citation, which is most of the algebra and all of the metric geometry.
+   (pair? (hash-table-ref/default (car pool) '*compound* '()))
+   (any-pred (lambda (h) (pair? (hash-table-ref/default (car pool) h '())))
+             (what-now--all-heads concl))))
+
+(define (what-now--anchor-svars concl svars subst pool)
+  (if (not (what-now--anchorable? concl pool))
+      (and (null? (filter (lambda (v) (not (assoc v subst))) svars)) subst)
+  (let loop ((pats (what-now--anchor-patterns concl svars)) (sub subst))
+    (let ((open (filter (lambda (v) (not (assoc v sub))) svars)))
+      (cond
+        ((null? open) sub)
+        ((null? pats) #f)                    ; nothing left to anchor on
+        (else
+         (let ((p (bc*--apply-subst sub (car pats))))
+           (if (not (any-pred (lambda (v) (what-now--occurs-in? v p)) open))
+               (loop (cdr pats) sub)         ; already ground -- nothing to learn
+               (let try ((ts (what-now--pool-for pool p)))
+                 (cond ((null? ts) (loop (cdr pats) sub))
+                       ((let ((m (match-expr p (car ts) open)))
+                          (and m (merge-subst sub m)))
+                        => (lambda (m2) (loop (cdr pats) m2)))
+                       (else (try (cdr ts)))))))))))))
+
+;;; Is LANDED about things the sequent already has?  The relevance test for an
+;;; ANTECEDENT-FREE citation, which by definition is not "fired by the context"
+;;; and so has no other claim on the reader's attention.  Every argument of the
+;;; landed atom must occur in the pool, bar the ubiquitous classes -- `0 in NN'
+;;; is worth offering exactly when the sequent mentions `0', and never
+;;; otherwise, there being some hundreds of such facts in the library.
+(define (what-now--grounded-in? landed pool)
+  (and (pair? landed)
+       (pair? (cdr landed))
+       (every-pred (lambda (a)
+                     (or (and (symbol? a) (memq a *what-now--ubiquitous-heads*))
+                         (what-now--pool-has? pool a)))
+                   (cdr landed))
+       ;; ...and at least one argument must be genuinely PRESENT, not merely
+       ;; exempt.  The exemption is there so that `0 in NN' counts as being
+       ;; about `0' rather than about NN; without this clause `RR in SET' is
+       ;; about nothing at all and grounds on any goal whatever, which is how
+       ;; `rr-is-set' and `nn-is-set' turned up on the goal `0 in nn'.
+       (any-pred (lambda (a) (what-now--pool-has? pool a)) (cdr landed))))
+
+;;; An IFF between two alpha-equal sides lands a tautology: true, fired, and
+;;; informationally empty.  `ms-eq-symm' does this on any equation -- on the
+;;; goal `forall([x], x = x)' with no context at all it was the lane's only
+;;; hit, landing `(x = x) iff (x = x)'.  NOT extended to `t = t', which in a
+;;; partial logic is the definedness of t and says something.
+(define (what-now--vacuous-iff? landed)
+  (and (pair? landed) (memq (car landed) '(IFF iff)) (= (length landed) 3)
+       (alpha-equiv? (cadr landed) (caddr landed))))
+
+;;; Peel, match, and return (subst landed needs-have hyps) -- or #f.
+;;; ASMS are raw formulas.
+;;;
+;;; NEEDS-HAVE is the point of the whole exercise.  `fact' peels universals and
+;;; detaches each antecedent it finds in context, but it will NOT split a
+;;; conjunctive one: handed `(IMPLIES (AND p q) r)' with p and q separately in
+;;; context, it silently lands the IMPLICATION and the driver sails on.  So when
+;;; the match succeeded only because we split an AND, the runnable move is TWO
+;;; moves -- `(have! '(AND p q))' and then the citation -- and the lane must say
+;;; so or it is handing out a silent no-op.
+(define (what-now--forward-fire thm asms #!optional pool)
+  (let-values (((svars hyps concl) (bc*--peel-full thm)))
+    (let ((flat (apply append (map what-now--conjuncts hyps)))
+          (pool (if (default-object? pool) #f pool)))
+      ;; A theorem with NO antecedent used to be rejected here outright, on the
+      ;; grounds that it is not "fired by the context" but merely available,
+      ;; which `ta' covers.  Measured, `ta' offers it 0% of the time and 7% of
+      ;; the library's own `fact' steps cite one, so nothing covered it.  With a
+      ;; term pool it is admitted: anchoring decides whether it is about
+      ;; anything present, which is a sharper test than having an antecedent.
+      (and (or (pair? flat) pool)
+           (let loop ((hs flat) (subst '()))
+             (if (null? hs)
+                 (let ((sub (if (every-pred (lambda (v) (assoc v subst)) svars)
+                                subst
+                                ;; ANCHOR the leftovers on the sequent's terms
+                                (and pool
+                                     (what-now--anchor-svars concl svars subst pool)))))
+                   (and sub
+                        (let ((landed (bc*--apply-subst sub concl)))
+                          (and (or (pair? flat)
+                                   (what-now--grounded-in? landed pool))
+                               (list sub
+                                     landed
+                                     (> (length flat) (length hyps))
+                                     (map (lambda (h) (bc*--apply-subst sub h)) hyps))))))
+                 (let* ((h   (bc*--apply-subst subst (car hs)))
+                        (rem (filter (lambda (v) (not (assoc v subst))) svars)))
+                   (let try ((as asms))
+                     (and (pair? as)
+                          (let ((hm (fluid-let ((*match-var-head* #t))
+                                      (match-expr h (car as) rem))))
+                            (or (and hm
+                                     (let ((merged (merge-subst subst hm)))
+                                       (and merged (loop (cdr hs) merged))))
+                                (try (cdr as)))))))))))))
+
+(define (every-pred p xs)
+  (or (null? xs) (and (p (car xs)) (every-pred p (cdr xs)))))
+
+;;; Heads occurring anywhere in FORM -- the cheap index for the sweep below.
+(define (what-now--all-heads form)
+  (let walk ((e form) (acc '()))
+    (cond ((not (pair? e)) acc)
+          (else (let ((acc (if (symbol? (car e))
+                               (cons (car e) acc)
+                               (walk (car e) acc))))   ; compound head -- see above
+                  (let lp ((l (cdr e)) (a acc))
+                    (if (null? l) a (lp (cdr l) (walk (car l) a)))))))))
+
+;;; Does TERM occur as a subterm of FORM?
+(define (what-now--occurs-in? term form)
+  (or (equal? term form)
+      (and (pair? form)
+           (any-pred (lambda (x) (what-now--occurs-in? term x)) (cdr form)))))
+
+;;; A landed formula is CHURN when it merely turns an assumption around: the
+;;; context has `length(l) = 0' and the citation lands `0 = length(l)'.  Both
+;;; `eq-sym' and `equality-symmetry' fire on every equation in every context, so
+;;; without this the lane leads with two guaranteed no-ops.  Same judgement the
+;;; live-fire lane makes with `what-now--reorientation?'.
+(define (what-now--churn? landed asms)
+  (and (pair? landed) (memq (car landed) '(= ==)) (= (length landed) 3)
+       (any-pred (lambda (a) (alpha-equiv? a (list (car landed)
+                                                   (caddr landed)
+                                                   (cadr landed))))
+                 asms)))
+
+;;; Heads too common to count as shared CONTENT.  The rank-1 test below asks
+;;; "does this citation's conclusion mention something the goal is about", and
+;;; without this list the answer is yes for almost every fact in the library:
+;;; the goal `x_ in empty-set' has head `in', and so does every typing fact
+;;; there is -- `power(x_) in set', `trinum(i_) in nn', `succ(i_) in nn'.
+;;; Measured 2026-08-15: 105 hits on one leaf, all of them promoted to rank 1
+;;; by `in' alone.  The classes go in the list for the same reason as the
+;;; relations: `NN' and `SET' are what typing facts CONCLUDE, not what a goal
+;;; is about.
+(define *what-now--ubiquitous-heads*
+  '(IN in = == <= < >= > AND OR NOT IMPLIES IFF FORALL FORSOME
+    NN ZZ QQ RR CC SET ORD))
+
+(define (what-now--content-heads form)
+  (filter (lambda (h) (not (memq h *what-now--ubiquitous-heads*)))
+          (what-now--all-heads form)))
+
+;;; Rank key, smaller first:
+;;;   0  an EQUATION whose left side occurs in the goal -- i.e. a citation that
+;;;      hands you a rewrite the goal will actually accept.  This is the move
+;;;      that unblocks a leaf, and `tuple-length-zero' landing `l = []' against
+;;;      a goal mentioning `l' is the worked example.
+;;;   1  the conclusion shares a head with the goal -- feeds it, less directly.
+;;;   2  everything else: true, fired, and merely enriching the context.
+;;; -----------------------------------------------------------------------
+;;; THE SECONDARY KEY -- and the reason the rank above is not enough.
+;;;
+;;; Until 2026-08-19 the sort below was `(< (cadddr a) (cadddr b))' and nothing
+;;; else: three buckets, 0/1/2, with MIT's stable sort leaving the order INSIDE
+;;; a bucket as `hash-table-keys' returned it.  Measured (harvest.scm,
+;;; `harvest-diagnose!', 120 scripts, 274 recorded `fact' steps): of the
+;;; citations the lane fires and keeps, the author's own choice sits at median
+;;; rank 17, p75 38, max 53 -- so the retrieval was never the problem and the
+;;; ordering inside a bucket was hash order.  A cap of 5 on a list ordered that
+;;; way offers the right move 12% of the time, which is what it did.
+;;;
+;;; The tiebreak is MEASURED, not another proxy: `cite-score' (cite-index.scm)
+;;; is how much more often than usual a theorem is cited in proofs whose
+;;; statement mentions one of this sequent's heads, and `cite-co-score' is the
+;;; same ratio against the lemmas already cited in THIS proof.  Both are 1 --
+;;; neutral -- where the library has no evidence, so a lemma nobody has had
+;;; occasion to use is not punished for it, it simply falls back on the
+;;; syntactic rank.
+;;;
+;;; `cite-score' and `cite-co-score' are free variables here: cite-index.scm
+;;; loads AFTER this file (it reads `what-now--heads-of' rather than copying
+;;; it), and a top-level define resolves at call time, which is long after both
+;;; files are in.  The flag is for the harvester, which measures with and
+;;; without.
+(define *what-now-use-cite-index* #t)
+
+;;; Anchoring on -- see `what-now--anchor-svars'.  A switch for the same reason:
+;;; a change to a copilot lane that is not measured against the library's own
+;;; scripts is an opinion.
+(define *what-now-anchor* #t)
+
+(define (what-now--cite-rank thm heads cited)
+  (if (not *what-now-use-cite-index*)
+      1
+      (let ((a (cite-score thm heads))
+            (b (cite-co-score thm cited)))
+        (if (> a b) a b))))
+
+(define (what-now--forward-rank landed goal goal-heads)
+  (cond ((and (pair? landed) (memq (car landed) '(= ==)) (= (length landed) 3)
+              (what-now--occurs-in? (cadr landed) goal)
+              (not (equal? (cadr landed) (caddr landed))))
+         0)
+        ((any-pred (lambda (hd) (memq hd goal-heads))
+                   (what-now--content-heads landed))
+         1)
+        (else 2)))
+
+;;; ((name terms conclusion rank) ...), best first.
+(define (what-now--forward-citations goal asms)
+  ;; The heads of the SEQUENT -- goal included.  It used to be the assumptions
+  ;; alone, which is harmless while every candidate has an antecedent (an
+  ;; antecedent is matched against an assumption, so an assumption head is the
+  ;; right gate) and wrong the moment antecedent-free theorems are admitted:
+  ;; `0 in NN' is gated on `IN', and a leaf whose context is empty and whose
+  ;; goal is `0 in NN' then has no context head at all.  Measured: 4 of 274.
+  (let* ((ctx-heads (append (what-now--all-heads goal)
+                            (apply append (map what-now--all-heads asms))))
+         (goal-heads (what-now--content-heads goal))
+         ;; The sequent's own terms, computed ONCE.  Anchoring matches against
+         ;; this; building it per candidate would walk the sequent 2581 times.
+         ;; #f switches anchoring off entirely and restores the pre-2026-08-19
+         ;; lane exactly (no pool => antecedent-free theorems rejected, open
+         ;; schema variables fatal), which is what the harvester measures
+         ;; against.
+         (pool (and *what-now-anchor* (what-now--term-pool goal asms)))
+         (hits '()))
+    (for-each
+     (lambda (name)
+       (let ((thm (hash-table-ref/default *theorem-table* name #f)))
+         (when thm
+           ;; cheap filter first: some antecedent head must occur in the context
+           (let-values (((svars hyps concl) (bc*--peel-full thm)))
+             (when (if (pair? hyps)
+                       ;; some antecedent head must occur in the context
+                       (any-pred (lambda (h)
+                                   (any-pred (lambda (hd) (memq hd ctx-heads))
+                                             (what-now--all-heads h)))
+                                 hyps)
+                       ;; ANTECEDENT-FREE: the cheap gate is that the conclusion
+                       ;; mentions a head the sequent uses.  It is deliberately
+                       ;; loose -- `0 in NN' passes on `IN' alone -- because the
+                       ;; real test is `what-now--grounded-in?' downstream, and
+                       ;; a gate tight enough to exclude it here would exclude
+                       ;; it when the goal is about 0 as well.
+                       (any-pred (lambda (hd) (memq hd ctx-heads))
+                                 (what-now--all-heads concl)))
+               (let ((r (what-now--forward-fire thm asms pool)))
+                 (when r
+                   (let ((landed (cadr r)))
+                     ;; already in context => the citation lands nothing;
+                     ;; a flipped equation => it lands only churn
+                     (unless (or (any-pred (lambda (a) (alpha-equiv? a landed)) asms)
+                                 (what-now--churn? landed asms)
+                                 (what-now--vacuous-iff? landed))
+                       (set! hits
+                             (cons (list name
+                                         (map (lambda (v) (cdr (assoc v (car r))))
+                                              svars)
+                                         landed
+                                         (what-now--forward-rank
+                                          landed goal goal-heads)
+                                         (caddr r)      ; needs a have! first?
+                                         (cadddr r))    ; the instantiated hyps
+                                   hits)))))))))))
+     (hash-table-keys *theorem-table*))
+    ;; Drop a `-rev' companion when the forward form is also a hit: they land
+    ;; the same equation turned around, and the reversed one is the churn.
+    ;; (`find-thm' collapses the pair for the same reason.)
+    (let ((names (map car hits)))
+      (set! hits
+            (filter (lambda (h)
+                      (let* ((s (symbol->string (car h)))
+                             (n (string-length s)))
+                        (not (and (> n 4)
+                                  (string=? (substring s (- n 4) n) "-rev")
+                                  (memq (string->symbol (substring s 0 (- n 4)))
+                                        names)))))
+                    hits)))
+    ;; Sort: syntactic rank first (0/1/2 -- an equation the goal can use beats
+    ;; a shared head beats neither), then the MEASURED affinity, descending.
+    ;; The affinity is a tiebreak and not the primary key on purpose: rank 0 is
+    ;; a statement about THIS goal, and the index is a statement about the
+    ;; library's habits.  A habit does not outrank the rewrite in front of you.
+    (let* ((heads (what-now--sequent-heads-all goal))
+           (cited (if *what-now-use-cite-index* (cite-cited-so-far) '()))
+           (keyed (map (lambda (h)
+                         (cons (what-now--cite-rank (car h) heads cited) h))
+                       hits)))
+      (map cdr
+           (sort keyed
+                 (lambda (a b)
+                   (let ((ra (cadddr (cdr a))) (rb (cadddr (cdr b))))
+                     (cond ((< ra rb) #t)
+                           ((> ra rb) #f)
+                           (else (> (car a) (car b)))))))))))
+
+
+;;; -----------------------------------------------------------------------
+;;; SEQUENT VOCABULARY (2026-08-18, the user's rule).
+;;;
+;;;     "If there is no function in the sequent then don't tell me what to do
+;;;      about functions."
+;;;
+;;; The forward lane ranks a citation by whether the CONTEXT fires it, which is
+;;; a fact about the antecedents and says nothing about whether the conclusion
+;;; is about anything you are doing.  On
+;;;
+;;;     is-metric-space(t) |- forall([a in pts(t)], (dist(t))(a,a) = 0)
+;;;
+;;; it offered `bdd-metric-id-bicontinuous', `carrier-is-open' and
+;;; `bdd-metric-preserves-metric-top' -- all fired, all true, and between them
+;;; about bicontinuity, open sets and metric topologies, none of which the
+;;; sequent mentions.  Taking one lands a formula in a vocabulary the proof was
+;;; not in, which is how a reader ends up several rewrites from where they meant
+;;; to be.
+;;;
+;;; So: a citation whose LANDED FORMULA introduces a head that occurs NOWHERE in
+;;; the sequent is demoted, and the offending vocabulary is named.  Demoted, not
+;;; withheld: bringing in new vocabulary is exactly what a bridging lemma does,
+;;; and the panel should not decide that for you -- it should say which lemmas
+;;; stay inside the language you are working in and which do not.
+;;;
+;;; The exempt heads are the ones every sequent may mention without meaning
+;;; anything by it: the number systems, SET/ORD, and the tuple plumbing.
+;;; NOTE the relational heads.  `*what-now-logic-heads*' covers the CONNECTIVES
+;;; and quantifiers only, so `IN', `SUBSET', `=' and `==' arrive here as
+;;; ordinary heads -- and every sequent has them.  Counting those as foreign
+;;; would demote the whole lane.
+;;; ... AND THE ARITHMETIC.  Omitting these was a regression, caught by the user
+;;; on the ultrametric goal
+;;;
+;;;     is-metric-space(ms), a,b,c in pts(ms)
+;;;        |-  d(a,c) <= 2 * max(d(a,b), d(b,c))
+;;;
+;;; where the whole forward lane vanished.  `metric-triangle' lands
+;;; `d(x,z) <= d(x,y) + d(y,z)', whose `+' is not in that goal -- so the filter
+;;; called the TRIANGLE INEQUALITY foreign vocabulary on a metric-space goal and
+;;; hid it.  Bounding something by a SUM is the commonest shape in analysis and
+;;; the sum is exactly what is not yet in the goal.
+;;;
+;;; The distinction the filter is for is DOMAIN vocabulary -- is-compact,
+;;; has-fip, bdd-metric -- not the ambient arithmetic every real inequality is
+;;; written in.  `+ - * /' belong with `<=' and `IN', and a rule that cuts noise
+;;; by hiding the move you need is worse than the noise.
+(define *what-now-vocab-exempt*
+  '(IN SUBSET = == <= < >= >
+    + - * / recip abs max succ
+    NN ZZ QQ RR CC SET ORD LIST NTH LENGTH CARTESIAN POWER FUN
+    in subset nn zz qq rr cc set ord list nth length cartesian power fun))
+
+;;; `what-now--sequent-heads' is CAPPED at *what-now-about-heads-cap* because it
+;;; feeds a printed list.  Filtering must see all of them, or a sequent with
+;;; nine heads starts reporting the ninth as foreign.
+(define (what-now--sequent-heads-all goal)
+  (let ((gh (what-now--heads-of goal))
+        (ch (if (not *ps*)
+                '()
+                (let loop ((as (map wff-formula
+                                    (sequent-node-assumptions (proof-state-focus *ps*))))
+                           (acc '()))
+                  (if (null? as)
+                      acc
+                      (loop (cdr as) (append acc (what-now--heads-of (car as)))))))))
+    (let loop ((hs (append gh ch)) (acc '()))
+      (cond ((null? hs) (reverse acc))
+            ((memq (car hs) acc) (loop (cdr hs) acc))
+            (else (loop (cdr hs) (cons (car hs) acc)))))))
+
+;;; The heads FORM mentions that the sequent does not, ignoring the exempt ones.
+(define (what-now--foreign-vocab form seq-heads)
+  (let loop ((hs (what-now--heads-of form)) (acc '()))
+    (cond ((null? hs) (reverse acc))
+          ((or (memq (car hs) seq-heads)
+               (memq (car hs) *what-now-vocab-exempt*)
+               (memq (car hs) acc))
+           (loop (cdr hs) acc))
+          (else (loop (cdr hs) (cons (car hs) acc))))))
+
+;;; Partition HITS into (IN-VOCABULARY . FOREIGN), FOREIGN carrying the heads.
+(define (what-now--split-vocab hits goal)
+  (let ((seq (what-now--sequent-heads-all goal)))
+    (let loop ((hs hits) (keep '()) (out '()))
+      (if (null? hs)
+          (cons (reverse keep) (reverse out))
+          (let ((foreign (what-now--foreign-vocab (caddr (car hs)) seq)))
+            (if (null? foreign)
+                (loop (cdr hs) (cons (car hs) keep) out)
+                (loop (cdr hs) keep (cons (cons (car hs) foreign) out))))))))
+
+(define (what-now--show-foreign-vocab out)
+  (when (pair? out)
+    (display ";; NOT offered -- these fire, but each lands a formula in vocabulary")
+    (newline)
+    (display ";;   this sequent does not use.  Take one only if you mean to bring")
+    (newline)
+    (display ";;   that vocabulary in:") (newline)
+    (let loop ((os out) (k 0))
+      (when (and (pair? os) (< k *what-now-limit*))
+        (display ";;   (fact \'") (display (car (car (car os)))) (display ")")
+        (display "   -- introduces ")
+        (let inner ((vs (cdr (car os))) (first #t))
+          (when (pair? vs)
+            (if (not first) (display ", "))
+            (display (car vs))
+            (inner (cdr vs) #f)))
+        (newline)
+        (loop (cdr os) (+ k 1))))))
+
+;;; A term, as `fact' TAKES it.  `fact' evaluates its arguments, so a compound
+;;; term goes in as a quoted S-EXPRESSION -- `(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)',
+;;; which is how every driver in theorem-library writes one.  The lane used to
+;;; print `'` followed by the SURFACE form, giving `'carr(a)' -- a quote applied
+;;; to an application, which reads as the symbol `carr' applied to `a' and is
+;;; not what the reader wants pasted anywhere.  It was invisible while the lane
+;;; only ever instantiated from matched antecedents, whose terms are mostly
+;;; eigenvariables; anchoring reads terms straight off the sequent, so most of
+;;; them are compound now.
+(define (what-now--term-arg t)
+  (cond ((number? t) (number->string t))
+        ((pair? t)   (string-append "'" (with-output-to-string (lambda () (write t)))))
+        (else        (string-append "'" (what-now--text t)))))
+
+;;; The push-a-negation lane.  Every "suppose it does NOT converge / is NOT
+;;; bounded / is NOT continuous" argument opens here, and until `push-not-h'
+;;; existed the panel had nothing to say at a NOT-headed hypothesis: `prop'
+;;; treats a quantifier as an opaque atom and reports a countermodel, and the
+;;; forty-line hand derivation is not something a panel can suggest.
+(define (what-now--show-push-not)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let* ((sqn  (proof-state-focus *ps*))
+             (asms (map wff-formula (sequent-node-assumptions sqn)))
+             (hits (let loop ((as asms) (k 1) (acc '()))
+                     (if (null? as)
+                         (reverse acc)
+                         (let ((t (and (pair? (car as)) (eq? (car (car as)) 'not)
+                                       (= (length (car as)) 2)
+                                       (push-not--target (cadr (car as)) asms))))
+                           (loop (cdr as) (+ k 1)
+                                 (if (and t (not (any-pred
+                                                  (lambda (a) (alpha-equiv? a t)) asms)))
+                                     (cons (list k t) acc)
+                                     acc)))))))
+        (if (null? hits)
+            '()
+            (begin
+              (display ";; PUSH A NEGATION INWARD -- these assumptions carry a NOT that")
+              (newline)
+              (display ";;   can move through a quantifier, an implication or a De Morgan:")
+              (newline)
+              (for-each
+               (lambda (h)
+                 (display ";;   (push-not-h ") (display (car h)) (display ")")
+                 (display "   lands  ")
+                 (display (expression->string (cadr h)))
+                 (newline))
+               hits)
+              (map (lambda (h) (list 'push-not-h (car h))) hits))))))
+
+(define (what-now--show-forward-citations goal)
+  (let* ((sqn  (and *ps* (not (proof-done? *ps*)) (proof-state-focus *ps*)))
+         (asms (if sqn (map wff-formula (sequent-node-assumptions sqn)) '())))
+    (if (null? asms)
+        '()
+        (let* ((all  (what-now--forward-citations goal asms))
+               ;; Filter on the NAME **and the formula the citation lands**, not
+               ;; the name alone.  Filtering by name deleted this lane outright
+               ;; on the hints most worth typing: `(what-now "tuples")' matched
+               ;; nothing, because the move it should have surfaced is called
+               ;; `tuple-cons-decompose' -- "tuples" is not a substring of
+               ;; "tuple-cons-decompose" -- while the formula it LANDS,
+               ;; `forsome([x in a, m in tuples(a)], ...)', says `tuples' plainly.
+               ;; So the panel's own advertised escape hatch made the lane worse
+               ;; than not filtering at all: it printed nothing and looked like
+               ;; there was nothing to say.  (Measured 2026-08-16 by an agent
+               ;; driving a proof on the panel alone.)
+               (hits (what-now--hint-filter
+                      all
+                      (lambda (h)
+                        (string-append (symbol->string (car h)) " "
+                                       (expression->string (caddr h))))))
+               ;; the user's rule: stay inside the sequent's vocabulary unless
+               ;; the reader asks otherwise.  A HINT is such an asking, so the
+               ;; split is skipped under one.
+               (vsplit (if *what-now-hint* (cons hits '())
+                           (what-now--split-vocab hits goal)))
+               (foreign (cdr vsplit))
+               (hits    (car vsplit)))
+          (what-now--show-foreign-vocab foreign)
+          (cond
+            ((null? hits) '())
+            ;; RANK 2 IS NOISE IN BULK.  A context with a few typed variables
+            ;; fires a hundred typing facts -- `power(x_) in set',
+            ;; `trinum(i_) in nn', `succ(i_) in nn' -- every one true, fired,
+            ;; and useless, because none of them mentions anything the GOAL is
+            ;; about.  Listing five arbitrary ones is worse than saying nothing:
+            ;; it reads like advice.  So when NOTHING outranks 2, report the
+            ;; count and stop.  (Measured on the contradictory base-case leaf,
+            ;; 2026-08-15: 105 hits, all rank 2.)
+            ;; ... unless a HINT is active.  Suppressing rank 2 under a hint is
+            ;; how `(what-now "tuples")' came to print NOTHING: the filter had
+            ;; narrowed 79 candidates down to the one the user asked for, and
+            ;; this arm then threw it away for being rank 2.  A hint is an
+            ;; explicit request for those very facts.
+            ((and (not *what-now-hint*)
+                  (every-pred (lambda (h) (= (cadddr h) 2)) hits))
+             (display ";; FORWARD -- ") (display (length hits))
+             (display " library fact(s) fire off your context, but NONE of them")
+             (newline)
+             (display ";;   mentions anything the goal is about (they are typing facts and")
+             (newline)
+             (display ";;   the like).  (what-now \"<word>\") to filter them if you want the list.")
+             (newline)
+             '())
+            (else
+              (begin
+                (display ";; FORWARD -- library fact(s) whose antecedents your CONTEXT")
+                (display " already satisfies;") (newline)
+                (display ";;   each is runnable as printed and LANDS the stated formula:")
+                (newline)
+                (let loop ((hs hits) (k 0))
+                  (when (and (pair? hs) (< k *what-now-limit*))
+                    (let ((name   (car    (car hs)))
+                          (terms  (cadr   (car hs)))
+                          (landed (caddr  (car hs)))
+                          (have   (list-ref (car hs) 4))
+                          (hyps   (list-ref (car hs) 5)))
+                      ;; A conjunctive antecedent must be landed as ONE
+                      ;; conjunction first -- `fact' does not split it, and
+                      ;; without the have! the citation lands the implication
+                      ;; and looks like it worked.
+                      (when have
+                        (for-each
+                         (lambda (h)
+                           (when (and (pair? h) (memq (car h) '(AND and)))
+                             (display ";;   (have! '")
+                             (write h) (display ")")
+                             (display "   -- fact will NOT split this; land it first")
+                             (newline)))
+                         hyps))
+                      (display ";;   ") (if have (display "  then "))
+                      (display "(fact '") (display name)
+                      (for-each (lambda (t) (display " ") (display (what-now--term-arg t)))
+                                terms)
+                      (display ")") (newline)
+                      (display ";;        lands  ")
+                      (display (expression->string landed)) (newline))
+                    (loop (cdr hs) (+ k 1))))
+                ;; NAME the knob.  The agent that drove this proof needed a
+                ;; citation sitting at rank 42 of 79 and could not get at it:
+                ;; the footer advertises `*what-now-probe-cap*' and
+                ;; `(what-now "word")' but never `*what-now-limit*', which is
+                ;; the one that governs THIS list.
+                (when (> (length hits) *what-now-limit*)
+                  (display ";;   ... ") (display (- (length hits) *what-now-limit*))
+                  (display " more -- (what-now \"word\") to filter, or")
+                  (display " (set! *what-now-limit* 100) to see them all.")
+                  (newline))
+                (map (lambda (h)
+                       (list 'fact (list 'quote (car h))))
+                     (list-head hits (min *what-now-limit* (length hits)))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; (what-now-explain FORM) -- "what does this do?", answered as a VALUE.
+;;;
+;;; Every panel line is a move you can run; this says what running it would
+;;; CHANGE, without running it.  It exists so a front end can put a
+;;; `[what does this do?]' button beside each `[do this]' (the user's request,
+;;; 2026-08-16), and it is deliberately a QUERY rather than extra panel data:
+;;; computing the after-state for every candidate would probe dozens of moves on
+;;; every `what-now', while a button probes exactly the one the reader asked
+;;; about.
+;;;
+;;; It returns a value and prints nothing.  Scheme returns values; the renderer
+;;; decides how to show them -- so Emacs formats this, and an LLM or a test
+;;; reads the same alist.  (`what-now-explain-show' below is one renderer, for
+;;; the REPL.)
+;;;
+;;;   (form    . <the move, as given>)
+;;;   (doc     . <one-line gloss from tactics-help, or #f>)
+;;;   (fires   . #t | #f)            did it do anything at all
+;;;   (closes  . #t | #f)            did it close the goal outright
+;;;   (before  . <goal formula>)
+;;;   (after   . (<goal formula> ...))    the open goals afterwards
+;;;   (landed  . (<formula> ...))    assumptions GAINED at the focus -- this is
+;;;                                  the whole answer for a forward citation,
+;;;                                  which changes no goal
+;;;
+;;; The probe runs on a scratch clone through `vnb--probing', which binds `*ps*'
+;;; AND `*replaying?*' -- without the latter a probe appends a step nobody took
+;;; to `*proof-script*' and `*live-trace*' (the 2026-08-15 defect).
+(define (what-now-explain form)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (let* ((sqn0    (proof-state-focus scratch))
+                (before  (wff-formula (sequent-node-assertion sqn0)))
+                (asms0   (map wff-formula (sequent-node-assumptions sqn0)))
+                (head    (and (pair? form) (car form)))
+                (entry   (and (symbol? head) (tactics--find head)))
+                (doc     (and entry (tactics--gloss entry))))
+           (vnb--probing scratch
+             (lambda ()
+               (let* ((r      (vnb-guard (lambda () (eval form user-initial-environment))))
+                      (bad    (or (vnb-error? r) (vnb-warning? r)))
+                      (closed (and (not bad) (proof-done? scratch)))
+                      (leaves (if closed '() (proof-open-leaves scratch)))
+                      (after  (map (lambda (n)
+                                     (wff-formula (sequent-node-assertion n)))
+                                   leaves))
+                      (now    (if closed
+                                  '()
+                                  (let ((f (proof-state-focus scratch)))
+                                    (map wff-formula
+                                         (sequent-node-assumptions f)))))
+                      (gained (filter (lambda (f)
+                                        (not (any-pred (lambda (g) (alpha-equiv? f g))
+                                                       asms0)))
+                                      now)))
+                 (list (cons 'form   form)
+                       (cons 'doc    doc)
+                       (cons 'fires  (and (not bad)
+                                          (or closed
+                                              (not (equal? after (list before)))
+                                              (pair? gained))))
+                       (cons 'closes closed)
+                       (cons 'before before)
+                       (cons 'after  after)
+                       (cons 'landed gained)))))))))
+
+;;; One renderer, for the REPL.  Emacs is expected to format the alist itself.
+(define (what-now-explain-show form)
+  (let ((e (what-now-explain form)))
+    (cond
+      ((not e) (display ";; what does this do: no proof in progress.") (newline))
+      (else
+       (display ";; ") (vnb--write-form (cdr (assq 'form e))) (newline)
+       (let ((d (cdr (assq 'doc e))))
+         (when d (display ";;   ") (display d) (newline)))
+       (cond
+         ((cdr (assq 'closes e))
+          (display ";;   CLOSES this goal outright.") (newline))
+         ((not (cdr (assq 'fires e)))
+          (display ";;   does nothing here (it would not fire).") (newline))
+         (else
+          (let ((after  (cdr (assq 'after e)))
+                (landed (cdr (assq 'landed e))))
+            (when (pair? landed)
+              (display ";;   LANDS in the context:") (newline)
+              (for-each (lambda (f) (display ";;     ")
+                          (display (expression->string f)) (newline))
+                        landed))
+            (display ";;   leaves you with ") (display (length after))
+            (display (if (= (length after) 1) " goal:" " goals:")) (newline)
+            (for-each (lambda (g) (display ";;     ")
+                        (display (expression->string g)) (newline))
+                      after))))))))
+
+;;; -----------------------------------------------------------------------
+;;; The INSTANCE lane -- your goal is an INSTANCE of something you already have.
+;;;
+;;; The forward lane asks which library facts the context fires; the backchain
+;;; lane asks which library conclusions match the goal.  Neither looks at a
+;;; universal sitting in the CONTEXT and asks whether the goal is simply one of
+;;; its instances -- which is what a lemma you cut, or an induction hypothesis,
+;;; is there for.
+;;;
+;;; The case that prompted it (2026-08-16).  After cutting the n-first form of a
+;;; theorem and proving it, the main branch is
+;;;
+;;;   length(l) = n,  n in nn,  l in tuples(a),
+;;;   forall([n in nn, a, l in tuples(a)], length(l) = n => card(make-set(l)) <= n)
+;;;     |-  card(make-set(l)) <= n
+;;;
+;;; i.e. the goal IS assumption 4 at n, a, l, with all three antecedents present.
+;;; The panel offered five irrelevant `fact' citations, five backchains that
+;;; make the goal harder, and an induction `cut' -- and not the one move that
+;;; closes it.  The user saw it immediately and asked why the machine did not.
+;;;
+;;; Matching is `bc*-can-close?'s, pointed at an ASSUMPTION rather than a
+;;; theorem: match the universal's conclusion against the goal, then discharge
+;;; each remaining antecedent against the context, which is what pins the
+;;; binders the conclusion does not mention.  In the example the conclusion
+;;; fixes `n' and `l' but says nothing about `a'; `a' is determined only by
+;;; matching the antecedent `l in tuples(a)'.
+
+;;; ((index terms) ...) for every context universal the goal instantiates.
+(define (what-now--instances-in-context goal asms)
+  (let loop ((ws asms) (k 1) (acc '()))
+    (if (null? ws)
+        (reverse acc)
+        (let ((f (wff-formula (car ws))))
+          (loop
+           (cdr ws) (+ k 1)
+           (if (not (and (pair? f) (memq (car f) '(FORALL forall))))
+               acc
+               (let-values (((svars hyps concl) (bc*--peel-full f)))
+                 (let ((m (fluid-let ((*match-var-head* #t))
+                            (match-expr concl goal svars))))
+                   (if (not m)
+                       acc
+                       ;; pin the rest by discharging the antecedents
+                       (let disc ((hs hyps) (subst m))
+                         (cond
+                           ((null? hs)
+                            (if (every-pred (lambda (v) (assoc v subst)) svars)
+                                (cons (list k (map (lambda (v) (cdr (assoc v subst)))
+                                                   svars))
+                                      acc)
+                                acc))
+                           (else
+                            (let* ((h   (bc*--apply-subst subst (car hs)))
+                                   (rem (filter (lambda (v) (not (assoc v subst)))
+                                                svars)))
+                              (let try ((as asms))
+                                (if (null? as)
+                                    acc
+                                    (let ((hm (fluid-let ((*match-var-head* #t))
+                                                (match-expr h (wff-formula (car as))
+                                                            rem))))
+                                      (let ((merged (and hm (merge-subst subst hm))))
+                                        (if merged
+                                            (disc (cdr hs) merged)
+                                            (try (cdr as))))))))))))))))))))
+
+(define (what-now--show-instances goal)
+  (let* ((sqn  (and *ps* (not (proof-done? *ps*)) (proof-state-focus *ps*)))
+         (asms (if sqn (sequent-node-assumptions sqn) '())))
+    (if (null? asms)
+        '()
+        (let ((hits (what-now--instances-in-context goal asms)))
+          (if (null? hits)
+              '()
+              (begin
+                (display ";; INSTANCE -- the goal is an INSTANCE of a universal you")
+                (display " already have.") (newline)
+                (for-each
+                 (lambda (h)
+                   (let ((k (car h)) (terms (cadr h)))
+                     (display ";;   assumption ") (display k) (display ":  ")
+                     (display (expression->string
+                               (wff-formula (list-ref asms (- k 1)))))
+                     (newline)
+                     (display ";;   instantiate down it and close -- each (inst+")
+                     (display " ...) lands its result at 1:") (newline)
+                     (display ";;     (inst+ ") (display k)
+                     (display " '") (display (expression->string (car terms)))
+                     (display ")")
+                     (for-each (lambda (t)
+                                 (display "  (inst+ 1 '")
+                                 (display (expression->string t)) (display ")"))
+                               (cdr terms))
+                     (display "  (ass)") (newline)))
+                 hits)
+                ;; RETURN THE WHOLE CHAIN, not a stub.  `(inst+ k)' alone is
+                ;; unrunnable -- the terms are the content -- and an automated
+                ;; caller would have to re-derive them by parsing the printout,
+                ;; which is exactly the coupling the architecture forbids:
+                ;; Scheme returns VALUES, the renderer is a separate concern.
+                (map (lambda (h)
+                       (let ((k (car h)) (terms (cadr h)))
+                         (cons (list 'inst+ k (list 'quote (car terms)))
+                               (append
+                                (map (lambda (t) (list 'inst+ 1 (list 'quote t)))
+                                     (cdr terms))
+                                (list (list 'ass))))))
+                     hits)))))))
+
+;;; -----------------------------------------------------------------------
+;;; The INDUCTION lane -- "induction is not on the menu, and here is why".
+;;;
+;;; `ni' (pi-nn-induction!, primitive-inferences.scm:1007) fires only on a goal
+;;; whose shape is LITERALLY (FORALL n (IMPLIES (IN n NN) body)): the NN-guarded
+;;; binder must be the outermost thing in the goal.  That is a syntactic side
+;;; condition on a kernel rule, and two everyday situations fall outside it while
+;;; the mathematics is unchanged:
+;;;
+;;;   forall([a, n in nn, l in tuples(a)], ...)   -- n IS guarded, but `a' is
+;;;     bound outside it.  Permuting two leading universals is sound and the rule
+;;;     cannot see it, so `ni' warns and the copilot used to say nothing at all.
+;;;
+;;;   card(make-set(l)) <= n,  with `n in nn' in the CONTEXT -- the same goal two
+;;;     `di's later.  ONE `di' peels a whole run of universals with their guards
+;;;     (peel-foralls-raw recurses; the tactic takes no argument and there is no
+;;;     single-binder peel), so the binder is gone and n is an eigenvariable.
+;;;     There is no undo in the tree, and this is the case the user hit cold.
+;;;
+;;; Both are answered by the same move: CUT the generalization with the NN
+;;; variable OUTERMOST, `ni' that, and discharge the original from it by
+;;; instantiation -- which works from the peeled leaf, no restart.  The lane
+;;; builds the statement and prints it runnable.
+;;;
+;;; A cut is sound whatever it says -- it opens the obligation rather than
+;;; discharging one -- so a wrong guess here costs a leaf, never a theorem.
+;;; That is why this lane may generalize aggressively where the backchain lane
+;;; may not.
+
+;;; The leading universal prefix of GOAL as ((var . guard) ...) in binder order,
+;;; guard #f when unrestricted, consed onto the body beneath it.  Mirrors
+;;; `peel-foralls-raw' (primitive-inferences.scm:41) exactly, so this is also a
+;;; statement of how much ONE `di' would consume.
+(define (what-now--prefix goal)
+  (let loop ((g goal) (acc '()))
+    (if (and (pair? g) (memq (car g) '(FORALL forall)) (= (length g) 3))
+        (let ((v (quantifier-var g)) (body (quantifier-body g)))
+          (if (and (pair? body) (memq (car body) '(IMPLIES implies))
+                   (pair? (binary-left body)) (= (length (binary-left body)) 3)
+                   (memq (car (binary-left body)) '(IN in))
+                   (eq? (cadr (binary-left body)) v))
+              (loop (binary-right body)
+                    (cons (cons v (caddr (binary-left body))) acc))
+              (loop body (cons (cons v #f) acc))))
+        (cons (reverse acc) g))))
+
+(define (what-now--nn-guard? guard) (eq? guard 'NN))
+
+;;; The context's TYPING assumptions as ((var . class) ...) -- an assumption
+;;; (IN v C) with v a symbol.  These are the eigenvariables a `di' left behind,
+;;; each still carrying the guard it was peeled through.
+(define (what-now--context-typings asms)
+  (let loop ((as asms) (acc '()))
+    (if (null? as)
+        (reverse acc)
+        (let ((f (wff-formula (car as))))
+          (loop (cdr as)
+                (if (and (pair? f) (memq (car f) '(IN in)) (= (length f) 3)
+                         (symbol? (cadr f)))
+                    (cons (cons (cadr f) (caddr f)) acc)
+                    acc))))))
+
+;;; The context assumptions that are NOT typings -- the side conditions the
+;;; generalization has to carry as antecedents (`length(l) = n' is the one in
+;;; the worked example, and without it the generalization is false).
+(define (what-now--context-side-conditions asms)
+  (let loop ((as asms) (acc '()))
+    (if (null? as)
+        (reverse acc)
+        (let ((f (wff-formula (car as))))
+          (loop (cdr as)
+                (if (and (pair? f) (memq (car f) '(IN in)) (= (length f) 3)
+                         (symbol? (cadr f)))
+                    acc
+                    (cons f acc)))))))
+
+;;; forall([v in NN, u1 in C1, ...], h1 implies (h2 implies ... BODY))
+;;; V first -- that is the whole point of the construction.  Folded from FLAT
+;;; lists over the binary make-forall / make-implies, never hand-nested.
+(define (what-now--generalize v typings hyps body)
+  (define (implies-chain hs)
+    (if (null? hs) body (make-implies (car hs) (implies-chain (cdr hs)))))
+  (define (quantify ps)
+    (if (null? ps)
+        (implies-chain hyps)
+        (let* ((p (car ps)) (inner (quantify (cdr ps))))
+          (make-forall (car p)
+                       (if (cdr p)
+                           (make-implies (list 'IN (car p) (cdr p)) inner)
+                           inner)))))
+  (quantify (cons (assq v typings)
+                  (filter (lambda (p) (not (eq? (car p) v))) typings))))
+
+;;; Keep only the typings whose variable actually occurs in FORMS -- quantifying
+;;; over a hypothesis nobody mentions makes a generalization harder to prove for
+;;; nothing.
+(define (what-now--relevant-typings typings forms)
+  (let ((live (apply append (map free-vars forms))))
+    (filter (lambda (p) (memq (car p) live)) typings)))
+
+;;; THREE GUARDS ON THE EIGENVARIABLE BRANCH, added 2026-08-16 after an agent
+;;; drove a proof on the panel alone and this lane turned into the worst advice
+;;; on the page.  It fired on the bare syntactic condition "an nn-typed
+;;; eigenvariable is in the context", which stays true for the whole rest of the
+;;; proof -- so four moves into the induction STEP it was still proposing to
+;;; induct, and by then the generalization it printed had swallowed the entire
+;;; context (the whole `tuple-cons-decompose' instantiation chain, the induction
+;;; hypothesis itself) into one unreadable `implies'-chain.  Two of its outputs
+;;; were not merely useless but wrong: it re-generalized `n' in a body
+;;; CONTAINING the IH about `n' (circular), and after an `ai' it quantified over
+;;; the SKOLEM CONSTANT `x_1092', which denotes one fixed witness and cannot be
+;;; generalized at all.  Every one of those was printed as runnable, at a leaf
+;;; where the lane's own text says there is no undo.
+;;;
+;;;   1. INDUCTION ALREADY DONE.  If a context assumption is a universal in
+;;;      which the variable occurs free, that is the induction hypothesis: the
+;;;      induction has happened and proposing it again is a loop.
+;;;   2. NO SKOLEMS.  A name minted by `ai'/`fresh-var' (trailing `_<digits>')
+;;;      is a constant standing for a chosen witness.  Quantifying it produces a
+;;;      formula that is not the goal generalized but a different, stronger, and
+;;;      usually false claim.
+;;;   3. A CAP on carried hypotheses.  Past a handful the cut is not advice, it
+;;;      is a transcript of the context; if that many side conditions are in
+;;;      play the user is deep in a proof and did not arrive wanting to restart
+;;;      the induction.
+(define *what-now-induction-hyp-cap* 4)
+
+;;; A `fresh-var' / skolem name: base, underscore, digits (x_1092).  The trailing
+;;; underscore convention for ordinary binders (`i_', `n_') is NOT this.
+(define (what-now--skolem-name? v)
+  (and (symbol? v)
+       (let* ((s (symbol->string v)) (n (string-length s)))
+         (let loop ((i (- n 1)) (digits 0))
+           (cond ((< i 0) #f)
+                 ((char-numeric? (string-ref s i)) (loop (- i 1) (+ digits 1)))
+                 ((char=? (string-ref s i) #\_) (> digits 0))
+                 (else #f))))))
+
+;;; Is V already the subject of an induction -- i.e. does the context hold a
+;;; universal in which V occurs free?  That universal is the IH.
+(define (what-now--induction-already-done? v asms)
+  (any-pred (lambda (w)
+              (let ((f (wff-formula w)))
+                (and (pair? f) (memq (car f) '(FORALL forall))
+                     (memq v (free-vars f)))))
+            asms))
+
+;;; The lane.  Silent when `ni' already fires (the live-fire lane reports that)
+;;; and when no NN variable is in sight at all.
+(define (what-now--show-induction goal)
+  (let* ((sqn     (and *ps* (proof-state-focus *ps*)))
+         (asms    (if sqn (sequent-node-assumptions sqn) '()))
+         (pfx     (what-now--prefix goal))
+         (binders (car pfx))
+         (body    (cdr pfx))
+         (in-pfx  (let loop ((bs binders))
+                    (cond ((null? bs) #f)
+                          ((what-now--nn-guard? (cdar bs)) (caar bs))
+                          (else (loop (cdr bs)))))))
+    (cond
+      ;; `ni' already fires -- say nothing, the live-fire lane has it.
+      ((and (pair? binders) (what-now--nn-guard? (cdar binders))) '())
+
+      ;; An NN-guarded binder in the prefix, but not outermost.  Reordering the
+      ;; prefix is the whole fix, and it is sound: the outer binders are
+      ;; independent universals.
+      ;; THE GENERALIZATION IS ALREADY AN ASSUMPTION.  Then cutting it is a
+      ;; SILENT SELF-LOOP, not a step: `dg-post!' hash-conses sequent nodes by
+      ;; alpha-equivalence of the assertion plus equality of the context, and
+      ;; `context-add-assumption' is alpha-idempotent, so the "main" child of
+      ;; the cut IS the node you are standing on.  One leaf opens where two
+      ;; should, the graph gains a cycle, and there is no undo.  CLAUDE.md has
+      ;; carried that warning for hand-written cuts since 2026-07; this lane
+      ;; emitted one without the check and a user was handed it as `[do this]'
+      ;; (2026-08-16), on the very leaf where he had just PROVED the reordered
+      ;; form and needed to use it.  What that leaf wants is the opposite of a
+      ;; cut: peel the goal and INSTANTIATE the assumption.
+      ((and in-pfx
+            (let ((gen (what-now--generalize in-pfx binders '() body)))
+              (any-pred (lambda (w) (alpha-equiv? (wff-formula w) gen)) asms)))
+       (let* ((gen (what-now--generalize in-pfx binders '() body))
+              (idx (let loop ((ws asms) (k 1))
+                     (cond ((null? ws) #f)
+                           ((alpha-equiv? (wff-formula (car ws)) gen) k)
+                           (else (loop (cdr ws) (+ k 1)))))))
+         (display ";; INDUCTION -- already done.  The generalization with `")
+         (display in-pfx) (display "' outermost is ASSUMPTION ")
+         (display idx) (display ",") (newline)
+         (display ";;   so do NOT cut it: cutting a formula the context already")
+         (display " holds (up to alpha)") (newline)
+         (display ";;   is a silent self-loop -- the cut's main branch IS this")
+         (display " node, one leaf") (newline)
+         (display ";;   opens instead of two, and there is no undo.  This goal")
+         (display " differs from") (newline)
+         (display ";;   assumption ") (display idx)
+         (display " only in the ORDER of its leading universals, so") (newline)
+         (display ";;   peel it and instantiate:  (di) ... then (inst+ ")
+         (display idx) (display " '<term>) per binder.") (newline)
+         (list (list 'inst+ idx))))
+      (in-pfx
+       (let ((gen (what-now--generalize in-pfx binders '() body)))
+         (display ";; INDUCTION -- `") (display in-pfx)
+         (display "' is guarded by `in nn', but it is not the OUTERMOST binder,")
+         (newline)
+         (display ";;   and (ni) requires forall([")
+         (display in-pfx) (display " in nn], ...) at the very top.  Permuting")
+         (newline)
+         (display ";;   leading universals is sound; the rule tests shape, not meaning.")
+         (newline)
+         (display ";;   State it with ") (display in-pfx)
+         (display " first and (ni) is the FIRST move:") (newline)
+         (display ";;     ") (display (expression->string gen)) (newline)
+         (display ";;   Mid-proof, cut it instead -- (cut \"...\") then (ni).") (newline)
+         (list (list 'cut (expression->string gen)))))
+
+      ;; No binder left: an NN-typed EIGENVARIABLE in the context.  The `di' has
+      ;; already happened, so induction has to be recovered by generalizing.
+      (else
+       (let* ((typings (what-now--context-typings asms))
+              (nn-var  (let loop ((ts typings))
+                         (cond ((null? ts) #f)
+                               ((and (what-now--nn-guard? (cdar ts))
+                                     (memq (caar ts) (free-vars goal)))
+                                (caar ts))
+                               (else (loop (cdr ts))))))
+              (hyps    (what-now--context-side-conditions asms)))
+         (if (or (not nn-var)
+                 ;; same self-loop guard as the prefix branch above
+                 (let ((live (what-now--relevant-typings typings (cons goal hyps))))
+                   (any-pred (lambda (w)
+                               (alpha-equiv? (wff-formula w)
+                                             (what-now--generalize
+                                              nn-var live hyps goal)))
+                             asms))
+                 (what-now--induction-already-done? nn-var asms)
+                 (any-pred what-now--skolem-name?
+                           (map car (what-now--relevant-typings
+                                     typings (cons goal hyps))))
+                 (> (length hyps) *what-now-induction-hyp-cap*))
+             '()
+             (let* ((live (what-now--relevant-typings typings (cons goal hyps)))
+                    (gen  (what-now--generalize nn-var live hyps goal)))
+               (display ";; INDUCTION -- `") (display nn-var)
+               (display "' is typed `in nn' in the CONTEXT, so it is an")
+               (newline)
+               (display ";;   EIGENVARIABLE: its binder is gone and (ni) cannot reach it.")
+               (newline)
+               (display ";;   One `di' peels a whole run of universals with their guards,")
+               (newline)
+               (display ";;   and there is no undo -- but the induction is recoverable here.")
+               (newline)
+               (display ";;   Cut the generalization with ") (display nn-var)
+               (display " outermost, (ni) that, and") (newline)
+               (display ";;   close this leaf from it by instantiation:") (newline)
+               (display ";;     (cut \"") (display (expression->string gen))
+               (display "\")") (newline)
+               (list (list 'cut (expression->string gen))))))))))
+
+;;; Attach the MEASURED effect to each proposed move.
+;;;
+;;; The panel annotates a move with what it DID on a throwaway clone -- "=>
+;;; CLOSES the goal", "=> 1 subgoal".  Two lanes were not supplying it and the
+;;; result was actively misleading: on `forall([x in rr], x ^ 2 = x * x)' the
+;;; closer lane offered `(crs)', which closes the goal outright, with NO
+;;; annotation, while three rewrites that do not finish each carried "=> 1
+;;; subgoal".  The reader cannot tell the answer from the noise, and the lane
+;;; that had it said the least.
+;;;
+;;; The fires lane HAD the answer and discarded it (`(map (lambda (h) (list (car
+;;; h))) hits)'); the closer lane emits forms straight from the goal-kind
+;;; classifier and never probed at all.  `vnb-apply?' runs the real tactic on a
+;;; scratch clone -- the live *ps* is never touched -- so this costs one probe
+;;; per move and adds no trust.  Only PARAMETERLESS moves are probed; anything
+;;; carrying arguments (a `cut' with a formula, `inst+' with a term) is passed
+;;; through unmeasured rather than guessed at.
+;;; `wn--move-form' is defined once, at suggest.scm:864.  A second, BYTE-IDENTICAL
+;;; copy stood here until 2026-08-21, when `duplicate-define-audit' (audit.scm)
+;;; found it.  Harmless -- the bodies agreed -- but the same shape as the
+;;; redefinition that once killed `what-now--show-forward', and the audit cannot
+;;; assert "no file defines a name twice" while one does.
+
+;;; ONE MOVE, ONE LANE.  `(di)' was appearing three times in a single panel --
+;;; in extensionality, in "tactics that fire now" and in "closer" -- and the
+;;; reader has to work out that they are the same button.  The live-fire lane is
+;;; the generic catch-all ("these tactics do something here"); every other lane
+;;; says something more specific about WHY.  So a move another lane already
+;;; proposes is dropped from the fires lane, and a fires lane left empty
+;;; disappears.
+;;;
+;;; DATA ONLY.  The REPL prints each lane as it is built, before this runs, so
+;;; the text report still lists a move under every lane that proposes it.  The
+;;; panel is the surface where the duplication actually costs the reader
+;;; something -- three identical buttons -- and restructuring the REPL's
+;;; print-as-you-go would be a larger change than the defect warrants.
+(define (wn--dedupe-lanes lanes)
+  (let ((elsewhere
+         (apply append
+                (map (lambda (l)
+                       (if (eq? (cdr (assq 'kind l)) 'fires)
+                           '()
+                           (map wn--move-form (cdr (assq 'moves l)))))
+                     lanes))))
+    (filter
+     (lambda (l) (pair? (cdr (assq 'moves l))))
+     (map (lambda (l)
+            (if (not (eq? (cdr (assq 'kind l)) 'fires))
+                l
+                (list (assq 'kind l)
+                      (assq 'title l)
+                      (cons 'moves
+                            (filter (lambda (m)
+                                      (not (member (wn--move-form m) elsewhere)))
+                                    (cdr (assq 'moves l)))))))
+          lanes))))
+
+(define (wn--effect-of r)
+  (cond ((eq? r 'CLOSED) 'CLOSED)
+        ((pair? r)       (length r))
+        (else            #f)))
+
+;;; Measure, then DROP the moves that do not fire at all.  On the power goal
+;;; the closer lane offered (di) (crs) (rs): (crs) closes it, (di) is a real
+;;; step, and (rs) does not apply -- listing all three unannotated is exactly
+;;; the noise the measurement exists to remove.  A move with arguments is kept
+;;; regardless, since it was never probed.
+(define (what-now--measure-firing forms)
+  (filter (lambda (m)
+            (or (not (and (pair? m) (pair? (car m)) (assq 'effect m)))
+                (cdr (assq 'effect m))))
+          (what-now--measure forms)))
+
+(define (what-now--measure forms)
+  (if (not *ps*)
+      forms
+      (let* ((sqn (proof-state-focus *ps*))
+             (seq (make-sequent (sequent-node-assumptions sqn)
+                                (sequent-node-assertion sqn))))
+        (map (lambda (f)
+               (if (and (pair? f) (symbol? (car f)) (null? (cdr f)))
+                   (list (cons 'form f)
+                         (cons 'effect (wn--effect-of (vnb-apply? (car f) seq))))
+                   f))
+             forms))))
+
 ;; Live-fire lane: which PARAMETERLESS tactics actually FIRE on the focus right
 ;; now, via (vnb-apply? 'name <focus sequent>) on a throwaway clone -- the
 ;; executable form of the tactics' `when:' notes.  Shape-specific probes only;
 ;; always-fire moves (pbc/cut) and arg-needing tactics are omitted.  Returns the
 ;; firing moves as (name) forms; prints a summary line per hit.
+;; oi-l / oi-r added 2026-08-13: an OR GOAL is 71 calls across 24 proof files
+;; and what-now was a dead end on it -- `di' does not decompose OR (it warns),
+;; so not even this lane spoke.  Both are probe-safe: vnb-apply? returns the
+;; remaining disjunct on an OR goal and #f on anything else.
 (define *what-now-fire-probes*
   '(grind di ni ci ti ii beta lam-b lam-t nth-r sep-mi sep-set comp-mi bu-set
-    ass rfl qrfl arith crs rs))
+    oi-l oi-r ass rfl qrfl arith crs rs prop contra))
+
+;;; A PROBE THAT RAISES MUST NOT KILL THE PANEL.  `vnb-apply?' runs the real
+;;; tactic on a scratch clone, and a tactic that declines by RAISING rather than
+;;; returning #f takes the whole of `what-now' with it -- the panel prints its
+;;; ABOUT preamble and then stops, which is what a reader sees as "what-now is
+;;; broken".  Found 2026-08-20 on the goal
+;;;
+;;;     vnb-lambda(x, nn, 1 * recip(0)) = vnb-lambda(x, nn, 1 * recip(0))
+;;;
+;;; where `contra' sees arithmetic atoms, tries to `have!' the absurdity
+;;; `1 <= 0', cannot establish it, and the `have!' error escapes.  A probe is
+;;; speculative by definition, so an error from one means "did not fire" -- but
+;;; it is NOT swallowed: the offenders are named on their own line, because a
+;;; tactic blowing up inside a probe is a defect in that tactic and hiding it is
+;;; how it would stay.
+;;;
+;;; NOT `vnb-guard': that is re-entrant, so an outer guard would turn every
+;;; inner one into a pass-through and disable each lane's own error handling
+;;; (see [[project_copilot_harvester]] -- two harvest runs scored 0% that way).
+(define *what-now-probe-errors* '())
+
+(define (what-now--probe-tactic name seq)
+  (call-with-current-continuation
+   (lambda (k)
+     (bind-condition-handler (list condition-type:error)
+       (lambda (c)
+         (set! *what-now-probe-errors*
+               (cons (cons name (condition/report-string c))
+                     *what-now-probe-errors*))
+         (k #f))
+       (lambda () (vnb-apply? name seq))))))
+
+(define (what-now--report-probe-errors)
+  (when (pair? *what-now-probe-errors*)
+    (display ";; (probe errors, reported not hidden -- a tactic that RAISES instead of")
+    (newline)
+    (display ";;  declining is a defect in that tactic; it counts here as \"did not fire\"):")
+    (newline)
+    (for-each (lambda (e)
+                (display ";;   (") (display (car e)) (display ")  ")
+                (display (cdr e)) (newline))
+              (reverse *what-now-probe-errors*))))
+
+;;; -----------------------------------------------------------------------
+;;; The `ineq' lane -- the one the comparison branch never had.
+;;;
+;;; The branch printed a STATIC hint,
+;;;
+;;;   ;; comparison goal -- (ineq i1 i2 ...) from named ordering assumptions, ...
+;;;
+;;; and then computed nothing: on a leaf whose whole content is one
+;;; linear-arithmetic step the panel emitted a header with NOTHING under it and
+;;; fell straight through to backchain.  Measured 2026-08-20 on
+;;;
+;;;     0 <= f(k),  f(k) in rr,  series-partial-sum(f,k) in rr
+;;;        |-  series-partial-sum(f, k) <= series-partial-sum(f, k) + f(k)
+;;;
+;;; where `(ineq 1)' closes outright, while the panel's rank-1 and rank-2
+;;; backchain offers were `nn-le-add' / `nn-le-add-right' -- NN facts on a goal
+;;; about REALS, which fire and leave unprovable subgoals.  Both partial-sum
+;;; order lemmas (theorem-library/comparison-test-proof.scm) close on exactly
+;;; this move and the panel named neither.
+;;;
+;;; `ineq' cannot join *what-now-fire-probes*: a parameterless `(ineq)' proves
+;;; nothing, so the probe must CONSTRUCT its argument list.  That list already
+;;; exists -- `contra--usable-indices' (contra.scm) filters the context by the
+;;; oracle's OWN atom test, which is both the premise set ineq will accept and
+;;; the reason one uncertifiable equation in the context does not poison the
+;;; call.  Two tactics, one input-shaping problem, solved once.
+;;;
+;;; Probed through `what-now-explain', so it runs on a scratch clone with `*ps*'
+;;; AND `*replaying?*' bound and cannot append a step nobody took.  Offered ONLY
+;;; when it CLOSES: `ineq' does not partly succeed, so a non-closing call is not
+;;; a move, and printing it would be noise on every comparison goal in the tree.
+;;; -----------------------------------------------------------------------
+;;; The TYPING-CHAIN lane -- "to show f(FUBA) in GUBA, look for FUBA in RUBA".
+;;;
+;;; The user's observation, 2026-08-20, on the leaf
+;;;
+;;;   forall([k in nn, f in fun(nn, rr)], series-partial-sum(f, k) in rr),
+;;;   k in nn,  f in fun(nn, rr)   |-   abs(series-partial-sum(f, k)) in rr
+;;;
+;;; BOTH halves of the answer were already on the panel and twenty lines apart:
+;;; `(bc* 'rr-abs-closed)' at rank 1 of the backchain lane (it fires, leaving
+;;; `series-partial-sum(f, k) in rr'), and `(fact 'series-partial-sum-in-rr 'k 'f)'
+;;; at rank 1 of the forward lane (it lands exactly that formula).  Nothing said
+;;; they compose, and composing them is the entire proof.
+;;;
+;;; This lane says it.  It is deliberately narrow:
+;;;
+;;;  * the goal must be `(IN t C)' with t a COMPOUND term -- a typing obligation
+;;;    for a constructed thing, which is the shape the whole class of leaves has;
+;;;  * the backchain step must leave exactly ONE subgoal.  With two, the chain
+;;;    would have to move focus between them, and "never rely on where `ass'
+;;;    leaves focus" (CLAUDE.md) makes that a different and much less safe move.
+;;;    One subgoal is the typing case: a closure law `x in C => h(x) in C' peels
+;;;    to its single argument obligation.
+;;;
+;;; Why a typing GOAL gets nothing from the ordinary ranking: `IN' and the
+;;; classes are in `*what-now--ubiquitous-heads*', on purpose -- they are what
+;;; typing facts CONCLUDE, so counting them as shared content promotes every
+;;; typing fact in the library on every goal.  The cost of that (correct) choice
+;;; is that when the goal IS a typing, the ranking has nothing left to rank on.
+;;; So this lane does not rank; it CHECKS a chain and reports only if it closes.
+;;;
+;;; It VERIFIES rather than infers: having matched a subgoal to a citation's
+;;; landed formula, it runs the whole chain on a scratch clone and requires the
+;;; open-leaf count to drop by exactly one.  Matching alpha-equivalent formulas
+;;; is a good guess; a leaf count is a fact.
+(define (what-now--typing-arg t) (if (number? t) t (list 'quote t)))
+
+(define (what-now--typing-chain-verify chain)
+  ;; Run CHAIN on a scratch clone; #t iff the focus leaf closed and nothing new
+  ;; opened, i.e. the open-leaf count fell by exactly one.
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (vnb--probing scratch
+           (lambda ()
+             (let* ((before (length (proof-leaves)))
+                    (r (vnb-guard
+                        (lambda ()
+                          (for-each (lambda (f) (eval f user-initial-environment))
+                                    chain)))))
+               (and (not (vnb-error? r)) (not (vnb-warning? r))
+                    (or (proof-done? scratch)
+                        (= (length (proof-leaves)) (- before 1))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; REWRITE FROM A CONTEXT UNIVERSAL.
+;;;
+;;; The user's principle, 2026-08-20, stated on the base case of
+;;; `series-partial-sum-abs-le':
+;;;
+;;;   "if you have FUBA == X in the context and FUBA in the conclusion then see
+;;;    if you can deduce is-defined(FUBA) by instantiating something in the
+;;;    context"
+;;;
+;;; THE DEFINEDNESS HALF IS NOT NEEDED, and that is worth knowing before writing
+;;; any rule that assumes it is.  `pi-eq-subst!' (primitive-inferences.scm:481)
+;;; accepts `==' exactly as it accepts `=': quasi-equal terms are a CONGRUENCE
+;;; -- same definedness, equal where defined -- so the substitution is licensed
+;;; outright.  Verified end to end on that leaf: it closes with no `in rr' fact
+;;; anywhere.  (Definedness is a real obligation elsewhere -- `rfl' wants
+;;; `IN t C' to discharge `t = t', and `ineq' wants a literal `IN t RR' for
+;;; every atom -- just not for substitution.)
+;;;
+;;; So the procedure is the simpler half of the principle: a context UNIVERSAL
+;;; whose body is a (quasi-)equation, whose left side matches a subterm of the
+;;; goal, determines its own instantiation -- and then `subst' rewrites.
+;;;
+;;;   forall([f], series-partial-sum(f, 0) == 0)      in the context
+;;;   abs(series-partial-sum(f_1462, 0)) <= ...       the goal
+;;;   ------------------------------------------------------------------
+;;;   (inst+ 2 'f_1462)
+;;;   (subst '(== (series-partial-sum f_1462 0) 0))
+;;;
+;;; Restricted to a ONE-variable universal, deliberately: `inst+' instantiates
+;;; one binder per call, so several variables would need a chain whose order the
+;;; lane would have to get right, and a wrong chain is not recoverable -- there
+;;; is no undo.  One variable is the case this arises in.
+;;;
+;;; Like the typing lane, it VERIFIES rather than infers: the two-move chain is
+;;; run on a scratch clone and kept only if the goal actually changed and no new
+;;; leaf opened.  Matching is a good guess; running it is a fact.
+(define (what-now--rewrite-candidates goal asms)
+  (let ((subs (what-now--subterms goal))
+        (out  '()))
+    (let loop ((l asms) (i 1))
+      (when (pair? l)
+        (let ((a (car l)))
+          (when (and (pair? a) (eq? (car a) 'FORALL))
+            (call-with-values (lambda () (bc*--peel a))
+              (lambda (vars body)
+                (when (and (pair? vars) (null? (cdr vars))
+                           (pair? body) (memq (car body) '(= ==))
+                           (= (length body) 3))
+                  ;; EVERY matching subterm, not the first.  The motivating
+                  ;; goal needs the same universal at TWO different terms -- the
+                  ;; sequence variable and the lambda -- and stopping at the
+                  ;; first match offered one of the two moves the leaf wants.
+                  (for-each
+                   (lambda (tm)
+                     (let ((m (match-expr (cadr body) tm vars)))
+                       (when (and m (= (length m) 1))
+                         (set! out
+                               (cons (list i
+                                           (cdr (car m))          ; the term
+                                           tm                     ; lhs instance
+                                           (subst-free* m (caddr body))
+                                           (car body))            ; = or ==
+                                     out)))))
+                   subs))))))
+        (loop (cdr l) (+ i 1))))
+    (reverse out)))
+
+(define (what-now--show-rewrite-from-context goal)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let* ((sqn   (proof-state-focus *ps*))
+             (asms  (map wff-formula (sequent-node-assumptions sqn)))
+             (cands (what-now--rewrite-candidates goal asms))
+             (hits  '()))
+        (for-each
+         (lambda (c)
+           (when (< (length hits) 4)
+             (let* ((idx (car c)) (term (cadr c))
+                    (lhs (caddr c)) (rhs (cadddr c)) (hd (list-ref c 4))
+                    (chain (list (list 'inst+ idx (list 'quote term))
+                                 (list 'subst (list 'quote (list hd lhs rhs))))))
+               (when (what-now--rewrite-verify chain goal)
+                 (set! hits (append hits (list (cons chain rhs))))))))
+         cands)
+        (if (null? hits)
+            '()
+            (begin
+              (display ";; REWRITE FROM YOUR CONTEXT -- a universal you already have is a")
+              (newline)
+              (display ";;   (quasi-)equation whose left side occurs in the goal, so it")
+              (newline)
+              (display ";;   determines its own instantiation.  Checked on a throwaway copy.")
+              (newline)
+              (display ";;   (== licenses this exactly as = does; no definedness is needed.)")
+              (newline)
+              (apply append
+                     (map (lambda (h)
+                            (for-each (lambda (f)
+                                        (display ";;   ") (vnb--write-form f) (newline))
+                                      (car h))
+                            (display ";;     (rewrites it to  ")
+                            (display (expression->string (cdr h)))
+                            (display ")") (newline)
+                            (car h))
+                          hits)))))))
+
+;;; Run the two-move chain on a scratch clone: kept only if the GOAL changed and
+;;; no new leaf opened.
+(define (what-now--rewrite-verify chain goal)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (vnb--probing scratch
+           (lambda ()
+             (let* ((before (length (proof-leaves)))
+                    (r (vnb-guard
+                        (lambda ()
+                          (for-each (lambda (f) (eval f user-initial-environment))
+                                    chain)))))
+               (and (not (vnb-error? r)) (not (vnb-warning? r))
+                    (or (proof-done? scratch)
+                        (and (= (length (proof-leaves)) before)
+                             (not (alpha-equiv?
+                                   (wff-formula
+                                    (sequent-node-assertion
+                                     (proof-state-focus scratch)))
+                                   goal)))))))))))
+
+
+;;; -----------------------------------------------------------------------
+;;; BETA -- the goal applies a VNB-LAMBDA to an argument
+;;;
+;;; The live-fire lane already offers `(lam-b) => 1 subgoal(s)', so the move was
+;;; not missing -- what it does was.  A bare tactic name in a list of tactics
+;;; that fire says nothing about WHICH of the goal's terms is a redex or what it
+;;; reduces to, and on the leaf this was written for -- the induction step of
+;;; series-partial-sum-abs-le, 2026-08-21 -- that is precisely the fact the
+;;; reader needs: `(lam)(k)' and `abs(f(k))' are unrelated ATOMS to the oracle
+;;; until the reduction is made, so the redex is why `ineq' will not close, and
+;;; nothing on the panel connected the two.  The rewrite lane cannot say it
+;;; either: it fires MACETES, and `lam-b' is a kernel rule.
+;;;
+;;; The typing caveat is the reason this prints a warning rather than just the
+;;; move: a lambda carries its domain and is defined only there, so `lam-b'
+;;; fired on an argument whose membership is neither in the context nor supplied
+;;; by an enclosing binder still FIRES and leaves `(IN a A)' as an extra leaf --
+;;; and that leaf can be unprovable, at a node whose context predates the
+;;; variable entirely (CLAUDE.md, the SQRT case).  So the check is made here and
+;;; said out loud.
+(define (what-now--redexes form)
+  (let ((out '()))
+    (for-each (lambda (t)
+                (if (and (pair? t) (pair? (car t))
+                         (eq? (car (car t)) 'VNB-LAMBDA)
+                         (= (length t) 2))
+                    (unless (member t out) (set! out (cons t out)))))
+              (what-now--subterms form))
+    (reverse out)))
+
+
+;;; -----------------------------------------------------------------------
+;;; CLASS BRIDGE -- `s in metric-space' where every theorem wants `is-metric-space(s)'
+;;;
+;;; The user's words, 2026-08-22: "The is-metric-space(s) vs s in metric-space
+;;; shouldn't be something anybody has to think about.  If the prover doesn't
+;;; like it, the what-now should include the change.  Pothole found."
+;;;
+;;; Quantifying over a structure CLASS -- `forall([s in metric-space], ...)' --
+;;; is documented, works, and puts `s in metric-space' in the context.  Every
+;;; theorem about metric spaces is guarded on the PREDICATE `is-metric-space(s)'
+;;; instead.  `fact' then lands the IMPLICATION, silently, and every later step
+;;; runs against a hypothesis that never arrived.  Nothing was reporting this:
+;;; `ineq-supply--bridges' (ineq-supply.scm) has computed exactly this repair
+;;; since 2026-08-19, but only inside the SUPPLY THE ORACLE lane, which is
+;;; reached only on an order goal whose heads the bound table knows.  On every
+;;; other goal the information existed and was never printed.
+;;;
+;;; The target formula is read off the class law itself -- `<CLS>-class' is
+;;; `forall([s], s in CLS iff PRED(s))', generated for every declared structure
+;;; -- rather than by turning "metric-space" into "is-metric-space" with string
+;;; surgery.  A structure whose predicate is not spelled that way is then still
+;;; handled, and a class with no law is skipped rather than guessed at.
+;;;
+;;; Self-gating twice over: silent when no assumption is a class membership, and
+;;; silent when the predicate form is ALREADY in the context, which is the case
+;;; the moment the bridge has been taken.
+(define (what-now--class-law-target cls v)
+  (let ((law (hash-table-ref/default *theorem-table*
+                                     (string->symbol
+                                      (string-append (symbol->string cls) "-class"))
+                                     #f)))
+    ;; (FORALL x (IFF (IN x CLS) (PRED x)))
+    (and (pair? law) (eq? (car law) 'FORALL)
+         (let ((body (caddr law)) (bv (cadr law)))
+           (and (pair? body) (eq? (car body) 'IFF)
+                (subst-free bv v (caddr body)))))))
+
+(define (what-now--show-class-bridge)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let* ((asms (map wff-formula
+                        (sequent-node-assumptions (proof-state-focus *ps*))))
+             (hits (let loop ((l asms) (k 1) (out '()))
+                     (cond
+                      ((null? l) (reverse out))
+                      (else
+                       (let* ((f (car l))
+                              (cls (and (pair? f) (memq (car f) '(IN in))
+                                        (= (length f) 3)
+                                        (symbol? (caddr f)) (caddr f)))
+                              (tgt (and cls (what-now--class-law-target cls (cadr f)))))
+                         (loop (cdr l) (+ k 1)
+                               (if (and tgt
+                                        (not (any-pred (lambda (a) (alpha-equiv? a tgt))
+                                                       asms)))
+                                   (cons (list k cls tgt) out)
+                                   out))))))))
+        (if (null? hits)
+            '()
+            (begin
+              (display ";; CLASS BRIDGE -- an assumption says a thing is IN a structure CLASS,")
+              (newline)
+              (display ";;   but every theorem about it is guarded on the PREDICATE.  Until you")
+              (newline)
+              (display ";;   bridge, `fact' lands the IMPLICATION instead of detaching it, and")
+              (newline)
+              (display ";;   says nothing:")
+              (newline)
+              (for-each
+               (lambda (h)
+                 (display ";;   (mac-h '")
+                 (display (string-append (symbol->string (cadr h)) "-class"))
+                 (display " ") (display (car h)) (display ")")
+                 (display "   gives  ")
+                 (display (expression->string (caddr h)))
+                 (newline))
+               hits)
+              (display ";;   (mac-h REPLACES the assumption, so the class form is gone")
+              (newline)
+              (display ";;   afterwards -- take it inside a have! lane if you need both.)")
+              (newline)
+              (map (lambda (h)
+                     (list 'mac-h
+                           (list 'quote (string->symbol
+                                         (string-append (symbol->string (cadr h)) "-class")))
+                           (car h)))
+                   hits))))))
+
+(define (what-now--show-beta goal)
+  (let ((rs (if goal (what-now--redexes goal) '())))
+    (if (null? rs)
+        '()
+        (let* ((asms (if *ps*
+                         (map wff-formula
+                              (sequent-node-assumptions (proof-state-focus *ps*)))
+                         '()))
+               (fired (what-now--measure-firing '((lam-b)))))
+          (if (null? fired)
+              '()
+              (begin
+                (display ";; BETA -- the goal applies a lambda to an argument.  Reducing it is")
+                (newline)
+                (display ";;   what lets the oracle and `ass' see the two sides as the same term:")
+                (newline)
+                (for-each
+                 (lambda (r)
+                   (let* ((dom (caddr (car r)))
+                          (arg (cadr r))
+                          (typed (any-pred (lambda (a) (alpha-equiv? a (list 'IN arg dom)))
+                                           asms)))
+                     (display ";;   ") (display (expression->string r))
+                     (display "   ->   ")
+                     (display (expression->string
+                               (subst-free (cadr (car r)) arg (cadddr (car r)))))
+                     (newline)
+                     (unless typed
+                       (display ";;     NOTE  ")
+                       (display (expression->string (list 'IN arg dom)))
+                       (display " is not in the context -- (lam-b) still fires and")
+                       (newline)
+                       (display ";;           OWES it as an extra leaf.  Land the typing FIRST.")
+                       (newline))))
+                 rs)
+                (what-now--show-fired "" fired '() (length fired))
+                fired))))))
+
+
+;;; -----------------------------------------------------------------------
+;;; LEGIBILITY -- the goal is unreadable, and every move that fixes it exists
+;;;
+;;; The user's leaf, 2026-08-23 (poly-antiderivative, base case), in part:
+;;;
+;;;   is-diff-at(vnb-lambda(x, rr,
+;;;     (opr([carr(rr-normed-field), binplus, 0, neg(rr-normed-field)]))(
+;;;        sum-ag([rr, binplus, 0, neg(rr-normed-field)], ..., 0),
+;;;        recip(succ(0)) * cf(0) * x ^ succ(0))), pt, ...)
+;;;
+;;; -- "the formula would be easier to understand if one could do obvious things
+;;; like replacing succ(0) by 1, or replacing (opr([carr(rr-normed-field),
+;;; binplus, 0, neg(rr-normed-field)])) by something more comprehensible".  Every
+;;; one of those moves was already in the tree and NO lane named any of them; the
+;;; rewrite lane's nearest offer was `(mac 'rr-normed-field@carr)', i.e. firing
+;;; an accessor macete by name, which is the very door `accessor-callsite-audit'
+;;; exists to keep shut.
+;;;
+;;; THE MOVES ARE REWRITES, NOT RENDERINGS, and that is the design, not an
+;;; implementation convenience.  Normalising in `expr->str' would recreate the
+;;; trap CLAUDE.md records for nullary application: `(f)' printed as `f', so
+;;; `(= (f) f)' displayed as `f = f' while `rfl' refused it, the two sides being
+;;; different S-expressions.  `rfl' and `ass' are syntactic even where the
+;;; matcher is not, so a goal that LOOKS closable and is not is worse than an
+;;; ugly one.  This lane names a move that changes the TERM; the reader runs it;
+;;; the printed form and the term stay identical.
+;;;
+;;; Three shapes, each PROBED on a throwaway copy, so a move that would not fire
+;;; is not offered:
+;;;
+;;;  1. an accessor applied to a literal tuple -- OPR([a,b,c,d]).  Two steps:
+;;;     `slot' takes the accessor to its NTH projection (through the one door
+;;;     the audit permits), `nth-r' computes the projection.  This is
+;;;     comparison-test-proof.scm's own recipe -- its R0 "readouts" block runs
+;;;     (mac 'normed-field-additive-ag) (slot 'OPR) (nth-r) verbatim.
+;;;  2. an accessor applied to a declared INSTANCE -- carr(rr-normed-field).
+;;;     `surface-goal!' (transport.scm:134) fires that instance's own slot
+;;;     equations and then the surface bridges (binplus(x,y) == x + y), to a
+;;;     fixpoint: ONE move for the whole goal, and every step of it a named
+;;;     theorem.
+;;;  3. a succ tower over a literal -- succ(0).
+;;;
+;;; ON SHAPE 3, AND IT IS A FINDING RATHER THAN AN OMISSION: there is no
+;;; ONE-step move.  `numeral-collapse' (macetes.scm:381) folds succ(k) to k+1
+;;; bottom-up over a literal k, but it is a Scheme procedure, not a tactic, and
+;;; its only caller is `condition-holds?' -- it exists so a (succ n)-keyed axiom
+;;; fires on a numeral, and nothing calls it on the reader's behalf.  The
+;;; user-facing route is TWO steps, and the library already writes it out by
+;;; hand (theorem-library/makeset-basics.scm:299-300):
+;;;
+;;;     (have! '(= (succ 0) 1) (lambda () (arith)))
+;;;     (subst '(= (succ 0) 1))
+;;;
+;;; `arith' decides the equation and `subst' is eq-subst, so this adds no trust
+;;; and no new rule; it is offered as the two steps it is.  `(mac
+;;; 'nn-succ-plus-one)' is NOT the move -- probed on the user's own goal it
+;;; gives `recip(0 + 1) * cf(0) * x ^ (0 + 1)', which is not an improvement.
+;;; A one-step `numerals' tactic would be a thin composite over exactly these
+;;; two steps (cut the equation, close it by `arith', eq-subst it, per maximal
+;;; tower); it is not built here because nothing needs a new name to be able to
+;;; do the thing, and a composite that drives focus has to record itself.
+
+;;; ACC's slot index, or #f: not an accessor, or an AMBIGUOUS one (whose global
+;;; macete `register-accessor-index!' has withdrawn, so `slot' could not fire).
+(define (leg--accessor-slot h)
+  (and (symbol? h)
+       (eq? (constant-head? h) 'accessor)
+       (not (accessor-ambiguous? h))
+       (let ((e (hash-table-ref/default *accessor-index* h #f)))
+         (and (pair? e) (car e)))))
+
+;;; Structural containment, OPERATOR POSITION INCLUDED -- `what-now--occurs-in?'
+;;; walks (cdr form) only, and the terms this lane is about sit in operator
+;;; position precisely when they are the ugly ones ((OPR [...])(a, b)).
+(define (leg--occurs? sub e)
+  (or (equal? sub e)
+      (and (pair? e)
+           (or (leg--occurs? sub (car e))
+               (any-pred (lambda (x) (leg--occurs? sub x)) (cdr e))))))
+
+;;; (ACC [a1,...,an]) in FORM, as (ACC term projection) -- one entry per
+;;; accessor NAME, because (slot 'ACC) rewrites every occurrence at once.
+(define (leg--tuple-projections form)
+  (let ((out '()))
+    (for-each
+     (lambda (t)
+       (if (and (pair? t) (pair? (cdr t)) (null? (cddr t))
+                (pair? (cadr t)) (eq? (car (cadr t)) 'LIST))
+           (let ((k (leg--accessor-slot (car t))))
+             (if (and k
+                      (<= k (length (cdr (cadr t))))
+                      (not (assq (car t) out)))
+                 (set! out (cons (list (car t) t
+                                       (list-ref (cdr (cadr t)) (- k 1)))
+                                 out))))))
+     (what-now--subterms form))
+    (reverse out)))
+
+;;; (ACC INSTANCE) for a DECLARED instance, as (INSTANCE acc ...) -- one entry
+;;; per instance, since `surface-goal!' takes all of its slots at once.
+(define (leg--instance-accessors form)
+  (let ((out '()))
+    (for-each
+     (lambda (t)
+       (if (and (pair? t) (pair? (cdr t)) (null? (cddr t))
+                (symbol? (cadr t))
+                (leg--accessor-slot (car t))
+                (instance-structure (cadr t)))
+           (let ((hit (assq (cadr t) out)))
+             (cond ((not hit)
+                    (set! out (append out (list (list (cadr t) (car t))))))
+                   ((not (memq (car t) (cdr hit)))
+                    (set! out (map (lambda (p)
+                                     (if (eq? (car p) (cadr t))
+                                         (cons (car p) (append (cdr p) (list (car t))))
+                                         p))
+                                   out)))))))
+     (what-now--subterms form))
+    out))
+
+;;; The literal value of a succ tower, or #f.
+(define (leg--succ-value t)
+  (and (pair? t) (eq? (car t) 'succ) (pair? (cdr t)) (null? (cddr t))
+       (let ((v (numeral-collapse t)))
+         (and (exact-nonnegative-integer? v) v))))
+
+;;; MAXIMAL succ towers only: succ(succ(0)) subsumes succ(0), and collapsing the
+;;; outer one takes the inner with it.
+(define (leg--succ-towers form)
+  (let ((all (filter leg--succ-value (what-now--subterms form))))
+    (filter (lambda (t)
+              (not (any-pred (lambda (u) (and (not (equal? u t)) (leg--occurs? t u)))
+                             all)))
+            all)))
+
+;;; Run CHAIN on a scratch clone.  Kept only if it errored nowhere, opened no
+;;; leaf and CHANGED the goal; returns the rewritten goal, so what is printed is
+;;; what the move measurably produces rather than a re-derivation of it.
+;;;
+;;; A RAISE MUST NOT KILL THE PANEL, and must not be swallowed either: an error
+;;; is recorded under LABEL in `*what-now-probe-errors*', which what-now prints
+;;; on its own line.  `bind-condition-handler' and not an outer `vnb-guard' --
+;;; vnb-guard is RE-ENTRANT, so an outer one would turn the inner guard here into
+;;; a pass-through and the first raising candidate would take the whole lane.
+(define (what-now--legibility-verify chain goal label)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (call-with-current-continuation
+          (lambda (k)
+            (bind-condition-handler (list condition-type:error)
+              (lambda (c)
+                (set! *what-now-probe-errors*
+                      (cons (cons label (condition/report-string c))
+                            *what-now-probe-errors*))
+                (k #f))
+              (lambda ()
+                (vnb--probing scratch
+                  (lambda ()
+                    (let* ((before (length (proof-leaves)))
+                           (r (vnb-guard
+                               (lambda ()
+                                 (for-each (lambda (f) (eval f user-initial-environment))
+                                           chain)))))
+                      (and (not (vnb-error? r)) (not (vnb-warning? r))
+                           (not (proof-done? scratch))
+                           (<= (length (proof-leaves)) before)
+                           (let ((after (vnb--ps-goal scratch)))
+                             (and after
+                                  (not (alpha-equiv? after goal))
+                                  after)))))))))))))
+
+(define (leg--arrow before after)
+  (string-append "collapses  " (expression->string before)
+                 "  ->  " (expression->string after)))
+
+(define (what-now--show-legibility goal)
+  (if (or (not *ps*) (proof-done? *ps*) (not (pair? goal)))
+      '()
+      (let ((asms   (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
+            (budget *what-now-probe-cap*)
+            (hits   '())
+            (skipped 0))
+        ;; NAME is what the filter sees: (what-now-suppress! 'OPR) or
+        ;; (what-now-pin! 'succ) reach this lane exactly as they reach the others.
+        ;; EXPLAIN is applied to the PROBED result, so nothing is claimed that was
+        ;; not measured.
+        (define (offer! name chain explain)
+          (cond ((what-now--suppressed? name) (set! skipped (+ skipped 1)))
+                ((<= budget 0) #f)
+                (else
+                 (set! budget (- budget 1))
+                 (let ((after (what-now--legibility-verify chain goal name)))
+                   (if after
+                       (set! hits (append hits (list (list name chain (explain after))))))))))
+        ;; 1. accessor on a literal tuple
+        (for-each
+         (lambda (p)
+           (let ((acc (car p)) (term (cadr p)) (val (caddr p)))
+             (offer! acc
+                     (list (list 'slot (list 'quote acc)) '(nth-r))
+                     (lambda (after) (list (leg--arrow term val))))))
+         (leg--tuple-projections goal))
+        ;; 2. accessor on a declared instance
+        (for-each
+         (lambda (p)
+           (let ((inst (car p)) (accs (cdr p)))
+             (offer! inst
+                     (list (list 'surface-goal! (list 'quote inst)))
+                     (lambda (after)
+                       (list (string-append
+                              "pushes " (symbol->string inst) "'s accessors ("
+                              (let loop ((l accs) (s ""))
+                                (if (null? l) s
+                                    (loop (cdr l)
+                                          (string-append s (if (string=? s "") "" ", ")
+                                                         (string-downcase
+                                                          (symbol->string (car l)))))))
+                              ") down to the surface language,")
+                             "everywhere in the goal, leaving"
+                             (string-append "  " (expression->string after)))))))
+         (leg--instance-accessors goal))
+        ;; 3. succ tower over a literal
+        (for-each
+         (lambda (t)
+           (let* ((n  (leg--succ-value t))
+                  (eq (list '= t n))
+                  ;; `have!' ERRORS on a claim already in context (the cut
+                  ;; self-loops), so when the equation is already there the move
+                  ;; is the `subst' alone.
+                  (chain (if (any-pred (lambda (a) (alpha-equiv? a eq)) asms)
+                             (list (list 'subst (list 'quote eq)))
+                             (list (list 'have! (list 'quote eq) '(lambda () (arith)))
+                                   (list 'subst (list 'quote eq))))))
+             (offer! 'succ chain
+                     (lambda (after) (list (leg--arrow t n))))))
+         (leg--succ-towers goal))
+        (let ((ordered (append (filter (lambda (h) (what-now--pinned? (car h))) hits)
+                               (filter (lambda (h) (not (what-now--pinned? (car h)))) hits))))
+          (cond
+            ((null? ordered)
+             (when (> skipped 0)
+               (display ";; (") (display skipped)
+               (display " legibility move(s) hidden by *what-now-suppress*)") (newline))
+             '())
+            (else
+             (display ";; LEGIBILITY -- the goal is harder to read than it needs to be.  Each")
+             (newline)
+             (display ";;   move below REWRITES it, so the printed form and the term stay in")
+             (newline)
+             (display ";;   step -- nothing here is a printer trick.  Checked on a throwaway copy:")
+             (newline)
+             (for-each
+              (lambda (h)
+                (for-each (lambda (f) (display ";;   ") (vnb--write-form f) (newline))
+                          (cadr h))
+                (for-each (lambda (s) (display ";;     ") (display s) (newline))
+                          (caddr h)))
+              ordered)
+             (when (> skipped 0)
+               (display ";;   (") (display skipped)
+               (display " further move(s) hidden by *what-now-suppress*)") (newline))
+             (apply append (map cadr ordered))))))))
+
+(define (what-now--show-typing-chain goal)
+  (if (not (and *ps* (not (proof-done? *ps*))
+                (pair? goal) (memq (car goal) '(IN in)) (= (length goal) 3)
+                (pair? (cadr goal))))
+      '()
+      (let* ((sqn  (proof-state-focus *ps*))
+             (asms (map wff-formula (sequent-node-assumptions sqn)))
+             (fwd  (let ((r (vnb-guard
+                             (lambda () (what-now--forward-citations goal asms)))))
+                     (if (or (vnb-error? r) (vnb-warning? r) (not (list? r))) '() r)))
+             (names (let ((r (vnb-guard
+                              (lambda () (suggest-backchain-candidates goal)))))
+                      (if (or (vnb-error? r) (vnb-warning? r) (not (list? r)))
+                          '() (map car r)))))
+        (let loop ((ns names) (k 0))
+          (if (or (null? ns) (>= k *what-now-probe-cap*))
+              '()
+              (let* ((bc   (list 'bc* (list 'quote (car ns))))
+                     (subs (what-now--probe-subgoals bc)))
+                (if (not (and (pair? subs) (null? (cdr subs))))
+                    (loop (cdr ns) (+ k 1))
+                    (let* ((sub (car subs))
+                           (in-ctx (any-pred (lambda (a) (alpha-equiv? sub a)) asms))
+                           (cite (let lp ((h fwd))
+                                   (cond ((null? h) #f)
+                                         ((alpha-equiv? sub (caddr (car h))) (car h))
+                                         (else (lp (cdr h))))))
+                           (fact-form
+                            (and cite
+                                 (cons 'fact
+                                       (cons (list 'quote (car cite))
+                                             (map what-now--typing-arg (cadr cite))))))
+                           (chain (cond (in-ctx (list bc '(ass)))
+                                        (fact-form (list bc fact-form '(ass)))
+                                        (else #f))))
+                      (if (and chain (what-now--typing-chain-verify chain))
+                          (begin
+                            (display ";; TYPING -- the goal asks that a CONSTRUCTED term be in a class.")
+                            (newline)
+                            (display ";;   Backchain the closure law, and the argument's own typing is")
+                            (newline)
+                            (display ";;   already available.  Checked on a throwaway copy: this CLOSES")
+                            (newline)
+                            (display ";;   the goal.") (newline)
+                            (for-each (lambda (f)
+                                        (display ";;   ") (vnb--write-form f) (newline))
+                                      chain)
+                            (display ";;     (the middle step lands  ")
+                            (display (expression->string sub))
+                            (display ")") (newline)
+                            chain)
+                          (loop (cdr ns) (+ k 1))))))))))) 
+
+;;; Run FORM on a scratch clone and return the goal formulas of the leaves it
+;;; OPENED -- not every leaf in the proof, which is what `what-now-explain'
+;;; reports and would drag unrelated branches into the test.  'CLOSED if it
+;;; closed outright, #f if it did not fire.
+(define (what-now--probe-subgoals form)
+  (let ((scratch (vnb--scratch-state)))
+    (and scratch
+         (vnb--probing scratch
+           (lambda ()
+             (let* ((before (map (lambda (n) (wff-formula (sequent-node-assertion n)))
+                                 (proof-leaves)))
+                    (r (vnb-guard (lambda () (eval form user-initial-environment)))))
+               (cond
+                 ((or (vnb-error? r) (vnb-warning? r)) #f)
+                 ((proof-done? scratch) 'CLOSED)
+                 (else
+                  (let* ((after (map (lambda (n) (wff-formula (sequent-node-assertion n)))
+                                     (proof-leaves)))
+                         (new (filter (lambda (g)
+                                        (not (any-pred (lambda (b) (alpha-equiv? g b))
+                                                       before)))
+                                      after)))
+                    (and (pair? new) new))))))))))
+
+;;; WHEN `ineq' WILL NOT CLOSE, SAY SO AND SAY WHERE TO LOOK.
+;;;
+;;; This lane used to return '() in both failure paths -- silently.  The panel
+;;; had already printed "comparison goal -- (ineq i1 i2 ...) from named ordering
+;;; assumptions", pointing the reader straight at the tactic that is about to
+;;; fail, and then listed twenty-odd backchain candidates each opening three to
+;;; five subgoals.  So the reader ran `ineq', got "goal not a linear-RR
+;;; consequence of the named assumptions" -- which reads as a defect in the GOAL
+;;; -- and had no way to learn that `prep' exists.
+;;;
+;;; `(prep 'ineq)' answers exactly the question they now have: it runs ineq's
+;;; preconditions one at a time, marks each ok / PREP / STOP, names the library
+;;; lemma repairing each unmet one, and prints a PLAN checked on a scratch
+;;; clone.  On the worked case behind this change -- `eps*recip(2) +
+;;; eps*recip(2) <= eps', the shape you get by instantiating an eps-statement at
+;;; eps/2 -- it reports `[STOP] atom eps * recip(2) is not in RR and no library
+;;; lemma coerces it', which is the whole answer: the product of two
+;;; non-constants is an opaque atom to Fourier-Motzkin, and no prepping fixes
+;;; that.  (The route that works is to halve with `rr-pos-halvable', which hands
+;;; back a `d' with `pos-rr(d)' and `d + d = eps' -- `d' opaque is a shape ineq
+;;; closes on sight.)
+;;;
+;;; Printed, not returned as a move: `prep' is a read-only diagnostic, not a
+;;; proof step, and the returned list is consumed by try-each automation.
+(define (what-now--ineq-no-close why)
+  (display ";;   `ineq' does NOT close this goal here (") (display why) (display ").")
+  (newline)
+  (display ";;   (prep 'ineq) reports WHICH precondition fails, names the lemma that")
+  (newline)
+  (display ";;   repairs each one, and prints a plan it has checked on a scratch copy.")
+  (newline)
+  (display ";;   A [STOP] line there means no prepping of ineq closes this goal --")
+  (newline)
+  (display ";;   which is the useful answer, and usually means an atom is opaque.")
+  (newline)
+  '())
+
+(define (what-now--show-ineq)
+  (if (or (not *ps*) (proof-done? *ps*))
+      '()
+      (let ((idxs (vnb-guard (lambda () (contra--usable-indices)))))
+        (if (or (vnb-error? idxs) (vnb-warning? idxs) (not (pair? idxs)))
+            (what-now--ineq-no-close "no premise it can read")
+            (let* ((form (cons 'ineq idxs))
+                   (e    (vnb-guard (lambda () (what-now-explain form)))))
+              (if (or (vnb-error? e) (vnb-warning? e) (not (pair? e))
+                      (not (assq 'closes e))
+                      (not (cdr (assq 'closes e))))
+                  (what-now--ineq-no-close "probed on a throwaway copy")
+                  (begin
+                    (display ";;   ")
+                    (vnb--write-form form)
+                    (display "  => CLOSES the goal")
+                    (newline)
+                    (list form))))))))
 
 (define (what-now--show-fires)
   (if (or (not *ps*) (proof-done? *ps*))
@@ -479,12 +4703,15 @@
       (let* ((sqn  (proof-state-focus *ps*))
              (seq  (make-sequent (sequent-node-assumptions sqn)
                                  (sequent-node-assertion sqn)))
-             (hits (let loop ((ns *what-now-fire-probes*) (acc '()))
-                     (if (null? ns)
-                         (reverse acc)
-                         (let ((r (vnb-apply? (car ns) seq)))
-                           (loop (cdr ns)
-                                 (if r (cons (cons (car ns) r) acc) acc)))))))
+             (ignore (set! *what-now-probe-errors* '()))
+             (hits (what-now--hint-filter
+                    (let loop ((ns *what-now-fire-probes*) (acc '()))
+                      (if (null? ns)
+                          (reverse acc)
+                          (let ((r (what-now--probe-tactic (car ns) seq)))
+                            (loop (cdr ns)
+                                  (if r (cons (cons (car ns) r) acc) acc)))))
+                    car)))
         (when (pair? hits)
           (display ";; tactics that FIRE on this goal now (vnb-apply? probe):")
           (newline)
@@ -500,9 +4727,17 @@
                                             " subgoal(s)")))
                 (newline)))
             hits))
-        (map (lambda (h) (list (car h))) hits))))
+        ;; KEEP the measured effect -- this used to return bare (name) forms,
+        ;; so the panel showed the firing tactics with no annotation while the
+        ;; REPL printed "=> CLOSES the goal" two lines above.
+        (what-now--report-probe-errors)
+        (map (lambda (h) (list (cons 'form (list (car h)))
+                               (cons 'effect (wn--effect-of (cdr h)))))
+             hits))))
 
-(define (what-now . opt-depth)
+;;; The body.  OPT-DEPTH is the rest-list `suggest-backchain-candidates' takes;
+;;; the hint is read from the fluid *what-now-hint*, which `what-now' binds.
+(define (what-now--run opt-depth)
   (let ((goal (suggest--current-goal)))
     (cond
       ((not goal)
@@ -514,18 +4749,142 @@
               (kind     (what-now--classify core))
               (needs-di (and (pair? goal)
                              (memq (car goal) '(forall forsome implies and iff not))))
-              (moves    '()))                  ; the tactic forms, returned for automation
+              (structural? #f)                 ; did a structural lane fire?
+              (subject  (what-now--subject-data goal))
+              (lanes    '())                   ; ((kind title moves) ...), for the caller
+              (moves    '()))                  ; the same moves, flat, for automation
+         ;; Record a lane's output as DATA as well as printing it.  The printing
+         ;; is the REPL's renderer; `lanes' is what Emacs and any automation get.
+         (define (lane! k title forms)
+           (if (pair? forms)
+               (set! lanes (append lanes
+                                   (list (list (cons 'kind k)
+                                               (cons 'title title)
+                                               ;; DATA: move records, so a measured
+                                               ;; effect can ride along
+                                               (cons 'moves (map (lambda (m)
+                                                                   (if (and (pair? m) (pair? (car m))
+                                                                            (assq 'form m))
+                                                                       m
+                                                                       (wn--move m)))
+                                                                 forms)))))))
+           (map wn--move-form forms))
          (display ";; what-now -- open goal:") (newline)
          (display ";;   ") (display (expression->string goal)) (newline)
+         ;; The preamble: what the goal is ABOUT, before any move is proposed.
+         (what-now--show-about goal)
+         ;; YOUR RULES FIRST.  A rule is an explicit instruction from the reader;
+         ;; it outranks every guess the panel makes, exactly as a `pin' does.
+         (set! moves (append moves (lane! 'user-rules "your rules"
+                                          (what-now--show-user-rules goal))))
+         ;; Extensionality lane FIRST: on an equality between classes it is the
+         ;; move, and the specificity ranking below cannot see that.
+         ;; STRUCTURAL lanes first: what the goal's SHAPE means.  Both are
+         ;; lookups on the head, so either fires or is silent -- there is no
+         ;; ranking to get wrong.
+         (set! moves (if (memq kind '(reflexive ground-arith))
+                         '()               ; rfl / arith is the move, not members
+                         (append (lane! 'excluded-middle "excluded middle"
+                                        (what-now--show-em core))
+                                 (lane! 'extensionality "extensionality"
+                                        (what-now--show-extensionality core))
+                                 (lane! 'membership "membership law"
+                                        (what-now--show-membership core)))))
+         (set! structural? (pair? moves))
+         ;; Live-fire lane SECOND, not last: "(grind) => 2 subgoals" is the most
+         ;; actionable line printed, and it used to sit under forty lines of
+         ;; backchain candidates.
+         (set! moves (append moves (lane! 'fires "tactics that fire now"
+                                          (what-now--show-fires))))
+         ;; CLASS BRIDGE, high: it is a PRECONDITION -- until it is taken, every
+         ;; `fact' about the structure lands an implication and says nothing, so
+         ;; no lane below can give correct advice.  Self-gated on a class
+         ;; membership whose predicate form is absent, hence silent on most panels.
+         (set! moves (append moves (lane! 'class-bridge "bridge a class membership"
+                                          (what-now--show-class-bridge))))
+         ;; BETA, high: a redex in the goal blocks every term-level comparison
+         ;; below it, and reducing one is not a judgement call.  Self-gated on
+         ;; an applied VNB-LAMBDA, so silent on nearly every panel.
+         (set! moves (append moves (lane! 'beta "beta-reduce an applied lambda"
+                                          (what-now--show-beta goal))))
+         ;; LEGIBILITY, beside BETA and for the same reason: a goal carrying an
+         ;; unprojected accessor -- OPR([a,b,c,d]), carr(rr-normed-field) -- or a
+         ;; succ tower over a literal is one nobody can read, and until it is
+         ;; normalised no term-level lane below it can match either.  The user's
+         ;; complaint, 2026-08-23; the moves all existed and nothing offered any
+         ;; of them.  Self-gated on those shapes AND on the move firing, hence
+         ;; silent on a goal that is already in the surface language.
+         (set! moves (append moves (lane! 'legibility "make the goal legible"
+                                          (what-now--show-legibility goal))))
+         ;; TYPING CHAIN, high: when it fires it IS the move, and it is checked
+         ;; rather than ranked, so it cannot be wrong about closing.  Self-gated
+         ;; on an `IN <compound> C' goal, hence silent on nearly every panel.
+         (set! moves (append moves (lane! 'typing-chain "typing chain"
+                                          (what-now--show-typing-chain goal))))
+         ;; ... and the same species one step over: a context universal that is
+         ;; an equation whose left side is in the goal.  Both are "the context
+         ;; already contains the move, one instantiation away".
+         (set! moves (append moves (lane! 'rewrite-from-context "rewrite from your context"
+                                          (what-now--show-rewrite-from-context goal))))
+         ;; Forward lane: what the CONTEXT fires, as opposed to what the goal
+         ;; attracts.  Placed above the goal-directed lanes because on a leaf
+         ;; whose first move is a citation it is the only lane with anything to
+         ;; say, and below live-fire because a tactic that closes the goal
+         ;; outright still beats enriching the context.
+         ;; NOTE the lane KEY is `forward-citations', not `forward': there is
+         ;; already a `forward' lane below ("moves already in the context",
+         ;; what-now--show-forward, suggest.scm:1279) and the two are different
+         ;; questions -- that one names subst/detach! moves the context supports,
+         ;; this one names library FACTS the context fires.  Naming this
+         ;; procedure `what-now--show-forward' silently redefined that one and
+         ;; the panel died with an arity error; clobber-guard cannot see a
+         ;; procedure-over-procedure rebind.
+         (set! moves (append moves (lane! 'forward-citations "forward citations"
+                                          (what-now--show-forward-citations goal))))
+         ;; SUPPLY THE ORACLE.  Above the goal-directed lanes and below the
+         ;; forward citations: on an order goal this is usually the whole proof,
+         ;; and it is a lookup on the sequent's heads, so it either fires or is
+         ;; silent.  `what-now--show-ineq-supply' lives in ineq-supply.scm,
+         ;; which loads after this file -- a top-level define resolves at call
+         ;; time, and by then both are in.
+         (set! moves (append moves (lane! 'ineq-supply "supply the oracle"
+                                          (what-now--show-ineq-supply core))))
+         ;; PUSH A NEGATION INWARD.  A hypothesis-side structural move, so it is
+         ;; a lookup on the assumption heads: it either fires or is silent.
+         ;; `what-now--show-push-not' shares `push-not--target' with the tactic
+         ;; (push-not.scm, loaded long before this file), so the panel can never
+         ;; offer a push the tactic would refuse.
+         (set! moves (append moves (lane! 'push-not "push a negation inward"
+                                          (what-now--show-push-not))))
+         ;; INSTANCE lane before the induction lane, and the induction lane is
+         ;; silenced when it fires: if the goal is already an instance of a
+         ;; context universal, proposing to set up a fresh induction is not a
+         ;; second opinion, it is a wrong one.
+         (let ((inst-moves (what-now--show-instances goal)))
+           (set! moves (append moves (lane! 'instance "goal is an instance"
+                                            inst-moves)))
+           (set! structural? (or structural? (pair? inst-moves)))
+           (when (null? inst-moves)
+             (set! moves (append moves (lane! 'induction "induction"
+                                              (what-now--show-induction goal))))))
+         ;; The induction lane runs inside the INSTANCE block above -- only when
+         ;; no instance was found.  It speaks exactly when `ni' does NOT fire but
+         ;; an NN variable is in the prefix or the context, so it and the
+         ;; live-fire lane never both report induction.
+         ;; Rewrite lane: what `mac' actually does here, measured.
+         (set! moves (append moves (lane! 'rewrite "rewrites that fire"
+                                          (what-now--show-rewrite goal opt-depth))))
          (case kind
            ((reflexive)
-            (set! moves '((rfl)))
+            (set! moves (lane! 'closer "closer" (what-now--measure-firing '((rfl)))))
             (display ";; both sides are identical -> (rfl).") (newline))
            ((ground-arith)
-            (set! moves '((arith) (crs)))
+            (set! moves (lane! 'closer "closer" (what-now--measure-firing '((arith) (crs)))))
             (display ";; ground arithmetic equality -> (arith)   (or (crs)).") (newline))
            ((ring-equality)
-            (set! moves (if needs-di '((di) (crs) (rs)) '((crs) (rs))))
+            (set! moves (append moves (lane! 'closer "closer"
+                                             (what-now--measure-firing
+                                              (if needs-di '((di) (crs) (rs)) '((crs) (rs)))))))
             (display ";; ring / arithmetic equality -- closer lane, NOT backchain:") (newline)
             (when needs-di
               (display ";;   (di)    -- introduce the bound variables / hypotheses first, then:") (newline))
@@ -533,6 +4892,12 @@
             (display ";; (backchain suppressed: an = goal floods with generic equality lemmas; (suggest-backchain) to see them.)") (newline))
            ((comparison)
             (display ";; comparison goal -- (ineq i1 i2 ...) from named ordering assumptions, or backchain:") (newline)
+            ;; ... and the indices themselves, computed and PROBED, rather than
+            ;; a header with nothing under it.  Above backchain deliberately:
+            ;; on a real-arithmetic comparison the backchain lane's top offers
+            ;; are routinely NN lemmas that fire and strand the proof.
+            (set! moves (append moves (lane! 'closer "ineq closer"
+                                             (what-now--show-ineq))))
             ;; polynomial inequality (both sides arithmetic, <=): also offer the
             ;; sum-of-squares lane, which ineq (linear only) cannot reach.
             (when (and (memq (car core) '(<= >=))
@@ -543,36 +4908,191 @@
               (display ";;     Supply the terms to be SQUARED (not the squares): e.g. for") (newline)
               (display ";;     x*y <= x^2 + y^2 type  (sos \"x - y\" \"x\" \"y\").  Write the c_i") (newline)
               (display ";;     with the goal's variable names (di preserves them).") (newline))
-            (set! moves (map (lambda (nm) (list 'bc* (list 'quote nm)))
-                             (what-now--show-backchain goal opt-depth))))
+            (set! moves (append moves (lane! 'backchain "backchain lemmas"
+                                             (what-now--backchain-moves
+                                              structural? goal opt-depth)))))
            (else                                ; equality-other, predicate
-            (set! moves (map (lambda (nm) (list 'bc* (list 'quote nm)))
-                             (what-now--show-backchain goal opt-depth)))))
+            (set! moves (append moves (lane! 'backchain "backchain lemmas"
+                                             (what-now--backchain-moves
+                                              structural? goal opt-depth))))))
          (when (and needs-di (memq kind '(comparison equality-other predicate)))
            (display ";; (goal has binders/structure -- (di) first if you'd rather introduce them.)") (newline))
+         ;; Forward lane: subst / detach! moves already sitting in the context.
+         (set! moves (append moves (lane! 'forward "moves already in the context"
+                                          (what-now--show-forward))))
          ;; El-cheapo hypothesis lane: name the assumptions mac-h* would unfold/split.
-         (set! moves (append moves (what-now--show-hyp-unfolds)))
-         ;; Inst lane: name the universals worth instantiating (witness chosen
-         ;; from the context-typed pool) -- the move scout finds but the single
-         ;; suggestion lanes above can't, on goals like the metric laws.
-         (set! moves (append moves (what-now--show-inst)))
+         (set! moves (append moves (lane! 'hypotheses "hypotheses to open"
+                                          (what-now--show-hyp-unfolds))))
+         ;; ... and the one it cannot see: membership in a CONSTRUCTED class,
+         ;; whose head is IN rather than the constructor.
+         (set! moves (append moves (lane! 'hyp-membership "membership in a hypothesis"
+                                          (what-now--show-hyp-membership))))
+         ;; Inst lane: the universals worth instantiating, at a context-typed
+         ;; witness.  BEHIND THE HINT since 2026-08-13: unhinted it prints the
+         ;; cross product of the context's universals with its terms --
+         ;; (inst+ 4 'a) (inst+ 3 'a) (inst+ 4 'x) (inst+ 3 'b) (inst+ 3 'x) --
+         ;; which is a search space, not advice.  (what-now "inst") to see it,
+         ;; or (scout), whose inst lane is the same generator actually TRYING
+         ;; them rather than listing them.
+         (if *what-now-hint*
+             ;; Under an explicit (what-now "inst") the reader is asking for the
+             ;; search space; give it unfiltered.
+             (set! moves (append moves (lane! 'inst "universals to instantiate"
+                                              (what-now--show-inst))))
+             ;; Unhinted: the same candidates, PROBED, and only what fires.
+             (set! moves (append moves (lane! 'inst "universals to instantiate"
+                                              (what-now--show-inst-fired)))))
          ;; Ew lane: on an existential goal, name the typed witnesses worth
          ;; trying -- the dual move, the one inst+ (hypothesis witnesses) misses.
-         (set! moves (append moves (what-now--show-ew)))
+         (set! moves (append moves (lane! 'witness "witnesses for the goal"
+                                          (what-now--show-ew))))
          ;; Ai lane: on an existential HYPOTHESIS, name the (ai k) skolemizations
          ;; -- the forward move grind can't do (di splits AND hyps, never ∃).
-         (set! moves (append moves (what-now--show-ai)))
+         (set! moves (append moves (lane! 'skolemize "existential hypotheses"
+                                          (what-now--show-ai))))
          ;; Witness-producer lane: on an existential goal, name PSS lemmas that
          ;; BUILD a witness of this shape (the diagonalization / block-family
          ;; construction) -- the leap the assembler can't search out.
-         (set! moves (append moves (what-now--show-witness-producers)))
-         ;; Live-fire lane: which parameterless tactics actually fire right now.
-         (set! moves (append moves (what-now--show-fires)))
-         (display ";; (cheap-mac) previews goal rewrites that actually fire; (cheap-mac-h k) the same on assumption k.")
+         (set! moves (append moves (lane! 'witness-producers "lemmas that build a witness"
+                                          (what-now--show-witness-producers))))
+         ;; The rewrite lane this pass does not have.  Spelled out rather than
+         ;; named: the one-line version read as a cross-reference to something
+         ;; already on screen, and the report's destination -- the REPL, not a
+         ;; workspace panel -- is the part that makes it look like nothing
+         ;; happened when the command is run from M-x.
+         (if (any-pred (lambda (m) (and (pair? m) (eq? (car m) 'mac))) moves)
+             (display ";; OTHER REWRITES -- beyond the one named above, run (cheap-mac):")
+             (display ";; NO REWRITE LANE above -- for that, run (cheap-mac):"))
          (newline)
-         (display ";; first pass: goal-kind classifier + backchain lane + hypothesis-unfold lane.")
+         (display ";;   it fires every candidate macete on a THROWAWAY copy of this goal and")
          (newline)
-         moves)))))                             ; <- return the move list (besides printing)
+         (display ";;   prints the ones that CHANGE it, each runnable verbatim; the live proof")
+         (newline)
+         (display ";;   is untouched.  (cheap-mac-h k) does the same to assumption k, and")
+         (newline)
+         (display ";;   (cheap-mac-h) with no argument previews what (mac-h*) would fold.")
+         (newline)
+         (display ";;   Type it in the Scratch Workspace or at the REPL: the report prints")
+         (newline)
+         (display ";;   THERE, not into a workspace panel, so M-x vnb-cmd-cheap-mac looks")
+         (newline)
+         (display ";;   like it did nothing unless the *VNB* buffer is on screen.")
+         (newline)
+         (display ";; lanes: structural (excluded-middle / extensionality / membership), live-fire,")
+         (newline)
+         (display ";; goal-kind")
+         (newline)
+         (display ";; classifier, backchain, hypothesis-unfold.  (what-now \"word\") filters them;")
+         (newline)
+         (display ";; the inst lane is shown PROBED (only instantiations that land);")
+         (newline)
+         (display ";; (what-now \"inst\") gives the unfiltered search space instead.")
+         (newline)
+         ;; THE VALUE.  Emacs renders this; the display above is the REPL's own
+         ;; renderer of the same data.  See `what-now-data' for the quiet form.
+         (list (cons 'goal    goal)
+               ;; ... and the goal already RENDERED.  Emacs cannot pretty-print
+               ;; VNB surface syntax, so the string is part of the data rather
+               ;; than something the presentation layer is expected to derive.
+               (cons 'goal-text (expression->string goal))
+               (cons 'kind    kind)
+               (cons 'subject subject)
+               (cons 'lanes   (wn--dedupe-lanes lanes))
+               (cons 'moves   moves)))))))                             ; <- return the move list (besides printing)
+
+;;; (what-now)              -- the whole first pass.
+;;; (what-now "extensionality")
+;;;                         -- the same, with every candidate list narrowed to
+;;;                            the items mentioning a hint token.  See
+;;;                            *what-now-hint* above for what is and is not
+;;;                            filtered.  A hint matching nothing falls back to
+;;;                            the unfiltered answer, after saying so.
+;;; A non-string argument is still the fingerprint depth, as before.
+(define (what-now . args)
+  (let ((hint  (what-now--args-hint args))
+        (depth (what-now--args-depth args)))
+    (fluid-let ((*what-now-hint* hint) (*what-now-hint-hits* 0))
+      (let ((moves (what-now--run depth)))
+        (if (and hint (= *what-now-hint-hits* 0) (null? (what-now-moves moves)))
+            (begin
+              (display ";; -- no candidate mentions ")
+              (let loop ((ts hint) (first #t))
+                (unless (null? ts)
+                  (unless first (display " / "))
+                  (display (car ts))
+                  (loop (cdr ts) #f)))
+              (display "; unfiltered answer follows.") (newline)
+              (fluid-let ((*what-now-hint* #f)) (what-now--run depth)))
+            moves)))))
+
+;;; The flat move list out of what-now's value -- what automation wants, and
+;;; what `what-now' itself used to return before it grew a subject section.
+(define (what-now-moves v)
+  (if (and (pair? v) (pair? (car v)) (assq 'moves v))
+      (cdr (assq 'moves v))
+      v))
+
+;;; The value with NO printing: the form Emacs asks for.  The REPL renderer and
+;;; this share one computation -- the display is suppressed, not duplicated.
+(define (what-now-data . args)
+  (let ((v #f))
+    (with-output-to-string (lambda () (set! v (apply what-now args))))
+    v))
+
+;;; Capture what-now's VALUE (not its printed text) to PATH, for the Emacs
+;;; What-Now workspace to render.  `write-what-now' still writes the report, so
+;;; the old workspace keeps working until the elisp switches over.
+;;;
+;;; The wire format is Scheme with ONE adjustment: #f and #t become `nil' and
+;;; `t'.  Emacs's reader rejects `#f' outright (invalid-read-syntax), so writing
+;;; the value verbatim would hand the workspace a file it cannot parse.  The
+;;; conversion is on the wire only -- `what-now-data' still returns real
+;;; booleans to Scheme callers.
+(define (wn--elisp-safe v)
+  (cond ((eq? v #f) 'nil)
+        ((eq? v #t) 't)
+        ((pair? v) (cons (wn--elisp-safe (car v)) (wn--elisp-safe (cdr v))))
+        (else v)))
+
+(define (write-what-now-data path . args)
+  (let ((v (apply what-now-data args)))
+    (with-output-to-file path (lambda () (write (wn--elisp-safe v)) (newline)))
+    path))
+
+;;; The explain query's DATA path, the twin of `write-what-now-data'.
+;;;
+;;; `what-now-explain-show' renders for the REPL; Emacs should not be scraping
+;;; that prose.  The panel itself already crosses the wire as DATA and formats
+;;; in elisp -- this makes the [what does this do?] button do the same, so the
+;;; answer can be shown INLINE under the move instead of landing in the *VNB*
+;;; transcript, which `vnb-what-now' hides behind a full-screen workspace.
+;;; Same #f/#t -> nil/t conversion, for the same reason: Emacs's reader rejects
+;;; `#f' outright.
+;;; The wire form carries RENDERED text beside the raw formulas, exactly as
+;;; `what-now-data' ships `goal-text' beside `goal'.  Without it elisp prints
+;;; the S-expression -- `(<= (abs (- v q)) h_)' where the reader wants
+;;; `abs(v - q) <= h_'.  The raw formulas stay, because a test or an LLM reading
+;;; the same file wants the structure; the strings are for the human surface.
+(define (write-what-now-explain path form)
+  (let* ((v (what-now-explain form))
+         (v (if (not v)
+                v
+                (append v
+                        (list (cons 'after-text
+                                    (map expression->string
+                                         (cdr (assq 'after v))))
+                              (cons 'landed-text
+                                    (map expression->string
+                                         (cdr (assq 'landed v)))))))))
+    (with-output-to-file path (lambda () (write (wn--elisp-safe v)) (newline)))
+    path))
+
+;;; (what-now-about "extensionality") -- `what-now' with a hint, under a name
+;;; the generated M-x surface can PROMPT for.  `what-now' itself stays
+;;; registered as no-arg so vnb-cmd-what-now remains a one-keypress palette
+;;; entry; a tactic whose catalog signature takes an argument always prompts.
+(define (what-now-about hint . opt-depth)
+  (apply what-now hint opt-depth))
 
 ;;; Capture a what-now answer to PATH (consumed by the elisp `vnb-what-now',
 ;;; which shows it in the What-Now workspace instead of the REPL).  Reads the
@@ -645,13 +5165,53 @@
                   (string<? (symbol->string (car a)) (symbol->string (car b)))
                   (> sa sb)))))))
 
+;;; The unfold macete of every FUNCTOID whose head occurs in TARGET.
+;;;
+;;; WHY THIS IS SEPARATE FROM suggest-rewrite-candidates, AND WHY THE LANE WAS
+;;; SILENT WITHOUT IT.  `def-functoid' (structures.scm:892) calls
+;;; `install-macete!' and records the body in `*functoid-registry*'.  It does
+;;; NOT call `install-theorem!' -- a functoid is a definition, not a theorem,
+;;; which is the same fact CLAUDE.md records as the reason `mac-h' cannot
+;;; unfold one by its own name.  `suggest-rewrite-candidates' scans
+;;; `*theorem-table*', so NO functoid could ever appear among its candidates:
+;;; all 161 in the registry were structurally invisible to the rewrite lane
+;;; (161, not the 113 CLAUDE.md quotes -- that is the `lookup-view-as'-filtered
+;;; count FUNCTORS.md and DEFINITIONS.md report, not the registry size), and
+;;; `what-now' on a goal like `length(trunc-metric(a)) = 2' printed
+;;; `trunc-metric [functoid]' in the About block and then never proposed
+;;; unfolding it (reported 2026-08-23, while driving trunc-metric-functorial).
+;;; `use--properties-round' (below) had scanned the registry all along, so the
+;;; two surfaces disagreed about whether functoids exist.
+;;;
+;;; No fingerprint is needed: a functoid's rewrite LHS is literally
+;;; `(name . params)', so the head occurring in the target IS the applicability
+;;; test.  Ranked before the fingerprint candidates for that reason -- an exact
+;;; head match beats a subsumption -- and every one is probed by the caller, so
+;;; a functoid whose unfold does not change the goal is dropped, not shown.
+;;;
+;;; GOAL SIDE ONLY.  `mac-h' cannot unfold a functoid by its own name: it warns
+;;; `unknown theorem/macete' and no-ops.  Offering these on a HYPOTHESIS would
+;;; suggest a move that silently does nothing, which is worse than silence, so
+;;; `suggest-rewrite-names-asm' and `cheap-mac-h' deliberately do not call this.
+(define (suggest--functoid-unfolds target)
+  (let ((heads (what-now--heads-of target)))
+    (filter (lambda (n) (memq n heads))
+            (hash-table-keys *functoid-registry*))))
+
+;;; The goal-side candidate list: functoid unfolds first, then the ranked
+;;; fingerprint candidates.  The three goal lanes (what-now's rewrite lane,
+;;; the Emacs `mac' completion seed, and cheap-mac) all go through here.
+(define (suggest--goal-rewrite-names goal opt-depth)
+  (append (suggest--functoid-unfolds goal)
+          (map car (apply suggest-rewrite-candidates goal opt-depth))))
+
 ;;; Names only (ranked) of the rewrite rules that can fire on the current focus
 ;;; GOAL -- the completion seed for the Focus `mac' (Rewrite goal) prompt.
 (define (suggest-rewrite-names . opt-depth)
   (let ((goal (suggest--current-goal)))
     (if (not goal)
         '()
-        (map car (apply suggest-rewrite-candidates goal opt-depth)))))
+        (suggest--goal-rewrite-names goal opt-depth))))
 
 ;;; Names only (ranked) of the rewrite rules that can fire on the ASSUMPTION
 ;;; named by SEL (an assumption index as shown, or its formula) -- the
@@ -774,8 +5334,7 @@
   (let* ((scratch (vnb--scratch-from-goal goal))
          (before  (vnb--ps-goal scratch))
          (proc    (eval name user-initial-environment)))
-    (fluid-let ((*ps* scratch))
-      (quietly
+    (vnb--probing scratch
        (lambda ()
          (let ((r (vnb-guard (lambda () (apply proc args)))))
            (cond
@@ -788,7 +5347,7 @@
                                  (wff-formula (sequent-node-assertion n)))
                                (proof-open-goals scratch)))
                      (new (filter (lambda (g) (not (equal? g before))) all)))
-                (if (null? new) #f new)))))))))))
+                (if (null? new) #f new))))))))))
 
 ;; Print one (verb 'name) => effect line; effect is 'CLOSED or a goal formula.
 (define (vnb--cheap-line verb name effect)
@@ -810,7 +5369,7 @@
             (lambda (nm)
               (let ((eff (vnb--probe-on-scratch (lambda () (cmd-apply-macete *ps* nm)))))
                 (when eff (set! hits (cons (cons nm eff) hits)))))
-            (map car (apply suggest-rewrite-candidates goal opt-depth)))
+            (suggest--goal-rewrite-names goal opt-depth))
           (set! hits (reverse hits))
           (display ";; cheap-mac -- goal rewrites that FIRE on a scratch copy ")
           (display "(the real, sound mac -- runnable verbatim):\n")
@@ -1863,7 +6422,8 @@
 ;; the assembler (inst/ew) can't invent.  Returns (wbc 'name) forms; '() if none.
 (define (what-now--show-witness-producers)
   (let* ((goal  (and *ps* (suggest--current-goal)))
-         (prods (and goal (witness-producers goal))))
+         (prods (and goal (what-now--hint-filter (witness-producers goal)
+                                                 (lambda (n) n)))))
     (if (or (not prods) (null? prods))
         '()
         (begin

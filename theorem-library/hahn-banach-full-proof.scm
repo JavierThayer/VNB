@@ -259,7 +259,7 @@
 ;;; ====================================================================
 (sp `(FORALL m (FORALL s (FORALL f
      (IMPLIES ,(conjuncts->and '((IS-NORMED-VECTOR-SPACE m)
-                                 (IS-FINITE-DIMENSIONAL m)
+                                 (IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m))
                                  (IS-SUBMODULE m s)
                                  (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)))
        (FORSOME g_ (AND (IS-LINEAR-FUNCTIONAL-ON m (VEC m) g_)

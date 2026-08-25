@@ -8,7 +8,7 @@
 ;;; (Same reason views.scm cannot register NORMED-FIELD's multiplicative-
 ;;; group view.)  So the bridge is a constructor functoid plus its laws.
 ;;;
-;;;   NF-METRIC-SPACE(nf) = [ CARR(nf),  lambda([x,y], FNRM(nf)(x - y)) ]
+;;;   NF-METRIC-SPACE(nf) = [ CARR(nf),  vnb-lambda([x,y], FNRM(nf)(x - y)) ]
 ;;;
 ;;; where x - y is ADD(nf)(x, NEG(nf)(y)).  Then NF-METRIC-SPACE(nf) is a
 ;;; metric space whenever nf is a normed field: nonnegativity, point-

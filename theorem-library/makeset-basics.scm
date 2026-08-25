@@ -29,7 +29,13 @@
 ;;;
 ;;; The 2-element case is written out rather than derived from a general
 ;;; cons-recursion on MAKE-SET, because the whole point is the literal `{a,b}'
-;;; a user types; a general law wants a LIST recursion the theory does not have.
+;;; a user types.  The second half of that reason -- "a general law wants a LIST
+;;; recursion the theory does not have" -- was true until 2026-08-13 and is now
+;;; FALSE: structure-library/list-recursion.scm supplies CONS and `makeset-cons',
+;;; and theorem-library/tuples-induction.scm proves the induction principle.  The
+;;; general law is therefore reachable, and these hand-written 2-element lemmas
+;;; are the thing it would retire; they are kept because the library still cites
+;;; them (card-pair, makeset2-split), not because the machinery is missing.
 
 ;;; --- file-local helpers (ms-- prefix) ------------------------------------
 

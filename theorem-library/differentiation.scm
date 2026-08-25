@@ -17,15 +17,16 @@
 ;;; (structure-library/metric-continuity.scm).  The supporting "continuity
 ;;; algebra" lives in theorem-library/continuity-algebra.scm.
 ;;;
-;;; STATUS: deriv-const and deriv-identity are MACHINE-PROVEN from the algebraic
-;;; definition (the witness phi is a constant, continuity by const-continuous-at,
-;;; the factorization closes by crs) -- proof-of-concept that the foundation
-;;; fires.  derivative-unique, diff-implies-continuous (Prop 2.4), deriv-sum
-;;; (2.5), deriv-product (2.6) remain warranted supports: they additionally need
-;;; (a) skolemizing the IS-DIFF-AT hypotheses to extract the factor phi, (b) for
-;;; sum/product the RR-closure of f(x)+g(x) / f(x)*g(x) under fun-apply-type
-;;; (the known [[numeric-closure-gap]]), and (c) a "continuity respects pointwise
-;;; equality" lemma for Prop 2.4 -- the next increment.
+;;; STATUS (2026-08-23): deriv-const, deriv-identity, derivative-unique and
+;;; diff-implies-continuous (Prop 2.4) are MACHINE-PROVEN here; deriv-sum (2.5)
+;;; and deriv-product (2.6) are PROVEN in theorem-library/deriv-sum-product.scm,
+;;; the chain rule in theorem-library/chain-rule.scm, and the power rule for the
+;;; monomial in theorem-library/deriv-power.scm -- all `modulo 0' except the
+;;; power rule, whose sole leaf is NN successor arithmetic (`nn-add-succ').
+;;; What unlocked the sum/product pair was the continuity algebra coming down
+;;; (continuity-basics/-sum/-product/-transfer), so that the witness's
+;;; continuity is a citation rather than an eps-delta argument.  Still asserted
+;;; here: `deriv-neg' (below), the scalar rule's c = -1 case.
 
 ;;; ===================================================================
 ;;; The Caratheodory derivative
@@ -217,44 +218,30 @@
 (grind) (lam-b) (crs)                            ; x-a = 1*(x-a)
 (qed 'deriv-identity)
 
-;;; Prop 2.5: sum rule.  phi_{f+g} = phi_f + phi_g.
-(support 'deriv-sum
-  '(FORALL f (FORALL g (FORALL a (FORALL L (FORALL M
-     (IMPLIES (AND (IS-DIFF-AT f a L) (IS-DIFF-AT g a M))
-              (IS-DIFF-AT (VNB-LAMBDA x RR (+ (f x) (g x))) a (+ L M)))))))))
-(warrant! 'deriv-sum 'reference
-  "calculus.pdf Prop 2.5.  (f+g)(x)-(f+g)(a) = (phi_f(x)+phi_g(x))(x-a); the
-   witness phi_f+phi_g is continuous at a (sum of continuous), value L+M.")
-(topic! 'deriv-sum 'analysis)
+;;; Prop 2.5 (sum rule) and Prop 2.6 (product rule).  MOVED 2026-08-23 to
+;;; theorem-library/deriv-sum-product.scm, where both are PROVEN `modulo 0'.
+;;; They stood here as `reference' supports whose warrant texts WERE the proofs
+;;; -- "the witness phi_f+phi_g is continuous at a (sum of continuous), value
+;;; L+M", and for the product "by adding and subtracting f(a)g(x)" -- i.e. the
+;;; derivation written in prose and then not run -- the same species as the
+;;; chain rule (moved just below) and `compose-apply'.  Both statements are
+;;; reproduced VERBATIM there.  What the warrants did NOT say, and what the
+;;; product rule actually costs, is that its witness is continuous at a only
+;;; because g is (Prop 2.4, `diff-implies-continuous'), which has to be cited
+;;; BEFORE `mac-h' unfolds -- and destroys -- the IS-DIFF-AT hypothesis.
+;;; Bills: both `modulo 0'.
 
-;;; Prop 2.6: product rule.  phi_{fg}(x) = phi_f(x) g(x) + f(a) phi_g(x).
-(support 'deriv-product
-  '(FORALL f (FORALL g (FORALL a (FORALL L (FORALL M
-     (IMPLIES (AND (IS-DIFF-AT f a L) (IS-DIFF-AT g a M))
-              (IS-DIFF-AT (VNB-LAMBDA x RR (* (f x) (g x))) a
-                          (+ (* L (g a)) (* (f a) M))))))))))
-(warrant! 'deriv-product 'reference
-  "calculus.pdf Prop 2.6.  (fg)(x)-(fg)(a) = [phi_f(x)g(x) + f(a)phi_g(x)](x-a)
-   by adding and subtracting f(a)g(x); the bracket is continuous at a with
-   value L*g(a)+f(a)*M.")
-(topic! 'deriv-product 'analysis)
+;;; Prop 2.8: the CHAIN RULE.  MOVED 2026-08-23 to
+;;; theorem-library/chain-rule.scm, where it is PROVEN, together with the DERIV
+;;; form of equation (13) (`deriv-chain-value') and the reader
+;;; `deriv-of-is-diff-at'.  It stood here as a `reference' support whose warrant
+;;; text WAS the proof -- "the factor of g o f is (phi_g o f)*phi_f, continuous
+;;; at a with value g'(f(a))*f'(a)" -- i.e. the derivation written in prose and
+;;; then not run.  What made it reachable was `compose-continuous-at' coming
+;;; down (theorem-library/continuity-compose.scm, 2026-08-23); the rest is two
+;;; substitutions and one `crs'.  The statement is reproduced VERBATIM there.
+;;; Bill: {compose-type, compose-apply}, inherited from compose-continuous-at.
 
-;;; Prop 2.8: the CHAIN RULE.  COMPOSE(g,f)(x) = g(f(x)); (g o f)'(a)=g'(f(a))f'(a).
-;;; Caratheodory form (limit-free, no o/O algebra): with f(x)-f(a)=phi_f(x)(x-a)
-;;; and g(y)-g(f(a))=phi_g(y)(y-f(a)),
-;;;   (gof)(x)-(gof)(a) = phi_g(f(x)) * (f(x)-f(a)) = [phi_g(f(x))*phi_f(x)]*(x-a),
-;;; so the Caratheodory factor of g o f is (phi_g o f)*phi_f -- continuous at a
-;;; (compose-continuous-at + product-continuous-at; f cont at a by diff=>cont),
-;;; value phi_g(f(a))*phi_f(a) = M*L.
-(support 'deriv-chain
-  '(FORALL f (FORALL g (FORALL a (FORALL L (FORALL M
-     (IMPLIES (IS-DIFF-AT f a L)
-     (IMPLIES (IS-DIFF-AT g (f a) M)
-       (IS-DIFF-AT (COMPOSE g f) a (* M L))))))))))
-(warrant! 'deriv-chain 'reference
-  "calculus.pdf Prop 2.8 (chain rule), Caratheodory form: the factor of g o f is
-   (phi_g o f)*phi_f, continuous at a with value g'(f(a))*f'(a) = M*L.")
-(topic! 'deriv-chain 'analysis)
 
 ;;; Negation rule: derivative of -f is -f'.  Special case of the scalar rule
 ;;; (c = -1); witness -phi (continuous at a, value -L).  Used by

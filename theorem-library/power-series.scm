@@ -36,17 +36,13 @@
 ;;; since SUM-AG folds in RR.  Provable by induction on n from power-zero
 ;;; (x^0 = 1 in RR) and power-succ (x^{n+1} = x * x^n, RR closed under *);
 ;;; asserted for the library-build phase.
-(support 'power-real-closed
-  '(FORALL x
-     (IMPLIES (IN x RR)
-       (FORALL n
-         (IMPLIES (IN n NN)
-           (IN (power x n) RR))))))
-
-(warrant! 'power-real-closed 'well-known
-  "Induction on n: x^0 = 1 in RR (power-zero); x^{n+1} = x * x^n stays in RR
-   since RR is closed under multiplication (power-succ).  A candidate to
-   discharge into a formal `proof' later.")
+;; power-real-closed MOVED 2026-08-22 to theorem-library/dyadic-weights.scm,
+;; where it is PROVEN `modulo 0' -- it is exactly the induction its warrant
+;; described ("x^0 = 1 in RR; x^{n+1} = x * x^n stays in RR ... a candidate to
+;; discharge into a formal `proof' later"), twelve lines, and it had no citer
+;; in the tree until that file needed it.  The induction runs at
+;; `power-closed-at' with the EXPONENT outermost (`ni' tests the goal's shape
+;; literally) and the statement above is recovered from it in three lines.
 
 ;;; -----------------------------------------------------------------------
 ;;; PS-PARTIAL-SUM(coef, x, k) = Sum_{n<k} coef(n) x^n.
@@ -276,25 +272,20 @@
 ;;; -----------------------------------------------------------------------
 ;;; Comparison test.  If 0 <= f(n) <= g(n) for all n and the dominating series
 ;;; Sum g converges, then Sum f converges.
-(support 'comparison-test
-  '(FORALL f
-     (IMPLIES (IN f (FUN NN RR))
-       (FORALL g
-         (IMPLIES (IN g (FUN NN RR))
-           (IMPLIES (AND (FORALL n
-                           (IMPLIES (IN n NN)
-                             (AND (<= 0 (f n)) (<= (f n) (g n)))))
-                         (SERIES-CONVERGES g))
-             (SERIES-CONVERGES f)))))))
-
-(warrant! 'comparison-test 'informal
-  "The partial sums F_k = Sum_{n<k} f(n) are nondecreasing (f >= 0) and bounded
-   above by the limit of G_k = Sum_{n<k} g(n) (since f <= g termwise gives
-   F_k <= G_k <= lim G, by series-partial-sum-le-termwise).  A nondecreasing
-   (series-partial-sum-monotone-nonneg) sequence bounded above converges in RR
-   by monotone-convergence-rr (order-completeness), so Sum f converges.  All
-   three ingredients are now in the library (series-order-lemmas.scm), so this
-   is a PSS->proven candidate -- the chain is assembled, not missing.")
+;; comparison-test MOVED 2026-08-20 to theorem-library/comparison-test-proof.scm,
+;; where it is PROVEN, billing `modulo {nn-zero-le, nn-le-succ-cases}'
+;; [trust: well-known] -- resting on nothing but the two NN-order supports of
+;; structure-library/order-lemmas.scm, inherited through the monotone lift.
+;; The retired `informal' warrant read: "The partial sums F_k are nondecreasing
+;; (f >= 0) and bounded above by the limit of G_k (since f <= g termwise gives
+;; F_k <= G_k <= lim G) ... all three ingredients are now in the library, so
+;; this is a PSS->proven candidate -- the chain is assembled, not missing."
+;; The chain was one rung SHORT: "G_k <= lim G" is the lemma "a nondecreasing
+;; sequence converging to L satisfies x_k <= L for every k", which the tree did
+;; not have.  It is also not needed -- monotone convergence wants SOME bound,
+;; not the sharp one -- and the proof takes eps = 1 in CONVERGES-TO instead,
+;; getting L + 1 as a bound for the whole sequence in two instantiations and one
+;; case split (`monotone-convergent-bounded-above', proven in the same file).
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

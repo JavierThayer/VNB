@@ -178,11 +178,11 @@
    as functions; evaluating the (n+1)-st at t gives (g o f)^(n+1)(t) = g(f^(n+1)(t)).")
 (topic! 'gof-nth-deriv 'analysis)
 
-;;; g(v) <= |g(v)| (a real inequality; g(v) is real).
-(add-to-pss 'rr-le-abs-self
-  '(FORALL c (IMPLIES (IN c RR) (<= c (abs c)))))
-(warrant! 'rr-le-abs-self 'well-known "c <= |c| for real c.")
-(topic! 'rr-le-abs-self 'analysis)
+;;; g(v) <= |g(v)| RETIRED 2026-08-17.  `rr-le-abs-self' was declared here, with
+;;; add-to-pss and a `well-known' warrant, and was the VERBATIM statement of
+;;; `rr-le-abs' -- a support in order-lemmas.scm since long before.  Both are now
+;;; PROVEN `modulo 0' as rr-le-abs in theorem-library/rr-abs-basics.scm, from the
+;;; definition of abs; the citation below names that theorem.
 
 ;;; the elementary clearing step: from an equality and a monotone bound with a
 ;;; nonnegative multiplier, get the remainder-norm inequality.
@@ -225,14 +225,14 @@
 ;;; ====================================================================
 (sp `(FORALL m (FORALL f (FORALL a (FORALL x (FORALL n
      (IMPLIES (AND (IS-NORMED-VECTOR-SPACE m)
-               (AND (IS-FINITE-DIMENSIONAL m)
+               (AND (IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m))
                (AND (IN f (FUN RR (VEC m)))
                (AND (IN a RR) (AND (IN x RR) (AND (IN n NN) (< a x)))))))
      (IMPLIES (TAYLOR-DIFFERENTIABLE-V m f a x n)
-       (FORSOME theta (AND (< a theta) (AND (< theta x)
+       (FORSOME theta (AND (IN theta RR) (AND (< a theta) (AND (< theta x)
          (<= (* (FACTORIAL (succ n)) ((VNRM m) ,REMV))
              (* ((VNRM m) ((NTH-DERIV-V m f (succ n)) theta))
-                (power (- x a) (succ n)))))))))))))))
+                (power (- x a) (succ n))))))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)))   ; m,f,a,x,n ; ANT1
 (dc-split)
 (quietly (lambda () (di)))                        ; TAYLOR-DIFFERENTIABLE-V
@@ -242,7 +242,8 @@
 (quietly (lambda () (fact 'vtaylor-remainder-in-vec 'm 'f 'a 'x 'n)))
 
 ;; norm-attained: g bounded, ||g||<=1, g(R) = ||R||
-(define NAANT (conjuncts->and (list '(IS-NORMED-VECTOR-SPACE m) '(IS-FINITE-DIMENSIONAL m)
+(define NAANT (conjuncts->and (list '(IS-NORMED-VECTOR-SPACE m)
+                                    '(IS-FINITE-DIMENSIONAL (NORMED-VECTOR-SPACE-AS-MODULE m))
                                     (list 'IN REMV '(VEC m)))))
 (cut NAANT) (dc-grind!) (dc-focus! GOAL)
 (quietly (lambda () (fact 'norm-attained-by-functional 'm REMV)))
@@ -276,7 +277,7 @@
 (define GFN1 (list G FN1))
 
 ;; theta in RR ; (succ n) in NN
-(quietly (lambda () (fact 'rr-strict-between-real 'a 'x THETA)))
+;; (IN theta RR) came out of the taylor-lagrange existential with the rest of its body.
 (quietly (lambda () (fact 'nn-succ-closed 'n)))
 
 ;; commutation facts:  g(R) = scalar remainder ;  (g o f)^(n+1)(theta) = g(f^(n+1)(theta))
@@ -309,7 +310,7 @@
 (cut NBANT) (dc-grind!) (dc-focus! GOAL)
 (quietly (lambda () (fact 'norm-bounded-by-functionals 'm G FN1)))  ; (<= (abs GFN1) NFN1)
 (quietly (lambda () (fact 'bdd-linfun-abs-real 'm G FN1)))          ; IN (abs GFN1) RR
-(quietly (lambda () (fact 'rr-le-abs-self GFN1)))                   ; (<= GFN1 (abs GFN1))
+(quietly (lambda () (fact 'rr-le-abs GFN1)))                   ; (<= GFN1 (abs GFN1))
 (quietly (lambda () (fact 'rr-le-trans-c GFN1 (list 'abs GFN1) NFN1)))  ; (<= GFN1 NFN1)
 
 ;; pw in RR and 0 <= pw

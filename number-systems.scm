@@ -397,11 +397,11 @@
       (IMPLIES (AND (IN a RR) (NOT (= a 0)))
                (= (* a (recip a)) 1))))
 
-;;; Order: <= is the numeric order on the real chain (NN/ZZ/QQ/RR/RR*).
+;;; Order: <= is the numeric order on the real chain (NN/ZZ/QQ/RR/RR-STAR).
 ;;; A total order compatible with the field operations.  Stated guarded by
 ;;; (IN _ RR); because the inclusions NN<=ZZ<=QQ<=RR are genuine set
 ;;; inclusions, these axioms also govern <= on the integers and rationals.
-;;; The ordinal order is a separate relation <=_ORD (ordinals.scm), bridged
+;;; The ordinal order is a separate relation ORD-LE (ordinals.scm), bridged
 ;;; to <= on NN, so nothing here leaks onto it; CC carries no <=.
 
 (theory-add-axiom! *current-theory* 'rr-leq-reflexive
@@ -432,27 +432,101 @@
       (IMPLIES (AND (IN a RR) (IN b RR))
                (IMPLIES (AND (<= 0 a) (<= 0 b)) (<= 0 (* a b)))))))
 
-(theory-add-axiom! *current-theory* 'rr-abs-closed
-  '(FORALL a (IMPLIES (IN a RR) (IN (abs a) RR))))
+;;; -----------------------------------------------------------------------
+;;; ABSOLUTE VALUE, DEFINED.  Added 2026-08-17.
+;;;
+;;; WHY THIS IS A DEFINITION AND NOT DEBT.  Until now `abs' was characterised by
+;;; five NORM-shaped axioms -- closed, nonneg, zero-iff, triangle, multiplicative
+;;; -- and not one of them related |x| to x.  They do not determine abs: the map
+;;; x |-> sqrt(|x|) satisfies all five (nonneg, vanishing only at 0,
+;;; multiplicative, subadditive), so |2| = sqrt 2 was a model of the theory as
+;;; stated.  Everything that pins |x| to one of x, -x -- x <= |x|, the two-sided
+;;; bound |x| <= c iff -c <= x <= c, the reverse triangle inequality -- was
+;;; therefore INDEPENDENT of the axioms, not merely unproved, and each had to be
+;;; asserted as a `well-known' support in structure-library/order-lemmas.scm.
+;;;
+;;; The equation below is the textbook definition by cases: on a TOTAL order the
+;;; two guards are exhaustive and exclusive, so it defines a unique function on
+;;; RR and introduces no assumption.  That is what `primitive' provenance means
+;;; here (number-systems.scm is in load.scm's `*primitive-files*'): not "we are
+;;; assuming this", but "this is what the symbol MEANS".  Its consequences are
+;;; theorems and are proved in theorem-library/rr-abs-basics.scm -- including
+;;; the five norm axioms this replaced, which are DELETED from this file.
+;;;
+;;; THE GUARD IS `NOT (<= 0 x)', NOT `x < 0', deliberately: `<' is defined in
+;;; structure-library/order-predicates.scm, which loads AFTER this file, so the
+;;; head does not exist yet.  With rr-leq-total the two forms are equivalent,
+;;; and rr-abs-basics.scm proves the `<' form as its first theorem.
+;;;
+;;; CONJUNCTION OF GUARDED EQUATIONS, not an `IF' term: nothing downstream then
+;;; needs IF-reduction rules.  `fact' lands the conjunction, `ai' splits it and
+;;; `detach!' takes whichever branch the sign hypothesis licenses.
+;;; `definitional' rather than this file's `primitive' default, exactly as
+;;; binary-minus-def and binary-divide-def above: it says what a SYMBOL means,
+;;; not what the reals are.  Both stamps contribute {} to every bill; the
+;;; catalog counts this one as a definition rather than an axiom.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'rr-abs-def
+    '(FORALL x (IMPLIES (IN x RR)
+        (AND (IMPLIES (<= 0 x) (= (abs x) x))
+             (IMPLIES (NOT (<= 0 x)) (= (abs x) (- x))))))))
 
-(theory-add-axiom! *current-theory* 'rr-abs-nonneg
-  '(FORALL a (IMPLIES (IN a RR) (<= 0 (abs a)))))
+;;; -----------------------------------------------------------------------
+;;; MAX on RR -- the binary maximum, DEFINED by cases, 2026-08-19.
+;;;
+;;; Stated as a DEFINITION and not as a family of properties, for the reason the
+;;; note below `rr-abs-def' gives about the five norm-shaped axioms that used to
+;;; stand here: "They were not wrong; they were incomplete, and stating them
+;;; INSTEAD of the definition is what left x <= |x| independent of the theory."
+;;; So `x <= max(x,y)', `max(x,y) in RR' and the rest are NOT axioms; they are
+;;; proven from this one equation in theorem-library/rr-max-basics.scm.
+;;;
+;;; The library's other habit for a maximum is to state it EXISTENTIALLY, as
+;;; `rr-min-pos' does for a minimum -- "a positive lower bound of two positives"
+;;; rather than a MIN term -- precisely so as not to introduce an operator.
+;;; That is right when all a proof needs is the bounding property; it is the
+;;; wrong shape when the maximum is a TERM the statement is about, as in the
+;;; ultrametric-style inequality d(a,c) <= 2*max(d(a,b), d(b,c)), where the two
+;;; occurrences must denote the same thing.  Hence a real operator here.
+;;;
+;;; `definitional', not this file's `primitive' default, exactly as
+;;; rr-abs-def / binary-minus-def / binary-divide-def above: it says what a
+;;; SYMBOL means, not what the reals are.
+;;;
+;;; The guard `(<= y x)' rather than `(< y x)': at x = y both branches give the
+;;; same value, so the cases may overlap and the definition is still a function.
+;;; Splitting on `<=' means the FIRST branch covers equality, which is what a
+;;; proof by cases on `rr-le-total' hands you.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'rr-max-def
+    '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+        (AND (IMPLIES (<= y x) (= (max x y) x))
+             (IMPLIES (NOT (<= y x)) (= (max x y) y)))))))))
 
-(theory-add-axiom! *current-theory* 'rr-abs-zero
-  '(FORALL a (IMPLIES (IN a RR) (IFF (= (abs a) 0) (= a 0)))))
+;;; MIN, 2026-08-21, by the same recipe and for the same reason.  One equation
+;;; here; every usable fact about it is PROVEN in
+;;; theorem-library/rr-min-basics.scm.
+;;;
+;;; The guard is `(<= x y)' -- the mirror of MAX's `(<= y x)' -- so that here
+;;; too the FIRST branch covers equality and returns the FIRST argument, and a
+;;; proof by cases on `rr-le-total' meets the branches in the same order for
+;;; both operators.  With `(< x y)' the two definitions would disagree at x = y
+;;; about which argument they return, which matters not at all to the value and
+;;; a great deal to a driver that handles them side by side.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'rr-min-def
+    '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+        (AND (IMPLIES (<= x y) (= (min x y) x))
+             (IMPLIES (NOT (<= x y)) (= (min x y) y)))))))))
 
-(theory-add-axiom! *current-theory* 'rr-abs-triangle
-  '(FORALL a (FORALL b
-      (IMPLIES (AND (IN a RR) (IN b RR))
-               (<= (abs (+ a b))
-                   (+ (abs a) (abs b)))))))
-
-;;; Multiplicativity of abs -- the conjunct that `is-norm' (hence
-;;; `rr-is-normed-field') needs for NRM = abs on RR-NORMED-FIELD.
-(theory-add-axiom! *current-theory* 'rr-abs-mult
-  '(FORALL a (FORALL b
-      (IMPLIES (AND (IN a RR) (IN b RR))
-               (= (abs (* a b)) (* (abs a) (abs b)))))))
+;;; THE FIVE NORM-SHAPED AXIOMS THAT STOOD HERE ARE GONE (2026-08-17):
+;;; rr-abs-closed, rr-abs-nonneg, rr-abs-zero, rr-abs-triangle and rr-abs-mult
+;;; -- the last of which carried the comment "the conjunct that `is-norm' (hence
+;;; `rr-is-normed-field') needs for NRM = abs on RR-NORMED-FIELD".  All five are
+;;; PROVEN `modulo 0' from rr-abs-def in theorem-library/rr-abs-basics.scm, with
+;;; the same names and the same statements, so every citation still resolves.
+;;; They were not wrong; they were incomplete, and stating them INSTEAD of the
+;;; definition is what left x <= |x| independent of the theory.
 
 ;;; -----------------------------------------------------------------------
 ;;; ORDER COMPLETENESS of RR -- every inhabited set of reals with an upper
@@ -467,17 +541,17 @@
 ;;; and had to be asserted (order-predicates.scm).  With these three axioms it
 ;;; is a theorem; see the note there.
 ;;;
-;;; SHAPE.  Modelled on ESUP for RR+* (structure-library/extended-reals-pos.scm:
+;;; SHAPE.  Modelled on ESUP for RR-POS-STAR (structure-library/extended-reals-pos.scm:
 ;;; esup-in / esup-upper / esup-least), which is the one place in the tree that
 ;;; already states an order-completeness: an `in', an `upper' and a `least'
 ;;; axiom pinning a supremum operator.  Uniqueness needs no axiom -- upper +
 ;;; least + antisymmetry of <= pin SUP(S) between any two candidate lubs.
 ;;;
-;;; The difference from ESUP is the GUARD.  POS-INF tops RR+*, so there every
+;;; The difference from ESUP is the GUARD.  POS-INF tops RR-POS-STAR, so there every
 ;;; subset has a sup and the axioms are unguarded; RR has no top, so the two
 ;;; hypotheses that a sup needs -- S is inhabited, S is bounded above -- are
 ;;; hypotheses here.  SUP(S) is left unconstrained outside them (a total symbol
-;;; with no stated value, exactly as ESUP is outside RR+*), NOT undefined: no
+;;; with no stated value, exactly as ESUP is outside RR-POS-STAR), NOT undefined: no
 ;;; definedness claim is made either way, so nothing can be proved about
 ;;; SUP(EMPTY-SET).
 ;;;
@@ -690,39 +764,58 @@
   "Conjugation sends i to -i.  Definitional for complex conjugation.")
 
 ;;; -----------------------------------------------------------------------
+;;; REAL AND IMAGINARY PART, DEFINED FROM CONJUGATION.  Added 2026-08-17.
+;;;
+;;; `real-part' and `imag-part' were REGISTERED HEADS WITH NO AXIOM AT ALL:
+;;; wff.scm:366 lists them among the term-form heads, interactive.scm:1690
+;;; advertises them as "CC -> RR", arith-eval.scm:111-118 evaluates them on
+;;; ground literals -- and the theory said nothing whatever about them, so a
+;;; symbolic `real-part(z)' was an uninterpreted function application.
+;;;
+;;; No new assumption is needed to fix that, because the CC layer is already
+;;; pinned: cc-generated-by-rr says every complex is x + y*i with x, y real, and
+;;; cc-conjugate-closed / -involution / -add / -mul / -fixes-rr / -i determine
+;;; conjugation on all of it.  Over a field of characteristic 0 containing i,
+;;;
+;;;     z + conj z = 2x      and      z - conj z = 2yi
+;;;
+;;; so the two equations below DEFINE the projections; they are theorems of any
+;;; model of the axioms above, not stipulations about a new symbol.
+;;;
+;;; `==', not `=': quasi-equality is unconditional, so the equation owes no
+;;; definedness witness and carries no (IN z CC) guard -- the same choice, for
+;;; the same reason, as binary-minus-def and binary-divide-def above.  And
+;;; `definitional' rather than this file's `primitive' default, for the same
+;;; reason as those two: it says what a symbol ABBREVIATES rather than making a
+;;; foundational commitment.  Either stamp contributes {} to a bill.
+;;;
+;;; NOT named-only, unlike those two: the left side is `real-part(z)', a term
+;;; nothing else in the library builds by accident, so firing it automatically
+;;; is an ordinary definition unfold rather than a rewrite of all arithmetic.
+;;;
+;;; What follows FROM them -- real-part(z) and imag-part(z) are real, and
+;;; z = real-part(z) + i*imag-part(z) -- is proved in
+;;; theorem-library/cc-real-imag.scm.
+(fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'real-part-def
+    '(FORALL z (== (real-part z) (* (+ z (conjugate z)) (recip 2)))))
+  (theory-add-axiom! *current-theory* 'imag-part-def
+    '(FORALL z (== (imag-part z) (* (- z (conjugate z)) (recip (* 2 +i)))))))
+
+;;; -----------------------------------------------------------------------
 ;;; magnitude : CC -> RR  (complex modulus)
 ;;;
-;;; For reals, magnitude coincides with abs.
-;;; These are the standard norm axioms for the complex absolute value.
-
-(theory-add-axiom! *current-theory* 'cc-magnitude-closed
-  '(FORALL z (IMPLIES (IN z CC) (IN (magnitude z) RR))))
-
-(theory-add-axiom! *current-theory* 'cc-magnitude-nonneg
-  '(FORALL z (IMPLIES (IN z CC) (<= 0 (magnitude z)))))
-
-(theory-add-axiom! *current-theory* 'cc-magnitude-zero-iff
-  '(FORALL z (IMPLIES (IN z CC)
-               (IFF (= (magnitude z) 0) (= z 0)))))
-
-(theory-add-axiom! *current-theory* 'cc-magnitude-neg
-  '(FORALL z (IMPLIES (IN z CC)
-               (= (magnitude (- z)) (magnitude z)))))
-
-(theory-add-axiom! *current-theory* 'cc-magnitude-mul
-  '(FORALL a (FORALL b
-      (IMPLIES (AND (IN a CC) (IN b CC))
-               (= (magnitude (* a b))
-                  (* (magnitude a) (magnitude b)))))))
-
-(theory-add-axiom! *current-theory* 'cc-magnitude-triangle
-  '(FORALL a (FORALL b
-      (IMPLIES (AND (IN a CC) (IN b CC))
-               (<= (magnitude (+ a b))
-                   (+ (magnitude a) (magnitude b)))))))
-
-(theory-add-axiom! *current-theory* 'rr-magnitude-is-abs
-  '(FORALL a (IMPLIES (IN a RR) (= (magnitude a) (abs a)))))
+;;; THE SEVEN AXIOMS THAT STOOD HERE ARE GONE (2026-08-17): cc-magnitude-closed,
+;;; -nonneg, -zero-iff, -neg, -mul, -triangle and rr-magnitude-is-abs.  They were
+;;; the `abs' defect one system up -- five norm-shaped facts saying magnitude is
+;;; *a* norm and never which one, so nothing tied |z| to z's coordinates.
+;;;
+;;; magnitude is now DEFINED, in structure-library/complex.scm (which is where
+;;; SQRT first exists), and all seven are PROVEN in
+;;; theorem-library/cc-magnitude.scm with the same names and statements.  They
+;;; bill the SQRT supports of real-powers.scm at trust `well-known' rather than
+;;; contributing {} as primitive axioms; the note in complex.scm says why that
+;;; is a disclosure rather than a regression.
 
 ;;; -----------------------------------------------------------------------
 ;;; Exponentiation

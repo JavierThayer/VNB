@@ -26,30 +26,22 @@
   (for-each (lambda (a) (display ";;;     - ")(write a)(newline)) (rl-asms)))
 
 ;;; --- order helpers (well-known) ---
-(add-to-pss 'rr-le-cases
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (<= u v) (OR (< u v) (= u v))))))))
-(warrant! 'rr-le-cases 'well-known "u<=v => u<v or u=v.")
-(add-to-pss 'rr-le-ne-lt
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (AND (<= u v) (NOT (= u v))) (< u v)))))))
-(warrant! 'rr-le-ne-lt 'well-known "u<=v and u/=v => u<v.")
 
 ;;; --- pose Rolle ---
 (sp '(FORALL h (FORALL a (FORALL b
      (IMPLIES (AND (IN h (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b))
                  (IS-CONTINUOUS-AT RR-MS RR-MS h x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b)))
                  (FORSOME L (IS-DIFF-AT h x L))))
      (IMPLIES (= (h a) (h b))
-       (FORSOME theta (AND (< a theta) (AND (< theta b)
-                      (IS-DIFF-AT h theta 0))))))))))))
+       (FORSOME theta (AND (IN theta RR) (AND (< a theta) (AND (< theta b)
+                      (IS-DIFF-AT h theta 0)))))))))))))
 (quietly (lambda () (di)(di)(di)))         ; h,a,b
 (rl-split)                                 ; break typing AND -> h in FUN, a,b in RR, a<b
 (quietly (lambda () (di)(di)(di)))         ; continuity hyp, diff hyp, h(a)=h(b)
 (quietly (lambda () (fact 'rr-lt-implies-le 'a 'b)))   ; a <= b for EVT
-(define GOAL '(FORSOME theta (AND (< a theta) (AND (< theta b) (IS-DIFF-AT h theta 0)))))
+(define GOAL '(FORSOME theta (AND (IN theta RR) (AND (< a theta) (AND (< theta b) (IS-DIFF-AT h theta 0))))))
 
 ;;; EVT-max -> argmax c
 (define EVTMAX (list 'FORSOME 'c (list 'AND '(IN c (CCINT a b))
@@ -143,10 +135,13 @@
                                       (sequent-node-assumptions s))))
                      (proof-leaves))))
     (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus-case!: none" marker))))
+;; The differentiability hypothesis is TYPED (its antecedent carries (IN x RR)),
+;; so the interior-position AND we detach it against carries the typing too.
+(define (rl-interior p) (list 'AND (list 'IN p 'RR) (list 'AND (list '< 'a p) (list '< p 'b))))
 (define (rl-deriv-from p marker)
-  (cut (list 'AND (list '< 'a p) (list '< p 'b)))
-  (rl-focus! (list 'AND (list '< 'a p) (list '< p 'b)))
-  (quietly (lambda () (ass-all)))
+  (cut (rl-interior p))
+  (rl-focus! (rl-interior p))
+  (quietly (lambda () (rl-grind!)))       ; split the AND; every conjunct is in ctx
   (rl-focus-case! marker)
   (inst+ DIFFHYP p)
   (let ((fs (rl-find (lambda (z) (and ((rl-head? 'FORSOME) z) (rl-ment? 'is-diff-at z) (rl-ment? p z))))))

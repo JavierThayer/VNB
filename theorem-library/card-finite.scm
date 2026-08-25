@@ -1,23 +1,23 @@
-;;; card-finite.scm -- the finite layer of the DEFINED cardinal, CARD*.
+;;; card-finite.scm -- the finite layer of the DEFINED cardinal, CARD-STAR.
 ;;;
-;;; card-defined.scm builds CARD* and proves card*-segment (CARD*(S(n)) = n).
+;;; card-defined.scm builds CARD-STAR and proves card-star-segment (CARD-STAR(S(n)) = n).
 ;;; This file turns that keystone into the finite facts that cardinality.scm
 ;;; currently ASSERTS as `primitive' axioms about the axiomatised CARD.  Each
-;;; theorem here is the CARD* form of one of those axioms; the swap onto the
+;;; theorem here is the CARD-STAR form of one of those axioms; the swap onto the
 ;;; name CARD is a separate step, made one name at a time as its theorem lands
 ;;; (see structure-notes/card-basics-worklist.md).
 ;;;
 ;;; WHAT IS PROVEN HERE
-;;;   card*-from-body   cd-body(A,al)  =>  CARD*(A) = al          modulo 0
-;;;   card*-bij         bijections BOTH WAYS between A and S(n)
-;;;                       =>  CARD*(A) = n
+;;;   card-star-from-body   cd-body(A,al)  =>  CARD-STAR(A) = al          modulo 0
+;;;   card-star-bij         bijections BOTH WAYS between A and S(n)
+;;;                       =>  CARD-STAR(A) = n
 ;;;   seg0-empty        EMPTY-SET = ORD-SEGMENT(0)                modulo 0
-;;;   card*-empty       CARD*(EMPTY-SET) = 0            [replaces card-empty]
+;;;   card-star-empty       CARD-STAR(EMPTY-SET) = 0            [replaces card-empty]
 ;;;
-;;; THE MECHANISM, AND WHY IT IS TWO-SIDED.  `card*-from-body' is card*-segment's
+;;; THE MECHANISM, AND WHY IT IS TWO-SIDED.  `card-star-from-body' is card-star-segment's
 ;;; `iota-d' script with the segment generalised to a class: it says that
 ;;; anything satisfying the description IS the cardinal, so every later fact
-;;; reduces to exhibiting the description's body.  `card*-bij' does that from
+;;; reduces to exhibiting the description's body.  `card-star-bij' does that from
 ;;; bijections, and it takes BOTH directions as hypotheses on purpose:
 ;;;
 ;;;   * the EXISTENCE clause needs A -> S(n)   (supply it directly);
@@ -40,7 +40,7 @@
   (list 'AND (list 'IN al 'ORD)
     (list 'AND (list 'FORSOME 'phi (list 'IN 'phi (list 'BIJECTION A (list 'ORD-SEGMENT al))))
       (list 'FORALL 'beta
-        (list 'IMPLIES (list '<_ORD 'beta al)
+        (list 'IMPLIES (list 'ORD-LT 'beta al)
           (list 'NOT (list 'FORSOME 'psi
                        (list 'IN 'psi (list 'BIJECTION A (list 'ORD-SEGMENT 'beta))))))))))
 
@@ -57,18 +57,18 @@
     (if (null? fs) (error "cf-first: nothing with head" h) (car fs))))
 
 ;;; --------------------------------------------------------------------
-;;; card*-from-body:  anything satisfying the description IS the cardinal.
+;;; card-star-from-body:  anything satisfying the description IS the cardinal.
 ;;;
 ;;; `iota-d' posts existence-and-uniqueness (the hypothesis is the witness,
 ;;; cd-body-unique the uniqueness) and hands back the defining property;
 ;;; cd-body-unique then identifies the described ordinal with al.  This is
-;;; card*-segment's script with (ORD-SEGMENT n_) replaced by a variable.
+;;; card-star-segment's script with (ORD-SEGMENT n_) replaced by a variable.
 ;;; --------------------------------------------------------------------
 
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'al
-      (list 'IMPLIES (cf-body 'a_ 'al) (list '= (list 'CARD* 'a_) 'al))))))
+      (list 'IMPLIES (cf-body 'a_ 'al) (list '= (list 'CARD-STAR 'a_) 'al))))))
 (cf-peel!)
-(mac 'card*)
+(mac 'card-star)
 (define cf-io (cadr (dk-goal)))          ; the IOTA term, as the engine built it
 (for-each
  (lambda (l)
@@ -93,14 +93,14 @@
          (fact 'cd-body-unique 'a_ cf-io 'al)
          (ass))))
  (dk-opened (lambda () (iota-d cf-io))))
-(qed 'card*-from-body)
-(topic! 'card*-from-body 'combinatorial)
+(qed 'card-star-from-body)
+(topic! 'card-star-from-body 'combinatorial)
 
 ;;; --------------------------------------------------------------------
-;;; card*-bij:  bijections both ways between A and S(n) compute CARD*(A).
+;;; card-star-bij:  bijections both ways between A and S(n) compute CARD-STAR(A).
 ;;;
 ;;;   n in NN,  ph in BIJECTION(A, S(n)),  et in BIJECTION(S(n), A)
-;;;     =>  CARD*(A) = n
+;;;     =>  CARD-STAR(A) = n
 ;;;
 ;;; Existence is `ph'.  Leastness composes `et' with a hypothetical
 ;;; A -> S(beta) (bijection-compose), reads the composite as an INJECTION
@@ -111,7 +111,7 @@
      (FORALL a_ (FORALL ph (FORALL et
        (IMPLIES (AND (IN ph (BIJECTION a_ (ORD-SEGMENT n_)))
                      (IN et (BIJECTION (ORD-SEGMENT n_) a_)))
-                (= (CARD* a_) n_)))))))))
+                (= (CARD-STAR a_) n_)))))))))
 (cf-peel!)
 (dk-split! '(AND (IN ph (BIJECTION a_ (ORD-SEGMENT n_)))
                  (IN et (BIJECTION (ORD-SEGMENT n_) a_))))
@@ -131,7 +131,7 @@
       ((eq? (car g) 'FORSOME) (ew 'ph) (ass))
       ;; leastness: compose S(n_) -> a_ -> S(beta) and apply pigeonhole
       (else
-       (cf-peel!)                        ; beta, beta <_ORD n_, and the FORSOME
+       (cf-peel!)                        ; beta, beta ORD-LT n_, and the FORSOME
        (ai (cf-first 'FORSOME))          ; ... opened: chi in BIJECTION(a_, S beta)
        ;; the bijection OUT OF a_ that is not the hypothesis `ph'
        (let* ((bij (car (filter (lambda (f)
@@ -167,10 +167,10 @@
                                               (list 'ORD-SEGMENT bet)))))))))))
 
 (have! (cf-body 'a_ 'n_) cf-close-body!)
-(fact 'card*-from-body 'a_ 'n_)
+(fact 'card-star-from-body 'a_ 'n_)
 (ass)
-(qed 'card*-bij)
-(topic! 'card*-bij 'combinatorial)
+(qed 'card-star-bij)
+(topic! 'card-star-bij 'combinatorial)
 
 ;;; --------------------------------------------------------------------
 ;;; seg0-empty:  EMPTY-SET = ORD-SEGMENT(0).
@@ -209,18 +209,18 @@
 (topic! 'seg0-empty 'combinatorial)
 
 ;;; --------------------------------------------------------------------
-;;; card*-empty:  CARD*(EMPTY-SET) = 0.   [the CARD* form of card-empty]
+;;; card-star-empty:  CARD-STAR(EMPTY-SET) = 0.   [the CARD-STAR form of card-empty]
 ;;;
-;;; card*-segment at n := 0, transported across seg0-empty.  This one needs
-;;; neither card*-bij nor any bijection: the two classes are literally equal.
+;;; card-star-segment at n := 0, transported across seg0-empty.  This one needs
+;;; neither card-star-bij nor any bijection: the two classes are literally equal.
 ;;; `subst' needs the equation in the CONTEXT, hence the `fact' above it.
 ;;; --------------------------------------------------------------------
 
-(sp (make-wff '(= (CARD* EMPTY-SET) 0)))
+(sp (make-wff '(= (CARD-STAR EMPTY-SET) 0)))
 (fact 'nn-zero-in)
-(fact 'card*-segment 0)
+(fact 'card-star-segment 0)
 (fact 'seg0-empty)
 (subst '(= EMPTY-SET (ORD-SEGMENT 0)))
 (ass)
-(qed 'card*-empty)
-(topic! 'card*-empty 'combinatorial)
+(qed 'card-star-empty)
+(topic! 'card-star-empty 'combinatorial)

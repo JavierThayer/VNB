@@ -90,11 +90,143 @@
   (set-dg-inference-nodes! dg (cons infn (dg-inference-nodes dg)))
   infn)
 
+;;; -----------------------------------------------------------------------
+;;; THE UNDO JOURNAL  --  the mechanism under both `backup-one' and the
+;;; inert-command notice.
+;;;
+;;; The graph is mutated in exactly four places, and nowhere else:
+;;;
+;;;   dg-add-sequent-node!    -- appends to dg-sequent-nodes, bumps the counter
+;;;   dg-add-inference-node!  -- conses onto dg-inference-nodes
+;;;   dg-apply-rule!          -- writes out-arrows on the hypothesis nodes and
+;;;                              an in-arrow on the conclusion node
+;;;   dg-propagate-grounding! -- sets grounded? on a node and its ancestors
+;;;
+;;; The two node LISTS are rebuilt, never destructively spliced (`append' copies
+;;; and `cons' shares a tail), so each is restorable in O(1) from a value read
+;;; before the command -- a pointer for the inference list, and for the sequent
+;;; list the node COUNTER, which is its length (see the mark below for why the
+;;; pointer is the wrong thing to hold there).  The PER-NODE fields are the part
+;;; that is overwritten in place, so those are journalled: old value recorded
+;;; before the write.
+;;;
+;;; A `proof-state' is NOT a snapshot of anything.  There is exactly one of them
+;;; per proof (start-proof is its only constructor) and every cmd-* mutates it
+;;; through set-proof-state-focus! and returns THAT SAME OBJECT.  So an undo
+;;; built by pushing the old *ps* on a stack would push the object it is about to
+;;; mutate and restore nothing; the graph is where the state lives.
+;;;
+;;; Journalling costs one vector and one cons per field write and is on whenever
+;;; a proof is running.  It is bounded by (sp), which clears it.
+
+(define *dg-journal* '())        ; grows by cons; each entry #(field node old)
+(define *dg-journaling?* #t)
+
+(define (dg-journal-in! sqn)
+  (if *dg-journaling?*
+      (set! *dg-journal*
+            (cons (vector 'in sqn (sequent-node-in-arrows sqn)) *dg-journal*))))
+
+(define (dg-journal-out! sqn)
+  (if *dg-journaling?*
+      (set! *dg-journal*
+            (cons (vector 'out sqn (sequent-node-out-arrows sqn)) *dg-journal*))))
+
+(define (dg-journal-grounded! sqn)
+  (if *dg-journaling?*
+      (set! *dg-journal*
+            (cons (vector 'grounded sqn (sequent-node-grounded? sqn)) *dg-journal*))))
+
+(define (dg-journal-reset!) (set! *dg-journal* '()))
+
+(define (dg-undo-entry! e)
+  (case (vector-ref e 0)
+    ((in)       (set-sequent-node-in-arrows!  (vector-ref e 1) (vector-ref e 2)))
+    ((out)      (set-sequent-node-out-arrows! (vector-ref e 1) (vector-ref e 2)))
+    ((grounded) (set-sequent-node-grounded?!  (vector-ref e 1) (vector-ref e 2)))
+    (else (error "dg-undo-entry!: unknown journal field" (vector-ref e 0)))))
+
+;;; A MARK is everything needed to put the graph back exactly as it stood: the
+;;; inference list, the node counter, and the journal tail.
+;;;
+;;; The sequent-node list is NOT held here, and deliberately.  `dg-node-counter'
+;;; is bumped once per dg-add-sequent-node! and by nothing else, so it IS the
+;;; length of that list, and holding the number instead of the list keeps a
+;;; live mark from pinning a whole copy of the node list (`append' rebuilds it
+;;; on every post, so each held pointer is a distinct copy).  Rollback rebuilds
+;;; the prefix with list-head, once, at rollback time.  The INFERENCE list is
+;;; held directly: it is cons-built, so its old value is a shared tail and
+;;; costs nothing to keep.
+(define-record-type <dg-mark>
+  (%make-dg-mark dg infs counter journal)
+  dg-mark?
+  (dg      dg-mark-dg)
+  (infs    dg-mark-infs)
+  (counter dg-mark-counter)
+  (journal dg-mark-journal))
+
+(define (dg-take-mark dg)
+  (%make-dg-mark dg
+                 (dg-inference-nodes dg)
+                 (dg-node-counter    dg)
+                 *dg-journal*))
+
+;;; #t exactly when nothing in the graph has moved since the mark was taken:
+;;; no node posted, no inference recorded, no arrow written, no node grounded.
+(define (dg-mark-unchanged? m)
+  (let ((dg (dg-mark-dg m)))
+    (and (eq? *dg-journal*            (dg-mark-journal m))
+         (eq? (dg-inference-nodes dg) (dg-mark-infs m))
+         (eqv? (dg-node-counter   dg) (dg-mark-counter m)))))
+
+;;; Roll the graph back to M.  Undo the journalled field writes newest-first,
+;;; then restore the two lists and the counter -- which drops every node and
+;;; inference posted since the mark, so no orphan survives to be counted as an
+;;; open leaf.
+(define (dg-rollback! m)
+  (let loop ()
+    (if (not (eq? *dg-journal* (dg-mark-journal m)))
+        (begin
+          (if (null? *dg-journal*)
+              (error "dg-rollback!: journal was reset under the mark"))
+          (dg-undo-entry! (car *dg-journal*))
+          (set! *dg-journal* (cdr *dg-journal*))
+          (loop))))
+  (let ((dg (dg-mark-dg m)))
+    (set-dg-sequent-nodes!   dg (list-head (dg-sequent-nodes dg)
+                                           (dg-mark-counter m)))
+    (set-dg-inference-nodes! dg (dg-mark-infs m))
+    (set-dg-node-counter!    dg (dg-mark-counter m)))
+  m)
+
 ;;; Post a new sequent into the graph (or find an existing alpha-equivalent one).
 (define (dg-post! dg sequent)
   (or (dg-find-sequent-node dg sequent)
       (dg-add-sequent-node! dg (make-sequent-node sequent))))
 
+;;; Find the sequent node alpha-equivalent to SEQUENT, or #f.
+;;;
+;;; This is a LINEAR SCAN over every node in the graph, so posting the n-th
+;;; sequent of a proof costs n comparisons and a proof of n steps costs O(n^2).
+;;; Measured over a full library load on 2026-08-21: 39,288 posts, 3,616,694
+;;; nodes visited, 14.7 s of a 59 s load.
+;;;
+;;; A digest index over `formula-hash' (expressions.scm) was built and MEASURED
+;;; here, then removed on the user's decision the same day.  The numbers, same
+;;; binary, only the lookup differing: linear 59.44 / 61.32 s, indexed 55.68 /
+;;; 56.34 s -- a 7% load, not the 25% the scan cost, because computing an
+;;; alpha-invariant digest for every wff is itself about three times a full
+;;; alpha-equiv? traversal and almost every wff needs one.
+;;;
+;;; It was dropped for the SILENT FAILURE it introduced, not for the size of the
+;;; win.  With an index, `alpha-equiv?' stops being the single source of truth:
+;;; a digest that is wrong about some form -- a new binder head, or a shape the
+;;; walk treats generically when it should bind -- sends the lookup to the wrong
+;;; bucket, hash-consing quietly stops, `ass' can fail where it used to close,
+;;; and none of that is an error.  `binder-walker-audit' catches a DECLARED head
+;;; a walker forgot; it cannot catch a head nobody declared.  The digest itself
+;;; is kept (it is what `formula-canon' and the wff print form are built on);
+;;; nothing that can change an answer depends on it.
 (define (dg-find-sequent-node dg sequent)
   (let ((asms  (sequent-assumptions sequent))
         (assrt (sequent-assertion   sequent)))
@@ -154,9 +286,11 @@
     (let ((infn (make-inference-node rule hyp-nodes conclusion-sqn)))
       (dg-add-inference-node! dg infn)
       (for-each (lambda (h)
+                  (dg-journal-out! h)
                   (set-sequent-node-out-arrows!
                    h (cons infn (sequent-node-out-arrows h))))
                 hyp-nodes)
+      (dg-journal-in! conclusion-sqn)
       (set-sequent-node-in-arrows!
        conclusion-sqn
        (cons infn (sequent-node-in-arrows conclusion-sqn)))
@@ -171,6 +305,7 @@
                  (every sequent-node-grounded?
                         (inference-node-hypotheses infn)))
                (sequent-node-in-arrows sqn))
+      (dg-journal-grounded! sqn)
       (set-sequent-node-grounded?! sqn #t)
       ;; Propagate upward to any inference nodes this sqn is a hypothesis of
       (for-each (lambda (infn)

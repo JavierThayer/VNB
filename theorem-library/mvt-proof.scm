@@ -34,11 +34,11 @@
      (IMPLIES (AND (IN h (FUN RR RR)) (AND (IN lo RR) (AND (IN hi RR) (< lo hi))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT lo hi))
                  (IS-CONTINUOUS-AT RR-MS RR-MS h x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< lo x) (< x hi))
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< lo x) (< x hi)))
                  (FORSOME L (IS-DIFF-AT h x L))))
      (IMPLIES (= (h lo) (h hi))
-       (FORSOME theta (AND (< lo theta) (AND (< theta hi)
-                      (IS-DIFF-AT h theta 0))))))))))))
+       (FORSOME theta (AND (IN theta RR) (AND (< lo theta) (AND (< theta hi)
+                      (IS-DIFF-AT h theta 0)))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))   ; h,lo,hi + 4 hyps
 (quietly (lambda () (fact 'rolle 'h 'lo 'hi)))       ; lands rolle's conclusion = the goal
 (quietly (lambda () (ass-all)))
@@ -63,11 +63,6 @@
 (warrant! 'mvt-aux-cont 'reference
   "h is a sum/product of f, constants and the identity, hence continuous where f is.")
 (topic! 'mvt-aux-cont 'analysis)
-(add-to-pss 'rr-diff-zero-eq
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (= 0 (- u v)) (= u v)))))))
-(warrant! 'rr-diff-zero-eq 'well-known "0=u-v => u=v.")
-(topic! 'rr-diff-zero-eq 'analysis)
 (add-to-pss 'diff-value-real
   '(FORALL f (FORALL a (FORALL L (IMPLIES (IS-DIFF-AT f a L) (IN L RR))))))
 (warrant! 'diff-value-real 'informal
@@ -78,10 +73,10 @@
 (sp '(FORALL f (FORALL a (FORALL b
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR) (< a b))))
      (IMPLIES (FORALL x (IMPLIES (IN x (CCINT a b)) (IS-CONTINUOUS-AT RR-MS RR-MS f x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< a x) (< x b)) (FORSOME L (IS-DIFF-AT f x L))))
-       (FORSOME theta (AND (< a theta) (AND (< theta b)
+     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< a x) (< x b))) (FORSOME L (IS-DIFF-AT f x L))))
+       (FORSOME theta (AND (IN theta RR) (AND (< a theta) (AND (< theta b)
          (FORSOME L (AND (IS-DIFF-AT f theta L)
-           (= (* L (- b a)) (- (f b) (f a)))))))))))))))
+           (= (* L (- b a)) (- (f b) (f a))))))))))))))))
 (quietly (lambda () (di)(di)(di)))         ; f,a,b
 (mv-split)                                 ; typing AND
 (quietly (lambda () (di)(di)))             ; continuity hyp, diff hyp
@@ -106,7 +101,7 @@
 (mv-focus! GOAL)
 
 ;; (2) AUX differentiable on (a,b)
-(define AUXDIFF (list 'FORALL 'x (list 'IMPLIES '(AND (< a x) (< x b))
+(define AUXDIFF (list 'FORALL 'x (list 'IMPLIES '(AND (IN x RR) (AND (< a x) (< x b)))
                   (list 'FORSOME 'L (list 'IS-DIFF-AT AUX 'x 'L)))))
 (cut AUXDIFF)
 (mv-focus! AUXDIFF)
@@ -151,9 +146,12 @@
 
 ;; (5) extract: f diff at theta with LT; mvt-aux-diff gives AUX'(theta)=MEXPR;
 ;; derivative-unique (vs the Rolle 0) gives 0=MEXPR; rr-diff-zero-eq finishes.
-(cut (list 'AND (list '< 'a TH) (list '< TH 'b)))
-(mv-focus! (list 'AND (list '< 'a TH) (list '< TH 'b)))
-(quietly (lambda () (ass-all)))
+;; Rolle's witness is typed now, so the interior-position AND that DIFFHYP wants
+;; carries (IN theta RR) and every conjunct is already in context.
+(define THINT (list 'AND (list 'IN TH 'RR) (list 'AND (list '< 'a TH) (list '< TH 'b))))
+(cut THINT)
+(mv-focus! THINT)
+(quietly (lambda () (mv-grind!)))
 (mv-focus! GOAL)
 (quietly (lambda () (inst+ DIFFHYP TH)))
 (let ((fs (mv-find (lambda (z) (and ((mv-head? 'FORSOME) z) (mv-ment? 'is-diff-at z) (eq? (cadr (caddr z)) 'f))))))

@@ -34,15 +34,31 @@
 ;;;     (LENGTH L)                         -- length of tuple L (a natural number)
 ;;;     (CHOICE A)                         -- primitive choice: an element of A
 ;;;     (IOTA x p)                         -- definite description: the unique x with p(x)
-;;;     <functoid> record                  -- lambda/lambdoid binder (see below)
+;;;     <functoid> record                  -- lambdoid binder (see below)
 ;;;     (apply-functoid f arg ...)         -- apply a functoid to arguments
 
 ;;; -----------------------------------------------------------------------
 ;;; Functoid record type
 ;;;
 ;;; A FUNCTOID is a named tagged structure (not a pure S-expression).
-;;; kind     : 'lambda   — domain must be a SET (produces element of FUN)
-;;;          : 'lambdoid — domain may be any class
+;;; kind     : 'lambdoid — domain may be any class.  This is now the ONLY kind.
+;;;
+;;;            There was a second, 'lambda, documented as "domain must be a SET
+;;;            (produces element of FUN)".  Nothing ever enforced that: every
+;;;            reader of `functoid-kind' in the tree either PRESERVES it
+;;;            (make-functoid with the same kind), COMPARES two for equality
+;;;            (match-expr, alpha-equiv-under?) or PRINTS it (expr->str).  So the
+;;;            two kinds behaved identically and the field's only observable
+;;;            effect was the word printed.  The set-domain lambda a user
+;;;            actually wants is `VNB-LAMBDA', which is a set of ordered pairs
+;;;            and an element of FUN(A,B) -- a different construct entirely, with
+;;;            its own typing rule (lam-t) and its own reduction (lam-b), where a
+;;;            functoid reduces by functoid-beta.  The surface spelling `lambda'
+;;;            was removed 2026-08-18 (parser.scm) because the unadorned word
+;;;            standing for the construct no proof in the library uses, beside
+;;;            `vnb-lambda' standing for the one every proof uses, is a
+;;;            confusion with no upside.  `make-functoid' now REFUSES the dead
+;;;            kind rather than letting it print unparseable syntax.
 ;;; bindings : list of (var . domain-expr) pairs, one per bound variable
 ;;; body     : body expression (S-expression or containing functoids)
 ;;;
@@ -53,11 +69,24 @@
 (define-record-type <functoid>
   (%make-functoid kind bindings body)
   functoid?
-  (kind     functoid-kind)      ; 'lambda | 'lambdoid
+  (kind     functoid-kind)      ; 'lambdoid (the only kind; see above)
   (bindings functoid-bindings)  ; ((var . dom) ...)
   (body     functoid-body))
 
 (define (make-functoid kind bindings body)
+  ;; Refuse the retired kind LOUDLY.  A 'lambda record is unreachable from any
+  ;; surface input since parser.scm dropped the spelling, but a hand-written
+  ;; call could still make one, and `expr->str' prints the kind symbol
+  ;; verbatim -- so such a record would print as `lambda([...], ...)', which no
+  ;; longer parses.  A round-trip that silently stops round-tripping is worse
+  ;; than an error naming the two things the caller might have meant.
+  (if (eq? kind 'lambda)
+      (error (string-append
+              "make-functoid: the 'lambda functoid kind was retired 2026-08-18.  "
+              "Use 'lambdoid for a functoid (domain may be a proper class, "
+              "reduced by functoid-beta), or build a VNB-LAMBDA for a "
+              "set-function (an element of FUN(A,B), typed by lam-t and "
+              "reduced by lam-b).")))
   (%make-functoid kind bindings body))
 
 (define (apply-functoid-expr? e)
@@ -85,7 +114,7 @@
       (functoid? e)
       (and (pair? e)
            (memq (car e) '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN
-                           FUN SEP BIG-UNION POWER
+                           FUN SEP COMP BIG-UNION POWER
                            LIST NTH MAKE-SET LENGTH CHOICE IOTA IF TUPLES
                            apply-functoid)))))
 
@@ -212,7 +241,30 @@
         ;; arity 2: (FUN A) — unary domain-only;
         ;; arity 3: (FUN A B) — binary domain+codomain.
         (fold-vars (map free-vars (cdr expr))))
-       ((FORALL FORSOME IOTA)
+       ;; COMP joined this label on 2026-08-15, and it had been missing from
+       ;; EVERY walker in the tree: the string `COMP' did not occur in this file
+       ;; at all.  `{x | p}' (COMP x p) binds x in p and has precisely the
+       ;; FORALL/FORSOME/IOTA shape, but fell through to the general compound
+       ;; branch, so
+       ;;
+       ;;   free-vars  {r | r in a}          reported r FREE  (should be just a)
+       ;;   subst-free r:=zz in {r | r in a} gave {zz | zz in a}  -- it rewrote
+       ;;                                    the BOUND variable
+       ;;   subst-free a:=f(r) in the same   captured: {r | r in f(r)}, no rename
+       ;;   alpha-equiv? {r|r in a} {s|s in a}  was #f
+       ;;
+       ;; Latent, not live: no installed formula in the library contains a COMP
+       ;; (measured -- 0 of the theorem table), so nothing in the tree was ever
+       ;; walked wrong.  It bit only a user who TYPED `{x | p}', which the parser
+       ;; has always accepted and the manual documents.  `validate-wff!' knew
+       ;; COMP was a binder all along (wff.scm, "COMP bound var not symbol"),
+       ;; which is what made the omission invisible: the form graded clean.
+       ;;
+       ;; The same one-symbol repair is at the corresponding label in
+       ;; subst-free and alpha-equiv-under? below, in match-expr and
+       ;; rewrite-expr (macetes.scm), and in replace-term
+       ;; (primitive-inferences.scm) -- six sites, all of shape (HEAD var body).
+       ((FORALL FORSOME IOTA COMP)
         (remove (cadr expr) (free-vars (caddr expr))))
        ((SEP)
         (union-vars (free-vars (caddr expr))
@@ -294,9 +346,50 @@
 
 (define *constant-registry* (make-equal-hash-table))
 
+;;; Every name BOUND by some already-installed formula, mapped to the first
+;;; result that bound it.  Filled at install time (`note-installed-binders!',
+;;; called from macetes.scm's install--grade!) and read by register-constant!
+;;; immediately below.
+(define *installed-binder-names* (make-equal-hash-table))
+
+(define (note-installed-binders! thm-name e)
+  (for-each (lambda (p)
+              (unless (hash-table-ref/default *installed-binder-names* (car p) #f)
+                (hash-table-set! *installed-binder-names* (car p) thm-name)))
+            (formula-binder-names e)))
+
+;;; Registering a head that some INSTALLED formula already uses as a bound
+;;; variable is the case-fold collision seen from the other side, and it is the
+;;; side no gate reported in time.
+;;;
+;;; `constant-binder-audit' (macetes.scm) sweeps the whole theorem table and is
+;;; FATAL -- but it runs at the END of the load, so when `DEG' was registered on
+;;; 2026-08-21 by structure-library/poly-degree.scm (load.scm:1023), the `deg'
+;;; bound in is-euclidean-ring-def (installed 600 files earlier) began reading as
+;;; that constant, and what showed up FIRST was an unrelated proof in
+;;; euclidean-ideal-generator-proof.scm failing with "antecedent-inference:
+;;; cannot decompose", aborting the load and taking the rest of the library with
+;;; it -- 691 lines of log instead of 1187, with the actual cause never printed.
+;;; The head registry is scope-blind by design (`free-vars' and `subst-free'
+;;; consult it, they do not consult a scope), so the collision is real; only the
+;;; REPORTING was late.
+;;;
+;;; Warn-only, and deliberately: the fatal sweep still runs at the end and is the
+;;; gate.  This one exists so that the first thing printed names the constant,
+;;; the formula that already binds the name, and the file being loaded.
 (define (register-constant! sym kind)
-  (if (symbol? sym)
-      (hash-table-set! *constant-registry* sym kind))
+  (when (symbol? sym)
+    (let ((owner (hash-table-ref/default *installed-binder-names* sym #f)))
+      (when (and owner (not (hash-table-ref/default *constant-registry* sym #f)))
+        (display ";VNB warning: register-constant!: ") (display sym)
+        (display " is already a BOUND VARIABLE of ") (display owner) (newline)
+        (display ";              -- the head registry is scope-blind, so every applied `")
+        (display sym) (display "'\n;              inside that formula now reads as this constant.")
+        (newline)
+        (display ";              Rename the binder (constant-binder-audit will fail at the")
+        (newline)
+        (display ";              end of this load if you do not).") (newline)))
+    (hash-table-set! *constant-registry* sym kind))
   sym)
 
 ;;; Returns the kind of sym if it is a registered constant head, else #f.
@@ -403,7 +496,7 @@
         ;; arity 2: (FUN A); arity 3: (FUN A B); recurse into all args
         (cons (car expr)
               (map (lambda (a) (subst-free x replacement a)) (cdr expr))))
-       ((FORALL FORSOME IOTA)
+       ((FORALL FORSOME IOTA COMP)
         (let ((bv   (cadr expr))
               (body (caddr expr)))
           (cond
@@ -516,6 +609,29 @@
 ;;;
 ;;;   The global counter is monotonic and is the *only* defense against
 ;;;   accidental name re-use across calls; do NOT reset it.
+
+;;; A fresh variable that keeps the HINT ITSELF when nothing forbids it.
+;;;
+;;; `fresh-var' always appends `_N', which is right for a variable nobody will
+;;; ever type -- and wrong for one a reader has to look at all day.  A
+;;; destructuring binder over METRIC-SPACE produced `t_1368', and the user's
+;;; objection was exactly that: "there should be a way of manually changing them
+;;; to some non-conflicting and more mellifluous name."
+;;;
+;;; So: try the bare hint first.  It is refused if it is free in anything we
+;;; were told to avoid, or if it is a REGISTERED CONSTANT -- a binder named like
+;;; an accessor reads as the constant in head position, scope-blind, which is
+;;; what `constant-binder-audit' exists to make a hard load failure.  Falling
+;;; back to `fresh-var' then gives the old numbered form, so this can only
+;;; improve a name, never break one.
+(define (fresh-var/bare hint . avoid-exprs)
+  (let ((forbidden (apply append (map free-vars avoid-exprs))))
+    (if (and (symbol? hint)
+             (not (member hint forbidden))
+             (not (constant-head? hint)))
+        hint
+        (apply fresh-var hint avoid-exprs))))
+
 (define (fresh-var hint . avoid-exprs)
   (let ((forbidden (apply append (map free-vars avoid-exprs))))
     (let loop ((n *fresh-counter*))
@@ -573,10 +689,28 @@
               (alpha-equiv-under? (functoid-body e1) (functoid-body e2) env*)))))
     ((or (functoid? e1) (functoid? e2)) #f)
     ((symbol? e1)
+     ;; ENV maps left-hand binders to right-hand binders.  It must be read as a
+     ;; BIJECTION, not as a function: with the one-directional reading
+     ;;
+     ;;   (FORALL x (FORALL y (P x y)))  vs  (FORALL a (FORALL a (P a a)))
+     ;;
+     ;; env is ((y . a) (x . a)), both x and y map to a, and the two formulas
+     ;; compared alpha-EQUAL -- while the same call with the arguments swapped
+     ;; answered #f, because a shadowing binder on the RIGHT collapses two
+     ;; distinct left variables onto one name and a shadowing binder on the LEFT
+     ;; does not.  A relation that is not symmetric is not an equivalence, and
+     ;; `ass' closes on this one, `dg-post!' hash-conses on it.  (Found
+     ;; 2026-08-21.)  `rassq' finds the FIRST pair whose cdr is e2; for a
+     ;; bijection at this depth that pair must be the very pair `assq' found.
      (let ((mapped (assq e1 env)))
        (if mapped
-           (eq? (cdr mapped) e2)
-           (and (symbol? e2) (eq? e1 e2)))))
+           (and (symbol? e2)
+                (eq? (cdr mapped) e2)
+                (eq? mapped (rassq e2 env)))
+           ;; e1 is free.  It matches an identically-spelled e2 only if that e2
+           ;; is itself free -- an e2 that some binder on the right captured is
+           ;; a different variable that happens to share the spelling.
+           (and (symbol? e2) (eq? e1 e2) (not (rassq e2 env))))))
     ((number? e1)
      (and (number? e2) (= e1 e2)))
     ((and (eq? e1 'TRUTH)   (eq? e2 'TRUTH))   #t)
@@ -606,7 +740,7 @@
                (or (null? a1)
                    (and (alpha-equiv-under? (car a1) (car a2) env)
                         (loop (cdr a1) (cdr a2)))))))
-       ((FORALL FORSOME IOTA)
+       ((FORALL FORSOME IOTA COMP)
         (alpha-equiv-under? (caddr e1) (caddr e2)
                             (cons (cons (cadr e1) (cadr e2)) env)))
        ((SEP)
@@ -657,3 +791,215 @@
                 (and (alpha-equiv-under? (car a1) (car a2) env)
                      (loop (cdr a1) (cdr a2)))))))
     (else #f)))
+
+;;; rassq: the first pair of ALIST whose CDR is eq? to V (the reverse of assq).
+(define (rassq v alist)
+  (cond ((null? alist) #f)
+        ((eq? (cdar alist) v) (car alist))
+        (else (rassq v (cdr alist)))))
+
+;;; -----------------------------------------------------------------------
+;;; Binder shapes -- the ONE declaration of which heads bind, and where
+;;;
+;;; Every walker over expressions has to know this, and until 2026-08-15 each
+;;; knew it separately: `COMP' was spelled out at five case labels and missing
+;;; from all of them, so `free-vars' called its bound variable free and
+;;; `subst-free' captured into it, for as long as the head had existed.  The
+;;; repair was one symbol at six places -- which is the same defect waiting to
+;;; happen again at the seventh.
+;;;
+;;; This table is that knowledge, written once.  `formula-hash' and
+;;; `formula-canon' below read it, and `binder-walker-audit' (audit.scm) checks
+;;; at every load that free-vars, subst-free, alpha-equiv? and formula-hash all
+;;; agree with it, head by head.  A new binder that is added here and nowhere
+;;; else is reported by name at load time instead of being found weeks later.
+;;;
+;;; The three shapes:
+;;;   simple   (H v body)          v scopes over body
+;;;   domain   (H v A body)        A is OUTSIDE the binder, body inside
+;;;   lambda   (H bspec A body)    bspec is a symbol or (LIST v ...); A outside
+(define *binder-shapes*
+  '((FORALL . simple) (FORSOME . simple) (IOTA . simple) (COMP . simple)
+    (SEP . domain)    (BIG-UNION . domain)
+    (VNB-LAMBDA . lambda)))
+
+(define (binder-shape head)
+  (and (symbol? head)
+       (let ((p (assq head *binder-shapes*)))
+         (and p (cdr p)))))
+
+;;; -----------------------------------------------------------------------
+;;; formula-hash -- an alpha-INVARIANT fixnum digest of a formula
+;;;
+;;; The contract, and the only thing anything may rely on:
+;;;
+;;;   (alpha-equiv? e1 e2)  =>  (= (formula-hash e1) (formula-hash e2))
+;;;
+;;; The converse does NOT hold: equal hashes mean "compare them properly", not
+;;; "equal".  Every caller verifies with alpha-equiv? afterwards, so a collision
+;;; costs time and never an answer.
+;;;
+;;; Bound variables are hashed by de Bruijn INDEX -- the number of binders
+;;; between the occurrence and the one that binds it -- so the spelling of a
+;;; bound name contributes nothing, while its binding STRUCTURE contributes
+;;; everything.  That is what makes the digest alpha-invariant, and it is also
+;;; why the shadowing pair above hashes apart: `(P x y)' under two binders gives
+;;; indices (1 0) and `(P a a)' under two binders gives (0 0).
+;;;
+;;; One caveat, stated because the contract above is an implication and this is
+;;; where it could fail: two of alpha-equiv-under?'s case labels compare fixed
+;;; argument positions WITHOUT checking that the two forms have the same length
+;;; ((NOT CHOICE TUPLES MAKE-SET LENGTH) and the binary-connective label), so on
+;;; a MALFORMED expression -- (NOT a b) against (NOT a) -- it can answer #t
+;;; where the digest, which folds in the length, answers different.  No such
+;;; expression survives validate-wff!, and every installed formula in the tree
+;;; is graded by it, so this is unreachable from the library; a hand-built
+;;; S-expression could reach it.
+(define %fh-modulus 1073741789)         ; prime just under 2^30
+
+;;; h < 2^30 and 31*h + x < 2^35, so every intermediate is a fixnum on this
+;;; word size and the fix: operators apply.  With the generic ones the digest
+;;; walk cost 10 us per library formula against 3 us for a full alpha-equiv?
+;;; traversal of the same tree -- the hash of a formula must not cost more than
+;;; comparing two of them, or the index gives back what it saves.
+(define-integrable (%fh-mix h x)
+  (fix:remainder (fix:+ (fix:* h 31) x) %fh-modulus))
+
+;;; MIT's symbol-hash hashes the symbol's NAME STRING on every call, which the
+;;; walk does once per symbol OCCURRENCE.  Symbols are interned, the value is
+;;; stable, so it is computed once each.  (An address-based eq-hash would be
+;;; cheaper still and is not usable: it changes across a GC, and these digests
+;;; are cached on <wff> records that outlive one.)
+(define %fh-symtab (make-strong-eqv-hash-table))
+
+(define (%fh-sym s)
+  (or (hash-table-ref/default %fh-symtab s #f)
+      (let ((h (fix:remainder (symbol-hash s) %fh-modulus)))
+        (hash-table-set! %fh-symtab s h)
+        h)))
+
+;;; Position of V in ENV (innermost binder first), or #f when V is free.
+(define (%fh-index v env)
+  (let loop ((l env) (i 0))
+    (cond ((null? l) #f)
+          ((eq? (car l) v) i)
+          (else (loop (cdr l) (+ i 1))))))
+
+(define (%fh e env)
+  (cond
+    ((symbol? e)
+     (let ((i (%fh-index e env)))
+       (if i
+           (%fh-mix 7919 i)                            ; bound: index only
+           (%fh-mix 104729 (%fh-sym e)))))
+    ((number? e)
+     (%fh-mix 15485863 (fix:remainder (string-hash (number->string e)) %fh-modulus)))
+    ((functoid? e)
+     (let* ((bs   (functoid-bindings e))
+            (vars (map car bs))
+            (h    (let loop ((l bs) (h (%fh-mix 31337 (%fh-sym (functoid-kind e)))))
+                    (if (null? l) h
+                        (loop (cdr l) (%fh-mix h (%fh (cdar l) env)))))))
+       (%fh-mix (%fh-mix h (length bs))
+                (%fh (functoid-body e) (append vars env)))))
+    ((pair? e)
+     (case (binder-shape (car e))
+       ((simple)                                    ; (H v body)
+        (%fh-mix (%fh-mix 1000003 (%fh-sym (car e)))
+                 (%fh (caddr e) (cons (cadr e) env))))
+       ((domain)                                    ; (H v A body)
+        (%fh-mix (%fh-mix (%fh-mix 1000033 (%fh-sym (car e)))
+                          (%fh (caddr e) env))
+                 (%fh (cadddr e) (cons (cadr e) env))))
+       ((lambda)                                    ; (H bspec A body)
+        (let ((bv (vnb-lambda-bvars (cadr e))))
+          ;; The bare-symbol and one-element (LIST v) spellings are the same
+          ;; binder -- alpha-equiv-under? compares them across shapes -- so only
+          ;; the ARITY of the spec is hashed, never its shape.
+          (%fh-mix (%fh-mix (%fh-mix (%fh-mix 1000037 (%fh-sym (car e)))
+                                     (length bv))
+                            (%fh (caddr e) env))
+                   (%fh (cadddr e) (append bv env)))))
+       (else
+        ;; General compound.  The head is walked like any other position, which
+        ;; is what makes ((MUL m) x y) and a bound function variable -- (FORALL f
+        ;; (f x)) against (FORALL g (g x)) -- come out right; alpha-equiv-under?
+        ;; reaches the same answer by its compound-head branch.
+        (let loop ((l e) (h 1000039) (n 0))
+          (if (pair? l)
+              (loop (cdr l) (%fh-mix h (%fh (car l) env)) (+ n 1))
+              (%fh-mix h n))))))
+    ((null? e) 12345)
+    ((string? e) (%fh-mix 99991 (fix:remainder (string-hash e) %fh-modulus)))
+    ((boolean? e) (if e 314159 271828))
+    (else (%fh-mix 54321 0))))
+
+(define (formula-hash e)
+  (%fh e '()))
+
+;;; Every variable BOUND anywhere in E, as (var . binding-head) pairs, driven by
+;;; *binder-shapes* so that a head declared there is known here with no second
+;;; edit.  Used by `note-installed-binders!' (above) for the register-constant!
+;;; collision warning.
+;;;
+;;; `wff-constant-binders' (macetes.scm) walks the same binders for the fatal
+;;; end-of-load sweep and spells the set out again in its own case labels; it is
+;;; a fourth copy and a candidate to fold onto this one.  Left alone here
+;;; because it backs a FATAL gate and this change is warn-only.
+(define (formula-binder-names e0)
+  (let ((e (if (wff? e0) (wff-formula e0) e0))
+        (out '()))
+    (define (note v h) (if (symbol? v) (set! out (cons (cons v h) out))))
+    (let walk ((e e))
+      (cond
+        ((functoid? e)
+         (for-each (lambda (b) (note (car b) 'FUNCTOID) (walk (cdr b)))
+                   (functoid-bindings e))
+         (walk (functoid-body e)))
+        ((pair? e)
+         (case (binder-shape (car e))
+           ((simple) (note (cadr e) (car e)) (walk (caddr e)))
+           ((domain) (walk (caddr e)) (note (cadr e) (car e)) (walk (cadddr e)))
+           ((lambda) (walk (caddr e))
+                     (for-each (lambda (v) (note v (car e))) (vnb-lambda-bvars (cadr e)))
+                     (walk (cadddr e)))
+           (else (for-each walk e))))
+        (else #t)))
+    (reverse out)))
+
+;;; formula-canon -- the same walk, allocating.  Two formulas are alpha-equivalent
+;;; exactly when their canonical forms are `equal?', so this is the thing to print
+;;; when a digest collision or a suspected mismatch has to be looked at by eye.
+;;; Nothing in the prover's inner loop calls it; formula-hash is the fused,
+;;; non-allocating version of the same traversal.
+(define %canon-bound  (string->uninterned-symbol "bvar"))
+(define %canon-binder (string->uninterned-symbol "binder"))
+
+(define (%canon e env)
+  (cond
+    ((symbol? e)
+     (let ((i (%fh-index e env)))
+       (if i (list %canon-bound i) e)))
+    ((functoid? e)
+     (let ((vars (map car (functoid-bindings e))))
+       (list %canon-binder 'FUNCTOID (functoid-kind e)
+             (map (lambda (b) (%canon (cdr b) env)) (functoid-bindings e))
+             (%canon (functoid-body e) (append vars env)))))
+    ((pair? e)
+     (case (binder-shape (car e))
+       ((simple)
+        (list (car e) %canon-binder (%canon (caddr e) (cons (cadr e) env))))
+       ((domain)
+        (list (car e) %canon-binder
+              (%canon (caddr e) env)
+              (%canon (cadddr e) (cons (cadr e) env))))
+       ((lambda)
+        (let ((bv (vnb-lambda-bvars (cadr e))))
+          (list (car e) (list %canon-binder (length bv))
+                (%canon (caddr e) env)
+                (%canon (cadddr e) (append bv env)))))
+       (else (map (lambda (x) (%canon x env)) e))))
+    (else e)))
+
+(define (formula-canon e)
+  (%canon e '()))
