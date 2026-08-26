@@ -52,9 +52,9 @@ digraph VNB {
   "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
   "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
   "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
+  "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
   "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
   "vector-space" -> "module" [color="#2a4a6a", penwidth=1.4, tooltip="vector-space refines module"];
-  "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
   "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
   "cc-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ms refines metric-space"];
   "qq-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="qq-ring refines integral-domain"];
@@ -62,8 +62,8 @@ digraph VNB {
   // view-as (forgetful / component maps): source -> target
   "field" -> "euclidean-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-euclidean-ring", tooltip="field-as-euclidean-ring :  field -> euclidean-ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "commutative-ring" -> "comm-monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-cm", tooltip="commutative-ring-multiplicative-cm :  commutative-ring -> comm-monoid    (carr mul one) |-> (carr opr iden)", URL="structure-graph.html#views"];
-  "complex-inner-product-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="complex-inner-product-space-as-module :  complex-inner-product-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
   "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
+  "complex-inner-product-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="complex-inner-product-space-as-module :  complex-inner-product-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
   "commutative-ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="commutative-ring-additive-ag :  commutative-ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "ringoid" -> "ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-ring", tooltip="ringoid-as-ring :  ringoid -> ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "abelian-group" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-monoid", tooltip="abelian-group-as-monoid :  abelian-group -> monoid    (carr opr iden) |-> (carr opr iden)", URL="structure-graph.html#views"];

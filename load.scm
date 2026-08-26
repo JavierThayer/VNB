@@ -2268,6 +2268,29 @@
     ;; rr-metric-space-proof, rr-ms-dist, rr-abs-basics, rr-order-basics,
     ;; rr-halving and ccint-basics.
     "theorem-library/r-exp"
+    ;; THE REAL POWER, DEFINED:  RPOW-STAR(x, s) == R-EXP(s . LOG(x)).  The
+    ;; user's definition (2026-08-26).  The name is the tree's standing one for
+    ;; a DEFINED companion to an AXIOMATISED operator -- CARD/CARD-STAR,
+    ;; RECIP/RECIP-STAR -- and structure-library/real-powers.scm is NOT touched:
+    ;; its RPOW keeps its fourteen `well-known' supports and its one customer
+    ;; (Hoelder).  Two things this buys over RPOW.  The EXPONENT IS AN ARBITRARY
+    ;; REAL -- every RPOW support carries `IN b QQ', and real-powers.scm's header
+    ;; names the missing IVT continuous extension as what would discharge them;
+    ;; R-EXP(s . LOG x) does not care what s is.  And the TERM IS TOTAL, so there
+    ;; is no definedness obligation in the file at all: LOG is in FUN(RR,RR) on
+    ;; the nose and R-EXP is total because LOG is onto, so RPOW-STAR(x,s) is a
+    ;; well-formed term for EVERY x and s.  The `0 < x' guard is therefore about
+    ;; the LAWS and not the definition, and only the two laws that must recover x
+    ;; from LOG(x) -- rpow-star-one and rpow-star-mul-base -- actually pay it.
+    ;; The base-0 conventions of RPOW (0^b = 0, 0^0 = 1) are structurally OUT OF
+    ;; REACH here, not merely unproven: rpow-star-pos gives 0 < RPOW-STAR(x,s)
+    ;; for EVERY x, so RPOW-STAR(0,b) is positive and is not 0.  Deliberately not
+    ;; bought with an IF branch -- that is a decision about what 0^0 should be,
+    ;; and it would cost every law an extra case.  Nothing here is asserted; every
+    ;; theorem inherits the 35-leaf `well-known' log/r-exp residue unchanged and
+    ;; adds nothing.  Needs r-exp directly above, log, rr-order-basics
+    ;; (rr-lt-scale-pos, rr-mul-comm) and driver-kit.
+    "theorem-library/rpow-star"
     ;; The constructions a functor is INVISIBLE to.  A functoid that reads its
     ;; structure argument only through slots the functor carries ON THE NOSE
     ;; (PREIMAGE reads only PTS; METRIC-TOP carries PTS) satisfies

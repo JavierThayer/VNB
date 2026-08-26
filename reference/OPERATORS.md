@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-473 operators: 14 functions, 269 functoids, 190 predicates, 0 undeclared.
+474 operators: 14 functions, 270 functoids, 190 predicates, 0 undeclared.
 
 ## Functions  (14)
 
@@ -32,7 +32,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (269)
+## Functoids  (270)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -919,6 +919,12 @@ Declared by: `ring-prod-n-zero` `ring-prod-n-succ`
 ### `ringoid-setoid`  — def-functoid · tuple/structure-valued
 
     ringoid-setoid(r) := [carr(r), ringoid-rel(r)]
+
+### `rpow-star`  — def-functoid · element/number-valued
+
+> _Reads as:_  x_ to the power s_
+
+    rpow-star(x_, s_) := r-exp(s_ * log(x_))
 
 ### `rr-bounded-ms`  — def-functoid · element/number-valued
 
