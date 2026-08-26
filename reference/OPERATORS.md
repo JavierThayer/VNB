@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-469 operators: 14 functions, 265 functoids, 190 predicates, 0 undeclared.
+473 operators: 14 functions, 269 functoids, 190 predicates, 0 undeclared.
 
 ## Functions  (14)
 
@@ -32,7 +32,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (265)
+## Functoids  (269)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -107,6 +107,12 @@ Declared by: `bintimes-apply` `bintimes-in-fun-cc` `bintimes-in-fun-nn` `bintime
 > _Reads as:_  the integral of phi from a to b
 
     c-int(phi, a, b) := iota(v_, v_ in rr and forsome([f_], is-antiderivative(f_, phi, a, b) and v_ = f_(b) - f_(a)))
+
+### `c-int-or`  — def-functoid · element/number-valued
+
+> _Reads as:_  the oriented integral of phi from a to b
+
+    c-int-or(phi, a, b) := if(is-antiderivable(phi, a, b), c-int(phi, a, b), if(is-antiderivable(phi, b, a), -c-int(phi, b, a), 0))
 
 ### `c-metric`  — def-functoid · element/number-valued
 
@@ -546,6 +552,12 @@ Declared by: `limit-ord-iff`
 
 ### `list`  — kernel term-former
 
+### `log`  — def-functoid · element/number-valued
+
+> _Reads as:_  the logarithm of x_
+
+    log(x_) := c-int-or(vnb-lambda(z_, rr, recip-star(z_)), 1, x_)
+
 ### `make-set`  — kernel term-former
 
 ### `mat`  — def-functoid · set-valued
@@ -838,11 +850,23 @@ Declared by: `qq-ring-def`
 
     quotient(s) := image(proj(s), pts(s))
 
+### `r-exp`  — def-functoid · element/number-valued
+
+> _Reads as:_  the exponential of y_
+
+    r-exp(y_) := iota(x_, x_ in rr and 0 < x_ and log(x_) = y_)
+
 ### `ran`  — def-functoid · set-valued
 
     ran(f) := image(f, dom(f))
 
 ### `recip`  — structure accessor · element (slot value)
+
+### `recip-star`  — def-functoid · element/number-valued
+
+> _Reads as:_  the totalised reciprocal of u_
+
+    recip-star(u_) := if(u_ = 0, 0, recip(u_))
 
 ### `reduce`  — recursively defined (def-by-nn-recursion)
 

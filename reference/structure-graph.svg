@@ -206,14 +206,14 @@
 </g>
 </g>
 <!-- complex&#45;inner&#45;product&#45;space&#45;&gt;normed&#45;ag -->
-<g id="edge50" class="edge">
+<g id="edge42" class="edge">
 <title>complex&#45;inner&#45;product&#45;space&#45;&gt;normed&#45;ag</title>
-<g id="a_edge50"><a xlink:href="structure-graph.html#normed-ag" xlink:title="ip&#45;normed&#45;ag : &#160;complex&#45;inner&#45;product&#45;space &#45;&gt; normed&#45;ag &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge42"><a xlink:href="structure-graph.html#normed-ag" xlink:title="ip&#45;normed&#45;ag : &#160;complex&#45;inner&#45;product&#45;space &#45;&gt; normed&#45;ag &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1117.18,-207.31C1116.45,-216.9 1116.82,-228.8 1121.12,-238.5 1122.5,-241.6 1124.29,-244.55 1126.34,-247.34"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1123.54,-249.46 1132.78,-254.65 1128.8,-244.83 1123.54,-249.46"/>
 </a>
 </g>
-<g id="a_edge50&#45;label"><a xlink:href="structure-graph.html#normed-ag" xlink:title="ip&#45;normed&#45;ag">
+<g id="a_edge42&#45;label"><a xlink:href="structure-graph.html#normed-ag" xlink:title="ip&#45;normed&#45;ag">
 <text xml:space="preserve" text-anchor="middle" x="1157.5" y="-228.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">ip&#45;normed&#45;ag</text>
 </a>
 </g>
@@ -374,40 +374,40 @@
 </g>
 </g>
 <!-- metric&#45;space&#45;&gt;metric&#45;space -->
-<g id="edge38" class="edge">
+<g id="edge44" class="edge">
 <title>metric&#45;space&#45;&gt;metric&#45;space</title>
-<g id="a_edge38"><a xlink:href="structure-graph.html#metric-space" xlink:title="trunc&#45;metric : &#160;metric&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge44"><a xlink:href="structure-graph.html#metric-space" xlink:title="trunc&#45;metric : &#160;metric&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1375.42,-357.44C1385.68,-357.73 1393,-358.58 1393,-360 1393,-360.78 1390.81,-361.38 1387.15,-361.82"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1387.15,-358.31 1377.39,-362.44 1387.59,-365.3 1387.15,-358.31"/>
 </a>
 </g>
-<g id="a_edge38&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="trunc&#45;metric">
+<g id="a_edge44&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="trunc&#45;metric">
 <text xml:space="preserve" text-anchor="middle" x="1426.75" y="-356.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">trunc&#45;metric</text>
 </a>
 </g>
 </g>
 <!-- metric&#45;space&#45;&gt;metric&#45;space -->
-<g id="edge43" class="edge">
+<g id="edge45" class="edge">
 <title>metric&#45;space&#45;&gt;metric&#45;space</title>
-<g id="a_edge43"><a xlink:href="structure-graph.html#metric-space" xlink:title="completion : &#160;metric&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge45"><a xlink:href="structure-graph.html#metric-space" xlink:title="completion : &#160;metric&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1375.18,-355.14C1414.99,-353.75 1460.5,-355.37 1460.5,-360 1460.5,-364.18 1423.45,-365.91 1386.96,-365.18"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1387.24,-361.69 1377.15,-364.91 1387.05,-368.69 1387.24,-361.69"/>
 </a>
 </g>
-<g id="a_edge43&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="completion">
+<g id="a_edge45&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="completion">
 <text xml:space="preserve" text-anchor="middle" x="1490.88" y="-356.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">completion</text>
 </a>
 </g>
 </g>
 <!-- metric&#45;space&#45;&gt;metric&#45;space -->
-<g id="edge46" class="edge">
+<g id="edge47" class="edge">
 <title>metric&#45;space&#45;&gt;metric&#45;space</title>
-<g id="a_edge46"><a xlink:href="structure-graph.html#metric-space" xlink:title="bdd&#45;metric : &#160;metric&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge47"><a xlink:href="structure-graph.html#metric-space" xlink:title="bdd&#45;metric : &#160;metric&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1375.25,-353.63C1435.56,-350.11 1521.25,-352.23 1521.25,-360 1521.25,-367.26 1446.25,-369.59 1387.2,-366.98"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1387.38,-363.48 1377.22,-366.47 1387.02,-370.48 1387.38,-363.48"/>
 </a>
 </g>
-<g id="a_edge46&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="bdd&#45;metric">
+<g id="a_edge47&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="bdd&#45;metric">
 <text xml:space="preserve" text-anchor="middle" x="1550.88" y="-356.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">bdd&#45;metric</text>
 </a>
 </g>
@@ -422,14 +422,14 @@
 </g>
 </g>
 <!-- metric&#45;space&#45;&gt;metrizable&#45;top&#45;space -->
-<g id="edge39" class="edge">
+<g id="edge40" class="edge">
 <title>metric&#45;space&#45;&gt;metrizable&#45;top&#45;space</title>
-<g id="a_edge39"><a xlink:href="structure-graph.html#metrizable-top-space" xlink:title="metric&#45;top : &#160;metric&#45;space &#45;&gt; metrizable&#45;top&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge40"><a xlink:href="structure-graph.html#metrizable-top-space" xlink:title="metric&#45;top : &#160;metric&#45;space &#45;&gt; metrizable&#45;top&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1363.45,-378.3C1392.68,-391.08 1432.69,-408.57 1464.25,-422.37"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1462.65,-425.49 1473.22,-426.29 1465.46,-419.08 1462.65,-425.49"/>
 </a>
 </g>
-<g id="a_edge39&#45;label"><a xlink:href="structure-graph.html#metrizable-top-space" xlink:title="metric&#45;top">
+<g id="a_edge40&#45;label"><a xlink:href="structure-graph.html#metrizable-top-space" xlink:title="metric&#45;top">
 <text xml:space="preserve" text-anchor="middle" x="1459.31" y="-399.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">metric&#45;top</text>
 </a>
 </g>
@@ -444,14 +444,14 @@
 </g>
 </g>
 <!-- metric&#45;space&#45;&gt;setoid -->
-<g id="edge48" class="edge">
+<g id="edge36" class="edge">
 <title>metric&#45;space&#45;&gt;setoid</title>
-<g id="a_edge48"><a xlink:href="structure-graph.html#setoid" xlink:title="cauchy&#45;setoid : &#160;metric&#45;space &#45;&gt; setoid &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge36"><a xlink:href="structure-graph.html#setoid" xlink:title="cauchy&#45;setoid : &#160;metric&#45;space &#45;&gt; setoid &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1297.93,-378.45C1278.42,-391.46 1254.18,-407.33 1248.88,-409.5 1206.47,-426.86 1154.45,-435.95 1119.21,-440.46"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1118.95,-436.97 1109.44,-441.64 1119.79,-443.92 1118.95,-436.97"/>
 </a>
 </g>
-<g id="a_edge48&#45;label"><a xlink:href="structure-graph.html#setoid" xlink:title="cauchy&#45;setoid">
+<g id="a_edge36&#45;label"><a xlink:href="structure-graph.html#setoid" xlink:title="cauchy&#45;setoid">
 <text xml:space="preserve" text-anchor="middle" x="1308.95" y="-399.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">cauchy&#45;setoid</text>
 </a>
 </g>
@@ -466,14 +466,14 @@
 </g>
 </g>
 <!-- metric&#45;space&#45;&gt;top&#45;space -->
-<g id="edge40" class="edge">
+<g id="edge37" class="edge">
 <title>metric&#45;space&#45;&gt;top&#45;space</title>
-<g id="a_edge40"><a xlink:href="structure-graph.html#top-space" xlink:title="metric&#45;top : &#160;metric&#45;space &#45;&gt; top&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge37"><a xlink:href="structure-graph.html#top-space" xlink:title="metric&#45;top : &#160;metric&#45;space &#45;&gt; top&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1337.06,-378.23C1340.88,-383.72 1344.84,-389.94 1347.88,-396 1362.08,-424.33 1358.35,-434.39 1370.88,-463.5 1376.46,-476.49 1383.59,-490.39 1389.96,-502.12"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1386.89,-503.81 1394.8,-510.86 1393.02,-500.42 1386.89,-503.81"/>
 </a>
 </g>
-<g id="a_edge40&#45;label"><a xlink:href="structure-graph.html#top-space" xlink:title="metric&#45;top">
+<g id="a_edge37&#45;label"><a xlink:href="structure-graph.html#top-space" xlink:title="metric&#45;top">
 <text xml:space="preserve" text-anchor="middle" x="1399.38" y="-441.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">metric&#45;top</text>
 </a>
 </g>
@@ -532,14 +532,14 @@
 </g>
 </g>
 <!-- normed&#45;ag&#45;&gt;metric&#45;space -->
-<g id="edge41" class="edge">
+<g id="edge48" class="edge">
 <title>normed&#45;ag&#45;&gt;metric&#45;space</title>
-<g id="a_edge41"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space : &#160;normed&#45;ag &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge48"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space : &#160;normed&#45;ag &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1163.72,-292.69C1168.15,-303.22 1175.27,-316.14 1185.62,-324 1207.07,-340.29 1235.25,-349.05 1260.57,-353.75"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1259.97,-357.2 1270.41,-355.37 1261.11,-350.29 1259.97,-357.2"/>
 </a>
 </g>
-<g id="a_edge41&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space">
+<g id="a_edge48&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space">
 <text xml:space="preserve" text-anchor="middle" x="1233.25" y="-313.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">nag&#45;metric&#45;space</text>
 </a>
 </g>
@@ -584,14 +584,14 @@
 </g>
 </g>
 <!-- normed&#45;field&#45;&gt;metric&#45;space -->
-<g id="edge42" class="edge">
+<g id="edge49" class="edge">
 <title>normed&#45;field&#45;&gt;metric&#45;space</title>
-<g id="a_edge42"><a xlink:href="structure-graph.html#metric-space" xlink:title="nf&#45;metric&#45;space : &#160;normed&#45;field &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge49"><a xlink:href="structure-graph.html#metric-space" xlink:title="nf&#45;metric&#45;space : &#160;normed&#45;field &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M758.22,-207.32C777.44,-233.75 814.26,-282.19 833.12,-292.5 905.54,-332.07 1145.28,-349.69 1260.7,-356.03"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1260.33,-359.51 1270.51,-356.55 1260.71,-352.52 1260.33,-359.51"/>
 </a>
 </g>
-<g id="a_edge42&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nf&#45;metric&#45;space">
+<g id="a_edge49&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nf&#45;metric&#45;space">
 <text xml:space="preserve" text-anchor="middle" x="875.5" y="-270.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">nf&#45;metric&#45;space</text>
 </a>
 </g>
@@ -606,28 +606,28 @@
 </g>
 </g>
 <!-- normed&#45;vector&#45;space&#45;&gt;metric&#45;space -->
-<g id="edge37" class="edge">
+<g id="edge41" class="edge">
 <title>normed&#45;vector&#45;space&#45;&gt;metric&#45;space</title>
-<g id="a_edge37"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space : &#160;normed&#45;vector&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge41"><a xlink:href="structure-graph.html#metric-space" xlink:title="nvs&#45;metric&#45;space : &#160;normed&#45;vector&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1365.55,-207.46C1368.54,-212.85 1371.34,-218.97 1372.88,-225 1374.35,-230.82 1373.58,-232.54 1372.88,-238.5 1369.97,-263.01 1368.71,-269.45 1359.88,-292.5 1354.76,-305.83 1347.5,-319.83 1340.84,-331.53"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1338,-329.45 1335.96,-339.84 1344.04,-332.99 1338,-329.45"/>
 </a>
 </g>
-<g id="a_edge37&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space">
-<text xml:space="preserve" text-anchor="middle" x="1418.08" y="-270.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">nag&#45;metric&#45;space</text>
+<g id="a_edge41&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nvs&#45;metric&#45;space">
+<text xml:space="preserve" text-anchor="middle" x="1417.7" y="-270.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">nvs&#45;metric&#45;space</text>
 </a>
 </g>
 </g>
 <!-- normed&#45;vector&#45;space&#45;&gt;metric&#45;space -->
-<g id="edge47" class="edge">
+<g id="edge50" class="edge">
 <title>normed&#45;vector&#45;space&#45;&gt;metric&#45;space</title>
-<g id="a_edge47"><a xlink:href="structure-graph.html#metric-space" xlink:title="nvs&#45;metric&#45;space : &#160;normed&#45;vector&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
-<path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1400.78,-207.35C1442.33,-225.53 1493.07,-256.45 1469.88,-292.5 1451.5,-321.06 1417.51,-337.5 1386.95,-346.89"/>
-<polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1386,-343.52 1377.34,-349.61 1387.91,-350.25 1386,-343.52"/>
+<g id="a_edge50"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space : &#160;normed&#45;vector&#45;space &#45;&gt; metric&#45;space &#160;&#160;&#160;(constructor functoid)">
+<path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1400.4,-207.41C1441.6,-225.64 1491.91,-256.6 1468.88,-292.5 1450.71,-320.82 1417.13,-337.23 1386.86,-346.67"/>
+<polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1385.99,-343.28 1377.35,-349.41 1387.93,-350 1385.99,-343.28"/>
 </a>
 </g>
-<g id="a_edge47&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nvs&#45;metric&#45;space">
-<text xml:space="preserve" text-anchor="middle" x="1522.95" y="-270.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">nvs&#45;metric&#45;space</text>
+<g id="a_edge50&#45;label"><a xlink:href="structure-graph.html#metric-space" xlink:title="nag&#45;metric&#45;space">
+<text xml:space="preserve" text-anchor="middle" x="1522.29" y="-270.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">nag&#45;metric&#45;space</text>
 </a>
 </g>
 </g>
@@ -658,14 +658,14 @@
 </g>
 </g>
 <!-- normed&#45;vector&#45;space&#45;&gt;normed&#45;vector&#45;space -->
-<g id="edge45" class="edge">
+<g id="edge39" class="edge">
 <title>normed&#45;vector&#45;space&#45;&gt;normed&#45;vector&#45;space</title>
-<g id="a_edge45"><a xlink:href="structure-graph.html#normed-vector-space" xlink:title="dual : &#160;normed&#45;vector&#45;space &#45;&gt; normed&#45;vector&#45;space &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge39"><a xlink:href="structure-graph.html#normed-vector-space" xlink:title="dual : &#160;normed&#45;vector&#45;space &#45;&gt; normed&#45;vector&#45;space &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1432.32,-181.89C1442.94,-183.08 1450,-185.45 1450,-189 1450,-191 1447.76,-192.62 1443.92,-193.87"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1443.41,-190.4 1434.26,-195.74 1444.74,-197.28 1443.41,-190.4"/>
 </a>
 </g>
-<g id="a_edge45&#45;label"><a xlink:href="structure-graph.html#normed-vector-space" xlink:title="dual">
+<g id="a_edge39&#45;label"><a xlink:href="structure-graph.html#normed-vector-space" xlink:title="dual">
 <text xml:space="preserve" text-anchor="middle" x="1461.62" y="-185.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">dual</text>
 </a>
 </g>
@@ -760,14 +760,14 @@
 </g>
 </g>
 <!-- ring&#45;&gt;ring -->
-<g id="edge49" class="edge">
+<g id="edge43" class="edge">
 <title>ring&#45;&gt;ring</title>
-<g id="a_edge49"><a xlink:href="structure-graph.html#ring" xlink:title="poly : &#160;ring &#45;&gt; ring &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge43"><a xlink:href="structure-graph.html#ring" xlink:title="poly : &#160;ring &#45;&gt; ring &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M889.12,-437.49C898.9,-437.32 906.88,-439.99 906.88,-445.5 906.88,-448.51 904.49,-450.68 900.73,-451.99"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="900.53,-448.49 891.07,-453.25 901.44,-455.43 900.53,-448.49"/>
 </a>
 </g>
-<g id="a_edge49&#45;label"><a xlink:href="structure-graph.html#ring" xlink:title="poly">
+<g id="a_edge43&#45;label"><a xlink:href="structure-graph.html#ring" xlink:title="poly">
 <text xml:space="preserve" text-anchor="middle" x="918.5" y="-441.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">poly</text>
 </a>
 </g>
@@ -795,27 +795,27 @@
 </g>
 </g>
 <!-- ringoid&#45;&gt;ring -->
-<g id="edge44" class="edge">
+<g id="edge38" class="edge">
 <title>ringoid&#45;&gt;ring</title>
-<g id="a_edge44"><a xlink:href="structure-graph.html#ring" xlink:title="ringoid&#45;quotient&#45;ring : &#160;ringoid &#45;&gt; ring &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge38"><a xlink:href="structure-graph.html#ring" xlink:title="ringoid&#45;quotient&#45;ring : &#160;ringoid &#45;&gt; ring &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M965.68,-364.51C929.19,-369.32 872.08,-379.35 859.12,-396 854.87,-401.48 853.63,-408.44 853.91,-415.37"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="850.43,-415.78 855.35,-425.16 857.36,-414.76 850.43,-415.78"/>
 </a>
 </g>
-<g id="a_edge44&#45;label"><a xlink:href="structure-graph.html#ring" xlink:title="ringoid&#45;quotient&#45;ring">
+<g id="a_edge38&#45;label"><a xlink:href="structure-graph.html#ring" xlink:title="ringoid&#45;quotient&#45;ring">
 <text xml:space="preserve" text-anchor="middle" x="915" y="-399.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">ringoid&#45;quotient&#45;ring</text>
 </a>
 </g>
 </g>
 <!-- ringoid&#45;&gt;setoid -->
-<g id="edge36" class="edge">
+<g id="edge46" class="edge">
 <title>ringoid&#45;&gt;setoid</title>
-<g id="a_edge36"><a xlink:href="structure-graph.html#setoid" xlink:title="ringoid&#45;setoid : &#160;ringoid &#45;&gt; setoid &#160;&#160;&#160;(constructor functoid)">
+<g id="a_edge46"><a xlink:href="structure-graph.html#setoid" xlink:title="ringoid&#45;setoid : &#160;ringoid &#45;&gt; setoid &#160;&#160;&#160;(constructor functoid)">
 <path fill="none" stroke="#2a8a4a" stroke-width="1.3" stroke-dasharray="1,5" d="M1017.12,-378.38C1023.28,-383.87 1029.97,-390.06 1035.88,-396 1042.79,-402.96 1049.98,-410.8 1056.46,-418.12"/>
 <polygon fill="#2a8a4a" stroke="#2a8a4a" stroke-width="1.3" points="1053.71,-420.29 1062.92,-425.52 1058.98,-415.69 1053.71,-420.29"/>
 </a>
 </g>
-<g id="a_edge36&#45;label"><a xlink:href="structure-graph.html#setoid" xlink:title="ringoid&#45;setoid">
+<g id="a_edge46&#45;label"><a xlink:href="structure-graph.html#setoid" xlink:title="ringoid&#45;setoid">
 <text xml:space="preserve" text-anchor="middle" x="1085.65" y="-399.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#2a8a4a">ringoid&#45;setoid</text>
 </a>
 </g>

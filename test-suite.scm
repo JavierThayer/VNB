@@ -6285,6 +6285,36 @@
   (lambda () (expr->tex '(C-INT phi a b)))
   "\\int_{a}^{b} \\varphi")
 
+;;; C-INT-OR (theorem-library/c-int-oriented.scm) is the ORIENTED integral, and
+;;; the reading a user actually meets.  The last two checks pin the DESIGN
+;;; DECISION rather than the notation: the wrapper branches on
+;;; IS-ANTIDERIVABLE, not on `a < b', and the whole point of that is that the
+;;; functoid is TOTAL -- so `c-int-or-in-rr' and `c-int-or-degenerate' must carry
+;;; NO hypothesis at all.  Branch the definition on the order instead and both of
+;;; these acquire one, LOG stops being a member of FUN(RR,RR), and
+;;; `c-int-or-reverse' stops being provable (its b < a branch ends at a double
+;;; negation, which is `crs', which wants the term in RR).
+(check-true "operator table: C-INT-OR is a functoid of arity 3 with both readings"
+  (lambda () (let ((e (operator-ref 'C-INT-OR)))
+               (and e (eq? (operator-kind e) 'functoid) (= (operator-arity e) 3)
+                    (string? (operator-english e)) (string? (operator-tex e))
+                    (not (operator-noun e))))))
+
+(check "operator table: expr->tex renders C-INT-OR from the declared template"
+  (lambda () (expr->tex '(C-INT-OR phi a b)))
+  "\\int_{a}^{b} \\varphi")
+
+(define (ts-mentions-implies? form)
+  (let loop ((x form))
+    (cond ((pair? x)   (or (loop (car x)) (loop (cdr x))))
+          (else        (eq? x 'IMPLIES)))))
+
+(check-true "c-int-or-in-rr is UNCONDITIONAL -- the oriented integral is total"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'c-int-or-in-rr)))))
+
+(check-true "c-int-or-degenerate is UNCONDITIONAL -- int_a^a = 0 needs no typing"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'c-int-or-degenerate)))))
+
 ;;; -----------------------------------------------------------------------
 ;;; Simultaneous substitution.  A multi-variable substitution must NOT be a fold
 ;;; of subst-free: each binding would then rewrite what the previous one

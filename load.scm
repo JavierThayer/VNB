@@ -1937,6 +1937,21 @@
     ;; metric-continuity, rr-ms-dist, rr-order-basics (rr-min-pos) and
     ;; rr-abs-basics.
     "theorem-library/continuity-local"
+    ;; THE TOTALISED RECIPROCAL.  RECIP-STAR(u) = IF u = 0 THEN 0 ELSE recip(u),
+    ;; the conditional total extension continuity-recip.scm's header names: the
+    ;; bare map z |-> recip(z) is NOT in FUN(RR,RR) (lam-t would owe
+    ;; (IN (recip 0) RR)), so the integrand of log(x) = C-INT(recip, 1, x) was
+    ;; not a term the vocabulary could write -- IS-ANTIDERIVATIVE demands a
+    ;; GLOBAL function.  Same device and same packaging discipline as SEQ-LIMIT:
+    ;; recip-star-lam-in-fun is UNCONDITIONAL, and recip-star-value /
+    ;; recip-star-zero / recip-star-inverse keep the IF out of every citer.
+    ;; Continuity away from zero costs TWO LOCAL transfers (the global
+    ;; cont-transfer-ptwise-eq cannot reach it: no nowhere-zero h has
+    ;; recip(h(0)) = 0), both off continuous-at-local directly above.  Needs
+    ;; continuity-recip (recip-continuous-at, recip-lam-in-fun),
+    ;; continuity-basics (identity-continuous-at, ident-lam-in-fun),
+    ;; rr-abs-basics, rr-order-basics, rr-halving and rr-recip-order.
+    "theorem-library/recip-star"
     ;; CLAMP(a,b,x) = min(max(x,a),b), the retraction of the line onto [a,b],
     ;; and the mechanism that removes calculus.pdf Prop 4.16's ENDPOINT
     ;; problem: a function built as a limit on [a,b] is discontinuous at a and
@@ -2124,6 +2139,22 @@
     ;; Needs antiderivative directly above, equality-basics and
     ;; fun-apply-type-proof.
     "theorem-library/c-int"
+    ;; THE ORIENTED DEFINITE INTEGRAL, Remark 4.9, and ADDITIVITY IN THE BOUNDS.
+    ;; IS-ANTIDERIVATIVE carries `a < b' deliberately (deriv-zero-implies-constant
+    ;; and the two MVT bounds all want it), so C-INT(phi,a,b) cannot be written at
+    ;; a = b or at b < a and int_a^a = 0, int_b^a = -int_a^b and
+    ;; int_a^c = int_a^b + int_b^c cannot be STATED.  C-INT-OR is the wrapper:
+    ;; SEQ-LIMIT's totalising IF, branching on IS-ANTIDERIVABLE (which already
+    ;; entails a < b) rather than on the order, so the functoid is TOTAL -- which
+    ;; is what lets it stand in a VNB-LAMBDA over all of RR, i.e. what LOG needs.
+    ;; Nothing existing is touched: the bridge c-int-or-anti carries every c-int-*
+    ;; result over by one `subst'.  Remark 4.9 (antiderivative-subinterval) is
+    ;; free here -- both containments, closed and open, follow from a <= lo < hi <= b
+    ;; -- and with it c-int-or-value gives f(b) - f(a) for ANY two points of the
+    ;; ambient interval, so additivity is one `crs' with no ordering hypothesis.
+    ;; Needs c-int directly above, antiderivative, ccint-basics, rr-order-basics
+    ;; and fun-apply-type-proof.
+    "theorem-library/c-int-oriented"
     ;; Theorem 5.2 transferred from [0,1] to [a,b] by the affine change of
     ;; variable, plus the five interval lemmas it needs.  Needs
     ;; bernstein-density, directional-derivative (deriv-affine, affine-lam-in-fun),
@@ -2175,6 +2206,68 @@
     ;; (bernstein-uniform-approximation-ccint), antiderivable-uniform-limit
     ;; (Cor 4.17, antiderivable-fn-in-fun) and c-int.
     "theorem-library/continuous-antiderivable"
+    ;; CHANGE OF VARIABLES for C-INT, increasing case:
+    ;;   C-INT(t |-> phi(A(t)).A'(t), p, q) = C-INT(phi, A(p), A(q)).
+    ;; Two citations: deriv-chain makes F o A an antiderivative of the left
+    ;; integrand on [p,q], and c-int-value evaluates both sides to
+    ;; F(A(q)) - F(A(p)).  Restricted to A(p) < A(q) because IS-ANTIDERIVATIVE
+    ;; hard-codes a < b; the decreasing and degenerate cases belong to C-INT-OR.
+    ;; The interval containment is handed in as TWO universals (closed into
+    ;; closed, open into open), which is what keeps it sign-agnostic.  Needs
+    ;; c-int (c-int-value), chain-rule (deriv-chain), continuity-compose,
+    ;; compose-apply-proof, antiderivative, series-antiderivable
+    ;; (antiderivative-integrand-transfer) and equality-basics.
+    "theorem-library/c-int-change-of-variable"
+    ;; THE LOGARITHM, defined as the oriented integral of the totalised
+    ;; reciprocal from 1, and its basic laws.  Both halves of the definition are
+    ;; TOTAL and both have to be: recip-star-lam-in-fun is unconditional (the
+    ;; bare z |-> recip(z) is not in FUN(RR,RR)) and c-int-or-in-rr is
+    ;; unconditional (an order-branching wrapper would leave the body undefined
+    ;; at every x <= 0), so LOG is a member of FUN(RR,RR) on the nose.  The
+    ;; functional equation log(x.y) = log x + log y is the change of variables
+    ;; t = x.u: c-int-change-of-variable-transfer supplies the VALUE (the
+    ;; antiderivable-affine-subst family concludes only that an antiderivative
+    ;; EXISTS, which cannot reach an equation between integrals), the pointwise
+    ;; equation it wants is recip*(lam.u).lam = recip*(u) -- true at EVERY real,
+    ;; 0 included, which is the totalisation paying for itself -- and the
+    ;; interval bookkeeping is antiderivable-affine-subst-pos's section 2
+    ;; reproduced.  The orientation makes the rest free: c-int-or-value has no
+    ;; ordering hypothesis, so nothing asks whether y is above or below 1.
+    ;; Also the FTC (log' = recip*, through diff-at-local, IS-DIFF-AT being
+    ;; GLOBAL where log agrees with an antiderivative only on an interval),
+    ;; strict monotonicity (mvt-lower-bound over rr-recip-antitone) and
+    ;; log(1/x) = -log(x).  Needs c-int-change-of-variable directly above,
+    ;; continuous-antiderivable, c-int-oriented, recip-star, diff-at-local,
+    ;; mvt-bounds-proof, bernstein-ccint (affine-continuous-at),
+    ;; directional-derivative, continuity-basics (const-lam-in-fun),
+    ;; sequential-continuity (rr-recip-antitone), rr-halving, rr-recip-order,
+    ;; rr-abs-basics (rr-abs-bound), rr-order-basics and ccint-basics.
+    "theorem-library/log"
+    ;; THE REAL EXPONENTIAL, defined as the INVERSE of the logarithm:
+    ;; R-EXP(y) == IOTA x. x in RR and 0 < x and LOG(x) = y.  The name is
+    ;; R-EXP and not EXP so that the complex exponential can have the plain
+    ;; name later, as C-INT does against the measure-theoretic INTEGRAL.
+    ;; The description describes because LOG is SURJECTIVE onto RR, which
+    ;; nothing in the tree said and which is the only real work in the file:
+    ;; a DOUBLING INDUCTION (b := 1 at 0, b |-> 2b at the step, log(2b) =
+    ;; log 2 + log b) makes log unbounded above WITHOUT the term 2^n and so
+    ;; without `power' at all, log-recip mirrors it downwards, and `ivt'
+    ;; fills in between -- log being continuous on [a,b] because it is
+    ;; DIFFERENTIABLE there (log-deriv + diff-implies-continuous).
+    ;; `deriv-inverse' (inverse-function.scm) CANNOT be cited: it asks for a
+    ;; bijection of RR, and R-EXP(LOG(x)) = x is FALSE off the positives --
+    ;; `r-exp-log-not-global' proves the negation, from the positivity of
+    ;; R-EXP's values alone.  `deriv-right-inverse' here is `deriv-inverse'
+    ;; with that global hypothesis weakened to the single equation
+    ;; g(f(a)) = a, which is all its proof ever used; inverse-function.scm is
+    ;; untouched.  `diff-at-local' is NOT needed -- log's Caratheodory
+    ;; identity is global and is only ever instantiated at points R-EXP(z),
+    ;; every one of them positive.  Continuity of R-EXP is pure monotonicity.
+    ;; Needs log directly above, ivt-proof, inverse-function (rr-recip-solve),
+    ;; continuity-compose, continuity-recip, recip-star, compose,
+    ;; rr-metric-space-proof, rr-ms-dist, rr-abs-basics, rr-order-basics,
+    ;; rr-halving and ccint-basics.
+    "theorem-library/r-exp"
     ;; The constructions a functor is INVISIBLE to.  A functoid that reads its
     ;; structure argument only through slots the functor carries ON THE NOSE
     ;; (PREIMAGE reads only PTS; METRIC-TOP carries PTS) satisfies

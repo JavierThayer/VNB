@@ -68,11 +68,11 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  The numeric and analytic operators are functions: <code>exp</code>, <code>sin</code>, <code>cos</code>, <a class="x" href="DEFINITIONS.html#d-sqrt"><code>sqrt</code></a>, <code>abs</code>, <code>conjugate</code>, <code>real-part</code>, <code>imag-part</code>, <code>magnitude</code>, and the arithmetic <code>+ - * recip</code>.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>469 operators: 14 functions, 265 functoids, 190 predicates, 0 undeclared.</p>
+<p>473 operators: 14 functions, 269 functoids, 190 predicates, 0 undeclared.</p>
 <h3 id="OPERATORS__functions-14">Functions  (14)</h3>
 <p>Each denotes a set-function — an element of some <code>FUN(A,B)</code> with <code>A</code>,<code>B</code> sets — with the standard domain shown.</p>
 <ul><li><code>*</code> denotes a function <code>RR x RR -&gt; RR</code>.</li><li><code>+</code> denotes a function <code>RR x RR -&gt; RR</code>.</li><li><code>-</code> denotes a function <code>RR x RR -&gt; RR</code>.</li><li><code>abs</code> denotes a function <code>RR -&gt; RR</code>.</li><li><code>conjugate</code> denotes a function <code>CC -&gt; CC</code>.</li><li><code>cos</code> denotes a function <code>RR -&gt; RR</code>.</li><li><code>exp</code> denotes a function <code>RR -&gt; RR</code>.</li><li><code>imag-part</code> denotes a function <code>CC -&gt; RR</code>.</li><li><code>magnitude</code> denotes a function <code>CC -&gt; RR</code>.</li><li><code>real-part</code> denotes a function <code>CC -&gt; RR</code>.</li><li><code>rpow</code> denotes a function <code>RR x RR -&gt; RR</code>.</li><li><code>sin</code> denotes a function <code>RR -&gt; RR</code>.</li><li><code>succ</code> denotes a function <code>NN -&gt; NN</code>.</li><li><code>vnb-lambda</code> is the binder that constructs a set-function.</li></ul>
-<h3 id="OPERATORS__functoids-265">Functoids  (265)</h3>
+<h3 id="OPERATORS__functoids-269">Functoids  (269)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a> <a class="x" href="THEOREMS.html#t-bernstein-term-bound"><code>bernstein-term-bound</code></a></p>
@@ -110,6 +110,9 @@
 <h4 id="OPERATORS__c-int-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-c-int"><code>c-int</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the integral of phi from a to b</p>
 <pre>c-int(phi, a, b) := iota(v_, v_ in rr and forsome([f_], is-antiderivative(f_, phi, a, b) and v_ = f_(b) - f_(a)))</pre>
+<h4 id="OPERATORS__c-int-or-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-c-int-or"><code>c-int-or</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the oriented integral of phi from a to b</p>
+<pre>c-int-or(phi, a, b) := if(is-antiderivable(phi, a, b), c-int(phi, a, b), if(is-antiderivable(phi, b, a), -c-int(phi, b, a), 0))</pre>
 <h4 id="OPERATORS__c-metric-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-c-metric"><code>c-metric</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the canonical metric space of s</p>
 <pre>c-metric(s) := c-metric-w(s, vnb-lambda(n, nn, (/)(1, 2 ^ (n + 1))))</pre>
@@ -329,6 +332,9 @@
 <h4 id="OPERATORS__line-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-line"><code>line</code></a>  — def-functoid · set-valued</h4>
 <pre>line(m, v) := {y_ in vec(m): forsome([r_ in rr], y_ = (act(m))(r_, v))}</pre>
 <h4 id="OPERATORS__list-kernel-term-former"><code>list</code>  — kernel term-former</h4>
+<h4 id="OPERATORS__log-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-log"><code>log</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the logarithm of x_</p>
+<pre>log(x_) := c-int-or(vnb-lambda(z_, rr, recip-star(z_)), 1, x_)</pre>
 <h4 id="OPERATORS__make-set-kernel-term-former"><code>make-set</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__mat-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-mat"><code>mat</code></a>  — def-functoid · set-valued</h4>
 <pre>mat(m, n, x) := {p in matrix(x): size(p) = [m, n]}</pre>
@@ -475,9 +481,15 @@
 <p>Declared by: <a class="x" href="THEOREMS.html#t-qq-ring-def"><code>qq-ring-def</code></a></p>
 <h4 id="OPERATORS__quotient-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-quotient"><code>quotient</code></a>  — def-functoid · set-valued</h4>
 <pre>quotient(s) := image(proj(s), pts(s))</pre>
+<h4 id="OPERATORS__r-exp-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-r-exp"><code>r-exp</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the exponential of y_</p>
+<pre>r-exp(y_) := iota(x_, x_ in rr and 0 &lt; x_ and log(x_) = y_)</pre>
 <h4 id="OPERATORS__ran-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-ran"><code>ran</code></a>  — def-functoid · set-valued</h4>
 <pre>ran(f) := image(f, dom(f))</pre>
 <h4 id="OPERATORS__recip-structure-accessor-element-slot-value"><code>recip</code>  — structure accessor · element (slot value)</h4>
+<h4 id="OPERATORS__recip-star-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-recip-star"><code>recip-star</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the totalised reciprocal of u_</p>
+<pre>recip-star(u_) := if(u_ = 0, 0, recip(u_))</pre>
 <h4 id="OPERATORS__reduce-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-reduce"><code>reduce</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-reduce-one"><code>reduce-one</code></a> <a class="x" href="THEOREMS.html#t-reduce-succ"><code>reduce-succ</code></a></p>
 <h4 id="OPERATORS__rel-structure-accessor-element-slot-value"><code>rel</code>  — structure accessor · element (slot value)</h4>
