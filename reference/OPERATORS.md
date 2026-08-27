@@ -924,7 +924,7 @@ Declared by: `ring-prod-n-zero` `ring-prod-n-succ`
 
 > _Reads as:_  x_ to the power s_
 
-    rpow-star(x_, s_) := r-exp(s_ * log(x_))
+    rpow-star(x_, s_) := if(0 < x_, r-exp(s_ * log(x_)), if(0 < s_, 0, 1))
 
 ### `rr-bounded-ms`  — def-functoid · element/number-valued
 

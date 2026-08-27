@@ -2268,28 +2268,43 @@
     ;; rr-metric-space-proof, rr-ms-dist, rr-abs-basics, rr-order-basics,
     ;; rr-halving and ccint-basics.
     "theorem-library/r-exp"
-    ;; THE REAL POWER, DEFINED:  RPOW-STAR(x, s) == R-EXP(s . LOG(x)).  The
-    ;; user's definition (2026-08-26).  The name is the tree's standing one for
-    ;; a DEFINED companion to an AXIOMATISED operator -- CARD/CARD-STAR,
-    ;; RECIP/RECIP-STAR -- and structure-library/real-powers.scm is NOT touched:
-    ;; its RPOW keeps its fourteen `well-known' supports and its one customer
-    ;; (Hoelder).  Two things this buys over RPOW.  The EXPONENT IS AN ARBITRARY
-    ;; REAL -- every RPOW support carries `IN b QQ', and real-powers.scm's header
-    ;; names the missing IVT continuous extension as what would discharge them;
-    ;; R-EXP(s . LOG x) does not care what s is.  And the TERM IS TOTAL, so there
-    ;; is no definedness obligation in the file at all: LOG is in FUN(RR,RR) on
-    ;; the nose and R-EXP is total because LOG is onto, so RPOW-STAR(x,s) is a
-    ;; well-formed term for EVERY x and s.  The `0 < x' guard is therefore about
-    ;; the LAWS and not the definition, and only the two laws that must recover x
-    ;; from LOG(x) -- rpow-star-one and rpow-star-mul-base -- actually pay it.
-    ;; The base-0 conventions of RPOW (0^b = 0, 0^0 = 1) are structurally OUT OF
-    ;; REACH here, not merely unproven: rpow-star-pos gives 0 < RPOW-STAR(x,s)
-    ;; for EVERY x, so RPOW-STAR(0,b) is positive and is not 0.  Deliberately not
-    ;; bought with an IF branch -- that is a decision about what 0^0 should be,
-    ;; and it would cost every law an extra case.  Nothing here is asserted; every
-    ;; theorem inherits the 35-leaf `well-known' log/r-exp residue unchanged and
-    ;; adds nothing.  Needs r-exp directly above, log, rr-order-basics
-    ;; (rr-lt-scale-pos, rr-mul-comm) and driver-kit.
+    ;; THE REAL POWER, DEFINED, with the base-zero conventions CARRIED:
+    ;;   RPOW-STAR(x,s) == IF 0 < x then R-EXP(s . LOG x)
+    ;;                     else IF 0 < s then 0 else 1
+    ;; The user's definition (2026-08-26) in the shape they specified on the
+    ;; 27th.  Name per the tree's convention for a DEFINED companion to an
+    ;; AXIOMATISED operator (CARD/CARD-STAR, RECIP/RECIP-STAR);
+    ;; structure-library/real-powers.scm is NOT touched, its RPOW keeping its
+    ;; fourteen supports and its one customer (Hoelder).
+    ;; WHY AN IF AND NOT A DESCRIPTION.  The instinct is that x^s is UNDEFINED
+    ;; at x = 0.  In THIS tree it is not: **LOG is TOTAL** -- log-in-rr reads
+    ;; `forall([x_], log(x_) in rr)' with no guard, because RECIP-STAR is the
+    ;; totalised reciprocal and C-INT-OR's third branch returns 0 when the
+    ;; integrand is antiderivable in NEITHER direction.  So R-EXP(s . LOG 0)
+    ;; was already a defined POSITIVE real: there was never a hole at x = 0,
+    ;; only junk.  The conventions are therefore ADOPTED, and the IF is the
+    ;; house pattern for adopting one -- RECIP-STAR and C-INT-OR, the two
+    ;; functoids LOG is built from, are both total-by-IF.
+    ;; THE THIRD BRANCH IS A DON'T-CARE and no theorem mentions it: it fires at
+    ;; 0^0, where it delivers the adopted 1, AND at 0^(-1), where 1 is not a
+    ;; convention anyone holds.  So rpow-star-zero-zero is stated AT 0^0, not
+    ;; as the else-branch, and 0^(-1) stays unspecified -- exactly as RPOW is
+    ;; careful to say nothing about a negative exponent at base zero.
+    ;; WHAT THE CONVENTIONS COST: the six laws that used to hold at EVERY real
+    ;; base do not survive.  At x = 0, s = 1, t = -1: 0^(1+(-1)) = 0^0 = 1
+    ;; while 0^1 . 0^(-1) = 0 . 1 = 0, so rpow-star-add is FALSE at base 0 and
+    ;; every law now carries `0 < x'.  That is the arithmetic of the
+    ;; conventions breaking the algebra at zero, which is why 0^0 is
+    ;; contentious at all -- not a defect of the shape.
+    ;; THREE BRANCH EQUATIONS (rpow-star-value, -zero-base, -zero-zero) are
+    ;; proved once and the IF is never opened again -- c-int-oriented.scm's
+    ;; discipline, and what keeps the conventions from leaking a case split
+    ;; into every driver downstream.
+    ;; Nothing is asserted.  The two conventions are `modulo 0'; everything
+    ;; through the main branch inherits the 35-leaf `well-known' log/r-exp
+    ;; residue unchanged and adds nothing.  Needs r-exp directly above, log,
+    ;; recip-star, rr-order-basics (rr-lt-scale-pos, rr-mul-comm, rr-lt-irrefl)
+    ;; and driver-kit.
     "theorem-library/rpow-star"
     ;; The constructions a functor is INVISIBLE to.  A functoid that reads its
     ;; structure argument only through slots the functor carries ON THE NOSE

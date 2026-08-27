@@ -518,7 +518,7 @@
 <pre>ringoid-setoid(r) := [carr(r), ringoid-rel(r)]</pre>
 <h4 id="OPERATORS__rpow-star-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-rpow-star"><code>rpow-star</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  x_ to the power s_</p>
-<pre>rpow-star(x_, s_) := r-exp(s_ * log(x_))</pre>
+<pre>rpow-star(x_, s_) := if(0 &lt; x_, r-exp(s_ * log(x_)), if(0 &lt; s_, 0, 1))</pre>
 <h4 id="OPERATORS__rr-bounded-ms-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-rr-bounded-ms"><code>rr-bounded-ms</code></a>  — def-functoid · element/number-valued</h4>
 <pre>rr-bounded-ms(()) := bdd-metric(rr-ms)</pre>
 <h4 id="OPERATORS__rr-ms-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#rr-ms"><code>rr-ms</code></a>  — characterized by axioms (def-constant)</h4>

@@ -352,7 +352,7 @@
 <h4 id="FUNCTORS__ring-power">ring-power</h4>
 <pre>ring-power(r, x, n) := mpow(commutative-ring-multiplicative-cm(r), x, n)</pre>
 <h4 id="FUNCTORS__rpow-star">rpow-star</h4>
-<pre>rpow-star(x_, s_) := r-exp(s_ * log(x_))</pre>
+<pre>rpow-star(x_, s_) := if(0 &lt; x_, r-exp(s_ * log(x_)), if(0 &lt; s_, 0, 1))</pre>
 <h4 id="FUNCTORS__seg-curve">seg-curve</h4>
 <pre>seg-curve(m, f, a, eta) := vnb-lambda(u_, rr, f((vadd(m))(a, (act(m))(u_, eta))))</pre>
 <h4 id="FUNCTORS__seq-limit">seq-limit</h4>

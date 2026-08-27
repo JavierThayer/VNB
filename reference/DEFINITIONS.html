@@ -697,7 +697,7 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-ringoid-setoid">ringoid-setoid</h4>
 <pre>ringoid-setoid(r) := [carr(r), ringoid-rel(r)]</pre>
 <h4 id="d-rpow-star">rpow-star</h4>
-<pre>rpow-star(x_, s_) := r-exp(s_ * log(x_))</pre>
+<pre>rpow-star(x_, s_) := if(0 &lt; x_, r-exp(s_ * log(x_)), if(0 &lt; s_, 0, 1))</pre>
 <h4 id="d-rr-bounded-ms">rr-bounded-ms</h4>
 <pre>rr-bounded-ms(()) := bdd-metric(rr-ms)</pre>
 <h4 id="d-seg-curve">seg-curve</h4>

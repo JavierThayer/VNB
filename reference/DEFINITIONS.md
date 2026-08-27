@@ -1228,7 +1228,7 @@ TRAP worth knowing before citing one: `mac` unfolds a functoid in a GOAL, but `m
 
 ### rpow-star
 
-    rpow-star(x_, s_) := r-exp(s_ * log(x_))
+    rpow-star(x_, s_) := if(0 < x_, r-exp(s_ * log(x_)), if(0 < s_, 0, 1))
 
 ### rr-bounded-ms
 

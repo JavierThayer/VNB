@@ -840,6 +840,46 @@
   '(NTH 3 m))
 
 ;;; -----------------------------------------------------------------------
+(display "\n--- 8.  THE 2-ARG POWER HEAD: ONE READING, NOT TWO ---\n")
+
+;;; -----------------------------------------------------------------------
+;;; 8.  Added 2026-08-27, and NOT a drill -- the axiom really was there.
+;;;
+;;; `x ^ y' parses to (power x y), and `arith' evaluates it numerically.  Until
+;;; today the SAME head also carried `power-exp',
+;;;
+;;;     FORALL A, B.  (POWER A B) == (FUN B A)
+;;;
+;;; unguarded, with an auto-generated -rev companion.  The two readings compose
+;;; in two moves: rewrite FUN(3,2) backwards into 2^3, then let `arith' finish.
+;;; FUN(3,2) is the set of the eight functions 3 -> 2; the ordinal 8 is
+;;; {0,...,7}.  Equal cardinality, DIFFERENT SETS -- so the tree closed a false
+;;; equation from two installed facts, neither of them asserted.
+;;;
+;;; power-exp is deleted (theorem-library/axioms.scm, D-7).  This entry is the
+;;; regression net: reinstating it turns the first check red.
+;;;
+;;; MUTATION at authoring time: the attack was run against the LIVE axiom
+;;; before the deletion (scratchpad/power-overload-probe.scm) and CLOSED all
+;;; four probes, including `forall x in RR. x^2 == fun(2, x)'.  So the attack
+;;; is known sharp, not merely currently silent.
+;;;
+;;; The CONTROL matters more than usual here: the attack goes dead if `arith'
+;;; stops evaluating `power' at all, and a dead attack passes a refusal check
+;;; for the wrong reason.  The control closes the numeric reading on its own.
+
+(mnp-refuses "fun(3, 2) = 8 -- the two readings of the 2-arg POWER head, composed"
+  '(= (FUN 3 2) 8)
+  (lambda () (mac 'power-exp-rev) (arith)))
+
+(mnp-refuses "forall x in RR. x^2 == fun(2, x) -- the same collision, schematic"
+  '(FORALL x_ (IMPLIES (IN x_ RR) (== (power x_ 2) (FUN 2 x_))))
+  (lambda () (di) (mac 'power-exp) (qrfl)))
+
+(mnp-control "power(2, 3) = 8 -- the NUMERIC reading alone still closes"
+  '(= (power 2 3) 8)
+  (lambda () (arith)))
+
 ;;; NOT YET COVERED, and why -- so the gaps are visible rather than implied.
 ;;;
 ;;; * An ADVERSARIAL attacker.  `mnp-attack!' is a fixed blunt script -- grind,

@@ -35,7 +35,7 @@ glossary reader's question.  At the REPL: `(glossary 'NAME)`, or
 
 a term-forming head
 
-[mentioned by 415 result(s)](BY-OPERATOR.md#*)
+[mentioned by 417 result(s)](BY-OPERATOR.md#*)
 
 ### `+`  *(operator)*
 
@@ -75,7 +75,7 @@ characterized by `<`  *(definitional)*:
 forall([x, y], x < y iff x <= y and not(x = y))
 ```
 
-[mentioned by 266 result(s)](BY-OPERATOR.md#<)
+[mentioned by 283 result(s)](BY-OPERATOR.md#<)
 
 ### `<=`  *(primitive)*
 
@@ -1979,7 +1979,7 @@ forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x
 
 also: `is-linear-functional-on` `dom-of-fun` `is-fun-def` `fun-no-junk` `fun-set-iff` `fun-apply-type` `fun-codomain-iff` `dom-fun-membership` ... (89 in all)
 
-[mentioned by 735 result(s)](BY-OPERATOR.md#fun)
+[mentioned by 733 result(s)](BY-OPERATOR.md#fun)
 
 
 ## G
@@ -2188,7 +2188,7 @@ characterized by `matunit-col-shift`  *(proven)*:
 forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))
 ```
 
-[mentioned by 49 result(s)](BY-OPERATOR.md#if)
+[mentioned by 51 result(s)](BY-OPERATOR.md#if)
 
 ### `if-false`  *(tactic)*
 
@@ -2250,7 +2250,7 @@ forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(ca
 
 also: `is-chain` `is-ringoid` `ring-class` `rr-min-def` `is-cont-lin` `is-ideal-in` `is-k-linear` `is-seminorm` ... (701 in all)
 
-[mentioned by 3364 result(s)](BY-OPERATOR.md#in)
+[mentioned by 3368 result(s)](BY-OPERATOR.md#in)
 
 ### `indicator(omega, a)`  *(functoid)*
 
@@ -4650,7 +4650,7 @@ forall([x_, y_], x_ in rr implies y_ in rr implies 0 < x_ implies 0 < y_ implies
 
 also: `log-one` `log-diff` `log-deriv` `log-in-rr` `log-r-exp` `log-recip` `r-exp-log` `log-unfold` ... (21 in all)
 
-[mentioned by 36 result(s)](BY-OPERATOR.md#log)
+[mentioned by 38 result(s)](BY-OPERATOR.md#log)
 
 
 ## M
@@ -5770,15 +5770,15 @@ forall([r], pos-rr(r) iff r in rr and 0 <= r and not(0 = r))
 
 a term-forming head
 
-characterized by `power-exp`  *(primitive)*:
+characterized by `power-neg`  *(primitive)*:
 
 ```
-forall([a, b], a ^ b == fun(b, a))
+forall([x, n], x in cc and n in nn and not(x = 0) implies x ^ (-n) = recip(x ^ n))
 ```
 
-also: `power-neg` `power-set` `power-succ` `power-zero` `power-typing-nonneg` `power-set-membership` `deriv-power` `power-in-rr` ... (19 in all)
+also: `power-set` `power-succ` `power-zero` `power-typing-nonneg` `power-set-membership` `deriv-power` `power-in-rr` `rr-power-pos` ... (18 in all)
 
-[mentioned by 116 result(s)](BY-OPERATOR.md#power)
+[mentioned by 114 result(s)](BY-OPERATOR.md#power)
 
 ### `pred(n_)`  *(functoid)*
 
@@ -6208,7 +6208,7 @@ forall([y_ in rr], log(r-exp(y_)) = y_)
 
 also: `r-exp-add` `r-exp-log` `r-exp-neg` `r-exp-pos` `r-exp-char` `r-exp-mono` `r-exp-prop` `r-exp-zero` ... (15 in all)
 
-[mentioned by 24 result(s)](BY-OPERATOR.md#r-exp)
+[mentioned by 26 result(s)](BY-OPERATOR.md#r-exp)
 
 ### `ran(f)`  *(functoid)*
 
@@ -6553,18 +6553,18 @@ reads: $1 to the power $2
 definition:
 
 ```
-r-exp(s_ * log(x_))
+if(0 < x_, r-exp(s_ * log(x_)), if(0 < s_, 0, 1))
 ```
 
 characterized by `log-rpow-star`  *(proven)*:
 
 ```
-forall([x_, s_ in rr], log(rpow-star(x_, s_)) = s_ * log(x_))
+forall([x_, s_ in rr], 0 < x_ implies log(rpow-star(x_, s_)) = s_ * log(x_))
 ```
 
-also: `rpow-star-add` `rpow-star-neg` `rpow-star-one` `rpow-star-pos` `rpow-star-pow` `rpow-star-zero` `rpow-star-in-rr` `rpow-star-unfold` ... (11 in all)
+also: `rpow-star-add` `rpow-star-neg` `rpow-star-one` `rpow-star-pos` `rpow-star-pow` `rpow-star-zero` `rpow-star-in-rr` `rpow-star-value` ... (14 in all)
 
-[mentioned by 20 result(s)](BY-OPERATOR.md#rpow-star)
+[mentioned by 26 result(s)](BY-OPERATOR.md#rpow-star)
 
 ### `rr-bounded-above(s)`  *(predicate)*
 

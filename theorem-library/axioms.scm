@@ -172,15 +172,36 @@
                (IN L SET)))))
 
 ;;; -----------------------------------------------------------------------
-;;; D-7: 2-arg POWER as function-space exponentiation
+;;; D-7: 2-arg POWER as function-space exponentiation -- DELETED 2026-08-27.
 ;;;
-;;; (POWER A B) is the class A^B of functions B -> A.  Cardinally,
-;;; |A^B| = |A|^|B|, matching the arithmetic evaluator's convention
-;;; (power 2 3) = 8 (functions from a 3-set to a 2-set).
+;;; It read  (POWER A B) == (FUN B A)  and was defended on cardinality grounds:
+;;; |A^B| = |A|^|B|, "matching the arithmetic evaluator's convention
+;;; (power 2 3) = 8".  Cardinality AGREEING is not the two things BEING equal,
+;;; and `==' asserted the second.  The 2-arg POWER head therefore carried TWO
+;;; live readings -- `x ^ y' parses to (power x y) (parser.scm, the POW branch)
+;;; and `arith' evaluates it numerically (arith-eval.scm) -- and they composed:
 ;;;
-;;; This is a definitional equality.  Sethood follows from fun-set-iff;
-;;; membership iff follows from fun-codomain-iff.
-
-(theory-add-axiom! *current-theory* 'power-exp
-  '(FORALL A (FORALL B
-      (== (POWER A B) (FUN B A)))))
+;;;     goal   fun(3, 2) = 8
+;;;     (mac 'power-exp-rev)   ->   2 ^ 3 = 8
+;;;     (arith)                ->   CLOSED
+;;;
+;;; FUN(3,2) is the set of the eight functions 3 -> 2; the ordinal 8 is
+;;; {0,...,7}.  Equal cardinality, different sets.  A FALSE equation, from two
+;;; installed facts, neither of them asserted.  The reach was the whole
+;;; arithmetic layer: `forall x in RR. x^2 == fun(2, x)' closed the same way,
+;;; and the Taylor / Bernstein / power-series arc is written in `x ^ succ(k)'.
+;;;
+;;; Deleting it costs NOTHING, which is why this is a deletion and not a
+;;; migration: `power-exp' appeared 0 times in PROOF-DEBT.md -- no bill, no
+;;; leaf -- and was cited by no proof script in the tree.  The catalog splits
+;;; 52 statements using the numeric `^' and 36 using the 1-arg powerset
+;;; `power(x)'; ZERO used set exponentiation.  The guilty reading had no
+;;; customers.  Set exponentiation, if ever wanted, is written FUN(B,A), as
+;;; every existing statement already writes it.
+;;;
+;;; The ARITY SPLIT on POWER is fine and is kept: wff.scm discriminates
+;;; 1 = power set from 2 = exponent cleanly.  The defect was two meanings in
+;;; the 2-arg slot, not a head that takes two arities.
+;;;
+;;; The false equation is now a must-not-prove entry (test-suite-negative.scm),
+;;; so reinstating the axiom turns the corpus red.

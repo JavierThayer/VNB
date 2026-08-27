@@ -1759,13 +1759,19 @@
   '(IN 7 NN))
 
 ;; --- POWER (2-arg) ---
-(check-true "power-exp axiom installed"
-  (lambda () (and (lookup-theorem 'power-exp) #t)))
-
-;; The macete (power-exp) should rewrite (POWER A B) to (FUN B A).
-(check "power-exp macete: (POWER NN NN) ~> (FUN NN NN)"
-  (lambda () (macete-str 'power-exp "power(nn, nn) in set"))
-  "fun(nn, nn) in set")
+;; The two checks that stood here pinned `power-exp' (POWER A B == FUN B A) and
+;; its macete.  The axiom was DELETED 2026-08-27 -- it gave the 2-arg POWER head
+;; a second live reading alongside the numeric one, and the two composed into
+;; the false `fun(3,2) = 8'.  The reasoning is at its old site in
+;; theorem-library/axioms.scm (D-7); the false equation it licensed is now a
+;; must-not-prove entry, so the guard runs in the negative corpus instead of
+;; here.  `check-false' that the axiom is gone, so a silent reinstatement shows
+;; up in BOTH suites.
+;; `lookup-theorem' ERRORS on a miss rather than returning #f, so the absence is
+;; read off the theorem table directly -- which is the table lookup-theorem
+;; itself consults (macetes.scm) and cannot raise.
+(check-false "power-exp axiom is GONE (2-arg POWER has one reading)"
+  (lambda () (and (hash-table-ref/default *theorem-table* 'power-exp #f) #t)))
 
 ;;; 6w. Variadic pattern matching in the macete engine: RESTVAR in source
 ;;; patterns and SPLICE in replacement templates.  These let a single macete

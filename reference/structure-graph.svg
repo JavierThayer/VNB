@@ -157,9 +157,9 @@
 </g>
 </g>
 <!-- commutative&#45;ring&#45;&gt;ring -->
-<g id="edge5" class="edge">
+<g id="edge6" class="edge">
 <title>commutative&#45;ring&#45;&gt;ring</title>
-<g id="a_edge5"><a xlink:title="commutative&#45;ring refines ring">
+<g id="a_edge6"><a xlink:title="commutative&#45;ring refines ring">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M640.23,-378.4C695.08,-394.76 775.62,-418.78 823.01,-432.91"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="821.98,-436.26 832.56,-435.76 823.98,-429.55 821.98,-436.26"/>
 </a>
@@ -707,9 +707,9 @@
 </g>
 </g>
 <!-- qq&#45;field&#45;&gt;field -->
-<g id="edge2" class="edge">
+<g id="edge3" class="edge">
 <title>qq&#45;field&#45;&gt;field</title>
-<g id="a_edge2"><a xlink:title="qq&#45;field refines field">
+<g id="a_edge3"><a xlink:title="qq&#45;field refines field">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M350.88,-36.3C350.88,-46.94 350.88,-60.84 350.88,-73.16"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="347.38,-73.1 350.88,-83.1 354.38,-73.1 347.38,-73.1"/>
 </a>
@@ -830,9 +830,9 @@
 </g>
 </g>
 <!-- rr&#45;ms&#45;&gt;metric&#45;space -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>rr&#45;ms&#45;&gt;metric&#45;space</title>
-<g id="a_edge3"><a xlink:title="rr&#45;ms refines metric&#45;space">
+<g id="a_edge2"><a xlink:title="rr&#45;ms refines metric&#45;space">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M1323.88,-292.8C1323.88,-303.44 1323.88,-317.34 1323.88,-329.66"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="1320.38,-329.6 1323.88,-339.6 1327.38,-329.6 1320.38,-329.6"/>
 </a>
@@ -848,9 +848,9 @@
 </g>
 </g>
 <!-- rr&#45;normed&#45;field&#45;&gt;normed&#45;field -->
-<g id="edge6" class="edge">
+<g id="edge5" class="edge">
 <title>rr&#45;normed&#45;field&#45;&gt;normed&#45;field</title>
-<g id="a_edge6"><a xlink:title="rr&#45;normed&#45;field refines normed&#45;field">
+<g id="a_edge5"><a xlink:title="rr&#45;normed&#45;field refines normed&#45;field">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M737.95,-121.8C739.23,-132.55 740.92,-146.64 742.41,-159.05"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="738.89,-159.1 743.55,-168.62 745.84,-158.27 738.89,-159.1"/>
 </a>
@@ -866,9 +866,9 @@
 </g>
 </g>
 <!-- rr&#45;pos&#45;star&#45;add&#45;monoid&#45;&gt;comm&#45;monoid -->
-<g id="edge11" class="edge">
+<g id="edge13" class="edge">
 <title>rr&#45;pos&#45;star&#45;add&#45;monoid&#45;&gt;comm&#45;monoid</title>
-<g id="a_edge11"><a xlink:title="rr&#45;pos&#45;star&#45;add&#45;monoid refines comm&#45;monoid">
+<g id="a_edge13"><a xlink:title="rr&#45;pos&#45;star&#45;add&#45;monoid refines comm&#45;monoid">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M216.88,-378.3C216.88,-388.94 216.88,-402.84 216.88,-415.16"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="213.38,-415.1 216.88,-425.1 220.38,-415.1 213.38,-415.1"/>
 </a>
@@ -893,9 +893,9 @@
 </g>
 </g>
 <!-- vector&#45;space&#45;&gt;module -->
-<g id="edge13" class="edge">
+<g id="edge11" class="edge">
 <title>vector&#45;space&#45;&gt;module</title>
-<g id="a_edge13"><a xlink:title="vector&#45;space refines module">
+<g id="a_edge11"><a xlink:title="vector&#45;space refines module">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M950.36,-207.3C951.91,-218.05 953.93,-232.14 955.71,-244.55"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="952.2,-244.72 957.09,-254.12 959.13,-243.73 952.2,-244.72"/>
 </a>

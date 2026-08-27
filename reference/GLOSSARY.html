@@ -71,7 +71,7 @@
 <h3 id="GLOSSARY__symbols">Symbols</h3>
 <h4 id="GLOSSARY__*-*-operator-*"><code>*</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__*-415">mentioned by 415 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__*-417">mentioned by 417 result(s)</a></p>
 <h4 id="GLOSSARY__+-*-operator-*"><code>+</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__+-298">mentioned by 298 result(s)</a></p>
@@ -89,7 +89,7 @@
 <p>defined by <a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a></p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([x, y], x &lt; y iff x &lt;= y and not(x = y))</pre>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__&lt;-266">mentioned by 266 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__&lt;-283">mentioned by 283 result(s)</a></p>
 <h4 id="GLOSSARY__&lt;=-*-primitive-*"><code>&lt;=</code>  <em>(primitive)</em></h4>
 <p>reads: $1 is at most $2</p>
 <p>a kernel relation</p>
@@ -886,7 +886,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-linear-functional"><code>is-linear-functional</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x_ in vec(m), y_ in vec(m)], f((vadd(m))(x_, y_)) = f(x_) + f(y_)) and forall([r_ in rr, x_ in vec(m)], f((act(m))(r_, x_)) = r_ * f(x_)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-is-linear-functional-on"><code>is-linear-functional-on</code></a> <a class="x" href="THEOREMS.html#t-dom-of-fun"><code>dom-of-fun</code></a> <a class="x" href="THEOREMS.html#t-is-fun-def"><code>is-fun-def</code></a> <a class="x" href="THEOREMS.html#t-fun-no-junk"><code>fun-no-junk</code></a> <a class="x" href="THEOREMS.html#t-fun-set-iff"><code>fun-set-iff</code></a> <a class="x" href="THEOREMS.html#t-fun-apply-type"><code>fun-apply-type</code></a> <a class="x" href="THEOREMS.html#t-fun-codomain-iff"><code>fun-codomain-iff</code></a> <a class="x" href="THEOREMS.html#t-dom-fun-membership"><code>dom-fun-membership</code></a> ... (89 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__fun-735">mentioned by 735 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__fun-733">mentioned by 733 result(s)</a></p>
 <h3 id="GLOSSARY__g">G</h3>
 <h4 id="GLOSSARY__gauge-s-*-functoid-*"><code>gauge(s)</code>  <em>(functoid)</em></h4>
 <p>definition:</p>
@@ -975,7 +975,7 @@
 <p>a term-forming head</p>
 <p>characterized by <a class="x" href="THEOREMS.html#t-matunit-col-shift"><code>matunit-col-shift</code></a>  <em>(proven)</em>:</p>
 <pre>forall([a], is-ring(a) implies forall([m, n, p, k, l], p in mat(m, n, carr(a)) implies k in interval(1, n) implies l in interval(1, n) implies forall([i in interval(1, m), c in interval(1, n)], entry(matmul(a, p, matunit(a, n, k, l)), i, c) = if(c = l, entry(p, i, k), zero(a)))))</pre>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__if-49">mentioned by 49 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__if-51">mentioned by 51 result(s)</a></p>
 <h4 id="GLOSSARY__if-false-*-tactic-*"><code>if-false</code>  <em>(tactic)</em></h4>
 <p><code>(if-false t)</code> -- Reduce an (IF p a b) term on the not-p branch: spawns (NOT p); the continuation gains (= (IF p a b) b).</p>
 <p>declared in <code>tactics-help.scm</code></p>
@@ -1003,7 +1003,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-is-ring"><code>is-ring</code></a>  <em>(definitional)</em>:</p>
 <pre>forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-is-chain"><code>is-chain</code></a> <a class="x" href="THEOREMS.html#t-is-ringoid"><code>is-ringoid</code></a> <a class="x" href="THEOREMS.html#t-ring-class"><code>ring-class</code></a> <a class="x" href="THEOREMS.html#t-rr-min-def"><code>rr-min-def</code></a> <a class="x" href="THEOREMS.html#t-is-cont-lin"><code>is-cont-lin</code></a> <a class="x" href="THEOREMS.html#t-is-ideal-in"><code>is-ideal-in</code></a> <a class="x" href="THEOREMS.html#t-is-k-linear"><code>is-k-linear</code></a> <a class="x" href="THEOREMS.html#t-is-seminorm"><code>is-seminorm</code></a> ... (701 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-3364">mentioned by 3364 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__in-3368">mentioned by 3368 result(s)</a></p>
 <h4 id="GLOSSARY__indicator-omega-a-*-functoid-*"><code>indicator(omega, a)</code>  <em>(functoid)</em></h4>
 <p>reads: the indicator function of $2 in $1</p>
 <p>definition:</p>
@@ -2033,7 +2033,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-log-mul"><code>log-mul</code></a>  <em>(proven)</em>:</p>
 <pre>forall([x_, y_], x_ in rr implies y_ in rr implies 0 &lt; x_ implies 0 &lt; y_ implies log(x_ * y_) = log(x_) + log(y_))</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-log-one"><code>log-one</code></a> <a class="x" href="THEOREMS.html#t-log-diff"><code>log-diff</code></a> <a class="x" href="THEOREMS.html#t-log-deriv"><code>log-deriv</code></a> <a class="x" href="THEOREMS.html#t-log-in-rr"><code>log-in-rr</code></a> <a class="x" href="THEOREMS.html#t-log-r-exp"><code>log-r-exp</code></a> <a class="x" href="THEOREMS.html#t-log-recip"><code>log-recip</code></a> <a class="x" href="THEOREMS.html#t-r-exp-log"><code>r-exp-log</code></a> <a class="x" href="THEOREMS.html#t-log-unfold"><code>log-unfold</code></a> ... (21 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__log-36">mentioned by 36 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__log-38">mentioned by 38 result(s)</a></p>
 <h3 id="GLOSSARY__m">M</h3>
 <h4 id="GLOSSARY__mac-*-tactic-*"><code>mac</code>  <em>(tactic)</em></h4>
 <p><code>(mac &#x27;name)</code> -- Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete&#x27;s side-conditions already hold in context.</p>
@@ -2504,10 +2504,10 @@
 <p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__pos-rr-65">mentioned by 65 result(s)</a></p>
 <h4 id="GLOSSARY__power-*-operator-*"><code>power</code>  <em>(operator)</em></h4>
 <p>a term-forming head</p>
-<p>characterized by <a class="x" href="THEOREMS.html#t-power-exp"><code>power-exp</code></a>  <em>(primitive)</em>:</p>
-<pre>forall([a, b], a ^ b == fun(b, a))</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-power-neg"><code>power-neg</code></a> <a class="x" href="THEOREMS.html#t-power-set"><code>power-set</code></a> <a class="x" href="THEOREMS.html#t-power-succ"><code>power-succ</code></a> <a class="x" href="THEOREMS.html#t-power-zero"><code>power-zero</code></a> <a class="x" href="THEOREMS.html#t-power-typing-nonneg"><code>power-typing-nonneg</code></a> <a class="x" href="THEOREMS.html#t-power-set-membership"><code>power-set-membership</code></a> <a class="x" href="THEOREMS.html#t-deriv-power"><code>deriv-power</code></a> <a class="x" href="THEOREMS.html#t-power-in-rr"><code>power-in-rr</code></a> ... (19 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__power-116">mentioned by 116 result(s)</a></p>
+<p>characterized by <a class="x" href="THEOREMS.html#t-power-neg"><code>power-neg</code></a>  <em>(primitive)</em>:</p>
+<pre>forall([x, n], x in cc and n in nn and not(x = 0) implies x ^ (-n) = recip(x ^ n))</pre>
+<p>also: <a class="x" href="THEOREMS.html#t-power-set"><code>power-set</code></a> <a class="x" href="THEOREMS.html#t-power-succ"><code>power-succ</code></a> <a class="x" href="THEOREMS.html#t-power-zero"><code>power-zero</code></a> <a class="x" href="THEOREMS.html#t-power-typing-nonneg"><code>power-typing-nonneg</code></a> <a class="x" href="THEOREMS.html#t-power-set-membership"><code>power-set-membership</code></a> <a class="x" href="THEOREMS.html#t-deriv-power"><code>deriv-power</code></a> <a class="x" href="THEOREMS.html#t-power-in-rr"><code>power-in-rr</code></a> <a class="x" href="THEOREMS.html#t-rr-power-pos"><code>rr-power-pos</code></a> ... (18 in all)</p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__power-114">mentioned by 114 result(s)</a></p>
 <h4 id="GLOSSARY__pred-n-*-functoid-*"><code>pred(n_)</code>  <em>(functoid)</em></h4>
 <p>reads: the predecessor of $1</p>
 <p>definition:</p>
@@ -2685,7 +2685,7 @@
 <p>characterized by <a class="x" href="THEOREMS.html#t-log-r-exp"><code>log-r-exp</code></a>  <em>(proven)</em>:</p>
 <pre>forall([y_ in rr], log(r-exp(y_)) = y_)</pre>
 <p>also: <a class="x" href="THEOREMS.html#t-r-exp-add"><code>r-exp-add</code></a> <a class="x" href="THEOREMS.html#t-r-exp-log"><code>r-exp-log</code></a> <a class="x" href="THEOREMS.html#t-r-exp-neg"><code>r-exp-neg</code></a> <a class="x" href="THEOREMS.html#t-r-exp-pos"><code>r-exp-pos</code></a> <a class="x" href="THEOREMS.html#t-r-exp-char"><code>r-exp-char</code></a> <a class="x" href="THEOREMS.html#t-r-exp-mono"><code>r-exp-mono</code></a> <a class="x" href="THEOREMS.html#t-r-exp-prop"><code>r-exp-prop</code></a> <a class="x" href="THEOREMS.html#t-r-exp-zero"><code>r-exp-zero</code></a> ... (15 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__r-exp-24">mentioned by 24 result(s)</a></p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__r-exp-26">mentioned by 26 result(s)</a></p>
 <h4 id="GLOSSARY__ran-f-*-functoid-*"><code>ran(f)</code>  <em>(functoid)</em></h4>
 <p>definition:</p>
 <pre>image(f, dom(f))</pre>
@@ -2830,11 +2830,11 @@
 <h4 id="GLOSSARY__rpow-star-x-s-*-functoid-*"><code>rpow-star(x_, s_)</code>  <em>(functoid)</em></h4>
 <p>reads: $1 to the power $2</p>
 <p>definition:</p>
-<pre>r-exp(s_ * log(x_))</pre>
+<pre>if(0 &lt; x_, r-exp(s_ * log(x_)), if(0 &lt; s_, 0, 1))</pre>
 <p>characterized by <a class="x" href="THEOREMS.html#t-log-rpow-star"><code>log-rpow-star</code></a>  <em>(proven)</em>:</p>
-<pre>forall([x_, s_ in rr], log(rpow-star(x_, s_)) = s_ * log(x_))</pre>
-<p>also: <a class="x" href="THEOREMS.html#t-rpow-star-add"><code>rpow-star-add</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-neg"><code>rpow-star-neg</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-one"><code>rpow-star-one</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-pos"><code>rpow-star-pos</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-pow"><code>rpow-star-pow</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-zero"><code>rpow-star-zero</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-in-rr"><code>rpow-star-in-rr</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-unfold"><code>rpow-star-unfold</code></a> ... (11 in all)</p>
-<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__rpow-star-20">mentioned by 20 result(s)</a></p>
+<pre>forall([x_, s_ in rr], 0 &lt; x_ implies log(rpow-star(x_, s_)) = s_ * log(x_))</pre>
+<p>also: <a class="x" href="THEOREMS.html#t-rpow-star-add"><code>rpow-star-add</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-neg"><code>rpow-star-neg</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-one"><code>rpow-star-one</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-pos"><code>rpow-star-pos</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-pow"><code>rpow-star-pow</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-zero"><code>rpow-star-zero</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-in-rr"><code>rpow-star-in-rr</code></a> <a class="x" href="THEOREMS.html#t-rpow-star-value"><code>rpow-star-value</code></a> ... (14 in all)</p>
+<p><a class="x" href="BY-OPERATOR.html#BY-OPERATOR__rpow-star-26">mentioned by 26 result(s)</a></p>
 <h4 id="GLOSSARY__rr-bounded-above-s-*-predicate-*"><code>rr-bounded-above(s)</code>  <em>(predicate)</em></h4>
 <p>reads: $1 is bounded above</p>
 <p>defined by <a class="x" href="THEOREMS.html#t-rr-bounded-above"><code>rr-bounded-above</code></a></p>
