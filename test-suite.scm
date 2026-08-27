@@ -8006,6 +8006,83 @@
                   (eq? 'meta (tactic-kind-of 'backup-one))
                   (tactic-when-of 'backup-one) #t)))
 
+
+;;; -----------------------------------------------------------------------
+;;; THE EXPONENTIAL AND THE REAL POWER.  Added 2026-08-27: r-exp.scm and
+;;; rpow-star.scm between them install 27 theorems and NOTHING in the suite
+;;; mentioned either.  They are re-proved on every library load, so a broken
+;;; PROOF is loud -- but a silently RESTATED theorem is not, and several of
+;;; these statements are load-bearing in a way the proof does not express.
+;;; Each check below pins a fact whose loss would be silent.
+
+(define (ts-contains? form sub)
+  (let loop ((x form))
+    (cond ((equal? x sub) #t)
+          ((pair? x)      (or (loop (car x)) (loop (cdr x))))
+          (else           #f))))
+
+(define (ts-has-theorem? name)
+  (and (hash-table-ref/default *theorem-table* name #f) #t))
+
+;;; R-EXP is TOTAL.  This is the whole content of log-surjective: LOG is onto
+;;; RR, so the description describes at every real and `r-exp-lam-in-fun' needs
+;;; no hypothesis.  A guard appearing here would mean the surjectivity argument
+;;; had been weakened without anyone noticing.
+(check-true "r-exp-lam-in-fun is UNCONDITIONAL -- R-EXP is total because LOG is onto"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'r-exp-lam-in-fun)))))
+
+;;; THE ASYMMETRY, which is the file's central finding and is invisible in the
+;;; proofs.  log(exp y) = y holds at EVERY real y; exp(log x) = x holds only
+;;; for POSITIVE x.  One direction is global, the other is not -- which is
+;;; exactly why `deriv-inverse' cannot be cited and `deriv-right-inverse' had
+;;; to exist.  `<' occurring in one statement and not the other IS that fact.
+(check-false "log-r-exp is GLOBAL -- log(exp y) = y carries no positivity guard"
+  (lambda () (ts-contains? (lookup-theorem 'log-r-exp) '<)))
+
+(check-true "r-exp-log is GUARDED -- exp(log x) = x only for positive x"
+  (lambda () (ts-contains? (lookup-theorem 'r-exp-log) '<)))
+
+;;; ... and the tree PROVES the non-globality rather than merely failing to
+;;; prove the global form.  If this theorem ever disappears, the argument for
+;;; deriv-right-inverse's existence goes with it.
+(check-true "r-exp-log-not-global is a THEOREM -- the converse is refuted, not just unproven"
+  (lambda () (ts-has-theorem? 'r-exp-log-not-global)))
+
+;;; RPOW-STAR: the unfold equation exists, which is what lets `mac-h' reach the
+;;; definition in an ASSUMPTION.  A `def-functoid' installs a macete and no
+;;; theorem, so without this the definition is unreachable on the hypothesis
+;;; side and a driver citing it no-ops silently.
+(check-true "rpow-star-unfold is a THEOREM -- mac-h can reach the definition"
+  (lambda () (ts-has-theorem? 'rpow-star-unfold)))
+
+;;; THE DON'T-CARE DISCIPLINE.  0^0 = 1 is stated AT 0^0 and unconditionally --
+;;; NOT as the else-branch of the definition.  The else-branch also fires at
+;;; 0^(-1), where 1 is no convention anyone holds, so a statement of the branch
+;;; would pin a value nobody intends.  An IMPLIES appearing here would mean the
+;;; convention had been restated in the branch's terms.
+(check-true "rpow-star-zero-zero is UNCONDITIONAL and stated AT 0^0"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'rpow-star-zero-zero)))))
+
+;;; ... while the OTHER convention is guarded, 0^s = 0 holding only for s > 0.
+(check-true "rpow-star-zero-base is GUARDED on 0 < s"
+  (lambda () (ts-contains? (lookup-theorem 'rpow-star-zero-base) '(< 0 s_))))
+
+;;; THE SHARPEST ONE.  rpow-star-add is FALSE at base 0 under the conventions:
+;;; s = 1, t = -1 gives 0^(1+(-1)) = 0^0 = 1 on the left and 0^1 . 0^(-1)
+;;; = 0 . 1 = 0 on the right.  The `0 < x' guard is not tidiness, it is what
+;;; makes the statement true, and "generalising" it away would install a false
+;;; theorem that every later power proof would inherit.
+(check-true "rpow-star-add carries the 0 < x guard -- it is FALSE at base 0"
+  (lambda () (ts-contains? (lookup-theorem 'rpow-star-add) '(< 0 x_))))
+
+;;; The three branch equations all exist: they are what keeps the IF from
+;;; leaking a case split into every downstream driver (c-int-oriented.scm's
+;;; discipline).  If one goes missing the laws start opening the IF by hand.
+(check-true "all three RPOW-STAR branch equations are present"
+  (lambda () (and (ts-has-theorem? 'rpow-star-value)
+                  (ts-has-theorem? 'rpow-star-zero-base)
+                  (ts-has-theorem? 'rpow-star-zero-zero))))
+
 (load "test-suite-negative.scm")
 
 ;;; -----------------------------------------------------------------------
