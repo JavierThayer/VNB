@@ -184,14 +184,14 @@
 </g>
 </g>
 <!-- complex&#45;inner&#45;product&#45;space&#45;&gt;module -->
-<g id="edge21" class="edge">
+<g id="edge22" class="edge">
 <title>complex&#45;inner&#45;product&#45;space&#45;&gt;module</title>
-<g id="a_edge21"><a xlink:href="structure-graph.html#views" xlink:title="complex&#45;inner&#45;product&#45;space&#45;as&#45;module : &#160;complex&#45;inner&#45;product&#45;space &#45;&gt; module &#160;&#160;&#160;(scal vec vadd vzero vneg act) |&#45;&gt; (scal vec vadd vzero vneg act)">
+<g id="a_edge22"><a xlink:href="structure-graph.html#views" xlink:title="complex&#45;inner&#45;product&#45;space&#45;as&#45;module : &#160;complex&#45;inner&#45;product&#45;space &#45;&gt; module &#160;&#160;&#160;(scal vec vadd vzero vneg act) |&#45;&gt; (scal vec vadd vzero vneg act)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M889.83,-207.43C882.24,-212.02 875.47,-217.78 870.25,-225 866.73,-229.86 867,-233.46 870.25,-238.5 872.49,-241.98 887.66,-249.17 903.95,-256.13"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="902.17,-259.18 912.74,-259.82 904.87,-252.72 902.17,-259.18"/>
 </a>
 </g>
-<g id="a_edge21&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;module">
+<g id="a_edge22&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;module">
 <text xml:space="preserve" text-anchor="middle" x="898.75" y="-228.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#b06a00">as&#45;module</text>
 </a>
 </g>
@@ -761,14 +761,14 @@
 </g>
 </g>
 <!-- ring&#45;&gt;abelian&#45;group -->
-<g id="edge22" class="edge">
+<g id="edge21" class="edge">
 <title>ring&#45;&gt;abelian&#45;group</title>
-<g id="a_edge22"><a xlink:href="structure-graph.html#views" xlink:title="ring&#45;additive&#45;ag : &#160;ring &#45;&gt; abelian&#45;group &#160;&#160;&#160;(carr add zero neg) |&#45;&gt; (carr opr iden inv)">
+<g id="a_edge21"><a xlink:href="structure-graph.html#views" xlink:title="ring&#45;additive&#45;ag : &#160;ring &#45;&gt; abelian&#45;group &#160;&#160;&#160;(carr add zero neg) |&#45;&gt; (carr opr iden inv)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M610.25,-463.8C610.25,-474.66 610.25,-488.93 610.25,-501.44"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="606.75,-501.21 610.25,-511.21 613.75,-501.21 606.75,-501.21"/>
 </a>
 </g>
-<g id="a_edge22&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="additive&#45;ag">
+<g id="a_edge21&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="additive&#45;ag">
 <text xml:space="preserve" text-anchor="middle" x="641" y="-484.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#b06a00">additive&#45;ag</text>
 </a>
 </g>

@@ -1994,26 +1994,57 @@
 ;; Foundational VNB term-formers (kernel + base set theory + arithmetic).
 ;; Everything else registered `operator' is a LIBRARY head, expected to carry
 ;; a characterizing axiom.
-;; FUNCTIONS: operators that DENOTE a set-function -- an element of some FUN(A,B)
-;; with A,B sets.  The numeric/analytic operators on RR/CC are functions
-;; (exp, sin, cos, sqrt, |.|, Re, Im, conjugate, and the arithmetic
-;; +,-,*,recip on RR^k -> RR).  VNB-LAMBDA is the BINDER that constructs a
-;; set-function (its lambdoid sibling constructs a functoid; see the prose).
-;; This is NOT an arbitrary "numeric base" carve-out: the criterion is uniform --
-;; does the operator denote an element of a set FUN(A,B)?
-(define *op-function-heads*
-  '(+ - * recip abs conjugate succ exp sin cos sqrt rpow
-    real-part imag-part magnitude VNB-LAMBDA))
+;; FUNCTIONS: operators that DENOTE a set-function -- an element of some
+;; FUN(A,B) with A,B sets.  This is NOT a list, and the reason it stopped being
+;; one (2026-08-31, the user's call) is worth recording.
+;;
+;; It WAS two hand-typed lists: *op-function-heads*, naming `+ - * recip abs
+;; conjugate succ exp sin cos sqrt rpow real-part imag-part magnitude', and
+;; *op-function-domains*, giving each a signature string -- `+' got
+;; "RR x RR -> RR".  Nothing computed either one and nothing checked them
+;; against the theory.  Measured over the whole theorem table: of those fifteen
+;; heads, EXACTLY ZERO carry a statement `head in FUN(...)' anywhere.  The
+;; census asserted in prose what the theory does not say.
+;;
+;; Worse, it asserted what the theory had DELETED.  The axiomatic form of that
+;; claim was the fourteen bridge typings (binplus in FUN(RR,RR), binneg in
+;; FUN(ZZ,ZZ), ...) removed on 2026-08-29 because, FUN being domain-exact
+;; (dom-of-fun, fun-no-junk), one symbol typed in five function spaces proves
+;; ZZ = QQ = RR = CC and thence FALSITY.  The theory was repaired; this file
+;; was not, and went on printing the retracted claim into OPERATORS.md and the
+;; browser reference on every load.
+;;
+;; And the signature was wrong on ARITY as well as on domain: `x + y + z' is
+;; the FLAT node (+ x y z) -- that is what the parser builds and what
+;; nary-plus-3/4/5 exist to interpret -- so `+' takes two to five arguments,
+;; not two.  "RR x RR -> RR" contradicts the tree's own axioms.
+;;
+;; So the class is now DERIVED from the theory: a head is a FUNCTION iff some
+;; installed formula says it is an element of a FUN set.  The census can then
+;; only ever claim what has been stated, and it names the statement.
+(define (op-stated-fun-typings name)
+  (let ((hits '()))
+    (hash-table-walk *theorem-table*
+      (lambda (n s)
+        (let scan ((f s))
+          (cond ((and (pair? f) (eq? (car f) 'IN) (eq? (cadr f) name)
+                      (pair? (caddr f)) (eq? (car (caddr f)) 'FUN))
+                 (set! hits (cons n hits)))
+                ((pair? f) (for-each scan (cdr f)))
+                (else #f)))))
+    (sort (collapse-rev-names hits)
+          (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
 
-;; Domains for the function heads (standard set-function signatures), so the
-;; census can name each one instead of repeating "denotes a set-function".
-(define *op-function-domains*
-  '((+ . "RR x RR -> RR") (- . "RR x RR -> RR") (* . "RR x RR -> RR")
-    (recip . "RR -> RR")  (abs . "RR -> RR")    (sqrt . "RR -> RR")
-    (exp . "RR -> RR")    (sin . "RR -> RR")    (cos . "RR -> RR")
-    (rpow . "RR x RR -> RR") (succ . "NN -> NN")
-    (conjugate . "CC -> CC") (real-part . "CC -> RR")
-    (imag-part . "CC -> RR") (magnitude . "CC -> RR")))
+;; SYNTAX-ONLY heads: they form terms and denote NOTHING themselves.  `+' is
+;; not an object of the theory -- there is no `+ in SET' to be had -- and the
+;; object one reaches for when a binary addition must be NAMED is `binplus'
+;; (numeric-instances.scm), tied to the syntax by `x + y == binplus(x, y)'.
+;; The theory characterizes the APPLICATIONS of these heads by axiom and says
+;; nothing about the heads.  Listing them is a judgement, not a measurement,
+;; which is why they are named here and the function class is not.
+(define *op-syntax-heads*
+  '(+ - * recip abs conjugate succ exp sin cos sqrt rpow
+    real-part imag-part magnitude))
 
 ;; KERNEL term-formers: the foundational VNB set/tuple builders.  These are
 ;; FUNCTOIDS (their argument ranges over a proper class -- all sets -- so they
@@ -2137,9 +2168,11 @@
      (cond
        ((eq? name 'VNB-LAMBDA)
         (list name 'function "binder: constructs a set-function" "function" '()))
-       ((memq name *op-function-heads*)
+       ((pair? (op-stated-fun-typings name))
         (list name 'function "denotes a set-function (element of FUN(A,B))"
-              "set-function" '()))
+              "set-function" (op-stated-fun-typings name)))
+       ((memq name *op-syntax-heads*)
+        (list name 'syntax "syntax: the head denotes nothing" "term" '()))
        ((memq name '(apply-functoid apply-function))
         (list name 'functoid
               "implicit application operator (the invisible head of `f(args)`)"
@@ -2168,6 +2201,7 @@
          (records (map (lambda (n) (op-classify n (constant-head? n))) heads))
          (by (lambda (cls) (filter (lambda (r) (eq? (op-record-class r) cls)) records)))
          (fns    (by 'function))
+         (syns   (by 'syntax))
          (preds  (by 'predicate))
          (funcs  (by 'functoid))
          (undecl (by 'undeclared))
@@ -2230,10 +2264,21 @@
         (display "term-forming operator is classified by WHAT IT DENOTES:\n")
         (display "- A **function** denotes an element of a set: specifically a ")
         (display "set-function, an element of some `FUN(A, B)` with `A`,`B` sets.  ")
-        (display "The numeric and analytic operators are functions: ")
-        (display "`exp`, `sin`, `cos`, `sqrt`, `abs`, `conjugate`, `real-part`, ")
-        (display "`imag-part`, `magnitude`, and the arithmetic `+ - * recip`.  ")
+        (display "This class is DERIVED, not listed: a head appears here exactly ")
+        (display "when some installed formula states `head in FUN(...)`, and the ")
+        (display "entry names that statement.  Being *applicable* is not the ")
+        (display "criterion and never was — `app-graph` makes `f(x)` a ")
+        (display "well-formed term for any `f` at all, defined or not.  ")
         (display "`vnb-lambda` is the binder that constructs a set-function.\n")
+        (display "- A **syntax** head forms terms and denotes NOTHING itself.  ")
+        (display "`+` is not an object of the theory: there is no `+ in SET` to ")
+        (display "be had, and `x + y + z` is the flat node `(+ x y z)`, so the ")
+        (display "head is not even of fixed arity (`nary-plus-3/4/5` interpret ")
+        (display "the 3-, 4- and 5-ary forms).  When a binary addition must be ")
+        (display "NAMED as an object, that object is `binplus`, tied to the ")
+        (display "syntax by `x + y == binplus(x, y)`.  The theory characterizes ")
+        (display "the APPLICATIONS of these heads by axiom and says nothing ")
+        (display "about the heads.\n")
         (display "- A **functoid** denotes something that is not required to be ")
         (display "an element of `SET`.  This is a large, somewhat amorphous ")
         (display "category: the kernel set- and tuple-builders (`union`, `sep`, ")
@@ -2261,6 +2306,7 @@
         (display "characterizing axiom).  An **undeclared** head is a defect.\n\n")
         (display (length records)) (display " operators: ")
         (display (length fns))    (display " functions, ")
+        (display (length syns))   (display " syntax, ")
         (display (length funcs))  (display " functoids, ")
         (display (length preds))  (display " predicates, ")
         (display (length undecl)) (display " undeclared.\n\n")
@@ -2271,20 +2317,41 @@
         ;; Functions are terse: one line each, with the domain, not a
         ;; subsection apiece.
         (display "## Functions  (") (display (length fns)) (display ")\n\n")
-        (display "Each denotes a set-function — an element of some `FUN(A,B)` ")
-        (display "with `A`,`B` sets — with the standard domain shown.\n\n")
+        (display "A head is listed here exactly when the theory STATES that it ")
+        (display "is an element of a `FUN` set; the statement is named.  Nothing ")
+        (display "is claimed on a head\'s behalf: this section was a hand-typed ")
+        (display "list until 2026-08-31, and every one of the fifteen heads on ")
+        (display "it (`+ - * recip abs exp sin cos sqrt` …) turned out to have ")
+        (display "no such statement anywhere in the theory.\n\n")
         (for-each
          (lambda (r)
-           (let ((name (car r)) (dom (assq (car r) *op-function-domains*)))
+           (let ((name (car r)) (evidence (car (cddddr r))))
              (display "- `") (display name) (display "`")
              (cond ((eq? name 'VNB-LAMBDA)
                     (display " is the binder that constructs a set-function."))
-                   (dom (display " denotes a function `")
-                        (display (cdr dom)) (display "`."))
-                   (else (display " denotes a function.")))
+                   ((pair? evidence)
+                    (display " denotes a set-function, by ")
+                    (let lp ((e evidence) (first #t))
+                      (unless (null? e)
+                        (unless first (display ", "))
+                        (display "`") (display (car e)) (display "`")
+                        (lp (cdr e) #f)))
+                    (display "."))
+                   (else (display " denotes a set-function.")))
              (newline)))
          (sort fns op-name<?))
         (newline)
+        (emit-section "Syntax"
+          (string-append
+           "Heads that form terms and denote nothing themselves.  There is no "
+           "`+ in SET` to be had; `x + y + z` is the flat node `(+ x y z)`, so "
+           "these heads are not of fixed arity either.  The theory "
+           "characterizes their APPLICATIONS by axiom and says nothing about "
+           "the heads.  Where an object is genuinely needed, it is a separate "
+           "constant — `binplus` for binary `+`, `bintimes` for binary `*` — "
+           "which CAN be typed into a `FUN` set, one domain at a time "
+           "(`FUN` is domain-exact: see `dom-of-fun`).")
+          syns)
         (emit-section "Functoids"
           (string-append
            "Term-valued operators that do NOT denote an element of `SET` — the "
@@ -2308,6 +2375,7 @@
             undecl))))
     (display ";; operators: ") (display (length records))
     (display " (") (display (length fns)) (display " functions, ")
+    (display (length syns)) (display " syntax, ")
     (display (length funcs)) (display " functoids, ")
     (display (length preds)) (display " predicates, ")
     (display (length undecl)) (display " undeclared) -> ")
