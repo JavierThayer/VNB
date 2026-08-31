@@ -288,12 +288,14 @@
 (inst+ ml3-above (list 'succ ml3-n))
 (mac-h 'series-partial-sum-seq-apply
        (list '<= (list ml3-seq (list 'succ ml3-n)) ml3-L))
-(mac-h 'series-partial-sum-succ
-       (list '<= (list 'SERIES-PARTIAL-SUM ml3-f (list 'succ ml3-n)) ml3-L))
-
+;; series-partial-sum-succ is guarded on its two arguments being real since
+;; 2026-08-29, so the typings have to precede the rewrite rather than follow it.
 (fact 'series-partial-sum-nonneg ml3-n ml3-f)
 (fact 'series-partial-sum-in-rr ml3-n ml3-f)
 (fact 'fun-apply-type-c ml3-f 'NN 'RR ml3-n)
+
+(mac-h 'series-partial-sum-succ
+       (list '<= (list 'SERIES-PARTIAL-SUM ml3-f (list 'succ ml3-n)) ml3-L))
 
 (ml-ineq (list '<= (list '+ (list 'SERIES-PARTIAL-SUM ml3-f ml3-n)
                             (list ml3-f ml3-n)) ml3-L)

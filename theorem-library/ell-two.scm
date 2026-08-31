@@ -479,6 +479,14 @@
          ;; step: S(Z, succ k) = S(Z,k) + Z(k) = 0 + 0
          (let ((k (cadr (e2-di-landed-1!))))
            (e2-di-landed!)                       ; the induction hypothesis
+           ;; series-partial-sum-succ is guarded on its two arguments being real
+           ;; since 2026-08-29.  Both follow here from the IH (the partial sum is
+           ;; 0) and from beta-reducing the zero sequence at k.
+           (fact 'rr-zero-in)
+           (dk-have! (list 'IN (list 'SERIES-PARTIAL-SUM e2z k) 'RR)
+             (lambda () (subst (list '= (list 'SERIES-PARTIAL-SUM e2z k) 0)) (ass)))
+           (dk-have! (list 'IN (list e2z k) 'RR)
+             (lambda () (e2-beta!) (ass)))
            (mac 'series-partial-sum-succ)
            (e2-beta!)
            (subst (list '= (list 'SERIES-PARTIAL-SUM e2z k) 0))

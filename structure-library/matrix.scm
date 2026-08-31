@@ -457,10 +457,10 @@
 (warrant! 'ras-op 'proof "operation of a ring's additive group is the ring's addition.")
 ;; NOTE: ring var is `s' (not A) -- MIT case-folds, so (FORALL A (FORALL a ..))
 ;; would shadow-collide.  Follows the ring.scm axiom convention.
-(support 'ring-neg-in-carr
-  '(FORALL s (IMPLIES (IS-RING s)
-     (FORALL a (IMPLIES (IN a (CARR s)) (IN ((NEG s) a) (CARR s)))))))
-(warrant! 'ring-neg-in-carr 'well-known "NEG closes on the carrier (op NEG CARR CARR).")
+;;; ring-neg-in-carr is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
+;;; other six applied-form op typings: one driver over the IS-X unfold plus
+;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
+;;; recited.
 (support 'ring-one-in
   '(FORALL s (IMPLIES (IS-RING s) (IN (ONE s) (CARR s)))))
 (warrant! 'ring-one-in 'well-known "ONE lies in the carrier.")

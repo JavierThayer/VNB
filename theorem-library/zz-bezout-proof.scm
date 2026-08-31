@@ -59,6 +59,15 @@
 ;; coefficients, and return them as (list x y); the equation
 ;; (= v (+ (* x a) (* y b))) is left in context.  The coefficient names are read
 ;; off that EQUATION, never guessed -- they are engine-chosen eigenvariables.
+;;; The operation a closure goal is about.  A slot application
+;;; ((VNB-LAMBDA (LIST x_ y_) (CARTESIAN ZZ ZZ) (+ x_ y_)) u v) is about `+';
+;;; a bare (+ u v) is too.  Reading the head off the lambda BODY lets the
+;;; dispatch below run before anything has been rewritten.
+(define (zb--slot-op tm)
+  (if (and (pair? tm) (pair? (car tm)) (eq? (caar tm) 'VNB-LAMBDA))
+      (car (cadddr (car tm)))
+      (car tm)))
+
 (define (zb-open! v)
   (let loop ((parts (dk-split!
                       (dk-landed-1
@@ -145,23 +154,48 @@
         ;; closure: the shape of the peeled goal names which one it is.
         (else
          (zb-peel!)
-         (let* ((tm (cadr (dk-goal)))          ; the term claimed to be a member
-                (op (car tm)))
+         ;; ZZ-RING's ADD/MUL/NEG slots hold tupled VNB-LAMBDAs since 2026-08-29
+         ;; (the shared constant `binplus' was the inconsistency -- see
+         ;; numeric-instances.scm), so the peeled goal arrives as a lambda
+         ;; APPLICATION rather than as `u + v'.
+         ;;
+         ;; The operation is read off the lambda's BODY rather than rewritten
+         ;; away first, and the order matters: the read-off macete is guarded on
+         ;; the arguments being typed in ZZ, and here they are typed in
+         ;; ZZ-BEZOUT-SET(a,b) instead.  `zb-open!' is what lands `u in ZZ' (it
+         ;; unfolds zz-bezout-set-membership, whose first conjunct is exactly
+         ;; that), so the saturation has to come AFTER the opens, not before.
+         (let* ((tm   (cadr (dk-goal)))
+                (op   (zb--slot-op tm))
+                (args (cdr tm))
+                (sat  (lambda ()
+                        (dk-saturate-slot-ops!
+                         'ZZ '((+ . zz-add-closed)
+                               (* . zz-mul-closed)
+                               (- . zz-neg-closed))))))
            (case op
              ((+)                              ; u + v
-              (let* ((u (cadr tm)) (v (caddr tm))
+              (let* ((u (car args)) (v (cadr args))
                      (cu (zb-open! u)) (cv (zb-open! v)))
+                (sat)
                 (zb-witness! (list '+ (car cu) (car cv))
                              (list '+ (cadr cu) (cadr cv))
                              (list u v))))
              ((-)                              ; -u
-              (let* ((u (cadr tm)) (cu (zb-open! u)))
+              (let* ((u (car args)) (cu (zb-open! u)))
+                (sat)
                 (zb-witness! (list '- (car cu)) (list '- (cadr cu)) (list u))))
              ((*)                              ; r * u
-              (let* ((r (cadr tm)) (u (caddr tm)) (cu (zb-open! u)))
+              (let* ((r (car args)) (u (cadr args)) (cu (zb-open! u)))
+                (sat)
                 (zb-witness! (list '* r (car cu)) (list '* r (cadr cu)) (list u))))
              (else (error "zz-bezout: unexpected closure goal" (dk-goal)))))))))
   (zb-conjuncts!))
+(for-each (lambda (n)
+            (display ";; ZB-OPEN-LEAF: ")
+            (display (expression->string (wff-formula (sequent-node-assertion n))))
+            (newline))
+          (filter (lambda (s) (null? (sequent-node-in-arrows s))) (proof-open-goals *ps*)))
 (qed 'zz-bezout-set-is-ideal)
 
 ;;; --- (2) Bezout ----------------------------------------------------------
@@ -184,7 +218,18 @@
                            (dk-focus! l2)
                            (if (eq? (car (dk-goal)) 'IN)
                                (zb-type!)
-                               (begin (subst (zb-eq-of v)) (crs))))
+                               (begin
+                                 (subst (zb-eq-of v))
+                                 ;; ZZ-RING's MUL slot is a tupled VNB-LAMBDA
+                                 ;; since 2026-08-29, so the substituted goal can
+                                 ;; still hold slot APPLICATIONS; crs decides ring
+                                 ;; identities over the SURFACE operators, not
+                                 ;; over lambda applications.
+                                 (dk-saturate-slot-ops!
+                                  'ZZ '((+ . zz-add-closed)
+                                        (* . zz-mul-closed)
+                                        (- . zz-neg-closed)))
+                                 (crs))))
                          (dk-opened (lambda () (di)))))
               (else (error "zb-divides!: unexpected conjunct" g)))))
     (zb-conjuncts!)))

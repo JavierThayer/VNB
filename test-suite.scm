@@ -1520,9 +1520,36 @@
       (let ((macete (theorem->elementary-macete
                       '(FORALL n (FORALL k (IMPLIES (IN k NN) (= (foo n) n)))))))
         ;; Apply against a sequent: should be #f (inert).
-        (sp (make-wff-from-string "(foo 0) = 0"))
+        ;; The goal is built from the raw S-expression, NOT from the string
+        ;; "(foo 0) = 0": that is not VNB surface syntax (an application is
+        ;; written foo(0)), so it never parsed, `sp' reported and returned, and
+        ;; this check ran the macete against whatever proof was left over from
+        ;; the check above -- passing for the wrong reason.  Exposed 2026-08-30
+        ;; when `sp' began clearing *ps* before coercing its argument.
+        (sp (make-wff '(= (foo 0) 0)))
         (macete (proof-state-focus *ps*)))))
   #f)
+
+;;; A REJECTED `sp' MUST LEAVE NO PROOF.  `vnb-guard' catches the coercion
+;;; error and returns, so before 2026-08-30 the previous (possibly COMPLETE)
+;;; proof stayed live and the next `qed' installed it under the new name --
+;;; sound, silent, and a lie about what the name means.  Two checks: the state
+;;; is cleared, and `qed' then refuses rather than installing anything.
+(check-true "sp: a rejected statement clears the current proof"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (sp 42)                              ; not a wff, a string, or an S-expr
+    (not *ps*)))
+
+(check-error "qed after a rejected sp installs nothing"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (arith)                              ; that proof is now COMPLETE
+    (sp 42)                              ; not a wff, a string, or an S-expr
+    ;; `qed' is wrapped in `vnb-guard', so vnb--require-proof!'s raise comes
+    ;; back as a <vnb-error> -- which is what check-error tests for.  Before
+    ;; the fix this installed the 0-in-nn proof under the name below.
+    (qed 'sp-rejected-must-not-install)))
 
 ;;; 6t. REVIEW.md D-6 — n-ary UNION/INTERSECTION accepted; COMPLEMENT-IN
 ;;; installed as a binary constructor with sethood-closure and membership-iff
@@ -2771,15 +2798,38 @@
 (check-true "binneg-apply installed"
   (lambda () (and (lookup-theorem 'binneg-apply) #t)))
 
-;; --- Typing axioms: binplus, bintimes in all 5 domains; binneg in 4 ---
-(check-true "binplus-in-fun-nn installed"
-  (lambda () (and (lookup-theorem 'binplus-in-fun-nn) #t)))
-(check-true "binplus-in-fun-cc installed"
-  (lambda () (and (lookup-theorem 'binplus-in-fun-cc) #t)))
-(check-true "bintimes-in-fun-rr installed"
-  (lambda () (and (lookup-theorem 'bintimes-in-fun-rr) #t)))
-(check-true "binneg-in-fun-zz installed"
-  (lambda () (and (lookup-theorem 'binneg-in-fun-zz) #t)))
+;; --- The bridge TYPING axioms are GONE (2026-08-29), and these four checks are
+;; the inverted form of the four that used to pin them.  They asserted that
+;; `binplus in FUN(CARTESIAN NN NN, NN)' and three siblings were installed --
+;; a green check holding an inconsistency in place, exactly the failure that let
+;; the normed-vector-space defect acquire tenure at :4136.  Membership in FUN(A)
+;; pins DOM exactly, so one object in nine function classes proved their domains
+;; equal: ZZ = QQ = RR = CC = NN, and thence FALSITY.
+;;
+;; Read off *theorem-table* directly rather than through lookup-theorem, which
+;; RAISES on a miss (that mistake killed a suite run mid-flight once already).
+(define (ts--absent? n) (not (hash-table-ref/default *theorem-table* n #f)))
+(check-true "bridge typing axioms are GONE (all 14)"
+  (lambda ()
+    (let all ((ns '(binplus-in-fun-nn  binplus-in-fun-zz  binplus-in-fun-qq
+                    binplus-in-fun-rr  binplus-in-fun-cc
+                    bintimes-in-fun-nn bintimes-in-fun-zz bintimes-in-fun-qq
+                    bintimes-in-fun-rr bintimes-in-fun-cc
+                    binneg-in-fun-zz   binneg-in-fun-qq
+                    binneg-in-fun-rr   binneg-in-fun-cc)))
+      (or (null? ns) (and (ts--absent? (car ns)) (all (cdr ns)))))))
+
+;; The CONTROL, and it is the half that makes the check mean something: the
+;; bridge symbols themselves must still be here with their apply equations.
+;; Deleting binplus outright would also pass the check above.
+(check-true "the bridge symbols survive (apply equations intact)"
+  (lambda () (and (lookup-theorem 'binplus-apply)
+                  (lookup-theorem 'bintimes-apply)
+                  (lookup-theorem 'binneg-apply) #t)))
+
+;; And the gate that would catch a reintroduction reports a clean tree.
+(check-true "domain-clash-audit: no object has two exact domains any more"
+  (lambda () (null? (domain-clash-audit))))
 
 ;; --- Ring instance definitions ---
 (check-true "zz-ring-def installed"
@@ -3664,19 +3714,42 @@
 (check-true "no formula applies an accessor to a structure lacking that slot"
   (lambda () (null? (accessor-type-audit))))
 
-;; And now the reduction numeric-instances.scm always advertised is TRUE: MUL is
-;; the ring's slot 3, so (MUL ZZ-RING) computes to bintimes.  It used to compute
+;; And the reduction numeric-instances.scm advertises is TRUE: MUL is the ring's
+;; slot 3, so (MUL ZZ-RING) computes to what that slot holds.  It used to compute
 ;; to binplus -- the multiplication of the integers is addition -- and reach qed.
+;;
+;; UPDATED 2026-08-29.  The slot no longer holds the shared constant `bintimes':
+;; one object cannot be a set function with five different domains, and asserting
+;; so proved NN = ZZ = QQ = RR = CC and thence FALSITY.  It holds a tupled
+;; VNB-LAMBDA, one genuine set function per instance.  The check is updated
+;; rather than deleted -- what it is really about is that the projection is ONE
+;; step, and that is unchanged.
 ;;
 ;; ONE step: declare-instance! precomputed the projection, so the tuple equation
 ;; and the NTH it exposes never enter the goal.  (It took three -- slot, mac the
 ;; tuple equation, nth-r -- and the goal met `nth(3, zz-ring)' on the way, which
 ;; is ZZ-RING's REPRESENTATION and none of a reader's business.)
-(check-true "(MUL ZZ-RING) computes to bintimes in one step"
+;; Stated with `==', and it has to be.  `=' is PARTIAL and strict, so `t = t' is
+;; a DEFINEDNESS claim: `rfl' closed it for the bare constant `bintimes' and
+;; REFUSES it for a VNB-LAMBDA, which is a set built by comprehension.  That is
+;; why rr-ms-dist and every other slot read-off in the tree states its equation
+;; with `==' and closes with `qrfl'.  The old check could use `=' only because
+;; the slot held a constant -- the same fact that made the theory inconsistent.
+(check-true "(MUL ZZ-RING) computes to its slot lambda in one step"
   (lambda ()
-    (sp (make-wff '(= (MUL ZZ-RING) bintimes)))
-    (slot 'mul)                ; (MUL ZZ-RING) -> bintimes  [through the door]
-    (rfl)
+    (sp (make-wff '(== (MUL ZZ-RING)
+                       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN ZZ ZZ) (* x_ y_)))))
+    (slot 'mul)                ; (MUL ZZ-RING) -> the lambda  [through the door]
+    (qrfl)
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; ... and the shared constant is NOT what it holds any more.  Without this the
+;; check above would still pass if someone put `bintimes' back beside the lambda.
+(check-false "(MUL ZZ-RING) is NOT the shared constant bintimes"
+  (lambda ()
+    (sp (make-wff '(== (MUL ZZ-RING) bintimes)))
+    (slot 'mul)
+    (qrfl)
     (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
 
 ;; A VARIABLE structure has no value to project to, so there `slot' still gives
@@ -5037,6 +5110,57 @@
       (hash-table-delete! *provenance* 'grobble)
       (hash-table-delete! *provenance* 'gralone)
       (and (memq 'gribble cyc) (memq 'grobble cyc) (not clean)))))
+
+;; proof-cycle-check ITSELF -- the load-time gate, as distinct from the
+;; single-start proof-cycle-from the check above exercises.  Rewritten
+;; 2026-08-28 to read cycles off Tarjan SCCs (proof-debt.scm) rather than run
+;; one path-enumerating DFS per proven name.  Pinned in BOTH directions, since
+;; a gate that reports nothing is indistinguishable from a gate that is broken:
+;; it must be silent on the live library, LOUD on a synthesized cycle, and
+;; silent again once that cycle is removed.
+(check-true "proof-cycle-check: finds a synthesized cycle, silent otherwise"
+  (lambda ()
+    (let ((saved *proven-theorem-names*)
+          (clean-before (proof-cycle-check)))
+      (register-provenance! 'gribble2 'proven)
+      (register-provenance! 'grobble2 'proven)
+      (hash-table-set! *proof-citation-graph* 'gribble2 '(grobble2))
+      (hash-table-set! *proof-citation-graph* 'grobble2 '(gribble2))
+      (set! *proven-theorem-names* (cons 'gribble2 (cons 'grobble2 saved)))
+      (let ((found (proof-cycle-check)))
+        (set! *proven-theorem-names* saved)
+        (hash-table-delete! *proof-citation-graph* 'gribble2)
+        (hash-table-delete! *proof-citation-graph* 'grobble2)
+        (hash-table-delete! *provenance* 'gribble2)
+        (hash-table-delete! *provenance* 'grobble2)
+        (and (null? clean-before)
+             (= 1 (length found))
+             (memq 'gribble2 (car found))
+             (memq 'grobble2 (car found))
+             (null? (proof-cycle-check)))))))
+
+;; domain-clash-audit (audit.scm): one object asserted into two FUN classes with
+;; different domains proves those domains equal, since IN f (FUN A ...) pins
+;; DOM(f) = A exactly.
+;;
+;; INVERTED 2026-08-29, the day the repair landed.  This check used to assert
+;; that binneg / binplus / bintimes DO clash -- it was the live positive half,
+;; watching a known defect.  The numeric instance slots now hold a tupled
+;; VNB-LAMBDA per instance instead of one shared constant, the fourteen typing
+;; axioms are gone, and the audit reports nothing.  Inverted rather than
+;; deleted: the nvs lesson at :4136 is that a green check asserting the current
+;; behaviour of something nobody questions is how a defect acquires tenure, and
+;; the inverse of that is that the check which caught it should stay and say so.
+(check-true "domain-clash-audit: the tree is clean (no object has two exact domains)"
+  (lambda () (null? (domain-clash-audit))))
+
+;; The CONTROL, and it is what stops the check above from passing vacuously: the
+;; audit must still be LOOKING at something.  If the population went to zero --
+;; someone deleted the FUN typings wholesale, or the walker stopped finding
+;; them -- "no clashes" would be true and meaningless.
+(check-true "domain-clash-audit: still examines a real population"
+  (lambda () (> (domain-clash-population) 5)))
+
 
 ;; ---------------------------------------------------------------------
 ;; The auto -rev companion carries its FORWARD's debt.

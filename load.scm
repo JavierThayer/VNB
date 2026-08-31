@@ -672,6 +672,13 @@
     ;; rr-order-basics (rr-pos-ne-zero) and equality-basics (neq-sym); must
     ;; precede its citers, cauchy-subseq-proof and rr-complete-proof.
     "theorem-library/rr-halving"
+    ;; rr-le-all-pos -- rr-le-all-pos-nonpos, PROVEN modulo 0: a real that is
+    ;; <= every positive real is <= 0.  Retires the `well-known' support that
+    ;; stood in structure-library/order-predicates, and it was the SOLE asserted
+    ;; leaf of 20 bills.  Needs rr-halving (rr-pos-halvable) immediately above,
+    ;; equality-basics (neq-sym), `prop' and the ineq oracle; must precede its
+    ;; citers, the earliest being dominated-convergence.
+    "theorem-library/rr-le-all-pos"
     ;; calc -- the directive/chain checker (notes-27): ground a goal (REL L0 Ln)
     ;; by a chain of intermediaries, proving each link (crs / ineq+bridge / cited)
     ;; and composing them (cong / iff / order composers).  A composite over the
@@ -702,11 +709,38 @@
     ;; and compactness (165) purely because `sp'/`qed' do not exist that early;
     ;; here is the first point at which they can be proved, and it precedes all
     ;; twelve call sites (earliest: theorem-library/diagonalization).
+    ;; difference-laws -- difference-membership / difference-set, PROVEN.  They
+    ;; were asserted supports in prod-of-sums (395), and were the ENTIRE residue
+    ;; of four bills.  DIFFERENCE is now a def-functoid for COMPLEMENT-IN, whose
+    ;; two laws are kernel axioms, so each proof is an unfold and a citation.
+    ;; Here and not in prod-of-sums because `sp'/`qed' need interactive (485).
+    "theorem-library/difference-laws"
     "theorem-library/subset-lemmas"
+    ;; discrete-space -- DISCRETE-SPACE(a) = (a, POWER(a)), the first witness of
+    ;; MEASURABLE-SPACE and the first OUTRIGHT inhabitant of TOP-SPACE.  One
+    ;; tuple, two structures: both have carrier PTS at slot 1 and a `constant'
+    ;; slot typed into POWER(POWER(PTS)) at slot 2, so the OPENS and SIGMA
+    ;; accessor macetes reduce to the same (NTH 2 s).  Carries the power-set
+    ;; lemma family it needed -- the tree had NO theorem about POWER before it,
+    ;; only the two base axioms -- plus a named `subset-refl'.  Loads here for
+    ;; subclass-of-set-is-set, one line above; everything else it cites
+    ;; (top-space, measurable-space, sigma-algebra, nn-is-set, prop) is earlier.
+    "theorem-library/discrete-space"
     ;; The trivial subtype-subsumption laws ("every X is a Y"), PROVEN via
     ;; mac-h instead of asserted -- formerly phantom debt leaves.  Needs the
     ;; interactive tactics + qed/proof-debt, so loads here.
     "structure-library/subtype-laws"
+    ;; op-typing -- the codomain typing of a structure operation in APPLIED
+    ;; form, PROVEN modulo 0, seven at once from one driver: ring-add-closed,
+    ;; ring-carrier-closed-mul, ring-neg-in-carr, bt-add-in-carr,
+    ;; metric-dist-real, vnrm-real, nvs-vadd-in-vec.  Retires seven supports
+    ;; whose warrants each recited the same derivation (IS-X unfold + the FUN
+    ;; conjunct + apply-tupling).  Needs fun-apply-type-proof (fun-apply-type-c)
+    ;; and pair-tuple-sethood (pair-in-cartesian), and subtype-laws
+    ;; (commutative-ring-is-ring, which bt-add-in-carr descends through) -- the
+    ;; last of these is why the file sits here and not beside pair-tuple-sethood.
+    ;; Must precede the earliest citer, compact-separable-proof.
+    "theorem-library/op-typing"
     ;; integral-domain-cancel-zero, PROVEN by unfolding is-integral-domain-def
     ;; (the no-zero-divisor conjunct, instantiated and OR-eliminated against
     ;; b /= 0).  The file was WRITTEN and never wired in -- it sat on disk,
@@ -721,7 +755,24 @@
     ;; for.  Unfold the IFF, push the accessors to the surface (surface-goal!),
     ;; and the conjuncts are the arithmetic axioms.  Must load BEFORE cancellation
     ;; (which transports through it).  Needs transport + crs + numeric-instances.
+    ;; The application read-offs for lambda-valued operation slots.  MUST come
+    ;; before zz-ring-is-ring: surface-goal! uses them to take (ADD ZZ-RING)(u,v)
+    ;; down to u + v, which is what `crs' needs to see for the ring laws.  They
+    ;; replace the second half of the old two-step bridge, whose first half was
+    ;; the shared constant `binplus' -- the inconsistency (numeric-instances.scm).
+    "theorem-library/lambda-slot-apply"
     "theorem-library/zz-ring-is-ring"
+    ;; RR as a one-dimensional real normed vector space -- the FIRST witness of
+    ;; NORMED-VECTOR-SPACE, which was satisfiable-but-unexemplified since the
+    ;; 2026-08-23 repair.
+    ;; MUST come after lambda-slot-apply, whose three read-offs are in
+    ;; *surface-bridge-theorems* -- without them `surface-goal!' cannot take the
+    ;; instance's accessors down to the surface, and it fails SILENTLY (the
+    ;; driver wraps it in vnb-guard), leaving every goal still speaking of
+    ;; scal(rr-nvs).  And after rr-abs-basics: the four norm laws are rr-abs-nonneg,
+    ;; rr-abs-zero, rr-abs-mult and rr-abs-triangle, all proved there.  It also
+    ;; needs normed-field-ring-view's scalar slot read-offs, which are earlier.
+    "theorem-library/rr-nvs-exemplification"
     ;; IS-COMMUTATIVE-RING(ZZ-RING) and IS-INTEGRAL-DOMAIN(ZZ-RING), PROVED --
     ;; the storey above zz-ring-is-ring, and formerly two more asserted axioms of
     ;; numeric-instances.  The content is that ZZ has no zero divisors, which
@@ -790,6 +841,29 @@
     ;; exposed the gap.  Own file, not the pairing file, so the next user can
     ;; find them.  Needs nn-parity-proof (nn-zero-or-succ).
     "theorem-library/nn-order-proof"
+    ;; Every field is a FIELD-RING -- the bridge that WITNESSES the predicate
+    ;; VECTOR-SPACE's scalar law was rewritten to use on 2026-08-23.  Also
+    ;; defines SINGLETON (it had no membership characterisation at all) and
+    ;; proves the FIELD-AS-INTEGRAL-DOMAIN slot read-offs.
+    ;;
+    ;; MUST come after nn-order-proof (where nn-le-antisym is proved): singleton-membership's forward direction
+    ;; needs nn-le-antisym to pin the index to 1.  Placed beside the other view
+    ;; read-offs at first, where that theorem does not exist yet -- the band has
+    ;; the whole library, so a probe against it cannot see a load-order error.
+    "theorem-library/field-ring-view"
+    ;; QQ as a one-dimensional vector space over itself -- the FIRST witness of
+    ;; VECTOR-SPACE, and of MODULE directly rather than through a view.  After
+    ;; field-ring-view (field-is-field-ring discharges the scalar law, and the
+    ;; FIELD-AS-INTEGRAL-DOMAIN slot read-offs live there) and after
+    ;; lambda-slot-apply, whose read-offs surface-goal! needs.
+    ;; qq-field-is-field -- IS-FIELD(QQ-FIELD), PROVED, retiring the bare axiom
+    ;; that stood in numeric-instances.scm.  It was the SOLE unwarranted leaf of
+    ;; qq-line-is-module and qq-line-is-vector-space, so those read `trust: none'
+    ;; for it alone.  Loads HERE and not earlier for two reasons: the proof needs
+    ;; the interactive tactics, and its RECIP conjunct needs SINGLETON's
+    ;; membership law, which field-ring-view (just above) is what builds.
+    "theorem-library/qq-field-is-field"
+    "theorem-library/qq-vs-exemplification"
     ;; Reading membership out of a literal brace set: {a,b} is sugar for
     ;; MAKE-SET(LIST a b), whose membership law is an existential over INDICES.
     ;; makeset2-membership turns it into a disjunction, once.  Needs
@@ -2027,7 +2101,6 @@
     ;; case via a norm-attaining functional (consumes norm-attained/bounded +
     ;; scalar taylor-lagrange).  Linear-algebra commutation cores warranted.
     "theorem-library/vector-taylor-proof"
-    "theorem-library/nvs-taylor-statement"
     ;; calculus.pdf ch.2 s.8 Def 2.23 - Prop 2.27: the DIRECTIONAL derivative,
     ;; over an arbitrary real normed vector space.  Everything reduces to the
     ;; one-variable derivative of the segment curve f_{a,eta}(t) = f(a+t.eta),
@@ -2037,6 +2110,14 @@
     ;; (NVS-METRIC-SPACE), mvt-proof, chain-rule, differentiation,
     ;; continuity-basics, compose, fun-apply-type-proof, equality-basics.
     "theorem-library/directional-derivative"
+    ;; nvs-taylor-proof -- Taylor for a map between finite-dimensional real
+    ;; NVSs, PROVED (it was a statement-only `support' warranted to Dieudonne).
+    ;; The reduction is the curve theorem at f := the directional curve, a := 0,
+    ;; x := 1.  Loads HERE, after directional-derivative, because that file is
+    ;; what supplies nvs-act-one / nvs-act-in-vec / nvs-vadd-in-vec -- the old
+    ;; statement file sat before it, which is fine for an assertion and not for
+    ;; a proof.
+    "theorem-library/nvs-taylor-proof"
     ;; calculus.pdf ch.4 s.2, Def 4.6 - Cor 4.11: the ANTIDERIVATIVE vocabulary
     ;; (IS-ANTIDERIVATIVE / IS-ANTIDERIVABLE), Prop 4.8 (the SUM half; the scalar half is handed off in
     ;; prove-scripts/drives/antiderivative-scale-drive.scm),
@@ -2729,6 +2810,15 @@
 (proof-debt-ledger)
 (report-keystones)
 
+;; Regenerate DEBT-BUNDLE.md: the same debt data raked into heaps.  Two things
+;; the flat ledger cannot say -- the GREEDY what-if ranking (which leaves, in
+;; which order, actually clear bills; citation count is the wrong ranking and
+;; `nary-neg-1' is the scar that proves it) and, for every bill of ten leaves or
+;; more, the ENTRY ROUTE each leaf came in through, so a 115-leaf bill reads as
+;; two or three named arcs.  Recomputed here, never stored, so it cannot drift.
+(let ((p (debt-bundle-md)))
+  (display ";; debt-bundle: ") (display p) (newline))
+
 ;; Regenerate the interactive-tactics menu (TACTICS.md) from the registry.
 (write-tactics-md)
 
@@ -3100,6 +3190,37 @@
         (display " statement(s) with an UNSATISFIABLE HYPOTHESIS --\n")
         (display ";; nothing can satisfy it, so each is VACUOUSLY true and says nothing:\n")
         (report-statement-satisfiability bad))))
+
+;; EIGHTH GATE, and the blind spot of the seventh.  The two audits above read
+;; one DECLARATION and one FORMULA's hypotheses respectively; neither can see a
+;; contradiction assembled across FORMULAS by a shared constant.  `IN f (FUN A
+;; ...)' pins DOM(f) = A EXACTLY (theory.scm:321; dom-of-fun, theory.scm:500),
+;; so one object asserted into two function classes with different domains
+;; proves those domains equal -- and for binneg (ZZ, QQ, RR, CC) that collapses
+;; the numeric hierarchy and, through cc-i-squared, yields FALSITY.
+;; WARN-ONLY: the findings are known, and their repair is a foundational
+;; decision about how a numeric operation reaches a structure slot, not a
+;; mechanical fix a gate should force at load time.
+(let ((bad (domain-clash-audit))
+      (pop (domain-clash-population)))
+  (if (null? bad)
+      (begin
+        (display ";; domain-clash-audit: ok (no object is asserted into two FUN classes with different domains; ")
+        (display pop) (display " object(s) examined)\n"))
+      (begin
+        (display "\n;; domain-clash-audit: ") (display (length bad))
+        (display " of ") (display pop)
+        (display " object(s) carry CLASHING exact domains --\n")
+        (display ";; each pair below PROVES those two domains equal:\n")
+        (for-each
+         (lambda (e)
+           (display ";;   ") (display (expression->string (car e)))
+           (display "  --  ") (display (length (cdr e))) (display " distinct domains:\n")
+           (for-each (lambda (d)
+                       (display ";;        ") (display (expression->string (car d)))
+                       (display "   ") (write (cdr d)) (newline))
+                     (cdr e)))
+         bad))))
 
 ;; A FUNCTOR YOU HAVE NOT PROVED IS A FUNCTOR YOU DO NOT HAVE.
 ;; def-functor (an accessor correspondence) gets its typing and functoriality by

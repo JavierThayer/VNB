@@ -585,6 +585,38 @@
     ((let ((v (arith-eval-term t))) (and v (number? v))) #t)
     ((and (memq (car t) *total-term-heads*)
           (every term-self-defined? (cdr t))) #t)
+    ;; A VNB-LAMBDA DENOTES WHENEVER ITS DOMAIN DOES (2026-08-30, the user's
+    ;; call).  (VNB-LAMBDA bind-spec A body) is the set of ordered pairs
+    ;; {(x, body) : x in A} -- its GRAPH -- so it is an object as soon as A is
+    ;; one, and the BODY's definedness is irrelevant: where the body is
+    ;; undefined the graph simply has no pair there.  A lambda whose body is
+    ;; nowhere defined is the EMPTY function, which is a perfectly good object
+    ;; and merely fails to be total.
+    ;;
+    ;; DEFINEDNESS IS NOT SETHOOD, and that is what makes this safe.  Measured:
+    ;; `ORD = ORD' closes while `ORD in SET' does not -- a proper class is a
+    ;; defined term that is not a set.  So a lambda over a proper-class domain
+    ;; denotes a proper CLASS; it is defined, and it is still in no FUN, because
+    ;; membership there goes through `lam-t', which demands `A in SET' and
+    ;; pointwise typing and is untouched by this clause.  The standing
+    ;; must-not-prove entry `lam x in ORD. x  is in FUN(ORD,ORD)' therefore
+    ;; still refuses.
+    ;;
+    ;; WHY IT WAS NEEDED.  Nothing in the theory characterised VNB-LAMBDA at all
+    ;; -- zero installed formulas mention it, and its whole meaning came from
+    ;; the two kernel rules lam-t and lam-b.  So the only route to "this lambda
+    ;; is an object" ran through membership in a FUN, i.e. through TOTALITY, and
+    ;; a tuple with a lambda in it could not be shown defined even when every
+    ;; component provably was.  That blocked every `law "scal(s) = <closed
+    ;; tuple>"' pinning law -- which is how it surfaced: the RR normed-vector-
+    ;; space witness discharged 20 of its 21 obligations and stuck on
+    ;; `scal(s) = scal(s)'.  The proper fix is to say what a lambda IS; this is
+    ;; the definedness half of that, and the companion graph axiom
+    ;;     z in VNB-LAMBDA(x, A, body)  iff  forsome x in A. z = LIST(x, body)
+    ;; is the other half and is NOT added here (it wants `declare-named-only!',
+    ;; being a bare IN-characterisation that would fire on every goal).
+    ((and (eq? (car t) 'VNB-LAMBDA) (= (length t) 4))
+     (term-self-defined? (caddr t)))
     (else #f)))
 
 ;;; Does some assumption WITNESS that t is defined?  (IN t S) gives t in a

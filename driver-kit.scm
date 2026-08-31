@@ -955,3 +955,169 @@
       (if (pair? typ)
           (begin (set-proof-state-focus! *ps* (car typ)) (car typ))
           (error "dk-lam-t!: lam-t left no typing goal")))))
+
+;;; -----------------------------------------------------------------------
+;;; Taking operation-SLOT applications down to the surface operator.
+;;;
+;;; Since 2026-08-29 a numeric instance's ADD/MUL/NEG slot holds a tupled
+;;; VNB-LAMBDA rather than the shared constant `binplus' -- one object cannot be
+;;; a set function with five different domains, and asserting so proved
+;;; NN = ZZ = QQ = RR = CC and thence FALSITY (numeric-instances.scm).  The
+;;; consequence for drivers: `crs' and the law citations meet
+;;; (vnb-lambda(...))(u,v) where they used to meet u + v, and the read-offs that
+;;; fix that (lam-slot-add-apply and siblings) are GUARDED -- as they must be,
+;;; since off the carrier the application is outside the lambda's domain.
+;;;
+;;; Guarded means this is a LOOP, not a rewrite:
+;;;   * a guarded macete does not fire until its side condition is in context,
+;;;     so arguments must be TYPED first;
+;;;   * the applications NEST.  In L(L(u,v),w) only the inner redex has typed
+;;;     arguments; the outer then needs (u+v) in C, the carrier's closure axiom
+;;;     applied to a term that did not exist until the inner rewrite happened.
+;;; Each pass strips one level and types the result for the next.
+;;;
+;;; CLOSURE is an alist from the operation head to the carrier's closure axiom,
+;;; e.g. ((+ . zz-add-closed) (* . zz-mul-closed) (- . zz-neg-closed)).
+
+(define (dk-subterms t)
+  (if (pair? t) (cons t (append-map dk-subterms (cdr t))) (list t)))
+
+;;; Is F an assumption of the focus, up to alpha?  `member' with equal? misses a
+;;; context formula differing only in bound-variable names.
+(define (dk-asm? f)
+  (let any ((as (dk-asms)))
+    (and (pair? as) (or (alpha-equiv? (car as) f) (any (cdr as))))))
+
+;;; cut F, prove the side goal from context, leave focus on the main branch.
+;;;
+;;; WHY NOT `have!'.  have! requires BOTH branches of the cut to be NEW leaves
+;;; and errors "no side goal" otherwise.  Sequent nodes are hash-consed on
+;;; assertion-up-to-alpha PLUS context, so a claim an earlier branch already
+;;; proved under the same context lands on a node that is already GROUNDED --
+;;; not an open leaf, so dk-opened reports one new leaf rather than two, and
+;;; have! reads that as failure when it means the obligation was discharged
+;;; before we arrived.  Never infer success or failure from how many leaves a
+;;; rule opens; ask whether the node is grounded.
+;;; (dk-have! CLAIM) / (dk-have! CLAIM THUNK) -- like have!, but tolerant of the
+;;; two things hash-consing does to a cut: the claim may ALREADY be in context
+;;; (then this is a no-op, where have! errors "no main branch"), and its side
+;;; goal may already be GROUNDED (then there is no new side leaf, where have!
+;;; errors "no side goal").  Both are success, not failure.
+(define (dk-have! form0 . opt)
+  (let ((f (->raw-formula form0))
+        (thunk (and (pair? opt) (car opt))))
+    (if (not (dk-asm? f))
+        (let* ((new  (dk-opened (lambda () (cut f))))
+               (side (any-pred (lambda (s) (alpha-equiv? (dk-goal-of s) f)) new))
+               (main (any-pred (lambda (s) (not (eq? s side))) new)))
+          (when side
+            (dk-focus! side)
+            (if thunk (thunk) (from-context!))
+            (if (not (sequent-node-grounded? side))
+                (error "dk-have!: could not establish" f)))
+          (if main
+              (dk-focus! main)
+              (error "dk-have!: cut left no main branch for" f))))))
+
+(define (dk-saturate-slot-ops! carrier closure)
+  (let loop ((fuel 12))
+    (let ((before (dk-goal)))
+      ;; (1) type every arithmetic subterm whose arguments are already typed
+      (for-each
+       (lambda (t)
+         (let ((hit (and (pair? t) (assq (car t) closure))))
+           (when hit
+             (let ((args (cdr t)))
+               (when (and (not (dk-asm? (list 'IN t carrier)))
+                          (let all ((as args))
+                            (or (null? as)
+                                (and (dk-asm? (list 'IN (car as) carrier))
+                                     (all (cdr as))))))
+                 (quietly
+                  (lambda ()
+                    (if (pair? (cdr args))
+                        (begin (dk-have! (list 'AND (list 'IN (car args)  carrier)
+                                                    (list 'IN (cadr args) carrier)))
+                               (fact (cdr hit) (car args) (cadr args)))
+                        (fact (cdr hit) (car args))))))))))
+       (dk-subterms (dk-goal)))
+      ;; (2) fire the read-offs; each is a no-op where it does not apply
+      (quietly (lambda ()
+                 (mac 'lam-slot-add-apply)
+                 (mac 'lam-slot-mul-apply)
+                 (mac 'lam-slot-neg-apply)))
+      (when (and (> fuel 0) (not (equal? (dk-goal) before)))
+        (loop (- fuel 1))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE PARTIAL-SUM RECURRENCE, WITH ITS GUARD DISCHARGED.
+;;;
+;;; `series-partial-sum-succ' has been GUARDED since 2026-08-29 on its two
+;;; ARGUMENTS being real -- SPS(f,k) in RR and f(k) in RR -- because the
+;;; operation slot of RR's additive group now holds a genuine set function on
+;;; CARTESIAN(RR,RR) rather than the total constant `binplus'.  (One object
+;;; cannot be a set function with five different domains; asserting so proved
+;;; NN = ZZ = QQ = RR = CC and, through cc-i-squared, FALSITY.)  Unguarded the
+;;; statement is now FALSE: off the reals the left side is an application
+;;; outside its domain while the right side is not.
+;;;
+;;; The guard is on the ARGUMENTS rather than on `IN f (FUN NN RR)' deliberately.
+;;; series-linearity.scm proves the POINTWISE forms because the Bernstein basis
+;;; family is in FUN(ZZ, CARR R) and is not an element of FUN(NN,RR) at all; a
+;;; membership guard would have made that whole file uncitable.  The argument
+;;; guard is the weakest hypothesis that serves both, and every caller can meet
+;;; it -- a FUN-typed sequence by fun-apply-type-c, a pointwise-real one directly.
+;;;
+;;; There are 32 call sites across a dozen files, and each needs both facts in
+;;; context BEFORE the rewrite.  By hand that is six lines a site; this is one.
+;;;
+;;; WHAT IT DOES NOT DO: invent a sequence's realness.  A TRANSFER sequence
+;;; constrained only by a pointwise equation (h(k) = f(k) + g(k)) has no realness
+;;; hypothesis of its own, and the caller must establish it first -- dk-have!
+;;; with a lane that instantiates the equation and closes from the sequences that
+;;; do carry realness.  What this does is find whatever IS available -- a
+;;; pointwise universal in context, a FUN membership, or the ptwise theorem --
+;;; and turn it into the two instances the guard asks for.
+
+;;; A context universal saying SEQ is pointwise real, or #f.  The index class is
+;;; not constrained: NN for an ordinary sequence, ZZ for the Bernstein families.
+(define (dk--ptwise-real-in-ctx seq)
+  (any-pred
+   (lambda (f)
+     (and (pair? f) (eq? (car f) 'FORALL)
+          (let ((body (caddr f)))
+            (and (pair? body) (eq? (car body) 'IMPLIES)
+                 (let ((c (caddr body)))
+                   (and (pair? c) (eq? (car c) 'IN) (eq? (caddr c) 'RR)
+                        (pair? (cadr c)) (equal? (car (cadr c)) seq)))))))
+   (dk-asms)))
+
+(define (dk--known? name)
+  (and (hash-table-ref/default *theorem-table* name #f) #t))
+
+;;; Land (IN T RR) unless it is already there.  LANE is run only when needed.
+(define (dk--ensure-real! t lane)
+  (if (not (dk-asm? (list 'IN t 'RR))) (quietly lane)))
+
+(define (dk-sps-succ! seq idx)
+  (let* ((sps (list 'SERIES-PARTIAL-SUM seq idx))
+         (val (list seq idx)))
+    ;; (1) the partial sum at idx is real
+    (dk--ensure-real! sps
+      (lambda ()
+        (cond ((dk--known? 'series-partial-sum-in-rr-ptwise)
+               (fact 'series-partial-sum-in-rr-ptwise idx seq))
+              ((dk--known? 'series-partial-sum-in-rr)
+               (fact 'series-partial-sum-in-rr idx seq))
+              (else #f))))
+    ;; (2) the term at idx is real
+    (dk--ensure-real! val
+      (lambda ()
+        (let ((pw (dk--ptwise-real-in-ctx seq)))
+          (if pw
+              (inst+ pw idx)
+              (fact 'fun-apply-type-c seq 'NN 'RR idx)))))
+    ;; (3) fire the recurrence and rewrite the goal with it
+    (fact 'series-partial-sum-succ seq idx)
+    (subst (list '== (list 'SERIES-PARTIAL-SUM seq (list 'succ idx))
+                     (list '+ sps val)))))

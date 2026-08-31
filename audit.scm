@@ -1227,3 +1227,118 @@
       (list (filter (lambda (n) (memq n seeded)) names)
             (filter (lambda (n) (and (memq n reach) (not (memq n seeded)))) names)
             (filter (lambda (n) (not (memq n reach))) names)))))
+
+;;; -----------------------------------------------------------------------
+;;; EIGHTH GATE: one object, two exact domains.
+;;;
+;;; `IN f (FUN A ...)' pins DOM(f) = A EXACTLY.  theory.scm:321 states the
+;;; reading in as many words -- "(FUN A) = all total functions whose domain IS
+;;; A" -- and `dom-of-fun' (theory.scm:500) draws the equation out.  So a single
+;;; object asserted into two function classes with DIFFERENT domains proves
+;;; those two domains equal.
+;;;
+;;; This is not hypothetical.  `binneg' is asserted into FUN(ZZ,ZZ), FUN(QQ,QQ),
+;;; FUN(RR,RR) and FUN(CC,CC) (numeric-instances.scm:86-92), collapsing the whole
+;;; numeric hierarchy; composed with cc-i-in and cc-i-squared that yields
+;;; 0 <= -1, i.e. FALSITY -- derived with 0 open leaves in
+;;; scratchpad/bridge-falsity-probe.scm.
+;;;
+;;; WHY THIS GATE IS A DIFFERENT SPECIES FROM THE SEVEN ABOVE IT.  The
+;;; install-door gates grade one formula's SHAPE (arity, free variables, head
+;;; registration, wff-vs-term position).  `structure-satisfiability-audit' reads
+;;; one DECLARATION; `statement-satisfiability-audit' reads one FORMULA's
+;;; hypotheses.  Every axiom involved here is impeccably well-formed and
+;;; individually satisfiable: the defect is assembled ACROSS formulas, by a
+;;; shared constant, and nothing else in the tree looks there.  A
+;;; per-declaration gate does not see per-formula composition, and a per-formula
+;;; gate does not see per-CORPUS composition.
+;;;
+;;; WARN-ONLY, deliberately.  The three findings it reports today are known and
+;;; their repair is a foundational decision about how a numeric operation is
+;;; presented to a structure slot (see the file header of numeric-instances.scm).
+;;; A hard gate here would refuse to load the library.
+
+(define *dc-binders*
+  '(FORALL FORSOME IOTA COMP VNB-LAMBDA SEP BIG-UNION LAMBDOID))
+
+;;; #t when T mentions no symbol currently bound.  An occurrence under a binder
+;;; that captures the object or the domain is an honest quantified statement
+;;; (`forall f. f in FUN(a) => ...'), not an assertion about a particular object.
+(define (dc--closed? t bound)
+  (cond ((symbol? t) (not (memq t bound)))
+        ((pair? t)   (and (dc--closed? (car t) bound) (dc--closed? (cdr t) bound)))
+        (else #t)))
+
+;;; Every closed (IN obj (FUN dom ...)) in the installed corpus, grouped:
+;;;   ((OBJ (DOM NAME ...) (DOM NAME ...) ...) ...)
+;;; one inner entry per distinct domain, naming the formulas that assert it.
+(define (dc--grouped)
+  (let ((hits '()))
+    (define (scan f bound name)
+      (if (pair? f)
+          (if (and (memq (car f) *dc-binders*) (pair? (cdr f)))
+              (let ((b2 (cons (cadr f) bound)))
+                (for-each (lambda (s) (scan s b2 name)) (cddr f)))
+              (begin
+                (if (and (eq? (car f) 'IN)
+                         (= (length f) 3)
+                         (pair? (caddr f))
+                         (eq? (car (caddr f)) 'FUN)
+                         (pair? (cdr (caddr f))))
+                    (let ((obj (cadr f)) (dom (cadr (caddr f))))
+                      (if (and (dc--closed? obj bound) (dc--closed? dom bound))
+                          (set! hits (cons (list obj dom name) hits)))))
+                (for-each (lambda (s) (scan s bound name)) (cdr f))))))
+    (hash-table-walk *theorem-table*
+      (lambda (name formula) (scan formula '() name)))
+    ;; GROUP MODULO ALPHA, not by equal?.  Two alpha-variant lambdas -- the SAME
+    ;; function written with different bound-variable names -- are the same
+    ;; object, and a gate keyed by equal? files them separately and reports no
+    ;; clash.  This is not hypothetical: `matact-summand-type' and
+    ;; `matact-summand-type-le' (mod-seq.scm) asserted one lambda into
+    ;; FUN(INTERVAL 1 n, ..) and FUN(INTERVAL 1 k, ..) under a guard requiring
+    ;; only k <= n -- a LIVE inconsistency in the asserted base, found in August
+    ;; 2026 by a probe that grouped installed (IN <lambda> (FUN A B)) by the
+    ;; lambda MOD ALPHA.  That probe is what this audit should have been from the
+    ;; start; keyed by equal? it would have missed exactly that case.
+    ;;
+    ;; Domains are compared mod alpha for the same reason.
+    (define (dc--key-of obj keys)
+      (let loop ((ks keys))
+        (cond ((null? ks) obj)
+              ((alpha-equiv? (car ks) obj) (car ks))
+              (else (loop (cdr ks))))))
+    (let ((tbl (make-equal-hash-table)))
+      (for-each
+       (lambda (h)
+         (let* ((obj (dc--key-of (car h) (hash-table-keys tbl)))
+                (dom (cadr h)) (nm (caddr h)))
+           (hash-table-set! tbl obj
+             (let bump ((ds (hash-table-ref/default tbl obj '()))
+                        (seen #f) (out '()))
+               (cond ((null? ds)
+                      (reverse (if seen out (cons (list dom nm) out))))
+                     ((alpha-equiv? (caar ds) dom)
+                      (bump (cdr ds) #t
+                            (cons (if (memq nm (cdar ds))
+                                      (car ds)
+                                      (cons dom (cons nm (cdar ds))))
+                                  out)))
+                     (else (bump (cdr ds) seen (cons (car ds) out))))))))
+       hits)
+      (sort (map (lambda (k) (cons k (hash-table-ref/default tbl k '())))
+                 (hash-table-keys tbl))
+            (lambda (a b) (string<? (expression->string (car a))
+                                    (expression->string (car b))))))))
+
+;;; The audit proper: every object carrying two or more DISTINCT domains.
+;;; Each such pair proves the two domains equal.
+(define (domain-clash-audit)
+  (filter (lambda (e) (pair? (cddr e))) (dc--grouped)))
+
+;;; How many objects carry a closed FUN-membership assertion at all -- the
+;;; denominator, so a reader can tell "3 of 13" from "3 of 3".  It is also the
+;;; audit's own control: if this equals the number of clashes, the filter is
+;;; not filtering.
+(define (domain-clash-population)
+  (length (dc--grouped)))

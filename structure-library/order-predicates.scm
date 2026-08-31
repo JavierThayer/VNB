@@ -63,15 +63,17 @@
 ;;; re-tiering a fact moves the reported trust of every bill that cites it, and
 ;;; that is a ledger decision, not a drive-by edit.
 
-;;; A real below EVERY positive real is non-positive (no smallest positive
-;;; real).  The enabler: combined with metric-pos + rr-leq-antisymmetric it
-;;; collapses "d(a,b) <= eps for all eps>0" to d(a,b) = 0.
-(support 'rr-le-all-pos-nonpos
-  '(FORALL x (IMPLIES (IN x RR)
-     (IMPLIES (FORALL eps (IMPLIES (POS-RR eps) (<= x eps)))
-              (<= x 0)))))
-(warrant! 'rr-le-all-pos-nonpos 'well-known
-  "A real number that is <= every positive real is <= 0 -- the real line has no smallest positive element.  The order-density / archimedean face of completeness; standard.")
+;;; rr-le-all-pos-nonpos MOVED 2026-08-31 to theorem-library/rr-le-all-pos.scm,
+;;; where it is PROVEN `modulo 0' -- a real below every positive real is
+;;; non-positive, by halving.  It stood here as a `well-known' support, and the
+;;; list above already said it was derivable.  What it was waiting for was not
+;;; an axiom but `rr-pos-halvable' (rr-halving.scm, proven 2026-08-17): if x
+;;; were positive it would be <= its own half, which is a contradiction in the
+;;; ordered field alone -- completeness is not used, so the "archimedean face
+;;; of completeness" reading in the list above overstates what the fact costs.
+;;; The statement it had is reproduced verbatim there, so every citer is
+;;; unaffected.  It was the SOLE asserted leaf of 20 bills, the largest single
+;;; leaf in the library at the time it was proven.
 
 ;;; rr-pos-halvable MOVED 2026-08-17 to theorem-library/rr-halving.scm, where it
 ;;; is PROVEN `modulo 0' -- every positive real splits into two equal positive

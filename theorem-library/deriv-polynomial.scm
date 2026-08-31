@@ -137,6 +137,35 @@
 (alias! 'poly-term-lam-in-fun
         "the term sequence k |-> a_k x^k of a polynomial is a function NN -> RR")
 
+;;; ... and the DERIVATIVE sequence j |-> (j+1) a_{j+1} pt^j, the same way.
+;;; Added 2026-08-29: `series-partial-sum-succ' is now guarded on its two
+;;; arguments being real, and the step below peels the top term off exactly this
+;;; sum, so its realness has to be available.  Every other sequence in this file
+;;; already had such a lemma; this one did not, because the unguarded recurrence
+;;; never asked.
+(sp (make-wff '(FORALL cf (IMPLIES (IN cf (FUN NN RR))
+   (FORALL pt (IMPLIES (IN pt RR)
+     (IN (VNB-LAMBDA j NN (* (* (succ j) (cf (succ j))) (power pt j)))
+         (FUN NN RR))))))))
+(dk-peel-to! 'IN)
+(define pdl-bod (cadddr (cadr (dk-goal))))     ; (* (* (succ j) (cf (succ j))) (power pt j))
+(define pdl-cf  (car (caddr (cadr pdl-bod))))
+(define pdl-pt  (cadr (caddr pdl-bod)))
+(dk-lam-t!)
+(let ((z (dpl-di-var!)))
+  (fact 'nn-succ-closed z)
+  (fact 'nn-in-rr (list 'succ z))
+  (fact 'fun-apply-type-c pdl-cf 'NN 'RR (list 'succ z))
+  (fact 'power-closed-at z pdl-pt)
+  (dpl-mul! (list 'succ z) (list pdl-cf (list 'succ z)))
+  (dpl-mul! (list '* (list 'succ z) (list pdl-cf (list 'succ z)))
+            (list 'power pdl-pt z))
+  (ass))
+(qed 'poly-dseq-lam-in-fun)
+(topic! 'poly-dseq-lam-in-fun 'analysis)
+(alias! 'poly-dseq-lam-in-fun
+        "the derivative sequence j |-> (j+1) a_{j+1} x^j is a function NN -> RR")
+
 ;;; =====================================================================
 ;;; (2) the polynomial x |-> SUM_{k<n} cf(k) x^k is a function RR -> RR.
 ;;; This is what `diff-transfer-ptwise-eq' asks for and what IS-DIFF-AT's
@@ -337,6 +366,12 @@
   (lambda ()
     (let ((z (dpl-di-var!)))
       (dpl-beta!)                                    ; SUM_{k<succ 0} a_k z^k == a_0
+      ;; series-partial-sum-succ is guarded on its two arguments being real
+      ;; since 2026-08-29.  poly-term-lam-in-fun (above) types the term sequence
+      ;; as a real sequence, which gives both.
+      (fact 'poly-term-lam-in-fun bs-cf z)
+      (fact 'series-partial-sum-in-rr 0 (dpl-term bs-cf z))
+      (fact 'fun-apply-type-c (dpl-term bs-cf z) 'NN 'RR 0)
       (fact 'series-partial-sum-succ (dpl-term bs-cf z) 0)
       (subst (list '== (list 'SERIES-PARTIAL-SUM (dpl-term bs-cf z) '(succ 0))
                        (list '+ (list 'SERIES-PARTIAL-SUM (dpl-term bs-cf z) 0)
@@ -394,6 +429,10 @@
 
 ;;; the goal's derivative sum, split at its top term and beta-reduced, IS the
 ;;; value `deriv-sum' just concluded.
+;; guarded on its two arguments being real since 2026-08-29
+(fact 'poly-dseq-lam-in-fun st-cf st-pt)
+(fact 'series-partial-sum-in-rr st-n (dpl-dseq st-cf st-pt))
+(fact 'fun-apply-type-c (dpl-dseq st-cf st-pt) 'NN 'RR st-n)
 (fact 'series-partial-sum-succ (dpl-dseq st-cf st-pt) st-n)
 (subst (list '== (list 'SERIES-PARTIAL-SUM (dpl-dseq st-cf st-pt) st-sn)
                  (list '+ st-dvn (list (dpl-dseq st-cf st-pt) st-n))))
@@ -406,6 +445,10 @@
   (lambda ()
     (let ((z (dpl-di-var!)))
       (dpl-beta!)
+      ;; guarded on its two arguments being real since 2026-08-29
+      (fact 'poly-term-lam-in-fun st-cf z)
+      (fact 'series-partial-sum-in-rr st-sn (dpl-term st-cf z))
+      (fact 'fun-apply-type-c (dpl-term st-cf z) 'NN 'RR st-sn)
       (fact 'series-partial-sum-succ (dpl-term st-cf z) st-sn)
       (subst (list '== (list 'SERIES-PARTIAL-SUM (dpl-term st-cf z) (list 'succ st-sn))
                        (list '+ (list 'SERIES-PARTIAL-SUM (dpl-term st-cf z) st-sn)

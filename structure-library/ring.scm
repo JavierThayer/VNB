@@ -148,23 +148,11 @@
 ;;; ADD closes on the carrier -- CURRIED (ring-carrier-closed-add above packs its
 ;;; guards into one AND, which a forward `fact' will not split; this is the twin
 ;;; of ring-carrier-closed-mul, usable by `fact' directly).
-(support 'ring-add-closed
-  '(FORALL s (IMPLIES (IS-RING s)
-     (FORALL a (IMPLIES (IN a (CARR s))
-       (FORALL b (IMPLIES (IN b (CARR s))
-         (IN ((ADD s) a b) (CARR s)))))))))
-(warrant! 'ring-add-closed 'well-known "ADD closes on the carrier (curried form).")
-
-;;; MUL closes on the carrier -- curried (so a forward `fact' detaches each
-;;; guard without a cut).  From (op MUL (CARTESIAN CARR CARR) CARR) + fun-apply.
-(support 'ring-carrier-closed-mul
-  '(FORALL r (IMPLIES (IS-RING r)
-     (FORALL a (IMPLIES (IN a (CARR r))
-     (FORALL b (IMPLIES (IN b (CARR r))
-       (IN ((MUL r) a b) (CARR r)))))))))
-(warrant! 'ring-carrier-closed-mul 'proof
-  "MUL closes on CARR: (op MUL) has type CARR x CARR -> CARR (fun-apply-type).")
-(topic! 'ring-carrier-closed-mul 'algebra)
+;;; ring-add-closed and ring-carrier-closed-mul are PROVEN (2026-08-31) in
+;;; theorem-library/op-typing.scm, together with the other five applied-form
+;;; op typings: one driver over IS-X unfold + apply-tupling-2 +
+;;; fun-apply-type-c, which is the derivation the warrants here recited
+;;; ("From (op MUL (CARTESIAN CARR CARR) CARR) + fun-apply").
 
 ;;; The carrier of a ring is a set (the CARR-in-SET typing conjunct of the
 ;;; auto-generated IS-RING definition).  Named for citation.

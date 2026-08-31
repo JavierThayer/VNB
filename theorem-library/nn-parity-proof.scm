@@ -181,6 +181,54 @@
 (np-qed! 'nn-succ-plus-one)
 
 ;;; =======================================================================
+;;; a * succ(b) = a*b + a -- the recursion equation for `*', PROVEN.
+;;;
+;;; It was a `reference' support in structure-library/nn-arith.scm, whose SCOPE
+;;; note posed it as the next candidate for a `definitional' stamp by analogy
+;;; with nn-add-succ ("measured and deliberately NOT stamped ... one explicit
+;;; decision per fact").  No stamp is needed: unlike addition's recursion, the
+;;; multiplicative one FOLLOWS from what number-systems.scm already states.
+;;; succ(b) = b + 1 (nn-succ-plus-one, immediately above), then distributivity
+;;; and the unit law, both `primitive':
+;;;
+;;;     a * succ(b) = a * (b + 1) = a*b + a*1 = a*b + a
+;;;
+;;; WHAT IT DOES NOT SETTLE.  The proof runs THROUGH nn-succ-plus-one, which is
+;;; proved from nn-add-succ -- `definitional' since 2026-08-24, and stamped with
+;;; a comment saying so.  So this theorem does not discharge that claim; it
+;;; removes a SECOND, independent assertion that was never needed, and the
+;;; asymmetry is the content: addition's recursion has to be assumed here,
+;;; multiplication's does not.  The reverse move is NOT available -- deriving
+;;; nn-add-succ from nn-succ-plus-one would be circular.
+;;;
+;;; PLACED HERE, not in a file of its own, because nn-succ-plus-one is produced
+;;; by this file and consumed by line 216 below: no separate file can sit
+;;; between the two.
+(sp (make-wff '(FORALL a (IMPLIES (IN a NN)
+                 (FORALL b (IMPLIES (IN b NN)
+                   (= (* a (succ b)) (+ (* a b) a))))))))
+(di)
+(fact 'nn-succ-plus-one 'b)
+(subst '(= (succ b) (+ b 1)))            ; goal: a * (b + 1) = a*b + a
+(fact 'nn-one-in)
+(have! '(AND (IN a NN) (AND (IN b NN) (IN 1 NN))))
+(fact 'nn-distributive 'a 'b 1)          ; a * (b + 1) = a*b + a*1
+(subst '(= (* a (+ b 1)) (+ (* a b) (* a 1))))
+(have! '(AND (IN a NN) (IN 1 NN)))
+(fact 'nn-mul-comm 'a 1)                 ; a*1 = 1*a
+(subst '(= (* a 1) (* 1 a)))
+(fact 'nn-one-mul 'a)                    ; 1*a = a
+(subst '(= (* 1 a) a))                   ; goal: a*b + a = a*b + a
+;; `=' is PARTIAL, so t = t is a definedness claim (see nn-succ-plus-one above):
+;; the closure facts are what license the `rfl', not decoration.
+(have! '(AND (IN a NN) (IN b NN)))
+(fact 'nn-mul-closed 'a 'b)
+(have! '(AND (IN (* a b) NN) (IN a NN)))
+(fact 'nn-add-closed '(* a b) 'a)
+(rfl)
+(np-qed! 'nn-mul-succ)
+
+;;; =======================================================================
 ;;; nn-add-cancel USED TO BE HERE, proved by induction on c from nn-add-succ.
 ;;; It is gone, and that is the point: cancellation is a fact about GROUPS, and
 ;;; NN gets it because NN <= ZZ and ZZ's addition IS the surface `+'.  See

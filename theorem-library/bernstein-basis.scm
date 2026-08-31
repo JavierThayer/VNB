@@ -166,8 +166,24 @@
   (qrfl)
   (bn-focus (lambda (s) (substring? "succ(n_)" s)))
   (di) (di) (di)
-  (mac 'series-partial-sum-succ) (mac 'sum-succ)
-  (mac 'rr-scalar-ring-add) (mac 'binplus-apply)
+  ;; 2026-08-29.  This used to go SERIES-PARTIAL-SUM -> surface `+' via
+  ;; series-partial-sum-succ and binplus-apply.  Neither is available now: the
+  ;; recurrence is guarded on its arguments being real (and this theorem
+  ;; deliberately assumes NO typing on f_, which is the whole point of it), and
+  ;; the slot no longer holds `binplus'.
+  ;;
+  ;; It does not need the surface at all.  BOTH slots hold the SAME tupled
+  ;; lambda -- OPR of RR's additive group and ADD of its commutative-ring view
+  ;; are the same object -- so unfolding each side to its own recursion and
+  ;; naming that lambda makes the two sides identical, with no reduction and
+  ;; hence no typing obligation.  This is why the theorem can stay unguarded.
+  (mac 'series-partial-sum) (mac 'sum-ag-succ) (mac 'rr-additive-ag-opr)
+  (mac 'sum-succ) (mac 'rr-scalar-ring-add)
+  ;; the left inner term is now SUM-AG(ag, f_, n_); put it back in
+  ;; SERIES-PARTIAL-SUM language so the induction hypothesis matches it.
+  (fact 'series-partial-sum-unfold 'f_ 'n_)
+  (subst (list '== (list 'SUM-AG '(NORMED-FIELD-ADDITIVE-AG RR-NORMED-FIELD) 'f_ 'n_)
+                   '(SERIES-PARTIAL-SUM f_ n_)))
   (inst+ (list 'FORALL 'f_ (list '== '(SERIES-PARTIAL-SUM f_ n_)
                                     (list 'SUM bn-r 'f_ 'n_))) 'f_)
   (subst (list '== '(SERIES-PARTIAL-SUM f_ n_) (list 'SUM bn-r 'f_ 'n_)))
@@ -304,8 +320,17 @@
   (mac 'series-partial-sum-is-ring-sum)
   (mac 'binomial-sum-value)
   (have! (list '= (list (list 'ADD bn-r) 'x_ '(- 1 x_)) (list 'ONE bn-r))
-    (lambda () (mac 'rr-scalar-ring-add) (mac 'rr-scalar-ring-one)
-               (mac 'binplus-apply) (crs)))
+    ;; `rr-scalar-ring-add' now names the tupled VNB-LAMBDA the ADD slot holds,
+    ;; not the shared constant `binplus' -- so the surface step is the guarded
+    ;; slot read-off rather than binplus-apply, and it needs both arguments typed
+    ;; in RR first.  x_ and 1 - x_ are real by hypothesis; dk-saturate-slot-ops!
+    ;; lands the closure facts and fires the read-off.
+    (lambda () (fact 'rr-scalar-ring-carr)
+               (mac 'rr-scalar-ring-add) (mac 'rr-scalar-ring-one)
+               (dk-saturate-slot-ops! 'RR '((+ . rr-add-closed)
+                                            (* . rr-mul-closed)
+                                            (- . rr-neg-closed)))
+               (crs)))
   (subst (list '= (list (list 'ADD bn-r) 'x_ '(- 1 x_)) (list 'ONE bn-r)))
   (mac 'ring-power-of-one)
   (mac 'rr-scalar-ring-one)

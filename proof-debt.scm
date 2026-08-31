@@ -216,22 +216,100 @@
         (else (or (dfs (car cs) (cons (car cs) path) (cons (car cs) seen))
                   (loop (cdr cs))))))))
 
+;;; --- strongly-connected components over the citation graph -----------
+;;;
+;;; `start' lies on a cycle IFF `start' is in a NONTRIVIAL strongly-connected
+;;; component, or cites itself.  So Tarjan decides exactly the predicate
+;;; `proof-cycle-from' decides -- the same nodes flagged, no more and no fewer
+;;; -- in O(V+E) instead of O(number of distinct paths).
+;;;
+;;; WHY, AND WHY IT IS NOT A WEAKENING OF THE GATE.  The version this replaces
+;;; called `proof-cycle-from' once per name over ~930 proven names, and that
+;;; DFS carries the current PATH's ancestors as `seen' rather than a visited
+;;; set, so every node is re-explored once per distinct path reaching it.  The
+;;; ACYCLIC case -- the normal one -- was the worst case: `covered' grew only
+;;; when a cycle was FOUND, so a clean library got a full from-scratch DFS per
+;;; name.  Measured 2026-08-27: 510 s of a 638 s library load, 80% of it, and
+;;; the reason the full suite went from 3m12s to ~34 min on a 10% larger tree
+;;; (the log/exp arc added DEPTH, and path count grows combinatorially in it).
+;;;
+;;; A visited-memo bolted onto that walk WOULD have been unsound: it asks "does
+;;; START lie on a cycle" per start and deliberately ignores back-edges to
+;;; non-START ancestors (proof-cycle-from, line 3 of the loop), so a node
+;;; cleared under one start could suppress a cycle found under another.  Tarjan
+;;; sidesteps that trap by not asking a per-start question at all -- it
+;;; computes the components once and reads cycle-membership off them.
+;;;
+;;; `proof-cycle-from' is UNCHANGED and remains the single-start query (the
+;;; suite uses it directly).  It is simply no longer what the gate calls.
+
+(define (pd-sccs roots)
+  (let ((index    (make-equal-hash-table))
+        (lowlink  (make-equal-hash-table))
+        (on-stack (make-equal-hash-table))
+        (counter  0)
+        (stack    '())
+        (comps    '()))
+    (define (idx n) (hash-table-ref/default index   n #f))
+    (define (low n) (hash-table-ref/default lowlink n 0))
+    (define (visit v)
+      (hash-table-set! index   v counter)
+      (hash-table-set! lowlink v counter)
+      (set! counter (+ counter 1))
+      (set! stack (cons v stack))
+      (hash-table-set! on-stack v #t)
+      (for-each
+       (lambda (w)
+         (cond ((not (idx w))
+                (visit w)
+                (hash-table-set! lowlink v (min (low v) (low w))))
+               ((hash-table-ref/default on-stack w #f)
+                (hash-table-set! lowlink v (min (low v) (idx w))))))
+       (proof-citations-of v))
+      (if (= (low v) (idx v))
+          (let pop ((comp '()))
+            (let ((w (car stack)))
+              (set! stack (cdr stack))
+              (hash-table-set! on-stack w #f)
+              (if (eq? w v)
+                  (set! comps (cons (cons w comp) comps))
+                  (pop (cons w comp)))))))
+    (for-each (lambda (r) (if (not (idx r)) (visit r))) roots)
+    comps))
+
+;;; A cycle v -> ... -> v with every intermediate node inside COMP.  COMP is
+;;; strongly connected, so such a path exists, and the search is bounded by the
+;;; component -- tiny even when the whole graph is not.
+(define (pd-cycle-in comp v)
+  (let dfs ((node v) (path (list v)) (seen '()))
+    (let loop ((cs (proof-citations-of node)))
+      (cond
+        ((null? cs) #f)
+        ((eq? (car cs) v) (reverse (cons v path)))
+        ((or (not (memq (car cs) comp)) (memq (car cs) seen)) (loop (cdr cs)))
+        (else (or (dfs (car cs) (cons (car cs) path) (cons (car cs) seen))
+                  (loop (cdr cs))))))))
+
 ;;; Every distinct dependency cycle among proven theorems, each as a name path
 ;;; n -> ... -> n.  Empty list = acyclic = every proof is genuinely grounded.
+;;;
+;;; Seeded from every proven theorem AND every node that declared a rests-on --
+;;; so a cycle living entirely in the ASSERTED base (A rests-on B, B rests-on A,
+;;; neither proven) is caught, not just cycles through proofs.  Every node with
+;;; an out-edge is one or the other, so every cycle carries a seed on it and no
+;;; cycle can hide from the sweep.
 (define (proof-cycle-check)
-  ;; Seed the DFS from every proven theorem AND every node that declared a
-  ;; rests-on -- so a cycle living entirely in the ASSERTED base (A rests-on B,
-  ;; B rests-on A, neither proven) is caught, not just cycles through proofs.
-  (let loop ((names (append *proven-theorem-names* (rests-on-declared-names)))
-             (covered '()) (cycles '()))
-    (cond
-      ((null? names) (reverse cycles))
-      ((memq (car names) covered) (loop (cdr names) covered cycles))
-      (else
-       (let ((c (proof-cycle-from (car names))))
-         (if c
-             (loop (cdr names) (append c covered) (cons c cycles))
-             (loop (cdr names) covered cycles)))))))
+  (let loop ((comps (pd-sccs (append *proven-theorem-names*
+                                     (rests-on-declared-names))))
+             (cycles '()))
+    (if (null? comps)
+        (reverse cycles)
+        (let* ((comp (car comps))
+               (cyc  (cond ((pair? (cdr comp)) (pd-cycle-in comp (car comp)))
+                           ((memq (car comp) (proof-citations-of (car comp)))
+                            (list (car comp) (car comp)))
+                           (else #f))))
+          (loop (cdr comps) (if cyc (cons cyc cycles) cycles))))))
 
 ;;; --- trust level -----------------------------------------------------
 
@@ -566,6 +644,149 @@
                         (loop (cdr d) #f)))
                     (newline)))
                 leaves)))))
+    path))
+
+
+;;; --- (3b) DEBT-BUNDLE.md: the pile, raked into heaps -------------------
+;;;
+;;; PROOF-DEBT.md is a FLAT list -- every proven theorem with the set of
+;;; asserted leaves under it, plus a reverse index ranked by citation count.
+;;; Two things it cannot tell you, and this file is those two things.
+;;;
+;;; WHAT TO PROVE NEXT.  Citation count is the WRONG ranking and the tree has
+;;; the scar to prove it: `nary-neg-1' headed `debt-keystones' with 14
+;;; dependents and was worth NOTHING on its own, because every bill naming it
+;;; also named `nary-minus-2'.  The tier of a bill is its WORST leaf, so
+;;; discharging a leaf buys nothing until it is the LAST one in the bills that
+;;; name it.  The ranking below is therefore a GREEDY WHAT-IF: repeatedly take
+;;; the leaf that would empty the most bills outright, remove it from every
+;;; bill, and go again.  It answers "prove these N, in this order, and N bills
+;;; reach modulo 0", which is the question, and it re-measures itself on every
+;;; load so it cannot go stale.
+;;;
+;;; WHERE A BILL COMES FROM.  A 115-leaf bill is not 115 problems; it is two or
+;;; three arcs cited by name.  Each leaf is attributed to the DIRECT citation it
+;;; entered through, so `free-length-le-generators' reads as "89 via
+;;; smith-diagonalization, 42 via free-transport" rather than as a wall of
+;;; symbols.  Attribution is by containment in `debt-of' of each direct
+;;; citation, so a leaf reachable through two citations is counted under both --
+;;; the columns are entry routes, not a partition, and they do not sum to the
+;;; bill.
+(define (db--bill-list)                  ; ((name . leaves) ...), non-empty only
+  (let ((out '()))
+    (hash-table-walk *proof-debt*
+      (lambda (p bill) (when (pair? bill) (set! out (cons (cons p bill) out)))))
+    out))
+
+;;; One greedy round: the leaf that empties the most bills, and how many.
+(define (db--best-leaf bills)
+  (let ((h (make-equal-hash-table)) (best #f) (bn 0))
+    (for-each (lambda (b)
+                (when (= 1 (length (cdr b)))
+                  (hash-table-set! h (cadr b)
+                    (+ 1 (hash-table-ref/default h (cadr b) 0)))))
+              bills)
+    (hash-table-walk h
+      (lambda (k v)
+        (when (or (> v bn)
+                  (and (= v bn) best (string<? (symbol->string k)
+                                               (symbol->string best))))
+          (set! best k) (set! bn v))))
+    (cons best bn)))
+
+;;; The ranking, as DATA: ((leaf cleared-count warrant-kind) ...), in order.
+;;; Ties broken by name so the file is reproducible across loads.
+(define (debt-greedy-order #!optional limit)
+  (let ((limit (if (default-object? limit) 40 limit)))
+    (let loop ((bills (db--bill-list)) (i 0) (acc '()))
+      (let ((r (db--best-leaf bills)))
+        (if (or (not (car r)) (>= i limit))
+            (reverse acc)
+            (let* ((leaf (car r))
+                   (short (map (lambda (b) (cons (car b) (delete leaf (cdr b)))) bills))
+                   (w     (warrant-of leaf)))
+              (loop (filter (lambda (b) (pair? (cdr b))) short)
+                    (+ i 1)
+                    (cons (list leaf (cdr r) (if w (car w) 'NONE)) acc))))))))
+
+;;; ((citation . how-many-of-NAME's-bill-it-accounts-for) ...), biggest first.
+(define (debt-entry-routes name)
+  (let* ((bill (debt-of name))
+         (cits (delete-duplicates
+                (hash-table-ref/default *proof-citation-graph* name '())))
+         (rows (map (lambda (c)
+                      (cons c (length (filter (lambda (l) (member l bill))
+                                              (debt-of c)))))
+                    cits)))
+    (sort (filter (lambda (r) (> (cdr r) 0)) rows)
+          (lambda (a b)
+            (if (= (cdr a) (cdr b))
+                (string<? (symbol->string (car a)) (symbol->string (car b)))
+                (> (cdr a) (cdr b)))))))
+
+(define (debt-bundle-md)
+  (let* ((path  (string-append *reference-dir* "DEBT-BUNDLE.md"))
+         (bills (db--bill-list))
+         (all   (length (hash-table-keys *proof-debt*)))
+         (order (debt-greedy-order 40))
+         (big   (sort (filter (lambda (b) (>= (length (cdr b)) 10)) bills)
+                      (lambda (a b)
+                        (if (= (length (cdr a)) (length (cdr b)))
+                            (string<? (symbol->string (car a)) (symbol->string (car b)))
+                            (> (length (cdr a)) (length (cdr b))))))))
+    (with-output-to-file path
+      (lambda ()
+        (display "# The Debt Bundle\n\n")
+        (display "Auto-generated by `(debt-bundle-md)` at load.  ")
+        (display all) (display " proven result(s); ")
+        (display (- all (length bills)))
+        (display " bill `modulo 0`, ")
+        (display (length bills)) (display " carry a bill.\n\n")
+        (display "`PROOF-DEBT.md` lists every bill flat.  This file answers the two\n")
+        (display "questions that list cannot: **what is worth proving next**, and\n")
+        (display "**where a long bill comes from**.\n\n")
+        ;; --- 1. the greedy ranking
+        (display "## 1. What to prove next (greedy what-if)\n\n")
+        (display "Ranked by bills CLEARED, not by citations: a leaf buys nothing\n")
+        (display "until it is the last unproven one in the bills that name it.  Each\n")
+        (display "row assumes every row above it is already discharged.\n\n")
+        (display "| # | leaf | warrant | bills cleared | running total |\n")
+        (display "|---|------|---------|---------------|---------------|\n")
+        (let loop ((o order) (i 1) (run 0))
+          (unless (null? o)
+            (let ((run (+ run (cadr (car o)))))
+              (display "| ") (display i)
+              (display " | `") (display (car (car o)))
+              (display "` | ") (display (caddr (car o)))
+              (display " | ") (display (cadr (car o)))
+              (display " | ") (display run) (display " |\n")
+              (loop (cdr o) (+ i 1) run))))
+        (newline)
+        ;; --- 2. entry-route attribution for the long bills
+        (display "## 2. Where the long bills come from\n\n")
+        (display "Every bill of ten leaves or more, with each leaf attributed to the\n")
+        (display "direct citation it entered through.  Routes OVERLAP -- a leaf\n")
+        (display "reachable two ways is counted twice -- so the columns do not sum to\n")
+        (display "the bill.  A route carrying most of a bill is the arc to attack.\n\n")
+        (if (null? big)
+            (display "_No bill has ten or more leaves._\n\n")
+            (for-each
+             (lambda (b)
+               (display "### ") (display (car b))
+               (display "  *(") (display (length (cdr b)))
+               (display " leaves, trust: ") (display (debt-trust-level (cdr b)))
+               (display ")*\n\n")
+               (let ((routes (debt-entry-routes (car b))))
+                 (if (null? routes)
+                     (display "_Leaves are cited directly; no intermediate route._\n\n")
+                     (begin
+                       (for-each (lambda (r)
+                                   (display "- ") (display (cdr r))
+                                   (display " via `") (display (car r)) (display "`\n"))
+                                 (if (> (length routes) 8) (list-head routes 8) routes))
+                       (newline)))))
+             big))
+        (display "---\n\n_Regenerated on every library load; do not hand-edit._\n")))
     path))
 
 ;;; --- (4) status audit ------------------------------------------------

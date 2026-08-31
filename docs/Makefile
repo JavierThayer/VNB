@@ -16,11 +16,17 @@
 #   app-glossary-generated.tex <- reference/GLOSSARY.md (every name, from the registries)
 
 LATEX := pdflatex -interaction=nonstopmode -halt-on-error
+# The index is built between the two LaTeX passes: pass 1 writes the .idx,
+# makeindex sorts it to .ind, pass 2 typesets \printindex.  Without the
+# middle step \printindex silently produces an EMPTY index -- the failure
+# is invisible in the log, so it is wired into every target, not documented.
+MAKEINDEX := makeindex -q
 
 .PHONY: all gen kindle both clean check-fresh
 
 all: gen
 	$(LATEX) manual.tex
+	$(MAKEINDEX) manual
 	$(LATEX) manual.tex
 
 # The Kindle edition.  Same sources, same generated sections: manual-kindle.tex
@@ -28,10 +34,12 @@ all: gen
 # the table of contents and the cross-references, exactly like the print build.
 kindle: gen
 	$(LATEX) manual-kindle.tex
+	$(MAKEINDEX) manual-kindle
 	$(LATEX) manual-kindle.tex
 
 both: all
 	$(LATEX) manual-kindle.tex
+	$(MAKEINDEX) manual-kindle
 	$(LATEX) manual-kindle.tex
 
 gen: check-fresh
@@ -62,3 +70,9 @@ check-fresh:
 clean:
 	rm -f manual.aux manual.log manual.out manual.toc
 	rm -f manual-kindle.aux manual-kindle.log manual-kindle.out manual-kindle.toc
+	# .idx/.ind too: \printindex runs on BOTH passes, so pass 1 re-reads whatever
+	# .ind is on disk.  A .ind left by a FAILED build therefore breaks the next
+	# build before makeindex ever gets to rewrite it -- the error points at the
+	# stale index, not at the change that caused it.  Hit while adding the index.
+	rm -f manual.idx manual.ind manual.ilg
+	rm -f manual-kindle.idx manual-kindle.ind manual-kindle.ilg

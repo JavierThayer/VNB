@@ -41,8 +41,17 @@
 ;;; The surface bridges: the equations that take an instance's slot VALUES down
 ;;; to the operators a reader actually writes.  Numeric-domain specific by
 ;;; nature; a non-numeric instance (MAT-RING) simply has none fire.
+;;; 2026-08-29: the lam-slot-*-apply entries come FIRST.  Operation slots hold a
+;;; tupled VNB-LAMBDA per instance now, not the shared constant `binplus' -- one
+;;; object cannot be a set function with five domains, and asserting so proved
+;;; NN = ZZ = QQ = RR = CC and thence FALSITY (numeric-instances.scm).  So the
+;;; slot equation lands a lambda APPLICATION, and these read-offs are what takes
+;;; it to the surface operator.  The three binplus/bintimes/binneg apply axioms
+;;; stay: those symbols are still the surface bridge wherever a goal mentions
+;;; them directly, they simply no longer sit in any slot.
 (define *surface-bridge-theorems*
-  '(binplus-apply bintimes-apply binneg-apply))
+  '(lam-slot-add-apply lam-slot-mul-apply lam-slot-neg-apply
+    binplus-apply bintimes-apply binneg-apply))
 
 ;;; A RULE is (schema-vars conditions source replacement) -- the same four things
 ;;; make-elementary-macete takes, kept as data so the SAME rule set can both

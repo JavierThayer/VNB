@@ -37,26 +37,33 @@
 ;;; Layer 1 -- set difference X \ B
 ;;; =======================================================================
 
-;;; x in (U \ B)  iff  x in U and x not in B.
-;;; U, NOT X: the reader case-folds X to x, collapsing (IN x X) to (IN x x).
-(support 'difference-membership
-  '(FORALL U (FORALL B (FORALL x
-      (IFF (IN x (DIFFERENCE U B))
-           (AND (IN x U) (NOT (IN x B))))))))
-
-(warrant! 'difference-membership 'well-known
-  "Defining property of set difference.  DIFFERENCE was already in use
-   (field.scm: NON-ZERO = A \\ {ZERO}; numeric-instances.scm) with no
-   characterizing axiom; this records the standard one.")
-
-;;; X \ B is a set whenever X is -- it is a subclass of X (separation).
-(support 'difference-set
-  '(FORALL X (IMPLIES (IN X SET)
-      (FORALL B (IN (DIFFERENCE X B) SET)))))
-
-(warrant! 'difference-set 'well-known
-  "X \\ B is a subclass of the set X, hence a set by separation
-   (cf. set-equality-not-class: a subclass of a set is a set).")
+;;; DIFFERENCE IS *DEFINED*, NOT AXIOMATISED -- and the definition is that it
+;;; was COMPLEMENT-IN all along.
+;;;
+;;; `difference-membership' and `difference-set' stood here as asserted supports
+;;; warranted `well-known', and their warrants said the situation plainly:
+;;; DIFFERENCE "was already in use (field.scm: NON-ZERO = A \ {ZERO};
+;;; numeric-instances.scm) with no characterizing axiom; this records the
+;;; standard one."  But the standard one is a KERNEL AXIOM already, under a
+;;; different name:
+;;;
+;;;   difference-membership       x in DIFFERENCE(U,B)     iff x in U and not(x in B)
+;;;   complement-in-membership    x in COMPLEMENT-IN(A,B)  iff x in A and not(x in B)   theory.scm:731
+;;;   difference-set              X in SET => DIFFERENCE(X,B) in SET
+;;;   complement-in-set-closure   A in SET => COMPLEMENT-IN(A,B) in SET                 theory.scm:726
+;;;
+;;; Verbatim, both pairs.  So DIFFERENCE was COMPLEMENT-IN under a second
+;;; spelling, with two asserted laws restating trusted base -- debt for nothing.
+;;; It is now a def-functoid, and both laws are PROVEN `modulo 0' in
+;;; theorem-library/difference-laws.scm (the proofs need the interactive tactics,
+;;; which load at 485; this file is at 395).  The NAMES are unchanged, so every
+;;; citation keeps working.
+;;;
+;;; Same species as SINGLETON, which field-ring-view.scm found had no membership
+;;; characterisation at all and defined as MAKE-SET(LIST y).
+(def-functoid 'DIFFERENCE '(u_ b_) '(COMPLEMENT-IN u_ b_))
+(notation! 'DIFFERENCE 'kind 'functoid 'arity 2
+           'english "the set difference of $1 and $2")
 
 ;;; =======================================================================
 ;;; Layer 2 -- powerset finiteness and the insert-split

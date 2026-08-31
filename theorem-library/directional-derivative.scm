@@ -161,15 +161,10 @@
    rr-scalar-ring-carr (theorem-library/normed-field-ring-view.scm).")
 (topic! 'nvs-act-in-vec 'analysis)
 
-(add-to-pss 'nvs-vadd-in-vec
-  '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m)
-     (FORALL x_ (IMPLIES (IN x_ (VEC m))
-     (FORALL y_ (IMPLIES (IN y_ (VEC m))
-       (IN ((VADD m) x_ y_) (VEC m)))))))))
-(warrant! 'nvs-vadd-in-vec 'reference
-  "Vector-addition closure, the shape conjunct VADD(m) in
-   FUN(CARTESIAN(VEC(m),VEC(m)), VEC(m)) read in applied form; module-vadd-type.")
-(topic! 'nvs-vadd-in-vec 'analysis)
+;;; nvs-vadd-in-vec is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
+;;; other six applied-form op typings: one driver over the IS-X unfold plus
+;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
+;;; recited.
 
 ;;; r.(s.x) = (r*s).x
 (add-to-pss 'nvs-act-scale-assoc

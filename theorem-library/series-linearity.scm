@@ -41,6 +41,20 @@
 ;;; ---- file-local builders and driver (the `sl-' prefix) ---------------
 
 ;;; forall k in NN. f(k) in RR   -- the pointwise typing hypothesis
+;;; The TRANSFER sequence h_ carries only a pointwise EQUATION, not a pointwise
+;;; realness hypothesis -- and since 2026-08-29 `series-partial-sum-succ' is
+;;; guarded on its two arguments being real, so h_'s realness has to be DERIVED
+;;; before the rewrite rather than assumed.  It follows from the transfer
+;;; equation together with the realness of what stands on its right.
+;;;
+;;; RHS-CLOSE! runs with the goal  h(k) in RR,  k already peeled and typed.
+(define (sl-h-real! h rhs-close!)
+  (dk-have! (sl-ptwise-real h)
+    (lambda ()
+      (di)
+      (let* ((g (dk-goal)) (k (cadr (cadr g))))    ; goal is (IN (h k) RR)
+        (rhs-close! k)))))
+
 (define (sl-ptwise-real f)
   (list 'FORALL 'k_ (list 'IMPLIES '(IN k_ NN) (list 'IN (list f 'k_) 'RR))))
 
@@ -94,9 +108,14 @@
     (sl-peel!) (mac 'series-partial-sum-zero) (fact 'rr-zero-in) (ass)
     (dk-focus! (cdr (assq 'step br)))
     (let ((pw (dk-landed-1 (lambda () (sl-peel!)))))
-      (mac 'series-partial-sum-succ)
+      ;; series-partial-sum-succ is guarded on its two ARGUMENTS being real
+      ;; (2026-08-29), and those two are exactly the IH and the pointwise
+      ;; hypothesis at n -- so instantiate them BEFORE the rewrite.  The guard is
+      ;; stated on the arguments rather than on `f_ in FUN(NN,RR)' precisely so
+      ;; that this POINTWISE file can still cite it.
       (dk-deepest (lambda () (inst+ ih 'f_)))
       (dk-deepest (lambda () (inst+ pw n)))
+      (mac 'series-partial-sum-succ)
       (have! (list 'AND (list 'IN (list 'SERIES-PARTIAL-SUM 'f_ n) 'RR)
                         (list 'IN (list 'f_ n) 'RR)))
       (fact 'rr-add-closed (list 'SERIES-PARTIAL-SUM 'f_ n) (list 'f_ n))
@@ -123,13 +142,36 @@
     (sl-peel!) (mac 'series-partial-sum-zero) (arith)
     (dk-focus! (cdr (assq 'step br)))
     (let ((hyps (dk-landed* (lambda () (sl-peel!)))))
-      (mac 'series-partial-sum-succ)
       (let* ((i1  (dk-deepest (lambda () (inst+ ih 'f_))))
              (i2  (dk-deepest (lambda () (inst+ i1 'g_))))
              (ihc (dk-deepest (lambda () (inst+ i2 'h_)))))
         (sl-inst-all! hyps n)
         (fact 'series-partial-sum-in-rr-ptwise n 'f_)
         (fact 'series-partial-sum-in-rr-ptwise n 'g_)
+        (sl-h-real! 'h_
+          (lambda (k)
+            (sl-inst-all! hyps k)
+            (dk-have! (list 'AND (list 'IN (list 'f_ k) 'RR)
+                                 (list 'IN (list 'g_ k) 'RR)))
+            (fact 'rr-add-closed (list 'f_ k) (list 'g_ k))
+            (subst (list '= (list 'h_ k) (list '+ (list 'f_ k) (list 'g_ k))))
+            (ass)))
+        (fact 'series-partial-sum-in-rr-ptwise n 'h_)
+        ;; ... and h_(n) itself, the OTHER argument of the rewrite.  sl-h-real!
+        ;; gives the POINTWISE form, which in-rr-ptwise consumes; the rewrite
+        ;; also needs the instance at n.
+        (dk-have! (list 'IN (list 'h_ n) 'RR)
+          (lambda ()
+            (dk-have! (list 'AND (list 'IN (list 'f_ n) 'RR)
+                                 (list 'IN (list 'g_ n) 'RR)))
+            (fact 'rr-add-closed (list 'f_ n) (list 'g_ n))
+            (subst (list '= (list 'h_ n) (list '+ (list 'f_ n) (list 'g_ n))))
+            (ass)))
+      ;; series-partial-sum-succ is guarded on its two ARGUMENTS being real
+      ;; (2026-08-29), so every sequence the goal mentions needs SPS(x,n) in RR
+      ;; and x(n) in RR in context BEFORE the rewrite.  sl-inst-all! supplies
+      ;; the second from the pointwise hypotheses; in-rr-ptwise the first.
+        (mac 'series-partial-sum-succ)
         (subst ihc)
         (subst (list '= (list 'h_ n) (list '+ (list 'f_ n) (list 'g_ n))))
         (crs))))))
@@ -156,12 +198,30 @@
     (sl-peel!) (mac 'series-partial-sum-zero) (crs)
     (dk-focus! (cdr (assq 'step br)))
     (let ((hyps (dk-landed* (lambda () (sl-peel!)))))
-      (mac 'series-partial-sum-succ)
       (let* ((j1  (dk-deepest (lambda () (inst+ ih 'c_))))
              (j2  (dk-deepest (lambda () (inst+ j1 'f_))))
              (ihc (dk-deepest (lambda () (inst+ j2 'h_)))))
         (sl-inst-all! hyps n)
         (fact 'series-partial-sum-in-rr-ptwise n 'f_)
+        (sl-h-real! 'h_
+          (lambda (k)
+            (sl-inst-all! hyps k)
+            (dk-have! (list 'AND '(IN c_ RR) (list 'IN (list 'f_ k) 'RR)))
+            (fact 'rr-mul-closed 'c_ (list 'f_ k))
+            (subst (list '= (list 'h_ k) (list '* 'c_ (list 'f_ k))))
+            (ass)))
+        (fact 'series-partial-sum-in-rr-ptwise n 'h_)
+        (dk-have! (list 'IN (list 'h_ n) 'RR)
+          (lambda ()
+            (dk-have! (list 'AND '(IN c_ RR) (list 'IN (list 'f_ n) 'RR)))
+            (fact 'rr-mul-closed 'c_ (list 'f_ n))
+            (subst (list '= (list 'h_ n) (list '* 'c_ (list 'f_ n))))
+            (ass)))
+      ;; series-partial-sum-succ is guarded on its two ARGUMENTS being real
+      ;; (2026-08-29), so every sequence the goal mentions needs SPS(x,n) in RR
+      ;; and x(n) in RR in context BEFORE the rewrite.  sl-inst-all! supplies
+      ;; the second from the pointwise hypotheses; in-rr-ptwise the first.
+        (mac 'series-partial-sum-succ)
         (subst ihc)
         (subst (list '= (list 'h_ n) (list '* 'c_ (list 'f_ n))))
         (crs))))))
@@ -253,9 +313,23 @@
     (dk-focus! (cdr (assq 'base br)))
     (sl-peel!)
     (fact 'nn-zero-in) (fact 'zz-zero-in) (fact 'bt-neg1-in-zz)
-    (fact 'series-partial-sum-succ 'p_ 0)
-    (subst '(== (SERIES-PARTIAL-SUM p_ (succ 0))
-                (+ (SERIES-PARTIAL-SUM p_ 0) (p_ 0))))
+    ;; the recurrence is guarded on its two arguments being real (2026-08-29),
+    ;; so p_'s realness has to be derived from its transfer equation here too --
+    ;; the base case peels a term off SPS(p_, succ 0) exactly as the step does.
+    (sl-h-real! 'p_
+      (lambda (k)
+        (fact 'bt-nn-in-zz k)
+        (fact 'zz-sub-in-zz k 1)
+        (dk-deepest (lambda () (inst+ (sl-hyp sl-p-eq) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'w_)) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'g_)) (list '- k 1))))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'g_)) k)))
+        (subst (list '= (list 'p_ k)
+                     (list '* (list 'w_ k)
+                           (list '+ (list '* 'x_ (list 'g_ (list '- k 1)))
+                                    (list '* 'y_ (list 'g_ k))))))
+        (in-rr)))
+    (dk-sps-succ! 'p_ 0)
     (mac 'series-partial-sum-zero)
     (dk-deepest (lambda () (inst+ (sl-hyp sl-p-eq) 0)))
     (subst '(= (p_ 0) (* (w_ 0) (+ (* x_ (g_ (- 0 1))) (* y_ (g_ 0))))))
@@ -274,16 +348,46 @@
     (fact 'bt-succ-in-nn n) (fact 'nn-zero-in) (fact 'zz-zero-in)
     (fact 'bt-neg1-in-zz) (fact 'bt-nn-in-zz n)
     (fact 'bt-nn-in-zz (list 'succ n))
-    (fact 'series-partial-sum-succ 'p_ (list 'succ n))
-    (subst (list '== (list 'SERIES-PARTIAL-SUM 'p_ (list 'succ (list 'succ n)))
-                     (list '+ (list 'SERIES-PARTIAL-SUM 'p_ (list 'succ n))
-                              (list 'p_ (list 'succ n)))))
-    (fact 'series-partial-sum-succ 'q_ n)
-    (subst (list '== (list 'SERIES-PARTIAL-SUM 'q_ (list 'succ n))
-                     (list '+ (list 'SERIES-PARTIAL-SUM 'q_ n) (list 'q_ n))))
-    (fact 'series-partial-sum-succ 's_ n)
-    (subst (list '== (list 'SERIES-PARTIAL-SUM 's_ (list 'succ n))
-                     (list '+ (list 'SERIES-PARTIAL-SUM 's_ n) (list 's_ n))))
+    ;; p_, q_ and s_ are TRANSFER sequences -- constrained by pointwise equations,
+    ;; with no realness hypothesis of their own.  series-partial-sum-succ is now
+    ;; guarded on its two arguments being real, so each needs its realness
+    ;; derived from its equation before the recurrence can fire.  Each is a
+    ;; product of the pointwise-real families w_ and g_ with the real scalars
+    ;; x_, y_, so `in-rr' closes it once the components are instantiated.
+    (sl-h-real! 'p_
+      (lambda (k)
+        (fact 'bt-nn-in-zz k)
+        (fact 'zz-sub-in-zz k 1)          ; k - 1 in ZZ, so g_(k-1)'s typing detaches
+        (dk-deepest (lambda () (inst+ (sl-hyp sl-p-eq) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'w_)) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'g_)) (list '- k 1))))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'g_)) k)))
+        (subst (list '= (list 'p_ k)
+                     (list '* (list 'w_ k)
+                           (list '+ (list '* 'x_ (list 'g_ (list '- k 1)))
+                                    (list '* 'y_ (list 'g_ k))))))
+        (in-rr)))
+    (sl-h-real! 'q_
+      (lambda (k)
+        (fact 'bt-nn-in-zz k) (fact 'bt-nn-in-zz (list 'succ k))
+        (dk-deepest (lambda () (inst+ (sl-hyp sl-q-eq) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'w_)) (list 'succ k))))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'g_)) k)))
+        (subst (list '= (list 'q_ k)
+                     (list '* (list 'w_ (list 'succ k)) (list 'g_ k))))
+        (in-rr)))
+    (sl-h-real! 's_
+      (lambda (k)
+        (fact 'bt-nn-in-zz k)
+        (dk-deepest (lambda () (inst+ (sl-hyp sl-s-eq) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'w_)) k)))
+        (dk-deepest (lambda () (inst+ (sl-hyp (sl-ptwise-real-zz 'g_)) k)))
+        (subst (list '= (list 's_ k) (list '* (list 'w_ k) (list 'g_ k))))
+        (in-rr)))
+    ;; one line per rewrite now: dk-sps-succ! lands both guard facts and fires
+    (dk-sps-succ! 'p_ (list 'succ n))
+    (dk-sps-succ! 'q_ n)
+    (dk-sps-succ! 's_ n)
     (let ((ihc (let loop ((f ih) (vs '(x_ y_ g_ w_ p_ q_ s_)))
                  (if (null? vs) f
                      (loop (dk-deepest (lambda () (inst+ f (car vs))))
@@ -343,12 +447,16 @@
     (sl-peel!) (mac 'series-partial-sum-zero) (arith)
     (dk-focus! (cdr (assq 'step br)))
     (let ((hyps (dk-landed* (lambda () (sl-peel!)))))
-      (mac 'series-partial-sum-succ)
       (let ((j1 (dk-deepest (lambda () (inst+ ih 'f_)))))
         (dk-deepest (lambda () (inst+ j1 'g_))))
       (sl-inst-all! hyps n)
       (fact 'series-partial-sum-in-rr-ptwise n 'f_)
       (fact 'series-partial-sum-in-rr-ptwise n 'g_)
+      ;; series-partial-sum-succ is guarded on its two ARGUMENTS being real
+      ;; (2026-08-29), so every sequence the goal mentions needs SPS(x,n) in RR
+      ;; and x(n) in RR in context BEFORE the rewrite.  sl-inst-all! supplies
+      ;; the second from the pointwise hypotheses; in-rr-ptwise the first.
+      (mac 'series-partial-sum-succ)
       (have! (list 'AND (list '<= (list 'SERIES-PARTIAL-SUM 'f_ n)
                                    (list 'SERIES-PARTIAL-SUM 'g_ n))
                         (list '<= (list 'f_ n) (list 'g_ n))))

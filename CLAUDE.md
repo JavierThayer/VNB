@@ -736,9 +736,8 @@ still the better habit in new statements.
 
 Two consequences worth keeping in view. **The archimedean property is now derivable**
 (`nn-unbounded-in-rr` in order-predicates.scm was re-tiered `well-known` -> `informal`
-on that basis, and `rr-le-all-pos-nonpos` / `rr-pos-halvable` / `rr-pos-shrink` are in
-the same position but were deliberately left alone -- re-tiering moves every citing
-bill). And **numeric literals are now exact rationals**: parser.scm's `p--exact-num`
+on that basis; `rr-pos-halvable` was proven 2026-08-17 and `rr-le-all-pos-nonpos`
+2026-08-31, leaving `rr-pos-shrink` as the last of the five still asserted). And **numeric literals are now exact rationals**: parser.scm's `p--exact-num`
 reads every literal with the `#e` prefix, so `0.1` is `1/10` -- NOT
 `(inexact->exact .1)`, the dyadic value of the double. arith-eval.scm's sound-arith
 gate stays; its remaining job is rejecting inexactness arithmetic PRODUCED
@@ -962,8 +961,8 @@ Triage by BILL, again. Measured before/after over 719 proven results: `modulo 0`
 (block-family-combinatorial, totally-bounded-has-cauchy-subsequence, zz-bezout).
 `cc-complete` and `rr-complete` clear together, being the same bill; every fact Example 4.7
 (`prove-scripts/drives/poly-antiderivative-drive.scm`) must cite is now debt-free, so that
-drive can reach `modulo 0`. The sole-leaf ranking is now headed by `rr-le-all-pos-nonpos`
-at 13. Wrapped as a `fluid-let` at the axiom site, not a later `register-provenance!` --
+drive can reach `modulo 0`. The sole-leaf ranking was then headed by
+`rr-le-all-pos-nonpos` at 13 -- **PROVEN 2026-08-31**, see the raking entry below. Wrapped as a `fluid-let` at the axiom site, not a later `register-provenance!` --
 which is what stamped the auto-generated `nn-add-succ-rev` companion too (the load's
 `classification:` line went 17 -> **19** de-supported, two names not one).
 
@@ -980,12 +979,63 @@ day: a stamp must record its claim.** The `warrant! 'reference` was removed rath
 reworded, on the ordinals precedent -- a warrant is a better tier of DEBT, and
 `definitional` says there is no debt.
 
-**`nn-mul-succ` was measured and deliberately NOT stamped.** Its argument is identical.
-Measured BEFORE the `nn-add-succ` stamp it clears **nothing** -- all 10 of its bills also
-named `nn-add-succ`, the shadowing rule again -- and only afterwards is it worth its own
-count: **8** bills (the parity / trichotomy / sqrt-3 block). One explicit decision per
-fact; growing the shelf by analogy with a neighbouring decision is exactly how it stops
-being explicit.
+**`nn-mul-succ` was measured and deliberately NOT stamped -- and the restraint PAID,
+because its argument was NOT identical.** The entry here used to say it was. It is
+**PROVEN** `modulo 0` (2026-08-31, theorem-library/nn-parity-proof.scm): `succ(b) = b + 1`
+is `nn-succ-plus-one`, already proven there, and then `nn-distributive` and `nn-one-mul`
+-- both `primitive` -- give `a * succ(b) = a*(b+1) = a*b + a*1 = a*b + a` in four
+rewrites. Addition's recursion has to be ASSUMED (nothing in the tree implies it;
+`nn-succ-plus-one` is proved FROM it, so the reverse move is circular); multiplication's
+does not. A stamp by analogy would have assumed what a proof establishes -- which is the
+argument for the one-explicit-decision-per-fact rule, now with a scar to point at.
+It sits in nn-parity-proof rather than a file of its own because `nn-succ-plus-one` is
+produced there and consumed thirty lines later: no separate file fits between.
+
+**THE RAKE, 2026-08-31: the greedy what-if is MECHANIZED, and the ranking is not the
+obvious one.** This file already said triage by BILL, not by citation count, and named
+`nary-neg-1` as the scar. That triage is now a procedure and a generated document:
+`debt-greedy-order` (proof-debt.scm) repeatedly takes the leaf that would empty the most
+bills OUTRIGHT, removes it from every bill and goes again; `debt-entry-routes` attributes
+each leaf of a bill to the direct citation it entered through. Both are written to
+`reference/DEBT-BUNDLE.md` at load, recomputed and never stored, so the ranking cannot go
+stale the way `debt-keystones` misleads. Section 1 answers "prove these N, in this order,
+and N bills reach `modulo 0`"; section 2 turns a 113-leaf bill into "87 via
+smith-diagonalization, 41 via free-transport" -- the arcs, not a wall of symbols.
+Routes OVERLAP by construction (a leaf reachable two ways is counted under both), so the
+columns do not sum to the bill; that is stated in the file.
+
+Measured over one session with it: **981 -> 990 proven, `modulo 0` 635 -> 680**, billed
+results 346 -> 310, one-leaf bills 70 -> 38. Nine facts crossed from asserted to proven,
+and the ordering mattered more than the count -- `rr-le-all-pos-nonpos` alone was 20
+bills, and by CITATIONS it was nowhere near the top.
+
+**Seven of those nine fell to ONE driver, and the derivation had been written down in May
+and never run.** `theorem-library/op-typing.scm` proves the codomain typing of a structure
+operation in APPLIED form -- `((MUL r) a b) in CARR(r)`, `((DIST s) x y) in RR` -- for
+ring ADD/MUL/NEG, commutative-ring ADD, METRIC-SPACE DIST, NVS VNRM/VADD. Every one was a
+separate support whose warrant recited the same four lines ("From (op MUL (CARTESIAN CARR
+CARR) CARR) + fun-apply"). The driver is: peel, `mac-h` the IS-X unfold, split, and then
+either `fun-apply-type-c` directly (unary) or bridge the TUPLING first -- a structure
+operation eats one pair while the parser emits the curried `(f a b)`. Two mechanics make
+it work and neither is obvious:
+
+* **`apply-tupling-2` is stated with `==`, and `subst` takes a `==` as happily as a `=`**
+  (pi-eq-subst!). So the bridge is one rewrite of the goal. It has to be `==`: both sides
+  are undefined when `f` is not tuple-typed, and `=` is the definedness predicate.
+* **`binary-apply-type` does not exist and is not needed.** The May note said these
+  closure axioms "become derivable via IS-X unfold + the typing conjunct +
+  binary-apply-type"; the two pieces that would have built it (`fun-apply-type-c`,
+  proven; `pair-in-cartesian`, proven) do the job directly.
+
+`nvs-act-in-vec` has the same shape and does NOT fall to it: ACT's domain in the NVS
+declaration is the scalar ring's carrier, not `CARTESIAN(RR, VEC(m))`, so the pair does
+not type without the normed-field view. Left asserted, deliberately.
+
+**`ineq` premise indices are 1-BASED** (ineq-oracle.scm:206 -- `(>= i 1)`,
+`(list-ref asms (- i 1))`). A 0-based finder is in range, names the neighbouring
+formulas, and the oracle then reports "goal not a linear-RR consequence" -- blaming the
+goal, exactly the misdirection the 2026-08-15 skip-a-non-arithmetic-premise comment
+describes one line above the check.
 
 **Proving a fact that used to be an axiom moves it past the view specializer.**
 `view-as-auto-specialize!` runs inside `def-functor`, i.e. when views.scm loads

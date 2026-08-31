@@ -226,7 +226,6 @@
 (topic! 'summable-bound-implies-cauchy 'analysis)
 (topic! 'summable-bound-converges 'analysis)
 (topic! 'esum-finite-iff-bounded 'analysis)
-(topic! 'rr-le-all-pos-nonpos 'analysis)
 (topic! 'cauchy-cluster-converges 'analysis)
 (topic! 'cauchy-rapid-subsequence 'analysis)
 

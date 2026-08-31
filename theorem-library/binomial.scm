@@ -85,9 +85,10 @@
 (support 'bt-mul-comm (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'a '(IN a (CARR R))(tf 'b '(IN b (CARR R))
    (list '= '((MUL R) a b) '((MUL R) b a))))))
 (warrant! 'bt-mul-comm 'well-known "commutativity of MUL (the defining property).")
-(support 'bt-add-in-carr (tf 'R '(IS-COMMUTATIVE-RING R)(tf 'a '(IN a (CARR R))(tf 'b '(IN b (CARR R))
-   '(IN ((ADD R) a b)(CARR R))))))
-(warrant! 'bt-add-in-carr 'well-known "curried ring-carrier-closed-add.")
+;;; bt-add-in-carr is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
+;;; other six applied-form op typings: one driver over the IS-X unfold plus
+;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
+;;; recited.
 (support 'bt-one-in-carr (tf 'R '(IS-RING R) '(IN (ONE R)(CARR R))))
 (warrant! 'bt-one-in-carr 'well-known "ring ONE lies in CARR.")
 

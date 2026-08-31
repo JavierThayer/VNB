@@ -127,13 +127,10 @@
 (topic! 'vnrm-nonneg 'analysis)
 
 ;;; typing: the norm of a vector, and |g(w)| for a functional, are reals.
-(add-to-pss 'vnrm-real
-  '(FORALL m (FORALL w_
-     (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IMPLIES (IN w_ (VEC m))
-        (IN ((VNRM m) w_) RR))))))
-(warrant! 'vnrm-real 'reference
-  "VNRM(m) : VEC(m) -> RR, so the norm of a vector is a real.")
-(topic! 'vnrm-real 'analysis)
+;;; vnrm-real is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
+;;; other six applied-form op typings: one driver over the IS-X unfold plus
+;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
+;;; recited.
 
 (add-to-pss 'linfun-app-abs-real
   '(FORALL m (FORALL t (FORALL g (FORALL w_

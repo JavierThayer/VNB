@@ -162,11 +162,18 @@
 ;;; list index (`nth-r'), and fire the instance's own slot macete.
 ;;; =====================================================================
 
-(sp (make-wff (list '== (list 'OPR ct-ag) 'binplus)))
+;;; 2026-08-29: the right-hand side was the shared constant `binplus'.  It is now
+;;; the tupled VNB-LAMBDA that RR-NORMED-FIELD's ADD slot actually holds -- one
+;;; function per instance, rather than one object asserted into five function
+;;; classes at once, which proved NN = ZZ = QQ = RR = CC and thence FALSITY.
+;;; Same fact, same four steps; only the slot's contents moved.
+(define ct-add-lam '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (+ x_ y_)))
+
+(sp (make-wff (list '== (list 'OPR ct-ag) ct-add-lam)))
 (mac 'normed-field-additive-ag) (slot 'OPR) (nth-r) (slot 'ADD) (qrfl)
 (qed 'rr-additive-ag-opr)
 (topic! 'rr-additive-ag-opr 'analysis)
-(alias! 'rr-additive-ag-opr "the operation of RR's additive group is binplus")
+(alias! 'rr-additive-ag-opr "the operation of RR's additive group")
 
 (sp (make-wff (list '== (list 'IDEN ct-ag) 0)))
 (mac 'normed-field-additive-ag) (slot 'IDEN) (nth-r) (slot 'ZERO) (qrfl)
@@ -191,36 +198,42 @@
 (topic! 'series-partial-sum-zero 'analysis)
 (alias! 'series-partial-sum-zero "the empty partial sum is 0")
 
-(sp (make-wff '(FORALL f (FORALL k (IMPLIES (IN k NN)
-   (== (SERIES-PARTIAL-SUM f (succ k)) (+ (SERIES-PARTIAL-SUM f k) (f k))))))))
-(di) (di)
-(mac 'series-partial-sum) (mac 'sum-ag-succ) (mac 'rr-additive-ag-opr)
-(mac 'binplus-apply) (qrfl)
-(qed 'series-partial-sum-succ)
-(topic! 'series-partial-sum-succ 'analysis)
-(alias! 'series-partial-sum-succ "the partial-sum recurrence")
-
 ;;; =====================================================================
-;;; R2.  A REAL PARTIAL SUM IS REAL.
+;;; R2 (now FIRST).  A REAL PARTIAL SUM IS REAL.
 ;;;
 ;;; `sum-ag-type' says this for any abelian group and is an unwarranted axiom
 ;;; (bill {sum-ag-type}, trust: none) which would additionally need
 ;;; IS-ABELIAN-GROUP of the view, itself costing {rr-is-normed-field}.  The
-;;; induction is six lines and costs nothing, so it is the one taken.
+;;; induction is a few lines and costs nothing, so it is the one taken.
+;;;
+;;; IT RUNS AT THE GROUP LEVEL, AND SINCE 2026-08-29 IT HAS TO.  The step used to
+;;; cite `series-partial-sum-succ' -- the surface recurrence -- but that theorem
+;;; is now GUARDED on f (the operation slot holds a set function on
+;;; CARTESIAN(RR,RR), not the total constant `binplus', so the unguarded
+;;; statement is false), and typing its arguments needs exactly this result.
+;;; Citing it here would be circular.  sum-ag-succ plus the OPR read-off reach
+;;; the same place directly, and the typing comes from the group rather than
+;;; from the surface.
+;;;
+;;; Stated about SUM-AG rather than SERIES-PARTIAL-SUM so that the IH is in the
+;;; same language as sum-ag-succ; the SERIES-PARTIAL-SUM form is one unfold away
+;;; and is derived immediately below.
 ;;;
 ;;; k is stated OUTERMOST: `ni' tests the goal's SHAPE, and one `di' would take
 ;;; the run  forall([k in nn, f in fun(nn,rr)], ...)  whole, after which the
 ;;; induction is gone and there is no undo.
 ;;; =====================================================================
 
-(sp (make-wff '(FORALL k (IMPLIES (IN k NN)
-   (FORALL f (IMPLIES (IN f (FUN NN RR)) (IN (SERIES-PARTIAL-SUM f k) RR)))))))
+(sp (make-wff (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
+   (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN NN RR))
+     (list 'IN (list 'SUM-AG ct-ag 'f 'k) 'RR)))))))
 
 (define ct0-br (use-induction))
 
 (dk-focus! (cdr (assq 'base ct0-br)))
 (di)
-(mac 'series-partial-sum-zero)
+(mac 'sum-ag-zero)
+(mac 'rr-additive-ag-iden)
 (fact 'rr-zero-in)
 (ass)
 
@@ -228,18 +241,68 @@
 (define ct0-n  (cdr (assq 'var ct0-br)))
 (define ct0-ih (cdr (assq 'ih  ct0-br)))
 (define ct0-f  (cadr (ct-di-landed-1!)))
-(mac 'series-partial-sum-succ)
-(inst+ ct0-ih ct0-f)
-(fact 'fun-apply-type-c ct0-f 'NN 'RR ct0-n)
-;; rr-add-closed has an AND antecedent, which `fact' will not split.
-(have! (list 'AND (list 'IN (list 'SERIES-PARTIAL-SUM ct0-f ct0-n) 'RR)
-                  (list 'IN (list ct0-f ct0-n) 'RR)))
-(fact 'rr-add-closed (list 'SERIES-PARTIAL-SUM ct0-f ct0-n) (list ct0-f ct0-n))
+(inst+ ct0-ih ct0-f)                            ; SUM-AG(ag, f, n) in RR
+(fact 'fun-apply-type-c ct0-f 'NN 'RR ct0-n)    ; f(n) in RR
+(mac 'sum-ag-succ) (mac 'rr-additive-ag-opr)
+(dk-saturate-slot-ops! 'RR '((+ . rr-add-closed)))
 (ass)
 
+(qed 'sum-ag-rr-in-rr)
+(topic! 'sum-ag-rr-in-rr 'analysis)
+
+;;; ... and the SERIES-PARTIAL-SUM form, one unfold away.
+(sp (make-wff '(FORALL k (IMPLIES (IN k NN)
+   (FORALL f (IMPLIES (IN f (FUN NN RR)) (IN (SERIES-PARTIAL-SUM f k) RR)))))))
+(di) (di)
+(mac 'series-partial-sum)
+(fact 'sum-ag-rr-in-rr 'k 'f)
+(ass)
 (qed 'series-partial-sum-in-rr)
 (topic! 'series-partial-sum-in-rr 'analysis)
 (alias! 'series-partial-sum-in-rr "a real partial sum is real")
+
+;;; The functoid's unfold equation, as a THEOREM.  `def-functoid' installs only a
+;;; rewrite macete, so `mac-h' cannot unfold SERIES-PARTIAL-SUM in a HYPOTHESIS
+;;; by the functoid's own name -- it warns and no-ops.  The equation is provable
+;;; in one line, and the resulting theorem is what mac-h needs (CLAUDE.md).
+(sp (make-wff (list 'FORALL 'f (list 'FORALL 'k
+      (list '== '(SERIES-PARTIAL-SUM f k) (list 'SUM-AG ct-ag 'f 'k))))))
+(di) (di) (mac 'series-partial-sum) (qrfl)
+(qed 'series-partial-sum-unfold)
+(topic! 'series-partial-sum-unfold 'analysis)
+
+;;; GUARDED SINCE 2026-08-29 -- and guarded on the ARGUMENTS, which is the
+;;; weakest hypothesis that works and the only one both consumers can supply.
+;;;
+;;; It was stated for unguarded f, and that was sound only because the group's
+;;; operation slot held `binplus', a TOTAL class function whose apply equation
+;;; holds unconditionally.  The slot now holds a set function on
+;;; CARTESIAN(RR,RR), so off the reals the left side is an application outside
+;;; its domain (undefined) while the right side is not, and `==' quasi-equality
+;;; makes the unguarded statement FALSE.  It was true before only because of the
+;;; over-strong axioms this repair removed.
+;;;
+;;; WHY NOT `IN f (FUN NN RR)'.  That was the first guard tried, and it is too
+;;; strong: series-linearity.scm proves the POINTWISE forms, where f is assumed
+;;; only pointwise real, and could no longer cite this.  Guarding on the two
+;;; arguments instead -- which is exactly what the lambda application needs --
+;;; serves both: a FUN-typed sequence yields them by fun-apply-type-c, and a
+;;; pointwise-real one yields them directly.
+(sp (make-wff (list 'FORALL 'f (list 'FORALL 'k (list 'IMPLIES '(IN k NN)
+   (list 'IMPLIES '(IN (SERIES-PARTIAL-SUM f k) RR)
+     (list 'IMPLIES '(IN (f k) RR)
+       '(== (SERIES-PARTIAL-SUM f (succ k))
+            (+ (SERIES-PARTIAL-SUM f k) (f k))))))))))
+(di) (di) (di) (di)
+;; put the partial-sum typing into SUM-AG language, since unfolding the goal
+;; does the same to it (CLAUDE.md: normalise BOTH sides).
+(mac-h 'series-partial-sum-unfold '(IN (SERIES-PARTIAL-SUM f k) RR))
+(mac 'series-partial-sum) (mac 'sum-ag-succ) (mac 'rr-additive-ag-opr)
+(dk-saturate-slot-ops! 'RR '((+ . rr-add-closed)))
+(qrfl)
+(qed 'series-partial-sum-succ)
+(topic! 'series-partial-sum-succ 'analysis)
+(alias! 'series-partial-sum-succ "the partial-sum recurrence")
 
 ;;; =====================================================================
 ;;; L1.  series-partial-sum-monotone-nonneg.  Statement reproduced VERBATIM
@@ -259,9 +322,11 @@
 (define ct1-f      (cadr (ct-di-landed-1!)))
 (define ct1-nonneg (ct-di-landed-1!))
 (define ct1-k      (cadr (ct-di-landed-1!)))
-(mac 'series-partial-sum-succ)
+;; series-partial-sum-succ is guarded on its two ARGUMENTS being real (2026-08-29),
+;; so land those typings BEFORE the rewrite rather than after it.
 (fact 'series-partial-sum-in-rr ct1-k ct1-f)
 (fact 'fun-apply-type-c ct1-f 'NN 'RR ct1-k)
+(mac 'series-partial-sum-succ)
 (inst+ ct1-nonneg ct1-k)
 (ct-ineq (list '<= 0 (list ct1-f ct1-k)))
 (qed 'series-partial-sum-monotone-nonneg)
@@ -297,11 +362,13 @@
 (ass)
 
 (dk-focus! (cdr (assq 'step ct2-br)))
-(mac 'series-partial-sum-succ)
+;; the recurrence is guarded on its two ARGUMENTS being real (2026-08-29), and it
+;; rewrites BOTH sides here, so all four typings must precede it.
 (fact 'series-partial-sum-in-rr ct2-k ct2-f)
 (fact 'series-partial-sum-in-rr ct2-k ct2-g)
 (fact 'fun-apply-type-c ct2-f 'NN 'RR ct2-k)
 (fact 'fun-apply-type-c ct2-g 'NN 'RR ct2-k)
+(mac 'series-partial-sum-succ)
 (inst+ ct2-le ct2-k)
 (ct-ineq ct2-ih (list '<= (list ct2-f ct2-k) (list ct2-g ct2-k)))
 (qed 'series-partial-sum-le-termwise)
@@ -644,15 +711,23 @@
 
 ;; STEP.
 (di)                                    ; k in nn
-(mac 'series-partial-sum-succ)          ; BOTH sides recurse: S(k+1) = S(k) + f(k)
 (di)                                    ; the induction hypothesis, over all f
 (di)                                    ; f in fun(nn, rr)
-(inst+ 2 'f)                            ; the hypothesis at THIS f
-(lam-b)                                 ; (|f|)(k)  ->  |f(k)|
+(inst+ 2 'f)                            ; the hypothesis at THIS f -- BEFORE the
+                                        ; facts below, which would shift the index
+;; series-partial-sum-succ is GUARDED since 2026-08-29 on its two ARGUMENTS being
+;; real (the operation slot holds a set function on CARTESIAN(RR,RR), not the
+;; total constant `binplus').  It is applied to BOTH sides here, so all FOUR
+;; typings -- the partial sum and the term, for f and for |f| -- have to be in
+;; context before the rewrite, not after it.  Every one of them was already
+;; cited by this proof; only the order changed.
 (fact 'abs-seq-in-fun 'f)               ; |f| is a real sequence ...
 (fact 'series-partial-sum-in-rr 'k '(vnb-lambda n_ nn (abs (f n_))))   ; ... so its sum is real
-(fact 'fun-apply-type-c 'f 'nn 'rr 'k)
+(fact 'fun-apply-type-c '(vnb-lambda n_ nn (abs (f n_))) 'nn 'rr 'k)   ; ... and |f|(k) is real
 (fact 'series-partial-sum-in-rr 'k 'f)
+(fact 'fun-apply-type-c 'f 'nn 'rr 'k)
+(mac 'series-partial-sum-succ)          ; BOTH sides recurse: S(k+1) = S(k) + f(k)
+(lam-b)                                 ; (|f|)(k)  ->  |f(k)|
 (fact 'rr-abs-triangle-c '(series-partial-sum f k) '(f k))             ; SUBADDITIVITY
 (fact 'rr-abs-closed '(series-partial-sum f k))
 (fact 'rr-abs-closed '(f k))

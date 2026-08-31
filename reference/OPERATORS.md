@@ -11,7 +11,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-474 operators: 14 functions, 270 functoids, 190 predicates, 0 undeclared.
+477 operators: 14 functions, 273 functoids, 190 predicates, 0 undeclared.
 
 ## Functions  (14)
 
@@ -32,7 +32,7 @@ Each denotes a set-function — an element of some `FUN(A,B)` with `A`,`B` sets 
 - `succ` denotes a function `NN -> NN`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Functoids  (270)
+## Functoids  (273)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -84,15 +84,15 @@ Declared by: `amgm-2-sqrt` `bdd-fn-le-arg` `bdd-fn-lt-one` `bdd-fn-mono` `bdd-fn
 
 ### `binneg`  — characterized by axiom(s)
 
-Declared by: `binneg-apply` `binneg-in-fun-cc` `binneg-in-fun-qq` `binneg-in-fun-rr` `binneg-in-fun-zz` `cc-normed-field-def` `cc-normed-field@neg` `nary-minus-2` 
+Declared by: `binneg-apply` `nary-minus-2` `nary-neg-1` 
 
 ### `binplus`  — characterized by axiom(s)
 
-Declared by: `binplus-apply` `binplus-in-fun-cc` `binplus-in-fun-nn` `binplus-in-fun-qq` `binplus-in-fun-rr` `binplus-in-fun-zz` `cc-normed-field-def` `cc-normed-field@add` 
+Declared by: `binplus-apply` `eplus-real` `nary-minus-2` `nary-plus-2` `nary-plus-2-list` `nary-plus-3` `nary-plus-3-list` `nary-plus-4` 
 
 ### `bintimes`  — characterized by axiom(s)
 
-Declared by: `bintimes-apply` `bintimes-in-fun-cc` `bintimes-in-fun-nn` `bintimes-in-fun-qq` `bintimes-in-fun-rr` `bintimes-in-fun-zz` `cc-normed-field-def` `cc-normed-field@mul` 
+Declared by: `bintimes-apply` `etimes-real` `nary-times-2` `nary-times-2-list` `nary-times-3` `nary-times-3-list` `nary-times-4` `nary-times-4-list` 
 
 ### `block`  — def-functoid · element/number-valued
 
@@ -270,13 +270,21 @@ Declared by: `delete-at-above-k` `delete-at-below-k` `delete-at-in-fun` `delete-
 
 Declared by: `det-zero` `det-cofactor` 
 
-### `difference`  — characterized by axiom(s)
+### `difference`  — def-functoid · set-valued
 
-Declared by: `difference-membership` `difference-set` `field-non-zero-carrier` `is-caratheodory-measurable` `is-field` `prod-of-sums-expansion` `qq-field-def` `qq-field@non-zero` 
+> _Reads as:_  the set difference of u_ and b_
+
+    difference(u_, b_) := complement-in(u_, b_)
 
 ### `dir-deriv`  — def-functoid · element/number-valued
 
     dir-deriv(m, f, a, eta) := deriv(seg-curve(m, f, a, eta), 0)
+
+### `discrete-space`  — def-functoid · tuple/structure-valued
+
+> _Reads as:_  the discrete space on a_
+
+    discrete-space(a_) := [a_, power(a_)]
 
 ### `dist`  — structure accessor · element (slot value)
 
@@ -842,6 +850,10 @@ Declared by: `prod-set-disjoint-union` `prod-set-empty` `prod-set-singleton` `pr
 
 Declared by: `qq-field-def` 
 
+### `qq-line`  — characterized by axioms (def-constant)
+
+Declared by: `qq-line-def` 
+
 ### `qq-ring`  — characterized by axioms (def-constant)
 
 Declared by: `qq-ring-def` 
@@ -938,6 +950,10 @@ Declared by: `rr-ms-def`
 
 Declared by: `rr-normed-field-def` 
 
+### `rr-nvs`  — characterized by axioms (def-constant)
+
+Declared by: `rr-nvs-def` 
+
 ### `scal`  — structure accessor · element (slot value)
 
 ### `seg-curve`  — def-functoid · function-valued
@@ -972,9 +988,9 @@ Declared by: `rr-normed-field-def`
 
     sigma-generated(omega, ce) := {a_ in power(omega): forall([cb_], is-sigma-algebra(omega, cb_) and ce subset cb_ implies a_ in cb_)}
 
-### `singleton`  — characterized by axiom(s)
+### `singleton`  — def-functoid · set-valued
 
-Declared by: `field-non-zero-carrier` `is-field` `qq-field-def` `qq-field@non-zero` 
+    singleton(y_) := {y_}
 
 ### `size`  — def-functoid · tuple/structure-valued
 

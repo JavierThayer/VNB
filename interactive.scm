@@ -215,11 +215,21 @@
 (define (sp wic-in)
   (vnb-guard
     (lambda ()
-      (define wic
-        (cond ((wff? wic-in) wic-in)
-              ((string? wic-in) (make-wff-from-string wic-in))
-              ((pair? wic-in) (make-wff wic-in))
-              (else (error "sp: expected a wff, a \"string\", or an S-expr" wic-in))))
+      ;; CLEAR THE CURRENT PROOF FIRST.  `vnb-guard' catches the coercion
+      ;; errors below and RETURNS -- it does not propagate -- so before this
+      ;; line a rejected statement left the PREVIOUS proof live and complete,
+      ;; and the next `qed' installed THAT proof under the NEW name: sound,
+      ;; silent, and a lie about what the name means.  Found 2026-08-30 in
+      ;; theorem-library/discrete-space.scm, where a mis-shaped
+      ;; `forall-guarded' call installed one lemma's statement as the next
+      ;; lemma's.  Cleared, the same slip is a hard "No current proof" from
+      ;; `vnb--require-proof!'.
+      (set! *ps* #f)
+      (let ((wic
+             (cond ((wff? wic-in) wic-in)
+                   ((string? wic-in) (make-wff-from-string wic-in))
+                   ((pair? wic-in) (make-wff wic-in))
+                   (else (error "sp: expected a wff, a \"string\", or an S-expr" wic-in)))))
       (set! *proof-script* '())
       (set! *current-goal* (wff-formula wic))
       (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
@@ -227,7 +237,7 @@
       (vnb--undo-reset!)                             ; no backing up past (sp)
       (set! *live-trace* '())                        ; begin a fresh live capture
       (vnb--capture-step! (cons 'sp '()))            ; seed it with the initial goal
-      (show))))
+      (show)))))
 
 ;;; (wff "...") -- short alias for make-wff-from-string, so a goal can be
 ;;; started from the scratch sheet as (sp (wff "forall([x in nn], x in zz)")).
@@ -920,25 +930,89 @@
     (if (in-rr--in-ctx? mem) #t
         (begin (cut mem) (in-rr--focus-goal! mem) (in-rr--close!)
                (in-rr--focus-asm! mem)))))
+;;; The domain's CLOSURE axiom for a surface arithmetic head, or #f.
+;;;
+;;; 2026-08-29.  in-rr used to type (IN (+ a b) S) by pushing to the shared
+;;; bridge constant (to-binary), tupling with apply-tupling-2, and citing
+;;; `binplus-in-fun-S' + fun-apply-type-c.  Those fourteen typing axioms are GONE:
+;;; `IN f (FUN A ...)' pins DOM(f) = A exactly, so one object asserted into five
+;;; numeric function classes proved NN = ZZ = QQ = RR = CC and thence FALSITY
+;;; (structure-library/numeric-instances.scm).
+;;;
+;;; The replacement is not a workaround, it is what this tactic should always
+;;; have done: `a + b in ZZ' IS zz-add-closed.  No bridge symbol, no tupling
+;;; detour, one citation instead of three, and the fact cited is about the
+;;; DOMAIN rather than about a function space.  NN has no `-closed' for negation,
+;;; correctly -- NN is not closed under it -- and this returns #f there, so the
+;;; goal falls through to the generic branch instead of citing a false lemma.
+;;; Does the term hold a FLAT n-ary arithmetic node -- (+ a b c) or longer?
+;;; Those are the only goals to-binary is needed for.
+(define (in-rr--has-nary? t)
+  (and (pair? t)
+       (or (and (memq (car t) '(+ *)) (> (length (cdr t)) 2))
+           (let any ((xs (cdr t)))
+             (and (pair? xs)
+                  (or (in-rr--has-nary? (car xs)) (any (cdr xs))))))))
+
+;;; ARITY MATTERS FOR `-'.  Unary `- a' is negation and closes by
+;;; <d>-neg-closed; BINARY `a - b' is subtraction and closes by <d>-sub-in-<d>
+;;; (rr-sub-in-rr, zz-sub-in-zz, cc-sub-in-cc -- there is no NN or QQ form, and
+;;; NN correctly has neither, being closed under neither operation).  Mapping
+;;; both arities onto the unary lemma cites a theorem of the wrong shape, and
+;;; `fact' then lands nothing: a goal `1 - x in RR' simply fails to type.
+(define (in-rr--closure-thm op S #!optional arity)
+  (and (symbol? S)
+       (let* ((d (string-downcase (symbol->string S)))
+              (name (cond ((eq? op '+) (string-append d "-add-closed"))
+                          ((eq? op '*) (string-append d "-mul-closed"))
+                          ((eq? op '-)
+                           (if (eqv? arity 2)
+                               (string-append d "-sub-in-" d)
+                               (string-append d "-neg-closed")))
+                          (else #f))))
+         (and name
+              (let ((n (string->symbol name)))
+                (and (hash-table-ref/default *theorem-table* n #f) n))))))
+
 (define (in-rr--close!)                    ; close current focus goal (IN term S)
   (let* ((g (in-rr--goal)) (term (cadr g)) (S (caddr g)))
     (cond
       ((in-rr--in-ctx? g) (ass))
       ((symbol? term) (ass))
       ((number? term) (ass))
-      ((and (pair? term) (eq? (car term) 'binneg))
-       (let ((a (cadr term)))
+      ;; BRIDGE form -> surface form, then fall through to the closure branches.
+      ;; to-binary (above) leaves nested `binplus'/`bintimes'/`binneg'; their
+      ;; defining apply equations take them back to + * -, which is where the
+      ;; closure axioms live.
+      ((and (pair? term)
+            (memq (car term) '(binplus bintimes binneg))
+            (in-rr--closure-thm (case (car term)
+                                  ((binplus) '+) ((bintimes) '*) (else '-))
+                                S
+                                (if (eq? (car term) 'binneg) 1 2)))
+       (quietly (lambda ()
+                  (mac (case (car term)
+                         ((binplus)  'binplus-apply)
+                         ((bintimes) 'bintimes-apply)
+                         (else       'binneg-apply)))))
+       (in-rr--close!))
+      ;; SURFACE ARITHMETIC, typed from the domain's own closure axiom.
+      ((and (pair? term) (= (length term) 2)
+            (in-rr--closure-thm (car term) S 1))
+       (let ((thm (in-rr--closure-thm (car term) S 1)) (a (cadr term)))
          (in-rr--ensure! a S) (in-rr--focus-goal! g)
-         (quietly (lambda () (fact (in-rr--op-typ 'binneg S))
-                             (fact 'fun-apply-type-c 'binneg S S a) (ass)))))
-      ((and (pair? term) (memq (car term) '(binplus bintimes)))
-       (let* ((op (car term)) (a (cadr term)) (b (caddr term))
-              (lst (list 'LIST a b)) (tup (list op lst)) (cart (list 'CARTESIAN S S)))
-         (fact 'apply-tupling-2 op a b)
-         (subst (list '== (list op a b) tup))
-         (in-rr--ensure! lst cart) (in-rr--focus-goal! (list 'IN tup S))
-         (quietly (lambda () (fact (in-rr--op-typ op S))
-                             (fact 'fun-apply-type-c op cart S lst) (ass)))))
+         (quietly (lambda () (fact thm a) (ass)))))
+      ((and (pair? term) (= (length term) 3)
+            (in-rr--closure-thm (car term) S 2))
+       (let ((thm (in-rr--closure-thm (car term) S 2))
+             (a (cadr term)) (b (caddr term)))
+         (in-rr--ensure! a S) (in-rr--ensure! b S)
+         (in-rr--focus-goal! g)
+         ;; the closure axioms carry an AND antecedent, so `fact' needs the
+         ;; conjunction in context before it will detach (CLAUDE.md).
+         (quietly (lambda ()
+                    (dk-have! (list 'AND (list 'IN a S) (list 'IN b S)))
+                    (fact thm a b) (ass)))))
       ((and (pair? term) (eq? (car term) 'LIST))
        (ci)
        (for-each (lambda (elt fac)
@@ -956,13 +1030,18 @@
              (ass)))))))
 (define (in-rr)
   (vnb--require-proof!)
-  ;; SPECULATIVE pre-step: push any n-ary arithmetic onto the structure surface
-  ;; so the typing lemmas match.  Most typing goals have none, so this declines
-  ;; -- 32 times over a library load, every one of them from here, as the new
-  ;; inert-command notice reported the day it was written (2026-08-24).  A
-  ;; speculative step that declines is not a no-op the user typed, so it is
-  ;; `quietly': the notice, like every soft warning, is suppressed under it.
-  (quietly (lambda () (to-binary)))
+  ;; to-binary folds the parser's FLAT n-ary node -- `a + b + c' is one term of
+  ;; length 4 that no binary closure axiom matches -- into nested binary
+  ;; applications.  It is run ONLY when such a node is present.
+  ;;
+  ;; Running it unconditionally (as this did until 2026-08-29) is harmful now
+  ;; that typing goes through surface closure axioms: it rewrites EVERY
+  ;; arithmetic subterm into bridge form, so a goal `w(k) * ... g(k - 1) ...'
+  ;; becomes `... g(binplus(k, binneg(1))) ...' and the context's own
+  ;; `g(k - 1) in RR' stops matching it.  The old typing route went through the
+  ;; bridge symbols anyway, so the mangling cost nothing and was not noticed.
+  (if (in-rr--has-nary? (in-rr--goal))
+      (quietly (lambda () (to-binary))))
   (in-rr--close!)
   (quietly (lambda () (ass-all)))
   (proof-done? *ps*))

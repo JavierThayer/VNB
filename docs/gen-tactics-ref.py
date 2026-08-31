@@ -40,6 +40,26 @@ def esctt(s):
 
 CODE_INDENT = re.compile(r'^\s{4,}\S')   # a blurb line that is indented example code
 
+# makeindex and LaTeX each have their own special characters, and VNB names hit
+# both: `warrant!' ends in ! (makeindex's subentry separator), `card-star(a_)'
+# contains _ (LaTeX math-mode shift).  An index entry is  sortkey@printedform ,
+# so the two halves need DIFFERENT escaping -- the sort key is plain text
+# makeindex compares, the printed form is LaTeX it typesets.
+_IDX_CTRL = '!@|"'                       # makeindex control characters
+_TEX_ESC = {'\\': '\\textbackslash{}', '{': '\\{', '}': '\\}', '$': '\\$',
+            '&': '\\&', '#': '\\#', '^': '\\^{}', '_': '\\_',
+            '%': '\\%', '~': '\\~{}'}
+
+def _idx_quote(s):                       # protect makeindex's own metacharacters
+    return ''.join(('"' + c) if c in _IDX_CTRL else c for c in s)
+
+def idx(name, note=''):
+    key = _idx_quote(name)                                   # sorts on the bare name
+    shown = _idx_quote(''.join(_TEX_ESC.get(c, c) for c in name))
+    tail = (' (%s)' % note) if note else ''
+    return '\\index{%s@\\texttt{%s}%s}' % (key, shown, tail)
+
+
 def parse(md):
     """Return [(group_title, [entry, ...]), ...] where entry is a dict with keys
     sig, kind, short, when, long (long is a list of raw lines)."""
@@ -98,7 +118,7 @@ def classify(name, block):
     # trim leading / trailing blank lines
     while long_lines and not long_lines[0].strip(): long_lines.pop(0)
     while long_lines and not long_lines[-1].strip(): long_lines.pop()
-    return dict(sig=sig, kind=kind, short=short, when=when, long=long_lines)
+    return dict(name=name, sig=sig, kind=kind, short=short, when=when, long=long_lines)
 
 def render_long(lines):
     """Render the long-explanation lines: prose paragraphs (blank-line separated),
@@ -160,9 +180,10 @@ def render(groups):
         for e in entries:
             # ragged heading so a long signature wraps at its spaces instead of
             # overfilling; kind trails inline in small caps.
-            o.append('\\par\\smallskip{\\raggedright\\noindent\\texttt{%s}%s\\par}\\nobreak'
+            o.append('\\par\\smallskip{\\raggedright\\noindent\\texttt{%s}%s%s\\par}\\nobreak'
                      % (esctt(e['sig']),
-                        ('\\quad\\tactkind{%s}' % esc(e['kind'])) if e['kind'] else ''))
+                        ('\\quad\\tactkind{%s}' % esc(e['kind'])) if e['kind'] else '',
+                        idx(e['name'], 'tactic')))
             if e['short']:
                 o.append('\\noindent %s\\par' % esc(e['short']))
             if e['when']:

@@ -118,16 +118,25 @@
              '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 'RR)
 (topic! 'rr-scalar-ring-carr 'algebra)
 
+;;; 2026-08-29: the value was the shared constant `binplus'.  RR-NORMED-FIELD's
+;;; ADD slot now holds a tupled VNB-LAMBDA instead -- one function per instance,
+;;; rather than one object asserted into five function classes at once (which
+;;; proved ZZ = QQ = RR = CC and thence FALSITY; see numeric-instances.scm).
+;;; The equation is the same KIND of fact and proves by the same five steps; only
+;;; the right-hand side moved.
 (nfrv-prove! 'rr-scalar-ring-add 'ADD
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 'binplus)
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
+             '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (+ x_ y_)))
 (topic! 'rr-scalar-ring-add 'algebra)
 
 (nfrv-prove! 'rr-scalar-ring-mul 'MUL
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 'bintimes)
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
+             '(VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (* x_ y_)))
 (topic! 'rr-scalar-ring-mul 'algebra)
 
 (nfrv-prove! 'rr-scalar-ring-neg 'NEG
-             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD) 'binneg)
+             '(NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)
+             '(VNB-LAMBDA x_ RR (- x_)))
 (topic! 'rr-scalar-ring-neg 'algebra)
 
 (nfrv-prove! 'rr-scalar-ring-zero 'ZERO

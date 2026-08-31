@@ -54,6 +54,15 @@
 (define (nm-and* xs)
   (fold-right (lambda (x acc) (if acc (list 'AND x acc) x)) #f xs))
 
+;;; Focus the open leaf whose goal satisfies PRED.  Errors on a miss -- a focus
+;;; helper that returns #f and leaves focus put hides every later failure.
+(define (nm-focus-leaf! pred)
+  (let ((ls (filter (lambda (n) (pred (wff-formula (sequent-node-assertion n))))
+                    (filter (lambda (s) (null? (sequent-node-in-arrows s)))
+                            (proof-open-goals *ps*)))))
+    (if (null? ls) (error "nn-add-monoid: no open leaf matches"))
+    (dk-focus! (car ls))))
+
 (define (nm-close-leaf!)
   (let ((g (nm-goal)))
     (cond
@@ -61,8 +70,37 @@
       ((and (eq? (nm-head g) '=) (pair? (cadr g)) (eq? (car (cadr g)) 'LENGTH))
        (mac 'nn-add-monoid-def) (len-r) (arith))
       ((equal? g '(IN NN SET)) (fact 'nn-is-set) (ass))
-      ((and (eq? (nm-head g) 'IN) (eq? (cadr g) 'binplus))
-       (fact 'binplus-in-fun-nn) (ass))
+      ;; the op-slot typing.  Until 2026-08-29 the slot held the shared constant
+      ;; `binplus' and this cited binplus-in-fun-nn -- one of the fourteen
+      ;; axioms that jointly proved NN = ZZ = QQ = RR = CC and hence FALSITY.
+      ;; The slot now holds a tupled VNB-LAMBDA, so the typing is PROVED: lam-t
+      ;; leaves the pointwise closure fact (nn-add-closed) and the sethood of
+      ;; CARTESIAN(NN,NN).  Nothing is asserted that was not already there.
+      ((and (eq? (nm-head g) 'IN)
+            (pair? (cadr g)) (eq? (car (cadr g)) 'VNB-LAMBDA))
+       ;; Take the leaves lam-t OPENED; a shape search over all open leaves
+       ;; picks up a sibling conjunct's IN goal (see zz-ring-is-ring.scm).
+       (let* ((opened (dk-opened (lambda () (lam-t))))
+              (pick (lambda (head)
+                      (let ((hit (filter (lambda (n)
+                                           (let ((gg (wff-formula
+                                                      (sequent-node-assertion n))))
+                                             (and (pair? gg) (eq? (car gg) head))))
+                                         opened)))
+                        (and (pair? hit) (dk-focus! (car hit)))))))
+         (when (pick 'FORALL)
+           (di)
+           (let* ((g2 (nm-goal)) (sum (cadr g2)) (a (cadr sum)) (b (caddr sum)))
+             (dk-have! (list 'AND (list 'IN a 'NN) (list 'IN b 'NN)))
+             (fact 'nn-add-closed a b))
+           (ass))
+         ;; sethood is conditional: hash-consing means a sibling conjunct may
+         ;; already have posted the identical node, so lam-t opens one leaf.
+         (when (pick 'IN)
+           (fact 'nn-is-set)
+           (dk-have! '(AND (IN NN SET) (IN NN SET)))
+           (mac 'cartesian-set-iff)
+           (ass))))
       ((and (eq? (nm-head g) 'IN) (number? (cadr g))) (arith))
       ;; a law: unfold, drop to the surface, peel, then CITE.
       ((memq (nm-head g) '(is-associative is-commutative is-identity))
@@ -70,16 +108,20 @@
          (mac law)
          (quietly (lambda () (surface-goal! 'NN-ADD-MONOID)))
          (nm-peel!)
+         ;; NN-ADD-MONOID's ADD slot holds a tupled VNB-LAMBDA now, not the
+         ;; shared constant `binplus', so the law goals arrive as lambda
+         ;; APPLICATIONS.  Take them down to `+' before citing the NN axioms.
+         (dk-saturate-slot-ops! 'NN '((+ . nn-add-closed)))
          (let ((gg (nm-goal)))
            (case law
              ((is-associative)
               (let ((vs (nm-assoc-vars gg)))
-                (have! (nm-and* (map (lambda (v) (list 'IN v 'NN)) vs)))
+                (dk-have! (nm-and* (map (lambda (v) (list 'IN v 'NN)) vs)))
                 (apply fact 'nn-add-assoc vs)
                 (ass)))
              ((is-commutative)
               (let ((vs (nm-comm-vars gg)))
-                (have! (nm-and* (map (lambda (v) (list 'IN v 'NN)) vs)))
+                (dk-have! (nm-and* (map (lambda (v) (list 'IN v 'NN)) vs)))
                 (apply fact 'nn-add-comm vs)
                 (ass)))
              ((is-identity)
@@ -87,9 +129,9 @@
               ;; commutativity.  Establish both, THEN split the conjunction.
               (let ((u (nm-ident-var gg)))
                 (fact 'nn-add-zero u)                            ; u + 0 = u
-                (have! (list 'AND '(IN 0 NN) (list 'IN u 'NN)))  ; from-context!
+                (dk-have! (list 'AND '(IN 0 NN) (list 'IN u 'NN)))  ; from-context!
                 (fact 'nn-add-comm 0 u)                          ; 0 + u = u + 0
-                (have! (list '= (list '+ 0 u) u)
+                (dk-have! (list '= (list '+ 0 u) u)
                        (lambda ()
                          (subst (list '= (list '+ 0 u) (list '+ u 0)))
                          (ass)))

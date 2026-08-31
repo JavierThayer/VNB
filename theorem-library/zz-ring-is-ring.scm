@@ -35,15 +35,75 @@
 ;;; Per-instance data: carrier, defining equation, the set-hood fact, and the
 ;;; three membership conjuncts (each an axiom of number-systems /
 ;;; numeric-instances).
+;;; 2026-08-29: the last field was a map from the shared bridge CONSTANT to its
+;;; FUN-membership axiom (binplus -> binplus-in-fun-zz, ...).  Those axioms are
+;;; GONE: one object cannot be a set function with five different domains, and
+;;; asserting so proved ZZ = QQ = RR = CC and thence FALSITY.  The slots now hold
+;;; a tupled VNB-LAMBDA per instance (numeric-instances.scm), so the op-slot
+;;; typing is PROVED by lam-t, and the field below maps the lambda body's
+;;; OPERATION HEAD to the carrier's closure axiom -- which is what those typings
+;;; were always a mis-encoding of (numeric-instances.scm said so in prose).
 (define zr-instances
   '((ZZ-RING ZZ zz-ring-def zz-is-set zz-is-ring
-     ((binplus  . binplus-in-fun-zz)
-      (bintimes . bintimes-in-fun-zz)
-      (binneg   . binneg-in-fun-zz)))
+     ((+ . zz-add-closed) (* . zz-mul-closed) (- . zz-neg-closed)))
     (QQ-RING QQ qq-ring-def qq-is-set qq-is-ring
-     ((binplus  . binplus-in-fun-qq)
-      (bintimes . bintimes-in-fun-qq)
-      (binneg   . binneg-in-fun-qq)))))
+     ((+ . qq-add-closed) (* . qq-mul-closed) (- . qq-neg-closed)))))
+
+;;; The op-slot typing  IN (VNB-LAMBDA ...) (FUN dom rng),  proved not cited.
+;;; `lam-t' opens exactly two leaves: the pointwise typing of the body -- the
+;;; carrier's closure axiom, verbatim -- and SETHOOD of the domain.  Both are
+;;; already in the tree; nothing new is asserted.
+;;;
+;;; TAKE THE LEAVES `lam-t' OPENED, never search the open leaves by SHAPE.  The
+;;; other thirteen conjuncts of IS-RING are still open at this point and three of
+;;; them are `IN' goals -- a shape search picked up MUL's typing while closing
+;;; ADD's, and the driver then rewrote the wrong branch and failed several steps
+;;; later, blaming the conjunct it had started on.  `dk-opened' is what the rest
+;;; of this file already uses for exactly this reason.
+(define (zr-close-lambda-typing! ring g)
+  (let* ((carrier (cadr ring))
+         (setfact (cadddr ring))
+         (closure (list-ref ring 5))
+         (lam     (cadr g))
+         (binder  (cadr lam))
+         (body    (cadddr lam))
+         (thm     (cdr (assq (car body) closure)))
+         (tupled? (and (pair? binder) (eq? (car binder) 'LIST)))
+         (opened  (dk-opened (lambda () (lam-t)))))
+    (define (pick head)
+      (let ((hit (filter (lambda (n)
+                           (let ((gg (wff-formula (sequent-node-assertion n))))
+                             (and (pair? gg) (eq? (car gg) head))))
+                         opened)))
+        (and (pair? hit) (dk-focus! (car hit)))))
+    (if (null? opened)
+        (error "zz-ring-is-ring: lam-t opened nothing on" g))
+    ;; leaf 1 -- pointwise: forall <args> in carrier. op(<args>) in carrier
+    (when (pick 'FORALL)
+      (di)
+      (let* ((g2 (zr-goal)) (term (cadr g2)) (args (cdr term)))
+        (if (pair? (cdr args))
+            (begin (dk-have! (list 'AND (list 'IN (car args)  carrier)
+                                     (list 'IN (cadr args) carrier)))
+                   (fact thm (car args) (cadr args)))
+            (fact thm (car args))))
+      (ass))
+    ;; leaf 2 -- SETHOOD of the domain, and it is not always opened: sequent
+    ;; nodes are hash-consed, so when a sibling conjunct has already posted the
+    ;; identical `CARTESIAN(c,c) in SET' under the identical context, lam-t
+    ;; posts no new node and dk-opened correctly reports one leaf, not two.
+    ;; Closing it is therefore conditional -- never assume an arity of leaves.
+    (when (pick 'IN)
+      (fact setfact)
+      (when tupled?
+        (dk-have! (list 'AND (list 'IN carrier 'SET) (list 'IN carrier 'SET)))
+        (mac 'cartesian-set-iff))
+      (ass))))
+
+
+;;; The slot-application saturation lives in driver-kit.scm (dk-saturate-slot-ops!)
+;;; since nn-add-monoid.scm needs it too -- CLAUDE.md's rule: one file, keep it
+;;; local; two files, it belongs in the kit.
 
 ;;; Discharge the FOCUSED conjunct of instance RING (the zr-instances entry).
 ;;; Every branch is decided by the goal's own shape -- there is no search here,
@@ -51,7 +111,6 @@
 (define (zr-close-leaf! ring)
   (let ((name   (car ring))    (carrier (cadr ring))
         (defn   (caddr ring))  (setfact (cadddr ring))
-        (typing (list-ref ring 5))
         (g      (zr-goal)))
     (cond
       ;; length(<ring>) = 6 : unfold the tuple, reduce LENGTH, compute.
@@ -63,9 +122,10 @@
       ;; (IN <carrier> SET)
       ((equal? g (list 'IN carrier 'SET))
        (fact setfact) (ass))
-      ;; (IN binplus (FUN ...)) and siblings
-      ((and (eq? (zr-head g) 'IN) (assq (cadr g) typing))
-       => (lambda (hit) (fact (cdr hit)) (ass)))
+      ;; (IN (VNB-LAMBDA ...) (FUN ...)) -- the op-slot typing, PROVED by lam-t.
+      ((and (eq? (zr-head g) 'IN)
+            (pair? (cadr g)) (eq? (car (cadr g)) 'VNB-LAMBDA))
+       (zr-close-lambda-typing! ring g))
       ;; a law: is-associative / is-commutative / is-identity / has-inverses /
       ;; is-distributive.  Unfold it, drop to the surface, peel, and let `crs'
       ;; decide the ring identity.  (di splits the AND goals of is-identity /
@@ -97,7 +157,7 @@
              ((eq? (zr-head g2) 'AND)
               (for-each (lambda (k) (dk-focus! k) (close (- fuel 1)))
                         (dk-opened (lambda () (di)))))
-             (else (crs))))))
+             (else (dk-saturate-slot-ops! carrier (list-ref ring 5)) (crs))))))
       (else (error "zz-ring-is-ring: unexpected conjunct" g)))))
 
 ;;; A genuine open LEAF: ungrounded AND no rule has fired on it.  proof-open-goals

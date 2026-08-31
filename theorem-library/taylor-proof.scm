@@ -134,21 +134,300 @@
 ;; guard the unrestricted forall f,x over-asserts (for a non-differentiable f the
 ;; polynomial is undefined while f(x) may not be, so neither `=' nor `==' holds).
 ;; Under the guard both sides are defined and this is a genuine partial equality.
-(add-to-pss 'taylor-poly-at-center
+;;;
+;;; PROVEN 2026-08-29.  Until then this was an `add-to-pss' + `warrant!
+;;; 'reference', and the warrant text WAS the proof -- written out in prose and
+;;; never run (the species of comment CLAUDE.md warns about).  It is now
+;;; mechanized, `modulo 0', by exactly the route that text named:
+;;;
+;;;   TAYLOR-POLY(f,x,n,x) unfolds (the def-functoid at the head of this file)
+;;;   to  SERIES-PARTIAL-SUM(k |-> f^(k)(x) . (x-x)^k . recip(k!),  succ n),
+;;;   and the sum falls to INDUCTION ON THE DEGREE:
+;;;     base   SPS(term, succ 0) = SPS(term,0) + term(0) = 0 + f(x).1.recip(0!)
+;;;     step   SPS(term, succ(succ n)) = SPS(term, succ n) + term(succ n),
+;;;            and term(succ n) carries (x-x)^(succ n) = 0^(succ n) = 0.
+;;;
+;;; THE INDUCTION IS A SEPARATE THEOREM (`taylor-center-partial-sum') because
+;;; `ni' tests the goal's SHAPE literally and the statement below binds n
+;;; INNERMOST; the headline instantiates it.  Restating the headline with n
+;;; outermost was not an option -- every citer sees the formula it always saw.
+;;;
+;;; THE STEP'S ONE PIECE OF BOOKKEEPING is the guard.  The induction hypothesis
+;;; asks for f^(k)(x) in RR for k <= n while the goal supplies it for
+;;; k <= succ n, so the WEAKER guard is rebuilt from the stronger one
+;;; (nn-le-succ, then nn-le-trans-guarded) before the hypothesis can be used.
+;;;
+;;; WHAT COST THE MOST was not the analysis but a TYPING.  `series-partial-sum-
+;;; succ' is guarded on BOTH its arguments being real, so each step of the
+;;; recurrence owes the realness of the summand -- and the summand runs through
+;;; recip(k!), which needs k! /= 0.  Nothing in the tree said so: `factorial-in-
+;;; nn' is an unwarranted axiom, and citing it bills the whole result
+;;; `trust: none'.  So `factorial-real-pos' proves  n! in RR and 0 < n!  in one
+;;; induction (rr-mul-pos on the recurrence), and `recip-factorial-in-rr' reads
+;;; the reciprocal's typing off it.
+;;;
+;;; AND THE PARTIAL SUM'S OWN REALNESS CANNOT COME FROM `series-partial-sum-
+;;; in-rr'.  The summand is real only for k <= n -- above the degree f^(k)(x)
+;;; need not exist -- so the sequence is NOT an element of FUN(NN,RR) and that
+;;; theorem does not apply.  It comes from the INDUCTION HYPOTHESIS instead,
+;;; which says the sum IS f(x): the equation is the typing.
+;;;
+;;; The nine lemmas below are proved here rather than borrowed because the tree
+;;; had none of them; all are `modulo 0'.  (`power-zero-succ' duplicates the
+;;; PSS support `power-zero-base' immediately after this block, which is now
+;;; retirable.)
+
+;;; ---- file-local shapes (the `tpc-' prefix; never named like a tactic) ----
+;;; the Taylor summand at the centre, k |-> f^(k)(x) (x-x)^k recip(k!)
+(define (tpc-term f x)
+  (list 'VNB-LAMBDA 'k 'NN
+        (list '* (list '* (list (list 'NTH-DERIV f 'k) x) (list 'power (list '- x x) 'k))
+                 (list 'recip (list 'FACTORIAL 'k)))))
+;;; the derivative-existence guard of the statement, at degree n
+(define (tpc-guard f x n)
+  (list 'FORALL 'k (list 'IMPLIES (list 'AND '(IN k NN) (list '<= 'k n))
+                         (list 'IN (list (list 'NTH-DERIV f 'k) x) 'RR))))
+
+;;; ---- the RR micro-identities.  `crs' decides each over VARIABLES; it is
+;;; applied to the terms by citation, since crs sees neither `recip' nor a
+;;; symbolic `power' (dyadic-weights.scm makes the same move).
+(sp (make-wff '(= (recip 1) 1)))
+(fact 'rr-one-in)
+(have! '(NOT (= 1 0)) (lambda () (arith)))
+(have! '(AND (IN 1 RR) (NOT (= 1 0))))
+(fact 'rr-recip-inverse 1)                    ; 1 * recip 1 = 1
+(fact 'rr-recip-closed 1)
+(fact 'rr-one-mul '(recip 1))                 ; 1 * recip 1 = recip 1
+(fact 'eq-sym '(* 1 (recip 1)) '(recip 1))
+(fact 'eq-trans '(recip 1) '(* 1 (recip 1)) 1)
+(ass)
+(qed 'rr-recip-one)
+(topic! 'rr-recip-one 'analysis)
+
+(sp (make-wff '(FORALL v (IMPLIES (IN v RR) (= (* 0 v) 0)))))
+(di) (crs)
+(qed 'rr-zero-mul)
+(topic! 'rr-zero-mul 'analysis)
+
+(sp (make-wff '(FORALL u (IMPLIES (IN u RR) (= (+ 0 u) u)))))
+(di) (crs)
+(qed 'rr-zero-add)
+(topic! 'rr-zero-add 'analysis)
+
+(sp (make-wff '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
+   (= (* (* u 0) v) 0)))))))
+(di) (di) (crs)
+(qed 'rr-mul-zero-mid)
+(topic! 'rr-mul-zero-mid 'analysis)
+
+(sp (make-wff '(FORALL u (IMPLIES (IN u RR) (= (* (* u 1) 1) u)))))
+(di) (crs)
+(qed 'rr-mul-one-mid)
+(topic! 'rr-mul-one-mid 'analysis)
+
+;;; ---- 0^(succ m) = 0.  One step of power-succ and then 0 * anything real.
+(sp (make-wff '(FORALL m (IMPLIES (IN m NN) (= (power 0 (succ m)) 0)))))
+(di)
+(fact 'rr-zero-in)
+(fact 'rr-subset-cc 0)
+(have! '(AND (IN 0 CC) (IN m NN)))
+(fact 'power-succ 0 'm)
+(subst '(= (power 0 (succ m)) (* 0 (power 0 m))))
+(fact 'power-real-closed 0 'm)
+(fact 'rr-zero-mul '(power 0 m))
+(ass)
+(qed 'power-zero-succ)
+(topic! 'power-zero-succ 'analysis)
+
+;;; ---- n! is a POSITIVE REAL.  Realness and positivity are proved TOGETHER,
+;;; in one induction: the step's rr-mul-pos needs both factors real, so
+;;; splitting them would need the realness half twice.  Deliberately NOT via
+;;; `factorial-in-nn' + nn-in-rr: that axiom carries no warrant, and leaning on
+;;; it bills every result below it `trust: none'.
+(sp (make-wff '(FORALL n (IMPLIES (IN n NN)
+   (AND (IN (FACTORIAL n) RR) (< 0 (FACTORIAL n)))))))
+(define tpc-fact-br (use-induction))
+
+(dk-focus! (cdr (assq 'base tpc-fact-br)))
+(mac 'factorial-zero)                         ; 0! = succ 0
+(have! '(= (succ 0) 1) (lambda () (arith)))
+(subst '(= (succ 0) 1))
+(fact 'rr-one-in)
+(fact 'rr-zero-lt-one)
+(prop)
+
+(dk-focus! (cdr (assq 'step tpc-fact-br)))
+(define tpc-fact-n (cdr (assq 'var tpc-fact-br)))
+(dk-split! (cdr (assq 'ih tpc-fact-br)))
+(mac 'factorial-succ)                         ; (succ n)! = (succ n) * n!
+(fact 'nn-succ-closed tpc-fact-n)
+(fact 'nn-in-rr (list 'succ tpc-fact-n))
+(fact 'nn-zero-le (list 'succ tpc-fact-n))
+(fact 'nn-succ-nonzero tpc-fact-n)
+(fact 'neq-sym (list 'succ tpc-fact-n) 0)
+(have! (list 'AND (list '<= 0 (list 'succ tpc-fact-n))
+                  (list 'NOT (list '= 0 (list 'succ tpc-fact-n)))))
+(fact 'rr-le-ne-lt 0 (list 'succ tpc-fact-n))            ; 0 < succ n
+(have! (list 'AND (list 'IN (list 'succ tpc-fact-n) 'RR)
+                  (list 'IN (list 'FACTORIAL tpc-fact-n) 'RR)))
+(fact 'rr-mul-closed (list 'succ tpc-fact-n) (list 'FACTORIAL tpc-fact-n))
+(fact 'rr-mul-pos    (list 'succ tpc-fact-n) (list 'FACTORIAL tpc-fact-n))
+(prop)
+(qed 'factorial-real-pos)
+(topic! 'factorial-real-pos 'analysis)
+(alias! 'factorial-real-pos "n! is a positive real")
+
+(sp (make-wff '(FORALL n (IMPLIES (IN n NN) (IN (recip (FACTORIAL n)) RR)))))
+(di)
+(fact 'factorial-real-pos 'n)
+(dk-split! '(AND (IN (FACTORIAL n) RR) (< 0 (FACTORIAL n))))
+(fact 'rr-pos-ne-zero '(factorial n))
+(have! '(AND (IN (FACTORIAL n) RR) (NOT (= (FACTORIAL n) 0))))
+(fact 'rr-recip-closed '(factorial n))
+(ass)
+(qed 'recip-factorial-in-rr)
+(topic! 'recip-factorial-in-rr 'analysis)
+
+;;; ---- the two values of the summand AT THE CENTRE.
+;;; term(0) = f^(0)(x) (x-x)^0 recip(0!) = f(x) . 1 . 1 = f(x).
+;;; `lam-b' needs its argument TYPED and PEELED first, hence the nn-zero-in.
+(sp (make-wff (list 'FORALL 'f (list 'FORALL 'x (list 'IMPLIES '(IN x RR)
+   (list 'IMPLIES '(IN (f x) RR)
+     (list '= (list (tpc-term 'f 'x) 0) '(f x))))))))
+(dk-peel-to! '=)
+(fact 'nn-zero-in)
+(lam-b)
+(mac 'nth-deriv-zero)                         ; f^(0) = f
+(fact 'rr-sub-in-rr 'x 'x)
+(fact 'rr-subset-cc '(- x x))
+(mac 'power-zero)                             ; (x-x)^0 = 1  (guarded on CC)
+(mac 'factorial-zero)
+(have! '(= (succ 0) 1) (lambda () (arith)))
+(subst '(= (succ 0) 1))
+(mac 'rr-recip-one)
+(fact 'rr-mul-one-mid '(f x))
+(ass)
+(qed 'taylor-center-term-at-zero)
+(topic! 'taylor-center-term-at-zero 'analysis)
+
+;;; term(succ m) = 0: (x-x)^(succ m) = 0^(succ m) = 0 kills it.  The recip
+;;; factor still has to be REAL for the product to be defined -- which is what
+;;; recip-factorial-in-rr is for.
+(sp (make-wff (list 'FORALL 'f (list 'FORALL 'x (list 'IMPLIES '(IN x RR)
+   (list 'FORALL 'm (list 'IMPLIES '(IN m NN)
+     (list 'IMPLIES (list 'IN (list (list 'NTH-DERIV 'f '(succ m)) 'x) 'RR)
+       (list '= (list (tpc-term 'f 'x) '(succ m)) 0)))))))))
+(dk-peel-to! '=)
+(fact 'nn-succ-closed 'm)
+(lam-b)
+(have! '(= (- x x) 0) (lambda () (crs)))
+(subst '(= (- x x) 0))
+(mac 'power-zero-succ)
+(fact 'recip-factorial-in-rr '(succ m))
+(fact 'rr-mul-zero-mid '((nth-deriv f (succ m)) x) '(recip (factorial (succ m))))
+(ass)
+(qed 'taylor-center-term-at-succ)
+(topic! 'taylor-center-term-at-succ 'analysis)
+
+;;; ---- THE INDUCTION.  Degree OUTERMOST, so that `ni' fires.
+(sp (make-wff
+  (list 'FORALL 'n (list 'IMPLIES '(IN n NN)
+    (list 'FORALL 'f (list 'FORALL 'x (list 'IMPLIES '(IN x RR)
+      (list 'IMPLIES (tpc-guard 'f 'x 'n)
+        (list '= (list 'SERIES-PARTIAL-SUM (tpc-term 'f 'x) '(succ n)) '(f x))))))))))
+(define tpc-br (use-induction))
+(define tpc-n  (cdr (assq 'var tpc-br)))
+(define tpc-ih (cdr (assq 'ih  tpc-br)))
+
+;;; --- base: SPS(term, succ 0) = 0 + term(0) = f(x) ---
+(dk-focus! (cdr (assq 'base tpc-br)))
+(dk-peel-to! '=)
+;; read the eigenvariables off the GOAL's right-hand side, never off the context
+(define tpc-b-fx (caddr (dk-goal)))                     ; (f x)
+(define tpc-b-f  (car  tpc-b-fx))
+(define tpc-b-x  (cadr tpc-b-fx))
+(define tpc-b-tm (tpc-term tpc-b-f tpc-b-x))
+(fact 'nn-zero-in)
+(fact 'nn-le-refl 0)
+(have! '(AND (IN 0 NN) (<= 0 0)))
+(inst+ (tpc-guard tpc-b-f tpc-b-x 0) 0)                 ; f^(0)(x) in RR
+(mac-h 'nth-deriv-zero (list 'IN (list (list 'NTH-DERIV tpc-b-f 0) tpc-b-x) 'RR))
+(fact 'taylor-center-term-at-zero tpc-b-f tpc-b-x)      ; term(0) = f(x)
+;; the recurrence's two typings, BEFORE the rewrite (series-partial-sum-succ is
+;; guarded on both arguments); each is one substitution away from a known fact
+(have! (list 'IN (list tpc-b-tm 0) 'RR)
+       (lambda () (subst (list '= (list tpc-b-tm 0) tpc-b-fx)) (ass)))
+(have! (list 'IN (list 'SERIES-PARTIAL-SUM tpc-b-tm 0) 'RR)
+       (lambda () (mac 'series-partial-sum-zero) (fact 'rr-zero-in) (ass)))
+(dk-sps-succ! tpc-b-tm 0)
+(mac 'series-partial-sum-zero)
+(subst (list '= (list tpc-b-tm 0) tpc-b-fx))
+(fact 'rr-zero-add tpc-b-fx)
+(ass)
+
+;;; --- step: SPS(term, succ(succ n)) = f(x) + 0 = f(x) ---
+(dk-focus! (cdr (assq 'step tpc-br)))
+(dk-peel-to! '=)
+(define tpc-s-fx (caddr (dk-goal)))                     ; (f x)
+(define tpc-s-f  (car  tpc-s-fx))
+(define tpc-s-x  (cadr tpc-s-fx))
+(define tpc-s-tm (tpc-term tpc-s-f tpc-s-x))
+(define tpc-sn   (list 'succ tpc-n))
+(fact 'nn-succ-closed tpc-n)
+(fact 'nn-le-succ tpc-n)                                ; n <= succ n
+;; the goal's guard is at succ n; the induction hypothesis wants it at n
+(have! (tpc-guard tpc-s-f tpc-s-x tpc-n)
+  (lambda ()
+    (di)
+    (let* ((landed (dk-landed-1 (lambda () (di))))      ; (AND (IN k NN) (<= k n))
+           (kv     (cadr (cadr landed))))
+      (dk-split! landed)
+      (fact 'nn-le-trans-guarded kv tpc-n tpc-sn)
+      (have! (list 'AND (list 'IN kv 'NN) (list '<= kv tpc-sn)))
+      (inst+ (tpc-guard tpc-s-f tpc-s-x tpc-sn) kv)
+      (ass))))
+;; ... and now the hypothesis applies, at this f and this x
+(define tpc-ih1 (dk-landed-1 (lambda () (inst+ tpc-ih tpc-s-f))))
+(define tpc-eq  (dk-deepest  (lambda () (inst+ tpc-ih1 tpc-s-x))))  ; SPS(term,succ n) = f(x)
+;; f(x) in RR, off the guard at k = 0
+(fact 'nn-zero-in)
+(fact 'nn-zero-le tpc-sn)
+(have! (list 'AND '(IN 0 NN) (list '<= 0 tpc-sn)))
+(inst+ (tpc-guard tpc-s-f tpc-s-x tpc-sn) 0)
+(mac-h 'nth-deriv-zero (list 'IN (list (list 'NTH-DERIV tpc-s-f 0) tpc-s-x) 'RR))
+;; the partial sum at succ n is real BECAUSE the hypothesis says it is f(x)
+(have! (list 'IN (list 'SERIES-PARTIAL-SUM tpc-s-tm tpc-sn) 'RR)
+       (lambda () (subst tpc-eq) (ass)))
+;; the term at succ n vanishes (and is therefore real)
+(fact 'nn-le-refl tpc-sn)
+(have! (list 'AND (list 'IN tpc-sn 'NN) (list '<= tpc-sn tpc-sn)))
+(inst+ (tpc-guard tpc-s-f tpc-s-x tpc-sn) tpc-sn)
+(fact 'taylor-center-term-at-succ tpc-s-f tpc-s-x tpc-n)
+(have! (list 'IN (list tpc-s-tm tpc-sn) 'RR)
+       (lambda () (subst (list '= (list tpc-s-tm tpc-sn) 0)) (fact 'rr-zero-in) (ass)))
+(dk-sps-succ! tpc-s-tm tpc-sn)
+(subst tpc-eq)
+(subst (list '= (list tpc-s-tm tpc-sn) 0))
+(fact 'rr-add-zero tpc-s-fx)
+(ass)
+(qed 'taylor-center-partial-sum)
+(topic! 'taylor-center-partial-sum 'analysis)
+(alias! 'taylor-center-partial-sum
+        "the Taylor partial sum at its own centre collapses to f(x)")
+
+;;; ---- THE HEADLINE, statement unchanged from the support it replaces.
+(sp (make-wff
   (forall-guarded '(f x n)
     (list
       '(IN x RR)
       '(IN n NN)
       '(FORALL k (IMPLIES (AND (IN k NN) (<= k n)) (IN ((NTH-DERIV f k) x) RR))))
-    '(= (TAYLOR-POLY f x n x) (f x))))
-(warrant! 'taylor-poly-at-center 'reference
-  "Given x in RR and f^(k)(x) in RR for every k <= n (all derivatives up to order n
-   exist at the centre x), TAYLOR-POLY(f,x,n,x) is defined and collapses: each term
-   k>=1 carries (x-x)^k = 0, killed by mul-zero (valid since f^(k)(x) is a real), and
-   term 0 is f^(0)(x)(x-x)^0/0! = f(x).  So the Taylor polynomial at its own centre
-   equals f(x).  The derivative-existence guard is what makes both sides defined; the
-   consumer taylor-lagrange supplies it via TAYLOR-DIFFERENTIABLE (f^(k) continuous on
-   [a,x], so f^(k)(x) exists).")
+    '(= (TAYLOR-POLY f x n x) (f x)))))
+(dk-peel-to! '=)
+(mac 'TAYLOR-POLY)
+(fact 'taylor-center-partial-sum 'n 'f 'x)
+(ass)
+(qed 'taylor-poly-at-center)
 (topic! 'taylor-poly-at-center 'analysis)
 
 (add-to-pss 'power-zero-base

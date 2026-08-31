@@ -25,13 +25,10 @@
 ;;; so this typing is needed pervasively.  Derivable from the op-clause via a
 ;;; cartesian-application of fun-apply-type; kept as a warranted PSS support
 ;;; rather than re-grinding the tuple typing in every metric proof.
-(support 'metric-dist-real
-  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (PTS s))
-       (FORALL y (IMPLIES (IN y (PTS s))
-         (IN ((DIST s) x y) RR))))))))
-(warrant! 'metric-dist-real 'well-known
-  "The distance is real-valued: DIST(s) maps PTS(s) x PTS(s) into RR, so d(s)(x,y) in RR.  Codomain typing of the metric op (the op-clause in the METRIC-SPACE declaration).")
+;;; metric-dist-real is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
+;;; other six applied-form op typings: one driver over the IS-X unfold plus
+;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
+;;; recited.
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-METRIC-SPACE         'noun "metric space" 'article "a")

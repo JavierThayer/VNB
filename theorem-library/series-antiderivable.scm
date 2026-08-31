@@ -451,6 +451,17 @@
             (lam-b)                                  ; phi0(v) -> SPS(term, n)
             (inst+ (sa-transfer-hyp (list 'succ n)) v)
             (subst (list '== (list 'ph_ v) (sa-sps 's_ v (list 'succ n))))
+            ;; series-partial-sum-succ is guarded on its two arguments being
+            ;; real since 2026-08-29.  `sa-summand-real!' establishes the
+            ;; POINTWISE realness of the summand family -- which is the form this
+            ;; file works in throughout -- and the two instances follow from it.
+            (sa-summand-real! 's_ v)
+            (fact 'series-partial-sum-in-rr-ptwise n (sa-term-lam 's_ v))
+            (dk-have! (list 'IN (list (sa-term-lam 's_ v) n) 'RR)
+              (lambda () (lam-b) (inst+ sa-terms-ad n)
+                         (fact 'antiderivable-fn-in-fun (list 's_ n) 'a 'b)
+                         (fact 'fun-apply-type-c (list 's_ n) 'RR 'RR v)
+                         (ass)))
             (fact 'series-partial-sum-succ (sa-term-lam 's_ v) n)
             (subst (list '== (sa-sps 's_ v (list 'succ n))
                              (list '+ (sa-sps 's_ v n)

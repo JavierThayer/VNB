@@ -900,3 +900,56 @@
 ;;;   `formula->lin+rel' refuses the nonlinear goal before `fm-prove' is ever
 ;;;   called, which is why the credulous-ineq mutation leaves it green.
 ;;; -----------------------------------------------------------------------
+
+;;; -----------------------------------------------------------------------
+;;; 9.  THE BRIDGE-TYPING INCONSISTENCY MUST NOT COME BACK.
+;;;
+;;; Until 2026-08-29 the tree asserted fourteen typings of the shape
+;;; `IN binplus (FUN (CARTESIAN ZZ ZZ) ZZ)', one per (operation, numeric domain)
+;;; pair.  `(FUN A)' is "all total functions whose domain IS A" (theory.scm:321)
+;;; and `dom-of-fun' (theory.scm:500) draws the equation out, so ONE object
+;;; asserted into nine function classes proved their domains equal --
+;;; ZZ = QQ = RR = CC, and NN too through the products.  Composed with
+;;; `cc-i-in' and `cc-i-squared' that gives 0 <= i*i = -1, i.e. FALSITY, which
+;;; closed with ZERO open leaves (scratchpad/bridge-falsity-probe.scm).
+;;;
+;;; The repair: the numeric instance slots hold a tupled VNB-LAMBDA per instance
+;;; -- a genuine set function with ONE domain -- and the fourteen axioms are gone
+;;; with NOTHING replacing them, `lam-t' reducing the op-slot typing to closure
+;;; facts already in number-systems.scm.
+;;;
+;;; The two attacks below are the derivation's two joints.  They now fail at the
+;;; first step, the axioms not existing -- which is why the CONTROL matters: it
+;;; runs the identical shape on a pair of typings that ARE present, so a green
+;;; section means the axioms are gone rather than that the attack stopped
+;;; working.
+;;; -----------------------------------------------------------------------
+
+(mnp-refuses "ZZ = RR from two domain typings of one bridge symbol"
+  '(= ZZ RR)
+  (lambda ()
+    (ignore-errors (fact 'binneg-in-fun-zz))
+    (ignore-errors (fact 'binneg-in-fun-rr))
+    (mnp-attack!)))
+
+(mnp-refuses "0 <= -1 from RR = CC and the imaginary unit"
+  '(<= 0 -1)
+  (lambda ()
+    (ignore-errors (fact 'binneg-in-fun-cc))
+    (ignore-errors (fact 'binneg-in-fun-rr))
+    (ignore-errors (fact 'cc-i-in))
+    (ignore-errors (fact 'cc-i-squared))
+    (mnp-attack!)))
+
+;;; THE CONTROL.  `RES' is the one place the tree still states two function-class
+;;; memberships of a single object (res-typing, theory.scm:517), and it is sound
+;;; because the second is DERIVED from the first rather than asserted beside it.
+;;; The machinery that used to close the attacks above still closes this, so a
+;;; green section above is evidence about the AXIOMS, not about the tactics.
+(mnp-control "dom-of-fun still draws a domain out of a genuine FUN membership"
+  '(FORALL f_ (IMPLIES (AND (IN f_ (FUN NN)) (IN NN SET))
+                       (= (DOM f_) NN)))
+  (lambda ()
+    (di) (di)
+    (fact 'dom-of-fun 'NN 'f_)
+    (mnp-attack!)))

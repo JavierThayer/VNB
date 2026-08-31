@@ -29,11 +29,13 @@ digraph VNB {
   "pid" [tooltip="pid -- slots (carr add mul neg zero one)", URL="structure-graph.html#pid"];
   "pseudometric-space" [tooltip="pseudometric-space -- slots (pts dist)", URL="structure-graph.html#pseudometric-space"];
   "qq-field" [tooltip="qq-field -- slots (carr add mul neg zero one non-zero recip)", URL="structure-graph.html#qq-field"];
+  "qq-line" [tooltip="qq-line -- slots (scal vec vadd vzero vneg act)", URL="structure-graph.html#qq-line"];
   "qq-ring" [tooltip="qq-ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#qq-ring"];
   "ring" [tooltip="ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#ring"];
   "ringoid" [tooltip="ringoid -- slots (carr add mul neg zero one idl)", URL="structure-graph.html#ringoid"];
   "rr-ms" [tooltip="rr-ms -- slots (pts dist)", URL="structure-graph.html#rr-ms"];
   "rr-normed-field" [tooltip="rr-normed-field -- slots (carr add mul neg zero one fnrm)", URL="structure-graph.html#rr-normed-field"];
+  "rr-nvs" [tooltip="rr-nvs -- slots (scal vec vadd vzero vneg act vnrm)", URL="structure-graph.html#rr-nvs"];
   "rr-pos-star-add-monoid" [tooltip="rr-pos-star-add-monoid -- slots (carr opr iden)", URL="structure-graph.html#rr-pos-star-add-monoid"];
   "semigroup" [tooltip="semigroup -- slots (carr opr)", URL="structure-graph.html#semigroup"];
   "setoid" [tooltip="setoid -- slots (pts rel)", URL="structure-graph.html#setoid"];
@@ -42,28 +44,30 @@ digraph VNB {
   "zz-ring" [tooltip="zz-ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#zz-ring"];
 
   // refines (specialisation): child -> parent
-  "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];
-  "rr-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-ms refines metric-space"];
-  "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
-  "pid" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="pid refines integral-domain"];
-  "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
-  "commutative-ring" -> "ring" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-ring refines ring"];
+  "cc-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ms refines metric-space"];
   "cc-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="cc-normed-field refines normed-field"];
   "zz-ring" -> "euclidean-ring" [color="#2a4a6a", penwidth=1.4, tooltip="zz-ring refines euclidean-ring"];
-  "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
-  "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
-  "vector-space" -> "module" [color="#2a4a6a", penwidth=1.4, tooltip="vector-space refines module"];
-  "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
+  "rr-nvs" -> "normed-vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-nvs refines normed-vector-space"];
   "rr-pos-star-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="rr-pos-star-add-monoid refines comm-monoid"];
-  "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
-  "cc-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="cc-ms refines metric-space"];
   "qq-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="qq-ring refines integral-domain"];
+  "vector-space" -> "module" [color="#2a4a6a", penwidth=1.4, tooltip="vector-space refines module"];
+  "nn-add-monoid" -> "comm-monoid" [color="#2a4a6a", penwidth=1.4, tooltip="nn-add-monoid refines comm-monoid"];
+  "commutative-ring" -> "ring" [color="#2a4a6a", penwidth=1.4, tooltip="commutative-ring refines ring"];
+  "pid" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="pid refines integral-domain"];
+  "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
+  "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
+  "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
+  "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
+  "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
+  "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
+  "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];
+  "rr-ms" -> "metric-space" [color="#2a4a6a", penwidth=1.4, tooltip="rr-ms refines metric-space"];
 
   // view-as (forgetful / component maps): source -> target
   "field" -> "euclidean-ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-euclidean-ring", tooltip="field-as-euclidean-ring :  field -> euclidean-ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "commutative-ring" -> "comm-monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-cm", tooltip="commutative-ring-multiplicative-cm :  commutative-ring -> comm-monoid    (carr mul one) |-> (carr opr iden)", URL="structure-graph.html#views"];
-  "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "complex-inner-product-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="complex-inner-product-space-as-module :  complex-inner-product-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
+  "ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="ring-additive-ag :  ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "commutative-ring" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="commutative-ring-additive-ag :  commutative-ring -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "ringoid" -> "ring" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-ring", tooltip="ringoid-as-ring :  ringoid -> ring    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "abelian-group" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-monoid", tooltip="abelian-group-as-monoid :  abelian-group -> monoid    (carr opr iden) |-> (carr opr iden)", URL="structure-graph.html#views"];

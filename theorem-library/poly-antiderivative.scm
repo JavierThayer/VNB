@@ -326,6 +326,10 @@
 (pa-mul! (list bs-cf 0) (list 'power bs-pt 0))           ; (IN a_0 pt^0 RR)
 
 ;;; the goal's derivative value: split the one-term sum, drop the empty sum.
+;; series-partial-sum-succ is guarded on its two arguments being real (2026-08-29)
+(fact 'poly-term-lam-in-fun bs-cf bs-pt)
+(fact 'series-partial-sum-in-rr 0 bs-pt-seq)
+(fact 'fun-apply-type-c bs-pt-seq 'NN 'RR 0)
 (fact 'series-partial-sum-succ bs-pt-seq 0)
 (subst (list '== (list 'SERIES-PARTIAL-SUM bs-pt-seq '(succ 0))
                  (list '+ (list 'SERIES-PARTIAL-SUM bs-pt-seq 0) (list bs-pt-seq 0))))
@@ -342,6 +346,10 @@
   (lambda ()
     (let ((z (pa-di-var!)))
       (pa-beta!)
+      ;; series-partial-sum-succ is guarded on its two arguments being real (2026-08-29)
+      (fact 'anti-term-lam-in-fun bs-cf z)
+      (fact 'series-partial-sum-in-rr 0 (pa-anti-term bs-cf z))
+      (fact 'fun-apply-type-c (pa-anti-term bs-cf z) 'NN 'RR 0)
       (fact 'series-partial-sum-succ (pa-anti-term bs-cf z) 0)
       (subst (list '== (list 'SERIES-PARTIAL-SUM (pa-anti-term bs-cf z) '(succ 0))
                        (list '+ (list 'SERIES-PARTIAL-SUM (pa-anti-term bs-cf z) 0)
@@ -400,6 +408,10 @@
 
 ;;; the goal's derivative sum, split at its top term and beta-reduced, IS the
 ;;; value `deriv-sum' just concluded.
+;; series-partial-sum-succ is guarded on its two arguments being real (2026-08-29)
+(fact 'poly-term-lam-in-fun st-cf st-pt)
+(fact 'series-partial-sum-in-rr st-sn st-pt-seq)
+(fact 'fun-apply-type-c st-pt-seq 'NN 'RR st-sn)
 (fact 'series-partial-sum-succ st-pt-seq st-sn)
 (subst (list '== (list 'SERIES-PARTIAL-SUM st-pt-seq st-ssn)
                  (list '+ st-dvn (list st-pt-seq st-sn))))
@@ -412,6 +424,10 @@
   (lambda ()
     (let ((z (pa-di-var!)))
       (pa-beta!)
+      ;; series-partial-sum-succ is guarded on its two arguments being real (2026-08-29)
+      (fact 'anti-term-lam-in-fun st-cf z)
+      (fact 'series-partial-sum-in-rr st-sn (pa-anti-term st-cf z))
+      (fact 'fun-apply-type-c (pa-anti-term st-cf z) 'NN 'RR st-sn)
       (fact 'series-partial-sum-succ (pa-anti-term st-cf z) st-sn)
       (subst (list '== (list 'SERIES-PARTIAL-SUM (pa-anti-term st-cf z) st-ssn)
                        (list '+ (list 'SERIES-PARTIAL-SUM (pa-anti-term st-cf z) st-sn)

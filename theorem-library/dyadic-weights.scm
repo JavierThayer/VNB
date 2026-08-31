@@ -328,6 +328,12 @@
 (define dw2-ih (cdr (assq 'ih dw2-br)))
 (have! '(IN 2 CC) (lambda () (arith)))
 (have! '(IN 2 RR) (lambda () (arith)))
+;; series-partial-sum-succ is guarded on its two arguments being real since
+;; 2026-08-29.  `dyadic-weight-in-fun' (above) already says the weights are a
+;; real sequence, so both facts are one citation each.
+(fact 'dyadic-weight-in-fun)
+(fact 'series-partial-sum-in-rr dw2-k DW)
+(fact 'fun-apply-type-c DW 'NN 'RR dw2-k)
 (mac 'series-partial-sum-succ)
 (subst dw2-ih)
 (fact 'dyadic-weight-apply dw2-k)

@@ -126,7 +126,12 @@
   (mac-h 'bernstein-basis-unfold '(IN ((BERNSTEIN-BASIS n_ x_) k_) RR))
   (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-succ) (lam-b)
   (mac 'rr-scalar-ring-add) (mac 'rr-scalar-ring-mul)
-  (mac 'binplus-apply) (mac 'bintimes-apply)
+  ;; the ADD/MUL slots hold tupled VNB-LAMBDAs since 2026-08-29, so the surface
+  ;; step is the guarded slot read-off rather than binplus-apply / bintimes-apply.
+  ;; The two atoms are already typed above -- which is exactly the guard.
+  (dk-saturate-slot-ops! 'RR '((+ . rr-add-closed)
+                               (* . rr-mul-closed)
+                               (- . rr-neg-closed)))
   (crs)))
 (bmo-check 'bernstein-basis-succ)
 (qed 'bernstein-basis-succ)
@@ -302,14 +307,22 @@
     (dk-focus! (cdr (assq 'base br)))
     (bmo-peel!)
     (fact 'nn-zero-in) (fact 'zz-zero-in)
-    (fact 'series-partial-sum-succ 'h_ 0)
-    (subst '(== (SERIES-PARTIAL-SUM h_ (succ 0))
-                (+ (SERIES-PARTIAL-SUM h_ 0) (h_ 0))))
-    (mac 'series-partial-sum-zero)
+    ;; series-partial-sum-succ is guarded on its two arguments being real since
+    ;; 2026-08-29.  h_ is a TRANSFER sequence -- constrained by a pointwise
+    ;; equation, with no realness hypothesis -- so both facts are landed here and
+    ;; dk-sps-succ! then finds them in context and simply fires the recurrence.
     (dk-deepest (lambda () (inst+ (bmo-pw-eq 'h_ (lambda (k)
                                     (list '* k (list (bmo-basis 0) k)))) 0)))
-    (subst (list '= '(h_ 0) (list '* 0 (list (bmo-basis 0) 0))))
+    (fact 'rr-zero-in)
     (fact 'bernstein-basis-ptwise-in-rr 0 'x_ 0)
+    (dk-have! '(IN (SERIES-PARTIAL-SUM h_ 0) RR)
+      (lambda () (mac 'series-partial-sum-zero) (ass)))
+    (dk-have! '(IN (h_ 0) RR)
+      (lambda () (subst (list '= '(h_ 0) (list '* 0 (list (bmo-basis 0) 0))))
+                 (in-rr)))
+    (dk-sps-succ! 'h_ 0)
+    (mac 'series-partial-sum-zero)
+    (subst (list '= '(h_ 0) (list '* 0 (list (bmo-basis 0) 0))))
     (crs)
 
     ;; ---- STEP.
@@ -426,13 +439,23 @@
     (dk-focus! (cdr (assq 'base br)))
     (bmo-peel!)
     (fact 'nn-zero-in) (fact 'zz-zero-in)
-    (fact 'series-partial-sum-succ 'h_ 0)
-    (subst '(== (SERIES-PARTIAL-SUM h_ (succ 0))
-                (+ (SERIES-PARTIAL-SUM h_ 0) (h_ 0))))
-    (mac 'series-partial-sum-zero)
+    ;; same as moment-1's base: the recurrence is guarded on its two arguments
+    ;; being real, and h_ is a transfer sequence with no realness hypothesis, so
+    ;; both facts are landed before dk-sps-succ! fires the rewrite.
     (dk-deepest (lambda () (inst+ (bmo-m2-heq 0) 0)))
-    (subst (list '= '(h_ 0) (list '* '(* 0 (- 0 1)) (list (bmo-basis 0) 0))))
+    ;; h_(0) is (0 * (0 - 1)) * B(0): typing it needs 1 in RR for the
+    ;; SUBTRACTION as well as 0 in RR.
+    (fact 'rr-zero-in) (fact 'rr-one-in)
     (fact 'bernstein-basis-ptwise-in-rr 0 'x_ 0)
+    (dk-have! '(IN (SERIES-PARTIAL-SUM h_ 0) RR)
+      (lambda () (mac 'series-partial-sum-zero) (ass)))
+    (dk-have! '(IN (h_ 0) RR)
+      (lambda () (subst (list '= '(h_ 0)
+                              (list '* '(* 0 (- 0 1)) (list (bmo-basis 0) 0))))
+                 (in-rr)))
+    (dk-sps-succ! 'h_ 0)
+    (mac 'series-partial-sum-zero)
+    (subst (list '= '(h_ 0) (list '* '(* 0 (- 0 1)) (list (bmo-basis 0) 0))))
     (crs)
 
     ;; ---- STEP.

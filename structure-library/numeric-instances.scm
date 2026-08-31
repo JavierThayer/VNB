@@ -58,52 +58,48 @@
 ;;; -----------------------------------------------------------------------
 ;;; Typing axioms per domain
 ;;;
-;;; binplus, bintimes are typed for all 5 numeric domains.
-;;; binneg is typed for the 4 ring domains (ZZ, QQ, RR, CC), not for NN.
-
-(theory-add-axiom! *current-theory* 'binplus-in-fun-nn
-  '(IN binplus (FUN (CARTESIAN NN NN) NN)))
-(theory-add-axiom! *current-theory* 'binplus-in-fun-zz
-  '(IN binplus (FUN (CARTESIAN ZZ ZZ) ZZ)))
-(theory-add-axiom! *current-theory* 'binplus-in-fun-qq
-  '(IN binplus (FUN (CARTESIAN QQ QQ) QQ)))
-(theory-add-axiom! *current-theory* 'binplus-in-fun-rr
-  '(IN binplus (FUN (CARTESIAN RR RR) RR)))
-(theory-add-axiom! *current-theory* 'binplus-in-fun-cc
-  '(IN binplus (FUN (CARTESIAN CC CC) CC)))
-
-(theory-add-axiom! *current-theory* 'bintimes-in-fun-nn
-  '(IN bintimes (FUN (CARTESIAN NN NN) NN)))
-(theory-add-axiom! *current-theory* 'bintimes-in-fun-zz
-  '(IN bintimes (FUN (CARTESIAN ZZ ZZ) ZZ)))
-(theory-add-axiom! *current-theory* 'bintimes-in-fun-qq
-  '(IN bintimes (FUN (CARTESIAN QQ QQ) QQ)))
-(theory-add-axiom! *current-theory* 'bintimes-in-fun-rr
-  '(IN bintimes (FUN (CARTESIAN RR RR) RR)))
-(theory-add-axiom! *current-theory* 'bintimes-in-fun-cc
-  '(IN bintimes (FUN (CARTESIAN CC CC) CC)))
-
-(theory-add-axiom! *current-theory* 'binneg-in-fun-zz
-  '(IN binneg (FUN ZZ ZZ)))
-(theory-add-axiom! *current-theory* 'binneg-in-fun-qq
-  '(IN binneg (FUN QQ QQ)))
-(theory-add-axiom! *current-theory* 'binneg-in-fun-rr
-  '(IN binneg (FUN RR RR)))
-(theory-add-axiom! *current-theory* 'binneg-in-fun-cc
-  '(IN binneg (FUN CC CC)))
-
-;;; The typing axioms above are CLOSURE facts about the primitive numeric
-;;; domains (e.g. CC is closed under negation).  Closure of a domain under
-;;; its operations is not tactic-derivable here -- `(IN <expr> D)' does not
-;;; compose through fun-apply-type (the known numeric-closure gap).  So these
-;;; are genuine asserted content; warrant them `well-known' rather than leave
-;;; them as unexamined `asserted' defaults in the warrant-candidate bucket.
-(for-each
- (lambda (n) (warrant! n 'well-known
-   "Closure of a primitive numeric domain under its arithmetic operation; standard."))
- '(binplus-in-fun-nn binplus-in-fun-zz binplus-in-fun-qq binplus-in-fun-rr binplus-in-fun-cc
-   bintimes-in-fun-nn bintimes-in-fun-zz bintimes-in-fun-qq bintimes-in-fun-rr bintimes-in-fun-cc
-   binneg-in-fun-zz binneg-in-fun-qq binneg-in-fun-rr binneg-in-fun-cc))
+;;; THE FOURTEEN TYPING AXIOMS THAT USED TO STAND HERE ARE GONE (2026-08-29),
+;;; and they were not merely wrong -- they were UNNECESSARY.
+;;;
+;;; They read `IN binplus (FUN (CARTESIAN ZZ ZZ) ZZ)' and thirteen siblings, one
+;;; per (operation, numeric domain) pair.  The comment beneath them described
+;;; them, correctly, as CLOSURE facts -- "closure of a primitive numeric domain
+;;; under its arithmetic operation".  That is not what they said.  `(FUN A)' is
+;;; "all total functions whose domain IS A" (theory.scm:321), so membership pins
+;;; the domain EXACTLY, and `dom-of-fun' (theory.scm:500) draws the equation out.
+;;; Fourteen axioms asserting ONE object into NINE different function classes
+;;; therefore proved those classes' domains equal:
+;;;
+;;;     binneg in FUN(ZZ,ZZ) and binneg in FUN(RR,RR)   =>   ZZ = RR
+;;;
+;;; and with all four binneg typings, ZZ = QQ = RR = CC; with binplus/bintimes
+;;; over the products, NN joins them.  Composed with cc-i-in and cc-i-squared
+;;; that gives  0 <= i*i = -1,  i.e. FALSITY -- derived with ZERO open leaves in
+;;; scratchpad/bridge-falsity-probe.scm.  The whole numeric hierarchy was one
+;;; object as far as the axioms were concerned, and every theorem in the library
+;;; was formally derivable from that.  No proof in the tree ever took the route
+;;; (no bill combined two domains of one symbol through dom-of-fun), so nothing
+;;; false was ever concluded -- but the axiom set had no model, and that is not a
+;;; thing to leave standing.
+;;;
+;;; WHY NOTHING REPLACES THEM.  The op-slot conjunct `IN (ADD s) (FUN dom rng)'
+;;; that they existed to discharge (structures.scm:476) is now PROVED, because
+;;; the slots hold a tupled VNB-LAMBDA per instance rather than one shared
+;;; constant -- the pattern RR-MS's DIST slot has used since it was written.
+;;; `lam-t' reduces that typing to exactly two obligations, and BOTH were already
+;;; in the tree, sitting a hundred lines above these axioms in number-systems.scm:
+;;;
+;;;     forall a, b in ZZ. a + b in ZZ      zz-add-closed        (the closure fact)
+;;;     CARTESIAN(ZZ,ZZ) in SET             cartesian-set-iff + zz-is-set
+;;;
+;;; So the repair DELETES fourteen asserted facts and adds none.  The closure
+;;; content they were a mis-encoding of was never missing.
+;;;
+;;; binplus / bintimes / binneg survive as what they always honestly were: the
+;;; SURFACE bridge symbols, defined by the unconditional apply equations above,
+;;; carrying no claim to be sets.  A functoid is a class; only a function is a
+;;; set.  Nothing now asserts one of them into any FUN class, which is what
+;;; `domain-clash-audit' (audit.scm) watches at every load.
 
 ;;; -----------------------------------------------------------------------
 ;;; n-ary surface form -> nested binary bridge
@@ -234,10 +230,16 @@
 ;;; (NTH 3 ZZ-RING).  It also checks the tuple against the shape: a 7-tuple
 ;;; declared RING now fails the load rather than asserting a false IS-RING.
 (declare-instance! 'ZZ-RING 'RING 'zz-ring-def
-  '(ZZ binplus bintimes binneg 0 1))
+  '(ZZ (VNB-LAMBDA (LIST x_ y_) (CARTESIAN ZZ ZZ) (+ x_ y_))
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN ZZ ZZ) (* x_ y_))
+       (VNB-LAMBDA x_ ZZ (- x_))
+       0 1))
 
 (declare-instance! 'QQ-RING 'RING 'qq-ring-def
-  '(QQ binplus bintimes binneg 0 1))
+  '(QQ (VNB-LAMBDA (LIST x_ y_) (CARTESIAN QQ QQ) (+ x_ y_))
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN QQ QQ) (* x_ y_))
+       (VNB-LAMBDA x_ QQ (- x_))
+       0 1))
 
 ;;; RR-NORMED-FIELD and CC-NORMED-FIELD are 7-tuples carrying the structural norm at slot 7
 ;;; (NORMED-FIELD layout).  Slots 1..6 share RING's accessor indices, but a
@@ -260,10 +262,16 @@
 ;;; section 2c): `IS-NORMED-VECTOR-SPACE(s) |- falsity' must be REFUSED.  Any
 ;;; future structure whose slot holds one of these 7-tuples wants the same entry.
 (declare-instance! 'RR-NORMED-FIELD 'NORMED-FIELD 'rr-normed-field-def
-  '(RR binplus bintimes binneg 0 1 abs))
+  '(RR (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (+ x_ y_))
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (* x_ y_))
+       (VNB-LAMBDA x_ RR (- x_))
+       0 1 abs))
 
 (declare-instance! 'CC-NORMED-FIELD 'NORMED-FIELD 'cc-normed-field-def
-  '(CC binplus bintimes binneg 0 1 magnitude))
+  '(CC (VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (+ x_ y_))
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (* x_ y_))
+       (VNB-LAMBDA x_ CC (- x_))
+       0 1 magnitude))
 
 ;;; IS-X witnesses, taken as axioms (each true of the domain; no proofs).
 ;;; CRITICAL: a structure predicate IS-X bakes in length(s)=n, so a tuple can
@@ -344,11 +352,30 @@
 ;;; witness IS-FIELD.  QQ-FIELD carries NON-ZERO = QQ minus {0} (matching
 ;;; field-non-zero-carrier) and INV = recip; recip's multiplicative-inverse
 ;;; law (qq-recip-inverse, number-systems.scm) underwrites field-mul-inverse.
+;;; SLOT 8 IS A LAMBDA, NOT THE BARE `recip' -- and it must be, for the reason
+;;; slots 2-4 hold lambdas rather than binplus/bintimes/binneg (2026-08-29).
+;;; IS-FIELD's RECIP slot is `(op RECIP NON-ZERO NON-ZERO)' (field.scm:45), so
+;;; the defining IFF carries the conjunct
+;;;     recip in FUN(QQ \ {0}, QQ \ {0}).
+;;; `recip' is ONE shared constant -- qq-recip-closed, rr-recip-closed and
+;;; binary-divide-def all name it -- so asserting that alongside the RR analogue
+;;; proves QQ\{0} = RR\{0} by `dom-of-fun', which is exactly the species of
+;;; inconsistency the bridge repair removed 14 axioms for.  Wrapped in a lambda
+;;; the conjunct is PROVED by `lam-t' off qq-recip-closed and qq-recip-nonzero,
+;;; and nothing is asserted about the identity of `recip'.
 (declare-instance! 'QQ-FIELD 'FIELD 'qq-field-def
-  '(QQ binplus bintimes binneg 0 1
-       (DIFFERENCE QQ (SINGLETON 0)) recip))
+  '(QQ (VNB-LAMBDA (LIST x_ y_) (CARTESIAN QQ QQ) (+ x_ y_))
+       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN QQ QQ) (* x_ y_))
+       (VNB-LAMBDA x_ QQ (- x_))
+       0 1
+       (DIFFERENCE QQ (SINGLETON 0))
+       (VNB-LAMBDA x_ (DIFFERENCE QQ (SINGLETON 0)) (recip x_))))
 
-(theory-add-axiom! *current-theory* 'qq-field-is-field '(IS-FIELD QQ-FIELD))
+;;; `qq-field-is-field' WAS an asserted axiom here.  It is now PROVEN, in
+;;; theorem-library/qq-field-is-field.scm -- which must load after the
+;;; interactive tactics and after field-ring-view (SINGLETON's membership law),
+;;; so the citation site moved, exactly as it did for zz-is-ring and
+;;; zz-is-integral-domain.  The name is unchanged, so every `fact' still works.
 
 ;;; -----------------------------------------------------------------------
 ;;; RR-MS -- RR as a metric space, distance |x - y|.
@@ -388,7 +415,8 @@
 ;;; +, with identity 0.
 
 (declare-instance! 'NN-ADD-MONOID 'COMM-MONOID 'nn-add-monoid-def
-  '(NN binplus 0))
+  '(NN (VNB-LAMBDA (LIST x_ y_) (CARTESIAN NN NN) (+ x_ y_))
+       0))
 
 ;;; nn-add-monoid-is-comm-monoid is NOT asserted here: PROVEN in
 ;;; theorem-library/nn-add-monoid.scm, by citing the NN axioms rather than by

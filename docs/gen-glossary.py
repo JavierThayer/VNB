@@ -18,6 +18,26 @@ Emits: docs/app-glossary-generated.tex   (\input by manual.tex, after ch-source)
 """
 import os, re
 
+# makeindex and LaTeX each have their own special characters, and VNB names hit
+# both: `warrant!' ends in ! (makeindex's subentry separator), `card-star(a_)'
+# contains _ (LaTeX math-mode shift).  An index entry is  sortkey@printedform ,
+# so the two halves need DIFFERENT escaping -- the sort key is plain text
+# makeindex compares, the printed form is LaTeX it typesets.
+_IDX_CTRL = '!@|"'                       # makeindex control characters
+_TEX_ESC = {'\\': '\\textbackslash{}', '{': '\\{', '}': '\\}', '$': '\\$',
+            '&': '\\&', '#': '\\#', '^': '\\^{}', '_': '\\_',
+            '%': '\\%', '~': '\\~{}'}
+
+def _idx_quote(s):                       # protect makeindex's own metacharacters
+    return ''.join(('"' + c) if c in _IDX_CTRL else c for c in s)
+
+def idx(name, note=''):
+    key = _idx_quote(name)                                   # sorts on the bare name
+    shown = _idx_quote(''.join(_TEX_ESC.get(c, c) for c in name))
+    tail = (' (%s)' % note) if note else ''
+    return '\\index{%s@\\texttt{%s}%s}' % (key, shown, tail)
+
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SRC  = os.path.join(ROOT, "reference", "GLOSSARY.md")
@@ -118,8 +138,8 @@ def main():
             f.write("\n\\section*{%s}\n" % esc(letter))
             f.write("\\addcontentsline{toc}{section}{%s}\n\n" % esc(letter))
             for name, kind, detail in entries:
-                f.write("\\noindent\\textbf{\\texttt{%s}}\\quad\\textit{%s}\\\\\n"
-                        % (esc(name), esc(kind)))
+                f.write("\\noindent\\textbf{\\texttt{%s}}\\quad\\textit{%s}%s\\\\\n"
+                        % (esc(name), esc(kind), idx(name)))
                 # Emit the entry's lines IN ORDER, switching to a verbatim quote
                 # for the fenced blocks (the characterizing axiom's statement).
                 chunk, in_code = [], False

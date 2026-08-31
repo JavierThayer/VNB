@@ -25,9 +25,10 @@
 ;;; SINCE 2026-08-24 THE TWO ARE NO LONGER ON THE SAME FOOTING.  `nn-add-succ'
 ;;; is stamped `definitional' -- trusted base, contributing {} to every bill --
 ;;; by an explicit decision recorded in full at its own site below, INCLUDING
-;;; what that stamp assumes beyond a definition.  `nn-mul-succ' remains an
-;;; asserted, warranted support.  Read the block above `nn-add-succ' before
-;;; extending the treatment to anything else in this file.
+;;; what that stamp assumes beyond a definition.  `nn-mul-succ' is PROVEN
+;;; (2026-08-31, theorem-library/nn-parity-proof.scm) and needed no stamp at
+;;; all.  Read the block above `nn-add-succ' before extending the treatment to
+;;; anything else in this file.
 ;;;
 ;;; NOT asserted, because they are derivable and are proved in nn-parity-proof:
 ;;;   succ injective on NN  -- ord-succ-injective + ord-succ-nn (ordinals.scm)
@@ -84,10 +85,13 @@
 ;;; Until then the exit exists on paper only, and the assumption above is the
 ;;; price of the 20 bills the stamp clears.
 ;;;
-;;; SCOPE.  This decision is about `nn-add-succ' ALONE.  `nn-mul-succ' below
-;;; carries the identical argument and is DELIBERATELY LEFT asserted: one
-;;; explicit decision per fact.  Growing the trusted base by analogy with a
-;;; neighbouring decision is precisely how it stops being explicit.
+;;; SCOPE.  This decision is about `nn-add-succ' ALONE.  `nn-mul-succ' was left
+;;; asserted here on the rule of one explicit decision per fact -- growing the
+;;; trusted base by analogy with a neighbouring decision is precisely how it
+;;; stops being explicit.  That restraint paid: on 2026-08-31 it turned out NOT
+;;; to carry the identical argument, and is now PROVEN (nn-parity-proof.scm)
+;;; from nn-succ-plus-one, nn-distributive and nn-one-mul.  A stamp by analogy
+;;; would have assumed what a proof establishes.
 ;;;
 ;;; MEASURED 2026-08-24, over 719 proven results: the name was in 55 bills and
 ;;; was the SOLE unwarranted leaf of 20 of them; the stamp clears those 20 to
@@ -124,15 +128,13 @@
            (IMPLIES (IN b NN)
              (= (+ a (succ b)) (succ (+ a b)))))))))
 
-;;; a * succ(b) = a*b + a
-(support 'nn-mul-succ
-  '(FORALL a
-     (IMPLIES (IN a NN)
-       (FORALL b
-         (IMPLIES (IN b NN)
-           (= (* a (succ b)) (+ (* a b) a)))))))
-
-(warrant! 'nn-mul-succ 'reference
-  "The recursion equation defining * on NN: a * succ(b) = a*b + a.  Peano.
-   Same gap as nn-add-succ: number-systems.scm gives * its algebraic laws and
-   never relates it to succ.")
+;;; nn-mul-succ (a * succ(b) = a*b + a) MOVED 2026-08-31 to
+;;; theorem-library/nn-parity-proof.scm, where it is PROVEN `modulo 0'.  It
+;;; stood here as a `reference' support and the SCOPE note above posed it as the
+;;; next candidate for a `definitional' stamp.  No stamp was needed: succ(b) =
+;;; b + 1 (nn-succ-plus-one) plus nn-distributive and nn-one-mul, both
+;;; `primitive', give it in four rewrites.  The asymmetry with nn-add-succ is
+;;; the finding -- ADDITION's recursion has to be assumed, MULTIPLICATION's does
+;;; not -- and it is why the stamp decision this file invited should not be
+;;; taken.  Proved in nn-parity-proof rather than in a file of its own because
+;;; nn-succ-plus-one is produced there and consumed a few lines later.

@@ -42,6 +42,7 @@ DOCS = [
     ("Macete index",       "MACETE-INDEX.md",     "rewrite macetes, grouped"),
     ("Fingerprint index",  "FINGERPRINT-INDEX.md","results bucketed by conclusion skeleton"),
     ("Proof debt",         "PROOF-DEBT.md",       "what each proof rests on (asserted base)"),
+    ("Debt bundle",        "DEBT-BUNDLE.md",      "the same debt raked into heaps: what to prove next (greedy what-if), and which arc each long bill comes in through"),
     ("Tactics",            "TACTICS.md",          "interactive proof commands, each with a one-line gloss"),
     ("Theorems by topic",  "BY-TOPIC.md",         "grouped by subject (calculus basics, metric spaces), each with a link to its proof"),
 ]

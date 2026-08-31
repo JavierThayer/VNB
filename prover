@@ -94,7 +94,23 @@ case "$1" in
     if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
       exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
     fi
-    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD"
+    # SELF-HEALING (2026-08-28).  Band absent or stale: do the full load ONCE
+    # and SAVE the image on the way past, so the NEXT start is 0.1 s rather than
+    # another full load.
+    #
+    # Before this, the branch discarded the image it had just spent the entire
+    # load building, so every start paid the load again until somebody ran
+    # `--build-band' by hand.  Nobody does, because nothing says to: the band
+    # goes stale on the first edit of any working day, and from then on the
+    # launcher silently runs the slow path forever.  That is what had a two-day
+    # -old band costing minutes per start.
+    #
+    # `disk-save' returns in the SAVING process as well as in the restarted one
+    # (like fork), so the REPL comes up straight after the write -- the user
+    # waits the load they were going to wait anyway, plus a few seconds of I/O,
+    # and never waits it again.
+    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
+         --eval "(disk-save \"$BAND\")"
     ;;
   -b)
     if [ ! -f "$BAND" ]; then
