@@ -23,7 +23,7 @@
 ;;; for an accessor correspondence whose target laws are a shape-mechanical
 ;;; subset of the source's.  It is wrong here: IS-FIELD-RING's two laws are
 ;;; nontriviality (field-zero-not-one, a separate axiom about fields) and an
-;;; EXISTENTIAL invertibility, witnessed by the field's RECIP slot.  Declaring
+;;; EXISTENTIAL invertibility, witnessed by the field's MUL-INV slot.  Declaring
 ;;; that would assume exactly what wants demonstrating.
 ;;;
 ;;; WHAT HAD TO BE BUILT FIRST, and it is a finding in its own right:
@@ -152,22 +152,22 @@
            (lambda () (subst '(= (NON-ZERO s_) (DIFFERENCE (CARR s_) (SINGLETON (ZERO s_)))))
                       (ass)))
          ;; recip(s_)(a) is in non-zero(s_), hence in carr(s_)
-         (fact 'fun-apply-type-c '(RECIP s_) '(NON-ZERO s_) '(NON-ZERO s_) a)
-         (dk-have! (list 'IN (list '(RECIP s_) a) '(CARR s_))
+         (fact 'fun-apply-type-c '(MUL-INV s_) '(NON-ZERO s_) '(NON-ZERO s_) a)
+         (dk-have! (list 'IN (list '(MUL-INV s_) a) '(CARR s_))
            (lambda ()
              (fact 'eq-sym '(NON-ZERO s_)
                    '(DIFFERENCE (CARR s_) (SINGLETON (ZERO s_))))
-             (dk-have! (list 'IN (list '(RECIP s_) a)
+             (dk-have! (list 'IN (list '(MUL-INV s_) a)
                              '(DIFFERENCE (CARR s_) (SINGLETON (ZERO s_))))
                (lambda () (subst '(= (DIFFERENCE (CARR s_) (SINGLETON (ZERO s_)))
                                      (NON-ZERO s_)))
                           (ass)))
              (fact 'difference-membership '(CARR s_) (list 'SINGLETON '(ZERO s_))
-                   (list '(RECIP s_) a))
+                   (list '(MUL-INV s_) a))
              (prop)))
          ;; the inverse law, at a
          ;; the inverse law at a_ -- cited by NAME, not found by shape: the
-         ;; context now holds several universals mentioning RECIP (the
+         ;; context now holds several universals mentioning MUL-INV (the
          ;; fun-apply-type-c instantiation chain), and a shape finder picks the
          ;; wrong one.
          (inst+ (any-pred
@@ -179,7 +179,7 @@
                                  (and (pair? c) (eq? (car c) '=)))))))
                  (dk-asms))
                 a)
-         (ew (list '(RECIP s_) a))
+         (ew (list '(MUL-INV s_) a))
          (from-context!)))
       ;; field-zero-not-one gives  zero /= one;  the goal wants  one /= zero.
       ((and (pair? g) (eq? (car g) 'NOT)

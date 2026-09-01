@@ -426,7 +426,7 @@
 <p><em>Warrant (well-known):</em> i in [2, succ p] =&gt; i-1 in [1, p]: the monus predecessor of an index past 1 lands in the block range.</p>
 <h4 id="p-recip-defined-nonzero">recip-defined-nonzero</h4>
 <pre>forall([q], recip(q) = recip(q) implies not(q = 0))</pre>
-<p><em>Warrant (informal):</em> recip is defined only off zero (RECIP : NON-ZERO -&gt; NON-ZERO); a defined recip(q) forces q /= 0.</p>
+<p><em>Warrant (informal):</em> recip is defined only off zero (MUL-INV : NON-ZERO -&gt; NON-ZERO); a defined recip(q) forces q /= 0.</p>
 <h4 id="p-rpow-mono-base">rpow-mono-base</h4>
 <pre>forall([a], a in rr and 0 &lt; a implies forall([c], c in rr and a &lt;= c implies forall([b], b in qq and 0 &lt;= b implies rpow(a, b) &lt;= rpow(c, b))))</pre>
 <p><em>Warrant (well-known):</em> a^b is nondecreasing in the base for a nonnegative exponent: 0&lt;a&lt;=c and 0&lt;=b give a^b &lt;= c^b.</p>

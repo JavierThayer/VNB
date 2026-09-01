@@ -248,7 +248,7 @@
 <!-- field -->
 <g id="node9" class="node">
 <title>field</title>
-<g id="a_node9"><a xlink:href="structure-graph.html#field" xlink:title="field &#45;&#45; slots (carr add mul neg zero one non&#45;zero recip)">
+<g id="a_node9"><a xlink:href="structure-graph.html#field" xlink:title="field &#45;&#45; slots (carr add mul neg zero one non&#45;zero mul&#45;inv)">
 <path fill="#eaf2fb" stroke="#2a4a6a" d="M339.25,-121.5C339.25,-121.5 309.25,-121.5 309.25,-121.5 303.25,-121.5 297.25,-115.5 297.25,-109.5 297.25,-109.5 297.25,-97.5 297.25,-97.5 297.25,-91.5 303.25,-85.5 309.25,-85.5 309.25,-85.5 339.25,-85.5 339.25,-85.5 345.25,-85.5 351.25,-91.5 351.25,-97.5 351.25,-97.5 351.25,-109.5 351.25,-109.5 351.25,-115.5 345.25,-121.5 339.25,-121.5"/>
 <text xml:space="preserve" text-anchor="middle" x="324.25" y="-99.4" font-family="Helvetica,sans-Serif" font-size="13.00">field</text>
 </a>
@@ -292,7 +292,7 @@
 <!-- field&#45;&gt;group -->
 <g id="edge30" class="edge">
 <title>field&#45;&gt;group</title>
-<g id="a_edge30"><a xlink:href="structure-graph.html#views" xlink:title="field&#45;multiplicative&#45;group : &#160;field &#45;&gt; group &#160;&#160;&#160;(non&#45;zero mul one recip) |&#45;&gt; (carr opr iden inv)">
+<g id="a_edge30"><a xlink:href="structure-graph.html#views" xlink:title="field&#45;multiplicative&#45;group : &#160;field &#45;&gt; group &#160;&#160;&#160;(non&#45;zero mul one mul&#45;inv) |&#45;&gt; (carr opr iden inv)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M351.65,-107.95C377.07,-112.17 415.1,-121.16 443.25,-139.5 452.24,-145.36 460.33,-153.78 466.89,-161.96"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="463.92,-163.83 472.72,-169.74 469.52,-159.64 463.92,-163.83"/>
 </a>
@@ -700,7 +700,7 @@
 <!-- qq&#45;field -->
 <g id="node25" class="node">
 <title>qq&#45;field</title>
-<g id="a_node25"><a xlink:href="structure-graph.html#qq-field" xlink:title="qq&#45;field &#45;&#45; slots (carr add mul neg zero one non&#45;zero recip)">
+<g id="a_node25"><a xlink:href="structure-graph.html#qq-field" xlink:title="qq&#45;field &#45;&#45; slots (carr add mul neg zero one non&#45;zero mul&#45;inv)">
 <path fill="#eaf2fb" stroke="#2a4a6a" d="M345,-36C345,-36 303.5,-36 303.5,-36 297.5,-36 291.5,-30 291.5,-24 291.5,-24 291.5,-12 291.5,-12 291.5,-6 297.5,0 303.5,0 303.5,0 345,0 345,0 351,0 357,-6 357,-12 357,-12 357,-24 357,-24 357,-30 351,-36 345,-36"/>
 <text xml:space="preserve" text-anchor="middle" x="324.25" y="-13.9" font-family="Helvetica,sans-Serif" font-size="13.00">qq&#45;field</text>
 </a>

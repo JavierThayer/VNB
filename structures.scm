@@ -1194,7 +1194,7 @@
 ;;; the `definitional' provenance, the operator-table entry and this
 ;;; registration.  Nobody hand-writes the axiom any more.  COMMUTATIVE-RING,
 ;;; INTEGRAL-DOMAIN, EUCLIDEAN-RING, PID, VECTOR-SPACE are refinements; FIELD
-;;; and NORMED-FIELD are NOT -- they declare their own slots (RECIP, FNRM) and
+;;; and NORMED-FIELD are NOT -- they declare their own slots (MUL-INV, FNRM) and
 ;;; so are shape structures with laws.
 ;;;
 ;;; `register-definitional-structure!` records the parent chain: the navigation
@@ -1372,8 +1372,8 @@
 ;;; The map that carries a value of SORT from `a' to `b'.
 ;;;   -- an independent carrier: its own fi;
 ;;;   -- a DERIVED carrier (FIELD's NON-ZERO = CARR \ {ZERO}): the map of the
-;;;      carrier it was carved from, so RECIP's law reads
-;;;        f(recip(a)(x)) = recip(b)(f(x))   for x in non-zero(a)
+;;;      carrier it was carved from, so MUL-INV's law reads
+;;;        f(mul-inv(a)(x)) = mul-inv(b)(f(x))   for x in non-zero(a)
 ;;;      with ONE map, not a second, unrelated one;
 ;;;   -- anything else (a norm's RR, the scalars (CARR SCAL)): the identity.
 (define (hom--map-for sort carriers fvars #!optional derived-base)

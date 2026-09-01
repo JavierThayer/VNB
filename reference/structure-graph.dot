@@ -12,7 +12,7 @@ digraph VNB {
   "commutative-ring" [tooltip="commutative-ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#commutative-ring"];
   "complex-inner-product-space" [tooltip="complex-inner-product-space -- slots (scal vec vadd vzero vneg act ip)", URL="structure-graph.html#complex-inner-product-space"];
   "euclidean-ring" [tooltip="euclidean-ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#euclidean-ring"];
-  "field" [tooltip="field -- slots (carr add mul neg zero one non-zero recip)", URL="structure-graph.html#field"];
+  "field" [tooltip="field -- slots (carr add mul neg zero one non-zero mul-inv)", URL="structure-graph.html#field"];
   "field-ring" [tooltip="field-ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#field-ring"];
   "group" [tooltip="group -- slots (carr opr iden inv)", URL="structure-graph.html#group"];
   "integral-domain" [tooltip="integral-domain -- slots (carr add mul neg zero one)", URL="structure-graph.html#integral-domain"];
@@ -28,7 +28,7 @@ digraph VNB {
   "normed-vector-space" [tooltip="normed-vector-space -- slots (scal vec vadd vzero vneg act vnrm)", URL="structure-graph.html#normed-vector-space"];
   "pid" [tooltip="pid -- slots (carr add mul neg zero one)", URL="structure-graph.html#pid"];
   "pseudometric-space" [tooltip="pseudometric-space -- slots (pts dist)", URL="structure-graph.html#pseudometric-space"];
-  "qq-field" [tooltip="qq-field -- slots (carr add mul neg zero one non-zero recip)", URL="structure-graph.html#qq-field"];
+  "qq-field" [tooltip="qq-field -- slots (carr add mul neg zero one non-zero mul-inv)", URL="structure-graph.html#qq-field"];
   "qq-line" [tooltip="qq-line -- slots (scal vec vadd vzero vneg act)", URL="structure-graph.html#qq-line"];
   "qq-ring" [tooltip="qq-ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#qq-ring"];
   "ring" [tooltip="ring -- slots (carr add mul neg zero one)", URL="structure-graph.html#ring"];
@@ -75,7 +75,7 @@ digraph VNB {
   "normed-field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="normed-field-additive-ag :  normed-field -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="field-as-integral-domain :  field -> integral-domain    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "module" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="vector-ag", tooltip="module-vector-ag :  module -> abelian-group    (vec vadd vzero vneg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
-  "field" -> "group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-group", tooltip="field-multiplicative-group :  field -> group    (non-zero mul one recip) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
+  "field" -> "group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-group", tooltip="field-multiplicative-group :  field -> group    (non-zero mul one mul-inv) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "measure-space" -> "measurable-space" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-measurable-space", tooltip="measure-space-as-measurable-space :  measure-space -> measurable-space    (pts sigma) |-> (pts sigma)", URL="structure-graph.html#views"];
   "normed-vector-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="normed-vector-space-as-module :  normed-vector-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
   "normed-field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="normed-field-as-integral-domain :  normed-field -> integral-domain    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];

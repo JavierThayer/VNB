@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-477 operators: 3 functions, 13 syntax, 271 functoids, 190 predicates, 0 undeclared.
+478 operators: 3 functions, 14 syntax, 271 functoids, 190 predicates, 0 undeclared.
 
 ## Functions  (3)
 
@@ -22,7 +22,7 @@ A head is listed here exactly when the theory STATES that it is an element of a 
 - `etimes` denotes a set-function, by `etimes-in-fun`.
 - `vnb-lambda` is the binder that constructs a set-function.
 
-## Syntax  (13)
+## Syntax  (14)
 
 Heads that form terms and denote nothing themselves.  There is no `+ in SET` to be had; `x + y + z` is the flat node `(+ x y z)`, so these heads are not of fixed arity either.  The theory characterizes their APPLICATIONS by axiom and says nothing about the heads.  Where an object is genuinely needed, it is a separate constant — `binplus` for binary `+`, `bintimes` for binary `*` — which CAN be typed into a `FUN` set, one domain at a time (`FUN` is domain-exact: see `dom-of-fun`).
 
@@ -45,6 +45,8 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 ### `magnitude`  — syntax: the head denotes nothing
 
 ### `real-part`  — syntax: the head denotes nothing
+
+### `recip`  — syntax: the head denotes nothing
 
 ### `rpow`  — syntax: the head denotes nothing
 
@@ -678,6 +680,8 @@ Declared by: `mpow-zero` `mpow-succ`
 
 ### `mul`  — structure accessor · element (slot value)
 
+### `mul-inv`  — structure accessor · element (slot value)
+
 ### `nag-metric-space`  — def-functoid · tuple/structure-valued
 
     nag-metric-space(nag) := [carr(nag), vnb-lambda([u, v], cartesian(carr(nag), carr(nag)), (nrm(nag))((opr(nag))(u, (inv(nag))(v))))]
@@ -881,8 +885,6 @@ Declared by: `qq-ring-def`
 ### `ran`  — def-functoid · set-valued
 
     ran(f) := image(f, dom(f))
-
-### `recip`  — structure accessor · element (slot value)
 
 ### `recip-star`  — def-functoid · element/number-valued
 

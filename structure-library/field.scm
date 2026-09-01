@@ -6,17 +6,17 @@
 ;;; field directly visible:
 ;;;
 ;;;   carriers:  A, NON-ZERO
-;;;   ops:       ADD, MUL, NEG, RECIP   (RECIP : NON-ZERO -> NON-ZERO)
+;;;   ops:       ADD, MUL, NEG, MUL-INV   (MUL-INV : NON-ZERO -> NON-ZERO)
 ;;;   constants: ZERO, ONE
 ;;;
 ;;; Declaration order is chosen so the slots shared with RING keep RING's
 ;;; indices: A at 1, ADD at 2, MUL at 3, NEG at 4, ZERO at 5, ONE at 6, with
-;;; NON-ZERO at 7 and RECIP at 8.  This avoids overwriting RING's accessor
+;;; NON-ZERO at 7 and MUL-INV at 8.  This avoids overwriting RING's accessor
 ;;; macetes; (ADD r), (MUL r), etc. still reduce to (NTH 2 r), (NTH 3 r),
 ;;; ... regardless of whether r is a RING or a FIELD.  See structures.scm
 ;;; for the declaration-order indexing rule.
 ;;;
-;;; The view FIELD-MULTIPLICATIVE-GROUP picks out (NON-ZERO, MUL, ONE, RECIP)
+;;; The view FIELD-MULTIPLICATIVE-GROUP picks out (NON-ZERO, MUL, ONE, MUL-INV)
 ;;; as a genuine group, and FIELD-AS-INTEGRAL-DOMAIN forgets the two extra
 ;;; slots so all ring/comm-ring/integral-domain theorems specialize back.
 ;;;
@@ -35,14 +35,14 @@
   ;; Slots 7-8: FIELD-specific carrier and op.  NON-ZERO is DERIVED -- it is
   ;; CARR with the zero removed, not a set the tuple may choose freely.  Until
   ;; 2026-07-12 it was a plain carrier and IS-FIELD said NOTHING relating it to
-  ;; CARR: a "field" could have had any set at all in slot 7, with RECIP an
+  ;; CARR: a "field" could have had any set at all in slot 7, with MUL-INV an
   ;; arbitrary function on it.  The equation lived in a separate ASSERTED axiom
   ;; (field-non-zero-carrier, below), i.e. a support was finishing a definition.
   ;; Being derived also makes a field MORPHISM one map instead of two: NON-ZERO
   ;; is not an independent sort, so it rides CARR's map (structures.scm,
   ;; build-hom-axiom).
   (derived NON-ZERO CARR (DIFFERENCE CARR (SINGLETON ZERO)))
-  (op RECIP NON-ZERO NON-ZERO)
+  (op MUL-INV NON-ZERO NON-ZERO)
   ;; Additive abelian group on A.
   (property is-associative ADD CARR)
   (property is-commutative ADD CARR)
@@ -63,11 +63,11 @@
     '(FORALL s (IMPLIES (IS-FIELD s)
        (= (NON-ZERO s) (DIFFERENCE (CARR s) (SINGLETON (ZERO s))))))))
 
-;;; Multiplicative inverse: RECIP is the right inverse of MUL on NON-ZERO.
+;;; Multiplicative inverse: MUL-INV is the right inverse of MUL on NON-ZERO.
 (theory-add-axiom! *current-theory* 'field-mul-inverse
   '(FORALL s (IMPLIES (IS-FIELD s)
      (FORALL a (IMPLIES (IN a (NON-ZERO s))
-       (= ((MUL s) a ((RECIP s) a)) (ONE s)))))))
+       (= ((MUL s) a ((MUL-INV s) a)) (ONE s)))))))
 
 ;;; A field has at least two elements.
 (theory-add-axiom! *current-theory* 'field-zero-not-one
@@ -77,7 +77,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; FIELD-RING -- fieldhood as a PROPERTY OF A 6-SLOT RING.
 ;;;
-;;; FIELD above is an 8-slot SHAPE: it carries NON-ZERO and RECIP as data, and
+;;; FIELD above is an 8-slot SHAPE: it carries NON-ZERO and MUL-INV as data, and
 ;;; IS-FIELD therefore pins length(s) = 8.  That is the right shape for a field
 ;;; in its own right (it makes the multiplicative group a view, FIELD-
 ;;; MULTIPLICATIVE-GROUP), and it is the WRONG thing to demand of a SLOT that
@@ -112,13 +112,13 @@
 ;;;
 ;;; RELATION TO FIELD.  The bridge is
 ;;;     IS-FIELD(f)  =>  IS-FIELD-RING(FIELD-AS-INTEGRAL-DOMAIN(f))
-;;; -- forget NON-ZERO and RECIP, keep the invertibility as an existence claim.
+;;; -- forget NON-ZERO and MUL-INV, keep the invertibility as an existence claim.
 ;;; It cannot be stated in this file (FIELD-AS-INTEGRAL-DOMAIN is declared in
 ;;; views.scm, which loads later) and nothing in the library needs it yet, so
 ;;; it is NOT in the tree: it wants the shape of theorem-library/normed-field-
 ;;; ring-view.scm, six accessor read-offs off the projected LIST plus the
-;;; invertibility witness RECIP(f)(a).  The converse direction is the one that
-;;; is not free -- it must CHOOSE a RECIP -- and that asymmetry is the reason
+;;; invertibility witness MUL-INV(f)(a).  The converse direction is the one that
+;;; is not free -- it must CHOOSE a MUL-INV -- and that asymmetry is the reason
 ;;; the slot holds a FIELD-RING rather than a projected FIELD.
 (declare-structure FIELD-RING
   (instance-var s)

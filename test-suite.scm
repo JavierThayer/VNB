@@ -863,7 +863,7 @@
 ;; (b) The `/' head.  `/(t, 1 + t)' died in the parser: read-op makes `/' an
 ;; operator token, and only a funsym can head an application.  The
 ;; parenthesised head is readable and is what is printed.  The pretty
-;; alternative is NOT taken: `t / (1 + t)' is sugar for (* t (RECIP ...)) and
+;; alternative is NOT taken: `t / (1 + t)' is sugar for (* t (MUL-INV ...)) and
 ;; would read back as a different term.
 (check-true "round trip: the / head survives print -> parse"
             (lambda () (rt-ok? '(/ t (+ 1 t)))))
@@ -3702,7 +3702,7 @@
 (display "\n=== accessor indices: one name, one slot ===\n")
 
 ;; NO accessor is ambiguous any more: the group family's operation is OPR, the
-;; field's inverse RECIP, the normed field's norm FNRM.  A new collision -- e.g.
+;; field's inverse MUL-INV, the normed field's norm FNRM.  A new collision -- e.g.
 ;; a numbered carrier CARRj at slot j in one structure and slot j' in another --
 ;; fails here (and hard-errors the load).
 (check-true "no accessor name is claimed at two slot indices"
@@ -3777,7 +3777,7 @@
 (check-true "tuple equations are definitional, and the value macetes inherit it"
   (lambda ()
     (equal? (list (provenance-of 'zz-ring-def)   (provenance-of 'zz-ring@mul)
-                  (provenance-of 'qq-field-def)  (provenance-of 'qq-field@recip)
+                  (provenance-of 'qq-field-def)  (provenance-of 'qq-field@mul-inv)
                   (provenance-of 'rr-ms-def)     (provenance-of 'rr-ms@dist))
             '(definitional definitional definitional definitional
               definitional definitional))))
@@ -4290,12 +4290,12 @@
   (lambda ()
     (and (hom-has? 'field
                    "is-hom-field(a, b, f)"
-                   "forall([x1_ in non-zero(a)], f((recip(a))(x1_)) = (recip(b))(f(x1_)))")
+                   "forall([x1_ in non-zero(a)], f((mul-inv(a))(x1_)) = (mul-inv(b))(f(x1_)))")
          (not (and (string-search-forward "f2" (hom-str 'field) 0) #t)))))
 
 ;; ... and IS-FIELD now PINS the derived carrier itself.  It used not to: the
 ;; equation lived in a separate ASSERTED axiom, so a field's NON-ZERO could have
-;; been any set at all, with RECIP an arbitrary function on it.
+;; been any set at all, with MUL-INV an arbitrary function on it.
 (check-true "IS-FIELD pins non-zero(s) = carr(s) minus zero(s)"
   (lambda ()
     (and (string-search-forward

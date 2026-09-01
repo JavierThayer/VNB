@@ -393,12 +393,12 @@
 ;;; (primitive-inferences.scm: "(= t t) IS the definedness predicate"), NOT on
 ;;; membership -- the membership form is UNSOUND (i*(-i)=1 in RR yet i not in RR).
 
-;; recip is partial on the nonzero reals (RECIP : NON-ZERO -> NON-ZERO, field.scm),
+;; recip is partial on the nonzero reals (MUL-INV : NON-ZERO -> NON-ZERO, field.scm),
 ;; so recip(0) is undefined; a DEFINED recip(q) therefore forces q /= 0.
 (support 'recip-defined-nonzero
   '(FORALL q (IMPLIES (= (recip q) (recip q)) (NOT (= q 0)))))
 (warrant! 'recip-defined-nonzero 'informal
-  "recip is defined only off zero (RECIP : NON-ZERO -> NON-ZERO); a defined recip(q) forces q /= 0.")
+  "recip is defined only off zero (MUL-INV : NON-ZERO -> NON-ZERO); a defined recip(q) forces q /= 0.")
 (topic! 'recip-defined-nonzero 'inequalities)
 
 ;; Multiplication is STRICT: a defined product has both factors defined.  Only

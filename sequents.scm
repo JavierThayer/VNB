@@ -353,7 +353,7 @@
          ;; p-maybe-apply, so `(/)(t, 1 + t)' is (/ t (+ 1 t)) exactly.
          ;;
          ;; The pretty alternative is deliberately NOT taken.  `t / (1 + t)'
-         ;; parses -- to (* t (RECIP (+ 1 t))), because infix `/' is SUGAR in
+         ;; parses -- to (* t (recip (+ 1 t))), because infix `/' is SUGAR in
          ;; p-parse-mul and builds no `/' node at all.  Printing the sugar
          ;; would hand the user a string that reads back as a different
          ;; S-expression, silently, `ass' and `rfl' being syntactic.  The ugly

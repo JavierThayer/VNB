@@ -2022,16 +2022,29 @@
 ;; So the class is now DERIVED from the theory: a head is a FUNCTION iff some
 ;; installed formula says it is an element of a FUN set.  The census can then
 ;; only ever claim what has been stated, and it names the statement.
-(define (op-stated-fun-typings name)
-  (let ((hits '()))
+;; ONE walk of the theorem table, not one per head.  The first cut of this
+;; scanned the whole table for each registered head -- 477 heads x 2492
+;; formulas -- and put a minute on every library load.  Build the index once
+;; and look heads up in it.
+(define *op-fun-typing-index* #f)          ; head -> (theorem-name ...)
+
+(define (op-build-fun-typing-index!)
+  (let ((ix (make-equal-hash-table)))
     (hash-table-walk *theorem-table*
       (lambda (n s)
         (let scan ((f s))
-          (cond ((and (pair? f) (eq? (car f) 'IN) (eq? (cadr f) name)
+          (cond ((and (pair? f) (eq? (car f) 'IN) (symbol? (cadr f))
                       (pair? (caddr f)) (eq? (car (caddr f)) 'FUN))
-                 (set! hits (cons n hits)))
+                 (hash-table-set! ix (cadr f)
+                   (cons n (hash-table-ref/default ix (cadr f) '()))))
                 ((pair? f) (for-each scan (cdr f)))
                 (else #f)))))
+    (set! *op-fun-typing-index* ix)
+    ix))
+
+(define (op-stated-fun-typings name)
+  (let* ((ix   (or *op-fun-typing-index* (op-build-fun-typing-index!)))
+         (hits (hash-table-ref/default ix name '())))
     (sort (collapse-rev-names hits)
           (lambda (a b) (string<? (symbol->string a) (symbol->string b))))))
 
@@ -2170,7 +2183,7 @@
         (list name 'function "binder: constructs a set-function" "function" '()))
        ((pair? (op-stated-fun-typings name))
         (list name 'function "denotes a set-function (element of FUN(A,B))"
-              "set-function" (op-stated-fun-typings name)))
+              "set-function" (op-stated-fun-typings name)))   ; index lookup, cheap
        ((memq name *op-syntax-heads*)
         (list name 'syntax "syntax: the head denotes nothing" "term" '()))
        ((memq name '(apply-functoid apply-function))
@@ -2193,6 +2206,7 @@
 (define (op-name<? a b) (string<? (symbol->string (car a)) (symbol->string (car b))))
 
 (define (write-operators-md)
+  (op-build-fun-typing-index!)             ; fresh: the theory may have grown
   (let* ((path  (string-append *reference-dir* "OPERATORS.md"))
          (heads (sort (filter (lambda (n) (not (lookup-view-as n)))
                               (hash-table-keys *constant-registry*))

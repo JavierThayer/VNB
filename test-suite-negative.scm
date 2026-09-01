@@ -412,7 +412,7 @@
 ;;; law.  MODULE declares `(substructure SCAL RING)', so the generated IFF
 ;;; carries (IS-RING (SCAL s)) and IS-RING pins length(scal(s)) = 6.  The law
 ;;; read `is-field(scal(s))', and IS-FIELD pins the SAME term to 8 -- FIELD is
-;;; its own 8-slot shape, [CARR ADD MUL NEG ZERO ONE NON-ZERO RECIP]
+;;; its own 8-slot shape, [CARR ADD MUL NEG ZERO ONE NON-ZERO MUL-INV]
 ;;; (field.scm).  Six against eight, so IS-VECTOR-SPACE(s) |- falsity, and
 ;;; IS-FINITE-DIMENSIONAL -- (AND (IS-VECTOR-SPACE m) (IS-NOETHERIAN m)) --
 ;;; inherited the emptiness.  hb-good-has-maximal, hahn-banach, norm-as-sup,

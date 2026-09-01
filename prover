@@ -133,14 +133,47 @@ case "$1" in
     # interactive REPL regardless of whether GNU Emacs or XEmacs launched us
     # (GNU Emacs sets INSIDE_EMACS which causes MIT Scheme to disable its line
     # editor in ways that break comint startup).
-    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD"
+    #
+    # BAND FIRST (2026-09-01).  This branch used to do a full load EVERY time
+    # and throw the image away -- the same defect `--band-if-fresh' had until
+    # 2026-08-28, left behind when that one was fixed.  So the Emacs launcher
+    # started in 0.1 s while a bare `./prover' at the shell paid three minutes,
+    # every time, with a perfectly fresh band sitting on disk unused.
+    #
+    # The band is used ONLY when provably fresh: `band_newer_scm' compares its
+    # mtime against every library .scm and prints the first newer one.  When it
+    # is stale we do the full load and SAVE on the way past, so the wait is paid
+    # once rather than once per start.
+    if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
+      exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
+    fi
+    exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
+         --eval "(disk-save \"$BAND\")"
     ;;
   -i)
-    # Load script then interactive
+    # Load script then interactive -- band first, on the same freshness test.
+    if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
+      exec env -u INSIDE_EMACS mit-scheme --band "$BAND" --load "$2"
+    fi
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" --load "$2"
     ;;
   *)
-    # Batch: load script, print results, exit
+    # Batch: load script, print results, exit -- band first, same test.
+    #
+    # ONE CAVEAT, and it applies to `-b' equally: the eigenvariable counter is
+    # part of the saved image, so a band start is a FIXED starting point, not a
+    # fresh one.  A driver that hard-codes a generated name (`u_4') can read
+    # differently from a cold load.  Reading eigenvariables off the LANDING
+    # rather than off a guess is the standing rule for exactly this reason;
+    # a driver that follows it does not care.  Use `--no-band' to force the
+    # cold path when reproducing a cold-load run exactly.
+    if [ "$1" = "--no-band" ]; then
+      shift
+      exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" --load "$1" --eval "(exit)"
+    fi
+    if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
+      exec mit-scheme --quiet --band "$BAND" --load "$1" --eval "(exit)"
+    fi
     exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" --load "$1" --eval "(exit)"
     ;;
 esac

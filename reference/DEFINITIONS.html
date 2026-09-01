@@ -402,7 +402,7 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h4 id="cc-ms">cc-ms</h4>
 <pre>cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]</pre>
 <h4 id="cc-normed-field">cc-normed-field</h4>
-<pre>cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, magnitude]</pre>
+<pre>cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, vnb-lambda(x_, cc, magnitude(x_))]</pre>
 <h4 id="d-ell-one">ell-one</h4>
 <pre>ell-one = {x_ in sqn(cc): series-converges(vnb-lambda(k_, nn, magnitude(x_(k_))))}</pre>
 <h4 id="d-ell-two">ell-two</h4>
@@ -422,7 +422,7 @@ forall([grd, porel, lam], limit-ord(lam) implies zup(grd, porel, lam) = choice({
 <h4 id="rr-ms">rr-ms</h4>
 <pre>rr-ms = [rr, vnb-lambda([x, y], cartesian(rr, rr), abs(x - y))]</pre>
 <h4 id="rr-normed-field">rr-normed-field</h4>
-<pre>rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, abs]</pre>
+<pre>rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, vnb-lambda(x_, rr, abs(x_))]</pre>
 <h4 id="rr-nvs">rr-nvs</h4>
 <pre>rr-nvs = [normed-field-as-commutative-ring(rr-normed-field), rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), 0, vnb-lambda(x_, rr, -x_), vnb-lambda([r_, x_], cartesian(rr, rr), r_ * x_), vnb-lambda(x_, rr, abs(x_))]</pre>
 <h4 id="d-zero-ring">zero-ring</h4>
@@ -955,13 +955,13 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-cc-ms@pts">cc-ms@pts</h4>
 <pre>pts(cc-ms) == cc</pre>
 <h4 id="d-cc-normed-field-def">cc-normed-field-def</h4>
-<pre>cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, magnitude]</pre>
+<pre>cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, vnb-lambda(x_, cc, magnitude(x_))]</pre>
 <h4 id="d-cc-normed-field@add">cc-normed-field@add</h4>
 <pre>add(cc-normed-field) == vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_)</pre>
 <h4 id="d-cc-normed-field@carr">cc-normed-field@carr</h4>
 <pre>carr(cc-normed-field) == cc</pre>
 <h4 id="d-cc-normed-field@fnrm">cc-normed-field@fnrm</h4>
-<pre>fnrm(cc-normed-field) == magnitude</pre>
+<pre>fnrm(cc-normed-field) == vnb-lambda(x_, cc, magnitude(x_))</pre>
 <h4 id="d-cc-normed-field@mul">cc-normed-field@mul</h4>
 <pre>mul(cc-normed-field) == vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_)</pre>
 <h4 id="d-cc-normed-field@neg">cc-normed-field@neg</h4>
@@ -1119,7 +1119,7 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-is-hom-euclidean-ring-def">is-hom-euclidean-ring-def</h4>
 <pre>forall([a, b, f], is-hom-euclidean-ring(a, b, f) iff is-euclidean-ring(a) and is-euclidean-ring(b) and is-hom-integral-domain(a, b, f))</pre>
 <h4 id="d-is-hom-field-def">is-hom-field-def</h4>
-<pre>forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((recip(a))(x1_)) = (recip(b))(f(x1_))))</pre>
+<pre>forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((mul-inv(a))(x1_)) = (mul-inv(b))(f(x1_))))</pre>
 <h4 id="d-is-hom-field-ring-def">is-hom-field-ring-def</h4>
 <pre>forall([a, b, f], is-hom-field-ring(a, b, f) iff is-field-ring(a) and is-field-ring(b) and is-hom-commutative-ring(a, b, f))</pre>
 <h4 id="d-is-hom-group-def">is-hom-group-def</h4>
@@ -1668,14 +1668,14 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <pre>carr(qq-field) == qq</pre>
 <h4 id="d-qq-field@mul">qq-field@mul</h4>
 <pre>mul(qq-field) == vnb-lambda([x_, y_], cartesian(qq, qq), x_ * y_)</pre>
+<h4 id="d-qq-field@mul-inv">qq-field@mul-inv</h4>
+<pre>mul-inv(qq-field) == vnb-lambda(x_, difference(qq, singleton(0)), recip(x_))</pre>
 <h4 id="d-qq-field@neg">qq-field@neg</h4>
 <pre>neg(qq-field) == vnb-lambda(x_, qq, -x_)</pre>
 <h4 id="d-qq-field@non-zero">qq-field@non-zero</h4>
 <pre>non-zero(qq-field) == difference(qq, singleton(0))</pre>
 <h4 id="d-qq-field@one">qq-field@one</h4>
 <pre>one(qq-field) == 1</pre>
-<h4 id="d-qq-field@recip">qq-field@recip</h4>
-<pre>recip(qq-field) == vnb-lambda(x_, difference(qq, singleton(0)), recip(x_))</pre>
 <h4 id="d-qq-field@zero">qq-field@zero</h4>
 <pre>zero(qq-field) == 0</pre>
 <h4 id="d-qq-line-def">qq-line-def</h4>
@@ -1813,13 +1813,13 @@ forall([g], is-abelian-group(g) implies forall([k in nn, a in carr(g)], zz-act(g
 <h4 id="d-rr-ms@pts">rr-ms@pts</h4>
 <pre>pts(rr-ms) == rr</pre>
 <h4 id="d-rr-normed-field-def">rr-normed-field-def</h4>
-<pre>rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, abs]</pre>
+<pre>rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, vnb-lambda(x_, rr, abs(x_))]</pre>
 <h4 id="d-rr-normed-field@add">rr-normed-field@add</h4>
 <pre>add(rr-normed-field) == vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_)</pre>
 <h4 id="d-rr-normed-field@carr">rr-normed-field@carr</h4>
 <pre>carr(rr-normed-field) == rr</pre>
 <h4 id="d-rr-normed-field@fnrm">rr-normed-field@fnrm</h4>
-<pre>fnrm(rr-normed-field) == abs</pre>
+<pre>fnrm(rr-normed-field) == vnb-lambda(x_, rr, abs(x_))</pre>
 <h4 id="d-rr-normed-field@mul">rr-normed-field@mul</h4>
 <pre>mul(rr-normed-field) == vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_)</pre>
 <h4 id="d-rr-normed-field@neg">rr-normed-field@neg</h4>

@@ -9579,7 +9579,7 @@ proven **modulo 0** -- unconditional.
 
 proven **modulo 0** -- unconditional.
 
-### qq-field-recip-type  *(trust: proof)*
+### qq-field-mul-inv-type  *(trust: proof)*
 
 *trusted code: `arith`, `crs`* -- decision procedures, sound on their domain but believed rather than checked; they leave no leaf below.
 

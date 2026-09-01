@@ -130,11 +130,11 @@
   'COMMUTATIVE-RING '(CARR MUL ONE)
   'COMM-MONOID      '(CARR OPR IDEN))
 
-;;; FIELD now carries NON-ZERO and RECIP as built-in slots (see field.scm
+;;; FIELD now carries NON-ZERO and MUL-INV as built-in slots (see field.scm
 ;;; reshape), so its nonzero elements form a genuine group, not just a
 ;;; monoid.  This replaces the old FIELD-MULTIPLICATIVE-MONOID view.
 (def-functor 'FIELD-MULTIPLICATIVE-GROUP
-  'FIELD '(NON-ZERO MUL ONE RECIP)
+  'FIELD '(NON-ZERO MUL ONE MUL-INV)
   'GROUP '(CARR OPR IDEN INV))
 
 ;;; Forget the extra slots to recover the integral-domain (and hence ring)
@@ -194,5 +194,5 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; The multiplicative group of a FIELD is implemented above by giving
-;;; FIELD its own shape with NON-ZERO and RECIP as built-in slots; see
+;;; FIELD its own shape with NON-ZERO and MUL-INV as built-in slots; see
 ;;; field.scm for the design note.

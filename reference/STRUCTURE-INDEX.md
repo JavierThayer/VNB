@@ -277,7 +277,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `neg` = `vnb-lambda(x_, cc, -x_)`
 - `zero` = `0`
 - `one` = `1`
-- `fnrm` = `magnitude`
+- `fnrm` = `vnb-lambda(x_, cc, magnitude(x_))`
 
 ### comm-monoid
 <a id="comm-monoid"></a>
@@ -680,7 +680,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (8): carriers (carr non-zero), ops/constants (add mul neg zero one recip)
+*Slots* (8): carriers (carr non-zero), ops/constants (add mul neg zero one mul-inv)
 
 *Declaration.*
 
@@ -693,7 +693,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
   (constant zero carr)
   (constant one carr)
   (derived non-zero carr (difference carr (singleton zero)))
-  (op recip non-zero non-zero)
+  (op mul-inv non-zero non-zero)
   (property is-associative add carr)
   (property is-commutative add carr)
   (property is-identity add zero carr)
@@ -706,7 +706,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Defining predicate* (as stored):
 
-- `is-field` — forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and non-zero(s) = difference(carr(s), singleton(zero(s))) and recip(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
+- `is-field` — forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and non-zero(s) = difference(carr(s), singleton(zero(s))) and mul-inv(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 
 *Theorems quantifying over `is-field`.*
 
@@ -728,8 +728,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `field-as-euclidean-ring-is-euclidean-ring` — forall([r], is-field(r) implies is-euclidean-ring(field-as-euclidean-ring(r)))
 - `field-as-integral-domain-is-integral-domain` — forall([r], is-field(r) implies is-integral-domain(field-as-integral-domain(r)))
 - `field-is-field-ring` — forall([s_], is-field(s_) implies is-field-ring(field-as-integral-domain(s_)))
-- `field-mul-inverse` — forall([s], is-field(s) implies forall([a in non-zero(s)], (mul(s))(a, (recip(s))(a)) = one(s)))
-- `field-mul-inverse-rev` — forall([s], is-field(s) implies forall([a in non-zero(s)], one(s) = (mul(s))(a, (recip(s))(a))))
+- `field-mul-inverse` — forall([s], is-field(s) implies forall([a in non-zero(s)], (mul(s))(a, (mul-inv(s))(a)) = one(s)))
+- `field-mul-inverse-rev` — forall([s], is-field(s) implies forall([a in non-zero(s)], one(s) = (mul(s))(a, (mul-inv(s))(a))))
 - `field-multiplicative-group-is-group` — forall([r], is-field(r) implies is-group(field-multiplicative-group(r)))
 - `field-non-zero-carrier` — forall([s], is-field(s) implies non-zero(s) = difference(carr(s), singleton(zero(s))))
 - `field-non-zero-carrier-rev` — forall([s], is-field(s) implies difference(carr(s), singleton(zero(s))) = non-zero(s))
@@ -765,7 +765,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `field-as-euclidean-ring` — into `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — into `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — into `group`: (non-zero mul one recip) ↦ (carr opr iden inv)
+- `field-multiplicative-group` — into `group`: (non-zero mul one mul-inv) ↦ (carr opr iden inv)
 - `field-additive-ag` — into `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 
 ### field-ring
@@ -832,7 +832,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Views into `group`.*
 
-- `field-multiplicative-group` — from `field`: (non-zero mul one recip) ↦ (carr opr iden inv)
+- `field-multiplicative-group` — from `field`: (non-zero mul one mul-inv) ↦ (carr opr iden inv)
 
 ### integral-domain
 <a id="integral-domain"></a>
@@ -1847,7 +1847,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `zero` = `0`
 - `one` = `1`
 - `non-zero` = `difference(qq, singleton(0))`
-- `recip` = `vnb-lambda(x_, difference(qq, singleton(0)), recip(x_))`
+- `mul-inv` = `vnb-lambda(x_, difference(qq, singleton(0)), recip(x_))`
 
 ### qq-line
 <a id="qq-line"></a>
@@ -2416,7 +2416,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `neg` = `vnb-lambda(x_, rr, -x_)`
 - `zero` = `0`
 - `one` = `1`
-- `fnrm` = `abs`
+- `fnrm` = `vnb-lambda(x_, rr, abs(x_))`
 
 ### rr-nvs
 <a id="rr-nvs"></a>
@@ -2617,7 +2617,7 @@ A view-as is a *forgetful functor* between structure categories, in exactly two 
 - `field-additive-ag` — `field` → `abelian-group`: (carr add zero neg) ↦ (carr opr iden inv)
 - `field-as-euclidean-ring` — `field` → `euclidean-ring`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
 - `field-as-integral-domain` — `field` → `integral-domain`: (carr add mul neg zero one) ↦ (carr add mul neg zero one)
-- `field-multiplicative-group` — `field` → `group`: (non-zero mul one recip) ↦ (carr opr iden inv)
+- `field-multiplicative-group` — `field` → `group`: (non-zero mul one mul-inv) ↦ (carr opr iden inv)
 - `measure-space-as-measurable-space` — `measure-space` → `measurable-space`: (pts sigma) ↦ (pts sigma)
 - `module-vector-ag` — `module` → `abelian-group`: (vec vadd vzero vneg) ↦ (carr opr iden inv)
 - `normed-ag-as-abelian-group` — `normed-ag` → `abelian-group`: (carr opr iden inv) ↦ (carr opr iden inv)

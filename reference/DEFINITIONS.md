@@ -640,7 +640,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### cc-normed-field
 
-    cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, magnitude]
+    cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, vnb-lambda(x_, cc, magnitude(x_))]
 
 ### ell-one
 
@@ -680,7 +680,7 @@ Defined by primitive recursion on `NN` (`def-by-nn-recursion`): a `name-zero` ba
 
 ### rr-normed-field
 
-    rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, abs]
+    rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, vnb-lambda(x_, rr, abs(x_))]
 
 ### rr-nvs
 
@@ -1744,7 +1744,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### cc-normed-field-def
 
-    cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, magnitude]
+    cc-normed-field = [cc, vnb-lambda([x_, y_], cartesian(cc, cc), x_ + y_), vnb-lambda([x_, y_], cartesian(cc, cc), x_ * y_), vnb-lambda(x_, cc, -x_), 0, 1, vnb-lambda(x_, cc, magnitude(x_))]
 
 ### cc-normed-field@add
 
@@ -1756,7 +1756,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### cc-normed-field@fnrm
 
-    fnrm(cc-normed-field) == magnitude
+    fnrm(cc-normed-field) == vnb-lambda(x_, cc, magnitude(x_))
 
 ### cc-normed-field@mul
 
@@ -2072,7 +2072,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### is-hom-field-def
 
-    forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((recip(a))(x1_)) = (recip(b))(f(x1_))))
+    forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1_ in carr(a), x2_ in carr(a)], f((add(a))(x1_, x2_)) = (add(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a), x2_ in carr(a)], f((mul(a))(x1_, x2_)) = (mul(b))(f(x1_), f(x2_))) and forall([x1_ in carr(a)], f((neg(a))(x1_)) = (neg(b))(f(x1_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1_ in non-zero(a)], f((mul-inv(a))(x1_)) = (mul-inv(b))(f(x1_))))
 
 ### is-hom-field-ring-def
 
@@ -3170,6 +3170,10 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
     mul(qq-field) == vnb-lambda([x_, y_], cartesian(qq, qq), x_ * y_)
 
+### qq-field@mul-inv
+
+    mul-inv(qq-field) == vnb-lambda(x_, difference(qq, singleton(0)), recip(x_))
+
 ### qq-field@neg
 
     neg(qq-field) == vnb-lambda(x_, qq, -x_)
@@ -3181,10 +3185,6 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 ### qq-field@one
 
     one(qq-field) == 1
-
-### qq-field@recip
-
-    recip(qq-field) == vnb-lambda(x_, difference(qq, singleton(0)), recip(x_))
 
 ### qq-field@zero
 
@@ -3460,7 +3460,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### rr-normed-field-def
 
-    rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, abs]
+    rr-normed-field = [rr, vnb-lambda([x_, y_], cartesian(rr, rr), x_ + y_), vnb-lambda([x_, y_], cartesian(rr, rr), x_ * y_), vnb-lambda(x_, rr, -x_), 0, 1, vnb-lambda(x_, rr, abs(x_))]
 
 ### rr-normed-field@add
 
@@ -3472,7 +3472,7 @@ Conservative defining `iff`/`==` axioms installed via `theory-add-axiom!`, so ab
 
 ### rr-normed-field@fnrm
 
-    fnrm(rr-normed-field) == abs
+    fnrm(rr-normed-field) == vnb-lambda(x_, rr, abs(x_))
 
 ### rr-normed-field@mul
 

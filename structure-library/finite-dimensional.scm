@@ -26,7 +26,7 @@
 ;;; `(same-shape-as MODULE)' inherits MODULE's `(substructure SCAL RING)', hence
 ;;; the conjunct (IS-RING (SCAL s)), and IS-RING pins length(scal(s)) = 6.
 ;;; IS-FIELD pins the SAME term to 8 -- FIELD is its own 8-slot shape, carrying
-;;; NON-ZERO and RECIP as data (field.scm).  Six against eight: IS-VECTOR-SPACE
+;;; NON-ZERO and MUL-INV as data (field.scm).  Six against eight: IS-VECTOR-SPACE
 ;;; was UNSATISFIABLE, IS-FINITE-DIMENSIONAL below inherited the emptiness, and
 ;;; every theorem carrying either as a hypothesis was VACUOUSLY true --
 ;;; hb-good-has-maximal, hahn-banach, norm-as-sup, norm-attained-by-functional,

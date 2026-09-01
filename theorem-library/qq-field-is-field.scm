@@ -8,9 +8,9 @@
 ;;; what will witness PID.
 ;;;
 ;;; THE SLOT-8 STORY, which is why this needed an amendment and not just a proof.
-;;; IS-FIELD carries `(op RECIP NON-ZERO NON-ZERO)', hence the conjunct
+;;; IS-FIELD carries `(op MUL-INV NON-ZERO NON-ZERO)', hence the conjunct
 ;;;
-;;;     RECIP(QQ-FIELD)  in  FUN(QQ \ {0}, QQ \ {0}).
+;;;     MUL-INV(QQ-FIELD)  in  FUN(QQ \ {0}, QQ \ {0}).
 ;;;
 ;;; With the bare constant `recip' in slot 8 -- as the instance had it -- nothing
 ;;; in the tree discharges that: there is no `recip in FUN(...)' statement for
@@ -36,7 +36,7 @@
 ;;; accessors to the surface language with `surface-goal!', split, and close each
 ;;; conjunct by its own shape.  Thirteen of the seventeen conjuncts are RING's
 ;;; and go exactly as they do there; the four new ones are the length (8, not 6),
-;;; the derived NON-ZERO pair, and the RECIP typing above.
+;;; the derived NON-ZERO pair, and the MUL-INV typing above.
 
 ;;; --- file-local helpers (qf- prefix) ------------------------------------
 ;;;
@@ -48,7 +48,7 @@
 (define (qf-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (qf-head g) (and (pair? g) (car g)))
 
-;;; QQ \ {0}: the NON-ZERO slot, the RECIP lambda's domain AND its codomain, so
+;;; QQ \ {0}: the NON-ZERO slot, the MUL-INV lambda's domain AND its codomain, so
 ;;; a typo in any one of the three would be a long hunt.  Written once.
 (define qf-nz '(DIFFERENCE QQ (SINGLETON 0)))
 
@@ -75,7 +75,7 @@
             (loop (- fuel 1)))))))
 
 ;;; -----------------------------------------------------------------------
-;;; qq-recip-nonzero -- the half of the RECIP typing that QQ does not state.
+;;; qq-recip-nonzero -- the half of the MUL-INV typing that QQ does not state.
 ;;;
 ;;; `qq-recip-closed' gives recip(a) in QQ.  The codomain is QQ \ {0}, so the
 ;;; NON-VANISHING is owed too, and nothing in number-systems.scm says it.  It is
@@ -111,7 +111,7 @@
 (topic! 'qq-recip-nonzero 'algebra)
 
 ;;; -----------------------------------------------------------------------
-;;; qq-field-recip-type -- the RECIP slot typing, the one genuinely new
+;;; qq-field-mul-inv-type -- the MUL-INV slot typing, the one genuinely new
 ;;; obligation, stated separately because a failure inside the eighteen-conjunct
 ;;; sweep is far harder to read than a failure here.
 ;;;
@@ -151,8 +151,8 @@
             (prop)))
          (else (error "qq-field-is-field: unexpected lam-t leaf" g)))))
    opened))
-(qed 'qq-field-recip-type)
-(topic! 'qq-field-recip-type 'plumbing)
+(qed 'qq-field-mul-inv-type)
+(topic! 'qq-field-mul-inv-type 'plumbing)
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-FIELD(QQ-FIELD) -- eighteen conjuncts.
@@ -219,12 +219,12 @@
       ;; landed first and then `rfl' fires.
       ((and (eq? (qf-head g) '=) (equal? (cadr g) qf-nz))
        (fact 'qq-is-set) (fact 'difference-set 'QQ '(SINGLETON 0)) (rfl))
-      ;; the RECIP slot typing -- the lemma above.  Matched on the lambda's
+      ;; the MUL-INV slot typing -- the lemma above.  Matched on the lambda's
       ;; DOMAIN, which is what distinguishes it from ADD/MUL/NEG.
       ((and (eq? (qf-head g) 'IN)
             (pair? (cadr g)) (eq? (car (cadr g)) 'VNB-LAMBDA)
             (equal? (caddr (cadr g)) qf-nz))
-       (fact 'qq-field-recip-type) (ass))
+       (fact 'qq-field-mul-inv-type) (ass))
       ;; the ADD / MUL / NEG slot typings
       ((and (eq? (qf-head g) 'IN)
             (pair? (cadr g)) (eq? (car (cadr g)) 'VNB-LAMBDA))

@@ -261,17 +261,30 @@
 ;;; The standing check is now a must-not-prove entry (test-suite-negative.scm,
 ;;; section 2c): `IS-NORMED-VECTOR-SPACE(s) |- falsity' must be REFUSED.  Any
 ;;; future structure whose slot holds one of these 7-tuples wants the same entry.
+;;; THE NORM SLOT HOLDS A LAMBDA, NOT AN OPERATOR HEAD (2026-08-31, the user's
+;;; call).  It used to read `... 0 1 abs)' -- the bare head `abs' sitting in a
+;;; slot the declaration types as `(op FNRM CARR RR)', i.e. a slot whose value
+;;; IS-NORMED-FIELD requires to be an element of FUN(CARR(s), RR).  A head is
+;;; not an object: `abs' denotes nothing, so no set-function was there to be
+;;; found, and `rr-is-normed-field' was consequently an assertion that could
+;;; not be proved even in principle.  (It was also the ONLY place in the whole
+;;; theorem table -- 4 formulas, all this one fact -- where a bare operator
+;;; symbol appeared in argument position.)  With a VNB-LAMBDA the slot holds a
+;;; genuine set of pairs, `lam-t' discharges the FUN typing, and the axiom
+;;; becomes reachable by proof.  Every other slot here already did this; the
+;;; norm was the exception.
 (declare-instance! 'RR-NORMED-FIELD 'NORMED-FIELD 'rr-normed-field-def
   '(RR (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (+ x_ y_))
        (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR RR) (* x_ y_))
        (VNB-LAMBDA x_ RR (- x_))
-       0 1 abs))
+       0 1 (VNB-LAMBDA x_ RR (abs x_))))
 
+;;; Same repair, same reason: the slot held the bare head `magnitude'.
 (declare-instance! 'CC-NORMED-FIELD 'NORMED-FIELD 'cc-normed-field-def
   '(CC (VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (+ x_ y_))
        (VNB-LAMBDA (LIST x_ y_) (CARTESIAN CC CC) (* x_ y_))
        (VNB-LAMBDA x_ CC (- x_))
-       0 1 magnitude))
+       0 1 (VNB-LAMBDA x_ CC (magnitude x_))))
 
 ;;; IS-X witnesses, taken as axioms (each true of the domain; no proofs).
 ;;; CRITICAL: a structure predicate IS-X bakes in length(s)=n, so a tuple can
@@ -354,7 +367,7 @@
 ;;; law (qq-recip-inverse, number-systems.scm) underwrites field-mul-inverse.
 ;;; SLOT 8 IS A LAMBDA, NOT THE BARE `recip' -- and it must be, for the reason
 ;;; slots 2-4 hold lambdas rather than binplus/bintimes/binneg (2026-08-29).
-;;; IS-FIELD's RECIP slot is `(op RECIP NON-ZERO NON-ZERO)' (field.scm:45), so
+;;; IS-FIELD's MUL-INV slot is `(op MUL-INV NON-ZERO NON-ZERO)' (field.scm:45), so
 ;;; the defining IFF carries the conjunct
 ;;;     recip in FUN(QQ \ {0}, QQ \ {0}).
 ;;; `recip' is ONE shared constant -- qq-recip-closed, rr-recip-closed and

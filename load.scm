@@ -860,7 +860,7 @@
     ;; that stood in numeric-instances.scm.  It was the SOLE unwarranted leaf of
     ;; qq-line-is-module and qq-line-is-vector-space, so those read `trust: none'
     ;; for it alone.  Loads HERE and not earlier for two reasons: the proof needs
-    ;; the interactive tactics, and its RECIP conjunct needs SINGLETON's
+    ;; the interactive tactics, and its MUL-INV conjunct needs SINGLETON's
     ;; membership law, which field-ring-view (just above) is what builds.
     "theorem-library/qq-field-is-field"
     "theorem-library/qq-vs-exemplification"
@@ -2354,7 +2354,7 @@
     ;;                     else IF 0 < s then 0 else 1
     ;; The user's definition (2026-08-26) in the shape they specified on the
     ;; 27th.  Name per the tree's convention for a DEFINED companion to an
-    ;; AXIOMATISED operator (CARD/CARD-STAR, RECIP/RECIP-STAR);
+    ;; AXIOMATISED operator (CARD/CARD-STAR, MUL-INV/RECIP-STAR);
     ;; structure-library/real-powers.scm is NOT touched, its RPOW keeping its
     ;; fourteen supports and its one customer (Hoelder).
     ;; WHY AN IF AND NOT A DESCRIPTION.  The instinct is that x^s is UNDEFINED
@@ -2598,7 +2598,72 @@
        (or (string-prefix? "theorem-library/" f)
            (string-prefix? "calculus/" f))))
 
+;;; PER-FILE LOAD TIMING, opt-in: VNB_TIME_LOAD=1 ./prover ...
+;;;
+;;; "The library takes too long to load" is not actionable; "these six files are
+;;; 60% of it" is.  Nothing here runs unless the variable is set -- the timing
+;;; branch is one `if' per file, and the accounting is a cons -- so a normal
+;;; load pays nothing measurable.  `report-load-times' prints the slowest files
+;;; plus the total, and is called at the end of this file under the same guard.
+;;;
+;;; What it CANNOT see: work done after the file list finishes (the reference
+;;; generators, the audits, the structure graph) and the fixed cost of the
+;;; Scheme image itself.  The total it prints is the sum over FILES; compare it
+;;; with the wall clock to size the rest.
+(define *vnb-time-load?* (and (get-environment-variable "VNB_TIME_LOAD") #t))
+(define *vnb-load-times* '())              ; (file . milliseconds), newest first
+
+(define (report-load-times #!optional n)
+  (let* ((n     (if (default-object? n) 20 n))
+         (rows  (sort *vnb-load-times* (lambda (a b) (> (cdr a) (cdr b)))))
+         (total (fold-left + 0 (map cdr *vnb-load-times*))))
+    (display ";; load timing: ") (display (length *vnb-load-times*))
+    (display " files, ") (display (quotient total 1000)) (display "s in files\n")
+    (let loop ((r rows) (i 0))
+      (when (and (pair? r) (< i n))
+        (display ";;   ") (display (cdar r)) (display " ms  ")
+        (display (caar r)) (newline)
+        (loop (cdr r) (+ i 1))))
+    (display ";;   (VNB_TIME_LOAD=1 produced this; total is FILES only --\n")
+    (display ";;    the reference generators and audits run after the list)\n")
+    rows))
+
+;; `runtime' (seconds, a flonum) -- MIT has no `real-time' in the global
+;; environment, which is what the first cut of this reached for.
 (define (prover-load f)
+  (if *vnb-time-load?*
+      (let ((t0 (runtime)))
+        (prover-load--do f)
+        (set! *vnb-load-times*
+              (cons (cons f (round->exact (* 1000 (- (runtime) t0))))
+                    *vnb-load-times*)))
+      (prover-load--do f)))
+
+;;; STALE-BINARY WARNING (2026-09-01).  A file whose .com is OLDER than its
+;;; .scm loads from SOURCE -- correct, and the reason `file-fresh-com?' exists
+;;; -- but INTERPRETED, and for a core file that is ruinous and silent.  Twice
+;;; in one day an edit to sequents.scm and structures.scm (expr->str and the
+;;; structure machinery, both in every inner loop) took the library load from
+;;; 3m15 to 8m05 with nothing on screen to say why.  CLAUDE.md has warned about
+;;; this since August; a warning nobody can forget to read is better than a
+;;; warning in a file.  Recompile with (compile-vnb!) from a loaded REPL, or
+;;; one file at a time with
+;;;     mit-scheme --quiet --eval '(begin (compile-file "/abs/path.scm") (exit))'
+;;; A file with NO .com at all is NOT reported: that is the normal state for
+;;; the 31 files compile-vnb! deliberately skips.
+(define *vnb-stale-com* '())
+
+(define (report-stale-coms)
+  (unless (null? *vnb-stale-com*)
+    (display ";VNB warning: ") (display (length *vnb-stale-com*))
+    (display " file(s) loaded from SOURCE because their .com is STALE --\n")
+    (display ";             interpreted, which can cost MINUTES on a load:\n")
+    (for-each (lambda (f) (display ";               ") (display f) (newline))
+              (reverse *vnb-stale-com*))
+    (display ";             recompile them: (compile-vnb!) from a loaded REPL.\n"))
+  *vnb-stale-com*)
+
+(define (prover-load--do f)
   (let* ((base (string-append *prover-dir* f))
          ;; ALWAYS prefer a fresh .com; fall back to .scm SOURCE when the .com is
          ;; stale (older than its .scm) or absent.  This holds in BOTH normal and
@@ -2606,6 +2671,9 @@
          ;; otherwise picks a .com over its .scm blindly, silently serving a stale
          ;; binary (the classic "edited .scm but old .com wins" footgun).
          (path (if (file-fresh-com? base) base (string-append base ".scm"))))
+    (when (and (not (file-fresh-com? base))
+               (file-exists? (string-append base ".com")))
+      (set! *vnb-stale-com* (cons f *vnb-stale-com*)))
     (cond ((member f *primitive-files*)
            (fluid-let ((*current-provenance* 'primitive)) (load path)))
           ((proof-file? f)
@@ -2816,6 +2884,9 @@
 ;; `nary-neg-1' is the scar that proves it) and, for every bill of ten leaves or
 ;; more, the ENTRY ROUTE each leaf came in through, so a 115-leaf bill reads as
 ;; two or three named arcs.  Recomputed here, never stored, so it cannot drift.
+(report-stale-coms)
+(when *vnb-time-load?* (report-load-times))
+
 (let ((p (debt-bundle-md)))
   (display ";; debt-bundle: ") (display p) (newline))
 
@@ -2966,7 +3037,7 @@
 ;; MULTIPLICATION to binplus, their addition, all the way to a qed.
 ;;
 ;; HARD gate, as of the 2026-07-12 renames: the three legacy ambiguities are
-;; gone (the group family's operation is OPR, the field's inverse RECIP, the
+;; gone (the group family's operation is OPR, the field's inverse MUL-INV, the
 ;; normed field's norm FNRM), so an ambiguity is now unambiguously a bug.
 (let* ((audit (kernel-rules-audit))
        (undoc (car audit))
@@ -3127,7 +3198,7 @@
 
 ;; The other half: an accessor applied to a structure that HAS no such slot.
 ;; Well-formed, silent, and means something else -- (MUL ag) where ag is an
-;; abelian group whose operation is OPR.  This is what drove the OPR/RECIP/FNRM
+;; abelian group whose operation is OPR.  This is what drove the OPR/MUL-INV/FNRM
 ;; renames to completion; nothing else would have found `nf-metric-distance',
 ;; which took NRM of a normed field and failed no proof.
 (let ((bad (accessor-type-audit)))
