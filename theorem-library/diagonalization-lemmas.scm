@@ -13,6 +13,7 @@
 ;;;
 ;;; Loaded after cauchy-subsequence.scm (needs STRICTLY-MONO-NN) and
 ;;; inf-subsets / order-predicates, BEFORE diagonalization.scm.
+;;; RETIRED 2026-09-14 (proven): inf-subset-nn-unbounded -- theorem-library/nn-infinite.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; L1.  nn-step-strictly-mono -- consecutive-increasing => strictly monotone.
@@ -24,18 +25,7 @@
 ;;; case-split (m < succ n  iff  m <= n), the same ORD-SEGMENT/succ grind
 ;;; as scratch-succmono.  Generic over g; reused by every subsequence
 ;;; construction that builds its reindexing one step at a time.
-(support 'nn-step-strictly-mono
-  '(FORALL g
-     (IMPLIES (IN g (FUN NN NN))
-       (IMPLIES
-         (FORALL k (IMPLIES (IN k NN) (< (g k) (g (succ k)))))
-         (STRICTLY-MONO-NN g)))))
-(warrant! 'nn-step-strictly-mono 'well-known
-  "g:NN->NN with g(k) < g(succ k) for all k is strictly monotone.  For m < n,
-   write n reached from m by succ-steps and chain g(m) < g(m+1) < ... < g(n)
-   by transitivity of < (rr-lt-trans); formally NN-induction on n using
-   m < succ n  iff  m <= n.  STRICTLY-MONO-NN also wants g in FUN(NN,NN),
-   supplied as the hypothesis.  Textbook.")
+;;; nn-step-strictly-mono RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-subseq-leaves.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; L2.  nn-nested-subset-chain -- PROVEN 2026-08-03, and no longer here.
@@ -55,14 +45,3 @@
 ;;; the diagonal construction: it is what makes the step set
 ;;; { x in T : u < x } nonempty, so the recursion never stalls.  Proof is
 ;;; the contrapositive cardinality fact (a bounded subset of NN is finite).
-(support 'inf-subset-nn-unbounded
-  '(FORALL T
-     (IMPLIES (IN T (INF-SUBSETS NN))
-       (FORALL u (IMPLIES (IN u NN)
-         (FORSOME y (AND (IN y NN) (AND (IN y T) (< u y)))))))))
-(warrant! 'inf-subset-nn-unbounded 'well-known
-  "An infinite subset T of NN is unbounded: if every y in T satisfied y <= u,
-   then T subset {0,...,u} = ORD-SEGMENT(succ u), a finite set, forcing CARD T
-   in NN and contradicting T in INF-SUBSETS(NN).  Hence some y in T has u < y;
-   and y in NN since T subset NN.  The contrapositive 'bounded subset of NN is
-   finite'.")

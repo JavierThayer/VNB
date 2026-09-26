@@ -145,7 +145,8 @@
          '(<= 0 ((BERNSTEIN-BASIS n_ x_) k_)))))))
  (let* ((br (use-induction)) (bn (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
   (dk-focus! (cdr (assq 'base br)))
-  (bd-peel!) (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-zero) (lam-b)
+  ;; COMB-KK is ZZ-indexed (2026-09-15): the `lam-b' owes (IN k_ ZZ).
+  (bd-peel!) (fact 'nn-subset-zz 'k_) (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-zero) (lam-b)
   (let ((ifterm (caddr (dk-goal))))
     (for-each
      (lambda (cs)
@@ -561,6 +562,10 @@
   (fact 'rr-recip-closed 'n_) (fact 'rr-recip-inverse 'n_)
   (fact 'fun-apply-type-c 'f_ 'RR 'RR 'x_)
   (mac 'BERNSTEIN-POLY)
+  ;; LUTINS instantiation (2026-09-18): the three partial-sum laws below are
+  ;; instantiated AT the basis family bd-bs, and BERNSTEIN-BASIS is a COMB-KK
+  ;; functoid rather than a class term, so the certificate wants it typed.
+  (fact 'bernstein-basis-in-fun 'n_ 'x_)
 
   ;; every family is pointwise real
   (have! (bd-pw-real bd-bs)

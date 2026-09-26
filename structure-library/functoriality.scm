@@ -73,10 +73,14 @@
 ;;; would also swallow a genuine guard error -- this only suppresses the one
 ;;; benign not-applicable case, by applying the rule directly and skipping the
 ;;; warn wrapper.)
+;;; A quiet `di'.  It drives the SURFACE tactic, not `pi-direct-inference!'
+;;; directly: only the surface goes through `vnb--run!', and only `vnb--run!'
+;;; records the step.  Until 2026-09-06 this called the primitive, so the ~6
+;;; peeling `di's at the head of every functoriality proof were absent from the
+;;; script -- all 14 `*-functorial' scripts then replayed their first `mac-h'
+;;; against the unpeeled goal and died at step 1.
 (define (fnc--di-quiet)
-  (let* ((sqn (proof-state-focus *ps*))
-         (r   (pi-direct-inference! sqn)))
-    (when r (focus-after-rule *ps* r))))
+  (quietly (lambda () (di))))
 
 ;;; An IS-HOM-Z(...) atom that still has a definition to unfold.  A REFINEMENT's
 ;;; hom is IS-Z(a) and IS-Z(b) and IS-HOM-PARENT(a,b,f) -- so unfolding once
@@ -192,7 +196,7 @@
   (let* ((vname  (view-as-name vd))
          (tgt    (view-as-target-struct vd))
          (typing (symbol-append vname '-is- tgt)))
-    (set-proof-state-focus! *ps* leaf)
+    (dk-focus! leaf)
     (let* ((g    (wff-formula (sequent-node-assertion leaf)))
            (head (and (pair? g) (symbol? (car g)) (car g)))
            (zed  (and head (fnc--isx-structure head)))
@@ -265,7 +269,7 @@
                                 (wff-formula (sequent-node-assertion n))))
                             leaves))))
         (when (and (or conj hom) (< guard 60))
-          (set-proof-state-focus! *ps* (or conj hom))
+          (dk-focus! (or conj hom))
           (quietly
             (lambda ()
               (if conj

@@ -2,10 +2,17 @@
 # vnb-test -- the VNB driving exam.
 #
 # Re-proves every THEOREM (a result with a runnable proof script) in sequence
-# and certifies it.  This is the periodic regression that keeps "proven" honest:
-# the everyday load installs cached results, but only this test actually re-runs
-# the proofs.  PSS members are NOT here (excused by design); definitions are not
-# here (true by construction).
+# and certifies it.
+#
+# THE EXAM IS  `VNB_CERTIFIED=off ./prover --build-band'  (2026-09-24, the
+# user's decision; docs/certificates-2026-09-24.md, certificates.scm).  The
+# everyday load installs theorems from the CERTIFICATES in certificates/ and
+# runs no proof whose certificate is valid; this test is the run that proves
+# every theorem and rewrites every certificate.  Phase 1 below IS that build
+# (it also saves the band).  VNB_CERTIFIED=strict ./prover --build-band is the
+# coverage gate: nothing proved, exit 4 when a theorem has no valid
+# certificate.  PSS members are NOT here (excused by design); definitions are
+# not here (true by construction).
 #
 # Two kinds of proof:
 #   - AT-LOAD : proofs that run during a normal load (structure-library/*).
@@ -55,10 +62,11 @@ declare -A SEEN      # baseline at-load names
 FAILS=0
 ROWS="$TMP/rows"; : > "$ROWS"
 
-# ---- Phase 1: clean load harvests the at-load proofs --------------------
-say "vnb-test: phase 1 -- clean load (at-load proofs)"
+# ---- Phase 1: the exam -- every proof of the load list runs ------------
+say "vnb-test: phase 1 -- the exam (VNB_CERTIFIED=off ./prover --build-band)"
 t0=$(date +%s)
-"$PROVER" /dev/null >"$TMP/load.out" 2>&1 || true   # load + exit; harvest qed lines
+# harvest the qed lines from the build's log
+VNB_CERTIFIED=off VNB_BUILD_LOG="$TMP/load.out" "$PROVER" --build-band >/dev/null 2>&1 || true
 t1=$(date +%s)
 if had_error "$TMP/load.out"; then
   say "  LOAD FAILED -- see report"; FAILS=$((FAILS+1))

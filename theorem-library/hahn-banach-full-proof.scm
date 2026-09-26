@@ -1,3 +1,4 @@
+;;; RETIRED 2026-09-17 (proven): le-bound-mono (was an add-to-pss here) -- theorem-library/rake-analysis2.scm
 ;;; hahn-banach-full-proof.scm -- FULL Hahn-Banach for a finite-dimensional real
 ;;; normed vector space, MACHINE-PROVEN modulo a warranted plumbing core.
 ;;;
@@ -19,9 +20,10 @@
 ;;;
 ;;; Warranted plumbing (reference / well-known structural facts):
 ;;;   hb-good-has-maximal  -- noetherian => the reachable family has a maximal elt
-;;;   dual-norm-on-nonneg / dual-norm-on-le-bound  -- the operator norm is the
-;;;       least nonnegative bound
-;;;   span-add-one-{superset,has-v,submodule}  -- structure of s + RR.v
+;;;   (dual-norm-on-nonneg / dual-norm-on-le-bound and span-add-one-{superset,has-v}
+;;;    RETIRED 2026-09-19: false or underdetermined as stated; PROVEN under the
+;;;    guarded `-nvs' names -- see the retirement notes below)
+;;;   span-add-one-submodule  -- structure of s + RR.v
 ;;;   submodule-subset / subset-mem / subset-trans / proper-subset-witness  -- set plumbing
 ;;;   extends-on-trans / vnrm-nonneg
 ;;;
@@ -34,67 +36,29 @@
 ;;; hb-good-has-maximal (noetherian => a maximal reachable subspace exists) are
 ;;; now defined and PROVEN in noetherian-maximal-proof.scm, which loads first.
 
-;;; the operator norm is a nonnegative real.
-(add-to-pss 'dual-norm-on-nonneg
-  '(FORALL m (FORALL s (FORALL f
-     (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
-       (AND (IN (DUAL-NORM-ON m s f) RR) (<= 0 (DUAL-NORM-ON m s f))))))))
-(warrant! 'dual-norm-on-nonneg 'reference
-  "DUAL-NORM-ON is defined by IOTA over c in RR with 0<=c, so for a bounded
-   functional it is a nonnegative real.")
-(topic! 'dual-norm-on-nonneg 'analysis)
+;;; RETIRED 2026-09-19 (rake batch 7): dual-norm-on-nonneg and dual-norm-on-le-bound
+;;; were UNDERDETERMINED as stated (the IOTA need not denote: nothing types (VNRM m)
+;;; without an NVS guard).  Counterexample and the guarded replacements
+;;; dual-norm-on-nonneg-nvs / dual-norm-on-le-bound-nvs (both `modulo 0'):
+;;; theorem-library/rake-dual-norm-spec.scm, sections (7) and (8); digest in
+;;; scratchpad/triage/RAKE-BATCH7-REPORTS.md (7-A).  The citations below carry the
+;;; added antecedents (IS-NORMED-VECTOR-SPACE m) and (SUBSET s (VEC m)).
 
-;;; the operator norm is the LEAST nonnegative bound: <= any bound c.
-(add-to-pss 'dual-norm-on-le-bound
-  '(FORALL m (FORALL s (FORALL g (FORALL c
-     (IMPLIES (IS-LINEAR-FUNCTIONAL-ON m s g)
-      (IMPLIES (IN c RR)
-       (IMPLIES (<= 0 c)
-        (IMPLIES (FORALL w_ (IMPLIES (IN w_ s)
-                   (<= (abs (g w_)) (* c ((VNRM m) w_)))))
-          (<= (DUAL-NORM-ON m s g) c))))))))))
-(warrant! 'dual-norm-on-le-bound 'reference
-  "DUAL-NORM-ON(m,s,g) is the least c>=0 bounding |g(w)| by c*||w|| on s
-   (IOTA least-upper-bound), hence <= any such bound c.")
-(topic! 'dual-norm-on-le-bound 'analysis)
+;;; RETIRED 2026-09-19 (rake batch 7): span-add-one-superset and span-add-one-has-v
+;;; were FALSE as stated (IS-SUBMODULE(m,t) says nothing about m's module laws).
+;;; Counterexample and the guarded replacements span-add-one-superset-nvs /
+;;; span-add-one-has-v-nvs (both `modulo 0'):
+;;; theorem-library/rake-span-add-one-guarded.scm; digest in
+;;; scratchpad/triage/RAKE-BATCH7-REPORTS.md (7-B).
 
-;;; structure of SPAN-ADD-ONE(m,t,v) = t + RR.v.
-(add-to-pss 'span-add-one-superset
-  '(FORALL m (FORALL t (FORALL v
-     (IMPLIES (IS-SUBMODULE m t) (IMPLIES (IN v (VEC m))
-        (SUBSET t (SPAN-ADD-ONE m t v))))))))
-(warrant! 'span-add-one-superset 'reference
-  "Every y in t equals y + 0.v, so t is contained in t + RR.v.")
-(topic! 'span-add-one-superset 'analysis)
-
-(add-to-pss 'span-add-one-has-v
-  '(FORALL m (FORALL t (FORALL v
-     (IMPLIES (IS-SUBMODULE m t) (IMPLIES (IN v (VEC m))
-        (IN v (SPAN-ADD-ONE m t v))))))))
-(warrant! 'span-add-one-has-v 'reference
-  "v = 0 + 1.v with 0 in t, so v is in t + RR.v.")
-(topic! 'span-add-one-has-v 'analysis)
-
-(add-to-pss 'span-add-one-submodule
-  '(FORALL m (FORALL t (FORALL v
-     (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IMPLIES (IS-SUBMODULE m t) (IMPLIES (IN v (VEC m))
-        (IS-SUBMODULE m (SPAN-ADD-ONE m t v)))))))))
-(warrant! 'span-add-one-submodule 'reference
-  "t + RR.v is closed under addition, negation and the scalar action and
-   contains 0, so it is a submodule.")
+;;; span-add-one-submodule PROVEN modulo 0 in theorem-library/rake-hb-submodules.scm (2026-09-19)
 (topic! 'span-add-one-submodule 'analysis)
 
-(add-to-pss 'vec-is-set
-  '(FORALL m (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IN (VEC m) SET))))
-(warrant! 'vec-is-set 'reference
-  "VEC(m) in SET, a defining clause of IS-NORMED-VECTOR-SPACE (definedness).")
-(topic! 'vec-is-set 'analysis)
-
-(add-to-pss 'submodule-subset
-  '(FORALL m (FORALL t (IMPLIES (IS-SUBMODULE m t) (SUBSET t (VEC m))))))
-(warrant! 'submodule-subset 'reference
-  "A submodule is by definition a subset of the vectors.")
-(topic! 'submodule-subset 'analysis)
+;; submodule-subset is NOT restated here: it is a definitional projection of
+;; IS-SUBMODULE (structure-library/finite-dimensional.scm).  Until 2026-09-16 this
+;; file re-added it as an asserted PSS entry with a `reference' warrant, which
+;; re-installed the name and billed a definitional fact as debt in every proof
+;; loaded after this point.
 
 ;;; subset-mem and subset-trans MOVED and PROVEN, 2026-07-27:
 ;;; theorem-library/subset-lemmas.scm, which loads long before this file.  Both
@@ -102,29 +66,11 @@
 ;;; The citations at :227 and :242 below are unchanged and now resolve to the
 ;;; proven theorems.
 
-(add-to-pss 'proper-subset-witness
-  '(FORALL a (FORALL b
-     (IMPLIES (SUBSET a b) (IMPLIES (NOT (= a b))
-        (FORSOME x_ (AND (IN x_ b) (NOT (IN x_ a)))))))))
-(warrant! 'proper-subset-witness 'well-known
-  "If a subset b but a != b then by extensionality some x in b is not in a.")
-(topic! 'proper-subset-witness 'analysis)
+;;; proper-subset-witness RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
-(add-to-pss 'extends-on-trans
-  '(FORALL s (FORALL t (FORALL g2 (FORALL g1 (FORALL f
-     (IMPLIES (SUBSET s t) (IMPLIES (EXTENDS-ON t g2 g1) (IMPLIES (EXTENDS-ON s g1 f)
-        (EXTENDS-ON s g2 f))))))))))
-(warrant! 'extends-on-trans 'reference
-  "If g2=g1 on t, g1=f on s, and s subset t, then g2=f on s.")
-(topic! 'extends-on-trans 'analysis)
+;;; extends-on-trans RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
-(add-to-pss 'vnrm-nonneg
-  '(FORALL m (FORALL w_
-     (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IMPLIES (IN w_ (VEC m))
-        (<= 0 ((VNRM m) w_)))))))
-(warrant! 'vnrm-nonneg 'reference
-  "Norm nonnegativity, a defining law of IS-NORMED-VECTOR-SPACE.")
-(topic! 'vnrm-nonneg 'analysis)
+;;; vnrm-nonneg RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
 ;;; typing: the norm of a vector, and |g(w)| for a functional, are reals.
 ;;; vnrm-real is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
@@ -132,25 +78,9 @@
 ;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
 ;;; recited.
 
-(add-to-pss 'linfun-app-abs-real
-  '(FORALL m (FORALL t (FORALL g (FORALL w_
-     (IMPLIES (IS-LINEAR-FUNCTIONAL-ON m t g) (IMPLIES (IN w_ t)
-        (IN (abs (g w_)) RR))))))))
-(warrant! 'linfun-app-abs-real 'reference
-  "A linear functional on t maps into RR, so |g(w)| is a real for w in t.")
-(topic! 'linfun-app-abs-real 'analysis)
+;;; linfun-app-abs-real RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
 ;;; pure-RR monotone compose: p <= a*n, a <= b, 0 <= n  =>  p <= b*n.
-(add-to-pss 'le-bound-mono
-  '(FORALL p (FORALL a (FORALL b (FORALL n
-     (IMPLIES (IN p RR) (IMPLIES (IN a RR) (IMPLIES (IN b RR) (IMPLIES (IN n RR)
-       (IMPLIES (<= 0 n) (IMPLIES (<= p (* a n)) (IMPLIES (<= a b)
-        (<= p (* b n))))))))))))))
-(warrant! 'le-bound-mono 'well-known
-  "Reals: from p<=a*n, a<=b and 0<=n, scale a<=b by n>=0 to a*n<=b*n, then
-   transitivity gives p<=b*n.")
-(topic! 'le-bound-mono 'analysis)
-
 ;;; ====================================================================
 ;;; PROVEN  good-step:  t reachable and x notin t  =>  t + RR.x reachable.
 ;;; The one-dimension extension hahn-banach-extend-one, glued to the
@@ -180,8 +110,15 @@
 (define BNDt (dc-find (lambda (z) (and ((dc-head? 'FORALL) z) (dc-ment? GW z) (dc-ment? 'dual-norm-on z)))))
 (define LINt (dc-find (lambda (z) (and ((dc-head? 'IS-LINEAR-FUNCTIONAL-ON) z) (equal? (caddr z) 't)))))
 
+;;; the SUBSET antecedent of the guarded dual-norm-on-* forms: SUBSET s t is
+;;; NPE's second conjunct (landed above), submodule-subset gives SUBSET t (VEC m)
+;;; (definitional, no bill), and subset-trans composes them.  Both inclusions are
+;;; used again at :189 / :195 below.
+(quietly (lambda () (fact 'submodule-subset 'm 't)))            ; SUBSET t (VEC m)
+(quietly (lambda () (fact 'subset-trans 's 't '(VEC m))))       ; SUBSET s (VEC m)
+
 ;;; M = ||f||_s is a nonnegative real
-(quietly (lambda () (fact 'dual-norm-on-nonneg 'm 's 'f)))
+(quietly (lambda () (fact 'dual-norm-on-nonneg-nvs 'm 's 'f)))
 (dc-split)                                       ; (IN M RR), (<= 0 M)
 
 ;;; GW is a bounded linear functional on t (witness c = M)
@@ -212,7 +149,7 @@
 
 ;;; reachability plumbing for SPAN-ADD-ONE(m,t,x) (curried supports auto-detach)
 (quietly (lambda () (fact 'span-add-one-submodule 'm 't 'x)))   ; IS-SUBMODULE m (SPAN)
-(quietly (lambda () (fact 'span-add-one-superset 'm 't 'x)))    ; SUBSET t (SPAN)
+(quietly (lambda () (fact 'span-add-one-superset-nvs 'm 't 'x)))    ; SUBSET t (SPAN)
 (quietly (lambda () (fact 'subset-trans 's 't SPANtx)))         ; SUBSET s (SPAN)
 (quietly (lambda () (fact 'extends-on-trans 's 't GX GW 'f)))   ; EXTENDS-ON s GX f
 
@@ -228,16 +165,16 @@
 (define WW (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) SPANtx))))))
 ;; typing
 (quietly (lambda () (fact 'submodule-subset 'm SPANtx)))        ; SUBSET (SPAN) (VEC m)
-(quietly (lambda () (fact 'subset-mem SPANtx '(VEC m) WW)))     ; IN WW (VEC m)
+(quietly (lambda () (fact 'subset-mem-fwd SPANtx '(VEC m) WW)))     ; IN WW (VEC m)
 (quietly (lambda () (fact 'vnrm-real 'm WW)))                   ; IN ||WW|| RR
 (quietly (lambda () (fact 'vnrm-nonneg 'm WW)))                 ; 0 <= ||WW||
-(quietly (lambda () (fact 'dual-norm-on-nonneg 'm 't GW)))      ; (IN (DUAL m t GW) RR) AND (0 <= ...)
+(quietly (lambda () (fact 'dual-norm-on-nonneg-nvs 'm 't GW)))  ; (IN (DUAL m t GW) RR) AND (0 <= ...)
 (dc-split)                                                      ; split that AND so IN _ RR is standalone
 (quietly (lambda () (fact 'linfun-app-abs-real 'm SPANtx GX WW))) ; IN |GX WW| RR
 ;; the two inequalities
 (quietly (lambda () (inst+ BNDu WW)))
 (hb-detach-opt! (list 'IN WW SPANtx))                          ; |GX WW| <= (DUAL m t GW) ||WW||
-(quietly (lambda () (fact 'dual-norm-on-le-bound 'm 't GW MM))) ; (DUAL m t GW) <= ||f||_s
+(quietly (lambda () (fact 'dual-norm-on-le-bound-nvs 'm 't GW MM))) ; (DUAL m t GW) <= ||f||_s
 ;; compose:  |GX WW| <= (DUAL m t GW) ||WW|| <= ||f||_s ||WW||
 (quietly (lambda () (fact 'le-bound-mono
                       (list 'abs (list GX WW))
@@ -297,10 +234,10 @@
                                     (list 'NOT (list 'IN XW HB-TT)))))
 (cut GSANT) (dc-grind!) (dc-focus-case! (list 'NOT (list 'IN XW HB-TT)))
 (quietly (lambda () (fact 'good-step 'm 's 'f HB-TT XW)))         ; GOOD-SUB(U)
-(quietly (lambda () (fact 'span-add-one-superset 'm HB-TT XW)))   ; SUBSET T U
+(quietly (lambda () (fact 'span-add-one-superset-nvs 'm HB-TT XW)))   ; SUBSET T U
 
 ;;; maximality forces T = U, but XW in U and XW notin T -- contradiction
-(quietly (lambda () (fact 'span-add-one-has-v 'm HB-TT XW)))   ; IN XW U
+(quietly (lambda () (fact 'span-add-one-has-v-nvs 'm HB-TT XW)))   ; IN XW U
 (quietly (lambda () (inst+ MAXT UU)))                       ; IMPLIES (AND GOOD-SUB(U) SUBSET T U)(= T U)
 (define ANDMU (list 'AND (list 'GOOD-SUB 'm 's 'f UU) (list 'SUBSET HB-TT UU)))
 (cut ANDMU) (dc-grind!) (dc-focus-case! (list 'NOT (list 'IN XW HB-TT)))
@@ -328,6 +265,7 @@
 (define FLIP (list '= '(VEC m) HB-TT))
 (cut FLIP)                                        ; (= (VEC m) T)
 (subst EQT)                                       ; EQT=(= T (VEC m)); T->(VEC m): (= (VEC m)(VEC m))
+;; vec-is-set is a THEOREM since 2026-09-17 (theorem-library/rake-setoid.scm); its add-to-pss here was retired
 (quietly (lambda () (fact 'vec-is-set 'm)))       ; (IN (VEC m) SET) definedness for rfl
 (rfl)
 (dc-focus! POSTEW)

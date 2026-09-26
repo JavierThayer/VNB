@@ -1,30 +1,34 @@
 ;;; span-bricks2-proof.scm -- bricks 4, 5, 6 under spans-submodule-fg.
 ;;;
 ;;; BRICK 4 (peel/cons of a coefficient combination):
-;;;   matact-row-peel   c.u = (c|_n . u|_n) + c_{1,succ n}.u_{succ n,1}
-;;;   matact-snoc       (c,r).(u,x) = c.u + r.x
-;;; where c.u = (ENTRY (MATACT md c u) 1 1) = sum_j c_{1j}.u_{j1}, c|_n = BLOCK
+;;;   lincomb-row-peel  c.u = (c|_n . u|_n) + c_{1,succ n}.u_{succ n,1}
+;;;   lincomb-snoc      (c,r).(u,x) = c.u + r.x
+;;; where c.u = LINCOMB(md, len, c, u) = sum_j c_{1j}.u_{j1}, c|_n = BLOCK
 ;;; c 1 n, u|_n = BLOCK u n 1, and (c,r) = SNOC-ROW c n r, (u,x) = SNOC-COL u n x.
-;;; matact-row-peel SPLITS an arbitrary length-(succ n) combination into its
+;;; (RENAMED 2026-09-16 from matact-row-peel / matact-snoc, which were stated
+;;; with (ENTRY (MATACT md c u) 1 1); see LINCOMB in mod-seq.scm.  At n = 0 the
+;;; length-n head is the empty combination, VZERO -- the right answer, where the
+;;; old MATACT entry was an unspecified value.)
+;;; lincomb-row-peel SPLITS an arbitrary length-(succ n) combination into its
 ;;; length-n head and last term (the descent's s=0 case, where the last term
-;;; vanishes); matact-snoc BUILDS a longer combination from a shorter one plus
+;;; vanishes); lincomb-snoc BUILDS a longer combination from a shorter one plus
 ;;; one term (the descent's construction of the spanning sequence (w', x0) and
 ;;; its witnessing coefficient (d, q)).  Both are one finsum back-peel
-;;; (finsum-interval-peel) plus a congruence, the idiom of matact-row-add.
+;;; (finsum-interval-peel) plus a congruence, the idiom of lincomb-row-add.
 ;;;
 ;;; BRICK 5:  submodule-intersection   s1, s2 submodules => s1 INTERSECT s2 too.
 ;;; BRICK 6:  mat-1-0-nonempty / mat-0-1-nonempty   the zero-dimension matrix
 ;;;           spaces are inhabited (the n=0 base case's empty row and sequence).
 ;;;
 ;;; Needs: matrix.scm (BLOCK/SNOC-COL/SNOC-ROW + read-offs, matof-in-mat),
-;;; mod-seq (MATACT, matact-entry, matact-summand-type/-le), finsum-additive
+;;; mod-seq (LINCOMB, matact-summand-type/-le), lincomb-unfold, finsum-additive
 ;;; (finsum-interval-peel, finsum-congruence), finite-dimensional (IS-SUBMODULE +
 ;;; the submodule-*-closed projections), order-lemmas (nn-le-succ, nn-one-in,
 ;;; the empty-interval facts).
 
 ;;; ---- driver helpers (p2- prefix)
 (define (p2-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
-(define (p2-foc! n) (set-proof-state-focus! *ps* n))
+(define (p2-foc! n) (dk-focus! n))
 (define (p2-foc-goal! g)
   (let loop ((ls (proof-leaves)))
     (cond ((null? ls) (error "p2-foc-goal!: no open leaf with goal" g))
@@ -63,7 +67,7 @@
 
 
 ;;; ===================================================================
-;;; matact-row-peel
+;;; lincomb-row-peel
 ;;; ===================================================================
 (define p2-Bc '(BLOCK c 1 n))
 (define p2-Bu '(BLOCK u n 1))
@@ -75,9 +79,9 @@
     (p2-wf '(n) (p2-wi '((IN n NN))
       (p2-wf '(c) (p2-wi '((IN c (MAT 1 (succ n) (CARR (SCAL md)))))
         (p2-wf '(u) (p2-wi '((IN u (MAT (succ n) 1 (VEC md))))
-          (list '= '(ENTRY (MATACT md c u) 1 1)
+          (list '= '(LINCOMB md (succ n) c u)
                 (list '(VADD md)
-                      (list 'ENTRY (list 'MATACT 'md p2-Bc p2-Bu) 1 1)
+                      (list 'LINCOMB 'md 'n p2-Bc p2-Bu)
                       (list '(ACT md) '(ENTRY c 1 (succ n)) '(ENTRY u (succ n) 1))))))))))))))
 (p2-di*)
 
@@ -89,12 +93,18 @@
 (fact 'block-type 1 '(succ n) p2-sc 'c 1 'n)          ; Bc in MAT 1 n CARR
 (fact 'block-type '(succ n) 1 '(VEC md) 'u 'n 1)      ; Bu in MAT n 1 VEC
 (fact 'matact-summand-type 'md 1 '(succ n) 1 'c 'u 1 1)       ; Fs on [1,succ n]
-(fact 'matact-summand-type-le 'md 1 '(succ n) 1 'c 'u 1 1 'n) ; Fs on [1,n]
+(fact 'matact-summand-type-le-guarded 'md 1 '(succ n) 1 'c 'u 1 1 'n) ; Fs on [1,n]
+;; REPOINTED 2026-09-15 (wave 7): the unguarded matact-summand-type-le was FALSE
+;; as written -- interval-widen, its whole content, needs `k in NN' and nothing
+;; in that statement typed k.  The guarded theorem is
+;; theorem-library/matact-summand-type-le-proof.scm; its new antecedent (IN k NN)
+;; is here `IN n NN', a premise of this theorem, so `fact' auto-detaches it and
+;; the argument list is unchanged.
 (fact 'matact-summand-type 'md 1 'n 1 p2-Bc p2-Bu 1 1)       ; G on [1,n]
 
 ;; unfold c.u to a FINSUM over [1,succ n] and peel the last term
-(fact 'matact-entry 'md 1 '(succ n) 1 'c 'u 1 1)
-(subst (list '= '(ENTRY (MATACT md c u) 1 1) (p2-sum p2-Fs '(INTERVAL 1 (succ n)))))
+(fact 'lincomb-unfold 'md '(succ n) 'c 'u)
+(subst (list '== '(LINCOMB md (succ n) c u) (p2-sum p2-Fs '(INTERVAL 1 (succ n)))))
 (fact 'finsum-interval-peel p2-vag 'n p2-Fs)
 (subst (list '= (p2-sum p2-Fs '(INTERVAL 1 (succ n)))
              (list '(OPR (MODULE-VECTOR-AG md)) (p2-sum p2-Fs '(INTERVAL 1 n)) (list p2-Fs '(succ n)))))
@@ -106,9 +116,9 @@
 (fact 'interval-mem-intro 1 '(succ n) '(succ n))       ; succ n in [1,succ n]
 (lam-b) (lam-b) (lam-b)                                ; reduce (p2-Fs (succ n)) -> the last action
 
-;; rewrite the RHS block action to its FINSUM over [1,n]
-(fact 'matact-entry 'md 1 'n 1 p2-Bc p2-Bu 1 1)
-(subst (list '= (list 'ENTRY (list 'MATACT 'md p2-Bc p2-Bu) 1 1) (p2-sum p2-G '(INTERVAL 1 n))))
+;; rewrite the RHS block combination to its FINSUM over [1,n]
+(fact 'lincomb-unfold 'md 'n p2-Bc p2-Bu)
+(subst (list '== (list 'LINCOMB 'md 'n p2-Bc p2-Bu) (p2-sum p2-G '(INTERVAL 1 n))))
 
 ;; the two [1,n] sums agree termwise
 (p2-with-cut
@@ -124,8 +134,10 @@
       (lam-b) (lam-b)
       ;; rewrite the c/u entries to BLOCK entries (typed at [1,n]); c is width
       ;; succ n, so entry(c,1,w) itself is only typable at [1,succ n].
-      (fact 'entry-of-block 'c 1 'n 1 wv)             ; (= (BLOCK c 1 n)_{1w} c_{1w})
-      (fact 'entry-of-block 'u 'n 1 wv 1)             ; (= (BLOCK u n 1)_{w1} u_{w1})
+      ;; entry-of-block carries block-type's premises since 2026-09-16: the
+      ;; three trailing arguments are the source matrix's shape and carrier.
+      (fact 'entry-of-block 'c 1 'n 1 wv 1 '(succ n) p2-sc)       ; (= (BLOCK c 1 n)_{1w} c_{1w})
+      (fact 'entry-of-block 'u 'n 1 wv 1 '(succ n) 1 '(VEC md))   ; (= (BLOCK u n 1)_{w1} u_{w1})
       (fact 'eq-sym (list 'ENTRY p2-Bc 1 wv) (list 'ENTRY 'c 1 wv))
       (fact 'eq-sym (list 'ENTRY p2-Bu wv 1) (list 'ENTRY 'u wv 1))
       (subst (list '= (list 'ENTRY 'c 1 wv) (list 'ENTRY p2-Bc 1 wv)))
@@ -135,6 +147,18 @@
       (fact 'module-act-type 'md (list 'ENTRY p2-Bc 1 wv) (list 'ENTRY p2-Bu wv 1))
       (rfl)))
   (lambda ()
+    ;; finsum-congruence was RESTATED 2026-09-17 with a SECOND antecedent, the
+    ;; POINTWISE typing of its first summand on the index set.  Its f here is the
+    ;; FULL summand p2-Fs, of DOMAIN [1,succ n], summed over [1,n] -- so the point
+    ;; is carried across by interval-widen first (the same widening line 133 does
+    ;; for the beta), and then fun-apply-type-c off the [1,succ n] typing.
+    (have! (list 'FORALL 'z_ (list 'IMPLIES '(IN z_ (INTERVAL 1 n))
+                                   (list 'IN (list p2-Fs 'z_) p2-vc)))
+      (lambda ()
+        (let ((p2-zv (dk-di-var!)))
+          (fact 'interval-widen 'n '(succ n) 1 p2-zv)
+          (fact 'fun-apply-type-c p2-Fs '(INTERVAL 1 (succ n)) p2-vc p2-zv)
+          (ass))))
     (fact 'finsum-congruence p2-vag '(INTERVAL 1 n) p2-Fs p2-G)
     (subst (list '= (p2-sum p2-Fs '(INTERVAL 1 n)) (p2-sum p2-G '(INTERVAL 1 n))))
     ;; rfl definedness of (VADD md)(FINSUM G, last):
@@ -150,15 +174,16 @@
           '((ACT md) (ENTRY c 1 (succ n)) (ENTRY u (succ n) 1)))
     (rfl)))
 
-(qed 'matact-row-peel)
-(topic! 'matact-row-peel 'algebra)
-(topic! 'matact-summand-type-le 'algebra)
+(qed 'lincomb-row-peel)
+(topic! 'lincomb-row-peel 'algebra)
+;;; (topic! 'matact-summand-type-le 'algebra) -- REMOVED 2026-09-15: that support
+;;; is retired; the guarded theorem topics itself where it is proven.
 (topic! 'nn-le-succ 'plumbing)
 (topic! 'nn-one-in 'plumbing)
 
 
 ;;; ===================================================================
-;;; matact-snoc
+;;; lincomb-snoc
 ;;; ===================================================================
 (define p2-SR '(SNOC-ROW c n r))
 (define p2-SU '(SNOC-COL u n x))
@@ -172,8 +197,8 @@
         (p2-wf '(u) (p2-wi '((IN u (MAT n 1 (VEC md))))
           (p2-wf '(r) (p2-wi '((IN r (CARR (SCAL md))))
             (p2-wf '(x) (p2-wi '((IN x (VEC md)))
-              (list '= (list 'ENTRY (list 'MATACT 'md p2-SR p2-SU) 1 1)
-                    (list '(VADD md) '(ENTRY (MATACT md c u) 1 1) '((ACT md) r x)))))))))))))))))
+              (list '= (list 'LINCOMB 'md '(succ n) p2-SR p2-SU)
+                    (list '(VADD md) '(LINCOMB md n c u) '((ACT md) r x)))))))))))))))))
 (p2-di*)
 
 (fact 'module-scalar-ring 'md)
@@ -184,12 +209,12 @@
 (fact 'snoc-row-type p2-sc 'n 'c 'r)                  ; SR in MAT 1 (succ n) CARR
 (fact 'snoc-col-type '(VEC md) 'n 'u 'x)             ; SU in MAT (succ n) 1 VEC
 (fact 'matact-summand-type 'md 1 '(succ n) 1 p2-SR p2-SU 1 1)        ; Fss on [1,succ n]
-(fact 'matact-summand-type-le 'md 1 '(succ n) 1 p2-SR p2-SU 1 1 'n)  ; Fss on [1,n]
+(fact 'matact-summand-type-le-guarded 'md 1 '(succ n) 1 p2-SR p2-SU 1 1 'n)  ; Fss on [1,n]  (guard IN n NN from this theorem's premises)
 (fact 'matact-summand-type 'md 1 'n 1 'c 'u 1 1)                     ; Fc on [1,n]
 
-;; unfold the snoc action and peel the last term
-(fact 'matact-entry 'md 1 '(succ n) 1 p2-SR p2-SU 1 1)
-(subst (list '= (list 'ENTRY (list 'MATACT 'md p2-SR p2-SU) 1 1) (p2-sum p2-Fss '(INTERVAL 1 (succ n)))))
+;; unfold the snoc combination and peel the last term
+(fact 'lincomb-unfold 'md '(succ n) p2-SR p2-SU)
+(subst (list '== (list 'LINCOMB 'md '(succ n) p2-SR p2-SU) (p2-sum p2-Fss '(INTERVAL 1 (succ n)))))
 (fact 'finsum-interval-peel p2-vag 'n p2-Fss)
 (subst (list '= (p2-sum p2-Fss '(INTERVAL 1 (succ n)))
              (list '(OPR (MODULE-VECTOR-AG md)) (p2-sum p2-Fss '(INTERVAL 1 n)) (list p2-Fss '(succ n)))))
@@ -199,14 +224,16 @@
 (lam-b) (lam-b) (lam-b)                                ; reduce (Fss (succ n))
 
 ;; the last term = r . x
-(fact 'snoc-row-last 'c 'n 'r)                        ; (SR)_{1,succ n} = r
-(fact 'snoc-col-last 'u 'n 'x)                        ; (SU)_{succ n,1} = x
+;; the SNOC read-offs carry the *-type premises since 2026-09-16; the trailing
+;; argument is the carrier.
+(fact 'snoc-row-last 'c 'n 'r p2-sc)                  ; (SR)_{1,succ n} = r
+(fact 'snoc-col-last 'u 'n 'x '(VEC md))              ; (SU)_{succ n,1} = x
 (subst (list '= (list 'ENTRY p2-SR 1 '(succ n)) 'r))
 (subst (list '= (list 'ENTRY p2-SU '(succ n) 1) 'x))
 
 ;; rewrite RHS c.u to its FINSUM over [1,n]
-(fact 'matact-entry 'md 1 'n 1 'c 'u 1 1)
-(subst (list '= '(ENTRY (MATACT md c u) 1 1) (p2-sum p2-Fc '(INTERVAL 1 n))))
+(fact 'lincomb-unfold 'md 'n 'c 'u)
+(subst (list '== '(LINCOMB md n c u) (p2-sum p2-Fc '(INTERVAL 1 n))))
 
 ;; the two [1,n] sums agree termwise (snoc entries below succ n are the originals)
 (p2-with-cut
@@ -217,8 +244,8 @@
     (let ((wv (cadr (cadr (p2-goal)))))               ; the eigenvar w, BEFORE lam-b
       (fact 'interval-widen 'n '(succ n) 1 wv)        ; w in [1,n] c [1,succ n]
       (lam-b) (lam-b)
-      (fact 'entry-of-snoc-row 'c 'n 'r wv)           ; (SR)_{1w} = c_{1w}
-      (fact 'entry-of-snoc-col 'u 'n 'x wv)           ; (SU)_{w1} = u_{w1}
+      (fact 'entry-of-snoc-row 'c 'n 'r wv p2-sc)     ; (SR)_{1w} = c_{1w}
+      (fact 'entry-of-snoc-col 'u 'n 'x wv '(VEC md)) ; (SU)_{w1} = u_{w1}
       (subst (list '= (list 'ENTRY p2-SR 1 wv) (list 'ENTRY 'c 1 wv)))
       (subst (list '= (list 'ENTRY p2-SU wv 1) (list 'ENTRY 'u wv 1)))
       (fact 'entry-in-carrier 1 'n p2-sc 'c 1 wv)
@@ -226,6 +253,15 @@
       (fact 'module-act-type 'md (list 'ENTRY 'c 1 wv) (list 'ENTRY 'u wv 1))
       (rfl)))
   (lambda ()
+    ;; the restated finsum-congruence's pointwise typing of p2-Fss (see
+    ;; lincomb-row-peel): domain [1,succ n], index set [1,n], so widen then apply.
+    (have! (list 'FORALL 'z_ (list 'IMPLIES '(IN z_ (INTERVAL 1 n))
+                                   (list 'IN (list p2-Fss 'z_) p2-vc)))
+      (lambda ()
+        (let ((p2-zv (dk-di-var!)))
+          (fact 'interval-widen 'n '(succ n) 1 p2-zv)
+          (fact 'fun-apply-type-c p2-Fss '(INTERVAL 1 (succ n)) p2-vc p2-zv)
+          (ass))))
     (fact 'finsum-congruence p2-vag '(INTERVAL 1 n) p2-Fss p2-Fc)
     (subst (list '= (p2-sum p2-Fss '(INTERVAL 1 n)) (p2-sum p2-Fc '(INTERVAL 1 n))))
     ;; rfl definedness of (VADD md)(FINSUM Fc, r.x):
@@ -236,8 +272,8 @@
     (fact 'module-vadd-type 'md (p2-sum p2-Fc '(INTERVAL 1 n)) '((ACT md) r x))
     (rfl)))
 
-(qed 'matact-snoc)
-(topic! 'matact-snoc 'algebra)
+(qed 'lincomb-snoc)
+(topic! 'lincomb-snoc 'algebra)
 
 
 ;;; ===================================================================
@@ -329,20 +365,29 @@
   (fact 'interval-elt-in-nn 1 0 v) (fact 'nn-not-le-zero-pos v)
   (ai (list 'NOT (list '<= v 0))))
 
+;; A 1-by-0 matrix: tabulate one empty row.  matof-in-mat (guarded on its two
+;; dimensions being natural since 2026-09-16) is reached by dk-matof!, and its
+;; entry hypothesis is vacuous: there is no column index in [1,0].
 (sp (make-wff '(FORALL X (FORSOME P (IN P (MAT 1 0 X))))))
 (di)
+(fact 'nn-one-in) (fact 'nn-zero-in)
 (ew '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 0)) i_)))
-(bc* 'matof-in-mat)
-(di) (di)                                              ; i (in [1,1]); j (in [1,0])
-(p2-empty-close! 'j)
+(dk-matof!)
+(p2-di*)                                               ; i (in [1,1]); j (in [1,0])
+(p2-empty-close! (cadr (dk-pick (lambda (f) (and (pair? f) (eq? (car f) 'IN)
+                                                 (equal? (caddr f) '(INTERVAL 1 0))))
+                                "j in [1,0]")))
 (qed 'mat-1-0-nonempty)
 (topic! 'mat-1-0-nonempty 'plumbing)
 
+;; A 0-by-1 matrix: the empty tuple.  Before 2026-09-16 no matrix with no rows
+;; had a column count at all, and this was UNPROVABLE; now [] is in MAT(0,n,X)
+;; for every natural n (nil-in-mat).
 (sp (make-wff '(FORALL X (FORSOME P (IN P (MAT 0 1 X))))))
 (di)
-(ew '(MATOF 0 1 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 0) (INTERVAL 1 1)) i_)))
-(bc* 'matof-in-mat)
-(di)                                                   ; i (in [1,0])
-(p2-empty-close! 'i)
+(ew '(LIST))
+(fact 'nn-one-in)
+(fact 'nil-in-mat 1 (cadddr (caddr (p2-goal))))        ; goal (IN (LIST) (MAT 0 1 X))
+(ass)
 (qed 'mat-0-1-nonempty)
 (topic! 'mat-0-1-nonempty 'plumbing)

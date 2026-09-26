@@ -1,20 +1,21 @@
-;;; card-defined.scm -- CARD-STAR, cardinality DEFINED rather than axiomatised.
+;;; card-defined.scm -- CARD, cardinality DEFINED rather than axiomatised.
 ;;;
-;;;     CARD-STAR(A)  ==  IOTA alpha.  alpha in ORD
+;;;     CARD(A)  ==  IOTA alpha.  alpha in ORD
 ;;;                     and  forsome phi. phi in BIJECTION(A, S(alpha))
 ;;;                     and  forall beta with ORD-LT(beta, alpha).
 ;;;                            not forsome psi. psi in BIJECTION(A, S(beta))
 ;;;
 ;;; "the least ordinal whose segment A bijects onto" -- the meaning
-;;; cardinality.scm's own header has always stated and declined to build.
+;;; cardinality.scm's own header has always stated.  The definition itself is
+;;; installed there; this file starts the proofs.
 ;;;
-;;; WHY A COMPANION NAME.  CARD cannot be both axiomatised and defined: the
-;;; moment it has a definition, cardinality.scm's eight `primitive' axioms stop
-;;; being a joint implicit definition and become claims that could be FALSE.  So
-;;; the defined constant is built here under a distinct name, its facts are
-;;; proven, and only then is the swap made -- name by name, deleting each axiom
-;;; as its theorem lands.  The `*' follows INJECTIVE-STAR (injection.scm), the same
-;;; "companion of the axiomatised notion" convention.
+;;; HISTORY.  From 2026-08-05 to 2026-09-19 the defined constant was built here
+;;; under the companion name CARD-STAR, because CARD cannot be both axiomatised
+;;; and defined: the moment it has a definition, cardinality.scm's `primitive'
+;;; axioms stop being a joint implicit definition and become claims that could
+;;; be FALSE.  On 2026-09-20 the user made the swap -- the axioms were deleted,
+;;; every one of them having been proven, and the companion took the name CARD
+;;; (docs/card-defined-2026-09-20.md).
 ;;;
 ;;; THE DIRECTION OF THE BIJECTION IS A -> SEGMENT, and that is a decision, not
 ;;; a coin flip (user, 2026-08-05).  For A = S(n), killing a candidate beta < n
@@ -30,9 +31,9 @@
 ;;;   cd-seg-body      n itself satisfies the description at A = S(n)
 ;;;                    (identity bijection for existence, pigeonhole for
 ;;;                    leastness) -- this is where the mathematics is
-;;;   card-star-segment    CARD-STAR(S(n)) = n
+;;;   card-segment     CARD(S(n)) = n
 ;;;
-;;; card-star-segment is the keystone: it is card-segment with the axiom removed,
+;;; card-segment is the keystone: it is what used to be the axiom of that name,
 ;;; and proving it is what checks that the description says what it should.
 ;;;
 ;;; Needs pigeonhole-segments-gen, the segment/arithmetic bridges, bijection-
@@ -40,18 +41,11 @@
 ;;; sethood, and this file is its first consumer).
 
 ;;; --------------------------------------------------------------------
-;;; The definition.
+;;; The definition is in structure-library/cardinality.scm (position 82), where
+;;; CARD has always been introduced; it moved there on 2026-09-20 when the
+;;; axioms it replaces were deleted.  This file proves the description's
+;;; uniqueness and `card-segment'.
 ;;; --------------------------------------------------------------------
-
-(def-functoid 'CARD-STAR '(a_)
-  '(IOTA alpha
-     (AND (IN alpha ORD)
-          (AND (FORSOME phi (IN phi (BIJECTION a_ (ORD-SEGMENT alpha))))
-               (FORALL beta
-                 (IMPLIES (ORD-LT beta alpha)
-                   (NOT (FORSOME psi (IN psi (BIJECTION a_ (ORD-SEGMENT beta)))))))))))
-(notation! 'CARD-STAR 'kind 'functoid 'arity 1
-           'english "the cardinal of $1")
 
 ;;; the description's body, at an arbitrary class and ordinal -- written once,
 ;;; since three proofs below quantify over it.
@@ -186,7 +180,7 @@
 (topic! 'cd-seg-body 'set-theory)
 
 ;;; --------------------------------------------------------------------
-;;; card-star-segment:  CARD-STAR(S(n)) = n.
+;;; card-segment:  CARD(S(n)) = n.
 ;;;
 ;;; `iota-d' posts existence-and-uniqueness (n is the witness, cd-body-unique
 ;;; the uniqueness) and hands back the defining property; cd-body-unique then
@@ -194,9 +188,9 @@
 ;;; --------------------------------------------------------------------
 
 (sp (make-wff '(FORALL n_ (IMPLIES (IN n_ NN)
-                 (= (CARD-STAR (ORD-SEGMENT n_)) n_)))))
+                 (= (CARD (ORD-SEGMENT n_)) n_)))))
 (di)
-(mac 'card-star)
+(mac 'CARD)
 (define cd-io (cadr (dk-goal)))          ; the IOTA term, as the engine built it
 (for-each
  (lambda (l)
@@ -219,9 +213,17 @@
           (dk-opened (lambda () (di)))))
        ;; the defining property, against cd-seg-body
        (begin
+         ;; 2026-09-18 (LUTINS instantiation): cd-body-unique is cited at the
+         ;; IOTA term, which is never certified defined by shape.  `iota-d' has
+         ;; already granted the defining property, whose FIRST conjunct is
+         ;; (IN <iota> ORD) -- split it out so the certificate reads it off an
+         ;; atomic assumption.
+         ;; `ai' REPLACES the conjunction it splits, and cd-body-unique
+         ;; detaches against it, so read the conjunct out in a have! LANE.
+         (have! (list 'IN cd-io 'ORD) (lambda () (prop)))
          (fact 'cd-seg-body 'n_)
          (fact 'cd-body-unique '(ORD-SEGMENT n_) cd-io 'n_)
          (ass))))
  (dk-opened (lambda () (iota-d cd-io))))
-(qed 'card-star-segment)
-(topic! 'card-star-segment 'set-theory)
+(qed 'card-segment)
+(topic! 'card-segment 'set-theory)

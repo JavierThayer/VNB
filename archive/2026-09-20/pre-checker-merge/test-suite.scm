@@ -1,0 +1,9290 @@
+;;; test-suite.scm -- VNB system regression and demonstration tests
+;;;
+;;; Run with:  (load "test-suite.scm")  (after loading load.scm)
+;;; or:        mit-scheme --quiet --load test-suite.scm
+;;;
+;;; Organised by feature area.  Each section is self-contained and
+;;; serves as a worked example for the manual appendix.
+
+(load "load.scm")
+
+;;; -----------------------------------------------------------------------
+;;; Helpers
+
+(define *pass-count* 0)
+(define *fail-count* 0)
+
+(define (check label thunk expected)
+  (let ((got (thunk)))
+    (if (equal? got expected)
+        (begin (set! *pass-count* (+ *pass-count* 1))
+               (display "  PASS  ") (display label) (newline))
+        (begin (set! *fail-count* (+ *fail-count* 1))
+               (display "  FAIL  ") (display label)
+               (display " -- expected ") (write expected)
+               (display " got ") (write got) (newline)))))
+
+(define *tc-chain* #f)
+(define (check-true  label thunk) (check label thunk #t))
+(define (check-false label thunk) (check label thunk #f))
+
+(define (check-error label thunk)
+  ;; Pass when thunk returns a <vnb-error> (i.e. input was rejected).
+  (let ((result (thunk)))
+    (if (vnb-error? result)
+        (begin (set! *pass-count* (+ *pass-count* 1))
+               (display "  PASS  ") (display label) (newline))
+        (begin (set! *fail-count* (+ *fail-count* 1))
+               (display "  FAIL  ") (display label)
+               (display " -- expected error, got ") (write result) (newline)))))
+
+(define (check-proof label thunk)
+  ;; Pass when thunk completes without raising.
+  (call-with-current-continuation
+    (lambda (k)
+      (with-exception-handler
+        (lambda (e)
+          (set! *fail-count* (+ *fail-count* 1))
+          (display "  FAIL  ") (display label)
+          (display " -- exception: ")
+          (display (condition/report-string e)) (newline)
+          (k #f))
+        thunk)
+      (set! *pass-count* (+ *pass-count* 1))
+      (display "  PASS  ") (display label) (newline))))
+
+;;; wff-str: extract the display string from a wff (strips surrounding quotes).
+(define (wff-str w)
+  (let ((s (wff->string w)))
+    (substring s 1 (- (string-length s) 1))))
+
+;;; macete-str: apply a named macete to a formula given as a string.
+;;; Returns the resulting display string, or #f if the macete doesn't fire.
+(define (macete-str name str)
+  (let ((r (apply-macete name (make-wff-from-string str))))
+    (and r (wff-str r))))
+
+;;; roundtrip: parse a formula string and print it back.
+(define (roundtrip str)
+  (let ((w (make-wff-from-string str)))
+    (if (vnb-error? w) #f (wff-str w))))
+
+;;; -----------------------------------------------------------------------
+;;; 1. Ground arithmetic evaluation
+;;;
+;;; Arithmetic facts decided by the built-in evaluator without the
+;;; proof kernel.
+
+;;; === 0. The library as loaded, BEFORE any check installs anything ===
+;;; This check must run first: later sections install test assertions of their own, some of
+;;; which repeat a settled statement on purpose, and the audit would count those (it did,
+;;; on 2026-09-19, when the check sat at the end of the file).
+(display "\n=== 0. The library as loaded ===\n")
+(check-true "asserted-duplicate-audit: no asserted statement of the LIBRARY repeats a settled one"
+  (lambda () (null? (asserted-duplicate-audit))))
+
+(display "\n=== 1. Ground arithmetic ===\n")
+
+(check-true  "0 in NN"        (lambda () (arith-membership-check 0   'NN)))
+(check-true  "1 in NN"        (lambda () (arith-membership-check 1   'NN)))
+(check-true  "100 in NN"      (lambda () (arith-membership-check 100 'NN)))
+(check-false "-1 not in NN"   (lambda () (arith-membership-check -1  'NN)))
+(check-false "1/2 not in NN"  (lambda () (arith-membership-check 1/2 'NN)))
+
+(check-true  "0 in ZZ"        (lambda () (arith-membership-check 0   'ZZ)))
+(check-true  "-3 in ZZ"       (lambda () (arith-membership-check -3  'ZZ)))
+(check-false "1/2 not in ZZ"  (lambda () (arith-membership-check 1/2 'ZZ)))
+
+(check-true  "1/3 in QQ"      (lambda () (arith-membership-check 1/3 'QQ)))
+(check-false "1/3 not in ZZ"  (lambda () (arith-membership-check 1/3 'ZZ)))
+
+(check-true  "0 in RR"        (lambda () (arith-membership-check 0   'RR)))
+(check-true  "0 in CC"        (lambda () (arith-membership-check 0   'CC)))
+(check-true  "-5 in CC"       (lambda () (arith-membership-check -5  'CC)))
+
+(check "2 + 3 = 5"            (lambda () (arith-eval-term '(+ 2 3)))      5)
+(check "3 * 4 = 12"           (lambda () (arith-eval-term '(* 3 4)))      12)
+(check "10 + (-3) = 7"        (lambda () (arith-eval-term '(+ 10 (- 3))))  7)
+(check "succ(0) = 1"          (lambda () (arith-eval-term '(succ 0)))     1)
+(check "succ(4) = 5"          (lambda () (arith-eval-term '(succ 4)))     5)
+(check "succ_ORD(0) = 1"      (lambda () (arith-eval-term '(succ_ORD 0))) 1)
+(check "succ_ORD(succ(2))=4"  (lambda () (arith-eval-term '(succ_ORD (succ 2)))) 4)
+(check "power(2,0) = 1"       (lambda () (arith-eval-term '(power 2 0)))  1)
+(check "power(2,3) = 8"       (lambda () (arith-eval-term '(power 2 3)))  8)
+(check "power(3,4) = 81"      (lambda () (arith-eval-term '(power 3 4)))  81)
+
+;; n-ary kiddie arithmetic: the parser emits flat (+ a b c ...) etc.
+(check "2+3+5 = 10 (n-ary +)"  (lambda () (arith-eval-term '(+ 2 3 5)))     10)
+(check "1+2+3+4+5 = 15"        (lambda () (arith-eval-term '(+ 1 2 3 4 5))) 15)
+(check "2*3*5 = 30 (n-ary *)"  (lambda () (arith-eval-term '(* 2 3 5)))     30)
+(check "10-4 = 6 (binary -)"   (lambda () (arith-eval-term '(- 10 4)))       6)
+(check "10-4-3 = 3 (chained -)" (lambda () (arith-eval-term '(- 10 4 3)))     3)
+(check "-(7) = -7 (unary - kept)" (lambda () (arith-eval-term '(- 7)))       -7)
+(check "2+3*5 = 17 (precedence)" (lambda () (arith-eval-term '(+ 2 (* 3 5)))) 17)
+
+(check-true  "= 2+3 5"        (lambda () (arith-eval-formula '(= (+ 2 3) 5))))
+(check-false "= 2+3 6"        (lambda () (arith-eval-formula '(= (+ 2 3) 6))))
+(check-true  "<= 0 5"         (lambda () (arith-eval-formula '(<= 0 5))))
+(check-false "<= 5 0"         (lambda () (arith-eval-formula '(<= 5 0))))
+(check-true  "IN 0 NN"        (lambda () (arith-eval-formula '(IN 0 NN))))
+(check-false "IN -1 NN"       (lambda () (arith-eval-formula '(IN -1 NN))))
+(check-true  "power(2,0)=1"   (lambda () (arith-eval-formula '(= (power 2 0) 1))))
+
+(check "simplify term: power(2,10)"
+       (lambda () (arith-simplify-term '(power 2 10)))
+       1024)
+(check "simplify term: +(power(2,10),x) partial"
+       (lambda () (arith-simplify-term '(+ (power 2 10) x)))
+       '(+ 1024 x))
+(check "simplify term: number unchanged"
+       (lambda () (arith-simplify-term 5))
+       5)
+(check "simplify formula: = power(2,10) x"
+       (lambda () (arith-simplify-formula '(= (power 2 10) x)))
+       '(= 1024 x))
+(check "simplify formula: IN power(2,10) NN"
+       (lambda () (arith-simplify-formula '(IN (power 2 10) NN)))
+       '(IN 1024 NN))
+(check "simplify formula: AND with ground subterm"
+       (lambda () (arith-simplify-formula '(AND (IN (power 2 10) NN) (= (power 2 10) x))))
+       '(AND (IN 1024 NN) (= 1024 x)))
+(check "simplify formula: no-op on free variable"
+       (lambda () (arith-simplify-formula '(= x y)))
+       '(= x y))
+
+(check "forsome-witness: 2^10 in NN"
+       (lambda () (arith-forsome-witness
+                   '(FORSOME x (AND (IN x NN) (= (power 2 10) x)))))
+       1024)
+(check "forsome-witness: symmetric = x EXPR"
+       (lambda () (arith-forsome-witness
+                   '(FORSOME x (AND (IN x NN) (= x (power 2 10))))))
+       1024)
+(check-false "forsome-witness: EXPR not ground"
+             (lambda () (arith-forsome-witness
+                         '(FORSOME x (AND (IN x NN) (= (+ y 1) x))))))
+(check-false "forsome-witness: value not in class"
+             (lambda () (arith-forsome-witness
+                         '(FORSOME x (AND (IN x NN) (= -1 x))))))
+
+;;; -----------------------------------------------------------------------
+;;; 2. Axioms installed
+;;;
+;;; Every installed axiom is simultaneously a theorem (available for
+;;; backchaining) and a macete entry.
+
+(display "\n=== 2. Axioms installed ===\n")
+
+(define (axiom-present? name)
+  (if (hash-table-ref/default *theorem-table* name #f) #t #f))
+
+(for-each (lambda (name)
+            (check-true (symbol->string name)
+                        (lambda () (axiom-present? name))))
+  '(;; set theory
+    membership-implies-sethood extensionality
+    empty-set-is-set empty-set-has-no-members
+    pairing pairing-membership
+    power-set power-set-membership
+    union-set-closure intersection-set-closure
+    fun-set-iff fun-elements-are-sets
+    fun-domain-elements-are-sets fun-domain-apply-def
+    fun-domain-extensionality fun-codomain-iff
+    cartesian-set-iff tuples-sethood
+    make-set-membership make-set-sethood make-set-empty
+    length-of-empty length-in-nn nth-in-range
+    ;; NN
+    nn-is-set nn-zero-in nn-succ-closed
+    nn-add-closed nn-mul-closed
+    nn-add-comm nn-mul-comm
+    nn-add-assoc nn-mul-assoc
+    nn-distributive nn-one-mul nn-add-zero
+    nn-subset-zz
+    ;; power
+    power-typing-nonneg power-zero power-succ power-neg
+    ;; ZZ, QQ, RR, CC
+    zz-is-set zz-zero-in zz-one-in
+    qq-is-set rr-is-set cc-is-set
+    nn-subset-zz zz-subset-qq qq-subset-rr rr-subset-cc
+    ;; ordinals
+    burali-forti nn-subset-ord ord-succ-in transfinite-induction))
+
+;;; ZZplus must be completely absent
+(check-false "zzplus-is-set absent"
+             (lambda () (axiom-present? 'zzplus-is-set)))
+
+;;; -----------------------------------------------------------------------
+;;; 3. Parser: string syntax
+;;;
+;;; make-wff-from-string accepts the surface syntax; wff-str recovers
+;;; the canonical printed form.
+
+(display "\n=== 3. Parser ===\n")
+
+;;; Basic predicates
+(check "n in nn"           (lambda () (roundtrip "n in nn"))           "n in nn")
+(check "n = m"             (lambda () (roundtrip "n = m"))             "n = m")
+(check "n <= m"            (lambda () (roundtrip "n <= m"))            "n <= m")
+(check "truth"             (lambda () (roundtrip "truth"))             "truth")
+(check "falsity"           (lambda () (roundtrip "falsity"))           "falsity")
+
+;;; Arithmetic in formulas
+(check "n + m = m + n"     (lambda () (roundtrip "n + m = m + n"))     "n + m = m + n")
+(check "n * m = m * n"     (lambda () (roundtrip "n * m = m * n"))     "n * m = m * n")
+
+;;; Connectives
+(check "A and B"           (lambda () (roundtrip "n in nn and m in nn"))
+                           "n in nn and m in nn")
+(check "A or B"            (lambda () (roundtrip "n in nn or m in nn"))
+                           "n in nn or m in nn")
+(check "A implies B"       (lambda () (roundtrip "n in nn implies n in zz"))
+                           "n in nn implies n in zz")
+(check "not A"             (lambda () (roundtrip "not(n in nn)"))
+                           "not(n in nn)")
+
+;;; Quantifiers (parse accepts; print may vary — just check non-error)
+(check-true "forall bare"
+            (lambda () (wff? (make-wff-from-string "forall([x], x in nn implies x in zz)"))))
+(check-true "forall restricted"
+            (lambda () (wff? (make-wff-from-string "forall([x in nn], x in zz)"))))
+(check-true "forsome"
+            (lambda () (wff? (make-wff-from-string "forsome([x in nn], x = 0)"))))
+(check-true "forall multi-var"
+            (lambda () (wff? (make-wff-from-string "forall([x in nn, y in nn], x + y = y + x)"))))
+
+;;; VNB-LAMBDA binder-list sugar.  A lambda may carry its domains per-binder,
+;;; the way a quantifier does -- `vnb-lambda([a in nn, x in cc], body)' -- and it
+;;; must desugar to EXACTLY the tree the explicit spelling gives, since that is
+;;; the only tree anything downstream (lam-t, lam-b, the printer) knows about.
+(check-true "vnb-lambda: per-binder domains = the explicit domain, same tree"
+  (lambda ()
+    (equal? (parse-string "vnb-lambda([a in nn, x in cc, w in cc], a*(x + w)+35)")
+            (parse-string "vnb-lambda([a,x,w], cartesian(nn,cc,cc), a*(x + w)+35)"))))
+
+(check-true "vnb-lambda: one typed binder collapses to the bare-symbol form"
+  ;; NOT a one-element LIST over a one-factor CARTESIAN
+  (lambda ()
+    (equal? (parse-string "vnb-lambda([a in nn], a+35)")
+            '(VNB-LAMBDA a nn (+ a 35)))))
+
+(check-true "vnb-lambda: a PARTLY typed binder list is left alone"
+  ;; there is no honest reading of `[a in nn, x]' as a domain, so it must stay
+  ;; the error it always was rather than acquire a guessed one
+  (lambda ()
+    (vnb-error? (make-wff-from-string
+                 "vnb-lambda([a in nn, x], cartesian(nn,cc), a+35) in fun(cartesian(nn,cc), nn)"))))
+
+(check-true "vnb-lambda: a domainless lambda is still rejected"
+  ;; the sugar must not become a back door to the unsound domainless form
+  (lambda ()
+    (vnb-error? (make-wff-from-string
+                 "vnb-lambda([a, x], a+x) in fun(cartesian(nn,nn), nn)"))))
+
+;;; Functional notation for terms
+(check-true "succ(n)"     (lambda () (wff? (make-wff-from-string "succ(0) in nn"))))
+(check-true "power(x,n)"  (lambda () (wff? (make-wff-from-string "power(2, 3) = 8"))))
+(check-true "nth(1,t)"    (lambda () (wff? (make-wff-from-string "nth(1, t) in a"))))
+
+;;; Set/brace notation
+(check-true "set literal {a,b}"
+            (lambda () (wff? (make-wff-from-string "x in {a, b}"))))
+(check-true "sep {x in A: p}"
+            (lambda () (wff? (make-wff-from-string "z in {x in a | x in nn}"))))
+
+;;; Binder-list scope (2026-08-15).  A binding list scopes LEFT TO RIGHT, so a
+;;; guard may only mention binders to its LEFT: `forall([s in CARR(r), r], ...)'
+;;; expands to (FORALL s (IMPLIES (IN s (CARR r)) (FORALL r ...))), where the
+;;; guard's `r' is FREE and the later binder binds a different variable of the
+;;; same name.  `validate-wff!' warned generically ("symbol r is both bound and
+;;; free"); this fires at binding-list expansion and names both positions.
+
+(check-true "binder scope: guard mentioning a LATER binder is caught"
+  (lambda ()
+    (equal? (binding-list-forward-refs '((IN s (CARR r)) (r)))
+            '((s 1 r 2)))))
+
+(check-true "binder scope: two binders away, position reported correctly"
+  (lambda ()
+    (equal? (binding-list-forward-refs '((IN s (CARR r)) (IN t NN) (r)))
+            '((s 1 r 3)))))
+
+(check-true "binder scope: a guard mentioning an EARLIER binder is fine"
+  (lambda ()
+    (null? (binding-list-forward-refs '((r) (IN s (CARR r)))))))
+
+(check-true "binder scope: a chain of leftward guards is fine"
+  (lambda ()
+    (null? (binding-list-forward-refs
+            '((a) (IN b (CARR a)) (IN c (CARR b)))))))
+
+(check-true "binder scope: a guard that BINDS the name itself is not a finding"
+  ;; {r | p(r)} binds r INSIDE the guard, so the later binder is unrelated.
+  ;; This is why the scan is free-vars and not a symbol sweep -- and it was a
+  ;; false positive until COMP was added to free-vars (expressions.scm).
+  (lambda ()
+    (null? (binding-list-forward-refs '((IN s (COMP r (p r))) (r))))))
+
+;;; COMP in the expression walkers (2026-08-15).  `{x | p}' binds x in p and has
+;;; the FORALL/FORSOME/IOTA shape, but the string `COMP' occurred nowhere in
+;;; expressions.scm: free-vars called the bound variable free, subst-free
+;;; rewrote it and captured into it, and alpha-equiv? said two alpha-variants
+;;; differed.  Latent -- no installed formula contains a COMP -- but reachable
+;;; by anyone who types `{x | p}', which the parser has always accepted.
+
+(check-true "COMP binds: free-vars does not report the bound variable"
+  (lambda () (equal? (free-vars '(COMP r (IN r a))) '(a))))
+
+(check-true "COMP binds: subst-free leaves the bound variable alone"
+  (lambda ()
+    (equal? (subst-free 'r 'zz '(COMP r (IN r a))) '(COMP r (IN r a)))))
+
+(check-true "COMP binds: subst-free renames rather than capturing"
+  ;; a := f(r) must not let the binder capture the replacement's r
+  (lambda ()
+    (let ((got (subst-free 'a '(f r) '(COMP r (IN r a)))))
+      (and (pair? got) (eq? (car got) 'COMP)
+           (not (eq? (cadr got) 'r))                  ; renamed
+           (equal? (caddr got) `(IN ,(cadr got) (f r)))))))
+
+(check-true "COMP binds: alpha-equivalent comprehensions compare equal"
+  (lambda () (alpha-equiv? '(COMP r (IN r a)) '(COMP s (IN s a)))))
+
+(check-true "COMP binds: distinct comprehensions still compare unequal"
+  (lambda () (not (alpha-equiv? '(COMP r (IN r a)) '(COMP s (IN s b))))))
+
+;;; Nullary application (2026-08-15).  `h()' is legal only for the constructors
+;;; with a defined nullary value: list() = [] (the empty tuple, which
+;;; `empty-in-tuples' and `length-of-empty' are about) and set_of() = {}.
+;;; Everything else is rejected at BOTH doors -- the parser, for what a user
+;;; types, and validate-wff!, for the raw S-expressions `support' and
+;;; `theory-add-axiom!' install without going through the parser.
+;;;
+;;; What made this worth a rule rather than a shrug: (f) used to print as `f',
+;;; so `(= (f) f)' displayed as `f = f' while `rfl' refused it, the two sides
+;;; being different S-expressions.  The printer now writes `f()'.  Note
+;;; `union()' was already rejected before the rule existed, but only by the
+;;; `>= 2 args' floor the binary case wanted -- not by any decision about arity 0.
+
+(check-true "nullary: list() is []"
+            (lambda () (equal? (parse-string "list()") '(list))))
+(check-true "nullary: set_of() is {}"
+            (lambda () (equal? (parse-string "set_of()") '(make-set (list)))))
+(check-true "nullary: length([]) = 0 still parses"
+            (lambda () (wff? (make-wff-from-string "length([]) = 0"))))
+
+(check-true "nullary: f() rejected"
+            (lambda () (vnb-error? (parse-string "f()"))))
+(check-true "nullary: cartesian() rejected"
+            (lambda () (vnb-error? (parse-string "cartesian()"))))
+(check-true "nullary: power() rejected"
+            (lambda () (vnb-error? (parse-string "power()"))))
+(check-true "nullary: chained f(x)() rejected"
+            (lambda () (vnb-error? (parse-string "f(x)()"))))
+(check-true "nullary: lambdoid([x in A], x)() rejected"
+            (lambda () (vnb-error? (parse-string "lambdoid([x in a], x)()"))))
+
+;;; Surface `lambda' was REMOVED 2026-08-18: it built a functoid RECORD, which
+;;; is not the `vnb-lambda' every proof in the library uses, and the unadorned
+;;; word beside the hyphenated one was pure confusion.  The error must NAME both
+;;; replacements -- a bare "unexpected token" would send the reader hunting.
+(check-true "removed: surface lambda([x in A], x) is rejected"
+            (lambda () (vnb-error? (parse-string "lambda([x in a], x)"))))
+(check-true "removed: the lambda error names vnb-lambda and lambdoid"
+  ;; The message must name BOTH replacements.  A bare "unexpected token" would
+  ;; send a reader hunting, and the whole point of the removal is that the two
+  ;; constructs were being confused for each other.
+  (lambda ()
+    (let ((e (parse-string "lambda([x in a], x)")))
+      (and (vnb-error? e)
+           (let ((m (vnb-error-message e)))
+             (and (string-search-forward "vnb-lambda" m 0)
+                  (string-search-forward "lambdoid" m 0)
+                  #t))))))
+(check-true "kept: vnb-lambda is still the set-function binder, not a functoid"
+  (lambda ()
+    (and (equal? (parse-string "vnb-lambda([a in nn], a+35)") '(VNB-LAMBDA a nn (+ a 35)))
+         (not (functoid? (parse-string "vnb-lambda([a in nn], a+35)"))))))
+(check-true "kept: lambdoid still builds a functoid record"
+            (lambda () (functoid? (parse-string "lambdoid([x in ord], x)"))))
+
+;;; what-now must not offer a goal-ENLARGING rewrite as though it were progress
+;;; (2026-08-18).  A user on  |- forall([a in pts(t)], (dist(t))(a,a) = 0)  was
+;;; offered `(mac 'bdd-metric-carrier-rev)', which rewrites pts(t) into
+;;; pts(BDD-METRIC t) -- bigger, and about a bounded metric the goal had nothing
+;;; to do with.  Having taken it, the citation lane filled with BDD-METRIC facts
+;;; and the rewrite lane offered the forward direction to undo it.
+(check-true "what-now: form-size sees that a -rev orientation grows the goal"
+  (lambda ()
+    (< (what-now--form-size '(PTS m))
+       (what-now--form-size '(PTS (BDD-METRIC m))))))
+
+;;; The USER FILTER.  No syntactic measure of relevance is ever going to be
+;;; right on every goal -- an unfold enlarges, and an unfold is usually what you
+;;; want -- so the panel takes instructions as well as guessing.
+(check-true "what-now filter: a STRING suppresses a whole family by substring"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! "bdd-metric")
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (what-now--suppressed? 'bdd-metric-is-metric-space)
+                  (not (what-now--suppressed? 'metric-self-zero)))))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: a SYMBOL suppresses exactly one name"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! 'bdd-metric-carrier-rev)
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (not (what-now--suppressed? 'bdd-metric-carrier)))))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: a PIN floats a move to the front"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-pin! 'metric-self-zero)
+    (let* ((a (wn--move '(mac 'bdd-metric-carrier)))
+           (b (wn--move '(mac 'metric-self-zero)))
+           (out (quietly (lambda () (what-now--apply-filter (list a b)))))
+           (r (eq? (what-now--move-name (car out)) 'metric-self-zero)))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: cleared by default, so it changes nothing unasked"
+  (lambda ()
+    (what-now-filter-clear!)
+    (and (null? *what-now-suppress*) (null? *what-now-pin*))))
+
+(check-true "what-now filter: a LIST is an MIT regsexp, anchored where you say"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! '(seq (* (any-char)) "-rev" (line-end)))
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (not (what-now--suppressed? 'bdd-metric-carrier))
+                  (not (what-now--suppressed? 'reverse-something)))))
+      (what-now-filter-clear!)
+      r)))
+
+(check-true "what-now filter: a PROCEDURE is called on the name"
+  (lambda ()
+    (what-now-filter-clear!)
+    (what-now-suppress! (lambda (n) (> (string-length (symbol->string n)) 20)))
+    (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                  (not (what-now--suppressed? 'rfl)))))
+      (what-now-filter-clear!)
+      r)))
+
+;;; SEQUENT VOCABULARY: "if there is no function in the sequent then don't tell
+;;; me what to do about functions."  A forward citation whose LANDED formula
+;;; introduces a head occurring nowhere in the sequent is demoted, with the
+;;; vocabulary named.
+(check-true "have! accepts a STRING claim, not only a raw S-expression"
+  ;; `cut' coerces internally, but have!'s own side-goal search compared the
+  ;; UNCOERCED argument, so a string always died with "no side goal for ..." --
+  ;; which reads as though the cut failed when it had succeeded.  The surface
+  ;; string is the natural thing to type.
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (<= x x)))))
+    (di)
+    (quietly (lambda () (have! "0 <= 0" (lambda () (arith)))))
+    (equal? (car (dk-asms)) '(<= 0 0))))
+
+(check-true "hyp lane: a structure-CLASS membership is offered for unfolding"
+  ;; `ms in metric-space' has head IN, so a lane keying on the head never saw
+  ;; it -- and it is the move that unblocks the goal, because the library is
+  ;; stated with IS-METRIC-SPACE(s) hypotheses and the forward lane matches
+  ;; antecedents syntactically.
+  (lambda ()
+    (sp (make-wff '(FORALL m (IMPLIES (IN m METRIC-SPACE) (= (PTS m) (PTS m))))))
+    (di)
+    (let ((us (quietly (lambda () (suggest-hyp-unfolds)))))
+      (and (pair? us)
+           (eq? (cadr (car us)) 'metric-space-class)))))
+
+(check-true "hyp lane: the class unfold really does unlock the forward lane"
+  ;; the measurement that motivated it: 4 citations before, many more after
+  (lambda ()
+    (sp (make-wff '(FORALL m (IMPLIES (IN m METRIC-SPACE)
+                     (FORALL a (IMPLIES (IN a (PTS m)) (= ((DIST m) a a) 0))))))) 
+    (di) (di)
+    (let* ((before (length (what-now--forward-citations
+                            (dk-goal)
+                            (map wff-formula
+                                 (sequent-node-assumptions (proof-state-focus *ps*))))))
+           (ignore (quietly (lambda () (mac-h 'metric-space-class '(IN m METRIC-SPACE)))))
+           (after  (length (what-now--forward-citations
+                            (dk-goal)
+                            (map wff-formula
+                                 (sequent-node-assumptions (proof-state-focus *ps*)))))))
+      (> after before))))
+
+(check-true "heads: a COMPOUND operator is walked, not skipped"
+  ;; ((dist s) x y) -- structure operations put the accessor in OPERATOR
+  ;; position, and both head collectors used to descend only into the
+  ;; arguments.  The panel was therefore blind to `dist' on a metric goal:
+  ;; ABOUT omitted it, and metric-triangle ranked 2 ("mentions nothing the goal
+  ;; is about") because rank 1 wants a shared content head and the shared head
+  ;; IS dist.
+  (lambda ()
+    (and (memq 'dist (what-now--heads-of '(<= ((dist s) a c) ((dist s) a b))))
+         (memq 'dist (what-now--all-heads '(<= ((dist s) a c) ((dist s) a b))))
+         #t)))
+
+(check-true "heads: the triangle inequality outranks a typing fact on a dist goal"
+  (lambda ()
+    (let* ((goal  '(<= ((dist ms) a c) (* 2 (max ((dist ms) a b) ((dist ms) b c)))))
+           (gh    (what-now--content-heads goal))
+           (tri   '(<= ((dist ms) a c) (+ ((dist ms) a b) ((dist ms) b c))))
+           (typ   '(IN (pair-tuple a a) SET)))
+      (and (= 1 (what-now--forward-rank tri goal gh))
+           (= 2 (what-now--forward-rank typ goal gh))))))
+
+(check-true "vocab: the ARITHMETIC is never foreign"
+  ;; metric-triangle lands a bound by a SUM, and the sum is exactly what is not
+  ;; yet in the goal -- calling `+' foreign hid the triangle inequality on a
+  ;; metric-space goal.
+  (lambda ()
+    (null? (what-now--foreign-vocab
+             '(<= ((dist ms) a c) (+ ((dist ms) a b) ((dist ms) b c)))
+             '(dist ms a b c max)))))
+
+(check-true "vocab: a head absent from the sequent counts as foreign"
+  (lambda ()
+    (let ((seq '(is-metric-space pts dist)))
+      (and (equal? (what-now--foreign-vocab '(IS-COMPACT s) seq) '(IS-COMPACT))
+           (null? (what-now--foreign-vocab '((DIST m) a a) seq))))))
+
+(check-true "vocab: the number systems and tuple plumbing are never foreign"
+  ;; every sequent may mention NN/RR/SET/LIST without meaning anything by it
+  (lambda ()
+    (null? (what-now--foreign-vocab '(IN (NTH 1 t) SET) '(t)))))
+
+(check-true "filter file: template is created, evaluated, and takes effect"
+  ;; The edit cycle runs file -> prover ONLY.  A filter entry may be a
+  ;; PROCEDURE, which has no readable printed form, so dumping the live object
+  ;; back to the file would silently lose exactly the interesting entries.
+  ;; Uses a scratch path so a developer's own filter is never touched.
+  (lambda ()
+    (fluid-let ((*what-now-filter-file* "/tmp/vnb-filter-suite-check.scm"))
+      (if (file-exists? (what-now--filter-path)) (delete-file (what-now--filter-path)))
+      (let ((path (what-now-filter-file)))            ; creates from template
+        (and (file-exists? path)
+             (begin
+               (call-with-output-file path
+                 (lambda (port)
+                   (write-string
+                    "(what-now-filter! (list \"bdd-metric\") (list 'metric-self-zero))"
+                    port)))
+               (quietly (lambda () (what-now-filter-load!)))
+               (let ((r (and (what-now--suppressed? 'bdd-metric-carrier-rev)
+                             (what-now--pinned? 'metric-self-zero)
+                             (not (what-now--suppressed? 'metric-self-zero)))))
+                 (delete-file path)
+                 (what-now-filter-clear!)
+                 r)))))))
+
+(check-true "vocab: the sequent head set used for filtering is UNCAPPED"
+  ;; what-now--sequent-heads is capped for DISPLAY; filtering on the capped list
+  ;; would start calling a sequent's own ninth head foreign
+  (lambda ()
+    (sp (make-wff '(FORALL m (IMPLIES (IN m METRIC-SPACE)
+                     (= ((DIST m) (PTS m) (PTS m)) 0)))))
+    (>= (length (what-now--sequent-heads-all (dk-goal))) 1)))
+
+;;; A destructuring binder over a DECLARED STRUCTURE projects with the slot
+;;; ACCESSORS, not with NTH (2026-08-18).  It projected with NTH until then,
+;;; which is correct -- accessors are literally those projections -- and
+;;; unusable: every library theorem is stated with the accessor names, the
+;;; accessor macete only rewrites accessor -> NTH, and there is deliberately no
+;;; reverse (a bare `NTH 2 s' could be DIST of a metric space or OPR of a
+;;; group).  So the binder produced a goal no theorem matched and no tactic
+;;; could bridge.  The binder NAMES the class, so the expander can supply the
+;;; accessor names the reader should not have to memorise.
+(check-true "destructuring over a structure projects with slot accessors"
+  (lambda ()
+    ;; ALPHA-equivalent, not equal: the destructured form introduces a FRESH
+    ;; bound variable (t_NNNN), so the two differ in the binder's name and in
+    ;; nothing else -- which is exactly the claim.
+    (alpha-equiv? (wff-formula (make-wff-from-string
+                    "forall([[x,d] in metric-space, a in x], d(a, a) = 0)"))
+                  (wff-formula (make-wff-from-string
+                    "forall([m in metric-space, a in pts(m)], (dist(m))(a, a) = 0)")))))
+
+(check-proof "destructuring: and the result actually drives"
+  (lambda ()
+    (sp (make-wff-from-string "forall([[x,d] in metric-space, a in x], d(a, a) = 0)"))
+    (di) (di)
+    (let ((tv (cadr (car (dk-asms)))))
+      (mac-h 'metric-space-class (list 'IN tv 'METRIC-SPACE))
+      (fact 'metric-self-zero tv 'a)
+      (ass))))
+
+(check-true "destructuring: arity mismatch ERRORS and names the slots"
+  ;; silently handing back (NTH 3 t) of a two-slot tuple buries a reader's
+  ;; mistake about the structure; the message doubles as the accessor list
+  (lambda ()
+    (let ((e (make-wff-from-string "forall([[x,d,e] in metric-space], x = x)")))
+      (and (vnb-error? e)
+           (let ((m (vnb-error-message e)))
+             (and (string-search-forward "2 component" m 0)
+                  (string-search-forward "pts" m 0)
+                  #t))))))
+
+(check-true "destructuring: the fresh variable is NAMED, not numbered"
+  ;; `t_1368' is correct and unreadable.  The binder names the class, so the
+  ;; initials are free: METRIC-SPACE -> ms, TOP-SPACE -> ts.
+  (lambda ()
+    (let ((f (wff-formula (make-wff-from-string
+               "forall([[x,d] in metric-space, a in x], d(a,a) = 0)"))))
+      (and (memq 'ms (free-vars (list 'dummy f))) #f  ; ms is BOUND, not free
+           #t)
+      (eq? (cadr f) 'ms))))
+
+(check-true "destructuring: *destructuring-hint* overrides the name"
+  ;; the manual control -- a plain global so it can be set! mid-proof
+  (lambda ()
+    (fluid-let ((*destructuring-hint* 'm))
+      (eq? (cadr (wff-formula (make-wff-from-string
+             "forall([[x,d] in metric-space], x = x)"))) 'm))))
+
+(check-true "destructuring: a name already in use falls back to numbering"
+  (lambda ()
+    (let ((f (wff-formula (make-wff-from-string
+               "forall([ms in nn], forall([[x,d] in metric-space], ms = ms))"))))
+      (not (eq? (cadr (caddr (caddr f))) 'ms)))))
+
+(check-true "fresh-var/bare refuses a registered constant as a bare name"
+  ;; a binder named like an accessor reads as the CONSTANT in head position
+  (lambda ()
+    (not (eq? (fresh-var/bare 'pts '(dummy)) 'pts))))
+
+(check-true "destructuring: a non-structure class still falls back to NTH"
+  (lambda ()
+    (alpha-equiv? (wff-formula (make-wff-from-string
+                    "forall([[u,v] in cartesian(nn,nn)], u = u)"))
+                  (wff-formula (make-wff '(FORALL t (IMPLIES (IN t (CARTESIAN NN NN))
+                                             (= (NTH 1 t) (NTH 1 t)))))))))
+
+;;; MEASURABLE-SPACE / MEASURE-SPACE are STRUCTURES, not predicate argument
+;;; lists (2026-08-18).  The whole design rests on ONE claim: because each law
+;;; clause CITES the existing predicate, the component-level vocabulary of
+;;; measure.scm applies at (PTS m, SIGMA m, MEAS m) by an UNFOLD, with no
+;;; bridging lemma.  If that ever stops being true the addition has silently
+;;; become a migration, so it is checked rather than asserted.
+(check-proof "measure-space: the unfold reaches IS-MEASURE, no bridge lemma"
+  (lambda ()
+    (sp (make-wff-from-string
+         "forall([m in measure-space], is-measure(pts(m), sigma(m), meas(m)))"))
+    (di)
+    (mac-h 'measure-space-class '(IN m MEASURE-SPACE))
+    (mac-h 'IS-MEASURE-SPACE '(IS-MEASURE-SPACE m))
+    (let loop ((l (dk-asms)) (n 0))
+      (cond ((or (null? l) (> n 12)) #t)
+            ((and (pair? (car l)) (eq? (caar l) 'AND)) (ai (car l)) (loop (dk-asms) (+ n 1)))
+            (else (loop (cdr l) n))))
+    (ass)))
+
+(check-true "measure-space: the class supports bounded quantification"
+  ;; Built from the S-EXPRESSION because of the ((MEAS m) a) juxtaposition,
+  ;; not because of the codomain: `RR-POS-STAR' (RR+* until 2026-08-24) is now
+  ;; an ordinary readable name.  The bounded quantification is what is under
+  ;; test here.
+  (lambda () (wff? (make-wff
+    '(FORALL m (IMPLIES (IN m MEASURE-SPACE)
+       (FORALL a (IMPLIES (IN a (SIGMA m)) (IN ((MEAS m) a) RR-POS-STAR)))))))))
+
+(check-true "measurable-space: PTS is shared with TOP-SPACE, so Borel is writable"
+  ;; SIGMA-GENERATED(PTS(t), OPENS(t)) -- the point of reusing the accessor
+  (lambda () (wff? (make-wff-from-string
+    "forall([t in top-space], is-sigma-algebra(pts(t), sigma-generated(pts(t), opens(t))))"))))
+
+;;; find-theorem must report whether a hit is PROVED.  Until 2026-08-18 the
+;;; record carried name/aliases/warrant/statement and the printed line showed
+;;; the warrant KIND -- so a proven theorem, which needs no warrant and
+;;; therefore has none, printed exactly like an assertion nobody justified.
+;;; Reading `(warrant . #f)' off `diagonalization' and concluding it was
+;;; unproved is the reasonable inference, and it is wrong: that is what being
+;;; proved looks like.
+(check-true "find-theorem: the record carries provenance and bill"
+  (lambda ()
+    (let ((keys (map car (car (quietly (lambda () (find-theorem 'diagonalization)))))))
+      (and (memq 'provenance keys) (memq 'bill keys) #t))))
+
+(check-true "find-theorem: provenance agrees with proof-debt"
+  (lambda ()
+    (let ((r (car (quietly (lambda () (find-theorem 'cont-transfer-ptwise-eq))))))
+      (eq? (cdr (assq 'provenance r)) (provenance-of 'cont-transfer-ptwise-eq)))))
+
+(check-true "find-theorem: a proven theorem is not tagged as asserted"
+  ;; the whole point: warrant #f + proven must NOT read like warrant #f + asserted
+  (lambda ()
+    (let ((tag (ft--status-tag 'cont-transfer-ptwise-eq
+                               (warrant-of 'cont-transfer-ptwise-eq))))
+      (and (not (warrant-of 'cont-transfer-ptwise-eq))
+           (string-search-forward "PROVEN" tag 0)
+           (not (string-search-forward "asserted" tag 0))
+           #t))))
+
+;; The SIZE is read off the bill rather than written in: this check is about
+;; the FORMATTING -- that the tag says "modulo N" and not just "proven" -- and a
+;; literal N pins it to the debt ledger, so every repair anywhere in the library
+;; fails a formatting test.  It did: proving the NN order block (2026-08-24)
+;; took diagonalization's bill from 6 leaves to 4 and this check went red for a
+;; reason that had nothing to do with find-theorem.  `modulo 0' stays literal --
+;; there the string is the point, not the count.
+(check-true "find-theorem: modulo 0 is spelled out, a bill shows its size"
+  (lambda ()
+    ;; The billed example used to be the literal 'diagonalization, which went to
+    ;; `modulo 0' on 2026-09-19 (rake batch 6).  A named billed theorem rots as the rake
+    ;; proceeds, so the example is now the first bill of the ledger; with no bill left
+    ;; (the rake's exit criterion) that half of the check is vacuous.
+    (let ((bills (db--bill-list)))
+      (and (string-search-forward "modulo 0"
+             (ft--status-tag 'cont-transfer-ptwise-eq #f) 0)
+           (or (null? bills)
+               (let ((billed (car (car bills))))
+                 (and (positive? (length (debt-of billed)))
+                      (string-search-forward
+                        (string-append "modulo "
+                                       (number->string (length (debt-of billed))))
+                        (ft--status-tag billed #f) 0))))
+           #t))))
+
+(check-true "find-theorem: an unwarranted ASSERTION says so in as many words"
+  (lambda ()
+    (and (string-search-forward "NO WARRANT" (ft--status-tag 'nary-plus-3 #f) 0) #t)))
+
+(check-true "find-theorem: primitive and definitional are distinguished"
+  (lambda ()
+    (and (string=? (ft--status-tag 'app-graph #f) "[primitive]")
+         (string=? (ft--status-tag 'is-continuous-at #f) "[definitional]"))))
+
+;; make-wff on a RAW S-expression raises rather than returning a <vnb-error>
+;; (only the parse-string / make-wff-from-string entry points go through
+;; vnb-guard), so these three wrap it themselves.
+(check-error "nullary: raw (f) rejected by validate-wff!"
+             (lambda () (vnb-guard (lambda () (make-wff '(= (f) (f)))))))
+(check-error "nullary: raw (CARTESIAN) rejected by validate-wff!"
+             (lambda () (vnb-guard (lambda () (make-wff '(= (CARTESIAN) a))))))
+(check-error "nullary: raw predicate (p) rejected by validate-wff!"
+             (lambda () (vnb-guard (lambda () (make-wff '(p))))))
+(check-true "nullary: raw (LIST) still accepted"
+            (lambda () (wff? (make-wff '(= (LIST) (LIST))))))
+
+(check "nullary: printer writes f(), not f"
+       (lambda () (expression->string '(f))) "f()")
+(check "nullary: a bare symbol still prints bare"
+       (lambda () (expression->string 'f)) "f")
+(check "nullary: [] still prints as []"
+       (lambda () (expression->string '(LIST))) "[]")
+
+;;; -----------------------------------------------------------------------
+;;; PRINT/PARSE ROUND TRIP for the associative operators.
+;;;
+;;; The parser reads a chain of + or * into ONE FLAT n-ary node and a chain of
+;;; and/or/iff RIGHT-associatively.  Until 2026-08-24 expr->str printed every
+;;; same-head child unparenthesised, so a NESTED (* (* a b) c) printed as
+;;; `a * b * c' and re-parsed to the FLAT (* a b c) -- a different S-expression,
+;;; so not `equal?', so not matched by `ass'.  The mirror half was in the reader:
+;;; p-parse-mul tested the SHAPE of its left operand rather than whether it had
+;;; accumulated it, so an explicitly grouped `(a * b) * c' was spliced flat and
+;;; the nested term was UNWRITABLE on the surface.
+;;;
+;;; These checks test the STORED FORM, not the printed string: a string check
+;;; alone cannot tell the flat node from the left-nested one, which is the whole
+;;; defect.  The two string checks below are the other half -- they pin that the
+;;; FLAT node still prints without parentheses, so a future "fix" that simply
+;;; parenthesises every operand fails here.
+
+(define (rt-form e) (parse-string (expression->string e)))
+(define (rt-ok? e)  (equal? (rt-form e) e))
+
+(check-true "round trip: flat (* a b c)"        (lambda () (rt-ok? '(* a b c))))
+(check-true "round trip: flat (* a b c d)"      (lambda () (rt-ok? '(* a b c d))))
+(check-true "round trip: left-nested (* (* a b) c)"
+            (lambda () (rt-ok? '(* (* a b) c))))
+(check-true "round trip: right-nested (* a (* b c))"
+            (lambda () (rt-ok? '(* a (* b c)))))
+(check-true "round trip: left-nested 4-factor (* (* (* a b) c) d)"
+            (lambda () (rt-ok? '(* (* (* a b) c) d))))
+(check-true "round trip: flat (+ a b c)"        (lambda () (rt-ok? '(+ a b c))))
+(check-true "round trip: left-nested (+ (+ a b) c)"
+            (lambda () (rt-ok? '(+ (+ a b) c))))
+(check-true "round trip: right-nested (+ a (+ b c))"
+            (lambda () (rt-ok? '(+ a (+ b c)))))
+(check-true "round trip: left-nested AND"
+            (lambda () (rt-ok? '(and (and (in a nn) (in b nn)) (in c nn)))))
+(check-true "round trip: right-nested AND"
+            (lambda () (rt-ok? '(and (in a nn) (and (in b nn) (in c nn))))))
+(check-true "round trip: left-nested OR"
+            (lambda () (rt-ok? '(or (or (in a nn) (in b nn)) (in c nn)))))
+;; The term that found this: succ(m) * (recip(succ(m)) * c) * v, stored nested.
+(check-true "round trip: the nested product from Example 4.7"
+            (lambda () (rt-ok? '(* (* (succ m) (* (recip (succ m)) c)) v))))
+
+;; The flat node must NOT gain parentheses -- the printer parenthesises exactly
+;; the same-head children, and nothing else.
+(check "round trip: the FLAT product still prints unparenthesised"
+       (lambda () (expression->string '(* a b c))) "a * b * c")
+(check "round trip: the FLAT sum still prints unparenthesised"
+       (lambda () (expression->string '(+ a b c))) "a + b + c")
+(check "round trip: a nested product IS parenthesised"
+       (lambda () (expression->string '(* (* a b) c))) "(a * b) * c")
+
+;; Reader: an explicitly grouped left operand is no longer absorbed, while
+;; unparenthesised input reads exactly as before -- the flat n-ary node that
+;; nary-plus-3 / nary-times-3 fix the meaning of.
+(check "reader: a * b * c is still the FLAT node"
+       (lambda () (parse-string "a * b * c")) '(* a b c))
+(check "reader: (a * b) * c is the nested node"
+       (lambda () (parse-string "(a * b) * c")) '(* (* a b) c))
+(check "reader: a * (b * c) is the nested node"
+       (lambda () (parse-string "a * (b * c)")) '(* a (* b c)))
+(check "reader: a + b + c is still the FLAT node"
+       (lambda () (parse-string "a + b + c")) '(+ a b c))
+(check "reader: (a + b) + c is the nested node"
+       (lambda () (parse-string "(a + b) + c")) '(+ (+ a b) c))
+;; The `/' sugar branch is untouched: every mixed */ reading is what it was.
+(check "reader: a * b / c reads as before"
+       (lambda () (parse-string "a * b / c")) '(* (* a b) (recip c)))
+(check "reader: a / b * c reads as before"
+       (lambda () (parse-string "a / b * c")) '(* a (recip b) c))
+
+;;; -----------------------------------------------------------------------
+;;; PRINT/PARSE ROUND TRIP: four printer arms that emitted a string the reader
+;;; refuses, or -- worse -- accepts as a DIFFERENT term (2026-08-24).
+;;;
+;;; All four are checked on the STORED FORM.  A string check cannot see the
+;;; defect in three of them: `{a, b}', `i in cc' and `rpow-star(a, b)' are all
+;;; perfectly good strings; what was wrong is the S-expression they read back
+;;; as.  The string checks beside them pin the chosen spelling, so a later
+;;; change of spelling has to be deliberate.
+
+;; (a) PAIR is not MAKE-SET.  (PAIR a b) printed `{a, b}' -- the surface syntax
+;; of MAKE-SET, a different primitive -- so 48 installed formulas printed as a
+;; term they were not, and re-reading one gave (MAKE-SET (LIST a b)).
+(check-true "round trip: (PAIR a b) survives print -> parse"
+            (lambda () (rt-ok? '(pair a b))))
+(check-true "round trip: the PAIR singleton (PAIR a a) survives"
+            (lambda () (rt-ok? '(pair a a))))
+(check "round trip: PAIR prints as an application, not as a set literal"
+       (lambda () (expression->string '(pair a b))) "pair(a, b)")
+(check "round trip: {a, b} still READS as MAKE-SET"
+       (lambda () (parse-string "{a, b}")) '(make-set (list a b)))
+(check "round trip: MAKE-SET still PRINTS as a set literal"
+       (lambda () (expression->string '(make-set (list a b)))) "{a, b}")
+
+;; (b) The `/' head.  `/(t, 1 + t)' died in the parser: read-op makes `/' an
+;; operator token, and only a funsym can head an application.  The
+;; parenthesised head is readable and is what is printed.  The pretty
+;; alternative is NOT taken: `t / (1 + t)' is sugar for (* t (MUL-INV ...)) and
+;; would read back as a different term.
+(check-true "round trip: the / head survives print -> parse"
+            (lambda () (rt-ok? '(/ t (+ 1 t)))))
+(check "round trip: / prints with a parenthesised head"
+       (lambda () (expression->string '(/ t (+ 1 t)))) "(/)(t, 1 + t)")
+(check "reader: (/)(t, 1 + t) is the / node"
+       (lambda () (parse-string "(/)(t, 1 + t)")) '(/ t (+ 1 t)))
+(check "reader: infix / is still SUGAR, and is NOT the / node"
+       (lambda () (parse-string "t / (1 + t)")) '(* t (recip (+ 1 t))))
+
+;; (c) Complex literals.  read-num begins on a DIGIT, so `i' is an identifier
+;; and `-i' is unary minus applied to one: (IN +i CC) printed `i in cc' and
+;; read back as a statement about a free variable named i.
+(check-true "round trip: the imaginary unit survives print -> parse"
+            (lambda () (rt-ok? '(in +i cc))))
+(check-true "round trip: a product of imaginary units survives"
+            (lambda () (rt-ok? '(* +i +i))))
+(check-true "round trip: -i survives"      (lambda () (rt-ok? '(= x -i))))
+(check-true "round trip: -3i survives"     (lambda () (rt-ok? '(= x -3i))))
+(check-true "round trip: 3i survives"      (lambda () (rt-ok? '(= x +3i))))
+(check-true "round trip: 2-i survives"     (lambda () (rt-ok? '(= x 2-i))))
+(check-true "round trip: 2+3i survives"    (lambda () (rt-ok? '(= x 2+3i))))
+(check "round trip: the imaginary unit prints as 1i, not i"
+       (lambda () (expression->string '+i)) "1i")
+(check "round trip: -i prints as 0-i, not -i"
+       (lambda () (expression->string '-i)) "0-i")
+(check "round trip: a real literal is untouched"
+       (lambda () (expression->string '(+ 2 3))) "2 + 3")
+
+;; (d) `^' with a unary-minus exponent.  Unary `-' and `power' share
+;; precedence 7, so `x ^ -n' printed unparenthesised -- but p-parse-pow reads
+;; its right operand as a PRIMARY, not as a unary.
+(check-true "round trip: x ^ (-n) survives print -> parse"
+            (lambda () (rt-ok? '(power x (- n)))))
+(check "round trip: a unary-minus exponent is parenthesised"
+       (lambda () (expression->string '(power x (- n)))) "x ^ (-n)")
+(check-true "round trip: right-nested power still survives"
+            (lambda () (rt-ok? '(power x (power y z)))))
+(check "round trip: right-assoc ^ keeps printing unparenthesised"
+       (lambda () (expression->string '(power x (power y z)))) "x ^ y ^ z")
+
+;; (e) SEVEN NAMES THAT CONTAINED OPERATOR CHARACTERS (renamed 2026-08-24).
+;; `<=_ORD' `<_ORD' `RR*' `RR+*' `RR+*-ADD-MONOID' `CARD*' `INJECTIVE*' were
+;; each unreadable, and one of them SILENTLY so: read-ident stops at the `*'
+;; and read-op takes it, so `card*(a)' parsed as the PRODUCT (* card a) --
+;; a different term, with no error.  The other six were tokenize or parse
+;; errors.  105 installed formulas could not be retyped from their own printed
+;; form because of them.  The replacements are the spellings the surrounding
+;; axiom names already used (ord-le-refl, rr-star-membership,
+;; rr-pos-star-membership) plus the -STAR reading of the companion convention
+;; that injection.scm documents.
+(check-true "round trip: ORD-LE survives print -> parse"
+            (lambda () (rt-ok? '(ord-le alpha beta))))
+(check-true "round trip: ORD-LT survives print -> parse"
+            (lambda () (rt-ok? '(ord-lt alpha beta))))
+(check-true "round trip: RR-STAR survives print -> parse"
+            (lambda () (rt-ok? '(in pos-inf rr-star))))
+(check-true "round trip: RR-POS-STAR survives print -> parse"
+            (lambda () (rt-ok? '(in 0 rr-pos-star))))
+(check-true "round trip: RR-POS-STAR-ADD-MONOID survives print -> parse"
+            (lambda () (rt-ok? '(is-comm-monoid rr-pos-star-add-monoid))))
+(check-true "round trip: CARD survives print -> parse"
+            (lambda () (rt-ok? '(= (CARD a_) n))))
+(check-true "round trip: INJECTIVE-STAR survives print -> parse"
+            (lambda () (rt-ok? '(injective-star f))))
+;; The silent one, pinned as a STRING check: this is what used to happen.  The head was
+;; called CARD-STAR until 2026-09-20; it is CARD now (the axioms having been proven), so
+;; the positive half is pinned on another `-star' head.  The negative half keeps CARD:
+;; `card*(a)' still reads as a PRODUCT, which is why no constant is spelled with `*'.
+(check "reader: rpow-star(a, b) is an application, not a product"
+       (lambda () (parse-string "rpow-star(a, b)")) '(rpow-star a b))
+(check "reader: card*(a) reads as a PRODUCT -- why no constant is spelled with `*'"
+       (lambda () (parse-string "card*(a)")) '(* card a))
+
+;;; -----------------------------------------------------------------------
+;;; 4. Wff validation
+;;;
+;;; The validator rejects formulas that are syntactically malformed.
+;;; vnb-guard returns a <vnb-error> value on failure.
+
+(display "\n=== 4. Wff validation ===\n")
+
+;;; Valid formulas that should be accepted
+(check-true "TRUTH accepted"     (lambda () (wff? (make-wff-from-string "truth"))))
+(check-true "IN accepted"        (lambda () (wff? (make-wff-from-string "n in nn"))))
+(check-true "IMPLIES accepted"   (lambda () (wff? (make-wff-from-string "n in nn implies n in zz"))))
+(check-true "AND accepted"       (lambda () (wff? (make-wff-from-string "n in nn and m in nn"))))
+(check-true "OR accepted"        (lambda () (wff? (make-wff-from-string "n in nn or m in nn"))))
+(check-true "IFF accepted"       (lambda () (wff? (make-wff-from-string "n = m iff m = n"))))
+(check-true "NOT accepted"       (lambda () (wff? (make-wff-from-string "not(n in nn)"))))
+(check-true "FORALL accepted"    (lambda () (wff? (make-wff-from-string "forall([x in nn], x in zz)"))))
+(check-true "FORSOME accepted"   (lambda () (wff? (make-wff-from-string "forsome([x in nn], x = 0)"))))
+
+;;; Invalid: bare number in wff position
+(check-error "bare number rejected"
+             (lambda () (make-wff-from-string "1")))
+
+;;; Invalid: term-forming head in wff position
+(check-error "union in wff position rejected"
+             (lambda () (make-wff '(UNION x y))))
+
+;;; -----------------------------------------------------------------------
+;;; 5. apply-macete: local context (Monk 1988)
+;;;
+;;; apply-macete takes a wff and returns a rewritten wff (or #f).
+;;; Conditions extracted from the theorem must be satisfied by the
+;;; local context that accumulates as the rewriter descends.
+
+(display "\n=== 5. apply-macete: local context ===\n")
+
+;;; 5a. Unconditional IFF macete (no conditions — fires anywhere)
+(install-theorem! 'eq-symm
+  (make-wff-from-string "forall([x, y], x = y iff y = x)"))
+
+(check "eq-symm: 3+5=8 -> 8=3+5"
+       (lambda () (macete-str 'eq-symm "3 + 5 = 8"))
+       "8 = 3 + 5")
+
+(check "eq-symm: n=m implies truth -> m=n implies truth"
+       (lambda () (macete-str 'eq-symm "n = m implies truth"))
+       "m = n implies truth")
+
+(check "eq-symm: no match on n in nn"
+       (lambda () (macete-str 'eq-symm "n in nn"))
+       #f)
+
+(check "eq-symm: both sides of = rewritten"
+       (lambda () (macete-str 'eq-symm "n = m and m = k"))
+       "m = n and k = m")
+
+;;; Unconditional IFF macete: and-comm
+(install-theorem! 'and-comm-iff
+  '(FORALL p (FORALL q (IFF (AND p q) (AND q p)))))
+
+(check "and-comm: (CARR and B) -> (B and A)"
+       (lambda () (macete-str 'and-comm-iff "n in nn and m in nn"))
+       "m in nn and n in nn")
+
+(check "and-comm: fires inside IMPLIES antecedent"
+       (lambda () (macete-str 'and-comm-iff "n in nn and m in nn implies truth"))
+       "m in nn and n in nn implies truth")
+
+(check "and-comm: no AND to rewrite"
+       (lambda () (macete-str 'and-comm-iff "n in nn"))
+       #f)
+
+;;; 5b. Conditional macetes — require local context
+;;;
+;;; nn-add-comm: forall([a,b in NN], a+b = b+a)
+;;; Without context the rewrite must NOT fire.
+
+(check "nn-add-comm: no fire on bare sum"
+       (lambda () (macete-str 'nn-add-comm "n + m = 0"))
+       #f)
+
+;;; Inside IMPLIES: antecedent (AND (IN n NN) (IN m NN)) is flattened
+;;; into local context when entering the consequent.
+(check "nn-add-comm: fires inside IMPLIES consequent"
+       (lambda () (macete-str 'nn-add-comm
+                              "n in nn and m in nn implies n + m = m + n"))
+       "n in nn and m in nn implies m + n = n + m")
+
+;;; nn-add-zero: forall([n in NN], n + 0 = n)
+(check "nn-add-zero: no fire without context"
+       (lambda () (macete-str 'nn-add-zero "n + 0 = 5"))
+       #f)
+
+(check "nn-add-zero: fires inside IMPLIES consequent"
+       (lambda () (macete-str 'nn-add-zero "n in nn implies n + 0 = 5"))
+       "n in nn implies n = 5")
+
+;;; AND: entering the right conjunct adds the left conjunct to context.
+(check "nn-add-zero: fires in right conjunct of AND"
+       (lambda () (macete-str 'nn-add-zero "k in nn and k + 0 = 5"))
+       "k in nn and k = 5")
+
+;;; Wrong order: condition follows the expression — no context available.
+(check "nn-add-zero: no fire when condition is right conjunct"
+       (lambda () (macete-str 'nn-add-zero "k + 0 = 5 and k in nn"))
+       #f)
+
+;;; OR: entering the right disjunct adds (NOT left-disjunct) to context.
+;;; (nn-add-zero condition (IN n NN) is not (NOT something), so still no fire)
+(check "nn-add-zero: no fire in right disjunct of OR"
+       (lambda () (macete-str 'nn-add-zero "truth or n + 0 = 5"))
+       #f)
+
+;;; nn-add-closed: forall([a,b in NN], a+b in NN) — rewrites to TRUTH
+(check "nn-add-closed: fires inside IMPLIES, rewrites to truth"
+       (lambda () (macete-str 'nn-add-closed
+                              "n in nn and m in nn implies n + m in nn"))
+       "n in nn and m in nn implies truth")
+
+(check "nn-add-closed: no fire without context"
+       (lambda () (macete-str 'nn-add-closed "n + m in nn"))
+       #f)
+
+;;; power-zero: forall([x in CC], power(x,0) = 1)
+(check "power-zero: fires inside IMPLIES"
+       (lambda () (macete-str 'power-zero "z in cc implies power(z, 0) = w"))
+       "z in cc implies 1 = w")
+
+(check "power-zero: no fire without context"
+       (lambda () (macete-str 'power-zero "power(z, 0) = 1"))
+       #f)
+
+;;; power-succ: forall([x in CC, n in NN], power(x,succ(n)) = x*power(x,n))
+(check "power-succ: fires inside IMPLIES with two conditions"
+       (lambda () (macete-str 'power-succ
+                              "z in cc and k in nn implies power(z, succ(k)) = w"))
+       "z in cc and k in nn implies z * z ^ k = w")
+
+;;; apply-macete returns a wff object
+(check-true "apply-macete returns wff"
+            (lambda () (wff? (apply-macete 'eq-symm
+                                           (make-wff-from-string "n = m")))))
+
+;;; apply-macete returns #f on no match
+(check-false "apply-macete returns #f on no match"
+             (lambda () (apply-macete 'eq-symm
+                                      (make-wff-from-string "n in nn"))))
+
+;;; 5h. REVIEW.md S-5 — lc-drop-shadowed: ctx assumptions referencing a
+;;; binder's variable must be dropped before descending under the binder.
+(check "lc-drop-shadowed: drops asm mentioning the bvar"
+  (lambda () (lc-drop-shadowed '(x) '((= x 0) (IN y NN))))
+  '((IN y NN)))
+
+(check "lc-drop-shadowed: keeps all when no shadowing"
+  (lambda () (lc-drop-shadowed '(z) '((= x 0) (IN y NN))))
+  '((= x 0) (IN y NN)))
+
+(check "lc-drop-shadowed: drops on any of multiple bvars"
+  (lambda () (lc-drop-shadowed '(p q) '((IN p CARR) (IN y NN) (= q 0))))
+  '((IN y NN)))
+
+;;; The audit's exact macete witness: a conditional rewrite that USED to
+;;; fire spuriously under a FORALL that shadowed the condition's variable.
+;;; Without the lc-drop-shadowed fix, this would rewrite
+;;;   IMPLIES (= x 0) (FORALL x (= (foo x) (g x)))
+;;; to (IMPLIES (= x 0) (FORALL x (= x (g x)))) -- using the OUTER (= x 0)
+;;; to discharge a condition that semantically refers to the inner x.
+;; `foo' is deliberately uninterpreted -- it is a rewrite target, not a notion.
+;; It still gets DECLARED: unknown-head-audit holds that every symbol applied in
+;; an installed theorem is a head somebody registered, and this fixture installs
+;; a theorem.  (Undeclared, `foo' is indistinguishable from the POWERSET typo it
+;; exists to catch.)
+(register-operator! 'foo 'functoid '(x))
+(install-theorem! 'foo-zero-cond
+  '(FORALL y (IMPLIES (= y 0) (= (foo y) y))))
+
+(check "S-5 witness: macete must NOT fire under shadowing FORALL"
+  (lambda ()
+    (let* ((wif (make-wff '(IMPLIES (= x 0)
+                              (FORALL x (= (foo x) (g x))))))
+           (r   (apply-macete 'foo-zero-cond wif)))
+      ;; Should be #f -- no rewrite under the shadowing FORALL x.
+      ;; (Before fix: would have produced (IMPLIES (= x 0) (FORALL x (= x (g x)))))
+      r))
+  #f)
+
+(check "S-5 control: same macete still fires when NOT shadowed"
+  (lambda ()
+    (let* ((wif (make-wff '(IMPLIES (= z 0) (= (foo z) (g z)))))
+           (r   (apply-macete 'foo-zero-cond wif)))
+      (and r (wff-formula r))))
+  '(IMPLIES (= z 0) (= z (g z))))
+
+;;; -----------------------------------------------------------------------
+;;; 6. Proof commands
+;;;
+;;; Each sub-test proves a simple theorem using one or two rules.
+;;; check-proof verifies completion without exception.
+
+(display "\n=== 6. Proof commands ===\n")
+
+;;; 6a. Arithmetic (arith) — ground facts
+(check-proof "arith: 0 in NN"
+  (lambda () (sp (make-wff-from-string "0 in nn")) (arith)))
+(check-proof "arith: 2 + 3 = 5"
+  (lambda () (sp (make-wff-from-string "2 + 3 = 5")) (arith)))
+(check-proof "arith: power(2,3) = 8"
+  (lambda () (sp (make-wff-from-string "power(2, 3) = 8")) (arith)))
+(check-proof "arith: -5 in ZZ"
+  (lambda () (sp (make-wff-from-string "-5 in zz")) (arith)))
+(check-proof "arith: 1/3 in QQ"
+  (lambda () (sp (make-wff-from-string "1/3 in qq")) (arith)))
+
+;;; 6b. Reflexivity (rfl) and quasi-reflexivity (qrfl)
+(check-proof "rfl: n = n"
+  (lambda () (sp (make-wff-from-string "n = n")) (rfl)))
+(check-proof "qrfl: n == n"
+  (lambda () (sp (make-wff-from-string "n == n")) (qrfl)))
+
+;;; 6b'. Length reduction (len-r): dual of nth-r; a list literal's spine is total.
+(check-proof "len-r: length of a 3-element list literal = 3"
+  (lambda () (sp '(= (LENGTH (LIST a b c)) 3)) (len-r) (rfl)))
+(check-proof "len-r: empty list length = 0"
+  (lambda () (sp '(= (LENGTH (LIST)) 0)) (len-r) (rfl)))
+(check-true "len-r: reduces LENGTH(LIST ...) even with an undefined entry"
+  ;; spine count is structural: LENGTH counts slots, not element values
+  (lambda () (equal? (reduce-length-in-expr '(= (LENGTH (LIST (recip 0) b)) 2))
+                     '(= 2 2))))
+
+;;; 6c. Direct inference (di) — split conjunction, introduce implication
+(check-proof "di + ass: A implies A"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n in nn"))
+    (di) (ass)))
+
+(check-proof "di + ass: A and B implies A"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n in nn"))
+    (di) (ass)))
+
+(check-proof "di + ai: prove A and B from A, B"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies m in nn and n in nn"))
+    (di)
+    (ai (make-wff-from-string "n in nn and m in nn"))
+    (di) (ass) (ass)))
+
+;;; 6d. Weakening (wk) — generalize assumption
+(check-proof "wk: A implies (CARR or B)"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n in nn or m in nn"))
+    (di) (oi-l) (ass)))
+
+;;; 6e. OR introduction (oi-l, oi-r)
+(check-proof "oi-r: A implies (B or A)"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies m in nn or n in nn"))
+    (di) (oi-r) (ass)))
+
+;;; 6f. Theorem assumption (ta) + universal instantiation (ui)
+(check-proof "ta + ui: succ(0) in NN"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn implies succ(0) in nn"))
+    (di)
+    (ta 'nn-succ-closed) (ui "0") (ass)))
+
+(check-proof "ta + ui: n+m in NN"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
+    (di) (ta 'nn-add-closed) (ui "n") (ui "m") (ass)))
+
+(check-proof "ta + ui: n+0 = n"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n + 0 = n"))
+    (di) (ta 'nn-add-zero) (ui "n") (ass)))
+
+(check-proof "ta + ui: n+m = m+n"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m = m + n"))
+    (di) (ta 'nn-add-comm) (ui "n") (ui "m") (ass)))
+
+(check-proof "ta + ui: n in NN => n in ZZ"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n in zz"))
+    (di) (ta 'nn-subset-zz) (ui "n") (ass)))
+
+(check-proof "ta + ui: power(x,succ n)"
+  (lambda ()
+    (sp (make-wff-from-string
+          "x in cc and n in nn implies power(x, succ(n)) = x * power(x, n)"))
+    (di) (ta 'power-succ) (ui "x") (ui "n") (ass)))
+
+;;; 6g. Backchain (bc) -- bc takes an IMPLIES *formula* in context, NOT a
+;;; theorem name.  Bring in the theorem with (ta) and instantiate first.
+(check-proof "bc: n in NN and m in NN"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
+    (di) (ai (make-wff-from-string "n in nn and m in nn"))
+    (ta 'nn-add-closed)
+    (inst '(FORALL n (FORALL m (IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN)))) 'n)
+    (inst '(FORALL m (IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN))) 'm)
+    (bc '(IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN)))
+    (ass) (ass) (ass)
+    (unless (proof-done? *ps*) (error "bc test: proof did not close"))))
+
+;;; 6g'. Assumption-by-#N for hyp-targeting tactics (interactive-surface
+;;; convergence: (inst 1 ..) selects the 1st focus assumption, same numbering
+;;; the Focus Workspace shows -- no retyping the universal).  Mirrors 6g but
+;;; cites the ta'd universal (assumption #1, newest-first) by its index.
+(check-proof "inst: select universal by assumption index"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn and m in nn implies n + m in nn"))
+    (di) (ai (make-wff-from-string "n in nn and m in nn"))
+    (ta 'nn-add-closed)
+    (inst 1 'n)                          ; universal is assumption #1 by index
+    (inst '(FORALL m (IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN))) 'm)
+    (bc '(IMPLIES (AND (IN n NN) (IN m NN)) (IN (+ n m) NN)))
+    (ass) (ass) (ass)
+    (unless (proof-done? *ps*) (error "inst-by-index: proof did not close"))))
+
+;;; 6h. Proof by contradiction (pbc)
+(check-proof "pbc: classic double negation"
+  (lambda ()
+    (sp (make-wff-from-string "not(not(n in nn)) implies n in nn"))
+    (di)
+    (pbc)
+    (ass)))
+
+;;; 6i. Macete inside a proof (mac)
+(check-proof "mac: eq-symm rewrites goal"
+  (lambda ()
+    (sp (make-wff-from-string "n = m implies m = n"))
+    (di)
+    (mac 'eq-symm)
+    (ass)))
+
+;;; 6j. Exists-witness (ew)
+(check-proof "ew: exists x in NN. x = 0"
+  (lambda ()
+    (sp (make-wff-from-string "forsome([x in nn], x = 0)"))
+    (ew "0")
+    (arith)
+    (arith)))
+
+;;; 6k. Cut (cut)
+(check-proof "cut: introduce intermediate fact"
+  (lambda ()
+    (sp (make-wff-from-string "n in nn implies n + 0 = n"))
+    (di)
+    (cut (make-wff-from-string "n in nn implies n + 0 = n"))
+    (di) (ta 'nn-add-zero) (ui "n") (ass)
+    (di) (ass)))
+
+;;; 6k-eq. Equality substitution (subst) -- Leibniz schema.
+;;; From a context equality k = 0, rewrite succ(k) to succ(0) in the goal.
+;;; The eigenvariable name is snapshotted from *fresh-counter* before (di).
+(check-proof "subst: context equality k=0 rewrites the goal"
+  (lambda ()
+    (sp (make-wff-from-string
+         "forall([k in nn], k = 0 implies succ(k) = succ(0))"))
+    (let ((kk (string->symbol
+               (string-append "k_" (number->string *fresh-counter*)))))
+      (di) (di)
+      (subst (list '= kk 0))   ; succ(k) = succ(0)  -->  succ(0) = succ(0)
+      (rfl))))
+
+;;; subst is usable in either orientation: 0 = k in context still lets
+;;; (subst (= k 0)) fire (the rule looks for the equality symmetrically).
+(check-proof "subst: equality usable in reverse orientation"
+  (lambda ()
+    (sp (make-wff-from-string
+         "forall([k in nn], 0 = k implies succ(k) = succ(0))"))
+    (let ((kk (string->symbol
+               (string-append "k_" (number->string *fresh-counter*)))))
+      (di) (di)
+      (subst (list '= kk 0))
+      (rfl))))
+
+;;; 6l. Functoid beta reduction (beta)
+(check-proof "beta: lambdoid([x in nn], x+1)(3) = 3+1"
+  (lambda ()
+    (sp (make-wff-from-string "lambdoid([x in nn], x + 1)(3) = 3 + 1"))
+    (beta)
+    (rfl)))
+
+;;; 6m. REVIEW.md S-2 -- cmd-qed must discharge root context assumptions, so a
+;;; theorem proved as Gamma |- phi installs as the universal closure and not as
+;;; the bare phi.  The test that exercised it is GONE, because the only way to
+;;; put an assumption in a ROOT sequent was declare-local-context, removed on
+;;; 2026-07-29 (contexts.scm).  start-proof now always begins from '(), so the
+;;; property is vacuously true and cannot be tested from outside the kernel.
+;;; cmd-qed's discharge loop is deliberately KEPT: it costs nothing and it is
+;;; what makes the invariant hold if a root assumption ever becomes possible
+;;; again.  The verbatim-install case below still tests the ordinary path.
+
+(check "qed: no contexts -> formula installed verbatim"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (arith)
+    (qed 'qed-bare-formula-test)
+    (equal? (theory-get-theorem *current-theory* 'qed-bare-formula-test)
+            '(IN 0 NN)))
+  #t)
+
+;;; 6n. REVIEW.md S-3 / S-12 — compound heads in subst-free / free-vars.
+;;; A free variable in COMPOUND head position (as in ((MUL m) a b)) must be
+;;; visible to free-vars and substitutable by subst-free; otherwise
+;;; instantiating an axiom over m leaves head-position occurrences
+;;; uneliminable.  Symbol heads are intentionally pass-through (operator
+;;; names like MUL/A/E that case-fold to bound variable names would
+;;; otherwise be wrongly substituted -- see expressions.scm comments).
+(check "free-vars: ((MUL m) a b) reports m via compound head"
+  (lambda () (sort (free-vars '((MUL m) a b)) symbol<?))
+  '(a b m))
+
+(check "subst-free: m -> r in ((MUL m) a b) -- compound head"
+  (lambda () (subst-free 'm 'r '((MUL m) a b)))
+  '((MUL r) a b))
+
+(check "subst-free: m -> r in axiom-shape head-position formula"
+  (lambda ()
+    (subst-free 'm 'r
+                '(= ((MUL m) a b) ((MUL m) b a))))
+  '(= ((MUL r) a b) ((MUL r) b a)))
+
+(check "alpha-equiv: ((MUL m) a b) ~ ((MUL m) a b)"
+  (lambda () (alpha-equiv? '((MUL m) a b) '((MUL m) a b)))
+  #t)
+
+;;; alpha-equiv? takes RAW FORMULAS.  Handed <wff> records it used to answer #f
+;;; -- a wrong answer rather than a refusal, and invisible: two wffs made from
+;;; the same text compared unequal.  It now errors and names wff-equiv?.
+;;; (2026-08-09, reported from the REPL.)
+;; alpha-equiv? is kernel-internal and NOT vnb-guard'ed (like wff-formula), so
+;; it signals a plain Scheme error.  `ignore-errors' does NOT catch that in this
+;; MIT build -- an entry written with it aborts the whole suite at that line --
+;; so wrap the call in vnb-guard, which is the tree's own boundary and hands
+;; back the <vnb-error> that check-error looks for.
+(check-error "alpha-equiv? REFUSES a <wff> (left)"
+  (lambda () (vnb-guard
+              (lambda ()
+                (alpha-equiv? (make-wff "forall([x in rr], x = x)")
+                              '(FORALL x (IMPLIES (IN x RR) (= x x))))))))
+
+(check-error "alpha-equiv? REFUSES a <wff> (right)"
+  (lambda () (vnb-guard
+              (lambda ()
+                (alpha-equiv? '(FORALL x (IMPLIES (IN x RR) (= x x)))
+                              (make-wff "forall([x in rr], x = x)"))))))
+
+(check-error "alpha-equiv? REFUSES two <wff>s -- the reported case"
+  (lambda () (vnb-guard
+              (lambda ()
+                (alpha-equiv? (make-wff "forall([x in rr], x = x)")
+                              (make-wff "forall([x in rr], x = x)"))))))
+
+;;; ... and the procedure that DOES take wffs still says yes to that pair.
+(check-true "wff-equiv? on two wffs built from the same text"
+  (lambda () (wff-equiv? (make-wff "forall([x in rr], x = x)")
+                         (make-wff "forall([x in rr], x = x)"))))
+
+;;; 6o. REVIEW.md S-4 / S-13 — symbolic VNB-LAMBDA must be a binder.
+;;; Live axioms in algebraic.scm, complex.scm, sequences.scm use the raw
+;;; (VNB-LAMBDA <bind> body) form.  Without binder treatment, free-vars
+;;; reports the bound variables as free and subst-free corrupts the binder.
+(check "free-vars: (VNB-LAMBDA i NN (g i)) hides i; exposes g and the domain NN"
+  ;; `i` is bound; `g` is an unregistered symbol head -- an applied function
+  ;; variable -- so it is free (constant-head registry: g is not a constant).
+  (lambda () (free-vars '(VNB-LAMBDA i NN (g i))))
+  '(nn g))
+
+(check "free-vars: (VNB-LAMBDA (LIST p q) A ((ADD X) p q)) hides p,q; exposes X and the domain"
+  ;; ADD is a symbol head -> treated as constant.  X is INSIDE the
+  ;; compound head (ADD X) -> exposed via compound-head recursion.
+  (lambda () (free-vars '(VNB-LAMBDA (LIST p q) (CARTESIAN NN NN) ((ADD PTS) p q))))
+  '(nn pts))
+
+(check "subst-free: i -> 99 in (VNB-LAMBDA i (+ i 1)) leaves binder intact"
+  (lambda () (subst-free 'i 99 '(VNB-LAMBDA i NN (+ i 1))))
+  '(VNB-LAMBDA i NN (+ i 1)))
+
+(check "subst-free: r -> s in (VNB-LAMBDA i ((MUL r) a (f i))) -- compound head"
+  ;; `r` inside the compound head (MUL r) gets substituted; the bound `i`
+  ;; and the symbol head `f` are untouched.
+  (lambda () (subst-free 'r 's '(VNB-LAMBDA i NN ((MUL r) a (f i)))))
+  '(VNB-LAMBDA i NN ((MUL s) a (f i))))
+
+(check "alpha-equiv: (VNB-LAMBDA x x) ~ (VNB-LAMBDA y y)"
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN x) '(VNB-LAMBDA y NN y)))
+  #t)
+
+(check "alpha-equiv: (VNB-LAMBDA (LIST p q) (f p q)) ~ (VNB-LAMBDA (LIST u v) (f u v))"
+  (lambda () (alpha-equiv? '(VNB-LAMBDA (LIST p q) (CARTESIAN NN NN) (f p q))
+                           '(VNB-LAMBDA (LIST u v) (CARTESIAN NN NN) (f u v))))
+  #t)
+
+(check "alpha-equiv: (VNB-LAMBDA x (f x)) ~ (VNB-LAMBDA (LIST y) (f y)) -- cross-shape"
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN (f x))
+                           '(VNB-LAMBDA (LIST y) NN (f y))))
+  #t)
+
+(check "subst-free: capture avoidance — y -> y_replacement in (VNB-LAMBDA y body) leaves bound"
+  (lambda () (subst-free 'y 'foo '(VNB-LAMBDA y NN (+ y x))))
+  '(VNB-LAMBDA y NN (+ y x)))
+
+;;; 6p. REVIEW.md S-6 — fresh-var must avoid free vars of the substitution's
+;;; replacement (otherwise the renamed binder can recapture a free var the
+;;; replacement was carrying).  The witness construct: subst-free `x` with a
+;;; replacement that contains a name like `y_<n>` matching what fresh-var
+;;; would naively produce.  We can't predict the counter, so test with a
+;;; structurally-tight version:
+(check "fresh-var: result avoids free vars of every avoid arg"
+  (lambda ()
+    (let* ((y (fresh-var 'y '(IN y_999 NN) '(IN y_998 NN))))
+      ;; Both y_999 and y_998 are forbidden; result must be neither.
+      (and (not (eq? y 'y_999)) (not (eq? y 'y_998)))))
+  #t)
+
+;;; This is the audit's exact rename-branch witness for S-6.  We force the
+;;; global *fresh-counter* to a value that, WITHOUT the fix, would make
+;;; fresh-var return `y_42` -- the same name carried in the replacement,
+;;; causing the new binder to capture the replacement's free `y_42`.
+(check "subst-free: fresh rename does not capture replacement's free var"
+  (lambda ()
+    (set! *fresh-counter* 42)
+    (let* ((r       (subst-free 'x '(+ y y_42) '(FORALL y (= x z))))
+           (new-bv  (cadr r)))
+      (not (eq? new-bv 'y_42))))
+  #t)
+
+;;; 6q. REVIEW.md S-7 — pi-theorem-assumption! takes a NAME and looks it up
+;;; itself; refuses unknown names.  Previously accepted any raw S-expression.
+(check "pi-theorem-assumption!: returns #f on unknown name (no kernel bypass)"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (let ((sqn (proof-state-focus *ps*)))
+      ;; Should refuse: this name is not in *theorem-table*.
+      (pi-theorem-assumption! sqn 'nonexistent-theorem-zzz-xyz)))
+  #f)
+
+(check "pi-theorem-assumption!: works on known name"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-theorem-assumption! sqn 'nn-zero-in)))
+        (and r #t))))
+  #t)
+
+;;; 6r. REVIEW.md S-8 — pi-functoid-beta! must use PARALLEL substitution.
+;;; Witness: f = (lambda (x y) (LIST x y)), apply to (y, 0).
+;;;   sequential x:=y -> (LIST y y), then y:=0 -> (LIST 0 0)  -- WRONG
+;;;   parallel: result is (LIST y 0)                          -- CORRECT
+(check "pi-functoid-beta!: parallel substitution"
+  (lambda ()
+    (let* ((ftd  (make-functoid 'lambdoid
+                                (list (cons 'x 'NN) (cons 'y 'NN))
+                                '(LIST x y)))
+           (expr `(apply-functoid ,ftd y 0)))
+      (reduce-functoid-in-expr expr)))
+  '(LIST y 0))
+
+;;; 6s. REVIEW.md S-10 — theorem->elementary-macete returns an INERT macete
+;;; (always returns #f) when schema-vars appear in conditions or replacement
+;;; but NOT in source.  The theorem stays in *theorem-table* (usable via
+;;; theorem-assumption); the broken rewrite is silently skipped.
+(check "S-10: rogue schema-var detected"
+  (lambda () (theorem-rogue-schema-vars '(n k) '((IN k NN)) '(foo n) 'n))
+  '(k))
+
+(check "S-10: clean theorem -> no rogue vars"
+  (lambda () (theorem-rogue-schema-vars '(n) '((IN n NN)) '(foo n) 'n))
+  '())
+
+(check "S-10: rogue theorem -> inert macete (returns #f when applied)"
+  (lambda ()
+    ;; Suppress the warning printout by redirecting stdout briefly.
+    (let ((m (with-output-to-string
+               (lambda ()
+                 (theorem->elementary-macete
+                   '(FORALL n (FORALL k (IMPLIES (IN k NN) (= (foo n) n)))))))))
+      ;; The macete itself: install it and try to apply.
+      (let ((macete (theorem->elementary-macete
+                      '(FORALL n (FORALL k (IMPLIES (IN k NN) (= (foo n) n)))))))
+        ;; Apply against a sequent: should be #f (inert).
+        ;; The goal is built from the raw S-expression, NOT from the string
+        ;; "(foo 0) = 0": that is not VNB surface syntax (an application is
+        ;; written foo(0)), so it never parsed, `sp' reported and returned, and
+        ;; this check ran the macete against whatever proof was left over from
+        ;; the check above -- passing for the wrong reason.  Exposed 2026-08-30
+        ;; when `sp' began clearing *ps* before coercing its argument.
+        (sp (make-wff '(= (foo 0) 0)))
+        (macete (proof-state-focus *ps*)))))
+  #f)
+
+;;; A REJECTED `sp' MUST LEAVE NO PROOF.  `vnb-guard' catches the coercion
+;;; error and returns, so before 2026-08-30 the previous (possibly COMPLETE)
+;;; proof stayed live and the next `qed' installed it under the new name --
+;;; sound, silent, and a lie about what the name means.  Two checks: the state
+;;; is cleared, and `qed' then refuses rather than installing anything.
+(check-true "sp: a rejected statement clears the current proof"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (sp 42)                              ; not a wff, a string, or an S-expr
+    (not *ps*)))
+
+(check-error "qed after a rejected sp installs nothing"
+  (lambda ()
+    (sp (make-wff-from-string "0 in nn"))
+    (arith)                              ; that proof is now COMPLETE
+    (sp 42)                              ; not a wff, a string, or an S-expr
+    ;; `qed' is wrapped in `vnb-guard', so vnb--require-proof!'s raise comes
+    ;; back as a <vnb-error> -- which is what check-error tests for.  Before
+    ;; the fix this installed the 0-in-nn proof under the name below.
+    (qed 'sp-rejected-must-not-install)))
+
+;;; 6t. REVIEW.md D-6 — n-ary UNION/INTERSECTION accepted; COMPLEMENT-IN
+;;; installed as a binary constructor with sethood-closure and membership-iff
+;;; axioms.  Per-arity sethood for n-ary UNION/INTERSECTION follows from the
+;;; binary axiom by induction; n-ary semantics in proofs is provided by the
+;;; pre-existing kernel rules pi-union-intro!/-elim! and pi-intersection-*.
+
+(display "\n=== 6t. REVIEW.md D-6: n-ary set operators + COMPLEMENT-IN ===\n")
+
+;; Validator now accepts (UNION A B C) and (INTERSECTION A B C).
+(check-true "make-wff accepts (UNION A B C)"
+  (lambda () (wff? (make-wff '(IN x (UNION CARR B C))))))
+
+(check-true "make-wff accepts (INTERSECTION A B C D)"
+  (lambda () (wff? (make-wff '(IN x (INTERSECTION CARR B C DIST))))))
+
+(check-true "make-wff accepts (COMPLEMENT-IN A B)"
+  (lambda () (wff? (make-wff '(IN x (COMPLEMENT-IN CARR B))))))
+
+(check-error "(UNION A) (1 arg) rejected"
+  (lambda () (make-wff '(IN x (UNION CARR)))))
+
+(check-error "(COMPLEMENT-IN A) (wrong arity) rejected"
+  (lambda () (make-wff '(IN x (COMPLEMENT-IN CARR)))))
+
+;; Free-vars / subst-free / alpha-equiv treat COMPLEMENT-IN as a binary term.
+(check "free-vars (COMPLEMENT-IN A B) = (CARR B)"
+  (lambda () (free-vars '(COMPLEMENT-IN CARR B)))
+  '(CARR B))
+
+(check "subst-free A->X in (COMPLEMENT-IN A B) = (COMPLEMENT-IN X B)"
+  (lambda () (subst-free 'CARR 'PTS '(COMPLEMENT-IN CARR B)))
+  '(COMPLEMENT-IN PTS B))
+
+(check-true "alpha-equiv (COMPLEMENT-IN A B) ~ itself"
+  (lambda () (alpha-equiv? '(COMPLEMENT-IN CARR B) '(COMPLEMENT-IN CARR B))))
+
+;; New axioms are installed and looked up.
+(check-true "union-membership axiom installed"
+  (lambda () (and (lookup-theorem 'union-membership) #t)))
+
+(check-true "intersection-membership axiom installed"
+  (lambda () (and (lookup-theorem 'intersection-membership) #t)))
+
+(check-true "complement-in-set-closure axiom installed"
+  (lambda () (and (lookup-theorem 'complement-in-set-closure) #t)))
+
+(check-true "complement-in-membership axiom installed"
+  (lambda () (and (lookup-theorem 'complement-in-membership) #t)))
+
+;;; 6u. Bonus fix surfaced while doing D-6: unary (FUN A) used to crash the
+;;; binary FUN dispatch in free-vars / subst-free / alpha-equiv-under? /
+;;; match-expr / rewrite-subexpressions.  fun-domain-apply-def, -extensionality,
+;;; -elements-are-sets, and fun-codomain-iff all use (FUN A) and silently
+;;; failed to install their macetes (vnb-guard caught the car-of-() error).
+;;; Now both arities are handled; macetes install (and S-10 flags the
+;;; symbol-head schema-vars, which is the correct downstream behaviour).
+
+(display "\n=== 6u. Unary (FUN A) handled by free-vars/subst-free/alpha-equiv ===\n")
+
+(check "free-vars (FUN A) = (A)"
+  (lambda () (free-vars '(FUN CARR)))
+  '(CARR))
+
+(check "free-vars (FUN A B) = (CARR B)"
+  (lambda () (free-vars '(FUN CARR B)))
+  '(CARR B))
+
+(check "subst-free A->X in (FUN A) = (FUN X)"
+  (lambda () (subst-free 'CARR 'PTS '(FUN CARR)))
+  '(FUN PTS))
+
+(check "subst-free A->X in (FUN A B) = (FUN X B)"
+  (lambda () (subst-free 'CARR 'PTS '(FUN CARR B)))
+  '(FUN PTS B))
+
+(check-true "alpha-equiv (FUN A) ~ itself"
+  (lambda () (alpha-equiv? '(FUN CARR) '(FUN CARR))))
+
+(check-false "alpha-equiv (FUN A) !~ (FUN A B)"
+  (lambda () (alpha-equiv? '(FUN CARR) '(FUN CARR B))))
+
+;; All four fun-* axioms now register in the theorem table.
+(check-true "fun-domain-apply-def in theorem table"
+  (lambda () (and (lookup-theorem 'fun-domain-apply-def) #t)))
+
+(check-true "fun-domain-extensionality in theorem table"
+  (lambda () (and (lookup-theorem 'fun-domain-extensionality) #t)))
+
+(check-true "fun-domain-elements-are-sets in theorem table"
+  (lambda () (and (lookup-theorem 'fun-domain-elements-are-sets) #t)))
+
+(check-true "fun-codomain-iff in theorem table"
+  (lambda () (and (lookup-theorem 'fun-codomain-iff) #t)))
+
+;;; 6v. REVIEW.md D-7 — SEP, COMP, IOTA, VNB-LAMBDA, 2-arg POWER characterized.
+;;; SEP/COMP/IOTA/VNB-LAMBDA via primitive inferences (because the body
+;;; formula is genuinely a schema and can't appear in a FOL axiom);
+;;; 2-arg POWER via the definitional equation (POWER A B) = (FUN B A).
+
+(display "\n=== 6v. REVIEW.md D-7: SEP/COMP/IOTA/VNB-LAMBDA/POWER ===\n")
+
+;; --- SEPARATION ---
+(check-proof "pi-sep-sethood: (IN (SEP x A p) SET) reduces to (IN A SET)"
+  (lambda ()
+    (sp (make-wff '(IN (SEP x CARR (IN x NN)) SET)))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-sep-sethood! sqn)))
+        (or r (error "pi-sep-sethood! failed"))))))
+
+(check-proof "pi-sep-mem-intro: (IN 0 (SEP x NN (= x 0))) splits"
+  (lambda ()
+    (sp (make-wff '(IN 0 (SEP x NN (= x 0)))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-sep-mem-intro! sqn)))
+        (or r (error "pi-sep-mem-intro! failed"))))))
+
+(check-proof "pi-sep-mem-elim: assumption (IN 0 (SEP x NN p)) splits ctx"
+  (lambda ()
+    ;; Plant the assumption by di on an implication -- the local-context
+    ;; facility that used to do this was removed on 2026-07-29.
+    (sp (make-wff '(IMPLIES (IN 0 (SEP x NN (= x 0))) TRUTH)))
+    (di)
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-sep-mem-elim! sqn '(IN 0 (SEP x NN (= x 0))))))
+        (or r (error "pi-sep-mem-elim! failed"))))))
+
+;; pi-sep-sethood does NOT fire on a non-SEP goal
+(check "pi-sep-sethood: refuses (IN 0 NN)"
+  (lambda ()
+    (sp (make-wff '(IN 0 NN)))
+    (pi-sep-sethood! (proof-state-focus *ps*)))
+  #f)
+
+;; --- COMPREHENSION ---
+(check-proof "pi-comp-mem-intro: (IN 0 (COMP x p)) splits"
+  (lambda ()
+    (sp (make-wff '(IN 0 (COMP x (IN x NN)))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-comp-mem-intro! sqn)))
+        (or r (error "pi-comp-mem-intro! failed"))))))
+
+(check-proof "pi-comp-mem-elim: assumption (IN 0 (COMP x p)) splits ctx"
+  (lambda ()
+    ;; Plant the assumption by di on an implication -- the local-context
+    ;; facility that used to do this was removed on 2026-07-29.
+    (sp (make-wff '(IMPLIES (IN 0 (COMP x (IN x NN))) TRUTH)))
+    (di)
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-comp-mem-elim! sqn '(IN 0 (COMP x (IN x NN))))))
+        (or r (error "pi-comp-mem-elim! failed"))))))
+
+;; --- IOTA ---
+(check-proof "pi-iota-def: posts existence-uniqueness + defprop subgoals"
+  (lambda ()
+    (sp (make-wff '(= 0 0)))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-iota-def! sqn '(IOTA x (= x 0)))))
+        (or r (error "pi-iota-def! failed"))))))
+
+(check "pi-iota-def: refuses non-IOTA argument"
+  (lambda ()
+    (sp (make-wff '(= 0 0)))
+    (pi-iota-def! (proof-state-focus *ps*) 'not-an-iota))
+  #f)
+
+;; --- IOTA, the context-side direction (iota-in-elim, added 2026-09-15) ---
+;;
+;; The rule's ONE premise is that the context establishes the description
+;; denotes.  All four checks are about that premise, because it is the whole
+;; soundness argument: it must FIRE when the witness is there and DECLINE when
+;; it is not.  A rule that granted the defining property unconditionally would
+;; pass the first check alone, which is why the negative ones are here.
+
+(check-proof "pi-iota-in-elim: fires when the context types the IOTA term"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN (IOTA x (IN x NN)) NN) (= 0 0))))
+    (di)
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-iota-in-elim! sqn '(IOTA x (IN x NN)))))
+        (or r (error "pi-iota-in-elim! failed"))))))
+
+(check "pi-iota-in-elim: DECLINES with no definedness witness in the context"
+  (lambda ()
+    (sp (make-wff '(= 0 0)))
+    (pi-iota-in-elim! (proof-state-focus *ps*) '(IOTA x (IN x NN))))
+  #f)
+
+(check "pi-iota-in-elim: refuses a non-IOTA argument"
+  (lambda ()
+    (sp (make-wff '(= 0 0)))
+    (pi-iota-in-elim! (proof-state-focus *ps*) 'not-an-iota))
+  #f)
+
+;; An EQUATION naming the term is a definedness witness too -- the rule reuses
+;; asm-establishes-defined?, which accepts (IN t _), (= t _) and (= _ t), so
+;; this must fire for the same reason `rfl' closes t = t in such a context.
+(check-proof "pi-iota-in-elim: an equation naming the term is witness enough"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (= (IOTA x (IN x NN)) 0) (= 0 0))))
+    (di)
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-iota-in-elim! sqn '(IOTA x (IN x NN)))))
+        (or r (error "pi-iota-in-elim! failed on an equation witness"))))))
+
+;; --- VNB-LAMBDA: typing ---
+(check-proof "pi-lambda-type: (IN (VNB-LAMBDA x x) (FUN NN NN)) reduces"
+  (lambda ()
+    (sp (make-wff '(IN (VNB-LAMBDA x NN x) (FUN NN NN))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-lambda-type! sqn)))
+        (or r (error "pi-lambda-type! failed"))))))
+
+;; --- VNB-LAMBDA carries its DOMAIN (2026-08-02 soundness repair) ---
+;; The rule used to type ONE domainless term into FUN(A,B) for EVERY A; with
+;; fun-domain-apply-def ("defined exactly on A") that proved (IN 0 EMPTY-SET)
+;; modulo 0.  These five pin the repair.  See docs/lambda-domain.md.
+
+(check "VNB-LAMBDA: same body, DIFFERENT domain -> DISTINCT terms [soundness]"
+  (lambda () (alpha-equiv? '(VNB-LAMBDA x NN x) '(VNB-LAMBDA x EMPTY-SET x)))
+  #f)
+
+(check "VNB-LAMBDA: the domain is OUTSIDE the binder -- its variables stay free"
+  (lambda () (and (memq 'n (free-vars '(VNB-LAMBDA j (INTERVAL 1 n) (f j)))) #t))
+  #t)
+
+(check "VNB-LAMBDA: subst-free reaches into the domain"
+  (lambda () (subst-free 'n 7 '(VNB-LAMBDA j (INTERVAL 1 n) (f j))))
+  '(VNB-LAMBDA j (INTERVAL 1 7) (f j)))
+
+(check "make-wff: a DOMAINLESS VNB-LAMBDA (arity 3) is rejected"
+  (lambda () (condition? (ignore-errors
+                          (make-wff '(IN (VNB-LAMBDA x x) (FUN NN NN))))))
+  #t)
+
+(check "pi-lambda-type: REFUSES when the declared domain is not the FUN's domain"
+  (lambda ()
+    (sp (make-wff '(IN (VNB-LAMBDA x EMPTY-SET x) (FUN NN NN))))
+    (not (pi-lambda-type! (proof-state-focus *ps*))))
+  #t)
+
+(check "pi-lambda-type: also emits the (IN A SET) obligation"
+  (lambda ()
+    (sp (make-wff '(IN (VNB-LAMBDA x NN x) (FUN NN NN))))
+    (pi-lambda-type! (proof-state-focus *ps*))
+    (if (pair? (filter (lambda (l)
+                         (equal? (wff-formula (sequent-node-assertion l))
+                                 '(IN NN SET)))
+                       (proof-leaves)))
+        'emitted 'missing))
+  'emitted)
+
+;; --- VNB-LAMBDA: beta reduction ---
+(check "reduce-lambda-in-expr: ((VNB-LAMBDA x (+ x 1)) 5) -> (+ 5 1)"
+  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA x NN (+ x 1)) 5)))
+  '(+ 5 1))
+
+(check "reduce-lambda-in-expr: ((VNB-LAMBDA (LIST x y) (+ x y)) 3 4) -> (+ 3 4)"
+  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA (LIST x y) (CARTESIAN NN NN) (+ x y)) 3 4)))
+  '(+ 3 4))
+
+;; Parallel substitution (analogous to S-8 for functoid-beta):
+;;   ((VNB-LAMBDA (LIST x y) (LIST x y)) y 0)
+;; sequential x:=y -> (LIST y y), then y:=0 -> (LIST 0 0)        WRONG
+;; parallel: (LIST y 0)                                          CORRECT
+(check "reduce-lambda-in-expr: parallel substitution"
+  (lambda () (reduce-lambda-in-expr '((VNB-LAMBDA (LIST x y) (CARTESIAN NN NN) (LIST x y)) y 0)))
+  '(LIST y 0))
+
+;; reduce-lambda-in-expr recurses into subterms
+(check "reduce-lambda-in-expr: nested in IN"
+  (lambda () (reduce-lambda-in-expr '(IN ((VNB-LAMBDA x NN x) 7) NN)))
+  '(IN 7 NN))
+
+;; --- POWER (2-arg) ---
+;; The two checks that stood here pinned `power-exp' (POWER A B == FUN B A) and
+;; its macete.  The axiom was DELETED 2026-08-27 -- it gave the 2-arg POWER head
+;; a second live reading alongside the numeric one, and the two composed into
+;; the false `fun(3,2) = 8'.  The reasoning is at its old site in
+;; theorem-library/axioms.scm (D-7); the false equation it licensed is now a
+;; must-not-prove entry, so the guard runs in the negative corpus instead of
+;; here.  `check-false' that the axiom is gone, so a silent reinstatement shows
+;; up in BOTH suites.
+;; `lookup-theorem' ERRORS on a miss rather than returning #f, so the absence is
+;; read off the theorem table directly -- which is the table lookup-theorem
+;; itself consults (macetes.scm) and cannot raise.
+(check-false "power-exp axiom is GONE (2-arg POWER has one reading)"
+  (lambda () (and (hash-table-ref/default *theorem-table* 'power-exp #f) #t)))
+
+;;; 6w. Variadic pattern matching in the macete engine: RESTVAR in source
+;;; patterns and SPLICE in replacement templates.  These let a single macete
+;;; rewrite an arbitrary-arity UNION/INTERSECTION membership formula to its
+;;; disjunctive/conjunctive expansion.
+
+(display "\n=== 6w. Variadic patterns: RESTVAR + SPLICE ===\n")
+
+;; --- RESTVAR matching ---
+
+(check "RESTVAR captures all UNION args (n=2)"
+  (lambda ()
+    (let ((m (match-expr '(IN x (UNION (RESTVAR AS)))
+                         '(IN x (UNION CARR B))
+                         '(x AS))))
+      (and m (restbound-exprs (cdr (assq 'AS m))))))
+  '(CARR B))
+
+(check "RESTVAR captures all UNION args (n=3)"
+  (lambda ()
+    (let ((m (match-expr '(IN x (UNION (RESTVAR AS)))
+                         '(IN x (UNION CARR B C))
+                         '(x AS))))
+      (and m (restbound-exprs (cdr (assq 'AS m))))))
+  '(CARR B C))
+
+(check "RESTVAR captures tail after fixed prefix"
+  (lambda ()
+    (let ((m (match-expr '(IN x (UNION X1 (RESTVAR AS)))
+                         '(IN x (UNION CARR B C DIST))
+                         '(x X1 AS))))
+      (and m
+           (list (cdr (assq 'X1 m))
+                 (restbound-exprs (cdr (assq 'AS m)))))))
+  '(CARR (B C DIST)))
+
+(check-false "RESTVAR on INTERSECTION does not match UNION expr"
+  (lambda ()
+    (match-expr '(IN x (INTERSECTION (RESTVAR AS)))
+                '(IN x (UNION CARR B))
+                '(x AS))))
+
+(check "RESTVAR with empty tail (UNION has only fixed prefix)"
+  (lambda ()
+    (let ((m (match-expr '(UNION X1 X2 (RESTVAR AS))
+                         '(UNION CARR B)
+                         '(X1 X2 AS))))
+      (and m (restbound-exprs (cdr (assq 'AS m))))))
+  '())
+
+(check-true "RESTVAR strict-mode: pattern without RESTVAR still requires equal length"
+  (lambda ()
+    (not (match-expr '(UNION X1 X2)
+                     '(UNION CARR B C)
+                     '(X1 X2)))))
+
+;; --- List-aware merge-subst (rest-var bound twice must be alpha-equiv) ---
+
+(check-true "merge-subst accepts two equal restbound bindings"
+  (lambda ()
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B C)))))
+          (s2 (list (cons 'AS (make-restbound '(CARR B C))))))
+      (and (merge-subst s1 s2) #t))))
+
+(check-false "merge-subst rejects differing restbound bindings (lengths)"
+  (lambda ()
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B)))))
+          (s2 (list (cons 'AS (make-restbound '(CARR B C))))))
+      (merge-subst s1 s2))))
+
+(check-false "merge-subst rejects differing restbound bindings (contents)"
+  (lambda ()
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B)))))
+          (s2 (list (cons 'AS (make-restbound '(CARR C))))))
+      (merge-subst s1 s2))))
+
+(check-false "merge-subst rejects mixing restbound with ordinary"
+  (lambda ()
+    (let ((s1 (list (cons 'AS (make-restbound '(CARR B)))))
+          (s2 (list (cons 'AS 'CARR))))
+      (merge-subst s1 s2))))
+
+;; --- SPLICE expansion ---
+
+(check "SPLICE OR over 3 elements: right-fold"
+  (lambda ()
+    (apply-subst (list (cons 'x 'a)
+                       (cons 'AS (make-restbound '(CARR B C))))
+                 '(SPLICE OR e AS (IN x e))))
+  '(OR (IN a CARR) (OR (IN a B) (IN a C))))
+
+(check "SPLICE OR over 1 element: just the template instance"
+  (lambda ()
+    (apply-subst (list (cons 'x 'a)
+                       (cons 'AS (make-restbound '(CARR))))
+                 '(SPLICE OR e AS (IN x e))))
+  '(IN a CARR))
+
+(check "SPLICE AND mirrors OR shape"
+  (lambda ()
+    (apply-subst (list (cons 'x 'a)
+                       (cons 'AS (make-restbound '(CARR B C))))
+                 '(SPLICE AND e AS (IN x e))))
+  '(AND (IN a CARR) (AND (IN a B) (IN a C))))
+
+;; --- End-to-end: the three decompose macetes, installed by theory.scm ---
+
+(check-true "union-decompose axiom installed"
+  (lambda () (and (lookup-theorem 'union-decompose) #t)))
+
+(check-true "intersection-decompose axiom installed"
+  (lambda () (and (lookup-theorem 'intersection-decompose) #t)))
+
+(check "union-decompose rewrites x in union(a, b, c)"
+  (lambda () (macete-str 'union-decompose "x in union(a, b, c)"))
+  "x in a or x in b or x in c")
+
+(check "union-decompose rewrites x in union(a, b)"
+  (lambda () (macete-str 'union-decompose "x in union(a, b)"))
+  "x in a or x in b")
+
+(check "intersection-decompose rewrites x in intersection(a, b, c)"
+  (lambda () (macete-str 'intersection-decompose "x in intersection(a, b, c)"))
+  "x in a and x in b and x in c")
+
+(check "intersection-decompose rewrites x in intersection(a, b)"
+  (lambda () (macete-str 'intersection-decompose "x in intersection(a, b)"))
+  "x in a and x in b")
+
+;; --- cartesian-decompose: procedural macete (theory.scm) ---
+;; Compare via alpha-equiv? since the fresh-var names are non-deterministic.
+
+(check-true "cartesian-decompose macete installed"
+  (lambda () (and (lookup-macete 'cartesian-decompose) #t)))
+
+(check-true "build-cartesian-witness (n=2): structure matches expected chain"
+  (lambda ()
+    (alpha-equiv?
+      (build-cartesian-witness 'x '(CARR B))
+      '(FORSOME u (AND (IN u CARR)
+         (FORSOME v (AND (IN v B) (= x (LIST u v)))))))))
+
+(check-true "build-cartesian-witness (n=3): structure matches expected chain"
+  (lambda ()
+    (alpha-equiv?
+      (build-cartesian-witness 'x '(CARR B C))
+      '(FORSOME u (AND (IN u CARR)
+         (FORSOME v (AND (IN v B)
+            (FORSOME w (AND (IN w C) (= x (LIST u v w)))))))))))
+
+(check-true "build-cartesian-witness (n=1): single FORSOME"
+  (lambda ()
+    (alpha-equiv?
+      (build-cartesian-witness 'x '(CARR))
+      '(FORSOME u (AND (IN u CARR) (= x (LIST u)))))))
+
+(check-true "build-cartesian-witness avoids x as a fresh-var name"
+  (lambda ()
+    ;; Pass x=a so the fresh-var would naturally collide with one of the
+    ;; class names if it weren't avoided.
+    (let ((w (build-cartesian-witness 'a '(CARR B))))
+      ;; The outer bound var must NOT be the symbol 'a' (would shadow x).
+      (not (eq? (cadr w) 'a)))))
+
+(check-proof "cartesian-decompose on (IN x (CARTESIAN A B)) at goal top"
+  (lambda ()
+    (sp (make-wff '(IN x (CARTESIAN CARR B))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (or (apply-macete! 'cartesian-decompose sqn)
+          (error "cartesian-decompose failed to fire")))))
+
+(check-proof "cartesian-decompose descends through IMPLIES"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN x SET) (IN x (CARTESIAN CARR B)))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (or (apply-macete! 'cartesian-decompose sqn)
+          (error "cartesian-decompose failed to descend through IMPLIES")))))
+
+;; --- Binder descent: cartesian-decompose fires under FORALL ---
+
+(check-true "cartesian-decompose descends under FORALL; fresh-var avoids bvar"
+  (lambda ()
+    ;; The bvar `y` is in scope; the rewrite generates fresh `a_i` names
+    ;; that must not collide with y (else the result mis-parses y as a
+    ;; reference to the FORALL-bound name from outside).
+    (let* ((g       '(FORALL y (IN y (CARTESIAN CARR B))))
+           (rewrote (rewrite-by-proc cartesian-decompose-fire g))
+           (body    (caddr rewrote))      ; under FORALL y
+           (bv1     (cadr body))          ; outer FORSOME bvar
+           (inner   (caddr body))         ; AND
+           (and-rhs (caddr inner))        ; nested FORSOME
+           (bv2     (cadr and-rhs)))
+      (and (not (eq? bv1 'y))
+           (not (eq? bv2 'y))
+           (not (eq? bv1 bv2))))))
+
+;; --- tuple-equality-decompose ---
+
+(check-true "tuple-equality-decompose macete installed"
+  (lambda () (and (lookup-macete 'tuple-equality-decompose) #t)))
+
+(check "build-tuple-equality (n=0) → TRUTH"
+  (lambda () (build-tuple-equality '() '()))
+  'TRUTH)
+
+(check "build-tuple-equality (n=1) → single ="
+  (lambda () (build-tuple-equality '(a) '(b)))
+  '(= a b))
+
+(check "build-tuple-equality (n=2) → AND chain"
+  (lambda () (build-tuple-equality '(a1 a2) '(b1 b2)))
+  '(AND (= a1 b1) (= a2 b2)))
+
+(check "build-tuple-equality (n=3) → nested AND"
+  (lambda () (build-tuple-equality '(a1 a2 a3) '(b1 b2 b3)))
+  '(AND (= a1 b1) (AND (= a2 b2) (= a3 b3))))
+
+(check-proof "tuple-equality-decompose: [a, b] = [c, d] fires"
+  (lambda ()
+    (sp (make-wff '(= (LIST a b) (LIST c d))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (or (apply-macete! 'tuple-equality-decompose sqn)
+          (error "tuple-equality-decompose failed on n=2")))))
+
+(check-proof "tuple-equality-decompose: [a, b, c] = [d, e, f] fires"
+  (lambda ()
+    (sp (make-wff '(= (LIST a b c) (LIST d e f))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (or (apply-macete! 'tuple-equality-decompose sqn)
+          (error "tuple-equality-decompose failed on n=3")))))
+
+(check-false "tuple-equality-decompose: refuses unequal lengths"
+  (lambda ()
+    (tuple-equality-decompose-fire '(= (LIST a b) (LIST c d e)) '())))
+
+(check-false "tuple-equality-decompose: refuses non-LIST sides"
+  (lambda ()
+    (tuple-equality-decompose-fire '(= x (LIST a b)) '())))
+
+(check-proof "tuple-equality-decompose descends under FORALL"
+  (lambda ()
+    (sp (make-wff '(FORALL y (IMPLIES (= y 0)
+                              (= (LIST y y) (LIST 0 0))))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (or (apply-macete! 'tuple-equality-decompose sqn)
+          (error "tuple-equality-decompose failed under FORALL")))))
+
+;;; -----------------------------------------------------------------------
+;;; 7. Number system inclusion chain
+;;;
+;;; Exercises the chain NN ⊆ ZZ ⊆ QQ ⊆ RR ⊆ CC via the arithmetic
+;;; evaluator.
+
+(display "\n=== 7. Number system inclusion chain ===\n")
+
+(for-each
+  (lambda (triple)
+    (let ((val (car triple)) (sys (cadr triple)) (expected (caddr triple)))
+      (check (string-append (number->string val) " in " (symbol->string sys))
+             (lambda () (arith-membership-check val sys))
+             expected)))
+  '((0    NN #t)  (1    NN #t)  (-1   NN #f)  (1/2  NN #f)
+    (0    ZZ #t)  (-5   ZZ #t)  (1/2  ZZ #f)
+    (1/3  QQ #t)  (-7   QQ #t)  (1/3  ZZ #f)
+    (0    RR #t)  (-7   RR #t)
+    (0    CC #t)  (-5   CC #t)))
+
+;;; 8. Arithmetic in ZZ / QQ / RR / CC
+
+(display "\n=== 8. Arithmetic in ZZ QQ RR CC ===\n")
+
+(check-proof "arith: 0 in ZZ"
+  (lambda () (sp (make-wff-from-string "0 in zz")) (arith)))
+(check-proof "arith: -3 in ZZ"
+  (lambda () (sp (make-wff-from-string "-3 in zz")) (arith)))
+(check-proof "arith: 1/3 in QQ"
+  (lambda () (sp (make-wff-from-string "1/3 in qq")) (arith)))
+(check-proof "arith: 0 in RR"
+  (lambda () (sp (make-wff-from-string "0 in rr")) (arith)))
+(check-proof "arith: 0 in CC"
+  (lambda () (sp (make-wff-from-string "0 in cc")) (arith)))
+(check-proof "arith: 1/3 not in ZZ"
+  (lambda ()
+    (sp (make-wff-from-string "not(1/3 in zz)"))
+    (arith)))
+
+(check "1/3 in zz" (lambda () (arith-eval-formula '(IN 1/3 ZZ)))  #f)
+(check "1/3 in qq" (lambda () (arith-eval-formula '(IN 1/3 QQ)))  #t)
+(check "1/3 in rr" (lambda () (arith-eval-formula '(IN 1/3 RR)))  #t)
+(check "1/3 in cc" (lambda () (arith-eval-formula '(IN 1/3 CC)))  #t)
+(check "-3 in zz"  (lambda () (arith-eval-formula '(IN -3 ZZ)))   #t)
+(check "-3 in qq"  (lambda () (arith-eval-formula '(IN -3 QQ)))   #t)
+
+;;; -----------------------------------------------------------------------
+;;; NN induction: (ni) splits correctly and base/step close
+
+(check-proof "ni: 0=0 base closes by arith"
+  (lambda ()
+    (sp (make-wff-from-string "forall([n in NN], n = n)"))
+    (ni)          ; focus lands on base: 0 = 0
+    (arith)       ; closes base
+    (focus 1)     ; move to step
+    (di) (di)     ; peel forall n, peel implies
+    (ass)))       ; n=n follows from assumption n=n
+
+(check-proof "ni: sum-zero fires as theorem-assumption"
+  (lambda ()
+    (sp (make-wff-from-string
+          "forall([r, f], IS-RING(r) implies f in FUN(NN, CARR(r)) implies SUM(r, f, 0) = ZERO(r)"))
+    (di) (di) (di)
+    (ta 'sum-zero)
+    (ass)))
+
+;;; -----------------------------------------------------------------------
+;;; prod-ord-type and sum-type: formal proofs by NN induction
+;;;
+;;; These theorems are already installed as axioms in sequences.scm for
+;;; convenience; the proofs below verify they are derivable by (ni).
+
+(display "\n=== prod-ord-type and sum-type by ni ===\n")
+
+;; Since 2026-09-18 universal instantiation OWES definedness, and PROD-ORD(m,f,n) is
+;; recursion-defined, so instantiating quasi-eq-subst-membership AT it would post the
+;; leaf PROD-ORD(m,f,n) = PROD-ORD(m,f,n).  The base and the step therefore REWRITE the
+;; goal along the recursion equation (a `==' rewrite owes nothing) and type f(n_k)
+;; before the closure law instantiates at it.
+(check-proof "prod-ord-type provable by ni"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IS-MONOID m)
+                     (IMPLIES (IN f (FUN NN (CARR m)))
+                       (FORALL n (IMPLIES (IN n NN) (IN (PROD-ORD m f n) (CARR m))))))))
+    (di) (di) (ni)
+    ;; --- BASE: PROD-ORD(m,f,0) == IDEN(m), rewrite, identity in carrier ---
+    (ta 'prod-ord-zero)
+    (inst '(FORALL m (FORALL f (== (PROD-ORD m f 0) (IDEN m)))) 'm)
+    (inst '(FORALL f (== (PROD-ORD m f 0) (IDEN m))) 'f)
+    (subst '(== (PROD-ORD m f 0) (IDEN m)))
+    (ta 'monoid-identity-in)
+    (inst '(FORALL m (IMPLIES (IS-MONOID m) (IN (IDEN m) (CARR m)))) 'm)
+    (bc '(IMPLIES (IS-MONOID m) (IN (IDEN m) (CARR m))))
+    (ass)                         ; base done; focus -> STEP
+    ;; --- STEP ---
+    (di)    ; peel FORALL n, freshens n -> n_k, adds (IN n_k NN)
+    (let* ((n-k (cadr (wff-formula (car (sequent-node-assumptions (proof-state-focus *ps*)))))))
+      (di)  ; peel IMPLIES IH; focus = PROD-ORD(m,f,succ n_k) in CARR(m)
+      (ta 'prod-ord-succ)
+      (inst '(FORALL m (FORALL f (FORALL n (IMPLIES (IN n NN)
+               (== (PROD-ORD m f (succ n)) ((OPR m) (PROD-ORD m f n) (f n))))))) 'm)
+      (inst '(FORALL f (FORALL n (IMPLIES (IN n NN)
+               (== (PROD-ORD m f (succ n)) ((OPR m) (PROD-ORD m f n) (f n)))))) 'f)
+      (inst '(FORALL n (IMPLIES (IN n NN)
+               (== (PROD-ORD m f (succ n)) ((OPR m) (PROD-ORD m f n) (f n))))) n-k)
+      (detach! `(IMPLIES (IN ,n-k NN)
+                         (== (PROD-ORD m f (succ ,n-k)) ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)))))
+      (subst `(== (PROD-ORD m f (succ ,n-k)) ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k))))
+      ;; type f(n_k) FIRST, so the closure law may be instantiated at it
+      (ta 'fun-apply-type)
+      (inst '(FORALL f (FORALL A (FORALL B (FORALL x
+               (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B)))))) 'f)
+      (inst '(FORALL A (FORALL B (FORALL x
+               (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B))))) 'NN)
+      (inst '(FORALL B (FORALL x
+               (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(CARR m))
+      (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (CARR m))) (IN x NN)) (IN (f x) (CARR m)))) n-k)
+      (have! `(AND (IN f (FUN NN (CARR m))) (IN ,n-k NN)) (lambda () (prop)))
+      (detach! `(IMPLIES (AND (IN f (FUN NN (CARR m))) (IN ,n-k NN)) (IN (f ,n-k) (CARR m))))
+      ;; now the closure law at two CERTIFIED terms
+      (ta 'monoid-carrier-closed-opr)
+      (inst '(FORALL m (FORALL a (FORALL b
+               (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
+                        (IN ((OPR m) a b) (CARR m)))))) 'm)
+      (inst `(FORALL a (FORALL b
+               (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
+                        (IN ((OPR m) a b) (CARR m))))) `(PROD-ORD m f ,n-k))
+      (inst `(FORALL b
+               (IMPLIES (AND (IS-MONOID m) (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN b (CARR m))))
+                        (IN ((OPR m) (PROD-ORD m f ,n-k) b) (CARR m)))) `(f ,n-k))
+      (bc `(IMPLIES (AND (IS-MONOID m)
+                         (AND (IN (PROD-ORD m f ,n-k) (CARR m)) (IN (f ,n-k) (CARR m))))
+                    (IN ((OPR m) (PROD-ORD m f ,n-k) (f ,n-k)) (CARR m))))
+      (di) (ass)      ; IS-MONOID(m)
+      (di) (ass)      ; IH
+      (ass))          ; f(n_k) in CARR(m)
+    (unless (proof-done? *ps*) (error "prod-ord-type proof incomplete"))))
+
+(check-proof "sum-type provable by ni"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IS-RING r)
+                     (IMPLIES (IN f (FUN NN (CARR r)))
+                       (FORALL n (IMPLIES (IN n NN) (IN (SUM r f n) (CARR r))))))))
+    (di) (di) (ni)
+    ;; --- BASE (same shape as prod-ord-type: rewrite along sum-zero) ---
+    (ta 'sum-zero)
+    (inst '(FORALL r (FORALL f (== (SUM r f 0) (ZERO r)))) 'r)
+    (inst '(FORALL f (== (SUM r f 0) (ZERO r))) 'f)
+    (subst '(== (SUM r f 0) (ZERO r)))
+    (ta 'ring-zero-in)
+    (inst '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (CARR r)))) 'r)
+    (bc '(IMPLIES (IS-RING r) (IN (ZERO r) (CARR r))))
+    (ass)                         ; base done; focus -> STEP
+    ;; --- STEP ---
+    (di)    ; peel FORALL n -> n_k
+    (let* ((n-k (cadr (wff-formula (car (sequent-node-assumptions (proof-state-focus *ps*)))))))
+      (di)  ; peel IMPLIES IH
+      (ta 'sum-succ)
+      (inst '(FORALL r (FORALL f (FORALL n (IMPLIES (IN n NN)
+               (== (SUM r f (succ n)) ((ADD r) (SUM r f n) (f n))))))) 'r)
+      (inst '(FORALL f (FORALL n (IMPLIES (IN n NN)
+               (== (SUM r f (succ n)) ((ADD r) (SUM r f n) (f n)))))) 'f)
+      (inst '(FORALL n (IMPLIES (IN n NN)
+               (== (SUM r f (succ n)) ((ADD r) (SUM r f n) (f n))))) n-k)
+      (detach! `(IMPLIES (IN ,n-k NN)
+                         (== (SUM r f (succ ,n-k)) ((ADD r) (SUM r f ,n-k) (f ,n-k)))))
+      (subst `(== (SUM r f (succ ,n-k)) ((ADD r) (SUM r f ,n-k) (f ,n-k))))
+      (ta 'fun-apply-type)
+      (inst '(FORALL f (FORALL A (FORALL B (FORALL x
+               (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B)))))) 'f)
+      (inst '(FORALL A (FORALL B (FORALL x
+               (IMPLIES (AND (IN f (FUN A B)) (IN x A)) (IN (f x) B))))) 'NN)
+      (inst '(FORALL B (FORALL x
+               (IMPLIES (AND (IN f (FUN NN B)) (IN x NN)) (IN (f x) B)))) '(CARR r))
+      (inst `(FORALL x (IMPLIES (AND (IN f (FUN NN (CARR r))) (IN x NN)) (IN (f x) (CARR r)))) n-k)
+      (have! `(AND (IN f (FUN NN (CARR r))) (IN ,n-k NN)) (lambda () (prop)))
+      (detach! `(IMPLIES (AND (IN f (FUN NN (CARR r))) (IN ,n-k NN)) (IN (f ,n-k) (CARR r))))
+      (ta 'ring-carrier-closed-add)
+      (inst '(FORALL r (FORALL a (FORALL b
+               (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
+                        (IN ((ADD r) a b) (CARR r)))))) 'r)
+      (inst `(FORALL a (FORALL b
+               (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
+                        (IN ((ADD r) a b) (CARR r))))) `(SUM r f ,n-k))
+      (inst `(FORALL b
+               (IMPLIES (AND (IS-RING r) (AND (IN (SUM r f ,n-k) (CARR r)) (IN b (CARR r))))
+                        (IN ((ADD r) (SUM r f ,n-k) b) (CARR r)))) `(f ,n-k))
+      (bc `(IMPLIES (AND (IS-RING r)
+                         (AND (IN (SUM r f ,n-k) (CARR r)) (IN (f ,n-k) (CARR r))))
+                    (IN ((ADD r) (SUM r f ,n-k) (f ,n-k)) (CARR r))))
+      (di) (ass)
+      (di) (ass)
+      (ass))
+    (unless (proof-done? *ps*) (error "sum-type proof incomplete"))))
+
+;;; -----------------------------------------------------------------------
+;;; Restrictive ring/field structures (commutative-ring … normed-field)
+
+(check-true "is-commutative-ring-def installed"
+  (lambda () (and (lookup-theorem 'is-commutative-ring-def) #t)))
+(check-true "is-integral-domain-def installed"
+  (lambda () (and (lookup-theorem 'is-integral-domain-def) #t)))
+;; FIELD is a shape structure (def-structure-from-clauses), so its IFF
+;; axiom is installed under the predicate name IS-FIELD, not is-field-def.
+(check-true "IS-FIELD axiom installed"
+  (lambda () (and (lookup-theorem 'IS-FIELD) #t)))
+(check-true "is-euclidean-ring-def installed"
+  (lambda () (and (lookup-theorem 'is-euclidean-ring-def) #t)))
+;; NORMED-FIELD is now a shape structure too, so its IFF is installed under
+;; the predicate name IS-NORMED-FIELD (matching FIELD's pattern above).
+(check-true "IS-NORMED-FIELD axiom installed"
+  (lambda () (and (lookup-theorem 'IS-NORMED-FIELD) #t)))
+;; The FIELD→INTEGRAL-DOMAIN forgetful relation is installed by the view.
+(check-true "FIELD-AS-INTEGRAL-DOMAIN view's typing axiom installed"
+  (lambda () (and (lookup-theorem 'FIELD-AS-INTEGRAL-DOMAIN-is-INTEGRAL-DOMAIN) #t)))
+(check-true "euclidean-ring-is-integral-domain installed"
+  (lambda () (and (lookup-theorem 'euclidean-ring-is-integral-domain) #t)))
+(check-true "zz-is-euclidean-ring installed"
+  (lambda () (and (lookup-theorem 'zz-is-euclidean-ring) #t)))
+(check-true "cc-is-normed-field installed"
+  (lambda () (and (lookup-theorem 'cc-is-normed-field) #t)))
+;; IS-FIELD's macete unfolds the definition (auto-installed by
+;; def-structure-from-clauses under the predicate's own name).
+(check-true "IS-FIELD macete unfolds the predicate"
+  (lambda ()
+    (let ((r (apply-macete 'IS-FIELD (make-wff '(IS-FIELD s)))))
+      (and r
+           (pair? (wff-formula r))
+           (eq? (car (wff-formula r)) 'AND)))))
+
+;;; operation-properties catalog + MATRIX
+
+(check-true "is-associative property installed"
+  (lambda () (and (lookup-theorem 'is-associative) #t)))
+(check-true "is-commutative property installed"
+  (lambda () (and (lookup-theorem 'is-commutative) #t)))
+(check-true "is-metric property installed"
+  (lambda () (and (lookup-theorem 'is-metric) #t)))
+;; IS-GROUP now carries its laws: its definition mentions is-associative.
+(check-true "IS-GROUP definition includes the group laws"
+  (lambda ()
+    (let ((g (lookup-theorem 'IS-GROUP)))
+      (and g
+           (string-search-forward "is-associative"
+                                  (expression->string g) 0)
+           #t))))
+;; ...and IS-ABELIAN-GROUP additionally includes is-commutative.
+(check-true "IS-ABELIAN-GROUP definition includes is-commutative"
+  (lambda ()
+    (let ((g (lookup-theorem 'IS-ABELIAN-GROUP)))
+      (and g
+           (string-search-forward "is-commutative"
+                                  (expression->string g) 0)
+           #t))))
+
+(check-true "matrix-membership installed"
+  (lambda () (and (lookup-theorem 'matrix-membership) #t)))
+(check-true "matrix-sethood installed"
+  (lambda () (and (lookup-theorem 'matrix-sethood) #t)))
+(check-true "(IN M (MATRIX S)) accepted as a wff"
+  (lambda () (and (make-wff '(IN M (MATRIX S))) #t)))
+(check-true "SIZE macete reduces (SIZE M) to [rows, cols], total at zero rows"
+  (lambda ()
+    (sp (make-wff '(= (SIZE mm) zz)))
+    (mac 'SIZE)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(= (LIST (LENGTH mm) (IF (= (LENGTH mm) 0) 0 (LENGTH (NTH 1 mm)))) zz))))
+
+;;; RING-PROD and RING-PROD-N
+
+(check-true "ring-prod-is-ring installed"
+  (lambda () (and (lookup-theorem 'ring-prod-is-ring) #t)))
+
+(check-true "zero-ring-is-ring installed"
+  (lambda () (and (lookup-theorem 'zero-ring-is-ring) #t)))
+
+(check-true "ring-prod-n-zero installed"
+  (lambda () (and (lookup-theorem 'ring-prod-n-zero) #t)))
+
+(check-true "ring-prod-n-succ installed"
+  (lambda () (and (lookup-theorem 'ring-prod-n-succ) #t)))
+
+(check-true "ring-prod-n-is-ring installed"
+  (lambda () (and (lookup-theorem 'ring-prod-n-is-ring) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; IS-FUN, DOM, RES, PARTIAL-FUN -- function overhaul (2026-05-16)
+
+(display "\n=== Function overhaul: IS-FUN, DOM, RES, PARTIAL-FUN ===\n")
+
+(check-true "fun-domain-apply-def axiom installed"
+  (lambda () (and (lookup-theorem 'fun-domain-apply-def) #t)))
+
+(check-true "is-fun-def axiom installed"
+  (lambda () (and (lookup-theorem 'is-fun-def) #t)))
+
+(check-true "dom-membership axiom installed"
+  (lambda () (and (lookup-theorem 'dom-membership) #t)))
+
+(check-true "dom-fun-membership axiom installed"
+  (lambda () (and (lookup-theorem 'dom-fun-membership) #t)))
+
+(check-true "dom-of-fun axiom installed"
+  (lambda () (and (lookup-theorem 'dom-of-fun) #t)))
+
+(check-true "fun-domain-apply-def now iff"
+  (lambda ()
+    (let ((ax (lookup-theorem 'fun-domain-apply-def)))
+      (and ax
+           (let walk ((e ax))
+             (cond ((not (pair? e)) #f)
+                   ((eq? (car e) 'IFF) #t)
+                   (else (any walk (cdr e)))))))))
+
+(check-true "(IS-FUN f) accepted in wff position"
+  (lambda ()
+    (let ((w (make-wff '(IS-FUN f))))
+      (and w #t))))
+
+(check-true "(IN x (DOM f)) accepted in wff position"
+  (lambda ()
+    (let ((w (make-wff '(IN x (DOM f)))))
+      (and w #t))))
+
+(check-error "(DOM f) rejected in wff position"
+  (lambda () (make-wff '(DOM f))))
+
+(check-true "res-typing axiom installed"
+  (lambda () (and (lookup-theorem 'res-typing) #t)))
+
+(check-true "res-apply axiom installed"
+  (lambda () (and (lookup-theorem 'res-apply) #t)))
+
+(check-true "res-codomain axiom installed"
+  (lambda () (and (lookup-theorem 'res-codomain) #t)))
+
+(check-true "(IN (RES f B) (FUN B)) accepted as wff"
+  (lambda () (and (make-wff '(IN (RES f B) (FUN B))) #t)))
+
+(check-error "(RES f B) rejected in wff position"
+  (lambda () (make-wff '(RES f B))))
+
+(check-true "partial-fun-membership axiom installed"
+  (lambda () (and (lookup-theorem 'partial-fun-membership) #t)))
+
+(check-true "partial-fun-binary-membership axiom installed"
+  (lambda () (and (lookup-theorem 'partial-fun-binary-membership) #t)))
+
+(check-true "partial-fun-binary-sethood axiom installed"
+  (lambda () (and (lookup-theorem 'partial-fun-binary-sethood) #t)))
+
+(check-true "(IN f (PARTIAL-FUN A)) accepted as wff"
+  (lambda () (and (make-wff '(IN f (PARTIAL-FUN CARR))) #t)))
+
+(check-true "(IN f (PARTIAL-FUN A C)) accepted as wff"
+  (lambda () (and (make-wff '(IN f (PARTIAL-FUN CARR C))) #t)))
+
+(check-error "(PARTIAL-FUN A) rejected in wff position"
+  (lambda () (make-wff '(PARTIAL-FUN CARR))))
+
+;;; -----------------------------------------------------------------------
+;;; def-structure NAME-class axiom: associated class is named after structure
+
+(display "\n=== def-structure: associated class is named ===\n")
+
+(check-true "SEMIGROUP-class axiom installed"
+  (lambda () (and (lookup-theorem 'SEMIGROUP-class) #t)))
+
+(check-true "MONOID-class axiom installed"
+  (lambda () (and (lookup-theorem 'MONOID-class) #t)))
+
+(check-true "GROUP-class axiom installed"
+  (lambda () (and (lookup-theorem 'GROUP-class) #t)))
+
+(check-true "RING-class axiom installed"
+  (lambda () (and (lookup-theorem 'RING-class) #t)))
+
+(check-true "METRIC-SPACE-class axiom installed"
+  (lambda () (and (lookup-theorem 'METRIC-SPACE-class) #t)))
+
+(check-true "(IN r RING) accepted as wff (structure name as class)"
+  (lambda () (and (make-wff '(IN r RING)) #t)))
+
+(check-true "forall([s in RING], TRUTH) parses bounded quant over RING"
+  (lambda ()
+    (and (make-wff-from-string "forall([s in RING], TRUTH)") #t)))
+
+;;; -----------------------------------------------------------------------
+;;; BIG-UNION (notes-16 step 1): union over a family of sets
+;;;   (BIG-UNION z A body) = union_{z in A} body
+;;;   A binder constructor with a bound class variable in body.
+
+(display "\n=== BIG-UNION (notes-16 step 1) ===\n")
+
+;; --- Validation ---
+(check-true "(BIG-UNION z A body) accepted as term in IN goal"
+  (lambda () (and (make-wff '(IN x (BIG-UNION z NN z))) #t)))
+
+(check-error "BIG-UNION rejected in wff position"
+  (lambda () (make-wff '(BIG-UNION z NN z))))
+
+(check-error "BIG-UNION arity rejected"
+  (lambda () (make-wff '(IN x (BIG-UNION z NN)))))
+
+(check-error "BIG-UNION non-symbol bound var rejected"
+  (lambda () (make-wff '(IN x (BIG-UNION 0 NN NN)))))
+
+;; --- Free variables (z bound in body, free in A) ---
+(check "free-vars: z in body is bound; A is free"
+  (lambda () (sort (free-vars '(BIG-UNION z CARR z))
+                   (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+  '(CARR))
+
+(check "free-vars: vars only in A are free"
+  (lambda () (sort (free-vars '(BIG-UNION z (UNION A B) z))
+                   (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+  '(A B))
+
+;; --- Substitution (capture-avoiding) ---
+(check "subst-free: leaves body alone when bound var = subst var"
+  (lambda () (subst-free 'z 'w '(BIG-UNION z CARR z)))
+  '(BIG-UNION z CARR z))
+
+(check "subst-free: substitutes into A"
+  (lambda () (subst-free 'CARR 'NN '(BIG-UNION z CARR z)))
+  '(BIG-UNION z NN z))
+
+;; Capture-avoiding: substituting w for q in (BIG-UNION z A (PAIR z q)) where
+;; w = z would otherwise capture; expect alpha-renamed binder.
+(check-true "subst-free: renames bound var to avoid capture"
+  (lambda ()
+    (let ((result (subst-free 'q 'z '(BIG-UNION z CARR (PAIR z q)))))
+      ;; result must NOT have raw `z` paired with itself; the binder is renamed
+      (and (pair? result) (eq? (car result) 'BIG-UNION)
+           ;; bound var should NOT be z (it would capture)
+           (not (eq? (cadr result) 'z))))))
+
+;; --- Alpha-equivalence ---
+(check-true "alpha-equiv: (BIG-UNION x A x) ~ (BIG-UNION y A y)"
+  (lambda () (alpha-equiv? '(BIG-UNION x CARR x) '(BIG-UNION y CARR y))))
+
+(check-false "alpha-equiv: differs in A"
+  (lambda () (alpha-equiv? '(BIG-UNION x CARR x) '(BIG-UNION y B y))))
+
+;; --- Primitive inferences ---
+(check-proof "pi-big-union-sethood: posts (IN A SET) + family-of-sets subgoal"
+  (lambda ()
+    (sp (make-wff '(IN (BIG-UNION z NN NN) SET)))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-big-union-sethood! sqn)))
+        (or r (error "pi-big-union-sethood! failed"))))))
+
+(check-proof "pi-big-union-mem-intro: witness reduces to two subgoals"
+  (lambda ()
+    (sp (make-wff '(IN 0 (BIG-UNION z NN NN))))
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-big-union-mem-intro! sqn '0)))
+        (or r (error "pi-big-union-mem-intro! failed"))))))
+
+(check-proof "pi-big-union-mem-elim: eigenvariable gains two new assumptions"
+  (lambda ()
+    ;; Plant the assumption by di on an implication -- the local-context
+    ;; facility that used to do this was removed on 2026-07-29.
+    (sp (make-wff '(IMPLIES (IN 0 (BIG-UNION z NN NN)) TRUTH)))
+    (di)
+    (let ((sqn (proof-state-focus *ps*)))
+      (let ((r (pi-big-union-mem-elim! sqn '(IN 0 (BIG-UNION z NN NN)))))
+        (or r (error "pi-big-union-mem-elim! failed"))))))
+
+(check "pi-big-union-sethood: refuses non-BIG-UNION goal"
+  (lambda ()
+    (sp (make-wff '(IN 0 NN)))
+    (pi-big-union-sethood! (proof-state-focus *ps*)))
+  #f)
+
+;;; -----------------------------------------------------------------------
+;;; COMM-MONOID + SUM-SET + PROD-SET (notes-16 step 2)
+
+(display "\n=== COMM-MONOID structure (notes-16 step 2) ===\n")
+
+(check-true "IS-COMM-MONOID axiom installed"
+  (lambda () (and (lookup-theorem 'IS-COMM-MONOID) #t)))
+
+(check-true "COMM-MONOID-class axiom installed"
+  (lambda () (and (lookup-theorem 'COMM-MONOID-class) #t)))
+
+(check-true "comm-monoid-is-monoid (subtype) axiom installed"
+  (lambda () (and (lookup-theorem 'comm-monoid-is-monoid) #t)))
+
+(check-true "comm-monoid-opr-comm axiom installed"
+  (lambda () (and (lookup-theorem 'comm-monoid-opr-comm) #t)))
+
+(check-true "(IN cm COMM-MONOID) accepted as wff"
+  (lambda () (and (make-wff '(IN cm COMM-MONOID)) #t)))
+
+(display "\n=== ABELIAN-GROUP structure (analysis-trajectory step 1) ===\n")
+
+(check-true "IS-ABELIAN-GROUP axiom installed"
+  (lambda () (and (lookup-theorem 'IS-ABELIAN-GROUP) #t)))
+
+(check-true "ABELIAN-GROUP-class axiom installed"
+  (lambda () (and (lookup-theorem 'ABELIAN-GROUP-class) #t)))
+
+(check-true "abelian-group-is-group (subtype) axiom installed"
+  (lambda () (and (lookup-theorem 'abelian-group-is-group) #t)))
+
+(check-true "abelian-group-opr-comm axiom installed"
+  (lambda () (and (lookup-theorem 'abelian-group-opr-comm) #t)))
+
+(check-true "(IN ag ABELIAN-GROUP) accepted as wff"
+  (lambda () (and (make-wff '(IN ag ABELIAN-GROUP)) #t)))
+
+(display "\n=== SUM-SET (notes-16 step 2) ===\n")
+
+;; SUM-SET is DEFINED as FINSUM since 2026-09-18 (structure-library/finsum.scm) and its
+;; four laws are THEOREMS (theorem-library/rake-sum-set-defined.scm).  sum-set-empty kept
+;; its name and statement; the other three carry the guards the old axioms lacked and the
+;; suffix -defined.  The old axiom names must be GONE: a lookup that still finds one means
+;; an unguarded (and, for the singleton, underdetermined) axiom is back in the theory.
+(check-true "sum-set-empty is a PROVEN theorem"
+  (lambda () (and (lookup-theorem 'sum-set-empty)
+                  (eq? (provenance-of 'sum-set-empty) 'proven))))
+
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm) " is a PROVEN theorem")
+     (lambda () (and (lookup-theorem nm) (eq? (provenance-of nm) 'proven)))))
+ '(sum-set-singleton-defined sum-set-disjoint-union-defined sum-set-type-defined))
+
+(for-each
+ (lambda (nm)
+   (check-true (string-append "the old axiom " (symbol->string nm) " is retired")
+     (lambda () (not (hash-table-ref/default *theorem-table* nm #f)))))
+ '(sum-set-singleton sum-set-disjoint-union sum-set-type))
+
+;; EPLUS and ETIMES are DEFINED since 2026-09-18; the finite-case axioms that made each
+;; axiom set inconsistent (a strict = for ALL reals beside an IN-FUN typing) must be gone.
+(for-each
+ (lambda (nm)
+   (check-true (string-append "the inconsistent axiom " (symbol->string nm) " is retired")
+     (lambda () (not (hash-table-ref/default *theorem-table* nm #f)))))
+ '(eplus-real etimes-real))
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm) " is PROVEN from the definition")
+     (lambda () (and (lookup-theorem nm) (eq? (provenance-of nm) 'proven)))))
+ '(eplus-in-fun etimes-in-fun eplus-real-defined etimes-real-defined))
+
+(check-true "(SUM-SET r S f) accepted in term position"
+  (lambda () (and (make-wff '(IN (SUM-SET r S f) (CARR r))) #t)))
+
+(check-error "SUM-SET rejected in wff position"
+  (lambda () (make-wff '(SUM-SET r S f))))
+
+(display "\n=== PROD-SET (notes-16 step 2) ===\n")
+
+(check-true "prod-set-empty installed"
+  (lambda () (and (lookup-theorem 'prod-set-empty) #t)))
+
+(check-true "prod-set-singleton-defined installed"
+  (lambda () (and (lookup-theorem 'prod-set-singleton-defined) #t)))
+
+(check-true "prod-set-disjoint-union-defined installed"
+  (lambda () (and (lookup-theorem 'prod-set-disjoint-union-defined) #t)))
+
+(check-true "prod-set-type-defined installed"
+  (lambda () (and (lookup-theorem 'prod-set-type-defined) #t)))
+
+(check-true "(PROD-SET cm S f) accepted in term position"
+  (lambda () (and (make-wff '(IN (PROD-SET cm S f) (CARR cm))) #t)))
+
+(check-error "PROD-SET rejected in wff position"
+  (lambda () (make-wff '(PROD-SET cm S f))))
+
+(display "\n=== SUM-AG (analysis-trajectory step 2) ===\n")
+
+(check-true "sum-ag-zero axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-zero) #t)))
+
+(check-true "sum-ag-succ axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-succ) #t)))
+
+(check-true "sum-ag-type axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-type) #t)))
+
+(check-true "sum-ag-singleton axiom installed"
+  (lambda () (and (lookup-theorem 'sum-ag-singleton) #t)))
+
+;;; Library theorems proved at load time (proven-theorems.scm).
+(check-true "delete-at-in-fun axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-in-fun) #t)))
+
+;; ord-segment-succ-monotone, ag-mul-rearrange, and sum-ag-splice-out were
+;; intermediate lemmas ARCHIVED (deliberately not PSS-promoted) in the
+;; 2026-05-27 triage -- "pure technical machinery with no anticipated
+;; standalone use" (see archive/proven-theorems-archive.scm).  Their old
+;; "proved + installed" checks were removed here: lookup-theorem throws on
+;; an unknown name, so a stale check aborted the entire suite.  The headline
+;; result they fed, sum-ag-permutation-invariance, is PSS-promoted and tested
+;; below.
+
+(check-true "sum-ag-permutation-invariance proved + installed"
+  (lambda () (and (lookup-theorem 'sum-ag-permutation-invariance) #t)))
+
+(check-true "(SUM-AG ag f n) accepted in term position"
+  (lambda () (and (make-wff '(IN (SUM-AG ag f n) (CARR ag))) #t)))
+
+(check-true "group-identity-in installed"
+  (lambda () (and (lookup-theorem 'group-identity-in) #t)))
+
+(check-true "enum-fam-in-fun proved + installed"
+  (lambda () (and (lookup-theorem 'enum-fam-in-fun) #t)))
+
+(check-true "fin-enum-is-bijection proved + installed"
+  (lambda () (and (lookup-theorem 'fin-enum-is-bijection) #t)))
+
+(check-true "(FINSUM ag f S) accepted in term position"
+  (lambda () (and (make-wff '(IN (FINSUM ag f S) (CARR ag))) #t)))
+
+(check-true "finsum-well-defined proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-well-defined) #t)))
+
+(check-true "union-empty-left proved + installed"
+  (lambda () (and (lookup-theorem 'union-empty-left) #t)))
+
+;; Prenex fix (macetes.scm prenex-positive): pairing-membership buries its
+;; FORALL x under the IMPLIES; theorem->elementary-macete must prenex-normalize
+;; before strip-foralls so the membership IFF still yields a real rewrite.
+(check-true "pairing-membership yields a working macete (prenex fix)"
+  (lambda ()
+    (let ((r (apply-macete 'pairing-membership
+              (make-wff '(IMPLIES (AND (IN a SET) (IN b SET))
+                                  (IN c (PAIR a b)))))))
+      (and r
+           (equal? (wff-formula r)
+                   '(IMPLIES (AND (IN a SET) (IN b SET))
+                             (OR (= c a) (= c b))))))))
+
+(check-true "card-singleton proved + installed"
+  (lambda () (and (lookup-theorem 'card-singleton) #t)))
+
+(check-true "finsum-empty proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-empty) #t)))
+
+(check-true "finsum-singleton proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-singleton) #t)))
+
+(check-true "finsum-type proved + installed"
+  (lambda () (and (lookup-theorem 'finsum-type) #t)))
+
+;; finsum-congruence was dropped 2026-05-27 as a redundant special case of
+;; fun-domain-extensionality.  No replacement check: callers should cite
+;; fun-domain-extensionality directly.
+
+(display "\n=== BIJECTION + INVERSE-BIJ (analysis-trajectory step 3a/b) ===\n")
+
+(check-true "bijection-membership-iff axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-membership-iff) #t)))
+
+(check-true "bijection-set-iff axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-set-iff) #t)))
+
+(check-true "bijection-in-fun axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-in-fun) #t)))
+
+(check-true "bijection-injective axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-injective) #t)))
+
+(check-true "bijection-surjective axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-surjective) #t)))
+
+(check-true "inverse-bij-in-fun axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-in-fun) #t)))
+
+(check-true "inverse-bij-left axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-left) #t)))
+
+(check-true "inverse-bij-right axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-right) #t)))
+
+(check-true "inverse-bij-is-bijection axiom installed"
+  (lambda () (and (lookup-theorem 'inverse-bij-is-bijection) #t)))
+
+(check-true "bijection-compose axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-compose) #t)))
+
+(check-true "bijection-identity axiom installed"
+  (lambda () (and (lookup-theorem 'bijection-identity) #t)))
+
+(check-true "(IN phi (BIJECTION X Y)) accepted as wff"
+  (lambda () (and (make-wff '(IN phi (BIJECTION PTS Y))) #t)))
+
+(check-true "(IN (INVERSE-BIJ phi X Y) (FUN Y X)) accepted as wff"
+  (lambda () (and (make-wff '(IN (INVERSE-BIJ phi PTS Y) (FUN Y PTS))) #t)))
+
+(check-true "delete-at-below-k axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-below-k) #t)))
+
+(check-true "delete-at-above-k axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-above-k) #t)))
+
+(check-true "delete-at-is-bijection axiom installed"
+  (lambda () (and (lookup-theorem 'delete-at-is-bijection) #t)))
+
+(check-true "((DELETE-AT h k) i) accepted in term position"
+  (lambda () (and (make-wff '(= ((DELETE-AT h k) i) (h i))) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Basic rings (notes-16 steps 3+4): officialize ZZ/QQ/RR/CC as rings
+
+(display "\n=== Basic rings (notes-16 steps 3+4) ===\n")
+
+;; --- Binary operator apply axioms ---
+(check-true "binplus-apply installed"
+  (lambda () (and (lookup-theorem 'binplus-apply) #t)))
+(check-true "bintimes-apply installed"
+  (lambda () (and (lookup-theorem 'bintimes-apply) #t)))
+(check-true "binneg-apply installed"
+  (lambda () (and (lookup-theorem 'binneg-apply) #t)))
+
+;; --- The bridge TYPING axioms are GONE (2026-08-29), and these four checks are
+;; the inverted form of the four that used to pin them.  They asserted that
+;; `binplus in FUN(CARTESIAN NN NN, NN)' and three siblings were installed --
+;; a green check holding an inconsistency in place, exactly the failure that let
+;; the normed-vector-space defect acquire tenure at :4136.  Membership in FUN(A)
+;; pins DOM exactly, so one object in nine function classes proved their domains
+;; equal: ZZ = QQ = RR = CC = NN, and thence FALSITY.
+;;
+;; Read off *theorem-table* directly rather than through lookup-theorem, which
+;; RAISES on a miss (that mistake killed a suite run mid-flight once already).
+(define (ts--absent? n) (not (hash-table-ref/default *theorem-table* n #f)))
+(check-true "bridge typing axioms are GONE (all 14)"
+  (lambda ()
+    (let all ((ns '(binplus-in-fun-nn  binplus-in-fun-zz  binplus-in-fun-qq
+                    binplus-in-fun-rr  binplus-in-fun-cc
+                    bintimes-in-fun-nn bintimes-in-fun-zz bintimes-in-fun-qq
+                    bintimes-in-fun-rr bintimes-in-fun-cc
+                    binneg-in-fun-zz   binneg-in-fun-qq
+                    binneg-in-fun-rr   binneg-in-fun-cc)))
+      (or (null? ns) (and (ts--absent? (car ns)) (all (cdr ns)))))))
+
+;; The CONTROL, and it is the half that makes the check mean something: the
+;; bridge symbols themselves must still be here with their apply equations.
+;; Deleting binplus outright would also pass the check above.
+(check-true "the bridge symbols survive (apply equations intact)"
+  (lambda () (and (lookup-theorem 'binplus-apply)
+                  (lookup-theorem 'bintimes-apply)
+                  (lookup-theorem 'binneg-apply) #t)))
+
+;; And the gate that would catch a reintroduction reports a clean tree.
+(check-true "domain-clash-audit: no object has two exact domains any more"
+  (lambda () (null? (domain-clash-audit))))
+
+;; --- Ring instance definitions ---
+(check-true "zz-ring-def installed"
+  (lambda () (and (lookup-theorem 'zz-ring-def) #t)))
+(check-true "qq-ring-def installed"
+  (lambda () (and (lookup-theorem 'qq-ring-def) #t)))
+(check-true "rr-normed-field-def installed"
+  (lambda () (and (lookup-theorem 'rr-normed-field-def) #t)))
+(check-true "cc-normed-field-def installed"
+  (lambda () (and (lookup-theorem 'cc-normed-field-def) #t)))
+
+;; --- IS-RING(*-RING): only the genuine 6-tuples ZZ/QQ ---
+(check-true "zz-is-ring installed"
+  (lambda () (and (lookup-theorem 'zz-is-ring) #t)))
+(check-true "qq-is-ring installed"
+  (lambda () (and (lookup-theorem 'qq-is-ring) #t)))
+;; RR-NORMED-FIELD/CC-NORMED-FIELD are 7-tuple NORMED-FIELDs: asserting the length-6 IS-RING
+;; on them was a flat contradiction (6 = 7).  These must stay REMOVED.
+;; lookup-theorem raises on an absent name, so probe the axiom store directly.
+(check-true "rr-is-ring removed (was length 6=7 unsound)"
+  (lambda () (not (assq 'rr-is-ring (theory-axioms *current-theory*)))))
+(check-true "cc-is-ring removed (was length 6=7 unsound)"
+  (lambda () (not (assq 'cc-is-ring (theory-axioms *current-theory*)))))
+(check-true "qq-is-field removed (QQ-RING is 6-tuple, FIELD is 8-slot)"
+  (lambda () (not (assq 'qq-is-field (theory-axioms *current-theory*)))))
+(check-true "normed-field-is-commutative-ring removed (7=>6 unsound)"
+  (lambda () (not (assq 'normed-field-is-commutative-ring (theory-axioms *current-theory*)))))
+;; Sound replacements: RR/CC as normed fields; QQ as the 8-tuple QQ-FIELD;
+;; ring-world access for RR/CC via the NORMED-FIELD-AS-* view projections.
+(check-true "rr-is-normed-field installed"
+  (lambda () (and (lookup-theorem 'rr-is-normed-field) #t)))
+(check-true "cc-is-normed-field installed"
+  (lambda () (and (lookup-theorem 'cc-is-normed-field) #t)))
+(check-true "qq-field-is-field installed (8-tuple QQ-FIELD)"
+  (lambda () (and (lookup-theorem 'qq-field-is-field) #t)))
+(check-true "(IN QQ-FIELD FIELD) accepted as wff"
+  (lambda () (and (make-wff '(IN QQ-FIELD FIELD)) #t)))
+
+;; --- Enfranchised refinement classes: NAME-class axioms + bounded membership ---
+(check-true "commutative-ring-class installed"
+  (lambda () (and (lookup-theorem 'commutative-ring-class) #t)))
+(check-true "integral-domain-class installed"
+  (lambda () (and (lookup-theorem 'integral-domain-class) #t)))
+(check-true "euclidean-ring-class installed"
+  (lambda () (and (lookup-theorem 'euclidean-ring-class) #t)))
+(check-true "(IN ZZ-RING COMMUTATIVE-RING) accepted as wff"
+  (lambda () (and (make-wff '(IN ZZ-RING COMMUTATIVE-RING)) #t)))
+
+;; --- MPOW: monoid power x^n, and its ZZ extension on abelian groups ---
+(check-true "abelian-group-as-monoid view installed"
+  (lambda () (and (lookup-theorem 'abelian-group-as-monoid-is-monoid) #t)))
+(for-each
+  (lambda (n)
+    (check-true (string-append (symbol->string n) " installed")
+      (lambda () (and (lookup-theorem n) #t))))
+  '(mpow-zero mpow-succ mpow-one mpow-type mpow-add mpow-mult
+    zz-act-nonneg zz-act-neg zz-act-zero zz-act-one zz-act-type
+    zz-act-neg-sign zz-act-add zz-act-distrib zz-act-assoc))
+(check-true "(MPOW M X N) accepted as wff"
+  (lambda () (and (make-wff '(IN (MPOW M PTS N) (CARR M))) #t)))
+(check-true "(ZZ-ACT G K A) accepted as wff"
+  (lambda () (and (make-wff '(IN (ZZ-ACT G K CARR) (CARR G))) #t)))
+
+;; --- NN as comm-monoid under addition ---
+(check-true "nn-add-monoid-def installed"
+  (lambda () (and (lookup-theorem 'nn-add-monoid-def) #t)))
+(check-true "nn-add-monoid-is-comm-monoid installed"
+  (lambda () (and (lookup-theorem 'nn-add-monoid-is-comm-monoid) #t)))
+
+;; --- Wff validation of the new symbols ---
+(check-true "(binplus x y) accepted as term"
+  (lambda () (and (make-wff '(IN (binplus x y) NN)) #t)))
+(check-true "(IN ZZ-RING RING) accepted as wff"
+  (lambda () (and (make-wff '(IN ZZ-RING RING)) #t)))
+
+;; --- specialize-structure transports generic ring theorems to ZZ-RING ---
+(check-true "specialize-structure ZZ-RING brings ring-add-comm-zz-ring"
+  (lambda ()
+    (specialize-structure 'ZZ-RING 'RING 'zz-is-ring)
+    (and (lookup-theorem 'ring-add-comm-zz-ring) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Extended reals RR-STAR (notes-16 step 6)
+
+(display "\n=== Extended reals RR-STAR (notes-16 step 6) ===\n")
+
+(check-true "rr-star-membership installed"
+  (lambda () (and (lookup-theorem 'rr-star-membership) #t)))
+(check-true "rr-subset-rr-star installed"
+  (lambda () (and (lookup-theorem 'rr-subset-rr-star) #t)))
+(check-true "pos-inf-in-rr-star installed"
+  (lambda () (and (lookup-theorem 'pos-inf-in-rr-star) #t)))
+(check-true "neg-inf-in-rr-star installed"
+  (lambda () (and (lookup-theorem 'neg-inf-in-rr-star) #t)))
+(check-true "pos-inf-neq-neg-inf installed"
+  (lambda () (and (lookup-theorem 'pos-inf-neq-neg-inf) #t)))
+(check-true "pos-inf-not-in-rr installed"
+  (lambda () (and (lookup-theorem 'pos-inf-not-in-rr) #t)))
+(check-true "neg-inf-not-in-rr installed"
+  (lambda () (and (lookup-theorem 'neg-inf-not-in-rr) #t)))
+(check-true "pos-inf-upper-bound installed"
+  (lambda () (and (lookup-theorem 'pos-inf-upper-bound) #t)))
+(check-true "neg-inf-lower-bound installed"
+  (lambda () (and (lookup-theorem 'neg-inf-lower-bound) #t)))
+
+;; --- Wff validation: RR-STAR, POS-INF, NEG-INF accepted as terms/constants ---
+(check-true "(IN POS-INF RR-STAR) accepted as wff"
+  (lambda () (and (make-wff '(IN POS-INF RR-STAR)) #t)))
+(check-true "(IN NEG-INF RR-STAR) accepted as wff"
+  (lambda () (and (make-wff '(IN NEG-INF RR-STAR)) #t)))
+(check-true "(<= NEG-INF POS-INF) accepted as wff"
+  (lambda () (and (make-wff '(<= NEG-INF POS-INF)) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; Metric completeness (IS-CAUCHY-SEQ / CONVERGES / IS-COMPLETE) and the
+;;; normed-field -> metric-space bridge.
+
+(display "\n=== Metric completeness + normed-field metric bridge ===\n")
+
+;; Vocabulary registered.
+(check-true "is-cauchy-seq defined"
+  (lambda () (and (assq 'is-cauchy-seq (theory-definitions *current-theory*)) #t)))
+(check-true "converges-to defined"
+  (lambda () (and (assq 'converges-to (theory-definitions *current-theory*)) #t)))
+(check-true "is-complete defined"
+  (lambda () (and (assq 'is-complete (theory-definitions *current-theory*)) #t)))
+(check-true "complete-cauchy-converges installed"
+  (lambda () (and (lookup-theorem 'complete-cauchy-converges) #t)))
+(check-true "rr-complete = IS-COMPLETE(RR-MS) installed"
+  (lambda () (and (lookup-theorem 'rr-complete) #t)))
+(check-true "cc-complete = IS-COMPLETE(CC-MS) installed"
+  (lambda () (and (lookup-theorem 'cc-complete) #t)))
+;; ... and PROVEN, not asserted (theorem-library/cc-complete-proof.scm,
+;; 2026-08-24).  It was a bare theory-add-axiom! with no warrant -- `trust: none'
+;; -- until then.  The three coordinate facts its proof had to add first are
+;; pinned beside it: none of them was in the tree.
+(check "cc-complete is PROVEN, not asserted"
+  (lambda () (provenance-of 'cc-complete)) 'proven)
+(check-true "cc-abs-re-le-magnitude installed (|Re z| <= |z|)"
+  (lambda () (and (lookup-theorem 'cc-abs-re-le-magnitude) #t)))
+(check-true "cc-magnitude-le-re-im installed (|z| <= |Re z| + |Im z|)"
+  (lambda () (and (lookup-theorem 'cc-magnitude-le-re-im) #t)))
+(check-true "cc-re-sub installed (Re(z-w) = Re z - Re w)"
+  (lambda () (and (lookup-theorem 'cc-re-sub) #t)))
+(check-true "nf-metric-space-is-metric-space installed"
+  (lambda () (and (lookup-theorem 'nf-metric-space-is-metric-space) #t)))
+
+;; The IS-COMPLETE definition fires on a goal: completeness criterion.
+(check-proof "is-complete criterion: metric space where every Cauchy seq converges is complete"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (AND (IS-METRIC-SPACE s)
+                                           (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
+                                                              (CONVERGES s f))))
+                                      (IS-COMPLETE s)))))
+    (di) (di)
+    (mac 'is-complete)
+    (ass)
+    (unless (proof-done? *ps*) (error "is-complete criterion: proof did not close"))))
+
+;; IS-COMPLETE used in a real backchain: every Cauchy sequence in RR-MS
+;; converges, via rr-complete + complete-cauchy-converges.
+(check-proof "RR-MS complete: Cauchy seq converges (uses IS-COMPLETE)"
+  (lambda ()
+    (sp (make-wff '(FORALL f (IMPLIES (IS-CAUCHY-SEQ RR-MS f) (CONVERGES RR-MS f)))))
+    (di) (di)
+    (bc* 'complete-cauchy-converges)
+    (ta 'rr-complete) (ass)
+    (ass)
+    (unless (proof-done? *ps*) (error "RR-MS complete: proof did not close"))))
+
+;;; -----------------------------------------------------------------------
+;;; Commutative ring-simplify (crs): multiset-monomial normal form.
+
+(display "\n=== Commutative ring-simplify (crs) ===\n")
+
+;; crs peels the typed FORALL chain itself -- no prior (di) needed.
+(check-proof "crs closes commutativity x*y = y*x over ZZ"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ)
+                    (FORALL y (IMPLIES (IN y ZZ)
+                      (= (* x y) (* y x))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs: commutativity did not close"))))
+
+(check-proof "crs closes (x+y)*(x+y) = x*x + 2*x*y + y*y over ZZ"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ)
+                    (FORALL y (IMPLIES (IN y ZZ)
+                      (= (* (+ x y) (+ x y))
+                         (+ (* x x) (+ (* 2 (* x y)) (* y y))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs: distributive expansion did not close"))))
+
+;; Concrete binary structure surface: binplus/bintimes alias +/*.
+(check-proof "crs closes bintimes commutativity over ZZ (binary surface)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x ZZ)
+                    (FORALL y (IMPLIES (IN y ZZ)
+                      (= (bintimes x y) (bintimes y x))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs: bintimes commutativity did not close"))))
+
+;; Generic surface: an ARBITRARY commutative ring R, structure operators.
+(check-proof "crs closes (MUL R) commutativity in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                    (FORALL b (IMPLIES (IN b (CARR R))
+                      (= ((MUL R) a b) ((MUL R) b a))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: MUL commutativity did not close"))))
+
+(check-proof "crs closes left distributivity in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                    (FORALL b (IMPLIES (IN b (CARR R))
+                    (FORALL c (IMPLIES (IN c (CARR R))
+                      (= ((MUL R) a ((ADD R) b c))
+                         ((ADD R) ((MUL R) a b) ((MUL R) a c)))))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: distributivity did not close"))))
+
+(check-proof "crs closes (x+y)^2 = x^2 + 2xy + y^2 in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                    (FORALL b (IMPLIES (IN b (CARR R))
+                      (= ((MUL R) ((ADD R) a b) ((ADD R) a b))
+                         ((ADD R) ((MUL R) a a)
+                          ((ADD R) ((ADD R) ((MUL R) a b) ((MUL R) a b))
+                                   ((MUL R) b b))))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: square expansion did not close"))))
+
+(check-proof "crs closes the ONE identity (ONE R)*a = a in an arbitrary commutative ring"
+  (lambda ()
+    (sp (make-wff '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
+                    (FORALL a (IMPLIES (IN a (CARR R))
+                      (= ((MUL R) (ONE R) a) a)))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "crs generic: ONE identity did not close"))))
+
+(check-true "comm-ring-simplify warrant recorded"
+  (lambda () (and (warrant-of 'comm-ring-simplify) #t)))
+
+;;; Soundness: warrant (2) -- a generator that CANCELS still needs definedness.
+;;; `=' is partial, so x - x = 0 is FALSE for a non-number x; crs/rs must refuse
+;;; it unless x is carrier-typed.  poly-generators saw only survivors, so the
+;;; check now ranges over the SOURCE generators (cvnb/cring-eq-source-generators).
+(check-true "crs REFUSES x - x = 0 for untyped x (cancelled generator undefined)"
+  (lambda ()
+    (sp (make-wff '(= (- x x) 0)))
+    (not (pi-comm-ring-simplify! (proof-state-focus *ps*)))))
+(check-true "rs REFUSES x - x = 0 for untyped x (cancelled generator undefined)"
+  (lambda ()
+    (sp (make-wff '(= (- x x) 0)))
+    (not (pi-ring-simplify! (proof-state-focus *ps*)))))
+(check-true "crs REFUSES f(a) - f(a) = 0 for an untyped compound generator"
+  (lambda ()
+    (sp (make-wff '(= (- (f a) (f a)) 0)))
+    (not (pi-comm-ring-simplify! (proof-state-focus *ps*)))))
+(check-proof "crs STILL closes forall x in RR, x - x = 0 (typed cancellation OK)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (- x x) 0)))))
+    (crs)
+    (unless (proof-done? *ps*) (error "typed all-cancel regressed"))))
+(check-proof "crs STILL closes forall x,y in RR, x + y - y = x (cancel + survivor)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR) (= (- (+ x y) y) x)))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "typed cancel+survivor regressed"))))
+
+;;; The calculator's one-term normal form (cring-normal-form): P - Q -> 0 iff
+;;; P = Q is a commutative-ring identity (warrant 1, exposed for free terms).
+(check-true "calc: (x+y)^2 - (x^2+2xy+y^2) normalizes to 0"
+  (lambda () (eqv? 0 (cring-normal-form
+                       (parse-string "(x + y)^2 - (x^2 + 2*x*y + y^2)")))))
+(check-true "calc: x*y - y*x normalizes to 0 (commutativity)"
+  (lambda () (eqv? 0 (cring-normal-form (parse-string "x*y - y*x")))))
+
+;;; crs now expands literal powers on the concrete surface (so (simp) can lean
+;;; on it to discharge (= e e') lemmas with `^').
+(check-proof "crs closes concrete (x+y)^2 = x^2+2xy+y^2 over RR (power expansion)"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (= (power (+ x y) 2)
+                         (+ (power x 2) (+ (* 2 (* x y)) (power y 2))))))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "concrete power identity did not close"))))
+
+;;; (simp): in-formula commutative-ring simplification (cut + crs + eq-subst).
+(check-true "simp rewrites a ring subterm in place; result is canonical"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (IN (- (power (+ x y) 2) (* x y)) RR)))))))
+    (di) (di) (simp)
+    (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (pair? g) (eq? (car g) 'IN)
+           ;; the rewritten subterm is now its own normal form
+           (equal? (cring-normal-form (cadr g)) (cadr g))))))
+(check-true "simp: a cancelled subterm (z - z) in typed context becomes 0"
+  (lambda ()
+    (sp (make-wff '(FORALL z (IMPLIES (IN z RR) (IN (- z z) RR)))))
+    (di) (simp)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(IN 0 RR))))
+(check-true "simp REFUSES an untyped subterm generator (warrant 2)"
+  (lambda ()
+    (sp (make-wff '(IN (- w w) RR)))
+    (vnb-warning? (cmd-cring-simp *ps*))))
+(check-true "simp: generic ring surface -- (MUL s)(ADD s a b)(ADD s a b) rewrites in place"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-COMMUTATIVE-RING s)
+                    (FORALL a (IMPLIES (IN a (CARR s))
+                    (FORALL b (IMPLIES (IN b (CARR s))
+                      (IN ((MUL s) ((ADD s) a b) ((ADD s) a b)) (CARR s))))))))))
+    (di) (di) (di) (simp)
+    (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (pair? g) (eq? (car g) 'IN)
+           (let ((R (find-cring (cadr g))))
+             (and R (equal? (cring-generic-normal-form (cadr g) R) (cadr g))))))))
+
+;;; to-binary / to-nary: saturating surface conversion between kiddie +/*/-
+;;; and binplus/bintimes/binneg.  Round-trip flips the surface and back.
+(check-true "to-binary/to-nary flip the arithmetic surface (round-trip)"
+  (lambda ()
+    (define (has-head? sym e)
+      (and (pair? e)
+           (or (eq? (car e) sym)
+               (let lp ((xs e))
+                 (and (pair? xs) (or (has-head? sym (car xs)) (lp (cdr xs))))))))
+    (sp (make-wff '(IN (+ (* a b) (+ x y z) (- w)) RR)))
+    (to-binary)
+    (let ((bin (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (to-nary)
+      (let ((nary (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+        (and (has-head? 'binplus bin) (has-head? 'bintimes bin) (has-head? 'binneg bin)
+             (not (has-head? '+ bin)) (not (has-head? '* bin))
+             (has-head? '+ nary) (has-head? '* nary))))))
+
+;;; Partial-equality sweep: the partial-op bridge + recursion DEFINING
+;;; equations are now quasi-equalities (==), not strict =, so they no longer
+;;; assert undefined=undefined over off-domain "bongos".
+(check-true "partial-eq sweep: binplus-apply core is a quasi-equality (==)"
+  (lambda () (eq? (car (audit--core (lookup-theorem 'binplus-apply))) '==)))
+(check-true "partial-eq sweep: sum-ag-zero (recursion base) core is =="
+  (lambda () (eq? (car (audit--core (lookup-theorem 'sum-ag-zero))) '==)))
+(check-true "quasi-eq-subst-membership installed"
+  (lambda () (and (lookup-theorem 'quasi-eq-subst-membership) #t)))
+
+;;; Reflexivity definedness guard: (= t t) closes ONLY when t is defined --
+;;; syntactically (variable / ground / total-op tree) or witnessed in context
+;;; -- so the partial-equality reading is enforced (no proving undefined = self).
+(check-true "rfl guard: x = x (variable) closes"
+  (lambda () (sp (make-wff '(= x x))) (rfl) (proof-done? *ps*)))
+(check-true "rfl guard: (+ a b)=(+ a b) untyped is REFUSED (would assert + defined)"
+  (lambda () (sp (make-wff '(= (+ a b) (+ a b)))) (rfl) (not (proof-done? *ps*))))
+(check-true "rfl guard: == version closes by qrfl unconditionally"
+  (lambda () (sp (make-wff '(== (+ a b) (+ a b)))) (qrfl) (proof-done? *ps*)))
+(check-true "rfl guard: context (IN (f a) S) lets (= (f a)(f a)) close"
+  (lambda () (sp (make-wff '(IMPLIES (IN (f a) S) (= (f a) (f a)))))
+             (di) (rfl) (proof-done? *ps*)))
+;; ':=' is DEFINITION sugar: lexes to quasi-equality == (a definition's logical
+;; content), while a lone ':' is still the set-builder separator.
+(check-true "':=' lexes to == (definition sugar)"
+  (lambda () (let ((p (parse-string "a := b"))) (and (pair? p) (eq? (car p) '==)))))
+(check-true "set-builder ':' separator unaffected by := "
+  (lambda () (let ((p (parse-string "{x in nn : x in nn}")))
+               (and (pair? p) (eq? (car p) 'sep) #t))))
+
+;;; -----------------------------------------------------------------------
+;;; Sum-of-squares oracle (sos): nonstrict polynomial inequalities over RR.
+
+(display "\n=== Sum-of-squares oracle (sos) ===\n")
+
+;; Pure LP engine (sos-arith.scm): nonnegative-combination feasibility/witness.
+(check "sos-arith: D=(x-y)^2 from {(x-y)^2,x^2,y^2} = (1/2,1/2,1/2)"
+  (lambda ()
+    (sos-nonneg-combo
+      (list '(((x x) . 1) ((x y) . -2) ((y y) . 1)) '(((x x) . 1)) '(((y y) . 1)))
+      '(((x x) . 1) ((x y) . -1) ((y y) . 1))))
+  (list 1/2 1/2 1/2))
+(check-false "sos-arith: D=-x^2 infeasible from {x^2}"
+  (lambda () (sos-nonneg-combo (list '(((x x) . 1))) '(((x x) . -1)))))
+(check-false "sos-arith: D=x*y infeasible from {x^2,y^2}"
+  (lambda () (sos-nonneg-combo (list '(((x x) . 1)) '(((y y) . 1)))
+                               '(((x y) . 1)))))
+
+;; End-to-end: sos peels the typed FORALL chain itself (run before di).
+(check-proof "sos closes x*y <= x^2 + y^2 over RR"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (* x y) (+ (power x 2) (power y 2)))))))))
+    (sos "x - y" "x" "y")
+    (unless (proof-done? *ps*) (error "sos: x*y<=x^2+y^2 did not close"))))
+
+(check-proof "sos closes 2*x*y <= x^2 + y^2 with one square"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (* 2 (* x y)) (+ (power x 2) (power y 2)))))))))
+    (sos "x - y")
+    (unless (proof-done? *ps*) (error "sos: 2xy<=x^2+y^2 did not close"))))
+
+(check-proof "sos closes 3-var AM-GM a*b+b*c+c*a <= a^2+b^2+c^2"
+  (lambda ()
+    (sp (make-wff '(FORALL a (IMPLIES (IN a RR)
+                    (FORALL b (IMPLIES (IN b RR)
+                    (FORALL c (IMPLIES (IN c RR)
+                      (<= (+ (* a b) (+ (* b c) (* c a)))
+                          (+ (power a 2) (+ (power b 2) (power c 2))))))))))))
+    (sos "a - b" "b - c" "c - a")
+    (unless (proof-done? *ps*) (error "sos: 3-var AM-GM did not close"))))
+
+;; A false inequality must be REFUSED (oracle leaves the goal open).
+(check-true "sos refuses the false goal x^2+y^2 <= x*y"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (+ (power x 2) (power y 2)) (* x y))))))))
+    (sos "x - y" "x" "y")
+    (not (proof-done? *ps*))))
+
+;; An insufficient certificate must be refused (no nonneg combination exists).
+(check-true "sos refuses x*y<=x^2+y^2 with insufficient certificate {x}"
+  (lambda ()
+    (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                    (FORALL y (IMPLIES (IN y RR)
+                      (<= (* x y) (+ (power x 2) (power y 2)))))))))
+    (sos "x")
+    (not (proof-done? *ps*))))
+
+;;; -----------------------------------------------------------------------
+;;; Ring-power (x^n) + the ring-expression copilot (ring-term / ring-goal).
+
+(display "\n=== Ring-power + ring-expression copilot ===\n")
+
+(check-true "ring-power laws installed"
+  (lambda () (and (lookup-theorem 'ring-power-zero)
+                  (lookup-theorem 'ring-power-add)
+                  (lookup-theorem 'ring-power-mult) #t)))
+(check-true "ring-term: * and + resolve to the ring's slots"
+  (lambda () (equal? (ring-term 's '(* z (+ x y)))
+                     '((MUL s) z ((ADD s) x y)))))
+(check-true "ring-term: literal power expands to k-fold MUL"
+  (lambda () (equal? (ring-term 's '(^ x 3))
+                     '((MUL s) ((MUL s) x x) x))))
+(check-true "ring-term: symbolic power stays RING-POWER"
+  (lambda () (equal? (ring-term 's '(^ x n))
+                     '(RING-POWER s x n))))
+(check-proof "copilot: ring-goal distributivity closes under crs"
+  (lambda ()
+    (sp (ring-goal '(x y z) '(= (* z (+ x y)) (+ (* z x) (* z y)))))
+    (crs)
+    (unless (proof-done? *ps*) (error "ring-goal distributivity did not close"))))
+(check-proof "copilot: (x+y)^2 = x^2+2xy+y^2 (via ^ expansion) closes under crs"
+  (lambda ()
+    (sp (ring-goal '(x y)
+          '(= (^ (+ x y) 2)
+              (+ (^ x 2) (+ (* x y) (+ (* x y) (^ y 2)))))))
+    (crs)
+    (unless (proof-done? *ps*) (error "ring-goal square did not close"))))
+
+;;; -----------------------------------------------------------------------
+;;; Focused-sequent TeX emitter (drives the Emacs Focus inline-PNG toggle).
+
+(display "\n=== Focused-sequent TeX (write-sequent-tex) ===\n")
+
+(check-true "sequent-tex-plist: open goal yields status/goal/assumptions as TeX"
+  (lambda ()
+    (sp (ring-goal '(x y) '(= (* x y) (* y x))))
+    (di) (di) (di)
+    (let* ((p    (sequent-tex-plist *ps*))
+           (asms (cadr (memq 'assumptions p))))
+      (and (eq? (cadr (memq 'status p)) 'open)
+           (string? (cadr (memq 'goal p)))
+           (list? asms)
+           (= (length asms) 3)
+           (string? (car asms)) (string? (cadr asms)) (string? (caddr asms))))))
+
+(check-true "sequent-tex-plist: no proof -> (status none)"
+  (lambda () (equal? (sequent-tex-plist #f) '(status none))))
+
+;;; -----------------------------------------------------------------------
+;;; Metric topology: open sets + open-preimage characterisation of continuity.
+
+(display "\n=== Metric topology: open sets + open-preimage ===\n")
+
+(check-true "IS-OPEN predicate installed"
+  (lambda () (and (lookup-theorem 'IS-OPEN) #t)))
+(check-true "PREIMAGE membership installed"
+  (lambda () (and (lookup-theorem 'preimage-membership) #t)))
+(check-true "empty-is-open support installed"
+  (lambda () (and (lookup-theorem 'empty-is-open) #t)))
+(check-true "carrier-is-open support installed"
+  (lambda () (and (lookup-theorem 'carrier-is-open) #t)))
+(check-true "ball-is-open support installed"
+  (lambda () (and (lookup-theorem 'ball-is-open) #t)))
+(check-true "union-of-opens-open support installed"
+  (lambda () (and (lookup-theorem 'union-of-opens-open) #t)))
+(check-true "inter-of-opens-open support installed"
+  (lambda () (and (lookup-theorem 'inter-of-opens-open) #t)))
+(check-true "continuous-implies-open-preimage support installed"
+  (lambda () (and (lookup-theorem 'continuous-implies-open-preimage) #t)))
+(check-true "open-preimage-implies-continuous support installed"
+  (lambda () (and (lookup-theorem 'open-preimage-implies-continuous) #t)))
+;; ball-is-open was a `proof'-warranted support until 2026-09-15; it is PROVEN now
+;; (theorem-library/ball-is-open.scm), so the check is that it is a proven theorem
+;; with an EMPTY bill, not that it carries a warrant.
+(check-true "ball-is-open is proven modulo 0"
+  (lambda () (and (eq? (provenance-of 'ball-is-open) 'proven) (null? (debt-of 'ball-is-open)))))
+
+;; Case-fold capture regression: the carrier accessor X folds to the symbol x
+;; (MIT reader case-folds), so BALL's centre parameter must NOT be x -- else it
+;; is a pattern variable that captures the carrier (PTS s) on unfold.  With centre
+;; `c', unfolding BALL at a centre term that is NOT literally x (here `ctr')
+;; must leave the carrier (PTS s) intact, not rewrite it to (ctr s).
+;; [[feedback_no_case_variant_binders]]
+(check-true "BALL unfold at a non-x centre keeps the carrier PTS(s) (no capture)"
+  (lambda ()
+    (sp (make-wff '(IN q (BALL s ctr rad))))
+    (mac 'BALL)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(IN q (SEP y (PTS s)
+                     (AND (<= ((DIST s) ctr y) rad)
+                          (NOT (= ((DIST s) ctr y) rad))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Closed sets (IS-CLOSED) + closed-preimage characterisation, and the
+;;; COMPOSE functoid (Prop 3.14 / 3.15 of ~/docs/calculus.pdf).
+
+(display "\n=== Closed sets + function composition (COMPOSE) ===\n")
+
+(check-true "IS-CLOSED predicate installed"
+  (lambda () (and (lookup-theorem 'IS-CLOSED) #t)))
+(check-true "IS-CLOSED unfolds to subset + complement-open"
+  (lambda ()
+    (sp (make-wff '(IS-CLOSED s CARR)))
+    (mac 'IS-CLOSED)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(AND (IS-METRIC-SPACE s)
+              (AND (SUBSET CARR (PTS s)) (IS-OPEN s (COMPLEMENT-IN (PTS s) CARR)))))))
+(check-true "preimage-complement support installed"
+  (lambda () (and (lookup-theorem 'preimage-complement) #t)))
+(check-true "continuous-implies-closed-preimage support installed"
+  (lambda () (and (lookup-theorem 'continuous-implies-closed-preimage) #t)))
+(check-true "closed-preimage-implies-continuous support installed"
+  (lambda () (and (lookup-theorem 'closed-preimage-implies-continuous) #t)))
+
+(check-true "compose-apply support installed"
+  (lambda () (and (lookup-theorem 'compose-apply) #t)))
+(check-true "compose-type theorem installed"
+  (lambda () (and (lookup-theorem 'compose-type) #t)))
+;; compose-type is PROVEN (theorem-library/compose-apply-proof.scm), not asserted:
+;; the guard (IN A SET) is what makes it provable -- `lam-t' types the unfolded
+;; lambda over DOM(g), and `dom-of-fun' needs A's sethood to identify DOM(g) with A.
+(check-true "compose-type is proven, not an asserted leaf"
+  (lambda () (eq? (provenance-of 'compose-type) 'proven)))
+(check-true "compose-type carries the (IN A SET) guard, outermost"
+  (lambda ()
+    (let loop ((f (lookup-theorem 'compose-type)))
+      (cond ((and (pair? f) (eq? (car f) 'FORALL)) (loop (caddr f)))
+            ((and (pair? f) (eq? (car f) 'IMPLIES))
+             (equal? (cadr f) (list 'IN (cadr (lookup-theorem 'compose-type)) 'SET)))
+            (else #f)))))
+;; COMPOSE makes f o g a denotable term: typing and the native (un-Skolemised)
+;; statement of sequential continuity (Prop 3.14) both parse.
+(check-true "(COMPOSE f g) is a well-formed function term"
+  (lambda () (and (make-wff '(IN (COMPOSE f g) (FUN CARR C))) #t)))
+(check-true "Prop 3.14 is natively statable with COMPOSE (no Skolem)"
+  (lambda () (and (make-wff
+    '(IMPLIES (AND (IS-CONTINUOUS-AT s t f a) (CONVERGES-TO s g a))
+       (CONVERGES-TO t (COMPOSE f g) (f a)))) #t)))
+(check-true "compose-apply conclusion is (compose(f,g))(x) = f(g(x))"
+  (lambda ()
+    (and (string-search-forward "(compose(f, g))(x) = f(g(x))"
+           (expression->string (lookup-theorem 'compose-apply)) 0)
+         #t)))
+;; COMPOSE is DEFINITIONAL (VNB-LAMBDA z in DOM g. f(g z)), so the apply law is
+;; a real proof -- unfold then beta-reduce then reflexivity -- not an asserted
+;; axiom.  Quasi-equality (==), closed by quasi-reflexivity, since the two sides
+;; are equal-if-defined rather than defined.  (The installed, TYPED
+;; compose-apply uses strict = -- both sides are defined points of C there.)
+;;
+;; GUARDED on (IN x (DOM g)) since 2026-08-03: the beta guard now enforces, and
+;; the reduction is licensed only on the lambda's own domain.  The unguarded
+;; version this replaces was defended as "off-domain both sides are undefined",
+;; which is an argument about g and f that the KERNEL cannot see -- the same
+;; argument the unguarded rr-ms-dist was making, and it has to be a hypothesis
+;; rather than a remark.
+(check-proof "compose-apply proves: unfold COMPOSE, lambda-beta, quasi-reflexivity"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN x (DOM g)) (== ((COMPOSE f g) x) (f (g x))))))
+    (di)
+    (mac 'COMPOSE) (lam-b) (qrfl)
+    (unless (proof-done? *ps*) (error "compose-apply did not close via beta"))))
+
+;;; -----------------------------------------------------------------------
+;;; RAN (range) + the mindless nested-application typing lemmas.  Writing the
+;;; intermediate space as RAN(f) (a term) instead of a free codomain makes it
+;;; determined by matching, so these close in a single bc* (compose-typing.scm).
+
+(display "\n=== RAN + nested-application typing (compose-type-N) ===\n")
+
+(check-true "RAN functoid + range-membership installed"
+  (lambda () (and (lookup-theorem 'range-membership)
+                  (lookup-theorem 'fun-range-membership)
+                  (lookup-theorem 'ran-subset-codomain) #t)))
+(check-true "compose-type-2..5 installed"
+  (lambda () (and (lookup-theorem 'compose-type-2)
+                  (lookup-theorem 'compose-type-3)
+                  (lookup-theorem 'compose-type-4)
+                  (lookup-theorem 'compose-type-5) #t)))
+(check-true "RAN(f) unfolds to IMAGE(f, DOM f)"
+  (lambda ()
+    (sp (make-wff '(IN y (RAN f))))
+    (mac 'RAN)
+    (equal? (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))
+            '(IN y (IMAGE f (DOM f))))))
+;; Headline (the goal IS compose-type-2's shape, closed by one self-citation;
+;; supply the outer domain X, the only schema var the conclusion omits).
+;; Domain is X not A: VNB case-folds, so a bound A and a bound a would capture.
+(check-proof "compose-type-2 closes g(f(a)) in RAN(g) via one bc*"
+  (lambda ()
+    (sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN X))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a X)
+             (IN (g (f a)) (RAN g)))))))))))
+    (di)(di)(di)(di)
+    ;; recover the outer domain X: the only `in' assumption whose set is a bare
+    ;; symbol is `a in X' (the FUN(.) ones have compound sets).
+    (let ((dom (let scan ((as (sequent-node-assumptions (proof-state-focus *ps*))))
+                 (if (null? as) (error "compose-type-2 test: no a in X assumption")
+                     (let ((w (wff-formula (car as))))
+                       (if (and (pair? w) (eq? (car w) 'in) (symbol? (caddr w)))
+                           (caddr w) (scan (cdr as))))))))
+      (bc* 'compose-type-2 ((X dom))))
+    (ass-all)
+    (unless (proof-done? *ps*) (error "compose-type-2 did not close"))))
+
+;; Interactive B-key front end (interactive.scm): bc*-undetermined reports the
+;; schema vars left open by the conclusion-match (here just X, the outer
+;; domain), and bc*-apply-term-bindings drives bc* with the value typed as a
+;; VNB term string -- the same close, but supplied as "nn" not ((PTS 'nn)).
+(check-true "bc*-undetermined reports the open var (and unknown/no-match tags)"
+  (lambda ()
+    (and (eq? (car (bc*-undetermined 'no-such-lemma)) 'unknown)
+         (begin
+           (sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+              (IMPLIES (IN f (FUN X))
+                (IMPLIES (IN g (FUN (RAN f)))
+                  (IMPLIES (IN a X)
+                    (IN (g (f a)) (RAN g)))))))))))
+           (di)(di)(di)(di)
+           ;; conclusion pins f,g,a; only the outer domain X is left open.
+           (equal? (bc*-undetermined 'compose-type-2) '(ok x))))))
+(check-proof "bc*-apply-term-bindings closes via a term-string binding (X:=nn)"
+  (lambda ()
+    (sp (make-wff '(FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN nn))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a nn)
+             (IN (g (f a)) (RAN g))))))))))
+    (di)(di)(di)(di)
+    (bc*-apply-term-bindings 'compose-type-2 (list (cons 'x "nn")))
+    (ass-all)
+    (unless (proof-done? *ps*) (error "term-string binding did not close"))))
+;; B's completion seeding: the fingerprint index ranks the lemma whose
+;; conclusion matches the goal FIRST.  For g(f(a)) in RAN(g) that's
+;; compose-type-2 (suggest-backchain-names, the same index behind `B').
+(check-true "suggest-backchain-names ranks the matching lemma first"
+  (lambda ()
+    (sp (make-wff '(FORALL X (FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN X))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a X)
+             (IN (g (f a)) (RAN g)))))))))))
+    (di)(di)(di)(di)
+    (eq? (car (suggest-backchain-names)) 'compose-type-2)))
+;; B's auto-peel: when the focus goal still carries an antecedent (a in X) =>
+;; ..., the literal goal doesn't match compose-type-2 (it's an IMPLIES), but
+;; bc*-reduce-goal! di's the leading FORALL/IMPLIES so it does -- the recovery
+;; B runs when a suggestion fails to match the unreduced goal.
+(check-proof "bc*-reduce-goal! peels leading IMPLIES so the citation matches"
+  (lambda ()
+    ;; concrete domain nn (not a FORALL-bound X) so x:=nn is drift-proof.
+    (sp (make-wff '(FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN nn))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a nn)
+             (IN (g (f a)) (RAN g))))))))))
+    (di)(di)(di)   ; stop on the implicational node (a in nn) => ..., like [3]
+    (unless (eq? (car (bc*-undetermined 'compose-type-2)) 'no-match)
+      (error "expected no-match on the unreduced (implicational) goal"))
+    (unless (> (bc*-reduce-goal!) 0) (error "reduce did not peel anything"))
+    (unless (equal? (bc*-undetermined 'compose-type-2) '(ok x))
+      (error "after reduce, expected (ok x)"))
+    (bc*-apply-term-bindings 'compose-type-2 (list (cons 'x "nn")))
+    (ass-all)
+    (unless (proof-done? *ps*) (error "reduce+cite did not close"))))
+;; B+ (the saturating closer): from the UNTOUCHED quantified goal it peels,
+;; cites compose-type-2, and discharges the hypotheses -- closing the whole
+;; proof with no hand di/bc.  And on a goal with no decisive move it stalls
+;; gracefully (returns >0, proof not done) rather than wedging or erroring.
+(check-proof "bplus closes the compose goal autonomously from the top"
+  (lambda ()
+    (sp (make-wff '(FORALL f (FORALL g (FORALL a
+       (IMPLIES (IN f (FUN nn))
+         (IMPLIES (IN g (FUN (RAN f)))
+           (IMPLIES (IN a nn)
+             (IN (g (f a)) (RAN g))))))))))
+    (bplus)
+    (unless (proof-done? *ps*) (error "bplus did not close the compose goal"))))
+(check-true "bplus stalls gracefully on a goal with no decisive move"
+  (lambda ()
+    (sp (make-wff '(IN unprovable-xyz nn)))
+    (let ((remaining (bplus)))
+      (and (> remaining 0) (not (proof-done? *ps*))))))
+(check-true "theorem-names lists the full pool (alphabetical, non-empty)"
+  (lambda ()
+    (let ((ns (theorem-names)))
+      (and (pair? ns)
+           (memq 'compose-type-2 ns)
+           ;; sorted: each name <= the next
+           (let loop ((ns ns))
+             (or (null? (cdr ns))
+                 (and (string<=? (symbol->string (car ns))
+                                 (symbol->string (cadr ns)))
+                      (loop (cdr ns)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; suggest-rewrite: the rule-name index behind Focus `mac' / `mac-h'.
+;;; The rewrite analogue of suggest-backchain: rank rules whose LHS pattern
+;;; fires on a subterm of the goal (mac) or a chosen assumption (mac-h).
+
+(display "\n=== suggest-rewrite (mac/mac-h name index) ===\n")
+
+;; rewrite-names is the pool of symmetric-core (=/IFF/==) rules: a subset of
+;; theorem-names, and every member genuinely has a rewrite LHS.
+(check-true "rewrite-names: non-empty subset of theorem-names, all symmetric-core"
+  (lambda ()
+    (let ((rw (rewrite-names)) (all (theorem-names)))
+      (and (pair? rw)
+           (every (lambda (n) (memq n all)) rw)
+           (every (lambda (n)
+                    (suggest--rewrite-lhs-fingerprint
+                      (lookup-theorem n) *fingerprint-default-depth*))
+                  rw)))))
+
+;; mac's seed: on goal x + 0 = y the index surfaces rules whose LHS fires on a
+;; subterm -- non-empty, and every suggestion is a genuine rewrite rule.
+(check-true "suggest-rewrite-names: non-empty, every suggestion is a rewrite rule"
+  (lambda ()
+    (sp (make-wff-from-string "x + 0 = y"))
+    (let ((s (suggest-rewrite-names)) (rw (rewrite-names)))
+      (and (pair? s) (every (lambda (n) (memq n rw)) s)))))
+
+;; mac-h's seed ranks against the chosen ASSUMPTION, not the goal.  After di on
+;; (x = y implies x + 0 = y) the assumption is x = y, whose only rewrite
+;; candidates are =/IFF-headed; the goal x + 0 = y additionally admits +-headed
+;; rules.  So some goal-candidate is NOT an assumption-candidate, and the index
+;; and formula selectors agree.
+(check-true "suggest-rewrite-names-asm ranks against the assumption, not the goal"
+  (lambda ()
+    (sp (make-wff-from-string "x = y implies x + 0 = y"))
+    (di)                                  ; asm 1 := x = y ; goal := x + 0 = y
+    (let ((asm  (suggest-rewrite-names-asm 1))
+          (goal (suggest-rewrite-names)))
+      (and (pair? asm) (pair? goal)
+           (equal? asm (suggest-rewrite-names-asm "x = y"))   ; # and formula agree
+           (any (lambda (n) (not (memq n asm))) goal)         ; +-rules fire on goal only
+           (every (lambda (n) (memq n (rewrite-names))) asm)))))
+
+;; find-mac/find-thm: substring search over the rule / theorem pools.  Every
+;; hit contains the needle and lives in the right pool; with a proof up, the
+;; goal-relevant hits sort ahead of the rest.
+(check-true "find-mac: substring hits are rewrite rules containing the needle"
+  (lambda ()
+    (let ((hits (find-mac "add-zero")) (rw (rewrite-names)))
+      (and (pair? hits)
+           (every (lambda (n) (memq n rw)) hits)
+           (every (lambda (n) (string-search-forward
+                                "add-zero" (symbol->string n) 0))
+                  hits)))))
+(check-true "find-thm: goal-relevant hits float ahead of the rest"
+  (lambda ()
+    (sp (make-wff-from-string "x + 0 = y"))
+    (let* ((rel   (suggest-backchain-names))           ; goal-relevant lemmas
+           (hits  (find-thm "add"))                    ; many add-* lemmas
+           (flags (map (lambda (n) (if (memq n rel) 0 1)) hits)))
+      ;; flags must be non-decreasing: all relevant (0) before all non- (1).
+      (and (pair? hits)
+           (let loop ((f flags))
+             (or (null? (cdr f))
+                 (and (<= (car f) (cadr f)) (loop (cdr f)))))))))
+
+;; The auto-installed `-rev' companions are half the pool (1166 of the 3194
+;; names in (theorem-names) end in `-rev'), so a search that lists them buries
+;; its own answer: (find-thm "-rev") printed 1411 lines.  find--name-search
+;; folds them into their base, as the catalog and the fingerprint index do --
+;; unless the needle mentions rev, when the companions ARE the query.
+(check-true "find-thm folds -rev companions unless the needle asks for them"
+  (lambda ()
+    (let ((folded (find-thm "compact-iff"))
+          (asked  (find-thm "compact-iff-seq-compact-rev")))
+      (and (pair? folded)
+           (not (any suppressed-rev? folded))
+           (equal? asked '(compact-iff-seq-compact-rev))))))
+
+;;; -----------------------------------------------------------------------
+;;; describe-structure cards: instances vs refinement classes
+
+(display "\n=== describe-structure cards (instance vs refinement) ===\n")
+
+(define (card-str name)
+  (with-output-to-string (lambda () (structure-card-md name))))
+
+;; Instance cards: labelled "Instance", show membership witness + tuple, and
+;; must NOT fall back to the empty "no stored characteristic law" line.
+(check-true "qq-field card rendered as Instance"
+  (lambda () (and (string-search-forward "Instance" (card-str 'qq-field) 0) #t)))
+(check-true "qq-field card shows membership witness qq-field-is-field"
+  (lambda () (and (string-search-forward "qq-field-is-field" (card-str 'qq-field) 0) #t)))
+(check-false "qq-field card has no empty-law fallback"
+  (lambda () (and (string-search-forward "no stored characteristic law"
+                                         (card-str 'qq-field) 0) #t)))
+;; RR-NORMED-FIELD's card shows normed-field membership and NOT a (removed) ring one.
+(check-true "rr-normed-field card: member of normed-field"
+  (lambda () (and (string-search-forward "is-normed-field" (card-str 'rr-normed-field) 0) #t)))
+(check-false "rr-normed-field card: not a ring member (soundness fix, visible)"
+  (lambda () (and (string-search-forward "is-ring" (card-str 'rr-normed-field) 0) #t)))
+;; Refinement classes still render as refinements (unchanged branch).
+(check-true "commutative-ring card still a refinement"
+  (lambda () (and (string-search-forward "refinement" (card-str 'commutative-ring) 0) #t)))
+
+;; EVERY declared instance has a card.  RR-MS and CC-MS had none -- the six numeric
+;; instances were registered as definitional structures by hand and the two metric
+;; spaces were forgotten, so (describe-structure 'RR-MS) said "Unknown structure"
+;; about a constant the library proves theorems over.  declare-instance! registers
+;; them now, so forgetting one cannot lose it.
+(check-true "rr-ms card rendered as Instance, with its components"
+  (lambda ()
+    (let ((s (card-str 'rr-ms)))
+      (and (string-search-forward "Instance" s 0)
+           (string-search-forward "pts"  s 0)     ; the carrier slot
+           (string-search-forward "dist" s 0)     ; the distance slot
+           (string-search-forward "is-metric-space" s 0)   ; membership witness
+           (not (string-search-forward "Unknown structure" s 0))
+           #t))))
+(check-true "cc-ms card rendered as Instance"
+  (lambda ()
+    (let ((s (card-str 'cc-ms)))
+      (and (string-search-forward "Instance" s 0)
+           (not (string-search-forward "Unknown structure" s 0))
+           #t))))
+
+;;; -----------------------------------------------------------------------
+;;; ONE NAME, ONE SLOT: accessor macetes are global, so an accessor claimed at
+;;; two slot indices has no correct reduction.
+;;;
+;;; `mul' held the group family's slot 2 (they load last), so (mac 'mul) on
+;;; (MUL ZZ-RING) -- whose multiplication is slot 3 -- reduced to (NTH 2 ZZ-RING)
+;;; = binplus, and `mul(zz-ring) = binplus', the multiplication of the integers
+;;; is ADDITION, went to a qed.  def-structure now withdraws the reduction for
+;;; an ambiguous name instead of installing a false one.
+
+(display "\n=== accessor indices: one name, one slot ===\n")
+
+;; NO accessor is ambiguous any more: the group family's operation is OPR, the
+;; field's inverse MUL-INV, the normed field's norm FNRM.  A new collision -- e.g.
+;; a numbered carrier CARRj at slot j in one structure and slot j' in another --
+;; fails here (and hard-errors the load).
+(check-true "no accessor name is claimed at two slot indices"
+  (lambda () (null? (accessor-index-audit))))
+
+;; The other half of the rule: no formula applies an accessor to a structure that
+;; has no such slot.  This is what caught nf-metric-distance, which took NRM of a
+;; normed field after the rename and failed no proof, being still well-formed.
+(check-true "no formula applies an accessor to a structure lacking that slot"
+  (lambda () (null? (accessor-type-audit))))
+
+;; And the reduction numeric-instances.scm advertises is TRUE: MUL is the ring's
+;; slot 3, so (MUL ZZ-RING) computes to what that slot holds.  It used to compute
+;; to binplus -- the multiplication of the integers is addition -- and reach qed.
+;;
+;; UPDATED 2026-08-29.  The slot no longer holds the shared constant `bintimes':
+;; one object cannot be a set function with five different domains, and asserting
+;; so proved NN = ZZ = QQ = RR = CC and thence FALSITY.  It holds a tupled
+;; VNB-LAMBDA, one genuine set function per instance.  The check is updated
+;; rather than deleted -- what it is really about is that the projection is ONE
+;; step, and that is unchanged.
+;;
+;; ONE step: declare-instance! precomputed the projection, so the tuple equation
+;; and the NTH it exposes never enter the goal.  (It took three -- slot, mac the
+;; tuple equation, nth-r -- and the goal met `nth(3, zz-ring)' on the way, which
+;; is ZZ-RING's REPRESENTATION and none of a reader's business.)
+;; Stated with `==', and it has to be.  `=' is PARTIAL and strict, so `t = t' is
+;; a DEFINEDNESS claim: `rfl' closed it for the bare constant `bintimes' and
+;; REFUSES it for a VNB-LAMBDA, which is a set built by comprehension.  That is
+;; why rr-ms-dist and every other slot read-off in the tree states its equation
+;; with `==' and closes with `qrfl'.  The old check could use `=' only because
+;; the slot held a constant -- the same fact that made the theory inconsistent.
+(check-true "(MUL ZZ-RING) computes to its slot lambda in one step"
+  (lambda ()
+    (sp (make-wff '(== (MUL ZZ-RING)
+                       (VNB-LAMBDA (LIST x_ y_) (CARTESIAN ZZ ZZ) (* x_ y_)))))
+    (slot 'mul)                ; (MUL ZZ-RING) -> the lambda  [through the door]
+    (qrfl)
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; ... and the shared constant is NOT what it holds any more.  Without this the
+;; check above would still pass if someone put `bintimes' back beside the lambda.
+(check-false "(MUL ZZ-RING) is NOT the shared constant bintimes"
+  (lambda ()
+    (sp (make-wff '(== (MUL ZZ-RING) bintimes)))
+    (slot 'mul)
+    (qrfl)
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; A VARIABLE structure has no value to project to, so there `slot' still gives
+;; NTH form -- which is what fnc--normalize-goal! wants, and the reason the
+;; global reduction stays.
+(check-true "slot on a variable structure still gives NTH form"
+  (lambda ()
+    (sp (make-wff '(FORALL a (IMPLIES (IS-RING a) (= (MUL a) (MUL a))))))
+    (di)
+    (slot 'mul)
+    (and (string-search-forward "nth(3, a)"
+           (expression->string
+             (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+           0)
+         #t)))
+
+;; A tuple equation DEFINES its constant -- nothing else pins ZZ-RING -- so it is
+;; definitional, and so are the value macetes read off it: reducing (MUL ZZ-RING)
+;; bills NOTHING.  (It used to bill zz-ring-def, an asserted axiom: a phantom debt
+;; leaf on every proof that so much as multiplied two integers in ring form.  The
+;; instance's mathematical content is IS-RING(ZZ-RING), which stays asserted and
+;; stays billed.)  The provenance is READ OFF the equation, never hard-coded, so
+;; an instance declared on an asserted equation would still pay -- hard-coding it
+;; here would be the def-view-as laundering bug one level down.
+(check-true "tuple equations are definitional, and the value macetes inherit it"
+  (lambda ()
+    (equal? (list (provenance-of 'zz-ring-def)   (provenance-of 'zz-ring@mul)
+                  (provenance-of 'qq-field-def)  (provenance-of 'qq-field@mul-inv)
+                  (provenance-of 'rr-ms-def)     (provenance-of 'rr-ms@dist))
+            '(definitional definitional definitional definitional
+              definitional definitional))))
+
+;; The shape gate.  A tuple whose length differs from its structure's cannot
+;; satisfy that structure's IS-X (which pins length(s) = n); declaring one used
+;; to be possible, and asserting IS-RING of a 7-tuple was a flat inconsistency
+;; (fixed 2026-05-30).  Now the declaration itself fails.
+;; (a Scheme error, not a <vnb-error>: a bad DECLARATION is a bug in the library
+;; source, not bad input to a tactic, and must stop the load.)
+(check-true "declare-instance! rejects a tuple of the wrong length"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (bind-condition-handler (list condition-type:error)
+          (lambda (c) c (k #t))                       ; it errored: correct
+          (lambda ()
+            (declare-instance! 'FUBA-RING 'RING 'fuba-ring-def
+                               '(ZZ binplus bintimes))
+            #f))))))                                  ; it did not: wrong
+
+;; OPR -- the group family's operation -- has its own reduction, at slot 2.
+(check-true "OPR has an (NTH 2) reduction of its own"
+  (lambda () (and (hash-table-ref/default *macete-table* 'opr #f) #t)))
+
+;; THE PIN.  An accessor's reduction is global and unconditional -- a deliberate
+;; but PROVISIONAL choice (route 2 would make it conditional on IS-X(s), freeing
+;; a name to sit at a different slot in each structure, which is what numbered
+;; carriers CARR1..CARRn will want).  Reversing it is cheap only while nothing
+;; depends on the reduction firing WITHOUT a typing hypothesis.  Exactly one
+;; procedure does -- `slot' -- and this keeps it that way: fire an accessor
+;; macete by name anywhere else and the suite says so, instead of the coupling
+;; growing one driver at a time until "reversible" is quietly false.
+(check-true "no file fires an accessor macete by name (use `slot')"
+  (lambda ()
+    (let ((hits (accessor-callsite-audit)))
+      (when (pair? hits)
+        (display "\n  accessor macete fired outside `slot':\n")
+        (for-each (lambda (h)
+                    (display "    ") (display (car h)) (display ".scm:")
+                    (display (cadr h)) (display "  (") (display (caddr h))
+                    (display " '") (display (cadddr h)) (display ")\n"))
+                  hits))
+      (null? hits))))
+
+;; ... and `slot' refuses anything that is not an accessor, so it cannot quietly
+;; become a second name for `mac'.
+(check-error "slot rejects a non-accessor macete name"
+  (lambda () (sp (make-wff '(= (MUL ZZ-RING) bintimes))) (slot 'zz-ring-def)))
+
+;;; -----------------------------------------------------------------------
+;;; The two things an accessor CORRESPONDENCE cannot express.
+
+(display "\n=== declare-hom! and def-constructed-functor ===\n")
+
+;; (1) A species may DECLARE its morphisms.  The generated hom is
+;; preservation-of-slots -- right for algebra, and WRONG for a topological space,
+;; where a topology slot would generate OPENS(a) = OPENS(b) (the topologies
+;; literally equal!) instead of continuity, which is a PREIMAGE condition.
+;; (It is wrong for METRIC-SPACE too, which the comment here used to deny: the
+;; generated hom is the ISOMETRIES, and the library's metric morphisms are the
+;; continuous maps.  See the TOP-SPACE block below.)
+(declare-structure TOY-TOP
+  (carriers TPTS)
+  (constant TOPENS (POWER (POWER TPTS))))
+
+(check-true "the GENERATED hom of a topology-like slot is the nonsense one"
+  (lambda ()
+    ;; before the override: it demands the two 'topologies' be equal
+    (and (string-search-forward
+           "topens(a) = topens(b)"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'is-hom-toy-top-def #f))
+           0)
+         #t)))
+
+(declare-hom! 'TOY-TOP '(a b f)
+  "forall([u in topens(b)], preimage(f, u) in topens(a))")
+
+(check-true "declare-hom! replaces it with the continuity condition"
+  (lambda ()
+    (let ((s (expression->string
+               (hash-table-ref/default *theorem-table* 'is-hom-toy-top-def #f))))
+      (and (string-search-forward
+             "forall([u in topens(b)], preimage(f, u) in topens(a))" s 0)
+           ;; and the nonsense conjunct is GONE
+           (not (string-search-forward "topens(a) = topens(b)" s 0))
+           #t))))
+
+(check-true "an overridden species is recorded as such"
+  (lambda () (and (hom-overridden? 'toy-top) #t)))
+
+;; (2) A functor's object map may be a CONSTRUCTION, not a selection.  The metric
+;; of a normed field is BUILT from the norm -- no accessor correspondence yields
+;; it -- so def-constructed-functor takes a term, and OWES its two theorems
+;; instead of getting them by construction.
+(check-true "NF-METRIC-SPACE is a constructed functor with two obligations"
+  (lambda ()
+    (equal? (map car (functor-obligations 'nf-metric-space))
+            '(nf-metric-space-is-metric-space nf-metric-space-functorial))))
+
+;; its TYPING obligation is discharged (the warranted support in
+;; normed-field-metric.scm), so only functoriality is outstanding ...
+(check-true "the typing obligation is discharged"
+  (lambda ()
+    (and (hash-table-ref/default *theorem-table*
+                                 'nf-metric-space-is-metric-space #f) #t)))
+
+;; ... and the audit says so.  A functor you have not proved is a functor you do
+;; not have: nothing about NF-METRIC-SPACE's functoriality is asserted.
+(check-true "the functoriality obligation is OUTSTANDING, not asserted"
+  (lambda ()
+    (and (not (hash-table-ref/default *theorem-table*
+                                      'nf-metric-space-functorial #f))
+         (memq 'nf-metric-space-functorial (map car (functor-obligation-audit)))
+         ;; and it is available as a GOAL, ready for sp
+         (functor-obligation 'nf-metric-space-functorial)
+         #t)))
+
+;;; -----------------------------------------------------------------------
+;;; TOP-SPACE, and the functor Met -> Top: the real instance of both gaps.
+
+(display "\n=== TOP-SPACE and METRIC-TOP ===\n")
+
+(check-true "TOP-SPACE is a 2-slot structure [PTS, OPENS]"
+  (lambda () (equal? (structure-accessor-names 'top-space) '(pts opens))))
+
+;; THE GATE THAT WOULD HAVE CAUGHT IT.  TOP-SPACE was first declared with the
+;; slot type (POWERSET (POWERSET PTS)).  The powerset constructor is POWER
+;; (theory.scm: power-set, power-set-membership); POWERSET is a name this theory
+;; has never had.  The reader took it for a FREE FUNCTION VARIABLE, so IS-TOP-SPACE
+;; said "opens(s) in powerset(powerset(pts(s)))" with `powerset' an uninterpreted
+;; symbol -- no axioms, no meaning.  The structure loaded, the card rendered in
+;; LaTeX, and the whole suite passed.  Every symbol APPLIED in an installed
+;; theorem must be a kernel head, a registered operator, or BOUND in the formula.
+(check-true "no installed theorem applies an unknown head"
+  (lambda ()
+    (let ((hits (unknown-head-audit)))
+      (when (pair? hits)
+        (display "\n  unknown applied head(s):\n")
+        (for-each (lambda (h)
+                    (display "    ") (display (car h))
+                    (display ": ") (display (cdr h)) (newline))
+                  hits))
+      (null? hits))))
+
+;; and the slot type is the REAL powerset
+(check-true "OPENS is typed by POWER, the theory's powerset"
+  (lambda ()
+    (and (string-search-forward "power(power(pts(s)))"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-top-space #f)) 0)
+         #t)))
+
+;; PTS is slot 1 in TOP-SPACE as it is in METRIC-SPACE -- one name, one slot --
+;; which is exactly what lets PREIMAGE (a SEP over PTS(s)) serve both species.
+(check-true "TOP-SPACE reuses PTS at the same slot as METRIC-SPACE"
+  (lambda () (null? (accessor-index-audit))))
+
+(check-true "TOP-SPACE's hom is the preimage condition, not slot preservation"
+  (lambda ()
+    (let ((s (expression->string
+               (hash-table-ref/default *theorem-table* 'is-hom-top-space-def #f))))
+      (and (string-search-forward "preimage(s, f, u) in opens(s)" s 0)
+           (not (string-search-forward "opens(s) = opens(t)" s 0))
+           (hom-overridden? 'top-space)
+           #t))))
+
+;; THE MORPHISMS OF A METRIC SPACE ARE ITS CONTINUOUS MAPS.  The generated hom
+;; was the isometries, and nothing ever cited it, while metric-continuity.scm's
+;; header called IS-CONTINUOUS "the morphisms of the metric-space structure".
+;; The Met -> Top functor forced the question: it carries CONTINUOUS maps, and
+;; over isometries its functoriality obligation would degenerate to "an isometry
+;; is continuous" -- true and empty.  The isometries survive as IS-ISOMETRY.
+;; METRIC-SPACE's morphisms are its ISOMETRIES (the generated preservation of DIST),
+;; NOT continuity -- a continuous map is a morphism of the underlying metrizable
+;; topological space, which is a different category (METRIZABLE-TOP-SPACE).  So the hom
+;; is the GENERATED one, no declare-hom! override.
+(check-true "METRIC-SPACE's hom is its isometry (generated preservation-of-DIST, not overridden)"
+  (lambda ()
+    (let ((s (expression->string
+               (hash-table-ref/default *theorem-table* 'is-hom-metric-space-def #f))))
+      (and (string-search-forward "(dist(b))(f(" s 0)
+           (not (hom-overridden? 'metric-space))
+           #t))))
+
+;; (def-predicate names its defining IFF after the predicate itself -- `is-isometry',
+;; not `is-isometry-def'.  Only def-structure / declare-hom! use the -def suffix.)
+(check-true "the isometries survive as IS-ISOMETRY"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'is-isometry #f)))
+      (and f
+           (string-search-forward "(dist(t))(f(x), f(y)) = (dist(s))(x, y)"
+                                  (expression->string f) 0)
+           #t))))
+
+;; The object map is CONSTRUCTED (the metric topology is computed from DIST, not
+;; selected from a slot), so METRIC-TOP asserts nothing and owes two theorems.
+(check-true "METRIC-TOP records both obligations, and asserts neither"
+  (lambda ()
+    (and (equal? (map car (functor-obligations 'metric-top))
+                 '(metric-top-is-metrizable-top-space metric-top-functorial))
+         ;; both are available as goals, ready for sp
+         (functor-obligation 'metric-top-is-metrizable-top-space)
+         (functor-obligation 'metric-top-functorial)
+         #t)))
+
+;; The TYPING obligation is DISCHARGED: the metric open sets form a topology
+;; (theorem-library/metric-top-proof.scm), leaning only on the four warranted
+;; topology supports and the two set-theoretic ones.
+(check-true "metric-top-is-top-space is PROVEN"
+  (lambda () (and (hash-table-ref/default *theorem-table* 'metric-top-is-top-space #f) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; lam-b-h: VNB-LAMBDA beta in a cited ASSUMPTION -- what mac-h is to mac.
+;;;
+;;; `fact' at a lambda lands the APPLIED lambda in the CONTEXT, where the
+;;; goal-side lam-b cannot reach it (union-of-opens-open at the identity family
+;;; g := x |-> x).  Without this tactic a proof must detour through a cut
+;;; beta-equation and a subst -- which is what metric-top-proof.scm did until the
+;;; tactic existed.  It cites nothing, so it adds no debt.
+
+(display "\n=== lam-b-h ===\n")
+
+(check-true "lam-b-h beta-reduces an applied lambda inside an assumption"
+  (lambda ()
+    ;; (IN a NN) is a hypothesis rather than the goal because the beta guard
+    ;; enforces: reducing the identity on NN at a needs a's membership, and if
+    ;; the membership IS the goal the reduction owes exactly what it is being
+    ;; used to prove.  So type a, reduce, and land somewhere else -- ZZ.
+    (sp (make-wff '(IMPLIES (IN a NN) (IMPLIES (IN ((VNB-LAMBDA x_ NN x_) a) ZZ) (IN a ZZ)))))
+    (di) (di)                                      ; one di per IMPLIES
+    (lam-b-h '(IN ((VNB-LAMBDA x_ NN x_) a) ZZ))   ; the hypothesis becomes (IN a ZZ)
+    (ass)
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;; A no-op WARNS and fires no rule -- every primitive inference gives its focus
+;; node an in-arrow, so no in-arrow means the rule did not fire (CLAUDE.md).
+(check-true "lam-b-h on an assumption with no redex fires no rule"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a NN) (IN a NN))))
+    (di)
+    (lam-b-h '(IN a NN))
+    (null? (sequent-node-in-arrows (proof-state-focus *ps*)))))
+
+;; FUNCTORIALITY is proven too: eps-delta continuity => preimages of opens are
+;; open (theorem-library/metric-top-functorial-proof.scm).  That is the theorem
+;; the functor exists to force, and it is a theorem only because METRIC-SPACE's
+;; morphisms are its CONTINUOUS maps -- over the generated isometry hom it would
+;; have degenerated into "an isometry is continuous".
+(check-true "metric-top-functorial is PROVEN"
+  (lambda () (and (hash-table-ref/default *theorem-table* 'metric-top-functorial #f) #t)))
+
+;; So METRIC-TOP owes NOTHING: a functor we have, not one we declared.  (The audit
+;; still reports NF-METRIC-SPACE's functoriality, which is genuinely open.)
+(check-true "METRIC-TOP has no outstanding obligation"
+  (lambda ()
+    (null? (filter (lambda (n) (memq n '(metric-top-is-top-space metric-top-functorial)))
+                   (map car (functor-obligation-audit))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE PRESENTATION LADDER, rung 2/3 substrate: every structure predicate has an
+;;; ENGLISH reading, derived from its name at declaration.
+;;;
+;;; It used to be "only a human knows the noun", and the result was that 104 of 113
+;;; predicates had no reading at all -- so the proof reader printed
+;;; `is-metric-space(a)' where a human says "a is a metric space".  The DEFAULT is
+;;; derivable; only the wording of a proper noun is not ("Euclidean ring" wants its
+;;; capital), so a `notation!' beside the structure overrides, and
+;;; english-derived-nouns names the ones still wearing the machine's wording.
+
+(display "\n=== the resolution dial ===\n")
+
+;;; The dial is a FILTER, and these are the two constraints that make it one
+;;; rather than a set of modes wearing a resolution costume.  Both are stated in
+;;; presentation.scm's header; both are checked here, because a constraint
+;;; nothing measures is a comment.
+
+;; r1 IS UNTOUCHED.  The hook returns #f at the default notch, so the printer
+;; that has always rendered a sequent still does -- which is what lets the
+;; 2026-08-24 round-trip gate go on meaning what it means.
+(check-true "dial: r1 renders exactly as the un-hooked printer does"
+  (lambda ()
+    (fluid-let ((*presentation-resolution* 1))
+      (let ((sq (make-sequent (list (make-wff '(IN a RR)))
+                              (make-wff '(<= a a)))))
+        (string=? (sequent->string sq) (sequent->string-r1 sq))))))
+
+;; CONSTRAINT 1 -- THE RUNGS NEST.  Mechanically: every atom visible at a higher
+;; notch is visible at the notch below, the elision mark `...' excepted.  This
+;; is the test that would catch a rung that ADDS a name -- the failure mode the
+;; user named (a citation chain rendered as prose, introducing a lemma name that
+;; was not on screen).
+(define (ts--atoms f)
+  (let walk ((g f) (acc '()))
+    (cond ((pair? g) (fold-left (lambda (a x) (walk x a)) acc g))
+          ((symbol? g) (cons g acc))
+          (else acc))))
+
+(define ts--dial-formula
+  '(FORALL s (IMPLIES (IN s METRIC-SPACE)
+     (FORALL f (IMPLIES (IN f (FUN NN (PTS s)))
+       (FORALL n_ (IMPLIES (IN n_ NN)
+         (<= ((DIST s) (f n_) (f n_)) 0))))))))
+
+(check-true "dial: the rungs NEST -- atoms at r(n+1) are atoms at r(n), bar the elision mark"
+  (lambda ()
+    (let* ((svars (pres--structure-vars (list ts--dial-formula)))
+           (at (lambda (n) (ts--atoms (pres-formula ts--dial-formula n svars)))))
+      (let loop ((n 1))
+        (or (>= n 3)
+            (and (every (lambda (a) (or (eq? a '|...|) (memq a (at n))))
+                        (at (+ n 1)))
+                 (loop (+ n 1))))))))
+
+;; CONSTRAINT 2 -- THE APERTURE IS ON SCREEN.  A lossy render that does not
+;; announce its own lossiness is the defect class of `(f)' printing as `f'.  So
+;; every rung above r1 names itself on the line, and every elision is counted.
+(check-true "dial: every notch above r1 names itself and counts what it hid"
+  (lambda ()
+    (let ((sq (make-sequent (list (make-wff '(IN a RR)) (make-wff '(IN b RR)))
+                            (make-wff ts--dial-formula))))
+      (and (substring? "| r2" (pres-sequent->string sq 2))
+           (substring? "| r3" (pres-sequent->string sq 3))
+           (substring? "typing(s) hidden" (pres-sequent->string sq 2))
+           (substring? "guard(s) hidden" (pres-sequent->string sq 2))
+           ;; r3 prints the DICTIONARY: the slot names it destructured to are
+           ;; declared, not invented, and they are on screen beside the sequent.
+           (substring? "metric-space(pts, dist)" (pres-sequent->string sq 3))))))
+
+;; r3 destructures to the DECLARED slot names.  (dist(s))(x,y) -> dist(x,y).
+(define (ts--has-subterm? f t)
+  (let walk ((g f))
+    (cond ((equal? g t) #t)
+          ((pair? g) (or (walk (car g)) (walk (cdr g))))
+          (else #f))))
+
+(check-true "dial: r3 collapses a structure accessor to its declared slot name"
+  (lambda ()
+    (let* ((svars (pres--structure-vars (list ts--dial-formula)))
+           (g (pres-formula ts--dial-formula 3 svars)))
+      ;; the APPLICATION (DIST s) is gone and the bare slot name is what stands
+      ;; in its place.  `s' itself survives as the bound variable -- it is what
+      ;; the quantifier binds, and the aperture line says what it is.
+      (and (ts--has-subterm? ts--dial-formula '(DIST s))
+           (not (ts--has-subterm? g '(DIST s)))
+           (if (memq 'dist (ts--atoms g)) #t #f)))))
+
+;; THE AUTO-NOTCH SUGGESTS AND THEN STAYS PUT.  A two-symbol goal renders raw; a
+;; goal carrying a wall of guards filters harder.  The point of the check is the
+;; second half: consulting the heuristic must not make the dial follow the
+;; sequent around, because a reader who cannot tell whether the formula changed
+;; or the lens did is worse off than at any fixed notch.
+(check-true "dial-wff: a bare formula takes the same dial, and r1 is still the printer"
+  (lambda ()
+    (and (string=? (pres-formula->string ts--dial-formula 1)
+                   (expression->string ts--dial-formula))
+         (substring? "| r2" (pres-formula->string ts--dial-formula 2))
+         (substring? "metric-space(pts, dist)" (pres-formula->string ts--dial-formula 3))
+         ;; r0 is the kernel S-expression, which is what every rung filters
+         (substring? "(forall s (implies (in s metric-space)"
+                     (pres-formula->string ts--dial-formula 0)))))
+
+(check-true "dial: the auto-notch reads the goal -- small raw, large filtered"
+  (lambda ()
+    (and (= 1 (suggest-resolution (make-sequent '() (make-wff '(<= a a)))))
+         (>= (suggest-resolution (make-sequent '() (make-wff ts--dial-formula))) 2))))
+
+(check-true "dial: a suggestion sets the notch ONCE and later sequents do not move it"
+  (lambda ()
+    (fluid-let ((*presentation-resolution* 1))
+      (let ((big   (make-sequent '() (make-wff ts--dial-formula)))
+            (small (make-sequent '() (make-wff '(<= a a)))))
+        (set! *presentation-resolution* (suggest-resolution big))
+        (let ((chosen *presentation-resolution*))
+          ;; rendering the small sequent must NOT drop the dial back to r1
+          (pres-sequent->string small chosen)
+          (= *presentation-resolution* chosen))))))
+
+(display "\n=== presentation ladder: the English of a structure ===\n")
+
+(check-true "every structure predicate reads as a sentence"
+  (lambda ()
+    (and (string=? (wff->english '(IS-METRIC-SPACE a)) "a is a metric space")
+         (string=? (wff->english '(IS-RING a)) "a is a ring")
+         #t)))
+
+;; and the noun FOLDS into a quantifier qualifier -- which is why the table stores
+;; the bare noun + article, not a finished sentence.
+(check-true "the noun folds into the binder: 'for every Euclidean ring a'"
+  (lambda ()
+    (string=? (wff->english '(FORALL a (IMPLIES (IS-EUCLIDEAN-RING a) (IS-RING a))))
+              "for every Euclidean ring a, a is a ring")))
+
+;; A GENERATED hom is preservation-of-slots.  For a ring that reads "homomorphism"; for
+;; METRIC-SPACE the preserved slot is DIST, so its generated hom is the ISOMETRY.  (An
+;; OVERRIDDEN hom, like TOP-SPACE's / METRIZABLE-TOP-SPACE's continuity, says its own word
+;; beside the override.)
+(check-true "a generated hom reads its slot-preservation word (ring homomorphism; metric isometry)"
+  (lambda ()
+    (and (string=? (wff->english '(IS-HOM-RING a b f))
+                   "f is a homomorphism from a to b")
+         (string=? (wff->english '(IS-HOM-METRIC-SPACE a b f))
+                   "f is an isometry from a to b")
+         #t)))
+
+(check-true "the whole functoriality theorem reads as English"
+  (lambda ()
+    (string=? (wff->english (lookup-theorem 'metric-top-is-top-space))
+              "for every metric space md, metric-top(md) is a topological space")))
+
+;; THE GATE.  Every predicate in the library reads as a sentence -- 113 of 113.
+;; A structure gets its noun derived; a def-predicate cannot (noun vs adjective),
+;; so it must carry a `notation!' beside its definition.  This fails the moment
+;; someone adds a predicate without one, which is how the vocabulary stops rotting:
+;; it was 9 of 113 two days ago because nothing was watching.
+(check-true "every predicate in the library has an English reading"
+  (lambda ()
+    (let ((bare (operators-undeclared 'predicate)))
+      (when (pair? bare)
+        (display "\n  predicates with no notation!: ") (display bare) (newline))
+      (null? bare))))
+
+;; The reader annotates a group that ends in a closer.  WHAT got closed is the
+;; whole content of the annotation, and it is not uniform: a `cut' opens a SIDE
+;; goal (and a typing row is a side condition), so the steps that follow prove
+;; that -- but the proof's LAST group closes the theorem itself.  Printing
+;; "(closes)" under both read as though the auxiliary claim closed the theorem.
+;; nn-lt-double is the specimen: `calc' emits three side goals (two cuts and the
+;; NN->RR typing row) and then closes the main goal by `ass'.
+(check-true "a cut's closer says SIDE goal; the closer of the main goal does not"
+  (lambda ()
+    (let ((s (proof-reader 'nn-lt-double)))
+      (and (string-search-forward "Introduce the auxiliary claim" s 0)
+           (string-search-forward "(side goal discharged)" s 0)
+           ;; the final row closes the THEOREM: it must not claim to be a side goal
+           (string-search-forward "(holds by assumption)" s 0)
+           (not (string-search-forward "(side goal holds by assumption)" s 0))
+           (not (string-search-forward "(closes)" s 0))
+           #t))))
+
+;; A universal in a NESTED position is part of the CLAIM, so it must read as a
+;; quantifier.  "Suppose"/"Let" is imperative -- it instructs the reader to fix
+;; something before the claim is made -- and only the LEADING run of a
+;; proposition is in that position.  nn-least-element rendered its own statement
+;; as "There is m in T such that Let k in T, m <= k" (found 2026-08-09 while
+;; picking slide candidates); the tail after "if ... then" had the same defect.
+(check-true "a nested universal reads as a quantifier, not as Suppose/Let"
+  (lambda ()
+    (let ((nle (proof-reader--stmt
+                (proof-reader--norm
+                 '(FORALL T (IMPLIES (AND (SUBSET T NN) (FORSOME n (IN n T)))
+                    (FORSOME m (AND (IN m T)
+                      (FORALL k (IMPLIES (IN k T) (<= m k)))))))) 0))
+          (tail (proof-reader--stmt
+                 (proof-reader--norm
+                  '(IMPLIES (IN x NN) (FORALL k (IMPLIES (IN k NN) (<= x k))))) 0))
+          (top (proof-reader--stmt
+                (proof-reader--norm
+                 '(FORALL a (IMPLIES (IN a NN)
+                    (FORALL b (IMPLIES (IN b NN) (<= a b)))))) 0)))
+      (and (string-search-forward "such that for every $k \\in t$" nle 0)
+           (not (string-search-forward "such that Let" nle 0))
+           (string-search-forward "then for every $k \\in \\mathbb{N}$" tail 0)
+           ;; the LEADING run is unchanged -- it still reads Suppose/Let
+           (string-search-forward "Suppose $a \\in \\mathbb{N}" top 0)
+           #t))))
+
+;; spot-check the readings that are easy to get BACKWARDS -- the argument order is
+;; the thing a name cannot tell you.
+(check-true "the argument order is right where it is easy to invert"
+  (lambda ()
+    (and (string=? (wff->english '(IS-IDEAL s i)) "i is an ideal of s")
+         (string=? (wff->english '(IS-OPEN-COVER s c)) "c is an open cover of s")
+         (string=? (wff->english '(IS-SUBMODULE m s)) "s is a submodule of m")
+         (string=? (wff->english '(IS-METRIC dst crr)) "dst is a metric on crr")
+         (string=? (wff->english '(SUMS-TO grp f r)) "f sums to r in grp")
+         #t)))
+
+;;; -----------------------------------------------------------------------
+;;; FUNCTOR INVARIANCE: the constructions a functor cannot be seen by.
+;;;
+;;; PREIMAGE reads its structure argument only through PTS, and METRIC-TOP carries
+;;; PTS across ON THE NOSE -- so PREIMAGE(METRIC-TOP r, f, V) == PREIMAGE(r, f, V)
+;;; for EVERY r.  Not naturality (no map, no square): the syntactic shadow of a
+;;; strict commuting triangle -- on the slots it carries on the nose the functor IS
+;;; the identity, so anything defined through those slots alone cannot tell it was
+;;; applied.
+;;;
+;;; It is `==', not `=': VNB's `=' is partial (t = t IS the definedness claim), so
+;;; an unconditional `=' would assert both preimages DEFINED for every r, metric
+;;; space or not.  `==' claims exactly what holds, unconditionally, and `qrfl'
+;;; closes it with no definedness obligation.
+;;;
+;;; And it is PROVED, not warranted: the machine may generate statements freely, it
+;;; may not assert them.  A qualifying pair whose canned proof fails is reported.
+
+(display "\n=== functor invariance ===\n")
+
+(check-true "metric-top@preimage is PROVEN, modulo 0, and is a quasi-equality"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'metric-top@preimage #f)))
+      (and f
+           (eq? (provenance-of 'metric-top@preimage) 'proven)   ; proved, not asserted
+           (null? (debt-of 'metric-top@preimage))               ; ... modulo 0
+           (string-search-forward "==" (expression->string f) 0)
+           #t))))
+
+;; PREIMAGE qualifies (reads only PTS); BALL does not (it reads DIST, which the
+;; topology has not got) -- so no BALL equation is minted.
+(check-true "the qualifying condition discriminates: PREIMAGE yes, BALL no"
+  (lambda ()
+    (and (equal? (fni--accessors-read 'preimage) '(pts))
+         (memq 'dist (fni--accessors-read 'ball))
+         (fni--qualifies? 'preimage 'metric-top)
+         (not (fni--qualifies? 'ball 'metric-top))
+         #t)))
+
+;; Nothing is owed: every qualifying pair's canned proof closed.
+(check-true "no functor-invariance pair is owed"
+  (lambda () (null? *functor-invariance-owed*)))
+
+;;; -----------------------------------------------------------------------
+;;; FUNCTORIALITY: def-functor has earned the word.  Each view's action on
+;;; morphisms is the identity on the underlying map, and that this lands in the
+;;; target's homs is PROVED (functoriality.scm), not asserted -- modulo 0.
+
+(display "\n=== functoriality ===\n")
+
+(check-true "every FREE view has a proved functoriality theorem"
+  (lambda ()
+    (null? (filter
+             (lambda (v)
+               (let ((vd (lookup-view-as v)))
+                 (and (fnc--free? vd)
+                      (not (hash-table-ref/default
+                             *theorem-table* (symbol-append v '-functorial) #f)))))
+             (hash-table-keys *view-as-table*)))))
+
+;; ring-additive-ag: a ring hom IS an abelian-group hom of the additive parts
+(check-true "ring-additive-ag-functorial says a ring hom is an AG hom"
+  (lambda ()
+    (and (string-search-forward
+           "is-hom-ring(a, b, f) implies is-hom-abelian-group(ring-additive-ag(a), ring-additive-ag(b), f)"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'ring-additive-ag-functorial #f))
+           0)
+         #t)))
+
+;; and it rests on NOTHING: the accessor macetes are definitional (they ARE the
+;; accessors' definitions), so the bill is modulo 0, not {carr, opr, iden}.
+(check-true "functoriality proofs are modulo 0 (accessor macetes are definitional)"
+  (lambda ()
+    (null? (debt-of 'ring-additive-ag-functorial))))
+
+;; FIELD-MULTIPLICATIVE-GROUP is NOT free and is honestly excluded: its target
+;; carrier comes from FIELD's DERIVED NON-ZERO, so the field hom's map is not
+;; typed for it.  That a field hom restricts to the non-zero part is a THEOREM
+;; (f(x)*f(x^-1) = 1, so f kills nothing) -- owed, not asserted.
+(check-false "field-multiplicative-group is not claimed functorial"
+  (lambda ()
+    (and (hash-table-ref/default *theorem-table*
+                                 'field-multiplicative-group-functorial #f) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; MORPHISMS, generated from the slot list (structures.scm, build-hom-axiom).
+;;; A species with objects but no morphisms is not a category, which is why
+;;; calling def-functor a functor was a promise the code did not keep.
+
+(display "\n=== generated homomorphisms ===\n")
+
+(define (hom-str nm)
+  (let ((f (hash-table-ref/default *theorem-table*
+                                   (symbol-append 'is-hom- nm '-def) #f)))
+    (and f (expression->string f))))
+
+(define (hom-has? nm . bits)
+  (let ((s (hom-str nm)))
+    (and s (every (lambda (b) (and (string-search-forward b s 0) #t)) bits))))
+
+;; every structure gets one
+(check-true "every shape structure has an IS-HOM-X definition"
+  (lambda ()
+    (null? (filter (lambda (n) (not (hom-str n)))
+                   (hash-table-keys *structure-table*)))))
+
+;; the group hom preserves the operation, the identity and the inverse
+(check-true "is-hom-group preserves opr, iden, inv"
+  (lambda ()
+    (hom-has? 'group
+              "f((opr(a))(x1_, x2_)) = (opr(b))(f(x1_), f(x2_))"
+              "f(iden(a)) = iden(b)"
+              "f((inv(a))(x1_)) = (inv(b))(f(x1_))")))
+
+;; a module hom is a map between modules OVER THE SAME RING (the standard
+;; category), and the scalar passes through the action untouched
+(check-true "is-hom-module fixes the scalars and is R-linear"
+  (lambda ()
+    (hom-has? 'module
+              "scal(a) = scal(b)"
+              "f((act(a))(x1_, x2_)) = (act(b))(x1_, f(x2_))")))
+
+;; a sort that is not a carrier is mapped by the identity -- so a norm slot
+;; makes the algebraic default for a normed structure the ISOMETRY
+(check-true "is-hom-normed-ag is the isometry (norm preserved)"
+  (lambda () (hom-has? 'normed-ag "(nrm(a))(x1_) = (nrm(b))(f(x1_))")))
+
+;; a refinement's hom is the parent's hom, between objects of the refinement
+(check-true "is-hom-commutative-ring is is-hom-ring between commutative rings"
+  (lambda ()
+    (hom-has? 'commutative-ring
+              "is-commutative-ring(a) and is-commutative-ring(b) and is-hom-ring(a, b, f)")))
+
+;; FIELD's NON-ZERO is a DERIVED carrier (= CARR minus ZERO), so a field
+;; morphism is ONE map, not two: NON-ZERO rides CARR's map.  When NON-ZERO was
+;; a plain carrier the generator produced f1 AND an unrelated f2 on the
+;; non-zero part -- which is not a field morphism.
+(check-true "is-hom-field is a single map (NON-ZERO is derived, not a sort)"
+  (lambda ()
+    (and (hom-has? 'field
+                   "is-hom-field(a, b, f)"
+                   "forall([x1_ in non-zero(a)], f((mul-inv(a))(x1_)) = (mul-inv(b))(f(x1_)))")
+         (not (and (string-search-forward "f2" (hom-str 'field) 0) #t)))))
+
+;; ... and IS-FIELD now PINS the derived carrier itself.  It used not to: the
+;; equation lived in a separate ASSERTED axiom, so a field's NON-ZERO could have
+;; been any set at all, with MUL-INV an arbitrary function on it.
+(check-true "IS-FIELD pins non-zero(s) = carr(s) minus zero(s)"
+  (lambda ()
+    (and (string-search-forward
+           "non-zero(s) = difference(carr(s), singleton(zero(s)))"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-field #f))
+           0)
+         #t)))
+
+;;; -----------------------------------------------------------------------
+;;; What the docs SAY a structure is must be what it IS.
+;;;
+;;; The index used to print IS-X "destructured": bound `s' replaced by the
+;;; tuple of its slots, so `is-commutative-ring-def' read
+;;;   forall([carr, add, mul, ...], is-commutative-ring([carr, add, mul, ...]) iff ...)
+;;; -- binders named after the ACCESSORS.  The head registry is scope-blind, so
+;;; that string reads BACK as a different formula (applied `mul' is the constant
+;;; MUL, not the bound variable): the browser was publishing, as the defining
+;;; predicate, something that is not the defining predicate.  Nothing caught it,
+;;; because no such wff exists -- the printer invented the binders, so
+;;; constant-binder-audit had nothing to fire at.
+;;;
+;;; Two gates, both on the STRING the docs show.
+
+(display "\n=== structure docs: what is printed is what is stored ===\n")
+
+;; Every structure name (shape + definitional), paired with the axiom the
+;; index prints for it.  Instances (constant tuples: qq-field, ...) have no
+;; is-X-def and are skipped by the (and f ...) filter.
+(define (doc-structure-axioms)
+  (append-map
+    (lambda (name)
+      (let* ((shape? (lookup-structure name))
+             (an     (if shape?
+                         (symbol-append 'IS- name)
+                         (string->symbol
+                           (string-append "is-" (string-downcase (symbol->string name))
+                                          "-def"))))
+             (f      (hash-table-ref/default *theorem-table* an #f)))
+        (if f (list (cons an f)) '())))
+    (append (hash-table-keys *structure-table*)
+            (hash-table-keys *definitional-structure-table*))))
+
+;; GATE 1.  The printed predicate PARSES BACK to the formula it claims to be.
+;; The destructured render failed this: it was not re-readable at all.
+;; THE ONE EXEMPTION IS GONE (2026-08-24), and its removal is the measurement.
+;; IS-MEASURE-SPACE was exempted on 2026-08-18 because its slot MEAS has
+;; codomain RR+*, which the lexer split into `rr', `+', `*' -- so the printed
+;; predicate was not a parseable string and the fault was in the NAME, not in
+;; the structure.  The comment then said the fix was to "give RR+* a parseable
+;; spelling, or teach the lexer to read it as one token".  The first was done:
+;; the class is now RR-POS-STAR.  The list below is empty, so IS-MEASURE-SPACE
+;; is held to the same gate as every other structure; if the rename had been
+;; cosmetic rather than real, this check would fail.
+(define *doc-roundtrip-exempt* '())
+
+(check-true "every structure's printed defining predicate re-parses to itself"
+  (lambda ()
+    (let ((bad (filter (lambda (p)
+                         (and (not (memq (car p) *doc-roundtrip-exempt*))
+                              (let* ((f   (cdr p))
+                                     (str (expression->string f)))
+                                (not (alpha-equiv?
+                                       f
+                                       (expand-destructuring-quantifiers
+                                         (parse-string str)))))))
+                       (doc-structure-axioms))))
+      (when (pair? bad)
+        (display "  round-trip FAILED for: ") (display (map car bad)) (newline))
+      (null? bad))))
+
+;; GATE 2.  No accessor name appears as a BINDER in what the docs print.  This
+;; is constant-binder-audit's rule, applied to the doc layer: the audit clears
+;; the library (the wffs are clean) and cleared it while the printer was
+;; emitting exactly what the audit forbids.
+(check-true "no structure doc string binds a registered constant"
+  (lambda ()
+    (let ((bad (filter (lambda (p) (pair? (wff-constant-binders (cdr p))))
+                       (doc-structure-axioms))))
+      (null? bad))))
+
+;; The declaration -- the thing the docs now lead with -- is recorded for every
+;; structure that went through the def-structure-from-clauses funnel, and it is
+;; the source form, not a reconstruction.
+(check-true "commutative-ring's declaration is the source two-liner"
+  (lambda ()
+    (let ((d (structure-declaration->string 'commutative-ring)))
+      (and d
+           (string-search-forward "(same-shape-as ring)" d 0)
+           (string-search-forward "mul(s)(a, b) = mul(s)(b, a)" d 0)
+           #t))))
+
+;; EVERY shape structure records its declaration -- no exceptions, so no
+;; structure can be documented by a reconstruction.  NORMED-VECTOR-SPACE was the
+;; one bypass (it hand-built its %make-structure-def and hand-wrote its IS-X
+;; axiom, on the theory that sharing MODULE's accessors would collide -- it does
+;; not: the registries are idempotent and the shared slots are declared in
+;; MODULE's order, so they re-register identically).  A new bypass fails here.
+(check-true "every shape structure records its declaration"
+  (lambda ()
+    (null? (filter (lambda (n) (not (structure-declaration n)))
+                   (hash-table-keys *structure-table*)))))
+
+;; NORMED-VECTOR-SPACE, specifically: it goes through the funnel, keeps VNRM at
+;; slot 7 (the MODULE view-as is a positional remap of slots 1-6 and breaks if
+;; the order drifts), and its scalars are still pinned to the reals.
+(check-true "normed-vector-space declared through the funnel, VNRM at slot 7"
+  (lambda ()
+    (equal? (structure-slot-names (lookup-structure 'normed-vector-space))
+            '(scal vec vadd vzero vneg act vnrm))))
+
+;; ... and its scalars are pinned through the RING VIEW of the normed field,
+;; NEVER the raw 7-tuple.  This check read the other way round until 2026-08-23
+;; ("still pins its scalars to rr-normed-field") and was pinning a DEFECT:
+;; `(substructure SCAL RING)' makes (IS-RING (SCAL s)) a conjunct of the IFF and
+;; IS-RING pins length(scal(s)) = 6, while RR-NORMED-FIELD is the SEVEN-tuple
+;; [RR binplus bintimes binneg 0 1 abs] (numeric-instances.scm:250).  Six
+;; against seven made IS-NORMED-VECTOR-SPACE UNSATISFIABLE, hence every theorem
+;; carrying it VACUOUSLY true -- hahn-banach, norm-as-sup, vector-taylor,
+;; dual-space, directional-derivative.  NORMED-FIELD-AS-COMMUTATIVE-RING
+;; (views.scm:167) projects slots 1..6 into a fresh 6-tuple, which is what a
+;; scalar slot must hold; complex-inner-product.scm always did it this way.
+;; The derivation of falsity is a must-not-prove entry (test-suite-negative,
+;; section 2c), with the old pinning as its anti-vacuity control.
+(check-true "normed-vector-space pins its scalars through the RING VIEW"
+  (lambda ()
+    (and (string-search-forward
+           "scal(s) = normed-field-as-commutative-ring(rr-normed-field)"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'is-normed-vector-space #f))
+           0)
+         #t)))
+
+;; The same fact stated as the refusal, so a re-introduction of the raw 7-tuple
+;; fails here even if the view form is added beside it rather than instead of it.
+(check-false "normed-vector-space does NOT pin the raw 7-tuple"
+  (lambda ()
+    (and (string-search-forward
+           "scal(s) = rr-normed-field"
+           (expression->string
+             (hash-table-ref/default *theorem-table* 'is-normed-vector-space #f))
+           0)
+         #t)))
+
+;; THE SCALAR BRIDGE (theorem-library/normed-field-ring-view.scm).  A scalar slot
+;; holding the projection is only usable if something says what its slots ARE:
+;; `def-functor' installs a functoid and a typing axiom and no read-off at all.
+;; Twelve theorems, all `proven modulo 0' -- six generic in the normed field,
+;; six at RR-NORMED-FIELD, which is where a real normed vector space's laws land.
+(check-true "the scalar bridge is installed, all twelve read-offs"
+  (lambda ()
+    (null? (filter (lambda (n) (not (hash-table-ref/default *theorem-table* n #f)))
+                   '(normed-field-ring-view-carr normed-field-ring-view-add
+                     normed-field-ring-view-mul  normed-field-ring-view-neg
+                     normed-field-ring-view-zero normed-field-ring-view-one
+                     rr-scalar-ring-carr rr-scalar-ring-add rr-scalar-ring-mul
+                     rr-scalar-ring-neg  rr-scalar-ring-zero rr-scalar-ring-one)))))
+
+(check "the scalar carrier is RR, through the view"
+  (lambda () (hash-table-ref/default *theorem-table* 'rr-scalar-ring-carr #f))
+  '(== (CARR (NORMED-FIELD-AS-COMMUTATIVE-RING RR-NORMED-FIELD)) RR))
+
+;;; -----------------------------------------------------------------------
+;;; IF -- conditional term former and its two kernel reduction rules
+
+(display "\n=== IF: conditional term ===\n")
+
+(check-true "(IF p a b) accepted as a term"
+  (lambda () (and (make-wff '(= (IF (IN x NN) x 0) y)) #t)))
+
+(check-error "(IF p a b) rejected in wff position"
+  (lambda () (make-wff '(IF (IN x NN) x 0))))
+
+(check-true "if-true: condition holds, reduces to then-branch"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN x NN) (= (IF (IN x NN) x 0) x))))
+    (di)
+    (if-true '(IF (IN x NN) x 0))
+    (let ((use (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
+      (ass)
+      (set-proof-state-focus! *ps* use)
+      (ass))
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+(check-true "if-false: condition fails, reduces to else-branch"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (NOT (IN x NN)) (= (IF (IN x NN) x 0) 0))))
+    (di)
+    (if-false '(IF (IN x NN) x 0))
+    (let ((use (car (reverse (dg-sequent-nodes (proof-state-dg *ps*))))))
+      (ass)
+      (set-proof-state-focus! *ps* use)
+      (ass))
+    (null? (dg-ungrounded-nodes (proof-state-dg *ps*)))))
+
+;;; -----------------------------------------------------------------------
+;;; bc* -- matching backchain (interactive.scm)
+
+(check-true "bc*: applies a single-implication theorem (handler form)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IS-ABELIAN-GROUP gg) (IS-GROUP gg))))
+    (di)
+    (bc* 'abelian-group-is-group () (ass))
+    (proof-done? *ps*)))
+
+(check-true "bc*: nested-implication theorem, subgoals dispatched in tree order"
+  (lambda ()
+    (sp (make-wff
+         '(IMPLIES (IN nn0 NN)
+          (IMPLIES (IS-GROUP gg0)
+          (IMPLIES (IN ph0 (FUN (ORD-SEGMENT nn0) ss0))
+          (IMPLIES (IN ff0 (FUN ss0 (CARR gg0)))
+            (IN (ENUM-FAM gg0 ff0 ph0 nn0) (FUN NN (CARR gg0)))))))))
+    (di) (di) (di) (di)
+    ;; S occurs only in the antecedents, so it must be supplied explicitly.
+    (bc* 'enum-fam-in-fun ((S 'ss0)) (ass) (ass) (ass) (ass))
+    (proof-done? *ps*)))
+
+(check-true "bc*: conclusion mismatch warns and leaves the proof open"
+  (lambda ()
+    (sp (make-wff '(IN (succ 0) NN)))
+    (bc* 'abelian-group-is-group)
+    (not (proof-done? *ps*))))
+
+;; Variable-headed conclusion: fun-apply-type's (IN (f x) B) has f a schema
+;; var.  bc* matches it via *match-var-head* (macetes.scm).
+(check-true "bc*: applies a variable-headed-conclusion theorem (fun-apply-type)"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (IN ff (FUN aa bb)) (IN xx aa))
+                            (IN (ff xx) bb))))
+    (di)
+    (ai '(AND (IN ff (FUN aa bb)) (IN xx aa)))
+    (bc* 'fun-apply-type ((A 'aa)) (begin (di) (ass-all)))
+    (proof-done? *ps*)))
+
+;;; -----------------------------------------------------------------------
+;;; wff->english verbalizer (wff-english.scm).  Logical skeleton -> prose,
+;;; terms left symbolic; quantifier folds (bounded + unary sort qualifier).
+
+(check "english: pos-rr fold + forsome + <"
+  (lambda () (wff->english '(FORALL eps (IMPLIES (POS-RR eps)
+                              (FORSOME d (AND (POS-RR d) (< d eps)))))))
+  "for every positive real eps, there is some positive real d such that d is less than eps")
+
+(check "english: bounded quantifier + symbolic order term"
+  (lambda () (wff->english '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                              (FORALL x (IMPLIES (IN x (PTS s)) (<= ((DIST s) x x) 0)))))))
+  "for every metric space s, for every x in pts(s), (dist(s))(x, x) is at most 0")
+
+(check "english: negated relations + iff"
+  (lambda () (wff->english '(IFF (NOT (= a b)) (NOT (IN a S)))))
+  "a is not equal to b if and only if a is not in s")
+
+(check "english: nested implies keeps terms symbolic"
+  (lambda () (wff->english '(FORALL s (FORALL t (FORALL f
+                (IMPLIES (IS-CONTINUOUS s t f)
+                  (FORALL V (IMPLIES (IS-OPEN t V) (IS-OPEN s (PREIMAGE s f V))))))))))
+  "for every s, t, f, if f is continuous from s to t, then for every v, if v is open in t, then preimage(s, f, v) is open in s")
+
+(check "english: sort fold + sort predication"
+  (lambda () (wff->english '(FORALL s (IMPLIES (IS-ABELIAN-GROUP s) (IS-GROUP s)))))
+  "for every abelian group s, s is a group")
+
+;;; -----------------------------------------------------------------------
+;;; parts.scm -- surface-syntax accessors for the parts of a formula.
+
+(display "=== P. parts-accessor language (part / match / formula-kind) ===\n")
+
+(check "parts: formula-kind implication"
+  (lambda () (formula-kind "a in nn implies a + 0 = a")) 'implication)
+(check "parts: formula-kind op-application is equation"
+  (lambda () (formula-kind "(mul(r))(a,b) = c")) 'equation)
+(check "parts: antecedent"
+  (lambda () (wff->sexp (part "a in nn implies a + 0 = a" 'antecedent))) '(in a nn))
+(check "parts: chained consequent->lhs"
+  (lambda () (wff->sexp (part "a in nn implies a + 0 = a" 'consequent 'lhs))) '(+ a 0))
+(check "parts: conjuncts flattens the binary right-spine"
+  (lambda () (map wff->sexp (part "1=1 and 2=2 and 3=3 and 4=4" 'conjuncts)))
+  '((= 1 1) (= 2 2) (= 3 3) (= 4 4)))
+(check "parts: (conjunct 3) is 1-indexed"
+  (lambda () (wff->sexp (part "1=1 and 2=2 and 3=3 and 4=4" (list 'conjunct 3)))) '(= 3 3))
+(check "parts: operator of structure-op application"
+  (lambda () (wff->sexp (part "(mul(r))(a,b) = c" 'lhs 'operator))) '(mul r))
+(check "parts: operands of structure-op application (de-tupled)"
+  (lambda () (map wff->sexp (part "(mul(r))(a,b) = c" 'lhs 'operands))) '(a b))
+(check-error "parts: selector errors on wrong shape"
+  (lambda () (vnb-guard (lambda () (part "a = b" 'antecedent)))))
+(check "parts: ?-sigil match binds holes"
+  (lambda ()
+    (let ((b (match "?P implies ?Q" "a in nn implies a + 0 = a")))
+      (list (wff->sexp (cdr (assq '?p b))) (wff->sexp (cdr (assq '?q b))))))
+  '((in a nn) (= (+ a 0) a)))
+(check "parts: ?-sigil match on op-application pattern"
+  (lambda ()
+    (let ((b (match "(mul(r))(?a, ?b) = ?c" "(mul(r))(x,y) = z")))
+      (map (lambda (v) (wff->sexp (cdr (assq v b)))) '(?a ?b ?c))))
+  '(x y z))
+(check-false "parts: match returns #f on no match"
+  (lambda () (match "?P and ?Q" "a in nn implies a + 0 = a")))
+;; Quantified patterns: the pattern's typed binding must be desugared like the
+;; target's, else they never match (the binder-position fix).
+(check "parts: match through a typed quantifier binding"
+  (lambda ()
+    (let ((b (match "forall([x in ?S], ?body)" "forall([x in nn], x + 0 = x)")))
+      (and b (wff->sexp (cdr (assq '?s b))))))
+  'nn)
+(check "parts: binder selector"
+  (lambda () (wff->sexp (part "forall([x in nn], x + 0 = x)" 'binder))) 'x)
+(check "parts: matrix selector"
+  (lambda () (wff->sexp (part "forall([x in nn], x + 0 = x)" 'matrix)))
+  '(implies (in x nn) (= (+ x 0) x)))
+;; Documented limitation: a hole in the BINDER VARIABLE slot does not bind.
+(check-false "parts: hole in binder-var position does not match (limitation)"
+  (lambda () (match "forall([?v in ?S], ?body)" "forall([x in nn], x + 0 = x)")))
+
+;;; -----------------------------------------------------------------------
+;;; what-is copilot: numeral tower, fuzzy match, name split, aliases
+
+(check "what-is: 7 lands in nn"
+  (lambda () (what-is--number-set 7)) 'nn)
+(check "what-is: -3 lands in zz"
+  (lambda () (what-is--number-set -3)) 'zz)
+(check "what-is: 1/2 lands in qq"
+  (lambda () (what-is--number-set 1/2)) 'qq)
+(check "what-is: 3.14 lands in rr"
+  (lambda () (what-is--number-set 3.14)) 'rr)
+(check "what-is: tower tail from qq"
+  (lambda () (what-is--tower-tail 'qq)) '(qq rr cc))
+(check "what-is: edit distance mtric/metric = 1"
+  (lambda () (what-is--levenshtein "mtric" "metric")) 1)
+(check "what-is: edit distance ring/ring = 0"
+  (lambda () (what-is--levenshtein "ring" "ring")) 0)
+(check "what-is: split metric-space"
+  (lambda () (what-is--split-dash "metric-space")) '("metric" "space"))
+(check "what-is: alias complex -> cc-normed-field"
+  (lambda () (cdr (assoc "complex" *what-is-aliases*))) '(cc-normed-field))
+
+;;; what-is tactic/procedure lane.  The index is harvested from source, so
+;;; these guard the SCAN, not a table: if the parse breaks, or a surface file
+;;; is renamed out of *what-is-surface-files*, the counts collapse and these
+;;; fail.  `scout' is the case the lane was built for.
+(check-true "what-is lane: harvest finds a useful number of entries"
+  (lambda () (> (length (what-is--procs)) 200)))
+(check-true "what-is lane: at least 40 of them classify as tactics"
+  (lambda ()
+    (> (length (filter (lambda (e) (eq? (what-is--proc-kind e) 'tactic))
+                       (what-is--procs)))
+       40)))
+(check-true "what-is lane: scout is found, with its rest-arg arity"
+  (lambda ()
+    (let ((e (find-first (lambda (x) (string=? (what-is--proc-name x) "scout"))
+                         (what-is--procs))))
+      (and e
+           (eq? (what-is--proc-kind e) 'procedure)
+           (string=? (what-is--proc-file e) "suggest")
+           (string=? (what-is--arity-string (what-is--proc-formals e))
+                     "0 or more")))))
+(check-true "what-is lane: ci classifies as a tactic (it calls vnb--run!)"
+  (lambda ()
+    (let ((e (find-first (lambda (x) (string=? (what-is--proc-name x) "ci"))
+                         (what-is--procs))))
+      (and e (eq? (what-is--proc-kind e) 'tactic)
+             (string=? (what-is--proc-cmd e) "cmd-cartesian-intro")))))
+(check "what-is lane: arity of a fixed-arity form"
+  (lambda () (what-is--arity-string "subst eqn")) "1")
+(check "what-is lane: arity of a rest form"
+  (lambda () (what-is--arity-string "fact thm . args")) "1 or more")
+(check-true "what-is lane: internal `--' names are skipped"
+  (lambda ()
+    (not (find-first (lambda (x)
+                       (string-search-forward "--" (what-is--proc-name x) 0))
+                     (what-is--procs)))))
+(check-true "what-is lane: scout's siblings include scout-show"
+  (lambda ()
+    (there-exists? (map what-is--proc-name (what-is--proc-siblings "scout"))
+                   (lambda (n) (string=? n "scout-show")))))
+
+;;; -----------------------------------------------------------------------
+;;; proof-tex / replay: assumption-by-INDEX args must be resolved on replay
+;;; (apply-recorded-cmd! once passed the bare integer through, so (ai 1) etc.
+;;; replayed as "cannot decompose: 1").  The begin-handler bc* replay path is
+;;; covered by calculus/compact-tb-proof.scm.
+
+(check-true "replay: ai resolves assumption index, proof-tex renders"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (IN 0 NN) (IN 1 NN)) (IN 0 NN))))
+    (di)                ; (AND ..) -> assumption 1
+    (ai 1)              ; decompose assumption-by-INDEX (the regressed path)
+    (ass)               ; goal (IN 0 NN) now in context
+    (qed 'replay-idx-regr)
+    (string? (proof-tex 'replay-idx-regr))))
+
+(check-true "proof-tex: glossaries + per-node assumptions rendered"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (IN 0 NN) (IN 1 NN)) (IN 0 NN))))
+    (di)
+    (ai 1)
+    (ass)
+    (qed 'proof-tex-gloss-regr)
+    (let ((s (proof-tex 'proof-tex-gloss-regr)))
+      (and (substring? "Tactics used" s)        ; tactic glossary
+           (substring? "direct inference" s)    ; di described
+           (substring? "Notation" s)            ; notation glossary
+           (substring? "set membership" s)      ; `in' glossed
+           (substring? "\\begin{align*}" s)     ; formulas in editable align* blocks
+           (substring? "\\mathbf{A1.}" s)       ; assumptions listed, numbered
+           (substring? "\\vdash" s)))))         ; goal shown as a sequent
+
+(check-true "mac-h*: saturates hyps, closes, renders as one trace row"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (= (length s) 2)))))
+    (di) (di)
+    (mac-h*)            ; unfold IS-METRIC-SPACE, split, unfold is-metric, split
+    (ass)               ; length(s)=2 is now a hypothesis
+    (qed 'mac-h-star-regr)
+    (let* ((entry  (assq 'mac-h-star-regr *session-log*))
+           (script (and entry (caddr entry))))
+      (and (proof-done? *ps*)
+           (member '(mac-h*) script)                  ; one (mac-h*) entry, no expansion
+           (= 1 (length (filter (lambda (c) (eq? (car c) 'mac-h*)) script)))
+           (string? (proof-tex 'mac-h-star-regr))))))  ; replay dispatch handles mac-h*
+
+(check-true "suggest-hyp-unfolds: el-cheapo lane names the foldable assumption"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (= (length s) 2)))))
+    (di) (di)
+    (let ((us (suggest-hyp-unfolds)))
+      (and (pair? us)
+           (assv 1 us)                                 ; assumption 1 is foldable
+           (eq? 'is-metric-space (cadr (assv 1 us)))))))  ; via its definition unfold
+
+(check-true "cheap-mac: speculative goal probe finds the unfold, leaves *ps* intact"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (IS-METRIC-SPACE s)))))
+    (di) (di)                                       ; goal = IS-METRIC-SPACE(s)
+    (let* ((before (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+           (moves  (cheap-mac))                      ; probes on scratch copies
+           (after  (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (member '(mac (quote is-metric-space)) moves)  ; the unfold is reported, runnable
+           (equal? before after)))))                      ; live goal untouched by probing
+
+(check-true "cheap-mac-h: hypothesis probe finds the in-place unfold"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (IS-METRIC-SPACE s)))))
+    (di) (di)
+    (and (member '(mac-h (quote is-metric-space) 1) (cheap-mac-h 1)) #t)))
+
+(check-true "grind: saturates di + mac-h*, normalizes the focus in one step"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s) (= (length s) 2)))))
+    (grind)                                          ; di, di, mac-h* all at once
+    (and (member '(grind) *proof-script*)            ; recorded as ONE step
+         (= 1 (length (filter (lambda (c) (eq? (car c) 'grind)) *proof-script*)))
+         ;; goal fully introduced: a bare equality with length(s)=2 now in context
+         (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+           (and (pair? g) (eq? (car g) '=)))
+         (begin (ass) (proof-done? *ps*)))))         ; the unfolded hyp closes it
+
+(check-true "scout: returns (nodes (d b) goal partials closing), leaves *ps* intact"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
+    (let* ((before (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+           (result (scout 4 3))                       ; structured nested list, no print
+           (after  (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (and (= 5 (length result))                      ; the documented 5-list shape
+           (number? (car result))                     ; number-of-branches examined
+           (equal? '(4 3) (cadr result))              ; (d b)
+           (member '((grind) (ass)) (list-ref result 4)) ; closing branches incl the 2-step
+           (equal? before after)                      ; live proof untouched by scouting
+           (not (proof-done? *ps*))))))
+
+(check-true "scout: best-partials are (open-count (form ...)) nested lists"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
+    (let* ((result   (scout 4 2))                     ; d=4: the inst closer is ~5
+           (closing  (list-ref result 4))             ; plies deep, so still no closure
+           (partials (list-ref result 3)))
+      (and (null? closing)                            ; ... -> partials populated
+           (pair? partials)
+           (number? (caar partials))                  ; each partial: (open-count ...)
+           (list? (cadar partials))))))                ; ... (form ...)
+
+;; The inst lane: with a chosen witness term scout now CLOSES the metric laws.
+;; Symmetry's proof is grind; inst+ the is-metric universal at x; grind to split
+;; the exposed conjunction; inst+ the inner universal at y; grind; ass -- all
+;; real kernel rules, so the closing branch is a genuine proof.  (di/mac-h* are
+;; folded into the (grind) plies.)  Needs depth >= 5; default is 6.
+(check-true "scout inst lane: closes metric-sym, closing branch uses inst+"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
+    (grind)
+    (let* ((result  (scout 6 3 300))
+           (closing (list-ref result 4)))
+      (and (pair? closing)                            ; the inst lane found a proof
+           ;; some closing branch instantiates a universal (an inst+ step)
+           (any (lambda (br) (any (lambda (f) (eq? (car f) 'inst+)) br))
+                closing)))))
+
+;; scout-run adopts that inst-lane proof onto the live deduction graph and the
+;; kernel accepts it -> metric symmetry proved, end to end, by the copilot.
+(check-true "scout inst lane: scout-run drives the metric-sym proof to done"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
+    (grind)
+    (scout 6 3 300)
+    (scout-run 1)
+    (proof-done? *ps*)))
+
+;; The single-move copilot grows the same inst lane: what-now names the
+;; (inst+ assumption-# term) universals worth instantiating -- the same ranked
+;; candidates scout tries -- so on a witness-needing goal it does not point
+;; only at backchain/closers and miss the witness.
+;;
+;; BEHIND THE HINT 2026-08-13 to 2026-08-21.  Unhinted, the lane printed the
+;; cross product of the context's universals with its terms, which is a search
+;; space rather than advice, so it was gated on `(what-now "inst")'.
+;;
+;; UNGATED 2026-08-21, on the user's report that the panel was "totally
+;; oblivious" to exactly this move.  The remedy for a noisy lane is now to PROBE
+;; it, not to hide it: unhinted, the same ranked candidates are run on a
+;; throwaway clone and only the ones that LAND something survive
+;; (`what-now--show-inst-fired').  Under the hint the unfiltered search space is
+;; still what you get, because asking for it explicitly means wanting it.
+;;
+;; So the contract this pins has flipped: the lane must fire in BOTH modes.  The
+;; hinted half is unchanged; the unhinted half is the new behaviour, and a lane
+;; that silently stopped firing would look exactly like a lane deliberately
+;; gated -- which is why the original check asserted both halves and this one
+;; still does.
+(check-true "what-now: inst lane suggests (inst+ k term) hinted AND unhinted"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+                     (FORALL x (IMPLIES (IN x (PTS s))
+                       (FORALL y (IMPLIES (IN y (PTS s))
+                         (= ((DIST s) x y) ((DIST s) y x))))))))))
+    (grind)
+    (let ((inst? (lambda (v) (any (lambda (m) (and (pair? m) (eq? (car m) 'inst+)))
+                                  (what-now-moves v)))))
+      (and (inst? (what-now "inst"))
+           (inst? (what-now))))))
+
+;; The ew lane -- existential-GOAL introduction, the dual of the inst lane.
+;; Goal `exists x. x in SS' with `a in SS' in context: scout supplies the typed
+;; witness a, then closes by ass.  inst+ (universal-hypothesis witnesses) cannot
+;; reach this -- the witness is for the GOAL's existential.  A closing branch
+;; therefore must contain an (ew ...) step, and it is a genuine kernel proof.
+(check-true "scout ew lane: closes an existential goal with a context-typed witness"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
+    (di)
+    (let* ((result  (scout 4 3 200))
+           (closing (list-ref result 4)))
+      (and (pair? closing)
+           (any (lambda (br) (any (lambda (f) (eq? (car f) 'ew)) br)) closing)))))
+
+;; scout-run adopts that ew-lane proof onto the live deduction graph and the
+;; kernel accepts it -> the existential is proved end to end by the copilot.
+(check-true "scout ew lane: scout-run drives the existential proof to done"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
+    (di)
+    (scout 4 3 200)
+    (scout-run 1)
+    (proof-done? *ps*)))
+
+;; The single-move copilot grows the same ew lane: on an existential goal
+;; what-now names the (ew term) witnesses -- the move what-now--show-inst, which
+;; only witnesses universal hypotheses, misses.
+(check-true "what-now: ew lane suggests (ew term) on an existential goal"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (IN a SS) (FORSOME x (IN x SS)))))
+    (di)
+    (let ((moves (what-now-moves (what-now))))
+      (any (lambda (m) (and (pair? m) (eq? (car m) 'ew))) moves))))
+
+;; Skolemize folded into grind.  Goal `(exists v. g(v) in SS) => (exists w. w in
+;; SS)': NOT alpha-equal (bodies differ), so (ass) can't shortcut.  The
+;; existential hypothesis MUST be skolemized to expose `g(v_k) in SS' -- only
+;; then is g(v_k) a typed witness the ew lane can supply.  Since `grind' now
+;; SKOLEMIZES existential hypotheses (mac-h*, alongside its AND-split), scout
+;; closes via grind + ew with NO explicit (ai ...) step: grind does the
+;; skolemize, ew the witness, ass the close.  (Also exercises the fresh-var-drift
+;; fix: the skolem g(v_k) is captured at gen-time and reproduced on replay.)
+(check-true "grind-skolemize: scout closes the existential-hyp goal via grind+ew"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+    (let* ((result  (scout 6 3 300))
+           (closing (list-ref result 4)))
+      (and (pair? closing)
+           ;; grind (skolemize) + ew (witness) -- no separate ai move needed
+           (any (lambda (br)
+                  (and (any (lambda (f) (eq? (car f) 'grind)) br)
+                       (any (lambda (f) (eq? (car f) 'ew)) br)))
+                closing)))))
+
+;; scout-run adopts that grind+ew proof onto the live deduction graph; the kernel
+;; accepts it -> the existential is proved end to end by the copilot.  Relies on
+;; scout-run pinning *fresh-counter* to the search base so the grind-minted
+;; skolem g(v_k) reproduces live.
+(check-true "scout ai lane: scout-run drives the skolemize+witness proof to done"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+    (scout 6 3 300)
+    (scout-run 1)
+    (proof-done? *ps*)))
+
+;; The single-move copilot grows the same ai lane: on an existential hypothesis
+;; what-now names the (ai k) skolemization -- the forward move show-ew (goals)
+;; and show-inst (universal hyps) both miss.
+(check-true "what-now: ai lane suggests (ai k) on an existential hypothesis"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (FORSOME v (IN (g v) SS)) (FORSOME w (IN w SS)))))
+    (di)
+    (let ((moves (what-now-moves (what-now))))
+      (any (lambda (m) (and (pair? m) (eq? (car m) 'ai))) moves))))
+
+;; QUANTIFIER-ALTERNATION SWAP (the analysis pattern): scout closes
+;;   exists f in P. forall e. Q(f,e)  =>  forall e. exists g in P. Q(g,e)
+;; -- the easy (exists-forall => forall-exists) direction.  This is the payoff
+;; of three search-guidance pieces working together:
+;;   * grind SKOLEMIZES the existential hyp + intros eps (collapsed prefix);
+;;   * the inst lane offers the EIGENVAR eps (unguarded-forall atomic-subterm
+;;     fallback) so inst+ can instantiate forall-e. Q(f,e) at eps;
+;;   * the effective-open metric DISTISCOUNTS the typing conjunct (in f P) after
+;;     the ew witness, so the AND-split isn't read as regress and fled.
+;; The closing branch is grind / ew / inst+ (at eps) / grind / ass / ass.
+(check-true "scout: closes the exists-forall => forall-exists quantifier swap"
+  (lambda ()
+    (sp (make-wff '(IMPLIES
+                    (FORSOME f (AND (IN f FUBA) (FORALL eps (GUBA f eps))))
+                    (FORALL eps (FORSOME g (AND (IN g FUBA) (GUBA g eps)))))))
+    ;; closing branch is 6 plies (grind/ew/inst+/grind/ass/ass), so depth 6 +
+    ;; a modest node cap suffice -- keep the test fast.
+    (pair? (list-ref (scout 6 3 200) 4))))
+
+;; APPLIED WITNESS -- the forall-eps.exists-delta (delta := f(eps)) construction.
+;; SUUB : NN -> GUBA in context, hyp forall n in NN. LUBA(SUUB(n), n); goal
+;; forall n in NN. exists y. LUBA(y, n).  The ONLY witness that works is
+;; y := SUUB(n) -- a context FUNCTION applied to the eigenvar n.  Bare ew (atoms
+;; only) offers SUUB and n, giving LUBA(SUUB,n) / LUBA(n,n), neither derivable;
+;; the ew lane must CONSTRUCT the application.  So scout closing at all proves the
+;; applied-witness lane fired.  Branch: grind / ew (SUUB n) / inst+ at n / ass.
+(check-true "scout ew applied-witness: closes via f(eps), a function applied to the eigenvar"
+  (lambda ()
+    (sp (make-wff '(IMPLIES
+                    (AND (IN SUUB (FUN NN GUBA))
+                         (FORALL n (IMPLIES (IN n NN) (LUBA (SUUB n) n))))
+                    (FORALL n (IMPLIES (IN n NN) (FORSOME y (LUBA y n)))))))
+    (pair? (list-ref (scout 6 3 200) 4))))
+
+;; The produces-witness index: an existential GOAL retrieves the PSS lemmas that
+;; MANUFACTURE a witness of its shape -- keyed on the leading typing/structure
+;; conjuncts (binder abstracted), so a Cauchy-subsequence goal finds
+;; `diagonalization' (both make a STRICTLY-MONO-NN phi) though their bodies
+;; differ -- the connection plain bc* misses.  The circular headlines that
+;; CONCLUDE the goal are filtered out.
+(check-true "produces-witness index: Cauchy goal retrieves diagonalization, not the circular headline"
+  (lambda ()
+    (rebuild-witness-index!)
+    (let ((prods (witness-producers
+                  '(FORSOME phi (AND (STRICTLY-MONO-NN phi)
+                                     (IS-CAUCHY-SEQ s (SUBSEQ f phi)))))))
+      (and (and (memq 'diagonalization prods) #t)
+           (not (memq 'totally-bounded-has-cauchy-subsequence prods))))))
+
+(check-true "produces-witness index: nested-family goal retrieves block-family"
+  (lambda ()
+    (rebuild-witness-index!)
+    (and (memq 'block-family
+               (witness-producers
+                '(FORSOME s (AND (IN s (FUN NN (INF-SUBSETS NN)))
+                                 (FORALL k (IMPLIES (IN k NN)
+                                   (SUBSET (s (succ k)) (s k))))))))
+         #t)))
+
+;; wbc EXECUTED -- the witness-shape backchain resolves a producer's premises
+;; against context, applies it (fact: instantiate + auto-detach), and skolemizes
+;; its output, landing the constructed object.  Two steps assemble the whole
+;; Cauchy-subsequence CONSTRUCTION: (wbc 'block-family) builds the nested infinite
+;; family, (wbc 'diagonalization) builds the strictly-monotone reindexer.  Then ew
+;; supplies it and the strictly-mono conjunct closes -- leaving ONLY the
+;; is-cauchy-seq estimate.  (di, not grind, for the intros: keeps the producers'
+;; premises folded so they can be detached.)  This is the invention half of an
+;; existence proof, driven automatically.
+(check-true "wbc: drives the Cauchy-subsequence construction down to the estimate"
+  (lambda ()
+    (sp (make-wff '(FORALL s (IMPLIES (TOTALLY-BOUNDED s)
+                     (FORALL f (IMPLIES (IN f (FUN NN (PTS s)))
+                       (FORALL rad (IMPLIES (NULL-RR-SEQ rad)
+                         (FORSOME phi (AND (STRICTLY-MONO-NN phi)
+                           (IS-CAUCHY-SEQ s (SUBSEQ f phi))))))))))))
+    (di)(di)(di)(di)(di)(di)
+    (rebuild-witness-index!)
+    (wbc 'block-family)
+    (wbc 'diagonalization)
+    (let ((phi0 (let loop ((as (map wff-formula
+                                    (sequent-node-assumptions (proof-state-focus *ps*)))))
+                  (cond ((null? as) #f)
+                        ((and (pair? (car as)) (eq? (caar as) 'STRICTLY-MONO-NN)) (cadr (car as)))
+                        (else (loop (cdr as)))))))
+      (and phi0
+           (begin (ew phi0) (di) (ass)
+                  (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+                    (and (pair? g) (eq? (car g) 'IS-CAUCHY-SEQ))))))))
+
+(check-true "scout-show: prints and returns the same 5-list"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
+    (let ((result (scout-show 4 3)))
+      (and (= 5 (length result))
+           (member '((grind) (ass)) (list-ref result 4))
+           #t))))
+
+(check-true "scout-run: adopts a scout branch and drives the live proof to done"
+  (lambda ()
+    (sp (make-wff '(IMPLIES (AND (= a a) (= b b)) (= a a))))
+    (scout 4 3)
+    (scout-run 1)                                     ; replay branch 1 for real
+    (proof-done? *ps*)))
+
+;; Citation guard: a closing branch that discharges the goal by citing a
+;; library theorem alpha-equal to the goal itself is `P proved by P' -- vacuous.
+;; vnb--scout-cites-goal detects such a step (bc*/bc/fact/ta naming a theorem
+;; whose statement is alpha-equal to the goal).
+(check-true "scout citation guard: detects a self-citation step, ignores the rest"
+  (lambda ()
+    (let ((g '(FORALL a (FORALL b (IMPLIES (= a b) (= b a))))))
+      (and (eq? 'equality-symmetry
+                (vnb--scout-cites-goal '((grind) (bc* equality-symmetry)) g))
+           (eq? 'equality-symmetry
+                (vnb--scout-cites-goal '((ta equality-symmetry)) g))
+           (not (vnb--scout-cites-goal '((grind) (bc* equality-transitivity)) g))
+           (not (vnb--scout-cites-goal '((grind) (ass)) g))))))
+
+;; The guard's invariant: scout NEVER presents a self-citation as a closing
+;; branch.  equality-symmetry can only be closed by citing itself (scout has no
+;; subst lane), so any closure scout finds is circular and must be suppressed --
+;; no surviving closing branch may discharge the goal by citing a theorem
+;; alpha-equal to it.  (Robust to whichever closers best-first happens to reach
+;; in the fully-loaded theory: if it finds the citation it's filtered; if it
+;; finds none the set is empty -- either way no citation is presented.)
+(check-true "scout citation guard: never presents a self-citation as a closure"
+  (lambda ()
+    (sp (make-wff '(FORALL a (FORALL b (IMPLIES (= a b) (= b a))))))
+    (let ((closing (list-ref (scout) 4))
+          (goal    '(FORALL a (FORALL b (IMPLIES (= a b) (= b a))))))
+      (not (any (lambda (br)               ; br = list of forms, args quoted
+                  (any (lambda (f)
+                         (and (pair? f) (memq (car f) '(bc* bc fact ta))
+                              (pair? (cdr f)) (pair? (cadr f))
+                              (eq? (car (cadr f)) 'quote)
+                              (let ((thm (lookup-theorem (cadr (cadr f)))))
+                                (and thm (alpha-equiv? thm goal)))))
+                       br))
+                closing)))))
+
+;; Transitive circularity: proving goal F by citing a PROVEN lemma L whose own
+;; proof rests on F (a name alpha-equal to F is in L's debt) is `P by P' one hop
+;; removed -- the `compact=>complete by compact=>bongo + bongo=>complete' trap.
+;; The guard catches it via proof-debt's debt-of.  No such (proven-rests-on-
+;; asserted) pair exists in the base load (every proven theorem is modulo 0), so
+;; we synthesize one: assert F=bongo-fact, install a proven L=compact-bongo-lemma
+;; whose debt is (bongo-fact); then citing L to prove F must read as circular,
+;; while a real modulo-0 theorem (metric-sym) does not.  Clean up after.
+(check-true "scout citation guard: catches TRANSITIVE circularity via debt-of"
+  (lambda ()
+    (let ((Fstmt '(FORALL zzz (BONGO-PRED zzz))))
+      (hash-table-set! *theorem-table* 'bongo-fact Fstmt)
+      (hash-table-set! *theorem-table* 'compact-bongo-lemma '(QUUX-CONCL))
+      (register-provenance! 'bongo-fact 'asserted)
+      (register-provenance! 'compact-bongo-lemma 'proven)
+      (hash-table-set! *proof-debt* 'compact-bongo-lemma '(bongo-fact))
+      (let* ((gn (vnb--goal-theorem-names Fstmt))
+             (ok (and (memq 'bongo-fact gn)                  ; F resolves to its name
+                      ;; cite the proven lemma that RESTS ON F to prove F -> circular
+                      (eq? 'compact-bongo-lemma
+                           (vnb--scout-cites-names '((bc* compact-bongo-lemma)) gn))
+                      ;; a genuine modulo-0 theorem is NOT circular for F
+                      (not (vnb--scout-cites-names '((bc* metric-sym)) gn)))))
+        (hash-table-delete! *theorem-table* 'bongo-fact)
+        (hash-table-delete! *theorem-table* 'compact-bongo-lemma)
+        (hash-table-delete! *proof-debt* 'compact-bongo-lemma)
+        (hash-table-delete! *provenance* 'bongo-fact)
+        (hash-table-delete! *provenance* 'compact-bongo-lemma)
+        ok))))
+
+;; proof-cycle-check: a load-time soundness gate over the LIVE citation graph.
+;; Synthesize a 2-node cycle gribble <-> grobble (both proven, each citing the
+;; other); proof-cycle-from must return a path, an acyclic node must return #f.
+(check-true "proof-cycle-check: detects a circular proof dependency"
+  (lambda ()
+    (register-provenance! 'gribble 'proven)
+    (register-provenance! 'grobble 'proven)
+    (hash-table-set! *proof-citation-graph* 'gribble '(grobble))
+    (hash-table-set! *proof-citation-graph* 'grobble '(gribble))
+    (register-provenance! 'gralone 'proven)
+    (hash-table-set! *proof-citation-graph* 'gralone '())
+    (let ((cyc (proof-cycle-from 'gribble))
+          (clean (proof-cycle-from 'gralone)))
+      (hash-table-delete! *proof-citation-graph* 'gribble)
+      (hash-table-delete! *proof-citation-graph* 'grobble)
+      (hash-table-delete! *proof-citation-graph* 'gralone)
+      (hash-table-delete! *provenance* 'gribble)
+      (hash-table-delete! *provenance* 'grobble)
+      (hash-table-delete! *provenance* 'gralone)
+      (and (memq 'gribble cyc) (memq 'grobble cyc) (not clean)))))
+
+;; proof-cycle-check ITSELF -- the load-time gate, as distinct from the
+;; single-start proof-cycle-from the check above exercises.  Rewritten
+;; 2026-08-28 to read cycles off Tarjan SCCs (proof-debt.scm) rather than run
+;; one path-enumerating DFS per proven name.  Pinned in BOTH directions, since
+;; a gate that reports nothing is indistinguishable from a gate that is broken:
+;; it must be silent on the live library, LOUD on a synthesized cycle, and
+;; silent again once that cycle is removed.
+(check-true "proof-cycle-check: finds a synthesized cycle, silent otherwise"
+  (lambda ()
+    (let ((saved *proven-theorem-names*)
+          (clean-before (proof-cycle-check)))
+      (register-provenance! 'gribble2 'proven)
+      (register-provenance! 'grobble2 'proven)
+      (hash-table-set! *proof-citation-graph* 'gribble2 '(grobble2))
+      (hash-table-set! *proof-citation-graph* 'grobble2 '(gribble2))
+      (set! *proven-theorem-names* (cons 'gribble2 (cons 'grobble2 saved)))
+      (let ((found (proof-cycle-check)))
+        (set! *proven-theorem-names* saved)
+        (hash-table-delete! *proof-citation-graph* 'gribble2)
+        (hash-table-delete! *proof-citation-graph* 'grobble2)
+        (hash-table-delete! *provenance* 'gribble2)
+        (hash-table-delete! *provenance* 'grobble2)
+        (and (null? clean-before)
+             (= 1 (length found))
+             (memq 'gribble2 (car found))
+             (memq 'grobble2 (car found))
+             (null? (proof-cycle-check)))))))
+
+;; domain-clash-audit (audit.scm): one object asserted into two FUN classes with
+;; different domains proves those domains equal, since IN f (FUN A ...) pins
+;; DOM(f) = A exactly.
+;;
+;; INVERTED 2026-08-29, the day the repair landed.  This check used to assert
+;; that binneg / binplus / bintimes DO clash -- it was the live positive half,
+;; watching a known defect.  The numeric instance slots now hold a tupled
+;; VNB-LAMBDA per instance instead of one shared constant, the fourteen typing
+;; axioms are gone, and the audit reports nothing.  Inverted rather than
+;; deleted: the nvs lesson at :4136 is that a green check asserting the current
+;; behaviour of something nobody questions is how a defect acquires tenure, and
+;; the inverse of that is that the check which caught it should stay and say so.
+(check-true "domain-clash-audit: the tree is clean (no object has two exact domains)"
+  (lambda () (null? (domain-clash-audit))))
+
+;; The CONTROL, and it is what stops the check above from passing vacuously: the
+;; audit must still be LOOKING at something.  If the population went to zero --
+;; someone deleted the FUN typings wholesale, or the walker stopped finding
+;; them -- "no clashes" would be true and meaningless.
+(check-true "domain-clash-audit: still examines a real population"
+  (lambda () (> (domain-clash-population) 5)))
+
+
+;; ---------------------------------------------------------------------
+;; The auto -rev companion carries its FORWARD's debt.
+;;
+;; install-theorem! mints X-rev for a symmetric-core theorem and stamps it with
+;; X's provenance.  Until 2026-08-24 nothing ever wrote a *proof-debt* entry
+;; under the companion's name, so debt-of took the `proven' branch, found no
+;; entry and returned the EMPTY bill: a proof that rewrote with `X-rev' billed
+;; less than the identical proof rewriting with `X'.  Measured on
+;; `binomial-theorem', whose forward bill is twelve leaves and whose companion
+;; billed nothing.  The repair is *rev-companion-source*, written at mint time.
+;;
+;; Tested on the VALUE, not on any printed line.
+;; The example is chosen AT RUN TIME, and that is the repair of 2026-09-15.
+;; This check named `binomial-theorem' outright, and its non-vacuity clause
+;; asserted that binomial-theorem's bill is non-empty -- true when the check was
+;; written, false the day the COMB-KK index was fixed to ZZ and the whole
+;; binomial block was proved.  The check then FAILED because the library got
+;; BETTER, which is the least useful way for a check to fail.  The comment on
+;; the synthetic twin below had already foreseen exactly this ("if
+;; binomial-theorem's own bill is ever discharged to modulo 0").  So: scan the
+;; companion table for any pair whose forward still carries a bill, and test the
+;; redirection on that.  If the day comes when NO proven theorem with a
+;; companion carries a bill -- the whole library at modulo 0 -- there is nothing
+;; left for this check to be non-vacuous about, and the synthetic pair below
+;; keeps the teeth.
+(define (rev-pair-with-a-bill)
+  (let ((found #f))
+    (hash-table-walk *rev-companion-source*
+      (lambda (rev fwd)
+        (when (and (not found)
+                   (eq? (provenance-of rev) 'proven)
+                   (pair? (debt-of fwd)))
+          (set! found (cons rev fwd)))))
+    found))
+
+(check-true "-rev companion: debt equals its forward's (a still-billed pair)"
+  (lambda ()
+    (let ((pair (rev-pair-with-a-bill)))
+      (or (not pair)                      ; nothing billed anywhere: see above
+          (let ((rev (car pair)) (fwd (cdr pair)))
+            (and (eq? (rev-companion-source rev) fwd)
+                 (not (rev-companion-source fwd))  ; a forward is nobody's companion
+                 (eq? (provenance-of rev) 'proven)
+                 (pair? (debt-of fwd))            ; non-vacuous by construction
+                 (equal? (debt-of rev) (debt-of fwd))
+                 (equal? (oracles-of rev) (oracles-of fwd))
+                 ;; and the cycle graph resolves through the forward too
+                 (equal? (proof-citations-of rev)
+                         (proof-citations-of fwd))))))))
+
+;; The same three redirections, on a synthetic pair, so the check keeps its
+;; teeth if binomial-theorem's own bill is ever discharged to modulo 0.  This
+;; one exercises the MINT: install-theorem! must write *rev-companion-source*
+;; itself -- nothing here sets that table by hand.
+(check-true "-rev companion: install-theorem! records the parentage at mint time"
+  (lambda ()
+    (fluid-let ((*current-provenance* 'proven))
+      (install-theorem! 'bongo-sym-law '(= bongo-lhs bongo-rhs)))
+    (hash-table-set! *proof-debt* 'bongo-sym-law '(bongo-leaf))
+    (hash-table-set! *proof-oracles* 'bongo-sym-law '(ineq))
+    (hash-table-set! *proof-citation-graph* 'bongo-sym-law '(bongo-leaf))
+    (let ((ok (and (hash-table-ref/default *theorem-table* 'bongo-sym-law-rev #f)
+                   (eq? (rev-companion-source 'bongo-sym-law-rev) 'bongo-sym-law)
+                   (equal? (debt-of 'bongo-sym-law-rev) '(bongo-leaf))
+                   (equal? (oracles-of 'bongo-sym-law-rev) '(ineq))
+                   (equal? (proof-citations-of 'bongo-sym-law-rev) '(bongo-leaf))
+                   ;; the companion inherits the forward's out-edges; it does NOT
+                   ;; gain an edge INTO the forward, so no self-loop appears
+                   (not (memq 'bongo-sym-law (proof-citations-of 'bongo-sym-law-rev)))
+                   (not (proof-cycle-from 'bongo-sym-law)))))
+      (for-each (lambda (n)
+                  (hash-table-delete! *theorem-table* n)
+                  (hash-table-delete! *macete-table* n)
+                  (hash-table-delete! *provenance* n)
+                  (hash-table-delete! *proof-debt* n)
+                  (hash-table-delete! *proof-oracles* n)
+                  (hash-table-delete! *proof-citation-graph* n)
+                  (hash-table-delete! *rev-companion-source* n))
+                '(bongo-sym-law bongo-sym-law-rev))
+      ok)))
+
+;; case-fold-audit: the whole installed library must be free of binders that
+;; shadow an in-scope variable -- the post-read signature of a case-fold
+;; collision (FORALL N .. FORSOME n).  This is a HARD soundness gate: any new
+;; collision (in a literal def, a tf-built statement, or a -rev companion)
+;; fails the suite.
+(check-true "case-fold-audit: installed library is collision-free"
+  (lambda () (null? (case-fold-audit))))
+(check-true "wff-shadowing-binders: flags a shadow, passes a clean binder pair"
+  (lambda ()
+    (and (pair? (wff-shadowing-binders '(FORALL n (FORSOME n (<= n n)))))
+         (null? (wff-shadowing-binders '(FORALL m (FORSOME n (<= m n)))))
+         ;; multi-binder lambda: the source scanner's blind spot
+         (pair? (wff-shadowing-binders '(FORALL x (= x (VNB-LAMBDA (LIST y x) (CARTESIAN NN NN) y))))))))
+
+;; constant-binder-audit: no installed binder is named like a registered
+;; constant (accessor/operator/functoid/predicate).  The accessor/variable
+;; collision class -- HARD soundness gate (distinctive accessor names CARR/PTS/
+;; DIST/IDEN/MUL/... exist so this stays empty).
+;; The debt ledger sees a citation made INSIDE a bc* handler (2026-09-18).  The
+;; handler runs with recording suppressed, so the citation is absent from the
+;; top-level script; until the hidden-citation log, compact-implies-totally-bounded
+;; read `modulo 0' while citing the then-asserted ball-cover-is-open-cover.
+(check-true "proof-debt: a citation inside a bc* handler reaches the citation graph"
+  (lambda ()
+    (and (memq 'ball-cover-is-open-cover
+               (hash-table-ref/default *proof-citation-graph*
+                                       'compact-implies-totally-bounded '()))
+         #t)))
+;; A binder spelled like a bare class name (rR folds onto RR) is a collision too.
+(check-true "wff-constant-binders flags a binder named like a class (rR ~ RR)"
+  (lambda () (pair? (wff-constant-binders '(FORALL rR (IMPLIES (IN rR RR) (= rR rR)))))))
+(check-true "wff-constant-binders leaves an ordinary binder alone"
+  (lambda () (null? (wff-constant-binders '(FORALL rv (IMPLIES (IN rv RR) (= rv rv)))))))
+(check-true "def-functoid refuses an empty parameter list"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (with-exception-handler
+          (lambda (e) (k #t))
+          (lambda () (def-functoid 'SUITE-NULLARY-FUNCTOID '() '(LIST)) #f))))))
+(check-true "constant-binder-audit: no binder collides with a registered constant"
+  (lambda () (null? (constant-binder-audit))))
+(check-true "wff-constant-binders: flags an accessor-named binder, passes a clean one"
+  (lambda ()
+    (and (pair? (wff-constant-binders '(FORALL MUL (IN MUL (FUN CARR)))))   ; MUL is an accessor
+         (pair? (wff-constant-binders '(FORSOME CARR (IN CARR SET))))       ; CARR is an accessor
+         (null? (wff-constant-binders '(FORALL m (FORSOME n (<= m n))))))))
+
+;; A rewrite in the gauge/euclidean-ring neighbourhood can leave a goal with a
+;; non-symbol in head position; the dedup key must survive it (write-based, not
+;; the pretty-printer which calls symbol->string on the head).  Without the fix
+;; this term crashed the whole scout search at the fingerprint step.
+(check-true "scout: dedup key survives a term the pretty-printer can't render"
+  (lambda ()
+    (string? (vnb--scout-key '(0 (gauge s))))))         ; would throw via expression->string
+
+;;; -----------------------------------------------------------------------
+;;; clobber-guard (clobber-guard.scm)
+;;;
+;;; The gate against a proof file's (define BC ...) case-folding onto the `bc'
+;;; tactic.  A gate nobody has seen fire is a gate nobody should trust, so make
+;;; it fire: rebind a watched procedure to a term and check that it errors.
+;;; The victim is clobber-guard-snapshot! itself -- watched (it is defined
+;;; before the snapshot it takes) and never called again.
+
+(check-true "clobber-guard: armed, and watching the tactics"
+  (lambda () (and *clobber-guard-procs*
+                  (hash-table-ref/default *clobber-guard-procs* 'bc  #f)
+                  (hash-table-ref/default *clobber-guard-procs* 'di  #f)
+                  (hash-table-ref/default *clobber-guard-procs* 'ass #f)
+                  #t)))
+
+(check-false "clobber-guard: syntactic keywords (bc*) are not watched"
+  (lambda () (and (hash-table-ref/default *clobber-guard-procs* 'bc* #f) #t)))
+
+(check-true "clobber-guard: silent when no procedure was rebound"
+  (lambda () (begin (clobber-guard-check! "test-suite") #t)))
+
+(check-true "clobber-guard: fires when a watched procedure is rebound to a term"
+  (lambda ()
+    (let ((victim 'clobber-guard-snapshot!)
+          (fired  #f))
+      (let ((saved (environment-lookup *clobber-guard-env* victim)))
+        (environment-assign! *clobber-guard-env* victim '(a term))
+        (call-with-current-continuation
+          (lambda (k)
+            (with-exception-handler
+              (lambda (e) (set! fired #t) (k #f))
+              (lambda () (clobber-guard-check! "test-suite-victim.scm")))))
+        (environment-assign! *clobber-guard-env* victim saved)
+        ;; check! drops the casualty from the watch set; put it back
+        (hash-table-set! *clobber-guard-procs* victim #t))
+      fired)))
+
+;;; -----------------------------------------------------------------------
+;;; driver-kit + proof-file containment (driver-kit.scm, load.scm)
+;;;
+;;; The rule: every proof-driving Scheme procedure is either in driver-kit.scm,
+;;; loaded before any proof, or is local to its own file's environment.  Check
+;;; both halves, and check that a contained file's define really cannot escape.
+
+(check-true "driver-kit: the shared helpers are here, not in a proof script"
+  (lambda () (and (procedure? any-pred) (procedure? proof-leaves)
+                  (procedure? dc-find)  (procedure? dc-focus-case!)
+                  (procedure? hb-detach-opt!) (procedure? hbf-focus-open!))))
+
+(check-true "driver-kit: containment is armed"
+  (lambda () (and *contain-proof-files?* (proof-file? "theorem-library/smith-proof"))))
+
+(check-false "driver-kit: engine and structure-library files are NOT contained"
+  (lambda () (or (proof-file? "interactive") (proof-file? "structure-library/ideal"))))
+
+(check-false "containment: a proof file's local helper did not escape"
+  ;; nn-least-element.scm defines `split-ands!' and deriv-constant-proof.scm
+  ;; defines `dc-up-eq!'.  Both loaded; neither may be visible out here.
+  (lambda () (or (environment-bound? *driver-kit-env* 'split-ands!)
+                 (environment-bound? *driver-kit-env* 'dc-up-eq!))))
+
+(check-true "containment: a (define BC ...) in a proof file cannot reach the tactic"
+  (lambda ()
+    (let ((kid (extend-top-level-environment *driver-kit-env*)))
+      (eval '(define bc '(a term)) kid)
+      (and (procedure? bc)                                  ; the real tactic survives
+           (not (procedure? (environment-lookup kid 'bc))))))) ; the driver sees its term
+
+(check-true "containment: a contained file still set!s the real *ps*"
+  (lambda ()
+    (let ((kid (extend-top-level-environment *driver-kit-env*))
+          (saved *ps*))
+      (eval '(set! *ps* 'containment-probe) kid)
+      (let ((reached (eq? *ps* 'containment-probe)))
+        (set! *ps* saved)
+        reached))))
+
+;;; -----------------------------------------------------------------------
+;;; use-em must refuse a proposition the context already DECIDES (driver-kit.scm),
+;;; and what-now's disjunction lane must not propose the split there (suggest.scm).
+;;;
+;;; Splitting on an assumption is not a case split: the branch assuming it is
+;;; hash-consed back onto the node it came from (context-add-assumption is
+;;; alpha-idempotent), and the branch assuming its negation has a contradictory
+;;; context.  The user is left with a leaf that reads like an obligation, and no
+;;; undo.  Both checks run on the same shape the copilot's own comment uses:
+;;; `u in a or u in complement-in(a, b)'.
+
+;; Build a focus whose goal is that disjunction, over an antecedent chosen by
+;; DECIDES: 'p lands the left disjunct in context, 'not-p lands its negation,
+;; 'neither lands a membership that settles neither.  `di' peels the FORALLs on
+;; the first call and the IMPLIES on the second.  Restores *ps*, so the checks
+;; leave no proof state behind.
+(define (em-guard--with-focus decides thunk)
+  (let ((saved *ps*)
+        (ante  (case decides
+                 ((p)       '(IN u a))
+                 ((not-p)   '(NOT (IN u a)))
+                 (else      '(IN u (UNION a b))))))
+    (quietly
+     (lambda ()
+       (sp (list 'FORALL 'u (list 'FORALL 'a (list 'FORALL 'b
+             (list 'IMPLIES ante '(OR (IN u a) (IN u (COMPLEMENT-IN a b))))))))
+       (di) (di)))
+    (let ((r (thunk)))
+      (set! *ps* saved)
+      r)))
+
+(define (em-guard--errors? thunk)
+  (call-with-current-continuation
+    (lambda (k)
+      (bind-condition-handler (list condition-type:error)
+        (lambda (c) c (k #t))                         ; it errored: correct
+        (lambda () (thunk) #f)))))                    ; it went ahead: wrong
+
+(check-true "use-em: refuses to split on a proposition already in context"
+  (lambda ()
+    (em-guard--with-focus 'p
+      (lambda () (em-guard--errors? (lambda () (use-em '(IN u a))))))))
+
+(check-true "use-em: refuses when the context holds the NEGATION"
+  ;; the same defect mirrored -- there it is the NOT-P branch that is vacuous
+  (lambda ()
+    (em-guard--with-focus 'not-p
+      (lambda () (em-guard--errors? (lambda () (use-em '(IN u a))))))))
+
+(check-true "use-em: still splits when the context decides neither disjunct"
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda ()
+        (quietly
+         (lambda () (= (length (cdr (assq 'cases (use-em '(IN u a))))) 2)))))))
+
+(check-true "what-now: the disjunction lane sees a disjunct already assumed"
+  ;; the decision procedure behind the lane -- (TACTIC . ASSUMPTION-INDEX)
+  (lambda ()
+    (em-guard--with-focus 'p
+      (lambda ()
+        (equal? (what-now--disjunct-in-context (dk-goal)) '(oi-l . 1))))))
+
+(check-false "what-now: ... and does not see one that is merely related"
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda () (what-now--disjunct-in-context (dk-goal))))))
+
+;;; A PROBE MUST NOT WRITE INTO THE REAL PROOF.  what-now's probes run the
+;;; genuine interactive tactic (that is the point -- the panel reports what the
+;;; tactic does, not what a re-implementation would do), and the tactic goes
+;;; through `vnb--run!', which records to `*proof-script*' and `*live-trace*'.
+;;; Those are globals; the fluid-let of *ps* does not protect them.  Until
+;;; 2026-08-15 every firing probe therefore appended a step nobody took -- to
+;;; the script the emitter writes and to the trace proof-tex prints from.
+;;; `vnb--probing' now binds `*replaying?*', the existing switch for exactly
+;;; this.  Checked on the two counters, since the symptom was silent.
+(check-true "what-now: a probe leaves *proof-script* and *live-trace* alone"
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda ()
+        (let ((script (length *proof-script*))
+              (trace  (length *live-trace*)))
+          (quietly (lambda () (what-now)))
+          (and (= script (length *proof-script*))
+               (= trace  (length *live-trace*))))))))
+
+(check-true "vnb-apply? does not record the tactic it probes"
+  ;; the narrower statement, on the probe that evals a tactic BY NAME
+  (lambda ()
+    (em-guard--with-focus 'neither
+      (lambda ()
+        (let* ((sqn    (proof-state-focus *ps*))
+               (seq    (make-sequent (sequent-node-assumptions sqn)
+                                     (sequent-node-assertion sqn)))
+               (script (length *proof-script*))
+               (trace  (length *live-trace*))
+               (fired  (quietly (lambda () (vnb-apply? 'oi-l seq)))))
+          (and fired                               ; it really did fire
+               (= script (length *proof-script*))
+               (= trace  (length *live-trace*))))))))
+
+;;; -----------------------------------------------------------------------
+;;; (prop) -- the propositional decision procedure (prop.scm).
+;;;
+;;; Two obligations, and the second matters more: it must CLOSE what follows
+;;; propositionally, and it must DECLINE what does not.  A closer that quietly
+;;; accepts a non-entailment would be unsound in the only way that counts, so
+;;; the invalid cases are checked as carefully as the valid ones.  `prop' adds
+;;; no trust -- it replays through the kernel rules -- which is why these are
+;;; ordinary checks and not a warrant.
+
+(define (prop--check form expect-closed)
+  (let ((saved *ps*))
+    (quietly
+     (lambda ()
+       (sp (make-wff form))
+       (let loop ((n 0))                     ; peel to the propositional leaf
+         (let ((g (dk-goal)))
+           (if (and (< n 12) (pair? g) (memq (car g) '(FORALL IMPLIES)))
+               (begin (di) (loop (+ n 1))))))
+       (prop)))
+    (let ((closed (proof-done? *ps*)))
+      (set! *ps* saved)
+      (eq? closed expect-closed))))
+
+(check-true "prop: closes a disjunct already in the context"
+  (lambda () (prop--check '(FORALL x (IMPLIES (IN x a) (IMPLIES (IN x b)
+                             (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))) #t)))
+
+(check-true "prop: closes one needing the case split"
+  ;; the leaf this tactic was built for: neither disjunct holds outright
+  (lambda () (prop--check '(FORALL x (IMPLIES (IN x b)
+                             (OR (IN x a) (AND (IN x b) (NOT (IN x a)))))) #t)))
+
+(check-true "prop: closes from a contradictory context"
+  (lambda () (prop--check '(FORALL x (IMPLIES (IN x b) (IMPLIES (NOT (IN x b))
+                             (IN x (UNION a b))))) #t)))
+
+(check-true "prop: closes excluded middle (no split -- em-prove!)"
+  ;; splitting here would cut the goal itself and the cut would self-loop
+  (lambda () (prop--check '(OR (IN x a) (NOT (IN x a))) #t)))
+
+(check-true "prop: closes Peirce's law"
+  (lambda () (prop--check '(IMPLIES (IMPLIES (IMPLIES (IN x a) (IN x b)) (IN x a))
+                                    (IN x a)) #t)))
+
+(check-true "prop: closes de Morgan"
+  (lambda () (prop--check '(IMPLIES (NOT (AND (IN x a) (IN x b)))
+                                    (OR (NOT (IN x a)) (NOT (IN x b)))) #t)))
+
+;;; -----------------------------------------------------------------------
+;;; The complement-union case study (examples/complement-union-case-study.scm).
+;;; Eleven lines, and it exercises most of today's repairs at once: grind,
+;;; class-extensionality on a quantified goal, two membership unfolds, and two
+;;; `prop' calls with a subset instantiation between them.  Kept as a check so
+;;; that if any of those regress, a proof a user actually drove breaks loudly.
+;;; No `qed' here -- the suite must not install a theorem into the library.
+(check-true "case study: b = a u (b \\ a) closes in eleven lines"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(forall a (implies (in a set) (forall b (implies (in b set)
+              (implies (subset a b) (= b (union a (complement-in b a))))))))))
+         (grind)
+         (bc* 'class-extensionality)
+         (di)
+         (mac 'union-membership)
+         (mac 'complement-in-membership)
+         (di)
+         (prop)
+         (mac-h 'subset-def '(subset a b))
+         (inst+ '(forall x (implies (in x a) (in x b))) 'x)
+         (prop)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+;;; A COMPLETE PROOF MUST EMIT A SCRIPT THAT REPLAYS.  Composites drive branches
+;;; with `dk-focus!', which moved the focus without recording a command; the
+;;; emitted script then ran the right steps against engine-chosen leaves and
+;;; died at `qed: proof is not complete'.  Two repairs, checked on the two
+;;; properties that make replay work -- the actual replay needs a subprocess,
+;;; which is what examples/ and the emit-then-replay probes are for.
+
+(check-true "dk-focus! records the focus move"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (IN x b)
+                          (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))))
+         (di) (di)
+         (use-em '(IN x a)
+                 (lambda () (oi-l) (ass))
+                 (lambda () (oi-r) (from-context!)))))
+      (let ((focused (any-pred (lambda (c) (eq? (car c) 'focus)) *proof-script*))
+            (done    (proof-done? *ps*)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and done focused #t)))))
+
+(check-true "minimize! records itself, not its expansion"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(IMPLIES TRUTH TRUTH)))
+         (minimize! '(n) '(AND (IN n NN) (<= 4 (* n n))) 'n)))
+      (let* ((script *proof-script*)
+             (self (any-pred (lambda (c) (eq? (car c) 'minimize!)) script))
+             (guts (any-pred (lambda (c) (memq (car c) '(cut sep-me ni))) script)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and self (not guts))))))
+
+;;; "This session" must mean the user's work, not the library load.  `qed'
+;;; appends to *session-log*, and loading the library is ~300 qeds, so
+;;; `dump-session' opened with the entire library and buried the user's own
+;;; proof at the end of it.  load.scm resets the log where it already resets
+;;; *ps* / *proof-script* / *current-goal*, for the same reason.
+(check-true "session log: the library's own proofs are not 'this session'"
+  (lambda ()
+    ;; the suite runs right after the load, so anything here is the library's
+    (null? (filter (lambda (rec)
+                     (memq (car rec) '(union-membership subset-def zz-bezout)))
+                   *session-log*))))
+
+(check-true "prop: records ITSELF, so the emitted script replays"
+  ;; prop drives branches with dk-focus!, which moves the focus without
+  ;; recording a command -- so a script of its EXPANSION replays the right
+  ;; steps against the wrong leaves and dies at `qed: proof is not complete'.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (IN x b)
+                          (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))))
+         (di) (di)
+         (prop)))
+      (let* ((script *proof-script*)
+             (has-prop (any-pred (lambda (c) (eq? (car c) 'prop)) script))
+             (has-guts (any-pred (lambda (c) (memq (car c) '(cut pbc oi-l oi-r))) script)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and has-prop (not has-guts))))))
+
+(check-true "prop: must NOT prove the converse of an implication"
+  (lambda () (prop--check '(IMPLIES (IMPLIES (IN x a) (IN x b))
+                                    (IMPLIES (IN x b) (IN x a))) #f)))
+
+(check-true "prop: must NOT prove affirming the consequent"
+  (lambda () (prop--check '(IMPLIES (AND (IMPLIES (IN x a) (IN x b)) (IN x b))
+                                    (IN x a)) #f)))
+
+(check-true "prop: must NOT prove a quantified goal (opaque atom)"
+  ;; the boundary of the procedure: a FORALL is one black box, not something to
+  ;; instantiate, so this has to be declined rather than guessed at
+  (lambda () (prop--check '(IMPLIES (IN x a) (FORALL y (IN y a))) #f)))
+
+;;; -----------------------------------------------------------------------
+;;; mp / grind-and-mp (2026-09-12) -- the syllogism, closing with NO argument
+;;; because the term is DERIVED by matching the universal's conclusion against
+;;; the goal rather than supplied or searched for.
+;;;
+;;; The must-NOT cases carry the weight.  A closer that fires on a goal the
+;;; universal does not prove, or that silently picks between two applicable
+;;; universals, is worse than no closer at all -- and a suite exercising only
+;;; the happy path would read exactly like a clean tree either way.
+
+;;; Run STR through grind (the bookkeeping) then mp, and report whether the
+;;; proof closed.  *ps* and the script are saved and restored: a check must not
+;;; disturb the proof state the rest of the suite runs in.
+(define (mp--try str)
+  (let ((saved *ps*) (saved-script *proof-script*))
+    (quietly
+     (lambda ()
+       (sp (make-wff-from-string str))
+       (grind)
+       (mp)))
+    (let ((done (proof-done? *ps*)))
+      (set! *ps* saved)
+      (set! *proof-script* saved-script)
+      done)))
+
+(define mp--syllogism
+  "forall([thing in human], thing in mortal) and socrates in human implies socrates in mortal")
+
+(check-true "mp: closes the syllogism with no argument (term derived by matching)"
+  (lambda () (mp--try mp--syllogism)))
+
+(check-true "mp: must NOT close a goal the universal does not prove"
+  ;; matching the conclusion against the goal returns #f, so there is no term
+  (lambda ()
+    (not (mp--try (string-append "forall([thing in human], thing in mortal) and "
+                                 "socrates in human implies socrates in greek")))))
+
+(check-true "mp: must NOT close when the guard is absent from the context"
+  ;; the term still matches; it is the GUARD (socrates in human) that is missing
+  (lambda ()
+    (not (mp--try (string-append "forall([thing in human], thing in mortal) and "
+                                 "socrates in greek implies socrates in mortal")))))
+
+(check-true "mp: must REFUSE to choose between two applicable universals"
+  ;; both prove the goal; a closer you cannot predict is worse than one that asks
+  (lambda ()
+    (not (mp--try (string-append
+                   "forall([thing in human], thing in mortal) and "
+                   "forall([thing in greek], thing in mortal) and "
+                   "socrates in human and socrates in greek "
+                   "implies socrates in mortal")))))
+
+(check-true "mp: records ITSELF, not its inst+/ass expansion"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly (lambda () (sp (make-wff-from-string mp--syllogism)) (grind) (mp)))
+      (let* ((script   *proof-script*)
+             (has-mp   (any-pred (lambda (c) (eq? (car c) 'mp)) script))
+             (has-guts (any-pred (lambda (c) (memq (car c) '(inst+ ass))) script)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and has-mp (not has-guts))))))
+
+(check-true "grind-and-mp: closes the sentence as typed, and its page keeps BOTH steps"
+  ;; the MIRROR IMAGE of prop's check above.  prop must record itself; this
+  ;; wrapper must NOT -- the page reads ((grind) (mp)), the two moves a student
+  ;; would make, so the convenience command hides neither of them.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*))
+      (quietly (lambda () (sp (make-wff-from-string mp--syllogism)) (grind-and-mp)))
+      (let* ((done      (proof-done? *ps*))
+             (script    *proof-script*)
+             (has-grind (any-pred (lambda (c) (eq? (car c) 'grind)) script))
+             (has-mp    (any-pred (lambda (c) (eq? (car c) 'mp)) script))
+             (has-self  (any-pred (lambda (c) (eq? (car c) 'grind-and-mp)) script)))
+        (set! *ps* saved)
+        (set! *proof-script* saved-script)
+        (and done has-grind has-mp (not has-self))))))
+
+;;; -----------------------------------------------------------------------
+;;; The backchain lane must not offer an INDUCTION SCHEMA on a point goal, and
+;;; the hypothesis lanes must name the moves that ARE available.  All from one
+;;; leaf: `x in union(a, complement-in(b,a)), a subset b |- x in b', where the
+;;; lane offered nn- / finite-set- / transfinite-induction (each concludes
+;;; `... in c' for a class variable, so each fingerprints against every
+;;; membership goal) and said nothing about the union hypothesis, which is the
+;;; only move there is.
+
+(define (bc-lane--focus form peels)
+  (quietly
+   (lambda ()
+     (sp (make-wff form))
+     (let loop ((k 0)) (when (< k peels) (di) (loop (+ k 1)))))))
+
+(define bc-lane--goal
+  '(FORALL x (IMPLIES (IN x (UNION a (COMPLEMENT-IN b a)))
+      (IMPLIES (SUBSET a b) (IMPLIES (IN a SET) (IMPLIES (IN b SET) (IN x b)))))))
+
+(check-true "what-now: an induction schema is recognised by its class variable"
+  (lambda ()
+    (and (what-now--induction-schema? 'nn-induction)
+         (what-now--induction-schema? 'finite-set-induction)
+         (what-now--induction-schema? 'transfinite-induction)
+         (not (what-now--induction-schema? 'union-membership))
+         (not (what-now--induction-schema? 'subset-def)))))
+
+(check-true "what-now: schemas are noise on a POINT goal, not on a FORALL one"
+  (lambda ()
+    (and (what-now--schema-noise? 'nn-induction '(IN x b))
+         (not (what-now--schema-noise?
+               'nn-induction '(FORALL n (IMPLIES (IN n NN) (IN n c))))))))
+
+(check-false "what-now: the backchain lane offers no schema on `x in b'"
+  (lambda ()
+    (let ((saved *ps*))
+      (bc-lane--focus bc-lane--goal 6)
+      (let* ((moves (quietly (lambda () (what-now--backchain-moves #f (dk-goal) '()))))
+             (bad   (any-pred (lambda (m)
+                                (let ((nm (what-now--move-name m)))
+                                  (and nm (what-now--induction-schema? nm))))
+                              moves)))
+        (set! *ps* saved)
+        bad))))
+
+(check-true "what-now: a membership HYPOTHESIS gets its unfold named"
+  ;; head IN, so suggest-hyp-unfolds (which keys on the head) cannot see it
+  (lambda ()
+    (let ((saved *ps*))
+      (bc-lane--focus bc-lane--goal 6)
+      (let* ((moves (quietly (lambda () (what-now--show-hyp-membership))))
+             (forms (map wn--move-form moves))
+             (ok (any-pred (lambda (f)
+                             (and (pair? f) (eq? (car f) 'mac-h)
+                                  (equal? (cadr f) '(quote union-membership))))
+                           forms)))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now: a disjunctive hypothesis is offered as a case split"
+  ;; mac-h* skips OR by design (it branches), so the lane must name (ai k)
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (OR (IN x a) (IN x b)) (IN x b)))))
+         (di) (di)))
+      (let* ((moves (quietly (lambda () (what-now--show-hyp-unfolds))))
+             (forms (map wn--move-form moves))
+             (ok (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'ai))) forms)))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+;;; (contra) and the ineq premise-list repair (2026-08-15).
+;;;
+;;; A branch left by a case split or a membership unfold is often impossible,
+;;; and the reason is arithmetic the copilot could not reach: `prop' sees opaque
+;;; atoms, and `ineq' needed hand-picked premise indices AND an `IN _ RR'
+;;; certificate for every atom, which a combinatorial context (typed in NN)
+;;; never has.  `contra' certifies the inconsistency with `ineq' -- after
+;;; discharging its precondition rather than weakening it -- and closes through
+;;; have!/ai, so it adds no trust beyond ineq's.
+
+(define (contra--setup-inconsistent)
+  ;; the motivating leaf: 1 <= i <= length(l) = 0
+  (sp '(FORALL i_ (FORALL x_ (FORALL l_ (FORALL a_
+         (IMPLIES (= (NTH i_ l_) x_)
+         (IMPLIES (<= i_ (LENGTH l_))
+         (IMPLIES (<= 1 i_)
+         (IMPLIES (IN i_ NN)
+         (IMPLIES (IN x_ SET)
+         (IMPLIES (= (LENGTH l_) 0)
+         (IMPLIES (IN l_ (TUPLES a_))
+                  (IN x_ EMPTY-SET)))))))))))))
+  (let peel ((k 0)) (when (< k 9) (di) (peel (+ k 1)))))
+
+(check-true "ineq: a non-arithmetic named premise is skipped, not fatal"
+  ;; (ineq 1 2) with 2 = `u_ in rr' used to refuse outright, blaming the goal
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL u_ (IMPLIES (IN u_ RR) (IMPLIES (<= u_ 0) (<= u_ 1)))))
+         (di) (di)
+         (ineq 1 2)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+;; THE MACETE / BIG-UNION HOLE (found and closed 2026-09-20).  rewrite-subexpressions had binder
+;; cases for FORALL FORSOME IOTA COMP SEP VNB-LAMBDA and functoid records, and none for
+;; BIG-UNION, whose body was therefore rewritten under the AMBIENT local context: a conditional
+;; macete fired on the BOUND z with its condition discharged by an outer z.  Must-not-rewrite,
+;; with a positive twin (the same rewrite OUTSIDE the binder must still fire).
+(check-true "macete: no rewrite under BIG-UNION's binder on the strength of an outer variable"
+  (lambda ()
+    (let ((saved *ps*))
+      (let ((unchanged
+             (begin
+               (quietly
+                (lambda ()
+                  (sp (make-wff '(FORALL w (FORALL sfam (FORALL z (IMPLIES (IN z NN)
+                                   (IN w (BIG-UNION z sfam (+ z 0)))))))))
+                  (di)))
+               (let ((before (dk-goal)))
+                 (quietly (lambda () (mac 'nn-add-zero)))
+                 (equal? before (dk-goal))))))
+        (set! *ps* saved)
+        unchanged))))
+
+(check-true "macete: the same conditional rewrite outside any binder still fires"
+  (lambda ()
+    (let ((saved *ps*))
+      (let ((rewritten
+             (begin
+               (quietly
+                (lambda ()
+                  (sp (make-wff '(FORALL z (IMPLIES (IN z NN) (= (+ z 0) z)))))
+                  (di)))
+               (let ((before (dk-goal)))
+                 (quietly (lambda () (mac 'nn-add-zero)))
+                 (not (equal? before (dk-goal)))))))
+        (set! *ps* saved)
+        rewritten))))
+
+;; THE INEQ EIGENVARIABLE HOLE (found and closed 2026-09-20).  pi-ineq! peels the goal's leading
+;; `forall v in RR' and then reads v as an atom -- the SAME atom as a free v in a premise.  Until
+;; the fix, the sequent   x in RR, x <= 0  |-  forall x in RR. x <= 0   was CLOSED, the false
+;; theorem  forall x in RR. (x <= 0 implies forall x in RR. x <= 0)  installed `modulo 0', and
+;; 1 <= 0 followed.  Both checks are MUST-NOT-PROVE: the first is the exploit itself, the second
+;; the same goal with the clashing variable renamed, which the oracle must still close (so that
+;; a fix that simply refused every quantified goal would not pass).
+(check-false "ineq: a variable bound by the goal's peeled quantifier must be fresh for the context"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL x (IMPLIES (IN x RR) (IMPLIES (<= x 0)
+                (FORALL x (IMPLIES (IN x RR) (<= x 0)))))))
+         (di) (di)
+         (ineq 1 2)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+(check-true "ineq: a quantified goal whose variable IS fresh still closes"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL x (IMPLIES (IN x RR) (IMPLIES (<= x 0)
+                (FORALL y_ (IMPLIES (IN y_ RR) (<= y_ (+ y_ 1))))))))
+         (di) (di)
+         (ineq)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+;; abs(t) is real only when t is (rr-abs-closed is guarded on its argument).  Until 2026-09-20
+;; the oracle certified ANY abs(.) as a real atom.
+(check-false "ineq: abs of an uncertified term is not a real atom"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL u_ (<= (abs u_) (+ (abs u_) 1))))
+         (di)
+         (ineq)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+(check-true "ineq: abs of a certified term is a real atom"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL u_ (IMPLIES (IN u_ RR) (<= (abs u_) (+ (abs u_) 1)))))
+         (di)
+         (ineq)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+(check-true "contra: closes a branch whose context is arithmetically inconsistent"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly (lambda () (contra--setup-inconsistent) (contra)))
+      (let ((done (proof-done? *ps*)))
+        (set! *ps* saved)
+        done))))
+
+(check-true "contra: declines on a CONSISTENT context, leaving the goal untouched"
+  ;; there is no undo in the graph, so a composite that cut first and checked
+  ;; afterwards would strand two unprovable leaves
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp '(FORALL u_ (IMPLIES (IN u_ NN) (IMPLIES (<= 1 u_) (IN u_ EMPTY-SET)))))
+         (di) (di)
+         (contra)))
+      (let ((ok (and (not (proof-done? *ps*))
+                     (equal? (wff-formula (sequent-node-assertion
+                                           (proof-state-focus *ps*)))
+                             '(IN u_ EMPTY-SET)))))
+        (set! *ps* saved)
+        ok))))
+
+(check-true "contra: names only premises whose atoms are RR-certifiable"
+  ;; `nth(i_,l_) = x_' is arithmetic in SHAPE, so naming it hands ineq the atoms
+  ;; x_ and nth(i_,l_), which can never be certified -- and that killed the call
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly (lambda () (contra--setup-inconsistent)))
+      (let* ((idxs (contra--usable-indices))
+             (asms (sequent-node-assumptions (proof-state-focus *ps*)))
+             (named (map (lambda (i) (wff-formula (list-ref asms (- i 1)))) idxs))
+             (ok (not (any-pred (lambda (f)
+                                  (and (pair? f) (eq? (car f) '=)
+                                       (pair? (cadr f))
+                                       (eq? (car (cadr f)) 'NTH)))
+                                named))))
+        (set! *ps* saved)
+        ok))))
+
+;;; The FORWARD-CITATION lane (2026-08-15).  Every other lane reasons from the
+;;; GOAL; this one asks which library facts the CONTEXT already fires.  On
+;;;   length(l) = 0, l in tuples(a)  |-  card(make-set(l)) <= 0
+;;; the move is `tuple-length-zero', whose two antecedents are assumptions 1
+;;; and 2 -- and no goal-directed lane could see it.  Two things it must get
+;;; right: rank the citation that hands the goal a usable rewrite FIRST, and
+;;; prefix the `have!' when the antecedent is a conjunction, since `fact' will
+;;; not split one and silently lands the implication instead.
+
+(define (fwd-lane--hits setup)
+  (let ((saved *ps*))
+    (quietly setup)
+    (let ((hits (quietly
+                 (lambda ()
+                   (let ((sqn (proof-state-focus *ps*)))
+                     (what-now--forward-citations
+                      (wff-formula (sequent-node-assertion sqn))
+                      (map wff-formula (sequent-node-assumptions sqn))))))))
+      (set! *ps* saved)
+      hits)))
+
+(define (fwd-lane--setup-base)
+  (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+  (ni)
+  (let loop ((ls (proof-open-leaves *ps*)))
+    (cond ((null? ls) (error "fwd-lane: no base leaf"))
+          ((let ((g (wff-formula (sequent-node-assertion (car ls)))))
+             (and (pair? g) (eq? (car g) 'FORALL)
+                  (not (what-now--occurs-in? '(succ n) g))))
+           (set-proof-state-focus! *ps* (car ls)))
+          (else (loop (cdr ls)))))
+  (di) (di))
+
+(check-true "forward lane: tuple-length-zero is found and ranked first"
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (and (pair? hits) (eq? (car (car hits)) 'tuple-length-zero)))))
+
+(check-true "forward lane: it reports the formula the citation LANDS"
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (equal? (caddr (car hits)) '(= l (LIST))))))
+
+(check-true "forward lane: a conjunctive antecedent is flagged as needing have!"
+  ;; tuple-length-zero's antecedent is (AND (IN L (TUPLES A)) (= (LENGTH L) 0))
+  ;; and `fact' does not split it -- without the have! the citation lands the
+  ;; IMPLICATION and looks like it worked.
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (eq? (list-ref (car hits) 4) #t))))
+
+(check-true "forward lane: the -rev companion is suppressed"
+  ;; tuple-length-zero-rev fires identically and lands [] = l, which is churn
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (not (any-pred (lambda (h) (eq? (car h) 'tuple-length-zero-rev)) hits)))))
+
+(check-true "forward lane: a mere reorientation of an assumption is dropped"
+  ;; eq-sym / equality-symmetry fire on every equation in every context and land
+  ;; it backwards; leading with them made the lane useless
+  (lambda ()
+    (let ((hits (fwd-lane--hits fwd-lane--setup-base)))
+      (not (any-pred (lambda (h) (memq (car h) '(eq-sym equality-symmetry)))
+                     hits)))))
+
+(check-true "forward lane: silent when the context is empty"
+  (lambda ()
+    (null? (fwd-lane--hits (lambda () (sp "forall([x], x = x)"))))))
+
+;;; The INDUCTION lane (2026-08-15).  `ni' tests the goal's SHAPE -- literally
+;;; (FORALL n (IMPLIES (IN n NN) body)) at the top -- so it misses two situations
+;;; in which the mathematics plainly admits induction: an NN-guarded binder that
+;;; is not outermost, and an NN-typed EIGENVARIABLE left by a greedy `di'.  The
+;;; lane must speak in exactly those two and stay silent otherwise, and the
+;;; (cut "...") it prints must PARSE and put the NN variable outermost -- the
+;;; whole point being that (ni) then fires on it.
+
+(define (ind-lane--moves setup)
+  (let ((saved *ps*))
+    (quietly setup)
+    (let ((moves (quietly (lambda () (what-now--show-induction
+                                      (suggest--current-goal))))))
+      (set! *ps* saved)
+      moves)))
+
+;;; Does the cut the lane emitted parse, with VAR guarded `in nn' outermost?
+(define (ind-lane--cut-inducts? moves var)
+  (and (pair? moves)
+       (let* ((form (wn--move-form (car moves))))
+         (and (pair? form) (eq? (car form) 'cut)
+              (let ((f (parse-string (cadr form))))
+                (and (pair? f) (eq? (car f) 'FORALL)
+                     (eq? (quantifier-var f) var)
+                     (let ((b (quantifier-body f)))
+                       (and (pair? b) (eq? (car b) 'IMPLIES)
+                            (equal? (binary-left b) `(IN ,var NN))))))))))
+
+(check-true "what-now induction: an NN binder that is not outermost is reported"
+  (lambda ()
+    (ind-lane--cut-inducts?
+     (ind-lane--moves
+      (lambda () (sp "forall([a, n in nn, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")))
+     'n)))
+
+(check-true "what-now induction: silent when (ni) already fires"
+  ;; the live-fire lane reports it; two lanes naming the same move is noise
+  (lambda ()
+    (null? (ind-lane--moves
+            (lambda () (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)"))))))
+
+(check-true "what-now induction: an NN EIGENVARIABLE in the context is reported"
+  ;; two greedy di's and the binder is gone -- this is the case that prompted
+  ;; the lane, and the generalization has to come out of the CONTEXT
+  (lambda ()
+    (ind-lane--cut-inducts?
+     (ind-lane--moves
+      (lambda ()
+        (sp "forall([a, n in nn, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+        (di) (di)))
+     'n)))
+
+;;; The three guards on the induction lane's eigenvariable branch (2026-08-16).
+;;; Without them the lane fired for the whole rest of a proof -- its trigger,
+;;; "an nn-typed eigenvariable is in the context", stays true forever -- and
+;;; printed a runnable `cut' that had swallowed the context, re-generalized the
+;;; induction variable in a body containing the IH, and quantified over skolem
+;;; constants.  At a leaf where there is no undo.
+
+;;; clobber-guard now watches MIT Scheme's own procedures (2026-08-16).
+;;;
+;;; `environment-bound-names' reports the OWN FRAME ONLY, so `append', `list',
+;;; `cons' and `length' -- each simultaneously a live Scheme procedure and a VNB
+;;; head symbol -- were never in the watch set, at any snapshot point.  A proof
+;;; file's `(define APPEND '(...))' therefore clobbered a procedure the prover
+;;; itself calls, silently.  The snapshot now seeds from system-global-environment
+;;; as well, and the guard loads FIRST so all 244 library files are checked
+;;; (it used to load half way down, leaving 126 of them unguarded).
+;;;
+;;; This checks the SEED.  The fail-on-purpose control -- clobbering `append'
+;;; and `di' for real and confirming the error fires -- is
+;;; scratchpad/guard-control.scm, kept out of the suite because it destroys the
+;;; bindings it tests.
+
+(check-true "clobber-guard: MIT's own procedures are watched"
+  (lambda ()
+    (and *clobber-guard-procs*
+         (every (lambda (n) (hash-table-ref/default *clobber-guard-procs* n #f))
+                '(append list cons length))
+         #t)))
+
+(check-true "clobber-guard: VNB tactics are watched too"
+  (lambda ()
+    (and *clobber-guard-procs*
+         (every (lambda (n) (hash-table-ref/default *clobber-guard-procs* n #f))
+                '(di ass bc*-apply prop contra))
+         #t)))
+
+;;; (proof-map) (2026-08-16) -- the only view of a proof that shows CLOSED
+;;; branches.  Every other one -- (proof-leaves), the Focus panel, (show) --
+;;; lists open leaves, so a branch that closes disappears and "is the base case
+;;; actually finished?" has no direct answer.  Read-only: it must never mutate
+;;; the state it prints.
+
+(check-true "proof-map: reports a closed branch and an open one, and mutates nothing"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+         (ni)
+         (let loop ((ls (proof-open-leaves *ps*)))
+           (cond ((null? ls) (error "proof-map test: no base leaf"))
+                 ((not (what-now--occurs-in?
+                        '(succ n) (wff-formula (sequent-node-assertion (car ls)))))
+                  (set-proof-state-focus! *ps* (car ls)))
+                 (else (loop (cdr ls)))))
+         (di) (di)
+         (have! '(AND (IN l (TUPLES a)) (= (LENGTH l) 0)))
+         (fact 'tuple-length-zero 'a 'l)
+         (bc* 'card-empty-le)
+         (bc* 'makeset-of-empty-tuple)
+         (ass)))
+      (let* ((before (length (proof-open-leaves *ps*)))
+             (root   (proof-state-root *ps*))
+             (kids   (pm--children root))
+             ;; base closed, step open
+             (ok (and (= before 1)
+                      (= (length kids) 2)
+                      (any-pred (lambda (k) (string=? (pm--status k) "+")) kids)
+                      (any-pred (lambda (k) (string=? (pm--status k) "o")) kids)))
+             (dummy  (quietly (lambda () (proof-map))))
+             (after  (length (proof-open-leaves *ps*))))
+        (set! *ps* saved)
+        (and ok (= before after) #t)))))
+
+;;; (what-now-explain FORM) (2026-08-16) -- the "what does this do?" query
+;;; behind the button beside each [do this].  Returns a VALUE and prints
+;;; nothing; `what-now-explain-show' is one renderer over it.  It must probe on
+;;; a scratch clone and leave the live proof byte-identical -- an inspector that
+;;; perturbs what it inspects is worse than none.
+
+(define (wne--setup)
+  (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+  (ni) (di) (di))
+
+(check-true "what-now-explain: reports the goal a backchain would leave"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((e (quietly (lambda () (what-now-explain '(bc* 'card-empty-le)))))
+             (ok (and e
+                      (cdr (assq 'fires e))
+                      (not (cdr (assq 'closes e)))
+                      (equal? (cdr (assq 'after e)) '((= (MAKE-SET l) EMPTY-SET))))))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now-explain: a forward citation reports what it LANDS"
+  ;; it changes no goal, so `landed' is the entire answer
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((e (quietly (lambda () (what-now-explain '(fact 'length-in-nn 'a 'l)))))
+             (ok (and e (pair? (cdr (assq 'landed e)))
+                      (any-pred (lambda (f) (equal? f '(IN (LENGTH l) NN)))
+                                (cdr (assq 'landed e))))))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now-explain: says so when a move would not fire"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((e (quietly (lambda () (what-now-explain '(rfl)))))
+             (ok (and e (not (cdr (assq 'fires e))))))
+        (set! *ps* saved)
+        (and ok #t)))))
+
+(check-true "what-now-explain: leaves the live proof untouched"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly wne--setup)
+      (let* ((before-goal (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+             (before-n    (length (proof-open-leaves *ps*)))
+             (ignored (quietly (lambda () (what-now-explain '(bc* 'card-empty-le)))))
+             (after-goal  (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
+             (after-n     (length (proof-open-leaves *ps*))))
+        (set! *ps* saved)
+        (and (equal? before-goal after-goal) (= before-n after-n))))))
+
+;;; The INSTANCE lane (2026-08-16).  A universal in the CONTEXT -- a lemma you
+;;; cut, or an induction hypothesis -- whose conclusion matches the goal, with
+;;; its antecedents already assumptions.  No other lane looks there: forward
+;;; asks what the context FIRES from the library, backchain asks what the
+;;; LIBRARY concludes.  The motivating leaf had the goal sitting as a plain
+;;; instance of assumption 4 and the panel offered everything except that.
+;;;
+;;; Note the binder the CONCLUSION does not mention: `a' appears only in the
+;;; antecedent `l in tuples(a)', so matching the conclusion alone leaves it
+;;; undetermined; it is pinned by discharging the antecedents against context.
+
+;; Built by FOLDING over flat lists, never hand-nested -- a hand-written nest of
+;; this depth cost three separate unbalanced-paren runs while this lane was
+;; being written.
+(define (inst-lane--chain hyps concl)
+  (if (null? hyps) concl
+      (make-implies (car hyps) (inst-lane--chain (cdr hyps) concl))))
+(define (inst-lane--foralls vars body)
+  (if (null? vars) body
+      (make-forall (car vars) (inst-lane--foralls (cdr vars) body))))
+
+(define inst-lane--nfirst
+  (inst-lane--foralls
+   '(n_)
+   (inst-lane--chain
+    '((IN n_ NN))
+    (inst-lane--foralls
+     '(a_ l_)
+     (inst-lane--chain '((IN l_ (TUPLES a_)) (= (LENGTH l_) n_))
+                       '(<= (CARD (MAKE-SET l_)) n_))))))
+
+(define (inst-lane--setup)
+  (sp (inst-lane--foralls
+       '(a n l)
+       (inst-lane--chain
+        (list inst-lane--nfirst '(IN n NN) '(IN l (TUPLES a)) '(= (LENGTH l) n))
+        '(<= (CARD (MAKE-SET l)) n))))
+  (let peel ((k 0)) (when (< k 6) (di) (peel (+ k 1)))))
+
+(check-true "instance lane: finds the context universal the goal instantiates"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly inst-lane--setup)
+      (let* ((sqn  (proof-state-focus *ps*))
+             (hits (what-now--instances-in-context
+                    (wff-formula (sequent-node-assertion sqn))
+                    (sequent-node-assumptions sqn))))
+        (set! *ps* saved)
+        (and (pair? hits) (= (length (cadr (car hits))) 3) #t)))))
+
+(check-true "instance lane: pins a binder the conclusion never mentions"
+  ;; `a' occurs only in the antecedent `l in tuples(a)'
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly inst-lane--setup)
+      (let* ((sqn  (proof-state-focus *ps*))
+             (hits (what-now--instances-in-context
+                    (wff-formula (sequent-node-assertion sqn))
+                    (sequent-node-assumptions sqn)))
+             (terms (and (pair? hits) (cadr (car hits)))))
+        (set! *ps* saved)
+        (and terms (memq 'a terms) #t)))))
+
+(check-true "instance lane: silent when no context universal matches"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly (lambda () (sp "forall([x], x = x)") (di)))
+      (let* ((sqn  (proof-state-focus *ps*))
+             (hits (what-now--instances-in-context
+                    (wff-formula (sequent-node-assertion sqn))
+                    (sequent-node-assumptions sqn))))
+        (set! *ps* saved)
+        (null? hits)))))
+
+(check-true "induction lane: never proposes cutting what is already an assumption"
+  ;; The generalization already in context means the induction is DONE and the
+  ;; goal is a reordering of it.  Cutting it is a silent self-loop -- dg-post!
+  ;; hash-conses by alpha-equivalence, so the cut's main branch IS this node,
+  ;; one leaf opens instead of two, and there is no undo.  The lane shipped
+  ;; this as `[do this]' on 2026-08-16 before the guard existed.
+  (lambda ()
+    (let* ((moves (ind-lane--moves
+                   (lambda ()
+                     (sp '(IMPLIES
+                            (FORALL n_ (IMPLIES (IN n_ NN)
+                              (FORALL a_ (FORALL l_ (IMPLIES (IN l_ (TUPLES a_))
+                                (IMPLIES (= (LENGTH l_) n_)
+                                         (<= (CARD (MAKE-SET l_)) n_)))))))
+                            (FORALL a_ (FORALL n_ (IMPLIES (IN n_ NN)
+                              (FORALL l_ (IMPLIES (IN l_ (TUPLES a_))
+                                (IMPLIES (= (LENGTH l_) n_)
+                                         (<= (CARD (MAKE-SET l_)) n_)))))))))
+                     (di))))
+           (forms (map wn--move-form moves)))
+      (and (not (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'cut))) forms))
+           (any-pred (lambda (f) (and (pair? f) (eq? (car f) 'inst+))) forms)
+           #t))))
+
+(check-true "induction lane: skolem names are recognised"
+  (lambda () (and (what-now--skolem-name? 'x_1092)
+                  (what-now--skolem-name? 'm_1093)
+                  (not (what-now--skolem-name? 'i_))     ; binder convention
+                  (not (what-now--skolem-name? 'n)))))
+
+(check-true "induction lane: silent once the IH is in context"
+  ;; inside the induction STEP, proposing to induct again is a loop
+  (lambda ()
+    (null? (ind-lane--moves
+            (lambda ()
+              (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
+              (ni)
+              (let loop ((ls (proof-open-leaves *ps*)))
+                (cond ((null? ls) (error "no step leaf"))
+                      ((what-now--occurs-in?
+                        '(succ n) (wff-formula (sequent-node-assertion (car ls))))
+                       (set-proof-state-focus! *ps* (car ls)))
+                      (else (loop (cdr ls)))))
+              (di) (di) (di) (di))))))
+
+(check-true "forward lane: a hint NARROWS the lane, it does not delete it"
+  ;; (what-now "tuples") printed nothing: the filter matched only NAMES, and the
+  ;; move worth surfacing is called tuple-cons-decompose -- "tuples" is not a
+  ;; substring of it, while the formula it LANDS says tuples plainly
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly fwd-lane--setup-base)
+      (let* ((hinted (fluid-let ((*what-now-hint* '("tuples")))
+                       (quietly (lambda ()
+                                  (what-now--show-forward-citations
+                                   (suggest--current-goal)))))))
+        (set! *ps* saved)
+        (pair? hinted)))))
+
+(check-true "what-now induction: silent when no NN variable is in sight"
+  (lambda ()
+    (null? (ind-lane--moves
+            (lambda () (sp "forall([a, b], a = b implies b = a)"))))))
+
+;;; The extensionality lane names a move that must actually apply.  It reads the
+;;; goal's prenex-normalised CONCLUSION, so on a quantified goal it fired while
+;;; `bc* class-extensionality' -- which matches the bare equation -- could not.
+;;; It now probes, and prefixes the (di) when one is needed.
+(define (ext-lane--moves form peels)
+  (let ((saved *ps*))
+    (quietly
+     (lambda ()
+       (sp (make-wff form))
+       (let loop ((k 0)) (when (< k peels) (di) (loop (+ k 1))))))
+    (let ((moves (quietly (lambda ()
+                            (what-now--show-extensionality
+                             (what-now--conclusion (dk-goal)))))))
+      (set! *ps* saved)
+      (map wn--move-form moves))))
+
+(define ext-lane--goal
+  '(FORALL a (IMPLIES (IN a SET) (FORALL b (IMPLIES (IN b SET)
+     (IMPLIES (SUBSET a b) (= b (UNION a (COMPLEMENT-IN b a)))))))))
+
+(check-true "what-now: extensionality on a QUANTIFIED goal asks for (di) first"
+  (lambda ()
+    (equal? (ext-lane--moves ext-lane--goal 0)
+            '((di) (bc* (quote class-extensionality))))))
+
+(check-true "what-now: ... and names bc* alone once the equation is bare"
+  (lambda ()
+    (equal? (ext-lane--moves ext-lane--goal 3)
+            '((bc* (quote class-extensionality))))))
+
+;;; The rewrite lane's triage, on the goal that prompted it:
+;;;   forall([a in set, b in set], a subset b implies b = union(a, complement-in(b, a)))
+;;; `subset-def' is the move; `ms-eq-symm' and its -rev only reorient the
+;;; equation (nested three binders down, where the top-level reorientation check
+;;; could not see it, and both give the SAME result); `is-set-rev' renames
+;;; `a in set' to `is-set(a)' and exposes nothing.
+
+(check-true "what-now: flip-only? sees a reorientation nested under binders"
+  (lambda ()
+    (and (what-now--flip-only?
+          '(FORALL a (IMPLIES (IN a SET) (= b (UNION a c))))
+          '(FORALL a (IMPLIES (IN a SET) (= (UNION a c) b))))
+         ;; and does NOT call a real rewrite a flip
+         (not (what-now--flip-only?
+               '(FORALL a (IMPLIES (IN a SET) (= b (UNION a c))))
+               '(FORALL a (IMPLIES (IS-SET a) (= b (UNION a c)))))))))
+
+(check-true "what-now: an iff between two ATOMS is notational, an unfold is not"
+  (lambda ()
+    (and (what-now--notational-macete? 'is-set-rev)        ; x in set iff is-set(x)
+         (not (what-now--notational-macete? 'subset-def))))) ; ... iff forall(...)
+
+;; REGRESSION, 2026-08-23/24.  The goal-side rewrite lane offers `def-functoid'
+;; unfolds since the same day (`suggest--functoid-unfolds'), and a functoid has
+;; a MACETE and NO entry in *theorem-table*.  `what-now--notational-macete?'
+;; asked `lookup-theorem', which ERRORS on a miss rather than returning #f, and
+;; its `vnb-guard' did not contain it -- so `what-now' DIED on any goal where a
+;; functoid unfold was a live candidate, losing every lane after the rewrite
+;; lane.  Both halves are checked: the classifier answers #f rather than
+;; raising, AND the whole panel completes.
+(check-true "what-now: a FUNCTOID candidate is not a theorem -- classifier says #f, does not raise"
+  (lambda ()
+    (let ((r (vnb-guard (lambda () (what-now--notational-macete? 'field-as-integral-domain)))))
+      (and (not (vnb-error? r)) (not r)))))
+
+(check-true "what-now SURVIVES a goal whose rewrite candidate is a functoid unfold"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL f (IMPLIES (IS-FIELD f)
+                       (IS-INTEGRAL-DOMAIN (FIELD-AS-INTEGRAL-DOMAIN f))))))
+      (quietly (lambda () (di)))
+      (let ((r (vnb-guard (lambda () (quietly (lambda () (what-now)))))))
+        (not (vnb-error? r))))))
+
+(check-true "what-now: the rewrite lane offers the unfold, not the reorientations"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL a (IMPLIES (IN a SET) (FORALL b (IMPLIES (IN b SET)
+                          (IMPLIES (SUBSET a b)
+                                   (= b (UNION a (COMPLEMENT-IN b a))))))))))))
+      (let* ((moves (quietly (lambda () (what-now--show-rewrite (dk-goal) '()))))
+             (forms (map wn--move-form moves))
+             (has?  (lambda (nm) (any-pred (lambda (f) (equal? f (list 'mac (list 'quote nm))))
+                                           forms))))
+        (set! *ps* saved)
+        (and (has? 'subset-def)          ; the real move survives
+             (has? 'is-set-rev)          ; demoted, but still offered
+             (not (has? 'ms-eq-symm))    ; pure reorientation, dropped
+             (not (has? 'ms-eq-symm-rev)))))))
+
+;;; Walking back into your own footprints is not always ONE step back: the
+;;; reverse of an unfold stays available for the rest of the proof, and it was
+;;; offered three steps after the unfold it reverses.  And a rewrite that folds
+;;; logical structure back inside a term (`x in b and not(x in a)' becoming
+;;; `x in difference(b, a)') matches no earlier goal at all, since the fold uses
+;;; a different constructor -- that one is demoted rather than dropped.
+
+(check-true "what-now: a revisited goal is found further back than one step"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (SUBSET a b)
+                          (IFF (IN x b) (IN x (UNION a (COMPLEMENT-IN b a))))))))
+         (di) (di)
+         (mac 'union-membership)            ; goal A
+         (mac 'complement-in-membership)    ; goal B
+         (mac 'is-set-rev)))                ; an unrelated step in between
+      (let* ((a-again '(IFF (IN x b) (OR (IN x a) (IN x (COMPLEMENT-IN b a)))))
+             (d (what-now--revisit-distance a-again)))
+        (set! *ps* saved)
+        (and d (> d 1))))))
+
+(check-true "what-now: folding structure into a term is demoted, not offered first"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (SUBSET a b)
+                          (IFF (IN x b) (IN x (UNION a (COMPLEMENT-IN b a))))))))
+         (di) (di)
+         (mac 'union-membership)
+         (mac 'complement-in-membership)))
+      (let* ((runner (lambda (f) (cmd-apply-macete *ps* (cadr (cadr f)))))
+             (m      (wn--move '(mac (quote difference-membership-rev))))
+             (buckets (quietly (lambda ()
+                        (what-now--triage-rewrites (list m) (dk-goal) runner))))
+             (fold   (cdr (assq 'fold buckets)))
+             (keep   (cdr (assq 'keep buckets))))
+        (set! *ps* saved)
+        (and (= (length fold) 1) (null? keep))))))
+
+(check-true "what-now: connective count -- unfolding raises it, folding lowers it"
+  (lambda ()
+    (and (> (what-now--connective-count
+             '(IFF (IN x b) (OR (IN x a) (AND (IN x b) (NOT (IN x a))))))
+            (what-now--connective-count
+             '(IFF (IN x b) (OR (IN x a) (IN x (DIFFERENCE b a))))))
+         (= 0 (what-now--connective-count '(IN x (UNION a b)))))))
+
+;;; The undo lane: a rewrite that returns the goal you had one step ago is
+;;; reported but not offered, so no [do this] button proposes a round trip.
+(check-true "what-now: the rewrite that undoes the last step is not offered"
+  (lambda ()
+    (let ((saved *ps*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x (IMPLIES (IN x b)
+                                           (IN x (UNION a (COMPLEMENT-IN b a)))))))
+         (di) (di)
+         (mac 'union-membership)))
+      (let* ((moves (quietly
+                     (lambda () (what-now--show-rewrite (dk-goal) '()))))
+             (offered? (any-pred (lambda (m)
+                                   (equal? (wn--move-form m)
+                                           '(mac (quote union-membership-rev))))
+                                 moves)))
+        (set! *ps* saved)
+        (not offered?)))))
+
+;;; -----------------------------------------------------------------------
+;;; (same-shape-as PARENT) -- def-substructure.  A same-shape refinement must
+;;; INHERIT the shape by naming its parent, never assert one of its own: a
+;;; shape-only IS-COMMUTATIVE-RING would be equivalent to IS-RING (same six
+;;; slots) and force every ring commutative.
+
+(check-true "same-shape-as: the parent is a LITERAL conjunct of the IFF"
+  ;; this is what makes euclidean-ring-is-integral-domain provable modulo 0 by
+  ;; a single mac-h (subtype-laws.scm) -- the parent is right there on the RHS
+  (lambda ()
+    (let ((f (lookup-theorem 'is-euclidean-ring-def)))   ; forall s. IS-E(s) iff RHS
+      (let ((rhs (caddr (caddr f))))                     ; the RHS of the IFF
+        (and (pair? rhs) (eq? (car rhs) 'AND)
+             (equal? (cadr rhs) '(IS-INTEGRAL-DOMAIN s)))))))
+
+(check-true "same-shape-as: it adds NO shape clause (no LENGTH conjunct)"
+  (lambda ()
+    (not (dc-ment? 'LENGTH (lookup-theorem 'is-euclidean-ring-def)))))
+
+(check-true "same-shape-as: the class axiom and the parent chain are generated"
+  (lambda () (and (lookup-theorem 'euclidean-ring-class)
+                  (let ((e (operator-ref 'IS-EUCLIDEAN-RING)))   ; and the operator table
+                    (and e (eq? (operator-kind e) 'predicate))))))
+
+(check-true "same-shape-as: declaring a slot is an error (a new shape is a view-as)"
+  (lambda ()
+    (call-with-current-continuation
+      (lambda (k)
+        (bind-condition-handler (list condition-type:error)
+          (lambda (c) c (k #t))                       ; it errored: correct
+          (lambda ()
+            (def-structure-from-clauses 'BONGO-STRUCT
+              '((same-shape-as RING) (carriers CARR2)))
+            #f))))))                                  ; it did not: wrong
+
+;;; -----------------------------------------------------------------------
+;;; The reserved-name gate must not answer "clean" to something it merely fails
+;;; to understand.  wff-constant-binders walks pairs; handed a wff RECORD it used
+;;; to find no binders and report CLEAN -- a silent false negative in the gate
+;;; whose whole job is catching silent hazards.
+
+(check-true "reserved names: a wff RECORD is audited, not passed as clean"
+  (lambda ()
+    (let ((f '(FORALL carr (FORALL add (IN carr add)))))    ; both are accessors
+      (and (pair? (wff-constant-binders f))                 ; raw formula: caught
+           (pair? (wff-constant-binders                     ; wff record: ALSO caught
+                    (fluid-let ((*reject-constant-binders?* #f))   ; build one to audit
+                      (quietly (lambda () (make-wff f))))))))))
+
+(check-true "reserved names: make-wff REJECTS such a formula outright"
+  ;; not a warning you can walk past: (FORALL carr ...) with carr(...) in its
+  ;; body is scope-blind -- in head position it reads as the ACCESSOR.
+  (lambda ()
+    (let ((r (quietly (lambda () (make-wff '(FORALL mul (IN mul SET)))))))
+      (and (vnb-error? r) (not (wff? r))))))
+
+(check-true "reserved names: the trailing-underscore escape still builds"
+  (lambda () (wff? (make-wff '(FORALL mul_ (IN mul_ SET))))))
+
+;;; -----------------------------------------------------------------------
+;;; The operator table (operators.scm).  ONE table, keyed by head symbol:
+;;; def-predicate / def-functoid / def-structure record kind+arity+params+file at
+;;; definition time; `notation!' declares how a human writes and reads the head,
+;;; beside its definition.  expr->tex, wff->english, describe-structure and
+;;; write-operators-md all read it.
+
+(check-true "operator table: def-structure registers IS-X as a unary predicate"
+  (lambda () (let ((e (operator-ref 'IS-RING)))
+               (and e (eq? (operator-kind e) 'predicate) (= (operator-arity e) 1)))))
+
+(check-true "operator table: def-functoid records its parameters"
+  (lambda () (let ((e (operator-ref 'SPAN)))
+               (and e (eq? (operator-kind e) 'functoid) (= (operator-arity e) 3)))))
+
+(check "operator table: a declared noun reads as a predication"
+  (lambda () (wff->english '(IS-EUCLIDEAN-RING a)))
+  "a is a Euclidean ring")
+
+(check "operator table: a declared noun folds into a quantifier"
+  (lambda () (wff->english '(FORALL a (IMPLIES (IS-EUCLIDEAN-RING a) (IS-RING a)))))
+  "for every Euclidean ring a, a is a ring")
+
+(check "operator table: an English template places its arguments"
+  ;; the reader case-folds (CLAUDE.md), so V prints as v
+  (lambda () (wff->english '(IS-OPEN t V)))
+  "v is open in t")
+
+;; An UNDECLARED head falls back to the symbolic surface form -- never invented
+;; prose.  (The example used to be SPANS, which now HAS a reading: every predicate
+;; in the library does.  So the fallback is exercised on a head that has none and
+;; never will -- a nonce.)
+(check "operator table: an undeclared head stays honest (symbolic surface form)"
+  (lambda () (wff->english '(FUBA md n u sm)))
+  "fuba(md, n, u, sm)")
+
+;; ... and SPANS, which the vocabulary sweep gave a reading, now reads as one.
+(check "spans reads as a sentence"
+  (lambda () (wff->english '(SPANS md n u sm)))
+  "the n vectors u span sm in md")
+
+;;; C-INT (theorem-library/c-int.scm) is the definite integral, and the first
+;;; head whose `tex' template has to place its arguments in three different
+;;; positions -- the integrand after the sign, the two bounds on it.  The third
+;;; check is the one that matters: it goes through `expr->tex', which reads the
+;;; operator table only because that branch was moved ABOVE tex-output's own
+;;; binop/special tables (2026-08-10).  Before that no head in the tree declared
+;;; a `tex' template at all, so the branch had never fired.
+(check-true "operator table: C-INT is a functoid of arity 3 with both readings"
+  (lambda () (let ((e (operator-ref 'C-INT)))
+               (and e (eq? (operator-kind e) 'functoid) (= (operator-arity e) 3)
+                    (string? (operator-english e)) (string? (operator-tex e))
+                    ;; NOT a noun: `noun' is the unary-sort slot, and C-INT is
+                    ;; a 3-ary term constructor.
+                    (not (operator-noun e))))))
+
+(check "operator table: C-INT's tex template places the bounds"
+  (lambda () (operator-render-tex 'C-INT '("\\phi" "a" "b")))
+  "\\int_{a}^{b} \\phi")
+
+(check "operator table: expr->tex renders C-INT from the declared template"
+  (lambda () (expr->tex '(C-INT phi a b)))
+  "\\int_{a}^{b} \\varphi")
+
+;;; C-INT-OR (theorem-library/c-int-oriented.scm) is the ORIENTED integral, and
+;;; the reading a user actually meets.  The last two checks pin the DESIGN
+;;; DECISION rather than the notation: the wrapper branches on
+;;; IS-ANTIDERIVABLE, not on `a < b', and the whole point of that is that the
+;;; functoid is TOTAL -- so `c-int-or-in-rr' and `c-int-or-degenerate' must carry
+;;; NO hypothesis at all.  Branch the definition on the order instead and both of
+;;; these acquire one, LOG stops being a member of FUN(RR,RR), and
+;;; `c-int-or-reverse' stops being provable (its b < a branch ends at a double
+;;; negation, which is `crs', which wants the term in RR).
+(check-true "operator table: C-INT-OR is a functoid of arity 3 with both readings"
+  (lambda () (let ((e (operator-ref 'C-INT-OR)))
+               (and e (eq? (operator-kind e) 'functoid) (= (operator-arity e) 3)
+                    (string? (operator-english e)) (string? (operator-tex e))
+                    (not (operator-noun e))))))
+
+(check "operator table: expr->tex renders C-INT-OR from the declared template"
+  (lambda () (expr->tex '(C-INT-OR phi a b)))
+  "\\int_{a}^{b} \\varphi")
+
+(define (ts-mentions-implies? form)
+  (let loop ((x form))
+    (cond ((pair? x)   (or (loop (car x)) (loop (cdr x))))
+          (else        (eq? x 'IMPLIES)))))
+
+(check-true "c-int-or-in-rr is UNCONDITIONAL -- the oriented integral is total"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'c-int-or-in-rr)))))
+
+(check-true "c-int-or-degenerate is UNCONDITIONAL -- int_a^a = 0 needs no typing"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'c-int-or-degenerate)))))
+
+;;; -----------------------------------------------------------------------
+;;; Simultaneous substitution.  A multi-variable substitution must NOT be a fold
+;;; of subst-free: each binding would then rewrite what the previous one
+;;; substituted in.  The live case was unfolding SPANS, whose definition has
+;;; parameters (md n u sm), at an argument mentioning the caller's own `n' / `u'
+;;; (see subst-free*, expressions.scm).
+;;;
+;;; THE BINDING ORDER BELOW IS LOAD-BEARING, and was wrong until 2026-08-06.
+;;; Both SPANS checks used to list `sm' LAST.  With that order the naive fold --
+;;; the very bug they were written against -- consumes `n' and `u' BEFORE `sm'
+;;; introduces the term containing them, and so returns the identical answer:
+;;; measured, on both fixtures, fold and subst-free* agreed exactly.  Two checks
+;;; that could not fail.  Listing `sm' FIRST is what makes the distinction
+;;; observable; the expected values are unchanged, because a simultaneous
+;;; substitution does not care about the order.  test-suite-negative.scm's
+;;; section 7 pins the fold's wrong answer as a companion control.
+
+(check "subst-free*: a substituted term is not rewritten by a later binding"
+  (lambda () (subst-free* '((sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1)))) (n . k) (u . w))
+                          '(SPANS md n u sm)))
+  '(SPANS md k w (INTERSECTION sm (SPAN md n (BLOCK u n 1)))))
+
+(check "subst-free*: a swap is a swap, not a collapse"
+  (lambda () (subst-free* '((x . y) (y . x)) '(F x y)))
+  '(F y x))
+
+(check-true "macete rewriting substitutes its arguments simultaneously"
+  ;; mac-h 'SPANS on SPANS(md, k, w, sm') must leave sm' alone: its `n' and `u'
+  ;; are the CALLER's, not SPANS' parameters.
+  (lambda ()
+    (let ((got (apply-subst '((sm . (INTERSECTION sm (SPAN md n (BLOCK u n 1))))
+                              (md . md) (n . k) (u . w))
+                            '(FORALL x_ (IMPLIES (IN x_ sm) (IN (ENTRY u 1 1) sm))))))
+      (equal? got '(FORALL x_ (IMPLIES (IN x_ (INTERSECTION sm (SPAN md n (BLOCK u n 1))))
+                                       (IN (ENTRY w 1 1)
+                                           (INTERSECTION sm (SPAN md n (BLOCK u n 1))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; The must-not-prove corpus.
+;;;
+;;; Everything above asks "does this still work?".  test-suite-negative.scm asks
+;;; the opposite -- "is this still REFUSED?" -- pushing known-false statements
+;;; through the real tactic layer with the whole library loaded and requiring
+;;; the proof state to stay open.  It is loaded LAST because it wants every
+;;; theorem, macete and oracle in place before it attacks.  Its checks use the
+;;; helpers defined at the top of this file and count into the SUMMARY below.
+
+;;; =====================================================================
+;;; The EXTREME VALUE THEOREM, and the creeping principle under it
+;;; (2026-08-17).  Both forms of EVT were asserted supports carrying
+;;; `reference' warrants, and were the only asserted MATHEMATICS in the
+;;; Fermat -> Rolle -> MVT -> Taylor tower.  The proofs run at LOAD time, so a
+;;; regression there stops the library outright; what these checks pin is the
+;;; part a load cannot report -- that the theorems are PROVEN rather than
+;;; re-asserted, that each bills `modulo 0', and that neither name is left in
+;;; any bill of the tower it used to cap.
+
+(display "\n=== what-now measured effects ===\n")
+
+;;; The panel annotates each move with what it DID on a throwaway clone.  Two
+;;; lanes were not supplying it: the live-fire lane probed and then threw the
+;;; answer away, and the closer lane never probed.  The result was actively
+;;; misleading -- on `forall([x in rr], x ^ 2 = x * x)' the closer lane offered
+;;; `(crs)', which CLOSES the goal, with no annotation, while three rewrites
+;;; that do not finish each carried "=> 1 subgoal".
+;;;
+;;; `wn--effect-of' is the mapping from a `vnb-apply?' answer to the wire form.
+;;; Note the symbol travels as lower-case `closed' -- MIT folds symbols -- which
+;;; is why the elisp side matches both spellings.
+
+(check-true "wn--effect-of: CLOSED, a subgoal list, and a non-firing #f"
+  (lambda ()
+    (and (eq? (wn--effect-of 'CLOSED) 'CLOSED)
+         (= (wn--effect-of '(g1 g2)) 2)
+         (= (wn--effect-of '(g1)) 1)
+         (not (wn--effect-of #f)))))
+
+(check-true "what-now: POWER(A) is a class term, power(x,2) is NOT"
+  (lambda ()
+    ;; `power' is the power SET (unary) and exponentiation (binary) under one
+    ;; folded symbol.  Without the arity test, `x ^ 2 = x * x' read as an
+    ;; equation between classes and the extensionality lane proposed
+    ;; (bc* 'class-extensionality) in the panel's top lane.
+    (and (what-now--class-term? '(power a))
+         (not (what-now--class-term? '(power x 2)))
+         (what-now--class-term? 'RR))))
+
+(check-true "what-now: a move another lane proposes is dropped from the fires lane"
+  (lambda ()
+    (let* ((lanes (list (list (cons 'kind 'fires) (cons 'title "fires")
+                              (cons 'moves (list (list (cons 'form '(di)) (cons 'effect 1))
+                                                 (list (cons 'form '(grind)) (cons 'effect 1)))))
+                        (list (cons 'kind 'closer) (cons 'title "closer")
+                              (cons 'moves (list (list (cons 'form '(di)) (cons 'effect 1)))))))
+           (out   (wn--dedupe-lanes lanes))
+           (fires (find-first (lambda (l) (eq? (cdr (assq 'kind l)) 'fires)) out)))
+      (and fires
+           (= 1 (length (cdr (assq 'moves fires))))
+           (equal? '(grind) (wn--move-form (car (cdr (assq 'moves fires)))))
+           ;; the closer lane keeps its (di) -- it is the specific lane
+           (= 2 (length out))))))
+
+(display "\n=== what-now argument handling ===\n")
+
+;;; `(what-now 'abs)' CRASHED until 2026-08-17: `what-now--args-depth' was
+;;; "everything that is not a string", so a symbol went down as a fingerprint
+;;; depth and died in the backchain ranking with an `integer-less?' type error.
+;;; A symbol is the form a user reaches for first -- every other copilot entry
+;;; point takes a quoted name -- and an internal type error out of the panel is
+;;; indistinguishable, from the user's side, from a broken proof.
+
+(check-true "what-now: a SYMBOL argument is a hint, exactly as a string is"
+  (lambda ()
+    (equal? (what-now--args-hint '(abs)) (what-now--args-hint '("abs")))))
+
+(check-true "what-now: a symbol is NOT passed down as a fingerprint depth"
+  (lambda ()
+    (and (null? (what-now--args-depth '(abs)))
+         (equal? (what-now--args-depth '(2)) '(2))
+         (null? (what-now--args-depth '("abs"))))))
+
+(display "\n=== extreme value theorem ===\n")
+
+(check-true "the EVT chain is PROVEN and each link bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (hash-table-ref/default *theorem-table* nm #f)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(rr-sup-approx ccint-creep continuous-bounded-above-on-ccint
+             neg-fun-in-fun neg-continuous-at
+             extreme-value-max extreme-value-min))))
+
+(check-true "no bill in the library still cites either form of EVT"
+  (lambda ()
+    (every (lambda (nm)
+             (let ((b (debt-of-proof nm)))
+               (and (not (memq 'extreme-value-max b))
+                    (not (memq 'extreme-value-min b)))))
+           *proven-theorem-names*)))
+
+;; ccint-creep collects its conclusion at the RIGHT-HAND END: the local step is
+;; stated "every y in [a,b] with y <= t+d", not "t+d itself", precisely so that
+;; the b <= s+d branch has b to hand.  A statement that named only t+d would be
+;; unprovable at b, and the difference is one subterm.
+(check-true "ccint-creep's local step quantifies y up to t+d, not t+d itself"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'ccint-creep #f)))
+      (and f
+           (string-search-forward "y_" (expression->string f) 0)
+           #t))))
+
+
+;;; -----------------------------------------------------------------------
+;;; BABY HEINE-BOREL (2026-08-17).  The proof runs at LOAD time, so a
+;;; regression there stops the library outright; what these pin is the part a
+;;; load cannot report -- that the theorem is PROVEN rather than asserted, that
+;;; it and each of its six lemmas bills `modulo 0', and that the STATEMENT was
+;;; not quietly weakened into something easier.
+
+(display "\n=== baby Heine-Borel ===\n")
+
+(check-true "heine-borel-baby and its six lemmas are PROVEN and each bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (hash-table-ref/default *theorem-table* nm #f)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(empty-subset-any union-singleton-mem union-right-subset
+             union-singleton-subset big-union-mono card-union-singleton-nn
+             heine-borel-baby))))
+
+;; The subcover is asserted to be a SET as well as finite.  CARD is total on
+;; classes but every axiom of cardinality.scm is guarded on `IN A SET', so
+;; dropping that conjunct would leave "CARD(G) in NN" saying nothing about G,
+;; and the creep could not carry it.
+(check-true "heine-borel-baby's subcover is a subset of F, a SET, and finite"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'heine-borel-baby #f)))
+      (and f
+           (let ((s (expression->string f)))
+             (and (string-search-forward "g_ subset f_"   s 0)
+                  (string-search-forward "g_ in set"      s 0)
+                  (string-search-forward "card(g_) in nn" s 0)
+                  #t))))))
+
+;; It is stated on the INTERVAL, not on a metric subspace.  IS-OPEN-COVER(s,C)
+;; demands the union of C be all of PTS(s), so "the interval is compact" needs
+;; a metric SUBSPACE constructor the tree does not have; naming either
+;; predicate here would mean the statement had drifted back to that question.
+(check-true "heine-borel-baby names neither IS-COMPACT nor IS-OPEN-COVER"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'heine-borel-baby #f)))
+      (and f
+           (let ((s (expression->string f)))
+             (and (not (string-search-forward "is-compact"    s 0))
+                  (not (string-search-forward "is-open-cover" s 0))))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE FORWARD LANE: anchoring, and the measured citation index (2026-08-19).
+;;;
+;;; `harvest-diagnose!' (harvest.scm) put a number on the lane: over 274 `fact'
+;;; steps recorded in the library's own scripts, the citation the author took
+;;; sat at median rank 15 of the ~50 the lane keeps, because the sort key was
+;;; three buckets and MIT's stable sort left the order inside a bucket as
+;;; `hash-table-keys' returned it.  These checks pin the two repairs and the
+;;; crash the first of them exposed.
+
+;;; A term pool holds TERMS.  It walks into a formula to reach the terms
+;;; inside, but the formula itself is not one -- see the apply-tupling-2 crash
+;;; below, which is what happens when it is.
+(check-true "anchor pool: subterms keep terms and drop the formulas around them"
+  (lambda ()
+    (let ((ts (what-now--subterms
+               '(IMPLIES (IN a (CARR s)) (= ((OPR s) a b) c)))))
+      (and (member '(CARR s) ts)
+           (member '((OPR s) a b) ts)
+           (member 'a ts)
+           (not (any-pred (lambda (t) (and (pair? t) (eq? (car t) 'IMPLIES))) ts))))))
+
+;;; The point of the whole exercise: an antecedent-free theorem is offered when
+;;; the sequent already contains the term it is about, with the schema
+;;; variables read off that term.
+(check-true "anchoring: INTERVAL(a,b) in SET anchors on the sequent's INTERVAL"
+  (lambda ()
+    (let* ((pool (what-now--term-pool '(IN x (INTERVAL lo hi)) '()))
+           (sub  (what-now--anchor-svars '(IN (INTERVAL a b) SET) '(a b) '() pool)))
+      (and sub
+           (equal? (cdr (assq 'a sub)) 'lo)
+           (equal? (cdr (assq 'b sub)) 'hi)))))
+
+(check-false "anchoring: it fails rather than guessing when nothing matches"
+  (lambda ()
+    (let ((pool (what-now--term-pool '(IN x nn) '())))
+      (what-now--anchor-svars '(IN (INTERVAL a b) SET) '(a b) '() pool))))
+
+;;; THE CRASH, and it took the whole FORWARD lane down on 3% of the library's
+;;; `fact' steps.  `apply-tupling-2' is  (f a b) == (f (LIST a b))  with f, a, b
+;;; all schema variables.  Matched with `*match-var-head*' against the sequent's
+;;; own IMPLICATION it bound f := implies, a := the antecedent, b := the
+;;; consequent, and `bc*--apply-subst' died on the result.  A schema variable in
+;;; term position ranges over TERMS, and the head of an application is syntax.
+(check-true "anchoring: no pattern whose HEAD is an open schema variable"
+  ;; (LIST a b) is a fine anchor -- its head is a constructor.  (f a b) is not,
+  ;; and it is the one that crashed the lane.
+  (lambda ()
+    (let ((pats (what-now--anchor-patterns '(== (f a b) (f (LIST a b))) '(f a b))))
+      (and (pair? pats)
+           (every-pred (lambda (p) (not (memq (car p) '(f a b)))) pats)))))
+
+;;; An IFF between two alpha-equal sides is a tautology: it lands nothing.
+(check-true "forward lane: a vacuous IFF is not a citation"
+  (lambda ()
+    (and (what-now--vacuous-iff? '(IFF (= x x) (= x x)))
+         (not (what-now--vacuous-iff? '(IFF (= x x) (= y y))))
+         ;; NOT extended to t = t, which is definedness in a partial logic
+         (not (what-now--vacuous-iff? '(= x x))))))
+
+;;; A citation must be about something PRESENT, not merely about the exempt
+;;; classes.  `rr-is-set' lands `RR in SET' -- both arguments exempt -- and so
+;;; grounded on any goal at all until this clause.
+(check-true "anchoring: groundedness needs one argument actually in the pool"
+  (lambda ()
+    (let ((pool (what-now--term-pool '(IN 0 nn) '())))
+      (and (what-now--grounded-in? '(IN 0 nn) pool)
+           (what-now--grounded-in? '(IN nn set) pool)
+           (not (what-now--grounded-in? '(IN rr set) pool))))))
+
+(check-false "anchoring: apply-tupling-2 anchors on nothing (it used to crash)"
+  (lambda ()
+    (let ((pool (what-now--term-pool
+                 '(IMPLIES (IS-ABELIAN-GROUP s) (= ((OPR s) a b) ((OPR s) b a))) '())))
+      (what-now--anchor-svars '(== (f a b) (f (LIST a b))) '(f a b) '() pool))))
+
+;;; The citation index is a ratio over the library's own scripts, and 1 means
+;;; NO EVIDENCE -- a lemma nobody has had occasion to cite is not punished for
+;;; it, it falls back on the syntactic rank.
+(check-true "cite-index: an unknown theorem scores neutral, not zero"
+  (lambda () (= 1 (cite-lift 'dist 'no-such-theorem-anywhere))))
+
+(check-true "cite-index: a head nothing is filed under scores neutral"
+  (lambda () (= 1 (cite-score 'nn-succ-closed '(no-such-head-at-all)))))
+
+;;; LEAVE-ONE-OUT.  Excluding a script must remove that script's whole
+;;; contribution, or a measurement against the library is the index reading its
+;;; own notes back.
+(check-true "cite-index: excluding a script lowers its own citations' counts"
+  (lambda ()
+    (cite--ready!)
+    (let* ((name (let loop ((ns (hash-table-keys *proof-script-table*)))
+                   (cond ((null? ns) #f)
+                         ((let ((p (cite--script-parts (car ns))))
+                            (and p (pair? (cdr p)) (car ns))))
+                         (else (loop (cdr ns))))))
+           (cited (and name (car (cdr (cite--script-parts name)))))
+           (before (and cited (cite-uses cited)))
+           (after  (and cited (fluid-let ((*cite-exclude-script* name))
+                                (cite-uses cited)))))
+      (and before (= after (- before 1))))))
+
+(check-true "cite-index: excluding a script the panel is not measuring changes nothing"
+  (lambda ()
+    (cite--ready!)
+    (= (cite-uses 'nn-succ-closed)
+       (fluid-let ((*cite-exclude-script* 'no-such-script))
+         (cite-uses 'nn-succ-closed)))))
+
+;;; Both switches default ON, and both exist so that a change to a lane can be
+;;; measured against the library rather than asserted.
+;;; The lane prints moves to be RUN.  `fact' evaluates its arguments, so a
+;;; compound term is a quoted S-expression, not a quoted surface string.
+(check-true "forward lane: a compound term prints as fact takes it"
+  (lambda ()
+    (and (string=? (what-now--term-arg '(CARR a)) "'(carr a)")
+         (string=? (what-now--term-arg 'u) "'u")
+         (string=? (what-now--term-arg 1) "1"))))
+
+(check-true "what-now: anchoring and the cite index are both on by default"
+  (lambda () (and *what-now-anchor* *what-now-use-cite-index*)))
+
+;;; -----------------------------------------------------------------------
+;;; THE SUPPLY-THE-ORACLE LANE (ineq-supply.scm, 2026-08-19, the user's design).
+;;; `ineq' linearizes over + - * and reads max(a,b) and (dist(s))(x,y) as opaque
+;;; ATOMS, so it cannot know `a <= max(a,b)' or the triangle inequality.  The
+;;; lane names the citations that land them, with the `in rr' certificate each
+;;; atom needs and the class bridge the metric ones need, then calls `ineq' with
+;;; its premises NAMED.
+
+;;; The table must name lemmas that EXIST -- a table entry that outruns the
+;;; library emits a move that cannot run.
+(check-true "ineq-supply: every table lemma is in the library"
+  (lambda ()
+    (let ((r (quietly (lambda () (ineq-supply-audit)))))
+      (null? (cdr (assq 'missing r))))))
+
+;;; The recorded shape of `fact' is FLAT -- (fact thm a b), the form you would
+;;; type.  `apply-recorded-cmd!' read a nested (thm ARGLIST) until 2026-09-06
+;;; and this lane re-nested to match it; both now use the recorded shape, which
+;;; is the one every script in *proof-script-table* actually carries.
+(check-true "ineq-supply: fact is executed flat, as it is recorded"
+  (lambda ()
+    (equal? (ineq-supply--exec '(fact (quote rr-max-closed) (quote a) (quote b)))
+            '(fact rr-max-closed a b))))
+
+(check-true "ineq-supply: mac-h keeps its flat (name idx) shape"
+  (lambda ()
+    (equal? (ineq-supply--exec '(mac-h (quote metric-space-class) 2))
+            '(mac-h metric-space-class 2))))
+
+;;; The class bridge is GENERIC -- `declare-structure' generates <name>-class
+;;; for every structure, so this is not a metric-space special case.
+(check-true "ineq-supply: an `x in <structure>' assumption gets its class bridge"
+  (lambda ()
+    (equal? (ineq-supply--bridges '((IN m METRIC-SPACE) (IN x RR)))
+            '((mac-h (quote metric-space-class) 1)))))
+
+(check-true "ineq-supply: an ordinary typing gets no bridge"
+  (lambda () (null? (ineq-supply--bridges '((IN x RR) (IN n NN))))))
+
+;;; The atoms are found by the table, and nothing else is.
+(check-true "ineq-supply: max and abs are found, a bare variable is not"
+  (lambda ()
+    (let ((as (ineq-supply--atoms '(<= (max a b) c) '((IN (abs x) rr)))))
+      (and (= 2 (length as))
+           (if (member '(max a b) (map cdr as)) #t #f)
+           (if (member '(abs x) (map cdr as)) #t #f)))))
+
+;;; The lane is silent on a goal with none of its heads -- a lane that speaks
+;;; on every order goal is noise, and the whole point is that it is a lookup.
+(check-true "ineq-supply: silent when the sequent has none of the table heads"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([a in rr, b in rr], a <= b implies a <= b)"))
+      (di) (di)
+      (null? (what-now--show-ineq-supply
+              (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))))))
+
+;;; ...and it does not speak on a non-order goal at all.
+(check-false "ineq-supply: the goal must be an order or equality atom"
+  (lambda () (ineq-supply--goal-shape? '(IN x rr))))
+
+;;; -----------------------------------------------------------------------
+;;; (push-not-h k) -- pushing a NOT inward, 2026-08-20.  The move every
+;;; "suppose it does NOT converge" argument opens with, and the one VNB had no
+;;; tactic for: `prop' treats a quantifier as an opaque atom, `contra' is
+;;; arithmetic, and there is no NNF in the tree.
+
+;;; THE GUARDED SURFACE IS A FIXED POINT.  This is the property that makes the
+;;; output readable, and it is checked rather than assumed: pushing through the
+;;; quantifier AND its guard lands exactly what the surface form parses to.
+(check-true "push-not: not forall([x in s], B) gives forsome([x in s], not B)"
+  (lambda ()
+    (equal? (push-not--step (parse-string "forall([x in s], x in t)"))
+            (parse-string "forsome([x in s], not(x in t))"))))
+
+(check-true "push-not: not forsome([x in s], B) gives forall([x in s], not B)"
+  (lambda ()
+    (equal? (push-not--step (parse-string "forsome([x in s], x in t)"))
+            (parse-string "forall([x in s], not(x in t))"))))
+
+(check-true "push-not: the unguarded quantifier keeps its shape"
+  (lambda ()
+    (equal? (push-not--step (parse-string "forall([x], x in t)"))
+            (parse-string "forsome([x], not(x in t))"))))
+
+(check-true "push-not: not(A implies B) gives A and not B"
+  (lambda ()
+    (equal? (push-not--step (parse-string "a in b implies b in a"))
+            (parse-string "a in b and not(b in a)"))))
+
+;;; It STOPS at the first head that is neither a quantifier nor an implication
+;;; -- the user's rule.  Going further would mean rewriting `implies' into `or'
+;;; and turning readable guarded statements into disjunctions.
+(check-false "push-not: nothing to push through an AND"
+  (lambda () (push-not--step (parse-string "a in b and b in a"))))
+
+(check-false "push-not: nothing to push through an atom"
+  (lambda () (push-not--step (parse-string "a in b"))))
+
+;;; `free-vars' of the FALSITY goal reports `falsity', and the goal after a
+;;; `pbc' or a NOT-peel IS falsity -- so the eigenvariable scan picked it up and
+;;; `(ew (quote falsity))' died inside the lane.
+(check-true "push-not: truth/falsity are not eigenvariable candidates"
+  (lambda () (equal? (push-not--vars-only '(x falsity y truth)) '(x y))))
+
+;;; End to end, through the kernel: the tactic must actually close the goal.
+(check-true "push-not-h closes the guarded-universal case"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([s, t], not(forall([x in s], x in t)) implies forsome([x in s], not(x in t)))"))
+      (di) (di) (push-not-h 1) (ass)
+      (proof-done? *ps*)))))
+
+(check-true "push-not-h closes the guarded-existential case"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([s, t], not(forsome([x in s], x in t)) implies forall([x in s], not(x in t)))"))
+      (di) (di) (push-not-h 1) (ass)
+      (proof-done? *ps*)))))
+
+;;; And it REFUSES rather than stranding a leaf -- there is no undo.
+;;; It used to REFUSE on an AND; De Morgan went in on 2026-08-20 and it now
+;;; pushes.  The refusal that remains is the one that matters: a NOT already on
+;;; an atom has nowhere to go, and refusing beats stranding a leaf.
+(check-error "push-not-h refuses a NOT already on an atom"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([a, b], not(a in b) implies a = a)"))
+      (di) (di)
+      (vnb-guard (lambda () (push-not-h 1)))))))
+
+(check-true "push-not-h closes the De Morgan case end to end"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([a, b], not(a in b and b in a) implies (not(a in b) or not(b in a)))"))
+      (di) (di) (push-not-h 1) (ass)
+      (proof-done? *ps*)))))
+
+;;; DE MORGAN, with the useful case first.  `NOT (AND P Q)' in general only
+;;; yields a disjunction, which forces a case split -- but when one conjunct is
+;;; already in the context (and it always is: it is the typing hypothesis the
+;;; definition was unfolded with) the negation of the other follows outright.
+(check-true "push-not: NOT(P and Q) with P known lands NOT Q, no split"
+  (lambda ()
+    (equal? (push-not--target (parse-string "a in b and b in a")
+                              (list (parse-string "a in b")))
+            (parse-string "not(b in a)"))))
+
+(check-true "push-not: NOT(P and Q) with nothing known lands the disjunction"
+  (lambda ()
+    (equal? (push-not--target (parse-string "a in b and b in a") '())
+            (parse-string "not(a in b) or not(b in a)"))))
+
+(check-true "push-not: NOT(P or Q) lands the conjunction"
+  (lambda ()
+    (equal? (push-not--target (parse-string "a in b or b in a") '())
+            (parse-string "not(a in b) and not(b in a)"))))
+
+;;; The panel lane and the tactic share `push-not--target', so the panel can
+;;; never offer a push the tactic would refuse.
+(check-true "what-now push-not lane offers exactly the pushable assumptions"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([s, t], not(forall([x in s], x in t)) implies s = s)"))
+      (di) (di)
+      (equal? (map wn--move-form (what-now--show-push-not))
+              '((push-not-h 1)))))))
+
+(check-true "what-now push-not lane is silent with no NOT-headed assumption"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([s, t], s in t implies s = s)"))
+      (di) (di)
+      (null? (what-now--show-push-not))))))
+
+;;; -----------------------------------------------------------------------
+;;; USER RULES (suggest.scm, `what-now--show-user-rules') -- the generative
+;;; counterpart of the filter.  A rule returns a move form, a list of them, or
+;;; #f; or calls (wn-add! ...).  Both spellings must work.
+(check-true "what-now user rule: a returned form becomes a move"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (what-now-rules! '() (list (lambda (g) '(crs))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((crs))))))))
+
+(check-true "what-now user rule: (wn-add! ...) is the imperative spelling"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (what-now-rules! '() (list (lambda (g) (wn-add! '(crs)) #f)))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((crs))))))))
+
+;;; THE USER'S OWN SHAPE, which is why `what-now--rule-forms' filters:
+;;;
+;;;     (map (lambda (x) (if (proc x) (suggestion x))) (wn-assumptions))
+;;;
+;;; A ONE-ARMED `if' returns MIT's unspecified object when the test fails, so
+;;; the `map' hands back a list peppered with non-forms.  Before the filter,
+;;; `(pair? (car r))' was false on such a list and the WHOLE LIST was taken for
+;;; a single move.
+(check-true "what-now user rule: a map with a one-armed if drops the non-forms"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (what-now-rules!
+       '()
+       (list (lambda (g)
+               (map (lambda (x)
+                      (if (and (pair? x) (eq? (car x) 'IN)
+                               (eq? (caddr x) 'NN))
+                          (list 'ass (wn-index x))))
+                    (wn-assumptions)))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((ass 1))))))))
+
+;;; And the same rule written with a two-armed if must give the same answer.
+(check-true "what-now user rule: one-armed and two-armed if agree"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (what-now-rules!
+       '()
+       (list (lambda (g)
+               (map (lambda (x)
+                      (if (and (pair? x) (eq? (car x) 'IN)
+                               (eq? (caddr x) 'NN))
+                          (list 'ass (wn-index x))
+                          #f))
+                    (wn-assumptions)))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((ass 1))))))))
+
+;;; An assumption rule sees every assumption, and `wn-index' gives the 1-based
+;;; index that inst+ / mac-h / ai / ineq all take.
+(check-true "what-now user rule: assumption rule sees each assumption by index"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (what-now-rules! (list (lambda (a) (and (pair? a) (eq? (car a) 'IN)
+                                              (list 'ass (wn-index a)))))
+                       '())
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((ass 1) (ass 2))))))))
+
+;;; A rule that RAISES is reported, not swallowed, and must not take the lane
+;;; (or the panel) with it.
+(check-true "what-now user rule: a raising rule does not kill the lane"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (what-now-rules! '() (list (lambda (g) (error "deliberate"))
+                                 (lambda (g) '(crs))))
+      (let ((ms (map wn--move-form (what-now--show-user-rules (dk-goal)))))
+        (what-now-rules-clear!)
+        (equal? ms '((crs))))))))
+
+;;; Silent with no rules installed -- the lane must cost nothing on the ordinary
+;;; panel.
+(check-true "what-now user-rules lane is silent with no rules installed"
+  (lambda ()
+    (quietly (lambda ()
+      (what-now-rules-clear!)
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (null? (what-now--show-user-rules (dk-goal)))))))
+
+;;; A forward move that lands an ASSUMPTION and leaves the goal alone must be
+;;; reported as firing.  `what-now--probe' measures the goal only, so using it
+;;; here reported the template's own (inst+ 1 'k) as "does not fire" while it
+;;; was landing a hypothesis -- caught the first time the lane was run.
+(check-true "what-now user rule: a move landing an assumption counts as firing"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (let ((r (what-now--probe-user-move '(fact 'nn-in-rr 'k))))
+        ;; (effect text landed) -- the probe grew a third element when the inst
+        ;; lane needed the landed FORMULAS to filter on, not just their rendering.
+        (and (car r) (string-search-forward "lands" (cadr r) 0) #t))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE INST LANE, UNHINTED AND PROBED (suggest.scm,
+;;; `what-now--show-inst-fired').
+;;;
+;;; The user, 2026-08-21: the panel is "totally oblivious" to universals that
+;;; could be instantiated by terms already in the sequent.  It was -- the lane
+;;; had been behind `*what-now-hint*' since 2026-08-13 for printing the cross
+;;; product of universals with terms.  It is now shown unhinted, with every
+;;; candidate PROBED and only the ones that land something kept.
+(check-true "what-now inst lane offers an instantiation that lands"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([a, w in a], forall([x in a], x in a and x = x) implies w = w)"))
+      (di) (di) (di)
+      (equal? (map wn--move-form (what-now--show-inst-fired)) '((inst+ 1 'w)))))))
+
+;;; The discriminator, unit-tested.  `inst+' forward-detaches every guard it
+;;; can, so an instance that arrives STILL AN IMPLICATION is one whose guard it
+;;; could not discharge -- i.e. the term was of the wrong sort.  Measured on the
+;;; user's leaf: (inst+ 4 'f) on forall([k in nn, f in fun(nn,rr)], ...) landed
+;;; `f in nn implies ...', a FUNCTION in the natural-number slot, and a bare
+;;; did-it-fire test kept it.  That is the type-confused noise which got the
+;;; lane hidden in the first place.
+(check-true "inst landing filter rejects an instance that is still an implication"
+  (lambda ()
+    (not (what-now--inst-landing-useful?
+          (list (parse-string "f in nn implies f = f"))))))
+
+(check-true "inst landing filter accepts a genuine landing"
+  (lambda ()
+    (and (what-now--inst-landing-useful?
+          (list (parse-string "w in a") (parse-string "f in nn implies f = f"))))))
+
+(check-true "inst landing filter rejects an empty landing"
+  (lambda ()
+    (not (what-now--inst-landing-useful? '()))))
+
+;;; -----------------------------------------------------------------------
+;;; REWRITE FROM A CONTEXT UNIVERSAL (suggest.scm,
+;;; `what-now--show-rewrite-from-context').
+;;;
+;;; The kernel fact the lane rests on, pinned FIRST because the user's stated
+;;; principle assumed the opposite: `==' licenses `subst' with NO definedness
+;;; certificate.  `pi-eq-subst!' (primitive-inferences.scm:481) accepts `=' and
+;;; `==' alike -- quasi-equal terms are a congruence.  If this check ever fails,
+;;; the lane's advice becomes unsound and its comment is wrong.
+(check-true "subst rewrites from a quasi-equation with no definedness in context"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u (IMPLIES (== u 0) (<= (abs u) 0)))))
+      (di) (di)
+      (subst '(== u 0))
+      (equal? (dk-goal) '(<= (abs 0) 0))))))
+
+;;; The lane itself: a context universal that is a (quasi-)equation whose left
+;;; side occurs in the goal determines its own instantiation.
+(check-true "what-now rewrite-from-context offers inst+ then subst"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL f (IMPLIES (IN f (FUN NN RR))
+                       (IMPLIES (FORALL g (== (SERIES-PARTIAL-SUM g 0) 0))
+                         (<= (abs (SERIES-PARTIAL-SUM f 0)) 0))))))
+      (di) (di) (di)
+      (let ((ms (map wn--move-form
+                     (what-now--show-rewrite-from-context (dk-goal)))))
+        (and (member '(inst+ 1 'f) ms)
+             (member '(subst '(== (SERIES-PARTIAL-SUM f 0) 0)) ms)
+             #t))))))
+
+;;; EVERY matching subterm, not the first.  The motivating goal needs the same
+;;; universal at two different terms; stopping at the first match offered one of
+;;; the two moves the leaf wants.
+(check-true "what-now rewrite-from-context offers every matching subterm"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL a (IMPLIES (IN a RR)
+                       (IMPLIES (FORALL u (== (abs u) u))
+                         (<= (+ (abs a) (abs 0)) 0))))))
+      (di) (di) (di)
+      (let* ((ms (map wn--move-form
+                      (what-now--show-rewrite-from-context (dk-goal))))
+             (insts (filter (lambda (m) (eq? (car m) 'inst+)) ms)))
+        (>= (length insts) 2))))))
+
+;;; Silent when no context universal is an equation -- the lane must cost
+;;; nothing on an ordinary panel.
+(check-true "what-now rewrite-from-context is silent with no equational universal"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k = k)"))
+      (di)
+      (null? (what-now--show-rewrite-from-context (dk-goal)))))))
+
+;;; -----------------------------------------------------------------------
+;;; The TYPING-CHAIN lane (suggest.scm, `what-now--show-typing-chain').
+;;;
+;;; "To show f(FUBA) in GUBA, look for FUBA in RUBA."  Both halves of this were
+;;; already on the panel and twenty lines apart -- (bc* 'rr-abs-closed) at rank 1
+;;; of backchain, (fact 'series-partial-sum-in-rr 'k 'f) at rank 1 of forward --
+;;; and nothing said they compose.  The lane CHECKS the chain on a scratch clone
+;;; rather than inferring it, so a hit cannot be wrong about closing.
+(check-true "what-now typing lane composes backchain + forward and closes"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn, f in fun(nn, rr)], k = k)"))
+      (di)
+      (fact 'series-partial-sum-in-rr)
+      (have! '(IN (abs (SERIES-PARTIAL-SUM f k)) RR)
+        (lambda ()
+          (let ((chain (map wn--move-form (what-now--show-typing-chain (dk-goal)))))
+            (set! *tc-chain* chain))
+          ;; forward typing FIRST (2026-09-18): the backchain instantiates
+          ;; rr-abs-closed at the partial sum, which owes definedness until
+          ;; the forward fact has typed it
+          (fact 'series-partial-sum-in-rr 'k 'f) (bc* 'rr-abs-closed) (ass)))
+      (equal? *tc-chain*
+              '((fact 'series-partial-sum-in-rr 'k 'f)
+                (bc* 'rr-abs-closed)
+                (ass)))))))
+
+;;; Gated on the goal SHAPE: a membership whose subject is a compound term.  A
+;;; bare variable typing has no closure law to backchain and the lane must not
+;;; probe the whole backchain list looking for one.
+(check-true "what-now typing lane is silent on a non-compound membership goal"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([k in nn], k in nn)"))
+      (di)
+      (null? (what-now--show-typing-chain (dk-goal)))))))
+
+;;; And silent when the argument's own typing is genuinely unavailable.
+;;;
+;;; The first draft of this check was ILL-POSED and the suite caught it: it
+;;; omitted the typing from the CONTEXT and concluded it was missing, but
+;;; `series-partial-sum-in-rr' is a LIBRARY theorem whose antecedents
+;;; `k in nn' / `f in fun(nn, rr)' the context already satisfies, so the forward
+;;; lane supplied it anyway and the chain legitimately closed.  "Not in the
+;;; context" is not "not available": the forward lane's whole job is to reach
+;;; past the context into the library.  So the unavailable case needs a term
+;;; nothing can type -- an unconstrained variable.
+(check-true "what-now typing lane is silent when the argument typing is unavailable"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([u], abs(u) in rr)"))
+      (di)
+      (null? (what-now--show-typing-chain (dk-goal)))))))
+
+;;; -----------------------------------------------------------------------
+;;; The `ineq' lane of what-now (suggest.scm, `what-now--show-ineq').
+;;;
+;;; Before 2026-08-20 the comparison branch printed a static "(ineq i1 i2 ...)"
+;;; header and computed NOTHING, so on a leaf whose whole content is one linear
+;;; step the panel showed a header with nothing under it and fell through to
+;;; backchain -- whose top offers on a REAL comparison are routinely NN lemmas
+;;; that fire and strand the proof.  Measured on the two partial-sum order
+;;; lemmas in theorem-library/comparison-test-proof.scm, both of which close on
+;;; exactly the move the panel did not name.
+(check-true "what-now ineq lane names the indices and says it closes"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([x in rr, y in rr], 0 <= y implies x <= x + y)"))
+      (di) (di)
+      (equal? (map wn--move-form (what-now--show-ineq)) '((ineq 1)))))))
+
+;;; It offers ONLY when the call closes: `ineq' does not partly succeed, so a
+;;; non-closing call is not a move and printing it would be noise on every
+;;; comparison goal in the tree.  Here the premise points the wrong way.
+(check-true "what-now ineq lane is silent when the call does not close"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "forall([x in rr, y in rr], 0 <= y implies x + y <= x)"))
+      (di) (di)
+      (null? (what-now--show-ineq))))))
+
+;;; And silent with no usable ordering premise at all -- `contra--usable-indices'
+;;; returns the empty list, and the lane must not then call `(ineq)' with no
+;;; arguments, which proves nothing.
+(check-true "what-now ineq lane is silent with no ordering premise in context"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([x in rr], x <= x + x)"))
+      (di)
+      (null? (what-now--show-ineq))))))
+
+(check-error "push-not-h refuses an assumption that is not a NOT"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string "forall([a, b], a in b implies a = a)"))
+      (di) (di)
+      (vnb-guard (lambda () (push-not-h 1)))))))
+
+;;; -----------------------------------------------------------------------
+;;; SUBSQN(y,f) -- "y is a subsequence of f", 2026-08-20 (the user's proposal).
+;;; IS-SUBSEQUENCE conflates a TYPING with a RELATION and carries a metric space
+;;; through a statement that is about two sequences and nothing else.  It also
+;;; had ZERO citations, while five theorems in the same arc wrote its body out
+;;; longhand.  SUBSQN is that body, named; these pin the split.
+
+(check-true "subsqn is space-free -- two arguments, no structure"
+  (lambda ()
+    (let ((f (lookup-theorem 'subsqn)))
+      (and (pair? f)
+           (let ((s (expression->string f)))
+             (and (string-search-forward "subsqn(y, f)" s 0)
+                  (not (string-search-forward "pts(" s 0))
+                  #t))))))
+
+;;; THE CLOSURE PROPERTY, and it is not a consequence of the definition alone:
+;;; SUBSEQ(f,phi) is a VNB-LAMBDA, and a VNB-LAMBDA is a function only by
+;;; `lam-t', which owes the domain's sethood and the body's pointwise typing.
+;;; `subseq-is-fun' states this for PTS(s) only, and asserts it.
+(check-true "subsqn-preserves-sqn holds for a GENERAL class, proven modulo 0"
+  (lambda ()
+    (and (pair? (lookup-theorem 'subsqn-preserves-sqn))
+         (null? (debt-of 'subsqn-preserves-sqn)))))
+
+;;; A probe that RAISES must not kill the panel -- `contra' does exactly that on
+;;; a goal with arithmetic atoms it cannot certify, and took all of `what-now'
+;;; with it (reported 2026-08-20 on
+;;; vnb-lambda(x, nn, 1 * recip(0)) = vnb-lambda(x, nn, 1 * recip(0))).
+(check-true "what-now survives a probe that raises, and names it"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           "vnb-lambda(x, nn, 1 * recip(0)) = vnb-lambda(x, nn, 1 * recip(0))"))
+      (let ((r (vnb-guard (lambda () (what-now-data)))))
+        (and (not (vnb-error? r))
+             (pair? *what-now-probe-errors*)))))))
+
+(check-true "is-subsequence = the typing AND subsqn, proven modulo 0"
+  (lambda ()
+    (and (pair? (lookup-theorem 'is-subsequence-iff-typed-subsqn))
+         (null? (debt-of 'is-subsequence-iff-typed-subsqn)))))
+
+;;; -----------------------------------------------------------------------
+;;; Alpha-equivalence is an EQUIVALENCE, and the formula digest respects it
+;;; (2026-08-21).  alpha-equiv-under? carried a one-directional renaming map
+;;; with no injectivity check, so a shadowing binder on the RIGHT collapsed two
+;;; distinct left-hand variables onto one name: the first two checks below
+;;; answered #t and #f respectively, for the same pair of formulas.  `ass'
+;;; closes on alpha-equality and `dg-post!' hash-conses on it, so the direction
+;;; the caller happened to pass decided the answer.
+
+(check-false "alpha-equiv?: a shadowing binder on the right is not a renaming"
+  (lambda ()
+    (alpha-equiv? '(FORALL x (FORALL y (P x y)))
+                  '(FORALL a (FORALL a (P a a))))))
+
+(check-false "alpha-equiv?: ... and not in the other direction either (symmetry)"
+  (lambda ()
+    (alpha-equiv? '(FORALL a (FORALL a (P a a)))
+                  '(FORALL x (FORALL y (P x y))))))
+
+(check-false "alpha-equiv?: a free name captured on the right is a different variable"
+  (lambda ()
+    (alpha-equiv? '(FORALL x (P x y)) '(FORALL y (P y y)))))
+
+(check-true "alpha-equiv?: a genuine renaming still passes"
+  (lambda ()
+    (and (alpha-equiv? '(FORALL x (FORALL y (P x y)))
+                       '(FORALL u (FORALL v (P u v))))
+         (alpha-equiv? '(FORALL f (f x)) '(FORALL g (g x))))))
+
+(check-false "alpha-equiv?: swapping the binders is not a renaming"
+  (lambda ()
+    (alpha-equiv? '(FORALL x (FORALL y (P x y)))
+                  '(FORALL y (FORALL x (P x y))))))
+
+(check-true "formula-hash: alpha-invariant, and separates the shadowing pair"
+  (lambda ()
+    (and (= (formula-hash '(FORALL x (FORALL y (P x y))))
+            (formula-hash '(FORALL u (FORALL v (P u v)))))
+         (not (= (formula-hash '(FORALL x (FORALL y (P x y))))
+                 (formula-hash '(FORALL a (FORALL a (P a a)))))))))
+
+(check-true "formula-hash: COMP, SEP and BIG-UNION bind (the 2026-08-15 walker gap)"
+  (lambda ()
+    (and (= (formula-hash '(COMP r (IN r a)))      (formula-hash '(COMP z (IN z a))))
+         (= (formula-hash '(SEP x A (P x)))        (formula-hash '(SEP w A (P w))))
+         (= (formula-hash '(BIG-UNION x A (P x)))  (formula-hash '(BIG-UNION w A (P w))))
+         ;; ... and a free name in the same position is NOT absorbed
+         (not (= (formula-hash '(COMP r (IN r a))) (formula-hash '(COMP r (IN r b)))))
+         ;; ... and the domain is outside the binder
+         (not (= (formula-hash '(SEP x A (P x)))   (formula-hash '(SEP x B (P x))))))))
+
+(check-true "formula-hash: the two spellings of a one-variable VNB-LAMBDA agree"
+  (lambda ()
+    (= (formula-hash '(VNB-LAMBDA n NN (f n)))
+       (formula-hash '(VNB-LAMBDA (LIST m) NN (f m))))))
+
+(check-true "formula-canon: alpha-equivalent formulas have equal canonical forms"
+  (lambda ()
+    (and (equal? (formula-canon '(FORALL x (FORALL y (P x y))))
+                 (formula-canon '(FORALL u (FORALL v (P u v)))))
+         (not (equal? (formula-canon '(FORALL x (FORALL y (P x y))))
+                      (formula-canon '(FORALL a (FORALL a (P a a)))))))))
+
+(check-true "wff digest: two builds of one text, and an alpha-variant, agree"
+  (lambda ()
+    (let ((w1 (make-wff "forall([k in nn], k = k)"))
+          (w2 (make-wff "forall([k in nn], k = k)"))
+          (w3 (make-wff "forall([j in nn], j = j)"))
+          (w4 (make-wff "forall([k in nn], k in nn)")))
+      (and (= (wff-hash w1) (wff-hash w2))
+           (= (wff-hash w1) (wff-hash w3))
+           (not (= (wff-hash w1) (wff-hash w4)))
+           (wff-equiv? w1 w3)
+           (not (wff-equiv? w1 w4))))))
+
+;;; The contract the deduction-graph index relies on, checked over the whole
+;;; installed library rather than on hand-picked cases: alpha-equivalent
+;;; formulas MUST hash equal, or dg-find-sequent-node looks in the wrong bucket
+;;; and hash-consing silently stops.
+(check-true "formula-hash: alpha-equiv? implies equal digests, over the theorem table"
+  (lambda ()
+    (let ((fs (map lookup-theorem (list-head (theorem-names) 150))))
+      (let loop ((a fs))
+        (cond ((null? a) #t)
+              (else
+               (let inner ((b fs))
+                 (cond ((null? b) (loop (cdr a)))
+                       ((and (alpha-equiv? (car a) (car b))
+                             (not (= (formula-hash (car a)) (formula-hash (car b)))))
+                        #f)
+                       (else (inner (cdr b)))))))))))
+
+;;; dg-post! still hash-conses: an alpha-variant of a posted sequent must come
+;;; back as the SAME node, now that the lookup goes through the digest index.
+(check-true "dg-post!: an alpha-variant sequent returns the existing node"
+  (lambda ()
+    (let* ((dg (make-deduction-graph))
+           (s1 (make-sequent '() (make-wff "forall([k in nn], k = k)")))
+           (s2 (make-sequent '() (make-wff "forall([j in nn], j = j)")))
+           (s3 (make-sequent '() (make-wff "forall([k in nn], k in nn)")))
+           (n1 (dg-post! dg s1))
+           (n2 (dg-post! dg s2))
+           (n3 (dg-post! dg s3)))
+      (and (eq? n1 n2) (not (eq? n1 n3))
+           (= 2 (length (dg-sequent-nodes dg)))))))
+
+(check-true "binder-walker-audit: every walker agrees with *binder-shapes*"
+  (lambda () (null? (binder-walker-audit))))
+
+;;; Gate control: the audit above passes on a clean tree, which is exactly what
+;;; a broken audit also does.  Declare a head that binds nothing and it must
+;;; name it.
+(check-true "binder-walker-audit: fails on a head declared to bind that does not"
+  (lambda ()
+    (let ((saved *binder-shapes*))
+      (set! *binder-shapes* (cons (cons 'FUBA-BINDS-NOTHING 'simple) *binder-shapes*))
+      (let ((bad (binder-walker-audit)))
+        (set! *binder-shapes* saved)
+        (and (pair? bad)
+             (eq? 'fuba-binds-nothing (car (car bad))))))))
+
+(check-true "register-constant!: warns when the name is already an installed binder"
+  (lambda ()
+    ;; `dg' is the Euclidean degree function's bound variable in
+    ;; is-euclidean-ring-def -- renamed there on 2026-08-21 precisely because
+    ;; registering DEG collided with its old spelling.
+    (and (eq? 'is-euclidean-ring-def
+              (hash-table-ref/default *installed-binder-names* 'dg #f))
+         ;; ... and a name nothing binds is not in the table at all
+         (not (hash-table-ref/default *installed-binder-names*
+                                      'zzz-not-a-binder-anywhere #f)))))
+
+(check-true "formula-binder-names: reports every binder head in *binder-shapes*"
+  (lambda ()
+    (let ((got (map cdr (formula-binder-names
+                         '(AND (FORALL a (FORSOME b (IN a b)))
+                               (AND (IN (SEP c d (IN c d)) (COMP e (IN e e)))
+                                    (IN (BIG-UNION g h (IN g h))
+                                        (VNB-LAMBDA i NN (IOTA j (IN i j))))))))))
+      (and (= (length got) 7)
+           (let loop ((hs (map car *binder-shapes*)))
+             (or (null? hs)
+                 (and (memq (car hs) got) (loop (cdr hs)))))))))
+
+(check-true "supply: closes the series-triangle induction step, redex and all"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([f in fun(nn, rr), k in nn],
+             abs(series-partial-sum(f, k)) <= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k)
+             implies
+             abs(series-partial-sum(f, k) + f(k))
+               <= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k)
+                  + (vnb-lambda(n_, nn, abs(f(n_))))(k))"))
+      (quietly (lambda () (di) (di) (supply)))
+      (proof-done? *ps*))))
+
+;;; The half that matters more: a composite with no undo must not spend a move
+;;; it cannot finish.  On a goal it cannot close, `supply' must leave the leaf
+;;; byte-identical -- in particular it must NOT have beta-reduced anything.
+(check-true "supply: refuses a goal it cannot close, and changes nothing"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([a in rr, b in rr], a <= b)"))
+      (quietly (lambda () (di) (supply)))
+      (and (not (proof-done? *ps*))
+           (= 1 (length (proof-leaves)))
+           (equal? '(<= a b)
+                   (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))))))
+
+(check-true "min: the head parses as a term, not an applied function variable"
+  (lambda ()
+    (let ((f (wff-formula (make-wff "forall([x in rr, y in rr], min(x,y) <= x)"))))
+      ;; registered => the head is the CONSTANT min, and free-vars does not
+      ;; report it as a variable the caller supplied
+      (and (constant-head? 'min)
+           (not (memq 'min (free-vars f)))))))
+
+(check-true "min: the five RR laws and both NN closures are proven, modulo 0"
+  (lambda ()
+    (let loop ((ns '(rr-min-closed rr-min-cases rr-min-le-left rr-min-le-right
+                     rr-le-min nn-max-closed nn-min-closed)))
+      (or (null? ns)
+          (and (pair? (lookup-theorem (car ns)))
+               (null? (debt-of (car ns)))
+               (loop (cdr ns)))))))
+
+;;; MIN and MAX must agree at x = y about WHICH argument they return -- both
+;;; guards split on `<=' so both first branches cover equality and return the
+;;; first argument.  A driver handling the pair side by side depends on it.
+(check-true "min/max: the definitions meet the same branch order at x = y"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([x in rr], min(x,x) = x and max(x,x) = x)"))
+      (quietly
+       (lambda ()
+         (di)
+         (fact 'rr-min-def 'x 'x)
+         (fact 'rr-max-def 'x 'x)
+         (prop)))
+      (proof-done? *ps*))))
+
+;;; NN needs no operator of its own: the RR maximum of two naturals IS the
+;;; natural maximum, and the only thing owed is that it stays in NN.
+(check-true "nn-max-closed: proven with no NN order theory, from rr-max-cases"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff "forall([x in nn, y in nn], max(x,y) in nn)"))
+      (quietly
+       (lambda ()
+         (di)
+         (fact 'nn-in-rr 'x) (fact 'nn-in-rr 'y)
+         (fact 'rr-max-cases 'x 'y)
+         (use-cases '((= (max x y) x) (= (max x y) y))
+           (lambda () (subst '(= (max x y) x)) (ass))
+           (lambda () (subst '(= (max x y) y)) (ass)))))
+      (proof-done? *ps*))))
+
+;;; The supply table's one recorded gap is closed; the list is empty now.
+(check-true "ineq-supply: nothing is on the WANTED list any more"
+  (lambda () (null? *ineq-supply-wanted*)))
+
+(check-true "duplicate-define-audit: no core file defines a name twice"
+  (lambda () (null? (duplicate-define-audit))))
+
+;;; Gate control.  An audit that passes reads exactly like a clean tree, so the
+;;; DETECTION is exercised on a list it must flag.
+(check-true "duplicate-define-audit: flags a repeat, passes a clean list"
+  (lambda ()
+    (and (equal? '((b 2)) (duplicate--repeats '(a b c b)))
+         (null? (duplicate--repeats '(a b c)))
+         ;; and the reader really is reading definitions out of a real file
+         (memq 'duplicate-define-audit
+               (duplicate--defined-names (string-append *prover-dir* "audit.scm")))
+         #t)))
+
+;;; THE KERNEL BOUNDARY (2026-09-12).  `dg-apply-rule!' is the only procedure
+;;; that writes an inference into a deduction graph and it validates nothing, so
+;;; the trusted code base is exactly the set of procedures that call it.  The
+;;; load gate is FATAL, so the first check here can never fail in a suite that
+;;; got this far -- it is the others that matter, because a gate which passes
+;;; reads exactly like a clean tree and the DETECTION has to be exercised on
+;;; input it must flag.
+(check-true "kernel-callers-audit: nothing outside the kernel writes the graph"
+  (lambda () (and (null? (kernel-callers-audit))
+                  (null? (kernel-callers-value-uses)))))
+
+(check-true "kernel-callers-audit: the census finds the kernel it claims to"
+  (lambda ()
+    (let ((census (kernel-callers-census)))
+      (and (= (length census) (length *kernel-caller-files*))
+           ;; primitive-inferences carries the bulk of the 68 call sites
+           (> (cadr (assoc "primitive-inferences" census)) 40)
+           ;; and no allowlisted file has gone quiet: a name left on the list
+           ;; after its last call site went away is a widened trusted base that
+           ;; nothing uses, which is exactly what the list exists to prevent
+           (null? (filter (lambda (f) (not (assoc f census)))
+                          *kernel-caller-files*))))))
+
+;;; Gate control for the reader: a call, a DEFINITION (whose formal list is
+;;; spelled exactly like a call -- counting it reported a 9th caller file),
+;;; quoted data, and the name handed out as a VALUE, which is the escape hatch
+;;; the call count alone would miss.
+(check-true "kernel-callers-audit: counts calls, not definitions or quoted data"
+  (lambda ()
+    (and (equal? '(1 . 0) (kca--counts '(begin (dg-apply-rule! dg r h c))))
+         (equal? '(0 . 0) (kca--counts '(define (dg-apply-rule! dg rule hyps concl) 'body)))
+         (equal? '(0 . 0) (kca--counts '(memq x '(dg-apply-rule! foo))))
+         (equal? '(0 . 1) (kca--counts '(map dg-apply-rule! xs))))))
+
+;;; CONSTANT DENOMINATORS in the ineq linearizer (2026-08-22).  `recip(2)' and
+;;; `x / 2' are folded to the rational 1/2, so the commonest step in analysis --
+;;; halve the epsilon -- is inside the oracle instead of an opaque atom.
+
+(define (ineq--closes? wff-str)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-str))
+    (quietly
+     (lambda ()
+       (let loop ((n 0))
+         (if (and (< n 12) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES)))
+             (begin (di) (loop (+ n 1)))))
+       (let* ((k (length (dk-asms)))
+              (idxs (let lp ((i k) (a '())) (if (= i 0) a (lp (- i 1) (cons i a))))))
+         (vnb-guard (lambda () (apply ineq idxs))))))
+    (proof-done? *ps*)))
+
+(check-true "ineq: recip of a nonzero literal is a constant, not an atom"
+  (lambda ()
+    (ineq--closes?
+     "forall([eps in rr], 0 <= eps implies eps * recip(2) + eps * recip(2) <= eps)")))
+
+(check-true "ineq: division by a nonzero literal likewise"
+  (lambda ()
+    (ineq--closes?
+     "forall([eps in rr], 0 <= eps implies (eps / 2) + (eps / 2) <= eps)")))
+
+;;; The shape that matters: an eps/2 argument with the quantities OPAQUE.
+(check-true "ineq: the eps/2 argument closes with opaque atoms"
+  (lambda ()
+    (ineq--closes?
+     "forall([e in rr, a in rr, b in rr, c in rr],
+        a <= e * recip(2) implies b <= e * recip(2) implies c <= a + b implies c <= e)")))
+
+;;; NEGATIVE CONTROLS -- the guards.  A fold that fired on either of these would
+;;; be unsound, and an oracle that closes everything reads exactly like one that
+;;; works.
+(check-false "ineq: recip of a VARIABLE stays an opaque atom"
+  (lambda ()
+    ;; false at x = 1, so closing it would be a soundness bug
+    (ineq--closes?
+     "forall([x in rr, e in rr], 0 <= e implies e * recip(x) + e * recip(x) <= e)")))
+
+(check-false "ineq: recip(0) is not folded"
+  (lambda ()
+    (ineq--closes?
+     "forall([e in rr], 0 <= e implies e * recip(0) <= e)")))
+
+(check-false "ineq: division by a VARIABLE stays an opaque atom"
+  (lambda ()
+    (ineq--closes?
+     "forall([x in rr, e in rr], 0 <= e implies (e / x) + (e / x) <= e)")))
+
+;;; CLASS BRIDGE lane (2026-08-22).  `forall([s in metric-space], ...)' puts
+;;; `s in metric-space' in the context while every theorem is guarded on
+;;; `is-metric-space(s)', so `fact' lands the implication silently.  The repair
+;;; was computed by ineq-supply--bridges since 2026-08-19 but only reachable on
+;;; an order goal; it is now a lane of its own.
+
+(define (class-bridge--moves wff-str)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-str))
+    (quietly (lambda () (di)))
+    (quietly (lambda () (what-now--show-class-bridge)))))
+
+(check-true "class bridge: fires on a class membership, naming the mac-h"
+  (lambda ()
+    (let ((ms (class-bridge--moves
+               "forall([s in metric-space, a in pts(s)], (dist(s))(a, a) = 0)")))
+      (and (pair? ms)
+           (equal? (car ms) '(mac-h (quote metric-space-class) 1))))))
+
+;;; SELF-GATING, both ways -- a lane that fires on every panel is noise, and one
+;;; that fires after the bridge has been taken is worse.
+(check-true "class bridge: SILENT once the predicate form is in context"
+  (lambda ()
+    (null? (class-bridge--moves
+            "forall([s], is-metric-space(s) implies s in metric-space implies
+                         forall([a in pts(s)], (dist(s))(a, a) = 0))"))))
+
+(check-true "class bridge: SILENT when no assumption is a class membership"
+  (lambda ()
+    (null? (class-bridge--moves
+            "forall([s], is-metric-space(s) implies
+                         forall([a in pts(s)], (dist(s))(a, a) = 0))"))))
+
+;;; The predicate is read off the class LAW, not by turning "metric-space" into
+;;; "is-metric-space" with string surgery -- so a structure whose predicate is
+;;; spelled otherwise still works, and a class with no law is skipped.
+(check-true "class bridge: the target comes from the class law itself"
+  (lambda ()
+    (and (equal? '(IS-METRIC-SPACE s)
+                 (what-now--class-law-target 'metric-space 's))
+         (not (what-now--class-law-target 'no-such-class-at-all 's)))))
+
+;;; -----------------------------------------------------------------------
+;;; LEGIBILITY lane (suggest.scm, `what-now--show-legibility', 2026-08-24).
+;;;
+;;; The user's leaf of 2026-08-23 read, in part,
+;;;
+;;;   (opr([carr(rr-normed-field), binplus, 0, neg(rr-normed-field)]))(
+;;;      sum-ag(...), recip(succ(0)) * cf(0) * x ^ succ(0))
+;;;
+;;; -- "one could do obvious things like replacing succ(0) by 1".  Every move
+;;; that does so was in the tree; no lane named any of them.
+;;;
+;;; THE MOVES ARE REWRITES.  A printer that normalised `succ(0)' to `1' would
+;;; recreate the nullary-application trap: `(f)' printed as `f', so `(= (f) f)'
+;;; displayed as `f = f' while `rfl' refused it.  The first check below pins
+;;; that decision -- it fails the moment `expr->str' starts normalising.
+(check-true "legibility: the PRINTER still does not normalise (succ / accessor)"
+  (lambda ()
+    (and (string=? (expression->string '(succ 0)) "succ(0)")
+         (string=? (expression->string '(OPR (LIST RR binplus 0 binneg)))
+                   "opr([rr, binplus, 0, binneg])"))))
+
+(define (legibility--moves wff-str . opt)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-str))
+    (for-each (lambda (m) (quietly (lambda () (vnb-guard m)))) opt)
+    (let ((out '()))
+      (with-output-to-string
+        (lambda () (set! out (what-now--show-legibility (dk-goal)))))
+      out)))
+
+;;; 1. an accessor applied to a literal tuple -- the user's `opr([...])'.
+(check-true "legibility: accessor on a literal tuple offers (slot ACC) then (nth-r)"
+  (lambda ()
+    (equal? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus")
+            '((slot (quote opr)) (nth-r)))))
+
+;;; 2. a succ tower over a literal.  MAXIMAL only: collapsing succ(succ(0))
+;;; takes the inner succ(0) with it, so offering both would be two moves for
+;;; one.  There is no ONE-step move -- `numeral-collapse' is a Scheme procedure
+;;; called only from `condition-holds?' -- so the offer is the two steps the
+;;; library already writes by hand (makeset-basics.scm:299).
+(check-true "legibility: succ tower over a literal offers have!+subst, MAXIMAL tower"
+  (lambda ()
+    (equal? (legibility--moves "forall([a in rr], a ^ succ(succ(0)) = a * a)"
+                               (lambda () (di)))
+            '((have! (quote (= (succ (succ 0)) 2)) (lambda () (arith)))
+              (subst (quote (= (succ (succ 0)) 2)))))))
+
+;;; 3. an accessor applied to a declared INSTANCE -- one move for the whole
+;;; goal, and the door `accessor-callsite-audit' permits (the rewrite lane's
+;;; alternative is `(mac 'rr-ms@pts)', firing an accessor macete by name).
+(check-true "legibility: accessor on a declared instance offers (surface-goal! INST)"
+  (lambda ()
+    (equal? (legibility--moves "forall([u in pts(rr-ms)], (dist(rr-ms))(u, u) = 0)")
+            '((surface-goal! (quote rr-ms))))))
+
+;;; SILENCE IS NOT OPTIONAL: a lane that offers something on every goal is as
+;;; useless as one that offers nothing.  Three shapes it must stay quiet on --
+;;; no accessor and no numeral tower; a succ over a VARIABLE (nothing to
+;;; collapse); and a goal with no terms of its kind at all.
+(check-true "legibility: SILENT on a clean arithmetic goal"
+  (lambda () (null? (legibility--moves "forall([a in rr], a + 0 = a)"))))
+
+(check-true "legibility: SILENT on succ of a VARIABLE"
+  (lambda () (null? (legibility--moves "forall([n in nn], succ(n) in nn)"
+                                       (lambda () (di))))))
+
+(check-true "legibility: SILENT on a clean set goal"
+  (lambda () (null? (legibility--moves "forall([a in set], a subset a)"))))
+
+;;; The lane respects the filter, like every other lane.
+(check-true "legibility: *what-now-suppress* hides a legibility move"
+  (lambda ()
+    (dynamic-wind
+     (lambda () (what-now-suppress! 'OPR))
+     (lambda () (null? (legibility--moves "opr([rr, binplus, 0, binneg]) == binplus")))
+     (lambda () (what-now-filter-clear!)))))
+
+;;; THE PANEL COMPLETES, on an ugly goal and on a clean one -- the failure this
+;;; lane must not repeat is `what-now--notational-macete?' calling
+;;; `lookup-theorem' (which ERRORS on a miss) and killing the whole panel.
+;;; A lane raise is caught and NAMED in *what-now-probe-errors*, never fatal.
+(define (legibility--panel wff-str)
+  (fluid-let ((*ps* #f) (*what-now-probe-errors* '()))
+    (sp (make-wff wff-str))
+    (let ((v '()))
+      (with-output-to-string (lambda () (set! v (what-now))))
+      (list (and (pair? (assq 'moves v)) #t)
+            (map (lambda (l) (cdr (assq 'kind l))) (cdr (assq 'lanes v)))))))
+
+(check-true "legibility: the panel completes on the ugly goal, with the lane in it"
+  (lambda ()
+    (let ((r (legibility--panel "opr([rr, binplus, 0, binneg]) == binplus")))
+      (and (car r) (memq 'legibility (cadr r)) #t))))
+
+(check-true "legibility: the panel completes on a clean goal, WITHOUT the lane"
+  (lambda ()
+    (let ((r (legibility--panel "forall([a in rr], a + 0 = a)")))
+      (and (car r) (not (memq 'legibility (cadr r)))))))
+
+;;; prop's ATOM CAP counts the whole context, and `push-not-h' discharges its
+;;; FORALL case through prop -- so in exactly the situation push-not exists for
+;;; (a definition just unfolded, hence a large context) the push failed.  Since
+;;; 2026-08-22 an over-cap run retries on the GOAL-CONNECTED assumptions.
+
+(define (prop--cap-fixture)
+  (sp (make-wff "forall([x, b, a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad, ae, af],
+     (x in b implies x in a1) implies x in b implies
+     x in a2 implies x in a3 implies x in a4 implies x in a5 implies x in a6 implies
+     x in a7 implies x in a8 implies x in a9 implies x in aa implies x in ab implies
+     x in ac implies x in ad implies x in ae implies x in af implies x in a1)"))
+  (quietly (lambda ()
+    (let loop ((n 0))
+      (if (and (< n 24) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES)))
+          (begin (di) (loop (+ n 1))))))))
+
+(check-true "prop: an over-cap context is retried on the goal-connected part"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (prop--cap-fixture)
+      (and (> (length (prop--atoms (cons (dk-goal) (dk-asms)))) *prop-atom-cap*)
+           (begin (quietly (lambda () (prop))) (proof-done? *ps*))))))
+
+(check-true "prop--relevant: keeps only the assumptions connected to the goal"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (prop--cap-fixture)
+      (= 2 (length (prop--relevant (dk-asms) (dk-goal)))))))
+
+;;; The fallback must not become a licence: when even the connected part is over
+;;; the cap, prop still declines rather than running 2^n.
+(check-false "prop: still declines when the CONNECTED part is over the cap"
+  (lambda ()
+    ;; the connected part has exactly 2 atoms, so the cap must be BELOW 2 for
+    ;; this to be a real control -- at 2 the fallback legitimately proceeds
+    (fluid-let ((*ps* #f) (*prop-atom-cap* 1))
+      (prop--cap-fixture)
+      (quietly (lambda () (prop)))
+      (proof-done? *ps*))))
+
+;;; 2026-09-16: over the cap, prop now narrows by RADIUS from the goal and keeps
+;;; the largest radius that fits.  The fixture: `not(p = 0)' reaches the goal
+;;; `not(q = 0)' only THROUGH the guard `q = 0 => (p = 0 or r = 0)', and a
+;;; twelve-link chain hangs off r so the transitive closure is over the cap.
+;;; A goal-adjacent tier (the first fix) dropped `not(p = 0)' and reported a
+;;; false countermodel; radius 2 keeps it.
+(define (prop--radius-fixture)
+  (sp (make-wff "forall([p, q, r, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12],
+     (q = 0 implies (p = 0 or r = 0)) implies not(p = 0) implies not(r = 0) implies
+     (r = 0 implies s1 = 0) implies (s1 = 0 implies s2 = 0) implies (s2 = 0 implies s3 = 0) implies
+     (s3 = 0 implies s4 = 0) implies (s4 = 0 implies s5 = 0) implies (s5 = 0 implies s6 = 0) implies
+     (s6 = 0 implies s7 = 0) implies (s7 = 0 implies s8 = 0) implies (s8 = 0 implies s9 = 0) implies
+     (s9 = 0 implies s10 = 0) implies (s10 = 0 implies s11 = 0) implies (s11 = 0 implies s12 = 0) implies
+     not(q = 0))"))
+  (quietly (lambda ()
+    (let loop ((n 0))
+      (if (and (< n 40) (pair? (dk-goal)) (memq (car (dk-goal)) '(FORALL IMPLIES)))
+          (begin (di) (loop (+ n 1))))))))
+
+(check-true "prop: over the cap, a fact reaching the goal through a guard is kept (radius narrowing)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (prop--radius-fixture)
+      (and (> (length (prop--atoms (cons (dk-goal) (dk-asms)))) *prop-atom-cap*)
+           (begin (quietly (lambda () (prop))) (proof-done? *ps*))))))
+
+(check-true "prop--radius-sets: largest first, ending with the goal alone"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (prop--radius-fixture)
+      (let ((cands (prop--radius-sets (dk-asms) (dk-goal))))
+        (and (pair? cands)
+             (null? (car (last-pair cands)))
+             (>= (length (car cands)) (length (cadr cands))))))))
+
+;;; -----------------------------------------------------------------------
+;;; THE SIZE/MAT CHANGE (2026-09-16, the user's decisions).  A matrix with no
+;;; rows is [], in MAT(0, n, X) for every NATURAL n and for no other n; SIZE is
+;;; total; matof-exists / entry-of-matof are THEOREMS guarded on m, n in NN (the
+;;; unguarded support proved FALSITY); the linear combination is LINCOMB.
+;;; These pin the mechanism, not today's bill counts.
+
+(check-true "nil-in-mat installed, and guarded on n in NN"
+  (lambda ()
+    (equal? (lookup-theorem 'nil-in-mat)
+            '(FORALL n (FORALL X (IMPLIES (IN n NN) (IN (LIST) (MAT 0 n X))))))))
+
+(check-true "matof-exists is a theorem guarded on m, n in NN (no 1 <= m)"
+  (lambda ()
+    (let* ((f (lookup-theorem 'matof-exists))              ; forall m n g. ...
+           (z (and f (caddr (caddr (caddr f))))))          ; the premise chain
+      (and z
+           (eq? (car z) 'IMPLIES)
+           (equal? (cadr z) '(IN m NN))
+           (equal? (cadr (caddr z)) '(IN n NN))
+           (not (let walk ((x f))
+                  (cond ((equal? x '(<= 1 m)) #t)
+                        ((pair? x) (or (walk (car x)) (walk (cdr x))))
+                        (else #f))))))))
+
+(check-false "[] cannot be shown to be in MAT(0, ORD, X): nil-in-mat owes ORD in NN"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL xx FALSITY)))
+      (quietly (lambda () (di)))
+      (quietly (lambda () (fact 'nil-in-mat 'ORD 'xx)))
+      (and (member '(IN (LIST) (MAT 0 ORD xx)) (dk-asms)) #t))))
+
+(check-true "lincomb-empty: the empty combination is VZERO"
+  (lambda () (and (lookup-theorem 'lincomb-empty) #t)))
+
+(check-true "SPAN reads LINCOMB, not the (1,1) entry of a MATACT product"
+  (lambda ()
+    (let ((f (lookup-theorem 'span-membership)))
+      (let walk ((x f))
+        (cond ((and (pair? x) (eq? (car x) 'LINCOMB)) #t)
+              ((pair? x) (or (walk (car x)) (walk (cdr x))))
+              (else #f))))))
+
+(check-true "keep-going load mode is OFF unless VNB_KEEP_GOING is set"
+  (lambda ()
+    (or (get-environment-variable "VNB_KEEP_GOING")
+        (and (not *vnb-keep-going?*) (null? *vnb-load-failures*)))))
+
+(check-true "install-duplicate-audit: no theorem name was installed twice by the load"
+  (lambda () (null? *install-duplicates*)))
+
+;;; eq-subst walks the HEAD of an application (2026-09-16).  Before, a compound
+;;; term occurring only inside an operator was never rewritten, and one occurring
+;;; both there and in an argument was rewritten in the argument ALONE, silently.
+(define (shp--after wff-form eq-formula)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-form))
+    (quietly (lambda () (dk-peel!)))
+    (quietly (lambda () (subst eq-formula)))
+    (dk-goal)))
+
+(check-true "eq-subst: a variable is replaced inside the head and in the argument"
+  (lambda ()
+    (equal? (shp--after '(FORALL r (FORALL x (FORALL s (IMPLIES (= r (g x)) (IN ((f (fuba r)) r) s)))))
+                        '(= r (g x)))
+            '(IN ((f (fuba (g x))) (g x)) s))))
+
+(check-true "eq-subst: a compound term occurring only inside the head is rewritten"
+  (lambda ()
+    (equal? (shp--after '(FORALL r (FORALL c (FORALL s (IMPLIES (= (fuba r) c) (IN ((f (fuba r)) r) s)))))
+                        '(= (fuba r) c))
+            '(IN ((f c) r) s))))
+
+(check-true "eq-subst: a structure accessor in operator position is rewritten"
+  (lambda ()
+    (equal? (shp--after '(FORALL md (FORALL ag (FORALL x (FORALL y (FORALL s
+                           (IMPLIES (== (VADD md) (MUL ag)) (IN ((VADD md) x y) s)))))))
+                        '(== (VADD md) (MUL ag)))
+            '(IN ((MUL ag) x y) s))))
+
+(check-true "eq-subst: head and argument occurrences are rewritten together"
+  (lambda ()
+    (equal? (shp--after '(FORALL r (FORALL c (FORALL s (IMPLIES (= (fuba r) c) (IN ((f (fuba r)) (fuba r)) s)))))
+                        '(= (fuba r) c))
+            '(IN ((f c) c) s))))
+
+(check-true "eq-subst: a binder in the head still blocks capture (body untouched)"
+  (lambda ()
+    (equal? (shp--after '(FORALL r (FORALL c (FORALL a (FORALL s
+                           (IMPLIES (= (fuba r) c) (IN ((VNB-LAMBDA r a (fuba r)) (fuba r)) s))))))
+                        '(= (fuba r) c))
+            '(IN ((VNB-LAMBDA r a (fuba r)) c) s))))
+
+
+;;; -----------------------------------------------------------------------
+;;; NN's ADDITION RECURSION IS `definitional' (2026-08-24, the user's call).
+;;;
+;;; `nn-add-succ' (a + succ b = succ(a + b), structure-library/nn-arith.scm) is
+;;; the recursion equation defining + on NN; number-systems.scm states +'s
+;;; algebraic laws and never its recursion, and nothing else in the tree implies
+;;; it (`nn-succ-plus-one' is proved FROM it).  It was named in 54 bills and was
+;;; the SOLE unwarranted leaf of 19 of them, so the stamp is what took the whole
+;;; differentiation arc -- deriv-power, deriv-coef-monomial, deriv-polynomial and
+;;; now poly-antiderivative -- to `modulo 0'.
+;;;
+;;; THE PAIR IS THE POINT.  The install is wrapped in a `fluid-let' of
+;;; *current-provenance*, and that wrap is what also stamps the AUTO-GENERATED
+;;; `-rev' companion; a later refactor to a `register-provenance!' call after the
+;;; fact would stamp the forward direction, leave the companion `asserted', and
+;;; every bill that happens to rewrite right-to-left would quietly regrow a leaf.
+(check-true "nn-add-succ and its -rev companion are BOTH stamped definitional"
+  (lambda ()
+    (and (eq? (provenance-of 'nn-add-succ)     'definitional)
+         (eq? (provenance-of 'nn-add-succ-rev) 'definitional))))
+
+;;; -----------------------------------------------------------------------
+;;; EXAMPLE 4.7 -- every polynomial function is antiderivable
+;;; (theorem-library/poly-antiderivative.scm, 2026-08-24).
+;;;
+;;; The rung the integration arc consumes: Cor 4.17 plus Theorem 5.2 turn it into
+;;; "every continuous function has an antiderivative", which DEFINES the integral.
+;;; The proof runs at load time, so a regression stops the library outright; what
+;;; these pin is what a load cannot report -- that it is PROVEN rather than
+;;; asserted, and that every link of it bills `modulo 0'.
+(check-true "Example 4.7 and its six lemmas are PROVEN and each bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (hash-table-ref/default *theorem-table* nm #f)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(anti-term-in-rr anti-term-lam-in-fun anti-lam-in-fun
+             rr-zero-plus recip-succ-cancel deriv-anti-monomial
+             poly-antiderivative))))
+
+;; The coefficient cancellation is stated over VARIABLES and ORIENTED so that
+;; its left-hand side is the shape the GOAL carries: `subst' rewrites the goal,
+;; not the assumption, so the readable orientation would be unusable.
+;; Checked on the STORED FORM, not on the printed one: `expr->str' flattens a
+;; chain of `*', so the right-hand side prints as "succ(m) * recip(succ(m)) * c
+;; * v" and a string check could not tell the intended nesting from the
+;; left-associated one that string re-parses to.
+(check-true "recip-succ-cancel is oriented c v = ((m+1)(c/(m+1))) v"
+  (lambda ()
+    (let ((f (hash-table-ref/default *theorem-table* 'recip-succ-cancel #f)))
+      (and f
+           (let loop ((g f))
+             (cond ((and (pair? g) (memq (car g) '(FORALL IMPLIES))) (loop (caddr g)))
+                   (else
+                    (and (pair? g) (eq? (car g) '=)
+                         (equal? (cadr g) '(* c v))
+                         (equal? (caddr g)
+                                 '(* (* (succ m) (* (recip (succ m)) c)) v))))))))))
+
+;;; -----------------------------------------------------------------------
+;;; A COMMAND THAT CHANGES NOTHING MUST SAY SO -- and must not be recorded.
+;;;
+;;; vnb--run! used to have three outcomes (error / soft warning / success) and
+;;; a fourth hiding inside the third: a tactic that raised nothing, declined
+;;; nothing, and handed back the state it was given.  That fell to the success
+;;; branch, was appended to *proof-script* and to the *live-trace* proof-tex
+;;; prints from, and `show' redisplayed the unchanged goal as though the move
+;;; had landed.  The discriminator is the deduction GRAPH plus the focus: a
+;;; real move posts a node, records an inference, writes an arrow or grounds
+;;; something -- or moves the focus, which is a real move that changes no goal.
+;;;
+;;; The SILENCE half of this is not optional: a notice that fires on every
+;;; command is as useless as none.  Four of the six checks below are controls.
+
+(check-true "inert: the whole library load reports no inert step"
+  ;; the SILENCE check at library scale -- 700+ proofs, tens of thousands of
+  ;; tactic calls, and the notice must fire on NONE of them.  A notice that
+  ;; fires on every command is as useless as none.
+  ;;
+  ;; It reads the tally FROZEN AT THE END OF THE LOAD, not the live counter --
+  ;; the live one goes on rising through the suite's own deliberate no-ops
+  ;; below.  The tally counts notices ISSUED, so it is exactly
+  ;; `grep -c "nothing changed"' over the load log; if this ever fails, that
+  ;; grep names the offending step.
+  (lambda () (= 0 *vnb-inert-at-load*)))
+
+;; Run THUNK through the real boundary and return (notice-text . script-delta).
+(define (inert--probe sym thunk)
+  (let ((s0 (length *proof-script*)) (t0 (length *live-trace*)) (text #f))
+    (set! text
+      (with-output-to-string
+        (lambda ()
+          ;; *vnb-loading* silences (show) but NOT vnb--print-warning, which is
+          ;; the wire the notice goes out on; *vnb-quiet* would silence both.
+          (fluid-let ((*vnb-loading* #t))
+            (vnb--run! sym '() thunk)))))
+    (list text (- (length *proof-script*) s0) (- (length *live-trace*) t0))))
+
+(define (inert--fixture)
+  ;; x_ in nn |- x_ in nn, one open leaf, one di already taken
+  (quietly
+   (lambda ()
+     (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))
+     (di))))
+
+(check-true "inert: a command that changes nothing is REPORTED"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (inert--fixture)
+      (let ((r (inert--probe 'probe-inert (lambda () *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (substring? "probe-inert" (car r))
+             (substring? "nothing changed" (car r))
+             #t)))))
+
+(check-true "inert: the unrecorded step reaches NEITHER the script NOR the trace"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (inert--fixture)
+      (let ((r (inert--probe 'probe-inert (lambda () *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (= 0 (cadr r)) (= 0 (caddr r)))))))
+
+(check-true "inert: focus moved and back again is still inert"
+  ;; the discriminator is the focus NODE, not a focus command having been typed
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (inert--fixture)
+      (let* ((here (proof-state-focus *ps*))
+             (r (inert--probe 'probe-wander
+                  (lambda () (focus-on *ps* here) *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (substring? "nothing changed" (car r)) (= 0 (cadr r)))))))
+
+;;; --- CONTROLS: a real move must NOT be reported inert ---
+
+(check-true "inert: a REAL surface tactic with nothing to do reports it -- (to-nary)"
+  ;; to-nary saturates the arity-bridge macetes by driving `mac' in a loop; it
+  ;; does not go through vnb--run!, and the inner mac warnings are swallowed by
+  ;; `quietly', so before 2026-08-24 a saturation with nothing to saturate was
+  ;; completely silent.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly (lambda () (sp (make-wff '(IN x_ NN)))))
+      (let* ((s0 (length *proof-script*))
+             (text (with-output-to-string
+                     (lambda () (fluid-let ((*vnb-loading* #t)) (to-nary)))))
+             (delta (- (length *proof-script*) s0)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (substring? "to-nary" text)
+             (substring? "nothing changed" text)
+             (= 0 delta))))))
+
+(check-true "inert control: a real move (di) is silent and IS recorded"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly (lambda () (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let ((r (inert--probe 'di (lambda () (cmd-direct-inference *ps*)))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (not (substring? "nothing changed" (car r))) (= 1 (cadr r)))))))
+
+(check-true "inert control: a move that changes only the CONTEXT is not inert"
+  ;; `ai' splits a conjunctive hypothesis and leaves the GOAL untouched.  A test
+  ;; that compared goal formulas would call this a no-op; the graph knows better.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (AND (IN x_ NN) (IN x_ ZZ))
+                                            (IN x_ NN)))))
+         ;; TWO di's: an UNGUARDED universal whose antecedent is a conjunction
+         ;; peels the QUANTIFIER on the first call and lands nothing; the
+         ;; antecedent comes on the second (CLAUDE.md, "Writing proof drivers")
+         (di) (di)))
+      (let* ((goal-before (dk-goal))
+             ;; take the conjunction OFF THE CONTEXT, never rebuild it: `di'
+             ;; renames the eigenvariable and a reconstructed formula matches
+             ;; nothing (which is itself a silent no-op -- see CLAUDE.md)
+             (r (inert--probe 'ai
+                  (lambda () (cmd-antecedent-inference *ps* (car (dk-asms))))))
+             (goal-after (dk-goal)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (equal? goal-before goal-after)            ; goal genuinely unchanged
+             (not (substring? "nothing changed" (car r)))
+             (= 1 (cadr r)))))))
+
+(check-true "inert control: a pure FOCUS move is not inert"
+  ;; nothing is written into the graph, but the focus node changes: a real move
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                          (FORALL y_ (IMPLIES (IN y_ ZZ)
+                            (AND (IN x_ NN) (IN y_ ZZ)))))))) 
+         (di) (di)))
+      (let* ((leaves (proof-open-leaves *ps*))
+             (mark   (vnb--take-mark '(probe)))
+             (other  (cadr leaves))
+             (inert  (begin (focus-on *ps* other) (vnb--inert? mark *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (= 2 (length leaves)) (not inert))))))
+
+;;; -----------------------------------------------------------------------
+;;; backup-one -- the one undo.
+;;;
+;;; The design question was whether a STATE STACK suffices, and it does not:
+;;; there is exactly one <proof-state> object per proof (start-proof is its only
+;;; constructor), every cmd-* mutates it through set-proof-state-focus! and
+;;; returns THAT SAME OBJECT, so pushing the old *ps* pushes the object about to
+;;; be mutated.  The state lives in the deduction graph, so the rollback is
+;;; there: journalled arrow and grounding writes undone newest-first, then the
+;;; two node lists and the node counter restored -- which DROPS the nodes posted
+;;; since the mark rather than orphaning them.  The orphan check is the third
+;;; and fourth below: after backing up over a branching tactic the leaf count is
+;;; the pre-branch count, and the finished proof still reaches qed.
+
+(define (backup--st)
+  (list (length (proof-open-leaves *ps*))
+        (length (dg-sequent-nodes   (proof-state-dg *ps*)))
+        (length (dg-inference-nodes (proof-state-dg *ps*)))
+        (length *proof-script*)))
+
+(check-true "backup-one: restores goal, graph and script exactly"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let* ((before-goal (dk-goal))
+             (before      (backup--st))
+             (_    (quietly (lambda () (di))))
+             (mid  (backup--st))
+             (__   (quietly (lambda () (backup-one))))
+             (after (backup--st))
+             (after-goal (dk-goal)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (not (equal? before mid))
+             (equal? before after)
+             (equal? before-goal after-goal))))))
+
+(check-true "backup-one: the undone step leaves the script and trace behind"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let* ((s0 (length *proof-script*)) (t0 (length *live-trace*)))
+        (quietly (lambda () (di) (backup-one)))
+        (let ((ok (and (= s0 (length *proof-script*))
+                       (= t0 (length *live-trace*)))))
+          (set! *ps* saved) (set! *proof-script* saved-script)
+          (set! *live-trace* saved-trace)
+          ok)))))
+
+(check-true "backup-one: over a BRANCHING tactic, the leaf count is restored"
+  ;; the orphan test.  A rollback that restored only the focus would leave the
+  ;; two branch nodes in the graph, ungrounded and unjustified, and
+  ;; proof-open-leaves would go on counting them.
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                          (FORALL y_ (IMPLIES (IN y_ ZZ)
+                            (AND (IN x_ NN) (IN y_ ZZ))))))))
+         (di)))
+      (let* ((before (backup--st))
+             (_    (quietly (lambda () (di))))
+             (split (backup--st))
+             (__   (quietly (lambda () (backup-one))))
+             (after (backup--st)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (= 1 (car before)) (= 2 (car split)) (equal? before after))))))
+
+(check-true "backup-one: a proof finished after a backup still reaches qed"
+  ;; the failure being guarded against is a phantom obligation at qed: nodes of
+  ;; an abandoned branch left in the graph are ungrounded and unjustified, the
+  ;; root never grounds, and qed refuses a proof that is in fact complete.
+  (lambda ()
+    (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                     (FORALL y_ (IMPLIES (IN y_ ZZ)
+                       (AND (IN x_ NN) (IN y_ ZZ)))))))) 
+    (quietly
+     (lambda ()
+       (di) (di) (ass)
+       (backup-one) (backup-one)        ; back over `ass' and over the split
+       (di) (ass) (focus 1) (ass)))
+    (and (proof-done? *ps*)
+         (= 0 (length (proof-open-leaves *ps*)))
+         (eq? 'backup-one-suite-witness
+              (qed 'backup-one-suite-witness)))))
+
+(check-true "backup-one: repeated -- walks back over ass, then over the branch"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN)
+                          (FORALL y_ (IMPLIES (IN y_ ZZ)
+                            (AND (IN x_ NN) (IN y_ ZZ))))))))
+         (di)))
+      (let* ((before (backup--st))
+             (_  (quietly (lambda () (di))))
+             (split (backup--st))
+             (__ (quietly (lambda () (ass))))
+             (closed (backup--st))
+             (___ (quietly (lambda () (backup-one))))
+             (b1 (backup--st))
+             (____ (quietly (lambda () (backup-one))))
+             (b2 (backup--st))
+             ;; and it must still close afterwards
+             (_____ (quietly (lambda () (di) (ass) (focus 1) (ass))))
+             (done (proof-done? *ps*))
+             (leaves (length (proof-open-leaves *ps*))))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (equal? split b1)          ; backing up over `ass' restores grounding
+             (equal? before b2)         ; backing up over the split drops its nodes
+             done (= 0 leaves))))))
+
+(check-true "backup-one: declines on an empty stack instead of corrupting"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda () (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let* ((before (backup--st))
+             (text (with-output-to-string
+                     (lambda ()
+                       (fluid-let ((*vnb-loading* #t)) (backup-one)))))
+             (after (backup--st)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        (and (equal? before after) (substring? "nothing to back up" text))))))
+
+(check-true "backup-one: (sp) clears the stack -- no backing up into a dead proof"
+  (lambda ()
+    (let ((saved *ps*) (saved-script *proof-script*) (saved-trace *live-trace*))
+      (quietly
+       (lambda ()
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))
+         (di)
+         (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ NN) (IN x_ NN)))))))
+      (let ((empty (null? *vnb-undo-stack*)))
+        (set! *ps* saved) (set! *proof-script* saved-script)
+        (set! *live-trace* saved-trace)
+        empty))))
+
+(check-true "backup-one: registered in the tactics menu with its neighbours"
+  (lambda () (and (tactics--find 'backup-one) (tactics--find 'undo)
+                  (eq? 'meta (tactic-kind-of 'backup-one))
+                  (tactic-when-of 'backup-one) #t)))
+
+
+;;; -----------------------------------------------------------------------
+;;; THE EXPONENTIAL AND THE REAL POWER.  Added 2026-08-27: r-exp.scm and
+;;; rpow-star.scm between them install 27 theorems and NOTHING in the suite
+;;; mentioned either.  They are re-proved on every library load, so a broken
+;;; PROOF is loud -- but a silently RESTATED theorem is not, and several of
+;;; these statements are load-bearing in a way the proof does not express.
+;;; Each check below pins a fact whose loss would be silent.
+
+(define (ts-contains? form sub)
+  (let loop ((x form))
+    (cond ((equal? x sub) #t)
+          ((pair? x)      (or (loop (car x)) (loop (cdr x))))
+          (else           #f))))
+
+(define (ts-has-theorem? name)
+  (and (hash-table-ref/default *theorem-table* name #f) #t))
+
+;;; R-EXP is TOTAL.  This is the whole content of log-surjective: LOG is onto
+;;; RR, so the description describes at every real and `r-exp-lam-in-fun' needs
+;;; no hypothesis.  A guard appearing here would mean the surjectivity argument
+;;; had been weakened without anyone noticing.
+(check-true "r-exp-lam-in-fun is UNCONDITIONAL -- R-EXP is total because LOG is onto"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'r-exp-lam-in-fun)))))
+
+;;; THE ASYMMETRY, which is the file's central finding and is invisible in the
+;;; proofs.  log(exp y) = y holds at EVERY real y; exp(log x) = x holds only
+;;; for POSITIVE x.  One direction is global, the other is not -- which is
+;;; exactly why `deriv-inverse' cannot be cited and `deriv-right-inverse' had
+;;; to exist.  `<' occurring in one statement and not the other IS that fact.
+(check-false "log-r-exp is GLOBAL -- log(exp y) = y carries no positivity guard"
+  (lambda () (ts-contains? (lookup-theorem 'log-r-exp) '<)))
+
+(check-true "r-exp-log is GUARDED -- exp(log x) = x only for positive x"
+  (lambda () (ts-contains? (lookup-theorem 'r-exp-log) '<)))
+
+;;; ... and the tree PROVES the non-globality rather than merely failing to
+;;; prove the global form.  If this theorem ever disappears, the argument for
+;;; deriv-right-inverse's existence goes with it.
+(check-true "r-exp-log-not-global is a THEOREM -- the converse is refuted, not just unproven"
+  (lambda () (ts-has-theorem? 'r-exp-log-not-global)))
+
+;;; RPOW-STAR: the unfold equation exists, which is what lets `mac-h' reach the
+;;; definition in an ASSUMPTION.  A `def-functoid' installs a macete and no
+;;; theorem, so without this the definition is unreachable on the hypothesis
+;;; side and a driver citing it no-ops silently.
+(check-true "rpow-star-unfold is a THEOREM -- mac-h can reach the definition"
+  (lambda () (ts-has-theorem? 'rpow-star-unfold)))
+
+;;; THE DON'T-CARE DISCIPLINE.  0^0 = 1 is stated AT 0^0 and unconditionally --
+;;; NOT as the else-branch of the definition.  The else-branch also fires at
+;;; 0^(-1), where 1 is no convention anyone holds, so a statement of the branch
+;;; would pin a value nobody intends.  An IMPLIES appearing here would mean the
+;;; convention had been restated in the branch's terms.
+(check-true "rpow-star-zero-zero is UNCONDITIONAL and stated AT 0^0"
+  (lambda () (not (ts-mentions-implies? (lookup-theorem 'rpow-star-zero-zero)))))
+
+;;; ... while the OTHER convention is guarded, 0^s = 0 holding only for s > 0.
+(check-true "rpow-star-zero-base is GUARDED on 0 < s"
+  (lambda () (ts-contains? (lookup-theorem 'rpow-star-zero-base) '(< 0 s_))))
+
+;;; THE SHARPEST ONE.  rpow-star-add is FALSE at base 0 under the conventions:
+;;; s = 1, t = -1 gives 0^(1+(-1)) = 0^0 = 1 on the left and 0^1 . 0^(-1)
+;;; = 0 . 1 = 0 on the right.  The `0 < x' guard is not tidiness, it is what
+;;; makes the statement true, and "generalising" it away would install a false
+;;; theorem that every later power proof would inherit.
+(check-true "rpow-star-add carries the 0 < x guard -- it is FALSE at base 0"
+  (lambda () (ts-contains? (lookup-theorem 'rpow-star-add) '(< 0 x_))))
+
+;;; The three branch equations all exist: they are what keeps the IF from
+;;; leaking a case split into every downstream driver (c-int-oriented.scm's
+;;; discipline).  If one goes missing the laws start opening the IF by hand.
+(check-true "all three RPOW-STAR branch equations are present"
+  (lambda () (and (ts-has-theorem? 'rpow-star-value)
+                  (ts-has-theorem? 'rpow-star-zero-base)
+                  (ts-has-theorem? 'rpow-star-zero-zero))))
+
+;;; -----------------------------------------------------------------------
+;;; THE PAGE GATE (page-audit.scm, 2026-09-07).
+;;;
+;;; The standard: every proof must have a re-runnable script -- a rendition that
+;;; fits on paper and that anybody able to use a keyboard can type back in to
+;;; reproduce the proof.  These pin the MECHANISM, not the number: the number is
+;;; on the load line and is expected to move (707 the day the gate went in, with
+;;; B still to come).
+;;;
+;;; The middle check is the one that justifies the gate at all.  A page that is
+;;; missing a step does not raise -- it loads, says nothing, and leaves the proof
+;;; unfinished.  If it ever starts raising, the load would already be telling you
+;;; and this gate would be redundant; the check would then fail, loudly, which is
+;;; the correct outcome for a check whose premise has changed.
+
+(check-true "page gate: a good page types back in to a grounded graph"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x (IMPLIES (IN x nn) (IN x nn)))))
+      (di) (ass) (qed 'ts-page-ok)))
+    (eq? 'grounded (page--type-in (page-of 'ts-page-ok)))))
+
+(check-true "page gate: a page missing its last step is INCOMPLETE, not an error"
+  (lambda ()
+    (let* ((page  (page-of 'ts-page-ok))
+           (lines (burst-string page #\newline #f))
+           (cut   (reduce (lambda (a b) (string-append b "\n" a)) ""
+                          (reverse (except-last-pair! lines)))))
+      (eq? 'incomplete (page--type-in cut)))))
+
+;;; The counter defect in miniature, and the reason option A was declined: a page
+;;; that names a variable this session never minted cannot reproduce the proof,
+;;; and says nothing about it.
+(check-true "page gate: a page naming an unminted variable fails silently"
+  (lambda ()
+    (eq? 'incomplete
+         (page--type-in
+           (string-append
+             "(sp (make-wff (quote (FORALL x (IMPLIES (IN x nn) (IN x nn))))))\n"
+             "(di)\n(ew (quote u_999999))\n")))))
+
+;;; What counts as a counter-minted name.  `r_' is the project's own collision
+;;; convention (a trailing underscore, no digits) and must NOT be mistaken for
+;;; one, or the gate would blame the counter for every driver in the tree.
+(check-true "page gate: minted names are told apart from the r_ convention"
+  (lambda ()
+    (equal? (list (page--minted-name? 'd_1787) (page--minted-name? 'n__1591)
+                  (page--minted-name? 'x)      (page--minted-name? 'r_))
+            (list #t #t #f #f))))
+
+;;; A gate that runs and leaves a scratch proof in progress would hand the next
+;;; command a foreign focus.  The audit saves and restores *ps*.
+(check-true "page gate: typing a page in does not disturb the live proof state"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x (IMPLIES (IN x nn) (IN x nn)))))
+      (di)))
+    (let ((before (proof-state-focus *ps*)))
+      (page--type-in (page-of 'ts-page-ok))
+      (eq? before (proof-state-focus *ps*)))))
+
+;;; -----------------------------------------------------------------------
+;;; `choose' (witness-tactics.scm) -- "choose eps such that FUBA(eps)": cut
+;;; the existential, exhibit a witness, skolemize, return the eigenvariable.
+;;; The user's move (2026-09-12); choose-pos is its pos-rr instance.
+
+(check-true "choose: lands FUBA(eps) split, returns the eigenvariable, and the WLOG use closes"
+  ;; pick n with `n in nn and 3 < n', then instantiate the universal at it.
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                       (IMPLIES (FORALL n (IMPLIES (IN n NN) (IMPLIES (< 3 n) (< x (+ x n)))))
+                                (FORSOME n (AND (IN n NN) (< x (+ x n)))))))))
+      (di) (di)))
+    (let* ((before (dk-asms))
+           (n* (quietly (lambda ()
+                 (choose "forsome([n], n in nn and 3 < n)" 4
+                         (lambda () (both! (lambda () (arith)) (lambda () (arith)))))))))
+      (and (symbol? n*)
+           (not (memq n* (append-map free-vars before)))
+           (dk-asm? (list 'IN n* 'NN))
+           (dk-asm? (list '< 3 n*))
+           (begin (quietly (lambda () (use-at 3 n*) (ew n*) (both! ass ass)))
+                  (proof-done? *ps*))))))
+
+(check-true "choose-pos is choose with FUBA frozen at pos-rr"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                       (IMPLIES (FORALL e (IMPLIES (IN e RR) (IMPLIES (POS-RR e) (< x (+ x e)))))
+                                (FORSOME e (< x (+ x e))))))))
+      (di) (di)))
+    (let ((e* (quietly (lambda () (choose-pos)))))
+      (and (symbol? e*) (dk-asm? (list 'POS-RR e*))))))
+
+(check-true "choose: an existential already in context is skolemized, not re-cut"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IMPLIES (FORSOME e (POS-RR e)) (FORSOME e (POS-RR e)))))
+      (di)))
+    (let* ((leaves (length (proof-open-leaves *ps*)))
+           (e* (quietly (lambda () (choose "forsome([e], pos-rr(e))" 1)))))
+      (and (symbol? e*)
+           (dk-asm? (list 'POS-RR e*))
+           (= (length (proof-open-leaves *ps*)) leaves)))))
+
+(check-true "choose: a non-existential is an ERROR, not a silent no-op"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IMPLIES (FORSOME e (POS-RR e)) (FORSOME e (POS-RR e)))))
+      (di)))
+    (call-with-current-continuation
+     (lambda (k)
+       (with-exception-handler
+        (lambda (c) (k #t))
+        (lambda () (quietly (lambda () (choose "forall([e], pos-rr(e))" 1))) #f))))))
+
+(load "test-suite-negative.scm")
+
+;;; -----------------------------------------------------------------------
+;;; Summary
+
+(newline)
+;;; -----------------------------------------------------------------------
+;;; LUTINS universal instantiation (2026-09-18): forall-elim OWES (= t t) when the
+;;; context does not certify the instantiating term.  Before this, the kernel
+;;; proved every term denotes, and with fun-domain-apply-def that reached
+;;; FALSITY (scratchpad/mx/mx-probe5.scm, a control that must now FAIL).  The
+;;; policy is docs/definedness-instantiation-2026-09-18.md, sections 4a/4b.
+(define (dfi--leaves-after wff-form term)
+  ;; peel WFF-FORM (whose last antecedent is the universal `forall a. a = a'),
+  ;; instantiate that universal at TERM, return (open-leaf-count . owed-goals)
+  (fluid-let ((*ps* #f))
+    (sp (make-wff wff-form))
+    (quietly (lambda () (dk-peel!)))
+    (quietly (lambda () (inst+ '(FORALL a (= a a)) term)))
+    (let ((ls (proof-open-leaves *ps*)))
+      (cons (length ls)
+            (filter (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (caddr g))))
+                    (map dk-goal-of ls))))))
+(define dfi--w '(FORALL x_ (IMPLIES (FORALL a (= a a)) FALSITY)))
+(define dfi--wr '(FORALL s (IMPLIES (IS-RING s) (IMPLIES (FORALL a (= a a)) FALSITY))))
+
+(check-true "definedness: forall a. a = a is a theorem (a variable denotes)"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (sp (make-wff '(FORALL a (= a a))))
+      (quietly (lambda () (di) (rfl)))
+      (proof-done? *ps*))))
+(check "definedness: instantiating at a VARIABLE owes nothing"
+  (lambda () (car (dfi--leaves-after dfi--w 'x_))) 1)
+(check "definedness: instantiating at a comprehension term INTERVAL(1,x_) owes nothing (4a)"
+  (lambda () (car (dfi--leaves-after dfi--w '(INTERVAL 1 x_)))) 1)
+(check "definedness: instantiating at CARR(s) under IS-RING(s) owes nothing (4b)"
+  (lambda () (car (dfi--leaves-after dfi--wr '(CARR s)))) 1)
+(check "definedness: instantiating at recip(0) OWES recip(0) = recip(0)"
+  (lambda () (let ((r (dfi--leaves-after dfi--w '(recip 0))))
+               (list (car r) (cdr r))))
+  '(2 ((= (recip 0) (recip 0)))))
+(check "definedness: instantiating at CHOICE([]) owes its leaf (CHOICE is not total)"
+  (lambda () (car (dfi--leaves-after dfi--w '(CHOICE (LIST))))) 2)
+(check "definedness: instantiating at [] owes nothing (LIST is total)"
+  (lambda () (car (dfi--leaves-after dfi--w '(LIST)))) 1)
+(check-true "definedness: the FALSITY route of mx-probe5 no longer closes"
+  (lambda ()
+    (fluid-let ((*ps* #f))
+      (let ((F '(VNB-LAMBDA z EMPTY-SET z)))
+        (sp (make-wff '(FORALL x_ FALSITY)))
+        (quietly (lambda ()
+          (di)
+          (have! (list 'IN F '(FUN EMPTY-SET EMPTY-SET))
+            (lambda ()
+              (for-each (lambda (l)
+                          (dk-focus! l)
+                          (let ((g (dk-goal)))
+                            (if (and (pair? g) (eq? (car g) 'FORALL))
+                                (begin (di) (ass))
+                                (begin (fact 'empty-set-is-set) (ass)))))
+                        (dk-opened (lambda () (lam-t))))))
+          (fact 'fun-codomain-iff 'EMPTY-SET 'EMPTY-SET F)
+          (have! (list 'IN F '(FUN EMPTY-SET)) (lambda () (prop)))
+          (have! '(FORALL a (= a a)) (lambda () (di) (rfl)))
+          (inst+ '(FORALL a (= a a)) (list F 'x_))
+          (fact 'fun-domain-apply-def 'EMPTY-SET F 'x_)
+          (have! '(IN x_ EMPTY-SET) (lambda () (prop)))
+          (fact 'empty-set-has-no-members 'x_)
+          (ai '(NOT (IN x_ EMPTY-SET)))))
+        ;; the main branch closes; the owed leaf (F x_) = (F x_) stays open
+        (not (proof-done? *ps*))))))
+
+;;; === rake batch 6 (2026-09-19): what was asserted is defined or proven ===
+(display "\n=== rake batch 6: recursive choice, ESUP/ESUM, ZZ-ACT, PROD-SET, the infinity points ===\n")
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm) " is PROVEN and bills modulo 0")
+     (lambda () (and (lookup-theorem nm)
+                     (eq? (provenance-of nm) 'proven)
+                     (null? (debt-of nm))))))
+ '(dc-on-nn-pred dc-on-nn subsequence-capture nn-step-strictly-mono
+   esup-in esup-upper esup-least esup-empty esum-in esum-upper esum-least
+   rr-pos-star-is-comm-monoid zz-act-nonneg zz-act-neg zz-act-add mpow-add
+   pos-inf-not-in-rr pos-inf-neq-neg-inf rr-subset-rr-star
+   prod-set-empty generates-coeff-matrix fun-codomain-superset
+   mat-ring-is-ring smith-normal-form diagonalization))
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm) " is PRIMITIVE (the user's decision, 2026-09-18)")
+     (lambda () (eq? (provenance-of nm) 'primitive))))
+ '(neg-inf-not-in-rr pos-inf-upper-bound neg-inf-lower-bound pos-inf-above-reals))
+(check-true "rr-pos-star-add-monoid-def is definitional (a declare-instance!, no longer a bare axiom)"
+  (lambda () (eq? (provenance-of 'rr-pos-star-add-monoid-def) 'definitional)))
+
+;;; === CARD is DEFINED (the user's decision, 2026-09-20; batch 9-B) ===
+;;; CARD was a PRIMITIVE notion from 2026-07-27 to 2026-09-19, pinned by eight axioms --
+;;; seven in structure-library/cardinality.scm and card-image-injection in injection.scm.
+;;; It is now a def-functoid (the least ordinal whose segment the set bijects onto) and
+;;; all eight are theorems, under their old names and in their old SHAPES so that no
+;;; citation changed.  docs/card-defined-2026-09-20.md.
+(display "\n=== CARD is defined, and the eight axioms are theorems (2026-09-20) ===\n")
+(check-true "CARD is a functoid, and its provenance is definitional"
+  (lambda () (and (eq? (provenance-of 'CARD) 'definitional)
+                  (hash-table-ref/default *functoid-registry* 'CARD #f)
+                  #t)))
+(for-each
+ (lambda (nm)
+   (check-true (string-append (symbol->string nm)
+                              " was a CARD axiom and is now PROVEN, modulo 0")
+     (lambda () (and (lookup-theorem nm)
+                     (eq? (provenance-of nm) 'proven)
+                     (null? (debt-of nm))))))
+ '(card-in-ord card-empty card-insert card-segment card-finite-bij
+   card-union-disjoint finite-set-induction card-image-injection
+   well-ordering-principle))
+(check-true "nothing about CARD is on the primitive shelf any more"
+  (lambda ()
+    (let ((bad '()))
+      (for-each (lambda (nm)
+                  (if (and (lookup-theorem nm) (eq? (provenance-of nm) 'primitive))
+                      (set! bad (cons nm bad))))
+                '(card-in-ord card-empty card-insert card-segment card-finite-bij
+                  card-union-disjoint finite-set-induction card-image-injection))
+      (null? bad))))
+(check-true "the CARD-STAR companion names are gone"
+  (lambda ()
+    ;; `lookup-theorem' ERRORS on an unknown name, so ask the table itself.
+    (not (any (lambda (nm) (hash-table-ref/default *theorem-table* nm #f))
+              '(card-star-segment card-star-empty card-star-insert card-star-bij
+                card-star-well-ordering card-star-finite-set-induction)))))
+
+;;; === the driver kit, batch 8 (2026-09-19): the helpers the rake copied ===
+(display "\n=== driver kit (batch 8): dk-open-leaves, dk-ineq!, the <= chain, dk-lam-b!, in-sep!, have-f!, choose-mem!, dk-each-leaf! ===\n")
+
+;;; `proof-open-goals' is every UNGROUNDED node, which includes each justified
+;;; ancestor still waiting on its children; `dk-open-leaves' is the nodes a
+;;; driver can work on.  Two agents lost a run each to the difference.
+(check-true "dk-open-leaves is the LEAVES, not every ungrounded node"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (AND (IN u_ RR) (<= u_ u_))))))
+      (dk-peel!)
+      (di)
+      (and (= (length (dk-open-leaves)) 2)
+           (> (length (proof-open-goals *ps*)) 2)
+           (equal? (dk-open-leaves) (proof-leaves)))))))
+
+;;; `ineq' takes 1-BASED positions in the CURRENT context and blames the GOAL
+;;; when they are wrong, so the premises are named by FORMULA.
+(check-true "dk-ineq! names its premises by FORMULA"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ RR)
+                       (FORALL y_ (IMPLIES (IN y_ RR)
+                         (IMPLIES (AND (<= x_ y_) (<= y_ 0)) (<= x_ 0))))))))
+      (dk-peel!) (dk-split-all!)
+      (dk-ineq! '(<= x_ y_) '(<= y_ 0) '(IN x_ RR) '(IN y_ RR))
+      (proof-done? *ps*)))))
+
+(check-error "dk-ineq! errors on a premise that is not in context"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL x_ (IMPLIES (IN x_ RR) (<= x_ x_)))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-ineq! '(<= x_ 0))))))))
+
+;;; The chain lands the typings rr-leq-transitive is guarded on and builds its
+;;; CONJUNCTIVE antecedent, and an `=' rung is turned into a `<=' with the
+;;; substitution oriented by CONTAINMENT.
+(check-true "dk-le-chain! chains <= through an equation rung"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ RR)
+                       (FORALL b_ (IMPLIES (IN b_ RR)
+                         (FORALL c_ (IMPLIES (IN c_ RR)
+                           (IMPLIES (AND (<= a_ b_) (= b_ c_)) (<= a_ c_))))))))))
+      (dk-peel!) (dk-split-all!)
+      (dk-le-chain! 'a_ 'b_ 'c_)
+      (proof-done? *ps*)))))
+
+(check-error "dk-le-chain! errors when the context holds no rung"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ RR)
+                       (FORALL b_ (IMPLIES (IN b_ RR) (<= a_ b_)))))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-le-chain! 'a_ 'b_)))))))
+
+(check-true "dk-le-add! adds two inequalities"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL a_ (IMPLIES (IN a_ RR)
+                       (FORALL b_ (IMPLIES (IN b_ RR)
+                         (FORALL u_ (IMPLIES (IN u_ RR)
+                           (FORALL v_ (IMPLIES (IN v_ RR)
+                             (IMPLIES (AND (<= a_ b_) (<= u_ v_))
+                                      (<= (+ a_ u_) (+ b_ v_)))))))))))))
+      (dk-peel!) (dk-split-all!)
+      (dk-le-add! 'a_ 'b_ 'u_ 'v_)
+      (ass)
+      (proof-done? *ps*)))))
+
+;;; A multi-binder lambda is licensed COMPONENTWISE (pi--beta-licensed?), so a
+;;; context that types the PAIR and not its components owes
+;;; (IN (LIST a b) (CARTESIAN RR RR)) -- the formula it holds.  Plain `lam-b'
+;;; leaves that leaf open and the parent never grounds.
+(check-true "dk-lam-b! reduces and closes the owed argument typing"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL a_ (FORALL b_ (IMPLIES (IN (LIST a_ b_) (CARTESIAN RR RR))
+                       (= ((VNB-LAMBDA (LIST p_ q_) (CARTESIAN RR RR) (+ p_ q_)) a_ b_)
+                          (+ a_ b_)))))))
+      (dk-peel!)
+      (dk-lam-b!)
+      (and (equal? (dk-goal) '(= (+ a_ b_) (+ a_ b_)))
+           (= (length (dk-open-leaves)) 1))))))
+
+(check-error "dk-lam-b! errors when the goal holds no redex"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (= u_ u_)))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-lam-b!)))))))
+
+;;; Sequent nodes are hash-consed on assertion PLUS context, so the second
+;;; membership's DOMAIN subgoal is the node the first one already grounded and
+;;; `sep-mi' opens ONE leaf.  in-sep! used to read that as failure.
+(check-true "in-sep! tolerates a domain subgoal that is already discharged"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR)
+                       (IMPLIES (<= 0 u_)
+                         (AND (IN u_ (SEP z_ RR (<= 0 z_)))
+                              (IN u_ (SEP z_ RR (<= z_ u_)))))))))
+      (dk-peel!)
+      (both! (lambda () (in-sep! (lambda () (ass)) (lambda () (ass))))
+             (lambda () (in-sep! (lambda () (ass))
+                                 (lambda () (fact 'rr-leq-reflexive 'u_) (ass)))))
+      (proof-done? *ps*)))))
+
+(check-error "in-sep! still refuses a goal that is not a SEP membership"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (IN u_ RR)))))
+      (dk-peel!)
+      (vnb-guard (lambda () (in-sep! (lambda () (ass)) (lambda () (ass)))))))))
+
+;;; `have!' returns the NODE; a driver that wants to `ai' / `mac-h' / `detach!'
+;;; what it just cut needs the FORMULA, and a reconstructed one no-ops.
+(check-true "have-f! returns the claim, not the node"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (= u_ u_)))))
+      (dk-peel!)
+      (let ((f (have-f! '(AND (IN u_ RR) (IN u_ RR)))))
+        (rfl)
+        (and (equal? f '(AND (IN u_ RR) (IN u_ RR)))
+             (dk-asm? f)
+             (proof-done? *ps*)))))))
+
+;;; `choose!' CONSUMES the membership with `sep-me' when S is a SEP; this leaves
+;;; it, which is what a caller that needs (IN (CHOICE S) S) itself wants.
+(check-true "choose-mem! lands and returns (IN (CHOICE S) S)"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(IN (CHOICE RR) RR)))
+      (let ((m (choose-mem! 'RR 0 (lambda () (fact 'rr-zero-in) (ass)))))
+        (ass)
+        (and (equal? m '(IN (CHOICE RR) RR)) (proof-done? *ps*)))))))
+
+(check-true "dk-each-leaf! visits every leaf the tactic opened"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (AND (IN u_ RR) (<= u_ u_))))))
+      (dk-peel!)
+      (dk-each-leaf! (lambda () (di))
+                     (lambda () (if (equal? (dk-goal) '(IN u_ RR))
+                                    (ass)
+                                    (begin (fact 'rr-leq-reflexive 'u_) (ass)))))
+      (proof-done? *ps*)))))
+
+(check-error "dk-each-leaf! errors when the tactic opened no leaf"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff '(FORALL u_ (IMPLIES (IN u_ RR) (= u_ u_)))))
+      (dk-peel!)
+      (vnb-guard (lambda () (dk-each-leaf! (lambda () #t) (lambda () (rfl)))))))))
+
+;;; === push-not-h through a NESTED universal (2026-09-19) ===
+;;; `di' peels EVERY leading FORALL and, for the variable just peeled, an
+;;; (IN x _) guard with it -- and nothing else.  The old refusal test walked
+;;; through every implication instead, so the shape of every negated definition
+;;; in analysis, NOT forall(eps, POS-RR eps => forall(m in nn, ...)), was
+;;; refused as "a nested universal `di' would peel past" when `di' stops at the
+;;; predicate guard and does not peel past it at all.
+(check-true "push-not-h: NOT forall(eps, POS-RR(eps) => forall(m in nn, ...))"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff
+           '(FORALL f_
+              (IMPLIES
+               (NOT (FORALL e_ (IMPLIES (POS-RR e_)
+                      (FORALL m_ (IMPLIES (IN m_ NN) (= f_ m_))))))
+               (FORSOME e_ (AND (POS-RR e_)
+                                (NOT (FORALL m_ (IMPLIES (IN m_ NN) (= f_ m_))))))))))
+      (di) (di) (push-not-h 1)
+      (if (not (proof-done? *ps*)) (ass))
+      (proof-done? *ps*)))))
+
+;;; the same shape landed as an ASSUMPTION (the have! path, not the on-goal one)
+(check-true "push-not-h: the analysis shape lands in the context"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff
+           '(FORALL f_
+              (IMPLIES
+               (NOT (FORALL e_ (IMPLIES (POS-RR e_)
+                      (FORALL m_ (IMPLIES (IN m_ NN) (< (* e_ f_) m_))))))
+               (= f_ f_)))))
+      (di) (di)
+      (let ((landed (push-not-h 1)))
+        (rfl)
+        (and (equal? landed
+                     '(FORSOME e_ (AND (POS-RR e_)
+                                       (NOT (FORALL m_ (IMPLIES (IN m_ NN) (< (* e_ f_) m_)))))))
+             (any-pred (lambda (a) (alpha-equiv? a landed)) (dk-asms))
+             (proof-done? *ps*)))))))
+
+;;; And the genuinely DEEP case: an (IN x _) guard, so `di' DOES peel the inner
+;;; universal.  Its negation is proved on its own lane -- assume it, instantiate
+;;; it at the eigenvariables `di' minted (read off the goal, never guessed),
+;;; detach the guards `di' landed, contradict.
+(check-true "push-not-h: NOT forall([x in s], forall([y in t], ...)), di peeling past"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           (string-append
+            "forall([s, t], not(forall([x in s], forall([y in t], x in y)))"
+            " implies forsome([x in s], not(forall([y in t], x in y))))")))
+      (di) (di) (push-not-h 1)
+      (if (not (proof-done? *ps*)) (ass))
+      (proof-done? *ps*)))))
+
+(check-true "push-not-h: NOT forall([x], forall([y in t], ...)), unguarded outer binder"
+  (lambda ()
+    (quietly (lambda ()
+      (sp (make-wff-from-string
+           (string-append
+            "forall([s, t], not(forall([x], forall([y in t], x in y)))"
+            " implies forsome([x], not(forall([y in t], x in y))))")))
+      (di) (di) (push-not-h 1)
+      (if (not (proof-done? *ps*)) (ass))
+      (proof-done? *ps*)))))
+
+;;; -----------------------------------------------------------------------
+;;; INTERSECTION-OF -- the intersection of a family, as a DEFINED constructor
+;;; (batch 9-A, 2026-09-20).
+;;;
+;;; Until this date "the intersection of the members of C" was written
+;;; `(BIG-INTERSECTION CARR C CARR)' in the only two formulas that needed it,
+;;; HAS-FIP and compact-iff-fip.  BIG-INTERSECTION was an UNINTERPRETED head --
+;;; no kernel rule, no macete, no membership law -- and its binder position held
+;;; CARR, a registered structure accessor, which the fatal constant-binder-audit
+;;; could not see because `wff-constant-binders' has no case for that head.  The
+;;; five checks below pin the replacement: the constructor exists with the body
+;;; it is documented to have, its laws are PROVEN and bill nothing, the dead head
+;;; is gone from every installed formula, and HAS-FIP carries the two
+;;; inhabitedness guards that a TOTAL intersection forces (without them the
+;;; predicate is unsatisfiable, because INTERSECTION-OF(EMPTY-SET) = EMPTY-SET
+;;; and EMPTY-SET is a finite subfamily of every family).
+
+(define (iof--tree-has? e sym)
+  (cond ((eq? e sym) #t)
+        ((pair? e) (or (iof--tree-has? (car e) sym) (iof--tree-has? (cdr e) sym)))
+        (#t #f)))
+
+(define (iof--raw name)
+  (let ((f (hash-table-ref/default *theorem-table* name #f)))
+    (and f (if (wff? f) (wff-formula f) f))))
+
+;;; How many "X is inhabited" GUARDS -- (FORSOME v (IN v X)) with X a bare
+;;; variable -- the formula has.  X must be a variable: HAS-FIP's CONCLUSION,
+;;; (FORSOME p (IN p (INTERSECTION-OF F))), has the same shape and is not a
+;;; guard, and counting it would make the check pass for the wrong reason.
+(define (iof--count-inhabited e)
+  (if (not (pair? e))
+      0
+      (+ (if (and (eq? (car e) 'FORSOME) (= (length e) 3)
+                  (pair? (caddr e)) (eq? (car (caddr e)) 'IN)
+                  (eq? (cadr (caddr e)) (cadr e))
+                  (symbol? (caddr (caddr e))))
+             1 0)
+         (apply + (map iof--count-inhabited (cdr e))))))
+
+(check-true "INTERSECTION-OF is a registered functoid: a SEP over the family's union"
+  (lambda ()
+    (let ((reg (hash-table-ref/default *functoid-registry* 'INTERSECTION-OF #f)))
+      (and reg
+           (equal? (car reg) '(c))
+           (pair? (cadr reg))
+           (eq? (car (cadr reg)) 'SEP)
+           (pair? (caddr (cadr reg)))
+           (eq? (car (caddr (cadr reg))) 'BIG-UNION)
+           (eq? (hash-table-ref/default *constant-registry* 'INTERSECTION-OF #f)
+                'functoid)))))
+
+(check-true "intersection-of-membership is proven and bills modulo 0"
+  (lambda ()
+    (and (lookup-theorem 'intersection-of-membership)
+         (eq? (provenance-of 'intersection-of-membership) 'proven)
+         (null? (debt-of 'intersection-of-membership))
+         #t)))
+
+(check-true "every INTERSECTION-OF law is proven and bills modulo 0"
+  (lambda ()
+    (every (lambda (nm)
+             (and (lookup-theorem nm)
+                  (eq? (provenance-of nm) 'proven)
+                  (null? (debt-of nm))))
+           '(intersection-of-unfold intersection-of-membership
+             intersection-of-subset-member intersection-of-empty-family
+             intersection-of-is-set intersection-of-antitone
+             complement-in-big-union complement-in-intersection-of))))
+
+(check-true "no installed formula contains the head BIG-INTERSECTION"
+  (lambda ()
+    (null? (filter (lambda (nm) (iof--tree-has? (iof--raw nm) 'BIG-INTERSECTION))
+                   (hash-table-keys *theorem-table*)))))
+
+(check-true "HAS-FIP uses INTERSECTION-OF and carries both inhabitedness guards"
+  (lambda ()
+    (let ((f (iof--raw 'HAS-FIP)))
+      (and f
+           (iof--tree-has? f 'INTERSECTION-OF)
+           (not (iof--tree-has? f 'BIG-INTERSECTION))
+           (= (iof--count-inhabited f) 2)))))
+
+(display "=== SUMMARY: ")
+(display *pass-count*) (display " passed, ")
+(display *fail-count*) (display " failed ===\n")

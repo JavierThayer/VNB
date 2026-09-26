@@ -1,0 +1,599 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\section*{Proof of \texttt{cc-is-metric-space}}
+\textbf{Claim.}
+\begin{align*}
+  \operatorname{is\text{-}metric\text{-}space}(\operatorname{cc\text{-}ms})
+\end{align*}
+\bigskip
+
+\subsection*{Tactics used}
+\begin{itemize}
+\item \texttt{sp} -- start the proof: install the claim as the initial goal
+\item \texttt{mac} -- macete: rewrite the goal using a named theorem or definition
+\item \texttt{di} -- direct inference: break the goal at its top connective -- move an implication's hypothesis into the assumptions, split a conjunction, or introduce a universally quantified variable
+\item \texttt{ass} -- assert: close the goal directly from the assumptions
+\item \texttt{mac-h} -- macete in a hypothesis: unfold a defined predicate inside an assumption
+\item \texttt{cut} -- cut: introduce an intermediate lemma, discharged as a side goal
+\item \texttt{subst} -- substitute: rewrite the goal using an equality assumption
+\end{itemize}
+
+\subsection*{Notation}
+\begin{itemize}
+\item $\Rightarrow$ -- implies
+\item $\wedge$ -- and
+\item $\in$ -- set membership
+\item $\mathbb{C}$ -- the complex numbers
+\item $\mathbb{R}$ -- the real numbers
+\item $\langle \ldots \rangle$ -- a finite tuple
+\item $\times$ -- Cartesian product
+\item $(CARR \to B)$ -- the set of functions from $A$ to $B$
+\item \texttt{is-metric}$(\ldots)$ -- a defined term; see the Definitions reference (DEFINITIONS.md) for its full definition
+\end{itemize}
+
+\subsection*{Derivation}
+Each step shows the tactic applied; the goal nodes it opens and which one is now in focus (the bracketed \texttt{[k]} of the workspace display); the focus node's assumptions (\textbf{A1}, \textbf{A2}, \dots{}, the numbering the tactic args refer to); and the goal $G$ it leaves, written $\vdash G$.  Each sequent is an \texttt{align*} environment: break a long formula by hand with \texttt{\textbackslash\textbackslash\ \&} and indent at the alignment column.
+
+\medskip\noindent\textbf{0.}\quad \fit{\texttt{sp}}\hfill{\small adds node 0 $\;\cdot\;$ focus 0}\\[2pt]
+\begin{align*}
+  \vdash\quad & \operatorname{is\text{-}metric\text{-}space}(\operatorname{cc\text{-}ms})
+\end{align*}
+\medskip\noindent\textbf{1.}\quad \fit{\texttt{(mac 'is-metric-space)}}\hfill{\small adds node 1 $\;\cdot\;$ focus 1}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\operatorname{pts}(\operatorname{cc\text{-}ms}) \in \mathbf{Set}) \wedge \\ \operatorname{dist}(\operatorname{cc\text{-}ms}) \\ \in\; ((\operatorname{pts}(\operatorname{cc\text{-}ms}) \times \operatorname{pts}(\operatorname{cc\text{-}ms})) \to \mathbb{R}) \wedge \\ \operatorname{is\text{-}metric}(\operatorname{dist}(\operatorname{cc\text{-}ms}), \operatorname{pts}(\operatorname{cc\text{-}ms})) \end{array}
+\end{align*}
+\medskip\noindent\textbf{2.}\quad \fit{\texttt{(mac 'cc-ms@pts)}}\hfill{\small adds node 2 $\;\cdot\;$ focus 2}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ \operatorname{dist}(\operatorname{cc\text{-}ms}) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \operatorname{is\text{-}metric}(\operatorname{dist}(\operatorname{cc\text{-}ms}), \mathbb{C}) \end{array}
+\end{align*}
+\medskip\noindent\textbf{3.}\quad \fit{\texttt{(mac 'cc-ms@dist)}}\hfill{\small adds node 3 $\;\cdot\;$ focus 3}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \operatorname{is\text{-}metric}((\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \quad \operatorname{magnitude}((x - y))), \\ \quad \mathbb{C}) \end{array}
+\end{align*}
+\medskip\noindent\textbf{4.}\quad \fit{\texttt{(mac 'is-metric)}}\hfill{\small adds node 4 $\;\cdot\;$ focus 4}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \forall u \in \mathbb{C}. \\ \quad (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, u) \\ \quad =\; 0 \wedge \\ \quad \forall v \in \mathbb{C}. \\ \quad \quad 0 \\ \quad \quad \leq\; (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) \wedge \\ \quad \quad ((\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) = 0) \Rightarrow  \\ \quad \quad \quad (u = v) \wedge \\ \quad \quad (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) \\ \quad \quad =\; (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(v, u) \wedge \\ \quad \quad \forall w \in \mathbb{C}. \\ \quad \quad \quad (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, w) \\ \quad \quad \quad \leq\; ((\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) + (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(v, w)) \end{array}
+\end{align*}
+\medskip\noindent\textbf{5.}\quad \fit{\texttt{(lam-b)}}\hfill{\small adds node 5 $\;\cdot\;$ focus 5}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \forall u \in \mathbb{C}. \\ \quad (\operatorname{magnitude}((u - u)) = 0) \wedge \\ \quad \forall v \in \mathbb{C}. \\ \quad \quad (0 \leq \operatorname{magnitude}((u - v))) \wedge \\ \quad \quad (\operatorname{magnitude}((u - v)) = 0) \Rightarrow  \\ \quad \quad \quad (u = v) \wedge \\ \quad \quad (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u))) \wedge \\ \quad \quad \forall w \in \mathbb{C}. \\ \quad \quad \quad \operatorname{magnitude}((u - w)) \\ \quad \quad \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{6.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 6, 7 $\;\cdot\;$ focus 6}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2)
+\end{align*}
+\medskip\noindent\textbf{7.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 8, 9 $\;\cdot\;$ focus 8}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\mathbb{C} \in \mathbf{Set})
+\end{align*}
+\medskip\noindent\textbf{8.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 10, 11 $\;\cdot\;$ focus 10}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \end{array}
+\end{align*}
+\medskip\noindent\textbf{9.}\quad \fit{\texttt{(di)}}\hfill{\small adds node 12 $\;\cdot\;$ focus 12}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{magnitude}((u - u)) = 0) \wedge \\ \forall v \in \mathbb{C}. \\ \quad (0 \leq \operatorname{magnitude}((u - v))) \wedge \\ \quad (\operatorname{magnitude}((u - v)) = 0) \Rightarrow  \\ \quad \quad (u = v) \wedge \\ \quad (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u))) \wedge \\ \quad \forall w \in \mathbb{C}. \\ \quad \quad \operatorname{magnitude}((u - w)) \\ \quad \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{10.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 13, 14 $\;\cdot\;$ focus 13}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - u)) = 0)
+\end{align*}
+\medskip\noindent\textbf{11.}\quad \fit{\texttt{(di)}}\hfill{\small adds node 15 $\;\cdot\;$ focus 15}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} (0 \leq \operatorname{magnitude}((u - v))) \wedge \\ (\operatorname{magnitude}((u - v)) = 0) \Rightarrow  \\ \quad (u = v) \wedge \\ (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u))) \wedge \\ \forall w \in \mathbb{C}. \\ \quad \operatorname{magnitude}((u - w)) \\ \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{12.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 16, 17 $\;\cdot\;$ focus 16}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (0 \leq \operatorname{magnitude}((u - v)))
+\end{align*}
+\medskip\noindent\textbf{13.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 18, 19 $\;\cdot\;$ focus 18}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} (\operatorname{magnitude}((u - v)) = 0) \Rightarrow  \\ \quad (u = v) \end{array}
+\end{align*}
+\medskip\noindent\textbf{14.}\quad \fit{\texttt{(di)}}\hfill{\small adds node 20 $\;\cdot\;$ focus 20}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{magnitude}((u - v)) = 0) \\
+  \mathbf{A2.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (u = v)
+\end{align*}
+\medskip\noindent\textbf{15.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 21, 22 $\;\cdot\;$ focus 21}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u)))
+\end{align*}
+\medskip\noindent\textbf{16.}\quad \fit{\texttt{(di)}}\hfill{\small adds node 23 $\;\cdot\;$ focus 23}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{17.}\quad \fit{\texttt{(mac 'cc-ms-def)}}\hfill{\small adds node 24 $\;\cdot\;$ focus 24}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{length}(\langle \mathbb{C}, (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y))) \rangle) \\ =\; 2 \end{array}
+\end{align*}
+\medskip\noindent\textbf{18.}\quad \fit{\texttt{(len-r)}}\hfill{\small adds node 25 $\;\cdot\;$ focus 25}\\[2pt]
+\begin{align*}
+  \vdash\quad & (2 = 2)
+\end{align*}
+\medskip\noindent\textbf{19.}\quad \fit{\texttt{(arith)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 8}\\[2pt]
+\begin{align*}
+  \vdash\quad & (\mathbb{C} \in \mathbf{Set})
+\end{align*}
+\medskip\noindent\textbf{20.}\quad \fit{\texttt{(fact 'cc-is-set)}}\hfill{\small adds node 26 $\;\cdot\;$ focus 26}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\mathbb{C} \in \mathbf{Set}) \\
+  \vdash\quad & (\mathbb{C} \in \mathbf{Set})
+\end{align*}
+\medskip\noindent\textbf{21.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 10}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \end{array}
+\end{align*}
+\medskip\noindent\textbf{22.}\quad \fit{\texttt{(lam-t)}}\hfill{\small adds nodes 27, 28 $\;\cdot\;$ focus 27}\\[2pt]
+\begin{align*}
+  \vdash\quad & \begin{array}{@{}l@{}} \forall \operatorname{x\_1434} \in \mathbb{C}. \forall \operatorname{y\_1435} \in \mathbb{C}. \\ \quad (\operatorname{magnitude}((\operatorname{x\_1434} - \operatorname{y\_1435})) \in \mathbb{R}) \end{array}
+\end{align*}
+\medskip\noindent\textbf{23.}\quad \fit{\texttt{(mac 'cartesian-set-iff)}}\hfill{\small adds node 29 $\;\cdot\;$ focus 29}\\[2pt]
+\begin{align*}
+  \vdash\quad & ((\mathbb{C} \in \mathbf{Set}) \wedge (\mathbb{C} \in \mathbf{Set}))
+\end{align*}
+\medskip\noindent\textbf{24.}\quad \fit{\texttt{(di)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 13}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - u)) = 0)
+\end{align*}
+\medskip\noindent\textbf{25.}\quad \fit{\texttt{(di)}}\hfill{\small adds node 30 $\;\cdot\;$ focus 30}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{x\_1434} \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (\operatorname{y\_1435} \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((\operatorname{x\_1434} - \operatorname{y\_1435})) \in \mathbb{R})
+\end{align*}
+\medskip\noindent\textbf{26.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'x\_1434 'y\_1435)}}\hfill{\small adds nodes 31, 32, 33, 34, 35 $\;\cdot\;$ focus 35}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (\operatorname{y\_1435} \in \mathbb{C}) \Rightarrow  \\ \quad ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (\operatorname{x\_1434} \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{y\_1435} \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (\operatorname{x\_1434} \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((\operatorname{x\_1434} - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (\operatorname{x\_1434} \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & (\operatorname{y\_1435} \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((\operatorname{x\_1434} - \operatorname{y\_1435})) \in \mathbb{R})
+\end{align*}
+\medskip\noindent\textbf{27.}\quad \fit{\texttt{(fact 'cc-magnitude-closed '(- x\_1434 y\_1435))}}\hfill{\small adds nodes 36, 37, 38 $\;\cdot\;$ focus 38}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{magnitude}((\operatorname{x\_1434} - \operatorname{y\_1435})) \in \mathbb{R}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}((\operatorname{x\_1434} - \operatorname{y\_1435})) \in \mathbb{R}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(z) \in \mathbb{R}) \end{array} \\
+  \mathbf{A4.}\quad & ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} (\operatorname{y\_1435} \in \mathbb{C}) \Rightarrow  \\ \quad ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} (\operatorname{x\_1434} \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{y\_1435} \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((\operatorname{x\_1434} - \operatorname{y\_1435}) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (\operatorname{x\_1434} \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((\operatorname{x\_1434} - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & (\operatorname{x\_1434} \in \mathbb{C}) \\
+  \mathbf{A10.}\quad & (\operatorname{y\_1435} \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((\operatorname{x\_1434} - \operatorname{y\_1435})) \in \mathbb{R})
+\end{align*}
+\medskip\noindent\textbf{28.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 13}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - u)) = 0)
+\end{align*}
+\medskip\noindent\textbf{29.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'u 'u)}}\hfill{\small adds nodes 39, 40, 41, 42, 43 $\;\cdot\;$ focus 43}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - u) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad ((u - u) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - u) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - u)) = 0)
+\end{align*}
+\medskip\noindent\textbf{30.}\quad \fit{\texttt{(mac 'cc-magnitude-zero-iff)}}\hfill{\small adds node 44 $\;\cdot\;$ focus 44}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - u) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad ((u - u) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - u) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & ((u - u) = 0)
+\end{align*}
+\medskip\noindent\textbf{31.}\quad \fit{\texttt{(crs)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 16}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (0 \leq \operatorname{magnitude}((u - v)))
+\end{align*}
+\medskip\noindent\textbf{32.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'u 'v)}}\hfill{\small adds nodes 45, 46, 47, 48, 49 $\;\cdot\;$ focus 49}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (0 \leq \operatorname{magnitude}((u - v)))
+\end{align*}
+\medskip\noindent\textbf{33.}\quad \fit{\texttt{(fact 'cc-magnitude-nonneg '(- u v))}}\hfill{\small adds nodes 50, 51, 52 $\;\cdot\;$ focus 52}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (0 \leq \operatorname{magnitude}((u - v))) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (0 \leq \operatorname{magnitude}((u - v))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (0 \leq \operatorname{magnitude}(z)) \end{array} \\
+  \mathbf{A4.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A10.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (0 \leq \operatorname{magnitude}((u - v)))
+\end{align*}
+\medskip\noindent\textbf{34.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 20}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{magnitude}((u - v)) = 0) \\
+  \mathbf{A2.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (u = v)
+\end{align*}
+\medskip\noindent\textbf{35.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'u 'v)}}\hfill{\small adds nodes 53, 54, 55, 56, 57 $\;\cdot\;$ focus 57}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (\operatorname{magnitude}((u - v)) = 0) \\
+  \mathbf{A7.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (u = v)
+\end{align*}
+\medskip\noindent\textbf{36.}\quad \fit{\texttt{(mac-h 'cc-magnitude-zero-iff '(= (magnitude (- u v)) 0))}}\hfill{\small adds node 58 $\;\cdot\;$ focus 58}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - v) = 0) \\
+  \mathbf{A2.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (u = v)
+\end{align*}
+\medskip\noindent\textbf{37.}\quad \fit{\texttt{(fact 'cc-sub-zero-eq 'u 'v)}}\hfill{\small adds nodes 59, 60, 61, 62, 63, 64 $\;\cdot\;$ focus 64}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (u = v) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} ((u - v) = 0) \Rightarrow  \\ \quad (u = v) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) = 0) \Rightarrow  \\ \quad \quad (u = v) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) = 0) \Rightarrow  \\ \quad \quad \quad (u = v) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) = 0) \Rightarrow  \\ \quad \quad \quad \quad (u = b) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) = 0) \Rightarrow  \\ \quad \quad \quad \quad (a = b) \end{array} \\
+  \mathbf{A7.}\quad & ((u - v) = 0) \\
+  \mathbf{A8.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A14.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (u = v)
+\end{align*}
+\medskip\noindent\textbf{38.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 21}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u)))
+\end{align*}
+\medskip\noindent\textbf{39.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'u 'v)}}\hfill{\small adds nodes 65, 66, 67, 68, 69 $\;\cdot\;$ focus 69}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u)))
+\end{align*}
+\medskip\noindent\textbf{40.}\quad \fit{\texttt{(fact 'cc-magnitude-closed '(- u v))}}\hfill{\small adds nodes 70, 71, 72 $\;\cdot\;$ focus 72}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(z) \in \mathbb{R}) \end{array} \\
+  \mathbf{A4.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A10.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u)))
+\end{align*}
+\medskip\noindent\textbf{41.}\quad \fit{\texttt{(fact 'cc-magnitude-neg '(- u v))}}\hfill{\small adds nodes 73, 74, 75 $\;\cdot\;$ focus 75}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(-z) = \operatorname{magnitude}(z)) \end{array} \\
+  \mathbf{A4.}\quad & (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(z) \in \mathbb{R}) \end{array} \\
+  \mathbf{A7.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A13.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((v - u)))
+\end{align*}
+\medskip\noindent\textbf{42.}\quad \fit{\texttt{(cut '(= (- v u) (- (- u v))))}}\hfill{\small adds nodes 76, 77 $\;\cdot\;$ focus 76}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(-z) = \operatorname{magnitude}(z)) \end{array} \\
+  \mathbf{A4.}\quad & (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \end{array} \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(z) \in \mathbb{R}) \end{array} \\
+  \mathbf{A7.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A13.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & ((v - u) = -(u - v))
+\end{align*}
+\medskip\noindent\textbf{43.}\quad \fit{\texttt{(crs)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 23}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{44.}\quad \fit{\texttt{(subst '(= (- v u) (- (- u v))))}}\hfill{\small adds node 78 $\;\cdot\;$ focus 78}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((v - u) = -(u - v)) \\
+  \mathbf{A2.}\quad & (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(-z) = \operatorname{magnitude}(z)) \end{array} \\
+  \mathbf{A5.}\quad & (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(z) \in \mathbb{R}) \end{array} \\
+  \mathbf{A8.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A14.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}(-(u - v)))
+\end{align*}
+\medskip\noindent\textbf{45.}\quad \fit{\texttt{(subst '(= (magnitude (- (- u v))) (magnitude (- u v))))}}\hfill{\small adds node 79 $\;\cdot\;$ focus 79}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((v - u) = -(u - v)) \\
+  \mathbf{A2.}\quad & (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v))) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(-z) = \operatorname{magnitude}(z)) \end{array} \\
+  \mathbf{A5.}\quad & (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} ((u - v) \in \mathbb{C}) \Rightarrow  \\ \quad (\operatorname{magnitude}((u - v)) \in \mathbb{R}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} \forall z \in \mathbb{C}. \\ \quad (\operatorname{magnitude}(z) \in \mathbb{R}) \end{array} \\
+  \mathbf{A8.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A14.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (\operatorname{magnitude}((u - v)) = \operatorname{magnitude}((u - v)))
+\end{align*}
+\medskip\noindent\textbf{46.}\quad \fit{\texttt{(rfl)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 23}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{47.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'u 'v)}}\hfill{\small adds nodes 80, 81, 82, 83, 84 $\;\cdot\;$ focus 84}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{48.}\quad \fit{\texttt{(fact 'cc-sub-in-cc 'v 'w)}}\hfill{\small adds nodes 85, 86, 87, 88 $\;\cdot\;$ focus 88}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A11.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{49.}\quad \fit{\texttt{(cut '(and (in (- u v) cc) (in (- v w) cc)))}}\hfill{\small adds nodes 89, 90 $\;\cdot\;$ focus 89}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A11.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C}))
+\end{align*}
+\medskip\noindent\textbf{50.}\quad \fit{\texttt{(di)}}\hfill{\small adds nodes 91, 92 $\;\cdot\;$ focus 91}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A6.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A11.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & ((u - v) \in \mathbb{C})
+\end{align*}
+\medskip\noindent\textbf{51.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 90}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \\
+  \mathbf{A2.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A13.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{52.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 90}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \\
+  \mathbf{A2.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A6.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A13.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{53.}\quad \fit{\texttt{(fact 'cc-magnitude-triangle '(- u v) '(- v w))}}\hfill{\small adds nodes 93, 94, 95, 96 $\;\cdot\;$ focus 96}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}(((u - v) + (v - w))) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \Rightarrow  \\ \quad \operatorname{magnitude}(((u - v) + (v - w))) \\ \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (((u - v) \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad \operatorname{magnitude}(((u - v) + b)) \\ \quad \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}(b)) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad ((a \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad (\operatorname{magnitude}((a + b)) \leq (\operatorname{magnitude}(a) + \operatorname{magnitude}(b))) \end{array} \\
+  \mathbf{A5.}\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \\
+  \mathbf{A6.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A14.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A15.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A16.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A17.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{54.}\quad \fit{\texttt{(cut '(= (- u w) (+ (- u v) (- v w))))}}\hfill{\small adds nodes 97, 98 $\;\cdot\;$ focus 97}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}(((u - v) + (v - w))) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \Rightarrow  \\ \quad \operatorname{magnitude}(((u - v) + (v - w))) \\ \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (((u - v) \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad \operatorname{magnitude}(((u - v) + b)) \\ \quad \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}(b)) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad ((a \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad (\operatorname{magnitude}((a + b)) \leq (\operatorname{magnitude}(a) + \operatorname{magnitude}(b))) \end{array} \\
+  \mathbf{A5.}\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \\
+  \mathbf{A6.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A7.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A11.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A14.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A15.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A16.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A17.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & ((u - w) = ((u - v) + (v - w)))
+\end{align*}
+\medskip\noindent\textbf{55.}\quad \fit{\texttt{(crs)}}\hfill{\small adds no nodes $\;\cdot\;$ focus 98}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - w) = ((u - v) + (v - w))) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}(((u - v) + (v - w))) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \Rightarrow  \\ \quad \operatorname{magnitude}(((u - v) + (v - w))) \\ \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (((u - v) \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad \operatorname{magnitude}(((u - v) + b)) \\ \quad \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}(b)) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad ((a \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad (\operatorname{magnitude}((a + b)) \leq (\operatorname{magnitude}(a) + \operatorname{magnitude}(b))) \end{array} \\
+  \mathbf{A6.}\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \\
+  \mathbf{A7.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A14.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A15.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A16.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A17.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A18.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}((u - w)) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{56.}\quad \fit{\texttt{(subst '(= (- u w) (+ (- u v) (- v w))))}}\hfill{\small adds node 99 $\;\cdot\;$ focus 99}\\[2pt]
+\begin{align*}
+  \mathbf{A1.}\quad & ((u - w) = ((u - v) + (v - w))) \\
+  \mathbf{A2.}\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}(((u - v) + (v - w))) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A3.}\quad & \begin{array}{@{}l@{}} (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \Rightarrow  \\ \quad \operatorname{magnitude}(((u - v) + (v - w))) \\ \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array} \\
+  \mathbf{A4.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (((u - v) \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad \operatorname{magnitude}(((u - v) + b)) \\ \quad \quad \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}(b)) \end{array} \\
+  \mathbf{A5.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad ((a \in \mathbb{C}) \wedge (b \in \mathbb{C})) \Rightarrow  \\ \quad \quad (\operatorname{magnitude}((a + b)) \leq (\operatorname{magnitude}(a) + \operatorname{magnitude}(b))) \end{array} \\
+  \mathbf{A6.}\quad & (((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C})) \\
+  \mathbf{A7.}\quad & ((v - w) \in \mathbb{C}) \\
+  \mathbf{A8.}\quad & \begin{array}{@{}l@{}} (w \in \mathbb{C}) \Rightarrow  \\ \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A9.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad (w \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((v - w) \in \mathbb{C}) \end{array} \\
+  \mathbf{A10.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((v - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A11.}\quad & ((u - v) \in \mathbb{C}) \\
+  \mathbf{A12.}\quad & \begin{array}{@{}l@{}} (v \in \mathbb{C}) \Rightarrow  \\ \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A13.}\quad & \begin{array}{@{}l@{}} (u \in \mathbb{C}) \Rightarrow  \\ \quad (v \in \mathbb{C}) \Rightarrow  \\ \quad \quad ((u - v) \in \mathbb{C}) \end{array} \\
+  \mathbf{A14.}\quad & \begin{array}{@{}l@{}} \forall b. \\ \quad (u \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((u - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A15.}\quad & \begin{array}{@{}l@{}} \forall a. \forall b. \\ \quad (a \in \mathbb{C}) \Rightarrow  \\ \quad \quad (b \in \mathbb{C}) \Rightarrow  \\ \quad \quad \quad ((a - b) \in \mathbb{C}) \end{array} \\
+  \mathbf{A16.}\quad & (w \in \mathbb{C}) \\
+  \mathbf{A17.}\quad & (v \in \mathbb{C}) \\
+  \mathbf{A18.}\quad & (u \in \mathbb{C}) \\
+  \vdash\quad & \begin{array}{@{}l@{}} \operatorname{magnitude}(((u - v) + (v - w))) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{align*}
+\medskip\noindent\textbf{57.}\quad \fit{\texttt{(ass)}}\hfill{\small adds no nodes}\\[2pt]
+\emph{QED.}\par
+
+\end{document}

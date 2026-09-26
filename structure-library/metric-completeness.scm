@@ -90,13 +90,7 @@
 ;;; and digging out the conjunct by hand.  Trivially derivable; library-build
 ;;; phase support [[feedback-library-axioms-fine]].
 
-(support 'cauchy-seq-is-fun
-  '(FORALL s (FORALL f (IMPLIES (IS-CAUCHY-SEQ s f)
-                                (IN f (FUN NN (PTS s)))))))
-(warrant! 'cauchy-seq-is-fun 'well-known
-  "A Cauchy sequence is by definition a function NN -> PTS(s): this is the second
-   conjunct of the unfolded IS-CAUCHY-SEQ(s,f).  Carries no content beyond the
-   definition.")
+;;; cauchy-seq-is-fun RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-compact-complete.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; cauchy-rapid-subsequence: every Cauchy sequence has a "rapidly Cauchy"
@@ -120,26 +114,7 @@
 ;; Bound var is `rad' (the radii), NOT `a': the reader case-folds and `a'
 ;; collides with the carrier accessor `A', so `(a k)' would read as `CARR(k)'
 ;; (the same trap power-series.scm flags for its series variable).
-(support 'cauchy-rapid-subsequence
-  '(FORALL s (FORALL f (FORALL rad
-     (IMPLIES (AND (IS-CAUCHY-SEQ s f)
-              (AND (IN rad (FUN NN RR))
-                   (FORALL k (IMPLIES (IN k NN) (POS-RR (rad k))))))
-       (FORSOME phi
-         (AND (IN phi (FUN NN NN))
-         (AND (FORALL m (IMPLIES (IN m NN)
-                (FORALL n_ (IMPLIES (IN n_ NN)
-                  (IMPLIES (< m n_) (< (phi m) (phi n_)))))))
-              (FORALL k (IMPLIES (IN k NN)
-                (<= ((DIST s) (f (phi k)) (f (phi (succ k)))) (rad k))))))))))))
-(warrant! 'cauchy-rapid-subsequence 'well-known
-  "Standard subsequence extraction.  For each k, rad(k) > 0 and f Cauchy give an
-   N_k with d(f m, f n) <= rad(k) whenever m,n >= N_k (IS-CAUCHY-SEQ at eps=rad
-   k).  Build phi by NN-recursion: phi(0)=N_0, phi(succ k)=max(succ(phi k),
-   N_{succ k}) -- strictly increasing, with phi(k) and phi(succ k) both >= N_k,
-   so the consecutive distance is <= rad(k).  Choice picks the N_k.  rad(k)=2^-k
-   is the usual instance, making sum_k d-consecutive dominated by the geometric
-   series.")
+;;; cauchy-rapid-subsequence PROVEN modulo 0 in theorem-library/rake-dc-consumers.scm (2026-09-19, batch 8)
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-COMPLETE           'kind 'predicate 'arity 1 'noun "complete" 'article "")

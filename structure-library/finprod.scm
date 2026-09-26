@@ -28,3 +28,11 @@
 
 (def-functoid 'PROD-RING '(R f S)
   '(FINPROD (COMMUTATIVE-RING-MULTIPLICATIVE-CM R) f S))
+
+;;; PROD-SET(cm, S, f): the product over a finite index set in a commutative monoid
+;;; (notes-16 step 2), DEFINED 2026-09-19.  Until then it was a bare head with four
+;;; characterising axioms in sequences.scm; they are theorems now
+;;; (theorem-library/rake-prod-set-defined.scm).  A commutative monoid's slots are exactly
+;;; what FINSUM reads, so no view is needed (contrast SUM-SET, finsum.scm).  It is FINPROD
+;;; up to argument order; both names are kept.
+(def-functoid 'PROD-SET '(cm S f) '(FINSUM cm f S))

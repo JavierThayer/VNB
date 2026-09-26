@@ -31,12 +31,26 @@
 ;;; to `modulo 0' -- deliberately NOT done here, because DIFFERENCE sits inside
 ;;; IS-FIELD's own defining IFF and unfolding it perturbs field-is-field-ring,
 ;;; prod-of-sums and measure.  That is a separate, measured change.
+;;; THAT PARAGRAPH IS HISTORY: `difference-membership' and `difference-set' are
+;;; PROVEN (theorem-library/difference-laws.scm), so this proof has billed
+;;; `modulo 0' since, and still does with the two law conjuncts below.
+;;;
+;;; THE TWO LAW CONJUNCTS, added 2026-09-15.  `IS-FIELD' now carries the
+;;; nontriviality and the invertibility of MUL-INV as (law ...) clauses of the
+;;; FIELD declaration (field.scm).  They were separate ASSERTED axioms with no
+;;; warrant -- `field-zero-not-one' and `field-mul-inverse', two of the three
+;;; remaining `trust: none' bills -- i.e. supports finishing a definition,
+;;; exactly as `field-non-zero-carrier' was until 2026-07-12.  The slot
+;;; `(op MUL-INV NON-ZERO NON-ZERO)' TYPED the inverse and never said it
+;;; inverted anything.  So this proof has two more conjuncts to discharge, and
+;;; both are new content rather than plumbing: nontriviality is `not(0 = 1)' in
+;;; QQ, and invertibility is `qq-recip-inverse' reached through two betas.
 ;;;
 ;;; Technique: zz-ring-is-ring.scm's.  Unfold the definitional IFF, push the
 ;;; accessors to the surface language with `surface-goal!', split, and close each
-;;; conjunct by its own shape.  Thirteen of the seventeen conjuncts are RING's
-;;; and go exactly as they do there; the four new ones are the length (8, not 6),
-;;; the derived NON-ZERO pair, and the MUL-INV typing above.
+;;; conjunct by its own shape.  Thirteen of the nineteen conjuncts are RING's
+;;; and go exactly as they do there; the six others are the length (8, not 6),
+;;; the derived NON-ZERO pair, the MUL-INV typing above, and the two laws.
 
 ;;; --- file-local helpers (qf- prefix) ------------------------------------
 ;;;
@@ -112,7 +126,7 @@
 
 ;;; -----------------------------------------------------------------------
 ;;; qq-field-mul-inv-type -- the MUL-INV slot typing, the one genuinely new
-;;; obligation, stated separately because a failure inside the eighteen-conjunct
+;;; obligation, stated separately because a failure inside the twenty-conjunct
 ;;; sweep is far harder to read than a failure here.
 ;;;
 ;;; `singleton-membership' reads  x in {y} iff x in SET and x = y  -- a
@@ -155,7 +169,7 @@
 (topic! 'qq-field-mul-inv-type 'plumbing)
 
 ;;; -----------------------------------------------------------------------
-;;; IS-FIELD(QQ-FIELD) -- eighteen conjuncts.
+;;; IS-FIELD(QQ-FIELD) -- twenty conjuncts.
 ;;; -----------------------------------------------------------------------
 
 ;;; ADD/MUL/NEG typing.  TAKE THE LEAVES `lam-t' OPENED -- never search the open
@@ -196,6 +210,44 @@
         (mac 'cartesian-set-iff))
       (ass))))
 
+;;; The INVERTIBILITY law conjunct (field.scm's second (law ...) clause).  Surfaced
+;;; at QQ-FIELD it reads
+;;;
+;;;   forall([a_ in difference(qq, singleton(0))],
+;;;     (vnb-lambda([x_,y_], cartesian(qq,qq), x_ * y_))(
+;;;        a_, (vnb-lambda(x_, difference(qq, singleton(0)), recip(x_)))(a_)) = 1)
+;;;
+;;; -- TWO redexes, the MUL slot's tupled lambda and the MUL-INV slot's unary one.
+;;; ONE `lam-b' reduces both and owes NOTHING, but only because every typing it
+;;; needs is landed first.  Two traps, each measured on the band:
+;;;
+;;;   * `mac-h difference-membership' REPLACES the hypothesis `a_ in QQ \ {0}',
+;;;     and that membership is exactly what licenses the INNER beta.  Unfolded,
+;;;     the reduction owes `a_ in difference(qq, singleton(0))' back at a node
+;;;     whose context no longer holds it -- an open leaf `ass' cannot close, and
+;;;     nothing says so until qed.  Read the two pieces FORWARD with `fact' and
+;;;     leave the membership standing.  (The MUL-INV typing lemma above CAN use
+;;;     `mac-h': it betas nothing.)
+;;;   * PEEL AND TYPE FIRST, THEN BETA (CLAUDE.md).  With `recip(a_) in QQ'
+;;;     missing, the OUTER tupled redex owes `[a_, recip(a_)] in cartesian(QQ,QQ)'
+;;;     as a second leaf.  With it in context the walker discharges that itself.
+(define (qf-close-inverse-law!)
+  (di)                                          ; assume a_ in QQ \ {0}
+  (let ((a (cadr (cadr (qf-goal)))))            ; eigenvariable, read off the GOAL
+    (fact 'difference-membership 'QQ '(SINGLETON 0) a)
+    (have! (list 'IN a 'QQ) (lambda () (prop)))
+    (fact 'membership-implies-sethood a 'QQ)    ; the sethood half of singleton
+    (fact 'singleton-membership 0 a)
+    (have! (list 'NOT (list '= a 0)) (lambda () (prop)))
+    (have! (list 'AND (list 'IN a 'QQ) (list 'NOT (list '= a 0)))
+           (lambda () (prop)))
+    (fact 'qq-recip-closed a)                   ; recip(a_) in QQ
+    (fact 'qq-recip-inverse a)                  ; a_ * recip(a_) = 1
+    ;; whatever lam-b opens: the reduced equation closes by `ass', and a domain
+    ;; obligation (if the walker ever posts one) is in context by construction.
+    (for-each (lambda (n) (dk-focus! n) (ass))
+              (dk-opened (lambda () (lam-b))))))
+
 ;;; Discharge the FOCUSED conjunct.  Every branch is decided by the goal's own
 ;;; shape; there is no search, and no leaf is left to luck.
 (define (qf-close-leaf!)
@@ -229,6 +281,16 @@
       ((and (eq? (qf-head g) 'IN)
             (pair? (cadr g)) (eq? (car (cadr g)) 'VNB-LAMBDA))
        (qf-close-op-typing! g))
+      ;; NONTRIVIALITY, the first of the two (law ...) conjuncts: surfaced it is
+      ;; the ground `not(0 = 1)', which `arith' decides.
+      ((equal? g '(NOT (= 0 1)))
+       (arith))
+      ;; INVERTIBILITY, the second.  It is the only FORALL conjunct: the
+      ;; operation-property conjuncts are still folded (is-associative(...) and
+      ;; friends are ATOMS until `mac' opens them) and every other conjunct is an
+      ;; IN, an = or a NOT.
+      ((eq? (qf-head g) 'FORALL)
+       (qf-close-inverse-law!))
       ;; a law: unfold it, drop to the surface, peel, and let `crs' decide the
       ;; ring identity.  (`di' splits the AND goals of is-identity /
       ;; has-inverses / is-distributive; each half is again a ring identity.)

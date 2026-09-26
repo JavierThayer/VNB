@@ -358,3 +358,38 @@
 (notation! '<        'kind 'primitive 'arity 2 'english "$1 is less than $2")
 (notation! '>=       'kind 'primitive 'arity 2 'english "$1 is at least $2")
 (notation! '>        'kind 'primitive 'arity 2 'english "$1 is greater than $2")
+
+;;; -----------------------------------------------------------------------
+;;; READINGS FOR THE HEADS A READER MEETS MOST, hand-written because they need
+;;; judgement.  The 28 ACCESSORS are generated instead, at
+;;; `register-accessor-index!' (structures.scm) -- see the note there.
+;;;
+;;; Ranked by occurrences in installed formulas, one pass over the theorem
+;;; table (2026-09-11).  These are the top of the undeclared list; the counts
+;;; are in the comments so a later pass can see where the line was drawn.
+(notation! 'INTERVAL 'kind 'functoid 'arity 2
+           'english "the natural numbers from $1 to $2 inclusive")      ; 634
+(notation! 'CCINT 'kind 'functoid 'arity 2
+           'english "the closed real interval [$1, $2]")                ; 155
+(notation! 'MAT 'kind 'functoid 'arity 3
+           'english "the $1-by-$2 matrices over $3")                    ; 364
+(notation! 'ENTRY 'kind 'functoid 'arity 3
+           'english "the entry of $1 at row $2, column $3")             ; 474
+(notation! 'FINSUM 'kind 'functoid 'arity 2
+           'english "the sum of $1 over the first $2 indices")          ; 280
+(notation! 'SERIES-PARTIAL-SUM 'kind 'functoid 'arity 2
+           'english "the sum of the first $2 terms of the series $1")   ; 113
+(notation! 'RING-ADDITIVE-AG 'kind 'functoid 'arity 1
+           'english "the additive abelian group of the ring $1")        ; 274
+(notation! 'IS-RING 'kind 'predicate 'arity 1
+           'english "$1 is a ring")                                     ; 413
+(notation! 'IS-MODULE 'kind 'predicate 'arity 1
+           'english "$1 is a module")                                   ; 150
+(notation! 'IS-METRIC-SPACE 'kind 'predicate 'arity 1
+           'english "$1 is a metric space")                             ; 172
+(notation! 'IS-NORMED-VECTOR-SPACE 'kind 'predicate 'arity 1
+           'english "$1 is a normed vector space")                      ; 236
+(notation! 'IS-NORMED-FIELD 'kind 'predicate 'arity 1
+           'english "$1 is a normed field")                             ; 145
+(notation! 'IS-COMPLEX-INNER-PRODUCT-SPACE 'kind 'predicate 'arity 1
+           'english "$1 is a complex inner product space")              ; 139

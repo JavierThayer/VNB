@@ -35,6 +35,1351 @@ and the \texttt{cmd-*} commands operate on.  In the interactive session,
 \end{remark}
 
 %% =========================================================
+\section{Kernel operations}\label{sec:kernel-boundary}
+
+A proof in VNB is carried out on a deduction graph, and the graph is
+changed only by \emph{kernel operations}.  A kernel operation is applied
+to one sequent node $N$.  It adds one inference node: the conclusion is
+$N$, the rule recorded is the name of the operation, and the hypotheses
+are sequent nodes that the operation builds from $N$ in a way fixed by
+the operation.  Nothing else changes the graph.
+
+There are \VNBkernelopcount{} kernel operations.  The list below is
+produced from the list the system itself checks each time it starts
+(Section~\ref{sec:kernel-checked}).
+
+\VNBkerneloptable
+
+The last \VNBkernelopcountoracle{} are \emph{oracles}.  An oracle runs a
+decision procedure, written in Scheme, on the assertion of $N$ and some
+of its assumptions.  If the procedure succeeds, the operation adds an
+inference node, with no hypotheses except in the case of
+\texttt{arith-simplify}, which posts one.  The graph records the name of
+the oracle; for \texttt{ineq} and \texttt{sos} it also records the
+certificate the procedure found.  The inference is written only if the
+oracle's checker accepts it (Section~\ref{sec:inference-checked}).
+
+The kernel operations, together with the axioms
+(Section~\ref{sec:proof-debt}), are everything VNB assumes.  A result
+reported \texttt{modulo 0} rests on these and on nothing else.
+
+Every other proof command is a \emph{tactic}.  A tactic is a Scheme
+procedure that calls kernel operations, possibly many, possibly after a
+search.  It has no other access to the graph.  A tactic can fail to find
+a proof.  It cannot add an inference that no kernel operation would add.
+Section~\ref{sec:tactics-ref} describes the tactics, and
+Section~\ref{sec:command-uses} lists, for each command, the kernel
+operations it can reach.
+
+\begin{remark}
+One command may record different operations according to the form of the
+assertion: \texttt{di} records \texttt{and-intro}, \texttt{implies-intro},
+\texttt{forall-intro} and so on.  Two commands may record the same
+operation.  The name recorded in the graph is that of the operation, not
+of the command.
+\end{remark}
+
+\subsection{What the operations do}\label{sec:kernel-ops-detail}
+
+%% Inference figures.  \VNBfig{operation}{hypotheses}{conclusion}, and
+%% \VNBfigS with the hypotheses stacked one per row (separated by \\); the side
+%% conditions follow in a VNBcond list.  Defined here because this is the only
+%% section that uses them.
+\providecommand{\VNBfig}[3]{\[\frac{\displaystyle #2}{\displaystyle #3}\;\;\mbox{\texttt{#1}}\]}
+\providecommand{\VNBnohyp}{\phantom{\Gamma}}
+\providecommand{\FV}{\mathrm{FV}}
+\providecommand{\aeq}{=_{\alpha}}
+\providecommand{\VNBfigS}[3]{\[\frac{\displaystyle\begin{array}{c}#2\end{array}}{\displaystyle #3}\;\;\mbox{\texttt{#1}}\]}
+\newenvironment{VNBcond}{\sloppy\begin{description}[font=\normalfont\itshape,leftmargin=0.85cm,itemsep=0.5mm,topsep=0.5mm]}{\end{description}}
+
+In this section $N$ is the node the operation is applied to, with
+sequent $\Gamma \Longrightarrow G$.  ``Hypotheses'' are the sequents of
+the new hypothesis nodes.  $B[x{:=}t]$ is $B$ with $t$
+substituted for the free occurrences of $x$, bound variables being
+renamed where needed to avoid capture.  $\FV(E)$ is the set of variables
+free in $E$, and $\FV(\Gamma)$ the union over the formulas of $\Gamma$.
+An operation that \emph{declines} leaves the graph unchanged.  Posting a
+sequent that the graph already contains, up to renaming of bound
+variables, returns the existing node, so a new hypothesis may already be
+grounded.
+
+An operation that takes an index or a pattern records it beside its
+name: the graph holds \texttt{(cartesian-elim 2)}, \texttt{(macete
+\textit{name} $L$ $R$)}, \texttt{(ineq \textit{certificate})}.  The name under which the inference is counted, and under which
+it appears in the list above, is the leading symbol.  The arguments are
+data about one application.
+
+\emph{Definedness.}  VNB terms may fail to denote, and the sign of
+denotation is $t = t$: strict equality holds only between defined terms
+(Chapter~\ref{sec:language}).  Two operations, \texttt{forall-elim}
+and \texttt{reflexivity}, therefore consult a \emph{definedness
+certificate}, one test applied to a term and the assumptions of $N$.
+$\Gamma$ certifies $t$ when $t$ is a variable or an atomic constant, a
+numeral or a ground arithmetic term, a term that $\Gamma$ types
+($t \in X$) or equates ($t = u$), a term occurring outside every binder
+in an assumption of the form $\in$, $=$, $\leq$ or $<$, a total class
+constructor applied to certified arguments, a separation, comprehension
+or indexed union whose domain is certified, an accessor of a structure
+$\Gamma$ carries, an applied structure operation whose arguments
+$\Gamma$ types in its declared domain, or $f(a)$ with $f \in
+\mathrm{FUN}(D, \cdot)$ and $a \in D$ in $\Gamma$.  A term whose head is
+\textsc{choice} or \textsc{iota}, and an application of an untyped
+function, are never certified.  The policy is
+\texttt{docs/definedness-instantiation-2026-09-18.md}.
+
+\subsubsection*{Reading the figures}
+
+Each operation is stated below as an inference figure.  The sequents above
+the line are the hypotheses, the sequent below it is the sequent of $N$,
+and the labelled conditions under the figure are the side conditions.  A
+figure is the relation that the operation's \emph{checker} tests before
+the inference is written (Section~\ref{sec:inference-checked}): an
+inference of that form that meets the conditions is accepted, whichever
+procedure produced it, and any other is refused.  The operation itself
+produces one instance of its figure.  Where it has a choice to make
+(which occurrences to rewrite, what to call a new variable), the prose
+after the figure says which choice it makes.  A condition labelled
+\emph{Not checked} is imposed by the operation but not tested by its
+checker.
+
+The figures share five conventions.
+%% the conventions: header of rule-checkers-logic.scm, lines 14-27;
+%% chk-set=? :82, chk-ctx+? :100, chk-ctx-+? :103, chk-arity? :133,
+%% chk-match-under :167, chk-adds-nothing? :126
+\begin{itemize}
+\item \emph{Contexts are sets.}  $A \aeq B$ means that $A$ and $B$ are
+  the same formula up to renaming of bound variables.  Two contexts are
+  equal when every formula of each is $\aeq$ to a formula of the other.
+  $\Gamma, A$ is $\Gamma \cup \{A\}$, so it is $\Gamma$ itself when
+  $\Gamma$ already contains $A$; $\Gamma - F$ is $\Gamma$ with every
+  formula $\aeq F$ removed.  The order of a context carries no meaning.
+\item \emph{Arity.}  The number of hypotheses is the number drawn.  A
+  figure with two sequents above the line refuses an inference with one
+  or with three.  Where the number depends on the formula (one hypothesis
+  for each component of a tuple), the figure says so.
+\item \emph{Assumption.}  ``$F \in \Gamma$'' means that some member of
+  $\Gamma$ is $\aeq F$.  $F$ is a member of the context, never a
+  subformula of one.  The operation is told which member by its argument;
+  the checker is not, and searches $\Gamma$ for one that fits.
+\item \emph{Matching.}  A term that occurs in a hypothesis but not in the
+  conclusion (the $t$ of \texttt{forall-elim}, the witness of
+  \texttt{forsome-intro}, the eigenvariables of \texttt{forall-intro}
+  and \texttt{forsome-elim}) is not recorded.  The checker recovers it by
+  one-way matching: the conclusion's formula, with a hole in place of the
+  variable, is matched against the hypothesis' formula.  A hole is never
+  filled by a term that contains a variable bound inside the pattern.
+\item \emph{Weakening case.}  \texttt{forall-elim}, \texttt{forsome-elim},
+  \texttt{theorem-assumption}, \texttt{if-true} and \texttt{if-false}
+  also accept a hypothesis whose assertion is $G$ and whose context is
+  included in $\Gamma$.  That is what the operation produces when the
+  formula it adds is already in $\Gamma$, and the inference is then an
+  instance of \texttt{weakening}.
+\end{itemize}
+
+\subsection{Logic, equality, induction and the structure eliminators}
+
+\subsubsection*{Direct inference (command \texttt{di})}
+
+The command records one of five operations, according to the form of $G$
+(\texttt{pi-direct-inference!}).  On any other form it declines.
+%% pi-direct-inference!, primitive-inferences.scm:75
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+$G$ & operation \\
+\midrule
+$A \wedge B$ & \texttt{and-intro} \\
+$A \Rightarrow B$ & \texttt{implies-intro} \\
+$A \Leftrightarrow B$ & \texttt{iff-intro} \\
+$\neg A$ & \texttt{not-intro} \\
+$\forall x.\, B$ & \texttt{forall-intro} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%% rule-checkers-logic.scm:347 and-intro, :386 implies-intro, :412 iff-intro, :399 not-intro
+\VNBfig{and-intro}{\Gamma \Longrightarrow A \qquad \Gamma \Longrightarrow B}{\Gamma \Longrightarrow A \wedge B}
+\VNBfig{implies-intro}{\Gamma, A \Longrightarrow B}{\Gamma \Longrightarrow A \Rightarrow B}
+\VNBfig{iff-intro}{\Gamma, A \Longrightarrow B \qquad \Gamma, B \Longrightarrow A}{\Gamma \Longrightarrow A \Leftrightarrow B}
+\VNBfig{not-intro}{\Gamma, A \Longrightarrow \textsc{falsity}}{\Gamma \Longrightarrow \neg A}
+
+To prove $\forall x.\, B$ one proves $B$ for an $x$ about which nothing
+is assumed.  In a sequent that means a variable that does not occur free
+in any assumption: if $\Gamma$ said something about $x$, a proof of $B$
+from $\Gamma$ would be a proof about that particular $x$, not about every
+$x$.  A variable introduced under this condition is called an
+\emph{eigenvariable}\index{eigenvariable}, and the condition is the \emph{eigenvariable
+condition}.  \texttt{forall-intro} removes a chain of leading universal
+quantifiers in one step, and collects on the way the guards $y \in A$
+that restrict them.  Write the assertion as $G_0 = G$ and, for
+$1 \leq i \leq k$, $G_{i-1} = \forall x_i.\, C_i$.
+%% chk-forall-strip :441, chk-forall-eigen-ok? :491, chk-forall-intro-at :514,
+%% forall-intro checker :555, all rule-checkers-logic.scm
+\VNBfig{forall-intro}{\Gamma, g_1, \ldots, g_m \Longrightarrow G_k}{\Gamma \Longrightarrow G_0}
+\begin{VNBcond}
+\item[Chain] $1 \leq k$, and for each $i$ the formula $C_i[x_i{:=}y_i]$
+  is either $(y_i \in A_i) \Rightarrow G_i$, in which case $y_i \in A_i$
+  is \emph{collected}, or else it is $G_i$.  $g_1, \ldots, g_m$ are the
+  collected formulas.
+\item[Eigenvariable] Each $y_i$ is a variable, and
+  $y_i \notin \FV(\Gamma)$, $y_i \notin \FV(G_{i-1})$ and
+  $y_i \notin V_{i-1}$, where $V_0 = \emptyset$ and $V_i$ is
+  $V_{i-1} \cup \FV(y_i \in A_i)$ when step $i$ collected a guard and
+  $V_{i-1} \cup \{y_i\}$ otherwise.
+\item[Matching] The $y_i$ are read off the hypothesis.  The checker
+  tries $k$ equal to the whole length of the chain first and then each
+  shorter length, since a shorter chain is also a sound inference.
+\end{VNBcond}
+In words: an eigenvariable is free neither in the context, nor in the
+formula still to be generalised at that step, nor in a guard collected
+before it (domain included), and the eigenvariables are pairwise
+distinct.
+
+The operation (\texttt{peel-foralls-raw}) always takes the whole chain.
+It keeps $y_i = x_i$ when $x_i$ is free neither in $\Gamma$ nor in a
+guard already collected, and otherwise takes a new variable, spelled as
+$x_i$ followed by an underscore and a number.
+%% peel-foralls-raw, primitive-inferences.scm:41
+A guard is collected only when it has the form $y_i \in A_i$ for the
+variable just bound.  Any other antecedent stays in the assertion:
+$\forall x.\, P(x) \Rightarrow C$ yields the hypothesis
+$\Gamma \Longrightarrow P(x) \Rightarrow C$, and a second direct inference
+gives $\Gamma, P(x) \Longrightarrow C$.
+
+\subsubsection*{\texttt{or-intro-left}, \texttt{or-intro-right}
+  (commands \texttt{oi-l}, \texttt{oi-r})}
+
+%% rule-checkers-logic.scm:362, :374
+\VNBfig{or-intro-left}{\Gamma \Longrightarrow A}{\Gamma \Longrightarrow A \vee B}
+\VNBfig{or-intro-right}{\Gamma \Longrightarrow B}{\Gamma \Longrightarrow A \vee B}
+
+\subsubsection*{\texttt{forsome-intro}: supplying a witness (command \texttt{ew})}
+
+%% rule-checkers-logic.scm:574; pi-exists-witness!, primitive-inferences.scm:357
+\VNBfig{forsome-intro}{\Gamma \Longrightarrow B[x{:=}t]}{\Gamma \Longrightarrow \exists x.\, B}
+\begin{VNBcond}
+\item[Matching] $t$ is read off the hypothesis.
+\item[Not checked] Well-formedness of $B[x{:=}t]$.  The operation
+  checks it and raises an error, recording nothing, on a malformed
+  witness.
+\end{VNBcond}
+The argument of the operation is $t$.  No definedness obligation is
+posted for $t$, so the operation is not the mirror of
+\texttt{forall-elim} in that respect.
+
+\subsubsection*{\texttt{truth-intro}}
+
+%% rule-checkers-logic.scm:588
+\VNBfig{truth-intro}{\VNBnohyp}{\Gamma \Longrightarrow \textsc{truth}}
+
+This operation is unreachable.  No proof command calls the procedure
+that records it, and a \textsc{truth} assertion is already closed by
+\texttt{assumption} and by \texttt{reflexivity}, both of which accept it.
+It is listed because the code is present and a future command could
+reach it.
+
+\subsubsection*{Antecedent inference (command \texttt{ai})}
+
+The argument is an assumption $F$ of $N$.  The command records one of
+five operations according to the form of $F$
+(\texttt{pi-antecedent-inference!}).
+%% pi-antecedent-inference!, primitive-inferences.scm:132
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+$F$ & operation \\
+\midrule
+$A \wedge B$ & \texttt{and-elim} \\
+$A \vee B$ & \texttt{or-elim} \\
+$\neg A$, with $A$ in $\Gamma$ & \texttt{not-elim} \\
+$\exists x.\, B$ & \texttt{forsome-elim} \\
+$A \Leftrightarrow B$ & \texttt{iff-elim} \\
+\bottomrule
+\end{tabular}
+\end{center}
+The command declines when $F$ is not an assumption of $N$, when $F$ is
+$\neg A$ and $A$ is not in $\Gamma$, and when $F$ has any other form: an
+implication, a universal formula or an atomic formula.  An implication in
+the context is used by \texttt{detach} and \texttt{backchain}, a universal
+formula by \texttt{forall-elim}.
+
+%% rule-checkers-logic.scm:597 and-elim, :615 or-elim, :633 not-elim, :645 iff-elim
+\VNBfig{and-elim}{(\Gamma - F), A, B \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = A \wedge B$, $F \in \Gamma$.
+\end{VNBcond}
+\VNBfig{or-elim}{(\Gamma - F), A \Longrightarrow G \qquad (\Gamma - F), B \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = A \vee B$, $F \in \Gamma$.
+\end{VNBcond}
+\VNBfig{not-elim}{\VNBnohyp}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $\neg A \in \Gamma$ and $A \in \Gamma$.
+\end{VNBcond}
+\VNBfig{iff-elim}{(\Gamma - F), A \Rightarrow B, B \Rightarrow A \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = A \Leftrightarrow B$, $F \in \Gamma$.
+\end{VNBcond}
+
+%% forsome-elim checker, rule-checkers-logic.scm:665
+\VNBfig{forsome-elim}{(\Gamma - F), B[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = \exists x.\, B$, $F \in \Gamma$.
+\item[Eigenvariable] $y$ is a variable, and $y \notin \FV(G)$,
+  $y \notin \FV(\Gamma - F)$, $y \notin \FV(F)$.  When $x$ is not free
+  in $B$ there is no $y$ to test.
+\item[Matching] $y$ is read off the hypothesis.
+\end{VNBcond}
+Nothing else is required: in particular nothing about the other
+assumptions of $N$.  The operation names $y$ by the counter
+(\texttt{fresh-var}): $x$ followed by an underscore and $n$, with $n$ the
+next value for which that variable is free in none of $B$, $G$ and
+$\Gamma - F$.  It never reuses $x$ itself.  The weakening case of the
+conventions arises here only when $x$ is not free in $B$ and $B$ is
+already in $\Gamma - F$.
+%% pi-antecedent-inference! FORSOME arm, primitive-inferences.scm:169;
+%% fresh-var, expressions.scm:701
+
+\subsubsection*{\texttt{forall-elim}: instantiation of a universal assumption
+  (commands \texttt{inst}, \texttt{inst+}; used by \texttt{fact})}
+
+%% forall-elim checker, rule-checkers-logic.scm:702; pi-instantiate!, primitive-inferences.scm:282
+\VNBfig{forall-elim}{\Gamma, B[x{:=}t] \Longrightarrow G \qquad \bigl(\Gamma \Longrightarrow t = t\bigr)}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $\forall x.\, B \in \Gamma$.  It stays in the context.
+\item[Matching] $t$ is read off the first hypothesis.
+\item[Definedness] The second hypothesis is present exactly when
+  $\Gamma$ does not certify $t$ (the certificate at the head of this
+  section).
+\item[Not checked] The checker accepts the second hypothesis present or
+  absent.  When it is present, the checker requires it to be
+  $\Gamma \Longrightarrow u = u$ for some term $u$, and does not require
+  $u$ to be $t$.  Definedness of $t$ is therefore enforced by the
+  operation alone.
+\end{VNBcond}
+The arguments are the universal assumption and $t$.  The second
+hypothesis is there because a term may be undefined ($f(a)$ for $a$
+outside the domain of $f$, a description with no referent), and a
+universal formula speaks only of defined values.  $B[x{:=}t]$ is checked
+for well-formedness; a malformed term raises an error and leaves the
+graph unchanged.  The same operation is recorded, once per term, by the
+procedure behind \texttt{apply-thm}, which cites a theorem and then
+instantiates it at a list of terms (\texttt{pi-spec!}).
+
+\subsubsection*{\texttt{assumption}: the goal is already in the context
+  (command \texttt{ass})}
+
+%% rule-checkers-logic.scm:738
+\VNBfig{assumption}{\VNBnohyp}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $G \in \Gamma$, or $G$ is \textsc{truth}.
+\end{VNBcond}
+
+\subsubsection*{\texttt{theorem-assumption}: citing a theorem or an axiom
+  (command \texttt{ta}; used by \texttt{fact})}
+
+%% rule-checkers-logic.scm:750; chk-installed-theorem-name :329
+\VNBfig{theorem-assumption}{\Gamma, S \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Installed] $S \aeq$ the formula installed under some name in the
+  theorem table.
+\end{VNBcond}
+The argument of the operation is a name, and $S$ is the formula installed
+under it; the operation declines when there is none.  The name is not
+recorded with the inference, so the checker looks the statement up in
+the table.
+
+This is the only way a formula enters a proof without being proved in
+it.  $S$ is an axiom (there are \VNBaxiomcount{} of them, listed in the
+catalog), a definition, a proven theorem, or an asserted support.  The
+bill printed when a theorem is installed
+(Section~\ref{sec:proof-debt}) lists the asserted supports reached
+through this operation, directly or through the theorems cited.
+
+\subsubsection*{\texttt{cut}: introducing a lemma (commands \texttt{cut},
+  \texttt{have!})}
+
+%% rule-checkers-logic.scm:767; pi-cut!, primitive-inferences.scm:223
+\VNBfig{cut}{\Gamma \Longrightarrow A \qquad \Gamma, A \Longrightarrow G}{\Gamma \Longrightarrow G}
+
+The argument is $A$.  It is checked for well-formedness first, and a
+malformed lemma raises an error before anything is recorded.
+
+\begin{remark}
+The operation never declines.  When $\Gamma$ already contains $A$, the
+second hypothesis is $\Gamma \Longrightarrow G$, which is the sequent of
+$N$ itself, so the inference has $N$ among its own hypotheses and
+grounds nothing.  The same happens when $A$ is $G$.  A command that cuts
+a formula already present therefore appears to succeed and leaves the
+proof where it was.
+\end{remark}
+
+\subsubsection*{\texttt{weakening}: dropping assumptions (command \texttt{wk})}
+
+%% rule-checkers-logic.scm:781; pi-weaken!, primitive-inferences.scm:208
+\VNBfig{weakening}{\Delta \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Inclusion] $\Delta \subseteq \Gamma$.
+\end{VNBcond}
+The operation takes one assumption $F$ of $N$ and posts
+$\Delta = \Gamma - F$; it declines when $F$ is not an assumption of $N$.
+
+\subsubsection*{\texttt{detach}: forward modus ponens (command \texttt{detach!})}
+
+%% rule-checkers-logic.scm:790; pi-detach!, primitive-inferences.scm:442
+\VNBfig{detach}{\Gamma, B \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $A \Rightarrow B \in \Gamma$ and $A \in \Gamma$.
+\end{VNBcond}
+The argument is the implication.  Both it and its antecedent stay.
+
+\subsubsection*{\texttt{backchain}: reducing the goal to an antecedent
+  (commands \texttt{bc}, \texttt{bc*})}
+
+%% rule-checkers-logic.scm:807; pi-backchain!, primitive-inferences.scm:419
+\VNBfig{backchain}{\Gamma \Longrightarrow A}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $A \Rightarrow G \in \Gamma$.
+\end{VNBcond}
+
+\subsubsection*{\texttt{proof-by-contradiction} (command \texttt{pbc})}
+
+%% rule-checkers-logic.scm:824
+\VNBfig{proof-by-contradiction}{\Gamma, \neg G \Longrightarrow \textsc{falsity}}{\Gamma \Longrightarrow G}
+
+There are no arguments, and the operation never declines.
+
+\subsubsection*{\texttt{contraposition}}
+
+%% rule-checkers-logic.scm:835
+\VNBfig{contraposition}{\Gamma \Longrightarrow \neg B}{\Gamma \Longrightarrow \neg A}
+\begin{VNBcond}
+\item[Assumption] $A \Rightarrow B \in \Gamma$.
+\end{VNBcond}
+This operation is unreachable: no proof command calls the procedure that
+records it.
+
+\subsubsection*{\texttt{eq-subst}: rewriting the assertion by a context
+  equation (command \texttt{subst})}
+
+%% rule-checkers-logic.scm:857; chk-replaced? :241
+\VNBfig{eq-subst}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $\Gamma$ contains $s = t$, $t = s$, $s \equiv t$ or
+  $t \equiv s$.
+\item[Replacement] $G' \not\aeq G$, and $G'$ is $G$ with some
+  occurrences of $s$ replaced by $t$, or with some occurrences of $t$
+  replaced by $s$.  A binder whose bound variable the replacement renamed
+  is matched with its renamed form.
+\item[Not checked] That no replaced occurrence lies in the scope of a
+  binder whose variable is free in $s$ or in $t$.  The checker compares
+  $G$ and $G'$ position by position and does not test it.
+\end{VNBcond}
+The argument is the equation $s = t$ (or $s \equiv t$).  The operation
+replaces \emph{every} occurrence of $s$ by $t$, in operator position as
+well as in argument position, and declines when nothing changes.  It
+leaves alone a subterm below a binder whose bound variable occurs free in
+$s$ or in $t$, since rewriting there would capture; when $s$ is a
+variable it replaces the free occurrences only.  $G'$ is checked for
+well-formedness.
+%% pi-eq-subst! :563, replace-term :496, primitive-inferences.scm
+
+\begin{remark}
+The direction of the rewrite is fixed by the argument, not by the
+orientation in which $\Gamma$ happens to hold the equation.  To use a
+context equation from right to left, name it the other way round.
+\end{remark}
+
+\subsubsection*{\texttt{reflexivity} and \texttt{quasi-reflexivity}
+  (commands \texttt{rfl}, \texttt{qrfl})}
+
+%% rule-checkers-logic.scm:879, :890
+\VNBfig{reflexivity}{\VNBnohyp}{\Gamma \Longrightarrow t = t}
+\begin{VNBcond}
+\item[Definedness] $\Gamma$ certifies $t$.  The operation also accepts
+  the assertion \textsc{truth}.
+\item[Not checked] The definedness condition.  The checker accepts
+  $\Gamma \Longrightarrow u = u$ for any term $u$.
+\end{VNBcond}
+\VNBfig{quasi-reflexivity}{\VNBnohyp}{\Gamma \Longrightarrow t \equiv t}
+
+\texttt{quasi-reflexivity} asks nothing further: quasi-equality holds
+between two undefined terms as well.
+
+\subsubsection*{\texttt{if-true}, \texttt{if-false}
+  (commands \texttt{if-true}, \texttt{if-false})}
+
+%% chk-if-rule, rule-checkers-logic.scm:900-933
+\VNBfig{if-true}{\Gamma \Longrightarrow p \qquad \Gamma, \mathrm{IF}(p,a,b) = a \Longrightarrow G}{\Gamma \Longrightarrow G}
+\VNBfig{if-false}{\Gamma \Longrightarrow \neg p \qquad \Gamma, \mathrm{IF}(p,a,b) = b \Longrightarrow G}{\Gamma \Longrightarrow G}
+
+The argument is the conditional term $\mathrm{IF}(p, a, b)$.  It need not
+occur in $G$.  The assertion is not rewritten: the branch equation
+arrives as an assumption, and it takes an \texttt{eq-subst} to use it.
+An argument that is not a conditional term raises an error rather than
+declining.
+
+\subsubsection*{\texttt{cartesian-intro}, \texttt{cartesian-elim}
+  (commands \texttt{ci}, \texttt{ce})}
+
+%% rule-checkers-logic.scm:939, :963
+\VNBfig{cartesian-intro}{\Gamma \Longrightarrow a_1 \in A_1 \quad \cdots \quad \Gamma \Longrightarrow a_n \in A_n}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in A_1 \times \cdots \times A_n}
+\begin{VNBcond}
+\item[Arity] The literal tuple and the literal product have the same
+  length $n$, and there is one hypothesis per component, in order.
+\end{VNBcond}
+\VNBfig{cartesian-elim $k$}{\Gamma, a_k \in A_k \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $[a_1, \ldots, a_n] \in A_1 \times \cdots \times A_n
+  \in \Gamma$, with tuple and product of the same length.  It stays.
+\item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
+\end{VNBcond}
+
+\subsubsection*{\texttt{tuples-intro}, \texttt{tuples-elim}
+  (commands \texttt{ti}, \texttt{te})}
+
+$\mathrm{TUPLES}(A)$ is the class of finite tuples over $A$.
+%% rule-checkers-logic.scm:991, :1012
+\VNBfig{tuples-intro}{\Gamma \Longrightarrow a_1 \in A \quad \cdots \quad \Gamma \Longrightarrow a_n \in A}{\Gamma \Longrightarrow [a_1, \ldots, a_n] \in \mathrm{TUPLES}(A)}
+\begin{VNBcond}
+\item[Arity] One hypothesis per component; none for the empty tuple.
+\end{VNBcond}
+\VNBfig{tuples-elim $k$}{\Gamma, a_k \in A \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $[a_1, \ldots, a_n] \in \mathrm{TUPLES}(A) \in \Gamma$.
+\item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
+\end{VNBcond}
+
+\subsubsection*{\texttt{union-intro}, \texttt{union-elim}
+  (commands \texttt{ui}, \texttt{ue})}
+
+$\mathrm{UNION}$ takes $n$ arguments.
+%% rule-checkers-logic.scm:1038, :1060
+\VNBfig{union-intro $k$}{\Gamma \Longrightarrow x \in A_k}{\Gamma \Longrightarrow x \in A_1 \cup \cdots \cup A_n}
+\begin{VNBcond}
+\item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
+\end{VNBcond}
+\VNBfig{union-elim}{(\Gamma - F), x \in A_1 \Longrightarrow G \quad \cdots \quad (\Gamma - F), x \in A_n \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = x \in A_1 \cup \cdots \cup A_n$, $F \in \Gamma$.
+  It is consumed.
+\item[Arity] One hypothesis per set, in order.
+\end{VNBcond}
+
+\subsubsection*{\texttt{intersection-intro}, \texttt{intersection-elim}
+  (commands \texttt{ii}, \texttt{ie})}
+
+%% rule-checkers-logic.scm:1079, :1098
+\VNBfig{intersection-intro}{\Gamma \Longrightarrow x \in A_1 \quad \cdots \quad \Gamma \Longrightarrow x \in A_n}{\Gamma \Longrightarrow x \in A_1 \cap \cdots \cap A_n}
+\VNBfig{intersection-elim $k$}{\Gamma, x \in A_k \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $x \in A_1 \cap \cdots \cap A_n \in \Gamma$.  It stays.
+\item[Index] $k$ is recorded with the name, and $1 \leq k \leq n$.
+\end{VNBcond}
+
+\subsubsection*{\texttt{nth-reduce}, \texttt{length-reduce},
+  \texttt{functoid-beta} (commands \texttt{nth-r}, \texttt{len-r},
+  \texttt{beta})}
+
+The three have the same figure and differ in the contraction.
+%% chk-contracts? rule-checkers-logic.scm:284; checkers :1137, :1153, :1174
+\VNBfig{}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Contraction] $G' \not\aeq G$, and $G'$ is obtained from $G$ by
+  contracting redexes, where a redex that a contraction creates may be
+  contracted in its turn.  The redexes are, respectively:
+  $\mathrm{NTH}(k, [t_1, \ldots, t_n])$ with $1 \leq k \leq n$, which
+  contracts to $t_k$; $\mathrm{LENGTH}([t_1, \ldots, t_n])$, which
+  contracts to $n$; and a functoid applied to as many arguments as it
+  binds, which contracts to its body with the arguments substituted in
+  parallel for the bound variables.
+\end{VNBcond}
+None takes an argument.  Each operation contracts every redex of its
+kind in $G$ and declines when $G'$ is $G$.  \texttt{nth-reduce} raises an
+error on an index outside $1 \leq k \leq n$.  Nothing is asked of the
+entries: a literal tuple has $n$ places whether or not the terms in them
+denote.
+
+\subsubsection*{\texttt{nn-induction} (command \texttt{ni})}
+
+%% rule-checkers-logic.scm:1191
+\VNBfig{nn-induction}{\Gamma \Longrightarrow B[n{:=}0] \qquad \Gamma \Longrightarrow \forall n.\, n \in \mathbb{N} \Rightarrow (B \Rightarrow B[n{:=}\mathrm{succ}\,n])}{\Gamma \Longrightarrow \forall n.\, n \in \mathbb{N} \Rightarrow B}
+\begin{VNBcond}
+\item[Shape] The guard is $n \in \mathbb{N}$ on the variable of the
+  outermost quantifier.
+\end{VNBcond}
+The operation has no argument and declines on any other shape.  In
+particular the induction variable must be the outermost one: a statement
+that quantifies over something else first is not of this shape.
+
+\subsubsection*{\texttt{transfinite-induction} (command \texttt{tfi})}
+
+%% rule-checkers-logic.scm:1247; chk-tfi-beta-ok? :1241
+\VNBfig{transfinite-induction}{\Gamma \Longrightarrow \forall \alpha.\, \bigl(\alpha \in \mathrm{ORD} \wedge \forall \beta.\, \beta <_{\mathrm{ORD}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr) \Rightarrow P}{\Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ORD} \Rightarrow P}
+\begin{VNBcond}
+\item[Freshness] $\beta$ is a variable, $\beta \neq \alpha$,
+  $\beta \notin \FV(P)$, $\beta \notin \FV(\Gamma)$.
+\item[Matching] $\beta$ is read off the hypothesis.
+\end{VNBcond}
+This is strong induction: the hypothesis of the step is $P$ at every
+smaller ordinal.
+
+\begin{remark}
+The operation \texttt{transfinite-induction} and the axiom of the same
+name in \texttt{structure-library/ordinals.scm} are two different
+objects.  One is code in the kernel, the other a formula in the catalog.
+\end{remark}
+
+\subsubsection*{\texttt{transfinite-induction-3cases} (command \texttt{tfi3})}
+
+%% rule-checkers-logic.scm:1274
+\[
+\frac{\displaystyle
+  \begin{array}{l}
+  \Gamma \Longrightarrow P[\alpha{:=}0] \\[2pt]
+  \Gamma \Longrightarrow \forall \alpha.\,
+    (\alpha \in \mathrm{ORD} \wedge P) \Rightarrow P[\alpha{:=}\mathrm{succ}_{\mathrm{ORD}}\,\alpha] \\[2pt]
+  \Gamma \Longrightarrow \forall \alpha.\,
+    \bigl(\mathrm{LIMIT\text{-}ORD}(\alpha) \wedge
+          \forall \beta.\, \beta <_{\mathrm{ORD}} \alpha \Rightarrow P[\alpha{:=}\beta]\bigr)
+    \Rightarrow P
+  \end{array}}
+ {\displaystyle \Gamma \Longrightarrow \forall \alpha.\, \alpha \in \mathrm{ORD} \Rightarrow P}
+\]
+\begin{VNBcond}
+\item[Freshness] As for \texttt{transfinite-induction}, with $\beta$ read
+  off the third hypothesis.
+\end{VNBcond}
+The three hypotheses are the base, successor and limit cases, in that
+order.
+
+\subsection{Set formation, descriptions and functions}
+
+The three binders of this group carry a formula or a class expression in
+their body, with a variable of the binder free in it.  A first-order
+axiom would need a variable ranging over formulas, which VNB does not
+have, so each is characterised by operations instead.
+$\mathrm{SEP}(x, A, p)$ is $\{x \in A \mid p\}$,
+$\mathrm{COMP}(x, p)$ is $\{x \mid p\}$, and
+$\mathrm{BIG\text{-}UNION}(z, A, b)$ is $\bigcup_{z \in A} b$.
+
+\subsubsection*{\texttt{sep-sethood}, \texttt{sep-mem-intro},
+  \texttt{sep-mem-elim}
+  (commands \texttt{sep-set}, \texttt{sep-mi}, \texttt{sep-me})}
+
+%% rcs-sep-sethood :107, rcs-sep-mem-intro :160, rcs-sep-mem-elim :167, rule-checkers-schema.scm
+\VNBfig{sep-sethood}{\Gamma \Longrightarrow A \in \mathrm{SET}}{\Gamma \Longrightarrow \mathrm{SEP}(x,A,p) \in \mathrm{SET}}
+\VNBfig{sep-mem-intro}{\Gamma \Longrightarrow y \in A \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{SEP}(x,A,p)}
+\VNBfig{sep-mem-elim}{(\Gamma - F), y \in A, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = y \in \mathrm{SEP}(x,A,p)$, $F \in \Gamma$.  It
+  is consumed.
+\end{VNBcond}
+
+\subsubsection*{\texttt{comp-mem-intro}, \texttt{comp-mem-elim}
+  (commands \texttt{comp-mi}, \texttt{comp-me})}
+
+A comprehension is in general a proper class, and its members are sets,
+so the domain condition of separation is replaced by membership in
+$\mathrm{SET}$.
+%% rcs-comp-mem-intro :177, rcs-comp-mem-elim :182, rule-checkers-schema.scm
+\VNBfig{comp-mem-intro}{\Gamma \Longrightarrow y \in \mathrm{SET} \qquad \Gamma \Longrightarrow p[x{:=}y]}{\Gamma \Longrightarrow y \in \mathrm{COMP}(x,p)}
+\VNBfig{comp-mem-elim}{(\Gamma - F), y \in \mathrm{SET}, p[x{:=}y] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = y \in \mathrm{COMP}(x,p)$, $F \in \Gamma$.  It is
+  consumed.
+\end{VNBcond}
+There is no sethood operation for comprehension.  A comprehension is a
+set only when it is separately shown to be bounded by one.
+
+\subsubsection*{\texttt{big-union-sethood}, \texttt{big-union-mem-intro},
+  \texttt{big-union-mem-elim}
+  (commands \texttt{bu-set}, \texttt{bu-mi}, \texttt{bu-me})}
+
+Write $U$ for $\mathrm{BIG\text{-}UNION}(z, A, b)$.
+%% rcs-big-union-sethood :194, rcs-big-union-mem-intro :234,
+%% rcs-big-union-mem-elim :260, rule-checkers-schema.scm
+\VNBfigS{big-union-sethood}{\Gamma \Longrightarrow A \in \mathrm{SET} \\ \Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[z{:=}v] \in \mathrm{SET}}{\Gamma \Longrightarrow U \in \mathrm{SET}}
+\begin{VNBcond}
+\item[Freshness] $v = z$, or $v \notin \FV(A)$.
+\item[Not checked] That $v \notin \FV(b)$ when $v \neq z$.  Without it
+  the quantifier of the second hypothesis captures a free $v$ of $b$.
+  The operation takes $v$ new, free in none of $b$, $A$, $G$ and
+  $\Gamma$ (\texttt{pi-big-union-sethood!}, primitive-inferences.scm).
+\end{VNBcond}
+%% pi-big-union-sethood!, primitive-inferences.scm:1651
+\VNBfig{big-union-mem-intro}{\Gamma \Longrightarrow w \in A \qquad \Gamma \Longrightarrow x \in b[z{:=}w]}{\Gamma \Longrightarrow x \in U}
+\begin{VNBcond}
+\item[Matching] $w$ is read off the first hypothesis.
+\end{VNBcond}
+\VNBfig{big-union-mem-elim}{(\Gamma - F), e \in A, x \in b[z{:=}e] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $F = x \in U$, $F \in \Gamma$.  It is consumed.
+\item[Eigenvariable] $e$ is a variable free in none of $G$, $A$, $b$,
+  $x$ and $\Gamma - F$.
+\end{VNBcond}
+\texttt{big-union-mem-intro} takes the witness $w$ as its argument, and
+checks $x \in b[z{:=}w]$ for well-formedness.
+
+\subsubsection*{\texttt{iota-def}, \texttt{iota-in-elim}
+  (commands \texttt{iota-d}, \texttt{iota-e})}
+
+$\mathrm{IOTA}(x, p)$ is the unique $x$ satisfying $p$, and denotes
+nothing when there is no such $x$ or more than one.  Write $\iota$ for
+$\mathrm{IOTA}(x, p)$.  Both operations take the term as their argument;
+it need not occur in $G$.  Both grant the defining property
+$p[x{:=}\iota]$ as an assumption, and they differ in what pays for it.
+%% rcs-iota-def :308, rcs-iota-in-elim :372, rcs--context-defines? :350, rule-checkers-schema.scm
+\VNBfigS{iota-def}{\Gamma \Longrightarrow \exists x.\, \bigl(p \wedge \forall y.\, p[x{:=}y] \Rightarrow x = y\bigr) \\ \Gamma, p[x{:=}\iota] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Freshness] $y$ is a variable, $y \neq x$, $y \notin \FV(p)$.
+\end{VNBcond}
+\VNBfig{iota-in-elim}{\Gamma, p[x{:=}\iota] \Longrightarrow G}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Denotation] $\Gamma$ contains $\iota \in X$ for some $X$, or an
+  equation $\iota = u$ or $u = \iota$.
+\end{VNBcond}
+\texttt{iota-def} pays with a proof of existence and uniqueness.
+\texttt{iota-in-elim} pays with the context: the two forms of the
+Denotation condition are the first two clauses of the definedness
+certificate, and the operation declines without one of them.
+
+\subsubsection*{\texttt{lambda-type} (command \texttt{lam-t})}
+
+$\mathrm{VNB\text{-}LAMBDA}(\sigma, A, b)$ is the set of pairs
+$\{(x, b) : x \in A\}$, with $\sigma$ the binder, a variable or a list of
+variables.  The term carries its domain.
+%% rcs-lambda-type :437, rcs--lambda-typing-ok? :414, rule-checkers-schema.scm
+\VNBfig{lambda-type}{\Gamma \Longrightarrow \forall v.\, v \in A \Rightarrow b[x{:=}v] \in B \qquad \Gamma \Longrightarrow A \in \mathrm{SET}}{\Gamma \Longrightarrow \mathrm{VNB\text{-}LAMBDA}(x, A, b) \in \mathrm{FUN}(A, B)}
+\begin{VNBcond}
+\item[Domain] The domain the term declares is $\aeq$ the domain of the
+  $\mathrm{FUN}$.
+\item[Freshness] $v = x$, or $v \notin \FV(b) \cup \FV(B)$.
+\item[Binder list] For $\sigma = [x_1, \ldots, x_n]$ the domain is
+  $A_1 \times \cdots \times A_n$ with the same $n$, and the first
+  hypothesis is the $n$-fold guarded universal
+  $\forall v_1.\, v_1 \in A_1 \Rightarrow \cdots \Rightarrow
+   \forall v_n.\, v_n \in A_n \Rightarrow b[x_1{:=}v_1, \ldots, x_n{:=}v_n] \in B$,
+  each $v_i$ fresh as above and the $v_i$ pairwise distinct.
+\end{VNBcond}
+The operation has no argument, and declines unless the Domain and Binder
+list conditions hold.  Neither condition is decoration.  Without the
+first, one term types into $\mathrm{FUN}(A, B)$ for every $A$.  Without
+the sethood hypothesis, a function on a proper class, which is itself a
+proper class, would be certified into a $\mathrm{FUN}$.
+
+\subsubsection*{\texttt{lambda-beta}, \texttt{lambda-beta-hyp}
+  (commands \texttt{lam-b}, \texttt{lam-b-h})}
+
+A \emph{redex} is a term
+\[
+  \mathrm{VNB\text{-}LAMBDA}(\sigma, A, b)(u_1, \ldots, u_n),
+\]
+with $n = 1$ for a single binder and $n$ the length of $\sigma$ for a
+binder list.  It contracts to $b$ with the $u_i$ substituted in parallel
+for the variables of $\sigma$.  Write $o_1, \ldots, o_m$ for the
+\emph{obligations}, $m \geq 0$.
+%% rcs-lambda-beta :854, rcs-lambda-beta-hyp :881, rcs--beta-match/fuel :701,
+%% rcs--beta-licences-ok? :816, rcs--beta-licensed? :775, rule-checkers-schema.scm
+\VNBfigS{lambda-beta}{\Gamma \Longrightarrow G' \\ \Gamma \Longrightarrow o_1 \quad \cdots \quad \Gamma \Longrightarrow o_m}{\Gamma \Longrightarrow G}
+\VNBfigS{lambda-beta-hyp}{(\Gamma - F), F' \Longrightarrow G \\ \Gamma \Longrightarrow o_1 \quad \cdots \quad \Gamma \Longrightarrow o_m}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Contraction] $G'$ (respectively $F'$, for some $F \in \Gamma$) is
+  reached from $G$ (respectively $F$) by a sequence of contractions,
+  each taken at a position of the formula reached so far.  A redex that
+  a contraction creates may be contracted in its turn.
+\item[Licence] Each redex contracted at a position $\pi$ is licensed
+  there or owed.  It is \emph{licensed} when $u \in A$ (for $n = 1$) or
+  $[u_1, \ldots, u_n] \in A$, or, when $A$ is a product
+  $A_1 \times \cdots \times A_n$, every $u_i \in A_i$, is among the
+  formulas known at $\pi$: the assumptions of $\Gamma$ in which no
+  variable bound between the root and $\pi$ occurs free, together with
+  the guards of the guarded universals that enclose $\pi$ and the domain
+  memberships of the $\mathrm{VNB\text{-}LAMBDA}$, $\mathrm{SEP}$ and
+  $\mathrm{BIG\text{-}UNION}$ binders that enclose it.  It is
+  \emph{owed} when that membership is one of the $o_j$ and contains no
+  variable bound between the root and $\pi$.  The argument may be taken
+  as written or with the redexes inside it contracted; in the second
+  case those inner redexes count as contracted and need their own
+  licence.
+\item[Obligations] Every $o_j$ is owed by some redex.
+\item[Bound] The checker's search takes at most 400 contractions, and
+  refuses when that runs out.
+\end{VNBcond}
+\texttt{lambda-beta} takes no argument; \texttt{lambda-beta-hyp} takes
+the assumption $F$.  Each reduces every redex it can license or owe, in
+one bottom-up pass, and declines when the reduction changes nothing.
+The obligations are posted after the reduced formula, one per redex
+whose licence is not evident.  A member of $\mathrm{FUN}(A, B)$ is
+defined exactly on $A$, so reducing off the domain without the
+obligation would make a term denote that the theory says does not.
+
+\begin{remark}
+The obligation is posted in the context of $N$.  A redex under a binder
+that has not yet been introduced therefore owes a membership in which the
+bound variable is free, and that leaf cannot be closed.  Introducing the
+binder and typing the argument first is not a preference but the
+condition under which the obligation is provable.
+\end{remark}
+
+\subsection{Rewriting}
+
+\subsubsection*{\texttt{macete}: rewriting the assertion by a theorem
+  (commands \texttt{mac}, \texttt{macm})}
+
+A \emph{macete} is a rewrite rule read off an installed theorem of the
+form
+\[
+  \forall x_1 \ldots x_n.\; C_1 \Rightarrow (\cdots (C_k \Rightarrow L = R)),
+\]
+where $=$ may also be quasi-equality or $\Leftrightarrow$, and the
+conditions $C_i$ may be absent.  A name may also denote a rule that is
+not a theorem: a functoid $F$ with parameters $\vec p$ and body $e$
+denotes $F(\vec p) \to e$, a structure accessor with slot $k$ denotes
+$\mathrm{ACC}(s) \to \mathrm{NTH}(k, s)$, and a functor projection
+\texttt{F@ACC} denotes the corresponding component of $F$'s body.
+%% rkw--macete-definition/compute, rule-checkers-rewrite.scm:593
+The \emph{local context} of a position in a formula is $\Gamma$, with
+conjunctions split into their conjuncts, extended on the way down:
+entering $B$ in $A \Rightarrow B$ adds $A$; entering either conjunct of a
+conjunction adds the other; entering either disjunct of $A \vee B$ adds
+the negation of the other; entering the scope of a binder
+($\forall$, $\exists$, $\mathrm{IOTA}$, $\mathrm{COMP}$, the body of
+$\mathrm{SEP}$, $\mathrm{BIG\text{-}UNION}$ or $\mathrm{VNB\text{-}LAMBDA}$,
+a functoid) removes every formula in which the bound variable occurs
+free (Monk~\cite{Monk1988}).
+%% rkw--descend, rule-checkers-rewrite.scm:471
+%% rkw--check-macete, rule-checkers-rewrite.scm:687; rkw--condition-discharged? :390
+\VNBfig{macete $N$ $L$ $R$}{\Gamma \Longrightarrow G' \qquad \Gamma \Longrightarrow c_1 \quad \cdots \quad \Gamma \Longrightarrow c_m}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Licence] $N$ names an installed theorem, a functoid, an accessor
+  or a functor projection, and denotes the rule
+  $(C_1, \ldots, C_k;\ L_0 \to R_0)$.
+\item[Tag] The recorded $L$ and $R$ are $\sigma L_0$ and $\sigma R_0$
+  for one substitution $\sigma$.  (Not tested for the two variadic rules,
+  \texttt{union-decompose} and \texttt{intersection-decompose}.)
+\item[Rewrite] $G'$ is $G$ with some subterms of the form $\tau L_0$
+  replaced by $\tau R_0$, $\tau$ a substitution of the rule's variables
+  found by matching.  A pattern $\mathrm{succ}(P)$ matches a positive
+  integer literal $m$ by matching $P$ against $m-1$.
+\item[Conditions] At each rewritten position every $\tau C_i$ is
+  \textsc{truth}, or is in the local context of the position, or is a
+  closed arithmetic sentence that evaluates to true, or is one of the
+  $c_j$.
+\end{VNBcond}
+The operation replaces each subterm that matches $L_0$ and whose
+conditions hold in the local context; a match whose conditions do not
+all hold is left alone, and the rewriter descends into its subterms
+instead.  It declines when $G'$ is $G$.  Its local context is the one
+above, except that inside a conjunction $A \wedge B$ it extends only the
+context of $B$, by $A$.  Hypotheses $c_j$ appear only when the command
+posts the conditions it could not discharge as subgoals.  The name of
+the theorem and the two patterns are recorded with the operation, so
+that the inference can be checked against the rule it claims to apply
+(Section~\ref{sec:inference-checked}).
+
+\subsubsection*{\texttt{macete-hyp}: rewriting an assumption
+  (commands \texttt{mac-h}, \texttt{mac-h*})}
+
+%% rkw--check-macete-hyp, rule-checkers-rewrite.scm:741
+\VNBfig{macete-hyp $N$ $L$ $R$}{(\Gamma - H), H' \Longrightarrow G \qquad \Gamma \Longrightarrow c_1 \quad \cdots \quad \Gamma \Longrightarrow c_m}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Assumption] $H \in \Gamma$.  Exactly one formula of $\Gamma$ is
+  missing from the first hypothesis, and at most one formula is new in
+  it (none when $H'$ was already in $\Gamma$).
+\item[Licence, Tag, Rewrite, Conditions] As for \texttt{macete}, with
+  $H$ and $H'$ in place of $G$ and $G'$, and the local context started
+  from all of $\Gamma$, $H$ included.
+\item[Not checked] The two conditions below on which the operation
+  declines.  Neither is needed for soundness: every rule a name denotes
+  replaces a term by an equal or quasi-equal one, or a formula by an
+  equivalent one, under its conditions.
+\end{VNBcond}
+The arguments are the name and $H$.  The rewrite is made whether or not
+the conditions hold, and one hypothesis $\Gamma \Longrightarrow c_j$ is
+posted for each instantiated condition that the local context does not
+contain.  Besides declining when the rewrite changes nothing, the
+operation declines on two conditions read off the named theorem.  The
+theorem's core must be an equivalence, that is an $\Leftrightarrow$ or
+one of the two equalities, since replacing an assumption by a
+consequence of it would lose information.  And no variable of $R$ or of
+a condition may be left undetermined by the match, since such a variable
+would be conjured free into the context.
+
+\subsubsection*{\texttt{cartesian-decompose} (command \texttt{mac})}
+
+%% rkw--check-cartesian-decompose :870, rkw--cartesian-shape? :819, rule-checkers-rewrite.scm
+\VNBfig{cartesian-decompose}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Rewrite] $G'$ is $G$ with some subformulas
+  $x \in A_1 \times \cdots \times A_n$, $n \geq 1$, replaced by
+  \[
+    \exists v_1.\, v_1 \in A_1 \wedge
+    \bigl(\cdots \wedge
+    \exists v_n.\, v_n \in A_n \wedge x = [v_1, \ldots, v_n] \bigr).
+  \]
+\item[Freshness] The $v_i$ are pairwise distinct, and none is free in
+  $x$ or in any $A_j$.
+\end{VNBcond}
+No argument beyond the name.  The operation rewrites every such
+subformula, with new $v_i$, and declines when $G'$ is $G$.  This is the
+membership condition of the product, and it is not a formula in the
+catalog: the fresh witnesses cannot be written as a fixed template, so it
+is code.  It is on the primitive shelf, and contributes nothing to a
+bill.
+
+\subsubsection*{\texttt{tuple-equality-decompose} (command \texttt{mac})}
+
+%% rkw--check-tuple-equality-decompose :902, rkw--tuple-conjunction :883, rule-checkers-rewrite.scm
+\VNBfig{tuple-equality-decompose}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Rewrite] $G'$ is $G$ with some subformulas
+  $[a_1, \ldots, a_n] = [b_1, \ldots, b_n]$, literal tuples of the same
+  length, replaced by $a_1 = b_1 \wedge (a_2 = b_2 \wedge \cdots)$; by
+  $a_1 = b_1$ when $n = 1$, and by \textsc{truth} when $n = 0$.
+\end{VNBcond}
+No argument beyond the name.  The operation rewrites every such
+subformula and declines when $G'$ is $G$.  Tuples of different lengths
+are not rewritten.  That two of them cannot be equal is a separate fact
+and not this operation's business.
+
+\subsection{Oracles}
+
+An oracle decides a class of assertions by computation.  Six of the
+seven, on success, record an inference with no hypotheses, so $N$ is
+grounded at once; \texttt{arith-simplify} posts one hypothesis.
+\texttt{ineq} and \texttt{sos} record, with the name, the certificate the
+computation produced, and print it; the others record the name alone.
+Each inference is checked before it is written, as described in
+Section~\ref{sec:inference-checked}.  The figures below state what the
+checker of each oracle tests.
+%% ineq tag: pi-ineq!, structure-library/ineq-oracle.scm:308;
+%% sos tag: structure-library/sos-oracle.scm:120; arith-eval.scm:382-388
+
+\subsubsection*{\texttt{arith-ground}, \texttt{arith-forsome},
+  \texttt{arith-simplify} (command \texttt{arith})}
+
+One procedure records these three, trying them in this order.
+%% rco--check-arith-ground :242, rco--check-arith-forsome :265,
+%% rco--check-arith-simplify :298, rule-checkers-oracle.scm
+\VNBfig{arith-ground}{\VNBnohyp}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Evaluation] $G$ is closed, and exact evaluation gives true.
+\end{VNBcond}
+\VNBfig{arith-forsome}{\VNBnohyp}{\Gamma \Longrightarrow \exists x.\, x \in C \wedge e = x}
+\begin{VNBcond}
+\item[Evaluation] $e$ evaluates exactly to a number $v$, and the body
+  evaluates to true at $x = v$.  The equation may also be written
+  $x = e$.
+\end{VNBcond}
+\VNBfig{arith-simplify}{\Gamma \Longrightarrow G'}{\Gamma \Longrightarrow G}
+\begin{VNBcond}
+\item[Evaluation] $G'$ is $G$ with some ground subterms replaced by
+  the numbers to which they evaluate exactly.
+\end{VNBcond}
+
+\texttt{arith-ground} fires when $G$ evaluates to true.  The evaluator
+reads $=$ and $\leq$ between terms it can reduce to exact numbers,
+membership in $\mathbb{N}$, $\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{R}$ and
+$\mathbb{C}$, and the connectives $\neg$, $\wedge$, $\vee$,
+$\Rightarrow$.  Everything else is undecided: a free variable, a
+quantifier, a biconditional, a strict $<$, or a value that is not exact.
+Arithmetic is exact throughout; a computed floating-point value is
+refused rather than rounded.
+
+\texttt{arith-forsome} fires on the shape of its figure when $e$ reduces
+to a number and that number lies in $C$.
+
+\texttt{arith-simplify} is the fallback.  When replacing the ground
+numeric subterms of $G$ by their values changes $G$, it posts the single
+hypothesis $\Gamma \Longrightarrow G'$.
+
+The command declines when none of the three applies.
+
+\subsubsection*{\texttt{ring-simplify}: identities of rings
+  (commands \texttt{rs}, \texttt{simp})}
+
+%% rco--check-rs :939, rco--crs-number-ok? :881, rco--num-gens-ok? :846, rule-checkers-oracle.scm
+\VNBfig{ring-simplify}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in D_1 \Rightarrow \cdots \forall x_k.\, x_k \in D_k \Rightarrow e_1 = e_2}
+\begin{VNBcond}
+\item[Normal form] $e_1$ and $e_2$ have the same normal form in the
+  free associative ring $\mathbb{Z}[\textit{generators}]$.
+\item[Typing] Each $D_i$ is one of $\mathbb{N}$, $\mathbb{Z}$,
+  $\mathbb{Q}$, $\mathbb{R}$, $\mathbb{C}$, and every generator of
+  $e_1$ or $e_2$ is one of the $x_i$ or is typed in one of these domains
+  by an assumption $g \in D$ of $\Gamma$.
+\end{VNBcond}
+No arguments.  A \emph{generator} is a maximal subterm that ground
+evaluation cannot reduce to a number, and multiplication does not
+commute.  The operation declines unless both conditions hold.  The
+generators counted are those of the two sides as written, including any
+that cancel.  Otherwise $x - x = 0$ would close for an $x$ of which
+nothing is known, and in VNB a membership is also what says that a term
+denotes.
+
+\subsubsection*{\texttt{comm-ring-simplify}: identities of commutative rings
+  (command \texttt{crs})}
+
+%% rco--check-crs :929, rco--crs-structure-ok? :894, rule-checkers-oracle.scm
+\VNBfig{comm-ring-simplify}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in D_1 \Rightarrow \cdots \forall x_k.\, x_k \in D_k \Rightarrow e_1 = e_2}
+\begin{VNBcond}
+\item[Normal form] $e_1$ and $e_2$ have the same normal form in the
+  free commutative ring $\mathbb{Z}[\textit{generators}]$, literal
+  powers being expanded first.
+\item[Typing] Either as for \texttt{ring-simplify}; or the operations
+  are those of a structure $R$, $(\mathrm{ADD}\ R)$, $(\mathrm{MUL}\ R)$,
+  $(\mathrm{NEG}\ R)$, $(\mathrm{ZERO}\ R)$, $(\mathrm{ONE}\ R)$,
+  $\mathrm{IS\text{-}COMMUTATIVE\text{-}RING}(R)$ is a peeled guard or is
+  in $\Gamma$, and every generator is a variable bound by a guard
+  $x_i \in \mathrm{CARR}(R)$ or is typed in $\mathrm{CARR}(R)$ by an
+  assumption.
+\end{VNBcond}
+No arguments.  The operation tries the number reading first and the
+structure reading second.
+
+An existential assertion is outside this operation and every other
+oracle except \texttt{arith-forsome}'s one shape: none of them supplies a
+witness.  For $\exists a \in \mathbb{Z}.\, (x+y)^3 = x^3 + y \cdot a$ the
+witness is given with \texttt{forsome-intro} (command \texttt{ew}), and
+the equation that remains is an identity within reach of
+\texttt{comm-ring-simplify}.
+
+\subsubsection*{\texttt{ineq}: an oracle for linear arithmetic over the reals
+  (command \texttt{ineq})}
+
+%% rco--check-ineq :556, rco--farkas-ok? :515, rco--ineq-constraint :494, rule-checkers-oracle.scm
+\VNBfig{ineq $c$}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in \mathbb{R} \Rightarrow \cdots \forall x_k.\, x_k \in \mathbb{R} \Rightarrow G_0}
+\begin{VNBcond}
+\item[Certificate] $c$ is a list of pairs $(\mathit{id}\ .\ m)$,
+  each $m$ an exact nonnegative rational, where $\mathit{id}$ is
+  \texttt{goal}, the negation of $G_0$; or \texttt{h}$I$, the $I$-th
+  assumption of $N$ counted from one; or \texttt{h}$I$\texttt{-rev}, the
+  $I$-th assumption, an equation, read from right to left.  When $G_0$
+  is an equation, $c$ is a pair of two such lists, one for each
+  direction.
+\item[Premises] Each assumption the certificate names is an equation or
+  a $\leq$ or $<$ inequality.
+\item[Absurdity] The sum of the named constraints, each written
+  $\ell \leq 0$ or $\ell < 0$ and multiplied by its $m$, has every atom's
+  coefficient zero, and its constant is $> 0$, or $\geq 0$ when a strict
+  constraint enters with positive multiplier.
+\item[Typing] Every atom of a constraint that enters with a positive
+  multiplier is certified real: $\Gamma$ contains $a \in \mathbb{R}$, or $a$ is one of the
+  $x_i$, or $a$ is $|t|$ with every atom of $t$ certified.
+\item[Eigenvariable] No $x_i$ is free in a premise the certificate
+  names.
+\end{VNBcond}
+The arguments of the operation are the positions in $\Gamma$ of the
+assumptions to be used as premises, counted from one.  When the
+procedure succeeds $N$ is grounded, and otherwise the operation
+declines.
+
+The assertion and each named premise are read as linear equations or
+inequalities in their \emph{atoms}, the maximal subterms that are not
+sums, differences, or products by a numeral.  A named premise that does
+not read this way is left out, which can only make the procedure prove
+less; an index outside the range of $\Gamma$ is an error and abandons the
+call.  The operation requires the Typing condition of every atom, an
+atom that cancels included, and declines when a variable bound by one of
+the leading quantifiers occurs free in \emph{any} assumption of $N$.
+Fourier--Motzkin elimination is run on the premises and the negation of
+the assertion.  The procedure succeeds when the elimination reaches
+$0 < 0$.  The nonnegative combination of premises that produces it, a
+\emph{Farkas certificate}, is printed and is recorded in the graph with
+the name of the operation.
+
+\begin{remark}
+The condition on bound variables is the eigenvariable condition of
+\texttt{forall-intro}.  Until 2026-09-20 the oracle did not impose it,
+and from $x \in \mathbb{R},\; x \leq 0$ it closed
+$\forall x \in \mathbb{R}.\; x \leq 0$.  The defect was found when the
+checker of Section~\ref{sec:inference-checked} was written for this
+operation, and no proof in the library had used it.
+\end{remark}
+
+\subsubsection*{\texttt{sos}: nonnegativity by a sum of squares
+  (command \texttt{sos})}
+
+%% rco--check-sos :956, rule-checkers-oracle.scm; tag built at structure-library/sos-oracle.scm:120
+\VNBfig{sos $c$}{\VNBnohyp}{\Gamma \Longrightarrow \forall x_1.\, x_1 \in \mathbb{R} \Rightarrow \cdots \forall x_k.\, x_k \in \mathbb{R} \Rightarrow a \leq b}
+\begin{VNBcond}
+\item[Certificate] $c$ is a list of pairs $(c_i\ .\ \lambda_i)$, each
+  $\lambda_i$ an exact nonnegative rational.
+\item[Identity] $b - a = \lambda_1 c_1^2 + \cdots + \lambda_n c_n^2$ as
+  polynomials in the free commutative ring over the generators.
+\item[Typing] Every generator of $a$, $b$ and the $c_i$ is certified
+  real, as for \texttt{ineq}.
+\end{VNBcond}
+The assertion may also be written $b \geq a$.  The arguments of the
+operation are the terms $c_1, \ldots, c_n$ to be squared.  An exact
+linear program decides whether weights $\lambda_i \geq 0$ exist; on
+success the pairs $(c_i\ .\ \lambda_i)$ are printed and recorded in the
+graph with the name.
+
+The oracle verifies a certificate, it does not search for one: the
+squares are supplied by the caller.  A strict inequality is not accepted,
+since a square may be zero.
+
+\subsection{Which command reaches which operation}\label{sec:command-uses}
+
+A tactic has no access to the graph except through the operations above,
+so the operations one tactic can reach are the bound on what it can do.
+The table below gives that bound for each proof command: the operations
+recorded by any kernel procedure reachable from the command's own code,
+whether or not the library happens to exercise it.  It is produced from
+\texttt{reference/kernel-map-static.sexp}, the result of reading the
+source of every loaded file with the Scheme reader.  One thing is left
+out of every row: after any command that changes a proof, the system tries
+to close the definedness obligations that instantiation has left
+(Section~\ref{sec:kernel-ops-detail}, \texttt{forall-elim}), and that step
+can reach twenty kernel procedures of its own.  It is the same for every
+command and is stated once in \texttt{reference/KERNEL-MAP.md}.
+
+A command listed as \texttt{none} records nothing.  Those are the
+navigation, search and session commands.
+
+%% The table and its counts, generated by gen-tactic-uses.py from
+%% reference/kernel-map-static.sexp and the command registry.
+\input{app-tactic-uses-generated}
+\VNBtacticusestable
+
+\subsection{How an inference is recorded, and checked}\label{sec:inference-checked}
+
+Every kernel operation ends by calling one procedure,
+\texttt{dg-apply-rule!}\ (\texttt{deduction-graphs.scm}).  It is handed
+the rule, the hypothesis sequents and the node $N$.  It checks the
+inference (below); then it posts each hypothesis sequent as a node,
+reusing a node the graph already has for the same sequent; then it
+creates the inference node and writes the arrows.  No other procedure
+writes to the graph.
+%% dg-apply-rule!, deduction-graphs.scm:375; make-inference-node :59
+The inference node records exactly three things: the rule, the list of
+hypothesis nodes, and the conclusion node $N$.  The rule is the name of
+the operation, or a list headed by that name when the operation carries
+data about the application: an index (\texttt{(cartesian-elim 2)}), the
+name and the patterns of a macete (\texttt{(macete \textit{name} $L$
+$R$)}), or the certificate of an oracle (\texttt{(ineq $c$)},
+\texttt{(sos $c$)}).
+
+\subsubsection*{The construction and the check}
+
+An operation has two parts.  The \emph{builder} is a procedure
+\texttt{pi-\ldots!}\ (in \texttt{primitive-inferences.scm},
+\texttt{macetes.scm} and the oracle files).  It reads $N$ and the
+operation's argument and \emph{constructs} the hypothesis sequents: for
+\texttt{and-intro}, \texttt{pi-direct-inference!} takes the two conjuncts
+of $G$ and makes $\Gamma \Longrightarrow A$ and
+$\Gamma \Longrightarrow B$; for \texttt{forall-intro} it also chooses the
+eigenvariables; for an oracle it runs the decision procedure.  The
+\emph{checker} is a separate procedure, registered for the operation's
+name in one of four files (\texttt{rule-checkers-logic.scm},
+\texttt{-schema.scm}, \texttt{-rewrite.scm}, \texttt{-oracle.scm}).
+\texttt{dg-apply-rule!}\ hands it the finished result: the rule, the
+hypothesis sequents and the sequent of $N$.  The checker does not call
+the builder and does not compute hypotheses from $N$.  It decides whether
+the sequents it is given stand in the relation of the operation's figure
+(Section~\ref{sec:kernel-ops-detail}), and answers yes, or no with a
+reason.
+
+The checkers of the logic and schema operations use four things from the
+expression layer: substitution, the free-variable computation, equality
+of formulas up to renaming of bound variables ($\aeq$), and one-way
+matching.  The rewrite checkers add two: a theorem is read as a rewrite
+rule by the same procedure the rewriter uses
+(\texttt{extract-rewrite-patterns}), because that reading is what the
+name of a macete denotes; and a closed arithmetic condition is evaluated
+by the arithmetic evaluator.  The oracle checkers carry their own exact
+arithmetic, linear forms and polynomials, written separately from the
+oracles.
+%% headers of rule-checkers-logic.scm (1-13), rule-checkers-rewrite.scm (18-26),
+%% rule-checkers-oracle.scm (1-14)
+
+Two of the relations, written out as the checker tests them:
+%% and-intro checker, rule-checkers-logic.scm:347; forall-elim checker :702
+\begin{itemize}
+\item \texttt{and-intro} accepts hypotheses $H_1, H_2$ and conclusion
+  $\Gamma \Longrightarrow G$ exactly when $G$ is $A \wedge B$, there are
+  two hypotheses, the context of each equals $\Gamma$ as a set, the
+  assertion of $H_1$ is $\aeq A$ and that of $H_2$ is $\aeq B$.
+\item \texttt{forall-elim} accepts exactly when there are one or two
+  hypotheses, the assertion of $H_1$ is $\aeq G$, and either the context
+  of $H_1$ is included in $\Gamma$, or $\Gamma$ contains a formula
+  $\forall x.\, B$ and the context of $H_1$ is $\Gamma \cup \{D\}$ for a
+  formula $D$ that matching shows to be $B[x{:=}t]$ for some term $t$;
+  and, if there is a second hypothesis, it is
+  $\Gamma \Longrightarrow u = u$ for some term $u$.
+\end{itemize}
+
+The eigenvariable condition of \texttt{forall-intro} is tested as
+follows.  The checker counts the length of
+the chain of leading universal quantifiers of $G$, passing through each
+guard $x \in A$ on the variable just bound, and tries that length $k$
+first and then each smaller one.  For a given $k$ it reads the
+eigenvariables $y_1, \ldots, y_k$ off the hypothesis
+$\Gamma' \Longrightarrow B'$ by matching: $G$ with its $k$ bound
+variables replaced by holes is matched, guard by guard, against the
+formulas of $\Gamma'$ that are not in $\Gamma$, and its body against
+$B'$.  A hole that matching does not reach belongs to a variable absent
+from the body, and is given the bound variable's own name.  It then
+walks the chain forwards with a set $V$ of excluded variables, which
+starts as $\FV(\Gamma)$.  At step $i$ the formula is
+$\forall x_i.\, C_i$, and $y_i$ must be a variable, not in $V$, and not
+free in $\forall x_i.\, C_i$.  If $C_i[x_i{:=}y_i]$ is
+$(y_i \in A_i) \Rightarrow D$, the guard $y_i \in A_i$ is collected, its
+free variables ($y_i$ and those of $A_i$) are added to $V$, and the walk
+continues with $D$; otherwise $y_i$ is added to $V$ and the walk
+continues with $C_i[x_i{:=}y_i]$.  The inference is accepted when the
+formula reached after $k$ steps is $\aeq B'$ and $\Gamma'$ is $\Gamma$
+together with the collected guards.
+%% chk-forall-intro-at, rule-checkers-logic.scm:514; chk-forall-eigen-ok? :491;
+%% chk-forall-fill :477; chk-vacuous-name :540; the k-loop in the checker at :555
+
+If no checker is registered for the name, or the checker refuses,
+\texttt{dg-apply-rule!}\ raises an error and the graph is unchanged.  A
+refusal is printed even when output is suppressed, and the load ends by
+reporting the number of inferences verified and the number refused.
+%% dg-check-inference!, dg-check-report-refusal!, deduction-graphs.scm
+
+An error in a builder goes unnoticed only if the checker's relation also
+admits the inference the builder produced.  Where a figure of
+Section~\ref{sec:kernel-ops-detail} carries a condition labelled
+\emph{Not checked}, the relation is weaker than the operation, and at
+that point the operation is the only safeguard.  There are four such
+places: definedness in \texttt{forall-elim} and \texttt{reflexivity}, by
+policy, since the certificate decides when an obligation may be omitted
+and the checker accepts the inference either way; capture in
+\texttt{eq-subst}; the variable of the second hypothesis of
+\texttt{big-union-sethood}; and the two refusals of
+\texttt{macete-hyp}, which are not needed for soundness.
+%% policy: header of rule-checkers-logic.scm, lines 29-43
+
+\subsubsection*{Oracles: a certificate check or a second decision}
+
+An oracle has no proof to replay, so what its checker can establish
+depends on what the oracle records.  There are two cases.
+%% header of rule-checkers-oracle.scm, lines 22-62
+
+\emph{Certificate check} (\texttt{ineq}, \texttt{sos}).  The oracle
+records, with its name, the object that shows the assertion true, and
+the checker verifies that object by arithmetic of its own, without
+elimination, search or any code of the oracle.  For \texttt{ineq} the
+object is a Farkas certificate: the checker reads the assertion and the
+named premises as linear forms, multiplies each by its multiplier, adds,
+and confirms that every atom cancels and that the constant left is an
+absurd inequality.  For \texttt{sos} it is the list of squares and
+weights: the checker expands $\lambda_1 c_1^2 + \cdots + \lambda_n c_n^2$
+and $b - a$ as polynomials and compares them monomial by monomial.  Either
+the arithmetic confirms the certificate, or the inference is refused.
+%% rco--farkas-ok? :515, rco--check-sos :956, rule-checkers-oracle.scm
+
+\begin{sloppypar}
+\emph{Second decision} (\texttt{arith-ground}, \texttt{arith-forsome},
+\texttt{arith-simplify}, \texttt{comm-ring-simplify},
+\texttt{ring-simplify}).  These oracles record their name only, so the
+checker decides the same question again with a second implementation of
+the same mathematics: exact evaluation for \texttt{arith}, expansion of
+both sides to a sum of monomials for the two ring oracles.  The two
+implementations share no code beyond the expression layer.  A second
+decision catches an error in how the oracle reads its input or reports
+its answer: an atom misread, a typing it failed to require, a premise
+dropped, a case it mishandles that the second implementation handles
+correctly.  It does not catch an error that both implementations make
+the same way, for instance a mistake in the mathematics of the normal
+form itself.
+\end{sloppypar}
+%% rco--check-arith-ground :242, rco--check-crs :929, rco--check-rs :939
+
+Neither kind of check adds proving power.  A checker only judges an
+inference that an oracle has already produced; an assertion the oracle
+declines is not proved by its checker.
+
+\subsubsection*{Where a certificate is kept, and how it is shown}
+
+The certificate of \texttt{ineq} is part of the rule recorded in the
+inference node, beside the name of the operation.  The rule has the form
+\texttt{(ineq $c$)}, where $c$ is a list of pairs
+\texttt{($\mathit{id}$ .\ $m$)}: $m$ is an exact nonnegative rational,
+and $\mathit{id}$ is \texttt{goal} (the negation of the assertion),
+\texttt{h}$I$ (the $I$-th assumption of $N$, counted from one), or
+\texttt{h}$I$\texttt{-rev} (the $I$-th assumption, an equation, read from
+right to left).  For an assertion that is an equation, $c$ is a pair of
+two such lists, one for each direction.  For example
+\texttt{(ineq ((h1 .\ 1) (h3 .\ 2) (goal .\ 1)))} says that the first
+assumption, twice the third, and the negated assertion add up to a
+false inequality between constants.  The rule of \texttt{sos} is
+\texttt{(sos (($c_1$ .\ $\lambda_1$) \ldots))}.
+%% pi-ineq!, structure-library/ineq-oracle.scm:218 (tag built at :308);
+%% ineq-hyp-constraints :167; sos-oracle.scm:120
+
+The certificate therefore belongs to the deduction graph of the proof,
+and lasts as long as that graph.  What \texttt{qed} keeps of a proof is
+the statement, the script and the bill; the script records the command
+as it was typed, for instance \texttt{(ineq 1 3)}, not the certificate.
+Replaying the script, as the page audit does, runs the oracle again, and
+the checker verifies the certificate recorded by that run.
+%% proof-debt.scm:205 (*proof-oracles* holds oracle names, not certificates)
+
+When it succeeds the oracle prints the certificate:
+\begin{VNBcode}
+;; ineq: closed by Farkas certificate ((h1 . 1) (h3 . 2) (goal . 1))
+\end{VNBcode}
+\texttt{sos} prints its decomposition in the same way.  \texttt{proof-tex}
+prints, for each step, the command and the sequent it leaves, read from
+the command trace recorded while the proof ran; it does not print the
+certificate.  The command \texttt{(proof-rules)} reads the graph of the
+current proof and lists the rules its inferences recorded.
+%% ineq-report, ineq-oracle.scm:215; sos-report, sos-oracle.scm:49;
+%% proof-tex--steps-from-live, proof-tex.scm:94; proof-rules, suggest.scm:5795
+
+\subsubsection*{Controls}
+
+Each checker has two controls in the test suite: the proofs of the
+library, which it must accept, and an inference that is wrong in a
+stated way, which it must refuse.  A checker that accepted everything
+would pass the first and fail the second.
+
+\begin{remark}
+Checking is on by default.  Setting the environment variable
+\texttt{VNB\_NO\_RULE\_CHECK} turns it off.  On the library as loaded on
+2026-09-20, 197{,}677 inferences were verified and none refused, and the
+load took 30\% longer with checking than without.
+\end{remark}
+
+\subsection{The boundary is checked, not merely documented}\label{sec:kernel-checked}
+
+The restriction would be worth little if it were a convention.  The eight
+files permitted to record inferences are named in a list in the source
+(\texttt{*kernel-caller-files*}).  Every time the system starts, it reads
+all of its own source with the Scheme reader and counts, in each file,
+the calls to \texttt{dg-apply-rule!}\ and any use of that procedure as a
+value --- the second being the way a file could otherwise hand the
+capability to code outside the list.  If any file not on the list records
+inferences, or if any file passes the procedure on, the system reports
+the offending files and \emph{refuses to finish starting}.  A reader is
+used rather than a text search so that a mention inside a comment, a
+string or quoted data is not mistaken for code.
+
+On a clean tree the check prints one line:
+
+\begin{VNBcode}
+;; kernel-callers-audit: ok (69 call site(s) to dg-apply-rule!
+;;   in 8 file(s), all allowed; 0 value use(s))
+\end{VNBcode}
+
+A companion check, \texttt{kernel-rules-audit}, compares the rules
+actually recorded during the load against the documented list in both
+directions, so a rule that is trusted but undocumented, or documented but
+unreachable, is reported rather than left to be noticed.
+
+Widening the trusted base is possible --- a new decision procedure is a
+legitimate thing to add --- but it cannot happen quietly: the new file
+must be added to the list by hand, which is a deliberate act that leaves
+a record.  The complete inventory (every entry point, the rules it may
+record, and which proof commands reach it) is
+\texttt{reference/KERNEL-MAP.md}.
+
+%% =========================================================
 \section{Starting and inspecting a proof}
 
 \begin{VNBcode}
@@ -267,8 +1612,9 @@ advances the focus to the first new ungrounded subgoal.
   defined.\end{sloppypar}
 
 \item \texttt{(cmd-qed ps $\mathit{name}$)}
-  After a proof completes, install its root assertion as a named theorem
-  in the current theory.  Errors if the proof is not complete.
+  After a proof completes, install its root assertion as a named theorem.
+  Errors if the proof is not complete.  This is the only command that
+  records a result as \emph{proven}.
 
 \end{itemize}
 
@@ -443,7 +1789,7 @@ hypothesis is already an assumption), so it never leaves the proof worse
 than it found it.
 
 %% =========================================================
-\section{Interactive short-form commands}
+\section{Interactive short-form commands}\label{sec:tactics-ref}
 \label{sec:interactive}
 
 \texttt{interactive.scm} provides the short-form commands --- one- or two-letter

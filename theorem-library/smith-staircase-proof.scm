@@ -24,7 +24,7 @@
 ;; ---- proof-driver helpers (ss- prefix) ----
 (define (ss-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (ss-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (ss-foc! n) (set-proof-state-focus! *ps* n))
+(define (ss-foc! n) (dk-focus! n))
 (define (ss-find pred) (let lp ((as (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 ;; Focus an open leaf by its GOAL.  Errors on miss: the old version returned #f
@@ -33,7 +33,7 @@
 ;; to be parked in.
 (define (ss-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s)
+    (if s (begin (dk-focus! s) s)
         (error "ss-foc-goal!: no open leaf matches the goal predicate"))))
 
 ;; Focus an open leaf by its ASSUMPTIONS.  Sibling branches routinely share a
@@ -43,7 +43,7 @@
 (define (ss-foc-ctx! pred)
   (let ((s (any-pred (lambda (s) (pred (map wff-formula (sequent-node-assumptions s))))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s)
+    (if s (begin (dk-focus! s) s)
         (error "ss-foc-ctx!: no open leaf matches the context predicate"))))
 (define (SH? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (ss-di*) (let lp () (let* ((g (ss-goal)) (h (and (pair? g) (car g))))
@@ -90,6 +90,15 @@
 ;; =====================================================================
 (define BS-BRD '(BORDER A b W p q))
 
+;; GUARDED 2026-09-16 (the SIZE/MAT surgery) with (IN W (MAT p q (CARR A))) as the
+;; LAST premise, after the SMITH-STAIRCASE one; the binder list is unchanged.
+;; Unguarded the statement is FALSE: take p = q = kp = 1 and W := 7 (not a tuple).
+;; SMITH-STAIRCASE(A,1,1,7,1) holds -- IS-DIAGONAL is vacuous (the only index pair
+;; is (1,1)), the nonzero clause NOT(ENTRY(7,1,1) = ZERO A) holds because the entry
+;; does not denote, and the row clause is vacuous (no row past 1).  But the 2-by-2
+;; tabulation BORDER(A,b,7,1,1) needs the value ENTRY(7,1,1), so BORDER has no
+;; value, and its (1,2) entry is not ZERO(A): the conclusion's IS-DIAGONAL fails.
+;; (Same counterexample as border-is-diagonal's guard, which this proof cites.)
 (sp (make-wff
   '(FORALL A (IMPLIES (IS-RING A)
      (FORALL b (FORALL W (FORALL p (FORALL q (FORALL kp
@@ -99,7 +108,8 @@
        (IMPLIES (IN b (CARR A))
        (IMPLIES (NOT (= b (ZERO A)))
        (IMPLIES (SMITH-STAIRCASE A p q W kp)
-         (SMITH-STAIRCASE A (succ p) (succ q) (BORDER A b W p q) (succ kp)))))))))))))))))
+       (IMPLIES (IN W (MAT p q (CARR A)))
+         (SMITH-STAIRCASE A (succ p) (succ q) (BORDER A b W p q) (succ kp))))))))))))))))))
 (ss-di*)
 (fact 'nn-succ-closed 'p) (fact 'nn-succ-closed 'q) (fact 'nn-succ-closed 'kp)
 
@@ -169,7 +179,7 @@
 
 ;; conj 5: every row past succ kp vanishes
 (ss-foc-goal! ss-row-goal?)
-(di)(di)(di)(di)(di)                     ; i_, IN i_, NOT(i_ <= succ kp), j_, IN j_
+(dk-peel!)   ; was five di's; guarded universals peel whole, so two hit the equation (2026-09-16) -- i_, IN i_, NOT(i_ <= succ kp), j_, IN j_
 (fact 'interval-elt-in-nn 1 '(succ p) 'i_)
 (fact 'interval-lo 1 '(succ p) 'i_)
 ;; i_ /= 1 (else i_ = 1 <= succ kp)
@@ -297,7 +307,7 @@
 (fact 'nn-le-trans-guarded 1 SS-SBj 'n)
 (ai '(NOT (<= 1 n)))
 (ss-foc-goal! ss-row-goal?)
-(di)(di)(di)(di)(di)                     ; i_, IN i_, NOT(i_<=0), j_, IN j_ [1,n]
+(dk-peel!)   ; was five di's; guarded universals peel whole, so two hit the equation (2026-09-16) -- i_, IN i_, NOT(i_<=0), j_, IN j_ [1,n]
 (fact 'interval-lo 1 'n 'j_) (fact 'interval-hi 1 'n 'j_)
 (fact 'nn-one-in) (fact 'interval-elt-in-nn 1 'n 'j_)
 (fact 'nn-le-trans-guarded 1 'j_ 'n)
@@ -344,7 +354,7 @@
 (define SS-C2 (list-ref (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'MAT-EQUIV) (equal? (list-ref z 4) 'P)))) 5))
 (define SS-SUB (list 'SUBMAT SS-C2 'k SS-Q))
 (define SS-B11 (list 'ENTRY SS-C2 1 1))
-(fact 'mat-equiv-cod-is-mat 'A '(succ k) SS-SQN 'P SS-C2)
+(fact 'mat-equiv-target-is-mat 'A '(succ k) SS-SQN 'P SS-C2)
 (fact 'submat-type 'A 'k SS-Q SS-C2)
 (define SS-IHn (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'n)
    (let ((c (caddr z))) (and (pair? c) (eq? (car c) 'FORALL)
@@ -359,14 +369,19 @@
 (ai SS-IHKK) (ai 1) (ai 1)
 (define SS-DP (list-ref (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'MAT-EQUIV) (equal? (list-ref z 4) SS-SUB)))) 5))
 (define SS-KP (list-ref (ss-find (lambda (z) (and (pair? z) (eq? (car z) 'SMITH-STAIRCASE) (equal? (list-ref z 4) SS-DP)))) 5))
-;; b = C2_11 nonzero, in CARR A ; D' typed by mat-equiv-cod-is-mat
+;; b = C2_11 nonzero, in CARR A ; D' typed by mat-equiv-target-is-mat
 (fact 'one-in-interval 'k) (fact 'one-in-interval SS-Q)
 (fact 'entry-in-carrier '(succ k) SS-SQN '(CARR A) SS-C2 1 1)
-(fact 'mat-equiv-cod-is-mat 'A 'k SS-Q SS-SUB SS-DP)
+(fact 'mat-equiv-target-is-mat 'A 'k SS-Q SS-SUB SS-DP)
 (fact 'nn-succ-closed SS-KP)
 ;; C2 ~ BORDER(b, D') ~ P, and the border is a staircase at succ kk'
 (fact 'bordering 'A 'k SS-Q SS-B11 SS-SUB SS-C2 SS-DP)
 (define SS-BRD (list 'BORDER 'A SS-B11 SS-DP 'k SS-Q))
+;; LUTINS instantiation (2026-09-18): mat-equiv-trans is instantiated at SS-BRD, an
+;; IOTA-bodied BORDER the certificate never grants, so type it first.  border-type's
+;; premises are in context: IS-RING A, (IN k NN), (IN SS-Q NN), (IN SS-B11 (CARR A))
+;; from entry-in-carrier above, (IN SS-DP (MAT k SS-Q (CARR A))) from mat-equiv-target-is-mat.
+(fact 'border-type 'A SS-B11 SS-DP 'k SS-Q)
 (fact 'mat-equiv-trans 'A '(succ k) SS-SQN 'P SS-C2 SS-BRD)
 (fact 'border-staircase 'A SS-B11 SS-DP 'k SS-Q SS-KP)
 (ew SS-BRD) (ew (list 'succ SS-KP)) (di)
@@ -401,7 +416,7 @@
 (ai (list 'NOT SS-NZk))
 ;; conj5: rows past 0 -- same all-entries-zero argument
 (ss-foc-goal! ss-row-goal?)
-(di)(di)(di)(di)(di)                     ; i_, IN i_, NOT(i_<=0), j_, IN j_
+(dk-peel!)   ; was five di's; guarded universals peel whole, so two hit the equation (2026-09-16) -- i_, IN i_, NOT(i_<=0), j_, IN j_
 (define SS-RZ (ss-cases '(= (ENTRY P i_ j_) (ZERO A))))
 (ass)
 (ss-foc! SS-RZ)

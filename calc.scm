@@ -48,7 +48,7 @@
 ;; order fold: (Racc . Ri) -> (lemma . Rnew).  < / <= combinations plus = steps
 ;; interleaved (refinement rewrites one endpoint of the running relation).
 (define *calc-order-trans*
-  (list (cons '(<= . <=) (cons 'co-le-trans    '<=))
+  (list (cons '(<= . <=) (cons 'rr-le-trans-c    '<=))
         (cons '(<= . <)  (cons 'co-le-lt-trans '<))
         (cons '(<  . <=) (cons 'co-lt-le-trans '<))
         (cons '(<  . <)  (cons 'co-lt-trans    '<))

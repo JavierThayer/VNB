@@ -33,9 +33,118 @@
 ;; the handlers landing as separate flattened steps after it.
 (define *bc*-handler-forms* '())
 
+;;; -----------------------------------------------------------------------
+;;; WITNESSES: naming an eigenvariable so a printed page can mention it.
+;;;
+;;; `ai' on a FORSOME and `di' on a colliding binder MINT a variable, named off
+;;; the monotone global counter -- `n_1788'.  The recorded script holds that
+;;; literal, and the literal is the reason 304 of 315 emitted pages do not
+;;; re-run: another session mints `n_2431' and the name on the page denotes
+;;; nothing.  (page-audit.scm has the measurement.)
+;;;
+;;; The fix is NOT to put the counter on the page (that would make the page
+;;; carry a fact about the machine that printed it).  It is to let the page NAME
+;;; the variable itself:
+;;;
+;;;     (ai (quote (forsome n_ ...)))     ; step 3 mints something
+;;;     (name-witness! 3 (quote w1))      ; and the page calls it w1
+;;;     (cut (quote (forall k ... w1 ...)))
+;;;
+;;; `w1' is the page's name; `name-witness!' binds it to whatever THIS session
+;;; minted at step 3, and `->raw-formula' -- which every surface tactic already
+;;; runs over its formula arguments -- substitutes it back out.
+;;;
+;;; Measured before choosing this over an inline `,(witness-of 3)': 728 distinct
+;;; (proof, variable) pairs account for 11623 occurrences, median 9 uses each and
+;;; one used 228 times.  Naming costs 728 lines; inlining would cost 11623.
+;;;
+;;; NOTHING HERE CHANGES WHAT IS RECORDED.  `*proof-script*' still holds the
+;;; literal names, so proof-tex, harvest and the replay audit are untouched; the
+;;; aliases are introduced by the EMITTER and resolved when a page is typed in.
+
+;;; Is X a name the fresh counter minted?  `<hint>_<n>' with trailing digits,
+;;; which is exactly what `fresh-var' (expressions.scm) produces.  The project's
+;;; own collision convention -- a TRAILING underscore, `r_' -- must not match, or
+;;; the emitter would try to name variables no step ever minted.
+(define (page-minted-name? x)
+  (and (symbol? x)
+       (let* ((str (symbol->string x)) (n (string-length str)))
+         (let loop ((i (- n 1)) (digits 0))
+           (cond ((< i 0) #f)
+                 ((char-numeric? (string-ref str i)) (loop (- i 1) (+ digits 1)))
+                 ((and (char=? #\_ (string-ref str i)) (> digits 0) (> i 0)) #t)
+                 (else #f))))))
+
+;; Minted names per recorded step, newest step first; each entry is that step's
+;; names in mint order.  One entry per step that is RECORDED, so its position
+;; matches the script's own numbering.
+(define *proof-mints* '())
+
+;; alias symbol -> the name this session actually minted.  Page-side only.
+(define *witness-aliases* '())
+
+;; The names minted by recorded step N (1-based), oldest first.
+(define (mints-of-step n)
+  (let ((k (length *proof-mints*)))
+    (if (or (< n 1) (> n k)) '() (list-ref *proof-mints* (- k n)))))
+
+;;; (name-witness! STEP ALIAS [K]) -- bind ALIAS to the K-th (default 0) variable
+;;; minted by recorded step STEP.  Errors rather than binding nothing: a page
+;;; whose witness does not resolve would otherwise fail LATER and silently, which
+;;; is the whole failure mode this machinery exists to remove.
+(define (name-witness! step alias #!optional k)
+  (let* ((i     (if (default-object? k) 0 k))
+         (names (mints-of-step step)))
+    (if (or (< i 0) (>= i (length names)))
+        (error "name-witness!: step minted no such variable" step i (length names))
+        (begin
+          (set! *witness-aliases*
+                (cons (cons alias (list-ref names i))
+                      (del-assq alias *witness-aliases*)))
+          (list-ref names i)))))
+
+;;; Replace page aliases by the names this session minted.  Free when no page has
+;;; introduced an alias, which is every proof that mints nothing.
+(define (witness-resolve e)
+  (if (null? *witness-aliases*)
+      e
+      (let walk ((x e))
+        (cond ((pair? x) (cons (walk (car x)) (walk (cdr x))))
+              ((and (symbol? x) (assq x *witness-aliases*)) => cdr)
+              (else x)))))
+
+;;; Where the mint log stood when the previous step was recorded.  Everything
+;;; minted since then belongs to the step being recorded now.
+(define *fresh-mark-at-last-record* '())
+
+;;; The capture lives HERE rather than in `vnb--run!' because `focus',
+;;; `focus-id', `prop', `minimize!' and `dk-focus!' record themselves directly.
+;;; A step with no entry would shift every later step's number, and the number is
+;;; exactly what an emitted page's `name-witness!' cites -- so one entry per
+;;; recorded step, no exceptions, is the invariant.  It also does the right thing
+;;; for a composite that mints inside itself and records only itself: those names
+;;; are attributed to the composite, which is the step a reader would name.
+;; HIDDEN CITATIONS (2026-09-18).  A bc* handler runs with recording suppressed, so
+;; that the handler lands inside the single (bc* name bindings . forms) entry and not
+;; as flattened steps after it.  The debt ledger reads citations off the TOP-LEVEL
+;; entries of *proof-script*, so a `fact' / `mac' / nested `bc*' made inside a handler
+;; -- literally, or through a helper the handler calls -- reached no bill:
+;; compact-implies-totally-bounded read `modulo 0' while citing the asserted
+;; ball-cover-is-open-cover.  Such steps are now kept here, for the ledger only
+;; (`record-proof-debt!'); the script, the page and the trace are unchanged.
+(define *proof-hidden-citations* '())
+(define *in-bc*-handler?* #f)
+
 (define (record-cmd! name args)
-  (unless *replaying?*
-    (set! *proof-script* (append *proof-script* (list (cons name args))))))
+  (if *replaying?*
+      (if *in-bc*-handler?*
+          (set! *proof-hidden-citations*
+                (cons (cons name args) *proof-hidden-citations*)))
+      (begin
+        (set! *proof-script* (append *proof-script* (list (cons name args))))
+        (set! *proof-mints*
+              (cons (fresh-log-since *fresh-mark-at-last-record*) *proof-mints*))
+        (set! *fresh-mark-at-last-record* *fresh-log*))))
 
 ;; The raw goal formula of the current proof (set by sp), so an emitted script
 ;; can be wrapped as a standalone (sp (make-wff '...)) ... (qed 'name) block.
@@ -65,7 +174,19 @@
 ;; Snapshot the current *ps* focus under ENTRY and push onto *live-trace*.
 ;; Skipped during replay (apply-recorded-cmd! bypasses vnb--run! anyway) and
 ;; when there is no live proof.
-(define (vnb--capture-step! entry)
+;;
+;; THE SIXTH FIELD, `certs' (2026-09-25, the user's decision: "put the Farkas
+;; certificate on the page").  The certificates of the ORACLE inferences this
+;; step posted, as a list of (TAG CERT ASMS GOAL): TAG is `ineq' or `sos', CERT
+;; the argument of the inference's rule tag exactly as the oracle recorded it
+;; (the Farkas combination, or the squares and weights), ASMS and GOAL the raw
+;; formulas of the node it closed -- the hI ids of a Farkas certificate index
+;; THOSE assumptions, and the trace's own focus after the step is another node.
+;; `proof-tex' renders them beside the step.  The script is untouched: the page
+;; still records `(ineq 1 3)', and the certificate is recomputed when it is
+;; typed back in.  '() for every other step; absent (a 5-field record) for the
+;; composites that capture themselves.
+(define (vnb--capture-step! entry #!optional certs)
   (when (and *ps* (not *replaying?*))
     (let ((done (proof-done? *ps*)))
       (set! *live-trace*
@@ -73,8 +194,31 @@
                     (and (not done) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
                     (if done '() (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
                     (and (not done) (sequent-node-number (proof-state-focus *ps*)))
-                    (map sequent-node-number (proof-open-goals *ps*)))
+                    (map sequent-node-number (proof-open-goals *ps*))
+                    (if (default-object? certs) '() certs))
               *live-trace*)))))
+
+;; The (TAG CERT ASMS GOAL) of every `ineq' / `sos' inference posted since MARK
+;; (a vnb--take-mark mark): the graph's inference list is cons-built, so the new
+;; ones are the prefix above the mark's saved tail.  Oldest first.
+(define *vnb-certificate-tags* '(ineq sos))
+(define (vnb--oracle-certs-since mark)
+  (if (not mark)
+      '()
+      (let* ((dgm (vnb-undo-mark-dg-mark mark))
+             (old (dg-mark-infs dgm)))
+        (let loop ((ins (dg-inference-nodes (dg-mark-dg dgm))) (acc '()))
+          (if (or (null? ins) (eq? ins old))
+              acc
+              (let* ((inf (car ins)) (r (inference-node-rule inf)))
+                (loop (cdr ins)
+                      (if (and (pair? r) (memq (car r) *vnb-certificate-tags*) (pair? (cdr r)))
+                          (let ((c (inference-node-conclusion inf)))
+                            (cons (list (car r) (cadr r)
+                                        (map wff-formula (sequent-node-assumptions c))
+                                        (wff-formula (sequent-node-assertion c)))
+                                  acc))
+                          acc))))))))
 
 ;; *fresh-counter* (expressions.scm) value captured at each proof's sp, keyed by
 ;; proof name at qed.  proof-tex replay restores it so a proof that pins specific
@@ -87,8 +231,14 @@
 
 (define *proof-script-table* (make-equal-hash-table))
 
+;;; Per-proof mint record, kept beside the script: name -> per-step name lists,
+;;; in STEP ORDER.  The emitter needs it to say which step minted which variable;
+;;; nothing else reads it, and the script itself is unchanged.
+(define *proof-mints-table* (make-equal-hash-table))
+
 (define (save-proof name)
   (hash-table-set! *proof-script-table* name *proof-script*)
+  (hash-table-set! *proof-mints-table* name (reverse *proof-mints*))
   name)
 
 (define (lookup-proof name)
@@ -110,6 +260,12 @@
 ;; is also loadable standalone.
 (if (not (environment-bound? system-global-environment '*vnb-loading*))
     (eval '(define *vnb-loading* #f) system-global-environment))
+
+;;; Set by presentation.scm (the resolution dial) and #f until then: `sp' calls
+;;; it with the fresh proof state so the goal-driven auto-notch can choose a
+;;; STARTING resolution.  It fires once per proof by construction -- see the
+;;; note at the call site in `sp'.
+(define *sp-presentation-hook* #f)
 
 (define (show)
   (unless (or *vnb-quiet* *vnb-loading*)
@@ -166,8 +322,11 @@
 
 ;;; Convert a formula argument to a raw S-expression.
 ;;; Accepts either a string (parsed via parse-string) or a raw S-expression.
+;;; Every surface tactic's formula argument comes through here, which is why it
+;;; is where a page's witness aliases (`w1') are resolved to the names this
+;;; session minted.  A no-op -- one null check -- unless a page introduced one.
 (define (->raw-formula f)
-  (if (string? f) (parse-string f) f))
+  (witness-resolve (if (string? f) (parse-string f) f)))
 
 ;;; Resolve a tactic's formula argument, with assumption-by-number support.
 ;;; A positive exact integer k selects the k-th assumption of the focus
@@ -231,13 +390,36 @@
                    ((pair? wic-in) (make-wff wic-in))
                    (else (error "sp: expected a wff, a \"string\", or an S-expr" wic-in)))))
       (set! *proof-script* '())
+      (set! *proof-hidden-citations* '())   ; steps inside bc* handlers, for the ledger
+      (set! *proof-mints* '())         ; per-step mint record, for witness naming
+      (set! *fresh-mark-at-last-record* *fresh-log*)
+      (set! *witness-aliases* '())     ; and any page aliases from a previous run
       (set! *current-goal* (wff-formula wic))
       (set! *sp-counter-snapshot* *fresh-counter*)   ; for faithful proof-tex replay
       (set! *ps* (start-proof wic))
       (vnb--undo-reset!)                             ; no backing up past (sp)
       (set! *live-trace* '())                        ; begin a fresh live capture
       (vnb--capture-step! (cons 'sp '()))            ; seed it with the initial goal
-      (show)))))
+      ;; The presentation dial's AUTO-NOTCH, and `sp' is the only place it can
+      ;; honestly fire: the design is that the goal SUGGESTS a starting notch
+      ;; and the dial then STAYS PUT, so it is consulted once per proof, here,
+      ;; and never again while the proof runs.  A hook rather than a direct
+      ;; call because presentation.scm loads after this file; #f unless the user
+      ;; turned *presentation-auto* on, so the default path is unchanged.
+      (if *sp-presentation-hook* (*sp-presentation-hook* *ps*))
+      ;; PROOF CERTIFICATES (certificates.scm, 2026-09-24): under a certified
+      ;; load the hook looks the statement up in the file's certificate and, on
+      ;; a valid record, installs the theorem and escapes the form; otherwise it
+      ;; returns and the proof runs.  #f outside a certified load.
+      (let ((r (show)))
+        (if *cert-sp-hook* (*cert-sp-hook*))
+        r)))))
+
+;;; The three hooks certificates.scm sets (it loads after this file and after
+;;; proof-debt.scm): `sp' above, the top of `qed', and the end of qed--guarded.
+(define *cert-sp-hook* #f)
+(define *cert-qed-hook* #f)
+(define *cert-record-hook* #f)
 
 ;;; (wff "...") -- short alias for make-wff-from-string, so a goal can be
 ;;; started from the scratch sheet as (sp (wff "forall([x in nn], x in zz)")).
@@ -525,8 +707,28 @@
     (display msg)
     (newline)))
 
+;;; OWED-LEAF DISCHARGE (2026-09-18).  Since the LUTINS instantiation rule,
+;;; `fact' / `inst+' at a term the context does not certify defined post a side
+;;; sequent (= t t).  Most such terms have a typing theorem one citation away
+;;; (matmul-type, entry-in-carrier, in-rr's closure facts), so after every
+;;; successful command the boundary hands each FRESH owed leaf to
+;;; *owed-leaf-hook* -- set by driver-kit to `dk-discharge-owed!', which cites
+;;; the typing and closes by reflexivity, or leaves the leaf open.  The hook's
+;;; steps run through this same boundary, so they are RECORDED and the page
+;;; replays them; `*owed-leaf-hook-active?*' stops it recursing.
+(define *owed-leaf-hook* #f)
+(define *owed-leaf-hook-active?* #f)
+(define (vnb--owed-leaves)
+  ;; only the side sequents forall-elim itself posted (*pi-owed-nodes*), never
+  ;; a (= t t) goal a driver put up as its own claim
+  (if (and *ps* (proof-state? *ps*))
+      (filter (lambda (l) (memq l *pi-owed-nodes*)) (proof-open-leaves *ps*))
+      '()))
+
 (define (vnb--run! sym args thunk)
   (let* ((mark   (vnb--take-mark (cons sym args)))
+         (owed0  (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
+                     (vnb--owed-leaves) '()))
          (result (vnb-guard (lambda () (vnb--require-proof!) (thunk)))))
     (cond
       ((vnb-error? result) #f)          ; already displayed by vnb-guard
@@ -539,7 +741,13 @@
        (vnb--undo-push! mark)
        (record-cmd! sym args)
        (set! *ps* result)
-       (vnb--capture-step! (cons sym args))   ; live trace for proof-tex
+       (vnb--capture-step! (cons sym args)    ; live trace for proof-tex
+                           (vnb--oracle-certs-since mark))
+       (if (and *owed-leaf-hook* (not *owed-leaf-hook-active?*))
+           (let ((fresh (filter (lambda (l) (not (memq l owed0))) (vnb--owed-leaves))))
+             (if (pair? fresh)
+                 (fluid-let ((*owed-leaf-hook-active?* #t))
+                   (for-each (lambda (l) (*owed-leaf-hook* l)) fresh)))))
        (show)))))
 
 (define (di)    (vnb--run! 'di    '()    (lambda () (cmd-direct-inference *ps*))))
@@ -903,15 +1111,30 @@
   (filter (lambda (sqn) (and (not (sequent-node-grounded? sqn))
                              (null? (sequent-node-in-arrows sqn))))
           (dg-ungrounded-nodes (proof-state-dg *ps*))))
+;; Both focus moves RECORD themselves (2026-09-14) as `focus-id', the way ass-all
+;; does: in-rr's expansion is what the script holds (its cut/fact/ass steps all go
+;; through the surface), so a focus move it makes silently shifts every later
+;; positional `(focus n)' on the printed page.  Found by the page-audit gate: the
+;; four proofs of theorem-library/mvt-aux-guarded.scm typed back in with eight
+;; leaves open, diverging exactly at in-rr's typing lane; mvt, rolle and
+;; interior-min-deriv-zero had been failing the gate the same way since it was
+;; built.  `focus-id' (node number) rather than `focus' (position): the number is
+;; per-proof and reproduces, the position is what was drifting.
+(define (in-rr--refocus! s)
+  (when s
+    (vnb--undo-push! (vnb--take-mark (list 'focus-id (sequent-node-number s))))
+    (set-proof-state-focus! *ps* s)
+    (record-cmd! 'focus-id (list (sequent-node-number s))))
+  s)
 (define (in-rr--focus-goal! raw)
-  (let ((s (find-first (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
-                       (in-rr--leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+  (in-rr--refocus!
+   (find-first (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
+               (in-rr--leaves))))
 (define (in-rr--focus-asm! raw)
-  (let ((s (find-first (lambda (s) (find-first (lambda (w) (equal? (wff-formula w) raw))
-                                               (sequent-node-assumptions s)))
-                       (in-rr--leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+  (in-rr--refocus!
+   (find-first (lambda (s) (find-first (lambda (w) (equal? (wff-formula w) raw))
+                                       (sequent-node-assumptions s)))
+               (in-rr--leaves))))
 (define (in-rr--in-ctx? raw)
   (find-first (lambda (w) (equal? (wff-formula w) raw))
               (sequent-node-assumptions (proof-state-focus *ps*))))
@@ -974,12 +1197,113 @@
               (let ((n (string->symbol name)))
                 (and (hash-table-ref/default *theorem-table* n #f) n))))))
 
+;;; A TERM THE CONTEXT TYPES IN A SUBCLASS.
+;;;
+;;; `in-rr' used to give up on a bare variable whose typing was not LITERALLY
+;;; in context: it fell through to `(ass)', which warns and leaves the goal
+;;; open.  So `k in nn |- k in rr' failed, and so did `x in ccint(a,b) |-
+;;; x in rr' -- the case the user hit over and over on 2026-09-10 ("I'm
+;;; confused why it keeps coming back to this over and over").  In both the
+;;; fact is in the context and the inclusion is in the library.
+;;;
+;;; The bridge is a walk of the inclusion GRAPH.  Each row is one edge
+;;;
+;;;     (C . S) . thm      where thm is   forall <params>, x. x in C(<params>)
+;;;                                                          => x in S
+;;;
+;;; and every row has that ONE shape, so an edge is discharged by a single
+;;; `fact' at the parameters and the term.  Chaining is then free: `fact'
+;;; auto-detaches against what the previous edge landed, which is exactly how
+;;; `nn-in-rr' is itself proved (three citations down the chain, then `ass').
+;;; So `n in nn |- n in cc' walks NN -> RR -> CC with no row of its own.
+;;;
+;;; A TABLE, not a search of the theorem table.  The edge has to be the RIGHT
+;;; one, and a search over conclusions could not tell `ccint(a,b) subset rr'
+;;; from `rr subset rr-star' -- citing the wrong way lands a fact that does not
+;;; close the goal and, there being no undo inside a composite, cannot be taken
+;;; back.  Keyed on the goal's class as well as the context's, so a row can
+;;; never fire at a class it does not conclude about.
+;;;
+;;; `ccint-subset-rr' (monotone-inverse.scm) is deliberately NOT the row for
+;;; CCINT: it is in SUBSET form, and reaching a member from it costs a
+;;; `subset-def' unfold plus an instantiation, with the unfolded universal to be
+;;; picked out of a context full of other universals.  `ccint-elt-in-rr'
+;;; (theorem-library/ccint-basics.scm) states the same fact in citable form.
+(define *in-rr-inclusions*
+  '(((NN       . ZZ) . nn-subset-zz)
+    ((NN       . RR) . nn-in-rr)
+    ((ZZ       . QQ) . zz-subset-qq)
+    ((ZZ       . RR) . zz-in-rr)
+    ((QQ       . RR) . qq-subset-rr)
+    ((RR       . CC) . rr-subset-cc)
+    ((INTERVAL . NN) . interval-elt-in-nn)
+    ((CCINT    . RR) . ccint-elt-in-rr)))
+
+;;; The class head the context types TERM in, or #f.  Compound (CCINT a b) is
+;;; keyed by its head; a bare class name is its own key.
+(define (in-rr--ctx-class term)
+  (let ((a (find-first (lambda (a)
+                         (and (pair? a) (eq? (car a) 'IN) (equal? (cadr a) term)))
+                       (dk-asms))))
+    (and a (caddr a))))
+
+;;; Edges from C's head to S, shortest first.  Returns the theorem names in
+;;; citation order, or #f if the graph does not connect them.  Six classes, so
+;;; a breadth-first walk with a visited set is the whole of it.
+(define (in-rr--inclusion-route head S)
+  (let loop ((frontier (list (list head))) (seen (list head)))
+    (cond
+      ((null? frontier) #f)
+      ((eq? (caar frontier) S) (reverse (map cdr (cdar frontier))))
+      (else
+       (let* ((path (car frontier))
+              (here (car path))
+              (steps (filter (lambda (row) (and (eq? (caar row) here)
+                                                (not (memq (cdar row) seen))))
+                             *in-rr-inclusions*)))
+         (loop (append (cdr frontier)
+                       (map (lambda (row) (cons (cdar row) (cons row (cdr path))))
+                            steps))
+               (append (map cdar steps) seen)))))))
+
+;;; Run the route.  Returns #t only if the goal is actually CLOSED -- a #t from
+;;; a chain that left the leaf open would make `in-rr' report success on an
+;;; open proof, the one thing a typing tactic must not do.
+(define (in-rr--via-inclusion! term S)
+  (let* ((node (proof-state-focus *ps*))
+         (C (in-rr--ctx-class term))
+         (head (cond ((pair? C) (car C)) ((symbol? C) C) (else #f)))
+         (params (if (pair? C) (cdr C) '()))
+         (route (and head (not (eq? head S)) (in-rr--inclusion-route head S))))
+    (and route
+         (not (find-first (lambda (thm)
+                            (not (hash-table-ref/default *theorem-table* thm #f)))
+                          route))
+         (begin
+           (quietly
+            (lambda ()
+              ;; only the FIRST edge leaves the parameterised class; every
+              ;; later one starts from a bare class name and takes the term
+              ;; alone.  `fact' detaches against the previous edge's landing.
+              (let hop ((rs route) (args params))
+                (if (pair? rs)
+                    (begin (apply fact (car rs) (append args (list term)))
+                           (hop (cdr rs) '()))))
+              (ass)))
+           (sequent-node-grounded? node)))))
+
 (define (in-rr--close!)                    ; close current focus goal (IN term S)
   (let* ((g (in-rr--goal)) (term (cadr g)) (S (caddr g)))
     (cond
       ((in-rr--in-ctx? g) (ass))
+      ;; typed in a SUBCLASS in the context: bridge it rather than give up
+      ((in-rr--via-inclusion! term S) #t)
       ((symbol? term) (ass))
-      ((number? term) (ass))
+      ;; a numeral not already typed in the context: `arith' decides membership of a
+      ;; ground number in NN / ZZ / QQ / RR.  This was `(ass)', which left `3 in zz'
+      ;; open with a warning under every integer polynomial (2026-09-21, the user's
+      ;; exercise (x + y)^3 = x^3 + a * y).
+      ((number? term) (arith))
       ;; BRIDGE form -> surface form, then fall through to the closure branches.
       ;; to-binary (above) leaves nested `binplus'/`bintimes'/`binneg'; their
       ;; defining apply equations take them back to + * -, which is where the
@@ -1013,6 +1337,17 @@
          (quietly (lambda ()
                     (dk-have! (list 'AND (list 'IN a S) (list 'IN b S)))
                     (fact thm a b) (ass)))))
+      ;; POWERS, and a `-' with no law in S (subtraction in QQ, n-ary minus):
+      ;; the type-term planner (driver-kit.scm, notes-37, 2026-09-24).  There
+      ;; was no branch for `power' at all, so every x ^ k fell to the `(ass)'
+      ;; below and stayed open.  The planner cites power-real-closed (RR) /
+      ;; power-typing-nonneg (CC), and in ZZ / QQ / NN types x ^ k, k a
+      ;; numeral, through the crs identity x ^ k = x * ... * x.  It is pure until
+      ;; it has a whole plan and transactional after, so a decline changes
+      ;; nothing and the goal falls to the old fallback as before.
+      ((and (pair? term) (memq (car term) '(power -))
+            (type-term--close-focus! term S))
+       #t)
       ((and (pair? term) (eq? (car term) 'LIST))
        (ci)
        (for-each (lambda (elt fac)
@@ -1030,6 +1365,19 @@
              (ass)))))))
 (define (in-rr)
   (vnb--require-proof!)
+  ;; SHAPE GUARD.  Every branch of `in-rr--close!' reads (cadr g) and (caddr g)
+  ;; off the goal, so a goal that is not a membership either wanders through
+  ;; branches that cannot apply or -- on a two-element form like (NOT p) --
+  ;; raises on the `caddr'.  It also has to decline cleanly because `in-rr' is
+  ;; now a what-now live-fire probe, run on EVERY leaf the panel is asked
+  ;; about; a probe that raises used to take the whole panel down with it
+  ;; (`contra', 2026-08-16), and one that merely warns is noise.  Silent #f.
+  (let ((g (in-rr--goal)))
+    (if (not (and (pair? g) (eq? (car g) 'IN) (= (length g) 3)))
+        #f
+        (in-rr--run!))))
+
+(define (in-rr--run!)
   ;; to-binary folds the parser's FLAT n-ary node -- `a + b + c' is one term of
   ;; length 4 that no binary closure axiom matches -- into nested binary
   ;; applications.  It is run ONLY when such a node is present.
@@ -1066,6 +1414,94 @@
              (lambda ()
                (let ((raw (->raw-formula/idx f)))
                  (if (vnb-warning? raw) raw (cmd-weaken *ps* raw))))))
+;;; (keep F1 F2 ...) -- KEEP ONLY the named assumptions; drop every other one.
+;;;
+;;; One recorded step where `dk-only!' used to record one `wk' per dropped
+;;; assumption (Prop 3.2, `line-int-of-derivative', printed ten pages of `(wk ..)'
+;;; lines).  No new kernel operation: it is `cmd-weaken' once per assumption NOT
+;;; named, on the SAME leaf, inside ONE `vnb--run!', so the script, the undo stack,
+;;; `*proof-mints*' and the live trace each see ONE step.
+;;;
+;;; ARGUMENTS.  Each Fi is what `wk' accepts (a raw formula, a "string", a wff, a
+;;; 1-based assumption index), resolved at call time; the step records the
+;;; RESOLVED FORMULAS, never an index (an index is ephemeral: the page replays in
+;;; a run whose context order need not be this one).  A context formula is kept
+;;; when it is alpha-equivalent to some Fi; an Fi that is not in context keeps
+;;; nothing and is not an error
+;;; (the old `dk-only!' accepted such arguments, and 58 library files call it).
+;;; A `keep' that would drop nothing is inert, and says so like any other command.
+;;;
+;;; FOCUS (the dk-only! defect, 2026-09-23).  Weakening replaces the leaf L by a
+;;; new node L'.  When L''s sequent is hash-consed onto a node that is already
+;;; GROUNDED, `focus-after-rule' has no open new node and falls back to the first
+;;; open leaf -- a SIBLING -- and the old `dk-only!' went on weakening THERE
+;;; (theorem-library/line-int-fundamental.scm, TRAPS MET).  `keep' checks, after
+;;; each weakening, that the focus is the node carrying the expected sequent
+;;; (L's goal, L's context minus the dropped formula) and
+;;; continues on it.  If instead L itself is now grounded, the kept sequent was
+;;; already proven: L is closed, `keep' stops there and says so, and drops nothing
+;;; anywhere else.  Any other outcome rolls the graph back to where the command
+;;; started and raises: nothing is half-done and nothing lands on another leaf.
+;;; A context formula is KEPT when it is alpha-equivalent to some keeper -- the
+;;; kernel's own notion (`asms-find', `context-remove-assumption' and hash-consing
+;;; all compare up to alpha), so a formula is never dropped whose weakening would
+;;; also take a keeper with it.
+(define (keep--kept? f keepers)
+  (any (lambda (k) (alpha-equiv? f k)) keepers))
+
+;;; The engine, shared by the surface command and `apply-recorded-cmd!'.
+;;; KEEPERS are raw formulas.  Returns PS (unchanged state when nothing is dropped).
+(define (keep--run! ps keepers)
+  (let* ((leaf0 (proof-state-focus ps))
+         (goal  (sequent-node-assertion leaf0))
+         (dgm   (dg-take-mark (proof-state-dg ps))))
+    (define (fail! msg . irritants)
+      (dg-rollback! dgm)
+      (set-proof-state-focus! ps leaf0)
+      (apply error (string-append "keep: " msg) irritants))
+    (let loop ((leaf leaf0))
+      ;; recomputed on the CURRENT leaf each round: one weakening removes every
+      ;; alpha-equivalent copy, so a list computed once would name gone formulas
+      (let ((drop (find (lambda (a) (not (keep--kept? (wff-formula a) keepers)))
+                        (sequent-node-assumptions leaf))))
+        (if (not drop)
+            ps
+            (let* ((expected (context-remove-assumption
+                              (sequent-node-assumptions leaf) drop))
+                   (r        (cmd-weaken ps (wff-formula drop))))
+              (if (vnb-warning? r)
+                  (fail! "weakening refused" (expression->string (wff-formula drop))))
+              (let ((foc (proof-state-focus ps)))
+                (cond
+                  ((and foc
+                        (not (eq? foc leaf))
+                        (not (sequent-node-grounded? foc))
+                        (wff-equiv? (sequent-node-assertion foc) goal)
+                        (context-same? (sequent-node-assumptions foc) expected))
+                   (loop foc))
+                  ((sequent-node-grounded? leaf)
+                   (unless *vnb-quiet*
+                     (display ";; keep: the kept sequent was already proven -- node ")
+                     (write (sequent-node-number leaf))
+                     (display " is closed; nothing further dropped, here or elsewhere")
+                     (newline))
+                   ps)
+                  (else
+                   (fail! "focus drifted off the leaf being weakened, node"
+                          (sequent-node-number leaf)))))))))))
+
+(define (keep . fs)
+  (let ((raws (if (proof-state? *ps*)
+                  (map (lambda (f)
+                         (if (and (integer? f) (exact? f))
+                             (->raw-formula/idx f)
+                             (->raw-formula f)))
+                       fs)
+                  fs)))
+    (vnb--run! 'keep raws
+               (lambda ()
+                 (let ((bad (find vnb-warning? raws)))
+                   (or bad (keep--run! *ps* raws)))))))
 (define (ui k)  (vnb--run! 'ui (list k) (lambda () (cmd-union-intro *ps* k))))
 (define (ue f)  (let ((raw (->raw-formula f)))
                   (vnb--run! 'ue (list raw) (lambda () (cmd-union-elim *ps* raw)))))
@@ -1398,14 +1834,24 @@
 ;; Run bc* for `name` with `bindings` (alist).  On success returns the list
 ;; of subgoal nodes (possibly '()); on a soft failure displays a warning and
 ;; returns #f.
+;; 2026-09-15: the bindings are resolved through `witness-resolve' first, as every
+;; surface tactic's formula arguments are through `->raw-formula'.  Without it a
+;; page that names a minted witness by its alias inside bc* BINDINGS --
+;; (bc* 'interior-max-deriv-zero ((theta 'w3))) -- backchains on the literal
+;; symbol w3, closes nothing, and every later name-witness! is off (rolle was the
+;; last page-audit failure of its family for exactly this).
 (define (bc*-run! name bindings)
+  (let ((bindings (if (list? bindings)
+                      (map (lambda (p) (if (pair? p) (cons (car p) (witness-resolve (cdr p))) p))
+                           bindings)
+                      bindings)))
   (if (not (hash-table-ref/default *theorem-table* name #f))
       (begin
         (display ";VNB warning: bc*: unknown theorem ")
         (display name) (newline)
         #f)
       (let ((r (vnb-guard (lambda () (bc*--attempt name bindings)))))
-        (if (list? r) r #f))))
+        (if (list? r) r #f)))))
 
 ;; (bc* 'name) / (bc* 'name ((v val) ...)) : spawn subgoals, focus the first.
 (define (bc*-apply name bindings)
@@ -1437,7 +1883,7 @@
           (else
            (for-each (lambda (g th)
                        (set-proof-state-focus! *ps* g)
-                       (fluid-let ((*replaying?* #t)) (th)))
+                       (fluid-let ((*replaying?* #t) (*in-bc*-handler?* #t)) (th)))
                      gs thunks)
            (show)))))))
 
@@ -1597,7 +2043,27 @@
               (let ((r (cmd-assumption *ps*)))
                 (when (proof-state? r)
                   (set! *ps* r)
-                  (set! progressed #t)))))
+                  (set! progressed #t)
+                  ;; RECORD WHAT WAS DONE.  Until 2026-09-08 this swept leaves
+                  ;; closed and wrote nothing down: neither the focus move nor
+                  ;; the `ass'.  A proof driven with `ass-all' therefore emitted
+                  ;; a page that replayed every recorded step faithfully and then
+                  ;; stopped, with exactly the leaves this loop had swept still
+                  ;; open -- 32 of the 39 pages that still failed after the
+                  ;; witness work, and the gap `project_proof_script_emitter'
+                  ;; noted in June ("(ass-all) still not step-recorded") without
+                  ;; connecting it to replay.
+                  ;;
+                  ;; Recorded AFTER the close, so a leaf this sweep could not
+                  ;; discharge writes nothing -- most leaves in a sweep are not
+                  ;; assumption-closable and a focus step for each would bury the
+                  ;; page.  Nothing about what ass-all DOES changed: same nodes,
+                  ;; same kernel call, same order, so no proof can behave
+                  ;; differently.  `focus-id' rather than `focus' because this
+                  ;; sweeps `dg-ungrounded-nodes', which includes non-leaves that
+                  ;; a positional index into `proof-open-leaves' cannot name.
+                  (record-cmd! 'focus-id (list (sequent-node-number g)))
+                  (record-cmd! 'ass '())))))
           (dg-ungrounded-nodes (proof-state-dg *ps*)))
          (when progressed (sweep))))
      (show))))
@@ -2055,8 +2521,23 @@
 ;; The theory characterizes the APPLICATIONS of these heads by axiom and says
 ;; nothing about the heads.  Listing them is a judgement, not a measurement,
 ;; which is why they are named here and the function class is not.
+;; NOT on this list, and the omission is deliberate (2026-09-01, the user's
+;; ruling): `exp', `sin', `cos'.  They are honest functions RR -> RR, not
+;; notation -- fixed arity, single-valued, nothing like the flat n-ary `+'.
+;; What the theory actually says about the three lowercase heads is NOTHING:
+;; zero installed formulas mention them (measured over *theorem-table*).  They
+;; are registered in *wff-term-form-heads* (wff.scm) so the parser accepts them,
+;; and arith-eval folds them to flonums, which the sound-arith gate then rejects
+;; for inexactness.  So the census reports them UNDECLARED, which is the truth
+;; and is a defect it names, rather than calling them syntax, which is a claim
+;; about them that is false.  The real exponential is in the tree under another
+;; name: R-EXP (theorem-library/r-exp.scm), a def-functoid defined as the inverse
+;; of LOG by description, with 26 results -- and `r-exp-lam-in-fun' states
+;; `(vnb-lambda y RR (R-EXP y)) in FUN(RR,RR)', the honest-function statement,
+;; about the LAMBDA rather than about the head.  `sin' and `cos' have no
+;; counterpart at all.
 (define *op-syntax-heads*
-  '(+ - * recip abs conjugate succ exp sin cos sqrt rpow
+  '(+ - * recip abs conjugate succ sqrt rpow
     real-part imag-part magnitude))
 
 ;; KERNEL term-formers: the foundational VNB set/tuple builders.  These are
@@ -2426,7 +2907,9 @@
         (display "# VNB catalog: theorems, axioms, definitions, assertions\n\n")
         (display "Auto-generated by `(catalog)`.  ")
         (display (length all))    (display " results — ")
-        (display (length proven))  (display " proven, ")
+        (display (length proven))  (display " proven (")
+        (display (length (filter certified-theorem? proven)))
+        (display " of them installed from a certificate, their proofs not run in this load), ")
         (display (length support)) (display " support (PSS), ")
         (display (length axioms))  (display " stated without proof (")
         (display (length prim))    (display " axioms, ")
@@ -2461,9 +2944,9 @@
         (display "comprehension `{x|p}`, indexed union `⋃_{z∈A}body`) carry a ")
         (display "formula schema in their body and so live in the proof checker ")
         (display "as primitive inference rules, not as formulas in this table.  ")
-        (display "They are documented in `KERNEL-RULES.md`, which is the honest ")
-        (display "statement of the trusted base: these axioms **plus** the ")
-        (display "kernel rules.\n\n")
+        (display "They are stated, with their premises and conclusions, in ")
+        (display "`KERNEL-RULES.md`.  The trusted base is these axioms **plus** ")
+        (display "the kernel rules.\n\n")
         (for-each catalog--line prim)
         (display "\n### Definitions — conservative extensions\n\n")
         (display "Emitted by def-/declare- forms (IS-X folding, accessor ")
@@ -2475,7 +2958,8 @@
         (for-each catalog--line asrt)))
     (display ";; catalog: ") (display (length all))
     (display " results (") (display (length proven))
-    (display " proven, ") (display (length support))
+    (display " proven, of them ") (display (length (filter certified-theorem? proven)))
+    (display " certified, ") (display (length support))
     (display " support, ") (display (length axioms))
     (display " stated = ") (display (length prim))
     (display " axioms + ") (display (length defn))
@@ -4496,6 +4980,12 @@
                  (if (vnb-warning? raw) raw (cmd-comp-mem-elim *ps* raw))))))
 (define (iota-d t)  (let ((raw (->raw-formula t)))
                       (vnb--run! 'iota-d (list raw) (lambda () (cmd-iota-def *ps* raw)))))
+;;; iota-d's context-side twin: the description already DENOTES (the context
+;;; carries `(IN <iota> X)' or an equation naming it), so its defining property
+;;; comes for free -- no existence-and-uniqueness obligation is posted.  See
+;;; pi-iota-in-elim! for why that is sound.
+(define (iota-e t)  (let ((raw (->raw-formula t)))
+                      (vnb--run! 'iota-e (list raw) (lambda () (cmd-iota-in-elim *ps* raw)))))
 (define (lam-t)    (vnb--run! 'lam-t    '() (lambda () (cmd-lambda-type      *ps*))))
 (define (lam-b)    (vnb--run! 'lam-b    '() (lambda () (cmd-lambda-beta      *ps*))))
 ;;; lam-b's hypothesis-side twin -- what mac-h is to mac.  A `fact' that
@@ -4614,7 +5104,27 @@
 ;;; Install the completed current proof as a named theorem AND save the
 ;;; proof script under the same name.
 
+;;; A `qed' that FAILS returns a <vnb-error> and prints one line; in a file being
+;;; loaded nothing else happens, the load goes on, and unless a later file cites
+;;; the theorem nothing ever stops.  Found 2026-09-20: a leaf theorem that passed
+;;; on the band failed in the cold load, and the strict load exited 0.  Every
+;;; failure is therefore RECORDED here, and the end of load.scm lists the record
+;;; and makes it fatal in a strict load (`qed-failure gate').  The record is
+;;; (NAME . MESSAGE), newest first.
+(define *vnb-qed-failures* '())
+
 (define (qed name)
+  ;; A qed that closes a proof the certified loader SKIPPED (its theorem was
+  ;; installed from its certificate at `sp') is handled by the hook.
+  (if (and *cert-qed-hook* (*cert-qed-hook* name))
+      name
+      (let ((r (qed--guarded name)))
+        (if (vnb-error? r)
+            (set! *vnb-qed-failures*
+                  (cons (cons name (vnb-error-message r)) *vnb-qed-failures*)))
+        r)))
+
+(define (qed--guarded name)
   (vnb-guard
     (lambda ()
       (vnb--require-proof!)
@@ -4630,7 +5140,17 @@
       ;; Ledger: compute and memoize this proof's bill of asserted debt from
       ;; the just-saved script, then report `proven modulo {...}'.  (Defined
       ;; in proof-debt.scm, loaded right after this file.)
-      (announce-proof-debt name (record-proof-debt! name))
+      ;; A keep-going HOLE (cmd-qed, hole mode) is installed ASSERTED with open
+      ;; leaves: it must not be announced as `proven modulo 0' (audit 13-E,
+      ;; 2026-09-20 -- the load log said both things about one theorem).
+      (if (assq name *vnb-qed-holes*)
+          (begin (display ";; qed ") (display name)
+                 (display ": HOLE -- installed ASSERTED, proof incomplete\n"))
+          (let ((bill (record-proof-debt! name)))
+            (announce-proof-debt name bill)
+            ;; the certificate record (certificates.scm), written at the end of
+            ;; the file's load when this is a load of the tree
+            (if *cert-record-hook* (*cert-record-hook* name bill))))
       name)))
 
 ;;; -----------------------------------------------------------------------
@@ -4663,6 +5183,26 @@
         (loop (cdr s)
               (subst-free (caar s) (cdar s) e)))))
 
+;;; A recorded SURFACE command with no cmd-* of its own -- `slot', `prop',
+;;; `minimize!' and the rest are composites, or wrappers that bind a fluid
+;;; around a cmd-*.  Replay them by calling the surface procedure itself: under
+;;; `*replaying?*' its `vnb--run!' records nothing, and it mutates *ps* in
+;;; place exactly as it did when the proof ran.
+;;;
+;;; A surface procedure reports failure by returning #f (or, inside
+;;; `vnb-guard', a <vnb-error> object) rather than by raising, so the caller
+;;; cannot read the return value.  Test the DEDUCTION GRAPH instead, by the same
+;;; predicate `vnb--run!' uses for its inert-command notice: a real move posts a
+;;; node, records an inference, writes an arrow or grounds something -- or else
+;;; it moves the focus.  Nothing moved means the step did not replay.
+(define (replay--surface! name thunk)
+  (let ((dgm (dg-take-mark (proof-state-dg *ps*)))
+        (foc (proof-state-focus *ps*)))
+    (thunk)
+    (if (and (dg-mark-unchanged? dgm) (eq? foc (proof-state-focus *ps*)))
+        (error "replay: command failed" name "nothing changed")
+        *ps*)))
+
 ;;; Dispatch a recorded command back to its underlying cmd-* function.
 ;;; Bypasses recording (we call cmd-* directly, not the short form), so
 ;;; replay does not corrupt *proof-script*.
@@ -4694,11 +5234,20 @@
       ((ew)     (cmd-exists-witness *ps* (car args)))
       ((bc)     (cmd-backchain *ps* (->raw-formula/idx (car args))))
       ((wk)     (cmd-weaken *ps* (->raw-formula/idx (car args))))
+      ;; ONE step for the whole drop; the recorded args are the KEPT formulas
+      ((keep)   (keep--run! *ps* (map ->raw-formula/idx args)))
       ((ui)     (cmd-union-intro *ps* (car args)))
       ((ue)     (cmd-union-elim *ps* (car args)))
       ((ta)     (cmd-theorem-assumption *ps* (car args)))
-      ;; fact records (thm arglist): forward application of a theorem.
-      ((fact)   (cmd-fact *ps* (car args) (cadr args)))
+      ;; `fact' records its instantiation terms FLAT -- (fact thm a b c), the
+      ;; form you would type, not (fact thm (a b c)) -- see the comment at the
+      ;; surface `fact' above.  This case read the nested shape until
+      ;; 2026-09-06, and the disagreement was the single largest cause of
+      ;; script-replay failure in the tree: (fact thm) with no terms died on
+      ;; (cadr '()) , and (fact thm a b) handed cmd-fact the SYMBOL a where a
+      ;; list of terms was wanted, so it instantiated nothing, landed the raw
+      ;; universal, and every later `ass'/`ai' in that script missed.
+      ((fact)   (cmd-fact *ps* (car args) (cdr args)))
       ((mac)    (cmd-apply-macete *ps* (car args)))
       ((mac-h)  (cmd-apply-macete-to-assumption *ps* (car args) (->raw-formula/idx (cadr args))))
       ((mac-h*) (cmd-mac-h* *ps*))
@@ -4720,6 +5269,7 @@
       ((comp-mi) (cmd-comp-mem-intro    *ps*))
       ((comp-me) (cmd-comp-mem-elim     *ps* (->raw-formula/idx (car args))))
       ((iota-d)  (cmd-iota-def          *ps* (car args)))
+      ((iota-e)  (cmd-iota-in-elim      *ps* (car args)))
       ((lam-t)   (cmd-lambda-type       *ps*))
       ((lam-b)   (cmd-lambda-beta       *ps*))
       ((bu-set)  (cmd-big-union-sethood  *ps*))
@@ -4729,6 +5279,19 @@
       ((focus)  (focus-on *ps*
                           (list-ref (proof-open-leaves *ps*)
                                     (- (car args) 1))))
+      ;; `focus-id' names a node by its DISPLAYED NUMBER rather than by position,
+      ;; and had no case here at all -- the same hole `slot' and `prop' had until
+      ;; 2026-09-06.  It matters now because `ass-all' records with it: node
+      ;; numbers come from the per-proof counter (start-proof), so they reproduce
+      ;; exactly, and unlike a position they still name the right node when the
+      ;; target is an ungrounded NON-leaf, which is what ass-all sweeps.
+      ((focus-id)
+       (let loop ((gs (proof-open-goals *ps*)))
+         (cond ((null? gs)
+                (error "replay: focus-id: no open goal with node number" (car args)))
+               ((eqv? (sequent-node-number (car gs)) (car args))
+                (focus-on *ps* (car gs)))
+               (else (loop (cdr gs))))))
       ;; bc* re-derives by re-matching the conclusion (and any recorded
       ;; bindings) against the current goal, mutating *ps* in place; return
       ;; *ps* so the uniform (set! *ps* result) below is a no-op.  The recorded
@@ -4760,6 +5323,20 @@
                                  (eval form user-initial-environment))
                                gs forms)
                      *ps*))))
+      ;; Surface composites / fluid-binding wrappers: no cmd-* to call, so run
+      ;; the surface procedure.  Each of these already records ITSELF rather
+      ;; than its expansion (prop.scm, minimize.scm, and the `vnb--run!' calls
+      ;; above); without a case here that recording was written into every
+      ;; script and then rejected at replay as an unknown command.
+      ((slot)      (replay--surface! 'slot      (lambda () (slot (car args)))))
+      ((slot-h)    (replay--surface! 'slot-h    (lambda () (slot-h (car args) (cadr args)))))
+      ((detach!)   (replay--surface! 'detach!   (lambda () (detach! (car args)))))
+      ((lam-b-h)   (replay--surface! 'lam-b-h   (lambda () (lam-b-h (car args)))))
+      ((macm)      (replay--surface! 'macm      (lambda () (macm (car args)))))
+      ((prop)      (replay--surface! 'prop      (lambda () (prop))))
+      ((mp)        (replay--surface! 'mp        (lambda () (mp))))
+      ((minimize!) (replay--surface! 'minimize!
+                     (lambda () (minimize! (car args) (cadr args) (caddr args)))))
       (else (error "replay: unknown recorded command" name)))))
     (if (vnb-warning? result)
         (error "replay: command failed" name (vnb-warning-message result))
@@ -4811,13 +5388,122 @@
   (for-each (lambda (form) (write form port) (newline port))
             (proof-script->forms script)))
 
+;;; --- WHY THE PAGE STILL REPRINTS A SELECTED FORMULA (tried, reverted) ------
+;;;
+;;; Many tactics take a formula that merely SELECTS an assumption already in the
+;;; focus context -- `ai', `mac-h', `inst+', `wk', `detach!', `slot-h',
+;;; `sep-me', `lam-b-h' and the rest of the `->raw-formula/idx' family, which
+;;; has accepted an integer for exactly this purpose all along.  Emitting `(ai 3)'
+;;; instead of reprinting the formula is a LARGE legibility win: 6319 such
+;;; arguments occupy 747540 of the page corpus's 2377736 characters, 31% of
+;;; everything a reader has to look at.
+;;;
+;;; IT WAS BUILT AND REVERTED (2026-09-08), and the reason is worth keeping so it
+;;; is not tried again the same way.  The index is the formula's position in the
+;;; context BEFORE the step, which the emitter can only learn by REPLAYING --
+;;; `*proof-live-trace*' cannot supply it, having no record for `focus'/
+;;; `focus-id', precisely the steps that change which context is in view.  The
+;;; replay was done with `apply-recorded-cmd!' and the counter restored; the PAGE
+;;; runs through the surface tactics with no counter.  Those two paths are not the
+;;; same execution -- the very first page measurement had them at 983 and 979 --
+;;; and for SEVEN proofs the assumption positions differ, so the emitted index
+;;; named the wrong hypothesis and the page stopped re-running: the gate went
+;;; 1011 -> 1004.
+;;;
+;;; So an index computed outside the execution that will use it is not sound, and
+;;; the cost of doing it inside is a third pass over every page, on a gate whose
+;;; emit-and-replay had already gone from 61 s to about 150 s.  For legibility.
+;;; The pre-registered criterion was "this must not move the gate number"; it
+;;; moved it, so it went back.  A future attempt has to compute the index in the
+;;; page's own run, or not at all.
+
+;;; --- WITNESS NAMING ON THE PAGE ---------------------------------------
+;;;
+;;; A recorded script holds counter-minted names verbatim (`n_1788').  On a page
+;;; those denote nothing: the counter is a monotone global, so another session
+;;; mints other numbers.  Emitting the script as-is is why 304 of 315 pages did
+;;; not re-run.
+;;;
+;;; So the page NAMES each minted variable it uses, once, right after the step
+;;; that minted it, and then reads as ordinary text:
+;;;
+;;;     (ai (quote (forsome n_ ...)))
+;;;     (name-witness! 3 (quote w1))
+;;;     (cut (quote (forall k ... w1 ...)))
+;;;
+;;; Only variables the script actually MENTIONS get a name -- a proof mints more
+;;; than it cites, and a naming line for a variable no later step uses would be
+;;; noise on a page whose whole purpose is to be read.
+
+(define (script--minted-names f acc)
+  (cond ((pair? f) (script--minted-names (car f) (script--minted-names (cdr f) acc)))
+        ((and (symbol? f) (page-minted-name? f))
+         (if (memq f acc) acc (cons f acc)))
+        (else acc)))
+
+;;; (step . offset) for NAME, from the per-step mint record; #f if no step minted
+;;; it, which can only happen for a proof whose record is missing.
+(define (script--mint-site name mints)
+  (let loop ((ms mints) (step 1))
+    (cond ((null? ms) #f)
+          ((let scan ((ns (car ms)) (k 0))
+             (cond ((null? ns) #f)
+                   ((eq? (car ns) name) (cons step k))
+                   (else (scan (cdr ns) (+ k 1))))))
+          (else (loop (cdr ms) (+ step 1))))))
+
+;;; The alias plan: ((name step offset alias) ...) for every minted name the
+;;; script mentions and whose minting step is known.
+(define (script--witness-plan script mints)
+  (let loop ((ns (reverse (script--minted-names script '()))) (i 1) (acc '()))
+    (if (null? ns)
+        (reverse acc)
+        (let ((site (script--mint-site (car ns) mints)))
+          (if site
+              (loop (cdr ns) (+ i 1)
+                    (cons (list (car ns) (car site) (cdr site)
+                                (string->symbol (string-append "w" (number->string i))))
+                          acc))
+              (loop (cdr ns) i acc))))))
+
+(define (script--apply-aliases e plan)
+  (let walk ((x e))
+    (cond ((pair? x) (cons (walk (car x)) (walk (cdr x))))
+          ((and (symbol? x) (assq x plan)) => (lambda (p) (cadddr p)))
+          (else x))))
+
 ;; Emit one (sp ...) <commands> (qed 'name) block to PORT.
-(define (script--write-block port name goal script)
-  (when goal
-    (write `(sp (make-wff (quote ,goal))) port) (newline port))
-  (script--write-forms port script)
-  (when name
-    (write `(qed (quote ,name)) port) (newline port)))
+(define (script--write-block port name goal script #!optional mints counter)
+  ;; COUNTER is accepted and unused: it was the sp-time counter the reverted
+  ;; index pass replayed with (see above).  Kept in the signature so the callers
+  ;; that already pass it do not have to be edited back and forth if the page's
+  ;; own run is ever made to supply the indices.
+  (let* ((ms   (if (default-object? mints) '() (or mints '())))
+         (plan (if (null? ms) '() (script--witness-plan script ms))))
+    (when goal
+      (write `(sp (make-wff (quote ,goal))) port) (newline port))
+    (if (null? plan)
+        (script--write-forms port script)
+        (let loop ((forms (proof-script->forms
+                            (map (lambda (e)
+                                   (cons (car e)
+                                         (script--apply-aliases (cdr e) plan)))
+                                 script)))
+                   (step 1))
+          (unless (null? forms)
+            (write (car forms) port) (newline port)
+            ;; every witness this page uses that step STEP minted
+            (for-each (lambda (p)
+                        (when (= (cadr p) step)
+                          (write (if (= 0 (caddr p))
+                                     `(name-witness! ,step (quote ,(cadddr p)))
+                                     `(name-witness! ,step (quote ,(cadddr p)) ,(caddr p)))
+                                 port)
+                          (newline port)))
+                      plan)
+            (loop (cdr forms) (+ step 1)))))
+    (when name
+      (write `(qed (quote ,name)) port) (newline port))))
 
 ;; Print the current proof script (commands since the last sp) to the console.
 (define (dump-proof-script)
@@ -4834,7 +5520,8 @@
     (call-with-output-file filename
       (lambda (port)
         (display ";; VNB proof script -- auto-emitted.  Re-load to replay.\n" port)
-        (script--write-block port nm *current-goal* *proof-script*))))
+        (script--write-block port nm *current-goal* *proof-script*
+                             (reverse *proof-mints*) *sp-counter-snapshot*))))
   filename)
 
 ;; Print the CURRENT proof's script to the REPL, as the same standalone,
@@ -4850,7 +5537,8 @@
         (begin
           (display ";; (no proof script recorded -- nothing has run since the last (sp))")
           (newline))
-        (script--write-block (current-output-port) nm *current-goal* *proof-script*))))
+        (script--write-block (current-output-port) nm *current-goal* *proof-script*
+                             (reverse *proof-mints*) *sp-counter-snapshot*))))
 
 ;; Print every proof completed this session (since load) as a sequence of
 ;; (sp ...) ... (qed 'name) blocks -- the whole session as one big script.
@@ -4859,7 +5547,9 @@
       (begin (display ";; (no proofs completed this session)") (newline))
       (for-each
        (lambda (rec)
-         (script--write-block (current-output-port) (car rec) (cadr rec) (caddr rec))
+         (script--write-block (current-output-port) (car rec) (cadr rec) (caddr rec)
+                              (hash-table-ref/default *proof-mints-table* (car rec) '())
+                              (hash-table-ref/default *proof-start-counter* (car rec) #f))
          (newline))
        *session-log*)))
 
@@ -4870,7 +5560,9 @@
       (display ";; VNB session script -- all proofs completed this session.\n" port)
       (for-each
        (lambda (rec)
-         (script--write-block port (car rec) (cadr rec) (caddr rec))
+         (script--write-block port (car rec) (cadr rec) (caddr rec)
+                              (hash-table-ref/default *proof-mints-table* (car rec) '())
+                              (hash-table-ref/default *proof-start-counter* (car rec) #f))
          (newline port))
        *session-log*)))
   filename)

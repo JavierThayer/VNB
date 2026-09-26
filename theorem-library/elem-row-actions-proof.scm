@@ -9,7 +9,7 @@
 
 ;; --- shared proof helpers (copied from elem-actions-proof.scm) ---
 (define (ea-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (ea-foc! n) (set-proof-state-focus! *ps* n))
+(define (ea-foc! n) (dk-focus! n))
 (define (ea-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (ea-di*) (let lp () (let* ((g (ea-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
@@ -44,6 +44,10 @@
          (= (ENTRY (MATMUL A (ELEM-H A m r k) P) i c)
             (IF (= i k) ((MUL A) r (ENTRY P k c)) (ENTRY P i c)))))))))))))))))))
 (ea-di*)
+;; m in NN (P's row count): elem-g-type and the entry read-offs want it;
+;; 1 <= m (i is in [1,m]): matmul-entry's middle-dimension guard.
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)
+(dk-one-le-from! 'i 'm)
 (fact 'elem-h-type 'A 'm 'r 'k)
 (fact 'matmul-entry 'A 'm 'm 'n '(ELEM-H A m r k) 'P 'i 'c)
 (subst `(= (ENTRY (MATMUL A (ELEM-H A m r k) P) i c) (FINSUM ,EA-RAG ,EA-HFF ,EA-INT)))
@@ -72,7 +76,7 @@
 (fact 'finsum-single-support EA-RAG EA-INT EA-HFF 'i)
 (subst `(= (FINSUM ,EA-RAG ,EA-HFF ,EA-INT) (,EA-HFF i)))
 (lam-b)
-(fact 'elem-h-ro-at 'A 'm 'r 'k 'i)
+(fact 'elem-h-entry-diag 'A 'm 'r 'k 'i)
 (subst `(= (ENTRY (ELEM-H A m r k) i i) (IF (= i k) r (ONE A))))
 (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'i 'c)
 (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'k 'c)
@@ -119,6 +123,10 @@
                 ((ADD A) (ENTRY P k c) ((MUL A) r (ENTRY P l c)))
                 (ENTRY P i c))))))))))))))))))))))
 (ea-di*)
+;; m in NN (P's row count): elem-g-type and the entry read-offs want it;
+;; 1 <= m (i is in [1,m]): matmul-entry's middle-dimension guard.
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)
+(dk-one-le-from! 'i 'm)
 (fact 'elem-g-type 'A 'm 'r 'k 'l)
 (fact 'matmul-entry 'A 'm 'm 'n '(ELEM-G A m r k l) 'P 'i 'c)
 (subst `(= (ENTRY (MATMUL A (ELEM-G A m r k l) P) i c) (FINSUM ,EA-RAG ,EA-GFF ,EA-INT)))
@@ -232,6 +240,10 @@
             (IF (= i k) (ENTRY P l c)
                 (IF (= i l) (ENTRY P k c) (ENTRY P i c)))))))))))))))))))))
 (ea-di*)
+;; m in NN (P's row count): elem-g-type and the entry read-offs want it;
+;; 1 <= m (i is in [1,m]): matmul-entry's middle-dimension guard.
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)
+(dk-one-le-from! 'i 'm)
 (fact 'elem-f-type 'A 'm 'k 'l)
 (fact 'matmul-entry 'A 'm 'm 'n '(ELEM-F A m k l) 'P 'i 'c)
 (subst `(= (ENTRY (MATMUL A (ELEM-F A m k l) P) i c) (FINSUM ,EA-RAG ,EA-FFF ,EA-INT)))
@@ -263,6 +275,6 @@
 (if-false '(IF (= i l) (ENTRY P k c) (ENTRY P i c)))
 (define rf-ro (ea-last)) (ass) (ea-foc! rf-ro)
 (subst '(= (IF (= i l) (ENTRY P k c) (ENTRY P i c)) (ENTRY P i c)))
-(ea-collapse-row 'i 'elem-f-ro-off 'elem-f-ro-at)
+(ea-collapse-row 'i 'elem-f-ro-off 'elem-f-co-at)
 (qed 'elem-f-row-action)
 (topic! 'elem-f-row-action 'algebra)

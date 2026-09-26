@@ -21,10 +21,10 @@
 (define (fpred p)
   (let ((cands (filter (lambda (n) (p (wff-formula (sequent-node-assertion n)))) (leaves))))
     (and (pair? cands)
-         (begin (set! *ps* (focus-on *ps*
+         (begin (dk-focus!
                   (car (sort cands (lambda (a b)
                     (> (length (sequent-node-assumptions a))
-                       (length (sequent-node-assumptions b))))))))
+                       (length (sequent-node-assumptions b)))))))
                 #t))))
 (define (fhead h) (fpred (lambda (a) (and (pair? a) (eq? (car a) h)))))
 (define (lheads) (map (lambda (n) (let ((a (wff-formula (sequent-node-assertion n)))) (if (pair? a)(car a) a))) (leaves)))

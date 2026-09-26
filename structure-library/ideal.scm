@@ -1,3 +1,4 @@
+;;; RETIRED 2026-09-17 (proven): ideal-elt-in-carrier, principal-ideal-in-ideal -- theorem-library/rake-algebra.scm
 ;;; ideal.scm -- ideals, principal ideals, and principal-ideal domains over a
 ;;; commutative ring.  The vocabulary the Euclidean-ring => PID stress test
 ;;; needs (theorem-library/euclidean-ring-pid.scm).
@@ -99,20 +100,9 @@
 
 ;;; ideal-elt-in-carrier: an element of an ideal lies in the carrier.
 ;;; Immediate from the SUBSET I (CARR s) conjunct of IS-IDEAL.
-(support 'ideal-elt-in-carrier
-  '(FORALL s (FORALL I (FORALL x
-     (IMPLIES (IS-IDEAL s I) (IMPLIES (IN x I) (IN x (CARR s))))))))
-(warrant! 'ideal-elt-in-carrier 'proof
-  "IS-IDEAL(s,I) has SUBSET I (CARR s) as a conjunct; apply subset-def at x.")
 
 ;;; principal-ideal-in-ideal: if b lies in the ideal I then the whole
 ;;; principal ideal (b) is contained in I -- the easy inclusion (b) subset I.
-(support 'principal-ideal-in-ideal
-  '(FORALL s (FORALL I (FORALL b
-     (IMPLIES (IS-IDEAL s I) (IMPLIES (IN b I)
-       (FORALL x (IMPLIES (IN x (PRINCIPAL-IDEAL s b)) (IN x I)))))))))
-(warrant! 'principal-ideal-in-ideal 'proof
-  "x in (b) gives x = r.b for some r in A (principal-ideal-membership); IS-IDEAL's multiplicative-absorption conjunct then puts r.b in I.")
 
 ;;; euclidean-ideal-has-generator: THE mathematical core.  Every ideal of a
 ;;; Euclidean ring has a generator b in I with I subset (b) -- i.e. every

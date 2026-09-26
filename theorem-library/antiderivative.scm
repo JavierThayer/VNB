@@ -113,24 +113,11 @@
 ;;; 0.  DEFINITION 4.6.
 ;;; =====================================================================
 
-(def-predicate 'IS-ANTIDERIVATIVE '(f phi a b)
-  (conjuncts->and
-    (list '(IN f (FUN RR RR))
-          '(IN phi (FUN RR RR))
-          '(IN a RR)
-          '(IN b RR)
-          '(< a b)
-          '(FORALL x_ (IMPLIES (IN x_ (CCINT a b))
-                       (IS-CONTINUOUS-AT RR-MS RR-MS f x_)))
-          '(FORALL th_ (IMPLIES (AND (IN th_ RR) (AND (< a th_) (< th_ b)))
-                       (IS-DIFF-AT f th_ (phi th_)))))))
-(notation! 'IS-ANTIDERIVATIVE 'kind 'predicate 'arity 4
-           'english "$1 is an antiderivative of $2 on the interval [$3, $4]")
-
-(def-predicate 'IS-ANTIDERIVABLE '(phi a b)
-  '(FORSOME f_ (IS-ANTIDERIVATIVE f_ phi a b)))
-(notation! 'IS-ANTIDERIVABLE 'kind 'predicate 'arity 3
-           'english "$1 is antiderivable on the interval [$2, $3]")
+;;; Definition 4.6 itself -- IS-ANTIDERIVATIVE and IS-ANTIDERIVABLE, with their
+;;; notation! -- MOVED 2026-09-20 (batch 12-A) to
+;;; structure-library/antiderivative.scm.  Twelve other files state theorems
+;;; with them while this proof file loads at ~514 of 546.  The projections and
+;;; the Chapter 4 proofs below are unchanged.
 
 ;;; =====================================================================
 ;;; 0b.  THE PROJECTIONS.  `mac-h' REPLACES the hypothesis it unfolds, so a
@@ -188,8 +175,8 @@
 (fact 'rr-neg-closed 1)
 (fact 'diff-at-in-fun 'f 'a 'L)
 (fact 'diff-at-in-fun 'g 'a 'M)
-(fact 'diff-at-value-in-rr 'f 'a 'L)
-(fact 'diff-at-value-in-rr 'g 'a 'M)
+(fact 'diff-value-real 'f 'a 'L)
+(fact 'diff-value-real 'g 'a 'M)
 (fact 'deriv-scalar-mult '(- 1) 'g 'a 'M)
 (have! (list 'AND (list 'IS-DIFF-AT 'f 'a 'L)
                   (list 'IS-DIFF-AT ad-neg-lam 'a '(* (- 1) M))))
@@ -412,14 +399,27 @@
        ;; have the same head, so they are told apart on the GUARD: a CCINT
        ;; membership here, a three-way AND in the derivative clause.
        ((eq? (car (cadr (caddr g))) 'IN)
-        (let ((v (ad-di-var!)))
+        (let* ((v (ad-di-var!))
+               (sps (list 'SERIES-PARTIAL-SUM
+                          (list 'VNB-LAMBDA 'k_ 'NN
+                                (list '* '(cf k_) (list 'power v 'k_)))
+                          '(succ n))))
           (ad-rr-of! v 'a 'b)
           (fact 'poly-antiderivative 'n 'cf v)
-          (fact 'diff-implies-continuous (ad-anti-lam 'cf '(succ n)) v
-                (list 'SERIES-PARTIAL-SUM
-                      (list 'VNB-LAMBDA 'k_ 'NN
-                            (list '* '(cf k_) (list 'power v 'k_)))
-                      '(succ n)))
+          ;; LUTINS instantiation (2026-09-18): `diff-implies-continuous' is
+          ;; cited AT the partial sum, which the certificate never accepts.
+          ;; It is the derivative VALUE of the IS-DIFF-AT just landed, so the
+          ;; typing is one unfold away -- on a `have!' side branch, `mac-h'
+          ;; being destructive and the hypothesis still needed by the `ass'.
+          (have! (list 'IN sps 'RR)
+            (lambda ()
+              (mac-h 'IS-DIFF-AT (list 'IS-DIFF-AT (ad-anti-lam 'cf '(succ n)) v sps))
+              (let lp ((k 0))
+                (let ((tgt (any-pred (lambda (aa) (and (pair? aa) (memq (car aa) '(AND FORSOME))))
+                                     (dk-asms))))
+                  (if (and tgt (< k 20)) (begin (ai tgt) (lp (+ k 1))))))
+              (ass)))
+          (fact 'diff-implies-continuous (ad-anti-lam 'cf '(succ n)) v sps)
           (ass)))
        ;; clause (3): the derivative, at each interior point
        (else

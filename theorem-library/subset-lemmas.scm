@@ -48,17 +48,10 @@
 (topic! 'subset-mem-fwd 'plumbing)
 
 ;;; -----------------------------------------------------------------------
-;;; (2) subset-mem -- the SAME statement, under the name hahn-banach-full-proof
-;;; introduced independently.  Kept so its call site (that file, :242) needs no
-;;; edit; one of the two names should go, and this comment is where to start.
-
-(sp (make-wff '(FORALL a (FORALL b (FORALL x_
-                 (IMPLIES (SUBSET a b) (IMPLIES (IN x_ a) (IN x_ b))))))))
-(di) (di) (di)
-(fact 'subset-mem-fwd 'a 'b 'x_)
-(ass)
-(qed 'subset-mem)
-(topic! 'subset-mem 'plumbing)
+;;; (2) subset-mem -- REMOVED 2026-09-20 (batch 11, proven-duplicate-audit).
+;;; It was the SAME statement as (1) under a second name, introduced
+;;; independently by hahn-banach-full-proof.  Its three call sites now cite
+;;; `subset-mem-fwd', which is proven above and loads at the same moment.
 
 ;;; -----------------------------------------------------------------------
 ;;; (3) subset-trans -- chase an element through both inclusions.

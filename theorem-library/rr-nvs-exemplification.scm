@@ -95,6 +95,38 @@
           (proof-leaves))
 
 
+;;; An open LEAF right now: ungrounded, and no rule has fired on it.  Every loop
+;;; below walks a SNAPSHOT of the leaf list, and `in-rr' ends with an `ass-all'
+;;; that grounds every assumption-closable node anywhere in the graph -- so a
+;;; later element of the snapshot can already be closed when the loop reaches
+;;; it.  `dk-focus!' on such a node moves the focus and records NOTHING (it is
+;;; not in proof-open-leaves, driver-kit.scm:164), and the closer's steps then
+;;; go onto the page against whatever leaf the engine had chosen: the page-audit
+;;; gate found this proof typing back in with its typing leaves open, diverging
+;;; exactly at a `fact'/`in-rr' run on a leaf the previous `ass-all' had just
+;;; closed (2026-09-15).  Skip what is no longer a leaf; nothing is lost, the
+;;; work on a closed node was wasted anyway.
+(define (rn-live-leaf? n)
+  (and (not (sequent-node-grounded? n)) (null? (sequent-node-in-arrows n))))
+
+;;; SWEEP ORDER: the ATOMIC typings first, and not for speed.  Sequent nodes are
+;;; hash-consed on assertion-up-to-alpha PLUS context, so the (IN r_ RR) node a
+;;; later leaf's `from-context!' needs may ALREADY EXIST as an open leaf of this
+;;; same walk; `dk-opened' then reports one new child where two were wanted,
+;;; from-context! closes only the new one, and the cut's side goal stays
+;;; ungrounded -- `dk-have!: could not establish (and (in r_ rr) (in x_ rr))',
+;;; caught by the vnb-guard below, printed as a `VNB error' line in the LOAD LOG
+;;; for a proof that then closes on the next pass anyway.  Grounding those nodes
+;;; before anything cites them removes the line (2026-09-19, batch 8): the proof
+;;; still closes, still bills `modulo 0', and its page still audits `grounded'.
+(define (rn-typing-leaf? n)
+  (let ((g (wff-formula (sequent-node-assertion n))))
+    (and (pair? g) (eq? (car g) 'IN) (not (pair? (cadr g))))))
+
+(define (rn-sweep-order ls)
+  (append (filter rn-typing-leaf? ls)
+          (filter (lambda (n) (not (rn-typing-leaf? n))) ls)))
+
 ;;; ONE closer, applied to whatever a leaf turns out to be, and iterated to a
 ;;; fixpoint.  Facts are PER-NODE: landing rr-is-set once before the loop puts it
 ;;; in one leaf's context and nobody else's, which is why the first draft left
@@ -106,9 +138,10 @@
       ((and (pair? g) (eq? (car g) 'IN)
             (pair? (caddr g)) (eq? (car (caddr g)) 'CARTESIAN))
        (ci)
-       (for-each (lambda (n) (dk-focus! n) (rn-close-leaf!))
-                 (filter (lambda (n) (null? (sequent-node-in-arrows n)))
-                         (proof-open-goals *ps*))))
+       (for-each (lambda (n) (when (rn-live-leaf? n) (dk-focus! n) (rn-close-leaf!)))
+                 (rn-sweep-order
+                  (filter (lambda (n) (null? (sequent-node-in-arrows n)))
+                          (proof-open-goals *ps*)))))
       ;; a real
       ((and (pair? g) (eq? (car g) 'IN) (eq? (caddr g) 'RR))
        (quietly (lambda () (fact 'rr-is-set) (fact 'rr-zero-in) (fact 'rr-one-in)))
@@ -185,6 +218,7 @@
 (define rn-left '())
 (for-each
  (lambda (l)
+  (when (rn-live-leaf? l)
    (dk-focus! l)
    (let ((g (rn-goal)))
      (cond
@@ -200,7 +234,7 @@
        ((eq? (car g) '=) (rn-close-leaf!))
        (else
         (rn-peel!) (rn-beta!)
-        (rn-close-leaf!)))))
+        (rn-close-leaf!))))))
  (proof-leaves))
 
 ;;; THE REAL LEAF SET.  `proof-leaves' counts nodes with no in-arrow; a node a
@@ -214,8 +248,9 @@
 ;;; owed pair-memberships arrive only when the beta actually fires).
 (let sweep ((n 0))
   (let ((before (length (rn-open))))
-    (for-each (lambda (l) (dk-focus! l) (vnb-guard (lambda () (rn-close-leaf!))))
-              (rn-open))
+    (for-each (lambda (l) (when (rn-live-leaf? l)
+                            (dk-focus! l) (vnb-guard (lambda () (rn-close-leaf!)))))
+              (rn-sweep-order (rn-open)))
     (if (and (< n 8) (< (length (rn-open)) before)) (sweep (+ n 1)))))
 (if (not (proof-done? *ps*))
     (error "rr-nvs-exemplification: proof did not close"))

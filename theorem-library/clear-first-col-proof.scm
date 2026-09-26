@@ -6,25 +6,26 @@
 ;;;                       elem-g-row-action + mat-equiv-left-mult).
 ;;;   clear-col-upto   -- ni on k: rows 2..k of column 1 cleared, pivot + ~ kept.
 ;;;   clear-first-col  -- clear-col-upto at k = m.
-;;; Reuses mat-equiv-cod-is-mat + classmin-transport (clear-first-row-proof.scm).
+;;; Reuses mat-equiv-target-is-mat (class-min-pivot-proof.scm) + classmin-transport
+;;; (clear-first-row-proof.scm).
 
 (define (cc-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (cc-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (cc-foc! n) (set-proof-state-focus! *ps* n))
+(define (cc-foc! n) (dk-focus! n))
 (define (cc-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (cc-find pred) (let lp ((as (cc-asms)))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (cc-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (cc-leaf-asms s) (map wff-formula (sequent-node-assumptions s)))
 (define (cc-foc-by-asm! f)
   (let ((s (any-pred (lambda (s) (member f (cc-leaf-asms s))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (cc-di*) (let lp () (let* ((g (cc-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
-(define (di4) (di)(di)(di)(di))
+(define (di4) (cc-di*))   ; was four bare di's; the surplus ones hit atomic goals (2026-09-16)
 (define (cc-em P)
   (cut `(OR ,P (NOT ,P)))
   (let ((use-or (cc-last)))
@@ -56,9 +57,9 @@
     (list 'AND '(MAT-EQUIV A m n P Q)
       (list 'AND '(= (ENTRY Q 1 1) (ENTRY P 1 1))
         (list 'AND '(= (ENTRY Q i 1) (ZERO A))
-          (cr-fa* '(rr c)
-            (cr-impl* (list '(IN rr (INTERVAL 1 m)) '(IN c (INTERVAL 1 n)) '(NOT (= rr i)))
-                      '(= (ENTRY Q rr c) (ENTRY P rr c)))))))))
+          (cr-fa* '(rw c)
+            (cr-impl* (list '(IN rw (INTERVAL 1 m)) '(IN c (INTERVAL 1 n)) '(NOT (= rw i)))
+                      '(= (ENTRY Q rw c) (ENTRY P rw c)))))))))
 (sp (make-wff
   (list 'FORALL 'A (list 'IMPLIES '(IS-EUCLIDEAN-RING A)
     (cr-fa* '(m n P i)
@@ -87,6 +88,7 @@
 (define PR-GLE  (list '<= PR-GP11 PR-GR))
 (define PR-Qi1  (list 'ENTRY PR-Q 'i 1))
 (fact 'ring-neg-in-carr 'A PR-QE)
+(fact 'mat-rows-in-nn 'm 'n '(CARR A) 'P)     ; elem-g-invertible wants m natural (2026-09-16)
 (fact 'elem-g-invertible 'A 'm PR-NEGQ 'i 1)
 (fact 'mat-equiv-left-mult 'A 'm 'n 'P PR-G)
 (fact 'neq-sym 'i 1)                            ; NOT(= 1 i)  for the (i_idx=1) if-false
@@ -198,13 +200,13 @@
 (fact 'interval-elt-in-nn 1 'm CU-BI) (fact 'interval-lo 1 'm CU-BI)
 (fact 'nn-not-le-zero-pos CU-BI) (ai (list 'NOT (list '<= CU-BI 0)))
 (cu-foc-row1!)                                     ; base ROW1: P_{1,c}=P_{1,c}
-(di) (di)
+(cc-di*)                            ; the guarded FORALL c peels whole in one di
 (define CU-BC (list-ref (cadr (cc-goal)) 3))
 (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 1 CU-BC) (rfl)
 
 ;; --- STEP : CU-BODY(k) => CU-BODY(succ k) ---
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'k))))
-(di) (di) (di)
+(di) (di) (cc-di*)
 (define CU-IH (cc-find (H? 'FORSOME)))
 (ai CU-IH) (ai 1) (ai 1) (ai 1)                    ; decompose incl. IH-ROW1
 (define CU-QwEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
@@ -216,7 +218,7 @@
 (define CU-NOTV (cc-cases CU-VALID))
 
 ;; VALIDCOL TRUE : clear row (succ k) via pivot-clears-row
-(fact 'mat-equiv-cod-is-mat 'A 'm 'n 'P CU-Qw)
+(fact 'mat-equiv-target-is-mat 'A 'm 'n 'P CU-Qw)
 (fact 'classmin-transport 'A 'm 'n 'P CU-Qw)
 (cut (list 'NOT (list '= (list 'ENTRY CU-Qw 1 1) '(ZERO A))))
 (define CU-TVCONT (cc-last))
@@ -229,7 +231,7 @@
 (define CU-QpEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
                 (eq? (car (cadr z)) 'ENTRY) (equal? (caddr z) (list 'ENTRY CU-Qw 1 1))))))
 (define CU-Qp (cadr (cadr CU-QpEQ)))
-(define CU-ROWS (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'rr)))))
+(define CU-ROWS (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'rw)))))
 (ew CU-Qp) (di)
 (cc-foc-goal! (H? 'MAT-EQUIV)) (fact 'mat-equiv-trans 'A 'm 'n 'P CU-Qw CU-Qp) (ass)
 (cc-foc-goal! (H? 'AND)) (di)
@@ -255,7 +257,7 @@
 (subst (list '= CU-TI '(succ k))) (ass)
 ;; TRUE branch ROW1 : Qp_{1,c} = Qw_{1,c} (ROWPRES rr=1) = P_{1,c} (IH-ROW1)
 (cu-foc-row1!)
-(di) (di)
+(cc-di*)                            ; the guarded FORALL c peels whole in one di
 (define CU-TC (list-ref (cadr (cc-goal)) 3))
 (inst+ CU-ROWS 1)
 (define CU-ROWSc2 (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'FORALL) (eq? (cadr z) 'c)
@@ -294,7 +296,7 @@
 (ai (list 'NOT CU-VALID))
 ;; FALSE branch ROW1 : Qw_{1,c} = P_{1,c} (IH-ROW1)
 (cu-foc-row1!)
-(di) (di)
+(cc-di*)                            ; the guarded FORALL c peels whole in one di
 (define CU-FC (list-ref (cadr (cc-goal)) 3))
 (inst+ CU-IHR1 CU-FC) (ass)
 (qed 'clear-col-upto)
@@ -334,13 +336,13 @@
 (cc-foc-goal! (H? 'AND)) (di)
 ;; column-1 cleared: drop the <=m guard via interval-hi
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'i))))
-(di) (di) (di)
+(di) (di) (cc-di*)
 (define FC-I (list-ref (cadr (cc-goal)) 2))
 (fact 'interval-hi 1 'm FC-I)
 (inst+ FC-CLK FC-I) (ass)
 ;; row 1 unchanged: direct from clear-col-upto's ROW1
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'c))))
-(di) (di)
+(cc-di*)                            ; the guarded FORALL c peels whole in one di
 (define FC-C (list-ref (cadr (cc-goal)) 3))
 (inst+ FC-R1 FC-C) (ass)
 (qed 'clear-first-col)

@@ -1,3 +1,11 @@
+;;; RETIRED 2026-09-17 (proven, rake batch O): cauchy-setoid-is-setoid; embed-isometry --
+;;; theorem-library/rake-setoid2.scm, modulo 0.  embed-isometry was MISSPELLED here: `(EMBED M u)'
+;;; applies the one-parameter functoid EMBED to the PAIR [M,u] (apply-tupling-2), which is a
+;;; function on PTS([M,u]), not a point of the completion; the theorem is stated at
+;;; `((EMBED M) u)', the term embed-in-fun types.  completion-is-metric-space and
+;;; completion-is-complete stay asserted (obstacles in rake-setoid2.scm's header: one brick,
+;;; "DIST-SEQ of two Cauchy sequences is Cauchy", then rr-cauchy-converges).
+;;; RETIRED 2026-09-17 (proven): embed-in-fun -- theorem-library/rake-analysis-typing.scm
 ;;; metric-completion.scm -- the completion of a metric space, CONCRETELY, as
 ;;; the quotient of its Cauchy sequences by the null-distance equivalence, and
 ;;; the facts that make it a complete metric space into which the original
@@ -70,16 +78,6 @@
 
 ;; cauchy-setoid-is-setoid: CAUCHY-SETOID(M) really is a setoid -- CREL is an
 ;; equivalence relation on CSEQ.
-(support 'cauchy-setoid-is-setoid
-  '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (IS-SETOID (CAUCHY-SETOID M)))))
-(warrant! 'cauchy-setoid-is-setoid 'well-known
-  "CREL(M) subset CARTESIAN(CSEQ,CSEQ) by construction, and null distance is an
-   equivalence relation on Cauchy sequences: REFLEXIVE since d(f_n,f_n)=0 -> 0;
-   SYMMETRIC since d is symmetric, so d(f_n,g_n) and d(g_n,f_n) are the same
-   real sequence; TRANSITIVE since d(f_n,h_n) <= d(f_n,g_n)+d(g_n,h_n)
-   (triangle), and a sum of two null real sequences is null.  So IS-SETOID
-   (the is-equivalence property folded into it) holds.")
 
 ;;; =======================================================================
 ;;; The completion as a metric space, concretely.
@@ -106,30 +104,10 @@
   '(LIST (QUOTIENT (CAUCHY-SETOID M)) (COMPLETION-DIST M)))
 
 ;; completion-is-metric-space: the construction yields a metric space.
-(support 'completion-is-metric-space
-  '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (IS-METRIC-SPACE (COMPLETION M)))))
-(warrant! 'completion-is-metric-space 'well-known
-  "Carrier QUOTIENT(CAUCHY-SETOID(M)) is a set (quotient-is-set, setoid.scm).
-   COMPLETION-DIST descends the real limit of d(f_n,g_n) through both class
-   arguments: well-defined (the limit exists -- DIST-SEQ is Cauchy in the
-   complete RR -- and is independent of representatives by null distance), and
-   it inherits the metric laws from d -- nonnegativity and symmetry pointwise
-   then in the limit; the triangle inequality in the limit; and d-hat([f],[g])=0
-   iff d(f_n,g_n)->0 iff [f]=[g] (separation of points).")
+;;; completion-is-metric-space RETIRED 2026-09-18 (rake batch 5c): proven in theorem-library/rake-completion-ms.scm
 
 ;; completion-is-complete: THE payoff -- the completion is complete.
-(support 'completion-is-complete
-  '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (IS-COMPLETE (COMPLETION M)))))
-(warrant! 'completion-is-complete 'well-known
-  "Standard diagonal argument.  A Cauchy sequence of classes lifts to a sequence
-   of Cauchy sequences; choosing for each a representative term close to within
-   1/2^k yields a diagonal sequence that is Cauchy in M, and the class of that
-   diagonal is the limit of the original sequence of classes.  Completeness of
-   RR enters only through the well-definedness of d-hat.  Asserted library-phase
-   over the concrete CSEQ/QUOTIENT/COMPLETION-DIST machinery; no missing
-   primitive, the diagonal construction is the deferred tactic grind.")
+;;; completion-is-complete PROVEN 2026-09-20 (batch 12-D): theorem-library/rake-completion-complete.scm
 
 ;;; =======================================================================
 ;;; The isometric embedding M -> COMPLETION(M).
@@ -144,27 +122,9 @@
   '(VNB-LAMBDA u (PTS M) (CLASS (CAUCHY-SETOID M) (EMBED-SEQ M u))))
 
 ;; embed-in-fun: EMBED(M) maps PTS(M) into the completion's carrier.
-(support 'embed-in-fun
-  '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (IN (EMBED M) (FUN (PTS M) (PTS (COMPLETION M)))))))
-(warrant! 'embed-in-fun 'well-known
-  "The constant sequence at u is Cauchy (d(u,u)=0 < eps for all n), so it lies
-   in CSEQ(M) and its class lies in QUOTIENT(CAUCHY-SETOID(M)) = PTS(COMPLETION M)
-   (class-in-quotient).  EMBED(M) is total on PTS(M).")
 
 ;; embed-isometry: EMBED preserves distance -- d-hat(embed u, embed v) = d(u,v).
 ;; So M sits inside its completion isometrically.
-(support 'embed-isometry
-  '(FORALL M (IMPLIES (IS-METRIC-SPACE M)
-     (FORALL u (IMPLIES (IN u (PTS M))
-       (FORALL v (IMPLIES (IN v (PTS M))
-         (= ((DIST (COMPLETION M)) (EMBED M u) (EMBED M v))
-            ((DIST M) u v)))))))))
-(warrant! 'embed-isometry 'well-known
-  "For constant sequences the real distance sequence n |-> d(u,v) is constant,
-   so its limit is d(u,v) itself.  Hence d-hat([const u],[const v]) = d(u,v),
-   exactly the isometry condition; EMBED is an isometric (in particular
-   injective) embedding of M into COMPLETION(M).")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

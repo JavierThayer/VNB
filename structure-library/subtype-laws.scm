@@ -45,16 +45,16 @@
                                                  (sequent-node-assumptions s)))
                            (stl--leaves))))
         (cond
-          (asl (set-proof-state-focus! *ps* asl) (ass) (loop (- fuel 1)))
+          (asl (dk-focus! asl) (ass) (loop (- fuel 1)))
           (else
            (let ((andl (stl--any (lambda (s) (let ((g (stl--goalof s))) (and (pair? g) (eq? (car g) 'AND))))
                                  (stl--leaves))))
              (cond
-               (andl (set-proof-state-focus! *ps* andl) (di) (loop (- fuel 1)))
+               (andl (dk-focus! andl) (di) (loop (- fuel 1)))
                (else
                 (let ((macl (stl--any (lambda (s) (let ((g (stl--goalof s))) (and (pair? g) (eq? (car g) head))))
                                       (stl--leaves))))
-                  (when macl (set-proof-state-focus! *ps* macl) (mac head) (loop (- fuel 1)))))))))))))
+                  (when macl (dk-focus! macl) (mac head) (loop (- fuel 1)))))))))))))
 
 ;; Predicate subtype: FORALL s. IS-X(s) => IS-Y(s).
 (define (stl--prove-pred! name isx isy hyp-unfold hypkey)

@@ -1,0 +1,112 @@
+#!/bin/bash
+# vnb-idle-stop -- stop THIS worker when nothing has used it for a while.
+#
+# Run from cron every few minutes (see vnb-idle-stop-install).  A worker that
+# nobody is proving on is a rented machine watching an empty room; until this
+# existed, the only thing that stopped one was somebody remembering to.
+#
+# It calls `shutdown -h', and both workers are set to STOP (not terminate) on an
+# instance-initiated shutdown -- checked with
+#   aws ec2 describe-instance-attribute --attribute instanceInitiatedShutdownBehavior
+# on 2026-09-15, both `stop'.  So the disk, the pushed tree and the band all
+# survive, and `capataz start worker-NN' brings the box back in about a minute.
+# If that attribute is ever changed to `terminate', THIS SCRIPT DESTROYS THE
+# WORKER -- it re-checks nothing at run time, because an instance cannot read
+# that attribute about itself without EC2 permissions it deliberately lacks.
+#
+# WHAT COUNTS AS BUSY (any one of them):
+#   * a prover is running            -- pgrep -x mit-scheme.  Matching the
+#     EXECUTABLE, never the command line: `pgrep -f mit-scheme' also matches the
+#     shell that launched it, which is how one kills one's own shell (CLAUDE.md).
+#   * an SSM session or command is running -- somebody is driving the box, even
+#     between probes.  Note this also matches the chain above a `capataz run',
+#     so running this script BY HAND through capataz always reports busy; that
+#     is correct, and it is why the test below uses a 1-minute threshold and
+#     then waits rather than watching the script's own output.
+#   * something in the prover tree changed recently -- a push, or a probe file
+#     landing.  An agent that ships a file and thinks for ten minutes keeps its
+#     worker.
+#
+# THE IDLE CLOCK lives in /run (tmpfs), so it is empty after a boot and the
+# first run re-arms it: a freshly started worker always gets a full idle period
+# before it can stop itself, which is the window a wave needs to push and start.
+#
+# ESCAPE HATCH: touch /etc/vnb-no-idle-stop and this never fires again.
+set -u
+
+CONF=/etc/vnb-idle-stop.conf
+HOLD=/etc/vnb-no-idle-stop
+STAMP=/run/vnb-last-busy
+TREE=/home/ubuntu/prover
+
+[ -e "$HOLD" ] && exit 0
+[ -r "$CONF" ] || exit 0
+. "$CONF"                       # INSTANCE_ID, IDLE_MINUTES
+: "${INSTANCE_ID:=}" "${IDLE_MINUTES:=30}"
+
+# THE GUARD.  The config names the one instance this copy of the script may
+# ever stop, and the script asks the metadata service who it actually is.  The
+# script itself lives in the prover tree and so gets pushed to every box in the
+# fleet, the primary included; the config does not, and without a matching
+# config this exits doing nothing.  Instance metadata TAGS are disabled on this
+# account (checked 2026-09-15: /latest/meta-data/tags/instance/ is a 404), so
+# the id is the only self-identification available -- a box cannot read its own
+# Name tag.
+tok=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+      -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null) || exit 0
+me=$(curl -s -H "X-aws-ec2-metadata-token: $tok" \
+     http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null) || exit 0
+case "$me" in
+    i-*) ;;                     # a plausible id, not an error page
+    *)   exit 0 ;;
+esac
+[ "$me" = "$INSTANCE_ID" ] || exit 0
+
+now=$(date +%s)
+if [ ! -f "$STAMP" ]; then      # first run since boot: arm the clock, do nothing
+    echo "$now" > "$STAMP"
+    exit 0
+fi
+
+# Busy = a prover running, an SSM session or command live, or recent activity in
+# the prover tree OR in the probe directory.  The probe directory was missing
+# until 2026-09-16: vnb-probe writes there, not under $TREE, so a worker driven
+# only by short probes -- each finishing between two cron ticks -- looked idle
+# while agents were using it.
+PROBES=/home/ubuntu/probes
+is_busy() {
+    pgrep -x mit-scheme            >/dev/null 2>&1 && return 0
+    pgrep -f ssm-session-worker    >/dev/null 2>&1 && return 0
+    pgrep -f ssm-document-worker   >/dev/null 2>&1 && return 0
+    for d in "$TREE" "$PROBES"; do
+        [ -d "$d" ] || continue
+        # -mmin is minutes-since-modification; -quit stops at the first hit so
+        # this does not walk the whole tree.  maxdepth 2 covers a push (files
+        # land all over) and a probe (a file and its log in $PROBES).
+        found=$(find "$d" -maxdepth 2 -mmin "-${IDLE_MINUTES}" -print -quit 2>/dev/null)
+        [ -n "$found" ] && return 0
+    done
+    return 1
+}
+
+if is_busy; then
+    echo "$now" > "$STAMP"
+    exit 0
+fi
+
+last=$(cat "$STAMP" 2>/dev/null || echo "$now")
+case "$last" in ''|*[!0-9]*) last=$now ;; esac
+idle=$(( (now - last) / 60 ))
+
+if [ "$idle" -ge "$IDLE_MINUTES" ]; then
+    # Second look.  On 2026-09-16 a probe arrived in the same second the script
+    # decided the box was idle, and the box stopped under it.
+    sleep 30
+    if is_busy; then
+        echo "$(date +%s)" > "$STAMP"
+        exit 0
+    fi
+    logger -t vnb-idle-stop "idle ${idle}m (threshold ${IDLE_MINUTES}m) -- stopping $me"
+    /sbin/shutdown -h +0 "vnb-idle-stop: idle ${idle} minutes"
+fi
+exit 0

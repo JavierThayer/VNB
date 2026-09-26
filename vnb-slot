@@ -1,0 +1,56 @@
+#!/bin/bash
+# vnb-slot -- run `prover' inside one of N memory slots on a shared box.
+#
+#   vnb-slot -b file.scm            # same arguments as ./prover
+#   VNB_SLOTS=1 vnb-slot --build-band
+#
+# A box that runs one prover too many dies SILENTLY (exit 0, no summary -- see
+# CLAUDE.md "This box"), so every prover run on a worker goes through here.  It
+# takes the first free slot lock (flock on /tmp/vnb-<kind>.K), waiting up to
+# VNB_SLOT_WAIT seconds (default 1800) if all are busy, and runs the prover
+# holding it.  There are TWO kinds of slot, because the two kinds of run are
+# not the same size (measured 2026-09-14 on the primary, peak RSS):
+#
+#   a band probe  (`-b file.scm')     ~290 MB on the DEFAULT heap (measured
+#                                     2026-09-14); ~1.25 GB at peak since
+#                                     2026-09-17, when `prover' began giving a
+#                                     band start `--heap 120000' (heap plus an
+#                                     equal to-space; see prover, BAND_HEAP)
+#   a library load (anything else)    ~1 GB (`--heap 120000')
+#
+# So probes get RAM/1700 MB slots (2 on a t3.medium, 3.8 GB -- one per vCPU) and
+# loads RAM/1200 MB slots (3).  The 9-probe figure that stood here was for the
+# default heap, on which a probe spent 60% of its time in GC.  With
+# VNB_BAND_HEAP=none (the old heap, the A/B control) probes go back to RAM/400
+# MB slots.  The two families do not know
+# about each other: a worker that runs integration LOADS should not be the
+# worker agents PROBE on.  Override with VNB_SLOTS=N.  The lock is released
+# when the prover exits, however it exits, and the prover's exit status passes
+# through.
+set -u
+DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+case " $* " in
+  *" -b "*) KIND=probe; if [ "${VNB_BAND_HEAP:-auto}" = none ]; then PER=400; else PER=1700; fi;;
+  *)        KIND=load;  PER=1200;;
+esac
+if [ -z "${VNB_SLOTS:-}" ]; then
+    mb=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
+    VNB_SLOTS=$(( mb / PER )); [ "$VNB_SLOTS" -ge 1 ] || VNB_SLOTS=1
+fi
+WAIT=${VNB_SLOT_WAIT:-1800}
+deadline=$(( $(date +%s) + WAIT ))
+while :; do
+    for k in $(seq 1 "$VNB_SLOTS"); do
+        # flock holds the lock for exactly the lifetime of the command; a busy
+        # lock returns 75 (-E) so it cannot be confused with the prover's status.
+        # VNB_RUN_TIMEOUT (seconds) bounds the PROVER, not the wait for a slot: a
+        # `timeout' wrapped around vnb-slot itself counted the queueing time and
+        # killed a probe that had waited four minutes for a slot (2026-09-17).
+        # 0 disables it (GNU timeout).
+        flock -n -E 75 "/tmp/vnb-$KIND.$k" bash -c 'echo ";; vnb-slot: '"$KIND"' slot $0 of $1" >&2; shift 1; exec timeout "${VNB_RUN_TIMEOUT:-0}" "$@"' "$k" "$VNB_SLOTS" "$DIR/prover" "$@"
+        rc=$?
+        [ "$rc" -eq 75 ] || exit "$rc"
+    done
+    [ "$(date +%s)" -lt "$deadline" ] || { echo "vnb-slot: no free slot after ${WAIT}s" >&2; exit 75; }
+    sleep 5
+done

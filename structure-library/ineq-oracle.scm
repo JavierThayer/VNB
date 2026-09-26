@@ -111,6 +111,42 @@
           (lin-scale (vnb->linear (car args)) (/ 1 (cadr args))))
          (else (lin-atom t)))))))                  ; any other head => maximal atom
 
+;;; The atoms a term is BUILT from, before any cancellation.  `vnb->linear' adds coefficients,
+;;; so an atom that cancels (t - t, or the same t on both sides of the relation) leaves no
+;;; trace in the linear form -- and until 2026-09-20 was therefore never certified real:
+;;;    forall u. abs(u) <= abs(u) + 1      closed with u untyped.
+;;; The order and ring laws the oracle stands for are guarded on RR, so EVERY atom of the goal
+;;; and of a used premise has to be certified, cancelled or not.  Same case analysis as
+;;; vnb->linear, collecting instead of adding.
+(define (ineq-source-atoms t)
+  (cond
+    ((number? t) '())
+    ((not (pair? t)) (list t))
+    (else
+     (let ((op (car t)) (args (cdr t)))
+       (cond
+         ((and (memq op la-plus-ops) (pair? args))
+          (apply append (map ineq-source-atoms args)))
+         ((and (memq op la-minus-ops) (or (= (length args) 1) (= (length args) 2)))
+          (apply append (map ineq-source-atoms args)))
+         ((and (memq op la-times-ops) (pair? args))
+          ;; a product vnb->linear can read as linear contributes its factors' atoms;
+          ;; a nonlinear product is ONE atom, exactly as vnb->linear treats it
+          (let ((L (vnb->linear t)))
+            (if (and (pair? (lin-coeffs L)) (null? (cdr (lin-coeffs L)))
+                     (equal? (car (car (lin-coeffs L))) t))
+                (list t)
+                (apply append (map ineq-source-atoms args)))))
+         ((and (eq? op 'recip) (= (length args) 1) (la-const-denominator? (car args))) '())
+         ((and (eq? op '/) (= (length args) 2) (la-const-denominator? (cadr args)))
+          (ineq-source-atoms (car args)))
+         (else (list t)))))))
+
+(define (ineq-formula-source-atoms f)
+  (if (and (pair? f) (= (length f) 3))
+      (append (ineq-source-atoms (cadr f)) (ineq-source-atoms (caddr f)))
+      '()))
+
 ;;; -----------------------------------------------------------------------
 ;;; Formula -> (linform . rel), where linform is lhs-rhs and rel in {le,lt,eq}.
 
@@ -157,7 +193,15 @@
 
 (define (ineq-atom-rr-ok? v asms rr-qvars)
   (or (member v rr-qvars)
-      (and (pair? v) (eq? (car v) 'abs))           ; rr-abs-closed: abs(.) in RR
+      ;; rr-abs-closed is  forall a in RR. abs(a) in RR : abs(t) is real only when t is.
+      ;; Until 2026-09-20 ANY abs(.) was accepted as a real atom, whatever its argument
+      ;; (found by the independent checker, batch 10-D).  Now t must read as a linear
+      ;; form whose own atoms are certified, by this same test.
+      (and (pair? v) (eq? (car v) 'abs) (= (length v) 2)
+           (let allok ((as (ineq-source-atoms (cadr v))))
+             (or (null? as)
+                 (and (ineq-atom-rr-ok? (car as) asms rr-qvars)
+                      (allok (cdr as))))))
       (let scan ((as asms))
         (and (pair? as)
              (or (let ((f (wff-formula (car as))))
@@ -181,7 +225,23 @@
          (nasm  (length asms))
          (gpr   (formula->lin+rel goal)))
     (and gpr
-         (let ((hyp-cons '()) (ok #t))
+         ;; THE EIGENVARIABLE CONDITION (2026-09-20).  `ineq-peel-rr-foralls' strips the
+         ;; goal's leading  forall v in RR  and from then on treats v as an atom -- the SAME
+         ;; atom as a free v in a premise.  Without this test the sequent
+         ;;      x in RR,  x <= 0   |-   forall x in RR. x <= 0
+         ;; was closed, the false theorem
+         ;;      forall x in RR. (x <= 0 implies forall x in RR. x <= 0)
+         ;; installed `modulo 0', and 1 <= 0 followed (reproduced on the band the day it was
+         ;; found, by batch 10-D's independent checker).  A variable bound by a peeled
+         ;; quantifier must not occur free in ANY assumption of the node: decline otherwise.
+         (let fresh? ((vs rrqv))
+           (or (null? vs)
+               (and (let scan ((as asms))
+                      (or (null? as)
+                          (and (not (memq (car vs) (free-vars (wff-formula (car as)))))
+                               (scan (cdr as)))))
+                    (fresh? (cdr vs)))))
+         (let ((hyp-cons '()) (used-forms '()) (ok #t))
            ;; A named assumption that is NOT arithmetic is SKIPPED, not fatal
            ;; (2026-08-15).  It used to set ok := #f and abandon the call, so
            ;; naming one harmless extra premise killed the whole thing:
@@ -205,19 +265,23 @@
                (if (and (integer? i) (>= i 1) (<= i nasm))
                    (let ((hpr (formula->lin+rel (wff-formula (list-ref asms (- i 1))))))
                      (if hpr
-                         (set! hyp-cons
-                           (append hyp-cons
-                             (ineq-hyp-constraints i (car hpr) (cdr hpr))))
+                         (begin
+                           (set! used-forms
+                                 (cons (wff-formula (list-ref asms (- i 1))) used-forms))
+                           (set! hyp-cons
+                             (append hyp-cons
+                               (ineq-hyp-constraints i (car hpr) (cdr hpr)))))
                          #f))                    ; not arithmetic -- ignore it
                    (set! ok #f)))
              idxs)
            (and ok
                 (let* ((gcoeffs (lin-coeffs (car gpr)))
+                       ;; SOURCE atoms (2026-09-20): every atom the goal and the used premises
+                       ;; are built from, including those that cancel in the linear forms.
                        (atoms (la-uniq
-                               (append (map car gcoeffs)
+                               (append (ineq-formula-source-atoms goal)
                                        (apply append
-                                         (map (lambda (c) (map car (con-coeffs c)))
-                                              hyp-cons))))))
+                                         (map ineq-formula-source-atoms used-forms))))))
                   (and (let allok ((vs atoms))
                          (or (null? vs)
                              (and (ineq-atom-rr-ok? (car vs) asms rrqv)
@@ -225,8 +289,23 @@
                        (let ((cert (fm-prove hyp-cons gcoeffs
                                              (lin-const-of (car gpr)) (cdr gpr))))
                          (and cert
-                              (begin (ineq-report cert)
-                                     (dg-apply-rule! dg 'ineq '() sqn)))))))))))
+                              (begin
+                                (ineq-report cert)
+                                ;; THE RECORDED TAG CARRIES THE CERTIFICATE
+                                ;; (2026-09-20).  `ineq' stays the head -- the
+                                ;; ledger, *kernel-rule-tags* and the kernel map
+                                ;; all go by head -- and the argument is the
+                                ;; Farkas certificate exactly as fm-prove
+                                ;; returned it and ineq-report just printed it:
+                                ;; an alist (id . multiplier) over the premise
+                                ;; ids hI / hI-rev and the negated goal `goal',
+                                ;; or a PAIR of two such alists when the goal is
+                                ;; an equation (one per direction).  It is what
+                                ;; the rule checker (rule-checkers-oracle.scm)
+                                ;; verifies by plain arithmetic; without it an
+                                ;; `ineq' inference could only be re-decided by
+                                ;; running the oracle again, which is no check.
+                                (dg-apply-rule! dg (list 'ineq cert) '() sqn)))))))))))
 
 (warrant! 'ineq 'well-known
   "Decision procedure for linear arithmetic over the ordered field RR.  The goal

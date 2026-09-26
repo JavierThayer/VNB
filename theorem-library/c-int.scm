@@ -24,7 +24,7 @@
 ;;; (differentiation.scm) and SERIES-LIMIT (dominated-convergence.scm) carry no
 ;;; typing conjunct because IS-DIFF-AT and CONVERGES-TO each state (IN L RR) /
 ;;; (IN L (PTS s)) themselves; SQRT (real-powers.scm), DEG (poly-degree.scm),
-;;; PRED (nn-pred.scm), NNFST/NNSND (nn-pairing.scm), CARD-STAR (card-defined.scm)
+;;; PRED (nn-pred.scm), NNFST/NNSND (nn-pairing.scm), CARD (cardinality.scm)
 ;;; and DUAL-NORM (linear-functional.scm) all open with one.  IS-ANTIDERIVATIVE
 ;;; says nothing whatever about v_ -- the equation is what mentions it -- so
 ;;; C-INT is in the second group and opens with (IN v_ RR).

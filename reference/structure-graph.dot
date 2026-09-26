@@ -56,8 +56,8 @@ digraph VNB {
   "pid" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="pid refines integral-domain"];
   "field-ring" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="field-ring refines commutative-ring"];
   "integral-domain" -> "commutative-ring" [color="#2a4a6a", penwidth=1.4, tooltip="integral-domain refines commutative-ring"];
-  "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
   "rr-normed-field" -> "normed-field" [color="#2a4a6a", penwidth=1.4, tooltip="rr-normed-field refines normed-field"];
+  "qq-line" -> "vector-space" [color="#2a4a6a", penwidth=1.4, tooltip="qq-line refines vector-space"];
   "qq-field" -> "field" [color="#2a4a6a", penwidth=1.4, tooltip="qq-field refines field"];
   "euclidean-ring" -> "integral-domain" [color="#2a4a6a", penwidth=1.4, tooltip="euclidean-ring refines integral-domain"];
   "metrizable-top-space" -> "top-space" [color="#2a4a6a", penwidth=1.4, tooltip="metrizable-top-space refines top-space"];
@@ -76,8 +76,8 @@ digraph VNB {
   "field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="field-as-integral-domain :  field -> integral-domain    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "module" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="vector-ag", tooltip="module-vector-ag :  module -> abelian-group    (vec vadd vzero vneg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
   "field" -> "group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-group", tooltip="field-multiplicative-group :  field -> group    (non-zero mul one mul-inv) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
-  "measure-space" -> "measurable-space" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-measurable-space", tooltip="measure-space-as-measurable-space :  measure-space -> measurable-space    (pts sigma) |-> (pts sigma)", URL="structure-graph.html#views"];
   "normed-vector-space" -> "module" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-module", tooltip="normed-vector-space-as-module :  normed-vector-space -> module    (scal vec vadd vzero vneg act) |-> (scal vec vadd vzero vneg act)", URL="structure-graph.html#views"];
+  "measure-space" -> "measurable-space" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-measurable-space", tooltip="measure-space-as-measurable-space :  measure-space -> measurable-space    (pts sigma) |-> (pts sigma)", URL="structure-graph.html#views"];
   "normed-field" -> "integral-domain" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="as-integral-domain", tooltip="normed-field-as-integral-domain :  normed-field -> integral-domain    (carr add mul neg zero one) |-> (carr add mul neg zero one)", URL="structure-graph.html#views"];
   "ring" -> "monoid" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="multiplicative-monoid", tooltip="ring-multiplicative-monoid :  ring -> monoid    (carr mul one) |-> (carr opr iden)", URL="structure-graph.html#views"];
   "field" -> "abelian-group" [style=dashed, color="#b06a00", fontcolor="#b06a00", label="additive-ag", tooltip="field-additive-ag :  field -> abelian-group    (carr add zero neg) |-> (carr opr iden inv)", URL="structure-graph.html#views"];
@@ -99,5 +99,4 @@ digraph VNB {
   "metric-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="bdd-metric", tooltip="bdd-metric :  metric-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
   "normed-ag" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="nag-metric-space", tooltip="nag-metric-space :  normed-ag -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
   "normed-field" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="nf-metric-space", tooltip="nf-metric-space :  normed-field -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
-  "normed-vector-space" -> "metric-space" [style=dotted, color="#2a8a4a", fontcolor="#2a8a4a", penwidth=1.3, label="nag-metric-space", tooltip="nag-metric-space :  normed-vector-space -> metric-space    (constructor functoid)", URL="structure-graph.html#metric-space"];
 }

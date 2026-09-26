@@ -156,11 +156,4 @@
 ;;; METRIC-TOP.  The clean extraction dual of metric-top-is-metrizable-top-space, so
 ;;; a proof pulls a compatible metric out of metrizability without unfolding the raw
 ;;; LIST tuple of the defining law.
-(support 'metrizable-has-metric-top
-  '(FORALL s (IMPLIES (IS-METRIZABLE-TOP-SPACE s)
-     (FORSOME md (AND (IS-METRIC-SPACE md)
-                      (== (METRIC-TOP md) s))))))
-(warrant! 'metrizable-has-metric-top 'well-known
-  "IS-METRIZABLE-TOP-SPACE(s) means s is induced by some metric: the structure's
-   defining law gives a metric space md with s == METRIC-TOP(md) -- the law's tuple
-   [PTS md, {U : IS-OPEN(md,U)}] is METRIC-TOP(md) by definition of the functor.")
+;;; metrizable-has-metric-top RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-bdd-metric.scm

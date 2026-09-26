@@ -1,0 +1,634 @@
+;;; major-theorems.scm -- the LaTeX list of MAJOR THEOREMS.
+;;;
+;;; A MAJOR THEOREM is a result that appears in the user's notes as a Theorem,
+;;; Proposition, Lemma or Corollary.  The mapping of the notes onto the library
+;;; is DATA, hand-written (one file per document, merged into
+;;; reference/major-theorems.sexp); this file turns that data into
+;;; reference/major-theorems.tex, so that every statement the library makes
+;;; about a result of the notes can be read beside the notes' own statement.
+;;;
+;;; Public entry point:
+;;;
+;;;   (write-major-theorems-tex! TABLE-PATH OUT-PATH)
+;;;
+;;; Both paths may be relative; they are resolved against *prover-dir*.  The
+;;; output is a fragment, meant to be \input by docs/major-theorems.tex (or by
+;;; the manual), and needs from its host preamble:
+;;;
+;;;   amsmath, amssymb, amsthm     -- math, \begin{proof}
+;;;   graphicx                     -- \resizebox, used by \vnbstmt
+;;;   longtable                    -- the Deviations table
+;;;   \newtheorem thm / prop / cor / lem
+;;;
+;;; \vnbstmt and \vnbmulti are \providecommand-ed at the head of the generated
+;;; file, so the fragment also works under a preamble that does not define them.
+;;;
+;;; THE TABLE.  A file of `entry' s-expressions, in the order of the notes:
+;;;
+;;;   (entry (doc "calculus")                   ; calculus | linear-algebra | ...
+;;;          (ref "2.11")                       ; the number in the notes
+;;;          (kind theorem)                     ; theorem | proposition | lemma | corollary
+;;;          (title "Generalized Mean Value Theorem")
+;;;          (names generalized-mvt)            ; the library theorem(s); () when absent
+;;;          (status proven)                    ; proven | asserted | partial | absent
+;;;          (deviation "...")                  ; "" when the library says what the notes say
+;;;          (notes-statement "..."))           ; the notes' statement, in prose
+;;;
+;;; Every field is optional: a missing one takes a default, and a missing
+;;; `status' is INFERRED from the library (proven / asserted / absent).  A
+;;; top-level form whose head is not `entry' is reported and skipped, so the
+;;; concatenation of the mapping agents' files may carry comments in
+;;; s-expression form without breaking the run.
+;;;
+;;; What the generated proof block says comes from the LIVE system, never from
+;;; the table: the stored script (*proof-script-table*, filled by `save-proof'
+;;; at every qed) for the tactics, `proof-citations-of' for the lemmas,
+;;; `oracles-of' for the trusted code and `debt-of' for the bill.  A name with
+;;; no stored script (an asserted support, a primitive axiom, a view or -rev
+;;; companion) reports what it is instead.
+
+;;; --- small string helpers --------------------------------------------
+
+(define (mt--join strs sep)
+  (cond ((null? strs) "")
+        ((null? (cdr strs)) (car strs))
+        (#t (string-append (car strs) sep (mt--join (cdr strs) sep)))))
+
+;;; Escape for ordinary PROSE (titles, notes statements, deviation texts).
+;;; One pass, character by character, so no replacement is re-escaped.
+(define (mt--escape-tex s)
+  (apply string-append
+         (map (lambda (c)
+                (cond ((char=? c #\\) "\\textbackslash{}")
+                      ((char=? c #\{) "\\{")
+                      ((char=? c #\}) "\\}")
+                      ((char=? c #\_) "\\_")
+                      ((char=? c #\^) "\\textasciicircum{}")
+                      ((char=? c #\~) "\\textasciitilde{}")
+                      ((char=? c #\%) "\\%")
+                      ((char=? c #\&) "\\&")
+                      ((char=? c #\#) "\\#")
+                      ((char=? c #\$) "\\$")
+                      ((char=? c #\<) "$<$")
+                      ((char=? c #\>) "$>$")
+                      (#t (string c))))
+              (string->list s))))
+
+;;; Escape for \texttt{...}: the same specials, but `<' and `>' stay literal
+;;; (a typewriter name may contain them and math mode inside \texttt is worse).
+(define (mt--escape-tt s)
+  (apply string-append
+         (map (lambda (c)
+                (cond ((char=? c #\\) "\\textbackslash{}")
+                      ((char=? c #\{) "\\{")
+                      ((char=? c #\}) "\\}")
+                      ((char=? c #\_) "\\_")
+                      ((char=? c #\^) "\\textasciicircum{}")
+                      ((char=? c #\~) "\\textasciitilde{}")
+                      ((char=? c #\%) "\\%")
+                      ((char=? c #\&) "\\&")
+                      ((char=? c #\#) "\\#")
+                      ((char=? c #\$) "\\$")
+                      (#t (string c))))
+              (string->list s))))
+
+(define (mt--tt name)
+  (string-append "\\texttt{" (mt--escape-tt (mt--as-string name)) "}"))
+
+;;; The same, but with a zero-width breakpoint after every hyphen.  A typewriter
+;;; token neither hyphenates nor breaks at its own hyphens, and a theorem name
+;;; is routinely wider than the 4.2 cm name column of the Deviations table: the
+;;; column then overfills by up to 90 pt.  `\allowbreak' adds nothing to the
+;;; output (the hyphen that ends the first half is the name's own), so a name
+;;; that fits is unchanged.
+(define (mt--tt-breakable name)
+  (string-append
+   "\\texttt{"
+   (apply string-append
+          (map (lambda (c)
+                 (if (char=? c #\-) "-\\allowbreak{}" (mt--escape-tt (string c))))
+               (string->list (mt--as-string name))))
+   "}"))
+
+(define (mt--as-string x)
+  (cond ((string? x) x)
+        ((symbol? x) (symbol->string x))
+        ((number? x) (number->string x))
+        (#t (with-output-to-string (lambda () (display x))))))
+
+;;; A LaTeX label fragment: letters, digits, hyphen, colon and dot survive;
+;;; everything else becomes a hyphen.
+(define (mt--sanitize-label s)
+  (list->string
+   (map (lambda (c)
+          (if (or (char-alphabetic? c) (char-numeric? c)
+                  (char=? c #\-) (char=? c #\:) (char=? c #\.))
+              c
+              #\-))
+        (string->list s))))
+
+(define (mt--capitalize s)
+  (if (= (string-length s) 0)
+      s
+      (string-append (string (char-upcase (string-ref s 0)))
+                     (substring s 1 (string-length s)))))
+
+(define (mt--hyphens->spaces s)
+  (list->string (map (lambda (c) (if (char=? c #\-) #\space c))
+                     (string->list s))))
+
+;;; --- paths ------------------------------------------------------------
+
+;;; Resolve PATH against *prover-dir* unless it is already absolute.  The
+;;; integrator's call passes "reference/major-theorems.sexp", which must not
+;;; depend on the process's working directory.
+(define (mt--abs-path path)
+  (if (and (> (string-length path) 0) (char=? (string-ref path 0) #\/))
+      path
+      (string-append *prover-dir* path)))
+
+;;; --- the table --------------------------------------------------------
+
+(define *mt-doc-titles*
+  '(("calculus"         . "Calculus")
+    ("linear-algebra"   . "Linear algebra")
+    ("complex-analysis" . "Complex analysis")))
+
+(define (mt--doc-title doc)
+  (let ((hit (assoc doc *mt-doc-titles*)))
+    (if hit
+        (cdr hit)
+        (mt--capitalize (mt--hyphens->spaces doc)))))
+
+;;; The raw value list of FIELD in ENTRY, or #f when the field is absent.
+(define (mt--field entry field)
+  (let ((hit (assq field (cdr entry))))
+    (and hit (cdr hit))))
+
+;;; A one-value field.  `(ref "2.11")' and `(ref 2.11)' both read.
+(define (mt--one entry field default)
+  (let ((vs (mt--field entry field)))
+    (if (or (not vs) (null? vs)) default (car vs))))
+
+(define (mt--string entry field default)
+  (let ((v (mt--one entry field #f)))
+    (if v (mt--as-string v) default)))
+
+;;; A LIST field.  Tolerates `(names a b)', `(names (a b))' and `(names)'.
+(define (mt--list entry field)
+  (let ((vs (mt--field entry field)))
+    (cond ((not vs) '())
+          ((null? vs) '())
+          ((and (null? (cdr vs)) (list? (car vs))) (car vs))
+          (#t vs))))
+
+;;; Returns the entry list, or #f when the table file is not there.  NOT an
+;;; error: the table is hand-written and merged by the integrator, and a load
+;;; must not fail because it has not been written yet.  The missing file is
+;;; announced on the load log, where a missing generated artifact belongs.
+(define (mt--read-table path)
+  (let ((full (mt--abs-path path)))
+    (if (not (file-exists? full))
+        (begin
+          (display ";; major-theorems: no table at ") (display full)
+          (display " -- nothing written\n")
+          #f)
+        (call-with-input-file full
+          (lambda (port)
+            (let loop ((form (read port)) (acc '()) (skipped 0))
+              (cond ((eof-object? form)
+                     (when (> skipped 0)
+                       (display ";; major-theorems: skipped ")
+                       (display skipped)
+                       (display " non-`entry' top-level form(s)\n"))
+                     (reverse acc))
+                    ((and (pair? form) (eq? (car form) 'entry))
+                     (loop (read port) (cons form acc) skipped))
+                    (#t
+                     (display ";; major-theorems: not an `entry' form, skipped: ")
+                     (write (if (pair? form) (car form) form))
+                     (newline)
+                     (loop (read port) acc (+ skipped 1))))))))))
+
+;;; --- library queries --------------------------------------------------
+
+(define (mt--formula name)
+  (hash-table-ref/default *theorem-table* name #f))
+
+;;; The stored surface script of NAME's proof, or #f.  A view-specialized or
+;;; -rev companion has no script of its own; its proof is its source's, so the
+;;; lookup follows `pd-source-of' exactly as the ledger does.
+(define (mt--script name)
+  (or (hash-table-ref/default *proof-script-table* name #f)
+      (let ((src (pd-source-of name)))
+        (and src (hash-table-ref/default *proof-script-table* src #f)))))
+
+;;; The distinct surface commands of SCRIPT, in order of FIRST use.
+(define (mt--script-tactics script)
+  (let loop ((s script) (seen '()))
+    (if (null? s)
+        (reverse seen)
+        (let ((verb (car (car s))))
+          (loop (cdr s) (if (memq verb seen) seen (cons verb seen)))))))
+
+(define (mt--any? p lst)
+  (cond ((null? lst) #f)
+        ((p (car lst)) #t)
+        (#t (mt--any? p (cdr lst)))))
+
+(define (mt--every? p lst)
+  (cond ((null? lst) #t)
+        ((p (car lst)) (mt--every? p (cdr lst)))
+        (#t #f)))
+
+(define (mt--status-of-names names)
+  (cond ((null? names) 'absent)
+        ((mt--any? (lambda (n) (and (mt--formula n)
+                                    (eq? (provenance-of n) 'asserted)))
+                   names)
+         'asserted)
+        ((mt--every? (lambda (n) (mt--formula n)) names) 'proven)
+        (#t 'partial)))
+
+;;; --- rendering: the statement ----------------------------------------
+
+;;; `expr->tex-display' (tex-output.scm) breaks a long formula at its logical
+;;; skeleton and returns a bare one-row string when one row is enough, so short
+;;; statements are unaffected.  \vnbstmt then shrinks the finished box to the
+;;; text width ONLY if it would overflow, which is what keeps a wide statement
+;;; -- an array row can still be wider than the measure -- off the margin.
+(define (mt--statement-tex formula)
+  (string-append "\\vnbstmt{" (expr->tex-display formula) "}"))
+
+(define (mt--statement-block names notes-statement)
+  (cond
+    ((null? names)
+     (string-append
+      "\\textit{" (mt--escape-tex notes-statement) "}\n"
+      "%\n"
+      "Not in the library.\n"))
+    ((null? (cdr names))
+     (let ((f (mt--formula (car names))))
+       (if f
+           (string-append (mt--statement-tex f) "\n")
+           (string-append "\\vnbmissing{" (mt--escape-tt (mt--as-string (car names)))
+                          "}\n"))))
+    (#t
+     ;; Several library names for one result: each statement on its own
+     ;; displayed line, preceded by its name.
+     (apply string-append
+            (map (lambda (n)
+                   (let ((f (mt--formula n)))
+                     (string-append
+                      ;; \vnbprf (ragged right) and not a plain \noindent: this
+                      ;; is the first paragraph of the theorem body, so amsthm's
+                      ;; deferred head lands in it, and justifying head + a wide
+                      ;; \texttt name stretches the head's line to an underfull
+                      ;; hbox.
+                      "\\vnbprf{" (mt--tt n) ":}\n"
+                      (if f
+                          (string-append (mt--statement-tex f) "\n")
+                          (string-append "\\vnbmissing{"
+                                         (mt--escape-tt (mt--as-string n)) "}\n")))))
+                 names)))))
+
+;;; --- rendering: the proof block ---------------------------------------
+
+(define (mt--bill-line name)
+  (let ((bill (debt-of name)))
+    (if (null? bill)
+        "\\texttt{proven modulo 0}"
+        (string-append "\\texttt{proven modulo \\{"
+                       (mt--join (map (lambda (n) (mt--escape-tt (mt--as-string n)))
+                                      bill)
+                                 ", ")
+                       "\\}} [trust: "
+                       (mt--escape-tex (mt--as-string (debt-trust-level bill)))
+                       "]"))))
+
+(define (mt--lemma-item c)
+  (string-append (mt--tt c)
+                 (if (eq? (provenance-of c) 'asserted) " (asserted)" "")))
+
+(define (mt--proof-paragraphs name)
+  (let ((script (mt--script name))
+        (prov   (provenance-of name)))
+    (cond
+      ((not (mt--formula name))
+       (list (string-append "No theorem named " (mt--tt name)
+                            " is installed in the library.")))
+      ((eq? prov 'asserted)
+       (let* ((w    (warrant-of name))
+              (tier (if w (mt--as-string (car w)) "none")))
+         (list (string-append "Asserted (warrant: " (mt--escape-tex tier)
+                              "); no proof in the library."))))
+      ((eq? prov 'primitive)
+       (list "A primitive axiom of the trusted base; no proof in the library."))
+      ((eq? prov 'definitional)
+       (list "Definitional; no proof in the library."))
+      ((not script)
+       (list (string-append "Provenance " (mt--tt prov)
+                            ", but no proof script is stored under this name.")))
+      (#t
+       (let* ((tactics (mt--script-tactics script))
+              (lemmas  (proof-citations-of name))
+              (oracles (oracles-of name)))
+         (list
+          (string-append
+           "\\textbf{Tactics.} "
+           (if (null? tactics)
+               "none recorded."
+               (string-append (mt--join (map mt--tt tactics) ", ") ".")))
+          (string-append
+           "\\textbf{Lemmas.} "
+           (if (null? lemmas)
+               "none cited by name."
+               (string-append (mt--join (map mt--lemma-item lemmas) ", ") ".")))
+          (string-append
+           "\\textbf{Oracles.} "
+           (if (null? oracles)
+               "none."
+               (string-append (mt--join (map mt--tt oracles) ", ") "."))
+           "  \\textbf{Bill:} " (mt--bill-line name) ".")))))))
+
+(define (mt--proof-block names)
+  (cond
+    ((null? names)
+     (list "There is no library statement, and so no proof."))
+    ((null? (cdr names))
+     (mt--proof-paragraphs (car names)))
+    (#t
+     ;; One paragraph group per name, each headed by the name.
+     (apply append
+            (map (lambda (n)
+                   (let ((ps (mt--proof-paragraphs n)))
+                     (cons (string-append (mt--tt n) ".") ps)))
+                 names)))))
+
+;;; --- rendering: one entry ---------------------------------------------
+
+;;; `cond' and not `case': the per-file load environment shadows `else', and a
+;;; `case' clause cannot be guarded by #t.
+(define (mt--env-of-kind kind)
+  (cond ((memq kind '(theorem thm))      "thm")
+        ((memq kind '(proposition prop)) "prop")
+        ((memq kind '(lemma lem))        "lem")
+        ((memq kind '(corollary cor))    "cor")
+        (#t "thm")))
+
+(define (mt--doc-ref-label entry)
+  (string-append "thm:"
+                 (mt--sanitize-label
+                  (string-append (mt--string entry 'doc "unknown") "-"
+                                 (mt--string entry 'ref "?")))))
+
+(define (mt--label entry names)
+  (if (null? names)
+      (mt--doc-ref-label entry)
+      (string-append "thm:" (mt--sanitize-label (mt--as-string (car names))))))
+
+;;; The labels of ENTRIES, in order, made UNIQUE.  One library theorem can
+;;; answer two numbered results of the notes -- `taylor-lagrange' does -- and
+;;; two \label's with one key is a LaTeX warning and a cross-reference that
+;;; points at whichever came last.  A repeat falls back to the doc-and-ref
+;;; label, and a repeat of THAT takes a numeric suffix; the fallback is
+;;; announced, because a shared name is worth knowing about.
+(define (mt--labels entries)
+  (let loop ((es entries) (used '()) (out '()))
+    (if (null? es)
+        (reverse out)
+        (let* ((e     (car es))
+               (want  (mt--label e (mt--list e 'names)))
+               (final
+                (if (not (member want used))
+                    want
+                    (let ((alt (mt--doc-ref-label e)))
+                      (display ";; major-theorems: label ") (display want)
+                      (display " is taken (one library name answers two results); ")
+                      (display "using ") (display alt) (newline)
+                      (if (not (member alt used))
+                          alt
+                          (let bump ((k 2))
+                            (let ((try (string-append alt "-" (number->string k))))
+                              (if (member try used) (bump (+ k 1)) try))))))))
+          (loop (cdr es) (cons final used) (cons final out))))))
+
+(define (mt--write-entry entry label)
+  (let* ((doc    (mt--string entry 'doc "unknown"))
+         (ref    (mt--string entry 'ref ""))
+         (kind   (mt--one entry 'kind 'theorem))
+         (title  (mt--string entry 'title ""))
+         (names  (mt--list entry 'names))
+         (dev    (mt--string entry 'deviation ""))
+         (notes  (mt--string entry 'notes-statement ""))
+         (env    (mt--env-of-kind kind))
+         (head   (string-append
+                  (if (string=? title "") "Untitled" (mt--escape-tex title))
+                  (if (string=? ref "")
+                      ""
+                      (string-append " (" (mt--escape-tex (mt--doc-title doc))
+                                     " " (mt--escape-tex ref) ")")))))
+    ;; The optional argument is braced: a `]' in a title would otherwise end it.
+    (display "\\begin{") (display env) (display "}[{")
+    (display head)
+    (display "}]\\label{") (display label) (display "}\n")
+    (display "%\n")
+    (display (mt--statement-block names notes))
+    (display "%\n")
+    (display "\\end{") (display env) (display "}\n")
+    (display "%\n")
+    (display "\\begin{proof}\n")
+    (display "%\n")
+    (display "The proof uses the following tactics and lemmas.\n")
+    (display "%\n")
+    (for-each (lambda (p)
+                (display "\\vnbprf{") (display p) (display "}\n")
+                (display "%\n"))
+              (mt--proof-block names))
+    (display "\\end{proof}\n")
+    (display "%\n")
+    (if (not (string=? dev ""))
+        (begin
+          (display "\\noindent\\textbf{Deviation from the notes.} ")
+          (display (mt--escape-tex dev))
+          (display "\n")
+          (display "%\n")))))
+
+;;; --- rendering: the deviations section --------------------------------
+
+(define (mt--deviation-row? entry)
+  (let ((dev    (mt--string entry 'deviation ""))
+        (status (mt--one entry 'status
+                         (mt--status-of-names (mt--list entry 'names)))))
+    (or (not (string=? dev "")) (not (eq? status 'proven)))))
+
+(define (mt--names-cell names)
+  (if (null? names)
+      "---"
+      (mt--join (map mt--tt-breakable names) ", ")))
+
+(define (mt--write-deviations entries)
+  (let ((rows (filter mt--deviation-row? entries)))
+    (display "\\section{Deviations}\n")
+    (display "%\n")
+    (if (null? rows)
+        (display "Every entry is proven in the library and states what the notes state.\n")
+        (begin
+          (display "Every entry whose library statement deviates from the notes, or whose\n")
+          (display "status is not \\texttt{proven}.\n")
+          (display "%\n")
+          ;; The two wide columns are RAGGED RIGHT (`array''s >{...} prefix):
+          ;; justified 4.2 cm columns holding \texttt names set very loose.
+          (display "\\begin{longtable}{@{}ll")
+          (display ">{\\raggedright\\arraybackslash}p{4.2cm}")
+          (display ">{\\raggedright\\arraybackslash}p{4.2cm}l@{}}\n")
+          (display "\\hline\n")
+          (display "document & ref & title & library name(s) & status \\\\\n")
+          (display "\\hline\n")
+          (display "\\endfirsthead\n")
+          (display "\\hline\n")
+          (display "document & ref & title & library name(s) & status \\\\\n")
+          (display "\\hline\n")
+          (display "\\endhead\n")
+          (for-each
+           (lambda (e)
+             (let* ((names  (mt--list e 'names))
+                    (status (mt--one e 'status (mt--status-of-names names))))
+               (display (mt--escape-tex (mt--doc-title (mt--string e 'doc "unknown"))))
+               (display " & ")
+               (display (mt--escape-tex (mt--string e 'ref "")))
+               (display " & ")
+               (display (mt--escape-tex (mt--string e 'title "")))
+               (display " & ")
+               (display (mt--names-cell names))
+               (display " & ")
+               (display (mt--escape-tex (mt--as-string status)))
+               (display " \\\\\n")))
+           rows)
+          (display "\\hline\n")
+          (display "\\end{longtable}\n")))
+    (display "%\n")))
+
+(define (mt--count entries doc status)
+  (length (filter (lambda (e)
+                    (and (string=? (mt--string e 'doc "unknown") doc)
+                         (eq? (mt--one e 'status
+                                       (mt--status-of-names (mt--list e 'names)))
+                              status)))
+                  entries)))
+
+(define (mt--write-totals entries docs)
+  (display "\\subsection*{Totals}\n")
+  (display "%\n")
+  (display "\\begin{tabular}{@{}lrrrrr@{}}\n")
+  (display "\\hline\n")
+  (display "document & entries & proven & asserted & partial & absent \\\\\n")
+  (display "\\hline\n")
+  (for-each
+   (lambda (doc)
+     (let ((n (length (filter (lambda (e)
+                                (string=? (mt--string e 'doc "unknown") doc))
+                              entries))))
+       (display (mt--escape-tex (mt--doc-title doc)))
+       (display " & ") (display n)
+       (display " & ") (display (mt--count entries doc 'proven))
+       (display " & ") (display (mt--count entries doc 'asserted))
+       (display " & ") (display (mt--count entries doc 'partial))
+       (display " & ") (display (mt--count entries doc 'absent))
+       (display " \\\\\n")))
+   docs)
+  (display "\\hline\n")
+  (display "\\end{tabular}\n")
+  (display "%\n")
+  ;; A status outside the four is not silently folded into one of them.
+  (let ((other (filter (lambda (e)
+                         (not (memq (mt--one e 'status
+                                             (mt--status-of-names (mt--list e 'names)))
+                                    '(proven asserted partial absent))))
+                       entries)))
+    (if (not (null? other))
+        (begin
+          (display "\\smallskip\\noindent ")
+          (display (length other))
+          (display " entry/entries carry a status outside the four columns above.\n")
+          (display "%\n")))))
+
+;;; --- the generated file's own macros ----------------------------------
+
+(define mt--macro-block
+  (string-append
+   "% \\vnbstmt -- a displayed statement that shrinks to the text width only\n"
+   "% when it would overflow it, so short statements are set at normal size and\n"
+   "% a wide one never runs into the margin.  Needs graphicx.\n"
+   "%\n"
+   "% The leading \\leavevmode is not decoration.  amsthm defers the theorem head\n"
+   "% (`Theorem 1.1 (Title).') into \\everypar, so it is injected at the start of\n"
+   "% the first paragraph of the body; without \\leavevmode the opening \\par is a\n"
+   "% no-op on an empty paragraph, the head lands in the SAME paragraph as the\n"
+   "% box below, and head-width + \\linewidth overfills every statement by 300 pt.\n"
+   "% \\leavevmode starts a paragraph for the head to attach to, and the \\par then\n"
+   "% closes it before the box.\n"
+   "\\providecommand{\\vnbstmt}[1]{%\n"
+   "  \\leavevmode\\par\\nobreak\\smallskip\\noindent\n"
+   "  \\resizebox{\\ifdim\\width>\\linewidth\\linewidth\\else\\width\\fi}{!}{$\\displaystyle #1$}%\n"
+   "  \\par\\smallskip}\n"
+   "\\providecommand{\\vnbmissing}[1]{\\textit{No theorem \\texttt{#1} is installed"
+   " in the library.}}\n"
+   "% \\vnbprf -- one paragraph of the proof block.  Set RAGGED RIGHT: these are\n"
+   "% comma-separated lists of \\texttt identifiers, which neither hyphenate nor\n"
+   "% break at their hyphens, so justified setting either overfills the measure or\n"
+   "% (under \\sloppy) buys the fit with very loose interword glue.\n"
+   "\\providecommand{\\vnbprf}[1]{{\\raggedright #1\\par}}\n"))
+
+;;; --- the entry point --------------------------------------------------
+
+;;; Read the table at TABLE-PATH and write the LaTeX fragment to OUT-PATH.
+;;; Entries keep the table's order; they are grouped by document in the order
+;;; the documents first appear, so one \section is emitted per document.
+;;; Returns the output path, or #f when there is no table to read.
+(define (write-major-theorems-tex! table-path out-path)
+  (let ((entries (mt--read-table table-path)))
+    (if entries
+        (mt--write-all entries out-path)
+        #f)))
+
+(define (mt--write-all entries out-path)
+  (let* ((labels  (mt--labels entries))
+         ;; entry paired with its unique label, so the per-document pass below
+         ;; keeps the table's order without recomputing anything.
+         (pairs   (map cons entries labels))
+         (out     (mt--abs-path out-path))
+         (docs    (let loop ((es entries) (seen '()))
+                    (if (null? es)
+                        (reverse seen)
+                        (let ((d (mt--string (car es) 'doc "unknown")))
+                          (loop (cdr es)
+                                (if (member d seen) seen (cons d seen))))))))
+    (with-output-to-file out
+      (lambda ()
+        (display "% major-theorems.tex -- GENERATED by (write-major-theorems-tex! ...)\n")
+        (display "% from the table of major theorems.  Do not hand-edit: every edit is\n")
+        (display "% lost at the next load.  The statements, tactics, lemmas, oracles and\n")
+        (display "% bills below are read from the LIVE system, not from the table.\n")
+        (display "%\n")
+        (display "% Requires from the host preamble: amsmath, amssymb, amsthm, graphicx,\n")
+        (display "% longtable, and the theorem environments thm / prop / cor / lem.\n")
+        (display "%\n")
+        (display mt--macro-block)
+        (display "%\n")
+        (for-each
+         (lambda (doc)
+           (display "\\section{") (display (mt--escape-tex (mt--doc-title doc)))
+           (display "}\n")
+           (display "%\n")
+           (for-each (lambda (p)
+                       (if (string=? (mt--string (car p) 'doc "unknown") doc)
+                           (mt--write-entry (car p) (cdr p))))
+                     pairs))
+         docs)
+        (mt--write-deviations entries)
+        (mt--write-totals entries docs)))
+    (display ";; major-theorems: ") (display (length entries))
+    (display " entr(y/ies), ") (display (length docs))
+    (display " document(s) -> ") (display out) (newline)
+    out))

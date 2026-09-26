@@ -21,7 +21,7 @@
 
 ;;; ---- driver helpers (mde- prefix; a bare `MDE' would case-fold onto a tactic)
 (define (mde-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
-(define (mde-foc! n) (set-proof-state-focus! *ps* n))
+(define (mde-foc! n) (dk-focus! n))
 (define (mde-leaves)
   (filter (lambda (n) (and (not (sequent-node-grounded? n))
                            (null? (sequent-node-in-arrows n))))

@@ -28,7 +28,7 @@
                              (dg-ungrounded-nodes (proof-state-dg *ps*))))
 (define (sc--fpred p) (let loop ((gs (sc--leaves)))
   (cond ((null? gs) #f)
-        ((p (wff-formula (sequent-node-assertion (car gs)))) (set! *ps* (focus-on *ps* (car gs))) #t)
+        ((p (wff-formula (sequent-node-assertion (car gs)))) (dk-focus! (car gs)) #t)
         (else (loop (cdr gs))))))
 (define (sc--fhead h) (sc--fpred (lambda (a) (and (pair? a) (eq? (car a) h)))))
 (define (sc--estab a b g)   ; ensure (AND a b) in ctx (a,b present); refocus goal g

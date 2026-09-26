@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""vnb-metrics-run -- run one prover job and emit one JSON metrics line.
+
+    vnb-metrics-run --host H --job J --name N --log LOG [--heap BLOCKS]
+                    [--out runs.jsonl] [--progress SECONDS] -- CMD ARG...
+
+Runs CMD with stdout+stderr into LOG, measures it (wall, CPU, peak RSS through
+the children's rusage), reads the GC notification lines and the `;;VNB-METRICS'
+line the prover prints when VNB_METRICS is set, counts the qed / warning / error
+lines, and prints ONE line `;;RUNS {...}' (JSON) -- which vnb-probe / vnb-suite
+carry back to the primary and append to ~/mailbox/metrics/runs.jsonl.  With
+--out it appends the same line locally.  With --progress N a progress line
+(`"progress": true') goes out every N seconds while CMD runs, for runs longer
+than ten minutes.  Exit status is CMD's.  Field meanings: ~/mailbox/metrics/README.md.
+Runs on the WORKER (python3 only; no GNU time needed).
+"""
+import sys, os, re, json, time, resource, subprocess, threading, datetime
+
+def arg(name, default=None):
+    if name in sys.argv:
+        i = sys.argv.index(name); v = sys.argv[i+1]; del sys.argv[i:i+2]; return v
+    return default
+host = arg('--host', os.uname().nodename); job = arg('--job', 'probe'); name = arg('--name', '?')
+log = arg('--log'); heap = arg('--heap'); out = arg('--out'); progress = float(arg('--progress', '0'))
+assert '--' in sys.argv and log, __doc__
+cmd = sys.argv[sys.argv.index('--')+1:]
+os.environ['VNB_METRICS'] = '1'
+try: instance = open('/sys/devices/virtual/dmi/id/product_name').read().strip()
+except Exception: instance = ''
+
+GC = re.compile(r'^;GC #(\d+).*took:\s*([\d.]+)\s*\([^)]*\)\s*CPU,\s*([\d.]+)\s*\([^)]*\)\s*real')
+def scan():
+    """Read LOG so far; return the counters (cheap: one pass, regex per line)."""
+    d = dict(gc_count=0, gc_s=0.0, qed=0, warnings=0, errors=0, aborts=0, passed=None, failed=None, lines=0)
+    try: f = open(log, errors='replace')
+    except FileNotFoundError: return d
+    with f:
+        for line in f:
+            d['lines'] += 1
+            m = GC.match(line)
+            if m: d['gc_count'] = max(d['gc_count'], int(m.group(1))); d['gc_s'] += float(m.group(3)); continue
+            if line.startswith(';; qed'): d['qed'] += 1
+            elif line.startswith(';VNB warning'): d['warnings'] += 1
+            elif line.startswith('  PASS  '): d['passed'] = (d['passed'] or 0) + 1
+            elif line.startswith('  FAIL  '): d['failed'] = (d['failed'] or 0) + 1
+            elif 'error>' in line: d['errors'] += 1
+            elif line.startswith(';Aborting'): d['aborts'] += 1
+            elif line.startswith(';;VNB-METRICS'):
+                for k, v in re.findall(r'(\w+)=(\S+)', line):
+                    d[k] = float(v) if re.fullmatch(r'-?[\d.]+(e-?\d+)?', v) else v
+            elif line.startswith('=== SUMMARY:'):
+                m2 = re.search(r'(\d+) passed, (\d+) failed', line)
+                if m2: d['passed'], d['failed'] = int(m2.group(1)), int(m2.group(2)); d['summary'] = True
+    return d
+
+def emit(rec):
+    line = json.dumps(rec, separators=(',', ':'))
+    print(';;RUNS ' + line, flush=True)
+    if out:
+        with open(out, 'a') as f: f.write(line + '\n')
+
+def now(): return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+def base(d, wall):
+    r = {'ts': now(), 'host': host, 'instance': instance, 'job': job, 'name': name,
+         'heap': int(float(d.get('heap', heap or 0))) if str(d.get('heap', heap or 0)).replace('.', '').isdigit() else ('default' if d.get('heap', heap) in (None, 'none', '') else d.get('heap', heap)),
+         'wall_s': round(wall, 2), 'gc_s': round(d['gc_s'], 2), 'gc_count': d['gc_count'],
+         'gc_pct': round(100.0 * d['gc_s'] / wall, 1) if wall > 0 else 0.0,
+         'qed': d['qed'], 'warnings': d['warnings']}
+    if d['passed'] is not None or d['failed'] is not None: r['passed'] = d['passed'] or 0; r['failed'] = d['failed'] or 0
+    if 'theorems' in d: r['theorems'] = int(d['theorems'])
+    if 'inert' in d: r['inert'] = int(d['inert'])
+    # Per-block timing of run-load-end! (2026-09-24): load.scm's *vnb-load-end-times*
+    # (reference_s, gates_s, audit_s, ...) reaches the `;;VNB-METRICS' line as ordinary
+    # key=value pairs; pass through any of THOSE (a trailing `_s', not one of the fields
+    # already computed above from wall/rusage) so a new block key needs no further change
+    # here.  build-band and extend-band are the jobs that carry them.
+    for k, v in d.items():
+        if k.endswith('_s') and k not in ('wall_s', 'gc_s', 'cpu_s') and k not in r:
+            r[k] = v
+    return r
+
+t0 = time.time(); stop = threading.Event()
+def ticker():
+    while not stop.wait(progress):
+        d = scan(); r = base(d, time.time() - t0); r['progress'] = True
+        try:
+            pids = subprocess.run(['pgrep', '-x', 'mit-scheme'], capture_output=True, text=True).stdout.split()
+            rss = 0
+            for p in pids:
+                for l in open('/proc/%s/status' % p):
+                    if l.startswith('VmRSS:'): rss += int(l.split()[1])
+            r['rss_mb'] = round(rss / 1024.0, 1)
+        except Exception: pass
+        emit(r)
+if progress > 0: threading.Thread(target=ticker, daemon=True).start()
+with open(log, 'w') as lf:
+    rc = subprocess.call(cmd, stdout=lf, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+stop.set()
+wall = time.time() - t0
+ru = resource.getrusage(resource.RUSAGE_CHILDREN)
+d = scan(); r = base(d, wall)
+r['cpu_s'] = round(ru.ru_utime + ru.ru_stime, 2); r['max_rss_mb'] = round(ru.ru_maxrss / 1024.0, 1)
+r['rc'] = rc; r['log_lines'] = d['lines']
+r['outcome'] = ('timeout' if rc == 124 else 'aborted' if d['aborts'] else 'error' if (rc != 0 or d['errors']) else
+                ('ok' if job != 'test-suite' else ('ok' if d.get('summary') and not d['failed'] else 'incomplete' if not d.get('summary') else 'failed')))
+emit(r)
+sys.exit(rc)

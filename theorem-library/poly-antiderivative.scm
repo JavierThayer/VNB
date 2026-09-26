@@ -402,6 +402,19 @@
 (fact 'nn-succ-closed st-sn)                             ; (IN (succ (succ n)) NN)
 (fact 'fun-apply-type-c st-cf 'NN 'RR st-sn)             ; (IN a_{n+1} RR)
 (fact 'deriv-anti-monomial st-coef st-sn st-pt)          ; the new top term
+;;; LUTINS instantiation (2026-09-18).  `deriv-sum' is cited AT st-dvn (a
+;;; SERIES-PARTIAL-SUM) and st-mval (a product with a power), and
+;;; `diff-transfer-ptwise-eq' at their sum; none of the three is certified
+;;; syntactically, so each owes (= t t) unless its typing is in the context.
+;;; The two citations that used to sit BELOW `deriv-sum' (they were there for
+;;; `series-partial-sum-succ') move ABOVE it, and pt^(succ n) is typed here --
+;;; the owed-leaf hook runs `in-rr', which cannot type a power.
+(fact 'poly-term-lam-in-fun st-cf st-pt)
+(fact 'series-partial-sum-in-rr st-sn st-pt-seq)          ; (IN st-dvn RR)
+(fact 'power-closed-at st-sn st-pt)                       ; (IN pt^(succ n) RR)
+(pa-mul! st-coef (list 'power st-pt st-sn))               ; (IN st-mval RR)
+(have! (list 'AND (list 'IN st-dvn 'RR) (list 'IN st-mval 'RR)))
+(fact 'rr-add-closed st-dvn st-mval)                      ; (IN st-val RR)
 (have! (list 'AND (list 'IS-DIFF-AT st-an st-pt st-dvn)
                   (list 'IS-DIFF-AT st-mono st-pt st-mval)))
 (fact 'deriv-sum st-an st-mono st-pt st-dvn st-mval)
@@ -409,8 +422,6 @@
 ;;; the goal's derivative sum, split at its top term and beta-reduced, IS the
 ;;; value `deriv-sum' just concluded.
 ;; series-partial-sum-succ is guarded on its two arguments being real (2026-08-29)
-(fact 'poly-term-lam-in-fun st-cf st-pt)
-(fact 'series-partial-sum-in-rr st-sn st-pt-seq)
 (fact 'fun-apply-type-c st-pt-seq 'NN 'RR st-sn)
 (fact 'series-partial-sum-succ st-pt-seq st-sn)
 (subst (list '== (list 'SERIES-PARTIAL-SUM st-pt-seq st-ssn)

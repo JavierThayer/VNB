@@ -4,13 +4,16 @@
 ;;;   convergent to a continuous limit,   on a compact metric space.
 ;;;
 ;;; PROVEN as an ASSEMBLY.  It rested on two warranted analytic CORES; CORE A
-;;; is now PROVEN (theorem-library/ascoli-analytic-cores.scm, 2026-08-23) down to a
+;;; is PROVEN (theorem-library/ascoli-analytic-cores.scm, 2026-08-23) down to a
 ;;; single asserted compactness rung, and CORE B -- the pointwise-limit
 ;;; construction plus "a uniform limit of continuous maps is continuous" --
-;;; remains warranted here.
+;;; is PROVEN in two halves: the construction in
+;;; theorem-library/unif-cauchy-limit.scm (2026-09-14) and the continuity in
+;;; ascoli-analytic-cores.scm.  Nothing is asserted in this file any more.
 ;;;
-;;; Loads after ascoli-cauchy-core (IS-DENSE-SEQ, CONVERGES-ON, IS-UNIF-CAUCHY
-;;; are defined THERE, and CORE A is proved there), ascoli-arzela-statement
+;;; Loads after ascoli-analytic-cores (IS-DENSE-SEQ, CONVERGES-ON, IS-UNIF-CAUCHY
+;;; are defined THERE, and CORE A is proved there), unif-cauchy-limit
+;;; (unif-cauchy-has-uniform-limit, immediately above), ascoli-arzela-statement
 ;;; (IS-EQUICONTINUOUS, CONVERGES-UNIFORMLY), separable, compactness,
 ;;; metric-completeness (CONVERGES, rr-complete).
 ;;; Binders: dseq (dense sequence), cap (threshold, NOT N).
@@ -40,7 +43,12 @@
 ;;;   (B1) the limit EXISTS, and the convergence is uniform.  A construction:
 ;;;        g(x) is the limit of the Cauchy real sequence k |-> fam(k)(x), and
 ;;;        the uniform estimate comes from passing to the limit in
-;;;        |fam(k)(x) - fam(l)(x)| < eps.  ASSERTED below.
+;;;        |fam(k)(x) - fam(l)(x)| < eps.  PROVEN -- `unif-cauchy-has-uniform-limit',
+;;;        theorem-library/unif-cauchy-limit.scm (2026-09-14): g is
+;;;        VNB-LAMBDA x in PTS(s). SEQ-LIMIT(VNB-LAMBDA k in NN. fam(k)(x)),
+;;;        with seq-limit-core's rr-cauchy-converges, seq-limit-converges-to
+;;;        and rr-limit-tail-abs-le doing exactly the two things the retired
+;;;        gloss said the tree lacked.
 ;;;   (B2) the limit is CONTINUOUS.  PROVEN -- `uniform-limit-continuous',
 ;;;        theorem-library/ascoli-analytic-cores.scm.  No construction, no
 ;;;        completeness: a 3-epsilon argument about a limit already given.
@@ -49,32 +57,10 @@
 ;;; the uniform metric, and the continuity hypothesis of CORE B is spent only in
 ;;; B2.  Splitting them made that visible.
 
-;;; B1 -- the construction (ASSERTED).
-(support 'unif-cauchy-has-uniform-limit
-  (forall-guarded '(s fam)
-    (list
-      '(IN fam (FUN NN (FUN (PTS s) RR)))
-      '(IS-UNIF-CAUCHY s fam))
-    (forsome-guarded 'g '(IN g (FUN (PTS s) RR))
-      '(CONVERGES-UNIFORMLY s fam g))))
-(warrant! 'unif-cauchy-has-uniform-limit 'reference
-  '(thayer-calc "a uniformly Cauchy sequence of maps into a complete space converges uniformly"))
-(gloss! 'unif-cauchy-has-uniform-limit
-  "At each x the real sequence k |-> fam(k)(x) is Cauchy (specialise uniform
-   Cauchyness at x), so it converges in RR (rr-complete, PROVEN); g(x) is that
-   limit.  Letting l -> infinity in |fam(k)(x) - fam(l)(x)| < eps for k,l >= cap
-   gives |fam(k)(x) - g(x)| <= eps at every x at once -- uniform convergence.
-   WHAT A MACHINE PROOF NEEDS, and the tree has neither: (1) the POINTWISE-LIMIT
-   function itself, i.e. VNB-LAMBDA x in PTS(s). IOTA lv. CONVERGES-TO(RR-MS,
-   VNB-LAMBDA k in NN. fam(k)(x), lv) -- well defined because rr-limit-unique
-   (PROVEN) makes the description unique and rr-complete makes it inhabited, but
-   its FUN-typing is a `lam-t' with a sethood leaf (IN (PTS s) SET) and an IOTA
-   definedness leaf at every point; and (2) the passage to the limit, for which
-   `rr-limit-le' (theorem-library/limit-arithmetic.scm, PROVEN) is the shape but
-   is stated for two sequences, not for a sequence against a constant bound.
-   Both are named, both are reachable; neither is analysis.")
-(topic! 'unif-cauchy-has-uniform-limit 'analysis)
-(rests-on 'unif-cauchy-has-uniform-limit '(rr-complete))
+;;; B1 -- the construction.  The `support' of unif-cauchy-has-uniform-limit,
+;;; with its `reference' warrant, gloss, topic and rests-on, stood here until
+;;; 2026-09-14; RETIRED, the theorem being proven in
+;;; theorem-library/unif-cauchy-limit.scm, which loads just before this file.
 
 ;;; CORE B -- now an ASSEMBLY of B1 and B2.
 (sp (make-wff
@@ -105,8 +91,9 @@
 (topic! 'unif-cauchy-cont-implies-uniform-limit 'analysis)
 (gloss! 'unif-cauchy-cont-implies-uniform-limit
   "The completeness core.  Was an asserted `reference' support; it is now the
-   composition of `unif-cauchy-has-uniform-limit' (the construction, still
-   asserted) with `uniform-limit-continuous' (PROVEN).")
+   composition of `unif-cauchy-has-uniform-limit' (the construction, PROVEN
+   2026-09-14 in unif-cauchy-limit.scm) with `uniform-limit-continuous'
+   (PROVEN).")
 
 ;;; ---- the bridge (PROVEN assembly) --------------------------------------
 

@@ -38,7 +38,7 @@
 (define (focus-leaf-goal! raw)
   (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s)
+    (if s (begin (dk-focus! s) s)
         (error "focus-leaf-goal!: none equal to" (expression->string (make-wff raw))))))
 (define (split-ands!)
   (let loop ()

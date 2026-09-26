@@ -1,3 +1,10 @@
+;;; RETIRED 2026-09-17 (proven): nn-minus-succ-1, one-in-interval, succ-not-one, nn-minus-1-inj,
+;;; nn-succ-le-cancel -- theorem-library/rake-intervals.scm, modulo 0.  succ-in-interval and
+;;; pred-in-interval were FALSE as stated (the interval's upper bound was not typed: q = 3/2
+;;; with succ(3/2) interpreted as 0 refutes the first, p = 1/2 the second -- every fact about
+;;; `succ' is NN-guarded, so `succ t' for an untyped t is an uninterpreted term); both are
+;;; installed there GUARDED `(IN q NN)' / `(IN p NN)' outermost, and every citer already
+;;; holds the typing.
 ;;; order-lemmas.scm -- the finite order calculus of RR.
 ;;;
 ;;; number-systems.scm gives the static order axioms (rr-leq reflexive /
@@ -18,6 +25,12 @@
 ;;; These are exactly the cases the linear-arithmetic oracle must also decide,
 ;;; so they double as its specification.  Dependencies: number-systems.scm
 ;;; (RR, <=, +, *, -, abs), order-predicates.scm (<, POS-RR).
+;;; RETIRED 2026-09-14 (proven): rr-prod-nonpos-pos -- theorem-library/rr-order-bundle.scm
+;;; RETIRED 2026-09-14 (proven): rr-prod-nonpos-neg -- theorem-library/rr-order-bundle.scm
+;;; RETIRED 2026-09-14 (proven): interval-mem-intro -- theorem-library/interval-mem-intro.scm
+;;; RETIRED 2026-09-14 (proven): nn-not-le-succ-le -- theorem-library/nn-not-le-succ-le.scm (ordinal route)
+;;; RETIRED 2026-09-14 (proven): co-lt-eq-trans -- theorem-library/co-eq-lt-trans.scm
+;;; RETIRED 2026-09-14 (proven): co-eq-lt-trans -- theorem-library/co-eq-lt-trans.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; Chaining: mixed strict / non-strict transitivity, and weakening.
@@ -155,14 +168,6 @@
 ;;; Sign of a difference, and sign of a product from the sign of a factor.
 ;;; The nonlinear product-sign facts (Farkas cannot see them) plus the
 ;;; difference<->order glue that the Caratheodory mean-value arc needs.
-(support 'rr-prod-nonpos-pos
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (AND (< 0 v) (<= (* u v) 0)) (<= u 0)))))))
-(warrant! 'rr-prod-nonpos-pos 'well-known "u*v<=0 with v>0 forces u<=0.")
-(support 'rr-prod-nonpos-neg
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (AND (< v 0) (<= (* u v) 0)) (<= 0 u)))))))
-(warrant! 'rr-prod-nonpos-neg 'well-known "u*v<=0 with v<0 forces u>=0.")
 
 ;;; Negation and order: flips <=, and -u=0 forces u=0 (used by interior-min via
 ;;; the reduction to interior-max applied to -f).
@@ -174,57 +179,38 @@
 ;;; the field axioms; named so a forward `fact' chains them (uniqueness of the
 ;;; Caratheodory derivative factor, differentiation.scm, is the first customer).
 ;;; -----------------------------------------------------------------------
-;;; calc-chain composition lemmas: UNTYPED CURRIED transitivity for every
-;;; (relation, relation) combination the `calc' order composer folds through.
-;;; They mirror eq-trans / nn-le-trans (untyped, curried, well-known) so a
-;;; forward `fact' discharges both order antecedents from context with no RR
-;;; typing guard.  The `co-' (compose) prefix keeps them off the surface.
-(support 'co-le-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (<= b c) (<= a c)))))))
-(warrant! 'co-le-trans 'well-known "a<=b then b<=c gives a<=c.")
-(topic! 'co-le-trans 'inequalities)
-(support 'co-lt-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (< b c) (< a c)))))))
-(warrant! 'co-lt-trans 'well-known "a<b then b<c gives a<c.")
-(topic! 'co-lt-trans 'inequalities)
-(support 'co-le-lt-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (< b c) (< a c)))))))
-(warrant! 'co-le-lt-trans 'well-known "a<=b then b<c gives a<c.")
-(topic! 'co-le-lt-trans 'inequalities)
-(support 'co-lt-le-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (<= b c) (< a c)))))))
-(warrant! 'co-lt-le-trans 'well-known "a<b then b<=c gives a<c.")
-(topic! 'co-lt-le-trans 'inequalities)
-(support 'co-le-eq-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (<= a b) (IMPLIES (= b c) (<= a c)))))))
-(warrant! 'co-le-eq-trans 'well-known "a<=b then b=c gives a<=c.")
-(topic! 'co-le-eq-trans 'inequalities)
-(support 'co-lt-eq-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (< a b) (IMPLIES (= b c) (< a c)))))))
-(warrant! 'co-lt-eq-trans 'well-known "a<b then b=c gives a<c.")
-(topic! 'co-lt-eq-trans 'inequalities)
-(support 'co-eq-le-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (<= b c) (<= a c)))))))
-(warrant! 'co-eq-le-trans 'well-known "a=b then b<=c gives a<=c.")
-(topic! 'co-eq-le-trans 'inequalities)
-(support 'co-eq-lt-trans
-  '(FORALL a (FORALL b (FORALL c (IMPLIES (= a b) (IMPLIES (< b c) (< a c)))))))
-(warrant! 'co-eq-lt-trans 'well-known "a=b then b<c gives a<c.")
-(topic! 'co-eq-lt-trans 'inequalities)
+;;; calc-chain composition lemmas -- ALL SIX MOVED 2026-09-15 (wave 7) to
+;;; theorem-library/co-order-trans-guarded.scm, where each is PROVEN modulo 0.
+;;;
+;;; They were CURRIED and UNTYPED, deliberately: the paragraph that stood here
+;;; said they carried no RR typing guard so that a forward `fact' could
+;;; discharge both order antecedents straight from the context.  What that
+;;; bought in convenience it paid for in strength -- unguarded, they assert the
+;;; transitivity of `<=' and `<' as GLOBAL relations, about which this theory
+;;; says nothing off RR, so they were not provable and 14 bills named them.
+;;;
+;;; The four genuine order compositions (le-le, lt-lt, le-lt, lt-le) are now
+;;; guarded on `a, b, c in RR' and each is one Farkas certificate.  The two
+;;; eq- links (co-le-eq-trans, co-eq-le-trans) needed NO guard and are
+;;; unchanged: neither is an order fact at all -- each is one `subst' of the
+;;; goal by the equation in context, after which the goal IS the other
+;;; hypothesis.  The antecedents stay CURRIED, so `fact' still auto-detaches.
+;;;
+;;; Measured cost to the citers before the change was made: 9 sites in 4 files,
+;;; 10 inserted lines, every typing fact one those files already produce.
+;;; The `co-' (compose) prefix still keeps them off the surface.
+;;; co-le-trans MOVED 2026-09-15 (wave 7) to theorem-library/co-order-trans-guarded.scm, where it was PROVEN modulo 0; REMOVED there 2026-09-20 (batch 11) as a duplicate of rr-le-trans-c (theorem-library/nn-order-basics.scm), which its four call sites now cite.  The four order compositions are now GUARDED on a, b, c in RR: unguarded they asserted transitivity of a GLOBAL relation, which the theory licenses nowhere.  The two eq- links needed no guard (each is one subst).
+;;; co-lt-trans MOVED 2026-09-15 (wave 7) to theorem-library/co-order-trans-guarded.scm, where it is PROVEN modulo 0.  The four order compositions are now GUARDED on a, b, c in RR: unguarded they asserted transitivity of a GLOBAL relation, which the theory licenses nowhere.  The two eq- links needed no guard (each is one subst).
 
 ;;; Discreteness of NN: a nonzero natural is strictly positive.  0<=k (nn-zero-le)
 ;;; and k/=0 give 0<k.  This is the single fact that made sqrt2 ASSERT nn-lt-double
 ;;; (trust:reference); as a well-known support it lets `calc' PROVE nn-lt-double.
-(support 'nn-pos-of-nonzero
-  '(FORALL k (IMPLIES (IN k NN) (IMPLIES (NOT (= k 0)) (< 0 k)))))
-(warrant! 'nn-pos-of-nonzero 'well-known
-  "k in NN, k/=0 => 0<k: 0<=k (nn-zero-le) and 0/=k give the strict inequality.")
-(topic! 'nn-pos-of-nonzero 'inequalities)
+;;; nn-pos-of-nonzero MOVED 2026-09-15 (wave 6) to theorem-library/nn-pos-of-nonzero.scm, where it is PROVEN modulo 0.
 
 ;;; rr-cancel-mul-right MOVED 2026-08-16 to theorem-library/rr-order-basics.scm,
 ;;; where it is PROVEN `modulo 0' from rr-no-zero-divisors.  Its warrant here was
 ;;; "multiply by 1/c" -- the derivation, written down and never run.  (Its
-;;; left-factor twin rr-cancel-mul-left is still asserted, inside
+;;; left-factor twin rr-cancel-mul-left is PROVEN (taylor-proof.scm, third spliced block, 2026-09-15), inside
 ;;; theorem-library/taylor-proof.scm; the same four lines would do it.)
 
 ;;; rr-sub-in-rr MOVED 2026-08-01 to theorem-library/binary-minus-laws.scm, where
@@ -243,18 +229,17 @@
 ;;; is true and is not an NN axiom: NN's base (nn-zero-in, nn-succ-closed,
 ;;; nn-induction) does not state it and cannot prove it.  The ordinals do.
 
-(support 'nn-not-le-zero-pos
-  '(FORALL j (IMPLIES (IN j NN) (IMPLIES (<= 1 j) (NOT (<= j 0))))))
-(warrant! 'nn-not-le-zero-pos 'well-known
-  "1 <= j => not(j <= 0) for j in NN (0 is least, and j >= 1 > 0).")
-(topic! 'nn-not-le-zero-pos 'inequalities)
+;; nn-not-le-zero-pos MOVED 2026-09-05 to theorem-library/nn-not-le-zero.scm,
+;; where it is PROVEN `modulo 0'.  It was the TOP of the greedy what-if ranking
+;; (reference/DEBT-BUNDLE.md) at ten bills cleared -- not a leaf anyone would
+;; pick by eye, which is the argument for ranking by bills rather than by
+;; citations.  The retired warrant said "0 is least, and j >= 1 > 0"; the second
+;; half is the whole proof and it has to be taken in RR, since NN has no order
+;; axioms of its own beyond the succ family and `nn-le-zero-is-zero' -- the
+;; obvious route -- is itself proved by citing this.
 
 
-(support 'nn-pos-is-succ
-  '(FORALL n (IMPLIES (IN n NN) (IMPLIES (<= 1 n)
-     (FORSOME q (AND (IN q NN) (= n (succ q))))))))
-(warrant! 'nn-pos-is-succ 'well-known "a positive nat is a successor (n>=1 => n = succ(n-1), n-1 in NN).")
-(topic! 'nn-pos-is-succ 'inequalities)
+;;; nn-pos-is-succ MOVED 2026-09-15 (wave 6) to theorem-library/nn-pos-is-succ.scm, where it is PROVEN modulo 0.
 
 ;;; nn-le-imp-neq-succ MOVED 2026-08-24 to theorem-library/nn-order-ord.scm,
 ;;; where it is PROVEN `modulo 0'.  It is the fact under `nn-succ-nonzero'.
@@ -266,75 +251,26 @@
 ;;; well before noetherian-maximal-proof, its former home).
 ;;; NN-MINUS(succ z, 1) = z -- the monus predecessor of a successor.  Used by
 ;;; border-mult to reduce a shifted block index.
-(support 'nn-minus-succ-1
-  '(FORALL z (IMPLIES (IN z NN) (= (NN-MINUS (succ z) 1) z))))
-(warrant! 'nn-minus-succ-1 'well-known
-  "NN-MINUS(succ z, 1) = z: 1 <= succ z, so the monus is (succ z) - 1 = z
-   (nn-minus-def + bt-succ-minus-1).")
-(topic! 'nn-minus-succ-1 'plumbing)
 
 ;;; Interval membership helpers for border-mult's block indexing.
-(support 'one-in-interval
-  '(FORALL n (IMPLIES (IN n NN) (IN 1 (INTERVAL 1 (succ n))))))
-(warrant! 'one-in-interval 'well-known "1 in [1, succ n] (1 <= 1 <= succ n).")
-(topic! 'one-in-interval 'inequalities)
 
-(support 'pred-in-interval
-  '(FORALL p (FORALL i (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
-     (IN (NN-MINUS i 1) (INTERVAL 1 p)))))))
-(warrant! 'pred-in-interval 'well-known
-  "i in [2, succ p] => i-1 in [1, p]: the monus predecessor of an index past 1
-   lands in the block range.")
-(topic! 'pred-in-interval 'inequalities)
 
 ;;; succ of an index: stays in the shifted interval, and is never 1 (>= 2).
-(support 'succ-in-interval
-  '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (IN (succ z) (INTERVAL 1 (succ q)))))))
-(warrant! 'succ-in-interval 'well-known
-  "z in [1,q] => succ z in [1, succ q] (2 <= succ z <= succ q).")
-(topic! 'succ-in-interval 'inequalities)
 
-(support 'succ-not-one
-  '(FORALL q (FORALL z (IMPLIES (IN z (INTERVAL 1 q)) (NOT (= (succ z) 1))))))
-(warrant! 'succ-not-one 'well-known "z in [1,q] => succ z >= 2, so succ z /= 1.")
-(topic! 'succ-not-one 'inequalities)
 
 ;;; monus-by-1 is injective on indices >= 1 (needed to compare BORDER's block to
 ;;; IDENTMAT's Kronecker delta in border-identity).
-(support 'nn-minus-1-inj
-  '(FORALL i (FORALL j (IMPLIES (IN i NN) (IMPLIES (IN j NN)
-     (IMPLIES (<= 1 i) (IMPLIES (<= 1 j)
-       (IMPLIES (NOT (= i j)) (NOT (= (NN-MINUS i 1) (NN-MINUS j 1)))))))))))
-(warrant! 'nn-minus-1-inj 'well-known
-  "i /= j and 1 <= i,j => i-1 /= j-1 (monus by 1 is injective on [1,inf)).")
-(topic! 'nn-minus-1-inj 'inequalities)
 
 ;;; succ(i-1) = i for i >= 1 -- the inverse of monus-by-1 on positive indices;
 ;;; used to see that BORDER(b, SUBMAT(C)) restores C's lower-right block.
-(support 'succ-nn-minus-1
-  '(FORALL i (IMPLIES (IN i NN) (IMPLIES (<= 1 i) (= (succ (NN-MINUS i 1)) i)))))
-(warrant! 'succ-nn-minus-1 'well-known
-  "succ(i-1) = i for i >= 1 (monus by 1 then succ is the identity on [1,inf)).")
+;;; succ-nn-minus-1 RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-border-siblings.scm
 (topic! 'succ-nn-minus-1 'inequalities)
 
 ;;; -----------------------------------------------------------------------
 ;;; Interval membership introduction + the NN trichotomy step the rank bound
 ;;; (Prop 3.41) needs to turn NOT(m <= n) into a legal row index succ n <= m.
 
-(support 'interval-mem-intro
-  '(FORALL a (FORALL b (FORALL i (IMPLIES (IN i NN)
-     (IMPLIES (<= a i) (IMPLIES (<= i b) (IN i (INTERVAL a b)))))))))
-(warrant! 'interval-mem-intro 'proof
-  "Converse of interval-lo/interval-hi: i in NN with a<=i<=b lies in INTERVAL(a,b)
-   (the right-to-left direction of interval-membership's SEP iff).")
-(topic! 'interval-mem-intro 'plumbing)
 
-(support 'nn-not-le-succ-le
-  '(FORALL m (IMPLIES (IN m NN) (FORALL n (IMPLIES (IN n NN)
-     (IMPLIES (NOT (<= m n)) (<= (succ n) m)))))))
-(warrant! 'nn-not-le-succ-le 'well-known
-  "NN is totally ordered and discrete: not(m<=n) gives n<m, hence succ n <= m.")
-(topic! 'nn-not-le-succ-le 'inequalities)
 
 ;;; nn-one-le-succ MOVED 2026-08-24 to theorem-library/nn-order-ord.scm, where
 ;;; it is PROVEN `modulo 0' (nn-succ-mono at 0 <= n, then 1 = succ 0).
@@ -350,10 +286,7 @@
 ;; Its warrant WAS the derivation -- "1 = succ 0 in NN" -- i.e. nn-zero-in,
 ;; nn-succ-closed and one ground `arith' step, written down and never run.
 
-(support 'one-in-interval-1 '(IN 1 (INTERVAL 1 1)))
-(warrant! 'one-in-interval-1 'proof
-  "1 in INTERVAL(1,1): 1 in NN and 1<=1<=1.  The column index of a column vector.")
-(topic! 'one-in-interval-1 'plumbing)
+;;; one-in-interval-1 MOVED 2026-09-15 (wave 6) to theorem-library/interval-membership.scm, where it is PROVEN modulo 0.
 
 ;;; -----------------------------------------------------------------------
 ;;; succ is monotone and reflects <= ; 0 is least.  The Smith staircase
@@ -380,11 +313,6 @@
 ;;; reaches all three; `nn-pos-of-nonzero' (4 bills, sole leaf of 0) is cheaper
 ;;; still, being nothing but the `<' unfold over the now-proven nn-zero-le.
 
-(support 'nn-succ-le-cancel
-  '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
-     (IMPLIES (<= (succ a) (succ b)) (<= a b)))))))
-(warrant! 'nn-succ-le-cancel 'well-known "succ a <= succ b => a <= b.")
-(topic! 'nn-succ-le-cancel 'inequalities)
 
 ;;; --- reverse-direction DEFINEDNESS facts (added 2026-07-27) ------------------
 ;;; The forward recip/mul axioms (rr-recip-closed, rr-recip-inverse) only run

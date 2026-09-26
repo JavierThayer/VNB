@@ -1,20 +1,5 @@
-;;; theorem-library/ord-segment-trans.scm
-;;;
-;;; ord-segment-trans:  transitivity of ORD-SEGMENT membership.
-;;; For m in NN, if i in OS(k) and k in OS(m), then i in OS(m).
-;;;
-;;; PSS-promoted 2026-05-27 from proven-theorems.scm.  Original proof
-;;; script archived in archive/proven-theorems-archive.scm.
-
-(support 'ord-segment-trans
-  '(FORALL m (IMPLIES (IN m NN)
-     (FORALL k (FORALL i
-       (IMPLIES (AND (IN i (ORD-SEGMENT k)) (IN k (ORD-SEGMENT m)))
-                (IN i (ORD-SEGMENT m))))))))
-
-(warrant! 'ord-segment-trans 'informal
-  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
-   archive/proven-theorems-archive.scm (prove-and-install! 'ord-segment-trans).
-   Transitivity of segment membership is transitivity of the ordinal order,
-   read through ORD-SEGMENT.  Archive predates the E -> IDEN rename and the
-   ==-sweep.")
+;;; ord-segment-trans.scm -- SIGNPOST (2026-09-17).  This file was a one-support PSS stub for
+;;; `ord-segment-trans' (promoted 2026-05-27 from an archived mechanical proof).  The support is RETIRED:
+;;; the theorem is PROVEN modulo 0 in theorem-library/rake-combinatorics.scm (rake batch P).
+;;; The original stub is in scratchpad/surgery/orig-0917/.  Kept so load.scm's entry and the
+;;; name's history still resolve; nothing is installed here.

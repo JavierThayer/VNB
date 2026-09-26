@@ -1,3 +1,6 @@
+;;; RETIRED 2026-09-17 (proven): ring-neg-neg -- theorem-library/rake-algebra2.scm
+;;; RETIRED 2026-09-17 (proven): submat-type, border-type -- theorem-library/rake-mat-typing.scm
+;;; RETIRED 2026-09-17 (proven): diagonal-off-entry -- theorem-library/rake-algebra.scm
 ;;; mat-equiv.scm -- the matrix EQUIVALENCE relation ~ (algebraic-numbers.pdf
 ;;; ch.3, Def 3.33 / Remark 3.35): C ~ D iff C can be carried to D by a sequence
 ;;; of elementary row and column operations, equivalently iff there are INVERTIBLE
@@ -26,11 +29,6 @@
 
 ;;; -(-r) = r in any ring (additive-group double inverse) -- needed to see that
 ;;; ELEM-G[-r]'s inverse ELEM-G[-(-r)] is ELEM-G[r].
-(support 'ring-neg-neg
-  '(FORALL s (IMPLIES (IS-RING s) (FORALL r (IMPLIES (IN r (CARR s))
-     (= ((NEG s) ((NEG s) r)) r))))))
-(warrant! 'ring-neg-neg 'well-known
-  "-(-r) = r in any ring: r's additive inverse's inverse is r (group double-inverse).")
 
 ;;; -----------------------------------------------------------------------
 ;;; SUBMAT(P, p, q): the lower-right p-by-q block of a (succ p)-by-(succ q)
@@ -44,26 +42,18 @@
 ;;; (succ p)-by-(succ q) (each block entry P_{i+1,j+1} lies in CARR A).
 ;;; Warranted 'reference like the other MAT read-offs (matof-in-mat + the shift
 ;;; succ i in [1, succ p] for i in [1,p]).
-(support 'submat-type
-  '(FORALL A (FORALL p (FORALL q (FORALL S
-     (IMPLIES (IN p NN) (IMPLIES (IN q NN)
-       (IMPLIES (IN S (MAT (succ p) (succ q) (CARR A)))
-         (IN (SUBMAT S p q) (MAT p q (CARR A)))))))))))
-(warrant! 'submat-type 'reference
-  "SUBMAT(P,p,q) in MAT(p,q,CARR A) for P in MAT(succ p, succ q, CARR A): each
-   block entry is P_{succ i, succ j} in CARR A (entry-in-carrier; succ i in
-   [1,succ p] for i in [1,p]), so matof-in-mat applies.")
 
-;;; entry-of-submat: the (i,j) block entry is P_{i+1, j+1}.  A pure read-off,
-;;; warranted 'reference like entry-of-matof (mac SUBMAT + entry-of-matof + beta
-;;; reduces the goal to a reflexive equation; verified in scratchpad/submat.scm).
-(support 'entry-of-submat
-  '(FORALL S (FORALL p (FORALL q (FORALL i (FORALL j
-     (IMPLIES (IN i (INTERVAL 1 p)) (IMPLIES (IN j (INTERVAL 1 q))
-       (= (ENTRY (SUBMAT S p q) i j) (ENTRY S (succ i) (succ j)))))))))))
-(warrant! 'entry-of-submat 'reference
-  "SUBMAT(P,p,q)_{ij} = P_{succ i, succ j} for i in [1,p], j in [1,q]
-   (entry-of-matof on the block tabulator, beta-reduced).")
+;;; entry-of-submat: the (i,j) block entry is P_{i+1, j+1}.  A pure read-off
+;;; (mac SUBMAT + entry-of-matof + beta).  It was a support here, warranted
+;;; 'reference, until 2026-09-16; it is now a THEOREM, GUARDED on submat-type's
+;;; premises, (IN p NN), (IN q NN),
+;;; (IN S (MAT (succ p) (succ q) X)); the carrier X is a NEW binder, APPENDED at
+;;; the end of the list, so every citation gains one trailing argument.
+;;; Unguarded it was FALSE: for p := 3/2 the tabulation SUBMAT(S, p, q) is a
+;;; description over the empty MAT(3/2, q, ...) and has no value; for S := []
+;;; and p = q = 1 the one tabulated value ENTRY([], 2, 2) does not denote, so
+;;; no 1-by-1 tabulation exists.
+;;; RETIRED 2026-09-16 (proven): entry-of-submat -- theorem-library/elem-entry-readoffs.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; BORDER(A, b, M, p, q): the (succ p)-by-(succ q) matrix with b in the (1,1)
@@ -83,58 +73,38 @@
 ;;; border-type: BORDER(A,b,M,p,q) in MAT(succ p, succ q, CARR A) when b in CARR A
 ;;; and M in MAT(p,q,CARR A) -- every tabulator value is b, ZERO A, or b block
 ;;; entry of M, all in CARR A (matof-in-mat).  Warranted 'reference like submat-type.
-(support 'border-type
-  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q
-     (IMPLIES (IN p NN) (IMPLIES (IN q NN)
-       (IMPLIES (IN b (CARR A))
-       (IMPLIES (IN M (MAT p q (CARR A)))
-         (IN (BORDER A b M p q) (MAT (succ p) (succ q) (CARR A)))))))))))))
-(warrant! 'border-type 'reference
-  "BORDER(A,b,M,p,q) in MAT(succ p, succ q, CARR A): each tabulator value is b
-   (in CARR A), ZERO A (in CARR A), or b block entry M_{i-1,j-1} (entry-in-carrier,
-   i-1 in [1,p] for i in [2,succ p]); matof-in-mat applies.")
+;;;
+;;; GUARDED 2026-09-16 on (IS-RING A), after the binders.  Unguarded it is
+;;; FALSE: take A := [S, 0, 0, 0, z, 0] with S a nonempty set and z not in S,
+;;; so CARR(A) = S and ZERO(A) = z.  For q >= 1 the (1, 2) entry of
+;;; BORDER(A, b, M, p, q) is z, which is not in CARR(A), while b in S and
+;;; M in MAT(p, q, S) are satisfiable.
 
 ;;; The four entry read-offs (pure MATOF read-offs: entry-of-matof + beta + IF
 ;;; reduction + NN-MINUS(succ i,1)=i via nn-minus/bt-succ-minus-1).  Warranted
 ;;; 'reference like entry-of-submat / entry-of-identmat.
-(support 'border-entry-11
-  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q
-     (= (ENTRY (BORDER A b M p q) 1 1) b)))))))
-(warrant! 'border-entry-11 'reference "BORDER(A,b,M,p,q)_{1,1} = b (i=j=1 branch).")
+;;;
+;;; All five read-offs are GUARDED 2026-09-16 on border-type's premises plus
+;;; (IS-RING A) -- (IS-RING A), (IN p NN), (IN q NN), (IN b (CARR A)),
+;;; (IN M (MAT p q (CARR A))) -- placed after the binders, ahead of the index
+;;; premises; the binder lists are unchanged.  Unguarded they are FALSE: for
+;;; p := 3/2, BORDER(A, b, M, p, q) is a description over the empty
+;;; MAT(succ 3/2, ...) and has no value, so no entry of it denotes; for
+;;; p = q = 1 and M := [], the tabulated value ENTRY([], 1, 1) at (2, 2) does
+;;; not denote, so the 2-by-2 tabulation does not exist and even
+;;; border-entry-11 fails; for A not a ring, as under border-type.
+;;; border-entry-11 RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-border-siblings.scm
 
-(support 'border-entry-1j
-  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL j
-     (IMPLIES (IN j (INTERVAL 1 (succ q))) (IMPLIES (NOT (= j 1))
-       (= (ENTRY (BORDER A b M p q) 1 j) (ZERO A)))))))))))
-(warrant! 'border-entry-1j 'reference
-  "BORDER(A,b,M,p,q)_{1,j} = 0 for j /= 1 (i=1, j/=1 branch).")
+;;; border-entry-1j RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-border-siblings.scm
 
-(support 'border-entry-i1
-  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL i
-     (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
-       (= (ENTRY (BORDER A b M p q) i 1) (ZERO A)))))))))))
-(warrant! 'border-entry-i1 'reference
-  "BORDER(A,b,M,p,q)_{i,1} = 0 for i /= 1 (i/=1, j=1 branch).")
+;;; border-entry-i1 RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-border-siblings.scm
 
-(support 'border-entry-block
-  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL i (FORALL j
-     (IMPLIES (IN i (INTERVAL 1 p)) (IMPLIES (IN j (INTERVAL 1 q))
-       (= (ENTRY (BORDER A b M p q) (succ i) (succ j)) (ENTRY M i j))))))))))))
-(warrant! 'border-entry-block 'reference
-  "BORDER(A,b,M,p,q)_{succ i, succ j} = M_{i,j} for i in [1,p], j in [1,q]
-   (i/=1,j/=1 branch; NN-MINUS(succ i,1)=i).")
+;;; border-entry-block RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-border-entry.scm
 
 ;;; border-entry-block2: same block read-off for GENERAL indices i,j >= 2 (in the
 ;;; border range, /= 1), NN-MINUS form -- lets border-mult read a block entry off a
 ;;; general index without destructuring it as a successor.
-(support 'border-entry-block2
-  '(FORALL A (FORALL b (FORALL M (FORALL p (FORALL q (FORALL i (FORALL j
-     (IMPLIES (IN i (INTERVAL 1 (succ p))) (IMPLIES (NOT (= i 1))
-     (IMPLIES (IN j (INTERVAL 1 (succ q))) (IMPLIES (NOT (= j 1))
-       (= (ENTRY (BORDER A b M p q) i j) (ENTRY M (NN-MINUS i 1) (NN-MINUS j 1)))))))))))))))
-(warrant! 'border-entry-block2 'reference
-  "BORDER(A,b,M,p,q)_{i,j} = M_{i-1,j-1} for i,j /= 1 in the border range (the
-   i/=1,j/=1 branch of the def; NN-MINUS = monus predecessor).")
+;;; border-entry-block2 RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-border-entry.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; min-degree-entry -- a matrix with a nonzero entry HAS a nonzero entry of
@@ -184,26 +154,14 @@
 ;;; (succ a <= b => a < b => not b <= a).  Elementary NN order; used in the Smith
 ;;; descent to turn "remainder degree strictly below the minimal pivot degree"
 ;;; (succ(deg r) <= deg pivot) against class-minimality (deg pivot <= deg r) into
-;;; a contradiction, forcing r = 0.
-(support 'nn-succ-le-antisym
-  '(FORALL a (IMPLIES (IN a NN) (FORALL b (IMPLIES (IN b NN)
-     (IMPLIES (<= (succ a) b) (NOT (<= b a))))))))
-(warrant! 'nn-succ-le-antisym 'well-known
-  "succ a <= b => not(b <= a) for a,b in NN: succ a <= b gives a < b, so b <= a
-   would give a < a.  Elementary order on NN.")
+;;; a contradiction, forcing r = 0.  It was a support here until 2026-09-16; it is
+;;; PROVEN in theorem-library/nn-order-via-rr.scm, and nothing
+;;; between the two load positions cites it, so the support was retired (the name
+;;; had been installed twice).
 
 ;;; Projection of IS-DIAGONAL, with the index guards CURRIED so a forward `fact'
 ;;; can detach them (the predicate's own body puts them in a shape `fact' will
 ;;; not unfold).  Off the diagonal, a diagonal matrix has zero entries.
-(support 'diagonal-off-entry
-  '(FORALL A (FORALL m (FORALL n (FORALL D
-     (IMPLIES (IS-DIAGONAL A m n D)
-     (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-     (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
-     (IMPLIES (NOT (= i j))
-       (= (ENTRY D i j) (ZERO A)))))))))))))
-(warrant! 'diagonal-off-entry 'proof
-  "D_{ij} = 0 for i /= j -- IS-DIAGONAL's defining body, re-quantified for `fact'.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

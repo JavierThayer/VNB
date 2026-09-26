@@ -23,7 +23,7 @@
   (let loop ((gs (leaf-goals)))
     (cond ((null? gs) #f)
           ((p (wff-formula (sequent-node-assertion (car gs))))
-           (set! *ps* (focus-on *ps* (car gs))) #t)
+           (dk-focus! (car gs)) #t)
           (else (loop (cdr gs))))))
 (define (leaf-head? h) (leaf-pred? (lambda (a) (and (pair? a) (eq? (car a) h)))))
 (define (leaf-heads)

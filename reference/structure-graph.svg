@@ -95,9 +95,9 @@
 </g>
 </g>
 <!-- cc&#45;normed&#45;field&#45;&gt;normed&#45;field -->
-<g id="edge2" class="edge">
+<g id="edge3" class="edge">
 <title>cc&#45;normed&#45;field&#45;&gt;normed&#45;field</title>
-<g id="a_edge2"><a xlink:title="cc&#45;normed&#45;field refines normed&#45;field">
+<g id="a_edge3"><a xlink:title="cc&#45;normed&#45;field refines normed&#45;field">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M765.51,-121.8C741.86,-134.3 709.68,-151.31 683.85,-164.96"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="682.3,-161.82 675.09,-169.59 685.57,-168.01 682.3,-161.82"/>
 </a>
@@ -184,14 +184,14 @@
 </g>
 </g>
 <!-- complex&#45;inner&#45;product&#45;space&#45;&gt;module -->
-<g id="edge22" class="edge">
+<g id="edge21" class="edge">
 <title>complex&#45;inner&#45;product&#45;space&#45;&gt;module</title>
-<g id="a_edge22"><a xlink:href="structure-graph.html#views" xlink:title="complex&#45;inner&#45;product&#45;space&#45;as&#45;module : &#160;complex&#45;inner&#45;product&#45;space &#45;&gt; module &#160;&#160;&#160;(scal vec vadd vzero vneg act) |&#45;&gt; (scal vec vadd vzero vneg act)">
+<g id="a_edge21"><a xlink:href="structure-graph.html#views" xlink:title="complex&#45;inner&#45;product&#45;space&#45;as&#45;module : &#160;complex&#45;inner&#45;product&#45;space &#45;&gt; module &#160;&#160;&#160;(scal vec vadd vzero vneg act) |&#45;&gt; (scal vec vadd vzero vneg act)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M889.83,-207.43C882.24,-212.02 875.47,-217.78 870.25,-225 866.73,-229.86 867,-233.46 870.25,-238.5 872.49,-241.98 887.66,-249.17 903.95,-256.13"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="902.17,-259.18 912.74,-259.82 904.87,-252.72 902.17,-259.18"/>
 </a>
 </g>
-<g id="a_edge22&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;module">
+<g id="a_edge21&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;module">
 <text xml:space="preserve" text-anchor="middle" x="898.75" y="-228.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#b06a00">as&#45;module</text>
 </a>
 </g>
@@ -325,18 +325,18 @@
 </g>
 </g>
 <!-- field&#45;ring&#45;&gt;commutative&#45;ring -->
-<g id="edge11" class="edge">
+<g id="edge12" class="edge">
 <title>field&#45;ring&#45;&gt;commutative&#45;ring</title>
-<g id="a_edge11"><a xlink:title="field&#45;ring refines commutative&#45;ring">
+<g id="a_edge12"><a xlink:title="field&#45;ring refines commutative&#45;ring">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M369.22,-292.8C372.34,-303.66 376.45,-317.93 380.04,-330.44"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="376.57,-331.04 382.7,-339.68 383.3,-329.11 376.57,-331.04"/>
 </a>
 </g>
 </g>
 <!-- integral&#45;domain&#45;&gt;commutative&#45;ring -->
-<g id="edge12" class="edge">
+<g id="edge11" class="edge">
 <title>integral&#45;domain&#45;&gt;commutative&#45;ring</title>
-<g id="a_edge12"><a xlink:title="integral&#45;domain refines commutative&#45;ring">
+<g id="a_edge11"><a xlink:title="integral&#45;domain refines commutative&#45;ring">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M265.37,-292.8C288.57,-305.3 320.14,-322.31 345.48,-335.96"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="343.58,-338.91 354.04,-340.57 346.9,-332.75 343.58,-338.91"/>
 </a>
@@ -361,14 +361,14 @@
 </g>
 </g>
 <!-- measure&#45;space&#45;&gt;measurable&#45;space -->
-<g id="edge31" class="edge">
+<g id="edge32" class="edge">
 <title>measure&#45;space&#45;&gt;measurable&#45;space</title>
-<g id="a_edge31"><a xlink:href="structure-graph.html#views" xlink:title="measure&#45;space&#45;as&#45;measurable&#45;space : &#160;measure&#45;space &#45;&gt; measurable&#45;space &#160;&#160;&#160;(pts sigma) |&#45;&gt; (pts sigma)">
+<g id="a_edge32"><a xlink:href="structure-graph.html#views" xlink:title="measure&#45;space&#45;as&#45;measurable&#45;space : &#160;measure&#45;space &#45;&gt; measurable&#45;space &#160;&#160;&#160;(pts sigma) |&#45;&gt; (pts sigma)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M1299.25,-36.3C1299.25,-47.16 1299.25,-61.43 1299.25,-73.94"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="1295.75,-73.71 1299.25,-83.71 1302.75,-73.71 1295.75,-73.71"/>
 </a>
 </g>
-<g id="a_edge31&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;measurable&#45;space">
+<g id="a_edge32&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;measurable&#45;space">
 <text xml:space="preserve" text-anchor="middle" x="1357.75" y="-57.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#b06a00">as&#45;measurable&#45;space</text>
 </a>
 </g>
@@ -632,14 +632,14 @@
 </g>
 </g>
 <!-- normed&#45;vector&#45;space&#45;&gt;module -->
-<g id="edge32" class="edge">
+<g id="edge31" class="edge">
 <title>normed&#45;vector&#45;space&#45;&gt;module</title>
-<g id="a_edge32"><a xlink:href="structure-graph.html#views" xlink:title="normed&#45;vector&#45;space&#45;as&#45;module : &#160;normed&#45;vector&#45;space &#45;&gt; module &#160;&#160;&#160;(scal vec vadd vzero vneg act) |&#45;&gt; (scal vec vadd vzero vneg act)">
+<g id="a_edge31"><a xlink:href="structure-graph.html#views" xlink:title="normed&#45;vector&#45;space&#45;as&#45;module : &#160;normed&#45;vector&#45;space &#45;&gt; module &#160;&#160;&#160;(scal vec vadd vzero vneg act) |&#45;&gt; (scal vec vadd vzero vneg act)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M1106.72,-204.23C1100.81,-205.2 1094.94,-206.13 1089.25,-207 1058.02,-211.76 969.37,-201.51 948.25,-225 943.43,-230.36 941.72,-237.56 941.58,-244.77"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="938.09,-245.01 942.38,-254.7 945.07,-244.45 938.09,-245.01"/>
 </a>
 </g>
-<g id="a_edge32&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;module">
+<g id="a_edge31&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="as&#45;module">
 <text xml:space="preserve" text-anchor="middle" x="976.75" y="-228.05" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#b06a00">as&#45;module</text>
 </a>
 </g>
@@ -734,9 +734,9 @@
 </g>
 </g>
 <!-- qq&#45;line&#45;&gt;vector&#45;space -->
-<g id="edge13" class="edge">
+<g id="edge14" class="edge">
 <title>qq&#45;line&#45;&gt;vector&#45;space</title>
-<g id="a_edge13"><a xlink:title="qq&#45;line refines vector&#45;space">
+<g id="a_edge14"><a xlink:title="qq&#45;line refines vector&#45;space">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M588.18,-117.87C591.23,-119.13 594.3,-120.35 597.25,-121.5 639.28,-137.81 687.19,-154.64 724.25,-167.3"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="722.79,-170.5 733.39,-170.4 725.04,-163.87 722.79,-170.5"/>
 </a>
@@ -761,14 +761,14 @@
 </g>
 </g>
 <!-- ring&#45;&gt;abelian&#45;group -->
-<g id="edge21" class="edge">
+<g id="edge22" class="edge">
 <title>ring&#45;&gt;abelian&#45;group</title>
-<g id="a_edge21"><a xlink:href="structure-graph.html#views" xlink:title="ring&#45;additive&#45;ag : &#160;ring &#45;&gt; abelian&#45;group &#160;&#160;&#160;(carr add zero neg) |&#45;&gt; (carr opr iden inv)">
+<g id="a_edge22"><a xlink:href="structure-graph.html#views" xlink:title="ring&#45;additive&#45;ag : &#160;ring &#45;&gt; abelian&#45;group &#160;&#160;&#160;(carr add zero neg) |&#45;&gt; (carr opr iden inv)">
 <path fill="none" stroke="#b06a00" stroke-dasharray="5,2" d="M610.25,-463.8C610.25,-474.66 610.25,-488.93 610.25,-501.44"/>
 <polygon fill="#b06a00" stroke="#b06a00" points="606.75,-501.21 610.25,-511.21 613.75,-501.21 606.75,-501.21"/>
 </a>
 </g>
-<g id="a_edge21&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="additive&#45;ag">
+<g id="a_edge22&#45;label"><a xlink:href="structure-graph.html#views" xlink:title="additive&#45;ag">
 <text xml:space="preserve" text-anchor="middle" x="641" y="-484.55" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#b06a00">additive&#45;ag</text>
 </a>
 </g>
@@ -875,9 +875,9 @@
 </g>
 </g>
 <!-- rr&#45;normed&#45;field&#45;&gt;normed&#45;field -->
-<g id="edge14" class="edge">
+<g id="edge13" class="edge">
 <title>rr&#45;normed&#45;field&#45;&gt;normed&#45;field</title>
-<g id="a_edge14"><a xlink:title="rr&#45;normed&#45;field refines normed&#45;field">
+<g id="a_edge13"><a xlink:title="rr&#45;normed&#45;field refines normed&#45;field">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M658.48,-121.8C655.52,-132.55 651.64,-146.64 648.22,-159.05"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="644.85,-158.11 645.57,-168.68 651.6,-159.97 644.85,-158.11"/>
 </a>
@@ -947,9 +947,9 @@
 </g>
 </g>
 <!-- zz&#45;ring&#45;&gt;euclidean&#45;ring -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>zz&#45;ring&#45;&gt;euclidean&#45;ring</title>
-<g id="a_edge3"><a xlink:title="zz&#45;ring refines euclidean&#45;ring">
+<g id="a_edge2"><a xlink:title="zz&#45;ring refines euclidean&#45;ring">
 <path fill="none" stroke="#2a4a6a" stroke-width="1.4" d="M55.25,-121.8C55.25,-132.44 55.25,-146.34 55.25,-158.66"/>
 <polygon fill="#2a4a6a" stroke="#2a4a6a" stroke-width="1.4" points="51.75,-158.6 55.25,-168.6 58.75,-158.6 51.75,-158.6"/>
 </a>

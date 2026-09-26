@@ -1,3 +1,12 @@
+;;; RETIRED 2026-09-17 (proven): finsum-two-support -- theorem-library/rake-finsum-laws2.scm
+;;; RETIRED 2026-09-17 (proven): identmat-left-identity, identmat-right-identity --
+;;; theorem-library/rake-identmat.scm (matmul-entry + finsum-single-support + extensionality; no guard needed).
+;;; RETIRED 2026-09-17 (proven): ring-add-right-inv; matrix-sethood (was an unwarranted axiom) --
+;;; theorem-library/rake-algebra2.scm
+;;; RETIRED 2026-09-17 (proven): block-type, snoc-col-type, snoc-row-type, matadd-type,
+;;; matscale-type, matneg-type, mat-is-set -- theorem-library/rake-mat-typing.scm (all modulo 0;
+;;; the five that were submodule-fg's whole remaining bill among them).
+;;; RETIRED 2026-09-17 (proven): ring-add-right-id -- theorem-library/rake-algebra.scm (zz-bezout's last leaf)
 ;;; matrix.scm -- MATRIX(S): matrices over a set S.
 ;;;
 ;;; A matrix over S is a list of rows; each row is a list of elements of S;
@@ -6,12 +15,59 @@
 ;;; extra condition that the rows are equilong.  MATRIX(S) is the class of
 ;;; all such matrices; it is a class-former like TUPLES, FUN, BIJECTION.
 ;;;
-;;; SIZE(M) = [rows, columns] = [LENGTH M, LENGTH(NTH 1 M)].  In a nonempty
-;;; matrix every row has the column length, so NTH 1 M is representative;
-;;; for the empty matrix (no rows) the column entry is unspecified.
+;;; SIZE(M) = [rows, columns].  In a matrix with rows every row has the column
+;;; length, so SIZE(M) = [LENGTH M, LENGTH(NTH 1 M)].  The matrix with no rows,
+;;; [], has SIZE [0, 0]: SIZE is TOTAL (2026-09-16).  Before that date the
+;;; column entry of SIZE([]) was LENGTH(NTH 1 []), an out-of-range NTH about
+;;; which the theory says nothing.
+;;;
+;;; MAT(m, n, X) and the matrix with no rows.  [] is the ONLY tuple of length 0
+;;; (tuple-length-zero), and SIZE is a function, so no reading of MAT as
+;;; `SIZE(P) = [m, n]' can put [] in MAT(0, 1, X) and in MAT(0, 5, X) at once.
+;;; The convention adopted (the standard one: exactly one 0-by-n matrix for
+;;; each natural n, namely []) is that membership in MAT is VACUOUS in the
+;;; column count, beyond its being a natural number, when there are no rows:
+;;;
+;;;     P in MAT(m, n, X)  iff  P in MATRIX(X)
+;;;                             and n in NN
+;;;                             and (LENGTH P = 0      implies m = 0)
+;;;                             and (not LENGTH P = 0  implies SIZE(P) = [m, n])
+;;;
+;;; The conjunct `n in NN' is redundant when P has rows (n is then the length
+;;; of a row) and is what keeps MAT(0, n, X) EMPTY for a non-natural n.
+;;; Without it [] would lie in MAT(0, ORD, X), and every statement that
+;;; quantifies over the column count of a possibly row-less matrix would range
+;;; over non-natural n -- where IDENTMAT(A, n), FINSUM over INTERVAL(1, n) and
+;;; the like have no value.  With it, every member of MAT(m, n, X) has m and n
+;;; natural (mat-rows-in-nn, mat-cols-in-nn).
+;;;
+;;; The price, accepted with the convention: a matrix with no rows does not
+;;; determine its column count.  From `P in MAT(0, n, X)' nothing about n
+;;; follows (theorem-library/mat-basics.scm: `mat-cols' carries the guard
+;;; `1 <= m').  The row count is always determined (`mat-length').
+;;;
+;;; Why the change was made.  With the earlier reading, MAT(0, n, X) could be
+;;; shown neither inhabited nor empty, and the guarded `matof-exists' could not
+;;; cover m = 0 -- which `spans-fg-base' needs for its witness MATOF(0, 1, ...).
 ;;;
 ;;; Dependencies: kernel (TUPLES, LIST, LENGTH, NTH), NN, <=.
 ;;; MATRIX and SIZE are registered as term-forming heads in wff.scm.
+;;; RETIRED 2026-09-14 (proven): interval-card-in-nn -- theorem-library/interval-card-in-nn.scm
+;;; RETIRED 2026-09-14 (proven): entry-in-carrier -- theorem-library/entry-in-carrier.scm
+;;; RETIRED 2026-09-14 (proven): ring-one-in -- theorem-library/ring-zero-one-power.scm
+;;; RETIRED 2026-09-14 (proven): matmul-type -- theorem-library/mat-typing-bundle.scm
+;;; RETIRED 2026-09-14 (proven): identmat-type -- theorem-library/mat-typing-bundle.scm
+;;; RETIRED 2026-09-14 (proven): matof-in-mat -- theorem-library/matof-in-mat.scm (with tuples/matrix/mat monotonicity)
+;;; RETIRED 2026-09-14 (proven): matprod-summand-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): matmul-assoc-summand-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): matrix-entry-extensionality -- theorem-library/tuple-extensionality.scm (via tuple-extensionality, by tuples-induction at a COMP)
+;;; RETIRED 2026-09-16 (proven): matmul-entry -- theorem-library/matmul-entry-proof.scm
+;;; RETIRED 2026-09-16 (proven): interval-1-0-empty -- theorem-library/mat-basics.scm
+;;; RETIRED 2026-09-16 (proven, GUARDED): matof-exists, entry-of-matof -- theorem-library/tuple-tabulation.scm
+;;;   The supports had UNGUARDED dimensions and matof-exists proved FALSITY
+;;;   (instantiate m := ORD, read ORD in NN off the matrix, contradict
+;;;   burali-forti).  The theorems carry (IN m NN), (IN n NN) and definedness
+;;;   of g on the index box.
 
 ;;; M in MATRIX(S):  M is a list of lists over S, with all rows equilong.
 (theory-add-axiom! *current-theory* 'matrix-membership
@@ -26,17 +82,15 @@
 
 ;;; MATRIX(S) is a set when S is a set -- it is a subclass of the set
 ;;; TUPLES(TUPLES S).  Installed as an axiom for direct use.
-(theory-add-axiom! *current-theory* 'matrix-sethood
-  '(FORALL S (IMPLIES (IN S SET) (IN (MATRIX S) SET))))
-
 ;;; SIZE(M) = [number of rows, number of columns].
 (def-functoid 'SIZE '(M)
-  '(LIST (LENGTH M) (LENGTH (NTH 1 M))))
+  '(LIST (LENGTH M) (IF (= (LENGTH M) 0) 0 (LENGTH (NTH 1 M)))))
 
 ;;; ---------------------------------------------------------------------
 ;;; MAT(m, n, X) -- the m-by-n matrices over X.
 ;;;
-;;; The fixed-size subset of MATRIX(X): those M whose SIZE is exactly [m, n].
+;;; The fixed-size subset of MATRIX(X): those M whose SIZE is exactly [m, n],
+;;; vacuous in n when M has no rows (see the file header).
 ;;; A SEP over MATRIX(X), so it inherits sethood and the sep-membership
 ;;; characterisation for free (sep-set / sep-mi / sep-me), and is a genuine
 ;;; subclass of MATRIX(X) -- honouring "Mat(m,n,X) is a subset of Mat(X)".
@@ -45,7 +99,10 @@
 ;;; NOTE: the SEP binder is P, NOT M -- M would case-fold-collide with the
 ;;; row-count param m and capture it in (LIST m n).
 (def-functoid 'MAT '(m n X)
-  '(SEP P (MATRIX X) (= (SIZE P) (LIST m n))))
+  '(SEP P (MATRIX X)
+     (AND (IN n NN)
+          (AND (IMPLIES (= (LENGTH P) 0) (= m 0))
+               (IMPLIES (NOT (= (LENGTH P) 0)) (= (SIZE P) (LIST m n)))))))
 
 ;;; ENTRY(M, i, j) -- the (i, j) entry of M: the j-th element of the i-th row.
 ;;; 1-indexed, matching the library's NTH convention (row i is NTH i M).
@@ -68,25 +125,14 @@
 (def-functoid 'INTERVAL '(a b)
   '(SEP i NN (AND (<= a i) (<= i b))))
 
-(support 'interval-membership
-  '(FORALL a (FORALL b (FORALL i
-     (IFF (IN i (INTERVAL a b)) (AND (IN i NN) (AND (<= a i) (<= i b))))))))
-(warrant! 'interval-membership 'proof
-  "i in INTERVAL(a,b) iff i in NN and a<=i<=b (SEP membership over NN).")
+;;; interval-membership MOVED 2026-09-15 (wave 6) to theorem-library/interval-membership.scm, where it is PROVEN modulo 0.
 
-;;; The empty index interval.  Needed wherever a construction degenerates at
-;;; n = 0: the length-0 coefficient row, the empty MATACT, the base case of the
-;;; spans-submodule-fg induction.  Stated as an EQUATION (not `no member of
-;;; [1,0]') so finsum-empty, which is phrased over the literal EMPTY-SET, fires
-;;; after one subst.
-(support 'interval-1-0-empty
-  '(= (INTERVAL 1 0) EMPTY-SET))
-(warrant! 'interval-1-0-empty 'well-known
-  "[1,0] is empty: i in [1,0] gives 1 <= i and i <= 0, hence 1 <= 0, false in NN.")
+;;; The empty index interval, INTERVAL(1, 0) = EMPTY-SET (an equation, so that
+;;; finsum-empty, phrased over the literal EMPTY-SET, fires after one subst), is
+;;; `interval-1-0-empty' -- PROVEN in theorem-library/mat-basics.scm since
+;;; 2026-09-16; it was a support here.
 
-(support 'interval-card
-  '(FORALL n (IMPLIES (IN n NN) (= (CARD (INTERVAL 1 n)) n))))
-(warrant! 'interval-card 'well-known "|{1,...,n}| = n; INTERVAL(1,n) is finite.")
+;;; interval-card RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-combinatorics2.scm
 ;; CARD of an interval with a NATURAL upper bound is a natural number: the
 ;; interval is finite.  The guard is on the UPPER bound alone -- INTERVAL is a
 ;; separation over NN, so any natural upper bound makes it finite whatever the
@@ -103,10 +149,6 @@
 ;; `IN Q (MAT m n X)'.  Every site here passes 1 below and a dimension above,
 ;; and at every one of them that dimension is the ROW dimension of some matrix
 ;; in context.
-(support 'interval-card-in-nn
-  '(FORALL a (FORALL b (IMPLIES (IN b NN) (IN (CARD (INTERVAL a b)) NN)))))
-(warrant! 'interval-card-in-nn 'well-known
-  "INTERVAL(a,b) with b in NN is finite, so its cardinality is a natural number.")
 
 ;;; MATOF(m, n, g) -- the m-by-n matrix whose (i, j) entry is g(i, j).
 ;;; g is applied as a function of the index pair: g(i, j) = g([i, j]).
@@ -115,15 +157,9 @@
 ;;; codomain is IMAGE(g, index-box) so the description is well-posed among matrices
 ;;; (uniqueness = matrix-entry-extensionality).
 ;;;
-;;; NOT YET DONE, and this comment claimed otherwise until 2026-07-28: matof-exists,
-;;; entry-of-matof and matof-in-mat are ALL THREE still `support' below, each
-;;; warranted `well-known' and each billed separately to any qed that cites it.  The
-;;; plan is that matof-exists (the tabulation EXISTS) is the only residual
-;;; assumption and the other two follow from it by iota-def -- but that derivation
-;;; has not been carried out, and the file this comment used to name for it,
-;;; theorem-library/matof-def-proof.scm, has never existed.  Doing it would drop two
-;;; of the three from the layer's debt.  matof-exists itself is dischargeable once a
-;;; general list-tabulation / 2-index recursion primitive is built.
+;;; All three facts about it -- matof-exists, entry-of-matof, matof-in-mat --
+;;; are PROVEN (2026-09-16), from the list tabulation primitive of
+;;; theorem-library/tuple-tabulation.scm.
 (def-functoid 'MATOF '(m n g)
   '(IOTA P
      (AND (IN P (MAT m n (IMAGE g (CARTESIAN (INTERVAL 1 m) (INTERVAL 1 n)))))
@@ -131,63 +167,17 @@
             (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
               (= (ENTRY P i j) (g i j)))))))))
 
-;; The one honest assumption: a matrix of shape [m,n] with entries g(i,j) EXISTS
-;; (the tabulation of g over the index box).  Uniqueness is matrix-entry-
-;; extensionality, so this + iota-def pin MATOF down.
-(support 'matof-exists
-  '(FORALL m (FORALL n (FORALL g
-     (FORSOME P
-       (AND (IN P (MAT m n (IMAGE g (CARTESIAN (INTERVAL 1 m) (INTERVAL 1 n)))))
-            (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-              (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
-                (= (ENTRY P i j) (g i j))))))))))))
-(warrant! 'matof-exists 'well-known
-  "A matrix of shape [m,n] whose (i,j) entry is g(i,j) exists (tabulation of g over
-   the index box).  The single assumption behind MATOF; dischargeable via a general
-   list-tabulation primitive.")
-
-(support 'matof-in-mat
-  '(FORALL m (FORALL n (FORALL X (FORALL g
-     (IMPLIES (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-                (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
-                  (IN (g i j) X)))))
-       (IN (MATOF m n g) (MAT m n X))))))))
-(warrant! 'matof-in-mat 'well-known
-  "The tabulated matrix MATOF(m,n,g) is an m-by-n matrix over X when every
-   value g(i,j) (1<=i<=m, 1<=j<=n) lies in X.")
-
-(support 'entry-of-matof
-  '(FORALL m (FORALL n (FORALL g (FORALL i (FORALL j
-     (IMPLIES (IN i (INTERVAL 1 m))
-     (IMPLIES (IN j (INTERVAL 1 n))
-       (= (ENTRY (MATOF m n g) i j) (g i j))))))))))
-(warrant! 'entry-of-matof 'well-known
-  "The (i,j) entry of the tabulated matrix MATOF(m,n,g) is g(i,j).")
+;; Existence of the tabulation (`matof-exists') and its entry read-off
+;; (`entry-of-matof') are THEOREMS, guarded on m, n in NN and on definedness of
+;; g over the index box: theorem-library/tuple-tabulation.scm.  Uniqueness is
+;; matrix-entry-extensionality; `matof-in-mat' (theorem-library/matof-in-mat.scm)
+;; combines the two through iota-d.
 
 ;;; matrix-entry-extensionality -- the workhorse: two m-by-n matrices over X are
 ;;; equal iff they agree entrywise.  Turns every matrix identity into an entry
 ;;; identity (provable by FINSUM algebra downstream).
-(support 'matrix-entry-extensionality
-  '(FORALL m (FORALL n (FORALL X (FORALL P (FORALL Q
-     (IMPLIES (IN P (MAT m n X))
-     (IMPLIES (IN Q (MAT m n X))
-     (IMPLIES (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-                (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
-                  (= (ENTRY P i j) (ENTRY Q i j))))))
-       (= P Q))))))))))
-(warrant! 'matrix-entry-extensionality 'well-known
-  "Two m-by-n matrices over X with equal entries are equal (tuple/list
-   extensionality applied row- and entry-wise).")
 
 ;;; entry-in-carrier -- the entries of a matrix over X lie in X (typing).
-(support 'entry-in-carrier
-  '(FORALL m (FORALL n (FORALL X (FORALL P (FORALL i (FORALL j
-     (IMPLIES (IN P (MAT m n X))
-     (IMPLIES (IN i (INTERVAL 1 m))
-     (IMPLIES (IN j (INTERVAL 1 n))
-       (IN (ENTRY P i j) X)))))))))))
-(warrant! 'entry-in-carrier 'well-known
-  "The (i,j) entry of an m-by-n matrix over X lies in X.")
 
 ;;; ---------------------------------------------------------------------
 ;;; MATMUL(A, P, Q) -- matrix multiplication over a ring A.
@@ -208,50 +198,22 @@
 
 ;;; Typing: an (m x n) times (n x k) product over a ring A is an (m x k) matrix
 ;;; over the ring's carrier.
-(support 'matmul-type
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL k (FORALL P (FORALL Q
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN Q (MAT n k (CARR A)))
-         (IN (MATMUL A P Q) (MAT m k (CARR A)))))))))))))
-(warrant! 'matmul-type 'reference
-  "MAT(m,n,CARR A) x MAT(n,k,CARR A) -> MAT(m,k,CARR A): the tabulated product
-   is a matrix whose entries are FINSUMs in the carrier (matof-in-mat +
-   finsum-type).")
 
 ;;; The entry formula (the computation rule that reduces a product to a FINSUM,
 ;;; on which every ring axiom below is proved).
-(support 'matmul-entry
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL k (FORALL P (FORALL Q
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN Q (MAT n k (CARR A)))
-       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-       (FORALL c (IMPLIES (IN c (INTERVAL 1 k))
-         (= (ENTRY (MATMUL A P Q) i c)
-            (FINSUM (RING-ADDITIVE-AG A)
-                    (VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
-                    (INTERVAL 1 n)))))))))))))))))
-(warrant! 'matmul-entry 'reference
-  "(P Q)_{ic} = sum_{j=1}^{n} P_{ij}*Q_{jc}, the product summed in A's additive
-   group over j in 1..n (entry-of-matof on the MATMUL tabulation).")
+;;;
+;;; GUARDED on 1 <= n (2026-09-16).  At n = 0 it is FALSE: P = [[]] is 1-by-0,
+;;; Q = [] is in MAT(0, 1, CARR A), MATMUL reads its column count off
+;;; SIZE([]) = [0, 0], so MATMUL(A, P, Q) is 1-by-0 and its (1,1) entry is
+;;; NTH(1, []) -- while the right side is the empty sum ZERO(A), for every
+;;; ring A.  (A zero-row matrix does not determine its column count; see the
+;;; file header.)  The guard is free at the citers that hold an index j in
+;;; INTERVAL(1, n).
 
 ;;; matprod-summand-type: the product-entry summand j |-> P_{ij}.Q_{jc} is a
 ;;; function [1,n] -> CARR A, for P:MAT(m,n), Q:MAT(n,nn).  The FUN-typing every
 ;;; finsum-single/two-support call over a matrix-product entry needs.  General in
 ;;; Q, so one PSS serves matmul-entry collapses for MATUNIT / ELEM-F/G/H / ... .
-(support 'matprod-summand-type
-  '(FORALL A (IMPLIES (IS-RING A)
-     (FORALL m (FORALL n (FORALL nn (FORALL P (FORALL Q (FORALL i (FORALL c
-       (IMPLIES (IN P (MAT m n (CARR A)))
-       (IMPLIES (IN Q (MAT n nn (CARR A)))
-       (IMPLIES (IN i (INTERVAL 1 m))
-       (IMPLIES (IN c (INTERVAL 1 nn))
-         (IN (VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P i j) (ENTRY Q j c)))
-             (FUN (INTERVAL 1 n) (CARR (RING-ADDITIVE-AG A))))))))))))))))))
-(warrant! 'matprod-summand-type 'well-known
-  "j |-> P_{ij}.Q_{jc} is a function [1,n] -> CARR A for P:MAT(m,n), Q:MAT(n,nn)
-   (entry-in-carrier gives both factors in CARR A; MUL closes; CARR(RAG)=CARR A).")
 
 ;;; ---------------------------------------------------------------------
 ;;; The ring MAT-RING(A, n) of n-by-n matrices over a ring A.
@@ -307,35 +269,19 @@
 ;;; (views.scm), and the single-index-support FINSUM fact behind the identity.
 ;;; ---------------------------------------------------------------------
 
-;;; entries of the identity matrix: ONE on the diagonal, ZERO off it.
-(support 'entry-of-identmat
-  '(FORALL A (FORALL n (FORALL i (FORALL j
-     (IMPLIES (IN i (INTERVAL 1 n))
-     (IMPLIES (IN j (INTERVAL 1 n))
-       (= (ENTRY (IDENTMAT A n) i j) (IF (= i j) (ONE A) (ZERO A))))))))))
-(warrant! 'entry-of-identmat 'reference
-  "(IDENTMAT A n)_{ij} = 1 if i=j else 0 (entry-of-matof on the Kronecker delta).")
-
-(support 'identmat-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL n (IN (IDENTMAT A n) (MAT n n (CARR A)))))))
-(warrant! 'identmat-type 'reference
-  "IDENTMAT(A,n) is an n-by-n matrix over CARR A (its entries are ONE/ZERO of A).")
-
-;;; The two branches of entry-of-identmat, pre-resolved so a proof never has to
-;;; reduce the IF (cf. matunit-entry-off-row / matunit-entry-k-row).
-(support 'identmat-entry-diag
-  '(FORALL A (FORALL n (FORALL i (IMPLIES (IN i (INTERVAL 1 n))
-     (= (ENTRY (IDENTMAT A n) i i) (ONE A)))))))
-(warrant! 'identmat-entry-diag 'reference
-  "(IDENTMAT A n)_{ii} = 1 (entry-of-identmat with the IF condition true).")
-
-(support 'identmat-entry-off
-  '(FORALL A (FORALL n (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n))
-     (IMPLIES (IN j (INTERVAL 1 n))
-     (IMPLIES (NOT (= i j))
-       (= (ENTRY (IDENTMAT A n) i j) (ZERO A))))))))))
-(warrant! 'identmat-entry-off 'reference
-  "(IDENTMAT A n)_{ij} = 0 for i /= j (entry-of-identmat with the IF condition false).")
+;;; entries of the identity matrix: ONE on the diagonal, ZERO off it
+;;; (entry-of-identmat), and its two branches pre-resolved so a proof never has
+;;; to reduce the IF (identmat-entry-diag / -off; cf. matunit-entry-off-row /
+;;; matunit-entry-k-row).  Supports here until 2026-09-16; now THEOREMS, with
+;;; the premises (IS-RING A) and (IN n NN) added after the binders (the binder
+;;; lists are unchanged).  Unguarded the three were FALSE: IDENTMAT(A, n) is
+;;; MATOF(n, n, ...), a description over MAT(n, n, ...), and MAT(3/2, 3/2, X) is
+;;; empty (mat-rows-in-nn), so IDENTMAT(A, 3/2) has no value and `=' -- the
+;;; definedness predicate -- fails; and for A not a ring (A := 0) ONE(A) and
+;;; ZERO(A) do not denote, so for n >= 1 no tabulation exists.
+;;; RETIRED 2026-09-16 (proven): entry-of-identmat -- theorem-library/elem-entry-readoffs.scm
+;;; RETIRED 2026-09-16 (proven): identmat-entry-diag -- theorem-library/elem-entry-readoffs.scm
+;;; RETIRED 2026-09-16 (proven): identmat-entry-off -- theorem-library/elem-entry-readoffs.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; UNITROW(A, n, i) -- the 1-by-n row vector e_i: ONE in column i, ZERO
@@ -344,25 +290,14 @@
 (def-functoid 'UNITROW '(A n i)
   '(MATOF 1 n (VNB-LAMBDA (LIST rw cl) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 n)) (IF (= cl i) (ONE A) (ZERO A)))))
 
-(support 'unitrow-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL n (FORALL i
-     (IN (UNITROW A n i) (MAT 1 n (CARR A))))))))
-(warrant! 'unitrow-type 'reference
-  "UNITROW(A,n,i) is a 1-by-n matrix over CARR A (matof-in-mat; entries ONE/ZERO).")
-
-(support 'unitrow-entry-at
-  '(FORALL A (FORALL n (FORALL i (IMPLIES (IN i (INTERVAL 1 n))
-     (= (ENTRY (UNITROW A n i) 1 i) (ONE A)))))))
-(warrant! 'unitrow-entry-at 'reference
-  "UNITROW(A,n,i)_{1,i} = 1 (entry-of-matof with the IF condition true).")
-
-(support 'unitrow-entry-off
-  '(FORALL A (FORALL n (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 n))
-     (IMPLIES (IN j (INTERVAL 1 n))
-     (IMPLIES (NOT (= j i))
-       (= (ENTRY (UNITROW A n i) 1 j) (ZERO A))))))))))
-(warrant! 'unitrow-entry-off 'reference
-  "UNITROW(A,n,i)_{1,j} = 0 for j /= i (entry-of-matof with the IF condition false).")
+;;; The UNITROW typing and read-offs were supports here until 2026-09-16; they
+;;; are now THEOREMS, GUARDED.  unitrow-type on (IN n NN): for n := 3/2 the
+;;; membership (IN _ (MAT 1 3/2 X)) is false for every term (mat-cols-in-nn).
+;;; The two entry read-offs also on (IS-RING A): for A := 0, ONE(A) / ZERO(A)
+;;; do not denote, so UNITROW(A, n, i) has no value.
+;;; RETIRED 2026-09-16 (proven): unitrow-type -- theorem-library/mat-typing-bundle.scm
+;;; RETIRED 2026-09-16 (proven): unitrow-entry-at -- theorem-library/elem-entry-readoffs.scm
+;;; RETIRED 2026-09-16 (proven): unitrow-entry-off -- theorem-library/elem-entry-readoffs.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; BLOCK(P, k, l) -- the leading k-by-l block of P (rows 1..k, columns 1..l).
@@ -372,16 +307,17 @@
 (def-functoid 'BLOCK '(P k l)
   '(MATOF k l (VNB-LAMBDA (LIST i j) (CARTESIAN (INTERVAL 1 k) (INTERVAL 1 l)) (ENTRY P i j))))
 
-(support 'block-type
-  '(FORALL m (FORALL n (FORALL X (FORALL P (FORALL k (FORALL l (IMPLIES (IN k NN) (IMPLIES (IN l NN) (IMPLIES (IN P (MAT m n X)) (IMPLIES (<= k m) (IMPLIES (<= l n) (IN (BLOCK P k l) (MAT k l X))))))))))))))
-(warrant! 'block-type 'reference
-  "The leading k-by-l block of an m-by-n matrix over X is a k-by-l matrix over X
-   (matof-in-mat; every value ENTRY P i j with i<=k<=m, j<=l<=n lies in X).")
 
-(support 'entry-of-block
-  '(FORALL P (FORALL k (FORALL l (FORALL i (FORALL j (IMPLIES (IN i (INTERVAL 1 k)) (IMPLIES (IN j (INTERVAL 1 l)) (= (ENTRY (BLOCK P k l) i j) (ENTRY P i j))))))))))
-(warrant! 'entry-of-block 'reference
-  "BLOCK(P,k,l)_{ij} = P_{ij} for i in [1,k], j in [1,l] (entry-of-matof).")
+;;; entry-of-block -- BLOCK(P,k,l)_{ij} = P_{ij} -- was a support here until
+;;; 2026-09-16; it is now a THEOREM, GUARDED on block-type's premises, which
+;;; needed three NEW binders m, n, X -- APPENDED after the old list
+;;; (P k l i j), so every citation gains three trailing arguments `m n X'.
+;;; Unguarded it was FALSE: for k := 3/2 the
+;;; MATOF behind BLOCK(P, k, l) has no value (MAT(3/2, l, Y) is empty); and for
+;;; P := [], k = l = 1 the one tabulated value ENTRY([], 1, 1) does not denote,
+;;; so no 1-by-1 tabulation exists either.  block-type's premises make every
+;;; tabulated value an entry of P inside P's own index box.
+;;; RETIRED 2026-09-16 (proven): entry-of-block -- theorem-library/elem-entry-readoffs.scm
 
 ;;; SNOC-COL(w, n, x) -- append the vector x to the length-n column sequence w,
 ;;; giving the length-(succ n) sequence [w_1, ..., w_n, x].  SNOC-ROW(c, n, r)
@@ -398,113 +334,46 @@
 ;; the appended element is `v', NOT `x': the set param `X' folds to `x' (MIT
 ;; case-fold), so an element `x' would collide with the set -- the trap that
 ;; broke this support once (the inner x shadowed the set X in `(IN x X)').
-(support 'snoc-col-type
-  '(FORALL X (FORALL n (FORALL w (FORALL v
-     (IMPLIES (IN n NN)
-     (IMPLIES (IN w (MAT n 1 X))
-     (IMPLIES (IN v X)
-       (IN (SNOC-COL w n v) (MAT (succ n) 1 X))))))))))
-(warrant! 'snoc-col-type 'reference
-  "[w_1..w_n, x] is a (succ n)-by-1 matrix over X: matof-in-mat, each value being
-   x in X (row succ n) or ENTRY w i 1 in X for i in [1,n] (entry-in-carrier).")
 
-(support 'snoc-row-type
-  '(FORALL X (FORALL n (FORALL c (FORALL r
-     (IMPLIES (IN n NN)
-     (IMPLIES (IN c (MAT 1 n X))
-     (IMPLIES (IN r X)
-       (IN (SNOC-ROW c n r) (MAT 1 (succ n) X))))))))))
-(warrant! 'snoc-row-type 'reference
-  "[c_1..c_n, r] is a 1-by-(succ n) matrix over X (matof-in-mat, as snoc-col-type).")
 
-(support 'entry-of-snoc-col
-  '(FORALL w (FORALL n (FORALL x (FORALL i
-     (IMPLIES (IN i (INTERVAL 1 n))
-       (= (ENTRY (SNOC-COL w n x) i 1) (ENTRY w i 1))))))))
-(warrant! 'entry-of-snoc-col 'reference
-  "SNOC-COL(w,n,x)_{i,1} = w_{i,1} for i in [1,n]: entry-of-matof (i in [1,succ n]
-   since i<=n<=succ n, and 1 in [1,1]), then the IF is false since i<=n<succ n.")
-
-(support 'snoc-col-last
-  '(FORALL w (FORALL n (FORALL x (IMPLIES (IN n NN)
-     (= (ENTRY (SNOC-COL w n x) (succ n) 1) x))))))
-(warrant! 'snoc-col-last 'reference
-  "SNOC-COL(w,n,x)_{succ n,1} = x: entry-of-matof (succ n in [1,succ n]), IF true.")
-
-(support 'entry-of-snoc-row
-  '(FORALL c (FORALL n (FORALL r (FORALL j
-     (IMPLIES (IN j (INTERVAL 1 n))
-       (= (ENTRY (SNOC-ROW c n r) 1 j) (ENTRY c 1 j))))))))
-(warrant! 'entry-of-snoc-row 'reference
-  "SNOC-ROW(c,n,r)_{1,j} = c_{1,j} for j in [1,n] (entry-of-matof, IF false as j<=n<succ n).")
-
-(support 'snoc-row-last
-  '(FORALL c (FORALL n (FORALL r (IMPLIES (IN n NN)
-     (= (ENTRY (SNOC-ROW c n r) 1 (succ n)) r))))))
-(warrant! 'snoc-row-last 'reference
-  "SNOC-ROW(c,n,r)_{1,succ n} = r (entry-of-matof, IF true).")
+;;; The four SNOC read-offs (entry-of-snoc-col, snoc-col-last,
+;;; entry-of-snoc-row, snoc-row-last) were supports here until 2026-09-16; they
+;;; are now THEOREMS, GUARDED on the premises of the
+;;; matching *-type fact, which needed a NEW binder X -- APPENDED at the end of
+;;; the list, so every citation gains one trailing argument (the carrier).  The
+;;; appended element's binder is renamed x -> v for the reason given above
+;;; snoc-col-type (x and X are one symbol); its POSITION is unchanged.
+;;; Unguarded they were FALSE: for w := [], n := 1 the tabulated value
+;;; ENTRY([], 1, 1) at row 1 does not denote, so SNOC-COL([], 1, x) -- a
+;;; description over MAT(2, 1, ...) -- has no value, and the left side of every
+;;; one of the four read-offs is then undefined; likewise with c := [] for the
+;;; row forms, and with n := 3/2 for all four (succ(3/2) is not natural).
+;;; RETIRED 2026-09-16 (proven): entry-of-snoc-col -- theorem-library/elem-entry-readoffs.scm
+;;; RETIRED 2026-09-16 (proven): snoc-col-last -- theorem-library/elem-entry-readoffs.scm
+;;; RETIRED 2026-09-16 (proven): entry-of-snoc-row -- theorem-library/elem-entry-readoffs.scm
+;;; RETIRED 2026-09-16 (proven): snoc-row-last -- theorem-library/elem-entry-readoffs.scm
 
 ;;; RING-ADDITIVE-AG read-offs (the view maps ring's CARR/ZERO to the AG's
 ;;; CARR/IDEN; derivable by unfolding the view, named for convenience).
-(support 'ras-carr
-  '(FORALL A (= (CARR (RING-ADDITIVE-AG A)) (CARR A))))
-(warrant! 'ras-carr 'proof "carrier of a ring's additive group is the ring's carrier.")
-(support 'ras-id
-  '(FORALL A (= (IDEN (RING-ADDITIVE-AG A)) (ZERO A))))
-(warrant! 'ras-id 'proof "identity of a ring's additive group is the ring's zero.")
-(support 'ras-op
-  '(FORALL A (= (OPR (RING-ADDITIVE-AG A)) (ADD A))))
-(warrant! 'ras-op 'proof "operation of a ring's additive group is the ring's addition.")
+;;; ras-carr MOVED 2026-09-15 (wave 6) to theorem-library/ag-view-read-offs.scm, where it is PROVEN modulo 0 -- RESTATED with an IS-RING guard (the unguarded = form was unprovable: rfl owed definedness of (NTH k A) for an arbitrary tuple).
+;;; ras-id MOVED 2026-09-15 (wave 6) to theorem-library/ag-view-read-offs.scm, where it is PROVEN modulo 0 -- RESTATED with an IS-RING guard (the unguarded = form was unprovable: rfl owed definedness of (NTH k A) for an arbitrary tuple).
+;;; ras-op MOVED 2026-09-15 (wave 6) to theorem-library/ag-view-read-offs.scm, where it is PROVEN modulo 0 -- RESTATED with an IS-RING guard (the unguarded = form was unprovable: rfl owed definedness of (NTH k A) for an arbitrary tuple).
 ;; NOTE: ring var is `s' (not A) -- MIT case-folds, so (FORALL A (FORALL a ..))
 ;; would shadow-collide.  Follows the ring.scm axiom convention.
 ;;; ring-neg-in-carr is PROVEN (2026-08-31) in theorem-library/op-typing.scm, with the
 ;;; other six applied-form op typings: one driver over the IS-X unfold plus
 ;;; apply-tupling-2 and fun-apply-type-c -- the derivation the warrant here
 ;;; recited.
-(support 'ring-one-in
-  '(FORALL s (IMPLIES (IS-RING s) (IN (ONE s) (CARR s)))))
-(warrant! 'ring-one-in 'well-known "ONE lies in the carrier.")
-(support 'ring-add-right-id
-  '(FORALL s (IMPLIES (IS-RING s)
-     (FORALL a (IMPLIES (IN a (CARR s)) (= ((ADD s) a (ZERO s)) a))))))
-(warrant! 'ring-add-right-id 'well-known "a + 0 = a (ring-add-left-id + comm).")
-(support 'ring-add-right-inv
-  '(FORALL s (IMPLIES (IS-RING s)
-     (FORALL a (IMPLIES (IN a (CARR s)) (= ((ADD s) a ((NEG s) a)) (ZERO s)))))))
-(warrant! 'ring-add-right-inv 'well-known "a + (-a) = 0 (ring-add-left-inv + comm).")
 
-;;; finsum-single-support: a finite sum whose summand vanishes off a single
-;;; index i0 equals its value there.  (Induction on |S| via finsum-insert: the
-;;; peeled non-i0 terms are IDEN and drop out.)  The engine behind IDENTMAT being
-;;; a two-sided identity for MATMUL.
-(support 'finsum-single-support
-  '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
-     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (CARR ag)))
-     (FORALL i0 (IMPLIES (IN i0 S)
-       (IMPLIES (FORALL j (IMPLIES (IN j S)
-                  (IMPLIES (NOT (= j i0)) (= (f j) (IDEN ag)))))
-         (= (FINSUM ag f S) (f i0)))))))))))))
-(warrant! 'finsum-single-support 'well-known
-  "If f(j)=0 for every j in the finite S except j=i0, then FINSUM(ag,f,S)=f(i0).")
+;;; RETIRED 2026-09-17 (proven): finsum-single-support -- theorem-library/finsum-single-support.scm
+;;; (a finite sum whose summand vanishes off a single index i0 equals its value
+;;; there; the engine behind IDENTMAT being a two-sided identity for MATMUL).
+;;; Proven modulo 0 by induction on the fold length, transferred along FIN-ENUM.
 
 ;;; finsum-two-support: a finite sum whose summand vanishes off two indices
 ;;; i0 /= i1 equals the group product of its values there.  (The two-term analogue
 ;;; of finsum-single-support; the engine behind elem-g-action's c=l column, where
 ;;; G=I+r.E[k,l] has support at both the diagonal l and the unit's k.)
-(support 'finsum-two-support
-  '(FORALL ag (IMPLIES (IS-ABELIAN-GROUP ag)
-     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (CARR ag)))
-     (FORALL i0 (IMPLIES (IN i0 S)
-     (FORALL i1 (IMPLIES (IN i1 S)
-     (IMPLIES (NOT (= i0 i1))
-       (IMPLIES (FORALL j (IMPLIES (IN j S)
-                  (IMPLIES (NOT (= j i0)) (IMPLIES (NOT (= j i1)) (= (f j) (IDEN ag))))))
-         (= (FINSUM ag f S) ((OPR ag) (f i0) (f i1)))))))))))))))))
-(warrant! 'finsum-two-support 'well-known
-  "If f(j)=0 for every j in the finite S except j in {i0,i1} (i0/=i1), then
-   FINSUM(ag,f,S) = f(i0) * f(i1) in ag.")
 
 ;;; =====================================================================
 ;;; The matrix-ring axioms -- the obligations toward mat-ring-is-ring.
@@ -527,99 +396,46 @@
 ;;; =====================================================================
 
 ;;; ---- typing of the operations ----
-(support 'matadd-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P (FORALL Q
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (IMPLIES (IN Q (MAT m n (CARR A)))
-       (IN (MATADD A P Q) (MAT m n (CARR A))))))))))))
-(warrant! 'matadd-type 'reference "entrywise sum of m-by-n matrices is m-by-n.")
 
-;;; The entry read-off for MATADD.  entry-of-matof cannot do it directly: MATADD
-;;; tabulates with (NTH 1 (SIZE P)) / (NTH 2 (SIZE P)) rather than literal m, n,
-;;; so its MATOF head never matches a goal stated at m, n.  Same shape and same
-;;; warrant as matmul-entry.
-(support 'matadd-entry
-  '(FORALL A (FORALL m (FORALL n (FORALL P (FORALL Q
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (IMPLIES (IN Q (MAT m n (CARR A)))
-     (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-     (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
-       (= (ENTRY (MATADD A P Q) i j)
-          ((ADD A) (ENTRY P i j) (ENTRY Q i j)))))))))))))))
-(warrant! 'matadd-entry 'reference
-  "(P+Q)_{ij} = P_{ij} + Q_{ij}: the read-off of MATADD's MATOF tabulation via
-   entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).")
-;; (no topic! here: matrix.scm loads before the PSS layer.  It is categorized
-;; in theorem-library/matact-row-linear-proof.scm, its first consumer.)
+;;; The entry read-off for MATADD (matadd-entry).  entry-of-matof cannot do it
+;;; directly: MATADD tabulates with (NTH 1 (SIZE P)) / (NTH 2 (SIZE P)) rather
+;;; than literal m, n, so its MATOF head never matches a goal stated at m, n.
+;;; It was a support here, warranted as matmul-entry is, until 2026-09-16; it is
+;;; now a THEOREM (mat-size-rows / mat-size-cols identify the two SIZE terms
+;;; with m, n once the row index gives 1 <= m), GUARDED on (IS-RING A), after
+;;; the binders.  Unguarded it was FALSE: for A a tuple that is not a ring (A := [S, 0, 0, 0, 0, 0] with S a
+;;; nonempty set, say), P and Q can be matrices over CARR A = S while
+;;; (ADD A)(x, y) = 0(x, y) does not denote, so the tabulation MATADD has no
+;;; value and neither does its entry.  matscale-entry: the same, with MUL.
+;;; RETIRED 2026-09-16 (proven): matadd-entry -- theorem-library/elem-entry-readoffs.scm
+;; (It is categorized in theorem-library/matact-row-linear-proof.scm, its first
+;; consumer, as well as where it is proven.)
 
 ;;; MATSCALE typing and its entry read-off.  Same shape, same reasons, same
 ;;; warrants as matadd-type / matadd-entry: MATSCALE also tabulates with
 ;;; (NTH 1 (SIZE P)), so entry-of-matof cannot supply the read-off at m, n.
-(support 'matscale-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL r (FORALL P
-     (IMPLIES (IN r (CARR A))
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (IN (MATSCALE A r P) (MAT m n (CARR A))))))))))))
-(warrant! 'matscale-type 'reference
-  "entrywise scalar multiple of an m-by-n matrix is m-by-n (MUL closes on CARR A).")
+;;; matscale-entry is, like matadd-entry, a THEOREM since 2026-09-16, guarded
+;;; on (IS-RING A) for the same counterexample with MUL for ADD.
 
-(support 'matscale-entry
-  '(FORALL A (FORALL m (FORALL n (FORALL r (FORALL P
-     (IMPLIES (IN r (CARR A))
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-     (FORALL j (IMPLIES (IN j (INTERVAL 1 n))
-       (= (ENTRY (MATSCALE A r P) i j)
-          ((MUL A) r (ENTRY P i j)))))))))))))))
-(warrant! 'matscale-entry 'reference
-  "(r*P)_{ij} = r * P_{ij}: the read-off of MATSCALE's MATOF tabulation via
-   entry-of-matof + beta, with the dimensions recovered from SIZE P (mat-size).")
-(support 'matneg-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (IN (MATNEG A P) (MAT m n (CARR A))))))))))
-(warrant! 'matneg-type 'reference "entrywise negation of an m-by-n matrix is m-by-n.")
-(support 'zeromat-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n
-       (IN (ZEROMAT A m n) (MAT m n (CARR A))))))))
+;;; RETIRED 2026-09-16 (proven): matscale-entry -- theorem-library/elem-entry-readoffs.scm
+;;; zeromat-type / entry-of-zeromat were supports here until 2026-09-16; they
+;;; are now THEOREMS, GUARDED on (IN m NN), (IN n NN) (and entry-of-zeromat on
+;;; (IS-RING A)).  Unguarded they were false: for m := 3/2 the
+;;; membership in MAT(3/2, n, X) is false for every term (mat-rows-in-nn), and
+;;; ZEROMAT(A, 3/2, n) has no value; for A := 0, ZERO(A) does not denote.
+;;; RETIRED 2026-09-16 (proven): zeromat-type -- theorem-library/mat-typing-bundle.scm
 
 ;;; The entry read-off for ZEROMAT.  Unlike matadd-entry this one IS an
 ;;; entry-of-matof instance (ZEROMAT tabulates at the literal m, n), but it is
-;;; asserted for the same reason entry-of-identmat is: every consumer would
-;;; otherwise unfold the functoid and beta-reduce by hand.
-(support 'entry-of-zeromat
-  '(FORALL A (FORALL m (FORALL n (FORALL i (FORALL j
-     (IMPLIES (IN i (INTERVAL 1 m))
-     (IMPLIES (IN j (INTERVAL 1 n))
-       (= (ENTRY (ZEROMAT A m n) i j) (ZERO A))))))))))
-(warrant! 'entry-of-zeromat 'reference
-  "(ZEROMAT A m n)_{ij} = 0 (entry-of-matof on the constant tabulation).")
-(warrant! 'zeromat-type 'reference "the all-zero m-by-n matrix is m-by-n over CARR A.")
+;;; stated separately for the same reason entry-of-identmat is: every consumer
+;;; would otherwise unfold the functoid and beta-reduce by hand.
+;;; RETIRED 2026-09-16 (proven): entry-of-zeromat -- theorem-library/elem-entry-readoffs.scm
 
 ;;; ---- MATADD is a commutative group (entrywise) ----
-(support 'matadd-comm
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P (FORALL Q
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (IMPLIES (IN Q (MAT m n (CARR A)))
-       (= (MATADD A P Q) (MATADD A Q P)))))))))))
-(warrant! 'matadd-comm 'reference "matrix addition is commutative (entrywise, ring-add-comm).")
-(support 'matadd-assoc
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P (FORALL Q (FORALL R
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (IMPLIES (IN Q (MAT m n (CARR A)))
-     (IMPLIES (IN R (MAT m n (CARR A)))
-       (= (MATADD A (MATADD A P Q) R) (MATADD A P (MATADD A Q R))))))))))))))
-(warrant! 'matadd-assoc 'reference "matrix addition is associative (entrywise, ring-add-assoc).")
-(support 'matadd-zero-left
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (= (MATADD A (ZEROMAT A m n) P) P))))))))
-(warrant! 'matadd-zero-left 'reference "ZEROMAT is a left identity for MATADD (entrywise 0+x=x).")
-(support 'matadd-neg-left
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (= (MATADD A (MATNEG A P) P) (ZEROMAT A m n)))))))))
-(warrant! 'matadd-neg-left 'reference "MATNEG is a left inverse for MATADD (entrywise (-x)+x=0).")
+;;; matadd-comm RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-matrix-laws.scm
+;;; matadd-assoc RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-matrix-laws.scm
+;;; matadd-zero-left RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-matrix-laws.scm
+;;; matadd-neg-left RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-matrix-laws.scm
 
 ;;; ---- MATMUL: associative, with IDENTMAT as two-sided unit ----
 ;;; matmul-assoc -- THE crux, PROVEN via finsum-fubini in
@@ -634,65 +450,45 @@
 ;; theorem-library/triple-entry-proof.scm from the (B) finite-sum bricks
 ;; (finsum-congruence + general-ring finsum-distrib-left/right-gen) -- formerly
 ;; warranted here.  matmul-assoc-summand-type (the fubini f-typing) stays warranted.
-(support 'matmul-assoc-summand-type
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL M (FORALL N (FORALL K (FORALL L (FORALL P (FORALL Q (FORALL R (FORALL ROW (FORALL COL (IMPLIES (IN P (MAT M N (CARR A))) (IMPLIES (IN Q (MAT N K (CARR A))) (IMPLIES (IN R (MAT K L (CARR A))) (IMPLIES (IN ROW (INTERVAL 1 M)) (IMPLIES (IN COL (INTERVAL 1 L)) (IN (VNB-LAMBDA Z (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) ((MUL A) ((MUL A) (ENTRY P ROW (NTH 2 Z)) (ENTRY Q (NTH 2 Z) (NTH 1 Z))) (ENTRY R (NTH 1 Z) COL))) (FUN (CARTESIAN (INTERVAL 1 K) (INTERVAL 1 N)) (CARR (RING-ADDITIVE-AG A)))))))))))))))))))))
-(warrant! 'matmul-assoc-summand-type 'well-known
-  "the triple-product summand (c,j) |-> (P_{row,j} Q_{j,c}) R_{c,col} is a function INTERVAL(1,k) x INTERVAL(1,n) -> CARR A: the entries lie in CARR A (entry-in-carrier) and MUL closes on CARR A.")
-(support 'identmat-left-identity
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (= (MATMUL A (IDENTMAT A m) P) P))))))))
-(warrant! 'identmat-left-identity 'proof
-  "I_m P = P: the (i,c) entry is sum_j delta_ij P_jc, whose only surviving term
-   (j=i) is 1*P_ic = P_ic (matmul-entry + entry-of-identmat + finsum-single-
-   support + ring-mul-left-id).  Proof structure worked out in identmat-build.scm.")
-(support 'identmat-right-identity
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (= (MATMUL A P (IDENTMAT A n)) P))))))))
-(warrant! 'identmat-right-identity 'proof
-  "P I_n = P, the right-handed mirror of identmat-left-identity (only the c=j
-   term of sum_j P_ij delta_jc survives).")
+;; RE-TIERED 2026-09-15 from `proof' to `well-known', because the claim of a
+;; machine proof was AUDITED and is FALSE.  The warrant named
+;; calculus/identmat-build.scm; that file was run against the band and it has no
+;; `(qed ...)' anywhere -- none was ever written.  It runs clean to its last form
+;; and ends with TWO leaves open, and they are the two halves of the mathematics
+;; rather than bookkeeping: the entry-agreement cut is never spent (its own
+;; comment at :39 says "proof deferred to fill next"), and the surviving-term
+;; finsum argument the warrant recites below cites none of the four bricks it
+;; names.  Worse, the file states a DIFFERENT theorem: square `MAT n n' where
+;; this is rectangular `MAT m n', with an added `(IN n NN)' guard and three term
+;; arguments where every citer passes four.  Completed as written it would
+;; retire nothing.
+;; The derivation below is still the right route and all four bricks exist; what
+;; is false is that anybody has run it.  `well-known' is what an unchecked
+;; textbook fact is worth.
+;; RE-TIERED 2026-09-15 with its left-handed twin: it claimed tier `proof' -- a
+;; MECHANIZED proof exists -- while naming no file at all, and the twin's named
+;; file turned out to prove nothing.  Nothing in this tree has ever checked it.
 
 ;;; ---- distributivity of MATMUL over MATADD ----
-(support 'matmul-left-dist
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL k (FORALL P (FORALL Q (FORALL R
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (IMPLIES (IN Q (MAT n k (CARR A)))
-     (IMPLIES (IN R (MAT n k (CARR A)))
-       (= (MATMUL A P (MATADD A Q R)) (MATADD A (MATMUL A P Q) (MATMUL A P R)))))))))))))))
-(warrant! 'matmul-left-dist 'reference
-  "P(Q+R) = PQ + PR: distribute inside the sum termwise (finsum-additive + ring-left-dist).")
-(support 'matmul-right-dist
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL k (FORALL P (FORALL Q (FORALL R
-     (IMPLIES (IN P (MAT m n (CARR A)))
-     (IMPLIES (IN Q (MAT m n (CARR A)))
-     (IMPLIES (IN R (MAT n k (CARR A)))
-       (= (MATMUL A (MATADD A P Q) R) (MATADD A (MATMUL A P R) (MATMUL A Q R)))))))))))))))
-(warrant! 'matmul-right-dist 'reference
-  "(P+Q)R = PR + QR (finsum-additive + ring-right-dist).")
+;;; matmul-left-dist RETIRED 2026-09-19 (rake batch 6): UNDER-GUARDED (not false): every other whole-matrix product law carries the guard n = 0 => (m = 0 or k = 0) since the 2026-09-16 surgery, and without it neither side can be typed in MAT(m,k,CARR A).  Proven with that one premise added as the -guarded name in theorem-library/rake-matrix-laws.scm; the one citer (mat-ring-proof) has the guard in context
+;;; matmul-right-dist RETIRED 2026-09-19 (rake batch 6): UNDER-GUARDED (not false): every other whole-matrix product law carries the guard n = 0 => (m = 0 or k = 0) since the 2026-09-16 surgery, and without it neither side can be typed in MAT(m,k,CARR A).  Proven with that one premise added as the -guarded name in theorem-library/rake-matrix-laws.scm; the one citer (mat-ring-proof) has the guard in context
 
 ;;; ---- right-handed companions of the additive-group laws ----
 ;; matrix.scm asserts only the LEFT zero/inverse laws; the RIGHT ones (needed for
 ;; the two-sided is-identity / has-inverses clauses of IS-RING) follow by
 ;; matadd-comm.  Stated so the assembly proof closes them without an in-proof
 ;; commutativity rewrite.  Same warranted category as the -left originals.
-(support 'matadd-zero-right
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (= (MATADD A P (ZEROMAT A m n)) P))))))))
-(warrant! 'matadd-zero-right 'reference "ZEROMAT is a right identity for MATADD (matadd-comm + zero-left).")
-(support 'matadd-neg-right
-  '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL P
-     (IMPLIES (IN P (MAT m n (CARR A)))
-       (= (MATADD A P (MATNEG A P)) (ZEROMAT A m n)))))))))
-(warrant! 'matadd-neg-right 'reference "MATNEG is a right inverse for MATADD (matadd-comm + neg-left).")
+;;; matadd-zero-right RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-matrix-laws.scm
+;;; matadd-neg-right RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-matrix-laws.scm
 
 ;; ---- MAT-RING slot read-offs + set-hood / lambda-typing bricks ----
 ;; The assembly proof of mat-ring-is-ring (theorem-library/mat-ring-proof.scm)
 ;; unfolds IS-RING into its 14 conjuncts and reduces each through MAT-RING's
-;; slots.  These bricks are what the reduction rests on -- all trivially true,
-;; warranted because the machinery genuinely cannot compute them:
+;; slots.  These bricks are what the reduction rests on.  NOTE 2026-09-19: the claims
+;; below that "the machinery cannot compute them" are STALE.  All of the read-offs and both
+;; FUN typings are THEOREMS (theorem-library/rake-det-small.scm, rake-mat-ring-readoffs.scm):
+;; `slot' reads a slot of a constructor, and `lam-t' has typed a binder LIST against a
+;; CARTESIAN domain componentwise since 2026-08-14.  The original reasoning, kept as history:
 ;;  * the SLOT read-offs (carr/add/mul/neg/zero/one) are pinned per-slot because
 ;;    the accessor macetes CARR/ADD/MUL/NEG/... are keyed by NAME and last-write-
 ;;    wins across structures (MUL is slot 2 in monoid/group/AG but slot 3 in RING,
@@ -701,37 +497,27 @@
 ;;    so the 2-binder curried ADD/MUL into FUN(CARTESIAN A A, B) is warranted
 ;;    (NEG, single-binder, is discharged genuinely by lam-t in the proof);
 ;;  * mat-is-set: MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.
-(support 'mat-is-set
-  '(FORALL X (IMPLIES (IN X SET) (FORALL m (FORALL n (IN (MAT m n X) SET))))))
-(warrant! 'mat-is-set 'reference "MAT(m,n,X) is a SEP over the set MATRIX(X), hence a set.")
-(support 'mat-ring-carr
-  '(FORALL a (FORALL n (= (CARR (MAT-RING a n)) (MAT n n (CARR a))))))
-(warrant! 'mat-ring-carr 'reference "slot 1 of the MAT-RING tuple.")
-(support 'mat-ring-add
-  '(FORALL a (FORALL n (= (ADD (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATADD a P Q))))))
-(warrant! 'mat-ring-add 'reference "slot 2 of the MAT-RING tuple (entrywise sum).")
-(support 'mat-ring-mul
-  '(FORALL a (FORALL n (= (MUL (MAT-RING a n)) (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATMUL a P Q))))))
-(warrant! 'mat-ring-mul 'reference "slot 3 of the MAT-RING tuple (matrix product).")
-(support 'mat-ring-neg
-  '(FORALL a (FORALL n (= (NEG (MAT-RING a n)) (VNB-LAMBDA P (MAT n n (CARR a)) (MATNEG a P))))))
-(warrant! 'mat-ring-neg 'reference "slot 4 of the MAT-RING tuple (entrywise negation).")
-(support 'mat-ring-zero
-  '(FORALL a (FORALL n (= (ZERO (MAT-RING a n)) (ZEROMAT a n n)))))
-(warrant! 'mat-ring-zero 'reference "slot 5 of the MAT-RING tuple (all-zero matrix).")
-(support 'mat-ring-one
-  '(FORALL a (FORALL n (= (ONE (MAT-RING a n)) (IDENTMAT a n)))))
-(warrant! 'mat-ring-one 'reference "slot 6 of the MAT-RING tuple (identity matrix).")
-(support 'mat-ring-add-fun
-  '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
-     (IN (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATADD a P Q))
-         (FUN (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MAT n n (CARR a)))))))))
-(warrant! 'mat-ring-add-fun 'reference "curried entrywise sum is a function MAT x MAT -> MAT (2-binder).")
-(support 'mat-ring-mul-fun
-  '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
-     (IN (VNB-LAMBDA (LIST P Q) (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MATMUL a P Q))
-         (FUN (CARTESIAN (MAT n n (CARR a)) (MAT n n (CARR a))) (MAT n n (CARR a)))))))))
-(warrant! 'mat-ring-mul-fun 'reference "curried product is a function MAT x MAT -> MAT (2-binder).")
+;;
+;; The six SLOT read-offs are GUARDED 2026-09-16 on (IS-RING a) and (IN n NN),
+;; after the binders; mat-ring-proof uses them as macetes, and every leaf there
+;; carries both hypotheses.  mat-ring-zero / mat-ring-one are FALSE without
+;; them: for n := 3/2, ZEROMAT(a, n, n) and IDENTMAT(a, n) are descriptions over
+;; the empty MAT(3/2, 3/2, ...) and have no value, so the right-hand side does
+;; not denote; for a := 0 (n >= 1) ZERO(a) / ONE(a) do not denote, and neither
+;; do the tabulations.  For CARR / ADD / MUL / NEG the right-hand side mentions
+;; CARR(a), which for a := 0 (not a tuple) does not denote either, so the same
+;; guard on a is forced; the guard on n is forced for them only if LIST is
+;; strict (a tuple with an undefined component is undefined), which the theory
+;; neither asserts nor denies -- guarded as mat-ring-zero, since every citer has
+;; the hypothesis and a slot read-off should not depend on the answer.
+;;; mat-ring-carr RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
+;;; mat-ring-add RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
+;;; mat-ring-mul RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
+;;; mat-ring-neg RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
+;;; mat-ring-zero RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
+;;; mat-ring-one RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-det-small.scm
+;;; mat-ring-add-fun RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
+;;; mat-ring-mul-fun RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-mat-ring-readoffs.scm
 
 ;; ---- the headline: MAT(n,n,A) is a ring ----
 ;; PROVEN (not asserted) in theorem-library/mat-ring-proof.scm: the IS-RING iff

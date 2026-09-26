@@ -73,19 +73,24 @@
         (AND (<= ((DIST s) c y) r)
              (NOT (= ((DIST s) c y) r)))))
 
+;;; CLOSED-BALL(s, c, r) -- the closed r-ball around the centre c in s.
+;;;
+;;; Deliberately UNGUARDED in s, c and r, exactly as BALL is, and for the reason
+;;; metric-topology.scm's own CONVENTION note gives: a definition is a conservative
+;;; abbreviation, the substantive facts below carry IS-METRIC-SPACE.  The centre
+;;; parameter is `c', never `x' (the case-fold trap the BALL comment records); the
+;;; SEP variable is `y', as BALL's is.
+;;;
+;;; The body is BALL's with the strict conjunct dropped: BALL(s,c,r) asks
+;;; d(c,y) <= r AND d(c,y) /= r, CLOSED-BALL asks only d(c,y) <= r.  At r < 0 the
+;;; set is empty and every law still holds (theorem-library/metric-closure-laws.scm) (closed-ball-is-closed is guarded
+;;; on r in RR, not on POS-RR r); on the empty space it is EMPTY-SET.
+
+(def-functoid 'CLOSED-BALL '(s c r)
+  '(SEP y (PTS s) (<= ((DIST s) c y) r)))
+
 ;;; ball-membership: y in BALL(s,x,r) iff y in PTS(s) and DIST(s)(x,y) < r.
 ;;; Direct from SEP membership; recorded so proofs can rewrite by name.
-(support 'ball-membership
-  '(FORALL s
-     (FORALL x
-       (FORALL r
-         (FORALL y
-           (IFF (IN y (BALL s x r))
-                (AND (IN y (PTS s))
-                     (AND (<= ((DIST s) x y) r)
-                          (NOT (= ((DIST s) x y) r))))))))))
-(warrant! 'ball-membership 'proof
-  "BALL(s,x,r) is the def-functoid SEP(y in PTS(s) | d(x,y)<=r and d(x,y)!=r); the iff is just SEP-membership after unfolding BALL.  Definitional.")
 
 ;;; (No `ball-subset-carrier' axiom: BALL(s,x,r) subset PTS(s) is a SEP over
 ;;; PTS(s), so it falls straight out of the kernel separation rule sep-me --
@@ -101,47 +106,16 @@
 ;;; d(t)(f y, f z) <= d.  Halving eps (rr-pos-halvable) gives a d < eps, and
 ;;; this lemma turns the non-strict bound at radius d into strict membership
 ;;; at radius r = eps.  Stated with d, r in RR so the order chain is typed.
-(support 'ball-mem-from-le
-  '(FORALL s
-     (IMPLIES (IS-METRIC-SPACE s)
-       (FORALL x
-         (FORALL y
-           (FORALL d
-             (FORALL r
-               (IMPLIES (AND (IN y (PTS s))
-                        (AND (IN d RR)
-                        (AND (IN r RR)
-                        (AND (<= ((DIST s) x y) d)
-                             (< d r)))))
-                 (IN y (BALL s x r))))))))))
-(warrant! 'ball-mem-from-le 'proof
-  "d(x,y) <= d and d <= r (from d < r) give d(x,y) <= r by rr-leq-transitive. And d(x,y) = r would give r <= d (substituting into d(x,y) <= d), contradicting d < r by rr-leq-antisymmetric; so d(x,y) != r. With y in PTS(s), ball-membership yields y in BALL(s,x,r).")
+;;; RETIRED 2026-09-17 (guarded, then proven): ball-mem-from-le --
+;;; theorem-library/rake-balls.scm.  The statement gained `x in PTS(s)' after
+;;; `FORALL x': without it nothing certifies DIST(s)(x,y) as a real
+;;; (metric-dist-real wants BOTH points in PTS(s)), so the two transitivity
+;;; steps of its warrant could not run.  Nothing cited it.
 
-;;; ball-is-set: BALL(s,x,r) in SET whenever s is a metric space.
-;;; Derivable from SEP sethood + PTS(s) in SET (carrier typing of
-;;; IS-METRIC-SPACE).  Kept as a named macete so BALL-using proofs don't
-;;; re-derive sethood at every use; not a per-operator closure proliferation.
-(support 'ball-is-set
-  '(FORALL s
-     (IMPLIES (IS-METRIC-SPACE s)
-       (FORALL x
-         (FORALL r
-           (IN (BALL s x r) SET))))))
-(warrant! 'ball-is-set 'proof
-  "BALL(s,x,r) is a SEP over PTS(s) (def-functoid); PTS(s) is a set (carrier typing of IS-METRIC-SPACE); a SEP over a set is a set (kernel sep-sethood).")
-
-;;; ball-center-in: x is in its own r-ball when r > 0.
-;;; Uses metric-self-zero: DIST(s)(x,x) = 0 < r.
-(support 'ball-center-in
-  '(FORALL s
-     (IMPLIES (IS-METRIC-SPACE s)
-       (FORALL x
-         (IMPLIES (IN x (PTS s))
-           (FORALL r
-             (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
-               (IN x (BALL s x r)))))))))
-(warrant! 'ball-center-in 'proof
-  "metric-self-zero gives d(s)(x,x)=0, so 0<=r and 0!=r (r>0) put x into the SEP; ball-membership then gives x in BALL(s,x,r).")
+;;; RETIRED 2026-09-17 (proven): ball-membership, ball-is-set, ball-center-in,
+;;; ball-2r-triangle -- theorem-library/rake-balls.scm, all modulo 0 (the SEP
+;;; membership by the functoid-unfold recipe, `ball-sep-unfold'; sethood from SEP
+;;; sethood and the carrier typing; the two metric facts from metric-laws).
 
 ;;; ball-2r-triangle: two points in the same r-ball are within 2r of each
 ;;; other.  The workhorse for arguments that pigeonhole sequence terms
@@ -150,41 +124,89 @@
 ;;;
 ;;; Derivable from metric-triangle + metric-sym; left as an axiom during
 ;;; the library-build phase per [[feedback-library-axioms-fine]].
-(support 'ball-2r-triangle
-  '(FORALL s
-     (IMPLIES (IS-METRIC-SPACE s)
-       (FORALL x
-         (IMPLIES (IN x (PTS s))
-           (FORALL r
-             (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
-               (FORALL y
-                 (IMPLIES (IN y (BALL s x r))
-                   (FORALL z
-                     (IMPLIES (IN z (BALL s x r))
-                       (AND (<= ((DIST s) y z) (+ r r))
-                            (NOT (= ((DIST s) y z) (+ r r)))))))))))))))
-(warrant! 'ball-2r-triangle 'proof
-  "metric-triangle: d(y,z) <= d(y,x)+d(x,z).  Each of d(y,x)=d(x,y) (metric-sym) and d(x,z) is < r by ball-membership, so d(y,z) < r+r.")
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-R-NET(s, F, A, r) -- F is an r-net for A in metric space s.
 ;;;
-;;; Every point of A is within distance < r of some point of F.  The
-;;; centers F need not lie inside A; in classical analysis r-nets for a
-;;; subset A often have centers outside A (e.g. centers in the closure).
-;;; For our use A = PTS(s) and F lives inside PTS(s) by the typing of DIST(s).
+;;; F is a subclass of A, and every point of A is within distance < r of some
+;;; point of F.  The centres are required to lie in A itself; for the one use
+;;; the library makes of the predicate, TOTALLY-BOUNDED below, A is PTS(s), so
+;;; the centres are points of the space.
+;;;
+;;; THE SUBSET CONJUNCT (added 2026-09-19, the user's decision).  Until that
+;;; date the definition consisted of the quantified clause alone, the centres
+;;; were unconstrained, and the comment printed here claimed that "F lives
+;;; inside PTS(s) by the typing of DIST(s)".  That claim was FALSE, and the
+;;; defect it hid is recorded here because the two theorems it invalidated
+;;; stood for seven weeks.
+;;;
+;;;   * What the typing of DIST(s) gives is weaker than the claim.  DIST(s)
+;;;     is a member of FUN(CARTESIAN(PTS s, PTS s), RR), so a member c of F
+;;;     for which the term ((DIST s) c p) is asserted to be a real number is
+;;;     thereby a point of s -- that implication is the theorem
+;;;     `dist-le-implies-in-carrier' (theorem-library/rake-tb-leaves.scm).
+;;;     It constrains only those members of F that are actually USED as
+;;;     centres by the quantified clause.  It says nothing whatever about the
+;;;     remaining members, and in particular it does not make F a SET: the
+;;;     universal class satisfies the old definition in any model in which
+;;;     some point of A is at distance 0 from itself.
+;;;
+;;;   * The consequence sat one level up, in TOTALLY-BOUNDED.  That predicate
+;;;     bounds the net by `(IN (CARD F) NN)', and every axiom about CARD
+;;;     (structure-library/cardinality.scm: card-in-ord, card-insert,
+;;;     card-finite-bij, card-union-disjoint) is guarded on `(IN A SET)'.  For
+;;;     a proper class F the term CARD(F) is therefore unconstrained, and
+;;;     `(IN (CARD F) NN)' is satisfiable without F being finite in any sense.
+;;;
+;;;   * The counter-model.  Let s be an uncountable discrete metric space
+;;;     (d(x,y) = 1 for x /= y) in a model in which CARD of the universal
+;;;     class is 3, and let F be the universal class.  Under the old
+;;;     definition IS-R-NET(s, F, PTS(s), r) holds for every r > 0, since each
+;;;     p is at distance 0 < r from itself and p belongs to F; and
+;;;     (IN (CARD F) NN) holds by the choice of model.  So TOTALLY-BOUNDED(s)
+;;;     held of an uncountable discrete space, at which the supports
+;;;     `tb-rad-ball-cover' (theorem-library/cauchy-subsequence.scm) and
+;;;     `tb-scale-dense-seq' (structure-library/separable.scm) are both FALSE:
+;;;     at radius 1/2 every ball is a singleton, so no finite set of balls
+;;;     covers PTS(s) and no sequence comes within 1/2 of every point.  The
+;;;     defect was found on 2026-09-19 by the agent that attempted those two
+;;;     supports (scratchpad/triage/RAKE-BATCH6-REPORTS.md, entry 6-P).
+;;;
+;;;   * The decision (the user's, 2026-09-19) puts the repair on IS-R-NET
+;;;     rather than on TOTALLY-BOUNDED, and states it as `SUBSET F A' rather
+;;;     than as sethood of F.  Two consequences.  (i) F subseteq A is the
+;;;     ordinary textbook definition of an r-net, and the generality the old
+;;;     header reserved -- centres drawn from outside A, as from the closure of
+;;;     A -- is used nowhere in the tree.  (ii) Sethood of the net is now a
+;;;     consequence and not a separate hypothesis: at A = PTS(s),
+;;;     IS-METRIC-SPACE(s) carries `(IN (PTS s) SET)' as a typing conjunct
+;;;     (surfaced as `rkt-pts-in-set!',
+;;;     theorem-library/rake-analysis-typing.scm), and `subclass-of-set-is-set'
+;;;     (theorem-library/subset-lemmas.scm) turns the subset clause into
+;;;     `(IN F SET)', which is what makes `(IN (CARD F) NN)' in TOTALLY-BOUNDED
+;;;     say what it was always meant to say.  The clause is also the property
+;;;     every construction in the tree already delivers: the one prover of an
+;;;     r-net, `finite-ball-subcover-r-net'
+;;;     (calculus/finite-ball-subcover-proof.scm), builds its net as
+;;;     CENTRE-SET(s, r, F), an IMAGE of chosen centres each of which
+;;;     `chosen-centre-is-centre' places in PTS(s).
+;;;
+;;; The clause strengthens the predicate.  Every support that holds IS-R-NET or
+;;; TOTALLY-BOUNDED as a HYPOTHESIS is therefore weakened, hence still true;
+;;; every statement that asserts one as a CONCLUSION owes the new conjunct.
 
 ;; def-predicate (not a raw theory-add-axiom!) so IS-R-NET registers in
 ;; `theory-definitions' -> DEFINITIONS.md -> the browser Definitions page, and
 ;; is stamped `definitional' at source (the macete name is the predicate name,
 ;; IS-R-NET; cf. IS-COMPACT in compactness.scm).
 (def-predicate 'IS-R-NET '(s F A r)
-  '(FORALL p
-     (IMPLIES (IN p A)
-       (FORSOME c
-         (AND (IN c F)
-              (AND (<= ((DIST s) c p) r)
-                   (NOT (= ((DIST s) c p) r))))))))
+  '(AND (SUBSET F A)
+        (FORALL p
+          (IMPLIES (IN p A)
+            (FORSOME c
+              (AND (IN c F)
+                   (AND (<= ((DIST s) c p) r)
+                        (NOT (= ((DIST s) c p) r)))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; TOTALLY-BOUNDED(s) -- every positive r admits a finite r-net for PTS(s).

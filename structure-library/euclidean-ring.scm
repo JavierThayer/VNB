@@ -9,6 +9,11 @@
 ;;; See commutative-ring.scm for the IS-X-as-predicate rationale.
 ;;; Dependencies: ring.scm, commutative-ring.scm, integral-domain.scm,
 ;;; field.scm, number-systems.scm (NN, succ, <=).
+;;; RETIRED 2026-09-14 (proven): euclidean-ring-has-gauge -- theorem-library/gauge-is-degree.scm
+;;; RETIRED 2026-09-14 (proven): gauges-mem-build -- theorem-library/gauge-is-degree.scm
+;;; RETIRED 2026-09-14 (proven): gauges-in-fun -- theorem-library/gauge-is-degree.scm
+;;; RETIRED 2026-09-14 (proven): gauges-spec -- theorem-library/gauge-is-degree.scm
+;;; RETIRED 2026-09-14 (proven): gauge-is-degree -- theorem-library/gauge-is-degree.scm
 
 ;;; IS-EUCLIDEAN-RING: an integral domain with a Euclidean degree function.
 ;;; Conservative IFF definition of the fresh predicate -> `definitional', so
@@ -78,39 +83,12 @@
 
 ;;; A Euclidean ring HAS a gauge: the directly-usable existential conjunct of
 ;;; is-euclidean-ring-def (its division clause, named HAS-DIV-REMAINDER).
-(support 'euclidean-ring-has-gauge
-  '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
-     (FORSOME dg (AND (IN dg (FUN (CARR s) NN)) (HAS-DIV-REMAINDER s dg))))))
-(warrant! 'euclidean-ring-has-gauge 'well-known
-  "The existential conjunct of is-euclidean-ring-def: a Euclidean ring admits a
-   degree function dg : CARR(s) -> NN with division-with-remainder (HAS-DIV-
-   REMAINDER s dg).  Definitional once HAS-DIV-REMAINDER names the clause.")
 
 ;;; SEP-membership slices of EUCLIDEAN-GAUGES (definitional).
-(support 'gauges-mem-build
-  '(FORALL s (FORALL dg (IMPLIES (IN dg (FUN (CARR s) NN))
-       (IMPLIES (HAS-DIV-REMAINDER s dg) (IN dg (EUCLIDEAN-GAUGES s)))))))
-(support 'gauges-in-fun
-  '(FORALL s (FORALL dg (IMPLIES (IN dg (EUCLIDEAN-GAUGES s)) (IN dg (FUN (CARR s) NN))))))
-(support 'gauges-spec
-  '(FORALL s (FORALL dg (IMPLIES (IN dg (EUCLIDEAN-GAUGES s)) (HAS-DIV-REMAINDER s dg)))))
-(warrant! 'gauges-mem-build 'well-known "SEP-membership of EUCLIDEAN-GAUGES (definitional).")
-(warrant! 'gauges-in-fun    'well-known "EUCLIDEAN-GAUGES(s) is a SEP-subset of FUN(CARR s, NN) (definitional).")
-(warrant! 'gauges-spec      'well-known "Each member of EUCLIDEAN-GAUGES(s) has division-with-remainder (definitional).")
 
 ;;; gauge-is-degree: the chosen GAUGE(s) really is a valid degree function --
 ;;; the soundness of the epsilon pick (defined because the gauge set is
 ;;; inhabited).  MACHINE-PROVEN in archive/calculus-pre-rename/gauge-proof.scm.
-(support 'gauge-is-degree
-  '(FORALL s (IMPLIES (IS-EUCLIDEAN-RING s)
-     (AND (IN (GAUGE s) (FUN (CARR s) NN))
-          (HAS-DIV-REMAINDER s (GAUGE s))))))
-(warrant! 'gauge-is-degree 'proof
-  "GAUGE(s) = CHOICE(EUCLIDEAN-GAUGES s) is in FUN(CARR s, NN) and has division-
-   with-remainder: IS-EUCLIDEAN-RING(s) makes EUCLIDEAN-GAUGES(s) inhabited
-   (euclidean-ring-has-gauge + gauges-mem-build), so the epsilon pick lands in
-   it (choice-axiom) and the SEP slices give both conjuncts.  MACHINE-PROVEN in
-   archive/calculus-pre-rename/gauge-proof.scm.")
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-EUCLIDEAN-RING     'kind 'predicate 'arity 1 'noun "Euclidean ring" 'article "a")

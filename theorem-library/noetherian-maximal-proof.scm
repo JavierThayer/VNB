@@ -26,12 +26,7 @@
 ;;; neq-sym now lives in structure-library/order-lemmas.scm (loaded early, so the
 ;;; Smith clearing bricks can fact it); it is registered before this file loads.
 
-(add-to-pss 'fun-codomain-superset
-  '(FORALL f (FORALL A (FORALL B (FORALL C
-     (IMPLIES (IN f (FUN A B)) (IMPLIES (SUBSET B C) (IN f (FUN A C)))))))))
-(warrant! 'fun-codomain-superset 'well-known
-  "A function into B is a function into any superset C (fun-codomain-iff + subset-mem).")
-(topic! 'fun-codomain-superset 'plumbing)
+;;; fun-codomain-superset RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-fun-codomain.scm
 
 ;; nn-le-succ (k <= succ k) was declared here; moved to order-lemmas.scm
 ;; 2026-07-10 (a plumbing fact belongs there, not in a proof file, and the
@@ -48,6 +43,14 @@
           (FORSOME t (AND (IN t sig)
             (FORALL u (IMPLIES (AND (IN u sig) (SUBSET t u)) (= t u)))))))))))))
 (quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))   ; m,NOETH,sig,SET,SUBSET,SUBMEM,FORSOME-t0
+;; LUTINS instantiation (2026-09-18): every step that instantiates at a term
+;; mentioning POWER(VEC m) owes (POWER (VEC m)) = (POWER (VEC m)) unless the
+;; context certifies VEC(m).  Policy 4b certifies an accessor from a STRUCTURE
+;; hypothesis, and IS-NOETHERIAN is a def-predicate, not a structure predicate --
+;; so its first conjunct is landed here, once, on a side lane that leaves the
+;; IS-NOETHERIAN hypothesis intact for the ACC citation at line ~168.
+(have! '(IS-MODULE m)
+       (lambda () (mac-h 'IS-NOETHERIAN '(IS-NOETHERIAN m)) (dc-split) (ass)))
 (define nm-sig (cadr (dc-find (lambda (z) (and ((dc-head? 'SUBSET) z) (equal? (caddr z) '(POWER (VEC m))))))))
 (ai (dc-find (lambda (z) (and ((dc-head? 'FORSOME) z) (dc-ment? nm-sig z)))))
 (define nm-t0 (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) nm-sig))))))
@@ -73,7 +76,7 @@
 (quietly (lambda () (di)(di)(di)(di)))               ; kk,(IN kk NN),uu,(IN uu sig)
 (define totU (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) nm-sig)
                                        (not (equal? (cadr z) nm-t0))))))
-(define UU (cadr totU))
+(define nm-u-tot (cadr totU))
 (define KK (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (equal? (caddr z) 'NN))))))
 
 ;;; ---- prove the totality item: uu (in sig) has a strict superset in sig ----
@@ -81,25 +84,25 @@
 (define Hno (dc-find (lambda (z) (and ((dc-head? 'NOT) z) (dc-ment? 'zz z)))))
 (define MAINEX (cadr Hmax))                          ; the main existential
 (define MAXPuu (list 'FORALL 'w (list 'IMPLIES
-                  (list 'AND (list 'IN 'w nm-sig) (list 'SUBSET UU 'w)) (list '= UU 'w))))
+                  (list 'AND (list 'IN 'w nm-sig) (list 'SUBSET nm-u-tot 'w)) (list '= nm-u-tot 'w))))
 ;; establish MAXP(uu)
 (cut MAXPuu)
 (quietly (lambda () (di)))                            ; w
 (quietly (lambda () (di)))                            ; (AND (IN w sig)(SUBSET uu w))
 (dc-split)
-(define WW (caddr (dc-find (lambda (z) (and ((dc-head? 'SUBSET) z) (equal? (cadr z) UU))))))
+(define WW (caddr (dc-find (lambda (z) (and ((dc-head? 'SUBSET) z) (equal? (cadr z) nm-u-tot))))))
 (define MAXPbody (dc-gf))                             ; (= uu w)
 (pbc)                                                 ; Hneq=NOT(= uu w); goal FALSITY
-(quietly (lambda () (fact 'neq-sym UU WW)))           ; NOT(= w uu)
+(quietly (lambda () (fact 'neq-sym nm-u-tot WW)))           ; NOT(= w uu)
 ;; w in NXT(kk,uu)
-(cut (list '== (NXTapp KK UU) (SEPof UU)))
-(dc-focus! (list '== (NXTapp KK UU) (SEPof UU))) (lam-b) (qrfl)
+(cut (list '== (NXTapp KK nm-u-tot) (SEPof nm-u-tot)))
+(dc-focus! (list '== (NXTapp KK nm-u-tot) (SEPof nm-u-tot))) (lam-b) (qrfl)
 ;; back to the inner FALSITY (the (= uu w) pbc), marked by Hneq
-(define Hneq (list 'NOT (list '= UU WW)))
+(define Hneq (list 'NOT (list '= nm-u-tot WW)))
 (dc-focus-case! Hneq)
 ;; WW in NXT(kk,uu): rewrite to SEP membership, then sep-mi
-(cut (list 'IN WW (NXTapp KK UU)))
-(subst (list '== (NXTapp KK UU) (SEPof UU)))        ; goal (IN WW (SEPof uu))
+(cut (list 'IN WW (NXTapp KK nm-u-tot)))
+(subst (list '== (NXTapp KK nm-u-tot) (SEPof nm-u-tot)))        ; goal (IN WW (SEPof uu))
 (sep-mi)
 (quietly (lambda () (dc-grind!)))                    ; (IN WW sig); SUBSET uu WW; NOT(= WW uu)
 (dc-focus-case! Hneq)
@@ -112,7 +115,7 @@
 ;; MAXP(uu) established; contradict Hmax at t=uu
 (dc-focus-case! Hno)                                 ; totality FALSITY (marked by Hno)
 (cut MAINEX)
-(ew UU)
+(ew nm-u-tot)
 (quietly (lambda () (dc-grind!)))                    ; (IN uu sig); MAXP(uu)
 (dc-focus-case! Hno)
 (ai Hmax)                                            ; closes totality FALSITY
@@ -210,27 +213,10 @@
 ;;; vocabulary for the Hahn-Banach reachable family (used by hahn-banach-full)
 ;;; ====================================================================
 
-;;; NPE(m,s,f,t,g): g is a norm-preserving extension of f to the subspace t
-;;; (bound measured against the original ||f||_s = DUAL-NORM-ON(m,s,f)).
-(def-predicate 'NPE '(m s f t g)
-  (conjuncts->and
-   '((IS-SUBMODULE m t)
-     (SUBSET s t)
-     (IS-LINEAR-FUNCTIONAL-ON m t g)
-     (EXTENDS-ON s g f)
-     (FORALL w_ (IMPLIES (IN w_ t)
-        (<= (abs (g w_)) (* (DUAL-NORM-ON m s f) ((VNRM m) w_))))))))
+;;; NPE and GOOD-SUB are defined in structure-library/linear-functional.scm
+;;; (moved there, unchanged, on 2026-09-19).
 
-;;; GOOD-SUB(m,s,f,t): t is reachable -- some g is a norm-preserving extension to t.
-(def-predicate 'GOOD-SUB '(m s f t)
-  '(FORSOME g_ (NPE m s f t g_)))
-
-(add-to-pss 'good-sub-submodule
-  '(FORALL m (FORALL s (FORALL f (FORALL t
-     (IMPLIES (GOOD-SUB m s f t) (IS-SUBMODULE m t)))))))
-(warrant! 'good-sub-submodule 'reference
-  "GOOD-SUB unfolds to NPE, whose first conjunct is IS-SUBMODULE m t.")
-(topic! 'good-sub-submodule 'analysis)
+;;; good-sub-submodule PROVEN modulo 0 in theorem-library/rake-hb-leaves-2.scm (2026-09-19)
 
 ;;; ====================================================================
 ;;; bridge warrants + hb-good-has-maximal (specialise nsm to good subspaces)
@@ -239,26 +225,22 @@
 ;;; The six-slot module view of the normed vector space m -- see the note on
 ;;; the statement below.  The file's `nm-' prefix: a file-local Scheme name.
 (define nm-mod '(NORMED-VECTOR-SPACE-AS-MODULE m))
-(add-to-pss 'good-sub-self
-  '(FORALL m (FORALL s (FORALL f
-     (IMPLIES (IS-SUBMODULE m s) (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
-       (GOOD-SUB m s f s)))))))
-(warrant! 'good-sub-self 'reference
-  "f is a norm-preserving extension of itself to s (bound = ||f||_s), so s is reachable.")
-(topic! 'good-sub-self 'analysis)
+;;; RETIRED 2026-09-19 (rake batch 7): good-sub-self was UNDERDETERMINED as stated --
+;;; NPE's fifth conjunct measures the extension against DUAL-NORM-ON(m,s,f), whose
+;;; IOTA need not denote without an NVS guard.  Counterexample and the guarded
+;;; replacement good-sub-self-nvs (`modulo 0'):
+;;; theorem-library/rake-dual-norm-spec.scm, sections (7) and (8); digest in
+;;; scratchpad/triage/RAKE-BATCH7-REPORTS.md (7-A).
+;;;
+;;; The added antecedent is (IS-NORMED-VECTOR-SPACE m), and UNLIKE every other
+;;; citation site it is NOT in context here: hb-good-has-maximal below did not
+;;; assume it.  It is therefore added as a fourth CURRIED antecedent of
+;;; hb-good-has-maximal.  That is consistent (it is IS-FINITE-DIMENSIONAL *of m*
+;;; that would clash with it -- see the note below -- not of the module VIEW) and
+;;; free for its sole consumer, hahn-banach-full-proof.scm:226, which holds
+;;; IS-NORMED-VECTOR-SPACE(m) at the citation.
 
-(add-to-pss 'vspace-vec-is-set
-  '(FORALL m (IMPLIES (IS-VECTOR-SPACE m) (IN (VEC m) SET))))
-(warrant! 'vspace-vec-is-set 'reference
-  "The carrier VEC(m) of a vector space (module) is a set.")
-(topic! 'vspace-vec-is-set 'analysis)
-
-(add-to-pss 'good-sub-in-power
-  '(FORALL m (FORALL s (FORALL f (FORALL t
-     (IMPLIES (GOOD-SUB m s f t) (IN t (POWER (VEC m)))))))))
-(warrant! 'good-sub-in-power 'reference
-  "A reachable t is a submodule, hence a subset of VEC(m), hence in its powerset.")
-(topic! 'good-sub-in-power 'analysis)
+;;; good-sub-in-power PROVEN modulo 0 in theorem-library/rake-hb-leaves-2.scm (2026-09-19)
 
 
 ;;; THE HYPOTHESIS IS FINITE-DIMENSIONALITY OF THE MODULE VIEW, NOT OF m, AND
@@ -277,13 +259,17 @@
 ;;; the argument needs about m itself come back through the read-offs of
 ;;; theorem-library/nvs-module-view.scm (all `modulo 0') -- `vec' off the view
 ;;; is `vec(m)', and a submodule of m is a submodule of the view.
+;;; 2026-09-19 (rake batch 7): (IS-NORMED-VECTOR-SPACE m) added as the first
+;;; antecedent -- good-sub-self-nvs, cited below, needs it, and the sole consumer
+;;; (hahn-banach-full-proof.scm:226) holds it at the citation.
 (sp `(FORALL m (FORALL s (FORALL f
-     (IMPLIES (IS-FINITE-DIMENSIONAL ,nm-mod)
-      (IMPLIES (IS-SUBMODULE m s)
-       (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
-         (FORSOME t (AND (GOOD-SUB m s f t)
-           (FORALL u (IMPLIES (AND (GOOD-SUB m s f u) (SUBSET t u)) (= t u))))))))))))
-(quietly (lambda () (di)(di)(di)(di)(di)(di)))   ; m,s,f,FINDIM,SUBMODULE,BOUNDED
+     (IMPLIES (IS-NORMED-VECTOR-SPACE m)
+      (IMPLIES (IS-FINITE-DIMENSIONAL ,nm-mod)
+       (IMPLIES (IS-SUBMODULE m s)
+        (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
+          (FORSOME t (AND (GOOD-SUB m s f t)
+            (FORALL u (IMPLIES (AND (GOOD-SUB m s f u) (SUBSET t u)) (= t u)))))))))))))
+(quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))   ; m,s,f,NVS,FINDIM,SUBMODULE,BOUNDED
 (define HDgoal (dc-gf))
 (mac-h 'IS-FINITE-DIMENSIONAL (list 'IS-FINITE-DIMENSIONAL nm-mod))
 (dc-split)                    ; IS-VECTOR-SPACE (view m), IS-NOETHERIAN (view m)
@@ -292,6 +278,7 @@
 ;; IN SIG SET
 (cut (list 'IN SIG 'SET))
 (sep-set)                                         ; subgoal (IN (POWER (VEC m)) SET)
+;; vspace-vec-is-set is a THEOREM since 2026-09-17 (theorem-library/rake-setoid.scm); its add-to-pss here was retired
 (quietly (lambda () (fact 'vspace-vec-is-set nm-mod)))
 ;; the view's carrier IS m's carrier -- rewrite the landed typing in place
 ;; (mac-h is destructive; the original form is not wanted again).
@@ -325,7 +312,7 @@
 (dc-focus! HDgoal)
 
 ;; FORSOME t0 in SIG (t0 = s)
-(quietly (lambda () (fact 'good-sub-self 'm 's 'f)))      ; GOOD-SUB(s)
+(quietly (lambda () (fact 'good-sub-self-nvs 'm 's 'f)))      ; GOOD-SUB(s)
 (quietly (lambda () (fact 'good-sub-in-power 'm 's 'f 's)))  ; IN s POWER
 (cut (list 'FORSOME 't0 (list 'IN 't0 SIG)))
 (ew 's)
@@ -344,21 +331,21 @@
 (ew TT2)
 (di)                                              ; GOOD-SUB(TT2) ; the maximal FORALL
 (quietly (lambda () (ass-all)))                   ; closes GOOD-SUB(TT2)
-(set-proof-state-focus! *ps* (car (dc-open-leaves)))
+(dk-focus! (car (dc-open-leaves)))
 (quietly (lambda () (di)(di)))                    ; u ; (AND (GOOD-SUB u)(SUBSET TT2 u))
 (dc-split)
-(define Uu (caddr (dc-find (lambda (z) (and ((dc-head? 'SUBSET) z) (equal? (cadr z) TT2))))))
+(define nm-u-sup (caddr (dc-find (lambda (z) (and ((dc-head? 'SUBSET) z) (equal? (cadr z) TT2))))))
 (define MAXBODY (dc-gf))                          ; (= TT2 u)
-(quietly (lambda () (fact 'good-sub-in-power 'm 's 'f Uu)))     ; IN u POWER
-(cut (list 'IN Uu SIG))
+(quietly (lambda () (fact 'good-sub-in-power 'm 's 'f nm-u-sup)))     ; IN u POWER
+(cut (list 'IN nm-u-sup SIG))
 (sep-mi)
 (quietly (lambda () (ass-all)))
 (dc-focus! MAXBODY)
-(cut (list 'AND (list 'IN Uu SIG) (list 'SUBSET TT2 Uu)))
+(cut (list 'AND (list 'IN nm-u-sup SIG) (list 'SUBSET TT2 nm-u-sup)))
 (dc-grind!)
 (dc-focus! MAXBODY)
-(quietly (lambda () (inst+ MAXSIG Uu)))
-(dc-detach-impl! (list 'AND (list 'IN Uu SIG) (list 'SUBSET TT2 Uu)))   ; (= TT2 u)
+(quietly (lambda () (inst+ MAXSIG nm-u-sup)))
+(dc-detach-impl! (list 'AND (list 'IN nm-u-sup SIG) (list 'SUBSET TT2 nm-u-sup)))   ; (= TT2 u)
 (quietly (lambda () (ass-all)))
 (qed (quote hb-good-has-maximal))
 (topic! 'hb-good-has-maximal 'analysis)

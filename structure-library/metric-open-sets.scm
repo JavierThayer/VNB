@@ -1,3 +1,11 @@
+;;; RETIRED 2026-09-17 (proven): continuous-implies-open-preimage -- theorem-library/rake-cont-preimage.scm
+;;; (modulo 0, via dk-halve!; this file now holds no support at all).
+;;; RETIRED 2026-09-17 (proven): empty-is-open, carrier-is-open, union-of-opens-open,
+;;; inter-of-opens-open, preimage-complement, open-preimage-implies-continuous,
+;;; continuous-implies-closed-preimage, closed-preimage-implies-continuous --
+;;; theorem-library/rake-open-sets.scm (all modulo 0 except
+;;; continuous-implies-closed-preimage, which bills continuous-implies-open-preimage,
+;;; the one support left in this file).
 ;;; metric-open-sets.scm -- the topology of a metric space.
 ;;;
 ;;; Promotes the ball vocabulary of metric-topology.scm to open sets and the
@@ -24,6 +32,7 @@
 ;;; (BALL, ball-2r-triangle, ball-mem-from-le), metric-continuity.scm
 ;;; (IS-CONTINUOUS), order-predicates.scm (POS-RR), set kernel (SEP, SUBSET,
 ;;; BIG-UNION, INTERSECTION, EMPTY-SET).  Loaded right after metric-continuity.
+;;; RETIRED 2026-09-14 (proven): ball-is-open -- theorem-library/ball-is-open.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; IS-OPEN(s, U): U is a subset of PTS(s) and every point of U is the centre
@@ -60,50 +69,19 @@
 ;;; Topology axioms: the open sets of a metric space form a topology.
 
 ;;; empty-is-open: the empty set is open (vacuously -- it has no points).
-(support 'empty-is-open
-  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (IS-OPEN s EMPTY-SET))))
-(warrant! 'empty-is-open 'proof
-  "EMPTY-SET subset PTS(s) holds vacuously and the point-quantifier in IS-OPEN ranges over no points; unfold IS-OPEN and discharge both conjuncts.")
 
 ;;; carrier-is-open: the whole space PTS(s) is open.  Any positive r works at
 ;;; each point since BALL(s,y,r) is a SEP over PTS(s), hence subset PTS(s).
-(support 'carrier-is-open
-  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (IS-OPEN s (PTS s)))))
-(warrant! 'carrier-is-open 'proof
-  "SUBSET(PTS(s),PTS(s)) is reflexivity; at each point pick any r > 0, and BALL(s,y,r) subset PTS(s) (a SEP over PTS(s), via the kernel sep rule).")
 
 ;;; ball-is-open: every open ball is an open set.  The workhorse: for y in
 ;;; BALL(s,x,r), the slack t = r - DIST(s)(x,y) > 0 gives BALL(s,y,t) subset
 ;;; BALL(s,x,r) by the triangle inequality (cf. ball-2r-triangle).
-(support 'ball-is-open
-  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL x (IMPLIES (IN x (PTS s))
-       (FORALL r (IMPLIES (AND (IN r RR) (AND (<= 0 r) (NOT (= 0 r))))
-         (IS-OPEN s (BALL s x r)))))))))
-(warrant! 'ball-is-open 'proof
-  "For y in BALL(s,x,r) the slack t = r - DIST(s)(x,y) is > 0 (ball-membership); the triangle inequality (metric-triangle) gives BALL(s,y,t) subset BALL(s,x,r), so y is interior. Hence BALL(s,x,r) is open.")
 
 ;;; union-of-opens-open: an arbitrary indexed union of open sets is open.
 ;;; g : A -> open subsets of PTS(s); the union is the BIG-UNION binder.
-(support 'union-of-opens-open
-  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL A (FORALL g
-       (IMPLIES (FORALL i (IMPLIES (IN i A) (IS-OPEN s (g i))))
-         (IS-OPEN s (BIG-UNION i A (g i)))))))))
-(warrant! 'union-of-opens-open 'proof
-  "A point y of the union lies in some (g i) with i in A; the ball witnessing openness of (g i) at y is contained in (g i), hence in the union. Subset-of-carrier is inherited termwise.")
 
 ;;; inter-of-opens-open: a binary (hence finite) intersection of opens is open.
 ;;; Take the smaller of the two radii at a common point.
-(support 'inter-of-opens-open
-  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
-     (FORALL U (FORALL W
-       (IMPLIES (AND (IS-OPEN s U) (IS-OPEN s W))
-         (IS-OPEN s (INTERSECTION U W))))))))
-(warrant! 'inter-of-opens-open 'proof
-  "At a point y in U cap W, openness gives balls of radii r_U, r_W inside U, W respectively; the ball of radius min(r_U,r_W) lies in both, hence in the intersection.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Open-preimage characterisation of continuity.  This is the topological
@@ -112,26 +90,24 @@
 
 ;;; continuous-implies-open-preimage: a continuous map pulls open sets back to
 ;;; open sets.
-(support 'continuous-implies-open-preimage
-  '(FORALL s (FORALL t (FORALL f
-     (IMPLIES (IS-CONTINUOUS s t f)
-       (FORALL V (IMPLIES (IS-OPEN t V)
-         (IS-OPEN s (PREIMAGE s f V)))))))))
-(warrant! 'continuous-implies-open-preimage 'proof
-  "MACHINE-PROVEN in archive/calculus-pre-rename/prop-3-15-proof.scm (qed; proven modulo {rr-pos-shrink, ball-mem-from-le, ball-membership, continuous-is-continuous-at}; the PREIMAGE-subset-PTS(s) conjunct goes straight through the kernel SEP rule sep-me).  Sketch: let a in PREIMAGE(s,f,V), so f(a) in V open: some eps-ball B(t,f(a),eps) subset V.  Shrink eps to half<eps (rr-pos-shrink); continuity at a for half gives delta>0 with d(s)(a,z)<=delta => d(t)(f a,f z)<=half<eps, so f(z) in B(t,f(a),eps) subset V (ball-mem-from-le bridges the non-strict bound to strict ball membership).  Hence B(s,a,delta) subset PREIMAGE(s,f,V): the preimage is open.")
-
+;; RE-TIERED 2026-09-15 from `proof' to `informal', because the claim of a
+;; machine proof was AUDITED and no longer holds.  The proof DID exist; the
+;; accessor rename invalidated it and nobody re-ran it.  The named file is still
+;; on disk and still byte-identical, and against today's band it DIES at line 124
+;; -- `focus-leaf!: no frontier leaf matching "subset x(s"' -- because the metric
+;; carrier is `PTS' now and the distance is `DIST'.  Nine sites spell them the old
+;; way.  macetes.scm:1511 recorded this on 2026-08-02 and the warrant went on
+;; saying MACHINE-PROVEN for six weeks.
+;; `informal' is the honest tier: a rigorous mechanized argument was written and
+;; is on disk, which outranks a recited derivation, and it is not `proof', which
+;; asserts that a machine has checked it.  Two further obstacles to simply
+;; reviving the file: it calls `set-proof-state-focus!' directly five times (the
+;; grep-gate requires that to be empty outside driver-kit.scm, and its page would
+;; not replay), and it top-level-defines S, T, F, V, Y, Z -- six single capitals,
+;; the case-fold danger zone.  Note also that the bill quoted below is four
+;; supports, all still asserted, so a revived file would not read `modulo 0'.
 ;;; open-preimage-implies-continuous: the converse -- if every open set pulls
 ;;; back to an open set, the map is continuous.
-(support 'open-preimage-implies-continuous
-  '(FORALL s (FORALL t (FORALL f
-     (IMPLIES (AND (IS-METRIC-SPACE s)
-              (AND (IS-METRIC-SPACE t)
-                   (IN f (FUN (PTS s) (PTS t)))))
-       (IMPLIES (FORALL V (IMPLIES (IS-OPEN t V)
-                  (IS-OPEN s (PREIMAGE s f V))))
-         (IS-CONTINUOUS s t f)))))))
-(warrant! 'open-preimage-implies-continuous 'proof
-  "Fix a in PTS(s) and eps > 0. The ball V = B(t,f(a),eps) is open (ball-is-open), so PREIMAGE(s,f,V) is open by hypothesis and contains a (f(a) in V via metric-self-zero). Openness yields delta > 0 with B(s,a,delta) subset PREIMAGE(s,f,V), i.e. f maps the delta-ball into the eps-ball. Hence IS-CONTINUOUS-AT at every a, so IS-CONTINUOUS.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Closed sets and the closed-preimage characterisation of continuity
@@ -152,37 +128,11 @@
 ;;;   PREIMAGE(s, f, PTS(t) \ U) = PTS(s) \ PREIMAGE(s, f, U),
 ;;; for f : PTS(s) -> PTS(t).  This is the algebraic identity that turns the
 ;;; open-preimage fact into the closed-preimage fact.
-(support 'preimage-complement
-  '(FORALL s (FORALL t (FORALL f (FORALL U
-     (IMPLIES (AND (IS-METRIC-SPACE s)
-              (AND (IS-METRIC-SPACE t)
-                   (IN f (FUN (PTS s) (PTS t)))))
-       (= (PREIMAGE s f (COMPLEMENT-IN (PTS t) U))
-          (COMPLEMENT-IN (PTS s) (PREIMAGE s f U)))))))))
-(warrant! 'preimage-complement 'proof
-  "Both sides are subsets of PTS(s), so set-extensionality applies. For a in PTS(s): a in LHS iff f(a) in PTS(t)\\U iff f(a) in PTS(t) and not f(a) in U (complement-in-membership); f(a) in PTS(t) holds by fun-apply-type, so LHS-membership is `not f(a) in U`. a in RHS iff a in PTS(s) and not (a in PTS(s) and f(a) in U) (complement-in / preimage-membership), i.e. `not f(a) in U`. The two coincide.")
 
 ;;; continuous-implies-closed-preimage: a continuous map pulls closed sets
 ;;; back to closed sets -- Prop 3.15, (1) => (2).
-(support 'continuous-implies-closed-preimage
-  '(FORALL s (FORALL t (FORALL f
-     (IMPLIES (IS-CONTINUOUS s t f)
-       (FORALL A (IMPLIES (IS-CLOSED t A)
-         (IS-CLOSED s (PREIMAGE s f A)))))))))
-(warrant! 'continuous-implies-closed-preimage 'proof
-  "A closed means PTS(t)\\A open; continuity (continuous-implies-open-preimage) makes PREIMAGE(s,f,PTS(t)\\A) open; preimage-complement rewrites it to PTS(s)\\PREIMAGE(s,f,A). PREIMAGE(s,f,A) subset PTS(s) (its SEP), so its complement being open is exactly IS-CLOSED(s, PREIMAGE(s,f,A)).")
 
 ;;; closed-preimage-implies-continuous: the converse -- Prop 3.15, (2) => (1).
-(support 'closed-preimage-implies-continuous
-  '(FORALL s (FORALL t (FORALL f
-     (IMPLIES (AND (IS-METRIC-SPACE s)
-              (AND (IS-METRIC-SPACE t)
-                   (IN f (FUN (PTS s) (PTS t)))))
-       (IMPLIES (FORALL A (IMPLIES (IS-CLOSED t A)
-                  (IS-CLOSED s (PREIMAGE s f A))))
-         (IS-CONTINUOUS s t f)))))))
-(warrant! 'closed-preimage-implies-continuous 'proof
-  "Complement flip of open-preimage-implies-continuous: given an open V subset PTS(t), PTS(t)\\V is closed, so by hypothesis PREIMAGE(s,f,PTS(t)\\V) = PTS(s)\\PREIMAGE(s,f,V) (preimage-complement) is closed, i.e. its complement PREIMAGE(s,f,V) is open. Every open set pulls back open, so f is continuous (open-preimage-implies-continuous).")
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-CLOSED             'kind 'predicate 'arity 2 'english "$2 is closed in $1")

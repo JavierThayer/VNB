@@ -110,6 +110,24 @@
 ;;; is why this is a FALLBACK tried only after the full context has been
 ;;; declined by the cap, never a replacement for it.  Nothing that closed
 ;;; before can stop closing.
+;;; The relevant assumption sets by RADIUS, LARGEST FIRST: radius 0 is the
+;;; empty set (the goal alone); radius r+1 adds every assumption sharing an atom
+;;; with the goal or with radius r.  The last radius is prop--relevant's
+;;; transitive closure.  Each set keeps the context's order.
+(define (prop--radius-sets asms goal)
+  (let loop ((keep '()) (pool asms) (atoms (prop--atoms (list goal))) (acc (list '())))
+    (let ((hit (filter (lambda (f)
+                         (any-pred (lambda (a) (any-pred (lambda (b) (prop--same? a b)) atoms))
+                                   (prop--atoms (list f))))
+                       pool)))
+      (if (null? hit)
+          acc
+          (let ((keep2 (filter (lambda (f) (or (memq f keep) (memq f hit))) asms)))
+            (loop keep2
+                  (filter (lambda (f) (not (memq f hit))) pool)
+                  (prop--atoms (cons goal keep2))
+                  (cons keep2 acc)))))))
+
 (define (prop--relevant asms goal)
   (let iterate ((keep '()) (pool asms) (atoms (prop--atoms (list goal))))
     (let split ((l pool) (hit '()) (miss '()) (acc atoms))
@@ -420,13 +438,24 @@
         ;; See prop--relevant: sound because a subset proof is a proof, and a
         ;; fallback rather than a replacement because it cannot see a
         ;; contradiction living in the disconnected remainder.
+        ;; 2026-09-16: when the transitive closure is still over the cap, grow
+        ;; the relevant set one HOP at a time from the goal (radius 1 = the
+        ;; assumptions sharing an atom with the goal, radius 2 = those sharing an
+        ;; atom with radius 1, ...) and keep the LARGEST radius that fits.  A
+        ;; fixed goal-adjacent tier was tried first and missed facts that reach
+        ;; the goal only through a guard -- `not(p = 0)' beside
+        ;; `q = 0 => (p = 0 or r = 0)' when the goal is `not(q = 0)' (found by a
+        ;; repair agent the same day).  Radius 0 is the goal alone, which is what
+        ;; a tautological guard needs.  Same soundness argument as
+        ;; prop--relevant: every candidate is a subset of the context.
         (if (> (length atoms) *prop-atom-cap*)
-            (let* ((rel  (prop--relevant asms goal))
-                   (rats (prop--atoms (cons goal rel))))
-              (if (and (< (length rats) (length atoms))
-                       (<= (length rats) *prop-atom-cap*))
-                  (begin (set! asms rel) (set! atoms rats))
-                  #t)))
+            (let try ((cands (prop--radius-sets asms goal)))   ; largest first
+              (if (pair? cands)
+                  (let ((rats (prop--atoms (cons goal (car cands)))))
+                    (if (and (< (length rats) (length atoms))
+                             (<= (length rats) *prop-atom-cap*))
+                        (begin (set! asms (car cands)) (set! atoms rats))
+                        (try (cdr cands)))))))
         (cond
           ((> (length atoms) *prop-atom-cap*)
            (prop--say (lambda ()
@@ -434,7 +463,7 @@
              (display " distinct atoms, over the cap of ")
              (display *prop-atom-cap*) (display " (*prop-atom-cap*).")
              (newline)
-             (display ";; Narrowing to the goal-connected assumptions did not get under it.")
+             (display ";; Narrowing to the goal's neighbourhood (every radius, down to the goal alone) did not get under it.")
              (newline)
              (display ";; Narrow the context first, or raise the cap knowing it is 2^n.")
              (newline)))

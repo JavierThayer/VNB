@@ -1,3 +1,5 @@
+;;; RETIRED 2026-09-17 (proven): mpow-type -- was an unwarranted axiom; theorem-library/rake-algebra2.scm
+;;; (mpow-type-ind, exponent outermost, then one fact).
 ;;; monoid-power.scm -- MPOW: the natural-number power x^n in a monoid.
 ;;;
 ;;; MPOW(m, x, n) = x * x * ... * x   (n factors, MUL of m), with MPOW(m,x,0)=IDEN(m).
@@ -29,39 +31,16 @@
 
 ;;; Singleton: MPOW(m, x, 1) = x.
 ;;; From mpow-succ at n=0, mpow-zero, and the right-identity law.
-(theory-add-axiom! *current-theory* 'mpow-one
-  '(FORALL m
-     (IMPLIES (IS-MONOID m)
-       (FORALL x (IMPLIES (IN x (CARR m))
-         (= (MPOW m x 1) x))))))
-(warrant! 'mpow-one 'informal
-  "MPOW(m,x,1)=MUL(x,MPOW(m,x,0))=MUL(x,IDEN(m))=x by mpow-succ(0), mpow-zero, right identity.")
+;;; mpow-one RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-zz-act.scm
 
 ;;; Type: the power stays in the carrier.
 ;;; NN induction: base mpow-zero + (IDEN m) in CARR(m); step mpow-succ + carrier
 ;;; closure of MUL.
-(theory-add-axiom! *current-theory* 'mpow-type
-  '(FORALL m
-     (IMPLIES (IS-MONOID m)
-       (FORALL x (IMPLIES (IN x (CARR m))
-         (FORALL n (IMPLIES (IN n NN)
-           (IN (MPOW m x n) (CARR m)))))))))
-(warrant! 'mpow-type 'informal
-  "NN induction on n: base (IDEN m) in CARR(m); step closes under MUL by mpow-succ.")
 
 ;;; Homomorphism law (no commutativity):  x^(j+k) = x^j * x^k.
 ;;; This is the defining property the user asked for.  NN induction on k:
 ;;; base k=0 uses mpow-zero + right identity; step uses mpow-succ + associativity.
-(theory-add-axiom! *current-theory* 'mpow-add
-  '(FORALL m
-     (IMPLIES (IS-MONOID m)
-       (FORALL x (IMPLIES (IN x (CARR m))
-         (FORALL j (IMPLIES (IN j NN)
-           (FORALL k (IMPLIES (IN k NN)
-             (= (MPOW m x (+ j k))
-                ((OPR m) (MPOW m x j) (MPOW m x k))))))))))))
-(warrant! 'mpow-add 'informal
-  "n|->x^n is a monoid hom (NN,+,0)->(A,*,E).  NN induction on k: base k=0 by mpow-zero+right id; step by mpow-succ+associativity.  No commutativity used.")
+;;; mpow-add RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-zz-act.scm
 
 ;;; Cross law (commutativity required):  (x*y)^n = x^n * y^n.
 ;;; Holds in a COMMUTATIVE monoid only.  NN induction on n, reordering factors

@@ -13,12 +13,12 @@
 ;;; guards; a def-predicate / forsome guard (nonzero-exists, IN SUBMAT) needs detach!.
 (define (cc-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (cc-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (cc-foc! n) (set-proof-state-focus! *ps* n))
+(define (cc-foc! n) (dk-focus! n))
 (define (cc-find pred) (let lp ((as (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (cc-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (cc-di*) (let lp () (let* ((g (cc-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
@@ -113,7 +113,7 @@
 (define C2 (list-ref (cc-find (lambda (z) (and (pair? z) (eq? (car z) 'MAT-EQUIV) (equal? (list-ref z 4) 'P)))) 5))
 (define SUB (list 'SUBMAT C2 'k Q))
 (define B11 (list 'ENTRY C2 1 1))
-(fact 'mat-equiv-cod-is-mat 'A '(succ k) SQN 'P C2)
+(fact 'mat-equiv-target-is-mat 'A '(succ k) SQN 'P C2)
 (fact 'submat-type 'A 'k Q C2)
 ;; IH = forall n (forall P (IN n NN => IN P (MAT k n) => forsome-d)); match on the
 ;; (IN n NN)/(IN Q NN) first-guard (else the finder grabs mat-equiv-cod / submat-type).
@@ -131,8 +131,16 @@
 (fact 'one-in-interval 'k) (fact 'one-in-interval Q)
 (fact 'entry-in-carrier '(succ k) SQN '(CARR A) C2 1 1)
 (fact 'bordering 'A 'k Q B11 SUB C2 DP)       ; C2 ~ BORDER(b, D')
+;; border-is-diagonal gained (IN b (CARR A)) and (IN E (MAT p q (CARR A))) as
+;; its last premises (SIZE/MAT surgery, 2026-09-16): type D' first.
+(fact 'mat-equiv-target-is-mat 'A 'k Q SUB DP)
 (fact 'border-is-diagonal 'A B11 DP 'k Q)     ; BORDER(b, D') diagonal
 (define BRD (list 'BORDER 'A B11 DP 'k Q))
+;; LUTINS instantiation (2026-09-18): mat-equiv-trans is instantiated at BRD, an
+;; IOTA-bodied BORDER the certificate never grants, so type it first.  border-type's
+;; premises are all in context: IS-RING A, (IN k NN), (IN Q NN), (IN B11 (CARR A))
+;; from entry-in-carrier above, (IN DP (MAT k Q (CARR A))) from mat-equiv-target-is-mat.
+(fact 'border-type 'A B11 DP 'k Q)
 (fact 'mat-equiv-trans 'A '(succ k) SQN 'P C2 BRD)   ; P ~ BORDER(b, D')
 (ew BRD) (di)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'MAT-EQUIV) (equal? (list-ref g 4) 'P)))) (ass)

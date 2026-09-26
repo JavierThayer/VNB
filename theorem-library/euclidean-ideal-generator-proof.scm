@@ -43,7 +43,7 @@
 ;;; ---- driver helpers (eig- prefix; a bare capital would case-fold onto a tactic)
 (define (eig-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (eig-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
-(define (eig-foc! n) (set-proof-state-focus! *ps* n))
+(define (eig-foc! n) (dk-focus! n))
 (define (eig-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
 (define (eig-leaves)
   (filter (lambda (n) (and (not (sequent-node-grounded? n))

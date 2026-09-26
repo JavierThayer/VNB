@@ -1,0 +1,93 @@
+#!/bin/bash
+# vnb-probe -- run a proof script against the band on a capataz WORKER, from the primary.
+#
+#   vnb-probe WORKER file.scm [--timeout SECONDS] [--tail N]
+#
+# The primary holds one prover heap and is where Claude and the agents live, so
+# probes run elsewhere.  This ships ONE file to the worker (base64 through an SSM
+# command, so nothing is pushed but the file), runs it there with
+# `vnb-slot -b' -- the band probe, inside a memory slot -- and prints the run's
+# output.  The prover's exit status comes back as this script's.
+#
+# The worker's band is the one pushed from the primary.  Rebuild-and-push after
+# any change to the library (same rule as CLAUDE.md gives for the band here).
+# The file lands in /home/ubuntu/probes/ on the worker as <parent-dir>__<basename>, and
+# the FULL run log beside it as <basename>.log.  What comes back is a DIGEST, because
+# the SSM reply is capped at ~24 KB and `show' echoes every open leaf after every
+# step -- a 30-step driver overflowed it and lost its `qed' line (found by the first
+# proving agent, 2026-09-14).  The digest is: every `;VNB warning`, `;; qed`, error
+# and abort line (numbered), then the last N lines (default 60), each cut at 300
+# characters.  --tail N changes N; --tail 0 prints only the flagged lines.  For the
+# whole log:  capataz run WORKER --user ubuntu 'sed -n 100,200p /home/ubuntu/probes/<base>.log'
+# Do NOT set *vnb-quiet* to shrink the output: it silences the warnings too.
+#
+# METRICS (2026-09-17): the run goes through `vnb-metrics-run' on the worker, which
+# times it and prints one JSON line (`;;RUNS {...}'); that line comes back in the
+# same reply and is appended to ~/mailbox/metrics/runs.jsonl (field meanings in the
+# README beside it), and shown as `=== metrics:'.  Set VNB_BAND_HEAP=none in the
+# worker's command to run on the old default heap (the A/B control); the default
+# band heap is chosen in `prover' (BAND_HEAP).
+set -u
+[ $# -ge 2 ] || { echo "usage: vnb-probe WORKER file.scm [--timeout SECONDS]" >&2; exit 2; }
+WORKER=$1; FILE=$2; shift 2
+TIMEOUT=600; TAIL=60
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --timeout) TIMEOUT=$2; shift 2;;
+    --tail) TAIL=$2; shift 2;;
+    *) echo "vnb-probe: unknown option $1" >&2; exit 2;;
+  esac
+done
+[ -r "$FILE" ] || { echo "vnb-probe: cannot read $FILE" >&2; exit 2; }
+# The file rides GZIPPED inside one SSM command (2026-09-17: a 90 KB two-file chain
+# was 120 KB of plain base64 and capataz refused it -- "The total size of your
+# parameter(s) and document exceeds the 97KB limit"; gzipped it is 28 KB).  The
+# cap below is on the wire size; a proof file compresses about 4:1.
+B64=$(gzip -9 < "$FILE" | base64 -w0)
+if [ ${#B64} -gt 90000 ]; then
+  echo "vnb-probe: $FILE is $(( ${#B64} / 1024 )) KB gzipped+base64, over the ~90 KB SSM limit." >&2
+  echo "           Push the tree instead (capataz push $WORKER --rsync --src ~/prover --dest /home/ubuntu/prover ...)" >&2
+  echo "           and probe a small loader file that (load ...)s it from /home/ubuntu/prover." >&2
+  exit 2
+fi
+# The remote name is <parent-dir>__<basename> (2026-09-18): two agents probing their own
+# scratch `p4.scm' on one worker shared /home/ubuntu/probes/p4.scm and one log, and their
+# runs interleaved.  A theorem-library file lands as theorem-library__<name>.scm.
+BASE="$(basename "$(dirname "$(readlink -f "$FILE")")")__$(basename "$FILE")"
+# The SSM command must outlive the prover's own timeout, or the reply comes back
+# EMPTY and the run looks like it printed nothing (found 2026-09-16: a 600 s probe
+# vanished that way).  The prover gets TIMEOUT (applied INSIDE the memory slot, so
+# waiting for a slot does not count -- 2026-09-17); SSM gets TIMEOUT plus the
+# longest slot wait (VNB_SLOT_WAIT, 1800 s) plus 60.
+SSM_TIMEOUT=$(( TIMEOUT + 1860 ))
+capataz run "$WORKER" --json --user ubuntu --timeout "$SSM_TIMEOUT" "mkdir -p /home/ubuntu/probes
+echo '$B64' | base64 -d | gunzip > /home/ubuntu/probes/$BASE
+LOG=/home/ubuntu/probes/$BASE.log
+# the heap the prover script will choose for a band start (same rule as its BAND_HEAP), so that a run
+# that dies before its VNB-METRICS line still records it (it used to record 0, 2026-09-20)
+PH=\${VNB_BAND_HEAP:-\$(awk '/MemTotal/ {print (\$2/1024 >= 3000) ? 120000 : 40000}' /proc/meminfo)}
+cd /home/ubuntu/prover && ./vnb-metrics-run --host $WORKER --job probe --name $BASE --heap \$PH --log \$LOG --out /home/ubuntu/probes/runs.jsonl -- env VNB_RUN_TIMEOUT=$TIMEOUT ./vnb-slot -b /home/ubuntu/probes/$BASE
+rc=\$?
+echo \"=== flagged lines (of \$(wc -l < \$LOG) in \$LOG):\"
+grep -n -E \"^;VNB warning|^;; qed|^;; VNB error|^;; KEEP-GOING HOLE|error>|Aborting|Unbound variable|not applicable|nothing changed|vnb-slot:\" \$LOG | cut -c1-300 | head -60
+if [ $TAIL -gt 0 ]; then echo \"=== last $TAIL lines:\"; tail -n $TAIL \$LOG | cut -c1-300; fi
+if [ \$rc -eq 124 ]; then echo \"=== vnb-probe: TIMED OUT after $TIMEOUT s -- the run above is INCOMPLETE (use --timeout N)\"; fi
+echo \"vnb-probe-exit \$rc\"" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+import os
+out = d.get("stdout") or ""
+runs = [l[len(";;RUNS "):] for l in out.splitlines() if l.startswith(";;RUNS ")]
+sys.stdout.write("".join(l + "\n" for l in out.splitlines() if not l.startswith(";;RUNS ")))
+err = d.get("stderr") or ""
+if err.strip(): sys.stderr.write(err)
+# The metrics line (vnb-metrics-run on the worker) rides back in this same reply;
+# append it to the mailbox ledger the run metrics are read from, and show it.
+ledger = os.path.expanduser("~/mailbox/metrics/runs.jsonl")
+if runs and os.path.isdir(os.path.dirname(ledger)):
+    with open(ledger, "a") as f: f.write("".join(l + "\n" for l in runs))
+for l in runs: sys.stdout.write("=== metrics: " + l + "\n")
+rc = 1
+for line in out.splitlines():
+    if line.startswith("vnb-probe-exit "): rc = int(line.split()[1])
+sys.exit(rc)'

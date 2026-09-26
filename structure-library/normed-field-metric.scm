@@ -70,10 +70,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; Every normed field is (carries) a metric space.
 
-(support 'nf-metric-space-is-metric-space
-  '(FORALL nf
-     (IMPLIES (IS-NORMED-FIELD nf)
-       (IS-METRIC-SPACE (NF-METRIC-SPACE nf)))))
+;;; nf-metric-space-is-metric-space RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-nf-norm.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; Carrier of the underlying metric space is the field's carrier.

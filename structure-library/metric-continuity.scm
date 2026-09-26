@@ -1,3 +1,4 @@
+;;; RETIRED 2026-09-17 (proven): metric-hom-is-continuous -- theorem-library/rake-analysis2.scm
 ;;; metric-continuity.scm -- continuous maps between metric spaces.
 ;;;
 ;;; A map f : PTS(s) -> PTS(t) between two metric spaces s (domain) and t
@@ -77,21 +78,14 @@
 ;;; [[reference-vnb-proof-mechanics]].  Library-build phase: asserted as
 ;;; support [[feedback-library-axioms-fine]].
 
-(support 'continuous-is-continuous-at
-  '(FORALL s (FORALL t (FORALL f
-     (IMPLIES (IS-CONTINUOUS s t f)
-       (FORALL a (IMPLIES (IN a (PTS s))
-         (IS-CONTINUOUS-AT s t f a))))))))
+;;; continuous-is-continuous-at RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-norm-metrics.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; uniformly-continuous-is-continuous: a uniformly continuous map is
 ;;; continuous -- the uniform delta serves at each point.  A genuine (if
 ;;; one-line) implication, asserted in the library-build phase.
 
-(support 'uniformly-continuous-is-continuous
-  '(FORALL s (FORALL t (FORALL f
-     (IMPLIES (IS-UNIFORMLY-CONTINUOUS s t f)
-       (IS-CONTINUOUS s t f))))))
+;;; uniformly-continuous-is-continuous RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-norm-metrics.scm
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-CONTINUOUS         'kind 'predicate 'arity 3 'english "$3 is continuous from $1 to $2")
@@ -136,11 +130,6 @@
 ;;; metric-hom-is-continuous: the Met -> Metrizable-Top functor's action on arrows --
 ;;; a metric-space morphism (isometry) is uniformly continuous (delta = eps), hence
 ;;; continuous.  Cited by metric-top-functorial.
-(support 'metric-hom-is-continuous
-  (forall-guarded '(s t f) '((IS-HOM-METRIC-SPACE s t f)) '(IS-CONTINUOUS s t f)))
-(warrant! 'metric-hom-is-continuous 'well-known
-  "An isometry preserves distance, so it is uniformly continuous (delta = eps) and hence continuous.")
-
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their
 ;;; definitions and read by wff->english / the proof reader (operators.scm).

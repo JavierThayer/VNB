@@ -29,7 +29,7 @@
   (filter (lambda (s)(and (not (sequent-node-grounded? s))(null? (sequent-node-in-arrows s))))
           (dg-ungrounded-nodes (proof-state-dg *ps*))))
 (define (bnm-focus pred)
-  (set-proof-state-focus! *ps*
+  (dk-focus!
     (car (filter (lambda(nd)(pred (expression->string (wff-formula (sequent-node-assertion nd)))))
                  (bnm-leaves)))))
 (define (find-forall-hyp sub)
@@ -39,7 +39,7 @@
           (else (lp (cdr as))))))
 (define (bnm-gmem i) (fact 'fun-apply-type-c 'g 'ZZ '(CARR r) i))
 
-(define bnm-dffg '(VNB-LAMBDA k NN ((ADD R)((MUL R) x (g (- k 1)))((MUL R) y (g k)))))
+(define bnm-dffg '(VNB-LAMBDA k ZZ ((ADD R)((MUL R) x (g (- k 1)))((MUL R) y (g k)))))
 (define (bnm-rhs nn)
   (list '(ADD R)(list '(ADD R)(list '(MUL R) '((ADD R) x y)(list 'SUM 'R 'g nn))
                                     (list '(MUL R) 'x '(g (- 0 1))))
@@ -77,7 +77,7 @@
 (bnm-focus (lambda (s)(substring? ", 0) = " s)))
 (quietly (lambda ()
   (di)(di)(di)
-  (fact 'nn-zero-in)(fact 'commutative-ring-is-ring 'r)(fact 'bt-one-in-carr 'r)
+  (fact 'nn-zero-in)(fact 'commutative-ring-is-ring 'r)(fact 'ring-one-in 'r)
   (macm 'ring-power-zero)(macm 'sum-succ)(mac 'sum-zero)
   (fact 'comb-kk-0-0 'r 'x 'y)(subst (list '= (list (list 'COMB-KK 'r 'x 'y 0) 0) '(ONE r)))
   (macm 'ring-add-left-id)(crs)))
@@ -97,7 +97,7 @@
                   (list '(MUL r) '((ADD r) x y) '(SUM r (COMB-KK r x y n)(succ n)))))
   (mac 'comb-kk-succ)
   (fact 'sum-expansion '(succ n) 'r 'x 'y '(COMB-KK r x y n))
-  (subst (list '= (list 'SUM 'r '(VNB-LAMBDA k NN ((ADD r)((MUL r) x ((COMB-KK r x y n)(- k 1)))((MUL r) y ((COMB-KK r x y n) k)))) '(succ (succ n)))
+  (subst (list '= (list 'SUM 'r '(VNB-LAMBDA k ZZ ((ADD r)((MUL r) x ((COMB-KK r x y n)(- k 1)))((MUL r) y ((COMB-KK r x y n) k)))) '(succ (succ n)))
                (list '(ADD r)(list '(ADD r)(list '(MUL r) '((ADD r) x y)(list 'SUM 'r '(COMB-KK r x y n) '(succ n)))(list '(MUL r) 'x '((COMB-KK r x y n)(- 0 1))))(list '(MUL r) 'y '((COMB-KK r x y n)(succ n))))))
   (fact 'comb-kk-null 'r 'x 'y 'n '(- 0 1))(subst (list '= '((COMB-KK r x y n)(- 0 1)) '(ZERO r)))
   (fact 'comb-kk-above 'r 'x 'y 'n '(succ n))(subst (list '= '((COMB-KK r x y n)(succ n)) '(ZERO r)))

@@ -225,7 +225,7 @@ Items 6–10 are still soundness-class but more localised: weak `fresh-var` (S-6
 - 15 regression tests added (test-suite.scm §6v): pi-sep-{sethood, mem-intro, mem-elim}; pi-comp-{mem-intro, mem-elim}; pi-iota-def; pi-lambda-type; reduce-lambda-in-expr (incl. parallel-substitution test analogous to S-8); power-exp axiom installed + macete fires. **270/270 tests pass total (was 255 → +15).**
 - **Where**: `axioms.scm:8` (`separation` pending), `:11` (`comp-membership` pending), `:15-16` (`lambda-type`, `lambda-beta` pending), `:17` (`iota-def` pending). Validator accepts 2-arg `(POWER A B)` (`wff.scm:325-331`) but no axiom relates it to FUN exponentiation.
 - **What**: `SEP`, `{x|p}`, `IOTA`, `VNB-LAMBDA`, 2-arg `POWER` are syntactic husks — total in form, semantically empty. The manual's "constructors are total functoids" claim invites users to think they carry axiomatic content; they don't.
-- **Recommendation**: Until axioms exist, either flag these heads in the validator with a "pending" warning, or install at least skeletal characterising axioms. (`SEP` is the most urgent — separation is bedrock.)
+- **Recommendation**: Until axioms exist, either flag these heads in the validator with a "pending" warning, or install at least skeletal characterising axioms. (`SEP` is the most urgent — separation is basic.)
 
 ### D-8. IS-NAME structure axiom uses `(SET (A s))`, not `(IN (A s) SET)`  ✓ FIXED 2026-05-15
 - **Fix:** `structures.scm:70` now emits `(IN (acc ivar) SET)` (membership form), matching the manual's categorical statement that there is no `SET(_)` predicate.

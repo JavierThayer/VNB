@@ -227,6 +227,19 @@ False if either is undefined.  In particular:
   $\mathit{DEF}(t) \;\equiv\; (t = t)$.
 \end{itemize}
 
+\noindent
+Universal instantiation respects this: from \texttt{forall([x], p)} the
+checker concludes $p[x := t]$ only for a term $t$ that denotes.  A
+variable denotes; so does a class term built from defined arguments
+(\texttt{sep}, \texttt{fun}, \texttt{interval}, \ldots) and an
+accessor of a structure the context knows (\texttt{carr(s)} under
+\texttt{is-ring(s)}); for any other term the instantiation leaves the
+obligation $t = t$ as an open goal, to be closed by a typing fact
+(\texttt{t in A}).  In particular \texttt{choice([])} is not assumed
+to denote.  (Before 2026-09-18 the rule carried no such obligation, and
+the checker could prove \texttt{recip(0) = recip(0)}; see
+\texttt{docs/definedness-instantiation-2026-09-18.md}.)
+
 \paragraph{Quasi-equality \texttt{$a$ == $b$}.}
 True iff both \texttt{a} and \texttt{b} are defined and equal, \emph{or}
 both are undefined.  Key properties:
@@ -951,7 +964,7 @@ the registry is treated as a variable.  The kinds are:
   (\texttt{+}, \texttt{IN}, \texttt{FORALL}, \ldots), seeded at load
   time by \texttt{wff.scm};
 \item \texttt{accessor} -- a structure field selector, registered by
-  \texttt{def-structure};
+  \texttt{declare-structure};
 \item \texttt{defined-fn} -- a defined function or constant, registered
   by \texttt{theory-add-definition!};
 \item \texttt{functoid} -- registered by \texttt{def-functoid};
@@ -1052,19 +1065,21 @@ The syntax extends the bounded-variable binding form
   \texttt{[[$x_1$, \ldots, $x_k$] in $A$]}
 \]
 Here $A$ is \emph{any class} --- a Cartesian product, a number system,
-a separation class, a structure predicate, or any user-defined class.
-There is no requirement that $A$ be a mathematical structure in the sense
-of \texttt{def-structure}.
+a separation class, a declared structure, or any user-defined class.
 
-The binding introduces an anonymous implicit tuple variable~$t_0$, adds
-$t_0 \in A$ to the assumptions, and binds each name $x_i$
-to the $i$-th component of~$t_0$:
+This is notation.  \texttt{make-wff} expands it once, when the formula is
+built, into a quantifier over a single new variable~$t_0$ guarded by
+$t_0 \in A$, and replaces each name $x_i$ in the body by the $i$-th
+component of~$t_0$:
 \[
   x_i \;\longmapsto\; \texttt{nth}(i,\; t_0)
 \]
-The variable~$t_0$ never appears to the user.  The scope of
-$x_1, \ldots, x_k$ is \emph{lexical}: they have no meaning outside the
-quantifier body.
+When $A$ is a declared structure, the component is written with the
+structure's $i$-th accessor instead, which is the form in which the
+library states its theorems.  The scope of $x_1, \ldots, x_k$ is the
+quantifier body.  The expansion is the whole mechanism: nothing is
+attached to the formula, the names $x_i$ do not survive it, and a formula
+is displayed in its expanded form.
 
 \paragraph{Examples.}
 
@@ -1079,22 +1094,32 @@ forall([[x, y] in cartesian(RR, RR)], x + y = y + x)
        (+ (NTH 2 t_0) (NTH 1 t_0)))))
 \end{VNBsnip}
 
-Ranging over a named structure (the structure case is not special):
+Ranging over a declared structure.  The components are written with the
+accessors of \texttt{METRIC-SPACE}, \texttt{pts} and \texttt{dist}:
 \begin{VNBsnip}
-forall([[A, +, *, f] in NORMEDSPACE], v in A implies is-continuous(f, A, RR))
+forall([[pp, dd] in metric-space], forall([u in pp], dd(u, u) = 0))
 
 ; Expands to (internal form):
-(FORALL t_0
-  (IMPLIES (IN t_0 NORMEDSPACE)
-    (IMPLIES (IN v (NTH 1 t_0))
-      (is-continuous (NTH 4 t_0) (NTH 1 t_0) RR))))
+(FORALL ms
+  (IMPLIES (IN ms METRIC-SPACE)
+    (FORALL u (IMPLIES (IN u (PTS ms))
+      (= ((DIST ms) u u) 0)))))
 \end{VNBsnip}
 
 Destructuring bindings compose freely with plain and bounded bindings
 (Section~\ref{sec:multiquant}):
 \begin{VNBsnip}
-forall([[A, +, *, f] in NORMEDSPACE, v in A], is-continuous(f, A, RR))
+forall([[pp, dd] in metric-space, u in pp], dd(u, u) = 0)
 \end{VNBsnip}
+
+\begin{remark}
+A facility that declared a named instance of a structure for the
+duration of a session (\texttt{declare-local-context}) was removed in
+July~2026.  It had no users outside the test suite.  The \emph{local
+contexts} of Section~\ref{sec:kernel-ops-detail} are a different thing:
+they are the assumptions available at a position inside a formula when a
+macete is applied there.
+\end{remark}
 
 
 \section{Parser and printer}

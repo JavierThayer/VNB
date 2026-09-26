@@ -92,6 +92,36 @@
   '(FORALL x_ (IMPLIES (IN x_ s) (= (g x_) (f x_)))))
 
 ;;; -----------------------------------------------------------------------
+;;; Vocabulary of the Hahn-Banach arc.  Moved here on 2026-09-19 from the proof
+;;; files that first used it (NPE, GOOD-SUB: theorem-library/
+;;; noetherian-maximal-proof.scm; LINE: theorem-library/norm-as-sup-proof.scm).
+;;; While a definition sat inside the file that first cited the facts about
+;;; it, no free-standing proof of those facts had a load window.  The
+;;; definitions are unchanged.
+
+;;; NPE(m,s,f,t,g): g is a norm-preserving extension of f to the subspace t
+;;; (bound measured against the original ||f||_s = DUAL-NORM-ON(m,s,f)).
+(def-predicate 'NPE '(m s f t g)
+  (conjuncts->and
+   '((IS-SUBMODULE m t)
+     (SUBSET s t)
+     (IS-LINEAR-FUNCTIONAL-ON m t g)
+     (EXTENDS-ON s g f)
+     (FORALL w_ (IMPLIES (IN w_ t)
+        (<= (abs (g w_)) (* (DUAL-NORM-ON m s f) ((VNRM m) w_))))))))
+
+;;; GOOD-SUB(m,s,f,t): t is reachable -- some g is a norm-preserving extension to t.
+(def-predicate 'GOOD-SUB '(m s f t)
+  '(FORSOME g_ (NPE m s f t g_)))
+
+;;; LINE(m, v) = { r.v : r in RR } -- the one-dimensional subspace through v.
+;;; (SPAN-ADD-ONE(m, s, v) adds v to an existing submodule s; here s is the
+;;; trivial one, so the single-vector span has its own name.)
+(def-functoid 'LINE '(m v)
+  '(SEP y_ (VEC m)
+     (FORSOME r_ (AND (IN r_ RR) (= y_ ((ACT m) r_ v))))))
+
+;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their
 ;;; definitions and read by wff->english / the proof reader (operators.scm).
 ;;; A def-predicate's reading cannot be derived the way a structure's noun can

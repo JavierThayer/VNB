@@ -65,6 +65,10 @@
        "Use a `for all x, ...' hypothesis at a particular value: you supply the term, and the statement with x replaced by that term is added to your hypotheses.  (Technically: universal instantiation of an assumption.)")
      (inst+ "(inst+ forall-hyp term)" "Instantiate an in-context universal at `term', then forward-detach any guards whose antecedents are in context."
        "inst followed by detach: from `forall x. (x in S) => P(x)' and `t in S' already known, this lands `P(t)' directly (peeling nested guards level by level), instead of leaving the guarded implication for you to detach by hand.  The hypothesis-side analogue of `fact' (which assembles a THEOREM); this assembles an in-context UNIVERSAL.  scout's inst lane emits these to close witness-needing goals like the metric laws.  (Technically: pi-instantiate! then pi-detach! while the consequent stays a guard with an in-context antecedent.)")
+     (mp   "(mp)"  "Close a goal that is an INSTANCE of a universal already in your context.  No arguments: the term is DERIVED by matching, not supplied."
+       "The syllogism, with nothing to fill in.  From `forall([thing in human], thing in mortal)' together with `socrates in human', it closes `socrates in mortal'.  Where inst+ makes you name the term, mp works it out: it matches the universal's conclusion against the goal, which either determines the bound variable or fails outright, and then checks that the universal's guard at that term is something you already have.  Nothing is searched for and nothing is ranked -- if the goal is an instance there is exactly one term it can be.  It DECLINES, naming what it found, when no universal in the context has the goal as an instance, and when more than one does: a closer that silently picks between two universals is one you cannot predict.  One bound variable in this version; for `forall([a in A, b in B], ...)' use inst+.  (Technically: composite -- inst+ at the derived term, then ass.  It adds no kernel rule and no debt; the bill is what typing the two steps by hand would bill, which is nothing.)")
+     (grind-and-mp "(grind-and-mp)" "Tidy the goal with grind, then close it by modus ponens -- the one-button form of the syllogism, for a sentence typed exactly as it reads."
+       "Runs the two steps a syllogism actually takes on a sentence you have just typed.  `forall([thing in human], thing in mortal) and socrates in human implies socrates in mortal' is not yet a syllogism: it is an implication whose antecedent is a conjunction.  grind does the BOOKKEEPING -- split the AND, move the antecedents into the assumptions -- which leaves the goal `socrates in mortal' with the universal and `socrates in human' as hypotheses; mp then does the LOGIC (universal instantiation, then modus ponens).  They stay separate tactics because they are different kinds of step, and mp on its own is what to reach for once the goal is already tidy.  The recorded script keeps both steps, so the page reads as the two moves rather than as this wrapper.  (Technically: composite -- grind, quietly since on a tidy goal it legitimately declines, then mp.  Adds no kernel rule and no debt.)")
      (detach! "(detach! impl)" "Forward modus ponens: from an in-context (IMPLIES A B) whose A is also in context, leave B in context."
        "If you have both `P' and `P implies Q' among your hypotheses, this adds `Q' to them.  It grows what you KNOW (the hypotheses) rather than changing the goal -- the forward counterpart of bc.  (Technically: forward modus ponens, the kernel rule pi-detach!; sound since P and P=>Q give Q.)")
      (fact "(fact 'thm term ...)" "Forward APPLICATION of a theorem: bring it in, instantiate its leading universals with the terms, and auto-detach every antecedent already in context, landing the consequent as a hypothesis."
@@ -80,7 +84,9 @@
      (cut  "(cut formula)" "Cut: prove `formula' as a side subgoal, then continue the main goal with `formula' added as an assumption (Gentzen cut)."
        "Introduce a lemma you prove on the spot.  You state a formula; it becomes a side goal to prove, and on the main line you may then use it as a hypothesis.  The standard `we first show that ..., and now using it ...' move.  (Technically: Gentzen's cut -- nothing is left assumed-but-unproved, the side goal discharges it.)")
      (wk   "(wk hyp)" "Weaken: drop a cited assumption from the context to tidy the hypothesis list.  `hyp' may be a formula, a \"string\", or a 1-based assumption index."
-       "Discard a hypothesis you no longer need, to keep the assumption list readable.  (Technically: weakening -- removing a hypothesis is always sound.)"))
+       "Discard a hypothesis you no longer need, to keep the assumption list readable.  (Technically: weakening -- removing a hypothesis is always sound.)")
+     (keep "(keep hyp ...)" "Keep only the cited assumptions and drop every other one, as ONE recorded step.  Each `hyp' may be a formula, a \"string\", or a 1-based assumption index; they are recorded as formulas."
+       "Prune the context down to what the next step needs -- what a driver does before `prop' or `ineq' in a deep context.  (Technically: one weakening per dropped hypothesis, on the same leaf, recorded once; the driver kit's dk-only! is this command.)"))
 
     ("Rewriting"
      (mac   "(mac 'name)" "Rewrite the GOAL with an equivalence macete (unfold a definition, apply an iff/=/== law).  Fires only where the macete's side-conditions already hold in context."
@@ -105,7 +111,7 @@
        "After scout finds CLOSING branches [1], [2], ..., (scout-run k) replays branch k's tactic forms through the real tactics on your live *ps*, from the same focus scout cloned -- so the proof advances and the steps are recorded for the script / PDF exactly as if you had typed them.  Works after either (scout) or (scout-show); both stash the closing branches.")
      (prep "(prep 'ineq)" "Why will a tactic not fire here, and what must be done first?  Runs the tactic's OWN preconditions one at a time, marks each ok / PREP / STOP, names the library lemma that repairs each unmet one, and prints a PLAN it has checked by running it on a scratch clone.  READ-ONLY: the live proof is never touched.  (prep 'ineq) is the only method so far."
        "A tactic reports failure as a boolean, so every unmet precondition comes out as the same #f and the same warning -- (ineq) says `goal not a linear-RR consequence of the named assumptions' whether your goal merely needs a di, or an atom needs a typing fact the library already proves, or the goal is simply false.  prep runs the same predicates separately and tells you WHICH failed.  For ineq the obligations are: the goal must BE an order relation (repair: di, counted by measuring, since one di consumes a typed FORALL and its guard together); every atom must be certified in RR by a LITERAL (IN t RR) scan -- (IN k NN) does not count, the oracle does no subtype reasoning (repair: a coercion lemma, e.g. nn-in-rr); some assumption must be order-shaped, since a fact like not(k=0) is invisible to Farkas (repair: a bridge lemma, e.g. nn-pos-of-nonzero); and the goal must actually follow, which only Fourier-Motzkin decides -- a STOP there means no prepping will help, which is the useful answer.  The repair search is by SHAPE over the whole library and is verified by SPECULATION: a candidate counts only if ineq then fires, not merely because it landed something order-shaped.  Every repair that works is reported, not just the first -- they come out alphabetical, which is no order of merit, and if the goal is itself a library theorem then citing IT is one of the closers.  Worked case: |- forall k in NN. ~(k=0) => k < 2k.  prep returns (di) (di) (fact 'nn-in-rr 'k) (fact 'nn-pos-of-nonzero 'k) (ineq 4) -- six steps, where the hand-built cut/crs route through k = k+0 < k+k = 2k took thirteen and billed two extra transitivity lemmas.  A tactic joins the table with (prep-method! 'FUBA proc); crs and ass are the obvious next two.")
-     (subst "(subst '(= s t))  |  (subst '(== s t))" "Rewrite s -> t throughout the goal, using an equation s = t -- or a quasi-equation s == t -- that is in context, in EITHER orientation (Leibniz substitution).  Cannot reach a term in OPERATOR position: use the equation as a macete instead."
+     (subst "(subst '(= s t))  |  (subst '(== s t))" "Rewrite s -> t throughout the goal, using an equation s = t -- or a quasi-equation s == t -- that is in context, in EITHER orientation (Leibniz substitution).  Reaches every position, operator (head) position included; a binder whose variable the equation mentions is not entered."
        "Use an equation among your hypotheses to replace s by t everywhere in the goal.  BOTH equalities license it: `=' is VNB's partial equality, and `s = t' already entails s = s and t = t, so t is defined wherever s was and the rewrite never replaces a defined term by an undefined one; `==' is quasi-equality (same definedness, equal where defined), which is a congruence and so substitutes exactly as `=' does -- which you need, since the partial-op recursion and bridge facts are stated with `=='.  The head you pass need not match the head in context, and neither need the orientation: all four of (= s t), (= t s), (== s t), (== t s) are searched for, and the goal is always rewritten s -> t.  LIMIT: the rewrite walk reaches argument positions only, so it is a silent no-op on a term in OPERATOR position -- (subst '(= (VADD md) ...)) will not touch the goal ((VADD md) x y).  Structure accessors are almost always in operator position; use the equation as a macete there (mac on the goal, mac-h on a hypothesis).  (Technically: Leibniz substitution from an in-context equality or quasi-equality.)")
      (beta  "(beta)"  "Beta-reduce a functoid application in the goal."
        "Simplify a function-expression applied to an argument by substituting the argument into its body.  (Technically: beta-reduction of a functoid application in the goal.)")
@@ -132,6 +138,12 @@
      (crs   "(crs)"   "Commutative-ring decision procedure: prove a polynomial identity over ZZ[generators].  Expands literal powers, so (x+y)^2 = ... closes directly."
        "Prove a polynomial identity that holds in EVERY commutative ring -- e.g. (x+y)^2 = x^2 + 2xy + y^2 -- by reducing both sides to a canonical sum-of-monomials form and checking they agree.  A genuine decision procedure: a true commutative-ring identity closes, a non-identity is refused.  Literal powers are expanded for you.  (Technically: normal form over the free commutative ring ZZ[generators].)")
      (simp  "(simp [target])" "Rewrite a commutative-ring SUBTERM of the goal to canonical form, IN PLACE (e.g. (x+y)^2 inside a larger goal becomes x^2 + 2*x*y + y^2).  Works on BOTH surfaces: concrete number domains (+ * - ^ over NN/ZZ/QQ/RR/CC) and a generic ring s ((ADD s)/(MUL s)/(NEG s), carrier (CARR s)).  No arg = outermost ring subterm; \"term\" targets a specific one.  Sound by cut + crs + eq-subst (no new kernel rule); needs the subterm's generators typed in context (true post-di), else refuses and names them.")
+     (type-term "(type-term)" "Close a typing goal (IN t C), C one of NN ZZ QQ RR CC, where t is built from context-typed atoms (or atoms typed in a subclass: NN in ZZ, ZZ in RR, ...), numerals, + * -, and powers, by the class's closure laws, bottom-up.  Declines -- with a warning, and nothing changed -- on an untyped atom or an operation the class is not closed under."
+       "The typing leaf that arithmetic leaves behind: `3 * x^2 + 3 * (x * y) + y^2 in ZZ' with x and y integers.  It plans the whole typing first -- which closure law types each subterm, or which subclass inclusion types an atom -- and only then runs it, so a term it cannot type leaves the proof untouched.  Each subterm's typing is proved on its own lane (cut) and lands in the context once.  A power x^k is typed by the power law in RR and CC; in ZZ, QQ and NN, where the library has no power law, by the identity x^k = x * ... * x (proved by crs) and the multiplication law, so the exponent must be a numeral there.  Subtraction in QQ goes through a - b = a + (-b) the same way; NN has no minus and declines.  Division and recip are not handled.  The kit twin (dk-type! t C) lands the typing in the context and returns it; in-rr hands its power goals to the same planner.  (Technically: composite -- cut, theorem-assumption, forall-elim, detach, assumption, eq-subst, and comm-ring-simplify for the power identities; no rule of its own.  Transactional: a run that does not close the goal is rolled back, script and undo stack included.)")
+     (ew-poly "(ew-poly)" "Close an existential goal forsome([a in C], L = R) (or unguarded) in which a occurs once, linearly: compute the witness by EXACT POLYNOMIAL DIVISION, supply it (ew), type it (type-term) and close the identity (crs).  One command for `(x+y)^3 = x^3 + y*a'.  Declines, with the reason and nothing changed, when the division leaves a remainder."
+       "The `find a such that ...' step when the answer is a quotient: for (x + y)^3 = x^3 + y * a the witness is ((x+y)^3 - x^3) / y = 3x^2 + 3xy + y^2.  Both sides are put in the sum-of-monomials normal form crs uses (integer coefficients over the generators, the witness variable among them); the equation must be of degree one in the witness variable, L - R = A*a + B, and the witness is -B/A by exact division of polynomials.  It declines, saying why, when a occurs other than exactly once, a side is not a polynomial, the equation is not linear in a, the coefficient A is 0, the division leaves a remainder, or the quotient has a fractional coefficient in ZZ or NN.  Then the recorded steps are ordinary ones: ew at the witness (written with + - * ^, highest degree first), di to split the typing from the identity, type-term on the typing, crs on the identity.  what-now proposes it on such a goal, and scout's ew lane tries the same witness.  (Technically: composite -- forsome-intro, and-intro, the type-term steps, comm-ring-simplify; no rule of its own.  Everything is checked before anything runs, and the run is transactional besides.)")
+     (expand "(expand)" "SHOW the expansion as a step: rewrite each polynomial side of an equation in the goal (also inside an existential or a conjunction) to its sum-of-monomials normal form, highest degree first.  (x + y)^3 = x^3 + y*a becomes x^3 + 3*x^2*y + 3*x*y^2 + y^3 = x^3 + y*a.  Declines, with the reason and nothing changed, when no side changes."
+       "The step a hand proof writes as `expanding, ...': the goal after it says what the equation says, term by term.  Each side t is proved equal to its normal form nf(t) by crs on a lane, and the goal is rewritten by subst, so the page shows the equation and the rewrite and both are checked.  A side is left alone when it mentions the variable an existential binds (that is not a term of the context -- the witness is what the goal asks for), when an atom of it is not typed in a number class (crs could not check it), or when it is already in normal form.  what-now offers it first on such a goal, and names the binomial theorem (binomial-theorem, n = k) when a power of a sum is expanded -- cited as what the expansion instantiates, not fired: the library states it over an abstract commutative ring as a finite sum.  (Technically: composite -- cut, comm-ring-simplify, eq-subst; no rule of its own; transactional.)")
      (supply "(supply)" "Close an inequality goal the way a hand proof would: beta-reduce any applied lambda, land the typing certificates and the standard bounds the linear oracle cannot see -- including the TRIANGLE inequality at the summands of an abs of a sum -- then call ineq over every premise.  Rehearses the whole sequence on a throwaway copy and does NOTHING unless it closes; on a miss it prints the sequence it tried.  Adds no trust: it drives lam-b, fact and ineq, each of which records itself."
        "The committing form of what-now's SUPPLY THE ORACLE lane.  `ineq' reads abs(...), max(...) and (dist(s))(x,y) as opaque atoms and refuses any premise whose atoms are not certified real, so an inequality that is obviously true can fail for want of a typing nobody mentioned.  This lands them.  The one real idea is subadditivity: where the goal bounds abs(u + v), the useful intermediate term is abs(u) + abs(v), and the decomposition is in the term itself -- nothing is searched for.  Because a lambda reduction cannot be undone and can owe an unprovable leaf, the whole sequence is rehearsed before any of it is run.  (Technically: certificate closure to depth 2 over the forward-citation lane, plus the curated bound table, then Fourier-Motzkin.)")
      (ineq  "(ineq i1 i2 ...)" "Close a linear-inequality goal over RR (<= < > >= = between RR terms) as a consequence of the named assumptions (1-based indices), via the Fourier-Motzkin/Farkas oracle.  Linearizes over + - * and the binplus/binneg/bintimes aliases; every MAXIMAL non-arithmetic subterm is an atom that must be certified in RR.  (Does NOT see through a generic ring's (ADD s)/(MUL s) -- those become opaque atoms.)"
@@ -198,6 +210,12 @@
        "The one undo in VNB.  It restores the deduction graph -- not merely the focus -- by rolling back the journalled arrow and grounding writes and DROPPING every sequent and inference node posted since, so no node from the abandoned branch survives to be counted as an open leaf and `qed' cannot be handed a phantom obligation.  *proof-script* and the live trace are rewound with it, so the saved script and the printed proof are the proof you actually kept.  It backs up over the LAST RECORDED command: a command that changed nothing was never recorded and is not a step to back up over.  One thing is deliberately not restored -- *fresh-counter*, the eigenvariable source -- so backing up over an `ai' or `ew' that minted `u_4' and re-running it mints `u_5'; the proof is the same, the witness has a different name.  Depth is capped at *vnb-undo-depth* (64).")
      (undo   "(undo)"     "Alias for (backup-one).")
      (show   "(show)"     "Redisplay the current proof state.")
+     (dial   "(dial notch)"
+       "The PRESENTATION RESOLUTION DIAL: how much of the sequent to show.  r0 kernel S-expression, r1 surface syntax (the default, and the last INVERTIBLE notch -- what is printed re-parses to what was printed), r2 guards and typing hypotheses elided, r3 also structures destructured to their declared slot names and deep subterms elided.  (dial) reports the notch, (dial n) sets it, (dial 'auto) reads the current goal and suggests one, (dial 'why) shows the score behind the suggestion.  For ONE FORMULA rather than the proof state, (dial-wff x [n]) -- x a wff, a \"surface string\" or an S-expression, n defaulting to the dial's current notch: (dial-wff (lookup-theorem 'matmul-assoc) 3)."
+       "It is a FILTER, not a set of modes, and two constraints make it one.  The rungs NEST: turning it up only ever SUBTRACTS, so everything readable at a higher notch is readable below it -- checked in the suite, atom by atom.  And the APERTURE IS ON SCREEN: every notch above r1 names itself on the line and counts what it hid, because a lossy render that does not announce its own lossiness is the defect class of `(f)' printing as `f'.  The auto-notch SUGGESTS a starting notch and then STAYS PUT: it is consulted when you ask, never per sequent, so the lens cannot move while you are reading a proof.")
+     (dial-wff "(dial-wff x notch)"
+       "Present ONE FORMULA at a resolution notch, instead of the current proof state: x is a wff, a \"surface string\" or an S-expression, and notch defaults to the dial's current setting.  (dial-wff (lookup-theorem 'matmul-assoc) 3).  Same rungs, same aperture line, no proof required."
+       "`sequent->string' is the display path for a proof STATE, so the dial reaches a formula only while a proof is holding it.  A theorem looked up, a statement being drafted, a hypothesis pasted from somewhere wants the same dial, and this is it.")
      (goal-status "(goal-status)" "One-line summary: done / N open goals.")
      (repeat "(repeat thunk [cap])" "Run thunk until it stops changing the proof state (LCF REPEAT).")
      (orelse "(orelse t1 t2 ...)" "Run thunks in order, stop at the first that makes progress (LCF ORELSE).")
@@ -218,6 +236,9 @@
     ;; The idioms themselves live in the proof files that use them.
 
     ("Choosing and naming witnesses"
+     (choose "(choose ex witness [prover])"
+       "Choose eps such that FUBA(eps): cut the existential ex = `forsome([eps], FUBA(eps))', discharge it by exhibiting WITNESS (proving FUBA(WITNESS) by PROVER, or from the context), eliminate it, and RETURN the fresh eigenvariable with FUBA of it landed."
+       "The `we may assume without loss of generality that FUBA(eps)' step: a hypothesis `forall([eps in rr], GUBA(eps))' is about to be used at some eps satisfying FUBA, so choose one first and then instantiate the universal at the name this returns (use-at / obtain-at).  You pay for the existence on the spot -- WITNESS is the value and PROVER (a thunk) shows FUBA holds of it; with no PROVER the side goal is closed from the context.  The rest of the proof then depends on FUBA(eps) alone and never on which witness paid for it, which is what makes it read as `without loss of generality'.  If the existential is already in context the cut is skipped and this is plain elimination; a formula that is not an existential is an error.  choose-pos is this tactic with FUBA frozen at pos-rr and witness 1: `let eps > 0 be given' when nothing gives it.  (Technically: composite -- cut / ew / ai and the AND-splitting of what lands; no kernel rule, no choice principle, and the recorded script is the expansion.)")
      (minimize! "(minimize! '(v1 ... vk) GUARD MEASURE)"
        "Choose v1..vk satisfying GUARD with the NN-valued MEASURE as small as possible: lands the witnesses and their minimality, and opens the two obligations any minimisation owes (MEASURE lands in NN; GUARD is satisfiable)."
        "The `least such' / minimal-counterexample step, mechanised.  You give three things: the variables to choose, a GUARD formula they must satisfy, and a natural-number-valued MEASURE term to make small.  On the main branch it hands you fresh eigenconstants w1..wk with two hypotheses -- GUARD holds of them, and nothing satisfying GUARD has a strictly smaller MEASURE -- and it opens exactly the two side goals a minimisation genuinely owes: that MEASURE lands in NN wherever GUARD holds (the TYPE goal), and that GUARD holds somewhere (the NONEMPTY goal).  Everything in between -- forming the value set, well-ordering it, unpacking the least witness, and restating minimality in terms of your variables rather than the set -- is done for you.  Every vi must occur in MEASURE (a variable the measure ignores is not one you are minimising over).  Because it quantifies over the vk at the META level, no lambda and no FUN(U,NN) typing obligation ever enters the logic -- it takes a formula and a term, which is what a driver has in hand, and never forms the set U at all.  Returns (list (w1 ... wk) TYPE-node NONEMPTY-node); either node is #f when that obligation was already in context up to alpha, so test before refocusing.  (Technically: composite -- it drives cut / di / ai / ew / sep-mi / sep-me / fact / inst / detach! / subst / ass / rfl and adds no kernel rule; its one mathematical appeal is `nn-least-element', the well-ordering of NN, proven from ord-well-ordered.  NO choice principle is used: well-ordering returns a MEMBER of a separation set, and sep-me recovers the witness.)")
@@ -303,6 +324,8 @@
     (prop      . "the goal follows from the hypotheses by AND/OR/NOT/IMPLIES/IFF alone -- no quantifier or equality reasoning needed")
     (inst      . "you have a forall-hypothesis and a specific value to use it at")
     (inst+     . "a GUARDED forall-hyp whose guards are dischargeable from context (e.g. the metric laws post-grind)")
+    (mp        . "the goal IS an instance of a universal you already have -- no term to supply, it is derived by matching")
+    (grind-and-mp . "a sentence typed as it reads -- `all men are mortal and socrates is a man implies socrates is mortal' -- closing in one move")
     (detach!   . "you have both P and (P => Q) in context and want Q")
     (fact      . "a library law `forall x. H(x) => P(x)' whose P you want landed as a hypothesis")
     (ce        . "a hypothesis is CARTESIAN-product membership")
@@ -311,6 +334,7 @@
     (ue        . "a hypothesis is UNION membership -- case-split on it")
     (cut       . "you want to prove a lemma on the spot, then use it")
     (wk        . "the hypothesis list is cluttered with something no longer needed")
+    (keep      . "the context is deep and only a few hypotheses matter for the next step (prop, ineq)")
     (mac       . "the GOAL has a defined predicate to unfold / an identity to apply, side-conditions already met")
     (macm      . "the GOAL has a CONDITIONAL identity/definition to apply whose side-conditions you are willing to leave as subgoals")
     (mac-h     . "a HYPOTHESIS has a definition to unfold / an equivalence to apply")
@@ -319,7 +343,7 @@
     (scout     . "you are stuck and want the machine to TRY move-sequences (returns data)")
     (scout-show . "same as scout but you want the readable report at the REPL")
     (scout-run . "scout found a closing branch you want to adopt onto the live proof")
-    (subst     . "you have an equation s = t (or a quasi-equation s == t) in context and want to rewrite the goal by it -- and the target is not in operator position")
+    (subst     . "you have an equation s = t (or a quasi-equation s == t) in context and want to rewrite the goal by it -- wherever the term occurs, operator position included")
     (beta      . "the goal has a functoid applied to an argument")
     (nth-r     . "the goal has NTH of a literal LIST")
     (len-r     . "the goal has LENGTH of a literal LIST")
@@ -328,6 +352,9 @@
     (arith     . "the goal is ground arithmetic -- no variables")
     (rs        . "the goal is a (possibly non-commutative) ring-word identity")
     (crs       . "the goal is a commutative-ring identity, e.g. (x+y)^2 = x^2+2xy+y^2")
+    (type-term . "the goal types an arithmetic term in NN/ZZ/QQ/RR/CC -- a polynomial in context-typed atoms, e.g. 3*x^2 + 3*x*y + y^2 in ZZ")
+    (ew-poly   . "the goal is forsome(a, L = R) with a occurring once, linearly, and the witness is a quotient of polynomials, e.g. (x+y)^3 = x^3 + y*a")
+    (expand    . "a side of an equation in the goal is an unexpanded polynomial and you want to SEE its expansion, e.g. (x+y)^3")
     (simp      . "a ring SUBTERM of a larger goal should be put in normal form in place")
     (ineq      . "a LINEAR <= / < over RR that follows from inequalities you can cite")
     (sos       . "a NONSTRICT POLYNOMIAL <= over RR (the nonlinear cousin of ineq)")
@@ -404,10 +431,21 @@
     (if-true rule if-true) (if-false rule if-false)
     (sep-set rule sep-sethood) (sep-mi rule sep-mem-intro) (sep-me rule sep-mem-elim)
     (comp-mi rule comp-mem-intro) (comp-me rule comp-mem-elim) (iota-d rule iota-def)
+    (iota-e rule iota-in-elim)
     (bu-set rule big-union-sethood) (bu-mi rule big-union-mem-intro) (bu-me rule big-union-mem-elim)
     (arith oracle (arith-ground arith-forsome arith-simplify)) (rs oracle ring-simplify) (crs oracle comm-ring-simplify)
     (simp oracle ring-simplify) (ineq oracle ineq) (sos oracle sos)
+    ;; type-term / ew-poly (notes-37): drivers over surface commands, like prop.
+    (type-term composite (cut theorem-assumption forall-elim detach assumption eq-subst comm-ring-simplify))
+    (ew-poly composite (forsome-intro and-intro comm-ring-simplify))
+    (expand composite (cut comm-ring-simplify eq-subst))
     (inst+ composite (forall-elim detach))
+    ;; mp: inst+ at a term DERIVED by matching, then ass.  Same rules as
+    ;; instantiating by hand -- it supplies the term, not any new inference.
+    (mp composite (forall-elim detach assumption))
+    ;; grind-and-mp: grind's peeling then mp.  Characteristic tags only -- the
+    ;; kind table records what a tactic is FOR, not its full reachable set.
+    (grind-and-mp composite (implies-intro and-elim forall-elim detach assumption))
     (fact composite (theorem-assumption forall-elim detach))
     (bc* composite (backchain))
     (mac-h* composite (macete-hyp))
@@ -427,6 +465,51 @@
 
 (define (tactic-kind-of  name)(cond ((assq name *tactic-kind*) => cadr)  (else #f)))
 (define (tactic-emits-of name)(cond ((assq name *tactic-kind*) => caddr) (else #f)))
+
+;;; --------------------------------------------------------------------
+;;; *tactic-uses* -- the MEASURED bound: every kernel operation a command can
+;;; cause to be recorded, whether or not the library exercises it.
+;;;
+;;; `emits' above says what a command is FOR -- its characteristic operations,
+;;; written down with it.  This table is the whole reachable set, and it is not
+;;; written by hand: `tactic-uses-data.scm' is generated by docs/gen-tactic-uses.py
+;;; from reference/kernel-map-static.sexp, which is the reading of the source of
+;;; every command and of every procedure it calls (kernel-map-static.scm).  The
+;;; file may be absent -- in a tree where the measurement has not been run -- and
+;;; the entries then carry no `Uses' line rather than a stale one.
+;;;
+;;; An entry is (command operation ...); no operations means the command records
+;;; no inference, which is the correct answer for navigation and session commands.
+;;; --------------------------------------------------------------------
+
+(define *tactic-uses*
+  (let ((path (string-append *prover-dir* "tactic-uses-data.scm")))
+    (if (file-exists? path)
+        (call-with-input-file path read)
+        '())))
+
+(define (tactic-uses-of name)
+  (cond ((assq name *tactic-uses*) => cdr) (else #f)))
+
+;;; The widest reach in the table.  The handful of commands that run a procedure
+;;; handed to them, or replay a recorded proof, reach exactly it; printing sixty
+;;; names against each of them would bury the entries that say something.
+(define *tactic-uses-widest*
+  (if (null? *tactic-uses*)
+      0
+      (apply max (map (lambda (e) (length (cdr e))) *tactic-uses*))))
+
+;;; The `Uses:' line of one entry, or #f when the table has nothing for NAME.
+(define (tactic-uses-line name)
+  (let ((used (tactic-uses-of name)))
+    (cond ((not used) #f)
+          ((null? used) "no kernel operation: it records no inference")
+          ((= (length used) *tactic-uses-widest*)
+           (string-append "every one of the " (number->string *tactic-uses-widest*)
+                          " kernel operations"))
+          (else (apply string-append
+                       (map (lambda (op) (string-append "`" (symbol->string op) "` "))
+                            used))))))
 (define (tactics--of-kind kind)
   (map car (filter (lambda (x) (eq? (cadr x) kind)) *tactic-kind*)))
 
@@ -538,6 +621,16 @@
         (display "its `rule` steps plus whichever `oracle`s and asserted premises it cites.  ")
         (display "You can read any finished proof's actual rule inventory off its deduction ")
         (display "graph (each node records its justifying rule).\n\n")
+        (when (pair? *tactic-uses*)
+          (display "Each entry below also carries a **Uses** line: every kernel operation the ")
+          (display "command's own code can cause to be recorded, those recorded by the ")
+          (display "procedures it calls included.  It is the bound on what the command can do, ")
+          (display "whether or not any proof in the library exercises it, and it is measured ")
+          (display "from the source rather than declared.  One further set is common to every ")
+          (display "command and is stated once instead: the hook that runs after any command ")
+          (display "which changed the proof, to close the definedness sequents an ")
+          (display "instantiation left owed.  *Kernel map* has that set, the method, and the ")
+          (display "per-command table.\n\n"))
         (for-each
           (lambda (cat)
             (display "## ") (display (car cat)) (display "\n\n")
@@ -552,6 +645,9 @@
                     (when (and em (not (eq? em #f)))
                       (display " (emits `") (write em) (display "`)"))
                     (newline) (newline)))
+                (let ((u (tactic-uses-line (car e))))
+                  (when u
+                    (display "*Uses:* ") (display u) (newline) (newline)))
                 (let ((w (tactic-when-of (car e))))
                   (when w (display "*When useful:* ") (display w) (newline) (newline)))
                 (let ((b (tactics--blurb e)))
@@ -697,6 +793,13 @@
       ((string=? t "...") #f)
       ((or (vnb-cmd--str-has-char? t #\()
            (vnb-cmd--str-has-char? t #\[)) 'formula)
+      ;; An ALTERNATION is not an argument name.  "[n | 'auto | 'why]" reached
+      ;; the sanitizer below, which keeps identifier characters and drops the
+      ;; rest WITHOUT a separator, and emitted the single token `nautowhy' into
+      ;; emacs/vnb-commands.lisp -- a signature no call could match, in a file
+      ;; nobody reads by hand (found 2026-09-02, from the `dial' entry).  A
+      ;; signature listing alternatives belongs in the GLOSS; here it is dropped.
+      ((vnb-cmd--str-has-char? t #\|) #f)
       ;; downcase + keep only identifier chars (MIT symbols read case-folded);
       ;; drop the token if nothing clean remains.  Display hints only.
       (else (let ((clean (vnb-cmd--ident-sanitize (string-downcase t))))
@@ -810,6 +913,7 @@
     (big-union-mem-intro   schema "membership in an indexed union, at a witness")
     (big-union-mem-elim    schema "consume it, at a fresh eigenvariable")
     (iota-def              schema "the defining property of IOTA(x,p), under uniqueness")
+    (iota-in-elim          schema "IOTA(x,p) DENOTES (per the context), so it satisfies p")
     (lambda-type           schema "VNB-LAMBDA typing into FUN")
     (lambda-beta           schema "beta-reduce an applied VNB-LAMBDA in the GOAL")
     (lambda-beta-hyp       schema "beta-reduce an applied VNB-LAMBDA in an ASSUMPTION")

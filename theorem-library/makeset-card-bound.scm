@@ -87,43 +87,10 @@
 
 ;;; --- file-local helpers (mcb- prefix) -----------------------------------
 
-;; Peel the leading FORALL/IMPLIES prefix and STOP -- `di' would go on to split
-;; the AND goal underneath, which is not what the base/step drivers want yet.
-(define (mcb-peel!)
-  (let loop ()
-    (let ((g (dk-goal)))
-      (if (and (pair? g) (memq (car g) '(forall implies))) (begin (di) (loop))))))
-
-;; Drop every assumption but the ones named.  (prop) has an atom cap
-;; (*prop-atom-cap*, 12) and `fact' lands its whole instantiation chain, so a
-;; two-line forward assembly can put the goal over the cap on its own.
-(define (mcb-only! . keepers)
-  (for-each (lambda (f) (if (not (member f keepers)) (wk f))) (dk-asms)))
-
-;; Split a conjunctive goal to leaves and close each from the context.
-(define (mcb-conj-close!)
-  (if (and (pair? (dk-goal)) (eq? (car (dk-goal)) 'and))
-      (for-each (lambda (lf) (dk-focus! lf) (mcb-conj-close!))
-                (dk-opened (lambda () (di))))
-      (ass)))
-
-(define (mcb-head? h) (lambda (f) (and (pair? f) (eq? (car f) h))))
-
-(define (mcb-pick pred what)
-  (let ((fs (filter pred (dk-asms))))
-    (if (null? fs) (error "mcb-pick: nothing matching" what) (car fs))))
-
-(define (mcb-split-all!)
-  (let loop ()
-    (let ((ands (filter (mcb-head? 'and) (dk-asms))))
-      (if (pair? ands) (begin (ai (car ands)) (loop))))))
-
-;; Instantiate an IN-CONTEXT universal and detach its guards to exhaustion.
-(define (mcb-apply! f . terms)
-  (let loop ((r (apply inst*! f terms)))
-    (if (and (pair? r) (eq? (car r) 'implies))
-        (loop (dk-landed-1 (lambda () (detach! r))))
-        r)))
+;; The peel / only / conj-close / pick / split-all / apply helpers this file was
+;; written with are in driver-kit.scm since 2026-09-14 (dk-peel!, dk-only!,
+;; dk-conj-close!, dk-pick, dk-split-all!, dk-apply!).  `(dk-conj-close! ass)'
+;; is the old mcb-conj-close!: split the conjunctive goal, `ass' each leaf.
 
 (define (mcb-final f)
   (if (and (pair? f) (memq (car f) '(forall implies))) (mcb-final (caddr f)) f))
@@ -144,6 +111,16 @@
 ;;;
 ;;; Unguarded: UNION is total over classes (theory.scm), and so is
 ;;; class-extensionality.
+;;;
+;;; The `declare-named-only!' must PRECEDE the proof: `install-theorem!'
+;;; (macetes.scm) consults *named-only-macetes* while it builds the rewrite, so
+;;; a declaration written after the `qed' is a silent no-op.  It stood after the
+;;; qed until 2026-09-20 and the macete was LIVE all that time.
+
+(declare-named-only! 'union-comm
+  "An unconditional symmetric equation whose left side matches every UNION in
+   the library: as a live macete it would rewrite every union into its mirror
+   image, and then back.  Cite it by name.")
 
 (quietly (lambda ()
   (sp (make-wff '(FORALL a_ (FORALL b_ (= (UNION a_ b_) (UNION b_ a_))))))
@@ -153,10 +130,6 @@
   (mac 'union-membership)
   (prop)))
 (qed 'union-comm)
-(declare-named-only! 'union-comm
-  "An unconditional symmetric equation whose left side matches every UNION in
-   the library: as a live macete it would rewrite every union into its mirror
-   image, and then back.  Cite it by name.")
 (topic! 'union-comm 'plumbing)
 
 ;;; -----------------------------------------------------------------------
@@ -171,6 +144,12 @@
 ;;; whose only non-propositional step is the middle hypothesis -- prop treats
 ;;; `x = y' as an opaque atom, so the equality reasoning is done BEFORE it, by
 ;;; the `subst' inside the have!.
+;;;
+;;; Declared BEFORE the proof -- see union-comm above for why the order matters.
+
+(declare-named-only! 'union-singleton-absorb
+  "Its RIGHT side is a bare variable, so the `-rev' companion would match every
+   term in every goal and rewrite it into a union.  Cite it by name.")
 
 (quietly (lambda ()
   (sp (make-wff '(FORALL s_ (FORALL y_ (IMPLIES (IN y_ s_)
@@ -184,14 +163,11 @@
   (fact 'pairing-membership 'y_ 'y_ 'x)
   (have! '(IMPLIES (= x y_) (IN x s_))
          (lambda () (di) (subst '(= x y_)) (ass)))
-  (mcb-only! '(iff (in x (pair y_ y_)) (or (= x y_) (= x y_)))
+  (dk-only! '(iff (in x (pair y_ y_)) (or (= x y_) (= x y_)))
              '(implies (= x y_) (in x s_))
              '(in y_ s_))
   (prop)))
 (qed 'union-singleton-absorb)
-(declare-named-only! 'union-singleton-absorb
-  "Its RIGHT side is a bare variable, so the `-rev' companion would match every
-   term in every goal and rewrite it into a union.  Cite it by name.")
 (topic! 'union-singleton-absorb 'plumbing)
 
 ;;; -----------------------------------------------------------------------
@@ -214,14 +190,14 @@
        (IMPLIES (IN (CARD s_) NN)
          (AND (IN (CARD (UNION (PAIR y_ y_) s_)) NN)
               (<= (CARD (UNION (PAIR y_ y_) s_)) (succ (CARD s_)))))))))))
-  (mcb-peel!)
+  (dk-peel!)
   (use-em '(IN y_ s_)
     ;; y_ is already in S: the union is S itself.
     (lambda ()
       (fact 'union-singleton-absorb 's_ 'y_)
       (subst '(= (UNION (PAIR y_ y_) s_) s_))
       (fact 'nn-le-succ '(CARD s_))
-      (mcb-conj-close!))
+      (dk-conj-close! ass))
     ;; y_ is fresh: the cardinal is exactly succ(CARD S).
     (lambda ()
       (have! '(AND (IN y_ SET) (NOT (IN y_ s_))))
@@ -233,7 +209,7 @@
       (subst '(= (succ_ORD (CARD s_)) (succ (CARD s_))))
       (fact 'nn-succ-closed '(CARD s_))
       (fact 'nn-le-refl '(succ (CARD s_)))
-      (mcb-conj-close!)))))
+      (dk-conj-close! ass)))))
 (qed 'card-union-singleton-bound)
 (topic! 'card-union-singleton-bound 'combinatorial)
 
@@ -263,7 +239,7 @@
     (cond
       ;; BASE.  Length 0, so the tuple IS [] and its entry set is empty.
       ((equal? (dk-goal) mcb-base-goal)
-       (mcb-peel!)
+       (dk-peel!)
        (have! '(AND (IN l (TUPLES a)) (= (LENGTH l) 0)))
        (fact 'tuple-length-zero 'a 'l)
        (subst '(= l (LIST)))
@@ -272,27 +248,27 @@
        (ta 'empty-set-is-set)
        (ta 'nn-zero-in)
        (fact 'nn-le-refl 0)
-       (mcb-conj-close!))
+       (dk-conj-close! ass))
       ;; STEP.  l = CONS(x,m) with LENGTH(m) = n; the induction hypothesis
       ;; applies to m, and card-union-singleton-bound puts the head back.
       (else
-       (mcb-peel!)
-       (mcb-split-all!)
-       (let ((ih (mcb-pick mcb-ih? "the induction hypothesis")))
+       (dk-peel!)
+       (dk-split-all!)
+       (let ((ih (dk-pick mcb-ih? "the induction hypothesis")))
          (have! '(AND (IN n NN) (AND (IN l (TUPLES a)) (= (LENGTH l) (succ n)))))
          (ai (dk-fact! 'tuple-cons-decompose 'a 'n 'l))
-         (mcb-split-all!)
-         (ai (mcb-pick (mcb-head? 'forsome) "the tail existential"))
-         (mcb-split-all!)
-         (let* ((leq (mcb-pick (lambda (f) (and (eq? (car f) '=) (symbol? (cadr f))
+         (dk-split-all!)
+         (ai (dk-pick (dk-head? 'forsome) "the tail existential"))
+         (dk-split-all!)
+         (let* ((leq (dk-pick (lambda (f) (and (eq? (car f) '=) (symbol? (cadr f))
                                                 (pair? (caddr f))
                                                 (eq? (car (caddr f)) 'cons)))
                                "l = cons(x0, m0)"))
                 (x0 (cadr (caddr leq)))
                 (m0 (caddr (caddr leq))))
            ;; the three conjuncts at the tail
-           (mcb-apply! ih 'a m0)
-           (mcb-split-all!)
+           (dk-apply! ih 'a m0)
+           (dk-split-all!)
            ;; MAKE-SET(l) = {x0} u MAKE-SET(m0)
            (subst leq)
            (mac 'makeset-cons)
@@ -306,7 +282,7 @@
            ;; the insertion bound, then succ-monotonicity and transitivity:
            ;;   CARD(u) <= succ(CARD(MAKE-SET m0)) <= succ(n)
            (fact 'card-union-singleton-bound (list 'MAKE-SET m0) x0)
-           (mcb-split-all!)
+           (dk-split-all!)
            (fact 'nn-succ-closed (list 'CARD (list 'MAKE-SET m0)))
            (fact 'nn-succ-closed 'n)
            (fact 'nn-succ-mono (list 'CARD (list 'MAKE-SET m0)) 'n)
@@ -314,7 +290,7 @@
                  (list 'CARD (list 'UNION (list 'PAIR x0 x0) (list 'MAKE-SET m0)))
                  (list 'succ (list 'CARD (list 'MAKE-SET m0)))
                  (list 'succ 'n))
-           (mcb-conj-close!))))))
+           (dk-conj-close! ass))))))
   (dk-opened (lambda () (ni))))))
 (qed 'makeset-card-bound-strong)
 (topic! 'makeset-card-bound-strong 'combinatorial)
@@ -324,9 +300,9 @@
 
 (quietly (lambda ()
   (sp "forall([n in nn, a, l in tuples(a)], length(l) = n implies card(make-set(l)) <= n)")
-  (mcb-peel!)
+  (dk-peel!)
   (fact 'makeset-card-bound-strong 'n 'a 'l)
-  (mcb-split-all!)
+  (dk-split-all!)
   (ass)))
 (qed 'makeset-card-bound)
 (topic! 'makeset-card-bound 'combinatorial)

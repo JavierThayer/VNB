@@ -95,6 +95,17 @@
                          (else (scan (cdr as)))))))
         (when tgt (ai tgt) (loop (- budget 1)))))))
 
+;;; Project a typing conjunct out of an IS-DIFF-AT hypothesis H without
+;;; destroying it: IS-DIFF-AT(f,a,L) is (IN f (FUN RR RR)) and (IN a RR) and
+;;; (IN L RR) and ..., so the unfold + a split + `ass' closes any of the three.
+;;; `mac-h' REPLACES the assumption it unfolds, so the unfold runs on the side
+;;; branch of a `have!' and the main branch keeps H intact.  No-op when the
+;;; typing is already in context (a `have!' of a context formula self-loops).
+(define (chr-diff-typ! h t X)
+  (if (not (any-pred (lambda (a) (equal? a (list 'IN t X))) (dk-asms)))
+      (have! (list 'IN t X)
+             (lambda () (mac-h 'IS-DIFF-AT h) (chr-split!) (ass)))))
+
 (define (chr-find what pred)
   (let loop ((l (dk-asms)))
     (cond ((null? l) (error "chr-find: no context formula" what))
@@ -324,6 +335,13 @@
                     (ass)))))
            ;; the main branch: the description satisfies IS-DIFF-AT, so it is vl
            (begin
+             ;; LUTINS instantiation (2026-09-18): `fact' at the DESCRIPTION
+             ;; IOT owes (= iot iot) unless the context certifies it.  An IOTA
+             ;; is never certified syntactically, so land its typing off the
+             ;; property `iota-d' just granted -- (IN L RR) is the third
+             ;; conjunct of IS-DIFF-AT.  In a `have!' LANE, because `mac-h'
+             ;; REPLACES the hypothesis the `fact' below still needs.
+             (chr-diff-typ! (list 'IS-DIFF-AT df pt iot) iot 'RR)
              (have! (list 'AND (list 'IS-DIFF-AT df pt iot)
                                (list 'IS-DIFF-AT df pt vl)))
              (fact 'derivative-unique df pt iot vl)
@@ -353,6 +371,16 @@
                               (equal? (list-ref u 1) gg)))))
        (dl (list-ref hf 3))
        (dm (list-ref hg 3)))
+  ;; LUTINS instantiation (2026-09-18).  The three `deriv-of-is-diff-at'
+  ;; citations below instantiate at dl, dm, (dm*dl) and at the point f(a);
+  ;; the products and the application are certified only once their typings
+  ;; are in the context, and all three come out of the IS-DIFF-AT
+  ;; hypotheses (conjuncts 3 and 2).  `mac-h' is destructive, so each
+  ;; projection runs on the side branch of a `have!' only.
+  (chr-diff-typ! hf dl 'RR)
+  (chr-diff-typ! hg dm 'RR)
+  (chr-diff-typ! hg (list ff pt) 'RR)
+  (have! (list 'IN (list '* dm dl) 'RR) (lambda () (in-rr)))
   (fact 'deriv-chain ff gg pt dl dm)               ; IS-DIFF-AT(g o f, a, dm*dl)
   (fact 'deriv-of-is-diff-at comp pt (list '* dm dl))
   (fact 'deriv-of-is-diff-at ff pt dl)

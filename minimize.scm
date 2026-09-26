@@ -190,14 +190,40 @@
 ;; Eigenvariable names are not predictable -- fresh-var advances a global
 ;; counter, and di reuses the bound name only when it does not clash with the
 ;; context -- so read them back off the result instead of guessing.
+;;
+;; The binder cases read `binder-shape' (expressions.scm) rather than keeping a
+;; list of heads: FORALL, FORSOME and SEP were spelled out here and IOTA, COMP,
+;; BIG-UNION and VNB-LAMBDA were missing, so a term under one of those four was
+;; searched for v as if the binder did not bind it -- and the "eigenconstant"
+;; recovered from inside a scope that shadows v is the wrong term.  Declared
+;; below for binder-walker-audit.
+(define (mz--binder-binds? e v)
+  (case (binder-shape (car e))
+    ((simple domain) (eq? (cadr e) v))
+    ((lambda)
+     ;; the bind spec is a symbol or (LIST v ...); read it here rather than
+     ;; through vnb-lambda-bvars, which ERRORS on a malformed one
+     (let ((bs (cadr e)))
+       (cond ((symbol? bs) (eq? bs v))
+             ((and (pair? bs) (eq? (car bs) 'LIST)) (and (memq v (cdr bs)) #t))
+             (else #f))))
+    (else #f)))
+
+;; mz--align keeps no list of binder heads of its own (expressions.scm:
+;; declare-binder-walker!).
+(declare-binder-walker! 'mz--align 'from-binder-shapes)
+
 (define (mz--align v old new)
   (cond
     ((eq? old v) new)
     ((or (not (pair? old)) (not (pair? new))) #f)
-    ;; a binder that rebinds v shadows it: nothing of v's survives inside
-    ((and (memq (car old) '(FORALL FORSOME)) (eq? (cadr old) v)) #f)
-    ((and (eq? (car old) 'SEP) (eq? (cadr old) v))
-     (mz--align v (caddr old) (caddr new)))      ; the range sits outside the binder
+    ;; A binder that rebinds v shadows it: nothing of v's survives in the body.
+    ;; For the `domain' and `lambda' shapes -- (H v A body), (H bspec A body) --
+    ;; the range A sits OUTSIDE the binder and can still hold it.
+    ((and (binder-shape (car old)) (mz--binder-binds? old v))
+     (and (memq (binder-shape (car old)) '(domain lambda))
+          (= (length old) 4) (= (length new) 4)
+          (mz--align v (caddr old) (caddr new))))
     ((not (= (length old) (length new))) #f)
     (else
      (let loop ((o old) (n new))

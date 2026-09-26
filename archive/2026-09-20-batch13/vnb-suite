@@ -1,0 +1,50 @@
+#!/bin/bash
+# vnb-suite -- run the full check suite on a capataz WORKER, from the primary, with metrics.
+#
+#   vnb-suite WORKER [--heap BLOCKS] [--timeout SECONDS]
+#
+# Runs `timeout T mit-scheme --heap H --quiet --load test-suite.scm < /dev/null' on
+# the worker, alone and in the foreground of one SSM command (CLAUDE.md, "Running
+# it": the suite dies SILENTLY under memory pressure and prints no SUMMARY; exit
+# status means nothing, so look for the SUMMARY line).  It goes through
+# `vnb-metrics-run', which emits a progress line every 5 minutes and a final line,
+# all appended to ~/mailbox/metrics/runs.jsonl here.  Default heap 200000 (the
+# measured setting: 8m53s on a t3.medium, against 33 min and an OOM on the default
+# heap).  Prints the SUMMARY line, the FAIL lines, and the metrics lines.  The full
+# log is /home/ubuntu/probes/test-suite.log on the worker.
+set -u
+[ $# -ge 1 ] || { echo "usage: vnb-suite WORKER [--heap BLOCKS] [--timeout SECONDS]" >&2; exit 2; }
+WORKER=$1; shift
+HEAP=200000; TIMEOUT=4000
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --heap) HEAP=$2; shift 2;;
+    --timeout) TIMEOUT=$2; shift 2;;
+    *) echo "vnb-suite: unknown option $1" >&2; exit 2;;
+  esac
+done
+SSM_TIMEOUT=$(( TIMEOUT + 120 ))
+capataz run "$WORKER" --json --user ubuntu --timeout "$SSM_TIMEOUT" "mkdir -p /home/ubuntu/probes
+LOG=/home/ubuntu/probes/test-suite.log
+cd /home/ubuntu/prover && ./vnb-metrics-run --host $WORKER --job test-suite --name test-suite.scm --heap $HEAP --log \$LOG --out /home/ubuntu/probes/runs.jsonl --progress 300 -- timeout $TIMEOUT mit-scheme --heap $HEAP --quiet --eval '(set-gc-notification! #t)' --load test-suite.scm
+rc=\$?
+echo \"=== \$(wc -l < \$LOG) lines in \$LOG\"
+grep -n -E '^  FAIL  |^=== SUMMARY|Aborting|^;Unbound' \$LOG | cut -c1-300 | head -40
+if [ \$rc -eq 124 ]; then echo \"=== vnb-suite: TIMED OUT after $TIMEOUT s\"; fi
+echo \"vnb-suite-exit \$rc\"" | python3 -c '
+import json, sys, os
+d = json.load(sys.stdin)
+out = d.get("stdout") or ""
+runs = [l[len(";;RUNS "):] for l in out.splitlines() if l.startswith(";;RUNS ")]
+sys.stdout.write("".join(l + "\n" for l in out.splitlines() if not l.startswith(";;RUNS ")))
+err = d.get("stderr") or ""
+if err.strip(): sys.stderr.write(err)
+ledger = os.path.expanduser("~/mailbox/metrics/runs.jsonl")
+if runs and os.path.isdir(os.path.dirname(ledger)):
+    with open(ledger, "a") as f: f.write("".join(l + "\n" for l in runs))
+for l in runs: sys.stdout.write("=== metrics: " + l + "\n")
+rc = 1
+for line in out.splitlines():
+    if line.startswith("vnb-suite-exit "): rc = int(line.split()[1])
+if "=== SUMMARY" not in out: sys.stdout.write("=== vnb-suite: NO SUMMARY LINE -- the suite did not finish\n"); rc = rc or 1
+sys.exit(rc)'

@@ -1,23 +1,29 @@
 ;;; span-bricks-proof.scm -- the module-action bricks under spans-submodule-fg.
 ;;;
 ;;;   module-act-neg-one   (-1) . x  =  -x                    [in any module]
-;;;   matact-zerorow       0 . u     =  0_V                   [the zero row]
-;;;   matact-unitrow       e_i . u   =  u_{i1}                [the i-th unit row]
-;;;   matact-empty-vzero   c . u     =  0_V                   [row of length 0]
+;;;   lincomb-zerorow      0 . u     =  0_V                   [the zero row]
+;;;   lincomb-unitrow      e_i . u   =  u_{i1}                [the i-th unit row]
+;;;   lincomb-empty        c . u     =  0_V                   [length 0]
 ;;;
-;;; where `c . u' is (ENTRY (MATACT md c u) 1 1) = sum_j c_{1j} . u_{j1}, as in
+;;; where `c . u' is LINCOMB(md, n, c, u) = sum_j c_{1j} . u_{j1}, as in
 ;;; matact-row-linear-proof.scm (bricks 1 and 2).
+;;;
+;;; RENAMED 2026-09-16 (the LINCOMB change, see mod-seq.scm): lincomb-zerorow,
+;;; lincomb-unitrow, lincomb-empty were matact-zerorow, matact-unitrow,
+;;; matact-empty-vzero, stated with (ENTRY (MATACT md c u) 1 1).  lincomb-empty
+;;; is now UNCONDITIONAL in c and u: the empty combination is the empty FINSUM,
+;;; whatever c and u are -- the n = 0 case is VZERO by construction.
 ;;;
 ;;; These are BRICK 3's prerequisites.  Together with bricks 1 and 2 they say
 ;;; exactly what is needed to see SPAN(md,n,u) as a submodule and u itself as a
 ;;; spanning sequence for it:
 ;;;
-;;;   VZERO in SPAN            <- matact-zerorow
-;;;   SPAN closed under VADD   <- matact-row-add       (brick 1)
-;;;   SPAN closed under ACT    <- matact-row-scale     (brick 2)
+;;;   VZERO in SPAN            <- lincomb-zerorow
+;;;   SPAN closed under VADD   <- lincomb-row-add      (brick 1)
+;;;   SPAN closed under ACT    <- lincomb-row-scale    (brick 2)
 ;;;   SPAN closed under VNEG   <- brick 2 + module-act-neg-one
-;;;   u_j in SPAN              <- matact-unitrow
-;;;   the n = 0 degenerate case <- matact-empty-vzero
+;;;   u_j in SPAN              <- lincomb-unitrow
+;;;   the n = 0 degenerate case <- lincomb-empty
 ;;;
 ;;; module-act-neg-one is the one with content.  (-1).x + x = (-1+1).x = 0.x = 0
 ;;; exhibits (-1).x as an additive inverse of x; concluding it IS -x needs
@@ -30,11 +36,12 @@
 ;;; Needs: module.scm (module-act-unital/-mul-compat/-distrib-scalar, -act-type),
 ;;; module-zero-act, matrix.scm (ZEROMAT/UNITROW + their entry read-offs,
 ;;; interval-1-0-empty), finsum-additive (finsum-all-id), finsum-empty,
-;;; mod-seq (MATACT, matact-entry, matact-summand-type, mvag-id).
+;;; mod-seq (LINCOMB, matact-summand-type), matact-row-linear (lincomb-unfold),
+;;; ag-view-read-offs (mvag-id).
 
 ;;; ---- driver helpers (sb- prefix)
 (define (sb-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
-(define (sb-foc! n) (set-proof-state-focus! *ps* n))
+(define (sb-foc! n) (dk-focus! n))
 (define (sb-foc-goal! g)                 ; ERRORS on a miss, by design
   (let loop ((ls (proof-leaves)))
     (cond ((null? ls) (error "sb-foc-goal!: no open leaf with goal" g))
@@ -122,7 +129,7 @@
 
 
 ;;; ===================================================================
-;;; matact-zerorow:   (ZEROMAT (SCAL md) 1 n) . u  =  0_V
+;;; lincomb-zerorow:  (ZEROMAT (SCAL md) 1 n) . u  =  0_V
 ;;; Every summand is 0 . u_{j1} = 0_V, so finsum-all-id collapses the sum.
 ;;; ===================================================================
 (define sb-zm '(ZEROMAT (SCAL md) 1 n))
@@ -131,20 +138,22 @@
 (sp (make-wff
   (sb-wf '(md) (sb-wi '((IS-MODULE md))
     (sb-wf '(n u) (sb-wi '((IN u (MAT n 1 (VEC md))))
-      (list '= (list 'ENTRY (list 'MATACT 'md sb-zm 'u) 1 1) '(VZERO md))))))))
+      (list '= (list 'LINCOMB 'md 'n sb-zm 'u) '(VZERO md))))))))
 (sb-di*)
 
 (fact 'module-scalar-ring 'md)
 (fact 'module-vector-ag-is-abelian-group 'md)
+;; zeromat-type's dimension guards (2026-09-16): 1 in NN, and n in NN -- n is
+;; the row count of the column u (also interval-card-in-nn's guard).
+(fact 'nn-one-in)
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'zeromat-type '(SCAL md) 1 'n)
 (fact 'one-in-interval-1)
 (fact 'interval-in-set 1 'n)
-;; interval-card-in-nn's guard: n is the row count of the column u.
-(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-card-in-nn 1 'n)
 (fact 'matact-summand-type 'md 1 'n 1 sb-zm 'u 1 1)
-(fact 'matact-entry 'md 1 'n 1 sb-zm 'u 1 1)
-(subst (list '= (list 'ENTRY (list 'MATACT 'md sb-zm 'u) 1 1) (sb-sum sb-zl sb-ivl)))
+(fact 'lincomb-unfold 'md 'n sb-zm 'u)
+(subst (list '== (list 'LINCOMB 'md 'n sb-zm 'u) (sb-sum sb-zl sb-ivl)))
 
 (sb-with-cut
   (list 'FORALL 'z (list 'IMPLIES (list 'IN 'z sb-ivl)
@@ -165,13 +174,13 @@
     (mac-h 'mvag-id (list '= (sb-sum sb-zl sb-ivl) (list 'IDEN sb-vag)))
     (ass)))
 
-(qed 'matact-zerorow)
-(topic! 'matact-zerorow 'algebra)
+(qed 'lincomb-zerorow)
+(topic! 'lincomb-zerorow 'algebra)
 (topic! 'entry-of-zeromat 'algebra)
 
 
 ;;; ===================================================================
-;;; matact-unitrow:   (UNITROW (SCAL md) n i) . u  =  u_{i1}
+;;; lincomb-unitrow:  (UNITROW (SCAL md) n i) . u  =  u_{i1}
 ;;; The summand vanishes off j = i (unitrow-entry-off + module-zero-act), so
 ;;; finsum-single-support collapses the sum to its i-th term, which is
 ;;; 1 . u_{i1} = u_{i1}.
@@ -182,20 +191,20 @@
 (sp (make-wff
   (sb-wf '(md) (sb-wi '((IS-MODULE md))
     (sb-wf '(n i u) (sb-wi '((IN u (MAT n 1 (VEC md))) (IN i (INTERVAL 1 n)))
-      (list '= (list 'ENTRY (list 'MATACT 'md sb-ur 'u) 1 1) '(ENTRY u i 1))))))))
+      (list '= (list 'LINCOMB 'md 'n sb-ur 'u) '(ENTRY u i 1))))))))
 (sb-di*)
 
 (fact 'module-scalar-ring 'md)
 (fact 'module-vector-ag-is-abelian-group 'md)
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)             ; unitrow-type's guard (2026-09-16)
 (fact 'unitrow-type '(SCAL md) 'n 'i)
 (fact 'one-in-interval-1)
 (fact 'interval-in-set 1 'n)
-(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'interval-card-in-nn 1 'n)
 (fact 'entry-in-carrier 'n 1 '(VEC md) 'u 'i 1)
 (fact 'matact-summand-type 'md 1 'n 1 sb-ur 'u 1 1)
-(fact 'matact-entry 'md 1 'n 1 sb-ur 'u 1 1)
-(subst (list '= (list 'ENTRY (list 'MATACT 'md sb-ur 'u) 1 1) (sb-sum sb-ul sb-ivl)))
+(fact 'lincomb-unfold 'md 'n sb-ur 'u)
+(subst (list '== (list 'LINCOMB 'md 'n sb-ur 'u) (sb-sum sb-ul sb-ivl)))
 
 (sb-with-cut
   (list 'FORALL 'z (list 'IMPLIES (list 'IN 'z sb-ivl)
@@ -220,28 +229,26 @@
     (fact 'module-act-unital 'md '(ENTRY u i 1))
     (ass)))
 
-(qed 'matact-unitrow)
-(topic! 'matact-unitrow 'algebra)
+(qed 'lincomb-unitrow)
+(topic! 'lincomb-unitrow 'algebra)
 
 
 ;;; ===================================================================
-;;; matact-empty-vzero:   c . u  =  0_V   for c of length 0
+;;; lincomb-empty:   LINCOMB(md, 0, c, u)  =  0_V   for ANY c, u
 ;;; The index interval is [1,0] = EMPTY-SET, and an empty FINSUM is the
 ;;; identity.  The n = 0 base case of the spans-submodule-fg induction: a
-;;; submodule spanned by NO vectors is {0}.
+;;; submodule spanned by NO vectors is {0}.  No hypothesis on c or u: the
+;;; empty combination does not look at them.
 ;;; ===================================================================
 (sp (make-wff
   (sb-wf '(md) (sb-wi '((IS-MODULE md))
-    (sb-wf '(c u) (sb-wi '((IN c (MAT 1 0 (CARR (SCAL md)))) (IN u (MAT 0 1 (VEC md))))
-      '(= (ENTRY (MATACT md c u) 1 1) (VZERO md))))))))
+    (sb-wf '(c u)
+      '(= (LINCOMB md 0 c u) (VZERO md)))))))
 (sb-di*)
 
-(fact 'module-scalar-ring 'md)
-(fact 'module-vector-ag-is-abelian-group 'md)
 (fact 'module-vzero-in 'md)                          ; rfl's definedness obligation
-(fact 'one-in-interval-1)
-(fact 'matact-entry 'md 1 0 1 'c 'u 1 1)
-(subst (list '= '(ENTRY (MATACT md c u) 1 1)
+(fact 'lincomb-unfold 'md 0 'c 'u)
+(subst (list '== '(LINCOMB md 0 c u)
              (sb-sum (sb-row 'c '(INTERVAL 1 0)) '(INTERVAL 1 0))))
 (fact 'interval-1-0-empty)
 (subst '(= (INTERVAL 1 0) EMPTY-SET))
@@ -249,8 +256,8 @@
 (mac 'mvag-id)                                       ; IDEN(VAG)       -> VZERO md
 (rfl)
 
-(qed 'matact-empty-vzero)
-(topic! 'matact-empty-vzero 'algebra)
+(qed 'lincomb-empty)
+(topic! 'lincomb-empty 'algebra)
 (topic! 'interval-1-0-empty 'plumbing)
 
 
@@ -262,12 +269,12 @@
 ;;;
 ;;; The five conjuncts of IS-SUBMODULE, one brick each:
 ;;;   SUBSET       span-membership: a SEP set sits inside its domain
-;;;   VZERO in     matact-zerorow, witness (ZEROMAT (SCAL md) 1 n)
-;;;   VADD closed  matact-row-add,   witness (MATADD (SCAL md) c1 c2)
-;;;   VNEG closed  matact-row-scale + module-act-neg-one,
-;;;                                  witness (MATSCALE (SCAL md) (-1) c1)
-;;;   ACT closed   matact-row-scale, witness (MATSCALE (SCAL md) r c1)
-;;; and, for spans-span, matact-unitrow with witness (UNITROW (SCAL md) n j).
+;;;   VZERO in     lincomb-zerorow,   witness (ZEROMAT (SCAL md) 1 n)
+;;;   VADD closed  lincomb-row-add,   witness (MATADD (SCAL md) c1 c2)
+;;;   VNEG closed  lincomb-row-scale + module-act-neg-one,
+;;;                                   witness (MATSCALE (SCAL md) (-1) c1)
+;;;   ACT closed   lincomb-row-scale, witness (MATSCALE (SCAL md) r c1)
+;;; and, for spans-span, lincomb-unitrow with witness (UNITROW (SCAL md) n j).
 ;;;
 ;;; Every witness is a coefficient ROW, and every proof obligation is one of the
 ;;; row-linearity bricks.  That is the whole point of stating bricks 1 and 2 at
@@ -290,18 +297,19 @@
 (define (sb-head? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 
 (define sb-span '(SPAN md n u))
-;; the context equation  t = (ENTRY (MATACT md c u) 1 1) , and its row c
+;; the context equation  t = (LINCOMB md n c u) , and its row c
 (define (sb-eq-for t)
   (dc-find (lambda (a) (and (pair? a) (eq? (car a) '=) (equal? (cadr a) t)
-                            (pair? (caddr a)) (eq? (car (caddr a)) 'ENTRY)))))
-(define (sb-row-of eq) (caddr (cadr (caddr eq))))     ; (= t (ENTRY (MATACT md c u) 1 1)) -> c
+                            (pair? (caddr a)) (eq? (car (caddr a)) 'LINCOMB)))))
+(define (sb-row-of eq) (list-ref (caddr eq) 3))       ; (= t (LINCOMB md n c u)) -> c
+(define (sb-lc c) (list 'LINCOMB 'md 'n c 'u))
 
 ;; Unfold `t in SPAN(md,n,u)' in the CONTEXT down to its coefficient row.
 ;; `mac-h' needs a *theorem*, and def-functoid installs only a macete -- hence
 ;; span-membership (mod-seq.scm) rather than (mac-h 'SPAN ...), which warns
 ;; "unknown theorem/macete" and then silently leaves the assumption alone.
 ;; Afterwards the context holds (IN t (VEC md)), (IN c (MAT 1 n ..)) and
-;; (= t (ENTRY (MATACT md c u) 1 1)).  Returns the row c.
+;; (= t (LINCOMB md n c u)).  Returns the row c.
 (define (sb-open-span! t)
   (mac-h 'span-membership (list 'IN t sb-span))
   (ai (dc-find (dc-head? 'AND)))                      ; (IN t (VEC md)) ; FORSOME
@@ -344,6 +352,8 @@
 (fact 'module-vzero-in 'md)
 (fact 'ring-one-in '(SCAL md))
 (fact 'ring-neg-in-carr '(SCAL md) sb-one)           ; -1 in CARR(SCAL md)
+(fact 'nn-one-in)                                    ; zeromat-type's guards (2026-09-16)
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)
 (fact 'zeromat-type '(SCAL md) 1 'n)
 
 (mac 'IS-SUBMODULE)
@@ -366,8 +376,8 @@
     (sb-two-way! (lambda () (ew sb-zm) (di)) (sb-head? 'IN)
       (lambda () (ass))                              ; (IN ZEROMAT (MAT 1 n ..))
       (lambda ()                                     ; (= (VZERO md) (ZEROMAT.u))
-        (fact 'matact-zerorow 'md 'n 'u)
-        (fact 'eq-sym (list 'ENTRY (list 'MATACT 'md sb-zm 'u) 1 1) '(VZERO md))
+        (fact 'lincomb-zerorow 'md 'n 'u)
+        (fact 'eq-sym (sb-lc sb-zm) '(VZERO md))
         (ass)))))
 
 ;; (3) SPAN closed under VADD -- add the coefficient rows (brick 1).
@@ -377,8 +387,8 @@
 (sb-di*)
 (let* ((g  (sb-goal)) (ap (cadr g)) (xx (cadr ap)) (yy (caddr ap))
        (c1 (sb-open-span! xx)) (c2 (sb-open-span! yy))
-       (c1u (list 'ENTRY (list 'MATACT 'md c1 'u) 1 1))
-       (c2u (list 'ENTRY (list 'MATACT 'md c2 'u) 1 1))
+       (c1u (sb-lc c1))
+       (c2u (sb-lc c2))
        (ma  (list 'MATADD '(SCAL md) c1 c2)))
   (fact 'module-vadd-type 'md xx yy)
   (fact 'matadd-type '(SCAL md) 1 'n c1 c2)
@@ -389,8 +399,8 @@
         (lambda () (ass))                            ; (IN (MATADD ..) (MAT 1 n ..))
         (lambda ()
           ;; goal  (VADD md)(xx,yy) = (MATADD c1 c2).u
-          (fact 'matact-row-add 'md 'n c1 c2 'u)
-          (subst (list '= (list 'ENTRY (list 'MATACT 'md ma 'u) 1 1)
+          (fact 'lincomb-row-add 'md 'n c1 c2 'u)
+          (subst (list '= (sb-lc ma)
                        (list '(VADD md) c1u c2u)))
           (fact 'eq-sym xx c1u) (subst (list '= c1u xx))
           (fact 'eq-sym yy c2u) (subst (list '= c2u yy))
@@ -402,7 +412,7 @@
 (sb-di*)
 (let* ((g  (sb-goal)) (ap (cadr g)) (xx (cadr ap))
        (c1 (sb-open-span! xx))
-       (c1u (list 'ENTRY (list 'MATACT 'md c1 'u) 1 1))
+       (c1u (sb-lc c1))
        (ms  (list 'MATSCALE '(SCAL md) sb-neg1 c1)))
   (fact 'module-vneg-type 'md xx)
   (fact 'matscale-type '(SCAL md) 1 'n sb-neg1 c1)
@@ -413,8 +423,8 @@
         (lambda () (ass))                            ; (IN (MATSCALE ..) (MAT 1 n ..))
         (lambda ()
           ;; goal  (VNEG md) xx = ((-1)*c1).u
-          (fact 'matact-row-scale 'md 'n sb-neg1 c1 'u)
-          (subst (list '= (list 'ENTRY (list 'MATACT 'md ms 'u) 1 1)
+          (fact 'lincomb-row-scale 'md 'n sb-neg1 c1 'u)
+          (subst (list '= (sb-lc ms)
                        (list '(ACT md) sb-neg1 c1u)))
           (fact 'eq-sym xx c1u) (subst (list '= c1u xx))
           ;; goal  (VNEG md) xx = (-1).xx
@@ -429,7 +439,7 @@
 (sb-di*)
 (let* ((g  (sb-goal)) (ap (cadr g)) (rr (cadr ap)) (xx (caddr ap))
        (c1 (sb-open-span! xx))
-       (c1u (list 'ENTRY (list 'MATACT 'md c1 'u) 1 1))
+       (c1u (sb-lc c1))
        (ms  (list 'MATSCALE '(SCAL md) rr c1)))
   (fact 'module-act-type 'md rr xx)
   (fact 'matscale-type '(SCAL md) 1 'n rr c1)
@@ -439,8 +449,8 @@
       (sb-two-way! (lambda () (ew ms) (di)) (sb-head? 'IN)
         (lambda () (ass))                            ; (IN (MATSCALE ..) (MAT 1 n ..))
         (lambda ()
-          (fact 'matact-row-scale 'md 'n rr c1 'u)
-          (subst (list '= (list 'ENTRY (list 'MATACT 'md ms 'u) 1 1)
+          (fact 'lincomb-row-scale 'md 'n rr c1 'u)
+          (subst (list '= (sb-lc ms)
                        (list '(ACT md) rr c1u)))
           (fact 'eq-sym xx c1u) (subst (list '= c1u xx))
           (rfl))))))
@@ -451,7 +461,7 @@
 
 ;;; ===================================================================
 ;;; spans-span:  u spans SPAN(md,n,u).
-;;;   conjunct 1: u_{j1} in SPAN, witnessed by the unit row e_j (matact-unitrow)
+;;;   conjunct 1: u_{j1} in SPAN, witnessed by the unit row e_j (lincomb-unitrow)
 ;;;   conjunct 2: every member of SPAN is a combination -- that IS the SEP body.
 ;;; ===================================================================
 (sp (make-wff
@@ -462,6 +472,7 @@
 
 (fact 'module-scalar-ring 'md)
 (fact 'one-in-interval-1)                            ; entry-in-carrier's column bound
+(fact 'mat-rows-in-nn 'n 1 '(VEC md) 'u)             ; unitrow-type's guard (2026-09-16)
 (mac 'SPANS)
 (sb-split-and-goals!)
 
@@ -479,14 +490,14 @@
       (sb-two-way! (lambda () (ew ur) (di)) (sb-head? 'IN)
         (lambda () (ass))                            ; (IN (UNITROW ..) (MAT 1 n ..))
         (lambda ()
-          (fact 'matact-unitrow 'md 'n jj 'u)
-          (fact 'eq-sym (list 'ENTRY (list 'MATACT 'md ur 'u) 1 1) uj)
+          (fact 'lincomb-unitrow 'md 'n jj 'u)
+          (fact 'eq-sym (sb-lc ur) uj)
           (ass))))))
 
 ;; (2) every member of SPAN is a coefficient combination -- unpack the SEP.
 (sb-foc-goal! (list 'FORALL 'x_ (list 'IMPLIES (list 'IN 'x_ sb-span)
                  '(FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
-                                   (= x_ (ENTRY (MATACT md c_ u) 1 1)))))))
+                                   (= x_ (LINCOMB md n c_ u)))))))
 (sb-di*)
 ;; read xx off the CONTEXT, not the goal: the goal's leading binder is c_.
 (let ((xx (cadr (dc-find (lambda (a) (and (pair? a) (eq? (car a) 'IN)

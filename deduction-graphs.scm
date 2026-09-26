@@ -280,7 +280,101 @@
   (sort (hash-table-keys *rules-applied*)
         (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
 
+;;; -----------------------------------------------------------------------
+;;; THE INFERENCE CHECKER  (2026-09-20, the user's decision)
+;;;
+;;; `dg-apply-rule!' is the ONE write point of the graph, and until today it
+;;; checked nothing: it recorded the rule name it was handed, and the trusted
+;;; base was therefore the set of its CALLERS (kernel-callers-audit).  With the
+;;; switch below ON, every inference is verified as a RELATION between the
+;;; conclusion sequent and the hypothesis sequents, by a procedure registered
+;;; for the rule's tag head and written independently of the pi-* procedure
+;;; that built the hypotheses.  A checker never rebuilds the inference by
+;;; calling the builder; it states the rule and tests it.
+;;;
+;;;   PROC : (lambda (rule hyps concl) ...)
+;;;     RULE   the full tag (a symbol, or a list such as (union-intro 2))
+;;;     HYPS   the hypothesis SEQUENTS, in the order handed over (raw sequents,
+;;;            not yet posted into the graph)
+;;;     CONCL  the conclusion SEQUENT
+;;;     -> #t to accept; #f or a STRING (the reason) to refuse.
+;;;
+;;; Switch ON: no checker for the head is an ERROR; a refusal is an ERROR
+;;; naming the rule, the reason and the two sequents.  NOTHING is written to
+;;; the graph in either case -- the check runs before the hypotheses are
+;;; posted.  Switch OFF: the behaviour of every day before 2026-09-20.
+;;;
+;;; The checkers live in rule-checkers-{logic,schema,rewrite,oracle}.scm and
+;;; register themselves as those files load; load.scm arms the switch after the
+;;; last of them and before the first proof.
+;;; docs/rule-checkers-2026-09-20.md is the design note.
+
+(define *dg-check-inferences?* #f)
+(define *rule-checkers* (make-strong-eqv-hash-table))
+
+(define (register-rule-checker! name proc)
+  (hash-table-set! *rule-checkers* name proc)
+  name)
+
+(define (rule-checker-for name)
+  (hash-table-ref/default *rule-checkers* name #f))
+
+(define (registered-rule-checkers)
+  (sort (hash-table-keys *rule-checkers*)
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
+;;; How many inferences the switch has verified (a gate that accepts
+;;; everything reads exactly like a clean library: this number is what says
+;;; the checking actually ran), and every refusal it has raised.
+(define *dg-checked-count* 0)
+(define *dg-check-refusals* '())        ; (head . reason), newest first
+
+(define (dg-check-refusals) (reverse *dg-check-refusals*))
+(define (dg-check-refusal-count) (length *dg-check-refusals*))
+
+;;; A REFUSAL MUST NEVER BE SILENT.  `dg-apply-rule!' raises, and a raise
+;;; inside a driver's `quietly' is caught by `vnb-guard' whose report that
+;;; wrapper has switched off -- so the tactic no-ops and the proof simply
+;;; fails to close, with nothing in the log to say why.  That is what happened
+;;; to rr-nvs-exemplification in the first switch-ON load (2026-09-20).  So the
+;;; line is displayed HERE, before the raise, where nothing can suppress it,
+;;; and the refusal is recorded for the count load.scm prints at the end.
+(define (dg-check-report-refusal! head reason)
+  (set! *dg-check-refusals* (cons (cons head reason) *dg-check-refusals*))
+  (display ";VNB RULE CHECKER REFUSED ")
+  (display head)
+  (display " -- ")
+  (display reason)
+  (newline))
+
+(define (dg-check-inference! rule hyp-sequents concl)
+  (let* ((head (rule-tag-head rule))
+         (chk  (hash-table-ref/default *rule-checkers* head #f)))
+    (if (not chk)
+        (begin
+          (dg-check-report-refusal! head "NO CHECKER is registered for this rule")
+          (error "dg-apply-rule!: NO CHECKER registered for rule" head)))
+    (let ((verdict (chk rule hyp-sequents concl)))
+      (set! *dg-checked-count* (+ *dg-checked-count* 1))
+      (if (not (eq? verdict #t))
+          (let ((reason (if (string? verdict) verdict "(no reason given)")))
+            (dg-check-report-refusal! head reason)
+            (error
+             (string-append
+              "dg-apply-rule!: rule checker REFUSED " (symbol->string head)
+              " -- " reason
+              "\n;   conclusion: " (sequent->string concl)
+              (let loop ((hs hyp-sequents) (i 1) (acc ""))
+                (if (null? hs)
+                    acc
+                    (loop (cdr hs) (+ i 1)
+                          (string-append acc "\n;   hypothesis " (number->string i)
+                                         ": " (sequent->string (car hs)))))))
+             rule))))))
+
 (define (dg-apply-rule! dg rule hyp-sequents conclusion-sqn)
+  (if *dg-check-inferences?*
+      (dg-check-inference! rule hyp-sequents (sequent-node-sequent conclusion-sqn)))
   (hash-table-set! *rules-applied* (rule-tag-head rule) #t)
   (let ((hyp-nodes (map (lambda (s) (dg-post! dg s)) hyp-sequents)))
     (let ((infn (make-inference-node rule hyp-nodes conclusion-sqn)))

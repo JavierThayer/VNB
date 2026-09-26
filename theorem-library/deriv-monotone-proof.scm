@@ -8,21 +8,12 @@
 ;;; ====================================================================
 
 ;;; --- warranted supports (curried; forward `fact' detaches each premise) ---
-(add-to-pss 'rr-prod-pos
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (IMPLIES (< 0 x) (IMPLIES (< 0 y) (< 0 (* x y)))))))))
-(warrant! 'rr-prod-pos 'well-known
-  "0<x and 0<y give 0<x*y (the product of two strictly positive reals is
-   strictly positive).")
-(topic! 'rr-prod-pos 'analysis)
+;;; rr-prod-pos RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-rr-order-leaves.scm
+;;; -- and that proof REMOVED 2026-09-20 (batch 11) as a duplicate of rr-mul-pos
+;;; (theorem-library/rr-recip-order.scm), which this file now cites directly.
 
-(add-to-pss 'rr-lt-from-diff-pos
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (IMPLIES (< 0 (- y x)) (< x y)))))))
-(warrant! 'rr-lt-from-diff-pos 'well-known
-  "0 < y-x gives x < y (strict sibling of rr-le-from-diff-nonneg; add x to both
-   sides of 0<y-x).")
-(topic! 'rr-lt-from-diff-pos 'analysis)
+;; rr-lt-from-diff-pos is asserted ONCE, in theorem-library/nn-integral.scm; until
+;; 2026-09-16 this file asserted it a second time.
 
 ;;; ====================================================================
 ;;; deriv-pos-strictly-increasing:  u<v in [a,b]  =>  f(u) < f(v).
@@ -127,7 +118,7 @@
 (dc-have! '(IN (f u) RR) GOAL)
 (dc-have! '(IN (f v) RR) GOAL)
 (quietly (lambda () (fact 'rr-lt-diff-pos 'u 'v)))          ; (< 0 (- v u))
-(quietly (lambda () (fact 'rr-prod-pos LW '(- v u))))       ; (< 0 (* L (- v u)))
+(quietly (lambda () (fact 'rr-mul-pos LW '(- v u))))       ; (< 0 (* L (- v u)))
 ;; C2: 0 < f(v)-f(u)
 (cut '(< 0 (- (f v) (f u))))
 (quietly (lambda () (fact 'eq-symm '(- (f v) (f u)) (list '* LW '(- v u)))))   ; flip EQ1

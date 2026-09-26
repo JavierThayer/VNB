@@ -1,0 +1,148 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[cc-is-metric-space]
+Then
+\begin{equation*}
+\operatorname{is\text{-}metric\text{-}space}(\operatorname{cc\text{-}ms})
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{1}] By $\operatorname{is\text{-}metric\text{-}space}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\operatorname{pts}(\operatorname{cc\text{-}ms}) \in \mathbf{Set}) \wedge \\ \operatorname{dist}(\operatorname{cc\text{-}ms}) \\ \in\; ((\operatorname{pts}(\operatorname{cc\text{-}ms}) \times \operatorname{pts}(\operatorname{cc\text{-}ms})) \to \mathbb{R}) \wedge \\ \operatorname{is\text{-}metric}(\operatorname{dist}(\operatorname{cc\text{-}ms}), \operatorname{pts}(\operatorname{cc\text{-}ms})) \end{array}
+\end{equation*}
+
+  \item[\textbf{2}] By $\operatorname{cc\text{-}ms@pts}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ \operatorname{dist}(\operatorname{cc\text{-}ms}) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \operatorname{is\text{-}metric}(\operatorname{dist}(\operatorname{cc\text{-}ms}), \mathbb{C}) \end{array}
+\end{equation*}
+
+  \item[\textbf{3}] By $\operatorname{cc\text{-}ms@dist}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \operatorname{is\text{-}metric}((\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \quad \operatorname{magnitude}((x - y))), \\ \quad \mathbb{C}) \end{array}
+\end{equation*}
+
+  \item[\textbf{4}] By $\operatorname{is\text{-}metric}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{length}(\operatorname{cc\text{-}ms}) = 2) \wedge \\ (\mathbb{C} \in \mathbf{Set}) \wedge \\ (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \\ \quad \operatorname{magnitude}((x - y))) \\ \in\; ((\mathbb{C} \times \mathbb{C}) \to \mathbb{R}) \wedge \\ \forall u \in \mathbb{C}. \\ \quad (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, u) \\ \quad =\; 0 \wedge \\ \quad \forall v \in \mathbb{C}. \\ \quad \quad 0 \\ \quad \quad \leq\; (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) \wedge \\ \quad \quad ((\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) = 0) \Rightarrow  \\ \quad \quad \quad (u = v) \wedge \\ \quad \quad (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) \\ \quad \quad =\; (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(v, u) \wedge \\ \quad \quad \forall w \in \mathbb{C}. \\ \quad \quad \quad (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, w) \\ \quad \quad \quad \leq\; ((\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(u, v) + (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y)))(v, w)) \end{array}
+\end{equation*}
+
+  \item[\textbf{5}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{6--17}] By $\operatorname{cc\text{-}ms\text{-}def}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{length}(\langle \mathbb{C}, (\lambda \langle x, y \rangle \in (\mathbb{C} \times \mathbb{C}).\; \operatorname{magnitude}((x - y))) \rangle) \\ =\; 2 \end{array}
+\end{equation*}
+
+  \item[\textbf{18--19}] By $\operatorname{len\text{-}r}$.  \emph{(closes)}
+  \item[\textbf{20--21}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\mathbb{C} \in \mathbf{Set})
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{22}] By $\operatorname{lam\text{-}t}$.
+  \item[\textbf{23}] By $\operatorname{cartesian\text{-}set\text{-}iff}$, reduce to
+\begin{equation*}
+((\mathbb{C} \in \mathbf{Set}) \wedge (\mathbb{C} \in \mathbf{Set}))
+\end{equation*}
+
+  \item[\textbf{24--29}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((x - y) \in \mathbb{C}) \\
+(\operatorname{magnitude}((x - y)) \in \mathbb{R}) \\
+((u - u) \in \mathbb{C})
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{30--31}] By $\operatorname{cc\text{-}magnitude\text{-}zero\text{-}iff}$, reduce to
+\begin{equation*}
+((u - u) = 0)
+\end{equation*}
+  \emph{(closes)}
+  \item[\textbf{32}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((u - v) \in \mathbb{C})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{33--34}] By $\operatorname{cc\text{-}magnitude\text{-}nonneg}$:
+\begin{equation*}
+(0 \leq \operatorname{magnitude}((u - v)))
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{35}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((u - v) \in \mathbb{C})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{36}] By $\operatorname{mac\text{-}h}$.
+  \item[\textbf{37--38}] By $\operatorname{cc\text{-}sub\text{-}zero\text{-}eq}$:
+\begin{equation*}
+(u = v)
+\end{equation*}
+  \emph{(holds by assumption)}
+  \item[\textbf{39--40}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((u - v) \in \mathbb{C}) \\
+(\operatorname{magnitude}((u - v)) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{41}] By $\operatorname{cc\text{-}magnitude\text{-}neg}$:
+\begin{equation*}
+(\operatorname{magnitude}(-(u - v)) = \operatorname{magnitude}((u - v)))
+\end{equation*}
+
+  \item[\textbf{42--43}] Introduce the auxiliary claim
+\begin{equation*}
+((v - u) = -(u - v))
+\end{equation*}
+  \emph{(side goal discharged)}
+  \item[\textbf{44}] Substitute the established equation.
+  \item[\textbf{45--46}] Substitute the established equation.  \emph{(closes)}
+  \item[\textbf{47--48}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((u - v) \in \mathbb{C}) \\
+((v - w) \in \mathbb{C})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{49--52}] Introduce the auxiliary claim
+\begin{equation*}
+(((u - v) \in \mathbb{C}) \wedge ((v - w) \in \mathbb{C}))
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{53}] By $\operatorname{cc\text{-}magnitude\text{-}triangle}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{magnitude}(((u - v) + (v - w))) \\ \leq\; (\operatorname{magnitude}((u - v)) + \operatorname{magnitude}((v - w))) \end{array}
+\end{equation*}
+
+  \item[\textbf{54--55}] Introduce the auxiliary claim
+\begin{equation*}
+((u - w) = ((u - v) + (v - w)))
+\end{equation*}
+  \emph{(side goal discharged)}
+  \item[\textbf{56--57}] Substitute the established equation.  \emph{(holds by assumption)}
+\end{itemize}
+\end{proof}
+\end{document}

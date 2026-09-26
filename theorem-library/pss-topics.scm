@@ -44,7 +44,6 @@
 (topic! 'centres-ball-eq 'plumbing)
 (topic! 'ball-cover-mem-fwd 'plumbing)
 (topic! 'centre-set-contains-choice 'plumbing)
-(topic! 'centre-set-finite 'plumbing)
 (topic! 'open-cover-covers-point 'plumbing)
 ;; subset-mem-fwd is PROVEN now; it is filed beside its proof in subset-lemmas.scm
 (topic! 'ball-point-le 'plumbing)
@@ -287,8 +286,8 @@
 (topic! 'matmul-assoc 'algebra)
 (topic! 'identmat-left-identity 'algebra)
 (topic! 'identmat-right-identity 'algebra)
-(topic! 'matmul-left-dist 'algebra)
-(topic! 'matmul-right-dist 'algebra)
+(topic! 'matmul-left-dist-guarded 'algebra)
+(topic! 'matmul-right-dist-guarded 'algebra)
 (topic! 'mat-ring-is-ring 'algebra)
 
 ;;; ===== metric topology & continuity =====

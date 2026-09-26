@@ -104,8 +104,22 @@
                                          (allok (cdr vs)))))
                               (let ((lam (sos-nonneg-combo squares Dpoly)))
                                 (and lam
-                                     (begin (sos-report cert-terms lam)
-                                            (dg-apply-rule! dg 'sos '() sqn)))))))))))))
+                                     (begin
+                                       (sos-report cert-terms lam)
+                                       ;; THE RECORDED TAG CARRIES THE
+                                       ;; CERTIFICATE (2026-09-20): `sos' stays
+                                       ;; the head (the ledger and
+                                       ;; *kernel-rule-tags* go by head) and the
+                                       ;; argument is the verified decomposition
+                                       ;; ((term . lambda) ...) -- the squares
+                                       ;; and their nonnegative weights, just as
+                                       ;; sos-report printed them.  The rule
+                                       ;; checker (rule-checkers-oracle.scm)
+                                       ;; re-verifies b - a = sum lambda_i c_i^2
+                                       ;; monomial by monomial.
+                                       (dg-apply-rule!
+                                        dg (list 'sos (map cons cert-terms lam))
+                                        '() sqn)))))))))))))
 
 (warrant! 'sos 'well-known
   "Sum-of-squares certificate for a nonstrict polynomial inequality over the

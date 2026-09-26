@@ -112,14 +112,7 @@
 ;;; Provable by NN induction from sum-ag-zero, sum-ag-succ, and the
 ;;; carrier-closure of MUL (via abelian-group-is-group + group-IFF +
 ;;; fun-apply-type).  Installed for direct use; eventually demote.
-(theory-add-axiom! *current-theory* 'sum-ag-type
-  '(FORALL ag
-      (IMPLIES (IS-ABELIAN-GROUP ag)
-               (FORALL f
-                 (IMPLIES (IN f (FUN NN (CARR ag)))
-                          (FORALL n
-                            (IMPLIES (IN n NN)
-                                     (IN (SUM-AG ag f n) (CARR ag)))))))))
+;;; sum-ag-type MOVED 2026-09-15 (wave 6) to theorem-library/finsum-type-proof.scm, where it is PROVEN modulo 0.  It was an axiom with NO warrant at all.
 
 ;;; Singleton: SUM-AG(ag, f, 1) = f(0).
 ;;; Provable from sum-ag-succ at n=0 + sum-ag-zero + group-left-id
@@ -211,41 +204,27 @@
 ;;; Axiomatised by empty + singleton + disjoint-union; well-defined because
 ;;; the disjoint-union axiom is symmetric in S1, S2.
 
-(theory-add-axiom! *current-theory* 'sum-set-empty
-  '(FORALL r (FORALL f
-      (== (SUM-SET r EMPTY-SET f) (ZERO r)))))
+;;; sum-set-empty RETIRED 2026-09-18 (the user's decision B): SUM-SET is DEFINED as FINSUM (end of structure-library/finsum.scm) and this law is a theorem of theorem-library/rake-sum-set-defined.scm
 
-(theory-add-axiom! *current-theory* 'sum-set-singleton
-  '(FORALL r
-      (IMPLIES (IS-RING r)
-               (FORALL x (FORALL f
-                  (= (SUM-SET r (PAIR x x) f) (f x)))))))
+;;; sum-set-singleton RETIRED 2026-09-18 (the user's decision B): SUM-SET is DEFINED as FINSUM (end of structure-library/finsum.scm) and this law is a theorem of theorem-library/rake-sum-set-defined.scm
 
 ;;; Disjoint-union: S1 cap S2 = empty => sum over S1 cup S2 splits additively.
-;;; f's typing is stated via the union (FUN (UNION S1 S2) (CARR r)); sum-set-type
-;;; covers each piece via the SUBSET clause.
-(theory-add-axiom! *current-theory* 'sum-set-disjoint-union
-  '(FORALL r
-      (IMPLIES (IS-RING r)
-               (FORALL S1 (FORALL S2 (FORALL f
-                  (IMPLIES (AND (IN S1 SET)
-                           (AND (IN S2 SET)
-                           (AND (= (INTERSECTION S1 S2) EMPTY-SET)
-                                (IN f (FUN (UNION S1 S2) (CARR r))))))
-                           (= (SUM-SET r (UNION S1 S2) f)
-                              ((ADD r) (SUM-SET r S1 f) (SUM-SET r S2 f))))))))))
+;;;
+;;; RELAXED 2026-09-18 (the user's decision): f is typed on any SUPERSET X of the
+;;; union, which is how sum-set-type below is stated.  The earlier form demanded
+;;; (IN f (FUN (UNION S1 S2) (CARR r))) -- the exact union as the domain -- so a
+;;; finite-set induction whose f is typed on a fixed S could never consume the split
+;;; of a subset T u {x} of S; and SUM-SET has no congruence or restriction law that
+;;; would move f onto the smaller domain.  That blocked sum-set-left-scalar and
+;;; sum-set-right-scalar (rake batch 5, V).  The relaxed form implies the old one at
+;;; X := (UNION S1 S2).  No proof in the tree cited the old form.
+;;; sum-set-disjoint-union RETIRED 2026-09-18 (the user's decision B): SUM-SET is DEFINED as FINSUM (end of structure-library/finsum.scm) and this law is a theorem of theorem-library/rake-sum-set-defined.scm
 
 ;;; Type: result is in the carrier whenever f is defined on a superset of S
 ;;; with values in CARR(r).  Stated with an explicit superset X to keep the
 ;;; disjoint-union axiom usable (where f's typing is on UNION(S1, S2) but
 ;;; the RHS uses sums over S1, S2).
-(theory-add-axiom! *current-theory* 'sum-set-type
-  '(FORALL r (FORALL X (FORALL S (FORALL f
-      (IMPLIES (AND (IS-RING r)
-               (AND (IN X SET)
-               (AND (SUBSET S X)
-                    (IN f (FUN X (CARR r))))))
-               (IN (SUM-SET r S f) (CARR r))))))))
+;;; sum-set-type RETIRED 2026-09-18 (the user's decision B): SUM-SET is DEFINED as FINSUM (end of structure-library/finsum.scm) and this law is a theorem of theorem-library/rake-sum-set-defined.scm
 
 ;;; Scalar pull-out for finite sums (PSS-promoted 2026-05-27):
 ;;;   a · (sum_{x ∈ X} f(x))      = sum_{x ∈ X} a · f(x)
@@ -264,31 +243,12 @@
 ;;; PROD-ORD covers the NN-indexed case; PROD-SET extends to arbitrary
 ;;; finite sets when MUL is commutative.
 
-(theory-add-axiom! *current-theory* 'prod-set-empty
-  '(FORALL cm (FORALL f
-      (== (PROD-SET cm EMPTY-SET f) (IDEN cm)))))
-
-(theory-add-axiom! *current-theory* 'prod-set-singleton
-  '(FORALL cm
-      (IMPLIES (IS-COMM-MONOID cm)
-               (FORALL x (FORALL f
-                  (= (PROD-SET cm (PAIR x x) f) (f x)))))))
-
-(theory-add-axiom! *current-theory* 'prod-set-disjoint-union
-  '(FORALL cm
-      (IMPLIES (IS-COMM-MONOID cm)
-               (FORALL S1 (FORALL S2 (FORALL f
-                  (IMPLIES (AND (IN S1 SET)
-                           (AND (IN S2 SET)
-                           (AND (= (INTERSECTION S1 S2) EMPTY-SET)
-                                (IN f (FUN (UNION S1 S2) (CARR cm))))))
-                           (= (PROD-SET cm (UNION S1 S2) f)
-                              ((OPR cm) (PROD-SET cm S1 f) (PROD-SET cm S2 f))))))))))
-
-(theory-add-axiom! *current-theory* 'prod-set-type
-  '(FORALL cm (FORALL X (FORALL S (FORALL f
-      (IMPLIES (AND (IS-COMM-MONOID cm)
-               (AND (IN X SET)
-               (AND (SUBSET S X)
-                    (IN f (FUN X (CARR cm))))))
-               (IN (PROD-SET cm S f) (CARR cm))))))))
+;;; PROD-SET IS DEFINED since 2026-09-19 (the user's decision):
+;;;   (def-functoid 'PROD-SET '(cm S f) '(FINSUM cm f S))      structure-library/finprod.scm
+;;; The four axioms that stood here (prod-set-empty, -singleton, -disjoint-union, -type;
+;;; nothing in the tree cited them) are THEOREMS of that definition, proven `modulo 0' in
+;;; theorem-library/rake-prod-set-defined.scm: `prod-set-empty' with its statement
+;;; unchanged; `prod-set-singleton-defined' (adds x in SET and the pointwise typing
+;;; f(x) in CARR cm: the axiom's strict `=' asserted that f(x) denotes for arbitrary f);
+;;; `prod-set-type-defined' and `prod-set-disjoint-union-defined' (add CARD S in NN: for
+;;; an infinite index set the fold is uninterpreted).

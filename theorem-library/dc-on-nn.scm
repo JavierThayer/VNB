@@ -32,27 +32,7 @@
 ;;; (S_0 supset S_1 supset ...) for the diagonalization argument; more
 ;;; generally, any "build a sequence by repeated choices" construction.
 
-(support 'dc-on-nn
-  '(FORALL X
-     (IMPLIES (IN X SET)
-       (FORALL a
-         (IMPLIES (IN a X)
-           (FORALL R
-             (IMPLIES (IN R SET)
-               (IMPLIES
-                 (FORALL k
-                   (IMPLIES (IN k NN)
-                     (FORALL u
-                       (IMPLIES (IN u X)
-                         (FORSOME y
-                           (AND (IN y X)
-                                (IN (LIST k u y) R)))))))
-                 (FORSOME f
-                   (AND (IN f (FUN NN X))
-                        (AND (= (f 0) a)
-                             (FORALL k
-                               (IMPLIES (IN k NN)
-                                 (IN (LIST k (f k) (f (succ k))) R))))))))))))))
+;;; dc-on-nn RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-dc-on-nn.scm (DC-ITER, a parametric NN recursion with a CHOICE step)
 
 ;;; ====================================================================
 ;;; dc-on-nn-pred -- dependent recursion on NN with a SET-VALUED STEP.
@@ -80,41 +60,5 @@
 ;;;   f(0) := a,  f(succ k) := g(k, f k);
 ;;; equivalently it IS dc-on-nn at R := { (LIST k u y) : y in nxt(k,u) }
 ;;; with the encoding done once here rather than at every call.
-(support 'dc-on-nn-pred
-  '(FORALL X
-     (IMPLIES (IN X SET)
-       (FORALL a
-         (IMPLIES (IN a X)
-           (FORALL nxt
-             (IMPLIES
-               (FORALL k
-                 (IMPLIES (IN k NN)
-                   (FORALL u
-                     (IMPLIES (IN u X)
-                       (FORSOME y
-                         (AND (IN y X)
-                              (IN y (nxt k u))))))))
-               (FORSOME f
-                 (AND (IN f (FUN NN X))
-                      (AND (= (f 0) a)
-                           (FORALL k
-                             (IMPLIES (IN k NN)
-                               (IN (f (succ k)) (nxt k (f k)))))))))))))))
-(warrant! 'dc-on-nn-pred 'reference
-  "Set-valued-step form of dc-on-nn (same file).  Derivable from primitive
-   recursion on NN + global Hilbert choice: g(k,u):=CHOICE{y in X:y in nxt
-   (k,u)} is defined by the totality hypothesis, then recurse f(0):=a,
-   f(succ k):=g(k,f k); f:NN->X by induction.  No relation-set encoding --
-   nxt(k,u) is the successor SET, supplied as a VNB-LAMBDA, so callers avoid
-   the (LIST k u y)-in-R comprehension/sethood/NTH plumbing (O1 of
-   archive/calculus-pre-rename/block-family-rederive.scm).  Accepted asserted during library-build.")
+;;; dc-on-nn-pred RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-dc-on-nn.scm (DC-ITER, a parametric NN recursion with a CHOICE step)
 
-(warrant! 'dc-on-nn 'reference
-  "Derivable in VNB from primitive recursion on NN plus the global Hilbert
-   choice of the base theory, exactly as this file's header states: put
-   g(k,u) := CHOICE { y in X : (LIST k u y) in R }, which the totality
-   hypothesis makes defined, then recurse f(0) := a, f(succ k) := g(k, f k) and
-   get f in FUN(NN,X) by induction.  Same warrant, and the same derivation, as
-   its set-valued-step sibling dc-on-nn-pred below, which has carried a
-   `reference' warrant since it was added.  Never mechanised: no script in
-   archive/proven-theorems-archive.scm.")

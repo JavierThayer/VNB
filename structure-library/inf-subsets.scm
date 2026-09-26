@@ -8,6 +8,8 @@
 ;;; Useful as a domain restriction for operators that only make sense
 ;;; on infinite sets -- e.g. a strictly-monotone enumeration NN -> S
 ;;; (forthcoming NN-ENUM) is only well-defined for S in INF-SUBSETS(NN).
+;;; RETIRED 2026-09-14 (proven): inf-subsets-is-set -- theorem-library/inf-subsets-is-set.scm
+;;; RETIRED 2026-09-14 (proven): nn-in-inf-subsets -- theorem-library/nn-infinite.scm
 
 (def-functoid 'INF-SUBSETS '(A)
   '(SEP S (POWER A) (NOT (IN (CARD S) NN))))
@@ -23,15 +25,7 @@
 
 ;;; inf-subsets-is-set: INF-SUBSETS(A) in SET when A in SET.
 ;;; Direct from SEP sethood (POWER A in SET when A in SET).
-(theory-add-axiom! *current-theory* 'inf-subsets-is-set
-  '(FORALL A
-     (IMPLIES (IN A SET)
-       (IN (INF-SUBSETS A) SET))))
 
 ;;; nn-in-inf-subsets: NN is an infinite subset of itself.  NN subset NN
 ;;; (reflexive) and CARD(NN) not in NN (NN is infinite).  The base of the
 ;;; block-family recursion (blk(0) = NN) and a handy INF-SUBSETS(NN) witness.
-(support 'nn-in-inf-subsets '(IN NN (INF-SUBSETS NN)))
-(warrant! 'nn-in-inf-subsets 'well-known
-  "NN is an infinite subset of NN: NN subset NN and CARD(NN) not in NN.")
-(topic! 'nn-in-inf-subsets 'plumbing)

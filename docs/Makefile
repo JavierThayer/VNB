@@ -14,6 +14,18 @@
 #   app-source-generated.tex   <- source tree (each file's `;;; name -- desc' header)
 #   app-tactics-generated.tex  <- reference/TACTICS.md (the *tactic-help* registry)
 #   app-glossary-generated.tex <- reference/GLOSSARY.md (every name, from the registries)
+#   ch-kernel-ops-generated.tex <- tactics-help.scm (*kernel-rule-tags*, the list the startup
+#                                  check uses) and reference/THEOREMS.md (the axiom count)
+#   app-tactic-uses-generated.tex <- reference/kernel-map-static.sexp + tactics-help.scm:
+#                                  the kernel operations each proof command can reach.  The
+#                                  same table goes to reference/TACTIC-USES.md and, as Scheme
+#                                  data, to tactic-uses-data.scm, which tactics-help.scm reads
+#                                  so that each entry of reference/TACTICS.md carries its own
+#                                  `Uses' line.  The .sexp is written by the two kernel-map
+#                                  instruments (kernel-map-static.scm, kernel-map-trace.scm);
+#                                  its header says how to regenerate it.  gen-tactics-ref.py
+#                                  puts the same line inside each entry of the manual's
+#                                  tactic reference, so it runs after this one.
 
 LATEX := pdflatex -interaction=nonstopmode -halt-on-error
 # The index is built between the two LaTeX passes: pass 1 writes the .idx,
@@ -44,9 +56,11 @@ both: all
 
 gen: check-fresh
 	python3 gen-source-appendix.py
+	python3 gen-tactic-uses.py
 	python3 gen-tactics-ref.py
 	python3 gen-structures.py
 	python3 gen-glossary.py
+	python3 gen-kernel-ops.py
 
 # TACTICS.md and STRUCTURE-INDEX.md are rewritten ONLY by a prover load (load.scm
 # runs (write-tactics-md) etc.), never by make.  So if their source registries were
@@ -76,3 +90,8 @@ clean:
 	# stale index, not at the change that caused it.  Hit while adding the index.
 	rm -f manual.idx manual.ind manual.ilg
 	rm -f manual-kindle.idx manual-kindle.ind manual-kindle.ilg
+
+# The major theorems of the notes as the library states them (reference/major-theorems.tex is written at load).
+.PHONY: major-theorems
+major-theorems:
+	$(LATEX) major-theorems.tex && $(LATEX) major-theorems.tex && $(LATEX) major-theorems.tex

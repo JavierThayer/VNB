@@ -34,6 +34,8 @@ REF_LINKS = [
     ("Fingerprint Index", "FINGERPRINT-INDEX.html",  "results bucketed by conclusion skeleton"),
     ("Tactics",           "TACTICS.html",            "interactive proof commands, each with a one-line gloss"),
     ("Glossary",          "GLOSSARY.html",           "every name in VNB, A to Z -- what it is, how it reads, where it is declared"),
+    ("Kernel rules",      "KERNEL-RULES.html",       "every inference rule the checker can record -- the trusted base beyond the axiom table"),
+    ("Kernel map",        "KERNEL-MAP.html",         "which code is permitted to record an inference, and what each proof command can reach"),
     ("Structure Graph",   "structure-graph.html",    "refines & view-as relations, clickable"),
 ]
 # Workbench: (heading, [(label, fn-name, blurb), ...]).  Emacs is ONLY for work
@@ -101,7 +103,7 @@ INTRO = """
   kernel, so a finished proof is correct <em>by construction</em>, not by trust.</p>
   <p>Its foundation is a first-order set theory in the style of von&nbsp;Neumann&ndash;Bernays:
   one universe of <em>classes</em>, with membership&nbsp;(&isin;) the only primitive notion.
-  But you rarely touch that bedrock &mdash; numbers, functions, and ordinals are built in as
+  But you rarely touch that foundation &mdash; numbers, functions, and ordinals are built in as
   primitives governed by ordinary axioms, so a proof reads the way mathematics is actually
   written, not as a tower of encodings.</p>
 </section>

@@ -1,3 +1,8 @@
+;;; RETIRED 2026-09-17 (proven, rake batch O): class-self, class-subset-carrier, class-eq-iff,
+;;; class-disjoint, class-in-quotient, quotient-rep, descend-computes, quotient-universal,
+;;; descend2-computes -- theorem-library/rake-setoid2.scm, all modulo 0.  This file now holds no support.
+;;; RETIRED 2026-09-17 (proven): class-is-set, quotient-is-set, proj-in-fun, descend-in-fun,
+;;; descend2-in-fun -- theorem-library/rake-setoid.scm (all modulo 0; the descents by iota-d alone).
 ;;; setoid.scm -- SETOID = (X, REL): a set with an equivalence relation,
 ;;; and the CONCRETE quotient X / REL together with its universal property.
 ;;;
@@ -85,95 +90,27 @@
 ;;; =======================================================================
 
 ;; class-self: a in [a].  This is reflexivity of REL, projected through SEP.
-(support 'class-self
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (PTS s))
-       (IN a (CLASS s a)))))))
-(warrant! 'class-self 'well-known
-  "Unfold CLASS: a in CLASS(s,a) iff a in PTS(s) and RELATED(s,a,a); the latter
-   is reflexivity of REL (the is-equivalence conjunct folded into IS-SETOID).")
 
 ;; class-subset-carrier: [a] subset PTS(s).  (CLASS is a separation OF PTS(s).)
-(support 'class-subset-carrier
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (PTS s))
-       (SUBSET (CLASS s a) (PTS s)))))))
-(warrant! 'class-subset-carrier 'well-known
-  "CLASS(s,a) = SEP(b, PTS(s), ...) is by construction a subset of PTS(s).")
 
 ;; class-is-set: [a] is a set (subclass of the set PTS(s), by separation).
-(support 'class-is-set
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (PTS s))
-       (IN (CLASS s a) SET))))))
-(warrant! 'class-is-set 'well-known
-  "A subclass of a set is a set (separation); CLASS(s,a) subset PTS(s) in SET.")
 
 ;; class-eq-iff: [a] = [b]  <=>  a ~ b.  THE fundamental fact -- equal classes
 ;; exactly captures the relation.  (=>) by class-self + symmetry; (<=) by
 ;; transitivity + symmetry, set-extensionality on the class memberships.
-(support 'class-eq-iff
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (PTS s))
-       (FORALL b (IMPLIES (IN b (PTS s))
-         (IFF (= (CLASS s a) (CLASS s b))
-              (RELATED s a b)))))))))
-(warrant! 'class-eq-iff 'well-known
-  "(<=) a~b: for any c, b~c iff a~c by transitivity+symmetry, so the two
-   separations have the same members; set-extensionality gives [a]=[b].
-   (=>) [a]=[b]: a in [a]=[b] (class-self) means a~b.  Uses exactly the three
-   equivalence laws folded into IS-SETOID.")
 
 ;; class-disjoint: distinct classes are disjoint -- the partition property.
 ;; Either [a] = [b], or they share no element.
-(support 'class-disjoint
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (PTS s))
-       (FORALL b (IMPLIES (IN b (PTS s))
-         (OR (= (CLASS s a) (CLASS s b))
-             (= (INTERSECTION (CLASS s a) (CLASS s b)) EMPTY-SET)))))))))
-(warrant! 'class-disjoint 'well-known
-  "If [a],[b] share a c then a~c and b~c, so a~b (transitivity+symmetry) and
-   [a]=[b] by class-eq-iff.  Contrapositive: distinct classes meet emptily.
-   Together with class-self (cover) this is `QUOTIENT(s) partitions PTS(s)'.")
 
 ;; class-in-quotient: [a] is a member of the quotient.  (PROJ lands in QUOTIENT.)
-(support 'class-in-quotient
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL a (IMPLIES (IN a (PTS s))
-       (IN (CLASS s a) (QUOTIENT s)))))))
-(warrant! 'class-in-quotient 'well-known
-  "QUOTIENT(s) = IMAGE(PROJ(s), PTS(s)); a in PTS(s) witnesses [a]=PROJ(s)(a) as
-   a member of the image (image-membership + lambda-beta on PROJ).")
 
 ;; quotient-rep: every element of the quotient is a class -- x in QUOTIENT(s) has
 ;; a representative a in PTS(s) with x = [a].  The reverse of class-in-quotient;
 ;; what every forall-over-the-quotient proof needs to pick a representative.
-(support 'quotient-rep
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL x (IMPLIES (IN x (QUOTIENT s))
-       (FORSOME a (AND (IN a (PTS s)) (= x (CLASS s a)))))))))
-(warrant! 'quotient-rep 'well-known
-  "QUOTIENT(s) = IMAGE(PROJ(s), PTS(s)); image-membership-iff gives an a in PTS(s)
-   with x = PROJ(s)(a), and PROJ beta-reduces PROJ(s)(a) = CLASS(s,a).")
 
 ;; quotient-is-set: PTS(s)/REL is a set when PTS(s) is (IMAGE of a set is a set).
-(support 'quotient-is-set
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (IN (QUOTIENT s) SET))))
-(warrant! 'quotient-is-set 'well-known
-  "PTS(s) is a set (carrier shape constraint); the IMAGE of a set under a
-   function is a set (replacement/image-is-set).")
 
 ;; proj-in-fun: PROJ(s) : PTS(s) -> QUOTIENT(s).
-(support 'proj-in-fun
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (IN (PROJ s) (FUN (PTS s) (QUOTIENT s))))))
-(warrant! 'proj-in-fun 'well-known
-  "PROJ(s) = VNB-LAMBDA a. CLASS(s,a) is total on PTS(s) and, by
-   class-in-quotient, every value lies in QUOTIENT(s); so it is in
-   FUN(PTS(s),QUOTIENT(s)).  It is surjective by construction (QUOTIENT is its
-   image).")
 
 ;;; =======================================================================
 ;;; Descent and the universal property.
@@ -197,61 +134,13 @@
 
 ;; descend-computes: the descent equation  DESCEND(f)([a]) = f(a)  -- i.e.
 ;; DESCEND(f) o PROJ(s) = f, the factorization, stated pointwise.
-(support 'descend-computes
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL Z (FORALL f
-       (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
-         (FORALL a (IMPLIES (IN a (PTS s))
-           (= ((DESCEND s f) (CLASS s a)) (f a))))))))))
-(warrant! 'descend-computes 'well-known
-  "Lambda-beta: DESCEND(f)([a]) = IOTA z. exists a' in [a]. z = f(a').  Since
-   a in [a] (class-self), f(a) satisfies the body.  For uniqueness: any a' in
-   [a] has a~a', so f(a')=f(a) by RESPECTS; the body pins z = f(a) uniquely,
-   and IOTA returns it.  Representation-independent -- the value never depends
-   on which member is named.")
 
 ;; descend-in-fun: DESCEND(f) : QUOTIENT(s) -> Z.
-(support 'descend-in-fun
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL Z (FORALL f
-       (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
-         (IN (DESCEND s f) (FUN (QUOTIENT s) Z))))))))
-(warrant! 'descend-in-fun 'well-known
-  "Every element of QUOTIENT(s) is some [a] with a in PTS(s) (it is the image of
-   PROJ); on it DESCEND(f) returns f(a) in Z (descend-computes), well-defined
-   by RESPECTS.  So DESCEND(f) is total QUOTIENT(s) -> Z.")
 
 ;; quotient-universal (CAPSTONE): the universal property of the quotient.
 ;; A relation-respecting f : PTS(s) -> Z factors UNIQUELY through PROJ(s):
 ;; there is exactly one g : QUOTIENT(s) -> Z with g([a]) = f(a) for all a.
 ;; (VNB has no FORSOME-unique; uniqueness is spelled out as the inner FORALL.)
-(support 'quotient-universal
-  '(FORALL s (IMPLIES (IS-SETOID s)
-     (FORALL Z (FORALL f
-       (IMPLIES (AND (IN f (FUN (PTS s) Z)) (RESPECTS s f))
-         (FORSOME g
-           (AND (IN g (FUN (QUOTIENT s) Z))
-             (AND
-               ;; g factors f through the projection
-               (FORALL a (IMPLIES (IN a (PTS s))
-                 (= (g (CLASS s a)) (f a))))
-               ;; ... and is the only such map
-               (FORALL g_
-                 (IMPLIES (AND (IN g_ (FUN (QUOTIENT s) Z))
-                               (FORALL a (IMPLIES (IN a (PTS s))
-                                 (= (g_ (CLASS s a)) (f a)))))
-                          (= g_ g))))))))))))
-(warrant! 'quotient-universal 'well-known
-  "EXISTENCE: take g = DESCEND(f); descend-in-fun types it and descend-computes
-   gives the factorization g([a])=f(a).  UNIQUENESS: any g' factoring f agrees
-   with g on every [a] (both equal f(a)); every element of QUOTIENT(s) is such
-   an [a] (image of PROJ), so g' and g agree everywhere on QUOTIENT(s) and are
-   equal by function extensionality.  This is what makes X |-> X/REL a functor:
-   the concrete quotient has the defining mapping property.  Capstone asserted
-   with a faithful sketch over the installed CLASS/QUOTIENT/PROJ/DESCEND
-   supports, in the prod-of-sums-expansion / binomial-theorem library style --
-   the machinery is the deliverable, the QED induction-free factorization
-   argument is the deferred tactic grind, with no missing primitive.")
 
 ;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
 (gloss! 'quotient-universal
@@ -282,30 +171,8 @@
                 (FORSOME b (AND (IN b d) (= z (f a b)))))))))
 
 ;; descend2-computes: the descent equation  DESCEND2(f)([a],[b]) = f(a,b).
-(support 'descend2-computes
-  (forall-guarded '(s) '((IS-SETOID s))
-    (forall-guarded '(Z f)
-        '((IN f (FUN (CARTESIAN (PTS s) (PTS s)) Z)) (RESPECTS2 s f))
-      (forall-guarded '(a b) '((IN a (PTS s)) (IN b (PTS s)))
-        '(= ((DESCEND2 s f) (CLASS s a) (CLASS s b)) (f a b))))))
-(warrant! 'descend2-computes 'well-known
-  "Tuple-beta then the unary argument: DESCEND2(f)([a],[b]) = IOTA z. exists
-   a' in [a], b' in [b]. z = f(a',b').  Since a in [a] and b in [b] (class-self),
-   f(a,b) satisfies the body; and any a'~a, b'~b give f(a',b')=f(a,b) by RESPECTS2,
-   so the body pins z = f(a,b) uniquely and IOTA returns it.  The two-slot twin of
-   descend-computes; representative-independent in both arguments.")
 
 ;; descend2-in-fun: DESCEND2(f) : QUOTIENT(s) x QUOTIENT(s) -> Z.
-(support 'descend2-in-fun
-  (forall-guarded '(s) '((IS-SETOID s))
-    (forall-guarded '(Z f)
-        '((IN f (FUN (CARTESIAN (PTS s) (PTS s)) Z)) (RESPECTS2 s f))
-      '(IN (DESCEND2 s f) (FUN (CARTESIAN (QUOTIENT s) (QUOTIENT s)) Z)))))
-(warrant! 'descend2-in-fun 'well-known
-  "Every element of QUOTIENT(s) is some [a] with a in PTS(s) (image of PROJ), so
-   every pair in QUOTIENT(s) x QUOTIENT(s) is ([a],[b]); on it DESCEND2(f) returns
-   f(a,b) in Z (descend2-computes), well-defined by RESPECTS2.  So DESCEND2(f) is
-   total QUOTIENT(s) x QUOTIENT(s) -> Z.  The two-slot twin of descend-in-fun.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their

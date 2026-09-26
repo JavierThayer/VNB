@@ -158,7 +158,7 @@
 
 (define (mc-check-pi-lambda-type-drift)
   (mc-drift-warn! 'pi-lambda-type!
-                  "/home/ubuntu/prover/primitive-inferences.scm"
+                  (string-append *prover-dir* "primitive-inferences.scm")
                   *mc-pi-lambda-type-hash*))
 
 ;;; M1 and M2 share everything but the two pieces they delete, so they are one
@@ -357,7 +357,7 @@
       (if m
           (begin (set! *mc-drift-ok?* ((mutant-drift m)))
                  ((mutant-install! m))))
-      (load "/home/ubuntu/prover/test-suite-negative.scm")
+      (load (string-append *prover-dir* "test-suite-negative.scm"))
       (newline)
       (let ((results (mc-results)))
         (if m (mc-run-mutant m results) (mc-run-baseline results)))))))

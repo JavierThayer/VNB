@@ -23,6 +23,7 @@
 ;;; Dependencies: ring.scm, commutative-ring.scm, integral-domain.scm.
 
 (declare-structure FIELD
+  (instance-var s)
   ;; Slots 1-6: identical layout to RING, so shared accessor macetes
   ;; ADD/MUL/NEG/ZERO/ONE keep the same NTH index on FIELD tuples as on
   ;; RING tuples.
@@ -52,7 +53,22 @@
   (property is-associative MUL CARR)
   (property is-commutative MUL CARR)
   (property is-identity   MUL ONE CARR)
-  (property is-distributive ADD MUL CARR))
+  (property is-distributive ADD MUL CARR)
+  ;; The two laws that say what MUL-INV is FOR, and that a field has two
+  ;; elements.  `(op MUL-INV NON-ZERO NON-ZERO)' above TYPES the slot and says
+  ;; nothing else: without the first law a "field" is a commutative ring
+  ;; carrying an arbitrary map of the nonzero elements to themselves, and
+  ;; without the second the zero ring (with an empty NON-ZERO) satisfies every
+  ;; other conjunct.  Both were separate ASSERTED axioms with no warrant
+  ;; (field-mul-inverse, field-zero-not-one, retired below 2026-09-15) -- a
+  ;; support finishing a definition, exactly as field-non-zero-carrier was
+  ;; until 2026-07-12.  IS-FIELD-RING (below) has carried both as (law ...)
+  ;; clauses since the day it was written; this is the eight-slot shape catching
+  ;; up with the six-slot one.  The invertibility law is stated WITH MUL-INV --
+  ;; the slot is here, so the inverse is a term and not, as in IS-FIELD-RING,
+  ;; an existential claim.
+  (law "not(zero(s) = one(s))")
+  (law "forall([a_ in non-zero(s)], mul(s)(a_, mul-inv(s)(a_)) = one(s))"))
 
 ;;; Carrier relation: NON-ZERO is CARR with the zero element removed.  This is now
 ;;; a CONJUNCT of IS-FIELD (the `derived' slot above), so it is a projection of the
@@ -63,15 +79,15 @@
     '(FORALL s (IMPLIES (IS-FIELD s)
        (= (NON-ZERO s) (DIFFERENCE (CARR s) (SINGLETON (ZERO s))))))))
 
-;;; Multiplicative inverse: MUL-INV is the right inverse of MUL on NON-ZERO.
-(theory-add-axiom! *current-theory* 'field-mul-inverse
-  '(FORALL s (IMPLIES (IS-FIELD s)
-     (FORALL a (IMPLIES (IN a (NON-ZERO s))
-       (= ((MUL s) a ((MUL-INV s) a)) (ONE s)))))))
+;;; field-mul-inverse is now a (law ...) clause of the FIELD declaration,
+;;; 2026-09-15 -- it was an axiom with no warrant, i.e. a support finishing a
+;;; definition.  Read it out of the unfolded IS-FIELD (mac-h 'is-field) rather
+;;; than citing it by name.
 
-;;; A field has at least two elements.
-(theory-add-axiom! *current-theory* 'field-zero-not-one
-  '(FORALL s (IMPLIES (IS-FIELD s) (NOT (= (ZERO s) (ONE s))))))
+;;; field-zero-not-one is now a (law ...) clause of the FIELD declaration,
+;;; 2026-09-15 -- it was an axiom with no warrant, i.e. a support finishing a
+;;; definition.  Read it out of the unfolded IS-FIELD (mac-h 'is-field) rather
+;;; than citing it by name.
 
 
 ;;; -----------------------------------------------------------------------

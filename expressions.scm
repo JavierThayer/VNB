@@ -208,6 +208,44 @@
          (error "vnb-lambda-bvars: malformed binding spec" bind-spec))))
 
 ;;; -----------------------------------------------------------------------
+;;; The walkers that keep their own list of binder heads -- and the gate on them
+;;;
+;;; `*binder-shapes*' (below) is the ONE declaration of which heads bind and
+;;; where; a dozen traversals in the tree ACT on it.  Four of them -- free-vars,
+;;; subst-free, alpha-equiv-under?, formula-hash -- are tested BEHAVIOURALLY by
+;;; `binder-walker-audit' (audit.scm), which is the strongest check available
+;;; and is available only to them.  The rest cannot be tested that way: a
+;;; rewriter, a validator, a rule checker, a beta reducer.  Until 2026-09-20
+;;; nothing watched those at all, and it cost two holes in one morning --
+;;; `rewrite-subexpressions' (macetes.scm) had a hand-written `case' with no
+;;; BIG-UNION in it, so a conditional macete fired under that binder with its
+;;; condition discharged by an OUTER variable of the same name; and
+;;; `reduce-lambda-in-expr/scope' (primitive-inferences.scm) carried the
+;;; licensing memberships through every binder it did not know, which made
+;;; FALSITY derivable.  A hand-written list goes stale the day a binder is
+;;; added, silently, in whichever walker nobody remembered.
+;;;
+;;; So a walker that spells the heads out DECLARES them, beside its case, and
+;;; `binder-walker-audit' FAILS when *binder-shapes* holds a head a declaration
+;;; lacks.  The declaration is a claim about the code beside it; what it buys is
+;;; that a new binder cannot be added quietly -- every walker that has not been
+;;; told says so, by name, at the next load.
+;;;
+;;; A walker that reads `binder-shape' instead of spelling the heads out
+;;; declares `from-binder-shapes': it keeps no second list, so there is nothing
+;;; to go stale.  That is the better answer wherever the shapes are all the
+;;; walker needs (`reduce-lambda-in-expr/scope' was rewritten that way).
+;;;
+;;; EXTRA heads are not an error: a walker may know binders this layer has no
+;;; shape for (a functoid record, LAMBDOID).
+(define *binder-walkers* '())
+
+(define (declare-binder-walker! name heads)
+  (set! *binder-walkers*
+        (cons (cons name heads) (del-assq name *binder-walkers*)))
+  name)
+
+;;; -----------------------------------------------------------------------
 ;;; Free variables
 
 (define (free-vars expr)
@@ -309,6 +347,11 @@
                                  (else '()))
                            (map free-vars (cdr expr))))))))
     (else '())))
+
+;; free-vars, subst-free and alpha-equiv-under? are also tested BEHAVIOURALLY by
+;; binder-walker-audit, head by head; the declaration is here so that a new head
+;; is reported against them by name too.
+(declare-binder-walker! 'free-vars '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 (define (fold-vars var-lists)
   (if (null? var-lists)
@@ -599,6 +642,29 @@
 ;;; reset it under any circumstance.
 (define *fresh-counter* 0)
 
+;;; THE MINT LOG -- every name `fresh-var' actually hands out, newest first.
+;;;
+;;; It exists so an emitted proof page can name an eigenvariable by its
+;;; PROVENANCE ("the variable step 47 minted") instead of by the literal
+;;; `n_1788'.  A literal is meaningless on a page: the counter above is a
+;;; monotone global that must never be reset, so the same proof in another
+;;; session mints `n_2431' and every reference to `n_1788' dangles.  That single
+;;; defect is 304 of the 315 proofs whose page did not re-run (page-audit.scm).
+;;;
+;;; Deliberately the NAMES and not the counter interval.  The interval [lo,hi)
+;;; does identify the minting step by arithmetic -- the counter only rises --
+;;; but it cannot recover the names, because the hint is the caller's and is
+;;; nowhere in the counter.  One cons per mint buys both.
+;;;
+;;; Append-only, and never reset here: a caller takes a MARK (a pointer into the
+;;; list) and reads the delta, which cannot disturb the monotonicity invariant.
+(define *fresh-log* '())
+
+;;; The names minted since MARK, in mint order (oldest first).
+(define (fresh-log-since mark)
+  (let loop ((l *fresh-log*) (acc '()))
+    (if (or (null? l) (eq? l mark)) acc (loop (cdr l) (cons (car l) acc)))))
+
 ;;; (fresh-var hint . avoid-exprs)
 ;;;   Returns a fresh symbol whose name is `<hint>_<n>` where n is taken from
 ;;;   the global counter (which always advances).  The candidate is rejected
@@ -641,7 +707,10 @@
                                        (number->string n)))))
         (if (member candidate forbidden)
             (loop (+ n 1))
-            candidate)))))
+            (begin (set! *fresh-log* (cons candidate *fresh-log*))
+                   candidate))))))
+
+(declare-binder-walker! 'subst-free '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 ;;; -----------------------------------------------------------------------
 ;;; Alpha-equivalence
@@ -792,6 +861,9 @@
                      (loop (cdr a1) (cdr a2)))))))
     (else #f)))
 
+(declare-binder-walker! 'alpha-equiv-under?
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
 ;;; rassq: the first pair of ALIST whose CDR is eq? to V (the reverse of assq).
 (define (rassq v alist)
   (cond ((null? alist) #f)
@@ -827,6 +899,10 @@
   (and (symbol? head)
        (let ((p (assq head *binder-shapes*)))
          (and p (cdr p)))))
+
+;;; The walkers that spell these heads out for themselves are declared through
+;;; `declare-binder-walker!' (above, before free-vars), and the same audit fails
+;;; when one of them lacks a head this table declares.
 
 ;;; -----------------------------------------------------------------------
 ;;; formula-hash -- an alpha-INVARIANT fixnum digest of a formula
@@ -1003,3 +1079,8 @@
 
 (define (formula-canon e)
   (%canon e '()))
+
+;; These three read `binder-shape' and keep no list of their own.
+(declare-binder-walker! 'formula-hash         'from-binder-shapes)
+(declare-binder-walker! 'formula-binder-names 'from-binder-shapes)
+(declare-binder-walker! 'formula-canon        'from-binder-shapes)

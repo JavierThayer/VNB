@@ -55,8 +55,25 @@
   (lambda ()                                              ; k <= j
     (inst+ NC-IH 'k)                                      ; fam(j) subset fam(k)
     (inst+ NC-STEP NC-JV)                                 ; fam(succ j) subset fam(j)
-    (fact 'subset-trans (list 'fam (list 'succ NC-JV)) (list 'fam NC-JV) (list 'fam 'k))
-    (ass))
+    ;; 2026-09-18 (LUTINS instantiation): `fact subset-trans' is cited at
+    ;; fam(succ j), fam(j) and fam(k) -- applications of the VARIABLE fam, and
+    ;; SUBSET is not one of the strict relations, so nothing in the context
+    ;; certifies any of them.  Transitivity unfolded instead: `mac'/`mac-h' on
+    ;; subset-def are REWRITES (no instantiation), the goal's own peel lands
+    ;; (IN z fam(succ j)), and each unfolded universal is then instantiated at
+    ;; the VARIABLE z, which owes nothing.
+    (mac 'subset-def)
+    (let ((zv (dk-di-var!)))
+      (inst*! (dk-landed-1
+               (lambda () (mac-h 'subset-def
+                                 (list 'SUBSET (list 'fam (list 'succ NC-JV))
+                                               (list 'fam NC-JV)))))
+              zv)
+      (inst*! (dk-landed-1
+               (lambda () (mac-h 'subset-def
+                                 (list 'SUBSET (list 'fam NC-JV) (list 'fam 'k)))))
+              zv)
+      (ass)))
   (lambda ()                                              ; k = succ j
     (subst (list '= 'k (list 'succ NC-JV)))
     (mac 'subset-def) (di) (ass)))

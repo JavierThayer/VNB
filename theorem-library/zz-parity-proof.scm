@@ -4,7 +4,7 @@
 ;;; number is 2k or succ(2k) (nn-parity), and 2x is never succ(2y)
 ;;; (nn-parity-exclusive).  This file carries both to ZZ, where the extra case is
 ;;; the negatives -- and that is exactly what zz-generated-by-nn (every integer
-;;; is n or -n, structure-library/zz-arith.scm) delivers.
+;;; is n or -n; now in number-systems.scm, primitive) delivers.
 ;;;
 ;;;   EVEN(x)  :=  forsome k in ZZ. x = 2*k
 ;;;   ODD(x)   :=  forsome k in ZZ. x = 2*k + 1
@@ -15,7 +15,10 @@
 ;;;   zz-odd-mul-odd       ODD(x) and ODD(y) => ODD(x*y)         (crs)
 ;;;   zz-even-mul          EVEN(x) => EVEN(x*y)                  (crs)
 ;;;   zz-odd-sq-odd        ODD(x) => ODD(x*x)                    (instance)
-;;;   zz-even-sq-even      EVEN(x*x) => EVEN(x)                  (contrapositive)
+;;;   zz-even-sq-even      EVEN(x*x) => EVEN(x)   -- PROMISED HERE, NEVER WRITTEN.
+;;;                        (The file ends at zz-odd-sq-odd.  Found 2026-09-16, when
+;;;                        this file -- on disk since 2026-07-15 and in load.scm
+;;;                        never -- was first loaded.  All nine below qed modulo 0.)
 ;;;
 ;;; The multiplicative facts are ring identities over typed generators, so `crs'
 ;;; decides each in one move -- including the negatives, since crs speaks the `-'
@@ -71,6 +74,11 @@
 ;;; -----------------------------------------------------------------------
 (def-predicate 'EVEN '(x) '(FORSOME k (AND (IN k ZZ) (= x (* 2 k)))))
 (def-predicate 'ODD  '(x) '(FORSOME k (AND (IN k ZZ) (= x (+ (* 2 k) 1)))))
+;; Their English, read by wff-english / the proof reader (operators.scm); the
+;; suite requires one for every predicate.  Added 2026-09-16 when the file was
+;; first loaded.
+(notation! 'EVEN 'kind 'predicate 'arity 1 'english "$1 is even")
+(notation! 'ODD  'kind 'predicate 'arity 1 'english "$1 is odd")
 ;; def-predicate registers the definition but installs no CITEABLE macete (it
 ;; goes to theory-definitions, not *theorem-table*), so mac-h 'EVEN cannot find
 ;; it.  Install the defining IFF as a named theorem -- definitional provenance,

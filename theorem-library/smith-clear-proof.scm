@@ -17,17 +17,17 @@
 (define (cc-di*) (let lp () (let* ((g (cc-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
 (define (cc-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (cc-foc! n) (set-proof-state-focus! *ps* n))
+(define (cc-foc! n) (dk-focus! n))
 (define (cc-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (cc-find pred) (let lp ((as (cc-asms)))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (cc-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (cc-leaf-asms s) (map wff-formula (sequent-node-assumptions s)))
 (define (cc-foc-by-asm! f)
   (let ((s (any-pred (lambda (s) (member f (cc-leaf-asms s))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (cc-H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 ;; excluded-middle case split (inline pbc of (OR P (NOT P))); returns (NOT P) node.
 (define (cc-em P)
@@ -100,6 +100,7 @@
 
 ;; MAT-EQUIV(P, Q) : right-mult by the invertible column op
 (fact 'ring-neg-in-carr 'A CC-QE)
+(fact 'mat-cols-in-nn 'm 'n '(CARR A) 'P)     ; elem-g-invertible wants n natural (2026-09-16)
 (fact 'elem-g-invertible 'A 'n CC-NEGQ 1 'j)
 (fact 'mat-equiv-right-mult 'A 'm 'n 'P CC-G)
 

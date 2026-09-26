@@ -1,0 +1,122 @@
+#!/bin/bash
+# vnb-suite -- run the full check suite on a capataz WORKER, from the primary, with metrics.
+#
+#   vnb-suite WORKER [--band] [--detach] [--heap BLOCKS] [--timeout SECONDS]
+#   vnb-suite WORKER --wait JOB [--timeout SECONDS]
+#
+# Runs `timeout T mit-scheme --heap H --quiet --load test-suite.scm < /dev/null' on
+# the worker, alone (it holds both probe slots) in one SSM command (CLAUDE.md,
+# "Running it": the suite dies SILENTLY under memory pressure and prints no SUMMARY;
+# exit status means nothing, so look for the SUMMARY line).  It goes through
+# `vnb-metrics-run', which emits a progress line every 5 minutes and a final line,
+# all appended to ~/mailbox/metrics/runs.jsonl here.  Default heap 200000 (the
+# measured setting: 8m53s on a t3.medium, against 33 min and an OOM on the default
+# heap).  Prints the SUMMARY line, the FAIL lines, and the metrics lines.  The full
+# log is /home/ubuntu/probes/test-suite.log on the worker.
+#
+# --band (2026-09-23, Dad's yes to Ignacio's proposal A): start from the worker's
+#   /home/ubuntu/prover/vnb.band instead of loading the tree from source.  The
+#   integration's cold load has just built that band (`prover --build-band'), so the
+#   library is proved ONCE per integration, not twice; test-suite.scm skips its
+#   (load "load.scm") when the library is already in the image.  Refused, before
+#   anything starts, when the band is missing or OLDER than any library .scm (the
+#   same test `prover -b' makes, which only warns): a suite against a stale band
+#   checks a tree nobody pushed.  The ledger line says `test-suite.scm+band'.
+# --detach (proposal B): hand the run to capataz as a detached job and return at
+#   once with the job id; the agent keeps working and collects the result with
+#   `vnb-suite WORKER --wait JOB', which polls (capataz wait), fetches the job's
+#   full stdout (capataz cat) and prints exactly what the foreground form prints.
+#   `--wait' exits 124 while the job is still running: wait again.  Needs capataz
+#   0.2.2 or later on the primary (0.2.4 since 2026-09-23).
+set -u
+[ $# -ge 1 ] || { echo "usage: vnb-suite WORKER [--band] [--detach] [--heap BLOCKS] [--timeout SECONDS] | WORKER --wait JOB" >&2; exit 2; }
+WORKER=$1; shift
+HEAP=200000; TIMEOUT=4000; BAND=0; DETACH=0; WAITJOB=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --heap) HEAP=$2; shift 2;;
+    --timeout) TIMEOUT=$2; shift 2;;
+    --band) BAND=1; shift;;
+    --detach) DETACH=1; shift;;
+    --wait) WAITJOB=$2; shift 2;;
+    *) echo "vnb-suite: unknown option $1" >&2; exit 2;;
+  esac
+done
+LEDGER=~/mailbox/metrics/runs.jsonl
+
+# The digest, from the run's stdout on stdin: SUMMARY / FAIL lines as the worker
+# printed them, metrics lines appended to the ledger, exit status from the
+# `vnb-suite-exit' line, and 1 when no SUMMARY line came back at all.
+digest() {
+  python3 -c '
+import sys, os
+out = sys.stdin.read()
+ledger = sys.argv[1]
+runs = [l[len(";;RUNS "):] for l in out.splitlines() if l.startswith(";;RUNS ")]
+sys.stdout.write("".join(l + "\n" for l in out.splitlines() if not l.startswith(";;RUNS ")))
+if runs and os.path.isdir(os.path.dirname(ledger)):
+    with open(ledger, "a") as f: f.write("".join(l + "\n" for l in runs))
+for l in runs: sys.stdout.write("=== metrics: " + l + "\n")
+rc = 1
+for line in out.splitlines():
+    if line.startswith("vnb-suite-exit "): rc = int(line.split()[1])
+if "=== SUMMARY" not in out: sys.stdout.write("=== vnb-suite: NO SUMMARY LINE -- the suite did not finish\n"); rc = rc or 1
+sys.exit(rc)' "$LEDGER"
+}
+
+# ---- --wait JOB: collect a detached run ------------------------------------
+if [ -n "$WAITJOB" ]; then
+  capataz wait "$WORKER" "$WAITJOB" --json --user ubuntu --timeout "$TIMEOUT" > /dev/null 2>&1
+  wrc=$?
+  case $wrc in
+    124) echo "=== vnb-suite: job $WAITJOB is still running on $WORKER (wait again: vnb-suite $WORKER --wait $WAITJOB)"; exit 124;;
+    125) echo "=== vnb-suite: job $WAITJOB died on $WORKER without an exit code (instance rebooted or killed); it will never finish"; exit 125;;
+    4|2) echo "=== vnb-suite: no such job $WAITJOB on $WORKER"; exit $wrc;;
+  esac
+  capataz cat "$WORKER" "/home/ubuntu/.capataz/jobs/$WAITJOB/stdout" --user ubuntu | digest
+  exit $?
+fi
+
+# ---- the run itself: one script on the worker ------------------------------
+if [ $BAND = 1 ]; then
+  START="mit-scheme --band /home/ubuntu/prover/vnb.band --heap $HEAP --quiet --eval '(set-gc-notification! #t)' --load test-suite.scm"
+  NAME="test-suite.scm+band"
+  # the same exclusions as band_newer_scm in `prover': files load.scm never names
+  BANDCHECK="[ -f vnb.band ] || { echo '=== vnb-suite: no band at /home/ubuntu/prover/vnb.band -- run the cold load (prover --build-band) first'; echo 'vnb-suite-exit 76'; exit 76; }
+NEWER=\$(find /home/ubuntu/prover -name '*.scm' -not -path '*/scratchpad/*' -not -path '*/scratch/*' -not -path '*/prove-scripts/*' -not -path /home/ubuntu/prover/test-suite.scm -not -path /home/ubuntu/prover/test-suite-negative.scm -not -path /home/ubuntu/prover/harvest.scm -not -path /home/ubuntu/prover/replay-audit.scm -not -path /home/ubuntu/prover/ra-diverge.scm -not -path /home/ubuntu/prover/kernel-map-static.scm -not -path /home/ubuntu/prover/kernel-map-trace.scm -not -path /home/ubuntu/prover/mint-attribution.scm -not -path /home/ubuntu/prover/page-audit-support.scm -newer vnb.band -print -quit 2>/dev/null)
+[ -z \"\$NEWER\" ] || { echo \"=== vnb-suite: the band is OLDER than \$NEWER -- rebuild it (prover --build-band) or run without --band\"; echo 'vnb-suite-exit 76'; exit 76; }
+echo \"=== vnb-suite: from the band, \$(stat -c %y vnb.band | cut -c1-19)\""
+else
+  START="mit-scheme --heap $HEAP --quiet --eval '(set-gc-notification! #t)' --load test-suite.scm"
+  NAME="test-suite.scm"
+  BANDCHECK=":"
+fi
+SSM_TIMEOUT=$(( TIMEOUT + 1320 ))   # + up to 2 x 600 s waiting for the probe slots
+SCRIPT="mkdir -p /home/ubuntu/probes
+LOG=/home/ubuntu/probes/test-suite.log
+cd /home/ubuntu/prover || exit 70
+$BANDCHECK
+# hold EVERY probe slot for the run (a probe beside the suite on a 3.8 GB box can kill it silently,
+# 2026-09-20).  Same lock files as vnb-slot, released when this shell exits.
+exec 8>/tmp/vnb-probe.1 9>/tmp/vnb-probe.2
+flock -w 600 8 && flock -w 600 9 || { echo '=== vnb-suite: a probe held its slot for 600 s; suite NOT started'; echo 'vnb-suite-exit 75'; exit 75; }
+./vnb-metrics-run --host $WORKER --job test-suite --name $NAME --heap $HEAP --log \$LOG --out /home/ubuntu/probes/runs.jsonl --progress 300 -- timeout $TIMEOUT $START
+rc=\$?
+echo \"=== \$(wc -l < \$LOG) lines in \$LOG\"
+grep -n -E '^  FAIL  |^=== SUMMARY|Aborting|^;Unbound' \$LOG | cut -c1-300 | head -40
+if [ \$rc -eq 124 ]; then echo \"=== vnb-suite: TIMED OUT after $TIMEOUT s\"; fi
+echo \"vnb-suite-exit \$rc\""
+
+if [ $DETACH = 1 ]; then
+  JOB=$(capataz run "$WORKER" --detach --json --user ubuntu --job-name suite "$SCRIPT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])')
+  [ -n "$JOB" ] || { echo "vnb-suite: capataz run --detach returned no job id" >&2; exit 1; }
+  echo "=== vnb-suite: started $JOB on $WORKER (${NAME}); collect with:  vnb-suite $WORKER --wait $JOB"
+  exit 0
+fi
+
+capataz run "$WORKER" --json --user ubuntu --timeout "$SSM_TIMEOUT" "$SCRIPT" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+sys.stdout.write(d.get("stdout") or "")
+err = d.get("stderr") or ""
+if err.strip(): sys.stderr.write(err)' | digest

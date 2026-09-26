@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Kernel rules &mdash; VNB reference</title>
+<style>
+ :root { --ink:#1a2a3a; --accent:#2a4a6a; --accent2:#3f7fb0; --rule:#dde6f0;
+         --bg:#eef3f9; --panel:#f5f8fc; }
+ * { box-sizing:border-box; }
+ body { font-family: Helvetica, Arial, sans-serif; color:var(--ink); margin:0;
+        background:#fff; }
+ #wrap { display:flex; align-items:flex-start; }
+ nav { position:sticky; top:0; align-self:flex-start; min-width:14rem; width:14rem;
+       height:100vh; overflow:auto; padding:1.2rem 1rem; background:var(--panel);
+       border-right:1px solid var(--rule); box-sizing:border-box; }
+ nav .home { font-size:1.05rem; font-weight:600; color:var(--accent);
+             text-decoration:none; display:block; margin:.1rem 0 1rem; }
+ nav .home:hover { text-decoration:underline; }
+ nav a.doc { display:block; padding:.28rem .5rem; color:#33536f; text-decoration:none;
+             border-radius:5px; font-size:.92rem; line-height:1.3; }
+ nav a.doc:hover { background:#e3edf8; }
+ nav a.doc.active { background:var(--accent); color:#fff; font-weight:600; }
+ nav .extra { display:block; margin-top:1.2rem; padding-top:.8rem;
+              border-top:1px solid var(--rule); }
+ /* min-width:0 lets this flex child shrink below its content's intrinsic
+    width; without it a wide <pre> formula forces main past the viewport. */
+ main { padding:1.6rem 2.4rem 3rem; max-width:62rem; min-width:0; flex:1 1 auto; }
+ h1.page { color:var(--accent); font-size:1.9rem; margin:.2rem 0 .1rem;
+           background:linear-gradient(95deg,#2a4a6a 0%,#3f7fb0 60%,#b06a00 100%);
+           -webkit-background-clip:text; background-clip:text; color:transparent; }
+ .page-sub { color:#667; margin:.1rem 0 1.6rem; font-size:1.02rem; }
+ h2 { color:var(--accent); border-bottom:2px solid #e3edf8; padding-bottom:.2rem;
+      margin-top:2.2rem; }
+ h3,h4,h5,h6 { color:#365b7d; margin:.9rem 0 .25rem; }
+ :target { background:#fff4e0; box-shadow:-.5rem 0 0 #fff4e0, .3rem 0 0 #fff4e0; }
+ [id] { scroll-margin-top: .6rem; }
+ code { background:#f2f6fb; padding:0 .25rem; border-radius:3px;
+        font-family: ui-monospace, Menlo, Consolas, monospace; font-size:.92em;
+        overflow-wrap:anywhere; }
+ pre { background:#f7f9fc; border:1px solid #e6edf6; border-radius:6px;
+       padding:.6rem .8rem; font-size:.86rem;
+       white-space:pre-wrap; overflow-wrap:anywhere; }
+ li, p { overflow-wrap:anywhere; }
+ a.x { text-decoration:none; }
+ a.x:hover code { background:#dbe9fb; }
+ .pm { color:#9aa7b4; font-size:.85em; cursor:help; }
+ ul { margin:.3rem 0; }
+ li { margin:.12rem 0; }
+ hr { border:0; border-top:1px solid #e6edf6; margin:1.2rem 0; }
+ /* .tw scrolls a wide table on its own instead of pushing the page sideways */
+ .tw { overflow-x:auto; margin:.9rem 0; }
+ .tw table { border-collapse:collapse; font-size:.9rem; width:100%; }
+ .tw th, .tw td { border:1px solid var(--rule); padding:.3rem .55rem;
+                  text-align:left; vertical-align:top; }
+ .tw th { background:var(--panel); color:var(--accent); font-weight:600;
+          white-space:nowrap; }
+ .tw tbody tr:nth-child(even) { background:#fafcfe; }
+ .tw td code { background:transparent; padding:0; }
+ .lead { color:#667; }
+ /* hub */
+ .hub main { max-width:54rem; }
+ .hub-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));
+             gap:.9rem; margin:1.4rem 0; }
+ a.card { display:block; background:#fff; border:1px solid var(--rule);
+          border-radius:10px; padding:.9rem 1.1rem; text-decoration:none;
+          color:inherit; transition:border-color .12s, box-shadow .12s; }
+ a.card:hover { border-color:var(--accent2);
+                box-shadow:0 2px 10px rgba(42,74,106,.10); }
+ a.card .t { color:var(--accent); font-weight:600; font-size:1.05rem; }
+ a.card .b { color:#667; font-size:.9rem; margin-top:.2rem; line-height:1.4; }
+</style></head><body>
+<div id="wrap">
+<nav><a class="home" href="reference.html">&#8962; VNB reference</a><a class="doc" href="LIBRARY.html">Library map</a><a class="doc" href="STRUCTURE-INDEX.html">Structures</a><a class="doc" href="STRUCTURES.html">Structure notes</a><a class="doc" href="THEOREMS.html">Theorems &amp; axioms</a><a class="doc" href="DEFINITIONS.html">Definitions</a><a class="doc" href="OPERATORS.html">Operators</a><a class="doc" href="GLOSSARY.html">Glossary</a><a class="doc" href="FUNCTORS.html">Functoids</a><a class="doc" href="PSS.html">Proof Support Set</a><a class="doc" href="BY-OPERATOR.html">By operator</a><a class="doc" href="MACETE-INDEX.html">Macete index</a><a class="doc" href="FINGERPRINT-INDEX.html">Fingerprint index</a><a class="doc" href="PROOF-DEBT.html">Proof debt</a><a class="doc" href="DEBT-BUNDLE.html">Debt bundle</a><a class="doc" href="TACTICS.html">Tactics</a><a class="doc" href="BY-TOPIC.html">Theorems by topic</a><a class="doc" href="KERNEL.html">The kernel</a><a class="doc active" href="KERNEL-RULES.html">Kernel rules</a><a class="doc" href="KERNEL-MAP.html">Kernel map</a><a class="doc" href="TACTIC-USES.html">Tactic uses</a><a class="doc extra" href="structure-graph.html">Structure graph &#8599;</a></nav>
+<main><h1 class="page">Kernel rules</h1>
+<p class="page-sub">every inference rule the checker can record, with its premises and conclusion -- the trusted base beyond the axiom table <span class="lead">&mdash; KERNEL-RULES.md</span></p>
+<h2 id="KERNEL-RULES__vnb-kernel-inference-rules-the-trusted-base-beyond-the-axiom-table">VNB kernel inference rules — the trusted base beyond the axiom table</h2>
+<p>The catalog (<code>THEOREMS.md</code>) lists the <strong>axioms</strong> of VNB set theory — the first-order formulas installed by <code>make-vnb-base-theory</code> (<code>theory.scm</code>) and the <code>theorem-library</code> axiom files, stamped <code>primitive</code>. That list is <strong>not the whole trusted base.</strong> A second group of trusted principles lives in the proof checker itself, as <strong>primitive inference rules</strong> (<code>primitive-inferences.scm</code>, the <code>pi-*!</code> procedures). They are implemented in Scheme rather than derived from any axiom, so anyone establishing what VNB <em>assumes</em> must read them alongside the axioms. This page states them.</p>
+<p>Why some principles are rules rather than axioms: a few set-theoretic constructors carry a <strong>schema</strong> in their body — a metavariable ranging over <em>formulas</em> — that cannot be written as a clean first-order axiom without higher-order quantification. Separation <code>{x ∈ A | p}</code>, comprehension <code>{x | p}</code> and the indexed union <code>⋃_{z∈A} body</code> are the central cases. Rather than admit a formula variable, VNB characterises these constructors at the kernel level, one rule per elimination/introduction direction. The catalog says as much where it lists the axioms — <em>&quot;Fixed, though not finite (separation/replacement are schemas)&quot;</em> — and those schemas are stated below.</p>
+<p>Throughout, each rule has a <strong>name</strong> — <code>sep-mem-elim</code>, <code>forall-intro</code>, <code>cut</code> — which is recorded in the deduction graph with every inference it justifies. (The source calls this recorded name a <em>tag</em>.) The name is the unit of trust, not the command that produced it: one command may record any of several rules according to the shape of the goal, and two commands may record the same rule.</p>
+<p>Stated compactly:</p>
+<p>&gt; <strong>trusted base = the <code>primitive</code> axioms in THEOREMS.md + the kernel rules below.</strong></p>
+<hr>
+<h3 id="KERNEL-RULES__set--class-formation-schemas-the-set-existence-content">Set- &amp; class-formation schemas (the set-existence content)</h3>
+<p>These are the rules that <em>make sets exist</em>. Everything here is in <code>primitive-inferences.scm</code>, the &quot;D-7&quot; block (<code>SEP</code>/<code>COMP</code>/<code>BIG-UNION</code>), with sethood and membership directions. <code>⊢ G ⇐ ⊢ S₁ … ⊢ Sₙ</code> reads &quot;to prove goal <code>G</code>, prove subgoals <code>S₁ … Sₙ</code>&quot;; <code>[x:=y]</code> is capture-avoiding substitution.</p>
+<h4 id="KERNEL-RULES__separation-sep-x-a-p-=-x-a-p">SEPARATION — <code>SEP(x, A, p)</code> = <code>{ x ∈ A | p }</code></h4>
+<p>A subclass of <code>A</code> cut out by a formula <code>p</code> (with <code>x</code> bound in <code>p</code>). A separation over a <strong>set</strong> is a set.</p>
+<div class="tw"><table><thead><tr><th>rule (<code>pi-…!</code>)</th><th>tactic</th><th>shape</th></tr></thead><tbody><tr><td><code>sep-sethood</code></td><td><code>sep-set</code></td><td><code>⊢ SEP(x,A,p) ∈ SET  ⇐  ⊢ A ∈ SET</code></td></tr><tr><td><code>sep-mem-intro</code></td><td><code>sep-mi</code></td><td><code>⊢ y ∈ SEP(x,A,p)  ⇐  ⊢ y ∈ A   and   ⊢ p[x:=y]</code></td></tr><tr><td><code>sep-mem-elim</code></td><td><code>sep-me</code></td><td>assumption <code>y ∈ SEP(x,A,p)</code>  ⤳  context gains <code>y ∈ A</code> and <code>p[x:=y]</code> (the membership assumption is consumed)</td></tr></tbody></table></div>
+<h4 id="KERNEL-RULES__comprehension-comp-x-p-=-x-p-class-formation">COMPREHENSION — <code>COMP(x, p)</code> = <code>{ x | p }</code>  (class formation)</h4>
+<p>The class of all <strong>sets</strong> <code>x</code> satisfying <code>p</code>. Generally a <em>proper</em> class; its members are sets (<a class="x" href="THEOREMS.html#t-membership-implies-sethood"><code>membership-implies-sethood</code></a>), which is why intro/elim carry the <code>∈ SET</code> side condition rather than a domain.</p>
+<div class="tw"><table><thead><tr><th>rule (<code>pi-…!</code>)</th><th>tactic</th><th>shape</th></tr></thead><tbody><tr><td><code>comp-mem-intro</code></td><td><code>comp-mi</code></td><td><code>⊢ y ∈ COMP(x,p)  ⇐  ⊢ y ∈ SET   and   ⊢ p[x:=y]</code></td></tr><tr><td><code>comp-mem-elim</code></td><td><code>comp-me</code></td><td>assumption <code>y ∈ COMP(x,p)</code>  ⤳  context gains <code>y ∈ SET</code> and <code>p[x:=y]</code></td></tr></tbody></table></div>
+<p>(There is no <code>comp-sethood</code>: a comprehension is a class, a set only when separately shown bounded by a set.)</p>
+<h4 id="KERNEL-RULES__big-union-big-union-z-a-body-=-z-a-body">BIG-UNION — <code>BIG-UNION(z, A, body)</code> = <code>⋃_{z ∈ A} body</code></h4>
+<p>The indexed/dependent union — VNB&#x27;s replacement-style binder (the ZF <code>⋃a</code> is the special case <code>BIG-UNION(s, S, s)</code>). The <code>body</code> is a class <strong>schema</strong> in <code>z</code>. A big-union of a set-indexed family of sets is a set.</p>
+<div class="tw"><table><thead><tr><th>rule (<code>pi-…!</code>)</th><th>tactic</th><th>shape</th></tr></thead><tbody><tr><td><code>big-union-sethood</code></td><td><code>bu-set</code></td><td><code>⊢ BIG-UNION(z,A,body) ∈ SET  ⇐  ⊢ A ∈ SET   and   ⊢ ∀z. z ∈ A ⇒ body ∈ SET</code></td></tr><tr><td><code>big-union-mem-intro</code></td><td><code>bu-mi</code></td><td>with witness <code>w</code>: <code>⊢ x ∈ BIG-UNION(z,A,body)  ⇐  ⊢ w ∈ A   and   ⊢ x ∈ body[z:=w]</code></td></tr><tr><td><code>big-union-mem-elim</code></td><td><code>bu-me</code></td><td>assumption <code>x ∈ BIG-UNION(z,A,body)</code>  ⤳  fresh eigenvariable <code>e</code>; context gains <code>e ∈ A</code> and <code>x ∈ body[z:=e]</code></td></tr></tbody></table></div>
+<h4 id="KERNEL-RULES__related-term-formers-same-schema-in-the-body-reason">Related term-formers (same &quot;schema in the body&quot; reason)</h4>
+<ul><li><strong><code>IOTA(x, p)</code></strong> — definite description &quot;the <code>x</code> such that <code>p</code>&quot; (<code>pi-iota-def!</code>, tactic <code>iota-d</code>). Characterised by its defining property under a uniqueness side condition. Its context-side twin <code>iota-in-elim</code> (<code>pi-iota-in-elim!</code>, tactic <code>iota-e</code>, added 2026-09-15) runs the other way: when the context already establishes that the description <strong>denotes</strong> — it carries <code>(IN (IOTA x p) X)</code>, or an equation naming the term — the defining property <code>p[x := IOTA(x,p)]</code> is granted with no obligation posted. Soundness rests on two things the kernel already commits to: atomic formulas are strict, so a true membership entails that its subject denotes (this is exactly <code>asm-establishes-defined?</code>, primitive-inferences.scm:627, which <code>rfl</code> uses to close <code>t = t</code>, and the rule calls that predicate rather than re-testing the assumption shape, so the two cannot drift); and a description that denotes denotes the unique satisfier of its property, which is the same semantics <code>iota-def</code> relies on when it grants the property after existence and uniqueness are proved. With no definedness witness in the context the rule declines rather than assuming denotation.</li><li><strong><code>VNB-LAMBDA([x…], body)</code></strong> — the function-builder (<code>pi-lambda-type!</code> / <code>pi-lambda-beta!</code> / <code>pi-lambda-beta-hyp!</code>, tactics <code>lam-t</code> / <code>lam-b</code> / <code>lam-b-h</code>): typing into <code>FUN</code> and β-reduction <code>(VNB-LAMBDA([x], body))(a) = body[x:=a]</code>, in the goal (<code>lambda-beta</code>) or in an assumption (<code>lambda-beta-hyp</code>, primitive-inferences.scm:1415, driven from interactive.scm). The carrier of every <code>def-functoid</code> whose body is a <code>VNB-LAMBDA</code> (e.g. <code>BDD-METRIC</code>).</li></ul>
+<hr>
+<h3 id="KERNEL-RULES__the-remaining-logical-rules-standard-logic-equality-structure">The remaining logical rules (standard logic, equality, structure)</h3>
+<p>These add <strong>no set-existence strength</strong> — they are the ordinary natural-deduction and congruence rules plus the structure/number eliminators. Trusted, but they prove nothing the underlying logic + the axioms/schemas above don&#x27;t already license. All are <code>pi-*!</code> in <code>primitive-inferences.scm</code>.</p>
+<p>Note that a single tactic often stamps several tags: <code>di</code> emits whichever of <code>and-intro</code>, <code>or-intro-*</code>, <code>implies-intro</code>, <code>not-intro</code>, <code>iff-intro</code>, <code>forall-intro</code> the goal calls for, and <code>ai</code> emits whichever of <code>and-elim</code>, <code>or-elim</code>, <code>not-elim</code>, <code>iff-elim</code>, <code>forsome-elim</code> the cited assumption calls for. The <strong>rule name</strong> is the unit of trust, not the tactic.</p>
+<div class="tw"><table><thead><tr><th>rule</th><th>tactic</th><th>note</th></tr></thead><tbody><tr><td><code>and-intro</code> <code>or-intro-left</code> <code>or-intro-right</code> <code>implies-intro</code> <code>not-intro</code> <code>iff-intro</code> <code>forall-intro</code></td><td><code>di</code>, <code>oi-l</code>, <code>oi-r</code></td><td>goal-side introduction</td></tr><tr><td><code>and-elim</code> <code>or-elim</code> <code>not-elim</code> <code>iff-elim</code> <code>forsome-elim</code></td><td><code>ai</code></td><td>assumption-side elimination. <code>not-elim</code> fires only when the positive is <strong>already</strong> in context</td></tr><tr><td><code>forsome-intro</code></td><td><code>ew</code></td><td>supply a witness</td></tr><tr><td><code>forall-elim</code></td><td><code>inst</code>, <code>inst+</code>, <code>fact</code></td><td>instantiate a universal at <code>t</code>; since 2026-09-18 owes the side sequent <code>t = t</code> unless <code>t</code> is certified defined (a variable, a class term on defined arguments, an accessor of a structure the context has, or a term the context types) -- LUTINS instantiation; see docs/definedness-instantiation-2026-09-18.md</td></tr><tr><td><code>assumption</code> <code>theorem-assumption</code></td><td><code>ass</code>, <code>ta</code>, <code>fact</code></td><td>close from context / cite an installed theorem</td></tr><tr><td><code>cut</code> <code>weakening</code> <code>detach</code> <code>backchain</code></td><td><code>cut</code>, <code>have!</code>, <code>wk</code>, <code>detach!</code>, <code>bc</code>, <code>bc*</code></td><td></td></tr><tr><td><code>proof-by-contradiction</code></td><td><code>pbc</code></td><td></td></tr><tr><td><code>truth-intro</code> <code>contraposition</code></td><td>—</td><td>implemented, but reachable from no proof command; no proof in the library records either</td></tr><tr><td><code>eq-subst</code></td><td><code>subst</code></td><td>Leibniz; fires on <code>=</code> <strong>or</strong> <code>==</code>, with the equation in the context in either orientation. Rewrites in operator position too (since 2026-09-16)</td></tr><tr><td><code>reflexivity</code></td><td><code>rfl</code></td><td><code>t = t</code>, and only with <code>t</code> <strong>defined</strong></td></tr><tr><td><code>quasi-reflexivity</code></td><td><code>qrfl</code></td><td><code>t == t</code>, unconditionally</td></tr><tr><td><code>if-true</code> <code>if-false</code></td><td><code>if-true</code>, <code>if-false</code></td><td></td></tr><tr><td><code>cartesian-intro</code> <code>cartesian-elim</code></td><td><code>ci</code>, <code>ce</code></td><td></td></tr><tr><td><code>tuples-intro</code> <code>tuples-elim</code></td><td><code>ti</code>, <code>te</code></td><td></td></tr><tr><td><code>union-intro</code> <code>union-elim</code></td><td><code>ui</code>, <code>ue</code></td><td></td></tr><tr><td><code>intersection-intro</code> <code>intersection-elim</code></td><td><code>ii</code>, <code>ie</code></td><td></td></tr><tr><td><code>nth-reduce</code> <code>length-reduce</code></td><td><code>nth-r</code>, <code>len-r</code></td><td><code>NTH</code> / <code>LENGTH</code> of a literal <code>LIST</code></td></tr><tr><td><code>functoid-beta</code></td><td><code>beta</code></td><td></td></tr><tr><td><a class="x" href="THEOREMS.html#t-nn-induction"><code>nn-induction</code></a></td><td><code>ni</code></td><td>induction on <code>NN</code></td></tr><tr><td><a class="x" href="THEOREMS.html#t-transfinite-induction"><code>transfinite-induction</code></a></td><td><code>tfi</code></td><td><strong>strong</strong> transfinite induction on <code>ORD</code>. Distinct from, and not to be confused with, the <a class="x" href="THEOREMS.html#t-transfinite-induction"><code>transfinite-induction</code></a> <strong>axiom</strong> in <code>structure-library/ordinals.scm</code> — same name, two different trusted objects</td></tr><tr><td><code>transfinite-induction-3cases</code></td><td><code>tfi3</code></td><td>base / successor / limit</td></tr></tbody></table></div>
+<hr>
+<h3 id="KERNEL-RULES__rewriting-is-a-kernel-rule-too">Rewriting is a kernel rule too</h3>
+<p>Rewriting records rules of its own, and they are trusted exactly like the rules above.</p>
+<div class="tw"><table><thead><tr><th>rule</th><th>driven by</th><th>note</th></tr></thead><tbody><tr><td><code>macete</code></td><td><code>mac</code>, <code>macm</code></td><td>rewrite the <strong>goal</strong> by an installed macete (<code>macetes.scm</code>)</td></tr><tr><td><code>macete-hyp</code></td><td><code>mac-h</code>, <code>mac-h*</code></td><td>rewrite an <strong>assumption</strong>. Replaces it</td></tr><tr><td><code>cartesian-decompose</code></td><td><code>mac</code></td><td>procedural macete (<code>theory.scm</code>): <code>x ∈ CARTESIAN(A₁…Aₙ)</code> to its existential chain</td></tr><tr><td><code>tuple-equality-decompose</code></td><td><code>mac</code></td><td>procedural macete (<code>theory.scm</code>): <code>LIST(a…) = LIST(b…)</code> to the conjunction of components</td></tr></tbody></table></div>
+<p>The recorded rule carries the source and replacement patterns as arguments; those are per-application data, not part of the trusted base.</p>
+<hr>
+<h3 id="KERNEL-RULES__oracles-trusted-decision-procedures">Oracles — trusted decision procedures</h3>
+<p>A tactic of kind <code>oracle</code> closes a goal by running a decision procedure and recording a single rule. Each is sound and complete on its own domain, but it is <strong>trusted rather than reduced to the axioms</strong>: nothing derives it from the rules above, so each one widens the trusted base and is listed here for that reason. Four of the five procedures live in <code>structure-library/</code> rather than in the kernel directory, which does not make them any less trusted.</p>
+<div class="tw"><table><thead><tr><th>rule</th><th>tactic</th><th>source</th></tr></thead><tbody><tr><td><code>arith-ground</code></td><td><code>arith</code></td><td><code>arith-eval.scm</code> — decide a closed arithmetic sentence</td></tr><tr><td><code>arith-forsome</code></td><td><code>arith</code></td><td><code>arith-eval.scm</code> — witness a ground existential</td></tr><tr><td><code>arith-simplify</code></td><td><code>arith</code></td><td><code>arith-eval.scm</code> — substitute ground context equations, then decide</td></tr><tr><td><code>ring-simplify</code></td><td><code>rs</code>, <code>simp</code></td><td><code>structure-library/ring-simplify.scm</code></td></tr><tr><td><code>comm-ring-simplify</code></td><td><code>crs</code></td><td><code>structure-library/comm-ring-simplify.scm</code></td></tr><tr><td><code>ineq</code></td><td><code>ineq</code></td><td><code>structure-library/ineq-oracle.scm</code> — the <code>RR</code> order calculus</td></tr><tr><td><code>sos</code></td><td><code>sos</code></td><td><code>structure-library/sos-oracle.scm</code> — sum-of-squares nonnegativity</td></tr></tbody></table></div>
+<p>So the statement of the trusted base, refined:</p>
+<p>&gt; <strong>trusted base = the <code>primitive</code> axioms in THEOREMS.md + every rule recorded &gt; in a deduction graph: the 13 schemas, the 42 logical, equational and &gt; structural rules, the 4 rewriting rules, and the 7 decision procedures, 66 &gt; rules in all.</strong></p>
+<p>The page <em>The kernel</em> describes each of the 66 by its effect on the deduction graph and is the fuller statement; the counts there are generated from the registry the startup check uses.</p>
+<hr>
+<h3 id="KERNEL-RULES__this-list-is-checked-against-the-system-not-maintained-by-hand">This list is checked against the system, not maintained by hand</h3>
+<p>A document of this kind is only useful if it cannot quietly fall out of step with the program it describes. Two checks run every time the system starts.</p>
+<p><code>kernel-rules-audit</code> compares the rules actually recorded during the load against the documented list (<code>*kernel-rule-tags*</code>), in <strong>both</strong> directions, and reports either kind of discrepancy: a rule recorded but not documented — trusted code that nobody wrote down — and a rule documented but never exercised, which is either a rule no proof needs or one no command can reach.</p>
+<p><code>kernel-callers-audit</code> checks the other half: that only the eight permitted files record inferences at all. It reads every file of the system with the Scheme reader, and halts the load naming any file outside that list which calls <code>dg-apply-rule!</code>, or which passes it on as a value. The inventory of entry points, and of which proof command reaches which, is <code>KERNEL-MAP.md</code>.</p></main>
+</div></body></html>

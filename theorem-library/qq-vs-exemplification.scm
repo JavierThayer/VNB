@@ -52,6 +52,20 @@
       (quietly (lambda () (lam-b)))
       (when (and (> n 0) (not (equal? (qv-goal) before))) (lp (- n 1))))))
 
+;;; An open LEAF right now: ungrounded, and no rule has fired on it.  Every loop
+;;; below walks a SNAPSHOT of the leaf list, and `in-rr' ends with an `ass-all'
+;;; that grounds every assumption-closable node anywhere in the graph -- so a
+;;; later element of the snapshot can already be closed when the loop reaches
+;;; it.  `dk-focus!' on such a node moves the focus and records NOTHING (it is
+;;; not in proof-open-leaves, driver-kit.scm:164), and the closer's steps then
+;;; go onto the page against whatever leaf the engine had chosen: the page-audit
+;;; gate found this proof typing back in with its typing leaves open, diverging
+;;; exactly at a `fact'/`in-rr' run on a leaf the previous `ass-all' had just
+;;; closed (2026-09-15).  Skip what is no longer a leaf; nothing is lost, the
+;;; work on a closed node was wasted anyway.
+(define (qv-live-leaf? n)
+  (and (not (sequent-node-grounded? n)) (null? (sequent-node-in-arrows n))))
+
 ;;; the real leaf set: ungrounded AND no rule fired.  `proof-leaves' misses a
 ;;; node a REWRITE fired on, so it can read 0 while the proof is not done.
 (define (qv-open)
@@ -93,7 +107,8 @@
       ((and (pair? g) (eq? (car g) 'IN)
             (pair? (caddr g)) (eq? (car (caddr g)) 'CARTESIAN))
        (ci)
-       (for-each (lambda (n) (dk-focus! n) (qv-close-leaf!)) (qv-open)))
+       (for-each (lambda (n) (when (qv-live-leaf? n) (dk-focus! n) (qv-close-leaf!)))
+                 (qv-open)))
       ((and (pair? g) (eq? (car g) 'IN) (eq? (caddr g) 'QQ))
        (quietly (lambda () (fact 'qq-is-set) (fact 'qq-zero-in) (fact 'qq-one-in)))
        (in-rr))
@@ -131,6 +146,7 @@
           (proof-leaves))
 (for-each
  (lambda (l)
+  (when (qv-live-leaf? l)
    (dk-focus! l)
    (let ((g (qv-goal)))
      (cond
@@ -141,11 +157,12 @@
         (qv-close-typing! g))
        ((memq (car g) '(is-associative is-commutative is-identity has-inverses))
         (mac (car g)) (qv-peel!) (qv-beta!) (qv-close-leaf!))
-       (else (qv-peel!) (qv-beta!) (qv-close-leaf!)))))
+       (else (qv-peel!) (qv-beta!) (qv-close-leaf!))))))
  (proof-leaves))
 (let sweep ((n 0))
   (let ((before (length (qv-open))))
-    (for-each (lambda (l) (dk-focus! l) (vnb-guard (lambda () (qv-close-leaf!))))
+    (for-each (lambda (l) (when (qv-live-leaf? l)
+                            (dk-focus! l) (vnb-guard (lambda () (qv-close-leaf!)))))
               (qv-open))
     (if (and (< n 8) (< (length (qv-open)) before)) (sweep (+ n 1)))))
 (if (not (proof-done? *ps*))

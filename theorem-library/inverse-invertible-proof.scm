@@ -34,7 +34,7 @@
 (define (ii-focus! pred)
   (let lp ((ls (ii-leaves)))
     (cond ((null? ls) (error "inverse-invertible: no leaf matches"))
-          ((pred (ii-goalof (car ls))) (set-proof-state-focus! *ps* (car ls)) (car ls))
+          ((pred (ii-goalof (car ls))) (dk-focus! (car ls)) (car ls))
           (else (lp (cdr ls))))))
 ;; split every AND goal and close each leaf by an in-context assumption.
 (define (ii-split-and-close!)
@@ -45,7 +45,7 @@
               (else (ass)
                     (let ((open (ii-leaves)))
                       (when (pair? open)
-                        (set-proof-state-focus! *ps* (car open))
+                        (dk-focus! (car open))
                         (lp (+ n 1))))))))))
 
 (sp (make-wff

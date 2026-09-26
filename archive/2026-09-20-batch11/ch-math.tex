@@ -1,0 +1,571 @@
+\chapter{Mathematical content}
+
+\section{Number systems} \label{sec:nums}
+
+The file \texttt{number-systems.scm} declares five number systems as
+class constants and installs their arithmetic axioms in the current
+theory.  All declarations take effect at load time.
+
+\subsection{The standard number domains}
+
+\begin{itemize}
+\item \texttt{NN} ($\mathbb{N}$) Non-negative integers $\{0, 1, 2, \ldots\}$
+\item \texttt{ZZ} ($\mathbb{Z}$) Integers
+\item \texttt{QQ} ($\mathbb{Q}$) Rationals
+\item \texttt{RR} ($\mathbb{R}$) Reals
+\item \texttt{CC} ($\mathbb{C}$) Complex numbers
+\end{itemize}
+
+Sethood axioms (\texttt{nn-is-set} through \texttt{cc-is-set}) and the inclusion chain
+\[
+  \mathbb{N} \subseteq \mathbb{Z} \subseteq \mathbb{Q} \subseteq \mathbb{R} \subseteq \mathbb{C}
+\]
+\begin{sloppypar}are provided as axioms \texttt{nn-subset-zz}, \texttt{zz-subset-qq},
+\texttt{qq-subset-rr}, \texttt{rr-subset-cc}.\end{sloppypar}
+
+\subsection{Arithmetic operations}
+
+Arithmetic operations are shared across all number systems: there is one
+\texttt{+}, one \texttt{*}, one \texttt{-}, and so on.  Membership
+determines which system an argument belongs to; closure axioms guarantee
+the result stays in the appropriate system.  For example,
+\texttt{forall([x in NN, y in NN], x + y in NN)} is the
+closure axiom for \texttt{+} on \texttt{NN}.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+System & Operations & Distinguished constants \\
+\midrule
+\texttt{NN} &
+  \texttt{+}, \texttt{*}, \texttt{succ}, \texttt{<=} &
+  \texttt{0}, \texttt{1} \\[3pt]
+\texttt{ZZ} &
+  \texttt{+}, \texttt{*}, \texttt{-} (unary), \texttt{<=} &
+  \texttt{0}, \texttt{1} \\[3pt]
+\texttt{QQ} &
+  \texttt{+}, \texttt{*}, \texttt{-}, \texttt{recip}, \texttt{<=} &
+  \texttt{0}, \texttt{1} \\[3pt]
+\texttt{RR} &
+  \texttt{+}, \texttt{*}, \texttt{-}, \texttt{recip}, \texttt{abs}, \texttt{<=} &
+  \texttt{0}, \texttt{1} \\[3pt]
+\texttt{CC} &
+  \texttt{+}, \texttt{*}, \texttt{-}, \texttt{recip}, \texttt{conjugate} &
+  \texttt{0}, \texttt{1} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{remark}\label{remark:27135-34942-842417}
+%
+The infix notation \texttt{x \^{} n} is the preferred way to write
+exponentiation; it parses to the same internal form as
+\texttt{power(x, n)}.  The typing axiom is the natural closure form,
+matching the two-argument application syntax:
+\[
+  \forall x\,\forall n.\;
+    (x \in \mathit{CC} \land n \in \mathit{NN})
+    \;\Rightarrow\; \texttt{power}(x,n) \in \mathit{CC}
+  \qquad\text{(axiom \texttt{power-typing-nonneg})}
+\]
+The defining axioms are \texttt{power-zero} ($x^0 = 1$) and
+\texttt{power-succ} ($x^{\mathrm{succ}(n)} = x \cdot x^n$ for
+$n \in \mathit{NN}$).  A conditional equation \texttt{power-neg}
+covers negative integer exponents: $x^{-n} = \mathrm{recip}(x^n)$
+for $n \in \mathit{NN}$, $x \neq 0$; but this does not extend the
+\texttt{FUN} typing to $\mathit{ZZ}$, since $0^{-1}$ is undefined.
+Complex exponentiation $x^z$ for $z \in \mathit{CC}$ will be defined
+later via the power series for \texttt{exp}.
+%
+\end{remark}
+%
+\begin{remark}\label{remark:27135-34995-146430}
+%
+In particular, $0^0 = 1$.  This is the mathematically correct value
+for combinatorial and power-series purposes, as Knuth argues, and it is
+what MIT~Scheme's exact arithmetic returns.  GNU/Maxima raises an error
+here.  IMPS treated $0^0$ as undefined, which is logically sound but
+forces theorems such as the binomial theorem to carry an explicit
+$x \neq 0$ or $y \neq 0$ hypothesis to exclude the special case;
+this system avoids that overhead by defining $0^0 = 1$.
+%
+\end{remark}
+
+The arithmetic decision procedure \texttt{vnb-do-arith} (and the
+\texttt{(arith)} command) evaluates \texttt{x \^{} n} on ground
+numeric arguments.
+
+\noindent
+Integer literals are constants directly: \texttt{0}, \texttt{1},
+\texttt{7}, \texttt{-3}, etc.\ are elements of \texttt{ZZ} (and of
+\texttt{QQ}, \texttt{RR}, \texttt{CC} by inclusion); non-negative integer
+literals are additionally elements of \texttt{NN}.  No subscripted
+forms (\texttt{0\_ZZ}, \texttt{1\_RR}, etc.) are used.  In MIT~Scheme
+numeric literals are first-class objects, so this representation is
+natural.
+
+Integer literals must be in canonical decimal form: no leading zeros
+(other than \texttt{0} itself), so \texttt{007} and \texttt{000075} are
+rejected by the parser.  \texttt{-0} normalises to \texttt{0}.
+
+The ordinal operators \texttt{ORD-LE}, \texttt{ORD-LT}, and
+\texttt{succ\_ORD} are named apart from the numeric \texttt{<=} and
+\texttt{succ}.  The first two were written \texttt{<=\_ORD} and
+\texttt{<\_ORD} until 2026-08-24; those spellings could not be tokenized
+(\texttt{read-op} consumes the \texttt{<} and stops, and \texttt{\_}
+cannot begin a token), so no formula mentioning them could be retyped
+from its own printed form.  \texttt{succ\_ORD} keeps its subscript: it
+begins with a letter and reads back.
+
+\subsection{Axioms installed}
+
+Each number system comes with: a sethood axiom, inclusion from the
+previous system, closure of each operation, and algebraic identities
+appropriate to its structure.
+
+\begin{itemize}
+\item \texttt{NN}: closed under \texttt{+} and \texttt{*}; constants
+  \texttt{0} (additive unit) and \texttt{1} (multiplicative unit);
+  commutativity, associativity, and distributivity for \texttt{+} and
+  \texttt{*}.  Unary \texttt{-} and \texttt{recip} are not total here.
+\item \texttt{ZZ}: $\mathtt{NN}$ axioms plus closure under unary
+  \texttt{-} (additive inverse); $x + (-x) = 0$.
+\item \texttt{QQ}: $\mathtt{ZZ}$ axioms plus \texttt{recip} on nonzero
+  elements; ordering \texttt{<=} compatible with \texttt{+} and \texttt{*}.
+\item \texttt{RR}: $\mathtt{QQ}$ axioms plus \texttt{abs} satisfying the
+  triangle inequality, with \texttt{abs($x$) = 0} iff \texttt{$x$ = 0}.
+\item \texttt{CC}: $\mathtt{RR}$ axioms plus \texttt{conjugate}, an
+  involution compatible with $+$ and $\cdot$, with
+  $a \cdot \overline{a} \in \mathbb{R}$ and $a \cdot \overline{a} \geq 0$.
+  No ordering on $\mathtt{CC}$.
+\end{itemize}
+
+\noindent The abstract structural names---commutative monoid,
+commutative ring, ordered field---and the corresponding officialised
+ring instances are deferred to Section~\ref{sec:basic-rings}.  At this
+point we are simply listing the operations and identities each
+domain carries.
+
+Because there is a single \texttt{+}, \texttt{*}, etc.\ shared across all
+systems, no compatibility axioms between adjacent systems are needed:
+there is nothing to be compatible with.
+
+\begin{remark}
+Each of \texttt{NN}, \texttt{ZZ}, and \texttt{QQ} carries an infinite
+family of membership axioms, one per numeral appearing in the theory.
+When a positive-integer numeral $n$ is introduced, it is implicitly
+axiomatized as a iterated sum $1 + 1 + \cdots + 1$ ($n$ times), so
+$n \in \mathtt{NN}$.  For \texttt{ZZ}, negative numerals are similarly
+axiomatized as the additive inverse of such sums, giving $-n \in
+\mathtt{ZZ}$.  These axioms are generated on demand: entering a numeral
+literal in a formula automatically extends the theory with the
+corresponding membership fact.
+\end{remark}
+
+\subsection{Example use in a proof}
+
+\begin{VNBcode}
+; Prove: 0 is in RR
+(sp (make-wff-from-string "0 in RR"))
+(ta 'rr-zero-in)                ; introduce theorem (0 in rr)
+(ass)                           ; goal is now in assumptions
+
+; Prove: for reals a, b, (a + b) is in RR
+(sp (make-wff-from-string "a in RR and b in RR implies a + b in RR"))
+(di)                              ; assume (a in rr) and (b in rr)
+(ai "a in RR and b in RR")       ; split into (a in rr) and (b in rr)
+(ta 'rr-add-closed)               ; closure axiom: forall([a, b], ...)
+(inst "forall([a, b], a in rr and b in rr implies a + b in rr)" 'a)
+(inst "forall([b], a in rr and b in rr implies a + b in rr)" 'b)
+(bc "a in rr and b in rr implies a + b in rr")
+(ass)
+; => Proof complete.
+\end{VNBcode}
+
+%% =========================================================
+\section{Ordinals}
+\label{sec:ordinals}
+
+\subsection{The class ORD}
+
+\texttt{ORD} is a primitive class constant, declared in the same style as
+\texttt{NN}, \texttt{RR}, and \texttt{CC}: no explicit construction of
+ordinals is needed.  The class is characterised entirely by its axioms.
+
+\begin{itemize}
+\item \texttt{ORD} the class of all ordinals (a proper class)
+\item \texttt{$\alpha$ in ORD} $\alpha$ is an ordinal
+\end{itemize}
+
+\subsection{The ordering predicate}
+
+Ordinals are equipped with a primitive ordering predicate \texttt{ORD-LE}
+(and its strict companion \texttt{ORD-LT}) that is independent of set
+membership.  The ordering has no required connection to $\in$.
+
+\begin{itemize}
+\item \texttt{ORD-LE($\alpha$, $\beta$)} \quad $\alpha \leq \beta$ in the ordinal ordering
+\item \texttt{ORD-LT($\alpha$, $\beta$)} \quad $\alpha < \beta$ (strict)
+\item \texttt{succ\_ORD($\alpha$)} \quad successor ordinal of $\alpha$
+\end{itemize}
+
+\subsection{Axioms}
+
+The following axioms are installed in \texttt{ordinals.scm}.
+
+\begin{itemize}
+\item \texttt{burali-forti}
+  $\mathit{ORD} \notin \mathit{SET}$: \texttt{ORD} is a proper class.
+  Every \emph{set} of ordinals has a supremum in \texttt{ORD}
+  (axiom \texttt{sup-ord-in}); the supremum need not lie in the set itself
+  (e.g.\ $\sup \mathit{NN} = \omega \notin \mathit{NN}$).
+  If \texttt{ORD} were a set, its supremum $\alpha$ would be an ordinal,
+  hence $\mathit{succ\_ORD}(\alpha) \in \mathit{ORD}$ would strictly
+  exceed $\alpha$---contradicting that $\alpha$ bounds \texttt{ORD}.
+\item \texttt{ord-le-closure}
+  $\alpha \leq_O \beta \;\Rightarrow\; \alpha \in \mathit{ORD} \land \beta \in \mathit{ORD}$
+\item \texttt{ord-le-refl}
+  $\alpha \in \mathit{ORD} \;\Rightarrow\; \alpha \leq_O \alpha$
+\item \texttt{ord-le-antisymm}
+  $\alpha \leq_O \beta \land \beta \leq_O \alpha \;\Rightarrow\; \alpha = \beta$
+\item \texttt{ord-le-trans}
+  $\alpha \leq_O \beta \land \beta \leq_O \gamma \;\Rightarrow\; \alpha \leq_O \gamma$
+\item \texttt{ord-le-total}
+  $\alpha,\beta \in \mathit{ORD} \;\Rightarrow\; \alpha \leq_O \beta \lor \beta \leq_O \alpha$
+\item \texttt{ord-zero-least}
+  $\alpha \in \mathit{ORD} \;\Rightarrow\; 0 \leq_O \alpha$
+\item \texttt{ord-lt-iff}
+  $\alpha <_O \beta \;\Leftrightarrow\; \alpha \leq_O \beta \land \alpha \neq \beta$
+\item \texttt{ord-succ-in}
+  $\alpha \in \mathit{ORD} \;\Rightarrow\; \mathit{succ\_ORD}(\alpha) \in \mathit{ORD}$
+\item \texttt{ord-succ-above}
+  $\alpha \in \mathit{ORD} \;\Rightarrow\; \alpha <_O \mathit{succ\_ORD}(\alpha)$
+\item \texttt{ord-succ-immediate}
+  $\alpha,\beta \in \mathit{ORD},\; \alpha <_O \beta \;\Rightarrow\; \mathit{succ\_ORD}(\alpha) \leq_O \beta$
+\item \texttt{ord-succ-injective}
+  $\mathit{succ\_ORD}(\alpha) = \mathit{succ\_ORD}(\beta) \;\Rightarrow\; \alpha = \beta$
+\item \begin{sloppypar}\texttt{limit-ord-iff}
+  $\mathit{LIMIT\text{-}ORD}(\lambda) \;\Leftrightarrow\; \lambda \in \mathit{ORD} \land \lambda \neq 0 \land \lnot\exists\alpha.\,\lambda = \mathit{succ\_ORD}(\alpha)$\end{sloppypar}
+\item \texttt{ord-segment-is-set}
+  $\alpha \in \mathit{ORD} \;\Rightarrow\; \mathit{ORD\text{-}SEGMENT}(\alpha) \in \mathit{SET}$
+\item \texttt{ord-segment-membership}
+  $x \in \mathit{ORD\text{-}SEGMENT}(\alpha) \;\Leftrightarrow\; x <_O \alpha$
+\item \texttt{ord-segment-zero}
+  $\mathit{ORD\text{-}SEGMENT}(0) = \emptyset$
+\item \texttt{ord-segment-succ}
+  \[x \in \mathit{ORD\text{-}SEGMENT}(\mathit{succ\_ORD}(\alpha))
+  \;\Leftrightarrow\; x \in \mathit{ORD\text{-}SEGMENT}(\alpha) \lor x = \alpha\]
+\item \texttt{sup-ord-in}
+  $A \in \mathit{SET},\; A \subseteq \mathit{ORD} \;\Rightarrow\; \mathit{SUP\text{-}ORD}(A) \in \mathit{ORD}$
+\item \texttt{sup-ord-upper}
+  $\mathit{SUP\text{-}ORD}(A)$ is an upper bound of $A$
+\item \texttt{sup-ord-least}
+  $\mathit{SUP\text{-}ORD}(A)$ is the least upper bound
+\item \texttt{sup-ord-empty}
+  $\mathit{SUP\text{-}ORD}(\emptyset) = 0$
+\item \texttt{transfinite-induction}
+  see \S\ref{sec:ord-induction}
+\end{itemize}
+
+Here $\leq_O$ and $<_O$ abbreviate \texttt{ORD-LE} and \texttt{ORD-LT}.
+
+\subsection{Relationship to number systems}
+
+\texttt{NN} is a subset of \texttt{ORD} (axiom \texttt{nn-subset-ord}):
+\[
+  \forall n.\; n \in \mathit{NN} \;\Rightarrow\; n \in \mathit{ORD}
+\]
+Consequently $0 \in \mathit{ORD}$ (from \texttt{nn-zero-in} and
+\texttt{nn-subset-ord}).  The ordinal successor agrees with the numeric
+successor on $\mathit{NN}$ (axiom \texttt{ord-succ-nn}), and
+\texttt{ORD-LE} restricted to $\mathit{NN}$ coincides with the numeric
+\texttt{<=} (axiom \texttt{ord-le-nn-compat}).  The number systems
+\texttt{ZZ}, \texttt{QQ}, \texttt{RR}, \texttt{CC} are not subsets of
+\texttt{ORD}.
+
+\subsection{Transfinite induction}
+\label{sec:ord-induction}
+
+\paragraph{The induction axiom.}
+
+\begin{sloppypar}The axiom \texttt{transfinite-induction} is the \emph{complete} (strong)
+form: a class $C$ that contains every ordinal whose strict predecessors are
+all in $C$ must contain every ordinal.\end{sloppypar}
+\[
+  \forall C.\;
+  \Bigl(\forall\alpha \in \mathit{ORD}.\;
+        (\forall\beta <_O \alpha.\; \beta \in C) \Rightarrow \alpha \in C\Bigr)
+  \;\Rightarrow\;
+  \forall\alpha \in \mathit{ORD}.\; \alpha \in C
+\]
+
+\paragraph{The \texttt{(tfi)} proof command.}
+
+\texttt{(tfi)} applies transfinite induction to the current focus goal.
+The goal must have the form
+\[
+  \forall \alpha.\; \alpha \in \mathit{ORD} \;\Rightarrow\; P(\alpha)
+\]
+and \texttt{(tfi)} replaces it with the single inductive-step subgoal
+\[
+  \forall \alpha.\;
+    \bigl(\alpha \in \mathit{ORD} \;\land\;
+          \forall\beta <_O \alpha.\; P(\beta)\bigr)
+    \;\Rightarrow\; P(\alpha)
+\]
+
+\paragraph{The \texttt{(tfi3)} proof command.}
+
+\texttt{(tfi3)} splits the same goal into three subgoals matching the
+standard Peano-style cases:
+\begin{enumerate}
+\item \textbf{Base:} $P(0)$.
+\item \textbf{Successor:} $\forall\alpha \in \mathit{ORD}.\; P(\alpha) \Rightarrow P(\mathit{succ\_ORD}(\alpha))$.
+\item \textbf{Limit:} $\forall\lambda.\;
+  \mathit{LIMIT\text{-}ORD}(\lambda) \land
+  (\forall\beta <_O \lambda.\; P(\beta)) \;\Rightarrow\; P(\lambda)$.
+\end{enumerate}
+
+\subsection{Transfinite recursion}
+\label{sec:ord-recursion}
+
+The theoretical basis for transfinite recursive definitions is the
+following pair of propositions.  Both are proved by the standard
+least-counterexample argument using well-foundedness of $\leq_O$.
+
+\begin{sloppypar}
+\begin{prop}[Transfinite recursion, sets]\label{prop:tfrec-set}
+Let $U = \mathit{ORD\text{-}SEGMENT}(\alpha)$ for some $\alpha \in \mathit{ORD}$,
+let $A \in \mathit{SET}$, and let
+\[
+  \mathcal{F}(U, A) \;=\; \bigcup_{x \in U}\,\mathit{FUN}(\mathit{ORD\text{-}SEGMENT}(x),\, A)
+\]
+be the set of all functions defined on an initial segment within $U$ with
+values in $A$.  For any $\mathcal{E} \in \mathit{FUN}(\mathcal{F}(U,A),\, A)$ there
+is a unique $f \in \mathit{FUN}(U, A)$ such that
+\[
+  f(x) \;=\; \mathcal{E}\bigl(f \!\restriction\! \mathit{ORD\text{-}SEGMENT}(x)\bigr)
+  \quad \text{for every } x \in U.
+\]
+\end{prop}
+\end{sloppypar}
+
+\begin{prop}[Transfinite recursion, class version]\label{prop:tfrec-class}
+Let $A$ be a class, and let $\mathcal{E}$ be a functoid from the class of
+all functions defined on initial ordinal segments with values in $A$ to $A$
+(a proper-class domain, so $\mathcal{E}$ cannot be an element of
+$\mathit{FUN}$).
+Then there is a unique functoid $f$ on $\mathit{ORD}$ with values in $A$ such that
+\[
+  f(\xi) \;=\; \mathcal{E}\bigl(f \!\restriction\! \mathit{ORD\text{-}SEGMENT}(\xi)\bigr)
+  \quad \text{for every } \xi \in \mathit{ORD}.
+\]
+\end{prop}
+
+\begin{remark}
+Both $\mathcal{E}$ and $f$ in Proposition~\ref{prop:tfrec-class} are functoids, not
+elements of $\mathit{FUN}(A,B)$: their domains are proper classes ($\mathit{ORD}$
+for $f$; the class of all initial-segment functions for $\mathcal{E}$), and
+$\mathit{FUN}$ requires set-valued domains.  Each is nonetheless a well-defined
+class of ordered pairs with the function property.
+\end{remark}
+
+The Scheme helper \texttt{def-by-ord-recursion} implements this pattern;
+see Section~\ref{sec:recursive-defs}.
+
+%% =========================================================
+\section{The base theory}
+\label{sec:axioms}
+
+The base theory \texttt{vnb-set-theory} is loaded automatically and
+provides the following named axioms (all usable via
+\texttt{cmd-theorem-assumption}):
+
+\begin{itemize}
+\item \texttt{membership-implies-sethood}
+  $\forall a\,\forall b.\;(a \in b) \Rightarrow a \in \mathit{SET}$
+\item \texttt{extensionality}
+  $\forall a\,\forall b.\;(a \in \mathit{SET} \land b \in \mathit{SET}) \Rightarrow
+  (a = b \Leftrightarrow \forall x.\,(x \in a \Leftrightarrow x \in b))$
+\item \texttt{empty-set-is-set}
+  $\texttt{EMPTY-SET} \in \mathit{SET}$
+\item \texttt{empty-set-has-no-members}
+  $\forall x.\;\lnot(x \in \texttt{EMPTY-SET})$
+\item \texttt{pairing}
+  $\forall a\,\forall b.\;(a \in \mathit{SET} \land b \in \mathit{SET}) \Rightarrow \{a,b\} \in \mathit{SET}$
+\item \texttt{pairing-membership}
+  $\forall a\,\forall b.\;(a \in \mathit{SET} \land b \in \mathit{SET}) \Rightarrow
+  \forall x.\;(x \in \{a,b\}) \Leftrightarrow (x=a \lor x=b)$
+\item \texttt{power-set}
+  $\forall a.\;a \in \mathit{SET} \Rightarrow \texttt{power}(a) \in \mathit{SET}$
+\item \texttt{power-set-membership}
+  $\forall a\,\forall x.\;(x \in \texttt{power}(a)) \Leftrightarrow
+  (x \in \mathit{SET} \land \forall z.\,(z \in x \Rightarrow z \in a))$
+\end{itemize}
+
+To add a new theorem to the theory (and automatically install its macete):
+\begin{VNBcode}
+(theory-add-theorem! (current-theory) 'my-thm
+  (make-wff-from-string "forall([x in A], x in B)"))
+\end{VNBcode}
+
+
+%% Definitions moved to ch-defs.tex
+
+
+%% =========================================================
+\section{Pending axioms}
+\label{sec:pending-axioms}
+
+The axioms in this section are needed for full set-theoretic reasoning
+but are not yet installed.  They fall into two groups.
+
+\subsection*{Installed in \texttt{axioms.scm}}
+
+The following were previously pending but are now installed.
+They are straightforward first-order statements requiring no new
+expression primitives.
+
+\begin{itemize}
+
+\item \texttt{equality-symmetry}
+  $a = b \Rightarrow b = a$.
+
+\item \texttt{equality-transitivity}
+  $a = b \land b = c \Rightarrow a = c$.
+
+\item \texttt{fun-apply-type}
+  $(f \in \mathit{FUN}(A,B)) \land (x \in A) \Rightarrow f(x) \in B$.
+  Derivable from \texttt{fun-codomain-iff} but named for direct use.
+
+\item \texttt{list-sethood}
+  $A \in \mathit{SET} \land L \in \mathit{TUPLES}(A) \Rightarrow L \in \mathit{SET}$.
+  Derivable from \texttt{subset-set} (elements of any class are sets)
+  but named for direct use in structure instance proofs.
+
+\item \texttt{eq-subst-membership}
+  $a = b \land b \in S \Rightarrow a \in S$.
+  A first-order instance of \texttt{equality-substitution} restricted to
+  membership; derivable from \texttt{equality-transitivity} and
+  extensionality, but named for direct use in type proofs.
+
+\item \texttt{quasi-eq-reflexivity}\ $(a \mathbin{==} a)$.
+
+\item \texttt{quasi-eq-symmetry}\ $(a \mathbin{==} b) \Rightarrow (b \mathbin{==} a)$.
+
+\item \texttt{quasi-eq-transitivity}\
+  $(a \mathbin{==} b) \land (b \mathbin{==} c) \Rightarrow (a \mathbin{==} c)$.
+
+\item \texttt{quasi-eq-def}\
+  $(a = a) \Rightarrow ((a \mathbin{==} b) \Leftrightarrow (a = b))$;
+  when $a$ is defined, quasi-equality coincides with strict equality.
+
+\end{itemize}
+
+The following were already installed (noted here for completeness):
+\texttt{fun-domain-apply-def}, \texttt{fun-domain-extensionality},
+\texttt{fun-codomain-iff} and \texttt{choice-axiom} in \texttt{theory.scm};
+\texttt{nn-subset-ord} and all \texttt{ord-*} axioms in
+\texttt{structure-library/ordinals.scm}, not in \texttt{theory.scm}
+(see Section~\ref{sec:ordinals}).  The ordinal axioms carry
+\texttt{primitive} provenance and so contribute nothing to any proof's bill.
+
+\subsection*{List recursion and list induction}
+\label{sec:list-recursion}
+
+Both were listed as pending in earlier editions of this manual, and both are
+now installed.  \texttt{structure-library/list-recursion.scm} adds the
+constructor \texttt{CONS}$(x, L)$ --- the name is \texttt{CONS}, not
+\texttt{prepend} --- with four defining equations, stamped
+\texttt{definitional} because they constrain a new head and so add no
+consequence about the old vocabulary:
+\[
+  \texttt{length}(\texttt{cons}(x,L)) = \texttt{succ}(\texttt{length}(L)),
+  \qquad
+  \texttt{nth}(1, \texttt{cons}(x,L)) = x,
+\]
+with \texttt{nth-cons-succ} shifting the remaining indices and
+\texttt{makeset-cons} relating \texttt{make-set} to a union with a singleton.
+Alongside them are two \emph{generation} axioms, which are claims about
+\texttt{TUPLES} rather than about \texttt{CONS} and are therefore asserted and
+warranted: \texttt{tuple-length-zero} (a tuple of length $0$ is the empty
+tuple) and \texttt{tuple-cons-decompose} (a tuple of length $\texttt{succ}(n)$
+is $x$ prepended to a tuple of length $n$).
+
+The induction principle is then a \emph{theorem}, not a schema-level primitive
+inference: \texttt{theorem-library/tuples-induction.scm} proves
+\[
+  \forall A, C.\;
+  [\,]\in C \;\wedge\;
+  (\forall x, M.\; x \in A \wedge M \in \mathit{TUPLES}(A) \wedge M \in C
+     \Rightarrow \texttt{cons}(x,M) \in C)
+  \;\Rightarrow\;
+  \forall L \in \mathit{TUPLES}(A).\; L \in C
+\]
+by induction on the \emph{length}, using \texttt{nn-induction} and the two
+generation axioms.  It is stated in class form, quantifying over a class $C$
+with membership in it as the conclusion, exactly as \texttt{nn-induction} and
+\texttt{finite-set-induction} are; VNB quantifies over classes, so one theorem
+does the work a schema would do in a first-order presentation.  Its bill reads
+\texttt{modulo \{tuple-length-zero, tuple-cons-decompose\}}, which is the honest
+report: the induction is derived, and what it rests on is the statement that
+tuples are finite.
+
+\subsection*{Still pending}
+
+The remaining items require schema-level infrastructure --- a primitive
+inference rather than a first-order axiom.  (An earlier edition also listed
+\texttt{SEPARATION}, \texttt{UNION-SET}, \texttt{COMP} and \texttt{PREPEND}
+as missing expression primitives.  They are not missing: \texttt{SEP},
+\texttt{COMP} and \texttt{BIG-UNION} are registered term-forming heads
+(\texttt{wff.scm}) with intro/elim rules in \texttt{primitive-inferences.scm},
+and they are documented in \texttt{reference/KERNEL-RULES.md}.)
+
+\begin{itemize}
+
+\item \texttt{equality-substitution}
+  $a = b \land P(a) \Rightarrow P(b)$ (for any formula $P$).
+  Requires a substitution schema; cannot be stated as a single
+  first-order sentence.
+
+\item \texttt{separation}
+  $A \in \mathit{SET} \Rightarrow \{x \in A \mid p\} \in \mathit{SET}$.
+  Requires the \texttt{SEPARATION} expression primitive.
+
+\item \texttt{union-set} and \texttt{union-set-membership}
+  $A \in \mathit{SET} \Rightarrow \bigcup A \in \mathit{SET}$, and
+  $x \in \bigcup A \Leftrightarrow \exists a \in A.\; x \in a$.
+  Requires the \texttt{UNION-SET} (big union) expression primitive,
+  distinct from the binary \texttt{UNION} constructor.
+
+\item \texttt{cartesian-n-ary-sethood}
+  All $A_i \in \mathit{SET} \Rightarrow A_1 \times \cdots \times A_n \in \mathit{SET}$.
+  The binary case is installed (\texttt{cartesian-set-iff}); the $n$-ary
+  case reduces to binary by associativity but requires explicit axioms.
+
+\item \texttt{comp-membership}
+  $x \in \{y \mid p\} \Leftrightarrow p[y \mapsto x]$.
+  Requires the \texttt{COMP} (class comprehension) expression primitive.
+
+\item \texttt{lambda-type}
+  $(\forall x_i \in A_i.\;\mathit{body} \in B) \Rightarrow
+   \lambda([x_1,\ldots], \mathit{body}) \in \mathit{FUN}(A_1{\times}\cdots{\times}A_n, B)$.
+  Requires a schema-level primitive inference (\texttt{pi-lambda-type}).
+
+\item \texttt{lambda-beta}
+  $\lambda([x_1,\ldots], \mathit{body})(v_1,\ldots,v_n)
+   = \mathit{body}[x_i \mapsto v_i]$.
+  Requires a beta-reduction primitive inference.
+
+\item \texttt{iota-def}
+  $(\exists!\, x.\;p(x)) \Rightarrow p(\texttt{iota}(x,p))$.
+  Requires a schema-level primitive inference.
+
+\item \texttt{infinity}
+  There exists an inductive set:
+  $\exists A \in \mathit{SET}.\;\emptyset \in A \land
+   \forall x \in A.\; x \cup \{x\} \in A$.
+
+\end{itemize}
+
+%% =========================================================

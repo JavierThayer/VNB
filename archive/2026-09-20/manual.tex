@@ -1,0 +1,197 @@
+\documentclass{amsbook}[openany]
+\renewcommand\thesection{\thechapter.\arabic{section}}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{textcomp}
+\usepackage{fancyvrb}
+\usepackage{upquote}
+%% ---- Kindle build, part 1 of 2: page geometry -----------------------------
+%% manual-kindle.tex defines \VNBkindle and then \input's this file, so both
+%% kindle blocks are inert in the ordinary build.  geometry goes here, BEFORE
+%% hyperref, which is the supported order.  Part 2 (the code font) is below,
+%% after the verbatim environments it overrides.
+\ifdefined\VNBkindle
+  \usepackage[paperwidth=105mm,paperheight=140mm,
+              top=5mm,bottom=5mm,left=4mm,right=4mm]{geometry}
+\fi
+%% INDEX.  No \usepackage{makeidx}: amsbook already provides \see, \seealso,
+%% the theindex environment and \printindex (amsbook.cls:1329,1190,1331), and
+%% makeidx re-\newcommand's \see -- "Command \see already defined", a fatal
+%% error.  \makeindex itself is in the LaTeX kernel, so this line is all that
+%% is needed.  Entries come from the generators; see \printindex at the end.
+\makeindex
+\usepackage{hyperref}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+%% List style, set ONCE here rather than per-list.  The manual had accumulated
+%% six different labels for the same thing -- $\circ$ (36 lists, in three
+%% spellings), $-$ (13), \textendash (4), $\ast$ (3), $\checkmark$ (1) -- each
+%% carrying its own bracketed option block, plus two bare lists that fell back
+%% to the amsbook bullet.  Levels are now distinguished by INDENTATION, with a
+%% dash rather than a bullet at both: \textendash and not $-$, because $-$ is a
+%% math minus, set in math italic at math spacing.
+\setlist[itemize,1]{label=\textendash, leftmargin=0.85cm, itemsep=2mm}
+\setlist[itemize,2]{label=\textendash, leftmargin=0.85cm, itemsep=1mm,
+                    topsep=1mm}
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{claim}{Claim}
+
+\theoremstyle{definition}
+\newtheorem{dfn}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[chapter]
+\theoremstyle{remark}
+\pdfglyphtounicode{visiblespace}{0020}
+\pdfgentounicode=1
+
+%% Code blocks are set off by INDENTATION, not by a frame.  VNBcode used to be
+%% Verbatim with frame=single (91 boxes) and VNBsnip the identical environment
+%% without the frame (49 uses); nothing in the text distinguished them, so the
+%% choice between box and no-box across 140 blocks was editorial noise.  They
+%% are now one style.  The indent matches the lists' leftmargin (0.85cm), so
+%% code and list items hang on the same left edge.
+\DefineVerbatimEnvironment{VNBcode}{Verbatim}{xleftmargin=0.85cm,fontsize=\footnotesize}
+\DefineVerbatimEnvironment{VNBsnip}{Verbatim}{xleftmargin=0.85cm,fontsize=\footnotesize}
+
+%% ---- Kindle build, part 2 of 2: the code font -----------------------------
+%% The widest verbatim line in the manual is 87 columns, and a code block is
+%% precisely what a reflow tool (k2pdfopt and friends) mangles.  So the code
+%% font is shrunk until 87 columns fit the text block instead; \VNBkindlecode
+%% is set in manual-kindle.tex, where it can be retuned without touching this
+%% file.  Prose keeps the ordinary body size.
+\ifdefined\VNBkindle
+  %% Same unframed style as the ordinary build, at the Kindle code size and a
+  %% narrower indent -- 0.85cm of a 97 mm measure is a lot to give away.
+  \DefineVerbatimEnvironment{VNBcode}{Verbatim}
+    {xleftmargin=3mm,fontsize=\VNBkindlecode}
+  \DefineVerbatimEnvironment{VNBsnip}{Verbatim}
+    {xleftmargin=3mm,fontsize=\VNBkindlecode}
+  \setlist[itemize,1]{label=\textendash, leftmargin=5mm, itemsep=1mm}
+  \setlist[itemize,2]{label=\textendash, leftmargin=5mm, itemsep=0.5mm,
+                      topsep=0.5mm}
+  %% A 97 mm measure is narrower than any identifier this manual likes to name.
+  %% `hyphenat[htt]' lets a long \texttt token break; the emergency stretch lets
+  %% TeX buy a loose line rather than run into the margin; and the tables, which
+  %% were laid out for a 345 pt measure, are set at \VNBkindletab.
+  \usepackage[htt]{hyphenat}
+  \usepackage{etoolbox}
+  \setlength{\emergencystretch}{3em}
+  \AtBeginEnvironment{tabular}{\VNBkindletab}
+  %% BEFORE, not AtBegin, so the size covers the table's header rows too.
+  \BeforeBeginEnvironment{longtable}{\VNBkindletab}
+  \setlength{\tabcolsep}{2pt}
+  %% Displayed formulas: the manual's are long enough that a dozen of them run
+  %% clean off a 105 mm page -- not merely into the margin, off the paper, with
+  %% the right-hand side of the equation gone.  So \[ ... \] is boxed, measured,
+  %% and scaled down only when it does not fit.  A display that fits is centred
+  %% and untouched, so nothing changes but the offenders.
+  \usepackage{graphicx}
+  \newsavebox{\VNBdispbox}
+  \renewcommand{\[}{\par\smallskip\begin{lrbox}{\VNBdispbox}$\displaystyle}
+  \renewcommand{\]}{$\end{lrbox}%
+    \noindent
+    \ifdim\wd\VNBdispbox>\linewidth
+      \resizebox{\linewidth}{!}{\usebox{\VNBdispbox}}%
+    \else
+      \hbox to \linewidth{\hfil\usebox{\VNBdispbox}\hfil}%
+    \fi
+    \par\smallskip}
+\fi
+
+\title{\textbf{VNB Proof Checker}\\[4pt]
+       \large User Manual}
+\author{F. J. Thayer}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%% =========================================================
+\input{ch-intro}
+
+%% =========================================================
+\input{ch-classification}
+
+%% =========================================================
+\input{ch-expressions}
+
+%% =========================================================
+\input{ch-syntax}
+
+%% =========================================================
+\input{ch-proofs}
+
+%% =========================================================
+\input{ch-math}
+
+%% =========================================================
+\input{ch-defs}
+
+%% =========================================================
+\appendix
+\input{ch-source}
+
+%% =========================================================
+\input{app-tests}
+
+%% =========================================================
+\input{app-glossary-generated}
+
+%% =========================================================
+
+\begin{thebibliography}{9}
+%% Every entry below except Monk1988 is taken from the reference list of
+%% F. J. Thayer, "Inteligencia artificial y modelos de lenguaje en la
+%% investigacion matematica" (~/docs/article.pdf, 2026), supplied by the author.
+%% Add no entry that has not been checked against its source.
+
+\bibitem{Lean}
+L.~de~Moura, S.~Kong, J.~Avigad, F.~van~Doorn, J.~von~Raumer,
+The Lean theorem prover (system description),
+in \textit{Automated Deduction -- CADE-25}, pages 378--388, Springer, 2015.
+
+\bibitem{IMPS}
+W.~M.~Farmer, J.~D.~Guttman, F.~J.~Thayer,
+IMPS: an Interactive Mathematical Proof System,
+\textit{Journal of Automated Reasoning}, 11:213--248, 1993.
+
+\bibitem{HOL}
+M.~J.~C.~Gordon, T.~F.~Melham (editors),
+\textit{Introduction to HOL: A theorem proving environment for higher order logic},
+Cambridge University Press, 1993.
+
+\bibitem{MITScheme}
+C.~Hanson,
+\textit{MIT/GNU Scheme Reference Manual}, 2015.  MIT/GNU Scheme 9.2.0 or later.
+
+\bibitem{Monk1988}
+L.~G.~Monk,
+Inference rules using local contexts,
+\textit{Journal of Automated Reasoning}, 4:445--462, 1988.
+
+\bibitem{Emacs}
+R.~Stallman,
+\textit{GNU Emacs}, 2024.
+
+\bibitem{Rocq}
+The Rocq Development Team,
+\textit{The Rocq Prover reference manual}, Inria, 2026.  Version 9.3.
+\end{thebibliography}
+
+%% =========================================================
+%% The index.  Entries are emitted by the GENERATORS (gen-tactics-ref.py,
+%% gen-glossary.py), one per tactic and per glossary name, so the index
+%% cannot drift from the registries the way a hand-kept one would.
+%% `make' runs makeindex between the two pdflatex passes.
+\printindex
+
+\end{document}

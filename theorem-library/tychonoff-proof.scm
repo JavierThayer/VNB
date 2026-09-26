@@ -34,7 +34,7 @@
   (let loop ((gs (ty--leaves)))
     (cond ((null? gs) #f)
           ((p (wff-formula (sequent-node-assertion (car gs))))
-           (set! *ps* (focus-on *ps* (car gs))) #t)
+           (dk-focus! (car gs)) #t)
           (else (loop (cdr gs))))))
 (define (ty--focus-head h) (ty--focus-pred (lambda (a) (and (pair? a) (eq? (car a) h)))))
 

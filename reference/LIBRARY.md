@@ -48,7 +48,7 @@ The `(arith)` tactic closes any ground numeric goal.
 
 ## 3. Ordinals & cardinality
 
-The transfinite backbone underneath sequences, cardinality, finsum.
+What sequences, cardinality and `FINSUM` are built on.
 
 - `ORD` — the proper class of ordinals (Burali-Forti axiomatised).
   `structure-library/ordinals.scm`.
@@ -208,7 +208,7 @@ whatever extra constraints the slots must satisfy (e.g.
 `IS-FIELD(F(s))`).
 
 **Permutation invariance.** `sum-ag-permutation-invariance` (proven,
-the milestone of the library phase) underpins `finsum-well-defined` —
+the milestone of the library phase) is the lemma behind `finsum-well-defined` —
 the value of `FINSUM` does not depend on which enumeration `FIN-ENUM`
 returns.
 

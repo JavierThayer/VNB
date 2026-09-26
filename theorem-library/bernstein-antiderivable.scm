@@ -177,6 +177,10 @@
 ;; `br' is 'true or 'false; `rdg' the macete reading the ring constant as a real
 (define (ba-degree-zero! br rdg)
   (ba-peel!)
+  ;; COMB-KK is ZZ-indexed (2026-09-15), so the `lam-b' below OWES (IN k_ ZZ);
+  ;; without it the beta still fires and the leaf is unclosable -- silent until
+  ;; qed.  Both call sites have k_ in NN in context.
+  (fact 'nn-subset-zz 'k_)
   (mac 'BERNSTEIN-BASIS) (mac 'comb-kk-zero) (lam-b)
   (let* ((goal (dk-goal))
          (ifterm (cadr goal)))

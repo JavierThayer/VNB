@@ -591,6 +591,14 @@
           (display ", not the bound variable.")
           (newline)))))
 
+;; validate-wff! spells its binder heads out, in `walk-wff' (FORALL, FORSOME)
+;; and in `walk-term' (SEP, BIG-UNION, COMP, IOTA, VNB-LAMBDA), so it declares
+;; them for binder-walker-audit (expressions.scm: declare-binder-walker!).  A
+;; head added to *binder-shapes* and not to the two `case' forms below would
+;; leave its bound variable unrecorded and its body walked in the outer scope.
+(declare-binder-walker! 'validate-wff!
+  '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
 (define (validate-wff! expr)
   ;; term-syms: FREE symbols seen in term position.
   ;; bound-syms: every symbol that appears in any binder anywhere (for warning).

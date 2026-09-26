@@ -1,0 +1,199 @@
+#!/bin/bash
+# vnb-band-compare -- compare two saved bands on a capataz WORKER, from the primary.
+#
+#   vnb-band-compare WORKER BAND_A BAND_B [--detach] [--heap BLOCKS] [--timeout SECONDS]
+#   vnb-band-compare WORKER --wait JOB [--timeout SECONDS]
+#   vnb-band-compare --local BAND_A BAND_B [--heap BLOCKS] [--timeout SECONDS]   (ON a worker)
+#
+# BAND_A and BAND_B are paths ON THE WORKER (a bare file name means
+# /home/ubuntu/prover/NAME).  The script ships band-dump.scm to the worker's
+# /home/ubuntu/prover/ (md5 checked on both sides), then, on the worker, restores each
+# band in turn --
+#     mit-scheme --heap H --band BAND --quiet --load band-dump.com   (compiled on the worker)
+# -- each through vnb-metrics-run (job `band-dump', one ledger row each), holding both
+# probe slots as vnb-suite does.  band-dump.scm writes, per band, a CONTENT dump (one
+# sorted line per theorem name: statement hash, macete hash, -rev companion hash,
+# provenance, source relative to the prover root, the bill as sorted sets, oracles,
+# relabelled script hash, the per-name warrant/topic/alias/gloss tables and list
+# memberships; then the other registries, the name lists, the load outcome and the
+# band-only gates), a HISTORY dump (load-order facts: eigenvariable counters, raw
+# scripts, .scm/.com, session counters) and a RAW file (the canonical text behind each
+# hash).  The CONTENT dumps are diffed: ZERO lines of diff is the pass.  The HISTORY
+# diff is counted and reported, never a failure.
+#
+# Output (the digest): the counts of both bands side by side, the names that differ
+# (only in A, only in B, changed with the fields that changed), the first 60 lines of
+# the content diff, the history diff size, the metrics lines (appended to
+# ~/mailbox/metrics/runs.jsonl here), and a verdict line.
+# Exit status: 0 PASS (identical content), 1 FAIL (content differs), 2 an error (a
+# band missing, a dump that did not finish), 124 (--wait) still running.
+# Files stay on the worker under /home/ubuntu/probes/band-compare/:
+#   a.content b.content a.history b.history a.raw b.raw a.log b.log content.diff history.diff
+# Description: docs/band-compare-2026-09-23.md.
+set -u
+usage="usage: vnb-band-compare WORKER BAND_A BAND_B [--detach] [--heap BLOCKS] [--timeout SECONDS] | WORKER --wait JOB | --local BAND_A BAND_B"
+[ $# -ge 1 ] || { echo "$usage" >&2; exit 2; }
+HERE=$(cd "$(dirname "$0")" && pwd)
+LOCAL=0; WORKER=
+if [ "$1" = "--local" ]; then LOCAL=1; shift; else WORKER=$1; shift; fi
+HEAP=200000; TIMEOUT=1800; DETACH=0; WAITJOB=; BANDS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --heap) HEAP=$2; shift 2;;
+    --timeout) TIMEOUT=$2; shift 2;;
+    --detach) DETACH=1; shift;;
+    --wait) WAITJOB=$2; shift 2;;
+    --*) echo "vnb-band-compare: unknown option $1" >&2; exit 2;;
+    *) BANDS+=("$1"); shift;;
+  esac
+done
+LEDGER=~/mailbox/metrics/runs.jsonl
+
+# The digest, from the run's stdout on stdin: everything except ;;RUNS lines is
+# printed; ;;RUNS lines go to the ledger and are echoed as `=== metrics:'; the exit
+# status is read off the `vnb-band-compare-exit N' line (2 when there is none).
+digest() {
+  python3 -c '
+import sys, os
+out = sys.stdin.read()
+ledger = sys.argv[1]
+runs = [l[len(";;RUNS "):] for l in out.splitlines() if l.startswith(";;RUNS ")]
+sys.stdout.write("".join(l + "\n" for l in out.splitlines() if not l.startswith(";;RUNS ")))
+if runs and os.path.isdir(os.path.dirname(ledger)):
+    with open(ledger, "a") as f: f.write("".join(l + "\n" for l in runs))
+for l in runs: sys.stdout.write("=== metrics: " + l + "\n")
+rc = 2
+for line in out.splitlines():
+    if line.startswith("vnb-band-compare-exit "): rc = int(line.split()[1])
+sys.exit(rc)' "$LEDGER"
+}
+
+# ---- --wait JOB ---------------------------------------------------------------
+if [ -n "$WAITJOB" ]; then
+  capataz wait "$WORKER" "$WAITJOB" --json --user ubuntu --timeout "$TIMEOUT" > /dev/null 2>&1
+  wrc=$?
+  case $wrc in
+    124) echo "=== vnb-band-compare: job $WAITJOB is still running on $WORKER (wait again)"; exit 124;;
+    125) echo "=== vnb-band-compare: job $WAITJOB died on $WORKER without an exit code"; exit 125;;
+    4|2) echo "=== vnb-band-compare: no such job $WAITJOB on $WORKER"; exit $wrc;;
+  esac
+  capataz cat "$WORKER" "/home/ubuntu/.capataz/jobs/$WAITJOB/stdout" --user ubuntu | digest
+  exit $?
+fi
+
+[ ${#BANDS[@]} -eq 2 ] || { echo "$usage" >&2; exit 2; }
+abs() { case "$1" in /*) echo "$1";; *) echo "/home/ubuntu/prover/$1";; esac; }
+A=$(abs "${BANDS[0]}"); B=$(abs "${BANDS[1]}")
+DUMP_MD5=$(md5sum "$HERE/band-dump.scm" | cut -d' ' -f1)
+
+# ---- the script that runs on the worker ------------------------------------------
+read -r -d '' SCRIPT <<EOF
+set -u
+OUT=/home/ubuntu/probes/band-compare
+mkdir -p \$OUT
+cd /home/ubuntu/prover || { echo 'vnb-band-compare-exit 2'; exit 2; }
+HOST=\$(hostname)
+[ "\$(md5sum band-dump.scm 2>/dev/null | cut -d' ' -f1)" = "$DUMP_MD5" ] || { echo "=== vnb-band-compare: band-dump.scm on the worker is not the primary's ($DUMP_MD5)"; echo 'vnb-band-compare-exit 2'; exit 2; }
+for f in "$A" "$B"; do [ -f "\$f" ] || { echo "=== vnb-band-compare: no band at \$f"; echo 'vnb-band-compare-exit 2'; exit 2; }; done
+echo "=== vnb-band-compare on \$HOST"
+echo "=== A: $A  \$(stat -c '%s bytes, %y' "$A" | cut -c1-40)"
+echo "=== B: $B  \$(stat -c '%s bytes, %y' "$B" | cut -c1-40)"
+# hold EVERY probe slot (same lock files as vnb-slot / vnb-suite): two band restores
+# side by side with a probe do not fit a t3.medium
+exec 8>/tmp/vnb-probe.1 9>/tmp/vnb-probe.2
+flock -w 600 8 && flock -w 600 9 || { echo '=== vnb-band-compare: a probe held its slot for 600 s; NOT started'; echo 'vnb-band-compare-exit 2'; exit 2; }
+# compile a COPY of band-dump.scm next to the dumps (not in the tree): the interpreted
+# file is about ten times slower on the proof scripts.  A failed compile falls back to
+# the source, and says so.
+mkdir -p \$OUT/bc; cp band-dump.scm \$OUT/bc/band-dump.scm; rm -f \$OUT/bc/band-dump.com
+mit-scheme --quiet --eval '(begin (compile-file "'\$OUT'/bc/band-dump.scm") (exit))' < /dev/null > \$OUT/bc/compile.log 2>&1
+if [ -f \$OUT/bc/band-dump.com ]; then DUMPFILE=\$OUT/bc/band-dump.com; else DUMPFILE=/home/ubuntu/prover/band-dump.scm; echo "=== vnb-band-compare: compile of band-dump.scm FAILED (\$OUT/bc/compile.log); running it interpreted"; fi
+T0=\$(date +%s)
+for side in a b; do
+  if [ \$side = a ]; then BAND="$A"; else BAND="$B"; fi
+  rm -f \$OUT/\$side.content \$OUT/\$side.history \$OUT/\$side.raw
+  BC_DUMP_PREFIX=\$OUT/\$side ./vnb-metrics-run --host "${WORKER:-\$HOST}" --job band-dump --name "\$(basename "\$BAND")" --heap $HEAP \
+     --log \$OUT/\$side.log --out /home/ubuntu/probes/runs.jsonl -- \
+     timeout $TIMEOUT mit-scheme --heap $HEAP --band "\$BAND" --quiet --load \$DUMPFILE
+  rc=\$?
+  if [ \$rc -ne 0 ] || [ "\$(tail -n 1 \$OUT/\$side.content 2>/dev/null)" != "= end" ]; then
+    echo "=== vnb-band-compare: the dump of \$side (\$BAND) did not finish (rc \$rc); tail of \$OUT/\$side.log:"
+    tail -n 15 \$OUT/\$side.log | cut -c1-300
+    echo 'vnb-band-compare-exit 2'; exit 2
+  fi
+done
+T1=\$(date +%s)
+diff \$OUT/a.content \$OUT/b.content > \$OUT/content.diff; drc=\$?
+diff \$OUT/a.history \$OUT/b.history > \$OUT/history.diff
+python3 - \$OUT <<'PY'
+import sys, os
+out = sys.argv[1]
+def lines(p): return open(os.path.join(out, p)).read().splitlines()
+a, b = lines("a.content"), lines("b.content")
+def section(ls, tag):
+    return [l for l in ls if l.startswith(tag + " ")]
+print("=== counts (A | B)")
+ca, cb = section(a, "C"), section(b, "C")
+for la, lb in zip(ca, cb):
+    mark = "   " if la == lb else "!! "
+    print(mark + "A: " + la[2:][:300])
+    if la != lb: print(mark + "B: " + lb[2:][:300])
+def names(ls):
+    d = {}
+    for l in ls:
+        if l.startswith("N "):
+            parts = l.split(" ")
+            d[parts[1]] = dict(p.split("=", 1) for p in parts[2:] if "=" in p)
+    return d
+na, nb = names(a), names(b)
+onlya = sorted(set(na) - set(nb)); onlyb = sorted(set(nb) - set(na))
+changed = [(n, [k for k in sorted(set(na[n]) | set(nb[n])) if na[n].get(k) != nb[n].get(k)]) for n in sorted(set(na) & set(nb)) if na[n] != nb[n]]
+print("=== names: A %d, B %d; only in A %d, only in B %d, changed %d" % (len(na), len(nb), len(onlya), len(onlyb), len(changed)))
+for n in onlya[:40]: print("  only in A: " + n + "  src=" + na[n].get("src", "?"))
+for n in onlyb[:40]: print("  only in B: " + n + "  src=" + nb[n].get("src", "?"))
+for n, ks in changed[:40]: print("  changed:   " + n + "  fields=" + ",".join(ks))
+sa = set(l for l in a if l[:2] in ("T ", "L ", "G ")); sb = set(l for l in b if l[:2] in ("T ", "L ", "G "))
+da = sorted(sa - sb); db = sorted(sb - sa)
+print("=== registries / lists / gates: %d line(s) only in A, %d only in B" % (len(da), len(db)))
+for l in da[:20]: print("  A: " + l[:200])
+for l in db[:20]: print("  B: " + l[:200])
+h = open(os.path.join(out, "history.diff")).read().splitlines()
+print("=== history (load-order facts, not a failure): %d diff line(s)" % len([l for l in h if l[:2] in ("< ", "> ")]))
+for l in h:
+    if l.startswith(("< S ", "> S ")): print("  " + l[:200])
+PY
+echo "=== content diff: \$(grep -c '^[<>]' \$OUT/content.diff) line(s); first 60:"
+head -n 60 \$OUT/content.diff | cut -c1-400
+echo "=== dumps took \$((T1 - T0)) s (two band restores + dumps); files in \$OUT on \$HOST"
+if [ \$drc -eq 0 ]; then echo "=== vnb-band-compare: PASS (content identical)"; echo 'vnb-band-compare-exit 0'
+else echo "=== vnb-band-compare: FAIL (content differs)"; echo 'vnb-band-compare-exit 1'; fi
+EOF
+
+if [ $LOCAL = 1 ]; then
+  bash -c "$SCRIPT" | digest
+  exit $?
+fi
+
+# ---- ship band-dump.scm, verify on both sides ----------------------------------------
+capataz push "$WORKER" --yes --src "$HERE/band-dump.scm" --dest /home/ubuntu/prover/ > /dev/null 2>&1
+REMOTE_MD5=$(capataz run "$WORKER" --json --user ubuntu 'md5sum /home/ubuntu/prover/band-dump.scm' \
+  | python3 -c 'import json,sys; print((json.load(sys.stdin).get("stdout") or "").split(" ")[0].strip())')
+if [ "$REMOTE_MD5" != "$DUMP_MD5" ]; then
+  echo "=== vnb-band-compare: push of band-dump.scm to $WORKER failed (primary $DUMP_MD5, worker ${REMOTE_MD5:-none})"
+  exit 2
+fi
+echo "=== vnb-band-compare: band-dump.scm on $WORKER, md5 $DUMP_MD5 (both sides)"
+
+if [ $DETACH = 1 ]; then
+  JOB=$(capataz run "$WORKER" --detach --json --user ubuntu --job-name band-compare "$SCRIPT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])')
+  [ -n "$JOB" ] || { echo "vnb-band-compare: capataz run --detach returned no job id" >&2; exit 2; }
+  echo "=== vnb-band-compare: started $JOB on $WORKER; collect with:  vnb-band-compare $WORKER --wait $JOB"
+  exit 0
+fi
+
+capataz run "$WORKER" --json --user ubuntu --timeout $(( 2 * TIMEOUT + 1320 )) "$SCRIPT" | python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+sys.stdout.write(d.get("stdout") or "")
+err = d.get("stderr") or ""
+if err.strip(): sys.stderr.write(err)' | digest

@@ -271,11 +271,26 @@
 (define *audit-kernel-heads*
   '(NOT AND OR IMPLIES IFF FORALL FORSOME = == IN SUBSET <= < > >= + - * / ^
     TRUTH FALSITY UNION INTERSECTION COMPLEMENT COMPLEMENT-IN CARTESIAN DIFFERENCE
-    FUN SEP BIG-UNION BIG-INTERSECTION POWER LIST NTH MAKE-SET LENGTH CHOICE IOTA
+    FUN SEP BIG-UNION POWER LIST NTH MAKE-SET LENGTH CHOICE IOTA
     IF TUPLES COMP PAIR SINGLETON VNB-LAMBDA apply-functoid succ))
 
+;;; BIG-INTERSECTION was in both lists until 2026-09-20 and was never a kernel
+;;; head: no rule, no macete, no membership law, and `wff.scm' did not know it
+;;; as a binder.  Listing it here made the head-registry sweep accept the two
+;;; formulas that used it (HAS-FIP, compact-iff-fip) although nothing could
+;;; interpret them, and listing it below made this audit skip its BINDER
+;;; position -- which held the registered accessor CARR.  The object is now the
+;;; defined functoid INTERSECTION-OF (structure-library/intersection-of.scm),
+;;; which needs no entry in either list; the symbol occurs nowhere in the tree.
 (define (audit--binder-head? h)
-  (memq h '(FORALL FORSOME IOTA SEP BIG-UNION BIG-INTERSECTION COMP VNB-LAMBDA)))
+  (memq h '(FORALL FORSOME IOTA SEP BIG-UNION COMP VNB-LAMBDA)))
+
+;; The head-registry sweeps skip a binder's VARIABLE position through this
+;; predicate; a binder missing from it would have its bound variable read as an
+;; applied head.  Watched by binder-walker-audit (expressions.scm:
+;; declare-binder-walker!).
+(declare-binder-walker! 'audit--binder-head?
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 ;;; Every symbol applied in E that is free, not a kernel head, not a registered
 ;;; operator, and not allowlisted.
@@ -628,7 +643,13 @@
   (let ((bad '()))
     (for-each
       (lambda (name)
-        (unless (memq name *sethood-audit-exempt*)
+        ;; A PROVEN statement is not examined (2026-09-20): it went through the
+        ;; kernel, where `lam-t' posts the (IN A SET) obligation this audit stands
+        ;; in for, so it cannot assert a function over a proper class.  The audit
+        ;; is about what is ASSERTED (restrict-in-fun, diff-on-in-fun and
+        ;; holomorphic-on-in-fun, all proven, were being listed).
+        (unless (or (memq name *sethood-audit-exempt*)
+                    (memq (provenance-of name) '(proven certified)))
           (let ((f (hash-table-ref/default *theorem-table* name #f)))
             (if f
                 (let* ((parts  (audit--split-guards f '() '()))
@@ -723,7 +744,51 @@
                    (if (not (memq 'bv_ (free-vars (build 'bv_ 'bv_ body))))
                        (note! head "the binder wrongly scopes over its own domain")))))))
      *binder-shapes*)
-    (reverse bad)))
+    (append (reverse bad) (binder-walker-registration-audit))))
+
+;;; -----------------------------------------------------------------------
+;;; binder-walker-registration-audit -- the walkers that cannot be tested
+;;;
+;;; The four traversals above can be TESTED: build a formula, ask them what
+;;; binds.  A rewriter, a validator, a rule checker and a beta reducer cannot be
+;;; interrogated that way, and those are exactly where the two holes of
+;;; 2026-09-20 were (BIG-UNION missing from `rewrite-subexpressions'; every
+;;; shadowing binder missing from `reduce-lambda-in-expr/scope').  What is
+;;; available for them is a DECLARATION beside the code -- the list of heads
+;;; that walker handles, written where its case is, through
+;;; `declare-binder-walker!' (expressions.scm) -- and this audit, which fails
+;;; when *binder-shapes* declares a head a walker's list does not have.
+;;;
+;;; It does not prove a walker handles what it claims; it makes ADDING A BINDER
+;;; loud.  A new head in *binder-shapes* fails the load at every walker that has
+;;; not been told, by name, instead of being discovered months later by a user
+;;; -- which is the history of COMP, and of BIG-UNION twice over.  A walker that
+;;; declares `from-binder-shapes' reads the table itself and is exempt: it has
+;;; no second list to forget.  EXTRA heads are never an error (a walker may know
+;;; a functoid record or LAMBDOID, which this layer gives no shape).
+(define (binder-walker-registration-audit)
+  (let ((heads (map car *binder-shapes*)))
+    (let loop ((ws *binder-walkers*) (bad '()))
+      (cond
+        ((null? ws) (reverse bad))
+        ((not (pair? (cdar ws))) (loop (cdr ws) bad))   ; 'from-binder-shapes
+        (else
+         (let ((missing (filter (lambda (h) (not (memq h (cdar ws)))) heads)))
+           (loop (cdr ws)
+                 (if (null? missing)
+                     bad
+                     (cons (cons (caar ws)
+                                 (string-append
+                                  "declares no case for "
+                                  (audit--join-names missing)
+                                  " -- *binder-shapes* declares it a binder"))
+                           bad)))))))))
+
+(define (audit--join-names syms)
+  (let loop ((ss (map symbol->string syms)) (acc ""))
+    (cond ((null? ss) acc)
+          ((string=? acc "") (loop (cdr ss) (car ss)))
+          (else (loop (cdr ss) (string-append acc ", " (car ss)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; duplicate-define-audit -- one file, one definition per name
@@ -782,7 +847,11 @@
        (for-each (lambda (r) (set! bad (cons (cons f r) bad)))
                  (duplicate--repeats
                   (duplicate--defined-names
-                   (string-append "/home/ubuntu/prover/" f)))))
+                   ;; `*prover-dir*' (load.scm), NOT a literal: the tree is read
+                   ;; wherever it was loaded from.  A hard-coded /home/ubuntu
+                   ;; makes this gate fail silently on any other machine or
+                   ;; account -- found 2026-09-05 when the user ran on sanblas.
+                   (string-append *prover-dir* f)))))
      *duplicate-define-files*)
     (reverse bad)))
 
@@ -1261,6 +1330,11 @@
 (define *dc-binders*
   '(FORALL FORSOME IOTA COMP VNB-LAMBDA SEP BIG-UNION LAMBDOID))
 
+;; Declared for binder-walker-audit (expressions.scm: declare-binder-walker!).
+;; LAMBDOID is an EXTRA head, which the audit allows: this walk wants "is the
+;; occurrence under any binder at all", and a functoid record is one.
+(declare-binder-walker! 'dc--grouped *dc-binders*)
+
 ;;; #t when T mentions no symbol currently bound.  An occurrence under a binder
 ;;; that captures the object or the domain is an honest quantified statement
 ;;; (`forall f. f in FUN(a) => ...'), not an assertion about a particular object.
@@ -1342,3 +1416,121 @@
 ;;; not filtering.
 (define (domain-clash-population)
   (length (dc--grouped)))
+
+
+;;; -----------------------------------------------------------------------
+;;; kernel-callers-audit -- WHO MAY WRITE THE DEDUCTION GRAPH
+;;;
+;;; `dg-apply-rule!' (deduction-graphs.scm:283) is the single choke point for
+;;; every write into a deduction graph.  Until 2026-09-20 it VALIDATED NOTHING (since then it
+;;; checks each inference against the operation's checker first); at the time it recorded the
+;;; rule tag it is handed, posts the premise sequents and writes the arrows.
+;;; The soundness of a step therefore rests entirely on the procedure that
+;;; requested it, so the trusted code base is exactly the set of procedures that
+;;; CALL this one -- and until this gate, nothing in the tree bounded that set.
+;;;
+;;; The kernel map of 2026-09-12 (reference/KERNEL-MAP.md) measured it:
+;;; 69 call sites belonging to 57 entry points (re-measured 2026-09-20), in the 8 files below, and 0 uses
+;;; of the name as a VALUE.  A run-time pass over the whole library recorded
+;;; 197,669 graph writes with 0 outside an entry point.  That was a measurement
+;;; of one afternoon, not an invariant; this gate makes it one.
+;;;
+;;; It counts two things, because the first alone has an escape hatch:
+;;;   * CALLS -- the name in operator position.
+;;;   * VALUE uses -- the name anywhere else, e.g. (map dg-apply-rule! ...),
+;;;     which hands the graph writer to a caller in another file entirely.  The
+;;;     count is 0 today and a non-zero one is a finding wherever it appears,
+;;;     allowlisted file or not.
+;;;
+;;; Done with the READER, for the reason CLAUDE.md records twice over: a textual
+;;; scan cannot tell code from a comment, a string or a quote, and got the
+;;; compile-skip list wrong in both of its textual incarnations.  A definition's
+;;; FORMAL LIST is skipped -- `(define (dg-apply-rule! dg rule hyps concl) ...)'
+;;; has the same S-expression shape as a call, and counting it reported 69 sites
+;;; in 9 files (deduction-graphs.scm, where the writer LIVES, is not a caller).
+;;; With the formals skipped this scan and the kernel map's independent one agree
+;;; exactly: 68 and 8.
+
+(define *kernel-caller-files*
+  '("primitive-inferences"                     ; the inference rules proper
+    "macetes"                                  ; the rewriter
+    "theory"                                   ; two macete closures
+    "arith-eval"                               ; the arithmetic oracle
+    "structure-library/comm-ring-simplify"     ; the crs oracle
+    "structure-library/ineq-oracle"            ; the ineq oracle
+    "structure-library/ring-simplify"          ; the rs oracle
+    "structure-library/sos-oracle"))           ; the sos oracle
+
+;;; -> (calls . value-uses) for one read form.
+(define (kca--counts form)
+  (let ((calls 0) (vals 0))
+    (define (walk-list l)
+      (cond ((pair? l) (walk (car l)) (walk-list (cdr l)))
+            ((symbol? l) (walk l))))
+    (define (walk x)
+      (cond ((symbol? x) (if (eq? x 'dg-apply-rule!) (set! vals (+ vals 1))))
+            ((not (pair? x)) 'datum)
+            ((eq? (car x) 'quote) 'datum)
+            ;; (define (NAME . formals) body ...): the target is a BINDING, and
+            ;; a formal list is spelled exactly like a call.
+            ((and (memq (car x) '(define define-integrable))
+                  (pair? (cdr x)) (pair? (cadr x)))
+             (walk-list (cddr x)))
+            ((and (memq (car x) '(lambda named-lambda)) (pair? (cdr x)))
+             (walk-list (cddr x)))
+            ((eq? (car x) 'dg-apply-rule!)
+             (set! calls (+ calls 1))
+             (walk-list (cdr x)))
+            (else (walk-list x))))
+    (walk form)
+    (cons calls vals)))
+
+;;; Cheap pre-filter.  A file whose TEXT does not contain the characters cannot
+;;; call it, so the reader pass runs on the 11 files that mention it rather than
+;;; all 433.  Deliberately sloppy -- a hit in a comment or a string costs one
+;;; reader pass and nothing else, because the READER makes the actual decision.
+(define (kca--file-mentions? path)
+  (call-with-input-file path
+    (lambda (port)
+      (let ((s (read-string (+ 1 (file-length path)) port)))
+        (and (not (eof-object? s))
+             (string-search-forward "dg-apply-rule!" s 0)
+             #t)))))
+
+(define (kca--file-counts f)
+  ;; `*prover-dir*' (load.scm), never a literal: the tree is read wherever it
+  ;; was loaded from, so this gate works on any machine or account.
+  (let ((path (string-append *prover-dir* f ".scm")))
+    (if (not (kca--file-mentions? path))
+        (cons 0 0)
+        (call-with-input-file path
+          (lambda (port)
+            (let loop ((calls 0) (vals 0))
+              (let ((form (read port)))
+                (if (eof-object? form)
+                    (cons calls vals)
+                    (let ((c (kca--counts form)))
+                      (loop (+ calls (car c)) (+ vals (cdr c))))))))))))
+
+;;; Every loaded file with a genuine use, as ((file calls value-uses) ...).
+;;; Returned rather than printed, so the suite and the report can both read it.
+(define (kernel-callers-census)
+  (let loop ((fs *vnb-files*) (out '()))
+    (if (null? fs)
+        (reverse out)
+        (let ((c (kca--file-counts (car fs))))
+          (loop (cdr fs)
+                (if (and (= 0 (car c)) (= 0 (cdr c)))
+                    out
+                    (cons (list (car fs) (car c) (cdr c)) out)))))))
+
+;;; The audit proper: any file with a use that is not on the allowlist.  Empty
+;;; is the good case.
+(define (kernel-callers-audit)
+  (filter (lambda (e) (not (member (car e) *kernel-caller-files*)))
+          (kernel-callers-census)))
+
+;;; Uses of the name as a VALUE, anywhere -- including inside an allowlisted
+;;; file, where a call is fine but handing the writer out is not.
+(define (kernel-callers-value-uses)
+  (filter (lambda (e) (> (caddr e) 0)) (kernel-callers-census)))

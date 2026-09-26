@@ -70,7 +70,8 @@
        (for-each (lambda (m)                    ; j <= n => j <= succ n and j /= succ n
                    (dk-focus! m)
                    (fact 'nn-le-succ 'n_)
-                   (fact 'co-le-trans 'j_ 'n_ '(succ n_))
+(fact 'nn-in-rr 'j_) (fact 'nn-in-rr 'n_) (fact 'nn-succ-closed 'n_) (fact 'nn-in-rr '(succ n_))
+                   (fact 'rr-le-trans-c 'j_ 'n_ '(succ n_))
                    (fact 'nn-le-imp-neq-succ 'n_ 'j_)
                    (from-context!))
                  (dk-opened (lambda () (di))))))

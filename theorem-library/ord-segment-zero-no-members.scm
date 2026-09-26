@@ -3,8 +3,9 @@
 ;;; ord-segment-zero-no-members:  ORD-SEGMENT(0) is empty.
 ;;; Base case for many NN inductions.
 ;;;
-;;; IT IS NOW PROVEN, and the proof is in theorem-library/pigeonhole-segments.scm
-;;; (2026-08-05), not here: this file loads at a point where the tactic layer
+;;; IT IS NOW PROVEN, and the proof is in
+;;; theorem-library/ord-segment-nn-subset-proof.scm, not here (it was also proven
+;;; a second time in pigeonhole-segments.scm from 2026-08-05 until 2026-09-16): this file loads at a point where the tactic layer
 ;;; does not exist yet -- the whole "PSS-promoted foundational facts" block above
 ;;; it in load.scm is pure `support' declarations, and `interactive' loads eighty
 ;;; entries later.  So the support declaration that used to stand here is gone,

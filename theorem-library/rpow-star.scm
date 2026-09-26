@@ -6,7 +6,8 @@
 ;;;
 ;;; the user's definition (2026-08-26), in the shape they specified the
 ;;; following day.  The name follows the tree's standing convention for a
-;;; DEFINED companion to an AXIOMATISED operator -- CARD/CARD-STAR,
+;;; DEFINED companion to an AXIOMATISED operator -- CARD/CARD-STAR (until
+;;; 2026-09-20, when CARD became the defined one and the axioms went),
 ;;; recip/RECIP-STAR -- and `structure-library/real-powers.scm' is deliberately
 ;;; NOT touched: its RPOW keeps its fourteen `well-known' supports and its one
 ;;; customer (Hoelder, analysis-inequalities.scm).  Nothing here claims the two

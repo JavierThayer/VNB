@@ -12,11 +12,11 @@
 (define (mv-split) (let loop ((n 0)) (let ((a (mv-find (mv-head? 'AND))))
   (cond ((and a (< n 12)) (ai a) (loop (+ n 1))) (else n)))))
 (define (mv-focus! raw) (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw)) (proof-leaves))))
-  (if s (begin (set-proof-state-focus! *ps* s) s) (error "mv-focus!: none equal" (expression->string raw)))))
+  (if s (begin (dk-focus! s) s) (error "mv-focus!: none equal" (expression->string raw)))))
 (define (mv-grind!) (let loop ((g 0)) (quietly (lambda () (ass-all)))
   (let ((al (any-pred (lambda (s) (let ((gg (wff-formula (sequent-node-assertion s))))
               (and (not (sequent-node-grounded? s)) (pair? gg) (eq? (car gg) 'AND)))) (proof-leaves))))
-    (when (and al (< g 40)) (set-proof-state-focus! *ps* al) (di) (loop (+ g 1))))))
+    (when (and al (< g 40)) (dk-focus! al) (di) (loop (+ g 1))))))
 (define (mv-have! mem main) (cut mem) (mv-focus! mem) (in-rr) (mv-focus! main))
 (define (mv-open-leaves) (filter (lambda (s) (not (sequent-node-grounded? s))) (proof-leaves)))
 (define (mv-dump tag) (display ";;; [")(display tag)(display "] done?=")(display (proof-done? *ps*))
@@ -26,21 +26,8 @@
   (for-each (lambda (s) (display ";;;   OPEN ")(write (wff-formula (sequent-node-assertion s)))(newline))
             (mv-open-leaves)))
 
-;;; rolle-neutral: Rolle with interval vars lo,hi (not a,b), so it can be applied
-;;; to an auxiliary that mentions a,b without capture.  One-liner from rolle.
-(sp '(FORALL h (FORALL lo (FORALL hi
-     (IMPLIES (AND (IN h (FUN RR RR)) (AND (IN lo RR) (AND (IN hi RR) (< lo hi))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT lo hi))
-                 (IS-CONTINUOUS-AT RR-MS RR-MS h x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (< lo x) (< x hi))
-                 (FORSOME L (IS-DIFF-AT h x L))))
-     (IMPLIES (= (h lo) (h hi))
-       (FORSOME theta (AND (< lo theta) (AND (< theta hi)
-                      (IS-DIFF-AT h theta 0))))))))))))
-(quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))   ; h,lo,hi + 4 hyps
-(quietly (lambda () (fact 'rolle 'h 'lo 'hi)))       ; lands rolle's conclusion = the goal
-(quietly (lambda () (ass-all)))
-(qed 'rolle-neutral)
+;;; rolle-neutral -- REMOVED 2026-09-20 (batch 11, proven-duplicate-audit):
+;;; alpha-equal to `rolle', and it had no call site.
 
 ;;; the auxiliary h(z) = f(z)*(b-a) - z*(f(b)-f(a))
 (define AUX '(VNB-LAMBDA z RR (- (* (f z) (- b a)) (* z (- (f b) (f a))))))
@@ -188,7 +175,7 @@
 (quietly (lambda () (mv-grind!)))            ; split ANDs; closes a<TH, TH<b leaves by ass
 (let ((fl (any-pred (lambda (s) (let ((g (wff-formula (sequent-node-assertion s))))
             (and (not (sequent-node-grounded? s)) (pair? g) (eq? (car g) 'FORSOME)))) (proof-leaves))))
-  (when fl (set-proof-state-focus! *ps* fl)))
+  (when fl (dk-focus! fl)))
 (ew LT)
 (quietly (lambda () (mv-grind!) (ass-all)))
 (mv-dump "FINAL")

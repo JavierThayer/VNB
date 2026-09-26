@@ -52,35 +52,16 @@
 
 ;;; ---- a <= a + b --------------------------------------------------------
 ;;; Induction on b, which is therefore the OUTER binder: ni wants the goal in
-;;; the form (FORALL n (IMPLIES (IN n NN) P)).  NB the binder order this fixes
-;;; -- (fact 'nn-le-add X Y) instantiates the ADDEND first, landing Y <= Y + X.
-(sp (make-wff '(FORALL b_ (IMPLIES (IN b_ NN)
-                 (FORALL a_ (IMPLIES (IN a_ NN) (<= a_ (+ a_ b_))))))))
-(ni)
-(dk-focus-goal! "+ 0")
-(dk-peel-to! '<=)
-(fact 'nn-add-zero 'a_)
-(subst '(= (+ a_ 0) a_))
-(fact 'nn-le-refl 'a_)
-(ass)
-(dk-focus-goal! "succ(b_)")
-(di) (di)
-(let ((ih (or (any-pred (lambda (a) (and (pair? a) (eq? (car a) 'FORALL))) (dk-asms))
-              (error "nn-le-add: no IH"))))
-  (dk-peel-to! '<=)
-  (fact 'nn-add-succ 'a_ 'b_)
-  (subst '(= (+ a_ (succ b_)) (succ (+ a_ b_))))
-  (inst+ ih 'a_)
-  (have! '(AND (IN a_ NN) (IN b_ NN)))
-  (fact 'nn-add-closed 'a_ 'b_)
-  (fact 'nn-le-succ '(+ a_ b_))
-  ;; nn-le-trans is GUARDED on NN (2026-08-02).  succ(a_+b_) is the term this
-  ;; chain passes through and it was never typed; nn-add-closed above types
-  ;; a_+b_, so one nn-succ-closed finishes the job.
-  (fact 'nn-succ-closed '(+ a_ b_))
-  (fact 'nn-le-trans-guarded 'a_ '(+ a_ b_) '(succ (+ a_ b_)))
-  (ass))
-(qed 'nn-le-add)
+;;; the form (FORALL n (IMPLIES (IN n NN) P)).
+;;;
+;;; a_ <= a_ + b_ was proven here as `nn-le-add'; REMOVED 2026-09-20 (batch 11,
+;;; proven-duplicate-audit): it was alpha-equal to `nn-le-add-right'
+;;; (theorem-library/nn-order-basics.scm:175), which loads well before this
+;;; file -- and before this file is reachable, since nn-order-basics uses its
+;;; own copy internally.  Same binder order: (fact 'nn-le-add-right X Y)
+;;; instantiates the ADDEND first, landing Y <= Y + X.  The five citations
+;;; (here, card-inequalities, cauchy-criterion-left/-right, nn-pairing) name
+;;; that one.
 
 ;;; ---- b <= c => a + b <= a + c ------------------------------------------
 ;;; Induction on c.  Base: b <= 0 forces b = 0 (above).  Step: b <= succ c
@@ -141,9 +122,9 @@
 (qed 'nn-add-le-mono)
 
 ;;; ---- nn-le-add-left : b <= a + b ---------------------------------------
-;;; The mirror of nn-le-add, which only ever puts the bounded term FIRST
+;;; The mirror of nn-le-add-right, which only ever puts the bounded term FIRST
 ;;; (a <= a + b).  nnpair-inj needs j <= i + j, where the sum is written with
-;;; the addend on the left, so commute once and cite nn-le-add.
+;;; the addend on the left, so commute once and cite nn-le-add-right.
 (sp (make-wff (forall-guarded '(a_ b_) (list '(IN a_ NN) '(IN b_ NN))
                 '(<= b_ (+ a_ b_)))))
 ;; `di' takes the FORALL block plus ONE guard when the statement is built flat,
@@ -152,7 +133,7 @@
 (have! '(AND (IN a_ NN) (IN b_ NN)))
 (fact 'nn-add-comm 'a_ 'b_)
 (subst '(= (+ a_ b_) (+ b_ a_)))
-(fact 'nn-le-add 'a_ 'b_)
+(fact 'nn-le-add-right 'a_ 'b_)
 (ass)
 (qed 'nn-le-add-left)
 
@@ -182,7 +163,6 @@
 (qed 'nn-le-antisym)
 
 (topic! 'nn-le-zero-is-zero 'inequalities)
-(topic! 'nn-le-add          'inequalities)
 (topic! 'nn-add-le-mono     'inequalities)
 (topic! 'nn-le-antisym      'inequalities)
 (topic! 'nn-le-add-left     'inequalities)

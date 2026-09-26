@@ -71,3 +71,29 @@
  (dk-opened (lambda () (di))))
 (qed 'ccint-membership)
 (topic! 'ccint-membership 'topology)
+
+
+;;; ----------------------------------------------------------------------
+;;; ccint-elt-in-rr: a point of a closed interval is a real.
+;;;
+;;; The content is entirely in `ccint-membership' above -- this is its first
+;;; conjunct, detached.  It exists as a NAMED theorem because `in-rr' bridges a
+;;; term from the class the context types it in to the class the goal wants,
+;;; and it does that by citing one fact of the shape
+;;;
+;;;     forall <params>, x.  x in C(<params>)  =>  x in S
+;;;
+;;; uniformly for every class in its table.  `ccint-subset-rr' (monotone-
+;;; inverse.scm) states the same fact in SUBSET form, which is the shape a
+;;; human writes and the wrong shape for a citation: reaching a member from it
+;;; costs an `subset-def' unfold plus an instantiation, and the unfold has to be
+;;; found in a context full of other universals.  One theorem here retires that
+;;; dance from the tactic.
+(sp (make-wff '(FORALL a (FORALL b (FORALL x
+   (IMPLIES (IN x (CCINT a b)) (IN x RR)))))))
+(di)
+(mac-h 'ccint-membership (list 'IN 'x (list 'CCINT 'a 'b)))
+(ai (list 'AND (list 'IN 'x 'RR) (list 'AND (list '<= 'a 'x) (list '<= 'x 'b))))
+(ass)
+(qed 'ccint-elt-in-rr)
+(topic! 'ccint-elt-in-rr 'topology)

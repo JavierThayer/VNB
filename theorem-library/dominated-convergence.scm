@@ -878,93 +878,29 @@
         "a dominated, pointwise-null family of nonnegative series has vanishing sums")
 
 ;;; =====================================================================
-;;; L8.  rr-limit-unique -- a real sequence has AT MOST ONE limit.
+;;; L8.  rr-limit-unique -- MOVED 2026-09-01 to
+;;; theorem-library/metric-limit-unique.scm, where it is one of two three-line
+;;; instances of `metric-limit-unique': a sequence in ANY metric space has at
+;;; most one limit.
 ;;;
-;;; The tree had no limit-uniqueness theorem at all, for RR-MS or for a general
-;;; metric space, and that is what stops the ell^1 norm (and the product metric
-;;; D_w, structure-library/product-metric.scm) from being written as the
-;;; description  IOTA L. SERIES-CONVERGES-TO(f, L):  `iota-d'
-;;; (pi-iota-def!, primitive-inferences.scm) posts existence AND uniqueness, and
-;;; only the first half was available.  Every series limit lives in RR, so the
-;;; RR-MS case is the one those descriptions need.
+;;; The proof that stood here was sixty lines and none of them was about limits.
+;;; It unfolded (DIST RR-MS) to `abs' by `rr-ms-dist' and then spent its length
+;;; on rr-abs-* bookkeeping -- rr-le-abs, rr-neg-abs-le, rr-abs-sub-sym,
+;;; rr-abs-closed -- putting the two eps/2 estimates in front of the oracle,
+;;; twice, once per direction.  In the abstract metric there is no absolute
+;;; value to open: metric-triangle and metric-sym give
+;;; d(lm1,lm2) <= d(f(n),lm1) + d(f(n),lm2) directly, one lane instead of two,
+;;; and metric-zero-eq finishes.  Both proofs are `modulo 0'; the general one is
+;;; shorter, and it also yields `cc-limit-unique', which is what makes a complex
+;;; series limit describable by IOTA.
 ;;;
-;;; No `abs(x) = 0 => x = 0' step: the two one-sided bounds
-;;; lm1 - lm2 <= 0 and lm2 - lm1 <= 0 come from the SAME lane run twice, and
-;;; antisymmetry finishes.  `rr-le-all-pos-nonpos' is the only leaf.
+;;; The statement is unchanged, so every citation below (L9's `fact
+;;; rr-limit-unique' at the SERIES-LIMIT description, and the citers in
+;;; limit-arithmetic and antiderivable-uniform-limit) sees the formula it always
+;;; saw.  The instance carries no extra hypothesis: CONVERGES-TO's own first
+;;; three conjuncts are IS-METRIC-SPACE(s), the FUN typing and the PTS typing,
+;;; so `rr-is-metric-space' is NOT cited and no bill moved.
 ;;; =====================================================================
-
-(sp (make-wff "forall([f in fun(nn,rr), lm1 in rr, lm2 in rr],
-     converges-to(rr-ms, f, lm1) implies converges-to(rr-ms, f, lm2) implies
-     lm1 = lm2)"))
-(di)(di)(di)
-(dk-split! (dk-landed-find (lambda () (mac-h 'converges-to '(CONVERGES-TO RR-MS f lm1)))
-                           (lambda (a) (eq? (car a) 'AND))))
-(dk-split! (dk-landed-find (lambda () (mac-h 'converges-to '(CONVERGES-TO RR-MS f lm2)))
-                           (lambda (a) (eq? (car a) 'AND))))
-(define (lu-tail-of lm)
-  (dn-find lm (lambda (a) (and (pair? a) (eq? (car a) 'FORALL) (dk-contains? a lm)
-                               (dk-contains? a 'POS-RR)))))
-(define lu-t1 (lu-tail-of 'lm1))
-(define lu-t2 (lu-tail-of 'lm2))
-(define (lu-inner thr)
-  (dn-find thr (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)
-                                (let ((b (caddr a)))
-                                  (and (pair? b) (eq? (car b) 'IMPLIES)
-                                       (dk-contains? (caddr b) thr)))))))
-
-;;; ONE lane, run twice: for every eps > 0,  a - b <= eps,  where (a,b) is
-;;; (lm1,lm2) with tail ta for a and tb for b, and then the mirror image.
-(define (lu-small! a b ta tb)
-  (have! (list 'FORALL 'eps (list 'IMPLIES '(POS-RR eps) (list '<= (list '- a b) 'eps)))
-    (lambda ()
-      (let* ((eps (cadr (dn-di-landed-1!)))
-             (hex (dk-fact! 'rr-pos-halvable eps))
-             (d   (dn-skolem! hex))
-             (ea  (dk-deepest (lambda () (inst+ ta d))))
-             (na  (dn-skolem! ea))
-             (ia  (lu-inner na))
-             (eb  (dk-deepest (lambda () (inst+ tb d))))
-             (nb  (dn-skolem! eb))
-             (ib  (lu-inner nb))
-             (bnd (list 'MAX na nb)))
-        (fact 'nn-max-closed na nb)
-        (fact 'nn-in-rr na) (fact 'nn-in-rr nb) (fact 'nn-in-rr bnd)
-        (fact 'rr-le-max-left na nb)
-        (fact 'rr-le-max-right na nb)
-        (inst+ ia bnd)
-        (inst+ ib bnd)
-        (fact 'fun-apply-type-c 'f 'NN 'RR bnd)
-        (let ((fb (list 'f bnd)))
-          (mac-h 'rr-ms-dist (list '<= (list (list 'DIST 'RR-MS) fb a) d))
-          (mac-h 'rr-ms-dist (list '<= (list (list 'DIST 'RR-MS) fb b) d))
-          (fact 'rr-sub-in-rr a fb) (fact 'rr-sub-in-rr fb a)
-          (fact 'rr-sub-in-rr fb b)
-          (fact 'rr-abs-closed (list '- a fb)) (fact 'rr-abs-closed (list '- fb a))
-          (fact 'rr-abs-closed (list '- fb b))
-          (fact 'rr-le-abs (list '- a fb))
-          (fact 'rr-le-abs (list '- fb b))
-          (fact 'rr-abs-sub-sym a fb)
-          (dn-pos-in-rr! eps) (dn-pos-in-rr! d)
-          (dn-ineq (list '<= (list '- a fb) (list 'abs (list '- a fb)))
-                   (list '= (list 'abs (list '- a fb)) (list 'abs (list '- fb a)))
-                   (list '<= (list 'abs (list '- fb a)) d)
-                   (list '<= (list '- fb b) (list 'abs (list '- fb b)))
-                   (list '<= (list 'abs (list '- fb b)) d)
-                   (list '= (list '+ d d) eps))))))
-  (fact 'rr-sub-in-rr a b)
-  (fact 'rr-le-all-pos-nonpos (list '- a b)))
-
-(lu-small! 'lm1 'lm2 lu-t1 lu-t2)
-(lu-small! 'lm2 'lm1 lu-t2 lu-t1)
-(have! '(<= lm1 lm2) (lambda () (dn-ineq '(<= (- lm1 lm2) 0))))
-(have! '(<= lm2 lm1) (lambda () (dn-ineq '(<= (- lm2 lm1) 0))))
-(have! '(AND (IN lm1 RR) (IN lm2 RR)))
-(have! '(AND (<= lm1 lm2) (<= lm2 lm1)))
-(fact 'rr-leq-antisymmetric 'lm1 'lm2)
-(ass)
-(qed 'rr-limit-unique)
-(topic! 'rr-limit-unique 'analysis)
-(alias! 'rr-limit-unique "a real sequence has at most one limit")
 
 ;;; =====================================================================
 ;;; L9.  SERIES-LIMIT, and the theorem that makes it usable.

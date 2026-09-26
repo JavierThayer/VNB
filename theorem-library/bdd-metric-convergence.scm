@@ -313,6 +313,18 @@
                   (fact 'rr-mul-closed eps (list 'recip (list '+ 1 eps)))
                   (mac 'pos-rr)
                   (bm-and! (lambda () (ass)))))
+              ;; LUTINS instantiation (2026-09-18): the tail universal is
+              ;; instantiated AT dlt = eps/(1+eps), a quotient, which owes
+              ;; (= dlt dlt) unless the context types it.  The owed-leaf hook
+              ;; runs `in-rr' and cannot see through `/'; `binary-divide-def'
+              ;; can, and `bm-one-plus!' above already typed recip(1+eps).
+              (have! (list 'IN dlt 'RR)
+                (lambda ()
+                  (mac 'binary-divide-def)
+                  (bm-and2! (list 'IN eps 'RR)
+                            (list 'IN (list 'recip (list '+ 1 eps)) 'RR))
+                  (fact 'rr-mul-closed eps (list 'recip (list '+ 1 eps)))
+                  (ass)))
               (let* ((nex (dk-deepest (lambda () (inst+ bb-tail dlt))))
                      (bigN (bm-skolem! nex))
                      (innerf (bm-find 'inner

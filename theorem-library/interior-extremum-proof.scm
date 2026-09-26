@@ -32,7 +32,7 @@
 (define (iez-focus! raw)
   (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s)
+    (if s (begin (dk-focus! s) s)
         (error "iez-focus!: none equal to" (expression->string raw)))))
 ;; establish (IN term D) in ctx via cut+in-rr, then refocus the main goal
 (define (iez-have! mem main)
@@ -47,7 +47,7 @@
                                       (pair? gg) (eq? (car gg) 'AND))))
                              (proof-leaves))))
       (when (and andleaf (< g 40))
-        (set-proof-state-focus! *ps* andleaf) (di) (loop (+ g 1))))))
+        (dk-focus! andleaf) (di) (loop (+ g 1))))))
 
 (sp '(FORALL f (FORALL a (FORALL b (FORALL theta (FORALL L
      (IMPLIES (AND (IN f (FUN RR RR)) (AND (IN a RR) (AND (IN b RR)

@@ -25,27 +25,57 @@
     (set-theory-definitions!  th '())
     th))
 
-(define (theory-add-axiom! th name formula)
-  (set-theory-axioms! th (cons (cons name formula) (theory-axioms th)))
-  (install-theorem! name formula)  ; axioms are usable as theorems
-  name)
+;;; THERE IS ONE THEORY (the user's decision; the "little theories" of IMPS were dropped).
+;;; The procedures below still ACCEPT a theory as their first argument, because several hundred
+;;; call sites in the library pass `*current-theory*'; but the argument is OPTIONAL and new code
+;;; omits it:
+;;;     (theory-add-axiom! 'name formula)      =  (theory-add-axiom! *current-theory* 'name formula)
+;;; `theory--args' normalises the two spellings.  WHO names the caller in the error message, N is
+;;; the number of arguments AFTER the theory.
+(define (theory--args who args n)
+  (cond ((and (pair? args) (theory? (car args)) (= (length args) (+ n 1))) args)
+        ((= (length args) n) (cons *current-theory* args))
+        (else (error (string-append (symbol->string who)
+                                    ": wrong arguments (the theory argument is optional)")
+                     args))))
 
-(define (theory-add-theorem! th name formula)
-  (hash-table-set! (theory-theorems th) name formula)
-  (fluid-let ((*current-provenance* 'proven))
-    (install-theorem! name formula))
-  name)
+(define (theory-add-axiom! . args)
+  (let* ((a (theory--args 'theory-add-axiom! args 2))
+         (th (car a)) (name (cadr a)) (formula (caddr a)))
+    (set-theory-axioms! th (cons (cons name formula) (theory-axioms th)))
+    (install-theorem! name formula)  ; axioms are usable as theorems
+    name))
+
+;;; theory-add-theorem! records NAME : FORMULA among the theory's theorems and installs it
+;;; with the provenance CURRENTLY IN FORCE -- by default `asserted', which is debt and shows on
+;;; every bill that reaches it.  It does NOT stamp `proven'.
+;;;
+;;; Until 2026-09-20 it did: the body bound *current-provenance* to `proven' itself, so
+;;;     (theory-add-theorem! *current-theory* 'anything '<any formula>)
+;;; installed ANY formula as a proven theorem billing `modulo 0', with no deduction graph behind
+;;; it -- and the manual presented exactly that call as "the way to add a new theorem".  It also
+;;; overrode the `asserted' that cmd-qed binds for a keep-going HOLE, so holes were stamped
+;;; proven.  The one place entitled to say `proven' is cmd-qed (proof-commands.scm), which says
+;;; it only after checking that the root sequent is grounded.
+(define (theory-add-theorem! . args)
+  (let* ((a (theory--args 'theory-add-theorem! args 2))
+         (th (car a)) (name (cadr a)) (formula (caddr a)))
+    (hash-table-set! (theory-theorems th) name formula)
+    (install-theorem! name formula)
+    name))
 
 ;;; Add a result to the Proof Support Set.  Logically treated the same as
 ;;; an axiom or theorem (installs a macete, usable as an assumption), but
 ;;; tagged in *support-theorem-names* so (catalog) lists it under its own
 ;;; section.  Use for results we believe are provable but choose not to
 ;;; mechanize -- classical theorems, large constructions, etc.
-(define (theory-add-support! th name formula)
-  (hash-table-set! (theory-theorems th) name formula)
-  (install-theorem! name formula)
-  (register-support-theorem! name)
-  name)
+(define (theory-add-support! . args)
+  (let* ((a (theory--args 'theory-add-support! args 2))
+         (th (car a)) (name (cadr a)) (formula (caddr a)))
+    (hash-table-set! (theory-theorems th) name formula)
+    (install-theorem! name formula)
+    (register-support-theorem! name)
+    name))
 
 ;;; User-facing: (support 'NAME 'formula) records a result in the current
 ;;; theory's Proof Support Set.  `add-to-pss' is the same operation under the
@@ -101,18 +131,27 @@
 (define (topic! name cat)
   (register-topic! name cat))
 
-(define (theory-get-theorem th name)
-  (hash-table-ref/default (theory-theorems th) name #f))
+(define (theory-get-theorem . args)
+  (let* ((a (theory--args 'theory-get-theorem args 1))
+         (th (car a)) (name (cadr a)))
+    (hash-table-ref/default (theory-theorems th) name #f)))
 
-(define (theory-add-constant! th name definition)
-  (hash-table-set! (theory-constants th) name definition)
-  name)
+(define (theory-add-constant! . args)
+  (let* ((a (theory--args 'theory-add-constant! args 2))
+         (th (car a)) (name (cadr a)) (definition (caddr a)))
+    (hash-table-set! (theory-constants th) name definition)
+    name))
 
 ;;; Add a defined constant with characterizing axioms.
 ;;; char-axioms is a list of (axiom-name . formula) pairs.
 ;;; The axioms are installed as usable theorems but recorded under
 ;;; 'definitions', not 'axioms', so the distinction is preserved.
-(define (theory-add-definition! th const-name char-axioms)
+(define (theory-add-definition! . args)
+  (let* ((a (theory--args 'theory-add-definition! args 2))
+         (th (car a)) (const-name (cadr a)) (char-axioms (caddr a)))
+    (theory--add-definition! th const-name char-axioms)))
+
+(define (theory--add-definition! th const-name char-axioms)
   (for-each (lambda (pair)
               (install-theorem! (car pair) (cdr pair)))
             char-axioms)
@@ -752,6 +791,8 @@
 ;;; Install IS-ORD predicate: (IS-ORD x) <-> (IN x ORD)
 (def-predicate 'IS-ORD 'ORD)
 
+;;; There is ONE theory.  `(current-theory)' is kept only so that old scripts still load; new
+;;; code names no theory at all: `support', `warrant!', `def-predicate', `qed' take none.
 (define (current-theory) *current-theory*)
 
 ;;; -----------------------------------------------------------------------
@@ -880,6 +921,30 @@
          (dg-apply-rule! dg 'cartesian-decompose
            (list (make-sequent asms (wff-child goal new)))
            sqn))))))
+
+;;; CARTESIAN-DECOMPOSE IS FOUNDATIONAL, and is installed as such.
+;;;
+;;; It IS the membership schema of the cartesian product -- x in
+;;; CARTESIAN(A_1,...,A_n) iff x = [a_1,...,a_n] with each a_i in A_i -- stated
+;;; in prose above and implemented as a procedural macete because the fresh
+;;; existential witnesses cannot be written as a static template.  A static
+;;; axiom is not available to it, so a proof that cites it cited a name with no
+;;; entry anywhere and the ledger charged it as an unwarranted leaf: 89 bills
+;;; named it.  Stamped `primitive' (proof-debt.scm:12, the trusted-base tier
+;;; that contributes {} to every bill), on the same shelf as the base theory
+;;; here, the ordinal axioms (ordinals.scm) and replacement (injection.scm).
+;;; User's decision, 2026-09-15.
+;;;
+;;; THE CLAIM THE STAMP MAKES, written down because a `primitive' fact is
+;;; invisible to the debt ledger: that a member of a cartesian product IS a
+;;; tuple of members, i.e. that CARTESIAN means what its membership schema says.
+;;; The test CLAUDE.md sets for the shelf is whether a mathematician would
+;;; answer "because that is what a product is"; here they would.  It is NOT a
+;;; `warrant!' -- a warrant moves a fact from `none' to `well-known', a better
+;;; tier of DEBT; `primitive' says it is not debt.  The retired warrant (in
+;;; theorem-library/founder-warrants.scm) said as much in its own words: "part
+;;; of the base theory in everything but its provenance stamp".
+(register-provenance! 'cartesian-decompose 'primitive)
 
 ;;; -----------------------------------------------------------------------
 ;;; tuple-equality-decompose: procedural macete.

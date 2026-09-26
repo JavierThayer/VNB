@@ -1,3 +1,10 @@
+;;; NOTE 2026-09-20 (batch 12-B).  Where this file says the tree has no metric SUBSPACE
+;;; structure, that is history: SUBSPACE-MS(s, A) and RESTRICT(f, A) are defined in
+;;; structure-library/metric-subspace.scm, their laws are in
+;;; theorem-library/metric-subspace-laws.scm and compact-subspace.scm, and
+;;; `heine-borel-ccint' (theorem-library/heine-borel-interval.scm) states that
+;;; SUBSPACE-MS(RR-MS, CCINT(a, b)) is compact.
+
 ;;; heine-borel-baby.scm -- a closed real interval has the FINITE SUBCOVER
 ;;; property, PROVEN, with no metric-subspace machinery.
 ;;;

@@ -1,0 +1,152 @@
+#!/bin/bash
+# vnb-band -- build or extend the band on a capataz WORKER, from the primary, with metrics.
+#
+#   vnb-band WORKER --build  [--heap BLOCKS]
+#   vnb-band WORKER --extend [--dry-run] [--retire NAME ...] [--heap BLOCKS]
+#   vnb-band WORKER --wait JOB [--timeout SECONDS]
+#   vnb-band WORKER --pull
+#
+# Wraps `prover --build-band' / `prover --extend-band' (CLAUDE.md, "Running it") as a
+# detached capataz job, the way `vnb-suite WORKER --band --detach' wraps the suite (same
+# pattern; see vnb-suite for the model this was built from).  `--build'/`--extend' start the
+# job and return the job id at once; the agent keeps working and collects the result with
+# `vnb-band WORKER --wait JOB', which polls (capataz wait, a short internal timeout -- call
+# it again after a `sleep 600' rather than raising --timeout past a few tens of seconds: a
+# --build-band run is ~50 minutes and nothing should block a foreground call that long),
+# prints the log tail, and appends every row of the worker's ~/probes/runs.jsonl this job
+# wrote that is not already on the primary (matched on ts+host+job+name) to
+# ~/mailbox/metrics/runs.jsonl.  Exits 124 while the job is still running.
+#
+# Both `prover --build-band' and `prover --extend-band' emit their ledger row through
+# vnb-metrics-run (job `build-band' / `extend-band') exactly as vnb-suite's own jobs do; this
+# script duplicates none of that logic, only the capataz detach/wait/ledger-merge scaffold.
+#
+# `--build'/`--extend' pass VNB_HOST=WORKER to the remote shell, so the row's `host' field is
+# the capataz name (worker-01) -- what prover reads first (${VNB_HOST:-$(hostname)}) -- and
+# not the box's own hostname (an ip-... name on a worker).
+#
+# `--pull' recovers rows a worker is already holding in its local ~/probes/runs.jsonl (a job
+# launched by hand, or whose --wait was never run, e.g. the 2026-09-23/24 extend-band and
+# build-band runs on worker-02 and worker-04): same dedup, no job id needed.  Run it against
+# an IDLE worker only -- it is a `capataz run' (foreground), not free of the worker's attention
+# even though it does no Scheme work.
+#
+# Needs capataz 0.2.4+ on the primary (--detach).
+set -u
+[ $# -ge 2 ] || {
+  echo "usage: vnb-band WORKER --build [--heap N] | WORKER --extend [--dry-run] [--retire NAME ...] [--heap N] | WORKER --wait JOB [--timeout SECONDS] | WORKER --pull" >&2
+  exit 2
+}
+WORKER=$1; shift
+LEDGER=~/mailbox/metrics/runs.jsonl
+REMOTE_LEDGER=/home/ubuntu/probes/runs.jsonl
+
+# Read a `;;RUNS {...}' stream (job stdout) or a bare runs.jsonl (one row per line) on
+# stdin; append to LEDGER every row whose job is build-band/extend-band and whose
+# (ts,host,job,name) is not already there.  Prints each appended row, then a count to stderr.
+merge_rows() {
+  python3 -c '
+import sys, os, json
+ledger = sys.argv[1]
+have = set()
+if os.path.exists(ledger):
+    with open(ledger) as f:
+        for line in f:
+            try: r = json.loads(line)
+            except Exception: continue
+            if r.get("job") in ("build-band", "extend-band"):
+                have.add((r.get("ts"), r.get("host"), r.get("job"), r.get("name")))
+new = []
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if line.startswith(";;RUNS "): line = line[len(";;RUNS "):]
+    line = line.strip()
+    if not line: continue
+    try: r = json.loads(line)
+    except Exception: continue
+    if r.get("job") not in ("build-band", "extend-band"): continue
+    key = (r.get("ts"), r.get("host"), r.get("job"), r.get("name"))
+    if key in have: continue
+    have.add(key)
+    new.append(r)
+if new and os.path.isdir(os.path.dirname(ledger)):
+    with open(ledger, "a") as f:
+        for r in new: f.write(json.dumps(r, separators=(",", ":")) + "\n")
+for r in new:
+    print(json.dumps(r, separators=(",", ":")))
+print("=== vnb-band: %d new row(s) appended to %s" % (len(new), ledger), file=sys.stderr)
+' "$LEDGER"
+}
+
+if [ "$1" = "--wait" ]; then
+  [ $# -ge 2 ] || { echo "usage: vnb-band WORKER --wait JOB [--timeout SECONDS]" >&2; exit 2; }
+  JOB=$2; shift 2
+  WTIMEOUT=15
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --timeout) WTIMEOUT=$2; shift 2 ;;
+      *) echo "vnb-band: unknown option $1" >&2; exit 2 ;;
+    esac
+  done
+  capataz wait "$WORKER" "$JOB" --json --user ubuntu --timeout "$WTIMEOUT" > /dev/null 2>&1
+  wrc=$?
+  case $wrc in
+    124) echo "=== vnb-band: job $JOB is still running on $WORKER (wait again: vnb-band $WORKER --wait $JOB)"; exit 124;;
+    125) echo "=== vnb-band: job $JOB died on $WORKER without an exit code (instance rebooted or killed); it will never finish"; exit 125;;
+    4|2) echo "=== vnb-band: no such job $JOB on $WORKER"; exit $wrc;;
+  esac
+  OUT=$(capataz cat "$WORKER" "/home/ubuntu/.capataz/jobs/$JOB/stdout" --user ubuntu)
+  echo "$OUT" | grep -v '^;;RUNS '
+  echo "$OUT" | merge_rows
+  exit 0
+fi
+
+if [ "$1" = "--pull" ]; then
+  # Filter on the worker: the full runs.jsonl (thousands of probe rows) exceeds the SSM
+  # reply cap of 24 KB and the reply is truncated (2026-09-24, worker-01); only the band
+  # jobs' rows are wanted here.
+  capataz run "$WORKER" --json --user ubuntu "grep -h -e '\"job\":\"build-band\"' -e '\"job\":\"extend-band\"' $REMOTE_LEDGER 2>/dev/null" \
+      | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.stdout.write(d.get("stdout") or "")' \
+      | merge_rows
+  exit 0
+fi
+
+MODE=
+case "$1" in
+  --build) MODE=build; shift ;;
+  --extend) MODE=extend; shift ;;
+  *) echo "vnb-band: unknown mode $1 (want --build, --extend, --wait, or --pull)" >&2; exit 2 ;;
+esac
+DRY=0; RETIRE=""; HEAP=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run) DRY=1; shift ;;
+    --retire) shift
+              while [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; do RETIRE="$RETIRE $1"; shift; done ;;
+    --heap) HEAP=$2; shift 2 ;;
+    *) echo "vnb-band: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+if [ "$MODE" = build ] && { [ "$DRY" = 1 ] || [ -n "$RETIRE" ]; }; then
+  echo "vnb-band: --dry-run/--retire only apply to --extend" >&2; exit 2
+fi
+
+if [ "$MODE" = build ]; then
+  ARGS="--build-band"
+  # the exam: every proof runs, every certificate is rewritten (certificates.scm)
+  ENVV="VNB_HOST=$WORKER VNB_CERTIFIED=off"
+  [ -n "$HEAP" ] && ENVV="$ENVV VNB_BUILD_HEAP=$HEAP"
+else
+  ARGS="--extend-band"
+  [ "$DRY" = 1 ] && ARGS="$ARGS --dry-run"
+  [ -n "$RETIRE" ] && ARGS="$ARGS --retire$RETIRE"
+  ENVV="VNB_HOST=$WORKER"
+  [ -n "$HEAP" ] && ENVV="$ENVV VNB_EXTEND_HEAP=$HEAP"
+fi
+# VNB_TIME_LOAD=1: load.scm times every file of the list and `report-load-times' prints the
+# slowest at the end of the load (`;; load timing:' lines), at no measurable cost -- the
+# per-file account of a slow cold load (2026-09-24: 77 min, the user's question).
+SCRIPT="cd /home/ubuntu/prover && VNB_TIME_LOAD=1 $ENVV ./prover $ARGS"
+JOB=$(capataz run "$WORKER" --detach --json --user ubuntu --job-name band "$SCRIPT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["job"])')
+[ -n "$JOB" ] || { echo "vnb-band: capataz run --detach returned no job id" >&2; exit 1; }
+echo "=== vnb-band: started $JOB on $WORKER (prover $ARGS); collect with:  vnb-band $WORKER --wait $JOB"

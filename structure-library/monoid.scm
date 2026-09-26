@@ -1,3 +1,7 @@
+;;; RETIRED 2026-09-17 (proven): comm-monoid-opr-comm (was an unwarranted axiom, no citers) --
+;;; theorem-library/rake-finsum-core.scm
+;;; RETIRED 2026-09-17 (proven): monoid-identity-in, monoid-carrier-closed-opr -- were UNWARRANTED
+;;; axioms here; theorem-library/rake-algebra2.scm, projections of is-monoid-def, modulo 0.
 ;;; monoid.scm -- MONOID and COMM-MONOID structures
 ;;;
 ;;; MONOID: carrier CARR, operation OPR, identity IDEN.
@@ -12,41 +16,18 @@
   (property is-identity OPR IDEN CARR))
 
 ;;; forall s. IS-MONOID(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
-(theory-add-axiom! *current-theory* 'monoid-assoc
-  '(FORALL s
-     (IMPLIES (IS-MONOID s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (FORALL b (IMPLIES (IN b (CARR s))
-           (FORALL c (IMPLIES (IN c (CARR s))
-             (= ((OPR s) ((OPR s) a b) c)
-                ((OPR s) a ((OPR s) b c))))))))))))
+;;; monoid-assoc RETIRED 2026-09-18 (rake batch 5c): proven in theorem-library/rake-monoid-laws.scm
 
 ;;; forall s. IS-MONOID(s) => forall a in CARR(s). IDEN(s)*a = a
-(theory-add-axiom! *current-theory* 'monoid-left-id
-  '(FORALL s
-     (IMPLIES (IS-MONOID s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (= ((OPR s) (IDEN s) a) a))))))
+;;; monoid-left-id RETIRED 2026-09-18 (rake batch 5c): proven in theorem-library/rake-monoid-laws.scm
 
 ;;; forall s. IS-MONOID(s) => forall a in CARR(s). a*IDEN(s) = a
-(theory-add-axiom! *current-theory* 'monoid-right-id
-  '(FORALL s
-     (IMPLIES (IS-MONOID s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (= ((OPR s) a (IDEN s)) a))))))
+;;; monoid-right-id RETIRED 2026-09-18 (rake batch 5c): proven in theorem-library/rake-monoid-laws.scm
 
 ;;; IDEN(m) ∈ CARR(m) when IS-MONOID(m).
 ;;; DERIVED (REVIEW.md R-1): follows from the auto-generated IS-MONOID IFF.
-(theory-add-axiom! *current-theory* 'monoid-identity-in
-  '(FORALL m (IMPLIES (IS-MONOID m) (IN (IDEN m) (CARR m)))))
-
 ;;; Carrier closed under OPR.
 ;;; DERIVED (REVIEW.md R-4): IS-MONOID IFF + fun-apply-type.
-(theory-add-axiom! *current-theory* 'monoid-carrier-closed-opr
-  '(FORALL m (FORALL a (FORALL b
-      (IMPLIES (AND (IS-MONOID m) (AND (IN a (CARR m)) (IN b (CARR m))))
-               (IN ((OPR m) a b) (CARR m)))))))
-
 ;;; -----------------------------------------------------------------------
 ;;; COMM-MONOID: commutative monoid -- a MONOID whose OPR is commutative.
 ;;; Same accessor layout as MONOID.
@@ -64,12 +45,6 @@
 ;;; IS-COMM-MONOID, and IS-MONOID's conjuncts are a subset of what falls out);
 ;;; asserted here, unwarranted, until 2026-08-10.
 
-(theory-add-axiom! *current-theory* 'comm-monoid-opr-comm
-  '(FORALL s
-     (IMPLIES (IS-COMM-MONOID s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (FORALL b (IMPLIES (IN b (CARR s))
-           (= ((OPR s) a b) ((OPR s) b a)))))))))
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).
 (notation! 'IS-MONOID               'noun "monoid" 'article "a")

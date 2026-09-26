@@ -103,9 +103,29 @@
   (let ((src (pd-source-of name)))
     (if src
         (oracles-of src)
-        (if (eq? (provenance-of name) 'proven)
+        (if (memq (provenance-of name) '(proven certified))
             (hash-table-ref/default *proof-oracles* name '())
             '()))))
+
+;;; A macete verb records the name the USER TYPED, and `cmd-apply-macete'
+;;; resolves that name before firing: `resolve-macete-name'
+;;; (proof-commands.scm) falls back to NAME-def, because declare-structure and
+;;; def-predicate install a predicate's unfold under NAME-def rather than under
+;;; the bare name.  So `(mac 'IS-FIELD-RING)' fires the `is-field-ring-def'
+;;; macete -- which is `definitional' and carries no debt.
+;;;
+;;; The ledger has to make the SAME move, and until 2026-09-15 it did not: it
+;;; recorded `is-field-ring', which is not a fact in this tree at all (no
+;;; axiom, no theorem, no provenance entry), so `debt-of' found nothing and
+;;; billed it as an unwarranted leaf forever.  Two of the five unwarranted
+;;; leaves in the library were phantoms of exactly this kind -- `is-field-ring'
+;;; and `is-vector-space' -- charged against three bills for a name that names
+;;; nothing.  The resolution can only redirect a name the macete table already
+;;; redirects, so it cannot hide a real leaf.
+(define (pd-resolve-citation verb name)
+  (if (memq verb '(mac mac-h))
+      (or (resolve-macete-name name) name)
+      name))
 
 ;;; The set of names a proof script directly cites.  A compound-macete arg
 ;;; (e.g. (mac '(series m1 m2))) is NOT a bare name; we log it as an
@@ -118,7 +138,7 @@
           (cond
             ((not (memq verb *pd-citing-verbs*)) (loop (cdr s) acc))
             ((and (pair? args) (symbol? (car args)))
-             (loop (cdr s) (cons (car args) acc)))
+             (loop (cdr s) (cons (pd-resolve-citation verb (car args)) acc)))
             ((pair? args)
              (display ";; proof-debt: uncredited compound ")
              (display verb) (display " citation ")
@@ -145,14 +165,22 @@
         (debt-of src)
         (case (provenance-of name)
           ((primitive definitional) '())
-          ((proven) (hash-table-ref/default *proof-debt* name '()))
+          ;; `certified' (certificates.scm): proven by the exam, installed from
+          ;; its certificate with the bill recomputed from the recorded citations
+          ((proven certified) (hash-table-ref/default *proof-debt* name '()))
           (else (list name))))))    ; asserted (the bare default) -> leaf
 
 ;;; Compute and store the bill for the proof just closed under NAME, from the
 ;;; current *proof-script*.  Returns the bill.  Called by qed AFTER install
 ;;; (so NAME's own provenance is already 'proven and won't self-cite).
 (define (record-proof-debt! name)
-  (let ((cits (proof-citations *proof-script*)))
+  ;; *proof-hidden-citations*: the steps taken inside bc* handlers, which the
+  ;; script holds only as quoted forms (interactive.scm, beside record-cmd!).
+  (let ((cits (proof-citations
+               (append *proof-script* (reverse *proof-hidden-citations*)))))
+    ;; kept for the certificate record (certificates.scm), which must name
+    ;; exactly the citations this bill was computed from
+    (set! *pd-last-citations* cits)
     ;; The BILL (below) is computed over the FULL citation list and is unchanged
     ;; by the filter here.  The cycle GRAPH, however, must exclude two kinds of
     ;; edge that are never a real proof dependency, or a well-founded induction
@@ -197,7 +225,7 @@
       ;; theorem and its own -rev companion gains no self-loop -- the companion
       ;; simply inherits the same out-edges the forward already has.
       (proof-citations-of src)
-   (if (eq? (provenance-of name) 'proven)
+   (if (memq (provenance-of name) '(proven certified))
       (hash-table-ref/default *proof-citation-graph* name '())
       ;; A non-proven node is a leaf UNLESS it declared (rests-on ...): those
       ;; edges make the asserted reference base a checkable DAG.  A proven node
@@ -393,9 +421,15 @@
       (loop (cdr n) #f)))
   (display "}"))
 
-;;; (1) inline at qed: always print the modulo line.
-(define (announce-proof-debt name bill)
-  (display ";; qed ") (display name) (display ": proven modulo ")
+;;; (1) inline at qed: always print the modulo line.  LABEL is `proven' for a
+;;; proof that ran in this image; a theorem installed from its certificate
+;;; (certificates.scm) passes "certified (exam DATE)" -- `proven' alone means the
+;;; proof ran here.
+(define *pd-last-citations* '())
+(define (announce-proof-debt name bill #!optional label)
+  (display ";; qed ") (display name) (display ": ")
+  (display (if (default-object? label) "proven" label))
+  (display " modulo ")
   (if (null? bill) (display "0") (pd-display-set bill))
   (unless (null? bill)
     (display "  [trust: ") (display (debt-trust-level bill)) (display "]"))
@@ -418,8 +452,10 @@
     (case (provenance-of name)
       ((primitive definitional)
        (display "trusted (") (display (provenance-of name)) (display ") -- modulo 0"))
-      ((proven)
-       (display "proven modulo ")
+      ((proven certified)
+       (display (if (eq? (provenance-of name) 'certified)
+                    "certified (proof not run in this image) modulo "
+                    "proven modulo "))
        (if (null? bill) (display "0") (pd-display-set bill))
        (unless (null? bill)
          (display "  [trust: ") (display (debt-trust-level bill)) (display "]")))
@@ -471,6 +507,7 @@
       ((primitive)    (display "   (kernel axiom -- trusted by fiat)"))
       ((definitional) (display "   (true by construction)"))
       ((proven)       (display "   (closed by qed)"))
+      ((certified)    (display "   (proven by the exam; installed from its certificate, no proof in this image)"))
       (else           (display "   (ASSUMED, not proved)")))
     (newline)
     (display "  PSS        : ") (display (if pss? "yes (curated support theorem)" "no"))
@@ -484,7 +521,7 @@
       (cond
         ((memq prov '(primitive definitional))
          (display "n/a -- trusted base, modulo 0"))
-        ((eq? prov 'proven)
+        ((memq prov '(proven certified))
          (let ((bill (debt-of name)))
            (if (null? bill)
                (display "COMPLETE -- proven modulo 0 (unconditional)")
@@ -500,7 +537,7 @@
       (newline)
       ;; A "certified" line wherever there is a proof claim to vouch for:
       ;; proven provenance, OR a certification stamp on an asserted entry.
-      (when (or (eq? prov 'proven) cert)
+      (when (or (memq prov '(proven certified)) cert)
         (display "  certified  : ")
         (if cert (begin (display "VNB test ") (display cert))
                  (display "NOT since last VNB test run -- proof unverified"))
@@ -617,7 +654,7 @@
               proven))
         ;; --- reverse keystone index ---
         (display "## Reverse: asserted leaf -> proven dependents (keystones first)\n\n")
-        (display "Discharging a high-count leaf to a real proof unlocks the most.\n\n")
+        (display "Prove a high-count leaf first: it helps the most proofs at once.\n\n")
         (let ((leaves (sort (hash-table-keys rev)
                             (lambda (a b)
                               (let ((na (length (hash-table-ref/default rev a '())))
@@ -710,6 +747,54 @@
                     (cons (list leaf (cdr r) (if w (car w) 'NONE)) acc))))))))
 
 ;;; ((citation . how-many-of-NAME's-bill-it-accounts-for) ...), biggest first.
+;;; --- re-proving a theorem honestly -----------------------------------
+;;;
+;;; To re-derive a proven theorem you must cite neither it NOR ANY CONSEQUENCE
+;;; of it -- otherwise the argument is circular through a detour, and nothing in
+;;; the tree will say so: a self-citation is filtered out of the cycle graph by
+;;; `record-proof-debt!' (deliberately, for the induction-hypothesis case), and
+;;; the recorded bill of a re-proof reproduces the original one exactly.
+;;; Demonstrated 2026-09-05.
+;;;
+;;; THEOREM-CONSEQUENCES is that forbidden set: NAME together with every proven
+;;; theorem whose proof transitively cites it.  Reverse reachability over the
+;;; live citation graph, with companion names (`X-rev') folded onto their source
+;;; so citing the companion counts as citing X.
+(define (theorem-consequences name)
+  (let ((rev (make-equal-hash-table)))
+    (hash-table-walk *proof-citation-graph*
+      (lambda (n cits)
+        (for-each (lambda (c)
+                    (let ((tgt (or (pd-source-of c) c)))
+                      (hash-table-set! rev tgt
+                        (cons n (hash-table-ref/default rev tgt '())))))
+                  cits)))
+    (let loop ((frontier (list (or (pd-source-of name) name))) (seen '()))
+      (cond ((null? frontier)
+             (sort seen (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+            ((memq (car frontier) seen) (loop (cdr frontier) seen))
+            (else
+             (loop (append (hash-table-ref/default rev (car frontier) '()) (cdr frontier))
+                   (cons (car frontier) seen)))))))
+
+;;; What the CURRENT proof script cites that it must not, if the goal is to
+;;; re-derive NAME independently.  Returns the offending citations (a list);
+;;; '() means the proof so far is independent of NAME.  Run it BEFORE `qed' --
+;;; afterwards the bill will not tell you.
+(define (check-independent name)
+  (let* ((forbidden (theorem-consequences name))
+         (cited     (proof-citations *proof-script*))
+         (bad       (filter (lambda (c)
+                              (memq (or (pd-source-of c) c) forbidden))
+                            cited)))
+    (if (null? bad)
+        (begin (display ";; independent of ") (display name)
+               (display ": nothing cited from its ")
+               (display (length forbidden))
+               (display "-theorem consequence set\n"))
+        (begin (display ";; NOT INDEPENDENT -- cites ") (write bad) (newline)))
+    bad))
+
 (define (debt-entry-routes name)
   (let* ((bill (debt-of name))
          (cits (delete-duplicates
@@ -742,9 +827,13 @@
         (display (- all (length bills)))
         (display " bill `modulo 0`, ")
         (display (length bills)) (display " carry a bill.\n\n")
-        (display "`PROOF-DEBT.md` lists every bill flat.  This file answers the two\n")
-        (display "questions that list cannot: **what is worth proving next**, and\n")
-        (display "**where a long bill comes from**.\n\n")
+        (display "`PROOF-DEBT.md` lists every bill flat.  This file answers four\n")
+        (display "questions that list cannot: **what is worth proving next**,\n")
+        (display "**where a long bill comes from**, **which asserted supports no\n")
+        (display "bill names at all** (section 3), since the first two see only the\n")
+        (display "leaves that some proven theorem leans on, and **which asserted names\n")
+        (display "carry no warrant at all** (section 4), whether or not they are in the\n")
+        (display "PSS.\n\n")
         ;; --- 1. the greedy ranking
         (display "## 1. What to prove next (greedy what-if)\n\n")
         (display "Ranked by bills CLEARED, not by citations: a leaf buys nothing\n")
@@ -786,8 +875,224 @@
                                  (if (> (length routes) 8) (list-head routes 8) routes))
                        (newline)))))
              big))
+        ;; --- 3. the supports no bill names (the user, 2026-09-17: the greedy
+        ;; ranking above scores these ZERO, so two-thirds of the PSS was
+        ;; invisible to "what to prove next"; `ball-is-set' was one of them)
+        (display "## 3. Asserted supports on NO bill\n\n")
+        (let* ((pss  (collapse-rev-names
+                      (filter (lambda (n) (memq n *support-theorem-names*))
+                              (sort (hash-table-keys *theorem-table*)
+                                    (lambda (a b) (string<? (symbol->string a)
+                                                            (symbol->string b)))))))
+               (onb  (let ((h (make-equal-hash-table)))
+                       (for-each (lambda (b) (for-each (lambda (l) (hash-table-set! h l #t))
+                                                       (cdr b)))
+                                 bills)
+                       h))
+               (off  (filter (lambda (n) (not (hash-table-ref/default onb n #f))) pss))
+               (tier (lambda (n) (let ((w (warrant-of n))) (if w (car w) 'NONE))))
+               (tiers '(proof none hand-wave well-known reference informal)))
+          (display "The PSS has ") (display (length pss))
+          (display " entries; ") (display (- (length pss) (length off)))
+          (display " are a leaf of some bill and appear in sections 1-2; these ")
+          (display (length off))
+          (display " are cited by nothing proven, so no bill moves when one is\n")
+          (display "discharged -- and nothing above lists them.  Grouped by warrant tier;\n")
+          (display "a `proof` warrant on an asserted fact claims a machine-checked proof\n")
+          (display "that does not exist, so that group comes first.\n\n")
+          (for-each
+           (lambda (t)
+             (let ((mem (filter (lambda (n) (eq? (tier n) t)) off)))
+               (when (pair? mem)
+                 (display "### warrant `") (display t) (display "`  (")
+                 (display (length mem)) (display ")\n\n")
+                 (for-each (lambda (n)
+                             (display "- `") (display n) (display "`")
+                             (let ((c (topic-of n)))
+                               (when c (display "  _") (display c) (display "_")))
+                             (newline))
+                           mem)
+                 (newline))))
+           tiers)
+          (let ((other (filter (lambda (n) (not (memq (tier n) tiers))) off)))
+            (when (pair? other)
+              (display "### other warrant kinds  (") (display (length other)) (display ")\n\n")
+              (for-each (lambda (n) (display "- `") (display n) (display "`\n")) other)
+              (newline))))
+        ;; --- 4. asserted names with NO warrant (the user's decision, 2026-09-18:
+        ;; the survey scratchpad/r7p/r7p-survey.scm becomes a generated section).
+        ;; Sections 1-3 start from bills and from the PSS; a bare
+        ;; `theory-add-axiom!' with no `warrant!' is in neither unless some proof
+        ;; happens to cite it, so no generated document listed these.
+        (display "## 4. Asserted names with NO warrant\n\n")
+        (let* ((billed (let ((h (make-equal-hash-table)))
+                         (for-each (lambda (b)
+                                     (for-each (lambda (l)
+                                                 (hash-table-update!/default
+                                                  h l (lambda (k) (+ k 1)) 0))
+                                               (cdr b)))
+                                   bills)
+                         h))
+               (bare  (collapse-rev-names
+                       (sort (filter (lambda (n)
+                                       (and (eq? (provenance-of n) 'asserted)
+                                            (not (warrant-of n))
+                                            (not (view-specialized-source n))))
+                                     (hash-table-keys *theorem-table*))
+                             (lambda (a b) (string<? (symbol->string a)
+                                                     (symbol->string b))))))
+               (file-of (lambda (n)
+                          (let ((src (hash-table-ref/default *theorem-source* n #f)))
+                            (if src
+                                (let ((pn (->pathname src)))
+                                  (string-append
+                                   (let ((d (pathname-directory pn)))
+                                     (if (and (pair? d) (pair? (cdr d)))
+                                         (string-append (car (last-pair d)) "/")
+                                         ""))
+                                   (pathname-name pn)))
+                                "(no source recorded)"))))
+               (files (let loop ((ns bare) (acc '()))
+                        (cond ((null? ns)
+                               (sort acc (lambda (a b) (string<? a b))))
+                              ((member (file-of (car ns)) acc) (loop (cdr ns) acc))
+                              (#t (loop (cdr ns) (cons (file-of (car ns)) acc)))))))
+          (display "Provenance `asserted`, no `warrant!`, not a view companion: ")
+          (display (length bare))
+          (display " name(s).  Each is debt that says nothing about why it is\n")
+          (display "believed; a bill that names one reads `trust: none`.  The number after\n")
+          (display "a name is the count of bills naming it (absent: on no bill).  Several\n")
+          (display "carry a comment that sketches a derivation nobody ran: read the source\n")
+          (display "before choosing between a proof, a definition and a warrant.\n\n")
+          (for-each
+           (lambda (f)
+             (let ((mem (filter (lambda (n) (string=? (file-of n) f)) bare)))
+               (display "### ") (display f) (display "  (")
+               (display (length mem)) (display ")\n\n")
+               (for-each (lambda (n)
+                           (display "- `") (display n) (display "`")
+                           (let ((k (hash-table-ref/default billed n 0)))
+                             (when (> k 0)
+                               (display "  **") (display k) (display " bill(s)**")))
+                           (newline))
+                         mem)
+               (newline)))
+           files))
         (display "---\n\n_Regenerated on every library load; do not hand-edit._\n")))
     path))
+
+;;; --- asserted-duplicate-audit (2026-09-19) ------------------------------
+;;; An ASSERTED statement that is alpha-equivalent to a statement settled under ANOTHER
+;;; name (proven, primitive or definitional).  Such a leaf is discharged by one citation,
+;;; and no ranking can see it, because bills and rankings go by NAME.  The two cases that
+;;; prompted the gate, both found by proving agents on 2026-09-19: `rr-prod-pos' was
+;;; `rr-mul-pos' with other binder names, and `fun-codomain-superset' was the proven
+;;; `fun-codomain-subset'.  Returns a list of (asserted-name . settled-name); candidates
+;;; are bucketed by tree size, so the cost is a couple of seconds on the whole table.
+(define (asserted-duplicate-audit)
+  (let* ((names (hash-table-keys *theorem-table*))
+         (raw   (lambda (n)
+                  (let ((f (hash-table-ref/default *theorem-table* n #f)))
+                    (and f (call-with-current-continuation
+                            (lambda (k)
+                              (with-exception-handler
+                               (lambda (e) (k #f))
+                               (lambda () (if (wff? f) (wff-formula f) f)))))))))
+         (size  (lambda (e) (let walk ((e e))
+                              (if (pair? e) (+ 1 (walk (car e)) (walk (cdr e))) 1))))
+         (index (make-equal-hash-table))
+         (hits  '()))
+    (for-each
+     (lambda (n)
+       (if (memq (provenance-of n) '(proven primitive definitional))
+           (let ((r (raw n)))
+             (if r (hash-table-update!/default
+                    index (size r) (lambda (l) (cons (cons n r) l)) '())))))
+     names)
+    (for-each
+     (lambda (a)
+       (if (and (eq? (provenance-of a) 'asserted)
+                (not (view-specialized-source a)))
+           (let ((ra (raw a)))
+             (if ra
+                 (for-each
+                  (lambda (cand)
+                    (if (and (not (eq? (car cand) a))
+                             (call-with-current-continuation
+                              (lambda (k)
+                                (with-exception-handler
+                                 (lambda (e) (k #f))
+                                 (lambda () (alpha-equiv? ra (cdr cand)))))))
+                        (set! hits (cons (cons a (car cand)) hits))))
+                  (hash-table-ref/default index (size ra) '()))))))
+     names)
+    (sort hits (lambda (x y) (string<? (symbol->string (car x))
+                                       (symbol->string (car y)))))))
+
+;;; --- proven-duplicate-audit (2026-09-20) --------------------------------
+;;; The sibling of asserted-duplicate-audit, for PROVEN statements: groups of two or more
+;;; proven names whose statements are alpha-equivalent.  Harmless to soundness; it costs
+;;; work (the same fact proven two or three times -- 17 groups were found by a text scan on
+;;; 2026-09-19, among them three lemmas a driver re-proved 900 lines below itself) and it
+;;; clutters search.  Companions minted by the system are not duplicates and are skipped:
+;;; a `-rev' companion has a rev-companion-source, a view companion a
+;;; view-specialized-source.  Candidates are bucketed by `formula-hash', which is invariant
+;;; under renaming of bound variables, so alpha-equiv? runs only inside a bucket.
+;;; Returns a list of groups, each a list of names sorted by name.
+(define (proven-duplicate-audit)
+  (let* ((raw   (lambda (n)
+                  (let ((f (hash-table-ref/default *theorem-table* n #f)))
+                    (and f (call-with-current-continuation
+                            (lambda (k)
+                              (with-exception-handler
+                               (lambda (e) (k #f))
+                               (lambda () (if (wff? f) (wff-formula f) f)))))))))
+         (same? (lambda (a b)
+                  (call-with-current-continuation
+                   (lambda (k)
+                     (with-exception-handler
+                      (lambda (e) (k #f))
+                      (lambda () (alpha-equiv? a b)))))))
+         (index (make-equal-hash-table))
+         (groups '()))
+    (for-each
+     (lambda (n)
+       (if (and (memq (provenance-of n) '(proven certified))
+                (not (rev-companion-source n))
+                (not (view-specialized-source n)))
+           (let ((r (raw n)))
+             (if r
+                 (let ((h (call-with-current-continuation
+                           (lambda (k)
+                             (with-exception-handler
+                              (lambda (e) (k #f))
+                              (lambda () (formula-hash r)))))))
+                   (if h
+                       ;; each bucket is a list of CLASSES, a class a list of (name . formula)
+                       (let* ((classes (hash-table-ref/default index h '()))
+                              (hit (let loop ((cs classes))
+                                     (cond ((null? cs) #f)
+                                           ((same? r (cdr (car (car cs)))) (car cs))
+                                           (#t (loop (cdr cs)))))))
+                         (hash-table-set!
+                          index h
+                          (if hit
+                              (map (lambda (c) (if (eq? c hit) (cons (cons n r) c) c)) classes)
+                              (cons (list (cons n r)) classes))))))))))
+     (hash-table-keys *theorem-table*))
+    (hash-table-walk
+     index
+     (lambda (h classes)
+       (for-each
+        (lambda (c)
+          (if (pair? (cdr c))
+              (set! groups
+                    (cons (sort (map car c)
+                                (lambda (x y) (string<? (symbol->string x) (symbol->string y))))
+                          groups))))
+        classes)))
+    (sort groups (lambda (x y) (string<? (symbol->string (car x))
+                                         (symbol->string (car y)))))))
 
 ;;; --- (4) status audit ------------------------------------------------
 ;;; Survey the WHOLE catalog on the status axes and surface the hygiene
@@ -807,6 +1112,7 @@
   (let ((p (provenance-of name)))
     (case p
       ((primitive definitional proven) p)
+      ((certified) 'proven)            ; proven by the exam
       (else 'asserted))))
 
 (define (status-audit)

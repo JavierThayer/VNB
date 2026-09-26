@@ -42,10 +42,10 @@
 ;; refocus onto a leaf by goal / by assumption
 (define (bd--focus-goal! G)
   (let ((s (bd--any (lambda (s) (equal? (bd--goalof s) G)) (bd--leaves))))
-    (and s (set-proof-state-focus! *ps* s))))
+    (and s (dk-focus! s))))
 (define (bd--focus-asm! G)
   (let ((s (bd--any (lambda (s) (bd--any (lambda (w) (equal? (wff-formula w) G)) (bd--asms s))) (bd--leaves))))
-    (and s (set-proof-state-focus! *ps* s))))
+    (and s (dk-focus! s))))
 
 ;; structural substitution (ground value; respect shadowing binders)
 (define (bd--subst f v val)
@@ -110,7 +110,7 @@
                                                (bd--asms s)))
                           (bd--leaves))))
         (cond
-          (asl (set-proof-state-focus! *ps* asl) (ass) (loop (- fuel 1)))
+          (asl (dk-focus! asl) (ass) (loop (- fuel 1)))
           (else
            (let scan ((ls (bd--leaves)))
              (when (pair? ls)
@@ -122,7 +122,7 @@
                                      (bd--asms s))))
                    (if hit
                        (let ((H (wff-formula hit)))
-                         (set-proof-state-focus! *ps* s)
+                         (dk-focus! s)
                          (bd--use-hyp! H (bd--match (bd--concl H) g (bd--forall-vars H)))
                          (loop (- fuel 1)))
                        (scan (cdr ls)))))))))))))

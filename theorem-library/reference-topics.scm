@@ -166,7 +166,7 @@
      matadd-zero-left matadd-zero-right matadd-neg-left matadd-neg-right
      matneg-type matscale-type matscale-entry)
     ("Multiplication"
-     matmul-type matmul-entry matmul-assoc matmul-left-dist matmul-right-dist
+     matmul-type matmul-entry matmul-assoc matmul-left-dist-guarded matmul-right-dist-guarded
      matprod-summand-type matmul-assoc-summand-type)
     ("The identity and zero matrices"
      identmat-type identmat-entry-diag identmat-entry-off
@@ -194,20 +194,23 @@
     ("Matrix equivalence"
      mat-equiv mat-equiv-refl mat-equiv-trans
      mat-equiv-left-mult mat-equiv-right-mult
-     mat-equiv-target-is-mat mat-equiv-cod-is-mat)
+     mat-equiv-target-is-mat)
     ("Matrices acting on sequences of module elements"
      matact-type matact-entry matact-identmat matact-assoc
-     matact-row-add matact-row-scale matact-row-peel matact-snoc
-     matact-unitrow matact-zerorow matact-empty-vzero
+     lincomb-row-add lincomb-row-scale lincomb-row-peel lincomb-snoc
+     lincomb-unitrow lincomb-zerorow lincomb-empty
+     lincomb-unfold lincomb-type matact-lincomb
      matact-triple-left matact-triple-right)
-    ;; Determinants.  DEFINED, not proved: det-zero and det-cofactor are the two
-    ;; definitional recursion axioms (no warrant, no debt), and every property
-    ;; below it is an ASSERTED seed carrying a Hoffman-Kunze citation.  The page
-    ;; prints each one's warrant, so the reader can see that for himself.
+    ;; Determinants.  det-zero and det-cofactor are the two definitional recursion
+    ;; axioms (no warrant, no debt); every property below them is PROVEN since
+    ;; 2026-09-24 (batches 25-C and 26-B: row linearity, alternation, expansion
+    ;; along any row, Hoffman-Kunze 5.3 Thm 2, multiplicativity).  The page prints
+    ;; each one's provenance, so the reader can see that for himself.
     ("Determinants: minors and cofactor expansion"
      MINOR DET minor-type det-zero det-cofactor
      det-in-carrier det-1x1 det-2x2
-     det-identity det-alternating-rows det-multiplicative)
+     det-identity det-row-linear det-swap-rows det-alternating-rows
+     det-expand-row det-alternating-form det-multiplicative det-mul-invertible)
     ("The binomial theorem"
      sum-expansion binomial-theorem)))
 

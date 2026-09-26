@@ -76,28 +76,11 @@
 ;;; statement there; the argument is the one this warrant used to describe.
 
 ;;; ----- the product is a bounded metric space -----
-(support 'product-is-metric-space
-  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
-     (FORALL w (IMPLIES (SUMMABLE-WEIGHT w)
-       (IS-METRIC-SPACE (PRODUCT-METRIC-W ms w)))))))
-(warrant! 'product-is-metric-space 'well-known
-  "PRODUCT-METRIC-W(ms,w) is a metric space.  Nonnegativity, symmetry and the
-   zero law are termwise (D_w(x,y)=0 iff every weighted term is 0 iff rho_n=0
-   iff x(n)=y(n) for all n iff x=y, as w(n)>0).  The triangle inequality is the
-   sum over n of the per-factor bounded triangle inequalities (each rho_n is a
-   metric, bdd-metric-is-metric-space), the sums converging by
-   product-weighted-summable.")
 
 ;;; ----- projections are continuous (lower bound on the topology) -----
-(support 'product-projection-continuous
-  '(FORALL ms (IMPLIES (IS-MS-SEQUENCE ms)
-     (FORALL w (IMPLIES (SUMMABLE-WEIGHT w)
-       (FORALL n (IMPLIES (IN n NN)
-         (IS-CONTINUOUS (PRODUCT-METRIC-W ms w) (ms n) (PRODUCT-PROJ ms n)))))))))
-(warrant! 'product-projection-continuous 'well-known
-  "Each projection pi_n(x)=x(n) is continuous P -> PTS(ms n): w(n)*rho_n(x(n),y(n))
-   <= D_w(x,y), and rho_n is topologically equivalent to d_n, so small product
-   distance forces small d_n-distance in coordinate n.")
+;;; RETIRED 2026-09-16 (proven): product-is-metric-space -- theorem-library/product-is-metric-space.scm
+
+;;; product-projection-continuous RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-metric-constructions.scm
 
 ;;; ----- THE product topology: convergence is exactly coordinatewise -----
 ;;; `product-convergence-coordinatewise' was asserted here until 2026-08-23.  It

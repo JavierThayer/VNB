@@ -217,25 +217,56 @@
 ;;; Find the OUTERMOST ring subterm of g whose canonical form DIFFERS from it
 ;;; -- the redex (simp) will rewrite.  Returns (list e e' surface R) or #f,
 ;;; surface in {concrete, generic} and R the ring (#f for concrete).  Never
-;;; descends into FORALL/FORSOME bodies: a subterm whose variables are bound
-;;; inside g cannot be lifted to a sequent-level equality without capture (the
-;;; post-di idiom keeps the ring term at sequent level anyway).  With TARGET (a
-;;; raw term) given, finds that exact subterm rather than the outermost.
+;;; descends into a BINDER: a subterm whose variables are bound inside g cannot
+;;; be lifted to a sequent-level equality without capture (the post-di idiom
+;;; keeps the ring term at sequent level anyway).  With TARGET (a raw term)
+;;; given, finds that exact subterm rather than the outermost.
 ;;; (cring-redex-here, the per-node test, is defined after both normalizers.)
+;;;
+;;; The test is `binder-shape' (expressions.scm), not a list of heads: it used
+;;; to name FORALL and FORSOME only, so the walk entered SEP, COMP, IOTA,
+;;; BIG-UNION and VNB-LAMBDA and could propose a redex under them.  That cost a
+;;; wasted step rather than soundness -- `replace-term's capture guard refuses
+;;; the rewrite afterwards -- but the walk had no business being there.
+;;; Declared for binder-walker-audit (expressions.scm: declare-binder-walker!).
+(declare-binder-walker! 'find-cring-redex 'from-binder-shapes)
+
+;;; UNDER A QUANTIFIER (2026-09-21, the user's exercise
+;;; `forsome([a in zz], (x + y)^3 = x^3 + a * y)', on which `simp' did nothing).
+;;; The reason for not entering a binder is that a subterm mentioning a BOUND
+;;; variable cannot be lifted to a sequent-level equation.  A subterm that
+;;; mentions none -- `(x + y)^3' above -- can: `cmd-cring-simp' cuts `e = e*' at
+;;; sequent level, `crs' proves it there, and `pi-eq-subst!' rewrites the
+;;; occurrence.  So the walk enters FORALL and FORSOME, carries the variables bound
+;;; on the way, and accepts a candidate only when NO symbol of it is one of them
+;;; (`cring--free-of?': any occurrence counts, which is conservative).  A
+;;; candidate that fails the test is not given up: the walk goes on into its
+;;; arguments.  The five TERM binders (SEP, IOTA, COMP, BIG-UNION, VNB-LAMBDA) are
+;;; still never entered.
+(define (cring--free-of? e bound)
+  (cond ((null? bound) #t)
+        ((symbol? e) (not (memq e bound)))
+        ((pair? e) (and (cring--free-of? (car e) bound) (cring--free-of? (cdr e) bound)))
+        (else #t)))
+
 (define (find-cring-redex g target)
-  (let walk ((e g))
-    (cond
-      ((not (pair? e)) #f)
-      ((memq (car e) '(FORALL FORSOME)) #f)         ; never enter a binder
-      (target
-       (if (equal? e target)
-           (cring-redex-here e)
-           (let loop ((xs (cdr e)))
-             (and (pair? xs) (or (walk (car xs)) (loop (cdr xs)))))))
-      ((cring-redex-here e))                         ; a redex at this node?
-      (else
-       (let loop ((xs (cdr e)))
-         (and (pair? xs) (or (walk (car xs)) (loop (cdr xs)))))))))
+  (let walk ((e g) (bound '()))
+    (let ((into-args
+           (lambda ()
+             (let loop ((xs (cdr e)))
+               (and (pair? xs) (or (walk (car xs) bound) (loop (cdr xs))))))))
+      (cond
+        ((not (pair? e)) #f)
+        ((memq (car e) '(FORALL FORSOME))            ; a quantifier: enter, remember its variable
+         (and (= (length e) 3) (symbol? (cadr e))
+              (walk (caddr e) (cons (cadr e) bound))))
+        ((binder-shape (car e)) #f)                  ; never enter a TERM binder
+        (target
+         (if (equal? e target)
+             (and (cring--free-of? e bound) (cring-redex-here e))
+             (into-args)))
+        ((and (cring--free-of? e bound) (cring-redex-here e)))   ; a liftable redex at this node?
+        (else (into-args))))))
 
 ;;; SOURCE generators of a concrete subterm with literal powers expanded -- the
 ;;; set whose carrier-membership (simp)/crs must certify (warrant 2).

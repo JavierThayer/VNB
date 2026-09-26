@@ -25,7 +25,7 @@
 (define (mr-focus! pred)
   (let lp ((ls (mr-leaves)))
     (cond ((null? ls) (error "mat-ring-proof: no open leaf matches predicate"))
-          ((pred (mr-goal-of (car ls))) (set-proof-state-focus! *ps* (car ls)) (car ls))
+          ((pred (mr-goal-of (car ls))) (dk-focus! (car ls)) (car ls))
           (else (lp (cdr ls))))))
 (define (mr-di*) (let lp () (let* ((g (mr-pg)) (h (and (pair? g) (car g))))
                               (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
@@ -73,9 +73,9 @@
          (typers (if (default-object? typers) '() typers)))
     (let loop ()
       (let ((ds (filter mr-decomposable? (mine))))
-        (when (pair? ds) (set-proof-state-focus! *ps* (car ds)) (di) (loop))))
+        (when (pair? ds) (dk-focus! (car ds)) (di) (loop))))
     (for-each (lambda (lf)
-                (set-proof-state-focus! *ps* lf)
+                (dk-focus! lf)
                 (let ((vs (mr-vbind)))
                   (for-each (lambda (t) (t vs)) typers)
                   (lam-b)
@@ -94,6 +94,15 @@
 (sp '(FORALL a (IMPLIES (IS-RING a) (FORALL n (IMPLIES (IN n NN)
        (IS-RING (MAT-RING a n)))))))
 (mr-di*)                        ; asms: IS-RING a, IN n NN ; goal IS-RING(MAT-RING a n)
+;; The product laws are guarded (2026-09-16, the SIZE/MAT change): matmul-type
+;; on `n = 0 implies (m = 0 or k = 0)', matmul-assoc on G1/G2.  Every product
+;; here is square n-by-n, so each guard is a propositional tautology; land them
+;; once, and every leaf below inherits them.  No `1 <= n': MAT-RING(a,0) is a
+;; ring too.
+(define MR-GUARDS
+  '((IMPLIES (= n 0) (OR (= n 0) (= n 0)))                    ; matmul-type (n,n,n)
+    (IMPLIES (= n 0) (OR (= n 0) (AND (= n 0) (= n 0))))))    ; matmul-assoc G1 = G2
+(for-each (lambda (g) (have! g (lambda () (prop))) (dk-focus-having! g)) MR-GUARDS)
 (mac 'IS-RING)                  ; -> the 14-conjunct AND
 
 ;; split the top-level (right-nested) AND into 14 conjunct leaves
@@ -102,7 +111,7 @@
                                            (and (pair? g) (eq? (car g) 'AND))))
                             (mr-leaves))))
              (and (pair? m) (car m)))))
-    (when l (set-proof-state-focus! *ps* l) (di) (lp))))
+    (when l (dk-focus! l) (di) (lp))))
 
 ;; ---- 1. length(mat-ring(a,n)) = 6 ----  (genuine: unfold to the 6-tuple, len-r)
 (mr-disch (mr-is? '= 'LENGTH) (lambda ()
@@ -174,8 +183,8 @@
 ;; ---- 14. is-distributive(add, mul) ----
 (mr-disch (mr-is? 'is-distributive 'ADD) (lambda ()
   (mac 'is-distributive)(mr-rcarr)(mr-rops 'mat-ring-add 'mat-ring-mul)
-  (mr-close-conj (list (lambda (v) (fact 'matmul-left-dist  'a 'n 'n 'n (car v) (cadr v) (caddr v)))  ; u(v+w)
-                       (lambda (v) (fact 'matmul-right-dist 'a 'n 'n 'n (car v) (cadr v) (caddr v)))) ; (u+v)w
+  (mr-close-conj (list (lambda (v) (fact 'matmul-left-dist-guarded  'a 'n 'n 'n (car v) (cadr v) (caddr v)))  ; u(v+w)
+                       (lambda (v) (fact 'matmul-right-dist-guarded 'a 'n 'n 'n (car v) (cadr v) (caddr v)))) ; (u+v)w
                  (list (mr-t-add car cadr) (mr-t-add cadr caddr)
                        (mr-t-mul car cadr) (mr-t-mul car caddr) (mr-t-mul cadr caddr)))))
 

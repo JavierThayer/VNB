@@ -133,19 +133,19 @@
 
 ;;; ---- the shapes ------------------------------------------------------
 
-(define afs-af  '(VNB-LAMBDA x RR (+ cc (* lam x))))       ; A(t) = cc + lam.t
-(define afs-psi '(VNB-LAMBDA x RR (phi (+ cc (* lam x))))) ; t |-> phi(A(t))
+(define afs-af  '(VNB-LAMBDA x RR (+ ck (* lam x))))       ; A(t) = cc + lam.t
+(define afs-psi '(VNB-LAMBDA x RR (phi (+ ck (* lam x))))) ; t |-> phi(A(t))
 (define afs-rl  '(recip lam))
-(define afs-Apt '(+ cc (* lam t_)))
+(define afs-Apt '(+ ck (* lam t_)))
 
-(define (afs-at v) (list '+ 'cc (list '* 'lam v)))
+(define (afs-at v) (list '+ 'ck (list '* 'lam v)))
 
 ;; A(t) in RR, for a real t
 (define (afs-real-A! v)
   (afs-need! (list 'AND '(IN lam RR) (list 'IN v 'RR)))
   (fact 'rr-mul-in-rr 'lam v)
-  (afs-need! (list 'AND '(IN cc RR) (list 'IN (list '* 'lam v) 'RR)))
-  (fact 'rr-add-in-rr 'cc (list '* 'lam v)))
+  (afs-need! (list 'AND '(IN ck RR) (list 'IN (list '* 'lam v) 'RR)))
+  (fact 'rr-add-in-rr 'ck (list '* 'lam v)))
 
 ;; A carries [p,q] into [aa,bb] ...
 (define afs-maps-in
@@ -168,8 +168,8 @@
 
 (quietly (lambda ()
   (sp (make-wff
-    (forall-guarded '(phi cc lam p_ q_ aa bb)
-      (list '(IN phi (FUN RR RR)) '(IN cc RR) '(IN lam RR) '(NOT (= lam 0))
+    (forall-guarded '(phi ck lam p_ q_ aa bb)
+      (list '(IN phi (FUN RR RR)) '(IN ck RR) '(IN lam RR) '(NOT (= lam 0))
             '(IN p_ RR) '(IN q_ RR) '(< p_ q_)
             '(IS-ANTIDERIVABLE phi aa bb)
             afs-maps-in afs-maps-int)
@@ -191,8 +191,8 @@
            (afs-comp (list 'COMPOSE afs-F afs-af))
            (afs-G    (list 'VNB-LAMBDA 'x 'RR (list '* afs-rl (list afs-comp 'x)))))
 
-      (afs-need! '(AND (IN cc RR) (IN lam RR)))
-      (fact 'affine-lam-in-fun 'cc 'lam)                   ; A : RR -> RR
+      (afs-need! '(AND (IN ck RR) (IN lam RR)))
+      (fact 'affine-lam-in-fun 'ck 'lam)                   ; A : RR -> RR
       (afs-need! (list 'AND (list 'IN afs-af '(FUN RR RR))
                             (list 'IN afs-F '(FUN RR RR))))
       (fact 'compose-type 'RR 'RR 'RR afs-F afs-af)        ; F o A : RR -> RR
@@ -231,9 +231,9 @@
                ;; affine-continuous-at's antecedent is a three-way AND, which
                ;; `fact' will not split: without it the citation lands the
                ;; IMPLICATION and every citation after it lands another.
-               (afs-need! (list 'AND '(IN cc RR)
+               (afs-need! (list 'AND '(IN ck RR)
                                 (list 'AND '(IN lam RR) (list 'IN v 'RR))))
-               (fact 'affine-continuous-at 'cc 'lam v)
+               (fact 'affine-continuous-at 'ck 'lam v)
                (inst+ afs-maps-in v)                       ; A(v) in [aa,bb]
                (inst+ afs-cf (afs-at v))                   ; F continuous there
                (have! (list 'IS-CONTINUOUS-AT 'RR-MS 'RR-MS afs-F (list afs-af v))
@@ -258,9 +258,9 @@
                (inst+ afs-df av)                           ; F'(A(th)) = phi(A(th))
                (have! (list 'IS-DIFF-AT afs-F (list afs-af th) mv)
                       (lambda () (lam-b) (ass)))
-               (afs-need! (list 'AND '(IN cc RR)
+               (afs-need! (list 'AND '(IN ck RR)
                                 (list 'AND '(IN lam RR) (list 'IN th 'RR))))
-               (fact 'deriv-affine 'cc 'lam th)            ; A'(th) = lam
+               (fact 'deriv-affine 'ck 'lam th)            ; A'(th) = lam
                (fact 'deriv-chain afs-af afs-F th 'lam mv) ; (F o A)' = phi(A).lam
                (fact 'deriv-scalar-mult afs-rl afs-comp th (list '* mv 'lam))
                (fact 'fun-apply-type-c 'phi 'RR 'RR av)
@@ -296,8 +296,8 @@
 ;;; from the oracle.
 ;;; =====================================================================
 
-(define afs2-aa '(+ cc (* lam p_)))
-(define afs2-bb '(+ cc (* lam q_)))
+(define afs2-aa '(+ ck (* lam p_)))
+(define afs2-bb '(+ ck (* lam q_)))
 (define afs2-mi (forall-guarded 't_ '(IN t_ (CCINT p_ q_))
                   (list 'IN afs-Apt (list 'CCINT afs2-aa afs2-bb))))
 (define afs2-mint (forall-guarded 't_
@@ -307,8 +307,8 @@
 
 (quietly (lambda ()
   (sp (make-wff
-    (forall-guarded '(phi cc lam p_ q_)
-      (list '(IN phi (FUN RR RR)) '(IN cc RR) '(IN lam RR) '(< 0 lam)
+    (forall-guarded '(phi ck lam p_ q_)
+      (list '(IN phi (FUN RR RR)) '(IN ck RR) '(IN lam RR) '(< 0 lam)
             '(IN p_ RR) '(IN q_ RR) '(< p_ q_)
             (list 'IS-ANTIDERIVABLE 'phi afs2-aa afs2-bb))
       (list 'IS-ANTIDERIVABLE afs-psi 'p_ 'q_))))
@@ -346,7 +346,7 @@
         (for-each (lambda (nd) (dk-focus! nd) (afs-ineq!))
                   (dk-opened (lambda () (afs-split-goal!)))))))
 
-  (fact 'antiderivable-affine-subst 'phi 'cc 'lam 'p_ 'q_ afs2-aa afs2-bb)
+  (fact 'antiderivable-affine-subst 'phi 'ck 'lam 'p_ 'q_ afs2-aa afs2-bb)
   (ass)))
 (afs-check 'antiderivable-affine-subst-pos)
 (qed 'antiderivable-affine-subst-pos)
@@ -361,18 +361,18 @@
 ;;; =====================================================================
 
 (define afs-pw (forall-guarded 'x_ '(IN x_ RR)
-                 (list '== '(psi x_) '(phi (+ cc (* lam x_))))))
+                 (list '== '(psi x_) '(phi (+ ck (* lam x_))))))
 
 (quietly (lambda ()
   (sp (make-wff
-    (forall-guarded '(phi psi cc lam p_ q_)
-      (list '(IN phi (FUN RR RR)) '(IN psi (FUN RR RR)) '(IN cc RR) '(IN lam RR)
+    (forall-guarded '(phi psi ck lam p_ q_)
+      (list '(IN phi (FUN RR RR)) '(IN psi (FUN RR RR)) '(IN ck RR) '(IN lam RR)
             '(< 0 lam) '(IN p_ RR) '(IN q_ RR) '(< p_ q_)
             (list 'IS-ANTIDERIVABLE 'phi afs2-aa afs2-bb)
             afs-pw)
       '(IS-ANTIDERIVABLE psi p_ q_))))
   (afs-peel-to! 'IS-ANTIDERIVABLE)
-  (fact 'antiderivable-affine-subst-pos 'phi 'cc 'lam 'p_ 'q_)
+  (fact 'antiderivable-affine-subst-pos 'phi 'ck 'lam 'p_ 'q_)
   (have! (forall-guarded 'x_ '(IN x_ RR) (list '== '(psi x_) (list afs-psi 'x_)))
     (lambda ()
       (let ((v (afs-di-var!)))

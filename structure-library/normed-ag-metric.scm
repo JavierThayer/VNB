@@ -49,43 +49,17 @@
 ;;; -----------------------------------------------------------------------
 ;;; Distance = norm of the (group) difference, on the carrier.
 
-(support 'nag-metric-distance
-  '(FORALL nag
-     (IMPLIES (IS-NORMED-AG nag)
-       (FORALL u (IMPLIES (IN u (CARR nag))
-         (FORALL v (IMPLIES (IN v (CARR nag))
-           (= ((DIST (NAG-METRIC-SPACE nag)) u v)
-              ((NRM nag) ((OPR nag) u ((INV nag) v)))))))))))
+;;; nag-metric-distance RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-norm-metrics.scm
 
-(warrant! 'nag-metric-distance 'informal
-  "By functoid-beta NAG-METRIC-SPACE(nag) = [CARR(nag), vnb-lambda([u,v],
-   NRM(nag)(u . INV(v)))]; its D component is the 2nd list element (nth-reduce)
-   and lambda-beta evaluates it at (u,v), giving NRM(nag)(OPR(nag)(u, INV(nag)
-   v)) = ||u . v^-1||.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Every normed AG carries a metric space.
 
-(support 'nag-metric-space-is-metric-space
-  '(FORALL nag
-     (IMPLIES (IS-NORMED-AG nag)
-       (IS-METRIC-SPACE (NAG-METRIC-SPACE nag)))))
+;;; nag-metric-space-is-metric-space RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-norm-metrics.scm
 
-(warrant! 'nag-metric-space-is-metric-space 'informal
-  "The four is-metric clauses for d(u,v) = ||u . v^-1|| follow from
-   is-group-norm plus the abelian-group laws: nonnegativity (norm >= 0);
-   point-separation (d(u,v)=0 iff u.v^-1=E iff u=v, by norm definiteness);
-   symmetry (v.u^-1 = (u.v^-1)^-1, so equal norm by inverse-invariance);
-   triangle (u.w^-1 = (u.v^-1).(v.w^-1), so ||u.w^-1|| <= ||u.v^-1|| +
-   ||v.w^-1|| by subadditivity).")
 
 ;;; -----------------------------------------------------------------------
 ;;; Carrier of the underlying metric space is the group's carrier.
 
-(support 'nag-metric-carrier
-  '(FORALL nag
-     (== (PTS (NAG-METRIC-SPACE nag)) (CARR nag))))
+;;; nag-metric-carrier RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-norm-metrics.scm
 
-(warrant! 'nag-metric-carrier 'informal
-  "First component of the LIST constructor: by functoid-beta + nth-reduce,
-   PTS(NAG-METRIC-SPACE nag) = CARR(nag).")

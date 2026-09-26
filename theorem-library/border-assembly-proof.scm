@@ -10,13 +10,13 @@
 (define (bm-di*) (let lp () (let* ((g (bm-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
 (define (bm-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (bm-foc! n) (set-proof-state-focus! *ps* n))
+(define (bm-foc! n) (dk-focus! n))
 (define (bm-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (bm-find pred) (let lp ((as (bm-asms)))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (bm-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (fa* vs body) (fold-right (lambda (v acc) (list 'FORALL v acc)) body vs))
 (define (impl* gs concl) (fold-right (lambda (g acc) (list 'IMPLIES g acc)) concl gs))
@@ -40,6 +40,7 @@
 (sp (make-wff (list 'FORALL 'A (list 'IMPLIES '(IS-RING A) (list 'FORALL 'p (list 'IMPLIES '(IN p NN)
     (list '= BI IM)))))))
 (bm-di*)
+(fact 'nn-succ-closed 'p)          ; identmat-type / entry-of-identmat at succ p need it
 (fact 'ring-one-in 'A) (fact 'identmat-type 'A 'p)
 (fact 'border-type 'A '(ONE A) IP 'p 'p) (fact 'identmat-type 'A '(succ p))
 (cut (fa* '(i) (impl* '((IN i (INTERVAL 1 (succ p))))
@@ -95,8 +96,16 @@
 
 ;; ===================== border-is-diagonal =====================
 (define BE '(BORDER A b E p q))
+;; GUARDED 2026-09-16 (the SIZE/MAT surgery, after the border read-offs were
+;; guarded) with (IN b (CARR A)) and (IN E (MAT p q (CARR A))), the last two
+;; premises.  Unguarded the statement is FALSE: take p = q = 1 and E := 7 (not a
+;; tuple).  IS-DIAGONAL(A,1,1,E) holds vacuously (its only index pair is (1,1)),
+;; but the 2-by-2 tabulation BORDER(A,b,7,1,1) needs the value ENTRY(7,1,1),
+;; which does not denote, so BORDER has no value and its (1,2) entry is not
+;; ZERO(A).  Likewise for b a proper class (no tuple has it as an entry).
 (sp (make-wff (list 'FORALL 'A (list 'IMPLIES '(IS-RING A) (fa* '(b E p q)
-    (impl* (list '(IN p NN) '(IN q NN) '(IS-DIAGONAL A p q E))
+    (impl* (list '(IN p NN) '(IN q NN) '(IS-DIAGONAL A p q E)
+                 '(IN b (CARR A)) '(IN E (MAT p q (CARR A))))
       (list 'IS-DIAGONAL 'A '(succ p) '(succ q) BE)))))))
 (bm-di*)
 (mac 'IS-DIAGONAL)
@@ -143,7 +152,9 @@
 (fact 'invertible-mat-is-mat 'A 'n 'U)
 (fact 'border-type 'A '(ONE A) 'U 'n 'n)
 (fact 'border-type 'A '(ONE A) V 'n 'n)
+(fact 'nn-succ-closed 'n)
 (fact 'identmat-type 'A '(succ n))
+(dk-have-prop! '(IMPLIES (= n 0) (OR (= n 0) (= n 0))))   ; border-mult's product guard at (n,n,n)
 (mac 'IS-INVERTIBLE-MAT)
 (di)
 (bm-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IN) (equal? (cadr g) BU)))) (ass)
@@ -209,6 +220,8 @@
 (fact 'ring-one-in 'A)
 (fact 'invertible-mat-is-mat 'A 'p UP)
 (fact 'invertible-mat-is-mat 'A 'q VP)
+(dk-have-prop! '(IMPLIES (= p 0) (OR (= p 0) (= q 0))))   ; guard at (p,p,q)
+(dk-have-prop! '(IMPLIES (= q 0) (OR (= p 0) (= q 0))))   ; guard at (p,q,q)
 (mac 'MAT-EQUIV)
 (ew BU) (di)
 (bm-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'IS-INVERTIBLE-MAT) (equal? (cadddr g) BU)))) (ass)

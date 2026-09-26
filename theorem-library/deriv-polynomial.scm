@@ -423,6 +423,23 @@
 (fact 'nn-succ-closed st-sn)                               ; (IN (succ (succ n)) NN)
 (fact 'fun-apply-type-c st-cf 'NN 'RR st-sn)               ; (IN a_{n+1} RR)
 (fact 'deriv-coef-monomial st-coef st-n st-pt)             ; the new top term
+;;; LUTINS instantiation (2026-09-18).  `deriv-sum' below is cited AT the two
+;;; derivative VALUES st-dvn and st-mval, and `diff-transfer-ptwise-eq' at
+;;; their sum; a SERIES-PARTIAL-SUM and a product of powers are not certified
+;;; syntactically, so each owes (= t t) unless its typing is already in the
+;;; context.  The two `poly-dseq-lam-in-fun' / `series-partial-sum-in-rr'
+;;; citations that used to sit just BELOW `deriv-sum' (they were there for
+;;; `series-partial-sum-succ') are moved ABOVE it, and the top term's typing
+;;; is assembled here rather than left to the owed-leaf hook -- which runs
+;;; `in-rr' and cannot type pt^n.
+(fact 'poly-dseq-lam-in-fun st-cf st-pt)
+(fact 'series-partial-sum-in-rr st-n (dpl-dseq st-cf st-pt))   ; (IN st-dvn RR)
+(fact 'nn-in-rr st-sn)                                     ; (IN (succ n) RR)
+(fact 'power-closed-at st-n st-pt)                         ; (IN pt^n RR)
+(dpl-mul! st-sn st-coef)                                   ; (IN (succ n)*a_{n+1} RR)
+(dpl-mul! (list '* st-sn st-coef) (list 'power st-pt st-n)) ; (IN st-mval RR)
+(have! (list 'AND (list 'IN st-dvn 'RR) (list 'IN st-mval 'RR)))
+(fact 'rr-add-closed st-dvn st-mval)                       ; (IN st-val RR)
 (have! (list 'AND (list 'IS-DIFF-AT st-pn st-pt st-dvn)
                   (list 'IS-DIFF-AT st-mono st-pt st-mval)))
 (fact 'deriv-sum st-pn st-mono st-pt st-dvn st-mval)
@@ -430,8 +447,6 @@
 ;;; the goal's derivative sum, split at its top term and beta-reduced, IS the
 ;;; value `deriv-sum' just concluded.
 ;; guarded on its two arguments being real since 2026-08-29
-(fact 'poly-dseq-lam-in-fun st-cf st-pt)
-(fact 'series-partial-sum-in-rr st-n (dpl-dseq st-cf st-pt))
 (fact 'fun-apply-type-c (dpl-dseq st-cf st-pt) 'NN 'RR st-n)
 (fact 'series-partial-sum-succ (dpl-dseq st-cf st-pt) st-n)
 (subst (list '== (list 'SERIES-PARTIAL-SUM (dpl-dseq st-cf st-pt) st-sn)

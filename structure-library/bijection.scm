@@ -1,3 +1,7 @@
+;;; RETIRED 2026-09-17 (proven): inverse-bij-in-fun, inverse-bij-left, inverse-bij-right,
+;;; inverse-bij-is-bijection -- were UNWARRANTED axioms; theorem-library/rake-inverse-bij.scm, modulo 0.
+;;; RETIRED 2026-09-17 (proven): bijection-compose (was an `informal' axiom) -- theorem-library/rake-analysis2.scm,
+;;; via the new fun-domain-in-set (the domain of a set-function is a set).
 ;;; bijection.scm -- bijections between classes, and INVERSE-BIJ via CHOICE.
 ;;;
 ;;; BIJECTION(X, Y) is the class of bijections phi : X -> Y, i.e. phi in
@@ -79,39 +83,19 @@
 
 ;;; Typing: when phi is a bijection X -> Y, INVERSE-BIJ(phi, X, Y) is in
 ;;; FUN(Y, X).  Derivable from CHOICE + surjectivity.
-(theory-add-axiom! *current-theory* 'inverse-bij-in-fun
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (BIJECTION X Y))
-               (IN (INVERSE-BIJ phi X Y) (FUN Y X)))))))
 
 ;;; Left inverse: for x in X, INVERSE-BIJ(phi)(phi(x)) = x.
 ;;; Derivable from CHOICE on a singleton (singleton because phi is injective).
 ;;; NB: bound vars are dm/cod (not X/Y) -- the reader case-folds, so an
 ;;; outer X and an inner x would be the same symbol and capture.
-(theory-add-axiom! *current-theory* 'inverse-bij-left
-  '(FORALL dm (FORALL cod (FORALL phi
-      (IMPLIES (IN phi (BIJECTION dm cod))
-               (FORALL x
-                 (IMPLIES (IN x dm)
-                          (= ((INVERSE-BIJ phi dm cod) (phi x)) x))))))))
 
 ;;; Right inverse: for y in Y, phi(INVERSE-BIJ(phi)(y)) = y.
 ;;; Derivable from CHOICE + surjectivity (the chosen pre-image satisfies
 ;;; phi(x) = y by definition of the set we are choosing from).
 ;;; NB: bound vars dm/cod (not X/Y) -- see inverse-bij-left note.
-(theory-add-axiom! *current-theory* 'inverse-bij-right
-  '(FORALL dm (FORALL cod (FORALL phi
-      (IMPLIES (IN phi (BIJECTION dm cod))
-               (FORALL y
-                 (IMPLIES (IN y cod)
-                          (= (phi ((INVERSE-BIJ phi dm cod) y)) y))))))))
 
 ;;; The inverse is itself a bijection.
 ;;; Derivable from inverse-bij-left, inverse-bij-right, and the iff.
-(theory-add-axiom! *current-theory* 'inverse-bij-is-bijection
-  '(FORALL X (FORALL Y (FORALL phi
-      (IMPLIES (IN phi (BIJECTION X Y))
-               (IN (INVERSE-BIJ phi X Y) (BIJECTION Y X)))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Composition closure.
@@ -119,18 +103,6 @@
 ;;; (VNB-LAMBDA x (psi (phi x))) is a bijection X -> Z whenever phi is a
 ;;; bijection X -> Y and psi is a bijection Y -> Z.
 ;;; Derivable; installed as an axiom for direct use.
-
-(theory-add-axiom! *current-theory* 'bijection-compose
-  '(FORALL X (FORALL Y (FORALL Z (FORALL phi (FORALL psi
-      (IMPLIES (AND (IN phi (BIJECTION X Y))
-                    (IN psi (BIJECTION Y Z)))
-               (IN (VNB-LAMBDA x_ X (psi (phi x_)))
-                   (BIJECTION X Z)))))))))
-(warrant! 'bijection-compose 'informal
-  "Derivable from bijection-membership-iff in both directions plus lambda-beta:
-   the composite is a function X->Z, injective (phi,psi injective) and
-   surjective (phi,psi surjective).  Mechanization needs VNB-LAMBDA typing +
-   beta on the nested application; deferred.")
 
 ;;; The identity on X is a bijection X -> X.
 ;;; Derivable trivially; useful base case in induction proofs.
@@ -145,16 +117,7 @@
 ;;; (theory.scm:499) being itself guarded on (IN A SET) -- so this was an unsound
 ;;; ASSERTION rather than a demonstrated inconsistency.  Nothing in the tree cited
 ;;; it, so the guard costs no call site.
-(theory-add-axiom! *current-theory* 'bijection-identity
-  '(FORALL X
-     (IMPLIES (IN X SET)
-              (IN (VNB-LAMBDA x_ X x_) (BIJECTION X X)))))
-(warrant! 'bijection-identity 'informal
-  "Backward direction of bijection-membership-iff: for a SET X the identity
-   lambda is in FUN(X,X) (lambda-type: X is a set and x in X gives x in X),
-   injective (lambda(a)=lambda(b) beta-reduces to a=b) and surjective
-   (witness z:=w).  Mechanization needs VNB-LAMBDA typing + beta + exists-intro;
-   deferred.")
+;;; bijection-identity MOVED 2026-09-15 (wave 6) to theorem-library/bijection-identity-proof.scm, where it is PROVEN modulo 0.
 
 ;;; -----------------------------------------------------------------------
 ;;; DELETE-AT: restriction-and-shift on NN-indexed functions.

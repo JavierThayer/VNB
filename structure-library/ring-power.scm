@@ -1,3 +1,6 @@
+;;; RETIRED 2026-09-17 (proven, rake batch P): ring-power-one, ring-power-add, ring-power-mult --
+;;; theorem-library/rake-combinatorics.scm, modulo 0 (mpow laws through the multiplicative view).
+;;; RETIRED 2026-09-17 (proven): ring-power-type -- theorem-library/rake-finsum-typing.scm
 ;;; ring-power.scm -- RING-POWER: the natural-number power x^n in a commutative ring.
 ;;;
 ;;; A thin convenience wrapper over the monoid power MPOW (monoid-power.scm).
@@ -21,53 +24,19 @@
 ;;;
 ;;; Dependencies: monoid-power.scm (MPOW + laws), views.scm
 ;;; (COMMUTATIVE-RING-MULTIPLICATIVE-CM), commutative-ring.scm, ring.scm.
+;;; RETIRED 2026-09-14 (proven): ring-power-zero -- theorem-library/ring-zero-one-power.scm
 
 (def-functoid 'RING-POWER '(R x n)
   '(MPOW (COMMUTATIVE-RING-MULTIPLICATIVE-CM R) x n))
 
 ;;; x^0 = 1 (the ring's ONE).  mpow-zero is unconditional; the view gives
 ;;; IDEN(COMMUTATIVE-RING-MULTIPLICATIVE-CM R) = (ONE R).
-(support 'ring-power-zero
-  '(FORALL R (FORALL x (== (RING-POWER R x 0) (ONE R)))))
-(warrant! 'ring-power-zero 'informal
-  "mpow-zero: MPOW(m,x,0)=IDEN(m); the view's E|->ONE slot gives IDEN(COMMUTATIVE-RING-MULTIPLICATIVE-CM R)=(ONE R).")
 
 ;;; x^1 = x.  mpow-one (uses the right-identity law, hence the typing).
-(support 'ring-power-one
-  '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (CARR R))
-       (= (RING-POWER R x 1) x))))))
-(warrant! 'ring-power-one 'informal
-  "mpow-one on the multiplicative monoid: x^1 = MUL(x, x^0) = MUL(x, ONE) = x by the right-identity law.")
 
 ;;; Carrier closure: x^n stays in CARR(R).  mpow-type via the view (A|->A).
-(support 'ring-power-type
-  '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (CARR R))
-       (FORALL n (IMPLIES (IN n NN)
-         (IN (RING-POWER R x n) (CARR R)))))))))
-(warrant! 'ring-power-type 'informal
-  "mpow-type on COMMUTATIVE-RING-MULTIPLICATIVE-CM(R): NN induction, base (ONE R) in CARR(R), step closes under (MUL R).")
 
 ;;; x^(j+k) = x^j * x^k.  mpow-add -- the monoid-hom law, no commutativity.
-(support 'ring-power-add
-  '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (CARR R))
-       (FORALL j (IMPLIES (IN j NN)
-         (FORALL k (IMPLIES (IN k NN)
-           (= (RING-POWER R x (+ j k))
-              ((MUL R) (RING-POWER R x j) (RING-POWER R x k))))))))))))
-(warrant! 'ring-power-add 'informal
-  "mpow-add: n|->x^n is a monoid hom (NN,+,0)->((CARR R),(MUL R),(ONE R)).  NN induction on k; no commutativity used.")
 
 ;;; (x*y)^n = x^n * y^n.  mpow-mult -- needs the multiplicative monoid to be
 ;;; commutative, which is exactly IS-COMMUTATIVE-RING(R).
-(support 'ring-power-mult
-  '(FORALL R (IMPLIES (IS-COMMUTATIVE-RING R)
-     (FORALL x (IMPLIES (IN x (CARR R))
-       (FORALL y (IMPLIES (IN y (CARR R))
-         (FORALL n (IMPLIES (IN n NN)
-           (= (RING-POWER R ((MUL R) x y) n)
-              ((MUL R) (RING-POWER R x n) (RING-POWER R y n))))))))))))
-(warrant! 'ring-power-mult 'informal
-  "mpow-mult on COMMUTATIVE-RING-MULTIPLICATIVE-CM(R); commutativity of (MUL R) is exactly IS-COMMUTATIVE-RING(R).")

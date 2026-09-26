@@ -6,6 +6,8 @@
 ;;; All asserted as witness-manufacturing blocks: Rolle's theta comes from EVT's
 ;;; argmax via Prop 2.10, so a downstream consumer bc*'s rolle and never guesses
 ;;; theta -- [[automatable-assembly]].
+;;; RETIRED 2026-09-14 (proven): continuous-nonpos-right -- theorem-library/continuous-one-sided-sign.scm
+;;; RETIRED 2026-09-14 (proven): continuous-nonneg-left -- theorem-library/continuous-one-sided-sign.scm
 
 ;;; ===================================================================
 ;;; Prop 2.10 (interior form): at an interior maximum/minimum of f on [a,b],
@@ -23,27 +25,7 @@
 ;;; The supports are stated with CURRIED antecedents (no AND) so the proof can
 ;;; apply them FORWARD by `fact` (their conclusion (g th) is higher-order, so
 ;;; bc* would loop the matcher).
-(add-to-pss 'continuous-nonpos-right
-  '(FORALL g (FORALL th (FORALL bb
-     (IMPLIES (IN g (FUN RR RR)) (IMPLIES (IN th RR) (IMPLIES (IN bb RR) (IMPLIES (< th bb)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g th)
-     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< th x) (< x bb))) (<= (g x) 0)))
-       (<= (g th) 0)))))))))))
-(warrant! 'continuous-nonpos-right 'well-known
-  "A function continuous at th that is <=0 on a right-neighborhood (th,bb) is
-   <=0 at th (sign preservation under continuity / one-sided limit).")
-(topic! 'continuous-nonpos-right 'analysis)
 
-(add-to-pss 'continuous-nonneg-left
-  '(FORALL g (FORALL aa (FORALL th
-     (IMPLIES (IN g (FUN RR RR)) (IMPLIES (IN aa RR) (IMPLIES (IN th RR) (IMPLIES (< aa th)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g th)
-     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< aa x) (< x th))) (<= 0 (g x))))
-       (<= 0 (g th))))))))))))
-(warrant! 'continuous-nonneg-left 'well-known
-  "A function continuous at th that is >=0 on a left-neighborhood (aa,th) is
-   >=0 at th.")
-(topic! 'continuous-nonneg-left 'analysis)
 
 ;; interior-min-deriv-zero is MACHINE-PROVEN from interior-max-deriv-zero applied
 ;; to g = -f (deriv-neg + rr-le-neg + rr-neg-eq-zero) -- see

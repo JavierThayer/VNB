@@ -122,12 +122,7 @@
 ;;; The strict twin of rr-le-from-diff-nonneg -- the one lemma the order calculus
 ;;; was missing.  0 < y-x  =>  x < y.  Belongs in structure-library/order-lemmas
 ;;; (RR order); stated here for now, warranted well-known like its nonstrict twin.
-(support 'rr-lt-from-diff-pos
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (IMPLIES (< 0 (- y x)) (< x y)))))))
-(warrant! 'rr-lt-from-diff-pos 'well-known
-  "0 < y-x gives x < y -- the strict `move everything to one side'; add x to
-   both sides of 0 < y-x and simplify.  Strict twin of rr-le-from-diff-nonneg.")
+;;; rr-lt-from-diff-pos RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-rr-order-leaves.scm
 
 ;;; =======================================================================
 ;;; nn-lt-double : k /= 0 => k < 2*k.  PROVEN by `calc' -- the notes-27 directive

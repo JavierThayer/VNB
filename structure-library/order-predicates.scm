@@ -18,6 +18,8 @@
 ;;; Not extended to arith-eval: ground decisions on `<` still go through
 ;;; the unfold via the iff.  A future pass may dispatch arith-eval on
 ;;; `<` directly.
+;;; RETIRED 2026-09-14 (proven): nn-unbounded-in-rr -- theorem-library/nn-unbounded-in-rr.scm
+;;; RETIRED 2026-09-14 (proven): nn-recip-succ-small -- theorem-library/nn-recip-succ-small.scm
 
 (def-predicate '< '(x y)
   '(AND (<= x y) (NOT (= x y))))
@@ -91,11 +93,7 @@
 ;;; instantiating continuity at a d < eps (this lemma) makes the non-strict
 ;;; bound land strictly inside the eps-ball (cf. ball-mem-from-le).  The strict
 ;;; sibling of rr-pos-halvable (take d = eps/2; eps/2 < eps).
-(support 'rr-pos-shrink
-  '(FORALL eps (IMPLIES (POS-RR eps)
-     (FORSOME d (AND (POS-RR d) (< d eps))))))
-(warrant! 'rr-pos-shrink 'well-known
-  "Every positive real eps has a smaller positive real below it (e.g. eps/2 < eps).  Order density of the reals at 0; standard.")
+;;; rr-pos-shrink RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-inequalities.scm
 
 ;;; --------------------------------------------------------------------
 ;;; The archimedean property (added 2026-08-01).
@@ -123,19 +121,6 @@
 ;;; product-metric.scm:61,145, young-inequality in real-powers.scm:180 -- so
 ;;; they are about an uninterpreted binary operator.  Not unsound, but no
 ;;; proof can connect them to recip.  Recorded, not fixed here.)
-(support 'nn-unbounded-in-rr
-  (forall-guarded 'x '(IN x RR)
-    (forsome-guarded 'n_ '(IN n_ NN)
-      '(< x n_))))
-(warrant! 'nn-unbounded-in-rr 'informal
-  "NN is unbounded in RR: no real number is an upper bound for the naturals.
-   The archimedean property, in its primary form.  Rigorous from the axioms
-   present since order completeness landed (rr-sup-in / rr-sup-upper /
-   rr-sup-least, number-systems.scm): if NN had an upper bound it would have a
-   least one, s = SUP(NN); s - 1 is then not an upper bound, so s - 1 < n for
-   some natural n, so s < n + 1, and n + 1 is a natural.  Not mechanised --
-   that is the driver this warrant is standing in for.")
-(topic! 'nn-unbounded-in-rr 'inequalities)
 
 ;;; The reciprocal reading, in the two pieces a net argument consumes.  Kept
 ;;; SEPARATE because the consumer uses them at different moments: positivity is
@@ -144,35 +129,15 @@
 ;;; and that happens for EVERY n, before any eps is in play; smallness is needed
 ;;; later, once eps is given.  Folding them into one conjunction would force the
 ;;; driver to produce an eps it does not yet have.
-(support 'nn-recip-succ-pos
-  (forall-guarded 'n_ '(IN n_ NN)
-    '(POS-RR (recip (+ n_ 1)))))
-(warrant! 'nn-recip-succ-pos 'informal
-  "1/(n+1) is a positive real for every natural n.  Rigorous from the axioms
-   present, hence `informal' rather than `well-known': n + 1 >= 1 > 0 in RR
-   (nn-in-rr and the order axioms), recip of a nonzero real is real
-   (rr-recip-closed), and it is positive because a positive reciprocal is
-   forced by a * recip a = 1 (rr-recip-inverse) together with
-   rr-leq-mul-nonneg.  Not mechanised: it needs recip-order lemmas the tree
-   does not have yet.")
-(topic! 'nn-recip-succ-pos 'inequalities)
+;;; nn-recip-succ-pos MOVED 2026-09-02 to theorem-library/pos-rr-of-lt.scm,
+;;; where it is PROVEN `modulo 0' as a four-line instance of the general bridge
+;;; `rr-pos-rr-of-lt' (0 < x implies POS-RR(x)) -- which the tree did not have,
+;;; and whose absence is why this was asserted.  The retired warrant ended "Not
+;;; mechanised: it needs recip-order lemmas the tree does not have yet"; the
+;;; tree has had them since theorem-library/rr-recip-order.scm (`rr-recip-pos'
+;;; is the lemma it names) and nothing went back to collect.  Statement
+;;; unchanged, so every citer sees the formula it always saw.
 
-(support 'nn-recip-succ-small
-  (forall-guarded 'eps '(POS-RR eps)
-    (forsome-guarded 'n_ '(IN n_ NN)
-      '(< (recip (+ n_ 1)) eps))))
-(warrant! 'nn-recip-succ-small 'informal
-  "For every eps > 0 there is a natural n with 1/(n+1) < eps.  The corollary of
-   nn-unbounded-in-rr that eps-arguments actually consume: apply unboundedness
-   to x = 1/eps to get n > 1/eps, hence n + 1 > 1/eps > 0, hence
-   1/(n+1) < eps by antitonicity of recip on the positives.  A rigorous paper
-   proof exists from nn-unbounded-in-rr plus the ordered-field axioms, hence
-   `informal'; mechanising it needs the recip-monotonicity lemmas (0 < a =>
-   0 < recip a; 0 < a < b => recip b < recip a), which the tree does not have.
-   Adding those two and proving this would trade one assertion for two, so it
-   was deliberately not done -- see the note in separable.scm.")
-(topic! 'nn-recip-succ-small 'inequalities)
-(rests-on 'nn-recip-succ-small '(nn-unbounded-in-rr))
 
 ;;; --------------------------------------------------------------------
 ;;; QQ is dense in RR (item (c) of the 2026-08-01 arithmetic-base cleanup).

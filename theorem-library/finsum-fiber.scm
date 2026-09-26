@@ -62,12 +62,9 @@
 ;;; prod-of-sums (card-subset-nn), subtype-laws (group-identity-in,
 ;;; abelian-group-is-group), fun-apply-type-proof (fun-apply-type-c).
 
-(warrant! 'cartesian-decompose 'well-known
-  "The membership schema of the cartesian product, x in CARTESIAN(A_1,...,A_n)
-   iff x = [a_1,...,a_n] for some a_i in A_i -- theory.scm:721 states it in
-   prose and implements it as a procedural macete because the fresh existential
-   witnesses cannot be written as a static template.  It is part of the base
-   theory in everything but its provenance stamp.")
+;;; (the `warrant!' for cartesian-decompose MOVED 2026-09-14 to theorem-library/founder-warrants.scm:
+;;; matof-in-mat.scm, which loads before this file, bills it, and a warrant registered
+;;; after the citing qed reads as `trust: none' at load time.)
 
 ;;; -----------------------------------------------------------------------
 ;;; local driver helpers (ffb- prefix)
@@ -176,6 +173,27 @@
    (list 'IF (list '= '(phi i) tv) '(f i) '(IDEN ag))))
 (define (ffb-fib tv)  (list 'SEP 's_ 'S (list '= '(phi s_) tv)))
 
+;; (ffb-lami tv) is a function S -> CARR(ag): it is f inside the fiber over tv
+;; and IDEN(ag) outside it.  Wanted TWICE -- once inside the restriction lane
+;; (3), and once by the pointwise typing the restated `finsum-congruence' asks
+;; of its first summand at the assembly.  Returns the lambda.  Needs in context:
+;; (IN S SET), f in FUN(S, CARR ag), IDEN(ag) in CARR(ag), (IN tv T).
+(define (ffb-lami-type! tv)
+  (let ((li (ffb-lami tv)))
+    (have! (list 'IN li '(FUN S (CARR ag)))
+      (lambda ()
+        (for-each
+          (lambda (l) (dk-focus! l)
+            (if (equal? (dk-goal-of l) '(in s set)) (ass)
+                (let* ((iv (cadr (dk-landed-1 (lambda () (di)))))
+                       (it (list 'IF (list '= (list 'phi iv) tv) (list 'f iv) '(IDEN ag))))
+                  (fact 'fun-apply-type-c 'f 'S '(CARR ag) iv)
+                  (use-em (cadr it)
+                    (lambda () (ffb-if! it 'true  (lambda () (ass))) (ass))
+                    (lambda () (ffb-if! it 'false (lambda () (ass))) (ass))))))
+          (dk-opened (lambda () (lam-t))))))
+    li))
+
 (sp (make-wff
   (ffb-tf 'ag '(IS-ABELIAN-GROUP ag)
    (ffb-tfin 'S (ffb-tfin 'T
@@ -278,18 +296,7 @@
                     (let ((zv (cadr (dk-landed-1 (lambda () (di))))))
                       (sep-me (list 'IN zv fb)) (ass))))
        ;; the summand is a function S -> CARR(ag)
-       (have! (list 'IN li '(FUN S (CARR ag)))
-         (lambda ()
-           (for-each
-             (lambda (l) (dk-focus! l)
-               (if (equal? (dk-goal-of l) '(in s set)) (ass)
-                   (let* ((iv (cadr (dk-landed-1 (lambda () (di)))))
-                          (it (list 'IF (list '= (list 'phi iv) tv) (list 'f iv) '(IDEN ag))))
-                     (fact 'fun-apply-type-c 'f 'S '(CARR ag) iv)
-                     (use-em (cadr it)
-                       (lambda () (ffb-if! it 'true  (lambda () (ass))) (ass))
-                       (lambda () (ffb-if! it 'false (lambda () (ass))) (ass))))))
-             (dk-opened (lambda () (lam-t))))))
+       (ffb-lami-type! tv)
        ;; ... which is the identity at every index OUTSIDE the fiber
        (have! (list 'FORALL 'z (list 'IMPLIES (list 'AND '(IN z S) (list 'NOT (list 'IN 'z fb)))
                                      (list '= (list li 'z) '(IDEN ag))))
@@ -318,11 +325,38 @@
                       'true (lambda () (ass)))
              (rfl))))
        (fact 'finsum-embed 'ag fb 'S li)
+       ;; the restated finsum-congruence (2026-09-17) wants its FIRST summand
+       ;; typed POINTWISE on the index set: li is a function on S and the fiber
+       ;; is a subset of S, so it is one fun-apply-type-c per member.
+       (have! (list 'FORALL 'z (list 'IMPLIES (list 'IN 'z fb)
+                                     (list 'IN (list li 'z) '(CARR ag))))
+         (lambda ()
+           (let ((zv (cadr (dk-landed-1 (lambda () (di))))))
+             (sep-me (list 'IN zv fb))
+             (fact 'fun-apply-type-c li 'S '(CARR ag) zv)
+             (ass))))
        (fact 'finsum-congruence 'ag fb li 'f)
        (subst (list '= (list 'FINSUM 'ag li 'S) (list 'FINSUM 'ag li fb)))
        (ass)))))
 
 ;;; ---- assembly --------------------------------------------------------
+;; the pointwise typings the restated finsum-congruence asks of its FIRST
+;; summand.  For f it is the premise f in FUN(S, CARR ag), read off one point at
+;; a time; for the inner-sum-over-S family it is finsum-type applied to the
+;; lambda ffb-lami-type! types -- which is what that family beta-reduces to.
+(have! '(FORALL z (IMPLIES (IN z S) (IN (f z) (CARR ag))))
+  (lambda ()
+    (let ((zv (cadr (dk-landed-1 (lambda () (di))))))
+      (fact 'fun-apply-type-c 'f 'S '(CARR ag) zv)
+      (ass))))
+(have! (list 'FORALL 'z (list 'IMPLIES '(IN z T)
+                              (list 'IN (list ffb-outerT 'z) '(CARR ag))))
+  (lambda ()
+    (let ((tv (cadr (dk-landed-1 (lambda () (di))))))
+      (lam-b) (ffb-nth*!)
+      (let ((li (ffb-lami-type! tv)))
+        (fact 'finsum-type 'ag 'S li)
+        (ass)))))
 (fact 'finsum-congruence 'ag 'S 'f ffb-outerS)
 (fact 'finsum-congruence 'ag 'T ffb-outerT ffb-target)
 (subst (list '= (list 'FINSUM 'ag 'f 'S) (list 'FINSUM 'ag ffb-outerS 'S)))

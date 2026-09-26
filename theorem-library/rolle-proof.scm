@@ -4,6 +4,9 @@
 ;;; constant and a midpoint (rr-midpoint-between) is an interior max.
 ;;; Loads after interior-extremum-proof.scm.  Uses bc* -> compile auto-skips.
 ;;; ====================================================================
+;;; RETIRED 2026-09-14 (proven): rr-midpoint-between -- theorem-library/rr-order-bundle.scm
+;;; RETIRED 2026-09-14 (proven): max-val-strict-interior -- theorem-library/mvt-cluster-readoffs.scm
+;;; RETIRED 2026-09-14 (proven): min-val-strict-interior -- theorem-library/mvt-cluster-readoffs.scm
 
 (define (rl-gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
 (define (rl-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
@@ -15,11 +18,11 @@
 (define (rl-split) (let loop ((n 0)) (let ((a (rl-find (rl-head? 'AND))))
   (cond ((and a (< n 12)) (ai a) (loop (+ n 1))) (else n)))))
 (define (rl-focus! raw) (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw)) (proof-leaves))))
-  (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus!: none equal" (expression->string raw)))))
+  (if s (begin (dk-focus! s) s) (error "rl-focus!: none equal" (expression->string raw)))))
 (define (rl-grind!) (let loop ((g 0)) (quietly (lambda () (ass-all)))
   (let ((al (any-pred (lambda (s) (let ((gg (wff-formula (sequent-node-assertion s))))
               (and (not (sequent-node-grounded? s)) (pair? gg) (eq? (car gg) 'AND)))) (proof-leaves))))
-    (when (and al (< g 40)) (set-proof-state-focus! *ps* al) (di) (loop (+ g 1))))))
+    (when (and al (< g 40)) (dk-focus! al) (di) (loop (+ g 1))))))
 (define (rl-dump tag) (display ";;; [")(display tag)(display "] done?=")(display (proof-done? *ps*))
   (display " leaves=")(display (length (proof-leaves)))(newline)
   (display ";;;   goal=")(write (rl-gf))(newline)
@@ -79,17 +82,13 @@
 (display ";;; CMAX=")(write CMAX)(display " CMIN=")(write CMIN)(newline)
 
 ;;; rr-midpoint-between: open interval nonempty (for the constant case)
-(add-to-pss 'rr-midpoint-between
-  '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
-     (IMPLIES (< u v) (FORSOME w (AND (IN w RR) (AND (< u w) (< w v))))))))))
-(warrant! 'rr-midpoint-between 'well-known "a<b => exists m with a<m<b.")
 
 ;;; establish (IN a (CCINT a b)) and h(a)<=h(c), h(d)<=h(a)
 (define (rl-have! mem main) (cut mem) (rl-focus! mem) (in-rr) (rl-focus! main))
 (define (rl-focus-asm! form)
   (let ((s (any-pred (lambda (s) (any-pred (lambda (w) (equal? (wff-formula w) form))
                                            (sequent-node-assumptions s))) (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus-asm!: none" form))))
+    (if s (begin (dk-focus! s) s) (error "rl-focus-asm!: none" form))))
 ;; (IN p RR) from (IN p (CCINT a b)), without destroying the membership (mac-h
 ;; runs only on the cut subgoal's branch); also leaves a<=p, p<=b there but the
 ;; main branch keeps the original membership.
@@ -113,18 +112,6 @@
 (rl-have! (list 'IN (list 'h CMIN) 'RR) GOAL)
 
 ;;; interior-position helpers (well-known; curried so `fact` detaches)
-(add-to-pss 'max-val-strict-interior
-  '(FORALL h (FORALL a (FORALL b (FORALL c
-     (IMPLIES (IN c (CCINT a b)) (IMPLIES (= (h a) (h b)) (IMPLIES (< (h a) (h c))
-       (AND (< a c) (< c b))))))))))
-(warrant! 'max-val-strict-interior 'well-known
-  "c in [a,b], h(a)=h(b), h(a)<h(c) => a<c<b (a strict max above equal endpoints is interior).")
-(add-to-pss 'min-val-strict-interior
-  '(FORALL h (FORALL a (FORALL b (FORALL c
-     (IMPLIES (IN c (CCINT a b)) (IMPLIES (= (h a) (h b)) (IMPLIES (< (h c) (h a))
-       (AND (< a c) (< c b))))))))))
-(warrant! 'min-val-strict-interior 'well-known
-  "c in [a,b], h(a)=h(b), h(c)<h(a) => a<c<b.")
 
 ;;; ====== witness sub-routines (marker = the case-distinguishing asm) ======
 ;; focus the leaf whose GOAL is the Rolle goal AND which carries `marker`
@@ -134,7 +121,7 @@
                             (any-pred (lambda (w) (equal? (wff-formula w) marker))
                                       (sequent-node-assumptions s))))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus-case!: none" marker))))
+    (if s (begin (dk-focus! s) s) (error "rl-focus-case!: none" marker))))
 ;; The differentiability hypothesis is TYPED (its antecedent carries (IN x RR)),
 ;; so the interior-position AND we detach it against carries the typing too.
 (define (rl-interior p) (list 'AND (list 'IN p 'RR) (list 'AND (list '< 'a p) (list '< p 'b))))

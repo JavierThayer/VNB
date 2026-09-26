@@ -16,105 +16,46 @@
 ;;; vocabulary: the line RR.v spanned by a single vector
 ;;; ====================================================================
 
-;;; LINE(m, v) = { r.v : r in RR } -- the one-dimensional subspace through v.
-;;; (SPAN-ADD-ONE(m, s, v) adds v to an existing submodule s; here s is the
-;;; trivial one, so we give the single-vector span its own name.)
-(def-functoid 'LINE '(m v)
-  '(SEP y_ (VEC m)
-     (FORSOME r_ (AND (IN r_ RR) (= y_ ((ACT m) r_ v))))))
+;;; LINE(m, v) = { r.v : r in RR } is defined in
+;;; structure-library/linear-functional.scm (moved there, unchanged, on 2026-09-19).
 
 ;;; ====================================================================
 ;;; warranted routine cores
 ;;; ====================================================================
 
 ;;; RR.v is a submodule (closed under +, negation, scalar action; contains 0).
-(add-to-pss 'line-is-submodule
-  '(FORALL m (FORALL v
-     (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IMPLIES (IN v (VEC m))
-        (IS-SUBMODULE m (LINE m v)))))))
-(warrant! 'line-is-submodule 'reference
-  "RR.v is the image of the scalar action, closed under addition, negation and
-   the action, and contains 0 = 0.v; so it is a submodule.")
+;;; line-is-submodule PROVEN modulo 0 in theorem-library/rake-hb-submodules.scm (2026-09-19)
 (topic! 'line-is-submodule 'analysis)
 
 ;;; v itself lies on its line (v = 1.v).
-(add-to-pss 'line-has-v
-  '(FORALL m (FORALL v
-     (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IMPLIES (IN v (VEC m))
-        (IN v (LINE m v)))))))
-(warrant! 'line-has-v 'reference
-  "v = 1.v, so v is in RR.v = LINE(m,v).")
-(topic! 'line-has-v 'analysis)
+;;; line-has-v PROVEN modulo 0 in theorem-library/rake-hb-leaves-2.scm (2026-09-19)
 
 ;;; The seed functional exists: a norm-<=1 bounded linear functional on the line
 ;;; RR.v that hits ||v|| at v.  (On a one-dimensional space r.v |-> r.||v|| is
 ;;; linear with operator norm exactly 1 when v /= 0, and the 0 functional works
 ;;; when v = 0; either way DUAL-NORM-ON <= 1 and the value at v is ||v||.)
-(add-to-pss 'line-functional-exists
-  '(FORALL m (FORALL v
-     (IMPLIES (IS-NORMED-VECTOR-SPACE m) (IMPLIES (IN v (VEC m))
-       (FORSOME f_ (AND (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m (LINE m v) f_)
-                   (AND (<= (DUAL-NORM-ON m (LINE m v) f_) 1)
-                        (= (f_ v) ((VNRM m) v))))))))))
-(warrant! 'line-functional-exists 'reference
-  "On the one-dimensional subspace RR.v the map r.v |-> r.||v|| is a bounded
-   linear functional of operator norm <= 1 (=1 for v/=0) taking the value ||v||
-   at v; for v=0 the zero functional serves.")
+;;; line-functional-exists PROVEN modulo 0 (2026-09-19, rake batch 7) in theorem-library/rake-line-functional.scm
 (topic! 'line-functional-exists 'analysis)
 
-;;; DUAL-NORM is a genuine bound: |f(x)| <= ||f|| ||x|| on all of VEC(m).
-(add-to-pss 'dual-norm-is-bound
-  '(FORALL m (FORALL f (FORALL x
-     (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL m f) (IMPLIES (IN x (VEC m))
-        (<= (abs (f x)) (* (DUAL-NORM m f) ((VNRM m) x)))))))))
-(warrant! 'dual-norm-is-bound 'reference
-  "The operator norm DUAL-NORM(m,f) satisfies |f(x)| <= ||f|| ||x|| for every x
-   (it is defined as the least such bound; in particular it IS a bound).")
-(topic! 'dual-norm-is-bound 'analysis)
-
-;;; DUAL-NORM is a nonnegative real (whole-space companion of dual-norm-on-nonneg).
-(add-to-pss 'dual-norm-nonneg
-  '(FORALL m (FORALL f
-     (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL m f)
-       (AND (IN (DUAL-NORM m f) RR) (<= 0 (DUAL-NORM m f)))))))
-(warrant! 'dual-norm-nonneg 'reference
-  "DUAL-NORM is defined by IOTA over c in RR with 0<=c, so for a bounded f it is
-   a nonnegative real.")
-(topic! 'dual-norm-nonneg 'analysis)
+;;; RETIRED 2026-09-19 (rake batch 7): dual-norm-is-bound and dual-norm-nonneg were
+;;; UNDERDETERMINED as stated -- without an NVS guard nothing types (VNRM m) and the
+;;; IOTA defining DUAL-NORM need not denote.  Counterexample and the guarded
+;;; replacements dual-norm-is-bound-nvs / dual-norm-nonneg-nvs (both `modulo 0'):
+;;; theorem-library/rake-dual-norm-spec.scm, sections (7) and (8); digest in
+;;; scratchpad/triage/RAKE-BATCH7-REPORTS.md (7-A).  The added antecedent is
+;;; (IS-NORMED-VECTOR-SPACE m), in context at every citation below.
 
 ;;; |f(x)| is a real for a bounded functional (whole-space typing helper).
-(add-to-pss 'bdd-linfun-abs-real
-  '(FORALL m (FORALL f (FORALL x
-     (IMPLIES (IS-BOUNDED-LINEAR-FUNCTIONAL m f) (IMPLIES (IN x (VEC m))
-        (IN (abs (f x)) RR)))))))
-(warrant! 'bdd-linfun-abs-real 'reference
-  "A bounded linear functional maps VEC(m) into RR, so |f(x)| is a real.")
-(topic! 'bdd-linfun-abs-real 'analysis)
+;;; bdd-linfun-abs-real RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
 ;;; A linear functional ON the whole carrier IS a linear functional (the two
 ;;; predicates have identical bodies when the subspace s is VEC(m)).
-(add-to-pss 'linfun-on-vec-is-linfun
-  '(FORALL m (FORALL f
-     (IMPLIES (IS-LINEAR-FUNCTIONAL-ON m (VEC m) f) (IS-LINEAR-FUNCTIONAL m f)))))
-(warrant! 'linfun-on-vec-is-linfun 'reference
-  "IS-LINEAR-FUNCTIONAL-ON m (VEC m) f and IS-LINEAR-FUNCTIONAL m f unfold to the
-   same conjunction (f in FUN(VEC m,RR), additive, homogeneous over VEC m).")
-(topic! 'linfun-on-vec-is-linfun 'analysis)
+;;; linfun-on-vec-is-linfun RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
-;;; Whole-space companion of dual-norm-on-le-bound: the operator norm is <= any
-;;; nonnegative bound c that dominates |f| on all of VEC(m).
-(add-to-pss 'dual-norm-le-bound
-  '(FORALL m (FORALL f (FORALL c
-     (IMPLIES (IS-LINEAR-FUNCTIONAL m f)
-      (IMPLIES (IN c RR)
-       (IMPLIES (<= 0 c)
-        (IMPLIES (FORALL w_ (IMPLIES (IN w_ (VEC m))
-                   (<= (abs (f w_)) (* c ((VNRM m) w_)))))
-          (<= (DUAL-NORM m f) c)))))))))
-(warrant! 'dual-norm-le-bound 'reference
-  "DUAL-NORM(m,f) is the least c>=0 bounding |f(w)| by c*||w|| on VEC(m) (IOTA
-   least-upper-bound), hence <= any such bound c.")
-(topic! 'dual-norm-le-bound 'analysis)
+;;; RETIRED 2026-09-19 (rake batch 7): dual-norm-le-bound, same species as the two
+;;; above.  Guarded replacement dual-norm-le-bound-nvs (`modulo 0') in
+;;; theorem-library/rake-dual-norm-spec.scm; digest in
+;;; scratchpad/triage/RAKE-BATCH7-REPORTS.md (7-A).
 
 ;;; ====================================================================
 ;;; THEOREM 1: norm-bounded-by-functionals -- |f(x)| <= ||x|| when ||f|| <= 1.
@@ -127,11 +68,11 @@
 (quietly (lambda () (di)(di)(di)(di)))
 (dc-split)
 (define NBGOAL (dc-gf))
-(quietly (lambda () (fact 'dual-norm-is-bound 'm 'f 'x)))    ; |f x| <= DUAL*||x||
+(quietly (lambda () (fact 'dual-norm-is-bound-nvs 'm 'f 'x)))    ; |f x| <= DUAL*||x||
 (quietly (lambda () (fact 'vnrm-nonneg 'm 'x)))              ; 0 <= ||x||
 (quietly (lambda () (fact 'vnrm-real 'm 'x)))                ; ||x|| in RR
 (quietly (lambda () (fact 'bdd-linfun-abs-real 'm 'f 'x)))   ; |f x| in RR
-(quietly (lambda () (fact 'dual-norm-nonneg 'm 'f))) (dc-split)   ; DUAL in RR
+(quietly (lambda () (fact 'dual-norm-nonneg-nvs 'm 'f))) (dc-split)   ; DUAL in RR
 (quietly (lambda () (fact 'rr-one-in)))                     ; 1 in RR
 ;; le-bound-mono: |f x| <= DUAL*||x||, DUAL <= 1, 0<=||x||  =>  |f x| <= 1*||x||
 (quietly (lambda () (fact 'le-bound-mono
@@ -183,7 +124,10 @@
 (define EXT (dc-find (lambda (z) (and ((dc-head? 'EXTENDS-ON) z) (dc-ment? G z) (dc-ment? F0 z)))))
 
 ;; C = ||f0||_line is a nonnegative real; G is linear on the whole space
-(quietly (lambda () (fact 'dual-norm-on-nonneg 'm LINEx F0))) (dc-split)   ; (IN C RR),(<= 0 C)
+;; the SUBSET antecedent of the guarded -ON form: line-is-submodule (cited above)
+;; plus submodule-subset (definitional, no bill).
+(quietly (lambda () (fact 'submodule-subset 'm LINEx)))                    ; SUBSET (LINE m x) (VEC m)
+(quietly (lambda () (fact 'dual-norm-on-nonneg-nvs 'm LINEx F0))) (dc-split)   ; (IN C RR),(<= 0 C)
 (quietly (lambda () (fact 'linfun-on-vec-is-linfun 'm G)))                 ; IS-LINEAR-FUNCTIONAL m G
 
 ;; (A) G is a bounded linear functional (witness bound c = C)
@@ -198,8 +142,8 @@
 (focus-main!)
 
 ;; (B) ||G|| <= 1 :  ||G|| <= C  and  C <= 1
-(quietly (lambda () (fact 'dual-norm-le-bound 'm G C)))     ; (<= (DUAL-NORM m G) C)
-(quietly (lambda () (fact 'dual-norm-nonneg 'm G))) (dc-split)   ; (IN (DUAL-NORM m G) RR)
+(quietly (lambda () (fact 'dual-norm-le-bound-nvs 'm G C)))     ; (<= (DUAL-NORM m G) C)
+(quietly (lambda () (fact 'dual-norm-nonneg-nvs 'm G))) (dc-split)   ; (IN (DUAL-NORM m G) RR)
 (quietly (lambda () (fact 'rr-one-in)))
 (quietly (lambda () (fact 'rr-le-trans-c (list 'DUAL-NORM 'm G) C 1)))   ; (<= (DUAL-NORM m G) 1)
 
@@ -231,10 +175,7 @@
 ;;; ====================================================================
 ;; eq-sym now lives in structure-library/order-lemmas.scm (needed library-wide,
 ;; earlier in the load order); used here by the fact-flips below.
-(add-to-pss 'abs-nonneg-le
-  '(FORALL a (FORALL c (IMPLIES (IN a RR) (IMPLIES (<= 0 a) (IMPLIES (<= (abs a) c) (<= a c)))))))
-(warrant! 'abs-nonneg-le 'well-known "For a real a >= 0, |a| = a, so |a| <= c gives a <= c.")
-(topic! 'abs-nonneg-le 'analysis)
+;;; abs-nonneg-le RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-hb-leaves.scm
 
 ;; The functional-bound antecedents are CURRIED (BLF => ||f||<=1 => ...) so intros
 ;; and detaches are single-premise: no AND to build, hence no dc-grind!/ass-all

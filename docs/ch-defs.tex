@@ -1,9 +1,10 @@
 \chapter{Definitions}
+\label{ch:defs}
 
 The forms described in this chapter are \emph{Scheme procedures} called
 at the meta-level --- in a \texttt{.scm} source file or at the Scheme
 REPL --- not expressions in the VNB object language.  Each call installs
-axioms or macetes into the current theory as a side effect; nothing is
+axioms or macetes as a side effect; nothing is
 proved.  The distinction between meta-level definition and object-level
 proof bears repeating: \texttt{declare-structure}, \texttt{def-constant},
 and their companions manipulate the theory data structure directly, while
@@ -281,8 +282,8 @@ meta-level --- in the Scheme REPL or a \texttt{.scm} source file, as the
 chapter opening explains, not inside the object language.  It registers
 the structure, installs NTH-based accessor
 macetes for every carrier set and every operation, and posts a
-definitional axiom for the associated \texttt{IS-\textit{NAME}} predicate
-in the current theory.  No quoting is needed.
+definitional axiom for the associated \texttt{IS-\textit{NAME}} predicate.
+No quoting is needed.
 
 \begin{VNBcode}
 (declare-structure NAME
@@ -608,7 +609,7 @@ as a negative integer literal; the S-expression \texttt{-1} is a genuine
 Scheme integer and avoids that ambiguity.
 
 \begin{VNBcode}
-(theory-add-axiom! *current-theory* 'normedspace-minus
+(theory-add-axiom! 'normedspace-minus
   '(FORALL s
      (IMPLIES (IS-NORMEDSPACE s)
        (FORALL x (IMPLIES (IN x (VECTORS s))
@@ -741,7 +742,7 @@ The interactive short form is \texttt{(spec instance struct is-thm)}.
   \texttt{HARP}.
 \item \textit{struct-name} --- the structure class, e.g.\ \texttt{RING}.
   The predicate \texttt{IS-RING} is derived automatically.
-\item \textit{is-thm-name} --- name of a theorem in the current theory
+\item \textit{is-thm-name} --- name of an installed theorem
   whose formula is exactly $\mathit{IS\text{-}RING}(\mathit{HARP})$.
 \end{itemize}
 
@@ -921,7 +922,7 @@ One table, one declaration form, read by every renderer: \texttt{expr->tex} and
 \texttt{wff-english} for formulas, \texttt{describe-structure} for the structure
 cards, and the generated \texttt{OPERATORS.md}.  A head with no
 \texttt{notation!} still works --- it falls back to prefix application,
-\texttt{IS-RING($s$)} --- so notation is an enrichment, never a prerequisite.
+\texttt{IS-RING($s$)} --- so notation is an addition, never a prerequisite.
 
 %%% -----------------------------------------------------------------------
 \section{Cardinality: \texttt{CARD}}
@@ -1707,7 +1708,8 @@ complex plane, expressed via the \texttt{magnitude} primitive).
    \mathtt{magnitude}(x - y))]$
 \item[\texttt{cc-is-metric-space}]
   $\mathit{IS\text{-}METRIC\text{-}SPACE}(\mathit{CC\text{-}MS})$.
-  Taken as an axiom; the proof unfolds via the def-structure IFF and
+  A theorem (\texttt{theorem-library/cc-metric-space-proof.scm}): the
+  proof unfolds the defining equivalence of the structure predicate and
   discharges each metric-space axiom (positivity, self-zero,
   separation, symmetry, triangle inequality) from the corresponding
   property of \texttt{magnitude}.
@@ -1839,10 +1841,32 @@ $\mathit{MAT}(m, n, X)$ is the class of $m \times n$ matrices with
 entries in $X$; $\mathit{ENTRY}(M, i, j)$ is the $(i,j)$ entry.
 
 \begin{align*}
+\mathit{SIZE}(P) &\;=\; [\,\mathit{LENGTH}(P),\;
+   \mathbf{if}\; \mathit{LENGTH}(P) = 0 \;\mathbf{then}\; 0
+   \;\mathbf{else}\; \mathit{LENGTH}(\mathit{NTH}(1, P))\,] \\
 \mathit{MAT}(m, n, X) &\;=\; \mathit{SEP}\, P \in \mathit{MATRIX}(X).\;
-   \mathit{SIZE}(P) = [m, n] \\
+   n \in \mathit{NN} \;\wedge\;
+   (\mathit{LENGTH}(P) = 0 \Rightarrow m = 0) \\
+ &\qquad\qquad \wedge\;
+   (\mathit{LENGTH}(P) \neq 0 \Rightarrow \mathit{SIZE}(P) = [m, n]) \\
 \mathit{ENTRY}(M, i, j) &\;=\; \mathit{NTH}(j,\, \mathit{NTH}(i, M))
 \end{align*}
+
+\noindent
+$\mathit{SIZE}$ is total.  A matrix with no rows is $[\,]$, and it is
+the unique member of $\mathit{MAT}(0, n, X)$ for every natural $n$: a
+matrix with no rows does not determine its column count, and membership
+in $\mathit{MAT}$ does not pretend that it does.  Both clauses are
+decisions of 2026-09-16 (\texttt{docs/size-mat-surgery-2026-09-16.md}).
+Until then $\mathit{MAT}(m,n,X)$ was $\mathit{SEP}\, P \in
+\mathit{MATRIX}(X).\; \mathit{SIZE}(P) = [m,n]$ with $\mathit{SIZE}$
+reading the column count off the first row, so no zero-row matrix had a
+size and no $\mathit{MAT}(0,n,X)$ had a member.  Proofs read a
+$\mathit{MAT}$ membership only through the lemmas of
+\texttt{theorem-library/mat-basics.scm} (\texttt{mat-in-matrix},
+\texttt{mat-length}, \texttt{mat-cols}, \texttt{mat-rows-in-nn},
+\texttt{mat-intro}, \texttt{nil-in-mat}, \ldots), never by unfolding the
+definition.
 
 Indices are \emph{1-based}, matching the library's $\mathit{NTH}$
 convention: row $i$ is $\mathit{NTH}(i, M)$, and the index range of a
@@ -1865,18 +1889,31 @@ Two facts make it usable, and they are of different kinds:
   This is \emph{uniqueness} for the description.
 
 \item[\texttt{matof-exists}]
-  the tabulation of $g$ over the index box exists.  It is dischargeable
-  once a general list-tabulation primitive is built.
+  for natural $m$ and $n$, and $g$ defined throughout the index box, the
+  tabulation of $g$ over the box exists.  This is \emph{existence} for
+  the description, and it is a theorem
+  (\texttt{theorem-library/tuple-tabulation.scm}): the box is finite, so
+  the tabulation is built row by row by list recursion.
 \end{description}
 
 \noindent
-Together with \texttt{matof-exists}, uniqueness pins $\mathit{MATOF}$
-down, so \texttt{entry-of-matof} and \texttt{matof-in-mat} \emph{could}
-be derived from the two by \texttt{iota-def}.  They have not been: all
-three are \texttt{support} in \texttt{structure-library/matrix.scm},
-warranted \texttt{well-known}, and each is charged separately to any
-\texttt{qed} that cites it.  Carrying out that derivation is an open
-item, and it would remove two of the three from the layer's debt.
+Together the two pin $\mathit{MATOF}$ down, and \texttt{entry-of-matof}
+and \texttt{matof-in-mat} are derived from them by \texttt{iota-def}
+(\texttt{tuple-tabulation.scm}, \texttt{matof-in-mat.scm}).  All three
+are theorems guarded on $m, n \in \mathit{NN}$, and a \texttt{qed} that
+cites them pays nothing.
+
+The guard is not decoration.  Until 2026-09-16 \texttt{matof-exists}
+was an asserted support with $m$ and $n$ unquantified, and the library
+proved \texttt{FALSITY} from it: instantiated at $m := \mathit{ORD}$ it
+gave a matrix with $\mathit{ORD}$ rows, \texttt{mat-rows-in-nn} read
+$\mathit{ORD} \in \mathit{NN}$ off that matrix, and Burali-Forti refuted
+it (the derivation is \texttt{scratchpad/mx/mx-probe3.scm}, kept as a
+control that must \emph{fail}).  The assertion had been harmless for
+weeks; the lemma that met it was proved much later for an unrelated
+reason.  That is the case for the bill ledger of
+Section~\ref{sec:proof-debt}: an asserted step is a liability whose
+size is not known when it is taken.
 
 Every construction below is a $\mathit{MATOF}$, so each carries its
 typing lemma and its entry lemma, and proofs about it reduce to
@@ -1912,7 +1949,22 @@ with $\mathit{MATNEG}(A,P)$ and $\mathit{MATSCALE}(A,r,P)$ the same
 shape.  The dimensions are read off $\mathit{SIZE}(P)$ and
 $\mathit{SIZE}(Q)$ rather than passed: multiplication is
 \emph{total}, garbage-in/garbage-out off its typed domain, and all the
-content lives in \texttt{matmul-type} and \texttt{matmul-entry}.
+content lives in \texttt{matmul-type} and \texttt{matmul-entry}, both
+theorems.
+
+Reading the dimensions off the factors has one consequence that the
+statements must carry.  The column count of $\mathit{MATMUL}(A,P,Q)$ is
+read off $\mathit{SIZE}(Q)$; when the middle dimension $n$ is $0$, $Q$
+is $[\,]$, $\mathit{SIZE}([\,]) = [0,0]$, and the product of an
+$m \times 0$ matrix with it is $m \times 0$, not $m \times k$.  So every
+law about a product whose middle dimension may be $0$ while both outer
+dimensions are at least $1$ is false there, and each carries a guard
+stating when it holds: an entry law, whose user holds an index in the
+interval, carries $1 \le n$; a typing law carries
+$n = 0 \Rightarrow (m = 0 \vee k = 0)$; associativity, with two inner
+dimensions, carries a pair of such conditions (G1, G2 in the design
+note).  The guards are premises placed after the binders, so a citation
+of the law reads exactly as it did before the guard.
 
 The laws are \emph{not} axioms of the theory; they are members of the
 Proof Support Set, installed by \texttt{support} in

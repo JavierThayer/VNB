@@ -470,6 +470,10 @@
         (rx-split!)
         (have! '(< 0 x_) (lambda () (rx-ineq (list '< 0 a) (list '<= a 'x_))))
         (fact 'log-deriv 'x_)
+        ;; LUTINS instantiation (2026-09-18): diff-implies-continuous is
+        ;; instantiated at the DERIVATIVE VALUE recip-star(x_), an IF-bodied
+        ;; functoid the certificate does not reach; recip-star-in-rr types it.
+        (fact 'recip-star-in-rr 'x_)
         (fact 'diff-implies-continuous RX-LOGLAM 'x_ '(RECIP-STAR x_))
         (ass)))
     (have! (list '= (list RX-LOGLAM a) (list 'LOG a)) (lambda () (lam-b) (rfl)))

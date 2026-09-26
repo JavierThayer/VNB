@@ -1,0 +1,236 @@
+;;; compactness.scm -- compactness of a metric space and the four-way
+;;; characterization (calculus.pdf Prop 3.12).  Supplies the missing
+;;; vocabulary (IS-COMPACT, IS-OPEN-COVER, CLUSTER-POINT, HAS-FIP) and states
+;;; the characterization as warranted supports (library phase); the proof
+;;; directions are the stress test in stress-tests/compact-tb-stress.scm.
+;;;
+;;; Prop 3.12.  For a metric space X the following are equivalent:
+;;;   (1) X is compact (every open cover has a finite subcover);
+;;;   (2) every family of closed sets with the finite-intersection property has
+;;;       nonempty intersection;
+;;;   (3) every sequence in X has a cluster point;
+;;;   (4) X is totally bounded and complete.
+;;;
+;;; Loads after metric-open-sets (IS-OPEN/IS-CLOSED), metric-topology
+;;; (TOTALLY-BOUNDED/BALL), metric-completeness (IS-COMPLETE).
+;;; RETIRED 2026-09-14 (proven): centres-mem-build -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): centres-in-carrier -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): centres-ball-eq -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): ball-cover-mem-fwd -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): open-cover-covers-point -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): ball-point-le -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): ball-point-ne -- theorem-library/ball-cover-lemmas.scm
+;;; RETIRED 2026-09-14 (proven): finite-ball-subcover-r-net -- calculus/finite-ball-subcover-proof.scm, now loaded BEFORE compact-tb-proof
+;;; RETIRED 2026-09-14 (proven): chosen-centre-is-centre -- calculus/finite-ball-subcover-proof.scm, now loaded BEFORE compact-tb-proof
+
+;;; ----- vocabulary -----
+
+;;; An open cover of s: a collection C of open sets whose union is PTS(s).
+(def-predicate 'IS-OPEN-COVER '(s C)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (FORALL U (IMPLIES (IN U C) (IS-OPEN s U)))
+        (== (BIG-UNION U C U) (PTS s)))))
+
+;;; s is compact: every open cover has a finite subcover.
+(def-predicate 'IS-COMPACT '(s)
+  '(AND (IS-METRIC-SPACE s)
+        (FORALL C (IMPLIES (IS-OPEN-COVER s C)
+          (FORSOME F (AND (SUBSET F C)
+                     (AND (IN (CARD F) NN)
+                          (IS-OPEN-COVER s F))))))))
+
+;;; x is a cluster point of the sequence f: every ball around x meets f at
+;;; arbitrarily large indices (the sequence is frequently near x).
+(def-predicate 'CLUSTER-POINT '(s f x)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (IN f (FUN NN (PTS s)))
+   (AND (IN x (PTS s))
+        (FORALL eps (IMPLIES (POS-RR eps)
+          ;; m, NOT N: the reader case-folds N to n, which would collapse
+          ;; (<= N n) to (<= n n) and silently drop the cofinality.
+          (FORALL m (IMPLIES (IN m NN)
+            (FORSOME n (AND (IN n NN)
+                       (AND (<= m n)
+                            (< ((DIST s) (f n) x) eps))))))))))))
+
+;;; A family C of closed sets with the FINITE-INTERSECTION PROPERTY: every
+;;; finite subfamily has a common point.
+(def-predicate 'HAS-FIP '(s C)
+  '(AND (IS-METRIC-SPACE s)
+   (AND (FORALL A (IMPLIES (IN A C) (IS-CLOSED s A)))
+        (FORALL F (IMPLIES (AND (SUBSET F C) (IN (CARD F) NN))
+          (FORSOME p (IN p (BIG-INTERSECTION CARR F CARR))))))))
+
+;;; ----- Prop 3.12: the four-way characterization (warranted ASSERTIONS) -----
+;;; These equivalences are headline results, not PSS plumbing, so each is a
+;;; warranted assertion (matchable macete, not a Proof Support).  See
+;;; [[pss-central-role]]: PSS = curated reusable minutiae a proof backchains;
+;;; a Prop-3.12 equivalence is a destination you prove, not a fast lemma.
+
+;;; (1) <=> (4):  compact  iff  totally bounded and complete.
+(theory-add-axiom! *current-theory* 'compact-iff-tb-complete
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (IFF (IS-COMPACT s)
+          (AND (TOTALLY-BOUNDED s) (IS-COMPLETE s))))))
+(warrant! 'compact-iff-tb-complete 'reference
+  "calculus.pdf Prop 3.12 (1)<=>(4): a metric space is compact iff it is totally
+   bounded and complete.  (=>) finite subcovers of ball-covers give finite
+   eps-nets (total boundedness), and a Cauchy sequence has a cluster point
+   (compactness via (3)) which is then its limit (completeness).  (<=) total
+   boundedness + completeness gives sequential compactness by the standard
+   diagonal/rapidly-Cauchy-subsequence argument, which gives compactness.")
+
+;;; (1) <=> (3):  compact  iff  every sequence has a cluster point.
+(theory-add-axiom! *current-theory* 'compact-iff-cluster-point
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (IFF (IS-COMPACT s)
+          (FORALL f (IMPLIES (IN f (FUN NN (PTS s)))
+            (FORSOME x (CLUSTER-POINT s f x))))))))
+(warrant! 'compact-iff-cluster-point 'reference
+  "calculus.pdf Prop 3.12 (1)<=>(3): compact iff every sequence has a cluster
+   point (equivalently, a convergent subsequence -- sequential compactness in a
+   metric space).  The cluster point is the limit of a rapidly-Cauchy
+   subsequence (cauchy-rapid-subsequence).")
+
+;;; (1) <=> (2):  compact  iff  every closed family with FIP has common point.
+(theory-add-axiom! *current-theory* 'compact-iff-fip
+  '(FORALL s (IMPLIES (IS-METRIC-SPACE s)
+     (IFF (IS-COMPACT s)
+          (FORALL C (IMPLIES (HAS-FIP s C)
+            (FORSOME p (IN p (BIG-INTERSECTION CARR C CARR)))))))))
+(warrant! 'compact-iff-fip 'reference
+  "calculus.pdf Prop 3.12 (1)<=>(2): compact iff every family of closed sets
+   with the finite-intersection property has nonempty intersection.  This is
+   the open-cover condition dualised by complementation: an open cover with no
+   finite subcover is exactly a closed family with the FIP and empty
+   intersection.")
+
+;;; ----- ball-cover machinery: the two lemmas that close compact => TB -----
+
+;;; The r-ball cover of s: the family of all open r-balls { B(c,r) : c in PTS(s) },
+;;; as the image of PTS(s) under  c |-> BALL(s,c,r).  The lambda variable is `c'
+;;; (centre), NOT `x': the point-set accessor was `X' when this was written (it
+;;; is `PTS' now) and folds to x, and the cover's domain (PTS s) sits next to the
+;;; lambda -- keeping them disjoint avoided the accessor/point name clash.  [[feedback_no_case_variant_binders]]
+(def-functoid 'BALL-COVER '(s r)
+  '(IMAGE (VNB-LAMBDA c (PTS s) (BALL s c r)) (PTS s)))
+
+;;; Lemma A: for r > 0 the r-ball cover is an open cover of s.
+;;; (r-condition matches the TOTALLY-BOUNDED def verbatim: r in RR, 0 <= r, r /= 0.)
+;;; ball-cover-is-open-cover RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-metric-constructions.scm
+
+;;; ----- centre extraction, made explicit via global choice -----
+;;;
+;;; The centre-extraction step ("a finite r-ball cover yields a finite r-net")
+;;; is exactly where a choice of centre-per-ball is needed: a member of the ball
+;;; cover is stored as the SET B(c,r), with the centre c thrown away, and the
+;;; map x |-> B(x,r) need not be injective, so "the centre of a ball" is not a
+;;; function without choice.  We make the choice EXPLICIT with the global
+;;; Hilbert epsilon (CHOICE, theory.scm): for a ball B, CENTRES(s,B,r) is the
+;;; (set of) centres of B, and CHOICE(CENTRES s B r) picks one -- defined exactly
+;;; when that set is inhabited (the iota/epsilon definedness proviso), which it
+;;; is for a ball drawn from the cover.  CENTRE-SET(s,r,F) is then the image of
+;;; F under  B |-> CHOICE(CENTRES s B r)  -- a bona fide function (VNB-LAMBDA),
+;;; so "choose a centre per ball" is a one-liner, not a hand-wave.
+
+;;; CENTRES(s,B,r): the centres of the ball B at radius r (a SEP-subset of PTS(s)).
+(def-functoid 'CENTRES '(s B r) '(SEP c (PTS s) (= (BALL s c r) B)))
+
+;;; CENTRE-SET(s,r,F): the chosen centres of the balls in F -- the image of F
+;;; under the choice function  B |-> CHOICE(CENTRES s B r).
+(def-functoid 'CENTRE-SET '(s r F)
+  '(IMAGE (VNB-LAMBDA B F (CHOICE (CENTRES s B r))) F))
+
+;;; Directional slices of the CENTRES SEP-membership equivalence (definitional:
+;;; c in {c in PTS(s) : B(c,r)=B} iff c in PTS(s) and B(c,r)=B).
+
+;;; A member of the ball cover is a ball B(c,r) about some centre c in PTS(s)
+;;; (forward direction of IMAGE-membership for BALL-COVER).
+
+;;; RETIRED 2026-09-17 (guarded, then proven): centre-set-contains-choice --
+;;; theorem-library/rake-analysis2.scm.  The statement gained the premise
+;;; `forsome c. c in CENTRES(s,U,r)' (conjoined with U in F): `=' is definedness, and
+;;; CHOICE of an EMPTY class (F = {EMPTY-SET}, U = EMPTY-SET) is unspecified, so the
+;;; unguarded form was underdetermined.  Its one citer, calculus/finite-ball-
+;;; subcover-proof, already holds a member of CENTRES at the call.
+;;; CENTRE-SET of a finite family is finite (image of a finite set is finite).
+;;; centre-set-finite MOVED 2026-09-15 (wave 7) to theorem-library/card-image-finite.scm as centre-set-finite-guarded: the unguarded form is FALSE (the image of a finite CLASS need not be finite), so it now carries (IN f SET).  User's decision.
+
+;;; The members of an open cover cover PTS(s): every point lies in some member.
+
+;;; subset-mem-fwd MOVED and PROVEN, 2026-07-27: theorem-library/subset-lemmas.scm.
+;;; It was asserted here (`well-known', "Forward direction of subset-def
+;;; (definitional)") only because this file loads long before `sp'/`qed' exist.
+
+;;; Ball membership in terms of the defining ball: if p in U and U = B(s,c,r)
+;;; then d(c,p) < r  (= the two conjuncts <= and /=).  Curried for forward use.
+
+;;; The chosen centre of a cover ball is genuinely a centre of it -- the
+;;; soundness of the epsilon choice (defined because the centre-set is
+;;; inhabited).  MACHINE-PROVEN in calculus/finite-ball-subcover-proof.scm.
+
+;;; Lemma B: a finite r-ball subcover yields a finite r-net -- its centres.
+;;; MACHINE-PROVEN (the centre extraction above made the choice explicit).
+
+;;; ----- the directions used most often, stated directly -----
+
+;;; compact-implies-totally-bounded and compact-implies-complete (the two
+;;; halves of calculus.pdf Prop 3.12 (1)=>(4)) were ASSERTED here until
+;;; 2026-08-17, each warranted `proof' on the strength of a machine proof in
+;;; calculus/ that no load.scm entry ever ran.  Both proof files are now loaded
+;;; (calculus/compact-tb-proof.scm, calculus/compact-complete-proof.scm) and
+;;; install the theorems under these names, so the supports are gone: the
+;;; citation in theorem-library/compact-separable-proof.scm now names a
+;;; theorem, not an assertion.
+
+;;; ----- the two lemmas that close compact => complete -----
+
+;;; Lemma C (forward slice of Prop 3.12 (1)=>(3)): in a compact space every
+;;; sequence f : NN -> PTS(s) has a cluster point.  Directly backchainable
+;;; (relation-/FORSOME-headed conclusion), unlike the IFF compact-iff-cluster-
+;;; point which a goal cannot match against.  AND-shaped antecedent so bc*
+;;; splits it into the two conjuncts (both land in context during the proof).
+(support 'compact-seq-has-cluster
+  '(FORALL s (FORALL f
+     (IMPLIES (AND (IS-COMPACT s) (IN f (FUN NN (PTS s))))
+              (FORSOME x (CLUSTER-POINT s f x))))))
+(warrant! 'compact-seq-has-cluster 'reference
+  "calculus.pdf Prop 3.12 (1)=>(3): a compact metric space is sequentially
+   compact -- every sequence has a cluster point (a convergent subsequence).
+   The forward, directly-backchainable slice of compact-iff-cluster-point.")
+
+;;; Lemma D (the analytic keystone): a Cauchy sequence with a cluster point
+;;; CONVERGES (to that cluster point).  AND-shaped antecedent + existential
+;;; cluster hypothesis, conclusion the folded CONVERGES so bc* matches the goal.
+(support 'cauchy-cluster-converges
+  '(FORALL s (FORALL f
+     (IMPLIES (AND (IS-CAUCHY-SEQ s f) (FORSOME x (CLUSTER-POINT s f x)))
+              (CONVERGES s f)))))
+(warrant! 'cauchy-cluster-converges 'well-known
+  "A Cauchy sequence with a cluster point x converges to x.  Given eps > 0:
+   Cauchyness gives N with d(f m, f n) <= eps/2 for m,n >= N; x is a cluster
+   point, so some n >= N has d(f n, x) < eps/2; then for every m >= N,
+   d(f m, x) <= d(f m, f n) + d(f n, x) < eps.  Hence f converges to x.  This
+   is the standard fact powering compact => complete (calculus.pdf Prop 3.12).")
+
+;;; ----- Plain-English gloss (PSS review 2026-06-26): 3+-line statement -----
+(gloss! 'finite-ball-subcover-r-net
+  "For a metric space s and radius r>0: if the r-ball cover of s has a finite subcover, then s has a finite r-net (a finite set N of points such that every point of s is within r of some member of N).  Extracting a net from a finite subcover -- its centres.")
+
+;;; Notation -- read by wff->english / the proof reader (operators.scm).
+(notation! 'IS-OPEN               'kind 'predicate 'arity 2 'english "$2 is open in $1")
+
+;;; -----------------------------------------------------------------------
+;;; Notation -- the ENGLISH of these predicates, declared beside their
+;;; definitions and read by wff->english / the proof reader (operators.scm).
+;;; A def-predicate's reading cannot be derived the way a structure's noun can
+;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
+;;; so it is written here, once, next to what it means.
+(notation! 'IS-COMPACT 'kind 'predicate 'arity 1
+           'english "$1 is compact")
+(notation! 'IS-OPEN-COVER 'kind 'predicate 'arity 2
+           'english "$2 is an open cover of $1")
+(notation! 'HAS-FIP 'kind 'predicate 'arity 2
+           'english "$2 has the finite intersection property in $1")
+(notation! 'CLUSTER-POINT 'kind 'predicate 'arity 3
+           'english "$3 is a cluster point of the sequence $2 in $1")

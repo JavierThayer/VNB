@@ -1,0 +1,1220 @@
+;;; limsup-tests.scm -- THE UPPER LIMIT OF A SEQUENCE IN [0, +inf], THE ROOT TEST
+;;; AND THE RATIO TEST, as the notes state them.
+;;; Batch 25-A, 2026-09-24.
+;;;
+;;; THE SOURCE.  complex-analysis.pdf 2.2: Remark 2.6 (lim sup / lim inf of a
+;;; sequence of the extended real line, (26)-(28), and the two facts "lim sup a_k
+;;; < r implies there is an N such that a_k < r for k >= N" and "lim sup a_k > r
+;;; implies there are infinitely many k such that a_k > r"); Lemma 2.5 (Root
+;;; Test); Lemma 2.15 (Ratio Test).
+;;;
+;;; THE LIM SUP USED.  The notes define lim sup on [-inf, +inf].  Every sequence
+;;; the notes apply it to in 2.2-2.3 is NON-NEGATIVE (theta_k^(1/k), |a_k|^(1/k),
+;;; theta_(k+1)/theta_k), so the tree's ELIMSUP / ELIMINF on RR-POS-STAR = [0, +inf]
+;;; (extended-arith.scm, written exactly as (26)-(27): inf_n sup_(p >= n) a_p) IS
+;;; the notes' lim sup on every sequence it is used on, and no new definition is
+;;; made.  The value may be +inf (POS-INF); `<' is the tree's defined strict order
+;;; (x < y iff x <= y and x /= y), so "lim sup < 1" is literally (< (ELIMSUP f) 1).
+;;;
+;;; THE k-TH ROOT.  theta^(1/k) is rpow-star(theta, recip-star(k)) (rpow-star.scm,
+;;; the real power of a real, total: 0^s = 0 for s > 0).  recip-star, total with
+;;; recip-star(0) = 0, makes the k = 0 term rpow-star(theta_0, 0) = 1 a harmless
+;;; defined number; a lim sup does not see one term.  The notes index from k = 1.
+;;;
+;;; THE FILE IN ORDER.
+;;;   (1) einf-lower, einf-greatest: EINF is a greatest lower bound (from ESUP).
+;;;   (2) elimsup-eventually-below, elimsup-frequently-above,
+;;;       eliminf-eventually-above: Remark 2.6's two facts, and the lim inf mirror.
+;;;   (3) series lemmas: a non-negative series dominated from some index on by
+;;;       C q^k (0 <= q < 1) converges; a series with infinitely many terms >= c > 0
+;;;       diverges.  Power facts: base monotonicity, the root undone by the power.
+;;;   (4) root-test (Lemma 2.5, both halves).
+;;;   (5) ratio-test-converges-limsup (Lemma 2.15, first half) and
+;;;       ratio-test-diverges-liminf (the second half, CORRECTED: see below).
+;;;
+;;; Helper prefix: cps-.  Theorem binders cps..._ (no predicate body uses one).
+
+;;; ---- file-local driver helpers ---------------------------------------
+
+(define (cps-head g) (and (pair? g) (car g)))
+
+;;; ======================================================================
+;;; (1) EINF is a greatest lower bound in RR-POS-STAR.
+;;; EINF(S) = ESUP(ELOWER-BOUNDS S) (extended-arith.scm); the two laws follow
+;;; from esup-upper / esup-least, with ELOWER-BOUNDS S a subset of RR-POS-STAR.
+;;; ======================================================================
+
+;;; the SEP term ELOWER-BOUNDS(S) unfolds to, read off the goal after the unfold
+(define (cps-lb-subset! lb)
+  (have! (list 'SUBSET lb 'RR-POS-STAR)
+    (lambda ()
+      (mac 'subset-def)
+      (let ((v (dk-di-var!)))
+        (sep-me (list 'IN v lb))
+        (ass)))))
+
+(sp (make-wff
+  '(FORALL cpss_ (IMPLIES (SUBSET cpss_ RR-POS-STAR)
+     (FORALL cpsx_ (IMPLIES (IN cpsx_ cpss_) (<= (EINF cpss_) cpsx_)))))))
+(dk-peel!)
+(mac 'EINF)
+(mac 'ELOWER-BOUNDS)
+(define cps-e1-lb (cadr (cadr (dk-goal))))
+(fact 'subset-mem-fwd 'cpss_ 'RR-POS-STAR 'cpsx_)
+(cps-lb-subset! cps-e1-lb)
+(have! (list 'AND '(IN cpsx_ RR-POS-STAR)
+             (list 'FORALL 'cpsb_ (list 'IMPLIES (list 'IN 'cpsb_ cps-e1-lb) '(<= cpsb_ cpsx_))))
+  (lambda ()
+    (dk-conj-close!
+      (lambda ()
+        (if (eq? (cps-head (dk-goal)) 'FORALL)
+            (let ((v (dk-di-var!)))
+              (sep-me (list 'IN v cps-e1-lb))
+              (inst+ (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f v)))
+                              "lower-bound clause")
+                     'cpsx_)
+              (ass))
+            (ass))))))
+(fact 'esup-least cps-e1-lb 'cpsx_)
+(ass)
+(qed 'einf-lower)
+
+(sp (make-wff
+  '(FORALL cpss_ (IMPLIES (SUBSET cpss_ RR-POS-STAR)
+     (FORALL cpsb_ (IMPLIES (IN cpsb_ RR-POS-STAR)
+       (IMPLIES (FORALL cpsx_ (IMPLIES (IN cpsx_ cpss_) (<= cpsb_ cpsx_)))
+         (<= cpsb_ (EINF cpss_)))))))))
+(dk-peel!)
+(mac 'EINF)
+(mac 'ELOWER-BOUNDS)
+(define cps-e2-lb (cadr (caddr (dk-goal))))
+(cps-lb-subset! cps-e2-lb)
+(have! (list 'IN 'cpsb_ cps-e2-lb)
+  (lambda () (dk-close-all! (lambda () (sep-mi)))))
+(fact 'esup-upper cps-e2-lb 'cpsb_)
+(ass)
+(qed 'einf-greatest)
+
+(sp (make-wff
+  '(FORALL cpss_ (IMPLIES (SUBSET cpss_ RR-POS-STAR) (IN (EINF cpss_) RR-POS-STAR)))))
+(dk-peel!)
+(mac 'EINF)
+(mac 'ELOWER-BOUNDS)
+(define cps-e0-lb (cadr (cadr (dk-goal))))
+(cps-lb-subset! cps-e0-lb)
+(fact 'esup-in cps-e0-lb)
+(ass)
+(qed 'einf-in)
+
+;;; ======================================================================
+;;; (2) Remark 2.6: the two facts about lim sup the tests use, and the lim inf
+;;; mirror.  The sequence f is real and non-negative termwise (so its values lie
+;;; in RR-POS-STAR); f itself is untyped (the hypotheses are pointwise).
+;;; ======================================================================
+
+(define cps-h1 '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (IN (f cpsk_) RR))))
+(define cps-h2 '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (<= 0 (f cpsk_)))))
+
+;;; t in RR-POS-STAR from (IN t RR) and (<= 0 t) in context
+(define (cps-rps! t)
+  (if (not (dk-asm? (list 'IN t 'RR-POS-STAR)))
+      (have! (list 'IN t 'RR-POS-STAR)
+        (lambda () (mac 'rr-pos-star-membership) (oi-l) (dk-conj-close! (lambda () (ass)))))))
+
+;;; f(k) typed: (IN (f k) RR), (<= 0 (f k)), (IN (f k) RR-POS-STAR); k in NN in context
+(define (cps-fk! k)
+  (inst+ cps-h1 k)
+  (inst+ cps-h2 k)
+  (cps-rps! (list 'f k)))
+
+;;; (IN w (IMAGE phi S)) in context: open it, skolemise, return the witness x;
+;;; lands (IN x S) and (= (phi x) w).  The membership is CONSUMED.
+(define (cps-image-elim! mem)
+  (let ((ex (car (dk-landed (lambda () (mac-h 'image-membership-iff mem))))))
+    (dk-skolem! ex)))
+
+;;; the case split of t in RR-POS-STAR: REAL-THUNK runs with (IN t RR), (<= 0 t);
+;;; INF-THUNK with (= t POS-INF).
+(define (cps-rps-cases! t real-thunk inf-thunk)
+  (let* ((c1 (list 'AND (list 'IN t 'RR) (list '<= 0 t)))
+         (c2 (list '= t 'POS-INF))
+         (dj (dk-project! (list 'OR c1 c2) 'rr-pos-star-membership (list 'IN t 'RR-POS-STAR))))
+    (use-cases dj
+      (lambda () (dk-split! (dk-ctx-form c1)) (real-thunk))
+      inf-thunk)))
+
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES cps-h1 (list 'IMPLIES cps-h2
+    '(FORALL cpsn_ (SUBSET (ETAIL f cpsn_) RR-POS-STAR)))))))
+(dk-peel!)
+(define cps-t-n (caddr (cadr (dk-goal))))
+(mac 'ETAIL)
+(mac 'subset-def)
+(define cps-t-w (dk-di-var!))
+(define cps-t-p
+  (cps-image-elim! (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) cps-t-w))) "tail membership")))
+(sep-me (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) cps-t-p))) "sep membership"))
+(cps-fk! cps-t-p)
+(subst (list '= cps-t-w (list 'f cps-t-p)))
+(ass)
+(qed 'etail-subset-rr-pos-star)
+
+;;; the image of n |-> SUP(OP)(ETAIL f n) is a subset of RR-POS-STAR, for the IM
+;;; read off an unfolded ELIMSUP / ELIMINF.  OP-IN is esup-in or einf-in.
+(define (cps-im-subset! im op-in)
+  (have! (list 'SUBSET im 'RR-POS-STAR)
+    (lambda ()
+      (mac 'subset-def)
+      (let* ((w (dk-di-var!))
+             (n (cps-image-elim! (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) w))) "image membership"))))
+        (dk-lam-b-h! (dk-pick (lambda (f) (and (eq? (cps-head f) '=) (eq? (caddr f) w))) "value equation"))
+        (fact 'etail-subset-rr-pos-star 'f n)
+        (fact op-in (list 'ETAIL 'f n))
+        (subst (list '= w (cadr (dk-pick (lambda (f) (and (eq? (cps-head f) '=) (eq? (caddr f) w))) "value equation"))))
+        (ass)))))
+
+;;; (IN (f k) (ETAIL f m)) from (IN k NN), (<= m k) and f(k) typed in context
+(define (cps-in-tail! m k)
+  (have! (list 'IN (list 'f k) (list 'ETAIL 'f m))
+    (lambda ()
+      (mac 'ETAIL)
+      (mac 'image-membership-iff)
+      (ew k)
+      (dk-conj-close!
+        (lambda ()
+          (if (eq? (cps-head (dk-goal)) '=)
+              (rfl)
+              (dk-close-all! (lambda () (sep-mi)))))))))
+
+;;; ELIMSUP f is in RR-POS-STAR
+(define (cps-ls-in! ls unf op-in)
+  (if (not (dk-asm? (list 'IN ls 'RR-POS-STAR)))
+      (have! (list 'IN ls 'RR-POS-STAR)
+        (lambda ()
+          (mac unf)
+          (let ((im (cadr (cadr (dk-goal)))))
+            (cps-im-subset! im op-in)
+            (fact (if (eq? op-in 'esup-in) 'einf-in 'esup-in) im)
+            (ass))))))
+
+;;; x in RR from (IN x RR-POS-STAR), (IN y RR), (<= x y) in context
+(define (cps-real-of-le! x y)
+  (if (not (dk-asm? (list 'IN x 'RR)))
+      (begin
+        (if (not (dk-asm? (list 'AND (list 'IN x 'RR-POS-STAR) (list 'IN y 'RR))))
+            (have! (list 'AND (list 'IN x 'RR-POS-STAR) (list 'IN y 'RR))))
+        (fact 'rr-pos-star-le-real-in-rr x y))))
+
+;;; (<= a b) from (< a b) in context, keeping (< a b)
+(define (cps-lt-le! a b)
+  (if (not (dk-asm? (list '<= a b)))
+      (have! (list '<= a b)
+        (lambda ()
+          (mac-h '< (dk-ctx-form (list '< a b)))
+          (dk-split-all!)
+          (ass)))))
+
+;;; beta-reduce the focus goal and close the reduct from context (the reduct
+;;; node is the new focus while the leaf stays open)
+(define (cps-beta!)
+  (let ((leaf (proof-state-focus *ps*)))
+    (dk-lam-b!)
+    (if (not (sequent-node-grounded? leaf)) (ass))))
+
+(define (cps-notex thunk)
+  (let ((l (filter (dk-head? 'NOT) (dk-landed thunk))))
+    (if (null? l) (error "cps-notex: no negation landed") (car l))))
+
+;;; ---- lim sup < r  =>  eventually f(k) < r --------------------------------
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES cps-h1 (list 'IMPLIES cps-h2
+    '(FORALL cpsr_ (IMPLIES (IN cpsr_ RR) (IMPLIES (< (ELIMSUP f) cpsr_)
+       (FORSOME cpsn_ (AND (IN cpsn_ NN)
+         (FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (IMPLIES (<= cpsn_ cpsk_) (< (f cpsk_) cpsr_))))))))))))))
+(dk-peel!)
+(define cps-a-ls '(ELIMSUP f))
+(cps-lt-le! cps-a-ls 'cpsr_)
+(cps-ls-in! cps-a-ls 'ELIMSUP 'esup-in)
+(cps-real-of-le! cps-a-ls 'cpsr_)
+(fact 'rr-pos-star-nonneg cps-a-ls)
+(have! '(<= 0 cpsr_) (lambda () (dk-ineq! (list '<= 0 cps-a-ls) (list '<= cps-a-ls 'cpsr_))))
+(define cps-a-notex (cps-notex (lambda () (pbc))))
+(define cps-a-all
+  '(FORALL cpsm_ (IMPLIES (IN cpsm_ NN) (<= cpsr_ (ESUP (ETAIL f cpsm_))))))
+(have! cps-a-all
+  (lambda ()
+    (let* ((m (dk-di-var!))
+           (tl (list 'ETAIL 'f m))
+           (e (list 'ESUP tl)))
+      (fact 'etail-subset-rr-pos-star 'f m)
+      (fact 'esup-in tl)
+      (let ((nle (cps-notex (lambda () (pbc)))))
+        (cps-rps-cases! e
+          (lambda ()
+            (fact 'rr-not-le-lt 'cpsr_ e)
+            (have! (cadr cps-a-notex)
+              (lambda ()
+                (ew m)
+                (dk-conj-close!
+                  (lambda ()
+                    (if (eq? (cps-head (dk-goal)) 'FORALL)
+                        (let* ((lk (dk-peel!))
+                               (k (cadr (car (filter (lambda (f) (and (eq? (cps-head f) 'IN) (equal? (caddr f) 'NN))) lk)))))
+                          (cps-fk! k)
+                          (cps-in-tail! m k)
+                          (fact 'esup-upper tl (list 'f k))
+                          (dk-ineq! (list '<= (list 'f k) e) (list '< e 'cpsr_)))
+                        (ass))))))
+            (ai cps-a-notex))
+          (lambda ()
+            (fact 'rr-subset-rr-star)
+            (fact 'subset-mem-fwd 'RR 'RR-STAR 'cpsr_)
+            (fact 'pos-inf-upper-bound 'cpsr_)
+            (have! (list '<= 'cpsr_ e) (lambda () (subst (list '= e 'POS-INF)) (ass)))
+            (ai nle)))))))
+(have! (list '<= 'cpsr_ cps-a-ls)
+  (lambda ()
+    (mac 'ELIMSUP)
+    (let ((im (cadr (caddr (dk-goal)))))
+      (cps-im-subset! im 'esup-in)
+      (cps-rps! 'cpsr_)
+      (have! (list 'FORALL 'cpsy_ (list 'IMPLIES (list 'IN 'cpsy_ im) '(<= cpsr_ cpsy_)))
+        (lambda ()
+          (let* ((y (dk-di-var!))
+                 (n (cps-image-elim! (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) y))) "image membership"))))
+            (dk-lam-b-h! (dk-pick (lambda (f) (and (eq? (cps-head f) '=) (eq? (caddr f) y))) "value equation"))
+            (inst+ cps-a-all n)
+            (subst (list '= y (cadr (dk-pick (lambda (f) (and (eq? (cps-head f) '=) (eq? (caddr f) y))) "value equation"))))
+            (ass))))
+      (fact 'einf-greatest im 'cpsr_)
+      (ass))))
+(fact 'rr-lt-not-le cps-a-ls 'cpsr_)
+(ai (list 'NOT (list '<= 'cpsr_ cps-a-ls)))
+(qed 'elimsup-eventually-below)
+
+;;; ---- r < lim sup  =>  f(k) > r for infinitely many k ----------------------
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES cps-h1 (list 'IMPLIES cps-h2
+    '(FORALL cpsr_ (IMPLIES (IN cpsr_ RR) (IMPLIES (<= 0 cpsr_) (IMPLIES (< cpsr_ (ELIMSUP f))
+       (FORALL cpsn_ (IMPLIES (IN cpsn_ NN)
+         (FORSOME cpsk_ (AND (IN cpsk_ NN) (AND (<= cpsn_ cpsk_) (< cpsr_ (f cpsk_))))))))))))))))
+(dk-peel!)
+(define cps-b-ls '(ELIMSUP f))
+(define cps-b-tl '(ETAIL f cpsn_))
+(define cps-b-e (list 'ESUP cps-b-tl))
+(fact 'etail-subset-rr-pos-star 'f 'cpsn_)
+(fact 'esup-in cps-b-tl)
+(cps-rps! 'cpsr_)
+(define cps-b-notex (cps-notex (lambda () (pbc))))
+(have! (list '<= cps-b-e 'cpsr_)
+  (lambda ()
+    (have! (list 'AND '(IN cpsr_ RR-POS-STAR)
+                 (list 'FORALL 'cpsx_ (list 'IMPLIES (list 'IN 'cpsx_ cps-b-tl) '(<= cpsx_ cpsr_))))
+      (lambda ()
+        (dk-conj-close!
+          (lambda ()
+            (if (eq? (cps-head (dk-goal)) 'FORALL)
+                (begin
+                  (mac 'ETAIL)
+                  (let* ((x (dk-di-var!))
+                         (p (cps-image-elim! (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) x))) "tail membership"))))
+                    (sep-me (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) p))) "sep membership"))
+                    (cps-fk! p)
+                    (subst (list '= x (list 'f p)))
+                    (pbc)
+                    (fact 'rr-not-le-lt (list 'f p) 'cpsr_)
+                    (have! (cadr cps-b-notex)
+                      (lambda () (ew p) (dk-conj-close! (lambda () (ass)))))
+                    (ai cps-b-notex)))
+                (ass))))))
+    (fact 'esup-least cps-b-tl 'cpsr_)
+    (ass)))
+(cps-real-of-le! cps-b-e 'cpsr_)
+(have! (list '<= cps-b-ls cps-b-e)
+  (lambda ()
+    (mac 'ELIMSUP)
+    (let ((im (cadr (cadr (dk-goal)))))
+      (cps-im-subset! im 'esup-in)
+      (have! (list 'IN cps-b-e im)
+        (lambda ()
+          (mac 'image-membership-iff)
+          (ew 'cpsn_)
+          (dk-conj-close!
+            (lambda ()
+              (if (eq? (cps-head (dk-goal)) '=)
+                  (begin (dk-lam-b!) (if (not (sequent-node-grounded? (proof-state-focus *ps*))) (rfl)))
+                  (ass))))))
+      (fact 'einf-lower im cps-b-e)
+      (ass))))
+(cps-ls-in! cps-b-ls 'ELIMSUP 'esup-in)
+(cps-real-of-le! cps-b-ls cps-b-e)
+(fact 'rr-lt-not-le 'cpsr_ cps-b-ls)
+(have! (list '<= cps-b-ls 'cpsr_)
+  (lambda () (dk-ineq! (list '<= cps-b-ls cps-b-e) (list '<= cps-b-e 'cpsr_))))
+(ai (list 'NOT (list '<= cps-b-ls 'cpsr_)))
+(qed 'elimsup-frequently-above)
+
+;;; ---- r < lim inf  =>  eventually f(k) > r ---------------------------------
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES cps-h1 (list 'IMPLIES cps-h2
+    '(FORALL cpsr_ (IMPLIES (IN cpsr_ RR) (IMPLIES (<= 0 cpsr_) (IMPLIES (< cpsr_ (ELIMINF f))
+       (FORSOME cpsn_ (AND (IN cpsn_ NN)
+         (FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (IMPLIES (<= cpsn_ cpsk_) (< cpsr_ (f cpsk_))))))))))))))))
+(dk-peel!)
+(define cps-c-li '(ELIMINF f))
+(cps-rps! 'cpsr_)
+(define cps-c-notex (cps-notex (lambda () (pbc))))
+(have! (list '<= cps-c-li 'cpsr_)
+  (lambda ()
+    (mac 'ELIMINF)
+    (let ((im (cadr (cadr (dk-goal)))))
+      (cps-im-subset! im 'einf-in)
+      (have! (list 'AND '(IN cpsr_ RR-POS-STAR)
+                   (list 'FORALL 'cpsy_ (list 'IMPLIES (list 'IN 'cpsy_ im) '(<= cpsy_ cpsr_))))
+        (lambda ()
+          (dk-conj-close!
+            (lambda ()
+              (if (eq? (cps-head (dk-goal)) 'FORALL)
+                  (let* ((y (dk-di-var!))
+                         (n (cps-image-elim! (dk-pick (lambda (f) (and (eq? (cps-head f) 'IN) (eq? (cadr f) y))) "image membership"))))
+                    (dk-lam-b-h! (dk-pick (lambda (f) (and (eq? (cps-head f) '=) (eq? (caddr f) y))) "value equation"))
+                    (subst (list '= y (cadr (dk-pick (lambda (f) (and (eq? (cps-head f) '=) (eq? (caddr f) y))) "value equation"))))
+                    (let* ((tl (list 'ETAIL 'f n))
+                           (iv (list 'EINF tl)))
+                      (fact 'etail-subset-rr-pos-star 'f n)
+                      (fact 'einf-in tl)
+                      (let ((nle (cps-notex (lambda () (pbc)))))
+                        (cps-rps-cases! iv
+                          (lambda ()
+                            (fact 'rr-not-le-lt iv 'cpsr_)
+                            (have! (cadr cps-c-notex)
+                              (lambda ()
+                                (ew n)
+                                (dk-conj-close!
+                                  (lambda ()
+                                    (if (eq? (cps-head (dk-goal)) 'FORALL)
+                                        (let* ((lk (dk-peel!))
+                                               (k (cadr (car (filter (lambda (f) (and (eq? (cps-head f) 'IN) (equal? (caddr f) 'NN))) lk)))))
+                                          (cps-fk! k)
+                                          (cps-in-tail! n k)
+                                          (fact 'einf-lower tl (list 'f k))
+                                          (dk-ineq! (list '< 'cpsr_ iv) (list '<= iv (list 'f k))))
+                                        (ass))))))
+                            (ai cps-c-notex))
+                          (lambda ()
+                            (cps-fk! n)
+                            (fact 'nn-le-refl n)
+                            (cps-in-tail! n n)
+                            (fact 'einf-lower tl (list 'f n))
+                            (fact 'pos-inf-above-reals (list 'f n))
+                            (have! (list '<= 'POS-INF (list 'f n))
+                              (lambda () (subst (list '= 'POS-INF iv)) (ass)))
+                            (ai (list 'NOT (list '<= 'POS-INF (list 'f n)))))))))
+                  (ass))))))
+      (fact 'esup-least im 'cpsr_)
+      (ass))))
+(cps-ls-in! cps-c-li 'ELIMINF 'einf-in)
+(cps-real-of-le! cps-c-li 'cpsr_)
+(fact 'rr-lt-not-le 'cpsr_ cps-c-li)
+(ai (list 'NOT (list '<= cps-c-li 'cpsr_)))
+(qed 'eliminf-eventually-above)
+
+;;; ELIMSUP / ELIMINF of a termwise real non-negative sequence are in [0, +inf]
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES cps-h1 (list 'IMPLIES cps-h2 '(IN (ELIMSUP f) RR-POS-STAR))))))
+(dk-peel!)
+(mac 'ELIMSUP)
+(define cps-d-im (cadr (cadr (dk-goal))))
+(cps-im-subset! cps-d-im 'esup-in)
+(fact 'einf-in cps-d-im)
+(ass)
+(qed 'elimsup-in-rr-pos-star)
+
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES cps-h1 (list 'IMPLIES cps-h2 '(IN (ELIMINF f) RR-POS-STAR))))))
+(dk-peel!)
+(mac 'ELIMINF)
+(define cps-d2-im (cadr (cadr (dk-goal))))
+(cps-im-subset! cps-d2-im 'einf-in)
+(fact 'esup-in cps-d2-im)
+(ass)
+(qed 'eliminf-in-rr-pos-star)
+
+;;; ======================================================================
+;;; (3a) Facts about powers and real roots.
+;;; ======================================================================
+
+;;; (< 0 t) from (<= 0 t) and (NOT (= 0 t)) in context
+(define (cps-pos-of! t)
+  (if (not (dk-asm? (list '< 0 t)))
+      (have! (list '< 0 t) (lambda () (mac '<) (dk-conj-close! (lambda () (ass)))))))
+
+;;; (NOT (= b a)) from (NOT (= a b)) in context
+(define (cps-ne-flip! a b)
+  (if (not (dk-asm? (list 'NOT (list '= b a))))
+      (have! (list 'NOT (list '= b a))
+        (lambda ()
+          (di)
+          (have! (list '= a b) (lambda () (subst (list '= a b)) (rfl)))
+          (ai (list 'NOT (list '= a b)))))))
+
+;;; 0 <= x <= y  =>  x^k <= y^k
+(sp (make-wff
+  '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN)
+     (FORALL cpsx_ (IMPLIES (IN cpsx_ RR) (FORALL cpsy_ (IMPLIES (IN cpsy_ RR)
+       (IMPLIES (<= 0 cpsx_) (IMPLIES (<= cpsx_ cpsy_)
+         (<= (power cpsx_ cpsk_) (power cpsy_ cpsk_))))))))))))
+(define cps-pm-br (use-induction))
+(dk-focus! (cdr (assq 'base cps-pm-br)))
+(dk-peel!)
+(fact 'rr-subset-cc 'cpsx_)
+(fact 'rr-subset-cc 'cpsy_)
+(mac 'power-zero)
+(dk-ineq!)
+(dk-focus! (cdr (assq 'step cps-pm-br)))
+(define cps-pm-v (cdr (assq 'var cps-pm-br)))
+(define cps-pm-ih (cdr (assq 'ih cps-pm-br)))
+(dk-peel!)
+(fact 'power-real-closed 'cpsx_ cps-pm-v)
+(fact 'power-real-closed 'cpsy_ cps-pm-v)
+(fact 'rr-power-nonneg cps-pm-v 'cpsx_)
+(dk-apply! cps-pm-ih 'cpsx_ 'cpsy_)
+(fact 'rr-subset-cc 'cpsx_)
+(fact 'rr-subset-cc 'cpsy_)
+(mac 'power-succ)
+(detach-with! (dk-fact! 'rr-prod-le-prod 'cpsx_ 'cpsy_ (list 'power 'cpsx_ cps-pm-v) (list 'power 'cpsy_ cps-pm-v))
+  (lambda () (dk-conj-close! (lambda () (ass)))))
+(ass)
+(qed 'rr-power-mono-base)
+
+;;; rpow-star at a natural exponent is the power, for a positive base
+(sp (make-wff
+  '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN)
+     (FORALL cpsx_ (IMPLIES (IN cpsx_ RR) (IMPLIES (< 0 cpsx_)
+       (= (rpow-star cpsx_ cpsk_) (power cpsx_ cpsk_)))))))))
+(define cps-rn-br (use-induction))
+(dk-focus! (cdr (assq 'base cps-rn-br)))
+(dk-peel!)
+(fact 'rpow-star-zero 'cpsx_)
+(fact 'rr-subset-cc 'cpsx_)
+(mac 'power-zero)
+(ass)
+(dk-focus! (cdr (assq 'step cps-rn-br)))
+(define cps-rn-v (cdr (assq 'var cps-rn-br)))
+(define cps-rn-ih (cdr (assq 'ih cps-rn-br)))
+(dk-peel!)
+(fact 'nn-in-rr cps-rn-v)
+(fact 'rr-one-in)
+(fact 'rr-subset-cc 'cpsx_)
+(fact 'power-real-closed 'cpsx_ cps-rn-v)
+(mac 'power-succ)
+(fact 'nn-succ-plus-one cps-rn-v)
+(subst (list '= (list 'succ cps-rn-v) (list '+ cps-rn-v 1)))
+(define cps-rn-add (dk-fact! 'rpow-star-add 'cpsx_ cps-rn-v 1))
+(subst cps-rn-add)
+(define cps-rn-one (dk-fact! 'rpow-star-one 'cpsx_))
+(subst cps-rn-one)
+(define cps-rn-ihx (dk-apply! cps-rn-ih 'cpsx_))
+(subst cps-rn-ihx)
+(crs)
+(qed 'rpow-star-nat)
+
+;;; recip-star of a natural number: 0 < recip-star(k) for 1 <= k, and >= 0 always
+(sp (make-wff
+  '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (IMPLIES (<= 1 cpsk_) (< 0 (recip-star cpsk_)))))))
+(dk-peel!)
+(fact 'nn-in-rr 'cpsk_)
+(dk-nonzero! 'cpsk_)
+(have! '(< 0 cpsk_) (lambda () (dk-ineq! '(<= 1 cpsk_))))
+(fact 'rr-recip-pos 'cpsk_)
+(define cps-rp-eq (dk-fact! 'recip-star-value 'cpsk_))
+(subst cps-rp-eq)
+(ass)
+(qed 'recip-star-nn-pos)
+
+(sp (make-wff
+  '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (<= 0 (recip-star cpsk_))))))
+(dk-peel!)
+(use-em '(= cpsk_ 0)
+  (lambda ()
+    (fact 'recip-star-zero)
+    (subst '(= cpsk_ 0))
+    (subst '(= (recip-star 0) 0))
+    (dk-ineq!))
+  (lambda ()
+    (dk-one-le! 'cpsk_)
+    (fact 'recip-star-nn-pos 'cpsk_)
+    (fact 'nn-in-rr 'cpsk_)
+    (fact 'recip-star-in-rr 'cpsk_)
+    (dk-ineq! '(< 0 (recip-star cpsk_)))))
+(qed 'recip-star-nn-nonneg)
+
+;;; the k-th root undone by the k-th power: (x^(1/k))^k = x for x > 0, k >= 1
+(sp (make-wff
+  '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (IMPLIES (<= 1 cpsk_)
+     (FORALL cpsx_ (IMPLIES (IN cpsx_ RR) (IMPLIES (< 0 cpsx_)
+       (= (power (rpow-star cpsx_ (recip-star cpsk_)) cpsk_) cpsx_)))))))))
+(dk-peel!)
+(define cps-rr-s '(recip-star cpsk_))
+(define cps-rr-y (list 'rpow-star 'cpsx_ cps-rr-s))
+(fact 'nn-in-rr 'cpsk_)
+(fact 'recip-star-in-rr 'cpsk_)
+(fact 'rpow-star-in-rr 'cpsx_ cps-rr-s)
+(fact 'rpow-star-pos 'cpsx_ cps-rr-s)
+(define cps-rr-nat (dk-fact! 'rpow-star-nat 'cpsk_ cps-rr-y))
+(subst (list '= (caddr cps-rr-nat) (cadr cps-rr-nat)))
+(define cps-rr-pow (dk-fact! 'rpow-star-pow 'cpsx_ cps-rr-s 'cpsk_))
+(subst cps-rr-pow)
+(dk-nonzero! 'cpsk_)
+(define cps-rr-val (dk-fact! 'recip-star-value 'cpsk_))
+(have! '(AND (IN cpsk_ RR) (NOT (= cpsk_ 0))))
+(fact 'rr-recip-closed 'cpsk_)
+(fact 'rr-recip-inverse 'cpsk_)
+(have! (list '= (list '* cps-rr-s 'cpsk_) 1)
+  (lambda ()
+    (subst cps-rr-val)
+    (have! '(AND (IN (recip cpsk_) RR) (IN cpsk_ RR)))
+    (subst (dk-fact! 'rr-mul-comm '(recip cpsk_) 'cpsk_))
+    (ass)))
+(subst (list '= (list '* cps-rr-s 'cpsk_) 1))
+(subst (dk-fact! 'rpow-star-one 'cpsx_))
+(rfl)
+(qed 'rpow-star-root-power)
+
+;;; x^s is a non-negative real for x >= 0, s >= 0
+(define (cps-rpow-type! nonneg?)
+  (dk-peel!)
+  (let ((y '(rpow-star cpsx_ cpss_)))
+    (use-em '(= 0 cpsx_)
+      (lambda ()
+        (subst '(= cpsx_ 0))
+        (use-em '(= 0 cpss_)
+          (lambda ()
+            (subst '(= cpss_ 0))
+            (fact 'rpow-star-zero-zero)
+            (subst '(= (rpow-star 0 0) 1))
+            (if nonneg? (dk-ineq!) (begin (fact 'rr-one-in) (ass))))
+          (lambda ()
+            (cps-pos-of! 'cpss_)
+            (fact 'rpow-star-zero-base 'cpss_)
+            (subst '(= (rpow-star 0 cpss_) 0))
+            (if nonneg? (dk-ineq!) (begin (fact 'rr-zero-in) (ass))))))
+      (lambda ()
+        (cps-pos-of! 'cpsx_)
+        (if nonneg?
+            (begin (fact 'rpow-star-pos 'cpsx_ 'cpss_)
+                   (fact 'rpow-star-in-rr 'cpsx_ 'cpss_)
+                   (dk-ineq! (list '< 0 y)))
+            (begin (fact 'rpow-star-in-rr 'cpsx_ 'cpss_) (ass)))))))
+
+(sp (make-wff
+  '(FORALL cpsx_ (IMPLIES (IN cpsx_ RR) (IMPLIES (<= 0 cpsx_)
+     (FORALL cpss_ (IMPLIES (IN cpss_ RR) (IMPLIES (<= 0 cpss_) (IN (rpow-star cpsx_ cpss_) RR)))))))))
+(cps-rpow-type! #f)
+(qed 'rpow-star-nonneg-in-rr)
+
+(sp (make-wff
+  '(FORALL cpsx_ (IMPLIES (IN cpsx_ RR) (IMPLIES (<= 0 cpsx_)
+     (FORALL cpss_ (IMPLIES (IN cpss_ RR) (IMPLIES (<= 0 cpss_) (<= 0 (rpow-star cpsx_ cpss_))))))))))
+(cps-rpow-type! #t)
+(qed 'rpow-star-nonneg-nonneg)
+
+;;; ======================================================================
+;;; (3b) Series lemmas: bounded partial sums converge; domination by C q^k from
+;;; some index on converges; infinitely many terms >= c > 0 diverge.
+;;; ======================================================================
+
+(define cps-nonneg-h '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (<= 0 (f cpsk_)))))
+
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN NN RR)) (list 'IMPLIES cps-nonneg-h
+    '(FORALL cpsb_ (IMPLIES (IN cpsb_ RR)
+       (IMPLIES (FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (<= (SERIES-PARTIAL-SUM f cpsk_) cpsb_)))
+         (SERIES-CONVERGES f)))))))))
+(dk-peel!)
+(define cps-s0-seq '(VNB-LAMBDA k NN (SERIES-PARTIAL-SUM f k)))
+(fact 'series-partial-sum-seq-in-fun 'f)
+(define cps-s0-mc (let ((t (lookup-theorem 'monotone-convergence-rr))) (if (wff? t) (wff-formula t) t)))
+(define cps-s0-ante (subst-free 'f cps-s0-seq (cadr (caddr (caddr cps-s0-mc)))))
+(define cps-s0-bnd
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f 'cpsb_))) "the bound"))
+(mac 'series-converges)
+(have! cps-s0-ante
+  (lambda ()
+    (dk-conj-close!
+      (lambda ()
+        (let ((g (dk-goal)))
+          (cond ((eq? (car g) 'FORALL)
+                 (let ((k (dk-di-var!)))
+                   (fact 'nn-succ-closed k)
+                   (mac 'series-partial-sum-seq-apply)
+                   (fact 'series-partial-sum-monotone-nonneg 'f k)
+                   (ass)))
+                ((eq? (car g) 'FORSOME)
+                 (ew 'cpsb_)
+                 (dk-conj-close!
+                   (lambda ()
+                     (if (eq? (cps-head (dk-goal)) 'IN)
+                         (ass)
+                         (let ((k (dk-di-var!)))
+                           (mac 'series-partial-sum-seq-apply)
+                           (inst+ cps-s0-bnd k)
+                           (ass))))))
+                (#t (ass))))))))
+(fact 'monotone-convergence-rr cps-s0-seq)
+(ass)
+(qed 'series-bounded-converges)
+
+;;; ---- domination by c q^k from index n on ----------------------------------
+(define cps-s1-geo '(VNB-LAMBDA n NN (power cpsq_ n)))
+(sp (make-wff
+  (list 'FORALL 'f (list 'IMPLIES '(IN f (FUN NN RR)) (list 'IMPLIES cps-nonneg-h
+    '(FORALL cpsq_ (IMPLIES (IN cpsq_ RR) (IMPLIES (<= 0 cpsq_) (IMPLIES (< cpsq_ 1)
+       (FORALL cpsc_ (IMPLIES (IN cpsc_ RR) (IMPLIES (<= 0 cpsc_)
+         (FORALL cpsn_ (IMPLIES (IN cpsn_ NN)
+           (IMPLIES (FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (IMPLIES (<= cpsn_ cpsk_)
+                      (<= (f cpsk_) (* cpsc_ (power cpsq_ cpsk_))))))
+             (SERIES-CONVERGES f))))))))))))))))
+(dk-peel!)
+(define cps-s1-dom
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f 'cpsc_))) "the domination"))
+(have! (list 'IN cps-s1-geo '(FUN NN RR))
+  (lambda ()
+    (dk-lam-t!)
+    (let ((v (dk-di-var!)))
+      (fact 'power-real-closed 'cpsq_ v)
+      (ass))))
+(fact 'geometric-series-converges 'cpsq_)
+(define cps-s1-geonn (list 'FORALL 'cpsk_ (list 'IMPLIES '(IN cpsk_ NN) (list '<= 0 (list cps-s1-geo 'cpsk_)))))
+(have! cps-s1-geonn
+  (lambda ()
+    (let ((v (dk-di-var!)))
+      (fact 'rr-power-nonneg v 'cpsq_)
+      (cps-beta!))))
+(define cps-s1-g (dk-skolem! (dk-fact! 'series-partial-sum-bounded cps-s1-geo)))
+(define cps-s1-gb
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f cps-s1-g))) "geometric bound"))
+(define cps-s1-sn '(SERIES-PARTIAL-SUM f cpsn_))
+(fact 'series-partial-sum-in-rr 'cpsn_ 'f)
+(fact 'series-partial-sum-nonneg 'cpsn_ 'f)
+(define (cps-s1-sg m) (list 'SERIES-PARTIAL-SUM cps-s1-geo m))
+(define cps-s1-claim
+  (list 'FORALL 'cpsm_ (list 'IMPLIES '(IN cpsm_ NN)
+    (list '<= '(SERIES-PARTIAL-SUM f cpsm_) (list '+ cps-s1-sn (list '* 'cpsc_ (cps-s1-sg 'cpsm_)))))))
+(have! cps-s1-claim
+  (lambda ()
+    (let ((br (use-induction)))
+      (dk-focus! (cdr (assq 'base br)))
+      (mac 'series-partial-sum-zero)
+      (dk-ineq! (list '<= 0 cps-s1-sn))
+      (dk-focus! (cdr (assq 'step br)))
+      (let* ((v (cdr (assq 'var br)))
+             (ih (cdr (assq 'ih br)))
+             (sv (list 'succ v))
+             (fv (list 'SERIES-PARTIAL-SUM 'f v))
+             (gv (cps-s1-sg v))
+             (pv (list 'power 'cpsq_ v)))
+        (fact 'nn-succ-closed v)
+        (fact 'nn-in-rr v)
+        (fact 'nn-in-rr 'cpsn_)
+        (fact 'series-partial-sum-in-rr v 'f)
+        (fact 'series-partial-sum-in-rr sv 'f)
+        (fact 'series-partial-sum-in-rr v cps-s1-geo)
+        (fact 'series-partial-sum-in-rr sv cps-s1-geo)
+        (fact 'fun-apply-type-c 'f 'NN 'RR v)
+        (fact 'power-real-closed 'cpsq_ v)
+        (use-em (list '<= 'cpsn_ v)
+          (lambda ()
+            (inst+ cps-s1-dom v)
+            (have! (list 'IN (list cps-s1-geo v) 'RR)
+              (lambda () (cps-beta!)))
+            (mac 'series-partial-sum-succ)
+            (dk-lam-b!)
+            (let ((dist (list '= (list '* 'cpsc_ (list '+ gv pv)) (list '+ (list '* 'cpsc_ gv) (list '* 'cpsc_ pv)))))
+              (have! dist (lambda () (crs)))
+              (subst dist))
+            (fact 'rr-mul-in-rr 'cpsc_ gv)
+            (fact 'rr-mul-in-rr 'cpsc_ pv)
+            (dk-ineq! ih (list '<= (list 'f v) (list '* 'cpsc_ pv))))
+          (lambda ()
+            (fact 'rr-not-le-lt 'cpsn_ v)
+            (fact 'nn-lt-succ-le v 'cpsn_)
+            (fact 'series-partial-sum-mono 'cpsn_ sv 'f)
+            (fact 'series-partial-sum-nonneg sv cps-s1-geo)
+            (have! (list 'AND '(IN cpsc_ RR) (list 'IN (cps-s1-sg sv) 'RR)))
+            (have! (list 'AND '(<= 0 cpsc_) (list '<= 0 (cps-s1-sg sv))))
+            (fact 'rr-leq-mul-nonneg 'cpsc_ (cps-s1-sg sv))
+            (fact 'rr-mul-in-rr 'cpsc_ (cps-s1-sg sv))
+            (dk-ineq! (list '<= (list 'SERIES-PARTIAL-SUM 'f sv) cps-s1-sn)
+                      (list '<= 0 (list '* 'cpsc_ (cps-s1-sg sv))))))))))
+(define cps-s1-b (list '+ cps-s1-sn (list '* 'cpsc_ cps-s1-g)))
+(have! (list 'FORALL 'cpsm_ (list 'IMPLIES '(IN cpsm_ NN) (list '<= '(SERIES-PARTIAL-SUM f cpsm_) cps-s1-b)))
+  (lambda ()
+    (let ((m (dk-di-var!)))
+      (inst+ cps-s1-claim m)
+      (inst+ cps-s1-gb m)
+      (fact 'series-partial-sum-in-rr m 'f)
+      (fact 'series-partial-sum-in-rr m cps-s1-geo)
+      (have! (list 'AND '(<= 0 cpsc_) (list '<= (cps-s1-sg m) cps-s1-g)))
+      (fact 'rr-le-scale-nonneg 'cpsc_ (cps-s1-sg m) cps-s1-g)
+      (fact 'rr-mul-in-rr 'cpsc_ (cps-s1-sg m))
+      (fact 'rr-mul-in-rr 'cpsc_ cps-s1-g)
+      (dk-ineq! (list '<= '(SERIES-PARTIAL-SUM f cpsm_) (list '+ cps-s1-sn (list '* 'cpsc_ (cps-s1-sg m))))
+                (list '<= (list '* 'cpsc_ (cps-s1-sg m)) (list '* 'cpsc_ cps-s1-g))))))
+(fact 'rr-mul-in-rr 'cpsc_ cps-s1-g)
+(fact 'rr-add-in-rr cps-s1-sn (list '* 'cpsc_ cps-s1-g))
+(fact 'series-bounded-converges 'f cps-s1-b)
+(ass)
+(qed 'series-eventually-geometric-converges)
+
+;;; ---- infinitely many terms >= c > 0: the series diverges -------------------
+(sp (make-wff
+  '(FORALL f (IMPLIES (IN f (FUN NN RR))
+     (FORALL cpsc_ (IMPLIES (IN cpsc_ RR) (IMPLIES (< 0 cpsc_)
+       (IMPLIES (FORALL cpsn_ (IMPLIES (IN cpsn_ NN)
+                  (FORSOME cpsk_ (AND (IN cpsk_ NN) (AND (<= cpsn_ cpsk_) (<= cpsc_ (f cpsk_)))))))
+         (NOT (SERIES-CONVERGES f))))))))))
+(dk-peel!)
+(define cps-s2-freq
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f 'cpsc_))) "frequency hypothesis"))
+(di)
+(have! '(POS-RR cpsc_)
+  (lambda ()
+    (mac 'pos-rr)
+    (cps-lt-le! 0 'cpsc_)
+    (have! '(NOT (= 0 cpsc_)) (lambda () (mac-h '< (dk-ctx-form '(< 0 cpsc_))) (dk-split-all!) (ass)))
+    (dk-conj-close! (lambda () (ass)))))
+(define cps-s2-d (dk-halve! 'cpsc_))
+(define cps-s2-b (dk-skolem! (dk-fact! 'series-cauchy-criterion 'f cps-s2-d)))
+(define cps-s2-cau
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f cps-s2-b) (dk-contains? f cps-s2-d))) "cauchy clause"))
+(define cps-s2-k (dk-skolem! (dk-deepest (lambda () (inst+ cps-s2-freq cps-s2-b)))))
+(define cps-s2-sk (list 'succ cps-s2-k))
+(fact 'nn-succ-closed cps-s2-k)
+(fact 'nn-le-succ cps-s2-k)
+(define cps-s2-ch (inst*! cps-s2-cau cps-s2-k cps-s2-sk))
+(define cps-s2-abs
+  (detach-with! cps-s2-ch (lambda () (dk-conj-close! (lambda () (ass))))))
+(fact 'series-partial-sum-in-rr cps-s2-k 'f)
+(fact 'fun-apply-type-c 'f 'NN 'RR cps-s2-k)
+(define cps-s2-fk (list 'f cps-s2-k))
+(define cps-s2-a (list 'SERIES-PARTIAL-SUM 'f cps-s2-sk))
+(define cps-s2-s (list 'SERIES-PARTIAL-SUM 'f cps-s2-k))
+(have! (list '= cps-s2-fk (list '- cps-s2-a cps-s2-s))
+  (lambda ()
+    (mac 'series-partial-sum-succ)
+    (crs)))
+(have! (list '<= (list 'abs cps-s2-fk) cps-s2-d)
+  (lambda () (subst (list '= cps-s2-fk (list '- cps-s2-a cps-s2-s))) (ass)))
+(fact 'rr-le-abs cps-s2-fk)
+(fact 'rr-abs-closed cps-s2-fk)
+(have! (list '<= 'cpsc_ cps-s2-d)
+  (lambda () (dk-ineq! (list '<= 'cpsc_ cps-s2-fk) (list '<= cps-s2-fk (list 'abs cps-s2-fk))
+                       (list '<= (list 'abs cps-s2-fk) cps-s2-d))))
+(have! (list '< cps-s2-d 'cpsc_)
+  (lambda () (dk-ineq! (list '= (list '+ cps-s2-d cps-s2-d) 'cpsc_) (list '< 0 cps-s2-d))))
+(fact 'rr-lt-not-le cps-s2-d 'cpsc_)
+(ai (list 'NOT (list '<= 'cpsc_ cps-s2-d)))
+(qed 'series-frequently-large-diverges)
+
+;;; ======================================================================
+;;; (4) THE ROOT TEST (Lemma 2.5).  theta_k >= 0, rho = lim sup_k theta_k^(1/k):
+;;; sum theta_k converges if rho < 1 and diverges if rho > 1.
+;;; ======================================================================
+
+(define cps-rs '(VNB-LAMBDA cpsj_ NN (rpow-star (cpsth_ cpsj_) (recip-star cpsj_))))
+(define cps-th-typ '(IN cpsth_ (FUN NN RR)))
+(define cps-th-nn '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (<= 0 (cpsth_ cpsk_)))))
+(define cps-th-nnh
+  (lambda () (dk-pick (lambda (f) (equal? f cps-th-nn)) "theta non-negative")))
+
+;;; theta(k) typed and its root typed, for k in NN in context
+(define (cps-root-typ! k)
+  (let ((tk (list 'cpsth_ k)) (sk (list 'recip-star k)))
+    (fact 'fun-apply-type-c 'cpsth_ 'NN 'RR k)
+    (inst+ (cps-th-nnh) k)
+    (fact 'nn-in-rr k)
+    (fact 'recip-star-in-rr k)
+    (fact 'recip-star-nn-nonneg k)
+    (fact 'rpow-star-nonneg-in-rr tk sk)
+    (fact 'rpow-star-nonneg-nonneg tk sk)))
+
+;;; the pointwise hypotheses of the lim sup laws, at the root sequence
+(define (cps-rs-ptwise!)
+  (have! (subst-free 'f cps-rs cps-h1)
+    (lambda () (let ((k (dk-di-var!))) (cps-root-typ! k) (cps-beta!))))
+  (have! (subst-free 'f cps-rs cps-h2)
+    (lambda () (let ((k (dk-di-var!))) (cps-root-typ! k) (cps-beta!)))))
+
+(define cps-rho (list 'ELIMSUP cps-rs))
+
+(sp (make-wff
+  (list 'FORALL 'cpsth_ (list 'IMPLIES cps-th-typ (list 'IMPLIES cps-th-nn
+    (list 'IMPLIES (list '< cps-rho 1) '(SERIES-CONVERGES cpsth_)))))))
+(dk-peel!)
+(cps-rs-ptwise!)
+(fact 'rr-one-in)
+(fact 'elimsup-in-rr-pos-star cps-rs)
+(fact 'rr-pos-star-nonneg cps-rho)
+(cps-lt-le! cps-rho 1)
+(cps-real-of-le! cps-rho 1)
+(define cps-r1-r (list '* 1/2 (list '+ cps-rho 1)))
+(fact 'rr-add-in-rr cps-rho 1)
+(have! '(IN 1/2 RR) (lambda () (arith)))
+(fact 'rr-mul-in-rr 1/2 (list '+ cps-rho 1))
+(have! (list '< cps-rho cps-r1-r) (lambda () (dk-ineq! (list '< cps-rho 1))))
+(have! (list '< cps-r1-r 1) (lambda () (dk-ineq! (list '< cps-rho 1))))
+(have! (list '<= 0 cps-r1-r) (lambda () (dk-ineq! (list '<= 0 cps-rho))))
+(define cps-r1-n (dk-skolem! (dk-fact! 'elimsup-eventually-below cps-rs cps-r1-r)))
+(define cps-r1-ev
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f cps-r1-n) (dk-contains? f cps-r1-r))) "eventually below"))
+(define cps-r1-n1 (list 'succ cps-r1-n))
+(fact 'nn-succ-closed cps-r1-n)
+(fact 'nn-le-succ cps-r1-n)
+(fact 'nn-one-le-succ cps-r1-n)
+(have! '(IN 1 NN) (lambda () (arith)))
+(define cps-r1-dom
+  (list 'FORALL 'cpsk_ (list 'IMPLIES '(IN cpsk_ NN) (list 'IMPLIES (list '<= cps-r1-n1 'cpsk_)
+    (list '<= '(cpsth_ cpsk_) (list '* 1 (list 'power cps-r1-r 'cpsk_)))))))
+(have! cps-r1-dom
+  (lambda ()
+    (let* ((lk (dk-peel!))
+           (k (cadr (car (filter (lambda (f) (and (eq? (cps-head f) 'IN) (equal? (caddr f) 'NN))) lk))))
+           (tk (list 'cpsth_ k))
+           (y (list 'rpow-star tk (list 'recip-star k)))
+           (pr (list 'power cps-r1-r k)))
+      (fact 'nn-le-trans-guarded cps-r1-n cps-r1-n1 k)
+      (fact 'nn-le-trans-guarded 1 cps-r1-n1 k)
+      (cps-root-typ! k)
+      (let ((lt (dk-deepest (lambda () (inst+ cps-r1-ev k)))))
+        (dk-lam-b-h! lt))
+      (fact 'power-real-closed cps-r1-r k)
+      (use-em (list '= 0 tk)
+        (lambda ()
+          (fact 'rr-power-nonneg k cps-r1-r)
+          (dk-ineq! (list '= 0 tk) (list '<= 0 pr)))
+        (lambda ()
+          (cps-pos-of! tk)
+          (fact 'rpow-star-root-power k tk)
+          (cps-lt-le! y cps-r1-r)
+          (fact 'rr-power-mono-base k y cps-r1-r)
+          (fact 'power-real-closed y k)
+          (dk-ineq! (list '= (list 'power y k) tk) (list '<= (list 'power y k) pr)))))))
+(have! '(<= 0 1) (lambda () (dk-ineq!)))
+(fact 'series-eventually-geometric-converges 'cpsth_ cps-r1-r 1 cps-r1-n1)
+(ass)
+(qed 'root-test-converges)
+
+(sp (make-wff
+  (list 'FORALL 'cpsth_ (list 'IMPLIES cps-th-typ (list 'IMPLIES cps-th-nn
+    (list 'IMPLIES (list '< 1 cps-rho) '(NOT (SERIES-CONVERGES cpsth_))))))))
+(dk-peel!)
+(cps-rs-ptwise!)
+(fact 'rr-one-in)
+(have! '(<= 0 1) (lambda () (dk-ineq!)))
+(have! '(IN 1 NN) (lambda () (arith)))
+(define cps-r2-fb (dk-fact! 'elimsup-frequently-above cps-rs 1))
+(define cps-r2-freq
+  '(FORALL cpsn_ (IMPLIES (IN cpsn_ NN)
+     (FORSOME cpsk_ (AND (IN cpsk_ NN) (AND (<= cpsn_ cpsk_) (<= 1 (cpsth_ cpsk_))))))))
+(have! cps-r2-freq
+  (lambda ()
+    (let* ((n (dk-di-var!))
+           (sn (list 'succ n)))
+      (fact 'nn-succ-closed n)
+      (fact 'nn-le-succ n)
+      (fact 'nn-one-le-succ n)
+      (let* ((k (dk-skolem! (dk-deepest (lambda () (inst+ cps-r2-fb sn)))))
+             (tk (list 'cpsth_ k))
+             (sk (list 'recip-star k))
+             (y (list 'rpow-star tk sk)))
+        (dk-lam-b-h! (dk-pick (lambda (f) (and (eq? (cps-head f) '<) (equal? (cadr f) 1) (dk-contains? f k))) "1 < root"))
+        (fact 'nn-le-trans-guarded n sn k)
+        (fact 'nn-le-trans-guarded 1 sn k)
+        (cps-root-typ! k)
+        (ew k)
+        (dk-conj-close!
+          (lambda ()
+            (if (dk-asm? (dk-goal))
+                (ass)
+                (use-em (list '= 0 tk)
+                  (lambda ()
+                    (fact 'recip-star-nn-pos k)
+                    (fact 'rpow-star-zero-base sk)
+                    (have! (list '= y 0)
+                      (lambda () (subst (list '= tk 0)) (ass)))
+                    (dk-ineq! (list '< 1 y) (list '= y 0)))
+                  (lambda ()
+                    (cps-pos-of! tk)
+                    (fact 'rpow-star-root-power k tk)
+                    (cps-lt-le! 1 y)
+                    (fact 'rr-power-mono-base k 1 y)
+                    (fact 'rr-power-one k)
+                    (fact 'power-real-closed 1 k)
+                    (fact 'power-real-closed y k)
+                    (dk-ineq! (list '= (list 'power 1 k) 1)
+                              (list '<= (list 'power 1 k) (list 'power y k))
+                              (list '= (list 'power y k) tk)))))))))))
+(fact 'rr-zero-lt-one)
+(fact 'series-frequently-large-diverges 'cpsth_ 1)
+(ass)
+(qed 'root-test-diverges)
+
+(sp (make-wff
+  (list 'FORALL 'cpsth_ (list 'IMPLIES cps-th-typ (list 'IMPLIES cps-th-nn
+    (list 'AND (list 'IMPLIES (list '< cps-rho 1) '(SERIES-CONVERGES cpsth_))
+               (list 'IMPLIES (list '< 1 cps-rho) '(NOT (SERIES-CONVERGES cpsth_)))))))))
+(dk-peel!)
+(dk-conj-close!
+  (lambda ()
+    (let ((conv? (eq? (cps-head (caddr (dk-goal))) 'SERIES-CONVERGES)))
+      (di)
+      (fact (if conv? 'root-test-converges 'root-test-diverges) 'cpsth_)
+      (ass))))
+(qed 'root-test)
+
+;;; ======================================================================
+;;; (5) THE RATIO TEST (Lemma 2.15).  theta_k > 0.
+;;;   * lim sup_k theta_(k+1)/theta_k < 1  =>  sum theta_k converges  (the notes' first half);
+;;;   * lim inf_k theta_(k+1)/theta_k > 1  =>  sum theta_k diverges.
+;;; THE NOTES' SECOND HALF IS FALSE as printed ("if lim sup theta_(k+1)/theta_k > 1,
+;;; the series diverges"): theta_(2j) = 4^(-j), theta_(2j+1) = 2 . 4^(-j) has ratios
+;;; alternating 2 and 1/8, so lim sup = 2 > 1, while sum theta_k = sum 3 . 4^(-j) = 4.
+;;; The divergence half holds with lim INF (Rudin 3.34(b) states it with "ratio >= 1
+;;; from some index on"); that is what is proven.  ("The other claim is handled
+;;; similarly": the notes' proof would need theta_(k+1) >= theta_k from some index on,
+;;; which lim sup > 1 does not give.)
+;;; ======================================================================
+
+(define cps-rq '(VNB-LAMBDA cpsj_ NN (* (cpsth_ (succ cpsj_)) (recip (cpsth_ cpsj_)))))
+(define cps-th-pos '(FORALL cpsk_ (IMPLIES (IN cpsk_ NN) (< 0 (cpsth_ cpsk_)))))
+(define cps-th-posh
+  (lambda () (dk-pick (lambda (f) (equal? f cps-th-pos)) "theta positive")))
+(define (cps-q k) (list '* (list 'cpsth_ (list 'succ k)) (list 'recip (list 'cpsth_ k))))
+
+;;; theta(j) positive and its parts, j a term typed in NN
+(define (cps-th-parts! j)
+  (let ((tj (list 'cpsth_ j)))
+    (fact 'fun-apply-type-c 'cpsth_ 'NN 'RR j)
+    (inst+ (cps-th-posh) j)
+    (cps-lt-le! 0 tj)
+    (if (not (dk-asm? (list 'NOT (list '= 0 tj))))
+        (have! (list 'NOT (list '= 0 tj))
+          (lambda () (mac-h '< (dk-ctx-form (list '< 0 tj))) (dk-split-all!) (ass))))
+    (cps-ne-flip! 0 tj)))
+
+;;; the ratio at k typed: in RR, positive, non-negative
+(define (cps-rq-typ! k)
+  (let* ((sk (list 'succ k)) (tk (list 'cpsth_ k)) (tsk (list 'cpsth_ sk)) (q (cps-q k)))
+    (fact 'nn-succ-closed k)
+    (cps-th-parts! k)
+    (cps-th-parts! sk)
+    (if (not (dk-asm? (list 'AND (list 'IN tk 'RR) (list 'NOT (list '= tk 0)))))
+        (have! (list 'AND (list 'IN tk 'RR) (list 'NOT (list '= tk 0)))))
+    (fact 'rr-recip-closed tk)
+    (fact 'rr-recip-pos tk)
+    (fact 'rr-mul-in-rr tsk (list 'recip tk))
+    (fact 'rr-mul-pos tsk (list 'recip tk))
+    (cps-lt-le! 0 q)))
+
+(define (cps-rq-ptwise!)
+  (have! (subst-free 'f cps-rq cps-h1)
+    (lambda () (let ((k (dk-di-var!))) (cps-rq-typ! k) (cps-beta!))))
+  (have! (subst-free 'f cps-rq cps-h2)
+    (lambda () (let ((k (dk-di-var!))) (cps-rq-typ! k) (cps-beta!)))))
+
+;;; the recurrence theta(k+1) = q_k . theta(k)
+(define (cps-rq-eq! k)
+  (fact 'rr-recip-cancel-right (list 'cpsth_ (list 'succ k)) (list 'cpsth_ k)))
+
+(sp (make-wff
+  (list 'FORALL 'cpsth_ (list 'IMPLIES cps-th-typ (list 'IMPLIES cps-th-pos
+    (list 'IMPLIES (list '< (list 'ELIMSUP cps-rq) 1) '(SERIES-CONVERGES cpsth_)))))))
+(dk-peel!)
+(cps-rq-ptwise!)
+(define cps-q1-rho (list 'ELIMSUP cps-rq))
+(fact 'rr-one-in)
+(fact 'elimsup-in-rr-pos-star cps-rq)
+(fact 'rr-pos-star-nonneg cps-q1-rho)
+(cps-lt-le! cps-q1-rho 1)
+(cps-real-of-le! cps-q1-rho 1)
+(define cps-q1-r (list '* 1/2 (list '+ cps-q1-rho 1)))
+(fact 'rr-add-in-rr cps-q1-rho 1)
+(have! '(IN 1/2 RR) (lambda () (arith)))
+(fact 'rr-mul-in-rr 1/2 (list '+ cps-q1-rho 1))
+(have! (list '< cps-q1-rho cps-q1-r) (lambda () (dk-ineq! (list '< cps-q1-rho 1))))
+(have! (list '< cps-q1-r 1) (lambda () (dk-ineq! (list '< cps-q1-rho 1))))
+(have! (list '< 0 cps-q1-r) (lambda () (dk-ineq! (list '<= 0 cps-q1-rho))))
+(cps-lt-le! 0 cps-q1-r)
+(define cps-q1-n (dk-skolem! (dk-fact! 'elimsup-eventually-below cps-rq cps-q1-r)))
+(define cps-q1-ev
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f cps-q1-n) (dk-contains? f cps-q1-r))) "eventually below"))
+(define cps-q1-tn (list 'cpsth_ cps-q1-n))
+(define cps-q1-pn (list 'power cps-q1-r cps-q1-n))
+(cps-th-parts! cps-q1-n)
+(fact 'power-real-closed cps-q1-r cps-q1-n)
+(fact 'rr-power-pos cps-q1-r cps-q1-n)
+(have! (list 'NOT (list '= 0 cps-q1-pn))
+  (lambda () (mac-h '< (dk-ctx-form (list '< 0 cps-q1-pn))) (dk-split-all!) (ass)))
+(cps-ne-flip! 0 cps-q1-pn)
+(have! (list 'AND (list 'IN cps-q1-pn 'RR) (list 'NOT (list '= cps-q1-pn 0))))
+(fact 'rr-recip-closed cps-q1-pn)
+(fact 'rr-recip-pos cps-q1-pn)
+(define cps-q1-w (list '* cps-q1-tn (list 'recip cps-q1-pn)))
+(fact 'rr-mul-in-rr cps-q1-tn (list 'recip cps-q1-pn))
+(fact 'rr-mul-pos cps-q1-tn (list 'recip cps-q1-pn))
+(cps-lt-le! 0 cps-q1-w)
+(fact 'rr-recip-cancel-right cps-q1-tn cps-q1-pn)
+(define cps-q1-cex
+  (list 'FORSOME 'cpsc_ (list 'AND '(IN cpsc_ RR) (list 'AND '(<= 0 cpsc_)
+    (list '= (list '* 'cpsc_ cps-q1-pn) cps-q1-tn)))))
+(have! cps-q1-cex
+  (lambda ()
+    (ew cps-q1-w)
+    (dk-conj-close!
+      (lambda ()
+        (if (eq? (cps-head (dk-goal)) '=)
+            (begin (subst (list '= (list '* cps-q1-w cps-q1-pn) cps-q1-tn)) (rfl))
+            (ass))))))
+(define cps-q1-c (dk-skolem! cps-q1-cex))
+(define cps-q1-ceq (list '= (list '* cps-q1-c cps-q1-pn) cps-q1-tn))
+(define cps-q1-ind
+  (list 'FORALL 'cpsm_ (list 'IMPLIES '(IN cpsm_ NN) (list 'IMPLIES (list '<= cps-q1-n 'cpsm_)
+    (list '<= '(cpsth_ cpsm_) (list '* cps-q1-c (list 'power cps-q1-r 'cpsm_)))))))
+(fact 'rr-mul-in-rr cps-q1-c cps-q1-pn)
+(have! cps-q1-ind
+  (lambda ()
+    (let ((br (use-induction)))
+      (dk-focus! (cdr (assq 'base br)))
+      (di)
+      (fact 'nn-le-zero-is-zero cps-q1-n)
+      (subst (list '= 0 cps-q1-n))
+      (dk-ineq! cps-q1-ceq)
+      (dk-focus! (cdr (assq 'step br)))
+      (let* ((v (cdr (assq 'var br)))
+             (ih (cdr (assq 'ih br)))
+             (sv (list 'succ v))
+             (tv (list 'cpsth_ v))
+             (tsv (list 'cpsth_ sv))
+             (q (cps-q v))
+             (pv (list 'power cps-q1-r v))
+             (cp (list '* cps-q1-c pv))
+             (rp (list '* cps-q1-r pv)))
+        (di)
+        (fact 'nn-succ-closed v)
+        (fact 'nn-le-succ-cases v cps-q1-n)
+        (use-cases (list (list '<= cps-q1-n v) (list '= cps-q1-n sv))
+          (lambda ()
+            (detach! ih)
+            (cps-rq-typ! v)
+            (dk-lam-b-h! (dk-deepest (lambda () (inst+ cps-q1-ev v))))
+            (cps-rq-eq! v)
+            (cps-lt-le! q cps-q1-r)
+            (fact 'rr-mul-le-right q cps-q1-r tv)
+            (fact 'power-real-closed cps-q1-r v)
+            (fact 'rr-mul-in-rr cps-q1-c pv)
+            (fact 'rr-mul-in-rr cps-q1-r pv)
+            (fact 'rr-mul-in-rr cps-q1-r tv)
+            (fact 'rr-mul-in-rr q tv)
+            (fact 'rr-mul-in-rr cps-q1-r cp)
+            (fact 'rr-mul-in-rr cps-q1-c rp)
+            (have! (list 'AND (list '<= 0 cps-q1-r) (list '<= tv cp)))
+            (fact 'rr-le-scale-nonneg cps-q1-r tv cp)
+            (fact 'rr-subset-cc cps-q1-r)
+            (mac 'power-succ)
+            (have! (list '= (list '* cps-q1-r cp) (list '* cps-q1-c rp)) (lambda () (crs)))
+            (dk-ineq! (list '= tsv (list '* q tv))
+                      (list '<= (list '* q tv) (list '* cps-q1-r tv))
+                      (list '<= (list '* cps-q1-r tv) (list '* cps-q1-r cp))
+                      (list '= (list '* cps-q1-r cp) (list '* cps-q1-c rp))))
+          (lambda ()
+            (subst (list '= sv cps-q1-n))
+            (dk-ineq! cps-q1-ceq)))))))
+(have! (subst-free 'f 'cpsth_ cps-nonneg-h)
+  (lambda ()
+    (let ((k (dk-di-var!)))
+      (fact 'fun-apply-type-c 'cpsth_ 'NN 'RR k)
+      (inst+ (cps-th-posh) k)
+      (dk-ineq! (list '< 0 (list 'cpsth_ k))))))
+(fact 'series-eventually-geometric-converges 'cpsth_ cps-q1-r cps-q1-c cps-q1-n)
+(ass)
+(qed 'ratio-test-converges-limsup)
+
+(sp (make-wff
+  (list 'FORALL 'cpsth_ (list 'IMPLIES cps-th-typ (list 'IMPLIES cps-th-pos
+    (list 'IMPLIES (list '< 1 (list 'ELIMINF cps-rq)) '(NOT (SERIES-CONVERGES cpsth_))))))))
+(dk-peel!)
+(cps-rq-ptwise!)
+(fact 'rr-one-in)
+(have! '(<= 0 1) (lambda () (dk-ineq!)))
+(define cps-q2-n (dk-skolem! (dk-fact! 'eliminf-eventually-above cps-rq 1)))
+(define cps-q2-ev
+  (dk-pick (lambda (f) (and (eq? (cps-head f) 'FORALL) (dk-contains? f cps-q2-n) (dk-contains? f 'cpsth_))) "eventually above"))
+(define cps-q2-tn (list 'cpsth_ cps-q2-n))
+(cps-th-parts! cps-q2-n)
+(define cps-q2-ind
+  (list 'FORALL 'cpsm_ (list 'IMPLIES '(IN cpsm_ NN) (list 'IMPLIES (list '<= cps-q2-n 'cpsm_)
+    (list '<= cps-q2-tn '(cpsth_ cpsm_))))))
+(have! cps-q2-ind
+  (lambda ()
+    (let ((br (use-induction)))
+      (dk-focus! (cdr (assq 'base br)))
+      (di)
+      (fact 'nn-le-zero-is-zero cps-q2-n)
+      (subst (list '= 0 cps-q2-n))
+      (dk-ineq!)
+      (dk-focus! (cdr (assq 'step br)))
+      (let* ((v (cdr (assq 'var br)))
+             (ih (cdr (assq 'ih br)))
+             (sv (list 'succ v))
+             (tv (list 'cpsth_ v))
+             (tsv (list 'cpsth_ sv))
+             (q (cps-q v)))
+        (di)
+        (fact 'nn-succ-closed v)
+        (fact 'nn-le-succ-cases v cps-q2-n)
+        (use-cases (list (list '<= cps-q2-n v) (list '= cps-q2-n sv))
+          (lambda ()
+            (detach! ih)
+            (cps-rq-typ! v)
+            (dk-lam-b-h! (dk-deepest (lambda () (inst+ cps-q2-ev v))))
+            (cps-rq-eq! v)
+            (cps-lt-le! 1 q)
+            (fact 'rr-mul-le-right 1 q tv)
+            (fact 'rr-mul-in-rr q tv)
+            (dk-ineq! (list '<= cps-q2-tn tv)
+                      (list '<= (list '* 1 tv) (list '* q tv))
+                      (list '= tsv (list '* q tv))))
+          (lambda ()
+            (subst (list '= sv cps-q2-n))
+            (dk-ineq!)))))))
+(define cps-q2-freq
+  (list 'FORALL 'cpsn_ (list 'IMPLIES '(IN cpsn_ NN)
+    (list 'FORSOME 'cpsk_ (list 'AND '(IN cpsk_ NN) (list 'AND '(<= cpsn_ cpsk_) (list '<= cps-q2-tn '(cpsth_ cpsk_))))))))
+(have! cps-q2-freq
+  (lambda ()
+    (let* ((n (dk-di-var!))
+           (k (list '+ n cps-q2-n)))
+      (have! (list 'AND (list 'IN n 'NN) (list 'IN cps-q2-n 'NN)))
+      (fact 'nn-add-closed n cps-q2-n)
+      (fact 'nn-le-add-right cps-q2-n n)
+      (fact 'nn-le-add-left n cps-q2-n)
+      (inst+ cps-q2-ind k)
+      (ew k)
+      (dk-conj-close! (lambda () (ass))))))
+(fact 'series-frequently-large-diverges 'cpsth_ cps-q2-tn)
+(ass)
+(qed 'ratio-test-diverges-liminf)
+
+(sp (make-wff
+  (list 'FORALL 'cpsth_ (list 'IMPLIES cps-th-typ (list 'IMPLIES cps-th-pos
+    (list 'AND (list 'IMPLIES (list '< (list 'ELIMSUP cps-rq) 1) '(SERIES-CONVERGES cpsth_))
+               (list 'IMPLIES (list '< 1 (list 'ELIMINF cps-rq)) '(NOT (SERIES-CONVERGES cpsth_)))))))))
+(dk-peel!)
+(dk-conj-close!
+  (lambda ()
+    (let ((conv? (eq? (cps-head (caddr (dk-goal))) 'SERIES-CONVERGES)))
+      (di)
+      (fact (if conv? 'ratio-test-converges-limsup 'ratio-test-diverges-liminf) 'cpsth_)
+      (ass))))
+(qed 'ratio-test)

@@ -214,6 +214,29 @@
 (qed 'rr-pos-ne-zero)
 (topic! 'rr-pos-ne-zero 'inequalities)
 
+;;; IRREFLEXIVITY of the strict order: not (a < a).
+;;;
+;;; MOVED HERE on 2026-09-19 (batch 8-K2) from theorem-library/c-int-oriented.scm,
+;;; where it was proved because nothing before it had needed to rule a branch of
+;;; a conditional OUT, and where it was stranded at load position 537 -- below
+;;; theorem-library/rpow-star (545), its only other citer, and below everything
+;;; else that might want it.  It is an RR ORDER fact and belongs with the rest
+;;; of them; the original text is archive/2026-09-19-batch8/c-int-oriented.scm.
+;;;
+;;; `ineq' cannot supply it: the goal is a NOT (CLAUDE.md, "the tactics' real
+;;; behaviour").  It is instead purely definitional -- `<' is `<= and /='
+;;; (order-predicates.scm), so irreflexivity is the reflexivity of `=' read
+;;; through the unfolded assumption.
+(sp (make-wff '(FORALL a (IMPLIES (IN a RR) (NOT (< a a))))))
+(ro-peel!)
+(di)                                       ; assume a < a, goal falsity
+(mac-h '< '(< a a))
+(have! '(= a a) (lambda () (rfl)))
+(prop)
+(qed 'rr-lt-irrefl)
+(topic! 'rr-lt-irrefl 'inequalities)
+(alias! 'rr-lt-irrefl "no real is less than itself")
+
 ;;; u <= v  =>  u < v or u = v.  The excluded middle on (= u v), and then the
 ;;; unfolded `<' is exactly the pair of facts in context.
 (sp (make-wff '(FORALL u (IMPLIES (IN u RR) (FORALL v (IMPLIES (IN v RR)
@@ -655,3 +678,49 @@
 (qed 'rr-le-total)
 (topic! 'rr-le-total 'inequalities)
 (alias! 'rr-le-total "totality of the order on the reals")
+
+;;; =====================================================================
+;;; The two bridges between `<' and the negation of `<=' (batch 12-F, 2026-09-20;
+;;; proven in metric-closure-laws.scm and moved here at integration).
+;;; `rr-lt-asymm' relates two STRICT inequalities and `rr-le-ne-lt' goes the
+;;; other way; neither of these shapes was in the tree.
+;;; =====================================================================
+
+(sp (make-wff '(FORALL a (IMPLIES (IN a RR)
+     (FORALL b (IMPLIES (IN b RR)
+       (IMPLIES (< a b) (NOT (<= b a)))))))))
+(dk-peel!)
+(di)                                          ; assume (<= b a); goal FALSITY
+(dk-split! (dk-landed-1 (lambda () (mac-h '< '(< a b)))))
+(have! '(AND (IN a RR) (IN b RR)))
+(have! '(AND (<= a b) (<= b a)))
+(dk-fact! 'rr-leq-antisymmetric 'a 'b)
+(ai '(NOT (= a b)))
+(qed 'rr-lt-not-le)
+(gloss! 'rr-lt-not-le
+  "A strict inequality rules the reverse non-strict one out: a < b implies not(b <= a).
+   The step every \"the point is OUTSIDE the closed ball\" argument needs.")
+(topic! 'rr-lt-not-le 'inequalities)
+
+(sp (make-wff '(FORALL a (IMPLIES (IN a RR)
+     (FORALL b (IMPLIES (IN b RR)
+       (IMPLIES (NOT (<= a b)) (< b a))))))))
+(dk-peel!)
+(have! '(AND (IN a RR) (IN b RR)))
+(dk-fact! 'rr-leq-total 'a 'b)
+(use-cases '((<= a b) (<= b a))
+  (lambda () (ai '(NOT (<= a b))))
+  (lambda ()
+    (have! '(NOT (= b a))
+      (lambda ()
+        (di)
+        (have! '(<= a b) (lambda () (subst '(= b a)) (fact 'rr-leq-reflexive 'a) (ass)))
+        (ai '(NOT (<= a b)))))
+    (have! '(AND (<= b a) (NOT (= b a))))
+    (dk-fact! 'rr-le-ne-lt 'b 'a)
+    (ass)))
+(qed 'rr-not-le-lt)
+(gloss! 'rr-not-le-lt
+  "The converse bridge: not(a <= b) implies b < a, by totality of <= plus
+   reflexivity to rule the equal case out.")
+(topic! 'rr-not-le-lt 'inequalities)

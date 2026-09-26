@@ -68,6 +68,7 @@
 ;;; Binders: dseq (dense seq), cap (threshold, NOT N), lv (the limit value,
 ;;; NOT L -- it folds onto l, the second running index).
 ;;; ====================================================================
+;;; RETIRED 2026-09-14 (proven): ptwise-cauchy-compact-equicont-unif -- theorem-library/ptwise-cauchy-unif.scm (gloss kept)
 
 ;;; ---- vocabulary --------------------------------------------------------
 
@@ -366,18 +367,6 @@
 
 ;;; ptwise-cauchy-compact-equicont-unif -- Prop 3.33 of the notes, in the Cauchy
 ;;; spelling this arc uses.  The ONE thing the dense bridge still owes.
-(support 'ptwise-cauchy-compact-equicont-unif
-  (forall-guarded '(s fam)
-    (list
-      '(IS-COMPACT s)
-      '(IN fam (FUN NN (FUN (PTS s) RR)))
-      '(IS-EQUICONTINUOUS s RR-MS fam)
-      '(IS-PTWISE-CAUCHY s fam))
-    '(IS-UNIF-CAUCHY s fam)))
-(warrant! 'ptwise-cauchy-compact-equicont-unif 'reference
-  '(thayer-calc "Prop 3.33: on a compact space, pointwise convergence of an
-   equicontinuous family is uniform convergence -- here in the Cauchy spelling,
-   which has the same proof."))
 (gloss! 'ptwise-cauchy-compact-equicont-unif
   "Fix eps.  Equicontinuity at each x gives a neighbourhood V_x on which every
    fam(k) varies by less than eps/3; the V_x cover the space, compactness picks
@@ -392,34 +381,11 @@
    tree has only the binary `MAX' (rr-le-max-left / nn-max-closed).  Both are
    set-theoretic bookkeeping over a finite index, not analysis: the analysis of
    the bridge is `equicont-dense-conv-ptwise-cauchy' above, and that is proved.")
-(topic! 'ptwise-cauchy-compact-equicont-unif 'analysis)
-(rests-on 'ptwise-cauchy-compact-equicont-unif '(compact-iff-tb-complete))
 
-;;; ---- CORE A, now an ASSEMBLY -------------------------------------------
-
-;;; equicont-dense-conv-implies-unif-cauchy: what ascoli-bridge.scm asserted.
-;;; Two citations; the analytic half is proved, the finite-subcover half is the
-;;; single warranted rung above.
-(sp (make-wff
-  (forall-guarded '(s fam)
-    (list
-      '(IS-COMPACT s)
-      '(IN fam (FUN NN (FUN (PTS s) RR)))
-      '(IS-EQUICONTINUOUS s RR-MS fam)
-      (forsome-guarded 'dseq '(IS-DENSE-SEQ s dseq) '(CONVERGES-ON s fam dseq)))
-    '(IS-UNIF-CAUCHY s fam))))
-(acc-peel!)
-(fact 'equicont-dense-conv-ptwise-cauchy 's 'fam)
-(fact 'ptwise-cauchy-compact-equicont-unif 's 'fam)
-(ass)
-(qed 'equicont-dense-conv-implies-unif-cauchy)
-(topic! 'equicont-dense-conv-implies-unif-cauchy 'analysis)
-(gloss! 'equicont-dense-conv-implies-unif-cauchy
-  "On a COMPACT metric space, an equicontinuous family that converges at every
-   term of a dense sequence is UNIFORMLY Cauchy.  Was an asserted `reference'
-   support (the file called it `the 3-epsilon core'); it is now the composition
-   of a proved pointwise-Cauchy lemma with one asserted compactness rung.")
-
+;;; ---- CORE A, the ASSEMBLY, MOVED 2026-09-15 to theorem-library/ascoli-assembly.scm:
+;;; it cites ptwise-cauchy-compact-equicont-unif, which is now a THEOREM
+;;; (theorem-library/ptwise-cauchy-unif.scm) that must load AFTER this file (it
+;;; unfolds the Cauchy predicates defined here) and BEFORE the assembly.
 
 ;;; ---- A UNIFORM LIMIT OF CONTINUOUS MAPS IS CONTINUOUS, PROVEN -----------
 ;;;

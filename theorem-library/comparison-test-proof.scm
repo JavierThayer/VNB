@@ -696,7 +696,7 @@
                      (else (loop (cdr ls)))))))
     (if (not hit)
         (error "ct-abs-base-leaf!: no leaf without a succ")
-        (begin (set-proof-state-focus! *ps* hit) hit))))
+        (begin (dk-focus! hit) hit))))
 
 (sp (make-wff "forall([k in nn, f in fun(nn, rr)],
         abs(series-partial-sum(f, k)) <= series-partial-sum(vnb-lambda(n_, nn, abs(f(n_))), k))"))

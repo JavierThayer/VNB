@@ -410,13 +410,34 @@ brick the rest of the session."
         (setq tries (1+ tries))))))
 
 (defun vnb--extract-error (raw)
-  "Extract a one-line `;; error: MSG' summary from RAW error-REPL output."
-  (let ((msg nil))
-    (dolist (line (split-string raw "\n"))
-      (when (and (null msg)
-                 (string-match "\\`;\\([^;].*\\)\\'" line)
-                 (not (string-prefix-p ";Value" line)))
-        (setq msg (vnb--trim (match-string 1 line)))))
+  "Extract a one-line `;; error: MSG' summary from RAW error-REPL output.
+
+MIT prints the message IMMEDIATELY BEFORE its `;To continue, call RESTART'
+line, so that is what we take.  Taking the FIRST `;'-line instead -- which is
+what this did until 2026-09-09 -- is right for a one-form evaluation and wrong
+for a `(load ...)', where the first such line is `;Loading \"file.scm\"...'.
+Every failed script load therefore reported its own filename as the error,
+which reads as a path problem and is not one.  Cost a user two rounds of
+chasing the wrong thing."
+  (let ((lines (split-string raw "\n"))
+        (msg nil))
+    ;; the line before the first restart banner
+    (let ((prev nil))
+      (dolist (line lines)
+        (when (and (null msg) (string-prefix-p ";To continue" (vnb--trim line)))
+          (setq msg prev))
+        (when (and (string-match "\\`;\\([^;].*\\)\\'" line)
+                   (not (string-prefix-p ";Value" line))
+                   (not (string-match-p "\\`;\\s-*\\(Loading\\|\\.\\.\\.\\)" line)))
+          (setq prev (vnb--trim (match-string 1 line))))))
+    ;; fall back to the first non-Loading `;'-line
+    (unless msg
+      (dolist (line lines)
+        (when (and (null msg)
+                   (string-match "\\`;\\([^;].*\\)\\'" line)
+                   (not (string-prefix-p ";Value" line))
+                   (not (string-match-p "\\`;\\s-*\\(Loading\\|\\.\\.\\.\\)" line)))
+          (setq msg (vnb--trim (match-string 1 line))))))
     (concat ";; error: " (or msg "evaluation error"))))
 
 (defun vnb-eval-string (str &optional timeout)
@@ -515,6 +536,8 @@ buffer, which comint updates regardless of how accept-process-output works."
   conclusion whose head is a structure accessor like ((MUL s) x y).")
     ("wk"      "(wk FORMULA)"
      "Weaken: remove FORMULA from the current assumptions.")
+    ("keep"    "(keep FORMULA ...)"
+     "Keep only the listed assumptions; drop every other one, as one recorded step.")
     ("ta"      "(ta 'NAME)"
      "Add the named theorem or axiom NAME to the current assumptions.")
     ("mac"     "(mac 'NAME)"

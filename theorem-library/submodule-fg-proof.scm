@@ -31,7 +31,7 @@
 
 ;;; ---- driver helpers (sfg- prefix)
 (define (sfg-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
-(define (sfg-foc! n) (set-proof-state-focus! *ps* n))
+(define (sfg-foc! n) (dk-focus! n))
 (define (sfg-foc-goal! g)                ; ERRORS on a miss, by design
   (let loop ((ls (proof-leaves)))
     (cond ((null? ls) (error "sfg-foc-goal!: no open leaf with goal" g))
@@ -145,7 +145,7 @@
 ;; every vector is a combination of u -- verbatim GENERATES
 (sfg-foc-goal! (list 'FORALL 'x_ (list 'IMPLIES '(IN x_ (VEC md))
                  (list 'FORSOME 'c_ (list 'AND '(IN c_ (MAT 1 n (CARR (SCAL md))))
-                                          '(= x_ (ENTRY (MATACT md c_ u) 1 1)))))))
+                                          '(= x_ (LINCOMB md n c_ u)))))))
 (mac-h 'GENERATES '(GENERATES md n u))
 (ass)
 

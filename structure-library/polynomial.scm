@@ -26,6 +26,10 @@
 ;;; RING-ADDITIVE-AG (views.scm) for FINSUM, FINSUM (finsum.scm), CARD
 ;;; (cardinality.scm), NN-ADD-MONOID (numeric-instances.scm).  Loaded after all.
 ;;; ====================================================================
+;;; RETIRED 2026-09-14 (proven): monalg-is-ring -- theorem-library/monalg-is-ring.scm
+;;; RETIRED 2026-09-14 (proven): monalg-mul-fun -- theorem-library/monalg-is-ring.scm
+;;; RETIRED 2026-09-14 (proven): monalg-distrib-left -- theorem-library/monalg-is-ring.scm
+;;; RETIRED 2026-09-14 (proven): monalg-one-left -- theorem-library/monalg-is-ring.scm
 
 ;;; ---- SUPP: the support of a function into a ring ----------------------
 ;;; SUPP(A, M, f) = { m in CARR(M) : f(m) /= ZERO(A) }.  A SEP over CARR(M),
@@ -125,11 +129,6 @@
 ;;; =====================================================================
 
 ;;; A[M] is a ring when A is a ring and M a monoid.  The umbrella statement.
-(support 'monalg-is-ring
-  (forall-guarded '(A M)
-    (list '(IS-RING A) '(IS-MONOID M))
-    '(IS-RING (MONALG A M))))
-(warrant! 'monalg-is-ring 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-is-ring
   "A[M] is a ring when A is a ring and M a monoid (Bourbaki, Algebra I, III.2).
    The hard part behind it is monalg-mul-assoc.")
@@ -138,12 +137,6 @@
 ;;; The convolution is finitely supported -- supp(f*g) is contained in the finite
 ;;; set supp(f).supp(g), so the product lands back in the carrier.  This is the
 ;;; typing that makes MUL an operation on FINSUPP at all.
-(support 'monalg-mul-fun
-  (forall-guarded '(A M f g)
-    (list '(IS-RING A) '(IS-MONOID M)
-          '(IN f (FINSUPP A M)) '(IN g (FINSUPP A M)))
-    '(IN (MONALG-MUL A M f g) (FINSUPP A M))))
-(warrant! 'monalg-mul-fun 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-mul-fun
   "The convolution of two finitely-supported functions is finitely supported:
    supp(f*g) is contained in supp(f).supp(g), a product of finite sets.")
@@ -164,26 +157,9 @@
 ;;; to a triple sum over { (p,q,r) : p.q.r = m } grouped two ways; equality is a
 ;;; reindexing that uses the associativity of M's OPR and the ring distributive
 ;;; law.  Stated so proofs can lean on it; the proof itself is deferred.
-(support 'monalg-mul-assoc
-  (forall-guarded '(A M f g h)
-    (list '(IS-RING A) '(IS-MONOID M)
-          '(IN f (FINSUPP A M)) '(IN g (FINSUPP A M)) '(IN h (FINSUPP A M)))
-    '(= (MONALG-MUL A M (MONALG-MUL A M f g) h)
-        (MONALG-MUL A M f (MONALG-MUL A M g h)))))
-(warrant! 'monalg-mul-assoc 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
-(gloss! 'monalg-mul-assoc
-  "Convolution is associative -- the triple-sum reindexing that rests on M's
-   associativity and the ring distributive law.  The main deferred proof.")
-(topic! 'monalg-mul-assoc 'algebra)
+;;; monalg-mul-assoc RETIRED 2026-09-18 (rake batch 5c): proven in the block spliced into theorem-library/monalg-is-ring.scm
 
 ;;; Left distributivity of convolution over pointwise sum.  (Right is the mirror.)
-(support 'monalg-distrib-left
-  (forall-guarded '(A M f g h)
-    (list '(IS-RING A) '(IS-MONOID M)
-          '(IN f (FINSUPP A M)) '(IN g (FINSUPP A M)) '(IN h (FINSUPP A M)))
-    '(= (MONALG-MUL A M f (MONALG-ADD A M g h))
-        (MONALG-ADD A M (MONALG-MUL A M f g) (MONALG-MUL A M f h)))))
-(warrant! 'monalg-distrib-left 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-distrib-left
   "Convolution distributes over pointwise addition on the left; the right law is
    the mirror image.")
@@ -200,11 +176,6 @@
 ;;; follows by extensionality where a proof needs it.
 ;; The point is x_ (trailing underscore), NOT m: `m' case-folds onto the monoid
 ;; parameter M, collapsing the statement (case-fold-audit catches it).
-(support 'monalg-one-left
-  (forall-guarded '(A M f x_)
-    (list '(IS-RING A) '(IS-MONOID M) '(IN f (FINSUPP A M)) '(IN x_ (CARR M)))
-    '(= ((MONALG-MUL A M (MONALG-ONE A M) f) x_) (f x_))))
-(warrant! 'monalg-one-left 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
 (gloss! 'monalg-one-left
   "The indicator of IDEN(M) is a left identity for convolution -- the constant
    polynomial 1.  Stated pointwise: ((ONE * f) m) = (f m).  The monoid identity
@@ -213,11 +184,7 @@
 
 ;;; A[M] is commutative when both A and M are.  (Convolution is commutative iff
 ;;; M is; the coefficient products commute iff A is.)
-(support 'monalg-comm
-  (forall-guarded '(A M)
-    (list '(IS-COMMUTATIVE-RING A) '(IS-COMM-MONOID M))
-    '(IS-COMMUTATIVE-RING (MONALG A M))))
-(warrant! 'monalg-comm 'reference '(bourbaki-algebra "Algebra I, Ch. III, sec. 2"))
+;;; monalg-comm RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-monalg-comm.scm
 (gloss! 'monalg-comm
   "A[M] is a commutative ring when A is a commutative ring and M a commutative
    monoid.  In particular A[x] is commutative for commutative A.")

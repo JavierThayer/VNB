@@ -157,6 +157,11 @@
             (lambda () (mac 'seg-mem-succ-le) (ass))
             (lambda () (ai (list 'NOT (list '<= w 'z_)))))))))
   ;; A subset of a finite set is finite.
+  ;; 2026-09-18 (LUTINS instantiation): card-subset-nn is cited at
+  ;; SUPP(a_, NN-ADD-MONOID, f_).  SUPP's body is a SEP over CARR(M), so the
+  ;; certificate needs CARR(NN-ADD-MONOID) to denote, i.e. a STRUCTURE
+  ;; hypothesis on NN-ADD-MONOID in the context.  One citation supplies it.
+  (fact 'nn-add-monoid-is-comm-monoid)
   (fact 'card-subset-nn seg plt-supp)
   (mac 'poly-membership)
   (prop))

@@ -237,6 +237,48 @@
 ;;; -----------------------------------------------------------------------
 ;;; UNIVERSAL INSTANTIATION
 
+;;; DEFINEDNESS AUDIT (2026-09-18, measurement only, no rule changes).  LUTINS
+;;; universal instantiation is  forall x. p,  t defined  |-  p[t]; VNB's
+;;; forall-elim below takes the term with NO definedness obligation, so
+;;; (forall a. a = a) instantiated at recip(0) closes recip(0) = recip(0)
+;;; (rake batch P's finding).  Before changing the rule, COUNT: every
+;;; instantiation whose term is neither syntactically defined
+;;; (term-self-defined?) nor certified by a context assumption
+;;; (asm-establishes-defined?) is tallied by head under *def-audit-hits*.
+;;; load.scm prints the tally at the end when VNB_DEF_AUDIT is set.
+(define *def-audit-hits*  (make-equal-hash-table))   ; head -> count
+;;; The side sequents forall-elim OWES, newest first (a bounded list): the
+;;; surface hook (interactive.scm vnb--run!) discharges exactly these and never
+;;; a `(= t t)' goal a driver posted itself.
+(define *pi-owed-nodes* '())
+(define (pi--note-owed! nodes)
+  (if (and (pair? nodes) (pair? (cdr nodes)))
+      (set! *pi-owed-nodes*
+            (let ((l (cons (cadr nodes) *pi-owed-nodes*)))
+              (if (> (length l) 400) (list-head l 400) l))))
+  nodes)
+(define *def-audit-total* 0)
+(define *def-audit-uncert* 0)
+(define *def-audit-terms* '())
+(define (def-audit-note! asms term)
+  ;; Returns #t when the instantiation OWES the side sequent (= term term)
+  ;; (LUTINS forall-elim, 2026-09-18): neither the syntactic test nor the
+  ;; context certifies the term.  Also tallies, for VNB_DEF_AUDIT.
+  (set! *def-audit-total* (+ *def-audit-total* 1))
+  (if (pi--defined? asms term 0)
+      #f
+      (let ((k (if (pair? term) (car term) 'ATOM)))
+        (set! *def-audit-uncert* (+ *def-audit-uncert* 1))
+        (set! *def-audit-terms*
+              (cons (cons term (map (lambda (a) (let ((f (wff-formula a)))
+                                                  (if (pair? f) (car f) f)))
+                                    asms))
+                    *def-audit-terms*))
+        (hash-table-set! *def-audit-hits* k
+          (+ 1 (hash-table-ref/default *def-audit-hits* k 0)))
+        #t)))
+
+
 (define (pi-instantiate! sqn forall-formula term)
   ;; forall-formula: raw S-expression
   (let* ((asms (sequent-node-assumptions sqn))
@@ -252,9 +294,17 @@
                   ;; Re-validate the substituted body: catches the case where
                   ;; `term` is malformed and would yield a junk new wff.
                   (validate-wff! inst)
-                  (dg-apply-rule! dg 'forall-elim
-                    (list (make-sequent (context-add-assumption asms (wff-child f inst)) goal))
-                    sqn)))))))
+                  ;; LUTINS universal instantiation (2026-09-18):  forall x. p,
+                  ;; t defined  |-  p[t].  When the context does not certify the
+                  ;; term, the rule OWES the side sequent (= t t); the main
+                  ;; child comes first, as lambda-beta posts its obligations.
+                  (pi--note-owed!
+                   (dg-apply-rule! dg 'forall-elim
+                     (cons (make-sequent (context-add-assumption asms (wff-child f inst)) goal)
+                           (if (def-audit-note! asms term)
+                               (list (make-sequent asms (wff-child goal (list '= term term))))
+                               '()))
+                     sqn))))))))
 
 ;;; pi-spec!: instantiate a registered theorem THM-NAME at TERMS (positionally,
 ;;; one per leading FORALL), landing the fully-instantiated body as an
@@ -287,11 +337,17 @@
                            (inst  (subst-free x (car ts) body))
                            (child (wff-child uwff inst)))
                       (validate-wff! inst)
-                      (loop (car (dg-apply-rule! dg 'forall-elim
-                                  (list (make-sequent
-                                         (context-add-assumption (sequent-node-assumptions cur) child)
-                                         goal))
-                                  cur))
+                      ;; the same owed side sequent as pi-instantiate! (2026-09-18)
+                      (loop (car (pi--note-owed!
+                                  (dg-apply-rule! dg 'forall-elim
+                                   (cons (make-sequent
+                                          (context-add-assumption (sequent-node-assumptions cur) child)
+                                          goal)
+                                         (if (def-audit-note! (sequent-node-assumptions cur) (car ts))
+                                             (list (make-sequent (sequent-node-assumptions cur)
+                                                                 (wff-child goal (list '= (car ts) (car ts)))))
+                                             '()))
+                                   cur)))
                             child (cdr ts)))
                     (error "spec: more terms than leading universals in" thm-name)))))))))
 
@@ -475,8 +531,28 @@
                ;; NTH: no special case -- the index is walked like any other
                ;; argument, so eq-subst can rewrite a term occurring there.
                ;; See free-vars (expressions.scm).  (2026-08-04)
+               ;;
+               ;; The HEAD is walked too (2026-09-16).  Until then this branch
+               ;; was (cons (car e) (map walk (cdr e))): a compound head --
+               ;; ((VADD md) x y), an applied VNB-LAMBDA, ((f (g r)) r) -- was
+               ;; never visited, so a rewrite of a term occurring only there
+               ;; was a no-op, and one occurring both there and in an argument
+               ;; rewrote the argument ALONE, silently.  Substituting equals
+               ;; for equals in an operator term is ordinary Leibniz
+               ;; substitution (subst-free already does it for variables);
+               ;; the binder cases above still guard capture when the head is
+               ;; itself a binder.  A symbol head is returned unchanged:
+               ;; `old' is compound here, so the alpha-equiv? test above
+               ;; cannot match a symbol.  Probe:
+               ;; scratchpad/mx/subst-head-probe.scm (before/after logs beside it).
                (else
-                (cons (car e) (map walk (cdr e)))))))))))
+                (cons (walk (car e)) (map walk (cdr e)))))))))))
+
+;; The capture guard above is only as good as this list (expressions.scm:
+;; declare-binder-walker!): a binder missing from it is a binder eq-subst would
+;; rewrite straight through.
+(declare-binder-walker! 'replace-term
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 ;;; pi-eq-subst!: eq-formula is a raw (= s t) OR (== s t).  The (quasi-)equality
 ;;; must appear in the assumptions in either orientation and under either head;
@@ -564,7 +640,56 @@
 ;;; set or not -- theory.scm): so a tree built from them over defined args is
 ;;; defined.  Conservative whitelist; extend only with genuinely-total ops.
 (define *total-term-heads*
-  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN LIST PAIR))
+  '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN LIST PAIR
+    ;; 2026-09-18 (the user's policy, docs/definedness-instantiation-2026-09-18.md
+    ;; section 4a): a CLASS TERM denotes whenever its arguments do.  These are
+    ;; the primitive comprehension constructors; the binder forms SEP / COMP /
+    ;; BIG-UNION and every functoid whose body is built from them are handled
+    ;; by `term-self-defined?' below.  NOT here, and never: CHOICE, IOTA,
+    ;; function application, and the IOTA-bodied constructors (MATOF and its
+    ;; family) -- CHOICE([]) may or may not denote, and nothing may assume it.
+    POWER IMAGE SINGLETON TUPLES FUN succ succ_ORD
+    ORD-SEGMENT INJECTION BIJECTION MATRIX MAKE-SET PARTIAL-FUN DOM RES SQN))
+
+;;; The registered body / parameters of a def-functoid (structures.scm's
+;;; *functoid-registry* holds (params body path)), or #f.  Read at call time;
+;;; the registry is defined by a later file.
+(define (pi--functoid-body name)
+  (let ((e (hash-table-ref/default *functoid-registry* name #f)))
+    (and e (pair? e) (pair? (cdr e)) (cadr e))))
+(define (pi--functoid-params name)
+  (let ((e (hash-table-ref/default *functoid-registry* name #f)))
+    (and e (pair? e) (car e))))
+
+;;; Is a functoid BODY, read with its parameters as variables, a class term
+;;; that denotes whenever those parameters do?  Total heads, the binder forms
+;;; (whose DOMAIN must be so), and nested functoids (their own body and their
+;;; actual arguments), to a fixed depth.  Anything else -- IOTA, CHOICE,
+;;; MATOF, an application -- is not.
+(define (pi--body-shape-total? body depth)
+  (cond
+    ((> depth 8) #f)
+    ((not (pair? body)) #t)
+    ((memq (car body) '(SEP BIG-UNION VNB-LAMBDA))
+     (and (= (length body) 4) (pi--body-shape-total? (caddr body) depth)))
+    ((eq? (car body) 'COMP) #t)
+    ((memq (car body) *total-term-heads*)
+     (every (lambda (a) (pi--body-shape-total? a depth)) (cdr body)))
+    ((and (symbol? (car body)) (pi--functoid-body (car body)))
+     => (lambda (b)
+          (and (every (lambda (a) (pi--body-shape-total? a depth)) (cdr body))
+               (pi--body-shape-total? b (+ depth 1)))))
+    (else #f)))
+
+;;; arith-eval-term raises on some symbolic shapes ((^ 2 k): "The object #f,
+;;; passed as an argument to exact?" -- found 2026-09-18 by the definedness
+;;; audit); a certificate test must never raise, so guard it.
+(define (pi--arith-number? t)
+  (call-with-current-continuation
+   (lambda (k)
+     (with-exception-handler
+      (lambda (e) (k #f))
+      (lambda () (let ((v (arith-eval-term t))) (and v (number? v) #t)))))))
 
 ;;; Is t SYNTACTICALLY GUARANTEED defined?  SOUND: returns #t only for
 ;;; certainly-defined t, so closing (= t t) by reflexivity stays sound under
@@ -582,9 +707,18 @@
 (define (term-self-defined? t)
   (cond
     ((not (pair? t)) #t)
-    ((let ((v (arith-eval-term t))) (and v (number? v))) #t)
+    ((pi--arith-number? t) #t)
     ((and (memq (car t) *total-term-heads*)
           (every term-self-defined? (cdr t))) #t)
+    ;; the binder comprehensions denote when their DOMAIN does (4a); COMP always
+    ((and (memq (car t) '(SEP BIG-UNION)) (= (length t) 4))
+     (term-self-defined? (caddr t)))
+    ((eq? (car t) 'COMP) #t)
+    ;; a def-functoid whose body is a class term of that kind, on defined args
+    ((and (symbol? (car t)) (pi--functoid-body (car t)))
+     => (lambda (b)
+          (and (every term-self-defined? (cdr t))
+               (pi--body-shape-total? b 0))))
     ;; A VNB-LAMBDA DENOTES WHENEVER ITS DOMAIN DOES (2026-08-30, the user's
     ;; call).  (VNB-LAMBDA bind-spec A body) is the set of ordered pairs
     ;; {(x, body) : x in A} -- its GRAPH -- so it is an object as soon as A is
@@ -625,17 +759,318 @@
 ;;; (= t t) when t is defined in context though not syntactically (e.g. a
 ;;; function application f(x) that an earlier step typed via fun-apply-type).
 (define (asm-establishes-defined? asms t)
+  (or (let loop ((as asms))
+        (and (pair? as)
+             (let ((f (wff-formula (car as))))
+               (if (and (pair? f)
+                        (or (and (eq? (car f) 'IN) (= (length f) 3)
+                                 (alpha-equiv? (cadr f) t))
+                            (and (eq? (car f) '=) (= (length f) 3)
+                                 (or (alpha-equiv? (cadr f) t)
+                                     (alpha-equiv? (caddr f) t)))))
+                   #t
+                   (loop (cdr as))))))
+      (pi--accessor-certified? asms t)))
+
+;;; Policy 4b (2026-09-18): a STRUCTURE HYPOTHESIS certifies its accessors.
+;;; (ACC s) with `IS-X s' in the context, where ACC is a slot of the declared
+;;; structure X, denotes: the predicate's defining IFF types every slot.  Also
+;;; (ACC (V r)) where V is a view functoid whose body is a LIST of accessor
+;;; applications: the k-th component, at the actual argument, must itself be
+;;; certified (recursively, through the same two tests).
+(define (pi--accessor-certified? asms t)
+  (and (pair? t) (= (length t) 2) (symbol? (car t))
+       (let ((acc (car t)) (arg (cadr t)))
+         (or
+          (let loop ((as asms))
+            (and (pair? as)
+                 (let ((f (wff-formula (car as))))
+                   (or (and (pair? f) (= (length f) 2) (symbol? (car f))
+                            (alpha-equiv? (cadr f) arg)
+                            (let ((nm (symbol->string (car f))))
+                              (and (> (string-length nm) 3)
+                                   (string-ci=? (substring nm 0 3) "is-")
+                                   (let ((sd (lookup-structure
+                                              (string->symbol (substring nm 3 (string-length nm))))))
+                                     (and sd (memq acc (structure-slot-names sd)) #t)))))
+                       (loop (cdr as))))))
+          (and (pair? arg) (symbol? (car arg))
+               (let ((body (pi--functoid-body (car arg)))
+                     (params (pi--functoid-params (car arg)))
+                     (ix (hash-table-ref/default *accessor-index* acc #f)))
+                 (and body ix (pair? body) (eq? (car body) 'LIST)
+                      (list? params) (= (length params) 1) (= (length (cdr arg)) 1)
+                      (integer? (car ix)) (<= 1 (car ix) (length (cdr body)))
+                      (let ((comp (list-ref (cdr body) (- (car ix) 1))))
+                        (and (pair? comp) (= (length comp) 2) (symbol? (car comp))
+                             (eq? (cadr comp) (car params))
+                             (let ((inst (list (car comp) (cadr arg))))
+                               (or (term-self-defined? inst)
+                                   (asm-establishes-defined? asms inst))))))))))))
+
+
+;;; ---------------------------------------------------------------------
+;;; THE DEFINEDNESS CERTIFICATE, v2 (2026-09-18).  One recursive test that
+;;; sees the CONTEXT at every node, per docs/definedness-instantiation-
+;;; 2026-09-18.md sections 4a/4b: an atom; a ground number; a term the context
+;;; types (IN t X) or equates (= t _); a total constructor on certified
+;;; arguments; a comprehension whose domain is certified; NTH k of a LIST (or of
+;;; a functoid whose body is one); arithmetic on number-typed arguments (the
+;;; number systems are closed under + - * min max abs succ); an accessor of a
+;;; structure the context has (IS-X s, or s in X, through the definitional
+;;; parent chain); an applied structure OPERATION on arguments typed in its
+;;; declared domain; an application of a function the context types (IN f
+;;; (FUN D _)) at arguments typed in D; and a functoid whose body, at the
+;;; actual arguments, is certified.  NOT certified, ever: CHOICE, IOTA, an
+;;; untyped application, the IOTA-bodied constructors.
+;;; `every' in this tree is 2-ary (deduction-graphs.scm); a two-list walk
+(define (pi--every2 pred l1 l2)
+  (or (null? l1) (null? l2)
+      (and (pred (car l1) (car l2)) (pi--every2 pred (cdr l1) (cdr l2)))))
+(define *pi-number-classes* '(RR ZZ NN QQ CC))
+(define *pi-arith-total-heads* '(+ - * min max abs succ ^))   ; ^ : power-closed-at (x in RR, n in NN)
+
+(define (pi--in-context? asms a X)
   (let loop ((as asms))
     (and (pair? as)
          (let ((f (wff-formula (car as))))
-           (if (and (pair? f)
-                    (or (and (eq? (car f) 'IN) (= (length f) 3)
-                             (alpha-equiv? (cadr f) t))
-                        (and (eq? (car f) '=) (= (length f) 3)
-                             (or (alpha-equiv? (cadr f) t)
-                                 (alpha-equiv? (caddr f) t)))))
-               #t
+           (or (and (pair? f) (eq? (car f) 'IN) (= (length f) 3)
+                    (alpha-equiv? (cadr f) a) (alpha-equiv? (caddr f) X))
                (loop (cdr as)))))))
+
+(define (pi--number-typed? asms a)
+  (or (pi--arith-number? a)
+      (let loop ((as asms))
+        (and (pair? as)
+             (let ((f (wff-formula (car as))))
+               (or (and (pair? f) (= (length f) 3) (eq? (car f) 'IN)
+                        (memq (caddr f) *pi-number-classes*)
+                        (alpha-equiv? (cadr f) a))
+                   (and (pair? f) (= (length f) 2) (eq? (car f) 'POS-RR)
+                        (alpha-equiv? (cadr f) a))
+                   (loop (cdr as))))))))
+
+;;; 'IS-X or the class name X  ->  the DECLARED structure-def, through the
+;;; definitional parent chain (IS-COMMUTATIVE-RING -> RING), or #f.
+(define (pi--structure-def-for sym)
+  (let* ((nm   (symbol->string sym))
+         (base (if (and (> (string-length nm) 3)
+                        (string-ci=? (substring nm 0 3) "is-"))
+                   (string->symbol (substring nm 3 (string-length nm)))
+                   sym)))
+    (let loop ((x base) (depth 0))
+      (and x (symbol? x) (< depth 8)
+           (or (lookup-structure x)
+               (let ((d (hash-table-ref/default *definitional-structure-table* x #f)))
+                 (and d (loop (definitional-structure-parent d) (+ depth 1)))))))))
+
+;;; The structure-def some hypothesis IS-X s / s in X gives for the term s.
+(define (pi--structure-hyp asms s)
+  (let loop ((as asms))
+    (and (pair? as)
+         (let ((f (wff-formula (car as))))
+           (or (and (pair? f) (= (length f) 2) (symbol? (car f))
+                    (alpha-equiv? (cadr f) s)
+                    (pi--structure-def-for (car f)))
+               (and (pair? f) (= (length f) 3) (eq? (car f) 'IN) (symbol? (caddr f))
+                    (alpha-equiv? (cadr f) s)
+                    (pi--structure-def-for (caddr f)))
+               (loop (cdr as)))))))
+
+;;; A domain symbol of a slot spec: an accessor name means (ACC s); anything
+;;; else is a global class (RR, NN, ...).
+(define (pi--slot-domain-term sd s d)
+  (if (and (symbol? d) (memq d (structure-slot-names sd))) (list d s) d))
+
+(define (pi--functoid-instance t)
+  (let ((body (pi--functoid-body (car t))) (params (pi--functoid-params (car t))))
+    (and body (list? params) (= (length params) (length (cdr t)))
+         (every symbol? params)
+         (subst-free* (map cons params (cdr t)) body))))
+
+(define (pi--fun-typed-app? asms f args)
+  (let loop ((as asms))
+    (and (pair? as)
+         (let ((h (wff-formula (car as))))
+           (or (and (pair? h) (eq? (car h) 'IN) (= (length h) 3)
+                    (alpha-equiv? (cadr h) f)
+                    (pair? (caddr h)) (eq? (car (caddr h)) 'FUN) (pair? (cdr (caddr h)))
+                    (let ((D (cadr (caddr h))))
+                      (cond ((= (length args) 1) (pi--in-context? asms (car args) D))
+                            ((and (pair? D) (eq? (car D) 'CARTESIAN)
+                                  (= (length (cdr D)) (length args)))
+                             (pi--every2 (lambda (a d) (pi--in-context? asms a d)) args (cdr D)))
+                            (else (pi--in-context? asms (cons 'LIST args) D)))))
+               (loop (cdr as)))))))
+
+(define (pi--class-of-tuples? X depth)
+  (cond
+    ((> depth 8) #f)
+    ((not (pair? X)) #f)
+    ((eq? (car X) 'TUPLES) #t)
+    ((eq? (car X) 'MATRIX) #t)          ; primitive: TUPLES(TUPLES X) with equal rows
+    ((and (eq? (car X) 'SEP) (= (length X) 4)) (pi--class-of-tuples? (caddr X) depth))
+    ((and (symbol? (car X)) (pi--functoid-instance X))
+     => (lambda (b) (pi--class-of-tuples? b (+ depth 1))))
+    (else #f)))
+(define (pi--typed-in-tuples? asms t)
+  (let loop ((as asms))
+    (and (pair? as)
+         (let ((f (wff-formula (car as))))
+           (or (and (pair? f) (eq? (car f) 'IN) (= (length f) 3)
+                    (alpha-equiv? (cadr f) t)
+                    (pi--class-of-tuples? (caddr f) 0))
+               (loop (cdr as)))))))
+
+;;; STRICTNESS (2026-09-18): IN, =, <=, < are strict relations and every total
+;;; constructor is strict in its arguments (the manual: "undefinedness
+;;; propagates through all operations"), so a term occurring OUTSIDE any binder
+;;; in a true atomic hypothesis of those shapes denotes.  `f in FUN(NN, PTS s)'
+;;; certifies PTS(s); `t(j) subset t(k)' does not (SUBSET is not primitive here).
+(define (pi--subterm-outside-binders? t e)
+  (cond
+    ((alpha-equiv? e t) #t)
+    ((not (pair? e)) #f)
+    ((memq (car e) '(FORALL FORSOME IOTA COMP)) #f)
+    ((and (memq (car e) '(SEP BIG-UNION VNB-LAMBDA)) (= (length e) 4))
+     (pi--subterm-outside-binders? t (caddr e)))      ; only the DOMAIN is outside
+    ;; every position, the HEAD included: application is strict in its operator
+    (else (any (lambda (x) (pi--subterm-outside-binders? t x)) e))))
+(declare-binder-walker! 'pi--subterm-outside-binders?
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
+(define (pi--strict-hyp-certifies? asms t)
+  (let loop ((as asms))
+    (and (pair? as)
+         (let ((f (wff-formula (car as))))
+           (or (and (pair? f) (memq (car f) '(IN = <= <)) (= (length f) 3)
+                    (or (pi--subterm-outside-binders? t (cadr f))
+                        (pi--subterm-outside-binders? t (caddr f))))
+               (loop (cdr as)))))))
+
+;;; A def-predicate HYPOTHESIS certifies what its defining body's conjuncts
+;;; certify (2026-09-18, rake repair D4: IS-ANTIDERIVABLE(s(k), a, b) has
+;;; `s(k) in FUN(RR,RR)' one unfold and one FORSOME down; IS-NOETHERIAN(m) has
+;;; IS-MODULE(m), which types VEC(m)).  The defining IFF is the theorem-table
+;;; entry under the predicate's own name (def-predicate, structures.scm).
+(define *pi-connectives* '(IN = <= < NOT AND OR IMPLIES IFF FORALL FORSOME TRUTH FALSITY))
+(define (pi--and-conjuncts b)
+  (if (and (pair? b) (eq? (car b) 'AND) (= (length b) 3))
+      (append (pi--and-conjuncts (cadr b)) (pi--and-conjuncts (caddr b)))
+      (list b)))
+;;; TWO GUARDS (2026-09-20, audit 13-E; both defects were live on the band).
+;;; (1) The body's leading FORSOMEs are stripped, and the witness used to come
+;;; back FREE under its binder's own name: with `odd(n)' in the context, the
+;;; conjunct `k in ZZ' of odd's body certified `2 * k' for the CONTEXT's k, an
+;;; unrelated and untyped variable, and `rfl' closed `2 * k = 2 * k'.  Each
+;;; stripped binder is now replaced by a fresh uninterned symbol, which no term
+;;; of the context can contain; a conjunct about the parameters certifies as
+;;; before.  (2) The entry is read from the theorem table BY NAME: an ASSERTED
+;;; statement under a predicate's name certified, and the proof billed nothing.
+;;; Only a definitional, primitive or proven entry is read.
+;;; `provenance-of' (macetes.scm) loads after this file; macetes.scm stores it in
+;;; the hook below.  While the hook is unset nothing is certified by this route.
+(define *pi-provenance-of* #f)
+(define (pi--pred-def-trusted? name)
+  (and *pi-provenance-of*
+       (memq (*pi-provenance-of* name) '(definitional primitive proven))
+       #t))
+(define (pi--pred-def-conjuncts f)
+  (let ((def (and (pi--pred-def-trusted? (car f))
+                  (hash-table-ref/default *theorem-table* (car f) #f))))
+    (and def (pair? def)
+         (let loop ((e def) (args (cdr f)) (binds '()))
+           (cond ((and (pair? e) (eq? (car e) 'FORALL) (pair? args))
+                  (loop (caddr e) (cdr args) (cons (cons (cadr e) (car args)) binds)))
+                 ((and (pair? e) (eq? (car e) 'IFF) (null? args)
+                       (pair? (cadr e)) (eq? (car (cadr e)) (car f)))
+                  (let strip ((b (subst-free* binds (caddr e))))
+                    (if (and (pair? b) (eq? (car b) 'FORSOME) (= (length b) 3))
+                        (if (symbol? (cadr b))
+                            (strip (subst-free* (list (cons (cadr b) (generate-uninterned-symbol)))
+                                                (caddr b)))
+                            '())            ; a binder that is not a plain variable: certify nothing
+                        (pi--and-conjuncts b))))
+                 (else #f))))))
+(define (pi--raw-conjuncts-certify? cs t depth)
+  (any (lambda (c)
+         (and (pair? c) (symbol? (car c))
+              (or (and (memq (car c) '(IN = <= <)) (= (length c) 3)
+                       (or (pi--subterm-outside-binders? t (cadr c))
+                           (pi--subterm-outside-binders? t (caddr c))))
+                  (and (= (length c) 2) (pi--structure-def-for (car c))
+                       (or (alpha-equiv? (cadr c) t)
+                           (and (pair? t) (= (length t) 2) (symbol? (car t))
+                                (alpha-equiv? (cadr c) (cadr t))
+                                (memq (car t) (structure-slot-names (pi--structure-def-for (car c))))
+                                #t)))
+                  (and (< depth 3) (not (memq (car c) *pi-connectives*))
+                       (let ((cs2 (pi--pred-def-conjuncts c)))
+                         (and cs2 (pi--raw-conjuncts-certify? cs2 t (+ depth 1))))))))
+       cs))
+(define (pi--via-pred-hyps? asms t)
+  (let loop ((as asms))
+    (and (pair? as)
+         (let ((f (wff-formula (car as))))
+           (or (and (pair? f) (symbol? (car f)) (not (memq (car f) *pi-connectives*))
+                    (let ((cs (pi--pred-def-conjuncts f)))
+                      (and cs (pi--raw-conjuncts-certify? cs t 0))))
+               (loop (cdr as)))))))
+
+(define (pi--defined? asms t depth)
+  (cond
+    ((> depth 8) #f)
+    ((not (pair? t)) #t)
+    ((pi--arith-number? t) #t)
+    ((asm-establishes-defined? asms t) #t)
+    ((pi--strict-hyp-certifies? asms t) #t)
+    ;; a structure hypothesis ON the term (IS-METRIC-SPACE (ms n)) certifies it:
+    ;; the predicate's IFF types the tuple's every slot, so the tuple denotes
+    ((pi--structure-hyp asms t) #t)
+    ((and (symbol? (car t)) (memq (car t) *total-term-heads*))
+     (every (lambda (a) (pi--defined? asms a depth)) (cdr t)))
+    ((and (memq (car t) '(SEP BIG-UNION VNB-LAMBDA)) (= (length t) 4))
+     (pi--defined? asms (caddr t) depth))
+    ((eq? (car t) 'COMP) #t)
+    ((and (eq? (car t) 'NTH) (= (length t) 3) (exact-integer? (cadr t))
+          (pair? (caddr t)) (eq? (car (caddr t)) 'LIST)
+          (<= 1 (cadr t) (length (cdr (caddr t)))))
+     (pi--defined? asms (list-ref (cdr (caddr t)) (- (cadr t) 1)) depth))
+    ((and (eq? (car t) 'NTH) (= (length t) 3) (exact-integer? (cadr t))
+          (pair? (caddr t)) (symbol? (car (caddr t))) (pi--functoid-instance (caddr t)))
+     => (lambda (b) (pi--defined? asms (list 'NTH (cadr t) b) (+ depth 1))))
+    ((and (symbol? (car t)) (memq (car t) *pi-arith-total-heads*)
+          (every (lambda (a) (pi--number-typed? asms a)) (cdr t))) #t)
+    ;; LENGTH t for a t the context types in a class of TUPLES (through SEP
+    ;; domains and functoid bodies: MAT -> MATRIX -> TUPLES)
+    ((and (eq? (car t) 'LENGTH) (= (length t) 2)
+          (pi--typed-in-tuples? asms (cadr t))) #t)
+    ;; accessor (ACC s) under a structure hypothesis on s
+    ((and (symbol? (car t)) (= (length t) 2)
+          (let ((sd (pi--structure-hyp asms (cadr t))))
+            (and sd (memq (car t) (structure-slot-names sd)) #t))) #t)
+    ;; applied structure operation ((ACC s) a1 ... an) on arguments in its domain
+    ((and (pair? (car t)) (= (length (car t)) 2) (symbol? (car (car t)))
+          (let* ((acc (car (car t))) (s (cadr (car t)))
+                 (sd (pi--structure-hyp asms s))
+                 (spec (and sd (assq acc (structure-def-slots sd)))))
+            (and spec (eq? (cadr spec) 'op) (pair? (cddr spec))
+                 (let ((dom (caddr spec)) (args (cdr t)))
+                   (cond ((and (pair? dom) (eq? (car dom) 'CARTESIAN)
+                               (= (length (cdr dom)) (length args)))
+                          (pi--every2 (lambda (a d) (pi--in-context? asms a (pi--slot-domain-term sd s d)))
+                                      args (cdr dom)))
+                         ((= (length args) 1)
+                          (pi--in-context? asms (car args) (pi--slot-domain-term sd s dom)))
+                         (else #f)))))) #t)
+    ;; an application of a function the context types
+    ((and (pair? (cdr t)) (pi--fun-typed-app? asms (car t) (cdr t))) #t)
+    ;; a functoid: certified arguments and a certified instantiated body
+    ((and (symbol? (car t)) (pi--functoid-instance t))
+     => (lambda (b) (pi--defined? asms b (+ depth 1))))
+    ;; last, since it unfolds every predicate hypothesis in the context
+    ((pi--via-pred-hyps? asms t) #t)
+    (else #f)))
 
 (define (pi-reflexivity! sqn)
   (let* ((goal (sequent-node-assertion sqn))
@@ -647,9 +1082,7 @@
                  ;; definedness guard: t = t only when t is defined -- either
                  ;; SYNTACTICALLY (variable/ground/total-op tree) or witnessed
                  ;; by a context assumption (IN t _)/(= t _).
-                 (or (term-self-defined? (cadr g))
-                     (asm-establishes-defined?
-                       (sequent-node-assumptions sqn) (cadr g)))))
+                 (pi--defined? (sequent-node-assumptions sqn) (cadr g) 0)))
         (dg-apply-rule! dg 'reflexivity '() sqn)
         #f)))
 
@@ -1317,6 +1750,59 @@
              sqn)))))
 
 ;;; -----------------------------------------------------------------------
+;;; IOTA, THE OTHER DIRECTION: a description that DENOTES satisfies its
+;;; property.  (pi-iota-in-elim!, tactic `iota-e'.)
+;;;
+;;;     context establishes (IOTA x p) defined
+;;;     ---------------------------------------
+;;;     context gains  p[x := (IOTA x p)]
+;;;
+;;; ADDED 2026-09-15 ON THE USER'S DECISION.  It enlarges the trusted base, so
+;;; the argument is written here rather than assumed.
+;;;
+;;; WHY IT WAS MISSING AND WHAT IT COST.  `iota-def' above runs ONE way: post
+;;; the existence-and-uniqueness obligation, then grant the defining property.
+;;; Nothing let a proof go the other way -- from "this description denotes" to
+;;; "so it satisfies its property".  That gap blocked the vector Taylor arc:
+;;; TAYLOR-DIFFERENTIABLE-V's continuity conjunct says every NTH-DERIV-V is a
+;;; total map into VEC(m), i.e. that the IOTA `DERIV-V(m, f^(k-1), x)' DENOTES
+;;; everywhere, which IS the differentiability `gof-nth-deriv' needs -- and the
+;;; kernel could not use it.
+;;;
+;;; WHY IT IS SOUND, on VNB's own reading of partiality.  `=' is the definedness
+;;; predicate and atomic formulas are STRICT, so a true `(IN t X)' entails that
+;;; t denotes.  The kernel already commits to exactly that: pi-reflexivity!
+;;; closes `t = t' when the context carries `(IN t _)' or `(= t _)', by
+;;; asm-establishes-defined? (:627).  So this rule adds no new reading of
+;;; definedness -- it REUSES that predicate, which is why it calls it rather
+;;; than testing the assumption shape itself; the two cannot drift apart.
+;;; Given that (IOTA x p) denotes, it denotes THE unique x satisfying p -- that
+;;; is what a definite description means, and it is the same semantics
+;;; `iota-def' already relies on when it grants defprop after existence and
+;;; uniqueness are proved.  The difference is only in what discharges the
+;;; obligation: there a proof, here the context.
+;;;
+;;; WHAT IT DOES NOT LICENSE: nothing about an IOTA the context says nothing
+;;; about.  With no definedness witness the rule declines (returns #f) -- it
+;;; never assumes denotation, which is the whole point of a partial logic.
+(define (pi-iota-in-elim! sqn iota-term)
+  (let* ((asms (sequent-node-assumptions sqn))
+         (goal (sequent-node-assertion   sqn))
+         (dg   (sqn-dg sqn)))
+    (and (pair? iota-term) (eq? (car iota-term) 'IOTA) (= (length iota-term) 3)
+         (symbol? (cadr iota-term))
+         ;; the ONLY premise: the context says this description denotes.
+         (asm-establishes-defined? asms iota-term)
+         (let* ((x       (cadr iota-term))
+                (p       (caddr iota-term))
+                (defprop (subst-free x iota-term p)))
+           (validate-wff! defprop)
+           (dg-apply-rule! dg 'iota-in-elim
+             (list (make-sequent (context-add-assumption asms (wff-child goal defprop))
+                                 goal))
+             sqn)))))
+
+;;; -----------------------------------------------------------------------
 ;;; VNB-LAMBDA: typing and beta reduction (symbolic form).
 ;;;
 ;;; pi-lambda-type!: goal (IN (VNB-LAMBDA <bind-spec> A body) (FUN A B))
@@ -1440,15 +1926,21 @@
          (dg   (sqn-dg sqn)))
     (let* ((owed '())
            (new-g (reduce-lambda-in-expr/guard
-                    g (lambda (args A scope)
-                        (or (pi--beta-licensed? (append scope asms) args A)
-                            (begin
-                              (if *lambda-beta-emit-obligations?*
-                                  (set! owed (cons (pi--beta-obligation args A) owed))
-                                  (begin
-                                    (display ";VNB BETA-GUARD (not enforced): args=")
-                                    (write args) (display " A=") (write A) (newline)))
-                              #t))))))
+                    g (lambda (args A scope bvars)
+                        (or (pi--beta-licensed?
+                              (append scope (pi--unshadowed bvars asms)) args A)
+                            (let ((ob (pi--beta-obligation args A)))
+                              ;; an obligation naming a variable bound where the
+                              ;; redex sits would be read in the parent's context,
+                              ;; about another variable: refuse the redex instead
+                              (and (not (pi--mentions-any? bvars ob))
+                                   (begin
+                                     (if *lambda-beta-emit-obligations?*
+                                         (set! owed (cons ob owed))
+                                         (begin
+                                           (display ";VNB BETA-GUARD (not enforced): args=")
+                                           (write args) (display " A=") (write A) (newline)))
+                                     #t))))))))
       (if (alpha-equiv? new-g g)
           #f
           ;; Main subgoal plus one (IN u A) obligation per redex whose licence
@@ -1481,15 +1973,18 @@
          (let* ((h     (wff-formula f))
                 (owed '())
                 (new-h (reduce-lambda-in-expr/guard
-                         h (lambda (args A scope)
-                             (or (pi--beta-licensed? (append scope asms) args A)
-                                 (begin
-                                   (if *lambda-beta-emit-obligations?*
-                                       (set! owed (cons (pi--beta-obligation args A) owed))
-                                       (begin
-                                         (display ";VNB BETA-GUARD (not enforced): args=")
-                                         (write args) (display " A=") (write A) (newline)))
-                                   #t))))))
+                         h (lambda (args A scope bvars)
+                             (or (pi--beta-licensed?
+                                   (append scope (pi--unshadowed bvars asms)) args A)
+                                 (let ((ob (pi--beta-obligation args A)))
+                                   (and (not (pi--mentions-any? bvars ob))
+                                        (begin
+                                          (if *lambda-beta-emit-obligations?*
+                                              (set! owed (cons ob owed))
+                                              (begin
+                                                (display ";VNB BETA-GUARD (not enforced): args=")
+                                                (write args) (display " A=") (write A) (newline)))
+                                          #t))))))))
            (and (not (alpha-equiv? new-h h))
                 (dg-apply-rule! dg 'lambda-beta-hyp
                   (cons (make-sequent
@@ -1588,10 +2083,10 @@
 ;;; one-argument entry point keeps the unguarded behaviour and is for pure TERM
 ;;; manipulation (the test suite); the kernel rules below always pass a guard.
 (define (reduce-lambda-in-expr expr)
-  (reduce-lambda-in-expr/guard expr (lambda (args A scope) #t)))
+  (reduce-lambda-in-expr/guard expr (lambda (args A scope bvars) #t)))
 
 (define (reduce-lambda-in-expr/guard expr ok?)
-  (reduce-lambda-in-expr/scope expr ok? '()))
+  (reduce-lambda-in-expr/scope expr ok? '() '()))
 
 ;;; `scope' carries the memberships that hold WHERE THE REDEX SITS, gathered from
 ;;; enclosing guarded universals.  Without this the guard sees only the context
@@ -1621,12 +2116,57 @@
          (map (lambda (v d) (list 'IN v d)) (cdr bind-spec) (cdr A)))
         (else '())))
 
-(define (reduce-lambda-in-expr/scope expr ok? scope)
-  (define (reduce-lambda-in-expr e) (reduce-lambda-in-expr/scope e ok? scope))
+;;; THE SHADOWING RULE (2026-09-20, batch 11-C).  `scope' and the sequent's
+;;; ASSUMPTIONS both speak about the variables in scope AT THE ROOT of the
+;;; formula.  Under a binder that re-binds one of those names the same formula
+;;; is about a DIFFERENT variable and may license nothing there.  Until this was
+;;; written the walker carried both straight through every binder, and
+;;;
+;;;   forall u in NN. forall u in ZZ. (lambda z_ in NN. z_)(u) = u
+;;;
+;;; -- FALSE, the lambda being undefined at u = -1 -- beta-reduced to
+;;; `u = u' on the strength of the OUTER guard, closed by `rfl', and installed
+;;; `modulo 0' with inference checking on; FALSITY followed in twenty lines
+;;; (scratchpad/binder-gate/exploit-falsity.scm).  It is the BIG-UNION
+;;; local-context hole of the same morning, one storey down, in a kernel rule.
+;;;
+;;; `bvars' is the list of variables bound between the root and the point the
+;;; walk has reached.  Going down, the scope entries they shadow are dropped;
+;;; at the licence test the guard drops the ASSUMPTIONS they shadow (see
+;;; pi-lambda-beta!).  The OBLIGATION obeys the same rule: `(IN u A)' posted in
+;;; the parent's context, with `u' bound HERE, is not the proposition the redex
+;;; owes -- it is a formula about the outer `u', which an assumption of that
+;;; name would then discharge.  Such a redex is left UNREDUCED instead.
+(define (pi--bspec-vars bs)
+  (cond ((symbol? bs) (list bs))
+        ((and (pair? bs) (eq? (car bs) 'LIST)) (filter symbol? (cdr bs)))
+        (else '())))
+
+(define (pi--mentions-any? vars e)
+  (and (pair? vars)
+       (let ((fvs (free-vars e)))
+         (any (lambda (v) (memq v fvs)) vars))))
+
+;;; The formulas of FS that say nothing about a variable bound at the point of
+;;; use.  FS may hold raw formulas (scope) or wff records (assumptions).
+(define (pi--unshadowed bvars fs)
+  (if (null? bvars)
+      fs
+      (filter (lambda (f)
+                (not (pi--mentions-any? bvars (if (wff? f) (wff-formula f) f))))
+              fs)))
+
+(define (reduce-lambda-in-expr/scope expr ok? scope bvars)
+  (define (reduce-lambda-in-expr e) (reduce-lambda-in-expr/scope e ok? scope bvars))
+  ;; Descending under a binder: drop what its variables shadow, add what they grant.
+  (define (reduce-under vs extra e)
+    (reduce-lambda-in-expr/scope e ok?
+                                 (append extra (pi--unshadowed vs scope))
+                                 (append vs bvars)))
   ;; the body of (VNB-LAMBDA bs A .) is walked with bs's memberships added
   (define (reduce-in-body bs A e)
-    (reduce-lambda-in-expr/scope e ok? (append (pi--binder-scope bs A) scope)))
-  (define (ok?* args A) (ok? args A scope))
+    (reduce-under (pi--bspec-vars bs) (pi--binder-scope bs A) e))
+  (define (ok?* args A) (ok? args A scope bvars))
   (cond
     ;; (FORALL v (IMPLIES (IN v A) body)) -- v's membership holds inside body.
     ((and (pair? expr) (eq? (car expr) 'FORALL) (= (length expr) 3)
@@ -1638,9 +2178,10 @@
             (imp  (caddr expr))
             (hyp  (cadr imp))
             (body (caddr imp)))
+       ;; the guard and the body are BOTH under the binder: v shadows there.
        (list 'FORALL v
-             (list 'IMPLIES (reduce-lambda-in-expr hyp)
-                   (reduce-lambda-in-expr/scope body ok? (cons hyp scope))))))
+             (list 'IMPLIES (reduce-under (list v) '() hyp)
+                   (reduce-under (list v) (list hyp) body)))))
     ((not (pair? expr)) expr)
     ;; ((VNB-LAMBDA x body) arg)  — single-binder, single-arg.
     ((and (pair? (car expr))
@@ -1683,19 +2224,36 @@
        (if (ok?* args (caddr (car expr)))
            final
            (cons (list 'VNB-LAMBDA (cadar expr) (caddr (car expr)) body) args))))
-    ;; The three domain-carrying binders, all of shape (H v A body) with A
-    ;; OUTSIDE the binder's scope (expressions.scm: SEP, BIG-UNION, VNB-LAMBDA):
-    ;; a lambda sitting in the goal as a term rather than in operator position,
-    ;; a separation, an indexed union.  Inside the body the bound variable is in
-    ;; A, so a redex there is licensed by that.  Each is extensional over its
-    ;; domain -- {v in A : p}, UNION_{v in A} b and the lambda's graph all depend
-    ;; on the body only through its values on A -- so reducing under the binder
-    ;; leaves the same term.  Without this case the walker descends through the
-    ;; generic branch below and drops the membership on the floor.
-    ((and (memq (car expr) '(VNB-LAMBDA SEP BIG-UNION)) (= (length expr) 4))
+    ;; The domain-carrying binders, all of shape (H v A body) with A OUTSIDE the
+    ;; binder's scope (SEP, BIG-UNION, VNB-LAMBDA -- whatever *binder-shapes*
+    ;; declares `domain' or `lambda'): a lambda sitting in the goal as a term
+    ;; rather than in operator position, a separation, an indexed union.  Inside
+    ;; the body the bound variable is in A, so a redex there is licensed by that.
+    ;; Each is extensional over its domain -- {v in A : p}, UNION_{v in A} b and
+    ;; the lambda's graph all depend on the body only through its values on A --
+    ;; so reducing under the binder leaves the same term.  Without this case the
+    ;; walker descends through the generic branch below and drops the membership
+    ;; on the floor.  DRIVEN FROM *binder-shapes* since 2026-09-20: a binder
+    ;; declared there and forgotten here is what `binder-walker-audit' now fails
+    ;; on, and this walker has no second list to forget it in.
+    ((and (symbol? (car expr)) (memq (binder-shape (car expr)) '(domain lambda))
+          (= (length expr) 4))
      (list (car expr) (cadr expr)
            (reduce-lambda-in-expr (caddr expr))
            (reduce-in-body (cadr expr) (caddr expr) (cadddr expr))))
+    ;; The simple binders (H v body): an UNGUARDED FORALL, FORSOME, IOTA, COMP.
+    ;; They grant nothing, but they SHADOW, and until 2026-09-20 they were not
+    ;; here at all -- the generic branch below carried the outer scope and the
+    ;; context under them.  See THE SHADOWING RULE above.
+    ((and (symbol? (car expr)) (eq? 'simple (binder-shape (car expr)))
+          (= (length expr) 3) (symbol? (cadr expr)))
+     (list (car expr) (cadr expr)
+           (reduce-under (list (cadr expr)) '() (caddr expr))))
     (else
      (cons (reduce-lambda-in-expr (car expr))
            (map reduce-lambda-in-expr (cdr expr))))))
+
+;; No second list: the walker asks `binder-shape' (expressions.scm) which heads
+;; bind and with what shape, so a binder added to *binder-shapes* is handled
+;; here with no edit -- and shadows the scope and the context, as it must.
+(declare-binder-walker! 'reduce-lambda-in-expr/scope 'from-binder-shapes)

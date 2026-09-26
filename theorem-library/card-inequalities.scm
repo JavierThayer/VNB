@@ -1,4 +1,13 @@
 ;;; card-inequalities.scm -- the two missing CARD inequalities.
+;;; ---------------------------------------------------------------------------
+;;; NOTE, 2026-09-20 (batch 9-B).  This file was written while cardinality was
+;;; AXIOMATISED under the name CARD and the defined constant was its companion
+;;; CARD-STAR.  On 2026-09-20 the user made the swap: CARD is the DEFINED
+;;; cardinal (structure-library/cardinality.scm), the eight `primitive' axioms
+;;; about it are gone, and every proof below now speaks of CARD.  The prose in
+;;; this header that contrasts "the axiomatised CARD" with "the defined
+;;; cardinal" is HISTORY; the surgery is docs/card-defined-2026-09-20.md.
+;;; ---------------------------------------------------------------------------
 ;;;
 ;;;     card-subset-mono   B in SET, CARD(B) in NN, SUBSET(A,B)
 ;;;                          =>  CARD(A) <= CARD(B)
@@ -13,26 +22,26 @@
 ;;; the vacuous CARD(B) <= CARD(A) + CARD(B).
 ;;;
 ;;; -----------------------------------------------------------------------
-;;; WHY `CARD' AND NOT `CARD-STAR'.
+;;; WHY `CARD' AND NOT `CARD'.
 ;;;
-;;; `CARD-STAR' (theorem-library/card-defined.scm) is the DEFINED cardinal -- an
+;;; `CARD' (theorem-library/card-defined.scm) is the DEFINED cardinal -- an
 ;;; IOTA over "least ordinal whose segment bijects onto A" -- and is the
 ;;; migration target.  Neither inequality is reachable for it today, and the
 ;;; obstruction is recorded in structure-notes/card-basics-worklist.md:76-78:
-;;; `card-star-insert' and `card-star-union-disjoint' are BLOCKED on `EXTEND-BY', the
+;;; `card-insert-curried' and `card-union-disjoint-curried' are BLOCKED on `EXTEND-BY', the
 ;;; unbuilt second member of the finite-surgery kit (a bijection A -> S(n) has
-;;; to be extended to A + {x} -> S(succ n)).  Everything the finite CARD-STAR layer
-;;; has -- card-star-from-body, card-star-bij, card-star-empty (card-finite.scm) -- computes
+;;; to be extended to A + {x} -> S(succ n)).  Everything the finite CARD layer
+;;; has -- card-from-body, card-bij, card-empty (card-finite.scm) -- computes
 ;;; a cardinal from a bijection; nothing yet ADDS two cardinals.  Without a
-;;; CARD-STAR form of card-union-disjoint there is no route to either inequality
+;;; CARD form of card-union-disjoint there is no route to either inequality
 ;;; that does not first build EXTEND-BY and a concatenation map, which is a
 ;;; separate piece of work.
 ;;;
 ;;; For the axiomatised `CARD', `card-union-disjoint' is on the PRIMITIVE shelf
 ;;; (structure-library/cardinality.scm:87), and it is the whole engine: split B
 ;;; as the disjoint union A u (B \ A) and the inequality is NN arithmetic.  So
-;;; these are proved for CARD.  When the CARD-STAR migration reaches
-;;; card-star-union-disjoint, both proofs below transcribe unchanged -- they touch
+;;; these are proved for CARD.  When the CARD migration reaches
+;;; card-union-disjoint-curried, both proofs below transcribe unchanged -- they touch
 ;;; no other CARD axiom.
 ;;;
 ;;; -----------------------------------------------------------------------
@@ -79,7 +88,7 @@
 ;;; nn-not-le-zero-pos, nn-le-succ-cases (structure-library/order-lemmas.scm:353,
 ;;; :345, :248, :241, all warranted `well-known') and nn-add-succ
 ;;; (structure-library/nn-arith.scm:33, `reference') -- inherited through
-;;; nn-le-add and nn-add-le-mono, whose own bills carry them.  `well-known' is
+;;; nn-le-add-right and nn-add-le-mono, whose own bills carry them.  `well-known' is
 ;;; below `reference' in *pd-trust-order*, so the tier of both bills is set by
 ;;; the order-lemmas supports, not by card-subset-nn.
 ;;;
@@ -97,7 +106,8 @@
 ;;;                 complement-in-set-closure, empty-set-has-no-members,
 ;;;                 subset-def, card-union-disjoint
 ;;;   proven     -- subset-mem-fwd, subclass-of-set-is-set (subset-lemmas.scm),
-;;;                 nn-le-add, nn-add-le-mono (nn-order-proof.scm)
+;;;                 nn-le-add-right (nn-order-basics.scm), nn-add-le-mono
+;;;                 (nn-order-proof.scm)
 ;;;
 ;;; Needs: theory (the base set axioms), structure-library/cardinality,
 ;;; theorem-library/prod-of-sums (card-subset-nn), theorem-library/subset-lemmas,
@@ -200,6 +210,15 @@
 ;;; left-to-right in the GOAL, so the bare variable has to be the left side.
 ;;; That is also why it is `declare-named-only!': a live macete whose left side
 ;;; is a variable matches every term in every goal.
+;;;
+;;; The declaration must PRECEDE the proof: `install-theorem!' (macetes.scm)
+;;; consults *named-only-macetes* while it builds the rewrite, so a declaration
+;;; written after the `qed' is a silent no-op.  It stood after the qed from
+;;; 2026-09-14 to 2026-09-20 and the macete was LIVE all that time.
+
+(declare-named-only! 'union-complement-in
+  "Its left side is a bare variable: as a live macete it would rewrite every
+   term in every goal into a union with a relative complement.  Cite it by name.")
 
 (quietly (lambda ()
   (sp (make-wff '(FORALL a_ (FORALL b_
@@ -218,9 +237,6 @@
             '(implies (in x a_) (in x b_)))
   (prop)))
 (qed 'union-complement-in)
-(declare-named-only! 'union-complement-in
-  "Its left side is a bare variable: as a live macete it would rewrite every
-   term in every goal into a union with a relative complement.  Cite it by name.")
 (topic! 'union-complement-in 'plumbing)
 
 ;;; -----------------------------------------------------------------------
@@ -230,6 +246,12 @@
 ;;; that the right-hand union IS disjoint.  Purely propositional after the two
 ;;; membership unfolds -- (x in A or x in B) iff (x in A or (x in B and not
 ;;; x in A)).
+;;;
+;;; Declared BEFORE the proof -- see (2) above for why the order matters.
+
+(declare-named-only! 'union-as-disjoint
+  "An unconditional equation whose left side matches every binary union in the
+   library; as a live macete it would rewrite them all.  Cite it by name.")
 
 (quietly (lambda ()
   (sp (make-wff '(FORALL a_ (FORALL b_
@@ -246,9 +268,6 @@
             '(iff (in x (complement-in b_ a_)) (and (in x b_) (not (in x a_)))))
   (prop)))
 (qed 'union-as-disjoint)
-(declare-named-only! 'union-as-disjoint
-  "An unconditional equation whose left side matches every binary union in the
-   library; as a live macete it would rewrite them all.  Cite it by name.")
 (topic! 'union-as-disjoint 'plumbing)
 
 ;;; -----------------------------------------------------------------------
@@ -286,7 +305,7 @@
 ;;;
 ;;; THE ARGUMENT.  B = A u (B \ A), the two pieces are disjoint and both finite,
 ;;; so card-union-disjoint reads CARD(B) = CARD(A) + CARD(B \ A), and
-;;; nn-le-add is a <= a + b.
+;;; nn-le-add-right is a <= a + b.
 
 (quietly (lambda ()
   (sp (make-wff '(FORALL b_ (IMPLIES (IN b_ SET)
@@ -333,8 +352,8 @@
   (subst '(= (CARD (UNION a_ (COMPLEMENT-IN b_ a_)))
              (+ (CARD a_) (CARD (COMPLEMENT-IN b_ a_)))))
 
-  ;; --- a <= a + b.  nn-le-add takes the ADDEND first (nn-order-proof.scm:55).
-  (fact 'nn-le-add '(CARD (COMPLEMENT-IN b_ a_)) '(CARD a_))
+  ;; --- a <= a + b.  nn-le-add-right takes the ADDEND first (nn-order-basics.scm:175).
+  (fact 'nn-le-add-right '(CARD (COMPLEMENT-IN b_ a_)) '(CARD a_))
   (ass)))
 (qed 'card-subset-mono)
 (topic! 'card-subset-mono 'combinatorial)

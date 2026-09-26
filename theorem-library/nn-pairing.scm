@@ -127,9 +127,9 @@
             (mac 'trinum-succ)
             (fact 'trinum-type 'b_)
             (fact 'nn-succ-closed 'b_)
-            ;; nn-le-add binds the ADDEND outermost: (fact 'nn-le-add X Y) is
+            ;; nn-le-add-right binds the ADDEND outermost: (fact 'nn-le-add-right X Y) is
             ;; Y <= Y + X, so the successor goes first.
-            (fact 'nn-le-add '(succ b_) '(TRINUM b_))
+            (fact 'nn-le-add-right '(succ b_) '(TRINUM b_))
             ;; nn-le-trans became GUARDED on NN (2026-08-02), so every term it
             ;; chains through must be typed -- this site was chaining through
             ;; TRINUM(b_) + succ(b_) without ever saying it was a natural.
@@ -146,25 +146,14 @@
     (dk-opened (lambda () (dk-ai-head! 'OR)))))
 (qed 'trinum-mono)
 
-;;; ---- nn-succ-add : succ(a) + b = succ(a + b) ---------------------------
+;;; ---- succ(a) + b = succ(a + b) -- now cited as `tab-succ-add' ----------
 ;;; The base has nn-add-succ (a + succ b = succ(a + b)) and nothing for a succ
 ;;; on the LEFT, which the pairing step needs in order to recognise
-;;; succ(q) + j as succ(q + j).  Proved, not asserted:
-;;;   succ(a) + b = b + succ(a) = succ(b + a) = succ(a + b).
-(sp (make-wff '(FORALL a_ (IMPLIES (IN a_ NN)
-                 (FORALL b_ (IMPLIES (IN b_ NN)
-                   (= (+ (succ a_) b_) (succ (+ a_ b_)))))))))
-(di)
-(fact 'nn-succ-closed 'a_)
-(np2-comm! '(succ a_) 'b_)
-(subst '(= (+ (succ a_) b_) (+ b_ (succ a_))))
-(fact 'nn-add-succ 'b_ 'a_)
-(subst '(= (+ b_ (succ a_)) (succ (+ b_ a_))))
-(np2-comm! 'b_ 'a_)
-(subst '(= (+ b_ a_) (+ a_ b_)))
-(np2-defined-succ-sum! 'a_ 'b_)
-(rfl)
-(qed 'nn-succ-add)
+;;; succ(q) + j as succ(q + j).  It was proved here as `nn-succ-add'; REMOVED
+;;; 2026-09-20 (batch 11, proven-duplicate-audit): it was alpha-equal to
+;;; `tab-succ-add' (theorem-library/tuple-tabulation.scm:344), which loads
+;;; before this file and uses its own copy five times, so that is the name
+;;; that had to survive.  The citation below names it.
 
 ;;; ---- nnpair-onto : every natural is a Cantor code ----------------------
 ;;; forall n in NN, forsome i, j in NN.  NNPAIR(i, j) = n.
@@ -245,7 +234,7 @@
   (mac 'nnpair)
   (fact 'nn-add-succ np2-q np2-j)
   (subst `(= (+ ,np2-q (succ ,np2-j)) (succ (+ ,np2-q ,np2-j))))
-  (fact 'nn-succ-add np2-q np2-j)
+  (fact 'tab-succ-add np2-q np2-j)
   (subst `(= (+ (succ ,np2-q) ,np2-j) (succ (+ ,np2-q ,np2-j))))
   (np2-sum-type! np2-q np2-j)
   (fact 'nn-succ-closed `(+ ,np2-q ,np2-j))
@@ -275,7 +264,6 @@
 
 (topic! 'trinum-type  'inequalities)
 (topic! 'trinum-mono  'inequalities)
-(topic! 'nn-succ-add  'inequalities)
 (topic! 'nnpair-onto  'inequalities)
 
 ;;; ---- injectivity -------------------------------------------------------
@@ -350,7 +338,7 @@
 (fact 'nn-succ-closed 's_)
 (fact 'trinum-mono 't_ '(succ s_))
 (fact 'trinum-type 't_)
-(fact 'nn-le-add 'k_ '(TRINUM t_))
+(fact 'nn-le-add-right 'k_ '(TRINUM t_))
 ;; Typings for the guarded nn-le-trans (2026-08-02): the three terms it chains
 ;; through here -- succ(TRINUM(s_)+j_), TRINUM(succ s_), TRINUM(t_)+k_ -- were
 ;; never typed, which the unguarded statement let this proof get away with.

@@ -163,7 +163,7 @@
                (lambda (leaf)
                  ;; still an open frontier leaf? (an earlier di may have grounded it)
                  (when (memq leaf (rr-ineq--frontier))
-                   (focus-on *ps* leaf)
+                   (dk-focus! leaf)
                    (when (rr-ineq--advance-leaf! run) (set! progressed #t))))
                frontier)
               (if progressed (loop (- budget 1)) (proof-done? *ps*)))))))))

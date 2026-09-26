@@ -112,7 +112,17 @@
                ;; `*cite-exclude-script*' subtracts this script's contribution
                ;; from every count for the duration (cite-index.scm).  Without
                ;; it the numbers below are not a measurement.
-               (fluid-let ((*cite-exclude-script* name))
+               (fluid-let ((*cite-exclude-script* name)
+                           ;; Restore the fresh-var counter to this proof's
+                           ;; sp-time value, as proof-tex's replay does.
+                           ;; Eigenvariables are minted from a monotonic global,
+                           ;; so without this a recorded `ai'/`ew' witness names
+                           ;; a variable the replay never created -- 50 of the
+                           ;; 1022 scripts died on that alone, and the death
+                           ;; counted here as a replay failure of the script.
+                           (*fresh-counter*
+                            (hash-table-ref/default *proof-start-counter*
+                                                    name *fresh-counter*)))
                (quietly
                 (lambda ()
                   (sp (make-wff goal))
@@ -368,7 +378,10 @@
            (bind-condition-handler (list condition-type:error)
              (lambda (c) (bail #f))
              (lambda ()
-               (fluid-let ((*cite-exclude-script* name))   ; leave-one-out
+               (fluid-let ((*cite-exclude-script* name)    ; leave-one-out
+                           (*fresh-counter*                ; see harvest--one
+                            (hash-table-ref/default *proof-start-counter*
+                                                    name *fresh-counter*)))
                  (quietly
                   (lambda ()
                     (sp (make-wff goal))

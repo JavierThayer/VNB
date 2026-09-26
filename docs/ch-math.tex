@@ -403,11 +403,19 @@ provides the following named axioms (all usable via
   (x \in \mathit{SET} \land \forall z.\,(z \in x \Rightarrow z \in a))$
 \end{itemize}
 
-To add a new theorem to the theory (and automatically install its macete):
+A theorem is added by proving it.  State it with \texttt{sp}, prove it,
+and install it with \texttt{qed}, which also installs its macete:
 \begin{VNBcode}
-(theory-add-theorem! (current-theory) 'my-thm
-  (make-wff-from-string "forall([x in A], x in B)"))
+(sp "forall([x in nn], x in nn)")
+(di) (ass)
+(qed 'my-thm)
 \end{VNBcode}
+\texttt{qed} refuses unless the proof is complete, and it is the only
+command that records a result as proven.  A statement that is to be
+assumed for the time being is added with \texttt{support} and given a
+stated justification with \texttt{warrant!}
+(Chapter~\ref{ch:classification}).  It is then recorded as asserted, and
+every theorem that depends on it says so when it is installed.
 
 
 %% Definitions moved to ch-defs.tex

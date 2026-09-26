@@ -260,7 +260,57 @@
 ;;; is unambiguous (so a global reduction is installable), #f if this claim
 ;;; collides with an earlier one -- in which case the earlier macete, now known
 ;;; to be wrong for at least one structure, is WITHDRAWN.
+;;; ENGLISH READINGS FOR ACCESSORS, GENERATED HERE.
+;;;
+;;; 178 of the tree's 414 heads carry no `english' -- and 28 of those are
+;;; ACCESSORS, which between them account for the bulk of what a reader meets:
+;;; `carr' alone occurs 2168 times in installed formulas and reads as nothing.
+;;; Since the Focus workspace made every head hover-sensitive (2026-09-11) an
+;;; undeclared reading is a hole the READER sees, not a gap in a table.
+;;;
+;;; Writing a `notation!' beside each accessor in each structure file would be
+;;; sixty-odd hand edits that a new structure can silently forget.  The
+;;; declaration already knows the accessor's name, so the reading is generated
+;;; from it, ONCE, here -- and every structure declared from now on gets one
+;;; for free.
+;;;
+;;; The name -> word table is hand-written because it has to be: `carr' does
+;;; not mechanically yield "carrier", and a wrong reading is worse than none.
+;;; Anything absent from it falls back to a form that is merely uninformative,
+;;; never wrong.  Kept beside the registration rather than in operators.scm so
+;;; that adding an accessor and naming it are the same edit.
+(define *accessor-english*
+  '((ACT      . "scalar action")      (ADD      . "addition")
+    (CARR     . "carrier")            (DIST     . "distance function")
+    (FNRM     . "norm on the scalar field")
+    (IDEN     . "identity element")   (IDL      . "distinguished ideal")
+    (INV      . "inverse operation")  (IP       . "inner product")
+    (MEAS     . "measure")            (MUL      . "multiplication")
+    (MUL-INV  . "multiplicative inverse")
+    (NEG      . "negation")           (NON-ZERO . "non-zero elements")
+    (NRM      . "norm")               (ONE      . "multiplicative identity")
+    (OPENS    . "open sets")          (OPR      . "group operation")
+    (PTS      . "points")             (REL      . "equivalence relation")
+    (SCAL     . "scalar ring")        (SIGMA    . "sigma-algebra")
+    (VADD     . "vector addition")    (VEC      . "vectors")
+    (VNEG     . "vector negation")    (VNRM     . "vector norm")
+    (VZERO    . "zero vector")        (ZERO     . "additive identity")))
+
+;;; Declare NAME's reading, unless it already has one -- a hand-written
+;;; `notation!' in a structure file always wins over this default.
+(define (register-accessor-english! name)
+  (let ((e (operator-ref name)))
+    (if (not (and e (operator-english e)))
+        (let ((word (assq name *accessor-english*)))
+          (notation! name 'kind 'accessor 'arity 1
+                     'english (if word
+                                  (string-append "the " (cdr word) " of $1")
+                                  (string-append "the "
+                                                 (string-downcase (symbol->string name))
+                                                 " slot of $1")))))))
+
 (define (register-accessor-index! name k struct)
+  (register-accessor-english! name)
   (let ((prev (hash-table-ref/default *accessor-index* name #f)))
     (cond
       ((not prev)
@@ -301,7 +351,8 @@
       '(svar)
       '()
       `(,accessor-name svar)
-      `(NTH ,k svar))))
+      `(NTH ,k svar)
+      accessor-name)))                    ; the NAME in the rule tag (batch 10-C)
 
 ;;; -----------------------------------------------------------------------
 ;;; INSTANCES: an accessor of a CONCRETE structure reduces to its VALUE.
@@ -628,6 +679,8 @@
     ;; the MORPHISMS of this species, read off the same slot list (see
     ;; build-hom-axiom).  Objects without morphisms are not a category.
     (install-hom-axiom! name slots)
+    ;; ... and their HOM-SET, HOM-NAME(a, b), when there is one carrier
+    (install-hom-set! name)
     ;; Associated class: NAME itself is the proper class
     ;;   { s | IS-NAME(s) }.  Letting NAME (and not just IS-NAME) name
     ;;   the class makes bounded quantification natural:
@@ -756,6 +809,7 @@
     (declare-structure-noun! is-name name)   ; "s is a commutative ring"
     ;; a hom of X's is a hom of PARENTs between X's -- same shape, same maps
     (install-refinement-hom-axiom! name parent)
+    (install-hom-set! name)                  ; HOM-NAME(a, b), see install-hom-set!
     name))
 
 ;;; A (property NAME accessor ...) clause names a characteristic law from
@@ -895,10 +949,17 @@
   ;; def-predicate does), otherwise its provenance defaults to `asserted' and a
   ;; mere unfold (e.g. `mac COMPOSE') shows up as an outstanding asserted leaf
   ;; in the proof-debt ledger -- a phantom debt.
+  ;; An EMPTY parameter list is refused (2026-09-18).  '() is not a pair, so the
+  ;; line below used to read it as ONE parameter named (), and the unfold macete's
+  ;; left-hand side became (NAME ()), which matches nothing: the constant was left
+  ;; uninterpreted with a clean load (RR-BOUNDED-MS, found by rake batch 5).  A
+  ;; defined object with no parameters is a `def-constant'.
+  (if (null? params)
+      (error "def-functoid: empty parameter list -- use def-constant for" name))
   (fluid-let ((*current-provenance* 'definitional))
     (let* ((pvars (if (pair? params) params (list params))))
       (install-macete! name
-        (make-elementary-macete pvars '() (cons name pvars) body))
+        (make-elementary-macete pvars '() (cons name pvars) body name))
       (register-provenance! name *current-provenance*)
       (register-constant! name 'functoid)
       (register-operator! name 'functoid pvars)     ; the ONE table (operators.scm)
@@ -1480,6 +1541,47 @@
       (declare-hom-english! hom args)
       hom)))
 
+;;; --- the HOM-SET of a species (batch 33, 2026-09-25) ------------------------
+;;;
+;;; For a structure NAME with ONE independent carrier C, the functoid
+;;;
+;;;   HOM-NAME(a, b)  :=  SEP homf_ (FUN (C a) (C b)) (IS-HOM-NAME a b homf_)
+;;;
+;;; "the NAME morphisms from a to b": the hom-set of the category whose objects
+;;; are the models of NAME and whose arrows are IS-HOM-NAME.  The SEP names the
+;;; hom PREDICATE, never its body, so it is installed ONCE, right after the
+;;; declaration installs IS-HOM-NAME (def-structure: the generated hom;
+;;; def-substructure: the refinement form), and a later `declare-hom!' -- which
+;;; REPLACES the predicate's definition (TOP-SPACE, METRIZABLE-TOP-SPACE,
+;;; RINGOID) -- is seen through it with nothing reinstalled.  A many-sorted
+;;; structure (SETOID: PTS and REL) gets nothing: its arrows are tuples of maps,
+;;; and a set of tuples of maps is a different construction.
+;;; What the unfold cannot give -- a def-functoid unfolds only in a GOAL -- is
+;;; the membership theorem hom-NAME-member-iff (f in HOM-NAME(a, b) iff f in
+;;; FUN(C a, C b) and IS-HOM-NAME(a, b, f)); it is PROVEN, with the identity,
+;;; composition and sethood laws, by the generic drivers of
+;;; theorem-library/hom-laws.scm (sp/qed do not exist this early).
+;;; The binder `homf_' is used by nothing else in the tree.  The English is a
+;;; TEMPLATE string (the glossary and the copilot show only templates), built
+;;; from the noun DERIVED from the name: a human's `notation!' of the noun
+;;; ("Euclidean ring") comes after the declaration and is not seen here.
+(define (structure-hom-set-name name) (symbol-append 'HOM- name))
+
+(define (install-hom-set! name)
+  (let* ((sd (find-shape-structure name))
+         (cs (and sd (map car (filter (lambda (s) (eq? (cadr s) 'carrier))
+                                      (structure-def-slots sd))))))
+    (if (and cs (= (length cs) 1))
+        (let ((hs (structure-hom-set-name name))
+              (c  (car cs)))
+          (def-functoid hs '(a b)
+            `(SEP homf_ (FUN (,c a) (,c b)) (,(structure-hom-name name) a b homf_)))
+          (notation! hs 'kind 'functoid 'arity 2
+                     'english (string-append "the " (structure--noun-of name)
+                                             " morphisms from $1 to $2"))
+          hs)
+        #f)))
+
 ;;; A REFINEMENT shares its parent's shape, so a hom of X's is a hom of PARENTs
 ;;; between X's: IS-HOM-X(a,b,f...) <=> IS-X(a) and IS-X(b) and IS-HOM-PARENT(...).
 (define (install-refinement-hom-axiom! name parent)
@@ -1661,7 +1763,8 @@
                     (make-elementary-macete
                       (list r) '()
                       `(,(car accs) (,name ,r))
-                      (car ts)))
+                      (car ts)
+                      mname))
                   (register-provenance! mname 'definitional)
                   (loop (cdr accs) (cdr ts)
                         (cons (list (car accs) mname (car ts)) acc)))))))))

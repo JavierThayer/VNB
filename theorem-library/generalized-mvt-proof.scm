@@ -8,30 +8,14 @@
 ;;; deriv-constant-proof's global dc-* helpers.  Loads after deriv-constant-proof
 ;;; (and mvt-proof, for rolle / derivative-unique).  Uses `fact', no bc*.
 ;;; ====================================================================
+;;; RETIRED 2026-09-14 (proven): gmvt-aux-cont -- theorem-library/mvt-aux-guarded.scm (statement now GUARDED on a, b in RR)
+;;; RETIRED 2026-09-14 (proven): gmvt-aux-diff -- theorem-library/mvt-aux-guarded.scm (statement now GUARDED on a, b in RR)
 
 ;;; the auxiliary h(z) = f(z)*(g(b)-g(a)) - g(z)*(f(b)-f(a))
 (define GAUX '(VNB-LAMBDA z RR (- (* (f z) (- (g b) (g a))) (* (g z) (- (f b) (f a))))))
 
-;;; --- warranted calc-101 supports for GAUX (curried; linear combo of f,g) ---
-(add-to-pss 'gmvt-aux-cont
-  `(FORALL f (FORALL g (FORALL a (FORALL b (FORALL x
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS f x)
-     (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS g x)
-       (IS-CONTINUOUS-AT RR-MS RR-MS ,GAUX x)))))))))
-(warrant! 'gmvt-aux-cont 'reference
-  "h = (g(b)-g(a))f - (f(b)-f(a))g is a linear combination of f and g, hence
-   continuous wherever both f and g are (calculus.pdf Thm 2.11).")
-(topic! 'gmvt-aux-cont 'analysis)
+;;; --- GAUX auxiliaries: were supports here; now theorems in mvt-aux-guarded.scm ---
 
-(add-to-pss 'gmvt-aux-diff
-  `(FORALL f (FORALL g (FORALL a (FORALL b (FORALL x (FORALL L (FORALL M
-     (IMPLIES (IS-DIFF-AT f x L)
-     (IMPLIES (IS-DIFF-AT g x M)
-       (IS-DIFF-AT ,GAUX x (- (* L (- (g b) (g a))) (* M (- (f b) (f a)))))))))))))))
-(warrant! 'gmvt-aux-diff 'reference
-  "h'(x) = (g(b)-g(a))f'(x) - (f(b)-f(a))g'(x), from deriv-sum/scalar-mult on the
-   linear combination h = (g(b)-g(a))f - (f(b)-f(a))g (calculus.pdf Thm 2.11).")
-(topic! 'gmvt-aux-diff 'analysis)
 
 ;;; ====================================================================
 (sp '(FORALL f (FORALL g (FORALL a (FORALL b
@@ -131,7 +115,7 @@
 (quietly (lambda () (dc-grind!)))
 (let ((fl (any-pred (lambda (s) (let ((g (wff-formula (sequent-node-assertion s))))
             (and (not (sequent-node-grounded? s)) (pair? g) (eq? (car g) 'FORSOME)))) (proof-leaves))))
-  (when fl (set-proof-state-focus! *ps* fl)))
+  (when fl (dk-focus! fl)))
 (ew LT)
 (ew MT)
 (quietly (lambda () (dc-grind!) (ass-all)))

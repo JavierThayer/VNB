@@ -1,0 +1,570 @@
+;;; interval-taylor.scm -- TAYLOR'S FORMULA (2.18) FOR A FUNCTION ON ITS
+;;; INTERVAL, AND ITS TWO COROLLARIES.
+;;;
+;;; The vocabulary is structure-library/interval-taylor.scm, whose header
+;;; carries the notes' statement verbatim and the index-hygiene checks.  The
+;;; route is the notes' own: the generalized mean value theorem (2.11, here
+;;; `generalized-mvt-on-interval') applied to the auxiliary function (21) and
+;;; to G.
+;;;
+;;; THE ONE PIECE OF MACHINERY WORTH NAMING is section (1).  The library's
+;;; mean value theorems conclude with an EXISTENTIAL derivative value -- "there
+;;; is a theta and a value l with has-deriv-at(f, theta, l) and ..." -- because
+;;; the derivative is a relation here and not a function.  Every application of
+;;; 2.11 in which one of the two derivatives is KNOWN (2.13 with g = id, 2.18
+;;; with F, 2.19 with G = (b - x)^n) then has to pin that value down by
+;;; uniqueness.  `gmvt-with-known-derivative' does it once: when f's derivative
+;;; at every interior point is a given v(x), the conclusion is
+;;;
+;;;     v(xi) . (G(b) - G(a))  =  mu . (f(b) - f(a))
+;;;
+;;; with no existential on f's side.  It is 2.11 plus one citation of
+;;; `has-deriv-at-unique'.  v is asked to be a member of FUN(OOINT(a,b), RR)
+;;; and not left a bare family, because the proof INSTANTIATES at v(xi), and
+;;; the definedness certificate (CLAUDE.md, "Definedness") never accepts an
+;;; untyped application -- `f(a) with f in FUN(D, _) and a in D' is exactly the
+;;; clause that applies.
+;;;
+;;; Helper prefix: it-.
+;;;
+;;; Dependencies: structure-library/interval-taylor.scm,
+;;; structure-library/interval-calculus.scm,
+;;; theorem-library/interval-calculus-laws.scm (ooint-*, has-deriv-at-unique,
+;;; has-deriv-at-in-rr), interval-mvt.scm (generalized-mvt-on-interval),
+;;; ccint-basics.scm, taylor-proof.scm (factorial-real-pos,
+;;; recip-factorial-in-rr), rake-analysis2.scm (fun-domain-in-set),
+;;; fun-apply-type-proof.scm, rr-order-basics.scm (rr-pos-ne-zero).
+;;; NOTHING here cites has-deriv-at-more.scm.
+
+;;; ---- file-local driver helpers ---------------------------------------
+
+(define (it-head g) (and (pair? g) (car g)))
+
+;;; unfold IS-TAYLOR-FAMILY in the context and split its seven conjuncts.
+(define (it-open-family! d n a b)
+  (dk-split-all!
+   (dk-landed* (lambda () (mac-h 'IS-TAYLOR-FAMILY (list 'IS-TAYLOR-FAMILY d n a b))))))
+
+;;; the family's per-index universal, discriminated on the predicate it names.
+(define (it-family-univ)
+  (dk-pick (lambda (fm) (and (pair? fm) (eq? (car fm) 'FORALL)
+                             (dk-contains? fm 'IS-CONTINUOUS-ON)))
+           "the Taylor family universal"))
+
+(define (it-mul-real! x y)
+  (dk-have! (list 'AND (list 'IN x 'RR) (list 'IN y 'RR))
+    (lambda () (dk-conj-close! (lambda () (ass)))))
+  (fact 'rr-mul-closed x y))
+
+(define (it-first pred lst)
+  (cond ((null? lst) #f) ((pred (car lst)) (car lst)) (#t (it-first pred (cdr lst)))))
+
+;;; the eigenvariable whose landed typing is (IN v CLASS), CLASS matched by
+;;; PRED.  `dk-peel!' peels the WHOLE statement in one loop -- the four outer
+;;; binders, the predicate hypothesis and the inner guarded universal -- so
+;;; every eigenvariable of these proofs is read off ITS landing list, never
+;;; from a counted `di' (CLAUDE.md: loop on the landing, not on a count).
+(define (it-var-of lnd pred what)
+  (let ((ty (it-first (lambda (f) (and (pair? f) (eq? (car f) 'IN) (pred (caddr f)))) lnd)))
+    (if (not ty)
+        (error "it-var-of: no such typing landed" what (map expression->string lnd)))
+    (cadr ty)))
+
+;;; =====================================================================
+;;; (1) THE GENERALIZED MEAN VALUE THEOREM WITH ONE DERIVATIVE KNOWN.
+;;; =====================================================================
+(sp (make-wff "forall([a in rr, b in rr], a < b implies
+   forall([f, g, itv_],
+     itv_ in fun(ooint(a,b), rr) implies
+     f in fun(ccint(a,b), rr) implies
+     is-continuous-on(f, ccint(a,b)) implies
+     forall([x in ooint(a,b)], has-deriv-at(f, x, itv_(x))) implies
+     g in fun(ccint(a,b), rr) implies
+     is-continuous-on(g, ccint(a,b)) implies
+     forall([x in ooint(a,b)], forsome([m], has-deriv-at(g, x, m))) implies
+     forsome([xi in ooint(a,b)], forsome([m],
+        has-deriv-at(g, xi, m) and
+        itv_(xi) * (g(b) - g(a)) = m * (f(b) - f(a))))))"))
+(dk-peel!)
+(define it-known
+  (dk-pick (lambda (fm) (and (pair? fm) (eq? (car fm) 'FORALL) (dk-contains? fm 'itv_)
+                             (dk-contains? fm 'HAS-DERIV-AT)))
+           "the known-derivative universal"))
+;; 2.11 wants the existential form of f's differentiability.
+(dk-have! '(FORALL x (IMPLIES (IN x (OOINT a b)) (FORSOME l (HAS-DERIV-AT f x l))))
+  (lambda ()
+    (let ((z (dk-di-var!)))
+      (fact 'fun-apply-type-c 'itv_ '(OOINT a b) 'RR z)
+      (dk-apply! it-known z)
+      (ew (list 'itv_ z))
+      (ass))))
+(let ((th (dk-skolem! (dk-fact! 'generalized-mvt-on-interval 'a 'b 'f 'g))))
+  (dk-split-all!)
+  (let* ((lv (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the l existential")))
+         (mv (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the m existential"))))
+    (dk-split-all!)
+    (fact 'fun-apply-type-c 'itv_ '(OOINT a b) 'RR th)
+    (dk-apply! it-known th)
+    (fact 'has-deriv-at-unique 'f th lv (list 'itv_ th))
+    (ew th)
+    (dk-conj-close!
+     (lambda ()
+       (if (eq? (it-head (dk-goal)) 'IN)
+           (ass)
+           (begin
+             (ew mv)
+             (dk-conj-close!
+              (lambda ()
+                (if (eq? (it-head (dk-goal)) '=)
+                    (begin (subst (list '= (list 'itv_ th) lv)) (ass))
+                    (ass))))))))))
+(qed 'gmvt-with-known-derivative)
+(topic! 'gmvt-with-known-derivative 'analysis)
+(alias! 'gmvt-with-known-derivative
+        "the generalized mean value theorem when one derivative is known")
+
+;;; =====================================================================
+;;; (2) THE READ-OFFS OF IS-TAYLOR-FAMILY.
+;;;
+;;; `mac-h' CONSUMES the hypothesis it unfolds, so every consumer that needs
+;;; two of these would have to unfold inside a lane; these seven make each
+;;; conjunct a citation.  The three per-index ones detach the guarded universal
+;;; as well, which is the form every caller wants.
+;;; =====================================================================
+
+;;; forall itd_, itn_, a, b.  IS-TAYLOR-FAMILY(itd_, itn_, a, b) implies BODY
+(define (it-family-statement body)
+  (let* ((s0 (list 'IMPLIES '(IS-TAYLOR-FAMILY itd_ itn_ a b) body))
+         (s1 (list 'FORALL 'b s0))
+         (s2 (list 'FORALL 'a s1))
+         (s3 (list 'FORALL 'itn_ s2)))
+    (list 'FORALL 'itd_ s3)))
+
+(define (it-projection! concl name text)
+  (sp (make-wff (it-family-statement concl)))
+  (dk-peel!)
+  (it-open-family! 'itd_ 'itn_ 'a 'b)
+  (ass)
+  (qed name)
+  (topic! name 'analysis)
+  (alias! name text))
+
+(it-projection! '(IN itn_ NN) 'taylor-family-order-in-nn
+                "the order of a Taylor family is a natural number")
+(it-projection! '(<= 1 itn_) 'taylor-family-order-pos
+                "the order of a Taylor family is at least one")
+(it-projection! '(IN a RR) 'taylor-family-left-in-rr
+                "the left endpoint of a Taylor family is a real")
+(it-projection! '(IN b RR) 'taylor-family-right-in-rr
+                "the right endpoint of a Taylor family is a real")
+(it-projection! '(< a b) 'taylor-family-endpoints-lt
+                "the endpoints of a Taylor family are in order")
+(it-projection! '(IN (itd_ itn_) (FUN (OOINT a b) RR)) 'taylor-family-top-in-fun
+                "the top derivative of a Taylor family is a function on the open interval")
+
+;;; the three per-index read-offs.
+;;; forall itk_ in NN. itk_ < itn_ implies BODY
+(define (it-index-body body)
+  (let* ((s0 (list 'IMPLIES '(< itk_ itn_) body))
+         (s1 (list 'IMPLIES '(IN itk_ NN) s0)))
+    (list 'FORALL 'itk_ s1)))
+
+(define (it-index-projection! body name text)
+  (sp (make-wff (it-family-statement (it-index-body body))))
+  (let* ((lnd (dk-peel!))
+         (z   (it-var-of lnd (lambda (c) (eq? c 'NN)) "the index")))
+    (it-open-family! 'itd_ 'itn_ 'a 'b)
+    (dk-split-all! (list (dk-apply! (it-family-univ) z)))
+    ;; the third read-off's body is itself a universal, which `dk-peel!' has
+    ;; already opened: instantiate the landed one at ITS eigenvariable.
+    (if (eq? (it-head (dk-goal)) 'HAS-DERIV-AT)
+        (dk-apply! (dk-pick (lambda (fm) (and (pair? fm) (eq? (car fm) 'FORALL)
+                                              (dk-contains? fm 'HAS-DERIV-AT)))
+                            "the pointwise derivative universal")
+                   (it-var-of lnd (lambda (c) (and (pair? c) (eq? (car c) 'OOINT)))
+                              "the interior point")))
+    (ass))
+  (qed name)
+  (topic! name 'analysis)
+  (alias! name text))
+
+(it-index-projection! '(IN (itd_ itk_) (FUN (CCINT a b) RR))
+                      'taylor-family-in-fun
+                      "each derivative of a Taylor family is a function on the closed interval")
+(it-index-projection! '(IS-CONTINUOUS-ON (itd_ itk_) (CCINT a b))
+                      'taylor-family-continuous
+                      "each derivative of a Taylor family is continuous on the closed interval")
+(it-index-projection! '(FORALL itx_
+                         (IMPLIES (IN itx_ (OOINT a b))
+                           (HAS-DERIV-AT (itd_ itk_) itx_ ((itd_ (succ itk_)) itx_))))
+                      'taylor-family-deriv
+                      "each derivative of a Taylor family differentiates to the next")
+
+;;; =====================================================================
+;;; (3) THE VALUE OF THE AUXILIARY FUNCTION.  TAYLOR-AUX is the lambda on
+;;; [a, b]; at a point of [a, b] it is the sum, by beta.
+;;; =====================================================================
+(sp (make-wff '(FORALL itd_ (FORALL itn_ (FORALL a (FORALL b (FORALL itz_
+   (IMPLIES (IN itz_ (CCINT a b))
+     (== ((TAYLOR-AUX itd_ itn_ a b) itz_) (TAYLOR-SUM itd_ itn_ b itz_))))))))))
+(dk-peel!)
+(mac 'TAYLOR-AUX)
+(dk-lam-b!)
+(qrfl)
+(qed 'taylor-aux-value)
+(topic! 'taylor-aux-value 'analysis)
+(alias! 'taylor-aux-value
+        "the Taylor auxiliary function takes the Taylor sum as its value")
+
+;;; =====================================================================
+;;; (4) THE CLEARING IDENTITY.  `crs' declines any term containing `recip'
+;;; (CLAUDE.md), so the reciprocal is carried by a VARIABLE r with its defining
+;;; equation s . r = 1 as a hypothesis, and the caller instantiates.  This is
+;;; taylor-proof.scm's own move for the same obstacle.
+;;;
+;;; The two conclusions are (20) MULTIPLIED THROUGH by s = (n-1)! and (20)
+;;; LITERALLY, with the division written as the reader desugars it.
+;;; =====================================================================
+(define (it-rr-forall vars body)
+  (if (null? vars) body
+      (list 'FORALL (car vars)
+            (list 'IMPLIES (list 'IN (car vars) 'RR)
+                  (it-rr-forall (cdr vars) body)))))
+
+(sp (make-wff
+     (it-rr-forall '(p q r s u w)
+       (list 'IMPLIES '(= (* s r) 1)
+         (list 'IMPLIES '(= (* (* (* p q) r) w) u)
+           (list 'AND '(= (* u s) (* (* p q) w))
+                      '(= u (* (* (* p r) q) w))))))))
+(dk-peel!)
+(dk-conj-close!
+ (lambda ()
+   (subst '(= u (* (* (* p q) r) w)))
+   (if (dk-contains? (dk-goal) 's)
+       (begin
+         (have! '(= (* (* (* (* p q) r) w) s) (* (* (* p q) w) (* s r))) (lambda () (crs)))
+         (subst '(= (* (* (* (* p q) r) w) s) (* (* (* p q) w) (* s r))))
+         (subst '(= (* s r) 1))
+         (crs))
+       (crs))))
+(qed 'taylor-clear-recip)
+(topic! 'taylor-clear-recip 'analysis)
+(alias! 'taylor-clear-recip
+        "clearing a reciprocal coefficient from a product identity")
+
+;;; =====================================================================
+;;; (5) THE BOUNDED-POINTWISE PARTIAL SUM.  `series-partial-sum-in-rr-ptwise'
+;;; (series-linearity.scm) asks for the summand to be real at EVERY k in NN; a
+;;; Taylor family gives d(k) only for k <= n, so that theorem cannot be cited
+;;; here.  This is the same induction under the guard `k < n', which is the
+;;; hypothesis every FINITE family actually supplies.
+;;; =====================================================================
+(sp (make-wff
+  (list 'FORALL 'itn_ (list 'IMPLIES '(IN itn_ NN)
+    (list 'FORALL 'itf_
+      (list 'IMPLIES
+        (list 'FORALL 'itk_ (list 'IMPLIES '(IN itk_ NN)
+              (list 'IMPLIES '(< itk_ itn_) '(IN (itf_ itk_) RR))))
+        '(IN (SERIES-PARTIAL-SUM itf_ itn_) RR)))))))
+(let* ((br (use-induction)) (nv (cdr (assq 'var br))) (ih (cdr (assq 'ih br))))
+  (dk-focus! (cdr (assq 'base br)))
+  (dk-peel!)
+  (mac 'series-partial-sum-zero)
+  (fact 'rr-zero-in)
+  (ass)
+  (dk-focus! (cdr (assq 'step br)))
+  (let* ((lnd (dk-peel!))
+         (fv  (cadr (cadr (dk-goal))))
+         (pw  (it-first (dk-head? 'FORALL) lnd)))
+    (fact 'nn-succ-closed nv)
+    (fact 'nn-in-rr nv)
+    (fact 'nn-in-rr (list 'succ nv))
+    (fact 'bt-lt-succ nv)
+    (dk-have! (list 'FORALL 'itk_ (list 'IMPLIES '(IN itk_ NN)
+                (list 'IMPLIES (list '< 'itk_ nv) (list 'IN (list fv 'itk_) 'RR))))
+      (lambda ()
+        (let* ((l2 (dk-peel!))
+               (z  (it-var-of l2 (lambda (c) (eq? c 'NN)) "the index")))
+          (fact 'nn-in-rr z)
+          (dk-have! (list '< z (list 'succ nv))
+            (lambda () (dk-ineq! (list '< z nv) (list '< nv (list 'succ nv))
+                                 (list 'IN z 'RR) (list 'IN nv 'RR)
+                                 (list 'IN (list 'succ nv) 'RR))))
+          (dk-apply! pw z)
+          (ass))))
+    (dk-apply! ih fv)
+    (dk-apply! pw nv)
+    (mac 'series-partial-sum-succ)
+    (have! (list 'AND (list 'IN (list 'SERIES-PARTIAL-SUM fv nv) 'RR)
+                      (list 'IN (list fv nv) 'RR)))
+    (fact 'rr-add-closed (list 'SERIES-PARTIAL-SUM fv nv) (list fv nv))
+    (ass)))
+(qed 'series-partial-sum-in-rr-below)
+(topic! 'series-partial-sum-in-rr-below 'analysis)
+(alias! 'series-partial-sum-in-rr-below
+        "a family real below the bound has real partial sums up to the bound")
+
+;;; =====================================================================
+;;; (6) THE SUMMAND, THE SUM AND THE AUXILIARY FUNCTION.
+;;; =====================================================================
+(sp (make-wff '(FORALL itd_ (FORALL b (FORALL itv_ (FORALL itk_
+   (IMPLIES (IN itk_ NN)
+     (== ((TAYLOR-TERM itd_ b itv_) itk_)
+         (* (* ((itd_ itk_) itv_) (power (- b itv_) itk_))
+            (recip (FACTORIAL itk_)))))))))))
+(dk-peel!)
+(mac 'TAYLOR-TERM)
+(dk-lam-b!)
+(qrfl)
+(qed 'taylor-term-value)
+(topic! 'taylor-term-value 'analysis)
+(alias! 'taylor-term-value "the value of the Taylor summand at an index")
+
+(sp (make-wff (it-family-statement
+  '(FORALL itz_ (IMPLIES (IN itz_ (CCINT a b))
+     (IN (TAYLOR-SUM itd_ itn_ b itz_) RR))))))
+(let* ((lnd (dk-peel!))
+       (zv  (it-var-of lnd (lambda (c) (and (pair? c) (eq? (car c) 'CCINT))) "the point")))
+  (fact 'taylor-family-order-in-nn 'itd_ 'itn_ 'a 'b)
+  (fact 'taylor-family-left-in-rr 'itd_ 'itn_ 'a 'b)
+  (fact 'taylor-family-right-in-rr 'itd_ 'itn_ 'a 'b)
+  (fact 'ccint-elt-in-rr 'a 'b zv)
+  (fact 'rr-sub-in-rr 'b zv)
+  (dk-have! (list 'FORALL 'itk_ (list 'IMPLIES '(IN itk_ NN)
+              (list 'IMPLIES '(< itk_ itn_)
+                (list 'IN (list (list 'TAYLOR-TERM 'itd_ 'b zv) 'itk_) 'RR))))
+    (lambda ()
+      (let* ((l2 (dk-peel!))
+             (kv (it-var-of l2 (lambda (c) (eq? c 'NN)) "the index"))
+             (dk (list 'itd_ kv))
+             (pk (list 'power (list '- 'b zv) kv))
+             (rk (list 'recip (list 'FACTORIAL kv))))
+        (fact 'taylor-family-in-fun 'itd_ 'itn_ 'a 'b kv)
+        (fact 'fun-apply-type-c dk '(CCINT a b) 'RR zv)
+        (fact 'power-closed-at kv (list '- 'b zv))
+        (fact 'recip-factorial-in-rr kv)
+        (it-mul-real! (list dk zv) pk)
+        (it-mul-real! (list '* (list dk zv) pk) rk)
+        (fact 'taylor-term-value 'itd_ 'b zv kv)
+        (subst (list '== (list (list 'TAYLOR-TERM 'itd_ 'b zv) kv)
+                     (list '* (list '* (list dk zv) pk) rk)))
+        (ass))))
+  (mac 'TAYLOR-SUM)
+  (fact 'series-partial-sum-in-rr-below 'itn_ (list 'TAYLOR-TERM 'itd_ 'b zv))
+  (ass))
+(qed 'taylor-sum-in-rr)
+(topic! 'taylor-sum-in-rr 'analysis)
+(alias! 'taylor-sum-in-rr "the Taylor sum of a Taylor family is a real")
+
+(sp (make-wff (it-family-statement
+  '(IN (TAYLOR-AUX itd_ itn_ a b) (FUN (CCINT a b) RR)))))
+(dk-peel!)
+(fact 'taylor-family-order-pos 'itd_ 'itn_ 'a 'b)
+(fact 'taylor-family-order-in-nn 'itd_ 'itn_ 'a 'b)
+(fact 'nn-in-rr 'itn_)
+(fact 'nn-zero-in)
+(dk-have! '(< 0 itn_) (lambda () (dk-ineq! '(<= 1 itn_) '(IN itn_ RR))))
+(fact 'taylor-family-in-fun 'itd_ 'itn_ 'a 'b 0)
+(fact 'fun-domain-in-set '(CCINT a b) 'RR '(itd_ 0))
+(mac 'TAYLOR-AUX)
+(for-each
+ (lambda (leaf)
+   (dk-focus! leaf)
+   (if (eq? (it-head (dk-goal)) 'FORALL)
+       (let ((z (dk-di-var!)))
+         (fact 'taylor-sum-in-rr 'itd_ 'itn_ 'a 'b z)
+         (ass))
+       (ass)))
+ (dk-opened (lambda () (lam-t))))
+(qed 'taylor-aux-in-fun)
+(topic! 'taylor-aux-in-fun 'analysis)
+(alias! 'taylor-aux-in-fun
+        "the Taylor auxiliary function is a function on the closed interval")
+
+;;; =====================================================================
+;;; (5) THEOREM 2.18, in the notes' form, from the auxiliary function's four
+;;; properties.
+;;;
+;;; WHAT IS ASSUMED AND WHAT IS NOT.  The four hypotheses on TAYLOR-AUX --
+;;; its FUN typing, its continuity on [a, b], its derivative on (a, b) and the
+;;; value of the sum at the right endpoint -- are the notes' four unstated
+;;; steps: "this function is well-defined", "F is continuous", the telescoping
+;;; computation of F'(x), and "F(b) - F(a) = R_n(a, b)".  They are the WHOLE
+;;; remaining obligation; everything else of 2.18 is below.  Each is an
+;;; induction on the order and none is assumed as a SUPPORT: they are
+;;; hypotheses of this theorem, so the bill stays `modulo 0'.
+;;;
+;;; n = succ(m).  The notes' n >= 1 is written as a successor so that `power'
+;;; and `FACTORIAL' receive n - 1 = m as a natural number; RR subtraction does
+;;; not deliver one, and `succ' off NN is uninterpreted.
+;;;
+;;; BOTH FORMS OF (20) ARE CONCLUDED.  The first is (20) multiplied through by
+;;; (n-1)!, the form free of division that docs/real-calculus-statements.tex
+;;; proposes; the second is (20) LITERALLY, with the division exactly where the
+;;; notes divide.  THE GUARD THAT MAKES THE DIVISOR NON-ZERO IS NOT A
+;;; HYPOTHESIS AND DOES NOT NEED TO BE: the notes divide by (n-1)! and by
+;;; nothing else -- there is no G'(xi) in a denominator -- and (n-1)! is a
+;;; positive real for every m in NN (`factorial-real-pos'), so `recip' of it is
+;;; defined outright.  The division is written `* recip(FACTORIAL(m))', which
+;;; is what the reader desugars `/ FACTORIAL(m)' to.
+;;; =====================================================================
+
+(define it-nn '(succ itm_))
+(define it-aux (list 'TAYLOR-AUX 'itd_ it-nn 'a 'b))
+(define it-top (list 'itd_ it-nn))
+(define it-fac '(FACTORIAL itm_))
+(define it-rcp (list 'recip it-fac))
+(define (it-val x)
+  (list '* (list '* (list it-top x) (list 'power (list '- 'b x) 'itm_)) it-rcp))
+(define it-vlam (list 'VNB-LAMBDA 'itw_ '(OOINT a b) (it-val 'itw_)))
+(define it-sum-at (lambda (x) (list 'TAYLOR-SUM 'itd_ it-nn 'b x)))
+(define it-rem (list 'TAYLOR-REM 'itd_ it-nn 'a 'b))
+
+(define (it-imp-chain hyps concl)
+  (if (null? hyps) concl (list 'IMPLIES (car hyps) (it-imp-chain (cdr hyps) concl))))
+
+(define it-eq1
+  (list '= (list '* (list '* 'itmu_ it-rem) it-fac)
+           (list '* (list '* (list it-top 'itxi_) (list 'power '(- b itxi_) 'itm_))
+                 '(- (itg_ b) (itg_ a)))))
+(define it-eq2
+  (list '= (list '* 'itmu_ it-rem)
+           (list '* (list '* (list '* (list it-top 'itxi_) it-rcp)
+                          (list 'power '(- b itxi_) 'itm_))
+                 '(- (itg_ b) (itg_ a)))))
+(define it-concl
+  (list 'FORSOME 'itxi_
+    (list 'AND '(IN itxi_ (OOINT a b))
+      (list 'FORSOME 'itmu_
+        (list 'AND (list 'HAS-DERIV-AT 'itg_ 'itxi_ 'itmu_)
+              (list 'AND it-eq1 it-eq2))))))
+(define it-g-block
+  (list 'FORALL 'itg_
+    (it-imp-chain
+     (list '(IN itg_ (FUN (CCINT a b) RR))
+           (list 'IS-CONTINUOUS-ON 'itg_ '(CCINT a b))
+           (list 'FORALL 'itx_ (list 'IMPLIES '(IN itx_ (OOINT a b))
+                 (list 'FORSOME 'itl_ (list 'HAS-DERIV-AT 'itg_ 'itx_ 'itl_)))))
+     it-concl)))
+(define it-statement
+  (list 'FORALL 'a (list 'IMPLIES '(IN a RR)
+    (list 'FORALL 'b (list 'IMPLIES '(IN b RR)
+      (list 'FORALL 'itd_
+        (list 'FORALL 'itm_ (list 'IMPLIES '(IN itm_ NN)
+          (it-imp-chain
+           (list (list 'IS-TAYLOR-FAMILY 'itd_ it-nn 'a 'b)
+                 (list 'IS-CONTINUOUS-ON it-aux '(CCINT a b))
+                 (list 'FORALL 'itx_ (list 'IMPLIES '(IN itx_ (OOINT a b))
+                       (list 'HAS-DERIV-AT it-aux 'itx_ (it-val 'itx_))))
+                 (list '= (it-sum-at 'b) '((itd_ 0) b)))
+           it-g-block)))))))))
+
+(sp (make-wff it-statement))
+
+(dk-peel!)
+(define it-h2
+  (dk-pick (lambda (fm) (and (pair? fm) (eq? (car fm) 'FORALL) (dk-contains? fm 'TAYLOR-AUX)))
+           "the derivative hypothesis on the auxiliary function"))
+(fact 'taylor-family-endpoints-lt 'itd_ it-nn 'a 'b)
+(fact 'taylor-aux-in-fun 'itd_ it-nn 'a 'b)
+(fact 'taylor-family-top-in-fun 'itd_ it-nn 'a 'b)
+(fact 'recip-factorial-in-rr 'itm_)
+(dk-split! (dk-fact! 'factorial-real-pos 'itm_))
+(fact 'fun-domain-in-set '(OOINT a b) 'RR it-top)
+;; the derivative VALUE as a function on the open interval
+(dk-have! (list 'IN it-vlam '(FUN (OOINT a b) RR))
+  (lambda ()
+    (for-each
+     (lambda (leaf)
+       (dk-focus! leaf)
+       (if (eq? (it-head (dk-goal)) 'FORALL)
+           (let ((z (dk-di-var!)))
+             (fact 'ooint-elt-in-rr 'a 'b z)
+             (fact 'fun-apply-type-c it-top '(OOINT a b) 'RR z)
+             (fact 'rr-sub-in-rr 'b z)
+             (fact 'power-closed-at 'itm_ (list '- 'b z))
+             (it-mul-real! (list it-top z) (list 'power (list '- 'b z) 'itm_))
+             (it-mul-real! (list '* (list it-top z) (list 'power (list '- 'b z) 'itm_)) it-rcp)
+             (ass))
+           (ass)))
+     (dk-opened (lambda () (lam-t))))))
+;; the derivative hypothesis in the shape gmvt-with-known-derivative wants
+(dk-have! (list 'FORALL 'x (list 'IMPLIES '(IN x (OOINT a b))
+            (list 'HAS-DERIV-AT it-aux 'x (list it-vlam 'x))))
+  (lambda ()
+    (let ((z (dk-di-var!)))
+      (dk-apply! it-h2 z)
+      (dk-lam-b!)
+      (ass))))
+;; the endpoint values of the auxiliary function
+(define (it-endpoint-in! z)
+  (dk-have! (list 'IN z '(CCINT a b))
+    (lambda ()
+      (mac 'ccint-membership)
+      (dk-conj-close!
+       (lambda ()
+         (if (eq? (it-head (dk-goal)) 'IN)
+             (ass)
+             (dk-ineq! '(IN a RR) '(IN b RR) '(< a b))))))))
+(it-endpoint-in! 'a)
+(it-endpoint-in! 'b)
+(fact 'taylor-aux-value 'itd_ it-nn 'a 'b 'a)
+(fact 'taylor-aux-value 'itd_ it-nn 'a 'b 'b)
+(fact 'fun-apply-type-c it-aux '(CCINT a b) 'RR 'a)
+(fact 'fun-apply-type-c it-aux '(CCINT a b) 'RR 'b)
+(fact 'rr-sub-in-rr (list it-aux 'b) (list it-aux 'a))
+(dk-have! (list 'IN it-rem 'RR)
+  (lambda ()
+    (mac 'TAYLOR-REM)
+    (subst (list '= '((itd_ 0) b) (it-sum-at 'b)))
+    (subst (list '== (it-sum-at 'b) (list it-aux 'b)))
+    (subst (list '== (it-sum-at 'a) (list it-aux 'a)))
+    (ass)))
+;; 2.11 with the known derivative
+(let ((xi (dk-skolem! (dk-fact! 'gmvt-with-known-derivative 'a 'b it-aux 'itg_ it-vlam))))
+  (dk-split-all!)
+  (let ((mu (dk-skolem! (dk-pick (dk-head? 'FORSOME) "the derivative existential"))))
+    (dk-split-all!)
+    (let* ((pv (list it-top xi))
+           (qv (list 'power (list '- 'b xi) 'itm_))
+           (wv '(- (itg_ b) (itg_ a)))
+           (uv (list '* 'itmu_ it-rem)))
+      (fact 'ooint-elt-in-rr 'a 'b xi)
+      (fact 'fun-apply-type-c it-top '(OOINT a b) 'RR xi)
+      (fact 'rr-sub-in-rr 'b xi)
+      (fact 'power-closed-at 'itm_ (list '- 'b xi))
+      (fact 'has-deriv-at-in-rr 'itg_ xi mu)
+      (fact 'fun-apply-type-c 'itg_ '(CCINT a b) 'RR 'a)
+      (fact 'fun-apply-type-c 'itg_ '(CCINT a b) 'RR 'b)
+      (fact 'rr-sub-in-rr '(itg_ b) '(itg_ a))
+      (it-mul-real! mu it-rem)
+      (dk-have! (list 'AND (list 'IN it-fac 'RR) (list 'NOT (list '= it-fac 0)))
+        (lambda ()
+          (fact 'rr-pos-ne-zero it-fac)
+          (dk-conj-close! (lambda () (ass)))))
+      (fact 'rr-recip-inverse it-fac)
+      ;; the beta value of the known derivative at xi
+      (dk-have! (list '== (list it-vlam xi) (it-val xi)) (lambda () (dk-lam-b!) (qrfl)))
+      ;; the premise of the clearing identity
+      (dk-have! (list '= (list '* (list '* (list '* pv qv) it-rcp) wv)
+                      (list '* mu it-rem))
+        (lambda ()
+          (mac 'TAYLOR-REM)
+          (subst (list '= '((itd_ 0) b) (it-sum-at 'b)))
+          (subst (list '== (it-sum-at 'b) (list it-aux 'b)))
+          (subst (list '== (it-sum-at 'a) (list it-aux 'a)))
+          (subst (list '= (it-val xi) (list it-vlam xi)))
+          (ass)))
+      (dk-split-all!
+       (list (dk-fact! 'taylor-clear-recip pv qv it-rcp it-fac (list '* mu it-rem) wv)))
+      (ew xi)
+      (dk-conj-close!
+       (lambda ()
+         (if (eq? (it-head (dk-goal)) 'IN)
+             (ass)
+             (begin (ew mu) (dk-conj-close! (lambda () (ass))))))))))
+(qed 'taylor-formula-on-interval)
+(topic! 'taylor-formula-on-interval 'analysis)
+(alias! 'taylor-formula-on-interval
+        "Taylor's formula with a general remainder for a function on a closed interval")

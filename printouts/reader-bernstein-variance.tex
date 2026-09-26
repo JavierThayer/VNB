@@ -1,0 +1,418 @@
+\documentclass[11pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb, amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newcommand{\fit}[1]{\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{proposition}[bernstein-variance]
+Suppose $\operatorname{n\_} \in \mathbb{N}$ and $\operatorname{x\_} \in \mathbb{R}$. Let $\operatorname{h\_} \text{ be s.t. } \forall \operatorname{k\_} \in \mathbb{N}.\; (\operatorname{h\_}(\operatorname{k\_}) = \cdot(\cdot(-(\operatorname{k\_}, \cdot(\operatorname{n\_}, \operatorname{x\_})), -(\operatorname{k\_}, \cdot(\operatorname{n\_}, \operatorname{x\_}))), \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})))$. Then
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}(\operatorname{h\_}, \operatorname{succ}(\operatorname{n\_})) \\ =\; \cdot(\cdot(\operatorname{n\_}, \operatorname{x\_}), -(1, \operatorname{x\_})) \end{array}
+\end{equation*}
+
+\end{proposition}
+
+\begin{proof}
+\begin{itemize}[leftmargin=2.8em, itemsep=4pt, parsep=1pt]
+  \item[\textbf{5--12}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{n\_} \in \mathbb{R}) \\
+(1 \in \mathbb{R}) \\
+(\operatorname{n\_} \in \mathbb{Z}) \\
+((\operatorname{n\_} + 1) \in \mathbb{N}) \\
+((\operatorname{n\_} \cdot \operatorname{x\_}) \in \mathbb{R}) \\
+((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} ((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \\ \in\; \mathbb{R} \end{array} \\
+\begin{array}{@{}l@{}} ((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+
+  \item[\textbf{13}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \quad \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{14--17}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{18}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ \quad \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{19--20}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{21--22}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{23}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} ((\operatorname{k\_} \cdot (\operatorname{k\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{24--29}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R}) \\
+((\operatorname{k\_} \cdot (\operatorname{k\_} - 1)) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} ((\operatorname{k\_} \cdot (\operatorname{k\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{30}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ \quad \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{31--32}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{33--34}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{35}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{36--40}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{41}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) \\ \quad \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{42--43}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{44--45}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{46}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) \\ \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{47--52}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array} \\
+\begin{array}{@{}l@{}} (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{53}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ \quad \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{54--55}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{56--57}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{58}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{59--63}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{64}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) \\ \quad \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{65--66}] $\beta$-reduce the applied $\lambda$.
+  \item[\textbf{67--68}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{69}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) \\ \in\; \mathbb{R} \end{array}
+\end{equation*}
+
+  \item[\textbf{70--77}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array} \\
+\begin{array}{@{}l@{}} (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) \\ \in\; \mathbb{R} \end{array} \\
+\begin{array}{@{}l@{}} (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \\ \in\; \mathbb{R} \end{array} \\
+\begin{array}{@{}l@{}} ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}))) \\ \in\; \mathbb{R} \end{array}
+\end{array}
+\end{equation*}
+  \emph{(side goal holds by assumption)}
+  \item[\textbf{78}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad \operatorname{h\_}(\operatorname{k\_}) \\ \quad =\; ((\lambda \operatorname{j\_} \in \mathbb{N}.\; ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) + (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{79--81}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{82}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{h\_}(\operatorname{k\_}) \\ =\; ((\lambda \operatorname{j\_} \in \mathbb{N}.\; ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) + (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{83--85}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{86}] Instantiate the hypothesis:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{h\_}(\operatorname{k\_}) \\ =\; (((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_}))) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{87}] Substitute the established equation.
+  \item[\textbf{88--89}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+  \item[\textbf{90}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) \\ \quad =\; ((\lambda \operatorname{j\_} \in \mathbb{N}.\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) + (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{91--93}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{94}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) \\ =\; ((\lambda \operatorname{j\_} \in \mathbb{N}.\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) + (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{95--97}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{98--99}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+  \item[\textbf{100}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) \\ \quad =\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\lambda \operatorname{j\_} \in \mathbb{N}.\; (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{101--103}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{104}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))))(\operatorname{k\_}) \\ =\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\lambda \operatorname{j\_} \in \mathbb{N}.\; (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{105--107}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{108--109}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+  \item[\textbf{110}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ \quad =\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{111--113}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{114}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \operatorname{j\_} \in \mathbb{N}.\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ =\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{115--117}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{118--119}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+  \item[\textbf{120}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ \quad =\; ((\operatorname{k\_} \cdot (\operatorname{k\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{121--123}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{124}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \operatorname{j\_} \in \mathbb{N}.\; ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ =\; ((\operatorname{k\_} \cdot (\operatorname{k\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{125--127}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{128--129}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+  \item[\textbf{130}] Introduce the auxiliary claim
+\begin{equation*}
+\begin{array}{@{}l@{}} \forall \operatorname{k\_} \in \mathbb{N}. \\ \quad (\lambda \operatorname{j\_} \in \mathbb{N}.\; (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ \quad =\; (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{131--133}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+(\operatorname{k\_} \in \mathbb{Z}) \\
+(\operatorname{k\_} \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{134}] By $\operatorname{rr\text{-}one\text{-}in}$, reduce to
+\begin{equation*}
+\begin{array}{@{}l@{}} (\lambda \operatorname{j\_} \in \mathbb{N}.\; (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))(\operatorname{k\_}) \\ =\; (\operatorname{k\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{135--137}] \emph{Establish in-carrier / typing side-conditions:}
+\begin{equation*}
+\begin{array}{@{}l@{}}
+((\operatorname{k\_} - 1) \in \mathbb{R}) \\
+\begin{array}{@{}l@{}} \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{k\_}) \\ \in\; \mathbb{R} \end{array} \\
+((\operatorname{k\_} - (\operatorname{n\_} \cdot \operatorname{x\_})) \in \mathbb{R})
+\end{array}
+\end{equation*}
+
+  \item[\textbf{138--139}] $\beta$-reduce the applied $\lambda$.  \emph{(closes)}
+  \item[\textbf{140}] By $\operatorname{series\text{-}partial\text{-}sum\text{-}add\text{-}ptwise}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}(\operatorname{h\_}, (\operatorname{n\_} + 1)) \\ =\; (\operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))), (\operatorname{n\_} + 1)) + \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))), (\operatorname{n\_} + 1))) \end{array}
+\end{equation*}
+
+  \item[\textbf{141}] Substitute the established equation.
+  \item[\textbf{142}] By $\operatorname{series\text{-}partial\text{-}sum\text{-}add\text{-}ptwise}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; \\ \quad \quad ((((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))) + (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))), \\ \quad (\operatorname{n\_} + 1)) \\ =\; (\operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))), (\operatorname{n\_} + 1)) + \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))), (\operatorname{n\_} + 1))) \end{array}
+\end{equation*}
+
+  \item[\textbf{143}] Substitute the established equation.
+  \item[\textbf{144}] By $\operatorname{series\text{-}partial\text{-}sum\text{-}scale\text{-}ptwise}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; \\ \quad \quad (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_})))), \\ \quad (\operatorname{n\_} + 1)) \\ =\; (((1 - (\operatorname{n\_} \cdot \operatorname{x\_})) - (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))), (\operatorname{n\_} + 1))) \end{array}
+\end{equation*}
+
+  \item[\textbf{145}] Substitute the established equation.
+  \item[\textbf{146}] By $\operatorname{series\text{-}partial\text{-}sum\text{-}scale\text{-}ptwise}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; \\ \quad \quad (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))), \\ \quad (\operatorname{n\_} + 1)) \\ =\; (((\operatorname{n\_} \cdot \operatorname{x\_}) \cdot (\operatorname{n\_} \cdot \operatorname{x\_})) \cdot \operatorname{series\text{-}partial\text{-}sum}(\operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_}), (\operatorname{n\_} + 1))) \end{array}
+\end{equation*}
+
+  \item[\textbf{147}] Substitute the established equation.
+  \item[\textbf{148}] By $\operatorname{bernstein\text{-}moment\text{-}2}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; \\ \quad \quad ((\operatorname{j\_} \cdot (\operatorname{j\_} - 1)) \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))), \\ \quad (\operatorname{n\_} + 1)) \\ =\; ((\operatorname{n\_} \cdot (\operatorname{n\_} - 1)) \cdot (\operatorname{x\_} \cdot \operatorname{x\_})) \end{array}
+\end{equation*}
+
+  \item[\textbf{149}] Substitute the established equation.
+  \item[\textbf{150}] By $\operatorname{bernstein\text{-}moment\text{-}1}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}((\lambda \operatorname{j\_} \in \mathbb{N}.\; \\ \quad \quad (\operatorname{j\_} \cdot \operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_})(\operatorname{j\_}))), \\ \quad (\operatorname{n\_} + 1)) \\ =\; (\operatorname{n\_} \cdot \operatorname{x\_}) \end{array}
+\end{equation*}
+
+  \item[\textbf{151}] Substitute the established equation.
+  \item[\textbf{152}] By $\operatorname{bernstein\text{-}partition}$:
+\begin{equation*}
+\begin{array}{@{}l@{}} \operatorname{series\text{-}partial\text{-}sum}(\operatorname{bernstein\text{-}basis}(\operatorname{n\_}, \operatorname{x\_}), (\operatorname{n\_} + 1)) \\ =\; 1 \end{array}
+\end{equation*}
+
+  \item[\textbf{153--154}] Substitute the established equation.  \emph{(closes)}
+\end{itemize}
+\end{proof}
+\end{document}

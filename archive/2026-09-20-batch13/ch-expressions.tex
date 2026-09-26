@@ -1,0 +1,1401 @@
+\chapter{The expression language}
+\label{sec:language}
+
+
+The language has two syntactic layers.
+
+The \emph{internal layer} represents every expression as a plain
+Lisp S-expression.  This representation is time-tested and deliberately
+simple: it requires no parser, supports straightforward recursive
+processing, and is directly inspectable and constructible at the Scheme
+REPL.  All prover machinery---inference rules, substitution, pattern
+matching, macetes, arithmetic evaluation---operates on this layer.
+Users are not required to engage with it directly; however, in the
+tradition of early Lisp, they are free to do so.  Constructing or
+manipulating S-expressions by hand, loading axioms as quoted lists,
+or writing Scheme code that builds formulas programmatically are all
+legitimate and supported uses.
+
+The \emph{string syntax} is the surface notation accepted by
+\texttt{make-wff-from-string} and emitted by \texttt{wff->string}
+/ \texttt{pp}: binary operators are written infix, multi-argument
+terms use functional notation, quantifiers use the binding-list form,
+and set expressions use brace notation.
+Section~\ref{sec:parser-printer} describes both layers in full.
+The examples in this manual use string syntax for user-facing
+formulas; internal S-expression forms appear only in theory and
+structure definitions.
+
+MIT~Scheme reads symbols case-insensitively (folding to lower case),
+so \texttt{FORALL}, \texttt{Forall}, and \texttt{forall} are the same
+symbol once read.
+
+As should be the case in any formal system, we distingish between
+syntax and semantics. In what follows, we distinguish two distinct
+types of syntactic categories, each with its own semantics: formulas
+and terms. These syntactic categories can be viewed in either the
+internal syntax or the string syntax. In the presentation below, we
+adhere to the string syntax.
+
+
+\section{Formulas}
+
+Semantically, a formula is a syntactic expression that can have only
+two values: TRUTH or FALSEHOOD. 
+%
+\begin{remark}\label{remark:27137-52766-301830}
+%
+Note that ``UNDEFINED'' is not a possible value for a
+formula. However, the value of any particular formula may not be
+known. In fact, since we are silent about how elements in our system
+may be interpreted in a pure von Neumann Bernays theory, different
+interpretations may yield different values.
+%
+\end{remark}
+
+Formulas can be produced from other ones by basic logical operators,
+including quantification over variables that range over objects.
+%
+In the following table, the symbols $p$, $q$ are not variables that
+range over formulas, but rather placeholders that can instantiated
+with well-formed formulas.
+
+\begin{itemize}
+\item \texttt{truth} propositional truth $\top$
+\item \texttt{falsity} propositional falsity $\bot$
+\item \texttt{not($p$)} negation $\lnot p$
+\item \texttt{$p$ and $q$} conjunction $p \land q$
+\item \texttt{$p$ or $q$} disjunction $p \lor q$
+\item \texttt{$p$ implies $q$} implication $p \Rightarrow q$
+\item \texttt{$p$ iff $q$} biconditional $p \Leftrightarrow q$
+\item \texttt{forall([$b_1$, \ldots, $b_n$], $p$)} universal quantification; see Section~\ref{sec:multiquant}
+\item \texttt{forsome([$b_1$, \ldots, $b_n$], $p$)} existential quantification; see Section~\ref{sec:multiquant}
+\item \texttt{$a$ = $b$} strict equality: both defined and equal
+\item \texttt{$a$ == $b$} quasi-equality: both defined and equal, or both undefined
+\item \texttt{$t$ := $s$} definition (sugar for \texttt{$t$ == $s$}): $t$ is defined iff $s$ is, and then equal
+\item \texttt{$a$ in $b$} membership $a \in b$
+\item \texttt{$A$ subset $B$} subclass $A \subseteq B$; see Section~\ref{sec:class-set-discipline}
+\end{itemize}
+
+\noindent
+The quantifiers \texttt{forall} and \texttt{forsome} range over \emph{all
+classes} (the system is single-sorted).  There is no restriction to sets.
+
+\subsection{Quantification}
+\label{sec:multiquant}
+
+Both \texttt{forall} and \texttt{forsome} require a bracket-enclosed
+\emph{binding list}, even for a single variable:
+
+\begin{itemize}
+\item \texttt{forall([binding, ...], body)}
+
+\item \texttt{forsome([binding, ...], body)}
+\end{itemize}
+
+\noindent
+\texttt{forall(x, x = x)} is a syntax error; the correct form is
+\texttt{forall([x], x = x)}.
+
+\noindent
+Each \emph{binding} in the string syntax is one of:
+
+\begin{itemize}
+\item \texttt{$x$} unrestricted variable ranging over all classes
+\item \texttt{$x$ in $A$} variable $x$ restricted to class $A$
+\item \texttt{[$n_1$, \ldots, $n_k$] in $A$} tuple destructuring: fresh $t \in A$, components bound to \texttt{nth(1,~$t$)}, \ldots, \texttt{nth($k$,~$t$)}
+\end{itemize}
+
+\noindent
+In the \emph{S-expression syntax} a binding can additionally group
+several unrestricted variables into a single spec:
+\[
+  \texttt{(FORALL ((}x_1\ x_2\ \ldots\ x_n\texttt{) ...) body)}
+\]
+\begin{sloppypar}
+The grouped binding \texttt{($x_1$ $x_2$ \ldots\ $x_n$)} is exactly
+equivalent to the sequence of single-variable bindings
+\texttt{($x_1$) ($x_2$) \ldots\ ($x_n$)}.  The expander
+\texttt{expand-\allowbreak destructuring-\allowbreak quantifiers}
+of \texttt{wff.scm} nests one
+quantifier per variable of the spec, in place, so that the two surface
+forms yield \emph{identical} internal expressions---equal, not merely
+alpha-equivalent.  The same holds for a grouped spec occurring in a
+longer binding list alongside restricted specs.
+\end{sloppypar}
+
+Three forms of the same formula are therefore in circulation:
+
+\begin{enumerate}[label=(\arabic*),leftmargin=1.2cm]
+\item the \emph{grouped} binding list,\\
+      \texttt{(FORALL ((x y z)) body)};
+\item the \emph{flat} binding list,\\
+      \texttt{(FORALL ((x) (y) (z)) body)};
+\item the \emph{fully nested} form,\\
+      \texttt{(FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))}.
+\end{enumerate}
+
+\noindent
+The utility functions \texttt{vnb-unwind} and \texttt{vnb-wind} relate
+form~(3) to the other two.  \texttt{vnb-unwind} rewrites any binding
+list, grouped or not, into the fully nested form; \texttt{vnb-wind}
+collapses a run of nested quantifiers \emph{of the same kind} into a
+single binding list of single-variable specs.
+
+\begin{VNBsnip}
+(vnb-unwind '(FORALL ((x y z)) body))
+;=> (FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))
+
+(vnb-unwind '(FORALL ((x) (y) (z)) body))
+;=> (FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body)))
+
+(vnb-wind '(FORALL ((x)) (FORALL ((y)) (FORALL ((z)) body))))
+;=> (FORALL ((x) (y) (z)) body)
+\end{VNBsnip}
+
+\noindent
+The two are not mutually inverse.  \texttt{vnb-wind} never regroups a
+spec, and never splits one, so it leaves a grouped binding list
+untouched and the round trip normalizes form~(1) to form~(2):
+
+\begin{VNBsnip}
+(vnb-wind '(FORALL ((x y z)) body))
+;=> (FORALL ((x y z)) body)
+
+(vnb-wind (vnb-unwind '(FORALL ((x y z)) body)))
+;=> (FORALL ((x) (y) (z)) body)
+\end{VNBsnip}
+
+\noindent
+Two further properties are worth recording.  First, neither function
+expands the binding sugar to primitive form---that is the office of
+\texttt{make-wff}---so a restricted spec survives unwinding as a spec,
+with no \texttt{IMPLIES} introduced.  Second, \texttt{vnb-wind} merges
+only runs of the same quantifier; a \texttt{FORALL} over a
+\texttt{FORSOME} is returned unchanged.
+
+\begin{VNBsnip}
+(vnb-unwind '(FORALL ((x) (IN z NN)) body))
+;=> (FORALL ((x)) (FORALL ((IN z NN)) body))
+
+(vnb-wind '(FORALL ((x)) (FORSOME ((y)) body)))
+;=> (FORALL ((x)) (FORSOME ((y)) body))
+\end{VNBsnip}
+
+\noindent
+Bindings are processed left to right, outermost first.  Thus in the
+\emph{internal syntax} they expand to fully nested single-variable form
+as follows:
+
+\begin{VNBsnip}
+forall([x, y in NN, z], y >= 0)
+; => (FORALL x (FORALL y (IMPLIES (IN y NN) (FORALL z (>= y 0)))))
+
+forall([[E, +, *] in METRIC], IS-METRIC(E, +, *))
+; => (FORALL t_0 (IMPLIES (IN t_0 METRIC)
+;                         (IS-METRIC (NTH 1 t_0) (NTH 2 t_0) (NTH 3 t_0))))
+\end{VNBsnip}
+
+\paragraph{Display.}
+The printer reconstructs binding-list form from the internal nested
+representation.  Consecutive same-type quantifiers are collapsed into
+a single binding list; a change of quantifier type stops the collapsing.
+For example, \texttt{forall([x in NN], forall([y], p))} prints as
+\texttt{forall([x in NN, y], p)}.
+
+\paragraph{Variable shadowing.}
+Bound variable names may be reused within nested quantifiers.
+The inner binding shadows the outer; \texttt{fresh-var} in
+\texttt{subst-free} ensures substitution never captures a free variable.
+Such formulas are valid but confusing; users should avoid them.
+
+\subsection{Equality and quasi-equality}
+
+Terms may be \emph{undefined} (e.g.\ an application \texttt{f(x)} when
+\texttt{f} is not a function applicable to \texttt{x}).  The system
+provides two equality predicates:
+
+\paragraph{Strict equality \texttt{$a$ = $b$}.}
+True iff both \texttt{a} and \texttt{b} are defined and equal.
+False if either is undefined.  In particular:
+\begin{itemize}
+\item \texttt{george(s) = 75} is \emph{false} when \texttt{george}
+  is not a function.
+\item \texttt{george(s) = george(s)} is \emph{false} for the same
+  reason.
+\item A term $t$ is defined iff $t = t$:
+  $\mathit{DEF}(t) \;\equiv\; (t = t)$.
+\end{itemize}
+
+\noindent
+Universal instantiation respects this: from \texttt{forall([x], p)} the
+checker concludes $p[x := t]$ only for a term $t$ that denotes.  A
+variable denotes; so does a class term built from defined arguments
+(\texttt{sep}, \texttt{fun}, \texttt{interval}, \ldots) and an
+accessor of a structure the context knows (\texttt{carr(s)} under
+\texttt{is-ring(s)}); for any other term the instantiation leaves the
+obligation $t = t$ as an open goal, to be closed by a typing fact
+(\texttt{t in A}).  In particular \texttt{choice([])} is not assumed
+to denote.  (Before 2026-09-18 the rule carried no such obligation, and
+the checker could prove \texttt{recip(0) = recip(0)}; see
+\texttt{docs/definedness-instantiation-2026-09-18.md}.)
+
+\paragraph{Quasi-equality \texttt{$a$ == $b$}.}
+True iff both \texttt{a} and \texttt{b} are defined and equal, \emph{or}
+both are undefined.  Key properties:
+\begin{itemize}
+\item \texttt{t == t} is \emph{always true}, for any term $t$,
+  defined or not.
+\item \texttt{george(s) == george(s)} is \emph{true}.
+\item \texttt{$a$ = $b$} implies \texttt{$a$ == $b$}, but not vice versa.
+\item \texttt{$a$ == $b$} and $\mathit{DEF}(a)$ together imply
+  \texttt{$a$ = $b$}.
+\end{itemize}
+
+\noindent
+Undefinedness propagates through all operations: if \texttt{george(s)}
+is undefined then \texttt{george(s) + 1} is also undefined,
+and \texttt{george(s) + 1 = 2} is false.
+
+Variables and class constants (\texttt{ORD}, \texttt{RR},
+\texttt{EMPTY-SET}, \ldots) are always defined.  The application
+\texttt{f(x)} is defined when \texttt{f in fun(A, B)} and
+\texttt{x in A} are provable for some $A$, $B$.
+
+\paragraph{Reflexivity in proofs.}
+\texttt{cmd-quasi-reflexivity} (\texttt{qrfl}) closes any goal of the form
+\texttt{a == a} unconditionally.
+\texttt{cmd-reflexivity} (\texttt{rfl}) closes \texttt{a = a} only when
+\texttt{a} is demonstrably defined: either \emph{syntactically} (a variable
+or constant, ground arithmetic that evaluates, or a tree of total class
+constructors over defined arguments) or by a \emph{context} witness --- an
+assumption \texttt{a in $S$} (membership entails definedness) or a strict
+\texttt{a = $\cdots$}.  For a term whose definedness is not established, use
+\texttt{qrfl}; the strict reflexivity is \emph{not} a triviality.
+
+\paragraph{Definitions: \texttt{$t$ := $s$}.}
+A definition is a different speech act from an equation.  Writing
+\texttt{$t$ := $s$} introduces $t$ \emph{as} $s$: $t$ is defined exactly when
+$s$ is, and then equal --- $t$ inherits its definedness from $s$, having none
+of its own.  That is precisely quasi-equality, so \texttt{:=} is surface
+sugar for \texttt{==}: the parser reads \texttt{$t$ := $s$} as
+\texttt{$t$ == $s$}.  Use \texttt{:=} for the defining equation of a partial
+operation --- e.g.\ \texttt{(compose(f, g))(x) := f(g(x))} --- and reserve
+\texttt{=} for a genuine \emph{identity}, asserted between two terms each
+\emph{independently} known to be defined.  Writing a definition with
+\texttt{=} over-claims: it asserts the defined term is defined at
+\emph{every} argument, which is false off its domain (there both sides are
+undefined, and \texttt{=}, being strict, is then false --- whereas
+\texttt{==} is true).
+
+\section{Class constructors}
+\label{sec:class-set-discipline}
+
+Proper VNB has two kinds of object: \emph{sets} (elements of
+the class $\mathit{SET}$) and \emph{proper classes} (collections that can have
+members but are not themselves members of anything).  We retain that
+distinction and add a third kind, \emph{functoids}.
+
+A \textbf{functoid} is an operation specified by a \emph{signature declaration},
+expressed as
+\[
+  A_1, \ A_2, \ \cdots, \ A_n \;\to\; B
+\]
+where $A_1, \ldots, A_n, B$ are classes; the arrow is pure metanotation
+for the signature, not an object-language operation (no Cartesian
+product is implied).  This declaration specifies that the functoid in
+question takes $n$ arguments $a_1 \in A_1, a_2 \in A_2, \ldots, a_n
+\in A_n$ producing a value $b \in B$.
+
+\begin{remark}
+The motivation comes from category theory.  A functor is conceptually a
+mapping between collections of mathematical structures, but its domain
+is typically a proper class (e.g.\ the class of all groups, or all
+topological spaces).  In a reductionist treatment one could introduce a
+distinguished class $\mathit{FUNCTOID} \subseteq \mathit{CLASS}$,
+whose members are ordered pairs encoding signature and rule.  This
+system instead treats functoids as a new kind of object, coordinate
+with sets and classes rather than reducible to them.  The principal
+consequence is that the formal language does not quantify over
+functoids: ``all functoids $F$ satisfy\ldots'' is metalanguage, not an
+object-language formula.  Functoids are introduced from the predefined
+list below or via \texttt{def-functoid} (Section~\ref{sec:def-functoid}).
+\end{remark}
+
+The \textbf{primitive class constant} \texttt{SET} has the following
+property: The formula \texttt{$a$ in SET} expresses ``$a$ is a set'';
+there is no separate predicate form \texttt{SET($a$)}.  The key axiom
+distinguishing VNB from typed systems: \[
+  (a \in b) \;\Longrightarrow\; a \in \mathit{SET}
+\]
+Only sets can be members of anything: membership forces the \emph{left}
+argument to be a set.  The right argument---the containing class---may be
+a proper class.  ($3 \in \mathit{ORD}$ is well-formed even though the
+class of all ordinals is a proper class.)
+
+Function application is written $f(x_1, \ldots, x_n)$ in both cases:
+for a function $f$ this abbreviates $\texttt{apply-function}(f, x_1, \ldots, x_n)$,
+and for a functoid it abbreviates $\texttt{apply-functoid}(f, x_1, \ldots, x_n)$.
+
+The subset relation
+\[
+  A \subseteq B \;\equiv\; \forall x.\; x \in A \Rightarrow x \in B
+\]
+is a primitive binary predicate written \texttt{A subset B}
+(\texttt{subset-def}).  An immediate corollary of
+\texttt{membership-implies-sethood} is that \emph{every class is a
+subclass of $\mathit{SET}$} (axiom \texttt{subset-set}): only sets can
+appear on the left of~$\in$.
+
+The constructors below are \emph{total} functoids: each is defined for
+\emph{any} class arguments and always produces a well-defined class.
+Whether the result is a set depends on a separate \emph{sethood-closure}
+condition on the arguments; those conditions are listed in
+Section~\ref{sec:axioms} and Section~\ref{sec:funapp}.
+Class comprehension $\{x \mid p\}$ is the sole exception: it is a
+\emph{schema}, yielding one instance per syntactically correct formula
+$p$, each taking $0$ arguments.
+
+\begin{remark}
+Totality is the VNB tradition: \texttt{fun($X$, $Y$)} denotes a
+well-defined class for \emph{any} classes $X, Y$.  Three properties
+must be kept separate:
+\begin{itemize}
+\item \emph{Definability} --- always.
+\item \emph{Non-emptiness} --- only when $X \in \mathit{SET}$.
+  Functions in VNB are sets of ordered pairs, so a proper-class
+  domain forces $\mathit{FUN}(X) = \varnothing$; the existential in
+  \texttt{is-fun-def} ($\exists A \in \mathit{SET}.\; f \in
+  \mathit{FUN}(A)$) is load-bearing on this point.
+\item \emph{Sethood} --- only when $X, Y \in \mathit{SET}$
+  (\texttt{fun-set-iff}).
+\end{itemize}
+Functoids exist precisely for operations that genuinely act on
+proper classes (e.g.\ $\mathit{POWER}: \mathit{CLASS} \to
+\mathit{CLASS}$): they cannot be encoded as elements of any
+$\mathit{FUN}(\cdots)$.
+\end{remark}
+
+\begin{remark}
+A related discipline: when we add axioms about a constructor we state
+them at the abstract level---how \texttt{fun}, \texttt{pair},
+\texttt{tuples}, \texttt{list}, etc.\ \emph{behave}---never in terms
+of how they might be concretely encoded as sets at the vanilla VNB
+level.  So even if some particular encoding happened to make the list
+\texttt{[2,3]} literally equal to the integer \texttt{23}, no theorem
+of VNB+ may distinguish such coincidences.  The user should never
+have to know whether ordered pairs are Kuratowski or Wiener, or
+whether \texttt{nn} is built from von Neumann or Zermelo numerals.
+\end{remark}
+
+\begin{remark}[Variadic functoids]
+Several of the constructors that follow---\texttt{union},
+\texttt{intersection}, \texttt{cartesian}, and the type constructor
+\texttt{fun}---are \emph{variadic functoids}.  The number of arguments
+varies between invocations but is fixed when the expression is written:
+any \emph{finite} number is allowed.
+
+This is distinct from variadic \emph{functions} of type
+$\mathit{FUN}(\mathit{TUPLES}(A), B)$, which take a single set-level
+tuple as their one argument (see the remark on $\mathit{TUPLES}$ in
+Section~\ref{sec:constructor-examples}), and from fixed-arity functoids
+such as ring addition
+$\mathit{ADD}(r) \in \mathit{FUN}(\mathit{CARTESIAN}(CARR(r), CARR(r)), CARR(r))$,
+which have a single argument slot of fixed Cartesian type.
+\end{remark}
+
+\medskip\noindent The remaining constructors of this section are listed
+below.  Each entry states the defining membership property and points to
+the corresponding proof commands in
+Section~\ref{sec:nary-proof-commands}.
+
+\begin{itemize}
+
+\item \texttt{union($A_1$,\ldots,$A_n$)}
+  $x \in C$ iff $x \in A_i$ for some $i$.
+  Axiom \texttt{union-membership} states this IFF for $n=2$.
+  At any arity, the kernel rule \texttt{pi-union-intro!} reduces a goal
+  $x \in \text{union}(A_1,\ldots,A_n)$ to the single subgoal $x \in A_k$
+  for a chosen index $k$; \texttt{pi-union-elim!} consumes a hypothesis
+  $x \in \text{union}(A_1,\ldots,A_n)$ and case-splits it into $n$
+  branches, each with $x \in A_i$ assumed.  See
+  Section~\ref{sec:nary-proof-commands}.
+  The macete \texttt{union-decompose} rewrites
+  $x \in \text{union}(A_1,\ldots,A_n)$ to the disjunction
+  $(x \in A_1) \lor \cdots \lor (x \in A_n)$ in one step.
+  Result is a set when all $A_i \in \mathit{SET}$
+  (\texttt{union-set-closure}; n-ary by induction).
+
+\item \texttt{intersection($A_1$,\ldots,$A_n$)}
+  $x \in C$ iff $x \in A_i$ for all $i$.
+  Axiom \texttt{intersection-membership} states this IFF for $n=2$.
+  At any arity, the kernel rule \texttt{pi-intersection-intro!} reduces
+  a goal $x \in \text{intersection}(A_1,\ldots,A_n)$ to $n$ subgoals
+  $x \in A_i$; \texttt{pi-intersection-elim!} extracts $x \in A_k$ from
+  a hypothesis $x \in \text{intersection}(A_1,\ldots,A_n)$ for a chosen
+  index $k$.  See Section~\ref{sec:nary-proof-commands}.
+  The macete \texttt{intersection-decompose} rewrites
+  $x \in \text{intersection}(A_1,\ldots,A_n)$ to the conjunction
+  $(x \in A_1) \land \cdots \land (x \in A_n)$ in one step.
+  Result is a set when any $A_i \in \mathit{SET}$
+  (\texttt{intersection-set-closure}).
+
+\item \texttt{complement-in($A$, $B$)}
+  Relative complement $A \setminus B$: $x \in C$ iff $x \in A$ and
+  $x \notin B$ (\texttt{complement-in-membership}).
+  $B$ need not be a set; result is a set when $A \in \mathit{SET}$
+  (\texttt{complement-in-set-closure}).
+
+\item \texttt{cartesian($A_1$,\ldots,$A_n$)}
+  $x \in C$ iff $x = [a_1,\ldots,a_n]$ with $a_i \in A_i$.
+  Result is a set iff all $A_i \in \mathit{SET}$ (\texttt{cartesian-set-iff}).
+
+\item \texttt{tuples($A$)}
+  $x \in C$ iff $x = [a_1,\ldots,a_n]$ with all $a_i \in A$,
+  for some $n \ge 0$.
+  Result is a set when $A \in \mathit{SET}$ (\texttt{tuples-sethood}).
+
+\item \texttt{fun($A$)}, \texttt{fun($A$, $B$)}
+  The unary $\mathit{FUN}(A)$ is the class of all total functions with
+  domain $A$ (no codomain restriction); proper class in general.  The
+  binary $\mathit{FUN}(A,B)$ is the restriction
+  $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
+  $\mathit{FUN}(A,B) \in \mathit{SET}$ iff $A, B \in \mathit{SET}$
+  (\texttt{fun-set-iff}); $\mathit{FUN}(A) \in \mathit{SET}$ never holds
+  in general because the codomain is unconstrained.
+  See Section~\ref{sec:funapp}.
+
+  The strengthened \texttt{fun-domain-apply-def} now reads
+  $f \in \mathit{FUN}(A) \Rightarrow ((f\,x) = (f\,x) \Leftrightarrow x \in A)$.
+  Recall VNB equality is partial: $(t = t)$ is the definedness predicate
+  for $t$, so the iff says \emph{$f(x)$ is defined exactly when $x \in A$}.
+  Consequence: the witness $A$ is unique, justifying ``the'' domain of $f$.
+
+\item \texttt{is-fun($f$)}
+  The predicate ``$f$ is a function'': there exists a set $A$ with
+  $f \in \mathit{FUN}(A)$.  Axiom \texttt{is-fun-def}:
+  $\mathit{IS\text{-}FUN}(f) \Leftrightarrow \exists A \in \mathit{SET}.\;
+   f \in \mathit{FUN}(A)$.
+
+\item \texttt{dom($f$)}
+  The \emph{domain} of $f$ as a class.  Characterised by membership
+  (\texttt{dom-membership}):
+  $x \in \mathit{DOM}(f) \Leftrightarrow x \in \mathit{SET}
+   \land (f\,x) = (f\,x)$, i.e.\ $x$ is a set on which $f$ is defined.
+  When $f \in \mathit{FUN}(A)$, $\mathit{DOM}(f)$ and $A$ agree on
+  members (\texttt{dom-fun-membership}).  When additionally
+  $A \in \mathit{SET}$, $\mathit{DOM}(f) \in \mathit{SET}$ and
+  $\mathit{DOM}(f) = A$ as sets, by extensionality
+  (\texttt{dom-of-fun}).
+
+\item \texttt{res($f$, $B$)}
+  The \emph{restriction} of $f$ to $B$.  Semantically
+  $\mathit{RES}(f, B) = \lambda x \in B.\;f(x)$.  Total as a constructor
+  (defined for all $f$ and $B$ -- bongo-style); typed by:
+  \begin{itemize}
+  \item \texttt{res-typing}:
+    $f \in \mathit{FUN}(A) \land B \subseteq A
+    \Rightarrow \mathit{RES}(f, B) \in \mathit{FUN}(B)$.
+  \item \texttt{res-apply}:
+    $f \in \mathit{FUN}(A) \land B \subseteq A \land x \in B
+    \Rightarrow (\mathit{RES}(f, B))(x) = f(x)$.
+  \item \texttt{res-codomain} (derived): codomain inherits from
+    $f \in \mathit{FUN}(A, C)$.
+  \end{itemize}
+  Outside the case $B \subseteq A$ the term exists but carries no
+  $\mathit{FUN}$-typing guarantees.
+
+\item \texttt{partial-fun($A$)}, \texttt{partial-fun($A$, $C$)}
+  Partial functions on $A$.  Members are total functions whose domain
+  is some subset of $A$:
+  $\mathit{PARTIAL\text{-}FUN}(A) = \{f \mid \exists B \in \mathit{POWER}(A).
+   \; f \in \mathit{FUN}(B)\}$
+  (\texttt{partial-fun-membership}, generally a proper class because
+  the codomain is unconstrained).  The binary form fixes a codomain:
+  $\mathit{PARTIAL\text{-}FUN}(A, C) = \{f \mid \exists B \in \mathit{POWER}(A).
+   \; f \in \mathit{FUN}(B, C)\}$
+  (\texttt{partial-fun-binary-membership}).  Sethood
+  (\texttt{partial-fun-binary-sethood}):
+  $A, C \in \mathit{SET} \Rightarrow \mathit{PARTIAL\text{-}FUN}(A, C)
+   \in \mathit{SET}$ (stated as axiom; provable once a class-union
+  principle over a set-indexed family is in place).
+
+\item \texttt{\{$x$ in $A$: $p$\}} / \texttt{\{$x$ in $A$ | $p$\}}
+  Separation $\mathit{SEP}(x, A, p) = \{x \in A \mid p\}$: $x \in C$
+  iff $x \in A$ and $p[x]$ holds.  Because $p$ is genuinely a schema
+  (a formula, not a first-order term), the characterization is given
+  by kernel rules rather than a single FOL axiom:
+  \texttt{pi-sep-sethood!} ($\mathit{SEP}(x, A, p) \in \mathit{SET}$
+  reduces to $A \in \mathit{SET}$);
+  \texttt{pi-sep-mem-intro!} ($y \in \mathit{SEP}(x, A, p)$ splits
+  into $y \in A$ and $p[x:=y]$);
+  \texttt{pi-sep-mem-elim!} (assumption $y \in \mathit{SEP}(x, A, p)$
+  yields both $y \in A$ and $p[x:=y]$ in context).
+  Result is a set when $A \in \mathit{SET}$.
+
+\item \texttt{\{$x$ | $p$\}}
+  Class comprehension $\mathit{COMP}(x, p) = \{x \mid p\}$: $y \in C$
+  iff $y \in \mathit{SET}$ and $p[x:=y]$ (members of any class are
+  sets).  Same schema treatment as separation:
+  \texttt{pi-comp-mem-intro!} and \texttt{pi-comp-mem-elim!}.
+  Proper class in general unless provably bounded.
+
+\item \texttt{big-union($z$, $A$, body)}
+  Big-union over an index set:
+  \[
+    \mathit{BIG\text{-}UNION}(z, A, \mathit{body})
+    \;=\; \bigcup_{z \in A} \mathit{body}
+    \;=\; \{x \mid \exists z \in A.\; x \in \mathit{body}\}
+  \]
+  $z$ is bound in $\mathit{body}$; $A$ is the index class.
+  As with separation, $\mathit{body}$ is a class schema in $z$, so the
+  characterization is by kernel rules:
+  \texttt{pi-big-union-sethood!}
+  ($\mathit{BIG\text{-}UNION}(z, A, \mathit{body}) \in \mathit{SET}$
+   reduces to $A \in \mathit{SET}$ and
+   $\forall z \in A.\; \mathit{body} \in \mathit{SET}$);
+  \texttt{pi-big-union-mem-intro!} (witness $w$:
+   $x \in \mathit{BIG\text{-}UNION}(z, A, \mathit{body})$ splits into
+   $w \in A$ and $x \in \mathit{body}[z := w]$);
+  \texttt{pi-big-union-mem-elim!} (assumption gives a fresh
+   eigenvariable $e$ with $e \in A$ and $x \in \mathit{body}[z := e]$).
+
+  \begin{remark}
+  In the diverse VNB+ universe a set may contain non-sets (lists,
+  numbers, functions).  The binder form $\mathit{BIG\text{-}UNION}(z, A,
+  \mathit{body})$ makes the family structure explicit: $A$ is the
+  index, $z \mapsto \mathit{body}$ is intended to be set-valued.
+  The ZF-style $\bigcup S$ over a loose ``set of sets'' is the special
+  case $\mathit{BIG\text{-}UNION}(s, S, s)$ and is not taken as
+  primitive.
+  \end{remark}
+
+\item \texttt{power($A$)}, \texttt{power($A$, $B$)}
+  Unary \texttt{power($A$)} is the power set: $x \in C$ iff
+  $x \in \mathit{SET}$ and $x \subseteq A$ (\texttt{power-set}).
+  Binary \texttt{power($A$, $B$)} is the function-space exponentiation
+  $A^B$, axiomatized by \texttt{power-exp}:
+  \[
+     \mathit{POWER}(A, B) \;=\; \mathit{FUN}(B, A)
+  \]
+  i.e.\ functions $B \to A$.  This convention matches the arithmetic
+  evaluator: $\texttt{power}(2, 3) = 2^3 = 8$ counts functions from
+  a 3-set to a 2-set.  Sethood and membership inherit from
+  \texttt{fun-set-iff} / \texttt{fun-codomain-iff}.
+
+\end{itemize}
+
+\begin{remark}
+\texttt{union($A_1$, \ldots, $A_n$)} takes a finite listed union.
+For an index-set-driven union, use \texttt{big-union($z$, $A$, body)}
+above: the binder form makes the family structure explicit.
+\end{remark}
+
+\section{Term constructors}
+\label{sec:choice-iota-lambda}
+
+\emph{Term constructors} build syntactic objects whose intended
+representation are objects in the VNB universe.
+
+\begin{itemize}
+\item \texttt{[$e_1$, \ldots, $e_n$]} ordered $n$-tuple $(e_1, \ldots, e_n)$; always a set
+\item \texttt{nth($k$, $e$)} $k$-th component of tuple $e$ (1-indexed); $k$ may be any term;
+  \texttt{nth($k$, [$e_1$,\ldots,$e_n$])} reduces to $e_k$ via
+  \texttt{cmd-nth-reduce} (Section~\ref{sec:commands})
+\item \texttt{length($L$)} number of elements in tuple $L$; a natural number:
+  \begin{itemize}
+  \item \texttt{length-of-empty}: $\texttt{length}([\,]) = 0$
+  \item \texttt{length-in-nn}: $L \in \mathit{TUPLES}(\mathit{SET}) \Rightarrow
+    \texttt{length}(L) \in \mathit{NN}$
+  \item \texttt{nth-in-range}: $L \in \mathit{TUPLES}(A),\; i \in \mathit{NN},\;
+    1 \le i \le \texttt{length}(L) \Rightarrow \texttt{nth}(i,L) \in A$
+  \end{itemize}
+  The recursive characterisation is supplied by the constructor
+  \texttt{CONS}$(x,L)$ and the equation \texttt{length-cons},
+  $\texttt{length}(\texttt{cons}(x,L)) = \texttt{succ}(\texttt{length}(L))$,
+  in \texttt{structure-library/list-recursion.scm}; list induction over
+  \texttt{TUPLES} is a proven theorem, \texttt{tuples-induction}, not a schema
+  (Section~\ref{sec:list-recursion}).
+\item \texttt{EMPTY-SET} the empty set $\emptyset$; always a set; $= \texttt{make-set}([\,])$
+\item \texttt{\{$a$\}} singleton $\{a\}$; always a set; $= \texttt{make-set}([$a$])$
+\item \texttt{make-set($L$)} unordered finite set from tuple $L \in \mathit{TUPLES}(A)$,
+  $A \in \mathit{SET}$; always a set:
+  \begin{itemize}
+  \item \texttt{make-set-membership}: $x \in \texttt{make-set}(L)
+    \Longleftrightarrow \exists\,i \in \mathit{NN}.\;
+    1 \le i \le \texttt{length}(L) \land \texttt{nth}(i,L) = x$
+    (the $1 \le i \le \texttt{length}(L)$ bounds matter:
+    $\texttt{nth}$ out-of-range is unspecified)
+  \item \texttt{make-set-sethood}: $L \in \mathit{TUPLES}(A),\; A \in \mathit{SET}
+    \Rightarrow \texttt{make-set}(L) \in \mathit{SET}$
+  \item \texttt{make-set-empty}: $\texttt{make-set}([\,]) = \emptyset$
+  \end{itemize}
+  The notation $\{a,b,c,\ldots\}$ is sugar for $\texttt{make-set}([a,b,c,\ldots])$;
+  repetitions are harmless.
+\item \texttt{choice($A$)} primitive choice operator: an element of nonempty class~$A$
+  (undefined when $A$ is empty).  Axiom \texttt{choice-axiom}:
+  \[
+    (\exists x.\; x \in A) \;\Longrightarrow\; \texttt{choice}(A) \in A
+  \]
+  This is the Bourbaki-style global choice: a single canonical operator
+  defined uniformly on all nonempty classes, not just sets.
+\item \texttt{iota($x$, $p$)} definite description: the unique object satisfying~$p$;
+  a binder.  Defined only when $\exists! x.\; p(x)$ is provable.  The
+  characterization is the kernel rule \texttt{pi-iota-def!}, invoked
+  with the iota term as argument; it posts two subgoals:
+  \begin{enumerate}[label=(\arabic*),leftmargin=1.2cm]
+  \item the existence-and-uniqueness obligation
+    $\exists x.\;p \land (\forall y.\; p[x:=y] \Rightarrow x = y)$, and
+  \item the original goal with the defining property
+    $p[x := \texttt{iota}(x, p)]$ added as an assumption.
+  \end{enumerate}
+  A planned \texttt{define-object} form will wrap this pattern:
+\begin{VNBsnip}
+(define-object sqtwo (IOTA x (= (* x x) 2)))
+; requires a proved unique-existence theorem; in this language,
+; spelt out as (FORSOME x (AND (= (* x x) 2)
+;                              (FORALL y (IMPLIES (= (* y y) 2) (= x y)))))
+; (a FORSOME-UNIQUE macro abbreviation is planned but not yet defined)
+; installs sqtwo satisfying: sqtwo * sqtwo = 2
+\end{VNBsnip}
+\item \texttt{vnb-lambda([$x_1$ in $A_1$, \ldots, $x_n$ in $A_n$], $\mathit{body}$)}
+  anonymous multi-argument \emph{set-function}; a binder.
+  Each variable has its own independent domain, exactly as in quantification.
+  All domains $A_i$ must belong to \texttt{SET}; the result is an element
+  of $\mathit{FUN}$.
+
+  \begin{quote}
+  \textbf{This is not the same construct as \texttt{lambdoid}, and the
+  distinction is the one most worth getting right.}  A \texttt{vnb-lambda}
+  denotes a \emph{set of ordered pairs} --- an element of some
+  $\mathit{FUN}(A,B)$ --- and is an ordinary S-expression.  A
+  \texttt{lambdoid} denotes a \emph{functoid}, a tagged record that need not
+  belong to any \texttt{FUN} class.  They carry different obligations and are
+  reduced by different rules: \texttt{vnb-lambda} is typed by
+  \texttt{pi-lambda-type!} (short form \texttt{(lam-t)}), which opens the
+  $A \in \mathit{SET}$ subgoal a set of pairs requires, and reduced by
+  \texttt{pi-lambda-beta!} (\texttt{(lam-b)}); a functoid is reduced by
+  \texttt{cmd-functoid-beta} (\texttt{(beta)}) and has no such typing rule.
+  Essentially every proof in the shipped library uses \texttt{vnb-lambda};
+  none reduces a functoid.  An unadorned \texttt{lambda} was accepted as a
+  third spelling until 2026-08-18 --- it built a \emph{functoid}, despite the
+  name --- and was removed for exactly this reason.  Writing it now raises an
+  error naming both replacements.
+  \end{quote}
+
+  Its representation is the raw S-expression
+    \texttt{(VNB-LAMBDA $x$ $A$ $\mathit{body}$)} or
+    \texttt{(VNB-LAMBDA (LIST $x_1\,\ldots\,x_n$) $A$ $\mathit{body}$)},
+    where $A$ is the \emph{domain} and lies outside the binder's scope
+    (as in \texttt{SEP} and \texttt{BIG-UNION}).  The domain is
+    \emph{required}: a lambda that does not carry one does not determine
+    a function, and the typing rule was free to certify one and the same
+    domainless term into $\mathrm{FUN}(A,B)$ for every $A$ at once.
+    Used in axioms written directly as S-expressions
+    (e.g.\ \texttt{RING-PROD}, \texttt{CC-NORMED-FIELD}, \texttt{sum}).
+    At the surface, the binder list may carry its domains the way a
+    quantifier's does --- \texttt{vnb-lambda([$x_1$ in $A_1$, \ldots,
+    $x_n$ in $A_n$], $\mathit{body}$)} --- which is sugar for
+    \texttt{vnb-lambda([$x_1,\ldots,x_n$], CARTESIAN($A_1,\ldots,A_n$),
+    $\mathit{body}$)} and parses to exactly that S-expression (to
+    \texttt{(VNB-LAMBDA $x_1$ $A_1$ $\mathit{body}$)} when $n = 1$).  A
+    binder list that is only partly typed is rejected rather than
+    completed by guesswork.
+    Typing rule \texttt{pi-lambda-type!}: the goal
+    $\mathit{VNB\text{-}LAMBDA}(x, A, \mathit{body}) \in
+    \mathit{FUN}(A, B)$ reduces to two subgoals,
+    $\forall x.\; x \in A \Rightarrow \mathit{body} \in B$ and
+    $A \in \mathit{SET}$.  Since 2026-08-14 the rule also accepts a
+    binder \emph{list} when the domain is a \texttt{CARTESIAN} of the
+    same length, discharging the first subgoal componentwise as
+    $\forall x_1 \in A_1 \ldots \forall x_n \in A_n.\;
+    \mathit{body} \in B$; on a non-Cartesian domain, or a length
+    mismatch, it declines and leaves the goal untouched.
+    $\beta$-reduction \texttt{pi-lambda-beta!} (short form
+    \texttt{(lam-b)}) rewrites
+    $\bigl(\mathit{VNB\text{-}LAMBDA}(\overline x, \mathit{body})\bigr)
+    (\overline v) = \mathit{body}[\overline x := \overline v]$
+    (parallel substitution).
+  Cardinal-exponent typing schema (summarized; multi-binder derives from the
+  single-binder rule plus uncurrying):
+  \begin{multline*}
+    \bigl(\forall x_i \in A_i.\;\mathit{body}(x_1,\ldots,x_n) \in B\bigr)
+    \;\Longrightarrow\; \\
+    \texttt{vnb-lambda}([x_1 \in A_1,\ldots,x_n \in A_n],\,\mathit{body})
+      \in \mathit{FUN}(A_1 \times \cdots \times A_n,\,B)
+  \end{multline*}
+
+\item \texttt{lambdoid([$x_1$ in $A_1$, \ldots, $x_n$ in $A_n$], $\mathit{body}$)}
+  the \emph{functoid} binder --- the class-domain sibling of
+  \texttt{vnb-lambda}, and the only surface form that produces a functoid.
+  The domains $A_i$ may be arbitrary classes (including proper classes such as
+  \texttt{ORD}).  The result is a tagged record at the meta-level; it does not
+  necessarily belong to any \texttt{FUN} class, has no \texttt{lam-t} typing
+  rule, and $\beta$-reduces via \texttt{(beta)} rather than \texttt{(lam-b)}.
+\end{itemize}
+
+\begin{remark}[Functoids as meta-level objects]
+\texttt{lambdoid} produces a \emph{functoid record} at the implementation
+level --- a tagged Scheme structure distinct from plain S-expressions and from
+VNB sets or classes.  (\texttt{vnb-lambda} does not: it is a plain
+S-expression, and a set.)  This design follows the IMPS
+principle that every structured entity carries its own recognisable tag; it
+prevents the expression-traversal code from ever confusing a functoid with an
+ordinary compound term.
+
+Internally, the application
+$\texttt{lambda}([x_1 \in A_1,\ldots], \mathit{body})(v_1,\ldots)$
+is represented as
+$(\texttt{apply-functoid}\;\langle\textit{record}\rangle\;v_1\;\cdots)$,
+a mixed structure whose \texttt{car} is the symbol \texttt{apply-functoid}
+and whose \texttt{cadr} is the record itself.  The surface syntax
+$f(x)$ is used for \emph{all} application; the parser emits
+\texttt{apply-functoid} only when $f$ is already tagged as a functoid.
+\end{remark}
+
+\begin{remark}
+Tuples $[e_1,\ldots,e_n]$ are primitive here.  One could in principle reduce
+them to iterated pairs (Kuratowski style), but we have no interest in doing so:
+$[\ ]$ is perfectly well-defined as a term constructor of arity zero, and that
+is all we need.
+\end{remark}
+
+\begin{remark}
+The index $k$ in $\texttt{nth}(k, e)$ may be any term (not only a literal
+integer).  The primitive inference \texttt{cmd-nth-reduce} does require a
+literal integer to reduce $\texttt{nth}(k, [e_1,\ldots,e_n])$ to $e_k$, but
+$\texttt{nth}(i, L)$ with a variable index $i$ is a perfectly valid term and
+appears in \texttt{make-set-membership} and \texttt{nth-in-range}.
+For example, $\texttt{nth}(3,\,[a,b,c,c,e])$ reduces to $c$.
+\end{remark}
+
+\begin{remark}[Indexing convention: lists are 1-indexed]
+Tuples / lists in VNB are \emph{1-indexed}: \texttt{nth}$(i, L)$ is valid
+for $1 \le i \le \texttt{length}(L)$, and $\texttt{nth}(1,\,[a, b, c]) = a$.
+Lists and functions on initial segments of $\mathit{NN}$ are genuinely
+different things, and we do \emph{not} reduce one to the other.  When an
+interval constructor is added, the canonical domain for an $n$-element list
+is $\mathit{INTERVAL}(1, n)$, \emph{not} $\mathit{INTERVAL}(0, n-1)$.
+The 1-indexing convention matches IMPS and is built into every axiom
+that mentions \texttt{nth} or \texttt{length} (\texttt{make-set-membership},
+\texttt{nth-in-range}, \texttt{length-of-empty}).
+\end{remark}
+
+\begin{remark}
+\texttt{choice}, \texttt{iota}, \texttt{vnb-lambda}, and \texttt{lambdoid} all
+participate correctly in \texttt{free-vars}, \texttt{subst-free},
+\texttt{alpha-equiv?}, and macete pattern-matching.  \texttt{lambdoid} produces
+a \emph{functoid record} --- a Scheme tagged structure separate from
+S-expressions --- so it is never accidentally mistaken for an ordinary term by
+the expression machinery.  \texttt{vnb-lambda} needs no such tag: it \emph{is}
+an ordinary term, and each of those walkers has an explicit
+\texttt{VNB-LAMBDA} case treating it as the binder it is.
+\end{remark}
+
+\section{Function application}
+\label{sec:funapp}
+
+Function application is written as a compound term: \texttt{$f$($x$)} for
+any object $f$ and any argument $x$.  Examples:
+\begin{VNBsnip}
+a + b               ; addition applied to a, b
+NORM(E, v)          ; NORM of Banach space E applied to vector v
+GEORGE(s)           ; syntactically valid, but may be undefined
+\end{VNBsnip}
+
+\begin{remark}[Curried vs.\ tupled application]
+\label{sec:curried-tupled-apply}
+The string-syntax form $f(a_1,\,\ldots,\,a_n)$ parses verbatim into the
+\emph{curried} S-expression
+\[
+  (f\ a_1\ a_2\ \ldots\ a_n)
+\]
+— an $(n+1)$-element compound, head $f$, with one argument per
+comma-separated term.  No implicit tupling at the parser level.
+
+However, an operation declared via
+\texttt{(op MUL (CARTESIAN A A) A)} (Section~\ref{sec:declare-structure})
+is typed (Section~\ref{sec:declare-structure}) as the \emph{unary} function
+\[
+  (\textsc{mul}\ s)\ \in\ \textsc{fun}(\textsc{cartesian}(CARR(s),\,CARR(s)),\ CARR(s))
+\]
+whose single argument is an element of the Cartesian product.
+Likewise the typing axiom \texttt{fun-apply-type} is unary
+($f(x) \in B$ when $f \in \textsc{fun}(A,B)$ and $x \in A$).
+
+The bridge between what the parser writes and what the typing expects
+is the library convention
+\[
+  \boxed{(f\ a_1\ \ldots\ a_n)\ \mathrel{==}\ (f\ (\textsc{list}\ a_1\ \ldots\ a_n))}
+  \qquad\text{for each arity } n \geq 1
+\]
+— the $n$-arg curried apply is \emph{quasi-equal} ($\mathrel{==}$) to
+the unary apply to the tuple
+$(\textsc{list}\ a_1\ \ldots\ a_n)$.  Quasi-equality (not the partial
+$=$) is required because the convention must hold even when $f$ is
+not a tuple-domain function: both sides are then undefined and
+$\mathrel{==}$ holds vacuously, whereas $=$ would fail since $t=t$
+is the definedness predicate.  When $f$ \emph{is} so typed and the
+arguments lie in the components, both sides are defined and
+\texttt{quasi-eq-def} upgrades $\mathrel{==}$ to $=$ for substitution.
+
+Installed as a family of axioms \texttt{apply-tupling-$n$} in
+\texttt{theorem-library/axioms.scm} (declared for $n = 1, 2, 3$;
+add more by declaration as needed).  Together with
+\texttt{fun-apply-type} and \texttt{quasi-eq-def}, these axioms
+close $(f\ a_1\ \ldots\ a_n) \in B$ from the signature
+$f \in \textsc{fun}(\textsc{cartesian}(A_1,\ldots,A_n),\,B)$ and the
+memberships $a_i \in A_i$ — close the tupled apply by
+\texttt{fun-apply-type}, lift $\mathrel{==}$ to $=$ via the
+resulting definedness, then substitute — making the per-structure
+``carrier-closed'' axioms (\texttt{monoid-carrier-closed-mul},
+\texttt{ring-carrier-closed-add}, etc.) derivable rather than
+primitive.
+\end{remark}
+
+\texttt{fun}($A$, $B$) (with $A, B \in \mathit{SET}$) is a primitive set constructor: its members are
+the total functions from $A$ to $B$.  Since $A, B \in \mathit{SET}$,
+\texttt{fun}($A$,$B$) is itself a set (\texttt{fun-set-iff}), and each
+$f \in \mathit{FUN}(A,B)$ is a set (\texttt{membership-implies-sethood}).
+
+\begin{remark}
+The soundness of $\mathit{FUN}(A,B)$ is confirmed by the standard
+set-theoretic construction: a function $f : A \to B$ is a set of pairs
+$(a, b) \in A \times B$ that is functional (each $a$ has at most one $b$)
+and total (every $a \in A$ appears).  Since $A \times B$ is a set, so
+is any subset of it, making $f$ a set.
+\end{remark}
+
+
+\begin{remark}
+Category theory motivates a natural extension of $\mathit{FUN}$.  A
+functor between large categories---such as the category of all groups or
+all topological spaces---maps a proper class of objects to a proper class
+of objects.  Since $\mathit{FUN}$ requires a set-valued domain, functors
+fall outside $\mathit{FUN}$ entirely.
+
+The planned treatment introduces \emph{operators} as a third kind of
+entity alongside sets and classes.  There is no class $\mathit{OPER}(A,B)$
+(no such collection can exist without violating the set/class dichotomy),
+but there will be a predicate
+\[
+  \mathit{ISOPER}(A,\, B,\, f)
+\]
+asserting that $f$ behaves as a total function from $A$ to $B$ even when
+$A$ or $B$ is a proper class.  An accompanying term constructor
+$\texttt{apply-operator}(f, x)$ then gives the value of $f$ at $x$, for
+any $x \in A$, under the hypothesis $\mathit{ISOPER}(A,B,f)$.
+
+Operators are not members of anything---they do not appear on the left of
+$\in$---so they are consistent with
+\texttt{membership-implies-sethood}.  The three-level ontology (sets,
+classes, operators) keeps the VNB foundation intact while accommodating
+the full generality of categorical constructions.
+\end{remark}
+
+%
+The base theory installs the following axioms.  The primary form of
+\texttt{FUN} is the unary $\mathit{FUN}(A)$ -- all total functions whose
+domain is $A$, with no codomain restriction; the binary $\mathit{FUN}(A,B)$
+is the derived form $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
+
+\begin{itemize}
+\item \texttt{fun-domain-apply-def}
+  $f \in \mathit{FUN}(A) \land x \in A \;\Rightarrow\; f(x) = f(x)$
+\item \texttt{fun-domain-extensionality}
+  $f,g \in \mathit{FUN}(A) \land (\forall x \in A.\;f(x) = g(x)) \;\Rightarrow\; f = g$
+\item \texttt{fun-codomain-iff}
+  $f \in \mathit{FUN}(A,B) \;\Leftrightarrow\;
+   (f \in \mathit{FUN}(A) \land \forall x \in A.\;f(x) \in B)$
+\item \texttt{fun-apply-type}
+  $f \in \mathit{FUN}(A,B) \land x \in A \;\Rightarrow\; f(x) \in B$
+  (in \texttt{axioms.scm}; derivable from \texttt{fun-codomain-iff})
+\item \texttt{fun-set-iff}
+  $\mathit{FUN}(A,B) \in \mathit{SET} \;\Leftrightarrow\; (CARR \in \mathit{SET}) \land (B \in \mathit{SET})$
+\item \texttt{fun-elements-are-sets}
+  $f \in \mathit{FUN}(A,B) \land A \in \mathit{SET} \;\Rightarrow\; f \in \mathit{SET}$
+\item \texttt{fun-domain-elements-are-sets}
+  $f \in \mathit{FUN}(A) \land A \in \mathit{SET} \;\Rightarrow\; f \in \mathit{SET}$
+\item \texttt{cartesian-set-iff}
+  $A \times B \in \mathit{SET} \;\Leftrightarrow\; (CARR \in \mathit{SET}) \land (B \in \mathit{SET})$
+\item \texttt{tuples-sethood}
+  $A \in \mathit{SET} \;\Rightarrow\; \mathit{TUPLES}(A) \in \mathit{SET}$
+\end{itemize}
+
+\begin{remark}
+The constructor $\mathit{TUPLES}(A)$ is the class of all finite sequences
+$[a_1, \ldots, a_n]$ with each $a_i \in A$, for any $n \ge 0$ (including
+the empty sequence $[\,]$).  It fills a gap that $\mathit{CARTESIAN}$ does
+not cover: $\mathit{CARTESIAN}(A_1, \ldots, A_n)$ fixes the arity $n$ at
+the time the expression is written, whereas $\mathit{TUPLES}(A)$ lets $n$
+range over all natural numbers.
+
+This supports \emph{variadic} functions whose single argument is a tuple
+of any length: an element of $\mathit{FUN}(\mathit{TUPLES}(A), B)$ takes
+one tuple and returns a value in $B$.  This is \emph{not} the same as a
+fixed-arity $n$-ary function, which has type
+$\mathit{FUN}(\mathit{CARTESIAN}(A_1, \ldots, A_n), B)$ and is bound to
+exactly $n$ argument slots by its type.  The variadic flavour is the
+right one when an operator must handle inputs of any length (e.g.\ a sum
+over an indexed sequence); the fixed-arity flavour is the right one when
+the arity is intrinsic to the operator (e.g.\ ring addition, which is
+honestly binary).  Since $\mathit{TUPLES}(A) \in \mathit{SET}$ when
+$A \in \mathit{SET}$, the variadic case is an ordinary instance of
+$\mathit{FUN}(A', B)$ with $A' = \mathit{TUPLES}(A)$.
+\end{remark}
+
+\subsection{The constant-head registry}
+\label{sec:constant-registry}
+
+A compound term \texttt{$h$($a_1,\ldots,a_n$)} has a head $h$ that is
+either a \emph{constant} or a \emph{variable}.  A constant head names a
+fixed operator and is never substituted for; a variable head is a
+function-valued bound variable applied to arguments, and \emph{is}
+substituted for and counted as free.  Substitution (\texttt{subst-free})
+and free-variable collection (\texttt{free-vars}) must tell the two
+apart, and nothing in the S-expression \texttt{($h$ \ldots)} marks which
+$h$ is.
+
+The \emph{constant-head registry} supplies the missing information.
+Every constant head is registered with a kind tag; any head absent from
+the registry is treated as a variable.  The kinds are:
+\begin{itemize}
+\item \texttt{operator} -- a kernel term- or formula-forming head
+  (\texttt{+}, \texttt{IN}, \texttt{FORALL}, \ldots), seeded at load
+  time by \texttt{wff.scm};
+\item \texttt{accessor} -- a structure field selector, registered by
+  \texttt{def-structure};
+\item \texttt{defined-fn} -- a defined function or constant, registered
+  by \texttt{theory-add-definition!};
+\item \texttt{functoid} -- registered by \texttt{def-functoid};
+\item \texttt{predicate} -- registered by \texttt{def-predicate}.
+\end{itemize}
+The registry is therefore not fixed: it grows as a theory is built, so
+declaring a structure or adding a definition extends the set of symbols
+that count as constant heads.
+
+\begin{remark}[The case-fold trap, and how the library forbids it]
+\label{rem:case-fold}
+The reader case-folds symbols.  A bound variable whose name case-folds
+to a registered constant cannot be applied as a function --- the head
+\texttt{($v$ \ldots)} reads as the constant, not the variable, scope-blind,
+silently changing a formula's meaning.  Two safeguards keep the installed
+library clean.  First, structure accessors are given \emph{distinctive}
+names (\texttt{CARR}, \texttt{PTS}, \texttt{DIST}, \texttt{IDEN}, \texttt{MUL},
+\texttt{VEC}, \ldots) precisely so they never collide with the natural
+element variables (\texttt{a}, \texttt{x}, \texttt{d}, \texttt{e}, \ldots).
+Second, \texttt{constant-binder-audit} walks every installed formula and
+\emph{hard-fails the load}, with a deliberately loud banner, if any binder
+variable is named like a registered \texttt{accessor}, \texttt{operator},
+\texttt{defined-fn}, \texttt{functoid}, or \texttt{predicate}.  Its companion
+\texttt{case-fold-audit} catches the binder-over-binder case, and
+\texttt{functoid-binder-audit} the same collision one level deeper, in a
+\texttt{def-functoid} body --- which \texttt{case-fold-audit} cannot see, since
+it walks the theorem table only.
+
+The three do \emph{not} enforce alike, and the difference matters to anyone
+reading a load log.  \texttt{constant-binder-audit} and
+\texttt{functoid-binder-audit} hard-fail the load.  \texttt{case-fold-audit} is
+\emph{warn-only}: it prints a \texttt{CASE-FOLD WARNING} banner naming each
+offending formula and the load continues.  So the collision class is turned into
+a build error where a binder collides with a registered constant, and into a
+warning that must actually be read where one binder shadows another.
+\end{remark}
+
+\section{Constructor examples}
+\label{sec:constructor-examples}
+
+Quick reference for every class and term constructor.  Full descriptions
+appear in Sections~\ref{sec:class-set-discipline}
+and~\ref{sec:choice-iota-lambda}.
+
+\paragraph{Functoids (class constructors).}  Each is defined for any class
+arguments; the result is always a well-defined class.  Each row gives the
+condition on $x$ for membership in the constructed class $C$, and the
+sethood-closure condition on the arguments (when there is one).
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{4.5cm}p{4.8cm}p{3.0cm}@{}}
+\toprule
+Expression & $x \in C$ iff \ldots & $C \in \mathit{SET}$ when \\
+\midrule
+\texttt{union($A_1$,\ldots,$A_n$)} & $x \in A_i$ for some $i$ & all $A_i \in \mathit{SET}$ \\[2pt]
+\texttt{intersection($A_1$,\ldots,$A_n$)} & $x \in A_i$ for all $i$ & any $A_i \in \mathit{SET}$ \\[2pt]
+\texttt{complement-in($A$,$B$)} & $x \in A$ and $x \notin B$ & $A \in \mathit{SET}$ \\[2pt]
+\texttt{cartesian($A_1$,\ldots,$A_n$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A_i$ & all $A_i \in \mathit{SET}$ \\[2pt]
+\texttt{tuples($A$)} & $x = [a_1,\ldots,a_n]$, $a_i \in A$, $n \ge 0$ & $A \in \mathit{SET}$ \\[2pt]
+\texttt{fun($A$,$B$)} & $x$ is a total function from $A$ to $B$ & $A, B \in \mathit{SET}$ \\[2pt]
+\texttt{\{$x$ in $A$: $p$\}} & $x \in A$ and $p(x)$ holds & $A \in \mathit{SET}$ \\[2pt]
+\texttt{\{$x$ | $p$\}} & $p(x)$ holds & rarely \\[2pt]
+\texttt{power($A$)} & $x \in \mathit{SET}$ and $x \subseteq A$ & $A \in \mathit{SET}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Term constructors.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{5.2cm}p{7.1cm}@{}}
+\toprule
+Expression & Key property \\
+\midrule
+\texttt{EMPTY-SET} & empty set $\emptyset$; always a set; no members \\[2pt]
+\texttt{\{$a$\}} & singleton $\{a\}$; always a set \\[2pt]
+\texttt{\{$a$, $b$, \ldots\}} & finite set via \texttt{make-set}; repetitions harmless \\[2pt]
+\texttt{[$e_1$, \ldots, $e_n$]} & ordered $n$-tuple; always a set \\[2pt]
+\texttt{nth($k$, $e$)} & $k$-th component (1-indexed); reduces via \texttt{cmd-nth-reduce} \\[2pt]
+\texttt{choice($A$)} & $(\exists x.\;x\in A) \Rightarrow \texttt{choice}(A) \in A$ \\[2pt]
+\texttt{iota($x$, $p$)} & unique object satisfying $p$; requires $\exists!\,x.\;p(x)$ \\[2pt]
+\texttt{vnb-lambda([$x_1$ in $A_1$,\ldots], $b$)} & multi-arg set-function, an element of \texttt{FUN}; domains in \texttt{SET}; typed by \texttt{(lam-t)}, $\beta$-reduces via \texttt{(lam-b)} \\[2pt]
+\texttt{lambdoid([$x_1$ in $A_1$,\ldots], $b$)} & functoid; domains may be proper classes; no \texttt{(lam-t)}, $\beta$-reduces via \texttt{(beta)} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%% =========================================================
+
+\section{Destructuring quantification}
+
+The syntax extends the bounded-variable binding form
+\texttt{[$x$ in $A$]} to allow the bound variable to be a
+\emph{tuple pattern}:
+\[
+  \texttt{[[$x_1$, \ldots, $x_k$] in $A$]}
+\]
+Here $A$ is \emph{any class} --- a Cartesian product, a number system,
+a separation class, a declared structure, or any user-defined class.
+
+This is notation.  \texttt{make-wff} expands it once, when the formula is
+built, into a quantifier over a single new variable~$t_0$ guarded by
+$t_0 \in A$, and replaces each name $x_i$ in the body by the $i$-th
+component of~$t_0$:
+\[
+  x_i \;\longmapsto\; \texttt{nth}(i,\; t_0)
+\]
+When $A$ is a declared structure, the component is written with the
+structure's $i$-th accessor instead, which is the form in which the
+library states its theorems.  The scope of $x_1, \ldots, x_k$ is the
+quantifier body.  The expansion is the whole mechanism: nothing is
+attached to the formula, the names $x_i$ do not survive it, and a formula
+is displayed in its expanded form.
+
+\paragraph{Examples.}
+
+Ranging over a Cartesian product (no structure involved):
+\begin{VNBsnip}
+forall([[x, y] in cartesian(RR, RR)], x + y = y + x)
+
+; Expands to (internal form):
+(FORALL t_0
+  (IMPLIES (IN t_0 (CARTESIAN RR RR))
+    (= (+ (NTH 1 t_0) (NTH 2 t_0))
+       (+ (NTH 2 t_0) (NTH 1 t_0)))))
+\end{VNBsnip}
+
+Ranging over a declared structure.  The components are written with the
+accessors of \texttt{METRIC-SPACE}, \texttt{pts} and \texttt{dist}:
+\begin{VNBsnip}
+forall([[pp, dd] in metric-space], forall([u in pp], dd(u, u) = 0))
+
+; Expands to (internal form):
+(FORALL ms
+  (IMPLIES (IN ms METRIC-SPACE)
+    (FORALL u (IMPLIES (IN u (PTS ms))
+      (= ((DIST ms) u u) 0)))))
+\end{VNBsnip}
+
+Destructuring bindings compose freely with plain and bounded bindings
+(Section~\ref{sec:multiquant}):
+\begin{VNBsnip}
+forall([[pp, dd] in metric-space, u in pp], dd(u, u) = 0)
+\end{VNBsnip}
+
+\begin{remark}
+A facility that declared a named instance of a structure for the
+duration of a session (\texttt{declare-local-context}) was removed in
+July~2026.  It had no users outside the test suite.  The \emph{local
+contexts} of Section~\ref{sec:kernel-ops-detail} are a different thing:
+they are the assumptions available at a position inside a formula when a
+macete is applied there.
+\end{remark}
+
+
+\section{Parser and printer}
+\label{sec:parser-printer}
+
+Four entry points provide string-level access to VNB formulas:
+
+\begin{VNBsnip}
+(make-wff-from-string str)  ; string -> <wff>  (validates via make-wff)
+(parse-string str)          ; string -> raw S-expression (no validation)
+(wff->string w)             ; <wff>  -> string
+(pp w)                      ; display wff->string then newline
+\end{VNBsnip}
+
+\noindent
+\texttt{parse-string} converts a string to a raw S-expression without
+validation; it is used internally by the interactive commands and is
+available for low-level \texttt{cmd-*} calls.  For normal use, pass
+formula strings directly to \texttt{ai}, \texttt{bc}, \texttt{inst},
+\texttt{cut}, \texttt{wk}, and \texttt{vnb-create-num-theorem}.
+\texttt{make-wff-from-string} is the right choice when constructing a
+formula to prove (for \texttt{sp}).
+
+\paragraph{Operator precedence (high to low).}
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+Level & Operators & Associativity \\
+\midrule
+primary & atoms, \texttt{f(a,b)}, \texttt{[a,b]}, \texttt{(expr)} & --- \\
+power & \texttt{\textasciicircum} & right \\
+unary & \texttt{-x} & right \\
+mul & \texttt{*}, \texttt{/} & left (n-ary \texttt{*}) \\
+add & \texttt{+}, \texttt{-} & left (n-ary \texttt{+}) \\
+cmp & \texttt{in}, \texttt{=}, \texttt{==}, \texttt{<=} & binary \\
+and & \texttt{and} & left (n-ary) \\
+or & \texttt{or} & left (n-ary) \\
+iff & \texttt{iff} & left (n-ary) \\
+implies & \texttt{implies} & right \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Division and negation sugar.}
+\begin{VNBsnip}
+x / y    =>  (* x (recip y))   ; division is syntactic sugar
+-x       =>  (- x)             ; unary minus; lower prec than ^
+-x ^ 2   =>  (- (power x 2))  ; i.e. -(x^2), not (-x)^2
+\end{VNBsnip}
+
+\paragraph{Quantifier syntax.}
+Quantifiers use the binding-list form:
+\begin{VNBsnip}
+forall([x], body)              ; bare variable (all classes)
+forall([x in A], body)         ; guarded variable
+forall([[a, b, c] in A], body) ; tuple destructuring
+forall([x in A, y, z in B], body)  ; mixed bindings
+forsome([x in NN], body)       ; existential; same forms
+\end{VNBsnip}
+
+\noindent
+The bracket syntax after the function name distinguishes quantifiers
+from ordinary function calls.
+
+\paragraph{Display conventions (\texttt{wff->string} / \texttt{pp}).}
+\begin{itemize}
+\item \begin{sloppypar}\textbf{Quantifiers} print in binding-list form:
+  the primitive expanded form is reverse-engineered.
+  \texttt{forall([x in nn, y], p(x, y))}\end{sloppypar}
+\item \textbf{Logical connectives} \texttt{and}, \texttt{or}, \texttt{iff}
+  print n-ary infix with surrounding parentheses:
+  \texttt{((p and q) and r)}.
+  \texttt{implies} prints binary infix: \texttt{(p implies q)}.
+\item \textbf{Comparisons} \texttt{in}, \texttt{=}, \texttt{==},
+  \texttt{<=} print binary infix: \texttt{(x in nn)}, \texttt{(x = y)}.
+\item \textbf{Arithmetic} \texttt{+}, \texttt{*} print n-ary infix:
+  \texttt{(x + y + z)}.  Binary \texttt{-} prints as \texttt{(x - y)};
+  unary as \texttt{-x}.  Exponentiation as \texttt{(x \textasciicircum{} y)}.
+\item \textbf{Lists} \texttt{[a, b, c]} in both input and output: the
+  list syntax is the same in string form (internally stored as \texttt{LIST}).
+\item \textbf{All other compound terms} use functional notation
+  \texttt{f(x, y, z)}: \texttt{nth}, \texttt{cartesian}, \texttt{fun},
+  \texttt{power} (unary set power), \texttt{not}, and user-defined heads.
+  Nullary symbols print without parentheses.
+\end{itemize}
+
+\paragraph{Example round-trips.}
+\begin{VNBsnip}
+(pp (make-wff-from-string "forall([x in NN, y in NN], x + y = y + x)"))
+; => forall([x in nn, y in nn], ((x + y) = (y + x)))
+
+(pp (make-wff-from-string "not(P) implies falsity"))
+; => (not(p) implies falsity)
+
+(pp (make-wff-from-string "2 ^ 10 = 1024"))
+; => ((2 ^ 10) = 1024)
+
+(expression->string '(forall x (implies (in x nn)
+                       (forall y (implies (in y nn) (= (+ x y) (+ y x)))))))
+; => "forall([x in nn, y in nn], ((x + y) = (y + x)))"
+\end{VNBsnip}
+
+\noindent
+All identifiers are case-folded to lowercase by MIT~Scheme, so
+\texttt{NN} and \texttt{nn} are the same symbol; \texttt{FORALL} and
+\texttt{forall} are also identical.  The printer always emits lowercase.
+
+%% =========================================================
+
+\section{Naming the parts of a formula}
+\label{sec:parts}
+
+The parser and printer of the previous section are the surface-conforming
+way to \emph{build} and \emph{display} a formula.  This section gives the
+surface-conforming way to \emph{take one apart}.
+
+A script or a piece of scratch-workspace code must never reach into the
+internal S-expression by position --- \texttt{(caddr (cadr f))} and the
+like.  Such code is welded to a representation accident and breaks the
+moment the internal form shifts (the \texttt{and}-nesting, the
+\texttt{+}/\texttt{binplus} split, a new sugar): it is the
+representation-independence sin one level down.  The accessors in
+\texttt{parts.scm} name the parts the way the \emph{external} syntax names
+them, so the code that uses them survives changes to the internal form.
+
+There are three entry points: \texttt{formula-kind} classifies the top
+construct, \texttt{part} navigates to a named sub-part, and \texttt{match}
+fills in the blanks of a surface pattern.  All three accept a wff, a
+surface string, or a raw S-expression interchangeably.
+
+\subsection{\texttt{formula-kind} --- what is this, at the top?}
+
+\texttt{(formula-kind \textit{x})} returns a single symbol naming the
+outermost surface construct, without committing to any internal detail
+below it:
+
+\begin{VNBsnip}
+(formula-kind "p(x) implies q(x)")       ; => implication
+(formula-kind "x = y")                   ; => equation
+(formula-kind "p(x) and q(x) and r(x)")  ; => conjunction
+(formula-kind "forall([x in nn], p(x))") ; => universal
+(formula-kind "x in nn")                 ; => membership
+(formula-kind "f(a, b)")                 ; => application
+(formula-kind '((MUL R) a b))            ; => op-application
+\end{VNBsnip}
+
+\noindent
+The complete set of tags follows.
+
+\begin{itemize}
+\item \texttt{truth}, \texttt{falsity} --- the logical constants.
+\item \texttt{atom} --- a bare symbol; \texttt{number} --- a numeric literal.
+\item \texttt{implication} (\texttt{implies}), \texttt{biconditional}
+  (\texttt{iff}), \texttt{conjunction} (\texttt{and}), \texttt{disjunction}
+  (\texttt{or}), \texttt{negation} (\texttt{not}) --- the connectives.
+\item \texttt{equation} (\texttt{=}), \texttt{equivalence} (\texttt{==}),
+  \texttt{membership} (\texttt{in}), \texttt{inequality} (\texttt{<=}),
+  \texttt{subset} (\texttt{subset}) --- the binary relations.
+\item \texttt{universal} (\texttt{forall}), \texttt{existential}
+  (\texttt{forsome}), \texttt{description} (\texttt{iota}) --- the binders.
+\item \texttt{arithmetic} (\texttt{+}, \texttt{*}).
+\item \texttt{set-construction} (\texttt{union}, \texttt{intersection},
+  \texttt{cartesian}).
+\item \texttt{op-application} --- a structure operator such as
+  \texttt{(MUL R)} applied to arguments.
+\item \texttt{application} --- a named predicate or function applied.
+\item \texttt{unknown} --- anything that matches none of the above.
+\end{itemize}
+
+\begin{remark}
+This vocabulary is meant to be \emph{closed}.  Each tag names a construct
+the surface grammar actually has, so the list grows only if the grammar
+itself does --- a rare event.  The pull to add a tag for some derived or
+compound form should be resisted: such forms already classify as
+\texttt{application}, \texttt{op-application}, or \texttt{unknown}, and a
+proliferation of fine-grained tags would couple the classifier to passing
+notational fashion rather than to the language.
+\end{remark}
+
+\subsection{\texttt{part} --- navigate to a sub-part}
+
+\texttt{(part \textit{x} \textit{step} \ldots)} walks a path of selector
+steps and returns the part reached.  A single result is itself a wff (it
+prints through the normal verbalizer and round-trips); a \emph{plural}
+selector returns a \emph{list} of wffs and must be the last step.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}llp{6.0cm}@{}}
+\toprule
+Selector & Applies to & Yields \\
+\midrule
+\texttt{antecedent}, \texttt{consequent} & implication & the two sides \\[2pt]
+\texttt{lhs}/\texttt{left}, \texttt{rhs}/\texttt{right} & any binary relation (\texttt{= == iff in <= subset}) & the two sides \\[2pt]
+\texttt{negand} & negation & the negated formula \\[2pt]
+\texttt{conjuncts}, \texttt{disjuncts} & conjunction / disjunction & \emph{(plural)} the flattened list of conjuncts / disjuncts \\[2pt]
+\texttt{(conjunct \textit{N})}, \texttt{(disjunct \textit{N})} & conjunction / disjunction & the \textit{N}-th, 1-indexed \\[2pt]
+\texttt{binder} & quantifier (\texttt{forall}/\texttt{forsome}/\texttt{iota}) & the bound variable \\[2pt]
+\texttt{matrix}/\texttt{scope}/\texttt{body} & quantifier & the scope \\[2pt]
+\texttt{operator}/\texttt{op}/\texttt{head} & application & the operator (e.g.\ \texttt{(mul r)}) \\[2pt]
+\texttt{operands}/\texttt{args} & application & \emph{(plural)} the argument list \\[2pt]
+\texttt{(operand \textit{N})} & application & the \textit{N}-th argument, 1-indexed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{VNBsnip}
+(part "p(x) implies q(x)" 'antecedent)         ; => p(x)
+(part "x = y" 'lhs)                            ; => x
+(part "p(x) and q(x) and r(x)" '(conjunct 2))  ; => q(x)
+(part "p(x) and q(x) and r(x)" 'conjuncts)     ; => (p(x) q(x) r(x))
+(part "f(a, b, c)" '(operand 2))               ; => b
+(part "f(a, b, c)" 'operands)                  ; => (a b c)
+(part "forall([x in nn], p(x))" 'binder)       ; => x
+(part "forall([x in nn], p(x))" 'matrix)       ; => (x in nn implies p(x))
+
+;; steps chain left-to-right: descend, then descend again
+(part "p(x) implies y = z" 'consequent 'lhs)   ; => y
+\end{VNBsnip}
+
+\noindent
+The selectors are \emph{total over their declared shape and loud
+otherwise}: \texttt{(part "x = y" 'antecedent)} is an \emph{error}, not a
+silent \texttt{\#f} --- the same partial-\texttt{=} definedness discipline
+that runs through the rest of the system (Section~\ref{sec:funapp}).
+
+\begin{remark}
+The accessors honour the \emph{surface structure} of a formula --- the
+string-syntax view laid out in Section~\ref{sec:parser-printer} --- not the
+internal S-expression that stores it.  \texttt{conjuncts} flattens the
+associative spine, so \texttt{p and q and r} yields three conjuncts however
+the binary \texttt{and} happens to be nested.  \texttt{operands} de-tuples the apply-tupling convention
+(Section~\ref{sec:curried-tupled-apply}), so the single internal
+\texttt{(LIST a b)} argument comes back as the operand list
+\texttt{(a~b)}.  And the binary structure-op application \texttt{(MUL
+R)(a, b)} is first-class: \texttt{operator} gives \texttt{(mul r)},
+\texttt{operands} gives \texttt{(a b)}.
+\end{remark}
+
+\subsection{\texttt{match} --- fill the blanks of a pattern}
+
+\texttt{(match \textit{pattern-string} \textit{x})} matches a surface
+pattern against \textit{x}.  The pattern is an ordinary formula in which
+some sub-parts are left \emph{blank}, each blank written as a name with a
+leading question mark --- \texttt{?P}, \texttt{?Q}, \texttt{?a} --- standing
+for an arbitrary sub-formula or term.  The call returns an association list
+\texttt{((?v\ .\ \textit{wff})\ \ldots)} pairing each blank with what it
+matched, or \texttt{\#f} if the pattern does not fit.
+
+\begin{VNBsnip}
+(match "?P implies ?Q" "x in nn implies x in zz")
+; => ((?q . x in zz) (?p . x in nn))
+
+(match "?P and ?Q" "x in nn implies x in zz")
+; => #f
+\end{VNBsnip}
+
+\noindent
+Matching reuses the macete one-way matcher
+(Section~\ref{sec:macetes}) rather than introducing a second pattern
+engine, and binder desugaring is applied to both sides so a quantified
+pattern matches a quantified target.  Where \texttt{part} is the right tool
+when the shape is known in advance, \texttt{match} is the right tool when
+the shape is the thing being tested.
+
+\begin{remark}
+Input is coerced uniformly: \texttt{part} and friends accept a wff, a
+surface string, or a raw S-expression.  Given a wff or string they hand
+back wffs (re-wrapped in the same theory); given a bare S-expression there
+is no wff parent to re-wrap against, so the parts come back as raw
+S-expressions.  One asymmetry follows from \texttt{make-wff} validation: a
+standalone \emph{term} string such as \texttt{"x + y"} is not a wff, so
+\texttt{(formula-kind "x + y")} signals an error --- classify a term by
+passing the S-expression, \texttt{(formula-kind '(+ x y))}, or reach it as
+a \texttt{part} of the formula it sits in.
+\end{remark}
+
+%% =========================================================

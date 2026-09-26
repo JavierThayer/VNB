@@ -54,7 +54,7 @@
 ;;;
 ;;;   series-partial-sum-is-ring-sum   modulo 0
 ;;;   bernstein-basis-unfold           modulo 0
-;;;   ring-power-of-one                modulo {bt-one-in-carr, ring-power-zero}
+;;;   ring-power-of-one                modulo {ring-one-in, ring-power-zero}
 ;;;                                      [trust: well-known]
 ;;;   binomial-sum-value               binomial-theorem's twelve leaves
 ;;;                                      [trust: well-known]
@@ -126,11 +126,11 @@
   (ni)
   (bn-focus (lambda (s) (substring? ", 0) = " s)))
   (di) (di)
-  (fact 'commutative-ring-is-ring 'r) (fact 'bt-one-in-carr 'r)
+  (fact 'commutative-ring-is-ring 'r) (fact 'ring-one-in 'r)
   (mac 'ring-power-zero) (crs)
   (bn-focus (lambda (s) (substring? "succ(n_)" s)))
   (di) (di) (di) (di)
-  (fact 'commutative-ring-is-ring 'r) (fact 'bt-one-in-carr 'r)
+  (fact 'commutative-ring-is-ring 'r) (fact 'ring-one-in 'r)
   (macm 'ring-power-succ)
   (inst+ '(forall r (implies (is-commutative-ring r)
                              (= (ring-power r (one r) n_) (one r)))) 'r)

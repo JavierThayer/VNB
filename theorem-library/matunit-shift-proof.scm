@@ -19,7 +19,7 @@
 
 ;; --- local proof helpers ---
 (define (mu-last)  (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (mu-focus! n) (set-proof-state-focus! *ps* n))
+(define (mu-focus! n) (dk-focus! n))
 (define (mu-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (mu-di*)
   (let lp () (let* ((g (mu-goal)) (h (and (pair? g) (car g))))
@@ -60,6 +60,11 @@
          (= (ENTRY (MATMUL A P (MATUNIT A n k l)) i c)
             (IF (= c l) (ENTRY P i k) (ZERO A)))))))))))))))))))
 (mu-di*)
+
+;; n in NN (P's column count) for matunit-type and the entry read-offs, and
+;; 1 <= n (k is in [1,n]) for matmul-entry's middle-dimension guard.
+(fact 'mat-cols-in-nn 'm 'n '(CARR A) 'P)
+(dk-one-le-from! 'k 'n)
 
 ;; expand the product entry to a FINSUM
 (fact 'matunit-type 'A 'n 'k 'l)     ; (IN (MATUNIT A n k l) (MAT n n (CARR A)))

@@ -33,6 +33,21 @@
 
 ;;; --- helpers -------------------------------------------------------------
 
+;; Focus N only if it is STILL an open leaf; #f (and no move) otherwise.  Every
+;; loop below walks a SNAPSHOT of leaves (`zb-conjuncts!', `dk-opened'), and
+;; `in-rr' ends with an `ass-all' that grounds every assumption-closable node in
+;; the graph -- so typing one conjunct `u in ZZ' closes its sibling `a in ZZ'
+;; before the loop reaches it.  `dk-focus!' on that grounded node moves the
+;; focus and records NOTHING (it is not in proof-open-leaves, driver-kit.scm:164),
+;; and the `(ass)' `in-rr' then runs on it IS recorded -- a step the printed page
+;; replays against whatever leaf the engine had chosen.  One such step shifted
+;; every later `name-witness!' number by one and the page-audit gate reported
+;; zz-bezout with three leaves open (2026-09-15).  Skip what is no longer a leaf.
+(define (zb-focus-live! n)
+  (and (not (sequent-node-grounded? n))
+       (null? (sequent-node-in-arrows n))
+       (begin (dk-focus! n) #t)))
+
 ;; split the focused goal's whole AND-tower; return the atomic leaves.
 (define (zb-conjuncts!)
   (let loop ((todo (list (proof-state-focus *ps*))) (acc '()))
@@ -89,29 +104,29 @@
   (mac 'zz-bezout-set-membership)
   (for-each
     (lambda (leaf)
-      (dk-focus! leaf)
+     (when (zb-focus-live! leaf)
       (let ((g (dk-goal)))
         (cond ((eq? (car g) 'IN) (zb-type!))
               ((eq? (car g) 'FORSOME)
                (ew xt)
                (for-each
                  (lambda (l2)
-                   (dk-focus! l2)
+                  (when (zb-focus-live! l2)
                    (let ((g2 (dk-goal)))
                      (cond ((eq? (car g2) 'IN) (zb-type!))
                            (else
                             (ew yt)
                             (for-each
                               (lambda (l3)
-                                (dk-focus! l3)
+                               (when (zb-focus-live! l3)
                                 (if (eq? (car (dk-goal)) 'IN)
                                     (zb-type!)
                                     (begin
                                       (for-each (lambda (m) (subst (zb-eq-of m))) members)
-                                      (crs))))
-                              (dk-opened (lambda () (di))))))))
+                                      (crs)))))
+                              (dk-opened (lambda () (di)))))))))
                  (dk-opened (lambda () (di)))))
-              (else (error "zb-witness!: unexpected conjunct" g)))))
+              (else (error "zb-witness!: unexpected conjunct" g))))))
     (dk-opened (lambda () (di)))))
 
 ;; close a typing goal (IN <term> ZZ): `in-rr' types an arithmetic APPLICATION
@@ -135,7 +150,7 @@
 
 (for-each
   (lambda (leaf)
-    (dk-focus! leaf)
+   (when (zb-focus-live! leaf)
     (let ((g (dk-goal)))
       (cond
         ;; ZZ-RING is a commutative ring -- an instance axiom.
@@ -189,7 +204,7 @@
               (let* ((r (car args)) (u (cadr args)) (cu (zb-open! u)))
                 (sat)
                 (zb-witness! (list '* r (car cu)) (list '* r (cadr cu)) (list u))))
-             (else (error "zz-bezout: unexpected closure goal" (dk-goal)))))))))
+             (else (error "zz-bezout: unexpected closure goal" (dk-goal))))))))))
   (zb-conjuncts!))
 (for-each (lambda (n)
             (display ";; ZB-OPEN-LEAF: ")
@@ -209,13 +224,13 @@
   (mac 'zz-divides)
   (for-each
     (lambda (leaf)
-      (dk-focus! leaf)
+     (when (zb-focus-live! leaf)
       (let ((g (dk-goal)))
         (cond ((eq? (car g) 'IN) (zb-type!))
               ((eq? (car g) 'FORSOME)
                (ew r)
                (for-each (lambda (l2)
-                           (dk-focus! l2)
+                          (when (zb-focus-live! l2)
                            (if (eq? (car (dk-goal)) 'IN)
                                (zb-type!)
                                (begin
@@ -229,9 +244,9 @@
                                   'ZZ '((+ . zz-add-closed)
                                         (* . zz-mul-closed)
                                         (- . zz-neg-closed)))
-                                 (crs))))
+                                 (crs)))))
                          (dk-opened (lambda () (di)))))
-              (else (error "zb-divides!: unexpected conjunct" g)))))
+              (else (error "zb-divides!: unexpected conjunct" g))))))
     (zb-conjuncts!)))
 
 (sp (make-wff (forall-guarded '(a b) '((IN a ZZ) (IN b ZZ))
@@ -287,15 +302,15 @@
 (ew zb-d)
 (for-each
   (lambda (leaf)
-    (dk-focus! leaf)
+   (when (zb-focus-live! leaf)
     (let ((g (dk-goal)))
       (if (eq? (car g) 'IN)
           (ass)                                ; d is a member: that is what it is
           (for-each (lambda (l2)
-                      (dk-focus! l2)
+                     (when (zb-focus-live! l2)
                       (let* ((v (caddr (dk-goal)))        ; (ZZ-DIVIDES d v)
                              (r (zb-multiple! v)))
-                        (zb-divides! r v)))
-                    (zb-conjuncts!)))))
+                        (zb-divides! r v))))
+                    (zb-conjuncts!))))))
   (dk-opened (lambda () (di))))
 (qed 'zz-bezout)

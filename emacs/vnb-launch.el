@@ -182,6 +182,9 @@ comment text, so the semicolons no longer clash at line starts."
     (define-key m "f" 'vnb-ws-what-is)
     (define-key m "b" 'vnb-ws-build-structure)
     (define-key m "t" 'vnb-ws-show-theorems)
+    (define-key m "T" 'vnb-find-theorem)
+    (define-key m "P" 'vnb-view-proof-pdf)
+    (define-key m "L" 'vnb-load-proof-script)
     (define-key m "p" 'vnb-ws-show-pss)
     (define-key m "l" 'vnb-ws-browse-library)
     (define-key m "F" 'vnb-ws-show-fingerprints)
@@ -269,6 +272,12 @@ comment text, so the semicolons no longer clash at line starts."
                                "Begin a new proof from a formula")
     (insert (propertize "   begin a new proof\n\n" 'face 'vnb-body))
     (insert "  ")
+    (vnb-launch--insert-button "Load Proof Drive"
+                               'vnb-load-proof-script
+                               "Run a prepared drive script and stop on the leaf it leaves open")
+    (insert (propertize " run a prepared script, land on its open leaf\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
     (vnb-launch--insert-button "Calculator"
                                'vnb-ws-calculator
                                "Work out an arithmetic expression like 2 + 3 + 5")
@@ -290,6 +299,18 @@ comment text, so the semicolons no longer clash at line starts."
                                'vnb-ws-show-theorems
                                "List theorems in the current theory")
     (insert (propertize "   list installed theorems\n\n" 'face 'vnb-body))
+    (insert "  ")
+    (vnb-launch--insert-button "Find Theorem"
+                               'vnb-find-theorem
+                               "Look a theorem up by name or fragment and read what it says")
+    (insert (propertize "    look one up and read its statement\n\n"
+                        'face 'vnb-body))
+    (insert "  ")
+    (vnb-launch--insert-button "Proof as PDF"
+                               'vnb-view-proof-pdf
+                               "Typeset a stored proof -- claim, glossary, one row per step")
+    (insert (propertize "    typeset a stored proof and read it\n\n"
+                        'face 'vnb-body))
     (insert "  ")
     (vnb-launch--insert-button "Show PSS"
                                'vnb-ws-show-pss
@@ -380,6 +401,7 @@ comment text, so the semicolons no longer clash at line starts."
     (insert (propertize
              (concat "  Keys: s start proof  |  f build formula  |  "
                      "b build structure  |  t show theorems\n"
+                     "        T find theorem  |  P proof as PDF  |  L load drive\n"
                      "        p show PSS  |  l browse library  |  "
                      "F fingerprint index\n"
                      "        d describe structure  |  D definitions  |  "
@@ -954,6 +976,721 @@ point."
           (when (fboundp 'doc-view-fit-window-to-page)
             (ignore-errors (doc-view-fit-window-to-page))))
         (message "Rendered %s" name)))))
+
+;;; -----------------------------------------------------------------------
+;;; Load a proof-drive script into the running prover.
+;;;
+;;; A drive script is a file of prover forms that sets a proof up and stops on
+;;; a chosen leaf -- the hand-off shape: everything routine already run, the
+;;; interesting obligation left open.  They live in `prove-scripts/drives/'.
+;;;
+;;; Until now the only way to run one was `./prover -i FILE' at a shell, which
+;;; is the BARE MIT REPL and not this interface: the `;;VNB-STATE-BEGIN' blocks
+;;; that the Emacs process filter consumes are printed raw there, so the
+;;; workspace never opens and the state display is scrollback instead.
+;;; (Reported 2026-09-08.)  The prover is already running here, so loading a
+;;; script is one `(load ...)' -- what was missing was a way to say it that
+;;; does not involve typing a path.
+
+(defconst vnb-launch--drives-dir
+  (file-name-as-directory
+   (expand-file-name "prove-scripts/drives" vnb-launch--dir))
+  "Where proof-drive scripts live.")
+
+(defvar vnb-load-script-timeout 900
+  "Seconds to wait for a proof-drive script to load.
+Generous: a drive script re-proves its own prelude, and on a tree with no
+fresh band the prover behind it may still be loading the library.")
+
+(defun vnb-load-proof-script (path)
+  "Load the proof-drive script PATH into the running prover, then show the leaf.
+
+Prompts with a file picker rooted at `prove-scripts/drives/'.  The script
+runs in the prover this session already has, so its `;;VNB-STATE' output is
+consumed by the state display rather than printed, and the Focus Workspace
+opens on whatever leaf the script stopped at.
+
+A script that ERRORS leaves the prover in MIT's nested error REPL; the
+Scratch Pad (\\[vnb-pf-show-repl]) shows what happened and this command
+climbs back out for you."
+  (interactive
+   (list (read-file-name
+          "Load proof drive: "
+          (if (file-directory-p vnb-launch--drives-dir)
+              vnb-launch--drives-dir
+            vnb-launch--dir)
+          nil t nil
+          (lambda (f) (or (file-directory-p f) (string-suffix-p ".scm" f))))))
+  (vnb-launch--ensure-prover)
+  (unless (file-readable-p path)
+    (user-error "Cannot read %s" path))
+  (message "VNB: loading %s ..." (file-name-nondirectory path))
+  ;; A drive script re-proves its prelude, so give it room; the value is the
+  ;; load's own, which we do not need -- what matters is where the proof state
+  ;; ended up, and whether the prover is still at top level.
+  (let ((res (vnb-eval-string
+              (format "(load %S)" (expand-file-name path))
+              vnb-load-script-timeout)))
+    (if (and res (string-prefix-p ";; error" (string-trim res)))
+        (progn
+          (vnb-pf-show-repl)
+          (user-error "The script did not finish: %s" (string-trim res)))
+      (vnb-launch--show-proof-workspace)
+      (message "Loaded %s -- the Focus Workspace shows the open leaf"
+               (file-name-nondirectory path)))))
+
+
+;;; -----------------------------------------------------------------------
+;;; HOVER-SENSITIVE SEQUENTS.
+;;;
+;;; Mouse over any operator, predicate or accessor in the displayed sequent and
+;;; a tooltip says what it is, how it reads in English, and whether it can be
+;;; unfolded here; click and you get its full What-is card.  The user's idea
+;;; (2026-09-11) and it belongs to the same standing rule as the rest of this
+;;; file: a mouse-driven reader should not have to remember a symbol's name in
+;;; order to ask about it.
+;;;
+;;; The data is the prover's own operator table -- 414 heads, of which 364
+;;; carry a macete and can therefore be unfolded on the spot.  Fetched once and
+;;; cached; it cannot go stale within a session because the theory does not
+;;; change under a proof.
+
+(defvar vnb-launch--painting nil
+  "Non-nil while `vnb-launch--paint-proof' is running.
+Read by anything a painter can reach that would otherwise talk to the
+prover: a send-and-wait round trip pumps the process filter, which
+delivers a proof-state block, which repaints -- from inside the paint
+that is still running.  See the re-entrancy note on the painter.")
+
+(defvar vnb-launch--repaint-pending nil
+  "Set when a repaint is requested while one is already in progress.")
+
+(defvar vnb-hover--fetch-scheduled nil
+  "Non-nil once a deferred hover-table fetch is queued, so we queue one.")
+
+(defvar vnb-hover--table nil
+  "Hash: head symbol name (string) -> (KIND ENGLISH UNFOLDABLE).")
+
+(defconst vnb-hover--query
+  (concat
+   "(map (lambda (h)"
+   "  (let ((e (operator-ref h)))"
+   "    (list (symbol->string h)"
+   "          (symbol->string (if e (operator-kind e) 'unclassified))"
+   "          (or (and e (operator-english e)) \"\")"
+   "          (if (hash-table-ref/default *macete-table* h #f) 1 0))))"
+   " (hash-table-keys *operators*))")
+  "Prover query for the hover table: one row per known head.")
+
+(defun vnb-hover--fetch-table ()
+  "Round-trip the prover for the operator table and cache it.
+Blocks on the answer, so it must not be called from inside a paint."
+  (vnb-launch--ensure-prover)
+  (let* ((raw (vnb-eval-string vnb-hover--query 90))
+         (rows (ignore-errors (car (read-from-string raw)))))
+    (when (listp rows)
+      (setq vnb-hover--table (make-hash-table :test 'equal))
+      (dolist (r rows)
+        (puthash (downcase (nth 0 r)) (cdr r) vnb-hover--table))))
+  vnb-hover--table)
+
+(defun vnb-hover--fetch-deferred ()
+  "Fetch the hover table now that the paint has unwound, then repaint.
+Scheduled by `vnb-hover--ensure-table' when the table was first wanted
+from inside a paint.  The panel appears undecorated for the instant this
+takes and decorated immediately after."
+  (setq vnb-hover--fetch-scheduled nil)
+  (when (and (null vnb-hover--table)
+             (vnb-launch--prover-running-p))
+    (vnb-hover--fetch-table)
+    (let ((buf (and vnb-hover--table (get-buffer vnb-proof-buffer-name))))
+      (when buf (with-current-buffer buf (vnb-launch--paint-proof))))))
+
+(defun vnb-hover--ensure-table ()
+  "The operator table, fetched once per session -- but NEVER from a paint.
+The fetch is `vnb-eval-string', a send-and-wait round trip: it pumps the
+process filter, a proof-state block arrives, and the panel repaints from
+inside the paint that asked for the table.  The table is cached only
+AFTER the answer comes back, so every nested level started another round
+trip -- unbounded recursion, ending in `max-lisp-eval-depth' and a dead
+process filter.  That is why it only ever bit the FIRST proof of a
+session: from the second on, the table is cached and nothing round-trips.
+
+Called during a paint with no table yet, this returns nil -- the sequent
+renders undecorated -- and queues the fetch for the moment the paint has
+unwound."
+  (cond
+   (vnb-hover--table)
+   (vnb-launch--painting
+    (unless vnb-hover--fetch-scheduled
+      (setq vnb-hover--fetch-scheduled t)
+      (run-at-time 0 nil #'vnb-hover--fetch-deferred))
+    nil)
+   (t (vnb-hover--fetch-table))))
+
+(defun vnb-hover--tip (name)
+  "Tooltip text for NAME, or nil if the prover does not know it."
+  (let ((row (and (vnb-hover--ensure-table)
+                  (gethash (downcase name) vnb-hover--table))))
+    (when row
+      (let* ((kind (nth 0 row))
+             (eng  (nth 1 row))
+             (unf  (= 1 (nth 2 row))))
+        (concat name "   [" kind "]"
+                (if (and eng (not (string-empty-p eng)))
+                    (concat "\n" eng)
+                  "\n(no English reading declared)")
+                ;; A LOOKUP, NOT A PROBE.  The table says a macete of this
+                ;; name exists; whether it FIRES on the sequent in front of you
+                ;; is a different question, and the panel's rewrite lane is
+                ;; what answers it.  Say so, rather than promise a move that
+                ;; may decline.
+                (if unf
+                    (concat "\n\nhas a defining macete:  (mac '" name ")  in the goal"
+                            "\n                        (mac-h '" name " k)  in hypothesis k"
+                            "\n(whether it applies HERE: press n for the panel's rewrite lane)")
+                  "\n\n(no macete of this name -- primitive, or unfolded under another name)")
+                "\nclick: the full What-is card")))))
+
+(defvar vnb-hover--keymap
+  (let ((m (make-sparse-keymap)))
+    (define-key m [mouse-1] 'vnb-hover-what-is)
+    (define-key m [mouse-2] 'vnb-hover-what-is)
+    m)
+  "Keymap on a hover-sensitive symbol in the sequent.")
+
+(defun vnb-hover-what-is (event)
+  "Open the What-is card for the symbol clicked on."
+  (interactive "e")
+  (mouse-set-point event)
+  (let ((nm (get-text-property (point) 'vnb-hover-name)))
+    (if nm (vnb-what-is nm)
+      (user-error "No symbol here"))))
+
+(defun vnb-hover--decorate (beg end)
+  "Make every known head between BEG and END hover-sensitive.
+Identifiers are matched with the tree's own spelling rules: letters, digits,
+`-', `_', `*' and `@' all occur in head names (rr-ms, x_, ord-le, rr-ms@pts),
+so a plain \\\\w+ would cut them in half and match nothing."
+  (when (vnb-hover--ensure-table)
+    (save-excursion
+      (goto-char beg)
+      (let ((inhibit-read-only t))
+        (while (re-search-forward "[A-Za-z][A-Za-z0-9@*_-]*" end t)
+          (let* ((s (match-beginning 0)) (e (match-end 0))
+                 (name (buffer-substring-no-properties s e))
+                 (tip (vnb-hover--tip name)))
+            (when tip
+              (add-text-properties
+               s e (list 'help-echo tip
+                         'mouse-face 'vnb-button-mouse
+                         'vnb-hover-name (downcase name)
+                         'keymap vnb-hover--keymap)))))))))
+
+;;; -----------------------------------------------------------------------
+;;; Locating a theorem, and locating its proof.
+;;;
+;;; Three questions that had no mouse-reachable answer:
+;;;
+;;;   "what does NAME say?"             `vnb-find-theorem'      the statement
+;;;   "how was it proved?"              `vnb-view-proof-pdf'    the typeset proof
+;;;   "what would I type to redo it?"   `vnb-show-proof-script' the page
+;;;
+;;; `(find-theorem "pat")' at the REPL answers the first, but it answers it as
+;;; a RECORD -- an alist whose `statement' key holds the formula -- and its
+;;; printed lines scroll away in the scratch pad.  Here each hit is a block
+;;; with the statement written out under the name, and a row of buttons, so
+;;; every follow-up is a click and not a second command whose spelling has to
+;;; be recalled.
+;;;
+;;; Distinct from `vnb-pf-find-theorem' in the Focus workspace, which wraps the
+;;; prover's `(find-thm substr)': that one searches NAMES only, tags the ones
+;;; that backchain the CURRENT goal, and prints into the scratch pad.  It is a
+;;; proof aid.  This is a lookup, and it works with no proof in progress.
+
+(defcustom vnb-pdf-open-externally nil
+  "Non-nil: hand rendered PDFs to `xdg-open' instead of Emacs `doc-view-mode'.
+A proof document runs to a hundred pages and more (`zz-bezout' is 131), and
+doc-view converts every page through ghostscript before it shows the first
+one.  An external viewer is instant and has a page slider; doc-view keeps the
+proof inside the VNB frame.  Either way a prefix argument to
+`vnb-view-proof-pdf' / `vnb-view-as-pdf-external' flips the choice for one
+call."
+  :type 'boolean :group 'vnb)
+
+(defvar vnb-thm-proof-timeout 180
+  "Seconds to wait for the prover to write a proof's LaTeX.
+Generous because a proof with no live trace is re-run to be printed.")
+
+;;; --- completion pools ---------------------------------------------------
+;;;
+;;; Both are cached for the session: 4279 names and 1022 come back in well
+;;; under a second, but the prompt should not pay for them on every keystroke.
+;;; `vnb-thm-refresh-names' re-asks, which is wanted only after a `qed' this
+;;; session installed something the cache predates.
+
+(defvar vnb-thm--names-cache nil
+  "Cached names of every theorem-table entry, as strings.")
+
+(defvar vnb-thm--proved-cache nil
+  "Cached names that have a recorded proof, as strings.")
+
+(defun vnb-thm--names (&optional refresh)
+  "Every theorem-table name -- theorems, axioms and PSS entries alike.
+Cached; non-nil REFRESH re-asks the prover."
+  (when (or refresh (null vnb-thm--names-cache))
+    (vnb-launch--ensure-prover)
+    (setq vnb-thm--names-cache (vnb-pf--name-list "(theorem-names)")))
+  vnb-thm--names-cache)
+
+(defconst vnb-thm--proved-query
+  (concat "(sort (hash-table-keys *proof-live-trace*)"
+          " (lambda (a b) (string<? (symbol->string a) (symbol->string b))))")
+  "Prover expression returning the names that HAVE a recorded proof.
+`qed' files each finished proof's trace under its name in
+`*proof-live-trace*', so its keys are exactly the results a derivation can be
+printed for.  An axiom, a PSS entry or a `definitional' stamp is not in it --
+which is the one failure worth catching before pdflatex is started.")
+
+(defun vnb-thm--proved-names (&optional refresh)
+  "Names with a recorded proof, as strings.  Cached; REFRESH re-asks."
+  (when (or refresh (null vnb-thm--proved-cache))
+    (vnb-launch--ensure-prover)
+    (setq vnb-thm--proved-cache (vnb-pf--name-list vnb-thm--proved-query)))
+  vnb-thm--proved-cache)
+
+(defun vnb-thm-refresh-names ()
+  "Re-ask the prover for the theorem-name and proved-name completion pools."
+  (interactive)
+  (message "VNB: %d names in the theory, %d of them with a recorded proof"
+           (length (vnb-thm--names t))
+           (length (vnb-thm--proved-names t))))
+
+;;; --- what name is under the cursor --------------------------------------
+
+(defun vnb-thm-name-at-point ()
+  "The theorem name point is on, from whichever surface point is on.
+In a search buffer, the hit's name (a text property covering the whole
+block); in a library/PSS/theorem buffer, the enclosing `### NAME' section;
+otherwise the symbol under the cursor, downcased -- VNB and MIT Scheme both
+fold, so a name typed or clicked in any case is the same name."
+  (or (get-text-property (point) 'vnb-thm-name)
+      (and (derived-mode-p 'vnb-library-mode) (vnb-tex--name-at-point))
+      (let ((s (thing-at-point 'symbol t)))
+        (and s (downcase (string-trim s))))))
+
+(defun vnb-thm--read-name (prompt pool &optional require-match)
+  "Read a theorem name with substring completion over POOL.
+The name at point is the RET default.  Without REQUIRE-MATCH any string is
+accepted, which is what a substring SEARCH wants; with it, a typo is caught
+at the prompt rather than by the prover."
+  (let* ((completion-styles (cons 'substring completion-styles))
+         (def (vnb-thm-name-at-point))
+         (ans (completing-read
+               (if def (format "%s (default %s): " prompt def) (format "%s: " prompt))
+               (or pool '()) nil require-match nil nil def)))
+    (downcase (string-trim (or ans "")))))
+
+;;; --- the search itself --------------------------------------------------
+
+(defconst vnb-thm--search-query
+  (concat
+   "(let ((recs #f))"
+   " (with-output-to-string (lambda () (set! recs (find-theorem %S))))"
+   " (map (lambda (r)"
+   "        (let ((n (cdr (assq 'name r))))"
+   "          (list (symbol->string n)"
+   "                (ft--status-tag n (cdr (assq 'warrant r)))"
+   "                (expression->string (cdr (assq 'statement r)))"
+   "                (if (hash-table-ref/default *proof-live-trace* n #f) 1 0))))"
+   "      recs))")
+  "Prover query behind `vnb-find-theorem'; %S is the search pattern.
+
+Returns DATA -- one (NAME STATUS STATEMENT PROVED) per hit -- rather than
+find-theorem's printed lines, which is why find-theorem's own output is run
+into a string and dropped.  PROVED is 1 or 0 and NOT #t/#f: Emacs Lisp has no
+reader syntax for a Scheme boolean, and a `#f' in the answer would abort the
+read of the whole result.")
+
+(defun vnb-thm--search (pattern)
+  "Matches for PATTERN: a list of (NAME STATUS STATEMENT PROVED)."
+  (vnb-launch--ensure-prover)
+  (let ((raw (vnb-eval-string (format vnb-thm--search-query pattern) 60)))
+    (cond
+     ((null raw) nil)
+     ((string-prefix-p ";; error" (string-trim raw))
+      (user-error "Prover: %s" (string-trim raw)))
+     (t (condition-case nil (car (read-from-string raw)) (error nil))))))
+
+;;; --- the search buffer --------------------------------------------------
+
+(defvar vnb-thm-search-buffer-name "*VNB Find Theorem*"
+  "Buffer name for theorem-lookup results.")
+
+(defvar vnb-thm-search-max 200
+  "Most hits rendered in one search buffer.
+A one-letter pattern matches thousands; the count of what was dropped is
+printed rather than the hits themselves.")
+
+(defvar-local vnb-thm--pattern nil
+  "The pattern this search buffer answers, for `g' to re-run.")
+
+(defvar vnb-thm-search-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "RET")     'vnb-thm-statement-pdf-at-point)
+    (define-key m "v"             'vnb-thm-statement-pdf-at-point)
+    (define-key m "P"             'vnb-thm-proof-pdf-at-point)
+    (define-key m "s"             'vnb-thm-proof-script-at-point)
+    (define-key m "c"             'vnb-thm-copy-name-at-point)
+    (define-key m "t"             'vnb-find-theorem)
+    (define-key m "n"             'vnb-thm-next-hit)
+    (define-key m "p"             'vnb-thm-prev-hit)
+    (define-key m (kbd "TAB")     'vnb-thm-next-hit)
+    (define-key m (kbd "<backtab>") 'vnb-thm-prev-hit)
+    (define-key m "g"             'vnb-thm-refresh-search)
+    (define-key m "q"             'quit-window)
+    (define-key m "?"             'describe-mode)
+    ;; Both halves of the right-click.  The menu goes on the PRESS (which is
+    ;; unbound by default and is where a desktop expects a context menu); the
+    ;; release must then be swallowed, or global `mouse-3' --
+    ;; `mouse-save-then-kill' -- fires behind the menu and sets the region.
+    (define-key m [down-mouse-3]  'vnb-thm-context-menu)
+    (define-key m [mouse-3]       'ignore)
+    m)
+  "Keymap for `vnb-thm-search-mode'.")
+
+(define-derived-mode vnb-thm-search-mode special-mode "VNB-Find"
+  "Results of `vnb-find-theorem': one block per hit.
+\\<vnb-thm-search-mode-map>
+Every action is a button; the keys are for when the hand is already there.
+
+\\[vnb-thm-statement-pdf-at-point]      typeset the STATEMENT of the hit at point.
+\\[vnb-thm-proof-pdf-at-point]      typeset its PROOF (only for a hit marked with a proof).
+\\[vnb-thm-proof-script-at-point]      show its re-runnable script -- the page.
+\\[vnb-thm-copy-name-at-point]      copy the name to the kill ring.
+n / p    next / previous hit (TAB and S-TAB do the same).
+\\[vnb-find-theorem]      search again.
+\\[vnb-thm-refresh-search]      re-run this search against the live prover.
+\\[quit-window]      bury the buffer.
+
+mouse-3 anywhere in a block opens the same actions as a menu."
+  (setq buffer-read-only t)
+  (setq truncate-lines nil)
+  (vnb-launch--apply-faces))
+
+(defun vnb-thm--insert-action (label fn name help)
+  "Insert a button labelled LABEL calling FN on NAME."
+  (insert-text-button
+   (concat " " label " ")
+   'face 'vnb-button
+   'mouse-face 'vnb-button-mouse
+   'follow-link t
+   'help-echo help
+   'action (lambda (_) (funcall fn name))))
+
+(defun vnb-thm--fill (text col)
+  "TEXT wrapped to COL columns, each line indented by COL/12 spaces."
+  (with-temp-buffer
+    (insert text)
+    (let ((fill-column col) (fill-prefix "      "))
+      (goto-char (point-min))
+      (insert "      ")
+      (fill-region (point-min) (point-max)))
+    (buffer-string)))
+
+(defun vnb-thm--render (pattern hits)
+  "Paint HITS for PATTERN into the search buffer and show it."
+  (let* ((buf (get-buffer-create vnb-thm-search-buffer-name))
+         (total (length hits))
+         (shown (min total vnb-thm-search-max)))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (vnb-thm-search-mode)
+        (setq-local default-directory vnb-launch--dir)
+        (setq-local vnb-thm--pattern pattern)
+        (erase-buffer)
+        (insert "\n")
+        (insert (propertize "  Find theorem" 'face 'vnb-title))
+        (insert "\n")
+        (insert (propertize (format "  pattern \"%s\" -- %d match%s%s"
+                                    pattern total (if (= total 1) "" "es")
+                                    (if (> total shown)
+                                        (format ", first %d shown" shown) ""))
+                            'face 'vnb-heading))
+        (insert "\n\n")
+        (insert (propertize (make-string 68 ?─) 'face 'vnb-accent))
+        (insert "\n\n")
+        (if (null hits)
+            (insert (propertize
+                     (concat "  Nothing matches.  The pattern is a lowercase SUBSTRING,\n"
+                             "  matched against the name, its aliases and its warrant text.\n")
+                     'face 'vnb-body))
+          (dolist (hit (seq-take hits shown))
+            (let* ((name (nth 0 hit))
+                   (status (nth 1 hit))
+                   (statement (nth 2 hit))
+                   (proved (and (numberp (nth 3 hit)) (= 1 (nth 3 hit))))
+                   (start (point)))
+              (insert "  ")
+              (insert (propertize name 'face 'vnb-goal))
+              (insert "  ")
+              (insert (propertize status 'face 'vnb-dim))
+              (insert "\n")
+              (insert (propertize (vnb-thm--fill statement 74) 'face 'vnb-body))
+              (insert "\n  ")
+              (vnb-thm--insert-action "Statement PDF" #'vnb-view-as-pdf name
+                                      "Typeset this statement and open it")
+              (insert " ")
+              (if proved
+                  (progn
+                    (vnb-thm--insert-action "Proof PDF" #'vnb-view-proof-pdf name
+                                            "Typeset the whole derivation and open it")
+                    (insert " ")
+                    (vnb-thm--insert-action "Proof script" #'vnb-show-proof-script name
+                                            "The re-runnable page: what to type to redo this proof"))
+                (insert (propertize "  (no recorded proof -- asserted or definitional)"
+                                    'face 'vnb-dim)))
+              (insert "\n")
+              (put-text-property start (point) 'vnb-thm-name name)
+              (insert "\n"))))
+        (when (> total shown)
+          (insert (propertize
+                   (format "  ... and %d more.  Narrow the pattern.\n" (- total shown))
+                   'face 'vnb-dim)))
+        (insert "\n")
+        (insert (propertize
+                 (concat "  Keys: RET/v statement PDF  |  P proof PDF  |  s proof script\n"
+                         "        c copy name  |  n/p next/previous  |  t search again\n"
+                         "        g re-run  |  q bury      (mouse-3 in a block: the same menu)\n")
+                 'face 'vnb-dim))
+        (goto-char (point-min))))
+    (switch-to-buffer buf)))
+
+;;;###autoload
+(defun vnb-find-theorem (pattern)
+  "Look up every theorem, axiom and PSS entry whose name, alias or warrant
+contains PATTERN, and show each one's STATEMENT with a row of actions.
+
+PATTERN is a lowercase substring, not a whole name -- `bezout' finds
+`zz-bezout', `zz-bezout-set-is-ideal' and the two membership rules.  The
+prompt completes over the full name pool anyway, so a name you half-remember
+can be finished with TAB.
+
+Each hit carries its status (`[PROVEN -- modulo 0]', `[asserted: well-known]',
+`[definitional]', ...) and, when the result was proved rather than assumed,
+buttons for its typeset proof and for its re-runnable script."
+  (interactive (list (vnb-thm--read-name "Find theorem containing" (vnb-thm--names))))
+  (when (string-empty-p pattern) (user-error "No pattern given"))
+  (message "VNB: searching for \"%s\" ..." pattern)
+  (vnb-thm--render pattern (vnb-thm--search pattern)))
+
+(defun vnb-thm-refresh-search ()
+  "Re-run this buffer's search against the live prover."
+  (interactive)
+  (unless vnb-thm--pattern (user-error "This buffer holds no search"))
+  (vnb-find-theorem vnb-thm--pattern))
+
+;;; --- PDF and script for a NAMED stored proof ----------------------------
+
+(defun vnb-thm--show-pdf (pdf what &optional external)
+  "Display PDF, in `doc-view-mode' or -- with EXTERNAL -- in the desktop viewer."
+  (if (or external vnb-pdf-open-externally)
+      (progn (call-process "xdg-open" nil 0 nil pdf)
+             (message "Opened %s in the desktop PDF viewer" (file-name-nondirectory pdf)))
+    (let ((buf (find-file-other-window pdf)))
+      (with-current-buffer buf
+        (when (fboundp 'doc-view-fit-window-to-page)
+          (ignore-errors (doc-view-fit-window-to-page)))))
+    (message "%s: %s" what (abbreviate-file-name pdf))))
+
+(defun vnb-thm--pdflatex (tex pdf what)
+  "Run pdflatex on TEX in the cache directory; return non-nil if PDF appeared.
+`nonstopmode', not `halt-on-error': a proof document is long and a single
+overfull box or an unlucky formula must not cost the whole derivation.  A
+run that limps is still reported -- silence would be the defect."
+  (let* ((default-directory vnb-tex-cache-dir)
+         (log (get-buffer-create " *vnb-pdflatex*"))
+         (status (with-current-buffer log
+                   (erase-buffer)
+                   (call-process "pdflatex" nil log nil
+                                 "-interaction=nonstopmode" tex))))
+    (cond
+     ((not (file-exists-p pdf))
+      (pop-to-buffer log)
+      (user-error "pdflatex produced no PDF for `%s' (status %s); see this log"
+                  what status))
+     ((/= status 0)
+      (message "%s rendered, but pdflatex reported problems -- see ` *vnb-pdflatex*'"
+               what)
+      t)
+     (t t))))
+
+;;;###autoload
+(defun vnb-view-proof-pdf (name &optional external)
+  "Typeset the recorded proof of NAME and open the PDF.
+
+The document is the full trace: the claim, a glossary of the tactics and the
+notation it uses, then one row per step -- the tactic, the goal nodes it
+opened, the focused node's assumptions, and the goal it leaves.  It is long
+(`zz-bezout' is 131 pages).
+
+Only a result with a recorded proof has one; an axiom, a PSS entry or a
+`definitional' stamp does not, and the prompt completes over the proved names
+only.  With a prefix argument, open in the desktop viewer instead of
+`doc-view-mode' (or set `vnb-pdf-open-externally' to make that the default)."
+  (interactive (list (vnb-thm--read-name "Proof of theorem"
+                                         (vnb-thm--proved-names) 'confirm)
+                     current-prefix-arg))
+  (vnb-launch--ensure-prover)
+  (when (string-empty-p name) (user-error "No theorem name given"))
+  (vnb-tex--ensure-cache-dir)
+  (let* ((base (concat "proof-" name))
+         (tex  (expand-file-name (concat base ".tex") vnb-tex-cache-dir))
+         (pdf  (expand-file-name (concat base ".pdf") vnb-tex-cache-dir)))
+    ;; Clear both first: a stale .tex from an earlier run would make the
+    ;; "did the prover write it?" test pass for a render that just failed.
+    (dolist (f (list tex pdf)) (when (file-exists-p f) (ignore-errors (delete-file f))))
+    (message "VNB: typesetting the proof of %s ..." name)
+    (let* ((res  (vnb-eval-string (format "(write-proof-tex '%s %S)" name tex)
+                                  vnb-thm-proof-timeout))
+           (res  (string-trim (or res "")))
+           (size (or (file-attribute-size (file-attributes tex)) 0)))
+      ;; A prover-side error must be reported as ITSELF.  `write-proof-tex'
+      ;; opens its output file before it builds the document, so a result with
+      ;; no recorded proof leaves an EMPTY .tex behind and the failure would
+      ;; otherwise surface two steps later as "pdflatex produced no PDF" --
+      ;; blaming pdflatex for a proof that was never printed.
+      (when (string-prefix-p ";; error" res)
+        (user-error "The prover cannot print a proof of `%s': %s" name res))
+      (when (zerop size)
+        (user-error
+         "No proof was printed for `%s' -- is it proved, or asserted?  (prover: %s)"
+         name res)))
+    (when (vnb-thm--pdflatex tex pdf (format "Proof of %s" name))
+      (vnb-thm--show-pdf pdf (format "Proof of %s" name) external))))
+
+;;;###autoload
+(defun vnb-show-proof-script (name)
+  "Show the re-runnable script -- the PAGE -- of the stored proof of NAME.
+
+This is the text `write-proof-script' and the `W' key emit: an `sp' of the
+claim, the recorded commands in order, and the `qed'.  Typing it back in
+re-runs the proof, so it is the proof at its most literal resolution, and it
+is what to paste into a mail or a bug report."
+  (interactive (list (vnb-thm--read-name "Proof script of"
+                                         (vnb-thm--proved-names) 'confirm)))
+  (vnb-launch--ensure-prover)
+  (when (string-empty-p name) (user-error "No theorem name given"))
+  (let* ((raw  (vnb-eval-string (format "(page-of '%s)" name) 60))
+         (text (condition-case nil
+                   (let ((v (car (read-from-string raw)))) (and (stringp v) v))
+                 (error nil))))
+    (unless (and text (not (string-empty-p text)))
+      (user-error "No stored script for `%s' -- prover replied: %s"
+                  name (string-trim (or raw ""))))
+    (let ((buf (get-buffer-create (format "*VNB Proof Script: %s*" name))))
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert (format ";; VNB proof script for %s\n" name))
+          (insert ";; Type or load this back in to re-run the proof.\n\n")
+          (insert text)
+          (unless (string-suffix-p "\n" text) (insert "\n"))
+          (insert (format "(qed '%s)\n" name)))
+        (goto-char (point-min))
+        (scheme-mode)
+        (setq buffer-read-only t)
+        (setq-local default-directory vnb-launch--dir))
+      (switch-to-buffer buf))))
+
+;;; --- point/click wrappers ----------------------------------------------
+
+(defun vnb-thm--name-here (what)
+  "The theorem name at point, or an error naming WHAT."
+  (or (vnb-thm-name-at-point)
+      (user-error "No theorem name at point -- put the cursor on one to %s" what)))
+
+(defun vnb-thm-statement-pdf-at-point ()
+  "Typeset the STATEMENT of the theorem at point."
+  (interactive)
+  (vnb-view-as-pdf (vnb-thm--name-here "typeset its statement")))
+
+(defun vnb-thm-proof-pdf-at-point (&optional external)
+  "Typeset the PROOF of the theorem at point.  Prefix arg: desktop viewer."
+  (interactive "P")
+  (vnb-view-proof-pdf (vnb-thm--name-here "typeset its proof") external))
+
+(defun vnb-thm-proof-script-at-point ()
+  "Show the re-runnable script of the theorem at point."
+  (interactive)
+  (vnb-show-proof-script (vnb-thm--name-here "show its script")))
+
+(defun vnb-thm-find-at-point ()
+  "Search for the name at point."
+  (interactive)
+  (vnb-find-theorem (vnb-thm--name-here "search for it")))
+
+(defun vnb-thm-copy-name-at-point ()
+  "Copy the theorem name at point to the kill ring."
+  (interactive)
+  (let ((n (vnb-thm--name-here "copy it")))
+    (kill-new n)
+    (message "Copied: %s" n)))
+
+;;; --- mouse-3 context menu -----------------------------------------------
+;;;
+;;; The whole point of this section for a mouse-driven reader: right-click a
+;;; name ANYWHERE a VNB buffer shows one -- a search hit, a `### ' section, a
+;;; symbol in a formula -- and the four follow-ups are on the pointer.  The
+;;; menu is built per-click so it can name the theorem it is about.
+
+(defun vnb-thm-context-menu (event)
+  "Right-click menu of lookups for the theorem name under the mouse."
+  (interactive "e")
+  (mouse-set-point event)
+  (let* ((name (vnb-thm-name-at-point))
+         (have (and name t))
+         (menu (easy-menu-create-menu
+                (or name "VNB lookup")
+                `([,(if name (format "Find \"%s\"" name) "Find theorem...")
+                   vnb-thm-find-at-point ,have]
+                  ["Statement as PDF"    vnb-thm-statement-pdf-at-point ,have]
+                  ["Proof as PDF"        vnb-thm-proof-pdf-at-point     ,have]
+                  ["Proof script"        vnb-thm-proof-script-at-point  ,have]
+                  ["Copy name"           vnb-thm-copy-name-at-point     ,have]
+                  "---"
+                  ["What is..."          vnb-what-is             t]
+                  ["Describe structure..." vnb-describe-structure t]
+                  "---"
+                  ["Find theorem..."     vnb-find-theorem        t]
+                  ["View proof as PDF..." vnb-view-proof-pdf     t]))))
+    (popup-menu menu event)))
+
+;;; --- moving between hits ------------------------------------------------
+
+(defun vnb-thm--hit-positions ()
+  "Buffer positions where each hit block starts."
+  (let ((ps '()) (pos (point-min)))
+    (while (< pos (point-max))
+      (let ((next (or (next-single-property-change pos 'vnb-thm-name) (point-max))))
+        (when (and (get-text-property next 'vnb-thm-name)
+                   (not (get-text-property pos 'vnb-thm-name)))
+          (push next ps))
+        (setq pos (if (> next pos) next (1+ pos)))))
+    (nreverse ps)))
+
+(defun vnb-thm-next-hit ()
+  "Move to the next search hit."
+  (interactive)
+  (let ((next (seq-find (lambda (p) (> p (point))) (vnb-thm--hit-positions))))
+    (if next (goto-char next) (message "Last hit"))))
+
+(defun vnb-thm-prev-hit ()
+  "Move to the previous search hit."
+  (interactive)
+  (let ((prev (car (last (seq-filter (lambda (p) (< p (point)))
+                                     (vnb-thm--hit-positions))))))
+    (if prev (goto-char prev) (message "First hit"))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Inline TeX -> PNG rendering (latex -> dvipng), ported from the user's
@@ -2058,6 +2795,14 @@ shape licenses (currently: `fun-domain-extensionality')."
     (define-key m "g"               'vnb-library-refresh)
     (define-key m "v"               'vnb-view-as-pdf)
     (define-key m "d"               'vnb-describe-structure)
+    ;; Lookups for the `### NAME' section point is in: its proof, its script,
+    ;; and a fresh search.  `v' already typesets the STATEMENT, so `P' (proof)
+    ;; and `s' (script) sit beside it and read as the same family.
+    (define-key m "P"               'vnb-thm-proof-pdf-at-point)
+    (define-key m "s"               'vnb-thm-proof-script-at-point)
+    (define-key m "t"               'vnb-find-theorem)
+    (define-key m [down-mouse-3]    'vnb-thm-context-menu)
+    (define-key m [mouse-3]         'ignore)
     (define-key m "q"               'quit-window)
     (define-key m "?"               'describe-mode)
     m)
@@ -2756,7 +3501,14 @@ monospace font is installed.")
 
 (defvar vnb-launch--menu
   '("VNB"
+    ["Find Theorem..."    vnb-find-theorem      t]
+    ["View Proof as PDF..." vnb-view-proof-pdf  t]
+    ["View Proof Script..." vnb-show-proof-script t]
+    ["Save Proof Script..." vnb-pf-save-proof-script t]
+    ["Save Session Script..." vnb-ws-save-session t]
+    "---"
     ["Start Proof..."     vnb-ws-start-proof    t]
+    ["Load Proof Drive..." vnb-load-proof-script t]
     ["What Is..."         vnb-ws-what-is        t]
     ["Build Structure..." vnb-ws-build-structure t]
     ["Show Theorems"      vnb-ws-show-theorems  t]
@@ -2779,6 +3531,7 @@ monospace font is installed.")
     "---"
     ("Proof"
       ["Direct Inference"     vnb-pf-direct-inference t]
+      ["Undo Last Step"       vnb-pf-backup           t]
       ["Decompose Hyp..."     vnb-pf-antecedent-inference t]
       ["Assume"               vnb-pf-assumption       t]
       ["Assume All"           vnb-pf-assume-all       t]
@@ -2786,6 +3539,11 @@ monospace font is installed.")
       ["Theorem..."           vnb-pf-theorem          t]
       ["Cite Lemma (fact)..." vnb-pf-fact             t]
       ["Univ. Instantiate..." vnb-pf-instantiate      t]
+      ;; Beside Univ. Instantiate deliberately: the two are the same move, and
+      ;; differ only in who supplies the term.  No ellipsis -- it prompts for
+      ;; nothing, which is the whole point of it.
+      ["Goal is an Instance (mp)" vnb-pf-mp           t]
+      ["Tidy, then Modus Ponens"  vnb-pf-grind-and-mp t]
       ["Exist. Witness..."    vnb-pf-exists-witness   t]
       ["Rewrite Hyp..."       vnb-pf-rewrite-hyp      t]
       ["Sep-Membership Elim..."   vnb-pf-sep-elim     t]
@@ -2849,6 +3607,16 @@ user's Lisp Machine vintage Elisp instincts.)"
 
 (defun vnb-launch--install-toolbar ()
   "Build the VNB toolbar and set it as the default tool-bar-map."
+  ;; ICONS ONLY, no captions under them.  On GTK the toolbar style follows the
+  ;; desktop's setting, which on Ubuntu/GNOME is \"both\" -- every button then
+  ;; carries its command name in text as well as its picture, and eight of those
+  ;; make a wide, noisy strip that is HARDER to read than the pictures alone.
+  ;; The `:help' string of each item is still there as the hover tooltip, which
+  ;; is where an explanation belongs: it costs nothing until it is wanted, and
+  ;; it can be a sentence rather than a cramped word.  (The user's call,
+  ;; 2026-09-08.)  `image' is the value that means picture-only; `both',
+  ;; `both-horiz', `text-image-horiz' and `text' all draw the caption.
+  (setq tool-bar-style 'image)
   (setq vnb-launch--toolbar-map (make-sparse-keymap))
   (tool-bar-local-item "new"        'vnb-ws-start-proof
                        'vnb-tb-start-proof   vnb-launch--toolbar-map
@@ -2859,9 +3627,30 @@ user's Lisp Machine vintage Elisp instincts.)"
   (tool-bar-local-item "index"      'vnb-ws-show-theorems
                        'vnb-tb-show-theorems vnb-launch--toolbar-map
                        :help "Show installed theorems")
+  (tool-bar-local-item "open"       'vnb-load-proof-script
+                       'vnb-tb-load-drive    vnb-launch--toolbar-map
+                       :help "Load a proof-drive script and land on its open leaf")
+  (tool-bar-local-item "jump-to"    'vnb-find-theorem
+                       'vnb-tb-find-theorem  vnb-launch--toolbar-map
+                       :help "Find a theorem and see what it says")
+  (tool-bar-local-item "print"      'vnb-view-proof-pdf
+                       'vnb-tb-proof-pdf     vnb-launch--toolbar-map
+                       :help "View a theorem's proof as a PDF")
   (tool-bar-local-item "refresh"    'vnb-ws-refresh
                        'vnb-tb-refresh       vnb-launch--toolbar-map
                        :help "Refresh workspace")
+  ;; SAVE SCRIPT.  On the toolbar because it is the one action whose absence
+  ;; costs work that cannot be got back: a session's driving lives only in the
+  ;; running prover, and `W' is invisible unless you already know it.  Gated on
+  ;; a live proof -- there is nothing to write otherwise.  (User's request,
+  ;; 2026-09-10, emphatically.)
+  (tool-bar-local-item "save"       'vnb-pf-save-proof-script
+                       'vnb-tb-save-script   vnb-launch--toolbar-map
+                       :help "Save this proof's script to a re-loadable file (W)"
+                       ;; `vnb-pf--script-available-p', NOT `vnb-pf--proof-live-p':
+                       ;; the script outlives the proof, and gating on liveness
+                       ;; killed the button at `qed'.  See that predicate.
+                       :enable '(vnb-pf--script-available-p))
   (tool-bar-local-item "exit"       'vnb-ws-quit
                        'vnb-tb-quit          vnb-launch--toolbar-map
                        :help "Quit VNB")
@@ -3119,9 +3908,26 @@ the assumptions and goal as $...$ math spans (turned into PNGs by
         (vnb-launch--render-sequent-block-tex seq texdata)
       (vnb-launch--render-sequent-block-text seq))))
 
+(defun vnb-launch--insert-sequent-bar ()
+  "Insert the rule separating a sequent's assumptions from its goal.
+The turnstile alone does not show what it ranges over: the assumptions are
+stacked above it with nothing marking where the list ends, and in TeX mode
+they are images of varying height, so the eye cannot find the boundary.
+(The user's note, 2026-09-10.)
+
+Dim and indented to the block, deliberately unlike the panel's 60-wide
+accent section rules -- this fences a sequent, not a section."
+  (insert "    ")
+  (insert (propertize (make-string 56 ?─) 'face 'vnb-dim))
+  (insert "\n"))
+
 (defun vnb-launch--render-sequent-block-text (seq)
-  "Render a parsed sequent SEQ as styled infix text, assumptions one per line."
-  (let* ((num   (plist-get seq :num))
+  "Render a parsed sequent SEQ as styled infix text, assumptions one per line.
+Every known head in the rendered text is made hover-sensitive on the way out
+\(`vnb-hover--decorate'), so the reader can ask what a symbol is by pointing at
+it rather than by remembering its name."
+  (let* ((start (point))
+         (num   (plist-get seq :num))
          (asms  (plist-get seq :asms))
          ;; Strip the surrounding quotes older builds emit (wff->string);
          ;; harmless on newer builds that already render unquoted.
@@ -3145,6 +3951,7 @@ the assumptions and goal as $...$ math spans (turned into PNGs by
           (insert (propertize a 'face 'vnb-assumption))
           (insert "\n")
           (cl-incf i))))
+    (when parts (vnb-launch--insert-sequent-bar))
     (insert "    ")
     (insert (propertize "⊢" 'face 'vnb-accent))
     (insert "  ")
@@ -3152,7 +3959,9 @@ the assumptions and goal as $...$ math spans (turned into PNGs by
     (when grounded
       (insert "  ")
       (insert (propertize "[GROUNDED]" 'face 'vnb-dim)))
-    (insert "\n")))
+    (insert "\n")
+    ;; hover last, over the whole block, so it sees the final text
+    (ignore-errors (vnb-hover--decorate start (point)))))
 
 (defun vnb-launch--render-sequent-block-tex (seq texdata)
   "Render sequent SEQ using TEXDATA (the prover's focused-sequent TeX plist).
@@ -3177,6 +3986,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
           (insert "$" a "$")
           (insert "\n")
           (cl-incf i))))
+    (when asms (vnb-launch--insert-sequent-bar))
     (insert "    ")
     (insert (propertize "⊢" 'face 'vnb-accent))
     (insert "  ")
@@ -3189,6 +3999,7 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
 (defvar vnb-proof-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m "d" 'vnb-pf-direct-inference)
+    (define-key m "u" 'vnb-pf-backup)               ; undo the last step
     (define-key m "D" 'vnb-pf-antecedent-inference) ; hyp-side dual of d
     (define-key m "a" 'vnb-pf-assumption)
     (define-key m "A" 'vnb-pf-assume-all)
@@ -3206,6 +4017,8 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (define-key m "c" 'vnb-pf-arith)
     (define-key m "s" 'vnb-pf-ring-simplify)
     (define-key m "p" 'vnb-pf-prop)                 ; propositional closer
+    (define-key m "y" 'vnb-pf-mp)                   ; syllogism: goal is an instance
+    (define-key m "Y" 'vnb-pf-grind-and-mp)         ; tidy first, then the syllogism
     (define-key m "f" 'vnb-pf-focus)
     (define-key m "q" 'vnb-pf-qed)
     (define-key m "h" 'vnb-launch-workspace)
@@ -3231,7 +4044,36 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
   (vnb-launch--apply-faces))
 
 (defun vnb-launch--paint-proof ()
-  "Render the Focus Workspace: current sequent + tactic buttons."
+  "Render the Focus Workspace: current sequent + tactic buttons.
+
+RE-ENTRANCY, and it cost the user two reports and a demo (2026-09-13).
+A painter must never re-enter, and this one could: it renders the
+sequent, the sequent is hover-decorated, and the decorator fetched its
+table from the prover -- a send-and-wait round trip that pumps the
+process filter, delivers a proof-state block, and calls this function
+again from inside itself.  Each nested call erased the buffer and left
+point at `point-min', so the OUTER call\='s remaining inserts landed
+ABOVE the inner call\='s panel: the Keys block stacked up once per level
+until `max-lisp-eval-depth\=' aborted the filter and the panel settled on
+\"(no proof in progress)\".  Reading the source never found it, because
+every piece is correct on its own and five paints in a row leave exactly
+one copy -- only the real pipeline recurses.
+
+The cause is fixed at the hover end.  This is the general guard: whatever
+a future callee does, a repaint asked for during a paint becomes ONE
+repaint after it, never a nested one.  `vnb-launch--paint-overview\=' needs
+no such guard -- it talks to nothing."
+  (if vnb-launch--painting
+      (setq vnb-launch--repaint-pending t)
+    (let ((vnb-launch--repaint-pending nil))
+      (let ((vnb-launch--painting t))
+        (vnb-launch--paint-proof-1))
+      (when vnb-launch--repaint-pending
+        (let ((vnb-launch--painting t))
+          (vnb-launch--paint-proof-1))))))
+
+(defun vnb-launch--paint-proof-1 ()
+  "Paint the Focus Workspace once.  Call `vnb-launch--paint-proof\=' instead."
   (let ((inhibit-read-only t)
         (parsed (vnb-launch--parse-state vnb-proof--last-state)))
     (erase-buffer)
@@ -3249,14 +4091,25 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert "  ")
     (vnb-launch--insert-button "What is…?" 'vnb-what-is
                                "Look up a structure, number, or constant (I)")
+    ;; Undo sits with the other two questions rather than only on the toolbar:
+    ;; it is a thing you ask of the proof, not a tool.  Shown only while a proof
+    ;; is open -- "previous node" with no proof is nonsense.  (User's call.)
+    (when (vnb-pf--proof-live-p)
+      (insert "  ")
+      (vnb-launch--insert-button "↑ Undo" 'vnb-pf-backup
+                                 "Undo the last proof step (u)"))
     (insert "\n")
     (insert (propertize "     what-now" 'face 'vnb-accent))
     (insert (propertize "  — what to try on this goal, each move runnable from there\n"
                         'face 'vnb-body))
     (insert (propertize "     what-is " 'face 'vnb-accent))
     (insert (propertize "  — look up a structure, number, or constant\n" 'face 'vnb-body))
+    (when (vnb-pf--proof-live-p)
+      (insert (propertize "     undo    " 'face 'vnb-accent))
+      (insert (propertize "  — roll back the last step (the graph, not a state stack)\n"
+                          'face 'vnb-body)))
     (insert (propertize
-             "     (tactics run from the single-key shortcuts below, or the Scratch Workspace)\n"
+             "     (tactics run from the keys below, or from the Scratch Workspace)\n"
              'face 'vnb-dim))
     (insert "\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
@@ -3287,15 +4140,21 @@ and the GROUNDED flag; TEXDATA supplies the LaTeX."
     (insert "\n")
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
+    ;; GROUPED, and every row under 80 columns.  This was one 370-character
+    ;; logical line, which wraps to five rows in a terminal frame and is the
+    ;; widest thing the panel paints -- so it is both the least legible line
+    ;; here and the one most exposed to a terminal emulator's redraw of a long
+    ;; wrapped line.  The groups are the ones the menu already uses.
     (insert (propertize
-             (concat "  Keys: d direct-inf  D decompose-hyp  a assume  A assume-all  "
-                     "+ B+auto-close  = close(a=a)  "
-                     "m rewrite  M rewrite-hyp  e sep-elim  "
-                     "t theorem  F fact  i univ-inst  w witness  "
-                     "b bc  B cite-lemma  p prop  f focus  q qed  o overview  "
-                     "n what-now  I what-is  "
-                     "h home  r scratch-pad  S scratch-workspace  "
-                     "T tex-toggle  W save-script  g refresh\n")
+             (concat "  Keys\n"
+                     "    goal:        d direct-inf  = close(a=a)  + bc+auto-close  u undo\n"
+                     "    hypotheses:  a assume  A assume-all  D decompose-hyp  e sep-elim\n"
+                     "    rewriting:   m rewrite-goal  M rewrite-hyp\n"
+                     "    citing:      t theorem  F fact  i univ-inst  w witness  b bc  B cite-lemma\n"
+                     "    closers:     p prop  y mp (syllogism)  Y grind+mp\n"
+                     "    moving:      f focus  o overview  q qed  n what-now  I what-is\n"
+                     "    workspace:   h home  r scratch-pad  S scratch-workspace  T tex-toggle\n"
+                     "                 W save-script  g refresh\n")
              'face 'vnb-dim))
     ;; Turn the $...$ spans the TeX renderer emitted into inline PNGs.
     (when (and vnb-focus-render-tex (vnb-pf--tex-data-for-current-state))
@@ -3323,6 +4182,69 @@ window side effects."
   (let ((pbuf (get-buffer vnb-buffer-name)))
     (when (and pbuf (get-buffer-process pbuf))
       (comint-send-string pbuf "(show)\n"))))
+
+;; ----- Is the panel painted twice, or DRAWN twice? -----
+;;
+;; A user reported the Keys block repeating ~17 times on the first `start
+;; proof' of a session.  It was in the BUFFER: the painter re-entered itself
+;; through a prover round trip in the hover decorator (fixed -- see the
+;; re-entrancy note on `vnb-launch--paint-proof').  Nothing about reading the
+;; source found that, because each piece is correct alone; the pipeline check
+;; `emacs/vnb-panel-check.el' is what does.
+;;
+;; This command is the one-key version of the first question that check asks,
+;; and it is worth keeping because the two answers need opposite fixes:
+;; repetition in the BUFFER is a painter defect here, repetition only on the
+;; SCREEN is the terminal's drawing.
+
+(defun vnb-diagnose-repaint ()
+  "Report whether a repeated Focus panel is in the BUFFER or on the SCREEN.
+Prints the panel's size, how many times the Keys block occurs in the
+buffer text, and what kind of frame is displaying it."
+  (interactive)
+  (let* ((buf (get-buffer vnb-proof-buffer-name))
+         (n   (and buf
+                   (with-current-buffer buf
+                     (save-excursion
+                       (goto-char (point-min))
+                       (let ((k 0))
+                         (while (search-forward "goal:        d direct-inf" nil t)
+                           (setq k (1+ k)))
+                         k)))))
+         (size (and buf (buffer-size buf)))
+         (paints (and (boundp 'vnb-paint-trace--log)
+                      (length (symbol-value 'vnb-paint-trace--log)))))
+    (with-current-buffer (get-buffer-create "*VNB repaint diagnosis*")
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert "VNB Focus panel -- repeated-display diagnosis\n\n")
+        (if (not buf)
+            (insert "  The Focus Workspace buffer does not exist.\n")
+          (insert (format "  Keys blocks IN THE BUFFER : %d\n" n))
+          (insert (format "  buffer size (characters)  : %d\n" size))
+          (insert (format "  paints recorded           : %s\n"
+                          (if paints (number-to-string paints)
+                            "(vnb-paint-trace.el not loaded)")))
+          (insert "\n")
+          (insert (if (= n 1)
+                      (concat "  ONE copy is in the buffer, which is correct.  Anything\n"
+                              "  repeated on SCREEN is then the drawing, not the panel:\n"
+                              "  press C-l to redraw.\n")
+                    (concat "  MORE THAN ONE copy is in the buffer, so the panel painted\n"
+                            "  it more than once -- a painter re-entering itself.  This is\n"
+                            "  the 2026-09-13 defect (a prover round trip from inside the\n"
+                            "  paint); run  emacs --batch -l emacs/vnb-panel-check.el .\n"))))
+        (insert "\n  frame\n")
+        (insert (format "    graphic display : %S\n" (display-graphic-p)))
+        (insert (format "    terminal type   : %S\n" (tty-type)))
+        (insert (format "    frame size      : %d x %d\n"
+                        (frame-width) (frame-height)))
+        (insert (format "    TeX rendering   : %S\n"
+                        (bound-and-true-p vnb-focus-render-tex)))
+        (insert (format "    emacs version   : %s\n" emacs-version)))
+      (goto-char (point-min)))
+    (display-buffer "*VNB repaint diagnosis*")
+    (message "Keys blocks in the buffer: %s" (if buf n "no panel"))))
 
 ;;; ----- Structured renderer for VNB proof-state text -----
 ;;;
@@ -3594,7 +4516,9 @@ the prover's `focus-id' (by node number), NOT `focus' (a 1-based position)."
     (insert (propertize (make-string 60 ?─) 'face 'vnb-accent))
     (insert "\n\n")
     (insert (propertize
-             "  Keys: RET focus  n next  p prev  f focus-ws  h home  r scratch-pad  S scratch-workspace  W save-script  g refresh\n"
+             (concat "  Keys:  RET focus  n next  p prev  f focus-ws\n"
+                     "         h home  r scratch-pad  S scratch-workspace"
+                     "  W save-script  g refresh\n")
              'face 'vnb-dim))
     (goto-char (point-min))))
 
@@ -3736,6 +4660,40 @@ ordinary rules, so the qed bill is unchanged."
   (interactive)
   (vnb-launch--send-tactic "(prop)"))
 
+(defun vnb-pf-mp ()
+  "Close the goal when it is an INSTANCE of a universal you already have.
+Wraps (mp).  Takes no arguments, and that is the point: the term is DERIVED,
+not supplied.  From `forall([thing in human], thing in mortal)' together with
+`socrates in human' it closes `socrates in mortal' in one move -- it matches
+the universal's conclusion against the goal (which either determines the bound
+variable or fails), then checks the guard against your hypotheses.
+
+Use Instantiate (\\[vnb-pf-instantiate]) instead when you want to choose the
+term yourself, or when the universal binds more than one variable.  When no
+universal applies, or when several do, this declines in the REPL and names
+what it found rather than picking one.  Adds no trust: it runs the ordinary
+instantiate-and-detach followed by Assumption, so the qed bill is unchanged."
+  (interactive)
+  (vnb-launch--send-tactic "(mp)"))
+
+(defun vnb-pf-grind-and-mp ()
+  "Tidy the goal, then close it by modus ponens.  Wraps (grind-and-mp).
+The one-button form of the syllogism, for a sentence typed exactly as it reads:
+
+  forall([thing in human], thing in mortal) and socrates in human
+    implies socrates in mortal
+
+`grind' first strips the bookkeeping -- it splits the AND and moves the
+`implies' antecedents into the assumptions -- leaving the goal `socrates in
+mortal' with the universal and `socrates in human' as hypotheses.  Then `mp'
+does the logic.  The recorded script keeps both steps, so the page still reads
+as the two moves a student would make.
+
+Use Goal is an Instance (\\[vnb-pf-mp]) on its own when the goal is already
+tidy and you want just the inference."
+  (interactive)
+  (vnb-launch--send-tactic "(grind-and-mp)"))
+
 (defun vnb-pf-theorem (name)
   "Add the named theorem NAME to the current context.  Wraps (ta 'NAME).
 The name prompt completes over the full `(theorem-names)' pool, floating the
@@ -3781,13 +4739,26 @@ x(s)); they are parsed prover-side."
            (mapconcat (lambda (tm) (format " %S" tm)) terms ""))))
 
 (defun vnb-pf-instantiate (formula term)
-  "Instantiate a FORALL hypothesis at TERM.  Wraps (inst FORMULA TERM).
+  "Instantiate a FORALL hypothesis at TERM.  Wraps (inst+ FORMULA TERM).
 FORMULA may be the hypothesis's assumption # (as shown in the Focus Workspace)
-instead of the retyped formula, e.g. (inst 1 n)."
+instead of the retyped formula, e.g. (inst+ 2 socrates).
+
+It sends `inst+', not plain `inst', and on the standard guarded form that is
+the difference between a usable result and one more step to do by hand.
+`forall([thing in human], thing in mortal)' instantiated at `socrates' is
+literally `socrates in human implies socrates in mortal'; `inst+' then
+forward-detaches any guard the context already proves, so with `socrates in
+human' in the sequent you get `socrates in mortal' directly.  On an unguarded
+universal there is no guard to detach and it behaves exactly as `inst' does,
+so the stronger command is never the wrong one to offer here.
+
+It LANDS the instance; it does not close the goal.  When the instance IS the
+goal, follow with Assumption -- which is what the what-now INSTANCE lane
+prints for you, e.g. `(inst+ 2 (quote socrates)) (ass)'."
   (interactive
    (list (vnb-launch--read-required "FORALL hypothesis: assumption # or formula (type as shown): ")
          (vnb-launch--read-required "Term: ")))
-  (vnb-launch--send-tactic (format "(inst %s %S)"
+  (vnb-launch--send-tactic (format "(inst+ %s %S)"
                                    (vnb-pf--asm-arg (vnb-launch--dequote formula))
                                    (vnb-launch--dequote term))))
 
@@ -4169,6 +5140,50 @@ NB: bc* cannot match a conclusion whose head is a structure accessor like
                                  (format "(cons '%s %S)" (car b) (cdr b)))
                                (nreverse binds) " "))))))
       (_ (user-error "Backchain query failed: no response from prover")))))
+
+(defun vnb-pf--proof-live-p ()
+  "Non-nil when the cached proof state shows an OPEN proof.
+Undo has nothing to mean otherwise -- there is no previous node before the
+first `sp', and none after a completed one -- so the button and the toolbar
+item are gated on this rather than offered and then failing."
+  (let ((parsed (vnb-launch--parse-state vnb-proof--last-state)))
+    (and parsed (not (memq (plist-get parsed :status) '(none done))))))
+
+(defun vnb-pf--script-available-p ()
+  "Non-nil when there is a proof script that could be written to a file.
+
+NOT the same question as `vnb-pf--proof-live-p\=', and confusing the two
+disabled the toolbar\='s Save Script button exactly when it was wanted
+(reported 2026-09-13: \"the downarrow on the toolbar doesn\='t work, W does\").
+`vnb-pf-save-proof-script\=' says in its own docstring that it works
+\"mid-proof or just after qed -- the script persists until the next (sp)\",
+and `W\=', the panel button and the menu are all ungated.  The toolbar alone
+gated on proof-live-p, which is nil once the status is `done\=' -- so the
+button greyed itself out the moment the proof was finished, which is when a
+user reaches for Save.
+
+It also declines to grey on IGNORANCE.  The state cache is empty until the
+panel has seen a state block, and a proof driven from the Scratch Workspace
+may never send one, so an unknown state must read as ENABLED: the command
+ends in a precise `user-error\=' if there is nothing to write, and a button
+that is wrongly dead teaches the user the feature is broken."
+  (let ((parsed (vnb-launch--parse-state vnb-proof--last-state)))
+    (not (and parsed (eq (plist-get parsed :status) 'none)))))
+
+(defun vnb-pf-backup ()
+  "Undo the last proof step.  Wraps (backup-one), aliased `undo' at the REPL.
+
+The state lives in the DEDUCTION GRAPH, not in a stack of proof states -- there
+is exactly one `<proof-state>' object per proof and every tactic mutates it in
+place -- so this rolls back the journalled graph writes newest-first.  The
+nodes posted since the last step are DROPPED, not orphaned, so the open-leaf
+count and `qed' cannot be handed a phantom obligation.
+
+One thing it does NOT restore: `*fresh-counter*'.  Backing up over an `ai' or
+`ew' that minted `u_4' and re-running it mints `u_5'.  Read eigenvariables off
+the LANDING rather than off a remembered name and that never matters."
+  (interactive)
+  (vnb-launch--send-tactic "(backup-one)"))
 
 (defun vnb-pf-bplus ()
   "B+ -- the saturating closer.  Wraps (bplus).

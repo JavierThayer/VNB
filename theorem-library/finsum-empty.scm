@@ -1,19 +1,9 @@
 ;;; theorem-library/finsum-empty.scm
 ;;;
-;;; finsum-empty:  FINSUM over the empty set is the abelian-group
-;;; identity element.  Base case for finsum recursion / induction.
+;;; finsum-empty:  FINSUM over the empty set is the abelian-group identity.
 ;;;
-;;; PSS-promoted 2026-05-27 from proven-theorems.scm.  Original proof
-;;; script archived in archive/proven-theorems-archive.scm.
-
-(support 'finsum-empty
-  '(FORALL ag (FORALL f (== (FINSUM ag f EMPTY-SET) (IDEN ag)))))
-
-(warrant! 'finsum-empty 'informal
-  "Mechanically proven before the 2026-05-27 PSS promotion: mac FINSUM exposes
-   SUM-AG over CARD(EMPTY-SET), card-empty rewrites that to 0, and sum-ag-zero
-   collapses the empty sum to the identity.  Script archived at
-   archive/proven-theorems-archive.scm (prove-and-install! 'finsum-empty).  The
-   archive predates the E -> IDEN accessor rename and the ==-sweep, so it is a
-   record of the argument rather than a runnable script -- which is why this is
-   `informal' and not `proof'.")
+;;; PROVEN in theorem-library/finsum-insert.scm (2026-09-16), which loads later;
+;;; nothing between the two load positions cites it.  The asserted support that
+;;; stood here (PSS-promoted 2026-05-27, warranted `informal') is kept verbatim in
+;;; archive/retired-2026-09-16/finsum-empty.scm.  This file survives as the
+;;; signpost, like ord-segment-zero-no-members.scm.

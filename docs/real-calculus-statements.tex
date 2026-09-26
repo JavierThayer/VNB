@@ -1,0 +1,172 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=2.6cm]{geometry}
+\newtheorem{thm}{Theorem}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\theoremstyle{definition}
+\newtheorem{dfn}[thm]{Definition}
+\newcommand{\vnb}[1]{\texttt{#1}}
+\title{The mean value theorems and Taylor's formula:\\ statements proposed for the library}
+\author{}
+\date{2026-09-21. For the user's check. Nothing in this note has been proven.}
+\sloppy\emergencystretch 3em
+\begin{document}
+\maketitle
+
+\section{Why}
+
+The library states Rolle's lemma, the mean value theorems and Taylor's formula for functions
+\vnb{f in fun(rr, rr)}, that is, functions defined on all of $\mathbb{R}$, with the interval given by
+two parameters, and it asks for continuity at $a$ and at $b$ as points of $\mathbb{R}$. The notes
+(\emph{Supplements to Calculus}, 2.11, 2.12, 2.13, 2.18) state them for functions on $[a,b]$,
+continuous on $[a,b]$ and differentiable on $(a,b)$. In this system a member of \vnb{fun(A, B)} is
+defined exactly on \vnb{A}, so the library's theorems do not apply to a function given on an
+interval. This note proposes the statements that replace them. Each is set beside the statement
+of the notes. The numbers are those of the notes.
+
+\section{Vocabulary to be added}
+
+\begin{dfn}[open interval]
+\vnb{ooint(a, b)} $= \{x \in \mathbb{R} : a < x \wedge x < b\}$. (The library has the closed
+interval \vnb{ccint(a, b)} only.)
+\end{dfn}
+
+\begin{dfn}[continuous on a set]
+For $f \in$ \vnb{fun(D, rr)}: \vnb{is-continuous-on(f, D)} iff $f$ is continuous at every point of
+$D$ as a map from the metric subspace \vnb{subspace-ms(rr-ms, D)} to \vnb{rr-ms}. At an endpoint of
+$D = [a,b]$ this is one-sided continuity, as in the notes.
+\end{dfn}
+
+\begin{dfn}[derivative at a point: a local notion]
+For a function $f$ whose domain contains a neighbourhood of $x$:
+\begin{align*}
+\vnb{has-deriv-at}(f, x, l) \iff{} & \exists \varepsilon > 0.\;
+\vnb{is-diff-on}\bigl(\vnb{rr-normed-field},\; U,\; \vnb{restrict}(f, U),\; x,\; l\bigr),\\
+& \text{where } U = \vnb{ooint}(x - \varepsilon, x + \varepsilon).
+\end{align*}
+\vnb{is-diff-on} is the derivative on an open set defined on 2026-09-20. To be proven with the
+definition: the value $l$ is unique; the notion does not depend on $\varepsilon$ nor on the domain of
+$f$ (two functions that agree near $x$ have the same derivative at $x$); for $f \in$ \vnb{fun(rr, rr)}
+it coincides with the existing \vnb{is-diff-at(f, x, l)}.
+\end{dfn}
+
+With these, ``$f$ is continuous on $[a,b]$ and differentiable on $(a,b)$'' reads
+\begin{gather*}
+f \in \vnb{fun(ccint(a, b), rr)},\qquad \vnb{is-continuous-on}(f, \vnb{ccint}(a,b)),\\
+\forall x \in \vnb{ooint}(a,b).\ \exists l.\ \vnb{has-deriv-at}(f, x, l).
+\end{gather*}
+Call this conjunction $\mathcal{H}(f, a, b)$ below.
+
+\section{The statements}
+
+\begin{lem}[2.12, Rolle]
+\emph{Notes:} $a < b$, $h$ continuous on $[a,b]$, differentiable on $(a,b)$, $h(b) = h(a)$; then
+there is a $\theta \in (a,b)$ with $h'(\theta) = 0$.
+
+\emph{Proposed:}
+\begin{gather*}
+\forall a, b \in \mathbb{R}.\ a < b \Rightarrow \forall h.\ \mathcal{H}(h, a, b) \Rightarrow h(a) = h(b)
+\Rightarrow\\ \exists \theta \in \vnb{ooint}(a,b).\ \vnb{has-deriv-at}(h, \theta, 0).
+\end{gather*}
+\end{lem}
+
+\begin{thm}[2.11, generalized mean value theorem]
+\emph{Notes:} $a < b$, $f$ and $g$ continuous on $[a,b]$, differentiable on $(a,b)$; then there is a
+$\theta \in (a,b)$ such that $f'(\theta)\{g(b) - g(a)\} = g'(\theta)\{f(b) - f(a)\}$.
+
+\emph{Proposed:}
+$\forall a, b \in \mathbb{R}.\ a < b \Rightarrow \forall f, g.\ \mathcal{H}(f, a, b) \Rightarrow
+\mathcal{H}(g, a, b) \Rightarrow$
+\begin{gather*}
+\exists \theta \in \vnb{ooint}(a,b).\ \exists l, m.\ \vnb{has-deriv-at}(f, \theta, l) \wedge
+\vnb{has-deriv-at}(g, \theta, m)\\ {}\wedge l \cdot (g(b) - g(a)) = m \cdot (f(b) - f(a)).
+\end{gather*}
+The derivative is a relation in the library, so $f'(\theta)$ appears as the value $l$; this is the
+only difference of form.
+\end{thm}
+
+\begin{thm}[2.13, mean value theorem]
+\emph{Notes:} $a < b$, $f$ continuous on $[a,b]$, differentiable on $(a,b)$; then there is a
+$\theta \in (a,b)$ with $f'(\theta) = \dfrac{f(b) - f(a)}{b - a}$.
+
+\emph{Proposed:}
+\begin{gather*}
+\forall a, b \in \mathbb{R}.\ a < b \Rightarrow \forall f.\ \mathcal{H}(f, a, b) \Rightarrow\\
+\exists \theta \in \vnb{ooint}(a,b).\ \exists l.\ \vnb{has-deriv-at}(f, \theta, l) \wedge
+l = (f(b) - f(a)) / (b - a).
+\end{gather*}
+
+The quotient is as in the notes ($b - a \neq 0$ since $a < b$). The three bounds
+(\vnb{mvt-upper-bound}, \vnb{mvt-lower-bound}, \vnb{mvt-abs-bound}) are restated in the same way.
+\end{thm}
+
+\begin{thm}[2.18, Taylor's formula with a general remainder]
+\emph{Notes:} $f$ a function on $[a,b]$, $n \geq 1$, $f^{(n-1)}$ defined and continuous on $[a,b]$ and
+differentiable on $(a,b)$; $R_n(a,b)$ defined by
+$f(b) = \sum_{k=0}^{n-1} \frac{f^{(k)}(a)}{k!}(b-a)^k + R_n(a,b)$. If $G$ is continuous on $[a,b]$ and
+differentiable on $(a,b)$, there is a $\xi \in (a,b)$ with
+\[
+G'(\xi) \cdot R_n(a,b) = \frac{f^{(n)}(\xi)}{(n-1)!}\,(b - \xi)^{n-1} \cdot \{G(b) - G(a)\}.
+\tag{20}
+\]
+
+\emph{Proposed.} The derivatives are given as a finite family, so that no derivative is taken at
+an endpoint: $\vnb{is-taylor-family}(d, n, a, b)$ iff $n \in \mathbb{N}$, $1 \leq n$, and for every
+$k < n$: $d(k) \in \vnb{fun(ccint(a, b), rr)}$, $d(k)$ is continuous on $[a,b]$, and for every
+$x \in \vnb{ooint}(a,b)$, $\vnb{has-deriv-at}(d(k), x, d(k+1)(x))$; with $d(n) \in
+\vnb{fun(ooint(a, b), rr)}$. Here $d(0) = f$, $d(k) = f^{(k)}$; the values $f^{(k)}(a)$, $f^{(k)}(b)$
+are those of the continuous function $d(k)$. Then:
+
+$\forall a, b \in \mathbb{R}.\ a < b \Rightarrow \forall d, n.\ \vnb{is-taylor-family}(d, n, a, b)
+\Rightarrow \forall G.\ \mathcal{H}(G, a, b) \Rightarrow$
+\begin{gather*}
+\exists \xi \in \vnb{ooint}(a,b).\ \exists m.\ \vnb{has-deriv-at}(G, \xi, m)\\ {}\wedge
+m \cdot R \cdot (n-1)! \;=\; d(n)(\xi) \cdot (b - \xi)^{n-1} \cdot (G(b) - G(a)),
+\end{gather*}
+where $R = d(0)(b) - \sum_{k < n} d(k)(a)\,(b-a)^k / k!$. The factorial is moved to the left side
+to keep the statement free of a division; it is (20) multiplied by $(n-1)!$. If the user prefers
+(20) literally, with the division, it can be stated so.
+
+\emph{Question for the user.} The notes say ``$f^{(n-1)}$ is defined on $[a,b]$'', which at $a$ and
+$b$ is a one-sided derivative. The family form above avoids one-sided derivatives and has the same
+content: if $d(k)$ is continuous on $[a,b]$ and $d(k)' = d(k+1)$ on $(a,b)$ with $d(k+1)$ continuous
+at $a$, then by the mean value theorem $d(k+1)(a)$ \emph{is} the one-sided derivative of $d(k)$ at
+$a$. If a notion of one-sided derivative is wanted in its own right, it is a separate definition.
+\end{thm}
+
+\begin{thm}[Lagrange form, a corollary of 2.18 with $G(x) = (b - x)^n$]
+Under the hypotheses of 2.18: $\exists \xi \in \vnb{ooint}(a,b).\ n! \cdot R = d(n)(\xi) \cdot (b-a)^n$.
+This replaces the library's \vnb{taylor-lagrange}.
+\end{thm}
+
+\section{How they are obtained}
+
+The proofs in the library are not redone.
+
+\begin{lem}[extension by constants]
+For $a < b$ and $f \in \vnb{fun(ccint(a, b), rr)}$ let $\bar f \in \vnb{fun(rr, rr)}$ be $f(a)$ on
+$(-\infty, a)$, $f$ on $[a,b]$ and $f(b)$ on $(b, \infty)$. If $f$ is continuous on $[a,b]$ then
+$\bar f$ is continuous at every point of $\mathbb{R}$; and for $x \in (a,b)$,
+$\vnb{has-deriv-at}(f, x, l) \iff \vnb{is-diff-at}(\bar f, x, l)$.
+\end{lem}
+
+Rolle, 2.11, 2.13 and the three bounds follow from the library's present theorems applied to
+$\bar f$, each in a few lines. Taylor 2.18 is then proven as in the notes, from 2.11 applied to
+$F(x) = \sum_{k<n} d(k)(x)\,(b-x)^k/k!$ and $G$; it does \emph{not} go through the library's
+\vnb{taylor-lagrange}, which would require a function $n$ times differentiable on all of
+$\mathbb{R}$. The present total-function theorems remain in the library as lemmas; in the list of
+major theorems the new statements take their place.
+
+\section{What follows the same pattern}
+
+The list of major theorems shows the same deviation in every result of chapter 4 (antiderivatives,
+the integral, 4.8 to 4.17) and chapter 5 of the calculus notes, and in 2.10 (where the library also
+asks for a global maximum instead of a local one). Once the statements above are agreed, those are
+restated in the same vocabulary --- an antiderivative of $\varphi$ on $[a,b]$ is an
+$F \in \vnb{fun(ccint(a, b), rr)}$, continuous on $[a,b]$, with
+$\vnb{has-deriv-at}(F, x, \varphi(x))$ on $(a,b)$ --- and a path is
+$\gamma \in \vnb{fun(ccint(a, b), cc)}$.
+
+\end{document}

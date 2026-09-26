@@ -68,17 +68,26 @@
 ;;; ABBREVIATES.  Either stamp contributes {} to a bill, so no proof's debt
 ;;; changes; the catalog counts it as a definition rather than an axiom.
 ;;;
-;;; NAMED-ONLY: as a live macete its left side `(- a b)' matches every binary
-;;; difference in every goal and rewrites it to `a + (- b)', un-normalising
-;;; arithmetic wherever the rewrite index is consulted automatically (grind,
-;;; scout, simp).  That is the app-graph situation exactly: sound, and ruinous
-;;; to fire unasked.  Cite it by name when you want it.
+;;; A LIVE MACETE, fired BY NAME.  It was meant to be named-only -- as a live
+;;; macete its left side `(- a b)' matches every binary difference and rewrites
+;;; it to `a + (- b)', un-normalising arithmetic wherever the rewrite index is
+;;; consulted automatically (grind, scout, simp) -- but the `declare-named-only!'
+;;; below the install never took effect (it must precede the install), so the
+;;; macete has been live since 2026-08 and nothing went wrong: `-' is a CONSTANT
+;;; head, so the rewrite reaches differences only, not every application the way
+;;; app-graph's bare `(f x)' would.  The declaration was deleted 2026-09-20.
 (fluid-let ((*current-provenance* 'definitional))
   (theory-add-axiom! *current-theory* 'binary-minus-def
     '(FORALL a (FORALL b (== (- a b) (+ a (- b))))))
-  (declare-named-only! 'binary-minus-def
-    "left side matches every binary difference; firing automatically rewrites
-     all arithmetic into additive-inverse form"))
+  ;; A `declare-named-only!' call stood here and was DEAD: it came AFTER the
+  ;; install, and the named-only list is read while the macete is being built.
+  ;; So binary-minus-def has been a LIVE macete all along, and the twelve call
+  ;; sites fire it BY NAME, which is what the library wants.  That is safe
+  ;; because its left side `(- a b)' is headed by the constant `-': unlike
+  ;; app-graph's `(f x)', it is not a bare application with a schema head, so
+  ;; it matches differences and nothing else.  Removed 2026-09-20 (batch 11);
+  ;; `declare-named-only!' now warns when it is called too late.
+  )
 
 ;;; BINARY DIVISION (added 2026-08-02) -- the same disease, one operator over.
 ;;;
@@ -93,11 +102,11 @@
 ;;; connect them to `recip', which is what the theory actually axiomatises
 ;;; (rr-recip-closed, rr-recip-inverse) and what arith-eval evaluates.
 ;;;
-;;; Same four choices as binary-minus-def, for the same reasons: `==' so no
-;;; definedness witness is owed; unguarded because it defines a SYMBOL; stamped
-;;; `definitional' (overriding this file's `primitive' default) because it says
-;;; what a symbol abbreviates; and named-only, since as a live macete its left
-;;; side matches every quotient in the library.
+;;; Same three choices as binary-minus-def, for the same reasons: `==' so no
+;;; definedness witness is owed; unguarded because it defines a SYMBOL; and
+;;; stamped `definitional' (overriding this file's `primitive' default) because
+;;; it says what a symbol abbreviates.  It carried a fourth, `named-only', that
+;;; never took effect for the same reason as its sibling's; see below.
 ;;;
 ;;; NOTE what this does NOT do: it does not make those six supports correct
 ;;; about division by zero.  (/ a 0) unfolds to (* a (recip 0)), and recip 0 is
@@ -106,9 +115,12 @@
 (fluid-let ((*current-provenance* 'definitional))
   (theory-add-axiom! *current-theory* 'binary-divide-def
     '(FORALL a (FORALL b (== (/ a b) (* a (recip b))))))
-  (declare-named-only! 'binary-divide-def
-    "left side matches every quotient; firing automatically rewrites all
-     arithmetic into recip form"))
+  ;; Same story as binary-minus-def above: the `declare-named-only!' that stood
+  ;; here came AFTER the install and was therefore DEAD.  binary-divide-def is
+  ;; a LIVE macete and is fired BY NAME at its call sites; its left side
+  ;; `(/ a b)' is headed by the constant `/', not a bare schema application, so
+  ;; a live rewrite reaches quotients only.  Removed 2026-09-20 (batch 11).
+  )
 
 ;;; -----------------------------------------------------------------------
 ;;; NN — natural numbers (0, 1, 2, ...)

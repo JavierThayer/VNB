@@ -1,3 +1,6 @@
+;;; RETIRED 2026-09-17 (proven, modulo 0): finsum-comm-monoid-permutation-invariance,
+;;; finsum-comm-monoid-well-defined -- theorem-library/rake-finsum-welldef.scm
+;;; RETIRED 2026-09-17 (proven): finsum-comm-monoid-type -- theorem-library/rake-finsum-typing.scm
 ;;; theorem-library/finsum-comm-monoid.scm
 ;;;
 ;;; Finite sums over a COMMUTATIVE MONOID.
@@ -33,17 +36,7 @@
 ;;; typing.  Neither fact uses inverses or commutativity, so finsum-type's
 ;;; induction goes through verbatim over a bare monoid.
 
-(support 'finsum-comm-monoid-type
-  '(FORALL m (IMPLIES (IS-COMM-MONOID m)
-     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (CARR m)))
-       (IN (FINSUM m f S) (CARR m))))))))))
 
-(warrant! 'finsum-comm-monoid-type 'informal
-  "Same induction as finsum-type: SUM-AG seeds at (IDEN m) -- in the carrier by
-   the identity law -- and folds with (OPR m), which closes on the carrier by
-   the binary-operation typing.  Neither step uses inverses, so the
-   abelian-group proof carries over to a bare commutative monoid unchanged.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Permutation invariance: reordering the summands does not change the sum.
@@ -55,24 +48,7 @@
 ;;; Commutativity is exactly what IS-COMM-MONOID adds over IS-MONOID, so the
 ;;; identical argument is available here.
 
-(support 'finsum-comm-monoid-permutation-invariance
-  '(FORALL n (IMPLIES (IN n NN)
-     (FORALL m (IMPLIES (IS-COMM-MONOID m)
-     (FORALL g (IMPLIES (IN g (FUN NN (CARR m)))
-     (FORALL h (IMPLIES (IN h (FUN NN (CARR m)))
-     (FORALL phi (IMPLIES (IN phi (BIJECTION (ORD-SEGMENT n) (ORD-SEGMENT n)))
-       (IMPLIES (FORALL i (IMPLIES (IN i (ORD-SEGMENT n)) (= (h i) (g (phi i)))))
-         (= (SUM-AG m g n) (SUM-AG m h n))))))))))))))
 
-(warrant! 'finsum-comm-monoid-permutation-invariance 'well-known
-  "Commutativity and associativity alone make a finite sum independent of the
-   order of its summands -- the standard fact underlying unordered summation.
-   Concretely, the archived proof of sum-ag-permutation-invariance is an
-   induction whose only steps are splice-out and rearrange, built purely from
-   the associative and commutative laws of (OPR m); it never forms an inverse.
-   Commutativity is precisely what IS-COMM-MONOID supplies, so that proof
-   transfers verbatim.  (Candidate to discharge into a formal `proof' by
-   reinstating the archived script over a monoid.)")
 
 ;;; -----------------------------------------------------------------------
 ;;; Enumeration-independence: FINSUM does not depend on the chosen listing.
@@ -83,21 +59,4 @@
 ;;; so it holds for a commutative monoid given finsum-comm-monoid-permutation-
 ;;; invariance.
 
-(support 'finsum-comm-monoid-well-defined
-  '(FORALL S
-     (IMPLIES (IN S SET)
-     (IMPLIES (IN (CARD S) NN)
-     (FORALL m
-     (IMPLIES (IS-COMM-MONOID m)
-     (FORALL f
-     (IMPLIES (IN f (FUN S (CARR m)))
-     (FORALL enm
-     (IMPLIES (IN enm (BIJECTION (ORD-SEGMENT (CARD S)) S))
-       (= (FINSUM m f S)
-          (SUM-AG m (ENUM-FAM m f enm (CARD S)) (CARD S)))))))))))))
 
-(warrant! 'finsum-comm-monoid-well-defined 'informal
-  "Identical to finsum-well-defined: any two enumerations of S differ by a
-   bijection of ORD-SEGMENT(|S|), so finsum-comm-monoid-permutation-invariance
-   equates their folds.  The derivation uses no inverses, hence holds over a
-   commutative monoid.")

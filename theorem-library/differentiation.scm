@@ -27,27 +27,22 @@
 ;;; (continuity-basics/-sum/-product/-transfer), so that the witness's
 ;;; continuity is a citation rather than an eps-delta argument.  Still asserted
 ;;; here: `deriv-neg' (below), the scalar rule's c = -1 case.
+;;; RETIRED 2026-09-14 (proven): deriv-neg -- theorem-library/mvt-cluster-readoffs.scm
 
 ;;; ===================================================================
 ;;; The Caratheodory derivative
 ;;; ===================================================================
 
 ;;; IS-DIFF-AT(f, a, L): f is differentiable at a with derivative L.
-(def-predicate 'IS-DIFF-AT '(f a L)
-  '(AND (IN f (FUN RR RR))
-   (AND (IN a RR)
-   (AND (IN L RR)
-        (FORSOME phi
-          (AND (IN phi (FUN RR RR))
-          (AND (IS-CONTINUOUS-AT RR-MS RR-MS phi a)
-          (AND (= (phi a) L)
-               (FORALL x (IMPLIES (IN x RR)
-                 (= (- (f x) (f a)) (* (phi x) (- x a)))))))))))))
+;;; IS-DIFF-AT MOVED 2026-09-20 (batch 12-A) to structure-library/derivative.scm:
+;;; thirty-four other files state theorems with it, and the definition needs
+;;; nothing this file proves.  The proofs below are unchanged.
 
 ;;; DERIV(f, a) = the unique L with IS-DIFF-AT(f,a,L) (well-defined by
 ;;; derivative-unique below); equals phi(a).  Written f'(a) in the notes.
-(def-functoid 'DERIV '(f a)
-  '(IOTA L (IS-DIFF-AT f a L)))
+;;; DERIV MOVED 2026-09-20 (batch 12-A) to structure-library/derivative.scm
+;;; (with IS-DIFF-AT).  `derivative-unique' below is still what makes the IOTA
+;;; a definition.
 
 ;;; ===================================================================
 ;;; First results (calculus.pdf Chapter 2.1) -- MACHINE-PROVEN from the
@@ -106,7 +101,7 @@
                             (let ((g (wff-formula (sequent-node-assertion (car ns)))))
                               (and (pair? g) (eq? (car g) head)))) (car ns))
                       (else (scan (cdr ns)))))))
-    (if leaf (focus-on *ps* leaf) (error "dfp--focus-head!: no open leaf" head))))
+    (if leaf (dk-focus! leaf) (error "dfp--focus-head!: no open leaf" head))))
 
 ;;; Prop 2.4: differentiable at a => continuous at a  (PROVEN).  f agrees pointwise
 ;;; with G(x) = f(a) + phi(x)*(x-a) [the Caratheodory identity], G is continuous at
@@ -246,14 +241,6 @@
 ;;; Negation rule: derivative of -f is -f'.  Special case of the scalar rule
 ;;; (c = -1); witness -phi (continuous at a, value -L).  Used by
 ;;; interior-min-deriv-zero (apply interior-max-deriv-zero to g = -f).
-(support 'deriv-neg
-  '(FORALL f (FORALL a (FORALL L
-     (IMPLIES (IS-DIFF-AT f a L)
-       (IS-DIFF-AT (VNB-LAMBDA z RR (- (f z))) a (- L)))))))
-(warrant! 'deriv-neg 'reference
-  "Derivative of -f is -f': f(x)-f(a)=phi(x)(x-a) gives (-f)(x)-(-f)(a) =
-   (-phi)(x)(x-a), with -phi continuous at a and value -L.")
-(topic! 'deriv-neg 'analysis)
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their
@@ -261,5 +248,5 @@
 ;;; A def-predicate's reading cannot be derived the way a structure's noun can
 ;;; (noun vs adjective: IS-COMPLETE wants "s is complete", not "s is a complete"),
 ;;; so it is written here, once, next to what it means.
-(notation! 'IS-DIFF-AT 'kind 'predicate 'arity 3
-           'english "$1 is differentiable at $2, with derivative $3")
+;;; (the IS-DIFF-AT notation! MOVED with the definition, 2026-09-20, to
+;;; structure-library/derivative.scm)

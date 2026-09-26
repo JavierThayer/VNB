@@ -422,7 +422,8 @@
 (have! (list '< pd-k0 pd-dd) pd-lt!)
 (fact 'nn-lt-succ-le pd-k0 pd-dd)
 (fact 'nn-one-le-succ pd-k0)
-(fact 'co-le-trans 1 (list 'succ pd-k0) pd-dd)
+(fact 'rr-one-in) (fact 'nn-succ-closed pd-k0) (fact 'nn-in-rr (list 'succ pd-k0)) (fact 'nn-in-rr pd-dd)
+(fact 'rr-le-trans-c 1 (list 'succ pd-k0) pd-dd)
 
 ;; (3) so DEG is a successor -- and this is the step that would fail, and
 ;;     SHOULD fail, without the nonzero-coefficient hypothesis.
@@ -622,7 +623,8 @@
                  (fact 'eq-sym 'k_ 'n_)
                  (fact 'nn-le-refl 'k_)
                  (have! '(<= k_ n_) (lambda () (subst '(= n_ k_)) (ass)))
-                 (fact 'co-le-trans '(succ n_) 'k_ 'n_)
+(fact 'nn-in-rr 'k_) (fact 'nn-in-rr 'n_) (fact 'nn-succ-closed 'n_) (fact 'nn-in-rr '(succ n_))
+                 (fact 'rr-le-trans-c '(succ n_) 'k_ 'n_)
                  (fact 'nn-succ-not-le 'n_)
                  (ai '(NOT (<= (succ n_) n_)))))
              (fact 'monomial-off 'a_ 'c_ 'n_ 'k_)
@@ -840,6 +842,7 @@
     (pd-peel!)
     (dk-split! (dk-fact! 'deg-well-defined 'a_ 'f_))
     (dk-split! (dk-fact! 'deg-well-defined 'a_ 'g_))
+(fact 'nn-in-rr '(DEG a_ f_)) (fact 'nn-in-rr '(DEG a_ g_)) (fact 'nn-in-rr 'n_) (fact 'nn-in-rr 'k_)
     (fact 'co-le-lt-trans '(DEG a_ f_) 'n_ 'k_)
     (fact 'co-le-lt-trans '(DEG a_ g_) 'n_ 'k_)
     (fact 'deg-bound-apply 'a_ 'f_ '(DEG a_ f_) 'k_)

@@ -239,6 +239,10 @@
       (fact 'bernstein-basis-ptwise-in-rr 'n_ 'x_ '(- k_ 1))
       (fact 'bernstein-basis-ptwise-in-rr 'n_ 'x_ 'k_)
       (crs)))
+  ;; LUTINS instantiation (2026-09-18): the expansion is instantiated AT the
+  ;; basis family, and BERNSTEIN-BASIS is a COMB-KK functoid, not a class term,
+  ;; so the certificate wants it typed.  bernstein-basis-in-fun is that typing.
+  (fact 'bernstein-basis-in-fun 'n_ 'x_)
   (subst (dk-fact! 'series-partial-sum-weighted-expansion
                    '(succ n_) 'x_ '(- 1 x_) bmo-g 'w_ 'p_ 'q_ 's_))
   (fact 'bernstein-basis-null 'n_ 'x_ '(- 0 1))
@@ -369,6 +373,8 @@
         (lambda () (di) (type-k!) (bmo-lam-b* 4)
            (fact 'nn-succ-plus-one 'k_) (subst '(= (succ k_) (+ k_ 1))) (crs)))
       (subst (dk-fact! 'bernstein-weighted-step n 'x_ bmo-w-id 'h_ qq ss))
+      ;; LUTINS instantiation: add-ptwise is instantiated at the basis family.
+      (fact 'bernstein-basis-in-fun n 'x_)
       (subst (dk-fact! 'series-partial-sum-add-ptwise (list 'succ n) ss bb qq))
       (subst (dk-fact! 'bernstein-partition n 'x_))
       (subst (dk-deepest (lambda ()
@@ -634,6 +640,8 @@
   (subst (dk-fact! 'series-partial-sum-add-ptwise '(succ n_) bmo-vA bmo-vD 'h_))
   (subst (dk-fact! 'series-partial-sum-add-ptwise '(succ n_) bmo-vB1 bmo-vC bmo-vD))
   (subst (dk-fact! 'series-partial-sum-scale-ptwise '(succ n_) bmo-c1 bmo-vS1 bmo-vB1))
+  ;; LUTINS instantiation: scale-ptwise is instantiated at the basis family.
+  (fact 'bernstein-basis-in-fun 'n_ 'x_)
   (subst (dk-fact! 'series-partial-sum-scale-ptwise '(succ n_) bmo-c2 bmo-vB bmo-vC))
   (subst (dk-fact! 'bernstein-moment-2 'n_ 'x_ bmo-vA))
   (subst (dk-fact! 'bernstein-moment-1 'n_ 'x_ bmo-vS1))

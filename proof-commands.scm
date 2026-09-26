@@ -400,7 +400,21 @@
   (let* ((sqn (proof-state-focus ps))
          (r   (pi-reflexivity! sqn)))
     (if r (focus-after-rule ps r)
-        (vnb--warn "reflexivity: goal is not (= a a)" (vnb--goal-str sqn)))))
+        ;; Two different refusals, and until 2026-09-18 one message for both.  When
+        ;; the goal IS (= a a), the rule declined because `a' is not certified
+        ;; DEFINED (pi--defined?): `=' is strict, so t = t says that t denotes.  The
+        ;; old text -- "goal is not (= a a)", printed above two identical sides --
+        ;; cost three rake agents a run each.
+        (let ((g (wff-formula (sequent-node-assertion sqn))))
+          (if (and (pair? g) (eq? (car g) '=) (pair? (cdr g)) (pair? (cddr g))
+                   (alpha-equiv? (cadr g) (caddr g)))
+              (vnb--warn (string-append
+                          "reflexivity: the two sides are the same term, but it is not "
+                          "certified DEFINED -- `=' is strict.  Land its typing first "
+                          "(a `fact'/`have!' of (IN t _) or an equation t = _), or use "
+                          "`qrfl' if the goal may be stated with ==")
+                         (vnb--goal-str sqn))
+              (vnb--warn "reflexivity: goal is not (= a a)" (vnb--goal-str sqn)))))))
 
 (define (cmd-quasi-reflexivity ps)
   (let* ((sqn (proof-state-focus ps))
@@ -440,9 +454,35 @@
 ;;; then converts (FORALL (IN x A) B) to (FORALL x (IMPLIES (IN x A) B)),
 ;;; giving the standard universal closure.
 
+;;; HOLE MODE (2026-09-18).  Under a keep-going load (load.scm sets
+;;; *vnb-qed-hole-mode?*), a proof that does not complete is NOT an error: its
+;;; statement is installed as an ASSERTED hole, the open goals are printed, and
+;;; the name goes on *vnb-qed-holes*.  Citers then load, so ONE load lists every
+;;; root failure instead of one per cascade.  A band built this way is for
+;;; repair work only; load.scm says so at the end.
+(define *vnb-qed-hole-mode?*                 ; same switch as load.scm's keep-going mode
+  (let ((v (get-environment-variable "VNB_KEEP_GOING")))
+    (and v (not (string-null? v)) #t)))
+(define *vnb-qed-holes* '())              ; (name . open-goal-strings), newest first
+
 (define (cmd-qed ps name)
-  (unless (proof-done? ps)
-    (error "qed: proof is not complete; cannot install" name))
+  (if (not (proof-done? ps))
+      (if *vnb-qed-hole-mode?*
+          (let ((goals (map (lambda (l)
+                              (let ((str (expression->string (wff-formula (sequent-node-assertion l)))))
+                                (if (> (string-length str) 160) (string-head str 160) str)))
+                            (proof-open-leaves ps))))
+            (display ";; KEEP-GOING HOLE: ") (display name) (display " -- ")
+            (display (length goals)) (display " open leaf(s):\n")
+            (for-each (lambda (g) (display ";;     ") (display g) (newline)) goals)
+            (set! *vnb-qed-holes* (cons (cons name goals) *vnb-qed-holes*)))
+          (error "qed: proof is not complete; cannot install" name)))
+  ;; A COMPLETE proof of a name that an earlier keep-going pass left as a hole
+  ;; (a repair probed on a keep-going band) closes the hole: drop the entry, or
+  ;; qed--guarded goes on announcing "HOLE -- installed ASSERTED" for a proof
+  ;; that is grounded (found by a repair agent, batch 21, 2026-09-23).
+  (if (proof-done? ps)
+      (set! *vnb-qed-holes* (del-assq name *vnb-qed-holes*)))
   (let* ((root      (proof-state-root ps))
          (asms      (sequent-node-assumptions root))
          (assertion (wff-formula (sequent-node-assertion root)))
@@ -452,8 +492,14 @@
                           `(FORALL ,(wff-formula (car rest))
                                    ,(loop (cdr rest))))))
          (formula   (expand-destructuring-quantifiers wrapped)))
-    (theory-add-theorem! *current-theory* name formula)
-    (register-proven-theorem! name)
+    (if (proof-done? ps)
+        ;; THE ONE PLACE THAT SAYS `proven': the root sequent is grounded (checked above and
+        ;; again here), so the statement has a deduction graph behind it.
+        (begin (fluid-let ((*current-provenance* 'proven))
+                 (theory-add-theorem! *current-theory* name formula))
+               (register-proven-theorem! name))
+        (fluid-let ((*current-provenance* 'asserted))
+          (theory-add-theorem! *current-theory* name formula)))
     (when (not (null? asms))
       (display "qed: discharged ")
       (display (length asms))
@@ -781,6 +827,26 @@
     (if r (focus-after-rule ps r)
         (vnb--warn "iota-def: argument is not an (IOTA x p) term"
                    (expression->string iota-term)))))
+
+;;; The context-side twin of cmd-iota-def: no obligation is posted, because the
+;;; context is what discharges it.  Two ways to fail and they are different, so
+;;; the warnings are different: not an IOTA term at all, or an IOTA the context
+;;; does not establish as denoting (the usual case -- land the `(IN <iota> X)'
+;;; typing first).
+(define (cmd-iota-in-elim ps iota-term)
+  (let* ((sqn (proof-state-focus ps))
+         (r   (pi-iota-in-elim! sqn iota-term)))
+    (cond
+      (r (focus-after-rule ps r))
+      ((not (and (pair? iota-term) (eq? (car iota-term) 'IOTA)))
+       (vnb--warn "iota-in-elim: argument is not an (IOTA x p) term"
+                  (expression->string iota-term)))
+      (else
+       (vnb--warn (string-append
+                   "iota-in-elim: nothing in the context establishes that this"
+                   " description denotes -- land (IN <the iota term> X) or an"
+                   " equation naming it, then try again")
+                  (expression->string iota-term))))))
 
 (define (cmd-big-union-sethood ps)
   (let* ((sqn (proof-state-focus ps))

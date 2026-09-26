@@ -3,7 +3,13 @@
 ;;; A submodule sm of a submodule bm SPANNED by n elements u is spanned by <= n
 ;;; elements.  Induction on n inside md -- tex:1651, the lemma Smith cannot supply.
 ;;; Factored: spans-fg-base (n=0) + spans-fg-step (succ), assembled under `ni`.
-;;; USES bc* (empty-matrix witnesses) -- do NOT compile this file.
+;;; USES bc* (dk-matof!, the empty coefficient row) -- do NOT compile this file.
+;;;
+;;; 2026-09-16 (the LINCOMB change, mod-seq.scm): a combination is
+;;; LINCOMB(md, n, c, u), a FINSUM over [1,n].  The base case now reads as the
+;;; mathematics does: u = [] (a sequence of length 0), every element of bm is the
+;;; EMPTY combination, which is VZERO by construction (lincomb-empty), and the
+;;; witness spanning sm is again the empty sequence [] (nil-in-mat).
 
 ;;; ---- driver helpers (sd- prefix), on top of the dk- kit (driver-kit.scm).
 ;;; Everything that used to name an assumption BY SHAPE now names it by what the
@@ -61,10 +67,11 @@
         (FORSOME k (AND (AND (IN k NN) (<= k ,ntm))
          (FORSOME w (AND (IN w (MAT k 1 (VEC md)))
                          (SPANS md k w sm))))))))))))))
-(define sd-w0  '(MATOF 0 1 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 0) (INTERVAL 1 1)) (VZERO md))))       ; empty column seq
+(define sd-w0  '(LIST))                                                                                          ; the empty sequence
 (define sd-ce0 '(MATOF 1 0 (VNB-LAMBDA (LIST i_ j_) (CARTESIAN (INTERVAL 1 1) (INTERVAL 1 0)) (ZERO (SCAL md))))) ; empty coeff row
-(define (sd-empty-in! typ)   ; prove (IN (MATOF m n g) typ) with a 0 dimension, via bc*
-  (bc* 'matof-in-mat) (sd-di*)
+(define (sd-empty-in!)       ; prove (IN (MATOF 1 0 g) typ): dk-matof!, vacuous entry leaf
+  (fact 'nn-one-in) (fact 'nn-zero-in)
+  (dk-matof!) (sd-di*)
   (sd-empty-close! (cadr (sd-find (lambda (f) (and (pair? f) (eq? (car f) 'IN)
                                                    (equal? (caddr f) '(INTERVAL 1 0))))))))
 
@@ -74,7 +81,7 @@
                                    ,(sd-rest 0)))))
 (di) (di) (ai '(AND (IS-MODULE md) (IS-EUCLIDEAN-RING (SCAL md))))
 (sd-di*)                                              ; u, bm, sm + their guards; goal FORSOME k
-;; every element of bm is 0.u = VZERO -- capture the "combination" conjunct of SPANS md 0 u bm.
+;; every element of bm is the empty combination, VZERO -- capture the "combination" conjunct of SPANS md 0 u bm.
 ;; Name it by what mac-h/ai LANDED, not by its shape: the entries-typing conjunct has the
 ;; same FORALL/IMPLIES head.
 (define sd-bm-comb
@@ -89,7 +96,8 @@
                      (cons (sd-head? '<=) (lambda () (fact 'nn-zero-in) (fact 'nn-zero-le 0) (ass))))))
   (cons (sd-head? 'FORSOME)                           ; witness w = empty column
         (lambda ()
-          (sd-cut! (list 'IN sd-w0 '(MAT 0 1 (VEC md))) (lambda () (sd-empty-in! '(MAT 0 1 (VEC md)))))
+          (fact 'nn-one-in)
+          (fact 'nil-in-mat 1 '(VEC md))              ; [] in MAT(0,1,VEC md)
           (ew sd-w0)
           (sd-branch! (lambda () (di))
             (cons (sd-head? 'IN) (lambda () (ass)))    ; IN w0 (MAT 0 1 VEC)
@@ -104,24 +112,24 @@
                       (sd-di*)
                       (let ((xx (cadr (sd-find (lambda (a) (and (pair? a) (eq? (car a) 'IN)
                                                                (equal? (caddr a) 'sm)))))))
-                        ;; x in bm, so x = c'.u = VZERO
+                        ;; x in bm, so x = LINCOMB(md,0,c',u) = VZERO
                         (fact 'subset-mem-fwd 'sm 'bm xx)
                         (let* ((c1 (sd-inst! sd-bm-comb xx))
                                (cw (sd-ai-eigen! c1 '(MAT 1 0 (CARR (SCAL md))))))
-                          (fact 'matact-empty-vzero 'md cw 'u)
+                          (fact 'lincomb-empty 'md cw 'u)
                           (let ((xeq (sd-find (lambda (a) (and (pair? a) (eq? (car a) '=) (equal? (cadr a) xx))))))
-                            (subst xeq)                 ; x -> c'.u
-                            (subst (list '= (list 'ENTRY (list 'MATACT 'md cw 'u) 1 1) '(VZERO md))))
-                          ;; goal now: FORSOME c (IN c (MAT 1 0 CARR) AND VZERO = c.w0)
+                            (subst xeq)                 ; x -> LINCOMB(md,0,c',u)
+                            (subst (list '= (list 'LINCOMB 'md 0 cw 'u) '(VZERO md))))
+                          ;; goal now: FORSOME c (IN c (MAT 1 0 CARR) AND VZERO = LINCOMB(md,0,c,[]))
                           (sd-cut! (list 'IN sd-ce0 '(MAT 1 0 (CARR (SCAL md))))
-                                   (lambda () (sd-empty-in! '(MAT 1 0 (CARR (SCAL md))))))
+                                   sd-empty-in!)
                           (ew sd-ce0)
                           (sd-branch! (lambda () (di))
                             (cons (sd-head? 'IN) (lambda () (ass)))
                             (cons (sd-head? '=)
                               (lambda ()
-                                (fact 'matact-empty-vzero 'md sd-ce0 sd-w0)
-                                (subst (list '= (list 'ENTRY (list 'MATACT 'md sd-ce0 sd-w0) 1 1) '(VZERO md)))
+                                (fact 'lincomb-empty 'md sd-ce0 sd-w0)
+                                (subst (list '= (list 'LINCOMB 'md 0 sd-ce0 sd-w0) '(VZERO md)))
                                 (fact 'module-vzero-in 'md)
                                 (rfl)))))))))))))))
 (qed 'spans-fg-base)
@@ -139,7 +147,7 @@
 ;;; x0 = c0.u in sm.  For x = c.u in sm the last coefficient c_{1,succ n} is q.b,
 ;;; so y = x + (-q).x0 kills it: y lies in bm' (descent-remainder) and in sm (a
 ;;; submodule), hence in sm'.  The IH at (u',bm',sm') gives w' spanning sm' with
-;;; k' <= n, and x = y + q.x0 = (c',q).(w',x0) (matact-snoc): sm is spanned by
+;;; k' <= n, and x = y + q.x0 = (c',q).(w',x0) (lincomb-snoc, with x.y = LINCOMB): sm is spanned by
 ;;; SNOC-COL(w',x0), of length succ k' <= succ n.  q = 0 covers S = {0}, so there
 ;;; is no case split.
 ;;;
@@ -225,7 +233,7 @@
   (dk-split! (dk-landed-1 (lambda () (mac-h 'lastcoeff-set-membership sd-b-in-S)))))
 (define sd-c0-conjs (dk-split! (sd-conj (sd-head? 'FORSOME) sd-b-conjs)))
 (define sd-c0 (sd-eigen-of (sd-conj sd-in-mat? sd-c0-conjs)))
-(define sd-x0 (list 'ENTRY (list 'MATACT 'md sd-c0 sd-u) 1 1))  ; x0 = c0.u, in sm
+(define sd-x0 (list 'LINCOMB 'md '(succ n) sd-c0 sd-u))        ; x0 = c0.u, in sm
 (fact 'subset-mem-fwd sd-sm '(VEC md) sd-x0)                    ; x0 in VEC md
 
 ;;; ---- the witness: k = succ k', w = [w', x0]
@@ -263,7 +271,7 @@
                       (cons (list '<= jj sd-k2)                 ; an entry of w'
                         (lambda ()
                           (fact 'interval-mem-intro 1 sd-k2 jj)
-                          (fact 'entry-of-snoc-col sd-w2 sd-k2 sd-x0 jj)
+                          (fact 'entry-of-snoc-col sd-w2 sd-k2 sd-x0 jj '(VEC md))   ; + carrier (2026-09-16)
                           (subst (list '= (list 'ENTRY sd-w jj 1) (list 'ENTRY sd-w2 jj 1)))
                           (let* ((w2c (dk-split! (dk-landed-1
                                         (lambda () (mac-h 'SPANS sd-spans-w2)))))
@@ -273,7 +281,7 @@
                             (ass))))
                       (cons (list '= jj (list 'succ sd-k2))     ; the appended x0
                         (lambda ()
-                          (fact 'snoc-col-last sd-w2 sd-k2 sd-x0)
+                          (fact 'snoc-col-last sd-w2 sd-k2 sd-x0 '(VEC md))   ; + carrier (2026-09-16)
                           (subst (list '= jj (list 'succ sd-k2)))
                           (subst (list '= (list 'ENTRY sd-w (list 'succ sd-k2) 1) sd-x0))
                           (ass)))))))
@@ -350,9 +358,9 @@
                               (cons (sd-head? '=)
                                 (lambda ()
                                   (subst xeq)                   ; x -> c.u (xeq2's phrasing)
-                                  (fact 'matact-snoc 'md sd-k2 cp sd-w2 qq sd-x0)
-                                  (subst (list '= (list 'ENTRY (list 'MATACT 'md
-                                                    (list 'SNOC-ROW cp sd-k2 qq) sd-w) 1 1)
+                                  (fact 'lincomb-snoc 'md sd-k2 cp sd-w2 qq sd-x0)
+                                  (subst (list '= (list 'LINCOMB 'md (list 'succ sd-k2)
+                                                    (list 'SNOC-ROW cp sd-k2 qq) sd-w)
                                                (list '(VADD md) cpw
                                                      (list '(ACT md) qq sd-x0))))
                                   (fact 'eq-sym yy cpw)

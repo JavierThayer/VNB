@@ -1,23 +1,32 @@
-;;; card-finite.scm -- the finite layer of the DEFINED cardinal, CARD-STAR.
+;;; card-finite.scm -- the finite layer of the DEFINED cardinal, CARD.
+;;; ---------------------------------------------------------------------------
+;;; NOTE, 2026-09-20 (batch 9-B).  This file was written while cardinality was
+;;; AXIOMATISED under the name CARD and the defined constant was its companion
+;;; CARD-STAR.  On 2026-09-20 the user made the swap: CARD is the DEFINED
+;;; cardinal (structure-library/cardinality.scm), the eight `primitive' axioms
+;;; about it are gone, and every proof below now speaks of CARD.  The prose in
+;;; this header that contrasts "the axiomatised CARD" with "the defined
+;;; cardinal" is HISTORY; the surgery is docs/card-defined-2026-09-20.md.
+;;; ---------------------------------------------------------------------------
 ;;;
-;;; card-defined.scm builds CARD-STAR and proves card-star-segment (CARD-STAR(S(n)) = n).
+;;; card-defined.scm builds CARD and proves card-segment (CARD(S(n)) = n).
 ;;; This file turns that keystone into the finite facts that cardinality.scm
 ;;; currently ASSERTS as `primitive' axioms about the axiomatised CARD.  Each
-;;; theorem here is the CARD-STAR form of one of those axioms; the swap onto the
+;;; theorem here is the CARD form of one of those axioms; the swap onto the
 ;;; name CARD is a separate step, made one name at a time as its theorem lands
 ;;; (see structure-notes/card-basics-worklist.md).
 ;;;
 ;;; WHAT IS PROVEN HERE
-;;;   card-star-from-body   cd-body(A,al)  =>  CARD-STAR(A) = al          modulo 0
-;;;   card-star-bij         bijections BOTH WAYS between A and S(n)
-;;;                       =>  CARD-STAR(A) = n
+;;;   card-from-body   cd-body(A,al)  =>  CARD(A) = al          modulo 0
+;;;   card-bij         bijections BOTH WAYS between A and S(n)
+;;;                       =>  CARD(A) = n
 ;;;   seg0-empty        EMPTY-SET = ORD-SEGMENT(0)                modulo 0
-;;;   card-star-empty       CARD-STAR(EMPTY-SET) = 0            [replaces card-empty]
+;;;   card-empty       CARD(EMPTY-SET) = 0            [replaces card-empty]
 ;;;
-;;; THE MECHANISM, AND WHY IT IS TWO-SIDED.  `card-star-from-body' is card-star-segment's
+;;; THE MECHANISM, AND WHY IT IS TWO-SIDED.  `card-from-body' is card-segment's
 ;;; `iota-d' script with the segment generalised to a class: it says that
 ;;; anything satisfying the description IS the cardinal, so every later fact
-;;; reduces to exhibiting the description's body.  `card-star-bij' does that from
+;;; reduces to exhibiting the description's body.  `card-bij' does that from
 ;;; bijections, and it takes BOTH directions as hypotheses on purpose:
 ;;;
 ;;;   * the EXISTENCE clause needs A -> S(n)   (supply it directly);
@@ -57,18 +66,18 @@
     (if (null? fs) (error "cf-first: nothing with head" h) (car fs))))
 
 ;;; --------------------------------------------------------------------
-;;; card-star-from-body:  anything satisfying the description IS the cardinal.
+;;; card-from-body:  anything satisfying the description IS the cardinal.
 ;;;
 ;;; `iota-d' posts existence-and-uniqueness (the hypothesis is the witness,
 ;;; cd-body-unique the uniqueness) and hands back the defining property;
 ;;; cd-body-unique then identifies the described ordinal with al.  This is
-;;; card-star-segment's script with (ORD-SEGMENT n_) replaced by a variable.
+;;; card-segment's script with (ORD-SEGMENT n_) replaced by a variable.
 ;;; --------------------------------------------------------------------
 
 (sp (make-wff (list 'FORALL 'a_ (list 'FORALL 'al
-      (list 'IMPLIES (cf-body 'a_ 'al) (list '= (list 'CARD-STAR 'a_) 'al))))))
+      (list 'IMPLIES (cf-body 'a_ 'al) (list '= (list 'CARD 'a_) 'al))))))
 (cf-peel!)
-(mac 'card-star)
+(mac 'CARD)
 (define cf-io (cadr (dk-goal)))          ; the IOTA term, as the engine built it
 (for-each
  (lambda (l)
@@ -90,17 +99,23 @@
           (dk-opened (lambda () (di)))))
        ;; the defining property, against the hypothesis
        (begin
+         ;; 2026-09-18 (LUTINS instantiation): cd-body-unique is cited at the
+         ;; IOTA term, never certified defined by shape.  `iota-d' granted the
+         ;; defining property, whose first conjunct is (IN <iota> ORD); read it
+         ;; out in a have! LANE -- `ai' would REPLACE the conjunction that
+         ;; cd-body-unique detaches against.
+         (have! (list 'IN cf-io 'ORD) (lambda () (prop)))
          (fact 'cd-body-unique 'a_ cf-io 'al)
          (ass))))
  (dk-opened (lambda () (iota-d cf-io))))
-(qed 'card-star-from-body)
-(topic! 'card-star-from-body 'combinatorial)
+(qed 'card-from-body)
+(topic! 'card-from-body 'combinatorial)
 
 ;;; --------------------------------------------------------------------
-;;; card-star-bij:  bijections both ways between A and S(n) compute CARD-STAR(A).
+;;; card-bij:  bijections both ways between A and S(n) compute CARD(A).
 ;;;
 ;;;   n in NN,  ph in BIJECTION(A, S(n)),  et in BIJECTION(S(n), A)
-;;;     =>  CARD-STAR(A) = n
+;;;     =>  CARD(A) = n
 ;;;
 ;;; Existence is `ph'.  Leastness composes `et' with a hypothetical
 ;;; A -> S(beta) (bijection-compose), reads the composite as an INJECTION
@@ -111,7 +126,7 @@
      (FORALL a_ (FORALL ph (FORALL et
        (IMPLIES (AND (IN ph (BIJECTION a_ (ORD-SEGMENT n_)))
                      (IN et (BIJECTION (ORD-SEGMENT n_) a_)))
-                (= (CARD-STAR a_) n_)))))))))
+                (= (CARD a_) n_)))))))))
 (cf-peel!)
 (dk-split! '(AND (IN ph (BIJECTION a_ (ORD-SEGMENT n_)))
                  (IN et (BIJECTION (ORD-SEGMENT n_) a_))))
@@ -167,10 +182,10 @@
                                               (list 'ORD-SEGMENT bet)))))))))))
 
 (have! (cf-body 'a_ 'n_) cf-close-body!)
-(fact 'card-star-from-body 'a_ 'n_)
+(fact 'card-from-body 'a_ 'n_)
 (ass)
-(qed 'card-star-bij)
-(topic! 'card-star-bij 'combinatorial)
+(qed 'card-bij)
+(topic! 'card-bij 'combinatorial)
 
 ;;; --------------------------------------------------------------------
 ;;; seg0-empty:  EMPTY-SET = ORD-SEGMENT(0).
@@ -209,18 +224,18 @@
 (topic! 'seg0-empty 'combinatorial)
 
 ;;; --------------------------------------------------------------------
-;;; card-star-empty:  CARD-STAR(EMPTY-SET) = 0.   [the CARD-STAR form of card-empty]
+;;; card-empty:  CARD(EMPTY-SET) = 0.   [the CARD form of card-empty]
 ;;;
-;;; card-star-segment at n := 0, transported across seg0-empty.  This one needs
-;;; neither card-star-bij nor any bijection: the two classes are literally equal.
+;;; card-segment at n := 0, transported across seg0-empty.  This one needs
+;;; neither card-bij nor any bijection: the two classes are literally equal.
 ;;; `subst' needs the equation in the CONTEXT, hence the `fact' above it.
 ;;; --------------------------------------------------------------------
 
-(sp (make-wff '(= (CARD-STAR EMPTY-SET) 0)))
+(sp (make-wff '(= (CARD EMPTY-SET) 0)))
 (fact 'nn-zero-in)
-(fact 'card-star-segment 0)
+(fact 'card-segment 0)
 (fact 'seg0-empty)
 (subst '(= EMPTY-SET (ORD-SEGMENT 0)))
 (ass)
-(qed 'card-star-empty)
-(topic! 'card-star-empty 'combinatorial)
+(qed 'card-empty)
+(topic! 'card-empty 'combinatorial)

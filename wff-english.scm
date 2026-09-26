@@ -210,7 +210,7 @@
                (member? (memq name *support-theorem-names*))
                (inert?  (assq name *inert-macetes*))
                ;; gate 1: TRUE -- proven, or asserted-with-a-warrant.
-               (g1 (or (eq? prov 'proven) (eq? prov 'primitive)
+               (g1 (or (eq? prov 'proven) (eq? prov 'certified) (eq? prov 'primitive)
                        (eq? prov 'definitional) w))
                ;; gate 2: SOUND as an auto-firing rewrite -- not S-10 inert.
                (g2 (not inert?)))

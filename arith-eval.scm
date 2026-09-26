@@ -275,7 +275,20 @@
                            (else                     wic-or-formula))))
         (case (arith-eval-formula formula)
           ((#t)
-           (theory-add-theorem! *current-theory* name formula)
+           ;; A REAL PROOF since 2026-09-20: state the sentence, close it with the `arith'
+           ;; oracle, install with `qed'.  Until then this procedure installed the formula
+           ;; directly, stamped `proven', with no deduction graph: the evaluation was trusted
+           ;; twice over and appeared on no bill.  Now the inference is recorded, checked by
+           ;; the arith rule checker, billed `[oracles: arith]', and the proof has a page.
+           (let ((saved *ps*))
+             (sp (make-wff formula))
+             (arith)
+             (let ((done (proof-done? *ps*)))
+               (if done (qed name))
+               (set! *ps* saved)
+               (if (not done)
+                   (error "vnb-create-num-theorem: `arith' did not close the sentence it evaluated true"
+                          formula))))
            name)
           ((#f)
            (error "vnb-create-num-theorem: formula evaluates to FALSE" formula))

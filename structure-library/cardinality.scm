@@ -1,120 +1,72 @@
-;;; cardinality.scm -- CARD functoid: cardinality of sets
+;;; cardinality.scm -- CARD, the cardinality of a set, DEFINED.
 ;;;
-;;; CARD maps every set A to its cardinality CARD(A) ∈ ORD.
-;;; Under AC, CARD(A) is the least ordinal alpha with a bijection A -> alpha.
-;;; We axiomatise the key properties directly.
+;;;     CARD(A)  ==  IOTA alpha.  alpha in ORD
+;;;                and  forsome phi. phi in BIJECTION(A, ORD-SEGMENT(alpha))
+;;;                and  forall beta with ORD-LT(beta, alpha).
+;;;                       not forsome psi. psi in BIJECTION(A, ORD-SEGMENT(beta))
 ;;;
-;;; Dependencies: ordinals.scm (ORD, ORD-SEGMENT, succ_ORD), number-systems.scm (NN).
-
-;;; -----------------------------------------------------------------------
-;;; Basic ordinal value
-
+;;; "the least ordinal whose segment A bijects onto" -- the meaning this file's
+;;; header has stated since it was written.
+;;;
+;;; Dependencies: ordinals.scm (ORD, ORD-SEGMENT, ORD-LT), bijection.scm
+;;; (BIJECTION), number-systems.scm (NN).  Nothing else: the definition is a
+;;; description and costs no axiom.
+;;;
 ;;; =======================================================================
-;;; CARD IS A PRIMITIVE NOTION, and its axioms are installed as such
-;;; (2026-07-27, by the user's decision).  Everything from here to the end of
-;;; this file is wrapped in `primitive' provenance: proof-debt.scm:12 reads that
-;;; tier as trusted base, contributing {} to every bill, the same shelf
-;;; theory.scm:613 puts the base set theory on and ordinals.scm now puts the 28
-;;; ordinal axioms on.
+;;; WHAT THIS FILE USED TO BE, AND WHY IT CHANGED (2026-09-20, the user's
+;;; decision: "rename CARD-STAR to CARD and drop the axioms").
 ;;;
-;;; The alternative was to DEFINE CARD -- "the least ordinal alpha with a
-;;; bijection ORD-SEGMENT(alpha) <-> A", which the header above already names as
-;;; the intended meaning -- and derive these.  That is a real project, not a
-;;; rewrite: `well-ordering-principle' is itself stated USING CARD (circular, so
-;;; a CARD-free form must come first), and once CARD is pinned down these axioms
-;;; stop being a joint implicit definition and become claims that must be
-;;; discharged -- `card-segment' and `card-insert' by a pigeonhole argument for
-;;; ordinal segments, which is a theorem and not bookkeeping.  Declaring CARD
-;;; primitive is the honest reading of what the file has always done.
+;;; From 2026-07-27 to 2026-09-19 CARD was a PRIMITIVE notion and this file
+;;; installed seven axioms about it inside a `primitive' provenance block --
+;;; card-in-ord, card-empty, card-insert, card-segment, card-finite-bij,
+;;; card-union-disjoint, finite-set-induction -- with an eighth,
+;;; card-image-injection, in injection.scm.  `primitive' contributes {} to
+;;; every bill, so those eight facts were trusted base: a false one would have
+;;; been invisible to the ledger, and one of them (card-insert, unguarded in A)
+;;; WAS false of the intended meaning until its finiteness guard was added on
+;;; 2026-09-18.
+;;;
+;;; All eight are now THEOREMS of the definition above, under their old names
+;;; and in their old shapes, so no citation anywhere in the tree changed:
+;;;
+;;;   card-segment            theorem-library/card-defined.scm
+;;;   card-empty              theorem-library/card-finite.scm
+;;;   finite-set-induction    theorem-library/rake-card-star-laws.scm
+;;;   card-in-ord, card-insert, card-finite-bij, card-union-disjoint,
+;;;   card-image-injection    theorem-library/card-laws.scm
+;;;
+;;; and `well-ordering-principle', which used to be an asserted PSS entry
+;;; STATED with the axiomatised CARD, is proven in
+;;; theorem-library/rake-ord-pigeonhole.scm.  The whole development, and the
+;;; load-order surgery it needed, is docs/card-defined-2026-09-20.md.
+;;;
+;;; THE FINITENESS GUARD ON card-insert IS REAL AND STAYS.  For A = omega and
+;;; x = omega, A u {x} is omega + 1, which bijects with omega, so
+;;; CARD(A u {x}) = omega while succ_ORD(CARD A) = omega + 1.  The equation
+;;; holds exactly when A is finite, which is what (IN (CARD A) NN) says.  The
+;;; same remark applies to card-union-disjoint and finite-set-induction, and
+;;; each carries its guard.
 ;;; =======================================================================
-(fluid-let ((*current-provenance* 'primitive))
 
-;;; CARD(A) ∈ ORD for every set A
-(theory-add-axiom! *current-theory* 'card-in-ord
-  '(FORALL A
-      (IMPLIES (IN A SET)
-               (IN (CARD A) ORD))))
+(def-functoid 'CARD '(a_)
+  '(IOTA alpha
+     (AND (IN alpha ORD)
+          (AND (FORSOME phi (IN phi (BIJECTION a_ (ORD-SEGMENT alpha))))
+               (FORALL beta
+                 (IMPLIES (ORD-LT beta alpha)
+                   (NOT (FORSOME psi (IN psi (BIJECTION a_ (ORD-SEGMENT beta)))))))))))
+(notation! 'CARD 'kind 'functoid 'arity 1
+           'english "the cardinal of $1")
 
-;;; -----------------------------------------------------------------------
-;;; Concrete values
-
-;;; CARD(∅) = 0
-(theory-add-axiom! *current-theory* 'card-empty
-  '(= (CARD EMPTY-SET) 0))
-
-;;; Inserting a fresh element increments cardinality by one.
-;;; PAIR(x,x) = {x} (by pairing-membership with a=b=x); both pairing axioms
-;;; require the arguments to be sets, so x ∈ SET is needed here.
-;;; (REVIEW.md G-10) The rest of the manual writes singletons as
-;;; make-set([x]); using PAIR(x,x) here is equivalent (and pre-dates
-;;; the make-set primitive) but cosmetically inconsistent.  Worth
-;;; rewriting to (UNION A (MAKE-SET (LIST x))) once it's verified that
-;;; the equational rewrite doesn't perturb existing card-insert proofs.
-(theory-add-axiom! *current-theory* 'card-insert
-  '(FORALL A
-      (IMPLIES (IN A SET)
-               (FORALL x
-                 (IMPLIES (AND (IN x SET) (NOT (IN x A)))
-                          (= (CARD (UNION A (PAIR x x)))
-                             (succ_ORD (CARD A))))))))
-
-;;; CARD(ORD-SEGMENT(n)) = n for every n ∈ NN.
-;;; Bridge between cardinality and the NN-indexed model of finite sets.
-(theory-add-axiom! *current-theory* 'card-segment
-  '(FORALL n
-      (IMPLIES (IN n NN)
-               (= (CARD (ORD-SEGMENT n)) n))))
-
-;;; -----------------------------------------------------------------------
-;;; Finiteness and enumeration
-
-;;; A finite set (CARD(A) ∈ NN) bijects with ORD-SEGMENT(CARD(A)).
-;;; Existence of the bijection follows from AC + Hartogs; axiomatised here.
-;;; Stated with the BIJECTION class (bijection.scm) -- equivalent, by
-;;; bijection-membership-iff, to spelling out FUN + injective + surjective,
-;;; and directly usable: FIN-ENUM(S) (finsum.scm) chooses such a bijection.
-(theory-add-axiom! *current-theory* 'card-finite-bij
-  '(FORALL A
-      (IMPLIES (AND (IN A SET) (IN (CARD A) NN))
-               (FORSOME phi
-                 (IN phi (BIJECTION (ORD-SEGMENT (CARD A)) A))))))
-
-;;; -----------------------------------------------------------------------
-;;; Finite additivity
-
-;;; CARD(CARR ∪ B) = CARD(A) + CARD(B) when A and B are finite and disjoint.
-;;; The + on the right is NN addition (both cardinalities are in NN).
-(theory-add-axiom! *current-theory* 'card-union-disjoint
-  '(FORALL A
-      (IMPLIES (AND (IN A SET) (IN (CARD A) NN))
-               (FORALL B
-                 (IMPLIES (AND (IN B SET) (AND (IN (CARD B) NN) (= (INTERSECTION A B) EMPTY-SET)))
-                          (= (CARD (UNION A B))
-                             (+ (CARD A) (CARD B))))))))
-
-;;; -----------------------------------------------------------------------
-;;; Finite-set induction (class form).
+;;; THE DIRECTION OF THE BIJECTION IS A -> SEGMENT, and that is a decision, not
+;;; a coin flip (user, 2026-08-05).  For A = ORD-SEGMENT(n), killing a candidate
+;;; beta < n then means refuting a bijection S(n) -> S(beta), which is IN
+;;; PARTICULAR an injection S(n) -> S(beta) -- pigeonhole-segments-gen, applied
+;;; directly.  Segment-first would instead need the bijection INVERTED, and the
+;;; library's only inverse, INVERSE-BIJ (bijection.scm), is defined via CHOICE,
+;;; which this track is meant not to need.
 ;;;
-;;; If C contains EMPTY-SET and is closed under adding a fresh element to
-;;; any finite member, then C contains every finite set.  This is the
-;;; set-theoretic analogue of nn-induction; it packages the standard
-;;; reduction through CARD into a single tactic-shaped principle so that
-;;; finite-set proofs do not have to thread CARD-FINITE-BIJ + CARD-INSERT
-;;; by hand.
-;;;
-;;; The singleton in the step is written PAIR(x, x) to match card-insert.
-;;; Derivable from nn-induction via card-finite-bij + card-insert;
-;;; installed as an axiom for direct use.
-(theory-add-axiom! *current-theory* 'finite-set-induction
-  '(FORALL C
-      (IMPLIES (AND (IN EMPTY-SET C)
-                    (FORALL S
-                      (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (IN S C)))
-                               (FORALL x
-                                 (IMPLIES (AND (IN x SET) (NOT (IN x S)))
-                                          (IN (UNION S (PAIR x x)) C))))))
-               (FORALL S
-                 (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
-                          (IN S C))))))
-
-)   ; end (fluid-let ((*current-provenance* 'primitive)) ... ) -- the CARD axioms
+;;; The description denotes for EVERY set (card-body-exists,
+;;; theorem-library/rake-ord-pigeonhole.scm, from Zermelo's theorem), so CARD is
+;;; total on SET; `CARD(A)' for a proper class A is an IOTA that need not denote,
+;;; exactly like any other description in the tree.

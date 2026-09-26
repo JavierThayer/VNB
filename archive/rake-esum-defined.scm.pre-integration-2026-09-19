@@ -1,0 +1,381 @@
+;;; theorem-library/rake-esum-defined.scm -- ESUM DEFINED as the ESUP of the set
+;;; of finite partial sums, and its three characterising axioms PROVEN from the
+;;; definition.  Rake batch 6-C, the ESUP half of which is
+;;; theorem-library/rake-esup-defined.scm (agent 6-B).  Helper prefix `esm-'.
+;;;
+;;; THE DEFINING FORM.  For the probe this file installs it on a FRESH head
+;;; `ESUM2', because `ESUM' is already registered in the band and pinned by the
+;;; three axioms this file replaces.  What belongs in the tree, in place of
+;;; esum-in / esum-upper / esum-least (theorem-library/extended-sum.scm:38-71),
+;;; is the same form on the real name:
+;;;
+;;;   (def-functoid 'ESUM '(f_)
+;;;     '(ESUP (SEP v_ RR-POS-STAR
+;;;              (FORSOME t_
+;;;                (AND (AND (IN t_ SET)
+;;;                          (AND (IN (CARD t_) NN) (SUBSET t_ (DOM f_))))
+;;;                     (= v_ (FINSUM RR-POS-STAR-ADD-MONOID f_ t_)))))))
+;;;
+;;; "the least upper bound in [0,+inf] of the finite partial sums of f_" --
+;;; which is what the file header of extended-sum.scm said ESUM was all along,
+;;; and what all three warrants appeal to.
+;;;
+;;; THE SHAPE OF THE INNER GUARD IS DELIBERATE.  The first conjunct is
+;;; `(AND (IN t_ SET) (AND (IN (CARD t_) NN) (SUBSET t_ (DOM f_))))' -- the
+;;; finiteness triple exactly as esum-upper and esum-least spell it, associated
+;;; exactly as they associate it.  So the guard those two laws land in the
+;;; context IS the SEP condition's first conjunct, and it transfers by `ass'
+;;; with no re-association step and no `prop'.
+;;;
+;;; WHY DEFINE RATHER THAN STAMP.  The three axioms are warranted `informal',
+;;; and each warrant is the same sentence: "ESUM(f) is the ESUP of the set of
+;;; finite partial sums of f".  That sentence is a definition, and it is the one
+;;; below; writing it down turns three assertions into three theorems and, more
+;;; to the point, makes the characterisation demonstrably SATISFIABLE -- the
+;;; same argument rake-esup-defined.scm makes for ESUP.  (Nothing in the tree
+;;; showed that some object satisfies all three at once.  It does: ESUP of a
+;;; subset of [0,+inf] exists, by esup-exists.)
+;;;
+;;; WHAT THE DEFINITION COSTS: nothing.  All three statements are proven
+;;; UNCHANGED, character for character, modulo the head rename -- CHECKED
+;;; mechanically on the probe (scratchpad/esm/check.scm walks the band's axiom,
+;;; rewrites every ESUM to ESUM2 and compares the S-expression with the proven
+;;; theorem: "CHECK esum-in -> esum2-in : IDENTICAL", and likewise for -upper
+;;; and -least).  After the rename of step 2 below, install-theorem! will print
+;;; "re-installing the same statement" for all three.
+;;;
+;;; AUDIT OF THE THREE STATEMENTS against CLAUDE.md's "species of FALSE or
+;;; underdetermined support" -- done before proving, as the brief requires:
+;;;   * no untyped dimension / index bound / `succ' argument;
+;;;   * the finiteness guard IS present (IN S SET, CARD S in NN, S subset DOM f),
+;;;     so the CARD-defined counterexamples do not apply;
+;;;   * no CHOICE, no IOTA outside the ESUP the definition supplies;
+;;;   * the strict `=' species: esum-upper's conclusion is `<=', not `=', and
+;;;     esum-least's likewise; the only strict `=' in sight is the one INSIDE
+;;;     the SEP condition, which is a condition on a bound variable and not an
+;;;     assertion.  The two terms that must DENOTE -- ESUM(f) and each partial
+;;;     sum -- are exactly what `esum-in' and `esum-partial-sum-type' prove;
+;;;   * f is guarded by `IN f (FUN (DOM f) RR-POS-STAR)' in all three, so no
+;;;     under-guarded equation sits beside a FUN typing.
+;;; The three are sound as written.  The one thing they do NOT say is that ESUM
+;;; is determined -- which is why they were worth replacing by a definition
+;;; rather than a stamp.
+;;;
+;;; CONTENTS
+;;;   esum-partial-sum-type   FINSUM(RR-POS-STAR-ADD-MONOID, f, S) in RR-POS-STAR
+;;;                           for a finite S subset DOM f   (NEW; the typing the
+;;;                           other three need, cited only inside this file)
+;;;   esum2-in                esum-in,    statement UNCHANGED
+;;;   esum2-upper             esum-upper, statement UNCHANGED
+;;;   esum2-least             esum-least, statement UNCHANGED
+;;;
+;;; CITATIONS, by the FILE that installs them (load.scm is being edited today,
+;;; so no indices):
+;;;   theory.scm (primitive)                  subset-def
+;;;   theorem-library/subset-lemmas           subset-mem-fwd
+;;;   theorem-library/fun-apply-type-proof    fun-apply-type-c
+;;;   theorem-library/rake-finsum-cm-ptwise   finsum-comm-monoid-type-ptwise
+;;;   theorem-library/rake-rr-pos-star-monoid rr-pos-star-is-comm-monoid  (batch 6-C,
+;;;                                           part A -- the axiom it retires)
+;;;   theorem-library/rake-esup-defined       esup-in, esup-upper, esup-least
+;;;   structure-library/extended-reals-pos    rr-pos-star-add-monoid-def
+;;;                                           (definitional, via declare-instance!)
+;;; Tactics: interactive, driver-kit (in-sep!, both!, witness!, dk-*), transport
+;;; (surface-goal!).  Nothing here uses `contra', `prep' or `ineq-supply'.
+;;;
+;;; ONE MECHANICAL FINDING, worked around in section (5) and worth the kit:
+;;; `dk-split!' RECURSES into nested conjunctions, and `dk-skolem!' calls it on
+;;; whatever the existential landed.  So skolemizing
+;;;     forsome t. (fin-triple(t) and x = FINSUM(m, f, t))
+;;; leaves the THREE ATOMS of the triple in the context and NOT the triple, and
+;;; the very next step -- detaching the bound hypothesis, whose antecedent IS
+;;; that triple -- fails with "detach: need an in-context (IMPLIES A B) whose A
+;;; is in context".  A guard that arrives conjoined has to be reassembled by
+;;; hand (`have!' + `from-context!').  A `dk-skolem!' that split one level only,
+;;; or a `detach' that could see a conjunction whose leaves are all in context,
+;;; would remove the step.
+;;;
+;;; LOAD WINDOW and THE ONE CONFLICT -- see the closing block.  In short: lo is
+;;; theorem-library/rake-finsum-cm-ptwise (the latest citation), which is BELOW
+;;; theorem-library/rake-extended-order, and rake-extended-order's last two
+;;; proofs cite esum-least / esum-in / esum-upper.  That block has to move.
+
+;;; =====================================================================
+;;; (0)  PROBE-ONLY -- DELETE THIS SECTION ON INTEGRATION.
+;;;
+;;; The def-functoid on the probe head.  On integration the same form goes on
+;;; the head ESUM, in theorem-library/extended-sum.scm, in place of the three
+;;; axioms (see the closing block), and every `esum2-' below becomes `esum-'.
+;;;
+;;; This file is probed BEHIND theorem-library/rake-rr-pos-star-monoid.scm,
+;;; whose own probe-only section re-installs the `declare-instance!' for
+;;; RR-POS-STAR-ADD-MONOID: the band (2026-09-18 20:09) predates it, and without
+;;; it the slot macete @CARR does not exist and `surface-goal!' has nothing to
+;;; fire.  Probing this file ALONE against that band will fail for that reason
+;;; and for no other.
+;;; =====================================================================
+
+(def-functoid 'ESUM2 '(f_)
+  '(ESUP (SEP v_ RR-POS-STAR
+           (FORSOME t_
+             (AND (AND (IN t_ SET)
+                       (AND (IN (CARD t_) NN) (SUBSET t_ (DOM f_))))
+                  (= v_ (FINSUM RR-POS-STAR-ADD-MONOID f_ t_)))))))
+(notation! 'ESUM2 'kind 'functoid 'arity 1
+           'english "the unordered sum in [0,+inf] of $1")
+
+;;; =====================================================================
+;;; (1)  FILE-LOCAL DRIVER HELPERS
+;;; =====================================================================
+
+;;; A SEP set lies in its own domain: `mac subset-def', introduce the element,
+;;; and `sep-me' hands back the domain membership.  (The idiom
+;;; monotone-convergence-proof.scm:252 uses; there is no `sep-subset' lemma and
+;;; this is three steps.)
+(define (esm-sep-subset!)
+  (mac 'subset-def)
+  (let ((m (dk-landed-1 (lambda () (di)))))
+    (sep-me m)
+    (ass)))
+
+;;; (CARR RR-POS-STAR-ADD-MONOID) == RR-POS-STAR, landed in the context so that
+;;; `subst' can rewrite RR-POS-STAR -> (CARR ...) in a GOAL (subst rewrites LEFT
+;;; TO RIGHT only, and there is no hypothesis-side subst -- CLAUDE.md).  The
+;;; read-off goes through `surface-goal!', the one sanctioned door: no accessor
+;;; macete is fired by name anywhere in this file.
+(define esm-carr-rev '(== RR-POS-STAR (CARR RR-POS-STAR-ADD-MONOID)))
+
+(define (esm-have-carr-rev!)
+  (have! esm-carr-rev
+         (lambda ()
+           (quietly (lambda () (surface-goal! 'RR-POS-STAR-ADD-MONOID)))
+           (qrfl))))
+
+;;; The finiteness triple of the axioms, and the pointwise typing
+;;; finsum-comm-monoid-type-ptwise wants.  The inner binder is spelled `z', the
+;;; binder that theorem uses, so the antecedent matches the context formula
+;;; literally when `fact' comes to detach it.
+(define (esm-fin-of tm dm)
+  (list 'AND (list 'IN tm 'SET)
+        (list 'AND (list 'IN (list 'CARD tm) 'NN) (list 'SUBSET tm dm))))
+
+(define (esm-ptwise-of fv sv)
+  (list 'FORALL 'z (list 'IMPLIES (list 'IN 'z sv)
+                         (list 'IN (list fv 'z) '(CARR RR-POS-STAR-ADD-MONOID)))))
+
+;;; =====================================================================
+;;; (2)  esum-partial-sum-type -- every finite partial sum lands in [0,+inf].
+;;;
+;;; This is the fact all three laws rest on, and the reason part A had to come
+;;; first: finsum-comm-monoid-type-ptwise is guarded on IS-COMM-MONOID(m), and
+;;; for m := RR-POS-STAR-ADD-MONOID that is exactly the claim
+;;; theorem-library/rake-rr-pos-star-monoid.scm proves.  The pointwise typing of
+;;; f on S comes from the FUN typing plus SUBSET, one `subset-mem-fwd' and one
+;;; `fun-apply-type-c'; no restriction of f to S is needed, which is the whole
+;;; point of the POINTWISE form (CLAUDE.md, "Finite sums and sets").
+;;;
+;;; The antecedents are CURRIED, and the second is the axioms' finiteness triple
+;;; VERBATIM, so a citer whose context holds that triple as one formula gets it
+;;; detached by `fact' with no splitting.
+;;; =====================================================================
+
+(sp (make-wff
+     '(FORALL f (FORALL S
+        (IMPLIES (IN f (FUN (DOM f) RR-POS-STAR))
+          (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (SUBSET S (DOM f))))
+            (IN (FINSUM RR-POS-STAR-ADD-MONOID f S) RR-POS-STAR)))))))
+(dk-peel!)
+(let* ((gl (dk-goal))                       ; (IN (FINSUM m f S) RR-POS-STAR)
+       (fs (cadr gl))
+       (fv (caddr fs))
+       (sv (cadddr fs))
+       (dm (list 'DOM fv))
+       (fin (dk-pick (dk-head? 'AND) "the finiteness guard")))
+  (dk-split! fin)
+  (ta 'rr-pos-star-is-comm-monoid)          ; a GROUND theorem: `fact' would land nothing
+  (have! (esm-ptwise-of fv sv)
+         (lambda ()
+           (let ((zv (dk-di-var!)))
+             (fact 'subset-mem-fwd sv dm zv)
+             (fact 'fun-apply-type-c fv dm 'RR-POS-STAR zv)
+             (quietly (lambda () (surface-goal! 'RR-POS-STAR-ADD-MONOID)))
+             (ass))))
+  (fact 'finsum-comm-monoid-type-ptwise 'RR-POS-STAR-ADD-MONOID sv fv)
+  (esm-have-carr-rev!)
+  (subst esm-carr-rev)
+  (ass))
+(qed 'esum-partial-sum-type)
+(topic! 'esum-partial-sum-type 'analysis)
+(alias! 'esum-partial-sum-type
+        "a finite partial sum of an [0,+inf]-valued family lies in [0,+inf]")
+
+;;; =====================================================================
+;;; (3)  esum-in -- statement copied literally from
+;;;      theorem-library/extended-sum.scm:38.
+;;;
+;;; The partial-sum set is a SEP over RR-POS-STAR, so it is a subset of
+;;; RR-POS-STAR by `sep-me' alone -- no typing of the summands is needed HERE
+;;; (that is what makes esum-in the cheapest of the three), and esup-in puts the
+;;; sup back in RR-POS-STAR.
+;;; =====================================================================
+
+(sp (make-wff '(FORALL f (IMPLIES (IN f (FUN (DOM f) RR-POS-STAR))
+                  (IN (ESUM2 f) RR-POS-STAR)))))
+(dk-peel!)
+(mac 'ESUM2)
+(let ((ps (cadr (cadr (dk-goal)))))          ; (IN (ESUP <SEP>) RR-POS-STAR)
+  (have! (list 'SUBSET ps 'RR-POS-STAR) (lambda () (esm-sep-subset!)))
+  (fact 'esup-in ps)
+  (ass))
+(qed 'esum2-in)
+(topic! 'esum2-in 'analysis)
+
+;;; =====================================================================
+;;; (4)  esum-upper -- statement copied literally from
+;;;      theorem-library/extended-sum.scm:50.
+;;;
+;;; The partial sum at S IS a member of the set ESUP is taken over: the witness
+;;; for the SEP condition's existential is S itself, its first conjunct is the
+;;; guard already in context, and its second is the reflexive equation.  `rfl'
+;;; needs the FINSUM term certified DEFINED, and a FINSUM never certifies on its
+;;; own (CLAUDE.md, the LUTINS rule) -- so `esum-partial-sum-type' is cited
+;;; FIRST, and its (IN _ RR-POS-STAR) is what licenses both the `rfl' and the
+;;; instantiation of esup-upper at that term.
+;;; =====================================================================
+
+(sp (make-wff '(FORALL f (IMPLIES (IN f (FUN (DOM f) RR-POS-STAR))
+       (FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (SUBSET S (DOM f))))
+         (<= (FINSUM RR-POS-STAR-ADD-MONOID f S) (ESUM2 f))))))))
+(dk-peel!)
+(let* ((g0 (dk-goal))                        ; (<= (FINSUM m f S) (ESUM2 f))
+       (fs (cadr g0))
+       (fv (caddr fs))
+       (sv (cadddr fs)))
+  (fact 'esum-partial-sum-type fv sv)        ; (IN (FINSUM m f S) RR-POS-STAR)
+  (mac 'ESUM2)
+  (let ((ps (cadr (caddr (dk-goal)))))       ; (<= (FINSUM m f S) (ESUP <SEP>))
+    (have! (list 'SUBSET ps 'RR-POS-STAR) (lambda () (esm-sep-subset!)))
+    (have! (list 'IN fs ps)
+           (lambda ()
+             (in-sep! (lambda () (ass))
+                      (lambda ()
+                        (witness! sv
+                          (lambda ()
+                            (both! (lambda () (ass))     ; the finiteness guard
+                                   (lambda () (rfl)))))))))  ; FINSUM = FINSUM
+    (fact 'esup-upper ps fs)
+    (ass)))
+(qed 'esum2-upper)
+(topic! 'esum2-upper 'analysis)
+
+;;; =====================================================================
+;;; (5)  esum-least -- statement copied literally from
+;;;      theorem-library/extended-sum.scm:62.
+;;;
+;;; Every member of the partial-sum set IS a partial sum -- that is what
+;;; `sep-me' plus one skolemisation says -- so the hypothesis bounds it, and
+;;; esup-least does the rest.  The bound hypothesis is applied at the skolemised
+;;; index set, whose finiteness guard `dk-skolem!' leaves in the context as ONE
+;;; conjunction (it splits the landing one level only), which is exactly the
+;;; shape the guard wants.
+;;; =====================================================================
+
+(sp (make-wff '(FORALL f (IMPLIES (IN f (FUN (DOM f) RR-POS-STAR))
+       (FORALL b (IMPLIES (AND (IN b RR-POS-STAR)
+                    (FORALL S (IMPLIES (AND (IN S SET) (AND (IN (CARD S) NN) (SUBSET S (DOM f))))
+                      (<= (FINSUM RR-POS-STAR-ADD-MONOID f S) b))))
+         (<= (ESUM2 f) b)))))))
+(dk-peel!)
+(let* ((g0 (dk-goal))                        ; (<= (ESUM2 f) b)
+       (bv (caddr g0))
+       (grd (dk-pick (lambda (a) (and (pair? a) (eq? (car a) 'AND)
+                                      (equal? (cadr a) (list 'IN bv 'RR-POS-STAR))))
+                     "the guard of the least-upper-bound hypothesis")))
+  (dk-split! grd)
+  (let ((bnd (dk-pick (dk-head? 'FORALL) "the partial-sum bound")))
+    (mac 'ESUM2)
+    (let* ((ps (cadr (cadr (dk-goal))))      ; (<= (ESUP <SEP>) b)
+           (ubf (list 'FORALL 'x (list 'IMPLIES (list 'IN 'x ps) (list '<= 'x bv)))))
+      (have! (list 'SUBSET ps 'RR-POS-STAR) (lambda () (esm-sep-subset!)))
+      ;; "x in the partial-sum set => x <= b".  The binder is `x', the binder
+      ;; esup-least uses, so the guard below is its antecedent literally.
+      (have! ubf
+             (lambda ()
+               (let* ((m  (dk-landed-1 (lambda () (di))))
+                      (xv (cadr m))
+                      (ex (dk-landed-find (lambda () (sep-me m)) (dk-head? 'FORSOME))))
+                 (dk-skolem! ex)
+                 (let* ((eqn (dk-pick (lambda (a) (and (pair? a) (eq? (car a) '=)
+                                                       (equal? (cadr a) xv)))
+                                      "x = the partial sum"))
+                        (sum (caddr eqn))              ; (FINSUM m f t)
+                        (tv  (cadddr sum))
+                        (dmv (list 'DOM (caddr sum))))
+                   ;; `dk-split!' RECURSES, so `dk-skolem!' took the finiteness
+                   ;; triple all the way down to its three atoms and the
+                   ;; CONJUNCTION the bound hypothesis wants as its antecedent is
+                   ;; no longer a context formula -- `detach' then reports
+                   ;; "need an in-context (IMPLIES A B) whose A is in context".
+                   ;; Reassemble it; `from-context!' closes an AND whose leaves
+                   ;; are all in context.
+                   (have! (esm-fin-of tv dmv))
+                   (dk-apply! bnd tv)
+                   (subst eqn)
+                   (ass)))))
+      (have! (list 'AND (list 'IN bv 'RR-POS-STAR) ubf))
+      (fact 'esup-least ps bv)
+      (ass))))
+(qed 'esum2-least)
+(topic! 'esum2-least 'analysis)
+
+;;; =====================================================================
+;;; WHAT THE INTEGRATOR DOES
+;;; =====================================================================
+;;;
+;;; 1. theorem-library/extended-sum.scm -- DELETE the three axioms and their
+;;;    warrants at :38 (esum-in), :50 (esum-upper), :62 (esum-least), and put
+;;;    the `def-functoid' quoted at the head of this file, on the head ESUM,
+;;;    plus its `notation!', in their place.  extended-sum.scm is the right
+;;;    home for the DEFINITION: it loads after structure-library/
+;;;    extended-reals-pos (ESUP, RR-POS-STAR-ADD-MONOID) and after
+;;;    theorem-library/finsum-comm-monoid (FINSUM), so every head in the body is
+;;;    registered; and the file then contains a definition and nothing else.
+;;;    ESUM is already a term-form head in wff.scm, so nothing else moves.
+;;;
+;;; 2. This file: delete section (0), rename ESUM2 -> ESUM and esum2-* ->
+;;;    esum-* with scratchpad/rename-sym.py (token-aware).  `esum-partial-sum-type'
+;;;    keeps its name -- it is new, it mentions no ESUM, and it is cited only
+;;;    from inside this file.
+;;;
+;;; 3. THE LOAD WINDOW, AND THE CONFLICT.  This file needs, in order of load
+;;;    position, theorem-library/rake-esup-defined (esup-in/-upper/-least),
+;;;    theorem-library/rake-rr-pos-star-monoid (part A) and
+;;;    theorem-library/rake-finsum-cm-ptwise (finsum-comm-monoid-type-ptwise);
+;;;    the last is the LATEST, so lo = just after rake-finsum-cm-ptwise.
+;;;
+;;;    But theorem-library/rake-extended-order, which loads BEFORE
+;;;    rake-esup-defined, cites esum-least, esum-in and esum-upper in its last
+;;;    two proofs.  So hi < lo and no slot exists.  Grep of the whole tree:
+;;;    the only other proof citer is theorem-library/rake-series (esum-upper),
+;;;    far below, which is no constraint.
+;;;
+;;;    THE FIX, and it is a clean cut: rake-extended-order.scm:507-617 -- the
+;;;    block headed "ESUM: the finiteness dichotomy", i.e. the two proofs
+;;;    `esum-bounded-implies-finite' and `esum-finite-iff-bounded' -- is the
+;;;    whole of the conflict.  Move that block into its own file (say
+;;;    theorem-library/rake-esum-finite.scm) loaded immediately AFTER this one.
+;;;    Nothing above it in rake-extended-order.scm mentions ESUM; nothing below
+;;;    it exists (it is the end of the file).  Its own citations
+;;;    (finsum-empty, rr-pos-star-le-real-in-rr, rr-pos-star-membership,
+;;;    card-empty, empty-set-is-set, nn-zero-in, equality-symmetry,
+;;;    rr-pos-star-add-monoid-def) all load far above, and the file header's
+;;;    window note "[247, end)" stays true of the remainder.
+;;;
+;;;    Moving rake-finsum-cm-ptwise UP instead does not help: this file also
+;;;    needs rake-esup-defined, which needs rake-extended-order's order laws, so
+;;;    the cycle closes wherever rake-finsum-cm-ptwise sits.
+;;;
+;;; 4. Nothing else changes.  `esum-finite-iff-bounded' and
+;;;    `esum-bounded-implies-finite' keep their statements and their proofs
+;;;    verbatim; they merely move below the definition of the operator they are
+;;;    about, which is where they should have been.

@@ -6,17 +6,10 @@
 ;;; scales by (b-a) >= 0.  Loads after deriv-constant-proof.scm and reuses its
 ;;; global dc-* proof helpers.  Uses `fact 'mvt' (no bc*), so it compiles.
 ;;; ====================================================================
+;;; RETIRED 2026-09-14 (proven): rr-le-scale-nonneg-right -- theorem-library/rr-order-bundle.scm
 
 ;;; --- warranted support: scale a <= on the RIGHT by a nonneg factor ---
 ;;; (Curried; rr-le-scale-nonneg is the left-multiply sibling with an AND.)
-(add-to-pss 'rr-le-scale-nonneg-right
-  '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
-     (FORALL c (IMPLIES (IN c RR)
-       (IMPLIES (<= 0 c) (IMPLIES (<= x y) (<= (* x c) (* y c)))))))))))
-(warrant! 'rr-le-scale-nonneg-right 'well-known
-  "x<=y and 0<=c give x*c<=y*c (multiply a non-strict inequality on the right by
-   a nonnegative factor; the right-multiply form of rr-le-scale-nonneg).")
-(topic! 'rr-le-scale-nonneg-right 'analysis)
 
 ;;; ====================================================================
 ;;; mvt-upper-bound

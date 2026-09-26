@@ -1,25 +1,24 @@
-\chapter{Syntax: formulas as objects}
+%% This file was a short chapter of its own until 2026-09-20.  It is now the closing part of the
+%% chapter on the expression language, so that the chapter on proofs follows that chapter directly.
+\section{Formulas as typed objects: \texttt{wff}}
 \label{chap:syntax-contexts}
 
-\section{Formulas as typed objects: \texttt{wff}}
-
 A \emph{well-formed formula} in this system is not a bare S-expression
-but a typed object that records the theory in which it was formed.  In the REPL it prints as:
+but a typed object: a formula that has passed the well-formedness check.  In the REPL it prints as:
 \begin{VNBsnip}
 #[wff N "formula string"]
 \end{VNBsnip}
 where \texttt{N} is an internal identifier and the quoted string is the
-pretty-printed formula.  Every formula in the system is a \texttt{wff},
-and its theory travels with it invisibly.
+pretty-printed formula.  Every formula in a sequent is a \texttt{wff}.
 
-\texttt{(make-wff expr)} constructs such an object in the current
-theory.  \texttt{(free-vars p)} returns the variables that are free in
-it.
+\texttt{(make-wff expr)} constructs such an object, from a string in
+surface syntax or from an S-expression.  \texttt{(free-vars p)} returns
+the variables that are free in it.
 
 Two procedures expose the internals of a \texttt{wff}:
 \begin{VNBsnip}
 (wff->sexp p)        ; => raw S-expression (no output)
-(display-contents p) ; prints kind, theory, formula
+(display-contents p) ; prints kind, theory name, formula
 \end{VNBsnip}
 \texttt{wff->sexp} is defined in \texttt{wff.scm};
 \texttt{display-contents} is defined in \texttt{contexts.scm}.
@@ -33,31 +32,3 @@ Example (the base theory is \texttt{VNB-SET-THEORY}):
 (free-vars p)
 ; => (a funny-name)   ; x is bound by the forall
 \end{VNBsnip}
-
-\section{The syntax context}
-
-The destructuring quantifier operates through a \emph{syntax context}:
-a table mapping user-facing names to \texttt{nth($k$, $t_0$)}
-projections of the implicit tuple instance.  The syntax context is consulted at two points:
-
-\begin{itemize}
-\item \textbf{Parser (input):} names in the syntax context are expanded
-  to their \texttt{nth} forms before a formula enters the proof state.
-\item \textbf{Printer (output):} \texttt{nth} projections of a known
-  implicit instance are collapsed back to the declared names when the
-  proof state is displayed.
-\end{itemize}
-
-The syntax context must travel with the proof state and with
-\texttt{wff} objects.  Without the inverse mapping at display
-time, the user would see anonymous \texttt{nth} projections instead of
-the declared names, defeating the purpose of the mechanism.
-
-The scope of a destructuring quantifier is lexical --- the quantifier
-body --- and its basis is the structure of the formula itself.  A second,
-\emph{dynamic} discipline once shared this machinery:
-\texttt{declare-local-context} conjured a named instance of a structure
-into the session until it was undeclared.  It was removed in July 2026,
-having acquired no users outside the test suite; see the note at the head
-of \texttt{contexts.scm}.
-

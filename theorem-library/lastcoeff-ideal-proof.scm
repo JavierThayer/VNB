@@ -4,14 +4,18 @@
 ;;;   lastcoeff-zero-in-span   c_{1,succ p} = 0  =>  c.u in SPAN(md,p,BLOCK u p 1)
 ;;;   lastcoeff-set-is-ideal   LASTCOEFF-SET(md,p,u,sm) is an ideal of SCAL md
 ;;;
-;;; lastcoeff-zero-in-span is matact-row-peel with the last term killed
+;;; Here c.u is LINCOMB(md, succ p, c, u) (mod-seq.scm).  STATEMENTS CHANGED
+;;; 2026-09-16: lastcoeff-zero-in-span and descent-remainder read LINCOMB where
+;;; they read (ENTRY (MATACT md c u) 1 1), following LASTCOEFF-SET and SPAN.
+;;;
+;;; lastcoeff-zero-in-span is lincomb-row-peel with the last term killed
 ;;; (module-zero-act) and dropped (abelian-group-right-id via MODULE-VECTOR-AG).
 ;;; lastcoeff-set-is-ideal reads each ideal axiom off a coefficient-row witness:
 ;;; ZEROMAT for 0, MATADD for +, MATSCALE for ring multiples and (via the -1
 ;;; multiple) for negation -- exactly bricks 1-3.
 ;;;
-;;; Needs: mod-seq (MATACT, LASTCOEFF-SET, SPAN + memberships), the row bricks
-;;; (matact-row-peel/-add/-scale/-zerorow), matrix (BLOCK/ZEROMAT/MATADD/MATSCALE
+;;; Needs: mod-seq (LINCOMB, LASTCOEFF-SET, SPAN + memberships), the row bricks
+;;; (lincomb-row-peel/-add/-scale/-zerorow, lincomb-type), matrix (BLOCK/ZEROMAT/MATADD/MATSCALE
 ;;; read-offs), ring/abelian-group (ring-neg-mul-left, abelian-group-right-id),
 ;;; finite-dimensional (submodule-*-closed).
 
@@ -20,7 +24,7 @@
 
 ;;; ---- driver helpers (lc- prefix)
 (define (lc-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
-(define (lc-foc! n) (set-proof-state-focus! *ps* n))
+(define (lc-foc! n) (dk-focus! n))
 (define (lc-di*)
   (let lp () (let* ((g (lc-goal)) (h (and (pair? g) (car g))))
                (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
@@ -44,8 +48,8 @@
 ;;; ===================================================================
 (define lz-Bc '(BLOCK c 1 p))
 (define lz-Bu '(BLOCK u p 1))
-(define lz-x  '(ENTRY (MATACT md c u) 1 1))
-(define lz-bcbu '(ENTRY (MATACT md (BLOCK c 1 p) (BLOCK u p 1)) 1 1))
+(define lz-x  '(LINCOMB md (succ p) c u))
+(define lz-bcbu '(LINCOMB md p (BLOCK c 1 p) (BLOCK u p 1)))
 (define lz-last '((ACT md) (ENTRY c 1 (succ p)) (ENTRY u (succ p) 1)))
 
 (sp (make-wff
@@ -54,7 +58,7 @@
       (FORALL u (IMPLIES (IN u (MAT (succ p) 1 (VEC md)))
        (FORALL c (IMPLIES (IN c (MAT 1 (succ p) (CARR (SCAL md))))
          (IMPLIES (= (ENTRY c 1 (succ p)) (ZERO (SCAL md)))
-           (IN (ENTRY (MATACT md c u) 1 1) (SPAN md p (BLOCK u p 1))))))))))))))
+           (IN (LINCOMB md (succ p) c u) (SPAN md p (BLOCK u p 1))))))))))))))
 (lc-di*)
 
 (fact 'module-scalar-ring 'md)
@@ -67,11 +71,10 @@
 (fact 'block-type '(succ p) 1 '(VEC md) 'u 'p 1)          ; Bu in MAT p 1 VEC
 (fact 'entry-in-carrier '(succ p) 1 '(VEC md) 'u '(succ p) 1)  ; u_{succ p,1} in VEC
 
-;; x = bcbu + last  (matact-row-peel at n := p) -- lands the peel eq in context
-(fact 'matact-row-peel 'md 'p 'c 'u)
+;; x = bcbu + last  (lincomb-row-peel at n := p) -- lands the peel eq in context
+(fact 'lincomb-row-peel 'md 'p 'c 'u)
 (fact 'module-zero-act 'md '(ENTRY u (succ p) 1))          ; (ACT)(ZERO)(u_{succ p,1}) = VZERO
-(fact 'matact-type 'md 1 'p 1 lz-Bc lz-Bu)                 ; MATACT Bc Bu in MAT 1 1 VEC
-(fact 'entry-in-carrier 1 1 '(VEC md) '(MATACT md (BLOCK c 1 p) (BLOCK u p 1)) 1 1)  ; bcbu in VEC
+(fact 'lincomb-type 'md 'p lz-Bc lz-Bu)                     ; bcbu in VEC
 (fact 'abelian-group-right-id-module-vector-ag 'md lz-bcbu)  ; (VADD)(bcbu)(VZERO) = bcbu
 
 ;; assemble x = bcbu  via a cut
@@ -112,7 +115,7 @@
 (define LCS '(LASTCOEFF-SET md p u sm))
 (define lc-n1 (list (list 'NEG '(SCAL md)) (list 'ONE '(SCAL md))))   ; -1 in SCAL md
 (define (lc-mateq c) (list 'IN c (list 'MAT 1 '(succ p) SC)))
-(define (lc-cu c) (list 'ENTRY (list 'MATACT 'md c 'u) 1 1))          ; c.u
+(define (lc-cu c) (list 'LINCOMB 'md '(succ p) c 'u))                ; c.u
 
 ;; safe nested list access: (g@ g 2 1 2) = list-ref chain, or #f on any bad step
 (define (g@ l . idxs)
@@ -203,6 +206,7 @@
 (fact 'ring-one-in '(SCAL md))
 (fact 'ring-neg-in-carr '(SCAL md) '(ONE (SCAL md)))      ; -1 in CARR
 (fact 'one-in-interval-1)
+(fact 'nn-one-in)                                         ; zeromat-type's row guard (2026-09-16)
 (fact 'nn-succ-closed 'p)                                 ; succ p in NN (FIRST -- the rest need it)
 (fact 'nn-le-refl '(succ p)) (fact 'nn-one-le-succ 'p)
 (fact 'interval-mem-intro 1 '(succ p) '(succ p))          ; succ p in [1,succ p]
@@ -227,7 +231,7 @@
   (lambda () (fact 'ring-zero-in '(SCAL md)) (ass))
   (lambda () (fact 'zeromat-type '(SCAL md) 1 '(succ p)) (ass))
   (lambda () (fact 'entry-of-zeromat '(SCAL md) 1 '(succ p) 1 '(succ p)) (ass))
-  (lambda () (fact 'matact-zerorow 'md '(succ p) 'u)
+  (lambda () (fact 'lincomb-zerorow 'md '(succ p) 'u)
              (subst (list '= (lc-cu '(ZEROMAT (SCAL md) 1 (succ p))) '(VZERO md)))
              (fact 'submodule-vzero-in 'md 'sm) (ass)))
 
@@ -249,7 +253,7 @@
         (fact 'ring-add-closed '(SCAL md) aa bb)            ; (ADD a b) defined, for rfl
         (rfl))
       (lambda ()
-        (fact 'matact-row-add 'md '(succ p) ca cb 'u)
+        (fact 'lincomb-row-add 'md '(succ p) ca cb 'u)
         (subst (list '= (lc-cu (list 'MATADD '(SCAL md) ca cb)) (list '(VADD md) (lc-cu ca) (lc-cu cb))))
         (fact 'submodule-vadd-closed 'md 'sm (lc-cu ca) (lc-cu cb)) (ass)))))
 
@@ -277,7 +281,7 @@
         (fact 'ring-neg-in-carr '(SCAL md) aa)              ; (NEG a) defined, for rfl
         (rfl))
       (lambda ()
-        (fact 'matact-row-scale 'md '(succ p) lc-n1 ca 'u)
+        (fact 'lincomb-row-scale 'md '(succ p) lc-n1 ca 'u)
         (subst (list '= (lc-cu (list 'MATSCALE '(SCAL md) lc-n1 ca)) (list '(ACT md) lc-n1 (lc-cu ca))))
         (fact 'submodule-act-closed 'md 'sm lc-n1 (lc-cu ca)) (ass)))))
 
@@ -298,7 +302,7 @@
         (fact 'ring-carrier-closed-mul '(SCAL md) rr aa)    ; (MUL r a) defined, for rfl
         (rfl))
       (lambda ()
-        (fact 'matact-row-scale 'md '(succ p) rr ca 'u)
+        (fact 'lincomb-row-scale 'md '(succ p) rr ca 'u)
         (subst (list '= (lc-cu (list 'MATSCALE '(SCAL md) rr ca)) (list '(ACT md) rr (lc-cu ca))))
         (fact 'submodule-act-closed 'md 'sm rr (lc-cu ca)) (ass)))))
 
@@ -318,10 +322,10 @@
 (define l3-nq '((NEG (SCAL md)) q))
 (define l3-qc0 (list 'MATSCALE '(SCAL md) l3-nq 'c0))
 (define l3-d (list 'MATADD '(SCAL md) 'c l3-qc0))
-(define l3-cu  '(ENTRY (MATACT md c u) 1 1))                        ; x
-(define l3-c0u '(ENTRY (MATACT md c0 u) 1 1))                       ; x0
-(define l3-du  (list 'ENTRY (list 'MATACT 'md l3-d 'u) 1 1))        ; y
-(define l3-qc0u (list 'ENTRY (list 'MATACT 'md l3-qc0 'u) 1 1))     ; (-q).c0 . u
+(define l3-cu  '(LINCOMB md (succ n) c u))                          ; x
+(define l3-c0u '(LINCOMB md (succ n) c0 u))                         ; x0
+(define l3-du  (list 'LINCOMB 'md '(succ n) l3-d 'u))               ; y
+(define l3-qc0u (list 'LINCOMB 'md '(succ n) l3-qc0 'u))            ; (-q).c0 . u
 (define l3-nqx0 (list '(ACT md) l3-nq l3-c0u))                      ; (-q).x0
 (define l3-qx0  (list '(ACT md) 'q l3-c0u))                         ; q.x0
 (define l3-fact3 (list '= l3-du (list '(VADD md) l3-cu l3-nqx0)))   ; y = x + (-q).x0
@@ -340,11 +344,11 @@
             (IMPLIES (= (ENTRY c0 1 (succ n)) b)
              (IMPLIES (= (ENTRY c 1 (succ n)) ((MUL (SCAL md)) q b))
               (FORSOME y (AND (IN y (SPAN md n (BLOCK u n 1)))
-                         (AND (= (ENTRY (MATACT md c u) 1 1)
-                                 ((VADD md) y ((ACT md) q (ENTRY (MATACT md c0 u) 1 1))))
-                              (= y ((VADD md) (ENTRY (MATACT md c u) 1 1)
+                         (AND (= (LINCOMB md (succ n) c u)
+                                 ((VADD md) y ((ACT md) q (LINCOMB md (succ n) c0 u))))
+                              (= y ((VADD md) (LINCOMB md (succ n) c u)
                                               ((ACT md) ((NEG (SCAL md)) q)
-                                               (ENTRY (MATACT md c0 u) 1 1))))))))))))))))))))))))))
+                                               (LINCOMB md (succ n) c0 u))))))))))))))))))))))))))
 (lc-di*)
 
 (fact 'commutative-ring-is-ring '(SCAL md))
@@ -354,19 +358,17 @@
 (fact 'interval-mem-intro 1 '(succ n) '(succ n))          ; succ n in [1,succ n]
 (fact 'matscale-type '(SCAL md) 1 '(succ n) l3-nq 'c0)    ; qc0 = (-q).c0 : MAT 1 (succ n)
 (fact 'matadd-type '(SCAL md) 1 '(succ n) 'c l3-qc0)      ; d : MAT 1 (succ n)
-(fact 'matact-type 'md 1 '(succ n) 1 'c 'u)
-(fact 'entry-in-carrier 1 1 '(VEC md) '(MATACT md c u) 1 1)      ; x in VEC
-(fact 'matact-type 'md 1 '(succ n) 1 'c0 'u)
-(fact 'entry-in-carrier 1 1 '(VEC md) '(MATACT md c0 u) 1 1)     ; x0 in VEC
+(fact 'lincomb-type 'md '(succ n) 'c 'u)                  ; x in VEC
+(fact 'lincomb-type 'md '(succ n) 'c0 'u)                 ; x0 in VEC
 (fact 'module-act-type 'md 'q l3-c0u)                    ; q.x0 in VEC
 (fact 'module-act-type 'md l3-nq l3-c0u)                 ; (-q).x0 in VEC
 
 ;; FACT3:  y = x + (-q).x0   (bricks 1 and 2)
 (lc-cut! l3-fact3
   (lambda ()
-    (fact 'matact-row-add 'md '(succ n) 'c l3-qc0 'u)
+    (fact 'lincomb-row-add 'md '(succ n) 'c l3-qc0 'u)
     (subst (list '= l3-du (list '(VADD md) l3-cu l3-qc0u)))
-    (fact 'matact-row-scale 'md '(succ n) l3-nq 'c0 'u)
+    (fact 'lincomb-row-scale 'md '(succ n) l3-nq 'c0 'u)
     (subst (list '= l3-qc0u l3-nqx0))
     (fact 'module-vadd-type 'md l3-cu l3-nqx0)
     (rfl)))

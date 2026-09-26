@@ -93,20 +93,38 @@
 ;;; These two are the claims about TUPLES.  Stated as a decomposition rather
 ;;; than as an induction schema, so that `nn-induction' can do the induction:
 ;;; see theorem-library/tuples-induction.scm, where the schema is derived.
+;;;
+;;; THEY ARE FOUNDATIONAL, and are installed as such (user's decision,
+;;; 2026-09-15).  Both were asserted PSS supports whose own warrants nominated
+;;; them for this shelf; they are now `primitive' provenance (proof-debt.scm:12,
+;;; the trusted-base tier that contributes {} to every bill), beside the ordinal
+;;; axioms (ordinals.scm) and replacement (injection.scm).
+;;;
+;;; THE CLAIM THE STAMP MAKES, written down because a `primitive' fact is
+;;; invisible to the debt ledger: that TUPLES(A) contains NOTHING BUT the
+;;; finite sequences over A -- every tuple of length 0 is [], and every tuple
+;;; of length succ n is a CONS onto a tuple of length n.  That is the content
+;;; of "a tuple is a finite sequence", and nothing else in this tree says it:
+;;; TUPLES has no other defining characterisation, so these are not facts the
+;;; library could owe an argument for -- they are what the constructor means.
+;;; The test CLAUDE.md sets for the shelf is whether a mathematician would
+;;; answer "because that is what a finite sequence is"; here they would.
+;;;
+;;; They are NOT `warrant!'s.  A warrant moves a fact from `none' to
+;;; `well-known' -- a better tier of DEBT; `primitive' says it is not debt.
+;;; Note the one thing the stamp does NOT license: it says tuples are generated
+;;; by [] and CONS, and says nothing about whether a given class IS a TUPLES.
 ;;; -----------------------------------------------------------------------
 
-(support 'tuple-length-zero
+(fluid-let ((*current-provenance* 'primitive))
+
+(theory-add-axiom! *current-theory* 'tuple-length-zero
   '(FORALL A (FORALL L
       (IMPLIES (AND (IN L (TUPLES A)) (= (LENGTH L) 0))
                (= L (LIST))))))
 
-(warrant! 'tuple-length-zero 'well-known
-  "A tuple of length zero is the empty tuple.  Half of `TUPLES(A) is generated
-   by [] and CONS', which is the content of `a tuple is a FINITE sequence'.
-   Candidate for the primitive shelf, on a foundational decision: see the file
-   header.")
 
-(support 'tuple-cons-decompose
+(theory-add-axiom! *current-theory* 'tuple-cons-decompose
   '(FORALL A (FORALL n (FORALL L
       (IMPLIES (AND (IN n NN) (AND (IN L (TUPLES A)) (= (LENGTH L) (succ n))))
                (FORSOME x (AND (IN x A)
@@ -114,12 +132,8 @@
                                                (AND (= (LENGTH M) n)
                                                     (= L (CONS x M))))))))))))
 
-(warrant! 'tuple-cons-decompose 'well-known
-  "Every tuple of length succ n is x prepended to a tuple of length n -- the
-   other half of the generation principle.  The witness M is the tail; stating
-   it existentially avoids a TAIL constructor and the two further equations a
-   TAIL would owe, since every consumer eliminates the existential immediately.
-   Candidate for the primitive shelf with its sibling `tuple-length-zero'.")
+
+)   ; end (fluid-let ((*current-provenance* 'primitive)) ...) -- 2 axioms
 
 (topic! 'tuple-length-zero 'combinatorial)
 (topic! 'tuple-cons-decompose 'combinatorial)

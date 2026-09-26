@@ -40,7 +40,7 @@
 (define (idl-focus! pred)                       ; ERRORS on a miss
   (let lp ((ls (idl-leaves)))
     (cond ((null? ls) (error "integral-domain-laws: no leaf matches"))
-          ((pred (idl-goalof (car ls))) (set-proof-state-focus! *ps* (car ls)) (car ls))
+          ((pred (idl-goalof (car ls))) (dk-focus! (car ls)) (car ls))
           (else (lp (cdr ls))))))
 ;; split every AND assumption until none remain
 (define (idl-split-ands!)

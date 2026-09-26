@@ -17,36 +17,13 @@
 ;;;   (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
 
 ;;; Sum of squares is nonnegative:  0 <= SUM_{i in S} a(i)^2.
-(support 'finsum-sq-nonneg
-  '(FORALL S (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
-     (FORALL a (IMPLIES (IN a (FUN S RR))
-       (<= 0 (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                     (VNB-LAMBDA i S (* (a i) (a i))) S)))))))
-(warrant! 'finsum-sq-nonneg 'well-known
-  "0 <= SUM_i a(i)^2: a finite sum of squares is nonnegative, each term being
-   a square (rr-sq-nonneg) and finite sums of nonnegatives nonnegative.")
+;;; finsum-sq-nonneg RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-inequalities.scm
 
 ;;; Termwise monotonicity:  a(i) <= b(i) for all i in S  =>  SUM a <= SUM b.
-(support 'finsum-le-termwise
-  '(FORALL S (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
-     (FORALL a (IMPLIES (IN a (FUN S RR)) (FORALL b (IMPLIES (IN b (FUN S RR))
-       (IMPLIES (FORALL i (IMPLIES (IN i S) (<= (a i) (b i))))
-         (<= (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD) a S)
-             (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD) b S))))))))))
-(warrant! 'finsum-le-termwise 'well-known
-  "Monotonicity of the finite sum: if a(i) <= b(i) for every index i in S then
-   SUM_i a(i) <= SUM_i b(i).  Termwise application of rr-le-add over S.")
+;;; finsum-le-termwise RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-inequalities.scm
 
 ;;; Triangle inequality for the finite sum:  |SUM a| <= SUM |a|.
-(support 'finsum-abs-triangle
-  '(FORALL S (IMPLIES (AND (IN S SET) (IN (CARD S) NN))
-     (FORALL a (IMPLIES (IN a (FUN S RR))
-       (<= (abs (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD) a S))
-           (FINSUM (COMMUTATIVE-RING-ADDITIVE-AG RR-NORMED-FIELD)
-                   (VNB-LAMBDA i S (abs (a i))) S)))))))
-(warrant! 'finsum-abs-triangle 'well-known
-  "|SUM_i a(i)| <= SUM_i |a(i)|: the triangle inequality for finite sums,
-   by induction over S from the two-term rr-abs-triangle.")
+;;; finsum-abs-triangle RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-inequalities.scm
 
 ;;; Cauchy-Schwarz for finite sums, SQUARE form:
 ;;;   (SUM_i a(i) b(i))^2 <= (SUM_i a(i)^2)(SUM_i b(i)^2).

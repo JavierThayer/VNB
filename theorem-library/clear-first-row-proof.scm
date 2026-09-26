@@ -4,6 +4,8 @@
 ;;; the result is a matrix ~ P, same pivot, whose first row is zero off the pivot.
 ;;;
 ;;;   mat-equiv-cod-is-mat -- MAT-EQUIV(X,Y) => IN Y MAT  (typing along ~)
+;;;                           REMOVED 2026-09-20: a duplicate of
+;;;                           mat-equiv-target-is-mat
 ;;;   classmin-transport   -- transport class-minimality of the pivot along ~
 ;;;   clear-row-upto       -- ni on k: cols 2..k cleared, pivot + ~ maintained
 ;;;   clear-first-row      -- clear-row-upto at k = n (interval-hi drops the k-guard)
@@ -12,21 +14,21 @@
 
 (define (cc-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (cc-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (cc-foc! n) (set-proof-state-focus! *ps* n))
+(define (cc-foc! n) (dk-focus! n))
 (define (cc-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (cc-find pred) (let lp ((as (cc-asms)))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (cc-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (cc-leaf-asms s) (map wff-formula (sequent-node-assumptions s)))
 (define (cc-foc-by-asm! f)
   (let ((s (any-pred (lambda (s) (member f (cc-leaf-asms s))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (cc-di*) (let lp () (let* ((g (cc-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
-(define (di4) (di)(di)(di)(di))
+(define (di4) (cc-di*))   ; was four bare di's; the surplus ones hit atomic goals (2026-09-16)
 (define (cc-em P)
   (cut `(OR ,P (NOT ,P)))
   (let ((use-or (cc-last)))
@@ -52,27 +54,12 @@
         (list 'IMPLIES (list 'NOT (list '= '(ENTRY C ii jj) '(ZERO A)))
           (list '<= (list '(GAUGE A) (list 'ENTRY P 1 1)) '((GAUGE A) (ENTRY C ii jj)))))))))))
 
-;; ===================== mat-equiv-cod-is-mat =====================
-(sp (make-wff '(FORALL A (IMPLIES (IS-RING A) (FORALL m (FORALL n (FORALL X (FORALL Y
-    (IMPLIES (IN X (MAT m n (CARR A)))
-    (IMPLIES (MAT-EQUIV A m n X Y)
-      (IN Y (MAT m n (CARR A)))))))))))))
-(cc-di*)
-(mac-h 'MAT-EQUIV '(MAT-EQUIV A m n X Y))
-(ai 1) (ai 1) (ai 1) (ai 1)
-(define YEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (eq? (cadr z) 'Y)))))
-(define RHS (caddr YEQ))                      ; (MATMUL A (MATMUL A U X) V)
-(define INNER (caddr RHS))                    ; (MATMUL A U X)
-(define CU (caddr INNER))
-(define CV (cadddr RHS))
-(fact 'invertible-mat-is-mat 'A 'm CU)
-(fact 'invertible-mat-is-mat 'A 'n CV)
-(fact 'matmul-type 'A 'm 'm 'n CU 'X)
-(fact 'matmul-type 'A 'm 'n 'n INNER CV)
-(subst YEQ)
-(ass)
-(qed 'mat-equiv-cod-is-mat)
-(topic! 'mat-equiv-cod-is-mat 'plumbing)
+;; ===== mat-equiv-cod-is-mat: REMOVED 2026-09-20 (batch 11) =====
+;; It was alpha-equal to `mat-equiv-target-is-mat'
+;; (theorem-library/class-min-pivot-proof.scm:84), which loads BEFORE this file
+;; and uses its own copy at :252 -- so that is the name that had to survive.
+;; The eleven citations (here and in clear-first-col, clear-pivot-cross,
+;; rank-bound, smith-diagonalization, smith-staircase) name it now.
 
 ;; ===================== classmin-transport =====================
 (sp (make-wff
@@ -140,7 +127,7 @@
 
 ;; --- STEP : RU-BODY(k) => RU-BODY(succ k) ---
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'k))))
-(di) (di) (di)                                     ; k ; IN k NN ; IH
+(di) (di) (cc-di*)                                     ; k ; IN k NN ; IH
 (define RU-IH (cc-find (H? 'FORSOME)))
 (ai RU-IH) (ai 1) (ai 1)
 (define RU-QwEQ (cc-find (lambda (z) (and (pair? z) (eq? (car z) '=) (pair? (cadr z))
@@ -151,7 +138,7 @@
 (define RU-NOTV (cc-cases RU-VALID))
 
 ;; VALIDCOL TRUE : clear column (succ k) via pivot-clears-col
-(fact 'mat-equiv-cod-is-mat 'A 'm 'n 'P RU-Qw)
+(fact 'mat-equiv-target-is-mat 'A 'm 'n 'P RU-Qw)
 (fact 'classmin-transport 'A 'm 'n 'P RU-Qw)
 (cut (list 'NOT (list '= (list 'ENTRY RU-Qw 1 1) '(ZERO A))))
 (define RU-TVCONT (cc-last))
@@ -248,7 +235,7 @@
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) '=) (equal? (cadr g) (list 'ENTRY FR-Q 1 1)))))
 (ass)
 (cc-foc-goal! (lambda (g) (and (pair? g) (eq? (car g) 'FORALL) (eq? (cadr g) 'j))))
-(di) (di) (di)
+(di) (di) (cc-di*)
 (define FR-J (list-ref (cadr (cc-goal)) 3))
 (fact 'interval-hi 1 'n FR-J)
 (inst+ FR-CLK FR-J)

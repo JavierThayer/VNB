@@ -37,29 +37,8 @@
 ;;; nn-not-le-succ-le, nn-le-succ-cases, nn-le-succ.)
 ;;; --------------------------------------------------------------------
 
-;;; NOT (k < j)  =>  j <= k.  Totality, read off the definition of `<'.
-(sp (make-wff '(FORALL k_ (IMPLIES (IN k_ NN)
-                 (FORALL j_ (IMPLIES (IN j_ NN)
-                   (IMPLIES (NOT (< k_ j_)) (<= j_ k_))))))))
-(di) (di)
-(use-em '(= j_ k_)
-  (lambda ()
-    (subst '(= j_ k_))
-    (fact 'nn-le-refl 'k_)
-    (ass))
-  (lambda ()
-    (fact 'neq-sym 'j_ 'k_)
-    (have! '(NOT (<= k_ j_))
-           (lambda ()
-             (di)
-             (have! '(< k_ j_) (lambda () (mac '<) (from-context!)))
-             (ai '(NOT (< k_ j_)))))
-    (fact 'nn-not-le-succ-le 'k_ 'j_)
-    (fact 'nn-le-succ 'j_)
-    (fact 'co-le-trans 'j_ '(succ j_) 'k_)
-    (ass)))
-(qed 'nn-not-lt-le)
-(topic! 'nn-not-lt-le 'inequalities)
+;;; nn-not-lt-le: was proven HERE citing the unguarded co-le-trans; re-proven modulo 0 in
+;;; theorem-library/nn-not-lt-le-proof.scm (2026-09-14), which loads earlier.
 
 ;;; k < j  =>  succ k <= j.  Discreteness; the strict order has no room.
 (sp (make-wff '(FORALL k_ (IMPLIES (IN k_ NN)
@@ -141,6 +120,7 @@
     (fact 'collapse-at-hi 'k_ 'j_)
     (subst '(= ((COLLAPSE-AT k_) j_) (PRED j_)))
     (fact 'nn-zero-le 'k_)
+(fact 'rr-zero-in) (fact 'nn-in-rr 'k_) (fact 'nn-in-rr 'j_)
     (fact 'co-le-lt-trans 0 'k_ 'j_)
     (mac-h '< '(< 0 j_))
     (dk-split! '(AND (<= 0 j_) (NOT (= 0 j_))))
@@ -188,6 +168,7 @@
     (fact 'collapse-at-hi 'k_ 'j_)
     (subst '(= ((COLLAPSE-AT k_) j_) (PRED j_)))
     (fact 'nn-zero-le 'k_)
+(fact 'rr-zero-in)
     (fact 'co-le-lt-trans 0 'k_ 'j_)
     (mac-h '< '(< 0 j_))
     (dk-split! '(AND (<= 0 j_) (NOT (= 0 j_))))
@@ -219,6 +200,7 @@
 (define (co-hi! v)                       ; k_ < v: value is pred v, and k_+1 <= v
   (fact 'collapse-at-hi 'k_ v)
   (fact 'nn-zero-le 'k_)
+(fact 'rr-zero-in) (fact 'nn-in-rr 'k_) (fact 'nn-in-rr v)
   (fact 'co-le-lt-trans 0 'k_ v)
   (mac-h '< (list '< 0 v))
   (dk-split! (list 'AND (list '<= 0 v) (list 'NOT (list '= 0 v))))

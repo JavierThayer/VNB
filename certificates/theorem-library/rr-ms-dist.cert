@@ -1,0 +1,3 @@
+;;; VNB proof certificates for theorem-library/rr-ms-dist.scm -- written by a load that proved them; do not edit.
+(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "17eb0ff13b7d6a49dea52b288c09edb3") (date "2026-09-25") (host "worker-02") (count 1))
+(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs) (own-oracles) (bill) (oracles) (kernel "17eb0ff13b7d6a49dea52b288c09edb3") (date "2026-09-25") (host "worker-02"))

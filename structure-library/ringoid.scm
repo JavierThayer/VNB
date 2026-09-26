@@ -136,18 +136,7 @@
 ;; rq-<op> (accessor read-off) then descend2-computes / descend-computes on the
 ;; class-of-<op> map -- which needs that map typed and respecting the congruence.
 ;; Asserted now, to be discharged from descend2-computes + the respects lemmas.
-(support 'rq-add-computes
-  (forall-guarded '(r) '((IS-RINGOID r))
-    (forall-guarded '(a b) '((IN a (CARR r)) (IN b (CARR r)))
-      '(= ((ADD (RINGOID-QUOTIENT-RING r))
-           (CLASS (RINGOID-SETOID r) a) (CLASS (RINGOID-SETOID r) b))
-          (CLASS (RINGOID-SETOID r) ((ADD r) a b))))))
-(warrant! 'rq-add-computes 'well-known
-  "rq-add reduces ADD(RINGOID-QUOTIENT-RING r) to DESCEND2 of the class-of-sum map
-   f = (a,b) |-> [a+b]; f is total CARR x CARR -> QUOTIENT (ring add closes, class
-   lands in the quotient) and RESPECTS2 the congruence ((a+b)-(a'+b') = (a-a')+(b-b')
-   in I by ringoid-ideal-add), so descend2-computes gives DESCEND2(f)([a],[b]) = f(a,b)
-   = [a+b].  To be demoted to a theorem once the typing and respects lemmas are proven.")
+;;; rq-add-computes RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-ringoid.scm / rake-ringoid-additive.scm
 
 ;;; ---- R/I is a ring (reference-warranted; associativity route validated) --------
 ;; The compute-down route is proven for the associativity case (rq-add-assoc-classes,
@@ -161,13 +150,7 @@
 ;; locator, and the third element is the machine page anchor: pdf page 98 of
 ;; AlgebraLang-ocr.pdf = printed page 83, where Ch. II Â§1 "Rings and homomorphisms"
 ;; begins (verified against the page image 2026-07-23).
-(support 'ringoid-quotient-is-ring
-  '(FORALL r (IMPLIES (IS-RINGOID r) (IS-RING (RINGOID-QUOTIENT-RING r)))))
-(warrant! 'ringoid-quotient-is-ring 'reference '(lang "Ch. II.1" 98))
-(gloss! 'ringoid-quotient-is-ring
-  "For a ringoid r (a ring with a distinguished two-sided ideal), the quotient ring
-   R/I -- the ring RINGOID-QUOTIENT-RING(r) of congruence classes with the descended
-   operations -- is a ring.")
+;;; ringoid-quotient-is-ring RETIRED 2026-09-18 (rake batch 5c): proven in theorem-library/rake-ringoid-quotient.scm
 
 ;;; ---- membership IFF for the congruence ---------------------------------------
 ;; The SEP characterization, stated so it can drive mac / mac-h on goal AND hypothesis
@@ -216,13 +199,5 @@
 ;; crs proves them for concrete rings but does NOT reach a structure's abstract ADD/NEG
 ;; (the abstract-ring additive-normalizer gap; abstract_ring_normalizer) -- when that
 ;; normalizer exists they become theorems and this warrant retires.
-(support 'ringoid-neg-diff
-  (forall-guarded '(r a b) '((IS-RINGOID r) (IN a (CARR r)) (IN b (CARR r)))
-    '(= ((NEG r) ((ADD r) a ((NEG r) b))) ((ADD r) b ((NEG r) a)))))
-(warrant! 'ringoid-neg-diff 'well-known
-  "-(a-b) = b-a, the additive-group identity in any ring.  crs proves it for concrete rings; it does not reach a structure's abstract (ADD r)/(NEG r).")
-(support 'ringoid-diff-telescope
-  (forall-guarded '(r a b c) '((IS-RINGOID r) (IN a (CARR r)) (IN b (CARR r)) (IN c (CARR r)))
-    '(= ((ADD r) ((ADD r) a ((NEG r) b)) ((ADD r) b ((NEG r) c))) ((ADD r) a ((NEG r) c)))))
-(warrant! 'ringoid-diff-telescope 'well-known
-  "(a-b)+(b-c) = a-c, telescoping in any ring.  Same abstract-ADD/NEG gap as ringoid-neg-diff.")
+;;; ringoid-neg-diff RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-ringoid.scm / rake-ringoid-additive.scm
+;;; ringoid-diff-telescope RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-ringoid.scm / rake-ringoid-additive.scm

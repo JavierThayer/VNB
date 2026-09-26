@@ -1,4 +1,13 @@
 ;;; fin-subsets.scm -- FIN-SUBSETS(a), the finite subsets of a, and the
+;;; ---------------------------------------------------------------------------
+;;; NOTE, 2026-09-20 (batch 9-B).  This file was written while cardinality was
+;;; AXIOMATISED under the name CARD and the defined constant was its companion
+;;; CARD-STAR.  On 2026-09-20 the user made the swap: CARD is the DEFINED
+;;; cardinal (structure-library/cardinality.scm), the eight `primitive' axioms
+;;; about it are gone, and every proof below now speaks of CARD.  The prose in
+;;; this header that contrasts "the axiomatised CARD" with "the defined
+;;; cardinal" is HISTORY; the surgery is docs/card-defined-2026-09-20.md.
+;;; ---------------------------------------------------------------------------
 ;;; set-algebra laws that make it a commutative monoid under union.
 ;;;
 ;;;     FIN-SUBSETS(a)  ==  { t in POWER(a) : CARD(t) in NN }
@@ -37,7 +46,7 @@
 ;;; them means moving each proof to a theorem-library/ file, not editing in
 ;;; place.  That is why this file is in theorem-library/ and carries its own
 ;;; `def-functoid' -- the same shape theorem-library/card-defined.scm:46 uses
-;;; for CARD-STAR.
+;;; for CARD.
 ;;;
 ;;; -----------------------------------------------------------------------
 ;;; THE BILLS.  Everything here is `modulo 0' except the three that reach
@@ -159,52 +168,10 @@
 (topic! 'fin-subsets-is-set 'constructions)
 
 ;;; -----------------------------------------------------------------------
-;;; (3) union-empty-right:  A u {} = A.
-;;;
-;;; Unguarded -- UNION and class-extensionality are total over classes, and
-;;; nothing is in EMPTY-SET.
-
-(quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (= (UNION a_ EMPTY-SET) a_))))
-  (fs-peel!)
-  (bc* 'class-extensionality)
-  (fs-peel!)
-  (fact 'union-membership 'a_ 'EMPTY-SET 'x)
-  (fact 'empty-set-has-no-members 'x)
-  (fs-only! '(iff (in x (union a_ empty-set)) (or (in x a_) (in x empty-set)))
-            '(not (in x empty-set)))
-  (prop)))
-(qed 'union-empty-right)
-(declare-named-only! 'union-empty-right
-  "Its RIGHT side is a bare variable, so the `-rev' companion would match every
-   term in every goal and rewrite it into a union.  Cite it by name.")
-(topic! 'union-empty-right 'plumbing)
-
-;;; -----------------------------------------------------------------------
-;;; (4) union-assoc:  (A u B) u C = A u (B u C).
-;;;
-;;; Unguarded, and purely propositional after four membership unfolds.
-
-(quietly (lambda ()
-  (sp (make-wff '(FORALL a_ (FORALL b_ (FORALL c_
-        (= (UNION (UNION a_ b_) c_) (UNION a_ (UNION b_ c_))))))))
-  (fs-peel!)
-  (bc* 'class-extensionality)
-  (fs-peel!)
-  (fact 'union-membership '(UNION a_ b_) 'c_ 'x)
-  (fact 'union-membership 'a_ 'b_ 'x)
-  (fact 'union-membership 'a_ '(UNION b_ c_) 'x)
-  (fact 'union-membership 'b_ 'c_ 'x)
-  (fs-only! '(iff (in x (union (union a_ b_) c_)) (or (in x (union a_ b_)) (in x c_)))
-            '(iff (in x (union a_ b_)) (or (in x a_) (in x b_)))
-            '(iff (in x (union a_ (union b_ c_))) (or (in x a_) (in x (union b_ c_))))
-            '(iff (in x (union b_ c_)) (or (in x b_) (in x c_))))
-  (prop)))
-(qed 'union-assoc)
-(declare-named-only! 'union-assoc
-  "An unconditional equation whose left side matches every nested binary union
-   in the library.  Cite it by name.")
-(topic! 'union-assoc 'plumbing)
+;;; union-empty-right and union-assoc were proven HERE until 2026-09-20; they are now
+;;; proven in theorem-library/union-laws.scm, which loads far above this file (batch 9-B,
+;;; CARD := CARD-STAR).  The blocks are in
+;;; archive/2026-09-20-card-defined/fin-subsets-before-split.scm.
 
 ;;; -----------------------------------------------------------------------
 ;;; (5) fin-subsets-has-empty:  {} in FIN-SUBSETS(a).

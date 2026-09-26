@@ -27,6 +27,7 @@
 ;;; generic ring/comm-monoid theorem to the basic-domain instances:
 ;;;   (specialize-structure 'ZZ-RING 'RING 'zz-is-ring)
 ;;; brings `ring-add-comm[ZZ-RING]`, `ring-mul-assoc[ZZ-RING]`, etc.
+;;; RETIRED 2026-09-14 (proven): rr-is-normed-field -- theorem-library/rr-is-normed-field.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; Polymorphic binary operators (apply axioms)
@@ -311,15 +312,16 @@
 ;;; divisors from QQ having inverses.  They were asserted and unwarranted until
 ;;; 2026-08-10, and zz-is-integral-domain was then the largest single source of
 ;;; `trust: none' in the library (seven bills, shadowing every other leaf in
-;;; them).  zz-is-euclidean-ring is still asserted: it needs the DIVISION
-;;; algorithm on ZZ, which is a different piece of work.
-(theory-add-axiom! *current-theory* 'zz-is-euclidean-ring   '(IS-EUCLIDEAN-RING ZZ-RING))
+;;; them).
+;;; RETIRED 2026-09-17 (proven): zz-is-euclidean-ring -- theorem-library/zz-division.scm,
+;;; from the division algorithm on ZZ (zz-division, reduced to nn-division at
+;;; (|a|, |b|) with a signed remainder).  It was the library's last `trust: none'
+;;; bill, entering through zz-bezout.
 
 (theory-add-axiom! *current-theory* 'qq-is-commutative-ring '(IS-COMMUTATIVE-RING QQ-RING))
 (theory-add-axiom! *current-theory* 'qq-is-integral-domain  '(IS-INTEGRAL-DOMAIN QQ-RING))
 
-(theory-add-axiom! *current-theory* 'rr-is-normed-field     '(IS-NORMED-FIELD RR-NORMED-FIELD))
-(theory-add-axiom! *current-theory* 'cc-is-normed-field     '(IS-NORMED-FIELD CC-NORMED-FIELD))
+;;; cc-is-normed-field PROVEN 2026-09-20 (batch 13-B): theorem-library/cc-normed-field.scm
 
 ;;; WARRANTED 2026-08-24, not stamped.  `rr-is-normed-field' is the ONLY door
 ;;; to IS-COMMUTATIVE-RING at the reals -- RR reaches the ring world solely
@@ -333,29 +335,6 @@
 ;;; debt"; this IS debt -- a fact with a derivation nobody has run -- and the
 ;;; shelf is the user's decision, not a driver's.  `warrant!' says what the
 ;;; derivation is and leaves the obligation visible.
-(warrant! 'rr-is-normed-field 'well-known
-  "RR is a normed field under abs.  Eight of the nine conjuncts of the
-   IS-NORMED-FIELD IFF are the field and order axioms of number-systems.scm,
-   discharged exactly as theorem-library/zz-ring-is-ring.scm discharges the
-   six-slot IS-RING for ZZ-RING and QQ-RING: unfold the defining IFF, drop the
-   accessors to the surface operations (binplus/bintimes/binneg/0/1), and cite
-   rr-add-assoc / rr-add-comm / rr-add-zero / rr-neg-inverse / rr-mul-assoc /
-   rr-mul-comm / rr-one-mul / rr-distributive.  The ninth is is-norm(abs, ...),
-   whose four value clauses are PROVEN, in theorem-library/rr-abs-basics.scm:
-   rr-abs-nonneg (0 <= |a|), rr-abs-zero (|a| = 0 iff a = 0), rr-abs-mult
-   (|ab| = |a||b|) and rr-abs-triangle (|a+b| <= |a| + |b|).
-
-   TWO THINGS BLOCK THE MECHANIZATION, and neither is the mathematics.  (1)
-   is-norm's FIRST conjunct is `abs in FUN(CARR, RR)' -- membership in a
-   function SPACE, not the pointwise typing rr-abs-closed gives.  `abs' is a
-   primitive operator, i.e. a class function; that its restriction to RR is a
-   SET is a replacement/sethood obligation, and nothing in the tree states it
-   for abs (nor for `magnitude', which puts cc-is-normed-field in exactly the
-   same position).  (2) LOAD ORDER: rr-abs-basics.scm is a theorem-library file
-   and loads some 900 entries after this one, so the proof cannot live where
-   the axiom is cited from; retiring the axiom means moving the citation site,
-   the way zz-is-integral-domain was moved.")
-(topic! 'rr-is-normed-field 'algebra)
 
 ;;; -----------------------------------------------------------------------
 ;;; QQ as a field: the 8-tuple QQ-FIELD.

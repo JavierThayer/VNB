@@ -1,0 +1,71 @@
+#!/bin/bash
+# vnb-idle-stop-install [IDLE_MINUTES] -- arm the idle auto-stop ON THIS BOX.
+#
+# Run it on a WORKER, through capataz, as root:
+#   capataz run worker-NN 'bash /home/ubuntu/prover/vnb-idle-stop-install 30'
+#
+# It writes /etc/vnb-idle-stop.conf (naming this instance and the threshold),
+# installs the script at /usr/local/sbin/vnb-idle-stop and a cron entry that
+# runs it every 5 minutes.  Re-running it is safe: both are rewritten.
+#
+# IT REFUSES TO ARM THE PRIMARY.  The primary holds the canonical tree, Claude
+# and the agents; stopping it ends whatever session is driving the fleet.  Two
+# independent refusals, because this script powers machines down and one guard
+# is not enough:
+#   * a denylist of primary instance ids (below), and
+#   * the presence of ~/.claude, which only the primary has.
+# Neither can be got round by accident; both can be got round on purpose by
+# someone editing this file, which is the right bar for a deliberate decision.
+set -u
+
+PRIMARY_IDS="i-024bfa2a113d2d4f3"      # capataz `primary', 2026-09-15
+IDLE_MINUTES="${1:-30}"
+
+case "$IDLE_MINUTES" in
+    ''|*[!0-9]*) echo "vnb-idle-stop-install: IDLE_MINUTES must be a number" >&2; exit 2 ;;
+esac
+[ "$IDLE_MINUTES" -ge 1 ] || { echo "vnb-idle-stop-install: IDLE_MINUTES must be >= 1" >&2; exit 2; }
+
+tok=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+      -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null)
+me=$(curl -s -H "X-aws-ec2-metadata-token: $tok" \
+     http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+case "$me" in
+    i-*) ;;
+    *)   echo "vnb-idle-stop-install: cannot read my own instance id -- refusing" >&2; exit 1 ;;
+esac
+
+for p in $PRIMARY_IDS; do
+    if [ "$me" = "$p" ]; then
+        echo "vnb-idle-stop-install: $me is the PRIMARY -- refusing to arm it." >&2
+        exit 1
+    fi
+done
+if [ -d /home/ubuntu/.claude ]; then
+    echo "vnb-idle-stop-install: ~/.claude is present, so this looks like the primary -- refusing." >&2
+    exit 1
+fi
+
+src=/home/ubuntu/prover/vnb-idle-stop
+[ -r "$src" ] || { echo "vnb-idle-stop-install: $src not found (push the tree first)" >&2; exit 1; }
+
+install -m 0755 "$src" /usr/local/sbin/vnb-idle-stop
+cat > /etc/vnb-idle-stop.conf <<EOF
+# written by vnb-idle-stop-install on $(date -u +%Y-%m-%dT%H:%M:%SZ)
+INSTANCE_ID=$me
+IDLE_MINUTES=$IDLE_MINUTES
+EOF
+chmod 0644 /etc/vnb-idle-stop.conf
+
+cat > /etc/cron.d/vnb-idle-stop <<'EOF'
+# Stop this worker when nothing has used it (see /usr/local/sbin/vnb-idle-stop).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+*/5 * * * * root /usr/local/sbin/vnb-idle-stop
+EOF
+chmod 0644 /etc/cron.d/vnb-idle-stop
+
+rm -f /run/vnb-last-busy        # re-arm: a full idle period from now
+
+echo "vnb-idle-stop armed on $me: stops after ${IDLE_MINUTES} idle minute(s), checked every 5."
+echo "  hold off with: touch /etc/vnb-no-idle-stop"

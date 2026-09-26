@@ -27,7 +27,21 @@
 (define (sequent-wff->string w)
   (expression->string (wff-formula w)))
 
+;;; THE PRESENTATION DIAL'S HOOK.  #f until presentation.scm sets it, and #f
+;;; again whenever the dial sits at r1 -- so the default path below is the one
+;;; that has always run and r1 output is untouched, which is what lets the
+;;; round-trip gate go on meaning what it means.  A hook rather than a
+;;; redefinition of `sequent->string' in the later file: silently shadowing a
+;;; core procedure from downstream is exactly how `calc' disappeared
+;;; (interactive.scm), and clobber-guard cannot see it -- it fires when a
+;;; procedure is rebound to a NON-procedure.
+(define *presentation-hook* #f)
+
 (define (sequent->string s)
+  (or (and *presentation-hook* (*presentation-hook* s))
+      (sequent->string-r1 s)))
+
+(define (sequent->string-r1 s)
   (let ((asms (sequent-assumptions s))
         (goal (sequent-assertion s)))
     (string-append

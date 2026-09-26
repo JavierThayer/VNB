@@ -46,10 +46,10 @@
 (define (cbe--fpred p)
   (let ((cands (filter (lambda (n) (p (wff-formula (sequent-node-assertion n)))) (cbe--leaves))))
     (and (pair? cands)
-         (begin (set! *ps* (focus-on *ps*
+         (begin (dk-focus!
                   (car (sort cands (lambda (a b)
                     (> (length (sequent-node-assumptions a))
-                       (length (sequent-node-assumptions b))))))))
+                       (length (sequent-node-assumptions b)))))))
                 #t))))
 (define (cbe--fhead h) (cbe--fpred (lambda (a) (and (pair? a) (eq? (car a) h)))))
 

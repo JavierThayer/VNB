@@ -12,11 +12,11 @@
 (define (rl-split) (let loop ((n 0)) (let ((a (rl-find (rl-head? 'AND))))
   (cond ((and a (< n 12)) (ai a) (loop (+ n 1))) (else n)))))
 (define (rl-focus! raw) (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw)) (proof-leaves))))
-  (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus!: none equal" (expression->string raw)))))
+  (if s (begin (dk-focus! s) s) (error "rl-focus!: none equal" (expression->string raw)))))
 (define (rl-grind!) (let loop ((g 0)) (quietly (lambda () (ass-all)))
   (let ((al (any-pred (lambda (s) (let ((gg (wff-formula (sequent-node-assertion s))))
               (and (not (sequent-node-grounded? s)) (pair? gg) (eq? (car gg) 'AND)))) (proof-leaves))))
-    (when (and al (< g 40)) (set-proof-state-focus! *ps* al) (di) (loop (+ g 1))))))
+    (when (and al (< g 40)) (dk-focus! al) (di) (loop (+ g 1))))))
 (define (rl-dump tag) (display ";;; [")(display tag)(display "] done?=")(display (proof-done? *ps*))
   (display " leaves=")(display (length (proof-leaves)))(newline)
   (display ";;;   goal=")(write (rl-gf))(newline)
@@ -94,7 +94,7 @@
 (define (rl-focus-asm! form)
   (let ((s (any-pred (lambda (s) (any-pred (lambda (w) (equal? (wff-formula w) form))
                                            (sequent-node-assumptions s))) (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus-asm!: none" form))))
+    (if s (begin (dk-focus! s) s) (error "rl-focus-asm!: none" form))))
 ;; (IN p RR) from (IN p (CCINT a b)), without destroying the membership (mac-h
 ;; runs only on the cut subgoal's branch); also leaves a<=p, p<=b there but the
 ;; main branch keeps the original membership.
@@ -139,7 +139,7 @@
                             (any-pred (lambda (w) (equal? (wff-formula w) marker))
                                       (sequent-node-assumptions s))))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s) (error "rl-focus-case!: none" marker))))
+    (if s (begin (dk-focus! s) s) (error "rl-focus-case!: none" marker))))
 (define (rl-deriv-from p marker)
   (cut (list 'AND (list '< 'a p) (list '< p 'b)))
   (rl-focus! (list 'AND (list '< 'a p) (list '< p 'b)))

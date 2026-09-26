@@ -84,3 +84,23 @@
   '(VNB-LAMBDA i NN (IF (IN i (ORD-SEGMENT n))
                      (phi i)
                      x)))
+
+;;; -----------------------------------------------------------------------
+;;; SUM-SET, DEFINED (2026-09-18; the user's decision, rake batch 5c-S).
+;;;
+;;;     SUM-SET(r, S, f)  ==  FINSUM(RING-ADDITIVE-AG r, f, S)
+;;;
+;;; the finite sum of f over the index set S in the additive group of the ring r.
+;;; Note the argument order: SUM-SET takes (ring, set, summand), FINSUM (group, summand,
+;;; set).  Until today SUM-SET was a bare head pinned by four unwarranted axioms in
+;;; structure-library/sequences.scm (sum-set-empty, -singleton, -disjoint-union, -type).
+;;; Two of them asserted their conclusion for an ARBITRARY index set, where an infinite
+;;; FINSUM is an uninterpreted term, and `sum-set-singleton' concluded a strict `=' about
+;;; f(x) with f and x untyped.  The four laws are now THEOREMS of this definition, each in
+;;; its strongest true form (theorem-library/rake-sum-set-defined.scm): sum-set-empty
+;;; unchanged; sum-set-singleton-defined (x in SET, f(x) in CARR r); sum-set-type-defined
+;;; and sum-set-disjoint-union-defined (finiteness of each index set).
+;;; The definition sits HERE and not beside the old axioms because FINSUM is not a
+;;; registered head until this file has loaded.  SUM-SET stays in *wff-term-form-heads*
+;;; (wff.scm), which is what keeps the head out of wff position.
+(def-functoid 'SUM-SET '(r S f) '(FINSUM (RING-ADDITIVE-AG r) f S))

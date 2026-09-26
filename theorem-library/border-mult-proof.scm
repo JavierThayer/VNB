@@ -10,13 +10,13 @@
 (define (bm-di*) (let lp () (let* ((g (bm-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
 (define (bm-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (bm-foc! n) (set-proof-state-focus! *ps* n))
+(define (bm-foc! n) (dk-focus! n))
 (define (bm-asms) (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*))))
 (define (bm-find pred) (let lp ((as (bm-asms)))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (bm-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
 (define (fa* vs body) (fold-right (lambda (v acc) (list 'FORALL v acc)) body vs))
 (define (impl* gs concl) (fold-right (lambda (g acc) (list 'IMPLIES g acc)) concl gs))
@@ -46,16 +46,29 @@
 (define (VANISH) (fa* '(jz) (impl* (list '(IN jz (INTERVAL 1 (succ q))) '(NOT (= jz 1)))
                     (list '= (list FF 'jz) ID-AG))))
 
+;; GUARDED 2026-09-16 (the SIZE/MAT surgery) with the product guard of X.Y,
+;;   (IMPLIES (= q 0) (OR (= p 0) (= r 0))), the LAST premise.  Unguarded the
+;; statement is FALSE at q = 0 with p, r >= 1: Y is then [] (the only member of
+;; MAT(0,r,..)), X.Y reads its column count off SIZE([]) = [0,0] and is p-by-0,
+;; so the (2,2) entry of the right-hand BORDER is ENTRY(X.Y, 1, 1) = NTH(1, [])
+;; applied again -- no value -- and the right-hand side does not denote, while
+;; the left-hand product BX.BY (a (succ p)-by-1 times a 1-by-(succ r) matrix) does.
+;; The guard is exact: at q = 0 with p = 0 or r = 0 no block entry is ever read.
 (sp (make-wff
   (list 'FORALL 'A (list 'IMPLIES '(IS-RING A)
     (fa* '(p q r X Y b d)
       (impl* (list '(IN p NN) '(IN q NN) '(IN r NN)
                    '(IN X (MAT p q (CARR A))) '(IN Y (MAT q r (CARR A)))
-                   '(IN b (CARR A)) '(IN d (CARR A)))
+                   '(IN b (CARR A)) '(IN d (CARR A))
+                   '(IMPLIES (= q 0) (OR (= p 0) (= r 0))))
              (list '= LHS BXY)))))))
 (bm-di*)
 (fact 'border-type 'A 'b 'X 'p 'q)
 (fact 'border-type 'A 'd 'Y 'q 'r)
+;; the outer product's middle dimension is succ q, never 0
+(fact 'nn-one-le-succ 'q)
+(fact 'nn-succ-nonzero 'q)
+(dk-have-prop! '(IMPLIES (= (succ q) 0) (OR (= (succ p) 0) (= (succ r) 0))))
 (fact 'matmul-type 'A '(succ p) '(succ q) '(succ r) BX BY)
 (fact 'ring-carrier-closed-mul 'A 'b 'd)
 (fact 'matmul-type 'A 'p 'q 'r 'X 'Y)
@@ -151,6 +164,25 @@
              (list '(OPR (RING-ADDITIVE-AG A)) (list FF 1) (list 'FINSUM AG SHIFT '(INTERVAL 1 q)))))
 ;; typings for GG + SHIFT
 (fact 'pred-in-interval 'p 'i) (fact 'pred-in-interval 'r 'k)
+;; here i, k /= 1, so p, r >= 1, and the product guard forces q /= 0: 1 <= q,
+;; which matmul-entry on X.Y now requires.
+(dk-one-le-from! IMU 'p) (dk-one-le-from! KMU 'r)
+(dk-nonzero! 'p) (dk-nonzero! 'r)
+;; q /= 0: assume q = 0, detach the product guard, and refute each disjunct.
+;; (Not `prop': its narrowing tiers keep only assumptions sharing an atom with
+;; the goal `not(q = 0)', which drops `not(p = 0)' and `not(r = 0)'.)
+(have! '(NOT (= q 0))
+  (lambda ()
+    (di)
+    (detach! '(IMPLIES (= q 0) (OR (= p 0) (= r 0))))
+    (for-each (lambda (l)
+                (dk-focus! l)
+                (if (member '(= p 0) (dk-asms-of l))
+                    (ai '(NOT (= p 0)))
+                    (ai '(NOT (= r 0)))))
+              (dk-opened (lambda () (ai '(OR (= p 0) (= r 0))))))))
+(dk-focus-having! '(NOT (= q 0)))
+(dk-one-le! 'q)
 (fact 'matprod-summand-type 'A 'p 'q 'r 'X 'Y IMU KMU)         ; GG typed
 ;; RHS: BXY_{i,k} = XY_{i-1,k-1} = FINSUM GG
 (fact 'border-entry-block2 'A BD XY 'p 'r 'i 'k)
@@ -177,6 +209,17 @@
 (fact 'ring-carrier-closed-mul 'A (list 'ENTRY 'X IMU 'z) (list 'ENTRY 'Y 'z KMU))
 (rfl)
 (bm-foc! CG)
+;; finsum-congruence was RESTATED 2026-09-17 with a SECOND antecedent, the
+;; POINTWISE typing of its first summand on the index set (the old statement,
+;; with f untyped and a strict `=' conclusion, asserted a definedness nothing
+;; established).  Here f is SHIFT, already FUN-typed on [1,q] by
+;; funcomp-succ-type above, so the lane is one fun-apply-type-c per point.
+(have! (list 'FORALL 'z_ (list 'IMPLIES '(IN z_ (INTERVAL 1 q))
+                               (list 'IN (list SHIFT 'z_) (list 'CARR AG))))
+  (lambda ()
+    (let ((bm-zv (dk-di-var!)))
+      (fact 'fun-apply-type-c SHIFT '(INTERVAL 1 q) (list 'CARR AG) bm-zv)
+      (ass))))
 (fact 'finsum-congruence AG '(INTERVAL 1 q) SHIFT GG)
 (subst (list '= (list 'FINSUM AG SHIFT '(INTERVAL 1 q)) (list 'FINSUM AG GG '(INTERVAL 1 q))))
 ;; now goal: (OPR AG)(FF 1)(FINSUM GG) = FINSUM GG ; reduce FF(1) -> 0

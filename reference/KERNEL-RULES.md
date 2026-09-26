@@ -5,10 +5,9 @@ first-order formulas installed by `make-vnb-base-theory` (`theory.scm`) and the
 `theorem-library` axiom files, stamped `primitive`. That list is **not the whole
 trusted base.** A second group of trusted principles lives in the proof checker
 itself, as **primitive inference rules** (`primitive-inferences.scm`, the
-`pi-*!` procedures, dispatched through `apply-recorded-cmd!` in
-`interactive.scm`). They are checked by hand-written Scheme, not derived from any
-axiom, so anyone auditing what VNB *assumes* must read them too. This file
-documents them.
+`pi-*!` procedures). They are implemented in Scheme rather than derived from any
+axiom, so anyone establishing what VNB *assumes* must read them alongside the
+axioms. This page states them.
 
 Why some principles are rules rather than axioms: a few set-theoretic
 constructors carry a **schema** in their body — a metavariable ranging over
@@ -16,11 +15,17 @@ constructors carry a **schema** in their body — a metavariable ranging over
 higher-order quantification. Separation `{x ∈ A | p}`, comprehension `{x | p}`
 and the indexed union `⋃_{z∈A} body` are the central cases. Rather than admit a
 formula variable, VNB characterises these constructors at the kernel level, one
-rule per elimination/introduction direction. (`theorem.scm`'s axiom prose
-already flags this: *"Fixed, though not finite (separation/replacement are
-schemas)."* The schemas themselves are below.)
+rule per elimination/introduction direction. The catalog says as much where it
+lists the axioms — *"Fixed, though not finite (separation/replacement are
+schemas)"* — and those schemas are stated below.
 
-This is the honest statement of the trusted base:
+Throughout, each rule has a **name** — `sep-mem-elim`, `forall-intro`, `cut` —
+which is recorded in the deduction graph with every inference it justifies. (The
+source calls this recorded name a *tag*.) The name is the unit of trust, not the
+command that produced it: one command may record any of several rules according
+to the shape of the goal, and two commands may record the same rule.
+
+Stated compactly:
 
 > **trusted base = the `primitive` axioms in THEOREMS.md + the kernel rules below.**
 
@@ -74,7 +79,20 @@ in `z`. A big-union of a set-indexed family of sets is a set.
 
 - **`IOTA(x, p)`** — definite description "the `x` such that `p`" (`pi-iota-def!`,
   tactic `iota-d`). Characterised by its defining property under a uniqueness
-  side condition.
+  side condition. Its context-side twin `iota-in-elim` (`pi-iota-in-elim!`,
+  tactic `iota-e`, added 2026-09-15) runs the other way: when the context
+  already establishes that the description **denotes** — it carries
+  `(IN (IOTA x p) X)`, or an equation naming the term — the defining property
+  `p[x := IOTA(x,p)]` is granted with no obligation posted. Soundness rests on
+  two things the kernel already commits to: atomic formulas are strict, so a
+  true membership entails that its subject denotes (this is exactly
+  `asm-establishes-defined?`, primitive-inferences.scm:627, which `rfl` uses to
+  close `t = t`, and the rule calls that predicate rather than re-testing the
+  assumption shape, so the two cannot drift); and a description that denotes
+  denotes the unique satisfier of its property, which is the same semantics
+  `iota-def` relies on when it grants the property after existence and
+  uniqueness are proved. With no definedness witness in the context the rule
+  declines rather than assuming denotation.
 - **`VNB-LAMBDA([x…], body)`** — the function-builder (`pi-lambda-type!` /
   `pi-lambda-beta!` / `pi-lambda-beta-hyp!`, tactics `lam-t` / `lam-b` /
   `lam-b-h`): typing into `FUN` and β-reduction
@@ -82,9 +100,6 @@ in `z`. A big-union of a set-indexed family of sets is a set.
   an assumption (`lambda-beta-hyp`, primitive-inferences.scm:1415, driven from
   interactive.scm). The carrier of every `def-functoid` whose body is a
   `VNB-LAMBDA` (e.g. `BDD-METRIC`).
-  *`lambda-beta-hyp` was absent from this file until 2026-08-13 — a trusted
-  primitive that the audit surface did not list, which is the one failure this
-  document exists to prevent.*
 
 ---
 
@@ -99,19 +114,19 @@ Note that a single tactic often stamps several tags: `di` emits whichever of
 `and-intro`, `or-intro-*`, `implies-intro`, `not-intro`, `iff-intro`,
 `forall-intro` the goal calls for, and `ai` emits whichever of `and-elim`,
 `or-elim`, `not-elim`, `iff-elim`, `forsome-elim` the cited assumption calls for.
-The **tag** is the unit of trust, not the tactic.
+The **rule name** is the unit of trust, not the tactic.
 
-| tag | tactic | note |
+| rule | tactic | note |
 |---|---|---|
 | `and-intro` `or-intro-left` `or-intro-right` `implies-intro` `not-intro` `iff-intro` `forall-intro` | `di`, `oi-l`, `oi-r` | goal-side introduction |
 | `and-elim` `or-elim` `not-elim` `iff-elim` `forsome-elim` | `ai` | assumption-side elimination. `not-elim` fires only when the positive is **already** in context |
 | `forsome-intro` | `ew` | supply a witness |
-| `forall-elim` | `inst`, `inst+`, `fact` | instantiate a universal |
+| `forall-elim` | `inst`, `inst+`, `fact` | instantiate a universal at `t`; since 2026-09-18 owes the side sequent `t = t` unless `t` is certified defined (a variable, a class term on defined arguments, an accessor of a structure the context has, or a term the context types) -- LUTINS instantiation; see docs/definedness-instantiation-2026-09-18.md |
 | `assumption` `theorem-assumption` | `ass`, `ta`, `fact` | close from context / cite an installed theorem |
 | `cut` `weakening` `detach` `backchain` | `cut`, `have!`, `wk`, `detach!`, `bc`, `bc*` | |
 | `proof-by-contradiction` | `pbc` | |
-| `truth-intro` `contraposition` | — | **unreachable**: `pi-truth!` and `pi-contraposit!` are implemented and called from nowhere |
-| `eq-subst` | `subst` | Leibniz; fires on `=` **or** `==`. Reaches argument positions only, never operator position |
+| `truth-intro` `contraposition` | — | implemented, but reachable from no proof command; no proof in the library records either |
+| `eq-subst` | `subst` | Leibniz; fires on `=` **or** `==`, with the equation in the context in either orientation. Rewrites in operator position too (since 2026-09-16) |
 | `reflexivity` | `rfl` | `t = t`, and only with `t` **defined** |
 | `quasi-reflexivity` | `qrfl` | `t == t`, unconditionally |
 | `if-true` `if-false` | `if-true`, `if-false` | |
@@ -122,37 +137,38 @@ The **tag** is the unit of trust, not the tactic.
 | `nth-reduce` `length-reduce` | `nth-r`, `len-r` | `NTH` / `LENGTH` of a literal `LIST` |
 | `functoid-beta` | `beta` | |
 | `nn-induction` | `ni` | induction on `NN` |
-| `transfinite-induction` | `tfi` | **strong** transfinite induction on `ORD`. (Not "tuple-function image", which is what this file said until 2026-07-28.) Distinct from, and not to be confused with, the `transfinite-induction` **axiom** in `structure-library/ordinals.scm` — same name, two different trusted objects |
+| `transfinite-induction` | `tfi` | **strong** transfinite induction on `ORD`. Distinct from, and not to be confused with, the `transfinite-induction` **axiom** in `structure-library/ordinals.scm` — same name, two different trusted objects |
 | `transfinite-induction-3cases` | `tfi3` | base / successor / limit |
 
 ---
 
 ## Rewriting is a kernel rule too
 
-Macete application stamps its own tags, and they are trusted surface exactly like
-the rules above. This section did not exist before 2026-07-28.
+Rewriting records rules of its own, and they are trusted exactly like the rules
+above.
 
-| tag | driven by | note |
+| rule | driven by | note |
 |---|---|---|
 | `macete` | `mac`, `macm` | rewrite the **goal** by an installed macete (`macetes.scm`) |
 | `macete-hyp` | `mac-h`, `mac-h*` | rewrite an **assumption**. Replaces it |
 | `cartesian-decompose` | `mac` | procedural macete (`theory.scm`): `x ∈ CARTESIAN(A₁…Aₙ)` to its existential chain |
 | `tuple-equality-decompose` | `mac` | procedural macete (`theory.scm`): `LIST(a…) = LIST(b…)` to the conjunction of components |
 
-The tag carries the source and replacement patterns as arguments; those are
-per-application data, not part of the trusted surface.
+The recorded rule carries the source and replacement patterns as arguments;
+those are per-application data, not part of the trusted base.
 
 ---
 
 ## Oracles — trusted decision procedures
 
-A tactic of kind `oracle` (`*tactic-kind*`, `tactics-help.scm`) closes a goal by
-running a decision procedure and stamping a single tag. It is sound and complete
-on its domain, but it is **trusted rather than mechanised through the axioms**:
-nothing reduces it to the rules above. Three of the four live in
-`structure-library/`, not in the kernel, which does not make them less trusted.
+A tactic of kind `oracle` closes a goal by running a decision procedure and
+recording a single rule. Each is sound and complete on its own domain, but it is
+**trusted rather than reduced to the axioms**: nothing derives it from the rules
+above, so each one widens the trusted base and is listed here for that reason.
+Four of the five procedures live in `structure-library/` rather than in the kernel
+directory, which does not make them any less trusted.
 
-| tag | tactic | source |
+| rule | tactic | source |
 |---|---|---|
 | `arith-ground` | `arith` | `arith-eval.scm` — decide a closed arithmetic sentence |
 | `arith-forsome` | `arith` | `arith-eval.scm` — witness a ground existential |
@@ -162,20 +178,31 @@ nothing reduces it to the rules above. Three of the four live in
 | `ineq` | `ineq` | `structure-library/ineq-oracle.scm` — the `RR` order calculus |
 | `sos` | `sos` | `structure-library/sos-oracle.scm` — sum-of-squares nonnegativity |
 
-So the honest statement of the trusted base, refined:
+So the statement of the trusted base, refined:
 
-> **trusted base = the `primitive` axioms in THEOREMS.md + every
-> `dg-apply-rule!` tag: the schemas, the logical rules, the two rewrite tags, and
-> the seven oracle tags.**
+> **trusted base = the `primitive` axioms in THEOREMS.md + every rule recorded
+> in a deduction graph: the 13 schemas, the 42 logical, equational and
+> structural rules, the 4 rewriting rules, and the 7 decision procedures, 66
+> rules in all.**
+
+The page *The kernel* describes each of the 66 by its effect on the deduction graph and is
+the fuller statement; the counts there are generated from the registry the startup check uses.
 
 ---
 
-*This file is **checked**, not merely hand-maintained. `dg-apply-rule!`
-(`deduction-graphs.scm`) records every tag it stamps; `*kernel-rule-tags*`
-(`tactics-help.scm`) is the documented list; `kernel-rules-audit` compares the
-two at the end of every load and reports both directions — a tag stamped but not
-documented (trusted surface nobody wrote down) and a tag documented but not
-exercised (a rule no proof uses, or one no tactic can reach). If you add a
-`pi-*!` rule or an oracle, add its tag to `*kernel-rule-tags*` and describe it
-here; the audit will tell you if you forget the first, and only a reader will
-notice if you forget the second.*
+## This list is checked against the system, not maintained by hand
+
+A document of this kind is only useful if it cannot quietly fall out of step
+with the program it describes. Two checks run every time the system starts.
+
+`kernel-rules-audit` compares the rules actually recorded during the load
+against the documented list (`*kernel-rule-tags*`), in **both** directions, and
+reports either kind of discrepancy: a rule recorded but not documented — trusted
+code that nobody wrote down — and a rule documented but never exercised, which
+is either a rule no proof needs or one no command can reach.
+
+`kernel-callers-audit` checks the other half: that only the eight permitted
+files record inferences at all. It reads every file of the system with the
+Scheme reader, and halts the load naming any file outside that list which calls
+`dg-apply-rule!`, or which passes it on as a value. The inventory of entry
+points, and of which proof command reaches which, is `KERNEL-MAP.md`.

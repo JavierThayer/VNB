@@ -69,7 +69,9 @@
           (reverse acc)))))
 
 ;;; --- classification ----------------------------------------------------
-(define *proof-reader-structural* '(di ai))                 ; folded into prose
+;; `wk' / `keep' only shrink the context: bookkeeping, folded like di / ai
+;; into the step they prepare (a run of them never gets a bullet of its own).
+(define *proof-reader-structural* '(di ai wk keep))         ; folded into prose
 (define *proof-reader-closer*     '(ass rfl qrfl crs rs simp ineq sos arith))
 ;; fact-family tactics that merely DISCHARGE side-conditions (introduce a
 ;; hypothesis).  When everything such a step introduces is a typing/membership
@@ -367,8 +369,8 @@
       ((ass) "\\emph{Holds by assumption.}")
       ((rfl qrfl) "\\emph{Holds by reflexivity.}")
       ((crs rs simp) "\\emph{Closes by commutative-ring simplification.}")
-      ((ineq) "\\emph{Closes by linear arithmetic.}")
-      ((sos) "\\emph{Closes by sum-of-squares.}")
+      ((ineq) "\\emph{Closes by linear arithmetic} (the Farkas certificate is on the full page).")
+      ((sos) "\\emph{Closes by sum-of-squares} (the squares and weights are on the full page).")
       ((arith) "\\emph{Closes by ground arithmetic.}")
       (else
        (let ((p (assq tac *proof-reader-tac-prose*)))
@@ -446,7 +448,12 @@
     ((and (pair? e) (eq? (car e) 'forall) (= (length e) 3)
           (pair? (caddr e)) (eq? (car (caddr e)) 'implies) (= (length (caddr e)) 3))
      (let ((v (cadr e)) (imp (caddr e)))
-       (list 'pred (string-append (expr->tex v) " \\text{ s.t. } " (expr->tex (cadr imp)))
+       ;; the two halves are kept APART -- a `pred' item is (variable . condition)
+       ;; and not one glued string -- because "Let h be s.t. P" needs a word
+       ;; between them and "for every h s.t. P" does not.  Glued at build time,
+       ;; the only place left to insert it was before the keyword, which is how
+       ;; "Let be h s.t." got out (2026-09-05).
+       (list 'pred (cons (expr->tex v) (expr->tex (cadr imp)))
              (caddr imp))))
     ((and (pair? e) (eq? (car e) 'forall) (= (length e) 3))
      (list 'bare (expr->tex (cadr e)) (caddr e)))
@@ -515,14 +522,53 @@
      (list (expr->tex (cadr e)) (caddr e)))
     (else #f)))
 
+;; Join rendered items as English rather than as a list: "a, b and c", with
+;; each item its own math group.  The items used to sit inside ONE $...$ joined
+;; by ", ", which reads as a list of symbols where the sentence wants a
+;; conjunction -- "Suppose n in N, x in R" for two independent suppositions.
+;; a clause item is either a rendered string or, for a `pred' clause, the pair
+;; (variable . condition).  GLUE says what goes between the halves.
+(define (proof-reader--item->string it glue)
+  (if (pair? it)
+      (string-append (car it) glue (cdr it))
+      it))
+
+(define (proof-reader--join-and items0)
+  (let* ((items (map (lambda (i) (proof-reader--item->string i " \\text{ s.t. } "))
+                     items0))
+         (n (length items)))
+    (cond ((= n 0) "")
+          ((= n 1) (string-append "$" (car items) "$"))
+          ((= n 2) (string-append "$" (car items) "$ and $" (cadr items) "$"))
+          (else
+           (string-append
+            (proof-tex--join (map (lambda (i) (string-append "$" i "$"))
+                                  (except-last-pair items))
+                             ", ")
+            " and $" (car (last-pair items)) "$")))))
+
 ;; render clauses, alternating Suppose/Let starting at index `depth'.
+;;
+;; "be" belongs to the LET branch alone, and only before a `pred' clause: the
+;; clause text is shared between the two keywords, so putting it in the s.t.
+;; renderer would produce "Suppose h be s.t.".  "Let h be s.t. P" is English;
+;; "Let n, x" is too, and takes no "be" -- which is why the test is on the
+;; clause KIND and not on the keyword alone.
 (define (proof-reader--render-clauses clauses depth)
   (let loop ((cs clauses) (i depth) (out '()))
     (if (null? cs) (proof-tex--join (reverse out) ". ")
-        (loop (cdr cs) (+ i 1)
-              (cons (string-append (if (even? i) "Suppose" "Let")
-                                   " $" (proof-tex--join (cdr (car cs)) ", ") "$")
-                    out)))))
+        (let* ((kw    (if (even? i) "Suppose" "Let"))
+               (pred? (eq? (car (car cs)) 'pred))
+               (items (if (and pred? (string=? kw "Let"))
+                          (map (lambda (it)
+                                 (if (pair? it)
+                                     (string-append (car it)
+                                                    " \\text{ be s.t. } " (cdr it))
+                                     it))
+                               (cdr (car cs)))
+                          (cdr (car cs)))))
+          (loop (cdr cs) (+ i 1)
+                (cons (string-append kw " " (proof-reader--join-and items)) out))))))
 
 ;; render clauses in a NESTED position.  "Suppose"/"Let" are imperative: they
 ;; instruct the reader to fix something before the claim is made, and only the
@@ -534,7 +580,12 @@
   (proof-tex--join
    (map (lambda (c)
           (string-append (if (= (length (cdr c)) 1) "for every $" "for all $")
-                         (proof-tex--join (cdr c) ", ") "$"))
+                         (proof-tex--join
+                          (map (lambda (i)
+                                 (proof-reader--item->string i " \\text{ s.t. } "))
+                               (cdr c))
+                          ", ")
+                         "$"))
         clauses)
    ", "))
 
@@ -550,7 +601,13 @@
                         (proof-reader--stmt-tail (caddr body))))
         (else (proof-reader--display body))))))
 
-(define (proof-reader--stmt-body body)
+;; PRECEDED? says whether a Suppose/Let clause was rendered before this body.
+;; "Then" is the consequent half of a sentence whose antecedent those clauses
+;; are; with no clauses there is nothing for it to follow, and a hypothesis-free
+;; theorem printed as a bare "Then is-metric-space(cc-ms)" -- correct, and not
+;; English (reported 2026-09-05).  The other two branches are whole sentences
+;; already and read the same either way.
+(define (proof-reader--stmt-body body preceded?)
   (cond
     ((proof-reader--exists-step body)
      => (lambda (step)
@@ -559,14 +616,15 @@
     ((and (pair? body) (eq? (car body) 'implies) (= (length body) 3))
      (string-append "If $" (expr->tex (cadr body)) "$, then "
                     (proof-reader--stmt-tail (caddr body))))
-    (else (string-append "Then" (proof-reader--display body)))))
+    (else (string-append (if preceded? "Then" "")
+                         (proof-reader--display body)))))
 
 (define (proof-reader--stmt e depth)
   (let* ((cb (proof-reader--peel-univs e)) (clauses (car cb)) (body (cdr cb)))
     (if (pair? clauses)
         (string-append (proof-reader--render-clauses clauses depth) ". "
-                       (proof-reader--stmt-body body))
-        (proof-reader--stmt-body body))))
+                       (proof-reader--stmt-body body #t))
+        (proof-reader--stmt-body body #f))))
 
 ;; first subterm whose head is OP (for the internal-representation note).
 (define (proof-reader--first-app e op)
@@ -588,10 +646,19 @@
                  "")))
          *proof-reader-internal-notes*)))
 
+;; SETTABLE.  The statement's arithmetic renders PREFIX by default -- +(n,1),
+;; \\cdot(a,b) -- so it cannot be read as, or confused with, the ring operations,
+;; which are prefix already (add(r)(x,y)).  That is a judgement about a
+;; STATEMENT, not about arithmetic, and until 2026-09-05 it was hard-wired: the
+;; fluid-let below bound #t unconditionally, so setting `*tex-arith-prefix?*'
+;; at the REPL changed nothing and gave no hint why.  Set this to #f for infix
+;; statements; proof STEPS have always rendered infix and are unaffected.
+(define *proof-reader-statement-prefix?* #t)
+
 ;; the proposition body: structured-English statement + any internal-rep note,
-;; all with arithmetic rendered prefix.
+;; with arithmetic rendered per the switch above.
 (define (proof-reader--statement claim)
-  (fluid-let ((*tex-arith-prefix?* #t))
+  (fluid-let ((*tex-arith-prefix?* *proof-reader-statement-prefix?*))
     (string-append (proof-reader--stmt (proof-reader--norm claim) 0)
                    (proof-reader--internal-note claim))))
 
@@ -796,9 +863,13 @@
                                (if (pair? name)
                                    (proof-tex--join (map symbol->string name) "-")
                                    (symbol->string name))))
-         (tex   (string-append *printouts-dir* base ".tex")))
-    (run-shell-command (string-append "mkdir -p " *printouts-dir* " " cache))
+         ;; the .tex renders into the per-user CACHE, not the source tree: the
+         ;; tree is writable by one account (see tex--archive-copy!,
+         ;; proof-tex.scm).  The archive copy below is best-effort.
+         (tex   (string-append cache base ".tex")))
+    (tex--ensure-directory! cache)
     (write-proof-reader name tex)
+    (tex--archive-copy! tex (string-append *printouts-dir* base ".tex"))
     (run-shell-command
      (string-append "pdflatex -interaction=nonstopmode -output-directory=" cache
                     " " tex " > /dev/null 2>&1"))

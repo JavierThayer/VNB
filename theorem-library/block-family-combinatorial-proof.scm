@@ -44,7 +44,7 @@
   (let loop ((ls (bfc-leaves)))
     (cond ((null? ls) (error "bfc: no open leaf equals" raw))
           ((equal? (wff-formula (sequent-node-assertion (car ls))) raw)
-           (set-proof-state-focus! *ps* (car ls)) (car ls))
+           (dk-focus! (car ls)) (car ls))
           (else (loop (cdr ls))))))
 (define (bfc-new thunk)
   (let ((before (bfc-asms))) (thunk)

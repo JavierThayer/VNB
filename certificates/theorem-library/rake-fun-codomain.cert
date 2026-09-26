@@ -1,0 +1,3 @@
+;;; VNB proof certificates for theorem-library/rake-fun-codomain.scm -- written by a load that proved them; do not edit.
+(vnb-certificate-file "theorem-library/rake-fun-codomain" (kernel "17eb0ff13b7d6a49dea52b288c09edb3") (date "2026-09-25") (host "worker-02") (count 1))
+(fun-codomain-superset "a0142dbe82d33ea5ac9bac7d138fcd82" (forall f (forall a (forall b (forall c (implies (in f (fun a b)) (implies (subset b c) (in f (fun a c)))))))) (cites (fun-codomain-iff . "Ta5f48fe36a2a8fd4eaf31e665fe34f7c") (subset-mem-fwd . "Tadb5626a0bd5dc1969f95bdf4542a245")) (defs) (own-oracles) (bill) (oracles) (kernel "17eb0ff13b7d6a49dea52b288c09edb3") (date "2026-09-25") (host "worker-02"))

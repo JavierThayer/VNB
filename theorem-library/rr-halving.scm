@@ -37,20 +37,15 @@
 ;;; theorem-library/rr-complete-proof.
 
 ;;; ---- file-local driver helpers (the `rh-' prefix) --------------------
-(define (rh-peel!)
-  (let loop ((n 0))
-    (let ((g (dk-goal)))
-      (if (and (pair? g) (memq (car g) '(FORALL IMPLIES)) (< n 12))
-          (begin (di) (loop (+ n 1)))
-          #t))))
-
+;;; (rh-peel! became dk-peel!, and the conjunction split after `ew' below
+;;; dk-conj-close!, both driver-kit.scm, 2026-09-14.)
 (define rh-two '(+ 1 1))
 (define rh-r   (list 'recip rh-two))
 (define rh-d   (list '* 'eps rh-r))
 
 (sp (make-wff '(FORALL eps (IMPLIES (POS-RR eps)
      (FORSOME d (AND (POS-RR d) (= (+ d d) eps)))))))
-(rh-peel!)
+(dk-peel!)
 
 ;;; eps > 0 in the strict-order spelling the multiplicative lemmas want.
 (mac-h 'pos-rr '(POS-RR eps))
@@ -77,9 +72,8 @@
 (dk-split! (list 'AND (list '<= 0 rh-d) (list 'NOT (list '= 0 rh-d))))
 
 (ew rh-d)
-(for-each
- (lambda (k)
-   (dk-focus! k)
+(dk-conj-close!
+ (lambda ()
    (if (eq? (car (dk-goal)) 'POS-RR)
        (begin (mac 'pos-rr) (from-context!))
        (begin
@@ -89,7 +83,6 @@
                 (lambda () (crs)))
          (subst (list '= (list '+ rh-d rh-d) (list '* 'eps (list '* rh-two rh-r))))
          (subst (list '= (list '* rh-two rh-r) 1))   ; rr-recip-inverse
-         (crs))))                                    ; eps * 1 = eps
- (dk-opened (lambda () (di))))
+         (crs)))))                                   ; eps * 1 = eps
 (qed 'rr-pos-halvable)
 (topic! 'rr-pos-halvable 'inequalities)

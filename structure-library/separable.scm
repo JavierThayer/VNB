@@ -79,26 +79,7 @@
 ;;; can hand it straight to IS-SEPARABLE, and with the distance written
 ;;; d(p, g(j)) -- point first -- for the same reason: it saves a metric-sym step
 ;;; at every call site.
-(support 'tb-scale-dense-seq
-  (forall-guarded '(s) (list '(TOTALLY-BOUNDED s))
-    (forall-guarded '(x0) (list '(IN x0 (PTS s)))
-      (forall-guarded '(r) (list '(POS-RR r))
-        (forsome-guarded 'g '(IN g (FUN NN (PTS s)))
-          (forall-guarded '(p) (list '(IN p (PTS s)))
-            (forsome-guarded 'j '(IN j NN)
-              '(< ((DIST s) p (g j)) r))))))))
-(warrant! 'tb-scale-dense-seq 'well-known
-  "Total boundedness at radius r gives a finite F with every point of PTS(s)
-   within r of a member of F.  Restrict F to PTS(s) -- a member serving any
-   point is in PTS(s), the domain of DIST(s) -- so the part of F inside PTS(s) is a finite r-net
-   inside the carrier; the CENTRE-SET construction (compactness.scm) delivers
-   one directly, its members being chosen centres (centres-in-carrier).
-   Enumerate it by FIN-ENUM (fin-enum-is-bijection: a bijection from
-   ORD-SEGMENT(CARD F)) and pad with x0 outside that segment, which makes the
-   enumeration TOTAL on NN without changing its range's r-density.  Asserted
-   rather than mechanised: both steps are set-theoretic bookkeeping with no
-   library payoff, and the topology they serve is machine-proven in
-   theorem-library/compact-separable-proof.scm.")
+;;; tb-scale-dense-seq RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-tb-leaves-2.scm, after IS-R-NET gained the clause F subseteq A
 (gloss! 'tb-scale-dense-seq
   "In a totally bounded metric space with at least one point, for every
    tolerance r there is a SEQUENCE whose terms come within r of every point of

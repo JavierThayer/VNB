@@ -407,6 +407,12 @@
              (lambda ()
                (let ((kk (cadr (sc-di-landed-1!))))
                  (fact 'nn-recip-succ-pos kk)
+                 ;; LUTINS instantiation (2026-09-18): both citations below are
+                 ;; AT the radius recip(kk+1), which owes (= t t) unless the
+                 ;; context types it -- the owed-leaf hook runs `in-rr', and
+                 ;; `in-rr' cannot type a reciprocal.  POS-RR of it is the line
+                 ;; above, and sb-rr-parts! reads (IN _ RR) off that.
+                 (sb-rr-parts! (sb-r kk))
                  (dk-deepest (lambda () (inst+ negK (sb-r kk))))
                  (let* ((exb (dk-deepest
                               (lambda () (fact 'not-continuous-witness

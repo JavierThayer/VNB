@@ -228,22 +228,8 @@
 ;;; -----------------------------------------------------------------------
 ;;; The generated sigma-algebra IS one.
 
-(support 'sigma-generated-is-sigma-algebra
-  (forall-guarded '(omega cE)
-                  '((IN omega SET) (SUBSET cE (POWER omega)))
-    '(IS-SIGMA-ALGEBRA omega (SIGMA-GENERATED omega cE))))
+;;; sigma-generated-is-sigma-algebra RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-measure.scm
 
-(warrant! 'sigma-generated-is-sigma-algebra 'reference '(rudin-rca "Thm. 1.10" 27))
-(topic!   'sigma-generated-is-sigma-algebra 'set-quotient)
-(gloss!   'sigma-generated-is-sigma-algebra
-  "For any family cE of subsets of a set omega there is a smallest
-   sigma-algebra on omega containing cE, namely SIGMA-GENERATED(omega, cE).
-   Rudin Thm. 1.10 (p. 12) and Thayer Def. 1.9 (p. 2) state it as the
-   existence of a smallest such sigma-algebra; VNB has already NAMED that
-   object by the intersection formula, so what is left to assert is only that
-   the named object satisfies IS-SIGMA-ALGEBRA.  Its leastness -- that it is
-   contained in every sigma-algebra on omega containing cE -- is not asserted
-   separately: it is one instantiation of sigma-generated-membership.")
 
 ;;; -----------------------------------------------------------------------
 ;;; The Caratheodory construction.  Thayer Chapter 4, Sec. 1.  Rudin has no
@@ -448,21 +434,8 @@
 ;;; -----------------------------------------------------------------------
 ;;; Measurable maps compose.
 
-(support 'measurable-map-compose
-  (forall-guarded '(omega cA omega2 cB omega3 cC f g)
-                  '((IS-MEASURABLE-MAP omega cA omega2 cB f)
-                    (IS-MEASURABLE-MAP omega2 cB omega3 cC g))
-    '(IS-MEASURABLE-MAP omega cA omega3 cC (COMPOSE g f))))
+;;; measurable-map-compose RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-measure.scm
 
-(warrant! 'measurable-map-compose 'reference '(thayer-measures "Sec. 1.4" 11))
-(topic!   'measurable-map-compose 'plumbing)
-(gloss!   'measurable-map-compose
-  "The composition of two measurable maps is measurable.  Thayer states it in
-   the opening paragraph of Sec. 1.4 (p. 5) -- an unnumbered display, so the
-   citation is to the section.  COMPOSE(g, f) is the VNB functoid
-   (compose.scm), i.e. x |-> g(f(x)); note the source writes the composite in
-   the opposite order in its displayed identity; VNB states the version that
-   matches the typings, f from omega to omega2 and g from omega2 to omega3.")
 
 ;;; -----------------------------------------------------------------------
 ;;; NOT STATED, and why -- the honest end of this file.

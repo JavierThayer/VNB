@@ -18,6 +18,19 @@
 ;;; cuts are driven by leaf-OBJECT capture (with-cut) -- never by re-finding a
 ;;; leaf by its goal formula, which collides and scatters.  The lambda FUN-typings
 ;;; are warranted (well-known: entries lie in CARR A and MUL closes).
+;;; RETIRED 2026-09-14 (proven): tel-outf-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): tel-tout-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): tel-inf-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): tel-dist-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): tel-red-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): ter-outf-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): ter-tout-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): ter-gj-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): ter-dist-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; RETIRED 2026-09-14 (proven): ter-red-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+
+;;; GUARDED 2026-09-16 (the SIZE/MAT change): both lemmas carry (<= 1 n) and
+;;; (<= 1 k), right after the R premise -- see the note above triple-entry-left.
 
 ;; ---- proof-driver helpers (te- prefix) ----
 (define (te-pg)(wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
@@ -36,16 +49,41 @@
     (let* ((new  (filter (lambda(l)(not(memq l before)))(te-leaves)))
            (sub  (car(filter (lambda(l)(equal?(te-goalof l) P)) new)))
            (cont (car(filter (lambda(l)(not(eq? l sub))) new))))
-      (set-proof-state-focus! *ps* sub)  (prove-sub)
-      (set-proof-state-focus! *ps* cont) (prove-cont))))
+      (dk-focus! sub)  (prove-sub)
+      (dk-focus! cont) (prove-cont))))
 
 (define TE-RAG '(RING-ADDITIVE-AG A))
 (define TE-FF '(VNB-LAMBDA z (CARTESIAN (INTERVAL 1 k) (INTERVAL 1 n)) ((MUL A) ((MUL A) (ENTRY P row (NTH 2 z)) (ENTRY Q (NTH 2 z) (NTH 1 z))) (ENTRY R (NTH 1 z) col))))
 (define TE-PREMS '((IN P (MAT m n (CARR A))) (IN Q (MAT n k (CARR A))) (IN R (MAT k l (CARR A))) (IN row (INTERVAL 1 m)) (IN col (INTERVAL 1 l))))
-;; warranted lambda FUN-typing brick, explicit interval upper bound
-(define (te-typ name lam carr bound ev ep)
-  (support name (te-wf '(A)(te-wi '((IS-RING A))(te-wf (append '(m n k l P Q R row col) ev)(te-wi (append TE-PREMS ep)`(IN ,lam (FUN (INTERVAL 1 ,bound) ,carr)))))))
-  (warrant! name 'well-known "the summand lambda is a function into CARR A / the additive AG's carrier (entry-in-carrier + MUL closure)."))
+;; the statements' premises: the three memberships, the two inner-dimension
+;; guards, the two indices
+(define TE-PREMS-G '((IN P (MAT m n (CARR A))) (IN Q (MAT n k (CARR A))) (IN R (MAT k l (CARR A))) (<= 1 n) (<= 1 k) (IN row (INTERVAL 1 m)) (IN col (INTERVAL 1 l))))
+;; (<= 1 v) in context: land (NOT (= v 0)), then the product guard G by prop.
+(define (te-guard! v g)
+  (if (not (dk-asm? (list 'NOT (list '= v 0)))) (dk-nonzero! v))
+  (dk-have-prop! g))
+;; The restated finsum-congruence (2026-09-17, the user's "shape 1") carries a
+;; SECOND antecedent -- the POINTWISE typing `forall z in S. f z in CARR(ag)' --
+;; placed AFTER the equality.  At all four citation sites in this file the
+;; summand's FUN typing is already in context (the lam-fun-bricks
+;; tel-outf-type / tel-dist-type / ter-outf-type / ter-dist-type), so the
+;; pointwise form is one `fun-apply-type-c' on a peeled index.  Landing it
+;; BEFORE the `fact' lets that citation auto-detach BOTH antecedents exactly as
+;; it used to auto-detach the one.
+(define (te-ptwise! f ivl carr)
+  (have! (list 'FORALL 'z_ (list 'IMPLIES (list 'IN 'z_ ivl) (list 'IN (list f 'z_) carr)))
+         (lambda ()
+           ;; a guarded universal peels whole in one di; read the eigenvariable
+           ;; off the LANDING, never off the context by shape
+           (let* ((landed (dk-peel!))
+                  (hits (filter (lambda (a) (and (pair? a) (eq? (car a) 'IN)
+                                                 (equal? (caddr a) ivl)))
+                                landed)))
+             (if (null? hits) (error "te-ptwise!: the peel landed no index typing"))
+             (fact 'fun-apply-type-c f ivl carr (cadr (car hits)))
+             (ass)))))
+;; (te-typ, a generator of warranted FUN-typing supports, was removed 2026-09-16:
+;; nothing called it; the bricks are PROVEN in lam-fun-bricks.scm.)
 
 ;; =====================================================================
 ;; triple-entry-left : ((PQ)R)_{row,col} = sum_{c in [1,k]} sum_{j in [1,n]} FF(c,j)
@@ -54,14 +92,17 @@
 (define TEL-OUTF '(VNB-LAMBDA j (INTERVAL 1 k) ((MUL A) (ENTRY (MATMUL A P Q) row j) (ENTRY R j col))))
 (define TEL-TOUT `(VNB-LAMBDA c (INTERVAL 1 k) (FINSUM ,TE-RAG (VNB-LAMBDA j (INTERVAL 1 n) (,TE-FF (LIST c j))) (INTERVAL 1 n))))
 (define TEL-TSUM `(FINSUM ,TE-RAG ,TEL-TOUT (INTERVAL 1 k)))
-(te-typ 'tel-outf-type TEL-OUTF `(CARR ,TE-RAG) 'k '() '())
-(te-typ 'tel-tout-type TEL-TOUT `(CARR ,TE-RAG) 'k '() '())
-(te-typ 'tel-inf-type '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P row j) (ENTRY Q j x))) '(CARR A) 'n '(x) '((IN x (INTERVAL 1 k))))
-(te-typ 'tel-dist-type '(VNB-LAMBDA z (INTERVAL 1 n) ((MUL A) ((VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P row j) (ENTRY Q j x))) z) (ENTRY R x col))) `(CARR ,TE-RAG) 'n '(x) '((IN x (INTERVAL 1 k))))
-(te-typ 'tel-red-type '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) ((MUL A) (ENTRY P row j) (ENTRY Q j x)) (ENTRY R x col))) `(CARR ,TE-RAG) 'n '(x) '((IN x (INTERVAL 1 k))))
 
-(sp (te-wf '(A)(te-wi '((IS-RING A))(te-wf '(m n k l P Q R row col)(te-wi TE-PREMS `(= (ENTRY ,TEL-LHSM row col) ,TEL-TSUM))))))
+;; GUARDS (2026-09-16).  (<= 1 k) is FORCED: k = 0, m = n = l = 1, R = [] in
+;; MAT(0,1), Q = [[]] 1-by-0: (PQ)R is 1-by-0 (MATMUL reads its column count
+;; off SIZE([]) = [0,0]), so ENTRY((PQ)R, 1, 1) is undefined while the right
+;; side is the empty sum 0.  (<= 1 n) is NOT forced by a counterexample (at
+;; n = 0 with k >= 1 both sides are 0: PQ is m-by-0, so (PQ)R's entry is an
+;; empty sum) but this route needs it -- it expands PQ by matmul-entry and
+;; types PQ by matmul-type -- and the only citer, matmul-assoc, holds it.
+(sp (te-wf '(A)(te-wi '((IS-RING A))(te-wf '(m n k l P Q R row col)(te-wi TE-PREMS-G `(= (ENTRY ,TEL-LHSM row col) ,TEL-TSUM))))))
 (te-di*)
+(te-guard! 'n '(IMPLIES (= n 0) (OR (= m 0) (= k 0))))
 (fact 'matmul-type 'A 'm 'n 'k 'P 'Q)
 (fact 'matmul-entry 'A 'm 'k 'l '(MATMUL A P Q) 'R 'row 'col)
 (subst `(= (ENTRY ,TEL-LHSM row col) (FINSUM ,TE-RAG ,TEL-OUTF (INTERVAL 1 k))))
@@ -74,7 +115,7 @@
 (fact 'tel-tout-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
 (te-with-cut `(FORALL x (IMPLIES (IN x (INTERVAL 1 k)) (= (,TEL-OUTF x) (,TEL-TOUT x))))
   (lambda ()
-    (di)(di)
+    (te-di*)                 ; a guarded universal peels whole in one di
     (let ((xv (te-lastvar '(INTERVAL 1 k))))
       (lam-b)(nth-r)
       (fact 'matmul-entry 'A 'm 'n 'k 'P 'Q 'row xv)
@@ -92,7 +133,7 @@
             (REDxv  `(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) ((MUL A) (ENTRY P row j) (ENTRY Q j ,xv)) (ENTRY R ,xv col)))))
         (te-with-cut `(FORALL w (IMPLIES (IN w (INTERVAL 1 n)) (= (,DISTxv w) (,REDxv w))))
           (lambda ()
-            (di)(di)
+            (te-di*)                 ; a guarded universal peels whole in one di
             (let ((wv (te-lastvar '(INTERVAL 1 n))))
               (lam-b)
               (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'row wv)
@@ -102,9 +143,11 @@
               (fact 'ring-carrier-closed-mul 'A `((MUL A) (ENTRY P row ,wv) (ENTRY Q ,wv ,xv)) `(ENTRY R ,xv col))
               (rfl)))
           (lambda ()
+            (te-ptwise! DISTxv '(INTERVAL 1 n) `(CARR ,TE-RAG))
             (fact 'finsum-congruence TE-RAG '(INTERVAL 1 n) DISTxv REDxv)
             (ass))))))
   (lambda ()
+    (te-ptwise! TEL-OUTF '(INTERVAL 1 k) `(CARR ,TE-RAG))
     (fact 'finsum-congruence TE-RAG '(INTERVAL 1 k) TEL-OUTF TEL-TOUT)
     (ass)))
 (qed 'triple-entry-left)
@@ -117,14 +160,15 @@
 (define TER-OUTF '(VNB-LAMBDA j (INTERVAL 1 n) ((MUL A) (ENTRY P row j) (ENTRY (MATMUL A Q R) j col))))
 (define TER-TOUT `(VNB-LAMBDA j (INTERVAL 1 n) (FINSUM ,TE-RAG (VNB-LAMBDA c (INTERVAL 1 k) (,TE-FF (LIST c j))) (INTERVAL 1 k))))
 (define TER-TSUM `(FINSUM ,TE-RAG ,TER-TOUT (INTERVAL 1 n)))
-(te-typ 'ter-outf-type TER-OUTF `(CARR ,TE-RAG) 'n '() '())
-(te-typ 'ter-tout-type TER-TOUT `(CARR ,TE-RAG) 'n '() '())
-(te-typ 'ter-gj-type '(VNB-LAMBDA j (INTERVAL 1 k) ((MUL A) (ENTRY Q x j) (ENTRY R j col))) '(CARR A) 'k '(x) '((IN x (INTERVAL 1 n))))
-(te-typ 'ter-dist-type '(VNB-LAMBDA z (INTERVAL 1 k) ((MUL A) (ENTRY P row x) ((VNB-LAMBDA j (INTERVAL 1 k) ((MUL A) (ENTRY Q x j) (ENTRY R j col))) z))) `(CARR ,TE-RAG) 'k '(x) '((IN x (INTERVAL 1 n))))
-(te-typ 'ter-red-type '(VNB-LAMBDA c (INTERVAL 1 k) ((MUL A) ((MUL A) (ENTRY P row x) (ENTRY Q x c)) (ENTRY R c col))) `(CARR ,TE-RAG) 'k '(x) '((IN x (INTERVAL 1 n))))
 
-(sp (te-wf '(A)(te-wi '((IS-RING A))(te-wf '(m n k l P Q R row col)(te-wi TE-PREMS `(= (ENTRY ,TER-LHSM row col) ,TER-TSUM))))))
+;; GUARDS (2026-09-16), both FORCED.  k = 0, m = n = l = 1: R = [], Q = [[]]
+;; is 1-by-0, QR is 1-by-0 and ENTRY(QR, 1, 1) is undefined.  n = 0,
+;; m = k = l = 1: Q = [], P = [[]] is 1-by-0, QR = MATMUL(A,[],R) has no rows,
+;; so P(QR) is 1-by-0 and ENTRY(P(QR), 1, 1) is undefined; the right side is
+;; the empty sum 0.
+(sp (te-wf '(A)(te-wi '((IS-RING A))(te-wf '(m n k l P Q R row col)(te-wi TE-PREMS-G `(= (ENTRY ,TER-LHSM row col) ,TER-TSUM))))))
 (te-di*)
+(te-guard! 'k '(IMPLIES (= k 0) (OR (= n 0) (= l 0))))
 (fact 'matmul-type 'A 'n 'k 'l 'Q 'R)
 (fact 'matmul-entry 'A 'm 'n 'l 'P '(MATMUL A Q R) 'row 'col)
 (subst `(= (ENTRY ,TER-LHSM row col) (FINSUM ,TE-RAG ,TER-OUTF (INTERVAL 1 n))))
@@ -135,7 +179,7 @@
 (fact 'ter-tout-type 'A 'm 'n 'k 'l 'P 'Q 'R 'row 'col)
 (te-with-cut `(FORALL x (IMPLIES (IN x (INTERVAL 1 n)) (= (,TER-OUTF x) (,TER-TOUT x))))
   (lambda ()
-    (di)(di)
+    (te-di*)                 ; a guarded universal peels whole in one di
     (let ((xv (te-lastvar '(INTERVAL 1 n))))
       (lam-b)(nth-r)
       (fact 'matmul-entry 'A 'n 'k 'l 'Q 'R xv 'col)
@@ -153,7 +197,7 @@
             (REDxv  `(VNB-LAMBDA c (INTERVAL 1 k) ((MUL A) ((MUL A) (ENTRY P row ,xv) (ENTRY Q ,xv c)) (ENTRY R c col)))))
         (te-with-cut `(FORALL w (IMPLIES (IN w (INTERVAL 1 k)) (= (,DISTxv w) (,REDxv w))))
           (lambda ()
-            (di)(di)
+            (te-di*)                 ; a guarded universal peels whole in one di
             (let ((wv (te-lastvar '(INTERVAL 1 k))))
               (lam-b)
               (fact 'entry-in-carrier 'm 'n '(CARR A) 'P 'row xv)
@@ -165,9 +209,11 @@
                          ((MUL A) (ENTRY P row ,xv) ((MUL A) (ENTRY Q ,xv ,wv) (ENTRY R ,wv col)))))
               (rfl)))
           (lambda ()
+            (te-ptwise! DISTxv '(INTERVAL 1 k) `(CARR ,TE-RAG))
             (fact 'finsum-congruence TE-RAG '(INTERVAL 1 k) DISTxv REDxv)
             (ass))))))
   (lambda ()
+    (te-ptwise! TER-OUTF '(INTERVAL 1 n) `(CARR ,TE-RAG))
     (fact 'finsum-congruence TE-RAG '(INTERVAL 1 n) TER-OUTF TER-TOUT)
     (ass)))
 (qed 'triple-entry-right)

@@ -21,7 +21,7 @@
 ;;;     both conjuncts.
 ;;;
 ;;;   finite-ball-subcover-r-net -- a finite subcover F gives the finite r-net
-;;;     CENTRE-SET(s,r,F).  Finiteness is centre-set-finite; for the r-net
+;;;     CENTRE-SET(s,r,F).  Finiteness is centre-set-finite-guarded; for the r-net
 ;;;     condition, a point p sits in some cover ball U (open-cover-covers-point),
 ;;;     whose chosen centre (chosen-centre-is-centre) is in CENTRE-SET
 ;;;     (centre-set-contains-choice) and within r of p (ball-point-le/ne).
@@ -47,7 +47,8 @@
               (let ((n (string->number (string-tail s (+ i 1)))))
                 (when (and n (> n bestn)) (set! bestn n) (set! best v))))))
         (free-vars a)))
-     (proof-tex--focus-asms))
+     ;; was (proof-tex--focus-asms): a proof-tex.scm helper that loads 200 entries later (2026-09-14)
+     (dk-asms))
     (or best (error "fbsr-eig: no eigenvar with prefix in context" prefix))))
 
 ;;; ===== chosen-centre-is-centre =====
@@ -61,6 +62,14 @@
 (ai 1) (ai 1)                                ; eigenvar c* ; c* in PTS(s) ; B(c*,r)=U
 (define c* (fbsr-eig "c"))                     ; capture the centre eigenvar ai just minted
 (fact 'centres-mem-build 's 'U 'r c*)         ; c* in CENTRES(s,U,r)  (witness of inhabited)
+;; 2026-09-18 (LUTINS instantiation): both `bc*'s below instantiate at
+;; CHOICE(CENTRES(s,U,r)), and a CHOICE is never certified defined.  Landing
+;; the choice membership FORWARD -- which is the same choice-axiom the two
+;; `bc*'s reach backward -- puts (IN (CHOICE ...) (CENTRES s U r)) in the
+;; context, and `asm-establishes-defined?' reads it off there.  The guard is
+;; witnessed by the centre c* the `ai' above minted.
+(have! '(FORSOME c (IN c (CENTRES s U r))) (lambda () (ew c*) (ass)))
+(fact 'choice-axiom '(CENTRES s U r))
 (di)                                          ; split the goal conjunction
 ;; conjunct 1: CHOICE(CENTRES s U r) in PTS(s)
 (bc* 'centres-in-carrier ((b 'u) (r 'r)))     ; -> CHOICE(...) in CENTRES(s,U,r)
@@ -83,12 +92,84 @@
 (ai 1) (ai 1) (ai 1)                          ; eigenvar f* ; subcover, |f*| in NN, open-cover
 (define f* (fbsr-eig "f"))                     ; capture the subcover eigenvar
 (ew (list 'CENTRE-SET 's 'r f*))               ; the r-net = chosen centres of f*
+;; ----- the sethood chain, established BEFORE the goal's conjunction is split
+;; (moved above the split 2026-09-19): conjunct I needs `f* in SET' for
+;; centre-set-finite-guarded, and conjunct II now needs it again for the
+;; `lam-t' of the choice function.  A `fact' landed inside one branch does not
+;; reach its sibling, so the chain is paid once, here.
+;;
+;; REPOINTED 2026-09-15 (wave 7).  The support `centre-set-finite'
+;; (structure-library/compactness.scm:167) is FALSE as written: it has no
+;; `F in SET', and CARD is an uninterpreted head that constrains nothing about a
+;; proper class F.  Its guarded twin `centre-set-finite-guarded'
+;; (theorem-library/card-image-finite.scm) is PROVEN, and the guard costs this
+;; proof exactly one sethood lane, which the context already pays for:
+;;   PTS(s) is a set                 -- a typing conjunct of IS-METRIC-SPACE(s);
+;;   BALL-COVER(s,r) is a set        -- it IS the image of PTS(s) (image-set);
+;;   f* SUBSET BALL-COVER(s,r)       -- a premise, so subclass-of-set-is-set
+;;                                      (theorem-library/subset-lemmas) types f*.
+(have! '(IN (PTS s) SET)
+  (lambda ()
+    (dk-split-all!
+     (dk-landed (lambda () (mac-h 'is-metric-space '(IS-METRIC-SPACE s)))))
+    (ass)))
+(have! '(IN (BALL-COVER s r) SET)
+  (lambda ()
+    (mac 'BALL-COVER)                          ; -> (IN (IMAGE LAM (PTS s)) SET)
+    (let ((im (cadr (dk-goal))))
+      (fact 'image-set (cadr im) (caddr im)))
+    (ass)))
+(fact 'subclass-of-set-is-set f* '(BALL-COVER s r))   ; (IN f* SET)
 (di)                                           ; split the goal conjunction
-;; conjunct I: |CENTRE-SET(s,r,f*)| in NN
-(bc* 'centre-set-finite ((s 's) (r 'r)))
+;; conjunct I: |CENTRE-SET(s,r,f*)| in NN.
+(fact 'centre-set-finite-guarded 's 'r f*)
 (ass)
 ;; conjunct II: IS-R-NET(s, CENTRE-SET(s,r,f*), PTS(s), r)
 (mac 'IS-R-NET)
+(di)                                           ; IS-R-NET is a CONJUNCTION since
+                                               ; 2026-09-19: the SUBSET clause,
+                                               ; then the approximation clause.
+;; ----- II(a): SUBSET(CENTRE-SET(s,r,f*), PTS(s)).
+;;
+;; The conjunct added to IS-R-NET on 2026-09-19 (structure-library/metric-
+;; topology.scm, where the defect it repairs is recorded).  It is free for this
+;; construction, which is the point of the repair: the net is the IMAGE of f*
+;; under the choice function  B |-> CHOICE(CENTRES(s,B,r)), and
+;; `chosen-centre-is-centre' -- proven above in this file -- places every one of
+;; those chosen centres in PTS(s).
+;;
+;; The lane is the one theorem-library/rake-compose-typing.scm:92 uses for
+;; ran-subset-codomain: unfold the inclusion pointwise, read the image
+;; membership back through `image-membership-iff' as "w is the chosen centre of
+;; some ball B of f*", beta-reduce that equation in the HYPOTHESIS (`lam-b-h';
+;; B is typed, which is what lam-b needs), flip it with `equality-symmetry' so
+;; `subst' can carry the goal from w to the chosen centre, and close by the
+;; centre's own typing.  `image-subset-codomain' (structure-library/
+;; injection.scm) would say the whole thing in one citation, but it is an
+;; UNWARRANTED axiom and would put this proof's bill at trust: none;
+;; image-membership-iff, which the route below uses instead, is definitional.
+(mac 'CENTRE-SET)                              ; -> SUBSET(IMAGE(lam, f*), PTS(s))
+(define fbsr-lam (cadr (cadr (dk-goal))))      ; the choice lambda, COPIED off the
+                                               ; goal, never rebuilt by hand
+(mac 'subset-def)                              ; -> forall w. w in IMAGE(..) => w in PTS(s)
+(define fbsr-mem (dk-landed-1 (lambda () (di))))  ; (IN w (IMAGE lam f*))
+(define fbsr-w (cadr fbsr-mem))
+(define fbsr-b                                 ; the ball of f* whose centre w is
+  (dk-skolem!
+   (dk-landed-1 (lambda () (mac-h 'image-membership-iff fbsr-mem)))))
+(define fbsr-eq                                ; (= (CHOICE (CENTRES s B r)) w)
+  (dk-landed-1
+   (lambda ()
+     (lam-b-h (dk-pick (lambda (fbsr-f)
+                         (and (pair? fbsr-f) (eq? (car fbsr-f) '=)
+                              (equal? (caddr fbsr-f) fbsr-w)))
+                       "the image-membership equation")))))
+(fact 'equality-symmetry (cadr fbsr-eq) fbsr-w) ; (= w (CHOICE (CENTRES s B r)))
+(subst (list '= fbsr-w (cadr fbsr-eq)))         ; goal: CHOICE(...) in PTS(s)
+(fact 'subset-mem-fwd f* '(BALL-COVER s r) fbsr-b)
+(dk-split! (dk-fact! 'chosen-centre-is-centre 's 'r fbsr-b))
+(ass)
+;; ----- II(b): every point of PTS(s) has a centre of the net within r.
 (di) (di)                                      ; fix p ; assume p in PTS(s)
 (fact 'open-cover-covers-point 's f* 'p)       ; exists U. U in f* and p in U
 (ai 1) (ai 1)                                  ; eigenvar u* ; u* in f* ; p in u*
@@ -99,7 +180,20 @@
 (ew (list 'CHOICE (list 'CENTRES 's u* 'r)))   ; the witnessing centre near p
 (di)                                           ; split: membership ; distance
 ;; c in CENTRE-SET(s,r,f*)
-(bc* 'centre-set-contains-choice ())
+;; centre-set-contains-choice is GUARDED (2026-09-17): its antecedent is now the
+;; CONJUNCTION "u* is in the family AND u* has a centre at radius r".  The second
+;; conjunct is what makes CHOICE(CENTRES(s,u*,r)) denote at all -- unguarded, the
+;; support asserted the definedness of an unspecified term (theorem-library/
+;; rake-analysis2.scm's header).  It is free here: chosen-centre-is-centre, cited
+;; four lines up, has already put the chosen centre in PTS(s) with BALL(.,r) = u*,
+;; which is exactly centres-mem-build's pair of premises.  `fact' will not split a
+;; conjunctive antecedent, so the AND is landed before the citation.
+(fact 'centres-mem-build 's u* 'r (list 'CHOICE (list 'CENTRES 's u* 'r)))
+(have! (list 'FORSOME 'c_ (list 'IN 'c_ (list 'CENTRES 's u* 'r)))
+  (lambda () (ew (list 'CHOICE (list 'CENTRES 's u* 'r))) (ass)))
+(have! (list 'AND (list 'IN u* f*)
+             (list 'FORSOME 'c_ (list 'IN 'c_ (list 'CENTRES 's u* 'r)))))
+(fact 'centre-set-contains-choice 's 'r f* u*)
 (ass)
 ;; d(c,p) < r  (split into <= and /=, each forward from the cover ball u*)
 (di)

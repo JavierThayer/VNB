@@ -1,3 +1,8 @@
+;;; RETIRED 2026-09-17 (proven): finsum-act-collect-gen -- theorem-library/rake-finsum-core.scm
+;;; RETIRED 2026-09-17 (proven): finsum-act-distrib-gen -- theorem-library/rake-finsum-laws2.scm
+;;; RETIRED 2026-09-17 (proven): matact-entry -- theorem-library/rake-identmat.scm (the module twin of matmul-entry).
+;;; RETIRED 2026-09-17 (proven): submodule-finsum-closed -- theorem-library/rake-finsum-typing.scm
+;;; (by the fold-length induction `finsum-in-subset', not the finite-set induction its warrant named)
 ;;; mod-seq.scm -- matrices acting on sequences of module elements.
 ;;;
 ;;; Phase C of the linear-algebra arc (algebraic-numbers.pdf ch.3, sec 8.2).
@@ -36,7 +41,11 @@
 ;;;
 ;;; Dependencies: module.scm (MODULE, ACT, VEC, SCAL), views.scm
 ;;;   (MODULE-VECTOR-AG), matrix.scm (MAT, MATOF, ENTRY, SIZE), finsum.scm.
-;;; MATACT is registered as a term-forming head in wff.scm.
+;;; MATACT is registered as a term-forming head in wff.scm; LINCOMB registers
+;;; itself (def-functoid).
+;;; RETIRED 2026-09-14 (proven): matact-summand-type -- theorem-library/lam-fun-bricks.scm (dk-lam-fun!)
+;;; (matact-summand-type-le is NOT retired: class C -- k untyped; it was removed by an
+;;; over-matching name pattern and put back.)
 
 ;;; -----------------------------------------------------------------------
 ;;; The vector abelian group's slots, as rewrite bridges.
@@ -49,20 +58,11 @@
 ;;; be applied with `mac' rather than fact+subst, because pi-eq-subst! does not
 ;;; rewrite operator-head positions; the same holds for mvag-op.
 
-(support 'mvag-carr
-  '(FORALL md (= (CARR (MODULE-VECTOR-AG md)) (VEC md))))
-(warrant! 'mvag-carr 'proof
-  "carrier of a module's vector abelian group is the module's vector set.")
+;;; mvag-carr MOVED 2026-09-15 (wave 6) to theorem-library/ag-view-read-offs.scm, where it is PROVEN modulo 0 -- RESTATED with an IS-MODULE guard (same reason).
 
-(support 'mvag-op
-  '(FORALL md (= (OPR (MODULE-VECTOR-AG md)) (VADD md))))
-(warrant! 'mvag-op 'proof
-  "operation of a module's vector abelian group is the module's vector addition.")
+;;; mvag-op MOVED 2026-09-15 (wave 6) to theorem-library/ag-view-read-offs.scm, where it is PROVEN modulo 0 -- RESTATED with an IS-MODULE guard (same reason).
 
-(support 'mvag-id
-  '(FORALL md (= (IDEN (MODULE-VECTOR-AG md)) (VZERO md))))
-(warrant! 'mvag-id 'proof
-  "identity of a module's vector abelian group is the module's zero vector.")
+;;; mvag-id MOVED 2026-09-15 (wave 6) to theorem-library/ag-view-read-offs.scm, where it is PROVEN modulo 0 -- RESTATED with an IS-MODULE guard (same reason).
 
 ;;; -----------------------------------------------------------------------
 ;;; MATACT(md, P, u) -- the matrix P acting on the sequence(s) u.
@@ -84,53 +84,43 @@
                (VNB-LAMBDA j (INTERVAL 1 (NTH 2 (SIZE P))) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
                (INTERVAL 1 (NTH 2 (SIZE P)))))))
 
+;;; -----------------------------------------------------------------------
+;;; LINCOMB(md, n, c, u) -- the linear combination  sum_{j=1}^{n} c_{1j} . u_{j1}
+;;; of a length-n column sequence u with a coefficient row c, as a FINSUM in the
+;;; module's vector abelian group.
+;;;
+;;; Defined DIRECTLY, not as the single entry of the 1-by-1 product
+;;; MATACT(md, c, u), which is what GENERATES / REL-FREE / SPANS / SPAN /
+;;; LASTCOEFF-SET read until 2026-09-16.  The two agree when n >= 1
+;;; (theorem-library/span-bricks-proof.scm, `matact-lincomb'), and differ at
+;;; n = 0: there u is [], a matrix with no rows does not determine its column
+;;; count (matrix.scm), MATACT reads the column count off SIZE([]) = [0, 0],
+;;; and the "1-by-1 product" is 1-by-0 -- its (1,1) entry is NTH(1, []), an
+;;; unspecified value.  The empty combination must be VZERO, and as a FINSUM
+;;; over INTERVAL(1, 0) it is (finsum-empty).  The user's decision, 2026-09-16.
+(def-functoid 'LINCOMB '(md n c u)
+  '(FINSUM (MODULE-VECTOR-AG md)
+           (VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY c 1 j) (ENTRY u j 1)))
+           (INTERVAL 1 n)))
+
+
 ;;; Typing: scalars (m*n) acting on vectors (n*q) gives vectors (m*q).
-(support 'matact-type
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL m (FORALL n (FORALL q (FORALL P (FORALL u
-       (IMPLIES (IN P (MAT m n (CARR (SCAL md))))
-       (IMPLIES (IN u (MAT n q (VEC md)))
-         (IN (MATACT md P u) (MAT m q (VEC md)))))))))))))
-(warrant! 'matact-type 'reference
-  "P.u is an m-by-q matrix of vectors for P an m-by-n scalar matrix and u an
-   n-by-q matrix of vectors: matof-in-mat, whose values are FINSUMs in the
-   vector abelian group, typed by finsum-type + mvag-carr.")
+;;; matact-type MOVED 2026-09-15 (wave 6) to theorem-library/matunit-matact-type.scm, where it is PROVEN.
 
 ;;; The defining entry equation, read off MATOF (this is the eq. 82 of the book
 ;;; when q = 1: v_i = sum_j a_ij u_j).
-(support 'matact-entry
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL m (FORALL n (FORALL q (FORALL P (FORALL u
-       (IMPLIES (IN P (MAT m n (CARR (SCAL md))))
-       (IMPLIES (IN u (MAT n q (VEC md)))
-       (FORALL i (IMPLIES (IN i (INTERVAL 1 m))
-       (FORALL c (IMPLIES (IN c (INTERVAL 1 q))
-         (= (ENTRY (MATACT md P u) i c)
-            (FINSUM (MODULE-VECTOR-AG md)
-                    (VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
-                    (INTERVAL 1 n)))))))))))))))))
-(warrant! 'matact-entry 'reference
-  "(P.u)_{ic} = sum_{j=1}^{n} P_{ij} . u_{jc}, summed in the module's vector
-   abelian group; the read-off of MATACT's MATOF tabulation via entry-of-matof
-   (dimensions m, n, q recovered from SIZE P, SIZE u).")
+;;;
+;;; GUARDED on 1 <= n (2026-09-16).  At n = 0 it is FALSE: P = [[]] is 1-by-0,
+;;; u = [] is in MAT(0, 1, VEC md), MATACT reads the column count off
+;;; SIZE([]) = [0, 0], so MATACT(md, P, u) is 1-by-0 and its (1,1) entry is
+;;; NTH(1, []) -- while the right side is the empty sum VZERO(md), for every
+;;; module md.  The guard is free at the citers that hold an index j in
+;;; INTERVAL(1, n).
 
 ;;; The summand of matact-entry is a function on the index interval -- the
 ;;; hypothesis every finsum lemma (finsum-type, finsum-single-support,
 ;;; finsum-congruence, ...) wants.  One PSS covers every use, as
 ;;; matprod-summand-type does for MATMUL.
-(support 'matact-summand-type
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL m (FORALL n (FORALL q (FORALL P (FORALL u (FORALL i (FORALL c
-       (IMPLIES (IN P (MAT m n (CARR (SCAL md))))
-       (IMPLIES (IN u (MAT n q (VEC md)))
-       (IMPLIES (IN i (INTERVAL 1 m))
-       (IMPLIES (IN c (INTERVAL 1 q))
-         (IN (VNB-LAMBDA j (INTERVAL 1 n) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
-             (FUN (INTERVAL 1 n) (CARR (MODULE-VECTOR-AG md))))))))))))))))))
-(warrant! 'matact-summand-type 'well-known
-  "j |-> P_{ij} . u_{jc} is a function [1,n] -> VEC md for P:MAT(m,n,CARR(SCAL md))
-   and u:MAT(n,q,VEC md): entry-in-carrier types both arguments, module-act-type
-   closes the action, and mvag-carr identifies CARR(MODULE-VECTOR-AG md) = VEC md.")
 
 ;;; The same summand is a function on any SUB-interval [1,k] with k <= n.  When a
 ;;; FINSUM over [1,succ n] is back-peeled (finsum-interval-peel), the leftover
@@ -138,20 +128,6 @@
 ;;; [1,n]; finsum-congruence against a length-n summand then needs this shorter
 ;;; typing.  matact-summand-type is the k = n special case; every peel wants the
 ;;; k < n one.
-(support 'matact-summand-type-le
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL m (FORALL n (FORALL q (FORALL P (FORALL u (FORALL i (FORALL c (FORALL k
-       (IMPLIES (IN P (MAT m n (CARR (SCAL md))))
-       (IMPLIES (IN u (MAT n q (VEC md)))
-       (IMPLIES (IN i (INTERVAL 1 m))
-       (IMPLIES (IN c (INTERVAL 1 q))
-       (IMPLIES (<= k n)
-         (IN (VNB-LAMBDA j (INTERVAL 1 k) ((ACT md) (ENTRY P i j) (ENTRY u j c)))
-             (FUN (INTERVAL 1 k) (CARR (MODULE-VECTOR-AG md))))))))))))))))))))
-(warrant! 'matact-summand-type-le 'well-known
-  "j |-> P_{ij} . u_{jc} is a function [1,k] -> VEC md for k <= n: matact-summand-
-   type's argument, restricted -- entry-in-carrier still types both arguments for
-   j in [1,k] subset [1,n] (interval [1,k] subset [1,n] since k <= n).")
 
 ;;; -----------------------------------------------------------------------
 ;;; The action passes through a FINSUM, on either side.
@@ -170,61 +146,33 @@
 ;;; the SCALAR ring's additive group and the right sum is in the vector group:
 ;;; the map  r |-> r . x  carries one to the other.
 
-(support 'finsum-act-distrib-gen
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL r (IMPLIES (IN r (CARR (SCAL md)))
-     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (CARR (MODULE-VECTOR-AG md))))
-       (= ((ACT md) r (FINSUM (MODULE-VECTOR-AG md) f S))
-          (FINSUM (MODULE-VECTOR-AG md)
-                  (VNB-LAMBDA z S ((ACT md) r (f z)))
-                  S))))))))))))
-(warrant! 'finsum-act-distrib-gen 'well-known
-  "r.(SUM_z f z) = SUM_z (r . f z) in a module: x |-> r.x is an endomorphism of
-   the vector abelian group.  Induction on |S| via finsum-insert:
-   r.(SUM_X f + f z0) = r.SUM_X f + r.(f z0) by module-act-distrib-vec, and the
-   empty case is r.0 = 0, itself r.(0+0) = r.0 + r.0 killed by
-   abelian-group-idempotent-is-id on the vector group (the module-zero-act route).")
 
-(support 'finsum-act-collect-gen
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL x (IMPLIES (IN x (VEC md))
-     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL c (IMPLIES (IN c (FUN S (CARR (SCAL md))))
-       (= ((ACT md) (FINSUM (RING-ADDITIVE-AG (SCAL md)) c S) x)
-          (FINSUM (MODULE-VECTOR-AG md)
-                  (VNB-LAMBDA z S ((ACT md) (c z) x))
-                  S))))))))))))
-(warrant! 'finsum-act-collect-gen 'well-known
-  "(SUM_z c z).x = SUM_z ((c z).x) in a module: r |-> r.x is a homomorphism from
-   the scalar ring's additive group to the vector abelian group.  Induction on
-   |S| via finsum-insert: (SUM_X c + c z0).x = (SUM_X c).x + (c z0).x by
-   module-act-distrib-scalar, and the empty case is 0.x = 0 (module-zero-act).")
 
 ;;; -----------------------------------------------------------------------
 ;;; Generating and relation-free sequences (book, start of sec 8.2).
 ;;;
 ;;; A length-n sequence of module elements is u in MAT(n,1,VEC md).  A row of
-;;; coefficients is c in MAT(1,n,CARR(SCAL md)), and the linear combination
-;;; c . u is the single entry of the 1-by-1 product MATACT(md,c,u):
+;;; coefficients is c in MAT(1,n,CARR(SCAL md)), and the linear combination is
 ;;;
-;;;     c . u  =  (ENTRY (MATACT md c u) 1 1)  =  sum_{j=1}^{n} c_{1j} . u_{j1}.
+;;;     c . u  =  LINCOMB(md, n, c, u)  =  sum_{j=1}^{n} c_{1j} . u_{j1},
 ;;;
-;;; So both predicates are stated purely in terms of MATACT, and Lemma 3.40
-;;; (invertible matrices preserve them) is a direct consequence of matact-assoc.
+;;; which for n >= 1 is the single entry of the 1-by-1 product MATACT(md,c,u)
+;;; (`matact-lincomb'), so Lemma 3.40 (invertible matrices preserve both
+;;; predicates) still comes from matact-assoc.  Until 2026-09-16 the predicates
+;;; were stated with that entry itself, which is wrong at n = 0 (see LINCOMB).
 ;;;
 ;;; GENERATES: every vector is a coefficient combination of u.  (The book's
 ;;; "u generates E".)
 (def-predicate 'GENERATES '(md n u)
   '(FORALL x_ (IMPLIES (IN x_ (VEC md))
      (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
-                      (= x_ (ENTRY (MATACT md c_ u) 1 1)))))))
+                      (= x_ (LINCOMB md n c_ u)))))))
 
 ;;; REL-FREE: the only coefficient row annihilating u is the zero row.  (The
 ;;; book's "relation free", eq. 81.  Over a field this is linear independence.)
 (def-predicate 'REL-FREE '(md n u)
   '(FORALL c_ (IMPLIES (IN c_ (MAT 1 n (CARR (SCAL md))))
-     (IMPLIES (= (ENTRY (MATACT md c_ u) 1 1) (VZERO md))
+     (IMPLIES (= (LINCOMB md n c_ u) (VZERO md))
        (FORALL j_ (IMPLIES (IN j_ (INTERVAL 1 n))
          (= (ENTRY c_ 1 j_) (ZERO (SCAL md)))))))))
 
@@ -235,22 +183,12 @@
 ;;; construction: GENERATES gives, for each i in [1,m] separately, SOME
 ;;; coefficient row for v_{i1}; one then picks a row for every i at once and
 ;;; tabulates.  It is the only choice step in this part of the development.
-(support 'generates-coeff-matrix
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL n (FORALL m (FORALL u (FORALL v
-       (IMPLIES (IN u (MAT n 1 (VEC md)))
-       (IMPLIES (IN v (MAT m 1 (VEC md)))
-       (IMPLIES (GENERATES md n u)
-         (FORSOME cm (AND (IN cm (MAT m n (CARR (SCAL md))))
-                          (= v (MATACT md cm u))))))))))))))
-(warrant! 'generates-coeff-matrix 'well-known
-  "If u generates the module and v is any length-m sequence, then v = cm . u for
-   some m-by-n coefficient matrix cm.  Route: GENERATES applied to the vector
-   v_{i1} yields a coefficient row r(i) in MAT(1,n,CARR(SCAL md)) for each i in
-   [1,m]; CHOICE turns i |-> r(i) into a function on [1,m]; cm = MATOF(m,n,
-   lam i j. ENTRY (r i) 1 j) tabulates it (matof-in-mat + entry-in-carrier), and
-   v = MATACT(md,cm,u) by matrix-entry-extensionality, since both sides have
-   (i,1) entry sum_j (r i)_{1j} . u_{j1} (matact-entry twice).")
+;;;
+;;; GUARDED 2026-09-16: n = 0 forces m = 0.  With n = 0 and m >= 1, cm is
+;;; m-by-0, u = [], and MATACT(md, cm, u) is m-by-0 (the column count is read
+;;; off SIZE([]) = [0, 0]), never the m-by-1 v.  A zero middle dimension forces
+;;; an empty product; this is that condition, with the outer column count 1.
+;;; generates-coeff-matrix RETIRED 2026-09-19 (rake batch 6): proven modulo 0 in theorem-library/rake-generates-coeff.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; SPANS(md, n, u, sm): the length-n sequence u generates the SUBMODULE sm.
@@ -264,7 +202,7 @@
   '(AND (FORALL j_ (IMPLIES (IN j_ (INTERVAL 1 n)) (IN (ENTRY u j_ 1) sm)))
         (FORALL x_ (IMPLIES (IN x_ sm)
           (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
-                           (= x_ (ENTRY (MATACT md c_ u) 1 1))))))))
+                           (= x_ (LINCOMB md n c_ u))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; SPAN(md, n, u) -- the set of coefficient combinations of u, as a SEP set.
@@ -273,9 +211,9 @@
 ;;; spans-submodule-fg has to CONSTRUCT the submodule spanned by a truncated
 ;;; sequence u_1..u_p, so it needs the set itself.  Everything about it is a
 ;;; theorem, not an axiom:
-;;;   span-is-submodule   IS-SUBMODULE(md, SPAN(md,n,u))     [matact-row-add,
-;;;                                                           matact-row-scale]
-;;;   spans-span          SPANS(md, n, u, SPAN(md,n,u))      [matact-unitrow]
+;;;   span-is-submodule   IS-SUBMODULE(md, SPAN(md,n,u))     [lincomb-row-add,
+;;;                                                           lincomb-row-scale]
+;;;   spans-span          SPANS(md, n, u, SPAN(md,n,u))      [lincomb-unitrow]
 ;;; both in theorem-library/span-bricks-proof.scm.
 ;;;
 ;;; The bound variable is x_ and the witness c_, per the file's inner-binder
@@ -283,7 +221,7 @@
 (def-functoid 'SPAN '(md n u)
   '(SEP x_ (VEC md)
      (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
-                      (= x_ (ENTRY (MATACT md c_ u) 1 1))))))
+                      (= x_ (LINCOMB md n c_ u))))))
 
 ;;; The membership IFF.  `def-functoid' installs only a rewrite macete, never a
 ;;; theorem, so `mac' can unfold SPAN in a GOAL but `mac-h' -- which looks the
@@ -299,7 +237,7 @@
        (IFF (IN x_ (SPAN md n u))
             (AND (IN x_ (VEC md))
                  (FORSOME c_ (AND (IN c_ (MAT 1 n (CARR (SCAL md))))
-                                  (= x_ (ENTRY (MATACT md c_ u) 1 1))))))))))))
+                                  (= x_ (LINCOMB md n c_ u))))))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; LASTCOEFF-SET(md, p, u, sm) -- the set of possible LAST coefficients of an
@@ -314,7 +252,7 @@
   '(SEP r_ (CARR (SCAL md))
      (FORSOME c_ (AND (IN c_ (MAT 1 (succ p) (CARR (SCAL md))))
                  (AND (= (ENTRY c_ 1 (succ p)) r_)
-                      (IN (ENTRY (MATACT md c_ u) 1 1) sm))))))
+                      (IN (LINCOMB md (succ p) c_ u) sm))))))
 
 (fluid-let ((*current-provenance* 'definitional))
   (theory-add-axiom! *current-theory* 'lastcoeff-set-membership
@@ -323,22 +261,11 @@
             (AND (IN r_ (CARR (SCAL md)))
                  (FORSOME c_ (AND (IN c_ (MAT 1 (succ p) (CARR (SCAL md))))
                              (AND (= (ENTRY c_ 1 (succ p)) r_)
-                                  (IN (ENTRY (MATACT md c_ u) 1 1) sm)))))))))))))
+                                  (IN (LINCOMB md (succ p) c_ u) sm)))))))))))))
 
 ;;; A submodule is closed under finite sums of its elements.  IS-SUBMODULE gives
 ;;; closure under the binary VADD and contains VZERO; FINSUM is built from those by
 ;;; induction on |S| (finsum-empty for the base, finsum-insert for the step).
-(support 'submodule-finsum-closed
-  '(FORALL md (IMPLIES (IS-MODULE md)
-     (FORALL sm (IMPLIES (IS-SUBMODULE md sm)
-     (FORALL S (IMPLIES (IN S SET) (IMPLIES (IN (CARD S) NN)
-     (FORALL f (IMPLIES (IN f (FUN S (CARR (MODULE-VECTOR-AG md))))
-       (IMPLIES (FORALL z (IMPLIES (IN z S) (IN (f z) sm)))
-         (IN (FINSUM (MODULE-VECTOR-AG md) f S) sm))))))))))))
-(warrant! 'submodule-finsum-closed 'well-known
-  "A submodule contains every finite sum of its elements: induction on |S| via
-   finsum-insert (the peeled term and the rest are both in sm, and IS-SUBMODULE is
-   closed under VADD); the base case is finsum-empty and VZERO in sm.")
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- the ENGLISH of these predicates, declared beside their
@@ -352,3 +279,5 @@
            'english "the $2 vectors $3 are linearly independent in $1")
 (notation! 'SPANS 'kind 'predicate 'arity 4
            'english "the $2 vectors $3 span $4 in $1")
+
+;;; matact-summand-type-le MOVED 2026-09-15 (wave 7) to theorem-library/matact-summand-type-le-proof.scm as matact-summand-type-le-guarded: the unguarded form is FALSE (its whole content is [1,k] subset [1,n], which needs k in NN -- k <= n is the RR order and types nothing), so it now carries (IN k NN).  User's decision.

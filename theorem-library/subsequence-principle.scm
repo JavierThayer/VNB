@@ -77,7 +77,8 @@
 ;;; ----------------------------------------------------------------------
 ;;; WHAT THIS FILE ADDS
 ;;;
-;;;   fun-codomain-subset      PROVEN here (modulo 0), from fun-codomain-iff
+;;;   fun-codomain-subset      PROVEN here (modulo 0) until 2026-09-20, from
+;;;                            fun-codomain-iff
 ;;;                            + subset-def.  Widening the codomain of a
 ;;;                            function along a subset inclusion had no
 ;;;                            statement in the tree; it is needed the moment
@@ -98,41 +99,19 @@
 ;;; driver-kit (have!, use-em, the dk- kit).  Loads beside
 ;;; subseq-convergence-proof.
 ;;; ======================================================================
+;;; RETIRED 2026-09-14 (proven): nn-finite-subset-bounded -- theorem-library/nn-finite-subset-bounded.scm (finite-set-induction)
 
 ;;; -----------------------------------------------------------------------
-;;; fun-codomain-subset -- widen the codomain along a subset inclusion.
+;;; fun-codomain-subset -- REMOVED 2026-09-20 (batch 11, proven-duplicate-audit).
+;;; It proved, here,
 ;;;
 ;;;     f in FUN(A,B)  and  B subset C   =>   f in FUN(A,C)
 ;;;
-;;; Curried, so `fact' detaches both hypotheses in one call.  The proof is
-;;; fun-codomain-iff in both directions with subset-def in between: the
-;;; domain conjunct transfers verbatim, and the value conjunct is one
-;;; instantiation of each.
-(sp (make-wff '(FORALL g_ (FORALL a_ (FORALL b_ (FORALL c_
-   (IMPLIES (IN g_ (FUN a_ b_))
-     (IMPLIES (SUBSET b_ c_)
-       (IN g_ (FUN a_ c_))))))))))
-(quietly (lambda ()
-  (dk-peel-to! 'IN)
-  (mac 'fun-codomain-iff)
-  (mac-h 'fun-codomain-iff '(IN g_ (FUN a_ b_)))
-  (dk-split! (any-pred (dk-head? 'AND) (dk-asms)))
-  (let* ((bs  (dk-opened (lambda () (di))))
-         (dom (any-pred (lambda (n) (eq? (car (dk-goal-of n)) 'IN)) bs))
-         (val (any-pred (lambda (n) (not (eq? n dom))) bs)))
-    (dk-focus! dom) (ass)
-    (dk-focus! val) (di)
-    (let ((x (cadr (cadr (dk-goal)))))
-      (inst+ (any-pred (dk-head? 'FORALL) (dk-asms)) x)
-      (mac-h 'subset-def '(SUBSET b_ c_))
-      (inst+ (any-pred (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)
-                                        (eq? (car (caddr a)) 'IMPLIES)
-                                        (equal? (caddr (cadr (caddr a))) 'b_)))
-                       (dk-asms))
-             (list 'g_ x))
-      (ass)))))
-(qed 'fun-codomain-subset)
-(topic! 'fun-codomain-subset 'plumbing)
+;;; which is alpha-equal to `fun-codomain-superset'
+;;; (theorem-library/rake-fun-codomain.scm:96), a file that loads well before
+;;; this one and before all four call sites.  The citation below, and the three
+;;; in rake-offbill-combinatorial / rake-block-tower /
+;;; rake-bolzano-weierstrass-2, name that one.
 
 ;;; -----------------------------------------------------------------------
 ;;; nn-finite-subset-bounded -- a FINITE subset of NN is bounded.
@@ -147,25 +126,6 @@
 ;;; (theorem-library/diagonalization-lemmas.scm), which says an INFINITE
 ;;; subset of NN is unbounded and is itself asserted `well-known'.  The tree
 ;;; had one direction and not the other.
-(support 'nn-finite-subset-bounded
-  '(FORALL T
-     (IMPLIES (SUBSET T NN)
-       (IMPLIES (IN (CARD T) NN)
-         (FORSOME N (AND (IN N NN)
-                         (FORALL y (IMPLIES (IN y NN)
-                                     (IMPLIES (<= N y) (NOT (IN y T)))))))))))
-(warrant! 'nn-finite-subset-bounded 'well-known
-  "A finite subset T of NN is bounded.  By finite-set-induction (cardinality.scm,
-   primitive) on T: the empty set is bounded by N = 0, and if T is bounded by N
-   then T u {x} is bounded by max(succ x, N) (nn-pair-upper-bound, order-lemmas).
-   Hence some N in NN has y < N for every y in T, so no y >= N is in T.  The
-   contrapositive of `inf-subset-nn-unbounded' (diagonalization-lemmas.scm),
-   which asserts the same equivalence from the other side and is warranted the
-   same way.  Not mechanised: the induction runs over a COMP class
-   { T | T subset NN => bounded } and wants the comprehension-membership
-   bookkeeping, sethood of T, and the max-of-two-naturals brick threaded through
-   -- routine, and no library payoff beyond this one citation.")
-(topic! 'nn-finite-subset-bounded 'combinatorial)
 
 ;;; -----------------------------------------------------------------------
 ;;; The theorem.
@@ -243,7 +203,7 @@
          (landed (dk-landed (lambda () (ai ex))))
          (two    (dk-split! (any-pred (dk-head? 'AND) landed)))
          (enum   (cadr (any-pred (dk-head? 'IN) two))))     ; g : NN -> S
-    (dk-fact! 'fun-codomain-subset enum 'NN ssp-set 'NN)
+    (dk-fact! 'fun-codomain-superset enum 'NN ssp-set 'NN)
     (have! `(STRICTLY-MONO-NN ,enum)
            (lambda () (mac 'STRICTLY-MONO-NN) (from-context!)))
     ;; the hypothesis at g: a further subsequence that converges

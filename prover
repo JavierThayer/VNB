@@ -6,6 +6,8 @@
 #   prover file.scm     -- load and run a proof script, then exit
 #   prover -i file.scm  -- load a proof script, then drop into REPL
 #   prover --build-band -- load the library once and save a heap image
+#   prover --extend-band [--dry-run] [--retire NAME ...]
+#                       -- update that image with what the tree changed (see below)
 #   prover -b file.scm  -- run a script against that image (SECONDS, not minutes)
 #   prover -b           -- interactive REPL from that image
 
@@ -27,6 +29,16 @@ else
     done
 fi
 PROVER_DIR="$(cd "$(dirname "$VNB_SELF")" && pwd)"
+# The tree root, for the SCHEME side.  `*prover-dir*' is computed in load.scm
+# from `current-load-pathname' and then FROZEN INTO THE BAND, so an image built
+# on one machine carries that machine's path everywhere it goes -- and the band
+# travels (the user's nquick-load.sh rsyncs it deliberately, for the 0.1 s
+# start).  On the receiving machine every reference writer then aimed at a
+# directory that does not exist there, silently.  load.scm re-reads this on
+# restore.  Exported, so an Emacs session started from here passes it down to
+# the prover it spawns.
+export VNB_PROVER_DIR="$PROVER_DIR/"
+
 LOAD="$PROVER_DIR/load.scm"
 BAND="$PROVER_DIR/vnb.band"
 
@@ -36,6 +48,42 @@ BAND="$PROVER_DIR/vnb.band"
 # 50000 OOMs once enough proven-theorems are in flight; 120000 (~1 GB)
 # leaves headroom for the current library.  Bump again if the load aborts.
 HEAP=120000
+
+# BAND heap (2026-09-17).  A band start used to take MIT's DEFAULT heap, about
+# 135 MB, and the library alone nearly fills it, so a probe spent 54-72% of its
+# wall time in the stop-the-world copying GC (a full copy every 85-240 ms;
+# measured with perf on the workers, 2026-09-15).  Every `--band' start below
+# now passes --heap too.  Blocks are 1024 words = 8 KB.  Measured 2026-09-17 on
+# a t3.medium, one 10-theorem driver (product-is-metric-space, ~3700 log lines):
+#
+#     heap      wall    GC share   GCs   peak RSS
+#     default   64.1 s    60%      143     437 MB
+#     60000     37.1 s    28%       38     779 MB
+#     120000    31.2 s    17%       19    1248 MB
+#
+# 120000 is the default: a t3.medium has two vCPUs, and two probes at 120000
+# (2.5 GB peak, what `vnb-slot' sizes a probe slot for) beat three at 60000.
+# On a box under 3 GB (the t3.small primary) the default drops to 40000.
+# VNB_BAND_HEAP overrides: a block count, or `none' for the old behaviour (the
+# A/B control).  The lines that measured this are in ~/mailbox/metrics/runs.jsonl.
+BAND_HEAP=${VNB_BAND_HEAP:-auto}
+if [ "$BAND_HEAP" = auto ]; then
+  mb=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 4000)
+  if [ "$mb" -ge 3000 ]; then BAND_HEAP=120000; else BAND_HEAP=40000; fi
+fi
+if [ "$BAND_HEAP" = none ]; then BAND_HEAP_OPT=""; else BAND_HEAP_OPT="--heap $BAND_HEAP"; fi
+
+# METRICS (2026-09-17).  With VNB_METRICS set, a band batch run turns on MIT's
+# per-GC notification (one `;GC #n ... took: ...' line per collection, which
+# `vnb-metrics-run' sums) and ends by printing one `;;VNB-METRICS' line with the
+# library size and the CPU time.  Nothing else changes; the line is parsed by
+# vnb-metrics-run on the worker and lands in ~/mailbox/metrics/runs.jsonl.
+METRICS_EVAL="(begin (let ((e (the-environment))) (display \";;VNB-METRICS heap=$BAND_HEAP theorems=\") (display (if (environment-bound? e (quote *theorem-table*)) (length (hash-table-keys *theorem-table*)) -1)) (display \" inert=\") (display (if (environment-bound? e (quote *vnb-inert-count*)) *vnb-inert-count* -1)) (display \" cpu_s=\") (display (runtime)) (newline)) (exit))"
+if [ -n "${VNB_METRICS:-}" ]; then
+  METRICS_PRE=(--eval '(set-gc-notification! #t)'); METRICS_POST="$METRICS_EVAL"
+else
+  METRICS_PRE=(); METRICS_POST="(exit)"
+fi
 
 # THE BAND (added 2026-08-01).  `disk-save' writes the whole heap -- library,
 # tactics, theorem table and all -- to a file MIT can restart from with --band.
@@ -70,18 +118,218 @@ HEAP=120000
 # 2026-08-23: drive scripts handed to the user live there (scratchpad/ is
 # excluded from his rsync, so he cannot see files there), and each one dropped
 # in was marking the band stale for exactly the same non-reason.
-band_newer_scm() {
+# The same argument excludes files that are NOT IN load.scm even though they sit
+# at the tree root, and on 2026-09-12 the omission cost the user a 20+ minute
+# wait and a demo: `test-suite.scm' was edited after the band was built, the
+# launcher called the band stale, and `--band-if-fresh' did a full library load
+# for a file THE BAND CANNOT CONTAIN -- the suite is a separate program, not
+# something load.scm loads (it is even on *vnb-no-compile-files*).
+#
+# The right question is not "is any .scm newer" but "is any .scm THE BAND
+# CONTAINS newer".  The eight below are the root files load.scm does not name:
+# the suite, its negative twin, and the six instruments (harvest, replay-audit,
+# ra-diverge, kernel-map-static, kernel-map-trace, mint-attribution,
+# page-audit-support).  Editing any of them could not make the band wrong, and
+# each would otherwise have cost the same full reload for the same non-reason.
+#
+# Excluded by FULL PATH, not by bare -name: a future theorem-library/harvest.scm
+# is a library file and must still count.
+band_newer_scm() { band_newer_scm_all -quit; }
+# The same test, every file (no -quit) -- the stale-band notice counts them.
+band_newer_scm_all() {
   find "$PROVER_DIR" -name '*.scm' \
        -not -path '*/scratchpad/*' -not -path '*/scratch/*' \
        -not -path '*/prove-scripts/*' \
-       -newer "$BAND" -print -quit 2>/dev/null
+       -not -path "$PROVER_DIR/test-suite.scm" \
+       -not -path "$PROVER_DIR/test-suite-negative.scm" \
+       -not -path "$PROVER_DIR/harvest.scm" \
+       -not -path "$PROVER_DIR/replay-audit.scm" \
+       -not -path "$PROVER_DIR/ra-diverge.scm" \
+       -not -path "$PROVER_DIR/kernel-map-static.scm" \
+       -not -path "$PROVER_DIR/kernel-map-trace.scm" \
+       -not -path "$PROVER_DIR/mint-attribution.scm" \
+       -not -path "$PROVER_DIR/page-audit-support.scm" \
+       -newer "$BAND" -print "$@" 2>/dev/null
 }
 
 case "$1" in
   --build-band)
-    echo "Building $BAND (one full library load, ~10 min) ..."
-    exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" \
-         --eval "(begin (disk-save \"$BAND\") (exit))"
+    # THE EXAM (2026-09-24, certificates.scm): a band build runs EVERY proof and
+    # rewrites every certificate -- VNB_CERTIFIED=off unless the caller says
+    # otherwise (VNB_CERTIFIED=strict ./prover --build-band is the coverage gate:
+    # nothing proved, exit 4 when a theorem has no valid certificate).
+    export VNB_CERTIFIED="${VNB_CERTIFIED:-off}"
+    # BUILD THE BAND: one full library load (load.scm), saved as a heap image
+    # mit-scheme can --band restart from.  Routed through vnb-metrics-run
+    # (2026-09-24, job `build-band'), the same way --extend-band is below, so
+    # the row -- theorems, cpu_s, gc_s, and the run-load-end! block times
+    # (reference_s, gates_s, audit_s, read off *vnb-load-end-times*,
+    # load.scm) -- reaches ~/probes/runs.jsonl on the WORKER the way
+    # --extend-band's does, for `vnb-band --wait' to carry to the primary's
+    # ledger.  Before this the load ran under a bare `mit-scheme --eval
+    # disk-save', with no vnb-metrics-run at all: the `job=build-band' rows
+    # already in the ledger were from an ad hoc hand-typed command (CLAUDE.md,
+    # "Running it"), never from this branch.
+    #
+    # Same atomic-rename discipline as --extend-band: written to vnb.band.new,
+    # renamed over vnb.band only when the Scheme side exited 0 and said so.
+    if [ -f "$BAND" ]; then
+      BB_NEED=$(( $(stat -c %s "$BAND") / 1024 * 11 / 10 ))
+      BB_AVAIL=$(df -Pk "$(dirname "$BAND")" | awk 'NR==2 {print $4}')
+      if [ -n "$BB_AVAIL" ] && [ "$BB_AVAIL" -lt "$BB_NEED" ]; then
+        echo "prover --build-band: ${BB_AVAIL} KB free, ${BB_NEED} KB needed for $BAND.new -- refused." >&2
+        exit 1
+      fi
+    fi
+    # 200000 for a BUILD (2026-09-24): a cold load at 120000 ran at 36% GC (4607 s), the
+    # 2026-09-23 loads at 200000 at 18%; the box runs the load alone (peak RSS ~2 GB).
+    BB_HEAP=${VNB_BUILD_HEAP:-200000}
+    BB_NEW="$BAND.new"
+    rm -f "$BB_NEW"
+    trap 'rm -f "$BB_NEW"' EXIT INT TERM
+    BB_LOG=${VNB_BUILD_LOG:-$HOME/probes/build-band-$(date -u +%Y%m%dT%H%M%SZ).log}
+    mkdir -p "$(dirname "$BB_LOG")"
+    # GC notification OFF before the save (it would otherwise be saved ON in
+    # the band); the saving process then reports and exits 0.  A restored band
+    # does not resume here (the same form as --extend-band's).
+    BB_OK="(begin (set-gc-notification! #f) (disk-save \"$BB_NEW\") (display \";;VNB-BUILD-SAVED\") (newline) (display \";;VNB-METRICS heap=$BB_HEAP theorems=\") (display (length (hash-table-keys *theorem-table*))) (display \" cpu_s=\") (display (runtime)) (for-each (lambda (kv) (display \" \") (display (car kv)) (display \"=\") (display (cdr kv))) *vnb-load-end-times*) (newline) (exit 0))"
+    BB_CMD=(mit-scheme --quiet --heap "$BB_HEAP"
+            --eval '(set-gc-notification! #t)'
+            --load "$LOAD"
+            --eval "$BB_OK")
+    echo "prover --build-band: log $BB_LOG"
+    "$PROVER_DIR/vnb-metrics-run" --host "${VNB_HOST:-$(hostname)}" --job build-band --name load.scm \
+        --heap "$BB_HEAP" --log "$BB_LOG" -- "${BB_CMD[@]}" > "$BB_LOG.runs"
+    BB_RC=$?
+    BB_ROW=$(grep '^;;RUNS ' "$BB_LOG.runs" | tail -1); rm -f "$BB_LOG.runs"
+    if [ "$BB_RC" = 0 ] && [ -s "$BB_NEW" ] && grep -q '^;;VNB-BUILD-SAVED' "$BB_LOG"; then
+      mv -f "$BB_NEW" "$BAND"; BB_OUT=ok
+    else
+      rm -f "$BB_NEW"; BB_OUT=failed; [ "$BB_RC" = 0 ] && BB_RC=1
+    fi
+    trap - EXIT INT TERM
+    BB_ROW="${BB_ROW#;;RUNS }"
+    python3 - "$BB_OUT" "$HOME/probes/runs.jsonl" "$BB_ROW" <<'PYEOF'
+import json, sys
+outcome, out, row = sys.argv[1:4]
+try: r = json.loads(row)
+except Exception: r = {'job': 'build-band', 'outcome': 'error'}
+r['band_replaced'] = (outcome == 'ok')
+if outcome != 'ok' and r.get('outcome') == 'ok': r['outcome'] = 'error'
+line = json.dumps(r, separators=(',', ':'))
+print(';;RUNS ' + line)
+with open(out, 'a') as f: f.write(line + '\n')
+PYEOF
+    if [ "$BB_OUT" = ok ]; then
+      echo "prover --build-band: $BAND replaced."
+    else
+      echo "prover --build-band: FAILED (status $BB_RC) -- $BAND untouched, $BB_NEW removed; see $BB_LOG" >&2
+      grep -E '^;.*error|;Unbound|qed failed' "$BB_LOG" | head -20 >&2
+    fi
+    exit "$BB_RC"
+    ;;
+  --extend-band)
+    # EXTEND THE BAND (2026-09-23; docs/extend-band-2026-09-23.md).  Restore the
+    # band, let `vnb-extend-band!' (extend-band.scm) retract and reload what the
+    # tree changed since the band was built, then save.  The image is written to
+    # vnb.band.new and renamed over vnb.band ONLY when the Scheme side exited 0
+    # and said so; on any other exit vnb.band.new is deleted, so a retry never
+    # renames a truncated file.  A refused plan (a change outside
+    # theorem-library/, a band that is not a strict build, ...) exits non-zero
+    # and leaves vnb.band untouched: run --build-band.
+    #
+    #   prover --extend-band [--dry-run] [--retire NAME ...]
+    #
+    # --dry-run prints the plan (reload set, retractions, refusals) and exits
+    # without loading or saving (status 3 when the plan is refused).  --retire
+    # names theorems the batch removed from the tree; the plan checks that their
+    # files changed and pulls in the files of their citers.
+    #
+    # The real run goes through vnb-metrics-run (job `extend-band'): the log is
+    # $VNB_EXTEND_LOG (default ~/probes/extend-band-<UTC stamp>.log), and the
+    # ledger row -- vnb-metrics-run's, with the reload-set size, the retraction
+    # count, the duplicate installs and the order violations merged in from the
+    # `;;VNB-EXTEND' line -- is printed as `;;RUNS {...}' and appended to
+    # ~/probes/runs.jsonl, where vnb-suite and vnb-probe keep theirs.
+    shift
+    XB_DRY=0; XB_RETIRE=""
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --dry-run) XB_DRY=1; shift ;;
+        --retire) shift
+                  while [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; do XB_RETIRE="$XB_RETIRE $1"; shift; done ;;
+        *) echo "prover --extend-band: unknown argument $1" >&2; exit 2 ;;
+      esac
+    done
+    if [ ! -f "$BAND" ]; then
+      echo "prover --extend-band: no band at $BAND -- run './prover --build-band' first." >&2
+      exit 1
+    fi
+    XB_EXPR="(quote ($XB_RETIRE))"
+    XB_HEAP=${VNB_EXTEND_HEAP:-$HEAP}
+    if [ "$XB_DRY" = 1 ]; then
+      exec mit-scheme --quiet --heap "$XB_HEAP" --band "$BAND" \
+           --eval "(let ((p (vnb-extend-band! $XB_EXPR #t))) (exit (if (xb-plan-refused? p) 3 0)))" < /dev/null
+    fi
+    XB_NEW="$BAND.new"
+    rm -f "$XB_NEW"
+    # Room for a second band beside the first (plus 10%), checked once.
+    XB_NEED=$(( $(stat -c %s "$BAND") / 1024 * 11 / 10 ))
+    XB_AVAIL=$(df -Pk "$(dirname "$BAND")" | awk 'NR==2 {print $4}')
+    if [ -n "$XB_AVAIL" ] && [ "$XB_AVAIL" -lt "$XB_NEED" ]; then
+      echo "prover --extend-band: ${XB_AVAIL} KB free, ${XB_NEED} KB needed for $XB_NEW -- refused." >&2
+      exit 1
+    fi
+    trap 'rm -f "$XB_NEW"' EXIT INT TERM
+    XB_LOG=${VNB_EXTEND_LOG:-$HOME/probes/extend-band-$(date -u +%Y%m%dT%H%M%SZ).log}
+    mkdir -p "$(dirname "$XB_LOG")"
+    # GC notification OFF before the save (it would otherwise be saved ON in the
+    # band); the saving process then reports and exits 0.  A restored band does
+    # not resume here (the same form as --build-band's).  The block times
+    # (reference_s, gates_s, audit_s, ...) come off *vnb-load-end-times*
+    # (load.scm), which vnb-extend-band! filled by calling the same
+    # run-load-end! a cold load runs; vnb-metrics-run's scan() picks up every
+    # key=value pair on a `;;VNB-METRICS' line generically (2026-09-24).
+    XB_OK="(begin (set-gc-notification! #f) (disk-save \"$XB_NEW\") (display \";;VNB-EXTEND-SAVED\") (newline) (display \";;VNB-METRICS heap=$XB_HEAP theorems=\") (display (length (hash-table-keys *theorem-table*))) (display \" cpu_s=\") (display (runtime)) (for-each (lambda (kv) (display \" \") (display (car kv)) (display \"=\") (display (cdr kv))) *vnb-load-end-times*) (newline) (exit 0))"
+    XB_CMD=(mit-scheme --quiet --heap "$XB_HEAP" --band "$BAND"
+            --eval '(set-gc-notification! #t)'
+            --eval "(vnb-extend-band! $XB_EXPR #f)"
+            --eval "$XB_OK")
+    echo "prover --extend-band: log $XB_LOG"
+    "$PROVER_DIR/vnb-metrics-run" --host "${VNB_HOST:-$(hostname)}" --job extend-band --name extend-band \
+        --heap "$XB_HEAP" --log "$XB_LOG" -- "${XB_CMD[@]}" > "$XB_LOG.runs"
+    XB_RC=$?
+    XB_ROW=$(grep '^;;RUNS ' "$XB_LOG.runs" | tail -1); rm -f "$XB_LOG.runs"
+    if [ "$XB_RC" = 0 ] && [ -s "$XB_NEW" ] && grep -q '^;;VNB-EXTEND-SAVED' "$XB_LOG"; then
+      mv -f "$XB_NEW" "$BAND"; XB_OUT=ok
+    else
+      rm -f "$XB_NEW"; XB_OUT=failed; [ "$XB_RC" = 0 ] && XB_RC=1
+    fi
+    trap - EXIT INT TERM
+    # The ledger row: vnb-metrics-run's, with the extension's own counts merged.
+    XB_ROW="${XB_ROW#;;RUNS }"
+    python3 - "$XB_LOG" "$XB_OUT" "$HOME/probes/runs.jsonl" "$XB_ROW" <<'PYEOF'
+import json, re, sys
+log, outcome, out, row = sys.argv[1:5]
+try: r = json.loads(row)
+except Exception: r = {'job': 'extend-band', 'outcome': 'error'}
+for line in open(log, errors='replace'):
+    if line.startswith(';;VNB-EXTEND '):
+        for k, v in re.findall(r'(\w+)=(\S+)', line):
+            r[k] = int(v) if re.fullmatch(r'-?\d+', v) else v
+r['band_replaced'] = (outcome == 'ok')
+if outcome != 'ok' and r.get('outcome') == 'ok': r['outcome'] = 'error'
+line = json.dumps(r, separators=(',', ':'))
+print(';;RUNS ' + line)
+with open(out, 'a') as f: f.write(line + '\n')
+PYEOF
+    if [ "$XB_OUT" = ok ]; then
+      echo "prover --extend-band: $BAND replaced."
+    else
+      echo "prover --extend-band: FAILED (status $XB_RC) -- $BAND untouched, $XB_NEW removed; see $XB_LOG" >&2
+      grep -E 'REFUSED|^;.*error|;Unbound|qed failed|ORDER:' "$XB_LOG" | head -20 >&2
+    fi
+    exit "$XB_RC"
     ;;
   --band-if-fresh)
     # What the EMACS launcher wants: the band's speed when it is trustworthy,
@@ -92,8 +340,13 @@ case "$1" in
     # Fresh means: the band exists and NO .scm under the tree is newer than it.
     # Same test as `-b' uses to warn; the difference is the consequence.
     if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
-      exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
+      exec env -u INSIDE_EMACS mit-scheme $BAND_HEAP_OPT --band "$BAND"
     fi
+    # A STALE band, since 2026-09-25: the certified load below (VNB_CERTIFIED=on,
+    # exported by this branch) installs every theorem whose certificate is valid
+    # and re-proves only the rest, ~3 minutes for the whole tree, and saves the
+    # band on the way past.  The opt-in VNB_BAND_STALE_OK of 2026-09-24 (start
+    # from the stale band anyway) was retired the same day it became pointless.
     # SELF-HEALING (2026-08-28).  Band absent or stale: do the full load ONCE
     # and SAVE the image on the way past, so the NEXT start is 0.1 s rather than
     # another full load.
@@ -123,9 +376,9 @@ case "$1" in
       echo "           it does not reflect that edit; './prover --build-band' refreshes it." >&2
     fi
     if [ -z "$2" ]; then
-      exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
+      exec env -u INSIDE_EMACS mit-scheme $BAND_HEAP_OPT --band "$BAND"
     else
-      exec mit-scheme --quiet --band "$BAND" --load "$2" --eval "(exit)"
+      exec mit-scheme --quiet $BAND_HEAP_OPT --band "$BAND" "${METRICS_PRE[@]}" --load "$2" --eval "$METRICS_POST"
     fi
     ;;
   "")
@@ -145,15 +398,17 @@ case "$1" in
     # is stale we do the full load and SAVE on the way past, so the wait is paid
     # once rather than once per start.
     if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
-      exec env -u INSIDE_EMACS mit-scheme --band "$BAND"
+      exec env -u INSIDE_EMACS mit-scheme $BAND_HEAP_OPT --band "$BAND"
     fi
+    # a stale band: a CERTIFIED load (certificates.scm), saved on the way past
+    export VNB_CERTIFIED="${VNB_CERTIFIED:-on}"
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
          --eval "(disk-save \"$BAND\")"
     ;;
   -i)
     # Load script then interactive -- band first, on the same freshness test.
     if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
-      exec env -u INSIDE_EMACS mit-scheme --band "$BAND" --load "$2"
+      exec env -u INSIDE_EMACS mit-scheme $BAND_HEAP_OPT --band "$BAND" --load "$2"
     fi
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" --load "$2"
     ;;
@@ -172,7 +427,7 @@ case "$1" in
       exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" --load "$1" --eval "(exit)"
     fi
     if [ -f "$BAND" ] && [ -z "$(band_newer_scm)" ]; then
-      exec mit-scheme --quiet --band "$BAND" --load "$1" --eval "(exit)"
+      exec mit-scheme --quiet $BAND_HEAP_OPT --band "$BAND" "${METRICS_PRE[@]}" --load "$1" --eval "$METRICS_POST"
     fi
     exec mit-scheme --heap "$HEAP" --quiet --load "$LOAD" --load "$1" --eval "(exit)"
     ;;

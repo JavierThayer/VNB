@@ -151,6 +151,32 @@
                     (list 'NOT (list '= (list 'succ k) 0))))
   (fact 'rr-recip-closed (list 'succ k)))
 
+;; LUTINS instantiation (2026-09-18).  `antiderivable-fn-in-fun' is the theorem
+;; that types an antiderivable map -- but CITING it at a compound term t (here
+;; `(s_ k)', an application of the family variable) instantiates a universal AT
+;; t, which now owes the side sequent `t = t'.  Nothing in the context certifies
+;; an application of an untyped function, and the typing we are after is the one
+;; that would certify it: citing the theorem cannot be the way in.
+;;
+;; The UNFOLD is.  `mac-h' rewrites a hypothesis by the defining IFF and `ai'
+;; splits what it lands -- neither is a forall-elim, so neither owes anything --
+;; and `(IN t (FUN RR RR))' is the second conjunct of Def 4.6 under the
+;; existential.  This is `antiderivable-fn-in-fun's own proof (section 1),
+;; inlined at a term the citation cannot reach.
+(define (sa-ad-in-fun! t a b)
+  (let ((claim (list 'IN t '(FUN RR RR))))
+    (if (not (member claim (dk-asms)))
+        (have! claim
+          (lambda ()
+            (mac-h 'IS-ANTIDERIVABLE (list 'IS-ANTIDERIVABLE t a b))
+            (dk-ai-head! 'FORSOME)
+            (dk-split-all!
+             (dk-landed* (lambda ()
+               (mac-h 'IS-ANTIDERIVATIVE
+                      (car (filter (dk-head? 'IS-ANTIDERIVATIVE) (dk-asms)))))))
+            (ass))))
+    claim))
+
 ;;; =====================================================================
 ;;; 1.  THE PROJECTION.  IS-ANTIDERIVABLE(phi,a,b) types phi.
 ;;; =====================================================================
@@ -387,7 +413,7 @@
       (let ((kk (sa-di-var!)))
         (lam-b)
         (inst+ sa-terms-ad kk)
-        (fact 'antiderivable-fn-in-fun (list s kk) 'a 'b)
+        (sa-ad-in-fun! (list s kk) 'a 'b)
         (fact 'fun-apply-type-c (list s kk) 'RR 'RR v)
         (ass)))))
 
@@ -441,6 +467,8 @@
       (sa-inst-chain! ih (list 's_ phi0 'a 'b))
       ;; (4) the last term is antiderivable, and Prop 4.8 adds it
       (inst+ sa-terms-ad n)
+      ;; LUTINS: antiderivable-add is instantiated AT (s_ n), so type it first.
+      (sa-ad-in-fun! (list 's_ n) 'a 'b)
       (fact 'antiderivable-add phi0 (list 's_ n) 'a 'b)
       ;; (5) ... and the transfer moves that conclusion onto ph_.
       (have! (list 'FORALL 'x_ (list 'IMPLIES '(IN x_ RR)

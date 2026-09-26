@@ -72,6 +72,7 @@
     (lambda . "\\lambda") (mu . "\\mu") (nu . "\\nu") (xi . "\\xi")
     (pi . "\\pi") (rho . "\\rho") (sigma . "\\sigma") (tau . "\\tau")
     (phi . "\\varphi") (psi . "\\psi") (chi . "\\chi") (omega . "\\omega")
+    (ell . "\\ell")
     (omicron . "o")
     (gamma . "\\gamma") (delta . "\\delta")))
 
@@ -99,7 +100,8 @@
 ;;; scopes to the statement and leaves the proof steps' infix arithmetic alone.
 (define *tex-arith-prefix?* #f)
 (define *tex-arith-prefix-head*
-  '((+ . "+") (binplus . "+") (* . "\\cdot") (bintimes . "\\cdot")))
+  '((+ . "+") (binplus . "+") (* . "\\cdot") (bintimes . "\\cdot")
+    (- . "-") (binminus . "-")))
 
 ;;; Per-operator render rules.  Each entry is (op-name args -> string).
 ;;; Defined after expr->tex below via a setter so they can call expr->tex
@@ -126,6 +128,20 @@
           ((char=? (car cs) #\-) #t)
           (else (loop (cdr cs))))))
 
+;;; "lm12" -> ("lm" . "12"); #f unless the name is one or more LETTERS followed by
+;;; one or more DIGITS and nothing else.
+(define (tex--split-trailing-digits name)
+  (let* ((n (string-length name))
+         (k (let loop ((i n))
+              (if (and (> i 0) (char-numeric? (string-ref name (- i 1))))
+                  (loop (- i 1))
+                  i))))
+    (and (> k 0) (< k n)
+         (let check ((i 0))
+           (cond ((= i k) (cons (string-head name k) (string-tail name k)))
+                 ((char-alphabetic? (string-ref name i)) (check (+ i 1)))
+                 (else #f))))))
+
 (define (tex--symbol->string s)
   (let* ((name (symbol->string s))
          (atom (assq s *tex-atom-table*))
@@ -138,6 +154,14 @@
        (tex--operatorname name))
       ;; Single character -> bare math identifier (italic by default).
       ((= (string-length name) 1) name)
+      ;; LETTERS followed by DIGITS -> the letters with the digits as a SUBSCRIPT
+      ;; (2026-09-22, the user: `lm1', `lm2' were set upright as words).  The base
+      ;; is rendered by this same procedure, so `x1' is x_1 and `theta2' is
+      ;; \theta_2.
+      ((tex--split-trailing-digits name)
+       => (lambda (parts)
+            (string-append (tex--symbol->string (string->symbol (car parts)))
+                           "_{" (cdr parts) "}")))
       ;; All lowercase letters + digits -> italic variable identifier.
       ((tex--all-lower-letters? name)
        (string-append "\\mathit{" (tex--escape-ident name) "}"))
@@ -178,6 +202,101 @@
                      (eq? (cadr cnd) var)
                      (list var (caddr cnd) body)))))))
 
+;;; A maximal run of quantifiers of ONE connective, printed as ONE prefix
+;;; (2026-09-23, notes-36 item 1 and the user's follow-up on Prop 1.1):
+;;;   forall a. forall b. forall c. B              -> \forall a, b, c.\; B
+;;;   forall a in X. forall b in Y. B              -> \forall a \in X, b \in Y.\; B
+;;;   forall a in X. forall b in X. B              -> \forall a, b \in X.\; B
+;;;   forall x. forall y. x in R => y in R => B    -> \forall x, y \in R.\; B
+;;; The last line is the shape every `forall-guarded' statement has (binders
+;;; first, the guards as a chain of antecedents), and it reads as the typed
+;;; binder list it means.  A guard is ABSORBED into its binder only when it is
+;;; literally (IN v S) for a still-unguarded binder v of this run and S mentions
+;;; no binder of the run at or after v: the printed binder list scopes left to
+;;; right (CLAUDE.md, "Case folding" 4), so `x in seg(n)' with n bound LATER
+;;; must stay an antecedent.  A predicate guard (IS-RING(r)) is never absorbed.
+;;; Existentials absorb from (AND (IN v S) rest) the same way.  Both printers
+;;; (the one-row expr->tex and the row-splitting tex--quant-step) read the run
+;;; from here, so they cannot disagree.
+(define (tex--quant-kind e)
+  (cond ((tex--typed-forall-parts e)
+         => (lambda (vsb) (list 'forall (car vsb) (cadr vsb) (caddr vsb))))
+        ((tex--typed-exists-parts e)
+         => (lambda (vsb) (list 'exists (car vsb) (cadr vsb) (caddr vsb))))
+        ((and (pair? e) (eq? (car e) 'forall) (= (length e) 3))
+         (list 'forall (cadr e) #f (caddr e)))
+        ((and (pair? e) (eq? (car e) 'forsome) (= (length e) 3))
+         (list 'exists (cadr e) #f (caddr e)))
+        (else #f)))
+
+;;; (IN v S) at the head of BODY's antecedent chain (forall) or conjunction
+;;; (exists): (list v S rest), else #f.
+(define (tex--guard-of body conn)
+  (let ((head (if (eq? conn 'forall) 'implies 'and)))
+    (and (pair? body) (eq? (car body) head) (= (length body) 3)
+         (let ((g (cadr body)))
+           (and (pair? g) (eq? (car g) 'in) (= (length g) 3) (symbol? (cadr g))
+                (list (cadr g) (caddr g) (caddr body)))))))
+
+(define (tex--mentions? e sym)
+  (cond ((eq? e sym) #t)
+        ((pair? e) (or (tex--mentions? (car e) sym) (tex--mentions? (cdr e) sym)))
+        (else #f)))
+
+;;; BS is the run's binders, ((var . dom-or-#f) ...) in order.  May guard G's
+;;; variable be absorbed?  It must be an unguarded binder of the run, and the
+;;; domain must not mention it or any later binder.
+(define (tex--absorbable? bs g)
+  (let scan ((bs bs))
+    (cond ((null? bs) #f)
+          ((eq? (car (car bs)) (car g))
+           (and (not (cdr (car bs)))
+                (let none ((later bs))
+                  (or (null? later)
+                      (and (not (tex--mentions? (cadr g) (car (car later))))
+                           (none (cdr later)))))))
+          (else (scan (cdr bs))))))
+
+(define (tex--set-dom bs v dom)
+  (map (lambda (b) (if (eq? (car b) v) (cons v dom) b)) bs))
+
+;;; Consecutive binders with the same domain print as one group: "x, y \in S";
+;;; an unguarded binder prints bare.
+(define (tex--binder-groups bs)
+  (let loop ((bs bs) (acc '()))
+    (if (null? bs)
+        (reverse acc)
+        (let* ((dom (cdr (car bs)))
+               (take (let grab ((rest bs) (vars '()))
+                       (if (and (pair? rest) (equal? (cdr (car rest)) dom))
+                           (grab (cdr rest) (cons (car (car rest)) vars))
+                           (cons (reverse vars) rest))))
+               (vars (car take))
+               (rest (cdr take))
+               (names (tex--string-join (map expr->tex vars) ", ")))
+          (loop rest
+                (cons (if dom (string-append names " \\in " (expr->tex dom)) names)
+                      acc))))))
+
+;;; Returns (list HEAD-TEX GROUP-TEXS BODY), or #f when E has no quantifier.
+(define (tex--quant-run e)
+  (let ((first (tex--quant-kind e)))
+    (and first
+         (let ((conn (car first)))
+           (let loop ((k first) (bs '()))
+             (let ((bs   (cons (cons (cadr k) (caddr k)) bs))
+                   (body (cadddr k))
+                   (next (tex--quant-kind (cadddr k))))
+               (if (and next (eq? (car next) conn))
+                   (loop next bs)
+                   (let absorb ((bs (reverse bs)) (body body))
+                     (let ((g (tex--guard-of body conn)))
+                       (if (and g (tex--absorbable? bs g))
+                           (absorb (tex--set-dom bs (car g) (cadr g)) (caddr g))
+                           (list (if (eq? conn 'forall) "\\forall " "\\exists ")
+                                 (tex--binder-groups bs)
+                                 body)))))))))))
+
 ;;; --- main render -----------------------------------------------------
 
 (define (expr->tex e)
@@ -189,22 +308,12 @@
     ((pair? e)
      (let ((op (car e)) (args (cdr e)))
        (cond
-         ;; typed quantifier sugar
-         ((tex--typed-forall-parts e)
-          => (lambda (vsb)
-               (string-append "\\forall " (expr->tex (car vsb))
-                              " \\in " (expr->tex (cadr vsb))
-                              ".\\; " (expr->tex (caddr vsb)))))
-         ((tex--typed-exists-parts e)
-          => (lambda (vsb)
-               (string-append "\\exists " (expr->tex (car vsb))
-                              " \\in " (expr->tex (cadr vsb))
-                              ".\\; " (expr->tex (caddr vsb)))))
-         ;; plain quantifier
-         ((memq op '(forall forsome))
-          (string-append (if (eq? op 'forall) "\\forall " "\\exists ")
-                         (expr->tex (cadr e))
-                         ".\\; " (expr->tex (caddr e))))
+         ;; quantifiers: a maximal run of one kind on one prefix
+         ((tex--quant-run e)
+          => (lambda (run)
+               (string-append (car run)
+                              (tex--string-join (cadr run) ", ")
+                              ".\\; " (expr->tex (caddr run)))))
          ;; arithmetic prefix (statement mode): +(n, 1) not (n + 1)
          ((and *tex-arith-prefix?* (assq op *tex-arith-prefix-head*))
           (string-append (cdr (assq op *tex-arith-prefix-head*)) "("
@@ -247,6 +356,24 @@
 
 (tex--register-special! 'not
   (lambda (args) (string-append "\\neg " (expr->tex (car args)))))
+
+;; SUBTRACTION.  Not a `*tex-binop-table*' entry, and the reason is the unary
+;; case: that table renders by JOINING the args with the separator, so a
+;; one-argument `(- x)' would join a single string and come out as `(x)' -- the
+;; minus silently gone.  Registered here instead, where the arity is visible.
+;; Before 2026-09-05 there was no rule at all and `-' fell through to the
+;; generic prefix application, so `a - b' rendered `-(a, b)' in BOTH the
+;; statement mode and the proof steps, while its siblings `+' and `*' had infix
+;; rules the whole time.  A gap, not a decision.
+(tex--register-special! '-
+  (lambda (args)
+    (cond ((= (length args) 1)
+           (string-append "-" (expr->tex (car args))))
+          ((= (length args) 2)
+           (string-append "(" (expr->tex (car args)) " - "
+                          (expr->tex (cadr args)) ")"))
+          (else                                  ; n-ary: keep it unambiguous
+           (string-append "-(" (tex--string-join (map expr->tex args) ", ") ")")))))
 
 (tex--register-special! 'card
   (lambda (args) (string-append "|" (expr->tex (car args)) "|")))
@@ -377,26 +504,18 @@
 ;;; If E begins with a quantifier (typed or plain), return
 ;;; (cons "prefix-tex" body-expr); else #f.
 (define (tex--quant-step e)
-  (cond
-    ((tex--typed-forall-parts e)
-     => (lambda (vsb)
-          (cons (string-append "\\forall " (expr->tex (car vsb))
-                               " \\in " (expr->tex (cadr vsb)) ".")
-                (caddr vsb))))
-    ((tex--typed-exists-parts e)
-     => (lambda (vsb)
-          (cons (string-append "\\exists " (expr->tex (car vsb))
-                               " \\in " (expr->tex (cadr vsb)) ".")
-                (caddr vsb))))
-    ((and (pair? e) (memq (car e) '(forall forsome)) (= (length e) 3))
-     (cons (string-append (if (eq? (car e) 'forall) "\\forall " "\\exists ")
-                          (expr->tex (cadr e)) ".")
-           (caddr e)))
-    (else #f)))
+  (let ((run (tex--quant-run e)))
+    (and run
+         (cons (string-append (car run) (tex--string-join (cadr run) ", ") ".")
+               (caddr run)))))
 
 ;;; A conjunction/disjunction whose one-line render is at most this many
 ;;; TeX characters stays on a single row; longer ones break across rows.
 (define tex--inline-threshold 100)
+;;; Source length under which a whole formula is kept on one row by `tex--lines'.
+;;; Smaller than the inline threshold: TeX source overstates printed width, but a
+;;; row of quantifiers plus body is wider than a bare conjunct.
+(define tex--short-row 80)
 
 ;;; Flatten a right- or left-nested run of the same operator OP.
 (define (tex--flatten-op op e)
@@ -500,6 +619,12 @@
 (define (tex--lines e ind)
   (let ((qs (tex--quant-step e)))
     (cond
+      ;; A formula that fits on one row stays on one row (2026-09-21): a short
+      ;; curried implication used to be set one antecedent per row,
+      ;;   0 < a =>  /  0 < b =>  /  0 < a b,
+      ;; whatever its length.
+      ((<= (string-length (expr->tex e)) tex--short-row)
+       (list (string-append (tex--ind ind) (expr->tex e))))
       ;; a maximal run of quantifiers collapses onto one row
       (qs
        (let loop ((step qs) (parts '()))
@@ -510,9 +635,23 @@
                        (tex--string-join (reverse (cons (car step) parts)) " "))
                      (tex--lines (cdr step) (+ ind 1)))))))
       ;; implication: antecedent + => , consequent on the next (indented) row
+      ;; A LONG antecedent is broken like any other formula (2026-09-21: it used to
+      ;; be set on ONE row whatever its length -- an eleven-conjunct hypothesis made
+      ;; a row of 1300 characters, and the major-theorems list shrank the whole
+      ;; statement to fit it).
       ((and (pair? e) (eq? (car e) 'implies) (= (length e) 3))
-       (cons (string-append (tex--ind ind) (expr->tex (cadr e)) " \\Rightarrow ")
-             (tex--lines (caddr e) (+ ind 1))))
+       ;; A CURRIED chain  A => (B => (C => D))  keeps its antecedents at ONE
+       ;; indentation and indents only the final consequent (2026-09-21: each `=>'
+       ;; used to add a level, and a ten-hypothesis theorem became a staircase).
+       (let* ((ante (expr->tex (cadr e)))
+              (conseq (caddr e))
+              (chain? (and (pair? conseq) (eq? (car conseq) 'implies) (= (length conseq) 3)))
+              (cind (if chain? ind (+ ind 1))))
+         (if (<= (string-length ante) tex--inline-threshold)
+             (cons (string-append (tex--ind ind) ante " \\Rightarrow ")
+                   (tex--lines conseq cind))
+             (append (tex--suffix-last (tex--lines (cadr e) ind) " \\Rightarrow")
+                     (tex--lines conseq cind)))))
       ;; and/or: keep short ones inline; break long ones into one operand
       ;; block per (flattened) conjunct, connective trailing all but the last
       ((and (pair? e) (memq (car e) '(and or)) (>= (length e) 2))

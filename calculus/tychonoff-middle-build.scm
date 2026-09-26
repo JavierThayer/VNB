@@ -17,7 +17,7 @@
                          (dg-ungrounded-nodes (proof-state-dg *ps*))))
 (define (fpred p) (let loop ((gs (leaves)))
   (cond ((null? gs) #f)
-        ((p (wff-formula (sequent-node-assertion (car gs)))) (set! *ps* (focus-on *ps* (car gs))) #t)
+        ((p (wff-formula (sequent-node-assertion (car gs)))) (dk-focus! (car gs)) #t)
         (else (loop (cdr gs))))))
 (define (fhead h) (fpred (lambda (a) (and (pair? a) (eq? (car a) h)))))
 (define (lheads) (map (lambda (n) (let ((a (wff-formula (sequent-node-assertion n)))) (if (pair? a)(car a) a))) (leaves)))

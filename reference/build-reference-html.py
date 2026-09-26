@@ -45,6 +45,14 @@ DOCS = [
     ("Debt bundle",        "DEBT-BUNDLE.md",      "the same debt raked into heaps: what to prove next (greedy what-if), and which arc each long bill comes in through"),
     ("Tactics",            "TACTICS.md",          "interactive proof commands, each with a one-line gloss"),
     ("Theorems by topic",  "BY-TOPIC.md",         "grouped by subject (calculus basics, metric spaces), each with a link to its proof"),
+    # The trusted base itself.  Both were on disk and reachable from nowhere:
+    # KERNEL-RULES.md has been in reference/ for months without an entry here,
+    # so the one document naming the kernel's inference rules was absent from
+    # the browser entirely.
+    ("The kernel",         "KERNEL.md",           "the kernel in three parts: (a) the operations, each with the hypothesis sequents it creates and the conditions under which it declines, (b) the oracles, (c) the axioms; tactics are everything else"),
+    ("Kernel rules",       "KERNEL-RULES.md",     "every inference rule the checker can record, with its premises and conclusion -- the trusted base beyond the axiom table"),
+    ("Kernel map",         "KERNEL-MAP.md",       "which code is permitted to record an inference, and which of it each proof command can reach"),
+    ("Tactic uses",        "TACTIC-USES.md",      "for each proof command, the kernel operations it can reach: the bound on what the command can do"),
 ]
 
 # secid (filename without .md) -> output page filename.
@@ -364,7 +372,8 @@ def md_to_html(text, docid, used_ids):
                     items.append([lvl, inner, itid])
                     i += 1
                 elif lines[i].strip() and not re.match(r"(#{1,6})\s", lines[i]) \
-                        and not re.match(r"^-{3,}\s*$", lines[i]) and items:
+                        and not re.match(r"^-{3,}\s*$", lines[i]) \
+                        and not lines[i].strip().startswith("|") and items:
                     # continuation of previous item
                     items[-1][1] += " " + inline(lines[i].strip())
                     i += 1
@@ -373,16 +382,60 @@ def md_to_html(text, docid, used_ids):
             out.append(render_list(items))
             continue
 
+        # pipe table.  There was no branch for these until 2026-09-12, so every
+        # table fell through to the paragraph gather below and came out as ONE
+        # run-on <p>: DEBT-BUNDLE.html's greedy ranking -- the whole point of
+        # that page, "prove these N in this order" -- rendered as a single
+        # unreadable line, and so did LIBRARY.md's 20 rows and KERNEL-RULES.md's
+        # 52.  A cell containing a bare `|` (e.g. the COMP notation {x | p})
+        # would split wrong; nothing in the docs does that today.
+        if stripped.startswith("|"):
+            rows = []
+            while i < n and lines[i].strip().startswith("|"):
+                rows.append([c.strip() for c in lines[i].strip().strip("|").split("|")])
+                i += 1
+            out.append(render_table(rows))
+            continue
+
         # paragraph: gather consecutive plain lines
         buf = []
         while i < n and lines[i].strip() and not re.match(r"(#{1,6})\s", lines[i]) \
                 and not re.match(r"^-{3,}\s*$", lines[i]) \
                 and not re.match(r"^(\s*)-\s+", lines[i]) \
+                and not lines[i].strip().startswith("|") \
                 and not re.match(r"^ {4,}\S", lines[i]):
             buf.append(lines[i].strip()); i += 1
         out.append(f"<p>{inline(' '.join(buf))}</p>")
 
     return "\n".join(out)
+
+def render_table(rows):
+    """rows: list of lists of raw cell text -> <table>.  A row whose every cell
+    is a run of dashes (---, :---, ---:, :---:) is markdown's header RULE: it
+    marks the row above it as the header and is not itself rendered."""
+    def is_rule(row):
+        return bool(row) and all(re.fullmatch(r":?-{2,}:?", c) for c in row)
+
+    head, body = [], []
+    for k, row in enumerate(rows):
+        if is_rule(row):
+            if k == 1 and rows[0]:
+                head, body = [rows[0]], []
+            continue
+        body.append(row)
+    if head and body and body[0] is rows[0]:
+        body = body[1:]
+
+    out = ['<div class="tw"><table>']
+    if head:
+        out.append("<thead><tr>"
+                   + "".join(f"<th>{inline(c)}</th>" for c in head[0])
+                   + "</tr></thead>")
+    out.append("<tbody>")
+    for row in body:
+        out.append("<tr>" + "".join(f"<td>{inline(c)}</td>" for c in row) + "</tr>")
+    out.append("</tbody></table></div>")
+    return "".join(out)
 
 def render_list(items):
     """items: list of [level, inner_html, id_or_None] -> nested <ul>."""
@@ -444,6 +497,15 @@ CSS = """
  ul { margin:.3rem 0; }
  li { margin:.12rem 0; }
  hr { border:0; border-top:1px solid #e6edf6; margin:1.2rem 0; }
+ /* .tw scrolls a wide table on its own instead of pushing the page sideways */
+ .tw { overflow-x:auto; margin:.9rem 0; }
+ .tw table { border-collapse:collapse; font-size:.9rem; width:100%; }
+ .tw th, .tw td { border:1px solid var(--rule); padding:.3rem .55rem;
+                  text-align:left; vertical-align:top; }
+ .tw th { background:var(--panel); color:var(--accent); font-weight:600;
+          white-space:nowrap; }
+ .tw tbody tr:nth-child(even) { background:#fafcfe; }
+ .tw td code { background:transparent; padding:0; }
  .lead { color:#667; }
  /* hub */
  .hub main { max-width:54rem; }

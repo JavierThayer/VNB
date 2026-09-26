@@ -39,7 +39,11 @@
 ;;; in a set-basics file; it is here because the membership proof needs the
 ;;; interactive tactics, which structure-library/ loads before.
 
-(def-functoid 'SINGLETON '(y_) '(MAKE-SET (LIST y_)))
+;;; The SINGLETON def-functoid MOVED 2026-09-20 (batch 12-A) to
+;;; structure-library/set-vocabulary.scm, for the reason this header gives: the
+;;; definition needs nothing, only the membership PROOF below needs the
+;;; interactive tactics.  structure-library/field.scm states IS-FIELD's
+;;; defining IFF with the head.  The two proofs stay here, unchanged.
 (sp (make-wff '(FORALL y_ (== (SINGLETON y_) (MAKE-SET (LIST y_))))))
 (di) (mac 'SINGLETON) (qrfl) (qed 'singleton-unfold)
 
@@ -120,8 +124,12 @@
 ;; `mac-h' REPLACES the assumption it unfolds, so is-field(s_) is gone after.
 (fact 'field-as-integral-domain-is-integral-domain 's_)
 (fact 'integral-domain-is-commutative-ring '(FIELD-AS-INTEGRAL-DOMAIN s_))
-(fact 'field-zero-not-one 's_)
-(fact 'field-mul-inverse 's_)
+;; field-zero-not-one and field-mul-inverse were cited here as separate axioms
+;; until 2026-09-15, when they became (law ...) clauses of the FIELD declaration
+;; (structure-library/field.scm) -- they were a support finishing a definition.
+;; The `dk-split!' below now lands both itself, in the shapes the two fr-close!
+;; branches already expect: the neq-sym branch, and the inst+ finder for "the
+;; FORALL whose consequent is an `='".
 (dk-split! (dk-landed-1 (lambda () (mac-h 'is-field '(IS-FIELD s_)))))
 
 (define (fr-close!)

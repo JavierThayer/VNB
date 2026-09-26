@@ -15,7 +15,7 @@
   (let lp ((ls (idleaves)))
     (cond ((null? ls)(error "no leaf =" raw))
           ((equal? (wff-formula (sequent-node-assertion (car ls))) raw)
-           (set-proof-state-focus! *ps* (car ls))(car ls))
+           (dk-focus! (car ls))(car ls))
           (else (lp (cdr ls))))))
 (define (iddi*) (let lp () (let* ((g (idg))(h (and (pair? g)(car g))))
                              (when (memq h '(FORALL IMPLIES)) (di) (lp)))))

@@ -24,9 +24,12 @@
 ;;; SEVEN OF THE SEVEN algebra facts are now proven: composition left on
 ;;; 2026-08-23 for theorem-library/continuity-compose.scm, by exactly the route
 ;;; its warrant proposed (feed the g-at-f(a) delta into the f-at-a delta, no
-;;; eps/2 split needed).  ONE support remains below, `cont-agree-off-pt', and it
-;;; is the different one -- not an algebra fact at all but the statement that RR
-;;; has no isolated points.
+;;; eps/2 split needed).  The one support that remained, `cont-agree-off-pt'
+;;; (not an algebra fact but the statement that RR has no isolated points), is
+;;; PROVEN in theorem-library/cont-agree-off-pt.scm, which loads right after
+;;; this file; the support was retired from here on 2026-09-16 (until then the
+;;; name was installed twice, asserted here and then proven).  No support
+;;; remains in this file.
 
 ;;; const-continuous-at and identity-continuous-at MOVED 2026-08-17 to
 ;;; theorem-library/continuity-basics.scm, where both are PROVEN `modulo 0'
@@ -94,10 +97,3 @@
 ;;; Two maps continuous at a that agree at every OTHER point agree at a as well.
 ;;; (a is a limit point of RR, so the value at a is forced by the punctured
 ;;; values; the crux of uniqueness of the Caratheodory factor, hence of DERIV.)
-(support 'cont-agree-off-pt
-  '(FORALL fa (FORALL fb (FORALL pt (IMPLIES (IN pt RR) (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS fa pt) (IMPLIES (IS-CONTINUOUS-AT RR-MS RR-MS fb pt) (IMPLIES (FORALL x (IMPLIES (IN x RR) (IMPLIES (NOT (= x pt)) (= (fa x) (fb x))))) (= (fa pt) (fb pt))))))))))
-(warrant! 'cont-agree-off-pt 'well-known
-  "fa, fb continuous at pt and fa(x)=fb(x) for all x/=pt => fa(pt)=fb(pt).  pt is
-   a limit point of RR (no isolated points), so both values are the common limit
-   of the punctured values; take x -> pt.")
-(topic! 'cont-agree-off-pt 'analysis)

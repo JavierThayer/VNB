@@ -65,6 +65,26 @@
       ((any-pred (lambda (f) (alpha-equiv? f g)) (dk-asms)) (ass))
       (else (arith)))))
 
+;;; A case split on `p or p'.  pairing-membership at (a,a) lands `x = a or x = a',
+;;; whose two disjuncts are the SAME formula, so OR-elim posts two case nodes
+;;; that hash-cons to ONE (same assertion, same context).  `use-cases' with two
+;;; lanes then runs the second lane on a node the first lane has already
+;;; justified, re-focusing it through `dk-focus!' -- which, on a node that is no
+;;; longer a leaf, moves the focus and records NOTHING (driver-kit.scm:164).  The
+;;; printed page lacked that move and replayed lane 2 against the engine-chosen
+;;; leaf; the page-audit gate reported makeset2-split with two leaves open
+;;; (2026-09-15).  One case, one lane: the goal here is the AND from
+;;; makeset2-membership, so split it and close each conjunct by name.
+(define (ms--same-case! or-form intro)
+  (let ((cases (dk-opened (lambda () (ai or-form)))))
+    (if (not (= (length cases) 1))
+        (error "ms--same-case!: expected ONE case leaf, got" (length cases)))
+    (dk-focus! (car cases))
+    (for-each (lambda (l)
+                (dk-focus! l)
+                (if (equal? (dk-goal) '(IN x_ SET)) (ass) (begin (intro) (ass))))
+              (dk-opened (lambda () (di))))))
+
 ;;; --------------------------------------------------------------------
 ;;; ms-eq-symm:  equality is symmetric.
 ;;;
@@ -244,16 +264,12 @@
               (fact 'membership-implies-sethood 'x_ '(PAIR a_ a_))
               (mac-h 'pairing-membership '(IN x_ (PAIR a_ a_)))
               (ms--split-all!)
-              (use-cases (list '(= x_ a_) '(= x_ a_))
-                (lambda () (di) (oi-l) (ass))
-                (lambda () (di) (oi-l) (ass))))
+              (ms--same-case! '(OR (= x_ a_) (= x_ a_)) oi-l))
             (lambda ()
               (fact 'membership-implies-sethood 'x_ '(PAIR b_ b_))
               (mac-h 'pairing-membership '(IN x_ (PAIR b_ b_)))
               (ms--split-all!)
-              (use-cases (list '(= x_ b_) '(= x_ b_))
-                (lambda () (di) (oi-r) (ass))
-                (lambda () (di) (oi-r) (ass))))))))
+              (ms--same-case! '(OR (= x_ b_) (= x_ b_)) oi-r))))))
      (dk-opened (lambda () (di))))))
 
 (fact 'class-extensionality '(MAKE-SET (LIST a_ b_)) '(UNION (PAIR a_ a_) (PAIR b_ b_)))
@@ -282,13 +298,24 @@
   (lambda ()
     (di)
     (mac-h 'pairing-membership '(IN b_ (PAIR a_ a_)))
-    (use-cases (list '(= b_ a_) '(= b_ a_))
-      (lambda () (mac-h 'ms-eq-symm '(= b_ a_)) (ai '(NOT (= a_ b_))))
-      (lambda () (mac-h 'ms-eq-symm '(= b_ a_)) (ai '(NOT (= a_ b_)))))))
+    ;; `b = a or b = a': one case node (see ms--same-case!), one lane.
+    (let ((cases (dk-opened (lambda () (ai '(OR (= b_ a_) (= b_ a_)))))))
+      (if (not (= (length cases) 1))
+          (error "card-pair: expected ONE case leaf, got" (length cases)))
+      (dk-focus! (car cases))
+      (mac-h 'ms-eq-symm '(= b_ a_)) (ai '(NOT (= a_ b_))))))
 
+;; card-insert carries a FINITENESS guard since 2026-09-18
+;; (structure-library/cardinality.scm): unguarded it is false of an infinite A.
+;; Here the set being extended is the singleton {a}, whose cardinal card-singleton
+;; gives as succ 0.
+(fact 'card-singleton 'a_)
+(fact 'nn-zero-in)
+(fact 'nn-succ-closed 0)
+(have! '(IN (CARD (PAIR a_ a_)) NN)
+       (lambda () (subst '(= (CARD (PAIR a_ a_)) (succ 0))) (ass)))
 (have! '(AND (IN b_ SET) (NOT (IN b_ (PAIR a_ a_)))))
 (dk-fact! 'card-insert '(PAIR a_ a_) 'b_)
-(fact 'card-singleton 'a_)
 (fact 'makeset2-split 'a_ 'b_)
 (fact 'nn-one-in)
 (fact 'ord-succ-nn 1)

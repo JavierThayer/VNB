@@ -6,9 +6,13 @@
 ;;; Loads after rolle-proof.scm.  Applies Rolle to the lambda AUX with forward
 ;;; `fact` (capture-avoidance handles AUX's free a,b vs Rolle's bound a,b);
 ;;; no bc*, so it compiles normally.
-;;; Proven modulo the warranted calc-101 supports below
+;;; Proven modulo 0 since 2026-09-14: the two calc-101 auxiliaries (mvt-aux-cont,
+;;; mvt-aux-diff) are THEOREMS in theorem-library/mvt-aux-guarded.scm, guarded on a, b in RR
 ;;; (mvt-aux-cont/-diff, rr-diff-zero-eq, diff-value-real).
 ;;; ====================================================================
+;;; RETIRED 2026-09-14 (proven): diff-value-real -- theorem-library/mvt-cluster-readoffs.scm
+;;; RETIRED 2026-09-14 (proven): mvt-aux-diff -- theorem-library/mvt-aux-guarded.scm (statement now GUARDED on a, b in RR)
+;;; RETIRED 2026-09-14 (proven): mvt-aux-cont -- theorem-library/mvt-aux-guarded.scm (statement now GUARDED on a, b in RR)
 
 ;;; --- file-local proof helpers ---
 (define (mv-gf) (and *ps* (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
@@ -21,53 +25,23 @@
 (define (mv-split) (let loop ((n 0)) (let ((a (mv-find (mv-head? 'AND))))
   (cond ((and a (< n 12)) (ai a) (loop (+ n 1))) (else n)))))
 (define (mv-focus! raw) (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw)) (proof-leaves))))
-  (if s (begin (set-proof-state-focus! *ps* s) s) (error "mv-focus!: none equal" (expression->string raw)))))
+  (if s (begin (dk-focus! s) s) (error "mv-focus!: none equal" (expression->string raw)))))
 (define (mv-grind!) (let loop ((g 0)) (quietly (lambda () (ass-all)))
   (let ((al (any-pred (lambda (s) (let ((gg (wff-formula (sequent-node-assertion s))))
               (and (not (sequent-node-grounded? s)) (pair? gg) (eq? (car gg) 'AND)))) (proof-leaves))))
-    (when (and al (< g 40)) (set-proof-state-focus! *ps* al) (di) (loop (+ g 1))))))
+    (when (and al (< g 40)) (dk-focus! al) (di) (loop (+ g 1))))))
 (define (mv-have! mem main) (cut mem) (mv-focus! mem) (in-rr) (mv-focus! main))
 
-;;; rolle-neutral: Rolle with interval vars lo,hi (not a,b), so it can be applied
-;;; to an auxiliary that mentions a,b without capture.  One-liner from rolle.
-(sp '(FORALL h (FORALL lo (FORALL hi
-     (IMPLIES (AND (IN h (FUN RR RR)) (AND (IN lo RR) (AND (IN hi RR) (< lo hi))))
-     (IMPLIES (FORALL x (IMPLIES (IN x (CCINT lo hi))
-                 (IS-CONTINUOUS-AT RR-MS RR-MS h x)))
-     (IMPLIES (FORALL x (IMPLIES (AND (IN x RR) (AND (< lo x) (< x hi)))
-                 (FORSOME L (IS-DIFF-AT h x L))))
-     (IMPLIES (= (h lo) (h hi))
-       (FORSOME theta (AND (IN theta RR) (AND (< lo theta) (AND (< theta hi)
-                      (IS-DIFF-AT h theta 0)))))))))))))
-(quietly (lambda () (di)(di)(di)(di)(di)(di)(di)))   ; h,lo,hi + 4 hyps
-(quietly (lambda () (fact 'rolle 'h 'lo 'hi)))       ; lands rolle's conclusion = the goal
-(quietly (lambda () (ass-all)))
-(qed 'rolle-neutral)
+;;; rolle-neutral -- REMOVED 2026-09-20 (batch 11, proven-duplicate-audit).
+;;; It was `rolle' re-proved with the interval binders spelled lo,hi instead of
+;;; a,b, "so it can be applied to an auxiliary that mentions a,b without
+;;; capture".  It was alpha-equal to `rolle' and had NO call site: `subst-free'
+;;; renames a captured binder by itself, so the precaution bought nothing.
 
 ;;; the auxiliary h(z) = f(z)*(b-a) - z*(f(b)-f(a))
 (define AUX '(VNB-LAMBDA z RR (- (* (f z) (- b a)) (* z (- (f b) (f a))))))
 
-;;; --- warranted calc-101 supports ---
-(add-to-pss 'mvt-aux-diff
-  (list 'FORALL 'f (list 'FORALL 'a (list 'FORALL 'b (list 'FORALL 'x (list 'FORALL 'L
-    (list 'IMPLIES '(IS-DIFF-AT f x L)
-      (list 'IS-DIFF-AT AUX 'x '(- (* L (- b a)) (- (f b) (f a)))))))))))
-(warrant! 'mvt-aux-diff 'reference
-  "h=(b-a)f-(f(b)-f(a))id is a linear combination of f and identity; its
-   derivative (b-a)L-(f(b)-f(a)) follows from deriv-product/sum/const/identity.")
-(topic! 'mvt-aux-diff 'analysis)
-(add-to-pss 'mvt-aux-cont
-  (list 'FORALL 'f (list 'FORALL 'a (list 'FORALL 'b (list 'FORALL 'x
-    (list 'IMPLIES '(IS-CONTINUOUS-AT RR-MS RR-MS f x)
-      (list 'IS-CONTINUOUS-AT 'RR-MS 'RR-MS AUX 'x)))))))
-(warrant! 'mvt-aux-cont 'reference
-  "h is a sum/product of f, constants and the identity, hence continuous where f is.")
-(topic! 'mvt-aux-cont 'analysis)
-(add-to-pss 'diff-value-real
-  '(FORALL f (FORALL a (FORALL L (IMPLIES (IS-DIFF-AT f a L) (IN L RR))))))
-(warrant! 'diff-value-real 'informal
-  "IS-DIFF-AT's definition includes (IN L RR) as a conjunct.")
-(topic! 'diff-value-real 'analysis)
+;;; --- the calc-101 auxiliaries: were supports here; now theorems (mvt-aux-guarded.scm) ---
 
 ;;; --- pose MVT ---
 (sp '(FORALL f (FORALL a (FORALL b
@@ -177,7 +151,7 @@
 (quietly (lambda () (mv-grind!)))            ; split ANDs; closes a<TH, TH<b leaves by ass
 (let ((fl (any-pred (lambda (s) (let ((g (wff-formula (sequent-node-assertion s))))
             (and (not (sequent-node-grounded? s)) (pair? g) (eq? (car g) 'FORSOME)))) (proof-leaves))))
-  (when fl (set-proof-state-focus! *ps* fl)))
+  (when fl (dk-focus! fl)))
 (ew LT)
 (quietly (lambda () (mv-grind!) (ass-all)))
 (qed 'mvt)

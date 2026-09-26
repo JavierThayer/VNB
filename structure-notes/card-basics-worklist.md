@@ -1,5 +1,14 @@
 # Putting the CARD layer on a firm basis
 
+> **CLOSED 2026-09-20.**  This worklist is DONE and is kept as a record.  Every item on
+> it is proven, the eight `primitive` CARD axioms are gone, and `CARD` itself is the
+> DEFINED cardinal (`structure-library/cardinality.scm`): what this page calls
+> `CARD-STAR` is now simply `CARD`, and what it calls "the `CARD` axiom" is now a theorem
+> under the same name.  The `card-star-` prefixes below are historical.  In particular
+> the "blocked on EXTEND-BY" entries are spent: `EXTEND-BY` was built as
+> `enum-append-is-bijection` (now `theorem-library/enum-append.scm`).  The current
+> account is `docs/card-defined-2026-09-20.md`.
+
 State on 2026-08-12.  `CARD` is AXIOMATISED; `CARD-STAR` is DEFINED
 (`theorem-library/card-defined.scm`) as
 

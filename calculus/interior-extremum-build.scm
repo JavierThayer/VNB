@@ -74,13 +74,13 @@
 (define (focus-leaf-goal! raw)
   (let ((s (any-pred (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s)
+    (if s (begin (dk-focus! s) s)
         (error "focus-leaf-goal!: none equal to" (expression->string raw)))))
 (define (focus-leaf-asm! substr)
   (let ((s (any-pred (lambda (s) (any-pred (lambda (w) (sub? substr (expression->string (wff-formula w))))
                                            (sequent-node-assumptions s)))
                      (proof-leaves))))
-    (if s (begin (set-proof-state-focus! *ps* s) s)
+    (if s (begin (dk-focus! s) s)
         (error "focus-leaf-asm!: none with asm" substr))))
 (define (mentions? sym form)
   (cond ((eq? form sym) #t)
@@ -127,7 +127,7 @@
                           (memq (caddr g) '(RR ZZ QQ CC)))))
                  (proof-leaves))))
       (when (and leaf (< guard 30))
-        (set-proof-state-focus! *ps* leaf)
+        (dk-focus! leaf)
         (in-rr)
         (loop (+ guard 1))))))
 ;; establish (IN term D) in ctx via cut+in-rr, then refocus the main goal
@@ -143,7 +143,7 @@
                                       (pair? gg) (eq? (car gg) 'AND))))
                              (proof-leaves))))
       (when (and andleaf (< g 40))
-        (set-proof-state-focus! *ps* andleaf) (di) (loop (+ g 1))))))
+        (dk-focus! andleaf) (di) (loop (+ g 1))))))
 
 (--- "C1: right-neighborhood sign  phi*(x) <= 0  on (theta,b)")
 (define C1 (list 'FORALL 'x

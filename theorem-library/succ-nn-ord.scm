@@ -1,18 +1,5 @@
-;;; theorem-library/succ-nn-ord.scm
-;;;
-;;; succ-nn-ord:  for n in NN, the NN-flavored succ equals the
-;;; ORD-flavored succ_ORD.  Bridges the two notations so macetes can fire
-;;; on either side.
-;;;
-;;; PSS-promoted 2026-05-27 from proven-theorems.scm.  Original proof
-;;; script archived in archive/proven-theorems-archive.scm.
-
-(support 'succ-nn-ord
-  '(FORALL n (IMPLIES (IN n NN) (= (succ n) (succ_ORD n)))))
-
-(warrant! 'succ-nn-ord 'informal
-  "Mechanically proven before the 2026-05-27 PSS promotion; script archived at
-   archive/proven-theorems-archive.scm (prove-and-install! 'succ-nn-ord).  The
-   NN successor and the ordinal successor agree on NN -- the bridge that lets a
-   macete fire on either spelling.  Archive predates the E -> IDEN rename and
-   the ==-sweep.")
+;;; succ-nn-ord.scm -- SIGNPOST (2026-09-17).  This file was a one-support PSS stub for
+;;; `succ-nn-ord' (promoted 2026-05-27 from an archived mechanical proof).  The support is RETIRED:
+;;; the theorem is PROVEN modulo 0 in theorem-library/rake-combinatorics.scm (rake batch P).
+;;; The original stub is in scratchpad/surgery/orig-0917/.  Kept so load.scm's entry and the
+;;; name's history still resolve; nothing is installed here.

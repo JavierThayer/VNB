@@ -15,7 +15,7 @@
 (define (cc-goal) (wff-formula (sequent-node-assertion (proof-state-focus *ps*))))
 (define (cc-foc-goal! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (cc-find pred) (let lp ((as (map wff-formula (sequent-node-assumptions (proof-state-focus *ps*)))))
   (cond ((null? as) #f) ((pred (car as)) (car as)) (else (lp (cdr as))))))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
@@ -92,7 +92,7 @@
 
 ;; --- clear-first-row(B) -> C1 ---
 (cc-foc-goal! (H? 'FORSOME))
-(fact 'mat-equiv-cod-is-mat 'A SUCCP SUCCQ 'M B)
+(fact 'mat-equiv-target-is-mat 'A SUCCP SUCCQ 'M B)
 (fact 'clear-first-row 'A SUCCP SUCCQ B)
 (quietly (lambda () (detach! (pcm B))))
 (define CFR-BODY (cc-find (lambda (z) (meq-body-of? B z))))
@@ -102,7 +102,7 @@
 ;; --- classmin-transport(B->C1): cr-pcm(C1) ---
 (fact 'classmin-transport 'A SUCCP SUCCQ B C1)
 (quietly (lambda () (detach! (pcm B))))
-(fact 'mat-equiv-cod-is-mat 'A SUCCP SUCCQ B C1)
+(fact 'mat-equiv-target-is-mat 'A SUCCP SUCCQ B C1)
 ;; C1_{1,1} nonzero (from C1_11 = B_11 and B_11 /= 0)
 (cut (list 'NOT (list '= (list 'ENTRY C1 1 1) '(ZERO A))))
 (subst (list '= (list 'ENTRY C1 1 1) (list 'ENTRY B 1 1)))
@@ -120,7 +120,7 @@
 (fact 'mat-equiv-trans 'A SUCCP SUCCQ 'M B C1)
 (fact 'mat-equiv-trans 'A SUCCP SUCCQ 'M C1 C2)
 ;; --- C2 in MAT ; C2_{1,1} nonzero ---
-(fact 'mat-equiv-cod-is-mat 'A SUCCP SUCCQ C1 C2)
+(fact 'mat-equiv-target-is-mat 'A SUCCP SUCCQ C1 C2)
 (cut (list 'NOT (list '= (list 'ENTRY C2 1 1) '(ZERO A))))
 (subst (list '= (list 'ENTRY C2 1 1) (list 'ENTRY C1 1 1)))
 (subst (list '= (list 'ENTRY C1 1 1) (list 'ENTRY B 1 1)))

@@ -17,61 +17,14 @@
 ;;; Antecedent AND-chains are built with conjuncts->and to avoid deep manual
 ;;; paren nesting.  Reuses deriv-constant-proof's global dc-* helpers; no bc*.
 
+;;; RETIRED 2026-09-17 (proven): span-add-one-membership -- theorem-library/rake-algebra.scm
+;;; (the SEP-membership recipe: span-add-one-unfold, then sep-me / sep-mi).  It was
+;;; an add-to-pss here, cited at the `mac-h' below, which now finds the theorem.
 ;;; ---- warranted core ----
-(add-to-pss 'span-add-one-membership
-  `(FORALL m (FORALL s (FORALL v (FORALL w_
-     (IFF (IN w_ (SPAN-ADD-ONE m s v))
-          ,(conjuncts->and
-             '((IN w_ (VEC m))
-               (FORSOME y_ (AND (IN y_ s)
-                 (FORSOME r_ (AND (IN r_ RR)
-                   (= w_ ((VADD m) y_ ((ACT m) r_ v)))))))))))))))
-(warrant! 'span-add-one-membership 'proof
-  "Separation membership: SPAN-ADD-ONE(m,s,v) = SEP(w in VEC(m) | exists y in s,
-   r in RR. w = y + r.v); a member iff in VEC(m) and it so decomposes.")
-(topic! 'span-add-one-membership 'analysis)
-
-(add-to-pss 'hb-gap
-  `(FORALL m (FORALL s (FORALL f (FORALL v
-     (IMPLIES ,(conjuncts->and '((IS-NORMED-VECTOR-SPACE m)
-                                 (IS-SUBMODULE m s)
-                                 (IS-BOUNDED-LINEAR-FUNCTIONAL-ON m s f)
-                                 (IN v (VEC m))
-                                 (NOT (IN v s))))
-       (FORSOME a_ (AND (IN a_ RR)
-         (FORALL y_ (IMPLIES (IN y_ s)
-           (FORALL r_ (IMPLIES (IN r_ RR)
-             (<= (abs (+ (f y_) (* r_ a_)))
-                 (* (DUAL-NORM-ON m s f)
-                    ((VNRM m) ((VADD m) y_ ((ACT m) r_ v)))))))))))))))))
-(warrant! 'hb-gap 'reference
-  "Hahn-Banach gap (real, one dimension): with M = ||f||_s, for z,w in s
-   f(w-z) <= M||w-z|| <= M(||z+v||+||w+v||), so sup_z(-f(z)-M||z+v||) <=
-   inf_w(-f(w)+M||w+v||); RR order-completeness gives a separating alpha, whence
-   |f(y)+r.alpha| <= M||y+r.v|| for all y in s, r in RR.")
+;;; hb-gap PROVEN modulo 0 in theorem-library/rake-hb-gap.scm (2026-09-19)
 (topic! 'hb-gap 'analysis)
 
-(add-to-pss 'hb-extend-construct
-  `(FORALL m (FORALL s (FORALL f (FORALL v (FORALL a_
-     (IMPLIES ,(conjuncts->and '((IS-NORMED-VECTOR-SPACE m)
-                                 (IS-SUBMODULE m s)
-                                 (IS-LINEAR-FUNCTIONAL-ON m s f)
-                                 (IN v (VEC m))
-                                 (NOT (IN v s))
-                                 (IN a_ RR)))
-       (FORSOME g_
-         ,(conjuncts->and
-            '((IS-LINEAR-FUNCTIONAL-ON m (SPAN-ADD-ONE m s v) g_)
-              (EXTENDS-ON s g_ f)
-              (FORALL y_ (IMPLIES (IN y_ s)
-                (FORALL r_ (IMPLIES (IN r_ RR)
-                  (= (g_ ((VADD m) y_ ((ACT m) r_ v)))
-                     (+ (f y_) (* r_ a_)))))))))))))))))
-(warrant! 'hb-extend-construct 'reference
-  "Extending a linear functional one dimension: with v notin s every element of
-   s + RR.v is uniquely y + r.v, so g(y+r.v) = f(y) + r.alpha is a well-defined
-   linear functional on s + RR.v extending f, for any scalar alpha.  Standard
-   linear algebra; alpha is fixed only by the bound (hb-gap).")
+;;; hb-extend-construct PROVEN modulo 0 (2026-09-19, rake batch 7) in theorem-library/rake-hb-extend-construct.scm
 (topic! 'hb-extend-construct 'analysis)
 
 ;;; ---- the theorem: norm-preserving one-dimension extension ----
@@ -135,7 +88,7 @@
 (ew GW)
 (dc-grind!)
 (define BOUNDLEAF (car (dc-open-leaves)))
-(set-proof-state-focus! *ps* BOUNDLEAF)
+(dk-focus! BOUNDLEAF)
 (di) (di)                                        ; w_ ; (IN w_ (SPAN-ADD-ONE m s v))
 (define BGOAL (dc-gf))
 (define W (cadr (dc-find (lambda (z) (and ((dc-head? 'IN) z) (dc-ment? 'span-add-one z))))))

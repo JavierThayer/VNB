@@ -411,6 +411,13 @@
 (di) (di)
 (mac 'zkept-succ)
 (zp-inst*! zp-inv-ih 'phi 'grd 'porel)
+;; 2026-09-18 (LUTINS instantiation): zorn-chain-plus-keepset is cited at the
+;; stage ZKEPT(phi,grd,porel,alpha), and IS-CHAIN is not one of the strict
+;; relations, so the invariant in context does not certify it.  The recursion
+;; equation does: zkept-succ is a strict `=' whose right side is
+;; UNION(ZKEPT(...,alpha), KEEP-SET(...)), where the stage sits OUTSIDE every
+;; binder in an argument position.
+(fact 'zkept-succ 'phi 'grd 'porel 'alpha)
 (fact 'zorn-chain-plus-keepset 'phi 'grd 'porel '(ZKEPT phi grd porel alpha) 'alpha)
 (ass)
 

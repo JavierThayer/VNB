@@ -42,20 +42,18 @@
   (theory-add-axiom! *current-theory* 'sqn-sethood
     '(FORALL a (IMPLIES (IN a SET) (IN (SQN a) SET)))))
 
-;;; NAMED-ONLY, and for the same reason as `app-graph' and `binary-minus-def'.
-;;; `theory-add-axiom!' installs an IFF as a live rewrite macete AND generates
-;;; the `-rev' companion, so `sqn-membership-rev' would rewrite EVERY
-;;; `f in FUN(NN, X)' in every goal into `f in SQN(X)' -- and the library states
-;;; every sequence hypothesis in the FUN form, so a `grind' or `mac' sweep would
-;;; quietly retype them and the lemmas keyed on FUN would stop matching.  That
-;;; is sound and ruinous, which is exactly what `declare-named-only!' is for; it
-;;; suppresses the `-rev' companion too.  Citing it by name -- which is the
-;;; whole point, `(mac-h 'sqn-membership k)' -- is unaffected.
-(declare-named-only! 'sqn-membership
-  "Its reverse direction rewrites every `f in FUN(NN, X)' into `f in SQN(X)',
-   and the library states every sequence hypothesis in the FUN form -- so as a
-   live macete it would retype them all and the lemmas keyed on FUN would stop
-   matching.  Cite it by name: (mac-h 'sqn-membership k).")
+;;; NOT named-only: `sqn-membership' is a LIVE macete, fired by name at 25 call
+;;; sites (`(mac-h 'sqn-membership k)'), and that is what the library wants.
+;;;
+;;; A `declare-named-only!' call stood here from 2026-08 to 2026-09-20 and was
+;;; DEAD: it came AFTER the `theory-add-axiom!' above, and the named-only list
+;;; is read by `theorem->elementary-macete' while the macete is being built, so
+;;; the declaration could not reach it.  The macete has therefore been live all
+;;; along, with no trouble -- as the shape predicts: unlike `app-graph', whose
+;;; left side `(f x)' is a bare application with a SCHEMA head and so matches
+;;; every application in every goal, this one's left side is `(IN f_ (SQN a))',
+;;; headed by IN with the constant SQN, so it fires only on an SQN membership.
+;;; `declare-named-only!' now warns when it is called too late.
 
 (notation! 'SQN 'kind 'functoid 'arity 1
            'english "the sequences in $1"

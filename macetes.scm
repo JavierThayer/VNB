@@ -160,8 +160,21 @@
        ;; equal?, so a schema variable in index position could never bind and
        ;; no macete about a general index could ever fire.  See free-vars
        ;; (expressions.scm) for the whole defect.  (2026-08-04)
-       ((SEP)
-        (and (equal? (cadr pattern) (cadr expr))
+       ;; The DOMAIN-carrying binders -- (H v A body) with A outside the binder
+       ;; and, for VNB-LAMBDA, a bind-spec that may be (LIST x y).  The binder
+       ;; position is matched by EQUALITY, never by the matcher: a schema
+       ;; variable there would bind to the expression's BOUND variable, and the
+       ;; replacement would then carry it out of its scope.  BIG-UNION and
+       ;; VNB-LAMBDA joined this label on 2026-09-20 (batch 11-C); until then
+       ;; they fell to the general branch below, which matches every position
+       ;; POSITIONALLY -- including the binder.  No library pattern has a schema
+       ;; variable in binder position (130 binder-headed patterns scanned,
+       ;; scratchpad/binder-gate/scan-binder-patterns.scm), so on the library
+       ;; this label matches exactly what the general branch matched; what it
+       ;; adds is that the unsound case cannot be written.
+       ((SEP BIG-UNION VNB-LAMBDA)
+        (and (= (length pattern) 4) (= (length expr) 4)
+             (equal? (cadr pattern) (cadr expr))
              (let ((ma (match-expr (caddr pattern)  (caddr expr)  schema-vars))
                    (mp (match-expr (cadddr pattern) (cadddr expr) schema-vars)))
                (and ma mp (merge-subst ma mp)))))
@@ -204,6 +217,10 @@
             (let ((rest-m (match-list-with-rest (cdr pattern) (cdr expr) schema-vars)))
               (and rest-m (merge-subst head-m rest-m))))))
     (else #f)))
+
+;; The matcher's own binder vocabulary (expressions.scm: declare-binder-walker!).
+(declare-binder-walker! 'match-expr
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 (define (binding-values-equal? v1 v2)
   (cond
@@ -542,9 +559,16 @@
          ;; like any other argument, by the general compound branch below.
          ;; See free-vars (expressions.scm).  (2026-08-04)
 
-         ((SEP)
+         ((SEP BIG-UNION)
           ;; (SEP x A p) — A is outer scope; p has x bound.  Drop ctx
           ;; assumptions shadowed by x for the body recursion.
+          ;; (BIG-UNION z A body) has the SAME shape and joined this case on 2026-09-20.
+          ;; Until then it fell to the general-compound branch below, which rewrote the
+          ;; body under the AMBIENT local context: a conditional macete could fire on the
+          ;; bound z with its condition discharged by an OUTER z (`z in NN implies ...
+          ;; BIG-UNION(z, S, z + 0) ...' rewrote the body to z), and the binder position
+          ;; itself was open to rewriting.  Found by the independent macete checker
+          ;; (batch 10-C); no library proof exercised it.
           (let* ((bv (cadr expr))
                  (ra (rewrite-expr pattern replacement schema-vars conditions
                                    (caddr expr) local-ctx))
@@ -553,7 +577,7 @@
                          (rewrite-expr pattern replacement schema-vars conditions
                                        (cadddr expr)
                                        (lc-drop-shadowed (list bv) local-ctx)))))
-            (cons `(SEP ,bv ,(car ra) ,(car rp))
+            (cons `(,head ,bv ,(car ra) ,(car rp))
                   (append (cdr ra) (cdr rp)))))
 
          ((FORALL FORSOME IOTA COMP)
@@ -608,6 +632,12 @@
                           (cons (car r) new)
                           (append minors (cdr r)))))))))))))
 
+;; The rewriter's binder vocabulary.  BIG-UNION was missing from it until
+;; 2026-09-20 and the body was rewritten under the AMBIENT local context; the
+;; gate that now watches this list is binder-walker-audit (audit.scm).
+(declare-binder-walker! 'rewrite-subexpressions
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
 ;;; -----------------------------------------------------------------------
 ;;; Elementary macete: built from a theorem
 
@@ -654,7 +684,30 @@
 ;;; usable by name: `ta', `fact', backchain, manual instantiation.
 (define *named-only-macetes* '())
 
+;;; A declaration made AFTER the theorem is installed is a NO-OP, and silently
+;;; so: `install-theorem!' consults *named-only-macetes* while it builds the
+;;; rewrite, so by the time a later `declare-named-only!' runs the live macete
+;;; is already in *macete-table* and the `-rev' companion already minted.
+;;; Three declarations sat dead exactly that way (sqn-membership,
+;;; binary-minus-def, binary-divide-def, found 2026-09-20 by reading the order
+;;; of the forms).  The predicate below is the test; the list records every
+;;; late call, and load.scm/the suite keep it at zero.
+(define *named-only-late-declarations* '())
+
+(define (named-only-declared-too-late? name)
+  (and (symbol? name)
+       (or (and (hash-table-ref/default *macete-table* name #f) #t)
+           (and (hash-table-ref/default *theorem-table* name #f) #t))))
+
 (define (declare-named-only! name reason)
+  ;; WARN, loudly, when the horse has already bolted (see above).
+  (when (named-only-declared-too-late? name)
+    (set! *named-only-late-declarations*
+          (cons name *named-only-late-declarations*))
+    (display ";VNB warning: declare-named-only!: ")
+    (display name)
+    (display " is already installed -- its macete is LIVE and this declaration\n")
+    (display ";              has no effect.  Declare it BEFORE the install.\n"))
   (set! *named-only-macetes* (cons (cons name reason) *named-only-macetes*))
   ;; the -rev companion (install-theorem! mints one for a symmetric core) must
   ;; be suppressed too, or the reverse direction fires on every IOTA instead.
@@ -763,7 +816,8 @@
               (map cdr renaming)
               (map rename conditions)
               (rename source)
-              (rename replacement)))))))))
+              (rename replacement)
+              (if (default-object? name) '<anonymous> name)))))))))
 
 (define (display-inert-macetes)
   (cond
@@ -829,8 +883,27 @@
     (else
      (values f 'TRUTH))))
 
-(define (make-elementary-macete schema-vars conditions source replacement)
-  (lambda (sqn)
+;;; THE RULE TAG CARRIES THE NAME (2026-09-20, batch 10-C).
+;;;
+;;; The tag used to be `(macete SOURCE REPLACEMENT)'.  It said WHAT was rewritten
+;;; and said nothing about WHY: no reader of the graph could tell which installed
+;;; theorem (or definition) licensed the step, so no checker could confirm that
+;;; L -> R is an instance of anything the library holds.  The tag is now
+;;;
+;;;     (macete NAME SOURCE REPLACEMENT)
+;;;
+;;; where NAME is the name the macete is registered under in *macete-table* --
+;;; the theorem's name for a theorem-derived macete, the accessor / functoid /
+;;; functor-projection name for the three definitional macetes structures.scm
+;;; builds directly.  `rule-tag-head' still returns `macete', so *rules-applied*,
+;;; kernel-rules-audit, the kernel map and tactics-help are unaffected; the one
+;;; reader that took the tag apart positionally (proof-rules, suggest.scm) was
+;;; moved on by one.  `<anonymous>' is the name of a macete built outside
+;;; install-macete! (only the S-10 fixture in test-suite.scm does that).
+(define (make-elementary-macete schema-vars conditions source replacement
+                                #!optional name)
+  (let ((mac-name (if (default-object? name) '<anonymous> name)))
+   (lambda (sqn)
     (let* ((asms      (sequent-node-assumptions sqn))
            (goal      (sequent-node-assertion   sqn))
            (g         (wff-formula goal))
@@ -848,8 +921,8 @@
                          (map (lambda (mp)
                                 (make-sequent asms (wff-child goal mp)))
                               minor-prems))))
-              (dg-apply-rule! dg `(macete ,source ,replacement)
-                              new-subgoals sqn)))))))
+              (dg-apply-rule! dg `(macete ,mac-name ,source ,replacement)
+                              new-subgoals sqn))))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Compound macete constructors
@@ -1206,6 +1279,9 @@
     (walk e '())
     (reverse hits)))
 
+(declare-binder-walker! 'wff-shadowing-binders
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
+
 ;;; Every installed formula whose statement has a shadowing binder.  Returns a
 ;;; list of (name . shadows); empty = the whole library is collision-free.
 (define (case-fold-audit)
@@ -1228,6 +1304,14 @@
 ;;; whose variable is a registered constant; constant-binder-audit sweeps the
 ;;; whole installed library (empty => clean).  Companion to wff-shadowing-binders
 ;;; (binder-over-binder); together they close the case-fold collision class.
+;;; THE CLASS NAMES (2026-09-18).  `*constant-registry*' keys on APPLIED heads, so the
+;;; bare class constants are not in it, and a binder spelled like one passed this gate:
+;;; the support `vtaylor-clear' bound `rR' -- which the reader folds onto RR -- and typed
+;;; it `(IN rR RR)', so its statement read `forall X. X in X => ...' and said nothing
+;;; about the reals (found by rake batch 5).  A binder may not be named like any of these.
+(define *class-name-constants*
+  '(NN ZZ QQ RR CC ORD SET EMPTY-SET POS-INF NEG-INF RR-STAR RR-POS-STAR))
+
 (define (wff-constant-binders e0)
   ;; Coerce: handed a wff RECORD, the walk below (which descends pairs) would
   ;; find no binders and report CLEAN -- a silent false negative in the very
@@ -1235,7 +1319,8 @@
   (let ((e (if (wff? e0) (wff-formula e0) e0))
         (hits '()))
     (define (chk v where)
-      (let ((k (constant-head? v)))
+      (let ((k (or (constant-head? v)
+                   (and (memq v *class-name-constants*) 'class-name))))
         (when k (set! hits (cons (list where v k) hits)))))
     (define (walk e)
       (cond
@@ -1256,6 +1341,9 @@
            (else (for-each walk (cdr e)))))))
     (walk e)
     (reverse hits)))
+
+(declare-binder-walker! 'wff-constant-binders
+                        '(FORALL FORSOME IOTA COMP SEP BIG-UNION VNB-LAMBDA))
 
 (define (constant-binder-audit)
   (let ((bad '()))
@@ -1400,11 +1488,13 @@
     (case prov
       ((primitive)    "[primitive]")
       ((definitional) "[definitional]")
-      ((proven)
-       (let ((bill (ft--bill n)))
-         (cond ((not (list? bill)) "[proven]")
-               ((null? bill)       "[PROVEN -- modulo 0]")
-               (else (string-append "[PROVEN -- modulo " (number->string (length bill)) "]")))))
+      ((proven certified)
+       ;; `certified' (certificates.scm): proven by the exam, no proof in this image
+       (let ((bill (ft--bill n))
+             (word (if (eq? prov 'certified) "CERTIFIED" "PROVEN")))
+         (cond ((not (list? bill)) (string-append "[" word "]"))
+               ((null? bill)       (string-append "[" word " -- modulo 0]"))
+               (else (string-append "[" word " -- modulo " (number->string (length bill)) "]")))))
       (else
        (if w
            (string-append "[asserted: " (symbol->string (car w)) "]")
@@ -1521,7 +1611,7 @@
     (hash-table-walk *warrants*
       (lambda (name w)
         (when (and (eq? (car w) 'proof)
-                   (not (eq? (provenance-of name) 'proven)))
+                   (not (memq (provenance-of name) '(proven certified))))
           (if (names-a-file? (cdr w))
               (set! named (cons name named))
               (set! unnamed (cons name unnamed))))))
@@ -1598,7 +1688,7 @@
 ;;; 'primitive; theory-add-theorem! binds 'proven.  Everything else --
 ;;; including every hand-written (theory-add-axiom! ...) and (support ...)
 ;;; in the library files -- falls through to 'asserted.
-(define *provenance-kinds* '(primitive definitional asserted proven))
+(define *provenance-kinds* '(primitive definitional asserted proven certified))
 
 (define *current-provenance* 'asserted)          ; default for bare installs
 
@@ -1626,6 +1716,10 @@
 
 (define (provenance-of name)
   (hash-table-ref/default *provenance* name 'asserted))
+;;; The definedness certificate reads a predicate's defining IFF from the theorem
+;;; table only when its provenance is definitional, primitive or proven
+;;; (primitive-inferences.scm, pi--pred-def-trusted?, 2026-09-20).
+(set! *pi-provenance-of* provenance-of)
 
 ;;; Binary connectives whose theorems should auto-install a reverse-direction
 ;;; companion macete:
@@ -1755,8 +1849,23 @@
     ;; mean something.
     is-hom-toy-top-def))
 
+;;; Names re-installed during the LIBRARY LOAD, newest first -- the tally the
+;;; end of load.scm reports as `install-duplicate-audit'.  Each warning below
+;;; printed on every load for weeks and nobody acted on it, because a warning
+;;; scrolled past is not a count.  Measured 2026-09-16: seven, of four kinds (a
+;;; definitional fact re-added as an asserted PSS entry, a fact asserted twice, a
+;;; fact proven twice, and four supports never retired after their proofs
+;;; landed), all repaired the same day.  Only counted while *vnb-loading*, so
+;;; an interactive `qed' over a library name does not inflate it.
+(define *install-duplicates* '())
+
 (define (install--warn-overwrite! name formula)
   (let ((old (hash-table-ref/default *theorem-table* name #f)))
+    ;; *vnb-loading* is load.scm's, resolved at call time like
+    ;; safe-load-pathname above.
+    (when (and old (not (memq name *install-intentional-redefinitions*))
+               *vnb-loading*)
+      (set! *install-duplicates* (cons name *install-duplicates*)))
     (when (and old (not (memq name *install-intentional-redefinitions*)))
       (if (alpha-equiv? old formula)
           (begin
@@ -1905,7 +2014,7 @@
                          (new-h     (car result))
                          (minors    (cdr result)))
                     (and (not (alpha-equiv? new-h h))
-                         (dg-apply-rule! dg `(macete-hyp ,source ,replacement)
+                         (dg-apply-rule! dg `(macete-hyp ,name ,source ,replacement)
                            (cons (make-sequent
                                   (context-add-assumption
                                    (context-remove-assumption asms f)

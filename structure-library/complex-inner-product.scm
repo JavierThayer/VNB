@@ -308,22 +308,7 @@
 ;;; sqrt-nonneg and cips-ip-definite; the triangle inequality is MINKOWSKI,
 ;;; PROVEN in theorem-library/inner-product-inequalities.scm as
 ;;; `cips-minkowski'.  Inverse-invariance is <-x,-x> = <x,x>.
-(support 'ip-normed-ag-is-normed-ag
-  '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
-     (IS-NORMED-AG (IP-NORMED-AG v)))))
-(warrant! 'ip-normed-ag-is-normed-ag 'reference
-  "The norm induced by a complex inner product makes the additive group of
-   vectors a normed abelian group.  ||x|| = SQRT(<x,x>) >= 0 (sqrt-nonneg);
-   ||x|| = 0 iff <x,x> = 0 iff x = 0 (sqrt-sq and cips-ip-definite);
-   ||-x|| = ||x|| since <-x,-x> = (-1)(conj -1)<x,x> = <x,x>; and the triangle
-   inequality is `cips-minkowski', PROVEN in
-   theorem-library/inner-product-inequalities.scm.  Only the packaging of the
-   five slots into the NORMED-AG tuple is asserted here.  Standard: Rudin, Real
-   and Complex Analysis, 4.1-4.2; Conway, A Course in Functional Analysis, I.1.")
-(topic! 'ip-normed-ag-is-normed-ag 'analysis)
-(gloss! 'ip-normed-ag-is-normed-ag
-  "For every complex inner product space v, the additive group of its vectors,
-   carrying the induced norm ||x|| = SQRT(<x,x>), is a normed abelian group.")
+;;; ip-normed-ag-is-normed-ag RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-ip-normed-ag.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).

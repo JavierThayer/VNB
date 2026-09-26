@@ -120,14 +120,20 @@
   (let ((seen '()) (out '()))
     (for-each
      (lambda (f)
-       (for-each
-        (lambda (t)
-          (unless (member t seen)
-            (set! seen (cons t seen))
-            (for-each
-             (lambda (e) (if ((cadr e) t) (set! out (cons (cons e t) out))))
-             *ineq-supply-table*)))
-        (what-now--subterms f)))
+       (let ((fv (free-vars f)))
+         (for-each
+          (lambda (t)
+            (unless (or (member t seen)
+                        ;; a subterm under one of f's binders -- `f(n_)' inside
+                        ;; the lambda of a partial sum -- is not citable at this
+                        ;; node (2026-09-18: a typing cited AT it owes a
+                        ;; definedness leaf nothing can close); skip it
+                        (not (every (lambda (v) (memq v fv)) (free-vars t))))
+              (set! seen (cons t seen))
+              (for-each
+               (lambda (e) (if ((cadr e) t) (set! out (cons (cons e t) out))))
+               *ineq-supply-table*)))
+          (what-now--subterms f))))
      (cons goal asms))
     (reverse out)))
 
@@ -233,8 +239,20 @@
                    acc
                    (loop (cdr fs)
                          (if (contra--order-formula? (car fs))
-                             (contra--atoms-of (caddr (car fs))
-                                               (contra--atoms-of (cadr (car fs)) acc))
+                             (let* ((f   (car fs))
+                                    (fv  (free-vars f))
+                                    (raw (contra--atoms-of (caddr f)
+                                                           (contra--atoms-of (cadr f) '())))
+                                    ;; an atom mentioning a variable BOUND in f --
+                                    ;; `f(n_)' under the lambda of a partial sum --
+                                    ;; cannot be typed at this node, and since
+                                    ;; 2026-09-18 citing a typing AT it owes a
+                                    ;; definedness leaf; leave it to the oracle
+                                    (ok  (filter (lambda (a)
+                                                   (every (lambda (v) (memq v fv))
+                                                          (free-vars a)))
+                                                 raw)))
+                               (append ok acc))
                              acc))))))
     ;; compound atoms only: a bare variable's typing comes from the context or
     ;; from an NN->RR lift, neither of which is a library citation
@@ -406,19 +424,15 @@
 (define (ineq-supply--unquote a)
   (if (and (pair? a) (eq? (car a) 'quote)) (cadr a) a))
 
-;;; ...and the shapes are NOT uniform.  `apply-recorded-cmd!' dispatches `fact'
-;;; as `(cmd-fact *ps* (car args) (cadr args))' -- the theorem name and then the
-;;; term list as ONE argument (interactive.scm:4321).  So the recorded form of
-;;; `(fact 'rr-max-closed 'a 'b)' is `(fact rr-max-closed (a b))', not
-;;; `(fact rr-max-closed a b)'.  Spread flat, `cmd-fact' gets `a' where a LIST
-;;; of terms was wanted, instantiates nothing, and lands the raw universal --
-;;; which is not an error, so the probe reported "does not close" on a goal that
-;;; closes by hand, with three true-but-uninstantiated theorems in the context.
+;;; ...and the shape is now uniform, which it was not until 2026-09-06.  This
+;;; lane used to re-nest `fact''s terms into ONE argument -- `(fact
+;;; rr-max-closed (a b))' -- because `apply-recorded-cmd!' read that shape.  The
+;;; surface `fact' has always RECORDED them flat, so the dispatcher and every
+;;; script in `*proof-script-table*' disagreed; the dispatcher was repaired to
+;;; take the flat form and this workaround went with it.  Unquoting is all that
+;;; is left to do.
 (define (ineq-supply--exec m)
-  (let ((head (car m)) (args (map ineq-supply--unquote (cdr m))))
-    (case head
-      ((fact) (list 'fact (car args) (cdr args)))
-      (else   (cons head args)))))
+  (cons (car m) (map ineq-supply--unquote (cdr m))))
 
 ;;; Run the sequence on a scratch clone and report what `ineq' then does.
 ;;; Returns 'CLOSED, #f, or 'no-oracle when the run itself failed.

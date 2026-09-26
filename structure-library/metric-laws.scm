@@ -24,8 +24,8 @@
 (define (ml--hyp-sub s) (let ((w (ml--any (lambda (w) (string-search-forward s (expression->string (wff-formula w)) 0)) (sequent-node-assumptions (ml--cur))))) (and w (wff-formula w))))
 (define (ml--hyp-pred p) (let ((w (ml--any (lambda (w) (p (wff-formula w))) (sequent-node-assumptions (ml--cur))))) (and w (wff-formula w))))
 (define (ml--split!) (let loop () (let scan ((as (sequent-node-assumptions (ml--cur)))) (cond ((null? as) 'done) ((let ((f (wff-formula (car as)))) (and (pair? f) (eq? (car f) 'AND))) (ai (wff-formula (car as))) (loop)) (else (scan (cdr as)))))))
-(define (ml--fl-goal! raw) (let ((s (ml--any (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw)) (ml--leaves)))) (and s (set-proof-state-focus! *ps* s))))
-(define (ml--fl-asm! sub) (let ((s (ml--any (lambda (s) (ml--any (lambda (w) (string-search-forward sub (expression->string (wff-formula w)) 0)) (sequent-node-assumptions s))) (ml--leaves)))) (and s (set-proof-state-focus! *ps* s))))
+(define (ml--fl-goal! raw) (let ((s (ml--any (lambda (s) (equal? (wff-formula (sequent-node-assertion s)) raw)) (ml--leaves)))) (and s (dk-focus! s))))
+(define (ml--fl-asm! sub) (let ((s (ml--any (lambda (s) (ml--any (lambda (w) (string-search-forward sub (expression->string (wff-formula w)) 0)) (sequent-node-assumptions s))) (ml--leaves)))) (and s (dk-focus! s))))
 ;; forward MP on a local (IMPLIES A B) with A in ctx; leaves B in ctx.
 (define (ml--detach! impl) (let ((B (caddr impl))) (cut B) (ml--fl-goal! B) (bc impl) (ass) (ml--fl-asm! (expression->string B))))
 ;; the un-instantiated (FORALL v (IMPLIES (IN v X) ..)) at the current nest level

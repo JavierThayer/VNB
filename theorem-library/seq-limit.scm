@@ -37,7 +37,7 @@
 ;;; comes out through one `slot-h' on PTS(RR-MS), which is what `seq-limit-in-rr'
 ;;; is for.
 ;;;
-;;; WHAT ELSE IS HERE.  Two transfer-form limit laws, both `modulo 0':
+;;; WHAT IS HERE NOW.  Two transfer-form limit laws, both `modulo 0':
 ;;;
 ;;;   rr-limit-scale   h(j) = f(j).c  pointwise, f -> lv   =>   h -> lv.c
 ;;;   rr-limit-sub     h(j) = f(j)-g(j) pointwise, f -> lv, g -> mv  =>  h -> lv-mv
@@ -49,14 +49,27 @@
 ;;; d = eps/(1+|c|) once and hands back the d.  rr-limit-sub is then a
 ;;; composition -- scale by -1, then add -- not a second epsilon argument.
 ;;;
+;;; WHAT MOVED OUT (2026-09-14).  SEQ-LIMIT itself and everything about it --
+;;; seq-limit-converges-to, seq-limit-in-rr, seq-limit-value, the TAIL bound
+;;; rr-limit-tail-abs-le and rr-cauchy-converges (sections L3-L7) -- now live
+;;; in theorem-library/seq-limit-core.scm, which loads ~140 entries EARLIER,
+;;; beside rr-complete-proof and metric-limit-unique.  The reason is load
+;;; order: `unif-cauchy-has-uniform-limit' (unif-cauchy-limit.scm) is built
+;;; from those five and must precede ascoli-bridge, while the two laws kept
+;;; here cite limit-arithmetic and rr-null-scale, which load after
+;;; ascoli-bridge.  The design argument above still belongs to the definition
+;;; and is left here, where it was written; seq-limit-core.scm points back.
+;;;
 ;;; Loads after limit-arithmetic (rr-limit-add), rr-null-scale (rr-scale-eps),
-;;; dominated-convergence (rr-limit-unique), rr-abs-basics (rr-abs-mult,
-;;; rr-abs-closed, rr-abs-nonneg), rr-ms-dist, fun-apply-type-proof
-;;; (fun-apply-type-c), metric-completeness (CONVERGES, CONVERGES-TO) and
-;;; driver-kit.
+;;; rr-abs-basics (rr-abs-mult, rr-abs-closed, rr-abs-nonneg), rr-ms-dist,
+;;; fun-apply-type-proof (fun-apply-type-c), metric-completeness
+;;; (CONVERGES-TO) and driver-kit.  Nothing here needs seq-limit-core.
 ;;; =====================================================================
 
 ;;; ---- file-local driver helpers (the `sq-' prefix) ---------------------
+;;; seq-limit-core.scm carries its own copies of the ones its block uses
+;;; (per-file environments); the L6/L7-only helpers (`ulc-', sq-idx, sq-ineq)
+;;; went with it and are not here.
 
 ;;; Select a hypothesis by CONTENT; a miss ERRORS.
 (define (sq-find what pred)
@@ -128,37 +141,6 @@
                                 (let ((b (caddr a)))
                                   (and (pair? b) (eq? (car b) 'IMPLIES)
                                        (dk-contains? (caddr b) thr)))))))
-
-;;; inst+ lands its whole instantiation chain; the detached result is the
-;;; landing no other landing contains.
-(define (ulc-inst! fm t) (dk-deepest (lambda () (inst+ fm t))))
-
-;;; skolemize a context FORSOME, returning (LANDED . (EIGENVARIABLES)).
-(define (ulc-skolem! fm)
-  (let* ((landed (dk-landed* (lambda () (ai fm))))
-         (new (car landed))
-         (fvs-b (free-vars fm)))
-    (list new (filter (lambda (v) (not (memq v fvs-b))) (free-vars new)))))
-
-;;; |a - c| <= |a - b| + |b - c|, landed as a hypothesis.  The three arguments
-;;; must already be typed in RR; rr-abs-triangle-c is about a SUM, so the
-;;; difference is normalised to (a-b) + (b-c) by `crs' and substituted in.
-(define (ulc-tri! aa bb cc)
-  (let ((u (list '- aa bb)) (v (list '- bb cc)) (w (list '- aa cc)))
-    (fact 'rr-sub-in-rr aa bb) (fact 'rr-sub-in-rr bb cc) (fact 'rr-sub-in-rr aa cc)
-    (have! (list '<= (list 'abs w) (list '+ (list 'abs u) (list 'abs v)))
-      (lambda ()
-        (have! (list '= w (list '+ u v)) (lambda () (crs)))
-        (subst (list '= w (list '+ u v)))
-        (fact 'rr-abs-triangle-c u v)
-        (ass)))))
-
-;;; `ineq' wants 1-based assumption indices, named ONE BY ONE.
-(define (sq-idx form)
-  (let loop ((l (dk-asms)) (i 1))
-    (cond ((null? l) (error "sq-idx: not in context" form))
-          ((equal? (car l) form) i) (else (loop (cdr l) (+ i 1))))))
-(define (sq-ineq . forms) (apply ineq (map sq-idx forms)))
 
 ;;; The four conjuncts of an unfolded CONVERGES-TO(RR-MS, seq, L) GOAL.
 (define (sq-converges-to! eps-branch)
@@ -313,245 +295,3 @@
 (topic! 'rr-limit-sub 'analysis)
 (alias! 'rr-limit-sub
         "the limit of a pointwise difference is the difference of the limits")
-
-;;; =====================================================================
-;;; L3.  SEQ-LIMIT -- the limit of a real sequence, as a TERM.
-;;; =====================================================================
-
-(def-functoid 'SEQ-LIMIT '(f)
-  '(IF (CONVERGES RR-MS f) (IOTA lm_ (CONVERGES-TO RR-MS f lm_)) 0))
-(notation! 'SEQ-LIMIT 'kind 'functoid 'arity 1
-           'english "the limit of the sequence $1"
-           'noun "limit of the sequence $1")
-
-(define sl-if '(IF (CONVERGES RR-MS f) (IOTA lm_ (CONVERGES-TO RR-MS f lm_)) 0))
-(define sl-iota '(IOTA lm_ (CONVERGES-TO RR-MS f lm_)))
-
-;;; (IN v RR) off a CONVERGES-TO, on a SIDE branch -- `mac-h' REPLACES the
-;;; hypothesis it unfolds and the CONVERGES-TO is wanted again below.
-(define (sl-in-rr! v cvt)
-  (have! (list 'IN v 'RR)
-    (lambda ()
-      (dk-split! (dk-landed-find (lambda () (mac-h 'converges-to cvt))
-                                 (lambda (a) (eq? (car a) 'AND))))
-      (slot-h 'PTS (list 'IN v '(PTS RR-MS)))
-      (ass))))
-(define (sl-fun! cvt)
-  (have! '(IN f (FUN NN RR))
-    (lambda ()
-      (dk-split! (dk-landed-find (lambda () (mac-h 'converges-to cvt))
-                                 (lambda (a) (eq? (car a) 'AND))))
-      (slot-h 'PTS '(IN f (FUN NN (PTS RR-MS))))
-      (ass))))
-
-;;; The IOTA's existence-and-uniqueness obligation: the witness is the limit
-;;; CONVERGES hands over, and `rr-limit-unique' is the uniqueness.
-(define (sl-exists-unique!)
-  (let* ((cex (dk-landed-1 (lambda () (mac-h 'converges (list 'CONVERGES 'RR-MS 'f)))))
-         (lm  (sq-skolem! cex))
-         (cvt (sq-find 'conv (dk-head? 'CONVERGES-TO))))
-    (sl-fun! cvt)
-    (sl-in-rr! lm cvt)
-    (ew lm)
-    (sq-and!
-     (lambda ()
-       (if (eq? (car (dk-goal)) 'CONVERGES-TO)
-           (ass)
-           (let* ((yt (sq-di-landed-1!))
-                  (y  (cadddr yt)))            ; CONVERGES-TO(s, f, L): L is 4th
-             (sl-in-rr! y yt)
-             (fact 'rr-limit-unique 'f lm y)
-             (ass)))))))
-
-(sp (make-wff '(FORALL f (IMPLIES (CONVERGES RR-MS f)
-                  (CONVERGES-TO RR-MS f (SEQ-LIMIT f))))))
-(quietly (lambda () (sq-peel!) (mac 'seq-limit)))
-(for-each
- (lambda (l)
-   (dk-focus! l)
-   (if (eq? (car (dk-goal)) 'CONVERGES)
-       (ass)                                   ; the IF's condition, assumed
-       (begin
-         (quietly (lambda () (subst (list '= sl-if sl-iota))))
-         (for-each
-          (lambda (m)
-            (dk-focus! m)
-            (if (eq? (car (dk-goal)) 'CONVERGES-TO)
-                (ass)                          ; the description's own property
-                (quietly (lambda () (sl-exists-unique!)))))
-          (dk-opened (lambda () (iota-d sl-iota)))))))
- (dk-opened (lambda () (if-true sl-if))))
-(qed 'seq-limit-converges-to)
-(topic! 'seq-limit-converges-to 'analysis)
-(alias! 'seq-limit-converges-to "a convergent real sequence converges to its limit")
-
-;;; UNCONDITIONAL definedness -- what the totalising IF buys.  Without it
-;;; SEQ-LIMIT cannot appear in the body of a VNB-LAMBDA whose domain is larger
-;;; than the set where the family converges, which is exactly Prop 4.16's case.
-(sp (make-wff '(FORALL f (IN (SEQ-LIMIT f) RR))))
-(quietly (lambda () (sq-peel!)))
-(use-em '(CONVERGES RR-MS f)
-  (lambda ()
-    (quietly (lambda ()
-      (fact 'seq-limit-converges-to 'f)
-      (dk-split! (dk-landed-find
-                  (lambda () (mac-h 'converges-to '(CONVERGES-TO RR-MS f (SEQ-LIMIT f))))
-                  (lambda (a) (eq? (car a) 'AND))))
-      (slot-h 'PTS '(IN (SEQ-LIMIT f) (PTS RR-MS)))
-      (ass))))
-  (lambda ()
-    (quietly (lambda ()
-      (mac 'seq-limit)
-      (for-each (lambda (l)
-                  (dk-focus! l)
-                  (if (eq? (car (dk-goal)) 'NOT)
-                      (ass)
-                      (begin (subst (list '= sl-if 0)) (fact 'rr-zero-in) (ass))))
-                (dk-opened (lambda () (if-false sl-if))))))))
-(qed 'seq-limit-in-rr)
-(topic! 'seq-limit-in-rr 'analysis)
-(alias! 'seq-limit-in-rr "the limit of a real sequence is a real number")
-
-;;; ... and the identification: a sequence's limit IS its SEQ-LIMIT.
-(sp (make-wff '(FORALL f (FORALL lv (IMPLIES (CONVERGES-TO RR-MS f lv)
-                                             (= (SEQ-LIMIT f) lv))))))
-(quietly (lambda ()
-  (sq-peel!)
-  (have! '(CONVERGES RR-MS f) (lambda () (mac 'converges) (ew 'lv) (ass)))
-  (fact 'seq-limit-converges-to 'f)
-  (fact 'seq-limit-in-rr 'f)
-  (sl-fun! '(CONVERGES-TO RR-MS f lv))
-  (sl-in-rr! 'lv '(CONVERGES-TO RR-MS f lv))
-  (fact 'rr-limit-unique 'f '(SEQ-LIMIT f) 'lv)
-  (ass)))
-(qed 'seq-limit-value)
-(topic! 'seq-limit-value 'analysis)
-(alias! 'seq-limit-value "a sequence's limit is its SEQ-LIMIT")
-
-;;; =====================================================================
-;;; L6.  rr-limit-tail-abs-le -- a TAIL bound passes to the limit.
-;;;
-;;;   |f(k) - v| <= c  for every k >= N,  f -> lv    =>    |lv - v| <= c
-;;;
-;;; `rr-limit-abs-le' (dominated-convergence.scm) is the tree's only fact of
-;;; this species and it is weaker twice over: the bound must hold at EVERY
-;;; index, and the conclusion is about |lv| rather than the distance to a
-;;; chosen point.  Both weakenings matter for a uniform-Cauchy family, where
-;;; the bound is exactly a TAIL bound and the point is another member of the
-;;; family.  The route is `rr-le-all-pos-nonpos' with the estimate taken at the
-;;; single index MAX(N, N_eps), as in `rr-limit-abs-le'.
-;;; =====================================================================
-
-(sp (make-wff "forall([f in fun(nn,rr), lv in rr, v_ in rr, c in rr, n_ in nn],
-   converges-to(rr-ms, f, lv) implies
-   forall([k in nn], n_ <= k implies abs(f(k) - v_) <= c) implies
-   abs(lv - v_) <= c)"))
-(quietly (lambda () (sq-peel!)))
-(define cb-pt (car (dk-asms)))
-(quietly (lambda ()
-  (dk-split! (dk-landed-find (lambda () (mac-h 'converges-to '(CONVERGES-TO RR-MS f lv)))
-                             (lambda (a) (eq? (car a) 'AND))))))
-(define cb-tail (sq-tail-of 'f))
-(quietly (lambda ()
-  (fact 'rr-sub-in-rr 'lv 'v_)
-  (fact 'rr-abs-closed '(- lv v_))
-  (have! '(IN (- (abs (- lv v_)) c) RR)
-    (lambda () (fact 'rr-sub-in-rr '(abs (- lv v_)) 'c) (ass)))))
-(have! '(FORALL eps (IMPLIES (POS-RR eps) (<= (- (abs (- lv v_)) c) eps)))
-  (lambda ()
-    (quietly (lambda ()
-      (let* ((eps (cadr (sq-di-landed-1!)))
-             (sk  (ulc-skolem! (ulc-inst! cb-tail eps)))
-             (bigN (car (cadr sk))))
-        (dk-split! (car sk))
-        (let* ((inner (sq-inner bigN))
-               (kk (list 'MAX 'n_ bigN)))
-        (sq-pos-in-rr! eps)
-        (fact 'nn-max-closed 'n_ bigN)
-        (fact 'nn-in-rr 'n_) (fact 'nn-in-rr bigN) (fact 'nn-in-rr kk)
-        (fact 'rr-le-max-left 'n_ bigN)
-        (fact 'rr-le-max-right 'n_ bigN)
-        (ulc-inst! inner kk)
-        (ulc-inst! cb-pt kk)
-        (fact 'fun-apply-type-c 'f 'NN 'RR kk)
-        (mac-h 'rr-ms-dist (list '<= (list '(DIST RR-MS) (list 'f kk) 'lv) eps))
-        (fact 'rr-sub-in-rr (list 'f kk) 'lv)
-        (fact 'rr-abs-closed (list '- (list 'f kk) 'lv))
-        (fact 'rr-abs-sub-sym 'lv (list 'f kk))
-        (fact 'rr-sub-in-rr 'lv (list 'f kk))
-        (fact 'rr-abs-closed (list '- 'lv (list 'f kk)))
-        (fact 'rr-sub-in-rr (list 'f kk) 'v_)
-        (fact 'rr-abs-closed (list '- (list 'f kk) 'v_))
-        (ulc-tri! 'lv (list 'f kk) 'v_)
-        (sq-ineq (list '<= '(abs (- lv v_))
-                       (list '+ (list 'abs (list '- 'lv (list 'f kk)))
-                                (list 'abs (list '- (list 'f kk) 'v_))))
-                 (list '= (list 'abs (list '- 'lv (list 'f kk)))
-                          (list 'abs (list '- (list 'f kk) 'lv)))
-                 (list '<= (list 'abs (list '- (list 'f kk) 'lv)) eps)
-                 (list '<= (list 'abs (list '- (list 'f kk) 'v_)) 'c))))))))
-(quietly (lambda ()
-  (fact 'rr-le-all-pos-nonpos '(- (abs (- lv v_)) c))
-  (sq-ineq '(<= (- (abs (- lv v_)) c) 0))))
-(qed 'rr-limit-tail-abs-le)
-(topic! 'rr-limit-tail-abs-le 'analysis)
-(alias! 'rr-limit-tail-abs-le "a tail bound on a real sequence passes to its limit")
-
-;;; =====================================================================
-;;; L7.  rr-cauchy-converges -- COMPLETENESS in the abs/eps language.
-;;;
-;;; `rr-complete' says IS-COMPLETE(RR-MS), and IS-CAUCHY-SEQ is written with
-;;; (DIST RR-MS); every estimate in the calculus arc is written with `abs'.
-;;; This is the one-line crossing, and it exists so that a proof that has just
-;;; produced an abs-form Cauchy estimate does not have to re-derive the metric
-;;; packaging.  `modulo 0'.
-;;; =====================================================================
-
-(sp (make-wff "forall([f in fun(nn,rr)],
-   forall([eps], pos-rr(eps) implies
-      forsome([n_ in nn], forall([m_ in nn, p_ in nn],
-         n_ <= m_ implies n_ <= p_ implies abs(f(m_) - f(p_)) <= eps)))
-   implies converges(rr-ms, f))"))
-(quietly (lambda () (sq-peel!)))
-(define cc-h (car (dk-asms)))
-(quietly (lambda ()
- (fact 'rr-is-metric-space)
- (have! '(IS-CAUCHY-SEQ RR-MS f)
-  (lambda ()
-    (mac 'is-cauchy-seq)
-    (sq-and!
-     (lambda ()
-       (let ((gl (dk-goal)))
-         (cond ((eq? (car gl) 'IS-METRIC-SPACE) (ass))
-               ((eq? (car gl) 'IN) (slot 'PTS) (ass))
-               (else
-                (let* ((eps (cadr (sq-di-landed-1!)))
-                       (sk  (ulc-skolem! (ulc-inst! cc-h eps)))
-                       (bigN (car (cadr sk))))
-                  (dk-split! (car sk))
-                  (let ((inner (sq-find 'inner
-                                 (lambda (a) (and (pair? a) (eq? (car a) 'FORALL)
-                                                  (dk-contains? a bigN)
-                                                  (dk-contains? a 'abs))))))
-                    (ew bigN)
-                    (sq-and!
-                     (lambda ()
-                       (if (eq? (car (dk-goal)) 'IN) (ass)
-                           (begin
-                             (sq-di-landed!)
-                             (dk-split! (car (sq-di-landed!)))
-                             (let* ((gl (dk-goal))
-                                    (da (cadr gl))
-                                    (m  (cadr (cadr da)))
-                                    (p  (cadr (caddr da))))
-                               (fact 'fun-apply-type-c 'f 'NN 'RR m)
-                               (fact 'fun-apply-type-c 'f 'NN 'RR p)
-                               (mac 'rr-ms-dist)
-                               (ulc-inst! (ulc-inst! inner m) p)
-                               (ass)))))))))))))))
- (fact 'rr-complete)
- (fact 'complete-cauchy-converges 'RR-MS 'f)
- (ass)))
-(qed 'rr-cauchy-converges)
-(topic! 'rr-cauchy-converges 'analysis)
-(alias! 'rr-cauchy-converges "a real sequence Cauchy in the abs metric converges")

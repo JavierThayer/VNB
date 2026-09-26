@@ -83,8 +83,9 @@
 ;;; (which mac-h would DELETE, taking the hypothesis every other `fact' guarded
 ;;; on IS-SUBMODULE needs).  Definitional: each is a projection of the IFF above,
 ;;; exactly as module.scm surfaces module-vadd-type / module-act-type from
-;;; IS-MODULE.  (submodule-subset, the fifth, is already a proven theorem in
-;;; submodule-fg-proof.scm.)
+;;; IS-MODULE.  submodule-subset is the fifth projection, stamped the same way.
+;;; (This comment said until 2026-09-16 that it was "a proven theorem in
+;;; submodule-fg-proof.scm"; that file only CITES it.)
 (fluid-let ((*current-provenance* 'definitional))
   (theory-add-axiom! *current-theory* 'submodule-subset
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s) (SUBSET s (VEC m))))))

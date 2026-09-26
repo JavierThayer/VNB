@@ -194,24 +194,18 @@
   (list 'IF (list 'IS-ANTIDERIVABLE 'phi hi lo) (list '- (list 'C-INT 'phi hi lo)) 0))
 
 ;;; =====================================================================
-;;; 0.  TWO ORDER FACTS THE TREE DID NOT HAVE.
+;;; 0.  AN ORDER FACT THE TREE DID NOT HAVE.
 ;;;
-;;; `<' is DEFINED (order-predicates.scm) as `<= and not =', so irreflexivity is
-;;; the reflexivity of `=' read through the unfold, and asymmetry is one
-;;; instance of rr-lt-trans against it.  Neither was in rr-order-basics.scm:
-;;; nothing had needed to rule a branch of a conditional OUT before.
+;;; `<' is DEFINED (order-predicates.scm) as `<= and not =', so asymmetry is one
+;;; instance of rr-lt-trans against irreflexivity.  Neither was in
+;;; rr-order-basics.scm when this file was written: nothing had needed to rule a
+;;; branch of a conditional OUT before.
+;;;
+;;; `rr-lt-irrefl' -- proved here, cited below and by theorem-library/rpow-star
+;;; -- MOVED on 2026-09-19 (batch 8-K2) to theorem-library/rr-order-basics.scm
+;;; (load position 175), where the rest of the RR order basics live and where
+;;; every citer can see it.  It is cited below by the same name.
 ;;; =====================================================================
-
-(quietly (lambda ()
-(sp (make-wff '(FORALL a (IMPLIES (IN a RR) (NOT (< a a))))))
-(co-peel!) (di)                       ; the NOT: assume a < a, goal FALSITY
-(mac-h '< '(< a a))
-(have! '(= a a) (lambda () (rfl)))
-(prop)))
-(co-check 'rr-lt-irrefl)
-(qed 'rr-lt-irrefl)
-(topic! 'rr-lt-irrefl 'inequalities)
-(alias! 'rr-lt-irrefl "no real is less than itself")
 
 (quietly (lambda ()
 (sp (make-wff '(FORALL a (IMPLIES (IN a RR) (FORALL b (IMPLIES (IN b RR)

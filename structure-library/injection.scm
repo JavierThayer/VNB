@@ -1,3 +1,7 @@
+;;; RETIRED 2026-09-17 (proven): choose-n-0, choose-0-succ -- theorem-library/rake-combinatorics.scm.
+;;; choose-succ (Pascal) stays: needs the CHOOSE-SET split + card-image-injection (~150 lines).
+;;; RETIRED 2026-09-17 (proven): falling-in-nn -- theorem-library/rake-finsum-typing-nn.scm.
+;;; choose-in-nn stays: it bottoms out in the asserted card-power-nn.
 ;;; injection.scm -- INJECTION class, IMAGE operator, and the
 ;;; injection-extension recurrence: the counting principle behind nPk and n!.
 ;;;
@@ -144,27 +148,21 @@
                  (IN (IMAGE phi S) SET))))))
 
 ;;; The image of phi : dm -> cod lands in cod.
-(theory-add-axiom! *current-theory* 'image-subset-codomain
-  '(FORALL dm (FORALL cod (FORALL phi
-      (IMPLIES (IN phi (FUN dm cod))
-               (FORALL w
-                 (IMPLIES (IN w (IMAGE phi dm)) (IN w cod))))))))
+;;; image-subset-codomain PROVEN 2026-09-22: theorem-library/image-subset-codomain.scm (it had been a bare axiom with no warrant)
 
 ;;; An injection preserves cardinality on its image: |IMAGE(phi, dm)| = |dm|.
 ;;; (phi restricted to dm is a bijection dm -> IMAGE(phi, dm).)
-;; A CARD axiom, so `primitive' like the rest of them (cardinality.scm).
-(fluid-let ((*current-provenance* 'primitive))
-(theory-add-axiom! *current-theory* 'card-image-injection
-  '(FORALL dm (FORALL cod (FORALL phi
-      (IMPLIES (AND (IN phi (INJECTION dm cod)) (AND (IN dm SET) (IN (CARD dm) NN)))
-               (= (CARD (IMAGE phi dm)) (CARD dm))))))))
+;;;
+;;; RETIRED 2026-09-20 (batch 9-B).  It was the eighth `primitive' CARD axiom --
+;;; the other seven were in structure-library/cardinality.scm.  CARD is now
+;;; DEFINED there, and `card-image-injection' is PROVEN, in its old shape and
+;;; under its old name, in theorem-library/card-laws.scm from
+;;; `card-image-injection-curried' (theorem-library/rake-card-star-laws.scm).
+;;; No citation of the name changed.
 
 ;;; -----------------------------------------------------------------------
 ;;; Base case: the empty function is the unique injection out of {}.
-(theory-add-axiom! *current-theory* 'injection-from-empty
-  '(FORALL C
-      (IMPLIES (IN C SET)
-               (= (CARD (INJECTION EMPTY-SET C)) (succ 0)))))
+;;; injection-from-empty RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-combinatorics2.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; THE TARGET THEOREM -- injection-extension recurrence.
@@ -220,8 +218,7 @@
 
 ;;; Typing: n! is a natural number.  Derivable from the recurrence by
 ;;; nn-induction; installed for direct use.
-(theory-add-axiom! *current-theory* 'factorial-in-nn
-  '(FORALL n (IMPLIES (IN n NN) (IN (FACTORIAL n) NN))))
+;;; factorial-in-nn PROVEN 2026-09-24 (batch 27-A follow-on) in theorem-library/factorial-in-nn.scm by nn-induction; the axiom retired.
 
 ;;; -----------------------------------------------------------------------
 ;;; The two "obvious lemmas" that reduce the permutation count to a short
@@ -231,8 +228,7 @@
 
 ;;; Base: the empty set has one self-injection (the empty function).
 ;;; |PERMUTATIONS(0)| = |INJECTION({}, {})| = 1, since ORD-SEGMENT(0) = {}.
-(support 'permutations-zero
-  '(= (CARD (PERMUTATIONS 0)) (succ 0)))
+;;; permutations-zero RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-combinatorics2.scm
 
 ;;; Step (the n! recursion): adding one point multiplies the count by n+1.
 ;;; |PERMUTATIONS(n+1)| = (n+1) * |PERMUTATIONS(n)|.  This is injection-
@@ -274,32 +270,11 @@
   '(CARD (CHOOSE-SET n m)))
 
 ;; Typing: a binomial coefficient is a natural number.
-(support 'choose-in-nn
-  '(FORALL n (IMPLIES (IN n NN) (FORALL m (IMPLIES (IN m NN) (IN (CHOOSE n m) NN))))))
-(warrant! 'choose-in-nn 'well-known
-  "ORD-SEGMENT(n) is finite (card-segment: CARD = n), so POWER(ORD-SEGMENT n) is
-   finite and its subset { A : CARD A = m } is finite; the cardinality lies in NN.")
+;;; choose-in-nn RETIRED 2026-09-18 (rake batch 5): proven modulo 0 in theorem-library/rake-combinatorics2.scm
 
 ;; Boundary values + Pascal's rule -- now THEOREMS of the cardinality definition,
 ;; kept as supports for the binomial layer (which rewrites with them).
-(support 'choose-n-0
-  '(FORALL n (IMPLIES (IN n NN) (= (CHOOSE n 0) (succ 0)))))
-(support 'choose-0-succ
-  '(FORALL k (IMPLIES (IN k NN) (= (CHOOSE 0 (succ k)) 0))))
-(support 'choose-succ
-  '(FORALL n (IMPLIES (IN n NN)
-     (FORALL k (IMPLIES (IN k NN)
-       (= (CHOOSE (succ n) (succ k))
-          (+ (CHOOSE n k) (CHOOSE n (succ k)))))))))
-(warrant! 'choose-n-0 'well-known
-  "The unique 0-element subset is EMPTY-SET, so CHOOSE(n,0) = 1.")
-(warrant! 'choose-0-succ 'well-known
-  "ORD-SEGMENT(0) = EMPTY-SET has no (k+1)-element subset, so CHOOSE(0,k+1) = 0.")
-(warrant! 'choose-succ 'well-known
-  "The (k+1)-subsets of ORD-SEGMENT(succ n) = {0,...,n} split disjointly on
-   whether they contain the new point n: those that do not are the (k+1)-subsets
-   of {0,...,n-1} (CHOOSE(n,succ k)); those that do are {n} u B with B a
-   k-subset of {0,...,n-1} (CHOOSE(n,k)).  card-union-disjoint gives Pascal.")
+;;; choose-succ RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-choose-succ.scm
 
 ;;; -----------------------------------------------------------------------
 ;;; Falling factorial  n^{(m)} = n(n-1)...(n-m+1)  (m descending factors).
@@ -315,11 +290,6 @@
   '(* (- n k) val))
 
 ;; Typing: positive for m <= n, and 0 once a factor vanishes for m > n.
-(support 'falling-in-nn
-  '(FORALL n (IMPLIES (IN n NN) (FORALL m (IMPLIES (IN m NN) (IN (FALLING n m) NN))))))
-(warrant! 'falling-in-nn 'well-known
-  "For m <= n each factor n-k (0 <= k < m) is a positive natural; for m > n the
-   factor at k = n is 0 and the product stays 0.  Either way FALLING(n,m) in NN.")
 
 ;; nPk: the number of injections of an m-set into an n-set IS the falling
 ;; factorial.  Generalises permutation-recurrence (the m = n diagonal gives n!).

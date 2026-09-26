@@ -20,7 +20,12 @@
 ;;; it serves, for one concrete reason: ETAIL is built from IMAGE, whose
 ;;; membership law lives in injection.scm, which loads after extended-reals-pos.
 ;;;
-;;; PROVENANCE.  Everything below except `etimes-in-fun' is FREE.  The five
+;;; PROVENANCE (REWRITTEN 2026-09-18).  The paragraph below is kept as the record of a
+;;; mistake: it argued that the five etimes equations were "a definition by cases of a
+;;; fresh symbol" and stamped them `definitional'.  They were not a definition -- one of
+;;; them was false (see ETIMES, DEFINED below) -- and the stamp hid it from every bill.
+;;; etimes is now defined by ONE quasi-equation and its laws are proven.
+;;; [old text:] Everything below except `etimes-in-fun' is FREE.  The five
 ;;; etimes equations are a definition by cases of a fresh symbol -- exhaustive
 ;;; over RR-POS-STAR x RR-POS-STAR and pairwise disjoint, since POS-INF is not a real
 ;;; (pos-inf-not-in-rr) and the absorbing clauses exclude 0 explicitly -- so
@@ -48,46 +53,29 @@
 ;;; defining the integral of a simple function (Rudin, Real and Complex
 ;;; Analysis, Def. 1.23, p. 19).
 
+;;; ETIMES, DEFINED (2026-09-18, rake batch 5c-Y).  The five case equations that stood here,
+;;; wrapped `definitional', and the typing axiom `etimes-in-fun' were jointly INCONSISTENT:
+;;; `etimes-real' concluded a strict `=' for ALL reals, so etimes(x,0) denoted for every real
+;;; x, while `etimes-in-fun' made etimes a function defined exactly on [0,+oo] x [0,+oo]; so
+;;; every real was >= 0 (probe: scratchpad/r7y/r7y-p1.scm).  Worse than EPLUS: the stamp made
+;;; the false equation contribute {} to every bill, so no ledger could show it.  The old
+;;; forms are in archive/retired-2026-09-18/extended-arith--etimes-axioms.scm.  Every law is
+;;; now a THEOREM of the definition below (theorem-library/rake-etimes-defined.scm): the four
+;;; infinite-case equations and etimes-in-fun with statements unchanged, and
+;;; `etimes-real-defined', which carries the guards 0 <= x, 0 <= y.  The convention
+;;; 0 * oo = 0 is the one the old equations stated.
+(declare-named-only! 'etimes-def
+  "left-hand side is a bare constant: as a live rewrite it would turn every mention of etimes into its lambda")
 (fluid-let ((*current-provenance* 'definitional))
+  (theory-add-axiom! *current-theory* 'etimes-def
+    '(== etimes
+         (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
+           (IF (OR (= x_ POS-INF) (= y_ POS-INF))
+               (IF (OR (= x_ 0) (= y_ 0))
+                   0
+                   POS-INF)
+               (bintimes x_ y_))))))
 
-  ;; Finite case: on the reals, etimes agrees with ordinary multiplication.
-  ;; Guarded exactly as `eplus-real' is -- on membership in RR, which already
-  ;; excludes POS-INF.
-  (theory-add-axiom! *current-theory* 'etimes-real
-    (forall-guarded '(x y) '((IN x RR) (IN y RR))
-      '(= (etimes x y) (bintimes x y))))
-
-  ;; The two 0 * inf cases.
-  (theory-add-axiom! *current-theory* 'etimes-zero-pos-inf
-    '(= (etimes 0 POS-INF) 0))
-
-  (theory-add-axiom! *current-theory* 'etimes-pos-inf-zero
-    '(= (etimes POS-INF 0) 0))
-
-  ;; Left-absorbing on the nonzero part: POS-INF times anything but 0 is POS-INF.
-  (theory-add-axiom! *current-theory* 'etimes-pos-inf-left
-    (forall-guarded '(y) '((IN y RR-POS-STAR) (NOT (= y 0)))
-      '(= (etimes POS-INF y) POS-INF)))
-
-  ;; Right-absorbing on the nonzero part.
-  (theory-add-axiom! *current-theory* 'etimes-pos-inf-right
-    (forall-guarded '(x) '((IN x RR-POS-STAR) (NOT (= x 0)))
-      '(= (etimes x POS-INF) POS-INF))))
-
-;;; Closure / totality -- a sethood-and-totality claim, not a defining
-;;; equation, so it sits outside the definitional block and is warranted on
-;;; its own, as eplus-in-fun is in extended-reals-pos.scm.
-(theory-add-axiom! *current-theory* 'etimes-in-fun
-  '(IN etimes (FUN (CARTESIAN RR-POS-STAR RR-POS-STAR) RR-POS-STAR)))
-
-(warrant! 'etimes-in-fun 'well-known
-  "Extended multiplication is total on [0,+inf]: the five defining clauses
-   above cover RR-POS-STAR x RR-POS-STAR exhaustively and land in RR-POS-STAR in every case (a
-   product of nonnegative reals is a nonnegative real; the remaining values
-   are 0 and POS-INF, both in RR-POS-STAR by zero-in-rr-pos-star and
-   pos-inf-in-rr-pos-star).  Stated as a FUN membership, hence also asserting
-   that the graph is a set -- exactly as eplus-in-fun does for extended
-   addition in extended-reals-pos.scm, and accepted on the same grounds.")
 
 (gloss! 'etimes-in-fun
   "etimes is a total function from RR-POS-STAR x RR-POS-STAR to RR-POS-STAR: the product of two

@@ -1,3 +1,5 @@
+;;; RETIRED 2026-09-17 (proven): ring-neg-mul-left -- theorem-library/rake-algebra2.scm
+;;; RETIRED 2026-09-17 (proven): ring-carr-in-set -- theorem-library/rake-algebra.scm
 ;;; ring.scm -- RING, RING-PROD, ZERO-RING
 ;;;
 ;;; RING: carrier CARR, addition ADD, multiplication MUL, additive inverse NEG,
@@ -6,6 +8,8 @@
 ;;;
 ;;; (A, ADD, ZERO, NEG) is an abelian group; (A, MUL, ONE) is a monoid;
 ;;; MUL distributes over ADD.
+;;; RETIRED 2026-09-14 (proven): ring-mul-zero-left -- theorem-library/ring-zero-one-power.scm
+;;; RETIRED 2026-09-14 (proven): ring-mul-zero-right -- theorem-library/ring-zero-one-power.scm
 
 (declare-structure RING
   (carriers CARR)
@@ -93,30 +97,12 @@
 ;;; DERIVED: a·0 = a·(0+0) = a·0 + a·0; cancel a·0 against itself in the
 ;;; additive group.  Symmetric on the other side.  Standard ring lemmas,
 ;;; installed as axioms for direct use in scalar pull-outs over finite sums.
-(theory-add-axiom! *current-theory* 'ring-mul-zero-left
-  '(FORALL s
-     (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (= ((MUL s) (ZERO s) a) (ZERO s)))))))
 
-(theory-add-axiom! *current-theory* 'ring-mul-zero-right
-  '(FORALL s
-     (IMPLIES (IS-RING s)
-       (FORALL a (IMPLIES (IN a (CARR s))
-         (= ((MUL s) a (ZERO s)) (ZERO s)))))))
 
 ;;; (-a) * b = -(a*b).  Standard: a*b + (-a)*b = (a + -a)*b = 0*b = 0, so (-a)*b
 ;;; is the additive inverse of a*b.  Needed wherever a coefficient is negated --
 ;;; the lastcoeff ideal's neg-closure, and the spans-submodule-fg remainder
 ;;; c_{1,succ p} + (-q)*b = q*b - q*b = 0.
-(support 'ring-neg-mul-left
-  '(FORALL s (IMPLIES (IS-RING s)
-     (FORALL a (IMPLIES (IN a (CARR s))
-       (FORALL b (IMPLIES (IN b (CARR s))
-         (= ((MUL s) ((NEG s) a) b) ((NEG s) ((MUL s) a b))))))))))
-(warrant! 'ring-neg-mul-left 'well-known
-  "(-a)*b = -(a*b): a*b + (-a)*b = (a + -a)*b = 0*b = 0 (ring-right-dist,
-   ring-add-left-inv, ring-mul-zero-left), so (-a)*b is the inverse of a*b.")
 
 ;;; ZERO(r) ∈ CARR(r) when IS-RING(r).
 ;;; DERIVED (REVIEW.md R-2): follows from the auto-generated IS-RING IFF.
@@ -140,10 +126,6 @@
   '(ring-add-assoc ring-add-comm ring-add-left-id ring-add-left-inv
     ring-mul-assoc ring-mul-left-id ring-mul-right-id ring-left-dist ring-right-dist
     ring-zero-in ring-carrier-closed-add))
-(warrant! 'ring-mul-zero-left 'well-known
-  "0.a = 0: a.0 = a.(0+0) = a.0 + a.0, cancel a.0 in the additive group.  Lang, Algebra II.1.")
-(warrant! 'ring-mul-zero-right 'well-known
-  "a.0 = 0: symmetric to ring-mul-zero-left.  Lang, Algebra II.1.")
 
 ;;; ADD closes on the carrier -- CURRIED (ring-carrier-closed-add above packs its
 ;;; guards into one AND, which a forward `fact' will not split; this is the twin
@@ -156,10 +138,6 @@
 
 ;;; The carrier of a ring is a set (the CARR-in-SET typing conjunct of the
 ;;; auto-generated IS-RING definition).  Named for citation.
-(support 'ring-carr-in-set
-  '(FORALL r (IMPLIES (IS-RING r) (IN (CARR r) SET))))
-(warrant! 'ring-carr-in-set 'proof "carrier of a ring is a set (IS-RING typing conjunct).")
-(topic! 'ring-carr-in-set 'algebra)
 
 ;;; -----------------------------------------------------------------------
 ;;; RING-PROD: product of two rings.  Total: defined for any X, Y;

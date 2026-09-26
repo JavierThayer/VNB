@@ -154,21 +154,8 @@
 ;;; MEASURABILITY IS PRESERVED.  Rudin Thm. 1.14 (p. 14) and Thayer Prop. 2.6
 ;;; (p. 9) between them are the closure package.
 
-(support 'measurable-fn-indicator
-  (forall-guarded '(omega cA a_)
-                  '((IS-SIGMA-ALGEBRA omega cA) (IN a_ cA))
-    '(IS-MEASURABLE-FN omega cA (INDICATOR omega a_))))
+;;; measurable-fn-indicator RETIRED 2026-09-18 (rake batch 5b): proven in theorem-library/rake-measure2.scm
 
-(warrant! 'measurable-fn-indicator 'reference '(rudin-rca "Def. 1.16" 30))
-(topic!   'measurable-fn-indicator 'plumbing)
-(gloss!   'measurable-fn-indicator
-  "The indicator function of a measurable set is measurable.  Rudin states it
-   in the paragraph of Def. 1.16 (p. 15): a simple function is measurable if
-   and only if each of the sets on which it is constant is measurable, of
-   which this is the two-valued case.  A definitional read-off in either
-   source, and asserted here rather than proved because VNB's measurability is
-   the tail criterion, so the read-off is a case analysis on alpha rather than
-   a rewriting.")
 
 (support 'measurable-fn-eplus
   (forall-guarded '(omega cA f g)

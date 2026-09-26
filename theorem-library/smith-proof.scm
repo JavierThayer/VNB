@@ -10,18 +10,29 @@
 (define (mq-di*) (let lp () (let* ((g (mq-goal)) (h (and (pair? g) (car g))))
                    (when (memq h '(FORALL IMPLIES)) (di) (lp)))))
 (define (mq-last) (car (reverse (dg-sequent-nodes (proof-state-dg *ps*)))))
-(define (mq-node! n) (set-proof-state-focus! *ps* n))
+(define (mq-node! n) (dk-focus! n))
 (define (mq-foc! pred)
   (let ((s (any-pred (lambda (s) (pred (wff-formula (sequent-node-assertion s)))) (proof-leaves))))
-    (and s (set-proof-state-focus! *ps* s) s)))
+    (and s (dk-focus! s) s)))
 (define (H? h) (lambda (g) (and (pair? g) (eq? (car g) h))))
+;; matmul-type's product guard at P:m x n, Q:n x k (SIZE/MAT surgery, 2026-09-16);
+;; a propositional tautology at the one-sided-square dimensions used here.
+(define (sm-mt! m n k)
+  (dk-have-prop! `(IMPLIES (= ,n 0) (OR (= ,m 0) (= ,k 0)))))
 
 ;; ---- equiv-mul-both ----
 (sp (make-wff '(FORALL R (IMPLIES (IS-RING R) (FORALL m (FORALL n (FORALL A (FORALL U (FORALL V (IMPLIES (IN A (MAT m n (CARR R))) (IMPLIES (IS-INVERTIBLE-MAT R m U) (IMPLIES (IS-INVERTIBLE-MAT R n V) (MAT-EQUIV R m n A (MATMUL R (MATMUL R U A) V))))))))))))))
 (mq-di*)
 (fact 'invertible-mat-is-mat 'R 'm 'U)
+(sm-mt! 'm 'm 'n)
 (fact 'matmul-type 'R 'm 'm 'n 'U 'A)
 (fact 'mat-equiv-left-mult 'R 'm 'n 'A 'U)
+;; LUTINS instantiation (2026-09-18): mat-equiv-trans below is instantiated at
+;; U.A.V, an IOTA-bodied MATMUL the certificate never grants, so its typing is
+;; landed first -- V from its invertibility, then matmul-type on (U.A).V.
+(fact 'invertible-mat-is-mat 'R 'n 'V)
+(sm-mt! 'm 'n 'n)
+(fact 'matmul-type 'R 'm 'n 'n '(MATMUL R U A) 'V)
 (fact 'mat-equiv-right-mult 'R 'm 'n '(MATMUL R U A) 'V)
 (fact 'mat-equiv-trans 'R 'm 'n 'A '(MATMUL R U A) '(MATMUL R (MATMUL R U A) V))
 (ass)
@@ -37,10 +48,17 @@
 (define IFr (list 'IF '(= 1 1) '(ENTRY A i0 j0) (list 'IF '(= 1 i0) '(ENTRY A 1 j0) '(ENTRY A 1 j0))))
 (sp (make-wff '(FORALL R (IMPLIES (IS-RING R) (FORALL m (FORALL n (FORALL A (FORALL i0 (FORALL j0 (IMPLIES (IN A (MAT m n (CARR R))) (IMPLIES (IN 1 (INTERVAL 1 m)) (IMPLIES (IN 1 (INTERVAL 1 n)) (IMPLIES (IN i0 (INTERVAL 1 m)) (IMPLIES (IN j0 (INTERVAL 1 n)) (IMPLIES (NOT (= 1 i0)) (IMPLIES (NOT (= 1 j0)) (FORSOME B (AND (MAT-EQUIV R m n A B) (= (ENTRY B 1 1) (ENTRY A i0 j0))))))))))))))))))))
 (mq-di*)
+(fact 'mat-rows-in-nn 'm 'n '(CARR R) 'A)     ; elem-f-* now want the dimension natural
+(fact 'mat-cols-in-nn 'm 'n '(CARR R) 'A)
 (fact 'elem-f-invertible 'R 'm 1 'i0)
 (fact 'elem-f-invertible 'R 'n 1 'j0)
-(fact 'equiv-mul-both 'R 'm 'n 'A Fm Fn)
+;; LUTINS instantiation (2026-09-18): equiv-mul-both is instantiated at BOTH
+;; elementary matrices, so both typings are landed first (elem-f-type for m was
+;; already here, one line too late; the n one is new).
 (fact 'elem-f-type 'R 'm 1 'i0)
+(fact 'elem-f-type 'R 'n 1 'j0)
+(fact 'equiv-mul-both 'R 'm 'n 'A Fm Fn)
+(sm-mt! 'm 'm 'n)
 (fact 'matmul-type 'R 'm 'm 'n Fm 'A)
 (fact 'entry-in-carrier 'm 'n '(CARR R) 'A 'i0 'j0)
 (ew B)
@@ -89,6 +107,8 @@
 (mq-di*)
 (fact 'entry-in-carrier 'm 'n '(CARR R) 'A 'i0 'j0)
 (fact 'entry-in-carrier 'm 'n '(CARR R) 'A 1 1)
+(fact 'mat-rows-in-nn 'm 'n '(CARR R) 'A)     ; for elem-f-invertible (2026-09-16)
+(fact 'mat-cols-in-nn 'm 'n '(CARR R) 'A)
 ;; ===== case (= 1 i0) =====
 (define NOTi (mq-cases '(= 1 i0)))
   (define NOTj-a (mq-cases '(= 1 j0)))
@@ -100,6 +120,7 @@
   (mq-node! NOTj-a)
     ;; i0=1, NOT j0=1 : B = A.F[1,j0]
     (fact 'elem-f-invertible 'R 'n 1 'j0)
+    (fact 'elem-f-type 'R 'n 1 'j0)              ; LUTINS: mat-equiv-right-mult instantiates at Fn
     (fact 'mat-equiv-right-mult 'R 'm 'n 'A Fn) (fact 'eq-sym 1 'i0)
     (ew Bri) (di)
     (foc-meq! Bri) (ass)
@@ -115,6 +136,7 @@
 (define NOTj-b (mq-cases '(= 1 j0)))
     ;; NOT i0=1, j0=1 : B = F[1,i0].A
     (fact 'elem-f-invertible 'R 'm 1 'i0)
+    (fact 'elem-f-type 'R 'm 1 'i0)              ; LUTINS: mat-equiv-left-mult instantiates at Fm
     (fact 'mat-equiv-left-mult 'R 'm 'n 'A Fm) (fact 'eq-sym 1 'j0)
     (ew Ble) (di)
     (foc-meq! Ble) (ass)

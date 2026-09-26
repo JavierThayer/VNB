@@ -176,7 +176,10 @@
 
 ;; the factor.  nt-unit-factor is guarded on `y_ in RR', so land that first.
 (have! '(IN (succ n) NN) (lambda () (fact 'nn-succ-closed 'n) (ass)))
-(fact 'nth-deriv-v-in-vec 'cm nt-phi '(succ n) nt-theta)
+;; was (fact 'nth-deriv-v-in-vec ...): the guarded leaf's order-(n+1) form, in a have! lane
+;; because the bare fact's six-term chain puts prop over its atom cap (2026-09-14)
+(have! (list 'IN (list (list 'NTH-DERIV-V 'cm nt-phi '(succ n)) nt-theta) '(VEC cm))
+       (lambda () (fact 'taylor-v-deriv-in-vec 'cm nt-phi 0 1 'n nt-theta) (ass)))
 (fact 'vnrm-real 'cm (list (list 'NTH-DERIV-V 'cm nt-phi '(succ n)) nt-theta))
 (mac-h 'nt-unit-factor (nt-ineq))
 
