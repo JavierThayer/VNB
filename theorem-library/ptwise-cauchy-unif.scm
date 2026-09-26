@@ -73,7 +73,7 @@
 ;;;
 ;;; CITATIONS and load positions (0-based over prover-load, 2026-09-15):
 ;;;   class-extensionality, power-set, power-set-membership, choice-axiom,
-;;;   subset-def, rr-leq-total  -- theory.scm / number-systems (primitive);
+;;;   subset-def, rr-leq-total  -- library.scm / number-systems (primitive);
 ;;;   image-membership-iff (structure-library/injection, 83);
 ;;;   metric-self-zero (structure-library/metric-laws, 239);
 ;;;   fun-apply-type-c (163); rr-sub-in-rr (binary-minus-laws, 162);

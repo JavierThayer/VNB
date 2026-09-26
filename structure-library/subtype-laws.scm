@@ -123,7 +123,7 @@
 ;;; --- the GROUP shape projections ----------------------------------------
 ;;;
 ;;; group-assoc / group-left-id / group-left-inv / group-identity-in were
-;;; `theory-add-axiom!' in group.scm, unwarranted -- so every proof that used a
+;;; `add-axiom!' in group.scm, unwarranted -- so every proof that used a
 ;;; group law billed `trust: none', the weakest report there is, for facts that
 ;;; are literally conjuncts of the IS-GROUP definition.  (ag-cancel-right's whole
 ;;; bill was these three.)  The alternative was to stamp them `definitional', as

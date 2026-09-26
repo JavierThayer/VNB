@@ -80,7 +80,7 @@
 (notation! 'EVEN 'kind 'predicate 'arity 1 'english "$1 is even")
 (notation! 'ODD  'kind 'predicate 'arity 1 'english "$1 is odd")
 ;; def-predicate registers the definition but installs no CITEABLE macete (it
-;; goes to theory-definitions, not *theorem-table*), so mac-h 'EVEN cannot find
+;; goes to library-definitions, not *theorem-table*), so mac-h 'EVEN cannot find
 ;; it.  Install the defining IFF as a named theorem -- definitional provenance,
 ;; so it carries no debt -- and cite THAT for both mac (goals) and mac-h (hyps).
 (fluid-let ((*current-provenance* 'definitional))

@@ -80,7 +80,7 @@
 ;;; norm(r1 - r2) = 0, hence r1 = r2 by definiteness of the group norm.
 ;;; Asserted as an axiom for the current library-build phase; a candidate to
 ;;; promote to a proven theorem / PSS entry later.
-(theory-add-axiom! *current-theory* 'sums-to-unique
+(add-axiom! *library* 'sums-to-unique
   '(FORALL grp
      (IMPLIES (IS-NORMED-AG grp)
        (FORALL f

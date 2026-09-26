@@ -1,8 +1,8 @@
 ;;; list-recursion.scm -- CONS, and the recursive characterization of LENGTH.
 ;;;
-;;; WHY THIS FILE EXISTS.  theory.scm gave TUPLES three axioms -- `length-of-empty',
+;;; WHY THIS FILE EXISTS.  library.scm gave TUPLES three axioms -- `length-of-empty',
 ;;; `length-in-nn', `nth-in-range' -- and then said, in a comment beside them
-;;; (theory.scm:637):
+;;; (library.scm:637):
 ;;;
 ;;;   (Recursive characterization of length requires a CONS/PREPEND constructor
 ;;;    and a TUPLES induction principle, both pending.)
@@ -56,23 +56,23 @@
 (fluid-let ((*current-provenance* 'definitional))
 
   ;; [] is a tuple over anything; CONS lands back in TUPLES(A).
-  (theory-add-axiom! *current-theory* 'empty-in-tuples
+  (add-axiom! *library* 'empty-in-tuples
     '(FORALL A (IN (LIST) (TUPLES A))))
 
-  (theory-add-axiom! *current-theory* 'cons-in-tuples
+  (add-axiom! *library* 'cons-in-tuples
     '(FORALL A (FORALL x (FORALL L
         (IMPLIES (AND (IN x A) (IN L (TUPLES A)))
                  (IN (CONS x L) (TUPLES A)))))))
 
   ;; length(cons(x,L)) = succ(length(L))  -- the recursion the file is named for.
-  (theory-add-axiom! *current-theory* 'length-cons
+  (add-axiom! *library* 'length-cons
     '(FORALL x (FORALL L (= (LENGTH (CONS x L)) (succ (LENGTH L))))))
 
   ;; The head, and the shift on the tail.
-  (theory-add-axiom! *current-theory* 'nth-cons-1
+  (add-axiom! *library* 'nth-cons-1
     '(FORALL x (FORALL L (= (NTH 1 (CONS x L)) x))))
 
-  (theory-add-axiom! *current-theory* 'nth-cons-succ
+  (add-axiom! *library* 'nth-cons-succ
     '(FORALL i (FORALL x (FORALL L
         (IMPLIES (AND (IN i NN) (AND (<= 1 i) (<= i (LENGTH L))))
                  (= (NTH (succ i) (CONS x L)) (NTH i L)))))))
@@ -80,7 +80,7 @@
   ;; The bridge to brace notation: {x} u {the rest}.  PAIR x x is the singleton,
   ;; written that way to match `card-insert' (cardinality.scm), which is what
   ;; every cardinality argument over a literal set will meet next.
-  (theory-add-axiom! *current-theory* 'makeset-cons
+  (add-axiom! *library* 'makeset-cons
     '(FORALL x (FORALL L
         (= (MAKE-SET (CONS x L))
            (UNION (PAIR x x) (MAKE-SET L))))))
@@ -118,13 +118,13 @@
 
 (fluid-let ((*current-provenance* 'primitive))
 
-(theory-add-axiom! *current-theory* 'tuple-length-zero
+(add-axiom! *library* 'tuple-length-zero
   '(FORALL A (FORALL L
       (IMPLIES (AND (IN L (TUPLES A)) (= (LENGTH L) 0))
                (= L (LIST))))))
 
 
-(theory-add-axiom! *current-theory* 'tuple-cons-decompose
+(add-axiom! *library* 'tuple-cons-decompose
   '(FORALL A (FORALL n (FORALL L
       (IMPLIES (AND (IN n NN) (AND (IN L (TUPLES A)) (= (LENGTH L) (succ n))))
                (FORSOME x (AND (IN x A)

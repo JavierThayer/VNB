@@ -75,7 +75,7 @@
 ;;; definition -- definitional, not asserted debt.  It was asserted until
 ;;; 2026-07-12, which is how a definition came to depend on a support.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'field-non-zero-carrier
+  (add-axiom! *library* 'field-non-zero-carrier
     '(FORALL s (IMPLIES (IS-FIELD s)
        (= (NON-ZERO s) (DIFFERENCE (CARR s) (SINGLETON (ZERO s))))))))
 

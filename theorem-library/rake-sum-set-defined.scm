@@ -54,7 +54,7 @@
 ;;; owes nothing.  So the law holds for an arbitrary r, ring or not.
 ;;;
 ;;; CITATIONS (0-based over the file names in load.scm, at the time of writing):
-;;;   theory.scm (11, primitive): pairing, pairing-membership, union-membership,
+;;;   library.scm (11, primitive): pairing, pairing-membership, union-membership,
 ;;;     intersection-membership, empty-set-is-set, empty-set-has-no-members,
 ;;;     class-extensionality, subset-def
 ;;;   structure-library/views.scm (60, definitional): RING-ADDITIVE-AG (the

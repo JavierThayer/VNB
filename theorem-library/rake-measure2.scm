@@ -7,7 +7,7 @@
 ;;;   sigma-algebra-union-closed-2    binary union closure
 ;;;   sigma-algebra-inter-closed-2    binary intersection closure
 ;;;   sigma-algebra-difference-closed a \ b closure (COMPLEMENT-IN is the
-;;;                                   relative difference, theory.scm:677)
+;;;                                   relative difference, library.scm:677)
 ;;;   measurable-fn-indicator         structure-library/integral.scm:157,
 ;;;                                   the assigned leaf -- RETIRE that support
 ;;;
@@ -41,7 +41,7 @@
 ;;;
 ;;; CITATIONS and their load positions (0-based over the quoted file names in
 ;;; load.scm):
-;;;   base theory (theory.scm, `primitive'): class-extensionality, subset-def,
+;;;   base theory (library.scm, `primitive'): class-extensionality, subset-def,
 ;;;       empty-set-is-set, empty-set-has-no-members, complement-in-membership,
 ;;;       union-membership, intersection-membership
 ;;;   equality-symmetry                theorem-library/axioms.scm          15

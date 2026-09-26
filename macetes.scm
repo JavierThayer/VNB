@@ -673,7 +673,7 @@
 ;;; matters: S-10 catches a rewrite that would be UNSOUND, this catches one that
 ;;; is perfectly sound and ruinous to fire AUTOMATICALLY.
 ;;;
-;;; The motivating case is `app-graph' (theory.scm), which defines application as
+;;; The motivating case is `app-graph' (library.scm), which defines application as
 ;;; the description over the graph.  Its left-hand side is a bare application
 ;;; `(f x)' with both f and x schema variables, so as a live macete it matches
 ;;; EVERY application in EVERY goal and rewrites each into an IOTA -- every
@@ -1674,19 +1674,19 @@
 ;;; stamped at install time from the dynamic variable *current-provenance*:
 ;;;
 ;;;   primitive    -- a genuine VNB foundational axiom (the trusted base):
-;;;                   the make-vnb-base-theory core + theorem-library/axioms.
+;;;                   the make-vnb-base-library core + theorem-library/axioms.
 ;;;   definitional -- a conservative definitional extension emitted by a
 ;;;                   def-/declare- form (IS-X folding, accessor laws, view
 ;;;                   typing + auto-specializations).  Adds no logical
 ;;;                   strength: it only names new vocabulary.
 ;;;   asserted     -- genuine mathematical content accepted WITHOUT a machine
 ;;;                   proof.  The bare default; the natural home for a warrant.
-;;;   proven       -- machine-checked (installed via theory-add-theorem!).
+;;;   proven       -- machine-checked (installed via add-theorem!).
 ;;;
 ;;; The def-/declare- forms fluid-let this to 'definitional around their
-;;; bodies; the base-theory build and the axioms file fluid-let it to
-;;; 'primitive; theory-add-theorem! binds 'proven.  Everything else --
-;;; including every hand-written (theory-add-axiom! ...) and (support ...)
+;;; bodies; the base-library build and the axioms file fluid-let it to
+;;; 'primitive; add-theorem! binds 'proven.  Everything else --
+;;; including every hand-written (add-axiom! ...) and (support ...)
 ;;; in the library files -- falls through to 'asserted.
 (define *provenance-kinds* '(primitive definitional asserted proven certified))
 
@@ -1751,7 +1751,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; THE INSTALL-TIME GRADING GATE  (2026-08-04)
 ;;;
-;;; `support' and `theory-add-axiom!' install a raw S-expression: they never run
+;;; `support' and `add-axiom!' install a raw S-expression: they never run
 ;;; it past `make-wff', which is the only thing in the tree that grades a formula.
 ;;; That door produced the flat-conjunction defect (2026-07-28) -- a `(AND a b c)'
 ;;; the kernel reads with binary-left/right, silently DROPPING the third conjunct,

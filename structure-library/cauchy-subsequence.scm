@@ -257,7 +257,7 @@
 ;; Headline result (radius-indexed tb => Cauchy subsequence), not PSS plumbing;
 ;; the non-radius headline `totally-bounded-has-cauchy-subsequence' is already
 ;; proven and not in PSS.  Installed as a warranted ASSERTION, not a support.
-(theory-add-axiom! *current-theory* 'totally-bounded-has-cauchy-subseq-rad
+(add-axiom! *library* 'totally-bounded-has-cauchy-subseq-rad
   '(FORALL s
      (IMPLIES (TOTALLY-BOUNDED s)
        (FORALL f

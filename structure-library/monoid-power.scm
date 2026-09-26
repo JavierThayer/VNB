@@ -45,7 +45,7 @@
 ;;; Cross law (commutativity required):  (x*y)^n = x^n * y^n.
 ;;; Holds in a COMMUTATIVE monoid only.  NN induction on n, reordering factors
 ;;; by commutativity at each step.
-(theory-add-axiom! *current-theory* 'mpow-mult
+(add-axiom! *library* 'mpow-mult
   '(FORALL m
      (IMPLIES (IS-COMM-MONOID m)
        (FORALL x (IMPLIES (IN x (CARR m))

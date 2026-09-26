@@ -9,7 +9,7 @@
 ;;;     finsum-all-id                     formerly a `well-known' support (theorem-library/finsum-additive.scm)
 ;;;
 ;;; WHY sum-ag-type FIRST.  finsum-type is one `bc*' away from sum-ag-type, and
-;;; sum-ag-type was installed by `theory-add-axiom!' with no `warrant!' at all --
+;;; sum-ag-type was installed by `add-axiom!' with no `warrant!' at all --
 ;;; i.e. `trust: none', the weakest tier there is -- so proving finsum-type on top of
 ;;; it would have bought nothing.  Its own proof is the induction sequences.scm's
 ;;; comment has described since the file was written and nobody ran.
@@ -60,7 +60,7 @@
 ;;;   structure-library/finsum (functoid unfolds):   ENUM-FAM, FIN-ENUM
 ;;;
 ;;; RETIRES (the integrator removes these; this file does not touch them):
-;;;   structure-library/sequences.scm:115   (theory-add-axiom! ... 'sum-ag-type ...)  -- no warrant!
+;;;   structure-library/sequences.scm:115   (add-axiom! ... 'sum-ag-type ...)  -- no warrant!
 ;;;   theorem-library/finsum-type.scm:9,15  (support / warrant!) -- the whole file, load.scm:417
 ;;;   theorem-library/enum-fam-in-fun.scm:9,16 (support / warrant!) -- the whole file, load.scm:411
 ;;;   theorem-library/finsum-additive.scm:214,221  (support / warrant! 'finsum-all-id)

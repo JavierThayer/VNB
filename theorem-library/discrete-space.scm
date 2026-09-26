@@ -24,7 +24,7 @@
 ;;;
 ;;; WHAT WAS MISSING, and it is the reason this file is mostly lemmas: the tree
 ;;; had NO theorem about POWER at all.  `power-set' and `power-set-membership'
-;;; (theory.scm:297,300) are the only two statements naming it, and every
+;;; (library.scm:297,300) are the only two statements naming it, and every
 ;;; consumer had to unfold the membership iff by hand.  The seven lemmas below
 ;;; are the closure facts any power-set argument wants -- sethood, the two
 ;;; directions of the membership iff, the whole set, the empty set, binary

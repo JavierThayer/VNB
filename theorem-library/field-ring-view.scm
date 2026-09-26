@@ -18,7 +18,7 @@
 ;;; VECTOR-SPACE scalar law.
 ;;;
 ;;; WHY IT IS A THEOREM AND NOT A `def-functor'.  def-functor installs its typing
-;;; claim as an AXIOM -- `theory-add-axiom!' at structures.scm:1171, inside a
+;;; claim as an AXIOM -- `add-axiom!' at structures.scm:1171, inside a
 ;;; `definitional' fluid-let, so contributing {} to every bill.  That is right
 ;;; for an accessor correspondence whose target laws are a shape-mechanical
 ;;; subset of the source's.  It is wrong here: IS-FIELD-RING's two laws are

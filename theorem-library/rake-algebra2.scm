@@ -8,10 +8,10 @@
 ;;;   ring-add-right-inv          structure-library/matrix.scm:367         (support)
 ;;;   ring-neg-neg                structure-library/mat-equiv.scm:31       (support)
 ;;;   ring-neg-mul-left           structure-library/ring.scm:105           (support)
-;;;   matrix-sethood              structure-library/matrix.scm:80          (theory-add-axiom!)
-;;;   monoid-identity-in          structure-library/monoid.scm:40          (theory-add-axiom!)
-;;;   monoid-carrier-closed-opr   structure-library/monoid.scm:45          (theory-add-axiom!)
-;;;   mpow-type                   structure-library/monoid-power.scm:43    (theory-add-axiom!)
+;;;   matrix-sethood              structure-library/matrix.scm:80          (add-axiom!)
+;;;   monoid-identity-in          structure-library/monoid.scm:40          (add-axiom!)
+;;;   monoid-carrier-closed-opr   structure-library/monoid.scm:45          (add-axiom!)
+;;;   mpow-type                   structure-library/monoid-power.scm:43    (add-axiom!)
 ;;;
 ;;; Two auxiliary theorems are installed beside them:
 ;;;   ring-add-inverse-unique  a + b = 0 => b = -a in any ring.  The ring twin

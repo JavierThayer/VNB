@@ -70,7 +70,7 @@
 ;;;   of g on the index box.
 
 ;;; M in MATRIX(S):  M is a list of lists over S, with all rows equilong.
-(theory-add-axiom! *current-theory* 'matrix-membership
+(add-axiom! *library* 'matrix-membership
   '(FORALL S (FORALL M
      (IFF (IN M (MATRIX S))
           (AND (IN M (TUPLES (TUPLES S)))

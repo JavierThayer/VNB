@@ -47,7 +47,7 @@
 ;;; phi in INJECTION(X, Y) iff phi : X -> Y is injective on X.
 ;;; Conservative IFF definition of INJECTION-membership -> `definitional'.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'injection-membership-iff
+  (add-axiom! *library* 'injection-membership-iff
     '(FORALL X
        (FORALL Y
          (FORALL phi
@@ -64,7 +64,7 @@
 ;;;
 ;;; `INJECTION(X, Y)' asks its member to BE an object: injection-membership-iff
 ;;; requires (IN f (FUN X Y)), membership-implies-sethood then forces f to be a
-;;; set, and is-fun-def (theory.scm:388) says being a function at all means
+;;; set, and is-fun-def (library.scm:388) says being a function at all means
 ;;; having a SET domain.  So nothing whose domain is a proper class -- a lambdoid
 ;;; on ORD, a def-by-ord-recursion constant -- can ever be said to be in it.
 ;;;
@@ -87,12 +87,12 @@
 ;;; -----------------------------------------------------------------------
 ;;; Projection lemmas (each derivable from injection-membership-iff).
 
-(theory-add-axiom! *current-theory* 'injection-in-fun
+(add-axiom! *library* 'injection-in-fun
   '(FORALL X (FORALL Y (FORALL phi
       (IMPLIES (IN phi (INJECTION X Y))
                (IN phi (FUN X Y)))))))
 
-(theory-add-axiom! *current-theory* 'injection-injective
+(add-axiom! *library* 'injection-injective
   '(FORALL X (FORALL Y (FORALL phi
       (IMPLIES (IN phi (INJECTION X Y))
                (FORALL a
@@ -102,7 +102,7 @@
                        (IMPLIES (= (phi a) (phi b)) (= a b)))))))))))
 
 ;;; INJECTION(X, Y) is a set when X and Y are sets (subclass of FUN(X, Y)).
-(theory-add-axiom! *current-theory* 'injection-set-iff
+(add-axiom! *library* 'injection-set-iff
   '(FORALL X (FORALL Y
       (IMPLIES (AND (IN X SET) (IN Y SET))
                (IN (INJECTION X Y) SET)))))
@@ -119,7 +119,7 @@
 ;;; no case-fold collision (an inner x with an outer X would capture).
 
 ;;; w in IMAGE(phi, S) iff w = phi(x) for some x in S.
-(theory-add-axiom! *current-theory* 'image-membership-iff
+(add-axiom! *library* 'image-membership-iff
   '(FORALL phi (FORALL S (FORALL w
       (IFF (IN w (IMAGE phi S))
            (FORSOME x (AND (IN x S) (= (phi x) w))))))))
@@ -130,7 +130,7 @@
 ;;; set under a class function is a set: one of the axioms of the set theory,
 ;;; not a fact the library owes an argument for.  Wrapped in `primitive'
 ;;; provenance (proof-debt.scm:12), which is the trusted-base tier -- it
-;;; contributes {} to every bill, exactly like the base theory of theory.scm:613
+;;; contributes {} to every bill, exactly like the base theory of library.scm:613
 ;;; and the ordinal axioms of ordinals.scm.  User's decision, 2026-07-28.
 ;;;
 ;;; It is NOT a `warrant!'.  A warrant would move it from `none' to
@@ -142,7 +142,7 @@
 ;;; (theorem-library/zorn-route-two.scm) had this as the SOLE entry in their
 ;;; bills.  Both now read `modulo 0'.
 (fluid-let ((*current-provenance* 'primitive))
-  (theory-add-axiom! *current-theory* 'image-set
+  (add-axiom! *library* 'image-set
     '(FORALL phi (FORALL S
         (IMPLIES (IN S SET)
                  (IN (IMAGE phi S) SET))))))

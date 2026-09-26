@@ -41,7 +41,7 @@
 ;;; context ("d is in the set, so d = x*a + y*b").  This is the functoid unfold
 ;;; composed with the SEP separation schema, both trusted base; it costs no debt.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'zz-bezout-set-membership
+  (add-axiom! *library* 'zz-bezout-set-membership
     (nest-quantifiers 'FORALL '(a b z_)
       '(IFF (IN z_ (ZZ-BEZOUT-SET a b))
             (AND (IN z_ ZZ)

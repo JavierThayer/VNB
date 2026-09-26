@@ -27,7 +27,7 @@
 ;;; which owes (IN X SET).  Nothing in the tree derived that from the hypothesis
 ;;; `phi in BIJECTION(X,Y)': `fun-set-iff' runs the other way, `dom-of-fun' already
 ;;; assumes (IN A SET), and FUN(A) over a proper class A is deliberately allowed to
-;;; be inhabited (theory.scm's fun-no-junk note).  So the axiom looked as though it
+;;; be inhabited (library.scm's fun-no-junk note).  So the axiom looked as though it
 ;;; needed a sethood GUARD.  It does not.  A member of a class is a set
 ;;; (membership-implies-sethood), so f is a set; `fun-no-junk' says f IS its graph;
 ;;; hence A embeds in the first-coordinate image of f, which is a set by replacement
@@ -43,7 +43,7 @@
 ;;; image-membership-iff the conclusion needs the EQUATION
 ;;; (B |-> ...)(U) = CHOICE(CENTRES s U r) -- and `=' in VNB is the definedness
 ;;; predicate, so it asserts that CHOICE(CENTRES s U r) DENOTES.  `choice-axiom'
-;;; (theory.scm) defines CHOICE only on an inhabited class, and the statement puts
+;;; (library.scm) defines CHOICE only on an inhabited class, and the statement puts
 ;;; no condition whatever on U: at any U in F that is not an r-ball of s at all --
 ;;; F = {EMPTY-SET}, U = EMPTY-SET, r > 0 -- CENTRES(s,U,r) is empty and the term is
 ;;; unspecified.  Nothing REFUTES the statement (CHOICE of the empty class is
@@ -84,7 +84,7 @@
 ;;;     `rfl' (which is licensed exactly by the choice membership the guard buys).
 ;;;
 ;;; CITATIONS, with the 0-based load position of the file that installs each:
-;;;   primitive/base (theory.scm, number-systems.scm, cardinality.scm): choice-axiom,
+;;;   primitive/base (library.scm, number-systems.scm, cardinality.scm): choice-axiom,
 ;;;     class membership (membership-implies-sethood), fun-codomain-iff, fun-no-junk,
 ;;;     subset-def, rr-leq-mul-nonneg, rr-mul-closed.
 ;;;   definitional: the IS-X / functoid unfolds (is-hom-metric-space-def 45,

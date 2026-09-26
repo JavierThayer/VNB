@@ -1,4 +1,4 @@
-;;; theory.scm -- theory management
+;;; library.scm -- theory management
 ;;;
 ;;; A THEORY consists of:
 ;;;   - a name
@@ -8,59 +8,59 @@
 ;;;
 ;;; The base theory contains the VNB set-theory axioms.
 
-(define-record-type <theory>
-  (%make-theory name)
-  theory?
-  (name        theory-name)
-  (axioms      theory-axioms       set-theory-axioms!)
-  (theorems    theory-theorems     set-theory-theorems!)
-  (constants   theory-constants    set-theory-constants!)
-  (definitions theory-definitions  set-theory-definitions!))
+(define-record-type <library>
+  (%make-library name)
+  library?
+  (name        library-name)
+  (axioms      library-axioms       set-library-axioms!)
+  (theorems    library-theorems     set-library-theorems!)
+  (constants   library-constants    set-library-constants!)
+  (definitions library-definitions  set-library-definitions!))
 
-(define (make-theory name)
-  (let ((th (%make-theory name)))
-    (set-theory-axioms!       th '())
-    (set-theory-theorems!     th (make-equal-hash-table))
-    (set-theory-constants!    th (make-equal-hash-table))
-    (set-theory-definitions!  th '())
+(define (make-library name)
+  (let ((th (%make-library name)))
+    (set-library-axioms!       th '())
+    (set-library-theorems!     th (make-equal-hash-table))
+    (set-library-constants!    th (make-equal-hash-table))
+    (set-library-definitions!  th '())
     th))
 
 ;;; THERE IS ONE THEORY (the user's decision; the "little theories" of IMPS were dropped).
 ;;; The procedures below still ACCEPT a theory as their first argument, because several hundred
-;;; call sites in the library pass `*current-theory*'; but the argument is OPTIONAL and new code
+;;; call sites in the library pass `*library*'; but the argument is OPTIONAL and new code
 ;;; omits it:
-;;;     (theory-add-axiom! 'name formula)      =  (theory-add-axiom! *current-theory* 'name formula)
-;;; `theory--args' normalises the two spellings.  WHO names the caller in the error message, N is
+;;;     (add-axiom! 'name formula)      =  (add-axiom! *library* 'name formula)
+;;; `library--args' normalises the two spellings.  WHO names the caller in the error message, N is
 ;;; the number of arguments AFTER the theory.
-(define (theory--args who args n)
-  (cond ((and (pair? args) (theory? (car args)) (= (length args) (+ n 1))) args)
-        ((= (length args) n) (cons *current-theory* args))
+(define (library--args who args n)
+  (cond ((and (pair? args) (library? (car args)) (= (length args) (+ n 1))) args)
+        ((= (length args) n) (cons *library* args))
         (else (error (string-append (symbol->string who)
                                     ": wrong arguments (the theory argument is optional)")
                      args))))
 
-(define (theory-add-axiom! . args)
-  (let* ((a (theory--args 'theory-add-axiom! args 2))
+(define (add-axiom! . args)
+  (let* ((a (library--args 'add-axiom! args 2))
          (th (car a)) (name (cadr a)) (formula (caddr a)))
-    (set-theory-axioms! th (cons (cons name formula) (theory-axioms th)))
+    (set-library-axioms! th (cons (cons name formula) (library-axioms th)))
     (install-theorem! name formula)  ; axioms are usable as theorems
     name))
 
-;;; theory-add-theorem! records NAME : FORMULA among the theory's theorems and installs it
+;;; add-theorem! records NAME : FORMULA among the theory's theorems and installs it
 ;;; with the provenance CURRENTLY IN FORCE -- by default `asserted', which is debt and shows on
 ;;; every bill that reaches it.  It does NOT stamp `proven'.
 ;;;
 ;;; Until 2026-09-20 it did: the body bound *current-provenance* to `proven' itself, so
-;;;     (theory-add-theorem! *current-theory* 'anything '<any formula>)
+;;;     (add-theorem! *library* 'anything '<any formula>)
 ;;; installed ANY formula as a proven theorem billing `modulo 0', with no deduction graph behind
 ;;; it -- and the manual presented exactly that call as "the way to add a new theorem".  It also
 ;;; overrode the `asserted' that cmd-qed binds for a keep-going HOLE, so holes were stamped
 ;;; proven.  The one place entitled to say `proven' is cmd-qed (proof-commands.scm), which says
 ;;; it only after checking that the root sequent is grounded.
-(define (theory-add-theorem! . args)
-  (let* ((a (theory--args 'theory-add-theorem! args 2))
+(define (add-theorem! . args)
+  (let* ((a (library--args 'add-theorem! args 2))
          (th (car a)) (name (cadr a)) (formula (caddr a)))
-    (hash-table-set! (theory-theorems th) name formula)
+    (hash-table-set! (library-theorems th) name formula)
     (install-theorem! name formula)
     name))
 
@@ -69,10 +69,10 @@
 ;;; tagged in *support-theorem-names* so (catalog) lists it under its own
 ;;; section.  Use for results we believe are provable but choose not to
 ;;; mechanize -- classical theorems, large constructions, etc.
-(define (theory-add-support! . args)
-  (let* ((a (theory--args 'theory-add-support! args 2))
+(define (add-support! . args)
+  (let* ((a (library--args 'add-support! args 2))
          (th (car a)) (name (cadr a)) (formula (caddr a)))
-    (hash-table-set! (theory-theorems th) name formula)
+    (hash-table-set! (library-theorems th) name formula)
     (install-theorem! name formula)
     (register-support-theorem! name)
     name))
@@ -81,7 +81,7 @@
 ;;; theory's Proof Support Set.  `add-to-pss' is the same operation under the
 ;;; plain-English name -- (support ...) literally means "add NAME to the PSS".
 (define (support name formula)
-  (theory-add-support! *current-theory* name formula))
+  (add-support! *library* name formula))
 (define add-to-pss support)
 
 ;;; User-facing: (warrant! 'NAME 'kind "informal justification text")
@@ -131,33 +131,33 @@
 (define (topic! name cat)
   (register-topic! name cat))
 
-(define (theory-get-theorem . args)
-  (let* ((a (theory--args 'theory-get-theorem args 1))
+(define (library-get-theorem . args)
+  (let* ((a (library--args 'library-get-theorem args 1))
          (th (car a)) (name (cadr a)))
-    (hash-table-ref/default (theory-theorems th) name #f)))
+    (hash-table-ref/default (library-theorems th) name #f)))
 
-(define (theory-add-constant! . args)
-  (let* ((a (theory--args 'theory-add-constant! args 2))
+(define (add-constant! . args)
+  (let* ((a (library--args 'add-constant! args 2))
          (th (car a)) (name (cadr a)) (definition (caddr a)))
-    (hash-table-set! (theory-constants th) name definition)
+    (hash-table-set! (library-constants th) name definition)
     name))
 
 ;;; Add a defined constant with characterizing axioms.
 ;;; char-axioms is a list of (axiom-name . formula) pairs.
 ;;; The axioms are installed as usable theorems but recorded under
 ;;; 'definitions', not 'axioms', so the distinction is preserved.
-(define (theory-add-definition! . args)
-  (let* ((a (theory--args 'theory-add-definition! args 2))
+(define (add-definition! . args)
+  (let* ((a (library--args 'add-definition! args 2))
          (th (car a)) (const-name (cadr a)) (char-axioms (caddr a)))
-    (theory--add-definition! th const-name char-axioms)))
+    (library--add-definition! th const-name char-axioms)))
 
-(define (theory--add-definition! th const-name char-axioms)
+(define (library--add-definition! th const-name char-axioms)
   (for-each (lambda (pair)
               (install-theorem! (car pair) (cdr pair)))
             char-axioms)
-  (set-theory-definitions! th
+  (set-library-definitions! th
     (cons (cons const-name char-axioms)
-          (theory-definitions th)))
+          (library-definitions th)))
   ;; A defined constant is a constant head, not a function variable.
   (register-constant! const-name 'defined-fn)
   const-name)
@@ -166,13 +166,13 @@
 ;;; Existence and uniqueness are the user's responsibility.
 (define (def-constant const-name . char-axiom-specs)
   (fluid-let ((*current-provenance* 'definitional))
-    (theory-add-definition! *current-theory* const-name
+    (add-definition! *library* const-name
       (map (lambda (spec) (cons (car spec) (cadr spec)))
            char-axiom-specs))))
 
 ;;; Display all definitions in the current theory.
 (define (display-definitions)
-  (let ((defs (theory-definitions *current-theory*)))
+  (let ((defs (library-definitions *library*)))
     (if (null? defs)
         (display "No definitions.\n")
         (for-each
@@ -242,7 +242,7 @@
 (define (def-predicate name class-expr)
   (register-operator! name 'predicate '(x))          ; the ONE table (operators.scm)
   (fluid-let ((*current-provenance* 'definitional))
-    (theory-add-axiom! *current-theory* name
+    (add-axiom! *library* name
       `(FORALL x (IFF (,name x) (IN x ,class-expr))))))
 
 ;;; -----------------------------------------------------------------------
@@ -282,21 +282,21 @@
 ;;;
 ;;; (We defer the full axiom list; the base theory starts with these.)
 
-(define (make-vnb-base-theory)
-  (let ((th (make-theory 'VNB-SET-THEORY)))
+(define (make-vnb-base-library)
+  (let ((th (make-library 'VNB-LIBRARY)))
 
-    (theory-add-axiom! th 'membership-implies-sethood
+    (add-axiom! th 'membership-implies-sethood
       '(FORALL a (FORALL b (IMPLIES (IN a b) (IN a SET)))))
 
-    (theory-add-axiom! th 'subset-def
+    (add-axiom! th 'subset-def
       '(FORALL A (FORALL B
           (IFF (SUBSET A B)
                (FORALL x (IMPLIES (IN x A) (IN x B)))))))
 
-    (theory-add-axiom! th 'subset-set
+    (add-axiom! th 'subset-set
       '(FORALL A (SUBSET A SET)))
 
-    (theory-add-axiom! th 'extensionality
+    (add-axiom! th 'extensionality
       '(FORALL a (FORALL b
           (IMPLIES (AND (IN a SET) (IN b SET))
                    (IFF (= a b)
@@ -306,37 +306,37 @@
     ;; with no set-of-both precondition.  Foundational NBG axiom; comment at
     ;; ~line 259 of this file previously flagged its absence.  Needed to
     ;; conclude ORD is a set from "a set K has the same elements as ORD".
-    (theory-add-axiom! th 'class-extensionality
+    (add-axiom! th 'class-extensionality
       '(FORALL A (FORALL B
           (IMPLIES (FORALL x (IFF (IN x A) (IN x B)))
                    (= A B)))))
 
-    (theory-add-axiom! th 'empty-set-is-set
+    (add-axiom! th 'empty-set-is-set
       '(IN EMPTY-SET SET))
 
-    (theory-add-axiom! th 'empty-set-has-no-members
+    (add-axiom! th 'empty-set-has-no-members
       '(FORALL x (NOT (IN x EMPTY-SET))))
 
     ;; Pairing requires both arguments to be sets; otherwise the membership
     ;; iff combined with membership-implies-sethood would force every class
     ;; into SET (any class a satisfies a ∈ PAIR(a,a) under the unconditional
     ;; iff, hence a ∈ SET, contradicting burali-forti).
-    (theory-add-axiom! th 'pairing
+    (add-axiom! th 'pairing
       '(FORALL a (FORALL b
           (IMPLIES (AND (IN a SET) (IN b SET))
                    (IN (PAIR a b) SET)))))
 
-    (theory-add-axiom! th 'pairing-membership
+    (add-axiom! th 'pairing-membership
       '(FORALL a (FORALL b
           (IMPLIES (AND (IN a SET) (IN b SET))
                    (FORALL x
                      (IFF (IN x (PAIR a b))
                           (OR (= x a) (= x b))))))))
 
-    (theory-add-axiom! th 'power-set
+    (add-axiom! th 'power-set
       '(FORALL a (IMPLIES (IN a SET) (IN (POWER a) SET))))
 
-    (theory-add-axiom! th 'power-set-membership
+    (add-axiom! th 'power-set-membership
       '(FORALL a (FORALL x
           (IFF (IN x (POWER a))
                (AND (IN x SET)
@@ -348,7 +348,7 @@
     ;; So `(CHOICE ORD) ∈ ORD` is asserted -- strictly stronger than ZFC's
     ;; Axiom of Choice (which is restricted to families of sets).  In
     ;; first-order set-theoretic terms this is the Hilbert ε for classes.
-    (theory-add-axiom! th 'choice-axiom
+    (add-axiom! th 'choice-axiom
       '(FORALL A
           (IMPLIES (FORSOME x (IN x A))
                    (IN (CHOICE A) A))))
@@ -405,7 +405,7 @@
     ;; still stated as axioms here; demoting them is open work.
     (declare-named-only! 'app-graph
       "left-hand side is a bare application: as a live rewrite it fires on every application in every goal")
-    (theory-add-axiom! th 'app-graph
+    (add-axiom! th 'app-graph
       '(FORALL fn_ (FORALL arg_
           (== (fn_ arg_) (IOTA val_ (IN (LIST arg_ val_) fn_))))))
 
@@ -438,7 +438,7 @@
     ;; formula in every goal about a function into an existential.
     (declare-named-only! 'fun-no-junk
       "left-hand side is a bare membership: as a live rewrite it fires on every IN in any goal about a function")
-    (theory-add-axiom! th 'fun-no-junk
+    (add-axiom! th 'fun-no-junk
       '(FORALL A (FORALL f
           (IMPLIES (IN f (FUN A))
             (FORALL z
@@ -448,19 +448,19 @@
                           (AND (IN x A) (= (f x) y)))))))))))
 
     ;; FUN(A,B) sethood
-    (theory-add-axiom! th 'fun-set-iff
+    (add-axiom! th 'fun-set-iff
       '(FORALL A (FORALL B
           (IFF (IN (FUN A B) SET)
                (AND (IN A SET) (IN B SET))))))
 
     ;; f ∈ FUN(A,B) and A is a set ⟹ f is a set
-    (theory-add-axiom! th 'fun-elements-are-sets
+    (add-axiom! th 'fun-elements-are-sets
       '(FORALL A (FORALL B (FORALL f
           (IMPLIES (AND (IN f (FUN A B)) (IN A SET))
                    (IN f SET))))))
 
     ;; f ∈ FUN(A) and A is a set ⟹ f is a set
-    (theory-add-axiom! th 'fun-domain-elements-are-sets
+    (add-axiom! th 'fun-domain-elements-are-sets
       '(FORALL A (FORALL f
           (IMPLIES (AND (IN f (FUN A)) (IN A SET))
                    (IN f SET)))))
@@ -470,7 +470,7 @@
     ;; for the term t.  So `(= (f x) (f x))` reads "f(x) is defined", and
     ;; the iff says: f's domain is exactly A.  This also makes the domain
     ;; recoverable from f: see DOM(f) below.
-    (theory-add-axiom! th 'fun-domain-apply-def
+    (add-axiom! th 'fun-domain-apply-def
       '(FORALL A (FORALL f (FORALL x
           (IMPLIES (IN f (FUN A))
                    (IFF (= (f x) (f x))
@@ -479,7 +479,7 @@
     ;; Extensionality: functions in FUN(A) are equal iff they agree on all of A
     ;; CHAINED implications, not a conjunction.  Until 2026-07-28 the antecedent
     ;; was a FLAT three-conjunct AND -- (AND a b c), length four.  make-wff
-    ;; rejects that ("connective arity"), but theory-add-axiom! installs without
+    ;; rejects that ("connective arity"), but add-axiom! installs without
     ;; validating, so it sat in the theorem table looking healthy while the
     ;; kernel read it with binary-left/right and saw only the first two
     ;; conjuncts.  The dropped one was the agreement hypothesis, leaving the
@@ -487,7 +487,7 @@
     ;; `connective-arity-audit' (audit.scm) is now a hard gate against the class.
     ;; Chained antecedents are also what `fact' wants: it detaches them one at a
     ;; time and will not split a conjunction.
-    (theory-add-axiom! th 'fun-domain-extensionality
+    (add-axiom! th 'fun-domain-extensionality
       '(FORALL A (FORALL f (FORALL g
           (IMPLIES (IN f (FUN A))
             (IMPLIES (IN g (FUN A))
@@ -495,7 +495,7 @@
                        (= f g))))))))
 
     ;; FUN(A,B) is exactly those functions in FUN(A) whose values lie in B
-    (theory-add-axiom! th 'fun-codomain-iff
+    (add-axiom! th 'fun-codomain-iff
       '(FORALL A (FORALL B (FORALL f
           (IFF (IN f (FUN A B))
                (AND (IN f (FUN A))
@@ -515,12 +515,12 @@
     ;; (dom-fun-membership); the class equality DOM(f) = A is a consequence
     ;; modulo class extensionality, which is not an axiom of VNB.
 
-    (theory-add-axiom! th 'is-fun-def
+    (add-axiom! th 'is-fun-def
       '(FORALL f
           (IFF (IS-FUN f)
                (FORSOME A (AND (IN A SET) (IN f (FUN A)))))))
 
-    (theory-add-axiom! th 'dom-membership
+    (add-axiom! th 'dom-membership
       '(FORALL f (FORALL x
           (IFF (IN x (DOM f))
                (AND (IN x SET) (= (f x) (f x)))))))
@@ -528,7 +528,7 @@
     ;; Membership-level agreement between DOM(f) and the FUN-witness A.
     ;; DERIVED from dom-membership + fun-domain-apply-def (iff form) +
     ;; membership-implies-sethood; stated as an axiom for convenience.
-    (theory-add-axiom! th 'dom-fun-membership
+    (add-axiom! th 'dom-fun-membership
       '(FORALL A (FORALL f
           (IMPLIES (IN f (FUN A))
                    (FORALL x (IFF (IN x (DOM f)) (IN x A)))))))
@@ -536,7 +536,7 @@
     ;; When A is a set, DOM(f) is a set (a subclass of A, by separation)
     ;; and DOM(f) = A as sets, by extensionality.  Stated as one axiom
     ;; for convenience.
-    (theory-add-axiom! th 'dom-of-fun
+    (add-axiom! th 'dom-of-fun
       '(FORALL A (FORALL f
           (IMPLIES (AND (IN f (FUN A)) (IN A SET))
                    (AND (IN (DOM f) SET) (= (DOM f) A))))))
@@ -553,14 +553,14 @@
     ;; S-expression form does not carry a domain; we characterise RES
     ;; axiomatically instead.)
 
-    (theory-add-axiom! th 'res-typing
+    (add-axiom! th 'res-typing
       '(FORALL A
           (FORALL B
               (FORALL f
                   (IMPLIES (AND (IN f (FUN A)) (SUBSET B A))
                            (IN (RES f B) (FUN B)))))))
 
-    (theory-add-axiom! th 'res-apply
+    (add-axiom! th 'res-apply
       '(FORALL A
           (FORALL B
               (FORALL f
@@ -570,7 +570,7 @@
 
     ;; DERIVED (from res-typing + res-apply + fun-codomain-iff):
     ;; restriction preserves codomain.
-    (theory-add-axiom! th 'res-codomain
+    (add-axiom! th 'res-codomain
       '(FORALL A
           (FORALL B
               (FORALL C
@@ -592,33 +592,33 @@
     ;; {FUN(B, C) : B in POWER(A)} is set-indexed and each member is a
     ;; set), but the derivation has not been carried out as a proof.
 
-    (theory-add-axiom! th 'partial-fun-membership
+    (add-axiom! th 'partial-fun-membership
       '(FORALL A
           (FORALL f
               (IFF (IN f (PARTIAL-FUN A))
                    (FORSOME B (AND (IN B (POWER A)) (IN f (FUN B))))))))
 
-    (theory-add-axiom! th 'partial-fun-binary-membership
+    (add-axiom! th 'partial-fun-binary-membership
       '(FORALL A
           (FORALL C
               (FORALL f
                   (IFF (IN f (PARTIAL-FUN A C))
                        (FORSOME B (AND (IN B (POWER A)) (IN f (FUN B C)))))))))
 
-    (theory-add-axiom! th 'partial-fun-binary-sethood
+    (add-axiom! th 'partial-fun-binary-sethood
       '(FORALL A
           (FORALL C
               (IMPLIES (AND (IN A SET) (IN C SET))
                        (IN (PARTIAL-FUN A C) SET)))))
 
-    (theory-add-axiom! th 'cartesian-set-iff
+    (add-axiom! th 'cartesian-set-iff
       '(FORALL A (FORALL B
           (IFF (IN (CARTESIAN A B) SET)
                (AND (IN A SET) (IN B SET))))))
 
     ;; TUPLES(A) is the class of all finite sequences of elements from A.
     ;; TUPLES(A) is a set when A is a set.
-    (theory-add-axiom! th 'tuples-sethood
+    (add-axiom! th 'tuples-sethood
       '(FORALL A (IMPLIES (IN A SET) (IN (TUPLES A) SET))))
 
     ;; -------------------------------------------------------------------
@@ -651,7 +651,7 @@
     ;; shape of `power-set-membership', six lines down.  Nothing in the tree
     ;; cites this axiom, so the repair moved no call site.
 
-    (theory-add-axiom! th 'make-set-membership
+    (add-axiom! th 'make-set-membership
       '(FORALL x (FORALL L
           (IFF (IN x (MAKE-SET L))
                (AND (IN x SET)
@@ -660,12 +660,12 @@
                                (AND (<= i (LENGTH L))
                                     (= (NTH i L) x))))))))))
 
-    (theory-add-axiom! th 'make-set-sethood
+    (add-axiom! th 'make-set-sethood
       '(FORALL A (FORALL L
           (IMPLIES (AND (IN L (TUPLES A)) (IN A SET))
                    (IN (MAKE-SET L) SET)))))
 
-    (theory-add-axiom! th 'make-set-empty
+    (add-axiom! th 'make-set-empty
       '(= (MAKE-SET (LIST)) EMPTY-SET))
 
     ;; -------------------------------------------------------------------
@@ -684,7 +684,7 @@
     ;; against, and length-in-nn / nth-in-range guard TUPLES(A) membership, which
     ;; the recursion does not replace.
 
-    (theory-add-axiom! th 'length-of-empty
+    (add-axiom! th 'length-of-empty
       '(= (LENGTH (LIST)) 0))
 
     ;; GENERALISED 2026-08-11 (the user's call), from `L ∈ TUPLES(SET)' to
@@ -698,10 +698,10 @@
     ;; inconsistency between two neighbouring axioms about the same constructor,
     ;; not a considered restriction.  No axiom is added -- one is weakened --
     ;; and nothing in the tree cited the old form, so no call site moved.
-    (theory-add-axiom! th 'length-in-nn
+    (add-axiom! th 'length-in-nn
       '(FORALL A (FORALL L (IMPLIES (IN L (TUPLES A)) (IN (LENGTH L) NN)))))
 
-    (theory-add-axiom! th 'nth-in-range
+    (add-axiom! th 'nth-in-range
       '(FORALL A (FORALL i (FORALL L
           (IMPLIES (AND (IN i NN) (AND (IN L (TUPLES A)) (AND (<= 1 i) (<= i (LENGTH L)))))
                    (IN (NTH i L) A))))))
@@ -716,22 +716,22 @@
     ;; COMPLEMENT-IN is the relative complement A \ B (REVIEW.md D-6).
     ;; B need not be a set; A \ B is a set when A is a set since A\B ⊆ A.
 
-    (theory-add-axiom! th 'union-set-closure
+    (add-axiom! th 'union-set-closure
       '(FORALL A (FORALL B
           (IMPLIES (AND (IN A SET) (IN B SET))
                    (IN (UNION A B) SET)))))
 
-    (theory-add-axiom! th 'union-membership
+    (add-axiom! th 'union-membership
       '(FORALL A (FORALL B (FORALL x
           (IFF (IN x (UNION A B))
                (OR (IN x A) (IN x B)))))))
 
-    (theory-add-axiom! th 'intersection-set-closure
+    (add-axiom! th 'intersection-set-closure
       '(FORALL A (FORALL B
           (IMPLIES (OR (IN A SET) (IN B SET))
                    (IN (INTERSECTION A B) SET)))))
 
-    (theory-add-axiom! th 'intersection-membership
+    (add-axiom! th 'intersection-membership
       '(FORALL A (FORALL B (FORALL x
           (IFF (IN x (INTERSECTION A B))
                (AND (IN x A) (IN x B)))))))
@@ -744,12 +744,12 @@
     ;; The RESTVAR/SPLICE forms are recognised by the macete engine; see
     ;; macetes.scm.
 
-    (theory-add-axiom! th 'union-decompose
+    (add-axiom! th 'union-decompose
       '(FORALL x (FORALL AS
           (IFF (IN x (UNION (RESTVAR AS)))
                (SPLICE OR e AS (IN x e))))))
 
-    (theory-add-axiom! th 'intersection-decompose
+    (add-axiom! th 'intersection-decompose
       '(FORALL x (FORALL AS
           (IFF (IN x (INTERSECTION (RESTVAR AS)))
                (SPLICE AND e AS (IN x e))))))
@@ -762,28 +762,28 @@
     ;;                                         x = [a_1, ..., a_n]
     ;; one instance per arity n ≥ 1.
 
-    (theory-add-axiom! th 'complement-in-set-closure
+    (add-axiom! th 'complement-in-set-closure
       '(FORALL A (FORALL B
           (IMPLIES (IN A SET)
                    (IN (COMPLEMENT-IN A B) SET)))))
 
-    (theory-add-axiom! th 'complement-in-membership
+    (add-axiom! th 'complement-in-membership
       '(FORALL A (FORALL B (FORALL x
           (IFF (IN x (COMPLEMENT-IN A B))
                (AND (IN x A) (NOT (IN x B))))))))
 
     ;; SET and ORD are primitive class constants
-    (theory-add-constant! th 'SET 'SET)
-    (theory-add-constant! th 'ORD 'ORD)
+    (add-constant! th 'SET 'SET)
+    (add-constant! th 'ORD 'ORD)
 
     th))
 
 ;;; -----------------------------------------------------------------------
 ;;; Global current theory (can be rebound)
 
-(define *current-theory*
+(define *library*
   (fluid-let ((*current-provenance* 'primitive))
-    (make-vnb-base-theory)))
+    (make-vnb-base-library)))
 
 ;;; Install IS-SET predicate: (IS-SET x) <-> (IN x SET)
 (def-predicate 'IS-SET 'SET)
@@ -791,9 +791,9 @@
 ;;; Install IS-ORD predicate: (IS-ORD x) <-> (IN x ORD)
 (def-predicate 'IS-ORD 'ORD)
 
-;;; There is ONE theory.  `(current-theory)' is kept only so that old scripts still load; new
+;;; There is ONE theory.  `(library-current)' is kept only so that old scripts still load; new
 ;;; code names no theory at all: `support', `warrant!', `def-predicate', `qed' take none.
-(define (current-theory) *current-theory*)
+(define (library-current) *library*)
 
 ;;; -----------------------------------------------------------------------
 ;;; rewrite-by-proc: top-down walker driving procedural macetes.
@@ -1007,3 +1007,19 @@
            'english "$1 is a set")
 (notation! 'IS-ORD 'kind 'predicate 'arity 1
            'english "$1 is an ordinal")
+
+
+;;; ---------------------------------------------------------------------------------------------
+;;; DEPRECATED ALIASES (2026-09-25, the user's decision: THERE ARE NO THEORIES, just structures).
+;;; The record above is the LIBRARY; the names built on "theory" are kept for one release so that
+;;; a script written before the rename still runs, and no file of the tree may use them (the suite
+;;; checks).  Remove after one release.
+(define theory-add-axiom!       add-axiom!)
+(define theory-add-theorem!     add-theorem!)
+(define theory-add-support!     add-support!)
+(define theory-add-constant!    add-constant!)
+(define theory-add-definition!  add-definition!)
+(define make-theory             make-library)
+(define make-vnb-base-theory    make-vnb-base-library)
+(define theory-get-theorem      library-get-theorem)
+(define current-theory          library-current)

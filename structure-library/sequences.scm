@@ -32,7 +32,7 @@
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from prod-ord-zero,
 ;;; prod-ord-succ, monoid-left-id, and monoid-carrier-closed-opr.  Installed
 ;;; as an axiom for direct use; eventually demote to a proven lemma.
-(theory-add-axiom! *current-theory* 'prod-ord-type
+(add-axiom! *library* 'prod-ord-type
   '(FORALL m
       (IMPLIES (IS-MONOID m)
                (FORALL f
@@ -45,7 +45,7 @@
 ;;; DERIVED (REVIEW.md R-10): prod-ord-succ at n=0 gives
 ;;; (OPR m)(IDEN m)(f 0), then monoid-left-id closes to (f 0).  Installed
 ;;; as an axiom for direct use.
-(theory-add-axiom! *current-theory* 'prod-ord-singleton
+(add-axiom! *library* 'prod-ord-singleton
   '(FORALL m
       (IMPLIES (IS-MONOID m)
                (FORALL f
@@ -72,7 +72,7 @@
 ;;; Type: result is in the carrier.
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from sum-zero, sum-succ,
 ;;; ring-zero-in, and ring-carrier-closed-add.  Installed for direct use.
-(theory-add-axiom! *current-theory* 'sum-type
+(add-axiom! *library* 'sum-type
   '(FORALL r
       (IMPLIES (IS-RING r)
                (FORALL f
@@ -84,7 +84,7 @@
 ;;; Singleton: SUM(r, f, 1) = f(0).
 ;;; DERIVED (REVIEW.md R-10): sum-succ at n=0 gives (ADD r)(ZERO r)(f 0),
 ;;; then a ring's left-zero-add identity closes to (f 0).  Installed for direct use.
-(theory-add-axiom! *current-theory* 'sum-singleton
+(add-axiom! *library* 'sum-singleton
   '(FORALL r
       (IMPLIES (IS-RING r)
                (FORALL f
@@ -117,7 +117,7 @@
 ;;; Singleton: SUM-AG(ag, f, 1) = f(0).
 ;;; Provable from sum-ag-succ at n=0 + sum-ag-zero + group-left-id
 ;;; (imported via abelian-group-is-group).  Installed for direct use.
-(theory-add-axiom! *current-theory* 'sum-ag-singleton
+(add-axiom! *library* 'sum-ag-singleton
   '(FORALL ag
       (IMPLIES (IS-ABELIAN-GROUP ag)
                (FORALL f
@@ -134,7 +134,7 @@
 ;;; reduce-one; step from sum-ag-succ + reduce-succ); installed for direct
 ;;; use in the library-build phase.  This is the seam where finite-sum
 ;;; machinery meets the kiddie-routed REDUCE bridges in numeric-instances.
-(theory-add-axiom! *current-theory* 'sum-ag-as-reduce
+(add-axiom! *library* 'sum-ag-as-reduce
   '(FORALL ag
       (IMPLIES (IS-ABELIAN-GROUP ag)
                (FORALL f
@@ -172,7 +172,7 @@
 ;;; Typing: all f(i) are rings → RING-PROD-N(f, n) is a ring.
 ;;; DERIVED (REVIEW.md R-9): provable by NN induction from ring-prod-is-ring
 ;;; (step) + zero-ring-is-ring (base).  Installed as an axiom for direct use.
-(theory-add-axiom! *current-theory* 'ring-prod-n-is-ring
+(add-axiom! *library* 'ring-prod-n-is-ring
   '(FORALL f
       (FORALL n (IMPLIES (IN n NN)
         (IMPLIES (FORALL i (IMPLIES (IN i NN) (IS-RING (f i))))
@@ -182,7 +182,7 @@
 ;;; SUM(r, lambda i. a * f(i), n) = a * SUM(r, f, n)
 ;;; Stated schematically for inline use (derivable by induction + distributivity).
 ;;; The VNB-LAMBDA form below uses the built-in lambda binder.
-(theory-add-axiom! *current-theory* 'sum-left-scalar
+(add-axiom! *library* 'sum-left-scalar
   '(FORALL r
       (IMPLIES (IS-RING r)
                (FORALL a

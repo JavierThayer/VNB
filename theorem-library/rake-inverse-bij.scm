@@ -18,7 +18,7 @@
 ;;;   inverse-bij-is-bijection INVERSE-BIJ(phi,X,Y) in BIJECTION(Y,X)
 ;;;   fin-enum-is-bijection    FIN-ENUM(S) in BIJECTION(OS(CARD S), S), S finite
 ;;;
-;;; All four INVERSE-BIJ statements were `theory-add-axiom!' with NO warrant --
+;;; All four INVERSE-BIJ statements were `add-axiom!' with NO warrant --
 ;;; i.e. `trust: none' to any citer -- which is why the permutation-invariance
 ;;; development (part 2, theorem-library/rake-finsum-welldef.scm) could not
 ;;; simply cite them.  Nothing in the tree cited them, so retiring them costs no
@@ -34,7 +34,7 @@
 ;;; `fun-domain-in-set' and Y is covered by IMAGE(phi,X), a set by replacement.
 ;;;
 ;;; CITATIONS and their load positions (0-based over load.scm's quoted files):
-;;;   theory.scm (primitive): choice-axiom, membership-implies-sethood, subset-def
+;;;   library.scm (primitive): choice-axiom, membership-implies-sethood, subset-def
 ;;;   structure-library/bijection (81, definitional): bijection-membership-iff
 ;;;   structure-library/cardinality (82, primitive): card-finite-bij
 ;;;   structure-library/injection (83, primitive/asserted): image-set,

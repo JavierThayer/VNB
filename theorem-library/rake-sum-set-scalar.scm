@@ -52,7 +52,7 @@
 ;;;         hypothesis closes it.
 ;;;
 ;;; CITATIONS and where they load (0-based over the file names in load.scm):
-;;;   theory.scm (11, primitive): subset-def, class-extensionality, pairing,
+;;;   library.scm (11, primitive): subset-def, class-extensionality, pairing,
 ;;;     pairing-membership, union-membership, union-set-closure,
 ;;;     intersection-membership, empty-set-has-no-members, empty-set-is-set
 ;;;   structure-library/cardinality.scm (82): finite-set-induction

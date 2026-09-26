@@ -374,7 +374,7 @@
 ;; the Definitions reference, which carries its full defining formula).
 (define (proof-tex--notation-glossary syms heads)
   (let* ((noted (filter (lambda (s) (assq s *proof-tex-notation-doc*)) syms))
-         (defs  (map car (theory-definitions *current-theory*)))
+         (defs  (map car (library-definitions *library*)))
          (defheads (filter (lambda (h) (and (memq h defs)
                                             (not (assq h *proof-tex-notation-doc*))))
                            heads)))

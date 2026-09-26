@@ -87,18 +87,18 @@
 ;;; (This comment said until 2026-09-16 that it was "a proven theorem in
 ;;; submodule-fg-proof.scm"; that file only CITES it.)
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'submodule-subset
+  (add-axiom! *library* 'submodule-subset
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s) (SUBSET s (VEC m))))))
-  (theory-add-axiom! *current-theory* 'submodule-vzero-in
+  (add-axiom! *library* 'submodule-vzero-in
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s) (IN (VZERO m) s)))))
-  (theory-add-axiom! *current-theory* 'submodule-vadd-closed
+  (add-axiom! *library* 'submodule-vadd-closed
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s)
        (FORALL x_ (IMPLIES (IN x_ s)
          (FORALL y_ (IMPLIES (IN y_ s) (IN ((VADD m) x_ y_) s)))))))))
-  (theory-add-axiom! *current-theory* 'submodule-vneg-closed
+  (add-axiom! *library* 'submodule-vneg-closed
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s)
        (FORALL x_ (IMPLIES (IN x_ s) (IN ((VNEG m) x_) s)))))))
-  (theory-add-axiom! *current-theory* 'submodule-act-closed
+  (add-axiom! *library* 'submodule-act-closed
     '(FORALL m (FORALL s (IMPLIES (IS-SUBMODULE m s)
        (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL x_ (IMPLIES (IN x_ s) (IN ((ACT m) r_ x_) s))))))))))

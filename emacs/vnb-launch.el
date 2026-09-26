@@ -5433,7 +5433,7 @@ in the Focus window close it -- the whole assume/discharge loop in miniature."
 ;; After saving, type axioms in the *VNB Commands* scratch sheet
 ;; (M-x vnb-command-buffer):
 ;;
-;;   (theory-add-axiom! *current-theory* 'name-of-axiom
+;;   (add-axiom! *library* 'name-of-axiom
 ;;     '(FORALL s (IMPLIES (IS-NAME s) ...)))
 "
   "Initial content inserted into a fresh Build Structure workspace.")

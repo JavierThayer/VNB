@@ -21,7 +21,7 @@
 ;;;             (nn-order-basics, 168), fun-apply-type-c (fun-apply-type-proof,
 ;;;             162), card-singleton (card-singleton-proof, 155), interval-in-set
 ;;;             (interval-basics, 151), eq-sym (equality-basics, 148).  Everything
-;;;             else is primitive or definitional (theory.scm, number-systems,
+;;;             else is primitive or definitional (library.scm, number-systems,
 ;;;             ordinals, cardinality, injection, matrix).
 ;;;   hi = end: NO leaf proven here has a citer anywhere in the tree -- these are
 ;;;             the off-bill supports.  (`interval-card' is NOT `interval-card-in-nn',

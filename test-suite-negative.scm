@@ -73,7 +73,7 @@
 ;;; is in FUN(ORD, ORD), which is precisely what the rule's sethood obligation
 ;;; exists to prevent.  An AXIOM route around a repaired RULE.  I could not
 ;;; derive FALSITY from it (the library has no unguarded "the domain of a set
-;;; function is a set" -- `dom-of-fun`, theory.scm:499, is guarded on (IN A SET)),
+;;; function is a set" -- `dom-of-fun`, library.scm:499, is guarded on (IN A SET)),
 ;;; so this is an unsound ASSERTION rather than a demonstrated inconsistency.
 ;;; The axiom was guarded on (IN X SET) the same day (bijection.scm:148-151), and
 ;;; `sethood-audit' (audit.scm) is the standing gate for the general shape.
@@ -906,8 +906,8 @@
 ;;;
 ;;; Until 2026-08-29 the tree asserted fourteen typings of the shape
 ;;; `IN binplus (FUN (CARTESIAN ZZ ZZ) ZZ)', one per (operation, numeric domain)
-;;; pair.  `(FUN A)' is "all total functions whose domain IS A" (theory.scm:321)
-;;; and `dom-of-fun' (theory.scm:500) draws the equation out, so ONE object
+;;; pair.  `(FUN A)' is "all total functions whose domain IS A" (library.scm:321)
+;;; and `dom-of-fun' (library.scm:500) draws the equation out, so ONE object
 ;;; asserted into nine function classes proved their domains equal --
 ;;; ZZ = QQ = RR = CC, and NN too through the products.  Composed with
 ;;; `cc-i-in' and `cc-i-squared' that gives 0 <= i*i = -1, i.e. FALSITY, which
@@ -942,7 +942,7 @@
     (mnp-attack!)))
 
 ;;; THE CONTROL.  `RES' is the one place the tree still states two function-class
-;;; memberships of a single object (res-typing, theory.scm:517), and it is sound
+;;; memberships of a single object (res-typing, library.scm:517), and it is sound
 ;;; because the second is DERIVED from the first rather than asserted beside it.
 ;;; The machinery that used to close the attacks above still closes this, so a
 ;;; green section above is evidence about the AXIOMS, not about the tactics.

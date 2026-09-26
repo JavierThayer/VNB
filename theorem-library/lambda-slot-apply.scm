@@ -8,7 +8,7 @@
 ;;; (ADD ZZ-RING) == binplus, then `binplus-apply', binplus(a,b) == a + b.
 ;;;
 ;;; That shared constant was the inconsistency.  `IN f (FUN A ...)' pins
-;;; DOM(f) = A exactly (theory.scm:321, dom-of-fun theory.scm:500), so one object
+;;; DOM(f) = A exactly (library.scm:321, dom-of-fun library.scm:500), so one object
 ;;; asserted into the five numeric function classes proved NN = ZZ = QQ = RR = CC,
 ;;; and with cc-i-squared that gives 0 <= -1.  The slots now hold a tupled
 ;;; VNB-LAMBDA per instance -- a genuine set function with one domain -- and the

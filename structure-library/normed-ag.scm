@@ -45,24 +45,24 @@
 ;;; Convenience restatement: the norm is a real-valued function on the carrier.
 ;;; (Immediate from is-group-norm; stated as a named axiom so callers need not
 ;;; peel the property's iff.)
-(theory-add-axiom! *current-theory* 'normed-ag-nrm-type
+(add-axiom! *library* 'normed-ag-nrm-type
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
      (IN (NRM s) (FUN (CARR s) RR)))))
 
 ;;; The norm is nonnegative on the carrier.
-(theory-add-axiom! *current-theory* 'normed-ag-nrm-nonneg
+(add-axiom! *library* 'normed-ag-nrm-nonneg
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
      (FORALL a (IMPLIES (IN a (CARR s))
        (<= 0 ((NRM s) a)))))))
 
 ;;; Definiteness: the norm vanishes exactly at the identity.
-(theory-add-axiom! *current-theory* 'normed-ag-nrm-definite
+(add-axiom! *library* 'normed-ag-nrm-definite
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
      (FORALL a (IMPLIES (IN a (CARR s))
        (IFF (= ((NRM s) a) 0) (= a (IDEN s))))))))
 
 ;;; Subadditivity (the triangle inequality for the norm).
-(theory-add-axiom! *current-theory* 'normed-ag-nrm-subadditive
+(add-axiom! *library* 'normed-ag-nrm-subadditive
   '(FORALL s (IMPLIES (IS-NORMED-AG s)
      (FORALL a (IMPLIES (IN a (CARR s))
        (FORALL b (IMPLIES (IN b (CARR s))

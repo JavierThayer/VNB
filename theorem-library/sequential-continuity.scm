@@ -44,7 +44,7 @@
 ;;; * THE CHOICE.  x_k is CHOICE of a SEP -- the CENTRES idiom of
 ;;;   compactness.scm and the fibre of ord-no-injection.scm -- and the sequence
 ;;;   is the VNB-LAMBDA k. CHOICE(W_k), typed by `lam-t'.  `choice-axiom'
-;;;   (theory.scm) is PRIMITIVE, so this construction adds NOTHING to the bill:
+;;;   (library.scm) is PRIMITIVE, so this construction adds NOTHING to the bill:
 ;;;   no countable-choice or dependent-choice support is needed, and `dc-on-nn'
 ;;;   (asserted, `reference') is NOT cited -- the choices here are independent,
 ;;;   so the plain Hilbert epsilon at each k suffices.

@@ -26,7 +26,7 @@
   (property is-identity MUL ONE CARR)
   (property is-distributive ADD MUL CARR))
 
-(theory-add-axiom! *current-theory* 'ring-add-assoc
+(add-axiom! *library* 'ring-add-assoc
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
@@ -35,26 +35,26 @@
              (= ((ADD s) ((ADD s) a b) c)
                 ((ADD s) a ((ADD s) b c))))))))))))
 
-(theory-add-axiom! *current-theory* 'ring-add-comm
+(add-axiom! *library* 'ring-add-comm
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (FORALL b (IMPLIES (IN b (CARR s))
            (= ((ADD s) a b) ((ADD s) b a)))))))))
 
-(theory-add-axiom! *current-theory* 'ring-add-left-id
+(add-axiom! *library* 'ring-add-left-id
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((ADD s) (ZERO s) a) a))))))
 
-(theory-add-axiom! *current-theory* 'ring-add-left-inv
+(add-axiom! *library* 'ring-add-left-inv
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((ADD s) ((NEG s) a) a) (ZERO s)))))))
 
-(theory-add-axiom! *current-theory* 'ring-mul-assoc
+(add-axiom! *library* 'ring-mul-assoc
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
@@ -63,19 +63,19 @@
              (= ((MUL s) ((MUL s) a b) c)
                 ((MUL s) a ((MUL s) b c))))))))))))
 
-(theory-add-axiom! *current-theory* 'ring-mul-left-id
+(add-axiom! *library* 'ring-mul-left-id
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) (ONE s) a) a))))))
 
-(theory-add-axiom! *current-theory* 'ring-mul-right-id
+(add-axiom! *library* 'ring-mul-right-id
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
          (= ((MUL s) a (ONE s)) a))))))
 
-(theory-add-axiom! *current-theory* 'ring-left-dist
+(add-axiom! *library* 'ring-left-dist
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
@@ -84,7 +84,7 @@
              (= ((MUL s) a ((ADD s) b c))
                 ((ADD s) ((MUL s) a b) ((MUL s) a c))))))))))))
 
-(theory-add-axiom! *current-theory* 'ring-right-dist
+(add-axiom! *library* 'ring-right-dist
   '(FORALL s
      (IMPLIES (IS-RING s)
        (FORALL a (IMPLIES (IN a (CARR s))
@@ -106,11 +106,11 @@
 
 ;;; ZERO(r) ∈ CARR(r) when IS-RING(r).
 ;;; DERIVED (REVIEW.md R-2): follows from the auto-generated IS-RING IFF.
-(theory-add-axiom! *current-theory* 'ring-zero-in
+(add-axiom! *library* 'ring-zero-in
   '(FORALL r (IMPLIES (IS-RING r) (IN (ZERO r) (CARR r)))))
 
 ;;; DERIVED (REVIEW.md R-3): IS-RING IFF + fun-apply-type.
-(theory-add-axiom! *current-theory* 'ring-carrier-closed-add
+(add-axiom! *library* 'ring-carrier-closed-add
   '(FORALL r (FORALL a (FORALL b
       (IMPLIES (AND (IS-RING r) (AND (IN a (CARR r)) (IN b (CARR r))))
                (IN ((ADD r) a b) (CARR r)))))))
@@ -158,7 +158,7 @@
      (LIST (ZERO X) (ZERO Y))
      (LIST (ONE X) (ONE Y))))
 
-(theory-add-axiom! *current-theory* 'ring-prod-is-ring
+(add-axiom! *library* 'ring-prod-is-ring
   '(FORALL X (IMPLIES (IS-RING X)
       (FORALL Y (IMPLIES (IS-RING Y)
         (IS-RING (RING-PROD X Y)))))))
@@ -176,7 +176,7 @@
                   0
                   0))))
 
-(theory-add-axiom! *current-theory* 'zero-ring-is-ring
+(add-axiom! *library* 'zero-ring-is-ring
   '(IS-RING ZERO-RING))
 
 ;;; Notation -- read by wff->english / the proof reader (operators.scm).

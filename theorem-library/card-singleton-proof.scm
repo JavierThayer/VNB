@@ -20,7 +20,7 @@
 ;;;     CARD EMPTY-SET -> 0                          card-empty (primitive)
 ;;; and the goal  succ_ORD 0 = succ 0  is ord-succ-nn (primitive) at 0.
 ;;;
-;;; WINDOW.  Every citation is a base axiom (theory.scm), a cardinality
+;;; WINDOW.  Every citation is a base axiom (library.scm), a cardinality
 ;;; primitive (structure-library/cardinality) or an ordinal primitive
 ;;; (structure-library/ordinals), so lo = any theorem-library slot after
 ;;; driver-kit / proof-debt.  hi = theorem-library/makeset-basics, the earliest

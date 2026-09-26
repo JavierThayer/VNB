@@ -51,7 +51,7 @@
 ;;; [1,n]; those statements quantify an index with no typing at all, so they
 ;;; also assert that ENTRY -- i.e. NTH of NTH -- DENOTES outside the index box,
 ;;; `=' being the definedness predicate.  The theory's only statement about NTH
-;;; is `nth-in-range' (theory.scm:665), guarded on 1 <= i <= length(L); nothing
+;;; is `nth-in-range' (library.scm:665), guarded on 1 <= i <= length(L); nothing
 ;;; says NTH denotes past the end.  They want the guard added, at the cost of
 ;;; one index typing per citation.  The other three supports of the file were a
 ;;; different shape: elem-f-type / elem-h-type are MATOF typings, and

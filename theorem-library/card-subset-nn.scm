@@ -41,7 +41,7 @@
 ;;; forced by card-union-singleton-bound (theorem-library/makeset-card-bound,
 ;;; table position 173); hi by the earliest real citer, card-inequalities.scm
 ;;; (table position 174; `card-subset-mono' cites this theorem three times).
-;;; Everything else cited is primitive (theory.scm base axioms, cardinality.scm,
+;;; Everything else cited is primitive (library.scm base axioms, cardinality.scm,
 ;;; number-systems.scm).
 ;;;
 ;;; Helper prefix: csn-.  The peel / split / pick / only / apply / di-var kit this

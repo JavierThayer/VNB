@@ -17,9 +17,9 @@
 ;;;                   derived only because the SEP-then-extensionality step is
 ;;;                   pure bookkeeping"
 ;;;
-;;; The first three are three tactic steps each off `subset-def' (theory.scm:252,
-;;; a base-theory axiom).  The fourth is the derivation its own warrant describes:
-;;; class-extensionality (theory.scm:270) identifies A with {z in B : z in A},
+;;; The first three are three tactic steps each off `subset-def' (library.scm:252,
+;;; a base-library axiom).  The fourth is the derivation its own warrant describes:
+;;; class-extensionality (library.scm:270) identifies A with {z in B : z in A},
 ;;; which separation makes a set.
 ;;;
 ;;; WHY THEY SAT THERE.  Not difficulty -- LOAD ORDER.  `sp' and `qed' do not

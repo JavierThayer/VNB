@@ -57,7 +57,7 @@
 ;;;
 ;;; WHAT IS DELIBERATELY NOT HERE: a congruence law for SERIES-LIMIT.
 ;;; "f(n) = g(n) for every n in NN implies SERIES-LIMIT(f) = SERIES-LIMIT(g)"
-;;; needs NO lemma.  `fun-domain-extensionality' (theory.scm, PRIMITIVE) gives
+;;; needs NO lemma.  `fun-domain-extensionality' (library.scm, PRIMITIVE) gives
 ;;; f = g from the pointwise agreement once both are typed into FUN(NN) -- one
 ;;; `mac-h' of `fun-codomain-iff' per side -- and the conclusion is then one
 ;;; `subst' plus `qrfl'.  Measured: five lines, `modulo 0'.  (In the `=' rather

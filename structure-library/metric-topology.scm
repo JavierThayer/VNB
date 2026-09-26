@@ -195,8 +195,8 @@
 ;;; TOTALLY-BOUNDED as a HYPOTHESIS is therefore weakened, hence still true;
 ;;; every statement that asserts one as a CONCLUSION owes the new conjunct.
 
-;; def-predicate (not a raw theory-add-axiom!) so IS-R-NET registers in
-;; `theory-definitions' -> DEFINITIONS.md -> the browser Definitions page, and
+;; def-predicate (not a raw add-axiom!) so IS-R-NET registers in
+;; `library-definitions' -> DEFINITIONS.md -> the browser Definitions page, and
 ;; is stamped `definitional' at source (the macete name is the predicate name,
 ;; IS-R-NET; cf. IS-COMPACT in compactness.scm).
 (def-predicate 'IS-R-NET '(s F A r)

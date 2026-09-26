@@ -190,6 +190,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `finsum-union-disjoint-fun` — forall([ag], is-abelian-group(ag) implies forall([s_ in set], card(s_) in nn implies forall([t_ in set], card(t_) in nn implies intersection(s_, t_) = empty-set implies forall([f_ in fun(union(s_, t_), carr(ag))], finsum(ag, f_, union(s_, t_)) = (opr(ag))(finsum(ag, f_, s_), finsum(ag, f_, t_))))))
 - `finsum-union-disjoint-fun-rev` — forall([ag], is-abelian-group(ag) implies forall([s_ in set], card(s_) in nn implies forall([t_ in set], card(t_) in nn implies intersection(s_, t_) = empty-set implies forall([f_ in fun(union(s_, t_), carr(ag))], (opr(ag))(finsum(ag, f_, s_), finsum(ag, f_, t_)) = finsum(ag, f_, union(s_, t_))))))
 - `finsum-union-disjoint-rev` — forall([ag], is-abelian-group(ag) implies forall([s_ in set], card(s_) in nn implies forall([t_ in set], card(t_) in nn implies forall([z_ in t_], not(z_ in s_)) implies forall([f_], forall([z_ in union(s_, t_)], f_(z_) in carr(ag)) implies (opr(ag))(finsum(ag, f_, s_), finsum(ag, f_, t_)) = finsum(ag, f_, union(s_, t_))))))
+- `hom-abelian-group-id` — forall([a], is-abelian-group(a) implies is-hom-abelian-group(a, a, id-fun(carr(a))))
 - `mpow-add-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], mpow(abelian-group-as-monoid(r), x, j + k) = (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k))))
 - `mpow-add-abelian-group-as-monoid-rev` — forall([r], is-abelian-group(r) implies forall([x in carr(r), j in nn, k in nn], (opr(r))(mpow(abelian-group-as-monoid(r), x, j), mpow(abelian-group-as-monoid(r), x, k)) = mpow(abelian-group-as-monoid(r), x, j + k)))
 - `mpow-one-abelian-group-as-monoid` — forall([r], is-abelian-group(r) implies forall([x in carr(r)], mpow(abelian-group-as-monoid(r), x, 1) = x))
@@ -264,6 +265,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `c-metric-summable` — forall([s], is-c-metric-space(s) implies forall([w], summable-weight(w) implies forall([u_, v_], u_ in pts(s) implies v_ in pts(s) implies series-converges(vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u_, v_)))))))
 - `c-metric-term-bound` — forall([s], is-c-metric-space(s) implies forall([k_, u_, v_, wk], k_ in nn implies u_ in pts(s) implies v_ in pts(s) implies wk in rr implies 0 <= wk implies wk * min(1, ((dists(s))(k_))(u_, v_)) in rr and 0 <= wk * min(1, ((dists(s))(k_))(u_, v_)) and wk * min(1, ((dists(s))(k_))(u_, v_)) <= wk))
 - `c-metric-term-seq-in-fun` — forall([s], is-c-metric-space(s) implies forall([w], summable-weight(w) implies forall([u_, v_], u_ in pts(s) implies v_ in pts(s) implies vnb-lambda(k, nn, w(k) * min(1, ((dists(s))(k))(u_, v_))) in fun(nn, rr))))
+- `hom-c-metric-space-id` — forall([a], is-c-metric-space(a) implies is-hom-c-metric-space(a, a, id-fun(pts(a))))
 
 ### cc-ms
 <a id="cc-ms"></a>
@@ -357,6 +359,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `finsum-insert-rev` — forall([m], is-comm-monoid(m) implies forall([x], x in set and card(x) in nn implies forall([k], k in set and not(k in x) implies forall([f in fun(union(x, pair(k, k)), carr(m))], (opr(m))(finsum(m, f, x), f(k)) = finsum(m, f, union(x, pair(k, k)))))))
 - `finsum-reindex` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, f, s) = finsum(m, vnb-lambda(z, t, f(phi(z))), t)))))
 - `finsum-reindex-rev` — forall([m], is-comm-monoid(m) implies forall([s in set], card(s) in nn implies forall([t], t in set and card(t) in nn implies forall([phi in bijection(t, s), f in fun(s, carr(m))], finsum(m, vnb-lambda(z, t, f(phi(z))), t) = finsum(m, f, s)))))
+- `hom-comm-monoid-id` — forall([a], is-comm-monoid(a) implies is-hom-comm-monoid(a, a, id-fun(carr(a))))
 - `mpow-mult` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], mpow(m, (opr(m))(x, y), n) = (opr(m))(mpow(m, x, n), mpow(m, y, n))))
 - `mpow-mult-rev` — forall([m], is-comm-monoid(m) implies forall([x in carr(m), y in carr(m), n in nn], (opr(m))(mpow(m, x, n), mpow(m, y, n)) = mpow(m, (opr(m))(x, y), n)))
 - `prod-set-disjoint-union-defined` — forall([cm], is-comm-monoid(cm) implies forall([s1, s2, f], s1 in set and s2 in set and intersection(s1, s2) = empty-set and f in fun(union(s1, s2), carr(cm)) and card(s1) in nn and card(s2) in nn implies prod-set(cm, union(s1, s2), f) = (opr(cm))(prod-set(cm, s1, f), prod-set(cm, s2, f))))
@@ -457,6 +460,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `finsum-ring-distrib-right-rev` — forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), s in set], card(s) in nn implies forall([f in fun(s, carr(rng))], finsum(commutative-ring-additive-ag(rng), vnb-lambda(z, s, (mul(rng))(f(z), r)), s) = (mul(rng))(finsum(commutative-ring-additive-ag(rng), f, s), r))))
 - `finsum-ring-scalar-zz` — forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), c in zz, a in carr(rng)], (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a)) = zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a))))
 - `finsum-ring-scalar-zz-rev` — forall([rng], is-commutative-ring(rng) implies forall([r in carr(rng), c in zz, a in carr(rng)], zz-act(commutative-ring-additive-ag(rng), c, (mul(rng))(r, a)) = (mul(rng))(r, zz-act(commutative-ring-additive-ag(rng), c, a))))
+- `hom-commutative-ring-id` — forall([a], is-commutative-ring(a) implies is-hom-commutative-ring(a, a, id-fun(carr(a))))
 - `prod-of-sums-expansion` — forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([a in fun(x, carr(r)), b in fun(x, carr(r))], prod-ring(r, vnb-lambda(k, x, (add(r))(a(k), b(k))), x) = finsum(commutative-ring-additive-ag(r), vnb-lambda(s, power(x), (mul(r))(prod-ring(r, a, s), prod-ring(r, b, difference(x, s)))), power(x)))))
 - `prod-of-sums-expansion-rev` — forall([r], is-commutative-ring(r) implies forall([x], x in set and card(x) in nn implies forall([a in fun(x, carr(r)), b in fun(x, carr(r))], finsum(commutative-ring-additive-ag(r), vnb-lambda(s, power(x), (mul(r))(prod-ring(r, a, s), prod-ring(r, b, difference(x, s)))), power(x)) = prod-ring(r, vnb-lambda(k, x, (add(r))(a(k), b(k))), x))))
 - `prod-of-sums-ptwise` — forall([r], is-commutative-ring(r) implies forall([w in set], card(w) in nn implies forall([a_], forall([z_ in w], a_(z_) in carr(r)) implies forall([b_], forall([z_ in w], b_(z_) in carr(r)) implies prod-ring(r, vnb-lambda(kv_, w, (add(r))(a_(kv_), b_(kv_))), w) = finsum(commutative-ring-additive-ag(r), vnb-lambda(sv_, power(w), (mul(r))(prod-ring(r, a_, sv_), prod-ring(r, b_, difference(w, sv_)))), power(w))))))
@@ -588,6 +592,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `cips-vneg-type` — forall([v], is-complex-inner-product-space(v) implies forall([x_ in vec(v)], (vneg(v))(x_) in vec(v)))
 - `cips-vzero-in` — forall([v], is-complex-inner-product-space(v) implies vzero(v) in vec(v))
 - `complex-inner-product-space-as-module-is-module` — forall([r], is-complex-inner-product-space(r) implies is-module(complex-inner-product-space-as-module(r)))
+- `hom-complex-inner-product-space-id` — forall([a], is-complex-inner-product-space(a) implies is-hom-complex-inner-product-space(a, a, id-fun(vec(a))))
 - `ip-normed-ag-is-normed-ag` — forall([v], is-complex-inner-product-space(v) implies is-normed-ag(ip-normed-ag(v)))
 - `module-act-distrib-scalar-complex-inner-product-space-as-module` — forall([r], is-complex-inner-product-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (act(r))((add(scal(r)))(r_, s_), x_) = (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_))))
 - `module-act-distrib-scalar-complex-inner-product-space-as-module-rev` — forall([r], is-complex-inner-product-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_)) = (act(r))((add(scal(r)))(r_, s_), x_)))
@@ -655,6 +660,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `euclidean-ring-has-gauge` — forall([s], is-euclidean-ring(s) implies forsome([dg in fun(carr(s), nn)], has-div-remainder(s, dg)))
 - `euclidean-ring-is-integral-domain` — forall([s], is-euclidean-ring(s) implies is-integral-domain(s))
 - `gauge-is-degree` — forall([s], is-euclidean-ring(s) implies gauge(s) in fun(carr(s), nn) and has-div-remainder(s, gauge(s)))
+- `hom-euclidean-ring-id` — forall([a], is-euclidean-ring(a) implies is-hom-euclidean-ring(a, a, id-fun(carr(a))))
 - `min-degree-entry` — forall([a], is-euclidean-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], forsome([i0, j0], i0 in interval(1, m) and j0 in interval(1, n) and not(entry(p, i0, j0) = zero(a))) implies forsome([is, js], is in interval(1, m) and js in interval(1, n) and not(entry(p, is, js) = zero(a)) and forall([i, j], i in interval(1, m) implies j in interval(1, n) implies not(entry(p, i, j) = zero(a)) implies (gauge(a))(entry(p, is, js)) <= (gauge(a))(entry(p, i, j))))))
 - `pivot-clears-col` — forall([a], is-euclidean-ring(a) implies forall([m, n, p, j], p in mat(m, n, carr(a)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies j in interval(1, n) implies not(1 = j) implies not(entry(p, 1, 1) = zero(a)) implies forall([c], mat-equiv(a, m, n, p, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(p, 1, 1)) <= (gauge(a))(entry(c, ii, jj)))) implies forsome([q], mat-equiv(a, m, n, p, q) and entry(q, 1, 1) = entry(p, 1, 1) and entry(q, 1, j) = zero(a) and forall([ii, c], ii in interval(1, m) implies c in interval(1, n) implies not(c = j) implies entry(q, ii, c) = entry(p, ii, c)))))
 - `pivot-clears-row` — forall([a], is-euclidean-ring(a) implies forall([m, n, p, i], p in mat(m, n, carr(a)) implies 1 in interval(1, m) implies 1 in interval(1, n) implies i in interval(1, m) implies not(i = 1) implies not(entry(p, 1, 1) = zero(a)) implies forall([c], mat-equiv(a, m, n, p, c) implies forall([ii, jj], ii in interval(1, m) implies jj in interval(1, n) implies not(entry(c, ii, jj) = zero(a)) implies (gauge(a))(entry(p, 1, 1)) <= (gauge(a))(entry(c, ii, jj)))) implies forsome([q], mat-equiv(a, m, n, p, q) and entry(q, 1, 1) = entry(p, 1, 1) and entry(q, i, 1) = zero(a) and forall([rw, c], rw in interval(1, m) implies c in interval(1, n) implies not(rw = i) implies entry(q, rw, c) = entry(p, rw, c)))))
@@ -716,6 +722,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `field-multiplicative-group-is-group` — forall([r], is-field(r) implies is-group(field-multiplicative-group(r)))
 - `field-non-zero-carrier` — forall([s], is-field(s) implies non-zero(s) = difference(carr(s), singleton(zero(s))))
 - `field-non-zero-carrier-rev` — forall([s], is-field(s) implies difference(carr(s), singleton(zero(s))) = non-zero(s))
+- `hom-field-id` — forall([a], is-field(a) implies is-hom-field(a, a, id-fun(carr(a))))
 
 *Views from `field`.*
 
@@ -746,6 +753,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Defining predicate* (as stored):
 
 - `is-field-ring-def` — forall([s], is-field-ring(s) iff is-commutative-ring(s) and not(one(s) = zero(s)) and forall([a_ in carr(s)], not(a_ = zero(s)) implies forsome([b_ in carr(s)], (mul(s))(a_, b_) = one(s))))
+
+*Theorems quantifying over `is-field-ring`.*
+
+- `hom-field-ring-id` — forall([a], is-field-ring(a) implies is-hom-field-ring(a, a, id-fun(carr(a))))
 
 ### group
 <a id="group"></a>
@@ -786,6 +797,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `group-left-id-rev` — forall([s], is-group(s) implies forall([a in carr(s)], a = (opr(s))(iden(s), a)))
 - `group-left-inv` — forall([s], is-group(s) implies forall([a in carr(s)], (opr(s))((inv(s))(a), a) = iden(s)))
 - `group-left-inv-rev` — forall([s], is-group(s) implies forall([a in carr(s)], iden(s) = (opr(s))((inv(s))(a), a)))
+- `hom-group-id` — forall([a], is-group(a) implies is-hom-group(a, a, id-fun(carr(a))))
 
 *Views into `group`.*
 
@@ -815,6 +827,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-integral-domain`.*
 
+- `hom-integral-domain-id` — forall([a], is-integral-domain(a) implies is-hom-integral-domain(a, a, id-fun(carr(a))))
 - `integral-domain-cancel-zero` — forall([s], is-integral-domain(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies not(b = zero(s)) implies a = zero(s)))
 - `integral-domain-cancel-zero-rev` — forall([s], is-integral-domain(s) implies forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies not(b = zero(s)) implies zero(s) = a))
 - `integral-domain-is-commutative-ring` — forall([s], is-integral-domain(s) implies is-commutative-ring(s))
@@ -848,6 +861,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `is-measurable-space` — forall([s], is-measurable-space(s) iff length(s) = 2 and pts(s) in set and sigma(s) in power(power(pts(s))) and is-sigma-algebra(pts(s), sigma(s)))
 
+*Theorems quantifying over `is-measurable-space`.*
+
+- `hom-measurable-space-id` — forall([a], is-measurable-space(a) implies is-hom-measurable-space(a, a, id-fun(pts(a))))
+
 *Views into `measurable-space`.*
 
 - `measure-space-as-measurable-space` — from `measure-space`: (pts sigma) ↦ (pts sigma)
@@ -878,6 +895,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-measure-space`.*
 
+- `hom-measure-space-id` — forall([a], is-measure-space(a) implies is-hom-measure-space(a, a, id-fun(pts(a))))
 - `measure-space-as-measurable-space-is-measurable-space` — forall([r], is-measure-space(r) implies is-measurable-space(measure-space-as-measurable-space(r)))
 
 *Views from `measure-space`.*
@@ -968,6 +986,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
 - `finite-ball-subcover-r-net` — forall([s], is-metric-space(s) implies forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], f subset ball-cover(s, r) and card(f) in nn and is-open-cover(s, f)) implies forsome([n], card(n) in nn and is-r-net(s, n, pts(s), r))))
 - `fip-implies-compact` — forall([s], is-metric-space(s) implies forall([c], has-fip(s, c) implies forsome([p], p in intersection-of(c))) implies is-compact(s))
+- `hom-metric-space-id` — forall([a], is-metric-space(a) implies is-hom-metric-space(a, a, id-fun(pts(a))))
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))
 - `interior-is-open` — forall([s], is-metric-space(s) implies forall([a], is-open(s, interior(s, a))))
 - `interior-is-set` — forall([s], is-metric-space(s) implies forall([a], interior(s, a) in set))
@@ -1062,6 +1081,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-metrizable-top-space`.*
 
+- `hom-metrizable-top-space-id` — forall([s], is-metrizable-top-space(s) implies is-hom-metrizable-top-space(s, s, id-fun(pts(s))))
 - `metrizable-has-metric-top` — forall([s], is-metrizable-top-space(s) implies forsome([md], is-metric-space(md) and metric-top(md) == s))
 
 ### module
@@ -1122,6 +1142,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `generates-coeff-matrix` — forall([md], is-module(md) implies forall([n, m, u, v], u in mat(n, 1, vec(md)) implies v in mat(m, 1, vec(md)) implies (n = 0 implies m = 0) implies generates(md, n, u) implies forsome([cm in mat(m, n, carr(scal(md)))], v = matact(md, cm, u))))
 - `generates-implies-spans-vec` — forall([md], is-module(md) implies forall([n in nn, u in mat(n, 1, vec(md))], generates(md, n, u) implies spans(md, n, u, vec(md))))
 - `generates-transport` — forall([md], is-module(md) implies forall([n, u, pm], u in mat(n, 1, vec(md)) implies is-invertible-mat(scal(md), n, pm) implies generates(md, n, u) implies generates(md, n, matact(md, pm, u))))
+- `hom-module-id` — forall([a], is-module(a) implies is-hom-module(a, a, id-fun(vec(a))))
 - `lastcoeff-set-is-ideal` — forall([md], is-module(md) implies is-commutative-ring(scal(md)) implies forall([p in nn, u in mat(succ(p), 1, vec(md)), sm], is-submodule(md, sm) implies is-ideal(scal(md), lastcoeff-set(md, p, u, sm))))
 - `lastcoeff-zero-in-span` — forall([md], is-module(md) implies forall([p in nn, u in mat(succ(p), 1, vec(md)), c in mat(1, succ(p), carr(scal(md)))], entry(c, 1, succ(p)) = zero(scal(md)) implies lincomb(md, succ(p), c, u) in span(md, p, block(u, p, 1))))
 - `lincomb-empty` — forall([md], is-module(md) implies forall([c, u], lincomb(md, 0, c, u) = vzero(md)))
@@ -1236,6 +1257,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-monoid`.*
 
+- `hom-monoid-id` — forall([a], is-monoid(a) implies is-hom-monoid(a, a, id-fun(carr(a))))
 - `monoid-assoc` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))
 - `monoid-assoc-rev` — forall([s], is-monoid(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))(a, (opr(s))(b, c)) = (opr(s))((opr(s))(a, b), c)))
 - `monoid-carrier-is-set` — forall([m_], is-monoid(m_) implies carr(m_) in set)
@@ -1307,6 +1329,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Theorems quantifying over `is-normed-ag`.*
 
 - `abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group` — forall([r], is-normed-ag(r) implies is-monoid(abelian-group-as-monoid(normed-ag-as-abelian-group(r))))
+- `hom-normed-ag-id` — forall([a], is-normed-ag(a) implies is-hom-normed-ag(a, a, id-fun(carr(a))))
 - `nag-metric-distance` — forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (dist(nag-metric-space(nag)))(u, v) = (nrm(nag))((opr(nag))(u, (inv(nag))(v)))))
 - `nag-metric-distance-rev` — forall([nag], is-normed-ag(nag) implies forall([u in carr(nag), v in carr(nag)], (nrm(nag))((opr(nag))(u, (inv(nag))(v))) = (dist(nag-metric-space(nag)))(u, v)))
 - `nag-metric-space-is-metric-space` — forall([nag], is-normed-ag(nag) implies is-metric-space(nag-metric-space(nag)))
@@ -1377,6 +1400,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `diff-on-sum` — forall([k], is-normed-field(k) implies forall([u, d2f_, d2g_, d2a_, d2l_, d2m_], is-diff-on(k, u, d2f_, d2a_, d2l_) implies is-diff-on(k, u, d2g_, d2a_, d2m_) implies is-diff-on(k, u, vnb-lambda(d2x_, u, (add(k))(d2f_(d2x_), d2g_(d2x_))), d2a_, (add(k))(d2l_, d2m_))))
 - `diff-on-unique` — forall([k], is-normed-field(k) implies forall([d2e_], pos-rr(d2e_) implies forsome([d2h_ in carr(k)], not(d2h_ = zero(k)) and (fnrm(k))(d2h_) < d2e_)) implies forall([u, d2f_, d2a_, d2l_, d2m_], is-diff-on(k, u, d2f_, d2a_, d2l_) implies is-diff-on(k, u, d2f_, d2a_, d2m_) implies d2l_ = d2m_))
 - `diff-on-unique-rev` — forall([k], is-normed-field(k) implies forall([d2e_], pos-rr(d2e_) implies forsome([d2h_ in carr(k)], not(d2h_ = zero(k)) and (fnrm(k))(d2h_) < d2e_)) implies forall([u, d2f_, d2a_, d2l_, d2m_], is-diff-on(k, u, d2f_, d2a_, d2l_) implies is-diff-on(k, u, d2f_, d2a_, d2m_) implies d2m_ = d2l_))
+- `hom-normed-field-id` — forall([a], is-normed-field(a) implies is-hom-normed-field(a, a, id-fun(carr(a))))
 - `nf-add-in-carr` — forall([k], is-normed-field(k) implies forall([u_, v_], u_ in carr(k) implies v_ in carr(k) implies (add(k))(u_, v_) in carr(k)))
 - `nf-lam-comp-z-in-fun` — forall([k], is-normed-field(k) implies forall([u in set, d2s_, d2f_, d2g_ in fun(d2s_, carr(k))], forall([d2y_ in u], d2f_(d2y_) in d2s_) implies vnb-lambda(msz_, u, d2g_(d2f_(msz_))) in fun(u, carr(k))))
 - `nf-lam-const-in-fun` — forall([k], is-normed-field(k) implies forall([u in set, d2c_ in carr(k)], vnb-lambda(d2x_, u, d2c_) in fun(u, carr(k))))
@@ -1517,6 +1541,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `hbg-scale-decomp-rev` — forall([m], is-normed-vector-space(m) implies forall([y_ in vec(m), v_ in vec(m), r_ in rr], not(r_ = 0) implies (act(m))(r_, (vadd(m))((act(m))(recip(r_), y_), v_)) = (vadd(m))(y_, (act(m))(r_, v_))))
 - `hbg-shift` — forall([m], is-normed-vector-space(m) implies forall([w_ in vec(m), z_ in vec(m), v_ in vec(m)], (vadd(m))(w_, (act(m))(-1, z_)) = (vadd(m))((vadd(m))(w_, v_), (act(m))(-1, (vadd(m))(z_, v_)))))
 - `hbg-shift-rev` — forall([m], is-normed-vector-space(m) implies forall([w_ in vec(m), z_ in vec(m), v_ in vec(m)], (vadd(m))((vadd(m))(w_, v_), (act(m))(-1, (vadd(m))(z_, v_))) = (vadd(m))(w_, (act(m))(-1, z_))))
+- `hom-normed-vector-space-id` — forall([a], is-normed-vector-space(a) implies is-hom-normed-vector-space(a, a, id-fun(vec(a))))
 - `module-act-distrib-scalar-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (act(r))((add(scal(r)))(r_, s_), x_) = (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_))))
 - `module-act-distrib-scalar-normed-vector-space-as-module-rev` — forall([r], is-normed-vector-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_)) = (act(r))((add(scal(r)))(r_, s_), x_)))
 - `module-act-distrib-scalar-rev-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_)) = (act(r))((add(scal(r)))(r_, s_), x_)))
@@ -1664,6 +1689,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `is-pid-def` — forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in carr(s)], i = principal-ideal(s, a))))
 
+*Theorems quantifying over `is-pid`.*
+
+- `hom-pid-id` — forall([a], is-pid(a) implies is-hom-pid(a, a, id-fun(carr(a))))
+
 ### pseudometric-space
 <a id="pseudometric-space"></a>
 
@@ -1685,6 +1714,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 *Defining predicate* (as stored):
 
 - `is-pseudometric-space` — forall([s], is-pseudometric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-pseudometric(dist(s), pts(s)))
+
+*Theorems quantifying over `is-pseudometric-space`.*
+
+- `hom-pseudometric-space-id` — forall([a], is-pseudometric-space(a) implies is-hom-pseudometric-space(a, a, id-fun(pts(a))))
 
 ### qq-field
 <a id="qq-field"></a>
@@ -1854,6 +1887,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `finsum-single-support-ring-additive-ag` — forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r)), i0 in s], forall([j in s], not(j = i0) implies f(j) = zero(r)) implies finsum(ring-additive-ag(r), f, s) = f(i0))))
 - `finsum-single-support-ring-additive-ag-rev` — forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r)), i0 in s], forall([j in s], not(j = i0) implies f(j) = zero(r)) implies f(i0) = finsum(ring-additive-ag(r), f, s))))
 - `finsum-type-ring-additive-ag` — forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r))], finsum(ring-additive-ag(r), f, s) in carr(r))))
+- `hom-ring-id` — forall([a], is-ring(a) implies is-hom-ring(a, a, id-fun(carr(a))))
 - `identmat-invertible` — forall([a], is-ring(a) implies forall([n in nn], is-invertible-mat(a, n, identmat(a, n))))
 - `identmat-left-identity` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], matmul(a, identmat(a, m), p) = p))
 - `identmat-left-identity-rev` — forall([a], is-ring(a) implies forall([m, n, p in mat(m, n, carr(a))], p = matmul(a, identmat(a, m), p)))
@@ -2055,6 +2089,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-ringoid`.*
 
+- `hom-ringoid-id` — forall([a], is-ringoid(a) implies is-hom-ringoid(a, a, id-fun(carr(a))))
 - `r6b-add-respects2` — forall([r], is-ringoid(r) implies respects2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))))
 - `r6b-radd-interchange` — forall([r], is-ringoid(r) implies forall([a, b, c, d], a in carr(r) implies b in carr(r) implies c in carr(r) implies d in carr(r) implies (add(r))((add(r))(a, b), (add(r))(c, d)) = (add(r))((add(r))(a, c), (add(r))(b, d))))
 - `r6b-radd-interchange-rev` — forall([r], is-ringoid(r) implies forall([a, b, c, d], a in carr(r) implies b in carr(r) implies c in carr(r) implies d in carr(r) implies (add(r))((add(r))(a, c), (add(r))(b, d)) = (add(r))((add(r))(a, b), (add(r))(c, d))))
@@ -2247,6 +2282,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-semigroup`.*
 
+- `hom-semigroup-id` — forall([a], is-semigroup(a) implies is-hom-semigroup(a, a, id-fun(carr(a))))
 - `semigroup-assoc` — forall([s], is-semigroup(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))((opr(s))(a, b), c) = (opr(s))(a, (opr(s))(b, c))))
 - `semigroup-assoc-rev` — forall([s], is-semigroup(s) implies forall([a in carr(s), b in carr(s), c in carr(s)], (opr(s))(a, (opr(s))(b, c)) = (opr(s))((opr(s))(a, b), c)))
 
@@ -2324,6 +2360,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 - `bounded-metrizable-iff-gauge-countable` — forall([s], is-top-space(s) implies forsome([md], is-bounded-metric-space(md) and metric-top(md) == s) iff is-hausdorff(s) and is-gauge-countable(s))
 - `bounded-metrizable-iff-gauge-countable-rev` — forall([s], is-top-space(s) implies is-hausdorff(s) and is-gauge-countable(s) iff forsome([md], is-bounded-metric-space(md) and metric-top(md) == s))
+- `hom-top-space-id` — forall([s], is-top-space(s) implies is-hom-top-space(s, s, id-fun(pts(s))))
 - `metrizable-iff-bounded-metrizable` — forall([s], is-top-space(s) implies is-metrizable-top-space(s) iff forsome([md], is-bounded-metric-space(md) and metric-top(md) == s))
 - `metrizable-iff-bounded-metrizable-rev` — forall([s], is-top-space(s) implies forsome([md], is-bounded-metric-space(md) and metric-top(md) == s) iff is-metrizable-top-space(s))
 - `metrizable-iff-gauge-countable` — forall([s], is-top-space(s) implies is-metrizable-top-space(s) iff is-hausdorff(s) and is-gauge-countable(s))
@@ -2351,6 +2388,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Theorems quantifying over `is-vector-space`.*
 
+- `hom-vector-space-id` — forall([a], is-vector-space(a) implies is-hom-vector-space(a, a, id-fun(vec(a))))
 - `vspace-vec-is-set` — forall([m], is-vector-space(m) implies vec(m) in set)
 
 ### zz-ring

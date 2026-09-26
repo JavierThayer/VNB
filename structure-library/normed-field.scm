@@ -57,14 +57,14 @@
 
 ;;; Multiplicative inverses: every nonzero element has a multiplicative
 ;;; inverse.  Asserted existentially (no structural INV slot in this shape).
-(theory-add-axiom! *current-theory* 'normed-field-mul-inverses
+(add-axiom! *library* 'normed-field-mul-inverses
   '(FORALL s (IMPLIES (IS-NORMED-FIELD s)
      (FORALL a (IMPLIES (AND (IN a (CARR s)) (NOT (= a (ZERO s))))
        (FORSOME b
          (AND (IN b (CARR s)) (AND (NOT (= b (ZERO s))) (= ((MUL s) a b) (ONE s))))))))))
 
 ;;; A normed-field has at least two elements.
-(theory-add-axiom! *current-theory* 'normed-field-zero-not-one
+(add-axiom! *library* 'normed-field-zero-not-one
   '(FORALL s (IMPLIES (IS-NORMED-FIELD s) (NOT (= (ZERO s) (ONE s))))))
 
 ;;; Relation to the ring hierarchy.  A NORMED-FIELD is a 7-tuple; RING /

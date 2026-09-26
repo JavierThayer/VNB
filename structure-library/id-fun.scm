@@ -17,7 +17,7 @@
 ;;; The binder `idfx_' is used by nothing else in the tree (batch 33, 2026-09-25),
 ;;; so the unfold never captures a caller's variable.
 ;;;
-;;; Needs: VNB-LAMBDA (theory.scm).  Batch 33 (the user's decision 2026-09-25).
+;;; Needs: VNB-LAMBDA (library.scm).  Batch 33 (the user's decision 2026-09-25).
 
 (def-functoid 'ID-FUN '(a_)
   '(VNB-LAMBDA idfx_ a_ idfx_))

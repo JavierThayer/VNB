@@ -41,7 +41,7 @@
 ;;;     place (unfold both complement memberships, then `prop').
 ;;;
 ;;; CITATIONS, with 0-based load positions over the quoted names in load.scm:
-;;;   primitive (theory.scm): empty-set-has-no-members, subset-def,
+;;;   primitive (library.scm): empty-set-has-no-members, subset-def,
 ;;;     class-extensionality, complement-in-membership, intersection-membership.
 ;;;   definitional: preimage-membership (metric-open-sets, stamped at
 ;;;     structure-library/definitional-reclass 106); the is-open / is-closed /

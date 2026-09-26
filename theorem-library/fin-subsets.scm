@@ -118,7 +118,7 @@
 ;;;   s in FIN-SUBSETS(a)  iff  s in SET  and  s subset a  and  CARD(s) in NN
 ;;;
 ;;; The inclusion is spelled out elementwise rather than with SUBSET, to match
-;;; `power-set-membership' (theory.scm:300) and `card-subset-nn', both of which
+;;; `power-set-membership' (library.scm:300) and `card-subset-nn', both of which
 ;;; state it that way.
 
 (quietly (lambda ()

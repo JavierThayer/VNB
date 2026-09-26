@@ -161,7 +161,7 @@
 ;;; standard argument -- take n with 1/n < eps (archimedean), then the least
 ;;; integer m with m/n > x - eps.  Asserted because that argument is not
 ;;; mechanised, not because it is unavailable.
-(theory-add-axiom! *current-theory* 'qq-dense-in-rr
+(add-axiom! *library* 'qq-dense-in-rr
   (forall-guarded '(eps x)
     (list '(POS-RR eps) '(IN x RR))
     (forsome-guarded 'a '(IN a QQ)

@@ -22,7 +22,7 @@
 ;;;
 ;;;   * `sum-ag-type' (structure-library/sequences.scm) is the obvious source
 ;;;     for (IN (SERIES-PARTIAL-SUM f k) RR), and it is an unwarranted
-;;;     `theory-add-axiom!' -- its own bill is {sum-ag-type}, i.e. trust: none.
+;;;     `add-axiom!' -- its own bill is {sum-ag-type}, i.e. trust: none.
 ;;;     R2 below proves the RR instance by NN induction instead, from
 ;;;     `sum-ag-zero'/`sum-ag-succ' (both `definitional', so free) and
 ;;;     `rr-add-closed' (primitive).  Six lines, and the whole file stays clean.

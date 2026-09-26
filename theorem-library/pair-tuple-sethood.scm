@@ -19,7 +19,7 @@
 ;;;       `[u,v] in CARTESIAN(X,Y)' to `u in X' and `v in Y', and carries NO
 ;;;       sethood guard on X or Y.  They may be proper classes; SET itself may
 ;;;       be one of them.
-;;;   (2) `membership-implies-sethood' (theory.scm:249, base, hence primitive)
+;;;   (2) `membership-implies-sethood' (library.scm:249, base, hence primitive)
 ;;;       turns membership in ANY class into sethood of the member.
 ;;;
 ;;; Step (2) is the point.  One might expect to need `CARTESIAN(X,Y) in SET'

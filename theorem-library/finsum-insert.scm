@@ -67,7 +67,7 @@
 ;;;   finsum-insert-ag  -- proven modulo {finsum-well-defined}             [trust: informal]
 ;;;
 ;;; CITATIONS (load position, 0-based over load.scm's prover-load entries):
-;;;   base theory (theory.scm, primitive): choice-axiom, pairing, pairing-membership,
+;;;   base theory (library.scm, primitive): choice-axiom, pairing, pairing-membership,
 ;;;     union-set-closure, union-membership, fun-apply-type (theorem-library/axioms, 15)
 ;;;   structure-library/ordinals (77, primitive): nn-subset-ord, ord-lt-iff, ord-succ-nn,
 ;;;     ord-segment-is-set, ord-segment-membership

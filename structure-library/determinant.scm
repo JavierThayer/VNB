@@ -13,7 +13,7 @@
 ;;; monoid, the sum is FINSUM over R's additive group, and MINOR(A,1,j,n) deletes
 ;;; row 1 and column j.  1x1 falls out: DET(R,1,A) = (+1)A(1,1)DET(R,0,-) = A(1,1).
 ;;;
-;;; These are installed DEFINITIONAL (theory-add-definition!, like def-by-nn-
+;;; These are installed DEFINITIONAL (add-definition!, like def-by-nn-
 ;;; recursion), so they owe no warrant.  They are hand-stated rather than machine-
 ;;; generated because the matrix SHRINKS in the recursive call (to its minor), so
 ;;; the size is not a fixed def-by-nn-recursion parameter; their consistency rests
@@ -62,7 +62,7 @@
      (INTERVAL 1 (succ n))))
 
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-definition! *current-theory* 'DET
+  (add-definition! *library* 'DET
     (list (cons 'det-zero
                 (forall-guarded '(R A) '() '(== (DET R 0 A) (ONE R))))
           (cons 'det-cofactor

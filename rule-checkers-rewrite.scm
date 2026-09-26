@@ -813,7 +813,7 @@
 ;;; only way such a name can reach inside is through x or the A_j.)
 ;;;
 ;;; The rule is the membership schema of the cartesian product, one instance per
-;;; arity, and is on the primitive shelf (theory.scm).  The checker confirms the
+;;; arity, and is on the primitive shelf (library.scm).  The checker confirms the
 ;;; instance, not the schema.
 
 (define (rkw--cartesian-shape? x classes b)

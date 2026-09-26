@@ -48,7 +48,7 @@
 ;;; CITATIONS and where they load: finite-set-induction, card-empty, image-set,
 ;;; membership-implies-sethood, empty-set-is-set, empty-set-has-no-members,
 ;;; pairing, pairing-membership, union-membership, union-set-closure, nn-zero-in
-;;; (all primitive: theory.scm base, cardinality.scm, injection.scm,
+;;; (all primitive: library.scm base, cardinality.scm, injection.scm,
 ;;; number-systems.scm); image-membership-iff (injection.scm, definitional);
 ;;; card-union-singleton-bound (theorem-library/makeset-card-bound);
 ;;; card-subset-nn (theorem-library/card-subset-nn, the slot right after it).

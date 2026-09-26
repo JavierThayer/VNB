@@ -15,7 +15,7 @@
 ;;;     fun-codomain-iff:  f in FUN(A,B)  iff  f in FUN(A) and
 ;;;                                            forall x in A. f(x) in B
 ;;;
-;;; (theory.scm, inside make-vnb-base-theory, hence `primitive').  The proof is
+;;; (library.scm, inside make-vnb-base-library, hence `primitive').  The proof is
 ;;; that IFF used left-to-right on the hypothesis, then its second conjunct
 ;;; instantiated at x -- six steps, and the resulting bill is `modulo 0'.
 ;;;

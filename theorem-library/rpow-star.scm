@@ -76,7 +76,7 @@
 ;;;
 ;;; =====================================================================
 ;;; 4.  THE BILL.  Nothing here is asserted -- no `support', no
-;;; `theory-add-axiom!'.  Every theorem that touches the main branch inherits,
+;;; `add-axiom!'.  Every theorem that touches the main branch inherits,
 ;;; unchanged, the 35-leaf `well-known' residue that every log-* and r-exp-*
 ;;; theorem already bills (the MVT/EVT block through Cor 4.11).  The two
 ;;; base-zero conventions touch neither LOG nor R-EXP and are `modulo 0'.

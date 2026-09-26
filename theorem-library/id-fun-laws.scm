@@ -8,7 +8,7 @@
 ;;;                     h in FUN(c, u) => COMPOSE(h, COMPOSE(g, f)) = COMPOSE(COMPOSE(h, g), f)
 ;;;
 ;;; The three composition laws are strict equalities of FUNCTIONS, by
-;;; fun-domain-extensionality (theory.scm: f in FUN(a), g in FUN(a), pointwise
+;;; fun-domain-extensionality (library.scm: f in FUN(a), g in FUN(a), pointwise
 ;;; equal on a => f = g), through the kit's dk-fun-ext!.  What that asks for is
 ;;; what the hypotheses are: both sides typed in FUN(dom, cod) -- compose-type,
 ;;; which is guarded on its DOMAIN being a set, hence `a in SET' everywhere, and
@@ -19,7 +19,7 @@
 ;;; ID-FUN is structure-library/id-fun.scm.  Batch 33 (2026-09-25).
 ;;; Window: after compose-apply-proof (compose-apply, compose-type) and
 ;;; fun-apply-type-proof (fun-apply-type-c); fun-domain-extensionality is
-;;; primitive (theory.scm).
+;;; primitive (library.scm).
 
 ;;; the equation (= ((COMPOSE outer inner) t) (outer (inner t))), read off
 ;;; compose-apply at the typing inner : A -> B, outer : B -> C, t in A.

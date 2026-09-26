@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 668 names: 20 structure, 7 refinement, 11 instance, 19 view, 220 predicate, 185 functoid, 28 accessor, 22 defined-fn, 58 operator, 8 primitive, 88 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 710 names: 20 structure, 7 refinement, 11 instance, 19 view, 221 predicate, 222 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 91 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -23,13 +23,13 @@ At the REPL, \texttt{(glossary 'NAME)} prints one entry and
 
 \noindent\textbf{\texttt{*}}\quad\textit{operator}\index{*@\texttt{*}}\\
 a term-forming head \\
-mentioned by 757 result(s)
+mentioned by 934 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{+}}\quad\textit{operator}\index{+@\texttt{+}}\\
 a term-forming head \\
-mentioned by 577 result(s)
+mentioned by 683 result(s)
 
 \smallskip
 
@@ -39,8 +39,8 @@ characterized by \texttt{cc-ms-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
 \end{quote}
-also: \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} \texttt{little-o-at} ... (381 in all) \\
-mentioned by 530 result(s)
+also: \texttt{is-convex} \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} ... (439 in all) \\
+mentioned by 615 result(s)
 
 \smallskip
 
@@ -57,14 +57,14 @@ characterized by \texttt{<}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, y], x < y iff x <= y and not(x = y))
 \end{quote}
-mentioned by 488 result(s)
+mentioned by 539 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 853 result(s)
+mentioned by 893 result(s)
 
 \smallskip
 
@@ -143,7 +143,7 @@ characterized by \texttt{rq-add}  \textit{(definitional)}:
 forall([r], add(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (add(r))(a, b)))))
 \end{quote}
 also: \texttt{qq-ring@add} \texttt{zz-ring@add} \texttt{qq-field@add} \texttt{ring-add-comm} \texttt{ring-add-assoc} \texttt{ring-add-left-id} \texttt{ring-add-left-inv} \texttt{ringoid-ideal-add} ... (51 in all) \\
-mentioned by 297 result(s)
+mentioned by 311 result(s)
 
 \smallskip
 
@@ -478,7 +478,7 @@ characterized by \texttt{rq-carr}  \textit{(definitional)}:
 forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))
 \end{quote}
 also: \texttt{qq-ring@carr} \texttt{zz-ring@carr} \texttt{qq-field@carr} \texttt{cips-scal-carrier} \texttt{nf-metric-carrier} \texttt{nn-add-monoid@carr} \texttt{ringoid-carr-in-set} \texttt{cc-normed-field@carr} ... (55 in all) \\
-mentioned by 1169 result(s)
+mentioned by 1263 result(s)
 
 \smallskip
 
@@ -518,6 +518,36 @@ mentioned by 10 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{cc-cos(z)}}\quad\textit{functoid}\index{cc-cos(z)@\texttt{cc-cos(z)}}\\
+reads: cos \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+cc-series-limit(vnb-lambda(cek\_, nn, (-1 \textasciicircum{} cek\_ * recip(factorial(2 * cek\_))) * z \textasciicircum{} (2 * cek\_)))
+\end{quote}
+characterized by \texttt{cc-cos-pi}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+cc-cos(pi) = -1
+\end{quote}
+also: \texttt{cc-cos-add} \texttt{cc-cos-exp} \texttt{cc-cos-even} \texttt{cc-cos-zero} \texttt{cc-cos-deriv} \texttt{cc-cos-sin-pi} \texttt{cc-cos-two-pi} \texttt{cc-cos-unfold} ... (21 in all) \\
+mentioned by 38 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{cc-exp(z)}}\quad\textit{functoid}\index{cc-exp(z)@\texttt{cc-exp(z)}}\\
+reads: exp \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+cc-series-limit(vnb-lambda(cek\_, nn, recip(factorial(cek\_)) * z \textasciicircum{} cek\_))
+\end{quote}
+characterized by \texttt{cc-exp-i}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([cexz\_ in cc], cc-exp(1i * cexz\_) = cc-cos(cexz\_) + 1i * cc-sin(cexz\_))
+\end{quote}
+also: \texttt{cc-exp-add} \texttt{cc-exp-neg} \texttt{cc-exp-conj} \texttt{cc-exp-i-pi} \texttt{cc-exp-real} \texttt{cc-exp-tail} \texttt{cc-exp-zero} \texttt{cc-exp-deriv} ... (37 in all) \\
+mentioned by 83 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{cc-int(pphi\_, a, b)}}\quad\textit{functoid}\index{cc-int(pphi_, a, b)@\texttt{cc-int(pphi\_, a, b)}}\\
 reads: the complex integral of \$1 from \$2 to \$3 \\
 definition:
@@ -528,8 +558,23 @@ characterized by \texttt{cc-int-sum}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in rr implies b in rr implies forall([pphi\_, ppsi\_, pchi\_], pphi\_ in fun(ccint(a, b), cc) implies ppsi\_ in fun(ccint(a, b), cc) implies pchi\_ in fun(ccint(a, b), cc) implies forall([pay\_ in ccint(a, b)], pchi\_(pay\_) == pphi\_(pay\_) + ppsi\_(pay\_)) implies forall([pwf\_, paw\_, pauh\_, pbw\_], is-primitive(pwf\_, vnb-lambda(pat\_, ccint(a, b), real-part(pphi\_(pat\_))), a, b) implies is-primitive(paw\_, vnb-lambda(pat\_, ccint(a, b), imag-part(pphi\_(pat\_))), a, b) implies is-primitive(pauh\_, vnb-lambda(pat\_, ccint(a, b), real-part(ppsi\_(pat\_))), a, b) implies is-primitive(pbw\_, vnb-lambda(pat\_, ccint(a, b), imag-part(ppsi\_(pat\_))), a, b) implies cc-int(pchi\_, a, b) = cc-int(pphi\_, a, b) + cc-int(ppsi\_, a, b))))
 \end{quote}
-also: \texttt{cc-int-in-cc} \texttt{cc-int-value} \texttt{cc-int-unfold} \texttt{cc-int-reflect} \texttt{cc-int-adjacent} \texttt{cc-int-real-mul} \texttt{cc-int-abs-bound} \texttt{cc-int-congruence} ... (9 in all) \\
-mentioned by 20 result(s)
+also: \texttt{cc-int-in-cc} \texttt{cc-int-value} \texttt{cc-int-unfold} \texttt{cc-int-reflect} \texttt{cc-int-adjacent} \texttt{cc-int-real-mul} \texttt{cc-int-abs-bound} \texttt{cc-int-congruence} ... (10 in all) \\
+mentioned by 22 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{cc-mid(cmx\_, cmy\_)}}\quad\textit{functoid}\index{cc-mid(cmx_, cmy_)@\texttt{cc-mid(cmx\_, cmy\_)}}\\
+reads: the midpoint of \$1 and \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+(cmx\_ + cmy\_) * recip(2)
+\end{quote}
+characterized by \texttt{cc-mid-affine}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([goux\_ in cc, gouy\_ in cc], cc-mid(goux\_, gouy\_) = goux\_ + 1/2 * (gouy\_ - goux\_) and cc-mid(goux\_, gouy\_) = gouy\_ + 1/2 * (goux\_ - gouy\_))
+\end{quote}
+also: \texttt{cc-mid-coords} \texttt{cc-mid-unfold} \texttt{cc-mid-in-seg-trace} \\
+mentioned by 16 result(s)
 
 \smallskip
 
@@ -561,7 +606,7 @@ characterized by \texttt{cc-series-converges}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], cc-series-converges(f) iff converges(cc-ms, vnb-lambda(k, nn, cc-series-partial-sum(f, k))))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 20 result(s)
 
 \smallskip
 
@@ -586,8 +631,8 @@ characterized by \texttt{cc-series-limit-in-cc}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f in fun(nn, cc)], cc-series-converges(f) implies cc-series-limit(f) in cc)
 \end{quote}
-also: \texttt{cc-series-limit-linear} \texttt{cc-series-limit-converges-to} \\
-mentioned by 11 result(s)
+also: \texttt{cc-series-limit-linear} \texttt{cc-series-limit-conjugate} \texttt{cc-series-limit-converges-to} \\
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -602,7 +647,22 @@ characterized by \texttt{cc-series-partial-sum-succ}  \textit{(proven)}:
 forall([f, k in nn], cc-series-partial-sum(f, k) in cc implies f(k) in cc implies cc-series-partial-sum(f, succ(k)) == cc-series-partial-sum(f, k) + f(k))
 \end{quote}
 also: \texttt{cc-series-partial-sum-zero} \texttt{cc-series-partial-sum-in-cc} \texttt{cc-series-partial-sum-unfold} \texttt{cc-series-partial-sum-lincomb} \texttt{cc-series-partial-sum-magnitude-le} \\
-mentioned by 18 result(s)
+mentioned by 20 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{cc-sin(z)}}\quad\textit{functoid}\index{cc-sin(z)@\texttt{cc-sin(z)}}\\
+reads: sin \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+cc-series-limit(vnb-lambda(cek\_, nn, (-1 \textasciicircum{} cek\_ * recip(factorial(succ(2 * cek\_)))) * z \textasciicircum{} succ(2 * cek\_)))
+\end{quote}
+characterized by \texttt{cc-sin-pi}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+cc-sin(pi) = 0
+\end{quote}
+also: \texttt{cc-sin-add} \texttt{cc-sin-exp} \texttt{cc-sin-odd} \texttt{cc-sin-deriv} \texttt{cc-sin-two-pi} \texttt{cc-sin-unfold} \texttt{cc-sin-half-pi} \texttt{cc-sin-converges} ... (11 in all) \\
+mentioned by 31 result(s)
 
 \smallskip
 
@@ -630,8 +690,8 @@ characterized by \texttt{ccint-creep}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, g\_], a in rr implies b in rr implies a <= b implies g\_ subset rr implies a in g\_ implies rr-upper-bound(g\_, b) implies forall([t\_ in ccint(a, b)], forsome([d\_ in rr], 0 < d\_ and (forsome([w\_ in g\_], t\_ - d\_ < w\_) implies forall([y\_], y\_ in ccint(a, b) and y\_ <= t\_ + d\_ implies y\_ in g\_)))) implies b in g\_)
 \end{quote}
-also: \texttt{ccint-parts} \texttt{clamp-in-ccint} \texttt{ccint-affine-in} \texttt{ccint-elt-in-rr} \texttt{ccint-subset-rr} \texttt{ccint-membership} \texttt{ccint-reflect-in} \texttt{ccint-coaffine-in} ... (27 in all) \\
-mentioned by 274 result(s)
+also: \texttt{ccint-parts} \texttt{clamp-in-ccint} \texttt{ccint-affine-in} \texttt{ccint-elt-in-rr} \texttt{ccint-subset-rr} \texttt{ccint-membership} \texttt{ccint-reflect-in} \texttt{ccint-coaffine-in} ... (28 in all) \\
+mentioned by 313 result(s)
 
 \smallskip
 
@@ -930,12 +990,12 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 vnb-lambda(z\_, dom(g), f(g(z\_)))
 \end{quote}
-characterized by \texttt{compose-type}  \textit{(proven)}:
+characterized by \texttt{pre-compose}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a, b, c, f, g], a in set implies g in fun(a, b) and f in fun(b, c) implies compose(f, g) in fun(a, c))
+forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf\_, s, compose(hmpf\_, compose(h, k))))(f) = (vnb-lambda(hmpf\_, s2, compose(hmpf\_, k)))((vnb-lambda(hmpf\_, s, compose(hmpf\_, h)))(f)))
 \end{quote}
-also: \texttt{compose-apply} \texttt{compose-continuous-at} \texttt{measurable-map-compose} \texttt{r8e-blf-compose-continuous} \\
-mentioned by 27 result(s)
+also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (35 in all) \\
+mentioned by 119 result(s)
 
 \smallskip
 
@@ -945,8 +1005,8 @@ characterized by \texttt{cc-conjugate-i}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 conjugate(1i) = -1i
 \end{quote}
-also: \texttt{cc-conjugate-add} \texttt{cc-conjugate-mul} \texttt{cc-conjugate-closed} \texttt{cc-conjugate-fixes-rr} \texttt{cc-conjugate-involution} \texttt{cc-conjugate-neg} \\
-mentioned by 33 result(s)
+also: \texttt{cc-conjugate-add} \texttt{cc-conjugate-mul} \texttt{cc-conjugate-closed} \texttt{cc-conjugate-fixes-rr} \texttt{cc-conjugate-involution} \texttt{cc-conjugate-neg} \texttt{cc-conjugate-sub} \texttt{cc-conjugate-power} ... (11 in all) \\
+mentioned by 44 result(s)
 
 \smallskip
 
@@ -958,6 +1018,21 @@ forall([x, l], nth(1, cons(x, l)) = x)
 \end{quote}
 also: \texttt{length-cons} \texttt{makeset-cons} \texttt{nth-cons-succ} \texttt{cons-in-tuples} \texttt{tuple-cons-decompose} \\
 mentioned by 11 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{conv3(cva\_, cvb\_, cvc\_)}}\quad\textit{functoid}\index{conv3(cva_, cvb_, cvc_)@\texttt{conv3(cva\_, cvb\_, cvc\_)}}\\
+reads: the convex hull of \$1, \$2, \$3 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{cvz\_ in cc: forsome([cvl\_ in ccint(0, 1), cvm\_ in ccint(0, 1), cvn\_ in ccint(0, 1)], (cvl\_ + cvm\_) + cvn\_ = 1 and cvz\_ = (cvl\_ * cva\_ + cvm\_ * cvb\_) + cvn\_ * cvc\_)\}
+\end{quote}
+characterized by \texttt{conv3-intro}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([goua\_ in cc, goub\_ in cc, gouc\_ in cc, goul\_ in ccint(0, 1), goum\_ in ccint(0, 1), goun\_ in ccint(0, 1), gouz\_], (goul\_ + goum\_) + goun\_ = 1 implies gouz\_ = (goul\_ * goua\_ + goum\_ * goub\_) + goun\_ * gouc\_ implies gouz\_ in conv3(goua\_, goub\_, gouc\_))
+\end{quote}
+also: \texttt{conv3-mid-in} \texttt{bary-in-conv3} \texttt{conv3-sub-hull} \texttt{conv3-in-convex} \texttt{conv3-is-convex} \texttt{conv3-seg-trace} \texttt{conv3-member-iff} \texttt{conv3-vertices-in} ... (10 in all) \\
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -1003,7 +1078,7 @@ characterized by \texttt{converges-to}  \textit{(definitional)}:
 forall([s, f, l], converges-to(s, f, l) iff is-metric-space(s) and f in fun(nn, pts(s)) and l in pts(s) and forall([eps], pos-rr(eps) implies forsome([n in nn], forall([n\_ in nn], n <= n\_ implies (dist(s))(f(n\_), l) <= eps))))
 \end{quote}
 also: \texttt{ps-converges-to-at} \texttt{series-converges-to} \texttt{cc-series-converges-to} \texttt{rr-converges-to-abs} \texttt{converges-to-transfer} \texttt{rr-const-converges-to} \texttt{subspace-converges-to} \texttt{seq-limit-converges-to} ... (9 in all) \\
-mentioned by 111 result(s)
+mentioned by 114 result(s)
 
 \smallskip
 
@@ -1033,8 +1108,8 @@ characterized by \texttt{cps-radius-in}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cf], cps-radius(cf) in rr-pos-star)
 \end{quote}
-also: \texttt{cps-radius-mono} \texttt{cps-radius-root} \texttt{cps-radius-zero} \texttt{cps-radius-recip} \texttt{cps-radius-approx} \texttt{cps-radius-factor} \texttt{cps-radius-unfold} \texttt{cps-radius-derived} ... (9 in all) \\
-mentioned by 24 result(s)
+also: \texttt{cps-radius-mono} \texttt{cps-radius-root} \texttt{cps-radius-zero} \texttt{cps-radius-recip} \texttt{cps-radius-approx} \texttt{cps-radius-factor} \texttt{cps-radius-unfold} \texttt{cps-radius-derived} ... (10 in all) \\
+mentioned by 34 result(s)
 
 \smallskip
 
@@ -1219,8 +1294,8 @@ characterized by \texttt{det-zero}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, a], det(r, 0, a) == one(r))
 \end{quote}
-also: \texttt{det-cofactor} \texttt{det-1x1} \texttt{det-2x2} \texttt{det-elem-f} \texttt{det-elem-g} \texttt{det-elem-h} \texttt{daf-det-alt} \texttt{daf-det-fun} ... (35 in all) \\
-mentioned by 90 result(s)
+also: \texttt{det-cofactor} \texttt{det-1x1} \texttt{det-2x2} \texttt{det-elem-f} \texttt{det-elem-g} \texttt{det-elem-h} \texttt{daf-det-alt} \texttt{daf-det-fun} ... (46 in all) \\
+mentioned by 121 result(s)
 
 \smallskip
 
@@ -1259,7 +1334,7 @@ characterized by \texttt{difference-set}  \textit{(proven)}:
 forall([x in set, b], difference(x, b) in set)
 \end{quote}
 also: \texttt{difference-in-power} \texttt{difference-empty-left} \texttt{difference-membership} \texttt{insert-difference-cancel} \texttt{insert-difference-outside} \\
-mentioned by 46 result(s)
+mentioned by 47 result(s)
 
 \smallskip
 
@@ -1431,8 +1506,8 @@ characterized by \texttt{daf-elem-f}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, d, k, l], is-commutative-ring(r) implies n in nn implies d in fun(mat(n, n, carr(r)), carr(r)) implies forall([dfa\_, dfb\_, dfc\_, dfp\_, dfs\_], dfa\_ in mat(n, n, carr(r)) implies dfb\_ in mat(n, n, carr(r)) implies dfc\_ in mat(n, n, carr(r)) implies dfp\_ in interval(1, n) implies dfs\_ in carr(r) implies forall([dri\_ in interval(1, n)], not(dri\_ = dfp\_) implies forall([drk\_ in interval(1, n)], entry(dfb\_, dri\_, drk\_) = entry(dfa\_, dri\_, drk\_))) implies forall([dri\_ in interval(1, n)], not(dri\_ = dfp\_) implies forall([drk\_ in interval(1, n)], entry(dfc\_, dri\_, drk\_) = entry(dfa\_, dri\_, drk\_))) implies forall([drk\_ in interval(1, n)], entry(dfc\_, dfp\_, drk\_) = (add(r))((mul(r))(dfs\_, entry(dfa\_, dfp\_, drk\_)), entry(dfb\_, dfp\_, drk\_))) implies d(dfc\_) = (add(r))((mul(r))(dfs\_, d(dfa\_)), d(dfb\_))) implies forall([dfa\_, dfp\_, dfq\_], dfa\_ in mat(n, n, carr(r)) implies dfp\_ in interval(1, n) implies dfq\_ in interval(1, n) implies not(dfp\_ = dfq\_) implies forall([drk\_ in interval(1, n)], entry(dfa\_, dfp\_, drk\_) = entry(dfa\_, dfq\_, drk\_)) implies d(dfa\_) = zero(r)) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies d(elem-f(r, n, k, l)) = (neg(r))(d(identmat(r, n))))
 \end{quote}
-also: \texttt{det-elem-f} \texttt{elem-f-type} \texttt{dtr-elem-f-s} \texttt{elem-f-ck-at} \texttt{elem-f-cl-at} \texttt{elem-f-co-at} \texttt{elem-f-col-k} \texttt{elem-f-col-l} ... (25 in all) \\
-mentioned by 50 result(s)
+also: \texttt{det-elem-f} \texttt{elem-f-type} \texttt{dtr-elem-f-s} \texttt{elem-f-ck-at} \texttt{elem-f-cl-at} \texttt{elem-f-co-at} \texttt{elem-f-col-k} \texttt{elem-f-col-l} ... (27 in all) \\
+mentioned by 54 result(s)
 
 \smallskip
 
@@ -1445,8 +1520,8 @@ characterized by \texttt{det-elem-g}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, sc, k, l], is-commutative-ring(r) implies n in nn implies sc in carr(r) implies k in interval(1, n) implies l in interval(1, n) implies not(k = l) implies det(r, n, elem-g(r, n, sc, k, l)) = one(r))
 \end{quote}
-also: \texttt{elem-g-type} \texttt{dtr-elem-g-s} \texttt{elem-g-col-k} \texttt{elem-g-col-l} \texttt{elem-g-ro-at} \texttt{elem-g-action} \texttt{elem-g-ro-off} \texttt{det-elem-g-row} ... (23 in all) \\
-mentioned by 48 result(s)
+also: \texttt{elem-g-type} \texttt{dtr-elem-g-s} \texttt{elem-g-col-k} \texttt{elem-g-col-l} \texttt{elem-g-ro-at} \texttt{elem-g-action} \texttt{elem-g-ro-off} \texttt{det-elem-g-col} ... (25 in all) \\
+mentioned by 52 result(s)
 
 \smallskip
 
@@ -1459,8 +1534,8 @@ characterized by \texttt{det-elem-h}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, n, sc, k], is-commutative-ring(r) implies n in nn implies sc in carr(r) implies k in interval(1, n) implies det(r, n, elem-h(r, n, sc, k)) = sc)
 \end{quote}
-also: \texttt{elem-h-type} \texttt{dtr-elem-h-s} \texttt{elem-h-action} \texttt{elem-h-ro-off} \texttt{det-elem-h-row} \texttt{det-mul-elem-h} \texttt{elem-h-inverse} \texttt{entry-of-elem-h} ... (11 in all) \\
-mentioned by 23 result(s)
+also: \texttt{elem-h-type} \texttt{dtr-elem-h-s} \texttt{elem-h-action} \texttt{elem-h-ro-off} \texttt{det-elem-h-col} \texttt{det-elem-h-row} \texttt{det-mul-elem-h} \texttt{elem-h-inverse} ... (13 in all) \\
+mentioned by 27 result(s)
 
 \smallskip
 
@@ -1553,8 +1628,8 @@ characterized by \texttt{minor-entry}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, s, p, q, n, u\_, v\_], is-ring(r) implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies u\_ in interval(1, n) implies v\_ in interval(1, n) implies entry(minor(s, p, q, n), u\_, v\_) = entry(s, if(u\_ < p, u\_, succ(u\_)), if(v\_ < q, v\_, succ(v\_))))
 \end{quote}
-also: \texttt{entry-unfold} \texttt{matact-entry} \texttt{matadd-entry} \texttt{matmul-entry} \texttt{matneg-entry} \texttt{entry-of-block} \texttt{entry-of-matof} \texttt{matscale-entry} ... (43 in all) \\
-mentioned by 300 result(s)
+also: \texttt{entry-unfold} \texttt{matact-entry} \texttt{matadd-entry} \texttt{matmul-entry} \texttt{matneg-entry} \texttt{entry-of-block} \texttt{entry-of-matof} \texttt{matscale-entry} ... (44 in all) \\
+mentioned by 320 result(s)
 
 \smallskip
 
@@ -1675,8 +1750,20 @@ declared in \texttt{tactics-help.scm}
 
 \smallskip
 
+\noindent\textbf{\texttt{ew-poly}}\quad\textit{tactic}\index{ew-poly@\texttt{ew-poly}}\\
+\texttt{(ew-poly)} -- Close an existential goal forsome([a in C], L = R) (or unguarded) in which a occurs once, linearly: compute the witness by EXACT POLYNOMIAL DIVISION, supply it (ew), type it (type-term) and close the identity (crs).  One command for `(x+y)\textasciicircum{}3 = x\textasciicircum{}3 + y*a'.  Declines, with the reason and nothing changed, when the division leaves a remainder. \\
+declared in \texttt{tactics-help.scm}
+
+\smallskip
+
 \noindent\textbf{\texttt{exp}}\quad\textit{operator}\index{exp@\texttt{exp}}\\
 a term-forming head
+
+\smallskip
+
+\noindent\textbf{\texttt{expand}}\quad\textit{tactic}\index{expand@\texttt{expand}}\\
+\texttt{(expand)} -- SHOW the expansion as a step: rewrite each polynomial side of an equation in the goal (also inside an existential or a conjunction) to its sum-of-monomials normal form, highest degree first.  (x + y)\textasciicircum{}3 = x\textasciicircum{}3 + y*a becomes x\textasciicircum{}3 + 3*x\textasciicircum{}2*y + 3*x*y\textasciicircum{}2 + y\textasciicircum{}3 = x\textasciicircum{}3 + y*a.  Declines, with the reason and nothing changed, when no side changes. \\
+declared in \texttt{tactics-help.scm}
 
 \smallskip
 
@@ -1723,8 +1810,8 @@ characterized by \texttt{factorial-succ}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([k in nn], factorial(succ(k)) = succ(k) * factorial(k))
 \end{quote}
-also: \texttt{factorial-zero} \texttt{factorial-in-nn} \texttt{factorial-real-pos} \texttt{rr-recip-factorial} \texttt{recip-factorial-in-rr} \texttt{choose-times-factorial} \texttt{tgd-recip-factorial-succ} \\
-mentioned by 78 result(s)
+also: \texttt{factorial-zero} \texttt{factorial-mono} \texttt{factorial-in-nn} \texttt{factorial-real-pos} \texttt{rr-recip-factorial} \texttt{recip-factorial-in-rr} \texttt{choose-times-factorial} \texttt{tgd-recip-factorial-succ} \\
+mentioned by 99 result(s)
 
 \smallskip
 
@@ -1863,7 +1950,7 @@ characterized by \texttt{finsum-type-ring-additive-ag}  \textit{(definitional)}:
 forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r))], finsum(ring-additive-ag(r), f, s) in carr(r))))
 \end{quote}
 also: \texttt{finsum-all-id-ring-additive-ag} \texttt{finsum-single-support-ring-additive-ag} \texttt{finsum-add} \texttt{finsum-type} \texttt{finsum-embed} \texttt{finsum-empty} \texttt{finsum-fiber} \texttt{finsum-add-ag} ... (57 in all) \\
-mentioned by 165 result(s)
+mentioned by 167 result(s)
 
 \smallskip
 
@@ -1937,8 +2024,8 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
-also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (134 in all) \\
-mentioned by 1187 result(s)
+also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (136 in all) \\
+mentioned by 1379 result(s)
 
 \smallskip
 
@@ -2127,14 +2214,419 @@ characterized by \texttt{holomorphic-on}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f], holomorphic-on(u, f) iff is-open(nf-metric-space(cc-normed-field), u) and f in fun(u, cc) and forall([a in u], forsome([l], is-diff-on(cc-normed-field, u, f, a, l))))
 \end{quote}
-also: \texttt{holomorphic-on-diff} \texttt{holomorphic-on-open} \texttt{holomorphic-on-in-fun} \texttt{holomorphic-on-iff-cc-ms} \texttt{holomorphic-on-open-cc-ms} \\
-mentioned by 21 result(s)
+also: \texttt{holomorphic-on-diff} \texttt{holomorphic-on-open} \texttt{holomorphic-on-in-fun} \texttt{holomorphic-on-iff-cc-ms} \texttt{holomorphic-on-continuous} \texttt{holomorphic-on-open-cc-ms} \\
+mentioned by 37 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-abelian-group(a, b)}}\quad\textit{functoid}\index{hom-abelian-group(a, b)@\texttt{hom-abelian-group(a, b)}}\\
+reads: the abelian group morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-abelian-group(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-abelian-group-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-abelian-group(a) implies is-abelian-group(b) implies hom-abelian-group(a, b) in set)
+\end{quote}
+also: \texttt{hom-abelian-group-pre-type} \texttt{hom-abelian-group-post-type} \texttt{hom-abelian-group-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-c-metric-space(a, b)}}\quad\textit{functoid}\index{hom-c-metric-space(a, b)@\texttt{hom-c-metric-space(a, b)}}\\
+reads: the c metric space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-c-metric-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-c-metric-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-c-metric-space(a) implies is-c-metric-space(b) implies hom-c-metric-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-c-metric-space-pre-type} \texttt{hom-c-metric-space-post-type} \texttt{hom-c-metric-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-comm-monoid(a, b)}}\quad\textit{functoid}\index{hom-comm-monoid(a, b)@\texttt{hom-comm-monoid(a, b)}}\\
+reads: the comm monoid morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-comm-monoid(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-comm-monoid-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-comm-monoid(a) implies is-comm-monoid(b) implies hom-comm-monoid(a, b) in set)
+\end{quote}
+also: \texttt{hom-comm-monoid-pre-type} \texttt{hom-comm-monoid-post-type} \texttt{hom-comm-monoid-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-commutative-ring(a, b)}}\quad\textit{functoid}\index{hom-commutative-ring(a, b)@\texttt{hom-commutative-ring(a, b)}}\\
+reads: the commutative ring morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-commutative-ring(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-commutative-ring-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-commutative-ring(a) implies is-commutative-ring(b) implies hom-commutative-ring(a, b) in set)
+\end{quote}
+also: \texttt{hom-commutative-ring-pre-type} \texttt{hom-commutative-ring-post-type} \texttt{hom-commutative-ring-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-complex-inner-product-space(a, b)}}\quad\textit{functoid}\index{hom-complex-inner-product-space(a, b)@\texttt{hom-complex-inner-product-space(a, b)}}\\
+reads: the complex inner product space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(vec(a), vec(b)): is-hom-complex-inner-product-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-complex-inner-product-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-complex-inner-product-space(a) implies is-complex-inner-product-space(b) implies hom-complex-inner-product-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-complex-inner-product-space-pre-type} \texttt{hom-complex-inner-product-space-post-type} \texttt{hom-complex-inner-product-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-euclidean-ring(a, b)}}\quad\textit{functoid}\index{hom-euclidean-ring(a, b)@\texttt{hom-euclidean-ring(a, b)}}\\
+reads: the euclidean ring morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-euclidean-ring(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-euclidean-ring-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-euclidean-ring(a) implies is-euclidean-ring(b) implies hom-euclidean-ring(a, b) in set)
+\end{quote}
+also: \texttt{hom-euclidean-ring-pre-type} \texttt{hom-euclidean-ring-post-type} \texttt{hom-euclidean-ring-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-field(a, b)}}\quad\textit{functoid}\index{hom-field(a, b)@\texttt{hom-field(a, b)}}\\
+reads: the field morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-field(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-field-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-field(a) implies is-field(b) implies hom-field(a, b) in set)
+\end{quote}
+also: \texttt{hom-field-pre-type} \texttt{hom-field-post-type} \texttt{hom-field-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-field-ring(a, b)}}\quad\textit{functoid}\index{hom-field-ring(a, b)@\texttt{hom-field-ring(a, b)}}\\
+reads: the field ring morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-field-ring(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-field-ring-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-field-ring(a) implies is-field-ring(b) implies hom-field-ring(a, b) in set)
+\end{quote}
+also: \texttt{hom-field-ring-pre-type} \texttt{hom-field-ring-post-type} \texttt{hom-field-ring-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-group(a, b)}}\quad\textit{functoid}\index{hom-group(a, b)@\texttt{hom-group(a, b)}}\\
+reads: the group morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-group(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-group-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-group(a) implies is-group(b) implies hom-group(a, b) in set)
+\end{quote}
+also: \texttt{hom-group-pre-type} \texttt{hom-group-post-type} \texttt{hom-group-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-integral-domain(a, b)}}\quad\textit{functoid}\index{hom-integral-domain(a, b)@\texttt{hom-integral-domain(a, b)}}\\
+reads: the integral domain morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-integral-domain(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-integral-domain-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-integral-domain(a) implies is-integral-domain(b) implies hom-integral-domain(a, b) in set)
+\end{quote}
+also: \texttt{hom-integral-domain-pre-type} \texttt{hom-integral-domain-post-type} \texttt{hom-integral-domain-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-measurable-space(a, b)}}\quad\textit{functoid}\index{hom-measurable-space(a, b)@\texttt{hom-measurable-space(a, b)}}\\
+reads: the measurable space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-measurable-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-measurable-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-measurable-space(a) implies is-measurable-space(b) implies hom-measurable-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-measurable-space-pre-type} \texttt{hom-measurable-space-post-type} \texttt{hom-measurable-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-measure-space(a, b)}}\quad\textit{functoid}\index{hom-measure-space(a, b)@\texttt{hom-measure-space(a, b)}}\\
+reads: the measure space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-measure-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-measure-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-measure-space(a) implies is-measure-space(b) implies hom-measure-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-measure-space-pre-type} \texttt{hom-measure-space-post-type} \texttt{hom-measure-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-metric-space(a, b)}}\quad\textit{functoid}\index{hom-metric-space(a, b)@\texttt{hom-metric-space(a, b)}}\\
+reads: the metric space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-metric-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-metric-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-metric-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-metric-space-pre-type} \texttt{hom-metric-space-post-type} \texttt{hom-metric-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-metrizable-top-space(a, b)}}\quad\textit{functoid}\index{hom-metrizable-top-space(a, b)@\texttt{hom-metrizable-top-space(a, b)}}\\
+reads: the metrizable top space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-metrizable-top-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-metrizable-top-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-metrizable-top-space(a) implies is-metrizable-top-space(b) implies hom-metrizable-top-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-metrizable-top-space-pre-type} \texttt{hom-metrizable-top-space-post-type} \texttt{hom-metrizable-top-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-module(a, b)}}\quad\textit{functoid}\index{hom-module(a, b)@\texttt{hom-module(a, b)}}\\
+reads: the module morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(vec(a), vec(b)): is-hom-module(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-module-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-module(a) implies is-module(b) implies hom-module(a, b) in set)
+\end{quote}
+also: \texttt{hom-module-pre-type} \texttt{hom-module-post-type} \texttt{hom-module-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-monoid(a, b)}}\quad\textit{functoid}\index{hom-monoid(a, b)@\texttt{hom-monoid(a, b)}}\\
+reads: the monoid morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-monoid(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-monoid-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-monoid(a) implies is-monoid(b) implies hom-monoid(a, b) in set)
+\end{quote}
+also: \texttt{hom-monoid-pre-type} \texttt{hom-monoid-post-type} \texttt{hom-monoid-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-normed-ag(a, b)}}\quad\textit{functoid}\index{hom-normed-ag(a, b)@\texttt{hom-normed-ag(a, b)}}\\
+reads: the normed ag morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-normed-ag(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-normed-ag-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-normed-ag(a) implies is-normed-ag(b) implies hom-normed-ag(a, b) in set)
+\end{quote}
+also: \texttt{hom-normed-ag-pre-type} \texttt{hom-normed-ag-post-type} \texttt{hom-normed-ag-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-normed-field(a, b)}}\quad\textit{functoid}\index{hom-normed-field(a, b)@\texttt{hom-normed-field(a, b)}}\\
+reads: the normed field morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-normed-field(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-normed-field-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-normed-field(a) implies is-normed-field(b) implies hom-normed-field(a, b) in set)
+\end{quote}
+also: \texttt{hom-normed-field-pre-type} \texttt{hom-normed-field-post-type} \texttt{hom-normed-field-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-normed-vector-space(a, b)}}\quad\textit{functoid}\index{hom-normed-vector-space(a, b)@\texttt{hom-normed-vector-space(a, b)}}\\
+reads: the normed vector space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(vec(a), vec(b)): is-hom-normed-vector-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-normed-vector-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-normed-vector-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-normed-vector-space-pre-type} \texttt{hom-normed-vector-space-post-type} \texttt{hom-normed-vector-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-pid(a, b)}}\quad\textit{functoid}\index{hom-pid(a, b)@\texttt{hom-pid(a, b)}}\\
+reads: the pid morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-pid(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-pid-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-pid(a) implies is-pid(b) implies hom-pid(a, b) in set)
+\end{quote}
+also: \texttt{hom-pid-pre-type} \texttt{hom-pid-post-type} \texttt{hom-pid-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-pseudometric-space(a, b)}}\quad\textit{functoid}\index{hom-pseudometric-space(a, b)@\texttt{hom-pseudometric-space(a, b)}}\\
+reads: the pseudometric space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-pseudometric-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-pseudometric-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-pseudometric-space(a) implies is-pseudometric-space(b) implies hom-pseudometric-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-pseudometric-space-pre-type} \texttt{hom-pseudometric-space-post-type} \texttt{hom-pseudometric-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-ring(a, b)}}\quad\textit{functoid}\index{hom-ring(a, b)@\texttt{hom-ring(a, b)}}\\
+reads: the ring morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-ring(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-ring-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-ring(a) implies is-ring(b) implies hom-ring(a, b) in set)
+\end{quote}
+also: \texttt{hom-ring-pre-type} \texttt{hom-ring-post-type} \texttt{hom-ring-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-ringoid(a, b)}}\quad\textit{functoid}\index{hom-ringoid(a, b)@\texttt{hom-ringoid(a, b)}}\\
+reads: the ringoid morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-ringoid(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-ringoid-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-ringoid(a) implies is-ringoid(b) implies hom-ringoid(a, b) in set)
+\end{quote}
+also: \texttt{hom-ringoid-pre-type} \texttt{hom-ringoid-post-type} \texttt{hom-ringoid-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-semigroup(a, b)}}\quad\textit{functoid}\index{hom-semigroup(a, b)@\texttt{hom-semigroup(a, b)}}\\
+reads: the semigroup morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-semigroup-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-semigroup(a) implies is-semigroup(b) implies hom-semigroup(a, b) in set)
+\end{quote}
+also: \texttt{hom-semigroup-pre-type} \texttt{hom-semigroup-post-type} \texttt{hom-semigroup-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-top-space(a, b)}}\quad\textit{functoid}\index{hom-top-space(a, b)@\texttt{hom-top-space(a, b)}}\\
+reads: the top space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-top-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-top-space(a) implies is-top-space(b) implies hom-top-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-top-space-pre-type} \texttt{hom-top-space-post-type} \texttt{hom-top-space-member-iff} \\
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-vector-space(a, b)}}\quad\textit{functoid}\index{hom-vector-space(a, b)@\texttt{hom-vector-space(a, b)}}\\
+reads: the vector space morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(vec(a), vec(b)): is-hom-vector-space(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-vector-space-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-vector-space(a) implies is-vector-space(b) implies hom-vector-space(a, b) in set)
+\end{quote}
+also: \texttt{hom-vector-space-pre-type} \texttt{hom-vector-space-post-type} \texttt{hom-vector-space-member-iff} \\
+mentioned by 5 result(s)
 
 \smallskip
 
 
 \section*{I}
 \addcontentsline{toc}{section}{I}
+
+\noindent\textbf{\texttt{id-fun(a\_)}}\quad\textit{functoid}\index{id-fun(a_)@\texttt{id-fun(a\_)}}\\
+reads: the identity map of \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+vnb-lambda(idfx\_, a\_, idfx\_)
+\end{quote}
+characterized by \texttt{id-fun-type}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a in set], id-fun(a) in fun(a, a))
+\end{quote}
+also: \texttt{id-fun-apply} \\
+mentioned by 37 result(s)
+
+\smallskip
 
 \noindent\textbf{\texttt{iden(s)}}\quad\textit{accessor}\index{iden(s)@\texttt{iden(s)}}\\
 reads: the identity element of \$1 \\
@@ -2158,7 +2650,7 @@ characterized by \texttt{identmat-type}  \textit{(proven)}:
 forall([a], is-ring(a) implies forall([n in nn], identmat(a, n) in mat(n, n, carr(a))))
 \end{quote}
 also: \texttt{identmat-minor} \texttt{matact-identmat} \texttt{entry-of-identmat} \texttt{identmat-entry-off} \texttt{identmat-entry-diag} \texttt{identmat-invertible} \texttt{identmat-left-identity} \texttt{identmat-right-identity} \\
-mentioned by 45 result(s)
+mentioned by 47 result(s)
 
 \smallskip
 
@@ -2210,7 +2702,7 @@ characterized by \texttt{imag-part-def}  \textit{(definitional)}:
 forall([z], imag-part(z) == (z - conjugate(z)) * recip(2 * 1i))
 \end{quote}
 also: \texttt{imag-part-in-rr} \\
-mentioned by 76 result(s)
+mentioned by 98 result(s)
 
 \smallskip
 
@@ -2220,8 +2712,8 @@ characterized by \texttt{image-membership-iff}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([phi, s, w], w in image(phi, s) iff forsome([x in s], phi(x) = w))
 \end{quote}
-also: \texttt{image-set} \texttt{compact-image} \texttt{card-seg-image} \texttt{image-restrict} \texttt{countable-image} \texttt{seg-image-insert} \texttt{seg-image-subset} \texttt{card-image-finite} ... (20 in all) \\
-mentioned by 61 result(s)
+also: \texttt{image-set} \texttt{compact-image} \texttt{card-seg-image} \texttt{image-restrict} \texttt{countable-image} \texttt{seg-image-insert} \texttt{seg-image-subset} \texttt{card-image-finite} ... (22 in all) \\
+mentioned by 63 result(s)
 
 \smallskip
 
@@ -2232,8 +2724,8 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
-also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1141 in all) \\
-mentioned by 4428 result(s)
+also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1270 in all) \\
+mentioned by 4872 result(s)
 
 \smallskip
 
@@ -2383,7 +2875,7 @@ characterized by \texttt{interval-hi}  \textit{(proven)}:
 forall([a, b, i in interval(a, b)], i <= b)
 \end{quote}
 also: \texttt{interval-lo} \texttt{interval-1-1} \texttt{interval-card} \texttt{interval-widen} \texttt{interval-in-set} \texttt{interval-unfold} \texttt{one-in-interval} \texttt{pred-in-interval} ... (18 in all) \\
-mentioned by 367 result(s)
+mentioned by 399 result(s)
 
 \smallskip
 
@@ -2420,7 +2912,7 @@ characterized by \texttt{r7q-dhat-iota}  \textit{(proven)}:
 forall([m, x\_, y\_], x\_ in quotient(cauchy-setoid(m)) implies y\_ in quotient(cauchy-setoid(m)) implies (dist(completion(m)))(x\_, y\_) == iota(dval, forsome([f, g], f in cseq(m) and g in cseq(m) and x\_ = class(cauchy-setoid(m), f) and y\_ = class(cauchy-setoid(m), g) and converges-to(rr-ms, dist-seq(m, f, g), dval))))
 \end{quote}
 also: \texttt{r7q-iota-dhat} \texttt{series-limit-iota} \\
-mentioned by 16 result(s)
+mentioned by 18 result(s)
 
 \smallskip
 
@@ -2480,7 +2972,7 @@ characterized by \texttt{is-abelian-group}  \textit{(definitional)}:
 forall([s], is-abelian-group(s) iff length(s) = 4 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)) and is-commutative(opr(s), carr(s)))
 \end{quote}
 also: \texttt{module-vector-ag-is-abelian-group} \texttt{ring-additive-ag-is-abelian-group} \texttt{field-additive-ag-is-abelian-group} \texttt{normed-field-additive-ag-is-abelian-group} \texttt{normed-ag-as-abelian-group-is-abelian-group} \texttt{commutative-ring-additive-ag-is-abelian-group} \texttt{module-vector-ag-is-abelian-group-normed-vector-space-as-module} \texttt{module-vector-ag-is-abelian-group-complex-inner-product-space-as-module} ... (11 in all) \\
-mentioned by 148 result(s)
+mentioned by 152 result(s)
 
 \smallskip
 
@@ -2581,7 +3073,7 @@ characterized by \texttt{is-c-metric-space}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-c-metric-space(s) iff length(s) = 2 and pts(s) in set and dists(s) in fun(nn, fun(cartesian(pts(s), pts(s)), rr)) and forall([k\_ in nn], is-pseudometric((dists(s))(k\_), pts(s))) and forall([u in pts(s), v in pts(s)], forall([k\_ in nn], ((dists(s))(k\_))(u, v) = 0) implies u = v))
 \end{quote}
-mentioned by 13 result(s)
+mentioned by 17 result(s)
 
 \smallskip
 
@@ -2651,7 +3143,7 @@ characterized by \texttt{is-comm-monoid}  \textit{(definitional)}:
 forall([s], is-comm-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and is-commutative(opr(s), carr(s)))
 \end{quote}
 also: \texttt{commutative-ring-multiplicative-cm-is-comm-monoid} \texttt{commutative-ring-multiplicative-cm-is-comm-monoid-normed-field-as-commutative-ring} \texttt{rr-pos-star-is-comm-monoid} \texttt{nn-add-monoid-is-comm-monoid} \texttt{fin-subset-monoid-is-comm-monoid} \\
-mentioned by 64 result(s)
+mentioned by 68 result(s)
 
 \smallskip
 
@@ -2674,7 +3166,7 @@ characterized by \texttt{is-commutative-ring-def}  \textit{(definitional)}:
 forall([s], is-commutative-ring(s) iff is-ring(s) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = (mul(s))(b, a)))
 \end{quote}
 also: \texttt{normed-field-as-commutative-ring-is-commutative-ring} \texttt{qq-is-commutative-ring} \texttt{zz-is-commutative-ring} \texttt{integral-domain-is-commutative-ring} \\
-mentioned by 229 result(s)
+mentioned by 280 result(s)
 
 \smallskip
 
@@ -2709,7 +3201,7 @@ characterized by \texttt{is-complex-inner-product-space}  \textit{(definitional)
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-complex-inner-product-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and ip(s) in fun(cartesian(vec(s), vec(s)), cc) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = normed-field-as-commutative-ring(cc-normed-field) and carr(scal(s)) = cc and forall([r\_ in carr(scal(s)), x\_ in vec(s), y\_ in vec(s)], (act(s))(r\_, (vadd(s))(x\_, y\_)) = (vadd(s))((act(s))(r\_, x\_), (act(s))(r\_, y\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((add(scal(s)))(r\_, s\_), x\_) = (vadd(s))((act(s))(r\_, x\_), (act(s))(s\_, x\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((mul(scal(s)))(r\_, s\_), x\_) = (act(s))(r\_, (act(s))(s\_, x\_))) and forall([x\_ in vec(s)], (act(s))(one(scal(s)), x\_) = x\_) and forall([x\_ in vec(s), y\_ in vec(s), z\_ in vec(s)], (ip(s))((vadd(s))(x\_, y\_), z\_) = (ip(s))(x\_, z\_) + (ip(s))(y\_, z\_)) and forall([a\_ in cc, x\_ in vec(s), y\_ in vec(s)], (ip(s))((act(s))(a\_, x\_), y\_) = a\_ * (ip(s))(x\_, y\_)) and forall([x\_ in vec(s), y\_ in vec(s)], (ip(s))(y\_, x\_) = conjugate((ip(s))(x\_, y\_))) and forall([x\_ in vec(s)], (ip(s))(x\_, x\_) in rr) and forall([x\_ in vec(s)], 0 <= (ip(s))(x\_, x\_)) and forall([x\_ in vec(s)], (ip(s))(x\_, x\_) = 0 iff x\_ = vzero(s)))
 \end{quote}
-mentioned by 73 result(s)
+mentioned by 77 result(s)
 
 \smallskip
 
@@ -2744,7 +3236,7 @@ characterized by \texttt{is-continuous-at}  \textit{(definitional)}:
 forall([s, t, f, a], is-continuous-at(s, t, f, a) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and a in pts(s) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
 \end{quote}
 also: \texttt{continuous-is-continuous-at} \\
-mentioned by 178 result(s)
+mentioned by 209 result(s)
 
 \smallskip
 
@@ -2755,7 +3247,19 @@ characterized by \texttt{is-continuous-on}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f, d], is-continuous-on(f, d) iff f in fun(d, rr) and forall([icp\_ in d], is-continuous-at(subspace-ms(rr-ms, d), rr-ms, f, icp\_)))
 \end{quote}
-mentioned by 44 result(s)
+mentioned by 45 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-convex(cvu\_)}}\quad\textit{predicate}\index{is-convex(cvu_)@\texttt{is-convex(cvu\_)}}\\
+reads: \$1 is convex \\
+defined by \texttt{is-convex} \\
+characterized by \texttt{is-convex}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([cvu\_], is-convex(cvu\_) iff forall([cvx\_ in cvu\_, cvy\_ in cvu\_, cvt\_ in ccint(0, 1)], cvx\_ + cvt\_ * (cvy\_ - cvx\_) in cvu\_))
+\end{quote}
+also: \texttt{conv3-is-convex} \texttt{is-convex-unfold} \\
+mentioned by 11 result(s)
 
 \smallskip
 
@@ -2766,7 +3270,7 @@ characterized by \texttt{is-countable}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([rpc\_], is-countable(rpc\_) iff rpc\_ in set and (rpc\_ = empty-set or forsome([rpen\_ in fun(nn, rpc\_)], forall([rpy\_ in rpc\_], forsome([rpn\_ in nn], rpy\_ = rpen\_(rpn\_))))))
 \end{quote}
-mentioned by 27 result(s)
+mentioned by 28 result(s)
 
 \smallskip
 
@@ -2835,7 +3339,7 @@ characterized by \texttt{is-diff-on}  \textit{(definitional)}:
 forall([k, u, f, a, l], is-diff-on(k, u, f, a, l) iff is-normed-field(k) and is-open(nf-metric-space(k), u) and f in fun(u, carr(k)) and a in u and l in carr(k) and forsome([phi in fun(u, carr(k))], is-continuous-at(subspace-ms(nf-metric-space(k), u), nf-metric-space(k), phi, a) and phi(a) = l and forall([x in u], (add(k))(f(x), (neg(k))(f(a))) = (mul(k))(phi(x), (add(k))(x, (neg(k))(a))))))
 \end{quote}
 also: \texttt{deriv-on-of-is-diff-on} \texttt{cc-deriv-on-of-is-diff-on} \\
-mentioned by 47 result(s)
+mentioned by 65 result(s)
 
 \smallskip
 
@@ -2903,7 +3407,7 @@ characterized by \texttt{is-euclidean-ring-def}  \textit{(definitional)}:
 forall([s], is-euclidean-ring(s) iff is-integral-domain(s) and forsome([dg in fun(carr(s), nn)], forall([a in carr(s), b in carr(s)], not(b = zero(s)) implies forsome([q in carr(s), r in carr(s)], a = (add(s))((mul(s))(q, b), r) and (r = zero(s) or succ(dg(r)) <= dg(b))))))
 \end{quote}
 also: \texttt{field-as-euclidean-ring-is-euclidean-ring} \texttt{zz-is-euclidean-ring} \\
-mentioned by 33 result(s)
+mentioned by 37 result(s)
 
 \smallskip
 
@@ -2915,7 +3419,7 @@ characterized by \texttt{is-field}  \textit{(definitional)}:
 forall([s], is-field(s) iff length(s) = 8 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and non-zero(s) in set and non-zero(s) = difference(carr(s), singleton(zero(s))) and mul-inv(s) in fun(non-zero(s), non-zero(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and not(zero(s) = one(s)) and forall([a\_ in non-zero(s)], (mul(s))(a\_, (mul-inv(s))(a\_)) = one(s)))
 \end{quote}
 also: \texttt{qq-field-is-field} \texttt{field-is-field-ring} \\
-mentioned by 15 result(s)
+mentioned by 19 result(s)
 
 \smallskip
 
@@ -2927,7 +3431,7 @@ characterized by \texttt{is-field-ring-def}  \textit{(definitional)}:
 forall([s], is-field-ring(s) iff is-commutative-ring(s) and not(one(s) = zero(s)) and forall([a\_ in carr(s)], not(a\_ = zero(s)) implies forsome([b\_ in carr(s)], (mul(s))(a\_, b\_) = one(s))))
 \end{quote}
 also: \texttt{field-is-field-ring} \\
-mentioned by 13 result(s)
+mentioned by 17 result(s)
 
 \smallskip
 
@@ -2993,7 +3497,7 @@ characterized by \texttt{is-group}  \textit{(definitional)}:
 forall([s], is-group(s) iff length(s) = 4 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)))
 \end{quote}
 also: \texttt{field-multiplicative-group-is-group} \texttt{abelian-group-is-group-ring-additive-ag} \texttt{abelian-group-is-group} \\
-mentioned by 21 result(s)
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -3026,7 +3530,7 @@ characterized by \texttt{is-hom-abelian-group-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-abelian-group(a, b, f) iff is-abelian-group(a) and is-abelian-group(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))) and f(iden(a)) = iden(b) and forall([x1\_ in carr(a)], f((inv(a))(x1\_)) = (inv(b))(f(x1\_))))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -3037,7 +3541,7 @@ characterized by \texttt{is-hom-c-metric-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-c-metric-space(a, b, f) iff is-c-metric-space(a) and is-c-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1\_ in nn], (dists(a))(x1\_) = (dists(b))(x1\_)))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3048,7 +3552,7 @@ characterized by \texttt{is-hom-comm-monoid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-comm-monoid(a, b, f) iff is-comm-monoid(a) and is-comm-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))) and f(iden(a)) = iden(b))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3059,7 +3563,7 @@ characterized by \texttt{is-hom-commutative-ring-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-commutative-ring(a, b, f) iff is-commutative-ring(a) and is-commutative-ring(b) and is-hom-ring(a, b, f))
 \end{quote}
-mentioned by 9 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -3070,7 +3574,7 @@ characterized by \texttt{is-hom-complex-inner-product-space-def}  \textit{(defin
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-complex-inner-product-space(a, b, f) iff is-complex-inner-product-space(a) and is-complex-inner-product-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1\_ in vec(a), x2\_ in vec(a)], f((vadd(a))(x1\_, x2\_)) = (vadd(b))(f(x1\_), f(x2\_))) and f(vzero(a)) = vzero(b) and forall([x1\_ in vec(a)], f((vneg(a))(x1\_)) = (vneg(b))(f(x1\_))) and forall([x1\_ in carr(scal(a)), x2\_ in vec(a)], f((act(a))(x1\_, x2\_)) = (act(b))(x1\_, f(x2\_))) and forall([x1\_ in vec(a), x2\_ in vec(a)], (ip(a))(x1\_, x2\_) = (ip(b))(f(x1\_), f(x2\_))))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3081,7 +3585,7 @@ characterized by \texttt{is-hom-euclidean-ring-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-euclidean-ring(a, b, f) iff is-euclidean-ring(a) and is-euclidean-ring(b) and is-hom-integral-domain(a, b, f))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3092,7 +3596,7 @@ characterized by \texttt{is-hom-field-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-field(a, b, f) iff is-field(a) and is-field(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((add(a))(x1\_, x2\_)) = (add(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((mul(a))(x1\_, x2\_)) = (mul(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(a)], f((neg(a))(x1\_)) = (neg(b))(f(x1\_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1\_ in non-zero(a)], f((mul-inv(a))(x1\_)) = (mul-inv(b))(f(x1\_))))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 10 result(s)
 
 \smallskip
 
@@ -3103,7 +3607,7 @@ characterized by \texttt{is-hom-field-ring-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-field-ring(a, b, f) iff is-field-ring(a) and is-field-ring(b) and is-hom-commutative-ring(a, b, f))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3114,7 +3618,7 @@ characterized by \texttt{is-hom-group-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-group(a, b, f) iff is-group(a) and is-group(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))) and f(iden(a)) = iden(b) and forall([x1\_ in carr(a)], f((inv(a))(x1\_)) = (inv(b))(f(x1\_))))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3125,7 +3629,7 @@ characterized by \texttt{is-hom-integral-domain-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-integral-domain(a, b, f) iff is-integral-domain(a) and is-integral-domain(b) and is-hom-commutative-ring(a, b, f))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -3136,7 +3640,7 @@ characterized by \texttt{is-hom-measurable-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-measurable-space(a, b, f) iff is-measurable-space(a) and is-measurable-space(b) and f in fun(pts(a), pts(b)) and sigma(a) = sigma(b))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3147,7 +3651,7 @@ characterized by \texttt{is-hom-measure-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-measure-space(a, b, f) iff is-measure-space(a) and is-measure-space(b) and f in fun(pts(a), pts(b)) and sigma(a) = sigma(b) and forall([x1\_ in sigma(a)], (meas(a))(x1\_) = (meas(b))(x1\_)))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3158,7 +3662,7 @@ characterized by \texttt{is-hom-metric-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-metric-space(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1\_ in pts(a), x2\_ in pts(a)], (dist(a))(x1\_, x2\_) = (dist(b))(f(x1\_), f(x2\_))))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -3169,7 +3673,7 @@ characterized by \texttt{is-hom-metrizable-top-space-def}  \textit{(definitional
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, t, f], is-hom-metrizable-top-space(s, t, f) iff is-metrizable-top-space(s) and is-metrizable-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))
 \end{quote}
-mentioned by 3 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3180,7 +3684,7 @@ characterized by \texttt{is-hom-module-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-module(a, b, f) iff is-module(a) and is-module(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1\_ in vec(a), x2\_ in vec(a)], f((vadd(a))(x1\_, x2\_)) = (vadd(b))(f(x1\_), f(x2\_))) and f(vzero(a)) = vzero(b) and forall([x1\_ in vec(a)], f((vneg(a))(x1\_)) = (vneg(b))(f(x1\_))) and forall([x1\_ in carr(scal(a)), x2\_ in vec(a)], f((act(a))(x1\_, x2\_)) = (act(b))(x1\_, f(x2\_))))
 \end{quote}
-mentioned by 7 result(s)
+mentioned by 11 result(s)
 
 \smallskip
 
@@ -3191,7 +3695,7 @@ characterized by \texttt{is-hom-monoid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-monoid(a, b, f) iff is-monoid(a) and is-monoid(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))) and f(iden(a)) = iden(b))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -3202,7 +3706,7 @@ characterized by \texttt{is-hom-normed-ag-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-normed-ag(a, b, f) iff is-normed-ag(a) and is-normed-ag(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))) and f(iden(a)) = iden(b) and forall([x1\_ in carr(a)], f((inv(a))(x1\_)) = (inv(b))(f(x1\_))) and forall([x1\_ in carr(a)], (nrm(a))(x1\_) = (nrm(b))(f(x1\_))))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -3213,7 +3717,7 @@ characterized by \texttt{is-hom-normed-field-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-normed-field(a, b, f) iff is-normed-field(a) and is-normed-field(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((add(a))(x1\_, x2\_)) = (add(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((mul(a))(x1\_, x2\_)) = (mul(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(a)], f((neg(a))(x1\_)) = (neg(b))(f(x1\_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b) and forall([x1\_ in carr(a)], (fnrm(a))(x1\_) = (fnrm(b))(f(x1\_))))
 \end{quote}
-mentioned by 5 result(s)
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -3224,7 +3728,7 @@ characterized by \texttt{is-hom-normed-vector-space-def}  \textit{(definitional)
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-normed-vector-space(a, b, f) iff is-normed-vector-space(a) and is-normed-vector-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1\_ in vec(a), x2\_ in vec(a)], f((vadd(a))(x1\_, x2\_)) = (vadd(b))(f(x1\_), f(x2\_))) and f(vzero(a)) = vzero(b) and forall([x1\_ in vec(a)], f((vneg(a))(x1\_)) = (vneg(b))(f(x1\_))) and forall([x1\_ in carr(scal(a)), x2\_ in vec(a)], f((act(a))(x1\_, x2\_)) = (act(b))(x1\_, f(x2\_))) and forall([x1\_ in vec(a)], (vnrm(a))(x1\_) = (vnrm(b))(f(x1\_))))
 \end{quote}
-mentioned by 4 result(s)
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -3235,7 +3739,7 @@ characterized by \texttt{is-hom-pid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-pid(a, b, f) iff is-pid(a) and is-pid(b) and is-hom-integral-domain(a, b, f))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3246,7 +3750,7 @@ characterized by \texttt{is-hom-pseudometric-space-def}  \textit{(definitional)}
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-pseudometric-space(a, b, f) iff is-pseudometric-space(a) and is-pseudometric-space(b) and f in fun(pts(a), pts(b)) and forall([x1\_ in pts(a), x2\_ in pts(a)], (dist(a))(x1\_, x2\_) = (dist(b))(f(x1\_), f(x2\_))))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3258,7 +3762,7 @@ characterized by \texttt{is-hom-ring-def}  \textit{(definitional)}:
 forall([a, b, f], is-hom-ring(a, b, f) iff is-ring(a) and is-ring(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((add(a))(x1\_, x2\_)) = (add(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((mul(a))(x1\_, x2\_)) = (mul(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(a)], f((neg(a))(x1\_)) = (neg(b))(f(x1\_))) and f(zero(a)) = zero(b) and f(one(a)) = one(b))
 \end{quote}
 also: \texttt{is-hom-ringoid-def} \\
-mentioned by 8 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -3269,7 +3773,7 @@ characterized by \texttt{is-hom-ringoid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-ringoid(a, b, f) iff is-ringoid(a) and is-ringoid(b) and f in fun(carr(a), carr(b)) and is-hom-ring(ringoid-as-ring(a), ringoid-as-ring(b), f) and forall([x\_ in idl(a)], f(x\_) in idl(b)))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3280,7 +3784,7 @@ characterized by \texttt{is-hom-semigroup-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-semigroup(a, b, f) iff is-semigroup(a) and is-semigroup(b) and f in fun(carr(a), carr(b)) and forall([x1\_ in carr(a), x2\_ in carr(a)], f((opr(a))(x1\_, x2\_)) = (opr(b))(f(x1\_), f(x2\_))))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3302,7 +3806,7 @@ characterized by \texttt{is-hom-top-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, t, f], is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t) and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s)))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3313,7 +3817,7 @@ characterized by \texttt{is-hom-vector-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-vector-space(a, b, f) iff is-vector-space(a) and is-vector-space(b) and is-hom-module(a, b, f))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3359,7 +3863,7 @@ characterized by \texttt{is-integral-domain-def}  \textit{(definitional)}:
 forall([s], is-integral-domain(s) iff is-commutative-ring(s) and not(one(s) = zero(s)) and forall([a in carr(s), b in carr(s)], (mul(s))(a, b) = zero(s) implies a = zero(s) or b = zero(s)))
 \end{quote}
 also: \texttt{field-as-integral-domain-is-integral-domain} \texttt{normed-field-as-integral-domain-is-integral-domain} \texttt{qq-is-integral-domain} \texttt{zz-is-integral-domain} \texttt{euclidean-ring-is-integral-domain} \\
-mentioned by 19 result(s)
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -3536,7 +4040,7 @@ characterized by \texttt{is-measurable-space}  \textit{(definitional)}:
 forall([s], is-measurable-space(s) iff length(s) = 2 and pts(s) in set and sigma(s) in power(power(pts(s))) and is-sigma-algebra(pts(s), sigma(s)))
 \end{quote}
 also: \texttt{measure-space-as-measurable-space-is-measurable-space} \texttt{discrete-space-is-measurable-space} \\
-mentioned by 8 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -3559,7 +4063,7 @@ characterized by \texttt{is-measure-space}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-measure-space(s) iff length(s) = 3 and pts(s) in set and sigma(s) in power(power(pts(s))) and meas(s) in fun(sigma(s), rr-pos-star) and is-measure(pts(s), sigma(s), meas(s)))
 \end{quote}
-mentioned by 7 result(s)
+mentioned by 11 result(s)
 
 \smallskip
 
@@ -3583,7 +4087,7 @@ characterized by \texttt{is-metric-space}  \textit{(definitional)}:
 forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 \end{quote}
 also: \texttt{cc-is-metric-space} \texttt{rr-is-metric-space} \texttt{nf-cc-is-metric-space} \texttt{nf-rr-is-metric-space} \texttt{sub-rr-is-metric-space} \texttt{product-is-metric-space} \texttt{subspace-is-metric-space} \texttt{bdd-rr-ms-is-metric-space} ... (15 in all) \\
-mentioned by 248 result(s)
+mentioned by 252 result(s)
 
 \smallskip
 
@@ -3595,7 +4099,7 @@ characterized by \texttt{is-metrizable-top-space-def}  \textit{(definitional)}:
 forall([s], is-metrizable-top-space(s) iff is-top-space(s) and forsome([md], is-metric-space(md) and s == [pts(md), \{u in power(pts(md)): is-open(md, u)\}]))
 \end{quote}
 also: \texttt{metric-top-is-metrizable-top-space} \\
-mentioned by 13 result(s)
+mentioned by 17 result(s)
 
 \smallskip
 
@@ -3607,7 +4111,7 @@ characterized by \texttt{is-module}  \textit{(definitional)}:
 forall([s], is-module(s) iff length(s) = 6 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and forall([r\_ in carr(scal(s)), x\_ in vec(s), y\_ in vec(s)], (act(s))(r\_, (vadd(s))(x\_, y\_)) = (vadd(s))((act(s))(r\_, x\_), (act(s))(r\_, y\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((add(scal(s)))(r\_, s\_), x\_) = (vadd(s))((act(s))(r\_, x\_), (act(s))(s\_, x\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((mul(scal(s)))(r\_, s\_), x\_) = (act(s))(r\_, (act(s))(s\_, x\_))) and forall([x\_ in vec(s)], (act(s))(one(scal(s)), x\_) = x\_))
 \end{quote}
 also: \texttt{normed-vector-space-as-module-is-module} \texttt{complex-inner-product-space-as-module-is-module} \texttt{qq-line-is-module} \\
-mentioned by 132 result(s)
+mentioned by 136 result(s)
 
 \smallskip
 
@@ -3619,7 +4123,7 @@ characterized by \texttt{is-monoid}  \textit{(definitional)}:
 forall([s], is-monoid(s) iff length(s) = 3 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)))
 \end{quote}
 also: \texttt{abelian-group-as-monoid-is-monoid} \texttt{ring-multiplicative-monoid-is-monoid} \texttt{abelian-group-as-monoid-is-monoid-module-vector-ag} \texttt{abelian-group-as-monoid-is-monoid-ring-additive-ag} \texttt{abelian-group-as-monoid-is-monoid-field-additive-ag} \texttt{abelian-group-as-monoid-is-monoid-normed-field-additive-ag} \texttt{abelian-group-as-monoid-is-monoid-normed-ag-as-abelian-group} \texttt{abelian-group-as-monoid-is-monoid-commutative-ring-additive-ag} ... (13 in all) \\
-mentioned by 87 result(s)
+mentioned by 91 result(s)
 
 \smallskip
 
@@ -3687,7 +4191,7 @@ characterized by \texttt{is-normed-ag}  \textit{(definitional)}:
 forall([s], is-normed-ag(s) iff length(s) = 5 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and iden(s) in carr(s) and inv(s) in fun(carr(s), carr(s)) and nrm(s) in fun(carr(s), rr) and is-associative(opr(s), carr(s)) and is-identity(opr(s), iden(s), carr(s)) and has-inverses(opr(s), iden(s), inv(s), carr(s)) and is-commutative(opr(s), carr(s)) and is-group-norm(nrm(s), opr(s), inv(s), iden(s), carr(s)))
 \end{quote}
 also: \texttt{normed-vector-space-as-normed-ag-is-normed-ag} \texttt{ip-normed-ag-is-normed-ag} \\
-mentioned by 21 result(s)
+mentioned by 25 result(s)
 
 \smallskip
 
@@ -3699,7 +4203,7 @@ characterized by \texttt{is-normed-field}  \textit{(definitional)}:
 forall([s], is-normed-field(s) iff length(s) = 7 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and fnrm(s) in fun(carr(s), rr) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-commutative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and is-norm(fnrm(s), add(s), mul(s), zero(s), carr(s)))
 \end{quote}
 also: \texttt{cc-is-normed-field} \texttt{rr-is-normed-field} \\
-mentioned by 94 result(s)
+mentioned by 98 result(s)
 
 \smallskip
 
@@ -3711,7 +4215,7 @@ characterized by \texttt{is-normed-vector-space}  \textit{(definitional)}:
 forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and vnrm(s) in fun(vec(s), rr) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = normed-field-as-commutative-ring(rr-normed-field) and forall([r\_ in carr(scal(s)), x\_ in vec(s), y\_ in vec(s)], (act(s))(r\_, (vadd(s))(x\_, y\_)) = (vadd(s))((act(s))(r\_, x\_), (act(s))(r\_, y\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((add(scal(s)))(r\_, s\_), x\_) = (vadd(s))((act(s))(r\_, x\_), (act(s))(s\_, x\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((mul(scal(s)))(r\_, s\_), x\_) = (act(s))(r\_, (act(s))(s\_, x\_))) and forall([x\_ in vec(s)], (act(s))(one(scal(s)), x\_) = x\_) and forall([x\_ in vec(s)], 0 <= (vnrm(s))(x\_)) and forall([x\_ in vec(s)], (vnrm(s))(x\_) = 0 iff x\_ = vzero(s)) and forall([r\_ in carr(scal(s)), x\_ in vec(s)], (vnrm(s))((act(s))(r\_, x\_)) = abs(r\_) * (vnrm(s))(x\_)) and forall([x\_ in vec(s), y\_ in vec(s)], (vnrm(s))((vadd(s))(x\_, y\_)) <= (vnrm(s))(x\_) + (vnrm(s))(y\_)))
 \end{quote}
 also: \texttt{dual-is-normed-vector-space} \texttt{rr-nvs-is-normed-vector-space} \\
-mentioned by 215 result(s)
+mentioned by 219 result(s)
 
 \smallskip
 
@@ -3734,7 +4238,7 @@ characterized by \texttt{is-open}  \textit{(definitional)}:
 forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
 \end{quote}
 also: \texttt{is-open-cover} \texttt{ball-is-open} \texttt{empty-is-open} \texttt{carrier-is-open} \texttt{interior-is-open} \\
-mentioned by 60 result(s)
+mentioned by 69 result(s)
 
 \smallskip
 
@@ -3835,7 +4339,7 @@ characterized by \texttt{is-pid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-pid(s) iff is-integral-domain(s) and forall([i], is-ideal(s, i) implies forsome([a in carr(s)], i = principal-ideal(s, a))))
 \end{quote}
-mentioned by 6 result(s)
+mentioned by 10 result(s)
 
 \smallskip
 
@@ -3857,7 +4361,7 @@ characterized by \texttt{is-primitive}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([rpg\_, rpf\_, rpa\_, rpb\_], is-primitive(rpg\_, rpf\_, rpa\_, rpb\_) iff rpa\_ in rr and rpb\_ in rr and rpa\_ < rpb\_ and rpg\_ in fun(ccint(rpa\_, rpb\_), rr) and rpf\_ in fun(ccint(rpa\_, rpb\_), rr) and is-continuous-on(rpg\_, ccint(rpa\_, rpb\_)) and forsome([rps\_], is-countable(rps\_) and rps\_ subset ccint(rpa\_, rpb\_) and forall([rpt\_ in ooint(rpa\_, rpb\_)], not(rpt\_ in rps\_) implies has-deriv-at(rpg\_, rpt\_, rpf\_(rpt\_)))))
 \end{quote}
-mentioned by 72 result(s)
+mentioned by 75 result(s)
 
 \smallskip
 
@@ -3880,7 +4384,7 @@ characterized by \texttt{is-pseudometric-space}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-pseudometric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-pseudometric(dist(s), pts(s)))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -3947,7 +4451,7 @@ characterized by \texttt{is-regulated-on}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([rpf\_, rpa\_, rpb\_], is-regulated-on(rpf\_, rpa\_, rpb\_) iff rpa\_ in rr and rpb\_ in rr and rpa\_ < rpb\_ and rpf\_ in fun(ccint(rpa\_, rpb\_), rr) and forall([rpx\_ in ccint(rpa\_, rpb\_)], rpx\_ < rpb\_ implies forsome([rpl\_], is-right-limit-within(rpf\_, ccint(rpa\_, rpb\_), rpx\_, rpl\_))) and forall([rpx\_ in ccint(rpa\_, rpb\_)], rpa\_ < rpx\_ implies forsome([rpl\_], is-left-limit-within(rpf\_, ccint(rpa\_, rpb\_), rpx\_, rpl\_))))
 \end{quote}
-mentioned by 23 result(s)
+mentioned by 24 result(s)
 
 \smallskip
 
@@ -3981,7 +4485,7 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
 also: \texttt{ringoid-as-ring-is-ring} \texttt{ring-prod-is-ring-ringoid-as-ring} \texttt{qq-is-ring} \texttt{zz-is-ring} \texttt{poly-is-ring} \texttt{monalg-is-ring} \texttt{mat-ring-is-ring} \texttt{ring-prod-is-ring} ... (12 in all) \\
-mentioned by 463 result(s)
+mentioned by 473 result(s)
 
 \smallskip
 
@@ -3992,7 +4496,7 @@ characterized by \texttt{is-ringoid}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ringoid(s) iff length(s) = 7 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and idl(s) in power(carr(s)) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)) and is-ideal-in(idl(s), carr(s), add(s), mul(s), neg(s), zero(s)))
 \end{quote}
-mentioned by 103 result(s)
+mentioned by 107 result(s)
 
 \smallskip
 
@@ -4003,8 +4507,8 @@ characterized by \texttt{is-road}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([pgam, dgam, a, b], is-road(pgam, dgam, a, b) iff is-path(pgam, a, b) and dgam in fun(ccint(a, b), cc) and is-regulated-on(vnb-lambda(pat\_, ccint(a, b), real-part(dgam(pat\_))), a, b) and is-regulated-on(vnb-lambda(pat\_, ccint(a, b), imag-part(dgam(pat\_))), a, b) and is-primitive(vnb-lambda(pat\_, ccint(a, b), real-part(pgam(pat\_))), vnb-lambda(pat\_, ccint(a, b), real-part(dgam(pat\_))), a, b) and is-primitive(vnb-lambda(pat\_, ccint(a, b), imag-part(pgam(pat\_))), vnb-lambda(pat\_, ccint(a, b), imag-part(dgam(pat\_))), a, b))
 \end{quote}
-also: \texttt{is-road-is-path} \texttt{segment-is-road} \texttt{opposite-is-road} \texttt{is-road-dgam-in-fun} \texttt{is-road-im-regulated} \texttt{is-road-re-regulated} \texttt{is-road-im-antiderivative} \texttt{is-road-re-antiderivative} \\
-mentioned by 29 result(s)
+also: \texttt{is-road-is-path} \texttt{segment-is-road} \texttt{opposite-is-road} \texttt{seg-path-is-road} \texttt{is-road-dgam-in-fun} \texttt{is-road-im-regulated} \texttt{is-road-re-regulated} \texttt{is-road-im-antiderivative} ... (9 in all) \\
+mentioned by 39 result(s)
 
 \smallskip
 
@@ -4015,7 +4519,7 @@ characterized by \texttt{is-semigroup}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-semigroup(s) iff length(s) = 2 and carr(s) in set and opr(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and is-associative(opr(s), carr(s)))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 12 result(s)
 
 \smallskip
 
@@ -4198,7 +4702,7 @@ characterized by \texttt{is-top-space}  \textit{(definitional)}:
 forall([s], is-top-space(s) iff length(s) = 2 and pts(s) in set and opens(s) in power(power(pts(s))) and empty-set in opens(s) and pts(s) in opens(s) and forall([u in opens(s), v in opens(s)], intersection(u, v) in opens(s)) and forall([fam], fam subset opens(s) implies big-union(u, fam, u) in opens(s)))
 \end{quote}
 also: \texttt{metric-top-is-top-space} \texttt{discrete-space-is-top-space} \\
-mentioned by 20 result(s)
+mentioned by 24 result(s)
 
 \smallskip
 
@@ -4254,7 +4758,7 @@ characterized by \texttt{is-vector-space-def}  \textit{(definitional)}:
 forall([s], is-vector-space(s) iff is-module(s) and is-field-ring(scal(s)))
 \end{quote}
 also: \texttt{is-vector-space-unfold} \texttt{qq-line-is-vector-space} \\
-mentioned by 12 result(s)
+mentioned by 16 result(s)
 
 \smallskip
 
@@ -4398,8 +4902,8 @@ characterized by \texttt{line-int-sum}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([u, f, g, pgam, dgam, a, b], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies is-road(pgam, dgam, a, b) implies trace(pgam, a, b) subset u implies forall([lih\_ in fun(u, cc)], forall([liz\_ in u], lih\_(liz\_) == f(liz\_) + g(liz\_)) implies line-int(lih\_, pgam, dgam, a, b) = line-int(f, pgam, dgam, a, b) + line-int(g, pgam, dgam, a, b)))
 \end{quote}
-also: \texttt{line-int-in-cc} \texttt{line-int-value} \texttt{line-int-of-one} \texttt{line-int-scalar} \texttt{line-int-unfold} \texttt{line-int-adjacent} \texttt{line-int-opposite} \texttt{line-int-abs-bound} ... (10 in all) \\
-mentioned by 20 result(s)
+also: \texttt{line-int-in-cc} \texttt{line-int-value} \texttt{line-int-of-one} \texttt{line-int-scalar} \texttt{line-int-unfold} \texttt{line-int-adjacent} \texttt{line-int-opposite} \texttt{line-int-abs-bound} ... (12 in all) \\
+mentioned by 37 result(s)
 
 \smallskip
 
@@ -4474,8 +4978,8 @@ characterized by \texttt{magnitude-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([z], magnitude(z) == sqrt(real-part(z) * real-part(z) + imag-part(z) * imag-part(z)))
 \end{quote}
-also: \texttt{cc-magnitude-sq} \texttt{cc-magnitude-mul} \texttt{cc-magnitude-neg} \texttt{cc-magnitude-zero} \texttt{cc-magnitude-power} \texttt{cc-magnitude-closed} \texttt{cc-magnitude-le-add} \texttt{cc-magnitude-nonneg} ... (23 in all) \\
-mentioned by 91 result(s)
+also: \texttt{half-magnitude} \texttt{cc-magnitude-sq} \texttt{cc-magnitude-mul} \texttt{cc-magnitude-neg} \texttt{cc-magnitude-zero} \texttt{cc-magnitude-power} \texttt{cex-sign-magnitude} \texttt{cc-magnitude-closed} ... (28 in all) \\
+mentioned by 124 result(s)
 
 \smallskip
 
@@ -4500,8 +5004,8 @@ characterized by \texttt{is-invertible-mat}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, n, u], is-invertible-mat(a, n, u) iff u in mat(n, n, carr(a)) and forsome([v in mat(n, n, carr(a))], matmul(a, u, v) = identmat(a, n) and matmul(a, v, u) = identmat(a, n)))
 \end{quote}
-also: \texttt{mat-cols} \texttt{mat-mono} \texttt{mat-size} \texttt{mat-intro} \texttt{mat-is-set} \texttt{mat-length} \texttt{mat-unfold} \texttt{nil-in-mat} ... (76 in all) \\
-mentioned by 358 result(s)
+also: \texttt{mat-cols} \texttt{mat-mono} \texttt{mat-size} \texttt{mat-intro} \texttt{mat-is-set} \texttt{mat-length} \texttt{mat-unfold} \texttt{nil-in-mat} ... (78 in all) \\
+mentioned by 400 result(s)
 
 \smallskip
 
@@ -4568,8 +5072,8 @@ characterized by \texttt{matmul-type}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a], is-ring(a) implies forall([m, n, k, p, q], p in mat(m, n, carr(a)) implies q in mat(n, k, carr(a)) implies (n = 0 implies m = 0 or k = 0) implies matmul(a, p, q) in mat(m, k, carr(a))))
 \end{quote}
-also: \texttt{matmul-assoc} \texttt{matmul-entry} \texttt{matmul-left-dist-guarded} \texttt{matmul-right-dist-guarded} \\
-mentioned by 96 result(s)
+also: \texttt{matmul-assoc} \texttt{matmul-entry} \texttt{transpose-matmul} \texttt{matmul-left-dist-guarded} \texttt{matmul-right-dist-guarded} \\
+mentioned by 110 result(s)
 
 \smallskip
 
@@ -4735,8 +5239,8 @@ characterized by \texttt{minor-type}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r, s, p, q, n], is-ring(r) implies p in nn implies q in nn implies n in nn implies s in mat(succ(n), succ(n), carr(r)) implies minor(s, p, q, n) in mat(n, n, carr(r)))
 \end{quote}
-also: \texttt{minor-entry} \texttt{identmat-minor} \texttt{dtr-minor-minor} \texttt{dtr-minor1-congr} \texttt{dtr-minor1-entry} \\
-mentioned by 17 result(s)
+also: \texttt{minor-entry} \texttt{identmat-minor} \texttt{dtr-minor-minor} \texttt{dtr-minor1-congr} \texttt{dtr-minor1-entry} \texttt{dtt-minor-transpose} \texttt{dtt-minor1-colcongr} \\
+mentioned by 23 result(s)
 
 \smallskip
 
@@ -4874,7 +5378,7 @@ characterized by \texttt{mpow-succ}  \textit{(definitional)}:
 forall([m, x, n in nn], mpow(m, x, succ(n)) == (opr(m))(x, mpow(m, x, n)))
 \end{quote}
 also: \texttt{mpow-zero} \texttt{mpow-add-abelian-group-as-monoid} \texttt{mpow-one-abelian-group-as-monoid} \texttt{mpow-add} \texttt{mpow-one} \texttt{mpow-mult} \texttt{mpow-type} \texttt{mpow-add-ind} ... (13 in all) \\
-mentioned by 38 result(s)
+mentioned by 40 result(s)
 
 \smallskip
 
@@ -4885,8 +5389,8 @@ characterized by \texttt{rq-mul}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], mul(ringoid-quotient-ring(r)) == descend2(ringoid-setoid(r), vnb-lambda([a, b], cartesian(carr(r), carr(r)), class(ringoid-setoid(r), (mul(r))(a, b)))))
 \end{quote}
-also: \texttt{qq-ring@mul} \texttt{zz-ring@mul} \texttt{qq-field@mul} \texttt{ring-mul-assoc} \texttt{ring-mul-left-id} \texttt{ring-mul-right-id} \texttt{cc-normed-field@mul} \texttt{rr-normed-field@mul} ... (59 in all) \\
-mentioned by 352 result(s)
+also: \texttt{qq-ring@mul} \texttt{zz-ring@mul} \texttt{qq-field@mul} \texttt{ring-mul-assoc} \texttt{ring-mul-left-id} \texttt{ring-mul-right-id} \texttt{cc-normed-field@mul} \texttt{rr-normed-field@mul} ... (64 in all) \\
+mentioned by 380 result(s)
 
 \smallskip
 
@@ -4925,8 +5429,8 @@ characterized by \texttt{rq-neg}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], neg(ringoid-quotient-ring(r)) == descend(ringoid-setoid(r), vnb-lambda(a, carr(r), class(ringoid-setoid(r), (neg(r))(a)))))
 \end{quote}
-also: \texttt{qq-ring@neg} \texttt{zz-ring@neg} \texttt{qq-field@neg} \texttt{ringoid-ideal-neg} \texttt{cc-normed-field@neg} \texttt{rr-normed-field@neg} \texttt{rr-nf-neg} \texttt{nf-norm-neg} ... (38 in all) \\
-mentioned by 175 result(s)
+also: \texttt{qq-ring@neg} \texttt{zz-ring@neg} \texttt{qq-field@neg} \texttt{ringoid-ideal-neg} \texttt{cc-normed-field@neg} \texttt{rr-normed-field@neg} \texttt{rr-nf-neg} \texttt{nf-norm-neg} ... (43 in all) \\
+mentioned by 193 result(s)
 
 \smallskip
 
@@ -4945,7 +5449,7 @@ characterized by \texttt{nf-metric-space-is-metric-space}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([nf], is-normed-field(nf) implies is-metric-space(nf-metric-space(nf)))
 \end{quote}
-mentioned by 66 result(s)
+mentioned by 103 result(s)
 
 \smallskip
 
@@ -5036,8 +5540,8 @@ characterized by \texttt{qq-field@non-zero}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 non-zero(qq-field) == difference(qq, singleton(0))
 \end{quote}
-also: \texttt{field-non-zero-carrier} \\
-mentioned by 8 result(s)
+also: \texttt{field-non-zero-carrier} \texttt{hom-field-non-zero} \\
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -5267,8 +5771,8 @@ characterized by \texttt{rq-one}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], one(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), one(r)))
 \end{quote}
-also: \texttt{qq-ring@one} \texttt{zz-ring@one} \texttt{qq-field@one} \texttt{cc-normed-field@one} \texttt{rr-normed-field@one} \texttt{ring-one-in} \texttt{field-id-one} \texttt{mat-ring-one} ... (18 in all) \\
-mentioned by 206 result(s)
+also: \texttt{qq-ring@one} \texttt{zz-ring@one} \texttt{qq-field@one} \texttt{cc-normed-field@one} \texttt{rr-normed-field@one} \texttt{ring-one-in} \texttt{field-id-one} \texttt{mat-ring-one} ... (19 in all) \\
+mentioned by 218 result(s)
 
 \smallskip
 
@@ -5282,8 +5786,8 @@ characterized by \texttt{ooint-open}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], a in rr implies b in rr implies is-open(rr-ms, ooint(a, b)))
 \end{quote}
-also: \texttt{ooint-center} \texttt{ooint-open-nf} \texttt{coint-of-ooint} \texttt{ocint-of-ooint} \texttt{ooint-elt-in-rr} \texttt{ooint-subset-rr} \texttt{ooint-membership} \texttt{ooint-reflect-in} ... (18 in all) \\
-mentioned by 100 result(s)
+also: \texttt{ooint-center} \texttt{ooint-open-nf} \texttt{coint-of-ooint} \texttt{ocint-of-ooint} \texttt{ooint-elt-in-rr} \texttt{ooint-subset-rr} \texttt{ooint-membership} \texttt{ooint-reflect-in} ... (19 in all) \\
+mentioned by 103 result(s)
 
 \smallskip
 
@@ -5394,6 +5898,11 @@ mentioned by 4 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{pi}}\quad\textit{defined-fn}\index{pi@\texttt{pi}}\\
+defined by \texttt{pi-def}
+
+\smallskip
+
 \noindent\textbf{\texttt{pid}}\quad\textit{refinement}\index{pid@\texttt{pid}}\\
 predicate \texttt{is-pid}; same shape as integral-domain
 
@@ -5433,7 +5942,7 @@ characterized by \texttt{pos-rr}  \textit{(definitional)}:
 forall([r], pos-rr(r) iff r in rr and 0 <= r and not(0 = r))
 \end{quote}
 also: \texttt{rr-lt-of-pos-rr} \texttt{rr-pos-rr-in-rr} \texttt{rr-pos-rr-of-lt} \\
-mentioned by 176 result(s)
+mentioned by 179 result(s)
 
 \smallskip
 
@@ -5443,8 +5952,8 @@ characterized by \texttt{power-neg}  \textit{(primitive)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, n], x in cc and n in nn and not(x = 0) implies x \textasciicircum{} (-n) = recip(x \textasciicircum{} n))
 \end{quote}
-also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{power-mem-in} \texttt{rr-abs-power} ... (51 in all) \\
-mentioned by 262 result(s)
+also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (60 in all) \\
+mentioned by 304 result(s)
 
 \smallskip
 
@@ -5681,7 +6190,7 @@ characterized by \texttt{cc-ms@pts}  \textit{(definitional)}:
 pts(cc-ms) == cc
 \end{quote}
 also: \texttt{rr-ms@pts} \texttt{ringoid-setoid-pts} \texttt{ds-pts} \texttt{nvs-ms-pts} \texttt{r7q-rr-pts} \texttt{subspace-pts} \texttt{ms-pts-is-set} \texttt{nf-cc-agree-pts} ... (14 in all) \\
-mentioned by 377 result(s)
+mentioned by 398 result(s)
 
 \smallskip
 
@@ -5756,8 +6265,8 @@ characterized by \texttt{pw-int-const}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a in rr, b in rr], a < b implies forall([pac\_ in rr, pphi\_ in fun(ccint(a, b), rr)], forall([pay\_ in ccint(a, b)], pphi\_(pay\_) == pac\_) implies pw-int(pphi\_, a, b) = pac\_ * (b - a)))
 \end{quote}
-also: \texttt{pw-int-in-rr} \texttt{pw-int-value} \texttt{pw-int-nonneg} \texttt{pw-int-reflect} \texttt{pw-int-adjacent} \texttt{pw-int-monotone} \texttt{pw-int-abs-bound} \texttt{pw-int-congruence} \\
-mentioned by 20 result(s)
+also: \texttt{pw-int-in-rr} \texttt{pw-int-value} \texttt{pw-int-nonneg} \texttt{pw-int-reflect} \texttt{pw-int-adjacent} \texttt{pw-int-monotone} \texttt{pw-int-abs-bound} \texttt{pw-int-congruence} ... (9 in all) \\
+mentioned by 21 result(s)
 
 \smallskip
 
@@ -5851,8 +6360,8 @@ characterized by \texttt{real-part-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([z], real-part(z) == (z + conjugate(z)) * recip(2))
 \end{quote}
-also: \texttt{real-part-in-rr} \\
-mentioned by 79 result(s)
+also: \texttt{real-part-in-rr} \texttt{cc-cos-real-part} \\
+mentioned by 96 result(s)
 
 \smallskip
 
@@ -5863,7 +6372,7 @@ characterized by \texttt{cc-recip-closed}  \textit{(primitive)}:
 forall([a], a in cc and not(a = 0) implies recip(a) in cc)
 \end{quote}
 also: \texttt{qq-recip-closed} \texttt{rr-recip-closed} \texttt{cc-recip-inverse} \texttt{qq-recip-inverse} \texttt{rr-recip-inverse} \texttt{cc-recip-mul} \texttt{rr-recip-one} \texttt{rr-recip-pos} ... (36 in all) \\
-mentioned by 162 result(s)
+mentioned by 202 result(s)
 
 \smallskip
 
@@ -5991,8 +6500,8 @@ characterized by \texttt{road-restrict}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([pgam, dgam, a, b, licv\_ in rr, lidv\_ in rr], is-road(pgam, dgam, a, b) implies a <= licv\_ implies licv\_ < lidv\_ implies lidv\_ <= b implies is-road(restrict(pgam, ccint(licv\_, lidv\_)), restrict(dgam, ccint(licv\_, lidv\_)), licv\_, lidv\_))
 \end{quote}
-also: \texttt{image-restrict} \texttt{restrict-apply} \texttt{restrict-in-fun} \texttt{restrict-continuous-at} \texttt{diff-on-shrink-restrict} \texttt{pw-antiderivative-restrict} \texttt{restrict-fun-domain-subset} \texttt{restrict-in-fun-of-restrict} ... (10 in all) \\
-mentioned by 47 result(s)
+also: \texttt{image-restrict} \texttt{restrict-apply} \texttt{restrict-in-fun} \texttt{trace-restrict-subset} \texttt{restrict-continuous-at} \texttt{diff-on-shrink-restrict} \texttt{pw-antiderivative-restrict} \texttt{restrict-fun-domain-subset} ... (11 in all) \\
+mentioned by 48 result(s)
 
 \smallskip
 
@@ -6020,7 +6529,7 @@ characterized by \texttt{finsum-type-ring-additive-ag}  \textit{(definitional)}:
 forall([r], is-ring(r) implies forall([s in set], card(s) in nn implies forall([f in fun(s, carr(r))], finsum(ring-additive-ag(r), f, s) in carr(r))))
 \end{quote}
 also: \texttt{sum-ag-type-ring-additive-ag} \texttt{zz-act-assoc-ring-additive-ag} \texttt{finsum-all-id-ring-additive-ag} \texttt{zz-act-distrib-ring-additive-ag} \texttt{ring-additive-ag-is-abelian-group} \texttt{sum-ag-as-reduce-ring-additive-ag} \texttt{sum-ag-singleton-ring-additive-ag} \texttt{finsum-single-support-ring-additive-ag} ... (11 in all) \\
-mentioned by 101 result(s)
+mentioned by 103 result(s)
 
 \smallskip
 
@@ -6031,7 +6540,7 @@ characterized by \texttt{ring-multiplicative-monoid-is-monoid}  \textit{(definit
 forall([r], is-ring(r) implies is-monoid(ring-multiplicative-monoid(r)))
 \end{quote}
 also: \texttt{ring-multiplicative-monoid-functorial} \\
-mentioned by 19 result(s)
+mentioned by 21 result(s)
 
 \smallskip
 
@@ -6085,8 +6594,8 @@ characterized by \texttt{ringoid-as-ring-is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], is-ringoid(r) implies is-ring(ringoid-as-ring(r)))
 \end{quote}
-also: \texttt{ring-prod-is-ring-ringoid-as-ring} \\
-mentioned by 4 result(s)
+also: \texttt{ring-prod-is-ring-ringoid-as-ring} \texttt{ringoid-as-ring-functorial} \\
+mentioned by 5 result(s)
 
 \smallskip
 
@@ -6268,6 +6777,50 @@ mentioned by 14 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{seg-deriv(sgp\_, sgq\_)}}\quad\textit{functoid}\index{seg-deriv(sgp_, sgq_)@\texttt{seg-deriv(sgp\_, sgq\_)}}\\
+reads: the derivative of the segment from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+vnb-lambda(sgs\_, ccint(0, 1), sgq\_ - sgp\_)
+\end{quote}
+characterized by \texttt{seg-deriv-bridge}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([goua\_, goub\_, gouw\_], goub\_ - goua\_ = gouw\_ implies seg-deriv(goua\_, goub\_) == vnb-lambda(psx\_, ccint(0, 1), gouw\_))
+\end{quote}
+mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{seg-int(sgf\_, sgp\_, sgq\_)}}\quad\textit{functoid}\index{seg-int(sgf_, sgp_, sgq_)@\texttt{seg-int(sgf\_, sgp\_, sgq\_)}}\\
+reads: the integral of \$1 along the segment from \$2 to \$3 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+line-int(sgf\_, seg-path(sgp\_, sgq\_), seg-deriv(sgp\_, sgq\_), 0, 1)
+\end{quote}
+characterized by \texttt{seg-int-sum}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([u, f, g], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies forall([gouh\_ in fun(u, cc)], forall([gouz\_ in u], gouh\_(gouz\_) == f(gouz\_) + g(gouz\_)) implies forall([goua\_ in cc, goub\_ in cc], trace(seg-path(goua\_, goub\_), 0, 1) subset u implies seg-int(gouh\_, goua\_, goub\_) = seg-int(f, goua\_, goub\_) + seg-int(g, goua\_, goub\_))))
+\end{quote}
+also: \texttt{seg-int-const} \texttt{seg-int-in-cc} \texttt{seg-int-bridge} \texttt{seg-int-unfold} \texttt{seg-int-split-at} \texttt{seg-int-abs-bound} \texttt{seg-int-degenerate} \\
+mentioned by 20 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{seg-path(sgp\_, sgq\_)}}\quad\textit{functoid}\index{seg-path(sgp_, sgq_)@\texttt{seg-path(sgp\_, sgq\_)}}\\
+reads: the segment from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+vnb-lambda(sgs\_, ccint(0, 1), sgp\_ + sgs\_ * (sgq\_ - sgp\_))
+\end{quote}
+characterized by \texttt{seg-path-apply}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([goua\_ in cc, goub\_ in cc, gout\_ in ccint(0, 1)], (seg-path(goua\_, goub\_))(gout\_) = goua\_ + gout\_ * (goub\_ - goua\_))
+\end{quote}
+also: \texttt{seg-path-bridge} \texttt{seg-path-is-road} \\
+mentioned by 27 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{semigroup}}\quad\textit{structure}\index{semigroup@\texttt{semigroup}}\\
 predicate \texttt{is-semigroup}; slots: carr opr
 
@@ -6337,7 +6890,7 @@ characterized by \texttt{series-converges}  \textit{(definitional)}:
 forall([f], series-converges(f) iff converges(rr-ms, vnb-lambda(k, nn, series-partial-sum(f, k))))
 \end{quote}
 also: \texttt{series-converges-sum} \texttt{zero-series-converges} \texttt{geometric-series-converges} \texttt{series-converges-to-converges} \\
-mentioned by 60 result(s)
+mentioned by 63 result(s)
 
 \smallskip
 
@@ -6379,7 +6932,7 @@ characterized by \texttt{series-partial-sum-add}  \textit{(proven)}:
 forall([k in nn, f in fun(nn, rr), g in fun(nn, rr), h in fun(nn, rr)], forall([i\_ in nn], h(i\_) = f(i\_) + g(i\_)) implies series-partial-sum(h, k) = series-partial-sum(f, k) + series-partial-sum(g, k))
 \end{quote}
 also: \texttt{series-partial-sum-mono} \texttt{series-partial-sum-succ} \texttt{series-partial-sum-zero} \texttt{series-partial-sum-in-rr} \texttt{series-partial-sum-shift} \texttt{series-partial-sum-abs-le} \texttt{series-partial-sum-nonneg} \texttt{series-partial-sum-unfold} ... (24 in all) \\
-mentioned by 112 result(s)
+mentioned by 113 result(s)
 
 \smallskip
 
@@ -6441,7 +6994,7 @@ characterized by \texttt{singleton-unfold}  \textit{(proven)}:
 forall([y\_], singleton(y\_) == \{y\_\})
 \end{quote}
 also: \texttt{singleton-membership} \\
-mentioned by 25 result(s)
+mentioned by 26 result(s)
 
 \smallskip
 
@@ -6644,8 +7197,8 @@ characterized by \texttt{submodule-subset}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 \end{quote}
-also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (41 in all) \\
-mentioned by 271 result(s)
+also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (43 in all) \\
+mentioned by 318 result(s)
 
 \smallskip
 
@@ -6655,7 +7208,7 @@ definition:
 \begin{quote}\ttfamily\footnotesize\noindent
 [a, vnb-lambda([sbu\_, sbv\_], cartesian(a, a), (dist(s))(sbu\_, sbv\_))]
 \end{quote}
-mentioned by 65 result(s)
+mentioned by 94 result(s)
 
 \smallskip
 
@@ -6684,7 +7237,7 @@ characterized by \texttt{sum-succ}  \textit{(definitional)}:
 forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
 \end{quote}
 also: \texttt{mpow-succ} \texttt{nn-add-succ} \texttt{reduce-succ} \texttt{sum-ag-succ} \texttt{trinum-succ} \texttt{comb-kk-succ} \texttt{dc-iter-succ} \texttt{falling-succ} ... (71 in all) \\
-mentioned by 481 result(s)
+mentioned by 500 result(s)
 
 \smallskip
 
@@ -6951,8 +7504,38 @@ characterized by \texttt{trace-is-set}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([pgam, a, b], a in rr implies b in rr implies trace(pgam, a, b) in set)
 \end{quote}
-also: \texttt{trace-unfold} \texttt{trace-opposite} \texttt{trace-value-in} \texttt{trace-subset-cc} \texttt{path-trace-compact} \texttt{trace-opposite-subset} \\
-mentioned by 29 result(s)
+also: \texttt{trace-unfold} \texttt{seg-trace-elim} \texttt{trace-opposite} \texttt{trace-value-in} \texttt{conv3-seg-trace} \texttt{seg-trace-intro} \texttt{trace-subset-cc} \texttt{seg-trace-bridge} ... (15 in all) \\
+mentioned by 62 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{transpose(a, m, n)}}\quad\textit{functoid}\index{transpose(a, m, n)@\texttt{transpose(a, m, n)}}\\
+reads: \$1\textasciicircum{}t \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+matof(n, m, vnb-lambda([tri\_, trj\_], cartesian(interval(1, n), interval(1, m)), entry(a, trj\_, tri\_)))
+\end{quote}
+characterized by \texttt{det-transpose}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([r, n, a], is-commutative-ring(r) implies n in nn implies a in mat(n, n, carr(r)) implies det(r, n, transpose(a, n, n)) = det(r, n, a))
+\end{quote}
+also: \texttt{transpose-entry} \texttt{transpose-in-mat} \texttt{transpose-matmul} \texttt{transpose-identity} \texttt{dtt-minor-transpose} \texttt{transpose-transpose} \\
+mentioned by 18 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{tri-int(sgf\_, sga\_, sgb\_, sgc\_)}}\quad\textit{functoid}\index{tri-int(sgf_, sga_, sgb_, sgc_)@\texttt{tri-int(sgf\_, sga\_, sgb\_, sgc\_)}}\\
+reads: the integral of \$1 around the triangle \$2 \$3 \$4 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+(seg-int(sgf\_, sga\_, sgb\_) + seg-int(sgf\_, sgb\_, sgc\_)) + seg-int(sgf\_, sgc\_, sga\_)
+\end{quote}
+characterized by \texttt{tri-int-sum}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([u, f, g], u subset cc implies f in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), f, rgy\_)) implies g in fun(u, cc) implies forall([rgy\_ in u], is-continuous-at(subspace-ms(nf-metric-space(cc-normed-field), u), nf-metric-space(cc-normed-field), g, rgy\_)) implies forall([gouh\_ in fun(u, cc)], forall([gouz\_ in u], gouh\_(gouz\_) == f(gouz\_) + g(gouz\_)) implies forall([goua\_ in cc, goub\_ in cc, gouc\_ in cc], conv3(goua\_, goub\_, gouc\_) subset u implies tri-int(gouh\_, goua\_, goub\_, gouc\_) = tri-int(f, goua\_, goub\_, gouc\_) + tri-int(g, goua\_, goub\_, gouc\_))))
+\end{quote}
+also: \texttt{tri-int-in-cc} \texttt{tri-int-unfold} \texttt{tri-int-abs-bound} \texttt{tri-int-affine-zero} \texttt{tri-int-subdivision} \texttt{tri-int-abs-bound-sides} \\
+mentioned by 14 result(s)
 
 \smallskip
 
@@ -6991,6 +7574,12 @@ forall([a, x, l], x in a and l in tuples(a) implies cons(x, l) in tuples(a))
 \end{quote}
 also: \texttt{empty-in-tuples} \texttt{tuples-sethood} \texttt{tuples-mono} \texttt{tuples-induction} \\
 mentioned by 23 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{type-term}}\quad\textit{tactic}\index{type-term@\texttt{type-term}}\\
+\texttt{(type-term)} -- Close a typing goal (IN t C), C one of NN ZZ QQ RR CC, where t is built from context-typed atoms (or atoms typed in a subclass: NN in ZZ, ZZ in RR, ...), numerals, + * -, and powers, by the class's closure laws, bottom-up.  Declines -- with a warning, and nothing changed -- on an untyped atom or an operation the class is not closed under. \\
+declared in \texttt{tactics-help.scm}
 
 \smallskip
 
@@ -7064,8 +7653,8 @@ characterized by \texttt{rr-nvs@vec}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 vec(rr-nvs) == rr
 \end{quote}
-also: \texttt{qq-line@vec} \texttt{cips-ip-zero-vector} \texttt{dual-vec-membership} \texttt{is-normed-vector-space} \texttt{module-act-distrib-vec} \texttt{is-hom-normed-vector-space-def} \texttt{abelian-group-assoc-module-vector-ag} \texttt{abelian-group-right-id-module-vector-ag} ... (46 in all) \\
-mentioned by 415 result(s)
+also: \texttt{qq-line@vec} \texttt{cips-ip-zero-vector} \texttt{dual-vec-membership} \texttt{is-normed-vector-space} \texttt{module-act-distrib-vec} \texttt{is-hom-normed-vector-space-def} \texttt{abelian-group-assoc-module-vector-ag} \texttt{abelian-group-right-id-module-vector-ag} ... (50 in all) \\
+mentioned by 427 result(s)
 
 \smallskip
 
@@ -7082,7 +7671,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 800 result(s)
+mentioned by 917 result(s)
 
 \smallskip
 
@@ -7160,8 +7749,8 @@ characterized by \texttt{rq-zero}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([r], zero(ringoid-quotient-ring(r)) == class(ringoid-setoid(r), zero(r)))
 \end{quote}
-also: \texttt{sum-zero} \texttt{comb-kk-zero} \texttt{qq-ring@zero} \texttt{ring-zero-in} \texttt{zz-ring@zero} \texttt{qq-field@zero} \texttt{ringoid-ideal-zero} \texttt{cc-normed-field@zero} ... (53 in all) \\
-mentioned by 344 result(s)
+also: \texttt{sum-zero} \texttt{comb-kk-zero} \texttt{qq-ring@zero} \texttt{ring-zero-in} \texttt{zz-ring@zero} \texttt{qq-field@zero} \texttt{ringoid-ideal-zero} \texttt{cc-normed-field@zero} ... (56 in all) \\
+mentioned by 356 result(s)
 
 \smallskip
 

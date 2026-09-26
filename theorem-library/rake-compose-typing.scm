@@ -18,13 +18,13 @@
 ;;; BEFORE `mac subset-def', so the hypothesis the peel lands already reads
 ;;; IMAGE(f, DOM f) and `image-membership-iff' matches it.
 ;;;
-;;; Citations, all of them base-theory axioms (`primitive', {} in every bill)
+;;; Citations, all of them base-library axioms (`primitive', {} in every bill)
 ;;; except image-membership-iff, itself an axiom of injection.scm:
 ;;;
-;;;   dom-membership       theory.scm:484    x in DOM(f) iff x in SET and f(x)=f(x)
-;;;   dom-fun-membership   theory.scm:493    f in FUN(A) => (x in DOM f iff x in A)
-;;;   fun-codomain-iff     theory.scm:459    f in FUN(A,B) iff f in FUN(A) and ...
-;;;   subset-def           theory.scm:252
+;;;   dom-membership       library.scm:484    x in DOM(f) iff x in SET and f(x)=f(x)
+;;;   dom-fun-membership   library.scm:493    f in FUN(A) => (x in DOM f iff x in A)
+;;;   fun-codomain-iff     library.scm:459    f in FUN(A,B) iff f in FUN(A) and ...
+;;;   subset-def           library.scm:252
 ;;;   equality-symmetry    theorem-library/axioms.scm   (load position 15)
 ;;;   image-membership-iff structure-library/injection.scm:118  (position 83)
 ;;;

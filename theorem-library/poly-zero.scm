@@ -10,7 +10,7 @@
 ;;;     the equivalence is FUNCTION EXTENSIONALITY composed with the pointwise
 ;;;     value of MONALG-ZERO, and neither is in the tree in citable form.
 ;;;
-;;; Half of that was simply wrong.  `fun-domain-extensionality' (theory.scm) IS
+;;; Half of that was simply wrong.  `fun-domain-extensionality' (library.scm) IS
 ;;; in the tree and is PRIMITIVE:
 ;;;
 ;;;     f in FUN(A) => g in FUN(A) => (forall x in A. f(x) = g(x)) => f = g

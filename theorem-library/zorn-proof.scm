@@ -28,7 +28,7 @@
 ;;; unfold composed with the SEP separation schema (pi-sep-mem-intro!/-elim!,
 ;;; primitive-inferences.scm:1093,1107), both trusted base.  No debt.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'keep-set-membership
+  (add-axiom! *library* 'keep-set-membership
     (nest-quantifiers 'FORALL '(phi grd porel kset alpha y_)
       '(IFF (IN y_ (KEEP-SET phi grd porel kset alpha))
             (AND (IN y_ grd)
@@ -58,7 +58,7 @@
 ;;; other four bills carry is the ORD ORDER AXIOM LAYER (ord-le-refl,
 ;;; ord-le-total, ord-le-antisymm, ord-le-closure, ord-zero-least,
 ;;; ord-succ-immediate, ord-segment-membership -- structure-library/ordinals.scm),
-;;; which is installed by `theory-add-axiom!' and carries no `warrant!' at all;
+;;; which is installed by `add-axiom!' and carries no `warrant!' at all;
 ;;; that, and nothing in this file, is why the bills read trust: none.
 ;;; ====================================================================
 

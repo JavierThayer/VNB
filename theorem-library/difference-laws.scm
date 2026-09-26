@@ -6,8 +6,8 @@
 ;;;
 ;;; The content is that there was nothing to assert.  DIFFERENCE is now a
 ;;; def-functoid for COMPLEMENT-IN (prod-of-sums.scm), whose two laws are KERNEL
-;;; AXIOMS -- `complement-in-membership' (theory.scm:731) and
-;;; `complement-in-set-closure' (theory.scm:726) -- and the supports restated
+;;; AXIOMS -- `complement-in-membership' (library.scm:731) and
+;;; `complement-in-set-closure' (library.scm:726) -- and the supports restated
 ;;; them verbatim under the other spelling.  So each proof is: unfold the
 ;;; functoid, cite the kernel axiom, done.  `modulo 0', no oracles.
 ;;;

@@ -27,7 +27,7 @@
 ;;;
 ;;; x in RR-STAR iff x is a real, or x = POS-INF, or x = NEG-INF.
 
-(theory-add-axiom! *current-theory* 'rr-star-membership
+(add-axiom! *library* 'rr-star-membership
   '(FORALL x
       (IFF (IN x RR-STAR)
            (OR (IN x RR)
@@ -56,7 +56,7 @@
 
 ;;; PRIMITIVE by the user's decision of 2026-09-18 (evening session) (see the note at the end of the file).
 (fluid-let ((*current-provenance* 'primitive))
-  (theory-add-axiom! *current-theory* 'neg-inf-not-in-rr
+  (add-axiom! *library* 'neg-inf-not-in-rr
     '(NOT (IN NEG-INF RR))))
 
 ;;; -----------------------------------------------------------------------
@@ -69,10 +69,10 @@
 
 ;;; Both PRIMITIVE by the user's decision of 2026-09-18 (evening session) (see the note at the end of the file).
 (fluid-let ((*current-provenance* 'primitive))
-  (theory-add-axiom! *current-theory* 'pos-inf-upper-bound
+  (add-axiom! *library* 'pos-inf-upper-bound
     '(FORALL x (IMPLIES (IN x RR-STAR) (<= x POS-INF))))
 
-  (theory-add-axiom! *current-theory* 'neg-inf-lower-bound
+  (add-axiom! *library* 'neg-inf-lower-bound
     '(FORALL x (IMPLIES (IN x RR-STAR) (<= NEG-INF x)))))
 
 ;;; POS-INF IS STRICTLY ABOVE EVERY REAL (the user's decision, 2026-09-18: "POS-INF is
@@ -95,7 +95,7 @@
 ;;; INTEGRAL -- determined by its characterising axioms; and the (<=) half of
 ;;; esum-finite-iff-bounded is four citations from it.
 (fluid-let ((*current-provenance* 'primitive))
-  (theory-add-axiom! *current-theory* 'pos-inf-above-reals
+  (add-axiom! *library* 'pos-inf-above-reals
     '(FORALL x (IMPLIES (IN x RR) (NOT (<= POS-INF x))))))
 
 ;;; -----------------------------------------------------------------------

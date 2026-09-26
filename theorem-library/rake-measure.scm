@@ -36,7 +36,7 @@
 ;;; CITATIONS and their load positions (0-based over the quoted file names in
 ;;; load.scm).  Everything mathematical is at 198 or below:
 ;;;
-;;;   base theory (theory.scm, `primitive'):  subset-def, class-extensionality,
+;;;   base theory (library.scm, `primitive'):  subset-def, class-extensionality,
 ;;;       fun-codomain-iff, complement-in-membership, complement-in-set-closure,
 ;;;       power-set-membership
 ;;;   equality-symmetry            theorem-library/axioms.scm            15
@@ -419,7 +419,7 @@
 ;;; 5.  measurable-map-compose.
 ;;;
 ;;; The content is one SET EQUALITY, and the tree has no SEP extensionality
-;;; rule, so it goes through `class-extensionality' (theory.scm, primitive):
+;;; rule, so it goes through `class-extensionality' (library.scm, primitive):
 ;;;
 ;;;    { x in omega : (g o f)(x) in b }  =  { x in omega : f(x) in B' },
 ;;;           where  B' = { y in omega2 : g(y) in b }.

@@ -817,7 +817,7 @@
 ;; halves as well (that is what a caller always wants next), and the landed
 ;; conjuncts are returned.
 ;;
-;; choice-axiom (theory.scm) is GLOBAL choice -- S may be a proper class -- so
+;; choice-axiom (library.scm) is GLOBAL choice -- S may be a proper class -- so
 ;; this works for a SEP over ORD, which is what the Burali-Forti argument needs.
 (define (choose! s witness body)
   (have! `(FORSOME z_ (IN z_ ,s)) (lambda () (witness! witness body)))

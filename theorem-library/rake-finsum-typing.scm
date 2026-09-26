@@ -36,7 +36,7 @@
 ;;;
 ;;; The MONOID-level projections are NOT cited.  `monoid-identity-in' and
 ;;; `monoid-carrier-closed-opr' (structure-library/monoid.scm:40,45) are
-;;; `theory-add-axiom!' with no warrant -- `trust: none' -- so a chain through
+;;; `add-axiom!' with no warrant -- `trust: none' -- so a chain through
 ;;; them would bill worse than the supports it replaces.  Both are proved here
 ;;; under COMM-MONOID's own unfold instead; the two monoid axioms are a separate
 ;;; candidate and are NOT touched (their auto-generated view companions --

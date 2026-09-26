@@ -88,7 +88,7 @@
 ;;; nothing.  Same treatment and same reasoning as span-membership (mod-seq.scm)
 ;;; and principal-ideal-membership (ideal.scm).
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'sigma-generated-membership
+  (add-axiom! *library* 'sigma-generated-membership
     '(FORALL omega (FORALL cE (FORALL a_
        (IFF (IN a_ (SIGMA-GENERATED omega cE))
             (AND (IN a_ (POWER omega))
@@ -160,7 +160,7 @@
 ;;; Membership law -- same status and same reasoning as
 ;;; sigma-generated-membership above: the SEP read-off, stamped definitional.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'caratheodory-sets-membership
+  (add-axiom! *library* 'caratheodory-sets-membership
     '(FORALL omega (FORALL mu (FORALL es_
        (IFF (IN es_ (CARATHEODORY-SETS omega mu))
             (AND (IN es_ (POWER omega))

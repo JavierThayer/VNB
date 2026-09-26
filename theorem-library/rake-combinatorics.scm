@@ -110,7 +110,7 @@
 ;;;             163), card-singleton (card-singleton-proof, 156), finsum-empty /
 ;;;             finsum-insert (finsum-insert, 155), eq-sym / eq-trans
 ;;;             (equality-basics, 148).  Everything else is primitive or
-;;;             definitional (theory.scm, number-systems, ordinals, cardinality,
+;;;             definitional (library.scm, number-systems, ordinals, cardinality,
 ;;;             injection, views, monoid-power, ring-power, finprod, ring).
 ;;;   hi = 375: theorem-library/binomial-proof cites `ring-power-succ' (:92,
 ;;;             via macm); theorem-library/bernstein-basis (393) cites it too.

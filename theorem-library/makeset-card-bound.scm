@@ -4,7 +4,7 @@
 ;;;       forall n in NN, a, l in TUPLES(a).
 ;;;           LENGTH(l) = n  =>  CARD(MAKE-SET(l)) <= n
 ;;;
-;;; MAKE-SET(l) is the set of ENTRIES of the tuple l (theory.scm:617), so this
+;;; MAKE-SET(l) is the set of ENTRIES of the tuple l (library.scm:617), so this
 ;;; is the counting half of "a finite sequence has finitely many values": the
 ;;; entries may repeat, and every repetition only makes the entry set smaller.
 ;;;
@@ -21,7 +21,7 @@
 ;;; nn-succ-mono and nn-le-trans-guarded are guarded on it).  Neither is
 ;;; available from outside:
 ;;;
-;;;   * `make-set-sethood' (theory.scm) needs `a in SET', and the statement
+;;;   * `make-set-sethood' (library.scm) needs `a in SET', and the statement
 ;;;     quantifies `a' with NO guard -- a is an arbitrary class.  Sethood of
 ;;;     MAKE-SET(l) is therefore something this induction must PROVE, which it
 ;;;     can, because each entry of l is a member of a and hence a set
@@ -109,7 +109,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; union-comm:  UNION(A,B) = UNION(B,A)
 ;;;
-;;; Unguarded: UNION is total over classes (theory.scm), and so is
+;;; Unguarded: UNION is total over classes (library.scm), and so is
 ;;; class-extensionality.
 ;;;
 ;;; The `declare-named-only!' must PRECEDE the proof: `install-theorem!'

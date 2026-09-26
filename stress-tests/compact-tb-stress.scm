@@ -75,7 +75,7 @@
 ;;; UPDATE 2026-06-20 (assembly attempt with the two ball-cover lemmas built):
 ;;;  - BUG FOUND + FIXED: totally-bounded-def's r-condition was the 3-arg
 ;;;    (AND (IN r RR) (<= 0 r) (NOT (= 0 r))).  AND is strictly BINARY
-;;;    (make-wff: connective arity error on 3 args), so theory-add-axiom!
+;;;    (make-wff: connective arity error on 3 args), so add-axiom!
 ;;;    stored it with the r/=0 conjunct silently DROPPED -- TB wrongly allowed
 ;;;    r=0.  Rewritten as nested binary (metric-topology.scm).  [Audit lead:
 ;;;    grep other axioms for 3-arg AND/OR similarly truncated.]

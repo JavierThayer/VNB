@@ -54,7 +54,7 @@
 ;;;       abelian-group-opr-comm, group-assoc, group-left-id, group-identity-in),
 ;;;       difference-laws (189, difference-membership, difference-set),
 ;;;       fun-apply-type-proof (160, fun-apply-type-c), equality-basics (146,
-;;;       eq-sym, eq-trans).  Everything else is primitive: theory.scm
+;;;       eq-sym, eq-trans).  Everything else is primitive: library.scm
 ;;;       (extensionality, class-extensionality, subset-def, pairing,
 ;;;       pairing-membership, union-membership, union-set-closure,
 ;;;       intersection-membership, membership-implies-sethood, empty-set-is-set,

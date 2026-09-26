@@ -50,7 +50,7 @@
 ;;;       finiteness guard, see choose-set-remove-in),
 ;;;       `difference-membership' / `difference-set' (difference-laws,
 ;;;       191), `eq-sym' / `eq-trans' (equality-basics, 148), `ord-segment-self'
-;;;       (110).  Everything else is primitive or definitional: theory.scm
+;;;       (110).  Everything else is primitive or definitional: library.scm
 ;;;       (extensionality, class-extensionality, power-set, power-set-membership,
 ;;;       union-membership, union-set-closure, intersection-membership, pairing,
 ;;;       pairing-membership, membership-implies-sethood,

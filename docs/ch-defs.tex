@@ -7,7 +7,7 @@ REPL --- not expressions in the VNB object language.  Each call installs
 axioms or macetes as a side effect; nothing is
 proved.  The distinction between meta-level definition and object-level
 proof bears repeating: \texttt{declare-structure}, \texttt{def-constant},
-and their companions manipulate the theory data structure directly, while
+and their companions manipulate the library record directly, while
 proofs are constructed separately using the proof commands of
 Chapter~\ref{ch:proofs}.
 
@@ -17,8 +17,8 @@ Chapter~\ref{ch:proofs}.
 
 A \emph{defined constant} is a new constant symbol introduced by a
 collection of characterizing axioms.  It differs from a plain
-\texttt{theory-add-axiom!} call only in bookkeeping: the axioms are
-recorded under a separate \texttt{definitions} slot in the theory record,
+\texttt{add-axiom!} call only in bookkeeping: the axioms are
+recorded under a separate \texttt{definitions} slot in the library record,
 so the system can distinguish what was \emph{postulated} from what was
 \emph{introduced by definition}.
 
@@ -31,7 +31,7 @@ so the system can distinguish what was \emph{postulated} from what was
 
 \begin{sloppypar}Each extra argument is a two-element list \texttt{(axiom-name formula)}.
 The formulas are installed in the global theorem and macete tables exactly
-as \texttt{theory-add-axiom!} would install them, so they are immediately
+as \texttt{add-axiom!} would install them, so they are immediately
 available to proof commands and macetes.\end{sloppypar}
 
 \textbf{Existence and uniqueness are the user's responsibility.}  The
@@ -136,7 +136,7 @@ axioms going forward should prefer \texttt{<} and \texttt{POS-RR}.
 
 Two Scheme helpers introduce function constants by recursion and install
 the defining equations as axioms.  Both rely on the same
-\texttt{theory-add-definition!} mechanism as \texttt{def-constant}
+\texttt{add-definition!} mechanism as \texttt{def-constant}
 (Section~\ref{sec:def-constant}), so every axiom is immediately
 available in proofs.
 
@@ -609,7 +609,7 @@ as a negative integer literal; the S-expression \texttt{-1} is a genuine
 Scheme integer and avoids that ambiguity.
 
 \begin{VNBcode}
-(theory-add-axiom! 'normedspace-minus
+(add-axiom! 'normedspace-minus
   '(FORALL s
      (IMPLIES (IS-NORMEDSPACE s)
        (FORALL x (IMPLIES (IN x (VECTORS s))
@@ -804,7 +804,7 @@ A proof about $\mathbb{Z}$ can then retrieve any of these directly:
 \label{sec:def-functoid}
 
 \texttt{def-functoid} introduces a named functoid at the proof-checker
-level.  It is a definitional device, not an object of the theory: the
+level.  It is a definitional device, not an object of the library: the
 name it installs can be applied and reasoned about, but there is no
 formal quantifier ranging over functoids.
 
@@ -1138,7 +1138,7 @@ all.  Genuinely \emph{non}-forgetful functors --- the quotient, the completion
 
 \item \textbf{Auto-specializations.}  Every theorem of the form
   $\forall s.\; \mathit{IS\text{-}TARGET}(s) \Rightarrow P[s]$ already in
-  the theory is re-installed as
+  the library is re-installed as
   $\forall r.\; \mathit{IS\text{-}SOURCE}(r) \Rightarrow P[\mathit{NAME}(r)]$,
   with the target-slot accessors reduced to source components (so
   $\mathit{MUL}(s)$ becomes $\mathit{ADD}(r)$, etc.), under the name
@@ -1966,7 +1966,7 @@ dimensions, carries a pair of such conditions (G1, G2 in the design
 note).  The guards are premises placed after the binders, so a citation
 of the law reads exactly as it did before the guard.
 
-The laws are \emph{not} axioms of the theory; they are members of the
+The laws are \emph{not} axioms of the library; they are members of the
 Proof Support Set, installed by \texttt{support} in
 \texttt{structure-library/matrix.scm} and warranted there.  One of the
 eleven is a machine-checked theorem.  A proof that cites any of the
@@ -2081,7 +2081,7 @@ $\mathit{MAT}(n, n, \mathit{CARR}(R))$.
 \subsection{\texttt{DET}: the defining recursion}
 
 Two axioms, installed as \emph{definitional}
-(\texttt{theory-add-definition!} under provenance \texttt{definitional}),
+(\texttt{add-definition!} under provenance \texttt{definitional}),
 so they carry no warrant and owe no proof debt:
 
 \begin{align*}

@@ -67,7 +67,7 @@
 (declare-named-only! 'etimes-def
   "left-hand side is a bare constant: as a live rewrite it would turn every mention of etimes into its lambda")
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'etimes-def
+  (add-axiom! *library* 'etimes-def
     '(== etimes
          (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
            (IF (OR (= x_ POS-INF) (= y_ POS-INF))

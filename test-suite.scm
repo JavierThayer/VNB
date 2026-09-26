@@ -365,7 +365,7 @@
 ;;; `empty-in-tuples' and `length-of-empty' are about) and set_of() = {}.
 ;;; Everything else is rejected at BOTH doors -- the parser, for what a user
 ;;; types, and validate-wff!, for the raw S-expressions `support' and
-;;; `theory-add-axiom!' install without going through the parser.
+;;; `add-axiom!' install without going through the parser.
 ;;;
 ;;; What made this worth a rule rather than a shrug: (f) used to print as `f',
 ;;; so `(= (f) f)' displayed as `f = f' while `rfl' refused it, the two sides
@@ -1362,7 +1362,7 @@
     (sp (make-wff-from-string "0 in nn"))
     (arith)
     (qed 'qed-bare-formula-test)
-    (equal? (theory-get-theorem *current-theory* 'qed-bare-formula-test)
+    (equal? (library-get-theorem *library* 'qed-bare-formula-test)
             '(IN 0 NN)))
   #t)
 
@@ -1969,7 +1969,7 @@
                  '(SPLICE AND e AS (IN x e))))
   '(AND (IN a CARR) (AND (IN a B) (IN a C))))
 
-;; --- End-to-end: the three decompose macetes, installed by theory.scm ---
+;; --- End-to-end: the three decompose macetes, installed by library.scm ---
 
 (check-true "union-decompose axiom installed"
   (lambda () (and (lookup-theorem 'union-decompose) #t)))
@@ -1993,7 +1993,7 @@
   (lambda () (macete-str 'intersection-decompose "x in intersection(a, b)"))
   "x in a and x in b")
 
-;; --- cartesian-decompose: procedural macete (theory.scm) ---
+;; --- cartesian-decompose: procedural macete (library.scm) ---
 ;; Compare via alpha-equiv? since the fresh-var names are non-deterministic.
 
 (check-true "cartesian-decompose macete installed"
@@ -2883,13 +2883,13 @@
 ;; on them was a flat contradiction (6 = 7).  These must stay REMOVED.
 ;; lookup-theorem raises on an absent name, so probe the axiom store directly.
 (check-true "rr-is-ring removed (was length 6=7 unsound)"
-  (lambda () (not (assq 'rr-is-ring (theory-axioms *current-theory*)))))
+  (lambda () (not (assq 'rr-is-ring (library-axioms *library*)))))
 (check-true "cc-is-ring removed (was length 6=7 unsound)"
-  (lambda () (not (assq 'cc-is-ring (theory-axioms *current-theory*)))))
+  (lambda () (not (assq 'cc-is-ring (library-axioms *library*)))))
 (check-true "qq-is-field removed (QQ-RING is 6-tuple, FIELD is 8-slot)"
-  (lambda () (not (assq 'qq-is-field (theory-axioms *current-theory*)))))
+  (lambda () (not (assq 'qq-is-field (library-axioms *library*)))))
 (check-true "normed-field-is-commutative-ring removed (7=>6 unsound)"
-  (lambda () (not (assq 'normed-field-is-commutative-ring (theory-axioms *current-theory*)))))
+  (lambda () (not (assq 'normed-field-is-commutative-ring (library-axioms *library*)))))
 ;; Sound replacements: RR/CC as normed fields; QQ as the 8-tuple QQ-FIELD;
 ;; ring-world access for RR/CC via the NORMED-FIELD-AS-* view projections.
 (check-true "rr-is-normed-field installed"
@@ -2984,11 +2984,11 @@
 
 ;; Vocabulary registered.
 (check-true "is-cauchy-seq defined"
-  (lambda () (and (assq 'is-cauchy-seq (theory-definitions *current-theory*)) #t)))
+  (lambda () (and (assq 'is-cauchy-seq (library-definitions *library*)) #t)))
 (check-true "converges-to defined"
-  (lambda () (and (assq 'converges-to (theory-definitions *current-theory*)) #t)))
+  (lambda () (and (assq 'converges-to (library-definitions *library*)) #t)))
 (check-true "is-complete defined"
-  (lambda () (and (assq 'is-complete (theory-definitions *current-theory*)) #t)))
+  (lambda () (and (assq 'is-complete (library-definitions *library*)) #t)))
 (check-true "complete-cauchy-converges installed"
   (lambda () (and (lookup-theorem 'complete-cauchy-converges) #t)))
 (check-true "rr-complete = IS-COMPLETE(RR-MS) installed"
@@ -2996,7 +2996,7 @@
 (check-true "cc-complete = IS-COMPLETE(CC-MS) installed"
   (lambda () (and (lookup-theorem 'cc-complete) #t)))
 ;; ... and PROVEN, not asserted (theorem-library/cc-complete-proof.scm,
-;; 2026-08-24).  It was a bare theory-add-axiom! with no warrant -- `trust: none'
+;; 2026-08-24).  It was a bare add-axiom! with no warrant -- `trust: none'
 ;; -- until then.  The three coordinate facts its proof had to add first are
 ;; pinned beside it: none of them was in the tree.
 (check "cc-complete is PROVEN, not asserted"
@@ -3943,7 +3943,7 @@
 
 ;; THE GATE THAT WOULD HAVE CAUGHT IT.  TOP-SPACE was first declared with the
 ;; slot type (POWERSET (POWERSET PTS)).  The powerset constructor is POWER
-;; (theory.scm: power-set, power-set-membership); POWERSET is a name this theory
+;; (library.scm: power-set, power-set-membership); POWERSET is a name this theory
 ;; has never had.  The reader took it for a FREE FUNCTION VARIABLE, so IS-TOP-SPACE
 ;; said "opens(s) in powerset(powerset(pts(s)))" with `powerset' an uninterpreted
 ;; symbol -- no axioms, no meaning.  The structure loaded, the card rendered in
@@ -5970,14 +5970,14 @@
         (set! *ps* saved)
         done))))
 
-;; THE `proven' DOOR (found and closed 2026-09-20).  theory-add-theorem! used to bind
+;; THE `proven' DOOR (found and closed 2026-09-20).  add-theorem! used to bind
 ;; *current-provenance* to `proven' itself, so a bare call installed ANY formula as a proven
 ;; theorem billing modulo 0 (the manual presented that call as the way to add a theorem; on the
 ;; band it installed 1 = 2 as proven).  Only cmd-qed may say `proven', after checking the root
 ;; sequent is grounded.  The formula below is TRUE on purpose: the suite must not plant a falsity.
-(check-true "theory-add-theorem! alone installs with provenance asserted, never proven"
+(check-true "add-theorem! alone installs with provenance asserted, never proven"
   (lambda ()
-    (theory-add-theorem! *current-theory* 'suite-proven-door-probe '(= 1 1))
+    (add-theorem! *library* 'suite-proven-door-probe '(= 1 1))
     (and (not (eq? (provenance-of 'suite-proven-door-probe) 'proven))
          (pair? (debt-of 'suite-proven-door-probe)))))
 
@@ -9049,6 +9049,24 @@
     (vnb-guard (lambda () (quietly (lambda () (try-at 1 2)))))))
 
 ;;; -----------------------------------------------------------------------
+;;; The rename "theory" -> "library" (2026-09-25, the user's decision): the deprecated aliases
+;;; still resolve, and no file of the tree uses them.
+
+(check-true "library: the deprecated theory-* aliases resolve to the library procedures"
+  (lambda ()
+    (and (eq? theory-add-axiom! add-axiom!) (eq? theory-add-theorem! add-theorem!)
+         (eq? theory-add-definition! add-definition!) (eq? theory-add-constant! add-constant!)
+         (eq? make-theory make-library) (eq? current-theory library-current) (eq? wff-theory wff-library))))
+
+(check-true "library: no Scheme file of the tree uses a deprecated theory-* name"
+  (lambda ()
+    ;; grep -l exits 1 when nothing matches, which is the pass
+    (load-option 'synchronous-subprocess)
+    (= 1 (run-shell-command
+          "cd /home/ubuntu/prover && grep -rlE '[( ](theory-add-axiom!|theory-add-theorem!|theory-add-support!|theory-add-constant!|theory-add-definition!|make-theory|make-vnb-base-theory|theory-get-theorem|current-theory|wff-theory|[*]current-theory[*])[ )]' --include=*.scm --include=*.el . 2>/dev/null | grep -v '^./archive/' | grep -v '^./library.scm$' | grep -v '^./wff.scm$' | grep -v '^./test-suite.scm$' | grep -v '^./scratchpad/' > /dev/null"
+          'output #f))))
+
+;;; -----------------------------------------------------------------------
 ;;; Summary
 
 (newline)
@@ -9533,9 +9551,9 @@
 (register-constant! 'rkwn-g 'functoid)
 (register-constant! 'rkwn-h 'functoid)
 
-(theory-add-axiom! *current-theory* 'rkwn-plain-law
+(add-axiom! *library* 'rkwn-plain-law
   '(FORALL zqv (= (rkwn-f zqv) (rkwn-g zqv))))
-(theory-add-axiom! *current-theory* 'rkwn-cond-law
+(add-axiom! *library* 'rkwn-cond-law
   '(FORALL zqv (IMPLIES (IN zqv NN) (= (rkwn-f zqv) (rkwn-g zqv)))))
 
 ;;; --- macete ---
@@ -9702,7 +9720,7 @@
 ;;;
 ;;; The calls go straight to `dg-apply-rule!', below every tactic, because
 ;;; that is the door the switch guards.  Sequents are built with
-;;; `wff-in-theory' rather than `make-wff': these are raw test sequents and
+;;; `wff-in-library' rather than `make-wff': these are raw test sequents and
 ;;; must not be normalised or validated on the way in.
 ;;;
 ;;; A sequent is written `(rcl--h <list of raw assumptions> <raw goal>)' and
@@ -9715,8 +9733,8 @@
 ;;; this file, under your own banner, as this one is.
 ;;; =======================================================================
 
-(define rcl--theory (wff-theory (make-wff '(IN x NN))))
-(define (rcl--wff raw) (wff-in-theory raw rcl--theory))
+(define rcl--library (wff-library (make-wff '(IN x NN))))
+(define (rcl--wff raw) (wff-in-library raw rcl--library))
 (define (rcl--h asms goal) (list asms goal))
 (define (rcl--seq spec)
   (make-sequent (map rcl--wff (car spec)) (rcl--wff (cadr spec))))
@@ -10522,9 +10540,9 @@
 ;;; a non-integer, and a head that is not `succ' are all ordinary non-matches.
 ;;; =======================================================================
 
-(theory-add-axiom! *current-theory* 'rkwn-succ-law
+(add-axiom! *library* 'rkwn-succ-law
   '(FORALL zqv (= (rkwn-f (succ zqv)) (rkwn-g zqv))))
-(theory-add-axiom! *current-theory* 'rkwn-head-law
+(add-axiom! *library* 'rkwn-head-law
   '(FORALL zqv (= (rkwn-f (rkwn-h zqv)) (rkwn-g zqv))))
 
 (check-false "rule checkers: macete ACCEPTS (succ n) matching the literal 1"
@@ -10578,7 +10596,7 @@
 
 ;;; succ_ORD is deliberately NOT bridged by the rewriter's matcher, and the
 ;;; checker does not widen the kernel: the literal must not match it either.
-(theory-add-axiom! *current-theory* 'rkwn-succ-ord-law
+(add-axiom! *library* 'rkwn-succ-ord-law
   '(FORALL zqv (= (rkwn-f (succ_ORD zqv)) (rkwn-g zqv))))
 
 (check-true "rule checkers: (succ_ORD n) does NOT match a literal"
@@ -10674,7 +10692,7 @@
 
 ;;; === declare-named-only! must precede the install (2026-09-20) ===
 ;;; The named-only list is read by `theorem->elementary-macete' while the macete
-;;; is being built, so a declaration made AFTER `theory-add-axiom!' / `qed' is a
+;;; is being built, so a declaration made AFTER `add-axiom!' / `qed' is a
 ;;; silent no-op.  Three sat dead that way (sqn-membership, binary-minus-def,
 ;;; binary-divide-def) and were deleted in batch 11-D; six more are a KNOWN
 ;;; BACKLOG -- see the list below.  `declare-named-only!' now warns and records.

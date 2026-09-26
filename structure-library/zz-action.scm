@@ -29,7 +29,7 @@
 
 ;;; ---- The definition (split on the sign of the integer scalar) -------------
 ;;; An EXPLICIT definition since 2026-09-19, not a pair of asserted equations.  Until then
-;;; this was a bare `theory-add-definition!' OUTSIDE `def-constant', which does not bind
+;;; this was a bare `add-definition!' OUTSIDE `def-constant', which does not bind
 ;;; `*current-provenance*': the two equations zz-act-nonneg / zz-act-neg were `asserted'
 ;;; with no warrant, and every law of ZZ-ACT routed through them.  `def-functoid' installs a
 ;;; rewrite and no debt; the two equations are THEOREMS of it, statements unchanged
@@ -63,7 +63,7 @@
 
 ;;; ---- Module distributivity:  k . (a + b) = k.a + k.b ---------------------
 ;;; Needs the group to be ABELIAN (commutativity of OPR) to interleave factors.
-(theory-add-axiom! *current-theory* 'zz-act-distrib
+(add-axiom! *library* 'zz-act-distrib
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL k (IMPLIES (IN k ZZ)
@@ -75,7 +75,7 @@
   "Nonneg case is mpow-mult on the (commutative) AG monoid; neg case applies INV to it using INV(OPR a b)=OPR(INV a)(INV b) in an abelian group.  Commutativity is essential.")
 
 ;;; ---- Mixed associativity:  (j*k) . a = j . (k . a) -----------------------
-(theory-add-axiom! *current-theory* 'zz-act-assoc
+(add-axiom! *library* 'zz-act-assoc
   '(FORALL g
      (IMPLIES (IS-ABELIAN-GROUP g)
        (FORALL j (IMPLIES (IN j ZZ)

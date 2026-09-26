@@ -192,9 +192,9 @@
 ;;; consult, and since 2026-08-04 the one register-operator! feeds, so it is
 ;;; the complete list of applied heads (head-registry-sweep, audit.scm).
 ;;; The defining / characterizing axioms a def-constant or def-predicate
-;;; installed, by name.  (theory-definitions) is an alist name -> ((axname . f) ...).
+;;; installed, by name.  (library-definitions) is an alist name -> ((axname . f) ...).
 (define (gl--defining-axioms h)
-  (let ((e (assq h (theory-definitions *current-theory*))))
+  (let ((e (assq h (library-definitions *library*))))
     (and e (pair? (cdr e)) (map car (cdr e)))))
 
 ;;; -----------------------------------------------------------------------
@@ -205,7 +205,7 @@
 ;;; biconditional `phi in BIJECTION(X,Y) iff phi in FUN(X,Y) and phi is
 ;;; injective and onto', and that is what a reader looking it up wants to see.
 ;;;
-;;; Not every head is introduced by a def-*, so `theory-definitions' answers for
+;;; Not every head is introduced by a def-*, so `library-definitions' answers for
 ;;; only some of them.  For the rest, take the results that MENTION the head
 ;;; (the one-pass usage index) and keep those whose NAME contains it --
 ;;; bijection-membership, bijection-set-iff, bijection-compose -- which is the
@@ -241,7 +241,7 @@
   (map (lambda (h)
          (let* ((op   (operator-ref h))
                 ;; The OPERATOR table's kind wins where there is one: the
-                ;; registry's is last-writer-wins, and theory-add-definition!
+                ;; registry's is last-writer-wins, and add-definition!
                 ;; re-stamps every def-predicate name `defined-fn' after
                 ;; def-predicate stamped it `predicate'.
                 (kind (or (and op (operator-kind op)) (constant-head? h)))

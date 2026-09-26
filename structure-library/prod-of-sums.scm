@@ -37,7 +37,7 @@
 ;;;
 ;;; Dependencies: finprod.scm (FINPROD/PROD-RING), views.scm (COMMUTATIVE-RING-
 ;;; MULTIPLICATIVE-CM, COMMUTATIVE-RING-ADDITIVE-AG), injection.scm (IMAGE),
-;;; cardinality.scm (CARD), monoid.scm (COMM-MONOID), theory.scm (POWER,
+;;; cardinality.scm (CARD), monoid.scm (COMM-MONOID), library.scm (POWER,
 ;;; DIFFERENCE, UNION, INTERSECTION, PAIR, EMPTY-SET).
 ;;; RETIRED 2026-09-14 (proven): card-subset-nn -- theorem-library/card-subset-nn.scm (finite-set-induction)
 ;;; RETIRED 2026-09-14 (proven): finsum-insert -- theorem-library/finsum-insert.scm (modulo finsum-comm-monoid-well-defined)
@@ -57,9 +57,9 @@
 ;;; different name:
 ;;;
 ;;;   difference-membership       x in DIFFERENCE(U,B)     iff x in U and not(x in B)
-;;;   complement-in-membership    x in COMPLEMENT-IN(A,B)  iff x in A and not(x in B)   theory.scm:731
+;;;   complement-in-membership    x in COMPLEMENT-IN(A,B)  iff x in A and not(x in B)   library.scm:731
 ;;;   difference-set              X in SET => DIFFERENCE(X,B) in SET
-;;;   complement-in-set-closure   A in SET => COMPLEMENT-IN(A,B) in SET                 theory.scm:726
+;;;   complement-in-set-closure   A in SET => COMPLEMENT-IN(A,B) in SET                 library.scm:726
 ;;;
 ;;; Verbatim, both pairs.  So DIFFERENCE was COMPLEMENT-IN under a second
 ;;; spelling, with two asserted laws restating trusted base -- debt for nothing.

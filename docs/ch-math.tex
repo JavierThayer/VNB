@@ -3,8 +3,8 @@
 \section{Number systems} \label{sec:nums}
 
 The file \texttt{number-systems.scm} declares five number systems as
-class constants and installs their arithmetic axioms in the current
-theory.  All declarations take effect at load time.
+class constants and installs their arithmetic axioms in the
+library.  All declarations take effect at load time.
 
 \subsection{The standard number domains}
 
@@ -152,13 +152,13 @@ there is nothing to be compatible with.
 
 \begin{remark}
 Each of \texttt{NN}, \texttt{ZZ}, and \texttt{QQ} carries an infinite
-family of membership axioms, one per numeral appearing in the theory.
+family of membership axioms, one per numeral appearing in the library.
 When a positive-integer numeral $n$ is introduced, it is implicitly
 axiomatized as a iterated sum $1 + 1 + \cdots + 1$ ($n$ times), so
 $n \in \mathtt{NN}$.  For \texttt{ZZ}, negative numerals are similarly
 axiomatized as the additive inverse of such sums, giving $-n \in
 \mathtt{ZZ}$.  These axioms are generated on demand: entering a numeral
-literal in a formula automatically extends the theory with the
+literal in a formula automatically extends the library with the
 corresponding membership fact.
 \end{remark}
 
@@ -374,10 +374,10 @@ The Scheme helper \texttt{def-by-ord-recursion} implements this pattern;
 see Section~\ref{sec:recursive-defs}.
 
 %% =========================================================
-\section{The base theory}
+\section{The base library}
 \label{sec:axioms}
 
-The base theory \texttt{vnb-set-theory} is loaded automatically and
+The base library \texttt{VNB-LIBRARY} is loaded automatically and
 provides the following named axioms (all usable via
 \texttt{cmd-theorem-assumption}):
 
@@ -472,9 +472,9 @@ expression primitives.
 
 The following were already installed (noted here for completeness):
 \texttt{fun-domain-apply-def}, \texttt{fun-domain-extensionality},
-\texttt{fun-codomain-iff} and \texttt{choice-axiom} in \texttt{theory.scm};
+\texttt{fun-codomain-iff} and \texttt{choice-axiom} in \texttt{library.scm};
 \texttt{nn-subset-ord} and all \texttt{ord-*} axioms in
-\texttt{structure-library/ordinals.scm}, not in \texttt{theory.scm}
+\texttt{structure-library/ordinals.scm}, not in \texttt{library.scm}
 (see Section~\ref{sec:ordinals}).  The ordinal axioms carry
 \texttt{primitive} provenance and so contribute nothing to any proof's bill.
 

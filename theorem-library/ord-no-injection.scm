@@ -50,7 +50,7 @@
 ;;; WHAT IT COSTS.  Everything is already installed: image-set
 ;;; (structure-library/injection.scm:99, whose own comment names it
 ;;; "replacement"), subclass-of-set-is-set (set-basics.scm), burali-forti
-;;; (ordinals.scm:17), and choice-axiom (theory.scm:311) -- GLOBAL choice, so the
+;;; (ordinals.scm:17), and choice-axiom (library.scm:311) -- GLOBAL choice, so the
 ;;; SEP inside H may range over the proper class ORD.  Nothing new is asserted.
 
 (define oni-R '(SEP y_ grd (FORSOME b_ (AND (IN b_ ORD) (= (phi b_) y_)))))

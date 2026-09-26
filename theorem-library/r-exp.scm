@@ -141,7 +141,7 @@
 ;;;   r-exp-diff-at-log, r-exp-deriv             -- R-EXP' = R-EXP
 ;;;
 ;;; THE BILL.  Nothing here is asserted: there is no `support' and no
-;;; `theory-add-axiom!' in this file.  Everything that touches LOG inherits,
+;;; `add-axiom!' in this file.  Everything that touches LOG inherits,
 ;;; unchanged, the thirty-six-leaf `well-known' residue that every log-* theorem
 ;;; bills (Cor 4.11's MVT/EVT debt, through equation (64)); `rr-recip-recip-pos'
 ;;; and `deriv-right-inverse' mention no logarithm and are `modulo 0'.

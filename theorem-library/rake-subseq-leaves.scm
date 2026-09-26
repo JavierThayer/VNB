@@ -27,7 +27,7 @@
 ;;;   (dc-on-nn-pred), theorem-library/pos-rr-bridges, theorem-library/rr-order-basics,
 ;;;   theorem-library/nn-order-basics, theorem-library/nn-order-ord and
 ;;;   theorem-library/fun-apply-type-proof -- all above nn-infinite.  Everything
-;;;   else is primitive (number-systems, theory.scm) or a definition site
+;;;   else is primitive (number-systems, library.scm) or a definition site
 ;;;   (order-predicates for `<'/POS-RR, cauchy-subsequence for STRICTLY-MONO-NN
 ;;;   and NULL-RR-SEQ, inf-subsets).
 ;;;

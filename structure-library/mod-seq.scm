@@ -232,7 +232,7 @@
 ;;; would have generated had SPAN been a predicate.  (hahn-banach-proof.scm's
 ;;; span-add-one-membership is the same read-off, but was asserted.)
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'span-membership
+  (add-axiom! *library* 'span-membership
     '(FORALL md (FORALL n (FORALL u (FORALL x_
        (IFF (IN x_ (SPAN md n u))
             (AND (IN x_ (VEC md))
@@ -255,7 +255,7 @@
                       (IN (LINCOMB md (succ p) c_ u) sm))))))
 
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'lastcoeff-set-membership
+  (add-axiom! *library* 'lastcoeff-set-membership
     '(FORALL md (FORALL p (FORALL u (FORALL sm (FORALL r_
        (IFF (IN r_ (LASTCOEFF-SET md p u sm))
             (AND (IN r_ (CARR (SCAL md)))

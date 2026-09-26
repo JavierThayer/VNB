@@ -193,7 +193,7 @@
 (topic! 'rr-abs-cases 'inequalities)
 
 ;;; --------------------------------------------------------------------
-;;; THE FIVE THAT WERE AXIOMS.  Each was `theory-add-axiom!' in
+;;; THE FIVE THAT WERE AXIOMS.  Each was `add-axiom!' in
 ;;; number-systems.scm until 2026-08-17 and is deleted there.
 
 ;;; abs lands in RR.  `subst' the abs equation into the typing goal; in the

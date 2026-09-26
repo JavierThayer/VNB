@@ -637,7 +637,7 @@
 ;;; REFLEXIVITY
 
 ;;; Class constructors that are TOTAL over classes (defined on ANY arguments,
-;;; set or not -- theory.scm): so a tree built from them over defined args is
+;;; set or not -- library.scm): so a tree built from them over defined args is
 ;;; defined.  Conservative whitelist; extend only with genuinely-total ops.
 (define *total-term-heads*
   '(UNION INTERSECTION COMPLEMENT-IN CARTESIAN LIST PAIR
@@ -1257,7 +1257,7 @@
 ;;;
 ;;; SOUND without a definedness guard, on exactly the same footing as NTH
 ;;; reduction (reduce-nth-in-expr, above): a literal LIST is a total spine
-;;; (LIST is a total constructor -- theory.scm / *total-term-heads*), so its
+;;; (LIST is a total constructor -- library.scm / *total-term-heads*), so its
 ;;; length is the structural count n regardless of whether the ELEMENTS are
 ;;; defined.  LENGTH counts slots, not values -- just as (NTH 1 (LIST (1/0) 2))
 ;;; reduces to (1/0) irrespective of its definedness, (LENGTH (LIST (1/0) 2))

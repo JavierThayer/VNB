@@ -65,7 +65,7 @@
 ;;;     adjoining it.
 ;;;
 ;;; CITATIONS (load.scm order at the time of writing):
-;;;   primitive / definitional (theory.scm, injection.scm, number-systems.scm):
+;;;   primitive / definitional (library.scm, injection.scm, number-systems.scm):
 ;;;     class-extensionality, complement-in-membership, union-membership,
 ;;;     pairing, pairing-membership, membership-implies-sethood,
 ;;;     empty-set-has-no-members, image-membership-iff, image-set,
@@ -710,7 +710,7 @@
 ;;; FOR THE INTEGRATOR.
 ;;;
 ;;; * RETIRE the support `compact-iff-fip', structure-library/compactness.scm
-;;;   lines 102-134: the `theory-add-axiom!' form and the `warrant!' that
+;;;   lines 102-134: the `add-axiom!' form and the `warrant!' that
 ;;;   follows it (the warrant's body is the list of the four missing bricks,
 ;;;   three of which this batch supplied and one -- BIG-UNION over an IMAGE --
 ;;;   turned out not to be needed: every passage through the union is done at

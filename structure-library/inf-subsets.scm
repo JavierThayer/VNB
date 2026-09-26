@@ -17,7 +17,7 @@
 ;;; inf-subsets-membership: S in INF-SUBSETS(A) iff S subset A and S infinite.
 ;;; Follows from SEP membership + POWER membership; recorded as a usable
 ;;; lemma so proofs can rewrite by name.
-(theory-add-axiom! *current-theory* 'inf-subsets-membership
+(add-axiom! *library* 'inf-subsets-membership
   '(FORALL A
      (FORALL S
        (IFF (IN S (INF-SUBSETS A))

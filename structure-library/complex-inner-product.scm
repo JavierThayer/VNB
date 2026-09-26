@@ -189,42 +189,42 @@
 ;;; that to CC.  Both steps are definitional, so the composite is.
 (fluid-let ((*current-provenance* 'definitional))
 
-  (theory-add-axiom! *current-theory* 'cips-scal-carrier
+  (add-axiom! *library* 'cips-scal-carrier
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (= (CARR (SCAL v)) CC))))
 
-  (theory-add-axiom! *current-theory* 'cips-vzero-in
+  (add-axiom! *library* 'cips-vzero-in
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (IN (VZERO v) (VEC v)))))
 
   ;; the zero vector is the identity of VADD -- the `is-identity VADD VZERO VEC'
   ;; property conjunct, unfolded (is-identity op unit crr says both sides;
   ;; the left one is what cips-ip-zero-right needs).
-  (theory-add-axiom! *current-theory* 'cips-vadd-vzero
+  (add-axiom! *library* 'cips-vadd-vzero
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (= ((VADD v) (VZERO v) x_) x_))))))
 
-  (theory-add-axiom! *current-theory* 'cips-vadd-type
+  (add-axiom! *library* 'cips-vadd-type
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (FORALL y_ (IMPLIES (IN y_ (VEC v))
            (IN ((VADD v) x_ y_) (VEC v)))))))))
 
-  (theory-add-axiom! *current-theory* 'cips-act-type
+  (add-axiom! *library* 'cips-act-type
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL a_ (IMPLIES (IN a_ CC)
          (FORALL x_ (IMPLIES (IN x_ (VEC v))
            (IN ((ACT v) a_ x_) (VEC v)))))))))
 
-  (theory-add-axiom! *current-theory* 'cips-ip-type
+  (add-axiom! *library* 'cips-ip-type
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (FORALL y_ (IMPLIES (IN y_ (VEC v))
            (IN ((IP v) x_ y_) CC))))))))
 
   ;; <x+y, z> = <x,z> + <y,z>
-  (theory-add-axiom! *current-theory* 'cips-ip-add-left
+  (add-axiom! *library* 'cips-ip-add-left
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (FORALL y_ (IMPLIES (IN y_ (VEC v))
@@ -233,7 +233,7 @@
                 (+ ((IP v) x_ z_) ((IP v) y_ z_))))))))))))
 
   ;; <a.x, y> = a <x,y>
-  (theory-add-axiom! *current-theory* 'cips-ip-homog-left
+  (add-axiom! *library* 'cips-ip-homog-left
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL a_ (IMPLIES (IN a_ CC)
          (FORALL x_ (IMPLIES (IN x_ (VEC v))
@@ -242,20 +242,20 @@
                 (* a_ ((IP v) x_ y_))))))))))))
 
   ;; <y,x> = conj <x,y>
-  (theory-add-axiom! *current-theory* 'cips-ip-conj-sym
+  (add-axiom! *library* 'cips-ip-conj-sym
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (FORALL y_ (IMPLIES (IN y_ (VEC v))
            (= ((IP v) y_ x_) (conjugate ((IP v) x_ y_))))))))))
 
   ;; <x,x> is a real
-  (theory-add-axiom! *current-theory* 'cips-ip-self-real
+  (add-axiom! *library* 'cips-ip-self-real
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (IN ((IP v) x_ x_) RR))))))
 
   ;; 0 <= <x,x>
-  (theory-add-axiom! *current-theory* 'cips-ip-self-nonneg
+  (add-axiom! *library* 'cips-ip-self-nonneg
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (<= 0 ((IP v) x_ x_)))))))
@@ -263,13 +263,13 @@
   ;; the forward half of the definiteness law, in detachable form (an IFF in a
   ;; context cannot be `detach!'-ed; every use of definiteness in
   ;; theorem-library/inner-product-inequalities.scm wants exactly this half).
-  (theory-add-axiom! *current-theory* 'cips-ip-zero-vector
+  (add-axiom! *library* 'cips-ip-zero-vector
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (IMPLIES (= ((IP v) x_ x_) 0) (= x_ (VZERO v))))))))
 
   ;; <x,x> = 0 exactly at the zero vector
-  (theory-add-axiom! *current-theory* 'cips-ip-definite
+  (add-axiom! *library* 'cips-ip-definite
     '(FORALL v (IMPLIES (IS-COMPLEX-INNER-PRODUCT-SPACE v)
        (FORALL x_ (IMPLIES (IN x_ (VEC v))
          (IFF (= ((IP v) x_ x_) 0) (= x_ (VZERO v)))))))))

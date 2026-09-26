@@ -63,7 +63,7 @@
 ;;;
 ;;; Both read `trust: well-known' since 2026-08-24.  They read `trust: none'
 ;;; until then, and the cause was `rr-is-normed-field' ALONE -- a bare
-;;; `theory-add-axiom!' in numeric-instances.scm carrying no `warrant!' at all.
+;;; `add-axiom!' in numeric-instances.scm carrying no `warrant!' at all.
 ;;; EVERY statement about RR-as-a-ring in the tree inherits it (it is the only
 ;;; door to IS-COMMUTATIVE-RING at the reals), so it was never a defect of these
 ;;; proofs; warranting it re-tiered eleven bills at a stroke.

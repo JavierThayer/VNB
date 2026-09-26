@@ -24,7 +24,7 @@
 ;;; asserted here.
 ;;;
 ;;; COMPLEMENT-IN, MAKE-SET and LIST are kernel term constructors (wff.scm,
-;;; theory.scm), so this file has no floor above the base theory.
+;;; library.scm), so this file has no floor above the base theory.
 
 (def-functoid 'DIFFERENCE '(u_ b_) '(COMPLEMENT-IN u_ b_))
 (notation! 'DIFFERENCE 'kind 'functoid 'arity 2

@@ -2,7 +2,7 @@
 ;;;
 ;;;     IS-COMPLETE(CC-MS)
 ;;;
-;;; This was a bare `theory-add-axiom!' in structure-library/complex.scm with no
+;;; This was a bare `add-axiom!' in structure-library/complex.scm with no
 ;;; `warrant!' of any kind, i.e. `trust: none' -- the weakest report a bill can
 ;;; carry -- for a fact that is two coordinates of `rr-complete'
 ;;; (theorem-library/rr-complete-proof.scm), which has been PROVEN since

@@ -20,7 +20,7 @@
 ;;; (ball-cover-lemmas.scm) and the SEP rules, not through ball-membership.
 ;;;
 ;;; CITATIONS and load positions (0-based over prover-load, 2026-09-15):
-;;;   subset-def (theory.scm, primitive); rr-sub-in-rr (binary-minus-laws,
+;;;   subset-def (library.scm, primitive); rr-sub-in-rr (binary-minus-laws,
 ;;;   162); rr-lt-diff-pos (rr-order-basics, 172); rr-pos-rr-of-lt
 ;;;   (pos-rr-of-lt, 179); metric-dist-real (op-typing, 194, PROVEN there);
 ;;;   ball-sep-unfold (ball-cover-lemmas, 231); metric-triangle

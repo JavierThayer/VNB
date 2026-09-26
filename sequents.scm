@@ -337,7 +337,7 @@
          ;; PAIR has NO branch here, and that is the fix (2026-08-24).  It used
          ;; to print (PAIR a b) as `{a, b}' and (PAIR a a) as `{a}' -- the
          ;; surface syntax of MAKE-SET, a DIFFERENT primitive (`{a, b}' reads
-         ;; back as (MAKE-SET (LIST a b)), theory.scm's make-set-membership,
+         ;; back as (MAKE-SET (LIST a b)), library.scm's make-set-membership,
          ;; not the pairing axiom).  48 installed formulas printed as a term
          ;; they were not, and a user retyping one got a formula `ass' would
          ;; not match.  PAIR now falls through to the generic application arm

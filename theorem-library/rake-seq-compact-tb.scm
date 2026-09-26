@@ -72,7 +72,7 @@
 ;;;   STRICTLY-MONO-NN, SUBSEQ           theorem-library/cauchy-subsequence  90
 ;;;   IS-METRIC-SPACE, CONVERGES-TO, IS-R-NET, TOTALLY-BOUNDED, POS-RR  (early)
 ;;;   choice-axiom, pairing, pairing-membership, membership-implies-sethood,
-;;;     union-membership, subset-def                          theory.scm      11
+;;;     union-membership, subset-def                          library.scm      11
 ;;;   nn-zero-in, nn-succ-closed, rr-zero-in, rr-leq-total,
 ;;;     rr-leq-reflexive, rr-leq-antisymmetric   number-systems (primitive)   34
 ;;;

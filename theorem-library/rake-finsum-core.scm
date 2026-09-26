@@ -44,7 +44,7 @@
 ;;;
 ;;; (2) The COMM-MONOID layer needed its own projections.  `monoid-assoc',
 ;;; `monoid-left-id' and `comm-monoid-opr-comm' are UNWARRANTED
-;;; `theory-add-axiom!'s (monoid.scm:17, :27, :61), so a proof citing them bills
+;;; `add-axiom!'s (monoid.scm:17, :27, :61), so a proof citing them bills
 ;;; `trust: none'.  They are conjuncts of the IS-COMM-MONOID definition;
 ;;; subtype-laws.scm's `stl--project!' shape proves all three.
 ;;; `comm-monoid-opr-comm' is proved under ITS OWN name -- nothing in the tree
@@ -392,7 +392,7 @@
 
 ;;; ------------------------------------------ the COMM-MONOID projections
 ;;; monoid-assoc, monoid-left-id and comm-monoid-opr-comm are UNWARRANTED
-;;; `theory-add-axiom!'s (monoid.scm:17, :27, :61), so citing them bills
+;;; `add-axiom!'s (monoid.scm:17, :27, :61), so citing them bills
 ;;; `trust: none'.  They are conjuncts of the IS-COMM-MONOID definition, and the
 ;;; subtype-laws.scm `stl--project!' shape proves them: unfold IS-X, split,
 ;;; unfold the operation-property, cite.  comm-monoid-opr-comm is proved under

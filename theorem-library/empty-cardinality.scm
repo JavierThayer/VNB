@@ -17,7 +17,7 @@
 ;;;
 ;;; Each is one `subst' away from a fact the tree already has -- `card-empty'
 ;;; (CARD(EMPTY-SET) = 0, primitive, structure-library/cardinality.scm) and
-;;; `make-set-empty' (MAKE-SET([]) = EMPTY-SET, primitive, theory.scm).  Both
+;;; `make-set-empty' (MAKE-SET([]) = EMPTY-SET, primitive, library.scm).  Both
 ;;; are PROVEN here rather than asserted, and both bill `modulo 0'.
 ;;;
 ;;; The forward step is NOT here and cannot be: getting `l = []' out of

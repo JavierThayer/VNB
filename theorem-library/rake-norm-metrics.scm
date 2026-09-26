@@ -615,7 +615,7 @@
 ;;;     Every brick exists; it is ~200-300 lines of equation chaining across two
 ;;;     branches and was left rather than slogged.  NOTE the case split is not
 ;;;     optional dressing: `normed-field-zero-not-one' (normed-field.scm:67) is a
-;;;     bare `theory-add-axiom!' with no `warrant!', so citing it would make the
+;;;     bare `add-axiom!' with no `warrant!', so citing it would make the
 ;;;     result `trust: none' -- WORSE than the `informal' support it replaces.
 ;;;     Proving the degenerate branch instead keeps the bill at `modulo 0'.
 ;;;     The right shape is a separate `nf-norm-neg' theorem; with it,

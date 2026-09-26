@@ -60,7 +60,7 @@
 ;;;   structure-library/metric-laws (position 256); every other citation is
 ;;;   lower (metric-completion 74 for the definitions, injection 83 for
 ;;;   image-membership-iff, pos-rr-bridges 177 for rr-lt-of-pos-rr, and the
-;;;   base-theory axioms fun-set-iff / nn-is-set / nn-zero-in).  No citer
+;;;   base-library axioms fun-set-iff / nn-is-set / nn-zero-in).  No citer
 ;;;   forces hi: nothing in the library cites embed-in-fun (the only other
 ;;;   occurrence of the name is pss-topics.scm's `topic!').
 ;;;

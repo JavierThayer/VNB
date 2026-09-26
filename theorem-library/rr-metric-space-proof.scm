@@ -1,6 +1,6 @@
 ;;; rr-metric-space-proof.scm -- IS-METRIC-SPACE(RR-MS), PROVEN.
 ;;;
-;;; It was an AXIOM, `theory-add-axiom!' in structure-library/numeric-instances.scm
+;;; It was an AXIOM, `add-axiom!' in structure-library/numeric-instances.scm
 ;;; with no `warrant!' at all -- so it billed `trust: none', the weakest report
 ;;; there is, and it was the SOLE unwarranted leaf of `rr-complete'.  Its own
 ;;; comment there said what was missing: "provable from the abs axioms in

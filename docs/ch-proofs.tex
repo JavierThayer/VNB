@@ -813,7 +813,7 @@ one bottom-up pass, and declines when the reduction changes nothing.
 The obligations are posted after the reduced formula, one per redex
 whose licence is not evident.  A member of $\mathrm{FUN}(A, B)$ is
 defined exactly on $A$, so reducing off the domain without the
-obligation would make a term denote that the theory says does not.
+obligation would make a term denote that the library says does not.
 
 \begin{remark}
 The obligation is posted in the context of $N$.  A redex under a binder
@@ -1405,7 +1405,7 @@ updated focus.
 \texttt{start-proof} takes a \texttt{wff} (produced by \texttt{make-wff} or \texttt{make-wff-from-string}).
 The root sequent has no assumptions: a proof begins from the bare goal,
 and every hypothesis arrives through an inference.  All sequent assumptions and assertions are
-\texttt{wff} objects throughout the proof; the theory name propagates
+\texttt{wff} objects throughout the proof; the library name propagates
 automatically to every subformula produced by inference rules.
 
 %% =========================================================
@@ -2118,7 +2118,7 @@ by three different routes:
   \texttt{stl--project!} in \texttt{structure-library/subtype-laws.scm}.  The
   unfold is \emph{checked}, not asserted to exist.
 \item \emph{Installed and stamped \texttt{definitional}.}  The \textsc{Ring}
-  laws are installed by \texttt{theory-add-axiom!} in
+  laws are installed by \texttt{add-axiom!} in
   \texttt{structure-library/ring.scm} and then swept with
   \texttt{register-provenance!\ \ldots\ 'definitional} in the same file.  A
   \texttt{definitional} fact contributes the empty set to every bill, exactly as
@@ -2321,7 +2321,7 @@ False or undecidable formulas are rejected:
 \subsection{Installing a proven theorem}
 \label{sec:qed-and-subst}
 
-A completed proof does not by itself add anything to the theory.  Use
+A completed proof does not by itself add anything to the library.  Use
 \texttt{(qed \textit{name})} to install the root assertion as a named
 theorem:
 

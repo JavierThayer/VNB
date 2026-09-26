@@ -84,7 +84,7 @@ install a THEOREM (the defining iff or equation), so they appear in `DEFINITIONS
   dead macete `(NAME ())`, leaving the constant uninterpreted. A parameterless defined
   object is a `def-constant`.
 * A function-valued constant that is ALREADY registered (`eplus`, `etimes`) is defined by a
-  `definitional`-wrapped `theory-add-axiom!` of a quasi-equation plus `declare-named-only!`,
+  `definitional`-wrapped `add-axiom!` of a quasi-equation plus `declare-named-only!`,
   not by `def-constant`; and because no rewriter unfolds a registered constant head in
   APPLIED position, its laws go through `apply-congruence-2`.
 * Name-shape trap: `zz-bezout` is a THEOREM; the thing defined is `ZZ-BEZOUT-SET`.
@@ -811,7 +811,7 @@ rake's batches, the continuity algebra, `prop` / `contra` / `minimize!`):
 
 ## The gates on the install door
 
-`support` and `theory-add-axiom!` install a raw S-expression. The end of `load.scm` runs
+`support` and `add-axiom!` install a raw S-expression. The end of `load.scm` runs
 the gates; each catches a defect the others call well-formed.
 
 * `qed-failure gate` (2026-09-20) -- FATAL in a strict load. A `qed` that fails inside a proof file

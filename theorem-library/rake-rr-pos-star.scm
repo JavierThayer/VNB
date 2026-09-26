@@ -1,7 +1,7 @@
 ;;; theorem-library/rake-rr-pos-star.scm -- the six CARRIER facts of
 ;;; RR-POS-STAR = [0, +inf], proven.  Rake batch 5c-K.
 ;;;
-;;; All six were `theory-add-axiom!' forms in structure-library/extended-reals-pos.scm,
+;;; All six were `add-axiom!' forms in structure-library/extended-reals-pos.scm,
 ;;; warranted `well-known' on 2026-09-18 with the text "one case split off the
 ;;; membership iff rr-pos-star-membership plus the RR-STAR axioms.  Provable; not
 ;;; yet proven."  That warrant was an accurate plan; this file runs it.
@@ -33,7 +33,7 @@
 ;;;     neg-inf-not-in-rr-pos-star   modulo {neg-inf-not-in-rr,
 ;;;                                          pos-inf-neq-neg-inf}          trust: none
 ;;; Those three are axioms of structure-library/extended-reals.scm installed as
-;;; bare `theory-add-axiom!' forms with NO warrant, so any bill naming one reads
+;;; bare `add-axiom!' forms with NO warrant, so any bill naming one reads
 ;;; `trust: none':
 ;;;     pos-inf-upper-bound     extended-reals.scm:73
 ;;;     pos-inf-neq-neg-inf     extended-reals.scm:56

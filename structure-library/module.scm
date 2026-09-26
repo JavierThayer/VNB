@@ -68,20 +68,20 @@
 (fluid-let ((*current-provenance* 'definitional))
 
   ;; the scalar component is a ring
-  (theory-add-axiom! *current-theory* 'module-scalar-ring
+  (add-axiom! *library* 'module-scalar-ring
     '(FORALL m (IMPLIES (IS-MODULE m) (IS-RING (SCAL m)))))
 
   ;; ring zero lives in the scalar carrier (an action argument)
-  (theory-add-axiom! *current-theory* 'module-scalar-zero-in
+  (add-axiom! *library* 'module-scalar-zero-in
     '(FORALL m (IMPLIES (IS-MODULE m) (IN (ZERO (SCAL m)) (CARR (SCAL m))))))
 
   ;; the zero vector is a vector (the shape conjunct, surfaced for rfl's
   ;; definedness obligation on VZERO terms)
-  (theory-add-axiom! *current-theory* 'module-vzero-in
+  (add-axiom! *library* 'module-vzero-in
     '(FORALL m (IMPLIES (IS-MODULE m) (IN (VZERO m) (VEC m)))))
 
   ;; action closure:  r . x  is a vector
-  (theory-add-axiom! *current-theory* 'module-act-type
+  (add-axiom! *library* 'module-act-type
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL x_ (IMPLIES (IN x_ (VEC m))
@@ -92,19 +92,19 @@
   ;; (IN (VNEG m) (FUN (VEC m) (VEC m))) that module-act-type is of its own.
   ;; Surfaced because whole-module-is-submodule needs all three closures, and
   ;; IS-SUBMODULE states them in applied form.
-  (theory-add-axiom! *current-theory* 'module-vadd-type
+  (add-axiom! *library* 'module-vadd-type
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL x_ (IMPLIES (IN x_ (VEC m))
          (FORALL y_ (IMPLIES (IN y_ (VEC m))
            (IN ((VADD m) x_ y_) (VEC m)))))))))
 
-  (theory-add-axiom! *current-theory* 'module-vneg-type
+  (add-axiom! *library* 'module-vneg-type
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL x_ (IMPLIES (IN x_ (VEC m))
          (IN ((VNEG m) x_) (VEC m)))))))
 
   ;; (1) action distributes over vector addition
-  (theory-add-axiom! *current-theory* 'module-act-distrib-vec
+  (add-axiom! *library* 'module-act-distrib-vec
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL x_ (IMPLIES (IN x_ (VEC m))
@@ -113,7 +113,7 @@
                 ((VADD m) ((ACT m) r_ x_) ((ACT m) r_ y_))))))))))))
 
   ;; (2) action distributes over ring addition
-  (theory-add-axiom! *current-theory* 'module-act-distrib-scalar
+  (add-axiom! *library* 'module-act-distrib-scalar
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
@@ -122,7 +122,7 @@
                 ((VADD m) ((ACT m) r_ x_) ((ACT m) s_ x_))))))))))))
 
   ;; (3) action compatible with ring multiplication
-  (theory-add-axiom! *current-theory* 'module-act-mul-compat
+  (add-axiom! *library* 'module-act-mul-compat
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL r_ (IMPLIES (IN r_ (CARR (SCAL m)))
          (FORALL s_ (IMPLIES (IN s_ (CARR (SCAL m)))
@@ -131,7 +131,7 @@
                 ((ACT m) r_ ((ACT m) s_ x_))))))))))))
 
   ;; (4) unital
-  (theory-add-axiom! *current-theory* 'module-act-unital
+  (add-axiom! *library* 'module-act-unital
     '(FORALL m (IMPLIES (IS-MODULE m)
        (FORALL x_ (IMPLIES (IN x_ (VEC m))
          (= ((ACT m) (ONE (SCAL m)) x_) x_)))))))

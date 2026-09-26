@@ -12,7 +12,7 @@
 ;;;                             ELSE bintimes(x_, y_)
 ;;;
 ;;; (scratchpad/r7y/r7y-def.scm holds the exact form, with the reason it is a
-;;; provenance-wrapped theory-add-axiom! and not a def-constant, and the reason
+;;; provenance-wrapped add-axiom! and not a def-constant, and the reason
 ;;; the infinite test is the OUTER one.)
 ;;;
 ;;; WHY DEFINE RATHER THAN STAMP -- AND THIS TIME THE STAMP IS ALREADY ON.

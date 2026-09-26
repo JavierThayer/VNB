@@ -36,7 +36,7 @@
 ;;;
 ;;; x in RR-POS-STAR iff x is a nonnegative real, or x = POS-INF.
 
-(theory-add-axiom! *current-theory* 'rr-pos-star-membership
+(add-axiom! *library* 'rr-pos-star-membership
   '(FORALL x
       (IFF (IN x RR-POS-STAR)
            (OR (AND (IN x RR) (<= 0 x))
@@ -139,7 +139,7 @@
 (declare-named-only! 'eplus-def
   "left-hand side is a bare constant: as a live rewrite it would turn every mention of eplus into its lambda")
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'eplus-def
+  (add-axiom! *library* 'eplus-def
     '(== eplus
          (VNB-LAMBDA (LIST x_ y_) (CARTESIAN RR-POS-STAR RR-POS-STAR)
            (IF (OR (= x_ POS-INF) (= y_ POS-INF))
@@ -160,7 +160,7 @@
 ;;; A `declare-instance!' since 2026-09-19 (the shape NN-ADD-MONOID has in
 ;;; numeric-instances.scm): the equation rr-pos-star-add-monoid-def keeps its name and its
 ;;; statement, becomes `definitional', and the slot macetes @CARR / @OPR / @IDEN exist.  It
-;;; was a bare `theory-add-axiom!' carrying a `well-known' warrant, and sat on three bills.
+;;; was a bare `add-axiom!' carrying a `well-known' warrant, and sat on three bills.
 (declare-instance! 'RR-POS-STAR-ADD-MONOID 'COMM-MONOID 'rr-pos-star-add-monoid-def
   '(RR-POS-STAR eplus 0))
 

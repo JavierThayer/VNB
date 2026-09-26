@@ -13,7 +13,7 @@
 ;;; (fact 'power-set 'A) (ass).
 ;;;
 ;;; WINDOW.  Cites only the INF-SUBSETS macete (structure-library/inf-subsets)
-;;; and `power-set' (theory.scm base), so lo = any theorem-library slot after
+;;; and `power-set' (library.scm base), so lo = any theorem-library slot after
 ;;; driver-kit / proof-debt.  hi = theorem-library/block-family-combinatorial-
 ;;; proof, the only `fact' of it in the tree.
 ;;;

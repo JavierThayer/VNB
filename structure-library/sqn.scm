@@ -31,7 +31,7 @@
 (def-functoid 'SQN '(a) '(FUN NN a))
 
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'sqn-membership
+  (add-axiom! *library* 'sqn-membership
     '(FORALL a (FORALL f_ (IFF (IN f_ (SQN a)) (IN f_ (FUN NN a)))))))
 
 ;;; Sethood, from `fun-set-iff' (fun(a,b) in set iff a in set and b in set) and
@@ -39,14 +39,14 @@
 ;;; fed to SEP and to the finite-set machinery, both of which are gated on
 ;;; sethood.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'sqn-sethood
+  (add-axiom! *library* 'sqn-sethood
     '(FORALL a (IMPLIES (IN a SET) (IN (SQN a) SET)))))
 
 ;;; NOT named-only: `sqn-membership' is a LIVE macete, fired by name at 25 call
 ;;; sites (`(mac-h 'sqn-membership k)'), and that is what the library wants.
 ;;;
 ;;; A `declare-named-only!' call stood here from 2026-08 to 2026-09-20 and was
-;;; DEAD: it came AFTER the `theory-add-axiom!' above, and the named-only list
+;;; DEAD: it came AFTER the `add-axiom!' above, and the named-only list
 ;;; is read by `theorem->elementary-macete' while the macete is being built, so
 ;;; the declaration could not reach it.  The macete has therefore been live all
 ;;; along, with no trouble -- as the shape predicts: unlike `app-graph', whose

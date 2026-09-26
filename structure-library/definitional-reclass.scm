@@ -3,7 +3,7 @@
 ;;; A defining iff  (FORALL ... (IFF (P args) Phi))  that introduces a FRESH
 ;;; symbol P (a property predicate, a NAME-class constant, a constructor's
 ;;; membership) is a conservative definition: it carries no logical debt, and
-;;; unfolding it is free.  But these were installed with `theory-add-axiom!',
+;;; unfolding it is free.  But these were installed with `add-axiom!',
 ;;; which does not stamp `definitional' (unlike def-predicate / def-functoid),
 ;;; so they -- and their auto-generated -rev companions -- surfaced as
 ;;; `asserted', trust-none phantom-debt leaves in the proof-debt ledger.

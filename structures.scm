@@ -29,7 +29,7 @@
 ;;;   E.g. FIELD declares (carriers A), then ops ADD MUL NEG, then constants
 ;;;   ZERO ONE, then (carriers NON-ZERO) and (op INV ...) -- so ADD/MUL/NEG/
 ;;;   ZERO/ONE keep the same indices they have under RING.
-;;;   IS-NAME definitional axiom in *current-theory* -- SHAPE plus the named
+;;;   IS-NAME definitional axiom in *library* -- SHAPE plus the named
 ;;;   characteristic laws, so IS-NAME genuinely means "is an X", not merely
 ;;;   "has the X-shape":
 ;;;     (FORALL s (IFF (IS-NAME s)
@@ -40,7 +40,7 @@
 ;;;                         ...
 ;;;                         (property1 (accA s) ...)        ; from axiom-names
 ;;;                         ...)))
-;;;   NAME-class axiom in *current-theory*:
+;;;   NAME-class axiom in *library*:
 ;;;     (FORALL s (IFF (IN s NAME) (IS-NAME s)))
 ;;;   so the bare symbol NAME is usable as a class in bounded quantification.
 ;;;
@@ -662,7 +662,7 @@
           (axiom   (build-is-axiom name slots axiom-names
                                    (if (default-object? laws) '() laws)
                                    (if (default-object? ivar0) 's ivar0))))
-      (theory-add-axiom! *current-theory* is-name axiom)
+      (add-axiom! *library* is-name axiom)
       ;; the ONE table (operators.scm): every structure predicate is a unary
       ;; predicate, and def-structure is the only thing that makes one.
       (register-operator! is-name 'predicate '(s))
@@ -689,7 +689,7 @@
     ;;     forall([s], IS-NAME(s) implies ...).
     (let ((is-name           (symbol-append 'IS- name))
           (class-axiom-name  (symbol-append name '-class)))
-      (theory-add-axiom! *current-theory* class-axiom-name
+      (add-axiom! *library* class-axiom-name
         `(FORALL s (IFF (IN s ,name) (,is-name s)))))
     name)))
 
@@ -729,7 +729,7 @@
 ;;; definition.  So IS-NAME means "is an X", not just "is X-shaped" --- and
 ;;; a richer structure (e.g. ABELIAN-GROUP = GROUP + is-commutative) is a
 ;;; genuine sub-predicate of its parent.  Equational law axioms may still be
-;;; added by separate theory-add-axiom! calls; with the laws now in IS-NAME
+;;; added by separate add-axiom! calls; with the laws now in IS-NAME
 ;;; those are redundant restatements, kept only for direct use by name.
 
 (define-syntax declare-structure
@@ -799,10 +799,10 @@
          ;; LITERAL: subtype-laws.scm unfolds this and reads it straight off.
          (rhs       (conjuncts->and (cons `(,is-parent ,ivar) laws))))
     (fluid-let ((*current-provenance* 'definitional))
-      (theory-add-axiom! *current-theory* def-name
+      (add-axiom! *library* def-name
         `(FORALL ,ivar (IFF (,is-name ,ivar) ,rhs)))
       ;; the associated proper class, exactly as def-structure installs one
-      (theory-add-axiom! *current-theory* (symbol-append name '-class)
+      (add-axiom! *library* (symbol-append name '-class)
         `(FORALL ,ivar (IFF (IN ,ivar ,name) (,is-name ,ivar)))))
     (register-definitional-structure! name parent)
     (register-operator! is-name 'predicate (list ivar))
@@ -988,7 +988,7 @@
    (let* ((app     `(,pred-name ,@params))
          (iff     `(IFF ,app ,body))
          (formula (fold-right (lambda (p f) `(FORALL ,p ,f)) iff params)))
-    (theory-add-definition! *current-theory* pred-name
+    (add-definition! *library* pred-name
       (list (cons pred-name formula))))))
 
 ;;; -----------------------------------------------------------------------
@@ -1161,7 +1161,7 @@
                        (IMPLIES (,is-src ,r-sym) ,p-reduced)))
                    (new-name (symbol-append thm-name suffix)))
               (unless (hash-table-ref/default *theorem-table* new-name #f)
-                (theory-add-axiom! *current-theory* new-name new-formula)
+                (add-axiom! *library* new-name new-formula)
                 ;; Record where this companion came from.  It is stamped
                 ;; `definitional' (the fluid-let above) because the TRANSPORT is
                 ;; definitional -- but the transported CONTENT is only as trusted
@@ -1229,7 +1229,7 @@
   (let ((is-src  (symbol-append 'IS- source-struct))
         (is-tgt  (symbol-append 'IS- target-struct))
         (ax-name (symbol-append name '-is- target-struct)))
-    (theory-add-axiom! *current-theory* ax-name
+    (add-axiom! *library* ax-name
       `(FORALL r (IMPLIES (,is-src r) (,is-tgt (,name r))))))
   ;; Auto-specialize target theorems.
   (view-as-auto-specialize! name)
@@ -1536,7 +1536,7 @@
   (call-with-values (lambda () (build-hom-axiom name slots))
     (lambda (hom args axiom)
       (fluid-let ((*current-provenance* 'definitional))
-        (theory-add-axiom! *current-theory* (symbol-append hom '-def) axiom))
+        (add-axiom! *library* (symbol-append hom '-def) axiom))
       (register-operator! hom 'predicate args)
       (declare-hom-english! hom args)
       hom)))
@@ -1601,7 +1601,7 @@
                 (body     (conjuncts->and
                             (list `(,is-name a) `(,is-name b) `(,phom ,@args)))))
            (fluid-let ((*current-provenance* 'definitional))
-             (theory-add-axiom! *current-theory* (symbol-append hom '-def)
+             (add-axiom! *library* (symbol-append hom '-def)
                `(FORALL a (FORALL b
                   ,(let loop ((fs fvars))
                      (if (null? fs)
@@ -1668,7 +1668,7 @@
     (unless (= (length fvars) (length carriers))
       (error "declare-hom!: one map per carrier expected" name carriers fvars))
     (fluid-let ((*current-provenance* 'definitional))
-      (theory-add-axiom! *current-theory* (symbol-append hom '-def)
+      (add-axiom! *library* (symbol-append hom '-def)
         `(FORALL ,avar (FORALL ,bvar
            ,(let loop ((fs fvars))
               (if (null? fs)

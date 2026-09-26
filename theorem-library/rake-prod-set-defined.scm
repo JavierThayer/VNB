@@ -68,7 +68,7 @@
 ;;; one `fun-apply-type-c' and `subset-mem-fwd' is not needed.
 ;;;
 ;;; CITATIONS (0-based over the file names in load.scm, at the time of writing):
-;;;   theory.scm (11, primitive): pairing, pairing-membership, union-membership,
+;;;   library.scm (11, primitive): pairing, pairing-membership, union-membership,
 ;;;     intersection-membership, empty-set-is-set, empty-set-has-no-members,
 ;;;     class-extensionality
 ;;;   structure-library/cardinality.scm (82, primitive): card-empty

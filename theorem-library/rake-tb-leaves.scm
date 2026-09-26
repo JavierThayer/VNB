@@ -14,7 +14,7 @@
 ;;; equality-basics (587), block-family-combinatorial (351, for the
 ;;; IS-FINITE-COVER definition), structure-library/inf-subsets (342),
 ;;; structure-library/metric-space (122), theorem-library/axioms (107) and
-;;; theory.scm.  hi is block-family-combinatorial-proof (load.scm:1353), the
+;;; library.scm.  hi is block-family-combinatorial-proof (load.scm:1353), the
 ;;; only file that cites cover-block-step in a proof.  No late tactic is used
 ;;; (`prop' and the dk- kit only; no contra / prep / ineq-supply).
 ;;;

@@ -2,7 +2,7 @@
 ;;;
 ;;;   bijection-identity   forall X. X in SET => (VNB-LAMBDA x_ X x_) in BIJECTION(X,X)
 ;;;
-;;; Statement verbatim from structure-library/bijection.scm (the `theory-add-axiom!'
+;;; Statement verbatim from structure-library/bijection.scm (the `add-axiom!'
 ;;; retired by this file), guard included.  The guard is load-bearing: unguarded, at
 ;;; X := ORD the axiom put the identity LAMBDOID on a proper class into FUN(ORD,ORD),
 ;;; which is exactly what pi-lambda-type!'s (IN A SET) obligation exists to prevent

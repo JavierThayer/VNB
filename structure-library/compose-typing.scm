@@ -26,7 +26,7 @@
 ;;; hypothesis as its own subgoal, dischargeable by ass-all.
 ;;;
 ;;; Dependencies: IMAGE + image-membership-iff (injection.scm), DOM +
-;;; dom-membership / dom-fun-membership (theory.scm).  Loads after injection.
+;;; dom-membership / dom-fun-membership (library.scm).  Loads after injection.
 
 (def-functoid 'RAN '(f)
   '(IMAGE f (DOM f)))

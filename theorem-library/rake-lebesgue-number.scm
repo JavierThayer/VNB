@@ -84,7 +84,7 @@
 ;;;
 ;;; CITATIONS and the files that install them:
 ;;;   choice-axiom, class-extensionality, power-set-membership, subset-def
-;;;                                          theory.scm (primitive)
+;;;                                          library.scm (primitive)
 ;;;   image-membership-iff                   structure-library/injection
 ;;;   IS-OPEN, IS-CLOSED                     structure-library/metric-open-sets
 ;;;   BALL, IS-R-NET, TOTALLY-BOUNDED        structure-library/metric-topology

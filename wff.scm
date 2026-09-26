@@ -23,7 +23,7 @@
   (%%make-concrete-wff formula theory digest)
   concrete-wff?
   (formula   concrete-wff-formula)
-  (theory    concrete-wff-theory)
+  (theory    concrete-wff-library)
   (digest    concrete-wff-digest set-concrete-wff-digest!))
 
 ;;; The two-argument constructor every caller uses; the digest starts unfilled.
@@ -46,20 +46,20 @@
       (concrete-wff-formula w)
       (error "wff-formula: not a wff" w)))
 
-(define (wff-theory w)
+(define (wff-library w)
   (if (concrete-wff? w)
-      (concrete-wff-theory w)
-      (error "wff-theory: not a wff" w)))
+      (concrete-wff-library w)
+      (error "wff-library: not a wff" w)))
 
 ;;; Create a wff directly in a named theory.
 ;;; Used by start-proof and primitive inferences.
-(define (wff-in-theory raw-formula theory-name)
-  (%make-concrete-wff raw-formula theory-name))
+(define (wff-in-library raw-formula library-name)
+  (%make-concrete-wff raw-formula library-name))
 
 ;;; Create a derived wff inheriting its theory from a parent.
 ;;; Used inside primitive inferences to wrap subformulas.
 (define (wff-child parent raw-formula)
-  (%make-concrete-wff raw-formula (wff-theory parent)))
+  (%make-concrete-wff raw-formula (wff-library parent)))
 
 ;;; Two wffs are equivalent when they share the same theory and their
 ;;; formulas are alpha-equivalent.  (Kind is implied by the formula
@@ -73,7 +73,7 @@
 ;;; measurements and the argument.
 (define (wff-equiv? w1 w2)
   (or (eq? w1 w2)
-      (and (equal? (wff-theory w1) (wff-theory w2))
+      (and (equal? (wff-library w1) (wff-library w2))
            (alpha-equiv? (wff-formula w1) (wff-formula w2)))))
 
 ;;; wff->sexp: extract the raw S-expression from a wff.
@@ -516,7 +516,7 @@
     PAIR SINGLETON DIFFERENCE BIJECTION DELETE-AT EPLUS
     binplus bintimes binneg
     ;; CONS (structure-library/list-recursion.scm): the tuple constructor the
-    ;; recursive characterization of LENGTH needs, which theory.scm:637 recorded
+    ;; recursive characterization of LENGTH needs, which library.scm:637 recorded
     ;; as pending.  A TERM former, so it belongs here rather than in a bare
     ;; register-constant! -- see the LIMIT-ORD note below for the difference.
     CONS))
@@ -527,7 +527,7 @@
 ;;; Seed the constant-head registry (expressions.scm) with every kernel
 ;;; term-forming head, so subst-free / free-vars never mistake one for an
 ;;; applied function variable.  Structure accessors and defined functions
-;;; are registered later, by def-structure and theory-add-definition!.
+;;; are registered later, by def-structure and add-definition!.
 (for-each (lambda (h) (register-constant! h 'operator))
           *wff-term-form-heads*)
 
@@ -714,7 +714,7 @@
            ;; empty tuple, which `empty-in-tuples' and `length-of-empty' are
            ;; about.  Every other head needs at least one argument -- see the
            ;; nullary-application note in parser.scm.  This check is here as
-           ;; well as there because `support' and `theory-add-axiom!' install a
+           ;; well as there because `support' and `add-axiom!' install a
            ;; raw S-expression that never meets the parser; install-grading runs
            ;; validate-wff! over all of them.
            ((LIST)
@@ -812,3 +812,6 @@
                     (display " is both bound (in some binder) and free in this formula\n")
                     (set! warned (cons s warned))))
                 bound-syms))))
+
+;;; DEPRECATED ALIAS (2026-09-25): the wff's home is the library, not a theory.
+(define wff-theory wff-library)

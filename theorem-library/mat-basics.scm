@@ -60,7 +60,7 @@
 ;;; unfired `fact' leaves the typing the finsum bricks need missing.
 ;;;
 ;;; Needs: interactive + qed/proof-debt, driver-kit (have!, dk-landed-1,
-;;; dk-split!), and `length-in-nn' in its GENERALISED form (theory.scm) --
+;;; dk-split!), and `length-in-nn' in its GENERALISED form (library.scm) --
 ;;; `L in TUPLES(A)' for any A, not `TUPLES(SET)'.  The old guard could not be
 ;;; discharged here: matrix-membership gives `Q in TUPLES(TUPLES X)', and
 ;;; reaching TUPLES(SET) from it needs both "every member of a class is a set"

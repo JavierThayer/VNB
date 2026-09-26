@@ -1,6 +1,6 @@
 ;;; ordinals.scm -- ordinal numbers: axioms, ordering, induction, recursion
 ;;;
-;;; ORD is declared as a primitive class constant in theory.scm.
+;;; ORD is declared as a primitive class constant in library.scm.
 ;;; IS-ORD predicate: (IS-ORD alpha) <-> (IN alpha ORD)
 ;;;
 ;;; New operators introduced here:
@@ -17,8 +17,8 @@
 ;;; Everything from here to the end of the transfinite-induction schema is
 ;;; wrapped in `primitive' provenance.  proof-debt.scm:12 reads that tier as
 ;;; TRUSTED BASE -- it contributes {} to every bill -- which is the same shelf
-;;; theory.scm:613 puts the base set theory on.  Without the wrapper these 28
-;;; calls took `theory-add-axiom!'s default, `asserted' (macetes.scm:1405), so
+;;; library.scm:613 puts the base set theory on.  Without the wrapper these 28
+;;; calls took `add-axiom!'s default, `asserted' (macetes.scm:1405), so
 ;;; every theorem that so much as compared two ordinals reported `trust: none'
 ;;; and named half this file in its bill.  That was an accident of an absent
 ;;; fluid-let, not a judgement that ordinals owe anyone an argument.
@@ -34,50 +34,50 @@
 ;;; -----------------------------------------------------------------------
 ;;; Burali-Forti: ORD is a proper class
 
-(theory-add-axiom! *current-theory* 'burali-forti
+(add-axiom! *library* 'burali-forti
   '(NOT (IN ORD SET)))
 
 ;;; -----------------------------------------------------------------------
 ;;; NN is a subset of ORD (finite ordinals are ordinals)
 
-(theory-add-axiom! *current-theory* 'nn-subset-ord
+(add-axiom! *library* 'nn-subset-ord
   '(FORALL n (IMPLIES (IN n NN) (IN n ORD))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Ordering: ORD-LE
 
 ;;; ORD-LE is only defined between ordinals
-(theory-add-axiom! *current-theory* 'ord-le-closure
+(add-axiom! *library* 'ord-le-closure
   '(FORALL alpha (FORALL beta
       (IMPLIES (ORD-LE alpha beta)
                (AND (IN alpha ORD) (IN beta ORD))))))
 
-(theory-add-axiom! *current-theory* 'ord-le-refl
+(add-axiom! *library* 'ord-le-refl
   '(FORALL alpha (IMPLIES (IN alpha ORD) (ORD-LE alpha alpha))))
 
-(theory-add-axiom! *current-theory* 'ord-le-antisymm
+(add-axiom! *library* 'ord-le-antisymm
   '(FORALL alpha (FORALL beta
       (IMPLIES (AND (ORD-LE alpha beta) (ORD-LE beta alpha))
                (= alpha beta)))))
 
-(theory-add-axiom! *current-theory* 'ord-le-trans
+(add-axiom! *library* 'ord-le-trans
   '(FORALL alpha (FORALL beta (FORALL gamma
       (IMPLIES (AND (ORD-LE alpha beta) (ORD-LE beta gamma))
                (ORD-LE alpha gamma))))))
 
-(theory-add-axiom! *current-theory* 'ord-le-total
+(add-axiom! *library* 'ord-le-total
   '(FORALL alpha (FORALL beta
       (IMPLIES (AND (IN alpha ORD) (IN beta ORD))
                (OR (ORD-LE alpha beta) (ORD-LE beta alpha))))))
 
 ;;; 0 is the least ordinal (0 ∈ NN ⊆ ORD, so 0 ∈ ORD follows from nn-subset-ord + nn-zero-in)
-(theory-add-axiom! *current-theory* 'ord-zero-least
+(add-axiom! *library* 'ord-zero-least
   '(FORALL alpha (IMPLIES (IN alpha ORD) (ORD-LE 0 alpha))))
 
 ;;; -----------------------------------------------------------------------
 ;;; Strict ordering: ORD-LT
 
-(theory-add-axiom! *current-theory* 'ord-lt-iff
+(add-axiom! *library* 'ord-lt-iff
   '(FORALL alpha (FORALL beta
       (IFF (ORD-LT alpha beta)
            (AND (ORD-LE alpha beta) (NOT (= alpha beta)))))))
@@ -85,34 +85,34 @@
 ;;; -----------------------------------------------------------------------
 ;;; Successor: succ_ORD
 
-(theory-add-axiom! *current-theory* 'ord-succ-in
+(add-axiom! *library* 'ord-succ-in
   '(FORALL alpha (IMPLIES (IN alpha ORD) (IN (succ_ORD alpha) ORD))))
 
 ;;; succ_ORD(alpha) is strictly above alpha
-(theory-add-axiom! *current-theory* 'ord-succ-above
+(add-axiom! *library* 'ord-succ-above
   '(FORALL alpha (IMPLIES (IN alpha ORD) (ORD-LT alpha (succ_ORD alpha)))))
 
 ;;; succ_ORD(alpha) is the immediate successor: any ordinal > alpha is >= succ_ORD(alpha)
 ;;; Nested binary AND -- VNB's kernel uses binary-left/right (cadr/caddr) on
 ;;; AND, which silently drops the third conjunct on a flat (AND a b c).
-(theory-add-axiom! *current-theory* 'ord-succ-immediate
+(add-axiom! *library* 'ord-succ-immediate
   '(FORALL alpha (FORALL beta
       (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD) (ORD-LT alpha beta)))
                (ORD-LE (succ_ORD alpha) beta)))))
 
 ;;; succ_ORD is injective
-(theory-add-axiom! *current-theory* 'ord-succ-injective
+(add-axiom! *library* 'ord-succ-injective
   '(FORALL alpha (FORALL beta
       (IMPLIES (AND (IN alpha ORD) (AND (IN beta ORD)
                                          (= (succ_ORD alpha) (succ_ORD beta))))
                (= alpha beta)))))
 
 ;;; succ_ORD agrees with succ on NN
-(theory-add-axiom! *current-theory* 'ord-succ-nn
+(add-axiom! *library* 'ord-succ-nn
   '(FORALL n (IMPLIES (IN n NN) (= (succ_ORD n) (succ n)))))
 
 ;;; ORD-LE restricted to NN matches numeric <=
-(theory-add-axiom! *current-theory* 'ord-le-nn-compat
+(add-axiom! *library* 'ord-le-nn-compat
   '(FORALL m (FORALL n
       (IMPLIES (AND (IN m NN) (IN n NN))
                (IFF (ORD-LE m n) (<= m n))))))
@@ -121,7 +121,7 @@
 ;;; Limit ordinals
 
 ;;; LIMIT-ORD(lambda): lambda is an ordinal that is neither 0 nor a successor
-(theory-add-axiom! *current-theory* 'limit-ord-iff
+(add-axiom! *library* 'limit-ord-iff
   '(FORALL lambda
       (IFF (LIMIT-ORD lambda)
            (AND (IN lambda ORD)
@@ -134,22 +134,22 @@
 ;;; Initial segments: ORD-SEGMENT
 
 ;;; (ORD-SEGMENT alpha) is a set for every ordinal alpha
-(theory-add-axiom! *current-theory* 'ord-segment-is-set
+(add-axiom! *library* 'ord-segment-is-set
   '(FORALL alpha (IMPLIES (IN alpha ORD) (IN (ORD-SEGMENT alpha) SET))))
 
 ;;; Membership in ORD-SEGMENT: x ∈ ORD-SEGMENT(alpha) <-> ORD-LT(x, alpha)
-(theory-add-axiom! *current-theory* 'ord-segment-membership
+(add-axiom! *library* 'ord-segment-membership
   '(FORALL alpha (FORALL x
       (IMPLIES (IN alpha ORD)
                (IFF (IN x (ORD-SEGMENT alpha))
                     (ORD-LT x alpha))))))
 
 ;;; ORD-SEGMENT(0) = ∅
-(theory-add-axiom! *current-theory* 'ord-segment-zero
+(add-axiom! *library* 'ord-segment-zero
   '(= (ORD-SEGMENT 0) EMPTY-SET))
 
 ;;; ORD-SEGMENT(succ_ORD(alpha)) = ORD-SEGMENT(alpha) ∪ {alpha}
-(theory-add-axiom! *current-theory* 'ord-segment-succ
+(add-axiom! *library* 'ord-segment-succ
   '(FORALL alpha
       (IMPLIES (IN alpha ORD)
                (FORALL x
@@ -160,7 +160,7 @@
 ;;; For a limit ordinal, ORD-SEGMENT(lambda) = ∪ { ORD-SEGMENT(beta) : ORD-LT(beta, lambda) }
 ;;; (equivalently: ORD-LT(x, lambda) iff there is a beta with ORD-LT(beta, lambda)
 ;;; and ORD-LT(x, beta))
-(theory-add-axiom! *current-theory* 'ord-segment-limit
+(add-axiom! *library* 'ord-segment-limit
   '(FORALL lambda
       (IMPLIES (LIMIT-ORD lambda)
                (FORALL x
@@ -172,14 +172,14 @@
 ;;; Supremum: SUP-ORD
 
 ;;; SUP-ORD(A) is an ordinal for any set of ordinals A
-(theory-add-axiom! *current-theory* 'sup-ord-in
+(add-axiom! *library* 'sup-ord-in
   '(FORALL A
       (IMPLIES (AND (IN A SET)
                     (FORALL x (IMPLIES (IN x A) (IN x ORD))))
                (IN (SUP-ORD A) ORD))))
 
 ;;; SUP-ORD(A) is an upper bound
-(theory-add-axiom! *current-theory* 'sup-ord-upper
+(add-axiom! *library* 'sup-ord-upper
   '(FORALL A
       (IMPLIES (AND (IN A SET)
                     (FORALL x (IMPLIES (IN x A) (IN x ORD))))
@@ -188,7 +188,7 @@
                           (ORD-LE alpha (SUP-ORD A)))))))
 
 ;;; SUP-ORD(A) is the least upper bound
-(theory-add-axiom! *current-theory* 'sup-ord-least
+(add-axiom! *library* 'sup-ord-least
   '(FORALL A
       (IMPLIES (AND (IN A SET)
                     (FORALL x (IMPLIES (IN x A) (IN x ORD))))
@@ -199,17 +199,17 @@
                           (ORD-LE (SUP-ORD A) beta))))))
 
 ;;; SUP-ORD(∅) = 0
-(theory-add-axiom! *current-theory* 'sup-ord-empty
+(add-axiom! *library* 'sup-ord-empty
   '(= (SUP-ORD EMPTY-SET) 0))
 
 ;;; For a limit ordinal lambda, SUP-ORD(ORD-SEGMENT(lambda)) = lambda
-(theory-add-axiom! *current-theory* 'limit-ord-is-sup
+(add-axiom! *library* 'limit-ord-is-sup
   '(FORALL lambda
       (IMPLIES (LIMIT-ORD lambda)
                (= (SUP-ORD (ORD-SEGMENT lambda)) lambda))))
 
 ;;; SUP-ORD(ORD-SEGMENT(succ_ORD(alpha))) = alpha  [the sup of {0..alpha} is alpha]
-(theory-add-axiom! *current-theory* 'sup-ord-succ-segment
+(add-axiom! *library* 'sup-ord-succ-segment
   '(FORALL alpha
       (IMPLIES (IN alpha ORD)
                (= (SUP-ORD (ORD-SEGMENT (succ_ORD alpha))) alpha))))
@@ -223,7 +223,7 @@
 ;;; In VNB (with class comprehension), this is a single axiom quantifying
 ;;; over classes C.  We state it in the class form.
 
-(theory-add-axiom! *current-theory* 'transfinite-induction
+(add-axiom! *library* 'transfinite-induction
   '(FORALL C
       (IMPLIES
         (FORALL alpha
@@ -310,7 +310,7 @@
     ;; that unfolded a transfinitely-defined constant paid debt for its own
     ;; defining equations (e.g. zkept-succ / zkept-limit).
     (fluid-let ((*current-provenance* 'definitional))
-      (theory-add-definition! *current-theory* f-name
+      (add-definition! *library* f-name
         (list (cons zero-name (wrap zero-core))
               (cons succ-name (wrap succ-core))
               (cons lim-name  (wrap lim-core)))))))
@@ -348,6 +348,6 @@
                                 (== (,f-name ,@params (succ ,n)) ,succ-body))))
          (wrap      (lambda (f) (fold-right (lambda (p g) `(FORALL ,p ,g)) f params))))
     (fluid-let ((*current-provenance* 'definitional))   ; as in def-by-ord-recursion
-      (theory-add-definition! *current-theory* f-name
+      (add-definition! *library* f-name
         (list (cons zero-name (wrap zero-core))
               (cons succ-name (wrap succ-core)))))))

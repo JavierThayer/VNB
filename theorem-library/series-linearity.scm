@@ -33,7 +33,7 @@
 ;;;
 ;;; This is the infrastructure the Bernstein rung was missing.  It replaces NO
 ;;; axiom, but it is what makes `sum-left-scalar' (sequences.scm:192 -- a bare
-;;; `theory-add-axiom!' with no `warrant!', i.e. `trust: none' for every citer)
+;;; `add-axiom!' with no `warrant!', i.e. `trust: none' for every citer)
 ;;; unnecessary on the RR surface: cite these instead.
 ;;;
 ;;; Loads after comparison-test-proof (series-partial-sum-zero/-succ).

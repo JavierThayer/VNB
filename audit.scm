@@ -21,11 +21,11 @@
 
 ;;; Term heads that do NOT introduce partiality: logical/relational heads (never
 ;;; in term position, but listed defensively) and the total class constructors
-;;; (UNION/INTERSECTION/... are total over classes -- theory.scm).
+;;; (UNION/INTERSECTION/... are total over classes -- library.scm).
 (define *audit-total-or-logical-heads*
   '(= == IFF IMPLIES AND OR NOT FORALL FORSOME IN SUBSET <= < > >= TRUTH FALSITY
     IS-SET UNION INTERSECTION COMPLEMENT COMPLEMENT-IN CARTESIAN LIST SET COMP
-    ;; POWER, not POWERSET: the powerset constructor is POWER (theory.scm).  This
+    ;; POWER, not POWERSET: the powerset constructor is POWER (library.scm).  This
     ;; list said POWERSET, a name the theory has never had -- so a POWER term was
     ;; being treated as a partial function APPLICATION by audit-unbounded, and it
     ;; is the stale name that seeded the TOP-SPACE bug.  See unknown-head-audit.
@@ -244,7 +244,7 @@
 ;;; well-formed, still prints, still renders in a card, and says NOTHING.
 ;;;
 ;;; TOP-SPACE was declared on 2026-07-13 with the slot type (POWERSET (POWER-
-;;; SET PTS)).  The powerset constructor in this theory is POWER (theory.scm:
+;;; SET PTS)).  The powerset constructor in this theory is POWER (library.scm:
 ;;; power-set, power-set-membership).  So IS-TOP-SPACE read "opens(s) in
 ;;; powerset(powerset(pts(s)))" with `powerset' an uninterpreted symbol, the
 ;;; structure loaded, the card rendered, and the whole suite passed.  It is the
@@ -256,7 +256,7 @@
 ;;; Anything else is a typo with axioms hanging off nothing.
 ;;;
 ;;; The allowlist below is the pre-existing baseline: real constants introduced
-;;; by bare theory-add-axiom! that never got a register-operator! call.  They are
+;;; by bare add-axiom! that never got a register-operator! call.  They are
 ;;; a TO-TRIAGE list, not a design -- each should get a def-functoid / notation!
 ;;; and leave this list -- but they are known-good, and pinning them here is what
 ;;; makes a NEW unknown head fail loudly instead of joining the noise.
@@ -334,8 +334,8 @@
 ;;; IFF is BINARY, and every quantifier binds exactly one variable.
 ;;;
 ;;; `make-wff' already rejects a flat `(AND a b c)' -- "make-wff: connective
-;;; arity" -- but `theory-add-axiom!' and `support' install a raw S-expression
-;;; WITHOUT validating it (theory.scm: the body is `install-theorem!' and
+;;; arity" -- but `add-axiom!' and `support' install a raw S-expression
+;;; WITHOUT validating it (library.scm: the body is `install-theorem!' and
 ;;; nothing else).  So a malformed formula can sit in *theorem-table* looking
 ;;; perfectly healthy.
 ;;;
@@ -346,7 +346,7 @@
 ;;; The formula the checker uses is then not the formula the author wrote, and
 ;;; nothing anywhere says so.
 ;;;
-;;; `fun-domain-extensionality' (theory.scm) carried exactly this bug: its
+;;; `fun-domain-extensionality' (library.scm) carried exactly this bug: its
 ;;; antecedent was a flat three-conjunct AND whose third conjunct was the
 ;;; agreement hypothesis "f and g agree on A".  Dropped, the axiom reads "any
 ;;; two functions with the same domain are equal".  Found 2026-07-28.
@@ -390,7 +390,7 @@
 ;;; -----------------------------------------------------------------------
 ;;; free-variable-audit -- no installed formula should have a FREE VARIABLE.
 ;;;
-;;; `support' and `theory-add-axiom!' install a raw S-expression with no
+;;; `support' and `add-axiom!' install a raw S-expression with no
 ;;; validation (this is the same door connective-arity-audit watches).  A
 ;;; formula that forgot to bind one of its variables is not a schema: the
 ;;; kernel reads the free name literally, so the fact means whatever that name
@@ -595,7 +595,7 @@
 ;;; WARN-ONLY.  The two standing entries are exempt below, with the argument.
 
 (define *sethood-audit-exempt*
-  ;; res-codomain / res-typing (theory.scm): RES(f,b) in FUN(b,...) with b only
+  ;; res-codomain / res-typing (library.scm): RES(f,b) in FUN(b,...) with b only
   ;; SUBSET a.  Safe by vacuity of the antecedent -- (IN f (FUN a c)) can hold
   ;; only for a set a (a function with a proper-class domain is a proper class,
   ;; hence a member of nothing), and then b subset a is a set by separation.
@@ -1300,9 +1300,9 @@
 ;;; -----------------------------------------------------------------------
 ;;; EIGHTH GATE: one object, two exact domains.
 ;;;
-;;; `IN f (FUN A ...)' pins DOM(f) = A EXACTLY.  theory.scm:321 states the
+;;; `IN f (FUN A ...)' pins DOM(f) = A EXACTLY.  library.scm:321 states the
 ;;; reading in as many words -- "(FUN A) = all total functions whose domain IS
-;;; A" -- and `dom-of-fun' (theory.scm:500) draws the equation out.  So a single
+;;; A" -- and `dom-of-fun' (library.scm:500) draws the equation out.  So a single
 ;;; object asserted into two function classes with DIFFERENT domains proves
 ;;; those two domains equal.
 ;;;
@@ -1454,7 +1454,7 @@
 (define *kernel-caller-files*
   '("primitive-inferences"                     ; the inference rules proper
     "macetes"                                  ; the rewriter
-    "theory"                                   ; two macete closures
+    "library"                                   ; two macete closures
     "arith-eval"                               ; the arithmetic oracle
     "structure-library/comm-ring-simplify"     ; the crs oracle
     "structure-library/ineq-oracle"            ; the ineq oracle

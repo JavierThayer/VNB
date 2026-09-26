@@ -55,7 +55,7 @@
 ;;; supp-membership, finsupp-membership), pair-tuple-sethood
 ;;; (pair-in-cartesian), monalg-laws (311, monoid-carrier-is-set), views
 ;;; (ring-additive-ag-is-abelian-group), bijection (81,
-;;; bijection-membership-iff) and theory.scm (cartesian-set-iff, primitive).
+;;; bijection-membership-iff) and library.scm (cartesian-set-iff, primitive).
 ;;; NOTHING forces hi: no proof in the tree cites monalg-comm (it is an off-bill
 ;;; leaf, which is why it is in batch 5).
 ;;;

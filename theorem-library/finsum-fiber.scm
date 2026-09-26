@@ -43,12 +43,12 @@
 ;;; why `matmul-assoc-summand-type' (structure-library/matrix.scm:637), the one
 ;;; earlier lambda-on-a-product typing, is an ASSERTED support rather than a
 ;;; proof.  It is proved here from `cartesian-decompose', the procedural macete
-;;; that IS the membership schema of the product (theory.scm:721).
+;;; that IS the membership schema of the product (library.scm:721).
 ;;;
 ;;; WARRANT ON A KERNEL MACETE.  `cartesian-decompose' is installed by
-;;; `install-macete!', not by `theory-add-axiom!', so it carries no provenance
+;;; `install-macete!', not by `add-axiom!', so it carries no provenance
 ;;; and no warrant: every proof that uses it bills `trust: none' for a schema
-;;; theory.scm's own comment calls an axiom.  It is warranted `well-known' below
+;;; library.scm's own comment calls an axiom.  It is warranted `well-known' below
 ;;; so this file's bills read honestly.  The BETTER answer is almost certainly
 ;;;
 ;;;     (register-provenance! 'cartesian-decompose 'definitional)

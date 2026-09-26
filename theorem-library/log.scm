@@ -82,7 +82,7 @@
 ;;; `modulo 0'; everything else inherits, unchanged, the fifteen leaves that
 ;;; `c-int-value' bills (Cor 4.11's debt, through equation (64)) together with
 ;;; what `continuous-is-antiderivable' bills for rung 3.  Nothing here adds a
-;;; leaf of its own: there is no `support' and no `theory-add-axiom!' in this
+;;; leaf of its own: there is no `support' and no `add-axiom!' in this
 ;;; file.
 ;;;
 ;;; Loads after c-int-change-of-variable (the value formula),

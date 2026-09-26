@@ -14,7 +14,7 @@
 ;;; km-static2.scm -- STATIC half of the kernel map, second version.
 ;;;
 ;;; What changed from km-static.scm, and why:
-;;;  1. LOAD-TIME vs RUN-TIME.  `(define *current-theory* (make-vnb-base-theory))'
+;;;  1. LOAD-TIME vs RUN-TIME.  `(define *library* (make-vnb-base-library))'
 ;;;     runs its initializer ONCE, at load.  Referencing the variable later does
 ;;;     not run it again, so calls inside a data initializer are not edges.
 ;;;     Procedures passed or stored as VALUES there still are, and anything
@@ -23,7 +23,7 @@
 ;;;  2. THE MACETE TABLE is the kernel's one indirect door.  Graph writes happen
 ;;;     inside closures that were put in the table earlier and are fetched and
 ;;;     called later: the closure `make-elementary-macete' RETURNS, and two
-;;;     anonymous `(install-macete! 'NAME (lambda ...))' forms in theory.scm.
+;;;     anonymous `(install-macete! 'NAME (lambda ...))' forms in library.scm.
 ;;;     Each becomes a node; the constructor itself is NOT a kernel entry --
 ;;;     building a closure writes nothing.  Whatever fetches from the table can
 ;;;     reach them all (conservative; the dynamic run shows which fire).

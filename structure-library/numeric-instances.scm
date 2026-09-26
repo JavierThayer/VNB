@@ -47,13 +47,13 @@
 ;; (not the bare `asserted' default): there is nothing above them to prove
 ;; FROM, so they are not warrant candidates.
 (fluid-let ((*current-provenance* 'definitional))
- (theory-add-axiom! *current-theory* 'binplus-apply
+ (add-axiom! *library* 'binplus-apply
    '(FORALL x (FORALL y (== (binplus x y) (+ x y)))))
 
- (theory-add-axiom! *current-theory* 'bintimes-apply
+ (add-axiom! *library* 'bintimes-apply
    '(FORALL x (FORALL y (== (bintimes x y) (* x y)))))
 
- (theory-add-axiom! *current-theory* 'binneg-apply
+ (add-axiom! *library* 'binneg-apply
    '(FORALL x (== (binneg x) (- x)))))
 
 ;;; -----------------------------------------------------------------------
@@ -66,8 +66,8 @@
 ;;; per (operation, numeric domain) pair.  The comment beneath them described
 ;;; them, correctly, as CLOSURE facts -- "closure of a primitive numeric domain
 ;;; under its arithmetic operation".  That is not what they said.  `(FUN A)' is
-;;; "all total functions whose domain IS A" (theory.scm:321), so membership pins
-;;; the domain EXACTLY, and `dom-of-fun' (theory.scm:500) draws the equation out.
+;;; "all total functions whose domain IS A" (library.scm:321), so membership pins
+;;; the domain EXACTLY, and `dom-of-fun' (library.scm:500) draws the equation out.
 ;;; Fourteen axioms asserting ONE object into NINE different function classes
 ;;; therefore proved those classes' domains equal:
 ;;;
@@ -147,38 +147,38 @@
 ;;; states it.  They have no dependents, so nothing is waiting on them.
 
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'nary-plus-2
+  (add-axiom! *library* 'nary-plus-2
     '(FORALL x (FORALL y
         (== (+ x y) (binplus x y))))))
 
-(theory-add-axiom! *current-theory* 'nary-plus-3
+(add-axiom! *library* 'nary-plus-3
   '(FORALL x (FORALL y (FORALL z
       (== (+ x y z) (binplus (binplus x y) z))))))
 
-(theory-add-axiom! *current-theory* 'nary-plus-4
+(add-axiom! *library* 'nary-plus-4
   '(FORALL w (FORALL x (FORALL y (FORALL z
       (== (+ w x y z) (binplus (binplus (binplus w x) y) z)))))))
 
-(theory-add-axiom! *current-theory* 'nary-plus-5
+(add-axiom! *library* 'nary-plus-5
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
       (== (+ v w x y z)
          (binplus (binplus (binplus (binplus v w) x) y) z))))))))
 
 ;; definitional: the converse of bintimes-apply (see the block comment above).
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'nary-times-2
+  (add-axiom! *library* 'nary-times-2
     '(FORALL x (FORALL y
         (== (* x y) (bintimes x y))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-3
+(add-axiom! *library* 'nary-times-3
   '(FORALL x (FORALL y (FORALL z
       (== (* x y z) (bintimes (bintimes x y) z))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-4
+(add-axiom! *library* 'nary-times-4
   '(FORALL w (FORALL x (FORALL y (FORALL z
       (== (* w x y z) (bintimes (bintimes (bintimes w x) y) z)))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-5
+(add-axiom! *library* 'nary-times-5
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
       (== (* v w x y z)
          (bintimes (bintimes (bintimes (bintimes v w) x) y) z))))))))
@@ -190,7 +190,7 @@
 
 ;; definitional: the converse of binneg-apply (see the block comment above).
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'nary-neg-1
+  (add-axiom! *library* 'nary-neg-1
     '(FORALL x
         (== (- x) (binneg x)))))
 
@@ -206,7 +206,7 @@
 ;; and which nothing else in the theory states (see CLAUDE.md on binary minus
 ;; having had no axiom at all until 2026-08-01).
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'nary-minus-2
+  (add-axiom! *library* 'nary-minus-2
     '(FORALL x (FORALL y
         (== (- x y) (binplus x (binneg y)))))))
 
@@ -318,8 +318,8 @@
 ;;; (|a|, |b|) with a signed remainder).  It was the library's last `trust: none'
 ;;; bill, entering through zz-bezout.
 
-(theory-add-axiom! *current-theory* 'qq-is-commutative-ring '(IS-COMMUTATIVE-RING QQ-RING))
-(theory-add-axiom! *current-theory* 'qq-is-integral-domain  '(IS-INTEGRAL-DOMAIN QQ-RING))
+(add-axiom! *library* 'qq-is-commutative-ring '(IS-COMMUTATIVE-RING QQ-RING))
+(add-axiom! *library* 'qq-is-integral-domain  '(IS-INTEGRAL-DOMAIN QQ-RING))
 
 ;;; cc-is-normed-field PROVEN 2026-09-20 (batch 13-B): theorem-library/cc-normed-field.scm
 
@@ -377,7 +377,7 @@
 ;;; "rr-complete" the earlier design deferred is exactly IS-COMPLETE(RR-MS).
 
 ;; The tuple equation is a DEFINITION (def-constant, definitional, citable), not
-;; an axiom: a theory-add-axiom! of it takes the default `asserted' provenance
+;; an axiom: a add-axiom! of it takes the default `asserted' provenance
 ;; and downgrades a definition to a phantom debt leaf.  rr-ms-def had this right
 ;; before the other instances did; declare-instance! now does it for all of them.
 (declare-instance! 'RR-MS 'METRIC-SPACE 'rr-ms-def
@@ -385,7 +385,7 @@
 
 ;; rr-is-metric-space MOVED 2026-08-16 to theorem-library/rr-metric-space-proof.scm,
 ;; where IS-METRIC-SPACE(RR-MS) is PROVEN `modulo 0'.  It was a bare
-;; theory-add-axiom! here with NO warrant! at all -- so it billed `trust: none',
+;; add-axiom! here with NO warrant! at all -- so it billed `trust: none',
 ;; the weakest report there is, and it was the sole unwarranted leaf of
 ;; rr-complete.  The comment above used to end "...is an axiom (provable from the
 ;; abs axioms in number-systems.scm once FUN-typing of the lambda is in place)":
@@ -445,36 +445,36 @@
 ;;; fam-of-list-apply + the kernel NTH rules (not asserted, follows by
 ;;; unfolding).
 
-(theory-add-axiom! *current-theory* 'nary-plus-2-list
+(add-axiom! *library* 'nary-plus-2-list
   '(FORALL x (FORALL y
       (== (+ x y) (REDUCE binplus (FAM-OF-LIST (LIST x y)) 2)))))
 
-(theory-add-axiom! *current-theory* 'nary-plus-3-list
+(add-axiom! *library* 'nary-plus-3-list
   '(FORALL x (FORALL y (FORALL z
       (== (+ x y z) (REDUCE binplus (FAM-OF-LIST (LIST x y z)) 3))))))
 
-(theory-add-axiom! *current-theory* 'nary-plus-4-list
+(add-axiom! *library* 'nary-plus-4-list
   '(FORALL w (FORALL x (FORALL y (FORALL z
       (== (+ w x y z) (REDUCE binplus (FAM-OF-LIST (LIST w x y z)) 4)))))))
 
-(theory-add-axiom! *current-theory* 'nary-plus-5-list
+(add-axiom! *library* 'nary-plus-5-list
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
       (== (+ v w x y z)
          (REDUCE binplus (FAM-OF-LIST (LIST v w x y z)) 5))))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-2-list
+(add-axiom! *library* 'nary-times-2-list
   '(FORALL x (FORALL y
       (== (* x y) (REDUCE bintimes (FAM-OF-LIST (LIST x y)) 2)))))
 
-(theory-add-axiom! *current-theory* 'nary-times-3-list
+(add-axiom! *library* 'nary-times-3-list
   '(FORALL x (FORALL y (FORALL z
       (== (* x y z) (REDUCE bintimes (FAM-OF-LIST (LIST x y z)) 3))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-4-list
+(add-axiom! *library* 'nary-times-4-list
   '(FORALL w (FORALL x (FORALL y (FORALL z
       (== (* w x y z) (REDUCE bintimes (FAM-OF-LIST (LIST w x y z)) 4)))))))
 
-(theory-add-axiom! *current-theory* 'nary-times-5-list
+(add-axiom! *library* 'nary-times-5-list
   '(FORALL v (FORALL w (FORALL x (FORALL y (FORALL z
       (== (* v w x y z)
          (REDUCE bintimes (FAM-OF-LIST (LIST v w x y z)) 5))))))))

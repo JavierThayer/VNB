@@ -1,6 +1,6 @@
 ;;; tuples-induction.scm -- list induction, DERIVED.
 ;;;
-;;; theory.scm:637 recorded two things as pending: a CONS constructor, and "a
+;;; library.scm:637 recorded two things as pending: a CONS constructor, and "a
 ;;; TUPLES induction principle".  structure-library/list-recursion.scm supplies
 ;;; the first, and instead of the second it states GENERATION -- that a tuple of
 ;;; length 0 is [], and that a tuple of length succ n is a CONS.  This file

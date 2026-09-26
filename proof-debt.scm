@@ -922,7 +922,7 @@
         ;; --- 4. asserted names with NO warrant (the user's decision, 2026-09-18:
         ;; the survey scratchpad/r7p/r7p-survey.scm becomes a generated section).
         ;; Sections 1-3 start from bills and from the PSS; a bare
-        ;; `theory-add-axiom!' with no `warrant!' is in neither unless some proof
+        ;; `add-axiom!' with no `warrant!' is in neither unless some proof
         ;; happens to cite it, so no generated document listed these.
         (display "## 4. Asserted names with NO warrant\n\n")
         (let* ((billed (let ((h (make-equal-hash-table)))

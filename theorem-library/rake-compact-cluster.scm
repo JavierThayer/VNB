@@ -54,7 +54,7 @@
 ;;;
 ;;; CITATIONS and load positions (0-based over prover-load, 2026-09-19):
 ;;;   class-extensionality, choice-axiom, subset-def, power-set,
-;;;   power-set-membership, rr-leq-total  -- theory.scm / number-systems
+;;;   power-set-membership, rr-leq-total  -- library.scm / number-systems
 ;;;   (primitive); image-membership-iff (structure-library/injection, 98);
 ;;;   cluster-point, is-compact, is-open-cover (structure-library/compactness,
 ;;;   62); is-metric-space, is-open, pos-rr, `<' (early); fun-apply-type-c

@@ -2135,8 +2135,8 @@
     path))
 
 ;;; (write-definitions-md) -- write DEFINITIONS.md: every constant/predicate
-;;; introduced by `def-constant' / `theory-add-definition!' (the authoritative
-;;; `theory-definitions' registry that `display-definitions' reads), with its
+;;; introduced by `def-constant' / `add-definition!' (the authoritative
+;;; `library-definitions' registry that `display-definitions' reads), with its
 ;;; defining axiom(s) pretty-printed in VNB string syntax.  This is the
 ;;; concept-level index for term and predicate definitions -- e.g. CAUCHY
 ;;; sequence, CONVERGES, IS-COMPLETE -- the analogue of STRUCTURE-INDEX.md for
@@ -2154,9 +2154,9 @@
 
 ;;; The hand-written defining axioms: every `definitional'-stamped result that
 ;;; is a conservative defining `iff'/`==' (so NOT a view-as specialization,
-;;; which is `implies'-shaped) and was installed via raw `theory-add-axiom!'
+;;; which is `implies'-shaped) and was installed via raw `add-axiom!'
 ;;; rather than `def-predicate'/`def-constant' (so it never reached the
-;;; `theory-definitions' registry the first section walks).  These are the
+;;; `library-definitions' registry the first section walks).  These are the
 ;;; property predicates (is-associative, ...), membership characterisations
 ;;; (preimage-membership, ...), the bin* apply laws, ordinal order (ord-lt-iff),
 ;;; and slot reads -- previously discoverable ONLY by reading source.
@@ -2198,7 +2198,7 @@
         (else #f)))
 
 (define (definitions--extra)
-  (let* ((registered (map car (theory-definitions *current-theory*)))
+  (let* ((registered (map car (library-definitions *library*)))
          (snames     (append (hash-table-keys *structure-table*)
                              (hash-table-keys *definitional-structure-table*)))
          (struct-excl
@@ -2223,12 +2223,12 @@
 
 (define (write-definitions-md)
   (let* ((path  (string-append *reference-dir* "DEFINITIONS.md"))
-         (defs  (sort (theory-definitions *current-theory*)
+         (defs  (sort (library-definitions *library*)
                       (lambda (a b) (string<? (symbol->string (car a))
                                               (symbol->string (car b))))))
          (extra (definitions--extra))
          ;; def-functoid installs a MACETE, not a theorem, so functoids are in
-         ;; neither `theory-definitions' nor the theorem table -- they used to
+         ;; neither `library-definitions' nor the theorem table -- they used to
          ;; appear only in FUNCTORS.md.  A reader looking up "what is X" for any
          ;; of the ~100 constructors had to already know which of the two files
          ;; to open, and the split is by an implementation detail (whether the
@@ -2321,7 +2321,7 @@
           functoids)
         (display "## Other definitional axioms\n\n")
         (display "Conservative defining `iff`/`==` axioms installed via ")
-        (display "`theory-add-axiom!`, so absent from the `def-*` registry above ")
+        (display "`add-axiom!`, so absent from the `def-*` registry above ")
         (display "but stamped `definitional` in the provenance ledger: property ")
         (display "predicates, membership characterisations, `bin*` apply laws, ")
         (display "ordinal order, slot reads.  Unfold with `(mac 'NAME)` / ")
@@ -2589,7 +2589,7 @@
           ((memq h *structure-valued-heads*)           "set-valued")
           (else #f))))
 
-;; Classify a theory-definitions entry (def-constant / def-*-recursion /
+;; Classify a library-definitions entry (def-constant / def-*-recursion /
 ;; def-predicate all land here).  Returns one of 'predicate 'recursive-functoid
 ;; 'functoid 'constant.
 (define (op-defn-class name axs)
@@ -2646,7 +2646,7 @@
        (list name 'functoid "def-functoid"
              (or vt "element/number-valued") '())))
     ((eq? kind 'defined-fn)
-     (let* ((entry (assq name (theory-definitions *current-theory*)))
+     (let* ((entry (assq name (library-definitions *library*)))
             (axs   (if entry (cdr entry) '()))
             (cls   (op-defn-class name axs)))
        (list name
@@ -2967,7 +2967,7 @@
     (display " assertions) -> ") (display path) (newline)
     (let ((dpath (write-definitions-md)))
       (display ";; definitions: ")
-      (display (length (theory-definitions *current-theory*)))
+      (display (length (library-definitions *library*)))
       (display " -> ") (display dpath) (newline))
     (let ((fr (write-functoids-md)))
       (display ";; functoids: ")
@@ -4536,8 +4536,8 @@
 ;;; has `is-<name>-def' instead, and no tuple.)
 ;;;
 ;;; declare-instance! (structures.scm) is the registry, and it is asked FIRST: the
-;;; tuple equation is a DEFINITION, so it lives in theory-definitions, and the old
-;;; scan of theory-axioms for `<name>-def' -- which is all this used to do -- went
+;;; tuple equation is a DEFINITION, so it lives in library-definitions, and the old
+;;; scan of library-axioms for `<name>-def' -- which is all this used to do -- went
 ;;; blind to every instance the moment they stopped being asserted axioms.  The
 ;;; scan stays as the fallback, for a hand-rolled instance that never went through
 ;;; declare-instance!.
@@ -4545,7 +4545,7 @@
   (or (instance-tuple name)
       (let* ((def-name (string->symbol
                          (string-append (string-downcase (symbol->string name)) "-def")))
-             (ax (assq def-name (theory-axioms *current-theory*))))
+             (ax (assq def-name (library-axioms *library*))))
         (and ax
              (let ((f (cdr ax)))
                (and (pair? f) (eq? (car f) '=) (eq? (cadr f) name)
@@ -4557,7 +4557,7 @@
 ;;;
 ;;; PROVEN theorems count, not only axioms -- the same blindness the comment
 ;;; above `definitional-instance-tuple' describes, one line down.  This scanned
-;;; `theory-axioms' alone until 2026-08-16, so the moment `rr-is-metric-space'
+;;; `library-axioms' alone until 2026-08-16, so the moment `rr-is-metric-space'
 ;;; stopped being an asserted axiom and became a theorem
 ;;; (theorem-library/rr-metric-space-proof.scm) the RR-MS card lost its witness
 ;;; and printed "(no membership witness installed)" about a fact the library now
@@ -4569,7 +4569,7 @@
                  (let ((s (symbol->string (car f))))
                    (and (>= (string-length s) 3) (string=? (substring s 0 3) "is-"))))))
          (from-axioms
-          (let loop ((axs (theory-axioms *current-theory*)) (acc '()))
+          (let loop ((axs (library-axioms *library*)) (acc '()))
             (if (null? axs)
                 (reverse acc)
                 (let* ((entry (car axs)) (axname (car entry)) (f (cdr entry)))

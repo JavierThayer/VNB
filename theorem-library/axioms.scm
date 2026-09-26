@@ -32,11 +32,11 @@
 ;;; (eq-subst-membership generalizes to arbitrary contexts).  Retained
 ;;; as named axioms for direct use; eventually demote to proven lemmas.
 
-(theory-add-axiom! *current-theory* 'equality-symmetry
+(add-axiom! *library* 'equality-symmetry
   '(FORALL a (FORALL b
       (IMPLIES (= a b) (= b a)))))
 
-(theory-add-axiom! *current-theory* 'equality-transitivity
+(add-axiom! *library* 'equality-transitivity
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (= a b) (= b c)) (= a c))))))
 
@@ -46,18 +46,18 @@
 ;;; (== a b) holds when a and b are both undefined, or both defined and equal.
 ;;; When a is defined (= a a is provable) quasi-equality coincides with =.
 
-(theory-add-axiom! *current-theory* 'quasi-eq-reflexivity
+(add-axiom! *library* 'quasi-eq-reflexivity
   '(FORALL a (== a a)))
 
-(theory-add-axiom! *current-theory* 'quasi-eq-symmetry
+(add-axiom! *library* 'quasi-eq-symmetry
   '(FORALL a (FORALL b
       (IMPLIES (== a b) (== b a)))))
 
-(theory-add-axiom! *current-theory* 'quasi-eq-transitivity
+(add-axiom! *library* 'quasi-eq-transitivity
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (== a b) (== b c)) (== a c))))))
 
-(theory-add-axiom! *current-theory* 'quasi-eq-def
+(add-axiom! *library* 'quasi-eq-def
   '(FORALL a (FORALL b
       (IMPLIES (= a a)
                (IFF (== a b) (= a b))))))
@@ -66,12 +66,12 @@
 ;;; FUN: derived typing rule
 ;;;
 ;;; fun-apply-type: f ∈ FUN(A,B) ∧ x ∈ A ⟹ f(x) ∈ B
-;;; DERIVED (REVIEW.md R-7) from fun-codomain-iff (theory.scm):
+;;; DERIVED (REVIEW.md R-7) from fun-codomain-iff (library.scm):
 ;;;   IFF (IN f (FUN A B)) (AND (IN f (FUN A)) (FORALL x (IMPLIES (IN x A) (IN (f x) B))))
 ;;; — the right conjunct of the IFF, instantiated and applied.  Retained
 ;;; as a named axiom for direct use.
 
-(theory-add-axiom! *current-theory* 'fun-apply-type
+(add-axiom! *library* 'fun-apply-type
   '(FORALL f (FORALL A (FORALL B (FORALL x
       (IMPLIES (AND (IN f (FUN A B)) (IN x A))
                (IN (f x) B)))))))
@@ -122,15 +122,15 @@
 ;;; §Function application; ch-defs.tex §declare-structure; ch-proofs.tex
 ;;; §curried/tupled apply convention).
 
-(theory-add-axiom! *current-theory* 'apply-tupling-1
+(add-axiom! *library* 'apply-tupling-1
   '(FORALL f (FORALL a
       (== (f a) (f (LIST a))))))
 
-(theory-add-axiom! *current-theory* 'apply-tupling-2
+(add-axiom! *library* 'apply-tupling-2
   '(FORALL f (FORALL a (FORALL b
       (== (f a b) (f (LIST a b)))))))
 
-(theory-add-axiom! *current-theory* 'apply-tupling-3
+(add-axiom! *library* 'apply-tupling-3
   '(FORALL f (FORALL a (FORALL b (FORALL c
       (== (f a b c) (f (LIST a b c))))))))
 
@@ -142,7 +142,7 @@
 ;;; predicate λx. (IN x S).  Retained as a named axiom for direct use
 ;;; in proofs of structural equalities.
 
-(theory-add-axiom! *current-theory* 'eq-subst-membership
+(add-axiom! *library* 'eq-subst-membership
   '(FORALL a (FORALL b (FORALL S
       (IMPLIES (AND (= a b) (IN b S))
                (IN a S))))))
@@ -151,7 +151,7 @@
 ;;; forces b defined, so a == b collapses to a = b (both defined), hence a in S.
 ;;; Needed since the partial-op recursion/bridge facts are now stated with ==
 ;;; (e.g. SUM r f 0 == ZERO r): membership transfer through a == fact.
-(theory-add-axiom! *current-theory* 'quasi-eq-subst-membership
+(add-axiom! *library* 'quasi-eq-subst-membership
   '(FORALL a (FORALL b (FORALL S
       (IMPLIES (AND (== a b) (IN b S))
                (IN a S))))))
@@ -166,7 +166,7 @@
 ;;; — anything that is a member of any class is a set.  Retained as a named
 ;;; axiom for direct use in structure instance proofs.
 
-(theory-add-axiom! *current-theory* 'list-sethood
+(add-axiom! *library* 'list-sethood
   '(FORALL A (FORALL L
       (IMPLIES (AND (IN A SET) (IN L (TUPLES A)))
                (IN L SET)))))

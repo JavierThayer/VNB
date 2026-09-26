@@ -1,12 +1,12 @@
 ;;; rake-monoid-laws.scm -- BATCH 5c-P of the 2026-09-18 rake: the three MONOID
 ;;; shape projections, PROVEN.
 ;;;
-;;;   monoid-assoc     structure-library/monoid.scm:19   (theory-add-axiom!)
-;;;   monoid-left-id   structure-library/monoid.scm:29   (theory-add-axiom!)
-;;;   monoid-right-id  structure-library/monoid.scm:36   (theory-add-axiom!)
+;;;   monoid-assoc     structure-library/monoid.scm:19   (add-axiom!)
+;;;   monoid-left-id   structure-library/monoid.scm:29   (add-axiom!)
+;;;   monoid-right-id  structure-library/monoid.scm:36   (add-axiom!)
 ;;;
 ;;; Each statement is its site's statement UNCHANGED (copied from the
-;;; theory-add-axiom! form, not retyped from a printed goal).
+;;; add-axiom! form, not retyped from a printed goal).
 ;;;
 ;;; WHAT THEY ARE.  `declare-structure MONOID' carries
 ;;;     (property is-associative OPR CARR)

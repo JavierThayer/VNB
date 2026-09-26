@@ -22,7 +22,7 @@
 ;;; -- the term Prop 3.14 (~/docs/calculus.pdf) needs to state sequential
 ;;; continuity natively, with no Skolem stand-in.
 ;;;
-;;; Dependencies: VNB-LAMBDA (theory.scm / primitive-inferences.scm) and the
+;;; Dependencies: VNB-LAMBDA (library.scm / primitive-inferences.scm) and the
 ;;; FUN/apply axioms (fun-codomain-iff).  Nothing metric-specific -- loaded
 ;;; with the foundations so every later library can use it.
 

@@ -73,7 +73,7 @@
 ;;; equivalence between the two "is FUNCTION EXTENSIONALITY composed with the
 ;;; pointwise value of MONALG-ZERO, and neither of those is in the tree in
 ;;; citable form".  Half of that was wrong: `fun-domain-extensionality'
-;;; (theory.scm) has been in the tree, and PRIMITIVE, since 2026-07-28.  The
+;;; (library.scm) has been in the tree, and PRIMITIVE, since 2026-07-28.  The
 ;;; other half was right, and it was one `lam-b'.  Both live in
 ;;; theorem-library/poly-zero.scm now, together with the bridge
 ;;;
@@ -927,7 +927,7 @@
 ;;; real gap: nothing in the tree states that two functions agreeing pointwise
 ;;; on their common domain are equal".  That was false, and the correction is
 ;;; worth more than the theorem it unblocked: `fun-domain-extensionality'
-;;; (theory.scm:451) is a base axiom, PRIMITIVE, in exactly that form and with
+;;; (library.scm:451) is a base axiom, PRIMITIVE, in exactly that form and with
 ;;; no finiteness or sethood side condition.  The standing rule the entry was
 ;;; recalling (`drop_fn_ext_consequences') forbids adding per-operator
 ;;; congruence lemmas AROUND it; it never forbade citing it.  What was genuinely

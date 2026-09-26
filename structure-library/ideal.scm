@@ -53,7 +53,7 @@
 ;;; context, which is exactly what zz-bezout-proof and spans-submodule-fg-proof
 ;;; do with it.
 ;;;
-;;; DEFINITIONAL (stamped 2026-08-10; it had been a bare `theory-add-axiom!' and
+;;; DEFINITIONAL (stamped 2026-08-10; it had been a bare `add-axiom!' and
 ;;; so an unwarranted leaf in five bills -- the largest single source of
 ;;; `trust: none' left in the library).  Legitimately definitional: it is the
 ;;; functoid unfold composed with the SEP separation schema, both trusted base,
@@ -64,7 +64,7 @@
 ;;; sweep.  The `fluid-let' wrap -- rather than a later register-provenance! --
 ;;; is what also stamps the auto-generated `-rev' companion.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'principal-ideal-membership
+  (add-axiom! *library* 'principal-ideal-membership
     '(FORALL s (FORALL a (FORALL x
        (IFF (IN x (PRINCIPAL-IDEAL s a))
             (AND (IN x (CARR s))

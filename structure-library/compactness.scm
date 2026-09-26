@@ -123,7 +123,7 @@
 ;;; cover is stored as the SET B(c,r), with the centre c thrown away, and the
 ;;; map x |-> B(x,r) need not be injective, so "the centre of a ball" is not a
 ;;; function without choice.  We make the choice EXPLICIT with the global
-;;; Hilbert epsilon (CHOICE, theory.scm): for a ball B, CENTRES(s,B,r) is the
+;;; Hilbert epsilon (CHOICE, library.scm): for a ball B, CENTRES(s,B,r) is the
 ;;; (set of) centres of B, and CHOICE(CENTRES s B r) picks one -- defined exactly
 ;;; when that set is inhabited (the iota/epsilon definedness proviso), which it
 ;;; is for a ball drawn from the cover.  CENTRE-SET(s,r,F) is then the image of

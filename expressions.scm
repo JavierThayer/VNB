@@ -378,7 +378,7 @@
 ;;;
 ;;; Every constant head is registered here with a kind tag; any unregistered
 ;;; symbol is treated as a variable.  Populated at load time by: wff.scm
-;;; (kernel operators), def-structure (accessors), theory-add-definition!
+;;; (kernel operators), def-structure (accessors), add-definition!
 ;;; (defined functions), def-functoid (functoids), def-predicate.
 ;;;
 ;;; Because the reader case-folds symbols, a bound variable whose name

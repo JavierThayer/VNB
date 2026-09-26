@@ -31,7 +31,7 @@
 ;;;     group-assoc -> comm-monoid-assoc;  group-left-id -> comm-monoid-left-id;
 ;;;     abelian-group-opr-comm -> comm-monoid-opr-comm   (all four PROVEN modulo 0
 ;;;     in theorem-library/rake-finsum-core.scm; the MONOID axioms monoid-assoc /
-;;;     -left-id / -right-id are UNWARRANTED `theory-add-axiom!'s and are NOT cited
+;;;     -left-id / -right-id are UNWARRANTED `add-axiom!'s and are NOT cited
 ;;;     here -- citing one would make every result `trust: none');
 ;;;   * finsum-insert-ag -> finsum-insert (finsum-insert.scm's comm-monoid form);
 ;;;   * finsum-type-ptwise -> finsum-comm-monoid-type-ptwise (assignment 5c-K,
@@ -66,7 +66,7 @@
 ;;;       difference-membership), fun-apply-type-proof (160, fun-apply-type-c),
 ;;;       ord-segment-nn-subset-proof (152, ord-segment-nn-subset),
 ;;;       equality-basics (146, eq-sym), structure-library/bijection (81,
-;;;       bijection-membership-iff).  Everything else is primitive: theory.scm
+;;;       bijection-membership-iff).  Everything else is primitive: library.scm
 ;;;       (class-extensionality, pairing, pairing-membership, union-membership,
 ;;;       union-set-closure, empty-set-is-set), cardinality.scm (card-insert,
 ;;;       finite-set-induction), ordinals.scm (ord-succ-nn), number-systems
@@ -650,7 +650,7 @@
 ;;;
 ;;; A NOTE FOR THE INTEGRATOR ABOUT THE MONOID AXIOMS.  monoid-assoc,
 ;;; monoid-left-id and monoid-right-id (structure-library/monoid.scm:18-40) are
-;;; unwarranted `theory-add-axiom!'s; assignment 5c-P proves all three
+;;; unwarranted `add-axiom!'s; assignment 5c-P proves all three
 ;;; (theorem-library/rake-monoid-laws.scm) and asks for them to be retired.  This
 ;;; file cites NONE of them -- it goes through comm-monoid-assoc /
 ;;; comm-monoid-left-id / comm-monoid-opr-comm (rake-finsum-core.scm, proven) --

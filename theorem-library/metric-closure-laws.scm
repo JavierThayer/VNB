@@ -47,7 +47,7 @@
 ;;; nothing types the distance (the `ball-mem-from-le' scar, rake-balls.scm).
 ;;;
 ;;; CITATIONS and 0-based load positions over load.scm's file list:
-;;;   primitive (theory.scm): subset-def, complement-in-membership,
+;;;   primitive (library.scm): subset-def, complement-in-membership,
 ;;;     class-extensionality; number-systems.scm rr-leq-reflexive,
 ;;;     rr-leq-antisymmetric, rr-leq-total.
 ;;;   definitional: the is-open / is-closed / converges-to / pos-rr / `<' unfolds;

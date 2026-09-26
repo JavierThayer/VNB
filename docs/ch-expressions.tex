@@ -23,7 +23,7 @@ terms use functional notation, quantifiers use the binding-list form,
 and set expressions use brace notation.
 Section~\ref{sec:parser-printer} describes both layers in full.
 The examples in this manual use string syntax for user-facing
-formulas; internal S-expression forms appear only in theory and
+formulas; internal S-expression forms appear only in library and
 structure definitions.
 
 MIT~Scheme reads symbols case-insensitively (folding to lower case),
@@ -894,7 +894,7 @@ the full generality of categorical constructions.
 \end{remark}
 
 %
-The base theory installs the following axioms.  The primary form of
+The base library installs the following axioms.  The primary form of
 \texttt{FUN} is the unary $\mathit{FUN}(A)$ -- all total functions whose
 domain is $A$, with no codomain restriction; the binary $\mathit{FUN}(A,B)$
 is the derived form $\{f \in \mathit{FUN}(A) : \forall x \in A.\;f(x) \in B\}$.
@@ -966,7 +966,7 @@ the registry is treated as a variable.  The kinds are:
 \item \texttt{accessor} -- a structure field selector, registered by
   \texttt{declare-structure};
 \item \texttt{defined-fn} -- a defined function or constant, registered
-  by \texttt{theory-add-definition!};
+  by \texttt{add-definition!};
 \item \texttt{functoid} -- registered by \texttt{def-functoid};
 \item \texttt{predicate} -- registered by \texttt{def-predicate}.
 \end{itemize}
@@ -1389,7 +1389,7 @@ the shape is the thing being tested.
 \begin{remark}
 Input is coerced uniformly: \texttt{part} and friends accept a wff, a
 surface string, or a raw S-expression.  Given a wff or string they hand
-back wffs (re-wrapped in the same theory); given a bare S-expression there
+back wffs (re-wrapped in the same library); given a bare S-expression there
 is no wff parent to re-wrap against, so the parts come back as raw
 S-expressions.  One asymmetry follows from \texttt{make-wff} validation: a
 standalone \emph{term} string such as \texttt{"x + y"} is not a wff, so

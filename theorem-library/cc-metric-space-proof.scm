@@ -1,6 +1,6 @@
 ;;; cc-metric-space-proof.scm -- IS-METRIC-SPACE(CC-MS), PROVEN.
 ;;;
-;;; It was an AXIOM -- `theory-add-axiom!' in structure-library/complex.scm with
+;;; It was an AXIOM -- `add-axiom!' in structure-library/complex.scm with
 ;;; no `warrant!' at all, so it billed `trust: none', the weakest report there
 ;;; is, and it was one of the three such bills left in the library.
 ;;;

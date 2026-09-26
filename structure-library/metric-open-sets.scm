@@ -54,7 +54,7 @@
 
 ;;; preimage-membership: a in PREIMAGE(s,f,V) iff a in PTS(s) and f(a) in V.
 ;;; Direct from SEP membership; recorded so proofs can rewrite by name.
-(theory-add-axiom! *current-theory* 'preimage-membership
+(add-axiom! *library* 'preimage-membership
   '(FORALL s (FORALL f (FORALL V (FORALL a
      (IFF (IN a (PREIMAGE s f V))
           (AND (IN a (PTS s)) (IN (f a) V))))))))
@@ -115,7 +115,7 @@
 ;;;
 ;;; A set is closed iff its complement (relative to the carrier) is open.
 ;;; The set-level relative complement COMPLEMENT-IN(A,B) = A \ B and its
-;;; membership law (complement-in-membership, theory.scm) already exist;
+;;; membership law (complement-in-membership, library.scm) already exist;
 ;;; IS-CLOSED just wires them to the metric topology.
 
 ;;; IS-CLOSED(s, A): A is a subset of PTS(s) whose complement PTS(s) \ A is open.

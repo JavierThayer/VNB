@@ -18,13 +18,13 @@ the variables that are free in it.
 Two procedures expose the internals of a \texttt{wff}:
 \begin{VNBsnip}
 (wff->sexp p)        ; => raw S-expression (no output)
-(display-contents p) ; prints kind, theory name, formula
+(display-contents p) ; prints kind, library name, formula
 \end{VNBsnip}
 \texttt{wff->sexp} is defined in \texttt{wff.scm};
 \texttt{display-contents} is defined in \texttt{contexts.scm}.
 Both are available in interactive sessions.
 
-Example (the base theory is \texttt{VNB-SET-THEORY}):
+Example (the base library is \texttt{VNB-LIBRARY}):
 \begin{VNBsnip}
 (define p (make-wff "forall([x in A], 0 <= funny-name)"))
 ; => #[wff 12 "forall([x in a], 0 <= funny-name)"]

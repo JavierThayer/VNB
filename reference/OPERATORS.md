@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-547 operators: 3 functions, 11 syntax, 307 functoids, 223 predicates, 3 undeclared.
+574 operators: 3 functions, 11 syntax, 334 functoids, 223 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (307)
+## Functoids  (334)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -581,6 +581,168 @@ Declared by: `fam-of-list-apply`
 ### `greedy-chain`  — def-functoid · element/number-valued
 
     greedy-chain(phi, grd, porel) := zkept(phi, grd, porel, card(grd))
+
+### `hom-abelian-group`  — def-functoid · set-valued
+
+> _Reads as:_  the abelian group morphisms from a to b
+
+    hom-abelian-group(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-abelian-group(a, b, homf_)}
+
+### `hom-c-metric-space`  — def-functoid · set-valued
+
+> _Reads as:_  the c metric space morphisms from a to b
+
+    hom-c-metric-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-c-metric-space(a, b, homf_)}
+
+### `hom-comm-monoid`  — def-functoid · set-valued
+
+> _Reads as:_  the comm monoid morphisms from a to b
+
+    hom-comm-monoid(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-comm-monoid(a, b, homf_)}
+
+### `hom-commutative-ring`  — def-functoid · set-valued
+
+> _Reads as:_  the commutative ring morphisms from a to b
+
+    hom-commutative-ring(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-commutative-ring(a, b, homf_)}
+
+### `hom-complex-inner-product-space`  — def-functoid · set-valued
+
+> _Reads as:_  the complex inner product space morphisms from a to b
+
+    hom-complex-inner-product-space(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-complex-inner-product-space(a, b, homf_)}
+
+### `hom-euclidean-ring`  — def-functoid · set-valued
+
+> _Reads as:_  the euclidean ring morphisms from a to b
+
+    hom-euclidean-ring(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-euclidean-ring(a, b, homf_)}
+
+### `hom-field`  — def-functoid · set-valued
+
+> _Reads as:_  the field morphisms from a to b
+
+    hom-field(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-field(a, b, homf_)}
+
+### `hom-field-ring`  — def-functoid · set-valued
+
+> _Reads as:_  the field ring morphisms from a to b
+
+    hom-field-ring(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-field-ring(a, b, homf_)}
+
+### `hom-group`  — def-functoid · set-valued
+
+> _Reads as:_  the group morphisms from a to b
+
+    hom-group(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-group(a, b, homf_)}
+
+### `hom-integral-domain`  — def-functoid · set-valued
+
+> _Reads as:_  the integral domain morphisms from a to b
+
+    hom-integral-domain(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-integral-domain(a, b, homf_)}
+
+### `hom-measurable-space`  — def-functoid · set-valued
+
+> _Reads as:_  the measurable space morphisms from a to b
+
+    hom-measurable-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-measurable-space(a, b, homf_)}
+
+### `hom-measure-space`  — def-functoid · set-valued
+
+> _Reads as:_  the measure space morphisms from a to b
+
+    hom-measure-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-measure-space(a, b, homf_)}
+
+### `hom-metric-space`  — def-functoid · set-valued
+
+> _Reads as:_  the metric space morphisms from a to b
+
+    hom-metric-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-metric-space(a, b, homf_)}
+
+### `hom-metrizable-top-space`  — def-functoid · set-valued
+
+> _Reads as:_  the metrizable top space morphisms from a to b
+
+    hom-metrizable-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-metrizable-top-space(a, b, homf_)}
+
+### `hom-module`  — def-functoid · set-valued
+
+> _Reads as:_  the module morphisms from a to b
+
+    hom-module(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-module(a, b, homf_)}
+
+### `hom-monoid`  — def-functoid · set-valued
+
+> _Reads as:_  the monoid morphisms from a to b
+
+    hom-monoid(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-monoid(a, b, homf_)}
+
+### `hom-normed-ag`  — def-functoid · set-valued
+
+> _Reads as:_  the normed ag morphisms from a to b
+
+    hom-normed-ag(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-normed-ag(a, b, homf_)}
+
+### `hom-normed-field`  — def-functoid · set-valued
+
+> _Reads as:_  the normed field morphisms from a to b
+
+    hom-normed-field(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-normed-field(a, b, homf_)}
+
+### `hom-normed-vector-space`  — def-functoid · set-valued
+
+> _Reads as:_  the normed vector space morphisms from a to b
+
+    hom-normed-vector-space(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-normed-vector-space(a, b, homf_)}
+
+### `hom-pid`  — def-functoid · set-valued
+
+> _Reads as:_  the pid morphisms from a to b
+
+    hom-pid(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-pid(a, b, homf_)}
+
+### `hom-pseudometric-space`  — def-functoid · set-valued
+
+> _Reads as:_  the pseudometric space morphisms from a to b
+
+    hom-pseudometric-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-pseudometric-space(a, b, homf_)}
+
+### `hom-ring`  — def-functoid · set-valued
+
+> _Reads as:_  the ring morphisms from a to b
+
+    hom-ring(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-ring(a, b, homf_)}
+
+### `hom-ringoid`  — def-functoid · set-valued
+
+> _Reads as:_  the ringoid morphisms from a to b
+
+    hom-ringoid(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-ringoid(a, b, homf_)}
+
+### `hom-semigroup`  — def-functoid · set-valued
+
+> _Reads as:_  the semigroup morphisms from a to b
+
+    hom-semigroup(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}
+
+### `hom-top-space`  — def-functoid · set-valued
+
+> _Reads as:_  the top space morphisms from a to b
+
+    hom-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}
+
+### `hom-vector-space`  — def-functoid · set-valued
+
+> _Reads as:_  the vector space morphisms from a to b
+
+    hom-vector-space(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-vector-space(a, b, homf_)}
+
+### `id-fun`  — def-functoid · function-valued
+
+> _Reads as:_  the identity map of a_
+
+    id-fun(a_) := vnb-lambda(idfx_, a_, idfx_)
 
 ### `iden`  — structure accessor · element (slot value)
 

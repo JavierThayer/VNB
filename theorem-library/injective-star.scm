@@ -13,7 +13,7 @@
 ;;; needs no domain argument.  Suppose (f u) = (f v).  A strict `=' asserts BOTH
 ;;; sides DEFINED (primitive-inferences.scm:588), so f(u) is defined -- which in
 ;;; VNB is written (= (f u) (f u)) and is exactly what `rfl' will close from that
-;;; hypothesis.  fun-domain-apply-def (theory.scm:352) states
+;;; hypothesis.  fun-domain-apply-def (library.scm:352) states
 ;;;     f in FUN(A)  =>  ( (= (f x) (f x))  iff  (IN x A) ),
 ;;; i.e. "f's domain is exactly A", so definedness hands back MEMBERSHIP: u is in
 ;;; X, and likewise v.  Now INJECTION's own injectivity clause -- which IS guarded

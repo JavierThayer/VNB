@@ -23,7 +23,7 @@
 ;;; silent self-loop -- CLAUDE.md).
 ;;;
 ;;; WHY DEFINE RATHER THAN STAMP.  The four ESUP axioms are bare
-;;; `theory-add-axiom!' forms with no `warrant!' at all, and nothing in the tree
+;;; `add-axiom!' forms with no `warrant!' at all, and nothing in the tree
 ;;; showed the characterisation was SATISFIABLE -- the point
 ;;; rake-etimes-defined.scm's closing audit makes about ESUM, in the same words.
 ;;; The description below is satisfiable by construction: `esup2-exists' EXHIBITS
@@ -67,7 +67,7 @@
 ;;; which is the direction a definition wants.
 ;;;
 ;;; CITATIONS, with their 0-based load.scm positions:
-;;;   theory.scm (11, primitive): subset-def, empty-set-has-no-members
+;;;   library.scm (11, primitive): subset-def, empty-set-has-no-members
 ;;;   number-systems (34, PRIMITIVE): rr-zero-in, rr-leq-transitive,
 ;;;     rr-sup-in, rr-sup-upper, rr-sup-least, RR-UPPER-BOUND, RR-BOUNDED-ABOVE
 ;;;   structure-library/extended-reals-pos (76, definitional):
@@ -475,7 +475,7 @@
 ;;;
 ;;; 2. structure-library/extended-reals-pos.scm :164 -- replace
 ;;;
-;;;      (theory-add-axiom! *current-theory* 'rr-pos-star-add-monoid-def
+;;;      (add-axiom! *library* 'rr-pos-star-add-monoid-def
 ;;;        '(= RR-POS-STAR-ADD-MONOID (LIST RR-POS-STAR eplus 0)))
 ;;;      ... (register-definitional-structure! 'RR-POS-STAR-ADD-MONOID 'COMM-MONOID)
 ;;;      ... (warrant! 'rr-pos-star-add-monoid-def 'well-known "...")

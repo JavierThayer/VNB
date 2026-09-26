@@ -49,7 +49,7 @@
 ;;; not a foundational commitment.  Not named-only: `magnitude(z)' is not a shape
 ;;; anything else builds by accident.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'magnitude-def
+  (add-axiom! *library* 'magnitude-def
     '(FORALL z (== (magnitude z)
                    (SQRT (+ (* (real-part z) (real-part z))
                             (* (imag-part z) (imag-part z))))))))
@@ -60,7 +60,7 @@
 ;;; CC-MS is the list [CC, vnb-lambda([x in CC, y in CC], magnitude(x-y))].
 ;;; The lambda is a VNB functoid: a function from CARTESIAN(CC,CC) to RR.
 ;;; def-constant already installs cc-ms-def (definitional, citable) via
-;;; theory-add-definition!; a separate theory-add-axiom! of the same equation
+;;; add-definition!; a separate add-axiom! of the same equation
 ;;; only RE-installs it with default `asserted' provenance -- downgrading a
 ;;; definition to a phantom debt leaf.  One registration, kept definitional.
 (declare-instance! 'CC-MS 'METRIC-SPACE 'cc-ms-def
@@ -71,7 +71,7 @@
 
 ;;; cc-is-metric-space MOVED 2026-08-17 to
 ;;; theorem-library/cc-metric-space-proof.scm, where it is PROVEN.  It stood
-;;; here as a bare `theory-add-axiom!' with no `warrant!' at all -- so it billed
+;;; here as a bare `add-axiom!' with no `warrant!' at all -- so it billed
 ;;; `trust: none', the weakest report there is, and it was one of the three such
 ;;; bills left in the library.  What made it provable is the same change that
 ;;; made this file's `magnitude' a DEFINITION rather than a family of
@@ -84,7 +84,7 @@
 ;;; Completeness of CC-MS
 ;;;
 ;;; cc-complete MOVED 2026-08-24 to theorem-library/cc-complete-proof.scm,
-;;; where it is PROVEN.  It stood here as a bare `theory-add-axiom!' with no
+;;; where it is PROVEN.  It stood here as a bare `add-axiom!' with no
 ;;; `warrant!' at all -- so it billed `trust: none', the weakest report there
 ;;; is, for a fact that is two coordinates of `rr-complete'
 ;;; (theorem-library/rr-complete-proof.scm), proven since 2026-08-02.  The

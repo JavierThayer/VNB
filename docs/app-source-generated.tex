@@ -4,7 +4,7 @@
 
 \section{Kernel and subsystems (\texttt{\textasciitilde/prover/})}
 \label{sec:src-root}
-The 67 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
+The 68 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -20,6 +20,7 @@ The 67 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{clobber-guard.scm} & the gate CLAUDE.md says does not exist \\
 \texttt{contexts.scm} & make-wff, the interactive entry point for building a <wff> \\
 \texttt{contra.scm} & (contra): close a branch whose CONTEXT is arithmetically \\
+\texttt{counterexample.scm} & probes that try to REFUTE the focus goal \\
 \texttt{deduction-graphs.scm} & deduction graph: sequent nodes and inference nodes \\
 \texttt{driver-kit.scm} & the proof-driving helpers that more than one file needs \\
 \texttt{errors.scm} & VNB error value and guard wrapper \\
@@ -32,6 +33,7 @@ The 67 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{interactive.scm} & short-form commands for interactive proof sessions \\
 \texttt{kernel-map-static.scm} & INSTRUMENT, not library \\
 \texttt{kernel-map-trace.scm} & INSTRUMENT, not library \\
+\texttt{library.scm} & theory management \\
 \texttt{load.scm} & load the proof checker in dependency order \\
 \texttt{macetes.scm} & macete mechanism \\
 \texttt{major-theorems.scm} & the LaTeX list of MAJOR THEOREMS \\
@@ -72,7 +74,6 @@ The 67 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{test-suite-negative.scm} & the MUST-NOT-PROVE corpus \\
 \texttt{test-suite.scm} & VNB system regression and demonstration tests \\
 \texttt{tex-output.scm} & render VNB s-expression formulas as LaTeX math \\
-\texttt{theory.scm} & theory management \\
 \texttt{transport.scm} & TRANSPORTABLE FACTS \\
 \texttt{vlet.scm} & (vlet (names...) FORMER): bind names to proof objects \\
 \texttt{wff-english.scm} & render a wff as an English sentence \\
@@ -83,7 +84,7 @@ The 67 Scheme files at the root of the tree: the proof kernel, the reader, the t
 
 \section{\texttt{structure-library/}}
 \label{sec:src-structure-library}
-The 128 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
+The 133 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -103,6 +104,8 @@ The 128 files that install definitions, structures, vocabulary, and warranted su
 \texttt{cardinality.scm} & CARD, the cardinality of a set, DEFINED \\
 \texttt{cauchy-subsequence.scm} & \textit{(no header)} \\
 \texttt{cc-coords.scm} & CC and cartesian(RR, RR), as VOCABULARY \\
+\texttt{cc-elementary.scm} & THE ELEMENTARY FUNCTIONS exp, cos, sin ON CC, DEFINED BY \\
+\texttt{cc-pi.scm} & THE CONSTANT pi, DEFINED FROM THE KERNEL OF exp (the notes 2.3.3) \\
 \texttt{cc-power-series.scm} & THE VOCABULARY OF COMPLEX POWER SERIES (the notes 2.2) \\
 \texttt{comm-ring-simplify.scm} & commutative-ring identity decision procedure \\
 \texttt{commutative-ring.scm} & COMMUTATIVE-RING: a ring whose MUL is commutative \\
@@ -131,6 +134,7 @@ The 128 files that install definitions, structures, vocabulary, and warranted su
 \texttt{functor-invariance.scm} & a construction that cannot see the functor \\
 \texttt{functoriality.scm} & every view-as is a FUNCTOR, and here is the proof \\
 \texttt{group.scm} & GROUP structure \\
+\texttt{id-fun.scm} & ID-FUN: the identity map of a set \\
 \texttt{ideal.scm} & ideals, principal ideals, and principal-ideal domains over a \\
 \texttt{ineq-oracle.scm} & the (ineq) decision procedure: close a linear-inequality \\
 \texttt{inf-subsets.scm} & the class of infinite subsets of a given set \\
@@ -196,6 +200,7 @@ The 128 files that install definitions, structures, vocabulary, and warranted su
 \texttt{ringoid.scm} & a ring with a distinguished two-sided ideal \\
 \texttt{rr-ineq.scm} & PROTOTYPE of the rr-ineq applier (plan item 2, the "dumb \\
 \texttt{scalar-inequalities.scm} & a library of important elementary inequalities \\
+\texttt{segments-triangles.scm} & THE VOCABULARY OF CAUCHY-GOURSAT (complex-analysis.pdf \\
 \texttt{semigroup.scm} & SEMIGROUP structure \\
 \texttt{seminorm-hahn-banach.scm} & seminorms on a K-vector space and the \\
 \texttt{separable.scm} & separability of a metric space (a dense sequence), the \\
@@ -212,6 +217,7 @@ The 128 files that install definitions, structures, vocabulary, and warranted su
 \texttt{subtype-laws.scm} & the trivial subtype-subsumption laws, PROVEN \\
 \texttt{summability.scm} & unconditional summability of a normed-AG-valued function \\
 \texttt{top-space.scm} & TOPOLOGICAL SPACES, and the functor Met -> Top \\
+\texttt{transpose.scm} & the TRANSPOSE of a matrix (batch 32, 2026-09-25 \\
 \texttt{trunc-metric.scm} & the TRUNCATED METRIC  d'(x,y) = min(1, d(x,y))  of a \\
 \texttt{user-additions.scm} & structures saved via Build Structure \\
 \texttt{views.scm} & view-as declarations between structures \\
@@ -223,7 +229,7 @@ The 128 files that install definitions, structures, vocabulary, and warranted su
 
 \section{\texttt{theorem-library/} and \texttt{calculus/}}
 \label{sec:src-libraries}
-\texttt{theorem-library/} holds 488 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
+\texttt{theorem-library/} holds 498 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
 
 \section{Emacs interface (\texttt{emacs/}) and generated docs}
 \label{sec:src-emacs}

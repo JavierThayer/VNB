@@ -18,9 +18,9 @@
 ;;; an inference.  cmd-qed's discharge loop over root assumptions is kept: it
 ;;; is now vacuous, and it is the guard REVIEW.md S-2 asked for.
 (define (start-proof wic)
-  (let* ((theory  (wff-theory wic))
+  (let* ((theory  (wff-library wic))
          (asms    '())
-         (assert  (wff-in-theory (wff-formula wic) theory))
+         (assert  (wff-in-library (wff-formula wic) theory))
          (dg      (make-deduction-graph))
          (sqn     (dg-post! dg (make-sequent asms assert))))
     (make-proof-state dg sqn sqn)))
@@ -496,10 +496,10 @@
         ;; THE ONE PLACE THAT SAYS `proven': the root sequent is grounded (checked above and
         ;; again here), so the statement has a deduction graph behind it.
         (begin (fluid-let ((*current-provenance* 'proven))
-                 (theory-add-theorem! *current-theory* name formula))
+                 (add-theorem! *library* name formula))
                (register-proven-theorem! name))
         (fluid-let ((*current-provenance* 'asserted))
-          (theory-add-theorem! *current-theory* name formula)))
+          (add-theorem! *library* name formula)))
     (when (not (null? asms))
       (display "qed: discharged ")
       (display (length asms))

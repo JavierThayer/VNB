@@ -27,11 +27,11 @@
 ;;; (IN x (DOM g)) into the context BEFORE the beta.
 ;;;
 ;;; THE BRIDGE, and why the bill is still zero.  Two axioms of
-;;; make-vnb-base-theory, hence `primitive', hence contributing {} to the bill:
+;;; make-vnb-base-library, hence `primitive', hence contributing {} to the bill:
 ;;;
-;;;   fun-codomain-iff    (theory.scm:459)   f in FUN(A,B)  iff
+;;;   fun-codomain-iff    (library.scm:459)   f in FUN(A,B)  iff
 ;;;                                          f in FUN(A) and forall x in A. f(x) in B
-;;;   dom-fun-membership  (theory.scm:493)   f in FUN(A) => forall x. (x in DOM f iff x in A)
+;;;   dom-fun-membership  (library.scm:493)   f in FUN(A) => forall x. (x in DOM f iff x in A)
 ;;;
 ;;; The first, applied to the hypothesis, yields (IN g (FUN A)); the second then
 ;;; says DOM(g) and A have the same members, and (IN x A) is a hypothesis.
@@ -119,10 +119,10 @@
 ;;; WHY THE GUARD IS NOT OPTIONAL.  Unfolding COMPOSE gives the lambda
 ;;; VNB-LAMBDA z_ in DOM(g). f(g(z_)), so `lam-t' concludes membership in
 ;;; FUN(DOM(g), C).  Getting from there to FUN(A, C) is `dom-of-fun'
-;;; (theory.scm:500), whose second hypothesis is (IN A SET) -- and NOTHING IN
+;;; (library.scm:500), whose second hypothesis is (IN A SET) -- and NOTHING IN
 ;;; THE TREE derives that from (IN g (FUN A B)).  Checked, not assumed:
 ;;;
-;;;   * `fun-set-iff' (theory.scm:412) is about FUN(A,B) BEING a set, not about
+;;;   * `fun-set-iff' (library.scm:412) is about FUN(A,B) BEING a set, not about
 ;;;     its having a member.
 ;;;   * `is-fun-def' (:479) quantifies its set domain EXISTENTIALLY, so it
 ;;;     delivers sethood of some witness, not of the A one already holds.

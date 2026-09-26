@@ -63,7 +63,7 @@
 ;;;
 ;;; Structure-library and root files are never certified.  Nothing here writes
 ;;; an inference: `install-from-certificate!' installs a THEOREM through
-;;; `theory-add-theorem!', as `qed' does.
+;;; `add-theorem!', as `qed' does.
 
 ;;; ---------------------------------------------------------------- the switch
 (define *cert-mode-override* #f)          ; the suite's controls bind this
@@ -166,7 +166,7 @@
 
 ;;; ---------------------------------------------------------------- the kernel hash
 (define *cert-kernel-files*
-  '("primitive-inferences" "macetes" "theory" "arith-eval"
+  '("primitive-inferences" "macetes" "library" "arith-eval"
     "structure-library/comm-ring-simplify" "structure-library/ineq-oracle"
     "structure-library/ring-simplify" "structure-library/sos-oracle"
     "rule-checkers-logic" "rule-checkers-schema" "rule-checkers-rewrite"
@@ -349,7 +349,7 @@
 ;;; ---------------------------------------------------------------- installing
 ;;; Install NAME : STMT (the statement `sp' computed in THIS load, which hashes
 ;;; to the record's) from RECORD.  Exactly what cmd-qed and qed--guarded do from
-;;; the statement, minus the proof: the theorem through theory-add-theorem!
+;;; the statement, minus the proof: the theorem through add-theorem!
 ;;; (install-theorem! mints the -rev companion and stamps both), the name on
 ;;; *proven-theorem-names*, and the ledger's three tables.  The bill and the
 ;;; oracles are recomputed from the recorded citations exactly as
@@ -361,7 +361,7 @@
   (let* ((name  (cert-rec-name rec))
          (cites (map car (cert-rec-field rec 'cites))))
     (fluid-let ((*current-provenance* 'certified))
-      (theory-add-theorem! *current-theory* name stmt))
+      (add-theorem! *library* name stmt))
     (register-proven-theorem! name)
     (hash-table-set! *proof-citation-graph* name
       (filter (lambda (c) (and (not (eq? c name))
@@ -756,7 +756,7 @@
 (define (cert--snapshot)
   (list *vnb-qed-failures* *vnb-qed-holes* *install-duplicates*
         *install-validation-failures* *inert-macetes* *proven-theorem-names*
-        *support-theorem-names* (theory-axioms *current-theory*)
+        *support-theorem-names* (library-axioms *library*)
         *cert-session-proven* *cert-session-certified* *session-log*))
 
 (define (cert--restore! s)
@@ -767,7 +767,7 @@
   (set! *inert-macetes* (list-ref s 4))
   (set! *proven-theorem-names* (list-ref s 5))
   (set! *support-theorem-names* (list-ref s 6))
-  (set-theory-axioms! *current-theory* (list-ref s 7))
+  (set-library-axioms! *library* (list-ref s 7))
   (set! *cert-session-proven* (list-ref s 8))
   (set! *cert-session-certified* (list-ref s 9))
   (set! *session-log* (list-ref s 10)))

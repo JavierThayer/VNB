@@ -26,7 +26,7 @@
 ;;; residue is `difference-membership' / `difference-set' (prod-of-sums.scm) --
 ;;; asserted supports whose own warrants say DIFFERENCE has no definition.  They
 ;;; restate, verbatim, `complement-in-membership' and `complement-in-set-closure'
-;;; (theory.scm:731,726): DIFFERENCE *is* COMPLEMENT-IN under a second name.
+;;; (library.scm:731,726): DIFFERENCE *is* COMPLEMENT-IN under a second name.
 ;;; Defining it as such turns both into one-line theorems and takes this proof
 ;;; to `modulo 0' -- deliberately NOT done here, because DIFFERENCE sits inside
 ;;; IS-FIELD's own defining IFF and unfolding it perturbs field-is-field-ring,

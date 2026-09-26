@@ -23,7 +23,7 @@
 ;; Conservative IFF definition of BIJECTION-membership -> `definitional', so
 ;; unfolding it (bijection-is-injection) carries no debt.
 (fluid-let ((*current-provenance* 'definitional))
- (theory-add-axiom! *current-theory* 'bijection-membership-iff
+ (add-axiom! *library* 'bijection-membership-iff
   '(FORALL X
      (FORALL Y
        (FORALL phi
@@ -48,7 +48,7 @@
 ;;; Derivable: BIJECTION(X, Y) is a subclass of FUN(X, Y), and FUN(X, Y) is
 ;;; a set when X, Y are sets (fun-set-iff); use class-separation.  Installed
 ;;; here as an axiom for direct use; demote when proven.
-(theory-add-axiom! *current-theory* 'bijection-set-iff
+(add-axiom! *library* 'bijection-set-iff
   '(FORALL X
      (FORALL Y
        (IMPLIES (AND (IN X SET) (IN Y SET))
@@ -114,7 +114,7 @@
 ;;; the 2026-08-02 soundness repair, primitive-inferences.scm:1305): an AXIOM
 ;;; route around a repaired RULE.  No FALSITY was derivable from it -- the
 ;;; library has no unguarded "the domain of a set function is a set", `dom-of-fun'
-;;; (theory.scm:499) being itself guarded on (IN A SET) -- so this was an unsound
+;;; (library.scm:499) being itself guarded on (IN A SET) -- so this was an unsound
 ;;; ASSERTION rather than a demonstrated inconsistency.  Nothing in the tree cited
 ;;; it, so the guard costs no call site.
 ;;; bijection-identity MOVED 2026-09-15 (wave 6) to theorem-library/bijection-identity-proof.scm, where it is PROVEN modulo 0.
@@ -136,13 +136,13 @@
 ;;; by the bijection axiom below.
 
 ;;; Below-k characterising equation: i < k.
-(theory-add-axiom! *current-theory* 'delete-at-below-k
+(add-axiom! *library* 'delete-at-below-k
   '(FORALL h (FORALL k (FORALL i
       (IMPLIES (IN i (ORD-SEGMENT k))
                (== ((DELETE-AT h k) i) (h i)))))))
 
 ;;; At-or-above-k characterising equation: k <= i (both in NN).
-(theory-add-axiom! *current-theory* 'delete-at-above-k
+(add-axiom! *library* 'delete-at-above-k
   '(FORALL h (FORALL k (FORALL i
       (IMPLIES (AND (IN i NN) (AND (IN k NN) (NOT (IN i (ORD-SEGMENT k)))))
                (= ((DELETE-AT h k) i) (h (succ i))))))))
@@ -150,7 +150,7 @@
 ;;; (DELETE-AT h k) inherits h's function typing: every value is either
 ;;; h(i) or h(succ i), so a function into B stays a function into B.
 ;;; Installed as an axiom for direct use; demote when proven.
-(theory-add-axiom! *current-theory* 'delete-at-in-fun
+(add-axiom! *library* 'delete-at-in-fun
   '(FORALL B (FORALL h (FORALL k
       (IMPLIES (IN h (FUN NN B))
                (IN (DELETE-AT h k) (FUN NN B)))))))
@@ -163,7 +163,7 @@
 ;;; bijection-surjective, by case-split on whether the input/output is
 ;;; below or at-or-above k.  Installed as an axiom for direct use; demote
 ;;; when proven.
-(theory-add-axiom! *current-theory* 'delete-at-is-bijection
+(add-axiom! *library* 'delete-at-is-bijection
   '(FORALL n (FORALL k (FORALL h
       (IMPLIES (AND (IN n NN)
                (AND (IN k (ORD-SEGMENT (succ n)))

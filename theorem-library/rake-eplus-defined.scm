@@ -10,7 +10,7 @@
 ;;;                             THEN POS-INF ELSE binplus(x_, y_)
 ;;;
 ;;; (scratchpad/r7v/r7v-def.scm holds the exact form, with the reason it is a
-;;; provenance-wrapped theory-add-axiom! and not a def-constant).
+;;; provenance-wrapped add-axiom! and not a def-constant).
 ;;;
 ;;; WHY DEFINE RATHER THAN STAMP.  The four axioms are not merely unwarranted:
 ;;; taken together they are INCONSISTENT, and the derivation is fifteen lines
@@ -373,7 +373,7 @@
 ;;; ===================================================================
 ;;;
 ;;; A. structure-library/extended-reals-pos.scm
-;;;    RETIRE the four theory-add-axiom! forms eplus-real (:127-131),
+;;;    RETIRE the four add-axiom! forms eplus-real (:127-131),
 ;;;    eplus-pos-inf-left (:134-136), eplus-pos-inf-right (:139-141) and
 ;;;    eplus-in-fun (:144-145), together with the second `for-each ... warrant!'
 ;;;    block at the foot of the file (the one over

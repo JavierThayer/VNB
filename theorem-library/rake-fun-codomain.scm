@@ -7,7 +7,7 @@
 ;;; Sole leaf on the bill of `noetherian-set-has-maximal', and through it on the
 ;;; Hahn-Banach bills that consume hb-good-has-maximal.
 ;;;
-;;; THE DOOR is `fun-codomain-iff' (theory.scm:459, a base-theory axiom):
+;;; THE DOOR is `fun-codomain-iff' (library.scm:459, a base-library axiom):
 ;;;
 ;;;   f in FUN(A,B)  iff  f in FUN(A)  and  forall x in A. f(x) in B
 ;;;
@@ -30,7 +30,7 @@
 ;;; POWER(VEC m), a set, so nothing downstream needs the general case either).
 ;;;
 ;;; LOAD WINDOW.  After theorem-library/subset-lemmas (subset-mem-fwd);
-;;; fun-codomain-iff is a base-theory axiom, so it imposes no floor.  Before
+;;; fun-codomain-iff is a base-library axiom, so it imposes no floor.  Before
 ;;; theorem-library/noetherian-maximal-proof, the only citer.
 
 ;;; --------------------------------------------------------------------

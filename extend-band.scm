@@ -281,7 +281,7 @@
            (del! (lambda (tname tbl n)
                    (if (hash-table-contains? tbl n)
                        (begin (hash-table-delete! tbl n) (note! tname n)))))
-           (thy  (theory-theorems *current-theory*)))
+           (thy  (library-theorems *library*)))
       ;; the citers, read BEFORE anything is removed
       (define citers
         (let ((acc '()))
@@ -313,7 +313,7 @@
          (del! '*proof-mints-table* *proof-mints-table* n)
          (del! '*proof-live-trace* *proof-live-trace* n)
          (del! '*proof-start-counter* *proof-start-counter* n)
-         (del! 'theory-theorems thy n)
+         (del! 'library-theorems thy n)
          (del! '*rkw--def-memo* *rkw--def-memo* n)
          ;; ALIASES ACCUMULATE: `alias!' APPENDS, so a kept alias list would
          ;; gain a second copy of every string its reloaded file writes again
@@ -354,8 +354,8 @@
         (set! *install-validation-failures*
               (drop '*install-validation-failures* *install-validation-failures* car))
         (set! *inert-macetes* (drop '*inert-macetes* *inert-macetes* car))
-        (set-theory-axioms! *current-theory*
-          (drop 'theory-axioms (theory-axioms *current-theory*) car)))
+        (set-library-axioms! *library*
+          (drop 'library-axioms (library-axioms *library*) car)))
       ;; the binder-name owners (value = the theorem that first used the binder)
       (let ((gone '()))
         (hash-table-walk *installed-binder-names*

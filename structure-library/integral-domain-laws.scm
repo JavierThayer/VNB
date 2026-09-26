@@ -2,7 +2,7 @@
 ;;; definition.
 ;;;
 ;;; integral-domain-cancel-zero (a*b = 0 and b /= 0  =>  a = 0) was asserted in
-;;; integral-domain.scm with a raw `theory-add-axiom!' and -- alone among the
+;;; integral-domain.scm with a raw `add-axiom!' and -- alone among the
 ;;; facts on Cor 3.46's critical path -- carried NO `warrant!' at all, so it had
 ;;; no trust tier and slipped silently into every bill that cited it.  It also
 ;;; was not independent: `is-integral-domain-def' is an IFF whose body already
@@ -17,7 +17,7 @@
 ;;;
 ;;; NOTE the `warrant-invariant' gate does NOT catch this class.  It checks that
 ;;; no asserted fact CLAIMS a proof; it does not check that every asserted fact
-;;; HAS a warrant.  Raw theory-add-axiom! facts are invisible to the trust tiers.
+;;; HAS a warrant.  Raw add-axiom! facts are invisible to the trust tiers.
 ;;;
 ;;; Loaded after interactive + proof-debt (needs sp/di/mac-h/ai/inst+/qed).
 

@@ -2,9 +2,9 @@
 ;;; five billed ZZ-ACT laws proven from it, each `modulo 0'.
 ;;;
 ;;; WHAT WAS WRONG.  structure-library/zz-action.scm called
-;;; `theory-add-definition!' DIRECTLY (line 31), outside `def-constant'.  Only
+;;; `add-definition!' DIRECTLY (line 31), outside `def-constant'.  Only
 ;;; `def-constant' binds *current-provenance* to `definitional'; a bare
-;;; `theory-add-definition!' does not, so ZZ-ACT's two defining equations were
+;;; `add-definition!' does not, so ZZ-ACT's two defining equations were
 ;;; installed with provenance `asserted' and NO warrant:
 ;;;
 ;;;     zz-act-nonneg   prov=asserted  debt={zz-act-nonneg}   trust: none
@@ -17,7 +17,7 @@
 ;;; THE REPAIR.  ZZ-ACT is now an explicit `def-functoid' (see the PROBE-ONLY
 ;;; block below, which is the text the integrator moves into zz-action.scm),
 ;;; and the two equations are THEOREMS of it, stated here UNCHANGED, character
-;;; for character, from their `theory-add-definition!' site.  Nothing that cites
+;;; for character, from their `add-definition!' site.  Nothing that cites
 ;;; either name has to change.
 ;;;
 ;;; THE k = 0 OVERLAP.  zz-action.scm's header says the negative clause is
@@ -67,7 +67,7 @@
 ;;; PROBE-ONLY -- DELETE THIS BLOCK ON INTEGRATION.
 ;;;
 ;;; This is the definition that replaces structure-library/zz-action.scm's
-;;; `theory-add-definition!' call (lines 31-48).  It is repeated here so the
+;;; `add-definition!' call (lines 31-48).  It is repeated here so the
 ;;; file can be PROBED against a band built before the surgery; once
 ;;; zz-action.scm carries it, `def-functoid' has already run at load position
 ;;; 79 and this block must go (a second call would be a harmless re-register,

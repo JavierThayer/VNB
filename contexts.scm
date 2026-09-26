@@ -13,8 +13,8 @@
 ;;; assumption into a root sequent.  Every proof in structure-library/ and
 ;;; theorem-library/ states its hypotheses explicitly instead.  The manual
 ;;; sections that described it were also wrong in three particulars (a base
-;;; theory named `normal-math', which does not exist -- it is VNB-SET-THEORY;
-;;; an `extend-theory' that does not exist; and a get-context returning a
+;;; theory named `normal-math', which does not exist -- it is VNB-LIBRARY;
+;;; an `extend-library' that does not exist; and a get-context returning a
 ;;; qualified name when it returned a binding), which is what a facility with
 ;;; no users looks like after a few years.
 ;;;
@@ -28,7 +28,7 @@
 ;;; It used to shout and hand the wff back anyway.  That made the rule a
 ;;; discouragement you could walk past: `(FORALL carr (FORALL add ...))', with
 ;;; add(mul(q,b),r) in its body, would sail through make-wff and be accepted by
-;;; theory-add-axiom!.  In head position (add ...) reads as the CONSTANT, not
+;;; add-axiom!.  In head position (add ...) reads as the CONSTANT, not
 ;;; the bound variable -- the binder is scope-blind, and the formula does not
 ;;; mean what it looks like.  There is no legitimate use, so it is now an error
 ;;; and such a wff cannot be built at all.  constant-binder-audit reports the
@@ -56,7 +56,7 @@
                           " (a " (symbol->string (caddr (car hits)))
                           ").  In head position it reads as the constant, not your"
                           " binder.  Rename it (trailing underscore).")))))
-            (%make-concrete-wff expanded (theory-name *current-theory*)))))))
+            (%make-concrete-wff expanded (library-name *library*)))))))
 
 ;;; display-contents: print a wff with its formula, theory, and kind.
 ;;; Convenience alias for browsing wffs at the REPL.
@@ -66,7 +66,7 @@
      (display "kind:    concrete")
      (newline)
      (display "theory:  ")
-     (display (wff-theory w))
+     (display (wff-library w))
      (newline)
      (display "formula: ")
      (write (wff-formula w))

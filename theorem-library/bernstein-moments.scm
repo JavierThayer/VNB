@@ -32,7 +32,7 @@
 ;;; derivation and the two things blocking its mechanization written out at the
 ;;; axiom) and the COMB-KK vocabulary of binomial.scm (comb-kk-in-fun / -null /
 ;;; -above / -0-0 and the bt-* index shims), each already `well-known'.  Nothing
-;;; here adds a leaf of its own: no `support', no `theory-add-axiom!'.
+;;; here adds a leaf of its own: no `support', no `add-axiom!'.
 ;;;
 ;;; Loads after bernstein-basis (the basis, its unfold, bernstein-partition) and
 ;;; series-linearity (the three linearity laws and the weighted expansion).

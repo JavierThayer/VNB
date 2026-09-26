@@ -190,7 +190,7 @@
 ;;; --------------------------------------------------------------------
 ;;; seg0-empty:  EMPTY-SET = ORD-SEGMENT(0).
 ;;;
-;;; Both classes are empty, so class-extensionality (theory.scm, an NBG axiom
+;;; Both classes are empty, so class-extensionality (library.scm, an NBG axiom
 ;;; with no set-of-both precondition) equates them.  Each direction of the IFF
 ;;; is ex falso: the hypothesis contradicts the emptiness fact for its own side,
 ;;; and `ai' on the negation closes the branch whatever the goal is.

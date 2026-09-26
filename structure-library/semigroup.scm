@@ -9,7 +9,7 @@
   (property is-associative OPR CARR))
 
 ;;; forall s. IS-SEMIGROUP(s) => forall a,b,c in CARR(s). (a*b)*c = a*(b*c)
-(theory-add-axiom! *current-theory* 'semigroup-assoc
+(add-axiom! *library* 'semigroup-assoc
   '(FORALL s
      (IMPLIES (IS-SEMIGROUP s)
        (FORALL a (IMPLIES (IN a (CARR s))

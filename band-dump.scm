@@ -482,11 +482,11 @@
     (bc-emit bc-raw-port label ":" (bc-canon key 0) "\tvalue\t" text)
     (bc-emit bc-content-port "T " label " " (bc-canon key 0) " " (bc-md5 text))))
 
-;;; The one theory record (*current-theory*): its axiom list, theorem and constant
+;;; The one theory record (*library*): its axiom list, theorem and constant
 ;;; tables and definition list, one line per entry, keyed by the entry's name.
-(define (bc-dump-theory!)
-  (let ((th (bc-val '*current-theory* #f)))
-    (if (not (and th (bc-bound? 'theory-axioms)))
+(define (bc-dump-library!)
+  (let ((th (bc-val '*library* #f)))
+    (if (not (and th (bc-bound? 'library-axioms)))
         (bc-emit bc-content-port "T theory absent")
         (let ((get (lambda (acc) (bc-try (lambda () ((environment-lookup bc-env acc) th)) #f))))
           (for-each
@@ -512,10 +512,10 @@
                                        v)
                                   (lambda (a b) (string<? (car a) (car b))))))
                  (else (bc-emit bc-content-port "T " label " " (bc-canon v 0))))))
-           '(("theory-axioms" . theory-axioms)
-             ("theory-theorems" . theory-theorems)
-             ("theory-constants" . theory-constants)
-             ("theory-definitions" . theory-definitions)))))))
+           '(("library-axioms" . library-axioms)
+             ("library-theorems" . library-theorems)
+             ("library-constants" . library-constants)
+             ("library-definitions" . library-definitions)))))))
 
 (define (bc-dump-registries!)
   (for-each
@@ -690,7 +690,7 @@
     (bc-dump-names!)
     (bc-emit bc-content-port "= registries")
     (bc-dump-registries!)
-    (bc-dump-theory!)
+    (bc-dump-library!)
     (bc-emit bc-content-port "= lists")
     (bc-dump-lists!)
     (bc-dump-history-globals!)

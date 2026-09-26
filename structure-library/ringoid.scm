@@ -112,23 +112,23 @@
 ;; Read-off macetes: unconditional projections of the tuple, one per slot (mac
 ;; them in the IS-RING proof, exactly as mat-ring-* serve mat-ring-proof).
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'rq-carr
+  (add-axiom! *library* 'rq-carr
     '(FORALL r (== (CARR (RINGOID-QUOTIENT-RING r)) (QUOTIENT (RINGOID-SETOID r)))))
-  (theory-add-axiom! *current-theory* 'rq-add
+  (add-axiom! *library* 'rq-add
     '(FORALL r (== (ADD (RINGOID-QUOTIENT-RING r))
                    (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((ADD r) a b)))))))
-  (theory-add-axiom! *current-theory* 'rq-mul
+  (add-axiom! *library* 'rq-mul
     '(FORALL r (== (MUL (RINGOID-QUOTIENT-RING r))
                    (DESCEND2 (RINGOID-SETOID r) (VNB-LAMBDA (LIST a b) (CARTESIAN (CARR r) (CARR r)) (CLASS (RINGOID-SETOID r) ((MUL r) a b)))))))
-  (theory-add-axiom! *current-theory* 'rq-neg
+  (add-axiom! *library* 'rq-neg
     '(FORALL r (== (NEG (RINGOID-QUOTIENT-RING r))
                    (DESCEND (RINGOID-SETOID r) (VNB-LAMBDA a (CARR r) (CLASS (RINGOID-SETOID r) ((NEG r) a)))))))
-  (theory-add-axiom! *current-theory* 'rq-zero
+  (add-axiom! *library* 'rq-zero
     '(FORALL r (== (ZERO (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ZERO r)))))
-  (theory-add-axiom! *current-theory* 'rq-one
+  (add-axiom! *library* 'rq-one
     '(FORALL r (== (ONE (RINGOID-QUOTIENT-RING r)) (CLASS (RINGOID-SETOID r) (ONE r)))))
   ;; PTS of the ringoid setoid is the ring carrier (RINGOID-SETOID = [CARR, REL]).
-  (theory-add-axiom! *current-theory* 'ringoid-setoid-pts
+  (add-axiom! *library* 'ringoid-setoid-pts
     '(FORALL r (== (PTS (RINGOID-SETOID r)) (CARR r)))))
 
 ;;; ---- descend interface: the operations compute on classes (well-known) --------
@@ -157,7 +157,7 @@
 ;; (mac-h cannot unfold the RINGOID-REL functoid in an assumption; functoid_mac_h_trap).
 ;; Definitional: the SEP membership unfolded (base-membership AND the predicate).
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'ringoid-rel-mem
+  (add-axiom! *library* 'ringoid-rel-mem
     (forall-iff '(r a b)
       '(IN (LIST a b) (RINGOID-REL r))
       (list '(IN (LIST a b) (CARTESIAN (CARR r) (CARR r)))
@@ -168,27 +168,27 @@
 ;; (has-inverses), and the four ideal-closure laws (is-ideal-in).  The ringoid-setoid
 ;; proof cites these for reflexivity, symmetry and transitivity.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'ringoid-carr-in-set
+  (add-axiom! *library* 'ringoid-carr-in-set
     (forall-guarded '(r) '((IS-RINGOID r)) '(IN (CARR r) SET)))
-  (theory-add-axiom! *current-theory* 'ringoid-add-right-inv
+  (add-axiom! *library* 'ringoid-add-right-inv
     (forall-guarded '(r a) '((IS-RINGOID r) (IN a (CARR r)))
       '(= ((ADD r) a ((NEG r) a)) (ZERO r))))
-  (theory-add-axiom! *current-theory* 'ringoid-ideal-subset
+  (add-axiom! *library* 'ringoid-ideal-subset
     (forall-guarded '(r) '((IS-RINGOID r)) '(SUBSET (IDL r) (CARR r))))
-  (theory-add-axiom! *current-theory* 'ringoid-ideal-zero
+  (add-axiom! *library* 'ringoid-ideal-zero
     (forall-guarded '(r) '((IS-RINGOID r)) '(IN (ZERO r) (IDL r))))
-  (theory-add-axiom! *current-theory* 'ringoid-ideal-add
+  (add-axiom! *library* 'ringoid-ideal-add
     (forall-guarded '(r a b) '((IS-RINGOID r) (IN a (IDL r)) (IN b (IDL r)))
       '(IN ((ADD r) a b) (IDL r))))
-  (theory-add-axiom! *current-theory* 'ringoid-ideal-neg
+  (add-axiom! *library* 'ringoid-ideal-neg
     (forall-guarded '(r a) '((IS-RINGOID r) (IN a (IDL r)))
       '(IN ((NEG r) a) (IDL r))))
   ;; two-sided absorption (R.I and I.R land in I) -- the ideal projections the
   ;; add/neg block above omitted; needed for MUL to respect the congruence.
-  (theory-add-axiom! *current-theory* 'ringoid-ideal-mul-left
+  (add-axiom! *library* 'ringoid-ideal-mul-left
     (forall-guarded '(r x_ a) '((IS-RINGOID r) (IN x_ (CARR r)) (IN a (IDL r)))
       '(IN ((MUL r) x_ a) (IDL r))))
-  (theory-add-axiom! *current-theory* 'ringoid-ideal-mul-right
+  (add-axiom! *library* 'ringoid-ideal-mul-right
     (forall-guarded '(r a x_) '((IS-RINGOID r) (IN a (IDL r)) (IN x_ (CARR r)))
       '(IN ((MUL r) a x_) (IDL r)))))
 

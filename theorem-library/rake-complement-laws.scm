@@ -37,7 +37,7 @@
 ;;; CITATIONS, all primitive or proven long before this file:
 ;;;   class-extensionality, complement-in-membership, power-set,
 ;;;   power-set-membership, membership-implies-sethood, subset-def
-;;;     -- theory.scm (primitive base);
+;;;     -- library.scm (primitive base);
 ;;;   subset-mem-fwd, subclass-of-set-is-set -- theorem-library/subset-lemmas.
 ;;; Tactics: dk-peel!, dk-each-leaf!, dk-only!, dk-pick, dk-apply!, `prop'.
 ;;;

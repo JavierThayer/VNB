@@ -48,6 +48,8 @@ changed the proof, to close the definedness sequents an instantiation left owed.
 | `dk-focus!` | none |
 | `eps-part` | `and-elim` `and-intro` `arith-forsome` `arith-ground` `arith-simplify` `assumption` `cartesian-decompose` `cut` `detach` `eq-subst` `forall-elim` `forall-intro` `forsome-elim` `iff-elim` `iff-intro` `implies-intro` `macete` `not-elim` `not-intro` `or-elim` `theorem-assumption` `tuple-equality-decompose` |
 | `ew` | `forsome-intro` |
+| `ew-poly` | `and-intro` `comm-ring-simplify` `forsome-intro` [r] |
+| `expand` | `comm-ring-simplify` `cut` `eq-subst` [r] |
 | `fact` | `arith-forsome` `arith-ground` `arith-simplify` `cut` `detach` `forall-elim` `theorem-assumption` |
 | `focus` | none |
 | `focus-id` | none |
@@ -114,6 +116,7 @@ changed the proof, to close the definedness sequents an instantiation left owed.
 | `tfi` | `transfinite-induction` |
 | `tfi3` | `transfinite-induction-3cases` |
 | `ti` | `tuples-intro` |
+| `type-term` | `assumption` `comm-ring-simplify` `cut` `detach` `eq-subst` `forall-elim` `theorem-assumption` [r] |
 | `ue` | `union-elim` |
 | `ui` | `union-intro` |
 | `undo` | none |

@@ -16,25 +16,25 @@
 ;;; -----------------------------------------------------------------------
 ;;; Sethood
 
-(theory-add-axiom! *current-theory* 'nn-is-set      '(IN NN SET))
-(theory-add-axiom! *current-theory* 'zz-is-set      '(IN ZZ SET))
-(theory-add-axiom! *current-theory* 'qq-is-set      '(IN QQ SET))
-(theory-add-axiom! *current-theory* 'rr-is-set      '(IN RR SET))
-(theory-add-axiom! *current-theory* 'cc-is-set      '(IN CC SET))
+(add-axiom! *library* 'nn-is-set      '(IN NN SET))
+(add-axiom! *library* 'zz-is-set      '(IN ZZ SET))
+(add-axiom! *library* 'qq-is-set      '(IN QQ SET))
+(add-axiom! *library* 'rr-is-set      '(IN RR SET))
+(add-axiom! *library* 'cc-is-set      '(IN CC SET))
 
 ;;; -----------------------------------------------------------------------
 ;;; Inclusion chain
 
-(theory-add-axiom! *current-theory* 'nn-subset-zz
+(add-axiom! *library* 'nn-subset-zz
   '(FORALL n (IMPLIES (IN n NN) (IN n ZZ))))
 
-(theory-add-axiom! *current-theory* 'zz-subset-qq
+(add-axiom! *library* 'zz-subset-qq
   '(FORALL n (IMPLIES (IN n ZZ) (IN n QQ))))
 
-(theory-add-axiom! *current-theory* 'qq-subset-rr
+(add-axiom! *library* 'qq-subset-rr
   '(FORALL n (IMPLIES (IN n QQ) (IN n RR))))
 
-(theory-add-axiom! *current-theory* 'rr-subset-cc
+(add-axiom! *library* 'rr-subset-cc
   '(FORALL n (IMPLIES (IN n RR) (IN n CC))))
 
 ;;; -----------------------------------------------------------------------
@@ -58,7 +58,7 @@
 ;;; `==', not `=': quasi-equality is unconditional, so the equation needs no
 ;;; definedness witness and carries no (IN a RR) guard, exactly as rr-ms-dist
 ;;; is stated.  Unguarded in a and b for the same reason app-graph is unguarded
-;;; (theory.scm): it defines a SYMBOL, and an axiom is instantiated only at
+;;; (library.scm): it defines a SYMBOL, and an axiom is instantiated only at
 ;;; terms.
 ;;;
 ;;; DEFINITIONAL, not primitive: this file now loads with *current-provenance*
@@ -77,7 +77,7 @@
 ;;; head, so the rewrite reaches differences only, not every application the way
 ;;; app-graph's bare `(f x)' would.  The declaration was deleted 2026-09-20.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'binary-minus-def
+  (add-axiom! *library* 'binary-minus-def
     '(FORALL a (FORALL b (== (- a b) (+ a (- b))))))
   ;; A `declare-named-only!' call stood here and was DEAD: it came AFTER the
   ;; install, and the named-only list is read while the macete is being built.
@@ -113,7 +113,7 @@
 ;;; undefined -- which is the honest reading, and the reason `=' would have been
 ;;; the wrong connective here.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'binary-divide-def
+  (add-axiom! *library* 'binary-divide-def
     '(FORALL a (FORALL b (== (/ a b) (* a (recip b))))))
   ;; Same story as binary-minus-def above: the `declare-named-only!' that stood
   ;; here came AFTER the install and was therefore DEAD.  binary-divide-def is
@@ -125,58 +125,58 @@
 ;;; -----------------------------------------------------------------------
 ;;; NN — natural numbers (0, 1, 2, ...)
 
-(theory-add-axiom! *current-theory* 'nn-zero-in '(IN 0 NN))
+(add-axiom! *library* 'nn-zero-in '(IN 0 NN))
 
-(theory-add-axiom! *current-theory* 'nn-succ-closed
+(add-axiom! *library* 'nn-succ-closed
   '(FORALL n (IMPLIES (IN n NN) (IN (succ n) NN))))
 
-(theory-add-axiom! *current-theory* 'nn-add-closed
+(add-axiom! *library* 'nn-add-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a NN) (IN b NN))
                (IN (+ a b) NN)))))
 
-(theory-add-axiom! *current-theory* 'nn-mul-closed
+(add-axiom! *library* 'nn-mul-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a NN) (IN b NN))
                (IN (* a b) NN)))))
 
-(theory-add-axiom! *current-theory* 'nn-add-comm
+(add-axiom! *library* 'nn-add-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a NN) (IN b NN))
                (= (+ a b) (+ b a))))))
 
-(theory-add-axiom! *current-theory* 'nn-mul-comm
+(add-axiom! *library* 'nn-mul-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a NN) (IN b NN))
                (= (* a b) (* b a))))))
 
-(theory-add-axiom! *current-theory* 'nn-add-assoc
+(add-axiom! *library* 'nn-add-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a NN) (AND (IN b NN) (IN c NN)))
                (= (+ (+ a b) c) (+ a (+ b c))))))))
 
-(theory-add-axiom! *current-theory* 'nn-mul-assoc
+(add-axiom! *library* 'nn-mul-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a NN) (AND (IN b NN) (IN c NN)))
                (= (* (* a b) c) (* a (* b c))))))))
 
-(theory-add-axiom! *current-theory* 'nn-distributive
+(add-axiom! *library* 'nn-distributive
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a NN) (AND (IN b NN) (IN c NN)))
                (= (* a (+ b c))
                   (+ (* a b) (* a c))))))))
 
-(theory-add-axiom! *current-theory* 'nn-one-mul
+(add-axiom! *library* 'nn-one-mul
   '(FORALL a (IMPLIES (IN a NN) (= (* 1 a) a))))
 
-(theory-add-axiom! *current-theory* 'nn-add-zero
+(add-axiom! *library* 'nn-add-zero
   '(FORALL a (IMPLIES (IN a NN) (= (+ a 0) a))))
 
 ;;; NN induction schema (class form).
 ;;; For any class C: if 0 ∈ C and (∀n∈NN. n∈C → succ(n)∈C) then ∀n∈NN. n∈C.
 ;;; Follows from transfinite-induction (ordinals.scm) + NN ⊆ ORD + 0 ∈ NN
 ;;; + nn-succ-closed; stated here as a named axiom for direct use.
-(theory-add-axiom! *current-theory* 'nn-induction
+(add-axiom! *library* 'nn-induction
   '(FORALL C
       (IMPLIES (AND (IN 0 C)
                     (FORALL n (IMPLIES (AND (IN n NN) (IN n C))
@@ -186,52 +186,52 @@
 ;;; -----------------------------------------------------------------------
 ;;; ZZ — integers (ring)
 
-(theory-add-axiom! *current-theory* 'zz-zero-in '(IN 0 ZZ))
-(theory-add-axiom! *current-theory* 'zz-one-in  '(IN 1 ZZ))
+(add-axiom! *library* 'zz-zero-in '(IN 0 ZZ))
+(add-axiom! *library* 'zz-one-in  '(IN 1 ZZ))
 
-(theory-add-axiom! *current-theory* 'zz-add-closed
+(add-axiom! *library* 'zz-add-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a ZZ) (IN b ZZ))
                (IN (+ a b) ZZ)))))
 
-(theory-add-axiom! *current-theory* 'zz-mul-closed
+(add-axiom! *library* 'zz-mul-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a ZZ) (IN b ZZ))
                (IN (* a b) ZZ)))))
 
-(theory-add-axiom! *current-theory* 'zz-neg-closed
+(add-axiom! *library* 'zz-neg-closed
   '(FORALL a (IMPLIES (IN a ZZ) (IN (- a) ZZ))))
 
-(theory-add-axiom! *current-theory* 'zz-add-zero
+(add-axiom! *library* 'zz-add-zero
   '(FORALL a (IMPLIES (IN a ZZ) (= (+ a 0) a))))
 
-(theory-add-axiom! *current-theory* 'zz-neg-inverse
+(add-axiom! *library* 'zz-neg-inverse
   '(FORALL a (IMPLIES (IN a ZZ) (= (+ a (- a)) 0))))
 
-(theory-add-axiom! *current-theory* 'zz-one-mul
+(add-axiom! *library* 'zz-one-mul
   '(FORALL a (IMPLIES (IN a ZZ) (= (* 1 a) a))))
 
-(theory-add-axiom! *current-theory* 'zz-add-comm
+(add-axiom! *library* 'zz-add-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a ZZ) (IN b ZZ))
                (= (+ a b) (+ b a))))))
 
-(theory-add-axiom! *current-theory* 'zz-mul-comm
+(add-axiom! *library* 'zz-mul-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a ZZ) (IN b ZZ))
                (= (* a b) (* b a))))))
 
-(theory-add-axiom! *current-theory* 'zz-add-assoc
+(add-axiom! *library* 'zz-add-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a ZZ) (AND (IN b ZZ) (IN c ZZ)))
                (= (+ (+ a b) c) (+ a (+ b c))))))))
 
-(theory-add-axiom! *current-theory* 'zz-mul-assoc
+(add-axiom! *library* 'zz-mul-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a ZZ) (AND (IN b ZZ) (IN c ZZ)))
                (= (* (* a b) c) (* a (* b c))))))))
 
-(theory-add-axiom! *current-theory* 'zz-distributive
+(add-axiom! *library* 'zz-distributive
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a ZZ) (AND (IN b ZZ) (IN c ZZ)))
                (= (* a (+ b c))
@@ -245,7 +245,7 @@
 ;;; 2 * (1/2) = 1, so parity is not merely unproven but refutable in a model.
 ;;; Consumed by zz-parity-proof.scm (:94, :235) under this same name, so the
 ;;; move is transparent to its callers.
-(theory-add-axiom! *current-theory* 'zz-generated-by-nn
+(add-axiom! *library* 'zz-generated-by-nn
   (forall-guarded 'a '(IN a ZZ)
     (forsome-guarded 'n '(IN n NN)
       '(OR (= a n) (= a (- n))))))
@@ -257,63 +257,63 @@
 ;;; -----------------------------------------------------------------------
 ;;; QQ — rationals (ordered field)
 
-(theory-add-axiom! *current-theory* 'qq-zero-in '(IN 0 QQ))
-(theory-add-axiom! *current-theory* 'qq-one-in  '(IN 1 QQ))
+(add-axiom! *library* 'qq-zero-in '(IN 0 QQ))
+(add-axiom! *library* 'qq-one-in  '(IN 1 QQ))
 
-(theory-add-axiom! *current-theory* 'qq-add-closed
+(add-axiom! *library* 'qq-add-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a QQ) (IN b QQ))
                (IN (+ a b) QQ)))))
 
-(theory-add-axiom! *current-theory* 'qq-mul-closed
+(add-axiom! *library* 'qq-mul-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a QQ) (IN b QQ))
                (IN (* a b) QQ)))))
 
-(theory-add-axiom! *current-theory* 'qq-neg-closed
+(add-axiom! *library* 'qq-neg-closed
   '(FORALL a (IMPLIES (IN a QQ) (IN (- a) QQ))))
 
-(theory-add-axiom! *current-theory* 'qq-add-zero
+(add-axiom! *library* 'qq-add-zero
   '(FORALL a (IMPLIES (IN a QQ) (= (+ a 0) a))))
 
-(theory-add-axiom! *current-theory* 'qq-neg-inverse
+(add-axiom! *library* 'qq-neg-inverse
   '(FORALL a (IMPLIES (IN a QQ) (= (+ a (- a)) 0))))
 
-(theory-add-axiom! *current-theory* 'qq-one-mul
+(add-axiom! *library* 'qq-one-mul
   '(FORALL a (IMPLIES (IN a QQ) (= (* 1 a) a))))
 
-(theory-add-axiom! *current-theory* 'qq-add-comm
+(add-axiom! *library* 'qq-add-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a QQ) (IN b QQ))
                (= (+ a b) (+ b a))))))
 
-(theory-add-axiom! *current-theory* 'qq-mul-comm
+(add-axiom! *library* 'qq-mul-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a QQ) (IN b QQ))
                (= (* a b) (* b a))))))
 
-(theory-add-axiom! *current-theory* 'qq-add-assoc
+(add-axiom! *library* 'qq-add-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a QQ) (AND (IN b QQ) (IN c QQ)))
                (= (+ (+ a b) c) (+ a (+ b c))))))))
 
-(theory-add-axiom! *current-theory* 'qq-mul-assoc
+(add-axiom! *library* 'qq-mul-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a QQ) (AND (IN b QQ) (IN c QQ)))
                (= (* (* a b) c) (* a (* b c))))))))
 
-(theory-add-axiom! *current-theory* 'qq-distributive
+(add-axiom! *library* 'qq-distributive
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a QQ) (AND (IN b QQ) (IN c QQ)))
                (= (* a (+ b c))
                   (+ (* a b) (* a c))))))))
 
-(theory-add-axiom! *current-theory* 'qq-recip-closed
+(add-axiom! *library* 'qq-recip-closed
   '(FORALL a
       (IMPLIES (AND (IN a QQ) (NOT (= a 0)))
                (IN (recip a) QQ))))
 
-(theory-add-axiom! *current-theory* 'qq-recip-inverse
+(add-axiom! *library* 'qq-recip-inverse
   '(FORALL a
       (IMPLIES (AND (IN a QQ) (NOT (= a 0)))
                (= (* a (recip a)) 1))))
@@ -333,7 +333,7 @@
 ;;; witness is.  The two are kept both installed for now: deriving the nonneg
 ;;; form from this one needs a sign split and a ZZ -> NN bridge the library does
 ;;; not have (see the note in qq-fractions.scm).
-(theory-add-axiom! *current-theory* 'qq-is-fraction
+(add-axiom! *library* 'qq-is-fraction
   (forall-guarded 'q '(IN q QQ)
     (forsome-guarded 'a '(IN a ZZ)
       (forsome-guarded 'b '(IN b ZZ)
@@ -348,63 +348,63 @@
 ;;; -----------------------------------------------------------------------
 ;;; RR — reals (complete ordered field)
 
-(theory-add-axiom! *current-theory* 'rr-zero-in '(IN 0 RR))
-(theory-add-axiom! *current-theory* 'rr-one-in  '(IN 1 RR))
+(add-axiom! *library* 'rr-zero-in '(IN 0 RR))
+(add-axiom! *library* 'rr-one-in  '(IN 1 RR))
 
-(theory-add-axiom! *current-theory* 'rr-add-closed
+(add-axiom! *library* 'rr-add-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (IN (+ a b) RR)))))
 
-(theory-add-axiom! *current-theory* 'rr-mul-closed
+(add-axiom! *library* 'rr-mul-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (IN (* a b) RR)))))
 
-(theory-add-axiom! *current-theory* 'rr-neg-closed
+(add-axiom! *library* 'rr-neg-closed
   '(FORALL a (IMPLIES (IN a RR) (IN (- a) RR))))
 
-(theory-add-axiom! *current-theory* 'rr-add-zero
+(add-axiom! *library* 'rr-add-zero
   '(FORALL a (IMPLIES (IN a RR) (= (+ a 0) a))))
 
-(theory-add-axiom! *current-theory* 'rr-neg-inverse
+(add-axiom! *library* 'rr-neg-inverse
   '(FORALL a (IMPLIES (IN a RR) (= (+ a (- a)) 0))))
 
-(theory-add-axiom! *current-theory* 'rr-one-mul
+(add-axiom! *library* 'rr-one-mul
   '(FORALL a (IMPLIES (IN a RR) (= (* 1 a) a))))
 
-(theory-add-axiom! *current-theory* 'rr-add-comm
+(add-axiom! *library* 'rr-add-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (= (+ a b) (+ b a))))))
 
-(theory-add-axiom! *current-theory* 'rr-mul-comm
+(add-axiom! *library* 'rr-mul-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (= (* a b) (* b a))))))
 
-(theory-add-axiom! *current-theory* 'rr-add-assoc
+(add-axiom! *library* 'rr-add-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
                (= (+ (+ a b) c) (+ a (+ b c))))))))
 
-(theory-add-axiom! *current-theory* 'rr-mul-assoc
+(add-axiom! *library* 'rr-mul-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
                (= (* (* a b) c) (* a (* b c))))))))
 
-(theory-add-axiom! *current-theory* 'rr-distributive
+(add-axiom! *library* 'rr-distributive
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
                (= (* a (+ b c))
                   (+ (* a b) (* a c))))))))
 
-(theory-add-axiom! *current-theory* 'rr-recip-closed
+(add-axiom! *library* 'rr-recip-closed
   '(FORALL a
       (IMPLIES (AND (IN a RR) (NOT (= a 0)))
                (IN (recip a) RR))))
 
-(theory-add-axiom! *current-theory* 'rr-recip-inverse
+(add-axiom! *library* 'rr-recip-inverse
   '(FORALL a
       (IMPLIES (AND (IN a RR) (NOT (= a 0)))
                (= (* a (recip a)) 1))))
@@ -416,30 +416,30 @@
 ;;; The ordinal order is a separate relation ORD-LE (ordinals.scm), bridged
 ;;; to <= on NN, so nothing here leaks onto it; CC carries no <=.
 
-(theory-add-axiom! *current-theory* 'rr-leq-reflexive
+(add-axiom! *library* 'rr-leq-reflexive
   '(FORALL a (IMPLIES (IN a RR) (<= a a))))
 
-(theory-add-axiom! *current-theory* 'rr-leq-antisymmetric
+(add-axiom! *library* 'rr-leq-antisymmetric
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (IMPLIES (AND (<= a b) (<= b a)) (= a b))))))
 
-(theory-add-axiom! *current-theory* 'rr-leq-transitive
+(add-axiom! *library* 'rr-leq-transitive
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
                (IMPLIES (AND (<= a b) (<= b c)) (<= a c)))))))
 
-(theory-add-axiom! *current-theory* 'rr-leq-total
+(add-axiom! *library* 'rr-leq-total
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (OR (<= a b) (<= b a))))))
 
-(theory-add-axiom! *current-theory* 'rr-leq-add-compat
+(add-axiom! *library* 'rr-leq-add-compat
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a RR) (AND (IN b RR) (IN c RR)))
                (IMPLIES (<= a b) (<= (+ a c) (+ b c))))))))
 
-(theory-add-axiom! *current-theory* 'rr-leq-mul-nonneg
+(add-axiom! *library* 'rr-leq-mul-nonneg
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a RR) (IN b RR))
                (IMPLIES (AND (<= 0 a) (<= 0 b)) (<= 0 (* a b)))))))
@@ -478,7 +478,7 @@
 ;;; not what the reals are.  Both stamps contribute {} to every bill; the
 ;;; catalog counts this one as a definition rather than an axiom.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'rr-abs-def
+  (add-axiom! *library* 'rr-abs-def
     '(FORALL x (IMPLIES (IN x RR)
         (AND (IMPLIES (<= 0 x) (= (abs x) x))
              (IMPLIES (NOT (<= 0 x)) (= (abs x) (- x))))))))
@@ -510,7 +510,7 @@
 ;;; Splitting on `<=' means the FIRST branch covers equality, which is what a
 ;;; proof by cases on `rr-le-total' hands you.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'rr-max-def
+  (add-axiom! *library* 'rr-max-def
     '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
         (AND (IMPLIES (<= y x) (= (max x y) x))
              (IMPLIES (NOT (<= y x)) (= (max x y) y)))))))))
@@ -526,7 +526,7 @@
 ;;; about which argument they return, which matters not at all to the value and
 ;;; a great deal to a driver that handles them side by side.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'rr-min-def
+  (add-axiom! *library* 'rr-min-def
     '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
         (AND (IMPLIES (<= x y) (= (min x y) x))
              (IMPLIES (NOT (<= x y)) (= (min x y) y)))))))))
@@ -584,17 +584,17 @@
 (def-predicate 'RR-BOUNDED-ABOVE '(S)
   '(FORSOME b (RR-UPPER-BOUND S b)))
 
-(theory-add-axiom! *current-theory* 'rr-sup-in
+(add-axiom! *library* 'rr-sup-in
   (forall-guarded '(S)
     (list '(SUBSET S RR) '(FORSOME x (IN x S)) '(RR-BOUNDED-ABOVE S))
     '(IN (SUP S) RR)))
 
-(theory-add-axiom! *current-theory* 'rr-sup-upper
+(add-axiom! *library* 'rr-sup-upper
   (forall-guarded '(S)
     (list '(SUBSET S RR) '(FORSOME x (IN x S)) '(RR-BOUNDED-ABOVE S))
     '(RR-UPPER-BOUND S (SUP S))))
 
-(theory-add-axiom! *current-theory* 'rr-sup-least
+(add-axiom! *library* 'rr-sup-least
   (forall-guarded '(S)
     (list '(SUBSET S RR) '(FORSOME x (IN x S)) '(RR-BOUNDED-ABOVE S))
     (forall-guarded 'b '(RR-UPPER-BOUND S b)
@@ -630,91 +630,91 @@
 ;;; -----------------------------------------------------------------------
 ;;; CC — complex numbers (field)
 
-(theory-add-axiom! *current-theory* 'cc-zero-in '(IN 0 CC))
-(theory-add-axiom! *current-theory* 'cc-one-in  '(IN 1 CC))
+(add-axiom! *library* 'cc-zero-in '(IN 0 CC))
+(add-axiom! *library* 'cc-one-in  '(IN 1 CC))
 
-(theory-add-axiom! *current-theory* 'cc-add-closed
+(add-axiom! *library* 'cc-add-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a CC) (IN b CC))
                (IN (+ a b) CC)))))
 
-(theory-add-axiom! *current-theory* 'cc-mul-closed
+(add-axiom! *library* 'cc-mul-closed
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a CC) (IN b CC))
                (IN (* a b) CC)))))
 
-(theory-add-axiom! *current-theory* 'cc-neg-closed
+(add-axiom! *library* 'cc-neg-closed
   '(FORALL a (IMPLIES (IN a CC) (IN (- a) CC))))
 
-(theory-add-axiom! *current-theory* 'cc-add-zero
+(add-axiom! *library* 'cc-add-zero
   '(FORALL a (IMPLIES (IN a CC) (= (+ a 0) a))))
 
-(theory-add-axiom! *current-theory* 'cc-neg-inverse
+(add-axiom! *library* 'cc-neg-inverse
   '(FORALL a (IMPLIES (IN a CC) (= (+ a (- a)) 0))))
 
-(theory-add-axiom! *current-theory* 'cc-one-mul
+(add-axiom! *library* 'cc-one-mul
   '(FORALL a (IMPLIES (IN a CC) (= (* 1 a) a))))
 
-(theory-add-axiom! *current-theory* 'cc-add-comm
+(add-axiom! *library* 'cc-add-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a CC) (IN b CC))
                (= (+ a b) (+ b a))))))
 
-(theory-add-axiom! *current-theory* 'cc-mul-comm
+(add-axiom! *library* 'cc-mul-comm
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a CC) (IN b CC))
                (= (* a b) (* b a))))))
 
-(theory-add-axiom! *current-theory* 'cc-add-assoc
+(add-axiom! *library* 'cc-add-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a CC) (AND (IN b CC) (IN c CC)))
                (= (+ (+ a b) c) (+ a (+ b c))))))))
 
-(theory-add-axiom! *current-theory* 'cc-mul-assoc
+(add-axiom! *library* 'cc-mul-assoc
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a CC) (AND (IN b CC) (IN c CC)))
                (= (* (* a b) c) (* a (* b c))))))))
 
-(theory-add-axiom! *current-theory* 'cc-distributive
+(add-axiom! *library* 'cc-distributive
   '(FORALL a (FORALL b (FORALL c
       (IMPLIES (AND (IN a CC) (AND (IN b CC) (IN c CC)))
                (= (* a (+ b c))
                   (+ (* a b) (* a c))))))))
 
-(theory-add-axiom! *current-theory* 'cc-recip-closed
+(add-axiom! *library* 'cc-recip-closed
   '(FORALL a
       (IMPLIES (AND (IN a CC) (NOT (= a 0)))
                (IN (recip a) CC))))
 
-(theory-add-axiom! *current-theory* 'cc-recip-inverse
+(add-axiom! *library* 'cc-recip-inverse
   '(FORALL a
       (IMPLIES (AND (IN a CC) (NOT (= a 0)))
                (= (* a (recip a)) 1))))
 
-(theory-add-axiom! *current-theory* 'cc-conjugate-closed
+(add-axiom! *library* 'cc-conjugate-closed
   '(FORALL a (IMPLIES (IN a CC) (IN (conjugate a) CC))))
 
-(theory-add-axiom! *current-theory* 'cc-conjugate-involution
+(add-axiom! *library* 'cc-conjugate-involution
   '(FORALL a (IMPLIES (IN a CC) (= (conjugate (conjugate a)) a))))
 
-(theory-add-axiom! *current-theory* 'cc-conjugate-add
+(add-axiom! *library* 'cc-conjugate-add
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a CC) (IN b CC))
                (= (conjugate (+ a b))
                   (+ (conjugate a) (conjugate b)))))))
 
-(theory-add-axiom! *current-theory* 'cc-conjugate-mul
+(add-axiom! *library* 'cc-conjugate-mul
   '(FORALL a (FORALL b
       (IMPLIES (AND (IN a CC) (IN b CC))
                (= (conjugate (* a b))
                   (* (conjugate a) (conjugate b)))))))
 
-(theory-add-axiom! *current-theory* 'cc-self-conj-real
+(add-axiom! *library* 'cc-self-conj-real
   '(FORALL a (IMPLIES (IN a CC) (IN (* a (conjugate a)) RR))))
 
 ;; The product a * conjugate(a) is real (cc-self-conj-real); the inequality
 ;; lives in RR, where <= is the standard real order.
-(theory-add-axiom! *current-theory* 'cc-self-conj-nonneg
+(add-axiom! *library* 'cc-self-conj-nonneg
   '(FORALL a (IMPLIES (IN a CC)
                       (AND (IN (* a (conjugate a)) RR)
                            (<= 0 (* a (conjugate a)))))))
@@ -740,13 +740,13 @@
 ;;; Writing the axiom over the literal rather than over a fresh constant is what
 ;;; keeps those two accounts from drifting apart.
 
-(theory-add-axiom! *current-theory* 'cc-i-in '(IN +i CC))
+(add-axiom! *library* 'cc-i-in '(IN +i CC))
 
-(theory-add-axiom! *current-theory* 'cc-i-squared '(= (* +i +i) -1))
+(add-axiom! *library* 'cc-i-squared '(= (* +i +i) -1))
 
 ;;; Every complex number is x + y*i with x, y real.  This is the axiom that
 ;;; makes CC two-dimensional over RR; without it CC could be RR itself.
-(theory-add-axiom! *current-theory* 'cc-generated-by-rr
+(add-axiom! *library* 'cc-generated-by-rr
   (forall-guarded 'z '(IN z CC)
     (forsome-guarded 'x '(IN x RR)
       (forsome-guarded 'y '(IN y RR)
@@ -755,11 +755,11 @@
 ;;; Conjugation fixes the reals and flips i.  With cc-conjugate-add/mul these
 ;;; two determine conjugate on all of CC (conjugate(x + y i) = x - y i), so the
 ;;; involution axiom becomes a consequence rather than an independent stipulation.
-(theory-add-axiom! *current-theory* 'cc-conjugate-fixes-rr
+(add-axiom! *library* 'cc-conjugate-fixes-rr
   (forall-guarded 'a '(IN a RR)
     '(= (conjugate a) a)))
 
-(theory-add-axiom! *current-theory* 'cc-conjugate-i
+(add-axiom! *library* 'cc-conjugate-i
   '(= (conjugate +i) (- +i)))
 
 (warrant! 'cc-i-in 'reference
@@ -809,9 +809,9 @@
 ;;; z = real-part(z) + i*imag-part(z) -- is proved in
 ;;; theorem-library/cc-real-imag.scm.
 (fluid-let ((*current-provenance* 'definitional))
-  (theory-add-axiom! *current-theory* 'real-part-def
+  (add-axiom! *library* 'real-part-def
     '(FORALL z (== (real-part z) (* (+ z (conjugate z)) (recip 2)))))
-  (theory-add-axiom! *current-theory* 'imag-part-def
+  (add-axiom! *library* 'imag-part-def
     '(FORALL z (== (imag-part z) (* (- z (conjugate z)) (recip (* 2 +i)))))))
 
 ;;; -----------------------------------------------------------------------
@@ -843,21 +843,21 @@
 ;;   (IN power (FUN (CARTESIAN CC NN) CC))
 ;; mismatched the application form: it suggested `power` applied to a
 ;; single CARTESIAN pair, while the system uses `(power x n)` directly.
-(theory-add-axiom! *current-theory* 'power-typing-nonneg
+(add-axiom! *library* 'power-typing-nonneg
   '(FORALL x (FORALL n
       (IMPLIES (AND (IN x CC) (IN n NN))
                (IN (power x n) CC)))))
 
-(theory-add-axiom! *current-theory* 'power-zero
+(add-axiom! *library* 'power-zero
   '(FORALL x (IMPLIES (IN x CC) (= (power x 0) 1))))
 
-(theory-add-axiom! *current-theory* 'power-succ
+(add-axiom! *library* 'power-succ
   '(FORALL x (FORALL n
       (IMPLIES (AND (IN x CC) (IN n NN))
                (= (power x (succ n))
                   (* x (power x n)))))))
 
-(theory-add-axiom! *current-theory* 'power-neg
+(add-axiom! *library* 'power-neg
   '(FORALL x (FORALL n
       (IMPLIES (AND (IN x CC) (AND (IN n NN) (NOT (= x 0))))
                (= (power x (- n))

@@ -71,7 +71,7 @@
 ;;;
 ;;; CITATIONS, by the FILE that installs them (load.scm is being edited today,
 ;;; so no indices):
-;;;   theory.scm (primitive)                  subset-def
+;;;   library.scm (primitive)                  subset-def
 ;;;   theorem-library/subset-lemmas           subset-mem-fwd
 ;;;   theorem-library/fun-apply-type-proof    fun-apply-type-c
 ;;;   theorem-library/rake-finsum-cm-ptwise   finsum-comm-monoid-type-ptwise

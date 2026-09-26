@@ -38,7 +38,7 @@
 ;;; def-by-nn-recursion installed.
 ;;;
 ;;; THE SET IS BOUND AS `s_', NEVER `X'.  The reader case-folds, so a binder
-;;; spelled X is the eigenvariable x of `choice-axiom' (theory.scm:312); a
+;;; spelled X is the eigenvariable x of `choice-axiom' (library.scm:312); a
 ;;; separation over it makes capture-avoidance rename choice-axiom's own binder
 ;;; and the auto-detach then misses.  zen-step.scm records the two runs that
 ;;; cost.  dc-on-nn-pred's own statement DOES bind X -- it is copied literally
@@ -46,17 +46,17 @@
 ;;; the support's proof only cites them.
 ;;;
 ;;; Needs: structure-library/ordinals (def-by-nn-recursion), number-systems
-;;; (NN, succ, nn-zero-in, nn-succ-closed, nn-is-set), theory.scm
+;;; (NN, succ, nn-zero-in, nn-succ-closed, nn-is-set), library.scm
 ;;; (choice-axiom, primitive), interactive + proof-debt + driver-kit
 ;;; (dk-peel!, dk-apply!, dk-skolem!, dk-fact!, choose!, in-sep!, dk-lam-t!).
 ;;;
 ;;; LOAD WINDOW [161, 293).  lo is forced by theorem-library/fun-apply-type-proof
 ;;; (position 160), cited once, in dc-on-nn's last step, for f(k) in X; every
 ;;; other citation is far below (ordinals 77 for def-by-nn-recursion,
-;;; number-systems 34, theory.scm 11) and the machinery floor is proof-debt at
+;;; number-systems 34, library.scm 11) and the machinery floor is proof-debt at
 ;;; 139.  hi = 293, theorem-library/diagonalization, the earliest file that
 ;;; cites dc-on-nn-pred in a proof.  Drop the fun-apply-type-c citation --
-;;; fun-codomain-iff (theory.scm, primitive) is three lines more -- and lo
+;;; fun-codomain-iff (library.scm, primitive) is three lines more -- and lo
 ;;; falls back to 140.
 ;;;
 ;;; NOTE for the integrator: dc-on-nn.scm itself sits at 86, BELOW interactive

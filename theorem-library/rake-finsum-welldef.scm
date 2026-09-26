@@ -79,7 +79,7 @@
 ;;; belongs in the card layer, not here, and it is worth stating on its own.
 ;;;
 ;;; CITATIONS (load position, 0-based over load.scm's quoted file names):
-;;;   theory.scm / number-systems (primitive): choice-axiom, nn-succ-closed, nn-is-set
+;;;   library.scm / number-systems (primitive): choice-axiom, nn-succ-closed, nn-is-set
 ;;;   structure-library/ordinals (77, primitive): nn-subset-ord, ord-lt-iff,
 ;;;     ord-segment-membership, ord-segment-is-set
 ;;;   structure-library/bijection (81, definitional): bijection-membership-iff
