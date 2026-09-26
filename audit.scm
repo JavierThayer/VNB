@@ -1451,15 +1451,10 @@
 ;;; With the formals skipped this scan and the kernel map's independent one agree
 ;;; exactly: 68 and 8.
 
-(define *kernel-caller-files*
-  '("primitive-inferences"                     ; the inference rules proper
-    "macetes"                                  ; the rewriter
-    "library"                                   ; two macete closures
-    "arith-eval"                               ; the arithmetic oracle
-    "structure-library/comm-ring-simplify"     ; the crs oracle
-    "structure-library/ineq-oracle"            ; the ineq oracle
-    "structure-library/ring-simplify"          ; the rs oracle
-    "structure-library/sos-oracle"))           ; the sos oracle
+;;; The list itself lives in certificates.scm (2026-09-26), which loads before
+;;; the first proof and hashes these files into every proof certificate's kernel
+;;; key: ONE list, so the key and this gate cannot drift apart.  Enlarge it THERE.
+(define *kernel-caller-files* *cert-kernel-caller-files*)
 
 ;;; -> (calls . value-uses) for one read form.
 (define (kca--counts form)

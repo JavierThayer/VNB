@@ -203,7 +203,10 @@
               cits))
     ;; the ORACLE inventory, transitively -- own calls plus every citation's
     (hash-table-set! *proof-oracles* name
-      (let loop ((cs cits) (ors (script-oracles *proof-script*)))
+      (let loop ((cs cits) (ors (script-oracles
+                                 ;; 2026-09-26: oracles fired inside a recording-suppressed
+                                 ;; step (bc* handlers, zero-it) live in the hidden list
+                                 (append *proof-script* (reverse *proof-hidden-citations*)))))
         (if (null? cs)
             ors
             (loop (cdr cs) (pd-union ors (oracles-of (car cs)))))))

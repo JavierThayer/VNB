@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>574 operators: 3 functions, 11 syntax, 334 functoids, 223 predicates, 3 undeclared.</p>
+<p>579 operators: 3 functions, 11 syntax, 339 functoids, 223 predicates, 3 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-334">Functoids  (334)</h3>
+<h3 id="OPERATORS__functoids-339">Functoids  (339)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -484,6 +484,9 @@
 <p>&gt; _Reads as:_  the additive group of v under the induced norm</p>
 <pre>ip-normed-ag(v) := [vec(v), vadd(v), vzero(v), vneg(v), vnb-lambda(x_, vec(v), ip-norm(v, x_))]</pre>
 <h4 id="OPERATORS__is-fun-unknown-registry-kind"><code>is-fun</code>  — unknown registry kind</h4>
+<h4 id="OPERATORS__juxta-def-functoid-function-valued"><a class="x" href="DEFINITIONS.html#d-juxta"><code>juxta</code></a>  — def-functoid · function-valued</h4>
+<p>&gt; _Reads as:_  the juxtaposition of jxp_ on [jxa_, jxb_] and jxq_ on [jxb_, jxc_]</p>
+<pre>juxta(jxp_, jxq_, jxa_, jxb_, jxc_) := vnb-lambda(jxt_, ccint(jxa_, jxc_), if(jxt_ &lt;= jxb_, jxp_(jxt_), jxq_(jxt_)))</pre>
 <h4 id="OPERATORS__keep-set-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-keep-set"><code>keep-set</code></a>  — def-functoid · set-valued</h4>
 <pre>keep-set(phi, grd, porel, kset, alpha) := {y in grd: y = phi(alpha) and forall([z in kset], [z, y] in porel)}</pre>
 <h4 id="OPERATORS__lastcoeff-set-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-lastcoeff-set"><code>lastcoeff-set</code></a>  — def-functoid · set-valued</h4>
@@ -588,6 +591,8 @@
 <h4 id="OPERATORS__nth-kernel-term-former"><code>nth</code>  — kernel term-former</h4>
 <h4 id="OPERATORS__nth-deriv-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-nth-deriv"><code>nth-deriv</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-nth-deriv-zero"><code>nth-deriv-zero</code></a> <a class="x" href="THEOREMS.html#t-nth-deriv-succ"><code>nth-deriv-succ</code></a></p>
+<h4 id="OPERATORS__nth-deriv-on-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-nth-deriv-on"><code>nth-deriv-on</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
+<p>&gt; _Reads as:_  nth-deriv-on()</p>
 <h4 id="OPERATORS__nth-deriv-v-recursively-defined-def-by-nn-recursion"><a class="x" href="DEFINITIONS.html#d-nth-deriv-v"><code>nth-deriv-v</code></a>  — recursively defined (def-by-nn-recursion)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-nth-deriv-v-zero"><code>nth-deriv-v-zero</code></a> <a class="x" href="THEOREMS.html#t-nth-deriv-v-succ"><code>nth-deriv-v-succ</code></a></p>
 <h4 id="OPERATORS__nvs-metric-space-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-nvs-metric-space"><code>nvs-metric-space</code></a>  — def-functoid · tuple/structure-valued</h4>
@@ -712,6 +717,9 @@
 <pre>ringoid-rel(r) := {p in cartesian(carr(r), carr(r)): (add(r))(nth(1, p), (neg(r))(nth(2, p))) in idl(r)}</pre>
 <h4 id="OPERATORS__ringoid-setoid-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-ringoid-setoid"><code>ringoid-setoid</code></a>  — def-functoid · tuple/structure-valued</h4>
 <pre>ringoid-setoid(r) := [carr(r), ringoid-rel(r)]</pre>
+<h4 id="OPERATORS__road-length-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-road-length"><code>road-length</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the length of the road with derivative rld_ on [rla_, rlb_]</p>
+<pre>road-length(rld_, rla_, rlb_) := pw-int(vnb-lambda(rlt_, ccint(rla_, rlb_), magnitude(rld_(rlt_))), rla_, rlb_)</pre>
 <h4 id="OPERATORS__rpow-star-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-rpow-star"><code>rpow-star</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  x_ to the power s_</p>
 <pre>rpow-star(x_, s_) := if(0 &lt; x_, r-exp(s_ * log(x_)), if(0 &lt; s_, 0, 1))</pre>
@@ -820,6 +828,12 @@
 <h4 id="OPERATORS__tri-int-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-tri-int"><code>tri-int</code></a>  — def-functoid · element/number-valued</h4>
 <p>&gt; _Reads as:_  the integral of sgf_ around the triangle sga_ sgb_ sgc_</p>
 <pre>tri-int(sgf_, sga_, sgb_, sgc_) := (seg-int(sgf_, sga_, sgb_) + seg-int(sgf_, sgb_, sgc_)) + seg-int(sgf_, sgc_, sga_)</pre>
+<h4 id="OPERATORS__tri-road-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-tri-road"><code>tri-road</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the triangular road through tra_, trb_, trc_</p>
+<pre>tri-road(tra_, trb_, trc_) := juxta(juxta(seg-path(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-path(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-path(trc_, tra_))(trs_ - 2)), 0, 2, 3)</pre>
+<h4 id="OPERATORS__tri-road-deriv-def-functoid-element/number-valued"><a class="x" href="DEFINITIONS.html#d-tri-road-deriv"><code>tri-road-deriv</code></a>  — def-functoid · element/number-valued</h4>
+<p>&gt; _Reads as:_  the derivative of the triangular road through tra_, trb_, trc_</p>
+<pre>tri-road-deriv(tra_, trb_, trc_) := juxta(juxta(seg-deriv(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-deriv(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-deriv(trc_, tra_))(trs_ - 2)), 0, 2, 3)</pre>
 <h4 id="OPERATORS__trinum-kernel-primitive-notation-declared-no-def-*"><a class="x" href="DEFINITIONS.html#d-trinum"><code>trinum</code></a>  — kernel primitive (notation-declared, no def-*)</h4>
 <p>&gt; _Reads as:_  trinum()</p>
 <h4 id="OPERATORS__trunc-metric-def-functoid-tuple/structure-valued"><a class="x" href="DEFINITIONS.html#d-trunc-metric"><code>trunc-metric</code></a>  — def-functoid · tuple/structure-valued</h4>

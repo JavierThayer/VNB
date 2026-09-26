@@ -5337,6 +5337,8 @@
       ((mp)        (replay--surface! 'mp        (lambda () (mp))))
       ((minimize!) (replay--surface! 'minimize!
                      (lambda () (minimize! (car args) (cadr args) (caddr args)))))
+      ;; zero-it.scm: ONE step, no arguments -- the normal form is recomputed from the goal
+      ((zero-it)   (replay--surface! 'zero-it   (lambda () (zero-it))))
       (else (error "replay: unknown recorded command" name)))))
     (if (vnb-warning? result)
         (error "replay: command failed" name (vnb-warning-message result))

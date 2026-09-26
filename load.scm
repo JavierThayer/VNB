@@ -392,6 +392,7 @@
     ;; Needs extended-reals (RR-STAR, POS-INF) + set primitives (SUBSET).
     "structure-library/extended-reals-pos"
     "structure-library/ordinals"
+    "structure-library/nth-deriv"
     ;; MPOW (monoid power x^n) + ZZ-ACT (its extension to a ZZ action on an
     ;; abelian group).  Loaded after ordinals, which defines the
     ;; def-by-nn-recursion combinator both files use; the
@@ -669,6 +670,7 @@
     ;; evaluating an instance (the user's notes-41, 2026-09-25: "attempting to prove falsehoods");
     ;; no inference, no recording; the what-now lane `counterexample' flags a dead path.
     "counterexample"
+    "zero-it"
     ;; The well-ordering of ORD, PROVEN from the transfinite-induction axiom and
     ;; nothing else (modulo 0).  It was asserted in ordinals.scm with a `proof'
     ;; warrant that named no file.  Needs interactive + driver-kit + proof-debt,
@@ -3394,6 +3396,7 @@
     ;; [0,1] (SEG-PATH, SEG-DERIV, SEG-INT), the triangle integral as the sum of three segment integrals (TRI-INT),
     ;; CC-MID, the convex hull of three points CONV3 (a SEP over CC), IS-CONVEX. No diameter, no length.
     "structure-library/segments-triangles"
+    "structure-library/road-juxtaposition"
     ;; 2026-09-23 (batch 20-D): the laws of the vocabulary above -- countable sets (finite => countable, subset,
     ;; union, image), continuity gives both one-sided limits, uniqueness of a one-sided limit within an interval,
     ;; restriction, the read-offs of IS-PRIMITIVE, and the bridge pw-antiderivative-implies-primitive.
@@ -3454,6 +3457,7 @@
     ;; 2026-09-24 (batch 27-A): the notes' 2.14 (cps-taylor-coefficients, cps-coefficient-formula) with f^(k)
     ;; read as the sum of the k-th derived series; the tree has no iterated derivative over CC.
     "theorem-library/cps-taylor-coefficients"
+    "theorem-library/nth-deriv-laws"
     ;; 2026-09-23 (batch 22-D): DIEUDONNE (8.7.2) -- every function regulated on [a, b] has a primitive
     ;; (regulated-on-has-primitive), assembled from 22-A, 22-C and 22-B; a primitive shifted by a constant is a
     ;; primitive (primitive-shift-const); one normalised primitive per index by CHOICE.
@@ -3496,6 +3500,8 @@
     ;; Cor 3.7 (cauchy-convex-segments), Prop 3.8 (cauchy-convex-primitive), Cor 3.9 (cauchy-convex-closed). The
     ;; heaviest file of the tree: ~15 min of proofs + ~8 min of page audit in an exam load; certified otherwise.
     "theorem-library/goursat"
+    "theorem-library/goursat-exceptional"
+    "theorem-library/road-juxtaposition-laws"
     ;; 2026-09-25 (batch 31-A, the user's decision): exp, cos, sin on CC DEFINED BY THEIR POWER SERIES
     ;; (the notes' 2.3.1-2.3.2), then Lemma 2.16, exp' = exp, (33) exp(z+w) = exp z exp w by the zero-derivative
     ;; route along a segment, Prop 2.17 as its equations, conjugation, (34), (35) in its true form, the derivatives
@@ -3508,6 +3514,7 @@
     ;; exp(i pi) = -1, cos(pi/2) = 0, sin(pi/2) = 1, the tail bound cc-series-ratio-tail.
     "structure-library/cc-pi"
     "theorem-library/cc-exp-kernel"
+    "theorem-library/cc-exp-surjective"
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the

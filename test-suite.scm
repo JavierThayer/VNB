@@ -12930,6 +12930,337 @@
                      (string-search-forward "(ew-poly) closes it" text2 0)
                      #t))))))))
 
+;;; -----------------------------------------------------------------------
+;;; THE CERTIFICATE KEY: HIDDEN DEPENDENCIES (2026-09-26, the user's decision;
+;;; certificates.scm `uses', deduction-graphs.scm *proof-used-defs*).  A record
+;;; names every macete the KERNEL saw fire, with the hash of its definition, so a
+;;; changed functoid body or accessor slot invalidates the certificates that used
+;;; it.  Every check below fails on the code before 2026-09-26: a record then had
+;;; no `uses' field and cert-record-invalid-reason never looked for one.
+
+(define (ckey-safe thunk)
+  (call-with-current-continuation
+   (lambda (k) (with-exception-handler (lambda (e) (k #f)) thunk))))
+
+;; di until the goal is an atom (IN ...): the guard of a variable lands with it,
+;; an antecedent that is no guard of the peeled variable takes a second di
+(define (ckey-di-to-in!)
+  (let loop ((n 0))
+    (let ((g (wff-formula (sequent-node-assertion (proof-state-focus *ps*)))))
+      (if (and (< n 4) (pair? g) (memq (car g) '(FORALL IMPLIES)))
+          (begin (quietly di) (loop (+ n 1)))))))
+
+(define (ckey-uses rec) (let ((e (assq 'uses (cdddr rec)))) (and e (cdr e))))
+
+;; (a) `mac' of a functoid that is no theorem
+(def-functoid 'ckey-f '(ckey_p) 'ckey_p)
+(define ckey-rec-a
+  (ckey-safe
+   (lambda ()
+     (quietly (lambda () (sp (make-wff '(FORALL ckey_x (IMPLIES (IN ckey_x RR) (IN (ckey-f ckey_x) RR)))))))
+     (ckey-di-to-in!)
+     (quietly (lambda () (mac 'ckey-f)))
+     (quietly ass)
+     (quietly (lambda () (qed 'ckey-used-functoid)))
+     (cert-make-record 'ckey-used-functoid (debt-of 'ckey-used-functoid)))))
+(check-true "certificate key (a): `mac' of a functoid F that is no theorem puts F in `uses' with its F hash"
+  (lambda ()
+    (and ckey-rec-a
+         (let ((u (ckey-uses ckey-rec-a)))
+           (and u (assq 'ckey-f u)
+                (equal? (cdr (assq 'ckey-f u)) (cert-name-hash 'ckey-f))
+                (char=? #\F (string-ref (cdr (assq 'ckey-f u)) 0)))))))
+
+;; (b) `slot' of an accessor: the macete is no theorem and no functoid (its
+;; `cites' hash is "-"); `uses' carries it with an M hash
+(define ckey-acc 'pts)
+(define ckey-k (car (hash-table-ref/default *accessor-index* ckey-acc '(1 . #f))))
+(define ckey-rec-b
+  (ckey-safe
+   (lambda ()
+     (quietly (lambda () (sp (make-wff `(FORALL ckey_s (IMPLIES (IN (NTH ,ckey-k ckey_s) RR)
+                                                               (IN (,ckey-acc ckey_s) RR)))))))
+     (ckey-di-to-in!)
+     (quietly (lambda () (slot ckey-acc)))
+     (quietly ass)
+     (quietly (lambda () (qed 'ckey-used-accessor)))
+     (cert-make-record 'ckey-used-accessor (debt-of 'ckey-used-accessor)))))
+(check-true "certificate key (b): `slot' of an accessor puts its macete in `uses' with an M hash (cites would say \"-\")"
+  (lambda ()
+    (and ckey-rec-b
+         (equal? (cert-name-hash ckey-acc) "-")
+         (let ((u (ckey-uses ckey-rec-b)))
+           (and u (assq ckey-acc u)
+                (char=? #\M (string-ref (cdr (assq ckey-acc u)) 0)))))))
+
+;; (c) a functoid whose unfold is a LAMBDOID application, then `beta': the
+;; functoid is in `uses' (from the unfold that put the redex there); its F hash
+;; is the canonical text, not an object hash
+(def-functoid 'ckey-g '(ckey_q)
+  (make-apply-functoid (make-functoid 'lambdoid (list (cons 'ckey_y 'RR)) 'ckey_y) 'ckey_q))
+(define ckey-rec-c
+  (ckey-safe
+   (lambda ()
+     (quietly (lambda () (sp (make-wff '(FORALL ckey_z (IMPLIES (IN ckey_z RR) (IN (ckey-g ckey_z) RR)))))))
+     (ckey-di-to-in!)
+     (quietly (lambda () (mac 'ckey-g)))
+     (quietly beta)
+     (quietly ass)
+     (quietly (lambda () (qed 'ckey-used-beta)))
+     (cert-make-record 'ckey-used-beta (debt-of 'ckey-used-beta)))))
+(check-true "certificate key (c): unfold + beta of a lambdoid-bodied functoid puts the functoid in `uses'"
+  (lambda ()
+    (and ckey-rec-c
+         (let ((u (ckey-uses ckey-rec-c)))
+           (and u (assq 'ckey-g u)
+                (char=? #\F (string-ref (cdr (assq 'ckey-g u)) 0)))))))
+(check "certificate key (c'): two equal functoid RECORDS have one canonical text (no #[functoid NN])"
+  (lambda ()
+    (let ((mk (lambda () (make-functoid 'lambdoid (list (cons 'ckey_y 'RR)) 'ckey_y))))
+      (list (string=? (cert-canon (mk)) (cert-canon (mk)))
+            (and (string-search-forward "#[" (cert-canon (mk)) 0) #t))))
+  '(#t #f))
+
+;; (d) CONTROL: the record is valid as written; an altered `uses' hash, and a
+;; changed accessor slot, are each reported with the reason
+(check "certificate key (d, accepted): the accessor proof's record is valid as written"
+  (lambda () (if ckey-rec-b (cert-record-invalid-reason ckey-rec-b) 'no-record))
+  #f)
+(check "certificate key (d, refused): an altered `uses' hash is invalid, naming the macete"
+  (lambda ()
+    (and ckey-rec-b
+         (cert-record-invalid-reason
+          (map (lambda (f)
+                 (if (and (pair? f) (eq? (car f) 'uses))
+                     (cons 'uses (map (lambda (e) (if (eq? (car e) ckey-acc) (cons (car e) "Mbogus") e))
+                                      (cdr f)))
+                     f))
+               ckey-rec-b))))
+  (string-append "uses changed: " (symbol->string ckey-acc)))
+(check "certificate key (d, refused): moving the accessor to another slot invalidates the record"
+  (lambda ()
+    (and ckey-rec-b
+         (let ((old (hash-table-ref/default *accessor-index* ckey-acc #f)))
+           (and old
+                (dynamic-wind
+                 (lambda () (hash-table-set! *accessor-index* ckey-acc (cons (+ (car old) 1) (cdr old))))
+                 (lambda () (cert-record-invalid-reason ckey-rec-b))
+                 (lambda () (hash-table-set! *accessor-index* ckey-acc old)))))))
+  (string-append "uses changed: " (symbol->string ckey-acc)))
+
+;; (e) a record written before 2026-09-26 (no `uses' field) is not valid
+(check "certificate key (e): a record without a `uses' field is invalid (\"no uses list\")"
+  (lambda ()
+    (and ckey-rec-b
+         (cert-record-invalid-reason
+          (filter (lambda (f) (not (and (pair? f) (eq? (car f) 'uses)))) ckey-rec-b))))
+  "no uses list")
+(check "certificate key: the kernel-caller list has ONE source (audit.scm's is certificates.scm's)"
+  (lambda () (list (eq? *kernel-caller-files* *cert-kernel-caller-files*)
+                   (and (member "deduction-graphs" *cert-kernel-files*) #t)))
+  '(#t #t))
+
+;;; -----------------------------------------------------------------------
+;;; ZERO-IT (notes-42, 2026-09-26; zero-it.scm, docs/zero-it-design-2026-09-26.md): an equation
+;;; goal P = Q moved to R = 0, R the normal form of P - Q.  The design note's ten checks; (2),
+;;; (5) and (10) are the controls -- (2) asserts that NO step is recorded on a FALSE goal, (5)
+;;; that the owed typing is an OPEN leaf and is listed, (10) that the replay of a recorded
+;;; (zero-it) through apply-recorded-cmd! reproduces the same open goal.  (9b) fails until the
+;;; oracle scan of record-proof-debt! reads the hidden (bc*-handler-path) steps.
+
+(define (zi-safe thunk)
+  (call-with-current-continuation
+   (lambda (k) (with-exception-handler (lambda (e) (k #f)) thunk))))
+
+;;; Run (zero-it) with its printout captured; -> (value . text).
+(define (zi-run)
+  (let* ((v #f)
+         (text (with-output-to-string
+                 (lambda () (fluid-let ((*vnb-quiet* #f)) (set! v (zero-it)))))))
+    (cons v text)))
+
+(define (zi-says? text s) (and (string-search-forward s text 0) #t))
+
+(check-true "zero-it (1) RR: forall x in rr, (x + 1)^2 = x^2 + 2x + 1 closes; it normalises to 0; the step is (crs)"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
+                                            (= (power (+ x 1) 2) (+ (power x 2) (* 2 x) 1))))))))
+       (let ((r (zi-run)))
+         (and (eqv? (car r) 0)
+              (proof-done? *ps*)
+              (zi-says? (cdr r) "normalises to  0")
+              (equal? (map car *proof-script*) '(crs))))))))
+
+(check-true "zero-it (2) CONTROL: x + 1 = x is FALSE, reduces to 1 = 0, and NO step is recorded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (+ x 1) x)))))))
+       (let* ((n (length *proof-script*)) (m (length *proof-mints*))
+              (l (length (proof-open-leaves *ps*))) (g (dk-goal))
+              (r (zi-run)))
+         (and (eqv? (car r) 1)
+              (zi-says? (cdr r) "FALSE in every ring where 1 /= 0: it reduces to 1 = 0")
+              (= n (length *proof-script*)) (= m (length *proof-mints*))
+              (= l (length (proof-open-leaves *ps*)))
+              (equal? g (dk-goal))))))))
+
+(check-true "zero-it (3) RR: x + x = x leaves the goal x = 0 (the notes' example), no owed leaf, one (zero-it) step"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (+ x x) x)))))))
+       (let ((r (zi-run)))
+         (and (equal? (car r) 'x)
+              (alpha-equiv? (dk-goal) '(= x 0))
+              (= 1 (length (proof-open-leaves *ps*)))
+              (dk-asm? '(IN x RR))
+              (equal? (map car *proof-script*) '(zero-it))))))))
+
+(check-true "zero-it (4) RR: recip(y) with not(y = 0) in context: its typing is landed and the goal rewritten"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda ()
+                  (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+                                   (IMPLIES (NOT (= y 0)) (= (+ (* x (recip y)) x) x))))))))
+                  (di) (di)))
+       (let ((r (zi-run)))
+         (and (equal? (car r) '(* x (recip y)))
+              (alpha-equiv? (dk-goal) '(= (* x (recip y)) 0))
+              (= 1 (length (proof-open-leaves *ps*)))
+              (dk-asm? '(IN (recip y) RR))))))))
+
+(check-true "zero-it (5) CONTROL: recip(y) with no non-vanishing: the owed typing is an OPEN leaf and is listed"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+                                            (= (+ (* x (recip y)) x) x)))))))))
+       (let ((r (zi-run)))
+         (and (equal? (car r) '(* x (recip y)))
+              (alpha-equiv? (dk-goal) '(= (* x (recip y)) 0))
+              (dk-asm? '(IN (recip y) RR))
+              (= 2 (length (proof-open-leaves *ps*)))
+              (any (lambda (l) (alpha-equiv? (dk-goal-of l) '(IN (recip y) RR)))
+                   (proof-open-leaves *ps*))
+              (zi-says? (cdr r) "owed: recip(y) in rr")))))))
+
+(check-true "zero-it (6) CC: (z + 1i)(z - 1i) = z^2 + 1 closes"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL z (IMPLIES (IN z CC)
+                                            (= (* (+ z +i) (- z +i)) (+ (power z 2) 1))))))))
+       (let ((r (zi-run)))
+         (and (eqv? (car r) 0) (proof-done? *ps*)))))))
+
+(check-true "zero-it (7) abstract ring: (ADD a) x y = (ADD a) y x closes; (ADD a) x x = x leaves x = ZERO(a)"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda ()
+                  (sp (make-wff '(IMPLIES (IS-COMMUTATIVE-RING a)
+                                   (FORALL x (IMPLIES (IN x (CARR a)) (FORALL y (IMPLIES (IN y (CARR a))
+                                     (= ((ADD a) x y) ((ADD a) y x)))))))))
+                  (di)))
+       (let* ((r1 (zi-run)) (done1 (proof-done? *ps*)))
+         (quietly (lambda ()
+                    (sp (make-wff '(IMPLIES (IS-COMMUTATIVE-RING a)
+                                     (FORALL x (IMPLIES (IN x (CARR a)) (= ((ADD a) x x) x))))))
+                    (di)))
+         (let ((r2 (zi-run)))
+           (and done1
+                (equal? (car r2) 'x)
+                (alpha-equiv? (dk-goal) '(= x (ZERO a)))
+                (= 1 (length (proof-open-leaves *ps*))))))))))
+
+(check-true "zero-it (8) NN: x + x = x is refused with the reason (NN has no subtraction); nothing recorded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x NN) (= (+ x x) x)))))))
+       (let* ((n (length *proof-script*))
+              (r (let* ((v #f)
+                        (text (with-output-to-string
+                                (lambda () (fluid-let ((*vnb-quiet* #f)) (set! v (zero-it)))))))
+                   (cons v text))))
+         (and (eq? (car r) #f)
+              (zi-says? (cdr r) "NN is not a ring")
+              (= n (length *proof-script*))))))))
+
+(define (zi-page-proof! name)
+  (quietly
+   (lambda ()
+     (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+                      (IMPLIES (= 0 y) (= (+ x y) x))))))))
+     (di) (di)
+     (zero-it)                       ; x + y - x normalises to y: the goal is now y = 0
+     (subst '(= y 0))
+     (rfl)
+     (qed name))))
+
+(check-true "zero-it (9a) a proof using zero-it: its page is (di) (di) (zero-it) (subst ..) (rfl) and types back in grounded"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (zi-page-proof! 'zi-control-page)
+       (and (equal? (map car (hash-table-ref/default *proof-script-table* 'zi-control-page '()))
+                    '(di di zero-it subst rfl))
+            (eq? (page--type-in (page-of 'zi-control-page)) 'grounded))))))
+
+(check-true "zero-it (9b) its bill lists crs among the oracles (crs ran inside the one recorded step)"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (if (not (hash-table-ref/default *theorem-table* 'zi-control-page #f))
+           (zi-page-proof! 'zi-control-page))
+       (and (memq 'crs (hash-table-ref/default *proof-oracles* 'zi-control-page '())) #t)))))
+
+(check-true "zero-it (10) CONTROL: replaying a recorded (zero-it) through apply-recorded-cmd! reproduces the same open goal"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (let ((goal '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
+                      (= (* (+ x y) (- x y)) (* x x))))))))
+         (quietly (lambda () (sp (make-wff goal)) (zero-it)))
+         (let ((g1 (dk-goal)) (n1 (length (proof-open-leaves *ps*))) (script *proof-script*))
+           (quietly (lambda () (sp (make-wff goal))))
+           (quietly (lambda ()
+                      (fluid-let ((*replaying?* #t))
+                        (for-each (lambda (e) (apply-recorded-cmd! (car e) (cdr e))) script))))
+           (and (equal? (map car script) '(zero-it))
+                (alpha-equiv? g1 '(= (- (power y 2)) 0))
+                (alpha-equiv? g1 (dk-goal))
+                (= n1 (length (proof-open-leaves *ps*))))))))))
+
+(check-true "zero-it: what-now's lane offers (zero-it) on x + x = x and says FALSE (offering nothing) on x + 1 = x"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(IMPLIES (IN x RR) (= (+ x x) x)))) (di)))
+       (let* ((m1 #f)
+              (t1 (with-output-to-string (lambda () (set! m1 (what-now--show-zero-it (dk-goal)))))))
+         (quietly (lambda () (sp (make-wff '(IMPLIES (IN x RR) (= (+ x 1) x)))) (di)))
+         (let* ((m2 #f)
+                (t2 (with-output-to-string (lambda () (set! m2 (what-now--show-zero-it (dk-goal)))))))
+           (and (equal? m1 '((zero-it)))
+                (zi-says? t1 "(zero-it) leaves the goal  x = 0")
+                (null? m2)
+                (zi-says? t2 "FALSE"))))))))
+
+(check-true "zero-it: (backup-one) takes the whole step back"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (+ x x) x)))))))
+       (let ((g0 (dk-goal)))
+         (quietly (lambda () (zero-it) (backup-one)))
+         (and (null? *proof-script*) (equal? g0 (dk-goal))
+              (= 1 (length (proof-open-leaves *ps*)))))))))
+
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")
 (display *fail-count*) (display " failed ===\n")

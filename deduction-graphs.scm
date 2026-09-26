@@ -372,9 +372,34 @@
                                          ": " (sequent->string (car hs)))))))
              rule))))))
 
+;;; HIDDEN DEPENDENCIES (2026-09-26, the user's decision; certificates.scm).
+;;; A proof certificate is keyed on the statements of the names the ledger reads
+;;; off the script; a rewrite by a macete that is no theorem -- an accessor read
+;;; by `slot', a def-constant or view macete, a functor projection -- or one
+;;; fired where the script does not say so, is invisible there.  Every rewrite
+;;; passes HERE, and its tag names the macete: (macete NAME L R) and
+;;; (macete-hyp NAME L R).  The names are collected per proof (reset by `sp',
+;;; through certificates.scm's hook) and the certificate records each with the
+;;; hash of its definition.  The other rule tags name nothing: a functoid-beta,
+;;; nth-reduce or lambda-beta contracts a redex that is literally in the goal,
+;;; and whatever put it there (the statement, a cited theorem, a macete unfold)
+;;; is already in the key.  Recorded AFTER the check, so a refused inference
+;;; records nothing; the recording cannot raise and does not touch the verdict.
+(define *proof-used-defs* '())           ; macete names, newest first, no repeats
+
+(define (dg-note-used-def! rule)
+  (if (and (pair? rule)
+           (memq (car rule) '(macete macete-hyp))
+           (pair? (cdr rule))
+           (symbol? (cadr rule))
+           (not (eq? (cadr rule) '<anonymous>))
+           (not (memq (cadr rule) *proof-used-defs*)))
+      (set! *proof-used-defs* (cons (cadr rule) *proof-used-defs*))))
+
 (define (dg-apply-rule! dg rule hyp-sequents conclusion-sqn)
   (if *dg-check-inferences?*
       (dg-check-inference! rule hyp-sequents (sequent-node-sequent conclusion-sqn)))
+  (dg-note-used-def! rule)
   (hash-table-set! *rules-applied* (rule-tag-head rule) #t)
   (let ((hyp-nodes (map (lambda (s) (dg-post! dg s)) hyp-sequents)))
     (let ((infn (make-inference-node rule hyp-nodes conclusion-sqn)))

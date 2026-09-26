@@ -12,6 +12,7 @@
 ;;;   (NAME "STATEMENT-HASH" STATEMENT
 ;;;         (cites (NAME . "HASH") ...)   ; the names the ledger read off the script
 ;;;         (defs (NAME . "HASH") ...)    ; the defined heads the statement mentions
+;;;         (uses (NAME . "HASH") ...)    ; every macete the KERNEL saw fire (2026-09-26)
 ;;;         (own-oracles VERB ...)        ; the oracles the script called directly
 ;;;         (bill NAME ...) (oracles VERB ...)   ; what qed announced
 ;;;         (kernel "KERNEL-HASH") (date "YYYY-MM-DD") (host "..."))
@@ -22,16 +23,33 @@
 ;;; on how much was proved before (band-dump.scm relabels the same way).  The
 ;;; hash of a CITED name is `T'+ the hash of its installed statement, `F'+ the
 ;;; hash of its functoid definition (params and body) when it is a functoid
-;;; macete and no theorem, and "-" when it is neither.
+;;; macete and no theorem, and "-" when it is neither.  A USED name (below) that
+;;; is neither has `M'+ the hash of the rewrite rule the macete checker reads
+;;; for it (an accessor, a functor projection), and "-" only when there is none.
+;;;
+;;; HIDDEN DEPENDENCIES (the user's decision, 2026-09-26).  `cites' is what the
+;;; LEDGER read off the script; it cannot see an accessor read by `slot' (the
+;;; macete is no theorem: "-"), a compound macete (logged as uncredited), or a
+;;; rewrite fired inside a tactic.  `uses' is what the KERNEL saw: the name of
+;;; every (macete NAME L R) / (macete-hyp NAME L R) inference of the proof,
+;;; collected by `dg-apply-rule!' (deduction-graphs.scm, *proof-used-defs*,
+;;; reset at every `sp' by the hook below).  It is recorded in full, overlapping
+;;; `cites' and `defs' where a name is in both: it is the kernel's list, kept
+;;; independent of the ledger's reading.  A beta, NTH or LENGTH contraction
+;;; names nothing: its redex is literally in the goal, put there by the
+;;; statement, a cited theorem or a macete unfold, each of which is in the key.
 ;;;
 ;;; VALIDITY.  A record is valid in a load when the statement `sp' starts hashes
 ;;; to its STATEMENT-HASH, every (NAME . HASH) of its cites and defs hashes the
-;;; same here, and its kernel hash is this tree's.  The KERNEL HASH is the MD5 of
-;;; the source text of the files that may call `dg-apply-rule!'
-;;; (*kernel-caller-files*, audit.scm, repeated below because audit.scm loads
-;;; long after the first proof; the end of the load checks the two lists agree)
-;;; and of the four rule-checker files.  Tactics, the kit and the drivers are not
-;;; in the key: every inference they produce is checked by the kernel.
+;;; same here, every (NAME . HASH) of its USES hashes the same here (a record
+;;; with no `uses' field, written before 2026-09-26, is not valid), and its
+;;; kernel hash is this tree's.  The KERNEL HASH is the MD5 of the source text of
+;;; the files that may call `dg-apply-rule!' (*cert-kernel-caller-files*, below:
+;;; since 2026-09-26 the ONE list, which audit.scm's *kernel-caller-files* is
+;;; bound to), of deduction-graphs.scm (where `dg-apply-rule!', the checker
+;;; dispatch and the grounding live; added 2026-09-26) and of the four
+;;; rule-checker files.  Tactics, the kit and the drivers are not in the key:
+;;; every inference they produce is checked by the kernel.
 ;;;
 ;;; THE SWITCH.  VNB_CERTIFIED=on | off | strict, read when a load-list proof
 ;;; file is loaded (default on):
@@ -142,6 +160,11 @@
             new)))
     (define (walk y)
       (cond ((symbol? y) (relabel y))
+            ;; a functoid RECORD (a lambdoid in a statement or a functoid body)
+            ;; is written by `write' as #[functoid NN], NN an object hash of this
+            ;; image: canonicalise its three fields instead (2026-09-26)
+            ((functoid? y) (list '%lambdoid (walk (functoid-kind y))
+                                 (walk (functoid-bindings y)) (walk (functoid-body y))))
             ((pair? y) (let* ((a (walk (car y))) (d (walk (cdr y)))) (cons a d)))
             ((vector? y) (list->vector (map walk (vector->list y))))
             (#t y)))
@@ -165,12 +188,26 @@
           (#t "-"))))
 
 ;;; ---------------------------------------------------------------- the kernel hash
+;;; THE code that may CALL `dg-apply-rule!': the closed list the fatal
+;;; kernel-callers-audit (load.scm) enforces.  Defined HERE since 2026-09-26 and
+;;; nowhere else -- audit.scm, which loads long after the first proof, binds
+;;; *kernel-caller-files* to it -- so the key and the gate cannot drift apart.
+;;; Enlarging it is a deliberate entry, on the one-decision-per-fact discipline.
+(define *cert-kernel-caller-files*
+  '("primitive-inferences"                     ; the inference rules proper
+    "macetes"                                  ; the rewriter
+    "library"                                  ; two macete closures
+    "arith-eval"                               ; the arithmetic oracle
+    "structure-library/comm-ring-simplify"     ; the crs oracle
+    "structure-library/ineq-oracle"            ; the ineq oracle
+    "structure-library/ring-simplify"          ; the rs oracle
+    "structure-library/sos-oracle"))           ; the sos oracle
+
 (define *cert-kernel-files*
-  '("primitive-inferences" "macetes" "library" "arith-eval"
-    "structure-library/comm-ring-simplify" "structure-library/ineq-oracle"
-    "structure-library/ring-simplify" "structure-library/sos-oracle"
-    "rule-checkers-logic" "rule-checkers-schema" "rule-checkers-rewrite"
-    "rule-checkers-oracle"))
+  (append *cert-kernel-caller-files*
+          '("deduction-graphs"
+            "rule-checkers-logic" "rule-checkers-schema" "rule-checkers-rewrite"
+            "rule-checkers-oracle")))
 
 (define *cert-kernel-hash* #f)            ; computed once per load; the suite binds it
 
@@ -188,7 +225,9 @@
                            *cert-kernel-files*))))
         *cert-kernel-hash*)))
 
-;;; End of load: *kernel-caller-files* (audit.scm) must be inside the key.
+;;; End of load: *kernel-caller-files* (audit.scm) must be inside the key.  Since
+;;; 2026-09-26 audit.scm binds that list to *cert-kernel-caller-files*, so this
+;;; can fail only if someone gives audit.scm a literal list again.
 (define (cert-kernel-files-audit)
   (filter (lambda (f) (not (member f *cert-kernel-files*))) *kernel-caller-files*))
 
@@ -243,6 +282,24 @@
 (define (cert--self? c name)
   (or (eq? c name) (eq? (rev-companion-source c) name)))
 
+;;; The hash of a USED macete name: cert-name-hash (T / F) when it is a theorem
+;;; or a functoid; else `M'+ the hash of the rule the macete checker reads for it
+;;; (rule-checkers-rewrite.scm: an accessor's (ACC s) -> (NTH k s), a functor
+;;; projection's component), computed WITHOUT the checker's memo, which keys a
+;;; non-theorem on #f and would answer a redefinition from the old reading.
+(define (cert-use-hash name)
+  (let ((h (cert-name-hash name)))
+    (if (not (equal? h "-"))
+        h
+        (let ((d (rkw--macete-definition/compute name #f)))
+          (if d
+              (string-append "M" (cert-md5 (cert-canon (cons name d))))
+              "-")))))
+
+(define (cert--uses-of name)
+  (sort (filter (lambda (c) (not (cert--self? c name))) *proof-used-defs*)
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
 ;;; The record for NAME, just proven (called by qed--guarded after the ledger).
 (define (cert-make-record name bill)
   (let* ((stmt (hash-table-ref/default *theorem-table* name #f))
@@ -250,7 +307,8 @@
     (list name (cert-statement-hash stmt) stmt
           (cons 'cites (map (lambda (c) (cons c (cert-name-hash c))) cites))
           (cons 'defs (map (lambda (c) (cons c (cert-name-hash c))) (cert--defs-of stmt name)))
-          (cons 'own-oracles (script-oracles *proof-script*))
+          (cons 'uses (map (lambda (c) (cons c (cert-use-hash c))) (cert--uses-of name)))
+          (cons 'own-oracles (script-oracles (append *proof-script* (reverse *proof-hidden-citations*))))
           (cons 'bill bill)
           (cons 'oracles (hash-table-ref/default *proof-oracles* name '()))
           (list 'kernel (cert-kernel-hash))
@@ -260,9 +318,15 @@
 ;;; Why RECORD is not valid here, or #f when it is.
 (define (cert-record-invalid-reason rec)
   (cond ((not (equal? (cert-rec-field1 rec 'kernel) (cert-kernel-hash))) "kernel changed")
+        ((not (assq 'uses (cdddr rec))) "no uses list")
         (#t
          (let loop ((ps (append (cert-rec-field rec 'cites) (cert-rec-field rec 'defs))))
-           (cond ((null? ps) #f)
+           (cond ((null? ps)
+                  (let uloop ((us (cert-rec-field rec 'uses)))
+                    (cond ((null? us) #f)
+                          ((not (equal? (cert-use-hash (caar us)) (cdar us)))
+                           (string-append "uses changed: " (symbol->string (caar us))))
+                          (#t (uloop (cdr us))))))
                  ((not (equal? (cert-name-hash (caar ps)) (cdar ps)))
                   (string-append "statement of " (symbol->string (caar ps)) " changed"))
                  (#t (loop (cdr ps))))))))
@@ -400,7 +464,11 @@
 
 ;;; End of `sp', with *ps* the fresh proof.  Returns normally when the proof is
 ;;; to be PROVED; otherwise installs (or, in strict, records) and escapes.
+;;; FIRST, in every mode, the per-proof list of used macetes is emptied
+;;; (deduction-graphs.scm): this hook runs at the end of every `sp', after
+;;; start-proof, which applies no rule.
 (define (cert--on-sp!)
+  (set! *proof-used-defs* '())
   (if (and *cert-file* (memq *cert-file-mode* '(on strict)))
       ;; An error in here is the LOADER's, never the proof's: it fails the pass
       ;; (fallback), it is not swallowed by sp's vnb-guard.

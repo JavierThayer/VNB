@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-574 operators: 3 functions, 11 syntax, 334 functoids, 223 predicates, 3 undeclared.
+579 operators: 3 functions, 11 syntax, 339 functoids, 223 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (334)
+## Functoids  (339)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -828,6 +828,12 @@ Declared by: `integral-additive` `integral-homogeneous` `integral-in` `integral-
 
 ### `is-fun`  — unknown registry kind
 
+### `juxta`  — def-functoid · function-valued
+
+> _Reads as:_  the juxtaposition of jxp_ on [jxa_, jxb_] and jxq_ on [jxb_, jxc_]
+
+    juxta(jxp_, jxq_, jxa_, jxb_, jxc_) := vnb-lambda(jxt_, ccint(jxa_, jxc_), if(jxt_ <= jxb_, jxp_(jxt_), jxq_(jxt_)))
+
 ### `keep-set`  — def-functoid · set-valued
 
     keep-set(phi, grd, porel, kset, alpha) := {y in grd: y = phi(alpha) and forall([z in kset], [z, y] in porel)}
@@ -1035,6 +1041,10 @@ Declared by: `nn-minus-def`
 ### `nth-deriv`  — recursively defined (def-by-nn-recursion)
 
 Declared by: `nth-deriv-zero` `nth-deriv-succ` 
+
+### `nth-deriv-on`  — kernel primitive (notation-declared, no def-*)
+
+> _Reads as:_  nth-deriv-on()
 
 ### `nth-deriv-v`  — recursively defined (def-by-nn-recursion)
 
@@ -1284,6 +1294,12 @@ Declared by: `ring-prod-n-zero` `ring-prod-n-succ`
 
     ringoid-setoid(r) := [carr(r), ringoid-rel(r)]
 
+### `road-length`  — def-functoid · element/number-valued
+
+> _Reads as:_  the length of the road with derivative rld_ on [rla_, rlb_]
+
+    road-length(rld_, rla_, rlb_) := pw-int(vnb-lambda(rlt_, ccint(rla_, rlb_), magnitude(rld_(rlt_))), rla_, rlb_)
+
 ### `rpow-star`  — def-functoid · element/number-valued
 
 > _Reads as:_  x_ to the power s_
@@ -1499,6 +1515,18 @@ Declared by: `taylor-poly-v-zero` `taylor-poly-v-succ`
 > _Reads as:_  the integral of sgf_ around the triangle sga_ sgb_ sgc_
 
     tri-int(sgf_, sga_, sgb_, sgc_) := (seg-int(sgf_, sga_, sgb_) + seg-int(sgf_, sgb_, sgc_)) + seg-int(sgf_, sgc_, sga_)
+
+### `tri-road`  — def-functoid · element/number-valued
+
+> _Reads as:_  the triangular road through tra_, trb_, trc_
+
+    tri-road(tra_, trb_, trc_) := juxta(juxta(seg-path(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-path(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-path(trc_, tra_))(trs_ - 2)), 0, 2, 3)
+
+### `tri-road-deriv`  — def-functoid · element/number-valued
+
+> _Reads as:_  the derivative of the triangular road through tra_, trb_, trc_
+
+    tri-road-deriv(tra_, trb_, trc_) := juxta(juxta(seg-deriv(tra_, trb_), vnb-lambda(trs_, ccint(1, 2), (seg-deriv(trb_, trc_))(trs_ - 1)), 0, 1, 2), vnb-lambda(trs_, ccint(2, 3), (seg-deriv(trc_, tra_))(trs_ - 2)), 0, 2, 3)
 
 ### `trinum`  — kernel primitive (notation-declared, no def-*)
 

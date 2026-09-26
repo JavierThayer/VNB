@@ -115,3 +115,46 @@ probe on a worker writes no certificate; the two counts in the load summary; the
 certified theorem. And the exam itself: a cold load in `off` mode followed by a `strict` load of
 the same tree installs the same theorem table (`vnb-band-compare` between the two bands: zero
 content differences).
+
+## 2026-09-26: hidden dependencies in the key (`uses`)
+
+The user's decision of 2026-09-26: a certificate also records the macetes the kernel saw fire
+during the proof, so that a changed definition that no statement and no citation names still
+invalidates the certificates that used it. The record gains a third hash list, beside `cites` and
+`defs`:
+
+    (uses (NAME . HASH) ...)
+
+* SOURCE. `dg-apply-rule!` (deduction-graphs.scm) adds the NAME of every inference tagged
+  `(macete NAME L R)` or `(macete-hyp NAME L R)` to `*proof-used-defs*`, after the rule checker has
+  accepted the inference; the recording has no effect on the verdict. The list is emptied at every
+  `sp` (by the certificates hook that runs at the end of `sp`). `cites` is what the ledger reads off
+  the script; `uses` is what the kernel checked, and the two are kept independent, so a name may
+  appear in both. The ledger does not see an accessor read by `slot` (the accessor macete is no
+  theorem, and the script records `slot`, not the macete), a compound macete (logged as an
+  uncredited citation), or a rewrite fired inside a tactic.
+* HASH. `cert-use-hash`: `T` + the statement hash for a theorem and `F` + the definition hash for a
+  functoid (as for `cites`); otherwise `M` + the hash of the rewrite rule the macete checker reads
+  for the name (`rkw--macete-definition/compute`: for an accessor, `(ACC s) -> (NTH k s)`; for a
+  functor projection, the component of the functor's body). The checker's memo is bypassed, because
+  it keys a non-theorem on `#f` and would return the rule as first read after a redefinition.
+* RULES THAT NAME NOTHING. `functoid-beta`, `nth-reduce`, `length-reduce` and `lambda-beta` have
+  bare tags. Each contracts a redex that occurs literally in the goal. Such a term enters the goal
+  through the statement, a cited theorem or a macete unfold, and each of these is already covered by
+  the key. `slot` fires an accessor macete or an instance macete, so it is recorded under that
+  macete's name.
+* VALIDITY. `cert-record-invalid-reason` checks `uses` in the same way as `cites` (reason:
+  `uses changed: NAME`). A record with no `uses` field, which includes every record written before
+  2026-09-26, is invalid in `on` and `strict` mode (reason: `no uses list`). Consequently the
+  integration of this change is an exam (`VNB_CERTIFIED=off`), which rewrites the whole store.
+* CANONICAL TEXT. `cert-canon` writes a functoid record as `(%lambdoid KIND BINDINGS BODY)`.
+  Previously it wrote the record with `write`, which prints `#[functoid NN]`, where NN is an object
+  hash that differs from one image to the next.
+* THE KERNEL-FILE LIST. The files that may call `dg-apply-rule!` are listed once, as
+  `*cert-kernel-caller-files*` in certificates.scm, which loads before the first proof. audit.scm
+  binds `*kernel-caller-files*` to that list, so the certificate key and the fatal
+  kernel-callers-audit read the same list. To add a file, edit the list in certificates.scm.
+  `cert-kernel-files-audit` is kept; it fails only if audit.scm is given a literal list again.
+  `deduction-graphs.scm` now contributes to the kernel hash: it holds `dg-apply-rule!`, the checker
+  dispatch and the grounding propagation, and until 2026-09-26 an edit to it left every certificate
+  valid.

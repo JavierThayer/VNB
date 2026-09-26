@@ -33,7 +33,7 @@ Every tactic is tagged with a **kind**, grounded in the `dg-apply-rule!` tag it 
 
 - **rule** -- a single primitive KERNEL inference rule (the fixed trusted base): `di` `ai` `pbc` `oi-l` `oi-r` `ew` `ci` `ti` `ii` `ui` `ni` `tfi` `tfi3` `ass` `ta` `inst` `detach!` `bc` `cut` `wk` `ce` `te` `ie` `ue` `mac` `macm` `mac-h` `subst` `rfl` `qrfl` `beta` `lam-b` `lam-b-h` `lam-t` `nth-r` `len-r` `if-true` `if-false` `sep-set` `sep-mi` `sep-me` `comp-mi` `comp-me` `iota-d` `iota-e` `bu-set` `bu-mi` `bu-me` 
 - **oracle** -- a trusted DECISION PROCEDURE run as a black box, sound+complete on its domain but trusted: `arith` `rs` `crs` `simp` `ineq` `sos` 
-- **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `type-term` `ew-poly` `expand` `inst+` `mp` `grind-and-mp` `fact` `bc*` `mac-h*` `grind` `wbc` `calc` `scout-run` `minimize!` `obtain` `have!` `vlet` 
+- **composite** -- a Scheme procedure that only CHAINS kernel rules, adding no new inference rule: `type-term` `ew-poly` `expand` `zero-it` `inst+` `mp` `grind-and-mp` `fact` `bc*` `mac-h*` `grind` `wbc` `calc` `scout-run` `minimize!` `obtain` `have!` `vlet` 
 - **meta** -- no deduction: session / search / navigation: `sp` `qed` `save-proof` `replay-proof` `scout` `scout-show` `backup-one` `undo` 
 
 The `rule` set is the fixed kernel; a proof's trust surface is exactly its `rule` steps plus whichever `oracle`s and asserted premises it cites.  You can read any finished proof's actual rule inventory off its deduction graph (each node records its justifying rule).
@@ -750,6 +750,8 @@ Close a typing goal (IN t C), C one of NN ZZ QQ RR CC, where t is built from con
 
 *Kind:* `composite` (emits `(cut theorem-assumption forall-elim detach assumption eq-subst comm-ring-simplify)`)
 
+*Uses:* `assumption` `comm-ring-simplify` `cut` `detach` `eq-subst` `forall-elim` `theorem-assumption` 
+
 *When useful:* the goal types an arithmetic term in NN/ZZ/QQ/RR/CC -- a polynomial in context-typed atoms, e.g. 3*x^2 + 3*x*y + y^2 in ZZ
 
 The typing leaf that arithmetic leaves behind: `3 * x^2 + 3 * (x * y) + y^2 in ZZ' with x and y integers.  It plans the whole typing first -- which closure law types each subterm, or which subclass inclusion types an atom -- and only then runs it, so a term it cannot type leaves the proof untouched.  Each subterm's typing is proved on its own lane (cut) and lands in the context once.  A power x^k is typed by the power law in RR and CC; in ZZ, QQ and NN, where the library has no power law, by the identity x^k = x * ... * x (proved by crs) and the multiplication law, so the exponent must be a numeral there.  Subtraction in QQ goes through a - b = a + (-b) the same way; NN has no minus and declines.  Division and recip are not handled.  The kit twin (dk-type! t C) lands the typing in the context and returns it; in-rr hands its power goals to the same planner.  (Technically: composite -- cut, theorem-assumption, forall-elim, detach, assumption, eq-subst, and comm-ring-simplify for the power identities; no rule of its own.  Transactional: a run that does not close the goal is rolled back, script and undo stack included.)
@@ -761,6 +763,8 @@ The typing leaf that arithmetic leaves behind: `3 * x^2 + 3 * (x * y) + y^2 in Z
 Close an existential goal forsome([a in C], L = R) (or unguarded) in which a occurs once, linearly: compute the witness by EXACT POLYNOMIAL DIVISION, supply it (ew), type it (type-term) and close the identity (crs).  One command for `(x+y)^3 = x^3 + y*a'.  Declines, with the reason and nothing changed, when the division leaves a remainder.
 
 *Kind:* `composite` (emits `(forsome-intro and-intro comm-ring-simplify)`)
+
+*Uses:* `and-intro` `comm-ring-simplify` `forsome-intro` 
 
 *When useful:* the goal is forsome(a, L = R) with a occurring once, linearly, and the witness is a quotient of polynomials, e.g. (x+y)^3 = x^3 + y*a
 
@@ -774,9 +778,23 @@ SHOW the expansion as a step: rewrite each polynomial side of an equation in the
 
 *Kind:* `composite` (emits `(cut comm-ring-simplify eq-subst)`)
 
+*Uses:* `comm-ring-simplify` `cut` `eq-subst` 
+
 *When useful:* a side of an equation in the goal is an unexpanded polynomial and you want to SEE its expansion, e.g. (x+y)^3
 
 The step a hand proof writes as `expanding, ...': the goal after it says what the equation says, term by term.  Each side t is proved equal to its normal form nf(t) by crs on a lane, and the goal is rewritten by subst, so the page shows the equation and the rewrite and both are checked.  A side is left alone when it mentions the variable an existential binds (that is not a term of the context -- the witness is what the goal asks for), when an atom of it is not typed in a number class (crs could not check it), or when it is already in normal form.  what-now offers it first on such a goal, and names the binomial theorem (binomial-theorem, n = k) when a power of a sum is expanded -- cited as what the expansion instantiates, not fired: the library states it over an abstract commutative ring as a finite sum.  (Technically: composite -- cut, comm-ring-simplify, eq-subst; no rule of its own; transactional.)
+
+### zero-it
+
+    (zero-it)
+
+Move an equation goal P = Q (or P == Q, bare or under typed universals) to R = 0, where R is the normal form of P - Q (crs's calculator, highest degree first); prints `P - Q normalises to R' and returns R.  R = 0: closed by crs.  R a non-zero numeral: says the goal is FALSE and changes nothing.  Otherwise ONE recorded step leaves the goal R = 0, the atoms' typings landed or listed as owed side leaves.
+
+*Kind:* `composite` (emits `(cut comm-ring-simplify eq-subst)`)
+
+*When useful:* an equation P = Q over a ring and you want to see (and prove) what it reduces to: R = 0, or a FALSE numeral that marks a dead path
+
+The user's notes-42: `if in the end it means I have to prove 1 = 2, I can see I've been barking up the wrong tree'.  The ring is read off the typings of the atoms: the number surface (+ - * ^, numerals; atoms typed in NN ZZ QQ RR CC, the largest class wins, NN lifting) or an abstract ring a with IS-COMMUTATIVE-RING(a) in context ((ADD a) (MUL a) (NEG a) (ZERO a) (ONE a)).  NN alone is refused for the rewrite (no subtraction).  Each atom of P and Q must be typed in the ring: an untyped one is typed by type-term's plan or, for recip(t) with not(t = 0) in context, by the recip-closure law; what cannot be typed is CUT as an owed side leaf `g in D', listed in the printout, and the new goal carries it as a hypothesis -- the notes' `[the eliminated terms all defined]'.  Then R = 0 is cut, and the branch R = 0 |- P = Q is closed by crs (P = Q + R), subst (P -> Q + R, then R -> 0) and crs; no sub-zero law and no typing of P or Q is needed.  Universals typed in the ring are peeled first (di, inside the same step).  The step records as (zero-it) with no argument: replay recomputes the normal form from the goal.  what-now shows the normal form on an equation goal and offers (zero-it).  (Technically: composite -- cut, comm-ring-simplify, eq-subst, plus di / theorem-assumption / forall-elim for the peeling and typings; the inner steps run with recording suppressed on the bc*-handler path, their citations kept for the bill; transactional.)
 
 ### supply
 

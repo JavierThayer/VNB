@@ -5002,6 +5002,13 @@
                                  (lane! 'membership "membership law"
                                         (what-now--show-membership core)))))
          (set! structural? (pair? moves))
+         ;; ZERO-IT lane (zero-it.scm, notes-42, 2026-09-26): on an equation over a ring,
+         ;; show the normal form of P - Q and offer (zero-it); on a non-zero numeral say the
+         ;; goal is FALSE (the dead-path signal beside the counterexample lane above).
+         ;; Placed after the structural `set!', which REPLACES `moves' -- right after the
+         ;; counterexample lane its move would be dropped from the flat list.
+         (set! moves (append moves (lane! 'zero-it "normal form of P - Q"
+                                          (what-now--show-zero-it goal))))
          ;; EXPAND (notes-39, 2026-09-25): when a side of an equation in the goal
          ;; is a polynomial whose normal form differs from it, show the expansion
          ;; as a step, ahead of every non-structural lane (placed after the

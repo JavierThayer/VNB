@@ -119,5 +119,6 @@
   (vlet and-elim cut forsome-elim iff-elim not-elim or-elim)
   (wbc and-elim arith-forsome arith-ground arith-simplify cut detach forall-elim forsome-elim iff-elim not-elim or-elim theorem-assumption)
   (wk weakening)
+  (zero-it comm-ring-simplify cut eq-subst)
 )
 

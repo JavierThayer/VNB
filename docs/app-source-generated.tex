@@ -4,7 +4,7 @@
 
 \section{Kernel and subsystems (\texttt{\textasciitilde/prover/})}
 \label{sec:src-root}
-The 68 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
+The 69 Scheme files at the root of the tree: the proof kernel, the reader, the theory record, the interactive command layer, and the documentation / proof-printing / driver subsystems.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -79,12 +79,13 @@ The 68 Scheme files at the root of the tree: the proof kernel, the reader, the t
 \texttt{wff-english.scm} & render a wff as an English sentence \\
 \texttt{wff.scm} & the <wff> record type (well-formed formula in a theory) \\
 \texttt{witness-tactics.scm} & getting a witness out of a quantified hypothesis \\
+\texttt{zero-it.scm} & (zero-it): move an equation goal P = Q to its normal form R = 0 \\
 \bottomrule
 \end{longtable}
 
 \section{\texttt{structure-library/}}
 \label{sec:src-structure-library}
-The 133 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
+The 135 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -173,6 +174,7 @@ The 133 files that install definitions, structures, vocabulary, and warranted su
 \texttt{normed-field-metric.scm} & the metric space underlying a normed field \\
 \texttt{normed-field.scm} & NORMED-FIELD: a commutative ring with multiplicative \\
 \texttt{normed-vector-space.scm} & NORMED-VECTOR-SPACE: a real normed vector space \\
+\texttt{nth-deriv.scm} & THE ITERATED DERIVATIVE ON AN OPEN SET, OVER A NORMED FIELD \\
 \texttt{numeric-instances.scm} & \textit{(no header)} \\
 \texttt{nvs-metric.scm} & the metric induced by the norm of a real normed vector \\
 \texttt{one-sided-derivative.scm} & THE ONE-SIDED DERIVATIVES OF THE USER'S NOTES, \\
@@ -198,6 +200,7 @@ The 133 files that install definitions, structures, vocabulary, and warranted su
 \texttt{ring-simplify.scm} & polynomial-normal-form ring identity decision procedure \\
 \texttt{ring.scm} & RING, RING-PROD, ZERO-RING \\
 \texttt{ringoid.scm} & a ring with a distinguished two-sided ideal \\
+\texttt{road-juxtaposition.scm} & THE JUXTAPOSITION OF ROADS, THE TRIANGULAR ROAD AND THE LENGTH \\
 \texttt{rr-ineq.scm} & PROTOTYPE of the rr-ineq applier (plan item 2, the "dumb \\
 \texttt{scalar-inequalities.scm} & a library of important elementary inequalities \\
 \texttt{segments-triangles.scm} & THE VOCABULARY OF CAUCHY-GOURSAT (complex-analysis.pdf \\
@@ -229,7 +232,7 @@ The 133 files that install definitions, structures, vocabulary, and warranted su
 
 \section{\texttt{theorem-library/} and \texttt{calculus/}}
 \label{sec:src-libraries}
-\texttt{theorem-library/} holds 498 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
+\texttt{theorem-library/} holds 502 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
 
 \section{Emacs interface (\texttt{emacs/}) and generated docs}
 \label{sec:src-emacs}
