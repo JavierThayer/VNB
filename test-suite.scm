@@ -13059,6 +13059,25 @@
   (lambda () (list (eq? *kernel-caller-files* *cert-kernel-caller-files*)
                    (and (member "deduction-graphs" *cert-kernel-files*) #t)))
   '(#t #t))
+(check "certificate key: expressions.scm and sequents.scm are in the kernel hash (2026-09-27)"
+  (lambda () (list (and (member "expressions" *cert-kernel-files*) #t)
+                   (and (member "sequents" *cert-kernel-files*) #t)))
+  '(#t #t))
+
+;;; The checker's definition memo (rule-checkers-rewrite.scm, *rkw--def-memo*) is keyed by the
+;;; object the answer came from.  CONTROL: with the old key (the theorem object, #f for a
+;;; functoid) the second call below answered from the stale entry, body (+ x_ 1).
+(check "rule checkers: the macete-definition memo sees a functoid REDEFINED in the same image"
+  (lambda ()
+    (let ((nm 'rkw-memo-test-functoid))
+      (hash-table-set! *functoid-registry* nm (list '(x_) '(+ x_ 1)))
+      (let ((d1 (rkw--macete-definition nm)))
+        (hash-table-set! *functoid-registry* nm (list '(x_) '(+ x_ 2)))
+        (let ((d2 (rkw--macete-definition nm)))
+          (hash-table-delete! *functoid-registry* nm)
+          (hash-table-delete! *rkw--def-memo* nm)
+          (list (cadddr d1) (cadddr d2))))))
+  '((+ x_ 1) (+ x_ 2)))
 
 ;;; -----------------------------------------------------------------------
 ;;; ZERO-IT (notes-42, 2026-09-26; zero-it.scm, docs/zero-it-design-2026-09-26.md): an equation

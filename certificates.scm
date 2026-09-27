@@ -206,6 +206,10 @@
 (define *cert-kernel-files*
   (append *cert-kernel-caller-files*
           '("deduction-graphs"
+            ;; 2026-09-27 (the user's decision): the checkers read formulas and
+            ;; sequents through these two; a change there changes what a checker
+            ;; accepts, so they are in the key.
+            "expressions" "sequents"
             "rule-checkers-logic" "rule-checkers-schema" "rule-checkers-rewrite"
             "rule-checkers-oracle")))
 

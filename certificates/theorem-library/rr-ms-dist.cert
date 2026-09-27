@@ -1,3 +1,3 @@
 ;;; VNB proof certificates for theorem-library/rr-ms-dist.scm -- written by a load that proved them; do not edit.
-(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "6580a18021be4b774f4afad36d00bf78") (date "2026-09-26") (host "worker-02") (count 1))
-(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs) (uses (rr-ms@dist . "T43c73b3d5b509a051c6e8438e27eefe5")) (own-oracles) (bill) (oracles) (kernel "6580a18021be4b774f4afad36d00bf78") (date "2026-09-26") (host "worker-02"))
+(vnb-certificate-file "theorem-library/rr-ms-dist" (kernel "0aae670d6ae586fd694065e955bb4736") (date "2026-09-27") (host "worker-02") (count 1))
+(rr-ms-dist "6745c28a0c314c7f63eee92e8dc875e8" (forall u_ (forall v_ (implies (in u_ rr) (implies (in v_ rr) (== ((dist rr-ms) u_ v_) (abs (- u_ v_))))))) (cites) (defs) (uses (rr-ms@dist . "T43c73b3d5b509a051c6e8438e27eefe5")) (own-oracles) (bill) (oracles) (kernel "0aae670d6ae586fd694065e955bb4736") (date "2026-09-27") (host "worker-02"))

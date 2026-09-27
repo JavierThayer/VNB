@@ -580,14 +580,37 @@
 ;;; own entry instead of being answered from a stale reading.
 (define *rkw--def-memo* (make-strong-eqv-hash-table))
 
+;;; 2026-09-27 (the user's decision, after the certificate agent's finding): the key
+;;; used to be the THEOREM object alone, which is #f for a functoid, an accessor or
+;;; a functor projection -- so a functoid REDEFINED in the same image (an extend-band
+;;; reload) went on being checked against its old body.  The witness is now the
+;;; object the answer was computed FROM, whatever table it came from.
+(define (rkw--definition-witness name thm0)
+  (or thm0
+      (hash-table-ref/default *functoid-registry* name #f)
+      (hash-table-ref/default *accessor-index* name #f)
+      (let* ((s (symbol->string name))
+             (i (string-search-forward "@" s 0)))
+        (and i
+             (cons (hash-table-ref/default *functoid-registry*
+                                           (string->symbol (substring s 0 i)) #f)
+                   (hash-table-ref/default *accessor-index*
+                                           (string->symbol (substring s (+ i 1) (string-length s))) #f))))
+      'none))
+
+(define (rkw--witness-same? a b)
+  (or (eq? a b)
+      (and (pair? a) (pair? b) (eq? (car a) (car b)) (eq? (cdr a) (cdr b)))))
+
 (define (rkw--macete-definition name)
   (let* ((thm0 (and (symbol? name)
                     (hash-table-ref/default *theorem-table* name #f)))
+         (w    (and (symbol? name) (rkw--definition-witness name thm0)))
          (hit  (hash-table-ref/default *rkw--def-memo* name #f)))
-    (if (and hit (eq? (car hit) thm0))
+    (if (and hit (rkw--witness-same? (car hit) w))
         (cdr hit)
         (let ((d (rkw--macete-definition/compute name thm0)))
-          (hash-table-set! *rkw--def-memo* name (cons thm0 d))
+          (hash-table-set! *rkw--def-memo* name (cons w d))
           d))))
 
 (define (rkw--macete-definition/compute name thm)

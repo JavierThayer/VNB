@@ -85,7 +85,7 @@ The 69 Scheme files at the root of the tree: the proof kernel, the reader, the t
 
 \section{\texttt{structure-library/}}
 \label{sec:src-structure-library}
-The 135 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
+The 136 files that install definitions, structures, vocabulary, and warranted supports.  One file per structure or cluster; the always-current per-structure listing (declaration, slots, parent, theorems) is the generated \texttt{reference/STRUCTURE-INDEX.md}.
 
 \begin{longtable}{@{}p{0.30\textwidth}p{0.63\textwidth}@{}}
 \toprule
@@ -93,6 +93,7 @@ The 135 files that install definitions, structures, vocabulary, and warranted su
 \midrule
 \endhead
 \texttt{abelian-group.scm} & ABELIAN-GROUP structure \\
+\texttt{analytic-log.scm} & ANALYTICITY AT A POINT (the notes' Def 2.11) AND THE \\
 \texttt{antiderivative.scm} & Definition 4.6 (calculus.pdf), as VOCABULARY \\
 \texttt{ascoli-arzela-statement.scm} & \textit{(no header)} \\
 \texttt{baire-category.scm} & interior/closure, nowhere-dense, meager/nonmeager, and \\
@@ -232,7 +233,7 @@ The 135 files that install definitions, structures, vocabulary, and warranted su
 
 \section{\texttt{theorem-library/} and \texttt{calculus/}}
 \label{sec:src-libraries}
-\texttt{theorem-library/} holds 502 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
+\texttt{theorem-library/} holds 504 proof scripts, each reaching \texttt{(qed \ldots)} and gated into the library load; by convention \texttt{X-proof.scm} proves \texttt{X}.  \texttt{calculus/} holds 21 probes and stress tests that are \emph{not} in \texttt{load.scm}.  Rather than enumerate them here, the theorems they prove are indexed, with statements and per-file links, in the generated browser references \texttt{reference/THEOREMS.md} (flat) and \texttt{reference/BY-TOPIC.md} (grouped like a textbook table of contents).
 
 \section{Emacs interface (\texttt{emacs/}) and generated docs}
 \label{sec:src-emacs}

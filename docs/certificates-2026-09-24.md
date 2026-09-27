@@ -158,3 +158,17 @@ invalidates the certificates that used it. The record gains a third hash list, b
   `deduction-graphs.scm` now contributes to the kernel hash: it holds `dg-apply-rule!`, the checker
   dispatch and the grounding propagation, and until 2026-09-26 an edit to it left every certificate
   valid.
+
+
+## 2026-09-27: the kernel hash widened; the checker memo keyed by its source object
+
+The user's decisions of 2026-09-27 on the two open items of batch 34-37's page: `deduction-graphs.scm` stays
+in the kernel hash, and `expressions.scm` and `sequents.scm` join it (`*cert-kernel-files*`,
+certificates.scm), since every checker reads formulas and sequents through them. The cost was one exam.
+
+The checker's definition memo (`*rkw--def-memo*`, rule-checkers-rewrite.scm) used to be keyed by the THEOREM
+object alone, which is `#f` for a functoid, an accessor or a functor projection: such a rule redefined in the
+same image (an extend-band reload) went on being checked against its old reading, while the certificate's
+`M` hash, computed without the memo, saw the new one. The key is now the object the answer was computed from
+(`rkw--definition-witness`: the theorem, the functoid registration, the accessor entry, or both for a
+projection), and a suite check redefines a functoid in place and reads the new body back.

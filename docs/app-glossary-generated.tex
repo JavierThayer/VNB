@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 716 names: 20 structure, 7 refinement, 11 instance, 19 view, 221 predicate, 227 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 92 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 718 names: 20 structure, 7 refinement, 11 instance, 19 view, 222 predicate, 228 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 92 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -23,13 +23,13 @@ At the REPL, \texttt{(glossary 'NAME)} prints one entry and
 
 \noindent\textbf{\texttt{*}}\quad\textit{operator}\index{*@\texttt{*}}\\
 a term-forming head \\
-mentioned by 954 result(s)
+mentioned by 1002 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{+}}\quad\textit{operator}\index{+@\texttt{+}}\\
 a term-forming head \\
-mentioned by 715 result(s)
+mentioned by 736 result(s)
 
 \smallskip
 
@@ -39,8 +39,8 @@ characterized by \texttt{cc-ms-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-ms = [cc, vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))]
 \end{quote}
-also: \texttt{is-convex} \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} ... (465 in all) \\
-mentioned by 651 result(s)
+also: \texttt{is-convex} \texttt{rr-ms-def} \texttt{cc-ms@dist} \texttt{is-diff-at} \texttt{nary-neg-1} \texttt{rr-abs-def} \texttt{rr-ms@dist} \texttt{rr-nvs-def} ... (493 in all) \\
+mentioned by 692 result(s)
 
 \smallskip
 
@@ -57,14 +57,14 @@ characterized by \texttt{<}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x, y], x < y iff x <= y and not(x = y))
 \end{quote}
-mentioned by 568 result(s)
+mentioned by 633 result(s)
 
 \smallskip
 
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 917 result(s)
+mentioned by 941 result(s)
 
 \smallskip
 
@@ -189,8 +189,8 @@ characterized by \texttt{ball-is-set}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-metric-space(s) implies forall([x, r], ball(s, x, r) in set))
 \end{quote}
-also: \texttt{ball-is-open} \texttt{ball-point-le} \texttt{ball-point-ne} \texttt{ms-agree-ball} \texttt{subspace-ball} \texttt{ball-center-in} \texttt{ball-membership} \texttt{ball-sep-unfold} ... (23 in all) \\
-mentioned by 50 result(s)
+also: \texttt{ball-is-open} \texttt{ball-point-le} \texttt{ball-point-ne} \texttt{ms-agree-ball} \texttt{subspace-ball} \texttt{ball-center-in} \texttt{ball-membership} \texttt{ball-sep-unfold} ... (27 in all) \\
+mentioned by 78 result(s)
 
 \smallskip
 
@@ -528,8 +528,8 @@ characterized by \texttt{cc-cos-pi}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-cos(pi) = -1
 \end{quote}
-also: \texttt{cc-cos-add} \texttt{cc-cos-exp} \texttt{cc-cos-even} \texttt{cc-cos-zero} \texttt{cc-cos-deriv} \texttt{cc-cos-sin-pi} \texttt{cc-cos-two-pi} \texttt{cc-cos-unfold} ... (21 in all) \\
-mentioned by 39 result(s)
+also: \texttt{cc-cos-add} \texttt{cc-cos-exp} \texttt{cc-cos-even} \texttt{cc-cos-zero} \texttt{cc-cos-deriv} \texttt{cc-cos-sin-pi} \texttt{cc-cos-two-pi} \texttt{cc-cos-unfold} ... (27 in all) \\
+mentioned by 45 result(s)
 
 \smallskip
 
@@ -543,8 +543,8 @@ characterized by \texttt{cc-exp-i}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([cexz\_ in cc], cc-exp(1i * cexz\_) = cc-cos(cexz\_) + 1i * cc-sin(cexz\_))
 \end{quote}
-also: \texttt{cc-exp-add} \texttt{cc-exp-neg} \texttt{cc-exp-conj} \texttt{cc-exp-i-pi} \texttt{cc-exp-real} \texttt{cc-exp-tail} \texttt{cc-exp-zero} \texttt{cc-exp-deriv} ... (46 in all) \\
-mentioned by 95 result(s)
+also: \texttt{cc-exp-add} \texttt{cc-exp-log} \texttt{cc-exp-neg} \texttt{cc-exp-conj} \texttt{cc-exp-i-pi} \texttt{cc-exp-real} \texttt{cc-exp-tail} \texttt{cc-exp-zero} ... (47 in all) \\
+mentioned by 108 result(s)
 
 \smallskip
 
@@ -560,6 +560,21 @@ forall([a, b], a in rr implies b in rr implies forall([pphi\_, ppsi\_, pchi\_], 
 \end{quote}
 also: \texttt{cc-int-in-cc} \texttt{cc-int-value} \texttt{cc-int-unfold} \texttt{cc-int-reflect} \texttt{cc-int-adjacent} \texttt{cc-int-real-mul} \texttt{cc-int-abs-bound} \texttt{cc-int-congruence} ... (10 in all) \\
 mentioned by 22 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{cc-log(clgw\_)}}\quad\textit{functoid}\index{cc-log(clgw_)@\texttt{cc-log(clgw\_)}}\\
+reads: the principal logarithm of \$1 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+iota(clgz\_, clgz\_ in cc and -pi < imag-part(clgz\_) and imag-part(clgz\_) < pi and cc-exp(clgz\_) = clgw\_)
+\end{quote}
+characterized by \texttt{cc-log-exp}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([clgz\_ in cc], -pi < imag-part(clgz\_) implies imag-part(clgz\_) < pi implies cc-log(cc-exp(clgz\_)) = clgz\_)
+\end{quote}
+also: \texttt{cc-log-mul} \texttt{cc-log-one} \texttt{cc-log-char} \texttt{cc-log-real} \texttt{cc-log-spec} \texttt{cc-log-deriv} \texttt{cc-log-polar} \texttt{cc-log-scale} ... (19 in all) \\
+mentioned by 35 result(s)
 
 \smallskip
 
@@ -606,7 +621,7 @@ characterized by \texttt{cc-series-converges}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([f], cc-series-converges(f) iff converges(cc-ms, vnb-lambda(k, nn, cc-series-partial-sum(f, k))))
 \end{quote}
-mentioned by 20 result(s)
+mentioned by 22 result(s)
 
 \smallskip
 
@@ -632,7 +647,7 @@ characterized by \texttt{cc-series-limit-in-cc}  \textit{(proven)}:
 forall([f in fun(nn, cc)], cc-series-converges(f) implies cc-series-limit(f) in cc)
 \end{quote}
 also: \texttt{cc-series-limit-linear} \texttt{cc-series-limit-conjugate} \texttt{cc-series-limit-converges-to} \\
-mentioned by 32 result(s)
+mentioned by 58 result(s)
 
 \smallskip
 
@@ -661,8 +676,8 @@ characterized by \texttt{cc-sin-pi}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 cc-sin(pi) = 0
 \end{quote}
-also: \texttt{cc-sin-add} \texttt{cc-sin-exp} \texttt{cc-sin-odd} \texttt{cc-sin-deriv} \texttt{cc-sin-two-pi} \texttt{cc-sin-unfold} \texttt{cc-sin-half-pi} \texttt{cc-sin-converges} ... (11 in all) \\
-mentioned by 32 result(s)
+also: \texttt{cc-sin-add} \texttt{cc-sin-exp} \texttt{cc-sin-odd} \texttt{cc-sin-deriv} \texttt{cc-sin-two-pi} \texttt{cc-sin-unfold} \texttt{cc-sin-half-pi} \texttt{cc-sin-pos-half} ... (12 in all) \\
+mentioned by 33 result(s)
 
 \smallskip
 
@@ -1109,7 +1124,7 @@ characterized by \texttt{cps-radius-in}  \textit{(proven)}:
 forall([cf], cps-radius(cf) in rr-pos-star)
 \end{quote}
 also: \texttt{cps-radius-mono} \texttt{cps-radius-root} \texttt{cps-radius-zero} \texttt{cps-radius-recip} \texttt{cps-radius-approx} \texttt{cps-radius-factor} \texttt{cps-radius-unfold} \texttt{cps-radius-derived} ... (10 in all) \\
-mentioned by 41 result(s)
+mentioned by 56 result(s)
 
 \smallskip
 
@@ -1811,7 +1826,7 @@ characterized by \texttt{factorial-succ}  \textit{(definitional)}:
 forall([k in nn], factorial(succ(k)) = succ(k) * factorial(k))
 \end{quote}
 also: \texttt{factorial-zero} \texttt{factorial-mono} \texttt{factorial-in-nn} \texttt{factorial-real-pos} \texttt{rr-recip-factorial} \texttt{recip-factorial-in-rr} \texttt{choose-times-factorial} \texttt{tgd-recip-factorial-succ} \\
-mentioned by 105 result(s)
+mentioned by 109 result(s)
 
 \smallskip
 
@@ -2025,7 +2040,7 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
 also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (138 in all) \\
-mentioned by 1436 result(s)
+mentioned by 1467 result(s)
 
 \smallskip
 
@@ -2215,7 +2230,7 @@ characterized by \texttt{holomorphic-on}  \textit{(definitional)}:
 forall([u, f], holomorphic-on(u, f) iff is-open(nf-metric-space(cc-normed-field), u) and f in fun(u, cc) and forall([a in u], forsome([l], is-diff-on(cc-normed-field, u, f, a, l))))
 \end{quote}
 also: \texttt{holomorphic-on-diff} \texttt{holomorphic-on-open} \texttt{holomorphic-on-in-fun} \texttt{holomorphic-on-iff-cc-ms} \texttt{holomorphic-on-continuous} \texttt{holomorphic-on-open-cc-ms} \\
-mentioned by 47 result(s)
+mentioned by 55 result(s)
 
 \smallskip
 
@@ -2702,7 +2717,7 @@ characterized by \texttt{imag-part-def}  \textit{(definitional)}:
 forall([z], imag-part(z) == (z - conjugate(z)) * recip(2 * 1i))
 \end{quote}
 also: \texttt{imag-part-in-rr} \\
-mentioned by 108 result(s)
+mentioned by 128 result(s)
 
 \smallskip
 
@@ -2724,8 +2739,8 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
-also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1294 in all) \\
-mentioned by 4973 result(s)
+also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1300 in all) \\
+mentioned by 5044 result(s)
 
 \smallskip
 
@@ -2995,6 +3010,17 @@ characterized by \texttt{is-algebra-of-sets}  \textit{(definitional)}:
 forall([omega, ca], is-algebra-of-sets(omega, ca) iff omega in set and ca subset power(omega) and forsome([a\_], a\_ in ca) and forall([a\_ in ca], complement-in(omega, a\_) in ca) and forall([a\_ in ca, b\_ in ca], union(a\_, b\_) in ca) and forall([a\_ in ca, b\_ in ca], intersection(a\_, b\_) in ca))
 \end{quote}
 mentioned by 2 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-analytic-at(anlf\_, anlu\_, anla\_)}}\quad\textit{predicate}\index{is-analytic-at(anlf_, anlu_, anla_)@\texttt{is-analytic-at(anlf\_, anlu\_, anla\_)}}\\
+reads: \$1 is analytic at \$3 on \$2 \\
+defined by \texttt{is-analytic-at} \\
+characterized by \texttt{is-analytic-at}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([anlf\_, anlu\_, anla\_], is-analytic-at(anlf\_, anlu\_, anla\_) iff is-open(cc-ms, anlu\_) and anlf\_ in fun(anlu\_, cc) and anla\_ in anlu\_ and forsome([anlcf\_ in fun(nn, cc), anlr\_ in rr], 0 < anlr\_ and anlr\_ < cps-radius(anlcf\_) and ball(cc-ms, anla\_, anlr\_) subset anlu\_ and forall([anlz\_ in ball(cc-ms, anla\_, anlr\_)], anlf\_(anlz\_) = cc-series-limit(vnb-lambda(anlk\_, nn, anlcf\_(anlk\_) * (anlz\_ - anla\_) \textasciicircum{} anlk\_)))))
+\end{quote}
+mentioned by 4 result(s)
 
 \smallskip
 
@@ -3339,7 +3365,7 @@ characterized by \texttt{is-diff-on}  \textit{(definitional)}:
 forall([k, u, f, a, l], is-diff-on(k, u, f, a, l) iff is-normed-field(k) and is-open(nf-metric-space(k), u) and f in fun(u, carr(k)) and a in u and l in carr(k) and forsome([phi in fun(u, carr(k))], is-continuous-at(subspace-ms(nf-metric-space(k), u), nf-metric-space(k), phi, a) and phi(a) = l and forall([x in u], (add(k))(f(x), (neg(k))(f(a))) = (mul(k))(phi(x), (add(k))(x, (neg(k))(a))))))
 \end{quote}
 also: \texttt{deriv-on-of-is-diff-on} \texttt{cc-deriv-on-of-is-diff-on} \texttt{nth-deriv-on-of-is-diff-on} \\
-mentioned by 73 result(s)
+mentioned by 81 result(s)
 
 \smallskip
 
@@ -4238,7 +4264,7 @@ characterized by \texttt{is-open}  \textit{(definitional)}:
 forall([s, u], is-open(s, u) iff is-metric-space(s) and u subset pts(s) and forall([y in u], forsome([r], pos-rr(r) and ball(s, y, r) subset u)))
 \end{quote}
 also: \texttt{is-open-cover} \texttt{ball-is-open} \texttt{empty-is-open} \texttt{carrier-is-open} \texttt{interior-is-open} \\
-mentioned by 79 result(s)
+mentioned by 83 result(s)
 
 \smallskip
 
@@ -4958,8 +4984,8 @@ characterized by \texttt{log-mul}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([x\_, y\_], x\_ in rr implies y\_ in rr implies 0 < x\_ implies 0 < y\_ implies log(x\_ * y\_) = log(x\_) + log(y\_))
 \end{quote}
-also: \texttt{log-one} \texttt{log-diff} \texttt{log-deriv} \texttt{log-in-rr} \texttt{log-r-exp} \texttt{log-recip} \texttt{r-exp-log} \texttt{log-unfold} ... (22 in all) \\
-mentioned by 39 result(s)
+also: \texttt{log-one} \texttt{log-diff} \texttt{log-deriv} \texttt{log-in-rr} \texttt{log-r-exp} \texttt{log-recip} \texttt{r-exp-log} \texttt{log-unfold} ... (26 in all) \\
+mentioned by 47 result(s)
 
 \smallskip
 
@@ -4998,7 +5024,7 @@ characterized by \texttt{magnitude-def}  \textit{(definitional)}:
 forall([z], magnitude(z) == sqrt(real-part(z) * real-part(z) + imag-part(z) * imag-part(z)))
 \end{quote}
 also: \texttt{half-magnitude} \texttt{cc-magnitude-sq} \texttt{cc-magnitude-mul} \texttt{cc-magnitude-neg} \texttt{cc-magnitude-zero} \texttt{cc-magnitude-power} \texttt{cex-sign-magnitude} \texttt{cc-magnitude-closed} ... (28 in all) \\
-mentioned by 137 result(s)
+mentioned by 144 result(s)
 
 \smallskip
 
@@ -5704,7 +5730,7 @@ characterized by \texttt{nth-deriv-on-succ}  \textit{(definitional)}:
 forall([ndvk\_, ndvu\_, ndvf\_, ndvn\_ in nn], nth-deriv-on(ndvk\_, ndvu\_, ndvf\_, succ(ndvn\_)) == vnb-lambda(ndvz\_, ndvu\_, deriv-on(ndvk\_, ndvu\_, nth-deriv-on(ndvk\_, ndvu\_, ndvf\_, ndvn\_), ndvz\_)))
 \end{quote}
 also: \texttt{nth-deriv-on-zero} \texttt{nth-deriv-on-in-fun} \texttt{nth-deriv-on-succ-eq} \texttt{nth-deriv-on-succ-apply} \texttt{nth-deriv-on-of-is-diff-on} \texttt{nth-deriv-on-holomorphic-ball} \\
-mentioned by 18 result(s)
+mentioned by 22 result(s)
 
 \smallskip
 
@@ -5973,7 +5999,7 @@ characterized by \texttt{pos-rr}  \textit{(definitional)}:
 forall([r], pos-rr(r) iff r in rr and 0 <= r and not(0 = r))
 \end{quote}
 also: \texttt{rr-lt-of-pos-rr} \texttt{rr-pos-rr-in-rr} \texttt{rr-pos-rr-of-lt} \\
-mentioned by 187 result(s)
+mentioned by 188 result(s)
 
 \smallskip
 
@@ -5984,7 +6010,7 @@ characterized by \texttt{power-neg}  \textit{(primitive)}:
 forall([x, n], x in cc and n in nn and not(x = 0) implies x \textasciicircum{} (-n) = recip(x \textasciicircum{} n))
 \end{quote}
 also: \texttt{power-set} \texttt{power-succ} \texttt{power-zero} \texttt{power-typing-nonneg} \texttt{power-set-membership} \texttt{deriv-power} \texttt{cc-power-add} \texttt{cc-power-mul} ... (60 in all) \\
-mentioned by 312 result(s)
+mentioned by 342 result(s)
 
 \smallskip
 
@@ -6392,7 +6418,7 @@ characterized by \texttt{real-part-def}  \textit{(definitional)}:
 forall([z], real-part(z) == (z + conjugate(z)) * recip(2))
 \end{quote}
 also: \texttt{real-part-in-rr} \texttt{cc-cos-real-part} \\
-mentioned by 101 result(s)
+mentioned by 118 result(s)
 
 \smallskip
 
@@ -6403,7 +6429,7 @@ characterized by \texttt{cc-recip-closed}  \textit{(primitive)}:
 forall([a], a in cc and not(a = 0) implies recip(a) in cc)
 \end{quote}
 also: \texttt{qq-recip-closed} \texttt{rr-recip-closed} \texttt{cc-recip-inverse} \texttt{qq-recip-inverse} \texttt{rr-recip-inverse} \texttt{cc-recip-mul} \texttt{rr-recip-one} \texttt{rr-recip-pos} ... (36 in all) \\
-mentioned by 206 result(s)
+mentioned by 226 result(s)
 
 \smallskip
 
@@ -6418,7 +6444,7 @@ characterized by \texttt{recip-star-zero}  \textit{(proven)}:
 recip-star(0) = 0
 \end{quote}
 also: \texttt{recip-star-in-rr} \texttt{recip-star-scale} \texttt{recip-star-value} \texttt{recip-star-nn-pos} \texttt{recip-star-inverse} \texttt{recip-star-nn-nonneg} \texttt{recip-star-lam-in-fun} \texttt{recip-star-int-additive} ... (11 in all) \\
-mentioned by 49 result(s)
+mentioned by 51 result(s)
 
 \smallskip
 
@@ -6532,7 +6558,7 @@ characterized by \texttt{road-restrict}  \textit{(proven)}:
 forall([pgam, dgam, a, b, licv\_ in rr, lidv\_ in rr], is-road(pgam, dgam, a, b) implies a <= licv\_ implies licv\_ < lidv\_ implies lidv\_ <= b implies is-road(restrict(pgam, ccint(licv\_, lidv\_)), restrict(dgam, ccint(licv\_, lidv\_)), licv\_, lidv\_))
 \end{quote}
 also: \texttt{image-restrict} \texttt{restrict-apply} \texttt{restrict-in-fun} \texttt{tri-int-restrict} \texttt{trace-restrict-subset} \texttt{restrict-continuous-at} \texttt{diff-on-shrink-restrict} \texttt{pw-antiderivative-restrict} ... (12 in all) \\
-mentioned by 59 result(s)
+mentioned by 63 result(s)
 
 \smallskip
 
@@ -6879,7 +6905,7 @@ characterized by \texttt{ball-sep-unfold}  \textit{(proven)}:
 forall([s, c, r], ball(s, c, r) == \{y in pts(s): (dist(s))(c, y) <= r and not((dist(s))(c, y) = r)\})
 \end{quote}
 also: \texttt{closure-sep-unfold} \texttt{interior-sep-unfold} \texttt{closed-ball-sep-unfold} \\
-mentioned by 104 result(s)
+mentioned by 107 result(s)
 
 \smallskip
 
@@ -7244,7 +7270,7 @@ characterized by \texttt{submodule-subset}  \textit{(definitional)}:
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 \end{quote}
 also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (44 in all) \\
-mentioned by 352 result(s)
+mentioned by 361 result(s)
 
 \smallskip
 
@@ -7283,7 +7309,7 @@ characterized by \texttt{sum-succ}  \textit{(definitional)}:
 forall([r, f, n in nn], sum(r, f, succ(n)) == (add(r))(sum(r, f, n), f(n)))
 \end{quote}
 also: \texttt{mpow-succ} \texttt{nn-add-succ} \texttt{reduce-succ} \texttt{sum-ag-succ} \texttt{trinum-succ} \texttt{comb-kk-succ} \texttt{dc-iter-succ} \texttt{falling-succ} ... (74 in all) \\
-mentioned by 508 result(s)
+mentioned by 525 result(s)
 
 \smallskip
 
@@ -7746,7 +7772,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 950 result(s)
+mentioned by 983 result(s)
 
 \smallskip
 

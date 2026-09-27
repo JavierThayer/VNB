@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-579 operators: 3 functions, 11 syntax, 339 functoids, 223 predicates, 3 undeclared.
+581 operators: 3 functions, 11 syntax, 340 functoids, 224 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (339)
+## Functoids  (340)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -197,6 +197,12 @@ Declared by: `cc-coords-def`
 > _Reads as:_  the complex integral of pphi_ from a to b
 
     cc-int(pphi_, a, b) := pw-int(vnb-lambda(pat_, ccint(a, b), real-part(pphi_(pat_))), a, b) + pw-int(vnb-lambda(pat_, ccint(a, b), imag-part(pphi_(pat_))), a, b) * 1i
+
+### `cc-log`  — def-functoid · element/number-valued
+
+> _Reads as:_  the principal logarithm of clgw_
+
+    cc-log(clgw_) := iota(clgz_, clgz_ in cc and -pi < imag-part(clgz_) and imag-part(clgz_) < pi and cc-exp(clgz_) = clgw_)
 
 ### `cc-mid`  — def-functoid · element/number-valued
 
@@ -1602,7 +1608,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (223)
+## Predicates  (224)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -1745,6 +1751,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-algebra-of-sets`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  ca is an algebra of subsets of omega
+
+### `is-analytic-at`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  anlf_ is analytic at anla_ on anlu_
 
 ### `is-antiderivable`  — def-predicate · proposition (arity 3)
 

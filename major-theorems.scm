@@ -27,7 +27,7 @@
 ;;;
 ;;;   (entry (doc "calculus")                   ; calculus | linear-algebra | ...
 ;;;          (ref "2.11")                       ; the number in the notes
-;;;          (kind theorem)                     ; theorem | proposition | lemma | corollary
+;;;          (kind theorem)                     ; theorem | proposition | lemma | corollary | definition
 ;;;          (title "Generalized Mean Value Theorem")
 ;;;          (names generalized-mvt)            ; the library theorem(s); () when absent
 ;;;          (status proven)                    ; proven | asserted | partial | absent
@@ -494,6 +494,7 @@
         ((memq kind '(proposition prop)) "prop")
         ((memq kind '(lemma lem))        "lem")
         ((memq kind '(corollary cor))    "cor")
+        ((memq kind '(definition defn))  "defn")   ; 2026-09-27: the principal logarithm row
         (#t "thm")))
 
 (define (mt--doc-ref-label entry)

@@ -3513,8 +3513,11 @@
     ;; proven first); Lemma 2.18 (cc-exp-one-iff), the injectivity half of Prop 2.19 (cc-exp-injective-strip),
     ;; exp(i pi) = -1, cos(pi/2) = 0, sin(pi/2) = 1, the tail bound cc-series-ratio-tail.
     "structure-library/cc-pi"
+    "structure-library/analytic-log"
     "theorem-library/cc-exp-kernel"
     "theorem-library/cc-exp-surjective"
+    "theorem-library/analytic-log-laws"
+    "theorem-library/cc-log-holomorphic"
     ;; preamble -- a STRATEGY, executed: (preamble '(induct) '(unfold ...)
     ;; '(instantiate) '(close)) runs the clause list against every open leaf,
     ;; commits ordinary tactics that each record themselves, and RETURNS the
