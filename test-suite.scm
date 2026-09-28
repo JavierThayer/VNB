@@ -13107,7 +13107,7 @@
        (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR)
                                             (= (power (+ x 1) 2) (+ (power x 2) (* 2 x) 1))))))))
        (let ((r (zi-run)))
-         (and (eqv? (car r) 0)
+         (and (eqv? (zero-it-normal-form (car r)) 0)
               (proof-done? *ps*)
               (zi-says? (cdr r) "normalises to  0")
               (equal? (map car *proof-script*) '(crs))))))))
@@ -13120,7 +13120,7 @@
        (let* ((n (length *proof-script*)) (m (length *proof-mints*))
               (l (length (proof-open-leaves *ps*))) (g (dk-goal))
               (r (zi-run)))
-         (and (eqv? (car r) 1)
+         (and (eqv? (zero-it-normal-form (car r)) 1)
               (zi-says? (cdr r) "FALSE in every ring where 1 /= 0: it reduces to 1 = 0")
               (= n (length *proof-script*)) (= m (length *proof-mints*))
               (= l (length (proof-open-leaves *ps*)))
@@ -13132,7 +13132,7 @@
      (lambda ()
        (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (= (+ x x) x)))))))
        (let ((r (zi-run)))
-         (and (equal? (car r) 'x)
+         (and (equal? (zero-it-normal-form (car r)) 'x)
               (alpha-equiv? (dk-goal) '(= x 0))
               (= 1 (length (proof-open-leaves *ps*)))
               (dk-asm? '(IN x RR))
@@ -13147,7 +13147,7 @@
                                    (IMPLIES (NOT (= y 0)) (= (+ (* x (recip y)) x) x))))))))
                   (di) (di)))
        (let ((r (zi-run)))
-         (and (equal? (car r) '(* x (recip y)))
+         (and (equal? (zero-it-normal-form (car r)) '(* x (recip y)))
               (alpha-equiv? (dk-goal) '(= (* x (recip y)) 0))
               (= 1 (length (proof-open-leaves *ps*)))
               (dk-asm? '(IN (recip y) RR))))))))
@@ -13159,7 +13159,7 @@
        (quietly (lambda () (sp (make-wff '(FORALL x (IMPLIES (IN x RR) (FORALL y (IMPLIES (IN y RR)
                                             (= (+ (* x (recip y)) x) x)))))))))
        (let ((r (zi-run)))
-         (and (equal? (car r) '(* x (recip y)))
+         (and (equal? (zero-it-normal-form (car r)) '(* x (recip y)))
               (alpha-equiv? (dk-goal) '(= (* x (recip y)) 0))
               (dk-asm? '(IN (recip y) RR))
               (= 2 (length (proof-open-leaves *ps*)))
@@ -13174,7 +13174,7 @@
        (quietly (lambda () (sp (make-wff '(FORALL z (IMPLIES (IN z CC)
                                             (= (* (+ z +i) (- z +i)) (+ (power z 2) 1))))))))
        (let ((r (zi-run)))
-         (and (eqv? (car r) 0) (proof-done? *ps*)))))))
+         (and (eqv? (zero-it-normal-form (car r)) 0) (proof-done? *ps*)))))))
 
 (check-true "zero-it (7) abstract ring: (ADD a) x y = (ADD a) y x closes; (ADD a) x x = x leaves x = ZERO(a)"
   (lambda ()
@@ -13192,7 +13192,7 @@
                     (di)))
          (let ((r2 (zi-run)))
            (and done1
-                (equal? (car r2) 'x)
+                (equal? (zero-it-normal-form (car r2)) 'x)
                 (alpha-equiv? (dk-goal) '(= x (ZERO a)))
                 (= 1 (length (proof-open-leaves *ps*))))))))))
 
@@ -13206,7 +13206,7 @@
                         (text (with-output-to-string
                                 (lambda () (fluid-let ((*vnb-quiet* #f)) (set! v (zero-it)))))))
                    (cons v text))))
-         (and (eq? (car r) #f)
+         (and (eq? (zero-it-status (car r)) 'declined)
               (zi-says? (cdr r) "NN is not a ring")
               (= n (length *proof-script*))))))))
 
@@ -13294,6 +13294,20 @@
          (and (zi-says? r "normalises to  1")
               (zi-says? r "FALSE")
               (equal? (vnb-report-take!) "")))))))
+
+;;; THE VALUE (the user, 2026-09-28): the verdict alist carries what the printout says, so a
+;;; caller (one day: a procedure hunting for the right statement of a theorem) can act on it.
+(check "zero-it: the value is the verdict -- status, normal form, the report text, owed, reason"
+  (lambda ()
+    (zi-safe
+     (lambda ()
+       (sp (make-wff "forall([x in rr], (x + 1)^2 = x^2 + 2*x - 5)"))
+       (let ((v (quietly (lambda () (zero-it)))))
+         (list (zero-it-status v) (zero-it-normal-form v)
+               (and (zi-says? (zero-it-report v) "normalises to  6") #t)
+               (and (zi-says? (zero-it-report v) "FALSE over rr") #t)
+               (zero-it-owed v) (zero-it-reason v))))))
+  '(false 6 #t #t () #f))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

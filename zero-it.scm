@@ -22,7 +22,8 @@
 ;;;   otherwise      ONE recorded step `(zero-it)': the atoms are typed (or their typings
 ;;;                  are cut as OWED side leaves, listed), `R = 0' is cut, the branch
 ;;;                  `R = 0 |- P = Q' is closed, and the focus is left on `|- R = 0'.
-;;; The value is R (DATA), or #f when zero-it declines (the reason is printed; nothing
+;;; The value is the VERDICT alist (status, normal-form R, report, owed, reason -- see
+;;; `zero-it-status' and friends below the command); on a decline the reason is printed; nothing
 ;;; changes).
 ;;;
 ;;; THE RING.  The concrete number surface (+ - * ^ and numerals; atoms typed in NN ZZ QQ RR
@@ -493,9 +494,35 @@
 ;;; *vnb-quiet* nothing is printed and the Scratch Workspace reads the channel.
 (define (zero-it)
   (vnb-report-reset!)
-  (let ((v (fluid-let ((*zi-deferred* #t)) (zi--zero-it-body))))
+  (set! *zi-last-analysis* #f)
+  (let* ((raw   (fluid-let ((*zi-deferred* #t)) (zi--zero-it-body)))
+         (lines (reverse *vnb-report-lines*))
+         (a     *zi-last-analysis*))
     (zi--flush-report!)
-    v))
+    (list (cons 'status      (car raw))
+          (cons 'normal-form (cdr raw))
+          (cons 'report      (zi--join-lines lines))
+          (cons 'owed        (or (and a (zi--get a 'owed)) '()))
+          (cons 'reason      (and a (zi--get a 'reason))))))
+
+;;; THE VALUE (the user, 2026-09-28: "the return value should include a string with the
+;;; same information -- a calling procedure attempting to find the correct statement of
+;;; a theorem may process it").  An association list, the VERDICT:
+;;;   status       closed | false | rewrite | declined
+;;;   normal-form  the term R (P - Q normalised), or #f when the goal was not an equation
+;;;   report       every printed line, newline-joined: what the user saw
+;;;   owed         the typings posted as open leaves (rewrite / closed-with-owed)
+;;;   reason       the decline's reason, else #f
+(define (zero-it-status v)      (cdr (assq 'status v)))
+(define (zero-it-normal-form v) (cdr (assq 'normal-form v)))
+(define (zero-it-report v)      (cdr (assq 'report v)))
+(define (zero-it-owed v)        (cdr (assq 'owed v)))
+(define (zero-it-reason v)      (cdr (assq 'reason v)))
+
+(define (zi--join-lines lines)
+  (if (null? lines) ""
+      (let loop ((ls (cdr lines)) (acc (car lines)))
+        (if (null? ls) acc (loop (cdr ls) (string-append acc "\n" (car ls)))))))
 
 (define (zi--flush-report!)
   (unless *vnb-quiet*
@@ -510,31 +537,32 @@
   (cond
     ((not (and (proof-state? *ps*) (not (proof-done? *ps*))))
      (zi--warn "zero-it: no open goal; nothing changed")
-     #f)
+     (cons 'declined #f))
     (#t
      (let ((a (zi--analyse (dk-goal) (dk-asms))))
+       (set! *zi-last-analysis* a)
        (case (zi--get a 'status)
          ((decline)
           (if (zi--get a 'R) (zi--say-normal-form a))
           (zi--warn (string-append "zero-it: " (zi--get a 'reason) "; nothing changed"))
-          #f)
+          (cons 'declined (zi--get a 'R)))
          ((false)
           (zi--say-normal-form a)
           (zi--say (zi--false-message a))
-          (zi--get a 'R))
+          (cons 'false (zi--get a 'R)))
          ((zero)
           (zi--say-normal-form a)
           (if (zi--crs-direct? a)
               (let ((leaf (proof-state-focus *ps*)))
                 (crs)                                  ; recorded as itself: the oracle
                 (if (sequent-node-grounded? leaf)
-                    (begin (zi--say ";; zero-it: an identity of commutative rings; closed by crs") 0)
-                    #f))
+                    (begin (zi--say ";; zero-it: an identity of commutative rings; closed by crs") (cons 'closed 0))
+                    (cons 'declined 0)))
               (zi--run-step! a)))
          ((rewrite)
           (zi--say-normal-form a)
           (zi--run-step! a))
-         (else #f))))))
+         (else (cons 'declined #f)))))))
 
 ;;; The one recorded step.  The inner steps run with recording suppressed (bc*-handler path)
 ;;; inside a transaction; a failure rolls back and is reported as a warning (not recorded).
@@ -558,18 +586,18 @@
                                        (if why (string-append " (" why ")") ""))
                                      "; nothing changed")))))
     (cond
-      ((not ok) #f)
+      ((not ok) (cons 'declined (zi--get a 'R)))
       ((sequent-node-grounded? leaf)
-       (zi--say ";; zero-it: closed") (zi--get a 'R))
+       (zi--say ";; zero-it: closed") (cons 'closed (zi--get a 'R)))
       ((eq? (zi--get a 'status) 'zero)
        (zi--say ";; zero-it: the identity is closed by crs, given the typings owed below")
        (zi--say-owed (zi--get *zi-last-analysis* 'owed))
-       (zi--get a 'R))
+       (cons 'closed (zi--get a 'R)))
       (#t
        (zi--say ";; zero-it: the goal is now  "
                 (expression->string (dk-goal)))
        (zi--say-owed (zi--get *zi-last-analysis* 'owed))
-       (zi--get *zi-last-analysis* 'R)))))
+       (cons 'rewrite (zi--get *zi-last-analysis* 'R))))))
 
 ;;; -----------------------------------------------------------------------
 ;;; The what-now lane (suggest.scm).  Returns the move forms it offers; prints only when it

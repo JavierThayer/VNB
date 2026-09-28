@@ -210,3 +210,15 @@ offers no move on a false goal.
 * `reference/TACTICS.md` picks the entry up from `tactics-help.scm`; `tactic-uses-data.scm` (GENERATED
   by docs/gen-tactic-uses.py from the kernel map) has no `zero-it` row until the kernel-map instruments
   are re-run, so the entry carries no `Uses` line meanwhile.
+
+
+## The value (2026-09-28, the user)
+
+"Even if it fails, the return VALUE should include a string with the same information; this might be
+processed by a calling procedure which is attempting to find the correct statement of a theorem." So
+`(zero-it)` returns a VERDICT, an association list with accessors `zero-it-status` (`closed`, `false`,
+`rewrite` or `declined`), `zero-it-normal-form` (the term R, or `#f` when the goal was not an equation),
+`zero-it-report` (every printed line, newline-joined), `zero-it-owed` (the typings posted as open leaves)
+and `zero-it-reason` (a decline's reason). The printout is unchanged: printed once at the end as a
+`;;VNB-REPORT-BEGIN` / `-END` block (echoed in the Emacs minibuffer), or handed to the Scratch Workspace
+through the report channel when the surface evaluates under the quiet flag.
