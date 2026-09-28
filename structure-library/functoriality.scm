@@ -295,6 +295,11 @@
       (lambda (vname)
         (let ((vd (lookup-view-as vname)))
           (cond
+            ;; 2026-09-28 (batch 39): a view whose -functorial theorem an earlier file
+            ;; PROVED BY HAND (measure-space-as-measurable-space-functorial, hom-kinds.scm:
+            ;; the view sits inside PREIMAGE, out of the sweep's reach) is done already.
+            ((hash-table-ref/default *theorem-table* (symbol-append vname '-functorial) #f)
+             (set! free (cons vname free)))
             ((not (fnc--free? vd)) (set! owed (cons vname owed)))
             (else
              (if (fnc--prove-functoriality! vd)

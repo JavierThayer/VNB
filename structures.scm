@@ -7,6 +7,9 @@
 ;;;                   (NAME carrier)
 ;;;                   (NAME op DOMAIN RANGE)
 ;;;                   (NAME constant SET)
+;;;                   (NAME family CARRIER)          a set of subsets of CARRIER
+;;;                   (NAME family-fun FAMILY RANGE) a function on the family FAMILY
+;;;                 (also `derived' and `substructure', below).
 ;;;                 Carrier and op accessor names appear bare in domain/range;
 ;;;                 def-structure expands them to (ACCESSOR s) automatically.
 ;;;   axiom-names — list of (PROPERTY accessor ...) clauses: each names a
@@ -17,7 +20,8 @@
 ;;; Nothing in the library calls this directly.  The surface is the macro
 ;;; `declare-structure`, which expands to the procedure
 ;;; `def-structure-from-clauses`; that parses `(carriers ...)`, `(op ...)`,
-;;; `(constant ...)`, `(derived ...)`, `(substructure ...)`, `(property ...)`
+;;; `(constant ...)`, `(derived ...)`, `(substructure ...)`, `(family ...)`,
+;;; `(family-fun ...)`, `(property ...)`
 ;;; and `(law ...)` clauses into the slot list.  The two are the same thing:
 ;;; the macro exists only to spare the caller the quoting.
 ;;;
@@ -542,6 +546,22 @@
                       (let ((defn (expand-accessors (cadddr slot) all-accessors ivar)))
                         `((IN (,name ,ivar) SET)
                           (= (,name ,ivar) ,defn))))
+                     ;; A FAMILY slot (family F C) holds a set of subsets of the
+                     ;; carrier C -- a sigma-algebra, a topology.  Its typing is
+                     ;; what the old (constant F (POWER (POWER C))) spelling gave,
+                     ;; so IS-X is unchanged by the re-declaration; what changes
+                     ;; is the MORPHISM it generates (build-hom-axiom: a preimage
+                     ;; condition, not the equation F(a) = F(b)).
+                     ((family)
+                      (let ((c (expand-accessors (caddr slot) all-accessors ivar)))
+                        `((IN (,name ,ivar) (POWER (POWER ,c))))))
+                     ;; A FUNCTION ON A FAMILY (family-fun M F R) -- a measure on
+                     ;; the sigma-algebra F: typed as the (op M F R) spelling
+                     ;; typed it; its morphism clause is transport along preimages.
+                     ((family-fun)
+                      (let ((dom (expand-accessors (caddr  slot) all-accessors ivar))
+                            (rng (expand-accessors (cadddr slot) all-accessors ivar)))
+                        `((IN (,name ,ivar) (FUN ,dom ,rng)))))
                      ;; A substructure slot is typed by its structure predicate:
                      ;; (substructure K FIELD) -> conjunct (IS-FIELD (K s)).
                      ((substructure)
@@ -849,7 +869,8 @@
       (if sh
           (let ((strays (filter (lambda (c)
                                   (and (pair? c)
-                                       (memq (car c) '(carriers op constant substructure))))
+                                       (memq (car c) '(carriers op constant substructure
+                                                       family family-fun))))
                                 clauses)))
             (if (pair? strays)
                 (error (string-append
@@ -889,6 +910,21 @@
             ((eq? kind 'constant)
              (loop (cdr rest)
                    (cons (list (cadr clause) 'constant (caddr clause)) slots)
+                   props laws))
+            ;; (family F C) -- F(s) is a set of subsets of the carrier C(s):
+            ;; a sigma-algebra, a topology.  (family-fun M F R) -- M(s) is a
+            ;; function on the family F(s) into R: a measure.  Two slot KINDS,
+            ;; not spellings: the typing they give IS-X is the one the old
+            ;; (constant F (POWER (POWER C))) / (op M F R) spellings gave, and
+            ;; the hom generator has one rule for each (build-hom-axiom).
+            ((eq? kind 'family)
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'family (caddr clause)) slots)
+                   props laws))
+            ((eq? kind 'family-fun)
+             (loop (cdr rest)
+                   (cons (list (cadr clause) 'family-fun (caddr clause) (cadddr clause))
+                         slots)
                    props laws))
             ;; (substructure NAME TYPE) -- the slot holds a whole structure
             ;; (e.g. a vector space's base FIELD), typed by IS-TYPE rather than
@@ -1407,6 +1443,13 @@
 ;;;   S(a) = S(b)                for each SUBSTRUCTURE slot S
 ;;;   fi(c(a)) = c(b)            for each CONSTANT slot c landing in carrier i
 ;;;   fj(OP(a)(x...)) = OP(b)(f(x)...)   for each OP slot, argument by argument
+;;;   forall u in F(b). fi^-1(u) in F(a)            for each FAMILY slot F over carrier i
+;;;   forall u in F(b). M(b)(u) = M(a)(fi^-1(u))    for each FAMILY-FUN slot M on F
+;;;
+;;; (the last two since batch 39, 2026-09-28: a sigma-algebra or a topology is
+;;; pulled back, a measure transported; they were constant slots before and
+;;; generated F(a) = F(b), the wrong arrows -- docs/categories-per-structure-2026-09-28.md.
+;;; When a family slot is present the hom variables are s and t, not a and b.)
 ;;;
 ;;; Two conventions, both deliberate:
 ;;;
@@ -1450,8 +1493,13 @@
 (define (hom--apply mapf x) (if mapf (list mapf x) x))
 
 (define (build-hom-axiom name slots)
-  (let* ((avar     'a)
-         (bvar     'b)
+  (let* ((fam?     (any (lambda (s) (memq (cadr s) '(family family-fun))) slots))
+         ;; `s' and `t' when a FAMILY slot is present, as TOP-SPACE's hand-written
+         ;; hom always had them: the preimage clause names PREIMAGE, whose body is
+         ;; (SEP a (PTS s) ...), and a hom variable spelled `a' would meet that
+         ;; binder at every unfold.  Otherwise `a' and `b', as before.
+         (avar     (if fam? 's 'a))
+         (bvar     (if fam? 't 'b))
          (accs     (map car slots))
          ;; INDEPENDENT carriers only: a derived one is not a sort of its own.
          (carriers (map car (filter (lambda (s) (eq? (cadr s) 'carrier)) slots)))
@@ -1471,6 +1519,16 @@
     (define (carrier-conjuncts)
       (map (lambda (c f) `(IN ,f (FUN (,c ,avar) (,c ,bvar))))
            carriers fvars))
+    ;; The preimage of U under the map of carrier C, cut down to C(a).  Over PTS
+    ;; it is the tree's PREIMAGE(s, f, U) (metric-open-sets.scm), the form
+    ;; TOP-SPACE's continuity was always stated in; over any other carrier the
+    ;; SEP that PREIMAGE abbreviates, with a binder nothing else uses.
+    (define (hom--preimage c u)
+      (let ((mapf (hom--map-for c carriers fvars dbase)))
+        (or mapf (error "build-hom-axiom: a family over a non-carrier" c name))
+        (if (eq? c 'PTS)
+            `(PREIMAGE ,avar ,mapf ,u)
+            `(SEP prmx_ (,c ,avar) (IN (,mapf prmx_) ,u)))))
     (define (slot-conjunct slot)
       (let ((nm (car slot)) (kind (cadr slot)))
         (case kind
@@ -1480,6 +1538,23 @@
           ((derived) #f)
           ;; morphisms are between structures over the SAME base
           ((substructure) `(= (,nm ,avar) (,nm ,bvar)))
+          ;; A FAMILY OF SUBSETS of carrier C (a sigma-algebra, a topology) is
+          ;; pulled BACK, not preserved: the preimage of a member of F(b) is a
+          ;; member of F(a).  Measurable maps; continuous maps.
+          ((family)
+           `(FORALL u (IMPLIES (IN u (,nm ,bvar))
+                        (IN ,(hom--preimage (caddr slot) 'u) (,nm ,avar)))))
+          ;; A FUNCTION ON A FAMILY (a measure) is TRANSPORTED along preimages:
+          ;; M(b)(u) = M(a)(f^-1 u) for u in F(b).  Measure-preserving maps.
+          ((family-fun)
+           (let* ((fam  (or (assq (caddr slot) slots)
+                            (error "build-hom-axiom: family-fun over an unknown family"
+                                   slot)))
+                  (rmap (hom--map-for (cadddr slot) carriers fvars dbase)))
+             `(FORALL u (IMPLIES (IN u (,(caddr slot) ,bvar))
+                          (= ((,nm ,bvar) u)
+                             ,(hom--apply rmap
+                                (list (list nm avar) (hom--preimage (caddr fam) 'u))))))))
           ((constant)
            (let ((mapf (hom--map-for (caddr slot) carriers fvars dbase)))
              `(= ,(hom--apply mapf `(,nm ,avar)) (,nm ,bvar))))
@@ -1553,9 +1628,9 @@
 ;;; declaration installs IS-HOM-NAME (def-structure: the generated hom;
 ;;; def-substructure: the refinement form), and a later `declare-hom!' -- which
 ;;; REPLACES the predicate's definition (TOP-SPACE, METRIZABLE-TOP-SPACE,
-;;; RINGOID) -- is seen through it with nothing reinstalled.  A many-sorted
-;;; structure (SETOID: PTS and REL) gets nothing: its arrows are tuples of maps,
-;;; and a set of tuples of maps is a different construction.
+;;; RINGOID) -- is seen through it with nothing reinstalled.  A structure with
+;;; TWO carriers (SETOID: PTS and REL) gets the set of PAIRS of maps (below);
+;;; three or more get nothing yet (no SEP over triples).
 ;;; What the unfold cannot give -- a def-functoid unfolds only in a GOAL -- is
 ;;; the membership theorem hom-NAME-member-iff (f in HOM-NAME(a, b) iff f in
 ;;; FUN(C a, C b) and IS-HOM-NAME(a, b, f)); it is PROVEN, with the identity,
@@ -1571,7 +1646,8 @@
   (let* ((sd (find-shape-structure name))
          (cs (and sd (map car (filter (lambda (s) (eq? (cadr s) 'carrier))
                                       (structure-def-slots sd))))))
-    (if (and cs (= (length cs) 1))
+    (cond
+      ((and cs (= (length cs) 1))
         (let ((hs (structure-hom-set-name name))
               (c  (car cs)))
           (def-functoid hs '(a b)
@@ -1579,8 +1655,23 @@
           (notation! hs 'kind 'functoid 'arity 2
                      'english (string-append "the " (structure--noun-of name)
                                              " morphisms from $1 to $2"))
-          hs)
-        #f)))
+          hs))
+      ;; TWO carriers (SETOID: PTS, REL; batch 39, 2026-09-28): an arrow is a
+      ;; PAIR of maps, so the hom-set is a set of pairs -- the SEP of the binary
+      ;; CARTESIAN of the two FUN sets by the hom predicate on the components.
+      ;; k >= 3 waits for the tuple machinery (no SEP over triples; CLAUDE.md,
+      ;; open foundational items).
+      ((and cs (= (length cs) 2))
+        (let ((hs (structure-hom-set-name name))
+              (c1 (car cs)) (c2 (cadr cs)))
+          (def-functoid hs '(a b)
+            `(SEP homp_ (CARTESIAN (FUN (,c1 a) (,c1 b)) (FUN (,c2 a) (,c2 b)))
+                  (,(structure-hom-name name) a b (NTH 1 homp_) (NTH 2 homp_))))
+          (notation! hs 'kind 'functoid 'arity 2
+                     'english (string-append "the " (structure--noun-of name)
+                                             " morphisms from $1 to $2"))
+          hs))
+      (else #f))))
 
 ;;; A REFINEMENT shares its parent's shape, so a hom of X's is a hom of PARENTs
 ;;; between X's: IS-HOM-X(a,b,f...) <=> IS-X(a) and IS-X(b) and IS-HOM-PARENT(...).
@@ -1681,6 +1772,191 @@
     (declare-hom-english! hom (append (list avar bvar) fvars))
     (hash-table-set! *hom-overrides* name #t)
     hom))
+
+;;; --- (1b) a species may carry SEVERAL categories: declare-category! -------
+;;;
+;;; (batch 39, 2026-09-28; docs/categories-per-structure-2026-09-28.md, the
+;;; user's notes-43: "a DEFAULT category corresponding to a structure ... but it
+;;; would allow us to define alternatives to the default, like the Lipschitz
+;;; category or the continuous category".)
+;;;
+;;; The DEFAULT category of X is the generated IS-HOM-X / HOM-X (or its
+;;; declare-hom! replacement), and declare-category! never touches it.  It ADDS
+;;; a category on the same objects:
+;;;
+;;;   (declare-category! 'LIPSCHITZ 'METRIC-SPACE '(a b f) BODY)
+;;;
+;;; installs, `definitional' as the generated hom is (it DEFINES fresh symbols):
+;;;
+;;;   is-CAT-arrow-def   IS-CAT-ARROW(a, b, f1 .. fk) iff IS-X(a) and IS-X(b)
+;;;                      and fi in FUN(Ci a, Ci b) and BODY
+;;;   HOM-CAT(a, b)      the SEP of FUN(C a, C b) by the arrow predicate (one
+;;;                      carrier), or of CARTESIAN(FUN(C1..), FUN(C2..)) on the
+;;;                      components (two carriers), as install-hom-set! does
+;;;
+;;; and REGISTERS the category in *categories* with its three OBLIGATIONS --
+;;; hom-CAT-id, hom-CAT-compose, hom-CAT-in-set -- as statements, NOT theorems.
+;;; That the arrows of a declared category contain the identities and compose is
+;;; where the mathematics is (Lipschitz constants multiply; an eps-delta chase),
+;;; so the generator must not stamp it: category-obligations-audit lists every
+;;; obligation not yet a PROVEN theorem of exactly that statement, and
+;;; (category-obligation NAME) hands it over as a goal for `sp'.  The
+;;; membership theorem hom-CAT-member-iff has a generic proof (it is the SEP's
+;;; membership) and is supplied as a statement too, by category-member-iff.
+;;; The one-map-per-carrier rule is the default hom's; the arrow variables are
+;;; the caller's (BODY names them).
+(define *categories* (make-equal-hash-table))     ; CAT -> (X k obligations)
+
+(define (category-arrow-name cat) (symbol-append 'IS- cat '-ARROW))
+(define (category-arrow-def-name cat) (symbol-append 'is- cat '-arrow-def))
+(define (category-hom-set-name cat) (symbol-append 'HOM- cat))
+(define (category-structure cat) (let ((r (hash-table-ref/default *categories* cat #f))) (and r (car r))))
+(define (category-arity cat) (let ((r (hash-table-ref/default *categories* cat #f))) (and r (cadr r))))
+(define (category-obligations cat)
+  (let ((r (hash-table-ref/default *categories* cat #f))) (if r (caddr r) '())))
+(define (known-categories)
+  (sort (hash-table-keys *categories*)
+        (lambda (a b) (string<? (symbol->string a) (symbol->string b)))))
+
+(define (category--carriers x)
+  (let ((sd (find-shape-structure x)))
+    (or sd (error "declare-category!: unknown structure" x))
+    (map car (filter (lambda (s) (eq? (cadr s) 'carrier)) (structure-def-slots sd)))))
+
+(define (category--maps base k)
+  (if (= k 1) (list base)
+      (map (lambda (i) (symbol-append base (string->symbol (number->string i))))
+           (iota k 1))))
+
+;;; The three obligations and the membership statement, over the fixed variables
+;;; a b c and f / g (k = 1) or f1 .. fk / g1 .. gk -- the spelling of the default
+;;; category's laws in hom-laws.scm.
+(define (category--statements cat x carriers)
+  (let* ((k     (length carriers))
+         (arrow (category-arrow-name cat))
+         (hs    (category-hom-set-name cat))
+         (isx   (symbol-append 'IS- x))
+         (fs    (category--maps 'f k))
+         (gs    (category--maps 'g k))
+         (foralls (lambda (vs body) (fold-right (lambda (v b) `(FORALL ,v ,b)) body vs))))
+    (list
+      (cons (symbol-append 'hom- cat '-id)
+            `(FORALL a (IMPLIES (,isx a)
+                         (,arrow a a ,@(map (lambda (c) `(ID-FUN (,c a))) carriers)))))
+      (cons (symbol-append 'hom- cat '-compose)
+            (foralls (append '(a b c) fs gs)
+              `(IMPLIES (,arrow a b ,@fs)
+                 (IMPLIES (,arrow b c ,@gs)
+                   (,arrow a c ,@(map (lambda (g f) `(COMPOSE ,g ,f)) gs fs))))))
+      (cons (symbol-append 'hom- cat '-in-set)
+            `(FORALL a (FORALL b (IMPLIES (,isx a) (IMPLIES (,isx b)
+               (IN (,hs a b) SET))))))
+      (cons (symbol-append 'hom- cat '-member-iff)
+            (if (= k 1)
+                `(FORALL a (FORALL b (FORALL f
+                   (IFF (IN f (,hs a b))
+                        (AND (IN f (FUN (,(car carriers) a) (,(car carriers) b)))
+                             (,arrow a b f))))))
+                `(FORALL a (FORALL b (FORALL p
+                   (IFF (IN p (,hs a b))
+                        (AND (IN p (CARTESIAN ,@(map (lambda (c) `(FUN (,c a) (,c b))) carriers)))
+                             (,arrow a b ,@(map (lambda (i) `(NTH ,i p)) (iota k 1)))))))))))))
+
+(define (declare-category! cat x args body)
+  (let* ((carriers (category--carriers x))
+         (k        (length carriers))
+         (avar     (car args))
+         (bvar     (cadr args))
+         (fvars    (cddr args))
+         (isx      (symbol-append 'IS- x))
+         (arrow    (category-arrow-name cat))
+         (hs       (category-hom-set-name cat))
+         (body*    (structure--law->formula body))
+         (conjs    (append (list `(,isx ,avar) `(,isx ,bvar))
+                           (map (lambda (c f) `(IN ,f (FUN (,c ,avar) (,c ,bvar))))
+                                carriers fvars)
+                           (list body*))))
+    (unless (= (length fvars) k)
+      (error "declare-category!: one map per carrier expected" cat x carriers fvars))
+    (unless (<= k 2)
+      (error "declare-category!: more than two carriers (no SEP over triples yet)" cat x))
+    (fluid-let ((*current-provenance* 'definitional))
+      (add-axiom! *library* (category-arrow-def-name cat)
+        `(FORALL ,avar (FORALL ,bvar
+           ,(let loop ((fs fvars))
+              (if (null? fs)
+                  `(IFF (,arrow ,avar ,bvar ,@fvars) ,(conjuncts->and conjs))
+                  `(FORALL ,(car fs) ,(loop (cdr fs))))))))
+      (register-operator! arrow 'predicate args)
+      (if (= k 1)
+          (def-functoid hs '(a b)
+            `(SEP homf_ (FUN (,(car carriers) a) (,(car carriers) b)) (,arrow a b homf_)))
+          (def-functoid hs '(a b)
+            `(SEP homp_ (CARTESIAN ,@(map (lambda (c) `(FUN (,c a) (,c b))) carriers))
+                  (,arrow a b (NTH 1 homp_) (NTH 2 homp_))))))
+    (let ((noun (structure--noun-of cat)))
+      (if (= k 1)
+          (notation! arrow 'kind 'predicate 'arity 3
+                     'english (string-append "$3 is a " noun " map from $1 to $2")))
+      (notation! hs 'kind 'functoid 'arity 2
+                 'english (string-append "the " noun " maps from $1 to $2")))
+    (hash-table-set! *categories* cat
+      (list x k (list-head (category--statements cat x carriers) 3)))
+    cat))
+
+;;; The membership statement hom-CAT-member-iff (generic; not an obligation).
+(define (category-member-iff cat)
+  (let ((x (category-structure cat)))
+    (and x (cdr (list-ref (category--statements cat x (category--carriers x)) 3)))))
+
+;;; An obligation is DISCHARGED when a theorem of that name is installed, PROVEN
+;;; (a proof ran, or a valid certificate installed it), and states exactly the
+;;; obligation (up to bound-variable renaming).  An asserted or stamped fact of
+;;; the right name does not discharge it.
+(define (category--discharged? ob)
+  (let ((f (hash-table-ref/default *theorem-table* (car ob) #f)))
+    (and f
+         (memq (provenance-of (car ob)) '(proven certified))
+         (alpha-equiv? f (cdr ob))
+         #t)))
+
+;;; Every obligation of every declared category that is not yet discharged, as
+;;; (name . statement), categories in alphabetical order.
+(define (category-obligations-audit)
+  (append-map
+    (lambda (cat)
+      (filter (lambda (ob) (not (category--discharged? ob)))
+              (category-obligations cat)))
+    (known-categories)))
+
+(define (category-obligation name)
+  (let loop ((cats (known-categories)))
+    (cond ((null? cats) #f)
+          ((assq name (category-obligations (car cats)))
+           => (lambda (p) (make-wff (cdr p))))
+          (else (loop (cdr cats))))))
+
+;;; The load's gate (load.scm, end-of-load block).  Warn-only by default; with
+;;; FATAL? true an outstanding obligation is an error -- the setting once the
+;;; backlog is zero ("The gates on the install door", CLAUDE.md).
+(define (report-category-obligations! #!optional fatal?)
+  (let ((owed (category-obligations-audit))
+        (n    (length (known-categories))))
+    (if (null? owed)
+        (begin (display ";; category obligations: none outstanding (")
+               (display n) (display " declared categor")
+               (display (if (= n 1) "y" "ies")) (display ")\n"))
+        (begin
+          (display ";; category obligations OUTSTANDING (the category is not yet a category):\n")
+          (for-each (lambda (ob)
+                      (display ";;   ") (display (car ob))
+                      (display "  -- (category-obligation '") (display (car ob))
+                      (display ") for the goal\n"))
+                    owed)
+          (if (and (not (default-object? fatal?)) fatal?)
+              (error "category-obligations-audit: undischarged obligations"
+                     (map car owed)))))
+    owed))
 
 ;;; --- (2) a functor whose object map is a constructed term -----------------
 ;;;

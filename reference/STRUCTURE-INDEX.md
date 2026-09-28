@@ -845,7 +845,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants (sigma)
+*Slots* (2): carriers (pts), ops/constants ()
 
 *Declaration.*
 
@@ -853,7 +853,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 (declare-structure measurable-space
   (instance-var s)
   (carriers pts)
-  (constant sigma (power (power pts)))
+  (family sigma pts)
   (law (is-sigma-algebra (pts s) (sigma s))))
 ```
 
@@ -876,7 +876,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (3): carriers (pts), ops/constants (sigma meas)
+*Slots* (3): carriers (pts), ops/constants ()
 
 *Declaration.*
 
@@ -884,8 +884,8 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 (declare-structure measure-space
   (instance-var s)
   (carriers pts)
-  (constant sigma (power (power pts)))
-  (op meas sigma rr-pos-star)
+  (family sigma pts)
+  (family-fun meas sigma rr-pos-star)
   (law (is-measure (pts s) (sigma s) (meas s))))
 ```
 
@@ -986,7 +986,10 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `empty-is-open` — forall([s], is-metric-space(s) implies is-open(s, empty-set))
 - `finite-ball-subcover-r-net` — forall([s], is-metric-space(s) implies forall([r], r in rr and 0 <= r and not(0 = r) implies forsome([f], f subset ball-cover(s, r) and card(f) in nn and is-open-cover(s, f)) implies forsome([n], card(n) in nn and is-r-net(s, n, pts(s), r))))
 - `fip-implies-compact` — forall([s], is-metric-space(s) implies forall([c], has-fip(s, c) implies forsome([p], p in intersection-of(c))) implies is-compact(s))
+- `hom-continuous-id` — forall([a], is-metric-space(a) implies is-continuous-arrow(a, a, id-fun(pts(a))))
+- `hom-lipschitz-id` — forall([a], is-metric-space(a) implies is-lipschitz-arrow(a, a, id-fun(pts(a))))
 - `hom-metric-space-id` — forall([a], is-metric-space(a) implies is-hom-metric-space(a, a, id-fun(pts(a))))
+- `hom-uniformly-continuous-id` — forall([a], is-metric-space(a) implies is-uniformly-continuous-arrow(a, a, id-fun(pts(a))))
 - `inter-of-opens-open` — forall([s], is-metric-space(s) implies forall([u, w], is-open(s, u) and is-open(s, w) implies is-open(s, intersection(u, w))))
 - `interior-is-open` — forall([s], is-metric-space(s) implies forall([a], is-open(s, interior(s, a))))
 - `interior-is-set` — forall([s], is-metric-space(s) implies forall([a], interior(s, a) in set))
@@ -1546,6 +1549,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `hbg-scale-decomp-rev` — forall([m], is-normed-vector-space(m) implies forall([y_ in vec(m), v_ in vec(m), r_ in rr], not(r_ = 0) implies (act(m))(r_, (vadd(m))((act(m))(recip(r_), y_), v_)) = (vadd(m))(y_, (act(m))(r_, v_))))
 - `hbg-shift` — forall([m], is-normed-vector-space(m) implies forall([w_ in vec(m), z_ in vec(m), v_ in vec(m)], (vadd(m))(w_, (act(m))(-1, z_)) = (vadd(m))((vadd(m))(w_, v_), (act(m))(-1, (vadd(m))(z_, v_)))))
 - `hbg-shift-rev` — forall([m], is-normed-vector-space(m) implies forall([w_ in vec(m), z_ in vec(m), v_ in vec(m)], (vadd(m))((vadd(m))(w_, v_), (act(m))(-1, (vadd(m))(z_, v_))) = (vadd(m))(w_, (act(m))(-1, z_))))
+- `hom-bounded-linear-id` — forall([a], is-normed-vector-space(a) implies is-bounded-linear-arrow(a, a, id-fun(vec(a))))
 - `hom-normed-vector-space-id` — forall([a], is-normed-vector-space(a) implies is-hom-normed-vector-space(a, a, id-fun(vec(a))))
 - `module-act-distrib-scalar-normed-vector-space-as-module` — forall([r], is-normed-vector-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (act(r))((add(scal(r)))(r_, s_), x_) = (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_))))
 - `module-act-distrib-scalar-normed-vector-space-as-module-rev` — forall([r], is-normed-vector-space(r) implies forall([r_ in carr(scal(r)), s_ in carr(scal(r)), x_ in vec(r)], (vadd(r))((act(r))(r_, x_), (act(r))(s_, x_)) = (act(r))((add(scal(r)))(r_, s_), x_)))
@@ -2327,6 +2331,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 - `descend2-computes` — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies (descend2(s, f))(class(s, a), class(s, b)) = f(a, b))))
 - `descend2-computes-rev` — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies forall([a, b], a in pts(s) implies b in pts(s) implies f(a, b) = (descend2(s, f))(class(s, a), class(s, b)))))
 - `descend2-in-fun` — forall([s], is-setoid(s) implies forall([z, f in fun(cartesian(pts(s), pts(s)), z)], respects2(s, f) implies descend2(s, f) in fun(cartesian(quotient(s), quotient(s)), z)))
+- `hom-setoid-id` — forall([a], is-setoid(a) implies is-hom-setoid(a, a, id-fun(pts(a)), id-fun(rel(a))))
 - `proj-in-fun` — forall([s], is-setoid(s) implies proj(s) in fun(pts(s), quotient(s)))
 - `quotient-is-set` — forall([s], is-setoid(s) implies quotient(s) in set)
 - `quotient-rep` — forall([s], is-setoid(s) implies forall([x in quotient(s)], forsome([a in pts(s)], x = class(s, a))))
@@ -2342,7 +2347,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 
 *Kind.* Shape structure — `declare-structure` with slot clauses.
 
-*Slots* (2): carriers (pts), ops/constants (opens)
+*Slots* (2): carriers (pts), ops/constants ()
 
 *Declaration.*
 
@@ -2350,7 +2355,7 @@ Adjacency-list view of the view-as directed graph: each target structure with th
 (declare-structure top-space
   (instance-var s)
   (carriers pts)
-  (constant opens (power (power pts)))
+  (family opens pts)
   (law (in empty-set (opens s)))
   (law (in (pts s) (opens s)))
   (law (forall u (implies (in u (opens s)) (forall v (implies (in v (opens s)) (in (intersection u v) (opens s)))))))

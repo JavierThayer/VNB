@@ -170,8 +170,13 @@
 ;;; Attach an integer coefficient to a monomial term, using the ABSOLUTE value
 ;;; (sign is handled by the +/- assembly in cpoly->term).  |c|=1 with a real
 ;;; monomial drops the coefficient; an empty monomial yields the bare |c|.
+;;; A coefficient may be COMPLEX (the reader makes +i a number, so `+i * +i + 1'
+;;; has the coefficient +i): `abs' and `<' are for reals.  A non-real coefficient
+;;; prints as it is and counts as a positive term (2026-09-28: "+i passed to <").
+(define (cring--real-neg? c) (and (real? c) (< c 0)))
+
 (define (cterm->term coeff mono)
-  (let ((a (abs coeff)))
+  (let ((a (if (real? coeff) (abs coeff) coeff)))
     (cond ((not mono) a)
           ((= a 1) mono)
           (else (list '* a mono)))))
@@ -182,8 +187,8 @@
 ;;; (-1)*x*y.  The empty poly is 0.
 (define (cpoly->term poly)
   (if (null? poly) 0
-      (let* ((pos (filter (lambda (t) (> (cdr t) 0)) poly))
-             (neg (filter (lambda (t) (< (cdr t) 0)) poly))
+      (let* ((pos (filter (lambda (t) (not (cring--real-neg? (cdr t)))) poly))
+             (neg (filter (lambda (t) (cring--real-neg? (cdr t))) poly))
              (->t (lambda (t) (cterm->term (cdr t) (cmonomial->term (car t)))))
              (pos-part
               (cond ((null? pos) #f)
@@ -199,9 +204,29 @@
 ;;; Top-level: a concrete-surface expression (string or s-expr) to its
 ;;; canonical commutative-ring term, or #f if it is not polynomializable
 ;;; (e.g. contains division).  Pure -- no proof state touched.
+;;; THE GUARD (2026-09-28, the user: "why can it not just decline?").  A Scheme
+;;; error inside the calculator or the oracle aborts the caller's driver far from
+;;; its cause; a decline is a value the caller can act on.  Every entry below runs
+;;; under it: the error is printed as a warning and the entry returns #f.  For the
+;;; oracle this is conservative -- nothing is written on a decline.
+(define (cring--guard what thunk)
+  (call-with-current-continuation
+   (lambda (k)
+     (with-exception-handler
+      (lambda (e)
+        (k (begin
+             (if (not *vnb-quiet*)
+                 (begin (display ";VNB warning: ") (display what)
+                        (display " declined: the calculator raised \"")
+                        (display (condition/report-string e)) (display "\"") (newline)))
+             #f)))
+      thunk))))
+
 (define (cring-normal-form expr)
-  (let ((poly (cvnb->poly (cvnb-expand-pow expr))))
-    (and poly (cpoly->term poly))))
+  (cring--guard "cring-normal-form"
+    (lambda ()
+      (let ((poly (cvnb->poly (cvnb-expand-pow expr))))
+        (and poly (cpoly->term poly))))))
 
 ;;; ----- In-formula simplification: find a concrete ring redex in a goal -----
 ;;; The (simp) tactic rewrites a commutative-ring SUBTERM of the goal to its
@@ -368,8 +393,9 @@
       (let loop ((i (- n 1)) (acc term))
         (if (= i 0) acc (loop (- i 1) (list ADDr acc term)))))
     (define (term->expr t)               ; (mono . coeff) -> ring expr w/ sign
-      (let ((base (repeat-add (mono->term (car t)) (abs (cdr t)))))
-        (if (< (cdr t) 0) (list NEGr base) base)))
+      (let ((base (repeat-add (mono->term (car t))
+                              (if (real? (cdr t)) (abs (cdr t)) (cdr t)))))
+        (if (cring--real-neg? (cdr t)) (list NEGr base) base)))
     (if (null? poly) (list 'ZERO R)
         (let loop ((ts (cdr poly)) (acc (term->expr (car poly))))
           (if (null? ts) acc
@@ -377,8 +403,10 @@
 
 ;;; Canonical form of a generic-ring expression e over R (or #f).
 (define (cring-generic-normal-form e R)
-  (let ((poly (cring->poly e R)))
-    (and poly (cpoly->cring-term poly R))))
+  (cring--guard "cring-generic-normal-form"
+    (lambda ()
+      (let ((poly (cring->poly e R)))
+        (and poly (cpoly->cring-term poly R))))))
 
 ;;; A term whose head is a structure ring operator ((ADD R)/(MUL R)/(NEG R)).
 (define (generic-ring-head? e)
@@ -464,6 +492,9 @@
 ;;;       (FORALL R (IMPLIES (IS-COMMUTATIVE-RING R) ...)) form or, post-di,
 ;;;       by sequent assumptions.
 (define (pi-comm-ring-simplify! sqn)
+  (cring--guard "crs" (lambda () (pi-comm-ring-simplify!--unguarded sqn))))
+
+(define (pi-comm-ring-simplify!--unguarded sqn)
   (let* ((goal (sequent-node-assertion sqn))
          (g    (wff-formula goal))
          (dg   (sqn-dg sqn))

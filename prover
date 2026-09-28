@@ -362,8 +362,14 @@ PYEOF
     # (like fork), so the REPL comes up straight after the write -- the user
     # waits the load they were going to wait anyway, plus a few seconds of I/O,
     # and never waits it again.
+    # ATOMIC since 2026-09-28: the image is written to vnb.band.new and renamed
+    # over vnb.band only once the write is complete.  Before, a self-healing
+    # start killed mid-write (the Emacs panel check on the primary, stopped at
+    # 03:08 UTC) left a 42 MB truncated vnb.band in place.  The rename runs in
+    # the SAVING process; in the restarted image vnb.band.new no longer exists
+    # and the guard skips it.
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
-         --eval "(disk-save \"$BAND\")"
+         --eval "(begin (disk-save \"$BAND.new\") (if (file-exists? \"$BAND.new\") (rename-file \"$BAND.new\" \"$BAND\")))"
     ;;
   -b)
     if [ ! -f "$BAND" ]; then
@@ -403,7 +409,7 @@ PYEOF
     # a stale band: a CERTIFIED load (certificates.scm), saved on the way past
     export VNB_CERTIFIED="${VNB_CERTIFIED:-on}"
     exec env -u INSIDE_EMACS mit-scheme --heap "$HEAP" --load "$LOAD" \
-         --eval "(disk-save \"$BAND\")"
+         --eval "(begin (disk-save \"$BAND.new\") (if (file-exists? \"$BAND.new\") (rename-file \"$BAND.new\" \"$BAND\")))"
     ;;
   -i)
     # Load script then interactive -- band first, on the same freshness test.

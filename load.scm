@@ -1215,6 +1215,7 @@
     ;; -in-set by one generic driver over the slot list (the overrides TOP-SPACE, METRIZABLE-TOP-SPACE, RINGOID by hand);
     ;; the Hom functors as post- and pre-composition with the functor laws; a view's action on arrows.
     "theorem-library/hom-laws"
+    "theorem-library/hom-kinds"
     "theorem-library/hom-functors"
     "theorem-library/hom-views"
     ;; QQ as a one-dimensional vector space over itself -- the FIRST witness of
@@ -2929,6 +2930,7 @@
     ;; 2026-09-20 (batch 13-A): the continuity algebra for generic metric spaces and normed fields;
     ;; then uniqueness, constants, identity, sum, product and CHAIN RULE for IS-DIFF-ON.
     "theorem-library/ms-continuity-algebra"
+    "theorem-library/categories"
     "theorem-library/diff-on-laws-2"
     ;; 2026-09-20 (batch 13-B): NF-METRIC-SPACE(cc-normed-field) agrees with CC-MS; HOLOMORPHIC-ON read in CC-MS.
     "theorem-library/holomorphic-basics"
@@ -4491,6 +4493,11 @@
   ;; installed formula is checked for a universally quantified class parameter
   ;; standing, unguarded, in a sethood-carrying position of a function membership
   ;; it ASSERTS.  WARN-ONLY; the exemptions and the coverage gaps are in audit.scm.
+  ;; The categories' obligations (batch 39, 2026-09-28): every declared category
+  ;; (declare-category!, structures.scm) must have its identity, composition and
+  ;; sethood laws PROVEN under the generated names.  Backlog zero on the day it was
+  ;; added, so FATAL from the start.
+  (report-category-obligations! #t)
   (let ((sh (sethood-audit)))
     (if (null? sh)
         (display ";; sethood-audit: ok (no asserted function membership over an unguarded class)\n")

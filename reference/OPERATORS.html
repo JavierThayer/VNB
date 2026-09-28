@@ -77,7 +77,7 @@
 <p>The VNB universe has SETS (the elements of <code>SET</code>), CLASSES, and further entities about which VNB makes no commitment.  A term-forming operator is classified by WHAT IT DENOTES:</p>
 <ul><li>A <strong>function</strong> denotes an element of a set: specifically a set-function, an element of some <code>FUN(A, B)</code> with <code>A</code>,<code>B</code> sets.  This class is DERIVED, not listed: a head appears here exactly when some installed formula states <code>head in FUN(...)</code>, and the entry names that statement.  Being <em>applicable</em> is not the criterion and never was — <a class="x" href="THEOREMS.html#t-app-graph"><code>app-graph</code></a> makes <code>f(x)</code> a well-formed term for any <code>f</code> at all, defined or not.  <code>vnb-lambda</code> is the binder that constructs a set-function.</li><li>A <strong>syntax</strong> head forms terms and denotes NOTHING itself.  <code>+</code> is not an object of the theory: there is no <code>+ in SET</code> to be had, and <code>x + y + z</code> is the flat node <code>(+ x y z)</code>, so the head is not even of fixed arity (<code>nary-plus-3/4/5</code> interpret the 3-, 4- and 5-ary forms).  When a binary addition must be NAMED as an object, that object is <code>binplus</code>, tied to the syntax by <code>x + y == binplus(x, y)</code>.  The theory characterizes the APPLICATIONS of these heads by axiom and says nothing about the heads.</li><li>A <strong>functoid</strong> denotes something that is not required to be an element of <code>SET</code>.  This is a large, somewhat amorphous category: the kernel set- and tuple-builders (<code>union</code>, <code>sep</code>, <code>power</code>, <code>fun</code>, <code>image</code>, …) whose arguments range over a proper class; every library constructor (<a class="x" href="DEFINITIONS.html#d-matmul"><code>matmul</code></a>, <a class="x" href="DEFINITIONS.html#d-mat-ring"><code>mat-ring</code></a>, the structure accessors, …); and the recursively-defined ones.  Some functoids can be regarded as functions, but a functoid is not required to be one.  <code>lambdoid</code> is the binder that constructs a functoid — the class-domain sibling of <code>vnb-lambda</code>.  Application is implicit: writing <code>f(args)</code> denotes <code>apply-functoid(f, args)</code> when <code>f</code> is a functoid and <code>apply-function(f, args)</code> when <code>f</code> is a function — these two application operators are never written by hand.  Whether an operator is a kernel primitive or a library definition is a matter of ORIGIN, recorded as metadata; it is not a VNB distinction and carries no semantic weight.  A kernel set-former is a functoid exactly as a library constructor is.</li><li>A <strong>predicate</strong> is an operator whose application to argument terms is a proposition — an entity whose value is either true or false.  The proposition and its truth value are two separate things in the mathematical universe: a predicate applied to terms always denotes a proposition, but the truth value of that proposition may not be known.</li></ul>
 <p>Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An <strong>undeclared</strong> head is a defect.</p>
-<p>581 operators: 3 functions, 11 syntax, 340 functoids, 224 predicates, 3 undeclared.</p>
+<p>590 operators: 3 functions, 11 syntax, 345 functoids, 228 predicates, 3 undeclared.</p>
 <p>&gt; <strong>⚠ Undeclared heads (mushrooms):</strong> <code>cos</code> <code>exp</code> <code>sin</code> — registered and usable but backed by no def or axiom.</p>
 <h3 id="OPERATORS__functions-3">Functions  (3)</h3>
 <p>A head is listed here exactly when the theory STATES that it is an element of a <code>FUN</code> set; the statement is named.  Nothing is claimed on a head&#x27;s behalf: this section was a hand-typed list until 2026-08-31, and every one of the fifteen heads on it (<code>+ - * recip abs exp sin cos sqrt</code> …) turned out to have no such statement anywhere in the theory.</p>
@@ -95,7 +95,7 @@
 <h4 id="OPERATORS__recip-syntax-the-head-denotes-nothing"><code>recip</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__rpow-syntax-the-head-denotes-nothing"><code>rpow</code>  — syntax: the head denotes nothing</h4>
 <h4 id="OPERATORS__succ-syntax-the-head-denotes-nothing"><code>succ</code>  — syntax: the head denotes nothing</h4>
-<h3 id="OPERATORS__functoids-340">Functoids  (340)</h3>
+<h3 id="OPERATORS__functoids-345">Functoids  (345)</h3>
 <p>Term-valued operators that do NOT denote an element of <code>SET</code> — the big amorphous category.  Sub-labelled by how each is declared (<code>kernel term-former</code>; <code>def-functoid</code> body; <code>def-by-nn-recursion</code>; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  <code>def-functor</code> bridges live in <code>STRUCTURE-INDEX.md</code>; <code>lambdoid</code> (the functoid binder) is a parser-level form, not a registered head.</p>
 <h4 id="OPERATORS__/-characterized-by-axiom-s"><code>/</code>  — characterized by axiom(s)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-amgm-2-sqrt"><code>amgm-2-sqrt</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-le-arg"><code>bdd-fn-le-arg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-lt-one"><code>bdd-fn-lt-one</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-mono"><code>bdd-fn-mono</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-nonneg"><code>bdd-fn-nonneg</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-subadd"><code>bdd-fn-subadd</code></a> <a class="x" href="THEOREMS.html#t-bdd-fn-zero"><code>bdd-fn-zero</code></a> <a class="x" href="THEOREMS.html#t-bdd-metric-distance"><code>bdd-metric-distance</code></a></p>
@@ -367,6 +367,9 @@
 <h4 id="OPERATORS__hom-abelian-group-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-abelian-group"><code>hom-abelian-group</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the abelian group morphisms from a to b</p>
 <pre>hom-abelian-group(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-abelian-group(a, b, homf_)}</pre>
+<h4 id="OPERATORS__hom-bounded-linear-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-bounded-linear"><code>hom-bounded-linear</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the bounded linear maps from a to b</p>
+<pre>hom-bounded-linear(a, b) := {homf_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf_)}</pre>
 <h4 id="OPERATORS__hom-c-metric-space-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-c-metric-space"><code>hom-c-metric-space</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the c metric space morphisms from a to b</p>
 <pre>hom-c-metric-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-c-metric-space(a, b, homf_)}</pre>
@@ -379,6 +382,9 @@
 <h4 id="OPERATORS__hom-complex-inner-product-space-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-complex-inner-product-space"><code>hom-complex-inner-product-space</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the complex inner product space morphisms from a to b</p>
 <pre>hom-complex-inner-product-space(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-complex-inner-product-space(a, b, homf_)}</pre>
+<h4 id="OPERATORS__hom-continuous-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-continuous"><code>hom-continuous</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the continuous maps from a to b</p>
+<pre>hom-continuous(a, b) := {homf_ in fun(pts(a), pts(b)): is-continuous-arrow(a, b, homf_)}</pre>
 <h4 id="OPERATORS__hom-euclidean-ring-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-euclidean-ring"><code>hom-euclidean-ring</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the euclidean ring morphisms from a to b</p>
 <pre>hom-euclidean-ring(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-euclidean-ring(a, b, homf_)}</pre>
@@ -394,6 +400,9 @@
 <h4 id="OPERATORS__hom-integral-domain-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-integral-domain"><code>hom-integral-domain</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the integral domain morphisms from a to b</p>
 <pre>hom-integral-domain(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-integral-domain(a, b, homf_)}</pre>
+<h4 id="OPERATORS__hom-lipschitz-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-lipschitz"><code>hom-lipschitz</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the Lipschitz maps from a to b</p>
+<pre>hom-lipschitz(a, b) := {homf_ in fun(pts(a), pts(b)): is-lipschitz-arrow(a, b, homf_)}</pre>
 <h4 id="OPERATORS__hom-measurable-space-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-measurable-space"><code>hom-measurable-space</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the measurable space morphisms from a to b</p>
 <pre>hom-measurable-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-measurable-space(a, b, homf_)}</pre>
@@ -436,9 +445,15 @@
 <h4 id="OPERATORS__hom-semigroup-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-semigroup"><code>hom-semigroup</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the semigroup morphisms from a to b</p>
 <pre>hom-semigroup(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}</pre>
+<h4 id="OPERATORS__hom-setoid-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-setoid"><code>hom-setoid</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the setoid morphisms from a to b</p>
+<pre>hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}</pre>
 <h4 id="OPERATORS__hom-top-space-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-top-space"><code>hom-top-space</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the top space morphisms from a to b</p>
 <pre>hom-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}</pre>
+<h4 id="OPERATORS__hom-uniformly-continuous-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-uniformly-continuous"><code>hom-uniformly-continuous</code></a>  — def-functoid · set-valued</h4>
+<p>&gt; _Reads as:_  the uniformly continuous maps from a to b</p>
+<pre>hom-uniformly-continuous(a, b) := {homf_ in fun(pts(a), pts(b)): is-uniformly-continuous-arrow(a, b, homf_)}</pre>
 <h4 id="OPERATORS__hom-vector-space-def-functoid-set-valued"><a class="x" href="DEFINITIONS.html#d-hom-vector-space"><code>hom-vector-space</code></a>  — def-functoid · set-valued</h4>
 <p>&gt; _Reads as:_  the vector space morphisms from a to b</p>
 <pre>hom-vector-space(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-vector-space(a, b, homf_)}</pre>
@@ -874,7 +889,7 @@
 <pre>zz-bezout-set(a, b) := {z in zz: forsome([x_ in zz, y_ in zz], z = x_ * a + y_ * b)}</pre>
 <h4 id="OPERATORS__zz-ring-characterized-by-axioms-def-constant"><a class="x" href="STRUCTURE-INDEX.html#zz-ring"><code>zz-ring</code></a>  — characterized by axioms (def-constant)</h4>
 <p>Declared by: <a class="x" href="THEOREMS.html#t-zz-ring-def"><code>zz-ring-def</code></a></p>
-<h3 id="OPERATORS__predicates-224">Predicates  (224)</h3>
+<h3 id="OPERATORS__predicates-228">Predicates  (228)</h3>
 <p>Proposition-valued operators.  Their defining axiom is an <code>iff</code> on the applied head.  Full definitions in <code>DEFINITIONS.md</code>.</p>
 <h4 id="OPERATORS__&lt;-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-&lt;"><code>&lt;</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  x is less than y</p>
@@ -954,6 +969,8 @@
 <p>&gt; _Reads as:_  f is an antiderivative of phi on the interval [a, b]</p>
 <h4 id="OPERATORS__is-associative-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-associative"><code>is-associative</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  op is associative on crr</p>
+<h4 id="OPERATORS__is-bounded-linear-arrow-def-predicate-proposition-arity-3"><code>is-bounded-linear-arrow</code>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  f is a bounded linear map from a to b</p>
 <h4 id="OPERATORS__is-bounded-linear-functional-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-bounded-linear-functional"><code>is-bounded-linear-functional</code></a>  — def-predicate · proposition (arity 2)</h4>
 <p>&gt; _Reads as:_  f is a bounded linear functional on m</p>
 <h4 id="OPERATORS__is-bounded-linear-functional-on-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-bounded-linear-functional-on"><code>is-bounded-linear-functional-on</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -988,6 +1005,8 @@
 <p>&gt; _Reads as:_  tt is a continuous linear map from (m1, fam1) to (m2, fam2)</p>
 <h4 id="OPERATORS__is-continuous-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-continuous"><code>is-continuous</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is continuous from s to t</p>
+<h4 id="OPERATORS__is-continuous-arrow-def-predicate-proposition-arity-3"><code>is-continuous-arrow</code>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  f is a continuous map from a to b</p>
 <h4 id="OPERATORS__is-continuous-at-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-continuous-at"><code>is-continuous-at</code></a>  — def-predicate · proposition (arity 4)</h4>
 <p>&gt; _Reads as:_  f is continuous at a</p>
 <h4 id="OPERATORS__is-continuous-on-def-predicate-proposition-arity-2"><a class="x" href="THEOREMS.html#t-is-continuous-on"><code>is-continuous-on</code></a>  — def-predicate · proposition (arity 2)</h4>
@@ -1059,9 +1078,9 @@
 <h4 id="OPERATORS__is-hom-integral-domain-def-predicate-proposition-arity-3"><code>is-hom-integral-domain</code>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is a homomorphism from a to b</p>
 <h4 id="OPERATORS__is-hom-measurable-space-def-predicate-proposition-arity-3"><code>is-hom-measurable-space</code>  — def-predicate · proposition (arity 3)</h4>
-<p>&gt; _Reads as:_  f is a homomorphism from a to b</p>
+<p>&gt; _Reads as:_  f is a measurable map from s to t</p>
 <h4 id="OPERATORS__is-hom-measure-space-def-predicate-proposition-arity-3"><code>is-hom-measure-space</code>  — def-predicate · proposition (arity 3)</h4>
-<p>&gt; _Reads as:_  f is a homomorphism from a to b</p>
+<p>&gt; _Reads as:_  f is a measure-preserving measurable map from s to t</p>
 <h4 id="OPERATORS__is-hom-metric-space-def-predicate-proposition-arity-3"><code>is-hom-metric-space</code>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is an isometry from a to b</p>
 <h4 id="OPERATORS__is-hom-metrizable-top-space-def-predicate-proposition-arity-3"><code>is-hom-metrizable-top-space</code>  — def-predicate · proposition (arity 3)</h4>
@@ -1118,6 +1137,8 @@
 <p>&gt; _Reads as:_  f is a linear functional on the subspace s of m</p>
 <h4 id="OPERATORS__is-linear-map-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-linear-map"><code>is-linear-map</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  tt is a linear map from m1 to m2</p>
+<h4 id="OPERATORS__is-lipschitz-arrow-def-predicate-proposition-arity-3"><code>is-lipschitz-arrow</code>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  f is a Lipschitz map from a to b</p>
 <h4 id="OPERATORS__is-local-max-at-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-local-max-at"><code>is-local-max-at</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f has a local maximum on d at lmt_</p>
 <h4 id="OPERATORS__is-local-min-at-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-local-min-at"><code>is-local-min-at</code></a>  — def-predicate · proposition (arity 3)</h4>
@@ -1254,6 +1275,8 @@
 <p>&gt; _Reads as:_  g is the uniform limit of the sequence fam on [a, b]</p>
 <h4 id="OPERATORS__is-uniformly-continuous-def-predicate-proposition-arity-3"><a class="x" href="THEOREMS.html#t-is-uniformly-continuous"><code>is-uniformly-continuous</code></a>  — def-predicate · proposition (arity 3)</h4>
 <p>&gt; _Reads as:_  f is uniformly continuous from s to t</p>
+<h4 id="OPERATORS__is-uniformly-continuous-arrow-def-predicate-proposition-arity-3"><code>is-uniformly-continuous-arrow</code>  — def-predicate · proposition (arity 3)</h4>
+<p>&gt; _Reads as:_  f is a uniformly continuous map from a to b</p>
 <h4 id="OPERATORS__is-upper-bound-def-predicate-proposition-arity-4"><a class="x" href="THEOREMS.html#t-is-upper-bound"><code>is-upper-bound</code></a>  — def-predicate · proposition (arity 4)</h4>
 <p>&gt; _Reads as:_  b is an upper bound of ch in grd under porel</p>
 <h4 id="OPERATORS__is-vector-space-def-predicate-proposition-arity-1"><code>is-vector-space</code>  — def-predicate · proposition (arity 1)</h4>

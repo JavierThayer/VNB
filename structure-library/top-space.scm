@@ -38,7 +38,7 @@
 (declare-structure TOP-SPACE
   (instance-var s)                          ; the laws below range over the instance s
   (carriers PTS)
-  (constant OPENS (POWER (POWER PTS)))
+  (family OPENS PTS)                        ; a set of subsets of PTS (batch 39)
   ;; the empty set and the whole space are open
   (law (IN EMPTY-SET (OPENS s)))
   (law (IN (PTS s) (OPENS s)))
@@ -54,14 +54,14 @@
 ;;; -----------------------------------------------------------------------
 ;;; The morphisms: f is continuous iff the preimage of every open set is open.
 ;;;
-;;; declare-hom! supplies IS-TOP-SPACE(s), IS-TOP-SPACE(t) and (IN f (FUN (PTS s)
-;;; (PTS t))), so the body states only what is characteristic.  The hom's
-;;; variables are s and t, NOT a and b: PREIMAGE unfolds to (SEP a (PTS s) ...),
-;;; and an `a' here would be captured by that binder.
-
-(declare-hom! 'TOP-SPACE '(s t f)
-  '(FORALL u (IMPLIES (IN u (OPENS t))
-      (IN (PREIMAGE s f u) (OPENS s)))))
+;;; GENERATED since batch 39 (2026-09-28): OPENS is a FAMILY slot, and the hom
+;;; generator's rule for a family of subsets is exactly the preimage condition,
+;;;   IS-HOM-TOP-SPACE(s, t, f) iff IS-TOP-SPACE(s) and IS-TOP-SPACE(t)
+;;;     and f in FUN(PTS s, PTS t) and forall u in OPENS(t). PREIMAGE(s, f, u) in OPENS(s)
+;;; -- the formula the declare-hom! that stood here wrote by hand, symbol for
+;;; symbol (the hom variables are s and t when a family slot is present, for the
+;;; reason this comment used to give: PREIMAGE unfolds to (SEP a (PTS s) ...)).
+;;; The override became an instance of the rule and was deleted (git history).
 
 ;;; -----------------------------------------------------------------------
 ;;; METRIZABLE-TOP-SPACE: the topological spaces that carry a compatible metric.
@@ -80,7 +80,11 @@
                     (== s (LIST (PTS md) (SEP u (POWER (PTS md)) (IS-OPEN md u))))))))
 
 ;;; Its morphisms are TOP-SPACE's -- continuity.  (same-shape-as inherits the shape,
-;;; not the hom override, so it is stated here.)
+;;; not the hom override, so it is stated here.)  KEPT after batch 39: a refinement's
+;;; generated hom is IS-METRIZABLE-TOP-SPACE(s) and IS-METRIZABLE-TOP-SPACE(t) and
+;;; IS-HOM-TOP-SPACE(s, t, f) -- the same arrows, but a different formula, and
+;;; hom-laws.scm's hand driver reads this one's last conjunct.  Replacing it is a
+;;; one-line deletion plus that driver's switch to the refinement laws.
 (declare-hom! 'METRIZABLE-TOP-SPACE '(s t f)
   '(FORALL u (IMPLIES (IN u (OPENS t))
       (IN (PREIMAGE s f u) (OPENS s)))))

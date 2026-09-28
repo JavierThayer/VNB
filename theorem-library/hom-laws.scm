@@ -402,7 +402,10 @@
     RING COMMUTATIVE-RING INTEGRAL-DOMAIN EUCLIDEAN-RING PID FIELD-RING
     NORMED-AG NORMED-FIELD MODULE VECTOR-SPACE NORMED-VECTOR-SPACE
     COMPLEX-INNER-PRODUCT-SPACE METRIC-SPACE PSEUDOMETRIC-SPACE C-METRIC-SPACE
-    MEASURABLE-SPACE MEASURE-SPACE))
+    ;; MEASURABLE-SPACE and MEASURE-SPACE left this list 2026-09-28 (batch 39): their
+    ;; arrows are now the family and family-fun kinds' pullback clauses, proven by
+    ;; hand in theorem-library/hom-kinds.scm.
+    ))
 (for-each hml-prove-for! *hml-generated*)
 
 ;;; --- FIELD: its derived carrier -------------------------------------------------

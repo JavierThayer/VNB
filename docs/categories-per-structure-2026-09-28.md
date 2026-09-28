@@ -125,3 +125,79 @@ the systematic part: the declaration's slot kinds (`carrier`, independent or der
 the generated `reference/STRUCTURES.md` listing every structure's slots WITH their kinds and the arrow
 notion each kind generates. Recommended: (b). The hom generator then has one rule per KIND, which is what
 notes-43 asked for, and a reader can see for each structure what its default category is.
+
+## Built (batch 39, 2026-09-28)
+
+Decisions D1 and D2 were taken as recommended (the user approved proposals 1 and 2, with "a family of
+subsets of a carrier" and "a function on such a family" as two new slot kinds); D3 was not touched (the
+isometric default of `METRIC-SPACE` stays).
+
+**The generator (`structures.scm`).** Two slot kinds:
+
+* `(family F C)` -- `F(s)` is a set of subsets of the carrier `C(s)`. Its conjunct of `IS-X` is
+  `F(s) in POWER(POWER(C s))`, exactly what the former `(constant F (POWER (POWER C)))` spelling gave.
+  Its hom clause is `forall u in F(t). PREIMAGE(s, f, u) in F(s)` (over a carrier other than `PTS`, the
+  separation that `PREIMAGE` abbreviates).
+* `(family-fun M F R)` -- `M(s)` is a function on the family `F(s)` into `R`. Its conjunct of `IS-X` is
+  `M(s) in FUN(F(s), R)`, what `(op M F R)` gave. Its hom clause is
+  `forall u in F(t). M(t)(u) = M(s)(PREIMAGE(s, f, u))`.
+
+When a family slot is present the hom variables are `s`, `t` (the body of `PREIMAGE` binds `a`).
+`MEASURABLE-SPACE` and `MEASURE-SPACE` declare `SIGMA` as a family and `MEAS` as a family-fun;
+`TOP-SPACE` declares `OPENS` as a family. The four structure predicates are alpha-equal before and after
+(checked on the band). The generated arrows now read:
+
+    is-hom-measurable-space(s, t, f) iff is-measurable-space(s) and is-measurable-space(t)
+      and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s))
+    is-hom-measure-space(s, t, f) iff ... and forall([u in sigma(t)], preimage(s, f, u) in sigma(s))
+      and forall([u in sigma(t)], (meas(t))(u) = (meas(s))(preimage(s, f, u)))
+    is-hom-top-space(s, t, f) iff is-top-space(s) and is-top-space(t)
+      and f in fun(pts(s), pts(t)) and forall([u in opens(t)], preimage(s, f, u) in opens(s))
+
+The third is, symbol for symbol, the `declare-hom!` that stood in `top-space.scm`; that override was
+deleted. The override of `METRIZABLE-TOP-SPACE` is kept: as a refinement its generated hom is
+`IS-METRIZABLE-TOP-SPACE(s) and IS-METRIZABLE-TOP-SPACE(t) and IS-HOM-TOP-SPACE(s, t, f)`, the same arrows
+under a different formula, and `hom-laws.scm` reads the override's last conjunct.
+
+For a structure with TWO independent carriers `install-hom-set!` now installs the hom-set as a set of
+pairs: `HOM-SETOID(a, b) = {p in CARTESIAN(FUN(PTS a, PTS b), FUN(REL a, REL b)) :
+IS-HOM-SETOID(a, b, NTH(1, p), NTH(2, p))}`. Three or more carriers still get nothing.
+
+**`declare-category!`** `(declare-category! 'CAT 'X '(a b f1 .. fk) BODY)`, k = 1 or 2, installs
+`definitional` the arrow predicate `IS-CAT-ARROW` (definition `is-CAT-arrow-def`: `IS-X(a) and IS-X(b)
+and fi in FUN(Ci a, Ci b) and BODY`) and the hom-set `HOM-CAT(a, b)`, and registers the category in
+`*categories*` with three obligations, `hom-CAT-id`, `hom-CAT-compose` and `hom-CAT-in-set`, recorded as
+statements. `category-obligations-audit` lists the obligations that are not a theorem of that name, of
+that statement (up to alpha), with provenance `proven` or `certified`; `(category-obligation NAME)` returns
+one as a goal; `category-member-iff` returns the membership statement, which is not an obligation.
+`report-category-obligations!` is the load gate (warn-only; `#t` makes it fatal). The default category
+of `X` (`IS-HOM-X`, `HOM-X`) is not touched.
+
+**The four categories (`theorem-library/categories.scm`).**
+
+| category | on | the arrow condition |
+|---|---|---|
+| `LIPSCHITZ` | `METRIC-SPACE` | `forsome K in RR, 0 <= K and forall x, y in PTS(a). DIST(b)(f x, f y) <= K * DIST(a)(x, y)` |
+| `UNIFORMLY-CONTINUOUS` | `METRIC-SPACE` | `IS-UNIFORMLY-CONTINUOUS(a, b, f)` (the tree's predicate) |
+| `CONTINUOUS` | `METRIC-SPACE` | `IS-CONTINUOUS(a, b, f)` (the tree's predicate) |
+| `BOUNDED-LINEAR` | `NORMED-VECTOR-SPACE` | `SCAL(a) = SCAL(b)`, additive, homogeneous (the clauses of the generated hom), and `forsome K in RR, 0 <= K and forall x in VEC(a). VNRM(b)(f x) <= K * VNRM(a)(x)` |
+
+For each: `hom-CAT-member-iff`, `-id`, `-compose`, `-in-set`, and the Hom-functor typings `-post-type`,
+`-pre-type`. The inclusions are theorems, arrow by arrow and as hom-sets:
+`HOM-METRIC-SPACE(a, b) subset HOM-LIPSCHITZ(a, b) subset HOM-UNIFORMLY-CONTINUOUS(a, b) subset
+HOM-CONTINUOUS(a, b)` (an isometry is 1-Lipschitz; a K-Lipschitz map is uniformly continuous with
+delta = eps / (K + 1); `uniformly-continuous-is-continuous`), and `HOM-NORMED-VECTOR-SPACE(a, b) subset
+HOM-BOUNDED-LINEAR(a, b)` (K = 1). The identity laws are read off these inclusions and the default's
+identity law. Composition: the Lipschitz and the bounded-linear constants multiply; uniform continuity is
+the nested choice of deltas; continuity is pointwise, by `ms-compose-continuous-at`.
+
+**The laws of the family kinds and of two carriers (`theorem-library/hom-kinds.scm`).** The generic
+driver of `hom-laws.scm` cannot close a pulled-back clause (it instantiates the f clause where the
+composite's clause needs g's first), so `MEASURABLE-SPACE` and `MEASURE-SPACE` are proved by a driver
+with one rule per kind (`PREIMAGE(s, ID, u) = u`; `PREIMAGE(s, g o f, u) = PREIMAGE(s, f,
+PREIMAGE(t, g, u))`). The file also proves the four `SETOID` laws, componentwise, and
+`measure-space-as-measurable-space-functorial`, which the sweep of `functoriality.scm` cannot: the view
+occurs inside `PREIMAGE(V a, f, u)`, where its accessor rewriting does not reach.
+
+**The audit.** At the end of batch 39 the four declared categories owe nothing
+(`;; category obligations: none outstanding (4 declared categories)`).

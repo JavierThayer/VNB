@@ -3978,7 +3978,10 @@
                (hash-table-ref/default *theorem-table* 'is-hom-top-space-def #f))))
       (and (string-search-forward "preimage(s, f, u) in opens(s)" s 0)
            (not (string-search-forward "opens(s) = opens(t)" s 0))
-           (hom-overridden? 'top-space)
+           ;; GENERATED since batch 39 (2026-09-28): OPENS is a FAMILY slot, and the
+           ;; generator's family rule IS the preimage condition, so the declare-hom!
+           ;; that stood in top-space.scm became an instance and was deleted.
+           (not (hom-overridden? 'top-space))
            #t))))
 
 ;; THE MORPHISMS OF A METRIC SPACE ARE ITS CONTINUOUS MAPS.  The generated hom
@@ -13079,6 +13082,26 @@
           (list (cadddr d1) (cadddr d2))))))
   '((+ x_ 1) (+ x_ 2)))
 
+;;; crs DECLINES instead of crashing (2026-09-28, the user: "why can it not just decline?").
+;;; CONTROLS: on the old code (a) raised "#f passed to exact?" and (b) "+i passed to <".
+(define (crs-no-raise thunk)
+  (call-with-current-continuation
+   (lambda (k) (with-exception-handler (lambda (e) (k (list 'raised (condition/report-string e)))) thunk))))
+(check "crs (a): a symbolic exponent is unevaluable, not an error"
+  (lambda () (crs-no-raise (lambda () (arith-eval-term '(power (- 1) m)))))
+  #f)
+(check "crs (b): a complex coefficient prints; the calculator normalises +i * +i + 1 to 0"
+  (lambda () (crs-no-raise (lambda () (cring-normal-form '(+ (* +i +i) 1)))))
+  0)
+(check-true "crs (c): the calculator prints a term with a complex coefficient without raising"
+  (lambda () (let ((r (crs-no-raise (lambda () (cring-normal-form '(+ (* 2 +i) x))))))
+               (and (pair? r) (not (eq? (car r) 'raised))))))
+(check-true "crs (d): the oracle on a goal with a symbolic power returns a value, never raises"
+  (lambda ()
+    (quietly (lambda () (sp (make-wff "forall([m in nn], (-1)^m * 1 = (-1)^m)"))))
+    (let ((r (crs-no-raise (lambda () (quietly (lambda () (crs))) 'returned))))
+      (eq? r 'returned))))
+
 ;;; -----------------------------------------------------------------------
 ;;; ZERO-IT (notes-42, 2026-09-26; zero-it.scm, docs/zero-it-design-2026-09-26.md): an equation
 ;;; goal P = Q moved to R = 0, R the normal form of P - Q.  The design note's ten checks; (2),
@@ -13121,7 +13144,7 @@
               (l (length (proof-open-leaves *ps*))) (g (dk-goal))
               (r (zi-run)))
          (and (eqv? (zero-it-normal-form (car r)) 1)
-              (zi-says? (cdr r) "FALSE in every ring where 1 /= 0: it reduces to 1 = 0")
+              (zi-says? (cdr r) "FALSE over rr: it reduces to 1 = 0")   ; wording of 2026-09-28 (the Z_n remark)
               (= n (length *proof-script*)) (= m (length *proof-mints*))
               (= l (length (proof-open-leaves *ps*)))
               (equal? g (dk-goal))))))))
@@ -13308,6 +13331,171 @@
                (and (zi-says? (zero-it-report v) "FALSE over rr") #t)
                (zero-it-owed v) (zero-it-reason v))))))
   '(false 6 #t #t () #f))
+
+;;; =======================================================================
+;;; BATCH 39 (2026-09-28): THE CATEGORY OF A STRUCTURE -- the two FAMILY slot
+;;; kinds, declare-category!, the category-obligations audit, the SETOID hom-set.
+;;; docs/categories-per-structure-2026-09-28.md.
+;;;
+;;; The family checks EVALUATE the generated hom definition in a finite model:
+;;; b39-eval reads the formula (AND, guarded FORALL, IN, =, PREIMAGE, FUN
+;;; typing, applications) over Scheme lists standing for finite sets, with the
+;;; object predicates IS-X taken as true (the toy data are models by
+;;; construction).  They are CONTROLS: the old generator made SIGMA a constant
+;;; slot, generating SIGMA(a) = SIGMA(b) and nothing on f, which accepts every map
+;;; between a space and itself -- the (#t #t) answer these checks refuse.
+;;; =======================================================================
+
+(display "\n=== batch 39: family slots, declare-category!, HOM-SETOID ===\n")
+
+(define (b39-set-equal? a b)
+  (and (list? a) (list? b)
+       (every (lambda (x) (b39-member? x b)) a)
+       (every (lambda (x) (b39-member? x a)) b)))
+(define (b39-equal? a b)
+  (cond ((and (number? a) (number? b)) (= a b))
+        ((and (list? a) (list? b)) (b39-set-equal? a b))
+        (#t (equal? a b))))
+(define (b39-member? x s) (any (lambda (y) (b39-equal? x y)) s))
+(define (b39-apply m x)                 ; a map is an alist; keys compared as sets
+  (let ((p (find (lambda (pr) (b39-equal? (car pr) x)) m)))
+    (if p (cdr p) (error "b39-apply: not in the domain" x))))
+(define (b39-term t env)
+  (cond ((symbol? t) (let ((p (assq t env))) (if p (cdr p) (error "b39-term: unbound" t))))
+        ((number? t) t)
+        ((and (pair? t) (eq? (car t) 'PREIMAGE))
+         (let ((s (b39-term (cadr t) env)) (f (b39-term (caddr t) env)) (u (b39-term (cadddr t) env)))
+           (filter (lambda (x) (b39-member? (b39-apply f x) u)) (cdr (assq 'PTS s)))))
+        ((and (pair? t) (symbol? (car t)) (= (length t) 2)
+              (let ((s (b39-term (cadr t) env))) (and (pair? s) (pair? (car s)) (symbol? (caar s)) (assq (car t) s))))
+         => cdr)                                            ; an accessor of a model
+        ((pair? t) (b39-apply (b39-term (car t) env) (b39-term (cadr t) env)))
+        (#t (error "b39-term: cannot read" t))))
+(define (b39-eval f env)
+  (case (car f)
+    ((AND) (and (b39-eval (cadr f) env) (b39-eval (caddr f) env)))
+    ((FORALL)
+     (let* ((v (cadr f)) (imp (caddr f)) (guard (cadr imp)))
+       (every (lambda (x) (b39-eval (caddr imp) (cons (cons v x) env)))
+              (b39-term (caddr guard) env))))
+    ((IN)
+     (let ((cls (caddr f)))
+       (if (and (pair? cls) (eq? (car cls) 'FUN))
+           (let ((m (b39-term (cadr f) env))
+                 (a (b39-term (cadr cls) env)) (b (b39-term (caddr cls) env)))
+             (and (b39-set-equal? (map car m) a)
+                  (every (lambda (pr) (b39-member? (cdr pr) b)) m)))
+           (b39-member? (b39-term (cadr f) env) (b39-term cls env)))))
+    ((=) (b39-equal? (b39-term (cadr f) env) (b39-term (caddr f) env)))
+    (else #t)))                                ; IS-X(model): true by construction
+;;; the generated hom definition of NAME, evaluated at models A, B and map F
+(define (b39-hom-holds? name a b f)
+  (let loop ((d (hash-table-ref/default *theorem-table* (symbol-append 'is-hom- name '-def) #f))
+             (vars '()))
+    (if (eq? (car d) 'FORALL)
+        (loop (caddr d) (append vars (list (cadr d))))
+        (b39-eval (caddr d) (map cons vars (list a b f))))))
+
+(declare-structure TOY-MS
+  (carriers PTS)
+  (family TSIG PTS))
+(declare-structure TOY-MSR
+  (carriers PTS)
+  (family TSIG PTS)
+  (family-fun TMU TSIG RR))
+
+(define b39-id   '((0 . 0) (1 . 1)))
+(define b39-swap '((0 . 1) (1 . 0)))
+;; {0, 1} with the sigma {{}, {0}, {0, 1}}: the swap pulls {0} back to {1}
+(define b39-coarse '((PTS . (0 1)) (TSIG . (() (0) (0 1)))))
+;; {0, 1}, every subset measurable, mu{0} = 1 and mu{1} = 2
+(define b39-weighted
+  '((PTS . (0 1)) (TSIG . (() (0) (1) (0 1)))
+    (TMU . ((() . 0) ((0) . 1) ((1) . 2) ((0 1) . 3)))))
+
+(check "family slot: the generated hom accepts the identity and REFUSES a non-measurable map (control)"
+  (lambda () (list (b39-hom-holds? 'toy-ms b39-coarse b39-coarse b39-id)
+                   (b39-hom-holds? 'toy-ms b39-coarse b39-coarse b39-swap)))
+  '(#t #f))
+
+(check "family-fun slot: the measure clause accepts the identity and REFUSES a map moving mass (control)"
+  (lambda () (list (b39-hom-holds? 'toy-msr b39-weighted b39-weighted b39-id)
+                   (b39-hom-holds? 'toy-msr b39-weighted b39-weighted b39-swap)))
+  '(#t #f))
+
+(check-true "family slot: IS-X is the typing the old (constant F (POWER (POWER C))) gave"
+  (lambda ()
+    (and (string-search-forward "tsig(s) in power(power(pts(s)))"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-toy-ms #f)) 0)
+         (string-search-forward "tmu(s) in fun(tsig(s), rr)"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-toy-msr #f)) 0)
+         #t)))
+
+(check-true "MEASURABLE-SPACE's arrows are the measurable maps; MEASURE-SPACE's preserve the measure"
+  (lambda ()
+    (let ((m1 (expression->string (hash-table-ref/default *theorem-table* 'is-hom-measurable-space-def #f)))
+          (m2 (expression->string (hash-table-ref/default *theorem-table* 'is-hom-measure-space-def #f))))
+      (and (string-search-forward "forall([u in sigma(t)], preimage(s, f, u) in sigma(s))" m1 0)
+           (not (string-search-forward "sigma(s) = sigma(t)" m1 0))
+           (string-search-forward "(meas(t))(u) = (meas(s))(preimage(s, f, u))" m2 0)
+           #t))))
+
+(check-true "TOP-SPACE's generated hom is, symbol for symbol, the deleted declare-hom!"
+  (lambda ()
+    (equal? (hash-table-ref/default *theorem-table* 'is-hom-top-space-def #f)
+            '(FORALL s (FORALL t (FORALL f (IFF (IS-HOM-TOP-SPACE s t f)
+               (AND (IS-TOP-SPACE s) (AND (IS-TOP-SPACE t) (AND (IN f (FUN (PTS s) (PTS t)))
+                 (FORALL u (IMPLIES (IN u (OPENS t)) (IN (PREIMAGE s f u) (OPENS s))))))))))))))
+
+(check-true "SETOID (two carriers) has its hom-set: pairs of maps, by the hom on the components"
+  (lambda ()
+    (let ((reg (hash-table-ref/default *functoid-registry* 'HOM-SETOID #f)))
+      (and reg
+           (equal? (cadr reg)
+                   '(SEP homp_ (CARTESIAN (FUN (PTS a) (PTS b)) (FUN (REL a) (REL b)))
+                         (IS-HOM-SETOID a b (NTH 1 homp_) (NTH 2 homp_))))
+           (every (lambda (n) (eq? (provenance-of n) 'proven))
+                  '(hom-setoid-member-iff hom-setoid-id hom-setoid-compose hom-setoid-in-set))
+           #t))))
+
+;; --- declare-category! -------------------------------------------------------
+(check-true "the library's declared categories owe nothing (their laws are PROVEN)"
+  (lambda () (and (= 4 (length (known-categories)))
+                  (null? (category-obligations-audit)))))
+
+(declare-category! 'TOY-CAT 'TOY-MS '(a b f) '(= (TSIG a) (TSIG a)))
+
+(check-true "declare-category! installs the arrow predicate (definitional) and the hom-set"
+  (lambda ()
+    (and (eq? (provenance-of 'is-toy-cat-arrow-def) 'definitional)
+         (string-search-forward "is-toy-cat-arrow(a, b, f) iff is-toy-ms(a) and is-toy-ms(b) and f in fun(pts(a), pts(b))"
+           (expression->string (hash-table-ref/default *theorem-table* 'is-toy-cat-arrow-def #f)) 0)
+         (equal? (cadr (hash-table-ref/default *functoid-registry* 'HOM-TOY-CAT #f))
+                 '(SEP homf_ (FUN (PTS a) (PTS b)) (IS-TOY-CAT-ARROW a b homf_)))
+         #t)))
+
+(check "the audit lists the toy category's three unproven obligations"
+  (lambda () (map car (category-obligations-audit)))
+  '(hom-toy-cat-id hom-toy-cat-compose hom-toy-cat-in-set))
+
+(check-proof "an obligation is a goal: hom-toy-cat-in-set, proven by hand"
+  (lambda ()
+    (sp (category-obligation 'hom-toy-cat-in-set))
+    (dk-peel!)
+    (let* ((hs (cadr (dk-goal))) (va (cadr hs)) (vb (caddr hs)))
+      (for-each (lambda (v)
+                  (dk-have! (list 'IN (list 'PTS v) 'SET)
+                    (lambda () (mac-h 'IS-TOY-MS (list 'IS-TOY-MS v)) (dk-split-all!) (ass))))
+                (list va vb))
+      (mac 'HOM-TOY-CAT)
+      (sep-set)
+      (mac 'fun-set-iff)
+      (dk-conj-close!))
+    (qed 'hom-toy-cat-in-set)))
+
+(check "... and the audit then lists two"
+  (lambda () (map car (category-obligations-audit)))
+  '(hom-toy-cat-id hom-toy-cat-compose))
 
 (display "=== SUMMARY: ")
 (display *pass-count*) (display " passed, ")

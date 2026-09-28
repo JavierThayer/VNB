@@ -7,7 +7,7 @@
 Every other listing in this manual and in the browser reference is grouped by
 something: operators by class, structures by structure, tactics by task.  This
 one has the ordering nobody has to learn.  It carries the whole
-\emph{vocabulary} -- 718 names: 20 structure, 7 refinement, 11 instance, 19 view, 222 predicate, 228 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 92 tactic -- and no results: the theorems, axioms and
+\emph{vocabulary} -- 727 names: 20 structure, 7 refinement, 11 instance, 19 view, 226 predicate, 233 functoid, 28 accessor, 23 defined-fn, 58 operator, 8 primitive, 92 tactic -- and no results: the theorems, axioms and
 supports are catalogued in \texttt{THEOREMS.md}, \texttt{BY-OPERATOR.md} and
 \texttt{PROOF-DEBT.md}, and each entry here says how many of them mention it.
 
@@ -23,7 +23,7 @@ At the REPL, \texttt{(glossary 'NAME)} prints one entry and
 
 \noindent\textbf{\texttt{*}}\quad\textit{operator}\index{*@\texttt{*}}\\
 a term-forming head \\
-mentioned by 1002 result(s)
+mentioned by 1006 result(s)
 
 \smallskip
 
@@ -64,7 +64,7 @@ mentioned by 633 result(s)
 \noindent\textbf{\texttt{<=}}\quad\textit{primitive}\index{<=@\texttt{<=}}\\
 reads: \$1 is at most \$2 \\
 a kernel relation \\
-mentioned by 941 result(s)
+mentioned by 945 result(s)
 
 \smallskip
 
@@ -131,7 +131,7 @@ characterized by \texttt{rr-nvs@act}  \textit{(definitional)}:
 act(rr-nvs) == vnb-lambda([r\_, x\_], cartesian(rr, rr), r\_ * x\_)
 \end{quote}
 also: \texttt{qq-line@act} \texttt{cips-act-type} \texttt{module-act-type} \texttt{module-act-unital} \texttt{submodule-act-closed} \texttt{module-act-mul-compat} \texttt{module-act-distrib-vec} \texttt{module-act-distrib-scalar} ... (50 in all) \\
-mentioned by 215 result(s)
+mentioned by 217 result(s)
 
 \smallskip
 
@@ -478,7 +478,7 @@ characterized by \texttt{rq-carr}  \textit{(definitional)}:
 forall([r], carr(ringoid-quotient-ring(r)) == quotient(ringoid-setoid(r)))
 \end{quote}
 also: \texttt{qq-ring@carr} \texttt{zz-ring@carr} \texttt{qq-field@carr} \texttt{cips-scal-carrier} \texttt{nf-metric-carrier} \texttt{nn-add-monoid@carr} \texttt{ringoid-carr-in-set} \texttt{cc-normed-field@carr} ... (55 in all) \\
-mentioned by 1268 result(s)
+mentioned by 1270 result(s)
 
 \smallskip
 
@@ -489,7 +489,7 @@ characterized by \texttt{cartesian-set-iff}  \textit{(primitive)}:
 forall([a, b], cartesian(a, b) in set iff a in set and b in set)
 \end{quote}
 also: \texttt{cartesian-nth} \texttt{card-cartesian-nn} \texttt{cartesian-pair-eq} \texttt{pair-in-cartesian} \\
-mentioned by 222 result(s)
+mentioned by 224 result(s)
 
 \smallskip
 
@@ -1009,8 +1009,8 @@ characterized by \texttt{pre-compose}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, c, u, s, s2, f, h, k], a in set implies b in set implies k in fun(a, b) implies h in fun(b, c) implies f in fun(c, u) implies f in s implies compose(f, h) in s2 implies (vnb-lambda(hmpf\_, s, compose(hmpf\_, compose(h, k))))(f) = (vnb-lambda(hmpf\_, s2, compose(hmpf\_, k)))((vnb-lambda(hmpf\_, s, compose(hmpf\_, h)))(f)))
 \end{quote}
-also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (35 in all) \\
-mentioned by 119 result(s)
+also: \texttt{compose-type} \texttt{post-compose} \texttt{compose-apply} \texttt{compose-assoc} \texttt{compose-id-left} \texttt{hom-pid-compose} \texttt{compose-id-right} \texttt{hom-ring-compose} ... (40 in all) \\
+mentioned by 132 result(s)
 
 \smallskip
 
@@ -1390,7 +1390,7 @@ characterized by \texttt{cc-ms@dist}  \textit{(definitional)}:
 dist(cc-ms) == vnb-lambda([x, y], cartesian(cc, cc), magnitude(x - y))
 \end{quote}
 also: \texttt{rr-ms@dist} \texttt{nf-metric-distance} \texttt{cc-ms-dist} \texttt{rr-ms-dist} \texttt{subspace-dist} \texttt{dist-seq-apply} \texttt{nvs-dist-shift} \texttt{r7q-dist-value} ... (35 in all) \\
-mentioned by 174 result(s)
+mentioned by 176 result(s)
 
 \smallskip
 
@@ -2040,7 +2040,7 @@ characterized by \texttt{is-linear-functional}  \textit{(definitional)}:
 forall([m, f], is-linear-functional(m, f) iff f in fun(vec(m), rr) and forall([x\_ in vec(m), y\_ in vec(m)], f((vadd(m))(x\_, y\_)) = f(x\_) + f(y\_)) and forall([r\_ in rr, x\_ in vec(m)], f((act(m))(r\_, x\_)) = r\_ * f(x\_)))
 \end{quote}
 also: \texttt{is-linear-functional-on} \texttt{dom-of-fun} \texttt{is-fun-def} \texttt{fun-no-junk} \texttt{fun-set-iff} \texttt{fun-apply-type} \texttt{fun-codomain-iff} \texttt{dom-fun-membership} ... (138 in all) \\
-mentioned by 1467 result(s)
+mentioned by 1493 result(s)
 
 \smallskip
 
@@ -2249,6 +2249,21 @@ mentioned by 5 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{hom-bounded-linear(a, b)}}\quad\textit{functoid}\index{hom-bounded-linear(a, b)@\texttt{hom-bounded-linear(a, b)}}\\
+reads: the bounded linear maps from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-bounded-linear-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-bounded-linear(a, b) in set)
+\end{quote}
+also: \texttt{hom-bounded-linear-pre-type} \texttt{hom-bounded-linear-post-type} \texttt{hom-bounded-linear-member-iff} \texttt{hom-normed-vector-space-subset-hom-bounded-linear} \\
+mentioned by 6 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{hom-c-metric-space(a, b)}}\quad\textit{functoid}\index{hom-c-metric-space(a, b)@\texttt{hom-c-metric-space(a, b)}}\\
 reads: the c metric space morphisms from \$1 to \$2 \\
 definition:
@@ -2306,6 +2321,21 @@ forall([a, b], is-complex-inner-product-space(a) implies is-complex-inner-produc
 \end{quote}
 also: \texttt{hom-complex-inner-product-space-pre-type} \texttt{hom-complex-inner-product-space-post-type} \texttt{hom-complex-inner-product-space-member-iff} \\
 mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-continuous(a, b)}}\quad\textit{functoid}\index{hom-continuous(a, b)@\texttt{hom-continuous(a, b)}}\\
+reads: the continuous maps from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-continuous-arrow(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-continuous-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-continuous(a, b) in set)
+\end{quote}
+also: \texttt{hom-continuous-pre-type} \texttt{hom-continuous-post-type} \texttt{hom-continuous-member-iff} \texttt{hom-uniformly-continuous-subset-hom-continuous} \\
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -2384,6 +2414,21 @@ mentioned by 5 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{hom-lipschitz(a, b)}}\quad\textit{functoid}\index{hom-lipschitz(a, b)@\texttt{hom-lipschitz(a, b)}}\\
+reads: the Lipschitz maps from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-lipschitz-arrow(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-lipschitz-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-lipschitz(a, b) in set)
+\end{quote}
+also: \texttt{hom-lipschitz-pre-type} \texttt{hom-lipschitz-post-type} \texttt{hom-lipschitz-member-iff} \texttt{hom-metric-space-subset-hom-lipschitz} \texttt{hom-lipschitz-subset-hom-uniformly-continuous} \\
+mentioned by 7 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{hom-measurable-space(a, b)}}\quad\textit{functoid}\index{hom-measurable-space(a, b)@\texttt{hom-measurable-space(a, b)}}\\
 reads: the measurable space morphisms from \$1 to \$2 \\
 definition:
@@ -2424,8 +2469,8 @@ characterized by \texttt{hom-metric-space-in-set}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-metric-space(a, b) in set)
 \end{quote}
-also: \texttt{hom-metric-space-pre-type} \texttt{hom-metric-space-post-type} \texttt{hom-metric-space-member-iff} \\
-mentioned by 5 result(s)
+also: \texttt{hom-metric-space-pre-type} \texttt{hom-metric-space-post-type} \texttt{hom-metric-space-member-iff} \texttt{hom-metric-space-subset-hom-lipschitz} \\
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -2514,8 +2559,8 @@ characterized by \texttt{hom-normed-vector-space-in-set}  \textit{(proven)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b], is-normed-vector-space(a) implies is-normed-vector-space(b) implies hom-normed-vector-space(a, b) in set)
 \end{quote}
-also: \texttt{hom-normed-vector-space-pre-type} \texttt{hom-normed-vector-space-post-type} \texttt{hom-normed-vector-space-member-iff} \\
-mentioned by 5 result(s)
+also: \texttt{hom-normed-vector-space-pre-type} \texttt{hom-normed-vector-space-post-type} \texttt{hom-normed-vector-space-member-iff} \texttt{hom-normed-vector-space-subset-hom-bounded-linear} \\
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -2594,6 +2639,21 @@ mentioned by 5 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{hom-setoid(a, b)}}\quad\textit{functoid}\index{hom-setoid(a, b)@\texttt{hom-setoid(a, b)}}\\
+reads: the setoid morphisms from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homp\_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp\_), nth(2, homp\_))\}
+\end{quote}
+characterized by \texttt{hom-setoid-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-setoid(a) implies is-setoid(b) implies hom-setoid(a, b) in set)
+\end{quote}
+also: \texttt{hom-setoid-member-iff} \\
+mentioned by 3 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{hom-top-space(a, b)}}\quad\textit{functoid}\index{hom-top-space(a, b)@\texttt{hom-top-space(a, b)}}\\
 reads: the top space morphisms from \$1 to \$2 \\
 definition:
@@ -2606,6 +2666,21 @@ forall([a, b], is-top-space(a) implies is-top-space(b) implies hom-top-space(a, 
 \end{quote}
 also: \texttt{hom-top-space-pre-type} \texttt{hom-top-space-post-type} \texttt{hom-top-space-member-iff} \\
 mentioned by 5 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{hom-uniformly-continuous(a, b)}}\quad\textit{functoid}\index{hom-uniformly-continuous(a, b)@\texttt{hom-uniformly-continuous(a, b)}}\\
+reads: the uniformly continuous maps from \$1 to \$2 \\
+definition:
+\begin{quote}\ttfamily\footnotesize\noindent
+\{homf\_ in fun(pts(a), pts(b)): is-uniformly-continuous-arrow(a, b, homf\_)\}
+\end{quote}
+characterized by \texttt{hom-uniformly-continuous-in-set}  \textit{(proven)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b], is-metric-space(a) implies is-metric-space(b) implies hom-uniformly-continuous(a, b) in set)
+\end{quote}
+also: \texttt{hom-uniformly-continuous-pre-type} \texttt{hom-uniformly-continuous-post-type} \texttt{hom-uniformly-continuous-member-iff} \texttt{hom-lipschitz-subset-hom-uniformly-continuous} \texttt{hom-uniformly-continuous-subset-hom-continuous} \\
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -2639,7 +2714,7 @@ characterized by \texttt{id-fun-type}  \textit{(proven)}:
 forall([a in set], id-fun(a) in fun(a, a))
 \end{quote}
 also: \texttt{id-fun-apply} \\
-mentioned by 37 result(s)
+mentioned by 42 result(s)
 
 \smallskip
 
@@ -2739,8 +2814,8 @@ characterized by \texttt{is-ring}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s], is-ring(s) iff length(s) = 6 and carr(s) in set and add(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and mul(s) in fun(cartesian(carr(s), carr(s)), carr(s)) and neg(s) in fun(carr(s), carr(s)) and zero(s) in carr(s) and one(s) in carr(s) and is-associative(add(s), carr(s)) and is-commutative(add(s), carr(s)) and is-identity(add(s), zero(s), carr(s)) and has-inverses(add(s), zero(s), neg(s), carr(s)) and is-associative(mul(s), carr(s)) and is-identity(mul(s), one(s), carr(s)) and is-distributive(add(s), mul(s), carr(s)))
 \end{quote}
-also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1300 in all) \\
-mentioned by 5044 result(s)
+also: \texttt{is-chain} \texttt{is-ringoid} \texttt{ring-class} \texttt{rr-min-def} \texttt{is-cont-lin} \texttt{is-ideal-in} \texttt{is-k-linear} \texttt{is-seminorm} ... (1317 in all) \\
+mentioned by 5075 result(s)
 
 \smallskip
 
@@ -3058,6 +3133,18 @@ mentioned by 28 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-bounded-linear-arrow(a, b, f)}}\quad\textit{predicate}\index{is-bounded-linear-arrow(a, b, f)@\texttt{is-bounded-linear-arrow(a, b, f)}}\\
+reads: \$3 is a bounded linear map from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-bounded-linear-arrow-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-bounded-linear-arrow(a, b, f) iff is-normed-vector-space(a) and is-normed-vector-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1\_ in vec(a), x2\_ in vec(a)], f((vadd(a))(x1\_, x2\_)) = (vadd(b))(f(x1\_), f(x2\_))) and forall([x1\_ in carr(scal(a)), x2\_ in vec(a)], f((act(a))(x1\_, x2\_)) = (act(b))(x1\_, f(x2\_))) and forsome([blk\_ in rr], 0 <= blk\_ and forall([x1\_ in vec(a)], (vnrm(b))(f(x1\_)) <= blk\_ * (vnrm(a))(x1\_))))
+\end{quote}
+also: \texttt{hom-normed-vector-space-is-bounded-linear-arrow} \\
+mentioned by 7 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-bounded-linear-functional(m, f)}}\quad\textit{predicate}\index{is-bounded-linear-functional(m, f)@\texttt{is-bounded-linear-functional(m, f)}}\\
 reads: \$2 is a bounded linear functional on \$1 \\
 defined by \texttt{is-bounded-linear-functional} \\
@@ -3249,8 +3336,20 @@ characterized by \texttt{is-continuous}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, t, f], is-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([a in pts(s)], is-continuous-at(s, t, f, a)))
 \end{quote}
-also: \texttt{metric-hom-is-continuous} \texttt{continuous-is-continuous-at} \texttt{uniformly-continuous-is-continuous} \\
-mentioned by 23 result(s)
+also: \texttt{is-continuous-arrow-def} \texttt{metric-hom-is-continuous} \texttt{continuous-is-continuous-at} \texttt{uniformly-continuous-is-continuous} \\
+mentioned by 25 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-continuous-arrow(a, b, f)}}\quad\textit{predicate}\index{is-continuous-arrow(a, b, f)@\texttt{is-continuous-arrow(a, b, f)}}\\
+reads: \$3 is a continuous map from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-continuous-arrow-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-continuous-arrow(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and is-continuous(a, b, f))
+\end{quote}
+also: \texttt{uniformly-continuous-arrow-is-continuous-arrow} \\
+mentioned by 7 result(s)
 
 \smallskip
 
@@ -3659,23 +3758,23 @@ mentioned by 12 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{is-hom-measurable-space(a, b, f)}}\quad\textit{predicate}\index{is-hom-measurable-space(a, b, f)@\texttt{is-hom-measurable-space(a, b, f)}}\\
-reads: \$3 is a homomorphism from \$1 to \$2 \\
+\noindent\textbf{\texttt{is-hom-measurable-space(s, t, f)}}\quad\textit{predicate}\index{is-hom-measurable-space(s, t, f)@\texttt{is-hom-measurable-space(s, t, f)}}\\
+reads: \$3 is a measurable map from \$1 to \$2 \\
 a predicate \\
 characterized by \texttt{is-hom-measurable-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a, b, f], is-hom-measurable-space(a, b, f) iff is-measurable-space(a) and is-measurable-space(b) and f in fun(pts(a), pts(b)) and sigma(a) = sigma(b))
+forall([s, t, f], is-hom-measurable-space(s, t, f) iff is-measurable-space(s) and is-measurable-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)))
 \end{quote}
 mentioned by 7 result(s)
 
 \smallskip
 
-\noindent\textbf{\texttt{is-hom-measure-space(a, b, f)}}\quad\textit{predicate}\index{is-hom-measure-space(a, b, f)@\texttt{is-hom-measure-space(a, b, f)}}\\
-reads: \$3 is a homomorphism from \$1 to \$2 \\
+\noindent\textbf{\texttt{is-hom-measure-space(s, t, f)}}\quad\textit{predicate}\index{is-hom-measure-space(s, t, f)@\texttt{is-hom-measure-space(s, t, f)}}\\
+reads: \$3 is a measure-preserving measurable map from \$1 to \$2 \\
 a predicate \\
 characterized by \texttt{is-hom-measure-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
-forall([a, b, f], is-hom-measure-space(a, b, f) iff is-measure-space(a) and is-measure-space(b) and f in fun(pts(a), pts(b)) and sigma(a) = sigma(b) and forall([x1\_ in sigma(a)], (meas(a))(x1\_) = (meas(b))(x1\_)))
+forall([s, t, f], is-hom-measure-space(s, t, f) iff is-measure-space(s) and is-measure-space(t) and f in fun(pts(s), pts(t)) and forall([u in sigma(t)], preimage(s, f, u) in sigma(s)) and forall([u in sigma(t)], (meas(t))(u) = (meas(s))(preimage(s, f, u))))
 \end{quote}
 mentioned by 7 result(s)
 
@@ -3688,7 +3787,7 @@ characterized by \texttt{is-hom-metric-space-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-metric-space(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and forall([x1\_ in pts(a), x2\_ in pts(a)], (dist(a))(x1\_, x2\_) = (dist(b))(f(x1\_), f(x2\_))))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -3754,7 +3853,7 @@ characterized by \texttt{is-hom-normed-vector-space-def}  \textit{(definitional)
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f], is-hom-normed-vector-space(a, b, f) iff is-normed-vector-space(a) and is-normed-vector-space(b) and f in fun(vec(a), vec(b)) and scal(a) = scal(b) and forall([x1\_ in vec(a), x2\_ in vec(a)], f((vadd(a))(x1\_, x2\_)) = (vadd(b))(f(x1\_), f(x2\_))) and f(vzero(a)) = vzero(b) and forall([x1\_ in vec(a)], f((vneg(a))(x1\_)) = (vneg(b))(f(x1\_))) and forall([x1\_ in carr(scal(a)), x2\_ in vec(a)], f((act(a))(x1\_, x2\_)) = (act(b))(x1\_, f(x2\_))) and forall([x1\_ in vec(a)], (vnrm(a))(x1\_) = (vnrm(b))(f(x1\_))))
 \end{quote}
-mentioned by 8 result(s)
+mentioned by 9 result(s)
 
 \smallskip
 
@@ -3821,7 +3920,7 @@ characterized by \texttt{is-hom-setoid-def}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([a, b, f1, f2], is-hom-setoid(a, b, f1, f2) iff is-setoid(a) and is-setoid(b) and f1 in fun(pts(a), pts(b)) and f2 in fun(rel(a), rel(b)))
 \end{quote}
-mentioned by 2 result(s)
+mentioned by 6 result(s)
 
 \smallskip
 
@@ -3992,6 +4091,18 @@ mentioned by 9 result(s)
 
 \smallskip
 
+\noindent\textbf{\texttt{is-lipschitz-arrow(a, b, f)}}\quad\textit{predicate}\index{is-lipschitz-arrow(a, b, f)@\texttt{is-lipschitz-arrow(a, b, f)}}\\
+reads: \$3 is a Lipschitz map from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-lipschitz-arrow-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-lipschitz-arrow(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and forsome([lpk\_ in rr], 0 <= lpk\_ and forall([lpx\_ in pts(a), lpy\_ in pts(a)], (dist(b))(f(lpx\_), f(lpy\_)) <= lpk\_ * (dist(a))(lpx\_, lpy\_))))
+\end{quote}
+also: \texttt{hom-metric-space-is-lipschitz-arrow} \\
+mentioned by 8 result(s)
+
+\smallskip
+
 \noindent\textbf{\texttt{is-local-max-at(f, d, lmt\_)}}\quad\textit{predicate}\index{is-local-max-at(f, d, lmt_)@\texttt{is-local-max-at(f, d, lmt\_)}}\\
 reads: \$1 has a local maximum on \$2 at \$3 \\
 defined by \texttt{is-local-max-at} \\
@@ -4113,7 +4224,7 @@ characterized by \texttt{is-metric-space}  \textit{(definitional)}:
 forall([s], is-metric-space(s) iff length(s) = 2 and pts(s) in set and dist(s) in fun(cartesian(pts(s), pts(s)), rr) and is-metric(dist(s), pts(s)))
 \end{quote}
 also: \texttt{cc-is-metric-space} \texttt{rr-is-metric-space} \texttt{nf-cc-is-metric-space} \texttt{nf-rr-is-metric-space} \texttt{sub-rr-is-metric-space} \texttt{product-is-metric-space} \texttt{subspace-is-metric-space} \texttt{bdd-rr-ms-is-metric-space} ... (15 in all) \\
-mentioned by 252 result(s)
+mentioned by 270 result(s)
 
 \smallskip
 
@@ -4241,7 +4352,7 @@ characterized by \texttt{is-normed-vector-space}  \textit{(definitional)}:
 forall([s], is-normed-vector-space(s) iff length(s) = 7 and is-ring(scal(s)) and vec(s) in set and vadd(s) in fun(cartesian(vec(s), vec(s)), vec(s)) and vzero(s) in vec(s) and vneg(s) in fun(vec(s), vec(s)) and act(s) in fun(cartesian(carr(scal(s)), vec(s)), vec(s)) and vnrm(s) in fun(vec(s), rr) and is-associative(vadd(s), vec(s)) and is-commutative(vadd(s), vec(s)) and is-identity(vadd(s), vzero(s), vec(s)) and has-inverses(vadd(s), vzero(s), vneg(s), vec(s)) and scal(s) = normed-field-as-commutative-ring(rr-normed-field) and forall([r\_ in carr(scal(s)), x\_ in vec(s), y\_ in vec(s)], (act(s))(r\_, (vadd(s))(x\_, y\_)) = (vadd(s))((act(s))(r\_, x\_), (act(s))(r\_, y\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((add(scal(s)))(r\_, s\_), x\_) = (vadd(s))((act(s))(r\_, x\_), (act(s))(s\_, x\_))) and forall([r\_ in carr(scal(s)), s\_ in carr(scal(s)), x\_ in vec(s)], (act(s))((mul(scal(s)))(r\_, s\_), x\_) = (act(s))(r\_, (act(s))(s\_, x\_))) and forall([x\_ in vec(s)], (act(s))(one(scal(s)), x\_) = x\_) and forall([x\_ in vec(s)], 0 <= (vnrm(s))(x\_)) and forall([x\_ in vec(s)], (vnrm(s))(x\_) = 0 iff x\_ = vzero(s)) and forall([r\_ in carr(scal(s)), x\_ in vec(s)], (vnrm(s))((act(s))(r\_, x\_)) = abs(r\_) * (vnrm(s))(x\_)) and forall([x\_ in vec(s), y\_ in vec(s)], (vnrm(s))((vadd(s))(x\_, y\_)) <= (vnrm(s))(x\_) + (vnrm(s))(y\_)))
 \end{quote}
 also: \texttt{dual-is-normed-vector-space} \texttt{rr-nvs-is-normed-vector-space} \\
-mentioned by 219 result(s)
+mentioned by 225 result(s)
 
 \smallskip
 
@@ -4603,7 +4714,7 @@ characterized by \texttt{is-setoid}  \textit{(definitional)}:
 forall([s], is-setoid(s) iff length(s) = 2 and pts(s) in set and rel(s) in set and is-equivalence(rel(s), pts(s)))
 \end{quote}
 also: \texttt{cauchy-setoid-is-setoid} \texttt{ringoid-setoid-is-setoid} \\
-mentioned by 28 result(s)
+mentioned by 30 result(s)
 
 \smallskip
 
@@ -4761,7 +4872,20 @@ characterized by \texttt{is-uniformly-continuous}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([s, t, f], is-uniformly-continuous(s, t, f) iff is-metric-space(s) and is-metric-space(t) and f in fun(pts(s), pts(t)) and forall([eps], pos-rr(eps) implies forsome([delta], pos-rr(delta) and forall([a in pts(s), b in pts(s)], (dist(s))(a, b) <= delta implies (dist(t))(f(a), f(b)) <= eps))))
 \end{quote}
-mentioned by 5 result(s)
+also: \texttt{is-uniformly-continuous-arrow-def} \\
+mentioned by 7 result(s)
+
+\smallskip
+
+\noindent\textbf{\texttt{is-uniformly-continuous-arrow(a, b, f)}}\quad\textit{predicate}\index{is-uniformly-continuous-arrow(a, b, f)@\texttt{is-uniformly-continuous-arrow(a, b, f)}}\\
+reads: \$3 is a uniformly continuous map from \$1 to \$2 \\
+a predicate \\
+characterized by \texttt{is-uniformly-continuous-arrow-def}  \textit{(definitional)}:
+\begin{quote}\ttfamily\footnotesize\noindent
+forall([a, b, f], is-uniformly-continuous-arrow(a, b, f) iff is-metric-space(a) and is-metric-space(b) and f in fun(pts(a), pts(b)) and is-uniformly-continuous(a, b, f))
+\end{quote}
+also: \texttt{lipschitz-arrow-is-uniformly-continuous-arrow} \\
+mentioned by 8 result(s)
 
 \smallskip
 
@@ -5707,7 +5831,7 @@ characterized by \texttt{nth-cons-1}  \textit{(definitional)}:
 forall([x, l], nth(1, cons(x, l)) = x)
 \end{quote}
 also: \texttt{nth-cons-succ} \texttt{nth-in-range} \texttt{ms-nth-2} \texttt{nth1-pair} \texttt{nth2-pair} \texttt{cartesian-nth} \\
-mentioned by 80 result(s)
+mentioned by 82 result(s)
 
 \smallskip
 
@@ -6039,7 +6163,7 @@ characterized by \texttt{preimage-membership}  \textit{(definitional)}:
 forall([s, f, v, a], a in preimage(s, f, v) iff a in pts(s) and f(a) in v)
 \end{quote}
 also: \texttt{preimage-in-power} \texttt{metric-top@preimage} \texttt{preimage-complement} \texttt{trunc-metric@preimage} \texttt{image-of-preimage-onto} \texttt{preimage-subspace-open} \texttt{continuous-implies-open-preimage} \texttt{open-preimage-implies-continuous} ... (10 in all) \\
-mentioned by 20 result(s)
+mentioned by 24 result(s)
 
 \smallskip
 
@@ -6247,7 +6371,7 @@ characterized by \texttt{cc-ms@pts}  \textit{(definitional)}:
 pts(cc-ms) == cc
 \end{quote}
 also: \texttt{rr-ms@pts} \texttt{ringoid-setoid-pts} \texttt{ds-pts} \texttt{nvs-ms-pts} \texttt{r7q-rr-pts} \texttt{subspace-pts} \texttt{ms-pts-is-set} \texttt{nf-cc-agree-pts} ... (14 in all) \\
-mentioned by 398 result(s)
+mentioned by 416 result(s)
 
 \smallskip
 
@@ -6467,7 +6591,7 @@ characterized by \texttt{r6b-setoid-rel}  \textit{(proven)}:
 forall([r], rel(ringoid-setoid(r)) == ringoid-rel(r))
 \end{quote}
 also: \texttt{rko2-related-unfold} \texttt{rko2-cauchy-setoid-rel} \\
-mentioned by 10 result(s)
+mentioned by 13 result(s)
 
 \smallskip
 
@@ -6813,7 +6937,7 @@ characterized by \texttt{dual-scal}  \textit{(definitional)}:
 forall([m], scal(dual(m)) == rr-normed-field)
 \end{quote}
 also: \texttt{rr-nvs@scal} \texttt{qq-line@scal} \texttt{cips-scal-carrier} \texttt{module-scalar-ring} \texttt{module-scalar-zero-in} \texttt{module-act-distrib-scalar} \texttt{module-scalar-ring-normed-vector-space-as-module} \texttt{module-scalar-zero-in-normed-vector-space-as-module} ... (22 in all) \\
-mentioned by 190 result(s)
+mentioned by 192 result(s)
 
 \smallskip
 
@@ -7269,8 +7393,8 @@ characterized by \texttt{submodule-subset}  \textit{(definitional)}:
 \begin{quote}\ttfamily\footnotesize\noindent
 forall([m, s], is-submodule(m, s) implies s subset vec(m))
 \end{quote}
-also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (44 in all) \\
-mentioned by 361 result(s)
+also: \texttt{ringoid-ideal-subset} \texttt{inf-subsets-membership} \texttt{subset-def} \texttt{subset-set} \texttt{subset-refl} \texttt{subset-trans} \texttt{subset-mem-fwd} \texttt{ccint-subset-rr} ... (48 in all) \\
+mentioned by 365 result(s)
 
 \smallskip
 
@@ -7743,7 +7867,7 @@ characterized by \texttt{rr-nvs@vadd}  \textit{(definitional)}:
 vadd(rr-nvs) == vnb-lambda([x\_, y\_], cartesian(rr, rr), x\_ + y\_)
 \end{quote}
 also: \texttt{qq-line@vadd} \texttt{cips-vadd-type} \texttt{cips-vadd-vzero} \texttt{module-vadd-type} \texttt{submodule-vadd-closed} \texttt{module-vadd-type-normed-vector-space-as-module} \texttt{module-vadd-type-complex-inner-product-space-as-module} \texttt{nvs-vadd-comm} ... (18 in all) \\
-mentioned by 190 result(s)
+mentioned by 192 result(s)
 
 \smallskip
 
@@ -7755,7 +7879,7 @@ characterized by \texttt{rr-nvs@vec}  \textit{(definitional)}:
 vec(rr-nvs) == rr
 \end{quote}
 also: \texttt{qq-line@vec} \texttt{cips-ip-zero-vector} \texttt{dual-vec-membership} \texttt{is-normed-vector-space} \texttt{module-act-distrib-vec} \texttt{is-hom-normed-vector-space-def} \texttt{abelian-group-assoc-module-vector-ag} \texttt{abelian-group-right-id-module-vector-ag} ... (50 in all) \\
-mentioned by 427 result(s)
+mentioned by 432 result(s)
 
 \smallskip
 
@@ -7772,7 +7896,7 @@ declared in \texttt{tactics-help.scm}
 
 \noindent\textbf{\texttt{vnb-lambda}}\quad\textit{operator}\index{vnb-lambda@\texttt{vnb-lambda}}\\
 a term-forming head \\
-mentioned by 983 result(s)
+mentioned by 991 result(s)
 
 \smallskip
 
@@ -7796,7 +7920,7 @@ characterized by \texttt{rr-nvs@vnrm}  \textit{(definitional)}:
 vnrm(rr-nvs) == vnb-lambda(x\_, rr, abs(x\_))
 \end{quote}
 also: \texttt{vnrm-real} \texttt{vnrm-nonneg} \texttt{nvs-vnrm-homog} \texttt{nvs-vnrm-vzero} \texttt{nvs-vnrm-homog-c} \texttt{nvs-vnrm-triangle} \\
-mentioned by 65 result(s)
+mentioned by 67 result(s)
 
 \smallskip
 

@@ -124,7 +124,9 @@
         (and (= (length e) 3)
              (let ((x (arith-eval-term (cadr e)))
                    (n (arith-eval-term (caddr e))))
-               (and (number? x) (exact? n) (integer? n)
+               ;; 2026-09-28: n is #f for a SYMBOLIC exponent ((power -1 m)); `exact?'
+               ;; on #f raised "#f passed to exact?" out of crs instead of a decline.
+               (and (number? x) (number? n) (exact? n) (integer? n)
                     (cond
                       ((zero? n) 1)
                       ((positive? n) (expt x n))

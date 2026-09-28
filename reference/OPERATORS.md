@@ -12,7 +12,7 @@ The VNB universe has SETS (the elements of `SET`), CLASSES, and further entities
 
 Every operator must be declared (a def-form, a recursion, or a characterizing axiom).  An **undeclared** head is a defect.
 
-581 operators: 3 functions, 11 syntax, 340 functoids, 224 predicates, 3 undeclared.
+590 operators: 3 functions, 11 syntax, 345 functoids, 228 predicates, 3 undeclared.
 
 > **⚠ Undeclared heads (mushrooms):** `cos` `exp` `sin` — registered and usable but backed by no def or axiom.
 
@@ -50,7 +50,7 @@ Heads that form terms and denote nothing themselves.  There is no `+ in SET` to 
 
 ### `succ`  — syntax: the head denotes nothing
 
-## Functoids  (340)
+## Functoids  (345)
 
 Term-valued operators that do NOT denote an element of `SET` — the big amorphous category.  Sub-labelled by how each is declared (`kernel term-former`; `def-functoid` body; `def-by-nn-recursion`; structure accessor; or a hand-written characterizing axiom) and, where known, by value type.  `def-functor` bridges live in `STRUCTURE-INDEX.md`; `lambdoid` (the functoid binder) is a parser-level form, not a registered head.
 
@@ -594,6 +594,12 @@ Declared by: `fam-of-list-apply`
 
     hom-abelian-group(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-abelian-group(a, b, homf_)}
 
+### `hom-bounded-linear`  — def-functoid · set-valued
+
+> _Reads as:_  the bounded linear maps from a to b
+
+    hom-bounded-linear(a, b) := {homf_ in fun(vec(a), vec(b)): is-bounded-linear-arrow(a, b, homf_)}
+
 ### `hom-c-metric-space`  — def-functoid · set-valued
 
 > _Reads as:_  the c metric space morphisms from a to b
@@ -617,6 +623,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the complex inner product space morphisms from a to b
 
     hom-complex-inner-product-space(a, b) := {homf_ in fun(vec(a), vec(b)): is-hom-complex-inner-product-space(a, b, homf_)}
+
+### `hom-continuous`  — def-functoid · set-valued
+
+> _Reads as:_  the continuous maps from a to b
+
+    hom-continuous(a, b) := {homf_ in fun(pts(a), pts(b)): is-continuous-arrow(a, b, homf_)}
 
 ### `hom-euclidean-ring`  — def-functoid · set-valued
 
@@ -647,6 +659,12 @@ Declared by: `fam-of-list-apply`
 > _Reads as:_  the integral domain morphisms from a to b
 
     hom-integral-domain(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-integral-domain(a, b, homf_)}
+
+### `hom-lipschitz`  — def-functoid · set-valued
+
+> _Reads as:_  the Lipschitz maps from a to b
+
+    hom-lipschitz(a, b) := {homf_ in fun(pts(a), pts(b)): is-lipschitz-arrow(a, b, homf_)}
 
 ### `hom-measurable-space`  — def-functoid · set-valued
 
@@ -732,11 +750,23 @@ Declared by: `fam-of-list-apply`
 
     hom-semigroup(a, b) := {homf_ in fun(carr(a), carr(b)): is-hom-semigroup(a, b, homf_)}
 
+### `hom-setoid`  — def-functoid · set-valued
+
+> _Reads as:_  the setoid morphisms from a to b
+
+    hom-setoid(a, b) := {homp_ in cartesian(fun(pts(a), pts(b)), fun(rel(a), rel(b))): is-hom-setoid(a, b, nth(1, homp_), nth(2, homp_))}
+
 ### `hom-top-space`  — def-functoid · set-valued
 
 > _Reads as:_  the top space morphisms from a to b
 
     hom-top-space(a, b) := {homf_ in fun(pts(a), pts(b)): is-hom-top-space(a, b, homf_)}
+
+### `hom-uniformly-continuous`  — def-functoid · set-valued
+
+> _Reads as:_  the uniformly continuous maps from a to b
+
+    hom-uniformly-continuous(a, b) := {homf_ in fun(pts(a), pts(b)): is-uniformly-continuous-arrow(a, b, homf_)}
 
 ### `hom-vector-space`  — def-functoid · set-valued
 
@@ -1608,7 +1638,7 @@ Declared by: `zup-zero` `zup-succ` `zup-limit`
 
 Declared by: `zz-ring-def` 
 
-## Predicates  (224)
+## Predicates  (228)
 
 Proposition-valued operators.  Their defining axiom is an `iff` on the applied head.  Full definitions in `DEFINITIONS.md`.
 
@@ -1768,6 +1798,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 > _Reads as:_  op is associative on crr
 
+### `is-bounded-linear-arrow`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a bounded linear map from a to b
+
 ### `is-bounded-linear-functional`  — def-predicate · proposition (arity 2)
 
 > _Reads as:_  f is a bounded linear functional on m
@@ -1835,6 +1869,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-continuous`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is continuous from s to t
+
+### `is-continuous-arrow`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a continuous map from a to b
 
 ### `is-continuous-at`  — def-predicate · proposition (arity 4)
 
@@ -1978,11 +2016,11 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 
 ### `is-hom-measurable-space`  — def-predicate · proposition (arity 3)
 
-> _Reads as:_  f is a homomorphism from a to b
+> _Reads as:_  f is a measurable map from s to t
 
 ### `is-hom-measure-space`  — def-predicate · proposition (arity 3)
 
-> _Reads as:_  f is a homomorphism from a to b
+> _Reads as:_  f is a measure-preserving measurable map from s to t
 
 ### `is-hom-metric-space`  — def-predicate · proposition (arity 3)
 
@@ -2095,6 +2133,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-linear-map`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  tt is a linear map from m1 to m2
+
+### `is-lipschitz-arrow`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a Lipschitz map from a to b
 
 ### `is-local-max-at`  — def-predicate · proposition (arity 3)
 
@@ -2367,6 +2409,10 @@ Proposition-valued operators.  Their defining axiom is an `iff` on the applied h
 ### `is-uniformly-continuous`  — def-predicate · proposition (arity 3)
 
 > _Reads as:_  f is uniformly continuous from s to t
+
+### `is-uniformly-continuous-arrow`  — def-predicate · proposition (arity 3)
+
+> _Reads as:_  f is a uniformly continuous map from a to b
 
 ### `is-upper-bound`  — def-predicate · proposition (arity 4)
 

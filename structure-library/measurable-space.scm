@@ -66,10 +66,18 @@
 ;;;
 ;;; The shape supplies PTS(s) in SET and SIGMA(s) subset POWER(PTS(s)); the law
 ;;; supplies the three Rudin 1.3 clauses, by citation.
+;;;
+;;; SIGMA is a FAMILY slot (a set of subsets of the carrier PTS), not a constant
+;;; (batch 39, 2026-09-28).  IS-MEASURABLE-SPACE is the same formula either way;
+;;; the difference is the generated MORPHISM.  As a constant slot SIGMA generated
+;;; the clause SIGMA(a) = SIGMA(b) and left f unconstrained -- the wrong arrows
+;;; (docs/categories-per-structure-2026-09-28.md).  As a family it generates
+;;;   forall u in SIGMA(t). PREIMAGE(s, f, u) in SIGMA(s),
+;;; the measurable maps.
 (declare-structure MEASURABLE-SPACE
   (instance-var s)
   (carriers PTS)
-  (constant SIGMA (POWER (POWER PTS)))
+  (family SIGMA PTS)
   (law (IS-SIGMA-ALGEBRA (PTS s) (SIGMA s))))
 
 ;;; -----------------------------------------------------------------------
@@ -77,11 +85,17 @@
 ;;;
 ;;; IS-MEASURE already carries IS-SIGMA-ALGEBRA as its first conjunct, so the
 ;;; single law below gives the whole of Def. 1.16 including Def. 1.7.
+;;;
+;;; MEAS is a FUNCTION ON THE FAMILY SIGMA (batch 39): typed as the old
+;;; (op MEAS SIGMA RR-POS-STAR) typed it, and generating the transport clause
+;;;   forall u in SIGMA(t). MEAS(t)(u) = MEAS(s)(PREIMAGE(s, f, u)),
+;;; so the default arrows are the measure-preserving measurable maps (the old
+;;; clause compared the two measures on the SAME sets).
 (declare-structure MEASURE-SPACE
   (instance-var s)
   (carriers PTS)
-  (constant SIGMA (POWER (POWER PTS)))
-  (op MEAS SIGMA RR-POS-STAR)
+  (family SIGMA PTS)
+  (family-fun MEAS SIGMA RR-POS-STAR)
   (law (IS-MEASURE (PTS s) (SIGMA s) (MEAS s))))
 
 ;;; --- view-as edge: forget the measure ---------------------------------
@@ -90,6 +104,11 @@
   'MEASURABLE-SPACE  '(PTS SIGMA))
 
 ;;; --- readings ---------------------------------------------------------
+;;; the generated arrows (the family / family-fun rules of build-hom-axiom)
+(notation! 'IS-HOM-MEASURABLE-SPACE 'kind 'predicate 'arity 3
+           'english "$3 is a measurable map from $1 to $2")
+(notation! 'IS-HOM-MEASURE-SPACE 'kind 'predicate 'arity 3
+           'english "$3 is a measure-preserving measurable map from $1 to $2")
 (notation! 'PTS   'kind 'accessor 'arity 1)
 (notation! 'SIGMA 'kind 'accessor 'arity 1 'english "the sigma-algebra of $1")
 (notation! 'MEAS  'kind 'accessor 'arity 1 'english "the measure of $1")
