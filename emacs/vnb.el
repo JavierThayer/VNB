@@ -855,6 +855,15 @@ Point is left after the inserted text."
                      (vnb--unquote (vnb-eval-string "(refresh-status)"))
                    (error "done"))
                  "\n"))
+        ;; A command that reported on the channel acted on the proof even though it
+        ;; returned a value (zero-it returns the normal form): repaint the state
+        ;; pane too, and say where the proof stands, or the Focus goes stale.
+        (report
+         (insert result "\n;; ⇒ "
+                 (condition-case nil
+                     (vnb--unquote (vnb-eval-string "(refresh-status)"))
+                   (error "done"))
+                 "\n"))
         (t (insert result "\n"))))))
 
 (defun vnb-command-send-buffer ()
